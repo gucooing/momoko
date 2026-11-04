@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>配色方案</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:0 14px;border-radius:999px;border:0;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.bad{background:var(--badSoft);color:var(--bad)}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div class="root th-sakura-light" style="width: 1440px; height: 1280px; padding: 52px 56px; background: #F6F5F8; color: #1C1A22; display: flex; flex-direction: column; gap: 32px">
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div style="width: 44px; height: 44px; border-radius: 14px; background: #1C1A22; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800">M</div>
+        <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.08em; color: #5E5A68">MOMOKO · 新视觉</span>
+      </div>
+      <h1 style="margin: 0; font-size: 46px; line-height: 1.1; font-weight: 800; letter-spacing: -0.01em">六套配色，每个人在「外观」里自己选</h1>
+    </div>
+    <div style="font-size: 15px; color: #5E5A68">每套都有浅色 / 深色，也可跟随系统</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; flex: 1">
+    <sc-for list="{{palettes}}" as="x" hint-placeholder-count="6">
+      <div class="th-{{x.key}}-light" style="background: var(--bg); border: 1px solid var(--line); border-radius: 28px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+          <div style="font-size: 24px; font-weight: 800; color: var(--ink)">{{x.name}}</div>
+          <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--ink2)">{{x.en}}</div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <sc-for list="{{x.sw}}" as="s" hint-placeholder-count="5">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1">
+              <div style="width: 100%; height: 30px; border-radius: 10px; background: {{s.hex}}; border: 1px solid rgba(0,0,0,0.06)"></div>
+              <span style="font-size: 10px; font-weight: 600; color: var(--ink2)">{{s.hex}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background: var(--p); color: var(--pOn); border-radius: 20px; padding: 16px 18px; position: relative; overflow: hidden">
+          <div style="position: absolute; right: -30px; bottom: -44px; width: 120px; height: 120px; border-radius: 50%; background: var(--a)"></div>
+          <div style="position: absolute; right: 70px; top: -18px; width: 52px; height: 52px; border-radius: 50%; border: 8px solid var(--a2)"></div>
+          <div style="position: relative; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 19px; font-weight: 800">晚上好，超级管理员</div>
+            <div style="font-size: 12px; opacity: 0.9">一切运行正常，5 个应用在跑</div>
+            <div style="display: flex; gap: 8px; margin-top: 8px">
+              <span class="btn" style="background: var(--pOn); color: var(--p)">新建应用</span>
+              <span class="btn" style="background: color-mix(in srgb, var(--pOn) 18%, transparent); color: var(--pOn)">打开终端</span>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+          <span class="btn btn-p">启动</span>
+          <span class="btn btn-s">控制台</span>
+          <span class="pill ok">运行中</span>
+          <span class="pill bad">已退出</span>
+        </div>
+        <div class="th-{{x.key}}-dark" style="background: var(--bg); border-radius: 18px; padding: 12px; display: flex; align-items: center; gap: 10px; margin-top: auto">
+          <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink2); writing-mode: vertical-rl">深色</span>
+          <div style="flex: 1; background: var(--p); color: var(--pOn); border-radius: 14px; padding: 12px; font-size: 15px; font-weight: 800">晚上好 ✦</div>
+          <div class="card" style="flex: 1; padding: 8px 12px; border-radius: 14px">
+            <div style="font-size: 11px; font-weight: 600; color: var(--ink2)">CPU</div>
+            <div class="num" style="font-size: 18px; font-weight: 800; color: var(--ink)">3.0%</div>
+          </div>
+          <span style="width: 30px; height: 30px; border-radius: 10px; background: var(--a); display: inline-block"></span>
+          <span style="width: 30px; height: 30px; border-radius: 10px; background: var(--a2); display: inline-block"></span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1280}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      palettes: [
+        { key: 'sakura', name: '樱桃汽水', en: 'SAKURA SODA', sw: [{ hex: '#D6245F' }, { hex: '#FFC93C' }, { hex: '#7B5CFF' }, { hex: '#FFF6F9' }, { hex: '#2A1630' }] },
+        { key: 'mint', name: '薄荷柠檬', en: 'MINT LEMON', sw: [{ hex: '#00805F' }, { hex: '#FFE14D' }, { hex: '#2E9BFF' }, { hex: '#F3FBF7' }, { hex: '#0F2A21' }] },
+        { key: 'volt', name: '电光蓝橙', en: 'VOLT', sw: [{ hex: '#3450FF' }, { hex: '#FF7A1A' }, { hex: '#00B8A9' }, { hex: '#F4F6FF' }, { hex: '#11163A' }] },
+        { key: 'grape', name: '葡萄气泡', en: 'GRAPE FIZZ', sw: [{ hex: '#7C3AED' }, { hex: '#FFD23F' }, { hex: '#E8457A' }, { hex: '#F8F5FF' }, { hex: '#1F1436' }] },
+        { key: 'sunset', name: '橘子海', en: 'SUNSET', sw: [{ hex: '#C2410C' }, { hex: '#FFC93C' }, { hex: '#2F6FED' }, { hex: '#FFF7F0' }, { hex: '#2B1708' }] },
+        { key: 'classic', name: '经典青', en: 'CLASSIC', sw: [{ hex: '#0F7F72' }, { hex: '#FFB020' }, { hex: '#5B6CFF' }, { hex: '#F3F5F9' }, { hex: '#1B2333' }] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

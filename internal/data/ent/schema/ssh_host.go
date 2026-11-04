@@ -29,6 +29,8 @@ func (SSHHost) Fields() []ent.Field {
 		field.Int("last_test_latency_ms").Default(0).Comment("上次测试延迟（毫秒）"),
 		field.Text("last_test_message").Optional().Comment("上次测试失败原因"),
 		field.Time("last_connect_at").Optional().Nillable().Comment("上次打开终端连接的时间"),
+		field.String("key_type").Optional().Comment("私钥算法（如 ed25519、rsa-4096）；密码认证为空"),
+		field.Strings("quick_commands").Optional().Comment("终端快捷命令"),
 	}
 }
 

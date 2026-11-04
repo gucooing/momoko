@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>节点 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.card-sel{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:var(--s2);color:var(--ink2);font-size:12px;font-weight:700;white-space:nowrap}
+.tag-tls{background:var(--okSoft);color:var(--ok)}
+.tag-main{background:var(--a);color:var(--aOn)}
+.tag-warn{background:var(--warnSoft);color:var(--warn)}
+.tag-cur{background:var(--pSoft);color:var(--pInk)}
+.perm{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.perm-on{background:var(--pSoft);color:var(--pInk)}
+.perm-off{background:transparent;color:var(--ink2);border:1.5px dashed var(--line)}
+.utab{display:inline-flex;align-items:center;min-height:44px;padding:0 2px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700;flex:none}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; min-height: 2200px; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: flex-end; gap: 6px; padding: 22px 12px 4px 20px">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.01em">节点</h1>
+      <div style="font-size: 13px; color: var(--ink2)">4 个节点 · <span style="color: var(--ok); font-weight: 700">3 在线</span></div>
+    </div>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    <button class="ib" aria-label="测试全部节点"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.pulse}}"></path></svg></button>
+  </header>
+  <nav class="hs" aria-label="节点分类" style="display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+    <a class="utab utab-on" href="NodesMobile.dc.html">节点 4</a>
+    <a class="utab" href="ApiKeysMobile.dc.html">API Key 3</a>
+  </nav>
+
+  <div style="padding: 14px 16px 12px">
+    <section aria-label="节点概况" style="position: relative; overflow: hidden; border-radius: 24px; background: var(--p); color: var(--pOn); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+      <div aria-hidden="true" style="position: absolute; right: -40px; bottom: -70px; width: 150px; height: 150px; border-radius: 50%; background: var(--a)"></div>
+      <div aria-hidden="true" style="position: absolute; right: 110px; top: -26px; width: 56px; height: 56px; border-radius: 50%; border: 9px solid var(--a2)"></div>
+      <div style="position: relative; display: flex; flex-direction: column; gap: 2px">
+        <span class="num" style="font-size: 26px; font-weight: 800">4 个节点 · 3 在线</span>
+        <span style="font-size: 13px">hk-relay 已离线 3 天</span>
+      </div>
+      <div style="position: relative; display: flex; gap: 8px">
+        <span style="padding: 8px 12px; border-radius: 14px; background: var(--pOn); color: var(--ink); display: flex; flex-direction: column"><span style="font-size: 11px; font-weight: 700; color: var(--ink2)">平均延迟</span><span class="num" style="font-size: 16px; font-weight: 800">15 ms</span></span>
+        <span style="min-width: 0; padding: 8px 12px; border-radius: 14px; background: var(--pOn); color: var(--ink); display: flex; flex-direction: column"><span style="font-size: 11px; font-weight: 700; color: var(--ink2)">正在操作</span><span style="font-size: 14px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{curName}}</span></span>
+      </div>
+    </section>
+  </div>
+
+  <div class="hs" role="tablist" aria-label="按状态筛选" style="display: flex; gap: 8px; padding: 2px 16px 14px; overflow-x: auto">
+    <sc-for list="{{filters}}" as="f" hint-placeholder-count="3">
+      <button class="chip {{f.cls}}" role="tab" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 20px">
+    <sc-for list="{{nodes}}" as="nd" hint-placeholder-count="4">
+      <article class="card {{nd.selCls}}" style="padding: 16px 12px 6px 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: flex-start; gap: 12px; padding-right: 4px">
+          <span class="av {{nd.av}}" style="width: 46px; height: 46px; border-radius: 15px; transform: rotate({{nd.rot}})"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{nd.icon}}"></path></svg></span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+            <span style="font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{nd.n}}</span>
+            <span class="mono" style="font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{nd.addr}}</span>
+          </span>
+          <span class="pill {{nd.st}}">{{nd.stT}}</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: -2px">
+          <sc-if value="{{nd.main}}" hint-placeholder-val="{{false}}"><span class="tag tag-main">本机 · 主控</span></sc-if>
+          <span class="tag {{nd.tlsCls}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 12px; height: 12px"><path d="{{nd.tlsD}}"></path></svg>{{nd.tls}}</span>
+          <sc-if value="{{nd.upg}}" hint-placeholder-val="{{false}}"><span class="tag tag-warn">可升级</span></sc-if>
+        </div>
+        <dl style="margin: 0 4px 0 0; padding: 10px 12px; border-radius: 14px; background: var(--s2); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px">
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">延迟</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700; color: {{nd.msFg}}">{{nd.ms}}</dd>
+          </div>
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">版本</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{nd.ver}}</dd>
+          </div>
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">上次探测</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{nd.probe}}</dd>
+          </div>
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">系统</dt>
+            <dd style="margin: 2px 0 0; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{nd.os}}</dd>
+          </div>
+        </dl>
+        <sc-if value="{{nd.hasErr}}" hint-placeholder-val="{{false}}">
+          <div style="margin-right: 4px; display: flex; align-items: flex-start; gap: 8px; padding: 9px 12px; border-radius: 12px; background: var(--badSoft); color: var(--bad); font-size: 13px; font-weight: 600; line-height: 1.45">
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 1px"><path d="{{i.alert}}"></path></svg><span>{{nd.err}}</span>
+          </div>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-right: 4px">
+          <span style="font-size: 11px; font-weight: 700; color: var(--ink2)">授权范围（{{nd.permN}} / 5）</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{nd.perms}}" as="pm" hint-placeholder-count="5">
+              <span class="perm {{pm.cls}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 12px; height: 12px; stroke-width: 2.6"><path d="{{pm.d}}"></path></svg>{{pm.t}}</span>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0; padding-top: 6px; border-top: 1px solid var(--line)">
+          <div style="flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-if value="{{nd.isCur}}" hint-placeholder-val="{{false}}"><span class="tag tag-cur">当前节点</span></sc-if>
+            <sc-if value="{{nd.testing}}" hint-placeholder-val="{{false}}"><span class="tag">测试中…</span></sc-if>
+          </div>
+          <sc-if value="{{nd.canSwitch}}" hint-placeholder-val="{{true}}">
+            <button class="ib" aria-label="切换到 {{nd.n}}" onClick="{{nd.pick}}" style="color: var(--pInk)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.swap}}"></path></svg></button>
+          </sc-if>
+          <button class="ib" aria-label="测试 {{nd.n}} 连接" onClick="{{nd.test}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.pulse}}"></path></svg></button>
+          <button class="ib" aria-label="编辑 {{nd.n}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.edit}}"></path></svg></button>
+          <button class="ib" aria-label="{{nd.n}} 更多操作"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+
+  <div style="position: sticky; bottom: 92px; margin-top: auto; display: flex; justify-content: flex-end; padding: 0 16px 12px; pointer-events: none">
+    <button class="btn btn-p" style="pointer-events: auto; min-height: 56px; padding: 0 22px; font-size: 15px; box-shadow: 0 12px 28px -10px var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>添加节点</button>
+  </div>
+
+  <nav aria-label="底部导航" style="position: sticky; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":2200}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  pulse: 'M3 12h4l3-7 4 14 3-7h4',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  x: 'M7 7l10 10M17 7 7 17',
+  swap: 'M7 7h13M16 3l4 4-4 4M17 17H4M8 13l-4 4 4 4',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4',
+  monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  cloud: 'M7 18a5 5 0 0 1-.5-10A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z',
+  disk: 'M3 6h18v12H3zM3 12h18M7 9h.01M7 15h.01',
+  relay: 'M5 12a7 7 0 0 1 14 0M8.5 12a3.5 3.5 0 0 1 7 0M12 12v9',
+  alert: 'M12 3l10 18H2zM12 10v4M12 17.5h.01',
+  more: 'M5 12h.01M12 12h.01M19 12h.01'
+};
+const PERMS = ['应用', '文件', '容器', '工具', 'SSH'];
+const NODES = [
+  { id: 'local', n: 'DESKTOP-K5K9BBC', main: true, icon: IC.monitor, addr: '127.0.0.1:22733', tls: '本机直连', tlsOn: false, online: true, ms: '< 1 ms', ver: 'v1.8.2', probe: '刚刚', os: 'Windows 11 · x64', perms: [1, 1, 1, 1, 1] },
+  { id: 'tokyo', n: 'vps-tokyo', icon: IC.cloud, addr: '203.0.113.24:22733', tls: 'TLS 1.3', tlsOn: true, online: true, ms: '42 ms', ver: 'v1.8.2', probe: '30 秒前', os: 'Ubuntu 24.04 · x64', perms: [1, 1, 1, 1, 1] },
+  { id: 'nas', n: 'nas-home', icon: IC.disk, addr: '192.168.1.20:22733', tls: 'TLS · 自签证书', tlsOn: true, online: true, ms: '3 ms', ver: 'v1.8.0', upg: true, probe: '30 秒前', os: 'Debian 12 · arm64', perms: [0, 1, 1, 0, 0] },
+  { id: 'hk', n: 'hk-relay', icon: IC.relay, addr: 'hk.relay.example.com:22733', tls: 'TLS 1.3', tlsOn: true, online: false, ms: '—', ver: 'v1.7.5', upg: true, probe: '1 分钟前', os: 'Alpine 3.20 · x64', perms: [0, 0, 0, 1, 1], err: '探测失败：连接被拒绝，节点进程可能已停止' }
+];
+const AVS = ['av-p', 'av-a2', 'av-a', 'av-ok'];
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const filter = st.filter || 'all';
+    const cur = st.cur || 'local';
+    const testing = st.testing || {};
+    const curN = NODES.find((x) => x.id === cur) || NODES[0];
+    const match = (x, k) => k === 'all' || (k === 'on' && x.online) || (k === 'off' && !x.online);
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      curName: curN.n,
+      filters: [['all', '全部'], ['on', '在线'], ['off', '离线']].map(([k, t]) => ({ t, n: NODES.filter((x) => match(x, k)).length, cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
+      nodes: NODES.filter((x) => match(x, filter)).map((x) => {
+        const k = NODES.indexOf(x) % 4;
+        const isCur = x.id === cur;
+        const t = !!testing[x.id];
+        return {
+          ...x,
+          main: !!x.main,
+          av: AVS[k], rot: ROTS[k],
+          selCls: isCur ? 'card-sel' : '',
+          tlsCls: x.tlsOn ? 'tag-tls' : '',
+          tlsD: x.tlsOn ? IC.shield : IC.plug,
+          st: x.online ? 'ok' : 'bad',
+          stT: x.online ? (x.main ? '在线' : '在线 · ' + x.ms) : '离线',
+          msFg: x.online ? 'var(--ok)' : 'var(--ink2)',
+          upg: !!x.upg,
+          hasErr: !!x.err,
+          permN: x.perms.filter(Boolean).length,
+          perms: PERMS.map((p, j) => ({ t: p, cls: x.perms[j] ? 'perm-on' : 'perm-off', d: x.perms[j] ? IC.check : IC.x })),
+          isCur,
+          canSwitch: !isCur && x.online,
+          testing: t,
+          pick: () => this.setState({ cur: x.id }),
+          test: () => this.setState({ testing: { ...testing, [x.id]: !t } })
+        };
+      }),
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: '' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: 'tab-on' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

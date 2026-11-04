@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>智商检测公示页 · PC</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px;transition:border-color .15s,box-shadow .15s}
+.card-sel{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;transition:transform .15s,filter .15s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn-s{background:var(--s2);color:var(--ink)}.btn-s:hover{background:var(--pSoft);color:var(--pInk)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ib-sm{width:36px;height:36px;border-radius:12px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:var(--p);color:var(--pInk)}
+.chip-on,.chip-on:hover{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:var(--s2);color:var(--ink2);font-size:12px;font-weight:600;white-space:nowrap}
+.eff{display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:7px;font-size:11px;font-weight:800}
+.eff-high{background:var(--pSoft);color:var(--pInk)}.eff-medium{background:var(--aSoft);color:var(--aOn)}.eff-low{background:var(--s2);color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.sbx{border:1.5px dashed var(--line);border-radius:18px;overflow:hidden;background:var(--bg)}
+.sbx-h{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-bottom:1.5px dashed var(--line);font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink2);background:var(--s)}
+.raw{margin:0;padding:14px 16px;border-radius:16px;background:var(--s2);font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="min-height: 2840px; display: flex; flex-direction: column">
+
+  <header style="background: var(--p); color: var(--pOn); padding: 22px 48px 30px; position: relative; overflow: hidden">
+    <div aria-hidden="true" style="position: absolute; right: -60px; top: -110px; width: 300px; height: 300px; border-radius: 50%; background: var(--a)"></div>
+    <div aria-hidden="true" style="position: absolute; right: 290px; bottom: -46px; width: 104px; height: 104px; border-radius: 50%; border: 16px solid var(--a2)"></div>
+    <div style="position: relative; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--pOn); color: var(--p); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+        <span style="font-size: 22px; font-weight: 800">Momoko</span>
+        <span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: color-mix(in srgb, var(--pOn) 18%, transparent); font-size: 12px; font-weight: 700">公开公示 · 无需登录</span>
+        <span style="flex: 1"></span>
+        <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}" style="background: var(--pOn); color: var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px">
+        <div style="flex: 1 1 520px; display: flex; flex-direction: column; gap: 8px">
+          <h1 style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 800; letter-spacing: -0.01em">站点 A · 智商检测公示</h1>
+          <p style="margin: 0; font-size: 15px; line-height: 1.6">每 6 小时用同一组题目自动检测一次，所有回复原样公开，结果仅供参考。</p>
+        </div>
+        <span class="mono" style="display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px; background: var(--pOn); color: var(--p); font-size: 13px; font-weight: 700"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.globe}}"></path></svg>/public/iqcheck/site-a</span>
+      </div>
+    </div>
+  </header>
+
+  <div style="flex: 1; width: 100%; max-width: 1336px; margin: 0 auto; padding: 28px 48px 40px; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{stats}}" as="sx" hint-placeholder-count="4">
+        <div class="card" style="padding: 16px 18px; display: flex; align-items: center; gap: 14px">
+          <span class="av {{sx.av}}" style="width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; transform: rotate({{sx.rot}})"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{sx.d}}"></path></svg></span>
+          <span style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{sx.t}}</span>
+            <span style="display: flex; align-items: baseline; gap: 4px"><span class="num" style="font-size: 26px; font-weight: 800; line-height: 1">{{sx.v}}</span><span style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{sx.u}}</span></span>
+          </span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+      <span style="font-size: 14px; font-weight: 700; margin-right: 4px">检测记录</span>
+      <div role="tablist" aria-label="按模型筛选" style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{filters}}" as="f" hint-placeholder-count="3">
+          <button class="chip {{f.cls}}" role="tab" onClick="{{f.pick}}"><span class="{{f.mono}}">{{f.t}}</span> <span class="n num">{{f.n}}</span></button>
+        </sc-for>
+      </div>
+      <span style="flex: 1"></span>
+      <span style="font-size: 13px; color: var(--ink2)">最新在前 · 最近更新 11 月 3 日 14:00</span>
+    </div>
+
+    <div style="display: flex; gap: 24px; align-items: flex-start">
+      <ol style="flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+        <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+          <li style="display: flex; gap: 16px">
+            <div aria-hidden="true" style="width: 22px; flex: none; display: flex; flex-direction: column; align-items: center">
+              <span style="width: 16px; height: 16px; margin-top: 22px; border-radius: 50%; background: {{it.dotBg}}; border: 4px solid var(--bg); box-shadow: 0 0 0 2px {{it.dotBg}}"></span>
+              <span style="flex: 1; width: 2px; background: var(--line); margin-top: 4px"></span>
+            </div>
+            <article class="card {{it.selCls}}" style="flex: 1; min-width: 0; margin-bottom: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                <span class="mono" style="font-size: 16px; font-weight: 800">{{it.model}}</span>
+                <span class="eff {{it.effCls}}">推理 {{it.eff}}</span>
+                <span class="tag">{{it.q}}</span>
+                <span style="flex: 1"></span>
+                <span class="num" style="display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="{{i.timer}}"></path></svg>{{it.dur}}</span>
+                <span class="num" style="font-size: 13px; color: var(--ink2)">{{it.time}}</span>
+                <span class="pill {{it.st}}">{{it.stT}}</span>
+              </div>
+
+              <div class="sbx">
+                <div class="sbx-h"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{i.lock}}"></path></svg>渲染预览 · 沙箱隔离，不执行脚本</div>
+                <sc-if value="{{it.isCat}}" hint-placeholder-val="{{true}}">
+                  <div style="display: flex; align-items: center; justify-content: center; padding: 18px; min-height: 200px">
+                    <svg viewBox="0 0 220 170" width="220" height="170" role="img" aria-label="模型画出的猫：坐姿，有耳朵、胡须和尾巴">
+                      <path d="M150 140c34 0 50-18 44-40" style="fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round"></path>
+                      <ellipse cx="110" cy="118" rx="46" ry="38" style="fill: var(--aSoft); stroke: var(--ink); stroke-width: 3"></ellipse>
+                      <path d="M80 54 84 18 104 42zM140 54 136 18 116 42z" style="fill: var(--aSoft); stroke: var(--ink); stroke-width: 3; stroke-linejoin: round"></path>
+                      <circle cx="110" cy="64" r="34" style="fill: var(--aSoft); stroke: var(--ink); stroke-width: 3"></circle>
+                      <circle cx="98" cy="60" r="4" style="fill: var(--ink)"></circle>
+                      <circle cx="122" cy="60" r="4" style="fill: var(--ink)"></circle>
+                      <path d="M106 72h8l-4 5z" style="fill: var(--p)"></path>
+                      <path d="M92 74H64M92 80l-26 6M128 74h28M128 80l26 6" style="stroke: var(--ink); stroke-width: 2; stroke-linecap: round"></path>
+                      <path d="M94 150v-14M126 150v-14" style="stroke: var(--ink); stroke-width: 3; stroke-linecap: round"></path>
+                    </svg>
+                  </div>
+                </sc-if>
+                <sc-if value="{{it.isCat2}}" hint-placeholder-val="{{false}}">
+                  <div style="display: flex; align-items: center; justify-content: center; padding: 18px; min-height: 200px">
+                    <svg viewBox="0 0 220 170" width="220" height="170" role="img" aria-label="模型画出的猫：只有头部，缺少尾巴">
+                      <circle cx="110" cy="88" r="50" style="fill: var(--a2Soft); stroke: var(--ink); stroke-width: 3"></circle>
+                      <path d="M72 58 70 24 98 44zM148 58 150 24 122 44z" style="fill: var(--a2Soft); stroke: var(--ink); stroke-width: 3; stroke-linejoin: round"></path>
+                      <circle cx="92" cy="82" r="5" style="fill: var(--ink)"></circle>
+                      <circle cx="128" cy="82" r="5" style="fill: var(--ink)"></circle>
+                      <path d="M100 106q10 8 20 0" style="fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round"></path>
+                    </svg>
+                  </div>
+                </sc-if>
+                <sc-if value="{{it.isMd}}" hint-placeholder-val="{{false}}">
+                  <div style="padding: 16px 20px; font-size: 14px; line-height: 1.7">
+                    <h4 style="margin: 0 0 6px; font-size: 16px; font-weight: 800">{{it.mdH}}</h4>
+                    <ol style="margin: 0; padding-left: 22px">
+                      <sc-for list="{{it.mdL}}" as="li" hint-placeholder-count="4">
+                        <li>{{li}}</li>
+                      </sc-for>
+                    </ol>
+                    <p style="margin: 8px 0 0; color: var(--ink2)">{{it.mdP}}</p>
+                  </div>
+                </sc-if>
+                <sc-if value="{{it.isCode}}" hint-placeholder-val="{{false}}">
+                  <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.7">
+                    <pre class="mono" style="margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--s2); font-size: 12.5px; line-height: 1.6; overflow: hidden">{{it.code}}</pre>
+                    <p style="margin: 0">时间复杂度 <b>O(n)</b>，空间复杂度 <b>O(1)</b>：只用三个指针原地改写 next。</p>
+                  </div>
+                </sc-if>
+                <sc-if value="{{it.isErr}}" hint-placeholder-val="{{false}}">
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 22px 20px; color: var(--bad)">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.alert}}"></path></svg>
+                    <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 800">请求超时，没有返回内容</span><span style="font-size: 13px; color: var(--ink2)">60 秒内未收到首个字节，本题记 0 分</span></span>
+                  </div>
+                </sc-if>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 13px; color: var(--ink2)">本题得分 <b class="num" style="color: var(--ink)">{{it.score}}</b> · {{it.tok}}</span>
+                <span style="flex: 1"></span>
+                <button class="ib ib-sm" aria-label="复制本条链接"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.link}}"></path></svg></button>
+                <button class="btn btn-s btn-sm" onClick="{{it.open}}" aria-pressed="{{it.sel}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.doc}}"></path></svg>查看原文</button>
+              </div>
+            </article>
+          </li>
+        </sc-for>
+      </ol>
+
+      <sc-if value="{{panelOpen}}" hint-placeholder-val="{{true}}">
+        <aside class="card" aria-label="原文详情" style="flex: 0 0 440px; position: sticky; top: 24px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">原文 · {{cur.time}}</span>
+              <span style="display: flex; align-items: center; gap: 8px"><span class="mono" style="font-size: 18px; font-weight: 800">{{cur.model}}</span><span class="eff {{cur.effCls}}">推理 {{cur.eff}}</span></span>
+            </span>
+            <button class="ib" aria-label="关闭原文" onClick="{{closePanel}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+          </div>
+          <dl style="margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--s2); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 12px">
+            <div><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">耗时</dt><dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.dur}}</dd></div>
+            <div><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">得分</dt><dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.score}}</dd></div>
+            <div><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">用量</dt><dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.tok}}</dd></div>
+          </dl>
+          <section style="display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 8px"><h2 style="flex: 1; margin: 0; font-size: 15px; font-weight: 800">请求提示词</h2><button class="ib ib-sm" aria-label="复制提示词"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.copy}}"></path></svg></button></div>
+            <pre class="raw">{{cur.prompt}}</pre>
+          </section>
+          <section style="display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 8px"><h2 style="flex: 1; margin: 0; font-size: 15px; font-weight: 800">回复原文</h2><button class="ib ib-sm" aria-label="复制回复原文"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.copy}}"></path></svg></button></div>
+            <pre class="raw hs" style="max-height: 420px; overflow-y: auto">{{cur.raw}}</pre>
+          </section>
+        </aside>
+      </sc-if>
+    </div>
+  </div>
+
+  <footer style="padding: 18px 48px 28px; text-align: center; font-size: 12px; color: var(--ink2)">由 Momoko 智商检测生成 · 本页公开，任何拿到链接的人都能查看 · 不含任何密钥或接口地址</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":2840}}'>
+const IC = {
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  globe: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  timer: 'M12 5a8 8 0 1 1 0 16 8 8 0 0 1 0-16zM12 9v4l2.5 2M10 2h4',
+  alert: 'M12 3l10 18H2zM12 10v4M12 17.5h.01',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  doc: 'M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5',
+  copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+  x: 'M6 6l12 12M18 6 6 18',
+  score: 'M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5l-5.3 2.9 1.2-6L3.4 9.3l6-.7z',
+  chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  list: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'
+};
+const P_CAT = '用 SVG 画一只坐着的猫，要有耳朵、胡须和尾巴。\n只输出一段完整的 svg 代码，不要解释。';
+const P_RIVER = '一个农夫要带一只狼、一只羊和一棵白菜过河。船每次只能载农夫和一样东西；农夫不在时，狼会吃羊，羊会吃白菜。\n请给出最少步数的完整过河方案，并说明为什么不能更少。';
+const P_CODE = '用 TypeScript 写一个原地反转单链表的函数 reverse(head)，给出时间和空间复杂度，并附 3 个测试用例。';
+const RAW_CAT = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 170">\n  <!-- 尾巴 -->\n  <path d="M150 140c34 0 50-18 44-40" fill="none" stroke="#2A1630" stroke-width="6" stroke-linecap="round"/>\n  <!-- 身体 -->\n  <ellipse cx="110" cy="118" rx="46" ry="38" fill="#FFF3CC" stroke="#2A1630" stroke-width="3"/>\n  <!-- 耳朵 -->\n  <path d="M80 54 84 18 104 42zM140 54 136 18 116 42z" fill="#FFF3CC" stroke="#2A1630" stroke-width="3"/>\n  <!-- 头 -->\n  <circle cx="110" cy="64" r="34" fill="#FFF3CC" stroke="#2A1630" stroke-width="3"/>\n  <circle cx="98" cy="60" r="4"/>\n  <circle cx="122" cy="60" r="4"/>\n  <path d="M106 72h8l-4 5z" fill="#D6245F"/>\n  <!-- 胡须 -->\n  <path d="M92 74H64M92 80l-26 6M128 74h28M128 80l26 6" stroke="#2A1630" stroke-width="2"/>\n  <path d="M94 150v-14M126 150v-14" stroke="#2A1630" stroke-width="3"/>\n</svg>';
+const RAW_CAT2 = '好的，这是一只猫：\n\n```svg\n<svg viewBox="0 0 220 170">\n  <circle cx="110" cy="88" r="50" fill="#ECE6FF" stroke="#000"/>\n  <path d="M72 58 70 24 98 44zM148 58 150 24 122 44z" fill="#ECE6FF" stroke="#000"/>\n  <circle cx="92" cy="82" r="5"/>\n  <circle cx="128" cy="82" r="5"/>\n  <path d="M100 106q10 8 20 0" fill="none" stroke="#000"/>\n</svg>\n```';
+const RAW_RIVER = '### 最少需要 7 步\n\n1. 农夫带羊过河\n2. 农夫独自返回\n3. 农夫带狼过河\n4. 农夫带羊返回\n5. 农夫带白菜过河\n6. 农夫独自返回\n7. 农夫带羊过河\n\n羊和另外两样都不能单独相处，所以羊必须来回一次，第 4 步省不掉，7 步就是下限。';
+const CODE = 'function reverse(head: Node | null) {\n  let prev = null, cur = head;\n  while (cur) {\n    const next = cur.next;\n    cur.next = prev;\n    prev = cur; cur = next;\n  }\n  return prev;\n}';
+const RAW_CODE = '```ts\ntype Node = { val: number; next: Node | null };\n\n' + CODE + '\n```\n\n时间复杂度 O(n)，空间复杂度 O(1)：只用三个指针原地改写 next。\n\n测试：[] → []；[1] → [1]；[1,2,3] → [3,2,1]';
+const RIVER_L = ['农夫带羊过河', '农夫独自返回', '农夫带狼过河', '农夫带羊返回', '农夫带白菜过河', '农夫独自返回', '农夫带羊过河'];
+const ITEMS = [
+  { id: 1, model: 'model-a', eff: 'high', q: 'SVG 小猫', dur: '41.3 秒', time: '11 月 3 日 14:00', kind: 'cat', res: 'ok', score: '10 / 10', tok: '312 tokens', prompt: P_CAT, raw: RAW_CAT },
+  { id: 2, model: 'model-b', eff: 'medium', q: '过河问题', dur: '18.7 秒', time: '11 月 3 日 14:00', kind: 'md', res: 'ok', score: '10 / 10', tok: '486 tokens', prompt: P_RIVER, raw: RAW_RIVER },
+  { id: 3, model: 'model-a', eff: 'high', q: '反转链表', dur: '12.4 秒', time: '11 月 3 日 14:00', kind: 'code', res: 'ok', score: '9 / 10', tok: '402 tokens', prompt: P_CODE, raw: RAW_CODE },
+  { id: 4, model: 'model-b', eff: 'medium', q: 'SVG 小猫', dur: '22.1 秒', time: '11 月 3 日 08:00', kind: 'cat2', res: 'part', score: '5 / 10', tok: '198 tokens', prompt: P_CAT, raw: RAW_CAT2 },
+  { id: 5, model: 'model-a', eff: 'high', q: '过河问题', dur: '39.9 秒', time: '11 月 3 日 08:00', kind: 'md', res: 'ok', score: '10 / 10', tok: '521 tokens', prompt: P_RIVER, raw: RAW_RIVER },
+  { id: 6, model: 'model-b', eff: 'medium', q: '反转链表', dur: '60.0 秒', time: '11 月 3 日 08:00', kind: 'err', res: 'fail', score: '0 / 10', tok: '0 tokens', prompt: P_CODE, raw: '（没有回复）\n\nerror: context deadline exceeded (Client.Timeout exceeded while awaiting headers)' }
+];
+const RES = { ok: ['ok', '通过', 'var(--ok)'], part: ['warn', '部分正确', 'var(--warn)'], fail: ['bad', '超时', 'var(--bad)'] };
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const filter = st.filter || 'all';
+    const open = st.open === undefined ? 1 : st.open;
+    const c = ITEMS.find((x) => x.id === open);
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      stats: [
+        { t: '最近得分', v: '92', u: '分', d: IC.score, av: 'av-p', rot: '-4deg' },
+        { t: '近 7 天平均', v: '91.6', u: '分', d: IC.chart, av: 'av-a2', rot: '3deg' },
+        { t: '检测记录', v: '168', u: '条', d: IC.list, av: 'av-a', rot: '-2deg' },
+        { t: '平均耗时', v: '31', u: '秒', d: IC.timer, av: 'av-ok', rot: '4deg' }
+      ],
+      filters: [['all', '全部模型'], ['model-a', 'model-a'], ['model-b', 'model-b']].map(([k, t]) => ({ t, mono: k === 'all' ? '' : 'mono', n: ITEMS.filter((x) => k === 'all' || x.model === k).length, cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
+      items: ITEMS.filter((x) => filter === 'all' || x.model === filter).map((x) => ({
+        ...x,
+        effCls: 'eff-' + x.eff,
+        st: RES[x.res][0], stT: RES[x.res][1], dotBg: RES[x.res][2],
+        isCat: x.kind === 'cat', isCat2: x.kind === 'cat2', isMd: x.kind === 'md', isCode: x.kind === 'code', isErr: x.kind === 'err',
+        mdH: '最少需要 7 步', mdL: RIVER_L, mdP: '羊必须来回一次，第 4 步省不掉，所以 7 步就是下限。',
+        code: CODE,
+        sel: x.id === open,
+        selCls: x.id === open ? 'card-sel' : '',
+        open: () => this.setState({ open: x.id })
+      })),
+      panelOpen: !!c,
+      cur: c ? { ...c, effCls: 'eff-' + c.eff } : { model: '', eff: '', effCls: '', time: '', dur: '', score: '', tok: '', prompt: '', raw: '' },
+      closePanel: () => this.setState({ open: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

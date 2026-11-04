@@ -1,4 +1,4 @@
-<!-- 外壳组装：侧栏 + 主列（顶栏 + 标签 + 内容）。移动端(<lg)侧栏改为抽屉，底部固定导航栏。 -->
+<!-- 外壳组装：侧栏 + 主列（顶栏 + 标签 + 内容）。手机端(<992)不显示侧栏，底部固定导航，「更多」整页面板。 -->
 <template>
   <div class="app-shell">
     <AppSidebar v-if="!menuStore.isMobile" :collapsed="menuStore.isCollapse" />
@@ -9,21 +9,10 @@
       <AppContent />
     </div>
 
-    <AppTabbar v-if="menuStore.isMobile" />
-
-    <Teleport to="body">
-      <Transition name="shell-drawer">
-        <div
-          v-if="menuStore.isMobile && menuStore.isMobileMenuOpen"
-          class="app-shell__drawer-overlay"
-          @mousedown.self="menuStore.isMobileMenuOpen = false"
-        >
-          <aside class="app-shell__drawer" role="dialog" aria-modal="true">
-            <AppSidebar :collapsed="false" mobile />
-          </aside>
-        </div>
-      </Transition>
-    </Teleport>
+    <template v-if="menuStore.isMobile">
+      <AppMorePanel />
+      <AppTabbar v-if="!route.meta.hideTabbar" />
+    </template>
   </div>
 </template>
 
@@ -33,21 +22,19 @@ import AppTopbar from './AppTopbar.vue'
 import AppTabs from './AppTabs.vue'
 import AppContent from './AppContent.vue'
 import AppTabbar from './AppTabbar.vue'
+import AppMorePanel from './AppMorePanel.vue'
+import { useAppearanceSync } from '@/stores/theme/sync'
 
 defineOptions({ name: 'AppShell' })
 
+const route = useRoute()
 const menuStore = useMenuStore()
 const userStore = useUserStore()
-
-const onKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && menuStore.isMobileMenuOpen) menuStore.isMobileMenuOpen = false
-}
+useAppearanceSync()
 
 onMounted(() => {
   if (!userStore.userInfo) void userStore.getUserInfo()
-  window.addEventListener('keydown', onKeydown)
 })
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <style scoped lang="scss">
@@ -55,6 +42,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   display: flex;
   width: 100%;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--el-bg-color-page);
 }
@@ -64,39 +52,5 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   flex: 1;
   min-width: 0;
   overflow: hidden;
-}
-.app-shell__drawer-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2100;
-  display: flex;
-  background: color-mix(in srgb, var(--m-ink) 38%, transparent);
-  backdrop-filter: blur(3px);
-}
-.app-shell__drawer {
-  width: min(300px, 86vw);
-  height: 100%;
-  border-radius: 0 24px 24px 0;
-  overflow: hidden;
-  background: var(--el-bg-color);
-  border-right: 1px solid var(--el-border-color-light);
-  box-shadow: var(--app-shadow-lg);
-}
-
-.shell-drawer-enter-active,
-.shell-drawer-leave-active {
-  transition: opacity 0.18s ease;
-}
-.shell-drawer-enter-active .app-shell__drawer,
-.shell-drawer-leave-active .app-shell__drawer {
-  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.shell-drawer-enter-from,
-.shell-drawer-leave-to {
-  opacity: 0;
-}
-.shell-drawer-enter-from .app-shell__drawer,
-.shell-drawer-leave-to .app-shell__drawer {
-  transform: translateX(-12px);
 }
 </style>

@@ -91,6 +91,34 @@ func (_c *IQCheckPromptCreate) SetNillableOrder(v *int) *IQCheckPromptCreate {
 	return _c
 }
 
+// SetCategory sets the "category" field.
+func (_c *IQCheckPromptCreate) SetCategory(v iqcheckprompt.Category) *IQCheckPromptCreate {
+	_c.mutation.SetCategory(v)
+	return _c
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (_c *IQCheckPromptCreate) SetNillableCategory(v *iqcheckprompt.Category) *IQCheckPromptCreate {
+	if v != nil {
+		_c.SetCategory(*v)
+	}
+	return _c
+}
+
+// SetGrading sets the "grading" field.
+func (_c *IQCheckPromptCreate) SetGrading(v string) *IQCheckPromptCreate {
+	_c.mutation.SetGrading(v)
+	return _c
+}
+
+// SetNillableGrading sets the "grading" field if the given value is not nil.
+func (_c *IQCheckPromptCreate) SetNillableGrading(v *string) *IQCheckPromptCreate {
+	if v != nil {
+		_c.SetGrading(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *IQCheckPromptCreate) SetID(v string) *IQCheckPromptCreate {
 	_c.mutation.SetID(v)
@@ -148,6 +176,14 @@ func (_c *IQCheckPromptCreate) defaults() {
 		v := iqcheckprompt.DefaultOrder
 		_c.mutation.SetOrder(v)
 	}
+	if _, ok := _c.mutation.Category(); !ok {
+		v := iqcheckprompt.DefaultCategory
+		_c.mutation.SetCategory(v)
+	}
+	if _, ok := _c.mutation.Grading(); !ok {
+		v := iqcheckprompt.DefaultGrading
+		_c.mutation.SetGrading(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -179,6 +215,17 @@ func (_c *IQCheckPromptCreate) check() error {
 	}
 	if _, ok := _c.mutation.Order(); !ok {
 		return &ValidationError{Name: "order", err: errors.New(`gen: missing required field "IQCheckPrompt.order"`)}
+	}
+	if _, ok := _c.mutation.Category(); !ok {
+		return &ValidationError{Name: "category", err: errors.New(`gen: missing required field "IQCheckPrompt.category"`)}
+	}
+	if v, ok := _c.mutation.Category(); ok {
+		if err := iqcheckprompt.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`gen: validator failed for field "IQCheckPrompt.category": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Grading(); !ok {
+		return &ValidationError{Name: "grading", err: errors.New(`gen: missing required field "IQCheckPrompt.grading"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := iqcheckprompt.IDValidator(v); err != nil {
@@ -244,6 +291,14 @@ func (_c *IQCheckPromptCreate) createSpec() (*IQCheckPrompt, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.Order(); ok {
 		_spec.SetField(iqcheckprompt.FieldOrder, field.TypeInt, value)
 		_node.Order = value
+	}
+	if value, ok := _c.mutation.Category(); ok {
+		_spec.SetField(iqcheckprompt.FieldCategory, field.TypeEnum, value)
+		_node.Category = value
+	}
+	if value, ok := _c.mutation.Grading(); ok {
+		_spec.SetField(iqcheckprompt.FieldGrading, field.TypeString, value)
+		_node.Grading = value
 	}
 	return _node, _spec
 }
@@ -360,6 +415,30 @@ func (u *IQCheckPromptUpsert) UpdateOrder() *IQCheckPromptUpsert {
 // AddOrder adds v to the "order" field.
 func (u *IQCheckPromptUpsert) AddOrder(v int) *IQCheckPromptUpsert {
 	u.Add(iqcheckprompt.FieldOrder, v)
+	return u
+}
+
+// SetCategory sets the "category" field.
+func (u *IQCheckPromptUpsert) SetCategory(v iqcheckprompt.Category) *IQCheckPromptUpsert {
+	u.Set(iqcheckprompt.FieldCategory, v)
+	return u
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *IQCheckPromptUpsert) UpdateCategory() *IQCheckPromptUpsert {
+	u.SetExcluded(iqcheckprompt.FieldCategory)
+	return u
+}
+
+// SetGrading sets the "grading" field.
+func (u *IQCheckPromptUpsert) SetGrading(v string) *IQCheckPromptUpsert {
+	u.Set(iqcheckprompt.FieldGrading, v)
+	return u
+}
+
+// UpdateGrading sets the "grading" field to the value that was provided on create.
+func (u *IQCheckPromptUpsert) UpdateGrading() *IQCheckPromptUpsert {
+	u.SetExcluded(iqcheckprompt.FieldGrading)
 	return u
 }
 
@@ -488,6 +567,34 @@ func (u *IQCheckPromptUpsertOne) AddOrder(v int) *IQCheckPromptUpsertOne {
 func (u *IQCheckPromptUpsertOne) UpdateOrder() *IQCheckPromptUpsertOne {
 	return u.Update(func(s *IQCheckPromptUpsert) {
 		s.UpdateOrder()
+	})
+}
+
+// SetCategory sets the "category" field.
+func (u *IQCheckPromptUpsertOne) SetCategory(v iqcheckprompt.Category) *IQCheckPromptUpsertOne {
+	return u.Update(func(s *IQCheckPromptUpsert) {
+		s.SetCategory(v)
+	})
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *IQCheckPromptUpsertOne) UpdateCategory() *IQCheckPromptUpsertOne {
+	return u.Update(func(s *IQCheckPromptUpsert) {
+		s.UpdateCategory()
+	})
+}
+
+// SetGrading sets the "grading" field.
+func (u *IQCheckPromptUpsertOne) SetGrading(v string) *IQCheckPromptUpsertOne {
+	return u.Update(func(s *IQCheckPromptUpsert) {
+		s.SetGrading(v)
+	})
+}
+
+// UpdateGrading sets the "grading" field to the value that was provided on create.
+func (u *IQCheckPromptUpsertOne) UpdateGrading() *IQCheckPromptUpsertOne {
+	return u.Update(func(s *IQCheckPromptUpsert) {
+		s.UpdateGrading()
 	})
 }
 
@@ -783,6 +890,34 @@ func (u *IQCheckPromptUpsertBulk) AddOrder(v int) *IQCheckPromptUpsertBulk {
 func (u *IQCheckPromptUpsertBulk) UpdateOrder() *IQCheckPromptUpsertBulk {
 	return u.Update(func(s *IQCheckPromptUpsert) {
 		s.UpdateOrder()
+	})
+}
+
+// SetCategory sets the "category" field.
+func (u *IQCheckPromptUpsertBulk) SetCategory(v iqcheckprompt.Category) *IQCheckPromptUpsertBulk {
+	return u.Update(func(s *IQCheckPromptUpsert) {
+		s.SetCategory(v)
+	})
+}
+
+// UpdateCategory sets the "category" field to the value that was provided on create.
+func (u *IQCheckPromptUpsertBulk) UpdateCategory() *IQCheckPromptUpsertBulk {
+	return u.Update(func(s *IQCheckPromptUpsert) {
+		s.UpdateCategory()
+	})
+}
+
+// SetGrading sets the "grading" field.
+func (u *IQCheckPromptUpsertBulk) SetGrading(v string) *IQCheckPromptUpsertBulk {
+	return u.Update(func(s *IQCheckPromptUpsert) {
+		s.SetGrading(v)
+	})
+}
+
+// UpdateGrading sets the "grading" field to the value that was provided on create.
+func (u *IQCheckPromptUpsertBulk) UpdateGrading() *IQCheckPromptUpsertBulk {
+	return u.Update(func(s *IQCheckPromptUpsert) {
+		s.UpdateGrading()
 	})
 }
 

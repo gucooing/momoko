@@ -16,14 +16,21 @@
       <span class="oa-top__sub">{{ t('publicPage.oidc.badge') }}</span>
       <span class="oa-top__spacer" />
       <div class="oa-top__chrome">
-        <LanguageMenu />
+        <LanguageMenu :box="menuStore.isMobile ? 44 : 40" />
         <AppIconButton
           :icon="themeStore.isDarkTheme ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
           :label="t('login.toggleTheme')"
+          :box="menuStore.isMobile ? 44 : 40"
           @click="toggleTheme"
         />
       </div>
     </header>
+
+    <div v-if="menuStore.isMobile && !infoLoading && !loadError" class="oa-pair oa-pair--band" aria-hidden="true">
+      <span class="oa-pair__app">{{ clientInitial }}</span>
+      <span class="oa-pair__dots"><i /><i /><i /></span>
+      <img :src="APP_CONFIG.logoSrc" alt="" class="oa-pair__me" />
+    </div>
 
     <main class="oa-main">
       <section class="oa-card" aria-labelledby="oa-title">
@@ -48,7 +55,7 @@
 
         <!-- 授权确认 -->
         <template v-else>
-          <div class="oa-pair" aria-hidden="true">
+          <div v-if="!menuStore.isMobile" class="oa-pair" aria-hidden="true">
             <span class="oa-pair__app">{{ clientInitial }}</span>
             <span class="oa-pair__dots"><i /><i /><i /></span>
             <span class="oa-pair__shield">
@@ -111,7 +118,9 @@
             </span>
           </div>
 
-          <div class="oa-actions">
+          <p class="oa-note">{{ t('publicPage.oidc.noPassword', { name: APP_CONFIG.name, client: clientName }) }}</p>
+
+          <div v-if="!decision" class="oa-actions">
             <UButton
               color="neutral"
               variant="outline"
@@ -131,8 +140,26 @@
               {{ submitting ? t('publicPage.oidc.redirecting') : t('publicPage.oidc.allow') }}
             </UButton>
           </div>
-
-          <p class="oa-note">{{ t('publicPage.oidc.noPassword', { name: APP_CONFIG.name, client: clientName }) }}</p>
+          <div v-else class="oa-result" :class="decision === 'allow' ? 'is-ok' : 'is-bad'" role="status">
+            <span class="oa-result__ico">
+              <component :is="menuStore.iconComponents[decision === 'allow' ? 'HOutline:CheckIcon' : 'HOutline:XMarkIcon']" />
+            </span>
+            <span class="oa-result__text">
+              <b>{{ decision === 'allow' ? t('systemV2.authorize.allowed', { client: clientName }) : t('systemV2.authorize.denied') }}</b>
+              <span v-if="!menuStore.isMobile">
+                {{ decision === 'allow' ? t('systemV2.authorize.allowedSub', { client: clientName }) : t('systemV2.authorize.deniedSub', { client: clientName }) }}
+              </span>
+            </span>
+            <UButton
+              v-if="decision === 'deny'"
+              color="neutral"
+              variant="outline"
+              class="oa-result__reset"
+              @click="resetDecision"
+            >
+              {{ menuStore.isMobile ? t('systemV2.authorize.resetShort') : t('systemV2.authorize.reset') }}
+            </UButton>
+          </div>
         </template>
       </section>
 
@@ -164,6 +191,10 @@ const menuStore = useMenuStore()
 const fb = useFeedback()
 
 const submitting = ref(false)
+// 决定后的结果：allow=已签发授权码正在跳转；deny=拒绝，短暂停留后带 access_denied 返回（期间可重新选择）
+const decision = ref<'' | 'allow' | 'deny'>('')
+const DENY_DELAY_MS = 1800
+let denyTimer: ReturnType<typeof setTimeout> | undefined
 const infoLoading = ref(true)
 const loadError = ref('')
 const authorizeInfo = ref<OIDCAuthorizationInfo | null>(null)
@@ -267,6 +298,7 @@ const approve = async () => {
     })
     if (data?.redirectUrl) {
       // 成功跳转，页面即将卸载，不复位 submitting。
+      decision.value = 'allow'
       window.location.href = data.redirectUrl
       return
     }
@@ -279,7 +311,7 @@ const approve = async () => {
 }
 
 // 用户拒绝授权时按 OAuth 约定返回 access_denied，redirect_uri 无效时退回上一页。
-const deny = () => {
+const leaveDenied = () => {
   if (!redirectUri.value) {
     history.back()
     return
@@ -293,6 +325,16 @@ const deny = () => {
     history.back()
   }
 }
+const deny = () => {
+  decision.value = 'deny'
+  clearTimeout(denyTimer)
+  denyTimer = setTimeout(leaveDenied, DENY_DELAY_MS)
+}
+const resetDecision = () => {
+  clearTimeout(denyTimer)
+  decision.value = ''
+}
+onBeforeUnmount(() => clearTimeout(denyTimer))
 
 // 切换账号：退出当前登录后回到登录页，登录完成再回到本授权页。
 const switchAccount = async () => {
@@ -691,6 +733,59 @@ html.dark .oa-pair__app {
   flex: 1.4;
   box-shadow: var(--app-shadow-brand);
 }
+.oa-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 12px 12px 12px 16px;
+  border-radius: 18px;
+}
+.oa-result.is-ok {
+  background: var(--m-okSoft);
+  color: var(--m-ok);
+}
+.oa-result.is-bad {
+  background: var(--m-badSoft);
+  color: var(--m-bad);
+}
+.oa-result__ico {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: currentColor;
+  transform: rotate(-5deg);
+}
+.oa-result__ico :deep(svg) {
+  width: 18px;
+  height: 18px;
+  stroke-width: 3;
+  color: var(--el-bg-color);
+}
+.oa-result__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.oa-result__text b {
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+.oa-result__text span {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-primary);
+}
+.oa-result__reset {
+  flex: none;
+  min-height: 40px;
+  border-radius: 999px;
+}
 .oa-note {
   margin: 0;
   font-size: 0.75rem;
@@ -803,15 +898,59 @@ html.dark .oa-pair__app {
     font-size: 1.25rem;
   }
   .oa-top__sub {
-    display: none;
+    padding-left: 10px;
+    font-size: 0.8125rem;
+  }
+  /* 手机：顶带里放应用 ⇄ Momoko，下方是贴底的大圆角面板，操作区固定在面板底部 */
+  .oa-pair--band {
+    position: relative;
+    margin: 12px 0 0;
+    padding-bottom: 56px;
+  }
+  .oa-pair--band .oa-pair__app {
+    box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--m-ink) 45%, transparent);
+  }
+  .oa-pair--band .oa-pair__me {
+    box-shadow: 0 0 0 3px var(--m-pOn);
+  }
+  .oa-pair--band .oa-pair__dots i {
+    background: var(--m-pOn);
   }
   .oa-main {
-    padding: 12px 12px 24px;
+    padding: 0;
+    margin-top: -40px;
   }
   .oa-card {
-    padding: 24px 18px;
+    flex: 1;
+    max-width: none;
+    padding: 24px 20px 0;
     gap: 18px;
-    border-radius: 26px;
+    border: none;
+    border-radius: 32px 32px 0 0;
+    box-shadow: none;
+  }
+  .oa-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 -20px;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--el-border-color-lighter);
+    background: var(--el-bg-color);
+  }
+  .oa-result {
+    position: sticky;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 2;
+    padding: 8px 6px 8px 12px;
+  }
+  .oa-result__reset {
+    min-height: 44px;
+  }
+  .oa-foot {
+    margin: 0;
+    padding: 12px 16px 20px;
+    background: var(--el-bg-color);
   }
   .oa-pair {
     gap: 10px;
@@ -830,13 +969,11 @@ html.dark .oa-pair__app {
   .oa-head h1 {
     font-size: 1.375rem;
   }
-  .oa-actions {
-    flex-direction: column-reverse;
+  .oa-btn--deny {
+    flex: 1;
   }
-  .oa-btn--deny,
   .oa-btn--allow {
-    flex: none;
-    width: 100%;
+    flex: 1.5;
   }
 }
 

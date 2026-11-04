@@ -121,7 +121,7 @@ type (
 
 // Config 是构造一个网络来源所需的（已解密）配置，字段为各类型的并集。
 type Config struct {
-	Type string // oss / ftp / webdav
+	Type string // local / oss / ftp / webdav
 
 	// OSS / S3
 	Endpoint  string
@@ -133,7 +133,7 @@ type Config struct {
 	UseSSL    bool
 	PathStyle bool
 
-	// FTP / WebDAV
+	// FTP / WebDAV（BasePath 同时是本机目录来源的根目录）
 	Host     string
 	Port     int
 	Username string
@@ -145,9 +145,12 @@ type Config struct {
 	URL string
 }
 
-// NewStore 按类型构造一个网络来源（本地来源用 NewLocalStore）。
+// NewStore 按类型构造一个来源：local=限定在根目录内的本机目录（BasePath 必填，须为已存在目录的绝对路径），
+// 其余为网络来源。整机本地磁盘（内置默认来源）用 NewLocalStore(SystemPath)。
 func NewStore(cfg Config) (Store, error) {
 	switch cfg.Type {
+	case "local":
+		return newLocalSourceStore(cfg.BasePath)
 	case "oss":
 		return newOSSStore(cfg)
 	case "ftp":
@@ -171,6 +174,22 @@ func NewLocalStore(basePath string) (*LocalStore, error) {
 		return nil, err
 	}
 	return &LocalStore{oper: oper}, nil
+}
+
+// newLocalSourceStore 构造本机目录来源：根目录必须是已存在目录的绝对路径，来源内全部操作限定在根内（穿越防护见 FileOper）。
+func newLocalSourceStore(root string) (Store, error) {
+	root = strings.TrimSpace(root)
+	if root == "" || !filepath.IsAbs(root) {
+		return nil, errors.New("本机目录来源的根目录必须是绝对路径")
+	}
+	info, err := os.Stat(root)
+	if err != nil {
+		return nil, errors.New("根目录不存在")
+	}
+	if !info.IsDir() {
+		return nil, errors.New("根目录不是文件夹")
+	}
+	return NewLocalStore(root)
 }
 
 // ResolveLocalPath 把某本地根（basePath，""=系统全盘）下的逻辑路径解析为真实路径，并做穿越防护。

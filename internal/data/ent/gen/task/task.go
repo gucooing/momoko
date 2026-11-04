@@ -28,14 +28,26 @@ const (
 	FieldResumePolicy = "resume_policy"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
+	// FieldTarget holds the string denoting the target field in the database.
+	FieldTarget = "target"
+	// FieldSource holds the string denoting the source field in the database.
+	FieldSource = "source"
+	// FieldTriggerType holds the string denoting the trigger_type field in the database.
+	FieldTriggerType = "trigger_type"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
+	// FieldOperator holds the string denoting the operator field in the database.
+	FieldOperator = "operator"
 	// FieldPayload holds the string denoting the payload field in the database.
 	FieldPayload = "payload"
 	// FieldState holds the string denoting the state field in the database.
 	FieldState = "state"
 	// FieldResult holds the string denoting the result field in the database.
 	FieldResult = "result"
+	// FieldSteps holds the string denoting the steps field in the database.
+	FieldSteps = "steps"
+	// FieldLogs holds the string denoting the logs field in the database.
+	FieldLogs = "logs"
 	// FieldProgressTotal holds the string denoting the progress_total field in the database.
 	FieldProgressTotal = "progress_total"
 	// FieldProgressFinished holds the string denoting the progress_finished field in the database.
@@ -48,6 +60,10 @@ const (
 	FieldIntervalMs = "interval_ms"
 	// FieldTimeoutMs holds the string denoting the timeout_ms field in the database.
 	FieldTimeoutMs = "timeout_ms"
+	// FieldCanceledBy holds the string denoting the canceled_by field in the database.
+	FieldCanceledBy = "canceled_by"
+	// FieldStartTime holds the string denoting the start_time field in the database.
+	FieldStartTime = "start_time"
 	// FieldEndTime holds the string denoting the end_time field in the database.
 	FieldEndTime = "end_time"
 	// Table holds the table name of the task in the database.
@@ -64,16 +80,24 @@ var Columns = []string{
 	FieldStatus,
 	FieldResumePolicy,
 	FieldTitle,
+	FieldTarget,
+	FieldSource,
+	FieldTriggerType,
 	FieldUserID,
+	FieldOperator,
 	FieldPayload,
 	FieldState,
 	FieldResult,
+	FieldSteps,
+	FieldLogs,
 	FieldProgressTotal,
 	FieldProgressFinished,
 	FieldMessage,
 	FieldError,
 	FieldIntervalMs,
 	FieldTimeoutMs,
+	FieldCanceledBy,
+	FieldStartTime,
 	FieldEndTime,
 }
 
@@ -96,14 +120,24 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// DefaultTitle holds the default value on creation for the "title" field.
 	DefaultTitle string
+	// DefaultTarget holds the default value on creation for the "target" field.
+	DefaultTarget string
+	// DefaultSource holds the default value on creation for the "source" field.
+	DefaultSource string
 	// DefaultUserID holds the default value on creation for the "user_id" field.
 	DefaultUserID string
+	// DefaultOperator holds the default value on creation for the "operator" field.
+	DefaultOperator string
 	// DefaultPayload holds the default value on creation for the "payload" field.
 	DefaultPayload string
 	// DefaultState holds the default value on creation for the "state" field.
 	DefaultState string
 	// DefaultResult holds the default value on creation for the "result" field.
 	DefaultResult string
+	// DefaultSteps holds the default value on creation for the "steps" field.
+	DefaultSteps string
+	// DefaultLogs holds the default value on creation for the "logs" field.
+	DefaultLogs string
 	// DefaultProgressTotal holds the default value on creation for the "progress_total" field.
 	DefaultProgressTotal int64
 	// DefaultProgressFinished holds the default value on creation for the "progress_finished" field.
@@ -116,6 +150,8 @@ var (
 	DefaultIntervalMs int64
 	// DefaultTimeoutMs holds the default value on creation for the "timeout_ms" field.
 	DefaultTimeoutMs int64
+	// DefaultCanceledBy holds the default value on creation for the "canceled_by" field.
+	DefaultCanceledBy string
 )
 
 // Kind defines the type for the "kind" enum field.
@@ -198,6 +234,34 @@ func ResumePolicyValidator(rp ResumePolicy) error {
 	}
 }
 
+// TriggerType defines the type for the "trigger_type" enum field.
+type TriggerType string
+
+// TriggerTypeSystem is the default value of the TriggerType enum.
+const DefaultTriggerType = TriggerTypeSystem
+
+// TriggerType values.
+const (
+	TriggerTypeManual   TriggerType = "manual"
+	TriggerTypeSchedule TriggerType = "schedule"
+	TriggerTypeMaster   TriggerType = "master"
+	TriggerTypeSystem   TriggerType = "system"
+)
+
+func (tt TriggerType) String() string {
+	return string(tt)
+}
+
+// TriggerTypeValidator is a validator for the "trigger_type" field enum values. It is called by the builders before save.
+func TriggerTypeValidator(tt TriggerType) error {
+	switch tt {
+	case TriggerTypeManual, TriggerTypeSchedule, TriggerTypeMaster, TriggerTypeSystem:
+		return nil
+	default:
+		return fmt.Errorf("task: invalid enum value for trigger_type field: %q", tt)
+	}
+}
+
 // OrderOption defines the ordering options for the Task queries.
 type OrderOption func(*sql.Selector)
 
@@ -241,9 +305,29 @@ func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTitle, opts...).ToFunc()
 }
 
+// ByTarget orders the results by the target field.
+func ByTarget(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTarget, opts...).ToFunc()
+}
+
+// BySource orders the results by the source field.
+func BySource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSource, opts...).ToFunc()
+}
+
+// ByTriggerType orders the results by the trigger_type field.
+func ByTriggerType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTriggerType, opts...).ToFunc()
+}
+
 // ByUserID orders the results by the user_id field.
 func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByOperator orders the results by the operator field.
+func ByOperator(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOperator, opts...).ToFunc()
 }
 
 // ByPayload orders the results by the payload field.
@@ -259,6 +343,16 @@ func ByState(opts ...sql.OrderTermOption) OrderOption {
 // ByResult orders the results by the result field.
 func ByResult(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldResult, opts...).ToFunc()
+}
+
+// BySteps orders the results by the steps field.
+func BySteps(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSteps, opts...).ToFunc()
+}
+
+// ByLogs orders the results by the logs field.
+func ByLogs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLogs, opts...).ToFunc()
 }
 
 // ByProgressTotal orders the results by the progress_total field.
@@ -289,6 +383,16 @@ func ByIntervalMs(opts ...sql.OrderTermOption) OrderOption {
 // ByTimeoutMs orders the results by the timeout_ms field.
 func ByTimeoutMs(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTimeoutMs, opts...).ToFunc()
+}
+
+// ByCanceledBy orders the results by the canceled_by field.
+func ByCanceledBy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCanceledBy, opts...).ToFunc()
+}
+
+// ByStartTime orders the results by the start_time field.
+func ByStartTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartTime, opts...).ToFunc()
 }
 
 // ByEndTime orders the results by the end_time field.

@@ -15,8 +15,13 @@
       <template #actions>
         <AppDropdown align="end" :width="200">
           <template #trigger>
-            <UButton color="neutral" variant="soft" icon="i-lucide-arrow-up-down">
-              {{ t('tools.portForward.importExport') }}
+            <UButton
+              color="neutral"
+              variant="outline"
+              icon="i-lucide-arrow-up-down"
+              :aria-label="t('tools.portForward.importExport')"
+            >
+              <template v-if="!menuStore.isMobile">{{ t('tools.portForward.importExport') }}</template>
             </UButton>
           </template>
           <template #default="{ close }">
@@ -30,7 +35,7 @@
             </div>
           </template>
         </AppDropdown>
-        <UButton color="primary" icon="i-lucide-plus" @click="openCreateDialog()">
+        <UButton v-if="!menuStore.isMobile" color="primary" icon="i-lucide-plus" @click="openCreateDialog()">
           {{ t('tools.portForward.addRule') }}
         </UButton>
       </template>
@@ -71,14 +76,14 @@
     </section>
 
     <ListToolbar
-      v-model:status="queryForm.status"
+      v-model:status="chipFilter"
       v-model:keyword="queryForm.keywords"
-      :chips="statusChips"
+      :chips="menuStore.isMobile ? mobileChips : statusChips"
       :chips-label="t('tools.portForward.statusCol')"
       :placeholder="t('tools.portForward.searchPlaceholder')"
       @search="search"
     >
-      <div class="pf-seg" role="radiogroup" :aria-label="t('tools.portForward.forwardType')">
+      <div v-if="!menuStore.isMobile" class="pf-seg" role="radiogroup" :aria-label="t('tools.portForward.forwardType')">
         <button
           v-for="opt in protoOptions"
           :key="opt.value"
@@ -237,7 +242,10 @@
               <span>{{ row.error }}</span>
             </div>
             <footer class="pf-card__foot">
-              <span class="pf-card__meta">{{ t('tools.portForward.createdAt', { time: formatDateTime(row.createTime) }) }}</span>
+              <span class="pf-card__meta">
+                <span class="pf-proto" :class="isUdp(row) ? 'is-udp' : 'is-tcp'">{{ protoLabel(row) }}</span>
+                <span v-if="row.autoStart" class="pf-tag">{{ t('tools.portForward.autoStart') }}</span>
+              </span>
               <AppIconButton icon="HOutline:ChartBarIcon" :label="t('tools.portForward.stats.details')" :box="44" :size="20" @click="openStatsDialog(row)" />
               <AppIconButton
                 :icon="toggleIcon(row)"
@@ -265,6 +273,13 @@
         <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" />
         {{ t('tools.portForward.footNote') }}
       </p>
+    </div>
+
+    <!-- 手机：右下悬浮新建 -->
+    <div v-if="menuStore.isMobile && !selectedIds.length" class="pf-fab">
+      <button type="button" class="pf-fab__btn" :aria-label="t('tools.portForward.addRule')" @click="openCreateDialog()">
+        <UIcon name="i-lucide-plus" />
+      </button>
     </div>
 
     <Transition name="pf-pop">
@@ -324,7 +339,7 @@ type Row = Record<string, unknown>
 type StatusFilter = '' | PortForwardStatus
 type ProtoFilter = '' | PortForwardType
 
-const POLL_MS = 4000
+const POLL_MS = 2000
 
 const menuStore = useMenuStore()
 const { t } = useI18n()
@@ -375,6 +390,26 @@ const setProto = (v: ProtoFilter) => {
   queryForm.type = v
   search()
 }
+// 手机端只有一行 chips：状态 + 协议合在一起单选（选协议时清空状态，反之亦然）
+type ChipFilter = StatusFilter | PortForwardType
+const isProtoValue = (v: string): v is PortForwardType => v.startsWith('PORT_FORWARD_TYPE_')
+const mobileChips = computed<ToolbarChip<ChipFilter>[]>(() => [
+  ...statusChips.value,
+  { label: 'TCP', value: PortForwardType.PORT_FORWARD_TYPE_TCP, count: num(overview.value.tcp) },
+  { label: 'UDP', value: PortForwardType.PORT_FORWARD_TYPE_UDP, count: num(overview.value.udp) },
+])
+const chipFilter = computed<ChipFilter>({
+  get: () => (menuStore.isMobile && queryForm.type ? queryForm.type : queryForm.status),
+  set: (v) => {
+    if (isProtoValue(v)) {
+      queryForm.type = v
+      queryForm.status = ''
+    } else {
+      queryForm.status = v
+      if (menuStore.isMobile) queryForm.type = ''
+    }
+  },
+})
 
 // ---- 行展示 ----
 const isUdp = (row: Row) => row.type === PortForwardType.PORT_FORWARD_TYPE_UDP
@@ -562,6 +597,7 @@ type ExportedRule = {
   targetAddress: string
   targetPort: number
   isEnable: boolean
+  autoStart: boolean
   remark: string
 }
 
@@ -578,6 +614,7 @@ const exportRules = async (ids?: string[]) => {
       targetAddress: r.targetAddress,
       targetPort: r.targetPort,
       isEnable: r.isEnable,
+      autoStart: r.autoStart,
       remark: r.remark,
     }))
     const stamp = formatDateTime(new Date()).replace(/[-: ]/g, '')
@@ -617,6 +654,7 @@ const onImportFile = async (e: Event) => {
         targetAddress: String(r.targetAddress),
         targetPort: Number(r.targetPort),
         isEnable: r.isEnable ?? false,
+        autoStart: r.autoStart ?? true,
         remark: r.remark || '',
       }),
     ),
@@ -886,7 +924,7 @@ onBeforeUnmount(stopPoll)
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px;
+  padding: 16px 12px 6px 16px;
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);
@@ -921,8 +959,9 @@ onBeforeUnmount(stopPoll)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  width: 44px;
   height: 44px;
+  margin: 0 -8px 0 -4px;
   flex: none;
   input { width: 18px; height: 18px; accent-color: var(--m-p); }
 }
@@ -931,27 +970,32 @@ onBeforeUnmount(stopPoll)
   align-items: center;
   gap: 6px;
   min-width: 0;
-  padding: 10px 12px;
-  border-radius: var(--app-radius);
-  background: var(--el-fill-color-light);
-  font-size: 0.8125rem;
-  color: var(--el-text-color-regular);
+  padding-right: 4px;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
   span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  > span:first-child { flex: none; font-weight: 700; color: var(--el-text-color-primary); }
+  .pf-route__target { font-weight: 500; color: var(--el-text-color-secondary); }
 }
 .pf-card__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 14px;
-  margin: 0;
-  dt { font-size: 0.72rem; font-weight: 700; color: var(--el-text-color-secondary); }
-  dd { margin: 2px 0 0; font-size: 0.875rem; font-weight: 700; color: var(--el-text-color-primary); line-height: 1.4; }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin: 0 4px 0 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--el-fill-color-light);
+  > div { min-width: 0; }
+  dt { font-size: 0.6875rem; font-weight: 700; color: var(--el-text-color-secondary); }
+  dd { margin: 2px 0 0; font-size: 0.8125rem; font-weight: 700; color: var(--el-text-color-primary); line-height: 1.35; }
 }
-.pf-card__spark { display: flex; align-items: center; .pf-spark { width: 100%; height: 36px; } }
+.pf-card__spark { display: flex; align-items: flex-end; .pf-spark { width: 100%; height: 36px; } }
 .pf-card__err {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 10px 12px;
+  margin-right: 4px;
+  padding: 8px 12px;
   border-radius: var(--app-radius);
   background: var(--m-badSoft);
   color: var(--m-bad);
@@ -959,15 +1003,63 @@ onBeforeUnmount(stopPoll)
   font-weight: 600;
   :deep(svg) { width: 16px; height: 16px; flex: none; margin-top: 2px; }
 }
-.pf-card__foot { display: flex; align-items: center; gap: 2px; }
+.pf-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
 .pf-card__meta {
   flex: 1;
   min-width: 0;
-  font-size: 0.72rem;
-  color: var(--el-text-color-secondary);
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+.pf-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 手机悬浮新建 */
+.pf-fab {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+.pf-fab__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 20px;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  box-shadow: var(--app-shadow-brand);
+  cursor: pointer;
+  :deep(.iconify) { width: 26px; height: 26px; }
+}
+.pf-fab__btn:active { transform: scale(0.97); }
+.pf-card__foot :deep(.action-menu__trigger) {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
 }
 .pf-skeleton {
   height: 220px;

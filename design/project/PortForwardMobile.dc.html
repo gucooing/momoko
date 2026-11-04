@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>端口转发 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ib-on,.ib-on:hover{background:var(--pSoft);color:var(--pInk)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.bad{background:var(--badSoft);color:var(--bad)}
+.proto{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 8px;border-radius:8px;font-size:12px;font-weight:800;letter-spacing:.04em}
+.proto-tcp{background:var(--a2Soft);color:var(--ink)}
+.proto-udp{background:var(--aSoft);color:var(--aOn)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.seg{display:flex;padding:4px;border-radius:999px;background:var(--s2);gap:2px}
+.seg button{flex:1;min-height:40px;padding:0 6px;border-radius:999px;border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.seg .on{background:var(--s);color:var(--ink);box-shadow:0 1px 3px rgba(20,10,30,.12)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+.lg{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink2)}
+.lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 170px">
+    <header style="display: flex; align-items: center; gap: 4px; padding: 14px 8px 4px 8px">
+      <a class="ib" href="MoreMobile.dc.html" aria-label="返回更多"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+      <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.01em">端口转发</h1>
+        <span style="font-size: 12px; color: var(--ink2)">7 条规则 · <span style="color: var(--ok); font-weight: 700">5 运行中</span> · <span style="color: var(--bad); font-weight: 700">1 异常</span></span>
+      </div>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    </header>
+
+    <div style="padding: 10px 16px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="grid-column: 1 / -1; position: relative; overflow: hidden; padding: 18px 18px 16px; border-radius: 24px; background: var(--p); color: var(--pOn); display: flex; flex-direction: column; gap: 4px">
+        <div aria-hidden="true" style="position: absolute; right: -36px; bottom: -52px; width: 132px; height: 132px; border-radius: 50%; background: var(--a)"></div>
+        <div aria-hidden="true" style="position: absolute; right: 86px; top: -18px; width: 46px; height: 46px; border-radius: 50%; border: 8px solid var(--a2)"></div>
+        <span style="position: relative; font-size: 13px; font-weight: 700">今日流量</span>
+        <span class="num" style="position: relative; font-size: 36px; font-weight: 800; line-height: 1.05">18.6 <span style="font-size: 17px">GB</span></span>
+        <span class="num" style="position: relative; font-size: 13px; font-weight: 600">↑ 4.2 GB · ↓ 14.4 GB</span>
+      </div>
+      <div class="card" style="padding: 14px 16px; border-radius: 20px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">规则数</span>
+        <span class="num" style="font-size: 26px; font-weight: 800">7</span>
+        <span style="font-size: 12px; color: var(--ink2)">5 运行 · 1 停止 · 1 错误</span>
+      </div>
+      <div class="card" style="padding: 14px 16px; border-radius: 20px; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">活动连接</span>
+        <span class="num" style="font-size: 26px; font-weight: 800">38</span>
+        <span class="num" style="font-size: 12px; color: var(--ink2)">今日峰值 61</span>
+      </div>
+    </div>
+
+    <div class="hs" role="tablist" aria-label="按状态筛选" style="display: flex; gap: 8px; padding: 16px 16px 12px; overflow-x: auto">
+      <sc-for list="{{filters}}" as="f" hint-placeholder-count="5">
+        <button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+        <article class="card" style="padding: 16px 12px 6px 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; gap: 12px; padding-right: 4px">
+            <span class="av {{r.av}} mono" style="width: 46px; height: 46px; border-radius: 15px; font-size: 12px; letter-spacing: 0.04em; transform: rotate({{r.rot}})">{{r.proto}}</span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.n}}</span>
+              <span style="font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.remark}}</span>
+            </span>
+            <span class="pill {{r.st}}">{{r.stT}}</span>
+          </div>
+          <div class="mono" style="display: flex; align-items: center; gap: 6px; font-size: 12px; padding-right: 4px; white-space: nowrap; overflow: hidden">
+            <span style="font-weight: 700">{{r.la}}</span>
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk); stroke-width: 2.4"><path d="{{i.arrow}}"></path></svg>
+            <span style="color: var(--ink2); overflow: hidden; text-overflow: ellipsis">{{r.ta}}</span>
+          </div>
+          <dl style="margin: 0 4px 0 0; padding: 10px 12px; border-radius: 14px; background: var(--s2); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px">
+            <div style="min-width: 0">
+              <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">实时速率</dt>
+              <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700; line-height: 1.35"><span style="color: var(--a2)">↑</span> {{r.up}}<br><span style="color: var(--pInk)">↓</span> {{r.down}}</dd>
+            </div>
+            <div style="min-width: 0; display: flex; align-items: flex-end">
+              <svg viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true" style="width: 100%; height: 36px"><path d="{{r.sparkA}}" style="fill: var(--p); opacity: 0.14"></path><path d="{{r.spark}}" style="fill: none; stroke: var(--p); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round"></path></svg>
+            </div>
+            <div style="min-width: 0">
+              <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">活动连接</dt>
+              <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{r.connT}}</dd>
+            </div>
+            <div style="min-width: 0">
+              <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">总流量</dt>
+              <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{r.total}}</dd>
+            </div>
+          </dl>
+          <sc-if value="{{r.err}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; align-items: center; gap: 8px; margin-right: 4px; padding: 8px 12px; border-radius: 12px; background: var(--badSoft); color: var(--bad); font-size: 12px; font-weight: 700">
+              <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.alert}}"></path></svg>
+              <span>目标不可达 · <span class="mono">{{r.err}}</span></span>
+            </div>
+          </sc-if>
+          <div style="display: flex; align-items: center; gap: 2px; padding-top: 6px; border-top: 1px solid var(--line)">
+            <div style="flex: 1; min-width: 0; display: flex; gap: 6px">
+              <span class="proto {{r.protoCls}}">{{r.proto}}</span>
+              <sc-if value="{{r.auto}}" hint-placeholder-val="{{true}}"><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 8px; background: var(--s2); color: var(--ink2); font-size: 12px; font-weight: 600">开机自启</span></sc-if>
+            </div>
+            <button class="ib {{r.statCls}}" aria-label="{{r.n}} 统计" onClick="{{r.open}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chart}}"></path></svg></button>
+            <button class="ib" aria-label="{{r.actT}} {{r.n}}" style="color: {{r.actC}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{r.actD}}"></path></svg></button>
+            <button class="ib" aria-label="编辑 {{r.n}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.edit}}"></path></svg></button>
+            <button class="ib" aria-label="{{r.n}} 更多操作"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </div>
+
+  <button class="btn btn-p" aria-label="新建规则" style="position: absolute; right: 16px; bottom: 100px; width: 60px; height: 60px; padding: 0; border-radius: 20px; box-shadow: 0 12px 28px -10px var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 26px; height: 26px"><path d="{{i.plus}}"></path></svg></button>
+
+  <nav aria-label="底部导航" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{true}}">
+    <button aria-label="关闭统计面板" onClick="{{closeSheet}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(12, 6, 18, 0.5); cursor: pointer"></button>
+    <section role="dialog" aria-label="{{cur.n}} 实时统计" class="hs" style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 760px; overflow-y: auto; background: var(--s); border-radius: 30px 30px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 14px">
+      <div style="align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--line); flex: none"></div>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span class="av {{cur.av}} mono" style="width: 46px; height: 46px; border-radius: 15px; font-size: 12px; transform: rotate(-4deg)">{{cur.proto}}</span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="display: flex; align-items: center; gap: 8px"><span style="font-size: 18px; font-weight: 800">{{cur.n}}</span><span class="pill {{cur.st}}">{{cur.stT}}</span></span>
+          <span class="mono" style="font-size: 11.5px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{cur.la}} → {{cur.ta}}</span>
+        </span>
+        <button class="ib" aria-label="关闭" onClick="{{closeSheet}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="时间范围">
+        <sc-for list="{{ranges}}" as="rg" hint-placeholder-count="4">
+          <button class="{{rg.cls}}" role="radio" aria-checked="{{rg.on}}" onClick="{{rg.pick}}">{{rg.t}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{isCustom}}" hint-placeholder-val="{{false}}">
+        <div class="num" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 14px; background: var(--s2); font-size: 13px; font-weight: 700">
+          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.cal}}"></path></svg>11-02 00:00 <span style="color: var(--ink2)">至</span> 11-03 14:31
+        </div>
+      </sc-if>
+      <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+          <div style="padding: 10px 12px; border-radius: 14px; background: var(--s2)">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">{{s.k}}</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 19px; font-weight: 800; color: {{s.c}}">{{s.v}}</dd>
+          </div>
+        </sc-for>
+      </dl>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="flex: 1; font-size: 14px; font-weight: 800">流量速率</span>
+          <span class="lg"><i style="background: var(--p)"></i>下行</span>
+          <span class="lg"><i style="background: var(--a2)"></i>上行</span>
+        </div>
+        <div style="position: relative">
+          <svg viewBox="0 0 358 140" preserveAspectRatio="none" role="img" aria-label="{{cur.n}} {{rangeName}} 流量趋势" style="width: 100%; height: 140px; display: block">
+            <line x1="0" y1="1" x2="358" y2="1" style="stroke: var(--line); stroke-dasharray: 4 6"></line>
+            <line x1="0" y1="70" x2="358" y2="70" style="stroke: var(--line); stroke-dasharray: 4 6"></line>
+            <line x1="0" y1="139" x2="358" y2="139" style="stroke: var(--line)"></line>
+            <path d="{{chart.downA}}" style="fill: var(--p); opacity: 0.14"></path>
+            <path d="{{chart.down}}" vector-effect="non-scaling-stroke" style="fill: none; stroke: var(--p); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round"></path>
+            <path d="{{chart.up}}" vector-effect="non-scaling-stroke" style="fill: none; stroke: var(--a2); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round"></path>
+          </svg>
+          <span class="num" style="position: absolute; left: 0; top: 4px; font-size: 11px; font-weight: 700; color: var(--ink2); background: var(--s); padding: 0 4px 0 0">{{chart.y2}}</span>
+        </div>
+        <div class="num" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--ink2)">
+          <sc-for list="{{chart.xs}}" as="x" hint-placeholder-count="3"><span>{{x}}</span></sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <div style="font-size: 14px; font-weight: 800; padding-bottom: 4px">活动连接 · {{cur.connT}}</div>
+        <sc-for list="{{conns}}" as="c" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line)">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+              <span class="mono" style="font-size: 12.5px; font-weight: 700">{{c.ip}}</span>
+              <span style="font-size: 12px; color: var(--ink2)">{{c.loc}} · {{c.dur}}</span>
+            </span>
+            <span class="num" style="font-size: 12px; font-weight: 700; white-space: nowrap">↓ {{c.dn}}</span>
+            <button class="ib" aria-label="断开 {{c.ip}}" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.unplug}}"></path></svg></button>
+          </div>
+        </sc-for>
+        <sc-if value="{{noConns}}" hint-placeholder-val="{{false}}">
+          <div style="padding: 14px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink2); text-align: center">当前没有活动连接</div>
+        </sc-if>
+      </div>
+      <button class="btn btn-s" onClick="{{closeSheet}}" style="min-height: 52px; font-size: 15px; flex: none">关闭</button>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  play: 'M7 4.5v15l12-7.5z',
+  stop: 'M7 7h10v10H7z',
+  restart: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  arrow: 'M4 12h15M14 7l5 5-5 5',
+  x: 'M6 6l12 12M18 6 6 18',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  cal: 'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
+  alert: 'M12 3 2 20h20zM12 10v4M12 17.5h.01',
+  unplug: 'M15 3v4M9 3v2M6 7h12v4a6 6 0 0 1-6 6M12 17v4M4 4l16 16'
+};
+const RULES = [
+  { id: 'mc', n: 'mc-game', remark: '我的世界生存服', proto: 'TCP', la: '0.0.0.0:25565', ta: '192.168.1.20:25565', s: 'run', conn: 12, dn: 1.42, upv: 0.186, total: '36.2 GB', seed: 3, auto: true },
+  { id: 'blog', n: 'blog', remark: '博客反代到本机 3000', proto: 'TCP', la: '0.0.0.0:8080', ta: '127.0.0.1:3000', s: 'run', conn: 9, dn: 0.612, upv: 0.054, total: '128 GB', seed: 7, auto: true },
+  { id: 'rdp', n: 'rdp-home', remark: '家里台式机远程桌面', proto: 'TCP', la: '0.0.0.0:3389', ta: '192.168.1.8:3389', s: 'run', conn: 1, dn: 0.096, upv: 2.3, total: '412 GB', seed: 11, auto: false },
+  { id: 'dns', n: 'dns-relay', remark: '内网 DNS 转发', proto: 'UDP', la: '0.0.0.0:53', ta: '223.5.5.5:53', s: 'run', conn: 14, dn: 0.011, upv: 0.008, total: '2.1 GB', seed: 5, auto: true },
+  { id: 'wg', n: 'wireguard', remark: 'WireGuard 回家', proto: 'UDP', la: '0.0.0.0:51820', ta: '192.168.1.2:51820', s: 'run', conn: 2, dn: 3.1, upv: 0.42, total: '88.4 GB', seed: 13, auto: true },
+  { id: 'pal', n: 'palworld', remark: '幻兽帕鲁，周末才开', proto: 'UDP', la: '0.0.0.0:8211', ta: '192.168.1.20:8211', s: 'stop', conn: 0, dn: 0, upv: 0, total: '17.9 GB', seed: 2, auto: false },
+  { id: 'smb', n: 'nas-smb', remark: 'NAS 文件共享', proto: 'TCP', la: '0.0.0.0:4450', ta: '192.168.1.5:445', s: 'err', err: 'connection refused', conn: 0, dn: 0, upv: 0, total: '6.3 GB', seed: 9, auto: false }
+];
+const ST = { run: ['ok', '运行中'], stop: ['off', '已停止'], err: ['bad', '错误'] };
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+const CONNS = [
+  { ip: '113.87.142.9:51244', loc: '广东 深圳', dur: '2 小时 13 分', dn: '1.2 GB' },
+  { ip: '36.112.8.201:60112', loc: '北京', dur: '48 分', dn: '380 MB' },
+  { ip: '223.104.63.17:40021', loc: '上海', dur: '21 分', dn: '96 MB' }
+];
+const RANGES = {
+  '5m': { t: '5分钟', n: 30, sec: 300, xs: ['14:26', '14:28', '14:31'], name: '最近 5 分钟' },
+  '1h': { t: '1小时', n: 48, sec: 3600, xs: ['13:31', '14:01', '14:31'], name: '最近 1 小时' },
+  '24h': { t: '24小时', n: 48, sec: 86400, xs: ['昨天 15:00', '今天 03:00', '14:31'], name: '最近 24 小时' },
+  'custom': { t: '自定义', n: 40, sec: 138660, xs: ['11-02 00:00', '11-03 00:00', '14:31'], name: '自定义区间' }
+};
+const TABS = [['首页', 'home', 'DashboardMobile.dc.html'], ['应用', 'apps', 'AppsMobile.dc.html'], ['容器', 'box', 'ContainersMobile.dc.html'], ['文件', 'folder', 'FilesMobile.dc.html'], ['更多', 'grid', 'MoreMobile.dc.html']];
+function series(n, base, seed, k2) {
+  const out = [];
+  let x = seed * 7919 + k2 * 104729;
+  for (let k = 0; k < n; k++) {
+    x = (x * 9301 + 49297) % 233280;
+    const r = x / 233280;
+    out.push(Math.max(0, base * (1 + 0.35 * Math.sin(k / 3.2 + seed) + 0.25 * Math.sin(k / 1.3 + k2) + 0.3 * (r - 0.5))));
+  }
+  return out;
+}
+function smooth(data, w, h, max, pad) {
+  const n = data.length;
+  const pts = data.map((v, k) => [(k / (n - 1)) * w, h - (max ? v / max : 0) * (h - pad) - 1]);
+  let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+  for (let k = 1; k < n; k++) {
+    const p0 = pts[k - 1], p1 = pts[k], cx = (p0[0] + p1[0]) / 2;
+    d += ' C' + cx.toFixed(1) + ' ' + p0[1].toFixed(1) + ' ' + cx.toFixed(1) + ' ' + p1[1].toFixed(1) + ' ' + p1[0].toFixed(1) + ' ' + p1[1].toFixed(1);
+  }
+  return d;
+}
+function rate(mb) {
+  if (!mb) return '—';
+  return mb >= 1 ? mb.toFixed(2) + ' MB/s' : Math.round(mb * 1024) + ' KB/s';
+}
+function size(mb) {
+  return mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : Math.round(mb) + ' MB';
+}
+function niceMax(v) {
+  if (v <= 0) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v)));
+  const m = v / p;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
+}
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const filter = st.filter || 'all';
+    const sheet = st.sheet === undefined ? 'mc' : st.sheet;
+    const range = st.range || '1h';
+    const count = (k) => RULES.filter((r) => k === 'all' || r.s === k || r.proto === k).length;
+    const rows = RULES.filter((r) => filter === 'all' || r.s === filter || r.proto === filter).map((r, k) => {
+      const running = r.s === 'run';
+      const sp = series(20, r.dn + r.upv, r.seed, 1);
+      const line = running ? smooth(sp, 120, 36, Math.max.apply(null, sp) * 1.1, 4) : 'M0 35 L120 35';
+      return {
+        ...r,
+        av: r.proto === 'TCP' ? 'av-a2' : 'av-a', rot: ROTS[k % 4],
+        protoCls: r.proto === 'TCP' ? 'proto-tcp' : 'proto-udp',
+        st: ST[r.s][0], stT: ST[r.s][1], err: r.err || '',
+        connT: running ? r.conn + ' 个' : '—',
+        up: rate(r.upv), down: rate(r.dn),
+        spark: line, sparkA: line + ' L120 36 L0 36 Z',
+        statCls: sheet === r.id ? 'ib-on' : '',
+        open: () => this.setState({ sheet: r.id }),
+        actD: running ? IC.stop : (r.s === 'err' ? IC.restart : IC.play),
+        actT: running ? '停止' : (r.s === 'err' ? '重试' : '启动'),
+        actC: running ? 'var(--bad)' : 'var(--ok)'
+      };
+    });
+    const c = RULES.find((r) => r.id === sheet) || RULES[0];
+    const R = RANGES[range];
+    const live = c.s === 'run';
+    const dn = live ? series(R.n, c.dn, c.seed, 2) : new Array(R.n).fill(0);
+    const up = live ? series(R.n, c.upv, c.seed, 5) : new Array(R.n).fill(0);
+    const ymax = niceMax(Math.max.apply(null, dn.concat(up)) * 1.1);
+    const downL = smooth(dn, 358, 140, ymax, 8);
+    const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+    const fmtY = (v) => (v >= 1 ? (Math.round(v * 10) / 10) + ' MB/s' : Math.round(v * 1024) + ' KB/s');
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      filters: [['all', '全部'], ['run', '运行中'], ['err', '错误'], ['stop', '已停止'], ['TCP', 'TCP'], ['UDP', 'UDP']].map(([k, t]) => ({ t, n: count(k), on: k === filter, cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
+      rows,
+      sheetOpen: !!sheet,
+      closeSheet: () => this.setState({ sheet: null }),
+      cur: { n: c.n, la: c.la, ta: c.ta, proto: c.proto, av: c.proto === 'TCP' ? 'av-a2' : 'av-a', st: ST[c.s][0], stT: ST[c.s][1], connT: (live ? c.conn : 0) + ' 个' },
+      ranges: Object.keys(RANGES).map((k) => ({ t: RANGES[k].t, on: k === range, cls: k === range ? 'on' : '', pick: () => this.setState({ range: k }) })),
+      isCustom: range === 'custom',
+      rangeName: R.name,
+      stats: [
+        { k: '当前下行', v: rate(c.dn), c: 'var(--pInk)' },
+        { k: '当前上行', v: rate(c.upv), c: 'var(--ink)' },
+        { k: '活动连接', v: String(live ? c.conn : 0), c: 'var(--ink)' },
+        { k: '区间流量', v: live ? size((avg(dn) + avg(up)) * R.sec) : '0 MB', c: 'var(--ink)' }
+      ],
+      chart: { down: downL, downA: downL + ' L358 140 L0 140 Z', up: smooth(up, 358, 140, ymax, 8), y2: fmtY(ymax), xs: R.xs },
+      conns: live ? CONNS.slice(0, Math.min(3, c.conn)) : [],
+      noConns: !live,
+      tabs: TABS.map(([t, k, href]) => ({ t, d: IC[k], href, cls: t === '更多' ? 'tab-on' : '' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

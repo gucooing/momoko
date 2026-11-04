@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+	"io/fs"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -203,6 +204,8 @@ func TestEmbeddedRemoveSub2API(t *testing.T) {
 	if err := Run(ctx, client, "sqlite3"); err != nil {
 		t.Fatal(err)
 	}
+	// 内置脚本会随功能增加，期望的已执行记录取自内置目录本身。
+	embeddedVersions := embeddedScriptVersions(t)
 
 	for _, table := range []string{
 		"sub2api_usage_records", "sub2api_groups", "sub2api_lottery_participants", "sub2api_lottery_rounds",
@@ -224,11 +227,29 @@ func TestEmbeddedRemoveSub2API(t *testing.T) {
 	if n := client.Task.Query().CountX(ctx); n != 1 {
 		t.Errorf("其他任务记录剩余 %d 条, 期望 1", n)
 	}
-	assertApplied(t, client, []int64{0})
+	assertApplied(t, client, embeddedVersions)
 
 	// 再次执行为空操作。
 	if err := Run(ctx, client, "sqlite3"); err != nil {
 		t.Fatal(err)
 	}
-	assertApplied(t, client, []int64{0})
+	assertApplied(t, client, embeddedVersions)
+}
+
+// embeddedScriptVersions 返回内置 sql 目录全部脚本的序号（升序）。
+func embeddedScriptVersions(t *testing.T) []int64 {
+	t.Helper()
+	sub, err := fs.Sub(embedded, "sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	scripts, err := LoadScripts(sub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	versions := make([]int64, 0, len(scripts))
+	for _, s := range scripts {
+		versions = append(versions, s.Version)
+	}
+	return versions
 }

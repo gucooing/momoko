@@ -29,17 +29,29 @@ func (Task) Fields() []ent.Field {
 			Default("none").
 			Comment("开机注入策略：none=不重跑(标失败)/rerun=未完成重跑/always=默认开启单例"),
 		field.String("title").Default("").Comment("展示标题"),
+		field.String("target").Default("").Comment("关联对象（镜像引用、容器/网络名、目标目录、文件名）"),
+		field.String("source").Default("").Comment("发起入口（页面/模块键，如 docker.container、file）"),
+		field.Enum("trigger_type").
+			Values("manual", "schedule", "master", "system").
+			Default("system").
+			Comment("触发方式：手动/计划/主控转发/系统"),
 		field.String("user_id").Default("").Comment("发起用户id，空=系统任务"),
-		// payload 存重建任务所需参数的 JSON；state 存断点续传 JSON；result 存 []TaskResult JSON。
+		field.String("operator").Default("").Comment("远程主控侧操作者（主控转发时）"),
+		// payload 存重建任务所需参数的 JSON；state 存断点续传 JSON；result 存 []TaskResult JSON；
+		// steps 存 []Step JSON；logs 存 []LogEntry JSON（运行期节流写入，终态时写全量）。
 		field.Text("payload").Default("").Comment("重建参数(JSON)"),
 		field.Text("state").Default("").Comment("断点续传状态(JSON)"),
 		field.Text("result").Default("").Comment("执行结果(JSON)"),
+		field.Text("steps").Default("").Comment("执行步骤(JSON)"),
+		field.Text("logs").Default("").Comment("任务日志(JSON)"),
 		field.Int64("progress_total").Default(0).Comment("总进度"),
 		field.Int64("progress_finished").Default(0).Comment("已完成进度"),
 		field.Text("message").Default("").Comment("当前消息"),
 		field.Text("error").Default("").Comment("错误信息"),
 		field.Int64("interval_ms").Default(0).Comment("定时任务触发周期(毫秒)"),
 		field.Int64("timeout_ms").Default(0).Comment("一次性任务超时(毫秒，0=管理器默认)"),
+		field.String("canceled_by").Default("").Comment("取消人用户id"),
+		field.Time("start_time").Optional().Nillable().Comment("开始执行时间"),
 		field.Time("end_time").Optional().Nillable().Comment("结束时间"),
 	}
 }

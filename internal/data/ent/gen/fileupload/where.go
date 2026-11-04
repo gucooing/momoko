@@ -130,6 +130,11 @@ func ProviderRef(v string) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldEQ(FieldProviderRef, v))
 }
 
+// BufferLocal applies equality check predicate on the "buffer_local" field. It's identical to BufferLocalEQ.
+func BufferLocal(v bool) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEQ(FieldBufferLocal, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldEQ(FieldCreateTime, v))
@@ -738,6 +743,16 @@ func ProviderRefEqualFold(v string) predicate.FileUpload {
 // ProviderRefContainsFold applies the ContainsFold predicate on the "provider_ref" field.
 func ProviderRefContainsFold(v string) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldContainsFold(FieldProviderRef, v))
+}
+
+// BufferLocalEQ applies the EQ predicate on the "buffer_local" field.
+func BufferLocalEQ(v bool) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEQ(FieldBufferLocal, v))
+}
+
+// BufferLocalNEQ applies the NEQ predicate on the "buffer_local" field.
+func BufferLocalNEQ(v bool) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldNEQ(FieldBufferLocal, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>镜像 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.utab{display:inline-flex;align-items:center;min-height:44px;padding:0 2px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700;flex:none}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.inp{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 16px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.itag{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:8px;background:var(--a2Soft);color:var(--ink);font-size:12px;font-weight:600;white-space:nowrap}
+.itag-none{background:var(--s2);color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-a2{background:var(--a2Soft);color:var(--ink)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:999px;background:var(--s2);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:999px;background:var(--a2)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+.li{display:flex;align-items:center;gap:14px;width:100%;min-height:52px;padding:0 6px;border:0;border-radius:14px;background:transparent;color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer;text-align:left}
+.li:hover{background:var(--s2)}
+.qa{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px;border-radius:20px;border:0;background:var(--s2);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 170px">
+    <header style="display: flex; align-items: center; gap: 10px; padding: 22px 12px 4px 20px">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.01em">Docker</h1>
+      <span class="pill ok">已连接</span>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="后台任务，1 个进行中"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.clock}}"></path></svg><span style="position: absolute; top: 8px; right: 8px; width: 9px; height: 9px; border-radius: 50%; background: var(--a); border: 2px solid var(--bg)"></span></button>
+    </header>
+    <nav class="hs" aria-label="Docker 分类" style="display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+      <a class="utab" href="ContainersMobile.dc.html">容器 12</a>
+      <a class="utab utab-on" href="ImagesMobile.dc.html" aria-current="page">镜像 14</a>
+      <a class="utab" href="NetworksMobile.dc.html">网络 5</a>
+      <a class="utab" href="DockerConfigMobile.dc.html">配置</a>
+    </nav>
+
+    <sc-if value="{{pulling}}" hint-placeholder-val="{{true}}">
+      <section class="card" aria-label="拉取任务" style="margin: 14px 16px 0; padding: 14px 6px 12px 14px; display: flex; flex-direction: column; gap: 10px; border-color: var(--a2); box-shadow: 0 0 0 3px var(--a2Soft)">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span class="av av-a2" style="width: 40px; height: 40px; border-radius: 13px; transform: rotate(-5deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg></span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+            <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">正在拉取</span>
+            <span class="mono" style="font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">nginx:1.27-alpine</span>
+          </span>
+          <span class="num" style="font-size: 26px; font-weight: 800">68<span style="font-size: 14px">%</span></span>
+          <button class="ib" aria-label="取消拉取" onClick="{{cancelPull}}" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+        </div>
+        <div style="padding-right: 8px; display: flex; flex-direction: column; gap: 6px">
+          <div class="bar" style="height: 8px"><span style="width: 68%"></span></div>
+          <div class="num" style="display: flex; gap: 10px; font-size: 12px; color: var(--ink2)"><span><span style="color: var(--ink); font-weight: 700">32.1</span> / 47.2 MB</span><span>4.8 MB/s</span><span>约 3 秒</span></div>
+        </div>
+        <button onClick="{{toggleLayers}}" aria-expanded="{{layOpen}}" style="display: flex; align-items: center; gap: 6px; min-height: 40px; margin-right: 8px; padding: 0 12px; border: 0; border-radius: 12px; background: var(--s2); color: var(--ink); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer">
+          <span style="flex: 1; text-align: left">6 层 · 2 完成 · 2 下载中</span>
+          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{layD}}"></path></svg>
+        </button>
+        <sc-if value="{{layOpen}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; flex-direction: column; gap: 8px; padding-right: 8px">
+            <sc-for list="{{layers}}" as="l" hint-placeholder-count="6">
+              <div style="display: grid; grid-template-columns: 100px minmax(0, 1fr) auto; align-items: center; gap: 10px">
+                <span class="mono" style="font-size: 11px; font-weight: 600">{{l.id}}</span>
+                <span class="bar"><span style="width: {{l.w}}; background: {{l.c}}"></span></span>
+                <span style="font-size: 11px; font-weight: 700; color: {{l.fg}}; white-space: nowrap">{{l.st}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <div style="padding: 14px 16px 10px">
+      <label class="inp">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="仓库、标签或镜像 ID" aria-label="搜索镜像">
+      </label>
+    </div>
+    <div class="hs" role="tablist" aria-label="按使用情况筛选" style="display: flex; gap: 8px; padding: 2px 16px 10px; overflow-x: auto">
+      <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+        <button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+      </sc-for>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 0 8px 10px 20px">
+      <span style="flex: 1; font-size: 13px; color: var(--ink2)">占用 <span class="num" style="color: var(--ink); font-weight: 700">3.1 GB</span> · 可回收 <span class="num" style="color: var(--warn); font-weight: 700">459 MB</span></span>
+      <button class="btn" style="min-height: 44px; padding: 0 12px; background: transparent; color: var(--pInk); font-size: 13px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.broom}}"></path></svg>清理悬空</button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+        <article class="card" style="padding: 16px 10px 6px 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; gap: 10px; padding-right: 6px">
+            <span class="mono" style="flex: 1; min-width: 0; font-size: 15px; font-weight: 800; color: {{r.repoC}}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.repo}}</span>
+            <span class="pill {{r.st}}">{{r.stT}}</span>
+          </div>
+          <dl style="margin: 0 6px 0 0; padding: 10px 12px; border-radius: 14px; background: var(--s2); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px">
+            <div style="min-width: 0">
+              <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">镜像 ID</dt>
+              <dd class="mono" style="margin: 2px 0 0; font-size: 12px; font-weight: 600">{{r.id}}</dd>
+            </div>
+            <div style="min-width: 0">
+              <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">大小</dt>
+              <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{r.size}}</dd>
+            </div>
+            <div style="min-width: 0">
+              <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">创建于</dt>
+              <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{r.ago}}</dd>
+            </div>
+            <div style="min-width: 0">
+              <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">使用容器</dt>
+              <dd class="mono" style="margin: 2px 0 0; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.usedBy}}</dd>
+            </div>
+          </dl>
+          <div style="display: flex; align-items: center; gap: 2px; padding-top: 6px; border-top: 1px solid var(--line)">
+            <div class="hs" style="flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto">
+              <sc-for list="{{r.tags}}" as="tg" hint-placeholder-count="1">
+                <span class="itag mono {{r.tagCls}}">{{tg}}</span>
+              </sc-for>
+            </div>
+            <button class="ib" aria-label="给 {{r.label}} 打标签"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.tag}}"></path></svg></button>
+            <button class="ib" aria-label="查看 {{r.label}} 的构建历史"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.history}}"></path></svg></button>
+            <button class="ib" aria-label="删除 {{r.label}}" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg></button>
+            <button class="ib" aria-label="{{r.label}} 更多操作" onClick="{{r.open}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </div>
+
+  <button class="btn btn-p" aria-label="拉取镜像" onClick="{{restartPull}}" style="position: absolute; right: 16px; bottom: 100px; width: 60px; height: 60px; padding: 0; border-radius: 20px; box-shadow: 0 12px 28px -10px var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 26px; height: 26px"><path d="{{i.download}}"></path></svg></button>
+
+  <nav aria-label="底部导航" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{false}}">
+    <button aria-label="关闭操作面板" onClick="{{closeSheet}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(12, 6, 18, 0.5); cursor: pointer"></button>
+    <section role="dialog" aria-label="{{cur.label}} 操作" style="position: absolute; left: 0; right: 0; bottom: 0; background: var(--s); border-radius: 30px 30px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 16px">
+      <div style="align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--line)"></div>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span class="av av-a2" style="width: 48px; height: 48px; border-radius: 16px; transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.layers}}"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span class="mono" style="font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{cur.label}}</span>
+          <span class="mono" style="font-size: 12px; color: var(--ink2)">{{cur.id}} · {{cur.size}}</span>
+        </span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <button class="qa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.box}}"></path></svg>用它建容器</button>
+        <button class="qa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>重新拉取</button>
+        <button class="qa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.copy}}"></path></svg>复制 ID</button>
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <button class="li"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.upload}}"></path></svg>导出为 .tar</button>
+        <button class="li"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.logs}}"></path></svg>查看详情（inspect）</button>
+        <button class="li" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg>强制删除</button>
+      </div>
+      <button class="btn btn-s" onClick="{{closeSheet}}" style="min-height: 52px; font-size: 15px">取消</button>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  download: 'M12 3v12M7 10l5 5 5-5M4 20h16',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 20h16',
+  broom: 'M14 4l6 6M17 7l-6 6M11 13l-7 7M9 11l4 4-3 5H4v-6z',
+  tag: 'M3 12V4h8l10 10-8 8zM7.5 7.5h.01',
+  history: 'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2',
+  copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+  logs: 'M5 4h14v16H5zM9 8h6M9 12h6M9 16h4',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  chevD: 'M6 9l6 6 6-6',
+  chevU: 'M6 15l6-6 6 6',
+  x: 'M6 6l12 12M18 6 6 18',
+  more: 'M5 12h.01M12 12h.01M19 12h.01'
+};
+const IMAGES = [
+  { id: '3b25b682ea82', repo: 'nginx', tags: ['1.27-alpine', 'stable-alpine'], size: '47.2 MB', ago: '3 周前', used: ['nginx-proxy'], s: 'use' },
+  { id: '9f3ec01b1c84', repo: 'postgres', tags: ['16', '16.4'], size: '432 MB', ago: '1 个月前', used: ['blog-db'], s: 'use' },
+  { id: 'c1e0b3a5d7f2', repo: 'redis', tags: ['7', '7.4'], size: '117 MB', ago: '6 周前', used: ['redis-cache'], s: 'use' },
+  { id: '5be0c2d1a948', repo: 'ghcr.io/umami-software/umami', tags: ['postgresql-latest'], size: '412 MB', ago: '2 周前', used: ['umami'], s: 'use' },
+  { id: '7d1f4e6a3c20', repo: 'louislam/uptime-kuma', tags: ['1'], size: '425 MB', ago: '2 个月前', used: ['uptime-kuma'], s: 'use' },
+  { id: 'e8a2c7b91f04', repo: 'minio/minio', tags: ['latest'], size: '159 MB', ago: '3 周前', used: ['minio'], s: 'use' },
+  { id: '4c62f0e8d1b7', repo: 'containrrr/watchtower', tags: ['latest'], size: '14.7 MB', ago: '11 个月前', used: ['watchtower'], s: 'use' },
+  { id: 'a5d9e1f3c602', repo: 'mysql', tags: ['5.7'], size: '501 MB', ago: '2 年前', used: ['old-mysql'], s: 'use' },
+  { id: '2f7b8c4d0e19', repo: 'node', tags: ['20-alpine'], size: '135 MB', ago: '1 个月前', used: [], s: 'unused' },
+  { id: '6e3a1d9c7b58', repo: 'python', tags: ['3.12-slim'], size: '155 MB', ago: '5 周前', used: [], s: 'unused' },
+  { id: 'b0c4e7a2d913', repo: '<none>', tags: ['<none>'], size: '412 MB', ago: '3 周前', used: [], s: 'dangling' },
+  { id: 'd7f1a8c3e260', repo: '<none>', tags: ['<none>'], size: '47.0 MB', ago: '6 周前', used: [], s: 'dangling' }
+];
+const LAYERS = [
+  ['c6a83fedfae6', 'done', '已存在', 100],
+  ['0b59a3a1c18b', 'done', '已完成', 100],
+  ['8f9a1e2d6c44', 'dl', '72%', 72],
+  ['1d4e5b8c9a07', 'dl', '31%', 31],
+  ['e5c2a7f03b91', 'wait', '等待中', 0],
+  ['3a7b9d0f1e26', 'wait', '等待中', 0]
+];
+const ST = { use: ['ok', '使用中'], unused: ['off', '未使用'], dangling: ['warn', '悬空'] };
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const filter = st.filter || 'all';
+    const pulling = st.pulling != null ? st.pulling : true;
+    const layOpen = !!st.layOpen;
+    const sheet = st.sheet || null;
+    const totals = { all: 14, use: 10, unused: 2, dangling: 2 };
+    const label = (r) => (r.s === 'dangling' ? '悬空镜像 ' + r.id.slice(0, 6) : r.repo + ':' + r.tags[0]);
+    const c = IMAGES.find((r) => r.id === sheet) || IMAGES[0];
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      pulling,
+      cancelPull: () => this.setState({ pulling: false }),
+      restartPull: () => this.setState({ pulling: true }),
+      layOpen,
+      layD: layOpen ? IC.chevU : IC.chevD,
+      toggleLayers: () => this.setState({ layOpen: !layOpen }),
+      layers: LAYERS.map(([id, k, stT, w]) => ({ id, st: stT, w: w + '%', c: k === 'done' ? 'var(--ok)' : 'var(--a2)', fg: k === 'done' ? 'var(--ok)' : (k === 'dl' ? 'var(--ink)' : 'var(--ink2)') })),
+      filters: [['all', '全部'], ['use', '使用中'], ['unused', '未使用'], ['dangling', '悬空']].map(([k, t]) => ({ t, n: totals[k], on: k === filter, cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
+      rows: IMAGES.filter((r) => filter === 'all' || r.s === filter).map((r) => ({
+        ...r,
+        label: label(r),
+        repoC: r.s === 'dangling' ? 'var(--ink2)' : 'var(--ink)',
+        tagCls: r.s === 'dangling' ? 'itag-none' : '',
+        st: ST[r.s][0], stT: ST[r.s][1],
+        usedBy: r.used.length ? r.used.join('、') : '—',
+        open: () => this.setState({ sheet: r.id })
+      })),
+      sheetOpen: !!sheet,
+      cur: { label: label(c), id: c.id, size: c.size },
+      closeSheet: () => this.setState({ sheet: null }),
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: 'tab-on' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: '' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: '' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

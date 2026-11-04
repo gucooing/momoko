@@ -13,12 +13,17 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/gen/iqcheckprompt"
 	"momoko/internal/data/ent/gen/iqcheckresult"
 	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/schema"
 	"momoko/pkg/iqcheck"
+	"momoko/pkg/response"
 	"momoko/pkg/task"
 )
+
+// ErrIQCheckPromptGrading 评分方式说明过长。
+var ErrIQCheckPromptGrading = response.BadRequest(500, "评分方式最多 64 个字符")
 
 // IQCheckRepo 智商检测数据访问：提示词、站点与检测结果。
 type IQCheckRepo interface {
@@ -46,6 +51,8 @@ type IQCheckRepo interface {
 	ListAllSites(ctx context.Context, keywords string) ([]*gen.IQCheckSite, error)
 	RecentResults(ctx context.Context, siteID string, limit int) ([]*gen.IQCheckResult, error)
 	CountSiteResults(ctx context.Context, siteID string) (int64, error)
+	// LastSuccessAt 返回站点最近一条成功结果的检测时间；从未成功时返回 nil。
+	LastSuccessAt(ctx context.Context, siteID string) (*time.Time, error)
 	CountResultsSince(ctx context.Context, since time.Time) (int64, error)
 	CountPrompts(ctx context.Context) (all int64, enabled int64, err error)
 	PromptUsage(ctx context.Context, promptID string) (IQCheckPromptUsage, error)
@@ -54,9 +61,10 @@ type IQCheckRepo interface {
 
 // IQCheckPromptUsage 提示词使用情况。
 type IQCheckPromptUsage struct {
-	Count      int64
-	SiteCount  int64
-	LastUsedAt *time.Time
+	Count          int64
+	SiteCount      int64
+	LastUsedAt     *time.Time
+	AvgInputTokens int64
 }
 
 // IQCheckModelCount 按模型统计的结果条数。
@@ -85,6 +93,7 @@ const (
 	iqCheckStoreTimeout     = 30 * time.Second
 	iqCheckMaxPageSize      = 100
 	iqCheckRecentRounds     = 8
+	iqCheckGradingMaxLen    = 64
 )
 
 // IQCheckUsecase 智商检测：提示词与站点配置、定时/手动检测、公开页数据。
@@ -134,6 +143,7 @@ func (u *IQCheckUsecase) ListPrompts(ctx context.Context, req *v1.ListIQCheckPro
 		}
 		info.UseCount = usage.Count
 		info.SiteCount = usage.SiteCount
+		info.AvgInputTokens = usage.AvgInputTokens
 		if usage.LastUsedAt != nil {
 			info.LastUsedAt = timestamppb.New(*usage.LastUsedAt)
 		}
@@ -153,21 +163,42 @@ func (u *IQCheckUsecase) ListPrompts(ctx context.Context, req *v1.ListIQCheckPro
 	}, nil
 }
 
-func (u *IQCheckUsecase) CreatePrompt(ctx context.Context, req *v1.CreateIQCheckPromptRequest) (*v1.IQCheckPromptInfo, error) {
-	title, content := strings.TrimSpace(req.Title), strings.TrimSpace(req.Content)
+// iqCheckPromptInput 创建/更新提示词共用的可编辑字段。
+type iqCheckPromptInput struct {
+	Title    string
+	Content  string
+	Enabled  bool
+	Order    int32
+	Category v1.IQCheckPromptCategory
+	Grading  string
+}
+
+// applyIQCheckPromptInput 校验并写入提示词可编辑字段。
+func applyIQCheckPromptInput(row *gen.IQCheckPrompt, in iqCheckPromptInput) error {
+	title, content, grading := strings.TrimSpace(in.Title), strings.TrimSpace(in.Content), strings.TrimSpace(in.Grading)
 	if title == "" {
-		return nil, ErrIQCheckPromptTitle
+		return ErrIQCheckPromptTitle
 	}
 	if content == "" {
-		return nil, ErrIQCheckPromptContent
+		return ErrIQCheckPromptContent
 	}
-	row, err := u.repo.CreatePrompt(ctx, &gen.IQCheckPrompt{
-		ID:      uuid.NewString(),
-		Title:   title,
-		Content: content,
-		Enabled: req.Enabled,
-		Order:   int(req.Order),
-	})
+	if len([]rune(grading)) > iqCheckGradingMaxLen {
+		return ErrIQCheckPromptGrading
+	}
+	row.Title, row.Content, row.Enabled, row.Order = title, content, in.Enabled, int(in.Order)
+	row.Category = iqCheckCategoryFromProto(in.Category)
+	row.Grading = grading
+	return nil
+}
+
+func (u *IQCheckUsecase) CreatePrompt(ctx context.Context, req *v1.CreateIQCheckPromptRequest) (*v1.IQCheckPromptInfo, error) {
+	prompt := &gen.IQCheckPrompt{ID: uuid.NewString()}
+	if err := applyIQCheckPromptInput(prompt, iqCheckPromptInput{
+		Title: req.Title, Content: req.Content, Enabled: req.Enabled, Order: req.Order, Category: req.Category, Grading: req.Grading,
+	}); err != nil {
+		return nil, err
+	}
+	row, err := u.repo.CreatePrompt(ctx, prompt)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -182,14 +213,11 @@ func (u *IQCheckUsecase) UpdatePrompt(ctx context.Context, req *v1.UpdateIQCheck
 		}
 		return nil, ErrSystem(err)
 	}
-	title, content := strings.TrimSpace(req.Title), strings.TrimSpace(req.Content)
-	if title == "" {
-		return nil, ErrIQCheckPromptTitle
+	if err := applyIQCheckPromptInput(row, iqCheckPromptInput{
+		Title: req.Title, Content: req.Content, Enabled: req.Enabled, Order: req.Order, Category: req.Category, Grading: req.Grading,
+	}); err != nil {
+		return nil, err
 	}
-	if content == "" {
-		return nil, ErrIQCheckPromptContent
-	}
-	row.Title, row.Content, row.Enabled, row.Order = title, content, req.Enabled, int(req.Order)
 	updated, err := u.repo.UpdatePrompt(ctx, row)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -210,7 +238,7 @@ func (u *IQCheckUsecase) DeletePrompt(ctx context.Context, id string) error {
 	return nil
 }
 
-// pickPrompt 从启用的提示词中随机选一条。
+// pickPrompt 从启用的提示词中随机选一条；没有启用的提示词时返回 ErrIQCheckNoPrompt。
 func (u *IQCheckUsecase) pickPrompt(ctx context.Context) (*gen.IQCheckPrompt, error) {
 	prompts, err := u.repo.ListEnabledPrompts(ctx)
 	if err != nil {
@@ -335,8 +363,10 @@ func (u *IQCheckUsecase) ListSites(ctx context.Context, req *v1.ListIQCheckSites
 		switch info.Health {
 		case v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_HEALTHY:
 			stats.Healthy++
-		case v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_PARTIAL, v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_FAILED:
-			stats.Failing++
+		case v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_PARTIAL:
+			stats.Partial++
+		case v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_FAILED:
+			stats.Failed++
 		default:
 			stats.Never++
 		}
@@ -383,9 +413,10 @@ func iqCheckSiteFilterMatch(info *v1.IQCheckSiteInfo, filter v1.IQCheckSiteFilte
 	switch filter {
 	case v1.IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_HEALTHY:
 		return info.Health == v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_HEALTHY
-	case v1.IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_FAILING:
-		return info.Health == v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_PARTIAL ||
-			info.Health == v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_FAILED
+	case v1.IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_PARTIAL:
+		return info.Health == v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_PARTIAL
+	case v1.IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_FAILED:
+		return info.Health == v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_FAILED
 	case v1.IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_DISABLED:
 		return !info.Enabled
 	case v1.IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_NEVER:
@@ -395,30 +426,57 @@ func iqCheckSiteFilterMatch(info *v1.IQCheckSiteInfo, filter v1.IQCheckSiteFilte
 	}
 }
 
-// siteInfoWithSummary 在站点信息上补齐最近轮次汇总、结果总数、健康状态与下次检测时间。
-func (u *IQCheckUsecase) siteInfoWithSummary(ctx context.Context, site *gen.IQCheckSite) (*v1.IQCheckSiteInfo, error) {
-	info := u.toIQCheckSiteInfo(site)
-	limit := (max(len(site.Models), 1) + 1) * iqCheckRecentRounds
-	rows, err := u.repo.RecentResults(ctx, site.ID, limit)
+// iqCheckRoundResultLimit 估算覆盖最近 rounds 轮所需读取的结果条数（每轮 = 模型数，多留一轮余量）。
+func iqCheckRoundResultLimit(site *gen.IQCheckSite, rounds int) int {
+	return (max(len(site.Models), 1) + 1) * (rounds + 1)
+}
+
+// recentRounds 返回站点最近 rounds 轮检测汇总，旧的在前。
+func (u *IQCheckUsecase) recentRounds(ctx context.Context, site *gen.IQCheckSite, rounds int) ([]*v1.IQCheckRoundSummary, error) {
+	rows, err := u.repo.RecentResults(ctx, site.ID, iqCheckRoundResultLimit(site, rounds))
 	if err != nil {
 		return nil, err
 	}
-	rounds := summarizeIQCheckRounds(rows, iqCheckRecentRounds)
+	return summarizeIQCheckRounds(rows, rounds), nil
+}
+
+// iqCheckRoundHealth 由一轮汇总得出健康状态。
+func iqCheckRoundHealth(round *v1.IQCheckRoundSummary) v1.IQCheckSiteHealth {
+	switch {
+	case round == nil:
+		return v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_UNSPECIFIED
+	case round.Failed == 0:
+		return v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_HEALTHY
+	case round.Success == 0:
+		return v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_FAILED
+	default:
+		return v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_PARTIAL
+	}
+}
+
+// siteInfoWithSummary 在站点信息上补齐最近轮次汇总、结果总数、健康状态、最近成功时间与下次检测时间。
+func (u *IQCheckUsecase) siteInfoWithSummary(ctx context.Context, site *gen.IQCheckSite) (*v1.IQCheckSiteInfo, error) {
+	info := u.toIQCheckSiteInfo(site)
+	rounds, err := u.recentRounds(ctx, site, iqCheckRecentRounds)
+	if err != nil {
+		return nil, err
+	}
 	info.RecentRounds = rounds
 	if n := len(rounds); n > 0 {
-		last := rounds[n-1]
-		info.LastRound = last
-		switch {
-		case last.Failed == 0:
-			info.Health = v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_HEALTHY
-		case last.Success == 0:
-			info.Health = v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_FAILED
-		default:
-			info.Health = v1.IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_PARTIAL
-		}
+		info.LastRound = rounds[n-1]
+		info.Health = iqCheckRoundHealth(info.LastRound)
 	}
 	if info.ResultCount, err = u.repo.CountSiteResults(ctx, site.ID); err != nil {
 		return nil, err
+	}
+	if info.ResultCount > 0 {
+		at, err := u.repo.LastSuccessAt(ctx, site.ID)
+		if err != nil {
+			return nil, err
+		}
+		if at != nil {
+			info.LastSuccessAt = timestamppb.New(*at)
+		}
 	}
 	if next := iqCheckNextAt(site, time.Now()); next != nil {
 		info.NextCheckAt = timestamppb.New(*next)
@@ -426,11 +484,13 @@ func (u *IQCheckUsecase) siteInfoWithSummary(ctx context.Context, site *gen.IQCh
 	return info, nil
 }
 
-// summarizeIQCheckRounds 把最新在前的结果按轮次归并，返回最多 limit 轮，旧的在前。
+// summarizeIQCheckRounds 把最新在前的结果按轮次归并，返回最多 limit 轮，旧的在前；
+// 同时统计每轮涉及的模型数（模型 + 推理强度），并带上本轮抽到的提示词标题。
 func summarizeIQCheckRounds(rows []*gen.IQCheckResult, limit int) []*v1.IQCheckRoundSummary {
 	var rounds []*v1.IQCheckRoundSummary
 	index := map[string]*v1.IQCheckRoundSummary{}
 	durations := map[string][2]int64{}
+	models := map[string]map[string]struct{}{}
 	for _, row := range rows {
 		key := row.RoundID
 		if key == "" {
@@ -441,9 +501,18 @@ func summarizeIQCheckRounds(rows []*gen.IQCheckResult, limit int) []*v1.IQCheckR
 			if len(rounds) >= limit {
 				continue
 			}
-			round = &v1.IQCheckRoundSummary{RoundId: key, RequestAt: timestamppb.New(row.RequestAt), PromptTitle: row.PromptTitle}
+			round = &v1.IQCheckRoundSummary{RoundId: key, RequestAt: timestamppb.New(row.RequestAt)}
 			index[key] = round
+			models[key] = map[string]struct{}{}
 			rounds = append(rounds, round)
+		}
+		// 一轮内各结果的请求时间不同，取最早的作为本轮时间
+		if row.RequestAt.Before(round.RequestAt.AsTime()) {
+			round.RequestAt = timestamppb.New(row.RequestAt)
+		}
+		models[key][row.Model+"\x00"+row.Effort] = struct{}{}
+		if round.PromptTitle == "" {
+			round.PromptTitle = row.PromptTitle
 		}
 		if row.Status == iqcheckresult.StatusFailed {
 			round.Failed++
@@ -460,6 +529,9 @@ func summarizeIQCheckRounds(rows []*gen.IQCheckResult, limit int) []*v1.IQCheckR
 		if d[1] > 0 {
 			index[key].AvgDurationMs = d[0] / d[1]
 		}
+	}
+	for key, round := range index {
+		round.ModelCount = int32(len(models[key]))
 	}
 	// 最新在前 → 旧的在前
 	for i, j := 0, len(rounds)-1; i < j; i, j = i+1, j-1 {
@@ -605,6 +677,7 @@ func (u *IQCheckUsecase) FetchModels(ctx context.Context, req *v1.FetchIQCheckMo
 }
 
 // TriggerCheck 手动对站点执行一轮检测（后台异步）；不计入定时检测次数，但会刷新最近检测时间。
+// 返回本轮的模型数。
 func (u *IQCheckUsecase) TriggerCheck(ctx context.Context, id string) (int32, error) {
 	site, err := u.repo.GetSite(ctx, id)
 	if err != nil {
@@ -654,17 +727,23 @@ func (u *IQCheckUsecase) PublicSite(ctx context.Context, slug string) (*v1.Publi
 	if err != nil {
 		return nil, err
 	}
+	// 公示页不返回 API Key 与接口地址
 	info := &v1.PublicIQCheckSiteInfo{
 		Name:            site.Name,
-		Endpoint:        site.Endpoint,
-		Protocol:        iqCheckProtocolToProto(site.Protocol),
 		Models:          iqCheckModelsToProto(site.Models),
 		IntervalMinutes: int32(site.IntervalMinutes),
+		Enabled:         site.Enabled,
 	}
 	if site.LastCheckAt != nil {
 		info.LastCheckAt = timestamppb.New(*site.LastCheckAt)
 	}
-	info.Enabled = site.Enabled
+	rounds, err := u.recentRounds(ctx, site, 1)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if len(rounds) > 0 {
+		info.LastRound = rounds[len(rounds)-1]
+	}
 	stats, err := u.repo.SiteResultStats(ctx, site.ID, time.Now().AddDate(0, 0, -7))
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -770,8 +849,8 @@ func iqCheckSiteDue(site *gen.IQCheckSite, now time.Time) bool {
 	return !now.Before(site.LastCheckAt.Add(interval))
 }
 
-// checkSite 对站点的全部模型各发一次同一条随机提示词；每个模型独立超时、完成即入库，
-// 慢的或挂住的模型不影响其他模型结果的展示。
+// checkSite 从启用的提示词中随机抽一道题发给站点的每个模型；每次请求独立超时、完成即入库，
+// 慢的或挂住的请求不影响其他结果的展示。
 func (u *IQCheckUsecase) checkSite(ctx context.Context, site *gen.IQCheckSite, countRun bool) {
 	setupCtx, cancelSetup := context.WithTimeout(ctx, iqCheckStoreTimeout)
 	defer cancelSetup()
@@ -797,20 +876,21 @@ func (u *IQCheckUsecase) checkSite(ctx context.Context, site *gen.IQCheckSite, c
 	}
 	cancelSetup()
 	roundID := uuid.NewString()
-	// 固定数量的 worker，避免为每个排队模型启动一个等待信号量的协程。
-	jobs := make(chan schema.IQCheckModel, len(site.Models))
+	// 固定数量的 worker，避免为每个排队请求启动一个等待信号量的协程。
+	total := len(site.Models)
+	jobs := make(chan schema.IQCheckModel, total)
 	for _, model := range site.Models {
 		jobs <- model
 	}
 	close(jobs)
 	results := make(chan *gen.IQCheckResult, iqCheckModelConcurrency)
 	var wg sync.WaitGroup
-	for range min(iqCheckModelConcurrency, len(site.Models)) {
+	for range min(iqCheckModelConcurrency, total) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for model := range jobs {
-				// Complete 自带单次总超时；取消后排队模型也产生失败结果，不再发起请求。
+				// Complete 自带单次总超时；取消后排队请求也产生失败结果，不再发起请求。
 				results <- u.checkModel(ctx, client, site, prompt, roundID, model)
 			}
 		}()
@@ -825,10 +905,10 @@ func (u *IQCheckUsecase) checkSite(ctx context.Context, site *gen.IQCheckSite, c
 			log.Errorf("iqcheck: 站点 %s 模型 %s 保存检测结果失败: %v", site.Name, row.Model, err)
 		}
 	}
-	log.Infof("iqcheck: 站点 %s 完成一轮检测，%d 个模型，耗时 %s", site.Name, len(site.Models), time.Since(start).Round(time.Second))
+	log.Infof("iqcheck: 站点 %s 完成一轮检测，%d 个模型，题目「%s」，耗时 %s", site.Name, len(site.Models), prompt.Title, time.Since(start).Round(time.Second))
 }
 
-// checkModel 对单个模型发送提示词并组装结果行；失败也产生一条 failed 结果。
+// checkModel 对单个模型发送一道题并组装结果行；失败也产生一条 failed 结果。
 func (u *IQCheckUsecase) checkModel(ctx context.Context, client *iqcheck.Client, site *gen.IQCheckSite, prompt *gen.IQCheckPrompt, roundID string, model schema.IQCheckModel) *gen.IQCheckResult {
 	at := time.Now()
 	row := &gen.IQCheckResult{
@@ -919,6 +999,32 @@ func iqCheckModelsToProto(models []schema.IQCheckModel) []*v1.IQCheckModelConfig
 	return out
 }
 
+var iqCheckCategories = map[v1.IQCheckPromptCategory]iqcheckprompt.Category{
+	v1.IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_OTHER:   iqcheckprompt.CategoryOther,
+	v1.IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_LOGIC:   iqcheckprompt.CategoryLogic,
+	v1.IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_MATH:    iqcheckprompt.CategoryMath,
+	v1.IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_CODING:  iqcheckprompt.CategoryCoding,
+	v1.IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_DRAWING: iqcheckprompt.CategoryDrawing,
+	v1.IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_WRITING: iqcheckprompt.CategoryWriting,
+}
+
+// iqCheckCategoryFromProto 未知分类按「其他」处理。
+func iqCheckCategoryFromProto(c v1.IQCheckPromptCategory) iqcheckprompt.Category {
+	if v, ok := iqCheckCategories[c]; ok {
+		return v
+	}
+	return iqcheckprompt.CategoryOther
+}
+
+func iqCheckCategoryToProto(c iqcheckprompt.Category) v1.IQCheckPromptCategory {
+	for k, v := range iqCheckCategories {
+		if v == c {
+			return k
+		}
+	}
+	return v1.IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_OTHER
+}
+
 func toIQCheckPromptInfo(row *gen.IQCheckPrompt) *v1.IQCheckPromptInfo {
 	return &v1.IQCheckPromptInfo{
 		Id:         row.ID,
@@ -928,6 +1034,8 @@ func toIQCheckPromptInfo(row *gen.IQCheckPrompt) *v1.IQCheckPromptInfo {
 		Order:      int32(row.Order),
 		CreateTime: timestamppb.New(row.CreateTime),
 		UpdateTime: timestamppb.New(row.UpdateTime),
+		Category:   iqCheckCategoryToProto(row.Category),
+		Grading:    row.Grading,
 	}
 }
 

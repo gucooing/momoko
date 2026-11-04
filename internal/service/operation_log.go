@@ -60,11 +60,13 @@ func (m *OperationLogMiddleware) write(ctx context.Context, req any, reply any, 
 		Operation:  operation,
 		Request:    req,
 		Success:    handlerErr == nil,
+		Code:       200,
 		DurationMS: duration.Milliseconds(),
 		Node:       trace.NodeName,
 	}
 	if handlerErr != nil {
 		detail.Error = operationErrorText(handlerErr)
+		detail.Code = kerrors.FromError(handlerErr).Code
 	}
 	entry := &v1.OperationLogInfo{
 		UserId:        operationUserID(ctx, operation, reply, handlerErr),
@@ -168,6 +170,7 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationSystemUpdateEmailConfig:                  v1.OperationType_OperationTypeSystemEmailConfigUpdate,
 	v1.OperationSystemUpdateEmailTemplate:                v1.OperationType_OperationTypeSystemEmailTemplateUpdate,
 	v1.OperationSystemTestEmailConfig:                    v1.OperationType_OperationTypeSystemEmailConfigTest,
+	v1.OperationSystemUpdateOperationLogRetention:        v1.OperationType_OperationTypeSystemOperationLogRetentionUpdate,
 	v1.OperationFileManagerCreateFileSystem:              v1.OperationType_OperationTypeFileCreate,
 	v1.OperationFileManagerRenameFileSystem:              v1.OperationType_OperationTypeFileRename,
 	v1.OperationFileManagerCopyFileSystem:                v1.OperationType_OperationTypeFileCopy,
@@ -244,9 +247,9 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationOIDCServiceRefreshOIDCClientSecret:       v1.OperationType_OperationTypeOIDCClientSecretRefresh,
 	v1.OperationOIDCServiceCreateOIDCAuthorizationCode:   v1.OperationType_OperationTypeOIDCAuthorizationCodeCreate,
 	v1.OperationOIDCServiceRotateOIDCSigningKey:          v1.OperationType_OperationTypeOIDCSigningKeyRotate,
-	v1.OperationTaskManagerCancelTask:                    v1.OperationType_OperationTypeTaskCancel,
-	v1.OperationTaskManagerRetryTask:                     v1.OperationType_OperationTypeTaskRetry,
-	v1.OperationTaskManagerDeleteTask:                    v1.OperationType_OperationTypeTaskDelete,
+	v1.OperationTaskManagerCancelTasks:                   v1.OperationType_OperationTypeTaskCancel,
+	v1.OperationTaskManagerRetryTasks:                    v1.OperationType_OperationTypeTaskRetry,
+	v1.OperationTaskManagerDeleteTasks:                   v1.OperationType_OperationTypeTaskDelete,
 	v1.OperationTaskManagerClearTasks:                    v1.OperationType_OperationTypeTaskClear,
 }
 

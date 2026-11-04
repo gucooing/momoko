@@ -2,3 +2,7 @@
 <template>
   <PageGroupHost group="settings" />
 </template>
+
+<script setup lang="ts">
+defineOptions({ name: 'SettingsGroupView' })
+</script>

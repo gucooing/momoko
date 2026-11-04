@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>菜单管理 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.chev{transition:transform .15s}
+.chev-open{transform:rotate(90deg)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.ty{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;flex:none}
+.ty-dir{background:var(--a2Soft);color:var(--ink)}.ty-menu{background:var(--pSoft);color:var(--pInk)}.ty-btn{background:var(--aSoft);color:var(--aOn)}
+.utab{display:inline-flex;align-items:center;min-height:44px;padding:0 2px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700;flex:none}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.inp{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 16px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-s{background:var(--s2);color:var(--ink2)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.tg{appearance:none;-webkit-appearance:none;width:44px;height:26px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none;transition:background .15s}
+.tg::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.tg:checked{background:var(--p)}
+.tg:checked::after{transform:translateX(18px)}
+.tr{display:flex;align-items:center;gap:6px;min-height:60px;padding:6px 0 6px 0;border-top:1px solid var(--line)}
+.tr:first-child{border-top:0}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+.li{display:flex;align-items:center;gap:14px;width:100%;min-height:52px;padding:0 6px;border:0;border-radius:14px;background:transparent;color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer;text-align:left}
+.li:hover{background:var(--s2)}
+.li:disabled{cursor:not-allowed;color:var(--ink2)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 170px">
+    <header style="display: flex; align-items: flex-end; gap: 6px; padding: 22px 12px 8px 20px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em">用户与权限</h1>
+        <div class="num" style="font-size: 13px; color: var(--ink2)">{{total}} 项 · {{nDir}} 目录 · {{nMenu}} 菜单 · {{nBtn}} 按钮</div>
+      </div>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    </header>
+    <nav class="hs" aria-label="用户与权限分类" style="display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+      <a class="utab" href="UsersMobile.dc.html">用户 8</a>
+      <a class="utab" href="RolesMobile.dc.html">角色 4</a>
+      <a class="utab utab-on" href="MenusMobile.dc.html" aria-current="page">菜单 {{total}}</a>
+    </nav>
+    <div style="padding: 14px 16px 10px">
+      <label class="inp">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="菜单名、路由或权限标识" aria-label="搜索菜单">
+      </label>
+    </div>
+    <div class="hs" style="display: flex; gap: 8px; padding: 2px 16px 14px; overflow-x: auto">
+      <button class="chip" onClick="{{expandAll}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.expand}}"></path></svg>全部展开</button>
+      <button class="chip" onClick="{{collapseAll}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.collapse}}"></path></svg>全部收起</button>
+      <span style="display: inline-flex; align-items: center; gap: 6px; flex: none; padding: 0 4px; font-size: 12px; color: var(--ink2)"><span class="ty ty-dir">目录</span><span class="ty ty-menu">菜单</span><span class="ty ty-btn">按钮</span></span>
+    </div>
+
+    <div style="padding: 0 16px">
+      <div class="card" role="tree" aria-label="菜单树" style="padding: 4px 4px 4px 8px">
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="14">
+          <div class="tr" role="treeitem" aria-level="{{r.level}}" aria-expanded="{{r.ariaExp}}">
+            <span style="width: {{r.pad}}; flex: none"></span>
+            <sc-if value="{{r.hasKids}}" hint-placeholder-val="{{true}}">
+              <button class="ib" aria-label="{{r.expT}} {{r.t}}" onClick="{{r.flip}}" style="width: 36px; color: var(--ink)"><svg class="ic ic-sm chev {{r.chevCls}}" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 2.4"><path d="{{i.chevR}}"></path></svg></button>
+            </sc-if>
+            <sc-if value="{{r.noKids}}" hint-placeholder-val="{{false}}">
+              <span style="width: 36px; flex: none; display: flex; justify-content: center"><span style="width: 6px; height: 6px; border-radius: 50%; background: var(--line)"></span></span>
+            </sc-if>
+            <span class="av {{r.av}}" style="width: 30px; height: 30px; border-radius: 10px; transform: rotate({{r.rot}})"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-left: 4px">
+              <span style="display: flex; align-items: center; gap: 6px; min-width: 0">
+                <span style="font-size: 15px; font-weight: {{r.fw}}; color: {{r.fg}}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.t}}</span>
+                <span class="ty {{r.tyCls}}">{{r.tyT}}</span>
+              </span>
+              <span class="mono" style="font-size: 11px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.sub}}</span>
+            </span>
+            <input class="tg" type="checkbox" role="switch" aria-label="在侧边栏显示 {{r.t}}" checked="{{r.vis}}" onChange="{{r.flipVis}}">
+            <button class="ib" aria-label="{{r.t}} 更多操作" onClick="{{r.open}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 12px 4px 0; font-size: 12px; line-height: 1.5; color: var(--ink2)">关闭开关只从侧边栏隐藏，页面和权限仍然有效。</p>
+    </div>
+  </div>
+
+  <button class="btn btn-p" aria-label="新增菜单" style="position: absolute; right: 16px; bottom: 100px; width: 60px; height: 60px; padding: 0; border-radius: 20px; box-shadow: 0 12px 28px -10px var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 26px; height: 26px"><path d="{{i.plus}}"></path></svg></button>
+
+  <nav aria-label="底部导航" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{false}}">
+    <button aria-label="关闭操作面板" onClick="{{closeSheet}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(12, 6, 18, 0.5); cursor: pointer"></button>
+    <section role="dialog" aria-label="{{cur.t}} 操作" style="position: absolute; left: 0; right: 0; bottom: 0; background: var(--s); border-radius: 30px 30px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 14px">
+      <div style="align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--line)"></div>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span class="av {{cur.av}}" style="width: 48px; height: 48px; border-radius: 16px; transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{cur.d}}"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="display: flex; align-items: center; gap: 8px"><span style="font-size: 18px; font-weight: 800">{{cur.t}}</span><span class="ty {{cur.tyCls}}">{{cur.tyT}}</span></span>
+          <span class="mono" style="font-size: 12px; color: var(--ink2)">{{cur.sub}}</span>
+        </span>
+      </div>
+      <dl style="margin: 0; padding: 10px 12px; border-radius: 14px; background: var(--s2); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px">
+        <div style="min-width: 0">
+          <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">路由路径</dt>
+          <dd class="mono" style="margin: 2px 0 0; font-size: 12px">{{cur.path}}</dd>
+        </div>
+        <div style="min-width: 0">
+          <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">排序</dt>
+          <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.sort}}</dd>
+        </div>
+        <div style="grid-column: 1 / -1; min-width: 0">
+          <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">权限标识</dt>
+          <dd class="mono" style="margin: 2px 0 0; font-size: 12px">{{cur.perm}}</dd>
+        </div>
+      </dl>
+      <div style="display: flex; flex-direction: column">
+        <button class="li" disabled="{{cur.isBtn}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.plus}}"></path></svg>新增子项</button>
+        <button class="li"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.edit}}"></path></svg>编辑</button>
+        <button class="li"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>调整排序</button>
+        <button class="li" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg>删除</button>
+      </div>
+      <button class="btn btn-s" onClick="{{closeSheet}}" style="min-height: 52px; font-size: 15px">取消</button>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  image: 'M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5M15 8.5h.01',
+  network: 'M12 3v6M5 21v-4h14v4M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM12 15v2',
+  plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4',
+  cursor: 'M5 3l14 7-6 2-2 6z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  chevR: 'M9 6l6 6-6 6',
+  expand: 'M7 9l5-5 5 5M7 15l5 5 5-5',
+  collapse: 'M7 4l5 5 5-5M7 20l5-5 5 5',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  more: 'M5 12h.01M12 12h.01M19 12h.01'
+};
+const TREE = [
+  { id: 'dash', t: '工作台', ty: 'menu', d: IC.home, path: '/dashboard', perm: 'dashboard:view', sort: 1 },
+  { id: 'apps', t: '应用', ty: 'dir', d: IC.apps, path: '/apps', sort: 2, kids: [
+    { id: 'appList', t: '应用列表', ty: 'menu', d: IC.apps, path: '/apps/list', perm: 'app:list:view', sort: 1, kids: [
+      { id: 'appCreate', t: '新建应用', ty: 'btn', perm: 'app:list:create', sort: 1 },
+      { id: 'appToggle', t: '启动 / 停止', ty: 'btn', perm: 'app:list:toggle', sort: 2 },
+      { id: 'appDel', t: '删除应用', ty: 'btn', perm: 'app:list:delete', sort: 3 }
+    ] },
+    { id: 'appTypes', t: '应用类型', ty: 'menu', d: IC.layers, path: '/apps/types', perm: 'app:type:view', sort: 2 }
+  ] },
+  { id: 'files', t: '文件', ty: 'dir', d: IC.folder, path: '/files', sort: 3, kids: [
+    { id: 'fm', t: '文件管理', ty: 'menu', d: IC.folder, path: '/files/browse', perm: 'file:browse:view', sort: 1 },
+    { id: 'sh', t: '分享', ty: 'menu', d: IC.share, path: '/files/shares', perm: 'file:share:view', sort: 2 },
+    { id: 'fs', t: '文件源', ty: 'menu', d: IC.db, path: '/files/sources', perm: 'file:source:view', sort: 3 }
+  ] },
+  { id: 'docker', t: 'Docker', ty: 'dir', d: IC.box, path: '/docker', sort: 4, kids: [
+    { id: 'ctr', t: '容器', ty: 'menu', d: IC.box, path: '/docker/containers', perm: 'docker:container:view', sort: 1, kids: [
+      { id: 'ctrExec', t: '进入终端', ty: 'btn', perm: 'docker:container:exec', sort: 1 }
+    ] },
+    { id: 'img', t: '镜像', ty: 'menu', d: IC.image, path: '/docker/images', perm: 'docker:image:view', sort: 2 },
+    { id: 'net', t: '网络', ty: 'menu', d: IC.network, path: '/docker/networks', perm: 'docker:network:view', sort: 3 },
+    { id: 'dcfg', t: '连接配置', ty: 'menu', d: IC.plug, path: '/docker/config', perm: 'docker:config:view', sort: 4 }
+  ] },
+  { id: 'tools', t: '工具', ty: 'dir', d: IC.forward, path: '/tools', sort: 5, kids: [
+    { id: 'pf', t: '端口转发', ty: 'menu', d: IC.forward, path: '/tools/port-forward', perm: 'tool:pf:view', sort: 1 },
+    { id: 'tun', t: '内网穿透', ty: 'menu', d: IC.tunnel, path: '/tools/tunnel', perm: 'tool:tunnel:view', sort: 2 },
+    { id: 'ssh', t: 'SSH 终端', ty: 'menu', d: IC.terminal, path: '/tools/ssh', perm: 'tool:ssh:view', sort: 3 },
+    { id: 'iq', t: '智商检测', ty: 'menu', d: IC.spark, path: '/tools/iq', perm: 'tool:iq:view', sort: 4 },
+    { id: 'oldSsh', t: '旧版终端', ty: 'menu', d: IC.terminal, path: '/tools/ssh-legacy', perm: 'tool:ssh:legacy', sort: 9 }
+  ] },
+  { id: 'admin', t: '管理', ty: 'dir', d: IC.settings, path: '/admin', sort: 6, kids: [
+    { id: 'nodes', t: '节点与 API Key', ty: 'menu', d: IC.server, path: '/admin/nodes', perm: 'admin:node:view', sort: 1 },
+    { id: 'users', t: '用户与权限', ty: 'menu', d: IC.users, path: '/admin/users', perm: 'admin:user:view', sort: 2, kids: [
+      { id: 'userCreate', t: '新建用户', ty: 'btn', perm: 'admin:user:create', sort: 1 },
+      { id: 'userReset', t: '重置密码', ty: 'btn', perm: 'admin:user:reset', sort: 2 }
+    ] },
+    { id: 'tasks', t: '任务与日志', ty: 'menu', d: IC.clock, path: '/admin/tasks', perm: 'admin:task:view', sort: 3 },
+    { id: 'settings', t: '系统设置', ty: 'menu', d: IC.settings, path: '/admin/settings', perm: 'admin:setting:view', sort: 4 }
+  ] }
+];
+const TY = { dir: ['ty-dir', '目录', 'av-a2'], menu: ['ty-menu', '菜单', 'av-p'], btn: ['ty-btn', '按钮', 'av-a'] };
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+const ALL_IDS = [];
+const BY_ID = {};
+const COUNT = { dir: 0, menu: 0, btn: 0 };
+(function walk(list) { list.forEach((n) => { COUNT[n.ty] += 1; BY_ID[n.id] = n; if (n.kids) { ALL_IDS.push(n.id); walk(n.kids); } }); })(TREE);
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const open = st.open || { apps: true, appList: true, admin: true };
+    const vis = st.vis || { oldSsh: false };
+    const sheet = st.sheet || null;
+    const rows = [];
+    const walk = (list, depth) => {
+      list.forEach((n, idx) => {
+        const hasKids = !!(n.kids && n.kids.length);
+        const isOpen = !!open[n.id];
+        const shown = vis[n.id] !== false;
+        const ty = TY[n.ty];
+        rows.push({
+          t: n.t, level: depth + 1,
+          pad: (depth * 16) + 'px',
+          hasKids, noKids: !hasKids,
+          ariaExp: hasKids ? (isOpen ? 'true' : 'false') : null,
+          expT: isOpen ? '收起' : '展开',
+          chevCls: isOpen ? 'chev-open' : '',
+          flip: () => this.setState({ open: { ...open, [n.id]: !isOpen } }),
+          d: n.d || IC.cursor,
+          av: shown ? ty[2] : 'av-s',
+          rot: ROTS[(idx + depth) % 4],
+          fw: depth === 0 ? 800 : (n.ty === 'btn' ? 500 : 700),
+          fg: shown ? 'var(--ink)' : 'var(--ink2)',
+          tyCls: ty[0], tyT: ty[1],
+          sub: n.path || n.perm,
+          vis: shown,
+          flipVis: () => this.setState({ vis: { ...vis, [n.id]: !shown } }),
+          open: () => this.setState({ sheet: n.id })
+        });
+        if (hasKids && isOpen) walk(n.kids, depth + 1);
+      });
+    };
+    walk(TREE, 0);
+    const c = BY_ID[sheet] || BY_ID.appList;
+    const cty = TY[c.ty];
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      rows,
+      total: COUNT.dir + COUNT.menu + COUNT.btn,
+      nDir: COUNT.dir, nMenu: COUNT.menu, nBtn: COUNT.btn,
+      expandAll: () => { const o = {}; ALL_IDS.forEach((id) => { o[id] = true; }); this.setState({ open: o }); },
+      collapseAll: () => this.setState({ open: {} }),
+      sheetOpen: !!sheet,
+      closeSheet: () => this.setState({ sheet: null }),
+      cur: { t: c.t, d: c.d || IC.cursor, av: cty[2], tyCls: cty[0], tyT: cty[1], sub: c.path || c.perm, path: c.path || '—', perm: c.perm || '—', sort: c.sort, isBtn: c.ty === 'btn' },
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: '' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: 'tab-on' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

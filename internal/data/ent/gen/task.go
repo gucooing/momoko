@@ -32,14 +32,26 @@ type Task struct {
 	ResumePolicy task.ResumePolicy `json:"resume_policy,omitempty"`
 	// 展示标题
 	Title string `json:"title,omitempty"`
+	// 关联对象（镜像引用、容器/网络名、目标目录、文件名）
+	Target string `json:"target,omitempty"`
+	// 发起入口（页面/模块键，如 docker.container、file）
+	Source string `json:"source,omitempty"`
+	// 触发方式：手动/计划/主控转发/系统
+	TriggerType task.TriggerType `json:"trigger_type,omitempty"`
 	// 发起用户id，空=系统任务
 	UserID string `json:"user_id,omitempty"`
+	// 远程主控侧操作者（主控转发时）
+	Operator string `json:"operator,omitempty"`
 	// 重建参数(JSON)
 	Payload string `json:"payload,omitempty"`
 	// 断点续传状态(JSON)
 	State string `json:"state,omitempty"`
 	// 执行结果(JSON)
 	Result string `json:"result,omitempty"`
+	// 执行步骤(JSON)
+	Steps string `json:"steps,omitempty"`
+	// 任务日志(JSON)
+	Logs string `json:"logs,omitempty"`
 	// 总进度
 	ProgressTotal int64 `json:"progress_total,omitempty"`
 	// 已完成进度
@@ -52,6 +64,10 @@ type Task struct {
 	IntervalMs int64 `json:"interval_ms,omitempty"`
 	// 一次性任务超时(毫秒，0=管理器默认)
 	TimeoutMs int64 `json:"timeout_ms,omitempty"`
+	// 取消人用户id
+	CanceledBy string `json:"canceled_by,omitempty"`
+	// 开始执行时间
+	StartTime *time.Time `json:"start_time,omitempty"`
 	// 结束时间
 	EndTime      *time.Time `json:"end_time,omitempty"`
 	selectValues sql.SelectValues
@@ -64,9 +80,9 @@ func (*Task) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case task.FieldProgressTotal, task.FieldProgressFinished, task.FieldIntervalMs, task.FieldTimeoutMs:
 			values[i] = new(sql.NullInt64)
-		case task.FieldID, task.FieldType, task.FieldKind, task.FieldStatus, task.FieldResumePolicy, task.FieldTitle, task.FieldUserID, task.FieldPayload, task.FieldState, task.FieldResult, task.FieldMessage, task.FieldError:
+		case task.FieldID, task.FieldType, task.FieldKind, task.FieldStatus, task.FieldResumePolicy, task.FieldTitle, task.FieldTarget, task.FieldSource, task.FieldTriggerType, task.FieldUserID, task.FieldOperator, task.FieldPayload, task.FieldState, task.FieldResult, task.FieldSteps, task.FieldLogs, task.FieldMessage, task.FieldError, task.FieldCanceledBy:
 			values[i] = new(sql.NullString)
-		case task.FieldCreateTime, task.FieldUpdateTime, task.FieldEndTime:
+		case task.FieldCreateTime, task.FieldUpdateTime, task.FieldStartTime, task.FieldEndTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -131,11 +147,35 @@ func (_m *Task) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Title = value.String
 			}
+		case task.FieldTarget:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field target", values[i])
+			} else if value.Valid {
+				_m.Target = value.String
+			}
+		case task.FieldSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source", values[i])
+			} else if value.Valid {
+				_m.Source = value.String
+			}
+		case task.FieldTriggerType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field trigger_type", values[i])
+			} else if value.Valid {
+				_m.TriggerType = task.TriggerType(value.String)
+			}
 		case task.FieldUserID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
 				_m.UserID = value.String
+			}
+		case task.FieldOperator:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field operator", values[i])
+			} else if value.Valid {
+				_m.Operator = value.String
 			}
 		case task.FieldPayload:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -154,6 +194,18 @@ func (_m *Task) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field result", values[i])
 			} else if value.Valid {
 				_m.Result = value.String
+			}
+		case task.FieldSteps:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field steps", values[i])
+			} else if value.Valid {
+				_m.Steps = value.String
+			}
+		case task.FieldLogs:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field logs", values[i])
+			} else if value.Valid {
+				_m.Logs = value.String
 			}
 		case task.FieldProgressTotal:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -190,6 +242,19 @@ func (_m *Task) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field timeout_ms", values[i])
 			} else if value.Valid {
 				_m.TimeoutMs = value.Int64
+			}
+		case task.FieldCanceledBy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field canceled_by", values[i])
+			} else if value.Valid {
+				_m.CanceledBy = value.String
+			}
+		case task.FieldStartTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field start_time", values[i])
+			} else if value.Valid {
+				_m.StartTime = new(time.Time)
+				*_m.StartTime = value.Time
 			}
 		case task.FieldEndTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -255,8 +320,20 @@ func (_m *Task) String() string {
 	builder.WriteString("title=")
 	builder.WriteString(_m.Title)
 	builder.WriteString(", ")
+	builder.WriteString("target=")
+	builder.WriteString(_m.Target)
+	builder.WriteString(", ")
+	builder.WriteString("source=")
+	builder.WriteString(_m.Source)
+	builder.WriteString(", ")
+	builder.WriteString("trigger_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TriggerType))
+	builder.WriteString(", ")
 	builder.WriteString("user_id=")
 	builder.WriteString(_m.UserID)
+	builder.WriteString(", ")
+	builder.WriteString("operator=")
+	builder.WriteString(_m.Operator)
 	builder.WriteString(", ")
 	builder.WriteString("payload=")
 	builder.WriteString(_m.Payload)
@@ -266,6 +343,12 @@ func (_m *Task) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("result=")
 	builder.WriteString(_m.Result)
+	builder.WriteString(", ")
+	builder.WriteString("steps=")
+	builder.WriteString(_m.Steps)
+	builder.WriteString(", ")
+	builder.WriteString("logs=")
+	builder.WriteString(_m.Logs)
 	builder.WriteString(", ")
 	builder.WriteString("progress_total=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ProgressTotal))
@@ -284,6 +367,14 @@ func (_m *Task) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("timeout_ms=")
 	builder.WriteString(fmt.Sprintf("%v", _m.TimeoutMs))
+	builder.WriteString(", ")
+	builder.WriteString("canceled_by=")
+	builder.WriteString(_m.CanceledBy)
+	builder.WriteString(", ")
+	if v := _m.StartTime; v != nil {
+		builder.WriteString("start_time=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	if v := _m.EndTime; v != nil {
 		builder.WriteString("end_time=")

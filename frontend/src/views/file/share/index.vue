@@ -1,27 +1,31 @@
-<!-- 文件分享（第二期改版）：页头(总数/有效数 + 去文件管理/新建) + 文件子导航 + 统计卡 + 状态胶囊(带数量)/搜索 +
-     表格(内容贴纸 · 公开链接复制 · 提取码 · 过期剩余 · 下载进度 · 状态 · 行内操作) / 手机卡片 + 分页 + 悬浮批量条。
-     状态统计与状态筛选由后端 ListShares 返回（stats / status）。 -->
+<!-- 文件分享：页头(总数/有效数[/本月下载] + 去文件管理/新建) + 统计卡(有效链接 · 本月下载 · 3 天内到期 · 302 直链占比) +
+     状态胶囊(带数量)/搜索 + 表格(内容贴纸 · 公开链接复制 · 提取码 · 过期剩余 · 下载进度 · 状态 · 二维码/编辑/删除/⋯) /
+     手机卡片(信息格 + 类型大小标签 + 小图标操作) + 「显示 N 个 · 过期 30 天后自动清理」+ 分页 + 悬浮批量条；手机右下悬浮「新建分享」。
+     状态统计、本月下载与 302 次数由后端 ListShares 返回（stats）；过期满 30 天的分享由后台任务自动清理。 -->
 <template>
   <div class="shr">
     <PageHeader :title="t('file.share.pageTitle')">
       <template #description>
-        <span class="m-num">{{ t('file.share.summaryTotal', { total: stats.total }) }}</span>
+        <span class="m-num">{{ isMobile ? t('file.share.summaryTotalShort', { total: stats.total }) : t('file.share.summaryTotal', { total: stats.total }) }}</span>
         ·
         <span class="shr-ok m-num">{{ t('file.share.summaryValid', { valid: stats.active }) }}</span>
+        <template v-if="isMobile">
+          · <span class="m-num">{{ t('file.share.summaryMonth', { n: stats.monthDownloads }) }}</span>
+        </template>
       </template>
-      <template #actions>
-        <UButton v-if="canGoFiles && !menuStore.isMobile" color="neutral" variant="outline" icon="i-lucide-folder" to="/file/index">
+      <template v-if="!isMobile" #actions>
+        <UButton v-if="canGoFiles" color="neutral" variant="outline" icon="i-lucide-folder" :to="pageTabTo('file', 'index')">
           {{ t('file.share.goFiles') }}
         </UButton>
         <UButton color="primary" icon="i-lucide-plus" @click="openCreate">
-          {{ menuStore.isMobile ? t('fileManager.newItem') : t('file.share.create') }}
+          {{ t('file.share.create') }}
         </UButton>
       </template>
     </PageHeader>
+    <FileSubNav />
 
-
-    <!-- 统计卡 -->
-    <div class="shr-stats">
+    <!-- 统计卡（手机端并入页头一句话） -->
+    <div v-if="!isMobile" class="shr-stats">
       <div v-for="(card, i) in statCards" :key="card.key" class="shr-stat">
         <span class="shr-stat__sticker m-sticker" :class="`m-sticker--${card.tone}`" :style="{ transform: `rotate(${ROTS[i]})` }">
           <UIcon :name="card.icon" />
@@ -31,6 +35,7 @@
           <div class="shr-stat__value m-num">
             {{ card.value }}<span v-if="card.unit" class="shr-stat__unit">{{ card.unit }}</span>
           </div>
+          <div v-if="card.hint" class="shr-stat__hint m-num">{{ card.hint }}</div>
         </div>
       </div>
     </div>
@@ -45,7 +50,7 @@
     />
 
     <!-- 桌面：表格 -->
-    <div v-if="!menuStore.isMobile" class="shr-card shr-tablewrap">
+    <div v-if="!isMobile" class="shr-card shr-tablewrap">
       <table class="shr-table">
         <thead>
           <tr>
@@ -113,7 +118,9 @@
               <span v-else class="shr-dim">{{ t('file.share.noCode') }}</span>
             </td>
             <td>
-              <div class="shr-exp m-num">{{ row.expiresAt ? formatDateTime(row.expiresAt) : t('file.share.never') }}</div>
+              <div class="shr-exp m-num" :title="row.expiresAt ? formatDateTime(row.expiresAt) : undefined">
+                {{ row.expiresAt ? formatDateTime(row.expiresAt).slice(0, 16) : t('file.share.never') }}
+              </div>
               <div class="shr-left" :class="`is-${leftTone(row)}`">{{ leftText(row) }}</div>
             </td>
             <td class="shr-td--dl">
@@ -126,15 +133,9 @@
             <td><StatusPill :variant="statusVariant(row)" :label="statusLabel(row)" /></td>
             <td>
               <div class="shr-ops">
-                <AppIconButton
-                  :icon="row.enabled ? 'HOutline:PauseCircleIcon' : 'HOutline:PlayCircleIcon'"
-                  :class="row.enabled ? 'tone-bad' : 'tone-ok'"
-                  :label="row.enabled ? t('file.share.disable') : t('file.share.enable')"
-                  :box="36"
-                  :size="18"
-                  @click="toggleEnabled(row)"
-                />
-                <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" :box="36" :size="18" @click="openEdit(row)" />
+                <AppIconButton icon="HOutline:QrCodeIcon" :label="t('file.share.qrOf', { name: row.name })" :box="36" :size="18" @click="openQr(row)" />
+                <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('file.share.editOf', { name: row.name })" :box="36" :size="18" @click="openEdit(row)" />
+                <AppIconButton class="tone-bad" icon="HOutline:TrashIcon" :label="t('file.share.deleteOf', { name: row.name })" :box="36" :size="18" @click="remove(row)" />
                 <ActionMenu :items="rowMenu(row)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
               </div>
             </td>
@@ -199,7 +200,7 @@
               <dt>{{ t('file.share.code') }}</dt>
               <dd>
                 <span v-if="row.code" class="shr-code m-mono">{{ row.code }}</span>
-                <span v-else class="shr-dim">{{ t('file.share.noCode') }}</span>
+                <span v-else class="shr-dim shr-dim--b">{{ t('file.share.noCodeShort') }}</span>
               </dd>
             </div>
             <div>
@@ -217,42 +218,69 @@
             </div>
           </dl>
           <footer class="shr-mcard__foot">
-            <span class="shr-mcard__tag">{{ t('file.share.itemsCount', { count: itemCount(row) }) }}</span>
-            <span class="shr-mcard__spacer" />
-            <AppIconButton
-              :icon="row.enabled ? 'HOutline:PauseCircleIcon' : 'HOutline:PlayCircleIcon'"
-              :class="row.enabled ? 'tone-bad' : 'tone-ok'"
-              :label="row.enabled ? t('file.share.disable') : t('file.share.enable')"
-              :box="44"
-              @click="toggleEnabled(row)"
-            />
-            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" :box="44" @click="openEdit(row)" />
+            <span class="shr-mcard__tags">
+              <span class="shr-mcard__tag m-num">{{ kindTag(row) }}</span>
+            </span>
+            <AppIconButton icon="HOutline:QrCodeIcon" :label="t('file.share.qrOf', { name: row.name })" :box="44" @click="openQr(row)" />
+            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('file.share.editOf', { name: row.name })" :box="44" @click="openEdit(row)" />
+            <AppIconButton class="tone-bad" icon="HOutline:TrashIcon" :label="t('file.share.deleteOf', { name: row.name })" :box="44" @click="remove(row)" />
             <ActionMenu :items="rowMenu(row, true)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
           </footer>
         </article>
       </div>
     </template>
 
-    <Pagination
-      v-model:page="pagination.page"
-      v-model:page-size="pagination.pageSize"
-      :total="pagination.total"
-      @change="loadList"
-    />
+    <div v-if="items.length || pagination.total" class="shr-foot">
+      <span class="shr-foot__hint m-num">{{ t('file.share.footHint', { n: items.length }) }}</span>
+      <Pagination
+        v-model:page="pagination.page"
+        v-model:page-size="pagination.pageSize"
+        :total="pagination.total"
+        @change="loadList"
+      />
+    </div>
 
     <!-- 批量条 -->
     <div v-if="selected.size" class="shr-bulk" role="toolbar" :aria-label="t('file.share.selectedShares', { count: selected.size })">
       <span class="shr-bulk__count m-num">{{ t('file.share.selectedShares', { count: selected.size }) }}</span>
       <button v-for="act in bulkActions" :key="act.key" type="button" class="shr-bulk__btn" :class="{ 'is-danger': act.danger }" :aria-label="act.label" :title="act.label" :disabled="bulkBusy" @click="onBulk(act.key)">
         <UIcon :name="act.icon" />
-        <span v-if="!menuStore.isMobile">{{ act.label }}</span>
+        <span v-if="!isMobile">{{ act.label }}</span>
       </button>
       <button type="button" class="shr-bulk__btn shr-bulk__btn--x" :aria-label="t('fileManager.cancelSelect')" :title="t('fileManager.cancelSelect')" @click="selected = new Set()">
         <UIcon name="i-lucide-x" />
       </button>
     </div>
 
+    <!-- 手机：悬浮新建 -->
+    <button v-if="isMobile && !selected.size" type="button" class="shr-fab" @click="openCreate">
+      <UIcon name="i-lucide-plus" />
+      {{ t('file.share.create') }}
+    </button>
+
     <ShareFormDialog v-model="formOpen" :share="editing" @saved="loadList" />
+
+    <!-- 二维码 -->
+    <FormDialog v-model="qr.open" :title="t('file.share.qrTitle')" :width="380">
+      <div class="shr-qr">
+        <div class="shr-qr__img">
+          <img v-if="qr.src" :src="qr.src" :alt="t('file.share.qrOf', { name: qr.name })" />
+          <span v-else class="shr-qr__loading" />
+        </div>
+        <div class="shr-qr__name">{{ qr.name }}</div>
+        <div class="shr-qr__link m-mono">{{ qr.link }}</div>
+        <div v-if="qr.code" class="shr-qr__code">
+          {{ t('file.share.code') }} <span class="shr-code m-mono">{{ qr.code }}</span>
+        </div>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" icon="i-lucide-download" :disabled="!qr.src" @click="downloadQr">
+          {{ t('file.share.saveQr') }}
+        </UButton>
+        <UButton color="primary" icon="i-lucide-copy" @click="qr.row && copyLink(qr.row)">{{ t('file.share.copyLink') }}</UButton>
+        <UButton color="neutral" variant="ghost" @click="close">{{ t('system.common.close') }}</UButton>
+      </template>
+    </FormDialog>
   </div>
 </template>
 
@@ -265,9 +293,12 @@ import {
   deleteShareRequest,
   updateShareRequest,
   buildShareLink,
+  getShareQRCodeRequest,
 } from '@/api/share'
 import { listFileSourcesRequest } from '@/api/fileSource'
 import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
+import { pageTabTo } from '@/config/pageGroups'
+import FileSubNav from '@/views/file/components/FileSubNav.vue'
 import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
 import type { ShareInfo, ShareItem, ShareStats } from '@/types/v1/file'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
@@ -277,6 +308,7 @@ defineOptions({ name: 'FileShareView' })
 
 const { t } = useI18n()
 const menuStore = useMenuStore()
+const isMobile = computed(() => menuStore.isMobile)
 const accessible = useAccessibleRoutes()
 const canGoFiles = computed(() => accessible.value.has('/file/index'))
 const ROTS = ['-4deg', '3deg', '-2deg', '4deg']
@@ -294,8 +326,9 @@ const emptyStats = (): ShareStats => ({
   expired: 0,
   exhausted: 0,
   disabled: 0,
-  downloads: 0,
   expiringSoon: 0,
+  monthDownloads: 0,
+  monthRedirectDownloads: 0,
 })
 const stats = ref<ShareStats>(emptyStats())
 
@@ -328,7 +361,8 @@ const sourceName = (row: ShareInfo) => {
   const names = ids.map((id) => (id ? sourceNames.value[id] || t('fileSource.title') : t('file.share.localSource')))
   return names.join(' + ')
 }
-const totalSize = (row: ShareInfo) => itemsOf(row).reduce((sum, i) => sum + (i.isDir ? 0 : Number(i.size) || 0), 0)
+// 总大小：目录条目为其下文件的递归总大小（创建时统计并缓存）
+const totalSize = (row: ShareInfo) => itemsOf(row).reduce((sum, i) => sum + (Number(i.size) || 0), 0)
 const pad2 = (n: number) => String(n).padStart(2, '0')
 const shortDate = (value: unknown) => {
   const d = new Date(value as string)
@@ -358,6 +392,26 @@ const visual = (row: ShareInfo): { icon: string; tone: string } => {
   return { icon: 'i-lucide-file-text', tone: 'a2' }
 }
 const shortLink = (row: ShareInfo) => buildShareLink(row.token).replace(/^https?:\/\//, '')
+// 手机卡片底部类型标签：「文件夹 · 14 个文件 · 1.36 GB」/「压缩包 · 1.21 GB」/「3 项 · …」
+const KIND_KEY: Record<string, string> = {
+  'i-lucide-folder': 'file.share.kindFolder',
+  'i-lucide-layers': 'file.share.kindMulti',
+  'i-lucide-image': 'file.share.kindImage',
+  'i-lucide-film': 'file.share.kindVideo',
+  'i-lucide-music': 'file.share.kindAudio',
+  'i-lucide-file-archive': 'file.share.kindArchive',
+  'i-lucide-file-text': 'file.share.kindFile',
+}
+const kindTag = (row: ShareInfo) => {
+  const list = itemsOf(row)
+  const parts = [t(KIND_KEY[visual(row).icon] ?? 'file.share.kindFile', { count: list.length })]
+  const files = list.reduce((sum, i) => (sum >= 0 && Number(i.fileCount) >= 0 ? sum + Number(i.fileCount) : -1), 0)
+  const hasDir = list.some((i) => i.isDir)
+  if (hasDir && files > 0) parts.push(t('file.share.filesCount', { n: files }))
+  const size = list.reduce((sum, i) => sum + (Number(i.size) || 0), 0)
+  if (size) parts.push(formatFileSize(size))
+  return parts.join(' · ')
+}
 
 // ---- 状态（与后端统计口径一致：停用 > 过期 > 次数用完 > 有效）----
 const isExpired = (row: ShareInfo) => !!row.expiresAt && new Date(row.expiresAt as unknown as string).getTime() <= Date.now()
@@ -406,11 +460,16 @@ const barStyle = (row: ShareInfo) => {
 }
 
 // ---- 统计卡 / 筛选胶囊 ----
+// 302 直链占比：本月下载中由存储端直接下发的比例（本月无下载为 —）
+const redirectRatio = computed(() => {
+  const month = Number(stats.value.monthDownloads) || 0
+  return month ? `${Math.round(((Number(stats.value.monthRedirectDownloads) || 0) / month) * 100)}%` : '—'
+})
 const statCards = computed(() => [
-  { key: 'total', label: t('file.share.statTotal'), value: stats.value.total, icon: 'i-lucide-share-2', tone: 'p', unit: '' },
-  { key: 'active', label: t('file.share.statValid'), value: stats.value.active, icon: 'i-lucide-link-2', tone: 'ok', unit: '' },
-  { key: 'downloads', label: t('file.share.statDownloads'), value: stats.value.downloads, icon: 'i-lucide-download', tone: 'a2', unit: t('file.share.times') },
-  { key: 'soon', label: t('file.share.statSoon'), value: stats.value.expiringSoon, icon: 'i-lucide-hourglass', tone: 'a', unit: '' },
+  { key: 'active', label: t('file.share.statValid'), value: stats.value.active, icon: 'i-lucide-link-2', tone: 'p', unit: '', hint: '' },
+  { key: 'month', label: t('file.share.statMonth'), value: stats.value.monthDownloads, icon: 'i-lucide-download', tone: 'a2', unit: t('file.share.times'), hint: '' },
+  { key: 'soon', label: t('file.share.statSoon'), value: stats.value.expiringSoon, icon: 'i-lucide-clock', tone: 'a', unit: t('file.share.unitCount'), hint: '' },
+  { key: 'redirect', label: t('file.share.statRedirect'), value: redirectRatio.value, icon: 'i-lucide-zap', tone: 'ok', unit: '', hint: '' },
 ])
 const statusChips = computed<ToolbarChip<ShareStatus>[]>(() => [
   { label: t('file.share.filterAll'), value: '', count: Number(stats.value.total) },
@@ -441,8 +500,9 @@ const loadList = async () => {
           expired: Number(s.expired || 0),
           exhausted: Number(s.exhausted || 0),
           disabled: Number(s.disabled || 0),
-          downloads: Number(s.downloads || 0),
           expiringSoon: Number(s.expiringSoon || 0),
+          monthDownloads: Number(s.monthDownloads || 0),
+          monthRedirectDownloads: Number(s.monthRedirectDownloads || 0),
         }
       : emptyStats()
     const ids = new Set(items.value.map((i) => i.id))
@@ -515,19 +575,47 @@ const remove = (row: ShareInfo) => {
   })
 }
 
+// 「⋯」：启停（停 红 / 启 绿 区分）、复制/打开链接、延长、选择
 const rowMenu = (row: ShareInfo, mobile = false): ActionMenuItem[] => [
+  {
+    key: 'toggle',
+    label: row.enabled ? t('file.share.disable') : t('file.share.enable'),
+    icon: row.enabled ? 'i-lucide-circle-pause' : 'i-lucide-circle-play',
+    danger: row.enabled,
+  },
   ...(mobile ? [] : [{ key: 'copy', label: t('file.share.copyLink'), icon: 'i-lucide-copy' }]),
   { key: 'open', label: t('file.share.openLink'), icon: 'i-lucide-external-link' },
-  { key: 'extend', label: t('file.share.extend7'), icon: 'i-lucide-calendar-plus' },
+  { key: 'extend', label: t('file.share.extend7'), icon: 'i-lucide-calendar-plus', hidden: !row.expiresAt },
   { key: 'select', label: selected.value.has(row.id) ? t('fileManager.cancelSelect') : t('fileManager.select'), icon: 'i-lucide-square-check' },
-  { key: 'delete', label: t('system.common.delete'), icon: 'i-lucide-trash-2', danger: true },
 ]
 const onRowAction = (key: string, row: ShareInfo) => {
-  if (key === 'copy') copyLink(row)
+  if (key === 'toggle') toggleEnabled(row)
+  else if (key === 'copy') copyLink(row)
   else if (key === 'open') openLink(row)
   else if (key === 'extend') extendShares([row])
   else if (key === 'select') toggleOne(row.id)
-  else if (key === 'delete') remove(row)
+}
+
+// ---- 二维码 ----
+const qr = reactive({ open: false, src: '', link: '', name: '', code: '', row: null as ShareInfo | null })
+const openQr = async (row: ShareInfo) => {
+  Object.assign(qr, { open: true, src: '', link: shortLink(row), name: row.name || firstName(row), code: row.code, row })
+  try {
+    const res = await getShareQRCodeRequest(row.id)
+    if (qr.row === row) {
+      qr.src = res.src
+      qr.link = res.link.replace(/^https?:\/\//, '')
+    }
+  } catch {
+    /* interceptor */
+  }
+}
+const downloadQr = () => {
+  if (!qr.src) return
+  const a = document.createElement('a')
+  a.href = qr.src
+  a.download = `${qr.name || 'share'}-qrcode.png`
+  a.click()
 }
 
 // ---- 选择 / 批量 ----
@@ -657,6 +745,10 @@ onMounted(() => {
   font-weight: 800;
   line-height: 1.2;
 }
+.shr-stat__hint {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
 .shr-stat__unit {
   margin-left: 4px;
   font-size: 0.875rem;
@@ -726,8 +818,9 @@ onMounted(() => {
   accent-color: var(--m-p);
   cursor: pointer;
 }
+/* 1440 宽下整表要放得下（操作列不能被挤到横向滚动里）：内容列与原型一致 240px */
 .shr-td--content {
-  max-width: 300px;
+  max-width: 240px;
 }
 .shr-content {
   display: flex;
@@ -780,7 +873,7 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 220px;
+  max-width: 180px;
 }
 .shr-link__text.is-dim {
   color: var(--el-text-color-secondary);
@@ -856,7 +949,9 @@ onMounted(() => {
   justify-content: flex-end;
   gap: 2px;
 }
-.tone-bad {
+.tone-bad,
+.shr-ops .tone-bad,
+.shr-mcard__foot .tone-bad {
   color: var(--m-bad);
 }
 .tone-ok {
@@ -933,8 +1028,8 @@ onMounted(() => {
   gap: 10px;
   margin: 0 4px 0 0;
   padding: 10px 12px;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 14px;
-  background: var(--el-fill-color-light);
 }
 .shr-mcard__info > div {
   min-width: 0;
@@ -972,8 +1067,118 @@ onMounted(() => {
   font-size: 0.75rem;
   font-weight: 600;
 }
-.shr-mcard__spacer {
+.shr-mcard__tags {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.shr-mcard__tag {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shr-dim--b {
+  font-weight: 700;
+}
+
+/* 底部：显示条数 + 分页 */
+.shr-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.shr-foot__hint {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.shr-foot :deep(.pagination) {
+  flex: 1;
+}
+
+/* 二维码 */
+.shr-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.shr-qr__img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 240px;
+  height: 240px;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 18px;
+  background: var(--m-s2);
+}
+.shr-qr__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.shr-qr__loading {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--m-line);
+  border-top-color: var(--m-p);
+  border-radius: 50%;
+  animation: shr-spin 0.8s linear infinite;
+}
+@keyframes shr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.shr-qr__name {
+  font-size: 1rem;
+  font-weight: 800;
+  word-break: break-all;
+}
+.shr-qr__link {
+  max-width: 100%;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  word-break: break-all;
+}
+.shr-qr__code {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+
+/* 手机悬浮新建 */
+.shr-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  box-shadow: var(--app-shadow-brand);
+  cursor: pointer;
+}
+.shr-fab :deep(svg),
+.shr-fab :deep(.iconify) {
+  width: 20px;
+  height: 20px;
 }
 .shr-mcard__foot :deep(.action-menu__trigger) {
   width: 44px;
@@ -1040,6 +1245,7 @@ onMounted(() => {
 @media (width <= 768px) {
   .shr {
     gap: 12px;
+    padding-bottom: 72px;
   }
   .shr-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));

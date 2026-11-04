@@ -1,6 +1,7 @@
-<!-- 智商检测公示页（公开，无需登录）：路由 /public/iqcheck/:slug。
-     主色页头（站点名称/检测间隔/公开路径）+ 统计卡 + 模型筛选 chips + 时间线结果卡（沙箱渲染预览）；
-     宽屏右侧粘性原文面板，窄屏点开弹窗详情。?r=<结果 id> 打开分享的单条结果。 -->
+<!-- 智商检测公示页（公开，无需登录）：路由 /public/iqcheck/:slug。不展示 API Key 与接口地址。
+     主色页头（站点名称/检测间隔/公开路径）+ 统计卡（最近一轮 / 近 7 天成功率 / 检测记录 / 平均耗时）+ 模型筛选 chips
+     + 时间线结果卡（沙箱渲染预览；手机为左侧状态色条的卡片）；宽屏右侧粘性原文面板，窄屏点开底部弹窗详情。
+     ?r=<结果 id> 打开分享的单条结果。 -->
 <template>
   <div class="iqp">
     <header class="iqp-hero">
@@ -26,17 +27,11 @@
           <div class="iqp-hero__copy">
             <h1>{{ site ? t('publicPage.iq.title', { name: site.name }) : t('publicPage.iq.titleFallback') }}</h1>
             <p v-if="site">
-              {{ t('iqcheck.public.interval', { minutes: site.intervalMinutes }) }}<template v-if="!site.enabled">
-                · {{ t('publicPage.iq.paused') }}</template
-              >
-              · {{ t('publicPage.iq.heroDesc') }}
+              {{ narrow ? t('iqcheck.ui.public.heroDescShort', { every: everyText }) : t('iqcheck.ui.public.heroDesc', { every: everyText }) }}
+              <template v-if="!site.enabled"> · {{ t('publicPage.iq.paused') }}</template>
             </p>
-            <div v-if="site" class="iqp-hero__meta">
-              <span class="iqp-hero__pill">{{ protocolLabel }}</span>
-              <span class="m-mono iqp-hero__endpoint">{{ site.endpoint }}</span>
-            </div>
           </div>
-          <span class="iqp-hero__path m-mono">
+          <span v-if="!narrow" class="iqp-hero__path m-mono">
             <component :is="menuStore.iconComponents['HOutline:GlobeAltIcon']" />
             /public/iqcheck/{{ slug }}
           </span>
@@ -55,13 +50,13 @@
       <template v-else>
         <section class="iqp-stats">
           <div v-for="s in statCards" :key="s.key" class="iqp-stat">
-            <span class="m-sticker iqp-stat__ico" :class="`m-sticker--${s.tone}`" :style="{ rotate: s.rot }">
+            <span v-if="!narrow" class="m-sticker iqp-stat__ico" :class="`m-sticker--${s.tone}`" :style="{ rotate: s.rot }">
               <component :is="menuStore.iconComponents[s.icon]" />
             </span>
             <span class="iqp-stat__text">
               <span class="iqp-stat__label">{{ s.label }}</span>
               <span class="iqp-stat__value">
-                <b class="m-num">{{ s.value }}</b><small>{{ s.unit }}</small>
+                <b class="m-num" :style="s.color ? { color: s.color } : undefined">{{ s.value }}</b><small>{{ s.unit }}</small>
               </span>
             </span>
           </div>
@@ -116,7 +111,68 @@
                   <span class="iqp-item__dot" :class="isSuccess(r) ? 'is-ok' : 'is-bad'" />
                   <span class="iqp-item__line" />
                 </span>
-                <article class="iqp-card" :class="{ 'is-sel': current?.id === r.id && panelVisible }">
+                <!-- 手机：左侧状态色条 + 模型/时间 + 状态 -->
+                <article
+                  v-if="narrow"
+                  class="iqp-card is-compact"
+                  :class="[isSuccess(r) ? 'is-ok' : 'is-bad', { 'is-sel': current?.id === r.id && detailOpen }]"
+                >
+                  <div class="iqp-card__head">
+                    <span class="iqp-card__who">
+                      <span class="iqp-card__whorow">
+                        <span class="iqp-card__model m-mono">{{ r.model }}</span>
+                        <span class="iqp-eff" :class="`is-${effortTone(r.effort)}`">{{ r.effort || t('iqcheck.public.noEffort') }}</span>
+                      </span>
+                      <span class="iqp-card__sub m-num">
+                        {{ t('iqcheck.ui.public.timeDuration', { time: fmtTime(r.requestAt), duration: seconds(r.durationMs) }) }}
+                      </span>
+                    </span>
+                    <StatusPill
+                      :variant="isSuccess(r) ? 'success' : 'error'"
+                      :label="isSuccess(r) ? t('iqcheck.public.success') : t('iqcheck.public.failed')"
+                    />
+                  </div>
+                  <div class="iqp-sbx">
+                    <div class="iqp-sbx__head">
+                      <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" />
+                      <span class="iqp-sbx__title">
+                        {{ r.promptTitle ? t('iqcheck.ui.public.sandboxWith', { title: r.promptTitle }) : t('publicPage.iq.sandbox') }}
+                      </span>
+                    </div>
+                    <button
+                      v-if="isSuccess(r)"
+                      type="button"
+                      class="iqp-sbx__frame"
+                      :aria-label="t('iqcheck.public.viewDetail')"
+                      @click="openDetail(r)"
+                    >
+                      <ReplyFrame :text="r.responseText" :dark="isDark" preview :title="r.model" />
+                    </button>
+                    <div v-else class="iqp-sbx__err">
+                      <component :is="menuStore.iconComponents['HOutline:ExclamationTriangleIcon']" />
+                      <span>
+                        <b>{{ t('publicPage.iq.failedTitle') }}</b>
+                        <span>{{ r.error || '—' }}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="iqp-card__foot is-compact">
+                    <span class="iqp-card__usage m-num">{{ tokensShort(r) }}</span>
+                    <AppIconButton
+                      icon="HOutline:LinkIcon"
+                      :box="44"
+                      :size="20"
+                      :label="t('publicPage.iq.copyLink')"
+                      @click="copyLink(r)"
+                    />
+                    <button type="button" class="iqp-textbtn" @click="openDetail(r)">
+                      <component :is="menuStore.iconComponents['HOutline:DocumentTextIcon']" />
+                      {{ t('publicPage.iq.viewRaw') }}
+                    </button>
+                  </div>
+                </article>
+
+                <article v-else class="iqp-card" :class="{ 'is-sel': current?.id === r.id && panelVisible }">
                   <div class="iqp-card__head">
                     <span class="iqp-card__model m-mono">{{ r.model }}</span>
                     <span class="iqp-eff" :class="`is-${effortTone(r.effort)}`">
@@ -263,7 +319,9 @@
       </template>
     </main>
 
-    <footer class="iqp-foot">{{ t('publicPage.iq.footer', { name: APP_CONFIG.name }) }}</footer>
+    <footer class="iqp-foot">
+      {{ narrow ? t('iqcheck.ui.public.footerShort', { name: APP_CONFIG.name }) : t('iqcheck.ui.public.footer', { name: APP_CONFIG.name }) }}
+    </footer>
 
     <ResultDetail v-model="detailOpen" :result="current" :dark="isDark" />
   </div>
@@ -279,12 +337,7 @@ import { APP_CONFIG } from '@/config/app.config'
 import { getPublicIQCheckSite, listPublicIQCheckResults } from '@/api/iqcheck'
 import { copyTextToClipboard } from '@/utils/file'
 import { useFeedback } from '@/utils/feedback'
-import {
-  IQCheckProtocol,
-  IQCheckResultStatus,
-  type IQCheckResultInfo,
-  type PublicIQCheckSiteInfo,
-} from '@/types/v1/iqcheck'
+import { IQCheckResultStatus, type IQCheckResultInfo, type PublicIQCheckSiteInfo } from '@/types/v1/iqcheck'
 import ReplyFrame from '@/views/public/iqcheck/ReplyFrame.vue'
 import ResultDetail from '@/views/public/iqcheck/ResultDetail.vue'
 
@@ -300,6 +353,7 @@ const isDark = computed(() => themeStore.isDarkTheme)
 const slug = String(route.params.slug || '')
 const loginHref = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/login`
 const wide = useMediaQuery('(min-width: 1180px)')
+const narrow = useMediaQuery('(max-width: 767px)')
 
 const loading = ref(true)
 const notFound = ref(false)
@@ -319,12 +373,13 @@ const panelVisible = computed(() => wide.value && panelOpen.value && !!current.v
 
 const toggleTheme = () => themeStore.toggleThemeMode(isDark.value ? 'light' : 'dark')
 
-const protocolLabels: Record<string, string> = {
-  [IQCheckProtocol.IQ_CHECK_PROTOCOL_CHAT]: 'chat',
-  [IQCheckProtocol.IQ_CHECK_PROTOCOL_RESPONSES]: 'responses',
-  [IQCheckProtocol.IQ_CHECK_PROTOCOL_MESSAGES]: 'messages',
-}
-const protocolLabel = computed(() => (site.value ? protocolLabels[site.value.protocol] || '—' : '—'))
+// 检测间隔：整天 / 整小时 / 分钟
+const everyText = computed(() => {
+  const m = Number(site.value?.intervalMinutes) || 0
+  if (m > 0 && m % 1440 === 0) return t('iqcheck.ui.public.everyDays', { n: m / 1440 })
+  if (m > 0 && m % 60 === 0) return t('iqcheck.ui.public.everyHours', { n: m / 60 })
+  return t('iqcheck.ui.public.everyMinutes', { n: m })
+})
 
 const isSuccess = (r: IQCheckResultInfo) => r.status !== IQCheckResultStatus.IQ_CHECK_RESULT_STATUS_FAILED
 const fmtTime = (v: unknown) => (v ? dayjs(v as string | Date).format('YYYY-MM-DD HH:mm') : '—')
@@ -345,16 +400,35 @@ const effortTone = (effort: string) => {
 }
 
 const pct = (a: number, b: number) => (b > 0 ? ((a / b) * 100).toFixed(b >= 100 ? 1 : 0) : '—')
+// 最近一轮：成功数 / 结果数，按全部成功 / 部分失败 / 全部失败着色
+const latestRound = computed(() => {
+  const r = site.value?.lastRound
+  if (!r) return null
+  const success = Number(r.success) || 0
+  const total = success + (Number(r.failed) || 0)
+  const color = !total ? undefined : success === total ? 'var(--m-ok)' : success === 0 ? 'var(--m-bad)' : 'var(--m-warn)'
+  return { value: `${success}/${total}`, color }
+})
 const statCards = computed(() => {
   const s = site.value?.stats
   const total = Number(s?.total) || 0
   const recent = Number(s?.last7dTotal) || 0
-  return [
+  const cards: {
+    key: string
+    label: string
+    value: string
+    unit: string
+    color?: string
+    icon: string
+    tone: string
+    rot: string
+  }[] = [
     {
-      key: 'rate',
-      label: t('publicPage.iq.statRate'),
-      value: pct(Number(s?.success) || 0, total),
-      unit: total ? '%' : '',
+      key: 'latest',
+      label: t('iqcheck.ui.public.statLatest'),
+      value: latestRound.value?.value ?? '—',
+      unit: latestRound.value ? t('iqcheck.ui.public.statLatestUnit') : '',
+      color: latestRound.value?.color,
       icon: 'HOutline:TrophyIcon',
       tone: 'p',
       rot: '-4deg',
@@ -387,6 +461,7 @@ const statCards = computed(() => {
       rot: '4deg',
     },
   ]
+  return cards
 })
 
 const modelFilters = computed(() => {
@@ -620,30 +695,6 @@ onMounted(async () => {
   margin: 0;
   font-size: 0.9375rem;
   line-height: 1.6;
-}
-.iqp-hero__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.iqp-hero__pill {
-  display: inline-flex;
-  align-items: center;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: var(--m-a);
-  color: var(--m-aOn);
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-.iqp-hero__endpoint {
-  min-width: 0;
-  font-size: 0.8125rem;
-  opacity: 0.92;
-  overflow-wrap: anywhere;
 }
 .iqp-hero__path {
   display: inline-flex;
@@ -1048,6 +1099,90 @@ html.dark .iqp-eff.is-a {
   justify-content: center;
 }
 
+/* 手机结果卡：左侧状态色条 */
+.iqp-card.is-compact {
+  gap: 10px;
+  padding: 14px 12px 6px 14px;
+  border-left: 5px solid var(--m-ok);
+}
+.iqp-card.is-compact.is-bad {
+  border-left-color: var(--m-bad);
+}
+.iqp-card.is-compact.is-sel {
+  border-color: var(--m-p);
+  border-left-color: var(--m-ok);
+}
+.iqp-card.is-compact.is-sel.is-bad {
+  border-left-color: var(--m-bad);
+}
+.iqp-card.is-compact .iqp-card__head {
+  flex-wrap: nowrap;
+  padding-right: 2px;
+}
+.iqp-card__who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.iqp-card__whorow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.iqp-card.is-compact .iqp-card__model {
+  min-width: 0;
+  font-size: 0.9375rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.iqp-card__sub {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.iqp-card.is-compact .iqp-sbx {
+  margin-right: 2px;
+}
+.iqp-sbx__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.iqp-card__foot.is-compact {
+  gap: 0;
+  padding-top: 4px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.iqp-card__foot.is-compact .iqp-card__usage {
+  flex: 1;
+}
+.iqp-textbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--m-pInk);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.iqp-textbtn:hover {
+  background: var(--m-pSoft);
+}
+.iqp-textbtn svg {
+  width: 16px;
+  height: 16px;
+}
+
 /* 原文面板 */
 .iqp-panel {
   flex: 0 0 440px;
@@ -1243,20 +1378,12 @@ html.dark .iqp-eff.is-a {
     gap: 10px;
   }
   .iqp-stat {
-    gap: 10px;
-    padding: 12px;
-  }
-  .iqp-stat__ico {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
-    svg {
-      width: 18px;
-      height: 18px;
-    }
+    padding: 12px 14px;
+    border-radius: 20px;
   }
   .iqp-stat__value b {
-    font-size: 1.375rem;
+    font-size: 1.5rem;
+    line-height: 1.1;
   }
   .iqp-toolbar {
     gap: 8px;
@@ -1284,18 +1411,9 @@ html.dark .iqp-eff.is-a {
   }
   .iqp-card {
     margin-bottom: 12px;
-    padding: 14px;
-    gap: 12px;
-  }
-  .iqp-card__head .iqp-card__spacer {
-    display: none;
-  }
-  .iqp-card__model {
-    flex: 1 1 100%;
-    font-size: 0.9375rem;
   }
   .iqp-sbx__frame {
-    height: 200px;
+    height: 180px;
   }
   .iqp-foot {
     padding: 8px 16px 24px;

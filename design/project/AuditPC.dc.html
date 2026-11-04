@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>操作记录 · PC</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;transition:transform .15s,filter .15s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}.btn-p:hover{filter:brightness(1.08);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}.btn-s:hover{background:var(--pSoft);color:var(--pInk)}
+.btn-o{background:var(--s);color:var(--ink);border:1.5px solid var(--line)}.btn-o:hover{border-color:var(--p);color:var(--pInk)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ib-sm{width:36px;height:36px;border-radius:12px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:var(--p);color:var(--pInk)}
+.chip-on,.chip-on:hover{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.nav{display:flex;align-items:center;gap:12px;min-height:42px;padding:0 12px;border-radius:14px;color:var(--ink2);text-decoration:none;font-size:14px;font-weight:500}
+.nav:hover{background:var(--s2);color:var(--ink)}
+.nav-on,.nav-on:hover{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.kbd{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;background:var(--s2);color:var(--ink2)}
+.utab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700}
+.utab:hover{color:var(--ink)}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.utab .n{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--s2);color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}.av-off{background:var(--s2);color:var(--ink2)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.dot{position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--p);border:2px solid var(--s)}
+.tbl{width:100%;min-width:1040px;border-collapse:separate;border-spacing:0}
+.tbl th{position:sticky;top:0;text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink2);padding:14px 12px;background:var(--s);border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+.tbl tbody tr.rw{cursor:pointer}
+.tbl tbody tr.rw:hover td{background:var(--s2)}
+.tbl tr.sel td,.tbl tr.sel:hover td{background:color-mix(in srgb, var(--pSoft) 70%, var(--s))}
+.tbl tr.sel td:first-child{box-shadow:inset 4px 0 0 var(--p)}
+.tbl tr.grp td{padding:16px 12px 8px;background:var(--s);font-size:13px;font-weight:800;color:var(--ink);border-bottom:1px solid var(--line)}
+.mchip{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:var(--s2);color:var(--ink2);font-size:12px;font-weight:700;white-space:nowrap}
+.tag-fwd{background:var(--a2Soft);color:var(--ink)}
+.pg{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:12px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer}
+.pg:hover{background:var(--s2);color:var(--ink)}
+.pg-on,.pg-on:hover{background:var(--ink);color:var(--bg)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="min-height: 1400px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span>{{n.t}}</span>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <a href="ProfilePC.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg); color: var(--ink); text-decoration: none">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chevR}}"></path></svg>
+    </a>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px; position: relative; overflow: hidden">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <label class="inp" style="flex: 1 1 320px; max-width: 520px">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="搜索页面、应用、容器、文件…" aria-label="全局搜索">
+        <span class="kbd">Ctrl K</span>
+      </label>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知，3 条未读"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">任务与日志</h1>
+        <div style="font-size: 14px; color: var(--ink2)">近 7 天共 1,284 条操作记录 · <span style="color: var(--bad); font-weight: 700">12 条失败</span> · 记录保留 180 天</div>
+      </div>
+      <button class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.settings}}"></path></svg>保留策略</button>
+      <button class="btn btn-p"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>导出</button>
+    </div>
+
+    <nav aria-label="任务与日志分类" style="display: flex; gap: 28px; border-bottom: 1px solid var(--line); margin-top: -6px">
+      <a class="utab" href="TasksPC.dc.html">后台任务 <span class="n num">24</span></a>
+      <a class="utab utab-on" href="AuditPC.dc.html" aria-current="page">操作记录 <span class="n num">1,284</span></a>
+    </nav>
+
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+        <div class="card" style="padding: 16px 18px; border-radius: 22px; display: flex; align-items: center; gap: 14px">
+          <span class="av" style="width: 44px; height: 44px; border-radius: 15px; background: {{s.bg}}; color: {{s.fg}}; transform: rotate({{s.rot}})"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{s.d}}"></path></svg></span>
+          <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <span style="font-size: 13px; font-weight: 700; color: var(--ink2)">{{s.t}}</span>
+            <span class="num" style="font-size: 26px; line-height: 1.05; font-weight: 800">{{s.v}}</span>
+          </span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+      <button class="chip" style="color: var(--ink)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.calendar}}"></path></svg><span class="num">2026-10-28 至 2026-11-03</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+      <button class="chip">模块：全部<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+      <button class="chip">用户：全部<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+      <span style="width: 1px; height: 26px; background: var(--line); margin: 0 4px"></span>
+      <div role="tablist" aria-label="按结果筛选" style="display: flex; gap: 8px">
+        <sc-for list="{{results}}" as="f" hint-placeholder-count="3">
+          <button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+        </sc-for>
+      </div>
+      <span style="flex: 1"></span>
+      <label class="inp" style="flex: 0 1 240px; min-height: 40px">
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="动作、目标或 IP" aria-label="搜索操作记录">
+      </label>
+    </div>
+
+    <div class="card hs" style="overflow-x: auto; padding: 4px 8px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="width: 96px">时间</th>
+            <th>用户</th>
+            <th>模块</th>
+            <th>动作</th>
+            <th>目标节点</th>
+            <th>结果</th>
+            <th>IP</th>
+            <th style="width: 52px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">详情</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+            <tr class="grp"><td colspan="8">{{g.t}} <span class="num" style="font-weight: 600; color: var(--ink2); margin-left: 6px">{{g.n}} 条</span></td></tr>
+            <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="6">
+              <tr class="rw {{r.rowCls}}" onClick="{{r.pick}}">
+                <td class="num" style="font-size: 14px; font-weight: 700">{{r.tm}}</td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px">
+                    <span class="av {{r.uAv}}" style="width: 30px; height: 30px; border-radius: 50%; font-size: 12px">{{r.uL}}</span>
+                    <span style="font-size: 14px; font-weight: 700; white-space: nowrap">{{r.user}}</span>
+                  </div>
+                </td>
+                <td><span class="mchip" style="background: {{r.mb}}; color: {{r.mf}}; border: 1px solid {{r.mborder}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="{{r.md}}"></path></svg>{{r.mod}}</span></td>
+                <td style="max-width: 280px">
+                  <div style="font-weight: 800">{{r.act}}</div>
+                  <div class="mono" style="font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.target}}</div>
+                </td>
+                <td>
+                  <span class="tag {{r.nodeCls}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{r.nodeD}}"></path></svg>{{r.node}}</span>
+                  <sc-if value="{{r.fwd}}" hint-placeholder-val="{{false}}">
+                    <div style="font-size: 12px; color: var(--ink2); margin-top: 4px; white-space: nowrap">主控 {{r.user}} → 节点 {{r.node}}</div>
+                  </sc-if>
+                </td>
+                <td><span class="pill {{r.st}}">{{r.stT}}</span></td>
+                <td class="mono" style="font-size: 12px; color: var(--ink2); white-space: nowrap">{{r.ip}}</td>
+                <td><button class="ib ib-sm" aria-label="查看 {{r.act}} 详情" onClick="{{r.pick}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg></button></td>
+              </tr>
+            </sc-for>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <span style="font-size: 13px; color: var(--ink2)">显示 1–12，共 1,284 条</span>
+      <span style="flex: 1"></span>
+      <button class="pg" aria-label="上一页"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+      <button class="pg pg-on" aria-current="page">1</button>
+      <button class="pg">2</button>
+      <button class="pg">3</button>
+      <span style="color: var(--ink2)">…</span>
+      <button class="pg">107</button>
+      <button class="pg" aria-label="下一页"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+    </div>
+
+    <sc-if value="{{hasCur}}" hint-placeholder-val="{{true}}">
+      <button aria-label="关闭详情面板" onClick="{{close}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: color-mix(in srgb, var(--ink) 16%, transparent); cursor: pointer"></button>
+      <aside role="dialog" aria-label="操作详情" class="hs" style="position: absolute; top: 0; right: 0; bottom: 0; width: 470px; max-width: 100%; overflow-y: auto; background: var(--s); border-left: 1px solid var(--line); box-shadow: -24px 0 60px -30px rgba(20,10,30,.45); padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <span class="av" style="width: 48px; height: 48px; border-radius: 16px; background: {{cur.mb}}; color: {{cur.mf}}; border: 1px solid {{cur.mborder}}; transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{cur.md}}"></path></svg></span>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+            <div style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{cur.mod}} · 操作详情</div>
+            <h2 style="margin: 0; font-size: 22px; font-weight: 800">{{cur.act}}</h2>
+            <div class="mono" style="font-size: 13px; color: var(--ink2); word-break: break-all">{{cur.target}}</div>
+          </div>
+          <button class="ib" aria-label="关闭" onClick="{{close}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: {{cur.resBg}}">
+          <span class="pill {{cur.st}}" style="background: var(--s)">{{cur.stT}}</span>
+          <span style="flex: 1; font-size: 13px; font-weight: 600; color: {{cur.resFg}}">{{cur.msg}}</span>
+          <span class="num" style="font-size: 13px; font-weight: 700; color: var(--ink2)">{{cur.dur}}</span>
+        </div>
+
+        <sc-if value="{{cur.fwd}}" hint-placeholder-val="{{true}}">
+          <section aria-label="转发链路" style="display: flex; flex-direction: column; gap: 10px">
+            <h3 class="lbl" style="margin: 0">转发链路</h3>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="flex: 1; min-width: 0; padding: 12px; border-radius: 16px; border: 1.5px solid var(--line); display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 11px; font-weight: 700; color: var(--ink2)">主控</span>
+                <span style="font-size: 14px; font-weight: 800">{{cur.user}}</span>
+                <span class="mono" style="font-size: 11px; color: var(--ink2)">DESKTOP-K5K9BBC</span>
+              </div>
+              <span class="av av-a2" style="width: 32px; height: 32px; border-radius: 50%"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.arrowR}}"></path></svg></span>
+              <div style="flex: 1; min-width: 0; padding: 12px; border-radius: 16px; background: var(--a2Soft); display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 11px; font-weight: 700; color: var(--ink2)">节点</span>
+                <span style="font-size: 14px; font-weight: 800">{{cur.node}}</span>
+                <span class="mono" style="font-size: 11px; color: var(--ink2)">经 API Key 主控-东京</span>
+              </div>
+            </div>
+            <div style="font-size: 13px; color: var(--ink2)">主控 {{cur.user}} → 节点 {{cur.node}}，节点上也会留下一条同 ID 的记录。</div>
+          </section>
+        </sc-if>
+
+        <dl style="margin: 0; padding: 14px 16px; border-radius: 18px; background: var(--s2); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px">
+          <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">时间</dt><dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.date}} {{cur.tm}}</dd></div>
+          <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">用户</dt><dd style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.user}}</dd></div>
+          <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">来源 IP</dt><dd class="mono" style="margin: 2px 0 0; font-size: 12px; font-weight: 700">{{cur.ip}}</dd></div>
+          <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">归属地</dt><dd style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.loc}}</dd></div>
+          <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">目标节点</dt><dd style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.node}}</dd></div>
+          <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">请求 ID</dt><dd class="mono" style="margin: 2px 0 0; font-size: 12px; font-weight: 700">{{cur.rid}}</dd></div>
+          <div style="grid-column: 1 / -1; min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">客户端</dt><dd class="mono" style="margin: 2px 0 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{cur.ua}}</dd></div>
+        </dl>
+
+        <section aria-label="请求详情" style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <h3 class="lbl" style="margin: 0; flex: 1">请求详情</h3>
+            <span class="tag mono">{{cur.method}}</span>
+            <button class="ib ib-sm" aria-label="复制请求 JSON"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.copy}}"></path></svg></button>
+          </div>
+          <pre class="mono hs" style="margin: 0; padding: 14px 16px; border-radius: 16px; background: var(--s2); border: 1px solid var(--line); font-size: 12px; line-height: 1.65; color: var(--ink); overflow-x: auto; white-space: pre">{{cur.reqJson}}</pre>
+        </section>
+
+        <section aria-label="响应" style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <h3 class="lbl" style="margin: 0; flex: 1">响应</h3>
+            <span class="tag mono" style="background: {{cur.resBg}}; color: {{cur.resFg}}">HTTP {{cur.http}}</span>
+          </div>
+          <pre class="mono hs" style="margin: 0; padding: 14px 16px; border-radius: 16px; background: var(--s2); border: 1px solid var(--line); font-size: 12px; line-height: 1.65; color: var(--ink); overflow-x: auto; white-space: pre">{{cur.resJson}}</pre>
+        </section>
+
+        <div style="display: flex; gap: 10px; margin-top: auto; padding-top: 4px">
+          <button class="btn btn-s" style="flex: 1"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.copy}}"></path></svg>复制全部</button>
+          <button class="btn btn-o" style="flex: 1"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.users}}"></path></svg>该用户的全部记录</button>
+        </div>
+      </aside>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1400}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+  alert: 'M12 3 2 20h20zM12 10v4M12 17h.01',
+  copy: 'M8 8h12v12H8zM4 16V4h12',
+  arrowR: 'M5 12h14M13 6l6 6-6 6',
+  pulse: 'M3 12h4l3-7 4 14 3-7h4',
+  x: 'M6 6l12 12M18 6 6 18',
+  chevD: 'M6 9l6 6 6-6',
+  chevR: 'M9 6l6 6-6 6',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4'
+};
+const MOD = {
+  '应用': [IC.apps, 'var(--pSoft)', 'var(--pInk)', 'transparent'],
+  '容器': [IC.box, 'var(--a2Soft)', 'var(--ink)', 'transparent'],
+  '文件': [IC.folder, 'var(--aSoft)', 'var(--aOn)', 'transparent'],
+  '系统': [IC.settings, 'var(--s2)', 'var(--ink2)', 'transparent'],
+  '用户': [IC.users, 'var(--okSoft)', 'var(--ok)', 'transparent'],
+  '工具': [IC.forward, 'var(--s)', 'var(--ink)', 'var(--line)']
+};
+const UA_PC = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36';
+const LOGS = [
+  { id: 'a1', day: 0, tm: '14:36:12', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '应用', act: '启动应用', target: 'mc-survival', node: '本机', ok: true, ip: '192.168.1.23', dur: '312 ms', ua: UA_PC,
+    req: { method: 'POST', path: '/api/apps/mc-survival/start', body: {} }, res: { code: 0, msg: 'ok', data: { pid: 18244, status: 'running' } } },
+  { id: 'a2', day: 0, tm: '14:32:05', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '容器', act: '拉取镜像', target: 'nginx:1.27-alpine', node: '本机', ok: true, ip: '192.168.1.23', dur: '58 ms', ua: UA_PC,
+    req: { method: 'POST', path: '/api/docker/images/pull', body: { image: 'nginx:1.27-alpine', platform: 'linux/amd64' } }, res: { code: 0, msg: '已加入后台任务', data: { task_id: 'task_8f2c1a' } } },
+  { id: 'a3', day: 0, tm: '14:28:40', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '文件', act: '删除文件', target: '/srv/blog-api/logs/old.log', node: 'vps-tokyo', fwd: true, ok: true, ip: '192.168.1.23', dur: '86 ms', ua: UA_PC,
+    req: { method: 'DELETE', path: '/api/node/vps-tokyo/files', forwarded: { from: '主控 DESKTOP-K5K9BBC', operator: '超级管理员', to: 'vps-tokyo' }, body: { paths: ['/srv/blog-api/logs/old.log'], recycle: true } }, res: { code: 0, msg: 'ok', data: { deleted: 1, recycled: true } } },
+  { id: 'a4', day: 0, tm: '14:15:09', user: '小林', uL: '林', uAv: 'av-a2', mod: '文件', act: '上传文件', target: '/srv/mc-survival/world.zip', node: '本机', ok: true, ip: '10.0.0.8', dur: '1.2 s', ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) Safari/605.1.15',
+    req: { method: 'POST', path: '/api/files/upload/init', body: { path: '/srv/mc-survival/world.zip', size: 3435973837, chunks: 32 } }, res: { code: 0, msg: 'ok', data: { upload_id: 'up_51c0e2', task_id: 'task_8f2b97' } } },
+  { id: 'a5', day: 0, tm: '13:58:02', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '容器', act: '重建网络', target: 'blog_net', node: '本机', ok: false, ip: '192.168.1.23', dur: '4.0 s', ua: UA_PC,
+    req: { method: 'POST', path: '/api/docker/networks/blog_net/recreate', body: { driver: 'bridge', subnet: '172.20.0.0/16' } }, res: { code: 409, msg: 'network blog_net has active endpoints', data: { endpoints: ['blog-api', 'blog-db'] } } },
+  { id: 'a6', day: 0, tm: '13:41:27', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '系统', act: '修改系统设置', target: '登录 · 会话有效期', node: '本机', ok: true, ip: '192.168.1.23', dur: '41 ms', ua: UA_PC,
+    req: { method: 'PUT', path: '/api/settings/login', body: { session_ttl_hours: 168, remember_me: true } }, res: { code: 0, msg: 'ok' } },
+  { id: 'a7', day: 0, tm: '12:03:55', user: '未登录', uL: '?', uAv: 'av-off', mod: '系统', act: '登录失败', target: '用户名 admin', node: '本机', ok: false, ip: '203.0.113.42', dur: '220 ms', ua: 'python-requests/2.32.3',
+    req: { method: 'POST', path: '/api/auth/login', body: { username: 'admin', password: '******' } }, res: { code: 401, msg: '用户名或密码错误', data: { remaining_attempts: 3 } } },
+  { id: 'a8', day: 0, tm: '11:20:44', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '容器', act: '创建容器', target: 'pg-tokyo · postgres:16', node: 'vps-tokyo', fwd: true, ok: true, ip: '192.168.1.23', dur: '47 s', ua: UA_PC,
+    req: { method: 'POST', path: '/api/node/vps-tokyo/docker/containers', forwarded: { from: '主控 DESKTOP-K5K9BBC', operator: '超级管理员', to: 'vps-tokyo' }, body: { name: 'pg-tokyo', image: 'postgres:16', ports: ['5432:5432'], restart: 'unless-stopped' } }, res: { code: 0, msg: 'ok', data: { id: 'c41e9a7b2d10' } } },
+  { id: 'b1', day: 1, tm: '23:10:31', user: '小林', uL: '林', uAv: 'av-a2', mod: '应用', act: '停止应用', target: 'palworld', node: '本机', ok: true, ip: '10.0.0.8', dur: '2.1 s', ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) Safari/605.1.15',
+    req: { method: 'POST', path: '/api/apps/palworld/stop', body: { graceful: true, timeout: 30 } }, res: { code: 0, msg: 'ok', data: { status: 'stopped' } } },
+  { id: 'b2', day: 1, tm: '21:47:02', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '用户', act: '修改角色', target: '运维 · 新增 3 项权限', node: '本机', ok: true, ip: '192.168.1.23', dur: '63 ms', ua: UA_PC,
+    req: { method: 'PUT', path: '/api/roles/ops', body: { add: ['docker.image.pull', 'file.upload', 'app.restart'] } }, res: { code: 0, msg: 'ok' } },
+  { id: 'b3', day: 1, tm: '20:12:18', user: 'API Key · 备份脚本', uL: 'K', uAv: 'av-ok', mod: '文件', act: '下载文件', target: 'backups/2026-11-02.tar.gz', node: '本机', ok: true, ip: '127.0.0.1', dur: '38 s', ua: 'curl/8.9.1',
+    req: { method: 'GET', path: '/api/files/download', query: { path: 'backups/2026-11-02.tar.gz' } }, res: { code: 0, msg: 'ok', data: { bytes: 2147483648 } } },
+  { id: 'b4', day: 1, tm: '18:05:44', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '工具', act: '新建端口转发', target: '25565 → 192.168.1.50:25565', node: '本机', ok: true, ip: '192.168.1.23', dur: '29 ms', ua: UA_PC,
+    req: { method: 'POST', path: '/api/tools/port-forward', body: { listen: 25565, target: '192.168.1.50:25565', protocol: 'tcp' } }, res: { code: 0, msg: 'ok', data: { id: 'pf_07' } } }
+];
+const DAYS = [['今天 · 11 月 3 日 周二', '2026-11-03'], ['昨天 · 11 月 2 日 周一', '2026-11-02']];
+function view(l) {
+  const m = MOD[l.mod];
+  return {
+    ...l,
+    md: m[0], mb: m[1], mf: m[2], mborder: m[3],
+    fwd: !!l.fwd,
+    st: l.ok ? 'ok' : 'bad', stT: l.ok ? '成功' : '失败',
+    nodeCls: l.fwd ? 'tag-fwd' : '',
+    nodeD: l.fwd ? IC.forward : IC.server
+  };
+}
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const res = st.res || 'all';
+    const curId = st.cur === undefined ? 'a3' : st.cur;
+    const nav = [
+      { title: '', items: [{ t: '工作台', d: IC.home, href: 'DashboardPC.dc.html', key: 'dash' }] },
+      { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: 'AppsPC.dc.html', key: 'apps' }, { t: '应用类型', d: IC.layers, href: 'AppTypesPC.dc.html', key: 'types' }] },
+      { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: 'FilesPC.dc.html', key: 'files' }, { t: '分享', d: IC.share, href: 'SharesPC.dc.html', key: 'shares' }, { t: '文件源', d: IC.db, href: 'FileSourcesPC.dc.html', key: 'sources' }] },
+      { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: 'ContainersPC.dc.html', key: 'docker' }] },
+      { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: 'PortForwardPC.dc.html', key: 'pf' }, { t: '内网穿透', d: IC.tunnel, href: 'TunnelPC.dc.html', key: 'tunnel' }, { t: 'SSH 终端', d: IC.terminal, href: 'SSHPC.dc.html', key: 'ssh' }, { t: '智商检测', d: IC.spark, href: 'IQCheckPC.dc.html', key: 'iq' }] },
+      { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: 'NodesPC.dc.html', key: 'nodes' }, { t: '用户与权限', d: IC.users, href: 'UsersPC.dc.html', key: 'users' }, { t: '任务与日志', d: IC.clock, href: 'TasksPC.dc.html', key: 'tasks' }, { t: '系统设置', d: IC.settings, href: 'SettingsPC.dc.html', key: 'settings' }] }
+    ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === 'tasks' ? 'nav-on' : '' })) }));
+    const keep = (l) => res === 'all' || (res === 'ok' ? l.ok : !l.ok);
+    const groups = DAYS.map(([t], d) => {
+      const rows = LOGS.filter((l) => l.day === d && keep(l)).map((l) => ({
+        ...view(l),
+        rowCls: l.id === curId ? 'sel' : '',
+        pick: () => this.setState({ cur: l.id })
+      }));
+      return { t, n: rows.length, rows };
+    }).filter((g) => g.rows.length > 0);
+    const c = LOGS.find((l) => l.id === curId);
+    let cur = {};
+    if (c) {
+      const v = view(c);
+      const http = c.res.code === 0 ? 200 : c.res.code;
+      cur = {
+        ...v,
+        date: DAYS[c.day][1],
+        loc: c.ip.startsWith('192.168.') || c.ip.startsWith('10.') || c.ip === '127.0.0.1' ? '局域网' : '[归属地]',
+        rid: 'req_' + c.id + '7f3a91c2',
+        method: c.req.method,
+        http,
+        msg: c.ok ? '操作已完成' : c.res.msg,
+        resBg: c.ok ? 'var(--okSoft)' : 'var(--badSoft)',
+        resFg: c.ok ? 'var(--ok)' : 'var(--bad)',
+        reqJson: JSON.stringify(c.req, null, 2),
+        resJson: JSON.stringify(c.res, null, 2)
+      };
+    }
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav,
+      stats: [
+        { t: '今日操作', v: '86', d: IC.pulse, bg: 'var(--p)', fg: 'var(--pOn)', rot: '-4deg' },
+        { t: '今日失败', v: '3', d: IC.alert, bg: 'var(--badSoft)', fg: 'var(--bad)', rot: '3deg' },
+        { t: '活跃用户', v: '3', d: IC.users, bg: 'var(--a)', fg: 'var(--aOn)', rot: '-2deg' },
+        { t: '经主控转发', v: '14', d: IC.forward, bg: 'var(--a2)', fg: '#FFFFFF', rot: '4deg' }
+      ],
+      results: [['all', '全部', '1,284'], ['ok', '成功', '1,272'], ['fail', '失败', '12']].map(([k, t, n]) => ({ t, n, on: k === res ? 'true' : 'false', cls: k === res ? 'chip-on' : '', pick: () => this.setState({ res: k }) })),
+      groups,
+      hasCur: !!c,
+      cur,
+      close: () => this.setState({ cur: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

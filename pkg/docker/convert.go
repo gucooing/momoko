@@ -95,6 +95,7 @@ func toContainerSummary(data containertypes.Summary) *v1.DockerContainerSummary 
 		NetworkMode:      data.HostConfig.NetworkMode,
 		Networks:         networks,
 		NetworkEndpoints: endpoints,
+		ExitCode:         summaryExitCode(data.Status),
 	}
 }
 
@@ -117,8 +118,16 @@ func toContainerInfo(data containertypes.InspectResponse) *v1.DockerContainerInf
 	if data.Config != nil {
 		info.ImageId = data.Config.Image
 		info.Config = &v1.DockerContainerConfig{
-			Image: data.Config.Image,
-			Env:   append([]string(nil), data.Config.Env...),
+			Image:      data.Config.Image,
+			Env:        append([]string(nil), data.Config.Env...),
+			Cmd:        append([]string(nil), data.Config.Cmd...),
+			Entrypoint: append([]string(nil), data.Config.Entrypoint...),
+			WorkingDir: data.Config.WorkingDir,
+			User:       data.Config.User,
+			Hostname:   data.Config.Hostname,
+			Labels:     cloneStringMap(data.Config.Labels),
+			Tty:        data.Config.Tty,
+			OpenStdin:  data.Config.OpenStdin,
 		}
 	}
 	if data.State != nil {
@@ -148,6 +157,8 @@ func toContainerInfo(data containertypes.InspectResponse) *v1.DockerContainerInf
 			CpuQuota:      data.HostConfig.Resources.CPUQuota,
 			CpuPeriod:     data.HostConfig.Resources.CPUPeriod,
 			NanoCpus:      data.HostConfig.Resources.NanoCPUs,
+
+			RestartMaxRetries: int32(data.HostConfig.RestartPolicy.MaximumRetryCount),
 		}
 	}
 	if data.NetworkSettings != nil {

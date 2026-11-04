@@ -35,6 +35,8 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationDockerManagerTagDockerImage:        constant.DockerImageManage,
 	v1.OperationDockerManagerDeleteDockerImage:     constant.DockerImageManage,
 	v1.OperationDockerManagerPruneDockerImages:     constant.DockerImageManage,
+	// 取消 Docker 后台任务（页面上只在拉取镜像卡片提供）
+	v1.OperationDockerManagerCancelDockerTask: constant.DockerImageManage,
 	// —— Docker 网络（管理）——
 	v1.OperationDockerManagerCreateDockerNetwork:     constant.DockerNetworkManage,
 	v1.OperationDockerManagerUpdateDockerNetwork:     constant.DockerNetworkManage,
@@ -48,10 +50,11 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationDockerManagerTestDockerConfig:       constant.DockerConfigEdit,
 	v1.OperationDockerManagerTestDockerRegistryAuth: constant.DockerConfigEdit,
 	// —— 文件分享（管理）——
-	v1.OperationFileManagerCreateShare: constant.FileShare,
-	v1.OperationFileManagerListShares:  constant.FileShare,
-	v1.OperationFileManagerUpdateShare: constant.FileShare,
-	v1.OperationFileManagerDeleteShare: constant.FileShare,
+	v1.OperationFileManagerCreateShare:    constant.FileShare,
+	v1.OperationFileManagerListShares:     constant.FileShare,
+	v1.OperationFileManagerUpdateShare:    constant.FileShare,
+	v1.OperationFileManagerDeleteShare:    constant.FileShare,
+	v1.OperationFileManagerGetShareQRCode: constant.FileShare,
 
 	// —— 文件来源（管理）——
 	// 列表(ListFileSources)不登记：回退到 FileManager 默认(constant.Terminal)，
@@ -93,17 +96,18 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationSystemAdminEditRole:   constant.RoleEdit,
 	v1.OperationSystemAdminDeleteRole: constant.RoleDelete,
 	// —— 系统：配置 / 邮件 / 操作日志 ——
-	v1.OperationSystemUpdateLoginConfig:   constant.SystemConfigEdit,
-	v1.OperationSystemSiteConfig:          constant.SystemConfigView,
-	v1.OperationSystemUpdateSiteConfig:    constant.SystemConfigEdit,
-	v1.OperationSystemEmailConfig:         constant.SystemConfigView,
-	v1.OperationSystemUpdateEmailConfig:   constant.SystemConfigEdit,
-	v1.OperationSystemEmailTemplate:       constant.SystemConfigView,
-	v1.OperationSystemUpdateEmailTemplate: constant.SystemConfigEdit,
-	v1.OperationSystemTestEmailConfig:     constant.SystemConfigEdit,
-	v1.OperationSystemListOperationLogs:   constant.SystemConfigView,
-	v1.OperationSystemListEmailTemplates:  constant.SystemConfigView,
-	v1.OperationSystemOperationLogStats:   constant.SystemConfigView,
+	v1.OperationSystemUpdateLoginConfig:           constant.SystemConfigEdit,
+	v1.OperationSystemSiteConfig:                  constant.SystemConfigView,
+	v1.OperationSystemUpdateSiteConfig:            constant.SystemConfigEdit,
+	v1.OperationSystemEmailConfig:                 constant.SystemConfigView,
+	v1.OperationSystemUpdateEmailConfig:           constant.SystemConfigEdit,
+	v1.OperationSystemEmailTemplate:               constant.SystemConfigView,
+	v1.OperationSystemUpdateEmailTemplate:         constant.SystemConfigEdit,
+	v1.OperationSystemTestEmailConfig:             constant.SystemConfigEdit,
+	v1.OperationSystemListOperationLogs:           constant.SystemConfigView,
+	v1.OperationSystemListEmailTemplates:          constant.SystemConfigView,
+	v1.OperationSystemOperationLogStats:           constant.SystemConfigView,
+	v1.OperationSystemUpdateOperationLogRetention: constant.SystemConfigEdit,
 
 	// —— 系统：更新检查 ——
 	v1.OperationSystemCheckUpdate: constant.SystemUpdate,
@@ -165,6 +169,9 @@ var wsRoutePermissions = map[string]constant.Permissions{
 	biz.DockerContainerLogsWSPath: constant.DockerView,
 	biz.DockerTaskWSPath:          constant.DockerView,
 	biz.InstanceWsPath:            constant.Instance,
+	// 镜像导出 / 导入（原始 HTTP 流，不走 operation 中间件）
+	biz.DockerImageExportPath: constant.DockerImageManage,
+	biz.DockerImageImportPath: constant.DockerImageManage,
 }
 
 // PermissionMiddleware 对已认证请求按操作所需权限做集中式鉴权（功能级越权防护）。

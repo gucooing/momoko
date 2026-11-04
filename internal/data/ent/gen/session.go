@@ -45,6 +45,8 @@ type Session struct {
 	LastActiveAt *time.Time `json:"last_active_at,omitempty"`
 	// 最近活跃 IP
 	LastIP string `json:"last_ip,omitempty"`
+	// 保持登录：false 时会话有效期不超过 1 天（不活动即失效）
+	Persistent bool `json:"persistent,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SessionQuery when eager-loading is set.
 	Edges        SessionEdges `json:"edges"`
@@ -76,6 +78,8 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case session.FieldPersistent:
+			values[i] = new(sql.NullBool)
 		case session.FieldID, session.FieldDeviceID, session.FieldDevice, session.FieldUserID, session.FieldIP, session.FieldAccessNoise, session.FieldRefreshNoise, session.FieldUserAgent, session.FieldLoginMethod, session.FieldLastIP:
 			values[i] = new(sql.NullString)
 		case session.FieldCreateTime, session.FieldUpdateTime, session.FieldExpiresAt, session.FieldLastActiveAt:
@@ -180,6 +184,12 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LastIP = value.String
 			}
+		case session.FieldPersistent:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field persistent", values[i])
+			} else if value.Valid {
+				_m.Persistent = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -261,6 +271,9 @@ func (_m *Session) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_ip=")
 	builder.WriteString(_m.LastIP)
+	builder.WriteString(", ")
+	builder.WriteString("persistent=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Persistent))
 	builder.WriteByte(')')
 	return builder.String()
 }

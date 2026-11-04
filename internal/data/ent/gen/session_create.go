@@ -150,6 +150,20 @@ func (_c *SessionCreate) SetNillableLastIP(v *string) *SessionCreate {
 	return _c
 }
 
+// SetPersistent sets the "persistent" field.
+func (_c *SessionCreate) SetPersistent(v bool) *SessionCreate {
+	_c.mutation.SetPersistent(v)
+	return _c
+}
+
+// SetNillablePersistent sets the "persistent" field if the given value is not nil.
+func (_c *SessionCreate) SetNillablePersistent(v *bool) *SessionCreate {
+	if v != nil {
+		_c.SetPersistent(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SessionCreate) SetID(v string) *SessionCreate {
 	_c.mutation.SetID(v)
@@ -216,6 +230,10 @@ func (_c *SessionCreate) defaults() {
 		v := session.DefaultLastIP
 		_c.mutation.SetLastIP(v)
 	}
+	if _, ok := _c.mutation.Persistent(); !ok {
+		v := session.DefaultPersistent
+		_c.mutation.SetPersistent(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -280,6 +298,9 @@ func (_c *SessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.LastIP(); !ok {
 		return &ValidationError{Name: "last_ip", err: errors.New(`gen: missing required field "Session.last_ip"`)}
+	}
+	if _, ok := _c.mutation.Persistent(); !ok {
+		return &ValidationError{Name: "persistent", err: errors.New(`gen: missing required field "Session.persistent"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := session.IDValidator(v); err != nil {
@@ -372,6 +393,10 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LastIP(); ok {
 		_spec.SetField(session.FieldLastIP, field.TypeString, value)
 		_node.LastIP = value
+	}
+	if value, ok := _c.mutation.Persistent(); ok {
+		_spec.SetField(session.FieldPersistent, field.TypeBool, value)
+		_node.Persistent = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -589,6 +614,18 @@ func (u *SessionUpsert) SetLastIP(v string) *SessionUpsert {
 // UpdateLastIP sets the "last_ip" field to the value that was provided on create.
 func (u *SessionUpsert) UpdateLastIP() *SessionUpsert {
 	u.SetExcluded(session.FieldLastIP)
+	return u
+}
+
+// SetPersistent sets the "persistent" field.
+func (u *SessionUpsert) SetPersistent(v bool) *SessionUpsert {
+	u.Set(session.FieldPersistent, v)
+	return u
+}
+
+// UpdatePersistent sets the "persistent" field to the value that was provided on create.
+func (u *SessionUpsert) UpdatePersistent() *SessionUpsert {
+	u.SetExcluded(session.FieldPersistent)
 	return u
 }
 
@@ -815,6 +852,20 @@ func (u *SessionUpsertOne) SetLastIP(v string) *SessionUpsertOne {
 func (u *SessionUpsertOne) UpdateLastIP() *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
 		s.UpdateLastIP()
+	})
+}
+
+// SetPersistent sets the "persistent" field.
+func (u *SessionUpsertOne) SetPersistent(v bool) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetPersistent(v)
+	})
+}
+
+// UpdatePersistent sets the "persistent" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdatePersistent() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdatePersistent()
 	})
 }
 
@@ -1208,6 +1259,20 @@ func (u *SessionUpsertBulk) SetLastIP(v string) *SessionUpsertBulk {
 func (u *SessionUpsertBulk) UpdateLastIP() *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
 		s.UpdateLastIP()
+	})
+}
+
+// SetPersistent sets the "persistent" field.
+func (u *SessionUpsertBulk) SetPersistent(v bool) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetPersistent(v)
+	})
+}
+
+// UpdatePersistent sets the "persistent" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdatePersistent() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdatePersistent()
 	})
 }
 

@@ -1,18 +1,20 @@
-<!-- 顶栏主题快捷菜单：调色板按钮 → 六套配色色块 + 浅色/深色/跟随系统 + 更多外观设置。 -->
+<!-- 顶栏主题快捷菜单（DashboardPC）：调色板按钮 → 六套配色色块 + 浅色/深色/跟随系统 + 更多外观设置（个人中心 · 外观）。 -->
 <template>
-  <AppDropdown align="end" :width="320">
+  <AppDropdown align="end" :width="340">
     <template #trigger="{ open }">
       <AppIconButton
         icon="HOutline:SwatchIcon"
-        :label="t('theme.quickTitle')"
+        :label="t('shell.themeAndAppearance')"
+        :box="44"
         :active="open"
+        :aria-expanded="open"
       />
     </template>
     <template #default="{ close }">
       <div class="tq">
         <header class="tq__head">
           <span class="tq__title">{{ t('theme.quickTitle') }}</span>
-          <button type="button" class="tq__more" @click="openDrawer(close)">
+          <button type="button" class="tq__more" @click="openAppearance(close)">
             {{ t('theme.more') }}
             <component :is="ic('HOutline:ChevronRightIcon')" />
           </button>
@@ -69,9 +71,10 @@ const modes: { key: ThemeMode; label: string; icon: string }[] = [
   { key: 'auto', label: 'theme.auto', icon: 'HOutline:ComputerDesktopIcon' },
 ]
 
-const openDrawer = (close: () => void) => {
+const router = useRouter()
+const openAppearance = (close: () => void) => {
   close()
-  themeStore.themeConfigDrawerOpen = true
+  void router.push({ path: '/profile', query: { tab: 'appearance' } })
 }
 </script>
 

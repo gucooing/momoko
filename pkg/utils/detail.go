@@ -25,13 +25,15 @@ var sensitiveKeys = map[string]struct{}{
 }
 
 type Detail struct {
-	Method     string `json:"method,omitempty"`
-	Path       string `json:"path,omitempty"`
-	Operation  string `json:"operation,omitempty"`
-	Request    any    `json:"request,omitempty"`
-	Success    bool   `json:"success"`
-	Error      string `json:"error,omitempty"`
-	DurationMS int64  `json:"duration_ms"`
+	Method    string `json:"method,omitempty"`
+	Path      string `json:"path,omitempty"`
+	Operation string `json:"operation,omitempty"`
+	Request   any    `json:"request,omitempty"`
+	Success   bool   `json:"success"`
+	Error     string `json:"error,omitempty"`
+	// Code 响应状态码（HTTP 语义：成功 200，失败取错误码）。
+	Code       int32 `json:"code,omitempty"`
+	DurationMS int64 `json:"duration_ms"`
 	// Node 主控侧：请求被转发到的远程节点。
 	Node string `json:"node,omitempty"`
 	// APIKey / Operator 节点侧：远程主控使用的 API Key 与主控侧操作者。

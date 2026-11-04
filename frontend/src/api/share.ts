@@ -11,6 +11,7 @@ import type {
   ListShareDirRequest,
   ListShareDirResponse,
   CreateShareSessionResponse,
+  GetShareQRCodeResponse,
 } from '@/types/v1/file'
 
 // 文件分享 HTTP 封装：创建者管理（需登录） + 公开访问（按 token/提取码）。
@@ -30,6 +31,15 @@ export const updateShareRequest = (data: UpdateShareRequest) =>
 // 删除分享
 export const deleteShareRequest = (id: string) =>
   request.post<DeleteShareResponse>('/file/share/delete', { id })
+
+// 分享链接二维码：后端按当前站点源拼出公开链接并编码为 PNG（JSON 里 bytes 为 base64），返回可直接用作 <img src> 的 data URL。
+export const getShareQRCodeRequest = async (id: string): Promise<{ src: string; link: string }> => {
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const { data } = await request.get<GetShareQRCodeResponse>('/file/share/qrcode', { params: { id, origin } })
+  const png = data.png as unknown as string | Uint8Array
+  const b64 = typeof png === 'string' ? png : btoa(String.fromCharCode(...png))
+  return { src: `data:image/png;base64,${b64}`, link: data.link }
+}
 
 // 公开：获取分享元信息（引导用，不含目录/文件数据）
 export const getShareMetaRequest = (token: string) =>

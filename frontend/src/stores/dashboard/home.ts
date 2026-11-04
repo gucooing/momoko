@@ -5,7 +5,6 @@ import { getSystemOverview, getSystemStatus } from '@/api/system'
 import { InstanceStatus, type InstanceInfo } from '@/types/v1/instance'
 import type {
   DashboardPendingApproval,
-  DashboardShortcutItem,
   DashboardTaskProgress,
 } from '@/stores/dashboard/types'
 import type {
@@ -47,18 +46,6 @@ export interface DiskPoint {
   write: number
 }
 
-// color 为「贴纸」配色变体（见 design-tokens.css .m-sticker--*），随当前配色变化
-const createHomeShortcuts = (): DashboardShortcutItem[] => [
-  { labelKey: 'dashboard.home.shortcuts.fileManager', icon: 'HOutline:FolderIcon', color: 'solid-p', routePath: '/file/index' },
-  { labelKey: 'dashboard.home.shortcuts.ssh', icon: 'HOutline:CommandLineIcon', color: 'solid-ink', routePath: '/openssh/management' },
-  { labelKey: 'dashboard.home.shortcuts.portForward', icon: 'HOutline:PaperAirplaneIcon', color: 'solid-a', routePath: '/tools/port-forward' },
-  { labelKey: 'dashboard.home.shortcuts.tunnel', icon: 'HOutline:GlobeAltIcon', color: 'solid-a2', routePath: '/tools/tunnel' },
-  { labelKey: 'dashboard.home.shortcuts.containers', icon: 'HOutline:CubeIcon', color: 'p', routePath: '/docker' },
-  { labelKey: 'dashboard.home.shortcuts.shares', icon: 'HOutline:ShareIcon', color: 'ok', routePath: '/file/share' },
-  { labelKey: 'dashboard.home.shortcuts.apps', icon: 'HOutline:Squares2X2Icon', color: 'a', routePath: '/instance/list' },
-  { labelKey: 'dashboard.home.shortcuts.users', icon: 'HOutline:UserGroupIcon', color: 'a2', routePath: '/system/access' },
-]
-
 const RUNNING_INSTANCE_LIMIT = 6
 
 export const useDashboardHomeStore = defineStore('dashboard-home', () => {
@@ -77,7 +64,6 @@ export const useDashboardHomeStore = defineStore('dashboard-home', () => {
     ],
     extraCount: 2,
   })
-  const shortcuts = ref<DashboardShortcutItem[]>(createHomeShortcuts())
   const runningInstancesLoading = ref(false)
   const runningInstances = ref<InstanceInfo[]>([])
   /** 运行中实例总数（列表只取前 RUNNING_INSTANCE_LIMIT 条展示） */
@@ -240,7 +226,6 @@ export const useDashboardHomeStore = defineStore('dashboard-home', () => {
     weatherText,
     todayTask,
     pendingApproval,
-    shortcuts,
     runningInstancesLoading,
     runningInstances,
     overviewLoading,

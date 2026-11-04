@@ -25,7 +25,7 @@ export default {
         selectedRules: '已选 {count} 条规则',
         batchEnableSuccess: '已启用 {count} 条规则',
         batchDisableSuccess: '已停用 {count} 条规则',
-        footNote: '连接数与流量从规则本次启动起累计；点统计图标可查看历史曲线。',
+        footNote: '速率每 2 秒刷新一次；总流量从规则创建起累计，可在 ⋯ 菜单里清零。',
         errorLabel: '运行错误',
       },
       tunnel: {
@@ -101,7 +101,7 @@ export default {
         selectedRules: '已選 {count} 條規則',
         batchEnableSuccess: '已啟用 {count} 條規則',
         batchDisableSuccess: '已停用 {count} 條規則',
-        footNote: '連線數與流量從規則本次啟動起累計；點統計圖示可查看歷史曲線。',
+        footNote: '速率每 2 秒更新一次；總流量從規則建立起累計，可在 ⋯ 選單內清零。',
         errorLabel: '運行錯誤',
       },
       tunnel: {
@@ -177,7 +177,7 @@ export default {
         selectedRules: '{count} rules selected',
         batchEnableSuccess: '{count} rules enabled',
         batchDisableSuccess: '{count} rules disabled',
-        footNote: 'Connections and traffic are counted since the rule last started. Use the chart icon to see history.',
+        footNote: 'Rates refresh every 2 seconds. Total traffic is counted since the rule was created and can be reset from the ⋯ menu.',
         errorLabel: 'Runtime error',
       },
       tunnel: {

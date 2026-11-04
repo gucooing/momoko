@@ -1,32 +1,29 @@
-<!-- 端口转发实时统计：规则头 + 时间范围 + 指标格 + 流量速率曲线 + 并发连接柱 + 活动连接列表（可断开）+ 导出 CSV。
+<!-- 端口转发实时统计（按原型）：PC 右侧抽屉 / 手机底部面板（ToolSheet）。
+     头部：协议贴纸 + 规则名 + 协议标签 + 状态 + 路由；时间范围分段 + 实时开关 + 刷新；2×2 指标格；
+     流量速率曲线 + 并发连接柱；活动连接列表（可单条断开、查看全部）；导出 CSV / 断开全部连接。
      ECharts 颜色取自当前配色（usePaletteColors）。 -->
 <template>
-  <FormDialog
-    v-model="visible"
-    :title="dialogTitle"
-    :width="860"
-    :show-footer="false"
-    overflow-visible
-    @close="handleClosed"
-  >
-    <div class="pfs">
-      <div class="pfs-head">
-        <span class="m-sticker pfs-head__sticker m-mono" :class="isUdp ? 'm-sticker--a' : 'm-sticker--a2'">{{ isUdp ? 'UDP' : 'TCP' }}</span>
+  <ToolSheet v-model="visible" :label="dialogTitle" :width="520">
+    <template #default="{ close }">
+      <header class="pfs-head">
+        <span class="m-sticker pfs-head__sticker" :class="isUdp ? 'm-sticker--a' : 'm-sticker--a2'">
+          <component :is="menuStore.iconComponents['HOutline:ArrowsRightLeftIcon']" class="pfs-head__ico" />
+          <span class="pfs-head__proto m-mono">{{ protoText }}</span>
+        </span>
         <div class="pfs-head__text">
-          <div class="pfs-head__route m-mono">
-            {{ row?.listenAddress }}:{{ row?.listenPort }}
-            <component :is="menuStore.iconComponents['HOutline:ArrowRightIcon']" />
-            <b>{{ row?.targetAddress }}:{{ row?.targetPort }}</b>
+          <div class="pfs-head__titlerow">
+            <h2 class="pfs-head__name">{{ row?.name || t('tools.portForward.stats.title') }}</h2>
+            <span class="pfs-proto m-mono" :class="isUdp ? 'is-udp' : 'is-tcp'">{{ protoText }}</span>
+            <StatusPill :variant="statusVariant" :label="statusText" />
           </div>
-          <div class="pfs-head__meta">
-            <StatusPill
-              :variant="running ? 'success' : 'neutral'"
-              :label="running ? t('tools.portForward.stats.running') : t('tools.portForward.stats.stopped')"
-            />
-            <span v-if="running && startTimeText" class="pfs-muted m-num">{{ t('tools.portForward.stats.startTime') }} {{ startTimeText }}</span>
+          <div class="pfs-head__route m-mono">
+            <span>{{ row?.listenAddress }}:{{ row?.listenPort }}</span>
+            <component :is="menuStore.iconComponents['HOutline:ArrowRightIcon']" />
+            <span class="pfs-head__target">{{ row?.targetAddress }}:{{ row?.targetPort }}</span>
           </div>
         </div>
-      </div>
+        <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :box="44" @click="close" />
+      </header>
 
       <div class="pfs-toolbar">
         <div class="pfs-seg" role="radiogroup" :aria-label="t('tools.portForward.stats.rangeLabel')">
@@ -42,31 +39,36 @@
           >{{ opt.label }}</button>
         </div>
         <span class="pfs-spacer" />
-        <label class="pfs-live">
+        <label class="pfs-live" :class="{ 'is-on': autoRefresh }">
           <input v-model="autoRefresh" type="checkbox" @change="restartPolling" />
-          <span class="pfs-live__dot" :class="{ 'is-on': autoRefresh }" />
+          <span class="pfs-live__dot" />
           {{ t('tools.portForward.stats.live') }}
         </label>
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.portForward.stats.refresh')" :box="36" :size="18" @click="refresh" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.portForward.stats.refresh')" :box="isMobile ? 44 : 40" :size="18" @click="refresh" />
       </div>
 
       <div v-if="rangeKey === 'custom'" class="pfs-custom">
         <template v-if="!isMobile">
-          <input
-            v-model="customStartLocal"
-            type="datetime-local"
-            class="app-input pfs-dt"
-            :aria-label="t('tools.portForward.stats.rangeStart')"
-            @change="onCustomChange"
-          />
-          <span class="pfs-muted">{{ t('tools.portForward.stats.to') }}</span>
-          <input
-            v-model="customEndLocal"
-            type="datetime-local"
-            class="app-input pfs-dt"
-            :aria-label="t('tools.portForward.stats.rangeEnd')"
-            @change="onCustomChange"
-          />
+          <label class="pfs-fld">
+            <component :is="menuStore.iconComponents['HOutline:CalendarIcon']" />
+            <input
+              v-model="customStartLocal"
+              type="datetime-local"
+              class="m-num"
+              :aria-label="t('tools.portForward.stats.rangeStart')"
+              @change="onCustomChange"
+            />
+          </label>
+          <span class="pfs-muted is-strong">{{ t('tools.portForward.stats.to') }}</span>
+          <label class="pfs-fld">
+            <input
+              v-model="customEndLocal"
+              type="datetime-local"
+              class="m-num"
+              :aria-label="t('tools.portForward.stats.rangeEnd')"
+              @change="onCustomChange"
+            />
+          </label>
         </template>
         <template v-else>
           <div class="pfs-custom__row">
@@ -93,21 +95,21 @@
         </div>
         <div>
           <dt>{{ t('tools.portForward.stats.activeConnections') }}</dt>
-          <dd class="m-num">{{ activeConnections }}<small> / {{ t('tools.portForward.stats.totalShort', { n: totalConnections }) }}</small></dd>
+          <dd class="m-num">
+            {{ activeConnections }}<small>{{ t('tools.portForward.stats.totalShort', { n: totalConnections }) }}</small>
+          </dd>
         </div>
         <div>
           <dt>{{ t('tools.portForward.stats.rangeTraffic') }}</dt>
-          <dd class="m-num">{{ formatBytes(rangeTraffic) }}</dd>
-        </div>
-        <div>
-          <dt>{{ t('tools.portForward.stats.totalTraffic') }}</dt>
-          <dd class="m-num">{{ formatBytes(totalIn + totalOut) }}</dd>
+          <dd class="m-num">
+            {{ formatBytes(rangeTraffic) }}<small>{{ t('tools.portForward.stats.totalShort', { n: formatBytes(totalIn + totalOut) }) }}</small>
+          </dd>
         </div>
       </dl>
 
-      <section class="pfs-card">
-        <div class="pfs-card__head">
-          <span class="pfs-card__title">{{ t('tools.portForward.stats.rateChart') }}</span>
+      <section class="pfs-block">
+        <div class="pfs-block__head">
+          <span class="pfs-block__title">{{ t('tools.portForward.stats.rateChart') }}</span>
           <span class="pfs-legend"><i class="is-in" />{{ t('tools.portForward.stats.inbound') }}</span>
           <span class="pfs-legend"><i class="is-out" />{{ t('tools.portForward.stats.outbound') }}</span>
         </div>
@@ -117,74 +119,88 @@
         </div>
       </section>
 
-      <section class="pfs-card">
-        <div class="pfs-card__head">
-          <span class="pfs-card__title">{{ t('tools.portForward.stats.connectionsChart') }}</span>
-          <span class="pfs-muted m-num">{{ t('tools.portForward.stats.peak', { n: connPeak }) }}</span>
+      <section class="pfs-block">
+        <div class="pfs-block__head">
+          <span class="pfs-block__title">{{ t('tools.portForward.stats.connectionsChart') }}</span>
+          <span class="pfs-muted m-num is-strong">{{ t('tools.portForward.stats.peak', { n: connPeak }) }}</span>
         </div>
         <div class="pfs-chart-wrap is-small">
           <div ref="connEl" class="pfs-chart" />
         </div>
       </section>
 
-      <section class="pfs-card">
-        <div class="pfs-card__head">
-          <span class="pfs-card__title">{{ t('tools.portForward.stats.liveConnections', { n: connections.length }) }}</span>
+      <section class="pfs-conns">
+        <div class="pfs-block__head">
+          <span class="pfs-block__title">{{ t('tools.portForward.stats.activeConnTitle', { n: connections.length }) }}</span>
+          <UButton
+            v-if="connections.length > CONN_LIMIT"
+            color="neutral"
+            variant="soft"
+            size="sm"
+            @click="showAllConns = !showAllConns"
+          >
+            {{ showAllConns ? t('tools.portForward.stats.collapse') : t('tools.portForward.stats.viewAll') }}
+          </UButton>
         </div>
-        <div v-if="connections.length" class="pfs-conns">
-          <div v-for="c in visibleConnections" :key="c.id" class="pfs-conn">
-            <span class="pfs-conn__dot" />
-            <span class="pfs-conn__main">
-              <span class="m-mono pfs-conn__addr">{{ c.remoteAddr }}</span>
-              <span class="pfs-muted">
-                {{ c.lan ? t('tools.portForward.stats.lan') : t('tools.portForward.stats.public') }} ·
-                {{ t('tools.portForward.stats.connectedFor', { d: formatDuration(Date.now() - (toDate(c.startTime)?.getTime() || Date.now()), t) }) }}
-              </span>
+        <div v-for="c in visibleConnections" :key="c.id" class="pfs-conn">
+          <span class="pfs-conn__dot" aria-hidden="true" />
+          <span class="pfs-conn__main">
+            <span class="m-mono pfs-conn__addr">{{ c.remoteAddr }}</span>
+            <span class="pfs-muted">
+              {{ c.lan ? t('tools.portForward.stats.lan') : t('tools.portForward.stats.public') }} ·
+              {{ t('tools.portForward.stats.connectedFor', { d: formatDuration(Date.now() - (toDate(c.startTime)?.getTime() || Date.now()), t) }) }}
             </span>
-            <span class="pfs-conn__bytes m-num">↓ {{ formatBytes(c.bytesIn) }}<br /><small>↑ {{ formatBytes(c.bytesOut) }}</small></span>
-            <AppIconButton
-              icon="HOutline:XMarkIcon"
-              class="pfs-conn__kill"
-              :label="t('tools.portForward.stats.disconnect', { addr: c.remoteAddr })"
-              :box="36"
-              :size="16"
-              @click="closeConns([c.id])"
-            />
-          </div>
-          <button v-if="connections.length > CONN_LIMIT && !showAllConns" type="button" class="pfs-more" @click="showAllConns = true">
-            {{ t('tools.portForward.stats.showAll', { n: connections.length }) }}
-          </button>
+          </span>
+          <span class="pfs-conn__bytes m-num">↓ {{ formatBytes(c.bytesIn) }}<small>↑ {{ formatBytes(c.bytesOut) }}</small></span>
+          <AppIconButton
+            class="pfs-conn__kill"
+            :label="t('tools.portForward.stats.disconnect', { addr: c.remoteAddr })"
+            :box="isMobile ? 44 : 36"
+            @click="closeConns([c.id])"
+          >
+            <UIcon name="i-lucide-unplug" />
+          </AppIconButton>
         </div>
-        <div v-else class="pfs-conns__empty">{{ t('tools.portForward.stats.noConnections') }}</div>
+        <div v-if="!connections.length" class="pfs-conns__empty">{{ t('tools.portForward.stats.noConnections') }}</div>
       </section>
 
-      <div class="pfs-foot">
-        <UButton color="neutral" variant="soft" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
+      <footer class="pfs-foot">
+        <UButton color="neutral" variant="outline" size="lg" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
           {{ t('tools.portForward.stats.exportCsv') }}
         </UButton>
-        <UButton color="error" variant="soft" icon="i-lucide-unplug" :disabled="!connections.length" @click="closeConns()">
+        <UButton color="error" variant="soft" size="lg" icon="i-lucide-unplug" :disabled="!connections.length" @click="closeConns()">
           {{ t('tools.portForward.stats.disconnectAll') }}
         </UButton>
-      </div>
-    </div>
-  </FormDialog>
+        <UButton v-if="isMobile" class="pfs-foot__close" color="neutral" variant="soft" size="xl" @click="close">
+          {{ t('system.common.close') }}
+        </UButton>
+      </footer>
+    </template>
+  </ToolSheet>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
 import { getPortForwardStats, closePortForwardConnections } from '@/api/network'
-import { PortForwardType, type PortForwardInfo, type PortForwardStatPoint, type PortForwardConnection } from '@/types/v1/network'
+import {
+  PortForwardType,
+  PortForwardStatus,
+  type PortForwardInfo,
+  type PortForwardStatPoint,
+  type PortForwardConnection,
+} from '@/types/v1/network'
 import { showRequestError } from '@/utils/request'
 import { usePaletteColors, withAlpha } from '@/composables/usePaletteColors'
 import { formatBytes, formatRate, formatDateTime, formatDuration, toDate, downloadText } from '@/views/tools/components/format'
+import ToolSheet from '@/views/tools/components/ToolSheet.vue'
 
 type RangeKey = '5m' | '30m' | '1h' | '6h' | '24h' | 'custom'
 type ChartPoint = { ts: number; label: string; activeConnections: number; inboundRate: number; outboundRate: number; bytesIn: number; bytesOut: number }
 type TooltipParam = { axisValueLabel?: string; marker?: string; seriesName?: string; value?: number | string }
 
 const POLL_INTERVAL_MS = 5000
-const CONN_LIMIT = 8
+const CONN_LIMIT = 5
 const PRESET_SECONDS: Record<Exclude<RangeKey, 'custom'>, number> = {
   '5m': 300, '30m': 1800, '1h': 3600, '6h': 21600, '24h': 86400,
 }
@@ -213,7 +229,6 @@ const customEndTime = ref('')
 const loading = ref(false)
 const autoRefresh = ref(true)
 const running = ref(false)
-const startTime = ref<Date | null>(null)
 const activeConnections = ref(0)
 const totalConnections = ref(0)
 const rateIn = ref(0)
@@ -229,6 +244,19 @@ let connChart: echarts.ECharts | null = null
 let pollTimer: ReturnType<typeof setTimeout> | null = null
 
 const isUdp = computed(() => props.row?.type === PortForwardType.PORT_FORWARD_TYPE_UDP)
+const protoText = computed(() => (isUdp.value ? 'UDP' : 'TCP'))
+// 状态取列表行（父页轮询更新）；行缺失时退回快照的运行状态
+const statusVariant = computed(() => {
+  const st = props.row?.status
+  if (st === PortForwardStatus.PORT_FORWARD_STATUS_RUNNING || (!st && running.value)) return 'success'
+  if (st === PortForwardStatus.PORT_FORWARD_STATUS_ERROR) return 'error'
+  return 'neutral'
+})
+const statusText = computed(() => {
+  if (statusVariant.value === 'success') return t('tools.portForward.statusRunning')
+  if (statusVariant.value === 'error') return t('tools.portForward.statusError')
+  return t('tools.portForward.statusStopped')
+})
 const visibleConnections = computed(() => (showAllConns.value ? connections.value : connections.value.slice(0, CONN_LIMIT)))
 const connPeak = computed(() => points.value.reduce((m, p) => Math.max(m, p.activeConnections), activeConnections.value))
 const rangeTraffic = computed(() => {
@@ -290,7 +318,6 @@ const dialogTitle = computed(() => {
   const name = props.row?.name
   return name ? t('tools.portForward.stats.titleWithName', { name }) : t('tools.portForward.stats.title')
 })
-const startTimeText = computed(() => (startTime.value ? formatDateTime(startTime.value) : ''))
 
 const num = (value?: number | string) => Number(value || 0)
 const axisLabel = (d: Date, spanSeconds: number) =>
@@ -389,6 +416,8 @@ const updateCharts = (animate = false) => {
       type: 'value',
       min: 0,
       splitNumber: 3,
+      // 速率很小时避免出现 0.25 / 0.5 B/s 之类刻度被格式化成重复的「1 B/s」
+      minInterval: 1,
       splitLine: { lineStyle: { color: c.line, type: 'dashed' } },
       axisLabel: { color: c.ink2, fontSize: 11, formatter: (v: number) => formatRate(v, '0') },
     },
@@ -411,7 +440,7 @@ const updateCharts = (animate = false) => {
         showSymbol,
         symbolSize: 6,
         data: points.value.map((p) => p.outboundRate),
-        lineStyle: { width: 2, color: c.a2, type: 'dashed' },
+        lineStyle: { width: 2.5, color: c.a2 },
         itemStyle: { color: c.a2 },
       },
     ],
@@ -419,8 +448,9 @@ const updateCharts = (animate = false) => {
   connChart?.setOption({
     ...base,
     animation: animate,
-    xAxis: { ...base.xAxis, boundaryGap: true },
-    grid: { top: 8, left: 8, right: 12, bottom: 4, containLabel: true },
+    // 并发柱只看形状：横轴时间与上方速率曲线一致，这里不再重复标注
+    xAxis: { ...base.xAxis, boundaryGap: true, axisLabel: { show: false } },
+    grid: { top: 6, left: 8, right: 12, bottom: 2, containLabel: true },
     yAxis: {
       type: 'value',
       min: 0,
@@ -435,7 +465,7 @@ const updateCharts = (animate = false) => {
         type: 'bar',
         barMaxWidth: 14,
         data: points.value.map((p) => p.activeConnections),
-        itemStyle: { color: c.a, borderRadius: [4, 4, 0, 0] },
+        itemStyle: { color: c.a2, borderRadius: [4, 4, 0, 0] },
       },
     ],
   }, { notMerge: true })
@@ -468,7 +498,6 @@ const loadStats = async (animate = false) => {
     rateOut.value = num(snapshot?.rateOut)
     totalIn.value = num(snapshot?.totalBytesIn)
     totalOut.value = num(snapshot?.totalBytesOut)
-    startTime.value = toDate(snapshot?.startTime)
     connections.value = data?.connections || []
     points.value = buildChartPoints(data?.points || [], (range.endTimeMs - range.startTimeMs) / 1000)
     await nextTick()
@@ -551,35 +580,64 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.pfs { display: flex; flex-direction: column; gap: 14px; }
 .pfs-muted { font-size: 0.75rem; color: var(--el-text-color-secondary); }
-.pfs-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.pfs-muted.is-strong { font-weight: 700; }
+
+/* 头部 */
+.pfs-head { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
 .pfs-head__sticker {
   width: 48px;
   height: 48px;
+  flex: none;
   border-radius: 16px;
-  font-size: 0.8125rem;
-  transform: rotate(-5deg);
+  transform: rotate(-4deg);
 }
-.pfs-head__text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pfs-head__ico { width: 24px; height: 24px; }
+.pfs-head__proto { display: none; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.04em; }
+.pfs-head__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
+.pfs-head__titlerow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.pfs-head__name {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--app-font-display);
+  font-size: 1.3125rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pfs-proto {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.pfs-proto.is-tcp { background: var(--m-a2Soft); color: var(--m-ink); }
+.pfs-proto.is-udp { background: var(--m-aSoft); color: var(--m-ink); }
 .pfs-head__route {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 6px;
-  font-size: 0.875rem;
-  color: var(--el-text-color-regular);
-  b { color: var(--el-text-color-primary); }
-  :deep(svg) { width: 14px; height: 14px; color: var(--m-p); }
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  :deep(svg) { width: 14px; height: 14px; flex: none; color: var(--m-pInk); }
 }
-.pfs-head__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.pfs-head__target { color: var(--el-text-color-primary); font-weight: 700; }
 
-.pfs-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* 时间范围 */
+.pfs-toolbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .pfs-spacer { flex: 1; }
 .pfs-seg {
   display: inline-flex;
   gap: 2px;
-  padding: 3px;
+  padding: 4px;
   max-width: 100%;
   border-radius: 999px;
   background: var(--el-fill-color-light);
@@ -590,7 +648,8 @@ onBeforeUnmount(() => {
 .pfs-seg__btn {
   flex: none;
   min-height: 34px;
-  padding: 0 12px;
+  /* 480px 抽屉里 6 个时段 + 实时 + 刷新要排在一行 */
+  padding: 0 9px;
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -606,27 +665,50 @@ onBeforeUnmount(() => {
   box-shadow: var(--app-shadow-sm);
 }
 .pfs-live {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 4px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--el-text-color-secondary);
   cursor: pointer;
   user-select: none;
   input { position: absolute; opacity: 0; pointer-events: none; }
 }
-.pfs-live__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--el-border-color-light);
-}
-.pfs-live__dot.is-on { background: var(--m-ok); box-shadow: 0 0 0 4px var(--m-okSoft); }
+.pfs-live.is-on { color: var(--m-ok); }
+.pfs-live__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--el-border-color-light); }
+.pfs-live.is-on .pfs-live__dot { background: var(--m-ok); box-shadow: 0 0 0 4px var(--m-okSoft); }
+.pfs-live:focus-within { outline: 3px solid var(--m-a2); outline-offset: 2px; border-radius: 8px; }
 .pfs-custom { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.pfs-dt { width: 12rem; height: 38px; font-variant-numeric: tabular-nums; }
+.pfs-fld {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--el-fill-color-light);
+  border: 1.5px solid transparent;
+  color: var(--el-text-color-secondary);
+  :deep(svg) { width: 16px; height: 16px; flex: none; }
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+    outline: none;
+  }
+}
+.pfs-fld:focus-within { border-color: var(--m-p); }
 .pfs-custom__row {
   display: grid;
   grid-template-columns: 4rem 1fr 6rem;
@@ -634,12 +716,13 @@ onBeforeUnmount(() => {
   align-items: center;
   width: 100%;
   span { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); }
-  .app-input { min-width: 0; height: 40px; }
+  .app-input { min-width: 0; height: 44px; }
 }
 
+/* 指标格 */
 .pfs-stats {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
   > div {
@@ -648,44 +731,40 @@ onBeforeUnmount(() => {
     border-radius: var(--app-radius);
     background: var(--el-fill-color-light);
   }
-  dt { font-size: 0.72rem; font-weight: 700; color: var(--el-text-color-secondary); white-space: nowrap; }
+  dt { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); white-space: nowrap; }
   dd {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 8px;
     margin: 4px 0 0;
     font-family: var(--app-font-display);
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     font-weight: 800;
     color: var(--el-text-color-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    min-width: 0;
     small { font-family: inherit; font-size: 0.75rem; font-weight: 600; color: var(--el-text-color-secondary); }
   }
   dd.is-p { color: var(--m-pInk); }
 }
 
-.pfs-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px 16px;
-  border-radius: var(--app-radius-lg);
-  border: 1px solid var(--el-border-color-lighter);
-}
-.pfs-card__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.pfs-card__title { flex: 1; font-size: 0.875rem; font-weight: 800; color: var(--el-text-color-primary); }
+/* 图表 */
+.pfs-block { display: flex; flex-direction: column; gap: 8px; }
+.pfs-block__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 32px; }
+.pfs-block__title { flex: 1; font-size: 0.9375rem; font-weight: 800; color: var(--el-text-color-primary); }
 .pfs-legend {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--el-text-color-secondary);
-  i { width: 14px; height: 3px; border-radius: 2px; }
+  i { width: 10px; height: 10px; border-radius: 3px; }
   i.is-in { background: var(--m-p); }
   i.is-out { background: var(--m-a2); }
 }
-.pfs-chart-wrap { position: relative; height: 200px; }
-.pfs-chart-wrap.is-small { height: 110px; }
+.pfs-chart-wrap { position: relative; height: 180px; }
+.pfs-chart-wrap.is-small { height: 92px; }
 .pfs-chart { width: 100%; height: 100%; }
 .pfs-empty {
   position: absolute;
@@ -697,18 +776,19 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-secondary);
 }
 
+/* 活动连接 */
 .pfs-conns { display: flex; flex-direction: column; }
+.pfs-conns .pfs-block__head { padding-bottom: 6px; }
 .pfs-conn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 52px;
-  padding: 6px 0;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
   border-top: 1px solid var(--el-border-color-lighter);
 }
-.pfs-conn:first-child { border-top: none; }
 .pfs-conn__dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--m-ok); }
-.pfs-conn__main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.pfs-conn__main { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
 .pfs-conn__addr {
   font-size: 0.8125rem;
   font-weight: 700;
@@ -718,33 +798,47 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 .pfs-conn__bytes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   font-size: 0.75rem;
   font-weight: 700;
-  text-align: right;
   color: var(--el-text-color-primary);
   line-height: 1.35;
-  small { font-weight: 600; color: var(--el-text-color-secondary); }
+  white-space: nowrap;
+  small { font-size: inherit; font-weight: 700; color: var(--el-text-color-secondary); }
 }
+.pfs-conns :deep(.pfs-conn__kill) { color: var(--m-bad); }
 .pfs-conns :deep(.pfs-conn__kill:hover) { color: var(--m-bad); background: var(--m-badSoft); }
-.pfs-conns__empty { padding: 14px 0 6px; font-size: 0.8125rem; color: var(--el-text-color-secondary); text-align: center; }
-.pfs-more {
-  min-height: 40px;
-  border: none;
-  background: transparent;
-  color: var(--m-pInk);
+.pfs-conns :deep(.pfs-conn__kill .iconify) { width: 16px; height: 16px; }
+.pfs-conns__empty {
+  padding: 18px 0;
+  border-top: 1px solid var(--el-border-color-lighter);
   font-size: 0.8125rem;
-  font-weight: 700;
-  cursor: pointer;
+  color: var(--el-text-color-secondary);
+  text-align: center;
 }
-.pfs-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+.pfs-foot { display: flex; gap: 10px; margin-top: auto; padding-top: 4px; }
+.pfs-foot > * { flex: 1; justify-content: center; }
 
 @media (width <= 768px) {
-  .pfs-stats { grid-template-columns: 1fr 1fr; }
-  .pfs-stats > div:last-child { grid-column: 1 / -1; }
+  .pfs-head { align-items: center; }
+  .pfs-head__sticker { width: 46px; height: 46px; border-radius: 15px; }
+  .pfs-head__ico { display: none; }
+  .pfs-head__proto { display: inline; }
+  .pfs-head__titlerow .pfs-proto { display: none; }
+  .pfs-head__name { font-size: 1.125rem; }
+  .pfs-head__route { font-size: 0.72rem; }
   .pfs-spacer { display: none; }
   .pfs-seg { width: 100%; }
-  .pfs-seg__btn { flex: 1; }
-  .pfs-chart-wrap { height: 170px; }
-  .pfs-foot > * { flex: 1; justify-content: center; }
+  .pfs-seg__btn { flex: 1; min-height: 44px; padding: 0 6px; }
+  .pfs-toolbar { justify-content: space-between; }
+  .pfs-stats { gap: 8px; }
+  .pfs-stats > div { padding: 10px 12px; }
+  .pfs-stats dd { font-size: 1.1875rem; }
+  .pfs-chart-wrap { height: 150px; }
+  .pfs-foot { flex-wrap: wrap; }
+  .pfs-foot__close { flex-basis: 100%; min-height: 52px; }
 }
 </style>

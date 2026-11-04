@@ -31,8 +31,13 @@ func (u *UserService) MeInfo(ctx context.Context, req *v1.MeInfoRequest) (*v1.Me
 	if err != nil {
 		return nil, err
 	}
+	appearance, err := u.uc.MeAppearance(ctx, authCtx.UserID)
+	if err != nil {
+		return nil, err
+	}
 	rsp := &v1.MeInfoResponse{
-		User: userInfo,
+		User:       userInfo,
+		Appearance: appearance,
 	}
 
 	return rsp, nil
@@ -48,6 +53,18 @@ func (u *UserService) UpdateMe(ctx context.Context, req *v1.UpdateMeRequest) (*v
 		return nil, err
 	}
 	return &v1.UpdateMeResponse{User: info}, nil
+}
+
+func (u *UserService) UpdateMyAppearance(ctx context.Context, req *v1.UpdateMyAppearanceRequest) (*v1.UpdateMyAppearanceResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	saved, err := u.uc.UpdateMyAppearance(ctx, authCtx.UserID, req.GetAppearance())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateMyAppearanceResponse{Appearance: saved}, nil
 }
 
 func (u *UserService) MyLoginLogs(ctx context.Context, req *v1.MyLoginLogsRequest) (*v1.MyLoginLogsResponse, error) {

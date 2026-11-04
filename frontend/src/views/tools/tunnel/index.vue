@@ -44,8 +44,8 @@
             </div>
           </div>
         </AppDropdown>
-        <UButton color="primary" icon="i-lucide-plus" :aria-label="t('tools.tunnel.addTunnel')" @click="openCreateDialog()">
-          <template v-if="!menuStore.isMobile">{{ t('tools.tunnel.addTunnel') }}</template>
+        <UButton v-if="!menuStore.isMobile" color="primary" icon="i-lucide-plus" @click="openCreateDialog()">
+          {{ t('tools.tunnel.addTunnel') }}
         </UButton>
       </template>
     </PageHeader>
@@ -277,7 +277,8 @@
                 :class="row.isEnable ? 'tn-act--stop' : 'tn-act--start'"
                 @click="toggleEnable(row, !row.isEnable)"
               />
-              <ActionMenu :items="rowActions(row, true)" @select="(key) => onRowAction(key, row)" />
+              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('tools.tunnel.edit')" :box="44" :size="20" @click="openEditDialog(row)" />
+              <ActionMenu :items="rowActions(row)" @select="(key) => onRowAction(key, row)" />
             </footer>
           </article>
         </div>
@@ -294,6 +295,13 @@
         <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" />
         {{ t('tools.tunnel.footNote') }}
       </p>
+    </div>
+
+    <!-- 手机：右下悬浮新建 -->
+    <div v-if="menuStore.isMobile && !selectedIds.length" class="tn-fab">
+      <button type="button" class="tn-fab__btn" :aria-label="t('tools.tunnel.addTunnel')" @click="openCreateDialog()">
+        <UIcon name="i-lucide-plus" />
+      </button>
     </div>
 
     <Transition name="tn-pop">
@@ -318,7 +326,7 @@
     </Transition>
 
     <TunnelCreate ref="createRef" @refresh="refresh" />
-    <TunnelStatsDialog v-model="statsVisible" :row="statsRow" />
+    <TunnelStatsDialog v-model="statsVisible" :row="statsRow" :remote="statsRow ? remoteText(statsRow) : ''" />
     <FrpcConfigDialog
       v-model="frpcVisible"
       :row="frpcRow"
@@ -540,8 +548,7 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'operation', title: t('tools.tunnel.operation'), width: 212, align: 'right' },
 ])
 
-const rowActions = (row: TunnelInfo, mobile = false): ActionMenuItem[] => [
-  { key: 'edit', label: t('tools.tunnel.edit'), icon: 'HOutline:PencilSquareIcon', hidden: !mobile },
+const rowActions = (row: TunnelInfo): ActionMenuItem[] => [
   { key: 'copy', label: t('tools.tunnel.copyEntry'), icon: 'HOutline:ClipboardDocumentIcon', hidden: isP2p(row) || remoteText(row) === '—' },
   { key: 'resetCredential', label: t('tools.tunnel.resetCredential'), icon: 'HOutline:ArrowPathRoundedSquareIcon' },
   { key: 'delete', label: t('tools.tunnel.delete'), icon: 'HOutline:TrashIcon', danger: true },
@@ -1117,8 +1124,9 @@ onBeforeUnmount(stopPoll)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  width: 44px;
   height: 44px;
+  margin: 0 -8px 0 -4px;
   flex: none;
   input { width: 18px; height: 18px; accent-color: var(--m-p); }
 }
@@ -1174,6 +1182,37 @@ onBeforeUnmount(stopPoll)
   animation: tn-pulse 1.4s ease-in-out infinite;
 }
 @keyframes tn-pulse { 50% { opacity: 0.55; } }
+
+/* 手机悬浮新建 */
+.tn-fab {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+.tn-fab__btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 20px;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  box-shadow: var(--app-shadow-brand);
+  cursor: pointer;
+  :deep(.iconify) { width: 26px; height: 26px; }
+}
+.tn-fab__btn:active { transform: scale(0.97); }
+.tn-card__foot :deep(.action-menu__trigger) {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+}
 
 /* 批量条 */
 .tn-batch {
@@ -1242,7 +1281,7 @@ onBeforeUnmount(stopPoll)
   .tn-hero__ts { display: none; }
   .tn-hero__chip { height: 24px; padding: 0 9px; font-size: 0.6875rem; }
   .tn-seg { width: 100%; }
-  .tn-seg__btn { flex: 1; min-height: 38px; }
+  .tn-seg__btn { flex: 1; min-height: 44px; }
   .tn-batch { bottom: calc(78px + env(safe-area-inset-bottom)); padding-left: 14px; }
   .tn-batch__btn { padding: 0 10px; }
   .tn-batch__btn.is-icon { width: 40px; padding: 0; }

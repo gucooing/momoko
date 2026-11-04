@@ -26,6 +26,11 @@ export const useNodeTime = () => {
     const d = toDayjs(value)
     return d ? d.locale(dayjsLocale.value).fromNow() : '—'
   }
+  /** 距今时长（不带「前」）：「3 天」「a few seconds」 */
+  const since = (value: TimeInput) => {
+    const d = toDayjs(value)
+    return d ? d.locale(dayjsLocale.value).fromNow(true) : '—'
+  }
   const date = (value: TimeInput) => toDayjs(value)?.format('YYYY-MM-DD') ?? '—'
   const dateTime = (value: TimeInput) => toDayjs(value)?.format('YYYY-MM-DD HH:mm') ?? '—'
   const shortTime = (value: TimeInput) => toDayjs(value)?.format('MM-DD HH:mm') ?? '—'
@@ -36,5 +41,5 @@ export const useNodeTime = () => {
     return Math.ceil(d.diff(dayjs(), 'hour') / 24)
   }
 
-  return { ago, date, dateTime, shortTime, daysUntil }
+  return { ago, since, date, dateTime, shortTime, daysUntil }
 }

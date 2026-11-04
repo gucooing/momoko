@@ -35,6 +35,15 @@ import (
 // shareServeTTL 是公开分享 302 直链的有效期。
 const shareServeTTL = 5 * time.Minute
 
+// 目录递归统计的上限：单个条目最多遍历 statMaxEntries 个条目、耗时不超过 statTimeout，超出即记为「未能统计」。
+const (
+	statMaxEntries = 20000
+	statTimeout    = 5 * time.Second
+)
+
+// errStatLimit 表示目录过大（遍历条目超过上限）。
+var errStatLimit = errors.New("目录过大")
+
 // ErrItemNotFound 表示待分享条目在其来源内不存在（biz 据此回 ErrFileNotExist）。
 var ErrItemNotFound = errors.New("文件不存在")
 
@@ -76,19 +85,119 @@ func PrepareItems(ctx context.Context, resolve StoreResolver, inputs []*v1.Share
 		if entry.UpdateTime != nil {
 			mod = entry.UpdateTime.AsTime()
 		}
-		items = append(items, sharetype.Item{
+		it := sharetype.Item{
 			SourceID:   in.SourceId,
 			Path:       in.Path,
 			Name:       nm,
 			IsDir:      entry.IsDir,
 			Size:       entry.Size,
 			UpdateTime: mod,
-		})
+		}
+		countItem(ctx, store, &it)
+		items = append(items, it)
 		if i == 0 && name == "" {
 			name = nm
 		}
 	}
 	return items, name, nil
+}
+
+// countItem 统计条目的文件数 / 总大小 / 直接子项数并标记已统计：文件直接取自身；
+// 目录递归遍历（受 statMaxEntries / statTimeout 限制，超限或出错记为 -1，展示端回退为「文件夹」）。
+func countItem(ctx context.Context, store file.Store, it *sharetype.Item) {
+	it.Counted = true
+	if !it.IsDir {
+		it.FileCount = 1
+		it.Children = 0
+		return
+	}
+	cctx, cancel := context.WithTimeout(ctx, statTimeout)
+	defer cancel()
+	top, err := store.List(cctx, it.Path, file.SortByName, false)
+	if err != nil {
+		it.FileCount, it.Children = -1, -1
+		return
+	}
+	it.Children = int64(len(top))
+	visited := len(top)
+	var files int64
+	var size uint64
+	var walk func(entries []*v1.FileEntryInfo) error
+	walk = func(entries []*v1.FileEntryInfo) error {
+		for _, e := range entries {
+			if err := cctx.Err(); err != nil {
+				return err
+			}
+			if !e.IsDir {
+				files++
+				size += e.Size
+				continue
+			}
+			sub, err := store.List(cctx, e.Path, file.SortByName, false)
+			if err != nil {
+				return err
+			}
+			visited += len(sub)
+			if visited > statMaxEntries {
+				return errStatLimit
+			}
+			if err := walk(sub); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if err := walk(top); err != nil {
+		it.FileCount = -1
+		return
+	}
+	it.FileCount = files
+	it.Size = size
+}
+
+// EnsureCounted 为尚未统计过的条目（旧记录）补做统计，返回补全后的条目与是否有变化（变化时调用方应回写）。
+func EnsureCounted(ctx context.Context, resolve StoreResolver, s *gen.FileShare) ([]sharetype.Item, bool) {
+	changed := false
+	items := make([]sharetype.Item, len(s.Items))
+	copy(items, s.Items)
+	for i := range items {
+		if items[i].Counted {
+			continue
+		}
+		store, _, err := resolve(ctx, items[i].SourceID)
+		if err != nil {
+			continue
+		}
+		countItem(ctx, store, &items[i])
+		changed = true
+	}
+	return items, changed
+}
+
+// DirectDownload 报告分享内全部条目的来源都开启了 302 直链且支持预签名（单文件下载由存储端直接下发）。
+func DirectDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare) bool {
+	if len(s.Items) == 0 {
+		return false
+	}
+	seen := make(map[string]bool, len(s.Items))
+	for _, it := range s.Items {
+		if v, ok := seen[it.SourceID]; ok {
+			if !v {
+				return false
+			}
+			continue
+		}
+		store, src, err := resolve(ctx, it.SourceID)
+		ok := err == nil && src != nil && src.Redirect302
+		if ok {
+			_, ok = store.(file.Presigner)
+		}
+		seen[it.SourceID] = ok
+		if !ok {
+			return false
+		}
+	}
+	return true
 }
 
 // Available 报告分享当前是否可用（启用、未过期、未超下载次数），不校验提取码。
@@ -187,6 +296,10 @@ func ListDir(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPa
 				Size:    it.Size,
 				RelPath: it.Name, // 顶层条目的虚拟路径即其展示名
 			}
+			if it.IsDir && it.Counted && it.Children >= 0 {
+				n := it.Children
+				e.ChildCount = &n
+			}
 			if !it.UpdateTime.IsZero() {
 				e.UpdateTime = timestamppb.New(it.UpdateTime)
 			}
@@ -209,6 +322,7 @@ func ListDir(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPa
 	if err != nil {
 		return nil, "", errors.New("读取目录失败")
 	}
+	file.FillChildCounts(ctx, store, entries)
 	items := make([]*v1.ShareEntry, 0, len(entries))
 	for _, e := range entries {
 		items = append(items, &v1.ShareEntry{
@@ -217,7 +331,8 @@ func ListDir(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPa
 			Size:       e.Size,
 			UpdateTime: e.UpdateTime,
 			// 回传虚拟路径（相对虚拟顶层目录），不暴露来源真实路径。
-			RelPath: joinSlash(sub, e.Name),
+			RelPath:    joinSlash(sub, e.Name),
+			ChildCount: e.ChildCount,
 		})
 	}
 	sortShareEntries(items)
@@ -228,7 +343,8 @@ func ListDir(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPa
 // 多个路径（访问者多选）时把这些条目一起实时打包为 zip；
 // 单个路径指向目录时打包该目录；指向文件时直传（可 Seek 来源支持 Range）。inline=true 以内联方式返回（用于预览）。
 // 若目标条目所属来源开启 redirect_302 且支持预签名（OSS），单文件改为 302 跳转到（公开域名）预签名直链，momoko 不在数据路径。
-func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPaths []string, inline bool, w http.ResponseWriter, r *http.Request) error {
+// redirected 报告本次是否以 302 直链下发（用于直链占比统计）。
+func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare, subPaths []string, inline bool, w http.ResponseWriter, r *http.Request) (redirected bool, err error) {
 	subs := make([]string, 0, len(subPaths))
 	seen := make(map[string]bool, len(subPaths))
 	for _, p := range subPaths {
@@ -238,7 +354,7 @@ func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare,
 		}
 	}
 	if len(subs) > 1 {
-		return streamZipSelection(ctx, resolve, s, subs, w)
+		return false, streamZipSelection(ctx, resolve, s, subs, w)
 	}
 	sub := ""
 	if len(subs) == 1 {
@@ -246,37 +362,37 @@ func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare,
 	}
 	// 根：打包全部顶层条目（可能来自不同来源）为 zip。
 	if sub == "" {
-		return streamZipItems(ctx, resolve, s.Items, s.Name, w)
+		return false, streamZipItems(ctx, resolve, s.Items, s.Name, w)
 	}
 	it, real, ok := resolveItem(s, sub)
 	if !ok {
-		return errors.New("文件不存在")
+		return false, errors.New("文件不存在")
 	}
 	store, src, err := resolve(ctx, it.SourceID)
 	if err != nil {
-		return errors.New("文件不存在")
+		return false, errors.New("文件不存在")
 	}
 	entry, err := store.Stat(ctx, real)
 	if err != nil {
-		return errors.New("文件不存在")
+		return false, errors.New("文件不存在")
 	}
 	// 子路径指向目录：实时打包为 zip。
 	if entry.IsDir {
-		return streamZipRoot(ctx, store, real, entry.Name, w)
+		return false, streamZipRoot(ctx, store, real, entry.Name, w)
 	}
 	// 该条目来源开启 302 且支持预签名（OSS）→ 跳转到公开域名预签名直链，外部访客直连来源、momoko 不代理。
 	if src != nil && src.Redirect302 {
 		if presigner, ok := store.(file.Presigner); ok {
 			if u, err := presigner.Presign(ctx, real, inline, shareServeTTL); err == nil {
 				http.Redirect(w, r, u, http.StatusFound)
-				return nil
+				return true, nil
 			}
 		}
 	}
 
 	rc, entry, err := store.Open(ctx, real)
 	if err != nil {
-		return errors.New("文件不存在")
+		return false, errors.New("文件不存在")
 	}
 	defer rc.Close()
 
@@ -294,7 +410,7 @@ func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare,
 	if seeker, ok := rc.(io.ReadSeeker); ok {
 		w.Header().Set("Accept-Ranges", "bytes")
 		http.ServeContent(w, r, entry.Name, mod, seeker)
-		return nil
+		return false, nil
 	}
 	// 不可 Seek 的来源（FTP/WebDAV）：整流返回。
 	ctype := mime.TypeByExtension(filepath.Ext(entry.Name))
@@ -306,7 +422,7 @@ func ServeDownload(ctx context.Context, resolve StoreResolver, s *gen.FileShare,
 		w.Header().Set("Content-Length", strconv.FormatUint(entry.Size, 10))
 	}
 	_, err = io.Copy(w, rc)
-	return err
+	return false, err
 }
 
 // zipHeader 写 zip 响应头。
@@ -453,11 +569,12 @@ func toItemInfos(items []sharetype.Item) []*v1.ShareItem {
 	out := make([]*v1.ShareItem, 0, len(items))
 	for _, it := range items {
 		out = append(out, &v1.ShareItem{
-			SourceId: it.SourceID,
-			Path:     it.Path,
-			Name:     it.Name,
-			IsDir:    it.IsDir,
-			Size:     it.Size,
+			SourceId:  it.SourceID,
+			Path:      it.Path,
+			Name:      it.Name,
+			IsDir:     it.IsDir,
+			Size:      it.Size,
+			FileCount: it.FileCount,
 		})
 	}
 	return out
@@ -486,14 +603,21 @@ func ToMeta(s *gen.FileShare, owner *gen.User, now time.Time) *v1.GetShareMetaRe
 	if !s.CreateTime.IsZero() {
 		meta.CreateTime = timestamppb.New(s.CreateTime)
 	}
-	// 顶层统计直接用创建时缓存的条目属性，不访问来源。
+	// 统计直接用创建时缓存的条目属性（目录为递归统计），不访问来源；
+	// 任一目录未能统计时文件数记为 -1（展示端回退为条目数）。
+	meta.ItemCount = int64(len(s.Items))
 	for _, it := range s.Items {
 		if it.IsDir {
 			meta.DirCount++
-			continue
 		}
-		meta.FileCount++
 		meta.TotalSize += it.Size
+		if meta.FileCount >= 0 {
+			if it.FileCount < 0 {
+				meta.FileCount = -1
+			} else {
+				meta.FileCount += it.FileCount
+			}
+		}
 	}
 	return meta
 }

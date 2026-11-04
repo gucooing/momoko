@@ -23,14 +23,17 @@ type UserRepo interface {
 	FindByID(ctx context.Context, id string) (*gen.User, error)
 	// ListUsers 分页列出；counts 按关键字、角色统计（不受状态筛选影响）。
 	ListUsers(ctx context.Context, page, pageSize int64, filter UserListFilter) ([]*gen.User, int64, *UserListCounts, error)
-	CreateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error)
-	UpdateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error)
+	// CreateUser / UpdateUser 的 roleIDs 为空时分配内置「无权限」角色。
+	CreateUser(ctx context.Context, userInfo *gen.User, roleIDs []string) (*gen.User, error)
+	UpdateUser(ctx context.Context, userInfo *gen.User, roleIDs []string) (*gen.User, error)
 	DeleteUser(ctx context.Context, userIds []string) error
 	UpdatePassword(ctx context.Context, userId string, passwordHash string) (*gen.User, error)
 	UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*gen.User, error)
 	TouchLastLogin(ctx context.Context, userId, ip, method string) error
-	// BatchUpdateUsers 批量修改状态 / 角色（nil 表示不修改），返回实际修改的行数。
-	BatchUpdateUsers(ctx context.Context, userIds []string, status *user.Status, roleId *string) (int64, error)
+	// SaveAppearance 保存个人外观偏好（JSON，见 user_appearance.go）。
+	SaveAppearance(ctx context.Context, userId string, appearance string) error
+	// BatchUpdateUsers 批量修改状态 / 角色集合（nil 表示不修改；角色集合为替换），返回实际修改的行数。
+	BatchUpdateUsers(ctx context.Context, userIds []string, status *user.Status, roleIDs *[]string) (int64, error)
 }
 
 // BuiltinAdminUserID 初始化时创建的内置超级管理员账号 id（见 data/initialize.go）。
@@ -160,7 +163,7 @@ func (u *UserUsecase) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.
 		Bio:      req.Bio,
 		Name:     req.Name,
 		Tags:     req.Tags,
-	}, req.RoleId)
+	}, req.RoleIds)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -173,14 +176,11 @@ func (u *UserUsecase) EditUser(ctx context.Context, req *v1.EditUserRequest) (*v
 		if err != nil {
 			return nil, ErrSystem(err)
 		}
-		currentRole := ""
-		if current.Edges.Role != nil {
-			currentRole = current.Edges.Role.ID
-		}
-		if req.Status != v1.UserStatus_Active || (req.RoleId != "" && req.RoleId != currentRole) {
+		currentRoles := roleIDsOf(current)
+		if req.Status != v1.UserStatus_Active || (len(req.RoleIds) > 0 && !sameRoleSet(req.RoleIds, currentRoles)) {
 			return nil, ErrBuiltinUserProtected
 		}
-		req.RoleId = currentRole
+		req.RoleIds = currentRoles
 	}
 	userInfo, err := u.user.UpdateUser(ctx, &gen.User{
 		ID:     req.UserId,
@@ -190,7 +190,7 @@ func (u *UserUsecase) EditUser(ctx context.Context, req *v1.EditUserRequest) (*v
 		Bio:    req.Bio,
 		Name:   req.Name,
 		Tags:   req.Tags,
-	}, req.RoleId)
+	}, req.RoleIds)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -241,7 +241,7 @@ func (u *UserUsecase) UpdatePassword(ctx context.Context, userId, oldPassword, n
 
 // BatchUpdateUsers 批量启用 / 停用 / 分配角色；内置超级管理员自动跳过。停用后立即踢下线。
 func (u *UserUsecase) BatchUpdateUsers(ctx context.Context, req *v1.BatchUpdateUserRequest) (int64, int64, error) {
-	if req.Status == nil && (req.RoleId == nil || *req.RoleId == "") {
+	if req.Status == nil && req.Roles == nil {
 		return 0, 0, ErrBatchUpdateEmpty
 	}
 	ids := make([]string, 0, len(req.UserIds))
@@ -271,11 +271,11 @@ func (u *UserUsecase) BatchUpdateUsers(ctx context.Context, req *v1.BatchUpdateU
 	if req.Status != nil {
 		status = new(u.toEntUserStatus(*req.Status))
 	}
-	var roleID *string
-	if req.RoleId != nil && *req.RoleId != "" {
-		roleID = req.RoleId
+	var roleIDs *[]string
+	if req.Roles != nil {
+		roleIDs = &req.Roles.Ids
 	}
-	updated, err := u.user.BatchUpdateUsers(ctx, ids, status, roleID)
+	updated, err := u.user.BatchUpdateUsers(ctx, ids, status, roleIDs)
 	if err != nil {
 		return 0, skipped, ErrSystem(err)
 	}
@@ -323,12 +323,10 @@ func (u *UserUsecase) toUserInfo(user *gen.User) *v1.UserInfo {
 		Tags:       user.Tags,
 		UpdateTime: timestamppb.New(user.UpdateTime),
 		Username:   user.Username,
-		RoleName:   "",
-		RoleId:     "",
+		Roles:      make([]*v1.UserRole, 0, len(user.Edges.Roles)),
 	}
-	if role := user.Edges.Role; role != nil {
-		info.RoleName = role.Name
-		info.RoleId = role.ID
+	for _, r := range user.Edges.Roles {
+		info.Roles = append(info.Roles, &v1.UserRole{RoleId: r.ID, Name: r.Name, IsBuiltin: r.IsBuiltin})
 	}
 	info.Phone = user.Phone
 	if user.LastLoginAt != nil {
@@ -342,6 +340,38 @@ func (u *UserUsecase) toUserInfo(user *gen.User) *v1.UserInfo {
 	}
 
 	return info
+}
+
+// roleIDsOf 返回用户已加载的角色 id。
+func roleIDsOf(u *gen.User) []string {
+	ids := make([]string, 0, len(u.Edges.Roles))
+	for _, r := range u.Edges.Roles {
+		ids = append(ids, r.ID)
+	}
+	return ids
+}
+
+// sameRoleSet 判断两个角色 id 集合是否相同（忽略顺序与重复）。
+func sameRoleSet(a, b []string) bool {
+	set := func(list []string) map[string]struct{} {
+		m := make(map[string]struct{}, len(list))
+		for _, id := range list {
+			if id != "" {
+				m[id] = struct{}{}
+			}
+		}
+		return m
+	}
+	sa, sb := set(a), set(b)
+	if len(sa) != len(sb) {
+		return false
+	}
+	for id := range sa {
+		if _, ok := sb[id]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func (u *UserUsecase) toUserStatus(e user.Status) v1.UserStatus {

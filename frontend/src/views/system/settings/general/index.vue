@@ -360,6 +360,9 @@
                 <span v-else-if="!tp.subject" class="st-flag st-flag--warn">{{ t('system.settings.tplNotSet') }}</span>
               </span>
               <span class="st-tpl__subj">{{ tp.subject ? t('system.settings.tplSubject', { subject: tp.subject }) : t('system.settings.tplNotSetDesc') }}</span>
+              <span v-if="tp.vars.length" class="st-tpl__mvars">
+                <span v-for="v in tp.vars.slice(0, 3)" :key="v" class="st-var m-mono">{{ tokenOf(v) }}</span>
+              </span>
             </span>
             <span class="st-tpl__vars">
               <span v-for="v in tp.vars.slice(0, 3)" :key="v" class="st-var m-mono">{{ tokenOf(v) }}</span>
@@ -454,7 +457,7 @@
 
         <!-- 保存条 -->
         <Transition name="savebar">
-          <div v-if="dirtyCount > 0 || saving || justSaved" class="st-bar" :class="{ 'is-dirty': dirtyCount > 0 }" role="status">
+          <div v-if="canEdit && (dirtyCount > 0 || saving || justSaved)" class="st-bar" :class="{ 'is-dirty': dirtyCount > 0 }" role="status">
             <span class="st-bar__dot" />
             <span class="st-bar__text">
               <template v-if="dirtyCount > 0">
@@ -1853,6 +1856,12 @@ onBeforeUnmount(() => {
   color: var(--m-pOn);
 }
 
+.st-tpl__mvars {
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 /* 弹窗 */
 .st-form {
   display: flex;
@@ -2000,7 +2009,7 @@ onBeforeUnmount(() => {
   }
   .st-seg button {
     flex: 1;
-    min-height: 40px;
+    min-height: 44px;
     padding: 0 10px;
   }
   .st-seg--wrap {
@@ -2035,8 +2044,12 @@ onBeforeUnmount(() => {
   }
   .st-tpl__vars,
   .st-tpl__date,
-  .st-tpl__edit-t {
+  .st-tpl__edit-t,
+  .st-tpl__subj {
     display: none;
+  }
+  .st-tpl__mvars {
+    display: flex;
   }
   .st-tpl__edit {
     width: 40px;

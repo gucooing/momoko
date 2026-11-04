@@ -94,6 +94,11 @@ func Order(v int) predicate.IQCheckPrompt {
 	return predicate.IQCheckPrompt(sql.FieldEQ(FieldOrder, v))
 }
 
+// Grading applies equality check predicate on the "grading" field. It's identical to GradingEQ.
+func Grading(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldEQ(FieldGrading, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.IQCheckPrompt {
 	return predicate.IQCheckPrompt(sql.FieldEQ(FieldCreateTime, v))
@@ -352,6 +357,91 @@ func OrderLT(v int) predicate.IQCheckPrompt {
 // OrderLTE applies the LTE predicate on the "order" field.
 func OrderLTE(v int) predicate.IQCheckPrompt {
 	return predicate.IQCheckPrompt(sql.FieldLTE(FieldOrder, v))
+}
+
+// CategoryEQ applies the EQ predicate on the "category" field.
+func CategoryEQ(v Category) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldEQ(FieldCategory, v))
+}
+
+// CategoryNEQ applies the NEQ predicate on the "category" field.
+func CategoryNEQ(v Category) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldNEQ(FieldCategory, v))
+}
+
+// CategoryIn applies the In predicate on the "category" field.
+func CategoryIn(vs ...Category) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldIn(FieldCategory, vs...))
+}
+
+// CategoryNotIn applies the NotIn predicate on the "category" field.
+func CategoryNotIn(vs ...Category) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldNotIn(FieldCategory, vs...))
+}
+
+// GradingEQ applies the EQ predicate on the "grading" field.
+func GradingEQ(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldEQ(FieldGrading, v))
+}
+
+// GradingNEQ applies the NEQ predicate on the "grading" field.
+func GradingNEQ(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldNEQ(FieldGrading, v))
+}
+
+// GradingIn applies the In predicate on the "grading" field.
+func GradingIn(vs ...string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldIn(FieldGrading, vs...))
+}
+
+// GradingNotIn applies the NotIn predicate on the "grading" field.
+func GradingNotIn(vs ...string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldNotIn(FieldGrading, vs...))
+}
+
+// GradingGT applies the GT predicate on the "grading" field.
+func GradingGT(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldGT(FieldGrading, v))
+}
+
+// GradingGTE applies the GTE predicate on the "grading" field.
+func GradingGTE(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldGTE(FieldGrading, v))
+}
+
+// GradingLT applies the LT predicate on the "grading" field.
+func GradingLT(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldLT(FieldGrading, v))
+}
+
+// GradingLTE applies the LTE predicate on the "grading" field.
+func GradingLTE(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldLTE(FieldGrading, v))
+}
+
+// GradingContains applies the Contains predicate on the "grading" field.
+func GradingContains(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldContains(FieldGrading, v))
+}
+
+// GradingHasPrefix applies the HasPrefix predicate on the "grading" field.
+func GradingHasPrefix(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldHasPrefix(FieldGrading, v))
+}
+
+// GradingHasSuffix applies the HasSuffix predicate on the "grading" field.
+func GradingHasSuffix(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldHasSuffix(FieldGrading, v))
+}
+
+// GradingEqualFold applies the EqualFold predicate on the "grading" field.
+func GradingEqualFold(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldEqualFold(FieldGrading, v))
+}
+
+// GradingContainsFold applies the ContainsFold predicate on the "grading" field.
+func GradingContainsFold(v string) predicate.IQCheckPrompt {
+	return predicate.IQCheckPrompt(sql.FieldContainsFold(FieldGrading, v))
 }
 
 // And groups predicates with the AND operator between them.

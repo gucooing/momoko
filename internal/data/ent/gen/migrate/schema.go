@@ -60,13 +60,39 @@ var (
 			},
 		},
 	}
+	// FileShareDownloadsColumns holds the columns for the "file_share_downloads" table.
+	FileShareDownloadsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "share_id", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "redirect", Type: field.TypeBool, Default: false},
+		{Name: "create_time", Type: field.TypeTime},
+	}
+	// FileShareDownloadsTable holds the schema information for the "file_share_downloads" table.
+	FileShareDownloadsTable = &schema.Table{
+		Name:       "file_share_downloads",
+		Columns:    FileShareDownloadsColumns,
+		PrimaryKey: []*schema.Column{FileShareDownloadsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "filesharedownload_user_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{FileShareDownloadsColumns[2], FileShareDownloadsColumns[4]},
+			},
+			{
+				Name:    "filesharedownload_share_id",
+				Unique:  false,
+				Columns: []*schema.Column{FileShareDownloadsColumns[1]},
+			},
+		},
+	}
 	// FileSourcesColumns holds the columns for the "file_sources" table.
 	FileSourcesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"oss", "ftp", "webdav"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"local", "oss", "ftp", "webdav"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "redirect_302", Type: field.TypeBool, Default: false},
 		{Name: "config", Type: field.TypeString, Size: 2147483647, Default: ""},
@@ -74,6 +100,8 @@ var (
 		{Name: "last_test_latency_ms", Type: field.TypeInt64, Default: 0},
 		{Name: "last_test_message", Type: field.TypeString, Default: ""},
 		{Name: "last_test_time", Type: field.TypeTime, Nullable: true},
+		{Name: "last_test_used_bytes", Type: field.TypeUint64, Default: 0},
+		{Name: "last_test_total_bytes", Type: field.TypeUint64, Default: 0},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// FileSourcesTable holds the schema information for the "file_sources" table.
@@ -84,7 +112,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "file_sources_users_user",
-				Columns:    []*schema.Column{FileSourcesColumns[12]},
+				Columns:    []*schema.Column{FileSourcesColumns[14]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -117,6 +145,7 @@ var (
 		{Name: "cancel", Type: field.TypeBool, Default: false},
 		{Name: "source_id", Type: field.TypeString, Default: ""},
 		{Name: "provider_ref", Type: field.TypeString, Default: ""},
+		{Name: "buffer_local", Type: field.TypeBool, Default: false},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// FileUploadsTable holds the schema information for the "file_uploads" table.
@@ -127,7 +156,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "file_uploads_users_user",
-				Columns:    []*schema.Column{FileUploadsColumns[13]},
+				Columns:    []*schema.Column{FileUploadsColumns[14]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -256,6 +285,8 @@ var (
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "order", Type: field.TypeInt, Default: 0},
+		{Name: "category", Type: field.TypeEnum, Enums: []string{"other", "logic", "math", "coding", "drawing", "writing"}, Default: "other"},
+		{Name: "grading", Type: field.TypeString, Default: ""},
 	}
 	// IqCheckPromptsTable holds the schema information for the "iq_check_prompts" table.
 	IqCheckPromptsTable = &schema.Table{
@@ -363,8 +394,12 @@ var (
 		{Name: "auto_restart", Type: field.TypeBool, Default: false},
 		{Name: "stop_timeout", Type: field.TypeInt32, Default: 0},
 		{Name: "env", Type: field.TypeJSON, Nullable: true},
+		{Name: "secret_env_keys", Type: field.TypeJSON, Nullable: true},
+		{Name: "maintenance", Type: field.TypeBool, Default: false},
+		{Name: "maintenance_time", Type: field.TypeTime, Nullable: true},
+		{Name: "last_stop_time", Type: field.TypeTime, Nullable: true},
 		{Name: "instance_user", Type: field.TypeString},
-		{Name: "instance_type", Type: field.TypeString},
+		{Name: "instance_type", Type: field.TypeString, Nullable: true},
 	}
 	// InstancesTable holds the schema information for the "instances" table.
 	InstancesTable = &schema.Table{
@@ -374,15 +409,15 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "instances_users_user",
-				Columns:    []*schema.Column{InstancesColumns[14]},
+				Columns:    []*schema.Column{InstancesColumns[18]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "instances_instance_types_type",
-				Columns:    []*schema.Column{InstancesColumns[15]},
+				Columns:    []*schema.Column{InstancesColumns[19]},
 				RefColumns: []*schema.Column{InstanceTypesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -419,6 +454,7 @@ var (
 		{Name: "is_system", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "inactive"}, Default: "active"},
 		{Name: "parent_id", Type: field.TypeString, Nullable: true},
+		{Name: "hidden", Type: field.TypeBool, Default: false},
 	}
 	// MenusTable holds the schema information for the "menus" table.
 	MenusTable = &schema.Table{
@@ -534,6 +570,7 @@ var (
 		{Name: "target_address", Type: field.TypeString, Default: "0.0.0.0"},
 		{Name: "target_port", Type: field.TypeInt, Default: 0},
 		{Name: "is_enable", Type: field.TypeBool, Default: false},
+		{Name: "auto_start", Type: field.TypeBool, Default: true},
 		{Name: "remark", Type: field.TypeString, Default: ""},
 		{Name: "total_bytes_in", Type: field.TypeInt64, Default: 0},
 		{Name: "total_bytes_out", Type: field.TypeInt64, Default: 0},
@@ -547,7 +584,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "port_forwards_users_user",
-				Columns:    []*schema.Column{PortForwardsColumns[13]},
+				Columns:    []*schema.Column{PortForwardsColumns[14]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -556,7 +593,7 @@ var (
 			{
 				Name:    "portforward_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{PortForwardsColumns[13]},
+				Columns: []*schema.Column{PortForwardsColumns[14]},
 			},
 			{
 				Name:    "portforward_is_enable",
@@ -641,6 +678,8 @@ var (
 		{Name: "last_test_latency_ms", Type: field.TypeInt, Default: 0},
 		{Name: "last_test_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "last_connect_at", Type: field.TypeTime, Nullable: true},
+		{Name: "key_type", Type: field.TypeString, Nullable: true},
+		{Name: "quick_commands", Type: field.TypeJSON, Nullable: true},
 		{Name: "ssh_host_owner", Type: field.TypeString},
 	}
 	// SSHHostsTable holds the schema information for the "ssh_hosts" table.
@@ -651,7 +690,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "ssh_hosts_users_owner",
-				Columns:    []*schema.Column{SSHHostsColumns[18]},
+				Columns:    []*schema.Column{SSHHostsColumns[20]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -672,6 +711,7 @@ var (
 		{Name: "login_method", Type: field.TypeString, Default: ""},
 		{Name: "last_active_at", Type: field.TypeTime, Nullable: true},
 		{Name: "last_ip", Type: field.TypeString, Default: ""},
+		{Name: "persistent", Type: field.TypeBool, Default: true},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// SessionsTable holds the schema information for the "sessions" table.
@@ -682,7 +722,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sessions_users_user",
-				Columns:    []*schema.Column{SessionsColumns[13]},
+				Columns:    []*schema.Column{SessionsColumns[14]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -691,7 +731,7 @@ var (
 			{
 				Name:    "session_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{SessionsColumns[13]},
+				Columns: []*schema.Column{SessionsColumns[14]},
 			},
 			{
 				Name:    "session_expires_at",
@@ -701,7 +741,7 @@ var (
 			{
 				Name:    "session_device_id_user_id",
 				Unique:  true,
-				Columns: []*schema.Column{SessionsColumns[3], SessionsColumns[13]},
+				Columns: []*schema.Column{SessionsColumns[3], SessionsColumns[14]},
 			},
 		},
 	}
@@ -729,16 +769,24 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "running", "success", "failed", "canceled"}, Default: "pending"},
 		{Name: "resume_policy", Type: field.TypeEnum, Enums: []string{"none", "rerun", "always"}, Default: "none"},
 		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "target", Type: field.TypeString, Default: ""},
+		{Name: "source", Type: field.TypeString, Default: ""},
+		{Name: "trigger_type", Type: field.TypeEnum, Enums: []string{"manual", "schedule", "master", "system"}, Default: "system"},
 		{Name: "user_id", Type: field.TypeString, Default: ""},
+		{Name: "operator", Type: field.TypeString, Default: ""},
 		{Name: "payload", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "state", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "result", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "steps", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "logs", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "progress_total", Type: field.TypeInt64, Default: 0},
 		{Name: "progress_finished", Type: field.TypeInt64, Default: 0},
 		{Name: "message", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "interval_ms", Type: field.TypeInt64, Default: 0},
 		{Name: "timeout_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "canceled_by", Type: field.TypeString, Default: ""},
+		{Name: "start_time", Type: field.TypeTime, Nullable: true},
 		{Name: "end_time", Type: field.TypeTime, Nullable: true},
 	}
 	// TasksTable holds the schema information for the "tasks" table.
@@ -760,7 +808,7 @@ var (
 			{
 				Name:    "task_user_id",
 				Unique:  false,
-				Columns: []*schema.Column{TasksColumns[8]},
+				Columns: []*schema.Column{TasksColumns[11]},
 			},
 			{
 				Name:    "task_resume_policy_status",
@@ -787,8 +835,8 @@ var (
 		{Name: "password_updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "last_login_ip", Type: field.TypeString, Nullable: true},
 		{Name: "last_login_method", Type: field.TypeString, Nullable: true},
+		{Name: "appearance", Type: field.TypeString, Nullable: true},
 		{Name: "instance_users", Type: field.TypeString, Nullable: true},
-		{Name: "user_role", Type: field.TypeString, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -798,14 +846,8 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_instances_users",
-				Columns:    []*schema.Column{UsersColumns[16]},
-				RefColumns: []*schema.Column{InstancesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "users_roles_role",
 				Columns:    []*schema.Column{UsersColumns[17]},
-				RefColumns: []*schema.Column{RolesColumns[0]},
+				RefColumns: []*schema.Column{InstancesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -928,10 +970,36 @@ var (
 			},
 		},
 	}
+	// UserRolesColumns holds the columns for the "user_roles" table.
+	UserRolesColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "role_id", Type: field.TypeString},
+	}
+	// UserRolesTable holds the schema information for the "user_roles" table.
+	UserRolesTable = &schema.Table{
+		Name:       "user_roles",
+		Columns:    UserRolesColumns,
+		PrimaryKey: []*schema.Column{UserRolesColumns[0], UserRolesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_roles_user_id",
+				Columns:    []*schema.Column{UserRolesColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_roles_role_id",
+				Columns:    []*schema.Column{UserRolesColumns[1]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		EmailTemplatesTable,
 		FileSharesTable,
+		FileShareDownloadsTable,
 		FileSourcesTable,
 		FileUploadsTable,
 		FileUploadChunksTable,
@@ -959,6 +1027,7 @@ var (
 		UserMessagesTable,
 		RoleMenusTable,
 		SSHHostSharesTable,
+		UserRolesTable,
 	}
 )
 
@@ -994,10 +1063,11 @@ func init() {
 		Table: "configs",
 	}
 	UsersTable.ForeignKeys[0].RefTable = InstancesTable
-	UsersTable.ForeignKeys[1].RefTable = RolesTable
 	UserAPIKeysTable.ForeignKeys[0].RefTable = UsersTable
 	RoleMenusTable.ForeignKeys[0].RefTable = RolesTable
 	RoleMenusTable.ForeignKeys[1].RefTable = MenusTable
 	SSHHostSharesTable.ForeignKeys[0].RefTable = SSHHostsTable
 	SSHHostSharesTable.ForeignKeys[1].RefTable = UsersTable
+	UserRolesTable.ForeignKeys[0].RefTable = UsersTable
+	UserRolesTable.ForeignKeys[1].RefTable = RolesTable
 }

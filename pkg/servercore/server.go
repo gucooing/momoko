@@ -64,6 +64,17 @@ type ServerConfig struct {
 	StopTimeout        time.Duration // 优雅停止的等待时间，超时后强制结束；<=0 使用默认值。
 	LogLimit           int
 	SubscriberBuffer   int
+	// OnExit 每次子进程退出后异步回调（含随后被自动重启的那次退出）。
+	OnExit func(ExitInfo)
+}
+
+// ExitInfo 描述一次子进程退出。
+type ExitInfo struct {
+	Time      time.Time
+	Code      int    // 退出码；无法获取时为 -1
+	Manual    bool   // 由 Stop/ForceStop/Restart 主动停止
+	Restarted bool   // 已按配置自动重新拉起
+	Err       string // 自动重启失败的原因
 }
 
 // Server 表示一个只管理单个子进程的服务端实例。
@@ -479,9 +490,16 @@ func (s *Server) waitProcess(runID uint64, waitDone chan struct{}) {
 		waitFn := s.waitFn
 		s.mu.RUnlock()
 
+		var waitErr error
 		if waitFn != nil {
-			_ = waitFn()
+			waitErr = waitFn()
 		}
+
+		s.mu.RLock()
+		stale := s.runID != runID
+		manual := s.manualStop
+		onExit := s.cfg.OnExit
+		s.mu.RUnlock()
 
 		result, restarted, closeFn, restartErr := s.handleProcessExit(runID)
 		if closeFn != nil {
@@ -490,12 +508,31 @@ func (s *Server) waitProcess(runID uint64, waitDone chan struct{}) {
 		if restartErr != nil {
 			s.publish(LogEntry{Time: time.Now(), Source: LogSourceStderr, Text: restartErr.Error()})
 		}
+		if onExit != nil && !stale {
+			info := ExitInfo{Time: time.Now(), Code: exitCode(waitErr), Manual: manual, Restarted: restarted}
+			if restartErr != nil {
+				info.Err = restartErr.Error()
+			}
+			go onExit(info)
+		}
 		if !restarted {
 			close(waitDone)
 			return
 		}
 		s.startReaders(result)
 	}
+}
+
+// exitCode 从 Wait 的错误中取出退出码；正常退出为 0，无法判断时为 -1。
+func exitCode(err error) int {
+	if err == nil {
+		return 0
+	}
+	var coder interface{ ExitCode() int }
+	if errors.As(err, &coder) {
+		return coder.ExitCode()
+	}
+	return -1
 }
 
 // handleProcessExit 在子进程退出后更新状态，并在需要时准备下一次启动结果。

@@ -56,10 +56,11 @@ func (i *InstanceService) UpdateInstanceType(ctx context.Context, req *v1.Update
 }
 
 func (i *InstanceService) DelInstanceType(ctx context.Context, req *v1.DelInstanceTypeRequest) (*v1.DelInstanceTypeResponse, error) {
-	if err := i.uc.DeleteType(ctx, req.Id); err != nil {
+	n, err := i.uc.DeleteType(ctx, req.Id)
+	if err != nil {
 		return nil, err
 	}
-	return &v1.DelInstanceTypeResponse{}, nil
+	return &v1.DelInstanceTypeResponse{UncategorizedApps: n}, nil
 }
 
 func (i *InstanceService) GetInstances(ctx context.Context, req *v1.GetInstancesRequest) (*v1.GetInstancesResponse, error) {
@@ -67,11 +68,31 @@ func (i *InstanceService) GetInstances(ctx context.Context, req *v1.GetInstances
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	infos, total, err := i.uc.GetInstances(ctx, req, authCtx.UserID)
+	return i.uc.GetInstances(ctx, req, authCtx.UserID)
+}
+
+func (i *InstanceService) GetInstanceTags(ctx context.Context, req *v1.GetInstanceTagsRequest) (*v1.GetInstanceTagsResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	tags, err := i.uc.GetInstanceTags(ctx, authCtx.UserID)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.GetInstancesResponse{Infos: infos, Total: total}, nil
+	return &v1.GetInstanceTagsResponse{Tags: tags}, nil
+}
+
+func (i *InstanceService) GetInstanceEvents(ctx context.Context, req *v1.GetInstanceEventsRequest) (*v1.GetInstanceEventsResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	events, err := i.uc.GetInstanceEvents(ctx, authCtx.UserID, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetInstanceEventsResponse{Events: events}, nil
 }
 
 func (i *InstanceService) CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest) (*v1.CreateInstanceResponse, error) {

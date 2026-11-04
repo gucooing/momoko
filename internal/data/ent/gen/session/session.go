@@ -40,6 +40,8 @@ const (
 	FieldLastActiveAt = "last_active_at"
 	// FieldLastIP holds the string denoting the last_ip field in the database.
 	FieldLastIP = "last_ip"
+	// FieldPersistent holds the string denoting the persistent field in the database.
+	FieldPersistent = "persistent"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the session in the database.
@@ -69,6 +71,7 @@ var Columns = []string{
 	FieldLoginMethod,
 	FieldLastActiveAt,
 	FieldLastIP,
+	FieldPersistent,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -104,6 +107,8 @@ var (
 	DefaultLoginMethod string
 	// DefaultLastIP holds the default value on creation for the "last_ip" field.
 	DefaultLastIP string
+	// DefaultPersistent holds the default value on creation for the "persistent" field.
+	DefaultPersistent bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -179,6 +184,11 @@ func ByLastActiveAt(opts ...sql.OrderTermOption) OrderOption {
 // ByLastIP orders the results by the last_ip field.
 func ByLastIP(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastIP, opts...).ToFunc()
+}
+
+// ByPersistent orders the results by the persistent field.
+func ByPersistent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPersistent, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

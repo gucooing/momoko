@@ -1,21 +1,27 @@
-<!-- 文件管理（第二期改版）：页头(标题 + 当前目录汇总 + 新建/上传) + 页面子导航插槽 + 来源胶囊(带磁盘用量) +
-     路径条(返回/前进/上级 · 面包屑 · 复制路径/刷新) + 搜索/排序/视图 + 双栏(左目录树卡 + 右列表/网格卡) +
-     剪贴板条 + 底部悬浮深色批量条。手机：单栏列表，行「⋯」打开底部操作面板，右下角悬浮上传按钮。
+<!-- 文件管理：页头(标题 + 当前目录汇总 + 新建/上传) + 页面子导航插槽 + 来源胶囊(带容量) +
+     路径条(返回/前进/上级 · 面包屑 · 复制路径/刷新) + 搜索/排序/视图 +
+     三栏(左：可收起的目录树 + 上传队列 · 中：列表/网格 · 右：文件预览) + 剪贴板条 + 底部悬浮深色批量条。
+     文件编辑为弹窗（FileEditor）。手机：单栏列表 + 上传进度卡，行「⋯」打开底部操作面板，右下角悬浮上传按钮。
      逻辑全部复用 fileClient（scope 无关，系统级/实例级同构）。 -->
 <template>
   <div class="fb" :class="{ 'is-mobile': isMobile }">
     <div class="fb__inner">
-      <!-- 页头 -->
-      <header class="fb-head">
-        <div class="fb-head__text">
-          <h1 class="fb-head__title">{{ t('instance.fileManagerTitle') }}</h1>
-          <p class="fb-head__desc m-num">
+      <!-- 页头（手机端由 PageHeader 自带深浅色切换；实例文件页内嵌时不带返回/切换） -->
+      <PageHeader
+        class="fb-head"
+        :class="{ 'fb-head--embedded': !isSystemScope }"
+        :title="t('instance.fileManagerTitle')"
+        :back="isSystemScope ? 'auto' : false"
+        :theme-toggle="isSystemScope"
+      >
+        <template #description>
+          <span class="m-num fb-head__desc">
             <span class="m-mono fb-head__path">{{ displayPath }}</span>
             <span> · {{ t('fileManager.summaryShort', { folders: folderCount, files: fileCount }) }}</span>
             <span v-if="dirSize"> · {{ formatFileSize(dirSize) }}</span>
-          </p>
-        </div>
-        <div class="fb-head__actions">
+          </span>
+        </template>
+        <template #actions>
           <template v-if="!isMobile">
             <UButton color="neutral" variant="soft" icon="i-lucide-file-plus" @click="openCreateFile">
               {{ t('fileManager.createFile') }}
@@ -23,7 +29,7 @@
             <UButton color="neutral" variant="outline" icon="i-lucide-folder-plus" @click="openCreateFolder">
               {{ t('fileManager.createFolder') }}
             </UButton>
-            <UButton color="primary" icon="i-lucide-upload" @click="uploadOpen = true">
+            <UButton color="primary" icon="i-lucide-upload" @click="pickUpload">
               {{ t('fileManager.upload') }}
             </UButton>
           </template>
@@ -44,13 +50,13 @@
               </div>
             </template>
           </AppDropdown>
-        </div>
-      </header>
+        </template>
+      </PageHeader>
 
       <slot name="nav" />
 
       <!-- 来源切换 + 磁盘用量 -->
-      <div v-if="isSystemScope || diskTotal" class="fb-sources">
+      <div v-if="isSystemScope || usage" class="fb-sources">
         <div v-if="isSystemScope" class="fb-sources__chips" role="tablist" :aria-label="t('fileSource.switchSource')">
           <button
             v-for="(chip, i) in sourceChips"
@@ -68,17 +74,15 @@
             <span class="fb-chip__name">{{ chip.name }}</span>
             <span class="fb-chip__type">{{ chip.type }}</span>
           </button>
-          <RouterLink v-if="canManageSources && !isMobile" to="/file/source" class="fb-chip fb-chip--dashed">
+          <RouterLink v-if="canManageSources && !isMobile" :to="pageTabTo('file', 'source')" class="fb-chip fb-chip--dashed">
             <UIcon name="i-lucide-database" class="fb-chip__ico" />
             {{ t('fileManager.manageSources') }}
           </RouterLink>
         </div>
         <span class="fb-sources__spacer" />
-        <div v-if="diskTotal" class="fb-disk" :title="t('fileManager.diskFree', { free: formatFileSize(diskFree) })">
-          <span class="fb-disk__text m-num" :class="{ 'is-warn': diskPct >= 90 }">
-            {{ t('fileManager.diskUsed', { used: formatFileSize(diskTotal - diskFree), total: formatFileSize(diskTotal) }) }}
-          </span>
-          <span class="fb-disk__bar"><span :style="{ width: `${diskPct}%` }" :class="{ 'is-warn': diskPct >= 90 }" /></span>
+        <div v-if="usage" class="fb-disk" :title="usage.title">
+          <span class="fb-disk__text m-num" :class="{ 'is-warn': usage.warn }">{{ usage.text }}</span>
+          <span class="fb-disk__bar"><span :style="{ width: `${usage.pct}%` }" :class="{ 'is-warn': usage.warn }" /></span>
         </div>
       </div>
 
@@ -204,19 +208,60 @@
         </button>
       </div>
 
-      <!-- 主体：目录树卡 + 内容 -->
+      <!-- 手机：上传进度卡 -->
+      <FileUploadQueue v-if="isMobile && upload.current.value" :upload="upload" compact />
+
+      <!-- 主体：左（目录树 + 上传队列，可收起）+ 中（列表/网格）+ 右（预览） -->
       <div class="fb-body">
-        <aside v-if="!isMobile" class="fb-aside" :aria-label="t('fileManager.treeTitle')">
-          <div class="fb-aside__label">{{ t('fileManager.treeTitle') }}</div>
-          <FileTree
-            ref="treeRef"
-            :client="client"
-            root-path=""
-            :active-path="currentPath"
-            selectable="all"
-            @select="onTreeSelect"
-          />
-        </aside>
+        <div v-if="!isMobile" class="fb-side" :class="{ 'is-closed': !treeOpen }">
+          <!-- 收起：窄栏只留展开按钮 + 上传进度 -->
+          <section v-if="!treeOpen" class="fb-rail" :aria-label="t('fileManager.treeCollapsed')">
+            <AppIconButton
+              icon="HOutline:ChevronDoubleRightIcon"
+              :label="t('fileManager.expandTree')"
+              :box="44"
+              :size="18"
+              @click="treeOpen = true"
+            />
+            <template v-if="upload.items.value.length">
+              <span class="fb-rail__sep" />
+              <button
+                type="button"
+                class="fb-rail__up"
+                :aria-label="t('fileManager.uploadQueueExpand', { pct: upload.overallProgress.value })"
+                :title="t('fileManager.uploadQueueExpand', { pct: upload.overallProgress.value })"
+                @click="treeOpen = true"
+              >
+                <UIcon name="i-lucide-upload" />
+                <span class="m-num">{{ upload.overallProgress.value }}%</span>
+              </button>
+            </template>
+          </section>
+          <template v-else>
+            <aside class="fb-aside" :aria-label="t('fileManager.treeTitle')">
+              <div class="fb-aside__head">
+                <span class="fb-aside__label">{{ t('fileManager.treeTitle') }}</span>
+                <AppIconButton
+                  icon="HOutline:ChevronDoubleLeftIcon"
+                  :label="t('fileManager.collapseTree')"
+                  :box="36"
+                  :size="16"
+                  @click="treeOpen = false"
+                />
+              </div>
+              <FileTree
+                ref="treeRef"
+                :client="client"
+                root-path=""
+                :active-path="currentPath"
+                selectable="all"
+                dirs-only
+                @select="onTreeSelect"
+              />
+            </aside>
+            <FileUploadQueue v-if="upload.items.value.length" :upload="upload" />
+          </template>
+        </div>
 
         <div
           class="fb-main"
@@ -236,9 +281,10 @@
             <span class="fb-error__sticker m-sticker m-sticker--bad"><UIcon name="i-lucide-unplug" /></span>
             <h2 class="fb-error__title">{{ t('fileManager.loadErrorTitle', { name: currentChip.name }) }}</h2>
             <p class="fb-error__msg m-mono">{{ loadError }}</p>
+            <p v-if="currentSourceId" class="fb-error__hint">{{ t('fileManager.loadErrorHint') }}</p>
             <div class="fb-error__actions">
               <UButton color="primary" icon="i-lucide-refresh-cw" @click="refresh">{{ t('fileManager.retry') }}</UButton>
-              <UButton v-if="canManageSources && currentSourceId" color="neutral" variant="outline" to="/file/source">
+              <UButton v-if="canManageSources && currentSourceId" color="neutral" variant="outline" :to="pageTabTo('file', 'source')">
                 {{ t('fileManager.checkSource') }}
               </UButton>
             </div>
@@ -252,13 +298,17 @@
               :description="keywords ? t('system.common.noData') : t('fileManager.emptyHint')"
             >
               <template v-if="!keywords" #action>
-                <UButton color="primary" icon="i-lucide-upload" @click="uploadOpen = true">{{ t('fileManager.upload') }}</UButton>
+                <UButton color="primary" icon="i-lucide-upload" @click="pickUpload">{{ t('fileManager.upload') }}</UButton>
               </template>
             </EmptyState>
           </div>
 
-          <!-- 手机：行列表 -->
-          <div v-else-if="isMobile" class="fb-card fb-mlist">
+          <!-- 手机：计数行 + 行列表 -->
+          <div v-else-if="isMobile" class="fb-mhead m-num">
+            <span>{{ mobileCount }}</span>
+            <span>{{ sortText }}</span>
+          </div>
+          <div v-if="isMobile && items.length" class="fb-card fb-mlist">
             <div
               v-for="(row, i) in items"
               :key="row.path"
@@ -279,7 +329,7 @@
               </span>
               <span class="fb-mrow__text">
                 <span class="fb-mrow__name">{{ row.name }}</span>
-                <span class="fb-mrow__meta m-num">{{ row.isDir ? typeLabel(row) : formatFileSize(row.size) }} · {{ shortTime(row.updateTime) }}</span>
+                <span class="fb-mrow__meta m-num">{{ sizeText(row) }} · {{ shortTime(row.updateTime) }}</span>
               </span>
               <button type="button" class="fb-ico fb-ico--lg" :aria-label="t('fileManager.moreFor', { name: row.name })" @click.stop="openSheet(row)">
                 <UIcon name="i-lucide-ellipsis" />
@@ -288,7 +338,7 @@
           </div>
 
           <!-- 列表视图 -->
-          <div v-else-if="viewMode === 'list'" class="fb-card fb-table">
+          <div v-else-if="items.length && !isMobile && viewMode === 'list'" class="fb-card fb-table">
             <div class="fb-thead">
               <div class="fb-col fb-col--check">
                 <input
@@ -308,7 +358,14 @@
                   class="fb-sort__ico"
                 />
               </button>
-              <div class="fb-col fb-col--size">{{ t('fileManager.size') }}</div>
+              <button type="button" class="fb-col fb-col--size fb-sort" @click="sortBy('size')">
+                {{ t('fileManager.size') }}
+                <UIcon
+                  v-if="sortField === FileSortField.FILE_SORT_FIELD_SIZE"
+                  :name="isDesc ? 'i-lucide-chevron-down' : 'i-lucide-chevron-up'"
+                  class="fb-sort__ico"
+                />
+              </button>
               <button type="button" class="fb-col fb-col--time fb-sort" @click="sortBy('time')">
                 {{ t('fileManager.updatedAt') }}
                 <UIcon
@@ -317,7 +374,6 @@
                   class="fb-sort__ico"
                 />
               </button>
-              <div class="fb-col fb-col--perm">{{ t('fileManager.permission') }}</div>
               <div class="fb-col fb-col--ops">{{ t('fileManager.operation') }}</div>
             </div>
 
@@ -325,8 +381,9 @@
               v-for="(row, i) in items"
               :key="row.path"
               class="fb-row"
-              :class="{ 'is-selected': selectedPaths.has(row.path) }"
+              :class="{ 'is-selected': selectedPaths.has(row.path), 'is-preview': preview?.path === row.path }"
               @click="onRowClick(row, $event)"
+              @dblclick="!row.isDir && onRowOpen(row)"
             >
               <div class="fb-col fb-col--check" @click.stop>
                 <input
@@ -343,12 +400,11 @@
                 </span>
                 <span class="fb-row__text">
                   <span class="fb-row__name" :title="row.name">{{ row.name }}</span>
-                  <span class="fb-row__kind">{{ typeLabel(row) }}</span>
+                  <span class="fb-row__kind">{{ kindText(row) }}</span>
                 </span>
               </div>
-              <div class="fb-col fb-col--size m-num" :class="{ 'is-dim': row.isDir }">{{ row.isDir ? '—' : formatFileSize(row.size) }}</div>
-              <div class="fb-col fb-col--time m-num">{{ formatDateTime(row.updateTime) }}</div>
-              <div class="fb-col fb-col--perm m-mono" :title="ownerText(row)">{{ row.permission || '—' }}</div>
+              <div class="fb-col fb-col--size m-num" :class="{ 'is-dim': row.isDir }">{{ sizeText(row) }}</div>
+              <div class="fb-col fb-col--time m-num" :title="formatDateTime(row.updateTime)">{{ shortTime(row.updateTime) }}</div>
               <div class="fb-col fb-col--ops" @click.stop>
                 <AppIconButton
                   v-if="!row.isDir"
@@ -375,13 +431,14 @@
           </div>
 
           <!-- 网格视图 -->
-          <div v-else class="fb-grid">
+          <div v-else-if="items.length && !isMobile" class="fb-grid">
             <article
               v-for="(row, i) in items"
               :key="row.path"
               class="fb-tile"
-              :class="{ 'is-selected': selectedPaths.has(row.path) }"
+              :class="{ 'is-selected': selectedPaths.has(row.path) || preview?.path === row.path }"
               @click="onRowClick(row, $event)"
+              @dblclick="!row.isDir && onRowOpen(row)"
             >
               <span class="fb-tile__cover m-sticker" :class="`m-sticker--${rowVisual(row).tone}`">
                 <UIcon :name="rowVisual(row).icon" :style="{ transform: `rotate(${ROTS[i % ROTS.length]})` }" />
@@ -397,7 +454,7 @@
               <div class="fb-tile__foot">
                 <span class="fb-tile__text">
                   <span class="fb-tile__name" :title="row.name">{{ row.name }}</span>
-                  <span class="fb-tile__meta m-num">{{ row.isDir ? typeLabel(row) : formatFileSize(row.size) }} · {{ shortDay(row.updateTime) }}</span>
+                  <span class="fb-tile__meta m-num">{{ sizeText(row) }} · {{ shortDay(row.updateTime) }}</span>
                 </span>
                 <span @click.stop>
                   <ActionMenu
@@ -430,6 +487,22 @@
             />
           </div>
         </div>
+
+        <FilePreviewPanel
+          v-if="!isMobile && preview"
+          class="fb-preview"
+          :client="client"
+          :row="preview"
+          :icon="rowVisual(preview).icon"
+          :tone="rowVisual(preview).tone"
+          :kind-label="typeLabel(preview)"
+          :can-share="canShare"
+          @close="preview = null"
+          @edit="openEditor"
+          @download="downloadOne"
+          @share="(row) => openShare([row])"
+          @media="(row) => openMedia(row.path, row.name)"
+        />
       </div>
 
       <!-- 批量操作条（悬浮深色） -->
@@ -456,8 +529,11 @@
       </div>
     </div>
 
+    <!-- 上传选择器（上传按钮 / 悬浮按钮共用；选好即加入队列开始上传） -->
+    <input ref="uploadInputRef" type="file" multiple class="fb-upload-input" @change="onUploadPick" />
+
     <!-- 手机：悬浮上传 -->
-    <button v-if="isMobile && !hasSelection" type="button" class="fb-fab" @click="uploadOpen = true">
+    <button v-if="isMobile && !hasSelection" type="button" class="fb-fab" @click="pickUpload">
       <UIcon name="i-lucide-upload" />
       {{ t('fileManager.upload') }}
     </button>
@@ -490,7 +566,16 @@
 
     <FileMediaDialog v-model="media.open" :name="media.name" :kind="media.kind" :url="media.url" />
 
-    <FileUploadDialog ref="uploadRef" v-model="uploadOpen" :client="client" :target-path="currentPath" @uploaded="afterMutation" />
+    <FileMoveDialog
+      v-model="transfer.open"
+      :client="client"
+      :mode="transfer.mode"
+      :count="transfer.rows.length"
+      :initial-path="currentPath"
+      :root-label="currentChip.name"
+      :confirming="transfer.pending"
+      @confirm="confirmTransfer"
+    />
 
     <FileEditor
       v-model="editor.open"
@@ -521,6 +606,7 @@ import { useI18n } from 'vue-i18n'
 import { getRequestErrorMessage } from '@/utils/request'
 import { useFeedback } from '@/utils/feedback'
 import { isRemoteNode } from '@/utils/nodeContext'
+import { pageTabTo } from '@/config/pageGroups'
 import {
   FileSortField,
   type FileEntryInfo,
@@ -544,7 +630,7 @@ import {
   isFileTooLargeForEditor,
   type FilePreviewKind,
 } from '@/utils/file'
-import { createFileClient } from './fileClient'
+import { createFileClient, displayDirPath } from './fileClient'
 import type { FileClient, FileClipboard, FileScope, PickedFile } from './types'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
@@ -552,13 +638,18 @@ import FileTree from './FileTree.vue'
 import FileActionSheet from './FileActionSheet.vue'
 import FilePromptDialog from './FilePromptDialog.vue'
 import FileMediaDialog from './FileMediaDialog.vue'
-import FileUploadDialog from './FileUploadDialog.vue'
+import FileUploadQueue from './FileUploadQueue.vue'
+import FilePreviewPanel from './FilePreviewPanel.vue'
+import FileMoveDialog from './FileMoveDialog.vue'
 import FileEditor from './FileEditor.vue'
+import { useFileUpload } from './useFileUpload'
 import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
 
 const props = defineProps<{
   scope: FileScope
   initialPath?: string
+  // 系统级：初始打开的文件来源 id（如从文件源页「浏览」进入）；空=本地磁盘
+  initialSourceId?: string
 }>()
 
 const { t } = useI18n()
@@ -578,9 +669,29 @@ const viewMode = ref<'list' | 'grid'>(
 )
 watch(viewMode, (v) => localStorage.setItem('fm-view', v))
 
+// ---- 目录树收起（持久化）：收起后左栏只剩窄栏（展开按钮 + 上传进度），把空间让给列表 ----
+const readTreeOpen = () => {
+  try {
+    const v = localStorage.getItem('fm-tree')
+    if (v === '0') return false
+    if (v === '1') return true
+  } catch {
+    /* ignore */
+  }
+  return typeof window === 'undefined' || window.innerWidth >= 1100
+}
+const treeOpen = ref(readTreeOpen())
+watch(treeOpen, (v) => {
+  try {
+    localStorage.setItem('fm-tree', v ? '1' : '0')
+  } catch {
+    /* ignore */
+  }
+})
+
 // ---- 文件来源（仅系统级显示切换）----
 const isSystemScope = props.scope.kind === 'system'
-const currentSourceId = ref('')
+const currentSourceId = ref(props.scope.kind === 'system' ? props.initialSourceId || '' : '')
 const sources = ref<FileSourceInfo[]>([])
 const localCaps: FileSourceCaps = {
   presign: false,
@@ -596,15 +707,17 @@ const currentCaps = computed<FileSourceCaps>(() => {
 // 来源胶囊：本地磁盘 + 已启用的远端来源（贴纸图标 + 类型短名）。
 type SourceChip = { id: string; name: string; type: string; icon: string; tone: string }
 const SOURCE_VISUAL: Record<string, { icon: string; tone: string }> = {
+  local: { icon: 'i-lucide-hard-drive', tone: 'a' },
   oss: { icon: 'i-lucide-cloud', tone: 'p' },
   ftp: { icon: 'i-lucide-arrow-left-right', tone: 'ok' },
   webdav: { icon: 'i-lucide-globe', tone: 'a2' },
 }
+// 实例级：根目录就是应用的工作目录，面包屑根显示「工作目录」而不是「本地磁盘」
 const localChip = computed<SourceChip>(() => ({
   id: '',
-  name: t('fileSource.localDisk'),
+  name: isSystemScope ? t('fileSource.localDisk') : t('instance.ui.workdir'),
   type: t('fileManager.localTag'),
-  icon: 'i-lucide-hard-drive',
+  icon: isSystemScope ? 'i-lucide-hard-drive' : 'i-lucide-folder',
   tone: 'a',
 }))
 const sourceChips = computed<SourceChip[]>(() => [
@@ -657,6 +770,7 @@ const onSourceChange = (id: string) => {
   currentPath.value = ''
   items.value = []
   directory.value = undefined
+  preview.value = null
   afterMutation()
 }
 
@@ -717,7 +831,6 @@ const media = reactive({
 })
 
 const editor = reactive({ open: false, path: '' })
-const uploadOpen = ref(false)
 const shareOpen = ref(false)
 const shareItems = ref<PickedFile[]>([])
 
@@ -750,13 +863,33 @@ const clearSelection = () => {
 const folderCount = computed(() => Number(directory.value?.dirCount ?? 0))
 const fileCount = computed(() => Number(directory.value?.fileCount ?? 0))
 const dirSize = computed(() => Number(directory.value?.totalSize ?? 0))
-const displayPath = computed(() => currentPath.value || '/')
+const displayPath = computed(() => displayDirPath(currentPath.value))
 // 磁盘用量（仅本地磁盘/实例目录有值；远端来源为 0 不显示）
 const diskTotal = computed(() => Number(directory.value?.diskTotal ?? 0))
 const diskFree = computed(() => Number(directory.value?.diskFree ?? 0))
-const diskPct = computed(() =>
-  diskTotal.value ? Math.min(100, Math.round(((diskTotal.value - diskFree.value) / diskTotal.value) * 100)) : 0,
-)
+// 来源容量条：本地类来源取目录所在磁盘；远端来源取最近一次测试测得的容量（WebDAV 配额等）；连不上时标红。
+const usage = computed(() => {
+  if (loadError.value && currentSourceId.value) {
+    return { text: t('fileManager.connectFailed'), pct: 0, warn: true, title: loadError.value }
+  }
+  let total = diskTotal.value
+  let used = total ? total - diskFree.value : 0
+  if (!total && currentSourceId.value) {
+    const last = sources.value.find((s) => s.id === currentSourceId.value)?.lastTest
+    total = Number(last?.totalBytes) || 0
+    used = Number(last?.usedBytes) || 0
+  }
+  if (!total && !used) return null
+  const pct = total ? Math.min(100, Math.round((used / total) * 100)) : 0
+  return {
+    text: total
+      ? t('fileManager.diskUsed', { used: formatFileSize(used), total: formatFileSize(total) })
+      : t('fileManager.usedOnly', { used: formatFileSize(used) }),
+    pct,
+    warn: pct >= 90,
+    title: total ? t('fileManager.diskFree', { free: formatFileSize(total - used) }) : '',
+  }
+})
 const selectedSize = computed(() =>
   selectedRows.value.reduce((sum, row) => sum + (row.isDir ? 0 : Number(row.size) || 0), 0),
 )
@@ -815,6 +948,7 @@ const navigateTo = async (path: string, pushHistory = true) => {
   currentPath.value = path
   page.value = 1
   keywords.value = ''
+  preview.value = null
   const ok = await loadList()
   if (!ok) {
     currentPath.value = prevPath
@@ -903,43 +1037,46 @@ const copyCurrentPath = async () => {
 }
 
 // ---- 排序 ----
-const sortBy = (field: 'name' | 'time') => {
-  const target =
-    field === 'name'
-      ? FileSortField.FILE_SORT_FIELD_NAME
-      : FileSortField.FILE_SORT_FIELD_UPDATE_TIME
+type SortName = 'name' | 'time' | 'size'
+const SORT_FIELD: Record<SortName, FileSortField> = {
+  name: FileSortField.FILE_SORT_FIELD_NAME,
+  time: FileSortField.FILE_SORT_FIELD_UPDATE_TIME,
+  size: FileSortField.FILE_SORT_FIELD_SIZE,
+}
+const sortBy = (field: SortName) => {
+  const target = SORT_FIELD[field]
   if (sortField.value === target) {
     isDesc.value = !isDesc.value
   } else {
     sortField.value = target
-    isDesc.value = false
+    // 时间、大小默认从新到旧 / 从大到小
+    isDesc.value = field !== 'name'
   }
   page.value = 1
   loadList()
 }
 
-// 排序下拉（后端支持 名称 / 修改时间 × 升降序）
-type SortKey = 'name-asc' | 'name-desc' | 'time-desc' | 'time-asc'
+// 排序下拉（名称 / 修改时间 / 大小 × 升降序；目录恒在前）
+type SortKey = `${SortName}-${'asc' | 'desc'}`
 const sortKey = computed<SortKey>(() => {
-  const byTime = sortField.value === FileSortField.FILE_SORT_FIELD_UPDATE_TIME
-  if (byTime) return isDesc.value ? 'time-desc' : 'time-asc'
-  return isDesc.value ? 'name-desc' : 'name-asc'
+  const name = (Object.keys(SORT_FIELD) as SortName[]).find((k) => SORT_FIELD[k] === sortField.value) ?? 'name'
+  return `${name}-${isDesc.value ? 'desc' : 'asc'}`
 })
+const sortFieldLabel = (name: SortName) =>
+  name === 'time' ? t('fileManager.updatedAt') : name === 'size' ? t('fileManager.size') : t('fileManager.tableName')
 const sortOptions = computed(() => [
   { key: 'name-asc' as SortKey, icon: 'i-lucide-arrow-down-a-z', label: `${t('fileManager.tableName')} · ${t('fileManager.sortAsc')}` },
   { key: 'name-desc' as SortKey, icon: 'i-lucide-arrow-down-z-a', label: `${t('fileManager.tableName')} · ${t('fileManager.sortDesc')}` },
-  { key: 'time-desc' as SortKey, icon: 'i-lucide-clock-arrow-down', label: `${t('fileManager.updatedAt')} · ${t('fileManager.sortDesc')}` },
-  { key: 'time-asc' as SortKey, icon: 'i-lucide-clock-arrow-up', label: `${t('fileManager.updatedAt')} · ${t('fileManager.sortAsc')}` },
+  { key: 'time-desc' as SortKey, icon: 'i-lucide-clock-arrow-down', label: `${t('fileManager.updatedAt')} · ${t('fileManager.sortNewest')}` },
+  { key: 'time-asc' as SortKey, icon: 'i-lucide-clock-arrow-up', label: `${t('fileManager.updatedAt')} · ${t('fileManager.sortOldest')}` },
+  { key: 'size-desc' as SortKey, icon: 'i-lucide-arrow-down-wide-narrow', label: `${t('fileManager.size')} · ${t('fileManager.sortLargest')}` },
+  { key: 'size-asc' as SortKey, icon: 'i-lucide-arrow-up-narrow-wide', label: `${t('fileManager.size')} · ${t('fileManager.sortSmallest')}` },
 ])
-const sortText = computed(() => {
-  const field = sortField.value === FileSortField.FILE_SORT_FIELD_UPDATE_TIME ? t('fileManager.updatedAt') : t('fileManager.tableName')
-  return t('fileManager.sortLabel', { field })
-})
+const sortText = computed(() => t('fileManager.sortLabel', { field: sortFieldLabel(sortKey.value.split('-')[0] as SortName) }))
 const applySort = (key: SortKey) => {
-  sortField.value = key.startsWith('time')
-    ? FileSortField.FILE_SORT_FIELD_UPDATE_TIME
-    : FileSortField.FILE_SORT_FIELD_NAME
-  isDesc.value = key.endsWith('desc')
+  const [name, dir] = key.split('-') as [SortName, 'asc' | 'desc']
+  sortField.value = SORT_FIELD[name]
+  isDesc.value = dir === 'desc'
   page.value = 1
   loadList()
 }
@@ -960,8 +1097,22 @@ const rowVisual = (row: FileEntryInfo): { icon: string; tone: string } => {
   if (TEXT_RE.test(row.name)) return { icon: 'i-lucide-file-text', tone: 'a2' }
   return { icon: 'i-lucide-file', tone: 'neutral' }
 }
-const ownerText = (row: FileEntryInfo) =>
-  [row.userName, row.groupName].filter(Boolean).join(':') || ''
+// 目录的「大小」列展示直接子项数（来源可统计时），文件展示大小。
+const childCount = (row: FileEntryInfo) => (row.childCount === undefined ? null : Number(row.childCount))
+const sizeText = (row: FileEntryInfo) => {
+  if (!row.isDir) return formatFileSize(row.size)
+  const n = childCount(row)
+  return n === null ? t('fileManager.typeFolder') : t('fileManager.itemsCount', { n })
+}
+const kindText = (row: FileEntryInfo) => {
+  const n = row.isDir ? childCount(row) : null
+  return n === null ? typeLabel(row) : `${typeLabel(row)} · ${t('fileManager.itemsCount', { n })}`
+}
+const mobileCount = computed(() => {
+  const parts = [t('fileManager.itemsCount', { n: total.value })]
+  if (dirSize.value) parts.push(formatFileSize(dirSize.value))
+  return parts.join(' · ')
+})
 const pad2 = (n: number) => String(n).padStart(2, '0')
 const toDate = (value: unknown): Date | null => {
   if (!value) return null
@@ -1000,7 +1151,25 @@ const onRowClick = (row: FileEntryInfo, event: MouseEvent) => {
     toggleSelect(row)
     return
   }
+  // PC：目录进入；文件在右侧预览（双击 / 预览栏「编辑」打开编辑器）。
+  if (!row.isDir && !isMobile.value) {
+    preview.value = preview.value?.path === row.path ? null : row
+    return
+  }
   onRowOpen(row)
+}
+// ---- 预览侧栏（切换目录 / 来源时关闭）----
+const preview = ref<FileEntryInfo | null>(null)
+watch(currentPath, () => {
+  preview.value = null
+})
+const openEditor = (row: FileEntryInfo) => {
+  if (isFileTooLargeForEditor(row.path, row.size)) {
+    fb.warning(t('fileManager.fileTooLargeForEditor'))
+    return
+  }
+  editor.path = row.path
+  editor.open = true
 }
 const onRowOpen = (row: FileEntryInfo) => {
   if (row.isDir) {
@@ -1132,6 +1301,7 @@ const onPromptConfirm = async (value: string) => {
     } else if (prompt.mode === 'rename') {
       const target = prompt.targets[0]
       if (target) await client.rename(target.path, value)
+      if (target && preview.value?.path === target.path) preview.value = null
       fb.success(t('fileManager.renameSuccess'))
     } else if (prompt.mode === 'compress') {
       const name = /\.(zip|tar|gz|tgz)$/i.test(value) ? value : `${value}.zip`
@@ -1179,6 +1349,7 @@ const confirmDelete = async () => {
   try {
     await client.remove(del.rows.map((item) => item.path))
     fb.success(t('fileManager.deleteSuccess'))
+    if (preview.value && del.rows.some((r) => r.path === preview.value?.path)) preview.value = null
     del.open = false
     afterMutation()
   } catch (error) {
@@ -1259,6 +1430,34 @@ const paste = async () => {
   }
 }
 
+// ---- 移动到… / 复制到…（选目标目录）----
+const transfer = reactive({ open: false, mode: 'move' as 'move' | 'copy', rows: [] as FileEntryInfo[], pending: false })
+const openTransfer = (mode: 'move' | 'copy', rows: FileEntryInfo[]) => {
+  if (!rows.length) {
+    fb.warning(mode === 'copy' ? t('fileManager.selectCopyTarget') : t('fileManager.selectCutTarget'))
+    return
+  }
+  Object.assign(transfer, { mode, rows, open: true })
+}
+const confirmTransfer = async (target: string) => {
+  transfer.pending = true
+  const pending = fb.add({ title: t('fileManager.pasteProcessing'), color: 'info', duration: 0 })
+  try {
+    const paths = transfer.rows.map((row) => row.path)
+    if (transfer.mode === 'copy') await client.copy(paths, target)
+    else await client.move(paths, target)
+    fb.success(transfer.mode === 'copy' ? t('fileManager.copyDone', { count: paths.length }) : t('fileManager.moveDone', { count: paths.length }))
+    transfer.open = false
+    if (transfer.mode === 'move' && preview.value && paths.includes(preview.value.path)) preview.value = null
+    afterMutation()
+  } catch (error) {
+    notifyError(error, t('fileManager.pasteFailed'))
+  } finally {
+    fb.remove(pending.id)
+    transfer.pending = false
+  }
+}
+
 // ---- 分享 ----
 const openShare = (rows: FileEntryInfo[]) => {
   // 选中项按当前来源打包为分享条目（分享支持跨来源，此处均来自当前浏览来源）。
@@ -1274,8 +1473,8 @@ type BulkItem = { key: string; label: string; icon: string; danger?: boolean }
 const bulkActions = computed<BulkItem[]>(() => {
   const caps = currentCaps.value
   const list: BulkItem[] = [{ key: 'download', label: t('fileManager.download'), icon: 'i-lucide-download' }]
-  if (caps.copy) list.push({ key: 'copy', label: t('fileManager.copy'), icon: 'i-lucide-copy' })
-  if (caps.move) list.push({ key: 'cut', label: t('fileManager.cut'), icon: 'i-lucide-scissors' })
+  if (caps.copy) list.push({ key: 'copyTo', label: t('fileManager.copy'), icon: 'i-lucide-copy' })
+  if (caps.move) list.push({ key: 'moveTo', label: t('fileManager.move'), icon: 'i-lucide-folder-input' })
   if (caps.compress) list.push({ key: 'compress', label: t('fileManager.compress'), icon: 'i-lucide-archive' })
   if (canShare.value) list.push({ key: 'share', label: t('fileManager.share'), icon: 'i-lucide-share-2' })
   list.push({ key: 'delete', label: t('fileManager.delete'), icon: 'i-lucide-trash-2', danger: true })
@@ -1284,8 +1483,8 @@ const bulkActions = computed<BulkItem[]>(() => {
 const onBulkAction = (key: string) => {
   const rows = selectedRows.value
   if (key === 'download') downloadSelected()
-  else if (key === 'copy') setClipboard('copy', rows)
-  else if (key === 'cut') setClipboard('cut', rows)
+  else if (key === 'copyTo') openTransfer('copy', rows)
+  else if (key === 'moveTo') openTransfer('move', rows)
   else if (key === 'compress') openCompress(rows)
   else if (key === 'share') openShare(rows)
   else if (key === 'delete') deleteSelected()
@@ -1298,10 +1497,13 @@ const rowActions = (row: FileEntryInfo): ActionMenuItem[] => {
     { key: 'rename', label: t('fileManager.rename'), icon: 'i-lucide-pencil' },
   ]
   if (!row.isDir) actions.push({ key: 'download', label: t('fileManager.download'), icon: 'i-lucide-download' })
+  if (!row.isDir) actions.push({ key: 'edit', label: t('fileManager.edit'), icon: 'i-lucide-file-pen', hidden: isMediaFile(row.name) })
   if (!row.isDir) actions.push({ key: 'copyLink', label: t('fileManager.copyLink'), icon: 'i-lucide-link' })
-  if (caps.copy) actions.push({ key: 'copy', label: t('fileManager.copy'), icon: 'i-lucide-copy' })
+  if (caps.move) actions.push({ key: 'moveTo', label: t('fileManager.moveTo'), icon: 'i-lucide-folder-input' })
+  if (caps.copy) actions.push({ key: 'copyTo', label: t('fileManager.copyTo'), icon: 'i-lucide-folder-plus' })
+  if (caps.copy) actions.push({ key: 'copy', label: t('fileManager.copyToClipboard'), icon: 'i-lucide-copy' })
   if (caps.move) actions.push({ key: 'cut', label: t('fileManager.cut'), icon: 'i-lucide-scissors' })
-  if (caps.compress) actions.push({ key: 'compress', label: t('fileManager.compress'), icon: 'i-lucide-archive' })
+  if (caps.compress) actions.push({ key: 'compress', label: t('fileManager.compressZip'), icon: 'i-lucide-archive' })
   if (caps.compress && !row.isDir && /\.(zip|tar|gz|tgz|rar|7z)$/i.test(row.name)) {
     actions.push({ key: 'unzip', label: t('fileManager.unzip'), icon: 'i-lucide-folder-archive' })
   }
@@ -1316,6 +1518,9 @@ const rowActions = (row: FileEntryInfo): ActionMenuItem[] => {
 const onRowAction = (key: string, row: FileEntryInfo) => {
   if (key === 'rename') openRename(row)
   else if (key === 'download') downloadOne(row)
+  else if (key === 'edit') openEditor(row)
+  else if (key === 'moveTo') openTransfer('move', [row])
+  else if (key === 'copyTo') openTransfer('copy', [row])
   else if (key === 'copyLink') copyLink(row)
   else if (key === 'copy') setClipboard('copy', [row])
   else if (key === 'cut') setClipboard('cut', [row])
@@ -1337,6 +1542,8 @@ const openSheet = (row: FileEntryInfo) => {
   sheet.open = true
 }
 const SHEET_QUICK = ['download', 'share', 'rename']
+// 列表区前置的操作（其余按行菜单顺序）
+const SHEET_FIRST = ['moveTo', 'compress']
 const sheetQuick = computed<ActionMenuItem[]>(() => {
   const row = sheet.row
   if (!row) return []
@@ -1354,9 +1561,13 @@ const sheetItems = computed<ActionMenuItem[]>(() => {
   const row = sheet.row
   if (!row) return []
   const used = new Set(sheetQuick.value.map((a) => a.key))
+  const rest = rowActions(row).filter((a) => !used.has(a.key) && !a.hidden)
+  const first = SHEET_FIRST.map((k) => rest.find((a) => a.key === k)).filter((a): a is ActionMenuItem => !!a)
   return [
+    ...first,
+    ...rest.filter((a) => !SHEET_FIRST.includes(a.key) && !a.danger),
     { key: 'select', label: t('fileManager.select'), icon: 'i-lucide-square-check' },
-    ...rowActions(row).filter((a) => !used.has(a.key)),
+    ...rest.filter((a) => a.danger),
   ]
 })
 const sheetMeta = computed(() => {
@@ -1375,8 +1586,29 @@ const onSheetSelect = (key: string) => {
   else onRowAction(key, row)
 }
 
-// ---- 拖放上传：把文件拖到列表区即打开上传面板并加入队列 ----
-const uploadRef = ref<InstanceType<typeof FileUploadDialog> | null>(null)
+// ---- 上传：选择 / 拖放即加入队列开始上传（目标目录与来源在加入时冻结）；当前目录有文件传完即刷新列表 ----
+const upload = useFileUpload(
+  () => client,
+  () => currentPath.value,
+  {
+    getSourceId: () => currentSourceId.value,
+    onUploaded: (item) => {
+      if (item.targetPath === currentPath.value && item.sourceId === currentSourceId.value) loadList()
+    },
+  },
+)
+const uploadInputRef = ref<HTMLInputElement | null>(null)
+const pickUpload = () => uploadInputRef.value?.click()
+const onUploadPick = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  if (input.files?.length) {
+    upload.addFiles(input.files)
+    if (!isMobile.value) treeOpen.value = true
+  }
+  input.value = ''
+}
+
+// ---- 拖放上传：把文件拖到列表区即加入上传队列 ----
 const dropActive = ref(false)
 let dragDepth = 0
 const hasFiles = (event: DragEvent) => Array.from(event.dataTransfer?.types ?? []).includes('Files')
@@ -1394,9 +1626,8 @@ const onDrop = (event: DragEvent) => {
   dropActive.value = false
   const files = event.dataTransfer?.files
   if (!files?.length) return
-  const list = Array.from(files)
-  uploadOpen.value = true
-  nextTick(() => uploadRef.value?.addFiles(list))
+  upload.addFiles(Array.from(files))
+  if (!isMobile.value) treeOpen.value = true
 }
 
 onMounted(() => {
@@ -1404,7 +1635,12 @@ onMounted(() => {
   loadList()
 })
 
-defineExpose({ refresh, navigateTo })
+// 切到指定来源（文件页被缓存时，从文件源页「浏览」带着 ?source= 回来用）。
+const switchSource = (id: string) => {
+  if (isSystemScope && id !== currentSourceId.value) onSourceChange(id)
+}
+
+defineExpose({ refresh, navigateTo, switchSource })
 </script>
 
 <style scoped lang="scss">
@@ -1428,49 +1664,20 @@ defineExpose({ refresh, navigateTo })
   min-height: 100%;
 }
 
-/* ===== 页头 ===== */
-.fb-head {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
+/* ===== 页头（PageHeader） ===== */
+/* 内嵌在应用详情「文件」标签里：外层已有应用名与目录条，不再重复大标题 */
+.fb-head--embedded :deep(.page-header__title) {
+  display: none;
 }
-.fb-head__text {
-  flex: 1 1 320px;
-  min-width: 0;
-}
-.fb-head__title {
-  margin: 0;
-  font-family: var(--app-font-display);
-  font-size: 1.875rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+.fb-head--embedded :deep(.page-header__desc) {
+  margin-top: 0;
 }
 .fb-head__desc {
-  margin: 6px 0 0;
-  font-size: 0.875rem;
-  color: var(--el-text-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: inline;
 }
 .fb-head__path {
   font-size: 0.8125rem;
   color: var(--el-text-color-primary);
-}
-.fb-head__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.fb-head__actions :deep(button),
-.fb-head__actions :deep(a) {
-  min-height: 40px;
-  padding-inline: 16px;
-  border-radius: 999px;
-  font-weight: 700;
 }
 
 /* ===== 通用小按钮 ===== */
@@ -1506,7 +1713,11 @@ defineExpose({ refresh, navigateTo })
   height: 44px;
   border-radius: 14px;
 }
-.fb-head .fb-ico--lg {
+.fb-head :deep(.page-header__actions .fb-ico--lg) {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
   background: var(--m-pSoft);
   color: var(--m-pInk);
   border-radius: 999px;
@@ -1899,16 +2110,67 @@ defineExpose({ refresh, navigateTo })
 /* ===== 主体 ===== */
 .fb-body {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 16px;
   flex: 1;
 }
-.fb-aside {
+/* 左栏：目录树 + 上传队列（吸顶）；收起后只剩 64px 窄栏 */
+.fb-side {
   position: sticky;
   top: 0;
   flex: 0 0 236px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   max-height: calc(100vh - 140px);
+}
+.fb-side.is-closed {
+  flex-basis: 64px;
+}
+.fb-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
+}
+.fb-rail__sep {
+  width: 28px;
+  height: 1px;
+  background: var(--el-border-color-lighter);
+}
+.fb-rail__up {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 44px;
+  height: 56px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--m-pInk);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.fb-rail__up:hover {
+  background: var(--m-s2);
+}
+.fb-rail__up :deep(svg),
+.fb-rail__up :deep(.iconify) {
+  width: 16px;
+  height: 16px;
+}
+.fb-aside {
+  flex: 0 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: 12px 8px;
   border: 1px solid var(--el-border-color-lighter);
@@ -1920,8 +2182,14 @@ defineExpose({ refresh, navigateTo })
   --ft-hover: var(--m-s2);
   --ft-fg: var(--el-text-color-secondary);
 }
+.fb-aside__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 0 4px 10px;
+}
 .fb-aside__label {
-  padding: 4px 10px 8px;
+  flex: 1;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1943,7 +2211,7 @@ defineExpose({ refresh, navigateTo })
 }
 .fb-main {
   position: relative;
-  flex: 1;
+  flex: 1 1 480px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -2036,6 +2304,12 @@ defineExpose({ refresh, navigateTo })
   color: var(--el-text-color-secondary);
   word-break: break-all;
 }
+.fb-error__hint {
+  margin: 0;
+  max-width: 420px;
+  font-size: 0.875rem;
+  color: var(--el-text-color-secondary);
+}
 .fb-error__actions {
   display: flex;
   gap: 10px;
@@ -2069,6 +2343,7 @@ defineExpose({ refresh, navigateTo })
 
 /* ===== 列表 ===== */
 .fb-table {
+  container-type: inline-size;
   padding: 4px 8px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -2079,9 +2354,21 @@ defineExpose({ refresh, navigateTo })
 .fb-thead,
 .fb-row {
   display: grid;
-  grid-template-columns: 40px minmax(220px, 1fr) 96px 150px 104px 124px;
+  grid-template-columns: 40px minmax(200px, 1fr) 96px 112px 124px;
   align-items: center;
-  min-width: 720px;
+  min-width: 560px;
+}
+/* 列表变窄（打开右侧预览、或窄屏）时去掉修改时间列，操作列始终可见，不靠隐藏的横向滚动 */
+@container (width < 600px) {
+  .fb-thead,
+  .fb-row {
+    grid-template-columns: 40px minmax(0, 1fr) 84px 124px;
+    min-width: 0;
+  }
+  .fb-thead .fb-col--time,
+  .fb-row .fb-col--time {
+    display: none;
+  }
 }
 .fb-thead {
   min-height: 44px;
@@ -2144,6 +2431,10 @@ defineExpose({ refresh, navigateTo })
 .fb-row.is-selected {
   background: color-mix(in srgb, var(--m-pSoft) 70%, var(--el-bg-color));
 }
+.fb-row.is-preview {
+  background: var(--m-s2);
+  box-shadow: inset 3px 0 0 var(--m-p);
+}
 .fb-col--name {
   display: flex;
   align-items: center;
@@ -2181,12 +2472,14 @@ defineExpose({ refresh, navigateTo })
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
-.fb-col--perm {
-  font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* 右栏：文件预览 */
+.fb-preview {
+  position: sticky;
+  top: 0;
+  flex: 0 1 320px;
+}
+.fb-upload-input {
+  display: none;
 }
 
 /* ===== 网格 ===== */
@@ -2348,10 +2641,11 @@ defineExpose({ refresh, navigateTo })
   color: var(--el-text-color-regular);
 }
 
-/* 中等宽度：目录树收起 */
-@media (width < 1100px) {
-  .fb-aside {
-    display: none;
+/* 窄屏 PC：三栏放不下时预览栏换行到列表下方，占满一行、不再吸顶 */
+@media (width < 1360px) {
+  .fb-preview {
+    position: static;
+    flex: 1 1 100%;
   }
 }
 
@@ -2361,19 +2655,6 @@ defineExpose({ refresh, navigateTo })
 }
 .fb.is-mobile .fb__inner {
   gap: 12px;
-}
-.fb.is-mobile .fb-head {
-  align-items: center;
-  flex-wrap: nowrap;
-}
-.fb.is-mobile .fb-head__text {
-  flex: 1 1 auto;
-}
-.fb.is-mobile .fb-head__title {
-  font-size: 1.75rem;
-}
-.fb.is-mobile .fb-head__desc {
-  font-size: 0.8125rem;
 }
 .fb.is-mobile .fb-sources {
   flex-wrap: nowrap;
@@ -2410,8 +2691,11 @@ defineExpose({ refresh, navigateTo })
   min-height: 48px;
 }
 .fb.is-mobile .fb-ico {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+}
+.fb.is-mobile .fb-crumb__seg {
+  min-height: 44px;
 }
 .fb.is-mobile .fb-ico--lg {
   width: 44px;
@@ -2419,6 +2703,16 @@ defineExpose({ refresh, navigateTo })
 }
 .fb.is-mobile .fb-clip {
   flex-wrap: wrap;
+}
+.fb-mhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
 }
 .fb-mlist {
   padding: 4px 0;

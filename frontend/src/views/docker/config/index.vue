@@ -4,10 +4,13 @@
      权限：PERM.DOCKER_CONFIG_EDIT。 -->
 <template>
   <div class="dc-page">
-    <PageHeader>
-      <template #title>{{ t('docker.config.pageTitle') }}<DockerEnginePill /></template>
-      <template #description>{{ t('docker.config.pageDesc') }}</template>
-    </PageHeader>
+    <DockerHeader @tasks="tasksVisible = true">
+      <template #actions>
+        <UButton v-if="canCreate" color="primary" icon="i-lucide-plus" :disabled="!engineReady" @click="router.push(pageTabTo('docker', 'container', { create: '1' }))">
+          {{ t('docker.container.createContainer') }}
+        </UButton>
+      </template>
+    </DockerHeader>
 
     <DockerSubNav />
 
@@ -159,6 +162,7 @@
                   <span v-if="f.pending" class="dc-flag dc-flag--a">{{ t('docker.config.pendingSave') }}</span>
                   <span v-else-if="f.expired" class="dc-flag dc-flag--bad">{{ t('docker.config.expired') }}</span>
                 </span>
+                <span class="dc-row__d m-mono">{{ TLS_FLAGS[f.key] }}</span>
               </div>
               <div class="dc-row__c">
                 <div class="dc-file" :class="{ 'is-empty': !f.has, 'is-err': !!f.error }">
@@ -372,6 +376,8 @@
       </div>
     </Transition>
 
+    <DockerTaskDialogs v-model="tasksVisible" />
+
     <!-- 编辑仓库凭据 -->
     <FormDialog v-model="editVisible" :title="t('docker.config.regEditTitle')" :width="460">
       <div class="dc-form">
@@ -399,10 +405,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import DockerSubNav from '@/views/docker/components/DockerSubNav.vue'
-import DockerEnginePill from '@/views/docker/components/DockerEnginePill.vue'
+import DockerHeader from '@/views/docker/components/DockerHeader.vue'
+import DockerTaskDialogs from '@/views/docker/components/DockerTaskDialogs.vue'
+import { pageTabTo } from '@/config/pageGroups'
 import { useDockerStatus } from '@/views/docker/components/useDockerStatus'
 import { formatBytes, formatDate, stickerFor } from '@/views/docker/components/format'
-import { getDockerConfig, testDockerConfig, testDockerRegistryAuth, updateDockerConfig } from '@/api/docker'
+import { getDockerConfig, listDockerImages, testDockerConfig, testDockerRegistryAuth, updateDockerConfig } from '@/api/docker'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { getRequestErrorMessage, showRequestError } from '@/utils/request'
@@ -413,6 +421,19 @@ defineOptions({ name: 'DockerConfigView' })
 const { t } = useI18n()
 const menuStore = useMenuStore()
 const canEdit = useButtonPermission([PERM.DOCKER_CONFIG_EDIT], [])
+const canCreate = useButtonPermission([PERM.DOCKER_CONTAINER_MANAGE], [])
+const router = useRouter()
+const tasksVisible = ref(false)
+const TLS_FLAGS: Record<string, string> = { ca: '--tlscacert', cert: '--tlscert', key: '--tlskey' }
+/** 镜像总占用（引擎卡「镜像」格的副标题） */
+const imagesSize = ref<number | null>(null)
+const loadImagesSize = async () => {
+  if (!status.value?.connected) return
+  try {
+    const { data } = await listDockerImages({ all: false, page: 1, pageSize: 1, keyword: '', usage: '', sort: 'created', dangling: undefined, labels: {} })
+    imagesSize.value = data?.stats ? Number(data.stats.totalSize) : null
+  } catch { imagesSize.value = null }
+}
 const { status, refresh: refreshStatus } = useDockerStatus()
 
 const UNIX_DEFAULT = 'unix:///var/run/docker.sock'
@@ -655,6 +676,7 @@ const statusAt = ref<Date | null>(null)
 const loadStatus = async () => {
   await refreshStatus(true)
   statusAt.value = new Date()
+  void loadImagesSize()
 }
 const engineReady = computed(() => !!status.value?.connected)
 const engineApi = computed(() => status.value?.version?.apiVersion || '')
@@ -693,7 +715,11 @@ const engineGrid = computed(() => {
       v: String(info.containers),
       sub: t('docker.config.grid.containersSub', { running: info.containersRunning, stopped: info.containersStopped }),
     },
-    { k: t('docker.config.grid.images'), v: String(info.images), sub: t('docker.config.grid.imagesSub', { n: s.networks }) },
+    {
+      k: t('docker.config.grid.images'),
+      v: String(info.images),
+      sub: imagesSize.value != null ? t('docker.cfgx.imagesSize', { size: formatBytes(imagesSize.value), n: s.networks }) : t('docker.config.grid.imagesSub', { n: s.networks }),
+    },
   ]
 })
 

@@ -55,7 +55,7 @@ type IQCheckManagerClient interface {
 	DeleteIQCheckSite(ctx context.Context, in *DeleteIQCheckSiteRequest, opts ...grpc.CallOption) (*DeleteIQCheckSiteResponse, error)
 	// 按站点、API Key 和协议拉取上游模型列表，供勾选
 	FetchIQCheckModels(ctx context.Context, in *FetchIQCheckModelsRequest, opts ...grpc.CallOption) (*FetchIQCheckModelsResponse, error)
-	// 立即对站点勾选的全部模型执行一轮检测
+	// 立即执行一轮检测：把全部启用的提示词逐个发给站点勾选的每个模型
 	TriggerIQCheck(ctx context.Context, in *TriggerIQCheckRequest, opts ...grpc.CallOption) (*TriggerIQCheckResponse, error)
 }
 
@@ -191,7 +191,7 @@ type IQCheckManagerServer interface {
 	DeleteIQCheckSite(context.Context, *DeleteIQCheckSiteRequest) (*DeleteIQCheckSiteResponse, error)
 	// 按站点、API Key 和协议拉取上游模型列表，供勾选
 	FetchIQCheckModels(context.Context, *FetchIQCheckModelsRequest) (*FetchIQCheckModelsResponse, error)
-	// 立即对站点勾选的全部模型执行一轮检测
+	// 立即执行一轮检测：把全部启用的提示词逐个发给站点勾选的每个模型
 	TriggerIQCheck(context.Context, *TriggerIQCheckRequest) (*TriggerIQCheckResponse, error)
 	mustEmbedUnimplementedIQCheckManagerServer()
 }

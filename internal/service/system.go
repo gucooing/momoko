@@ -141,6 +141,9 @@ func (s *SystemService) LoginConfig(ctx context.Context, req *v1.LoginConfigRequ
 		resp.SiteName = site.SiteName
 		resp.DefaultLanguage = site.DefaultLanguage
 	}
+	if mail, err := s.config.EmailConfig(ctx); err == nil {
+		resp.MailEnabled = mail.GetEnabled()
+	}
 	return resp, nil
 }
 
@@ -237,4 +240,8 @@ func (s *SystemService) ListEmailTemplates(ctx context.Context, req *v1.ListEmai
 
 func (s *SystemService) OperationLogStats(ctx context.Context, req *v1.OperationLogStatsRequest) (*v1.OperationLogStatsResponse, error) {
 	return s.operationLog.OperationLogStats(ctx)
+}
+
+func (s *SystemService) UpdateOperationLogRetention(ctx context.Context, req *v1.UpdateOperationLogRetentionRequest) (*v1.UpdateOperationLogRetentionResponse, error) {
+	return s.operationLog.UpdateRetention(ctx, req.GetRetentionDays())
 }

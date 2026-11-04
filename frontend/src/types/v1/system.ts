@@ -287,6 +287,8 @@ export enum OperationType {
   OperationTypeSystemSiteConfigUpdate = "OperationTypeSystemSiteConfigUpdate",
   /** OperationTypeDockerRegistryAuthTest - Docker 仓库凭据验证 */
   OperationTypeDockerRegistryAuthTest = "OperationTypeDockerRegistryAuthTest",
+  /** OperationTypeSystemOperationLogRetentionUpdate - 操作记录保留策略更新 */
+  OperationTypeSystemOperationLogRetentionUpdate = "OperationTypeSystemOperationLogRetentionUpdate",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -366,6 +368,8 @@ export interface MenuInfo {
     | undefined;
   /** 子权限菜单 */
   children: MenuInfo[];
+  /** 在侧边栏隐藏：只影响导航显示，页面与权限仍然有效 */
+  hidden: boolean;
 }
 
 /** 管理员获取全部权限菜单请求 */
@@ -407,6 +411,8 @@ export interface AdminAddPermissionsRequest {
   status: MenuStatus;
   /** 权限标识 */
   permissions: string;
+  /** 在侧边栏隐藏 */
+  hidden: boolean;
 }
 
 /** 管理员添加权限菜单响应 */
@@ -429,6 +435,8 @@ export interface AdminEditPermissionsRequest {
   status: MenuStatus;
   /** 权限标识 */
   permissions: string;
+  /** 在侧边栏隐藏 */
+  hidden: boolean;
 }
 
 /** 管理员编辑权限菜单响应 */
@@ -494,6 +502,20 @@ export interface RoleInfo {
   menuIds: string[];
   /** 分配了该角色的用户数 */
   userCount: number;
+  /** 成员预览（最多 5 个，按用户 id 升序） */
+  members: RoleMember[];
+}
+
+/** 角色成员预览 */
+export interface RoleMember {
+  /** 用户 id */
+  userId: string;
+  /** 昵称（为空时前端显示用户名） */
+  name: string;
+  /** 用户名 */
+  username: string;
+  /** 头像 */
+  avatar: string;
 }
 
 /** 获取角色详情请求 */
@@ -590,6 +612,8 @@ export interface LoginConfigResponse {
   siteName: string;
   /** 默认语言（zh-CN / zh-HK / en-US；auto 表示跟随浏览器） */
   defaultLanguage: string;
+  /** 邮件服务是否已启用：关闭时邮箱验证码登录、注册邮箱验证与找回密码都无法发信 */
+  mailEnabled: boolean;
 }
 
 /** 更新登录配置请求 */
@@ -1309,7 +1333,24 @@ export interface OperationLogStatsResponse {
   /** 全部记录数 */
   total: number;
   /** 最早一条记录的时间 */
-  earliestTime: Date | undefined;
+  earliestTime:
+    | Date
+    | undefined;
+  /** 记录保留天数（0=永久保留） */
+  retentionDays: number;
+}
+
+/** 修改操作记录保留策略请求 */
+export interface UpdateOperationLogRetentionRequest {
+  /** 保留天数：0=永久保留，否则 7–3650 */
+  retentionDays: number;
+}
+
+/** 修改操作记录保留策略响应 */
+export interface UpdateOperationLogRetentionResponse {
+  retentionDays: number;
+  /** 本次立即清理掉的超期记录数 */
+  deleted: number;
 }
 
 export interface OperationLogInfo {
@@ -1332,5 +1373,13 @@ export interface OperationLogInfo {
   /** 耗时毫秒 */
   durationMs: number;
   /** 操作时间 */
-  operationTime: Date | undefined;
+  operationTime:
+    | Date
+    | undefined;
+  /** 记录 id */
+  id: number;
+  /** 来源 IP 归属（loopback / lan / public，空=未知） */
+  ipScope: string;
+  /** 响应状态码（HTTP 语义：成功 200，失败取错误码） */
+  statusCode: number;
 }

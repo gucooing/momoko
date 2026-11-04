@@ -5,6 +5,7 @@ package gen
 import (
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
+	"momoko/internal/data/ent/gen/filesharedownload"
 	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
@@ -96,6 +97,16 @@ func init() {
 	fileshareDescEnabled := fileshareFields[9].Descriptor()
 	// fileshare.DefaultEnabled holds the default value on creation for the enabled field.
 	fileshare.DefaultEnabled = fileshareDescEnabled.Default.(bool)
+	filesharedownloadFields := schema.FileShareDownload{}.Fields()
+	_ = filesharedownloadFields
+	// filesharedownloadDescRedirect is the schema descriptor for redirect field.
+	filesharedownloadDescRedirect := filesharedownloadFields[2].Descriptor()
+	// filesharedownload.DefaultRedirect holds the default value on creation for the redirect field.
+	filesharedownload.DefaultRedirect = filesharedownloadDescRedirect.Default.(bool)
+	// filesharedownloadDescCreateTime is the schema descriptor for create_time field.
+	filesharedownloadDescCreateTime := filesharedownloadFields[3].Descriptor()
+	// filesharedownload.DefaultCreateTime holds the default value on creation for the create_time field.
+	filesharedownload.DefaultCreateTime = filesharedownloadDescCreateTime.Default.(func() time.Time)
 	filesourceMixin := schema.FileSource{}.Mixin()
 	filesourceMixinFields0 := filesourceMixin[0].Fields()
 	_ = filesourceMixinFields0
@@ -139,6 +150,14 @@ func init() {
 	filesourceDescLastTestMessage := filesourceFields[9].Descriptor()
 	// filesource.DefaultLastTestMessage holds the default value on creation for the last_test_message field.
 	filesource.DefaultLastTestMessage = filesourceDescLastTestMessage.Default.(string)
+	// filesourceDescLastTestUsedBytes is the schema descriptor for last_test_used_bytes field.
+	filesourceDescLastTestUsedBytes := filesourceFields[11].Descriptor()
+	// filesource.DefaultLastTestUsedBytes holds the default value on creation for the last_test_used_bytes field.
+	filesource.DefaultLastTestUsedBytes = filesourceDescLastTestUsedBytes.Default.(uint64)
+	// filesourceDescLastTestTotalBytes is the schema descriptor for last_test_total_bytes field.
+	filesourceDescLastTestTotalBytes := filesourceFields[12].Descriptor()
+	// filesource.DefaultLastTestTotalBytes holds the default value on creation for the last_test_total_bytes field.
+	filesource.DefaultLastTestTotalBytes = filesourceDescLastTestTotalBytes.Default.(uint64)
 	fileuploadMixin := schema.FileUpload{}.Mixin()
 	fileuploadMixinFields0 := fileuploadMixin[0].Fields()
 	_ = fileuploadMixinFields0
@@ -170,6 +189,10 @@ func init() {
 	fileuploadDescProviderRef := fileuploadFields[11].Descriptor()
 	// fileupload.DefaultProviderRef holds the default value on creation for the provider_ref field.
 	fileupload.DefaultProviderRef = fileuploadDescProviderRef.Default.(string)
+	// fileuploadDescBufferLocal is the schema descriptor for buffer_local field.
+	fileuploadDescBufferLocal := fileuploadFields[12].Descriptor()
+	// fileupload.DefaultBufferLocal holds the default value on creation for the buffer_local field.
+	fileupload.DefaultBufferLocal = fileuploadDescBufferLocal.Default.(bool)
 	fileuploadchunkMixin := schema.FileUploadChunk{}.Mixin()
 	fileuploadchunkMixinFields0 := fileuploadchunkMixin[0].Fields()
 	_ = fileuploadchunkMixinFields0
@@ -305,6 +328,10 @@ func init() {
 	iqcheckpromptDescOrder := iqcheckpromptFields[4].Descriptor()
 	// iqcheckprompt.DefaultOrder holds the default value on creation for the order field.
 	iqcheckprompt.DefaultOrder = iqcheckpromptDescOrder.Default.(int)
+	// iqcheckpromptDescGrading is the schema descriptor for grading field.
+	iqcheckpromptDescGrading := iqcheckpromptFields[6].Descriptor()
+	// iqcheckprompt.DefaultGrading holds the default value on creation for the grading field.
+	iqcheckprompt.DefaultGrading = iqcheckpromptDescGrading.Default.(string)
 	// iqcheckpromptDescID is the schema descriptor for id field.
 	iqcheckpromptDescID := iqcheckpromptFields[0].Descriptor()
 	// iqcheckprompt.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -484,6 +511,10 @@ func init() {
 	instanceDescStopTimeout := instanceFields[10].Descriptor()
 	// instance.DefaultStopTimeout holds the default value on creation for the stop_timeout field.
 	instance.DefaultStopTimeout = instanceDescStopTimeout.Default.(int32)
+	// instanceDescMaintenance is the schema descriptor for maintenance field.
+	instanceDescMaintenance := instanceFields[13].Descriptor()
+	// instance.DefaultMaintenance holds the default value on creation for the maintenance field.
+	instance.DefaultMaintenance = instanceDescMaintenance.Default.(bool)
 	// instanceDescID is the schema descriptor for id field.
 	instanceDescID := instanceFields[0].Descriptor()
 	// instance.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -554,6 +585,10 @@ func init() {
 	menuDescIsSystem := menuFields[7].Descriptor()
 	// menu.DefaultIsSystem holds the default value on creation for the is_system field.
 	menu.DefaultIsSystem = menuDescIsSystem.Default.(bool)
+	// menuDescHidden is the schema descriptor for hidden field.
+	menuDescHidden := menuFields[10].Descriptor()
+	// menu.DefaultHidden holds the default value on creation for the hidden field.
+	menu.DefaultHidden = menuDescHidden.Default.(bool)
 	// menuDescID is the schema descriptor for id field.
 	menuDescID := menuFields[0].Descriptor()
 	// menu.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -713,16 +748,20 @@ func init() {
 	portforwardDescIsEnable := portforwardFields[8].Descriptor()
 	// portforward.DefaultIsEnable holds the default value on creation for the is_enable field.
 	portforward.DefaultIsEnable = portforwardDescIsEnable.Default.(bool)
+	// portforwardDescAutoStart is the schema descriptor for auto_start field.
+	portforwardDescAutoStart := portforwardFields[9].Descriptor()
+	// portforward.DefaultAutoStart holds the default value on creation for the auto_start field.
+	portforward.DefaultAutoStart = portforwardDescAutoStart.Default.(bool)
 	// portforwardDescRemark is the schema descriptor for remark field.
-	portforwardDescRemark := portforwardFields[9].Descriptor()
+	portforwardDescRemark := portforwardFields[10].Descriptor()
 	// portforward.DefaultRemark holds the default value on creation for the remark field.
 	portforward.DefaultRemark = portforwardDescRemark.Default.(string)
 	// portforwardDescTotalBytesIn is the schema descriptor for total_bytes_in field.
-	portforwardDescTotalBytesIn := portforwardFields[10].Descriptor()
+	portforwardDescTotalBytesIn := portforwardFields[11].Descriptor()
 	// portforward.DefaultTotalBytesIn holds the default value on creation for the total_bytes_in field.
 	portforward.DefaultTotalBytesIn = portforwardDescTotalBytesIn.Default.(int64)
 	// portforwardDescTotalBytesOut is the schema descriptor for total_bytes_out field.
-	portforwardDescTotalBytesOut := portforwardFields[11].Descriptor()
+	portforwardDescTotalBytesOut := portforwardFields[12].Descriptor()
 	// portforward.DefaultTotalBytesOut holds the default value on creation for the total_bytes_out field.
 	portforward.DefaultTotalBytesOut = portforwardDescTotalBytesOut.Default.(int64)
 	// portforwardDescID is the schema descriptor for id field.
@@ -876,6 +915,10 @@ func init() {
 	sessionDescLastIP := sessionFields[11].Descriptor()
 	// session.DefaultLastIP holds the default value on creation for the last_ip field.
 	session.DefaultLastIP = sessionDescLastIP.Default.(string)
+	// sessionDescPersistent is the schema descriptor for persistent field.
+	sessionDescPersistent := sessionFields[12].Descriptor()
+	// session.DefaultPersistent holds the default value on creation for the persistent field.
+	session.DefaultPersistent = sessionDescPersistent.Default.(bool)
 	// sessionDescID is the schema descriptor for id field.
 	sessionDescID := sessionFields[0].Descriptor()
 	// session.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -922,46 +965,70 @@ func init() {
 	taskDescTitle := taskFields[5].Descriptor()
 	// task.DefaultTitle holds the default value on creation for the title field.
 	task.DefaultTitle = taskDescTitle.Default.(string)
+	// taskDescTarget is the schema descriptor for target field.
+	taskDescTarget := taskFields[6].Descriptor()
+	// task.DefaultTarget holds the default value on creation for the target field.
+	task.DefaultTarget = taskDescTarget.Default.(string)
+	// taskDescSource is the schema descriptor for source field.
+	taskDescSource := taskFields[7].Descriptor()
+	// task.DefaultSource holds the default value on creation for the source field.
+	task.DefaultSource = taskDescSource.Default.(string)
 	// taskDescUserID is the schema descriptor for user_id field.
-	taskDescUserID := taskFields[6].Descriptor()
+	taskDescUserID := taskFields[9].Descriptor()
 	// task.DefaultUserID holds the default value on creation for the user_id field.
 	task.DefaultUserID = taskDescUserID.Default.(string)
+	// taskDescOperator is the schema descriptor for operator field.
+	taskDescOperator := taskFields[10].Descriptor()
+	// task.DefaultOperator holds the default value on creation for the operator field.
+	task.DefaultOperator = taskDescOperator.Default.(string)
 	// taskDescPayload is the schema descriptor for payload field.
-	taskDescPayload := taskFields[7].Descriptor()
+	taskDescPayload := taskFields[11].Descriptor()
 	// task.DefaultPayload holds the default value on creation for the payload field.
 	task.DefaultPayload = taskDescPayload.Default.(string)
 	// taskDescState is the schema descriptor for state field.
-	taskDescState := taskFields[8].Descriptor()
+	taskDescState := taskFields[12].Descriptor()
 	// task.DefaultState holds the default value on creation for the state field.
 	task.DefaultState = taskDescState.Default.(string)
 	// taskDescResult is the schema descriptor for result field.
-	taskDescResult := taskFields[9].Descriptor()
+	taskDescResult := taskFields[13].Descriptor()
 	// task.DefaultResult holds the default value on creation for the result field.
 	task.DefaultResult = taskDescResult.Default.(string)
+	// taskDescSteps is the schema descriptor for steps field.
+	taskDescSteps := taskFields[14].Descriptor()
+	// task.DefaultSteps holds the default value on creation for the steps field.
+	task.DefaultSteps = taskDescSteps.Default.(string)
+	// taskDescLogs is the schema descriptor for logs field.
+	taskDescLogs := taskFields[15].Descriptor()
+	// task.DefaultLogs holds the default value on creation for the logs field.
+	task.DefaultLogs = taskDescLogs.Default.(string)
 	// taskDescProgressTotal is the schema descriptor for progress_total field.
-	taskDescProgressTotal := taskFields[10].Descriptor()
+	taskDescProgressTotal := taskFields[16].Descriptor()
 	// task.DefaultProgressTotal holds the default value on creation for the progress_total field.
 	task.DefaultProgressTotal = taskDescProgressTotal.Default.(int64)
 	// taskDescProgressFinished is the schema descriptor for progress_finished field.
-	taskDescProgressFinished := taskFields[11].Descriptor()
+	taskDescProgressFinished := taskFields[17].Descriptor()
 	// task.DefaultProgressFinished holds the default value on creation for the progress_finished field.
 	task.DefaultProgressFinished = taskDescProgressFinished.Default.(int64)
 	// taskDescMessage is the schema descriptor for message field.
-	taskDescMessage := taskFields[12].Descriptor()
+	taskDescMessage := taskFields[18].Descriptor()
 	// task.DefaultMessage holds the default value on creation for the message field.
 	task.DefaultMessage = taskDescMessage.Default.(string)
 	// taskDescError is the schema descriptor for error field.
-	taskDescError := taskFields[13].Descriptor()
+	taskDescError := taskFields[19].Descriptor()
 	// task.DefaultError holds the default value on creation for the error field.
 	task.DefaultError = taskDescError.Default.(string)
 	// taskDescIntervalMs is the schema descriptor for interval_ms field.
-	taskDescIntervalMs := taskFields[14].Descriptor()
+	taskDescIntervalMs := taskFields[20].Descriptor()
 	// task.DefaultIntervalMs holds the default value on creation for the interval_ms field.
 	task.DefaultIntervalMs = taskDescIntervalMs.Default.(int64)
 	// taskDescTimeoutMs is the schema descriptor for timeout_ms field.
-	taskDescTimeoutMs := taskFields[15].Descriptor()
+	taskDescTimeoutMs := taskFields[21].Descriptor()
 	// task.DefaultTimeoutMs holds the default value on creation for the timeout_ms field.
 	task.DefaultTimeoutMs = taskDescTimeoutMs.Default.(int64)
+	// taskDescCanceledBy is the schema descriptor for canceled_by field.
+	taskDescCanceledBy := taskFields[22].Descriptor()
+	// task.DefaultCanceledBy holds the default value on creation for the canceled_by field.
+	task.DefaultCanceledBy = taskDescCanceledBy.Default.(string)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

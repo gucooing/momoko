@@ -3,6 +3,7 @@
 package iqcheckprompt
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -25,6 +26,10 @@ const (
 	FieldEnabled = "enabled"
 	// FieldOrder holds the string denoting the order field in the database.
 	FieldOrder = "order"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
+	// FieldGrading holds the string denoting the grading field in the database.
+	FieldGrading = "grading"
 	// Table holds the table name of the iqcheckprompt in the database.
 	Table = "iq_check_prompts"
 )
@@ -38,6 +43,8 @@ var Columns = []string{
 	FieldContent,
 	FieldEnabled,
 	FieldOrder,
+	FieldCategory,
+	FieldGrading,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -65,9 +72,41 @@ var (
 	DefaultEnabled bool
 	// DefaultOrder holds the default value on creation for the "order" field.
 	DefaultOrder int
+	// DefaultGrading holds the default value on creation for the "grading" field.
+	DefaultGrading string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
+
+// Category defines the type for the "category" enum field.
+type Category string
+
+// CategoryOther is the default value of the Category enum.
+const DefaultCategory = CategoryOther
+
+// Category values.
+const (
+	CategoryOther   Category = "other"
+	CategoryLogic   Category = "logic"
+	CategoryMath    Category = "math"
+	CategoryCoding  Category = "coding"
+	CategoryDrawing Category = "drawing"
+	CategoryWriting Category = "writing"
+)
+
+func (c Category) String() string {
+	return string(c)
+}
+
+// CategoryValidator is a validator for the "category" field enum values. It is called by the builders before save.
+func CategoryValidator(c Category) error {
+	switch c {
+	case CategoryOther, CategoryLogic, CategoryMath, CategoryCoding, CategoryDrawing, CategoryWriting:
+		return nil
+	default:
+		return fmt.Errorf("iqcheckprompt: invalid enum value for category field: %q", c)
+	}
+}
 
 // OrderOption defines the ordering options for the IQCheckPrompt queries.
 type OrderOption func(*sql.Selector)
@@ -105,4 +144,14 @@ func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 // ByOrder orders the results by the order field.
 func ByOrder(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrder, opts...).ToFunc()
+}
+
+// ByCategory orders the results by the category field.
+func ByCategory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCategory, opts...).ToFunc()
+}
+
+// ByGrading orders the results by the grading field.
+func ByGrading(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGrading, opts...).ToFunc()
 }

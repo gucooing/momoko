@@ -1,12 +1,5 @@
 ﻿export type DashboardTagType = 'success' | 'primary' | 'warning' | 'info' | 'danger'
 
-export interface DashboardShortcutItem {
-  labelKey: string
-  icon: string
-  color: string
-  routePath: string
-}
-
 export interface DashboardWelcomeStatCard {
   label: string
   value: string

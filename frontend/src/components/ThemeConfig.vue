@@ -20,7 +20,7 @@
             />
           </header>
           <div class="theme-drawer__body">
-            <AppearancePanel narrow :show-preview="false" />
+            <AppearancePanel variant="drawer" />
           </div>
         </aside>
       </div>

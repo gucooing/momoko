@@ -212,29 +212,39 @@ func (_c *UserCreate) SetNillableLastLoginMethod(v *string) *UserCreate {
 	return _c
 }
 
+// SetAppearance sets the "appearance" field.
+func (_c *UserCreate) SetAppearance(v string) *UserCreate {
+	_c.mutation.SetAppearance(v)
+	return _c
+}
+
+// SetNillableAppearance sets the "appearance" field if the given value is not nil.
+func (_c *UserCreate) SetNillableAppearance(v *string) *UserCreate {
+	if v != nil {
+		_c.SetAppearance(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserCreate) SetID(v string) *UserCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
 
-// SetRoleID sets the "role" edge to the Role entity by ID.
-func (_c *UserCreate) SetRoleID(id string) *UserCreate {
-	_c.mutation.SetRoleID(id)
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (_c *UserCreate) AddRoleIDs(ids ...string) *UserCreate {
+	_c.mutation.AddRoleIDs(ids...)
 	return _c
 }
 
-// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
-func (_c *UserCreate) SetNillableRoleID(id *string) *UserCreate {
-	if id != nil {
-		_c = _c.SetRoleID(*id)
+// AddRoles adds the "roles" edges to the Role entity.
+func (_c *UserCreate) AddRoles(v ...*Role) *UserCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _c
-}
-
-// SetRole sets the "role" edge to the Role entity.
-func (_c *UserCreate) SetRole(v *Role) *UserCreate {
-	return _c.SetRoleID(v.ID)
+	return _c.AddRoleIDs(ids...)
 }
 
 // AddSharedSSHHostIDs adds the "shared_ssh_hosts" edge to the SSHHost entity by IDs.
@@ -468,12 +478,16 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldLastLoginMethod, field.TypeString, value)
 		_node.LastLoginMethod = value
 	}
-	if nodes := _c.mutation.RoleIDs(); len(nodes) > 0 {
+	if value, ok := _c.mutation.Appearance(); ok {
+		_spec.SetField(user.FieldAppearance, field.TypeString, value)
+		_node.Appearance = value
+	}
+	if nodes := _c.mutation.RolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.RoleTable,
-			Columns: []string{user.RoleColumn},
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
@@ -482,7 +496,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_role = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.SharedSSHHostsIDs(); len(nodes) > 0 {
@@ -773,6 +786,24 @@ func (u *UserUpsert) ClearLastLoginMethod() *UserUpsert {
 	return u
 }
 
+// SetAppearance sets the "appearance" field.
+func (u *UserUpsert) SetAppearance(v string) *UserUpsert {
+	u.Set(user.FieldAppearance, v)
+	return u
+}
+
+// UpdateAppearance sets the "appearance" field to the value that was provided on create.
+func (u *UserUpsert) UpdateAppearance() *UserUpsert {
+	u.SetExcluded(user.FieldAppearance)
+	return u
+}
+
+// ClearAppearance clears the value of the "appearance" field.
+func (u *UserUpsert) ClearAppearance() *UserUpsert {
+	u.SetNull(user.FieldAppearance)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1059,6 +1090,27 @@ func (u *UserUpsertOne) UpdateLastLoginMethod() *UserUpsertOne {
 func (u *UserUpsertOne) ClearLastLoginMethod() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearLastLoginMethod()
+	})
+}
+
+// SetAppearance sets the "appearance" field.
+func (u *UserUpsertOne) SetAppearance(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAppearance(v)
+	})
+}
+
+// UpdateAppearance sets the "appearance" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateAppearance() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAppearance()
+	})
+}
+
+// ClearAppearance clears the value of the "appearance" field.
+func (u *UserUpsertOne) ClearAppearance() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAppearance()
 	})
 }
 
@@ -1515,6 +1567,27 @@ func (u *UserUpsertBulk) UpdateLastLoginMethod() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearLastLoginMethod() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearLastLoginMethod()
+	})
+}
+
+// SetAppearance sets the "appearance" field.
+func (u *UserUpsertBulk) SetAppearance(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAppearance(v)
+	})
+}
+
+// UpdateAppearance sets the "appearance" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateAppearance() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAppearance()
+	})
+}
+
+// ClearAppearance clears the value of the "appearance" field.
+func (u *UserUpsertBulk) ClearAppearance() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAppearance()
 	})
 }
 

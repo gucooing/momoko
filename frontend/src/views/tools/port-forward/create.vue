@@ -133,6 +133,13 @@
         </div>
         <AppSwitch v-model="form.isEnable" />
       </div>
+      <div class="pf-form__enable">
+        <div class="pf-form__enable-text">
+          <span class="pf-form__enable-title">{{ t('tools.portForward.autoStart') }}</span>
+          <span class="pf-form__enable-desc">{{ t('tools.portForward.autoStartDesc') }}</span>
+        </div>
+        <AppSwitch v-model="form.autoStart" />
+      </div>
 
       <!-- 实时预览：确认前看见最终规则 -->
       <div class="preview" :class="{ 'is-ready': previewReady }">
@@ -167,6 +174,7 @@ const defaultForm = () => ({
   targetAddress: '127.0.0.1',
   targetPort: undefined as number | undefined,
   isEnable: true,
+  autoStart: true,
   remark: '',
 })
 const form = ref(defaultForm())
@@ -194,7 +202,8 @@ const previewText = computed(() => {
   const T = form.value.targetAddress.trim() || '?'
   const tp = form.value.targetPort || '?'
   const on = form.value.isEnable ? t('tools.portForward.enabled') : t('tools.portForward.disabled')
-  return `${name} · ${typeShort.value}  ${L}:${lp} → ${T}:${tp}  · ${on}`
+  const boot = form.value.autoStart ? ` · ${t('tools.portForward.autoStart')}` : ''
+  return `${name} · ${typeShort.value}  ${L}:${lp} → ${T}:${tp}  · ${on}${boot}`
 })
 
 const close = () => {
@@ -235,6 +244,7 @@ const confirm = async () => {
         targetAddress: form.value.targetAddress || undefined,
         targetPort: form.value.targetPort,
         isEnable: form.value.isEnable,
+        autoStart: form.value.autoStart,
         remark: form.value.remark.trim(),
       })
       info = data?.info
@@ -247,6 +257,7 @@ const confirm = async () => {
         targetAddress: form.value.targetAddress,
         targetPort: form.value.targetPort!,
         isEnable: form.value.isEnable,
+        autoStart: form.value.autoStart,
         remark: form.value.remark.trim(),
       })
       info = data?.info
@@ -278,6 +289,7 @@ const showDialog = (payload?: PortForwardInfo) => {
     targetAddress: payload.targetAddress || '127.0.0.1',
     targetPort: payload.targetPort || undefined,
     isEnable: payload.isEnable ?? true,
+    autoStart: payload.autoStart ?? true,
     remark: payload.remark || '',
   }
   nextTick(() => nameRef.value?.focus())

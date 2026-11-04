@@ -10,6 +10,24 @@
     @confirm="confirm"
   >
     <div class="type-form">
+      <!-- 新建时可从模板开始 -->
+      <div v-if="showTemplates" class="type-form__tpls">
+        <span class="type-form__hint">{{ t('instance.ui.fromTemplate') }}</span>
+        <div class="type-form__tpl-row">
+          <button
+            v-for="tpl in TYPE_TEMPLATES"
+            :key="tpl.key"
+            type="button"
+            class="type-form__tpl"
+            :class="{ 'is-on': pickedTpl === tpl.key }"
+            :aria-pressed="pickedTpl === tpl.key"
+            @click="applyTemplate(tpl)"
+          >
+            <UIcon :name="typeIconOf(tpl.name)" />{{ tpl.name }}
+          </button>
+        </div>
+      </div>
+
       <div class="app-field">
         <label class="app-label app-label--required" for="itype-name">{{ t('instance.typeName') }}</label>
         <input
@@ -88,6 +106,7 @@
 import { createInstanceType, updateInstanceType } from '@/api/instance'
 import type { InstanceTypeInfo } from '@/types/v1/instance'
 import { useI18n } from 'vue-i18n'
+import { TYPE_TEMPLATES, typeIconOf, type TypeTemplate } from '@/views/instance/type/templates'
 
 defineOptions({ name: 'InstanceTypeCreate' })
 
@@ -115,6 +134,22 @@ const fromLines = (text: string) =>
     .map((s) => s.trim())
     .filter(Boolean)
 const submitForm = ref(getDefaultForm())
+
+// —— 模板：仅「从空白新建」时显示；点一下按模板填好名称、说明与命令 ——
+const showTemplates = ref(false)
+const pickedTpl = ref('')
+const applyTemplate = (tpl: TypeTemplate) => {
+  pickedTpl.value = tpl.key
+  submitForm.value = {
+    ...submitForm.value,
+    name: tpl.name,
+    description: t(tpl.descKey),
+    startCommand: tpl.startCommand,
+    stopCommand: tpl.stopCommand,
+    quickCommands: toLines(tpl.quickCommands),
+  }
+  errors.value = {}
+}
 
 const close = () => {
   open.value = false
@@ -160,6 +195,8 @@ const confirm = async () => {
 /** instanceType：编辑该类型；duplicateFrom：以它为模板新建（名称加「副本」） */
 const showDialog = (instanceType?: InstanceTypeInfo, duplicateFrom?: InstanceTypeInfo) => {
   errors.value = {}
+  pickedTpl.value = ''
+  showTemplates.value = !instanceType && !duplicateFrom
   if (instanceType) {
     submitForm.value = {
       id: instanceType.id,
@@ -194,6 +231,59 @@ defineExpose({ showDialog })
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.type-form__tpls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.type-form__tpl-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.type-form__tpl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-regular);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.type-form__tpl:hover {
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.type-form__tpl.is-on {
+  background: var(--m-pSoft);
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.type-form__tpl :deep(.iconify) {
+  width: 16px;
+  height: 16px;
+}
+@media (width < 768px) {
+  .type-form__tpl-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .type-form__tpl-row::-webkit-scrollbar {
+    display: none;
+  }
+  .type-form__tpl {
+    flex: none;
+    min-height: 44px;
+  }
 }
 .type-form__opt {
   margin-left: 2px;

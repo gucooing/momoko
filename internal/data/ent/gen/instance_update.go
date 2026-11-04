@@ -214,6 +214,78 @@ func (_u *InstanceUpdate) ClearEnv() *InstanceUpdate {
 	return _u
 }
 
+// SetSecretEnvKeys sets the "secret_env_keys" field.
+func (_u *InstanceUpdate) SetSecretEnvKeys(v []string) *InstanceUpdate {
+	_u.mutation.SetSecretEnvKeys(v)
+	return _u
+}
+
+// AppendSecretEnvKeys appends value to the "secret_env_keys" field.
+func (_u *InstanceUpdate) AppendSecretEnvKeys(v []string) *InstanceUpdate {
+	_u.mutation.AppendSecretEnvKeys(v)
+	return _u
+}
+
+// ClearSecretEnvKeys clears the value of the "secret_env_keys" field.
+func (_u *InstanceUpdate) ClearSecretEnvKeys() *InstanceUpdate {
+	_u.mutation.ClearSecretEnvKeys()
+	return _u
+}
+
+// SetMaintenance sets the "maintenance" field.
+func (_u *InstanceUpdate) SetMaintenance(v bool) *InstanceUpdate {
+	_u.mutation.SetMaintenance(v)
+	return _u
+}
+
+// SetNillableMaintenance sets the "maintenance" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableMaintenance(v *bool) *InstanceUpdate {
+	if v != nil {
+		_u.SetMaintenance(*v)
+	}
+	return _u
+}
+
+// SetMaintenanceTime sets the "maintenance_time" field.
+func (_u *InstanceUpdate) SetMaintenanceTime(v time.Time) *InstanceUpdate {
+	_u.mutation.SetMaintenanceTime(v)
+	return _u
+}
+
+// SetNillableMaintenanceTime sets the "maintenance_time" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableMaintenanceTime(v *time.Time) *InstanceUpdate {
+	if v != nil {
+		_u.SetMaintenanceTime(*v)
+	}
+	return _u
+}
+
+// ClearMaintenanceTime clears the value of the "maintenance_time" field.
+func (_u *InstanceUpdate) ClearMaintenanceTime() *InstanceUpdate {
+	_u.mutation.ClearMaintenanceTime()
+	return _u
+}
+
+// SetLastStopTime sets the "last_stop_time" field.
+func (_u *InstanceUpdate) SetLastStopTime(v time.Time) *InstanceUpdate {
+	_u.mutation.SetLastStopTime(v)
+	return _u
+}
+
+// SetNillableLastStopTime sets the "last_stop_time" field if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableLastStopTime(v *time.Time) *InstanceUpdate {
+	if v != nil {
+		_u.SetLastStopTime(*v)
+	}
+	return _u
+}
+
+// ClearLastStopTime clears the value of the "last_stop_time" field.
+func (_u *InstanceUpdate) ClearLastStopTime() *InstanceUpdate {
+	_u.mutation.ClearLastStopTime()
+	return _u
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_u *InstanceUpdate) SetUserID(id string) *InstanceUpdate {
 	_u.mutation.SetUserID(id)
@@ -243,6 +315,14 @@ func (_u *InstanceUpdate) AddUsers(v ...*User) *InstanceUpdate {
 // SetTypeID sets the "type" edge to the InstanceType entity by ID.
 func (_u *InstanceUpdate) SetTypeID(id string) *InstanceUpdate {
 	_u.mutation.SetTypeID(id)
+	return _u
+}
+
+// SetNillableTypeID sets the "type" edge to the InstanceType entity by ID if the given value is not nil.
+func (_u *InstanceUpdate) SetNillableTypeID(id *string) *InstanceUpdate {
+	if id != nil {
+		_u = _u.SetTypeID(*id)
+	}
 	return _u
 }
 
@@ -345,9 +425,6 @@ func (_u *InstanceUpdate) check() error {
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`gen: clearing a required unique edge "Instance.user"`)
 	}
-	if _u.mutation.TypeCleared() && len(_u.mutation.TypeIDs()) > 0 {
-		return errors.New(`gen: clearing a required unique edge "Instance.type"`)
-	}
 	return nil
 }
 
@@ -415,6 +492,32 @@ func (_u *InstanceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.EnvCleared() {
 		_spec.ClearField(instance.FieldEnv, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.SecretEnvKeys(); ok {
+		_spec.SetField(instance.FieldSecretEnvKeys, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedSecretEnvKeys(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, instance.FieldSecretEnvKeys, value)
+		})
+	}
+	if _u.mutation.SecretEnvKeysCleared() {
+		_spec.ClearField(instance.FieldSecretEnvKeys, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Maintenance(); ok {
+		_spec.SetField(instance.FieldMaintenance, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MaintenanceTime(); ok {
+		_spec.SetField(instance.FieldMaintenanceTime, field.TypeTime, value)
+	}
+	if _u.mutation.MaintenanceTimeCleared() {
+		_spec.ClearField(instance.FieldMaintenanceTime, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastStopTime(); ok {
+		_spec.SetField(instance.FieldLastStopTime, field.TypeTime, value)
+	}
+	if _u.mutation.LastStopTimeCleared() {
+		_spec.ClearField(instance.FieldLastStopTime, field.TypeTime)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -722,6 +825,78 @@ func (_u *InstanceUpdateOne) ClearEnv() *InstanceUpdateOne {
 	return _u
 }
 
+// SetSecretEnvKeys sets the "secret_env_keys" field.
+func (_u *InstanceUpdateOne) SetSecretEnvKeys(v []string) *InstanceUpdateOne {
+	_u.mutation.SetSecretEnvKeys(v)
+	return _u
+}
+
+// AppendSecretEnvKeys appends value to the "secret_env_keys" field.
+func (_u *InstanceUpdateOne) AppendSecretEnvKeys(v []string) *InstanceUpdateOne {
+	_u.mutation.AppendSecretEnvKeys(v)
+	return _u
+}
+
+// ClearSecretEnvKeys clears the value of the "secret_env_keys" field.
+func (_u *InstanceUpdateOne) ClearSecretEnvKeys() *InstanceUpdateOne {
+	_u.mutation.ClearSecretEnvKeys()
+	return _u
+}
+
+// SetMaintenance sets the "maintenance" field.
+func (_u *InstanceUpdateOne) SetMaintenance(v bool) *InstanceUpdateOne {
+	_u.mutation.SetMaintenance(v)
+	return _u
+}
+
+// SetNillableMaintenance sets the "maintenance" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableMaintenance(v *bool) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetMaintenance(*v)
+	}
+	return _u
+}
+
+// SetMaintenanceTime sets the "maintenance_time" field.
+func (_u *InstanceUpdateOne) SetMaintenanceTime(v time.Time) *InstanceUpdateOne {
+	_u.mutation.SetMaintenanceTime(v)
+	return _u
+}
+
+// SetNillableMaintenanceTime sets the "maintenance_time" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableMaintenanceTime(v *time.Time) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetMaintenanceTime(*v)
+	}
+	return _u
+}
+
+// ClearMaintenanceTime clears the value of the "maintenance_time" field.
+func (_u *InstanceUpdateOne) ClearMaintenanceTime() *InstanceUpdateOne {
+	_u.mutation.ClearMaintenanceTime()
+	return _u
+}
+
+// SetLastStopTime sets the "last_stop_time" field.
+func (_u *InstanceUpdateOne) SetLastStopTime(v time.Time) *InstanceUpdateOne {
+	_u.mutation.SetLastStopTime(v)
+	return _u
+}
+
+// SetNillableLastStopTime sets the "last_stop_time" field if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableLastStopTime(v *time.Time) *InstanceUpdateOne {
+	if v != nil {
+		_u.SetLastStopTime(*v)
+	}
+	return _u
+}
+
+// ClearLastStopTime clears the value of the "last_stop_time" field.
+func (_u *InstanceUpdateOne) ClearLastStopTime() *InstanceUpdateOne {
+	_u.mutation.ClearLastStopTime()
+	return _u
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (_u *InstanceUpdateOne) SetUserID(id string) *InstanceUpdateOne {
 	_u.mutation.SetUserID(id)
@@ -751,6 +926,14 @@ func (_u *InstanceUpdateOne) AddUsers(v ...*User) *InstanceUpdateOne {
 // SetTypeID sets the "type" edge to the InstanceType entity by ID.
 func (_u *InstanceUpdateOne) SetTypeID(id string) *InstanceUpdateOne {
 	_u.mutation.SetTypeID(id)
+	return _u
+}
+
+// SetNillableTypeID sets the "type" edge to the InstanceType entity by ID if the given value is not nil.
+func (_u *InstanceUpdateOne) SetNillableTypeID(id *string) *InstanceUpdateOne {
+	if id != nil {
+		_u = _u.SetTypeID(*id)
+	}
 	return _u
 }
 
@@ -866,9 +1049,6 @@ func (_u *InstanceUpdateOne) check() error {
 	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
 		return errors.New(`gen: clearing a required unique edge "Instance.user"`)
 	}
-	if _u.mutation.TypeCleared() && len(_u.mutation.TypeIDs()) > 0 {
-		return errors.New(`gen: clearing a required unique edge "Instance.type"`)
-	}
 	return nil
 }
 
@@ -953,6 +1133,32 @@ func (_u *InstanceUpdateOne) sqlSave(ctx context.Context) (_node *Instance, err 
 	}
 	if _u.mutation.EnvCleared() {
 		_spec.ClearField(instance.FieldEnv, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.SecretEnvKeys(); ok {
+		_spec.SetField(instance.FieldSecretEnvKeys, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedSecretEnvKeys(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, instance.FieldSecretEnvKeys, value)
+		})
+	}
+	if _u.mutation.SecretEnvKeysCleared() {
+		_spec.ClearField(instance.FieldSecretEnvKeys, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Maintenance(); ok {
+		_spec.SetField(instance.FieldMaintenance, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MaintenanceTime(); ok {
+		_spec.SetField(instance.FieldMaintenanceTime, field.TypeTime, value)
+	}
+	if _u.mutation.MaintenanceTimeCleared() {
+		_spec.ClearField(instance.FieldMaintenanceTime, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastStopTime(); ok {
+		_spec.SetField(instance.FieldLastStopTime, field.TypeTime, value)
+	}
+	if _u.mutation.LastStopTimeCleared() {
+		_spec.ClearField(instance.FieldLastStopTime, field.TypeTime)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

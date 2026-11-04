@@ -48,10 +48,30 @@ service DockerManager {
       get: "/api/v1/docker/tasks"
     };
   }
+  // 取消进行中的Docker任务（如拉取镜像）
+  rpc CancelDockerTask(CancelDockerTaskRequest) returns (CancelDockerTaskResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/tasks/{id}/cancel"
+      body: "*"
+    };
+  }
   // 获取容器列表
   rpc ListDockerContainers(ListDockerContainersRequest) returns (ListDockerContainersResponse) {
     option (google.api.http) = {
       get: "/api/v1/docker/containers"
+    };
+  }
+  // 批量获取容器资源占用（CPU / 内存），列表页异步补齐
+  rpc ListDockerContainerUsage(ListDockerContainerUsageRequest) returns (ListDockerContainerUsageResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/docker/container-usage"
+    };
+  }
+  // 解析 docker compose 文件为容器创建参数（创建容器页「从 Compose 导入」）
+  rpc ParseDockerCompose(ParseDockerComposeRequest) returns (ParseDockerComposeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/docker/compose/parse"
+      body: "*"
     };
   }
   // 获取容器详情
@@ -509,34 +529,137 @@ message DockerTaskInfo {
   string title = 10;
   // WebSocket路径
   string ws_path = 11;
+  // 拉取进度（拉取镜像、创建容器时自动拉取镜像的任务才有）
+  DockerPullProgress pull = 12;
+  // 任务目标（拉取任务为镜像引用，容器任务为容器名）
+  string target = 13;
 }
 
-// 获取容器列表请求
-message ListDockerContainersRequest {
-  // 是否包含停止容器
-  bool all = 1;
-  // 状态筛选
+// 镜像拉取进度
+message DockerPullProgress {
+  // 总进度百分比
+  int32 percent = 1;
+  // 已下载字节
+  int64 current = 2;
+  // 需下载总字节
+  int64 total = 3;
+  // 当前下载速度（字节/秒）
+  int64 bytes_per_second = 4;
+  // 分层总数
+  int32 layers_total = 5;
+  // 已完成分层数
+  int32 layers_done = 6;
+  // 下载中分层数
+  int32 layers_downloading = 7;
+  // 各分层进度
+  repeated DockerPullLayer layers = 8;
+}
+
+// 镜像分层拉取进度
+message DockerPullLayer {
+  // 分层ID（短）
+  string id = 1;
+  // 状态：waiting / downloading / extracting / done / exists
   string status = 2;
-  // 名称筛选
-  string name = 3;
-  // 镜像筛选
-  string image = 4;
+  // 已下载字节
+  int64 current = 3;
+  // 分层大小（字节）
+  int64 total = 4;
+}
+
+// 取消Docker任务请求
+message CancelDockerTaskRequest {
+  // 任务ID
+  string id = 1;
+}
+
+// 取消Docker任务响应
+message CancelDockerTaskResponse {}
+
+// 获取容器列表请求（始终包含已停止的容器）
+message ListDockerContainersRequest {
+  // 状态分类：running / stopped（正常退出或未启动）/ exited（异常退出）/ paused；空为全部
+  string status = 1;
+  // 关键字：匹配容器名、ID、镜像、端口
+  string keyword = 2;
   // 网络筛选
-  string network = 5;
+  string network = 3;
   // 标签筛选
-  map<string, string> labels = 6;
+  map<string, string> labels = 4;
   // 页码
-  int64 page = 7;
+  int64 page = 5;
   // 每页数量
-  int64 page_size = 8;
+  int64 page_size = 6;
 }
 
 // 获取容器列表响应
 message ListDockerContainersResponse {
   // 容器列表
   repeated DockerContainerSummary items = 1;
-  // 总数
+  // 总数（筛选后）
   int64 total = 2;
+  // 全量统计（不受状态/关键字筛选影响）
+  DockerContainerListStats stats = 3;
+}
+
+// 容器列表统计
+message DockerContainerListStats {
+  // 容器总数
+  int64 total = 1;
+  // 运行中（含重启中）
+  int64 running = 2;
+  // 已停止（退出码 0 或尚未启动）
+  int64 stopped = 3;
+  // 已退出（退出码非 0 或已死亡）
+  int64 exited = 4;
+  // 已暂停
+  int64 paused = 5;
+}
+
+// 批量获取容器资源占用请求
+message ListDockerContainerUsageRequest {
+  // 容器ID（只统计运行中的容器）
+  repeated string ids = 1;
+}
+
+// 批量获取容器资源占用响应
+message ListDockerContainerUsageResponse {
+  // 资源占用
+  repeated DockerContainerUsage items = 1;
+}
+
+// 容器资源占用
+message DockerContainerUsage {
+  // 容器ID
+  string id = 1;
+  // CPU 占用百分比（相对单核，与 docker stats 一致）
+  double cpu_percent = 2;
+  // 内存占用（字节，已扣除页缓存）
+  uint64 memory_usage = 3;
+  // 内存上限（字节）
+  uint64 memory_limit = 4;
+}
+
+// 解析 compose 文件请求
+message ParseDockerComposeRequest {
+  // compose 文件内容（YAML）
+  string content = 1;
+}
+
+// 解析 compose 文件响应
+message ParseDockerComposeResponse {
+  // 文件里的服务
+  repeated DockerComposeService services = 1;
+}
+
+// compose 服务
+message DockerComposeService {
+  // 服务名
+  string name = 1;
+  // 转换后的容器创建参数
+  DockerContainerCreateOptions options = 2;
+  // 无法转换、已忽略的字段
+  repeated string warnings = 3;
 }
 
 // 获取容器详情请求
@@ -583,6 +706,8 @@ enum DockerTaskType {
   DOCKER_TASK_TYPE_VOLUME_EXPORT = 7;
   // 恢复储存卷
   DOCKER_TASK_TYPE_VOLUME_RESTORE = 8;
+  // 创建容器（本地没有镜像时先拉取）
+  DOCKER_TASK_TYPE_CONTAINER_CREATE = 9;
 }
 
 // Docker任务状态
@@ -677,10 +802,12 @@ message CreateDockerContainerRequest {
   DockerContainerCreateOptions options = 1;
 }
 
-// 创建容器响应
+// 创建容器响应：本地已有镜像时直接创建并返回容器ID；否则返回「拉取并创建」任务
 message CreateDockerContainerResponse {
-  // 容器ID
+  // 容器ID（直接创建时）
   string id = 1;
+  // 拉取镜像并创建容器的任务（本地没有镜像时）
+  DockerTaskInfo task = 2;
 }
 
 // 更新容器请求
@@ -909,6 +1036,12 @@ message DockerContainerSummary {
   repeated string networks = 13;
   // 网络端点
   repeated DockerContainerNetworkEndpoint network_endpoints = 14;
+  // 最近一次退出码（运行中为 0）
+  int32 exit_code = 15;
+  // 最近一次启动时间
+  google.protobuf.Timestamp started_at = 16;
+  // 最近一次停止时间
+  google.protobuf.Timestamp finished_at = 17;
 }
 
 // 容器网络端点摘要
@@ -965,6 +1098,22 @@ message DockerContainerConfig {
   string image = 1;
   // 环境变量
   repeated string env = 2;
+  // 启动命令
+  repeated string cmd = 3;
+  // 入口命令
+  repeated string entrypoint = 4;
+  // 工作目录
+  string working_dir = 5;
+  // 用户
+  string user = 6;
+  // 主机名
+  string hostname = 7;
+  // 标签
+  map<string, string> labels = 8;
+  // 是否开启TTY
+  bool tty = 9;
+  // 是否打开stdin
+  bool open_stdin = 10;
 }
 
 // 容器主机配置
@@ -989,6 +1138,8 @@ message DockerContainerHostConfig {
   int64 cpu_period = 9;
   // Nano CPU数量
   int64 nano_cpus = 10;
+  // on-failure 重启策略的最大重试次数
+  int32 restart_max_retries = 11;
 }
 
 // 容器网络配置

@@ -23,33 +23,23 @@ func (s *TaskService) ListTasks(ctx context.Context, req *v1.ListTasksRequest) (
 }
 
 func (s *TaskService) GetTask(ctx context.Context, req *v1.GetTaskRequest) (*v1.GetTaskResponse, error) {
-	info, err := s.uc.GetTask(ctx, req.Id)
+	info, err := s.uc.GetTask(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 	return &v1.GetTaskResponse{Task: info}, nil
 }
 
-func (s *TaskService) CancelTask(ctx context.Context, req *v1.CancelTaskRequest) (*v1.CancelTaskResponse, error) {
-	if err := s.uc.CancelTask(ctx, req.Id); err != nil {
-		return nil, err
-	}
-	return &v1.CancelTaskResponse{}, nil
+func (s *TaskService) CancelTasks(ctx context.Context, req *v1.TaskIdsRequest) (*v1.TaskBatchResponse, error) {
+	return s.uc.CancelTasks(ctx, req.GetIds()), nil
 }
 
-func (s *TaskService) RetryTask(ctx context.Context, req *v1.RetryTaskRequest) (*v1.RetryTaskResponse, error) {
-	info, err := s.uc.RetryTask(ctx, req.Id)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.RetryTaskResponse{Task: info}, nil
+func (s *TaskService) RetryTasks(ctx context.Context, req *v1.TaskIdsRequest) (*v1.TaskBatchResponse, error) {
+	return s.uc.RetryTasks(ctx, req.GetIds()), nil
 }
 
-func (s *TaskService) DeleteTask(ctx context.Context, req *v1.DeleteTaskRequest) (*v1.DeleteTaskResponse, error) {
-	if err := s.uc.DeleteTask(ctx, req.Id); err != nil {
-		return nil, err
-	}
-	return &v1.DeleteTaskResponse{}, nil
+func (s *TaskService) DeleteTasks(ctx context.Context, req *v1.TaskIdsRequest) (*v1.TaskBatchResponse, error) {
+	return s.uc.DeleteTasks(ctx, req.GetIds())
 }
 
 func (s *TaskService) ClearTasks(ctx context.Context, req *v1.ClearTasksRequest) (*v1.ClearTasksResponse, error) {

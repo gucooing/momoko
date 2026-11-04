@@ -8,45 +8,45 @@ import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
 // 任务管理：通用任务管理器（pkg/task）的统一对外面板，可见可操作全部任务
-// （文件复制/剪切/远端上传收尾、上传 GC、Docker 拉取、常驻任务等）。
+// （文件复制/剪切/远端上传收尾、上传 GC、Docker 拉取/重建、常驻任务等）。
 service TaskManager {
-  // 列出全部任务（跨用户 + 系统任务）
+  // 列出任务（跨用户 + 系统任务），带状态统计与类型统计；列表项不带日志
   rpc ListTasks(ListTasksRequest) returns (ListTasksResponse) {
     option (google.api.http) = {
       get: "/api/v1/tasks"
     };
   }
-  // 获取单个任务
+  // 获取单个任务（带步骤与完整日志）
   rpc GetTask(GetTaskRequest) returns (GetTaskResponse) {
     option (google.api.http) = {
-      get: "/api/v1/task/{id}"
+      get: "/api/v1/tasks/{id}"
     };
   }
-  // 取消运行中的任务
-  rpc CancelTask(CancelTaskRequest) returns (CancelTaskResponse) {
+  // 取消若干运行中的任务（记录取消人）
+  rpc CancelTasks(TaskIdsRequest) returns (TaskBatchResponse) {
     option (google.api.http) = {
-      post: "/api/v1/task/cancel"
+      post: "/api/v1/tasks/cancel"
       body: "*"
     };
   }
-  // 重试失败的任务（按工厂重建重投）
-  rpc RetryTask(RetryTaskRequest) returns (RetryTaskResponse) {
+  // 重试若干已结束的任务（按工厂重建重投）
+  rpc RetryTasks(TaskIdsRequest) returns (TaskBatchResponse) {
     option (google.api.http) = {
-      post: "/api/v1/task/retry"
+      post: "/api/v1/tasks/retry"
       body: "*"
     };
   }
-  // 删除终态任务行（清理列表）
-  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse) {
+  // 删除若干已结束的任务记录
+  rpc DeleteTasks(TaskIdsRequest) returns (TaskBatchResponse) {
     option (google.api.http) = {
-      post: "/api/v1/task/delete"
+      post: "/api/v1/tasks/delete"
       body: "*"
     };
   }
-  // 批量清理终态任务行（成功/失败/已取消）
+  // 批量清理已结束的任务记录（成功/失败/已取消）
   rpc ClearTasks(ClearTasksRequest) returns (ClearTasksResponse) {
     option (google.api.http) = {
-      post: "/api/v1/task/clear"
+      post: "/api/v1/tasks/clear"
       body: "*"
     };
   }
@@ -73,10 +73,62 @@ enum TaskKind {
   TASK_KIND_DAEMON = 3;
 }
 
+// 任务触发方式
+enum TaskTrigger {
+  TASK_TRIGGER_UNKNOWN = 0;
+  // 用户在页面上手动发起
+  TASK_TRIGGER_MANUAL = 1;
+  // 按计划触发（定时单例）
+  TASK_TRIGGER_SCHEDULE = 2;
+  // 远程主控经 API Key 转发
+  TASK_TRIGGER_MASTER = 3;
+  // 系统内部发起
+  TASK_TRIGGER_SYSTEM = 4;
+}
+
+// 执行步骤状态
+enum TaskStepState {
+  TASK_STEP_STATE_UNKNOWN = 0;
+  TASK_STEP_STATE_WAITING = 1;
+  TASK_STEP_STATE_RUNNING = 2;
+  TASK_STEP_STATE_SUCCESS = 3;
+  TASK_STEP_STATE_FAILED = 4;
+  TASK_STEP_STATE_SKIPPED = 5;
+}
+
+// 日志级别
+enum TaskLogLevel {
+  TASK_LOG_LEVEL_INFO = 0;
+  TASK_LOG_LEVEL_SUCCESS = 1;
+  TASK_LOG_LEVEL_WARN = 2;
+  TASK_LOG_LEVEL_ERROR = 3;
+}
+
 // 单项执行结果
 message TaskResult {
   string path = 1;
   bool success = 2;
+  string message = 3;
+}
+
+// 执行步骤
+message TaskStep {
+  // 步骤标题
+  string title = 1;
+  // 步骤状态
+  TaskStepState state = 2;
+  // 步骤说明（进度、错误等）
+  string detail = 3;
+  // 开始时间
+  google.protobuf.Timestamp start_time = 4;
+  // 结束时间
+  google.protobuf.Timestamp end_time = 5;
+}
+
+// 一行任务日志
+message TaskLog {
+  google.protobuf.Timestamp time = 1;
+  TaskLogLevel level = 2;
   string message = 3;
 }
 
@@ -90,26 +142,50 @@ message TaskInfo {
   TaskKind kind = 3;
   // 展示标题
   string title = 4;
+  // 关联对象（镜像引用、容器/网络名、目标目录、文件名）
+  string target = 5;
+  // 发起入口（页面/模块键，如 docker.container、docker.image、file、instance.file）
+  string source = 6;
+  // 触发方式
+  TaskTrigger trigger = 7;
   // 发起用户id（空=系统任务）
-  string user_id = 5;
+  string user_id = 8;
   // 发起用户名（解析自 user_id）
-  string user_name = 6;
+  string user_name = 9;
+  // 远程主控侧操作者（主控转发时）
+  string operator = 10;
   // 任务状态
-  TaskStatus status = 7;
+  TaskStatus status = 11;
   // 总进度
-  int64 total = 8;
+  int64 total = 12;
   // 已完成进度
-  int64 finished = 9;
-  // 当前消息
-  string message = 10;
+  int64 finished = 13;
+  // 当前进度说明
+  string message = 14;
   // 错误信息
-  string error = 11;
+  string error = 15;
   // 执行结果明细
-  repeated TaskResult results = 12;
-  // 创建时间
-  google.protobuf.Timestamp create_time = 13;
+  repeated TaskResult results = 16;
+  // 执行步骤
+  repeated TaskStep steps = 17;
+  // 任务日志（仅 GetTask 返回）
+  repeated TaskLog logs = 18;
+  // 定时任务触发周期（毫秒）
+  int64 interval_ms = 19;
+  // 是否可重试（该类型注册了重建工厂）
+  bool retryable = 20;
+  // 取消人用户id
+  string canceled_by = 21;
+  // 取消人名称
+  string canceled_by_name = 22;
+  // 提交时间
+  google.protobuf.Timestamp create_time = 23;
+  // 开始执行时间
+  google.protobuf.Timestamp start_time = 24;
   // 结束时间
-  google.protobuf.Timestamp end_time = 14;
+  google.protobuf.Timestamp end_time = 25;
+  // 定时任务下次触发时间（等待下次执行时有值）
+  google.protobuf.Timestamp next_run_time = 26;
 }
 
 // 列出任务请求
@@ -118,13 +194,13 @@ message ListTasksRequest {
   int64 page = 1;
   // 每页数量
   int64 page_size = 2;
-  // 关键字（标题/类型）
+  // 关键字（标题/类型/关联对象）
   optional string keywords = 3;
-  // 按状态过滤
+  // 按状态过滤（pending/running/success/failed/canceled）
   optional string status = 4;
-  // 按类型过滤
+  // 按类型过滤（类型键前缀）
   optional string type = 5;
-  // 按种类过滤
+  // 按种类过滤（oneshot/scheduled/daemon）
   optional string kind = 6;
 }
 
@@ -156,6 +232,8 @@ message ListTasksResponse {
   TaskStatusCounts counts = 5;
   // 全部任务里出现过的类型（不受任何过滤影响），供类型筛选
   repeated TaskTypeCount types = 6;
+  // 已结束任务记录的保留天数（超过后由「任务记录清理」定时任务删除）
+  int32 retention_days = 7;
 }
 
 message GetTaskRequest {
@@ -166,25 +244,24 @@ message GetTaskResponse {
   TaskInfo task = 1;
 }
 
-message CancelTaskRequest {
+// 按 id 批量操作任务
+message TaskIdsRequest {
+  repeated string ids = 1;
+}
+
+// 批量操作中单个失败项
+message TaskBatchFailure {
   string id = 1;
+  string message = 2;
 }
 
-message CancelTaskResponse {}
-
-message RetryTaskRequest {
-  string id = 1;
+// 批量操作结果
+message TaskBatchResponse {
+  // 成功数
+  int64 succeeded = 1;
+  // 失败项
+  repeated TaskBatchFailure failures = 2;
 }
-
-message RetryTaskResponse {
-  TaskInfo task = 1;
-}
-
-message DeleteTaskRequest {
-  string id = 1;
-}
-
-message DeleteTaskResponse {}
 
 message ClearTasksRequest {
   // 只清理该终态（success/failed/canceled）；为空时清理全部终态任务

@@ -1,35 +1,40 @@
-<!-- 隧道统计：类型贴纸 + 路由 + 状态/客户端 → 时间范围分段 + 实时开关 + 刷新 → 指标格
-     → 流量速率曲线 + 活动连接柱 → 导出 CSV。速率由相邻采样的累计流量差分；ECharts 颜色取自当前配色。 -->
+<!-- 隧道统计（与端口转发统计同一套外壳）：PC 右侧抽屉 / 手机底部面板（ToolSheet）。
+     头部：类型贴纸 + 隧道名 + 类型标签 + 在线状态 + 本地 → 公网入口 + 客户端信息；时间范围分段 + 实时开关 + 刷新；
+     2×2 指标格；流量速率曲线 + 活动连接柱；采样说明 + 导出 CSV。速率由相邻采样的累计流量差分；ECharts 颜色取自当前配色。 -->
 <template>
-  <FormDialog
-    v-model="visible"
-    :title="dialogTitle"
-    :width="860"
-    :show-footer="false"
-    overflow-visible
-    @close="handleClosed"
-  >
-    <div class="tns">
-      <div class="tns-head">
-        <span class="m-sticker tns-head__sticker m-mono" :class="stickerClass">{{ typeLabel }}</span>
+  <ToolSheet v-model="visible" :label="dialogTitle" :width="520">
+    <template #default="{ close }">
+      <header class="tns-head">
+        <span class="m-sticker tns-head__sticker m-mono" :class="stickerClass">{{ typeKey }}</span>
         <div class="tns-head__text">
-          <div class="tns-head__route m-mono">
-            {{ localText }}
-            <component :is="menuStore.iconComponents['HOutline:ArrowRightIcon']" />
-            <b>{{ remoteText }}</b>
-          </div>
-          <div class="tns-head__meta">
+          <div class="tns-head__titlerow">
+            <h2 class="tns-head__name">{{ row?.name || t('tools.tunnel.stats.title') }}</h2>
             <StatusPill
               :variant="online ? 'success' : 'neutral'"
               :label="online ? t('tools.tunnel.stats.online') : t('tools.tunnel.stats.offline')"
             />
-            <span v-if="row?.client" class="tns-muted m-mono">
-              {{ row.client.hostname }} · {{ [row.client.os, row.client.arch].filter(Boolean).join('/') }} · frpc {{ row.client.version }}
-            </span>
-            <span v-else class="tns-muted">{{ t('tools.tunnel.statsDialog.noClient') }}</span>
-            <span v-if="lastText" class="tns-muted m-num">{{ lastText }}</span>
+          </div>
+          <div class="tns-head__route m-mono">
+            <span>{{ localText }}</span>
+            <component :is="menuStore.iconComponents['HOutline:ArrowRightIcon']" />
+            <span class="tns-head__target">{{ remoteText }}</span>
           </div>
         </div>
+        <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :box="44" @click="close" />
+      </header>
+
+      <div class="tns-client">
+        <span class="m-sticker tns-client__ico" :class="online ? 'm-sticker--ok' : 'm-sticker--a2'">
+          <component :is="menuStore.iconComponents['HOutline:ComputerDesktopIcon']" />
+        </span>
+        <span v-if="row?.client" class="tns-client__main">
+          <span class="tns-client__name m-mono">{{ row.client.hostname || '—' }}</span>
+          <span class="tns-muted">
+            {{ [row.client.os, row.client.arch].filter(Boolean).join(' / ') }}<template v-if="row.client.version"> · frpc {{ row.client.version }}</template>
+          </span>
+        </span>
+        <span v-else class="tns-client__main tns-muted">{{ t('tools.tunnel.statsDialog.noClient') }}</span>
+        <span v-if="lastText" class="tns-muted m-num tns-client__last">{{ lastText }}</span>
       </div>
 
       <div class="tns-toolbar">
@@ -46,31 +51,36 @@
           >{{ opt.label }}</button>
         </div>
         <span class="tns-spacer" />
-        <label class="tns-live">
+        <label class="tns-live" :class="{ 'is-on': autoRefresh }">
           <input v-model="autoRefresh" type="checkbox" @change="restartPolling" />
-          <span class="tns-live__dot" :class="{ 'is-on': autoRefresh }" />
+          <span class="tns-live__dot" />
           {{ t('tools.tunnel.statsDialog.live') }}
         </label>
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.tunnel.stats.refresh')" :box="36" :size="18" @click="refresh" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.tunnel.stats.refresh')" :box="isMobile ? 44 : 40" :size="18" @click="refresh" />
       </div>
 
       <div v-if="rangeKey === 'custom'" class="tns-custom">
         <template v-if="!isMobile">
-          <input
-            v-model="customStartLocal"
-            type="datetime-local"
-            class="app-input tns-dt"
-            :aria-label="t('tools.tunnel.stats.rangeStart')"
-            @change="onCustomChange"
-          />
-          <span class="tns-muted">{{ t('tools.tunnel.statsDialog.to') }}</span>
-          <input
-            v-model="customEndLocal"
-            type="datetime-local"
-            class="app-input tns-dt"
-            :aria-label="t('tools.tunnel.stats.rangeEnd')"
-            @change="onCustomChange"
-          />
+          <label class="tns-fld">
+            <component :is="menuStore.iconComponents['HOutline:CalendarIcon']" />
+            <input
+              v-model="customStartLocal"
+              type="datetime-local"
+              class="m-num"
+              :aria-label="t('tools.tunnel.stats.rangeStart')"
+              @change="onCustomChange"
+            />
+          </label>
+          <span class="tns-muted is-strong">{{ t('tools.tunnel.statsDialog.to') }}</span>
+          <label class="tns-fld">
+            <input
+              v-model="customEndLocal"
+              type="datetime-local"
+              class="m-num"
+              :aria-label="t('tools.tunnel.stats.rangeEnd')"
+              @change="onCustomChange"
+            />
+          </label>
         </template>
         <template v-else>
           <div class="tns-custom__row">
@@ -101,17 +111,15 @@
         </div>
         <div>
           <dt>{{ t('tools.tunnel.statsDialog.rangeTraffic') }}</dt>
-          <dd class="m-num">{{ formatBytes(rangeTraffic) }}</dd>
-        </div>
-        <div>
-          <dt>{{ t('tools.tunnel.statsDialog.todayTraffic') }}</dt>
-          <dd class="m-num">{{ formatBytes(snapshotIn + snapshotOut) }}<small> ↓{{ formatBytes(snapshotIn) }} ↑{{ formatBytes(snapshotOut) }}</small></dd>
+          <dd class="m-num">
+            {{ formatBytes(rangeTraffic) }}<small>{{ t('tools.tunnel.statsDialog.todayShort', { n: formatBytes(snapshotIn + snapshotOut) }) }}</small>
+          </dd>
         </div>
       </dl>
 
-      <section class="tns-card">
-        <div class="tns-card__head">
-          <span class="tns-card__title">{{ t('tools.tunnel.statsDialog.rateChart') }}</span>
+      <section class="tns-block">
+        <div class="tns-block__head">
+          <span class="tns-block__title">{{ t('tools.tunnel.statsDialog.rateChart') }}</span>
           <span class="tns-legend"><i class="is-in" />{{ t('tools.tunnel.stats.inbound') }}</span>
           <span class="tns-legend"><i class="is-out" />{{ t('tools.tunnel.stats.outbound') }}</span>
         </div>
@@ -121,25 +129,30 @@
         </div>
       </section>
 
-      <section class="tns-card">
-        <div class="tns-card__head">
-          <span class="tns-card__title">{{ t('tools.tunnel.statsDialog.connChart') }}</span>
-          <span class="tns-muted m-num">{{ t('tools.tunnel.statsDialog.peak', { n: connPeak }) }}</span>
+      <section class="tns-block">
+        <div class="tns-block__head">
+          <span class="tns-block__title">{{ t('tools.tunnel.statsDialog.connChart') }}</span>
+          <span class="tns-muted m-num is-strong">{{ t('tools.tunnel.statsDialog.peak', { n: connPeak }) }}</span>
         </div>
         <div class="tns-chart-wrap is-small">
           <div ref="connEl" class="tns-chart" />
         </div>
       </section>
 
-      <div class="tns-foot">
-        <span v-if="sampleSeconds" class="tns-muted">{{ t('tools.tunnel.statsDialog.sample', { sec: sampleSeconds }) }}</span>
-        <span class="tns-spacer" />
-        <UButton color="neutral" variant="soft" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
+      <footer class="tns-foot">
+        <span v-if="sampleSeconds" class="tns-muted tns-foot__sample">
+          <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" />
+          {{ t('tools.tunnel.statsDialog.sample', { sec: sampleSeconds }) }}
+        </span>
+        <UButton color="neutral" variant="outline" size="lg" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
           {{ t('tools.tunnel.statsDialog.exportCsv') }}
         </UButton>
-      </div>
-    </div>
-  </FormDialog>
+        <UButton v-if="isMobile" class="tns-foot__close" color="neutral" variant="soft" size="xl" @click="close">
+          {{ t('system.common.close') }}
+        </UButton>
+      </footer>
+    </template>
+  </ToolSheet>
 </template>
 
 <script setup lang="ts">
@@ -150,6 +163,7 @@ import { TunnelType, type TunnelInfo, type TunnelStatPoint } from '@/types/v1/tu
 import { showRequestError } from '@/utils/request'
 import { usePaletteColors, withAlpha } from '@/composables/usePaletteColors'
 import { formatBytes, formatRate, formatDateTime, formatAgo, toDate, downloadText } from '@/views/tools/components/format'
+import ToolSheet from '@/views/tools/components/ToolSheet.vue'
 
 type RangeKey = '5m' | '30m' | '1h' | '6h' | '24h' | 'custom'
 type ChartPoint = { ts: number; label: string; activeConnections: number; inboundRate: number; outboundRate: number; bytesIn: number; bytesOut: number }
@@ -160,7 +174,8 @@ const PRESET_SECONDS: Record<Exclude<RangeKey, 'custom'>, number> = {
   '5m': 300, '30m': 1800, '1h': 3600, '6h': 21600, '24h': 86400,
 }
 
-const props = defineProps<{ modelValue: boolean; row: TunnelInfo | null }>()
+// remote：列表页算好的公网入口（含 frps 地址 / 子域名），缺省时按隧道字段粗略拼接
+const props = defineProps<{ modelValue: boolean; row: TunnelInfo | null; remote?: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 const { t, locale } = useI18n()
 const menuStore = useMenuStore()
@@ -197,7 +212,6 @@ let connChart: echarts.ECharts | null = null
 let pollTimer: ReturnType<typeof setTimeout> | null = null
 
 const typeKey = computed(() => (props.row?.type || TunnelType.TUNNEL_TYPE_TCP).replace('TUNNEL_TYPE_', '').toLowerCase())
-const typeLabel = computed(() => typeKey.value.toUpperCase())
 const stickerClass = computed(() => {
   if (typeKey.value === 'udp') return 'm-sticker--a'
   if (typeKey.value === 'http') return 'm-sticker--p'
@@ -208,6 +222,7 @@ const localText = computed(() => `${props.row?.localIp || '127.0.0.1'}:${props.r
 const remoteText = computed(() => {
   const row = props.row
   if (!row) return ''
+  if (props.remote) return props.remote
   if (row.type === TunnelType.TUNNEL_TYPE_HTTP || row.type === TunnelType.TUNNEL_TYPE_HTTPS) {
     return row.customDomains || row.subdomain || '—'
   }
@@ -370,6 +385,8 @@ const updateCharts = (animate = false) => {
       type: 'value',
       min: 0,
       splitNumber: 3,
+      // 速率很小时避免小数刻度被格式化成重复的「1 B/s」
+      minInterval: 1,
       splitLine: { lineStyle: { color: c.line, type: 'dashed' } },
       axisLabel: { color: c.ink2, fontSize: 11, formatter: (v: number) => formatRate(v, '0') },
     },
@@ -392,7 +409,7 @@ const updateCharts = (animate = false) => {
         showSymbol,
         symbolSize: 6,
         data: points.value.map((p) => p.outboundRate),
-        lineStyle: { width: 2, color: c.a2, type: 'dashed' },
+        lineStyle: { width: 2.5, color: c.a2 },
         itemStyle: { color: c.a2 },
       },
     ],
@@ -400,8 +417,9 @@ const updateCharts = (animate = false) => {
   connChart?.setOption({
     ...base,
     animation: animate,
-    xAxis: { ...base.xAxis, boundaryGap: true },
-    grid: { top: 8, left: 8, right: 22, bottom: 4, containLabel: true },
+    // 连接柱只看形状：横轴时间与上方速率曲线一致，这里不再重复标注
+    xAxis: { ...base.xAxis, boundaryGap: true, axisLabel: { show: false } },
+    grid: { top: 6, left: 8, right: 22, bottom: 2, containLabel: true },
     yAxis: {
       type: 'value',
       min: 0,
@@ -416,7 +434,7 @@ const updateCharts = (animate = false) => {
         type: 'bar',
         barMaxWidth: 14,
         data: points.value.map((p) => p.activeConnections),
-        itemStyle: { color: c.a, borderRadius: [4, 4, 0, 0] },
+        itemStyle: { color: c.a2, borderRadius: [4, 4, 0, 0] },
       },
     ],
   }, { notMerge: true })
@@ -516,36 +534,81 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.tns { display: flex; flex-direction: column; gap: 14px; }
 .tns-muted { font-size: 0.75rem; color: var(--el-text-color-secondary); }
-.tns-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tns-muted.is-strong { font-weight: 700; }
+
+/* 头部 */
+.tns-head { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
 .tns-head__sticker {
   width: 48px;
   height: 48px;
   flex: none;
   border-radius: 16px;
   font-size: 0.75rem;
-  transform: rotate(-5deg);
+  font-weight: 800;
+  transform: rotate(-4deg);
 }
-.tns-head__text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.tns-head__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
+.tns-head__titlerow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.tns-head__name {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--app-font-display);
+  font-size: 1.3125rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .tns-head__route {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 6px;
-  font-size: 0.875rem;
-  color: var(--el-text-color-regular);
-  b { color: var(--el-text-color-primary); }
-  :deep(svg) { width: 14px; height: 14px; color: var(--m-pInk); }
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  > span:first-child { flex: none; }
+  :deep(svg) { width: 14px; height: 14px; flex: none; color: var(--m-pInk); }
 }
-.tns-head__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.tns-head__target { color: var(--el-text-color-primary); font-weight: 700; }
 
+/* 客户端 */
+.tns-client {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+}
+.tns-client__ico {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 11px;
+  :deep(svg) { width: 18px; height: 18px; }
+}
+.tns-client__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tns-client__name {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tns-client__last { white-space: nowrap; }
+
+/* 时间范围 */
 .tns-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .tns-spacer { flex: 1; }
 .tns-seg {
   display: inline-flex;
   gap: 2px;
-  padding: 3px;
+  padding: 4px;
   max-width: 100%;
   border-radius: 999px;
   background: var(--el-fill-color-light);
@@ -556,7 +619,7 @@ onBeforeUnmount(() => {
 .tns-seg__btn {
   flex: none;
   min-height: 34px;
-  padding: 0 12px;
+  padding: 0 11px;
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -572,19 +635,46 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 4px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--el-text-color-secondary);
   cursor: pointer;
   user-select: none;
   input { position: absolute; opacity: 0; pointer-events: none; }
 }
+.tns-live.is-on { color: var(--m-ok); }
 .tns-live__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--el-border-color-light); }
-.tns-live__dot.is-on { background: var(--m-ok); box-shadow: 0 0 0 4px var(--m-okSoft); }
+.tns-live.is-on .tns-live__dot { background: var(--m-ok); box-shadow: 0 0 0 4px var(--m-okSoft); }
+.tns-live:focus-within { outline: 3px solid var(--m-a2); outline-offset: 2px; border-radius: 8px; }
 .tns-custom { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.tns-dt { width: 12rem; height: 38px; font-variant-numeric: tabular-nums; }
+.tns-fld {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--el-fill-color-light);
+  border: 1.5px solid transparent;
+  color: var(--el-text-color-secondary);
+  :deep(svg) { width: 16px; height: 16px; flex: none; }
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+    outline: none;
+  }
+}
+.tns-fld:focus-within { border-color: var(--m-p); }
 .tns-custom__row {
   display: grid;
   grid-template-columns: 4rem 1fr 6rem;
@@ -592,53 +682,50 @@ onBeforeUnmount(() => {
   align-items: center;
   width: 100%;
   span { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); }
-  .app-input { min-width: 0; height: 40px; }
+  .app-input { min-width: 0; height: 44px; }
 }
 
+/* 指标格 */
 .tns-stats {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
   > div { min-width: 0; padding: 12px 14px; border-radius: var(--app-radius); background: var(--el-fill-color-light); }
-  dt { font-size: 0.72rem; font-weight: 700; color: var(--el-text-color-secondary); white-space: nowrap; }
+  dt { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); white-space: nowrap; }
   dd {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 8px;
     margin: 4px 0 0;
+    min-width: 0;
     font-family: var(--app-font-display);
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     font-weight: 800;
     color: var(--el-text-color-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    small { display: block; font-family: inherit; font-size: 0.6875rem; font-weight: 600; color: var(--el-text-color-secondary); }
+    small { font-family: inherit; font-size: 0.75rem; font-weight: 600; color: var(--el-text-color-secondary); }
   }
   dd.is-p { color: var(--m-pInk); }
 }
 
-.tns-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px 16px;
-  border-radius: var(--app-radius-lg);
-  border: 1px solid var(--el-border-color-lighter);
-}
-.tns-card__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.tns-card__title { flex: 1; font-size: 0.875rem; font-weight: 800; color: var(--el-text-color-primary); }
+/* 图表 */
+.tns-block { display: flex; flex-direction: column; gap: 8px; }
+.tns-block__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 32px; }
+.tns-block__title { flex: 1; font-size: 0.9375rem; font-weight: 800; color: var(--el-text-color-primary); }
 .tns-legend {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--el-text-color-secondary);
-  i { width: 14px; height: 3px; border-radius: 2px; }
+  i { width: 10px; height: 10px; border-radius: 3px; }
   i.is-in { background: var(--m-p); }
   i.is-out { background: var(--m-a2); }
 }
-.tns-chart-wrap { position: relative; height: 200px; }
-.tns-chart-wrap.is-small { height: 110px; }
+.tns-chart-wrap { position: relative; height: 180px; }
+.tns-chart-wrap.is-small { height: 92px; }
 .tns-chart { width: 100%; height: 100%; }
 .tns-empty {
   position: absolute;
@@ -649,15 +736,32 @@ onBeforeUnmount(() => {
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
-.tns-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.tns-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+.tns-foot__sample {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  :deep(svg) { width: 16px; height: 16px; flex: none; }
+}
 
 @media (width <= 768px) {
-  .tns-stats { grid-template-columns: 1fr 1fr; }
-  .tns-stats > div:last-child { grid-column: 1 / -1; }
+  .tns-head { align-items: center; }
+  .tns-head__sticker { width: 46px; height: 46px; border-radius: 15px; }
+  .tns-head__name { font-size: 1.125rem; }
+  .tns-head__route { font-size: 0.72rem; }
   .tns-spacer { display: none; }
+  .tns-toolbar { justify-content: space-between; }
   .tns-seg { width: 100%; }
-  .tns-seg__btn { flex: 1; padding: 0 8px; }
-  .tns-chart-wrap { height: 170px; }
+  .tns-seg__btn { flex: 1; min-height: 44px; padding: 0 6px; }
+  .tns-stats { gap: 8px; }
+  .tns-stats > div { padding: 10px 12px; }
+  .tns-stats dd { font-size: 1.1875rem; }
+  .tns-chart-wrap { height: 150px; }
+  .tns-foot__sample { flex-basis: 100%; }
   .tns-foot > :deep(button) { flex: 1; justify-content: center; }
+  .tns-foot__close { min-height: 52px; }
 }
 </style>

@@ -55,12 +55,18 @@ export interface ListAPIKeysRequest {
   page: number;
   /** page size */
   pageSize: number;
-  /** 名称关键字 */
+  /** 关键字：名称 / 备注 / Key ID 前缀；查看全部用户时还匹配所属用户 */
   keywords?:
     | string
     | undefined;
   /** 按有效状态筛选；不传表示全部 */
-  status?: APIKeyStatus | undefined;
+  status?:
+    | APIKeyStatus
+    | undefined;
+  /** 查看全部用户的 API Key（需要 api_key:manage）；为 false 只列出自己的 */
+  allUsers: boolean;
+  /** 按所属用户筛选（仅 all_users 时有效） */
+  ownerId?: string | undefined;
 }
 
 export interface ListAPIKeysResponse {
@@ -78,6 +84,26 @@ export interface ListAPIKeysResponse {
   expiringCount: number;
   /** 已过期数量 */
   expiredCount: number;
+  /** 所属用户及其密钥数（仅 all_users 时返回，用于「所属用户」筛选） */
+  owners: APIKeyOwnerStat[];
+}
+
+/** API Key 所属用户 */
+export interface APIKeyOwner {
+  /** 用户 id */
+  userId: string;
+  /** 昵称 */
+  name: string;
+  /** 用户名 */
+  username: string;
+  /** 头像 */
+  avatar: string;
+}
+
+/** 所属用户的密钥数 */
+export interface APIKeyOwnerStat {
+  owner: APIKeyOwner | undefined;
+  count: number;
 }
 
 export interface CopyAPIKeyRequest {
@@ -175,6 +201,12 @@ export interface APIKeyInfo {
   lastUsedIp: string;
   /** 有效状态 */
   status: APIKeyStatus;
+  /** 所属用户 */
+  owner:
+    | APIKeyOwner
+    | undefined;
+  /** 是否当前用户自己的密钥（只有自己的密钥可以复制完整密钥与刷新） */
+  mine: boolean;
 }
 
 /** 节点自报信息（由节点 NodeAgent.AgentInfo 返回） */

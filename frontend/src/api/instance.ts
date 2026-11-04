@@ -18,6 +18,9 @@ import type {
   GetInstanceTypesResponse,
   GetInstanceStatsRequest,
   GetInstanceStatsResponse,
+  GetInstanceTagsResponse,
+  GetInstanceEventsRequest,
+  GetInstanceEventsResponse,
   RestartInstanceRequest,
   RestartInstanceResponse,
   StartInstanceRequest,
@@ -75,6 +78,18 @@ export const getInstanceTypes = (params: GetInstanceTypesRequest = {}) => {
 
 export const getInstanceStatsRequest = (params: GetInstanceStatsRequest) => {
   return request.get<GetInstanceStatsResponse>(`/instance/stats/${params.id}`)
+}
+
+// 全部应用用过的标签（按使用次数倒序），用于编辑器的「常用标签」
+export const getInstanceTagsRequest = () => {
+  return request.get<GetInstanceTagsResponse>('/instance/tags')
+}
+
+// 应用最近事件：操作记录 + 进程退出 / 自动重启 + 创建
+export const getInstanceEventsRequest = (params: GetInstanceEventsRequest) => {
+  return request.get<GetInstanceEventsResponse>(`/instance/events/${params.id}`, {
+    params: { limit: params.limit },
+  })
 }
 
 export const createInstanceType = (data: CreateInstanceTypeRequest) => {

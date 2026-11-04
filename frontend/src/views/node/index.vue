@@ -2,3 +2,7 @@
 <template>
   <PageGroupHost group="node" />
 </template>
+
+<script setup lang="ts">
+defineOptions({ name: 'NodeGroupView' })
+</script>

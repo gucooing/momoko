@@ -43,6 +43,10 @@ type FileSource struct {
 	LastTestMessage string `json:"last_test_message,omitempty"`
 	// 最近一次测试时间
 	LastTestTime *time.Time `json:"last_test_time,omitempty"`
+	// 最近一次测试得到的已用空间(字节)，0=未知
+	LastTestUsedBytes uint64 `json:"last_test_used_bytes,omitempty"`
+	// 最近一次测试得到的总容量(字节)，0=未知或不限
+	LastTestTotalBytes uint64 `json:"last_test_total_bytes,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileSourceQuery when eager-loading is set.
 	Edges        FileSourceEdges `json:"edges"`
@@ -76,7 +80,7 @@ func (*FileSource) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case filesource.FieldEnabled, filesource.FieldRedirect302, filesource.FieldLastTestOk:
 			values[i] = new(sql.NullBool)
-		case filesource.FieldLastTestLatencyMs:
+		case filesource.FieldLastTestLatencyMs, filesource.FieldLastTestUsedBytes, filesource.FieldLastTestTotalBytes:
 			values[i] = new(sql.NullInt64)
 		case filesource.FieldID, filesource.FieldName, filesource.FieldType, filesource.FieldConfig, filesource.FieldUserID, filesource.FieldLastTestMessage:
 			values[i] = new(sql.NullString)
@@ -176,6 +180,18 @@ func (_m *FileSource) assignValues(columns []string, values []any) error {
 				_m.LastTestTime = new(time.Time)
 				*_m.LastTestTime = value.Time
 			}
+		case filesource.FieldLastTestUsedBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_used_bytes", values[i])
+			} else if value.Valid {
+				_m.LastTestUsedBytes = uint64(value.Int64)
+			}
+		case filesource.FieldLastTestTotalBytes:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field last_test_total_bytes", values[i])
+			} else if value.Valid {
+				_m.LastTestTotalBytes = uint64(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -254,6 +270,12 @@ func (_m *FileSource) String() string {
 		builder.WriteString("last_test_time=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("last_test_used_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LastTestUsedBytes))
+	builder.WriteString(", ")
+	builder.WriteString("last_test_total_bytes=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LastTestTotalBytes))
 	builder.WriteByte(')')
 	return builder.String()
 }

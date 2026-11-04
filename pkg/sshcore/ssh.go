@@ -2,6 +2,8 @@ package sshcore
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
@@ -23,6 +26,8 @@ const (
 	defaultCols        = 120
 	defaultRows        = 32
 	wsPingInterval     = 20 * time.Second
+	// latencyInterval 终端会话中测量 momoko → SSH 服务端往返延迟的间隔。
+	latencyInterval = 5 * time.Second
 )
 
 type Config struct {
@@ -44,6 +49,43 @@ type wsControl struct {
 	Type string `json:"type"`
 	Cols int    `json:"cols"`
 	Rows int    `json:"rows"`
+}
+
+// ServerControl 是服务端发往浏览器的控制帧（以 WebSocket 二进制帧发送，终端输出始终是文本帧）。
+//   - {"type":"latency","ms":42}：momoko 到 SSH 服务端的往返延迟（keepalive 请求测得）
+type ServerControl struct {
+	Type string `json:"type"`
+	Ms   int64  `json:"ms,omitempty"`
+}
+
+// KeyType 解析私钥并返回简短的算法描述（ed25519、rsa-4096、ecdsa-256 …）；解析失败返回空串。
+func KeyType(privateKey, passphrase string) string {
+	if strings.TrimSpace(privateKey) == "" {
+		return ""
+	}
+	var (
+		raw any
+		err error
+	)
+	if passphrase == "" {
+		raw, err = ssh.ParseRawPrivateKey([]byte(privateKey))
+	} else {
+		raw, err = ssh.ParseRawPrivateKeyWithPassphrase([]byte(privateKey), []byte(passphrase))
+	}
+	if err != nil {
+		return ""
+	}
+	switch k := raw.(type) {
+	case *rsa.PrivateKey:
+		return fmt.Sprintf("rsa-%d", k.N.BitLen())
+	case *ecdsa.PrivateKey:
+		return fmt.Sprintf("ecdsa-%d", k.Curve.Params().BitSize)
+	}
+	signer, err := ssh.NewSignerFromKey(raw)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimPrefix(signer.PublicKey().Type(), "ssh-")
 }
 
 func Test(ctx context.Context, cfg Config) (*TestResult, error) {
@@ -118,6 +160,15 @@ func ServeWebSocket(conn *websocket.Conn, cfg Config) error {
 		defer sendMu.Unlock()
 		return websocket.Message.Send(conn, text)
 	}
+	sendControl := func(control ServerControl) error {
+		payload, err := json.Marshal(control)
+		if err != nil {
+			return err
+		}
+		sendMu.Lock()
+		defer sendMu.Unlock()
+		return websocket.Message.Send(conn, payload)
+	}
 	sendPing := func() error {
 		sendMu.Lock()
 		defer sendMu.Unlock()
@@ -144,13 +195,23 @@ func ServeWebSocket(conn *websocket.Conn, cfg Config) error {
 
 	copyOutput := func(r io.Reader) {
 		buf := make([]byte, 4096)
+		pending := 0 // 上一次读到末尾、尚不完整的 UTF-8 字节数（已移到 buf 开头）
 		for {
-			n, err := r.Read(buf)
+			n, err := r.Read(buf[pending:])
+			n += pending
 			if n > 0 {
-				if sendErr := sendText(string(buf[:n])); sendErr != nil {
-					closeDone()
-					return
+				// 文本帧必须是合法 UTF-8：被缓冲区截断的多字节字符留到下一次一起发送
+				cut := utf8Boundary(buf[:n])
+				if err != nil {
+					cut = n
 				}
+				if cut > 0 {
+					if sendErr := sendText(string(buf[:cut])); sendErr != nil {
+						closeDone()
+						return
+					}
+				}
+				pending = copy(buf, buf[cut:n])
 			}
 			if err != nil {
 				return
@@ -169,6 +230,28 @@ func ServeWebSocket(conn *websocket.Conn, cfg Config) error {
 			_ = sendText("\r\n[SSH] 会话已结束\r\n")
 		}
 		closeDone()
+	}()
+
+	go func() {
+		measure := func() {
+			started := time.Now()
+			// keepalive 请求：OpenSSH 等服务端会回复（成功或失败均可），往返即为延迟
+			if _, _, err := client.SendRequest("keepalive@openssh.com", true, nil); err != nil {
+				return
+			}
+			_ = sendControl(ServerControl{Type: "latency", Ms: max(time.Since(started).Milliseconds(), 1)})
+		}
+		measure()
+		ticker := time.NewTicker(latencyInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				measure()
+			}
+		}
 	}()
 
 	go func() {
@@ -276,6 +359,24 @@ func hostKeyCallback(expected string, capture func(string)) ssh.HostKeyCallback 
 		}
 		return fmt.Errorf("ssh host fingerprint mismatch")
 	}
+}
+
+// utf8Boundary 返回 b 中最后一个完整 UTF-8 字符之后的位置（末尾最多 3 个字节可能是被截断的字符）。
+func utf8Boundary(b []byte) int {
+	n := len(b)
+	for i := 1; i <= utf8.UTFMax-1 && i <= n; i++ {
+		c := b[n-i]
+		if c < 0x80 {
+			return n // ASCII：此前都完整
+		}
+		if utf8.RuneStart(c) {
+			if utf8.FullRune(b[n-i:]) {
+				return n
+			}
+			return n - i
+		}
+	}
+	return n
 }
 
 func parseResize(input string) (wsControl, bool) {

@@ -45,7 +45,7 @@ type IQCheckManagerHTTPServer interface {
 	ListIQCheckPrompts(context.Context, *ListIQCheckPromptsRequest) (*ListIQCheckPromptsResponse, error)
 	// ListIQCheckSites 获取检测站点列表
 	ListIQCheckSites(context.Context, *ListIQCheckSitesRequest) (*ListIQCheckSitesResponse, error)
-	// TriggerIQCheck 立即对站点勾选的全部模型执行一轮检测
+	// TriggerIQCheck 立即执行一轮检测：把全部启用的提示词逐个发给站点勾选的每个模型
 	TriggerIQCheck(context.Context, *TriggerIQCheckRequest) (*TriggerIQCheckResponse, error)
 	// UpdateIQCheckPrompt 更新检测提示词
 	UpdateIQCheckPrompt(context.Context, *UpdateIQCheckPromptRequest) (*UpdateIQCheckPromptResponse, error)
@@ -305,7 +305,7 @@ type IQCheckManagerHTTPClient interface {
 	ListIQCheckPrompts(ctx context.Context, req *ListIQCheckPromptsRequest, opts ...http.CallOption) (rsp *ListIQCheckPromptsResponse, err error)
 	// ListIQCheckSites 获取检测站点列表
 	ListIQCheckSites(ctx context.Context, req *ListIQCheckSitesRequest, opts ...http.CallOption) (rsp *ListIQCheckSitesResponse, err error)
-	// TriggerIQCheck 立即对站点勾选的全部模型执行一轮检测
+	// TriggerIQCheck 立即执行一轮检测：把全部启用的提示词逐个发给站点勾选的每个模型
 	TriggerIQCheck(ctx context.Context, req *TriggerIQCheckRequest, opts ...http.CallOption) (rsp *TriggerIQCheckResponse, err error)
 	// UpdateIQCheckPrompt 更新检测提示词
 	UpdateIQCheckPrompt(ctx context.Context, req *UpdateIQCheckPromptRequest, opts ...http.CallOption) (rsp *UpdateIQCheckPromptResponse, err error)
@@ -419,7 +419,7 @@ func (c *IQCheckManagerHTTPClientImpl) ListIQCheckSites(ctx context.Context, in 
 	return &out, nil
 }
 
-// TriggerIQCheck 立即对站点勾选的全部模型执行一轮检测
+// TriggerIQCheck 立即执行一轮检测：把全部启用的提示词逐个发给站点勾选的每个模型
 func (c *IQCheckManagerHTTPClientImpl) TriggerIQCheck(ctx context.Context, in *TriggerIQCheckRequest, opts ...http.CallOption) (*TriggerIQCheckResponse, error) {
 	var out TriggerIQCheckResponse
 	pattern := "/api/v1/iqcheck/sites/{id}/check"

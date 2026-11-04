@@ -1,7 +1,7 @@
 <!-- 菜单（第二期改版）：组标题 + 计数说明（目录/菜单/按钮）+ AccessSubNav；类型 chips（带数量）+ 状态分段 + 搜索
      （名称/路由/权限标识）；全部展开/收起 + 类型图例；PC 树表（缩进 + 展开箭头 + 贴纸图标、类型、路由、权限标识、排序、
-     启用开关、新增子项/编辑/删除），手机树形列表 + 底部操作抽屉。系统内置菜单可编辑不可删。
-     保留 adminPermissionsList/adminDeletePermissions/adminEditPermissions 接口与 PERM 权限。 -->
+     「显示」开关（只从侧边栏隐藏，页面与权限仍有效）、新增子项/编辑/启停/删除），手机树形列表（显示开关 + ⋯）+ 底部操作抽屉
+     （新增子项/编辑/调整排序/启停/删除）+ 右下悬浮新增。系统内置菜单可编辑不可删。 -->
 <template>
   <div class="mn-page">
     <PageHeader :title="t('access.nav.access')">
@@ -11,8 +11,8 @@
           <span class="mn-dot">·</span>{{ t('accessAdmin.menu.summaryTail') }}
         </template>
       </template>
-      <template #actions>
-        <UButton v-permission="[PERM.MENU_ADD]" color="primary" icon="i-lucide-plus" @click="openCreate()">
+      <template v-if="canAdd && !menuStore.isMobile" #actions>
+        <UButton color="primary" icon="i-lucide-plus" @click="openCreate()">
           {{ t('system.menu.addMenu') }}
         </UButton>
       </template>
@@ -54,6 +54,11 @@
         <span class="mn-ty is-menu">{{ t('system.common.menu') }}</span>{{ t('access.menu.legendMenu') }}
         <span class="mn-ty is-btn">{{ t('system.common.button') }}</span>{{ t('access.menu.legendBtn') }}
       </div>
+      <div v-else class="mn-legend is-compact" aria-hidden="true">
+        <span class="mn-ty is-dir">{{ t('system.common.directory') }}</span>
+        <span class="mn-ty is-menu">{{ t('system.common.menu') }}</span>
+        <span class="mn-ty is-btn">{{ t('system.common.button') }}</span>
+      </div>
     </div>
 
     <!-- PC：树表 -->
@@ -91,6 +96,7 @@
             {{ row.label }}
           </span>
           <span v-if="!row.active" class="mn-note">· {{ t('accessAdmin.menu.disabledNote') }}</span>
+          <span v-else-if="row.hidden" class="mn-note">· {{ t('accessV2.menu.hiddenNote') }}</span>
           <span v-if="row.hasKids && !row.open" class="mn-kids tnum">{{ row.kidsCount }}</span>
         </div>
       </template>
@@ -106,13 +112,15 @@
       <template #cell-order="{ row }">
         <span class="m-num mn-order">{{ row.order }}</span>
       </template>
-      <template #cell-status="{ row }">
+      <template #cell-visible="{ row }">
         <AppSwitch
-          :model-value="!!row.active"
+          v-if="row.type !== MenuType.MenuType_Button"
+          :model-value="!row.hidden"
           :disabled="!canEdit || busyId === row.id"
-          :aria-label="t('accessAdmin.menu.toggleStatus', { name: row.label })"
-          @update:model-value="(v) => setStatus(asRow(row), v)"
+          :aria-label="t('accessV2.menu.toggleVisible', { name: row.label })"
+          @update:model-value="(v) => setVisible(asRow(row), v)"
         />
+        <span v-else class="mn-mono is-dim">—</span>
       </template>
       <template #cell-operation="{ row }">
         <div class="mn-acts">
@@ -129,10 +137,20 @@
           <AppIconButton
             v-if="canEdit"
             icon="HOutline:PencilSquareIcon"
-            :label="t('system.common.edit')"
+            :label="`${t('system.common.edit')} ${row.label}`"
             :box="36"
             :size="18"
             @click="openCreate(String(row.id))"
+          />
+          <AppIconButton
+            v-if="canEdit"
+            :icon="row.active ? 'HOutline:NoSymbolIcon' : 'HOutline:CheckCircleIcon'"
+            :label="t('accessAdmin.menu.toggleStatus', { name: row.label })"
+            :box="36"
+            :size="18"
+            :class="row.active ? 'is-stop' : 'is-start'"
+            :disabled="busyId === row.id"
+            @click="setStatus(asRow(row), !row.active)"
           />
           <AppIconButton
             v-if="canDelete"
@@ -184,21 +202,29 @@
               <component :is="menuStore.iconComponents[iconOf(row)]" />
             </span>
             <span class="mn-tr__text">
-              <span class="mn-tr__title" :class="{ 'is-off': !row.active }">
-                {{ row.label }}
+              <span class="mn-tr__title" :class="{ 'is-off': !row.active || row.hidden }">
+                <span class="mn-tr__label">{{ row.label }}</span>
+                <span class="mn-ty mn-ty--xs" :class="typeCls(row.type)">{{ typeLabel(row.type) }}</span>
                 <span v-if="row.hasKids && !row.open" class="mn-kids tnum">{{ row.kidsCount }}</span>
               </span>
               <span class="mn-tr__sub">
-                <span class="mn-ty mn-ty--xs" :class="typeCls(row.type)">{{ typeLabel(row.type) }}</span>
+                <span v-if="!row.active" class="mn-tr__flag">{{ t('accessAdmin.menu.disabledNote') }}</span>
                 <span class="m-mono">{{ row.path || row.permissions || t('accessAdmin.menu.noPath') }}</span>
               </span>
             </span>
           </button>
           <AppSwitch
-            :model-value="row.active"
+            v-if="row.type !== MenuType.MenuType_Button"
+            :model-value="!row.hidden"
             :disabled="!canEdit || busyId === row.id"
-            :aria-label="t('accessAdmin.menu.toggleStatus', { name: row.label })"
-            @update:model-value="(v) => setStatus(row, v)"
+            :aria-label="t('accessV2.menu.toggleVisible', { name: row.label })"
+            @update:model-value="(v) => setVisible(row, v)"
+          />
+          <AppIconButton
+            icon="HOutline:EllipsisHorizontalIcon"
+            :box="44"
+            :label="t('accessAdmin.menu.actions', { name: row.label })"
+            @click="openSheet(row)"
           />
         </div>
       </div>
@@ -206,8 +232,19 @@
 
     <p class="mn-tip">
       <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" />
-      <span>{{ t('accessAdmin.menu.footTip') }}</span>
+      <span>{{ menuStore.isMobile ? t('accessV2.menu.footTipShort') : t('accessV2.menu.footTip') }}</span>
     </p>
+
+    <!-- 手机：悬浮新增 -->
+    <button
+      v-if="menuStore.isMobile && canAdd"
+      type="button"
+      class="mn-fab"
+      :aria-label="t('system.menu.addMenu')"
+      @click="openCreate()"
+    >
+      <component :is="menuStore.iconComponents['HOutline:PlusIcon']" />
+    </button>
 
     <!-- 手机：操作抽屉 -->
     <FormDialog
@@ -221,10 +258,16 @@
           <span class="m-sticker mn-ico mn-ico--lg" :class="stickerCls(sheetRow)">
             <component :is="menuStore.iconComponents[iconOf(sheetRow)]" />
           </span>
-          <span class="mn-ty" :class="typeCls(sheetRow.type)">{{ typeLabel(sheetRow.type) }}</span>
+          <span class="mn-sheet__title">
+            <span class="mn-sheet__name">
+              {{ sheetRow.label }}
+              <span class="mn-ty" :class="typeCls(sheetRow.type)">{{ typeLabel(sheetRow.type) }}</span>
+            </span>
+            <span class="m-mono mn-sheet__sub">{{ sheetRow.path || sheetRow.permissions || t('accessAdmin.menu.noPath') }}</span>
+          </span>
           <StatusPill
-            :variant="sheetRow.active ? 'success' : 'neutral'"
-            :label="sheetRow.active ? t('system.common.enabled') : t('system.common.disabled')"
+            :variant="sheetRow.active ? (sheetRow.hidden ? 'neutral' : 'success') : 'neutral'"
+            :label="!sheetRow.active ? t('system.common.disabled') : sheetRow.hidden ? t('accessV2.menu.hiddenNote') : t('system.common.enabled')"
           />
         </div>
         <dl class="mn-dl">
@@ -248,6 +291,13 @@
           <button v-if="canEdit" type="button" class="mn-sheet__act" @click="sheetDo('edit')">
             <component :is="menuStore.iconComponents['HOutline:PencilSquareIcon']" />{{ t('system.common.edit') }}
           </button>
+          <button v-if="canEdit && !sheetRow.isSystem" type="button" class="mn-sheet__act" @click="sheetDo('order')">
+            <component :is="menuStore.iconComponents['HOutline:ArrowsUpDownIcon']" />{{ t('accessV2.menu.adjustOrder') }}
+          </button>
+          <button v-if="canEdit" type="button" class="mn-sheet__act" @click="sheetDo('status')">
+            <component :is="menuStore.iconComponents[sheetRow.active ? 'HOutline:NoSymbolIcon' : 'HOutline:CheckCircleIcon']" />
+            {{ sheetRow.active ? t('accessV2.menu.disable') : t('accessV2.menu.enable') }}
+          </button>
           <button
             v-if="canDelete"
             type="button"
@@ -265,6 +315,25 @@
       </div>
     </FormDialog>
 
+    <!-- 调整排序 -->
+    <FormDialog
+      v-model="orderOpen"
+      :title="t('accessV2.menu.orderTitle', { name: orderRow?.label || '' })"
+      :width="420"
+      :loading="!!busyId"
+      @confirm="submitOrder"
+    >
+      <div class="mn-order-form">
+        <label class="app-label" for="mn-order-input">{{ t('system.common.sort') }}</label>
+        <div class="mn-order-form__row">
+          <AppIconButton icon="HOutline:MinusIcon" :box="44" :label="t('accessV2.menu.orderUp')" @click="orderValue = Math.max(0, orderValue - 1)" />
+          <input id="mn-order-input" v-model.number="orderValue" type="number" min="0" max="999" class="app-input m-num" />
+          <AppIconButton icon="HOutline:PlusIcon" :box="44" :label="t('accessV2.menu.orderDown')" @click="orderValue = Math.min(999, orderValue + 1)" />
+        </div>
+        <p class="mn-order-form__hint">{{ t('accessV2.menu.orderHint') }}</p>
+      </div>
+    </FormDialog>
+
     <MenuCreate ref="menuCreateRef" @refresh="refresh" />
   </div>
 </template>
@@ -274,6 +343,7 @@ import { useI18n } from 'vue-i18n'
 import { adminPermissionsList, adminDeletePermissions, adminEditPermissions } from '@/api/menu'
 import { PERM } from '@/config/permission'
 import { Dialog } from '@/utils/dialog'
+import type { AdminEditPermissionsRequest } from '@/types/v1/system'
 import { translateKnownText } from '@/locales'
 import { MenuType, MenuStatus, type MenuInfo } from '@/types/v1/system'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
@@ -298,6 +368,7 @@ interface Row {
   icon: string
   order: number
   active: boolean
+  hidden: boolean
   isSystem: boolean
   depth: number
   hasKids: boolean
@@ -359,8 +430,8 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'path', title: t('system.common.menuPath'), minWidth: 170 },
   { key: 'permissions', title: t('system.menu.permissions'), minWidth: 160 },
   { key: 'order', title: t('system.common.sort'), width: 70, align: 'center' },
-  { key: 'status', title: t('system.common.status'), width: 80 },
-  { key: 'operation', title: t('system.common.operation'), width: 140, align: 'right' },
+  { key: 'visible', title: t('accessV2.menu.colVisible'), width: 80 },
+  { key: 'operation', title: t('system.common.operation'), width: 180, align: 'right' },
 ])
 
 const filtering = computed(() => !!(keyword.value.trim() || typeFilter.value || statusFilter.value))
@@ -394,6 +465,7 @@ const visibleRows = computed<Row[]>(() => {
         icon: m.icon || '',
         order: m.order ?? 0,
         active: m.status === MenuStatus.MenuStatus_Active,
+        hidden: !!m.hidden,
         isSystem: !!m.isSystem,
         depth,
         hasKids: kids.length > 0,
@@ -455,8 +527,8 @@ const getMenuList = async (initial = false) => {
   }
 }
 
-const setStatus = async (row: Row, on: boolean) => {
-  if (!canEdit.value) return
+// 编辑接口要求完整字段：以当前菜单为底，只改传入的部分
+const patchMenu = async (row: Row, patch: Partial<AdminEditPermissionsRequest>) => {
   const m = row.raw
   busyId.value = row.id
   try {
@@ -466,13 +538,55 @@ const setStatus = async (row: Row, on: boolean) => {
       icon: m.icon || '',
       order: m.order ?? 0,
       path: m.path || '',
-      status: on ? MenuStatus.MenuStatus_Active : MenuStatus.MenuStatus_InActive,
+      status: m.status,
       permissions: m.permissions || '',
+      hidden: !!m.hidden,
+      ...patch,
     })
-    m.status = on ? MenuStatus.MenuStatus_Active : MenuStatus.MenuStatus_InActive
-    feedback.success(t(on ? 'accessAdmin.menu.statusOn' : 'accessAdmin.menu.statusOff', { name: row.label }))
+    if (patch.status !== undefined) m.status = patch.status
+    if (patch.hidden !== undefined) m.hidden = patch.hidden
+    if (patch.order !== undefined) m.order = patch.order
+    return true
+  } catch {
+    return false
   } finally {
     busyId.value = ''
+  }
+}
+
+const setStatus = async (row: Row, on: boolean) => {
+  if (!canEdit.value) return
+  const status = on ? MenuStatus.MenuStatus_Active : MenuStatus.MenuStatus_InActive
+  if (await patchMenu(row, { status }))
+    feedback.success(t(on ? 'accessAdmin.menu.statusOn' : 'accessAdmin.menu.statusOff', { name: row.label }))
+}
+
+// 「显示」：只影响侧边栏，刷新当前用户的菜单让侧边栏立即生效
+const setVisible = async (row: Row, visible: boolean) => {
+  if (!canEdit.value) return
+  if (await patchMenu(row, { hidden: !visible })) {
+    feedback.success(t(visible ? 'accessV2.menu.shown' : 'accessV2.menu.hidden', { name: row.label }))
+    void menuStore.getUserPermissions().catch(() => undefined)
+  }
+}
+
+// 调整排序（手机抽屉）
+const orderOpen = ref(false)
+const orderRow = ref<Row | null>(null)
+const orderValue = ref(0)
+const openOrder = (row: Row) => {
+  orderRow.value = row
+  orderValue.value = row.order
+  orderOpen.value = true
+}
+const submitOrder = async () => {
+  const row = orderRow.value
+  if (!row) return
+  const order = Math.min(999, Math.max(0, Math.round(Number(orderValue.value) || 0)))
+  if (await patchMenu(row, { order })) {
+    orderOpen.value = false
+    feedback.success(t('system.common.editSuccess'))
+    getMenuList()
   }
 }
 
@@ -508,12 +622,14 @@ const openSheet = (row: Row) => {
   sheetRow.value = row
   sheetOpen.value = true
 }
-const sheetDo = (action: 'add' | 'edit' | 'delete') => {
+const sheetDo = (action: 'add' | 'edit' | 'delete' | 'order' | 'status') => {
   const row = sheetRow.value
   if (!row) return
   if (action === 'delete') return confirmDelete(row)
   sheetOpen.value = false
   if (action === 'add') addChild(row)
+  else if (action === 'order') openOrder(row)
+  else if (action === 'status') void setStatus(row, !row.active)
   else openCreate(row.id)
 }
 
@@ -600,6 +716,8 @@ onMounted(() => getMenuList(true))
 .mn-ty.is-dir { background: var(--m-a2Soft); color: var(--m-ink); }
 .mn-ty.is-menu { background: var(--m-pSoft); color: var(--m-pInk); }
 .mn-ty.is-btn { background: var(--m-aSoft); color: var(--m-aOn, var(--m-ink)); }
+/* 深色下黄色淡底很暗，文字改用强调色本身（同 .m-sticker--a） */
+html.dark .mn-ty.is-btn { color: var(--m-a); }
 .mn-ty--xs {
   height: 18px;
   padding: 0 6px;
@@ -732,6 +850,18 @@ onMounted(() => getMenuList(true))
 .mn-acts :deep(.is-danger:hover) {
   background: var(--m-badSoft);
 }
+.mn-acts :deep(.is-stop) {
+  color: var(--m-bad);
+}
+.mn-acts :deep(.is-start) {
+  color: var(--m-ok);
+}
+.mn-acts :deep(.is-stop:hover) {
+  background: var(--m-badSoft);
+}
+.mn-acts :deep(.is-start:hover) {
+  background: var(--m-okSoft);
+}
 .mn-acts :deep(.is-locked) {
   color: var(--el-border-color);
   background: transparent;
@@ -824,6 +954,72 @@ onMounted(() => getMenuList(true))
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.mn-tr__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mn-tr__flag {
+  flex: none;
+  font-weight: 700;
+  color: var(--m-warn);
+}
+.mn-legend.is-compact {
+  margin-left: 0;
+  gap: 6px;
+}
+.mn-legend.is-compact .mn-ty:not(:first-child) {
+  margin-left: 0;
+}
+
+/* 手机：悬浮新增 */
+.mn-fab {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  box-shadow: var(--app-shadow-brand);
+  cursor: pointer;
+}
+.mn-fab :deep(svg) {
+  width: 26px;
+  height: 26px;
+}
+.mn-fab:active {
+  transform: scale(0.97);
+}
+
+/* 调整排序 */
+.mn-order-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mn-order-form__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mn-order-form__row .app-input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-weight: 700;
+}
+.mn-order-form__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
 .mn-skeleton {
   height: 420px;
   border-radius: var(--app-radius-lg);
@@ -839,7 +1035,30 @@ onMounted(() => getMenuList(true))
 .mn-sheet__head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+.mn-sheet__title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mn-sheet__name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--app-font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.mn-sheet__sub {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .mn-dl {
   display: grid;
@@ -908,12 +1127,33 @@ onMounted(() => getMenuList(true))
 }
 
 @media (width < 768px) {
+  .mn-page {
+    /* 悬浮新增按钮贴在底部导航上方 100px 处；留出同样高度，滚到底时按钮不压住最后一行的操作 */
+    padding-bottom: 100px;
+  }
   .mn-seg {
     order: 4;
     width: 100%;
   }
   .mn-seg__btn {
     flex: 1;
+    min-height: 44px;
+  }
+  .mn-tools {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mn-tools::-webkit-scrollbar {
+    display: none;
+  }
+  .mn-tools :deep(button) {
+    flex: none;
+    min-height: 44px;
+  }
+  .mn-legend.is-compact {
+    flex: none;
+    flex-wrap: nowrap;
   }
 }
 </style>

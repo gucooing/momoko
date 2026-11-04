@@ -40,9 +40,11 @@ type Role struct {
 type RoleEdges struct {
 	// 关联的权限
 	Menus []*Menu `json:"menus,omitempty"`
+	// 拥有该角色的用户
+	Users []*User `json:"users,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // MenusOrErr returns the Menus value or an error if the edge
@@ -52,6 +54,15 @@ func (e RoleEdges) MenusOrErr() ([]*Menu, error) {
 		return e.Menus, nil
 	}
 	return nil, &NotLoadedError{edge: "menus"}
+}
+
+// UsersOrErr returns the Users value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleEdges) UsersOrErr() ([]*User, error) {
+	if e.loadedTypes[1] {
+		return e.Users, nil
+	}
+	return nil, &NotLoadedError{edge: "users"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -138,6 +149,11 @@ func (_m *Role) Value(name string) (ent.Value, error) {
 // QueryMenus queries the "menus" edge of the Role entity.
 func (_m *Role) QueryMenus() *MenuQuery {
 	return NewRoleClient(_m.config).QueryMenus(_m)
+}
+
+// QueryUsers queries the "users" edge of the Role entity.
+func (_m *Role) QueryUsers() *UserQuery {
+	return NewRoleClient(_m.config).QueryUsers(_m)
 }
 
 // Update returns a builder for updating this Role.

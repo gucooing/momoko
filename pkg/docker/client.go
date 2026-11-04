@@ -506,3 +506,11 @@ func pageSlice[T any](items []T, page, pageSize int64) []T {
 	}
 	return items[start:end]
 }
+
+// CancelTask 取消进行中的 Docker 任务；by 为取消人。
+func (m *Manager) CancelTask(id, by string) error {
+	if !m.tasks.Cancel(id, by) {
+		return ErrTaskNotFound
+	}
+	return nil
+}

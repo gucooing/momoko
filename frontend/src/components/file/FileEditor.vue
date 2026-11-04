@@ -1,138 +1,98 @@
-<!-- 文件编辑器（重写 · 新方案）：浮窗 Monaco 编辑器，自包含独立明暗主题（--fe-*，手动 auto/亮/暗，
-     不依赖全局 app 主题，也不用旧 file-module/fm-* 框架）。图标走 menuStore heroicons + 本地保存 SVG；
-     主题用分段切换（替代旧 FileMenu 下拉）；提示/确认走 useFeedback + 令牌 FormDialog（不用 EP ElMessage/ElMessageBox）。
-     Monaco 集成、窗口几何（拖拽/缩放/全屏/最小化）、打开/保存/重命名/删除/下载/EOL、目录树、移动端全部逻辑保留。 -->
+<!-- 文件编辑弹窗（原型：编辑改为弹窗，不挤占文件列表；遮罩点击不关闭，避免误丢未保存的修改）：
+     头部（贴纸 + 文件名 + 「已修改 · 未保存」+ 路径 · 查找替换 / 文件树 / ⋯ / 关闭）+ Monaco 编辑区（可展开左侧文件树切换文件）+
+     底部状态（语言 · 编码 · 行尾 · 光标）与 取消 / 保存（Ctrl S）。
+     打开 / 保存 / 刷新 / 下载 / 重命名 / 删除 / 行尾切换 / 编辑器明暗 / 全屏 均保留；props/emits 契约不变。 -->
 <template>
   <teleport to="body">
     <transition name="fe-fade">
-      <div v-if="modelValue" class="fe-overlay">
-        <div
-          class="fe-window"
-          :class="{
-            'is-dark': resolvedDark,
-            'is-fullscreen': fullscreen,
-            'is-minimized': minimized,
-          }"
-          :style="windowStyle"
+      <div v-if="modelValue" class="fe-overlay" :class="{ 'is-full': fullscreen }">
+        <section
+          class="fe"
+          :class="{ 'is-full': fullscreen, 'is-mobile': isMobile }"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="t('fileManager.editFile', { name: activeName })"
         >
-          <!-- 标题栏（可拖拽） -->
-          <header class="fe-titlebar" @mousedown="startDrag" @dblclick="toggleFullscreen">
-            <span class="fe-title">{{ t('fileManager.editTitle') }} - {{ activeName || '—' }}</span>
-            <div class="fe-titlebar__actions" @mousedown.stop>
-              <button type="button" class="fe-iconbtn" :title="t('fileManager.minimize')" @click="toggleMinimize">
-                <component :is="ic('HOutline:MinusIcon')" />
-              </button>
-              <button type="button" class="fe-iconbtn" :title="t('common.close')" @click="close">
-                <component :is="ic('HOutline:XMarkIcon')" />
-              </button>
-            </div>
+          <header class="fe-head">
+            <span class="fe-sticker m-sticker" :class="`m-sticker--${visual.tone}`">
+              <UIcon :name="visual.icon" />
+            </span>
+            <span class="fe-title">
+              <span class="fe-title__row">
+                <span class="fe-title__name" :title="activeName">{{ activeName || '—' }}</span>
+                <StatusPill v-if="dirty" variant="warning" :label="t('fileManager.modifiedUnsaved')" />
+              </span>
+              <span class="fe-title__path m-mono" :title="activePath">{{ activePath || '—' }}</span>
+            </span>
+            <UButton
+              v-if="!isMobile"
+              class="fe-head__find"
+              color="neutral"
+              variant="soft"
+              size="sm"
+              icon="i-lucide-search"
+              :disabled="maskVisible"
+              @click="openFind"
+            >
+              {{ t('fileManager.findReplace') }}
+            </UButton>
+            <AppIconButton
+              :icon="treeOpen ? 'HOutline:ChevronDoubleLeftIcon' : 'HOutline:FolderIcon'"
+              :label="treeOpen ? t('fileManager.hideFileTree') : t('fileManager.fileTree')"
+              :active="treeOpen"
+              :box="isMobile ? 44 : 36"
+              :size="18"
+              @click="treeOpen = !treeOpen"
+            />
+            <ActionMenu :items="menuItems" :label="t('fileManager.moreActions')" @select="onMenu" />
+            <AppIconButton
+              icon="HOutline:XMarkIcon"
+              :label="t('fileManager.closeEditor')"
+              :box="isMobile ? 44 : 36"
+              :size="18"
+              @click="close"
+            />
           </header>
 
-          <template v-if="!minimized">
-            <!-- 工具栏 -->
-            <div class="fe-toolbar">
-              <button type="button" class="fe-btn fe-btn--primary" :disabled="!dirty || saving || isBinary" @click="save">
-                <component :is="IconSave" :class="{ 'is-spin': saving }" />{{ t('common.save') }}
-              </button>
-              <button type="button" class="fe-btn" :disabled="!activePath" @click="refresh">
-                <component :is="ic('HOutline:ArrowPathIcon')" />{{ t('fileManager.refresh') }}
-              </button>
-              <button type="button" class="fe-btn" :disabled="!activePath" @click="download">
-                <component :is="ic('HOutline:ArrowDownTrayIcon')" />{{ t('fileManager.download') }}
-              </button>
-              <button type="button" class="fe-btn" :disabled="!activePath" @click="openRename">
-                <component :is="ic('HOutline:PencilSquareIcon')" />{{ t('fileManager.rename') }}
-              </button>
-              <button type="button" class="fe-btn fe-btn--danger" :disabled="!activePath" @click="remove">
-                <component :is="ic('HOutline:TrashIcon')" />{{ t('fileManager.delete') }}
-              </button>
-
-              <div class="fe-toolbar__spacer"></div>
-
-              <!-- 主题分段（自动/亮/暗），替代旧 FileMenu 下拉 -->
-              <div class="fe-seg" role="group" :aria-label="t('fileManager.theme')">
-                <button
-                  v-for="mode in themeModes"
-                  :key="mode.key"
-                  type="button"
-                  class="fe-seg__btn"
-                  :class="{ 'is-active': themeMode === mode.key }"
-                  :title="mode.label"
-                  @click="setThemeMode(mode.key)"
-                >
-                  <component :is="ic(mode.icon)" />
-                </button>
-              </div>
-              <button
-                type="button"
-                class="fe-iconbtn"
-                :title="fullscreen ? t('fileManager.exitFullscreen') : t('fileManager.fullscreen')"
-                @click="toggleFullscreen"
-              >
-                <component :is="ic(fullscreen ? 'HOutline:ArrowsPointingInIcon' : 'HOutline:ArrowsPointingOutIcon')" />
-              </button>
-            </div>
-
-            <!-- 主体：树 | 分隔条 | 编辑区 -->
-            <div class="fe-body">
-              <button type="button" class="fe-tree-toggle" @click="mobileTreeOpen = true">
-                {{ t('fileManager.fileTree') }}
-              </button>
-              <div v-if="mobileTreeOpen" class="fe-tree-backdrop" @click="mobileTreeOpen = false"></div>
-
-              <aside class="fe-tree" :class="{ 'is-mobile-open': mobileTreeOpen }" :style="{ width: `${treeWidth}px` }">
-                <div class="fe-tree__head">
-                  <span>{{ t('fileManager.fileTree') }}</span>
-                  <button type="button" class="fe-tree__close" @click="mobileTreeOpen = false">
-                    <component :is="ic('HOutline:XMarkIcon')" />
-                  </button>
-                </div>
-                <div class="fe-tree__scroll">
-                  <FileTree
-                    ref="treeRef"
-                    :client="client"
-                    :root-path="rootPath"
-                    :active-path="activePath"
-                    @select="onTreeSelect"
-                  />
-                </div>
-              </aside>
-
-              <div class="fe-splitter" @mousedown="startTreeResize"></div>
-
-              <div class="fe-main">
-                <div ref="monacoEl" class="fe-monaco"></div>
-                <div v-if="maskVisible" class="fe-mask">
-                  <component :is="ic('HOutline:ExclamationTriangleIcon')" class="fe-mask__ico" />
-                  <p>{{ activePath ? t('fileManager.cannotEditBinary') : t('fileManager.fileTree') }}</p>
-                </div>
+          <div class="fe-body">
+            <aside v-if="treeOpen" class="fe-tree" :aria-label="t('fileManager.fileTree')">
+              <FileTree
+                ref="treeRef"
+                :client="client"
+                :root-path="rootPath"
+                :active-path="activePath"
+                @select="onTreeSelect"
+              />
+            </aside>
+            <div class="fe-main">
+              <div ref="monacoEl" class="fe-monaco" />
+              <div v-if="maskVisible" class="fe-mask">
+                <UIcon name="i-lucide-file-warning" class="fe-mask__ico" />
+                <p>{{ activePath ? t('fileManager.cannotEditBinary') : t('fileManager.fileTree') }}</p>
               </div>
             </div>
+          </div>
 
-            <!-- 状态栏 -->
-            <footer class="fe-statusbar">
-              <span class="fe-statusbar__path" :title="activePath">
-                {{ t('fileManager.filePath') }}: {{ activePath || '—' }}
-              </span>
-              <span class="fe-statusbar__spacer"></span>
-              <span class="fe-statusbar__lang">{{ languageLabel }}</span>
-              <span class="fe-statusbar__sep">{{ t('fileManager.encoding') }}: UTF-8</span>
-              <button type="button" class="fe-statusbar__btn" @click="toggleEol">
-                {{ t('fileManager.eol') }}: {{ eol }}
-              </button>
-              <span class="fe-statusbar__sep">{{ t('fileManager.lineCol', { line: cursor.line, col: cursor.col }) }}</span>
-              <span>{{ t('fileManager.totalLines', { n: totalLines }) }}</span>
-            </footer>
-          </template>
-
-          <!-- 右下角缩放手柄 -->
-          <div
-            v-if="!fullscreen && !minimized"
-            class="fe-resize"
-            :title="t('fileManager.resizeWindow')"
-            @mousedown="startResize"
-          ></div>
-        </div>
+          <footer class="fe-foot">
+            <span class="fe-status m-num">
+              <span>{{ languageLabel }}</span>
+              <span>· UTF-8 ·</span>
+              <button type="button" class="fe-status__eol" :title="t('fileManager.eol')" @click="toggleEol">{{ eol }}</button>
+              <span>· {{ t('fileManager.cursorAt', { line: cursor.line, col: cursor.col }) }}</span>
+              <span v-if="!isMobile">· {{ t('fileManager.totalLines', { n: totalLines }) }}</span>
+            </span>
+            <UButton color="neutral" variant="soft" @click="close">{{ t('system.common.cancel') }}</UButton>
+            <UButton
+              color="primary"
+              icon="i-lucide-check"
+              :loading="saving"
+              :disabled="!dirty || saving || isBinary"
+              @click="save"
+            >
+              {{ t('common.save') }}<span v-if="!isMobile" class="fe-kbd m-num">Ctrl S</span>
+            </UButton>
+          </footer>
+        </section>
       </div>
     </transition>
 
@@ -146,7 +106,7 @@
       @confirm="onRenameConfirm"
     />
 
-    <!-- 通用确认（丢弃未保存 / 删除），令牌 FormDialog，替代 EP ElMessageBox -->
+    <!-- 通用确认（丢弃未保存 / 删除） -->
     <FormDialog
       v-model="confirmState.open"
       :title="confirmState.title"
@@ -167,7 +127,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineComponent, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getRequestErrorMessage } from '@/utils/request'
 import { useFeedback } from '@/utils/feedback'
@@ -185,11 +144,11 @@ import {
   resolvePreSignedFileUrl,
   type EndOfLine,
 } from '@/utils/file'
+import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import { monaco } from './monaco'
 import FileTree from './FileTree.vue'
 import FilePromptDialog from './FilePromptDialog.vue'
 import type { FileClient } from './types'
-import type { CSSProperties } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -209,152 +168,37 @@ const { t } = useI18n()
 const themeStore = useThemeStore()
 const menuStore = useMenuStore()
 const fb = useFeedback()
+const isMobile = computed(() => menuStore.isMobile)
 
-const ic = (key: string) => menuStore.iconComponents[key]
 const notifyError = (error: unknown, fallback: string) => fb.error(getRequestErrorMessage(error, fallback))
 
-// 保存图标（软盘）：Heroicons 无软盘，用本地内联 SVG（非旧框架，纯 SVG 组件）。
-const IconSave = defineComponent({
-  name: 'IconSave',
-  render: () =>
-    h(
-      'svg',
-      {
-        viewBox: '0 0 24 24',
-        fill: 'none',
-        stroke: 'currentColor',
-        'stroke-width': 1.5,
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'aria-hidden': 'true',
-      },
-      [
-        h('path', {
-          d: 'M4.5 5.25A1.75 1.75 0 0 1 6.25 3.5h9.19c.46 0 .91.19 1.24.51l2.81 2.82c.33.33.51.78.51 1.24v10.68a1.75 1.75 0 0 1-1.75 1.75H6.25A1.75 1.75 0 0 1 4.5 18.75z',
-        }),
-        h('path', { d: 'M8 3.5v4.25c0 .41.34.75.75.75h5a.75.75 0 0 0 .75-.75V3.5' }),
-        h('rect', { x: 7.5, y: 12, width: 9, height: 6, rx: 0.75 }),
-      ],
-    ),
-})
-
-// ---- 主题（自动/亮/暗，localStorage 持久；整窗 + Monaco 一起切） ----
+// ---- 编辑器明暗（自动=跟随界面，亮/暗手动，localStorage 持久）----
 type ThemeMode = 'auto' | 'light' | 'dark'
 const THEME_KEY = 'fileEditorTheme'
-const themeMode = ref<ThemeMode>((localStorage.getItem(THEME_KEY) as ThemeMode) || 'auto')
+const readThemeMode = (): ThemeMode => {
+  try {
+    const v = localStorage.getItem(THEME_KEY)
+    return v === 'light' || v === 'dark' ? v : 'auto'
+  } catch {
+    return 'auto'
+  }
+}
+const themeMode = ref<ThemeMode>(readThemeMode())
 const resolvedDark = computed(() =>
   themeMode.value === 'auto' ? themeStore.isDarkTheme : themeMode.value === 'dark',
 )
-const themeModes: { key: ThemeMode; label: string; icon: string }[] = [
-  { key: 'auto', label: t('fileManager.editorThemeAuto'), icon: 'HOutline:ComputerDesktopIcon' },
-  { key: 'light', label: t('fileManager.editorThemeLight'), icon: 'HOutline:SunIcon' },
-  { key: 'dark', label: t('fileManager.editorThemeDark'), icon: 'HOutline:MoonIcon' },
-]
 const setThemeMode = (mode: ThemeMode) => {
   themeMode.value = mode
-  localStorage.setItem(THEME_KEY, mode)
+  try {
+    localStorage.setItem(THEME_KEY, mode)
+  } catch {
+    /* ignore */
+  }
 }
 watch(resolvedDark, (dark) => monaco.editor.setTheme(dark ? 'vs-dark' : 'vs'))
 
-// ---- 窗口几何（拖拽/缩放/全屏/最小化） ----
-const win = reactive({ left: 0, top: 0, width: 1200, height: 760 })
 const fullscreen = ref(false)
-const minimized = ref(false)
-const treeWidth = ref(248)
-const mobileTreeOpen = ref(false)
-
-const windowStyle = computed<CSSProperties>(() => {
-  if (fullscreen.value) return {}
-  const style: CSSProperties = {
-    left: `${win.left}px`,
-    top: `${win.top}px`,
-    width: `${win.width}px`,
-  }
-  if (!minimized.value) style.height = `${win.height}px`
-  return style
-})
-
-const computeDefaultGeometry = () => {
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  if (vw <= 767) {
-    win.width = Math.max(320, vw - 16)
-    win.height = Math.max(360, vh - 16)
-    win.left = 8
-    win.top = 8
-    treeWidth.value = Math.min(300, Math.max(240, vw - 72))
-    return
-  }
-
-  win.width = Math.min(1360, vw - 24)
-  win.height = Math.min(880, vh - 64)
-  win.left = Math.max(12, (vw - win.width) / 2)
-  win.top = Math.max(12, (vh - win.height) / 2)
-}
-
-const toggleFullscreen = () => {
-  if (minimized.value) minimized.value = false
-  fullscreen.value = !fullscreen.value
-}
-const toggleMinimize = () => {
-  if (fullscreen.value) fullscreen.value = false
-  minimized.value = !minimized.value
-}
-
-// 拖拽移动
-const startDrag = (event: MouseEvent) => {
-  if (fullscreen.value || window.innerWidth <= 767) return
-  const startX = event.clientX
-  const startY = event.clientY
-  const originLeft = win.left
-  const originTop = win.top
-  const onMove = (e: MouseEvent) => {
-    win.left = Math.max(0, originLeft + (e.clientX - startX))
-    win.top = Math.max(0, originTop + (e.clientY - startY))
-  }
-  const onUp = () => {
-    document.removeEventListener('mousemove', onMove)
-    document.removeEventListener('mouseup', onUp)
-  }
-  document.addEventListener('mousemove', onMove)
-  document.addEventListener('mouseup', onUp)
-}
-
-// 右下角缩放
-const startResize = (event: MouseEvent) => {
-  if (window.innerWidth <= 767) return
-  event.preventDefault()
-  const startX = event.clientX
-  const startY = event.clientY
-  const originW = win.width
-  const originH = win.height
-  const onMove = (e: MouseEvent) => {
-    win.width = Math.max(640, originW + (e.clientX - startX))
-    win.height = Math.max(420, originH + (e.clientY - startY))
-  }
-  const onUp = () => {
-    document.removeEventListener('mousemove', onMove)
-    document.removeEventListener('mouseup', onUp)
-  }
-  document.addEventListener('mousemove', onMove)
-  document.addEventListener('mouseup', onUp)
-}
-
-// 树宽拖拽
-const startTreeResize = (event: MouseEvent) => {
-  event.preventDefault()
-  const startX = event.clientX
-  const originW = treeWidth.value
-  const onMove = (e: MouseEvent) => {
-    treeWidth.value = Math.min(480, Math.max(160, originW + (e.clientX - startX)))
-  }
-  const onUp = () => {
-    document.removeEventListener('mousemove', onMove)
-    document.removeEventListener('mouseup', onUp)
-  }
-  document.addEventListener('mousemove', onMove)
-  document.addEventListener('mouseup', onUp)
-}
+const treeOpen = ref(false)
 
 // ---- Monaco ----
 const monacoEl = ref<HTMLElement | null>(null)
@@ -375,6 +219,14 @@ const maskVisible = computed(() => !activePath.value || isBinary.value)
 const languageLabel = computed(() =>
   language.value === 'plaintext' ? t('fileManager.plainText') : language.value.toUpperCase(),
 )
+const visual = computed(() => {
+  const name = activeName.value
+  if (/\.(js|mjs|cjs|ts|tsx|jsx|vue|go|py|rs|java|kt|c|cc|cpp|h|cs|php|rb|sh|bash|ps1|bat|json|ya?ml|toml|xml|html?|css|scss|sql|lua)$/i.test(name)) {
+    return { icon: 'i-lucide-file-code', tone: 'a2' }
+  }
+  if (/\.log$/i.test(name)) return { icon: 'i-lucide-scroll-text', tone: 'neutral' }
+  return { icon: 'i-lucide-file-text', tone: 'a2' }
+})
 
 const ensureEditor = async () => {
   if (editorInstance || !monacoEl.value) return
@@ -384,13 +236,14 @@ const ensureEditor = async () => {
     theme: resolvedDark.value ? 'vs-dark' : 'vs',
     automaticLayout: true,
     fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 22,
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
     tabSize: 2,
     renderWhitespace: 'selection',
     fontFamily: "'JetBrains Mono', 'Cascadia Code', Consolas, 'Courier New', monospace",
     smoothScrolling: true,
+    padding: { top: 12, bottom: 12 },
   })
   editorInstance.onDidChangeModelContent(() => {
     if (!editorInstance) return
@@ -401,6 +254,16 @@ const ensureEditor = async () => {
     cursor.line = e.position.lineNumber
     cursor.col = e.position.column
   })
+  // Ctrl/⌘ + S 保存
+  editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+    void save()
+  })
+}
+
+const openFind = () => {
+  if (!editorInstance) return
+  editorInstance.focus()
+  void editorInstance.getAction('editor.action.startFindReplaceAction')?.run()
 }
 
 const applyContent = (text: string) => {
@@ -423,7 +286,7 @@ const applyContent = (text: string) => {
   cursor.col = 1
 }
 
-// ---- 通用确认（丢弃未保存 / 删除）：令牌 FormDialog + Promise 门闸，替代 EP ElMessageBox ----
+// ---- 通用确认（丢弃未保存 / 删除）：令牌 FormDialog + Promise 门闸 ----
 const confirmState = reactive({ open: false, title: '', message: '', danger: false })
 let confirmResolve: ((value: boolean) => void) | null = null
 const askConfirm = (title: string, message: string, danger = false) =>
@@ -523,13 +386,13 @@ const openPath = async (path: string, name?: string) => {
 }
 
 const onTreeSelect = (path: string, name: string) => {
-  mobileTreeOpen.value = false
+  if (isMobile.value) treeOpen.value = false
   openPath(path, name)
 }
 
 // ---- 操作 ----
 const save = async () => {
-  if (!editorInstance || !dirty.value || isBinary.value) return
+  if (!editorInstance || !dirty.value || isBinary.value || saving.value) return
   saving.value = true
   try {
     const value = applyEndOfLine(editorInstance.getValue(), eol.value)
@@ -625,6 +488,34 @@ const toggleEol = () => {
   }
 }
 
+// ---- 「⋯」菜单：刷新 / 下载 / 重命名 / 编辑器明暗 / 全屏 / 删除 ----
+const themeIcon = (mode: ThemeMode) => (themeMode.value === mode ? 'i-lucide-check' : mode === 'auto' ? 'i-lucide-monitor' : mode === 'light' ? 'i-lucide-sun' : 'i-lucide-moon')
+const menuItems = computed<ActionMenuItem[]>(() => [
+  { key: 'refresh', label: t('fileManager.reloadFile'), icon: 'i-lucide-refresh-cw', disabled: !activePath.value },
+  { key: 'download', label: t('fileManager.download'), icon: 'i-lucide-download', disabled: !activePath.value },
+  { key: 'rename', label: t('fileManager.rename'), icon: 'i-lucide-pencil', disabled: !activePath.value },
+  { key: 'find', label: t('fileManager.findReplace'), icon: 'i-lucide-search', hidden: !isMobile.value, disabled: maskVisible.value },
+  { key: 'theme:auto', label: t('fileManager.editorThemeAuto'), icon: themeIcon('auto') },
+  { key: 'theme:light', label: t('fileManager.editorThemeLight'), icon: themeIcon('light') },
+  { key: 'theme:dark', label: t('fileManager.editorThemeDark'), icon: themeIcon('dark') },
+  {
+    key: 'fullscreen',
+    label: fullscreen.value ? t('fileManager.exitFullscreen') : t('fileManager.fullscreen'),
+    icon: fullscreen.value ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2',
+    hidden: isMobile.value,
+  },
+  { key: 'delete', label: t('fileManager.delete'), icon: 'i-lucide-trash-2', danger: true, disabled: !activePath.value },
+])
+const onMenu = (key: string) => {
+  if (key === 'refresh') refresh()
+  else if (key === 'download') download()
+  else if (key === 'rename') openRename()
+  else if (key === 'find') openFind()
+  else if (key === 'fullscreen') fullscreen.value = !fullscreen.value
+  else if (key === 'delete') remove()
+  else if (key.startsWith('theme:')) setThemeMode(key.slice(6) as ThemeMode)
+}
+
 // ---- 关闭 / 生命周期 ----
 const close = async () => {
   if (!(await confirmDiscardIfDirty())) return
@@ -640,10 +531,8 @@ watch(
   () => props.modelValue,
   async (open) => {
     if (open) {
-      computeDefaultGeometry()
       fullscreen.value = false
-      minimized.value = false
-      mobileTreeOpen.value = false
+      treeOpen.value = false
       await nextTick()
       await ensureEditor()
       if (props.path) await openPath(props.path)
@@ -653,7 +542,7 @@ watch(
       activeName.value = ''
       dirty.value = false
       isBinary.value = false
-      mobileTreeOpen.value = false
+      treeOpen.value = false
     }
   },
 )
@@ -669,292 +558,129 @@ watch(
 onBeforeUnmount(disposeEditor)
 </script>
 
-<style scoped>
-/* 自包含独立主题令牌（浅色默认 + .is-dark 暗色），不依赖全局 app 主题、不用旧 fm-* 框架。 */
-.fe-window {
-  --fe-bg: #ffffff;
-  --fe-surface: #ffffff;
-  --fe-chrome: #f6f8f8;
-  --fe-hover: #f2f5f5;
-  --fe-active-bg: #e2f7f3;
-  --fe-border: #e4e8ee;
-  --fe-border-strong: #d4dae3;
-  --fe-fg: #1f2328;
-  --fe-fg-dim: #57606a;
-  --fe-fg-faint: #8c959f;
-  --fe-accent: #14b8a6;
-  --fe-accent-hover: #0d9488;
-  --fe-danger: #e5484d;
-  --fe-danger-soft: #fdeced;
-  --fe-folder: #e3a008;
-  --fe-radius: 12px;
-  --fe-radius-sm: 8px;
-  --fe-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
-
-  /* 目录树令牌桥接：FileTreeNode 用 --ft-*，映射到编辑器独立主题，使内嵌树跟随编辑器明暗。 */
-  --ft-fg: var(--fe-fg-dim);
-  --ft-fg-dim: var(--fe-fg-faint);
-  --ft-hover: var(--fe-hover);
-  --ft-active-bg: var(--fe-active-bg);
-  --ft-active-fg: var(--fe-accent);
-  --ft-folder: var(--fe-folder);
-}
-.fe-window.is-dark {
-  --fe-bg: #1e1e1e;
-  --fe-surface: #252526;
-  --fe-chrome: #2d2d30;
-  --fe-hover: #2a2d2e;
-  --fe-active-bg: #103b38;
-  --fe-border: #3c3c3c;
-  --fe-border-strong: #4a4a4a;
-  --fe-fg: #e6e6e6;
-  --fe-fg-dim: #b8bcc2;
-  --fe-fg-faint: #8a9099;
-  --fe-accent: #2dd4bf;
-  --fe-accent-hover: #5eead4;
-  --fe-danger: #f87171;
-  --fe-danger-soft: #3a1d1f;
-  --fe-folder: #e3a008;
-  --fe-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-}
-
+<style scoped lang="scss">
 .fe-overlay {
   position: fixed;
   inset: 0;
   z-index: 1990;
-  background: rgba(15, 23, 42, 0.32);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 64px 48px;
+  background: color-mix(in srgb, #0b1220 45%, transparent);
 }
-
-.fe-window {
-  position: fixed;
+.fe-overlay.is-full {
+  padding: 0;
+}
+.fe {
   display: flex;
   flex-direction: column;
-  min-width: 640px;
-  min-height: 0;
-  color: var(--fe-fg);
-  background: var(--fe-bg);
-  border: 1px solid var(--fe-border);
-  border-radius: var(--fe-radius);
-  box-shadow: var(--fe-shadow);
+  width: 1080px;
+  max-width: 100%;
+  height: 100%;
+  max-height: 1060px;
   overflow: hidden;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-xl, 24px);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-lg);
 }
-.fe-window.is-fullscreen {
-  inset: 0;
-  width: 100vw !important;
-  height: 100vh !important;
+.fe.is-full {
+  width: 100%;
+  max-height: none;
   border-radius: 0;
 }
-.fe-window.is-minimized {
-  height: auto !important;
-}
 
-/* 图标按钮（标题栏/工具栏） */
-.fe-iconbtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  border: none;
-  border-radius: var(--fe-radius-sm);
-  background: transparent;
-  color: var(--fe-fg-dim);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.fe-iconbtn:hover {
-  background: var(--fe-hover);
-  color: var(--fe-fg);
-}
-.fe-iconbtn :deep(svg) {
-  width: 17px;
-  height: 17px;
-}
-
-/* 标题栏 */
-.fe-titlebar {
+/* 头部 */
+.fe-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 8px;
+  padding: 14px 14px 14px 22px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+.fe-sticker {
+  flex: none;
+  width: 40px;
   height: 40px;
-  padding: 0 0.5rem 0 0.875rem;
-  background: var(--fe-chrome);
-  border-bottom: 1px solid var(--fe-border);
-  cursor: move;
-  user-select: none;
+  margin-right: 4px;
+  border-radius: 13px;
+  transform: rotate(-5deg);
+}
+.fe-sticker :deep(svg),
+.fe-sticker :deep(.iconify) {
+  width: 18px;
+  height: 18px;
+}
+.m-sticker--neutral {
+  background: var(--m-s2);
+  color: var(--m-ink2);
 }
 .fe-title {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--fe-fg);
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fe-title__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.fe-title__name {
+  min-width: 0;
+  font-size: 1.0625rem;
+  font-weight: 800;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.fe-titlebar__actions {
-  display: flex;
-  gap: 2px;
-}
-
-/* 工具栏 */
-.fe-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--fe-border);
-  background: var(--fe-surface);
-}
-.fe-toolbar__spacer {
-  flex: 1;
-}
-
-/* 令牌按钮（工具栏文字按钮） */
-.fe-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  flex-shrink: 0;
-  border: 1px solid var(--fe-border);
-  border-radius: var(--fe-radius-sm);
-  background: var(--fe-surface);
-  color: var(--fe-fg-dim);
-  font-size: 0.8125rem;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.fe-btn:hover:not(:disabled) {
-  border-color: var(--fe-border-strong);
-  color: var(--fe-fg);
-  background: var(--fe-hover);
-}
-.fe-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.fe-btn :deep(svg) {
-  width: 16px;
-  height: 16px;
-}
-.fe-btn--primary {
-  background: var(--fe-accent);
-  border-color: var(--fe-accent);
-  color: #fff;
-}
-.fe-btn--primary:hover:not(:disabled) {
-  background: var(--fe-accent-hover);
-  border-color: var(--fe-accent-hover);
-  color: #fff;
-}
-.fe-btn--danger {
-  color: var(--fe-danger);
-}
-.fe-btn--danger:hover:not(:disabled) {
-  background: var(--fe-danger-soft);
-  border-color: var(--fe-danger);
-  color: var(--fe-danger);
-}
-.is-spin {
-  animation: fe-spin 0.8s linear infinite;
-}
-@keyframes fe-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 主题分段 */
-.fe-seg {
-  display: inline-flex;
-  flex-shrink: 0;
-  border: 1px solid var(--fe-border);
-  border-radius: var(--fe-radius-sm);
+.fe-title__path {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.fe-seg__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: var(--fe-surface);
-  color: var(--fe-fg-faint);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.fe-seg__btn + .fe-seg__btn {
-  border-left: 1px solid var(--fe-border);
-}
-.fe-seg__btn:hover {
-  color: var(--fe-fg);
-  background: var(--fe-hover);
-}
-.fe-seg__btn.is-active {
-  color: var(--fe-accent);
-  background: var(--fe-active-bg);
-}
-.fe-seg__btn :deep(svg) {
-  width: 16px;
-  height: 16px;
+.fe-head__find {
+  border-radius: 999px;
+  font-weight: 700;
 }
 
 /* 主体 */
 .fe-body {
-  flex: 1;
-  display: flex;
-  min-height: 0;
   position: relative;
-}
-.fe-tree-toggle,
-.fe-tree__close,
-.fe-tree-backdrop {
-  display: none;
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 .fe-tree {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  min-width: 0;
-  background: var(--fe-surface);
-  border-right: 1px solid var(--fe-border);
+  flex: 0 0 240px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  border-right: 1px solid var(--el-border-color-lighter);
+  background: var(--el-bg-color);
+  scrollbar-width: thin;
+  --ft-active-bg: var(--m-pSoft);
+  --ft-active-fg: var(--m-pInk);
+  --ft-hover: var(--m-s2);
+  --ft-fg: var(--el-text-color-secondary);
 }
-.fe-tree__head {
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0.875rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--fe-fg-faint);
-  border-bottom: 1px solid var(--fe-border);
+.fe-tree :deep(.ftn-row) {
+  border-radius: 10px;
 }
-.fe-tree__scroll {
-  flex: 1;
-  overflow: auto;
-}
-.fe-splitter {
-  width: 5px;
-  flex-shrink: 0;
-  cursor: col-resize;
-  background: transparent;
-  transition: background 0.15s;
-}
-.fe-splitter:hover {
-  background: var(--fe-active-bg);
+.fe-tree :deep(.ftn-icon.is-folder) {
+  color: var(--m-a);
 }
 .fe-main {
   position: relative;
   flex: 1;
   min-width: 0;
-  background: var(--fe-bg);
+  background: var(--m-s2);
 }
 .fe-monaco {
   position: absolute;
@@ -963,84 +689,110 @@ onBeforeUnmount(disposeEditor)
 .fe-mask {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: var(--fe-bg);
-  color: var(--fe-fg-faint);
-  font-size: 0.8125rem;
+  gap: 10px;
+  background: var(--m-s2);
+  color: var(--el-text-color-secondary);
+  font-size: 0.875rem;
 }
 .fe-mask__ico {
   width: 32px;
   height: 32px;
-  color: var(--fe-fg-faint);
 }
 
-/* 状态栏 */
-.fe-statusbar {
+/* 底部 */
+.fe-foot {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  height: 28px;
-  padding: 0 0.875rem;
-  background: var(--fe-chrome);
-  border-top: 1px solid var(--fe-border);
+  gap: 10px;
+  padding: 12px 16px 12px 22px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.fe-foot :deep(button) {
+  min-height: 40px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.fe-status {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.75rem;
-  color: var(--fe-fg-dim);
+  color: var(--el-text-color-secondary);
   white-space: nowrap;
   overflow: hidden;
 }
-.fe-statusbar__path {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 40%;
-}
-.fe-statusbar__spacer {
-  flex: 1;
-}
-.fe-statusbar__lang {
-  color: var(--fe-accent);
-  font-weight: 600;
-}
-.fe-statusbar__btn {
+.fe-status__eol {
+  min-height: 28px !important;
+  padding: 0 6px;
   border: none;
+  border-radius: 8px !important;
   background: transparent;
-  color: var(--fe-fg-dim);
+  color: inherit;
   font: inherit;
+  font-weight: 700 !important;
   cursor: pointer;
-  padding: 0;
 }
-.fe-statusbar__btn:hover {
-  color: var(--fe-accent);
+.fe-status__eol:hover {
+  background: var(--m-s2);
+  color: var(--el-text-color-primary);
 }
-
-/* 确认弹窗文案 */
+.fe-kbd {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
 .fe-confirm {
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.6;
   color: var(--el-text-color-regular);
-  word-break: break-word;
 }
 
-/* 缩放手柄 */
-.fe-resize {
+/* 手机：全屏弹窗；文件树覆盖在编辑区上 */
+.fe.is-mobile {
+  width: 100%;
+  border-radius: 0;
+}
+.fe.is-mobile .fe-head {
+  gap: 2px;
+  padding: 10px 6px 10px 12px;
+}
+.fe.is-mobile .fe-sticker {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}
+.fe.is-mobile .fe-tree {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 16px;
-  height: 16px;
-  cursor: nwse-resize;
-  background: linear-gradient(
-    135deg,
-    transparent 0 50%,
-    var(--fe-border-strong) 50% 60%,
-    transparent 60% 70%,
-    var(--fe-border-strong) 70% 80%,
-    transparent 80%
-  );
+  inset: 0 auto 0 0;
+  z-index: 3;
+  width: min(300px, 84vw);
+  box-shadow: var(--app-shadow-lg);
+}
+.fe.is-mobile .fe-foot {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+}
+.fe.is-mobile .fe-status {
+  flex-basis: 100%;
+}
+.fe.is-mobile .fe-foot :deep(button) {
+  flex: 1;
+  justify-content: center;
+  min-height: 44px;
+}
+@media (width <= 768px) {
+  .fe-overlay {
+    padding: 0;
+  }
 }
 
 .fe-fade-enter-active,
@@ -1050,117 +802,5 @@ onBeforeUnmount(disposeEditor)
 .fe-fade-enter-from,
 .fe-fade-leave-to {
   opacity: 0;
-}
-
-@media (max-width: 767px) {
-  .fe-window:not(.is-minimized) {
-    left: 8px !important;
-    top: 8px !important;
-    width: calc(100vw - 16px) !important;
-    height: calc(100dvh - 16px) !important;
-    min-width: 0;
-    max-width: calc(100vw - 16px);
-    max-height: calc(100dvh - 16px);
-  }
-  .fe-window.is-minimized {
-    left: 8px !important;
-    top: 8px !important;
-    width: calc(100vw - 16px) !important;
-    min-width: 0;
-  }
-  .fe-titlebar {
-    height: 36px;
-    padding-left: 0.75rem;
-    cursor: default;
-  }
-  .fe-toolbar {
-    overflow-x: auto;
-    gap: 6px;
-    padding: 7px 10px;
-  }
-  .fe-toolbar .fe-btn,
-  .fe-toolbar .fe-iconbtn {
-    flex-shrink: 0;
-  }
-  .fe-body {
-    overflow: hidden;
-  }
-  .fe-tree-toggle {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    z-index: 3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 84px;
-    padding: 0;
-    border: 1px solid var(--fe-border);
-    border-left: none;
-    border-radius: 0 var(--fe-radius-sm) var(--fe-radius-sm) 0;
-    background: var(--fe-surface);
-    color: var(--fe-fg-dim);
-    font-size: 0.75rem;
-    writing-mode: vertical-rl;
-    transform: translateY(-50%);
-  }
-  .fe-tree-backdrop {
-    position: absolute;
-    inset: 0;
-    z-index: 4;
-    display: block;
-    background: rgba(15, 23, 42, 0.24);
-  }
-  .fe-tree {
-    position: absolute;
-    inset: 0 auto 0 0;
-    z-index: 5;
-    width: min(300px, calc(100vw - 56px)) !important;
-    max-width: calc(100vw - 56px);
-    transform: translateX(-100%);
-    transition: transform 0.18s ease;
-    box-shadow: var(--fe-shadow);
-  }
-  .fe-tree.is-mobile-open {
-    transform: translateX(0);
-  }
-  .fe-tree__close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border: none;
-    border-radius: var(--fe-radius-sm);
-    background: transparent;
-    color: var(--fe-fg-faint);
-  }
-  .fe-tree__close :deep(svg) {
-    width: 16px;
-    height: 16px;
-  }
-  .fe-splitter {
-    display: none;
-  }
-  .fe-main {
-    flex-basis: 100%;
-  }
-  .fe-statusbar {
-    gap: 0.55rem;
-    height: 26px;
-    padding: 0 0.6rem;
-  }
-  .fe-statusbar__path {
-    max-width: 62%;
-  }
-  .fe-statusbar__sep,
-  .fe-statusbar__btn,
-  .fe-statusbar > span:last-child {
-    display: none;
-  }
-  .fe-resize {
-    display: none;
-  }
 }
 </style>

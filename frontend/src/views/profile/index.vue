@@ -1,343 +1,92 @@
-<!-- 个人中心（ProfilePC / ProfileMobile）
-     PC：标题 → 左（hero / 个人资料表单 / 账号安全 / 登录设备）右（我的消息 / 我的权限 / 最近登录 / 外观入口 / 退出登录）
-     手机：hero → 个人资料行（点开编辑弹窗）→ 账号安全 → 偏好与消息（外观 / 语言 / 消息）→ 权限 → 设备 → 最近登录 → 退出 -->
+<!-- 个人中心（ProfilePC / ThemePC / ProfileMobile / ThemeMobile）：一个菜单 = 一个页面，页内标签 个人资料 / 外观（?tab=）。
+     PC：小标题「个人中心」+ 当前标签名 + 下划线子导航；手机：返回 + 标题（外观页右上角「恢复默认」），从「个人资料」里的外观入口进入外观。 -->
 <template>
-  <div class="profile">
-    <PageHeader v-if="!isMobile" :title="t('layout.profile')" :description="t('profile.page.desc')" />
+  <div class="profile-page">
+    <header v-if="!isMobile" class="profile-head">
+      <div class="profile-head__eyebrow">{{ t('layout.profile') }}</div>
+      <h1 class="profile-head__title">{{ current ? t(current.labelKey) : t('layout.profile') }}</h1>
+    </header>
+    <SubNavTabs v-if="!isMobile" group="profile" class="profile-tabs" />
 
-    <!-- ===== PC ===== -->
-    <div v-if="!isMobile" class="profile-grid">
-      <div class="profile-col profile-col--main">
-        <ArchivesPanel />
-        <PersonalInfoPanel />
-        <MyInformation />
-        <LoginDevices />
-      </div>
-      <div class="profile-col profile-col--side">
-        <MyMessages />
-        <MyPermission />
-        <LoginLogs />
-        <button type="button" class="appearance-card" @click="openAppearance">
-          <span class="m-sticker m-sticker--solid-a appearance-card__sk" aria-hidden="true">
-            <UIcon name="i-lucide-palette" />
-          </span>
-          <span class="appearance-card__text">
-            <strong>{{ t('theme.title') }}</strong>
-            <span>{{ appearanceSummary }} · {{ t('profile.appearance.onlyYou') }}</span>
-          </span>
-          <span class="appearance-card__swatches" aria-hidden="true">
-            <i v-for="c in themeStore.currentPalette.swatches" :key="c" :style="{ background: c }" />
-          </span>
-          <UIcon name="i-lucide-chevron-right" class="appearance-card__chev" aria-hidden="true" />
+    <PageHeader
+      v-else
+      :title="onAppearance ? t('theme.title') : t('layout.profile')"
+      :back="onAppearance ? true : 'auto'"
+      :theme-toggle="!onAppearance"
+    >
+      <template v-if="onAppearance" #actions>
+        <button type="button" class="profile-reset" @click="themeStore.resetAppearance()">
+          {{ t('theme.reset') }}
         </button>
-        <AdaptiveConfirm :title="t('layout.logoutConfirmContent')" @confirm="doLogout">
-          <template #reference>
-            <UButton color="error" variant="soft" icon="i-lucide-log-out" class="logout-btn">
-              {{ t('layout.logout') }}
-            </UButton>
-          </template>
-        </AdaptiveConfirm>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
-    <!-- ===== 手机 ===== -->
-    <div v-else class="profile-m">
-      <ArchivesPanel />
-
-      <section class="m-group" aria-labelledby="pf-g-info">
-        <h2 id="pf-g-info" class="m-group__h">{{ t('profile.info.title') }}</h2>
-        <AppPanel class="m-group__card">
-          <ProfileRow
-            icon="i-lucide-user-round"
-            tone="solid-p"
-            :title="t('user.nickname')"
-            clickable
-            chevron
-            @click="editOpen = true"
-          >
-            <span class="m-val">{{ userStore.userInfo?.name || '—' }}</span>
-          </ProfileRow>
-          <ProfileRow
-            icon="i-lucide-at-sign"
-            tone="a2"
-            :title="t('user.username')"
-            :sub="t('profile.info.usernameHintShort')"
-            clickable
-            chevron
-            @click="editOpen = true"
-          >
-            <span class="m-val m-mono">{{ userStore.userInfo?.username || '—' }}</span>
-          </ProfileRow>
-          <ProfileRow
-            icon="i-lucide-mail"
-            tone="solid-a2"
-            :title="t('user.email')"
-            :sub="userStore.userInfo?.email || t('user.noEmail')"
-            clickable
-            chevron
-            @click="editOpen = true"
-          />
-          <ProfileRow
-            icon="i-lucide-phone"
-            tone="solid-a"
-            :title="t('profile.info.phone')"
-            clickable
-            chevron
-            @click="editOpen = true"
-          >
-            <span class="m-val m-num">{{ maskedPhone || t('profile.info.notSet') }}</span>
-          </ProfileRow>
-        </AppPanel>
-      </section>
-
-      <MyInformation />
-
-      <section class="m-group" aria-labelledby="pf-g-pref">
-        <h2 id="pf-g-pref" class="m-group__h">{{ t('profile.pref.title') }}</h2>
-        <AppPanel class="m-group__card">
-          <ProfileRow
-            icon="i-lucide-palette"
-            tone="solid-a"
-            :tilt="-4"
-            :title="t('theme.title')"
-            :sub="appearanceSummary"
-            clickable
-            chevron
-            @click="openAppearance"
-          />
-          <ProfileRow icon="i-lucide-globe" tone="solid-a2" :tilt="3" :title="t('language.tooltip')">
-            <div class="m-lang">
-              <AppSelect
-                :model-value="locale"
-                :options="languageSelectOptions"
-                fit
-                @update:model-value="onLocale"
-              />
-            </div>
-          </ProfileRow>
-          <MyMessages row />
-        </AppPanel>
-      </section>
-
-      <MyPermission />
-      <LoginDevices />
-      <LoginLogs />
-
-      <AdaptiveConfirm :title="t('layout.logoutConfirmContent')" @confirm="doLogout">
-        <template #reference>
-          <button type="button" class="m-logout">
-            <UIcon name="i-lucide-log-out" />{{ t('layout.logout') }}
-          </button>
-        </template>
-      </AdaptiveConfirm>
-      <p class="m-foot m-num">Momoko {{ menuStore.currentVersion || 'dev' }}</p>
-
-      <FormDialog v-model="editOpen" :title="t('profile.info.edit')" :width="560" :show-footer="false">
-        <PersonalInfoPanel embedded @saved="editOpen = false" />
-      </FormDialog>
-    </div>
+    <PageGroupHost group="profile" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useUserProfileStore } from '@/stores/user/profile'
-import { languageOptions, setAppLocale } from '@/locales'
-import ArchivesPanel from '@/views/profile/archivesPanel.vue'
-import PersonalInfoPanel from '@/views/profile/personalInfoPanel.vue'
-import MyInformation from '@/views/profile/myInformation.vue'
-import MyPermission from '@/views/profile/myPermission.vue'
-import MyMessages from '@/views/profile/myMessages.vue'
-import LoginLogs from '@/views/profile/loginLogs.vue'
-import LoginDevices from '@/views/profile/loginDevices.vue'
-import ProfileRow from '@/views/profile/components/ProfileRow.vue'
+import { usePageGroupTabs } from '@/config/pageGroups'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'ProfileView' })
 
-const { t, locale } = useI18n()
-const userStore = useUserStore()
+const { t } = useI18n()
 const menuStore = useMenuStore()
 const themeStore = useThemeStore()
-const userProfileStore = useUserProfileStore()
+const { current } = usePageGroupTabs('profile')
 
 const isMobile = computed(() => menuStore.isMobile)
-const editOpen = ref(false)
-
-const appearanceSummary = computed(() => {
-  const palette = t(themeStore.currentPalette.labelKey)
-  const mode = t(`theme.${themeStore.themeMode}`)
-  return `${palette} · ${mode}`
-})
-
-const maskedPhone = computed(() => {
-  const p = (userStore.userInfo?.phone || '').replace(/\s+/g, '')
-  if (p.length < 7) return p
-  return `${p.slice(0, 3)} **** ${p.slice(-4)}`
-})
-
-const languageSelectOptions = computed(() =>
-  languageOptions.map((o) => ({ label: t(o.labelKey), value: o.code as string })),
-)
-const onLocale = (code: string) => setAppLocale(code as never)
-
-const openAppearance = () => {
-  themeStore.themeConfigDrawerOpen = true
-}
-
-const doLogout = () => {
-  void userStore.logout()
-}
-
-onMounted(() => {
-  void userProfileStore.refreshMessages()
-})
+const onAppearance = computed(() => current.value?.key === 'appearance')
 </script>
 
 <style scoped lang="scss">
-.profile {
+.profile-page {
   display: flex;
   flex-direction: column;
   gap: 22px;
   width: 100%;
   min-width: 0;
 }
-.profile-grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 24px;
-}
-.profile-col {
-  min-width: 0;
+.profile-head {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 6px;
 }
-.profile-col--main {
-  flex: 3 1 560px;
-}
-.profile-col--side {
-  flex: 2 1 340px;
-}
-
-.appearance-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 16px 18px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: var(--app-radius-lg);
-  background: var(--el-bg-color);
-  box-shadow: var(--app-shadow-card);
-  color: var(--el-text-color-primary);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-.appearance-card:hover {
-  border-color: var(--m-p);
-}
-.appearance-card__sk {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  font-size: 21px;
-  transform: rotate(-4deg);
-}
-.appearance-card__text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  strong {
-    font-size: 0.9375rem;
-    font-weight: 800;
-  }
-  span {
-    font-size: 0.8125rem;
-    color: var(--el-text-color-secondary);
-  }
-}
-.appearance-card__swatches {
-  display: flex;
-  i {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 2px solid var(--el-bg-color);
-    margin-left: -6px;
-  }
-}
-.appearance-card__chev {
-  width: 18px;
-  height: 18px;
-  color: var(--el-text-color-secondary);
-}
-.logout-btn {
-  align-self: flex-start;
-  min-height: 40px;
-}
-
-/* ---- 手机 ---- */
-.profile-m {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-.m-group__h {
-  margin: 0 6px 8px;
-  font-family: var(--app-font-display);
-  font-size: 0.9375rem;
-  font-weight: 800;
-  color: var(--el-text-color-secondary);
-}
-.m-group__card :deep(.app-panel__body) {
-  padding: 2px 14px;
-}
-.m-group__card :deep(.pf-row) {
-  min-height: 60px;
-  padding: 8px 0;
-}
-.m-group__card :deep(.pf-row__sk) {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  font-size: 18px;
-}
-.m-val {
-  max-width: 40vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.profile-head__eyebrow {
   font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
-.m-lang {
-  min-width: 120px;
-}
-.m-logout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 52px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: var(--app-radius-lg);
-  background: var(--el-bg-color);
-  color: var(--m-bad);
-  font: inherit;
-  font-size: 0.9375rem;
+.profile-head__title {
+  margin: 0;
+  font-family: var(--app-font-display);
+  font-size: 2.125rem;
   font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--el-text-color-primary);
+}
+.profile-tabs {
+  margin-top: -8px;
+}
+.profile-reset {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--m-pInk);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
 }
-.m-foot {
-  margin: -8px 0 0;
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
+.profile-reset:hover {
+  background: var(--el-fill-color-light);
+}
+@media (width < 992px) {
+  .profile-page {
+    gap: 18px;
+  }
 }
 </style>

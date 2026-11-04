@@ -35,6 +35,8 @@ const (
 	FieldTargetPort = "target_port"
 	// FieldIsEnable holds the string denoting the is_enable field in the database.
 	FieldIsEnable = "is_enable"
+	// FieldAutoStart holds the string denoting the auto_start field in the database.
+	FieldAutoStart = "auto_start"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
 	// FieldTotalBytesIn holds the string denoting the total_bytes_in field in the database.
@@ -67,6 +69,7 @@ var Columns = []string{
 	FieldTargetAddress,
 	FieldTargetPort,
 	FieldIsEnable,
+	FieldAutoStart,
 	FieldRemark,
 	FieldTotalBytesIn,
 	FieldTotalBytesOut,
@@ -103,6 +106,8 @@ var (
 	DefaultTargetPort int
 	// DefaultIsEnable holds the default value on creation for the "is_enable" field.
 	DefaultIsEnable bool
+	// DefaultAutoStart holds the default value on creation for the "auto_start" field.
+	DefaultAutoStart bool
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
 	// DefaultTotalBytesIn holds the default value on creation for the "total_bytes_in" field.
@@ -192,6 +197,11 @@ func ByTargetPort(opts ...sql.OrderTermOption) OrderOption {
 // ByIsEnable orders the results by the is_enable field.
 func ByIsEnable(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsEnable, opts...).ToFunc()
+}
+
+// ByAutoStart orders the results by the auto_start field.
+func ByAutoStart(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAutoStart, opts...).ToFunc()
 }
 
 // ByRemark orders the results by the remark field.

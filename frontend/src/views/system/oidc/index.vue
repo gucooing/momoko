@@ -15,6 +15,12 @@
         </span>
       </template>
       <template #description>{{ t('system.oidcx.pageDesc') }}</template>
+      <template #actions>
+        <UButton v-if="!menuStore.isMobile" color="neutral" variant="outline" icon="i-lucide-book-open" @click="docsVisible = true">
+          {{ t('systemV2.oidc.docs') }}
+        </UButton>
+        <AppIconButton v-else icon="HOutline:BookOpenIcon" :label="t('systemV2.oidc.docs')" :box="44" @click="docsVisible = true" />
+      </template>
     </PageHeader>
 
     <SettingsSubNav />
@@ -29,7 +35,7 @@
           · <b class="oidc-tone-ok m-num">{{ t('system.oidcx.clientsActive', { n: counts.active }) }}</b>
         </p>
       </div>
-      <UButton v-permission="[PERM.OIDC_EDIT]" color="primary" icon="i-lucide-plus" @click="openClient()">
+      <UButton v-if="!menuStore.isMobile" v-permission="[PERM.OIDC_EDIT]" color="primary" icon="i-lucide-plus" @click="openClient()">
         {{ t('system.oidcx.newClient') }}
       </UButton>
     </div>
@@ -85,7 +91,7 @@
         </span>
       </template>
       <template #cell-clientId="{ row }">
-        <span class="oidc-chip m-mono">{{ row.clientId }}</span>
+        <span class="oidc-chip is-cell m-mono" :title="String(row.clientId)">{{ row.clientId }}</span>
       </template>
       <template #cell-redirectUris="{ row }">
         <span class="oidc-uris">
@@ -140,7 +146,10 @@
             </span>
             <span class="oidc-client__text">
               <b>{{ row.name }}</b>
-              <span v-if="row.description">{{ row.description }}</span>
+              <span>
+                <template v-if="row.description">{{ row.description }} · </template>
+                <em :class="row.active ? 'is-on' : 'is-off'">{{ row.active ? t('system.oidcx.filterOn') : t('system.oidcx.filterOff') }}</em>
+              </span>
             </span>
             <AppSwitch
               :model-value="row.active"
@@ -153,7 +162,9 @@
             <div class="is-full"><dt>Client ID</dt><dd class="m-mono">{{ row.clientId }}</dd></div>
             <div class="is-full">
               <dt>{{ t('system.oidcx.redirectCount', { n: row.redirectUris.length }) }}</dt>
-              <dd class="m-mono">{{ row.redirectUris[0] || '—' }}</dd>
+              <dd v-for="u in row.redirectUris.slice(0, 3)" :key="u" class="m-mono oidc-dl__uri">{{ u }}</dd>
+              <dd v-if="!row.redirectUris.length" class="m-mono">—</dd>
+              <dd v-if="row.redirectUris.length > 3" class="oidc-dl__more">+{{ row.redirectUris.length - 3 }}</dd>
             </div>
             <div><dt>{{ t('system.oidcx.createdAt') }}</dt><dd class="m-num">{{ fmtDate(row.createTime) }}</dd></div>
             <div><dt>{{ t('system.oidcx.lastUsed') }}</dt><dd>{{ usedText(row.lastUsedTime) }}</dd></div>
@@ -163,9 +174,9 @@
               <span v-for="sp in row.scopes" :key="sp" class="oidc-scope m-mono">{{ sp }}</span>
             </span>
             <template v-if="canEdit">
-              <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('system.oidc.refreshSecret')" @click="refreshSecret(row)" />
-              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" @click="openClient(row)" />
-              <AppIconButton icon="HOutline:TrashIcon" class="is-danger" :label="t('system.common.delete')" @click="confirmDelete(row)" />
+              <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('system.oidc.refreshSecret')" :box="44" @click="refreshSecret(row)" />
+              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" :box="44" @click="openClient(row)" />
+              <AppIconButton icon="HOutline:TrashIcon" class="is-danger" :label="t('system.common.delete')" :box="44" @click="confirmDelete(row)" />
             </template>
           </footer>
         </article>
@@ -185,7 +196,51 @@
       {{ t('system.oidcx.callbackNote') }}
     </p>
 
+    <!-- 手机：悬浮新建 -->
+    <button v-if="menuStore.isMobile && canEdit" type="button" class="oidc-fab" @click="openClient()">
+      <component :is="menuStore.iconComponents['HOutline:PlusIcon']" />
+      {{ t('system.oidcx.newClient') }}
+    </button>
+
     <OIDCClientForm ref="clientFormRef" @refresh="loadClients" @reveal="openReveal" />
+
+    <!-- 接入文档 -->
+    <FormDialog v-model="docsVisible" :title="t('systemV2.oidc.docsTitle')" :width="680">
+      <div class="oidc-docs">
+        <ol class="oidc-docs__steps">
+          <li v-for="(step, idx) in docSteps" :key="idx">
+            <span class="oidc-docs__no m-num">{{ idx + 1 }}</span>
+            <span>{{ step }}</span>
+          </li>
+        </ol>
+        <section class="oidc-docs__sec">
+          <h3 class="oidc-docs__label">{{ t('systemV2.oidc.docsParams') }}</h3>
+          <div v-for="item in docItems" :key="item.label" class="oidc-docs__item">
+            <span class="oidc-docs__text">
+              <span class="oidc-docs__k">{{ item.label }}</span>
+              <span class="oidc-docs__v m-mono">{{ item.value || '—' }}</span>
+            </span>
+            <AppIconButton
+              v-if="item.value"
+              icon="HOutline:ClipboardDocumentIcon"
+              :label="t('system.oidcx.copyEndpoint', { name: item.label })"
+              :box="40"
+              @click="copyText(item.value)"
+            />
+          </div>
+        </section>
+        <section class="oidc-docs__sec">
+          <div class="oidc-docs__head">
+            <h3 class="oidc-docs__label">{{ t('systemV2.oidc.docsExample') }}</h3>
+            <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('common.copy')" :box="40" @click="copyText(docExample)" />
+          </div>
+          <pre class="oidc-docs__code m-mono">{{ docExample }}</pre>
+        </section>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('common.close') }}</UButton>
+      </template>
+    </FormDialog>
 
     <!-- 客户端配置（完整 secret 仅一次） -->
     <FormDialog v-model="revealVisible" :title="t('system.oidc.revealTitle')" :width="720">
@@ -259,10 +314,10 @@ const filterChips = computed<ToolbarChip<ActiveKey>[]>(() => [
 ])
 
 const columns = computed<DataTableColumn[]>(() => [
-  { key: 'name', title: t('system.oidcx.colClient'), minWidth: 200, ellipsis: false },
-  { key: 'clientId', title: t('system.oidc.colClientId'), minWidth: 170 },
-  { key: 'redirectUris', title: t('system.oidc.colRedirectUris'), minWidth: 240, ellipsis: false },
-  { key: 'scopes', title: t('system.oidc.colScopes'), minWidth: 160, ellipsis: false },
+  { key: 'name', title: t('system.oidcx.colClient'), minWidth: 180, ellipsis: false },
+  { key: 'clientId', title: t('system.oidc.colClientId'), minWidth: 150 },
+  { key: 'redirectUris', title: t('system.oidc.colRedirectUris'), minWidth: 210, ellipsis: false },
+  { key: 'scopes', title: t('system.oidc.colScopes'), minWidth: 150, ellipsis: false },
   { key: 'active', title: t('system.common.enabled'), width: 80 },
   { key: 'createTime', title: t('system.oidcx.createdAt'), width: 140, ellipsis: false },
   { key: 'operation', title: t('system.common.operation'), width: 136, align: 'right' },
@@ -403,6 +458,42 @@ const clientConfigText = computed(() =>
   clientConfigItems.value.map((item) => `${item.label}: ${item.value}`).join('\n'),
 )
 
+// —— 接入文档：步骤 + 关键参数 + 通用 OIDC 客户端配置示例（以 Grafana generic_oauth 为例）——
+const docsVisible = ref(false)
+const docSteps = computed(() => [
+  t('systemV2.oidc.step1'),
+  t('systemV2.oidc.step2'),
+  t('systemV2.oidc.step3'),
+  t('systemV2.oidc.step4'),
+])
+const docItems = computed(() => {
+  const e = config.value?.endpoints
+  return [
+    { label: t('system.oidc.issuerUrl'), value: e?.issuerUrl || config.value?.issuerUrl || '' },
+    { label: 'Discovery', value: e?.discoveryUrl || '' },
+    { label: t('system.oidcx.epAuthorize'), value: e?.authorizeUrl || '' },
+    { label: t('system.oidcx.epToken'), value: e?.tokenUrl || '' },
+    { label: t('system.oidcx.epUserinfo'), value: e?.userinfoUrl || '' },
+    { label: 'JWKS', value: e?.jwksUrl || '' },
+    { label: t('system.oidc.tokenAuthMethod'), value: e?.tokenEndpointAuthMethod || 'client_secret_post' },
+    { label: 'Scopes', value: 'openid profile email' },
+  ]
+})
+const docExample = computed(() => {
+  const e = config.value?.endpoints
+  return [
+    '[auth.generic_oauth]',
+    'enabled = true',
+    'name = Momoko',
+    'client_id = <Client ID>',
+    'client_secret = <Client Secret>',
+    'scopes = openid profile email',
+    `auth_url = ${e?.authorizeUrl || '<authorize>'}`,
+    `token_url = ${e?.tokenUrl || '<token>'}`,
+    `api_url = ${e?.userinfoUrl || '<userinfo>'}`,
+  ].join('\n')
+})
+
 // 新建：直接弹完整配置；刷新：顶部提示条（可再展开完整配置）
 const openReveal = (client: OIDCClientInfo, showDialog = true) => {
   revealClient.value = client
@@ -446,6 +537,9 @@ onMounted(loadClients)
   align-items: flex-end;
   gap: 12px 16px;
   margin-top: 8px;
+}
+.oidc-section > :deep(button) {
+  min-height: 40px;
 }
 .oidc-section__text {
   flex: 1 1 260px;
@@ -563,12 +657,20 @@ onMounted(loadClients)
 }
 .oidc-chip {
   display: inline-block;
+  max-width: 100%;
   padding: 3px 8px;
   border-radius: var(--app-radius-xs);
   background: var(--el-fill-color-light);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+/* 表格里 Client ID 很长：限宽省略，悬停看全（编辑弹窗里可完整查看） */
+.oidc-chip.is-cell {
+  max-width: 200px;
 }
 .oidc-uris {
   display: flex;
@@ -626,6 +728,148 @@ onMounted(loadClients)
 .oidc-card__foot :deep(.is-danger:hover) {
   background: var(--m-badSoft);
 }
+/* 手机悬浮新建 */
+.oidc-fab {
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 22px;
+  border: none;
+  border-radius: var(--app-radius-pill);
+  background: var(--m-p);
+  color: var(--m-pOn);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  box-shadow: var(--app-shadow-brand);
+  cursor: pointer;
+}
+.oidc-fab :deep(svg) {
+  width: 20px;
+  height: 20px;
+}
+.oidc-fab:focus-visible {
+  outline: 3px solid var(--m-a2);
+  outline-offset: 2px;
+}
+.oidc-client__text em {
+  font-style: normal;
+  font-weight: 700;
+}
+.oidc-client__text em.is-on {
+  color: var(--m-ok);
+}
+.oidc-dl dd.oidc-dl__uri {
+  font-size: 0.6875rem;
+  font-weight: 400;
+}
+.oidc-dl dd.oidc-dl__more {
+  font-size: 0.6875rem;
+  color: var(--el-text-color-secondary);
+}
+
+/* 接入文档 */
+.oidc-docs {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.oidc-docs__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.oidc-docs__steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--el-text-color-primary);
+}
+.oidc-docs__no {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.oidc-docs__sec {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.oidc-docs__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.oidc-docs__label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--el-text-color-secondary);
+}
+.oidc-docs__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px 6px 14px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+}
+.oidc-docs__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.oidc-docs__k {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+}
+.oidc-docs__v {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oidc-docs__code {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color-light);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--el-text-color-primary);
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: pre;
+}
+.oidc-docs__code::-webkit-scrollbar {
+  display: none;
+}
+
 .oidc-note {
   display: flex;
   align-items: center;
@@ -747,11 +991,19 @@ onMounted(loadClients)
   }
 }
 @media (width <= 768px) {
+  .oidc-page {
+    /* 悬浮新建按钮贴在底部导航上方 88px 处；留出同样高度，滚到底时按钮不压住最后一张卡片 */
+    padding-bottom: 88px;
+  }
   .oidc-reveal__grid {
     grid-template-columns: 1fr;
   }
   .oidc-secret__text {
     flex-basis: calc(100% - 60px);
+  }
+  .oidc-secret__text code {
+    display: block;
+    padding: 8px 10px;
   }
   .oidc-note {
     align-items: flex-start;

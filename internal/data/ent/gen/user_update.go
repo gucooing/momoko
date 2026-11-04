@@ -255,23 +255,39 @@ func (_u *UserUpdate) ClearLastLoginMethod() *UserUpdate {
 	return _u
 }
 
-// SetRoleID sets the "role" edge to the Role entity by ID.
-func (_u *UserUpdate) SetRoleID(id string) *UserUpdate {
-	_u.mutation.SetRoleID(id)
+// SetAppearance sets the "appearance" field.
+func (_u *UserUpdate) SetAppearance(v string) *UserUpdate {
+	_u.mutation.SetAppearance(v)
 	return _u
 }
 
-// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
-func (_u *UserUpdate) SetNillableRoleID(id *string) *UserUpdate {
-	if id != nil {
-		_u = _u.SetRoleID(*id)
+// SetNillableAppearance sets the "appearance" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableAppearance(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetAppearance(*v)
 	}
 	return _u
 }
 
-// SetRole sets the "role" edge to the Role entity.
-func (_u *UserUpdate) SetRole(v *Role) *UserUpdate {
-	return _u.SetRoleID(v.ID)
+// ClearAppearance clears the value of the "appearance" field.
+func (_u *UserUpdate) ClearAppearance() *UserUpdate {
+	_u.mutation.ClearAppearance()
+	return _u
+}
+
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (_u *UserUpdate) AddRoleIDs(ids ...string) *UserUpdate {
+	_u.mutation.AddRoleIDs(ids...)
+	return _u
+}
+
+// AddRoles adds the "roles" edges to the Role entity.
+func (_u *UserUpdate) AddRoles(v ...*Role) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRoleIDs(ids...)
 }
 
 // AddSharedSSHHostIDs adds the "shared_ssh_hosts" edge to the SSHHost entity by IDs.
@@ -309,10 +325,25 @@ func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearRole clears the "role" edge to the Role entity.
-func (_u *UserUpdate) ClearRole() *UserUpdate {
-	_u.mutation.ClearRole()
+// ClearRoles clears all "roles" edges to the Role entity.
+func (_u *UserUpdate) ClearRoles() *UserUpdate {
+	_u.mutation.ClearRoles()
 	return _u
+}
+
+// RemoveRoleIDs removes the "roles" edge to Role entities by IDs.
+func (_u *UserUpdate) RemoveRoleIDs(ids ...string) *UserUpdate {
+	_u.mutation.RemoveRoleIDs(ids...)
+	return _u
+}
+
+// RemoveRoles removes "roles" edges to Role entities.
+func (_u *UserUpdate) RemoveRoles(v ...*Role) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRoleIDs(ids...)
 }
 
 // ClearSharedSSHHosts clears all "shared_ssh_hosts" edges to the SSHHost entity.
@@ -480,12 +511,18 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.LastLoginMethodCleared() {
 		_spec.ClearField(user.FieldLastLoginMethod, field.TypeString)
 	}
-	if _u.mutation.RoleCleared() {
+	if value, ok := _u.mutation.Appearance(); ok {
+		_spec.SetField(user.FieldAppearance, field.TypeString, value)
+	}
+	if _u.mutation.AppearanceCleared() {
+		_spec.ClearField(user.FieldAppearance, field.TypeString)
+	}
+	if _u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.RoleTable,
-			Columns: []string{user.RoleColumn},
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
@@ -493,12 +530,28 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RoleIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RemovedRolesIDs(); len(nodes) > 0 && !_u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.RoleTable,
-			Columns: []string{user.RoleColumn},
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
@@ -843,23 +896,39 @@ func (_u *UserUpdateOne) ClearLastLoginMethod() *UserUpdateOne {
 	return _u
 }
 
-// SetRoleID sets the "role" edge to the Role entity by ID.
-func (_u *UserUpdateOne) SetRoleID(id string) *UserUpdateOne {
-	_u.mutation.SetRoleID(id)
+// SetAppearance sets the "appearance" field.
+func (_u *UserUpdateOne) SetAppearance(v string) *UserUpdateOne {
+	_u.mutation.SetAppearance(v)
 	return _u
 }
 
-// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableRoleID(id *string) *UserUpdateOne {
-	if id != nil {
-		_u = _u.SetRoleID(*id)
+// SetNillableAppearance sets the "appearance" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableAppearance(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetAppearance(*v)
 	}
 	return _u
 }
 
-// SetRole sets the "role" edge to the Role entity.
-func (_u *UserUpdateOne) SetRole(v *Role) *UserUpdateOne {
-	return _u.SetRoleID(v.ID)
+// ClearAppearance clears the value of the "appearance" field.
+func (_u *UserUpdateOne) ClearAppearance() *UserUpdateOne {
+	_u.mutation.ClearAppearance()
+	return _u
+}
+
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (_u *UserUpdateOne) AddRoleIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.AddRoleIDs(ids...)
+	return _u
+}
+
+// AddRoles adds the "roles" edges to the Role entity.
+func (_u *UserUpdateOne) AddRoles(v ...*Role) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRoleIDs(ids...)
 }
 
 // AddSharedSSHHostIDs adds the "shared_ssh_hosts" edge to the SSHHost entity by IDs.
@@ -897,10 +966,25 @@ func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
 }
 
-// ClearRole clears the "role" edge to the Role entity.
-func (_u *UserUpdateOne) ClearRole() *UserUpdateOne {
-	_u.mutation.ClearRole()
+// ClearRoles clears all "roles" edges to the Role entity.
+func (_u *UserUpdateOne) ClearRoles() *UserUpdateOne {
+	_u.mutation.ClearRoles()
 	return _u
+}
+
+// RemoveRoleIDs removes the "roles" edge to Role entities by IDs.
+func (_u *UserUpdateOne) RemoveRoleIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.RemoveRoleIDs(ids...)
+	return _u
+}
+
+// RemoveRoles removes "roles" edges to Role entities.
+func (_u *UserUpdateOne) RemoveRoles(v ...*Role) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRoleIDs(ids...)
 }
 
 // ClearSharedSSHHosts clears all "shared_ssh_hosts" edges to the SSHHost entity.
@@ -1098,12 +1182,18 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if _u.mutation.LastLoginMethodCleared() {
 		_spec.ClearField(user.FieldLastLoginMethod, field.TypeString)
 	}
-	if _u.mutation.RoleCleared() {
+	if value, ok := _u.mutation.Appearance(); ok {
+		_spec.SetField(user.FieldAppearance, field.TypeString, value)
+	}
+	if _u.mutation.AppearanceCleared() {
+		_spec.ClearField(user.FieldAppearance, field.TypeString)
+	}
+	if _u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.RoleTable,
-			Columns: []string{user.RoleColumn},
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
@@ -1111,12 +1201,28 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RoleIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RemovedRolesIDs(); len(nodes) > 0 && !_u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.RoleTable,
-			Columns: []string{user.RoleColumn},
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),

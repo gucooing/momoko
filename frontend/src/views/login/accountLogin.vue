@@ -1,149 +1,117 @@
-<!-- 账号登录：紧凑令牌表单；密码眼睛内嵌输入框。 -->
+<!-- 账号登录：密码登录（用户名或邮箱 + 密码）/ 邮箱验证码两种方式；「N 天内免登录」决定会话是否长期保持。
+     外壳（品牌区、标题）由 login/index.vue 提供。 -->
 <template>
-  <div class="auth-form">
-    <header class="auth-form__head">
-      <h1 class="auth-form__title">{{ t('login.welcomeBack') }}</h1>
-      <p class="auth-form__sub">{{ t('login.subtitle') }}</p>
-    </header>
+  <form class="auth-form" novalidate @submit.prevent="handleLogin">
+    <AuthSeg
+      v-if="showLoginTypeSwitch"
+      :model-value="loginType"
+      :label="t('authPage.login.methods')"
+      :options="[
+        { value: 'username', label: t('authPage.login.tabPassword') },
+        { value: 'email', label: t('authPage.login.tabCode') },
+      ]"
+      @update:model-value="setLoginType"
+    />
 
-    <form class="auth-form__body" @submit.prevent="handleLogin">
-      <div
-        v-if="showLoginTypeSwitch"
-        class="auth-seg"
-        :class="`auth-seg--${loginType}`"
-        role="tablist"
-      >
-        <span class="auth-seg__indicator" aria-hidden="true" />
-        <button
-          type="button"
-          role="tab"
-          class="auth-seg__item"
-          :class="{ 'is-active': loginType === 'username' }"
-          :aria-selected="loginType === 'username'"
-          @click="setLoginType('username')"
-        >
-          {{ t('login.usernameLogin') }}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          class="auth-seg__item"
-          :class="{ 'is-active': loginType === 'email' }"
-          :aria-selected="loginType === 'email'"
-          @click="setLoginType('email')"
-        >
-          {{ t('login.emailLogin') }}
-        </button>
-      </div>
+    <div v-if="noMethod" class="auth-note auth-note--warn" role="status">
+      <component :is="menuStore.iconComponents['HOutline:ExclamationTriangleIcon']" aria-hidden="true" />
+      <span>{{ t('authPage.login.allMethodsOff') }}</span>
+    </div>
 
-      <div class="app-field">
-        <label class="app-label" for="login-account">
-          {{ isEmailMode ? t('login.emailLogin') : t('login.usernameLogin') }}
-        </label>
-        <input
+    <Transition name="auth-fade" mode="out-in">
+      <div v-if="loginType === 'username'" key="password-mode" class="auth-pw">
+        <AuthField
           id="login-account"
           v-model="loginForm.username"
-          class="app-input auth-input"
-          :class="{ 'is-error': errors.username }"
-          :placeholder="loginInputPlaceholder"
+          :label="t('authPage.field.account')"
+          icon="HOutline:UserIcon"
+          :placeholder="t('authPage.field.accountPlaceholder')"
           autocomplete="username"
-          @input="handleAccountInput"
+          :error="errors.username"
         />
-        <span v-if="errors.username" class="app-field__error">{{ errors.username }}</span>
+        <AuthField
+          id="login-password"
+          v-model="loginForm.password"
+          :label="t('authPage.field.password')"
+          icon="HOutline:LockClosedIcon"
+          type="password"
+          revealable
+          :placeholder="t('authPage.field.passwordPlaceholder')"
+          autocomplete="current-password"
+          :error="errors.password"
+        />
       </div>
 
-      <Transition name="login-fade" mode="out-in">
-        <div v-if="loginType === 'username'" key="password-mode" class="app-field">
-          <label class="app-label" for="login-password">{{ t('login.passwordLabel') }}</label>
-          <div class="auth-input-wrap">
-            <input
-              id="login-password"
-              v-model="loginForm.password"
-              class="app-input auth-input auth-input--with-icon"
-              :class="{ 'is-error': errors.password }"
-              :type="showPwd ? 'text' : 'password'"
-              :placeholder="t('login.passwordPlaceholder')"
-              autocomplete="current-password"
+      <div v-else key="code-mode" class="auth-pw">
+        <AuthField
+          id="login-email"
+          v-model="loginForm.username"
+          :label="t('authPage.field.email')"
+          icon="HOutline:EnvelopeIcon"
+          type="email"
+          inputmode="email"
+          :placeholder="t('authPage.field.emailPlaceholder')"
+          autocomplete="email"
+          :error="errors.username"
+          @input="emailCode.reset()"
+        />
+        <AuthField
+          id="login-code"
+          v-model="loginForm.password"
+          :label="t('authPage.field.code')"
+          icon="HOutline:ShieldCheckIcon"
+          inputmode="numeric"
+          :maxlength="6"
+          :placeholder="t('authPage.field.codePlaceholder')"
+          autocomplete="one-time-code"
+          :error="errors.password"
+        >
+          <template #trail>
+            <SendCodeButton
+              :countdown="emailCode.countdown.value"
+              :sending="emailCode.sending.value"
+              :disabled="loading"
+              @send="handleSendCode"
             />
-            <button
-              type="button"
-              class="auth-eye"
-              :aria-label="showPwd ? t('login.hidePassword') : t('login.showPassword')"
-              @click="showPwd = !showPwd"
-            >
-              <component
-                :is="
-                  menuStore.iconComponents[
-                    showPwd ? 'HOutline:EyeSlashIcon' : 'HOutline:EyeIcon'
-                  ]
-                "
-                class="auth-eye__icon"
-              />
-            </button>
-          </div>
-          <span v-if="errors.password" class="app-field__error">{{ errors.password }}</span>
-        </div>
-
-        <div v-else key="code-mode" class="app-field">
-          <label class="app-label" for="login-code">{{ t('login.codePlaceholder') }}</label>
-          <div class="auth-code-row">
-            <input
-              id="login-code"
-              v-model="loginForm.password"
-              class="app-input auth-input"
-              :class="{ 'is-error': errors.password }"
-              :placeholder="t('login.codePlaceholder')"
-              maxlength="6"
-              inputmode="numeric"
-              autocomplete="one-time-code"
-            />
-            <UButton
-              type="button"
-              color="primary"
-              variant="soft"
-              class="auth-code-btn"
-              :disabled="sendCodeDisabled"
-              @click="handleSendCode"
-            >
-              {{ sendCodeButtonText }}
-            </UButton>
-          </div>
-          <span v-if="errors.password" class="app-field__error">{{ errors.password }}</span>
-        </div>
-      </Transition>
-
-      <div class="auth-options">
-        <label class="auth-check">
-          <input
-            v-model="loginForm.remember"
-            type="checkbox"
-            @change="handleRememberChange(loginForm.remember)"
-          />
-          <span>{{ t('login.rememberMe') }}</span>
-        </label>
-        <button type="button" class="auth-text-btn" @click="emits('goToMode', 'forgot')">
-          {{ t('login.forgotPassword') }}
-        </button>
+          </template>
+          <template #below>
+            <span v-if="emailCode.sentMinutes.value && !errors.password" class="auth-status" role="status">
+              <component :is="menuStore.iconComponents['HOutline:CheckIcon']" aria-hidden="true" />
+              <span class="auth-status__long">{{ t('authPage.code.sent', { min: emailCode.sentMinutes.value }) }}</span>
+              <span class="auth-status__short">{{ t('authPage.code.sentShort', { min: emailCode.sentMinutes.value }) }}</span>
+            </span>
+          </template>
+        </AuthField>
       </div>
+    </Transition>
 
-      <UButton
-        type="submit"
-        color="primary"
-        block
-        class="auth-submit"
-        :loading="loading"
-      >
-        {{ t('login.submit') }}
-      </UButton>
-    </form>
-
-    <p v-if="registerEnabled" class="auth-switch">
-      <span>{{ t('login.noAccount') }}</span>
-      <button type="button" class="auth-text-btn" @click="emits('goToMode', 'register')">
-        {{ t('login.registerNow') }}
+    <div class="auth-options">
+      <label class="auth-check" :title="t('authPage.login.rememberHint')">
+        <input v-model="loginForm.remember" type="checkbox" @change="handleRememberChange(loginForm.remember)" />
+        <span>{{ t('authPage.login.remember', { days: rememberDaysLabel }) }}</span>
+      </label>
+      <button type="button" class="auth-link" @click="emits('goToMode', 'forgot')">
+        {{ t('login.forgotPassword') }}
       </button>
-    </p>
-  </div>
+    </div>
+
+    <div class="auth-actions">
+      <button type="submit" class="auth-submit" :disabled="loading || noMethod" :aria-busy="loading">
+        {{ t('login.submit') }}
+        <component
+          :is="menuStore.iconComponents[loading ? 'HOutline:ArrowPathIcon' : 'HOutline:ArrowRightIcon']"
+          :class="{ 'is-spin': loading }"
+          aria-hidden="true"
+        />
+      </button>
+      <p v-if="registerEnabled" class="auth-switch auth-switch--register">
+        {{ t('authPage.login.noAccount') }}
+        <button type="button" class="auth-link" @click="emits('goToMode', 'register')">
+          {{ t('authPage.login.registerLink') }}
+        </button>
+      </p>
+    </div>
+  </form>
 </template>
 
 <script setup lang="ts">
@@ -154,6 +122,10 @@ import { normalizeAuthRedirect } from '@/utils/authRedirect'
 import { normalizeAuthToken } from '@/utils/request'
 import { getDeviceId } from '@/utils/deviceId'
 import { useFeedback } from '@/utils/feedback'
+import AuthField from '@/views/login/components/AuthField.vue'
+import AuthSeg from '@/views/login/components/AuthSeg.vue'
+import SendCodeButton from '@/views/login/components/SendCodeButton.vue'
+import { useEmailCode } from '@/views/login/composables/useEmailCode'
 import { useI18n } from 'vue-i18n'
 
 interface IEmits {
@@ -169,9 +141,11 @@ interface ILoginFormModel {
 }
 
 const EMAIL_REGEXP = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const VERIFY_CODE_REGEXP = /^\d{4,6}$/
-const SEND_CODE_COUNTDOWN_SECONDS = 60
+const VERIFY_CODE_REGEXP = /^\d{6}$/
 const REMEMBER_USERNAME_KEY = 'remember_username'
+/** 用户取消过「免登录」时记为 '0'，下次默认不勾选 */
+const REMEMBER_PREF_KEY = 'login_remember'
+const DEFAULT_REMEMBER_DAYS = 14
 
 defineOptions({ name: 'AccountLogin' })
 
@@ -179,6 +153,8 @@ const props = defineProps<{
   usernameLoginEnabled: boolean
   emailLoginEnabled: boolean
   registerEnabled: boolean
+  /** 刷新令牌有效期（天）：勾选「免登录」时会话保持的天数 */
+  rememberDays?: number
 }>()
 
 const emits = defineEmits<IEmits>()
@@ -190,16 +166,17 @@ const fb = useFeedback()
 const menuStore = useMenuStore()
 
 const loading = ref(false)
-const showPwd = ref(false)
 const errors = ref<Record<string, string>>({})
 
 const loginForm = ref<ILoginFormModel>({
   username: '',
   password: '',
-  remember: false,
+  remember: true,
 })
 
 const showLoginTypeSwitch = computed(() => props.usernameLoginEnabled && props.emailLoginEnabled)
+const noMethod = computed(() => !props.usernameLoginEnabled && !props.emailLoginEnabled)
+const rememberDaysLabel = computed(() => props.rememberDays || DEFAULT_REMEMBER_DAYS)
 
 const resolveDefaultLoginType = (): LoginType => {
   if (props.usernameLoginEnabled) return 'username'
@@ -210,12 +187,8 @@ const resolveDefaultLoginType = (): LoginType => {
 const loginType = ref<LoginType>(resolveDefaultLoginType())
 const isEmailMode = computed(() => loginType.value === 'email')
 const accountValue = computed(() => loginForm.value.username.trim())
-const loginInputPlaceholder = computed(() =>
-  isEmailMode.value ? t('login.emailPlaceholder') : t('login.usernamePlaceholder'),
-)
 
-const sendCodeCountdown = ref(0)
-let sendCodeTimer: ReturnType<typeof setInterval> | null = null
+const emailCode = useEmailCode((email) => sendLoginEmailCode({ email }))
 
 const resetCredentialInput = () => {
   loginForm.value.password = ''
@@ -228,79 +201,57 @@ const setLoginType = (type: LoginType) => {
   resetCredentialInput()
 }
 
-const handleAccountInput = (e: Event) => {
-  const value = (e.target as HTMLInputElement).value
-  if (value.includes('@') && !isEmailMode.value && props.emailLoginEnabled) {
-    loginType.value = 'email'
-    resetCredentialInput()
-  }
+const safeStorage = {
+  get: (k: string) => {
+    try {
+      return localStorage.getItem(k)
+    } catch {
+      return null
+    }
+  },
+  set: (k: string, v: string) => {
+    try {
+      localStorage.setItem(k, v)
+    } catch {
+      // 忽略：隐私模式等不可写
+    }
+  },
+  remove: (k: string) => {
+    try {
+      localStorage.removeItem(k)
+    } catch {
+      // 忽略
+    }
+  },
 }
 
 const loadRememberedUsername = () => {
-  const rememberedUsername = localStorage.getItem(REMEMBER_USERNAME_KEY)
-  if (rememberedUsername) {
-    loginForm.value.username = rememberedUsername
-    if (rememberedUsername.includes('@') && !isEmailMode.value && props.emailLoginEnabled) {
-      loginType.value = 'email'
-    }
-    loginForm.value.remember = true
-  }
+  loginForm.value.remember = safeStorage.get(REMEMBER_PREF_KEY) !== '0'
+  const rememberedUsername = safeStorage.get(REMEMBER_USERNAME_KEY)
+  if (rememberedUsername) loginForm.value.username = rememberedUsername
 }
 
 const handleRememberChange = (value: boolean) => {
   const account = accountValue.value
   if (value) {
-    if (account) localStorage.setItem(REMEMBER_USERNAME_KEY, account)
+    safeStorage.remove(REMEMBER_PREF_KEY)
+    if (account) safeStorage.set(REMEMBER_USERNAME_KEY, account)
   } else {
-    localStorage.removeItem(REMEMBER_USERNAME_KEY)
+    safeStorage.set(REMEMBER_PREF_KEY, '0')
+    safeStorage.remove(REMEMBER_USERNAME_KEY)
   }
 }
 
 const isValidEmail = (email: string) => EMAIL_REGEXP.test(email)
 
-const sendCodeButtonText = computed(() =>
-  sendCodeCountdown.value > 0
-    ? t('login.resendIn', { seconds: sendCodeCountdown.value })
-    : t('login.sendCode'),
-)
-
-const sendCodeDisabled = computed(
-  () => loading.value || sendCodeCountdown.value > 0 || !isValidEmail(accountValue.value),
-)
-
-const clearSendCodeTimer = () => {
-  if (sendCodeTimer) {
-    clearInterval(sendCodeTimer)
-    sendCodeTimer = null
-  }
-}
-
-const startSendCodeCountdown = () => {
-  sendCodeCountdown.value = SEND_CODE_COUNTDOWN_SECONDS
-  clearSendCodeTimer()
-  sendCodeTimer = setInterval(() => {
-    if (sendCodeCountdown.value <= 1) {
-      sendCodeCountdown.value = 0
-      clearSendCodeTimer()
-      return
-    }
-    sendCodeCountdown.value -= 1
-  }, 1000)
-}
-
 const handleSendCode = async () => {
   const email = accountValue.value
   if (!isValidEmail(email)) {
-    fb.warning(t('login.validEmailFirst'))
+    errors.value = { ...errors.value, username: email ? t('login.emailInvalid') : t('login.validEmailFirst') }
     return
   }
-  try {
-    await sendLoginEmailCode({ email })
-    fb.success(t('login.codeSent'))
-    startSendCodeCountdown()
-  } catch {
-    fb.error(t('login.codeSendFailed'))
-  }
+  errors.value = { ...errors.value, username: '' }
+  await emailCode.request(email)
 }
 
 const buildLoginPayload = (): LoginRequest => {
@@ -309,16 +260,17 @@ const buildLoginPayload = (): LoginRequest => {
   const device =
     `${platform.os?.toString() || unknownDevice} / ${platform.name || unknownDevice} ${platform.version || ''}`.trim()
   const deviceId = getDeviceId()
+  const remember = loginForm.value.remember
   return isEmailMode.value
-    ? { email: account, password: '', device, deviceId, code: loginForm.value.password }
-    : { username: account, password: loginForm.value.password, device, deviceId, code: '' }
+    ? { email: account, password: '', device, deviceId, code: loginForm.value.password.trim(), remember }
+    : { username: account, password: loginForm.value.password, device, deviceId, code: '', remember }
 }
 
 const validate = (): boolean => {
   const next: Record<string, string> = {}
   const account = accountValue.value
   if (!account) {
-    next.username = isEmailMode.value ? t('login.emailPlaceholder') : t('login.usernamePlaceholder')
+    next.username = isEmailMode.value ? t('login.emailPlaceholder') : t('authPage.login.accountRequired')
   } else if (isEmailMode.value && !EMAIL_REGEXP.test(account)) {
     next.username = t('login.emailInvalid')
   }
@@ -327,7 +279,7 @@ const validate = (): boolean => {
   if (!credential) {
     next.password = isEmailMode.value ? t('login.codePlaceholder') : t('login.passwordPlaceholder')
   } else if (isEmailMode.value && !VERIFY_CODE_REGEXP.test(credential)) {
-    next.password = t('login.codeInvalid')
+    next.password = t('authPage.code.invalid')
   }
 
   errors.value = next
@@ -335,7 +287,7 @@ const validate = (): boolean => {
 }
 
 const handleLogin = async () => {
-  if (!validate()) return
+  if (noMethod.value || !validate()) return
   loading.value = true
   try {
     const payload = buildLoginPayload()
@@ -353,11 +305,7 @@ const handleLogin = async () => {
       localStorage.removeItem('refreshToken')
     }
 
-    if (loginForm.value.remember) {
-      localStorage.setItem(REMEMBER_USERNAME_KEY, accountValue.value)
-    } else {
-      localStorage.removeItem(REMEMBER_USERNAME_KEY)
-    }
+    handleRememberChange(loginForm.value.remember)
 
     fb.success(t('login.success'))
     const redirectQuery = Array.isArray(route.query.redirect)
@@ -365,6 +313,8 @@ const handleLogin = async () => {
       : route.query.redirect
     const redirectPath = normalizeAuthRedirect(redirectQuery)
     await router.push(redirectPath || '/')
+  } catch {
+    // 请求层已提示错误
   } finally {
     loading.value = false
   }
@@ -386,211 +336,29 @@ watch(
 onMounted(() => {
   loadRememberedUsername()
 })
-
-onBeforeUnmount(() => {
-  clearSendCodeTimer()
-})
 </script>
 
 <style scoped lang="scss">
-.auth-form {
-  width: 100%;
+@use './auth-form.scss';
+
+/* 手机：注册入口在标题行，这里不再重复 */
+@media (width < 900px) {
+  .auth-switch--register {
+    display: none;
+  }
 }
 
-.auth-form__head {
-  margin-bottom: 1rem;
-}
-
-.auth-form__title {
-  margin: 0 0 4px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-  color: var(--el-text-color-primary);
-}
-
-.auth-form__sub {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--el-text-color-secondary);
-}
-
-.auth-form__body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.auth-input {
-  height: 36px;
-  font-size: 0.8125rem;
-}
-
-.auth-input-wrap {
-  position: relative;
-}
-
-.auth-input--with-icon {
-  padding-right: 36px;
-}
-
-.auth-eye {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: var(--app-radius-sm);
-  background: transparent;
-  color: var(--el-text-color-placeholder);
-  cursor: pointer;
-  padding: 0;
-}
-
-.auth-eye:hover {
-  color: var(--el-text-color-regular);
-  background: var(--el-fill-color-light);
-}
-
-.auth-eye__icon {
-  width: 16px;
-  height: 16px;
-}
-
-.auth-seg {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding: 3px;
-  border-radius: var(--app-radius-sm);
-  background: var(--el-fill-color-light);
-  overflow: hidden;
-}
-
-.auth-seg__indicator {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: calc(50% - 3px);
-  height: calc(100% - 6px);
-  border-radius: calc(var(--app-radius-sm) - 2px);
-  background: var(--el-bg-color);
-  box-shadow: inset 0 0 0 1px var(--app-hairline);
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.auth-seg--email .auth-seg__indicator {
-  transform: translateX(100%);
-}
-
-.auth-seg__item {
-  position: relative;
-  z-index: 1;
-  height: 28px;
-  border: none;
-  background: transparent;
-  color: var(--el-text-color-regular);
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.auth-seg__item.is-active {
-  color: var(--el-color-primary);
-}
-
-.auth-code-row {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.auth-code-row .app-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.auth-code-btn {
-  flex-shrink: 0;
-  min-width: 6.5rem;
-  height: 36px !important;
-}
-
-.auth-options {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: -2px;
-}
-
-.auth-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  color: var(--el-text-color-regular);
-  cursor: pointer;
-  user-select: none;
-}
-
-.auth-check input {
-  width: 14px;
-  height: 14px;
-  accent-color: var(--el-color-primary);
-  cursor: pointer;
-}
-
-.auth-text-btn {
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--el-color-primary);
-  cursor: pointer;
-}
-
-.auth-text-btn:hover {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.auth-submit {
-  margin-top: 4px;
-  height: 36px !important;
-  font-size: 0.875rem !important;
-  font-weight: 600;
-}
-
-.auth-switch {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 14px 0 0;
-  font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
-}
-
-.login-fade-enter-active,
-.login-fade-leave-active {
+.auth-fade-enter-active,
+.auth-fade-leave-active {
   transition:
     opacity 0.14s ease,
     transform 0.14s ease;
 }
-.login-fade-enter-from {
+.auth-fade-enter-from {
   opacity: 0;
   transform: translateY(3px);
 }
-.login-fade-leave-to {
+.auth-fade-leave-to {
   opacity: 0;
   transform: translateY(-2px);
 }

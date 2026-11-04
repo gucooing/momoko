@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>应用列表 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.btn-stop{background:var(--badSoft);color:var(--bad)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.inp{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 16px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; min-height: 3000px; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: flex-end; gap: 6px; padding: 22px 12px 12px 20px">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.01em">应用</h1>
+      <div style="font-size: 13px; color: var(--ink2)">8 个 · <span style="color: var(--ok); font-weight: 700">5 个运行中</span></div>
+    </div>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    <button class="ib" aria-label="应用类型"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.layers}}"></path></svg></button>
+  </header>
+
+  <div style="padding: 0 16px 10px">
+    <label class="inp">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+      <input type="search" placeholder="搜索名称、路径或标签" aria-label="搜索应用">
+    </label>
+  </div>
+
+  <div class="hs" role="tablist" aria-label="按状态筛选" style="display: flex; gap: 8px; padding: 2px 16px 14px; overflow-x: auto">
+    <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+      <button class="chip {{f.cls}}" role="tab" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 20px">
+    <sc-for list="{{apps}}" as="a" hint-placeholder-count="8">
+      <article class="card" style="padding: 16px 12px 6px 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 12px; padding-right: 4px">
+          <span class="av {{a.av}}" style="width: 46px; height: 46px; border-radius: 15px; font-size: 19px; transform: rotate({{a.rot}})">{{a.l}}</span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{a.n}}</span>
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink2)">{{a.type}}<sc-if value="{{a.auto}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; background: var(--a2Soft); color: var(--ink); font-size: 11px; font-weight: 700">开机自启</span></sc-if></span>
+          </span>
+          <span class="pill {{a.st}}">{{a.stT}}</span>
+        </div>
+        <div style="font-size: 14px; line-height: 1.45; padding-right: 4px">{{a.remark}}</div>
+        <dl style="margin: 0 4px 0 0; padding: 10px 12px; border-radius: 14px; background: var(--s2); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px">
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">{{a.upLabel}}</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{a.up}}</dd>
+          </div>
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">创建于</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{a.created}}</dd>
+          </div>
+          <div style="grid-column: 1 / -1; min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">启动命令</dt>
+            <dd class="mono" style="margin: 2px 0 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{a.cmd}}</dd>
+          </div>
+          <div style="grid-column: 1 / -1; min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">工作目录</dt>
+            <dd class="mono" style="margin: 2px 0 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{a.path}}</dd>
+          </div>
+        </dl>
+        <div style="display: flex; align-items: center; gap: 2px; padding-top: 6px; border-top: 1px solid var(--line)">
+          <div style="flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{a.tags}}" as="tg" hint-placeholder-count="1">
+              <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 8px; background: var(--s2); color: var(--ink2); font-size: 12px; font-weight: 600">#{{tg}}</span>
+            </sc-for>
+          </div>
+          <a class="ib" href="AppDetailMobile.dc.html" aria-label="{{a.n}} 控制台"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.terminal}}"></path></svg></a>
+          <button class="ib" aria-label="{{a.n}} 文件"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg></button>
+          <button class="ib" aria-label="{{a.mainT}} {{a.n}}" style="color: {{a.actFg}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{a.mainD}}"></path></svg></button>
+          <button class="ib" aria-label="{{a.n}} 更多操作"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+
+  <div style="position: sticky; bottom: 92px; margin-top: auto; display: flex; justify-content: flex-end; padding: 0 16px 12px; pointer-events: none">
+    <a class="btn btn-p" href="AppEditMobile.dc.html" style="pointer-events: auto; min-height: 56px; padding: 0 22px; font-size: 15px; box-shadow: 0 12px 28px -10px var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新建应用</a>
+  </div>
+
+  <nav aria-label="底部导航" style="position: sticky; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":3000}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  play: 'M7 4.5v15l12-7.5z',
+  stop: 'M7 7h10v10H7z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01'
+};
+const APPS = [
+  { id: 1, n: 'mc-survival', l: 'M', type: 'Java 应用', s: 'run', path: 'D:/apps/mc-survival', remark: '朋友们的生存服，每周日自动备份', up: '3 天 4 小时', cmd: 'java -Xmx6G -jar server.jar nogui', created: '2026-08-12', auto: true, tags: ['游戏'] },
+  { id: 2, n: 'blog-api', l: 'B', type: 'Node.js', s: 'run', path: '/srv/blog-api', remark: '个人博客后端', up: '7 天 1 小时', cmd: 'node dist/main.js', created: '2026-05-03', auto: true, tags: ['博客'] },
+  { id: 3, n: 'qq-bot', l: 'Q', type: 'Python', s: 'run', path: '/srv/qq-bot', remark: '群聊机器人', up: '2 小时 13 分', cmd: 'python bot.py', created: '2026-09-20', auto: false, tags: ['机器人'] },
+  { id: 4, n: 'rsshub', l: 'R', type: 'Node.js', s: 'run', path: '/srv/rsshub', remark: 'RSS 订阅聚合', up: '7 天 1 小时', cmd: 'pnpm start', created: '2026-04-18', auto: true, tags: [] },
+  { id: 5, n: 'alist-mirror', l: 'A', type: '二进制', s: 'run', path: '/opt/alist', remark: '网盘镜像', up: '5 天 9 小时', cmd: './alist server', created: '2026-06-30', auto: false, tags: [] },
+  { id: 6, n: 'palworld', l: 'P', type: '游戏服务器', s: 'stop', path: 'D:/games/palworld', remark: '幻兽帕鲁服务器，周末才开', up: '10 月 30 日 23:10', cmd: 'PalServer.exe -port=8211', created: '2026-02-01', auto: false, tags: ['游戏'] },
+  { id: 7, n: 'test-worker', l: 'T', type: 'Python', s: 'stop', path: '/srv/test-worker', remark: '测试用任务队列', up: '10 月 28 日 14:02', cmd: 'python worker.py', created: '2026-10-02', auto: false, tags: ['测试'] },
+  { id: 8, n: 'legacy-cms', l: 'L', type: 'PHP', s: 'mnt', path: '/var/www/cms', remark: '旧站，正在迁移', up: '11 月 1 日 09:30', cmd: 'php-fpm -F', created: '2025-12-11', auto: false, tags: ['迁移'] }
+];
+const AVS = ['av-p', 'av-a2', 'av-a', 'av-ok'];
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+const ST = { run: ['ok', '运行中'], stop: ['off', '已停止'], mnt: ['warn', '维护'] };
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const filter = st.filter || 'all';
+    const count = (s) => APPS.filter((a) => s === 'all' || a.s === s).length;
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      filters: [['all', '全部'], ['run', '运行中'], ['stop', '已停止'], ['mnt', '维护']].map(([k, t]) => ({ t, n: count(k), cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
+      apps: APPS.filter((a) => filter === 'all' || a.s === filter).map((a) => {
+        const k = (a.id - 1) % 4;
+        const running = a.s === 'run';
+        return { ...a, av: AVS[k], rot: ROTS[k], st: ST[a.s][0], stT: ST[a.s][1], upLabel: running ? '已运行' : (a.s === 'mnt' ? '维护开始' : '停止于'), actFg: running ? 'var(--bad)' : 'var(--ok)', mainD: running ? IC.stop : IC.play, mainT: running ? '停止' : '启动' };
+      }),
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: 'tab-on' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: '' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: '' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

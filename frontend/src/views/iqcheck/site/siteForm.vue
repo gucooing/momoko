@@ -1,5 +1,6 @@
 <!-- 智商检测 · 站点 创建/编辑弹窗：名称/站点/API Key/User-Agent/协议 + 拉取模型列表勾选（每个模型单独设推理强度）
-     + 定时检测开关/间隔/次数。编辑时 API Key 留空表示保留原值，可用已保存的 Key 拉取模型列表。 -->
+     + 定时检测开关/间隔/次数。编辑时 API Key 留空表示保留原值，可用已保存的 Key 拉取模型列表。
+     showDialog(row, { fetchModels: true })：打开后立即拉取模型列表并滚动到模型区（列表/卡片上的「拉取模型」）。 -->
 <template>
   <FormDialog
     v-model="open"
@@ -74,7 +75,7 @@
       </section>
 
       <!-- 模型 -->
-      <section class="iqf-sec">
+      <section ref="modelsSecRef" class="iqf-sec">
         <header class="iqf-sec__head">
           <span class="m-sticker m-sticker--a2 iqf-sec__ico" style="rotate: 3deg">
             <component :is="menuStore.iconComponents['HOutline:CpuChipIcon']" />
@@ -211,6 +212,7 @@ const available = ref<string[]>([])
 const search = ref('')
 const manualModel = ref('')
 const maskedApiKey = ref('')
+const modelsSecRef = useTemplateRef<HTMLElement>('modelsSecRef')
 
 const emptyForm = () => ({
   id: '',
@@ -337,7 +339,7 @@ const confirm = async () => {
   }
 }
 
-const showDialog = (row?: IQCheckSiteInfo) => {
+const showDialog = (row?: IQCheckSiteInfo, opts?: { fetchModels?: boolean }) => {
   errors.value = {}
   available.value = []
   search.value = ''
@@ -358,6 +360,10 @@ const showDialog = (row?: IQCheckSiteInfo) => {
     runCount: row?.runCount ?? 0,
   }
   open.value = true
+  if (opts?.fetchModels && canFetch.value) {
+    nextTick(() => modelsSecRef.value?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
+    fetchModels()
+  }
 }
 
 defineExpose({ showDialog })
@@ -429,7 +435,8 @@ defineExpose({ showDialog })
     opacity: 0.6;
   }
 }
-.iqf-input {
+.iqf-input,
+.iqf :deep(.app-sel__trigger) {
   height: 42px;
 }
 .iqf-hint {

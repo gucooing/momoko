@@ -40,6 +40,14 @@ const (
 	FieldStopTimeout = "stop_timeout"
 	// FieldEnv holds the string denoting the env field in the database.
 	FieldEnv = "env"
+	// FieldSecretEnvKeys holds the string denoting the secret_env_keys field in the database.
+	FieldSecretEnvKeys = "secret_env_keys"
+	// FieldMaintenance holds the string denoting the maintenance field in the database.
+	FieldMaintenance = "maintenance"
+	// FieldMaintenanceTime holds the string denoting the maintenance_time field in the database.
+	FieldMaintenanceTime = "maintenance_time"
+	// FieldLastStopTime holds the string denoting the last_stop_time field in the database.
+	FieldLastStopTime = "last_stop_time"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
@@ -87,6 +95,10 @@ var Columns = []string{
 	FieldAutoRestart,
 	FieldStopTimeout,
 	FieldEnv,
+	FieldSecretEnvKeys,
+	FieldMaintenance,
+	FieldMaintenanceTime,
+	FieldLastStopTime,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "instances"
@@ -136,6 +148,8 @@ var (
 	DefaultAutoRestart bool
 	// DefaultStopTimeout holds the default value on creation for the "stop_timeout" field.
 	DefaultStopTimeout int32
+	// DefaultMaintenance holds the default value on creation for the "maintenance" field.
+	DefaultMaintenance bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -206,6 +220,21 @@ func ByAutoRestart(opts ...sql.OrderTermOption) OrderOption {
 // ByStopTimeout orders the results by the stop_timeout field.
 func ByStopTimeout(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStopTimeout, opts...).ToFunc()
+}
+
+// ByMaintenance orders the results by the maintenance field.
+func ByMaintenance(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaintenance, opts...).ToFunc()
+}
+
+// ByMaintenanceTime orders the results by the maintenance_time field.
+func ByMaintenanceTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaintenanceTime, opts...).ToFunc()
+}
+
+// ByLastStopTime orders the results by the last_stop_time field.
+func ByLastStopTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastStopTime, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

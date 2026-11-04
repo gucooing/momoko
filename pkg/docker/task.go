@@ -2,9 +2,13 @@ package docker
 
 import (
 	"context"
+	"fmt"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/docker/go-units"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -24,6 +28,7 @@ const (
 	taskTypeImagePull         = "docker.image_pull"
 	taskTypeContainerRecreate = "docker.container_recreate"
 	taskTypeNetworkRecreate   = "docker.network_recreate"
+	taskTypeContainerCreate   = "docker.container_create"
 )
 
 // dockerTasks 把 Docker 异步任务托管到通用任务管理器（pkg/task）：生命周期/入库/订阅/开机标记
@@ -49,12 +54,35 @@ type dockerTask struct {
 func (t *dockerTask) Meta() task.Meta { return t.meta }
 func (t *dockerTask) Payload() any    { return nil } // Docker 任务不可重建（ResumeNone：重启即标失败）。
 func (t *dockerTask) Run(ctx context.Context, r task.Reporter) error {
+	// 重建类任务每条阶段消息就是一个执行步骤；拉取（含创建容器时的拉取）按分层进度推进「下载镜像层」。
+	stepByMessage := t.meta.Type == taskTypeContainerRecreate || t.meta.Type == taskTypeNetworkRecreate
+	if t.meta.Type == taskTypeImagePull {
+		r.Step("连接镜像仓库", "")
+	}
 	emit := func(info *v1.DockerTaskInfo) {
 		if info == nil {
 			return
 		}
 		t.onEmit(info)
-		r.Emit(task.Event{Message: info.Message, Progress: info.Progress, Error: info.Error})
+		if p := info.GetPull(); p != nil {
+			detail := fmt.Sprintf("%d / %d 层 · %s / %s", p.GetLayersDone(), p.GetLayersTotal(),
+				units.HumanSize(float64(p.GetCurrent())), units.HumanSize(float64(p.GetTotal())))
+			r.Step("下载镜像层", detail)
+			r.SetProgress(int64(p.GetPercent()), 100, detail)
+		} else if msg := strings.TrimSpace(info.Message); stepByMessage && msg != "" {
+			r.Step(msg, "")
+		} else if t.meta.Type == taskTypeContainerCreate && msg == containerCreateStep {
+			// 创建容器：先（按需）拉取镜像，再进入「创建容器」阶段
+			r.Step(containerCreateStep, "")
+		}
+		for _, line := range taskLogLines(info.Message) {
+			r.Log(task.LogInfo, line)
+		}
+		if info.Error != "" {
+			r.Log(task.LogError, info.Error)
+		}
+		// 终端流原样广播给 WS 订阅者（xterm 渲染 ANSI），任务日志已在上面清洗记录。
+		r.Emit(task.Event{Message: info.Message, Progress: info.Progress, Error: info.Error, Quiet: true})
 	}
 	resultPath, err := t.fn(ctx, emit)
 	if err != nil {
@@ -69,6 +97,7 @@ func (a *dockerTasks) Start(
 	parent context.Context,
 	taskType v1.DockerTaskType,
 	title string,
+	target string,
 	timeout time.Duration,
 	fn func(context.Context, func(*v1.DockerTaskInfo)) (string, error),
 ) *v1.DockerTaskInfo {
@@ -77,6 +106,7 @@ func (a *dockerTasks) Start(
 		Id:        id,
 		Type:      taskType,
 		Title:     title,
+		Target:    target,
 		Status:    v1.DockerTaskStatus_DOCKER_TASK_STATUS_PENDING,
 		StartTime: timestamppb.Now(),
 		WsPath:    TaskWSPath,
@@ -91,6 +121,8 @@ func (a *dockerTasks) Start(
 			Type:    dockerTypeKey(taskType),
 			Kind:    task.KindOneShot,
 			Title:   title,
+			Target:  target,
+			Source:  dockerTaskSource(taskType),
 			Timeout: timeout,
 			Resume:  task.ResumeNone,
 		},
@@ -115,6 +147,9 @@ func (a *dockerTasks) updateSnap(id string, info *v1.DockerTaskInfo) {
 	}
 	if info.Message != "" {
 		snap.Message = info.Message
+	}
+	if info.Pull != nil {
+		snap.Pull = info.Pull
 	}
 }
 
@@ -143,9 +178,6 @@ func (a *dockerTasks) merged(id string) (*v1.DockerTaskInfo, bool) {
 	}
 	if found {
 		snap.Status = taskToDockerStatus(info.Status)
-		if info.Message != "" {
-			snap.Message = info.Message
-		}
 		if info.Error != "" {
 			snap.Error = info.Error
 		}
@@ -176,8 +208,9 @@ func (a *dockerTasks) List() []*v1.DockerTaskInfo {
 	return tasks
 }
 
-func (a *dockerTasks) Cancel(id string) bool {
-	return a.mgr.Cancel(id)
+// Cancel 取消任务；by 为取消人（用户 ID，空表示系统）。
+func (a *dockerTasks) Cancel(id, by string) bool {
+	return a.mgr.Cancel(id, by)
 }
 
 // Subscribe 订阅任务实时事件：复用通用管理器的回放+广播语义，把通用事件翻译回 DockerTaskInfo。
@@ -209,14 +242,54 @@ func dockerTypeKey(t v1.DockerTaskType) string {
 		return taskTypeContainerRecreate
 	case v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_RECREATE:
 		return taskTypeNetworkRecreate
+	case v1.DockerTaskType_DOCKER_TASK_TYPE_CONTAINER_CREATE:
+		return taskTypeContainerCreate
 	default:
 		return "docker.task"
 	}
 }
 
+// containerCreateStep 是创建容器任务进入创建阶段时发出的消息（同时作为任务面板里的执行步骤）。
+const containerCreateStep = "创建容器"
+
+var ansiPattern = regexp.MustCompile(`\x1b\[[0-9;?]*[A-Za-z]`)
+
+// taskLogLines 把终端流输出清洗成任务日志行：去 ANSI 控制符、按行切分、取回车后的最终内容、丢掉进度条刷新行。
+func taskLogLines(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+	raw = ansiPattern.ReplaceAllString(raw, "")
+	var out []string
+	for _, line := range strings.Split(raw, "\n") {
+		line = strings.TrimRight(line, "\r")
+		if i := strings.LastIndexByte(line, '\r'); i >= 0 {
+			line = line[i+1:]
+		}
+		line = strings.TrimSpace(line)
+		if line == "" || strings.Contains(line, "[=") || strings.Contains(line, "[>") {
+			continue
+		}
+		out = append(out, line)
+	}
+	return out
+}
+
+// dockerTaskSource 返回任务的发起入口（任务面板「触发方式」里的页面）。
+func dockerTaskSource(t v1.DockerTaskType) string {
+	switch t {
+	case v1.DockerTaskType_DOCKER_TASK_TYPE_IMAGE_PULL:
+		return "docker.image"
+	case v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_RECREATE:
+		return "docker.network"
+	default:
+		return "docker.container"
+	}
+}
+
 // DockerTaskTypes 返回全部 Docker 任务类型键（供业务层开机标记中断任务为失败）。
 func DockerTaskTypes() []string {
-	return []string{taskTypeImagePull, taskTypeContainerRecreate, taskTypeNetworkRecreate}
+	return []string{taskTypeImagePull, taskTypeContainerRecreate, taskTypeNetworkRecreate, taskTypeContainerCreate}
 }
 
 func taskToDockerStatus(s task.Status) v1.DockerTaskStatus {

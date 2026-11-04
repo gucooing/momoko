@@ -13,6 +13,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -301,6 +302,44 @@ func (_u *SSHHostUpdate) ClearLastConnectAt() *SSHHostUpdate {
 	return _u
 }
 
+// SetKeyType sets the "key_type" field.
+func (_u *SSHHostUpdate) SetKeyType(v string) *SSHHostUpdate {
+	_u.mutation.SetKeyType(v)
+	return _u
+}
+
+// SetNillableKeyType sets the "key_type" field if the given value is not nil.
+func (_u *SSHHostUpdate) SetNillableKeyType(v *string) *SSHHostUpdate {
+	if v != nil {
+		_u.SetKeyType(*v)
+	}
+	return _u
+}
+
+// ClearKeyType clears the value of the "key_type" field.
+func (_u *SSHHostUpdate) ClearKeyType() *SSHHostUpdate {
+	_u.mutation.ClearKeyType()
+	return _u
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (_u *SSHHostUpdate) SetQuickCommands(v []string) *SSHHostUpdate {
+	_u.mutation.SetQuickCommands(v)
+	return _u
+}
+
+// AppendQuickCommands appends value to the "quick_commands" field.
+func (_u *SSHHostUpdate) AppendQuickCommands(v []string) *SSHHostUpdate {
+	_u.mutation.AppendQuickCommands(v)
+	return _u
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (_u *SSHHostUpdate) ClearQuickCommands() *SSHHostUpdate {
+	_u.mutation.ClearQuickCommands()
+	return _u
+}
+
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (_u *SSHHostUpdate) SetOwnerID(id string) *SSHHostUpdate {
 	_u.mutation.SetOwnerID(id)
@@ -514,6 +553,23 @@ func (_u *SSHHostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.LastConnectAtCleared() {
 		_spec.ClearField(sshhost.FieldLastConnectAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.KeyType(); ok {
+		_spec.SetField(sshhost.FieldKeyType, field.TypeString, value)
+	}
+	if _u.mutation.KeyTypeCleared() {
+		_spec.ClearField(sshhost.FieldKeyType, field.TypeString)
+	}
+	if value, ok := _u.mutation.QuickCommands(); ok {
+		_spec.SetField(sshhost.FieldQuickCommands, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedQuickCommands(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, sshhost.FieldQuickCommands, value)
+		})
+	}
+	if _u.mutation.QuickCommandsCleared() {
+		_spec.ClearField(sshhost.FieldQuickCommands, field.TypeJSON)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -881,6 +937,44 @@ func (_u *SSHHostUpdateOne) ClearLastConnectAt() *SSHHostUpdateOne {
 	return _u
 }
 
+// SetKeyType sets the "key_type" field.
+func (_u *SSHHostUpdateOne) SetKeyType(v string) *SSHHostUpdateOne {
+	_u.mutation.SetKeyType(v)
+	return _u
+}
+
+// SetNillableKeyType sets the "key_type" field if the given value is not nil.
+func (_u *SSHHostUpdateOne) SetNillableKeyType(v *string) *SSHHostUpdateOne {
+	if v != nil {
+		_u.SetKeyType(*v)
+	}
+	return _u
+}
+
+// ClearKeyType clears the value of the "key_type" field.
+func (_u *SSHHostUpdateOne) ClearKeyType() *SSHHostUpdateOne {
+	_u.mutation.ClearKeyType()
+	return _u
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (_u *SSHHostUpdateOne) SetQuickCommands(v []string) *SSHHostUpdateOne {
+	_u.mutation.SetQuickCommands(v)
+	return _u
+}
+
+// AppendQuickCommands appends value to the "quick_commands" field.
+func (_u *SSHHostUpdateOne) AppendQuickCommands(v []string) *SSHHostUpdateOne {
+	_u.mutation.AppendQuickCommands(v)
+	return _u
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (_u *SSHHostUpdateOne) ClearQuickCommands() *SSHHostUpdateOne {
+	_u.mutation.ClearQuickCommands()
+	return _u
+}
+
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (_u *SSHHostUpdateOne) SetOwnerID(id string) *SSHHostUpdateOne {
 	_u.mutation.SetOwnerID(id)
@@ -1124,6 +1218,23 @@ func (_u *SSHHostUpdateOne) sqlSave(ctx context.Context) (_node *SSHHost, err er
 	}
 	if _u.mutation.LastConnectAtCleared() {
 		_spec.ClearField(sshhost.FieldLastConnectAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.KeyType(); ok {
+		_spec.SetField(sshhost.FieldKeyType, field.TypeString, value)
+	}
+	if _u.mutation.KeyTypeCleared() {
+		_spec.ClearField(sshhost.FieldKeyType, field.TypeString)
+	}
+	if value, ok := _u.mutation.QuickCommands(); ok {
+		_spec.SetField(sshhost.FieldQuickCommands, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedQuickCommands(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, sshhost.FieldQuickCommands, value)
+		})
+	}
+	if _u.mutation.QuickCommandsCleared() {
+		_spec.ClearField(sshhost.FieldQuickCommands, field.TypeJSON)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -6,7 +6,13 @@
   <div class="nodes-page">
     <PageHeader :title="t('node.page.title')">
       <template #description>
-        {{ t('access.node.summary', { total: totalCount, online: onlineCount }) }}
+        <span class="tnum">{{ t('accessV2.node.total', { total: totalCount }) }}</span>
+        <span class="nodes-dot">·</span>
+        <span class="nodes-online tnum">{{ t('accessV2.node.online', { online: onlineCount }) }}</span>
+        <template v-if="offlineCount && !menuStore.isMobile">
+          <span class="nodes-dot">·</span>
+          <span class="nodes-offline tnum">{{ t('accessV2.node.offline', { count: offlineCount }) }}</span>
+        </template>
       </template>
       <template #actions>
         <template v-if="!menuStore.isMobile">
@@ -233,6 +239,7 @@ const localMatches = computed(() => {
 const remoteOnline = computed(() => list.value.filter(isOnline).length)
 const totalCount = computed(() => list.value.length + 1)
 const onlineCount = computed(() => remoteOnline.value + 1)
+const offlineCount = computed(() => list.value.length - remoteOnline.value)
 
 const chips = computed(() => [
   { value: 'all' as Filter, label: t('node.page.filterAll'), count: list.value.length + (localMatches.value ? 1 : 0) },
@@ -378,6 +385,18 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+.nodes-dot {
+  margin: 0 6px;
+  opacity: 0.6;
+}
+.nodes-online {
+  color: var(--m-ok);
+  font-weight: 700;
+}
+.nodes-offline {
+  color: var(--m-bad);
+  font-weight: 700;
 }
 
 /* hero */
@@ -656,10 +675,9 @@ onMounted(() => {
 /* 手机 */
 .nodes-fab {
   position: sticky;
-  bottom: calc(92px + env(safe-area-inset-bottom));
+  bottom: 0;
   display: flex;
   justify-content: flex-end;
-  margin-top: -56px;
   pointer-events: none;
   z-index: 5;
 }
@@ -673,7 +691,10 @@ onMounted(() => {
 @media (width < 768px) {
   .nodes-page {
     gap: 14px;
-    padding-bottom: 72px;
+  }
+  .nodes-chip,
+  .nodes-search {
+    min-height: 44px;
   }
   .nodes-hero {
     flex-direction: column;

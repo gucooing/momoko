@@ -60,12 +60,17 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 	if err = dropLegacyAuthTable(context.Background(), db); err != nil {
 		return nil, nil, err
 	}
+	// 用户角色改为多对多：自动迁移会删除旧列 users.user_role，先读出旧对应关系，建表后写回。
+	legacyUserRoles := captureLegacyUserRoles(context.Background(), db)
 	// 自动迁移：允许删索引/列，直接对齐最新 schema。
 	if err = db.Schema.Create(
 		context.Background(),
 		migrate.WithDropIndex(true),
 		migrate.WithDropColumn(true),
 	); err != nil {
+		return nil, nil, err
+	}
+	if err = restoreLegacyUserRoles(context.Background(), db, legacyUserRoles); err != nil {
 		return nil, nil, err
 	}
 	// 增量 SQL 迁移：按序号执行 internal/data/migration/sql 中上次执行位置之后的新脚本。

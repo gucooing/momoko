@@ -25,7 +25,11 @@ onMounted(async () => {
   }
   if (props.keyCount === undefined && canKeys.value) {
     try {
-      const { data } = await listAPIKeys({ page: 1, pageSize: 1 })
+      const { data } = await listAPIKeys({
+        page: 1,
+        pageSize: 1,
+        allUsers: menuStore.hasButtonPermission('api_key:manage'),
+      })
       fetchedKeys.value = Number(data?.total ?? 0)
     } catch {
       fetchedKeys.value = null

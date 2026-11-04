@@ -33,6 +33,7 @@ func (r *networkRepo) CreatePortForward(ctx context.Context, userID string, req 
 		SetTargetAddress(req.TargetAddress).
 		SetTargetPort(int(req.TargetPort)).
 		SetIsEnable(req.IsEnable).
+		SetAutoStart(req.AutoStart).
 		SetRemark(req.Remark).
 		Save(ctx)
 }
@@ -71,6 +72,7 @@ func (r *networkRepo) UpdatePortForward(ctx context.Context, userID *string, req
 		SetNillableListenAddress(req.ListenAddress).
 		SetNillableTargetAddress(req.TargetAddress).
 		SetNillableIsEnable(req.IsEnable).
+		SetNillableAutoStart(req.AutoStart).
 		SetNillableRemark(req.Remark)
 
 	if userID != nil {

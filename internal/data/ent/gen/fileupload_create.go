@@ -151,6 +151,20 @@ func (_c *FileUploadCreate) SetNillableProviderRef(v *string) *FileUploadCreate 
 	return _c
 }
 
+// SetBufferLocal sets the "buffer_local" field.
+func (_c *FileUploadCreate) SetBufferLocal(v bool) *FileUploadCreate {
+	_c.mutation.SetBufferLocal(v)
+	return _c
+}
+
+// SetNillableBufferLocal sets the "buffer_local" field if the given value is not nil.
+func (_c *FileUploadCreate) SetNillableBufferLocal(v *bool) *FileUploadCreate {
+	if v != nil {
+		_c.SetBufferLocal(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FileUploadCreate) SetID(v string) *FileUploadCreate {
 	_c.mutation.SetID(v)
@@ -236,6 +250,10 @@ func (_c *FileUploadCreate) defaults() {
 		v := fileupload.DefaultProviderRef
 		_c.mutation.SetProviderRef(v)
 	}
+	if _, ok := _c.mutation.BufferLocal(); !ok {
+		v := fileupload.DefaultBufferLocal
+		_c.mutation.SetBufferLocal(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -278,6 +296,9 @@ func (_c *FileUploadCreate) check() error {
 	}
 	if _, ok := _c.mutation.ProviderRef(); !ok {
 		return &ValidationError{Name: "provider_ref", err: errors.New(`gen: missing required field "FileUpload.provider_ref"`)}
+	}
+	if _, ok := _c.mutation.BufferLocal(); !ok {
+		return &ValidationError{Name: "buffer_local", err: errors.New(`gen: missing required field "FileUpload.buffer_local"`)}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`gen: missing required edge "FileUpload.user"`)}
@@ -365,6 +386,10 @@ func (_c *FileUploadCreate) createSpec() (*FileUpload, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ProviderRef(); ok {
 		_spec.SetField(fileupload.FieldProviderRef, field.TypeString, value)
 		_node.ProviderRef = value
+	}
+	if value, ok := _c.mutation.BufferLocal(); ok {
+		_spec.SetField(fileupload.FieldBufferLocal, field.TypeBool, value)
+		_node.BufferLocal = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -613,6 +638,18 @@ func (u *FileUploadUpsert) UpdateProviderRef() *FileUploadUpsert {
 	return u
 }
 
+// SetBufferLocal sets the "buffer_local" field.
+func (u *FileUploadUpsert) SetBufferLocal(v bool) *FileUploadUpsert {
+	u.Set(fileupload.FieldBufferLocal, v)
+	return u
+}
+
+// UpdateBufferLocal sets the "buffer_local" field to the value that was provided on create.
+func (u *FileUploadUpsert) UpdateBufferLocal() *FileUploadUpsert {
+	u.SetExcluded(fileupload.FieldBufferLocal)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -850,6 +887,20 @@ func (u *FileUploadUpsertOne) SetProviderRef(v string) *FileUploadUpsertOne {
 func (u *FileUploadUpsertOne) UpdateProviderRef() *FileUploadUpsertOne {
 	return u.Update(func(s *FileUploadUpsert) {
 		s.UpdateProviderRef()
+	})
+}
+
+// SetBufferLocal sets the "buffer_local" field.
+func (u *FileUploadUpsertOne) SetBufferLocal(v bool) *FileUploadUpsertOne {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.SetBufferLocal(v)
+	})
+}
+
+// UpdateBufferLocal sets the "buffer_local" field to the value that was provided on create.
+func (u *FileUploadUpsertOne) UpdateBufferLocal() *FileUploadUpsertOne {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.UpdateBufferLocal()
 	})
 }
 
@@ -1257,6 +1308,20 @@ func (u *FileUploadUpsertBulk) SetProviderRef(v string) *FileUploadUpsertBulk {
 func (u *FileUploadUpsertBulk) UpdateProviderRef() *FileUploadUpsertBulk {
 	return u.Update(func(s *FileUploadUpsert) {
 		s.UpdateProviderRef()
+	})
+}
+
+// SetBufferLocal sets the "buffer_local" field.
+func (u *FileUploadUpsertBulk) SetBufferLocal(v bool) *FileUploadUpsertBulk {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.SetBufferLocal(v)
+	})
+}
+
+// UpdateBufferLocal sets the "buffer_local" field to the value that was provided on create.
+func (u *FileUploadUpsertBulk) UpdateBufferLocal() *FileUploadUpsertBulk {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.UpdateBufferLocal()
 	})
 }
 

@@ -225,6 +225,9 @@ void props
   gap: 10px;
   margin-top: 20px;
 }
+.pi-foot > :deep(button) {
+  min-height: 40px;
+}
 .pi-foot__state {
   flex: 1;
   min-width: 0;

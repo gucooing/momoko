@@ -168,6 +168,34 @@ func (_c *FileSourceCreate) SetNillableLastTestTime(v *time.Time) *FileSourceCre
 	return _c
 }
 
+// SetLastTestUsedBytes sets the "last_test_used_bytes" field.
+func (_c *FileSourceCreate) SetLastTestUsedBytes(v uint64) *FileSourceCreate {
+	_c.mutation.SetLastTestUsedBytes(v)
+	return _c
+}
+
+// SetNillableLastTestUsedBytes sets the "last_test_used_bytes" field if the given value is not nil.
+func (_c *FileSourceCreate) SetNillableLastTestUsedBytes(v *uint64) *FileSourceCreate {
+	if v != nil {
+		_c.SetLastTestUsedBytes(*v)
+	}
+	return _c
+}
+
+// SetLastTestTotalBytes sets the "last_test_total_bytes" field.
+func (_c *FileSourceCreate) SetLastTestTotalBytes(v uint64) *FileSourceCreate {
+	_c.mutation.SetLastTestTotalBytes(v)
+	return _c
+}
+
+// SetNillableLastTestTotalBytes sets the "last_test_total_bytes" field if the given value is not nil.
+func (_c *FileSourceCreate) SetNillableLastTestTotalBytes(v *uint64) *FileSourceCreate {
+	if v != nil {
+		_c.SetLastTestTotalBytes(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FileSourceCreate) SetID(v string) *FileSourceCreate {
 	_c.mutation.SetID(v)
@@ -246,6 +274,14 @@ func (_c *FileSourceCreate) defaults() {
 		v := filesource.DefaultLastTestMessage
 		_c.mutation.SetLastTestMessage(v)
 	}
+	if _, ok := _c.mutation.LastTestUsedBytes(); !ok {
+		v := filesource.DefaultLastTestUsedBytes
+		_c.mutation.SetLastTestUsedBytes(v)
+	}
+	if _, ok := _c.mutation.LastTestTotalBytes(); !ok {
+		v := filesource.DefaultLastTestTotalBytes
+		_c.mutation.SetLastTestTotalBytes(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -292,6 +328,12 @@ func (_c *FileSourceCreate) check() error {
 	}
 	if _, ok := _c.mutation.LastTestMessage(); !ok {
 		return &ValidationError{Name: "last_test_message", err: errors.New(`gen: missing required field "FileSource.last_test_message"`)}
+	}
+	if _, ok := _c.mutation.LastTestUsedBytes(); !ok {
+		return &ValidationError{Name: "last_test_used_bytes", err: errors.New(`gen: missing required field "FileSource.last_test_used_bytes"`)}
+	}
+	if _, ok := _c.mutation.LastTestTotalBytes(); !ok {
+		return &ValidationError{Name: "last_test_total_bytes", err: errors.New(`gen: missing required field "FileSource.last_test_total_bytes"`)}
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`gen: missing required edge "FileSource.user"`)}
@@ -375,6 +417,14 @@ func (_c *FileSourceCreate) createSpec() (*FileSource, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LastTestTime(); ok {
 		_spec.SetField(filesource.FieldLastTestTime, field.TypeTime, value)
 		_node.LastTestTime = &value
+	}
+	if value, ok := _c.mutation.LastTestUsedBytes(); ok {
+		_spec.SetField(filesource.FieldLastTestUsedBytes, field.TypeUint64, value)
+		_node.LastTestUsedBytes = value
+	}
+	if value, ok := _c.mutation.LastTestTotalBytes(); ok {
+		_spec.SetField(filesource.FieldLastTestTotalBytes, field.TypeUint64, value)
+		_node.LastTestTotalBytes = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -586,6 +636,42 @@ func (u *FileSourceUpsert) UpdateLastTestTime() *FileSourceUpsert {
 // ClearLastTestTime clears the value of the "last_test_time" field.
 func (u *FileSourceUpsert) ClearLastTestTime() *FileSourceUpsert {
 	u.SetNull(filesource.FieldLastTestTime)
+	return u
+}
+
+// SetLastTestUsedBytes sets the "last_test_used_bytes" field.
+func (u *FileSourceUpsert) SetLastTestUsedBytes(v uint64) *FileSourceUpsert {
+	u.Set(filesource.FieldLastTestUsedBytes, v)
+	return u
+}
+
+// UpdateLastTestUsedBytes sets the "last_test_used_bytes" field to the value that was provided on create.
+func (u *FileSourceUpsert) UpdateLastTestUsedBytes() *FileSourceUpsert {
+	u.SetExcluded(filesource.FieldLastTestUsedBytes)
+	return u
+}
+
+// AddLastTestUsedBytes adds v to the "last_test_used_bytes" field.
+func (u *FileSourceUpsert) AddLastTestUsedBytes(v uint64) *FileSourceUpsert {
+	u.Add(filesource.FieldLastTestUsedBytes, v)
+	return u
+}
+
+// SetLastTestTotalBytes sets the "last_test_total_bytes" field.
+func (u *FileSourceUpsert) SetLastTestTotalBytes(v uint64) *FileSourceUpsert {
+	u.Set(filesource.FieldLastTestTotalBytes, v)
+	return u
+}
+
+// UpdateLastTestTotalBytes sets the "last_test_total_bytes" field to the value that was provided on create.
+func (u *FileSourceUpsert) UpdateLastTestTotalBytes() *FileSourceUpsert {
+	u.SetExcluded(filesource.FieldLastTestTotalBytes)
+	return u
+}
+
+// AddLastTestTotalBytes adds v to the "last_test_total_bytes" field.
+func (u *FileSourceUpsert) AddLastTestTotalBytes(v uint64) *FileSourceUpsert {
+	u.Add(filesource.FieldLastTestTotalBytes, v)
 	return u
 }
 
@@ -805,6 +891,48 @@ func (u *FileSourceUpsertOne) UpdateLastTestTime() *FileSourceUpsertOne {
 func (u *FileSourceUpsertOne) ClearLastTestTime() *FileSourceUpsertOne {
 	return u.Update(func(s *FileSourceUpsert) {
 		s.ClearLastTestTime()
+	})
+}
+
+// SetLastTestUsedBytes sets the "last_test_used_bytes" field.
+func (u *FileSourceUpsertOne) SetLastTestUsedBytes(v uint64) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestUsedBytes(v)
+	})
+}
+
+// AddLastTestUsedBytes adds v to the "last_test_used_bytes" field.
+func (u *FileSourceUpsertOne) AddLastTestUsedBytes(v uint64) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.AddLastTestUsedBytes(v)
+	})
+}
+
+// UpdateLastTestUsedBytes sets the "last_test_used_bytes" field to the value that was provided on create.
+func (u *FileSourceUpsertOne) UpdateLastTestUsedBytes() *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestUsedBytes()
+	})
+}
+
+// SetLastTestTotalBytes sets the "last_test_total_bytes" field.
+func (u *FileSourceUpsertOne) SetLastTestTotalBytes(v uint64) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestTotalBytes(v)
+	})
+}
+
+// AddLastTestTotalBytes adds v to the "last_test_total_bytes" field.
+func (u *FileSourceUpsertOne) AddLastTestTotalBytes(v uint64) *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.AddLastTestTotalBytes(v)
+	})
+}
+
+// UpdateLastTestTotalBytes sets the "last_test_total_bytes" field to the value that was provided on create.
+func (u *FileSourceUpsertOne) UpdateLastTestTotalBytes() *FileSourceUpsertOne {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestTotalBytes()
 	})
 }
 
@@ -1191,6 +1319,48 @@ func (u *FileSourceUpsertBulk) UpdateLastTestTime() *FileSourceUpsertBulk {
 func (u *FileSourceUpsertBulk) ClearLastTestTime() *FileSourceUpsertBulk {
 	return u.Update(func(s *FileSourceUpsert) {
 		s.ClearLastTestTime()
+	})
+}
+
+// SetLastTestUsedBytes sets the "last_test_used_bytes" field.
+func (u *FileSourceUpsertBulk) SetLastTestUsedBytes(v uint64) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestUsedBytes(v)
+	})
+}
+
+// AddLastTestUsedBytes adds v to the "last_test_used_bytes" field.
+func (u *FileSourceUpsertBulk) AddLastTestUsedBytes(v uint64) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.AddLastTestUsedBytes(v)
+	})
+}
+
+// UpdateLastTestUsedBytes sets the "last_test_used_bytes" field to the value that was provided on create.
+func (u *FileSourceUpsertBulk) UpdateLastTestUsedBytes() *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestUsedBytes()
+	})
+}
+
+// SetLastTestTotalBytes sets the "last_test_total_bytes" field.
+func (u *FileSourceUpsertBulk) SetLastTestTotalBytes(v uint64) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.SetLastTestTotalBytes(v)
+	})
+}
+
+// AddLastTestTotalBytes adds v to the "last_test_total_bytes" field.
+func (u *FileSourceUpsertBulk) AddLastTestTotalBytes(v uint64) *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.AddLastTestTotalBytes(v)
+	})
+}
+
+// UpdateLastTestTotalBytes sets the "last_test_total_bytes" field to the value that was provided on create.
+func (u *FileSourceUpsertBulk) UpdateLastTestTotalBytes() *FileSourceUpsertBulk {
+	return u.Update(func(s *FileSourceUpsert) {
+		s.UpdateLastTestTotalBytes()
 	})
 }
 

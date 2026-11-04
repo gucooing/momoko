@@ -40,6 +40,8 @@ const (
 	FieldSourceID = "source_id"
 	// FieldProviderRef holds the string denoting the provider_ref field in the database.
 	FieldProviderRef = "provider_ref"
+	// FieldBufferLocal holds the string denoting the buffer_local field in the database.
+	FieldBufferLocal = "buffer_local"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeChunks holds the string denoting the chunks edge name in mutations.
@@ -78,6 +80,7 @@ var Columns = []string{
 	FieldUserID,
 	FieldSourceID,
 	FieldProviderRef,
+	FieldBufferLocal,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -105,6 +108,8 @@ var (
 	DefaultSourceID string
 	// DefaultProviderRef holds the default value on creation for the "provider_ref" field.
 	DefaultProviderRef string
+	// DefaultBufferLocal holds the default value on creation for the "buffer_local" field.
+	DefaultBufferLocal bool
 )
 
 // OrderOption defines the ordering options for the FileUpload queries.
@@ -178,6 +183,11 @@ func BySourceID(opts ...sql.OrderTermOption) OrderOption {
 // ByProviderRef orders the results by the provider_ref field.
 func ByProviderRef(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldProviderRef, opts...).ToFunc()
+}
+
+// ByBufferLocal orders the results by the buffer_local field.
+func ByBufferLocal(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBufferLocal, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

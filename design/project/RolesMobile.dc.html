@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>角色 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn:disabled{cursor:not-allowed;transform:none}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-p:disabled{background:var(--s2);color:var(--ink2)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.tag{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:6px;background:var(--ink);color:var(--bg);font-size:11px;font-weight:700;flex:none}
+.utab{display:inline-flex;align-items:center;min-height:44px;padding:0 2px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700;flex:none}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.rl{display:flex;align-items:center;gap:12px;width:100%;padding:16px;border-radius:24px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.rl-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.pm{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font:inherit;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.pm:disabled{cursor:not-allowed}
+.pm-on{background:var(--pSoft);border-color:transparent;color:var(--pInk)}
+.pm-bad{background:var(--badSoft);border-color:transparent;color:var(--bad)}
+.tg{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none;transition:background .15s}
+.tg::after{content:'';position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.tg:checked{background:var(--p)}
+.tg:checked::after{transform:translateX(20px)}
+.tg:disabled{cursor:not-allowed}
+.bar{height:6px;border-radius:999px;background:var(--s2);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:999px;background:var(--p)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 120px">
+    <header style="display: flex; align-items: flex-end; gap: 6px; padding: 22px 12px 8px 20px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em">用户与权限</h1>
+        <div style="font-size: 13px; color: var(--ink2)">4 个角色 · 点一个角色编辑权限</div>
+      </div>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="新建角色"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg></button>
+    </header>
+    <nav class="hs" aria-label="用户与权限分类" style="display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+      <a class="utab" href="UsersMobile.dc.html">用户 8</a>
+      <a class="utab utab-on" href="RolesMobile.dc.html" aria-current="page">角色 4</a>
+      <a class="utab" href="MenusMobile.dc.html">菜单</a>
+    </nav>
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
+      <sc-for list="{{roles}}" as="ro" hint-placeholder-count="4">
+        <button class="rl {{ro.cls}}" aria-pressed="{{ro.on}}" onClick="{{ro.pick}}">
+          <span class="av {{ro.av}}" style="width: 48px; height: 48px; border-radius: 16px; font-size: 19px; transform: rotate({{ro.rot}})">{{ro.l}}</span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+            <span style="display: flex; align-items: center; gap: 6px">
+              <span style="font-size: 16px; font-weight: 800">{{ro.t}}</span>
+              <sc-if value="{{ro.builtin}}" hint-placeholder-val="{{false}}"><span class="tag">内置</span></sc-if>
+              <sc-if value="{{ro.dirty}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; font-weight: 700; color: var(--warn)">● 未保存</span></sc-if>
+            </span>
+            <span style="font-size: 12px; color: var(--ink2); line-height: 1.4">{{ro.desc}}</span>
+            <span style="display: flex; align-items: center; gap: 8px">
+              <span class="bar" style="flex: 1"><span style="width: {{ro.pct}}"></span></span>
+              <span class="num" style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{ro.onN}} 项 · {{ro.members}} 人</span>
+            </span>
+          </span>
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chevR}}"></path></svg>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+
+  <nav aria-label="底部导航" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{true}}">
+    <button aria-label="关闭权限编辑" onClick="{{closeSheet}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(12, 6, 18, 0.5); cursor: pointer"></button>
+    <section role="dialog" aria-label="{{cur.t}} 权限" style="position: absolute; left: 0; right: 0; bottom: 0; top: 56px; background: var(--bg); border-radius: 30px 30px 0 0; display: flex; flex-direction: column; overflow: hidden">
+      <div style="flex: none; background: var(--s); border-bottom: 1px solid var(--line); padding: 10px 12px 12px 16px; display: flex; flex-direction: column; gap: 10px">
+        <div style="align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--line)"></div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span class="av {{cur.av}}" style="width: 44px; height: 44px; border-radius: 15px; font-size: 18px; transform: rotate(-5deg)">{{cur.l}}</span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="display: flex; align-items: center; gap: 6px"><span style="font-size: 19px; font-weight: 800">{{cur.t}}</span><sc-if value="{{cur.builtin}}" hint-placeholder-val="{{false}}"><span class="tag">内置</span></sc-if></span>
+            <span class="num" style="font-size: 12px; color: var(--ink2)">已开启 {{onTotal}} / {{allTotal}} 项 · {{memberN}} 名成员</span>
+          </span>
+          <button class="ib" aria-label="关闭" onClick="{{closeSheet}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+        </div>
+        <sc-if value="{{locked}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--s2); font-size: 13px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.lock}}"></path></svg>{{lockText}}</div>
+        </sc-if>
+      </div>
+
+      <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 24px; display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{modules}}" as="m" hint-placeholder-count="6">
+          <section class="card" aria-label="{{m.t}} 权限" style="padding: 14px 14px 6px 16px; flex: none">
+            <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 8px">
+              <span class="av {{m.av}}" style="width: 36px; height: 36px; border-radius: 12px; transform: rotate({{m.rot}})"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{m.d}}"></path></svg></span>
+              <span style="flex: 1; display: flex; flex-direction: column">
+                <span style="font-size: 16px; font-weight: 800">{{m.t}}</span>
+                <span class="num" style="font-size: 12px; color: var(--ink2)">{{m.onN}} / {{m.total}}</span>
+              </span>
+              <label style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 13px; font-weight: 700; color: var(--ink2)">全选
+                <input class="tg" type="checkbox" role="switch" aria-label="{{m.t}} 全选" checked="{{m.allOn}}" disabled="{{locked}}" onChange="{{m.toggleAll}}">
+              </label>
+            </div>
+            <sc-for list="{{m.pages}}" as="p" hint-placeholder-count="3">
+              <div style="padding: 10px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px">
+                <div style="display: flex; align-items: baseline; gap: 8px">
+                  <span style="font-size: 14px; font-weight: 700">{{p.t}}</span>
+                  <span class="mono" style="flex: 1; min-width: 0; font-size: 11px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.path}}</span>
+                  <span class="num" style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{p.pn}}/{{p.ptotal}}</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                  <sc-for list="{{p.acts}}" as="a" hint-placeholder-count="4">
+                    <button class="pm {{a.cls}}" aria-pressed="{{a.on}}" disabled="{{locked}}" onClick="{{a.toggle}}" aria-label="{{p.t}} · {{a.t}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 2.6"><path d="{{a.d}}"></path></svg>{{a.t}}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </section>
+        </sc-for>
+      </div>
+
+      <div style="flex: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px 26px; background: var(--s); border-top: 1px solid var(--line)">
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: {{saveDot}}; flex: none"></span>
+        <span style="flex: 1; min-width: 0; font-size: 13px; font-weight: 700">{{saveText}}</span>
+        <button class="btn btn-s" disabled="{{noDirty}}" onClick="{{discard}}">放弃</button>
+        <button class="btn btn-p" disabled="{{noDirty}}" onClick="{{save}}">保存</button>
+      </div>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  off: 'M7 12h10',
+  lock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4',
+  chevR: 'M9 6l6 6-6 6',
+  x: 'M6 6l12 12M18 6 6 18'
+};
+const MODS = [
+  { k: 'app', t: '应用', d: IC.apps, av: 'av-p', pages: [
+    { k: 'app.list', t: '应用列表', path: '/apps/list', acts: ['查看', '创建', '编辑', '删除', '启停', '控制台'] },
+    { k: 'app.type', t: '应用类型', path: '/apps/types', acts: ['查看', '创建', '编辑', '删除'] }
+  ] },
+  { k: 'file', t: '文件', d: IC.folder, av: 'av-a', pages: [
+    { k: 'file.browse', t: '文件管理', path: '/files', acts: ['查看', '上传', '下载', '编辑', '删除'] },
+    { k: 'file.share', t: '分享', path: '/files/shares', acts: ['查看', '创建', '删除'] },
+    { k: 'file.source', t: '文件源', path: '/files/sources', acts: ['查看', '创建', '编辑', '删除'] }
+  ] },
+  { k: 'docker', t: 'Docker', d: IC.box, av: 'av-a2', pages: [
+    { k: 'dk.ctr', t: '容器', path: '/docker/containers', acts: ['查看', '创建', '启停', '终端', '删除'] },
+    { k: 'dk.img', t: '镜像', path: '/docker/images', acts: ['查看', '拉取', '删除'] },
+    { k: 'dk.net', t: '网络', path: '/docker/networks', acts: ['查看', '创建', '删除'] }
+  ] },
+  { k: 'tool', t: '工具', d: IC.forward, av: 'av-ok', pages: [
+    { k: 'tl.pf', t: '端口转发', path: '/tools/port-forward', acts: ['查看', '创建', '启停', '删除'] },
+    { k: 'tl.tun', t: '内网穿透', path: '/tools/tunnel', acts: ['查看', '创建', '启停', '删除'] },
+    { k: 'tl.ssh', t: 'SSH 终端', path: '/tools/ssh', acts: ['查看', '连接'] },
+    { k: 'tl.iq', t: '智商检测', path: '/tools/iq', acts: ['查看'] }
+  ] },
+  { k: 'node', t: '节点', d: IC.server, av: 'av-a', pages: [
+    { k: 'nd.node', t: '节点', path: '/admin/nodes', acts: ['查看', '添加', '编辑', '删除'] },
+    { k: 'nd.key', t: 'API Key', path: '/admin/api-keys', acts: ['查看', '创建', '刷新', '删除'] }
+  ] },
+  { k: 'sys', t: '系统', d: IC.settings, av: 'av-p', pages: [
+    { k: 'sy.user', t: '用户', path: '/admin/users', acts: ['查看', '创建', '编辑', '禁用', '删除'] },
+    { k: 'sy.role', t: '角色', path: '/admin/roles', acts: ['查看', '编辑'] },
+    { k: 'sy.menu', t: '菜单', path: '/admin/menus', acts: ['查看', '编辑'] },
+    { k: 'sy.task', t: '任务与日志', path: '/admin/tasks', acts: ['查看', '导出'] },
+    { k: 'sy.set', t: '系统设置', path: '/admin/settings', acts: ['查看', '编辑'] }
+  ] }
+];
+const mk = (fn) => { const o = {}; MODS.forEach((m) => m.pages.forEach((p) => p.acts.forEach((a, i) => { if (fn(m, p, a, i)) o[p.k + ':' + i] = true; }))); return o; };
+const ALL_KEYS = Object.keys(mk(() => true));
+const BASE = {
+  admin: mk(() => true),
+  ops: mk((m, p, a) => ['app', 'file', 'docker', 'tool'].indexOf(m.k) >= 0 ? !(p.k === 'file.source' && a === '删除') : (m.k === 'node' ? (p.k === 'nd.node' ? a === '查看' : a !== '删除') : (p.k === 'sy.task' && a === '查看'))),
+  guest: mk((m, p, a, i) => i === 0 && m.k !== 'sys' && p.k !== 'nd.key' && p.k !== 'tl.ssh'),
+  none: {}
+};
+const ROLES = [
+  { k: 'admin', t: '超级管理员', l: '超', av: 'av-a', builtin: true, locked: true, members: 1, desc: '拥有全部权限，不可修改', lock: '超级管理员始终拥有全部权限，不能修改。' },
+  { k: 'ops', t: '运维', l: '运', av: 'av-p', members: 4, desc: '管理应用、容器和工具，不能改系统设置' },
+  { k: 'guest', t: '只读访客', l: '读', av: 'av-a2', members: 3, desc: '只能查看，不能做任何修改' },
+  { k: 'none', t: '无权限', l: '无', av: 'av-ok', builtin: true, locked: true, members: 1, desc: '新注册用户的默认角色，什么都看不到', lock: '内置角色，权限固定为空。' }
+];
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg', '-3deg', '2deg'];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const roleId = st.role || 'ops';
+    const sheetOpen = st.sheet != null ? st.sheet : true;
+    const base = st.base || BASE;
+    const edits = st.edits || { ops: { 'sy.set:0': true } };
+    const role = ROLES.find((r) => r.k === roleId) || ROLES[1];
+    const locked = !!role.locked;
+    const myEdits = edits[roleId] || {};
+    const cur = { ...base[roleId], ...myEdits };
+    const has = (k) => !!cur[k];
+    const dirtyOf = (rk) => { const e = edits[rk] || {}; const b = base[rk] || {}; return Object.keys(e).filter((k) => !!e[k] !== !!b[k]).length; };
+    const dirtyN = dirtyOf(roleId);
+    const set = (keys, val) => {
+      if (locked) return;
+      const next = { ...myEdits };
+      keys.forEach((k) => { next[k] = val; });
+      this.setState({ edits: { ...edits, [roleId]: next } });
+    };
+    const countFor = (rk) => { const c = { ...(base[rk] || {}), ...(edits[rk] || {}) }; return ALL_KEYS.filter((k) => !!c[k]).length; };
+    const modules = MODS.map((m, mi) => {
+      const keys = [];
+      m.pages.forEach((p) => p.acts.forEach((a, i) => keys.push(p.k + ':' + i)));
+      const onN = keys.filter(has).length;
+      const allOn = onN === keys.length;
+      return {
+        t: m.t, d: m.d, av: m.av, rot: ROTS[mi % 6], onN, total: keys.length, allOn,
+        toggleAll: () => set(keys, !allOn),
+        pages: m.pages.map((p) => {
+          const pk = p.acts.map((a, i) => p.k + ':' + i);
+          return {
+            t: p.t, path: p.path, pn: pk.filter(has).length, ptotal: pk.length,
+            acts: p.acts.map((a, i) => {
+              const k = p.k + ':' + i;
+              const on = has(k);
+              return { t: a, on, d: on ? IC.check : IC.off, cls: on ? (a === '删除' ? 'pm-bad' : 'pm-on') : '', toggle: () => set([k], !on) };
+            })
+          };
+        })
+      };
+    });
+    const onTotal = ALL_KEYS.filter(has).length;
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      roles: ROLES.map((r, ri) => {
+        const n = countFor(r.k);
+        return { ...r, builtin: !!r.builtin, on: r.k === roleId && sheetOpen, cls: r.k === roleId ? 'rl-on' : '', rot: ROTS[ri], onN: n, pct: Math.round(n / ALL_KEYS.length * 100) + '%', dirty: dirtyOf(r.k) > 0, pick: () => this.setState({ role: r.k, sheet: true }) };
+      }),
+      sheetOpen,
+      closeSheet: () => this.setState({ sheet: false }),
+      cur: { ...role, builtin: !!role.builtin },
+      memberN: role.members,
+      locked,
+      lockText: role.lock || '',
+      onTotal, allTotal: ALL_KEYS.length,
+      modules,
+      noDirty: dirtyN === 0,
+      saveDot: locked ? 'var(--ink2)' : (dirtyN > 0 ? 'var(--warn)' : 'var(--ok)'),
+      saveText: locked ? '内置角色不可修改' : (dirtyN > 0 ? '有 ' + dirtyN + ' 处未保存的修改' : '所有修改已保存'),
+      discard: () => this.setState({ edits: { ...edits, [roleId]: {} } }),
+      save: () => this.setState({ base: { ...base, [roleId]: cur }, edits: { ...edits, [roleId]: {} } }),
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: '' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: 'tab-on' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

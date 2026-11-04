@@ -1,23 +1,32 @@
 <!-- 角色（第二期改版）：组标题 + 计数说明 + AccessSubNav；PC 左侧角色列表（成员数）+ 右侧角色详情
-     （权限进度、成员头像、从其它角色复制/编辑信息/删除）+ 模块化权限编辑 + 底部深色保存条；
-     手机角色卡片，点开底部抽屉编辑权限。内置角色只读。保留 rolePage/roleInfo/updateRole/deleteRole、RoleCreate 与 PERM 权限。 -->
+     （权限进度、成员头像（RoleInfo.members 预览）、从其它角色复制/编辑信息/删除）+ 模块化权限编辑 + 底部深色保存条；
+     手机角色卡片（权限进度 + 「N 项 · M 人」+ 右箭头），点开底部抽屉编辑权限（底部保存状态 + 放弃/保存）。
+     用户可以有多个角色，成员数按角色各自统计。内置角色只读。 -->
 <template>
   <div class="role-page">
     <PageHeader :title="t('access.nav.access')">
       <template #description>
-        <span class="tnum">{{ t('access.role.summary', { total: roles.length, builtin: builtinCount }) }}</span>
         <template v-if="!menuStore.isMobile">
+          <span class="tnum">{{ t('access.role.summary', { total: roles.length, builtin: builtinCount }) }}</span>
           <span class="role-dot">·</span>{{ t('accessAdmin.role.summaryTail') }}
         </template>
+        <span v-else class="tnum">{{ t('accessV2.role.mobileSummary', { total: roles.length }) }}</span>
       </template>
       <template #actions>
-        <UButton v-permission="[PERM.ROLE_ADD]" color="primary" icon="i-lucide-plus" @click="openCreate">
+        <UButton v-if="canAdd && !menuStore.isMobile" color="primary" icon="i-lucide-plus" @click="openCreate">
           {{ t('system.role.addRole') }}
         </UButton>
+        <AppIconButton
+          v-else-if="canAdd"
+          icon="HOutline:PlusIcon"
+          :box="44"
+          :label="t('system.role.addRole')"
+          @click="openCreate"
+        />
       </template>
     </PageHeader>
 
-    <AccessSubNav :user-count="totalMembers" :role-count="roles.length || null" />
+    <AccessSubNav :role-count="roles.length || null" :menu-count="null" />
 
     <div v-if="loading && !roles.length" class="role-layout">
       <div class="role-skeleton role-skeleton--list" />
@@ -75,15 +84,24 @@
               <span class="role-item__name">{{ r.name }}</span>
               <span v-if="r.isBuiltin" class="role-tag">{{ t('system.common.builtIn') }}</span>
               <span v-if="r.status !== RoleStatus.RoleStatus_Active" class="role-tag role-tag--off">{{ t('accessAdmin.role.inactive') }}</span>
-              <span v-if="r.roleId === currentId && dirtyCount" class="role-item__dirty" />
+              <template v-if="r.roleId === currentId && dirtyCount">
+                <span v-if="menuStore.isMobile" class="role-item__unsaved">● {{ t('accessV2.role.unsaved') }}</span>
+                <span v-else class="role-item__dirty" :aria-label="t('accessV2.role.unsaved')" />
+              </template>
             </span>
             <span class="role-item__desc">{{ r.description || '—' }}</span>
             <span v-if="menuStore.isMobile" class="role-item__bar">
               <span class="role-bar"><span :style="{ width: pct(grantedOf(r.menuIds)) }" /></span>
-              <span class="tnum">{{ t('access.role.grantedCount', { count: grantedOf(r.menuIds) }) }}</span>
+              <span class="tnum">{{ t('accessV2.role.itemsMembers', { items: grantedOf(r.menuIds), members: Number(r.userCount || 0) }) }}</span>
             </span>
           </span>
-          <span class="role-item__members">
+          <component
+            :is="menuStore.iconComponents['HOutline:ChevronRightIcon']"
+            v-if="menuStore.isMobile"
+            class="role-item__chev"
+            aria-hidden="true"
+          />
+          <span v-else class="role-item__members">
             <span class="role-item__count tnum">{{ Number(r.userCount || 0) }}</span>
             <span class="role-item__label">{{ t('accessAdmin.role.members') }}</span>
           </span>
@@ -91,8 +109,7 @@
         <p v-if="!filteredRoles.length" class="role-list__empty">{{ t('system.common.noData') }}</p>
 
         <UButton
-          v-if="!menuStore.isMobile"
-          v-permission="[PERM.ROLE_ADD]"
+          v-if="!menuStore.isMobile && canAdd"
           class="role-list__add"
           color="neutral"
           variant="soft"
@@ -141,17 +158,29 @@
                 <span class="role-bar role-bar--lg"><span :style="{ width: pct(grantedOf(draft)) }" /></span>
               </div>
               <div class="role-members">
-                <div class="role-members__avs">
-                  <span
-                    v-for="(u, ui) in members"
-                    :key="u.userId"
-                    class="m-sticker role-members__av"
-                    :class="stickerOf(u.userId, ui + 1).cls"
-                    :title="u.name || u.username"
-                  >{{ initialOf(u.name || u.username) }}</span>
+                <div v-if="members.length" class="role-members__avs">
+                  <template v-for="(u, ui) in members" :key="u.userId">
+                    <AppAvatar
+                      v-if="u.avatar"
+                      class="role-members__av is-img"
+                      :src="resolveAvatarUrl(u.avatar)"
+                      :size="32"
+                      :name="u.name || u.username"
+                    />
+                    <span
+                      v-else
+                      class="m-sticker role-members__av"
+                      :class="stickerOf(u.userId, ui + 1).cls"
+                      :title="u.name || u.username"
+                    >{{ initialOf(u.name || u.username) }}</span>
+                  </template>
                 </div>
                 <span class="role-members__text">{{ memberText }}</span>
-                <RouterLink :to="pageTabTo('access', 'user', { roleId: current.roleId || '' })" class="role-members__link">
+                <RouterLink
+                  v-if="canViewUsers"
+                  :to="pageTabTo('access', 'user', { roleId: current.roleId || '' })"
+                  class="role-members__link"
+                >
                   {{ t('accessAdmin.role.manageMembers') }}
                 </RouterLink>
               </div>
@@ -199,7 +228,7 @@
       </div>
     </div>
 
-    <p v-if="menuStore.isMobile && roles.length" class="role-mobile-hint">{{ t('accessAdmin.role.tapToEdit') }}</p>
+
 
     <!-- 手机：权限抽屉 -->
     <FormDialog
@@ -210,10 +239,30 @@
       @close="onSheetClose"
     >
       <div v-if="current" class="role-sheet">
+        <div class="role-sheet__head">
+          <span class="m-sticker role-sheet__av" :class="currentSticker">{{ initialOf(current.name) }}</span>
+          <span class="role-sheet__title">
+            <span class="role-sheet__name">
+              {{ current.name }}
+              <span v-if="current.isBuiltin" class="role-tag">{{ t('system.common.builtIn') }}</span>
+            </span>
+            <span class="role-sheet__stats tnum">
+              {{ t('accessV2.role.sheetStats', { on: grantedOf(draft), total: leafTotal, members: memberCount }) }}
+            </span>
+          </span>
+        </div>
         <p class="role-sheet__desc">{{ current.description || '—' }}</p>
-        <div class="role-sheet__stats">
-          <span class="tnum">{{ t('access.role.granted') }} <strong class="m-num">{{ grantedOf(draft) }}</strong> / {{ leafTotal }}</span>
-          <span class="tnum">{{ t('accessAdmin.role.memberCount', { count: Number(current.userCount || 0) }) }}</span>
+        <div v-if="members.length" class="role-members">
+          <div class="role-members__avs">
+            <span
+              v-for="(u, ui) in members"
+              :key="u.userId"
+              class="m-sticker role-members__av"
+              :class="stickerOf(u.userId, ui + 1).cls"
+              :title="u.name || u.username"
+            >{{ initialOf(u.name || u.username) }}</span>
+          </div>
+          <span class="role-members__text">{{ memberText }}</span>
         </div>
         <div v-if="!locked && canEdit" class="role-sheet__acts">
           <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-copy" @click="openCopy">
@@ -232,6 +281,10 @@
         <PermissionEditor v-else v-model="draft" :menus="menus" :locked="locked || !canEdit" />
       </div>
       <template #footer="{ close }">
+        <span class="role-sheet__save">
+          <span class="role-save__dot" :class="saveTone" />
+          <span>{{ saveTextShort }}</span>
+        </span>
         <template v-if="!locked && canEdit">
           <UButton color="neutral" variant="soft" :disabled="!dirtyCount" @click="discard">
             {{ t('accessAdmin.role.discardShort') }}
@@ -294,11 +347,10 @@ import { pageTabTo } from '@/config/pageGroups'
 import { useI18n } from 'vue-i18n'
 import { deleteRole, rolePage, updateRole } from '@/api/role'
 import { adminPermissionsList } from '@/api/menu'
-import { userPage } from '@/api/user'
 import { PERM } from '@/config/permission'
 import { Dialog } from '@/utils/dialog'
+import { resolveAvatarUrl } from '@/utils/assets'
 import { MenuType, RoleStatus, type MenuInfo, type RoleInfo } from '@/types/v1/system'
-import type { UserInfo } from '@/types/v1/user'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import RoleCreate from '@/views/system/role/create.vue'
 import PermissionEditor from '@/views/system/role/permissionEditor.vue'
@@ -320,14 +372,16 @@ const loading = ref(false)
 const saving = ref(false)
 const roles = ref<RoleInfo[]>([])
 const menus = ref<MenuInfo[]>([])
-const members = ref<UserInfo[]>([])
+
 const currentId = ref('')
 const draft = ref<string[]>([])
 const keyword = ref('')
 const statusFilter = ref<'' | RoleStatus>('')
 const sheetOpen = ref(false)
 
+const canAdd = computed(() => menuStore.hasButtonPermission(PERM.ROLE_ADD))
 const canEdit = computed(() => menuStore.hasButtonPermission(PERM.ROLE_EDIT))
+const canViewUsers = computed(() => menuStore.hasButtonPermission('user:view'))
 const canDelete = computed(() => menuStore.hasButtonPermission(PERM.ROLE_DELETE))
 
 const statusOptions = computed<{ label: string; value: '' | RoleStatus }[]>(() => [
@@ -337,9 +391,6 @@ const statusOptions = computed<{ label: string; value: '' | RoleStatus }[]>(() =
 ])
 
 const builtinCount = computed(() => roles.value.filter((r) => r.isBuiltin).length)
-const totalMembers = computed(() =>
-  roles.value.length ? roles.value.reduce((n, r) => n + Number(r.userCount || 0), 0) : null,
-)
 const filteredRoles = computed(() => {
   const kw = keyword.value.trim().toLowerCase()
   return roles.value.filter(
@@ -394,12 +445,15 @@ const dirtyCount = computed(() => {
 })
 
 const memberCount = computed(() => Number(current.value?.userCount || 0))
+// 成员预览（后端随角色返回前 5 个）
+const members = computed(() => current.value?.members || [])
 const memberText = computed(() => {
   if (!memberCount.value) return t('accessAdmin.role.noMembers')
   const names = members.value
     .slice(0, 3)
     .map((u) => u.name || u.username)
     .join('、')
+  if (!names) return t('accessAdmin.role.memberCount', { count: memberCount.value })
   return memberCount.value > 3
     ? t('accessAdmin.role.memberMore', { names, count: memberCount.value })
     : t('accessAdmin.role.memberAll', { names, count: memberCount.value })
@@ -412,6 +466,12 @@ const saveText = computed(() => {
     return t('accessAdmin.role.dirty', { count: dirtyCount.value, members: memberCount.value })
   return t('accessAdmin.role.saved')
 })
+// 手机抽屉底部：短文案
+const saveTextShort = computed(() => {
+  if (locked.value) return t('accessAdmin.role.lockedBar')
+  if (dirtyCount.value) return t('accessV2.role.dirtyShort', { count: dirtyCount.value })
+  return t('accessAdmin.role.saved')
+})
 
 const roleMenu = computed<ActionMenuItem[]>(() => [
   { key: 'delete', label: t('system.common.delete'), icon: 'HOutline:TrashIcon', danger: true },
@@ -420,22 +480,11 @@ const listMenu = computed<ActionMenuItem[]>(() => [
   { key: 'batchDelete', label: t('system.role.batchDelete'), icon: 'HOutline:TrashIcon', danger: true },
 ])
 
-const loadMembers = async () => {
-  members.value = []
-  const id = currentId.value
-  if (!id || !memberCount.value) return
-  try {
-    const { data: res } = await userPage({ page: 1, pageSize: 5, roleId: id })
-    if (id === currentId.value) members.value = res?.users || []
-  } catch {
-    members.value = []
-  }
-}
+
 
 const selectRole = (roleId: string) => {
   currentId.value = roleId
   draft.value = [...(roles.value.find((r) => r.roleId === roleId)?.menuIds || [])]
-  loadMembers()
 }
 
 const confirmLeave = (next: () => void) => {
@@ -475,7 +524,6 @@ const getRoles = async (prefer?: string) => {
       roles.value.find((r) => !r.isBuiltin) ||
       roles.value[0]
     if (target && (target.roleId !== currentId.value || prefer)) selectRole(target.roleId)
-    else if (target) loadMembers()
   } finally {
     loading.value = false
   }
@@ -505,7 +553,13 @@ const save = async () => {
     const updated = data?.role
     const idx = roles.value.findIndex((x) => x.roleId === r.roleId)
     if (idx >= 0)
-      roles.value[idx] = { ...roles.value[idx]!, ...(updated || {}), menuIds: [...draft.value], userCount: r.userCount }
+      roles.value[idx] = {
+        ...roles.value[idx]!,
+        ...(updated || {}),
+        menuIds: [...draft.value],
+        userCount: r.userCount,
+        members: r.members,
+      }
     feedback.success(t('accessAdmin.role.saveSuccess'))
     if (menuStore.isMobile) sheetOpen.value = false
   } finally {
@@ -584,6 +638,10 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+.role-page :deep(.page-header__actions .app-icon-btn) {
+  padding: 0;
+  border-radius: 14px;
+}
 .role-page {
   display: flex;
   flex-direction: column;
@@ -681,7 +739,7 @@ onMounted(() => {
 }
 .role-filter__btn {
   flex: 1;
-  min-height: 32px;
+  min-height: 34px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -771,6 +829,18 @@ onMounted(() => {
 }
 .role-item__bar .role-bar {
   flex: 1;
+}
+.role-item__unsaved {
+  flex: none;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--m-warn);
+}
+.role-item__chev {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--el-text-color-secondary);
 }
 .role-item__members {
   display: flex;
@@ -940,6 +1010,10 @@ onMounted(() => {
   border: 2px solid var(--el-bg-color);
   font-size: 0.8125rem;
 }
+.role-members__av.is-img {
+  flex: none;
+  overflow: hidden;
+}
 .role-members__text {
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
@@ -1052,10 +1126,44 @@ onMounted(() => {
 }
 
 /* 手机 */
-.role-mobile-hint {
-  margin: -6px 4px 0;
-  font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
+.role-sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.role-sheet__av {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 15px;
+  font-size: 1.125rem;
+  transform: rotate(-5deg);
+}
+.role-sheet__title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.role-sheet__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--app-font-display);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.role-sheet__save {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
 }
 .role-sheet {
   display: flex;
@@ -1068,14 +1176,8 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
 }
 .role-sheet__stats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
-}
-.role-sheet__stats strong {
-  font-size: 1.125rem;
-  color: var(--el-text-color-primary);
 }
 .role-sheet__acts {
   display: flex;
@@ -1107,6 +1209,9 @@ onMounted(() => {
 @media (width < 768px) {
   .role-layout {
     display: block;
+  }
+  .role-filter__btn {
+    min-height: 44px;
   }
   .role-list {
     position: static;

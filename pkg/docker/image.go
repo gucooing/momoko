@@ -11,10 +11,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/distribution/reference"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	imagetypes "github.com/docker/docker/api/types/image"
 	registrytypes "github.com/docker/docker/api/types/registry"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/go-units"
 
@@ -218,39 +220,87 @@ func (m *Manager) Image(ctx context.Context, id string) (*v1.DockerImageInfo, er
 }
 
 func (m *Manager) PullImage(ctx context.Context, req *v1.PullDockerImageRequest) *v1.DockerTaskInfo {
-	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_IMAGE_PULL, "拉取镜像 "+req.GetReference(), m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
-		cli, err := m.getClient()
-		if err != nil {
+	ref := strings.TrimSpace(req.GetReference())
+	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_IMAGE_PULL, "拉取镜像 "+ref, ref, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
+		if err := m.pullImage(taskCtx, ref, req.GetPlatform(), req.GetRegistryAuth(), emit); err != nil {
 			return "", err
 		}
-		authHeader, err := registryAuthHeader(req.GetRegistryAuth())
-		if err != nil {
-			return "", err
-		}
-		reader, err := cli.ImagePull(taskCtx, req.GetReference(), imagetypes.PullOptions{
-			RegistryAuth: authHeader,
-			Platform:     req.GetPlatform(),
-		})
-		if err != nil {
-			return "", err
-		}
-		defer reader.Close()
-		// 一路给终端日志渲染，一路解析分层进度汇总成「68% (32.1 MB/47.2 MB) 2/6」写进任务 Progress
-		pr, pw := io.Pipe()
-		done := make(chan struct{})
-		go func() {
-			defer close(done)
-			trackPullProgress(pr, emit)
-			_, _ = io.Copy(io.Discard, pr)
-		}()
-		streamErr := streamTaskOutput(taskCtx, io.TeeReader(reader, pw), emit)
-		_ = pw.CloseWithError(streamErr)
-		<-done
-		if streamErr != nil {
-			return "", streamErr
-		}
-		return req.GetReference(), nil
+		return ref, nil
 	})
+}
+
+// pullImage 拉取镜像：未显式给凭据时按镜像所在仓库自动带上已保存的仓库认证；
+// 拉取输出一路给任务终端日志，一路解析成分层进度写进任务 Pull / Progress。
+func (m *Manager) pullImage(ctx context.Context, ref, platform string, auth *v1.DockerRegistryAuth, emit func(*v1.DockerTaskInfo)) error {
+	cli, err := m.getClient()
+	if err != nil {
+		return err
+	}
+	if auth == nil {
+		auth = storedRegistryAuth(m.Config(), ref)
+	}
+	authHeader, err := registryAuthHeader(auth)
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(platform) == "" {
+		platform = m.Config().GetDefaultPlatform()
+	}
+	reader, err := cli.ImagePull(ctx, ref, imagetypes.PullOptions{
+		RegistryAuth: authHeader,
+		Platform:     platform,
+	})
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+	pr, pw := io.Pipe()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		trackPullProgress(pr, emit)
+		_, _ = io.Copy(io.Discard, pr)
+	}()
+	streamErr := streamTaskOutput(ctx, io.TeeReader(reader, pw), emit)
+	_ = pw.CloseWithError(streamErr)
+	<-done
+	return streamErr
+}
+
+// registryHost 返回镜像引用所在仓库的主机名（Docker Hub 统一为 docker.io）。
+func registryHost(ref string) string {
+	named, err := reference.ParseNormalizedNamed(strings.TrimSpace(ref))
+	if err != nil {
+		return ""
+	}
+	return reference.Domain(named)
+}
+
+func normalizeRegistryHost(addr string) string {
+	host := strings.ToLower(strings.TrimSpace(addr))
+	host = strings.TrimPrefix(strings.TrimPrefix(host, "https://"), "http://")
+	host = strings.TrimSuffix(host, "/")
+	host = strings.TrimSuffix(host, "/v1")
+	host = strings.TrimSuffix(host, "/v2")
+	switch host {
+	case "index.docker.io", "registry-1.docker.io", "registry.hub.docker.com", "hub.docker.com":
+		return "docker.io"
+	}
+	return host
+}
+
+// storedRegistryAuth 在已保存的仓库认证里找与镜像仓库匹配的一条。
+func storedRegistryAuth(cfg *v1.DockerConfigInfo, ref string) *v1.DockerRegistryAuth {
+	host := registryHost(ref)
+	if host == "" || cfg == nil {
+		return nil
+	}
+	for _, item := range cfg.GetRegistryAuths() {
+		if item != nil && normalizeRegistryHost(item.ServerAddress) == host {
+			return item
+		}
+	}
+	return nil
 }
 
 func (m *Manager) TagImage(ctx context.Context, id, target string) error {
@@ -322,49 +372,77 @@ func (m *Manager) ImageHistory(ctx context.Context, id string) ([]*v1.DockerImag
 type pullLayer struct {
 	current int64
 	total   int64
-	done    bool
+	// waiting / downloading / extracting / done / exists
+	status string
 }
 
-// trackPullProgress 解析 docker pull 的 JSON 消息流，按层汇总进度并节流上报。
+// trackPullProgress 解析 docker pull 的 JSON 消息流，按层汇总进度（含各层状态、下载速度）并节流上报。
 func trackPullProgress(r io.Reader, emit func(*v1.DockerTaskInfo)) {
 	dec := json.NewDecoder(r)
 	layers := map[string]*pullLayer{}
 	order := []string{}
 	last := time.Time{}
+	var speedAt time.Time
+	var speedBytes int64
+	var speed float64
 	report := func(force bool) {
 		if !force && time.Since(last) < 500*time.Millisecond {
 			return
 		}
-		last = time.Now()
-		var cur, total int64
-		finished := 0
-		for _, id := range order {
-			l := layers[id]
-			if l.done {
-				finished++
-			}
-			if l.total > 0 {
-				total += l.total
-				if l.done {
-					cur += l.total
-				} else {
-					cur += l.current
-				}
-			}
-		}
 		if len(order) == 0 {
 			return
 		}
-		pct := 0
-		if total > 0 {
-			pct = int(cur * 100 / total)
-		} else if finished == len(order) {
-			pct = 100
+		now := time.Now()
+		last = now
+		progress := &v1.DockerPullProgress{LayersTotal: int32(len(order))}
+		for _, id := range order {
+			l := layers[id]
+			switch l.status {
+			case "done", "exists":
+				progress.LayersDone++
+			case "downloading":
+				progress.LayersDownloading++
+			}
+			if l.total > 0 {
+				progress.Total += l.total
+				if l.status == "done" || l.status == "extracting" {
+					progress.Current += l.total
+				} else if l.status != "exists" {
+					progress.Current += l.current
+				} else {
+					progress.Total -= l.total
+				}
+			}
+			progress.Layers = append(progress.Layers, &v1.DockerPullLayer{Id: id, Status: l.status, Current: l.current, Total: l.total})
 		}
-		if pct > 100 {
-			pct = 100
+		// 速度：相邻两次上报的字节差做指数平滑
+		if !speedAt.IsZero() {
+			if dt := now.Sub(speedAt).Seconds(); dt > 0 {
+				inst := float64(progress.Current-speedBytes) / dt
+				if inst < 0 {
+					inst = 0
+				}
+				speed = speed*0.6 + inst*0.4
+			}
 		}
-		emit(&v1.DockerTaskInfo{Progress: fmt.Sprintf("%d%% (%s/%s) %d/%d", pct, units.HumanSize(float64(cur)), units.HumanSize(float64(total)), finished, len(order))})
+		speedAt, speedBytes = now, progress.Current
+		if progress.LayersDownloading == 0 {
+			speed = 0
+		}
+		progress.BytesPerSecond = int64(speed)
+		switch {
+		case progress.Total > 0:
+			progress.Percent = int32(progress.Current * 100 / progress.Total)
+		case progress.LayersDone == progress.LayersTotal:
+			progress.Percent = 100
+		}
+		if progress.Percent > 100 {
+			progress.Percent = 100
+		}
+		emit(&v1.DockerTaskInfo{
+			Pull:     progress,
+			Progress: fmt.Sprintf("%d%% (%s/%s) %d/%d", progress.Percent, units.HumanSize(float64(progress.Current)), units.HumanSize(float64(progress.Total)), progress.LayersDone, progress.LayersTotal),
+		})
 	}
 	for {
 		var msg jsonmessage.JSONMessage
@@ -377,23 +455,31 @@ func trackPullProgress(r io.Reader, emit func(*v1.DockerTaskInfo)) {
 		}
 		l, ok := layers[msg.ID]
 		if !ok {
-			l = &pullLayer{}
+			l = &pullLayer{status: "waiting"}
 			layers[msg.ID] = l
 			order = append(order, msg.ID)
 		}
 		status := strings.ToLower(msg.Status)
 		switch {
-		case strings.HasPrefix(status, "downloading") && msg.Progress != nil:
-			l.current = msg.Progress.Current
-			if msg.Progress.Total > 0 {
-				l.total = msg.Progress.Total
+		case strings.HasPrefix(status, "downloading"):
+			l.status = "downloading"
+			if msg.Progress != nil {
+				l.current = msg.Progress.Current
+				if msg.Progress.Total > 0 {
+					l.total = msg.Progress.Total
+				}
 			}
-		case strings.Contains(status, "complete") || strings.Contains(status, "already exists"):
-			if strings.Contains(status, "download complete") {
-				l.current = l.total
-			} else {
-				l.done = true
-			}
+		case strings.Contains(status, "download complete"), strings.HasPrefix(status, "verifying"):
+			l.current = l.total
+			l.status = "extracting"
+		case strings.HasPrefix(status, "extracting"):
+			l.current = l.total
+			l.status = "extracting"
+		case strings.Contains(status, "pull complete"):
+			l.current = l.total
+			l.status = "done"
+		case strings.Contains(status, "already exists"):
+			l.status = "exists"
 		}
 		report(false)
 	}
@@ -416,4 +502,59 @@ func (w taskEventWriter) Write(p []byte) (int, error) {
 		w.emit(&v1.DockerTaskInfo{Message: string(p)})
 	}
 	return len(p), nil
+}
+
+const (
+	// ImageExportPath 导出镜像为 tar（docker save），GET ?ids=…
+	ImageExportPath = "/api/v1/docker/image-export"
+	// ImageImportPath 从 tar 导入镜像（docker load），POST 请求体为 tar
+	ImageImportPath = "/api/v1/docker/image-import"
+)
+
+// SaveImages 把若干镜像（ID 或 引用）导出为一个 tar 流，调用方负责关闭。
+func (m *Manager) SaveImages(ctx context.Context, ids []string) (io.ReadCloser, error) {
+	cli, err := m.getClient()
+	if err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return nil, errors.New("没有要导出的镜像")
+	}
+	return cli.ImageSave(ctx, ids)
+}
+
+// LoadImages 从 tar 流导入镜像，返回导入的镜像引用（无标签时为镜像 ID）。
+func (m *Manager) LoadImages(ctx context.Context, input io.Reader) ([]string, error) {
+	cli, err := m.getClient()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := cli.ImageLoad(ctx, input, client.ImageLoadWithQuiet(true))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	loaded := []string{}
+	dec := json.NewDecoder(resp.Body)
+	for {
+		var msg jsonmessage.JSONMessage
+		if err := dec.Decode(&msg); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return loaded, err
+		}
+		if msg.Error != nil {
+			return loaded, errors.New(msg.Error.Message)
+		}
+		for _, line := range strings.Split(msg.Stream, "\n") {
+			line = strings.TrimSpace(line)
+			if ref, ok := strings.CutPrefix(line, "Loaded image: "); ok {
+				loaded = append(loaded, ref)
+			} else if id, ok := strings.CutPrefix(line, "Loaded image ID: "); ok {
+				loaded = append(loaded, id)
+			}
+		}
+	}
+	return loaded, nil
 }

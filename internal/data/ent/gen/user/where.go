@@ -135,6 +135,11 @@ func LastLoginMethod(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastLoginMethod, v))
 }
 
+// Appearance applies equality check predicate on the "appearance" field. It's identical to AppearanceEQ.
+func Appearance(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAppearance, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreateTime, v))
@@ -1025,21 +1030,96 @@ func LastLoginMethodContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldLastLoginMethod, v))
 }
 
-// HasRole applies the HasEdge predicate on the "role" edge.
-func HasRole() predicate.User {
+// AppearanceEQ applies the EQ predicate on the "appearance" field.
+func AppearanceEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAppearance, v))
+}
+
+// AppearanceNEQ applies the NEQ predicate on the "appearance" field.
+func AppearanceNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldAppearance, v))
+}
+
+// AppearanceIn applies the In predicate on the "appearance" field.
+func AppearanceIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldAppearance, vs...))
+}
+
+// AppearanceNotIn applies the NotIn predicate on the "appearance" field.
+func AppearanceNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldAppearance, vs...))
+}
+
+// AppearanceGT applies the GT predicate on the "appearance" field.
+func AppearanceGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldAppearance, v))
+}
+
+// AppearanceGTE applies the GTE predicate on the "appearance" field.
+func AppearanceGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldAppearance, v))
+}
+
+// AppearanceLT applies the LT predicate on the "appearance" field.
+func AppearanceLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldAppearance, v))
+}
+
+// AppearanceLTE applies the LTE predicate on the "appearance" field.
+func AppearanceLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldAppearance, v))
+}
+
+// AppearanceContains applies the Contains predicate on the "appearance" field.
+func AppearanceContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldAppearance, v))
+}
+
+// AppearanceHasPrefix applies the HasPrefix predicate on the "appearance" field.
+func AppearanceHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldAppearance, v))
+}
+
+// AppearanceHasSuffix applies the HasSuffix predicate on the "appearance" field.
+func AppearanceHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldAppearance, v))
+}
+
+// AppearanceIsNil applies the IsNil predicate on the "appearance" field.
+func AppearanceIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldAppearance))
+}
+
+// AppearanceNotNil applies the NotNil predicate on the "appearance" field.
+func AppearanceNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldAppearance))
+}
+
+// AppearanceEqualFold applies the EqualFold predicate on the "appearance" field.
+func AppearanceEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldAppearance, v))
+}
+
+// AppearanceContainsFold applies the ContainsFold predicate on the "appearance" field.
+func AppearanceContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldAppearance, v))
+}
+
+// HasRoles applies the HasEdge predicate on the "roles" edge.
+func HasRoles() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, RoleTable, RoleColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, RolesTable, RolesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasRoleWith applies the HasEdge predicate on the "role" edge with a given conditions (other predicates).
-func HasRoleWith(preds ...predicate.Role) predicate.User {
+// HasRolesWith applies the HasEdge predicate on the "roles" edge with a given conditions (other predicates).
+func HasRolesWith(preds ...predicate.Role) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newRoleStep()
+		step := newRolesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

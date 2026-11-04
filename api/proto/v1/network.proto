@@ -136,10 +136,12 @@ message CreatePortForwardRequest {
   string target_address = 5;
   // 目标端口
   int32 target_port = 6;
-  // 是否启用
+  // 是否启用（创建后立即运行）
   bool is_enable = 7;
   // 备注
   string remark = 8;
+  // 开机自启（服务启动时自动运行）
+  bool auto_start = 9;
 }
 
 message CreatePortForwardResponse {
@@ -176,6 +178,8 @@ message UpdatePortForwardRequest {
   optional bool is_enable = 8;
   // 备注
   optional string remark = 9;
+  // 开机自启
+  optional bool auto_start = 10;
 }
 
 message UpdatePortForwardResponse {
@@ -335,6 +339,8 @@ message PortForwardInfo {
   int64 total_bytes_out = 25;
   // 本次启动时间（运行中才有效）
   google.protobuf.Timestamp start_time = 26;
+  // 开机自启（服务启动时自动运行；关闭时服务重启后保持停用）
+  bool auto_start = 27;
 }
 
 enum PortForwardStatus {

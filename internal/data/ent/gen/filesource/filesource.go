@@ -39,6 +39,10 @@ const (
 	FieldLastTestMessage = "last_test_message"
 	// FieldLastTestTime holds the string denoting the last_test_time field in the database.
 	FieldLastTestTime = "last_test_time"
+	// FieldLastTestUsedBytes holds the string denoting the last_test_used_bytes field in the database.
+	FieldLastTestUsedBytes = "last_test_used_bytes"
+	// FieldLastTestTotalBytes holds the string denoting the last_test_total_bytes field in the database.
+	FieldLastTestTotalBytes = "last_test_total_bytes"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// Table holds the table name of the filesource in the database.
@@ -67,6 +71,8 @@ var Columns = []string{
 	FieldLastTestLatencyMs,
 	FieldLastTestMessage,
 	FieldLastTestTime,
+	FieldLastTestUsedBytes,
+	FieldLastTestTotalBytes,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -100,6 +106,10 @@ var (
 	DefaultLastTestLatencyMs int64
 	// DefaultLastTestMessage holds the default value on creation for the "last_test_message" field.
 	DefaultLastTestMessage string
+	// DefaultLastTestUsedBytes holds the default value on creation for the "last_test_used_bytes" field.
+	DefaultLastTestUsedBytes uint64
+	// DefaultLastTestTotalBytes holds the default value on creation for the "last_test_total_bytes" field.
+	DefaultLastTestTotalBytes uint64
 )
 
 // Type defines the type for the "type" enum field.
@@ -107,6 +117,7 @@ type Type string
 
 // Type values.
 const (
+	TypeLocal  Type = "local"
 	TypeOss    Type = "oss"
 	TypeFtp    Type = "ftp"
 	TypeWebdav Type = "webdav"
@@ -119,7 +130,7 @@ func (_type Type) String() string {
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
 func TypeValidator(_type Type) error {
 	switch _type {
-	case TypeOss, TypeFtp, TypeWebdav:
+	case TypeLocal, TypeOss, TypeFtp, TypeWebdav:
 		return nil
 	default:
 		return fmt.Errorf("filesource: invalid enum value for type field: %q", _type)
@@ -192,6 +203,16 @@ func ByLastTestMessage(opts ...sql.OrderTermOption) OrderOption {
 // ByLastTestTime orders the results by the last_test_time field.
 func ByLastTestTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastTestTime, opts...).ToFunc()
+}
+
+// ByLastTestUsedBytes orders the results by the last_test_used_bytes field.
+func ByLastTestUsedBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestUsedBytes, opts...).ToFunc()
+}
+
+// ByLastTestTotalBytes orders the results by the last_test_total_bytes field.
+func ByLastTestTotalBytes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTestTotalBytes, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

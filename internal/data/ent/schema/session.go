@@ -25,6 +25,7 @@ func (Session) Fields() []ent.Field {
 		field.String("login_method").Default("").Comment("登录方式：password / email_code"),
 		field.Time("last_active_at").Optional().Nillable().Comment("最近活跃时间"),
 		field.String("last_ip").Default("").Comment("最近活跃 IP"),
+		field.Bool("persistent").Default(true).Comment("保持登录：false 时会话有效期不超过 1 天（不活动即失效）"),
 	}
 }
 

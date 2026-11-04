@@ -73,7 +73,7 @@
             :icon="copiedKey === item.key ? 'HOutline:CheckIcon' : 'HOutline:ClipboardDocumentIcon'"
             :label="t('system.oidcx.copyEndpoint', { name: item.label })"
             :class="{ 'is-copied': copiedKey === item.key }"
-            :box="36"
+            :box="menuStore.isMobile ? 44 : 36"
             @click="copyText(item.key, item.value)"
           />
         </div>
@@ -298,6 +298,11 @@ defineExpose({ reload: loadConfig })
   align-items: center;
   gap: 8px;
 }
+/* 「当前域名」与输入框同高 */
+.oc-inline > :deep(button) {
+  flex: none;
+  min-height: 44px;
+}
 .oc-fld {
   flex: 1;
   min-width: 0;
@@ -417,6 +422,9 @@ defineExpose({ reload: loadConfig })
   padding-top: 18px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
+.oc-card__foot > :deep(button) {
+  min-height: 40px;
+}
 .oc-sign {
   display: inline-flex;
   align-items: center;
@@ -462,6 +470,31 @@ defineExpose({ reload: loadConfig })
   }
   .oc-ttls {
     grid-template-columns: 1fr;
+    gap: 0;
+  }
+  /* 手机：有效期按「标题+说明 | 输入框」一行一项 */
+  .oc-ttls > .app-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 116px;
+    grid-template-areas: 'label fld' 'hint fld';
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding: 12px 0;
+    border-top: 1px solid var(--el-border-color-lighter);
+  }
+  .oc-ttls > .app-field:first-child {
+    border-top: none;
+  }
+  .oc-ttls > .app-field > .app-label {
+    grid-area: label;
+    margin: 0;
+  }
+  .oc-ttls > .app-field > .oc-fld {
+    grid-area: fld;
+  }
+  .oc-ttls > .app-field > .oc-hint {
+    grid-area: hint;
   }
   .oc-card__foot > :deep(button) {
     flex: 1 1 100%;

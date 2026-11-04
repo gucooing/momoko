@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>OIDC 身份提供方 · PC</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;transition:transform .15s,filter .15s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}.btn-p:hover{filter:brightness(1.08);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}.btn-s:hover{background:var(--pSoft);color:var(--pInk)}
+.btn-o{background:var(--s);color:var(--ink);border:1.5px solid var(--line)}.btn-o:hover{border-color:var(--p);color:var(--pInk)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ib-sm{width:36px;height:36px;border-radius:12px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:var(--p);color:var(--pInk)}
+.chip-on,.chip-on:hover{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.scope{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:8px;background:var(--a2Soft);color:var(--ink);font-size:12px;font-weight:600;margin:2px 4px 2px 0}
+.nav{display:flex;align-items:center;gap:12px;min-height:42px;padding:0 12px;border-radius:14px;color:var(--ink2);text-decoration:none;font-size:14px;font-weight:500}
+.nav:hover{background:var(--s2);color:var(--ink)}
+.nav-on,.nav-on:hover{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.fl{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:700;color:var(--ink);min-width:0}
+.fld{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;border-radius:14px;background:var(--s2);border:1.5px solid transparent;color:var(--ink2)}
+.fld:focus-within{border-color:var(--p);background:var(--s)}
+.fld input{flex:1;min-width:0;height:44px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:600;color:var(--ink);outline:none}
+.unit{font-size:13px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.kbd{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;background:var(--s2);color:var(--ink2)}
+.utab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700}
+.utab:hover{color:var(--ink)}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.tg{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none;transition:background .15s}
+.tg::after{content:'';position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.tg:checked{background:var(--p)}
+.tg:checked::after{transform:translateX(20px)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.dot{position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--p);border:2px solid var(--s)}
+.ep{display:flex;align-items:center;gap:10px;min-height:52px;padding:4px 4px 4px 14px;border-radius:14px;background:var(--s2)}
+.tbl{width:100%;min-width:1040px;border-collapse:separate;border-spacing:0}
+.tbl th{text-align:left;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink2);padding:14px 12px;background:var(--s);border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:14px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover td{background:var(--s2)}
+.tbl tr.dim td{background:color-mix(in srgb, var(--s2) 50%, var(--s))}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="min-height: 1420px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span>{{n.t}}</span>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <label class="inp" style="flex: 1 1 320px; max-width: 520px">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="搜索页面、应用、容器、文件…" aria-label="全局搜索">
+        <span class="kbd">Ctrl K</span>
+      </label>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知，3 条未读"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
+        <div style="font-size: 14px; font-weight: 600; color: var(--ink2)">系统设置</div>
+        <div style="display: flex; align-items: center; gap: 14px">
+          <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">OIDC 身份提供方</h1>
+          <span class="pill {{provPill}}">{{provPillT}}</span>
+        </div>
+      </div>
+      <a class="btn btn-o" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.book}}"></path></svg>接入文档</a>
+    </div>
+    <nav aria-label="系统设置分类" style="display: flex; gap: 28px; border-bottom: 1px solid var(--line); margin-top: -8px">
+      <a class="utab" href="SettingsPC.dc.html">常规 · 登录 · 邮件</a>
+      <a class="utab utab-on" href="OIDCPC.dc.html" aria-current="page">OIDC 身份提供方</a>
+    </nav>
+
+    <section class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 22px">
+      <div style="display: flex; align-items: center; gap: 16px">
+        <span class="av av-a" style="width: 52px; height: 52px; border-radius: 17px; transform: rotate(-5deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 26px; height: 26px"><path d="{{i.idkey}}"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 20px; font-weight: 800">让 Momoko 成为登录中心</span>
+          <span style="font-size: 14px; color: var(--ink2)">开启后，Grafana、Gitea 等应用可以通过 OpenID Connect 直接用 Momoko 账号登录。</span>
+        </span>
+        <label style="display: inline-flex; align-items: center; gap: 12px; min-height: 44px; font-size: 14px; font-weight: 700; cursor: pointer">启用
+          <input class="tg" type="checkbox" role="switch" checked="{{provOn}}" onChange="{{toggleProv}}" aria-label="启用 OIDC 身份提供方">
+        </label>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+        <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+          <label class="fl">Issuer
+            <span class="fld"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.globe}}"></path></svg><input class="mono" type="url" value="{{issuer}}" onChange="{{setIssuer}}" style="font-size: 13px"></span>
+            <span style="font-size: 12px; font-weight: 500; color: var(--ink2)">对外访问 Momoko 的地址，必须与应用里填写的 Issuer 完全一致，修改后需要在各应用里同步更新。</span>
+          </label>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+            <sc-for list="{{ttls}}" as="t" hint-placeholder-count="3">
+              <label class="fl">{{t.t}}
+                <span class="fld"><input class="num" type="text" inputmode="numeric" value="{{t.v}}" onChange="{{t.set}}" style="font-size: 16px; font-weight: 800"><span class="unit">{{t.unit}}</span></span>
+                <span style="font-size: 12px; font-weight: 500; color: var(--ink2)">{{t.hint}}</span>
+              </label>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex: 1 1 400px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span class="lbl" style="flex: 1">端点</span>
+            <span style="font-size: 12px; font-weight: 600; color: var(--ink2)">由 Issuer 自动生成</span>
+          </div>
+          <sc-for list="{{eps}}" as="e" hint-placeholder-count="5">
+            <div class="ep">
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+                <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{e.t}}</span>
+                <span class="mono" style="font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{e.url}}</span>
+              </span>
+              <button class="ib ib-sm" aria-label="{{e.aria}}" onClick="{{e.copy}}" style="color: {{e.fg}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{e.d}}"></path></svg></button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-top: 18px; border-top: 1px solid var(--line)">
+        <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.lock}}"></path></svg>签名算法 <b class="mono" style="color: var(--ink)">RS256</b> · 密钥 <span class="mono" style="color: var(--ink)">kid 2026-10-a3f9</span> · 10 月 12 日轮换</span>
+        <span style="flex: 1"></span>
+        <button class="btn btn-o btn-sm"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.restart}}"></path></svg>轮换签名密钥</button>
+        <button class="btn btn-p"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.check}}"></path></svg>保存配置</button>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; margin-top: 6px">
+      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 4px">
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800">客户端</h2>
+        <div style="font-size: 14px; color: var(--ink2)">共 <span class="num">{{total}}</span> 个接入应用 · <span style="color: var(--ok); font-weight: 700"><span class="num">{{onCount}}</span> 个已启用</span></div>
+      </div>
+      <button class="btn btn-p"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新建客户端</button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -6px">
+      <div role="tablist" aria-label="按状态筛选" style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{filters}}" as="f" hint-placeholder-count="3">
+          <button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+        </sc-for>
+      </div>
+      <span style="flex: 1"></span>
+      <label class="inp" style="flex: 0 1 300px; min-height: 40px">
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="名称、Client ID 或回调地址" aria-label="搜索客户端">
+      </label>
+    </div>
+
+    <sc-if value="{{hasRot}}" hint-placeholder-val="{{true}}">
+      <div role="status" style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 14px 14px 18px; border-radius: 20px; background: var(--warnSoft); margin-top: -6px">
+        <span class="av" style="width: 40px; height: 40px; border-radius: 13px; background: var(--warn); color: var(--s); transform: rotate(-5deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.key}}"></path></svg></span>
+        <span style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 15px; font-weight: 800; color: var(--warn)">{{rotName}} 的 Client Secret 已刷新，旧 Secret 已立即失效</span>
+          <span style="font-size: 13px">新 Secret 只显示这一次，请马上复制到应用配置里：<span class="mono" style="font-weight: 700; padding: 2px 8px; border-radius: 8px; background: var(--s)">{{rotSecret}}</span></span>
+        </span>
+        <button class="btn btn-o btn-sm" onClick="{{copySecret}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{secretIcon}}"></path></svg>{{secretT}}</button>
+        <button class="ib ib-sm" aria-label="关闭提示" onClick="{{closeRot}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+      </div>
+    </sc-if>
+
+    <div class="card" style="overflow-x: auto; padding: 4px 8px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>客户端</th>
+            <th>Client ID</th>
+            <th>回调地址</th>
+            <th>Scopes</th>
+            <th>启用</th>
+            <th>创建于</th>
+            <th style="text-align: right">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{rows}}" as="c" hint-placeholder-count="4">
+            <tr class="{{c.rowCls}}">
+              <td>
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <span class="av {{c.av}}" style="width: 42px; height: 42px; border-radius: 14px; font-size: 17px; transform: rotate({{c.rot}})">{{c.l}}</span>
+                  <span style="display: flex; flex-direction: column; gap: 2px">
+                    <span style="font-size: 15px; font-weight: 800">{{c.n}}</span>
+                    <span style="font-size: 12px; color: var(--ink2)">{{c.desc}}</span>
+                  </span>
+                </div>
+              </td>
+              <td><span class="mono" style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 8px; background: var(--s2); white-space: nowrap">{{c.cid}}</span></td>
+              <td style="max-width: 340px">
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <sc-for list="{{c.uris}}" as="u" hint-placeholder-count="2">
+                    <span class="mono" style="font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{u}}</span>
+                  </sc-for>
+                </div>
+              </td>
+              <td style="min-width: 150px">
+                <sc-for list="{{c.scopes}}" as="sp" hint-placeholder-count="3">
+                  <span class="scope mono">{{sp}}</span>
+                </sc-for>
+              </td>
+              <td><input class="tg" type="checkbox" role="switch" checked="{{c.en}}" onChange="{{c.toggle}}" aria-label="启用 {{c.n}}"></td>
+              <td>
+                <div class="num" style="font-size: 13px; font-weight: 700; white-space: nowrap">{{c.created}}</div>
+                <div style="font-size: 12px; color: var(--ink2); margin-top: 2px; white-space: nowrap">{{c.used}}</div>
+              </td>
+              <td>
+                <div style="display: flex; justify-content: flex-end; gap: 2px">
+                  <button class="ib ib-sm" aria-label="刷新 {{c.n}} 的 Secret" title="刷新 Secret" onClick="{{c.rotate}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.restart}}"></path></svg></button>
+                  <button class="ib ib-sm" aria-label="编辑 {{c.n}}" title="编辑"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.edit}}"></path></svg></button>
+                  <button class="ib ib-sm" aria-label="删除 {{c.n}}" title="删除" style="color: var(--bad)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg></button>
+                </div>
+              </td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink2); margin-top: -8px">
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.info}}"></path></svg>
+      回调地址需要和应用里填写的完全一致（包括协议、端口和结尾斜杠），否则授权会被拒绝。
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1420}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  restart: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
+  copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  x: 'M6 6l12 12M18 6 6 18',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  globe: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  key: 'M7.5 11.5a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM10.3 12.7 20 3M16 7l3 3M18.5 4.5l2 2',
+  idkey: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM12 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM12 13v3',
+  info: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v5M12 7.5h.01',
+  book: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7'
+};
+const CLIENTS = [
+  { id: 'grafana', n: 'Grafana', l: 'G', av: 'av-a', rot: '-4deg', desc: '监控面板', cid: 'grafana-7f3a9c21', uris: ['https://grafana.[你的域名]/login/generic_oauth', 'http://192.168.1.20:3001/login/generic_oauth'], scopes: ['openid', 'profile', 'email'], created: '2026-09-14', used: '3 分钟前使用' },
+  { id: 'gitea', n: 'Gitea', l: 'Gi', av: 'av-ok', rot: '3deg', desc: '代码托管', cid: 'gitea-1b8e04d7', uris: ['https://git.[你的域名]/user/oauth2/momoko/callback'], scopes: ['openid', 'profile', 'email'], created: '2026-08-02', used: '昨天 22:41 使用' },
+  { id: 'outline', n: 'Outline', l: 'O', av: 'av-a2', rot: '-2deg', desc: '团队知识库', cid: 'outline-c4d2e9a0', uris: ['https://wiki.[你的域名]/auth/oidc.callback', 'http://192.168.1.20:3000/auth/oidc.callback'], scopes: ['openid', 'profile', 'email'], created: '2026-07-21', used: '2 天前使用' },
+  { id: 'jellyfin', n: 'Jellyfin', l: 'J', av: 'av-p', rot: '4deg', desc: '影音库 · 测试中', cid: 'jellyfin-55e0b3f2', uris: ['https://media.[你的域名]/sso/OID/redirect/momoko'], scopes: ['openid', 'profile'], created: '2026-10-29', used: '从未使用' }
+];
+const NAV = [
+  { title: '', items: [{ t: '工作台', d: IC.home, href: 'DashboardPC.dc.html', key: 'dash' }] },
+  { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: 'AppsPC.dc.html', key: 'apps' }, { t: '应用类型', d: IC.layers, href: 'AppTypesPC.dc.html', key: 'types' }] },
+  { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: 'FilesPC.dc.html', key: 'files' }, { t: '分享', d: IC.share, href: 'SharesPC.dc.html', key: 'shares' }, { t: '文件源', d: IC.db, href: 'FileSourcesPC.dc.html', key: 'sources' }] },
+  { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: 'ContainersPC.dc.html', key: 'docker' }] },
+  { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: 'PortForwardPC.dc.html', key: 'pf' }, { t: '内网穿透', d: IC.tunnel, href: 'TunnelPC.dc.html', key: 'tunnel' }, { t: 'SSH 终端', d: IC.terminal, href: 'SSHPC.dc.html', key: 'ssh' }, { t: '智商检测', d: IC.spark, href: 'IQCheckPC.dc.html', key: 'iq' }] },
+  { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: 'NodesPC.dc.html', key: 'nodes' }, { t: '用户与权限', d: IC.users, href: 'UsersPC.dc.html', key: 'users' }, { t: '任务与日志', d: IC.clock, href: 'TasksPC.dc.html', key: 'tasks' }, { t: '系统设置', d: IC.settings, href: 'SettingsPC.dc.html', key: 'settings' }] }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const provOn = st.provOn != null ? st.provOn : true;
+    const issuer = st.issuer != null ? st.issuer : 'https://[你的域名]';
+    const ttl = st.ttl || { at: '60', idt: '60', code: '5' };
+    const en = st.en || { grafana: true, gitea: true, outline: true, jellyfin: false };
+    const filter = st.filter || 'all';
+    const copied = st.copied || '';
+    const rot = st.rot !== undefined ? st.rot : 'grafana';
+    const val = (e) => (e && e.target && typeof e.target.value === 'string') ? e.target.value : '';
+    const base = issuer.replace(/\/+$/, '');
+    const nav = NAV.map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === 'settings' ? 'nav-on' : '' })) }));
+    const onCount = CLIENTS.filter((c) => en[c.id]).length;
+    const counts = { all: CLIENTS.length, on: onCount, off: CLIENTS.length - onCount };
+    const rotC = CLIENTS.find((c) => c.id === rot);
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav,
+      provOn,
+      toggleProv: () => this.setState({ provOn: !provOn }),
+      provPill: provOn ? 'ok' : 'off',
+      provPillT: provOn ? '服务中' : '已停用',
+      issuer,
+      setIssuer: (e) => this.setState({ issuer: val(e) }),
+      ttls: [
+        ['at', 'Access Token 有效期', '分钟', '访问令牌，建议 15–60 分钟'],
+        ['idt', 'ID Token 有效期', '分钟', '身份令牌，通常与 Access Token 一致'],
+        ['code', '授权码有效期', '分钟', '一次性使用，建议不超过 10 分钟']
+      ].map(([k, t, unit, hint]) => ({ k, t, unit, hint, v: ttl[k], set: (e) => this.setState({ ttl: { ...ttl, [k]: val(e) } }) })),
+      eps: [
+        ['disc', 'Discovery', '/.well-known/openid-configuration'],
+        ['jwks', 'JWKS', '/oidc/jwks'],
+        ['auth', '授权端点', '/oidc/authorize'],
+        ['token', 'Token 端点', '/oidc/token'],
+        ['ui', 'UserInfo 端点', '/oidc/userinfo']
+      ].map(([k, t, p]) => {
+        const done = copied === k;
+        return { t, url: base + p, d: done ? IC.check : IC.copy, fg: done ? 'var(--ok)' : 'var(--ink2)', aria: done ? '已复制 ' + t : '复制 ' + t + ' 地址', copy: () => this.setState({ copied: k }) };
+      }),
+      total: CLIENTS.length,
+      onCount,
+      filters: [['all', '全部'], ['on', '已启用'], ['off', '已停用']].map(([k, t]) => ({ t, n: counts[k], on: k === filter, cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
+      rows: CLIENTS.filter((c) => filter === 'all' || (filter === 'on' ? en[c.id] : !en[c.id])).map((c) => ({
+        ...c,
+        en: !!en[c.id],
+        rowCls: en[c.id] ? '' : 'dim',
+        toggle: () => this.setState({ en: { ...en, [c.id]: !en[c.id] } }),
+        rotate: () => this.setState({ rot: c.id, secretCopied: false })
+      })),
+      hasRot: !!rotC,
+      rotName: rotC ? rotC.n : '',
+      rotSecret: rotC ? 'mk_sec_' + rotC.cid.split('-')[1] + 'Q2vX9pLw4tR8' : '',
+      secretIcon: st.secretCopied ? IC.check : IC.copy,
+      secretT: st.secretCopied ? '已复制' : '复制 Secret',
+      copySecret: () => this.setState({ secretCopied: true }),
+      closeRot: () => this.setState({ rot: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

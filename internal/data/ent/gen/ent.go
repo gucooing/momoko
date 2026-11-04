@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
+	"momoko/internal/data/ent/gen/filesharedownload"
 	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
@@ -99,33 +100,34 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			emailtemplate.Table:   emailtemplate.ValidColumn,
-			fileshare.Table:       fileshare.ValidColumn,
-			filesource.Table:      filesource.ValidColumn,
-			fileupload.Table:      fileupload.ValidColumn,
-			fileuploadchunk.Table: fileuploadchunk.ValidColumn,
-			frptunnel.Table:       frptunnel.ValidColumn,
-			frptunnelstat.Table:   frptunnelstat.ValidColumn,
-			iqcheckprompt.Table:   iqcheckprompt.ValidColumn,
-			iqcheckresult.Table:   iqcheckresult.ValidColumn,
-			iqchecksite.Table:     iqchecksite.ValidColumn,
-			instance.Table:        instance.ValidColumn,
-			instancetype.Table:    instancetype.ValidColumn,
-			menu.Table:            menu.ValidColumn,
-			node.Table:            node.ValidColumn,
-			oidcclient.Table:      oidcclient.ValidColumn,
-			operationlog.Table:    operationlog.ValidColumn,
-			portforward.Table:     portforward.ValidColumn,
-			portforwardstat.Table: portforwardstat.ValidColumn,
-			role.Table:            role.ValidColumn,
-			sqlmigration.Table:    sqlmigration.ValidColumn,
-			sshhost.Table:         sshhost.ValidColumn,
-			session.Table:         session.ValidColumn,
-			systemconfig.Table:    systemconfig.ValidColumn,
-			task.Table:            task.ValidColumn,
-			user.Table:            user.ValidColumn,
-			userapikey.Table:      userapikey.ValidColumn,
-			usermessage.Table:     usermessage.ValidColumn,
+			emailtemplate.Table:     emailtemplate.ValidColumn,
+			fileshare.Table:         fileshare.ValidColumn,
+			filesharedownload.Table: filesharedownload.ValidColumn,
+			filesource.Table:        filesource.ValidColumn,
+			fileupload.Table:        fileupload.ValidColumn,
+			fileuploadchunk.Table:   fileuploadchunk.ValidColumn,
+			frptunnel.Table:         frptunnel.ValidColumn,
+			frptunnelstat.Table:     frptunnelstat.ValidColumn,
+			iqcheckprompt.Table:     iqcheckprompt.ValidColumn,
+			iqcheckresult.Table:     iqcheckresult.ValidColumn,
+			iqchecksite.Table:       iqchecksite.ValidColumn,
+			instance.Table:          instance.ValidColumn,
+			instancetype.Table:      instancetype.ValidColumn,
+			menu.Table:              menu.ValidColumn,
+			node.Table:              node.ValidColumn,
+			oidcclient.Table:        oidcclient.ValidColumn,
+			operationlog.Table:      operationlog.ValidColumn,
+			portforward.Table:       portforward.ValidColumn,
+			portforwardstat.Table:   portforwardstat.ValidColumn,
+			role.Table:              role.ValidColumn,
+			sqlmigration.Table:      sqlmigration.ValidColumn,
+			sshhost.Table:           sshhost.ValidColumn,
+			session.Table:           session.ValidColumn,
+			systemconfig.Table:      systemconfig.ValidColumn,
+			task.Table:              task.ValidColumn,
+			user.Table:              user.ValidColumn,
+			userapikey.Table:        userapikey.ValidColumn,
+			usermessage.Table:       usermessage.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

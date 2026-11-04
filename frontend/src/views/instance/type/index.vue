@@ -1,21 +1,39 @@
-<!-- 应用类型（第二期）：PageHeader(类型数 · 被多少应用使用) + 应用子导航 + 来源 chips(带数量) + 搜索
-     + 信息卡网格（贴纸图标 / 说明 / 应用数 / 默认启动命令 / 停止命令 / 在用的应用 / 行内删除确认 / 图标操作）
-     + 末尾虚线「新建类型」卡。内置类型（isSystem）锁定：不可编辑/删除。
-     「用这个类型新建应用」直接在本页打开应用编辑器（与应用列表共用 useInstanceListStore 受控契约）。 -->
+<!-- 应用类型：页头（共 N 种 · 被 N 个应用使用 + 应用列表 / 新建类型）+ 来源 chips（带数量）+ 搜索
+     + 信息卡网格（贴纸图标 / 说明 / 应用数 / 默认启动命令 / 停止方式 / 快捷命令 / 在用的应用 / 行内删除确认 / 小图标操作）
+     + 末尾虚线「新建类型」卡（可从模板创建）+ 手机悬浮「新建类型」。内置类型（isSystem）锁定：不可编辑/删除。
+     删除仍在用的类型时，这些应用变为「未分类」。「用这个类型新建应用」直接在本页打开应用编辑器。 -->
 <template>
   <div class="itype-page">
-    <PageHeader :title="t('instance.ui.appTypes')">
+    <RouterLink v-if="menuStore.isMobile && canSeeApps" to="/instance/list" class="itype-back">
+      <component :is="menuStore.iconComponents['HOutline:ChevronLeftIcon']" />
+      {{ t('instance.ui.appList') }}
+    </RouterLink>
+
+    <!-- 手机端已有上方「应用列表」返回链接，不再叠一个页头返回按钮 -->
+    <PageHeader :title="t('instance.ui.appTypes')" :back="canSeeApps ? false : 'auto'">
       <template #description>
         {{ t('instance.ui.typesDesc', { types: instanceTypeList.length, apps: totalApps })
         }}<span class="itype-hide-sm">{{ t('instance.ui.typesDescTail') }}</span>
       </template>
       <template #actions>
-        <UButton color="neutral" variant="soft" icon="i-lucide-rotate-cw" :loading="loading" @click="getInstanceTypeList">
-          <span class="itype-hide-sm">{{ t('common.refresh') }}</span>
-        </UButton>
-        <UButton color="primary" icon="i-lucide-plus" @click="openEditor()">
-          {{ t('instance.ui.newType') }}
-        </UButton>
+        <UButton
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-rotate-cw"
+          class="itype-ico-btn"
+          :aria-label="t('common.refresh')"
+          :title="t('common.refresh')"
+          :loading="loading"
+          @click="getInstanceTypeList"
+        />
+        <template v-if="!menuStore.isMobile">
+          <UButton v-if="canSeeApps" color="neutral" variant="outline" icon="i-lucide-package" to="/instance/list">
+            {{ t('instance.ui.appList') }}
+          </UButton>
+          <UButton color="primary" icon="i-lucide-plus" @click="openEditor()">
+            {{ t('instance.ui.newType') }}
+          </UButton>
+        </template>
       </template>
     </PageHeader>
 
@@ -38,12 +56,7 @@
       <span class="itype-tools__spacer" />
       <label class="itype-search">
         <component :is="menuStore.iconComponents['HOutline:MagnifyingGlassIcon']" />
-        <input
-          v-model="keyword"
-          type="search"
-          :placeholder="t('instance.ui.searchType')"
-          :aria-label="t('instance.ui.searchType')"
-        />
+        <input v-model="keyword" type="search" :placeholder="t('instance.ui.searchType')" :aria-label="t('instance.ui.searchType')" />
       </label>
     </div>
 
@@ -83,7 +96,7 @@
             :class="`m-sticker--${TONES[idx % TONES.length]}`"
             :style="{ transform: `rotate(${ROTS[idx % ROTS.length]})` }"
           >
-            <UIcon :name="look(row).icon" class="itype-card__av-ico" />
+            <UIcon :name="iconOf(row)" class="itype-card__av-ico" />
           </span>
           <span class="itype-card__title">
             <span class="itype-card__name-row">
@@ -93,13 +106,15 @@
               </span>
               <StatusPill v-if="!row.isEnable" variant="neutral" :label="t('instance.ui.chipDisabled')" />
             </span>
-            <span class="itype-card__desc">{{ row.description || fallbackDesc(row) }}</span>
+            <span v-if="!menuStore.isMobile" class="itype-card__desc">{{ row.description || fallbackDesc(row) }}</span>
           </span>
           <span class="itype-card__count">
             <span class="itype-card__count-n m-num">{{ row.appCount || 0 }}</span>
             <span class="itype-card__count-u">{{ t('instance.ui.appsUnit') }}</span>
           </span>
         </header>
+
+        <p v-if="menuStore.isMobile" class="itype-card__desc is-block">{{ row.description || fallbackDesc(row) }}</p>
 
         <dl class="itype-card__info">
           <div class="is-wide">
@@ -108,7 +123,7 @@
               <code v-if="row.startCommand" class="m-mono">{{ row.startCommand }}</code>
               <span v-else class="itype-dim itype-cmd__empty">{{ t('instance.ui.notPreset') }}</span>
               <AppIconButton
-                v-if="row.startCommand"
+                v-if="row.startCommand && !menuStore.isMobile"
                 icon="HOutline:ClipboardDocumentIcon"
                 :size="16"
                 :box="36"
@@ -125,15 +140,23 @@
             </dd>
           </div>
           <div>
-            <dt>{{ t('instance.typeId') }}</dt>
-            <dd class="itype-id">
-              <span class="m-mono" :title="row.id">{{ row.id }}</span>
+            <dt>{{ t('instanceConsole.quickTitle') }}</dt>
+            <dd class="m-num">
+              {{ row.quickCommands?.length ? t('instance.ui.quickCount', { n: row.quickCommands.length }) : t('instance.ui.none') }}
             </dd>
+          </div>
+          <div v-if="menuStore.isMobile" class="is-wide">
+            <dt>{{ t('instance.ui.updatedLabel') }}</dt>
+            <dd class="m-num" :title="updatedTitle(row)">{{ updatedTime(row) || '—' }}</dd>
+          </div>
+          <div v-if="menuStore.isMobile" class="is-wide">
+            <dt>{{ t('instance.ui.usedBy') }}</dt>
+            <dd class="itype-names">{{ appNames(row) || t('instance.ui.noAppsUsing') }}</dd>
           </div>
         </dl>
 
-        <div class="itype-card__apps">
-          <span class="itype-card__apps-label">{{ t('instance.ui.usedBy') }}</span>
+        <!-- PC：在用的应用 chips（可点进详情） -->
+        <div v-if="!menuStore.isMobile" class="itype-card__apps">
           <div v-if="row.apps?.length" class="itype-apps">
             <RouterLink
               v-for="app in row.apps"
@@ -144,43 +167,47 @@
             >
               <span class="itype-app__l m-sticker" :class="`m-sticker--${toneOf(app.id)}`">{{ initialOf(app.name) }}</span>
               <span class="itype-app__n">{{ app.name }}</span>
-              <span class="itype-app__dot" :class="{ 'is-run': app.status === InstanceStatus.INSTANCE_STATUS_RUNNING }" />
+              <span class="itype-app__dot" :class="dotClass(app.status)" />
             </RouterLink>
-            <button
-              v-if="(row.appCount || 0) > row.apps.length"
-              type="button"
-              class="itype-app is-more"
-              @click="viewApps(row)"
-            >
+            <button v-if="(row.appCount || 0) > row.apps.length" type="button" class="itype-app is-more" @click="viewApps(row)">
               +{{ (row.appCount || 0) - row.apps.length }}
             </button>
           </div>
           <span v-else class="itype-dim itype-card__apps-empty">{{ t('instance.ui.noAppsUsing') }}</span>
         </div>
 
-        <!-- 行内删除确认 -->
+        <!-- 行内删除确认：在用的应用会变为未分类 -->
         <div v-if="confirmId === row.id" class="itype-confirm" role="alert">
-          <template v-if="row.appCount">
-            <span class="itype-confirm__text">
-              {{ t('instance.ui.typeInUse', { count: row.appCount, name: row.name }) }}
-              {{ t('instance.ui.typeInUseHint') }}
-            </span>
-            <span class="itype-confirm__acts">
-              <UButton color="neutral" variant="outline" size="sm" @click="confirmId = ''">{{ t('common.cancel') }}</UButton>
-              <UButton color="neutral" variant="soft" size="sm" @click="viewApps(row)">{{ t('instance.ui.viewApps') }}</UButton>
-            </span>
-          </template>
-          <template v-else>
-            <span class="itype-confirm__text">{{ t('instance.ui.confirmDeleteType', { name: row.name }) }}</span>
-            <span class="itype-confirm__acts">
-              <UButton color="neutral" variant="outline" size="sm" @click="confirmId = ''">{{ t('common.cancel') }}</UButton>
-              <UButton color="error" size="sm" :loading="deleting" @click="doDelete(row)">{{ t('instance.ui.confirmDelete') }}</UButton>
-            </span>
-          </template>
+          <span class="itype-confirm__text">
+            {{
+              row.appCount
+                ? t('instance.ui.typeInUseDelete', { count: row.appCount, name: row.name })
+                : t('instance.ui.confirmDeleteType', { name: row.name })
+            }}
+          </span>
+          <span class="itype-confirm__acts">
+            <UButton color="neutral" variant="outline" class="itype-confirm__btn" @click="confirmId = ''">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton color="error" class="itype-confirm__btn" :loading="deleting" @click="doDelete(row)">
+              {{ t('instance.ui.confirmDelete') }}
+            </UButton>
+          </span>
         </div>
 
         <footer class="itype-card__foot">
-          <span class="itype-card__upd m-num">{{ updatedText(row) }}</span>
+          <span v-if="!menuStore.isMobile" class="itype-card__upd m-num" :title="updatedTitle(row)">{{ updatedText(row) }}</span>
+          <span v-else class="itype-stack">
+            <span
+              v-for="app in (row.apps || []).slice(0, 4)"
+              :key="app.id"
+              class="itype-stack__l m-sticker"
+              :class="`m-sticker--${toneOf(app.id)}`"
+              :title="app.name"
+            >
+              {{ initialOf(app.name) }}
+            </span>
+          </span>
           <AppIconButton
             icon="HOutline:PlusIcon"
             :label="t('instance.ui.newAppWithType')"
@@ -188,12 +215,27 @@
             @click="newAppWithType(row)"
           />
           <AppIconButton
-            v-if="!row.isSystem"
-            icon="HOutline:PencilSquareIcon"
-            :label="t('common.edit')"
-            @click="openEditor(row)"
+            v-if="menuStore.isMobile"
+            icon="HOutline:ClipboardDocumentIcon"
+            :label="t('instance.ui.copyStartCmd', { name: row.name })"
+            :disabled="!row.startCommand"
+            @click="copy(row.startCommand)"
           />
-          <ActionMenu :items="rowActions(row)" @select="(key) => onRowAction(key, row)" />
+          <AppIconButton
+            v-else
+            icon="HOutline:DocumentDuplicateIcon"
+            :label="t('instance.ui.duplicateType')"
+            @click="editorRef?.showDialog(undefined, row)"
+          />
+          <AppIconButton v-if="!row.isSystem" icon="HOutline:PencilSquareIcon" :label="t('common.edit')" @click="openEditor(row)" />
+          <AppIconButton
+            v-if="!row.isSystem"
+            icon="HOutline:TrashIcon"
+            class="itype-del"
+            :label="t('instance.ui.deleteTypeOf', { name: row.name })"
+            @click="confirmId = confirmId === row.id ? '' : row.id"
+          />
+          <ActionMenu :items="rowActions(row)" :label="t('instance.moreActions')" @select="(key) => onRowAction(key, row)" />
         </footer>
       </article>
 
@@ -203,8 +245,15 @@
           <UIcon name="i-lucide-plus" />
         </span>
         <span class="itype-add__t">{{ t('instance.ui.newType') }}</span>
-        <span class="itype-add__d">{{ t('instance.ui.newTypeCardDesc') }}</span>
+        <span class="itype-add__d">{{ t('instance.ui.newTypeFromTpl') }}<br />Go · .NET · Deno · Bun</span>
       </button>
+    </div>
+
+    <!-- 手机：悬浮新建 -->
+    <div v-if="menuStore.isMobile" class="itype-fab">
+      <UButton color="primary" size="xl" icon="i-lucide-plus" class="itype-fab__btn" @click="openEditor()">
+        {{ t('instance.ui.newType') }}
+      </UButton>
     </div>
 
     <InstanceTypeCreate ref="editorRef" @refresh="getInstanceTypeList" />
@@ -217,6 +266,7 @@
       :submitting="instanceEditorSubmitting"
       :form="instanceEditorForm"
       :type-options="typeOptions"
+      allow-run
       @close="closeInstanceEditor"
       @submit="handleEditorSubmit"
     />
@@ -233,10 +283,13 @@ import { useInstanceListStore } from '@/stores/instance/list'
 import { InstanceStatus, type InstanceEditorFormValue } from '@/stores/instance/types'
 import { showRequestError } from '@/utils/request'
 import { copyTextToClipboard } from '@/utils/file'
+import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
 import type { InstanceTypeInfo } from '@/types/v1/instance'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import InstanceTypeCreate from '@/views/instance/type/create.vue'
 import InstanceEditor from '@/views/instance/list/instanceEditor.vue'
+import { initialOf, toneOf } from '@/views/instance/shared'
+import { typeIconOf } from '@/views/instance/type/templates'
 
 defineOptions({ name: 'TypeView' })
 
@@ -244,8 +297,10 @@ const menuStore = useMenuStore()
 const router = useRouter()
 const instanceTypeStore = useInstanceTypeStore()
 const instanceListStore = useInstanceListStore()
+const accessible = useAccessibleRoutes()
 const { t } = useI18n()
 
+const canSeeApps = computed(() => accessible.value.has('/instance/list'))
 const editorRef = useTemplateRef<InstanceType<typeof InstanceTypeCreate> | null>('editorRef')
 
 const { loading, instanceTypeList } = storeToRefs(instanceTypeStore)
@@ -289,66 +344,69 @@ const filteredList = computed(() => {
     if (filter.value === 'builtin' && !row.isSystem) return false
     if (filter.value === 'custom' && row.isSystem) return false
     if (filter.value === 'disabled' && row.isEnable) return false
-    if (kw && !`${row.name} ${row.id} ${row.description || ''} ${row.startCommand || ''}`.toLowerCase().includes(kw)) {
+    if (
+      kw &&
+      !`${row.name} ${row.id} ${row.description || ''} ${row.startCommand || ''} ${row.stopCommand || ''}`
+        .toLowerCase()
+        .includes(kw)
+    ) {
       return false
     }
     return true
   })
 })
 
-// —— 卡片外观：按名称猜一个图标，按 id 稳定取贴纸色 ——
-const TONES = ['p', 'a2', 'a', 'ok'] as const
+// —— 卡片外观：按名称/命令猜图标，贴纸色按序号轮换 ——
+const TONES = ['p', 'ok', 'a2', 'a'] as const
 const ROTS = ['-5deg', '4deg', '-3deg', '3deg']
-const hashOf = (s: string) => [...(s || '')].reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 7)
-const toneOf = (id: string) => TONES[hashOf(id) % TONES.length]
-const initialOf = (name: string) => (name || '?').trim().charAt(0).toUpperCase()
-
-const ICON_RULES: [RegExp, string][] = [
-  [/java|jar|minecraft|spring/i, 'i-lucide-coffee'],
-  [/node|npm|pnpm|bun|deno|js/i, 'i-lucide-hexagon'],
-  [/python|py\b|django|flask/i, 'i-lucide-code-xml'],
-  [/go\b|golang|rust|二进制|binary|exe|bin/i, 'i-lucide-cpu'],
-  [/game|游戏|palworld|terraria|steam/i, 'i-lucide-gamepad-2'],
-  [/php|web|nginx|http/i, 'i-lucide-globe'],
-  [/\.net|dotnet|c#/i, 'i-lucide-box'],
-  [/shell|bash|脚本|script|cmd/i, 'i-lucide-terminal'],
-]
-const look = (row: InstanceTypeInfo) => ({
-  icon: ICON_RULES.find(([re]) => re.test(`${row.name} ${row.startCommand || ''}`))?.[1] || 'i-lucide-layers',
+const iconOf = (row: InstanceTypeInfo) => typeIconOf(`${row.name} ${row.startCommand || ''}`)
+const dotClass = (status: InstanceStatus) => ({
+  'is-run': status === InstanceStatus.INSTANCE_STATUS_RUNNING,
+  'is-mnt': status === InstanceStatus.INSTANCE_STATUS_MAINTENANCE,
 })
 
-const fallbackDesc = (row: InstanceTypeInfo) =>
-  row.isSystem ? t('instance.ui.builtInLocked') : t('instance.ui.noTypeDesc')
+const fallbackDesc = (row: InstanceTypeInfo) => (row.isSystem ? t('instance.ui.builtInLocked') : t('instance.ui.noTypeDesc'))
+const appNames = (row: InstanceTypeInfo) => {
+  const names = (row.apps || []).map((a) => a.name)
+  const more = Number(row.appCount || 0) - names.length
+  return more > 0 ? `${names.join('、')} +${more}` : names.join('、')
+}
 
-const updatedText = (row: InstanceTypeInfo) => {
+// 卡片空间有限：今年内省略年份，完整时间放在 title 里
+const updatedTime = (row: InstanceTypeInfo) => {
   if (row.isSystem) return t('instance.ui.builtInUpdated')
   const d = row.updateTime ? dayjs(row.updateTime as unknown as string) : null
-  return d && d.isValid() ? t('instance.ui.updatedAt', { time: d.format('YYYY-MM-DD HH:mm') }) : ''
+  if (!d || !d.isValid()) return ''
+  return d.format(d.isSame(dayjs(), 'year') ? 'MM-DD HH:mm' : 'YYYY-MM-DD')
+}
+const updatedText = (row: InstanceTypeInfo) => {
+  const time = updatedTime(row)
+  return row.isSystem || !time ? time : t('instance.ui.updatedAt', { time })
+}
+const updatedTitle = (row: InstanceTypeInfo) => {
+  const d = row.updateTime ? dayjs(row.updateTime as unknown as string) : null
+  return d && d.isValid() ? d.format('YYYY-MM-DD HH:mm:ss') : undefined
 }
 
 // —— 操作 ——
 const rowActions = (row: InstanceTypeInfo): ActionMenuItem[] => [
+  { key: 'duplicate', label: t('instance.ui.duplicateType'), icon: 'HOutline:DocumentDuplicateIcon', hidden: !menuStore.isMobile },
+  { key: 'copyCmd', label: t('instance.ui.copyStartCmdShort'), icon: 'HOutline:CommandLineIcon', hidden: menuStore.isMobile || !row.startCommand },
   { key: 'copyId', label: t('instance.ui.copyId'), icon: 'HOutline:ClipboardDocumentIcon' },
-  { key: 'duplicate', label: t('instance.ui.duplicateType'), icon: 'HOutline:Square2StackIcon' },
-  {
-    key: 'viewApps',
-    label: t('instance.ui.viewApps'),
-    icon: 'HOutline:Squares2X2Icon',
-    hidden: !row.appCount,
-  },
-  { key: 'delete', label: t('common.delete'), icon: 'HOutline:TrashIcon', danger: true, hidden: row.isSystem },
+  { key: 'viewApps', label: t('instance.ui.viewApps'), icon: 'HOutline:Squares2X2Icon', hidden: !row.appCount },
 ]
 
 const onRowAction = (key: string, row: InstanceTypeInfo) => {
   if (key === 'copyId') copy(row.id)
+  else if (key === 'copyCmd') copy(row.startCommand)
   else if (key === 'duplicate') editorRef.value?.showDialog(undefined, row)
   else if (key === 'viewApps') viewApps(row)
-  else if (key === 'delete') confirmId.value = row.id
 }
 
 const openEditor = (row?: InstanceTypeInfo) => editorRef.value?.showDialog(row)
 
 const copy = async (text: string) => {
+  if (!text) return
   try {
     await copyTextToClipboard(text)
     feedback.success(t('instance.ui.copied'))
@@ -362,9 +420,9 @@ const deleting = ref(false)
 const doDelete = async (row: InstanceTypeInfo) => {
   deleting.value = true
   try {
-    await deleteTypeById(row.id)
+    const n = await deleteTypeById(row.id)
     confirmId.value = ''
-    feedback.success(t('common.deleteSuccess'))
+    feedback.success(n ? t('instance.ui.typeDeletedUncategorized', { n }) : t('common.deleteSuccess'))
   } catch (error) {
     showRequestError(error, t('instance.ui.deleteTypeFailed'))
   } finally {
@@ -376,7 +434,6 @@ const doDelete = async (row: InstanceTypeInfo) => {
 const viewApps = async (row: InstanceTypeInfo) => {
   confirmId.value = ''
   queryForm.value.type = row.id
-  // applyFilters 同步写入已生效筛选，列表页挂载后按该类型加载
   void instanceListStore.applyFilters()
   await router.push('/instance/list')
 }
@@ -398,12 +455,17 @@ const newAppWithType = async (row: InstanceTypeInfo) => {
   }
 }
 
-const handleEditorSubmit = async (form: InstanceEditorFormValue) => {
+const handleEditorSubmit = async (form: InstanceEditorFormValue, options?: { run: boolean }) => {
   try {
     instanceEditorForm.value = { ...form }
-    await instanceListStore.submitInstanceEditor()
+    const saved = await instanceListStore.submitInstanceEditor()
     feedback.success(t('instance.createSuccess'))
     void getInstanceTypeList()
+    if (options?.run && saved?.id) {
+      if (await instanceListStore.changeInstanceStatus(saved.id, InstanceStatus.INSTANCE_STATUS_RUNNING)) {
+        feedback.success(t('instance.instanceStarted'))
+      }
+    }
   } catch (error) {
     showRequestError(error, t('instance.createFailed'))
   }
@@ -423,6 +485,33 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.itype-page .itype-ico-btn {
+  width: 40px;
+  padding-inline: 0;
+  justify-content: center;
+}
+@media (width <= 768px) {
+  .itype-page .itype-ico-btn {
+    width: 44px;
+  }
+}
+.itype-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin: -8px 0 -10px -6px;
+  padding: 0 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+  text-decoration: none;
+}
+.itype-back :deep(svg) {
+  width: 18px;
+  height: 18px;
 }
 
 /* 工具条 */
@@ -604,6 +693,12 @@ onBeforeUnmount(() => {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.itype-card__desc.is-block {
+  margin: 0;
+  padding-right: 6px;
+  font-size: 0.875rem;
+  color: var(--el-text-color-primary);
+}
 .itype-card__count {
   display: flex;
   flex-direction: column;
@@ -679,14 +774,10 @@ onBeforeUnmount(() => {
   background: var(--el-bg-color);
   font-size: 0.75rem;
 }
-.itype-id span {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: var(--el-text-color-secondary);
+.itype-names {
+  font-family: var(--app-font-mono);
+  font-size: 0.75rem !important;
+  word-break: break-all;
 }
 .itype-dim {
   color: var(--el-text-color-secondary);
@@ -699,11 +790,6 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 6px;
   padding-right: 6px;
-}
-.itype-card__apps-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  color: var(--el-text-color-secondary);
 }
 .itype-card__apps-empty {
   font-size: 0.8125rem;
@@ -754,12 +840,13 @@ onBeforeUnmount(() => {
   height: 7px;
   border-radius: 50%;
   flex: none;
-  background: var(--el-text-color-secondary);
-  opacity: 0.5;
+  background: var(--el-border-color);
 }
 .itype-app__dot.is-run {
   background: var(--m-ok);
-  opacity: 1;
+}
+.itype-app__dot.is-mnt {
+  background: var(--m-warn);
 }
 
 /* 行内删除确认 */
@@ -784,6 +871,12 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 8px;
 }
+.itype-confirm__btn {
+  min-height: 36px;
+  border-radius: 999px;
+  padding: 0 14px;
+  justify-content: center;
+}
 
 /* 底部 */
 .itype-card__foot {
@@ -802,6 +895,26 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.itype-stack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 6px;
+  overflow: hidden;
+}
+.itype-stack__l {
+  width: 26px;
+  height: 26px;
+  margin-left: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--el-bg-color);
+  font-size: 0.6875rem;
+  flex: none;
+}
+.itype-stack__l:first-child {
+  margin-left: 0;
+}
 .itype-card__foot :deep(.action-menu__trigger) {
   width: 40px;
   height: 40px;
@@ -810,6 +923,12 @@ onBeforeUnmount(() => {
 .itype-card__foot :deep(.app-icon-btn:disabled) {
   opacity: 0.4;
   cursor: not-allowed;
+}
+.itype-card__foot :deep(.itype-del) {
+  color: var(--m-bad);
+}
+.itype-card__foot :deep(.itype-del:hover) {
+  background: var(--m-badSoft);
 }
 
 /* 新建类型卡 */
@@ -851,10 +970,28 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-primary);
 }
 .itype-add__d {
-  max-width: 240px;
+  max-width: 260px;
   font-size: 0.8125rem;
   line-height: 1.5;
   text-align: center;
+}
+
+/* 手机悬浮新建 */
+.itype-fab {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+  z-index: 5;
+}
+.itype-fab__btn {
+  pointer-events: auto;
+  min-height: 56px;
+  padding: 0 22px;
+  border-radius: var(--app-radius-pill);
+  font-weight: 700;
+  box-shadow: var(--app-shadow-brand);
 }
 
 .itype-skeleton {
@@ -879,6 +1016,9 @@ onBeforeUnmount(() => {
 }
 
 @media (width < 768px) {
+  .itype-page {
+    padding-bottom: 72px;
+  }
   .itype-tools__spacer {
     display: none;
   }
@@ -886,15 +1026,25 @@ onBeforeUnmount(() => {
     order: -1;
     flex: 1 1 100%;
     min-width: 0;
+    min-height: 44px;
   }
   .itype-chips {
     width: 100%;
   }
+  .itype-chip {
+    min-height: 44px;
+  }
   .itype-grid {
     grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
   .itype-card {
+    gap: 12px;
     padding: 16px 10px 6px 16px;
+  }
+  .itype-card__head {
+    align-items: center;
+    gap: 12px;
   }
   .itype-card__av {
     width: 48px;
@@ -905,11 +1055,26 @@ onBeforeUnmount(() => {
     width: 24px;
     height: 24px;
   }
+  .itype-card__name-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .itype-card__count-n {
+    font-size: 1.5rem;
+  }
   .itype-add {
     min-height: 160px;
   }
   .itype-hide-sm {
     display: none;
+  }
+  .itype-confirm__acts {
+    flex-wrap: nowrap;
+  }
+  .itype-confirm__btn {
+    flex: 1;
+    min-height: 44px;
   }
   .itype-card__foot :deep(.app-icon-btn),
   .itype-card__foot :deep(.action-menu__trigger) {

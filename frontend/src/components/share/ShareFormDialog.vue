@@ -276,7 +276,7 @@ watch(
 
 // 请求条目：仅 sourceId + path 有意义，名称/类型/大小由服务端探测缓存（此处占位以满足类型）。
 const toRequestItems = () =>
-  form.items.map((i) => ({ sourceId: i.sourceId, path: i.path, name: '', isDir: false, size: 0 }))
+  form.items.map((i) => ({ sourceId: i.sourceId, path: i.path, name: '', isDir: false, size: 0, fileCount: 0 }))
 
 const save = async () => {
   if (!form.items.length) {

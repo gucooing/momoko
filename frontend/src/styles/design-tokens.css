@@ -12,12 +12,15 @@
      bg 页面底 · s 卡片面 · s2 次级面 · line 描边 · ink 主文字 · ink2 次文字
      ok/warn/bad (+Soft) 语义色
    选择器特异性：浅色 :root[data-palette] (0,2,0) < 深色 html.dark[data-palette] (0,2,1)。
+   局部预览（外观设置里的深浅色卡片）可在元素上加 data-scheme='light' / 'dark' 强制某一种，
+   此时局部只能直接读 --m-*（--el-* 等映射在 :root 上已求值，不跟随局部覆盖）。
    ============================================================ */
 
 /* ---------- 浅色 ---------- */
 :root,
 :root[data-palette='sakura'],
-[data-palette='sakura'] {
+[data-palette='sakura'],
+html.dark [data-palette='sakura'][data-scheme='light'] {
   --m-p: #d6245f; --m-pOn: #ffffff; --m-pInk: #c8195a; --m-pSoft: #ffe3ee;
   --m-a: #ffc93c; --m-aOn: #2a1630; --m-aSoft: #fff3cc;
   --m-a2: #7b5cff; --m-a2Soft: #ece6ff;
@@ -27,7 +30,8 @@
   --m-bad: #d21f3c; --m-badSoft: #ffe2e6;
 }
 :root[data-palette='mint'],
-[data-palette='mint'] {
+[data-palette='mint'],
+html.dark [data-palette='mint'][data-scheme='light'] {
   --m-p: #00805f; --m-pOn: #ffffff; --m-pInk: #007a5a; --m-pSoft: #d9f7ec;
   --m-a: #ffe14d; --m-aOn: #0f2a21; --m-aSoft: #fff8cc;
   --m-a2: #2e9bff; --m-a2Soft: #e0f0ff;
@@ -37,7 +41,8 @@
   --m-bad: #d2263b; --m-badSoft: #ffe3e6;
 }
 :root[data-palette='volt'],
-[data-palette='volt'] {
+[data-palette='volt'],
+html.dark [data-palette='volt'][data-scheme='light'] {
   --m-p: #3450ff; --m-pOn: #ffffff; --m-pInk: #2a44e6; --m-pSoft: #e3e8ff;
   --m-a: #ff7a1a; --m-aOn: #11163a; --m-aSoft: #ffe9d9;
   --m-a2: #00b8a9; --m-a2Soft: #d9f6f3;
@@ -47,7 +52,8 @@
   --m-bad: #d32448; --m-badSoft: #ffe2e8;
 }
 :root[data-palette='grape'],
-[data-palette='grape'] {
+[data-palette='grape'],
+html.dark [data-palette='grape'][data-scheme='light'] {
   --m-p: #7c3aed; --m-pOn: #ffffff; --m-pInk: #6d28d9; --m-pSoft: #efe6ff;
   --m-a: #ffd23f; --m-aOn: #1f1436; --m-aSoft: #fff6cc;
   --m-a2: #e8457a; --m-a2Soft: #ffe3ec;
@@ -57,7 +63,8 @@
   --m-bad: #d2263b; --m-badSoft: #ffe3e6;
 }
 :root[data-palette='sunset'],
-[data-palette='sunset'] {
+[data-palette='sunset'],
+html.dark [data-palette='sunset'][data-scheme='light'] {
   --m-p: #c2410c; --m-pOn: #ffffff; --m-pInk: #b23a0a; --m-pSoft: #ffe6d6;
   --m-a: #ffc93c; --m-aOn: #2b1708; --m-aSoft: #fff3cc;
   --m-a2: #2f6fed; --m-a2Soft: #e1ebff;
@@ -67,7 +74,8 @@
   --m-bad: #c81e3a; --m-badSoft: #ffe3e6;
 }
 :root[data-palette='classic'],
-[data-palette='classic'] {
+[data-palette='classic'],
+html.dark [data-palette='classic'][data-scheme='light'] {
   --m-p: #0f7f72; --m-pOn: #ffffff; --m-pInk: #0b7266; --m-pSoft: #ddf3ef;
   --m-a: #ffb020; --m-aOn: #1b2333; --m-aSoft: #fff1d6;
   --m-a2: #5b6cff; --m-a2Soft: #e6e9ff;
@@ -80,7 +88,8 @@
 /* ---------- 深色 ---------- */
 html.dark,
 html.dark[data-palette='sakura'],
-html.dark [data-palette='sakura'] {
+html.dark [data-palette='sakura'],
+[data-palette='sakura'][data-scheme='dark'] {
   --m-p: #ff4f8b; --m-pOn: #1a0b14; --m-pInk: #ff85ae; --m-pSoft: #3a1a2c;
   --m-a: #ffd25a; --m-aOn: #1a0b14; --m-aSoft: #3a3016;
   --m-a2: #a08bff; --m-a2Soft: #2a2245;
@@ -90,7 +99,8 @@ html.dark [data-palette='sakura'] {
   --m-bad: #ff6b81; --m-badSoft: #3a1720;
 }
 html.dark[data-palette='mint'],
-html.dark [data-palette='mint'] {
+html.dark [data-palette='mint'],
+[data-palette='mint'][data-scheme='dark'] {
   --m-p: #1fd3a0; --m-pOn: #0c1512; --m-pInk: #4be3b6; --m-pSoft: #0f3329;
   --m-a: #ffe14d; --m-aOn: #0c1512; --m-aSoft: #33300f;
   --m-a2: #5bb4ff; --m-a2Soft: #12283a;
@@ -100,7 +110,8 @@ html.dark [data-palette='mint'] {
   --m-bad: #ff6b7d; --m-badSoft: #3a1820;
 }
 html.dark[data-palette='volt'],
-html.dark [data-palette='volt'] {
+html.dark [data-palette='volt'],
+[data-palette='volt'][data-scheme='dark'] {
   --m-p: #5b74ff; --m-pOn: #0d1024; --m-pInk: #8c9dff; --m-pSoft: #1c2350;
   --m-a: #ff8a33; --m-aOn: #0d1024; --m-aSoft: #3a2312;
   --m-a2: #2fd9c8; --m-a2Soft: #10302f;
@@ -110,7 +121,8 @@ html.dark [data-palette='volt'] {
   --m-bad: #ff6b86; --m-badSoft: #3a1626;
 }
 html.dark[data-palette='grape'],
-html.dark [data-palette='grape'] {
+html.dark [data-palette='grape'],
+[data-palette='grape'][data-scheme='dark'] {
   --m-p: #a78bfa; --m-pOn: #120c1f; --m-pInk: #c4b1ff; --m-pSoft: #2a1f4a;
   --m-a: #ffd23f; --m-aOn: #120c1f; --m-aSoft: #37300f;
   --m-a2: #ff7ba6; --m-a2Soft: #3a1a2a;
@@ -120,7 +132,8 @@ html.dark [data-palette='grape'] {
   --m-bad: #ff6b81; --m-badSoft: #3a1720;
 }
 html.dark[data-palette='sunset'],
-html.dark [data-palette='sunset'] {
+html.dark [data-palette='sunset'],
+[data-palette='sunset'][data-scheme='dark'] {
   --m-p: #ff7a3d; --m-pOn: #1a0f08; --m-pInk: #ffa06e; --m-pSoft: #3a2114;
   --m-a: #ffd25a; --m-aOn: #1a0f08; --m-aSoft: #3a3016;
   --m-a2: #6ea0ff; --m-a2Soft: #172440;
@@ -130,7 +143,8 @@ html.dark [data-palette='sunset'] {
   --m-bad: #ff6b7d; --m-badSoft: #3a1820;
 }
 html.dark[data-palette='classic'],
-html.dark [data-palette='classic'] {
+html.dark [data-palette='classic'],
+[data-palette='classic'][data-scheme='dark'] {
   --m-p: #2cc4ae; --m-pOn: #0e1116; --m-pInk: #5ed8c5; --m-pSoft: #12302c;
   --m-a: #ffb020; --m-aOn: #0e1116; --m-aSoft: #3a2e12;
   --m-a2: #8c98ff; --m-a2Soft: #1e2348;
@@ -230,6 +244,15 @@ html.dark [data-palette='classic'] {
   --ui-border-inverted: var(--el-text-color-primary);
 
   --ui-radius: 8px;
+}
+
+/* 外观 · 圆角「标准」：整体收小一档（按钮的全圆角不变） */
+html.is-radius-std {
+  --app-radius-xs: 6px;
+  --app-radius-sm: 8px;
+  --app-radius: 12px;
+  --app-radius-lg: 16px;
+  --app-radius-xl: 20px;
 }
 
 html.dark {

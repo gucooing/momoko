@@ -20,10 +20,13 @@ func NewSystemRepo(data *Data) biz.SystemRepo {
 	}
 }
 
-func (s *systemRepo) GetMenusByRoleId(ctx context.Context, roleId string) ([]*gen.Menu, error) {
-	return s.data.db.Role.Query().
-		Where(role.IDEQ(roleId)).
-		QueryMenus().
+// GetMenusByRoleIds 返回这些角色关联菜单的并集（去重）。
+func (s *systemRepo) GetMenusByRoleIds(ctx context.Context, roleIds []string) ([]*gen.Menu, error) {
+	if len(roleIds) == 0 {
+		return []*gen.Menu{}, nil
+	}
+	return s.data.db.Menu.Query().
+		Where(menu.HasRolesWith(role.IDIn(roleIds...))).
 		All(ctx)
 }
 
@@ -49,6 +52,7 @@ func (s *systemRepo) CreateMenu(ctx context.Context, menuInfo *gen.Menu) (*gen.M
 		SetIcon(menuInfo.Icon).
 		SetIsSystem(menuInfo.IsSystem).
 		SetStatus(menuInfo.Status).
+		SetHidden(menuInfo.Hidden).
 		SetParentID(menuInfo.ParentID).
 		Save(ctx)
 }
@@ -61,6 +65,7 @@ func (s *systemRepo) UpdateMenu(ctx context.Context, menuInfo *gen.Menu) (*gen.M
 		SetOrder(menuInfo.Order).
 		SetIcon(menuInfo.Icon).
 		SetStatus(menuInfo.Status).
+		SetHidden(menuInfo.Hidden).
 		Save(ctx)
 }
 
@@ -133,13 +138,31 @@ func (s *systemRepo) GetRoles(ctx context.Context, page, pageSize int64, status 
 func (s *systemRepo) CountUsersByRoles(ctx context.Context, roleIds []string) (map[string]int64, error) {
 	counts := make(map[string]int64, len(roleIds))
 	for _, id := range roleIds {
-		n, err := s.data.db.User.Query().Where(user.HasRoleWith(role.IDEQ(id))).Count(ctx)
+		n, err := s.data.db.User.Query().Where(user.HasRolesWith(role.IDEQ(id))).Count(ctx)
 		if err != nil {
 			return nil, err
 		}
 		counts[id] = int64(n)
 	}
 	return counts, nil
+}
+
+// RoleMembers 返回各角色的前 limit 个成员（按用户 id 升序），用于角色列表的成员头像预览。
+func (s *systemRepo) RoleMembers(ctx context.Context, roleIds []string, limit int) (map[string][]*gen.User, error) {
+	out := make(map[string][]*gen.User, len(roleIds))
+	for _, id := range roleIds {
+		users, err := s.data.db.User.Query().
+			Where(user.HasRolesWith(role.IDEQ(id))).
+			Select(user.FieldID, user.FieldName, user.FieldUsername, user.FieldAvatar).
+			Order(gen.Asc(user.FieldID)).
+			Limit(limit).
+			All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out[id] = users
+	}
+	return out, nil
 }
 
 func (s *systemRepo) GetRole(ctx context.Context, roleId string) (*gen.Role, error) {
@@ -171,12 +194,27 @@ func (s *systemRepo) UpdateRole(ctx context.Context, roleInfo *gen.Role, menuIds
 		Save(ctx)
 }
 
+// DeleteRole 删除非内置角色；删除后没有任何角色的用户改为内置「无权限」角色。
 func (s *systemRepo) DeleteRole(ctx context.Context, roleIds []string) error {
-	_, err := s.data.db.Role.Delete().
+	tx, err := s.data.db.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Role.Delete().
 		Where(
 			role.IDIn(roleIds...),
 			role.IsBuiltinEQ(false),
 		).
-		Exec(ctx)
-	return err
+		Exec(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.User.Update().
+		Where(user.Not(user.HasRoles())).
+		AddRoleIDs(noPermissionRoleID).
+		Exec(ctx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }

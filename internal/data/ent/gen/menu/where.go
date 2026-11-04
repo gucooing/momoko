@@ -110,6 +110,11 @@ func ParentID(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldParentID, v))
 }
 
+// Hidden applies equality check predicate on the "hidden" field. It's identical to HiddenEQ.
+func Hidden(v bool) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldHidden, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Menu {
 	return predicate.Menu(sql.FieldEQ(FieldCreateTime, v))
@@ -643,6 +648,16 @@ func ParentIDEqualFold(v string) predicate.Menu {
 // ParentIDContainsFold applies the ContainsFold predicate on the "parent_id" field.
 func ParentIDContainsFold(v string) predicate.Menu {
 	return predicate.Menu(sql.FieldContainsFold(FieldParentID, v))
+}
+
+// HiddenEQ applies the EQ predicate on the "hidden" field.
+func HiddenEQ(v bool) predicate.Menu {
+	return predicate.Menu(sql.FieldEQ(FieldHidden, v))
+}
+
+// HiddenNEQ applies the NEQ predicate on the "hidden" field.
+func HiddenNEQ(v bool) predicate.Menu {
+	return predicate.Menu(sql.FieldNEQ(FieldHidden, v))
 }
 
 // HasRoles applies the HasEdge predicate on the "roles" edge.

@@ -139,7 +139,7 @@ const emit = defineEmits<{ switch: []; test: []; edit: []; delete: [] }>()
 
 const { t } = useI18n()
 const menuStore = useMenuStore()
-const { ago, dateTime } = useNodeTime()
+const { ago, dateTime, since } = useNodeTime()
 
 const TONES = ['p', 'a2', 'a', 'ok']
 const ROTS = ['-4deg', '3deg', '-2deg', '4deg']
@@ -168,12 +168,18 @@ const tlsLabel = computed(() => {
 const canSwitch = computed(() => !props.isCurrent && (props.local || online.value))
 
 const pill = computed<{ variant: 'success' | 'error' | 'warning' | 'neutral'; label: string }>(() => {
-  if (props.local) return { variant: 'success', label: t('node.state.online') }
+  if (props.local) return { variant: 'success', label: t('accessV2.node.onlineLocal') }
   switch (state.value) {
     case NodeState.NodeState_Online:
       return { variant: 'success', label: t('node.page.onlineLatency', { ms: status.value?.latencyMs ?? 0 }) }
-    case NodeState.NodeState_Offline:
-      return { variant: 'error', label: t('node.state.offline') }
+    case NodeState.NodeState_Offline: {
+      // 「离线 · 3 天」：按最近一次在线时间算离线时长
+      const last = status.value?.lastOnlineTime
+      return {
+        variant: 'error',
+        label: last ? t('accessV2.node.offlineFor', { duration: since(last) }) : t('node.state.offline'),
+      }
+    }
     case NodeState.NodeState_Unauthorized:
       return { variant: 'warning', label: t('node.state.unauthorized') }
     default:
@@ -222,11 +228,12 @@ interface Cell {
 const cells = computed<Cell[]>(() => {
   const r = remote.value
   if (props.local) {
+    // 本机：直连无延迟，信息随列表实时返回
     return [
-      { key: 'hostname', label: t('node.list.hostname'), value: r?.hostname || '—' },
+      { key: 'latency', label: t('access.node.latency'), value: t('accessV2.node.localLatency'), num: true, cls: 'is-ok' },
       { key: 'version', label: t('node.list.version'), value: r?.version || '—', num: true },
+      { key: 'check', label: t('access.node.lastCheck'), value: t('accessV2.node.live') },
       { key: 'system', label: t('node.list.platform'), value: systemText.value, title: systemTitle.value },
-      { key: 'arch', label: 'OS / Arch', value: r ? `${r.os}/${r.arch}` : '—', num: true },
     ]
   }
   const s = status.value

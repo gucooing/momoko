@@ -2,7 +2,11 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"io"
+	"mime"
+	nethttp "net/http"
+	"regexp"
 	"strconv"
 	"sync"
 
@@ -12,6 +16,7 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
+	"momoko/pkg/response"
 )
 
 type DockerService struct {
@@ -28,6 +33,51 @@ func (d *DockerService) RegisterWsServer(srv *http.Server) {
 	srv.Handle(biz.DockerContainerLogsWSPath, websocket.Handler(d.RunContainerLogsWsConn))
 	srv.Handle(biz.DockerContainerExecWSPath, websocket.Handler(d.RunContainerExecWsConn))
 	srv.Handle(biz.DockerTaskWSPath, websocket.Handler(d.RunTaskWsConn))
+	srv.HandleFunc(biz.DockerImageExportPath, d.ExportImages)
+	srv.HandleFunc(biz.DockerImageImportPath, d.ImportImages)
+}
+
+var exportNameRe = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)
+
+// ExportImages 把 ?ids= 指定的镜像导出为 tar 下载（docker save）。
+func (d *DockerService) ExportImages(w nethttp.ResponseWriter, r *nethttp.Request) {
+	if r.Method != nethttp.MethodGet {
+		w.WriteHeader(nethttp.StatusMethodNotAllowed)
+		return
+	}
+	ids := r.URL.Query()["ids"]
+	reader, err := d.uc.SaveImages(r.Context(), ids)
+	if err != nil {
+		response.WriteError(w, r, err)
+		return
+	}
+	defer reader.Close()
+	name := "images.tar"
+	if len(ids) == 1 {
+		if n := exportNameRe.ReplaceAllString(ids[0], "_"); n != "" {
+			name = n + ".tar"
+		}
+	}
+	w.Header().Set("Content-Type", "application/x-tar")
+	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": name}))
+	_, _ = io.Copy(w, reader)
+}
+
+// ImportImages 从请求体里的 tar 导入镜像（docker load），返回导入的镜像。
+func (d *DockerService) ImportImages(w nethttp.ResponseWriter, r *nethttp.Request) {
+	if r.Method != nethttp.MethodPost {
+		w.WriteHeader(nethttp.StatusMethodNotAllowed)
+		return
+	}
+	defer r.Body.Close()
+	loaded, err := d.uc.LoadImages(r.Context(), r.Body)
+	if err != nil {
+		response.WriteError(w, r, err)
+		return
+	}
+	body, _ := json.Marshal(response.Envelope{Code: 200, Data: map[string]any{"loaded": loaded}})
+	w.Header().Set("Content-Type", "application/json")
+	response.Write(w, r, body)
 }
 
 func (d *DockerService) DockerStatus(ctx context.Context, _ *v1.DockerStatusRequest) (*v1.DockerStatusResponse, error) {
@@ -95,11 +145,34 @@ func (d *DockerService) GetDockerContainerStats(ctx context.Context, req *v1.Get
 }
 
 func (d *DockerService) CreateDockerContainer(ctx context.Context, req *v1.CreateDockerContainerRequest) (*v1.CreateDockerContainerResponse, error) {
-	id, err := d.uc.CreateContainer(ctx, req)
+	id, task, err := d.uc.CreateContainer(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.CreateDockerContainerResponse{Id: id}, nil
+	return &v1.CreateDockerContainerResponse{Id: id, Task: task}, nil
+}
+
+func (d *DockerService) ListDockerContainerUsage(ctx context.Context, req *v1.ListDockerContainerUsageRequest) (*v1.ListDockerContainerUsageResponse, error) {
+	items, err := d.uc.ContainersUsage(ctx, req.GetIds())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListDockerContainerUsageResponse{Items: items}, nil
+}
+
+func (d *DockerService) ParseDockerCompose(_ context.Context, req *v1.ParseDockerComposeRequest) (*v1.ParseDockerComposeResponse, error) {
+	services, err := d.uc.ParseCompose(req.GetContent())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ParseDockerComposeResponse{Services: services}, nil
+}
+
+func (d *DockerService) CancelDockerTask(ctx context.Context, req *v1.CancelDockerTaskRequest) (*v1.CancelDockerTaskResponse, error) {
+	if err := d.uc.CancelTask(ctx, req.GetId()); err != nil {
+		return nil, err
+	}
+	return &v1.CancelDockerTaskResponse{}, nil
 }
 
 func (d *DockerService) UpdateDockerContainer(ctx context.Context, req *v1.UpdateDockerContainerRequest) (*v1.UpdateDockerContainerResponse, error) {

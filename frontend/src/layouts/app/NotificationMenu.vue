@@ -4,9 +4,11 @@
     <template #trigger>
       <AppIconButton
         icon="HOutline:BellIcon"
-        :label="t('layout.notificationTitle')"
-        :badge="unreadCount > 0 ? (unreadCount > 99 ? '99+' : unreadCount) : undefined"
-      />
+        :label="unreadCount > 0 ? t('shell.notifUnread', { n: unreadCount }) : t('layout.notificationTitle')"
+        :box="44"
+      >
+        <span v-if="unreadCount > 0" class="notif-dot" aria-hidden="true" />
+      </AppIconButton>
     </template>
     <template #default="{ close }">
       <div class="notif">
@@ -67,12 +69,22 @@ const unreadMessageList = computed(() => userMessages.value.filter((msg) => !msg
 
 const goToProfile = (close: () => void) => {
   userProfileStore.currentTab = 'messages'
-  router.push('/profile')
+  router.push({ path: '/profile', query: { tab: 'info' } })
   close()
 }
 </script>
 
 <style scoped lang="scss">
+.notif-dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--m-p);
+  border: 2px solid var(--el-bg-color-page);
+}
 .notif__head {
   display: flex;
   align-items: center;

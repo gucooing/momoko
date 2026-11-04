@@ -3,9 +3,7 @@ import type {
   ListTasksRequest,
   ListTasksResponse,
   GetTaskResponse,
-  CancelTaskResponse,
-  RetryTaskResponse,
-  DeleteTaskResponse,
+  TaskBatchResponse,
   ClearTasksRequest,
   ClearTasksResponse,
 } from '@/types/v1/task'
@@ -15,15 +13,17 @@ import type {
 export const listTasks = (params: Partial<ListTasksRequest>) =>
   request.get<ListTasksResponse>('/tasks', { params })
 
-export const getTask = (id: string) => request.get<GetTaskResponse>(`/task/${id}`)
+/** 单个任务（带执行步骤与完整日志）。 */
+export const getTask = (id: string) => request.get<GetTaskResponse>(`/tasks/${id}`)
 
-export const cancelTask = (id: string) =>
-  request.post<CancelTaskResponse>('/task/cancel', { id })
+/** 取消若干运行中的任务（后端记录取消人）。 */
+export const cancelTasks = (ids: string[]) => request.post<TaskBatchResponse>('/tasks/cancel', { ids })
 
-export const retryTask = (id: string) => request.post<RetryTaskResponse>('/task/retry', { id })
+/** 重试若干已结束的任务。 */
+export const retryTasks = (ids: string[]) => request.post<TaskBatchResponse>('/tasks/retry', { ids })
 
-export const deleteTask = (id: string) =>
-  request.post<DeleteTaskResponse>('/task/delete', { id })
+/** 删除若干已结束的任务记录。 */
+export const deleteTasks = (ids: string[]) => request.post<TaskBatchResponse>('/tasks/delete', { ids })
 
 export const clearTasks = (data: Partial<ClearTasksRequest>) =>
-  request.post<ClearTasksResponse>('/task/clear', data)
+  request.post<ClearTasksResponse>('/tasks/clear', data)

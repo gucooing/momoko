@@ -130,6 +130,11 @@ func LastIP(v string) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldLastIP, v))
 }
 
+// Persistent applies equality check predicate on the "persistent" field. It's identical to PersistentEQ.
+func Persistent(v bool) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldPersistent, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldCreateTime, v))
@@ -883,6 +888,16 @@ func LastIPEqualFold(v string) predicate.Session {
 // LastIPContainsFold applies the ContainsFold predicate on the "last_ip" field.
 func LastIPContainsFold(v string) predicate.Session {
 	return predicate.Session(sql.FieldContainsFold(FieldLastIP, v))
+}
+
+// PersistentEQ applies the EQ predicate on the "persistent" field.
+func PersistentEQ(v bool) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldPersistent, v))
+}
+
+// PersistentNEQ applies the NEQ predicate on the "persistent" field.
+func PersistentNEQ(v bool) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldPersistent, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

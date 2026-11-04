@@ -60,6 +60,8 @@ func (r *iqCheckRepo) CreatePrompt(ctx context.Context, prompt *gen.IQCheckPromp
 		SetContent(prompt.Content).
 		SetEnabled(prompt.Enabled).
 		SetOrder(prompt.Order).
+		SetCategory(prompt.Category).
+		SetGrading(prompt.Grading).
 		Save(ctx)
 }
 
@@ -69,6 +71,8 @@ func (r *iqCheckRepo) UpdatePrompt(ctx context.Context, prompt *gen.IQCheckPromp
 		SetContent(prompt.Content).
 		SetEnabled(prompt.Enabled).
 		SetOrder(prompt.Order).
+		SetCategory(prompt.Category).
+		SetGrading(prompt.Grading).
 		Save(ctx)
 }
 
@@ -248,6 +252,9 @@ func (r *iqCheckRepo) RecentResults(ctx context.Context, siteID string, limit in
 			iqcheckresult.FieldError,
 			iqcheckresult.FieldDurationMs,
 			iqcheckresult.FieldRequestAt,
+			iqcheckresult.FieldModel,
+			iqcheckresult.FieldEffort,
+			iqcheckresult.FieldPromptID,
 			iqcheckresult.FieldPromptTitle,
 		).
 		All(ctx)
@@ -257,6 +264,23 @@ func (r *iqCheckRepo) RecentResults(ctx context.Context, siteID string, limit in
 func (r *iqCheckRepo) CountSiteResults(ctx context.Context, siteID string) (int64, error) {
 	n, err := r.data.db.IQCheckResult.Query().Where(iqcheckresult.SiteIDEQ(siteID)).Count(ctx)
 	return int64(n), err
+}
+
+// LastSuccessAt 返回站点最近一条成功结果的检测时间；从未成功时返回 nil。
+func (r *iqCheckRepo) LastSuccessAt(ctx context.Context, siteID string) (*time.Time, error) {
+	row, err := r.data.db.IQCheckResult.Query().
+		Where(iqcheckresult.SiteIDEQ(siteID), iqcheckresult.StatusEQ(iqcheckresult.StatusSuccess)).
+		Order(gen.Desc(iqcheckresult.FieldRequestAt)).
+		Select(iqcheckresult.FieldID, iqcheckresult.FieldRequestAt).
+		First(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	at := row.RequestAt
+	return &at, nil
 }
 
 // CountResultsSince 返回全部站点在 since 之后产生的检测结果条数。
@@ -278,7 +302,7 @@ func (r *iqCheckRepo) CountPrompts(ctx context.Context) (int64, int64, error) {
 	return int64(all), int64(enabled), nil
 }
 
-// PromptUsage 返回提示词被检测使用的次数、最近使用时间与涉及的站点数。
+// PromptUsage 返回提示词被检测使用的次数、最近使用时间、涉及的站点数与平均输入 token 数。
 func (r *iqCheckRepo) PromptUsage(ctx context.Context, promptID string) (biz.IQCheckPromptUsage, error) {
 	var usage biz.IQCheckPromptUsage
 	query := r.data.db.IQCheckResult.Query().Where(iqcheckresult.PromptIDEQ(promptID))
@@ -301,6 +325,19 @@ func (r *iqCheckRepo) PromptUsage(ctx context.Context, promptID string) (biz.IQC
 		return usage, err
 	}
 	usage.SiteCount = int64(len(sites))
+	// 没有用量数据时 AVG 为 NULL，用指针接收
+	var tokens []struct {
+		Avg *float64 `json:"avg"`
+	}
+	if err := query.Clone().
+		Where(iqcheckresult.InputTokensGT(0)).
+		Aggregate(gen.As(gen.Mean(iqcheckresult.FieldInputTokens), "avg")).
+		Scan(ctx, &tokens); err != nil {
+		return usage, err
+	}
+	if len(tokens) > 0 && tokens[0].Avg != nil {
+		usage.AvgInputTokens = int64(*tokens[0].Avg + 0.5)
+	}
 	return usage, nil
 }
 

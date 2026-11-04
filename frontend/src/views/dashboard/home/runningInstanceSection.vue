@@ -1,15 +1,20 @@
-<!-- 运行中实例：贴纸头像 + 名称/类型/启动时间的紧凑行，点击进入控制台。 -->
+<!-- 运行中（DashboardPC / Mobile）：贴纸头像 + 名称 / 类型 · 已运行时长，行尾「控制台」与「停止」小图标按钮。 -->
 <template>
-  <AppPanel :title="t('dashboard.home.runningInstances')" title-icon="HOutline:ServerStackIcon">
-    <template #actions>
-      <StatusPill v-if="runningInstanceTotal" variant="success" :label="String(runningInstanceTotal)" />
-      <button type="button" class="ri__all" @click="router.push('/instance/list')">
-        {{ t('dashboard.home.viewAll') }}
-        <component :is="menuStore.iconComponents['HOutline:ChevronRightIcon']" />
-      </button>
-    </template>
+  <section class="ri" aria-labelledby="ri-h">
+    <div class="ri__head">
+      <h2 id="ri-h" class="ri__title">{{ t('dashboard.home.running') }}</h2>
+      <StatusPill
+        v-if="runningInstanceTotal"
+        variant="success"
+        :label="t('dashboard.home.countUnit', { n: runningInstanceTotal })"
+      />
+      <span class="ri__spacer" />
+      <RouterLink to="/instance/list" class="ri__all">
+        {{ compact ? t('dashboard.home.allShort') : t('dashboard.home.allApps') }} →
+      </RouterLink>
+    </div>
 
-    <div v-if="runningInstancesLoading" class="ri__list">
+    <div v-if="runningInstancesLoading && !runningInstances.length" class="ri__list">
       <div v-for="i in 3" :key="i" class="ri__skeleton" />
     </div>
 
@@ -27,68 +32,111 @@
     </EmptyState>
 
     <div v-else class="ri__list">
-      <button
-        v-for="(instance, i) in runningInstances"
-        :key="instance.id"
-        type="button"
-        class="ri__row"
-        @click="openConsole(instance)"
-      >
+      <div v-for="(instance, i) in shown" :key="instance.id" class="ri__row">
         <span
           class="ri__av m-sticker"
           :class="`m-sticker--${TONES[i % TONES.length]}`"
-          :style="{ transform: `rotate(${ROTS[i % ROTS.length]})` }"
+          aria-hidden="true"
         >
           {{ initialOf(instance.name) }}
         </span>
         <span class="ri__text">
           <span class="ri__name">{{ instance.name }}</span>
-          <span class="ri__sub">
-            {{ instance.type || '—' }} · {{ startedText(instance) }}
-            <template v-for="tag in tagsOf(instance)" :key="tag"> · #{{ tag }}</template>
-          </span>
+          <span class="ri__sub">{{ subOf(instance) }}</span>
         </span>
-        <span class="ri__go" aria-hidden="true">
-          <component :is="menuStore.iconComponents['HOutline:CommandLineIcon']" />
-        </span>
-      </button>
+        <AppIconButton
+          icon="HOutline:CommandLineIcon"
+          :label="t('dashboard.home.openConsoleOf', { name: instance.name })"
+          :box="compact ? 44 : 36"
+          :size="compact ? 20 : 16"
+          @click="openConsole(instance)"
+        />
+        <AdaptiveConfirm
+          :title="t('dashboard.home.stopConfirm', { name: instance.name })"
+          :disabled="stopping.has(instance.id)"
+          @confirm="stop(instance)"
+        >
+          <template #reference>
+            <AppIconButton
+              class="ri__stop"
+              :icon="stopping.has(instance.id) ? 'HOutline:ArrowPathIcon' : 'HOutline:StopIcon'"
+              :label="t('dashboard.home.stopOf', { name: instance.name })"
+              :box="compact ? 44 : 36"
+              :size="compact ? 20 : 16"
+              :class="{ 'is-busy': stopping.has(instance.id) }"
+            />
+          </template>
+        </AdaptiveConfirm>
+      </div>
     </div>
-  </AppPanel>
+  </section>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import dayjs from 'dayjs'
+import { stopInstanceRequest } from '@/api/instance'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
 import type { InstanceInfo } from '@/types/v1/instance'
+import { getRequestErrorMessage } from '@/utils/request'
+import { useFeedback } from '@/utils/feedback'
 import { useI18n } from 'vue-i18n'
 
 const TONES = ['p', 'a2', 'a', 'ok']
-const ROTS = ['-4deg', '3deg', '-2deg', '4deg']
 
 const router = useRouter()
 const menuStore = useMenuStore()
 const dashboardHomeStore = useDashboardHomeStore()
 const { t } = useI18n()
+const fb = useFeedback()
 const { runningInstancesLoading, runningInstances, runningInstanceTotal } = storeToRefs(dashboardHomeStore)
 const { getRunningInstances } = dashboardHomeStore
 
+const compact = computed(() => menuStore.isMobile)
+const shown = computed(() => runningInstances.value.slice(0, compact.value ? 3 : 5))
+const stopping = ref<Set<string>>(new Set())
+
 const initialOf = (name?: string) => (name || '?').trim().charAt(0).toUpperCase()
 
-const tagsOf = (instance: InstanceInfo) =>
-  (instance.tags || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 2)
+/** 已运行时长：x 天 / x 小时 / x 分钟 */
+const uptimeOf = (instance: InstanceInfo) => {
+  const raw = instance.startTime as unknown as string | Date | undefined
+  if (!raw) return ''
+  const ms = Date.now() - new Date(raw).getTime()
+  if (!Number.isFinite(ms) || ms < 0) return ''
+  const min = Math.floor(ms / 60000)
+  const days = Math.floor(min / 1440)
+  if (days > 0) return t('dashboard.home.upDays', { n: days })
+  const hours = Math.floor(min / 60)
+  if (hours > 0) return t('dashboard.home.upHours', { n: hours })
+  return t('dashboard.home.upMinutes', { n: Math.max(1, min) })
+}
 
-const startedText = (instance: InstanceInfo) => {
-  const d = instance.startTime || instance.createTime
-  return d ? dayjs(d).format('MM-DD HH:mm') : '—'
+const subOf = (instance: InstanceInfo) => {
+  const up = uptimeOf(instance)
+  const type = instance.type || '—'
+  if (!up) return type
+  return `${type} · ${compact.value ? up : t('dashboard.home.upFor', { time: up })}`
 }
 
 const openConsole = (instance: InstanceInfo) => {
   router.push({ path: `/instance/app/${instance.id}`, query: { tabTitle: instance.name } })
+}
+
+const stop = async (instance: InstanceInfo) => {
+  const next = new Set(stopping.value)
+  next.add(instance.id)
+  stopping.value = next
+  try {
+    await stopInstanceRequest({ id: instance.id, force: false })
+    fb.success(t('dashboard.home.stopped', { name: instance.name }))
+    await getRunningInstances()
+  } catch (error) {
+    fb.error(getRequestErrorMessage(error, t('dashboard.home.stopFailed')))
+  } finally {
+    const done = new Set(stopping.value)
+    done.delete(instance.id)
+    stopping.value = done
+  }
 }
 
 onMounted(() => {
@@ -97,66 +145,74 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.ri__all {
-  display: inline-flex;
+.ri {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 22px;
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+}
+.ri__head {
+  display: flex;
   align-items: center;
-  gap: 2px;
-  border: none;
-  background: transparent;
-  color: var(--m-pInk);
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.ri__title {
+  margin: 0;
+  font-family: var(--app-font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.ri__spacer {
+  flex: 1;
+}
+.ri__all {
   font-size: 0.875rem;
   font-weight: 700;
-  cursor: pointer;
+  color: var(--m-pInk);
+  text-decoration: none;
+  white-space: nowrap;
 }
-.ri__all :deep(svg) {
-  width: 15px;
-  height: 15px;
+.ri__all:hover {
+  color: var(--el-text-color-primary);
 }
 .ri__list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4px;
-  margin: 0 -10px;
-}
-@media (width >= 1100px) {
-  .ri__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 .ri__row {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
-  min-height: 60px;
   padding: 8px 10px;
-  border: none;
+  margin: 0 -10px;
   border-radius: 16px;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
   transition: background 0.15s;
 }
 .ri__row:hover {
   background: var(--el-fill-color-light);
 }
 .ri__av {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  font-size: 1.05rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  font-size: 1.0625rem;
 }
 .ri__text {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 .ri__name {
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -169,42 +225,43 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ri__go {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  flex: none;
-  border-radius: 14px;
-  color: var(--el-text-color-secondary);
+.ri__stop:hover {
+  background: var(--m-badSoft);
+  color: var(--m-bad);
 }
-.ri__row:hover .ri__go {
-  color: var(--m-pInk);
-  background: var(--m-pSoft);
+.ri__stop.is-busy :deep(svg) {
+  animation: ri-spin 0.9s linear infinite;
 }
-.ri__go :deep(svg) {
-  width: 20px;
-  height: 20px;
+@keyframes ri-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .ri__skeleton {
-  height: 60px;
+  height: 56px;
   border-radius: 16px;
-  background: linear-gradient(
-    100deg,
-    var(--el-fill-color-light) 30%,
-    var(--el-fill-color) 50%,
-    var(--el-fill-color-light) 70%
-  );
-  background-size: 200% 100%;
-  animation: ri-shimmer 1.4s ease-in-out infinite;
+  background: var(--el-fill-color-light);
+  animation: ri-pulse 1.4s ease-in-out infinite;
 }
-@keyframes ri-shimmer {
-  from {
-    background-position: 200% 0;
+@keyframes ri-pulse {
+  50% {
+    opacity: 0.55;
   }
-  to {
-    background-position: -200% 0;
+}
+@media (width < 640px) {
+  .ri {
+    padding: 16px;
+    gap: 4px;
+  }
+  .ri__title {
+    font-size: 1rem;
+  }
+  .ri__row {
+    padding: 6px 0;
+    margin: 0;
+  }
+  .ri__row:hover {
+    background: transparent;
   }
 }
 </style>

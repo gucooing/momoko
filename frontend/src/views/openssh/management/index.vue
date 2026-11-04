@@ -125,13 +125,15 @@
           </span>
           <UIcon v-if="testingIds.has(row.id)" name="i-lucide-loader-circle" class="ssh-card__spin" />
           <StatusPill v-else :variant="pillOf(row).variant" :label="pillOf(row).label" />
-          <input
-            type="checkbox"
-            class="ssh-card__check"
-            :checked="selectedIdSet.has(row.id)"
-            :aria-label="t('ssh.list.select', { name: row.name })"
-            @change="toggleSelect(row.id)"
-          />
+          <label class="ssh-card__hit">
+            <input
+              type="checkbox"
+              class="ssh-card__check"
+              :checked="selectedIdSet.has(row.id)"
+              :aria-label="t('ssh.list.select', { name: row.name })"
+              @change="toggleSelect(row.id)"
+            />
+          </label>
         </header>
 
         <div v-if="!menuStore.isMobile" class="ssh-card__tags">
@@ -586,6 +588,12 @@ onMounted(() => {
 .ssh-page__group {
   width: 180px;
 }
+/* 与搜索胶囊同高 */
+.ssh-page__group :deep(.app-sel__trigger) {
+  height: 40px;
+  border-radius: 999px;
+  padding-inline: 14px 10px;
+}
 .is-spinning :deep(svg) {
   animation: ssh-spin 1s linear infinite;
 }
@@ -765,12 +773,31 @@ onMounted(() => {
   color: var(--m-pInk);
   animation: ssh-spin 1s linear infinite;
 }
+/* 勾选框 20px，外面一圈透明点击区（PC 40 / 手机 44），负边距不占布局 */
+.ssh-card__hit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin: -10px;
+  cursor: pointer;
+}
 .ssh-card__check {
   width: 20px;
   height: 20px;
+  margin: 0;
   flex: none;
   accent-color: var(--m-p);
   cursor: pointer;
+}
+@media (width < 768px) {
+  .ssh-card__hit {
+    width: 44px;
+    height: 44px;
+    margin: -12px;
+  }
 }
 .ssh-card__tags,
 .ssh-card__mtags {
@@ -855,6 +882,7 @@ onMounted(() => {
 .ssh-card__open {
   flex: 1;
   justify-content: center;
+  min-height: 40px;
   border-radius: var(--app-radius-pill);
 }
 .ssh-card__foot :deep(.is-primary) {
@@ -871,10 +899,9 @@ onMounted(() => {
 /* 悬浮按钮 / 批量条 */
 .ssh-fab {
   position: sticky;
-  bottom: calc(92px + env(safe-area-inset-bottom));
+  bottom: 0;
   display: flex;
   justify-content: flex-end;
-  margin-top: -56px;
   pointer-events: none;
   z-index: 5;
 }
@@ -981,6 +1008,9 @@ onMounted(() => {
   .ssh-page__group {
     width: 100%;
   }
+  .ssh-page__group :deep(.app-sel__trigger) {
+    height: 44px;
+  }
   .ssh-batch {
     flex-direction: column;
     align-items: stretch;
@@ -1002,6 +1032,8 @@ onMounted(() => {
   }
   .ssh-batch__fail {
     flex: none;
+    /* 按钮在纵向 flex 里不会自动收窄，长错误信息会把它撑出卡片 */
+    width: 100%;
   }
   .ssh-batch__lat {
     display: none;

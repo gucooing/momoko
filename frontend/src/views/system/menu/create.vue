@@ -105,6 +105,19 @@
         <input v-model.number="submitForm.order" type="number" min="0" max="999" class="app-input" />
       </div>
 
+      <!-- 侧边栏显示（按钮没有导航项） -->
+      <div v-if="submitForm.type !== MenuType.MenuType_Button" class="app-field">
+        <label class="app-label">{{ t('accessV2.menu.colVisible') }}</label>
+        <div class="menu-form__switch">
+          <AppSwitch
+            :model-value="!submitForm.hidden"
+            :aria-label="t('accessV2.menu.colVisible')"
+            @update:model-value="(v) => (submitForm.hidden = !v)"
+          />
+          <span class="menu-form__help">{{ t('accessV2.menu.visibleHelp') }}</span>
+        </div>
+      </div>
+
       <!-- 状态 -->
       <div class="app-field">
         <label class="app-label">{{ t('system.common.status') }}</label>
@@ -177,6 +190,7 @@ const emptyForm = () => ({
   permissions: '',
   order: 0,
   status: MenuStatus.MenuStatus_Active as MenuStatus,
+  hidden: false,
 })
 const submitForm = ref(emptyForm())
 
@@ -244,6 +258,7 @@ const confirm = async () => {
     const path = f.type === MenuType.MenuType_Menu ? f.path.trim() : ''
     const icon = isButtonType.value ? '' : f.icon
     const permissions = f.permissions.trim()
+    const hidden = isButtonType.value ? false : f.hidden
     if (isEdit.value) {
       const payload: AdminEditPermissionsRequest = {
         menuId: editingMenuId.value!,
@@ -253,6 +268,7 @@ const confirm = async () => {
         path,
         status: f.status,
         permissions,
+        hidden,
       }
       await adminEditPermissions(payload)
     } else {
@@ -265,6 +281,7 @@ const confirm = async () => {
         path,
         status: f.status,
         permissions,
+        hidden,
       }
       await adminAddPermissions(payload)
     }
@@ -284,7 +301,7 @@ const loadParentMenuList = async () => {
 const loadMenuInfo = async (menuId: string) => {
   const { data: res } = await adminPermissionsInfo({ menuId })
   if (!res?.menu) return
-  const { type, title, path, icon, parentId, order, status, permissions } = res.menu
+  const { type, title, path, icon, parentId, order, status, permissions, hidden } = res.menu
   submitForm.value = {
     type,
     parentId: parentId || '',
@@ -294,6 +311,7 @@ const loadMenuInfo = async (menuId: string) => {
     permissions: permissions || '',
     order: order ?? 0,
     status,
+    hidden: !!hidden,
   }
 }
 
@@ -346,6 +364,12 @@ defineExpose({ showDialog })
 }
 .menu-form__radio.is-disabled input {
   cursor: not-allowed;
+}
+.menu-form__switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
 }
 .menu-form__help {
   font-size: 0.75rem;

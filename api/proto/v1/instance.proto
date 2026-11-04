@@ -31,7 +31,7 @@ service InstanceManager {
       body: "*"
     };
   }
-  // 删除实例类型(仍有应用在用时拒绝)
+  // 删除实例类型(在用的应用变为未分类)
   rpc DelInstanceType(DelInstanceTypeRequest) returns (DelInstanceTypeResponse) {
     option (google.api.http) = {
       delete: "/api/v1/instance/type/{id}"
@@ -50,6 +50,18 @@ service InstanceManager {
     option (google.api.http) = {
       post: "/api/v1/instance"
       body: "*"
+    };
+  }
+  // 获取全部应用用过的标签(按使用次数排序)
+  rpc GetInstanceTags(GetInstanceTagsRequest) returns (GetInstanceTagsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/tags"
+    };
+  }
+  // 获取应用最近事件(操作记录 + 进程退出/自动重启)
+  rpc GetInstanceEvents(GetInstanceEventsRequest) returns (GetInstanceEventsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/instance/events/{id}"
     };
   }
   // 获取实例详情
@@ -254,7 +266,10 @@ message DelInstanceTypeRequest {
 }
 
 // 删除实例类型响应
-message DelInstanceTypeResponse {}
+message DelInstanceTypeResponse {
+  // 因此变为未分类的应用数
+  int64 uncategorized_apps = 1;
+}
 
 // 实例类型信息
 message InstanceTypeInfo {
@@ -300,7 +315,7 @@ message GetInstancesRequest{
   int64 page = 1;
   // page size
   int64 page_size = 2;
-  // 实例名称/标签
+  // 名称/备注/标签/工作目录
   optional string keywords = 3;
   // 类型
   optional string type = 4;
@@ -318,6 +333,106 @@ message GetInstancesResponse{
   int64 total = 3;
   // 列表
   repeated InstanceInfo infos = 4;
+  // 各状态数量(按关键字/类型筛选，不按状态筛选)
+  InstanceStatusCount counts = 5;
+}
+
+// 各状态应用数量
+message InstanceStatusCount {
+  int64 all = 1;
+  int64 running = 2;
+  int64 stopped = 3;
+  int64 maintenance = 4;
+}
+
+// 环境变量
+message InstanceEnvVar {
+  // 变量名
+  string key = 1;
+  // 普通变量的值
+  string value = 2;
+  // 是否按密钥保存(值只写不读，控制台输出里打码)
+  bool is_secret = 3;
+  // 密钥变量的值：只写，响应中总为空；更新时留空表示保持原值
+  string secret = 4;
+}
+
+// 环境变量列表(用于更新时区分「不修改」与「清空」)
+message InstanceEnvList {
+  repeated InstanceEnvVar items = 1;
+}
+
+// 获取应用标签请求
+message GetInstanceTagsRequest {}
+
+// 应用标签
+message InstanceTag {
+  string name = 1;
+  // 使用该标签的应用数
+  int64 count = 2;
+}
+
+// 获取应用标签响应
+message GetInstanceTagsResponse {
+  repeated InstanceTag tags = 1;
+}
+
+// 获取应用事件请求
+message GetInstanceEventsRequest {
+  // 实例id
+  string id = 1;
+  // 条数(默认 10，最多 50)
+  int32 limit = 2;
+}
+
+// 应用事件类型
+enum InstanceEventKind {
+  INSTANCE_EVENT_KIND_UNSPECIFIED = 0;
+  // 创建
+  INSTANCE_EVENT_KIND_CREATE = 1;
+  // 启动
+  INSTANCE_EVENT_KIND_START = 2;
+  // 停止
+  INSTANCE_EVENT_KIND_STOP = 3;
+  // 强制停止
+  INSTANCE_EVENT_KIND_FORCE_STOP = 4;
+  // 重启
+  INSTANCE_EVENT_KIND_RESTART = 5;
+  // 强制重启
+  INSTANCE_EVENT_KIND_FORCE_RESTART = 6;
+  // 修改配置
+  INSTANCE_EVENT_KIND_UPDATE = 7;
+  // 清空控制台日志
+  INSTANCE_EVENT_KIND_LOG_CLEAR = 8;
+  // 修改文件
+  INSTANCE_EVENT_KIND_FILE = 9;
+  // 进程自行退出
+  INSTANCE_EVENT_KIND_EXIT = 10;
+  // 崩溃后自动重启
+  INSTANCE_EVENT_KIND_AUTO_RESTART = 11;
+  // 进入维护
+  INSTANCE_EVENT_KIND_MAINTENANCE_ON = 12;
+  // 结束维护
+  INSTANCE_EVENT_KIND_MAINTENANCE_OFF = 13;
+}
+
+// 应用事件
+message InstanceEvent {
+  InstanceEventKind kind = 1;
+  google.protobuf.Timestamp time = 2;
+  // 操作者(进程事件为空)
+  string user_name = 3;
+  // 是否成功
+  bool success = 4;
+  // 进程退出码(仅进程事件)
+  int32 exit_code = 5;
+  // 失败原因
+  string error = 6;
+}
+
+// 获取应用事件响应
+message GetInstanceEventsResponse {
+  repeated InstanceEvent events = 1;
 }
 
 // 创建实例请求
@@ -340,8 +455,8 @@ message CreateInstanceRequest {
   string stop_command = 8;
   // 是否自启动
   bool auto_start = 9;
-  // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
-  repeated string env = 10;
+  // 环境变量
+  repeated InstanceEnvVar env = 10;
   // 停止超时(秒)：发送停止命令后超时未退出则强制结束，<=0 使用默认值
   int32 stop_timeout = 11;
   // 崩溃后自动重启
@@ -429,7 +544,7 @@ message UpdateInstanceRequest{
   optional string remark = 3;
   // 标签(,号隔开)
   optional string tags = 4;
-  // 类型
+  // 类型(空字符串为未分类)
   optional string type = 5;
   // 启动命令
   optional string start_command = 6;
@@ -439,12 +554,14 @@ message UpdateInstanceRequest{
   optional string stop_command = 8;
   // 是否自启动
   optional bool auto_start = 9;
-  // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
-  repeated string env = 10;
+  // 环境变量(不传则不修改)
+  InstanceEnvList env = 10;
   // 停止超时(秒)
   optional int32 stop_timeout = 11;
   // 崩溃后自动重启
   optional bool auto_restart = 12;
+  // 维护中(进入维护会先停止应用)
+  optional bool maintenance = 13;
 }
 
 message UpdateInstanceResponse{
@@ -491,8 +608,8 @@ message InstanceInfo {
   string stop_command = 13;
   // 是否自启动
   bool auto_start = 14;
-  // 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
-  repeated string env = 15;
+  // 环境变量(密钥变量的值不返回)
+  repeated InstanceEnvVar env = 15;
   // 停止超时(秒)
   int32 stop_timeout = 16;
   // 崩溃后自动重启
@@ -507,6 +624,14 @@ message InstanceInfo {
   google.protobuf.Timestamp update_time = 21;
   // 所属类型的控制台快捷命令
   repeated string quick_commands = 22;
+  // 最近一次进程退出时间
+  google.protobuf.Timestamp stop_time = 23;
+  // 解析后的工作目录绝对路径
+  string absolute_path = 24;
+  // 维护中
+  bool maintenance = 25;
+  // 进入维护的时间
+  google.protobuf.Timestamp maintenance_time = 26;
 }
 
 // 获取实例资源占用请求

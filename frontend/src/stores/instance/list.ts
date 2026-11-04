@@ -15,16 +15,18 @@ import {
   statusMeta,
   type InstanceEditorFormValue,
   type InstanceEditorMode,
+  type InstanceEnvRow,
   type InstanceRecord,
   type InstanceTypeOption,
-  type OverviewCardItem,
   type QueryFormValue,
 } from '@/stores/instance/types'
 import { useUserStore } from '@/stores/user'
 import type {
   CreateInstanceRequest,
   GetInstancesRequest,
+  InstanceEnvVar,
   InstanceInfo,
+  InstanceStatusCount,
   InstanceTypeInfo,
   UpdateInstanceRequest,
 } from '@/types/v1/instance'
@@ -57,24 +59,35 @@ const createDefaultEditorForm = (defaultType = ''): InstanceEditorFormValue => (
   autoStart: false,
   autoRestart: false,
   stopTimeout: 0,
-  envText: '',
+  env: [],
 })
+
+const createEmptyCounts = (): InstanceStatusCount => ({ all: 0, running: 0, stopped: 0, maintenance: 0 })
 
 const parsePositiveNumber = (value: unknown, fallback: number) => {
   const nextValue = Number(value)
   return Number.isFinite(nextValue) && nextValue > 0 ? nextValue : fallback
 }
 
-const parseEnvLines = (value: string) => {
-  return value
-    .split(/\r?\n/u)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-}
+/** 接口里的变量 -> 编辑器行（密钥变量不返回值，标记为已保存） */
+export const toEnvRows = (env: InstanceEnvVar[] | undefined): InstanceEnvRow[] =>
+  (env || []).map((item) => ({
+    key: item.key,
+    value: item.isSecret ? '' : item.value,
+    secret: item.isSecret,
+    saved: item.isSecret,
+  }))
 
-const joinEnvLines = (envList: string[] | undefined) => {
-  return (envList || []).join('\n')
-}
+/** 编辑器行 -> 接口变量（密钥变量的值放在 secret 字段：只写，留空保持原值） */
+const toEnvVars = (rows: InstanceEnvRow[]): InstanceEnvVar[] =>
+  rows
+    .filter((row) => row.key.trim())
+    .map((row) => ({
+      key: row.key.trim(),
+      value: row.secret ? '' : row.value,
+      isSecret: row.secret,
+      secret: row.secret ? row.value : '',
+    }))
 
 const mapInfoToEditorForm = (info: InstanceInfo, resolveTypeId: (value: string) => string): InstanceEditorFormValue => ({
   id: info.id,
@@ -88,7 +101,7 @@ const mapInfoToEditorForm = (info: InstanceInfo, resolveTypeId: (value: string) 
   autoStart: Boolean(info.autoStart),
   autoRestart: Boolean(info.autoRestart),
   stopTimeout: Number(info.stopTimeout || 0),
-  envText: joinEnvLines(info.env),
+  env: toEnvRows(info.env),
 })
 
 const buildCreatePayload = (form: InstanceEditorFormValue, userId: string): CreateInstanceRequest => ({
@@ -103,7 +116,7 @@ const buildCreatePayload = (form: InstanceEditorFormValue, userId: string): Crea
   autoStart: form.autoStart,
   autoRestart: form.autoRestart,
   stopTimeout: Math.max(0, Math.round(Number(form.stopTimeout) || 0)),
-  env: parseEnvLines(form.envText),
+  env: toEnvVars(form.env),
 })
 
 const buildUpdatePayload = (
@@ -120,7 +133,7 @@ const buildUpdatePayload = (
   autoStart: form.autoStart,
   autoRestart: form.autoRestart,
   stopTimeout: Math.max(0, Math.round(Number(form.stopTimeout) || 0)),
-  env: parseEnvLines(form.envText),
+  env: { items: toEnvVars(form.env) },
 })
 
 export const useInstanceListStore = defineStore('instance-list', () => {
@@ -135,6 +148,8 @@ export const useInstanceListStore = defineStore('instance-list', () => {
     pageSize: 9,
     total: 0,
   })
+  // 各状态数量（按关键字/类型筛选，不按状态筛选），用于状态 chips 与页头计数
+  const statusCounts = ref<InstanceStatusCount>(createEmptyCounts())
 
   const instanceEditorVisible = ref(false)
   const instanceEditorMode = ref<InstanceEditorMode>('create')
@@ -175,10 +190,6 @@ export const useInstanceListStore = defineStore('instance-list', () => {
 
   const pagedInstances = computed(() => instanceList.value)
 
-  const gridTransitionKey = computed(
-    () => pagedInstances.value.map((item) => item.id).join('|') || 'instance-empty',
-  )
-
   const instanceStatusMap = computed(
     () => new Map(instanceList.value.map((item) => [item.id, item.status] as const)),
   )
@@ -213,40 +224,6 @@ export const useInstanceListStore = defineStore('instance-list', () => {
       pagedInstances.value.every((item) => selectedIdSet.value.has(item.id)),
   )
 
-  const summaryCards = computed<OverviewCardItem[]>(() => {
-    let runningCount = 0
-    let stoppedCount = 0
-
-    for (const item of pagedInstances.value) {
-      if (item.status === InstanceStatus.INSTANCE_STATUS_RUNNING) runningCount += 1
-      if (item.status === InstanceStatus.INSTANCE_STATUS_STOPPED) stoppedCount += 1
-    }
-
-    return [
-      {
-        label: translate('instance.totalInstances'),
-        value: pagination.value.total,
-        note: translate('instance.currentFilterResult'),
-        icon: 'HOutline:ServerStackIcon',
-        skin: 'tone-a',
-      },
-      {
-        label: translate('instance.currentRunning'),
-        value: runningCount,
-        note: translate('instance.currentPageStats'),
-        icon: 'HSolid:PlayCircleIcon',
-        skin: 'tone-b',
-      },
-      {
-        label: translate('instance.stoppedSummary'),
-        value: stoppedCount,
-        note: translate('instance.currentPageStats'),
-        icon: 'HSolid:StopCircleIcon',
-        skin: 'tone-c',
-      },
-    ]
-  })
-
   const canBatchStart = computed(() =>
     selectedIds.value.some((id) => {
       const status = instanceStatusMap.value.get(id)
@@ -261,6 +238,12 @@ export const useInstanceListStore = defineStore('instance-list', () => {
   const canBatchStop = computed(() =>
     selectedIds.value.some(
       (id) => instanceStatusMap.value.get(id) === InstanceStatus.INSTANCE_STATUS_RUNNING,
+    ),
+  )
+
+  const canBatchRestart = computed(() =>
+    selectedIds.value.some(
+      (id) => instanceStatusMap.value.get(id) !== InstanceStatus.INSTANCE_STATUS_MAINTENANCE,
     ),
   )
 
@@ -333,6 +316,7 @@ export const useInstanceListStore = defineStore('instance-list', () => {
       pagination.value.page = parsePositiveNumber(response?.page, pagination.value.page)
       pagination.value.pageSize = parsePositiveNumber(response?.pageSize, pagination.value.pageSize)
       pagination.value.total = Math.max(0, Number(response?.total || 0))
+      statusCounts.value = response?.counts || createEmptyCounts()
     } finally {
       loading.value = false
     }
@@ -344,13 +328,15 @@ export const useInstanceListStore = defineStore('instance-list', () => {
   }
 
   const createInstance = async (payload: CreateInstanceRequest) => {
-    await createInstanceRequest(payload)
+    const { data } = await createInstanceRequest(payload)
     await getInstanceList()
+    return data?.info
   }
 
   const updateInstance = async (payload: UpdateInstanceRequest) => {
-    await updateInstanceRequest(payload)
+    const { data } = await updateInstanceRequest(payload)
     await getInstanceList()
+    return data?.info
   }
 
   const startInstanceById = (id: string) => startInstanceRequest({ id })
@@ -394,42 +380,37 @@ export const useInstanceListStore = defineStore('instance-list', () => {
     instanceEditorForm.value = createDefaultEditorForm(resolveDefaultType())
   }
 
-  const submitInstanceEditor = async () => {
+  /** 保存编辑器；返回保存后的应用（「保存并启动」用它的 id 启动） */
+  const submitInstanceEditor = async (): Promise<InstanceInfo | undefined> => {
     if (instanceEditorSubmitting.value) return
 
     instanceEditorSubmitting.value = true
 
     try {
+      let saved: InstanceInfo | undefined
       if (instanceEditorMode.value === 'create') {
         const userId = userStore.userInfo?.userId?.trim() || ''
         if (!userId) {
           throw new Error('Current user id is missing')
         }
 
-        await createInstance(buildCreatePayload(instanceEditorForm.value, userId))
+        saved = await createInstance(buildCreatePayload(instanceEditorForm.value, userId))
       } else {
         if (!instanceEditorForm.value.id) {
           throw new Error('Instance id is missing')
         }
 
-        await updateInstance(buildUpdatePayload(instanceEditorForm.value))
+        saved = await updateInstance(buildUpdatePayload(instanceEditorForm.value))
       }
 
       closeInstanceEditor()
+      return saved
     } finally {
       instanceEditorSubmitting.value = false
     }
   }
 
   const applyFilters = async () => {
-    appliedQuery.value = { ...queryForm.value }
-    pagination.value.page = 1
-    clearSelection()
-    await getInstanceList()
-  }
-
-  const resetFilters = async () => {
-    queryForm.value = createDefaultQueryForm()
     appliedQuery.value = { ...queryForm.value }
     pagination.value.page = 1
     clearSelection()
@@ -476,9 +457,16 @@ export const useInstanceListStore = defineStore('instance-list', () => {
     await getInstanceList()
   }
 
+  // 批量启动跳过维护中的应用（后端会拒绝启动）
   const batchChangeStatus = async (targetStatus: SwitchableInstanceStatus) => {
+    const ids =
+      targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING
+        ? selectedIds.value.filter(
+            (id) => instanceStatusMap.value.get(id) !== InstanceStatus.INSTANCE_STATUS_MAINTENANCE,
+          )
+        : [...selectedIds.value]
     return runBatchAction(
-      [...selectedIds.value],
+      ids,
       targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING
         ? (id) => startInstanceById(id)
         : (id) => stopInstanceById(id),
@@ -511,6 +499,26 @@ export const useInstanceListStore = defineStore('instance-list', () => {
     return successCount > 0
   }
 
+  // 批量重启：维护中的应用跳过
+  const batchRestart = async () => {
+    const ids = selectedIds.value.filter(
+      (id) => instanceStatusMap.value.get(id) !== InstanceStatus.INSTANCE_STATUS_MAINTENANCE,
+    )
+    return runBatchAction(ids, (id) => restartInstanceById(id), true)
+  }
+
+  // 进入 / 结束维护（进入维护时后端会先停止应用）
+  const setMaintenance = async (id: string, maintenance: boolean) => {
+    await updateInstanceRequest({ id, maintenance, env: undefined })
+    await getInstanceList()
+  }
+
+  // 启动维护中的应用：先结束维护再启动
+  const endMaintenanceAndStart = async (id: string) => {
+    await updateInstanceRequest({ id, maintenance: false, env: undefined })
+    return changeInstanceStatus(id, InstanceStatus.INSTANCE_STATUS_RUNNING)
+  }
+
   const findInstanceById = (id: string) => {
     return instanceList.value.find((item) => item.id === id)
   }
@@ -525,15 +533,15 @@ export const useInstanceListStore = defineStore('instance-list', () => {
     queryForm,
     selectedIds,
     pagination,
+    statusCounts,
     selectedIdSet,
     typeOptions,
     statusOptions,
     pagedInstances,
-    gridTransitionKey,
     isCurrentPageAllSelected,
-    summaryCards,
     canBatchStart,
     canBatchStop,
+    canBatchRestart,
     canBatchDelete,
     instanceEditorVisible,
     instanceEditorMode,
@@ -547,7 +555,6 @@ export const useInstanceListStore = defineStore('instance-list', () => {
     closeInstanceEditor,
     submitInstanceEditor,
     applyFilters,
-    resetFilters,
     handlePageChange,
     refreshStatus,
     batchChangeStatus,
@@ -555,6 +562,9 @@ export const useInstanceListStore = defineStore('instance-list', () => {
     changeInstanceStatus,
     deleteInstances,
     restartInstance,
+    batchRestart,
+    setMaintenance,
+    endMaintenanceAndStart,
     findInstanceById,
     resolveTypeLabel,
     getInstanceTypeList,

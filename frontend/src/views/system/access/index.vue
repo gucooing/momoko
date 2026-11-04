@@ -2,3 +2,7 @@
 <template>
   <PageGroupHost group="access" />
 </template>
+
+<script setup lang="ts">
+defineOptions({ name: 'AccessGroupView' })
+</script>

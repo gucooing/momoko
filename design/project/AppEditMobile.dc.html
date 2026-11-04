@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>新建应用 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.btn-o{background:var(--s);color:var(--ink);border:1.5px solid var(--line)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.tg{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none;transition:background .15s}
+.tg::after{content:'';position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.tg:checked{background:var(--p)}
+.tg:checked::after{transform:translateX(20px)}
+.fl{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--ink)}
+.fl .req{color:var(--pInk)}
+.fh{font-size:12px;color:var(--ink2);line-height:1.5}
+.fi{display:block;width:100%;min-height:50px;padding:0 14px;border-radius:16px;border:1.5px solid var(--line);background:var(--s);color:var(--ink);font:inherit;font-size:16px;outline:none}
+.fi:focus{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.fi::placeholder{color:var(--ink2)}
+textarea.fi{padding:12px 14px;line-height:1.5;resize:vertical}
+select.fi{appearance:none;-webkit-appearance:none;padding-right:44px}
+.fi.mono{font-size:14px}
+.field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.sec{display:flex;flex-direction:column;gap:18px;padding:18px 16px;border-radius:24px;background:var(--s);border:1px solid var(--line)}
+.sec-h{display:flex;align-items:center;gap:10px}
+.sec-n{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:10px;font-size:14px;font-weight:800;flex:none}
+.tchip{display:inline-flex;align-items:center;gap:2px;height:34px;padding:0 2px 0 12px;border-radius:999px;background:var(--pSoft);color:var(--pInk);font-size:14px;font-weight:700}
+.tchip button{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;border:0;background:transparent;color:inherit;cursor:pointer}
+.sug{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 12px;border-radius:999px;border:1.5px dashed var(--line);background:transparent;color:var(--ink2);font:inherit;font-size:13px;font-weight:700;cursor:pointer;flex:none}
+.swr{display:flex;align-items:center;gap:14px;min-height:64px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}
+.sk{display:flex;align-items:center;gap:6px;min-height:50px;padding:0 4px 0 14px;border-radius:16px;border:1.5px solid var(--line);background:var(--s)}
+.sk:focus-within{border-color:var(--p)}
+.sk input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font-size:14px;outline:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; min-height: 2040px; display: flex; flex-direction: column">
+  <header style="position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 4px; padding: 14px 8px 10px 4px; background: var(--bg); border-bottom: 1px solid var(--line)">
+    <a class="ib" href="AppsMobile.dc.html" aria-label="返回应用列表"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg></a>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 800">新建应用</h1>
+      <span style="font-size: 12px; color: var(--ink2)">填好后可直接启动，之后随时能改</span>
+    </span>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+  </header>
+
+  <div role="form" aria-label="新建应用" style="display: flex; flex-direction: column; gap: 14px; padding: 16px 16px 24px">
+
+    <section class="sec" aria-labelledby="s1">
+      <div class="sec-h"><span class="sec-n" style="background: var(--pSoft); color: var(--pInk); transform: rotate(-4deg)">1</span><h2 id="s1" style="margin: 0; font-size: 17px; font-weight: 800">基本信息</h2></div>
+      <div class="field">
+        <label class="fl" for="m-name">名称<span class="req" aria-hidden="true">*</span></label>
+        <input class="fi" id="m-name" type="text" value="mc-creative" aria-required="true" aria-describedby="m-name-h">
+        <span class="fh" id="m-name-h">字母、数字、- 或 _，用作日志前缀</span>
+      </div>
+      <div class="field">
+        <label class="fl" for="m-type">应用类型<span class="req" aria-hidden="true">*</span></label>
+        <div style="position: relative">
+          <select class="fi" id="m-type">
+            <option selected="selected">Java 应用</option>
+            <option>Node.js</option>
+            <option>Python</option>
+            <option>二进制</option>
+            <option>游戏服务器</option>
+            <option>PHP</option>
+          </select>
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="position: absolute; right: 14px; top: 15px; pointer-events: none; color: var(--ink2)"><path d="{{i.chevD}}"></path></svg>
+        </div>
+        <span class="fh">没有合适的？<a href="AppTypesMobile.dc.html" style="font-weight: 700">管理应用类型</a></span>
+      </div>
+      <div class="field">
+        <label class="fl" for="m-remark">备注<span style="font-weight: 500; color: var(--ink2)">（选填）</span></label>
+        <textarea class="fi" id="m-remark" rows="2">创造模式测试服，给大家试建筑用</textarea>
+      </div>
+      <div class="field">
+        <label class="fl" for="m-tag">标签</label>
+        <div class="fi" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 7px 8px; min-height: 50px">
+          <sc-for list="{{tags}}" as="t" hint-placeholder-count="1">
+            <span class="tchip">#{{t.t}}<button type="button" aria-label="移除标签 {{t.t}}" onClick="{{t.remove}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px; stroke-width: 2.4"><path d="{{i.x}}"></path></svg></button></span>
+          </sc-for>
+          <input id="m-tag" type="text" placeholder="添加标签" enterkeyhint="done" style="flex: 1; min-width: 100px; min-height: 34px; border: 0; background: transparent; font: inherit; font-size: 16px; color: var(--ink); outline: none; padding: 0 6px">
+        </div>
+        <div class="hs" style="display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 0 16px">
+          <sc-for list="{{sugs}}" as="s" hint-placeholder-count="3">
+            <button type="button" class="sug" onClick="{{s.add}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 12px; height: 12px; stroke-width: 2.6"><path d="{{i.plus}}"></path></svg>{{s.t}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="s2">
+      <div class="sec-h"><span class="sec-n" style="background: var(--a2Soft); color: var(--ink); transform: rotate(3deg)">2</span><h2 id="s2" style="margin: 0; font-size: 17px; font-weight: 800">运行</h2></div>
+      <div style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--aSoft); color: var(--aOn); font-size: 13px; font-weight: 700; margin-top: -4px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.spark}}"></path></svg>已按「Java 应用」模板预填启动命令</div>
+      <div class="field">
+        <label class="fl" for="m-dir">工作目录<span class="req" aria-hidden="true">*</span></label>
+        <div style="display: flex; gap: 8px">
+          <input class="fi mono" id="m-dir" type="text" value="D:/apps/mc-creative" style="flex: 1; min-width: 0">
+          <button type="button" class="btn btn-o" aria-label="选择文件夹" style="width: 50px; min-height: 50px; padding: 0; border-radius: 16px; flex: none"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg></button>
+        </div>
+        <span class="fh">目录不存在时会自动创建</span>
+      </div>
+      <div class="field">
+        <label class="fl" for="m-start">启动命令<span class="req" aria-hidden="true">*</span></label>
+        <textarea class="fi mono" id="m-start" rows="2" aria-describedby="m-start-h">java -Xms1G -Xmx4G -jar server.jar nogui</textarea>
+        <span class="fh" id="m-start-h">在工作目录下执行，可使用下方的环境变量</span>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 10px">
+        <div class="field">
+          <label class="fl" for="m-stop">停止命令</label>
+          <input class="fi mono" id="m-stop" type="text" value="stop">
+        </div>
+        <div class="field">
+          <label class="fl" for="m-timeout">停止超时</label>
+          <div style="position: relative">
+            <input class="fi num" id="m-timeout" type="number" inputmode="numeric" value="30" style="padding-right: 40px">
+            <span style="position: absolute; right: 14px; top: 15px; font-size: 14px; font-weight: 700; color: var(--ink2)">秒</span>
+          </div>
+        </div>
+      </div>
+      <span class="fh" style="margin-top: -10px">停止命令发送到控制台；超时未退出则强制结束进程</span>
+      <div style="display: flex; flex-direction: column">
+        <label class="swr">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">开机自启</span><span style="font-size: 13px; color: var(--ink2)">面板或电脑重启后自动运行</span></span>
+          <input class="tg" type="checkbox" role="switch" checked="{{autoStart}}" onChange="{{toggleAutoStart}}">
+        </label>
+        <label class="swr">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">崩溃后自动重启</span><span style="font-size: 13px; color: var(--ink2)">10 分钟内最多 3 次</span></span>
+          <input class="tg" type="checkbox" role="switch" checked="{{autoRestart}}" onChange="{{toggleAutoRestart}}">
+        </label>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="s3">
+      <div class="sec-h">
+        <span class="sec-n" style="background: var(--aSoft); color: var(--aOn); transform: rotate(-3deg)">3</span>
+        <h2 id="s3" style="margin: 0; font-size: 17px; font-weight: 800; flex: 1">环境变量 <span class="num" style="font-size: 13px; color: var(--ink2)">{{envCount}}</span></h2>
+        <button type="button" class="ib" aria-label="从 .env 文件导入"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.upload}}"></path></svg></button>
+      </div>
+      <sc-for list="{{env}}" as="e" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 18px; background: var(--s2)">
+          <div style="display: flex; align-items: center; gap: 6px">
+            <input class="fi mono" type="text" value="{{e.k}}" placeholder="变量名" aria-label="变量名 {{e.n}}" style="flex: 1; min-width: 0; min-height: 46px">
+            <button type="button" class="ib" aria-label="删除变量 {{e.n}}" onClick="{{e.remove}}" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg></button>
+          </div>
+          <sc-if value="{{e.secret}}" hint-placeholder-val="{{false}}">
+            <div class="sk">
+              <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--warn)"><path d="{{i.lock}}"></path></svg>
+              <input class="mono" type="{{e.type}}" value="{{e.v}}" aria-label="{{e.k}} 的值（密钥）">
+              <button type="button" class="ib" aria-label="{{e.eyeT}}" aria-pressed="{{e.shown}}" onClick="{{e.reveal}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{e.eyeD}}"></path></svg></button>
+            </div>
+          </sc-if>
+          <sc-if value="{{e.plain}}" hint-placeholder-val="{{true}}">
+            <input class="fi mono" type="text" value="{{e.v}}" placeholder="值" aria-label="变量 {{e.n}} 的值" style="min-height: 46px">
+          </sc-if>
+        </div>
+      </sc-for>
+      <button type="button" class="btn" onClick="{{addEnv}}" style="min-height: 50px; border-radius: 16px; border: 1.5px dashed var(--line); background: transparent; color: var(--pInk)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>添加变量</button>
+      <span class="fh" style="margin-top: -8px">带锁的变量按密钥保存，日志里会自动打码。</span>
+    </section>
+  </div>
+
+  <div style="position: sticky; bottom: 0; margin-top: auto; display: flex; gap: 10px; padding: 12px 16px 26px; background: var(--s); border-top: 1px solid var(--line); box-shadow: 0 -12px 30px -18px rgba(20,10,30,.3)">
+    <button type="button" class="btn btn-s" style="flex: 1; min-height: 52px; font-size: 15px">仅保存</button>
+    <button type="button" class="btn btn-p" style="flex: 1.5; min-height: 52px; font-size: 15px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.play}}"></path></svg>保存并启动</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":2040}}'>
+const IC = {
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  play: 'M7 4.5v15l12-7.5z',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 20h16',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  lock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4',
+  eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  eyeOff: 'M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2',
+  chevL: 'M15 6l-6 6 6 6',
+  chevD: 'M6 9l6 6 6-6',
+  x: 'M6 6l12 12M18 6 6 18'
+};
+const ENV = [
+  { id: 1, k: 'JAVA_HOME', v: 'C:/Program Files/Java/jdk-21' },
+  { id: 2, k: 'EULA', v: 'true' },
+  { id: 3, k: 'RCON_PASSWORD', v: 'Mmk-rcon-2026!', secret: true }
+];
+const SUGS = ['生存服', '测试', '自启动', '机器人', '每周备份'];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const tags = st.tags || ['游戏'];
+    const env = st.env || ENV;
+    const reveal = st.reveal || {};
+    const autoStart = st.autoStart != null ? st.autoStart : false;
+    const autoRestart = st.autoRestart != null ? st.autoRestart : true;
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      tags: tags.map((t) => ({ t, remove: () => this.setState({ tags: tags.filter((x) => x !== t) }) })),
+      sugs: SUGS.filter((s) => tags.indexOf(s) < 0).map((t) => ({ t, add: () => this.setState({ tags: tags.concat([t]) }) })),
+      autoStart,
+      toggleAutoStart: () => this.setState({ autoStart: !autoStart }),
+      autoRestart,
+      toggleAutoRestart: () => this.setState({ autoRestart: !autoRestart }),
+      envCount: env.length + ' 个',
+      env: env.map((e, idx) => {
+        const shown = !!reveal[e.id];
+        return {
+          ...e,
+          n: e.k || ('第 ' + (idx + 1) + ' 行'),
+          secret: !!e.secret, plain: !e.secret,
+          shown,
+          type: shown ? 'text' : 'password',
+          eyeD: shown ? IC.eyeOff : IC.eye,
+          eyeT: shown ? '隐藏值' : '显示值',
+          reveal: () => this.setState({ reveal: { ...reveal, [e.id]: !shown } }),
+          remove: () => this.setState({ env: env.filter((x) => x.id !== e.id) })
+        };
+      }),
+      addEnv: () => this.setState({ env: env.concat([{ id: Date.now(), k: '', v: '' }]) })
+    };
+  }
+}
+</script>
+</body>
+</html>

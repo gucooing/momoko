@@ -38,24 +38,25 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	nodeAgentUsecase := biz.NewNodeAgentUsecase(apiKeyRepo, userRepo, systemUsecase)
 	authorization := server.NewAuthorization(authRepo, systemUsecase, nodeAgentUsecase)
 	operationLogRepo := data.NewOperationLogRepo(dataData)
-	operationLogUsecase := biz.NewOperationLogUsecase(operationLogRepo)
+	store := data.NewTaskRepo(dataData)
+	manager, cleanup2 := biz.NewTaskManager(store)
+	operationLogUsecase := biz.NewOperationLogUsecase(operationLogRepo, configRepo, manager)
 	operationLogMiddleware := service.NewOperationLogMiddleware(operationLogUsecase, logger)
-	manager, err := avatar.NewManager()
+	avatarManager, err := avatar.NewManager()
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	nodeRepo := data.NewNodeRepo(dataData)
-	nodeUsecase, cleanup2 := biz.NewNodeUsecase(apiKeyRepo, nodeRepo, systemUsecase)
+	nodeUsecase, cleanup3 := biz.NewNodeUsecase(apiKeyRepo, nodeRepo, systemUsecase)
 	nodeProxy := server.NewNodeProxy(nodeUsecase, systemUsecase, userRepo)
 	authUsecase := biz.NewAuthUsecase(authRepo, userRepo)
-	userUsecase := biz.NewUserUsecase(userRepo, authRepo, manager)
+	userUsecase := biz.NewUserUsecase(userRepo, authRepo, avatarManager)
 	configUsecase := biz.NewConfigUsecase(configRepo)
 	authService := service.NewAuthService(authUsecase, userUsecase, configUsecase, systemUsecase)
 	fileRepo := data.NewFileRepo(dataData)
-	store := data.NewTaskRepo(dataData)
-	taskManager, cleanup3 := biz.NewTaskManager(store)
-	fileUsecase := biz.NewFileUsecase(fileRepo, taskManager)
+	fileUsecase := biz.NewFileUsecase(fileRepo, manager)
 	fileService := service.NewFileService(fileUsecase)
 	userService := service.NewUserService(userUsecase, operationLogUsecase)
 	systemService := service.NewSystemService(systemUsecase, configUsecase, operationLogUsecase)
@@ -63,7 +64,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	initializeUsecase := biz.NewInitializeUsecase(initializeRepo)
 	initializeService := service.NewInitializeService(initializeUsecase)
 	instanceRepo := data.NewInstanceRepo(dataData)
-	instanceUsecase, cleanup4, err := biz.NewInstanceUsecase(instanceRepo, fileRepo, taskManager)
+	instanceUsecase, cleanup4, err := biz.NewInstanceUsecase(instanceRepo, fileRepo, manager)
 	if err != nil {
 		cleanup3()
 		cleanup2()
@@ -96,7 +97,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		return nil, nil, err
 	}
 	tunnelService := service.NewTunnelService(tunnelUsecase)
-	dockerUsecase, err := biz.NewDockerUsecase(configRepo, taskManager)
+	dockerUsecase, err := biz.NewDockerUsecase(configRepo, manager)
 	if err != nil {
 		cleanup6()
 		cleanup5()
@@ -108,14 +109,14 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	}
 	dockerService := service.NewDockerService(dockerUsecase)
 	iqCheckRepo := data.NewIQCheckRepo(dataData)
-	iqCheckUsecase := biz.NewIQCheckUsecase(iqCheckRepo, taskManager)
+	iqCheckUsecase := biz.NewIQCheckUsecase(iqCheckRepo, manager)
 	iqCheckService := service.NewIQCheckService(iqCheckUsecase)
 	oidcRepo := data.NewOIDCRepo(dataData)
 	oidcUsecase := biz.NewOIDCUsecase(oidcRepo, configRepo, userRepo)
 	oidcService := service.NewOIDCService(oidcUsecase)
-	taskUsecase := biz.NewTaskUsecase(taskManager, userRepo)
+	taskUsecase := biz.NewTaskUsecase(manager, userRepo)
 	taskService := service.NewTaskService(taskUsecase)
-	httpServer := server.NewHTTPServer(confServer, manager, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService)
+	httpServer := server.NewHTTPServer(confServer, avatarManager, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService)
 	nodeAgentService := service.NewNodeAgentService(nodeAgentUsecase)
 	grpcServer, err := server.NewGRPCServer(confServer, authorization, operationLogMiddleware, httpServer, nodeAgentUsecase, nodeAgentService, systemService, fileService, instanceService, dockerService, networkService, tunnelService, taskService, openSSHService)
 	if err != nil {

@@ -2,7 +2,7 @@
 <template>
   <AppDropdown align="end" :width="180">
     <template #trigger>
-      <AppIconButton icon="HOutline:GlobeAltIcon" :label="t('language.tooltip')" />
+      <AppIconButton icon="HOutline:GlobeAltIcon" :label="t('language.tooltip')" :box="box" />
     </template>
     <template #default="{ close }">
       <div class="lang-menu">
@@ -31,6 +31,8 @@
 import { languageOptions, setAppLocale } from '@/locales'
 import { useI18n } from 'vue-i18n'
 
+// box：触发按钮边长（默认 40；手机公开页传 44）
+withDefaults(defineProps<{ box?: number }>(), { box: 40 })
 const { locale, t } = useI18n()
 const menuStore = useMenuStore()
 

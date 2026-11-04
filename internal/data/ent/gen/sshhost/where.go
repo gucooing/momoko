@@ -145,6 +145,11 @@ func LastConnectAt(v time.Time) predicate.SSHHost {
 	return predicate.SSHHost(sql.FieldEQ(FieldLastConnectAt, v))
 }
 
+// KeyType applies equality check predicate on the "key_type" field. It's identical to KeyTypeEQ.
+func KeyType(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldKeyType, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.SSHHost {
 	return predicate.SSHHost(sql.FieldEQ(FieldCreateTime, v))
@@ -1068,6 +1073,91 @@ func LastConnectAtIsNil() predicate.SSHHost {
 // LastConnectAtNotNil applies the NotNil predicate on the "last_connect_at" field.
 func LastConnectAtNotNil() predicate.SSHHost {
 	return predicate.SSHHost(sql.FieldNotNull(FieldLastConnectAt))
+}
+
+// KeyTypeEQ applies the EQ predicate on the "key_type" field.
+func KeyTypeEQ(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEQ(FieldKeyType, v))
+}
+
+// KeyTypeNEQ applies the NEQ predicate on the "key_type" field.
+func KeyTypeNEQ(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNEQ(FieldKeyType, v))
+}
+
+// KeyTypeIn applies the In predicate on the "key_type" field.
+func KeyTypeIn(vs ...string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIn(FieldKeyType, vs...))
+}
+
+// KeyTypeNotIn applies the NotIn predicate on the "key_type" field.
+func KeyTypeNotIn(vs ...string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotIn(FieldKeyType, vs...))
+}
+
+// KeyTypeGT applies the GT predicate on the "key_type" field.
+func KeyTypeGT(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGT(FieldKeyType, v))
+}
+
+// KeyTypeGTE applies the GTE predicate on the "key_type" field.
+func KeyTypeGTE(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldGTE(FieldKeyType, v))
+}
+
+// KeyTypeLT applies the LT predicate on the "key_type" field.
+func KeyTypeLT(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLT(FieldKeyType, v))
+}
+
+// KeyTypeLTE applies the LTE predicate on the "key_type" field.
+func KeyTypeLTE(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldLTE(FieldKeyType, v))
+}
+
+// KeyTypeContains applies the Contains predicate on the "key_type" field.
+func KeyTypeContains(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldContains(FieldKeyType, v))
+}
+
+// KeyTypeHasPrefix applies the HasPrefix predicate on the "key_type" field.
+func KeyTypeHasPrefix(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldHasPrefix(FieldKeyType, v))
+}
+
+// KeyTypeHasSuffix applies the HasSuffix predicate on the "key_type" field.
+func KeyTypeHasSuffix(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldHasSuffix(FieldKeyType, v))
+}
+
+// KeyTypeIsNil applies the IsNil predicate on the "key_type" field.
+func KeyTypeIsNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIsNull(FieldKeyType))
+}
+
+// KeyTypeNotNil applies the NotNil predicate on the "key_type" field.
+func KeyTypeNotNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotNull(FieldKeyType))
+}
+
+// KeyTypeEqualFold applies the EqualFold predicate on the "key_type" field.
+func KeyTypeEqualFold(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldEqualFold(FieldKeyType, v))
+}
+
+// KeyTypeContainsFold applies the ContainsFold predicate on the "key_type" field.
+func KeyTypeContainsFold(v string) predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldContainsFold(FieldKeyType, v))
+}
+
+// QuickCommandsIsNil applies the IsNil predicate on the "quick_commands" field.
+func QuickCommandsIsNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldIsNull(FieldQuickCommands))
+}
+
+// QuickCommandsNotNil applies the NotNil predicate on the "quick_commands" field.
+func QuickCommandsNotNil() predicate.SSHHost {
+	return predicate.SSHHost(sql.FieldNotNull(FieldQuickCommands))
 }
 
 // HasOwner applies the HasEdge predicate on the "owner" edge.

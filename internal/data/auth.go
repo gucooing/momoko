@@ -8,7 +8,6 @@ import (
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
 	entauth "momoko/internal/data/ent/gen/session"
-	tokenauth "momoko/pkg/auth"
 	"momoko/pkg/cache"
 )
 
@@ -47,7 +46,8 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Se
 		SetLoginMethod(authInfo.LoginMethod).
 		SetAccessNoise(authInfo.AccessNoise).
 		SetRefreshNoise(authInfo.RefreshNoise).
-		SetExpiresAt(time.Now().Add(tokenauth.RefreshTokenTTL())).
+		SetPersistent(authInfo.Persistent).
+		SetExpiresAt(time.Now().Add(biz.SessionTTL(authInfo.Persistent))).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -56,12 +56,16 @@ func (ar *authRepo) CreateAuth(ctx context.Context, authInfo *biz.Auth) (*gen.Se
 	return authData, nil
 }
 
-// Refresh 续签同一会话行：只更新 noise 与 expires_at（now+有效期），不换 session_id。
+// Refresh 续签同一会话行：只更新 noise 与 expires_at（now+有效期，按会话是否保持登录），不换 session_id。
 func (ar *authRepo) Refresh(ctx context.Context, sessionID, accessNoise, refreshNoise string) (*gen.Session, error) {
+	current, err := ar.GetAuth(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
 	updated, err := ar.data.db.Session.UpdateOneID(sessionID).
 		SetAccessNoise(accessNoise).
 		SetRefreshNoise(refreshNoise).
-		SetExpiresAt(time.Now().Add(tokenauth.RefreshTokenTTL())).
+		SetExpiresAt(time.Now().Add(biz.SessionTTL(current.Persistent))).
 		Save(ctx)
 	if err != nil {
 		return nil, err

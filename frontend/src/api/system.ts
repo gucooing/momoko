@@ -11,6 +11,8 @@ import type {
   UpdateSiteConfigRequest,
   UpdateSiteConfigResponse,
   OperationLogStatsResponse,
+  UpdateOperationLogRetentionRequest,
+  UpdateOperationLogRetentionResponse,
   SystemOverviewResponse,
   SystemStatusRequest,
   SystemStatusResponse,
@@ -60,6 +62,11 @@ export const listEmailTemplates = () => {
 
 export const getOperationLogStats = () => {
   return request.get<OperationLogStatsResponse>('/system/operation-logs/stats')
+}
+
+// 操作记录保留策略（保留天数，0=永久保留；保存后立即清理一次超期记录）
+export const updateOperationLogRetention = (params: UpdateOperationLogRetentionRequest) => {
+  return request.put<UpdateOperationLogRetentionResponse>('/system/operation-logs/retention', params)
 }
 
 // 站点常规配置（站点名称 / 对外地址 / 默认语言 / 版本更新偏好 + 最近检查与最近修改）

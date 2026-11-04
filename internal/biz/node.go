@@ -9,6 +9,7 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	"momoko/pkg/constant"
 	"momoko/pkg/utils"
 )
 
@@ -25,12 +26,21 @@ type APIKeyStatusCounts struct {
 	Expired  int64
 }
 
+// APIKeyOwnerCount 所属用户及其 API Key 数量。
+type APIKeyOwnerCount struct {
+	User  *gen.User
+	Count int64
+}
+
 type APIKeyRepo interface {
 	CreateUserAPIKey(ctx context.Context, userID, name, remark, apiKey string, expiresAt *time.Time, permissions []string) (*gen.UserAPIKey, error)
 	GetUserAPIKey(ctx context.Context, userID, id string) (*gen.UserAPIKey, error)
 	GetAPIKeyByKeyID(ctx context.Context, keyID string) (*gen.UserAPIKey, error)
-	// ListUserAPIKeys 分页列出；status 为空表示全部，counts 按关键字统计（不受 status 影响）。
+	// ListUserAPIKeys 分页列出（userID 为空表示全部用户）；status 为空表示全部，counts 按关键字统计（不受 status 影响）。
 	ListUserAPIKeys(ctx context.Context, userID string, page, pageSize int64, keywords *string, status *v1.APIKeyStatus) ([]*gen.UserAPIKey, int64, *APIKeyStatusCounts, error)
+	// APIKeyOwners 全部 API Key 的所属用户及各自的密钥数。
+	APIKeyOwners(ctx context.Context) ([]*APIKeyOwnerCount, error)
+	// UpdateUserAPIKey / DeleteUserAPIKey 的 userID 为空表示不限所属用户。
 	UpdateUserAPIKey(ctx context.Context, userID, id string, name, remark *string, expiresAt *time.Time, clearExpiresAt *bool, permissions *[]string) (*gen.UserAPIKey, error)
 	// TouchAPIKeyUsed 记录最近一次被调用的时间与来源 IP（不改动 update_time）。
 	TouchAPIKeyUsed(ctx context.Context, id string, at time.Time, ip string) error
@@ -83,7 +93,7 @@ func (n *NodeUsecase) CreateAPIKey(ctx context.Context, userID string, req *v1.C
 
 		item, err := n.repo.CreateUserAPIKey(ctx, userID, req.Name, strings.TrimSpace(req.Remark), apiKey, expiration, permissions)
 		if err == nil {
-			return n.toAPIKeyInfo(item, true), nil
+			return n.toAPIKeyInfo(item, true, userID), nil
 		}
 		if !gen.IsConstraintError(err) {
 			return nil, ErrSystem(err)
@@ -93,7 +103,13 @@ func (n *NodeUsecase) CreateAPIKey(ctx context.Context, userID string, req *v1.C
 	return nil, ErrAPIKeyGenerate
 }
 
-func (n *NodeUsecase) ListAPIKeys(ctx context.Context, userID string, req *v1.ListAPIKeysRequest) ([]*v1.APIKeyInfo, int64, *APIKeyStatusCounts, error) {
+// canManageAllAPIKeys 当前用户是否可以查看 / 吊销 / 删除全部用户的 API Key。
+func (n *NodeUsecase) canManageAllAPIKeys(ctx context.Context) bool {
+	return n.system != nil && n.system.Check(ctx, constant.ApiKeyManage) == nil
+}
+
+// ListAPIKeys 默认只列出自己的密钥；all_users 时列出全部用户的密钥（需要 api_key:manage），并返回所属用户统计。
+func (n *NodeUsecase) ListAPIKeys(ctx context.Context, userID string, req *v1.ListAPIKeysRequest) ([]*v1.APIKeyInfo, int64, *APIKeyStatusCounts, []*v1.APIKeyOwnerStat, error) {
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -104,16 +120,36 @@ func (n *NodeUsecase) ListAPIKeys(ctx context.Context, userID string, req *v1.Li
 		req.PageSize = 100
 	}
 
-	items, total, counts, err := n.repo.ListUserAPIKeys(ctx, userID, req.Page, req.PageSize, req.Keywords, req.Status)
+	scope := userID
+	var owners []*v1.APIKeyOwnerStat
+	if req.AllUsers {
+		if !n.canManageAllAPIKeys(ctx) {
+			return nil, 0, nil, nil, ErrNoPermission
+		}
+		scope = ""
+		if req.OwnerId != nil {
+			scope = strings.TrimSpace(*req.OwnerId)
+		}
+		stats, err := n.repo.APIKeyOwners(ctx)
+		if err != nil {
+			return nil, 0, nil, nil, ErrSystem(err)
+		}
+		owners = make([]*v1.APIKeyOwnerStat, 0, len(stats))
+		for _, st := range stats {
+			owners = append(owners, &v1.APIKeyOwnerStat{Owner: toAPIKeyOwner(st.User), Count: st.Count})
+		}
+	}
+
+	items, total, counts, err := n.repo.ListUserAPIKeys(ctx, scope, req.Page, req.PageSize, req.Keywords, req.Status)
 	if err != nil {
-		return nil, 0, nil, ErrSystem(err)
+		return nil, 0, nil, nil, ErrSystem(err)
 	}
 
 	infos := make([]*v1.APIKeyInfo, 0, len(items))
 	for _, item := range items {
-		infos = append(infos, n.toAPIKeyInfo(item, false))
+		infos = append(infos, n.toAPIKeyInfo(item, false, userID))
 	}
-	return infos, total, counts, nil
+	return infos, total, counts, owners, nil
 }
 
 func (n *NodeUsecase) CopyAPIKey(ctx context.Context, userID string, req *v1.CopyAPIKeyRequest) (*v1.APIKeyInfo, error) {
@@ -124,7 +160,7 @@ func (n *NodeUsecase) CopyAPIKey(ctx context.Context, userID string, req *v1.Cop
 		}
 		return nil, ErrAPIKeyNotFound
 	}
-	return n.toAPIKeyInfo(item, true), nil
+	return n.toAPIKeyInfo(item, true, userID), nil
 }
 
 func (n *NodeUsecase) UpdateAPIKey(ctx context.Context, userID string, req *v1.UpdateAPIKeyRequest) (*v1.APIKeyInfo, error) {
@@ -147,9 +183,14 @@ func (n *NodeUsecase) UpdateAPIKey(ctx context.Context, userID string, req *v1.U
 		}
 		permissions = &normalized
 	}
+	// 管理全部 API Key 时可以吊销 / 延期他人的密钥
+	scope := userID
+	if n.canManageAllAPIKeys(ctx) {
+		scope = ""
+	}
 	item, err := n.repo.UpdateUserAPIKey(
 		ctx,
-		userID,
+		scope,
 		req.Id,
 		req.Name,
 		remark,
@@ -163,7 +204,7 @@ func (n *NodeUsecase) UpdateAPIKey(ctx context.Context, userID string, req *v1.U
 		}
 		return nil, ErrAPIKeyNotFound
 	}
-	return n.toAPIKeyInfo(item, false), nil
+	return n.toAPIKeyInfo(item, false, userID), nil
 }
 
 func (n *NodeUsecase) RefreshAPIKey(ctx context.Context, userID string, req *v1.RefreshAPIKeyRequest) (*v1.APIKeyInfo, error) {
@@ -175,7 +216,7 @@ func (n *NodeUsecase) RefreshAPIKey(ctx context.Context, userID string, req *v1.
 
 		item, err := n.repo.RefreshUserAPIKey(ctx, userID, req.Id, apiKey)
 		if err == nil {
-			return n.toAPIKeyInfo(item, true), nil
+			return n.toAPIKeyInfo(item, true, userID), nil
 		}
 		if gen.IsNotFound(err) {
 			return nil, ErrAPIKeyNotFound
@@ -189,7 +230,11 @@ func (n *NodeUsecase) RefreshAPIKey(ctx context.Context, userID string, req *v1.
 }
 
 func (n *NodeUsecase) DeleteAPIKey(ctx context.Context, userID string, req *v1.DeleteAPIKeyRequest) error {
-	if err := n.repo.DeleteUserAPIKey(ctx, userID, req.Id); err != nil {
+	scope := userID
+	if n.canManageAllAPIKeys(ctx) {
+		scope = ""
+	}
+	if err := n.repo.DeleteUserAPIKey(ctx, scope, req.Id); err != nil {
 		if gen.IsNotFound(err) {
 			return ErrAPIKeyNotFound
 		}
@@ -198,8 +243,18 @@ func (n *NodeUsecase) DeleteAPIKey(ctx context.Context, userID string, req *v1.D
 	return nil
 }
 
-func (n *NodeUsecase) toAPIKeyInfo(item *gen.UserAPIKey, includeSecret bool) *v1.APIKeyInfo {
+func toAPIKeyOwner(u *gen.User) *v1.APIKeyOwner {
+	if u == nil {
+		return nil
+	}
+	return &v1.APIKeyOwner{UserId: u.ID, Name: u.Name, Username: u.Username, Avatar: u.Avatar}
+}
+
+// toAPIKeyInfo callerID 为当前用户，用于标记是否自己的密钥。
+func (n *NodeUsecase) toAPIKeyInfo(item *gen.UserAPIKey, includeSecret bool, callerID string) *v1.APIKeyInfo {
 	info := &v1.APIKeyInfo{
+		Owner:       toAPIKeyOwner(item.Edges.User),
+		Mine:        item.UserID == callerID,
 		Id:          item.ID,
 		Name:        item.Name,
 		CreateTime:  timestamppb.New(item.CreateTime),

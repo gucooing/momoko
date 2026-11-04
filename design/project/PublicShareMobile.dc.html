@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>公开分享页 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--s);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.98)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;flex:none}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.k-warn{background:var(--warnSoft);color:var(--warn)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.sticker{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border-radius:999px;font-size:13px;font-weight:800;white-space:nowrap}
+.fl{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:700;color:var(--ink)}
+.fld{display:flex;align-items:center;gap:12px;min-height:60px;padding:0 16px;border-radius:18px;background:var(--s2);border:1.5px solid transparent;color:var(--ink2)}
+.fld:focus-within{border-color:var(--p);background:var(--s)}
+.fld input{flex:1;min-width:0;height:56px;border:0;background:transparent;font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-size:24px;font-weight:800;letter-spacing:.4em;color:var(--ink);outline:none}
+.fld input::placeholder{font-family:'Outfit','PingFang SC',sans-serif;color:var(--ink2);font-size:16px;font-weight:500;letter-spacing:0}
+.crumb{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:0;background:var(--s2);color:var(--ink2);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
+.crumb-on{background:var(--pSoft);color:var(--pInk)}
+.frow{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:6px 4px 6px 4px;border:0;background:transparent;font:inherit;color:var(--ink);text-align:left}
+.frow + .frow{border-top:1px solid var(--line)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <section style="background: var(--p); color: var(--pOn); padding: 18px 20px 58px; position: relative; overflow: hidden; flex: none">
+    <div aria-hidden="true" style="position: absolute; right: -70px; top: -80px; width: 220px; height: 220px; border-radius: 50%; background: var(--a)"></div>
+    <div aria-hidden="true" style="position: absolute; right: 36px; bottom: 6px; width: 64px; height: 64px; border-radius: 50%; border: 11px solid var(--a2)"></div>
+    <div style="position: relative; display: flex; align-items: center; gap: 10px">
+      <div style="width: 38px; height: 38px; border-radius: 12px; background: var(--pOn); color: var(--p); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 20px; font-weight: 800">Momoko</span>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}" style="color: var(--aOn); background: var(--aSoft)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    </div>
+    <div style="position: relative; display: flex; align-items: center; gap: 8px; margin-top: 22px; font-size: 14px; font-weight: 600">
+      <span class="av" style="width: 30px; height: 30px; border-radius: 50%; background: var(--a); color: var(--aOn); font-size: 13px">超</span>
+      <span><b>超级管理员</b> 给你分享了</span>
+    </div>
+    <h1 style="position: relative; margin: 10px 0 0; font-size: 32px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em">blog 素材 2026</h1>
+    <div style="position: relative; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; max-width: 300px">
+      <span class="sticker num" style="background: var(--pOn); color: var(--p); transform: rotate(-3deg)">14 个文件 · 1.36 GB</span>
+      <span class="sticker num" style="background: var(--ink); color: var(--bg); transform: rotate(3deg)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.clock}}"></path></svg>还剩 7 天</span>
+      <span class="sticker num" style="background: var(--a2); color: #FFFFFF; transform: rotate(-2deg)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>剩 38 / 50 次</span>
+    </div>
+  </section>
+
+  <section style="flex: 1; min-height: 0; margin-top: -32px; background: var(--s); border-radius: 30px 30px 0 0; position: relative; display: flex; flex-direction: column">
+    <sc-if value="{{locked}}" hint-placeholder-val="{{true}}">
+      <form style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 26px 20px 28px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span class="av av-a" style="width: 48px; height: 48px; border-radius: 16px; transform: rotate(-6deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.lock}}"></path></svg></span>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <h2 style="margin: 0; font-size: 24px; font-weight: 800">输入提取码</h2>
+            <span style="font-size: 13px; color: var(--ink2)">4 位，通常和链接一起发给你</span>
+          </div>
+        </div>
+        <label class="fl">提取码
+          <span class="fld"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.key}}"></path></svg><input type="text" maxlength="4" autocomplete="off" placeholder="4 位字母或数字"></span>
+        </label>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink2)">
+          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.shield}}"></path></svg>
+          输错 5 次后需要等待 10 分钟
+        </div>
+        <span style="flex: 1"></span>
+        <div class="mono" style="text-align: center; font-size: 12px; color: var(--ink2)">momoko.example.com/s/Xa9fK2</div>
+        <button type="button" class="btn btn-p" onClick="{{unlock}}" style="min-height: 56px; font-size: 16px">进入<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+      </form>
+    </sc-if>
+
+    <sc-if value="{{unlocked}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; align-items: center; gap: 6px; padding: 18px 12px 6px 16px">
+        <nav class="hs" aria-label="当前位置" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow-x: auto">
+          <button class="crumb {{rootCls}}" onClick="{{goRoot}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg>全部</button>
+          <sc-if value="{{inSub}}" hint-placeholder-val="{{false}}">
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2); flex: none"><path d="{{i.chevR}}"></path></svg>
+            <button class="crumb crumb-on">{{subName}}</button>
+          </sc-if>
+        </nav>
+        <span class="num" style="font-size: 12px; font-weight: 700; color: var(--ink2); white-space: nowrap">{{countT}}</span>
+        <button class="ib" aria-label="退出此分享" onClick="{{relock}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.lock}}"></path></svg></button>
+      </div>
+      <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding: 0 12px 12px 16px">
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+          <div class="frow">
+            <button onClick="{{r.open}}" aria-label="{{r.openT}}" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0; border: 0; background: transparent; font: inherit; color: var(--ink); text-align: left; cursor: pointer">
+              <span class="av {{r.av}}" style="width: 42px; height: 42px; border-radius: 14px; transform: rotate({{r.rot}})"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.n}}</span>
+                <span class="num" style="font-size: 12px; color: var(--ink2)">{{r.sizeT}} · {{r.mShort}}</span>
+              </span>
+            </button>
+            <sc-if value="{{r.isDir}}" hint-placeholder-val="{{false}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2); margin-right: 12px"><path d="{{i.chevR}}"></path></svg>
+            </sc-if>
+            <sc-if value="{{r.isFile}}" hint-placeholder-val="{{true}}">
+              <button class="ib" aria-label="下载 {{r.n}}" style="background: var(--pSoft); color: var(--pInk); border-radius: 50%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg></button>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex: none; padding: 12px 16px 24px; border-top: 1px solid var(--line); background: var(--s); display: flex; flex-direction: column; gap: 8px">
+        <button class="btn btn-p" style="min-height: 56px; font-size: 16px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.archive}}"></path></svg>全部下载 · ZIP <span class="num">1.36 GB</span></button>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.zap}}"></path></svg>由存储节点直接下载 · 每次下载计 1 次</div>
+      </div>
+    </sc-if>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  key: 'M14.5 3a6.5 6.5 0 1 1-4.6 11.1L8 16H6v2H4v2H2v-3.4l6.9-6.9A6.5 6.5 0 0 1 14.5 3zM16 7.5h.01',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  chevR: 'M9 6l6 6-6 6',
+  zap: 'M13 2 4 14h7l-1 8 9-12h-7z',
+  fileText: 'M6 3h8l5 5v13H6zM14 3v5h5M9 13h6M9 17h6',
+  image: 'M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5M15 8.5h.01',
+  video: 'M3 6h13v12H3zM16 10l5-3v10l-5-3',
+  archive: 'M4 4h16v4H4zM5 8v12h14V8M10 12h4'
+};
+const KIND = { dir: [IC.folder, 'av-a'], doc: [IC.fileText, 'av-a2'], img: [IC.image, 'av-ok'], video: [IC.video, 'av-p'], zip: [IC.archive, 'k-warn'] };
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+const TREE = [
+  { id: 1, n: '封面图', k: 'dir', sub: '4 个文件', m: '2026-11-02 21:40', kids: [
+    { id: 11, n: 'cover-autumn.png', k: 'img', size: '2.1 MB', m: '2026-10-08 12:30' },
+    { id: 12, n: 'cover-winter.png', k: 'img', size: '1.9 MB', m: '2026-11-02 21:40' },
+    { id: 13, n: 'cover-tech.jpg', k: 'img', size: '860 KB', m: '2026-09-19 16:05' },
+    { id: 14, n: 'cover-draft.psd', k: 'doc', size: '96.4 MB', m: '2026-11-01 23:12' }
+  ] },
+  { id: 2, n: '截图', k: 'dir', sub: '4 个文件', m: '2026-11-03 09:58', kids: [
+    { id: 21, n: 'dashboard-light.png', k: 'img', size: '1.2 MB', m: '2026-11-03 09:58' },
+    { id: 22, n: 'dashboard-dark.png', k: 'img', size: '1.3 MB', m: '2026-11-03 09:58' },
+    { id: 23, n: 'files-pc.png', k: 'img', size: '980 KB', m: '2026-11-03 09:40' },
+    { id: 24, n: 'mobile-set.zip', k: 'zip', size: '24.6 MB', m: '2026-11-03 09:45' }
+  ] },
+  { id: 3, n: '演示视频-剪辑版.mp4', k: 'video', size: '812 MB', m: '2026-10-30 22:16' },
+  { id: 4, n: '字体包.zip', k: 'zip', size: '386 MB', m: '2026-10-12 10:20' },
+  { id: 5, n: '配色方案.pdf', k: 'doc', size: '2.4 MB', m: '2026-10-28 14:02' },
+  { id: 6, n: '文章草稿.md', k: 'doc', size: '18 KB', m: '2026-11-03 08:31' },
+  { id: 7, n: '素材清单.xlsx', k: 'doc', size: '32 KB', m: '2026-11-01 19:44' },
+  { id: 8, n: 'logo-momoko.svg', k: 'img', size: '12 KB', m: '2026-09-02 11:00' }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const unlocked = !!st.unlocked;
+    const subId = st.sub || 0;
+    const sub = TREE.find((t) => t.id === subId);
+    const list = sub ? sub.kids : TREE;
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      locked: !unlocked,
+      unlocked,
+      unlock: () => this.setState({ unlocked: true }),
+      relock: () => this.setState({ unlocked: false, sub: 0 }),
+      inSub: !!sub,
+      subName: sub ? sub.n : '',
+      rootCls: sub ? '' : 'crumb-on',
+      goRoot: () => this.setState({ sub: 0 }),
+      countT: sub ? sub.sub : '2 个文件夹 · 6 个文件',
+      rows: list.map((f) => {
+        const isDir = f.k === 'dir';
+        return {
+          ...f,
+          d: KIND[f.k][0], av: KIND[f.k][1], rot: ROTS[f.id % 4],
+          isDir, isFile: !isDir,
+          openT: isDir ? '打开 ' + f.n : '预览 ' + f.n,
+          sizeT: isDir ? f.sub : f.size,
+          mShort: f.m.slice(5),
+          open: () => { if (isDir) this.setState({ sub: f.id }); }
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

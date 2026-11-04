@@ -211,6 +211,20 @@ func (_u *FileUploadUpdate) SetNillableProviderRef(v *string) *FileUploadUpdate 
 	return _u
 }
 
+// SetBufferLocal sets the "buffer_local" field.
+func (_u *FileUploadUpdate) SetBufferLocal(v bool) *FileUploadUpdate {
+	_u.mutation.SetBufferLocal(v)
+	return _u
+}
+
+// SetNillableBufferLocal sets the "buffer_local" field if the given value is not nil.
+func (_u *FileUploadUpdate) SetNillableBufferLocal(v *bool) *FileUploadUpdate {
+	if v != nil {
+		_u.SetBufferLocal(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FileUploadUpdate) SetUser(v *User) *FileUploadUpdate {
 	return _u.SetUserID(v.ID)
@@ -360,6 +374,9 @@ func (_u *FileUploadUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.ProviderRef(); ok {
 		_spec.SetField(fileupload.FieldProviderRef, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BufferLocal(); ok {
+		_spec.SetField(fileupload.FieldBufferLocal, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -636,6 +653,20 @@ func (_u *FileUploadUpdateOne) SetNillableProviderRef(v *string) *FileUploadUpda
 	return _u
 }
 
+// SetBufferLocal sets the "buffer_local" field.
+func (_u *FileUploadUpdateOne) SetBufferLocal(v bool) *FileUploadUpdateOne {
+	_u.mutation.SetBufferLocal(v)
+	return _u
+}
+
+// SetNillableBufferLocal sets the "buffer_local" field if the given value is not nil.
+func (_u *FileUploadUpdateOne) SetNillableBufferLocal(v *bool) *FileUploadUpdateOne {
+	if v != nil {
+		_u.SetBufferLocal(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FileUploadUpdateOne) SetUser(v *User) *FileUploadUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -815,6 +846,9 @@ func (_u *FileUploadUpdateOne) sqlSave(ctx context.Context) (_node *FileUpload, 
 	}
 	if value, ok := _u.mutation.ProviderRef(); ok {
 		_spec.SetField(fileupload.FieldProviderRef, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BufferLocal(); ok {
+		_spec.SetField(fileupload.FieldBufferLocal, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

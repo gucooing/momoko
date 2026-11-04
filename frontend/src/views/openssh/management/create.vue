@@ -132,6 +132,18 @@
         <span class="ssh-form__hint">{{ t('ssh.form.groupTagsHint') }}</span>
       </div>
 
+      <div class="app-field ssh-form__full">
+        <label class="app-label">{{ t('ssh.form.quickCommands') }}</label>
+        <textarea
+          v-model="form.quickCommands"
+          class="app-textarea m-mono"
+          rows="3"
+          spellcheck="false"
+          :placeholder="t('ssh.form.quickCommandsPlaceholder')"
+        />
+        <span class="ssh-form__hint">{{ t('ssh.form.quickCommandsHint') }}</span>
+      </div>
+
       <!-- 分享对象是本机用户，远程节点上下文不提供 -->
       <div v-if="!nodeStore.isRemote" class="app-field ssh-form__full">
         <label class="app-label">{{ t('ssh.common.sharedUsers') }}</label>
@@ -160,7 +172,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { createSshHost, updateSshHost, testSshHost } from '@/api/openssh'
+import { createSshHost, updateSshHost, testSshHost, shareSshHost } from '@/api/openssh'
 import {
   SSHAuthType,
   type SSHHostInfo,
@@ -193,9 +205,17 @@ const defaultForm = () => ({
   passphrase: '',
   fingerprint: '',
   tags: '',
+  /** 快捷命令：每行一条 */
+  quickCommands: '',
   sharedUserIds: [] as string[],
   remark: '',
 })
+
+const splitCommands = (text: string) =>
+  text
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean)
 
 const form = ref(defaultForm())
 const originalForm = ref(defaultForm())
@@ -285,7 +305,7 @@ const confirm = async () => {
       // patch: 仅提交变更字段
       const patch: Record<string, unknown> = { id: editingId.value }
       const tracked: (keyof typeof form.value)[] = [
-        'name', 'host', 'port', 'username', 'authType', 'fingerprint', 'tags', 'remark', 'sharedUserIds',
+        'name', 'host', 'port', 'username', 'authType', 'fingerprint', 'tags', 'remark',
       ]
       for (const key of tracked) {
         if (JSON.stringify(form.value[key]) !== JSON.stringify(originalForm.value[key])) {
@@ -302,7 +322,17 @@ const confirm = async () => {
         if (form.value.passphrase) patch.passphrase = form.value.passphrase
         if (!patch.authType) patch.authType = form.value.authType
       }
+      if (form.value.quickCommands !== originalForm.value.quickCommands) {
+        patch.quickCommands = { items: splitCommands(form.value.quickCommands) }
+      }
       await updateSshHost(patch as unknown as UpdateSSHHostRequest)
+      // 分享用户走分享接口（更新接口不含分享字段）
+      if (
+        !nodeStore.isRemote &&
+        JSON.stringify([...form.value.sharedUserIds].sort()) !== JSON.stringify([...originalForm.value.sharedUserIds].sort())
+      ) {
+        await shareSshHost({ id: editingId.value, userIds: form.value.sharedUserIds })
+      }
     } else {
       await createSshHost({
         name: form.value.name,
@@ -317,6 +347,7 @@ const confirm = async () => {
         tags: form.value.tags,
         remark: form.value.remark,
         sharedUserIds: form.value.sharedUserIds,
+        quickCommands: splitCommands(form.value.quickCommands),
       })
     }
     feedback.success(editingId.value ? t('ssh.common.editSuccess') : t('ssh.common.addSuccess'))
@@ -351,6 +382,7 @@ const showDialog = (payload?: SSHHostInfo) => {
     passphrase: '',
     fingerprint: payload.fingerprint || '',
     tags: payload.tags || '',
+    quickCommands: (payload.quickCommands || []).join('\n'),
     sharedUserIds: payload.sharedUsers?.map((user) => user.userId) || [],
     remark: payload.remark || '',
   }

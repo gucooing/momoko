@@ -19,6 +19,8 @@ const (
 	ConfigUpdateAutoCheck     ConfigKey = "update.auto_check"
 	ConfigUpdateChannel       ConfigKey = "update.channel"
 	ConfigUpdateLastCheck     ConfigKey = "update.last_check"
+	// ConfigAuditRetentionDays 操作记录保留天数（0=永久保留）。
+	ConfigAuditRetentionDays ConfigKey = "audit.retention_days"
 
 	ConfigOIDCEnabled                     ConfigKey = "oidc.enabled"
 	ConfigOIDCIssuerURL                   ConfigKey = "oidc.issuer_url"
@@ -84,6 +86,7 @@ var configDefaults = map[ConfigKey]string{
 	ConfigUpdateAutoCheck:     "true",
 	ConfigUpdateChannel:       "UpdateChannel_Stable",
 	ConfigUpdateLastCheck:     "",
+	ConfigAuditRetentionDays:  "180",
 
 	ConfigOIDCEnabled:                     "false",
 	ConfigOIDCIssuerURL:                   "",

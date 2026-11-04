@@ -15,3 +15,6 @@ export interface EnvRow {
   key: string
   value: string
 }
+
+/** 主机路径：绝对 / 相对路径、家目录或 Windows 盘符；否则视为命名卷 */
+export const isHostPath = (value: string) => /^([/.~]|[a-zA-Z]:[\\/])/.test(value)

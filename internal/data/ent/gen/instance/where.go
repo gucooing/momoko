@@ -125,6 +125,21 @@ func StopTimeout(v int32) predicate.Instance {
 	return predicate.Instance(sql.FieldEQ(FieldStopTimeout, v))
 }
 
+// Maintenance applies equality check predicate on the "maintenance" field. It's identical to MaintenanceEQ.
+func Maintenance(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldMaintenance, v))
+}
+
+// MaintenanceTime applies equality check predicate on the "maintenance_time" field. It's identical to MaintenanceTimeEQ.
+func MaintenanceTime(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldMaintenanceTime, v))
+}
+
+// LastStopTime applies equality check predicate on the "last_stop_time" field. It's identical to LastStopTimeEQ.
+func LastStopTime(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldLastStopTime, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Instance {
 	return predicate.Instance(sql.FieldEQ(FieldCreateTime, v))
@@ -693,6 +708,126 @@ func EnvIsNil() predicate.Instance {
 // EnvNotNil applies the NotNil predicate on the "env" field.
 func EnvNotNil() predicate.Instance {
 	return predicate.Instance(sql.FieldNotNull(FieldEnv))
+}
+
+// SecretEnvKeysIsNil applies the IsNil predicate on the "secret_env_keys" field.
+func SecretEnvKeysIsNil() predicate.Instance {
+	return predicate.Instance(sql.FieldIsNull(FieldSecretEnvKeys))
+}
+
+// SecretEnvKeysNotNil applies the NotNil predicate on the "secret_env_keys" field.
+func SecretEnvKeysNotNil() predicate.Instance {
+	return predicate.Instance(sql.FieldNotNull(FieldSecretEnvKeys))
+}
+
+// MaintenanceEQ applies the EQ predicate on the "maintenance" field.
+func MaintenanceEQ(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldMaintenance, v))
+}
+
+// MaintenanceNEQ applies the NEQ predicate on the "maintenance" field.
+func MaintenanceNEQ(v bool) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldMaintenance, v))
+}
+
+// MaintenanceTimeEQ applies the EQ predicate on the "maintenance_time" field.
+func MaintenanceTimeEQ(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldMaintenanceTime, v))
+}
+
+// MaintenanceTimeNEQ applies the NEQ predicate on the "maintenance_time" field.
+func MaintenanceTimeNEQ(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldMaintenanceTime, v))
+}
+
+// MaintenanceTimeIn applies the In predicate on the "maintenance_time" field.
+func MaintenanceTimeIn(vs ...time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldIn(FieldMaintenanceTime, vs...))
+}
+
+// MaintenanceTimeNotIn applies the NotIn predicate on the "maintenance_time" field.
+func MaintenanceTimeNotIn(vs ...time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldNotIn(FieldMaintenanceTime, vs...))
+}
+
+// MaintenanceTimeGT applies the GT predicate on the "maintenance_time" field.
+func MaintenanceTimeGT(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldGT(FieldMaintenanceTime, v))
+}
+
+// MaintenanceTimeGTE applies the GTE predicate on the "maintenance_time" field.
+func MaintenanceTimeGTE(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldGTE(FieldMaintenanceTime, v))
+}
+
+// MaintenanceTimeLT applies the LT predicate on the "maintenance_time" field.
+func MaintenanceTimeLT(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldLT(FieldMaintenanceTime, v))
+}
+
+// MaintenanceTimeLTE applies the LTE predicate on the "maintenance_time" field.
+func MaintenanceTimeLTE(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldLTE(FieldMaintenanceTime, v))
+}
+
+// MaintenanceTimeIsNil applies the IsNil predicate on the "maintenance_time" field.
+func MaintenanceTimeIsNil() predicate.Instance {
+	return predicate.Instance(sql.FieldIsNull(FieldMaintenanceTime))
+}
+
+// MaintenanceTimeNotNil applies the NotNil predicate on the "maintenance_time" field.
+func MaintenanceTimeNotNil() predicate.Instance {
+	return predicate.Instance(sql.FieldNotNull(FieldMaintenanceTime))
+}
+
+// LastStopTimeEQ applies the EQ predicate on the "last_stop_time" field.
+func LastStopTimeEQ(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldEQ(FieldLastStopTime, v))
+}
+
+// LastStopTimeNEQ applies the NEQ predicate on the "last_stop_time" field.
+func LastStopTimeNEQ(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldNEQ(FieldLastStopTime, v))
+}
+
+// LastStopTimeIn applies the In predicate on the "last_stop_time" field.
+func LastStopTimeIn(vs ...time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldIn(FieldLastStopTime, vs...))
+}
+
+// LastStopTimeNotIn applies the NotIn predicate on the "last_stop_time" field.
+func LastStopTimeNotIn(vs ...time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldNotIn(FieldLastStopTime, vs...))
+}
+
+// LastStopTimeGT applies the GT predicate on the "last_stop_time" field.
+func LastStopTimeGT(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldGT(FieldLastStopTime, v))
+}
+
+// LastStopTimeGTE applies the GTE predicate on the "last_stop_time" field.
+func LastStopTimeGTE(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldGTE(FieldLastStopTime, v))
+}
+
+// LastStopTimeLT applies the LT predicate on the "last_stop_time" field.
+func LastStopTimeLT(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldLT(FieldLastStopTime, v))
+}
+
+// LastStopTimeLTE applies the LTE predicate on the "last_stop_time" field.
+func LastStopTimeLTE(v time.Time) predicate.Instance {
+	return predicate.Instance(sql.FieldLTE(FieldLastStopTime, v))
+}
+
+// LastStopTimeIsNil applies the IsNil predicate on the "last_stop_time" field.
+func LastStopTimeIsNil() predicate.Instance {
+	return predicate.Instance(sql.FieldIsNull(FieldLastStopTime))
+}
+
+// LastStopTimeNotNil applies the NotNil predicate on the "last_stop_time" field.
+func LastStopTimeNotNil() predicate.Instance {
+	return predicate.Instance(sql.FieldNotNull(FieldLastStopTime))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

@@ -16,6 +16,8 @@ import type {
   UserInfoRequest,
   UpdateMeRequest,
   UpdateMeResponse,
+  UpdateMyAppearanceRequest,
+  UpdateMyAppearanceResponse,
   UserInfoResponse,
 } from '@/types/v1/user'
 
@@ -51,6 +53,11 @@ export const resetUserPassword = (data: ResetUserPasswordRequest) => {
 
 export const updateMeRequest = (data: UpdateMeRequest) => {
   return request.put<UpdateMeResponse>('/auth/me', data)
+}
+
+// 外观偏好跟随账号同步（不记操作日志）
+export const updateMyAppearanceRequest = (data: UpdateMyAppearanceRequest) => {
+  return request.put<UpdateMyAppearanceResponse>('/user/me/appearance', data)
 }
 
 export const updatePasswordRequest = (data: UpdatePasswordRequest) => {

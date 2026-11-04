@@ -32,6 +32,23 @@ export enum IQCheckResultStatus {
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
+/** 提示词分类（决定列表里的图标与分类名） */
+export enum IQCheckPromptCategory {
+  /** IQ_CHECK_PROMPT_CATEGORY_OTHER - 其他 / 未分类 */
+  IQ_CHECK_PROMPT_CATEGORY_OTHER = "IQ_CHECK_PROMPT_CATEGORY_OTHER",
+  /** IQ_CHECK_PROMPT_CATEGORY_LOGIC - 逻辑推理 */
+  IQ_CHECK_PROMPT_CATEGORY_LOGIC = "IQ_CHECK_PROMPT_CATEGORY_LOGIC",
+  /** IQ_CHECK_PROMPT_CATEGORY_MATH - 数学 */
+  IQ_CHECK_PROMPT_CATEGORY_MATH = "IQ_CHECK_PROMPT_CATEGORY_MATH",
+  /** IQ_CHECK_PROMPT_CATEGORY_CODING - 编程 */
+  IQ_CHECK_PROMPT_CATEGORY_CODING = "IQ_CHECK_PROMPT_CATEGORY_CODING",
+  /** IQ_CHECK_PROMPT_CATEGORY_DRAWING - 画图（SVG / HTML 等可渲染输出） */
+  IQ_CHECK_PROMPT_CATEGORY_DRAWING = "IQ_CHECK_PROMPT_CATEGORY_DRAWING",
+  /** IQ_CHECK_PROMPT_CATEGORY_WRITING - 写作 */
+  IQ_CHECK_PROMPT_CATEGORY_WRITING = "IQ_CHECK_PROMPT_CATEGORY_WRITING",
+  UNRECOGNIZED = "UNRECOGNIZED",
+}
+
 /** 站点健康状态 */
 export enum IQCheckSiteHealth {
   /** IQ_CHECK_SITE_HEALTH_UNSPECIFIED - 从未检测 */
@@ -51,8 +68,10 @@ export enum IQCheckSiteFilter {
   IQ_CHECK_SITE_FILTER_ALL = "IQ_CHECK_SITE_FILTER_ALL",
   /** IQ_CHECK_SITE_FILTER_HEALTHY - 最近一轮全部成功 */
   IQ_CHECK_SITE_FILTER_HEALTHY = "IQ_CHECK_SITE_FILTER_HEALTHY",
-  /** IQ_CHECK_SITE_FILTER_FAILING - 最近一轮有失败 */
-  IQ_CHECK_SITE_FILTER_FAILING = "IQ_CHECK_SITE_FILTER_FAILING",
+  /** IQ_CHECK_SITE_FILTER_PARTIAL - 最近一轮部分模型失败 */
+  IQ_CHECK_SITE_FILTER_PARTIAL = "IQ_CHECK_SITE_FILTER_PARTIAL",
+  /** IQ_CHECK_SITE_FILTER_FAILED - 最近一轮全部失败 */
+  IQ_CHECK_SITE_FILTER_FAILED = "IQ_CHECK_SITE_FILTER_FAILED",
   /** IQ_CHECK_SITE_FILTER_DISABLED - 未启用定时检测 */
   IQ_CHECK_SITE_FILTER_DISABLED = "IQ_CHECK_SITE_FILTER_DISABLED",
   /** IQ_CHECK_SITE_FILTER_NEVER - 从未检测 */
@@ -68,7 +87,7 @@ export interface IQCheckPromptInfo {
   title: string;
   /** 提示词内容 */
   content: string;
-  /** 是否启用；只有启用的提示词会被随机选中 */
+  /** 是否启用；每轮检测会把全部启用的提示词逐个发给模型 */
   enabled: boolean;
   /** 排序，越小越靠前 */
   order: number;
@@ -88,6 +107,12 @@ export interface IQCheckPromptInfo {
     | undefined;
   /** 被检测使用过的站点数 */
   siteCount: number;
+  /** 分类 */
+  category: IQCheckPromptCategory;
+  /** 评分方式说明（如「步骤正确性」「渲染后人工比对」）；为空表示未填写 */
+  grading: string;
+  /** 使用该提示词的检测中，上游返回的平均输入 token 数；没有用量数据时为 0 */
+  avgInputTokens: number;
 }
 
 /** 获取提示词列表请求 */
@@ -126,6 +151,10 @@ export interface CreateIQCheckPromptRequest {
   enabled: boolean;
   /** 排序 */
   order: number;
+  /** 分类 */
+  category: IQCheckPromptCategory;
+  /** 评分方式说明，最多 64 个字符 */
+  grading: string;
 }
 
 /** 创建提示词响应 */
@@ -146,6 +175,10 @@ export interface UpdateIQCheckPromptRequest {
   enabled: boolean;
   /** 排序 */
   order: number;
+  /** 分类 */
+  category: IQCheckPromptCategory;
+  /** 评分方式说明，最多 64 个字符 */
+  grading: string;
 }
 
 /** 更新提示词响应 */
@@ -226,9 +259,11 @@ export interface IQCheckSiteInfo {
   resultCount: number;
   /** 站点健康状态 */
   health: IQCheckSiteHealth;
+  /** 最近一条成功结果的检测时间；从未成功时为空 */
+  lastSuccessAt: Date | undefined;
 }
 
-/** 一轮检测的汇总 */
+/** 一轮检测的汇总；一轮会把全部启用的提示词逐个发给站点的每个模型，每个「模型 × 提示词」产生一条结果 */
 export interface IQCheckRoundSummary {
   /** 轮次编号 */
   roundId: string;
@@ -236,16 +271,18 @@ export interface IQCheckRoundSummary {
   requestAt:
     | Date
     | undefined;
-  /** 成功的模型数 */
+  /** 成功的结果数 */
   success: number;
-  /** 失败的模型数 */
+  /** 失败的结果数 */
   failed: number;
   /** 成功结果的平均耗时（毫秒） */
   avgDurationMs: number;
   /** 第一条失败原因 */
   error: string;
-  /** 提示词标题 */
+  /** 本轮随机抽到的提示词标题 */
   promptTitle: string;
+  /** 本轮参与的模型数（模型 + 推理强度去重） */
+  modelCount: number;
 }
 
 /** 站点统计（不受筛选影响） */
@@ -254,8 +291,10 @@ export interface IQCheckSiteStats {
   total: number;
   /** 最近一轮全部成功 */
   healthy: number;
-  /** 最近一轮有失败 */
-  failing: number;
+  /** 最近一轮部分模型失败 */
+  partial: number;
+  /** 最近一轮全部失败 */
+  failed: number;
   /** 未启用定时检测 */
   disabled: number;
   /** 从未检测 */
@@ -430,14 +469,10 @@ export interface IQCheckResultInfo {
   requestAt: Date | undefined;
 }
 
-/** 公开页站点信息 */
+/** 公开页站点信息；不含 API Key 与接口地址 */
 export interface PublicIQCheckSiteInfo {
   /** 名称 */
   name: string;
-  /** 站点接口地址（端点） */
-  endpoint: string;
-  /** 协议 */
-  protocol: IQCheckProtocol;
   /** 检测的模型 */
   models: IQCheckModelConfig[];
   /** 检测间隔，单位分钟 */
@@ -452,6 +487,8 @@ export interface PublicIQCheckSiteInfo {
     | undefined;
   /** 是否启用定时检测 */
   enabled: boolean;
+  /** 最近一轮检测汇总；从未检测时为空 */
+  lastRound: IQCheckRoundSummary | undefined;
 }
 
 /** 公开页检测统计 */

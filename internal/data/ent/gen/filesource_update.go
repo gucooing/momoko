@@ -188,6 +188,48 @@ func (_u *FileSourceUpdate) ClearLastTestTime() *FileSourceUpdate {
 	return _u
 }
 
+// SetLastTestUsedBytes sets the "last_test_used_bytes" field.
+func (_u *FileSourceUpdate) SetLastTestUsedBytes(v uint64) *FileSourceUpdate {
+	_u.mutation.ResetLastTestUsedBytes()
+	_u.mutation.SetLastTestUsedBytes(v)
+	return _u
+}
+
+// SetNillableLastTestUsedBytes sets the "last_test_used_bytes" field if the given value is not nil.
+func (_u *FileSourceUpdate) SetNillableLastTestUsedBytes(v *uint64) *FileSourceUpdate {
+	if v != nil {
+		_u.SetLastTestUsedBytes(*v)
+	}
+	return _u
+}
+
+// AddLastTestUsedBytes adds value to the "last_test_used_bytes" field.
+func (_u *FileSourceUpdate) AddLastTestUsedBytes(v int64) *FileSourceUpdate {
+	_u.mutation.AddLastTestUsedBytes(v)
+	return _u
+}
+
+// SetLastTestTotalBytes sets the "last_test_total_bytes" field.
+func (_u *FileSourceUpdate) SetLastTestTotalBytes(v uint64) *FileSourceUpdate {
+	_u.mutation.ResetLastTestTotalBytes()
+	_u.mutation.SetLastTestTotalBytes(v)
+	return _u
+}
+
+// SetNillableLastTestTotalBytes sets the "last_test_total_bytes" field if the given value is not nil.
+func (_u *FileSourceUpdate) SetNillableLastTestTotalBytes(v *uint64) *FileSourceUpdate {
+	if v != nil {
+		_u.SetLastTestTotalBytes(*v)
+	}
+	return _u
+}
+
+// AddLastTestTotalBytes adds value to the "last_test_total_bytes" field.
+func (_u *FileSourceUpdate) AddLastTestTotalBytes(v int64) *FileSourceUpdate {
+	_u.mutation.AddLastTestTotalBytes(v)
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FileSourceUpdate) SetUser(v *User) *FileSourceUpdate {
 	return _u.SetUserID(v.ID)
@@ -305,6 +347,18 @@ func (_u *FileSourceUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if _u.mutation.LastTestTimeCleared() {
 		_spec.ClearField(filesource.FieldLastTestTime, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastTestUsedBytes(); ok {
+		_spec.SetField(filesource.FieldLastTestUsedBytes, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedLastTestUsedBytes(); ok {
+		_spec.AddField(filesource.FieldLastTestUsedBytes, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.LastTestTotalBytes(); ok {
+		_spec.SetField(filesource.FieldLastTestTotalBytes, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedLastTestTotalBytes(); ok {
+		_spec.AddField(filesource.FieldLastTestTotalBytes, field.TypeUint64, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -514,6 +568,48 @@ func (_u *FileSourceUpdateOne) ClearLastTestTime() *FileSourceUpdateOne {
 	return _u
 }
 
+// SetLastTestUsedBytes sets the "last_test_used_bytes" field.
+func (_u *FileSourceUpdateOne) SetLastTestUsedBytes(v uint64) *FileSourceUpdateOne {
+	_u.mutation.ResetLastTestUsedBytes()
+	_u.mutation.SetLastTestUsedBytes(v)
+	return _u
+}
+
+// SetNillableLastTestUsedBytes sets the "last_test_used_bytes" field if the given value is not nil.
+func (_u *FileSourceUpdateOne) SetNillableLastTestUsedBytes(v *uint64) *FileSourceUpdateOne {
+	if v != nil {
+		_u.SetLastTestUsedBytes(*v)
+	}
+	return _u
+}
+
+// AddLastTestUsedBytes adds value to the "last_test_used_bytes" field.
+func (_u *FileSourceUpdateOne) AddLastTestUsedBytes(v int64) *FileSourceUpdateOne {
+	_u.mutation.AddLastTestUsedBytes(v)
+	return _u
+}
+
+// SetLastTestTotalBytes sets the "last_test_total_bytes" field.
+func (_u *FileSourceUpdateOne) SetLastTestTotalBytes(v uint64) *FileSourceUpdateOne {
+	_u.mutation.ResetLastTestTotalBytes()
+	_u.mutation.SetLastTestTotalBytes(v)
+	return _u
+}
+
+// SetNillableLastTestTotalBytes sets the "last_test_total_bytes" field if the given value is not nil.
+func (_u *FileSourceUpdateOne) SetNillableLastTestTotalBytes(v *uint64) *FileSourceUpdateOne {
+	if v != nil {
+		_u.SetLastTestTotalBytes(*v)
+	}
+	return _u
+}
+
+// AddLastTestTotalBytes adds value to the "last_test_total_bytes" field.
+func (_u *FileSourceUpdateOne) AddLastTestTotalBytes(v int64) *FileSourceUpdateOne {
+	_u.mutation.AddLastTestTotalBytes(v)
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *FileSourceUpdateOne) SetUser(v *User) *FileSourceUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -661,6 +757,18 @@ func (_u *FileSourceUpdateOne) sqlSave(ctx context.Context) (_node *FileSource, 
 	}
 	if _u.mutation.LastTestTimeCleared() {
 		_spec.ClearField(filesource.FieldLastTestTime, field.TypeTime)
+	}
+	if value, ok := _u.mutation.LastTestUsedBytes(); ok {
+		_spec.SetField(filesource.FieldLastTestUsedBytes, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedLastTestUsedBytes(); ok {
+		_spec.AddField(filesource.FieldLastTestUsedBytes, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.LastTestTotalBytes(); ok {
+		_spec.SetField(filesource.FieldLastTestTotalBytes, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedLastTestTotalBytes(); ok {
+		_spec.AddField(filesource.FieldLastTestTotalBytes, field.TypeUint64, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

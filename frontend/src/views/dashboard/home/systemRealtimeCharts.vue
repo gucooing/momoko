@@ -1,21 +1,10 @@
+<!-- 实时监控（DashboardPC / Mobile）：指标分段切换 + 刷新间隔，当前 / 平均 / 峰值，单图曲线。
+     手机端刷新间隔收成「每 N 秒」，点按切换。 -->
 <template>
-  <AppPanel :title="t('dashboard.home.realtimeMonitor')" title-icon="HOutline:ChartBarSquareIcon">
-    <template #actions>
-      <div class="rt-seg" role="group" :aria-label="t('dashboard.home.refreshEvery')">
-        <button
-          v-for="opt in [1, 3, 5, 10]"
-          :key="opt"
-          type="button"
-          :class="{ 'is-on': refreshInterval === opt }"
-          @click="onIntervalChange(opt)"
-        >
-          {{ opt }}s
-        </button>
-      </div>
-    </template>
-
-    <div class="rt-bar">
-      <div class="rt-seg rt-seg--metrics" role="tablist">
+  <section class="rt" aria-labelledby="rt-h">
+    <div class="rt__head">
+      <h2 id="rt-h" class="rt__title">{{ t('dashboard.home.realtimeMonitor') }}</h2>
+      <div v-if="!compact" class="rt-seg" role="tablist" :aria-label="t('dashboard.home.metrics')">
         <button
           v-for="m in metricTabs"
           :key="m.key"
@@ -28,6 +17,45 @@
           {{ t(m.label) }}
         </button>
       </div>
+      <span class="rt__spacer" />
+      <div v-if="!compact" class="rt-seg" role="group" :aria-label="t('dashboard.home.refreshEvery')">
+        <button
+          v-for="opt in INTERVALS"
+          :key="opt"
+          type="button"
+          :class="{ 'is-on': refreshInterval === opt }"
+          :aria-pressed="refreshInterval === opt"
+          @click="onIntervalChange(opt)"
+        >
+          {{ opt }}s
+        </button>
+      </div>
+      <button
+        v-else
+        type="button"
+        class="rt__every m-num"
+        :aria-label="t('dashboard.home.refreshEvery')"
+        @click="cycleInterval"
+      >
+        {{ t('dashboard.home.everySeconds', { n: refreshInterval }) }}
+      </button>
+    </div>
+
+    <div v-if="compact" class="rt-seg rt-seg--full" role="tablist" :aria-label="t('dashboard.home.metrics')">
+      <button
+        v-for="m in metricTabs"
+        :key="m.key"
+        type="button"
+        role="tab"
+        :aria-selected="metric === m.key"
+        :class="{ 'is-on': metric === m.key }"
+        @click="metric = m.key"
+      >
+        {{ t(m.shortLabel || m.label) }}
+      </button>
+    </div>
+
+    <div v-if="metric === 'network' || metric === 'disk'" class="rt__bar">
       <select
         v-if="metric === 'network'"
         class="app-select rt-select"
@@ -41,7 +69,7 @@
         </option>
       </select>
       <select
-        v-if="metric === 'disk'"
+        v-else
         class="app-select rt-select"
         :value="selectedDisk"
         :aria-label="t('dashboard.home.diskIoRate')"
@@ -52,13 +80,29 @@
       </select>
     </div>
 
-    <div class="rt-stats">
-      <div v-for="st in currentStats" :key="st.label" class="rt-stat">
+    <div v-if="compact" class="rt__now">
+      <span class="rt__now-v m-num">{{ summary.now }}</span>
+      <span class="rt__now-p">{{ t('dashboard.home.peak') }} {{ summary.peak }}</span>
+    </div>
+    <div v-else class="rt-stats">
+      <div class="rt-stat">
+        <span class="rt-stat__label">{{ t('dashboard.home.current') }}</span>
+        <b class="m-num">{{ summary.now }}</b>
+      </div>
+      <div class="rt-stat">
+        <span class="rt-stat__label">{{ t('dashboard.home.average') }}</span>
+        <b class="m-num">{{ summary.avg }}</b>
+      </div>
+      <div class="rt-stat">
+        <span class="rt-stat__label">{{ t('dashboard.home.peak') }}</span>
+        <b class="m-num">{{ summary.peak }}</b>
+      </div>
+      <div v-if="summary.second" class="rt-stat">
         <span class="rt-stat__label">
-          <i :style="{ background: st.color }" />
-          {{ st.label }}
+          <i :style="{ background: pc.a2 }" />
+          {{ summary.second.label }}
         </span>
-        <b class="m-num">{{ st.value }}</b>
+        <b class="m-num">{{ summary.second.value }}</b>
       </div>
     </div>
 
@@ -68,7 +112,7 @@
       <VChart v-else-if="metric === 'network'" :option="networkChartOption" autoresize />
       <VChart v-else :option="diskChartOption" autoresize />
     </div>
-  </AppPanel>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -82,12 +126,15 @@ const pc = usePaletteColors()
 
 type Metric = 'cpu' | 'memory' | 'network' | 'disk'
 const metric = ref<Metric>('cpu')
-const metricTabs: { key: Metric; label: string }[] = [
+const metricTabs: { key: Metric; label: string; shortLabel?: string }[] = [
   { key: 'cpu', label: 'dashboard.home.tabCpu' },
   { key: 'memory', label: 'dashboard.home.tabMemory' },
   { key: 'network', label: 'dashboard.home.tabNetwork' },
-  { key: 'disk', label: 'dashboard.home.tabDisk' },
+  { key: 'disk', label: 'dashboard.home.tabDisk', shortLabel: 'dashboard.home.tabDiskShort' },
 ]
+const INTERVALS: RefreshInterval[] = [1, 3, 5, 10]
+const menuStore = useMenuStore()
+const compact = computed(() => menuStore.isMobile)
 
 const tooltipTheme = computed(() => ({
   backgroundColor: pc.value.s,
@@ -132,6 +179,10 @@ const onIntervalChange = (value: string | number | boolean | undefined) => {
     emit('intervalChange', value)
   }
 }
+const cycleInterval = () => {
+  const i = INTERVALS.indexOf(props.refreshInterval)
+  emit('intervalChange', INTERVALS[(i + 1) % INTERVALS.length]!)
+}
 const onInterfaceChange = (value: string) => emit('interfaceChange', value)
 const onDiskChange = (value: string) => emit('diskChange', value)
 
@@ -158,7 +209,9 @@ const formatBytes = (bytes: number | string) => {
   return (num / base ** i).toFixed(i === 0 ? 0 : 1) + ' ' + units[i] + '/s'
 }
 
-const baseChartGrid = { left: 52, right: 12, top: 14, bottom: 26 }
+const baseChartGrid = computed(() =>
+  compact.value ? { left: 44, right: 6, top: 8, bottom: 20 } : { left: 52, right: 12, top: 14, bottom: 26 },
+)
 
 const makeLineSeries = (name: string, color: string) => ({
   name,
@@ -206,7 +259,7 @@ const cpuChartOption = computed(() => {
   }
 
   return {
-    grid: baseChartGrid,
+    grid: baseChartGrid.value,
     xAxis: { type: 'category', data: props.cpuHistory.map((p) => p.time), ...axisStyle.value, splitLine: { show: false } },
     yAxis: { type: 'value', max: 100, ...axisStyle.value, axisLabel: { ...axisStyle.value.axisLabel, formatter: '{value}%' } },
     tooltip: {
@@ -254,7 +307,7 @@ const formatMemoryBytes = (bytes: number | string) => {
 }
 
 const memoryChartOption = computed(() => ({
-  grid: baseChartGrid,
+  grid: baseChartGrid.value,
   xAxis: { type: 'category', data: props.memoryHistory.map((p) => p.time), ...axisStyle.value, splitLine: { show: false } },
   yAxis: { type: 'value', max: 100, ...axisStyle.value, axisLabel: { ...axisStyle.value.axisLabel, formatter: '{value}%' } },
   tooltip: {
@@ -286,7 +339,7 @@ const memoryChartOption = computed(() => ({
 }))
 
 const networkChartOption = computed(() => ({
-  grid: baseChartGrid,
+  grid: baseChartGrid.value,
   xAxis: { type: 'category', data: props.networkHistory.map((p) => p.time), ...axisStyle.value, splitLine: { show: false } },
   yAxis: { type: 'value', ...axisStyle.value, axisLabel: { ...axisStyle.value.axisLabel, formatter: (v: number) => formatBytes(v) } },
   tooltip: { ...tooltipTheme.value, ...tooltipZ, trigger: 'axis', valueFormatter: (v: number) => formatBytes(v) },
@@ -297,7 +350,7 @@ const networkChartOption = computed(() => ({
 }))
 
 const diskChartOption = computed(() => ({
-  grid: baseChartGrid,
+  grid: baseChartGrid.value,
   xAxis: { type: 'category', data: props.diskHistory.map((p) => p.time), ...axisStyle.value, splitLine: { show: false } },
   yAxis: { type: 'value', ...axisStyle.value, axisLabel: { ...axisStyle.value.axisLabel, formatter: (v: number) => formatBytes(v) } },
   tooltip: { ...tooltipTheme.value, ...tooltipZ, trigger: 'axis', valueFormatter: (v: number) => formatBytes(v) },
@@ -311,39 +364,65 @@ const pct = (v?: number) => `${(v ?? 0).toFixed(1)}%`
 const last = <T,>(arr: T[]) => arr[arr.length - 1]
 const peakOf = (vals: number[]) => (vals.length ? Math.max(...vals) : 0)
 
-/** 当前指标的「当前 / 峰值」摘要，色点与曲线一致 */
-const currentStats = computed(() => {
-  const c = pc.value
+const avgOf = (vals: number[]) => (vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0)
+
+/** 当前指标主曲线的「当前 / 平均 / 峰值」，双曲线指标另附第二条曲线的当前值 */
+const summary = computed(() => {
+  let vals: number[]
+  let fmt: (v: number) => string
+  let second: { label: string; value: string } | null = null
   if (metric.value === 'cpu') {
-    const vals = props.cpuHistory.map((p) => p.total)
-    return [
-      { label: t('dashboard.home.current'), value: pct(last(vals)), color: c.p },
-      { label: t('dashboard.home.peak'), value: pct(peakOf(vals)), color: c.a },
-    ]
+    vals = props.cpuHistory.map((p) => p.total)
+    fmt = pct
+  } else if (metric.value === 'memory') {
+    vals = props.memoryHistory.map((p) => p.physical)
+    fmt = pct
+    second = { label: 'Swap', value: pct(last(props.memoryHistory)?.swap) }
+  } else if (metric.value === 'network') {
+    vals = props.networkHistory.map((p) => p.download)
+    fmt = formatBytes
+    second = { label: t('dashboard.home.upload'), value: formatBytes(last(props.networkHistory)?.upload ?? 0) }
+  } else {
+    vals = props.diskHistory.map((p) => p.read)
+    fmt = formatBytes
+    second = { label: t('dashboard.home.write'), value: formatBytes(last(props.diskHistory)?.write ?? 0) }
   }
-  if (metric.value === 'memory') {
-    const pt = last(props.memoryHistory)
-    return [
-      { label: t('dashboard.home.physicalMemorySeries'), value: pct(pt?.physical), color: c.p },
-      { label: 'Swap', value: pct(pt?.swap), color: c.a2 },
-    ]
+  return {
+    now: fmt(last(vals) ?? 0),
+    avg: fmt(avgOf(vals)),
+    peak: fmt(peakOf(vals)),
+    second,
   }
-  if (metric.value === 'network') {
-    const pt = last(props.networkHistory)
-    return [
-      { label: t('dashboard.home.download'), value: formatBytes(pt?.download ?? 0), color: c.p },
-      { label: t('dashboard.home.upload'), value: formatBytes(pt?.upload ?? 0), color: c.a2 },
-    ]
-  }
-  const pt = last(props.diskHistory)
-  return [
-    { label: t('dashboard.home.read'), value: formatBytes(pt?.read ?? 0), color: c.p },
-    { label: t('dashboard.home.write'), value: formatBytes(pt?.write ?? 0), color: c.a2 },
-  ]
 })
 </script>
 
 <style scoped lang="scss">
+.rt {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 22px 24px;
+  border-radius: var(--app-radius-lg);
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+}
+.rt__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.rt__title {
+  margin: 0 8px 0 0;
+  font-family: var(--app-font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.rt__spacer {
+  flex: 1;
+}
 .rt-seg {
   display: inline-flex;
   gap: 2px;
@@ -352,15 +431,17 @@ const currentStats = computed(() => {
   background: var(--el-fill-color-light);
 }
 .rt-seg button {
-  min-height: 32px;
-  padding: 0 12px;
+  min-height: 34px;
+  padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
+  font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -372,36 +453,37 @@ const currentStats = computed(() => {
   color: var(--el-text-color-primary);
   box-shadow: var(--app-shadow-sm);
 }
-.rt-bar {
+.rt-seg--full {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
 }
-.rt-seg--metrics button {
+.rt-seg--full button {
+  flex: 1;
+  min-height: 40px;
+  padding: 0 6px;
+}
+.rt__every {
   min-height: 36px;
-  padding: 0 16px;
-  font-size: 0.875rem;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
 }
-@media (width < 640px) {
-  .rt-seg--metrics {
-    display: flex;
-    width: 100%;
-  }
-  .rt-seg--metrics button {
-    flex: 1;
-    padding: 0 6px;
-  }
+.rt__bar {
+  display: flex;
+  margin-top: -4px;
 }
 .rt-select {
   width: auto;
-  max-width: 240px;
+  max-width: 100%;
+  min-width: 180px;
 }
 .rt-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 28px;
-  margin: 18px 0 6px;
+  gap: 24px;
 }
 .rt-stat {
   display: flex;
@@ -413,7 +495,7 @@ const currentStats = computed(() => {
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .rt-stat__label i {
@@ -426,13 +508,34 @@ const currentStats = computed(() => {
   font-weight: 800;
   color: var(--el-text-color-primary);
 }
+.rt__now {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.rt__now-v {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.rt__now-p {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
 .rt-chart {
   width: 100%;
-  height: 260px;
+  height: 220px;
 }
-@media (width < 640px) {
+@media (width < 992px) {
+  .rt {
+    padding: 16px;
+    gap: 12px;
+  }
+  .rt__title {
+    font-size: 1rem;
+  }
   .rt-chart {
-    height: 200px;
+    height: 150px;
   }
 }
 </style>

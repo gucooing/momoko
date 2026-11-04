@@ -70,3 +70,66 @@ export const stickerFor = (name: string) => {
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0
   return STICKERS[h % STICKERS.length]
 }
+
+/** 时长：N 秒 / N 分钟 / N 小时 / N 天（取最大单位） */
+export const formatDuration = (ms: number, t: Translate) => {
+  const sec = Math.max(0, Math.floor(ms / 1000))
+  if (sec < 60) return t('docker.page.dur.seconds', { n: sec })
+  const min = Math.floor(sec / 60)
+  if (min < 60) return t('docker.page.dur.minutes', { n: min })
+  const hr = Math.floor(min / 60)
+  if (hr < 48) return t('docker.page.dur.hours', { n: hr })
+  return t('docker.page.dur.days', { n: Math.floor(hr / 24) })
+}
+
+/** 月日（随界面语言）：10月21日 / Oct 21；跨年时带年份 */
+export const formatMonthDay = (value: unknown, locale: string) => {
+  const d = toDate(value)
+  if (!d) return '—'
+  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
+  if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric'
+  try {
+    return new Intl.DateTimeFormat(locale, opts).format(d)
+  } catch {
+    return formatDate(d)
+  }
+}
+
+/** 速度：4.8 MB/s */
+export const formatRate = (bytesPerSecond: unknown) => `${formatBytes(bytesPerSecond)}/s`
+
+/** 按简化的 shell 规则拆分命令行（支持单双引号与反斜杠转义），与后端 compose 解析一致 */
+export const splitCommand = (text: string): string[] => {
+  const out: string[] = []
+  let cur = ''
+  let quote = ''
+  let escaped = false
+  let has = false
+  for (const ch of text) {
+    if (escaped) {
+      cur += ch
+      escaped = false
+    } else if (ch === '\\' && quote !== "'") {
+      escaped = true
+      has = true
+    } else if (quote) {
+      if (ch === quote) quote = ''
+      else cur += ch
+    } else if (ch === '"' || ch === "'") {
+      quote = ch
+      has = true
+    } else if (/\s/.test(ch)) {
+      if (has || cur) out.push(cur)
+      cur = ''
+      has = false
+    } else {
+      cur += ch
+    }
+  }
+  if (has || cur) out.push(cur)
+  return out
+}
+
+/** 把参数数组拼回命令行，含空白或引号的参数加引号 */
+export const joinCommand = (args: string[]) =>
+  args.map((a) => (a === '' ? '""' : /[\s"'\\$]/.test(a) ? `'${a.replace(/'/g, `'\\''`)}'` : a)).join(' ')

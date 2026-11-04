@@ -5,11 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"regexp"
+	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	containertypes "github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
 )
@@ -36,12 +42,14 @@ type cpuStatsPayload struct {
 }
 
 type cpuUsagePayload struct {
-	TotalUsage uint64 `json:"total_usage"`
+	TotalUsage  uint64   `json:"total_usage"`
+	PercpuUsage []uint64 `json:"percpu_usage"`
 }
 
 type memoryStatsPayload struct {
-	Usage uint64 `json:"usage"`
-	Limit uint64 `json:"limit"`
+	Usage uint64            `json:"usage"`
+	Limit uint64            `json:"limit"`
+	Stats map[string]uint64 `json:"stats"`
 }
 
 type networkStatsPayload struct {
@@ -58,6 +66,66 @@ type blkioEntryPayload struct {
 	Value uint64 `json:"value"`
 }
 
+// 容器状态分类（列表 chips）：running / stopped / exited / paused
+const (
+	containerCatRunning = "running"
+	containerCatStopped = "stopped"
+	containerCatExited  = "exited"
+	containerCatPaused  = "paused"
+)
+
+var exitedStatusRe = regexp.MustCompile(`^Exited \((-?\d+)\)`)
+
+// summaryExitCode 从 docker ps 的状态描述（如 "Exited (137) 12 minutes ago"）解析退出码。
+func summaryExitCode(status string) int32 {
+	match := exitedStatusRe.FindStringSubmatch(status)
+	if len(match) < 2 {
+		return 0
+	}
+	code, _ := strconv.Atoi(match[1])
+	return int32(code)
+}
+
+// containerCategory 把引擎状态归为列表分类：正常退出（退出码 0）或尚未启动算「已停止」，
+// 异常退出（退出码非 0）或已死亡算「已退出」。
+func containerCategory(item containertypes.Summary) string {
+	switch item.State {
+	case "running", "restarting":
+		return containerCatRunning
+	case "paused":
+		return containerCatPaused
+	case "exited":
+		if summaryExitCode(item.Status) != 0 {
+			return containerCatExited
+		}
+		return containerCatStopped
+	case "dead":
+		return containerCatExited
+	default:
+		return containerCatStopped
+	}
+}
+
+func containerMatches(item containertypes.Summary, keyword string) bool {
+	if strings.HasPrefix(strings.ToLower(item.ID), keyword) || strings.Contains(strings.ToLower(item.Image), keyword) {
+		return true
+	}
+	for _, name := range item.Names {
+		if strings.Contains(strings.ToLower(strings.TrimPrefix(name, "/")), keyword) {
+			return true
+		}
+	}
+	for _, port := range item.Ports {
+		if port.PublicPort > 0 && strings.Contains(strconv.Itoa(int(port.PublicPort)), keyword) {
+			return true
+		}
+		if port.PrivatePort > 0 && strings.Contains(strconv.Itoa(int(port.PrivatePort)), keyword) {
+			return true
+		}
+	}
+	return false
+}
+
 func (m *Manager) ListContainers(ctx context.Context, req *v1.ListDockerContainersRequest) (*v1.ListDockerContainersResponse, error) {
 	cli, err := m.getClient()
 	if err != nil {
@@ -67,32 +135,154 @@ func (m *Manager) ListContainers(ctx context.Context, req *v1.ListDockerContaine
 	defer cancel()
 
 	filters := filtersFromLabels(req.GetLabels())
-	if req.GetStatus() != "" {
-		filters.Add("status", req.GetStatus())
-	}
-	if req.GetName() != "" {
-		filters.Add("name", req.GetName())
-	}
-	if req.GetImage() != "" {
-		filters.Add("ancestor", req.GetImage())
-	}
 	if req.GetNetwork() != "" {
 		filters.Add("network", req.GetNetwork())
 	}
-	items, err := cli.ContainerList(ctx, containertypes.ListOptions{
-		All:     req.GetAll(),
-		Filters: filters,
-	})
+	items, err := cli.ContainerList(ctx, containertypes.ListOptions{All: true, Filters: filters})
 	if err != nil {
 		return nil, err
 	}
-	total := int64(len(items))
-	items = pageSlice(items, req.GetPage(), req.GetPageSize())
-	result := make([]*v1.DockerContainerSummary, 0, len(items))
+	stats := &v1.DockerContainerListStats{}
+	status := strings.TrimSpace(req.GetStatus())
+	keyword := strings.ToLower(strings.TrimSpace(req.GetKeyword()))
+	filtered := make([]containertypes.Summary, 0, len(items))
 	for _, item := range items {
+		cat := containerCategory(item)
+		stats.Total++
+		switch cat {
+		case containerCatRunning:
+			stats.Running++
+		case containerCatPaused:
+			stats.Paused++
+		case containerCatExited:
+			stats.Exited++
+		default:
+			stats.Stopped++
+		}
+		if status != "" && cat != status {
+			continue
+		}
+		if keyword != "" && !containerMatches(item, keyword) {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	total := int64(len(filtered))
+	filtered = pageSlice(filtered, req.GetPage(), req.GetPageSize())
+	result := make([]*v1.DockerContainerSummary, 0, len(filtered))
+	for _, item := range filtered {
 		result = append(result, toContainerSummary(item))
 	}
-	return &v1.ListDockerContainersResponse{Items: result, Total: total}, nil
+	fillContainerTimes(ctx, cli, result)
+	return &v1.ListDockerContainersResponse{Items: result, Total: total, Stats: stats}, nil
+}
+
+// fillContainerTimes 并发 inspect 当前页容器，补齐启动 / 停止时间与退出码（列表只给相对时间的英文描述）。
+func fillContainerTimes(ctx context.Context, cli *client.Client, items []*v1.DockerContainerSummary) {
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 8)
+	for _, item := range items {
+		wg.Add(1)
+		go func(item *v1.DockerContainerSummary) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			data, err := cli.ContainerInspect(ctx, item.Id)
+			if err != nil || data.State == nil {
+				return
+			}
+			item.ExitCode = int32(data.State.ExitCode)
+			item.StartedAt = parseDockerTime(data.State.StartedAt)
+			item.FinishedAt = parseDockerTime(data.State.FinishedAt)
+		}(item)
+	}
+	wg.Wait()
+}
+
+func parseDockerTime(value string) *timestamppb.Timestamp {
+	if value == "" {
+		return nil
+	}
+	t, err := time.Parse(time.RFC3339Nano, value)
+	if err != nil || t.Year() < 1971 {
+		return nil
+	}
+	return timestamppb.New(t)
+}
+
+// ContainersUsage 并发取运行中容器的一次性资源占用（CPU% 与内存，口径同 docker stats）。
+func (m *Manager) ContainersUsage(ctx context.Context, ids []string) ([]*v1.DockerContainerUsage, error) {
+	cli, err := m.getClient()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := m.withTimeout(ctx)
+	defer cancel()
+	if len(ids) > 100 {
+		ids = ids[:100]
+	}
+	result := make([]*v1.DockerContainerUsage, len(ids))
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 10)
+	for i, id := range ids {
+		wg.Add(1)
+		go func(i int, id string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			resp, err := cli.ContainerStats(ctx, id, false)
+			if err != nil {
+				return
+			}
+			defer resp.Body.Close()
+			var stats containerStatsPayload
+			if err := json.NewDecoder(resp.Body).Decode(&stats); err != nil {
+				return
+			}
+			result[i] = &v1.DockerContainerUsage{
+				Id:          id,
+				CpuPercent:  cpuPercent(stats),
+				MemoryUsage: memoryUsage(stats.MemoryStats),
+				MemoryLimit: stats.MemoryStats.Limit,
+			}
+		}(i, id)
+	}
+	wg.Wait()
+	out := make([]*v1.DockerContainerUsage, 0, len(result))
+	for _, item := range result {
+		if item != nil {
+			out = append(out, item)
+		}
+	}
+	return out, nil
+}
+
+func cpuPercent(stats containerStatsPayload) float64 {
+	cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage) - float64(stats.PreCPUStats.CPUUsage.TotalUsage)
+	sysDelta := float64(stats.CPUStats.SystemCPUUsage) - float64(stats.PreCPUStats.SystemCPUUsage)
+	online := float64(stats.CPUStats.OnlineCPUs)
+	if online == 0 {
+		online = float64(len(stats.CPUStats.CPUUsage.PercpuUsage))
+	}
+	if online == 0 {
+		online = 1
+	}
+	if cpuDelta <= 0 || sysDelta <= 0 {
+		return 0
+	}
+	return cpuDelta / sysDelta * online * 100
+}
+
+// memoryUsage 与 docker CLI 一致：扣除可回收的页缓存（cgroup v2 inactive_file / v1 total_inactive_file）。
+func memoryUsage(mem memoryStatsPayload) uint64 {
+	inactive, ok := mem.Stats["inactive_file"]
+	if !ok {
+		inactive = mem.Stats["total_inactive_file"]
+	}
+	if inactive < mem.Usage {
+		return mem.Usage - inactive
+	}
+	return mem.Usage
 }
 
 func (m *Manager) Container(ctx context.Context, id string) (*v1.DockerContainerInfo, error) {
@@ -109,7 +299,53 @@ func (m *Manager) Container(ctx context.Context, id string) (*v1.DockerContainer
 	return toContainerInfo(data), nil
 }
 
-func (m *Manager) CreateContainer(ctx context.Context, opts *v1.DockerContainerCreateOptions) (string, error) {
+// CreateContainer 本地已有镜像时直接创建（按需启动）并返回容器 ID；
+// 本地没有镜像时返回「拉取镜像并创建」后台任务，拉取进度在任务里可见。
+func (m *Manager) CreateContainer(ctx context.Context, opts *v1.DockerContainerCreateOptions) (string, *v1.DockerTaskInfo, error) {
+	cli, err := m.getClient()
+	if err != nil {
+		return "", nil, err
+	}
+	image := strings.TrimSpace(opts.GetImage())
+	if image == "" {
+		return "", nil, fmt.Errorf("镜像不能为空")
+	}
+	local, err := m.imageExists(ctx, cli, image)
+	if err != nil {
+		return "", nil, err
+	}
+	if local {
+		id, err := m.createContainer(ctx, opts)
+		return id, nil, err
+	}
+	target := strings.TrimSpace(opts.GetName())
+	if target == "" {
+		target = image
+	}
+	task := m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_CONTAINER_CREATE, "创建容器 "+target, target, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
+		emit(&v1.DockerTaskInfo{Message: "本地没有镜像 " + image + "，开始拉取\r\n"})
+		if err := m.pullImage(taskCtx, image, opts.GetPlatform(), nil, emit); err != nil {
+			return "", err
+		}
+		emit(&v1.DockerTaskInfo{Message: "创建容器\r\n"})
+		return m.createContainer(taskCtx, opts)
+	})
+	return "", task, nil
+}
+
+func (m *Manager) imageExists(ctx context.Context, cli *client.Client, image string) (bool, error) {
+	ctx, cancel := m.withTimeout(ctx)
+	defer cancel()
+	if _, err := cli.ImageInspect(ctx, image); err != nil {
+		if client.IsErrNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func (m *Manager) createContainer(ctx context.Context, opts *v1.DockerContainerCreateOptions) (string, error) {
 	cli, err := m.getClient()
 	if err != nil {
 		return "", err
@@ -197,11 +433,27 @@ func (m *Manager) RecreateContainer(ctx context.Context, req *v1.RecreateDockerC
 	if titleTarget == "" {
 		titleTarget = req.GetId()
 	}
-	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_CONTAINER_RECREATE, "重建容器 "+titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
+	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_CONTAINER_RECREATE, "重建容器 "+titleTarget, titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
 		emit(&v1.DockerTaskInfo{Message: "检查旧容器"})
 		oldInfo, err := m.Container(taskCtx, req.GetId())
 		if err != nil {
 			return "", err
+		}
+		// 新镜像本地没有时先拉取，避免删掉旧容器后才发现镜像拉不下来
+		cli, err := m.getClient()
+		if err != nil {
+			return "", err
+		}
+		image := strings.TrimSpace(req.GetOptions().GetImage())
+		local, err := m.imageExists(taskCtx, cli, image)
+		if err != nil {
+			return "", err
+		}
+		if !local {
+			emit(&v1.DockerTaskInfo{Message: "本地没有镜像 " + image + "，开始拉取\r\n"})
+			if err := m.pullImage(taskCtx, image, req.GetOptions().GetPlatform(), nil, emit); err != nil {
+				return "", err
+			}
 		}
 		if oldInfo.GetState().GetRunning() {
 			emit(&v1.DockerTaskInfo{Message: "停止旧容器"})
@@ -214,7 +466,7 @@ func (m *Manager) RecreateContainer(ctx context.Context, req *v1.RecreateDockerC
 			return "", err
 		}
 		emit(&v1.DockerTaskInfo{Message: "创建新容器"})
-		id, err := m.CreateContainer(taskCtx, req.GetOptions())
+		id, err := m.createContainer(taskCtx, req.GetOptions())
 		if err != nil {
 			return "", err
 		}

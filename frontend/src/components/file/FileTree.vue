@@ -1,7 +1,9 @@
 <template>
   <div class="ftree">
     <div v-if="loading" class="ftree-state">{{ t('fileManager.directoryLoading') }}</div>
-    <div v-else-if="!nodes.length" class="ftree-state">{{ t('fileManager.directoryEmpty') }}</div>
+    <div v-else-if="!nodes.length" class="ftree-state">
+      {{ dirsOnly ? t('fileManager.noSubfolders') : t('fileManager.directoryEmpty') }}
+    </div>
     <FileTreeNode v-for="node in nodes" v-else :key="node.path" :node="node" :depth="0" />
   </div>
 </template>
@@ -22,11 +24,14 @@ const props = withDefaults(
     selectedPaths?: string[]
     multiple?: boolean
     selectable?: 'file' | 'all'
+    // 只显示文件夹
+    dirsOnly?: boolean
   }>(),
   {
     selectedPaths: () => [],
     multiple: false,
     selectable: 'file',
+    dirsOnly: false,
   },
 )
 
@@ -44,13 +49,15 @@ provide(FILE_TREE_CONTEXT, {
   selectedPaths: computed(() => new Set(props.selectedPaths)),
   multiple: props.multiple,
   selectable: props.selectable,
+  dirsOnly: props.dirsOnly,
   select: (path: string, name: string, isDir: boolean) => emit('select', path, name, isDir),
 })
 
 const loadRoot = async () => {
   loading.value = true
   try {
-    nodes.value = await props.client.tree(props.rootPath)
+    const list = await props.client.tree(props.rootPath)
+    nodes.value = props.dirsOnly ? list.filter((n) => n.isDir) : list
   } catch (error) {
     fb.error(getRequestErrorMessage(error, t('fileManager.treeLoadFailed')))
   } finally {

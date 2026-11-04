@@ -30,8 +30,9 @@
         </div>
         <div class="pf-hero__chips">
           <span class="pf-hero__role">
-            <UIcon name="i-lucide-shield-check" aria-hidden="true" />{{ roleLabel }}
+            <UIcon name="i-lucide-shield-check" aria-hidden="true" />{{ roleNames[0] || roleLabel }}
           </span>
+          <span v-for="name in roleNames.slice(1)" :key="`r-${name}`" class="pf-hero__chip">{{ name }}</span>
           <span v-if="!isActive" class="pf-hero__chip">{{ t('common.disabled') }}</span>
           <span v-for="name in tagNames" :key="name" class="pf-hero__chip">{{ name }}</span>
         </div>
@@ -74,6 +75,8 @@ const displayName = computed(
   () => userStore.userInfo?.name || userStore.userInfo?.username || t('user.messages.unknownUser'),
 )
 const roleLabel = computed(() => userStore.getUserRoleName() || t('user.noPermission'))
+/** 拥有的角色（多个时第一个作主角色，其余作次要标签） */
+const roleNames = computed(() => (userStore.userInfo?.roles || []).map((r) => r.name).filter(Boolean))
 const isActive = computed(() => userStore.userInfo?.status === UserStatus.Active)
 const bioText = computed(() => {
   const bio = userStore.userInfo?.bio?.trim()

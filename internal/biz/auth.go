@@ -6,6 +6,7 @@ import (
 	"momoko/internal/data/ent/gen/user"
 	"momoko/pkg/utils"
 	"net/mail"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"momoko/internal/data/ent/gen"
 	auth2 "momoko/pkg/auth"
 	"momoko/pkg/cache"
+	"momoko/pkg/response"
 )
 
 const emailCodeLength = 6
@@ -30,6 +32,46 @@ const (
 // EmailCodeTTL 邮箱验证码有效期。
 const EmailCodeTTL = 5 * time.Minute
 
+// EmailCodeResendInterval 同一邮箱同一用途的验证码最短重发间隔。
+const EmailCodeResendInterval = 60 * time.Second
+
+// MinPasswordLength 新密码（注册 / 找回密码 / 初始化超级管理员）最少位数。
+const MinPasswordLength = 8
+
+// NonPersistentSessionTTL 登录时未勾选「保持登录」的会话有效期：超过该时长不活动即需重新登录。
+const NonPersistentSessionTTL = 24 * time.Hour
+
+// registerUsernamePattern 自助注册的用户名：3–20 位字母、数字或下划线。
+var registerUsernamePattern = regexp.MustCompile(`^[A-Za-z0-9_]{3,20}$`)
+
+var (
+	ErrUsernameInvalid      = response.BadRequest(500, "用户名需为 3–20 位字母、数字或下划线")
+	ErrPasswordTooShort     = response.BadRequest(500, fmt.Sprintf("密码至少 %d 位", MinPasswordLength))
+	ErrEmailCodeTooFrequent = func(wait time.Duration) error {
+		return response.BadRequest(500, fmt.Sprintf("验证码发送太频繁，请 %d 秒后再试", int(wait.Seconds()+0.999)))
+	}
+)
+
+// ValidateNewPassword 校验新设置的密码。
+func ValidateNewPassword(password string) error {
+	if password == "" {
+		return ErrPasswordEmpty
+	}
+	if len([]rune(password)) < MinPasswordLength {
+		return ErrPasswordTooShort
+	}
+	return nil
+}
+
+// SessionTTL 会话（刷新令牌）有效期：保持登录时按系统配置的刷新令牌有效期，否则不超过 NonPersistentSessionTTL。
+func SessionTTL(persistent bool) time.Duration {
+	ttl := auth2.RefreshTokenTTL()
+	if !persistent && NonPersistentSessionTTL < ttl {
+		return NonPersistentSessionTTL
+	}
+	return ttl
+}
+
 // Auth 创建/轮换会话时的输入。
 type Auth struct {
 	UserID       string
@@ -41,6 +83,8 @@ type Auth struct {
 	LoginMethod  string
 	AccessNoise  string
 	RefreshNoise string
+	// Persistent 保持登录（见 SessionTTL）
+	Persistent bool
 }
 
 type EmailCodeType string
@@ -69,21 +113,29 @@ type AuthUsecase struct {
 	auth       AuthRepo
 	user       UserRepo
 	emailCodes *cache.Cache[string, string]
+	// emailCodeSent 验证码最近一次发送时间（重发节流）。
+	emailCodeSent *cache.Cache[string, time.Time]
 	// failNotified 登录失败提醒节流：同一用户 10 分钟内只发一条。
 	failNotified *cache.Cache[string, time.Time]
 }
 
 func NewAuthUsecase(auth AuthRepo, user UserRepo) *AuthUsecase {
 	return &AuthUsecase{
-		auth:       auth,
-		user:       user,
-		emailCodes:   cache.New[string, string](EmailCodeTTL),
-		failNotified: cache.New[string, time.Time](loginFailNotifyInterval),
+		auth:          auth,
+		user:          user,
+		emailCodes:    cache.New[string, string](EmailCodeTTL),
+		emailCodeSent: cache.New[string, time.Time](EmailCodeResendInterval),
+		failNotified:  cache.New[string, time.Time](loginFailNotifyInterval),
 	}
 }
 
+// LoginByUsername 账号密码登录：账号可以是用户名，也可以是注册邮箱。
 func (a *AuthUsecase) LoginByUsername(ctx context.Context, username, password string) (*gen.User, error) {
+	username = strings.TrimSpace(username)
 	userInfo, err := a.user.FindByName(ctx, username)
+	if gen.IsNotFound(err) && strings.Contains(username, "@") {
+		userInfo, err = a.user.FindByEmail(ctx, username)
+	}
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return nil, ErrAdminNotFound
@@ -121,11 +173,16 @@ func (a *AuthUsecase) LoginByEmail(ctx context.Context, email, code string) (*ge
 }
 
 func (a *AuthUsecase) Register(ctx context.Context, req *v1.RegisterRequest, registerEmailVerificationRequired bool) (*gen.User, error) {
+	req.Username = strings.TrimSpace(req.Username)
+	req.Email = strings.TrimSpace(req.Email)
 	if req.Username == "" {
 		return nil, ErrUsernameEmpty
 	}
-	if req.Password == "" {
-		return nil, ErrPasswordEmpty
+	if !registerUsernamePattern.MatchString(req.Username) {
+		return nil, ErrUsernameInvalid
+	}
+	if err := ValidateNewPassword(req.Password); err != nil {
+		return nil, err
 	}
 	if req.Email == "" {
 		return nil, ErrEmailEmpty
@@ -161,7 +218,7 @@ func (a *AuthUsecase) Register(ctx context.Context, req *v1.RegisterRequest, reg
 		Email:    req.Email,
 		Status:   user.StatusActive,
 		Name:     req.Username,
-	}, "")
+	}, nil)
 	if err != nil {
 		if gen.IsConstraintError(err) {
 			return nil, ErrUsernameEmailRegistered
@@ -171,15 +228,27 @@ func (a *AuthUsecase) Register(ctx context.Context, req *v1.RegisterRequest, reg
 	return userInfo, nil
 }
 
-func (a *AuthUsecase) NewEmailCode(email string, codeType EmailCodeType) (string, error) {
+// IssueEmailCode 生成验证码并通过 send 发出；同一邮箱同一用途 EmailCodeResendInterval 内只能发一次，发送失败不计入节流。
+func (a *AuthUsecase) IssueEmailCode(email string, codeType EmailCodeType, send func(code string) error) error {
 	key := emailCodeCacheKey(codeType, email)
+	if sentAt, ok := a.emailCodeSent.Get(key); ok {
+		if wait := EmailCodeResendInterval - time.Since(sentAt); wait > 0 {
+			return ErrEmailCodeTooFrequent(wait)
+		}
+	}
 
 	code, err := utils.GenerateEmailCode(emailCodeLength)
 	if err != nil {
-		return "", ErrSystem(err)
+		return ErrSystem(err)
 	}
 	a.emailCodes.Set(key, code)
-	return code, nil
+	a.emailCodeSent.Set(key, time.Now())
+	if err := send(code); err != nil {
+		a.emailCodes.Del(key)
+		a.emailCodeSent.Del(key)
+		return err
+	}
+	return nil
 }
 
 func (a *AuthUsecase) VerifyEmailCode(email string, code string, codeType EmailCodeType) error {
@@ -220,6 +289,7 @@ func (a *AuthUsecase) NewSession(ctx context.Context, userId string, req *v1.Log
 		SessionID:    uuid.NewString(),
 		AccessNoise:  accessNoise,
 		RefreshNoise: refreshNoise,
+		Persistent:   req.GetRemember(),
 	}
 	// 新设备提醒：此前登录过、但从未在这台设备上成功登录。查询失败不影响登录。
 	anyLogin, sameDevice, historyErr := a.auth.LoginHistory(ctx, userId, req.DeviceId)
@@ -247,8 +317,8 @@ func (a *AuthUsecase) ResetPassword(ctx context.Context, email, code, newPasswor
 	if email == "" {
 		return ErrEmailEmpty
 	}
-	if newPassword == "" {
-		return ErrPasswordEmpty
+	if err := ValidateNewPassword(newPassword); err != nil {
+		return err
 	}
 	userInfo, err := a.user.FindByEmail(ctx, email)
 	if err != nil {

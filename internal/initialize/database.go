@@ -80,7 +80,8 @@ func DatabaseSource(database *v1.InitializeDatabaseConfig) (string, error) {
 	}
 }
 
-func sqliteSource(path string) (string, error) {
+// SQLitePath 补全默认值并规范化 SQLite 数据库文件路径（相对路径以程序工作目录为准）。
+func SQLitePath(path string) (string, error) {
 	path = strings.TrimSpace(path)
 	if path == "" {
 		path = DefaultSQLitePath
@@ -92,6 +93,14 @@ func sqliteSource(path string) (string, error) {
 	cleanPath := filepath.ToSlash(filepath.Clean(path))
 	if strings.HasPrefix(path, "./") && !strings.HasPrefix(cleanPath, "./") {
 		cleanPath = "./" + cleanPath
+	}
+	return cleanPath, nil
+}
+
+func sqliteSource(path string) (string, error) {
+	cleanPath, err := SQLitePath(path)
+	if err != nil {
+		return "", err
 	}
 	return "file:" + cleanPath + "?_pragma=foreign_keys(1)", nil
 }

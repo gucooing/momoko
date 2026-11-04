@@ -17,9 +17,11 @@ export const useInstanceTypeStore = defineStore('instance-type', () => {
     }
   }
 
+  /** 删除类型；返回因此变为未分类的应用数 */
   const deleteTypeById = async (id: string) => {
-    await deleteInstanceType({ id })
+    const { data } = await deleteInstanceType({ id })
     await getInstanceTypeList()
+    return Number(data?.uncategorizedApps || 0)
   }
 
   return {

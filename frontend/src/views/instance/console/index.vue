@@ -1,9 +1,7 @@
-<!-- 应用详情 / 控制台（第二期）：返回链接 + 头部卡（贴纸 / 名称 / 状态 / 类型 · 运行时长 · PID · 备注 + 启停 / 重启 / ⋯）
-     + 资源占用（CPU / 内存 / 进程 / 工作目录占用，GetInstanceStats 轮询）+ 下划线 tabs（控制台 / 文件 / 配置）
-     + 主区（控制台 TerminalConsole 真 PTY 终端 / 文件 FileBrowser / 运行配置 + 应用信息）。手机端：紧凑头部 + tabs（控制台 / 信息 / 文件）。
-     一个页面一个地址：/instance/app/:id?tab=console|files|config|info，切换标签不换页、不重新挂载
-     （控制台常驻保持连接；文件首次打开时挂载、之后保留目录与选择）。
-     传输层（consoleSession 的 ws + 回放缓冲）与实例动作沿用原实现：启停 / 重启 / 强制 / 清屏 / 编辑（InstanceEditor 受控契约）+ 二次确认。 -->
+<!-- 应用详情：返回链接 + 头部卡（贴纸 / 名称 / 状态 / 类型 · 运行时长或停止时间 · PID · 备注 + 启停 / 重启 / ⋯）
+     + 资源占用（CPU / 内存 / 进程 / 目录占用，GetInstanceStats 轮询）+ 维护提示 + 下划线标签（控制台 / 文件 / 配置）
+     + 控制台（TerminalConsole 真 PTY，常驻挂载）/ 文件（FileBrowser，首次打开时挂载）/ 配置（运行配置 + 应用信息 + 最近事件）。
+     手机：紧凑头部 + 同样三个标签，⋯ 打开底部操作面板。一个页面一个地址：/instance/app/:id?tab=console|files|config，切换标签不换页。 -->
 <template>
   <div class="app-detail" :class="{ 'is-mobile': isMobile }">
     <!-- ========== 头部 ========== -->
@@ -14,12 +12,7 @@
 
     <section class="app-head" :class="{ 'is-compact': isMobile }">
       <div class="app-head__row">
-        <RouterLink
-          v-if="isMobile"
-          to="/instance/list"
-          class="app-head__back"
-          :aria-label="t('instance.ui.backToList')"
-        >
+        <RouterLink v-if="isMobile" to="/instance/list" class="app-head__back" :aria-label="t('instance.ui.backToList')">
           <component :is="menuStore.iconComponents['HOutline:ChevronLeftIcon']" />
         </RouterLink>
         <span class="app-head__av m-sticker" :class="`m-sticker--${tone}`">{{ initial }}</span>
@@ -31,11 +24,16 @@
           </div>
           <div class="app-head__meta">
             <StatusPill v-if="isMobile && statusPill" :variant="statusPill.variant" :label="statusPill.label" />
-            <RouterLink v-if="!isMobile && info?.type" to="/instance/type" class="app-head__type">
-              <component :is="menuStore.iconComponents['HOutline:CubeIcon']" />{{ info.type }}
-            </RouterLink>
+            <template v-if="!isMobile && info">
+              <RouterLink v-if="info.type" to="/instance/type" class="app-head__type">
+                <component :is="menuStore.iconComponents['HOutline:CubeIcon']" />{{ info.type }}
+              </RouterLink>
+              <span v-else class="app-head__meta-item">
+                <component :is="menuStore.iconComponents['HOutline:CubeIcon']" />{{ t('instance.ui.uncategorized') }}
+              </span>
+            </template>
             <span class="app-head__meta-item">
-              <component v-if="!isMobile" :is="menuStore.iconComponents['HOutline:ClockIcon']" />{{ uptimeText }}
+              <component :is="menuStore.iconComponents['HOutline:ClockIcon']" v-if="!isMobile" />{{ uptimeText }}
             </span>
             <span v-if="!isMobile && pid" class="app-head__meta-item m-num">PID {{ pid }}</span>
             <span v-if="!isMobile && info?.remark" class="app-head__meta-item app-head__remark" :title="info.remark">
@@ -44,14 +42,16 @@
           </div>
         </div>
 
-        <!-- 操作：PC 文字按钮，手机小图标 -->
+        <!-- 操作：PC 文字按钮 + ⋯ 下拉；手机小图标 + ⋯ 底部面板 -->
         <div class="app-head__acts">
           <template v-if="!isMobile">
             <UButton
               :color="isRunning ? 'error' : 'primary'"
+              :variant="isRunning ? 'soft' : 'solid'"
               :icon="isRunning ? 'i-lucide-square' : 'i-lucide-play'"
               class="app-head__btn"
               :loading="isBusy"
+              :disabled="!info"
               @click="handleTogglePower"
             >
               {{ isRunning ? t('instance.stop') : t('instance.start') }}
@@ -61,11 +61,40 @@
               variant="outline"
               icon="i-lucide-rotate-cw"
               class="app-head__btn"
-              :disabled="isBusy"
+              :disabled="isBusy || isMaintenance || !info"
               @click="handleRestart"
             >
               {{ t('instance.restart') }}
             </UButton>
+            <AppDropdown align="end" :width="248">
+              <template #trigger>
+                <button type="button" class="app-head__more" :aria-label="t('instance.moreActions')" :title="t('instance.moreActions')">
+                  <UIcon name="i-lucide-ellipsis" />
+                </button>
+              </template>
+              <template #default="{ close }">
+                <div class="app-menu" role="menu">
+                  <template v-for="item in menuItems" :key="item.key">
+                    <div v-if="item.divider" class="app-menu__sep" />
+                    <button
+                      v-else
+                      type="button"
+                      role="menuitem"
+                      class="app-menu__item"
+                      :class="{ 'is-danger': item.danger }"
+                      :disabled="item.disabled"
+                      @click="close(); onMore(item.key)"
+                    >
+                      <UIcon :name="item.icon || 'i-lucide-circle'" class="app-menu__ico" />
+                      <span class="app-menu__text">
+                        <span>{{ item.label }}</span>
+                        <span v-if="item.description" class="app-menu__desc">{{ item.description }}</span>
+                      </span>
+                    </button>
+                  </template>
+                </div>
+              </template>
+            </AppDropdown>
           </template>
           <template v-else>
             <AppIconButton
@@ -73,18 +102,18 @@
               :label="isRunning ? t('instance.stop') : t('instance.start')"
               :box="44"
               :class="isRunning ? 'is-stop' : 'is-start'"
-              :disabled="isBusy"
+              :disabled="isBusy || !info"
               @click="handleTogglePower"
             />
             <AppIconButton
               icon="HOutline:ArrowPathIcon"
               :label="t('instance.restart')"
               :box="44"
-              :disabled="isBusy"
+              :disabled="isBusy || isMaintenance || !info"
               @click="handleRestart"
             />
+            <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('instance.moreActions')" :box="44" @click="sheetOpen = true" />
           </template>
-          <ActionMenu class="app-head__more" :items="moreItems" :label="t('instance.moreActions')" @select="onMore" />
         </div>
       </div>
 
@@ -101,8 +130,17 @@
       </div>
     </section>
 
-    <!-- ========== tabs ========== -->
-    <nav class="app-tabs" role="tablist" :aria-label="t('instance.ui.appInfo')">
+    <!-- 维护中提示 -->
+    <div v-if="isMaintenance" class="app-maint" role="status">
+      <UIcon name="i-lucide-wrench" class="app-maint__ico" />
+      <span class="app-maint__text">{{ maintenanceText }}</span>
+      <UButton color="warning" variant="soft" size="sm" class="app-maint__btn" @click="handleEndMaintenance">
+        {{ t('instance.ui.endMaintenance') }}
+      </UButton>
+    </div>
+
+    <!-- ========== 标签 ========== -->
+    <nav class="app-tabs" role="tablist" :aria-label="t('instance.ui.detailTabs')">
       <button
         v-for="tab in tabs"
         :key="tab.key"
@@ -113,15 +151,15 @@
         :aria-selected="activeTab === tab.key"
         @click="onTab(tab.key)"
       >
-        <component :is="menuStore.iconComponents[tab.icon]" class="app-tab__ico" />
+        <component :is="menuStore.iconComponents[tab.icon]" v-if="!isMobile" class="app-tab__ico" />
         {{ tab.label }}
       </button>
     </nav>
 
     <!-- ========== 主体 ========== -->
-    <div class="app-body">
-      <div class="app-main" :class="{ 'is-console': activeTab === 'console' || activeTab === 'files' }">
-        <!-- 控制台始终挂载，切换 tab 只隐藏，避免重连与丢失回放 -->
+    <div class="app-body" :class="{ 'is-fill': activeTab !== 'config' }">
+      <div class="app-main" :class="{ 'is-fill': activeTab !== 'config' }">
+        <!-- 控制台始终挂载，切换标签只隐藏，避免重连与丢失回放 -->
         <div v-show="activeTab === 'console'" class="app-term">
           <TerminalConsole
             ref="term"
@@ -165,6 +203,7 @@
                     type="text"
                     autocomplete="off"
                     spellcheck="false"
+                    enterkeyhint="send"
                     :placeholder="isMobile ? t('instanceConsole.cmdPlaceholderShort') : t('instanceConsole.cmdPlaceholder')"
                     :aria-label="t('instanceConsole.cmdLabel')"
                     :disabled="socketStatus !== 'connected'"
@@ -177,7 +216,7 @@
                   type="button"
                   class="app-cmd__kb"
                   :class="{ 'is-on': keysOpen }"
-                  :aria-label="t('terminal.keyboard')"
+                  :aria-label="keysOpen ? t('instance.ui.keysHide') : t('instance.ui.keysShow')"
                   :aria-pressed="keysOpen"
                   @click="toggleKeys"
                 >
@@ -200,30 +239,31 @@
         </div>
 
         <!-- 文件：首次切到「文件」时挂载，之后只隐藏，保留当前目录、选择与编辑状态 -->
-        <div v-if="filesMounted && routeInstanceId" v-show="activeTab === 'files'" class="app-files">
-          <FileBrowser :key="routeInstanceId" :scope="{ kind: 'instance', id: routeInstanceId }" />
-        </div>
-
-        <!-- 运行配置（PC 的「配置」tab） -->
-        <section v-if="activeTab === 'config'" class="app-card">
-          <div class="app-card__head">
-            <h2 class="app-card__title">{{ t('instance.ui.runConfig') }}</h2>
-            <UButton color="primary" size="sm" icon="i-lucide-pencil" @click="openInstanceEditor">
-              {{ t('instance.ui.editApp') }}
+        <div v-if="filesMounted && routeInstanceId" v-show="activeTab === 'files'" class="app-files-wrap">
+          <div class="app-files-bar">
+            <component :is="menuStore.iconComponents['HOutline:FolderIcon']" class="app-files-bar__ico" />
+            <span class="app-files-bar__path m-mono" :title="info?.absolutePath">{{ info?.absolutePath || info?.instancePath || '—' }}</span>
+            <UButton
+              v-if="canOpenFileManager && info?.absolutePath"
+              color="neutral"
+              variant="soft"
+              size="sm"
+              icon="i-lucide-external-link"
+              class="app-files-bar__open"
+              :to="pageTabTo('file', 'index', { workdir: info.absolutePath })"
+            >
+              {{ t('instance.ui.openInFileManager') }}
             </UButton>
           </div>
-          <dl class="app-kvrows">
-            <div v-for="row in configRows" :key="row.key" class="app-kvrow">
-              <dt>{{ row.label }}</dt>
-              <dd :class="{ 'm-mono': row.mono }">{{ row.value }}</dd>
-            </div>
-          </dl>
-          <p class="app-note">{{ t('instance.ui.restartHint') }}</p>
-        </section>
+          <div class="app-files">
+            <FileBrowser :key="routeInstanceId" :scope="{ kind: 'instance', id: routeInstanceId }" />
+          </div>
+        </div>
 
-        <!-- 手机「信息」tab：资源 + 信息 + 配置 -->
-        <template v-if="activeTab === 'info'">
-          <div class="app-stats is-mobile">
+        <!-- 配置 -->
+        <template v-if="activeTab === 'config'">
+          <!-- 手机：资源占用放在配置页顶部 -->
+          <div v-if="isMobile" class="app-stats is-mobile">
             <div v-for="s in statCards" :key="s.key" class="app-stat">
               <div class="app-stat__top">
                 <span class="app-stat__t">{{ s.label }}</span>
@@ -233,25 +273,47 @@
               <div class="app-stat__bar"><span :style="{ width: `${s.pct}%`, background: s.color }" /></div>
             </div>
           </div>
+
+          <section v-if="!isMobile" class="app-card">
+            <div class="app-card__head">
+              <h2 class="app-card__title">{{ t('instance.ui.runConfig') }}</h2>
+              <UButton color="primary" size="sm" icon="i-lucide-pencil" @click="openInstanceEditor">
+                {{ t('instance.ui.editConfig') }}
+              </UButton>
+            </div>
+            <dl class="app-kvrows">
+              <div v-for="row in configRows" :key="row.key" :ref="row.key === firstEnvKey ? setEnvAnchor : undefined" class="app-kvrow">
+                <dt :title="row.label">
+                  <UIcon v-if="row.secret" name="i-lucide-lock" class="app-kvrow__lock" />{{ row.label }}
+                </dt>
+                <dd :class="{ 'm-mono': row.mono, 'is-dim': row.secret }">{{ row.value }}</dd>
+              </div>
+            </dl>
+            <p class="app-note">{{ t('instance.ui.restartHint') }}</p>
+          </section>
         </template>
       </div>
 
-      <!-- 应用信息：PC 在「配置」tab 里与运行配置并排；手机在「信息」tab。控制台 / 文件占满宽度 -->
-      <aside v-if="isMobile ? activeTab === 'info' : activeTab === 'config'" class="app-side">
+      <!-- 配置标签：PC 右侧应用信息 + 最近事件；手机为单列信息卡 -->
+      <aside v-if="activeTab === 'config'" class="app-side">
         <section class="app-card">
           <h2 class="app-card__title">{{ t('instance.ui.appInfo') }}</h2>
           <dl class="app-kv">
+            <div v-if="isMobile" class="app-kv__item">
+              <dt>{{ t('instance.ui.appType') }}</dt>
+              <dd>{{ info?.type || t('instance.ui.uncategorized') }}</dd>
+            </div>
             <div class="app-kv__item">
               <dt>{{ t('instance.ui.workdir') }}</dt>
               <dd class="app-kv__line">
-                <span class="m-mono app-kv__ellipsis" :title="info?.instancePath">{{ info?.instancePath || '—' }}</span>
+                <span class="m-mono app-kv__ellipsis" :title="info?.absolutePath">{{ info?.instancePath || '—' }}</span>
                 <AppIconButton
                   v-if="info?.instancePath"
                   icon="HOutline:ClipboardDocumentIcon"
                   :size="16"
-                  :box="36"
+                  :box="isMobile ? 44 : 36"
                   :label="t('instance.ui.copyPath')"
-                  @click="copy(info.instancePath)"
+                  @click="copy(info.absolutePath || info.instancePath)"
                 />
               </dd>
             </div>
@@ -261,7 +323,7 @@
             </div>
             <div class="app-kv__item">
               <dt>{{ t('instance.stopCommand') }}</dt>
-              <dd class="app-kv__line">
+              <dd class="app-kv__line is-wrap">
                 <span v-if="info?.stopCommand" class="m-mono app-kv__kbd">{{ info.stopCommand }}</span>
                 <span class="app-kv__hint">
                   {{
@@ -275,16 +337,10 @@
             <div class="app-kv__item">
               <dt>{{ t('instance.environmentVariables') }}</dt>
               <dd class="app-kv__line">
-                <span class="m-num">{{ t('instance.ui.envCount', { count: envKeys.length }) }}</span>
+                <span class="m-num app-kv__count">{{ t('instance.ui.envCount', { count: envKeys.length }) }}</span>
                 <span v-if="envKeys.length" class="m-mono app-kv__ellipsis app-kv__hint">{{ envKeys.join(' · ') }}</span>
                 <span class="app-kv__spacer" />
-                <UButton
-                  v-if="envKeys.length && !isMobile"
-                  color="neutral"
-                  variant="soft"
-                  size="xs"
-                  @click="activeTab = 'config'"
-                >
+                <UButton v-if="envKeys.length && !isMobile" color="neutral" variant="soft" size="xs" @click="scrollToEnv">
                   {{ t('instance.ui.view') }}
                 </UButton>
               </dd>
@@ -298,7 +354,7 @@
             </div>
             <div class="app-kv__item is-switch">
               <span class="app-kv__switch-text">
-                <dt>{{ t('instance.autoStart') }}</dt>
+                <dt>{{ t('instance.ui.bootStart') }}</dt>
                 <dd>{{ t('instance.ui.autoStartDesc') }}</dd>
               </span>
               <AppSwitch
@@ -329,14 +385,37 @@
               <dd class="m-num">{{ fmtTime(info.updateTime) }}</dd>
             </div>
           </dl>
-          <div v-if="isMobile" class="app-side__acts">
-            <UButton color="primary" icon="i-lucide-pencil" class="app-side__btn" @click="openInstanceEditor">
-              {{ t('instance.ui.editApp') }}
-            </UButton>
-            <UButton color="neutral" variant="soft" icon="i-lucide-folder" class="app-side__btn" @click="openFileManager">
-              {{ t('instance.ui.appFiles') }}
-            </UButton>
+          <UButton v-if="isMobile" color="primary" icon="i-lucide-pencil" class="app-side__btn" @click="openInstanceEditor">
+            {{ t('instance.ui.editConfig') }}
+          </UButton>
+        </section>
+
+        <section class="app-card">
+          <div class="app-card__head">
+            <h2 class="app-card__title">{{ t('instance.ui.recentEvents') }}</h2>
+            <AppIconButton
+              icon="HOutline:ArrowPathIcon"
+              :size="16"
+              :box="isMobile ? 44 : 36"
+              :label="t('common.refresh')"
+              @click="loadEvents"
+            />
           </div>
+          <div v-if="eventsLoading && !events.length" class="app-events__empty">{{ t('common.loading') }}…</div>
+          <div v-else-if="!events.length" class="app-events__empty">{{ t('instance.ui.noEvents') }}</div>
+          <ol v-else class="app-events">
+            <li v-for="(ev, idx) in eventRows" :key="idx" class="app-event">
+              <span class="app-event__dot" :style="{ background: ev.color }" />
+              <span class="app-event__text">
+                <span class="app-event__t">{{ ev.text }}</span>
+                <span class="app-event__at m-num">{{ ev.at }}</span>
+              </span>
+            </li>
+          </ol>
+          <RouterLink v-if="canSeeLogs" class="app-events__all" :to="{ path: '/system/logs', query: { tab: 'operation' } }">
+            {{ t('instance.ui.allRecords') }}
+            <component :is="menuStore.iconComponents['HOutline:ChevronRightIcon']" />
+          </RouterLink>
         </section>
       </aside>
     </div>
@@ -348,34 +427,44 @@
       :submitting="instanceEditorSubmitting"
       :form="instanceEditorForm"
       :type-options="typeOptions"
-      :allow-run="instanceEditorMode === 'edit'"
-      :running="isRunning"
+      allow-run
+      :running="instanceEditorMode === 'edit' && isRunning"
       @close="handleEditorClose"
       @submit="handleEditorSubmit"
     />
+
+    <AppActionSheet v-model="sheetOpen" :title="displayName" :quick="sheetQuick" :items="sheetItems" @select="onMore" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
 import dayjs from 'dayjs'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
+import { pageTabTo } from '@/config/pageGroups'
 import { useI18n } from 'vue-i18n'
 import { useInstanceConsoleStore } from '@/stores/instance/console'
-import { useInstanceListStore } from '@/stores/instance/list'
+import { toEnvRows, useInstanceListStore } from '@/stores/instance/list'
 import { useUserStore } from '@/stores/user'
 import { InstanceStatus, type InstanceEditorFormValue } from '@/stores/instance/types'
-import { getInstanceStatsRequest, updateInstanceRequest } from '@/api/instance'
+import { getInstanceEventsRequest, getInstanceStatsRequest, updateInstanceRequest } from '@/api/instance'
 import FileBrowser from '@/components/file/FileBrowser.vue'
-import type { GetInstanceStatsResponse } from '@/types/v1/instance'
+import {
+  InstanceEventKind,
+  type GetInstanceStatsResponse,
+  type InstanceEvent,
+} from '@/types/v1/instance'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
 import { copyTextToClipboard, formatFileSize } from '@/utils/file'
+import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
 import type { TerminalAction } from '@/components/terminal/TerminalShell.vue'
-import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import TerminalConsole from '@/components/terminal/TerminalConsole.vue'
 import InstanceEditor from '@/views/instance/list/instanceEditor.vue'
+import AppActionSheet, { type AppSheetItem } from '@/views/instance/console/AppActionSheet.vue'
+import { fmtDuration, initialOf, toneOf } from '@/views/instance/shared'
 
 defineOptions({ name: 'InstanceConsoleView' })
 
@@ -384,6 +473,7 @@ const router = useRouter()
 const { t } = useI18n()
 const menuStore = useMenuStore()
 const userStore = useUserStore()
+const accessible = useAccessibleRoutes()
 
 const instanceConsoleStore = useInstanceConsoleStore()
 const instanceListStore = useInstanceListStore()
@@ -419,17 +509,18 @@ const { getInstanceTypeList, openEditEditor, openCreateEditor, closeInstanceEdit
 
 const term = ref<InstanceType<typeof TerminalConsole>>()
 const isMobile = computed(() => menuStore.isMobile)
+const canOpenFileManager = computed(() => accessible.value.has('/file/index'))
+const canSeeLogs = computed(() => accessible.value.has('/system/logs'))
 
 const info = computed(() => terminalInfo.value)
 const isRunning = computed(() => info.value?.status === InstanceStatus.INSTANCE_STATUS_RUNNING)
+const isMaintenance = computed(() => !!info.value?.maintenance)
 const displayName = computed(() => info.value?.name || t('instance.currentInstance'))
 const instanceName = displayName
 
 // —— 贴纸（与应用卡片同一套按 id 取色）——
-const TONES = ['p', 'a2', 'a', 'ok']
-const hash = computed(() => [...(getRouteInstanceId() || '')].reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 7))
-const tone = computed(() => TONES[hash.value % TONES.length])
-const initial = computed(() => (info.value?.name || '?').trim().charAt(0).toUpperCase())
+const tone = computed(() => toneOf(getRouteInstanceId()))
+const initial = computed(() => initialOf(info.value?.name || ''))
 
 const statusPill = computed(() => {
   switch (info.value?.status) {
@@ -444,28 +535,40 @@ const statusPill = computed(() => {
   }
 })
 
-// —— 运行时长（30s 刷新一次）——
+// —— 运行时长 / 停止时间（30s 刷新一次）——
 const now = ref(Date.now())
 let clockTimer: ReturnType<typeof setInterval> | undefined
-const fmtDuration = (ms: number) => {
-  const m = Math.floor(ms / 60000)
-  if (m < 1) return t('instance.ui.durJustNow')
-  const d = Math.floor(m / 1440)
-  const h = Math.floor((m % 1440) / 60)
-  if (d > 0) return t('instance.ui.durDays', { d, h })
-  if (h > 0) return t('instance.ui.durHours', { h, m: m % 60 })
-  return t('instance.ui.durMinutes', { m })
-}
-const uptimeText = computed(() => {
-  const start = info.value?.startTime ? dayjs(info.value.startTime as unknown as string) : null
-  if (!isRunning.value || !start || !start.isValid()) return t('instance.ui.notRunning')
-  return t('instance.ui.uptime', { time: fmtDuration(Math.max(0, now.value - start.valueOf())) })
-})
 const fmtTime = (value: unknown) => {
   if (!value) return '—'
   const d = dayjs(value as string | Date)
   return d.isValid() ? d.format('YYYY-MM-DD HH:mm') : '—'
 }
+// 今天的只显示时间，其他显示月日
+const fmtWhen = (value: unknown) => {
+  const d = dayjs(value as string | Date)
+  if (!d.isValid()) return '—'
+  return d.isSame(dayjs(), 'day') ? t('instance.ui.todayAt', { time: d.format('HH:mm') }) : d.format('MM-DD HH:mm')
+}
+const uptimeText = computed(() => {
+  const i = info.value
+  if (!i) return '—'
+  if (isRunning.value) {
+    const start = i.startTime ? dayjs(i.startTime as unknown as string) : null
+    if (!start || !start.isValid()) return t('instance.running')
+    const dur = fmtDuration(t, now.value - start.valueOf())
+    return isMobile.value ? dur : t('instance.ui.uptime', { time: dur })
+  }
+  if (isMaintenance.value && i.maintenanceTime) {
+    return `${t('instance.ui.upMaintenance')} ${fmtWhen(i.maintenanceTime)}`
+  }
+  if (i.stopTime) return `${t('instance.ui.upStoppedAt')} ${fmtWhen(i.stopTime)}`
+  return t('instance.ui.neverRun')
+})
+const maintenanceText = computed(() =>
+  info.value?.maintenanceTime
+    ? t('instance.ui.maintenanceBanner', { time: fmtTime(info.value.maintenanceTime) })
+    : t('instance.ui.maintenanceBannerNoTime'),
+)
 
 // —— 资源占用（后端 GetInstanceStats，前台轮询）——
 const stats = ref<GetInstanceStatsResponse>()
@@ -480,7 +583,7 @@ const loadStats = async () => {
     const { data } = await getInstanceStatsRequest({ id })
     stats.value = data
   } catch {
-    // 资源占用是辅助信息：失败（如远程节点版本较旧没有该接口）后停止轮询，避免反复报错
+    // 资源占用是辅助信息：失败后停止轮询，避免反复报错
     stopStats()
   }
 }
@@ -553,44 +656,150 @@ const statCards = computed(() => {
 const tags = computed(() =>
   (info.value?.tags || '')
     .split(/[,，]/u)
-    .map((s) => s.trim())
+    .map((s) => s.trim().replace(/^#/u, ''))
     .filter(Boolean),
 )
-const envKeys = computed(() =>
-  (info.value?.env || [])
-    .map((line) => line.split('=')[0]?.trim() || '')
-    .filter(Boolean),
-)
+const envKeys = computed(() => (info.value?.env || []).map((e) => e.key).filter(Boolean))
 const stopTimeout = computed(() => Number(info.value?.stopTimeout || 0) || 3)
+const SECRET_DOTS = '••••••••'
 const configRows = computed(() => {
   const i = info.value
-  const rows: { key: string; label: string; value: string; mono?: boolean }[] = [
-    { key: 'type', label: t('instance.ui.appType'), value: i?.type || '—' },
-    { key: 'dir', label: t('instance.ui.workdir'), value: i?.instancePath || '—', mono: true },
+  const rows: { key: string; label: string; value: string; mono?: boolean; secret?: boolean }[] = [
+    { key: 'type', label: t('instance.ui.appType'), value: i?.type || t('instance.ui.uncategorized') },
+    { key: 'dir', label: t('instance.ui.workdir'), value: i?.absolutePath || i?.instancePath || '—', mono: true },
     { key: 'start', label: t('instance.startCommand'), value: i?.startCommand || '—', mono: true },
     { key: 'stop', label: t('instance.stopCommand'), value: i?.stopCommand || '—', mono: true },
     { key: 'timeout', label: t('instance.ui.stopTimeout'), value: t('instance.ui.secondsValue', { n: stopTimeout.value }) },
-    { key: 'autoStart', label: t('instance.autoStart'), value: i?.autoStart ? t('common.yes') : t('common.no') },
+    { key: 'autoStart', label: t('instance.ui.bootStart'), value: i?.autoStart ? t('common.yes') : t('common.no') },
     { key: 'autoRestart', label: t('instance.ui.autoRestart'), value: i?.autoRestart ? t('common.yes') : t('common.no') },
   ]
-  ;(i?.env || []).forEach((line, idx) => {
-    const at = line.indexOf('=')
+  ;(i?.env || []).forEach((env, idx) => {
     rows.push({
       key: `env-${idx}`,
-      label: at < 0 ? line : line.slice(0, at),
-      value: at < 0 ? '' : line.slice(at + 1) || '""',
+      label: env.key,
+      value: env.isSecret ? SECRET_DOTS : env.value || '""',
       mono: true,
+      secret: env.isSecret,
     })
   })
   return rows
 })
+// 「环境变量 · 查看」：滚动到运行配置里的第一个变量
+const firstEnvKey = 'env-0'
+let envAnchor: HTMLElement | null = null
+const setEnvAnchor = (el: Element | ComponentPublicInstance | null) => {
+  envAnchor = el instanceof HTMLElement ? el : null
+}
+const scrollToEnv = () => envAnchor?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 
-// —— tabs ——
+// —— 最近事件 ——
+const events = ref<InstanceEvent[]>([])
+const eventsLoading = ref(false)
+const loadEvents = async () => {
+  const id = getRouteInstanceId()
+  if (!id) return
+  eventsLoading.value = true
+  try {
+    const { data } = await getInstanceEventsRequest({ id, limit: isMobile.value ? 5 : 6 })
+    events.value = data?.events || []
+  } catch {
+    events.value = []
+  } finally {
+    eventsLoading.value = false
+  }
+}
+const EVENT_LABEL: Partial<Record<InstanceEventKind, string>> = {
+  [InstanceEventKind.INSTANCE_EVENT_KIND_CREATE]: 'evCreate',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_START]: 'evStart',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_STOP]: 'evStop',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_FORCE_STOP]: 'evForceStop',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_RESTART]: 'evRestart',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_FORCE_RESTART]: 'evForceRestart',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_UPDATE]: 'evUpdate',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_LOG_CLEAR]: 'evLogClear',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_FILE]: 'evFile',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_MAINTENANCE_ON]: 'evMaintenanceOn',
+  [InstanceEventKind.INSTANCE_EVENT_KIND_MAINTENANCE_OFF]: 'evMaintenanceOff',
+}
+const eventColor = (ev: InstanceEvent) => {
+  if (!ev.success && ev.kind !== InstanceEventKind.INSTANCE_EVENT_KIND_EXIT) return 'var(--m-bad)'
+  switch (ev.kind) {
+    case InstanceEventKind.INSTANCE_EVENT_KIND_START:
+    case InstanceEventKind.INSTANCE_EVENT_KIND_RESTART:
+      return 'var(--m-ok)'
+    case InstanceEventKind.INSTANCE_EVENT_KIND_FORCE_STOP:
+    case InstanceEventKind.INSTANCE_EVENT_KIND_FORCE_RESTART:
+      return 'var(--m-bad)'
+    case InstanceEventKind.INSTANCE_EVENT_KIND_EXIT:
+      return ev.exitCode === 0 ? 'var(--el-text-color-secondary)' : 'var(--m-bad)'
+    case InstanceEventKind.INSTANCE_EVENT_KIND_AUTO_RESTART:
+    case InstanceEventKind.INSTANCE_EVENT_KIND_MAINTENANCE_ON:
+    case InstanceEventKind.INSTANCE_EVENT_KIND_MAINTENANCE_OFF:
+      return 'var(--m-warn)'
+    case InstanceEventKind.INSTANCE_EVENT_KIND_CREATE:
+      return 'var(--m-p)'
+    case InstanceEventKind.INSTANCE_EVENT_KIND_UPDATE:
+    case InstanceEventKind.INSTANCE_EVENT_KIND_FILE:
+    case InstanceEventKind.INSTANCE_EVENT_KIND_LOG_CLEAR:
+      return 'var(--m-a2)'
+    default:
+      return 'var(--el-text-color-secondary)'
+  }
+}
+const eventText = (ev: InstanceEvent) => {
+  let text: string
+  if (ev.kind === InstanceEventKind.INSTANCE_EVENT_KIND_EXIT) {
+    text = t('instance.ui.evExit', { code: ev.exitCode })
+  } else if (ev.kind === InstanceEventKind.INSTANCE_EVENT_KIND_AUTO_RESTART) {
+    text = t('instance.ui.evAutoRestart', { code: ev.exitCode })
+  } else {
+    const action = t(`instance.ui.${EVENT_LABEL[ev.kind] || 'evUpdate'}`)
+    text = ev.userName ? t('instance.ui.evBy', { user: ev.userName, action }) : action
+  }
+  if (!ev.success && ev.kind !== InstanceEventKind.INSTANCE_EVENT_KIND_EXIT) {
+    text += ` · ${ev.error ? t('instance.ui.evFailedWith', { error: ev.error }) : t('instance.ui.evFailed')}`
+  } else if (ev.error) {
+    text += ` · ${ev.error}`
+  }
+  return text
+}
+const eventRows = computed(() =>
+  events.value.map((ev) => ({ text: eventText(ev), at: fmtWhen(ev.time), color: eventColor(ev) })),
+)
+
+// —— 标签 ——
 const ROUTE_NAME = 'InstanceAppView'
-type TabKey = 'console' | 'files' | 'config' | 'info'
-const TAB_KEYS: TabKey[] = ['console', 'files', 'config', 'info']
+type TabKey = 'console' | 'files' | 'config'
+const TAB_KEYS: TabKey[] = ['console', 'files', 'config']
 const activeTab = ref<TabKey>('console')
 const filesMounted = ref(false)
+const tabs = computed<{ key: TabKey; label: string; icon: string }[]>(() => [
+  { key: 'console', label: t('instance.console'), icon: 'HOutline:CommandLineIcon' },
+  { key: 'files', label: t('instance.ui.tabFiles'), icon: 'HOutline:FolderIcon' },
+  { key: 'config', label: t('instance.config'), icon: 'HOutline:AdjustmentsHorizontalIcon' },
+])
+// 标签跟随地址 ?tab=（只在地址属于本页时；页面被缓存、地址已是别的页面时保持不动）
+watch(
+  () => [route.name, route.query.tab] as const,
+  ([name, tab]) => {
+    if (name !== ROUTE_NAME) return
+    activeTab.value = TAB_KEYS.includes(tab as TabKey) ? (tab as TabKey) : 'console'
+  },
+  { immediate: true },
+)
+watch(
+  activeTab,
+  (key) => {
+    if (key === 'files') filesMounted.value = true
+    if (key === 'console') nextTick(() => term.value?.focus())
+    if (key === 'config') void loadEvents()
+  },
+  { immediate: true },
+)
+const onTab = (key: TabKey) => {
+  if (key === activeTab.value) return
+  void router.replace({ query: { ...route.query, tab: key === 'console' ? undefined : key } })
+}
 
 // —— 命令输入条（回车发送 + 历史）——
 const command = ref('')
@@ -629,51 +838,12 @@ const historyStep = (dir: -1 | 1) => {
   }
   command.value = list[historyIndex] || ''
 }
-const tabs = computed<{ key: TabKey; label: string; icon: string }[]>(() =>
-  isMobile.value
-    ? [
-        { key: 'console', label: t('instance.console'), icon: 'HOutline:CommandLineIcon' },
-        { key: 'info', label: t('instance.ui.tabInfo'), icon: 'HOutline:IdentificationIcon' },
-        { key: 'files', label: t('instance.ui.tabFiles'), icon: 'HOutline:FolderIcon' },
-      ]
-    : [
-        { key: 'console', label: t('instance.console'), icon: 'HOutline:CommandLineIcon' },
-        { key: 'files', label: t('instance.ui.tabFiles'), icon: 'HOutline:FolderIcon' },
-        { key: 'config', label: t('instance.config'), icon: 'HOutline:AdjustmentsHorizontalIcon' },
-      ],
-)
-// 标签跟随地址 ?tab=（只在地址属于本页时；页面被缓存、地址已是别的页面时保持不动）
-watch(
-  () => [route.name, route.query.tab] as const,
-  ([name, tab]) => {
-    if (name !== ROUTE_NAME) return
-    const key = TAB_KEYS.includes(tab as TabKey) ? (tab as TabKey) : 'console'
-    activeTab.value = key
-  },
-  { immediate: true },
-)
-watch(
-  activeTab,
-  (key) => {
-    if (key === 'files') filesMounted.value = true
-    if (key === 'console') nextTick(() => term.value?.focus())
-  },
-  { immediate: true },
-)
-watch(isMobile, (mobile) => {
-  if (mobile && activeTab.value === 'config') onTab('info')
-  if (!mobile && activeTab.value === 'info') onTab('config')
-})
-const onTab = (key: TabKey) => {
-  if (key === activeTab.value) return
-  void router.replace({ query: { ...route.query, tab: key === 'console' ? undefined : key } })
-}
 
 // —— 连接状态文案 ——
 const statusLabel = computed(() => {
   switch (socketStatus.value) {
     case 'connected':
-      return t('instance.connected')
+      return isMobile.value ? t('instance.connected') : t('instance.ui.connectedWs')
     case 'connecting':
       return t('instance.connecting')
     case 'error':
@@ -683,7 +853,6 @@ const statusLabel = computed(() => {
   }
 })
 
-// 终端工具条只保留清屏与 store 功能项（启停/重启已在头部），避免重复
 // 控制台顶栏按钮（与原型一致）：清屏 / 重新连接 / 自动滚动
 const autoScroll = ref(true)
 const terminalActions = computed<TerminalAction[]>(() => [
@@ -691,8 +860,23 @@ const terminalActions = computed<TerminalAction[]>(() => [
   { key: 'reconnect', icon: 'HOutline:ArrowPathIcon', label: t('instanceConsole.reconnect') },
   { key: 'autoScroll', icon: 'HOutline:ChevronDoubleDownIcon', label: t('instanceConsole.autoScroll'), toggle: autoScroll.value },
 ])
-// 顶栏信息：工作目录
-const consoleInfo = computed(() => info.value?.instancePath || '')
+// 顶栏信息：已缓冲的输出行数（输出到达后节流统计）
+const bufferedLines = ref(0)
+let lineTimer: ReturnType<typeof setTimeout> | undefined
+const countLines = () => {
+  const raw = getOutputBuffer()
+  let n = 0
+  for (let i = 0; i < raw.length; i++) if (raw.charCodeAt(i) === 10) n++
+  bufferedLines.value = n
+}
+const scheduleCountLines = () => {
+  if (lineTimer) return
+  lineTimer = setTimeout(() => {
+    lineTimer = undefined
+    countLines()
+  }, 500)
+}
+const consoleInfo = computed(() => t('instance.ui.bufferedLines', { n: bufferedLines.value.toLocaleString() }))
 // 快捷命令：应用类型里设置的；没有时用最近发过的命令（最多 6 条，新的在前）
 const typeQuickCommands = computed(() => info.value?.quickCommands || [])
 const quickCommands = computed(() =>
@@ -706,20 +890,74 @@ const toggleKeys = () => {
   else term.value?.blur()
 }
 
+const nodeStore = useNodeStore()
 const canDelete = computed(() => {
   const owner = info.value?.userId?.trim() || ''
-  return !!owner && owner === (userStore.userInfo?.userId?.trim() || '')
+  const me = nodeStore.isRemote ? nodeStore.remoteUserId : userStore.userInfo?.userId?.trim() || ''
+  return !!owner && owner === me
 })
 
-const moreItems = computed<ActionMenuItem[]>(() => [
-  { key: 'forceStop', label: t('instance.forceStop'), icon: 'HOutline:NoSymbolIcon', danger: true, disabled: !isRunning.value },
-  { key: 'forceRestart', label: t('instance.forceRestart'), icon: 'HOutline:BoltIcon' },
-  { key: 'edit', label: t('instance.ui.editApp'), icon: 'HOutline:PencilSquareIcon' },
-  { key: 'files', label: t('instance.ui.appFiles'), icon: 'HOutline:FolderIcon' },
-  { key: 'duplicate', label: t('instance.ui.duplicateApp'), icon: 'HOutline:Square2StackIcon' },
-  { key: 'download', label: t('instance.ui.downloadLog'), icon: 'HOutline:ArrowDownTrayIcon' },
-  { key: 'clear', label: t('instance.clearScreen'), icon: 'HOutline:SparklesIcon' },
-  { key: 'delete', label: t('instance.ui.deleteApp'), icon: 'HOutline:TrashIcon', danger: true, hidden: !canDelete.value },
+// —— 更多操作：PC 下拉（带说明）/ 手机底部面板 ——
+interface MenuEntry extends Partial<AppSheetItem> {
+  key: string
+  divider?: boolean
+}
+const maintenanceEntry = computed<AppSheetItem>(() =>
+  isMaintenance.value
+    ? { key: 'maintenanceOff', label: t('instance.ui.endMaintenance'), icon: 'i-lucide-badge-check' }
+    : {
+        key: 'maintenanceOn',
+        label: t('instance.ui.enterMaintenance'),
+        icon: 'i-lucide-wrench',
+        description: t('instance.ui.maintenanceDesc'),
+      },
+)
+const forceStopEntry = computed<AppSheetItem>(() => ({
+  key: 'forceStop',
+  label: t('instance.forceStop'),
+  icon: 'i-lucide-zap',
+  description: t('instance.ui.forceStopDesc'),
+  danger: true,
+  disabled: !isRunning.value,
+}))
+const menuItems = computed<MenuEntry[]>(() => [
+  forceStopEntry.value,
+  { key: 'sep-1', divider: true },
+  { key: 'edit', label: t('instance.ui.editApp'), icon: 'i-lucide-pencil' },
+  { key: 'duplicate', label: t('instance.ui.duplicateApp'), icon: 'i-lucide-copy' },
+  { key: 'download', label: t('instance.ui.downloadLog'), icon: 'i-lucide-file-down' },
+  {
+    key: 'forceRestart',
+    label: t('instance.forceRestart'),
+    icon: 'i-lucide-rotate-ccw',
+    description: t('instance.ui.forceRestartDesc'),
+    disabled: isMaintenance.value,
+  },
+  maintenanceEntry.value,
+  ...(canDelete.value
+    ? [
+        { key: 'sep-2', divider: true },
+        { key: 'delete', label: t('instance.ui.deleteApp'), icon: 'i-lucide-trash-2', danger: true },
+      ]
+    : []),
+])
+const sheetOpen = ref(false)
+const sheetQuick = computed<AppSheetItem[]>(() => [
+  { key: 'restart', label: t('instance.restart'), icon: 'i-lucide-rotate-cw', disabled: isMaintenance.value || isBusy.value },
+  { key: 'edit', label: t('instance.ui.editShort'), icon: 'i-lucide-pencil' },
+  { key: 'download', label: t('instance.ui.downloadLog'), icon: 'i-lucide-file-down' },
+])
+const sheetItems = computed<AppSheetItem[]>(() => [
+  { key: 'duplicate', label: t('instance.ui.duplicateApp'), icon: 'i-lucide-copy' },
+  maintenanceEntry.value,
+  {
+    key: 'forceRestart',
+    label: t('instance.forceRestart'),
+    icon: 'i-lucide-rotate-ccw',
+    disabled: isMaintenance.value,
+  },
+  forceStopEntry.value,
+  ...(canDelete.value ? [{ key: 'delete', label: t('instance.ui.deleteApp'), icon: 'i-lucide-trash-2', danger: true }] : []),
 ])
 
 const onMore = (key: string) => {
@@ -730,11 +968,11 @@ const onMore = (key: string) => {
     case 'forceRestart':
       handleForceRestart()
       break
+    case 'restart':
+      handleRestart()
+      break
     case 'edit':
       void openInstanceEditor()
-      break
-    case 'files':
-      openFileManager()
       break
     case 'duplicate':
       void duplicateApp()
@@ -742,6 +980,20 @@ const onMore = (key: string) => {
     case 'download':
       downloadLog()
       break
+    case 'maintenanceOn':
+      handleEnterMaintenance()
+      break
+    case 'maintenanceOff':
+      void handleEndMaintenance()
+      break
+    case 'delete':
+      handleDelete()
+      break
+  }
+}
+
+const onAction = (key: string) => {
+  switch (key) {
     case 'clear':
       void handleClear()
       break
@@ -752,32 +1004,8 @@ const onMore = (key: string) => {
       autoScroll.value = !autoScroll.value
       if (autoScroll.value) term.value?.scrollToBottom()
       break
-    case 'delete':
-      handleDelete()
-      break
-  }
-}
-
-const onAction = (key: string) => {
-  switch (key) {
-    case 'start':
-    case 'stop':
-      handleTogglePower()
-      break
-    case 'restart':
-      handleRestart()
-      break
-    case 'forceStop':
-      handleForceStop()
-      break
-    case 'forceRestart':
-      handleForceRestart()
-      break
-    case 'clear':
-      void handleClear()
-      break
     default:
-      handleFeature(key)
+      feedback.info(t('instance.featureNotImplemented'))
   }
 }
 
@@ -787,9 +1015,11 @@ let unsubscribe: (() => void) | null = null
 onMounted(() => {
   const buffered = getOutputBuffer()
   if (buffered) term.value?.write(buffered)
+  countLines()
   unsubscribe = subscribeOutput((chunk) => {
     term.value?.write(chunk)
     if (autoScroll.value) term.value?.scrollToBottom()
+    scheduleCountLines()
   })
   term.value?.focus()
   clockTimer = setInterval(() => (now.value = Date.now()), 30000)
@@ -809,15 +1039,21 @@ watch(socketStatus, (status, prev) => {
     terminal.reset()
     if (terminal.cols > 0 && terminal.rows > 0) sendResize(terminal.cols, terminal.rows)
     terminal.focus()
+    scheduleCountLines()
   }
 })
 
-// 启停后立即刷新一次资源占用
-watch(isRunning, () => {
-  if (statsActive) void loadStats().then(scheduleStats)
-})
+// 启停 / 维护状态变化后立即刷新资源占用与事件
+watch(
+  () => [info.value?.status, info.value?.maintenance, info.value?.updateTime] as const,
+  (next, prev) => {
+    if (!prev || next.join() === prev.join()) return
+    if (statsActive) void loadStats().then(scheduleStats)
+    if (activeTab.value === 'config') void loadEvents()
+  },
+)
 
-// —— 路由驱动会话初始化（保留原语义）——
+// —— 路由驱动会话初始化 ——
 // 本页实例 id：只取属于本页路由时的参数；页面被缓存后地址变成别的页面时保持上一次的值，
 // 避免用空 id 去初始化会话 / 拉资源占用（后端会报「您没有该实例权限」）
 const routeInstanceId = ref('')
@@ -835,7 +1071,9 @@ watch(
     void initialize(path, rawInstanceId)
     if (changed) {
       stats.value = undefined
+      events.value = []
       if (statsActive) void loadStats()
+      if (activeTab.value === 'config') void loadEvents()
     }
   },
   { immediate: true },
@@ -845,6 +1083,7 @@ watch(
 const handleClear = async () => {
   await clearScreen()
   term.value?.reset()
+  bufferedLines.value = 0
 }
 
 const copy = async (text: string) => {
@@ -856,8 +1095,7 @@ const copy = async (text: string) => {
   }
 }
 
-// 下载日志：本页收到的控制台输出（去掉 ANSI 控制序列）
-// eslint-disable-next-line no-control-regex
+// 下载日志：本页收到的控制台输出（去掉 ANSI 控制序列；密钥变量已由后端打码）
 const ANSI_RE = /\u001B(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007\u001B]*(?:\u0007|\u001B\\)|[@-Z\\-_])/gu
 const downloadLog = () => {
   const raw = getOutputBuffer()
@@ -877,11 +1115,7 @@ const downloadLog = () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-// —— 导航 / 功能项 ——
-const openFileManager = () => {
-  onTab('files')
-}
-
+// —— 编辑 / 复制 ——
 const openInstanceEditor = async () => {
   const instanceId = getRouteInstanceId()
   if (!instanceId) {
@@ -896,7 +1130,7 @@ const openInstanceEditor = async () => {
   }
 }
 
-// 复制为新应用：以当前配置打开新建抽屉
+// 复制为新应用：以当前配置打开新建抽屉（密钥变量的值不会下发，需要重新填写）
 const duplicateApp = async () => {
   const i = info.value
   if (!i) return
@@ -916,47 +1150,40 @@ const duplicateApp = async () => {
       autoStart: false,
       autoRestart: !!i.autoRestart,
       stopTimeout: Number(i.stopTimeout || 0),
-      envText: (i.env || []).join('\n'),
+      env: toEnvRows(i.env).map((row) => ({ ...row, saved: false })),
     }
   } catch (error) {
     showRequestError(error, t('instance.loadConfigFailed'))
   }
 }
 
-const handleFeature = (key: string) => {
-  if (key === 'file-manager') {
-    openFileManager()
-    return
-  }
-  if (key === 'instance-setting') {
-    void openInstanceEditor()
-    return
-  }
-  feedback.info(t('instance.featureNotImplemented'))
-}
-
 const handleEditorClose = () => closeInstanceEditor()
 
 const handleEditorSubmit = async (form: InstanceEditorFormValue, options?: { run: boolean }) => {
-  const instanceId = getRouteInstanceId()
   const mode = instanceEditorMode.value
   try {
     instanceEditorForm.value = { ...form }
-    await submitInstanceEditor()
+    const saved = await submitInstanceEditor()
     feedback.success(mode === 'create' ? t('instance.createSuccess') : t('instance.configSaveSuccess'))
-    if (mode === 'edit' && instanceId) {
+    if (mode === 'edit') {
       await refreshCurrentInfo()
       if (options?.run) {
         if (isRunning.value) await restartTerminal()
-        else await togglePower()
+        else await startWithMaintenanceCheck()
       }
+      return
+    }
+    // 复制出来的新应用：保存后跳到它的详情
+    if (saved?.id) {
+      if (options?.run) await instanceListStore.changeInstanceStatus(saved.id, InstanceStatus.INSTANCE_STATUS_RUNNING)
+      await router.push({ path: `/instance/app/${saved.id}`, query: { tabTitle: saved.name } })
     }
   } catch (error) {
     showRequestError(error, mode === 'create' ? t('instance.createFailed') : t('instance.configSaveFailed'))
   }
 }
 
-// 侧栏开关：自启动 / 崩溃自动重启，直接保存
+// 应用信息里的开关：开机自启 / 崩溃后自动重启，直接保存
 const savingFlag = ref(false)
 const toggleFlag = async (field: 'autoStart' | 'autoRestart', value: boolean) => {
   const i = info.value
@@ -964,7 +1191,7 @@ const toggleFlag = async (field: 'autoStart' | 'autoRestart', value: boolean) =>
   savingFlag.value = true
   try {
     const patch = field === 'autoStart' ? { autoStart: value } : { autoRestart: value }
-    await updateInstanceRequest({ id: i.id, env: i.env || [], ...patch })
+    await updateInstanceRequest({ id: i.id, env: undefined, ...patch })
     await refreshCurrentInfo()
     feedback.success(t('instance.configSaveSuccess'))
   } catch (error) {
@@ -974,10 +1201,54 @@ const toggleFlag = async (field: 'autoStart' | 'autoRestart', value: boolean) =>
   }
 }
 
-// —— 启停/重启/强制（保留二次确认）——
+// —— 维护 ——
+const setMaintenance = async (on: boolean) => {
+  const i = info.value
+  if (!i) return false
+  try {
+    await updateInstanceRequest({ id: i.id, env: undefined, maintenance: on })
+    await refreshCurrentInfo()
+    return true
+  } catch (error) {
+    showRequestError(error, t('instance.configSaveFailed'))
+    return false
+  }
+}
+const handleEnterMaintenance = () => {
+  Dialog.confirm({
+    title: t('instance.ui.enterMaintenance'),
+    content: t('instance.ui.maintenanceOnContent', { name: instanceName.value }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.ui.enterMaintenance'),
+    onConfirm: async () => {
+      if (await setMaintenance(true)) feedback.success(t('instance.ui.maintenanceOnDone'))
+    },
+  })
+}
+const handleEndMaintenance = async () => {
+  if (await setMaintenance(false)) feedback.success(t('instance.ui.maintenanceOffDone'))
+}
+// 启动维护中的应用：确认后先结束维护
+const startWithMaintenanceCheck = async () => {
+  if (!isMaintenance.value) {
+    await togglePower()
+    return
+  }
+  Dialog.confirm({
+    title: t('instance.ui.endMaintenanceStartTitle'),
+    content: t('instance.ui.endMaintenanceStartContent', { name: instanceName.value }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.ui.endAndStart'),
+    onConfirm: async () => {
+      if (await setMaintenance(false)) await togglePower()
+    },
+  })
+}
+
+// —— 启停 / 重启 / 强制（保留二次确认）——
 const handleTogglePower = () => {
   if (!isRunning.value) {
-    void togglePower()
+    void startWithMaintenanceCheck()
     return
   }
   Dialog.confirm({
@@ -1052,6 +1323,7 @@ onBeforeUnmount(() => {
   closeInstanceEditor()
   stopStats()
   if (clockTimer) clearInterval(clockTimer)
+  if (lineTimer) clearTimeout(lineTimer)
 })
 </script>
 
@@ -1068,6 +1340,7 @@ onBeforeUnmount(() => {
   max-width: 1600px;
   width: 100%;
   margin: 0 auto;
+  scrollbar-width: thin;
 }
 .app-detail__back {
   align-self: flex-start;
@@ -1189,17 +1462,87 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   font-weight: 700;
 }
-.app-head__acts :deep(.action-menu__trigger) {
+.app-head__more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 44px;
   height: 44px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+}
+.app-head__more:hover {
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.app-head__more :deep(.iconify) {
+  width: 20px;
+  height: 20px;
 }
 .app-head__acts :deep(.is-stop) {
   color: var(--m-bad);
 }
 .app-head__acts :deep(.is-start) {
   color: var(--m-ok);
+}
+
+/* PC ⋯ 下拉 */
+.app-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+}
+.app-menu__sep {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--el-border-color-lighter);
+}
+.app-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--el-text-color-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.app-menu__item:hover:not(:disabled) {
+  background: var(--el-fill-color-light);
+}
+.app-menu__item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.app-menu__ico {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--el-text-color-secondary);
+}
+.app-menu__item.is-danger,
+.app-menu__item.is-danger .app-menu__ico {
+  color: var(--m-bad);
+}
+.app-menu__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.app-menu__desc {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--el-text-color-secondary);
 }
 
 /* 资源占用 */
@@ -1259,7 +1602,34 @@ onBeforeUnmount(() => {
   transition: width 0.4s ease;
 }
 
-/* tabs */
+/* 维护中提示 */
+.app-maint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 16px;
+  border-radius: 16px;
+  background: var(--m-warnSoft);
+  color: var(--m-warn);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.app-maint__ico {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.app-maint__text {
+  flex: 1;
+  min-width: 0;
+}
+.app-maint__btn {
+  flex: none;
+  min-height: 36px;
+  border-radius: 999px;
+}
+
+/* 标签 */
 .app-tabs {
   display: flex;
   gap: 28px;
@@ -1292,7 +1662,7 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-primary);
 }
 .app-tab.is-on {
-  color: var(--m-pInk);
+  color: var(--el-text-color-primary);
 }
 .app-tab.is-on::after {
   content: '';
@@ -1323,9 +1693,14 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 16px;
 }
+/* 控制台 / 文件填满页头下方剩余高度（命令输入始终在首屏内），矮屏时保底高度后整页滚动 */
+.app-body.is-fill {
+  flex: 1 1 0;
+  align-items: stretch;
+}
 .app-term {
-  height: clamp(460px, calc(100dvh - 330px), 960px);
-  min-height: 0;
+  flex: 1 1 0;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
   border-radius: var(--app-radius-lg);
@@ -1335,7 +1710,7 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 0;
 }
-/* 控制台卡片底部：快捷命令 + 命令输入（在深色卡片内，按原型） */
+/* 控制台卡片底部：快捷命令 + 命令输入（深色卡片内，终端固定配色） */
 .app-quick {
   display: flex;
   align-items: center;
@@ -1427,6 +1802,7 @@ onBeforeUnmount(() => {
 .app-cmd__send {
   min-height: 46px;
   padding-inline: 18px;
+  border-radius: 999px;
 }
 .app-cmd__send.is-icon {
   width: 44px;
@@ -1456,22 +1832,48 @@ onBeforeUnmount(() => {
   width: 20px;
   height: 20px;
 }
-.app-detail.is-mobile .app-quick {
-  gap: 6px;
-  padding: 6px 12px;
+
+/* 文件 */
+.app-files-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
 }
-.app-detail.is-mobile .app-cmd {
-  gap: 6px;
-  padding: 6px 8px calc(8px + env(safe-area-inset-bottom)) 12px;
+.app-files-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 6px 6px 14px;
+  border-radius: 14px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
 }
-.app-detail.is-mobile .app-cmd__field {
-  min-height: 44px;
-  padding: 0 14px;
-  border-color: var(--m-p);
+.app-files-bar__ico {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.app-files-bar__path {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-files-bar__open {
+  flex: none;
+  min-height: 36px;
+  border-radius: 999px;
+}
+.app-main.is-fill > .app-files-wrap {
+  flex: 1 1 0;
 }
 .app-files {
-  height: clamp(460px, calc(100dvh - 330px), 960px);
-  min-height: 0;
+  flex: 1 1 0;
+  min-height: 380px;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--el-border-color-light);
@@ -1550,6 +1952,9 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
 }
+.app-kv__line.is-wrap {
+  flex-wrap: wrap;
+}
 .app-kv__ellipsis {
   flex: 1;
   min-width: 0;
@@ -1557,6 +1962,9 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.8125rem;
+}
+.app-kv__count {
+  flex: none;
 }
 .app-kv__spacer {
   flex: 1;
@@ -1628,6 +2036,9 @@ onBeforeUnmount(() => {
   border-top: 1px solid var(--el-border-color-lighter);
 }
 .app-kvrow dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   width: 160px;
   flex: none;
   font-size: 0.8125rem;
@@ -1635,6 +2046,12 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.app-kvrow__lock {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: var(--m-warn);
 }
 .app-kvrow dd {
   flex: 1;
@@ -1647,6 +2064,10 @@ onBeforeUnmount(() => {
 .app-kvrow dd.m-mono {
   font-size: 0.8125rem;
 }
+.app-kvrow dd.is-dim {
+  color: var(--el-text-color-secondary);
+  letter-spacing: 0.1em;
+}
 .app-note {
   margin: 8px 0 4px;
   padding: 12px 14px;
@@ -1656,16 +2077,68 @@ onBeforeUnmount(() => {
   font-size: 0.8125rem;
   font-weight: 600;
 }
-.app-side__acts {
-  display: flex;
-  gap: 8px;
-  padding-top: 8px;
-}
 .app-side__btn {
-  flex: 1;
   min-height: 48px;
+  margin-top: 8px;
   justify-content: center;
   border-radius: 999px;
+}
+
+/* 最近事件 */
+.app-events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app-event {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+.app-event__dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  flex: none;
+}
+.app-event__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.app-event__t {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+  word-break: break-word;
+}
+.app-event__at {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.app-events__empty {
+  padding: 12px 0 8px;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.app-events__all {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--m-pInk);
+  text-decoration: none;
+}
+.app-events__all :deep(svg) {
+  width: 16px;
+  height: 16px;
 }
 
 @media (width < 1200px) {
@@ -1725,9 +2198,18 @@ onBeforeUnmount(() => {
   gap: 6px;
   font-size: 0.75rem;
   white-space: nowrap;
+  overflow: hidden;
 }
 .app-detail.is-mobile .app-head__acts {
   gap: 0;
+}
+.app-detail.is-mobile .app-maint {
+  margin: 0 12px 8px;
+  padding: 8px 8px 8px 12px;
+  font-size: 0.8125rem;
+}
+.app-detail.is-mobile .app-maint__btn {
+  min-height: 40px;
 }
 .app-detail.is-mobile .app-tabs {
   margin: 0;
@@ -1742,29 +2224,71 @@ onBeforeUnmount(() => {
   flex-wrap: nowrap;
   gap: 12px;
   overflow-y: auto;
+  scrollbar-width: none;
+}
+.app-detail.is-mobile .app-body::-webkit-scrollbar {
+  display: none;
+}
+.app-detail.is-mobile .app-body:not(.is-fill) {
+  padding: 12px 16px 24px;
 }
 .app-detail.is-mobile .app-main {
   flex: none;
   width: 100%;
 }
-.app-detail.is-mobile .app-main.is-console {
+.app-detail.is-mobile .app-main.is-fill {
   flex: 1;
   min-height: 0;
 }
-.app-detail.is-mobile .app-term,
-.app-detail.is-mobile .app-files {
+.app-detail.is-mobile .app-term {
   height: 100%;
   min-height: 320px;
   border-radius: 0;
+}
+.app-detail.is-mobile .app-files-wrap {
+  height: 100%;
+  gap: 0;
+}
+.app-detail.is-mobile .app-files-bar {
+  margin: 10px 12px;
+  padding-left: 12px;
+}
+.app-detail.is-mobile .app-files-bar__open {
+  min-height: 40px;
+}
+.app-detail.is-mobile .app-files {
+  flex: 1;
+  height: auto;
+  min-height: 320px;
+  border-radius: 0;
   border: none;
+  border-top: 1px solid var(--el-border-color-lighter);
 }
 .app-detail.is-mobile .app-side {
   flex: none;
   width: 100%;
-  padding: 0 16px 24px;
+  gap: 12px;
+}
+.app-detail.is-mobile .app-card {
+  padding: 4px 16px 12px;
+}
+.app-detail.is-mobile .app-quick {
+  gap: 6px;
+  padding: 6px 12px;
+}
+.app-detail.is-mobile .app-cmd {
+  gap: 6px;
+  padding: 6px 8px calc(8px + env(safe-area-inset-bottom)) 12px;
+}
+.app-detail.is-mobile .app-cmd__field {
+  min-height: 44px;
+  padding: 0 14px;
+}
+.app-detail.is-mobile .app-cmd__field input {
+  font-size: 1rem;
 }
 .app-stats.is-mobile {
-  padding: 12px 16px 0;
+  gap: 10px;
 }
 .app-stats.is-mobile .app-stat {
   gap: 4px;

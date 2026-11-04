@@ -105,6 +105,48 @@ func (_c *TaskCreate) SetNillableTitle(v *string) *TaskCreate {
 	return _c
 }
 
+// SetTarget sets the "target" field.
+func (_c *TaskCreate) SetTarget(v string) *TaskCreate {
+	_c.mutation.SetTarget(v)
+	return _c
+}
+
+// SetNillableTarget sets the "target" field if the given value is not nil.
+func (_c *TaskCreate) SetNillableTarget(v *string) *TaskCreate {
+	if v != nil {
+		_c.SetTarget(*v)
+	}
+	return _c
+}
+
+// SetSource sets the "source" field.
+func (_c *TaskCreate) SetSource(v string) *TaskCreate {
+	_c.mutation.SetSource(v)
+	return _c
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_c *TaskCreate) SetNillableSource(v *string) *TaskCreate {
+	if v != nil {
+		_c.SetSource(*v)
+	}
+	return _c
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (_c *TaskCreate) SetTriggerType(v task.TriggerType) *TaskCreate {
+	_c.mutation.SetTriggerType(v)
+	return _c
+}
+
+// SetNillableTriggerType sets the "trigger_type" field if the given value is not nil.
+func (_c *TaskCreate) SetNillableTriggerType(v *task.TriggerType) *TaskCreate {
+	if v != nil {
+		_c.SetTriggerType(*v)
+	}
+	return _c
+}
+
 // SetUserID sets the "user_id" field.
 func (_c *TaskCreate) SetUserID(v string) *TaskCreate {
 	_c.mutation.SetUserID(v)
@@ -115,6 +157,20 @@ func (_c *TaskCreate) SetUserID(v string) *TaskCreate {
 func (_c *TaskCreate) SetNillableUserID(v *string) *TaskCreate {
 	if v != nil {
 		_c.SetUserID(*v)
+	}
+	return _c
+}
+
+// SetOperator sets the "operator" field.
+func (_c *TaskCreate) SetOperator(v string) *TaskCreate {
+	_c.mutation.SetOperator(v)
+	return _c
+}
+
+// SetNillableOperator sets the "operator" field if the given value is not nil.
+func (_c *TaskCreate) SetNillableOperator(v *string) *TaskCreate {
+	if v != nil {
+		_c.SetOperator(*v)
 	}
 	return _c
 }
@@ -157,6 +213,34 @@ func (_c *TaskCreate) SetResult(v string) *TaskCreate {
 func (_c *TaskCreate) SetNillableResult(v *string) *TaskCreate {
 	if v != nil {
 		_c.SetResult(*v)
+	}
+	return _c
+}
+
+// SetSteps sets the "steps" field.
+func (_c *TaskCreate) SetSteps(v string) *TaskCreate {
+	_c.mutation.SetSteps(v)
+	return _c
+}
+
+// SetNillableSteps sets the "steps" field if the given value is not nil.
+func (_c *TaskCreate) SetNillableSteps(v *string) *TaskCreate {
+	if v != nil {
+		_c.SetSteps(*v)
+	}
+	return _c
+}
+
+// SetLogs sets the "logs" field.
+func (_c *TaskCreate) SetLogs(v string) *TaskCreate {
+	_c.mutation.SetLogs(v)
+	return _c
+}
+
+// SetNillableLogs sets the "logs" field if the given value is not nil.
+func (_c *TaskCreate) SetNillableLogs(v *string) *TaskCreate {
+	if v != nil {
+		_c.SetLogs(*v)
 	}
 	return _c
 }
@@ -245,6 +329,34 @@ func (_c *TaskCreate) SetNillableTimeoutMs(v *int64) *TaskCreate {
 	return _c
 }
 
+// SetCanceledBy sets the "canceled_by" field.
+func (_c *TaskCreate) SetCanceledBy(v string) *TaskCreate {
+	_c.mutation.SetCanceledBy(v)
+	return _c
+}
+
+// SetNillableCanceledBy sets the "canceled_by" field if the given value is not nil.
+func (_c *TaskCreate) SetNillableCanceledBy(v *string) *TaskCreate {
+	if v != nil {
+		_c.SetCanceledBy(*v)
+	}
+	return _c
+}
+
+// SetStartTime sets the "start_time" field.
+func (_c *TaskCreate) SetStartTime(v time.Time) *TaskCreate {
+	_c.mutation.SetStartTime(v)
+	return _c
+}
+
+// SetNillableStartTime sets the "start_time" field if the given value is not nil.
+func (_c *TaskCreate) SetNillableStartTime(v *time.Time) *TaskCreate {
+	if v != nil {
+		_c.SetStartTime(*v)
+	}
+	return _c
+}
+
 // SetEndTime sets the "end_time" field.
 func (_c *TaskCreate) SetEndTime(v time.Time) *TaskCreate {
 	_c.mutation.SetEndTime(v)
@@ -320,9 +432,25 @@ func (_c *TaskCreate) defaults() {
 		v := task.DefaultTitle
 		_c.mutation.SetTitle(v)
 	}
+	if _, ok := _c.mutation.Target(); !ok {
+		v := task.DefaultTarget
+		_c.mutation.SetTarget(v)
+	}
+	if _, ok := _c.mutation.Source(); !ok {
+		v := task.DefaultSource
+		_c.mutation.SetSource(v)
+	}
+	if _, ok := _c.mutation.TriggerType(); !ok {
+		v := task.DefaultTriggerType
+		_c.mutation.SetTriggerType(v)
+	}
 	if _, ok := _c.mutation.UserID(); !ok {
 		v := task.DefaultUserID
 		_c.mutation.SetUserID(v)
+	}
+	if _, ok := _c.mutation.Operator(); !ok {
+		v := task.DefaultOperator
+		_c.mutation.SetOperator(v)
 	}
 	if _, ok := _c.mutation.Payload(); !ok {
 		v := task.DefaultPayload
@@ -335,6 +463,14 @@ func (_c *TaskCreate) defaults() {
 	if _, ok := _c.mutation.Result(); !ok {
 		v := task.DefaultResult
 		_c.mutation.SetResult(v)
+	}
+	if _, ok := _c.mutation.Steps(); !ok {
+		v := task.DefaultSteps
+		_c.mutation.SetSteps(v)
+	}
+	if _, ok := _c.mutation.Logs(); !ok {
+		v := task.DefaultLogs
+		_c.mutation.SetLogs(v)
 	}
 	if _, ok := _c.mutation.ProgressTotal(); !ok {
 		v := task.DefaultProgressTotal
@@ -359,6 +495,10 @@ func (_c *TaskCreate) defaults() {
 	if _, ok := _c.mutation.TimeoutMs(); !ok {
 		v := task.DefaultTimeoutMs
 		_c.mutation.SetTimeoutMs(v)
+	}
+	if _, ok := _c.mutation.CanceledBy(); !ok {
+		v := task.DefaultCanceledBy
+		_c.mutation.SetCanceledBy(v)
 	}
 }
 
@@ -400,8 +540,25 @@ func (_c *TaskCreate) check() error {
 	if _, ok := _c.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`gen: missing required field "Task.title"`)}
 	}
+	if _, ok := _c.mutation.Target(); !ok {
+		return &ValidationError{Name: "target", err: errors.New(`gen: missing required field "Task.target"`)}
+	}
+	if _, ok := _c.mutation.Source(); !ok {
+		return &ValidationError{Name: "source", err: errors.New(`gen: missing required field "Task.source"`)}
+	}
+	if _, ok := _c.mutation.TriggerType(); !ok {
+		return &ValidationError{Name: "trigger_type", err: errors.New(`gen: missing required field "Task.trigger_type"`)}
+	}
+	if v, ok := _c.mutation.TriggerType(); ok {
+		if err := task.TriggerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "trigger_type", err: fmt.Errorf(`gen: validator failed for field "Task.trigger_type": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.UserID(); !ok {
 		return &ValidationError{Name: "user_id", err: errors.New(`gen: missing required field "Task.user_id"`)}
+	}
+	if _, ok := _c.mutation.Operator(); !ok {
+		return &ValidationError{Name: "operator", err: errors.New(`gen: missing required field "Task.operator"`)}
 	}
 	if _, ok := _c.mutation.Payload(); !ok {
 		return &ValidationError{Name: "payload", err: errors.New(`gen: missing required field "Task.payload"`)}
@@ -411,6 +568,12 @@ func (_c *TaskCreate) check() error {
 	}
 	if _, ok := _c.mutation.Result(); !ok {
 		return &ValidationError{Name: "result", err: errors.New(`gen: missing required field "Task.result"`)}
+	}
+	if _, ok := _c.mutation.Steps(); !ok {
+		return &ValidationError{Name: "steps", err: errors.New(`gen: missing required field "Task.steps"`)}
+	}
+	if _, ok := _c.mutation.Logs(); !ok {
+		return &ValidationError{Name: "logs", err: errors.New(`gen: missing required field "Task.logs"`)}
 	}
 	if _, ok := _c.mutation.ProgressTotal(); !ok {
 		return &ValidationError{Name: "progress_total", err: errors.New(`gen: missing required field "Task.progress_total"`)}
@@ -429,6 +592,9 @@ func (_c *TaskCreate) check() error {
 	}
 	if _, ok := _c.mutation.TimeoutMs(); !ok {
 		return &ValidationError{Name: "timeout_ms", err: errors.New(`gen: missing required field "Task.timeout_ms"`)}
+	}
+	if _, ok := _c.mutation.CanceledBy(); !ok {
+		return &ValidationError{Name: "canceled_by", err: errors.New(`gen: missing required field "Task.canceled_by"`)}
 	}
 	return nil
 }
@@ -494,9 +660,25 @@ func (_c *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 		_spec.SetField(task.FieldTitle, field.TypeString, value)
 		_node.Title = value
 	}
+	if value, ok := _c.mutation.Target(); ok {
+		_spec.SetField(task.FieldTarget, field.TypeString, value)
+		_node.Target = value
+	}
+	if value, ok := _c.mutation.Source(); ok {
+		_spec.SetField(task.FieldSource, field.TypeString, value)
+		_node.Source = value
+	}
+	if value, ok := _c.mutation.TriggerType(); ok {
+		_spec.SetField(task.FieldTriggerType, field.TypeEnum, value)
+		_node.TriggerType = value
+	}
 	if value, ok := _c.mutation.UserID(); ok {
 		_spec.SetField(task.FieldUserID, field.TypeString, value)
 		_node.UserID = value
+	}
+	if value, ok := _c.mutation.Operator(); ok {
+		_spec.SetField(task.FieldOperator, field.TypeString, value)
+		_node.Operator = value
 	}
 	if value, ok := _c.mutation.Payload(); ok {
 		_spec.SetField(task.FieldPayload, field.TypeString, value)
@@ -509,6 +691,14 @@ func (_c *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Result(); ok {
 		_spec.SetField(task.FieldResult, field.TypeString, value)
 		_node.Result = value
+	}
+	if value, ok := _c.mutation.Steps(); ok {
+		_spec.SetField(task.FieldSteps, field.TypeString, value)
+		_node.Steps = value
+	}
+	if value, ok := _c.mutation.Logs(); ok {
+		_spec.SetField(task.FieldLogs, field.TypeString, value)
+		_node.Logs = value
 	}
 	if value, ok := _c.mutation.ProgressTotal(); ok {
 		_spec.SetField(task.FieldProgressTotal, field.TypeInt64, value)
@@ -533,6 +723,14 @@ func (_c *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.TimeoutMs(); ok {
 		_spec.SetField(task.FieldTimeoutMs, field.TypeInt64, value)
 		_node.TimeoutMs = value
+	}
+	if value, ok := _c.mutation.CanceledBy(); ok {
+		_spec.SetField(task.FieldCanceledBy, field.TypeString, value)
+		_node.CanceledBy = value
+	}
+	if value, ok := _c.mutation.StartTime(); ok {
+		_spec.SetField(task.FieldStartTime, field.TypeTime, value)
+		_node.StartTime = &value
 	}
 	if value, ok := _c.mutation.EndTime(); ok {
 		_spec.SetField(task.FieldEndTime, field.TypeTime, value)
@@ -662,6 +860,42 @@ func (u *TaskUpsert) UpdateTitle() *TaskUpsert {
 	return u
 }
 
+// SetTarget sets the "target" field.
+func (u *TaskUpsert) SetTarget(v string) *TaskUpsert {
+	u.Set(task.FieldTarget, v)
+	return u
+}
+
+// UpdateTarget sets the "target" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateTarget() *TaskUpsert {
+	u.SetExcluded(task.FieldTarget)
+	return u
+}
+
+// SetSource sets the "source" field.
+func (u *TaskUpsert) SetSource(v string) *TaskUpsert {
+	u.Set(task.FieldSource, v)
+	return u
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateSource() *TaskUpsert {
+	u.SetExcluded(task.FieldSource)
+	return u
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (u *TaskUpsert) SetTriggerType(v task.TriggerType) *TaskUpsert {
+	u.Set(task.FieldTriggerType, v)
+	return u
+}
+
+// UpdateTriggerType sets the "trigger_type" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateTriggerType() *TaskUpsert {
+	u.SetExcluded(task.FieldTriggerType)
+	return u
+}
+
 // SetUserID sets the "user_id" field.
 func (u *TaskUpsert) SetUserID(v string) *TaskUpsert {
 	u.Set(task.FieldUserID, v)
@@ -671,6 +905,18 @@ func (u *TaskUpsert) SetUserID(v string) *TaskUpsert {
 // UpdateUserID sets the "user_id" field to the value that was provided on create.
 func (u *TaskUpsert) UpdateUserID() *TaskUpsert {
 	u.SetExcluded(task.FieldUserID)
+	return u
+}
+
+// SetOperator sets the "operator" field.
+func (u *TaskUpsert) SetOperator(v string) *TaskUpsert {
+	u.Set(task.FieldOperator, v)
+	return u
+}
+
+// UpdateOperator sets the "operator" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateOperator() *TaskUpsert {
+	u.SetExcluded(task.FieldOperator)
 	return u
 }
 
@@ -707,6 +953,30 @@ func (u *TaskUpsert) SetResult(v string) *TaskUpsert {
 // UpdateResult sets the "result" field to the value that was provided on create.
 func (u *TaskUpsert) UpdateResult() *TaskUpsert {
 	u.SetExcluded(task.FieldResult)
+	return u
+}
+
+// SetSteps sets the "steps" field.
+func (u *TaskUpsert) SetSteps(v string) *TaskUpsert {
+	u.Set(task.FieldSteps, v)
+	return u
+}
+
+// UpdateSteps sets the "steps" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateSteps() *TaskUpsert {
+	u.SetExcluded(task.FieldSteps)
+	return u
+}
+
+// SetLogs sets the "logs" field.
+func (u *TaskUpsert) SetLogs(v string) *TaskUpsert {
+	u.Set(task.FieldLogs, v)
+	return u
+}
+
+// UpdateLogs sets the "logs" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateLogs() *TaskUpsert {
+	u.SetExcluded(task.FieldLogs)
 	return u
 }
 
@@ -803,6 +1073,36 @@ func (u *TaskUpsert) UpdateTimeoutMs() *TaskUpsert {
 // AddTimeoutMs adds v to the "timeout_ms" field.
 func (u *TaskUpsert) AddTimeoutMs(v int64) *TaskUpsert {
 	u.Add(task.FieldTimeoutMs, v)
+	return u
+}
+
+// SetCanceledBy sets the "canceled_by" field.
+func (u *TaskUpsert) SetCanceledBy(v string) *TaskUpsert {
+	u.Set(task.FieldCanceledBy, v)
+	return u
+}
+
+// UpdateCanceledBy sets the "canceled_by" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateCanceledBy() *TaskUpsert {
+	u.SetExcluded(task.FieldCanceledBy)
+	return u
+}
+
+// SetStartTime sets the "start_time" field.
+func (u *TaskUpsert) SetStartTime(v time.Time) *TaskUpsert {
+	u.Set(task.FieldStartTime, v)
+	return u
+}
+
+// UpdateStartTime sets the "start_time" field to the value that was provided on create.
+func (u *TaskUpsert) UpdateStartTime() *TaskUpsert {
+	u.SetExcluded(task.FieldStartTime)
+	return u
+}
+
+// ClearStartTime clears the value of the "start_time" field.
+func (u *TaskUpsert) ClearStartTime() *TaskUpsert {
+	u.SetNull(task.FieldStartTime)
 	return u
 }
 
@@ -959,6 +1259,48 @@ func (u *TaskUpsertOne) UpdateTitle() *TaskUpsertOne {
 	})
 }
 
+// SetTarget sets the "target" field.
+func (u *TaskUpsertOne) SetTarget(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetTarget(v)
+	})
+}
+
+// UpdateTarget sets the "target" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateTarget() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateTarget()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *TaskUpsertOne) SetSource(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateSource() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (u *TaskUpsertOne) SetTriggerType(v task.TriggerType) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetTriggerType(v)
+	})
+}
+
+// UpdateTriggerType sets the "trigger_type" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateTriggerType() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateTriggerType()
+	})
+}
+
 // SetUserID sets the "user_id" field.
 func (u *TaskUpsertOne) SetUserID(v string) *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
@@ -970,6 +1312,20 @@ func (u *TaskUpsertOne) SetUserID(v string) *TaskUpsertOne {
 func (u *TaskUpsertOne) UpdateUserID() *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetOperator sets the "operator" field.
+func (u *TaskUpsertOne) SetOperator(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetOperator(v)
+	})
+}
+
+// UpdateOperator sets the "operator" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateOperator() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateOperator()
 	})
 }
 
@@ -1012,6 +1368,34 @@ func (u *TaskUpsertOne) SetResult(v string) *TaskUpsertOne {
 func (u *TaskUpsertOne) UpdateResult() *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateResult()
+	})
+}
+
+// SetSteps sets the "steps" field.
+func (u *TaskUpsertOne) SetSteps(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetSteps(v)
+	})
+}
+
+// UpdateSteps sets the "steps" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateSteps() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateSteps()
+	})
+}
+
+// SetLogs sets the "logs" field.
+func (u *TaskUpsertOne) SetLogs(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetLogs(v)
+	})
+}
+
+// UpdateLogs sets the "logs" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateLogs() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateLogs()
 	})
 }
 
@@ -1124,6 +1508,41 @@ func (u *TaskUpsertOne) AddTimeoutMs(v int64) *TaskUpsertOne {
 func (u *TaskUpsertOne) UpdateTimeoutMs() *TaskUpsertOne {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateTimeoutMs()
+	})
+}
+
+// SetCanceledBy sets the "canceled_by" field.
+func (u *TaskUpsertOne) SetCanceledBy(v string) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetCanceledBy(v)
+	})
+}
+
+// UpdateCanceledBy sets the "canceled_by" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateCanceledBy() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateCanceledBy()
+	})
+}
+
+// SetStartTime sets the "start_time" field.
+func (u *TaskUpsertOne) SetStartTime(v time.Time) *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetStartTime(v)
+	})
+}
+
+// UpdateStartTime sets the "start_time" field to the value that was provided on create.
+func (u *TaskUpsertOne) UpdateStartTime() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateStartTime()
+	})
+}
+
+// ClearStartTime clears the value of the "start_time" field.
+func (u *TaskUpsertOne) ClearStartTime() *TaskUpsertOne {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearStartTime()
 	})
 }
 
@@ -1450,6 +1869,48 @@ func (u *TaskUpsertBulk) UpdateTitle() *TaskUpsertBulk {
 	})
 }
 
+// SetTarget sets the "target" field.
+func (u *TaskUpsertBulk) SetTarget(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetTarget(v)
+	})
+}
+
+// UpdateTarget sets the "target" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateTarget() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateTarget()
+	})
+}
+
+// SetSource sets the "source" field.
+func (u *TaskUpsertBulk) SetSource(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetSource(v)
+	})
+}
+
+// UpdateSource sets the "source" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateSource() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateSource()
+	})
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (u *TaskUpsertBulk) SetTriggerType(v task.TriggerType) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetTriggerType(v)
+	})
+}
+
+// UpdateTriggerType sets the "trigger_type" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateTriggerType() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateTriggerType()
+	})
+}
+
 // SetUserID sets the "user_id" field.
 func (u *TaskUpsertBulk) SetUserID(v string) *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
@@ -1461,6 +1922,20 @@ func (u *TaskUpsertBulk) SetUserID(v string) *TaskUpsertBulk {
 func (u *TaskUpsertBulk) UpdateUserID() *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateUserID()
+	})
+}
+
+// SetOperator sets the "operator" field.
+func (u *TaskUpsertBulk) SetOperator(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetOperator(v)
+	})
+}
+
+// UpdateOperator sets the "operator" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateOperator() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateOperator()
 	})
 }
 
@@ -1503,6 +1978,34 @@ func (u *TaskUpsertBulk) SetResult(v string) *TaskUpsertBulk {
 func (u *TaskUpsertBulk) UpdateResult() *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateResult()
+	})
+}
+
+// SetSteps sets the "steps" field.
+func (u *TaskUpsertBulk) SetSteps(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetSteps(v)
+	})
+}
+
+// UpdateSteps sets the "steps" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateSteps() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateSteps()
+	})
+}
+
+// SetLogs sets the "logs" field.
+func (u *TaskUpsertBulk) SetLogs(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetLogs(v)
+	})
+}
+
+// UpdateLogs sets the "logs" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateLogs() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateLogs()
 	})
 }
 
@@ -1615,6 +2118,41 @@ func (u *TaskUpsertBulk) AddTimeoutMs(v int64) *TaskUpsertBulk {
 func (u *TaskUpsertBulk) UpdateTimeoutMs() *TaskUpsertBulk {
 	return u.Update(func(s *TaskUpsert) {
 		s.UpdateTimeoutMs()
+	})
+}
+
+// SetCanceledBy sets the "canceled_by" field.
+func (u *TaskUpsertBulk) SetCanceledBy(v string) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetCanceledBy(v)
+	})
+}
+
+// UpdateCanceledBy sets the "canceled_by" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateCanceledBy() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateCanceledBy()
+	})
+}
+
+// SetStartTime sets the "start_time" field.
+func (u *TaskUpsertBulk) SetStartTime(v time.Time) *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.SetStartTime(v)
+	})
+}
+
+// UpdateStartTime sets the "start_time" field to the value that was provided on create.
+func (u *TaskUpsertBulk) UpdateStartTime() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.UpdateStartTime()
+	})
+}
+
+// ClearStartTime clears the value of the "start_time" field.
+func (u *TaskUpsertBulk) ClearStartTime() *TaskUpsertBulk {
+	return u.Update(func(s *TaskUpsert) {
+		s.ClearStartTime()
 	})
 }
 

@@ -120,6 +120,16 @@ func LastTestTime(v time.Time) predicate.FileSource {
 	return predicate.FileSource(sql.FieldEQ(FieldLastTestTime, v))
 }
 
+// LastTestUsedBytes applies equality check predicate on the "last_test_used_bytes" field. It's identical to LastTestUsedBytesEQ.
+func LastTestUsedBytes(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestUsedBytes, v))
+}
+
+// LastTestTotalBytes applies equality check predicate on the "last_test_total_bytes" field. It's identical to LastTestTotalBytesEQ.
+func LastTestTotalBytes(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestTotalBytes, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.FileSource {
 	return predicate.FileSource(sql.FieldEQ(FieldCreateTime, v))
@@ -598,6 +608,86 @@ func LastTestTimeIsNil() predicate.FileSource {
 // LastTestTimeNotNil applies the NotNil predicate on the "last_test_time" field.
 func LastTestTimeNotNil() predicate.FileSource {
 	return predicate.FileSource(sql.FieldNotNull(FieldLastTestTime))
+}
+
+// LastTestUsedBytesEQ applies the EQ predicate on the "last_test_used_bytes" field.
+func LastTestUsedBytesEQ(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestUsedBytes, v))
+}
+
+// LastTestUsedBytesNEQ applies the NEQ predicate on the "last_test_used_bytes" field.
+func LastTestUsedBytesNEQ(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNEQ(FieldLastTestUsedBytes, v))
+}
+
+// LastTestUsedBytesIn applies the In predicate on the "last_test_used_bytes" field.
+func LastTestUsedBytesIn(vs ...uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldIn(FieldLastTestUsedBytes, vs...))
+}
+
+// LastTestUsedBytesNotIn applies the NotIn predicate on the "last_test_used_bytes" field.
+func LastTestUsedBytesNotIn(vs ...uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNotIn(FieldLastTestUsedBytes, vs...))
+}
+
+// LastTestUsedBytesGT applies the GT predicate on the "last_test_used_bytes" field.
+func LastTestUsedBytesGT(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGT(FieldLastTestUsedBytes, v))
+}
+
+// LastTestUsedBytesGTE applies the GTE predicate on the "last_test_used_bytes" field.
+func LastTestUsedBytesGTE(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGTE(FieldLastTestUsedBytes, v))
+}
+
+// LastTestUsedBytesLT applies the LT predicate on the "last_test_used_bytes" field.
+func LastTestUsedBytesLT(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLT(FieldLastTestUsedBytes, v))
+}
+
+// LastTestUsedBytesLTE applies the LTE predicate on the "last_test_used_bytes" field.
+func LastTestUsedBytesLTE(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLTE(FieldLastTestUsedBytes, v))
+}
+
+// LastTestTotalBytesEQ applies the EQ predicate on the "last_test_total_bytes" field.
+func LastTestTotalBytesEQ(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldEQ(FieldLastTestTotalBytes, v))
+}
+
+// LastTestTotalBytesNEQ applies the NEQ predicate on the "last_test_total_bytes" field.
+func LastTestTotalBytesNEQ(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNEQ(FieldLastTestTotalBytes, v))
+}
+
+// LastTestTotalBytesIn applies the In predicate on the "last_test_total_bytes" field.
+func LastTestTotalBytesIn(vs ...uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldIn(FieldLastTestTotalBytes, vs...))
+}
+
+// LastTestTotalBytesNotIn applies the NotIn predicate on the "last_test_total_bytes" field.
+func LastTestTotalBytesNotIn(vs ...uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldNotIn(FieldLastTestTotalBytes, vs...))
+}
+
+// LastTestTotalBytesGT applies the GT predicate on the "last_test_total_bytes" field.
+func LastTestTotalBytesGT(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGT(FieldLastTestTotalBytes, v))
+}
+
+// LastTestTotalBytesGTE applies the GTE predicate on the "last_test_total_bytes" field.
+func LastTestTotalBytesGTE(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldGTE(FieldLastTestTotalBytes, v))
+}
+
+// LastTestTotalBytesLT applies the LT predicate on the "last_test_total_bytes" field.
+func LastTestTotalBytesLT(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLT(FieldLastTestTotalBytes, v))
+}
+
+// LastTestTotalBytesLTE applies the LTE predicate on the "last_test_total_bytes" field.
+func LastTestTotalBytesLTE(v uint64) predicate.FileSource {
+	return predicate.FileSource(sql.FieldLTE(FieldLastTestTotalBytes, v))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

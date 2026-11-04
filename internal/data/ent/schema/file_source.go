@@ -7,8 +7,8 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// FileSource 记录一个网络文件来源（对象存储 OSS / FTP / WebDAV 等）。
-// 本地磁盘是默认来源、不入库；这里只保存需要凭证连接的远端来源，全局可见、管理员维护。
+// FileSource 记录一个文件来源：本机目录挂载（local，限定在根目录内）或网络来源（对象存储 OSS / FTP / WebDAV）。
+// 整机本地磁盘是内置默认来源、不入库；全局可见、管理员维护。
 type FileSource struct {
 	ent.Schema
 }
@@ -18,7 +18,7 @@ func (FileSource) Fields() []ent.Field {
 		field.String("id").Unique().Comment("id"),
 		field.String("name").NotEmpty().Comment("展示名称"),
 		field.Enum("type").
-			Values("oss", "ftp", "webdav").
+			Values("local", "oss", "ftp", "webdav").
 			Comment("来源类型"),
 		field.Bool("enabled").Default(true).Comment("是否启用"),
 		field.Bool("redirect_302").Default(false).Comment("预览/下载是否优先 302 跳转到来源直链（需来源支持预签名）"),
@@ -30,6 +30,8 @@ func (FileSource) Fields() []ent.Field {
 		field.Int64("last_test_latency_ms").Default(0).Comment("最近一次测试耗时(毫秒)"),
 		field.String("last_test_message").Default("").Comment("最近一次测试结果消息"),
 		field.Time("last_test_time").Optional().Nillable().Comment("最近一次测试时间"),
+		field.Uint64("last_test_used_bytes").Default(0).Comment("最近一次测试得到的已用空间(字节)，0=未知"),
+		field.Uint64("last_test_total_bytes").Default(0).Comment("最近一次测试得到的总容量(字节)，0=未知或不限"),
 	}
 }
 

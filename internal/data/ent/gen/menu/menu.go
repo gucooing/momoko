@@ -37,6 +37,8 @@ const (
 	FieldStatus = "status"
 	// FieldParentID holds the string denoting the parent_id field in the database.
 	FieldParentID = "parent_id"
+	// FieldHidden holds the string denoting the hidden field in the database.
+	FieldHidden = "hidden"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
 	// Table holds the table name of the menu in the database.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldIsSystem,
 	FieldStatus,
 	FieldParentID,
+	FieldHidden,
 }
 
 var (
@@ -91,6 +94,8 @@ var (
 	TitleValidator func(string) error
 	// DefaultIsSystem holds the default value on creation for the "is_system" field.
 	DefaultIsSystem bool
+	// DefaultHidden holds the default value on creation for the "hidden" field.
+	DefaultHidden bool
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -206,6 +211,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByParentID orders the results by the parent_id field.
 func ByParentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldParentID, opts...).ToFunc()
+}
+
+// ByHidden orders the results by the hidden field.
+func ByHidden(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHidden, opts...).ToFunc()
 }
 
 // ByRolesCount orders the results by roles count.

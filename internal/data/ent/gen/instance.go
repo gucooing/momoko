@@ -45,8 +45,16 @@ type Instance struct {
 	AutoRestart bool `json:"auto_restart,omitempty"`
 	// 停止超时(秒)，<=0 使用默认值
 	StopTimeout int32 `json:"stop_timeout,omitempty"`
-	// 环境变量
+	// 环境变量（KEY=VALUE）
 	Env []string `json:"env,omitempty"`
+	// 按密钥保存的环境变量名：值只写不读，控制台输出里打码
+	SecretEnvKeys []string `json:"secret_env_keys,omitempty"`
+	// 维护中：不自启动、不自动重启、不允许启动
+	Maintenance bool `json:"maintenance,omitempty"`
+	// 进入维护的时间
+	MaintenanceTime *time.Time `json:"maintenance_time,omitempty"`
+	// 最近一次进程退出时间
+	LastStopTime *time.Time `json:"last_stop_time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the InstanceQuery when eager-loading is set.
 	Edges         InstanceEdges `json:"edges"`
@@ -61,7 +69,7 @@ type InstanceEdges struct {
 	User *User `json:"user,omitempty"`
 	// 分配用户
 	Users []*User `json:"users,omitempty"`
-	// 实例类型
+	// 实例类型（类型被删除后为空，即未分类）
 	Type *InstanceType `json:"type,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
@@ -104,15 +112,15 @@ func (*Instance) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case instance.FieldEnv:
+		case instance.FieldEnv, instance.FieldSecretEnvKeys:
 			values[i] = new([]byte)
-		case instance.FieldIsSystem, instance.FieldAutoStart, instance.FieldAutoRestart:
+		case instance.FieldIsSystem, instance.FieldAutoStart, instance.FieldAutoRestart, instance.FieldMaintenance:
 			values[i] = new(sql.NullBool)
 		case instance.FieldStopTimeout:
 			values[i] = new(sql.NullInt64)
 		case instance.FieldID, instance.FieldName, instance.FieldRemark, instance.FieldTags, instance.FieldPath, instance.FieldStartCommand, instance.FieldStopCommand:
 			values[i] = new(sql.NullString)
-		case instance.FieldCreateTime, instance.FieldUpdateTime:
+		case instance.FieldCreateTime, instance.FieldUpdateTime, instance.FieldMaintenanceTime, instance.FieldLastStopTime:
 			values[i] = new(sql.NullTime)
 		case instance.ForeignKeys[0]: // instance_user
 			values[i] = new(sql.NullString)
@@ -219,6 +227,34 @@ func (_m *Instance) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field env: %w", err)
 				}
 			}
+		case instance.FieldSecretEnvKeys:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field secret_env_keys", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.SecretEnvKeys); err != nil {
+					return fmt.Errorf("unmarshal field secret_env_keys: %w", err)
+				}
+			}
+		case instance.FieldMaintenance:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field maintenance", values[i])
+			} else if value.Valid {
+				_m.Maintenance = value.Bool
+			}
+		case instance.FieldMaintenanceTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field maintenance_time", values[i])
+			} else if value.Valid {
+				_m.MaintenanceTime = new(time.Time)
+				*_m.MaintenanceTime = value.Time
+			}
+		case instance.FieldLastStopTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_stop_time", values[i])
+			} else if value.Valid {
+				_m.LastStopTime = new(time.Time)
+				*_m.LastStopTime = value.Time
+			}
 		case instance.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field instance_user", values[i])
@@ -322,6 +358,22 @@ func (_m *Instance) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("env=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Env))
+	builder.WriteString(", ")
+	builder.WriteString("secret_env_keys=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SecretEnvKeys))
+	builder.WriteString(", ")
+	builder.WriteString("maintenance=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Maintenance))
+	builder.WriteString(", ")
+	if v := _m.MaintenanceTime; v != nil {
+		builder.WriteString("maintenance_time=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.LastStopTime; v != nil {
+		builder.WriteString("last_stop_time=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

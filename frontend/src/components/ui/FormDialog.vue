@@ -145,6 +145,13 @@ onBeforeUnmount(() => {
   padding: 14px 20px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
+/* 底部按钮（UButton）：PC 40px、手机 44px 的药丸，与页面主按钮一致 */
+.form-dialog__foot :deep(:where(button[data-slot='base'])) {
+  min-height: 40px;
+  padding-inline: 18px;
+  border-radius: 999px;
+  font-weight: 700;
+}
 @media (width <= 768px) {
   .form-dialog {
     padding: 0;
@@ -154,6 +161,9 @@ onBeforeUnmount(() => {
     max-width: none !important;
     max-height: 92vh;
     border-radius: var(--app-radius-lg) var(--app-radius-lg) 0 0;
+  }
+  .form-dialog__foot :deep(:where(button[data-slot='base'])) {
+    min-height: 44px;
   }
 }
 

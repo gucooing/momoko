@@ -12,6 +12,7 @@
         class="search-box__input"
         type="search"
         :placeholder="searchPlaceholder"
+        :aria-label="t('shell.search')"
         autocomplete="off"
         @focus="onFocus"
         @keydown="onKey"
@@ -32,23 +33,28 @@
     <Teleport to="body">
       <div v-if="open" ref="panelRef" class="cmd-panel" :style="panelStyle" role="listbox">
         <div class="cmd-panel__list">
-          <button
-            v-for="(item, i) in results"
-            :key="item.path"
-            type="button"
-            class="cmd-panel__item"
-            :class="{ 'is-hl': i === highlight }"
-            role="option"
-            @click="jump(item.path)"
-            @mouseenter="highlight = i"
-          >
-            <span class="cmd-panel__item-icon">
-              <component :is="menuStore.iconComponents[item.icon]" v-if="item.icon" />
-            </span>
-            <span class="cmd-panel__item-title">{{ item.title }}</span>
-            <span class="cmd-panel__item-path">{{ item.path }}</span>
-          </button>
-          <div v-if="results.length === 0" class="cmd-panel__empty">
+          <template v-for="group in groupedResults" :key="group.key">
+            <div v-if="group.title" class="cmd-panel__group">{{ group.title }}</div>
+            <button
+              v-for="item in group.items"
+              :key="item.key"
+              type="button"
+              class="cmd-panel__item"
+              :class="{ 'is-hl': item.index === highlight }"
+              role="option"
+              :aria-selected="item.index === highlight"
+              @click="jump(item.to)"
+              @mouseenter="highlight = item.index"
+            >
+              <span class="cmd-panel__item-icon">
+                <component :is="menuStore.iconComponents[item.icon]" v-if="item.icon" />
+              </span>
+              <span class="cmd-panel__item-title">{{ item.title }}</span>
+              <span class="cmd-panel__item-path">{{ item.hint }}</span>
+            </button>
+          </template>
+          <div v-if="searching" class="cmd-panel__empty">{{ t('shell.cmd.searching') }}</div>
+          <div v-else-if="results.length === 0" class="cmd-panel__empty">
             {{ t('common.noData') }}
           </div>
         </div>
@@ -58,7 +64,10 @@
 </template>
 
 <script setup lang="ts">
+import type { RouteLocationRaw } from 'vue-router'
 import { MenuType, type MenuInfo } from '@/types/v1/system'
+import { getInstances } from '@/api/instance'
+import { listDockerContainers } from '@/api/docker'
 import { translateKnownText } from '@/locales'
 import { useI18n } from 'vue-i18n'
 
@@ -78,8 +87,11 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
 const searchPlaceholder = computed(() => t('layout.searchPlaceholder'))
 
 interface FlatItem {
+  key: string
+  group: 'pages' | 'apps' | 'containers'
   title: string
-  path: string
+  hint: string
+  to: RouteLocationRaw
   icon?: string
 }
 const flatItems = computed(() => {
@@ -87,7 +99,14 @@ const flatItems = computed(() => {
   const walk = (nodes?: MenuInfo[]) => {
     nodes?.forEach((n) => {
       if (n.type === MenuType.MenuType_Menu && n.path) {
-        out.push({ title: translateKnownText(n.title), path: n.path, icon: n.icon })
+        out.push({
+          key: `p:${n.path}`,
+          group: 'pages',
+          title: translateKnownText(n.title),
+          hint: n.path,
+          to: n.path,
+          icon: n.icon,
+        })
       }
       if (n.children?.length) walk(n.children)
     })
@@ -95,10 +114,83 @@ const flatItems = computed(() => {
   walk(menuStore.navMenuList)
   return out
 })
+
+// 应用与容器：输入后去后端按关键字查（各取前 5 条），没有权限的类别不查
+const remoteItems = ref<FlatItem[]>([])
+const searching = ref(false)
+let searchSeq = 0
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+const nodeStore = useNodeStore()
+const searchRemote = async (q: string) => {
+  const seq = ++searchSeq
+  const jobs: Promise<FlatItem[]>[] = []
+  if (menuStore.hasButtonPermission('instance:manage') && nodeStore.canAccessRoute('/instance/list')) {
+    jobs.push(
+      getInstances({ page: 1, pageSize: 5, keywords: q }).then(({ data }) =>
+        (data?.infos || []).map((it) => ({
+          key: `a:${it.id}`,
+          group: 'apps' as const,
+          title: it.name,
+          hint: it.type || '',
+          to: { path: `/instance/app/${it.id}`, query: { tabTitle: it.name } },
+          icon: 'HOutline:CubeIcon',
+        })),
+      ),
+    )
+  }
+  if (menuStore.hasButtonPermission('docker:view') && nodeStore.canAccessRoute('/docker')) {
+    jobs.push(
+      listDockerContainers({ status: '', keyword: q, network: '', labels: {}, page: 1, pageSize: 5 }).then(
+        ({ data }) =>
+          (data?.items || []).map((c) => {
+            const name = (c.names?.[0] || c.id.slice(0, 12)).replace(/^\//, '')
+            return {
+              key: `c:${c.id}`,
+              group: 'containers' as const,
+              title: name,
+              hint: c.image,
+              to: { path: '/docker', query: { tab: 'container', keyword: name } },
+              icon: 'HOutline:ServerStackIcon',
+            }
+          }),
+      ),
+    )
+  }
+  if (!jobs.length) {
+    remoteItems.value = []
+    return
+  }
+  searching.value = true
+  const settled = await Promise.allSettled(jobs)
+  if (seq !== searchSeq) return
+  remoteItems.value = settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+  searching.value = false
+}
+
 const results = computed(() => {
   const q = query.value.trim().toLowerCase()
   if (!q) return flatItems.value.slice(0, 8)
-  return flatItems.value.filter((i) => i.title.toLowerCase().includes(q)).slice(0, 12)
+  const pages = flatItems.value.filter((i) => i.title.toLowerCase().includes(q)).slice(0, 8)
+  return [...pages, ...remoteItems.value]
+})
+
+const GROUP_TITLES: Record<FlatItem['group'], string> = {
+  pages: 'shell.cmd.pages',
+  apps: 'shell.cmd.apps',
+  containers: 'shell.cmd.containers',
+}
+const groupedResults = computed(() => {
+  const showTitles = !!query.value.trim()
+  const out: { key: string; title: string; items: (FlatItem & { index: number })[] }[] = []
+  results.value.forEach((item, index) => {
+    let g = out.find((x) => x.key === item.group)
+    if (!g) {
+      g = { key: item.group, title: showTitles ? t(GROUP_TITLES[item.group]) : '', items: [] }
+      out.push(g)
+    }
+    g.items.push({ ...item, index })
+  })
+  return out
 })
 
 const place = () => {
@@ -149,8 +241,8 @@ const clearQuery = () => {
   inputRef.value?.focus()
 }
 
-const jump = (path: string) => {
-  if (router.currentRoute.value.path !== path) router.push(path)
+const jump = (to: RouteLocationRaw) => {
+  void router.push(to)
   query.value = ''
   close()
   inputRef.value?.blur()
@@ -181,13 +273,22 @@ const onKey = (e: KeyboardEvent) => {
   } else if (e.key === 'Enter') {
     e.preventDefault()
     const item = results.value[highlight.value]
-    if (item) jump(item.path)
+    if (item) jump(item.to)
   }
 }
 
-watch(query, () => {
+watch(query, (value) => {
   if (!open.value) openPanel()
   highlight.value = 0
+  if (searchTimer) clearTimeout(searchTimer)
+  const q = value.trim()
+  if (!q) {
+    searchSeq += 1
+    remoteItems.value = []
+    searching.value = false
+    return
+  }
+  searchTimer = setTimeout(() => void searchRemote(q), 250)
 })
 
 const onGlobalKey = (e: KeyboardEvent) => {
@@ -212,29 +313,27 @@ onBeforeUnmount(() => {
 .search-box {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 220px;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: var(--app-radius-sm);
-  background: var(--el-fill-color-light);
-  color: var(--el-text-color-placeholder);
+  gap: 10px;
+  width: 100%;
+  min-width: 220px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--el-border-color-light);
+  border-radius: 999px;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
   transition:
     border-color 0.15s,
-    background 0.15s,
     box-shadow 0.15s;
 }
 .search-box.is-focused,
 .search-box.is-open {
-  border-color: var(--el-color-primary);
-  background: var(--el-bg-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 15%, transparent);
+  border-color: var(--m-p);
   color: var(--el-text-color-primary);
 }
 .search-box__icon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 .search-box__input {
@@ -243,12 +342,12 @@ onBeforeUnmount(() => {
   border: none;
   outline: none;
   background: transparent;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-family: inherit;
   color: var(--el-text-color-primary);
 }
 .search-box__input::placeholder {
-  color: var(--el-text-color-placeholder);
+  color: var(--el-text-color-secondary);
 }
 /* 去掉部分浏览器 search 输入的原生清除按钮，避免双 × */
 .search-box__input::-webkit-search-cancel-button {
@@ -257,12 +356,11 @@ onBeforeUnmount(() => {
 }
 .search-box__kbd {
   font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--el-text-color-placeholder);
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 4px;
-  padding: 1px 5px;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-light);
+  border-radius: 8px;
+  padding: 3px 8px;
   font-family: inherit;
   flex-shrink: 0;
 }
@@ -310,6 +408,13 @@ onBeforeUnmount(() => {
 .cmd-panel__item:hover,
 .cmd-panel__item.is-hl {
   background: var(--el-fill-color-light);
+}
+.cmd-panel__group {
+  padding: 8px 10px 4px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--el-text-color-secondary);
 }
 .cmd-panel__item-icon {
   display: flex;

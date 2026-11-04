@@ -47,22 +47,25 @@ func (r *initializeRepo) ConfirmInitialize(ctx context.Context, databaseType v1.
 	return initialize.WriteMarker()
 }
 
-func (r *initializeRepo) TestDatabase(ctx context.Context, database *conf.Data_Database) (string, error) {
+func (r *initializeRepo) TestDatabase(ctx context.Context, database *conf.Data_Database) (*biz.DatabaseProbe, error) {
 	if err := TestDatabaseConnection(ctx, database); err != nil {
-		return "", err
+		return nil, err
 	}
-	return databaseServerVersion(ctx, database), nil
+	db, err := sql.Open(database.Driver, database.Source)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	return &biz.DatabaseProbe{
+		ServerVersion: databaseServerVersion(ctx, db, database.Driver),
+		TableCount:    databaseTableCount(ctx, db, database.Driver),
+	}, nil
 }
 
 // databaseServerVersion 查询数据库服务端版本，用于初始化向导展示；查询失败返回空串。
-func databaseServerVersion(ctx context.Context, database *conf.Data_Database) string {
-	db, err := sql.Open(database.Driver, database.Source)
-	if err != nil {
-		return ""
-	}
-	defer db.Close()
+func databaseServerVersion(ctx context.Context, db *sql.DB, driver string) string {
 	var query, prefix string
-	switch database.Driver {
+	switch driver {
 	case "sqlite3", "sqlite":
 		query, prefix = "SELECT sqlite_version()", "SQLite "
 	case "mysql":
@@ -77,7 +80,7 @@ func databaseServerVersion(ctx context.Context, database *conf.Data_Database) st
 		return ""
 	}
 	v = strings.TrimSpace(v)
-	if database.Driver == "mysql" && strings.Contains(strings.ToLower(v), "mariadb") {
+	if driver == "mysql" && strings.Contains(strings.ToLower(v), "mariadb") {
 		prefix = "MariaDB "
 		v = strings.SplitN(v, "-MariaDB", 2)[0]
 	}
@@ -85,6 +88,26 @@ func databaseServerVersion(ctx context.Context, database *conf.Data_Database) st
 		v = v[:i]
 	}
 	return prefix + v
+}
+
+// databaseTableCount 统计目标库里已有的数据表数量（用户表，不含系统表）；查询失败返回 0。
+func databaseTableCount(ctx context.Context, db *sql.DB, driver string) int64 {
+	var query string
+	switch driver {
+	case "sqlite3", "sqlite":
+		query = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+	case "mysql":
+		query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()"
+	case "postgres", "pgx":
+		query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = current_schema()"
+	default:
+		return 0
+	}
+	var n int64
+	if err := db.QueryRowContext(ctx, query).Scan(&n); err != nil {
+		return 0
+	}
+	return n
 }
 
 func TestDatabaseConnection(ctx context.Context, database *conf.Data_Database) error {

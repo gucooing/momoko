@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 	"sync"
 
@@ -140,44 +139,6 @@ func (f *FileOper) ListDir(dir string, field v1.FileSortField, order bool) ([]*v
 		return nil, err
 	}
 
-	sort.Slice(entries, func(i, j int) bool {
-		if entries[i].IsDir() != entries[j].IsDir() { // 文件夹和文件分开
-			return entries[i].IsDir()
-		}
-		switch field {
-		case SortByModTime: // 时间排序
-			t1Info, err := entries[i].Info()
-			if err != nil {
-				return false
-			}
-			t2Info, err := entries[j].Info()
-			if err != nil {
-				return false
-			}
-			t1 := t1Info.ModTime()
-			t2 := t2Info.ModTime()
-
-			if !t1.Equal(t2) {
-				if order {
-					return t1.After(t2)
-				}
-				return t1.Before(t2)
-			}
-
-		case SortByName: // 名称排序
-			fallthrough
-		default:
-		}
-
-		n1 := entries[i].Name()
-		n2 := entries[j].Name()
-
-		if order {
-			return n1 > n2
-		}
-		return n1 < n2
-	})
-
 	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
@@ -186,6 +147,7 @@ func (f *FileOper) ListDir(dir string, field v1.FileSortField, order bool) ([]*v
 		fullPath := filepath.Join(path, entry.Name())
 		results = append(results, toFileEntryInfo(info, fullPath))
 	}
+	SortEntries(results, field, order)
 	return results, nil
 }
 
@@ -462,12 +424,14 @@ func bufferPath(local bool, dir, fileName, id string) string {
 	return TempPartPath(UploadBufferDir, fileName, id)
 }
 
-// uploadBufferPath 返回某上传会话分片缓冲文件的本地路径（按来源是否本地选择目录）。
+// uploadBufferPath 返回某上传会话分片缓冲文件的本地路径（按会话记录的缓冲位置选择目录）。
 func uploadBufferPath(u *gen.FileUpload) string {
-	return bufferPath(u.SourceID == "", u.Path, u.FileName, u.ID)
+	return bufferPath(u.BufferLocal, u.Path, u.FileName, u.ID)
 }
 
-func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
+// NewChunkedUpload 构造一次分片上传会话种子。bufferLocal=true 表示本地类来源：path 为目标真实目录，
+// 分片缓冲在其旁边（收尾原子 rename）；false 表示远端来源，分片缓冲在统一本地临时目录。
+func NewChunkedUpload(hash, path, name string, fileSize uint64, bufferLocal bool) *ChunkedUpload {
 	chunkSize := calcChunkSize(fileSize)
 	return &ChunkedUpload{
 		FileUpload: &gen.FileUpload{
@@ -477,6 +441,7 @@ func NewChunkedUpload(hash, path, name string, fileSize uint64) *ChunkedUpload {
 			FileSize:    fileSize,
 			ChunkSize:   chunkSize,
 			TotalChunks: (chunkSize + fileSize - 1) / chunkSize,
+			BufferLocal: bufferLocal,
 		},
 		fileSync: sync.RWMutex{},
 	}

@@ -1,54 +1,146 @@
-<!-- 找回密码：占位流程（提交后提示功能开发中）；前置图标输入框，外壳样式由 login/index.vue 提供。 -->
+<!-- 找回密码：注册邮箱（尾部获取验证码）→ 验证码 → 新密码（强度条）→ 确认新密码 → 重置；
+     重置后该账号所有会话失效。邮件服务未开启时只给出联系管理员的提示。外壳由 login/index.vue 提供。 -->
 <template>
-  <div class="auth-form">
-    <header class="auth-form__head">
-      <h1 class="auth-form__title">{{ t('forgot.title') }}</h1>
-      <p class="auth-form__sub">{{ t('forgot.subtitle') }}</p>
-    </header>
+  <form class="auth-form" novalidate @submit.prevent="handleReset">
+    <div v-if="!mailEnabled" class="auth-note auth-note--warn" role="status">
+      <component :is="menuStore.iconComponents['HOutline:ExclamationTriangleIcon']" aria-hidden="true" />
+      <span>{{ t('authPage.reset.mailDisabled') }}</span>
+    </div>
 
-    <form class="auth-form__body" @submit.prevent="handleAction">
-      <div class="app-field">
-        <label class="app-label" for="forgot-email">{{ t('user.email') }}</label>
-        <div class="auth-fld">
-          <component :is="menuStore.iconComponents['HOutline:EnvelopeIcon']" class="auth-fld__ico" />
-          <input
-            id="forgot-email"
-            v-model="forgotPasswordForm.email"
-            class="app-input auth-input auth-input--lead"
-            :class="{ 'is-error': error }"
-            type="email"
-            :placeholder="t('forgot.emailPlaceholder')"
-            autocomplete="email"
+    <AuthField
+      id="forgot-email"
+      v-model="form.email"
+      :label="t('authPage.field.email')"
+      icon="HOutline:EnvelopeIcon"
+      type="email"
+      inputmode="email"
+      :placeholder="t('authPage.field.emailPlaceholder')"
+      autocomplete="email"
+      :disabled="!mailEnabled"
+      :error="errors.email"
+      @input="handleEmailInput"
+    >
+      <template #trail>
+        <SendCodeButton
+          :countdown="emailCode.countdown.value"
+          :sending="emailCode.sending.value"
+          :disabled="loading || !mailEnabled"
+          @send="handleSendCode"
+        />
+      </template>
+    </AuthField>
+
+    <AuthField
+      id="forgot-code"
+      v-model="form.code"
+      :label="t('authPage.field.code')"
+      icon="HOutline:ShieldCheckIcon"
+      inputmode="numeric"
+      :maxlength="6"
+      :placeholder="t('authPage.field.codePlaceholder')"
+      autocomplete="one-time-code"
+      :disabled="!mailEnabled"
+      :error="errors.code"
+    >
+      <template #below>
+        <span v-if="emailCode.sentMinutes.value && !errors.code" class="auth-status" role="status">
+          <component :is="menuStore.iconComponents['HOutline:CheckIcon']" aria-hidden="true" />
+          <span class="auth-status__long">{{ t('authPage.code.sent', { min: emailCode.sentMinutes.value }) }}</span>
+          <span class="auth-status__short">{{ t('authPage.code.sentShort', { min: emailCode.sentMinutes.value }) }}</span>
+        </span>
+      </template>
+    </AuthField>
+
+    <div class="auth-pw">
+      <AuthField
+        id="forgot-password"
+        v-model="form.password"
+        v-model:reveal="showPwd"
+        :label="t('authPage.field.newPassword')"
+        icon="HOutline:LockClosedIcon"
+        type="password"
+        revealable
+        :placeholder="t('authPage.field.newPasswordPlaceholder')"
+        autocomplete="new-password"
+        :disabled="!mailEnabled"
+        :error="errors.password"
+      />
+      <PasswordMeter
+        :password="form.password"
+        :hint="t('authPage.strength.hint')"
+        :hint-short="t('authPage.strength.hintShort')"
+      />
+    </div>
+
+    <AuthField
+      id="forgot-confirm"
+      v-model="form.confirmPassword"
+      :reveal="showPwd"
+      :label="t('authPage.field.confirmPassword')"
+      icon="HOutline:ShieldCheckIcon"
+      type="password"
+      :placeholder="t('authPage.field.confirmPlaceholder')"
+      autocomplete="new-password"
+      :disabled="!mailEnabled"
+      :error="errors.confirmPassword"
+    >
+      <template #below>
+        <span
+          v-if="form.confirmPassword && !errors.confirmPassword"
+          class="auth-status"
+          :class="{ 'is-bad': !passwordsMatch }"
+        >
+          <component
+            :is="menuStore.iconComponents[passwordsMatch ? 'HOutline:CheckIcon' : 'HOutline:XMarkIcon']"
+            aria-hidden="true"
           />
-        </div>
-        <span v-if="error" class="app-field__error">{{ error }}</span>
-      </div>
+          {{ passwordsMatch ? t('authPage.strength.match') : t('authPage.strength.mismatch') }}
+        </span>
+      </template>
+    </AuthField>
 
-      <UButton
-        type="submit"
-        color="primary"
-        block
-        class="auth-submit"
-        trailing-icon="i-lucide-arrow-right"
-      >
-        {{ t('forgot.submit') }}
-      </UButton>
-    </form>
+    <!-- 手机：说明放在表单末尾，底部操作条只留按钮 -->
+    <div class="auth-note reset-note--m">
+      <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" aria-hidden="true" />
+      <span>{{ t('authPage.reset.noteShort') }}</span>
+    </div>
 
-    <p class="auth-switch">
-      <span>{{ t('forgot.remembered') }}</span>
-      <button type="button" class="auth-text-btn" @click="emits('goToMode', 'login')">
-        {{ t('forgot.backLogin') }}
+    <div class="auth-actions auth-actions--bar">
+      <button type="submit" class="auth-submit" :disabled="loading || !mailEnabled" :aria-busy="loading">
+        {{ t('authPage.reset.submit') }}
+        <component
+          :is="menuStore.iconComponents[loading ? 'HOutline:ArrowPathIcon' : 'HOutline:ArrowRightIcon']"
+          :class="{ 'is-spin': loading }"
+          aria-hidden="true"
+        />
       </button>
-    </p>
-  </div>
+      <div class="auth-note reset-note--pc">
+        <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" aria-hidden="true" />
+        <span>{{ t('authPage.reset.note') }}</span>
+      </div>
+      <p class="auth-switch">
+        {{ t('authPage.reset.remembered') }}
+        <button type="button" class="auth-link" @click="emits('goToMode', 'login')">
+          {{ t('authPage.backToLogin') }}
+        </button>
+      </p>
+    </div>
+  </form>
 </template>
 
 <script setup lang="ts">
+import { resetPassword, sendResetPasswordEmailCode } from '@/api/login'
 import { useFeedback } from '@/utils/feedback'
+import AuthField from '@/views/login/components/AuthField.vue'
+import PasswordMeter from '@/views/login/components/PasswordMeter.vue'
+import SendCodeButton from '@/views/login/components/SendCodeButton.vue'
+import { MIN_PASSWORD_LENGTH } from '@/views/login/composables/passwordStrength'
+import { useEmailCode } from '@/views/login/composables/useEmailCode'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'ForgotPassword' })
+
+withDefaults(defineProps<{ mailEnabled?: boolean }>(), { mailEnabled: true })
 
 const emits = defineEmits<{
   (e: 'goToMode', mode: 'login' | 'forgot' | 'register'): void
@@ -60,122 +152,84 @@ const menuStore = useMenuStore()
 
 const EMAIL_REGEXP = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-const forgotPasswordForm = ref({
-  email: '',
-})
-const error = ref('')
+const loading = ref(false)
+const showPwd = ref(false)
+const errors = ref<Record<string, string>>({})
+const form = ref({ email: '', code: '', password: '', confirmPassword: '' })
 
-const handleAction = () => {
-  const email = forgotPasswordForm.value.email.trim()
-  if (!email) {
-    error.value = t('forgot.emailPlaceholder')
-    return
-  }
+const emailCode = useEmailCode((email) => sendResetPasswordEmailCode({ email }))
+
+const passwordsMatch = computed(
+  () => !!form.value.confirmPassword && form.value.confirmPassword === form.value.password,
+)
+
+const handleEmailInput = () => {
+  form.value.code = ''
+  emailCode.reset()
+}
+
+const handleSendCode = async () => {
+  const email = form.value.email.trim()
   if (!EMAIL_REGEXP.test(email)) {
-    error.value = t('login.emailInvalid')
+    errors.value = { ...errors.value, email: email ? t('login.emailInvalid') : t('login.validEmailFirst') }
     return
   }
-  error.value = ''
-  fb.info(t('forgot.comingSoon'))
+  errors.value = { ...errors.value, email: '' }
+  await emailCode.request(email)
+}
+
+const validate = (): boolean => {
+  const next: Record<string, string> = {}
+  const email = form.value.email.trim()
+  const code = form.value.code.trim()
+  if (!email) next.email = t('forgot.emailPlaceholder')
+  else if (!EMAIL_REGEXP.test(email)) next.email = t('login.emailInvalid')
+  if (!code) next.code = t('register.emailCodeRequired')
+  else if (!/^\d{6}$/.test(code)) next.code = t('authPage.code.invalid')
+  if (!form.value.password) next.password = t('register.passwordRequired')
+  else if (form.value.password.length < MIN_PASSWORD_LENGTH) next.password = t('authPage.strength.tooShort')
+  if (!form.value.confirmPassword) next.confirmPassword = t('register.confirmPasswordRequired')
+  else if (form.value.confirmPassword !== form.value.password) {
+    next.confirmPassword = t('register.confirmPasswordMismatch')
+  }
+  errors.value = next
+  return Object.keys(next).length === 0
+}
+
+const handleReset = async () => {
+  if (!validate()) return
+  loading.value = true
+  try {
+    await resetPassword({
+      email: form.value.email.trim(),
+      code: form.value.code.trim(),
+      newPassword: form.value.password,
+    })
+    // 本机若还留着该账号的旧令牌，已随重置失效，一并清掉。
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    fb.success(t('authPage.reset.success'))
+    emits('goToMode', 'login')
+  } catch {
+    // 请求层已提示错误
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <style scoped lang="scss">
-.auth-form {
-  width: 100%;
-}
+@use './auth-form.scss';
 
-.auth-form__head {
-  margin-bottom: 1rem;
+.reset-note--m {
+  display: none;
 }
-
-.auth-form__title {
-  margin: 0 0 4px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--el-text-color-primary);
-}
-
-.auth-form__sub {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--el-text-color-secondary);
-}
-
-.auth-form__body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.auth-input {
-  height: 36px;
-  font-size: 0.8125rem;
-}
-
-/* 带前置图标的输入框（与注册页一致） */
-.auth-fld {
-  position: relative;
-}
-.auth-fld__ico {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  width: 20px;
-  height: 20px;
-  transform: translateY(-50%);
-  color: var(--el-text-color-secondary);
-  pointer-events: none;
-  z-index: 1;
-}
-.auth-fld .auth-input.auth-input--lead {
-  padding-left: 46px;
-  background: var(--m-s2);
-  border-color: transparent;
-}
-.auth-fld .auth-input.auth-input--lead:focus {
-  background: var(--el-bg-color);
-  border-color: var(--el-color-primary);
-}
-.auth-fld .auth-input.auth-input--lead.is-error {
-  border-color: var(--el-color-danger);
-}
-.auth-fld:focus-within .auth-fld__ico {
-  color: var(--m-pInk);
-}
-
-.auth-submit {
-  justify-content: center;
-  margin-top: 4px;
-  height: 36px !important;
-  font-size: 0.875rem !important;
-  font-weight: 600;
-}
-
-.auth-switch {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 14px 0 0;
-  font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
-}
-
-.auth-text-btn {
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--el-color-primary);
-  cursor: pointer;
-}
-
-.auth-text-btn:hover {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+@media (width < 900px) {
+  .reset-note--m {
+    display: flex;
+  }
+  .reset-note--pc {
+    display: none;
+  }
 }
 </style>

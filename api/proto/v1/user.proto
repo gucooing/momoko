@@ -23,6 +23,13 @@ service UserService {
       body: "*"
     };
   }
+  // 保存自己的外观偏好（跟随账号同步到所有设备；不记操作日志）
+  rpc UpdateMyAppearance(UpdateMyAppearanceRequest) returns (UpdateMyAppearanceResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/user/me/appearance"
+      body: "*"
+    };
+  }
   // 获取自己的登录日志
   rpc MyLoginLogs(MyLoginLogsRequest) returns (MyLoginLogsResponse) {
     option (google.api.http) = {
@@ -84,6 +91,24 @@ message MeInfoRequest{}
 message MeInfoResponse{
   // 用户信息
   UserInfo user = 1;
+  // 外观偏好（从未保存过为空，前端沿用本机设置）
+  UserAppearance appearance = 2;
+}
+
+// 个人外观偏好：只对自己生效，跟随账号同步到所有设备
+message UserAppearance {
+  // 配色：sakura / mint / volt / grape / sunset / classic
+  string palette = 1;
+  // 深浅色：light / dark / auto（跟随系统）
+  string mode = 2;
+  // 紧凑模式
+  bool compact = 3;
+  // 减少动效
+  bool reduce_motion = 4;
+  // 圆角：round（圆润） / standard（标准）
+  string radius = 5;
+  // 显示已打开页面的标签栏
+  bool show_tabs = 6;
 }
 
 // 更新个人资料请求
@@ -102,6 +127,18 @@ message UpdateMeRequest {
   optional string username = 6;
   // 手机号
   optional string phone = 7;
+}
+
+// 保存外观偏好请求
+message UpdateMyAppearanceRequest {
+  // 外观偏好（整体替换；未知取值落回默认）
+  UserAppearance appearance = 1;
+}
+
+// 保存外观偏好响应
+message UpdateMyAppearanceResponse {
+  // 规范化后实际保存的外观偏好
+  UserAppearance appearance = 1;
 }
 
 // 更新个人资料响应
@@ -226,10 +263,7 @@ message UserInfo {
   google.protobuf.Timestamp update_time = 9;
   // 账户名
   string username = 10;
-  // 角色名称
-  string role_name = 11;
-  // 角色id
-  string role_id = 12;
+  reserved 11, 12;
   // 最近一次登录时间（未登录过为空）
   google.protobuf.Timestamp last_login_time = 13;
   // 最近一次修改密码时间（从未修改为空）
@@ -242,6 +276,23 @@ message UserInfo {
   string last_login_method = 17;
   // 是否系统内置账号（初始化时创建的超级管理员；不能删除、停用或修改角色）
   bool is_builtin = 18;
+  // 用户拥有的角色（可多个，权限取并集；按角色 id 升序）
+  repeated UserRole roles = 19;
+}
+
+// 用户拥有的角色
+message UserRole {
+  // 角色id
+  string role_id = 1;
+  // 角色名称
+  string name = 2;
+  // 是否内置角色
+  bool is_builtin = 3;
+}
+
+// 角色 id 集合（批量分配角色时用；字段存在即表示替换为该集合）
+message UserRoleIds {
+  repeated string ids = 1;
 }
 
 // 用户状态
@@ -290,8 +341,9 @@ message AddUserRequest {
   string tags = 7;
   // status
   UserStatus status = 8;
-  // 角色id
-  string role_id = 9;
+  reserved 9;
+  // 角色id（可多个；为空时分配内置「无权限」角色）
+  repeated string role_ids = 10;
 }
 
 // 添加用户响应
@@ -316,8 +368,9 @@ message EditUserRequest {
   string tags = 6;
   // status
   UserStatus status = 7;
-  // 角色id
-  string role_id = 8;
+  reserved 8;
+  // 角色id（可多个；为空时分配内置「无权限」角色）
+  repeated string role_ids = 9;
 }
 
 // 更新用户响应
@@ -341,8 +394,9 @@ message BatchUpdateUserRequest {
   repeated string user_ids = 1;
   // 新状态（不传则不修改）
   optional UserStatus status = 2;
-  // 新角色id（不传则不修改）
-  optional string role_id = 3;
+  reserved 3;
+  // 新角色集合（不传则不修改；传入即替换为该集合，空集合表示只保留「无权限」）
+  UserRoleIds roles = 4;
 }
 
 // 批量修改用户响应

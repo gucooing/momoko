@@ -219,7 +219,8 @@
   padding: 0;
   justify-content: center;
 }
-.dk-batch__btn :deep(svg) {
+.dk-batch__btn :deep(svg),
+.dk-batch__btn :deep(.iconify) {
   width: 16px;
   height: 16px;
 }
@@ -250,7 +251,8 @@
   border-radius: 16px;
   transform: rotate(-4deg);
 }
-.dk-detail__sticker :deep(svg) {
+.dk-detail__sticker :deep(svg),
+.dk-detail__sticker :deep(.iconify) {
   width: 24px;
   height: 24px;
 }
@@ -346,5 +348,51 @@
   }
   .dk-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 分页行：左侧「显示 1–8，共 12 个」，右侧页码 */
+.dk-pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.dk-pager__info {
+  flex: none;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.dk-pager > :deep(.pagination) {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 手机：右下悬浮主操作（在底部导航上方） */
+.dk-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(86px + env(safe-area-inset-bottom));
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 20px;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  box-shadow: var(--app-shadow-brand);
+  cursor: pointer;
+}
+.dk-fab :deep(svg),
+.dk-fab :deep(.iconify) {
+  width: 26px;
+  height: 26px;
+}
+@media (width < 768px) {
+  .dk-pager__info {
+    display: none;
   }
 }

@@ -7,6 +7,14 @@ import * as instanceApi from '@/api/instanceFile'
 import type { FileTaskInfo, UploadInfo } from '@/types/v1/file'
 import type { FileClient, FileScope } from './types'
 
+// 目录展示：实例目录 / 文件源返回相对根的 '.'、'.\docs'（Windows 分隔符），统一显示成 '/'、'/docs'；
+// 本地磁盘的绝对路径原样显示。
+export const displayDirPath = (path: string | undefined | null): string => {
+  if (!path || path === '.') return '/'
+  if (/^\.[\\/]/.test(path)) return `/${path.slice(2).replace(/\\/g, '/')}`
+  return path
+}
+
 // 复制/剪切：拿到任务后轮询至终态（系统级与实例级共用系统级任务轮询）。
 const finishTask = async (task: FileTaskInfo | undefined): Promise<FileTaskInfo> => {
   if (!task) throw new Error(t('utils.fileTask.missingTask'))
@@ -120,7 +128,7 @@ const createSystemFileClient = (getSourceId: () => string = () => ''): FileClien
     return data.downloadUrlPath
   },
   async preSignUpload(params) {
-    const { data } = await systemApi.fileSystemPreSignUpload({ ...params, sourceId: getSourceId() })
+    const { data } = await systemApi.fileSystemPreSignUpload({ ...params, sourceId: params.sourceId ?? getSourceId() })
     return data.info as UploadInfo
   },
 })
@@ -185,7 +193,8 @@ const createInstanceFileClient = (id: string): FileClient => ({
     return data.downloadUrlPath
   },
   async preSignUpload(params) {
-    const { data } = await instanceApi.instanceFilePreSignUpload(id, params)
+    const { path, fileName, fileSize, hash, partSize } = params
+    const { data } = await instanceApi.instanceFilePreSignUpload(id, { path, fileName, fileSize, hash, partSize })
     return data.info as UploadInfo
   },
 })

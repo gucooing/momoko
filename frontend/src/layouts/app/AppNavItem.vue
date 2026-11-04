@@ -18,12 +18,32 @@
       />
     </div>
 
+    <!-- 分组页的标签展开成多个入口（如「文件」：文件管理 / 分享 / 文件源），同一路由按 ?tab= 切换 -->
+    <template v-else-if="tabLinks.length">
+      <button
+        v-for="link in tabLinks"
+        :key="link.key"
+        type="button"
+        class="nav-link"
+        :class="{ 'is-active': activeTabKey === link.key, 'is-collapsed': collapsed }"
+        :aria-current="activeTabKey === link.key ? 'page' : undefined"
+        :title="collapsed ? link.label : undefined"
+        @click="navigateTo(link.to)"
+      >
+        <span class="nav-link__icon">
+          <component :is="menuStore.iconComponents[link.icon]" v-if="link.icon" />
+          <span v-else class="nav-link__dot" />
+        </span>
+        <span v-show="!collapsed" class="nav-link__label">{{ link.label }}</span>
+      </button>
+    </template>
     <!-- 链接 -->
     <button
       v-else
       type="button"
       class="nav-link"
       :class="{ 'is-active': isActive, 'is-collapsed': collapsed }"
+      :aria-current="isActive ? 'page' : undefined"
       :title="collapsed ? label : undefined"
       @click="navigate"
     >
@@ -37,8 +57,11 @@
 </template>
 
 <script setup lang="ts">
+import type { RouteLocationRaw } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { MenuStatus, MenuType, type MenuInfo } from '@/types/v1/system'
 import { translateKnownText } from '@/locales'
+import { PAGE_GROUPS, pageTabTo, type PageGroup, type PageGroupKey } from '@/config/pageGroups'
 
 const props = withDefaults(
   defineProps<{ item: MenuInfo; depth?: number; collapsed?: boolean }>(),
@@ -46,8 +69,10 @@ const props = withDefaults(
 )
 
 const menuStore = useMenuStore()
+const nodeStore = useNodeStore()
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 const isButton = computed(() => props.item.type === MenuType.MenuType_Button)
 const visibleChildren = computed(
@@ -70,12 +95,43 @@ const navigate = () => {
   if (props.item.path && route.path !== props.item.path) router.push(props.item.path)
   if (menuStore.isMobileMenuOpen) menuStore.isMobileMenuOpen = false
 }
+
+// 侧边栏展开标签的分组页（PageGroup.sidebarTabs）：每个可见标签一个入口
+const tabGroupKey = computed(() =>
+  props.item.type === MenuType.MenuType_Menu
+    ? (Object.keys(PAGE_GROUPS) as PageGroupKey[]).find((key) => {
+        const def: PageGroup = PAGE_GROUPS[key]
+        return def.sidebarTabs && def.path === props.item.path
+      })
+    : undefined,
+)
+const tabLinks = computed(() => {
+  const key = tabGroupKey.value
+  if (!key) return []
+  const def: PageGroup = PAGE_GROUPS[key]
+  return def.tabs
+    .filter(
+      (tab) =>
+        (!tab.perm || menuStore.hasButtonPermission(tab.perm)) &&
+        nodeStore.canAccessRoute(tab.nodePath || `${def.path}/${tab.key}`),
+    )
+    .map((tab) => ({ key: tab.key, label: t(tab.labelKey), icon: tab.icon || props.item.icon, to: pageTabTo(key, tab.key) }))
+})
+// 当前标签：地址上的 ?tab=，无效时回落到第一个可见标签（与 PageGroupHost 一致）
+const activeTabKey = computed(() => {
+  if (!tabLinks.value.length || route.path !== props.item.path) return ''
+  return tabLinks.value.find((link) => link.key === route.query.tab)?.key || tabLinks.value[0]?.key || ''
+})
+const navigateTo = (to: RouteLocationRaw) => {
+  void router.push(to)
+  if (menuStore.isMobileMenuOpen) menuStore.isMobileMenuOpen = false
+}
 </script>
 
 <style scoped lang="scss">
 .nav-group__label {
-  padding: 0 14px;
-  margin: 18px 0 6px;
+  padding: 0 12px;
+  margin: 16px 0 4px;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -108,14 +164,14 @@ const navigate = () => {
   gap: 12px;
   width: 100%;
   min-height: 42px;
-  padding: 0 14px;
+  padding: 0 12px;
   margin: 2px 0;
   border: none;
   border-radius: 14px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -127,7 +183,7 @@ const navigate = () => {
 .nav-link.is-active {
   background: var(--m-pSoft);
   color: var(--m-pInk);
-  font-weight: 800;
+  font-weight: 700;
 }
 .nav-link__icon {
   display: flex;
@@ -162,5 +218,9 @@ const navigate = () => {
   padding: 0;
   width: 48px;
   margin: 2px auto;
+}
+.nav-link:focus-visible {
+  outline: none;
+  box-shadow: var(--app-focus-ring);
 }
 </style>

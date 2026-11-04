@@ -99,6 +99,11 @@ func (o *openSSHRepo) SaveSSHHostTestResult(ctx context.Context, hostID string, 
 		Exec(ctx)
 }
 
+// SaveSSHHostKeyType 回填主机私钥算法（早期记录没有该字段）。
+func (o *openSSHRepo) SaveSSHHostKeyType(ctx context.Context, hostID, keyType string) error {
+	return o.data.db.SSHHost.UpdateOneID(hostID).SetKeyType(keyType).Exec(ctx)
+}
+
 // TouchSSHHostConnect 记录主机最近一次打开终端的时间。
 func (o *openSSHRepo) TouchSSHHostConnect(ctx context.Context, hostID string, at time.Time) error {
 	return o.data.db.SSHHost.UpdateOneID(hostID).SetLastConnectAt(at).Exec(ctx)
@@ -145,7 +150,11 @@ func (o *openSSHRepo) CreateSSHHost(ctx context.Context, req *v1.CreateSSHHostRe
 		SetFingerprint(req.Fingerprint).
 		SetRemark(req.Remark).
 		SetTags(req.Tags).
+		SetQuickCommands(cleanQuickCommands(req.QuickCommands)).
 		SetOwnerID(ownerID)
+	if authType == sshcore.AuthKey {
+		create.SetKeyType(sshcore.KeyType(credentialText, req.Passphrase))
+	}
 
 	if len(sharedUserIDs) > 0 {
 		create.AddSharedUserIDs(sharedUserIDs...)
@@ -249,6 +258,22 @@ func (o *openSSHRepo) UpdateSSHHost(ctx context.Context, req *v1.UpdateSSHHostRe
 	if req.Tags != nil {
 		update.SetTags(*req.Tags)
 	}
+	if req.QuickCommands != nil {
+		update.SetQuickCommands(cleanQuickCommands(req.QuickCommands.Items))
+	}
+	// 私钥算法：换了私钥 / 口令时重新识别；改为密码认证时清空
+	switch {
+	case nextAuthType != sshcore.AuthKey:
+		update.SetKeyType("")
+	case credentialText != nil:
+		passphrase := ""
+		if req.Passphrase != nil {
+			passphrase = *req.Passphrase
+		} else if current.Passphrase != "" {
+			passphrase, _ = o.box().Decrypt(current.Passphrase)
+		}
+		update.SetKeyType(sshcore.KeyType(*credentialText, passphrase))
+	}
 
 	if _, err := update.Save(ctx); err != nil {
 		return nil, err
@@ -326,6 +351,27 @@ func updateSSHCredential(authType string, password, privateKey *string) *string 
 	default:
 		return nil
 	}
+}
+
+// cleanQuickCommands 去掉空白命令与重复项，最多保留 30 条。
+func cleanQuickCommands(items []string) []string {
+	out := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		item = strings.TrimSpace(item)
+		if item == "" {
+			continue
+		}
+		if _, ok := seen[item]; ok {
+			continue
+		}
+		seen[item] = struct{}{}
+		out = append(out, item)
+		if len(out) >= 30 {
+			break
+		}
+	}
+	return out
 }
 
 func nonBlankOptional(value *string) *string {

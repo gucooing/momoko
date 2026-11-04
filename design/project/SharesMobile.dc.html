@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>分享管理 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.utab{display:inline-flex;align-items:center;min-height:44px;padding:0 2px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700;flex:none}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.inp{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 16px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.k-warn{background:var(--warnSoft);color:var(--warn)}.k-off{background:var(--s2);color:var(--ink2)}
+.code{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:8px;background:var(--a2Soft);color:var(--ink);font-size:13px;font-weight:700;letter-spacing:.08em}
+.bar{height:5px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar span{display:block;height:100%;border-radius:999px}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; min-height: 3100px; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: flex-end; gap: 6px; padding: 22px 12px 8px 20px">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.01em">分享</h1>
+      <div style="font-size: 13px; color: var(--ink2)"><span class="num">9</span> 个链接 · <span style="color: var(--ok); font-weight: 700"><span class="num">5</span> 个有效</span> · 本月下载 <span class="num">326</span> 次</div>
+    </div>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+  </header>
+  <nav class="hs" aria-label="文件分类" style="display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+    <a class="utab" href="FilesMobile.dc.html">文件</a>
+    <a class="utab utab-on" href="SharesMobile.dc.html">分享</a>
+    <a class="utab" href="FileSourcesMobile.dc.html">文件源</a>
+  </nav>
+
+  <div style="padding: 14px 16px 10px">
+    <label class="inp">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+      <input type="search" placeholder="文件名、链接或提取码" aria-label="搜索分享">
+    </label>
+  </div>
+
+  <div class="hs" role="tablist" aria-label="按状态筛选" style="display: flex; gap: 8px; padding: 2px 16px 14px; overflow-x: auto">
+    <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+      <button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 20px">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+      <article class="card" style="padding: 16px 12px 6px 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 12px; padding-right: 4px">
+          <span class="av {{r.av}}" style="width: 44px; height: 44px; border-radius: 15px; transform: rotate({{r.rot}})"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.n}}</span>
+            <span class="num" style="font-size: 12px; color: var(--ink2)">{{r.src}} · 创建于 {{r.created}}</span>
+          </span>
+          <span class="pill {{r.st}}">{{r.stT}}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px; margin-right: 4px; padding-left: 12px; border-radius: 14px; background: var(--s2)">
+          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.link}}"></path></svg>
+          <span class="mono" style="flex: 1; min-width: 0; font-size: 12px; color: {{r.linkFg}}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.link}}</span>
+          <button class="ib" aria-label="{{r.copyT}}" onClick="{{r.copy}}" style="color: {{r.copyFg}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{r.copyD}}"></path></svg></button>
+        </div>
+        <dl style="margin: 0 4px 0 0; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); display: grid; grid-template-columns: 0.8fr 1.1fr 1.1fr; gap: 10px">
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">提取码</dt>
+            <dd style="margin: 4px 0 0">
+              <sc-if value="{{r.hasCode}}" hint-placeholder-val="{{true}}"><span class="code mono">{{r.code}}</span></sc-if>
+              <sc-if value="{{r.noCode}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; font-weight: 700; color: var(--ink2)">无</span></sc-if>
+            </dd>
+          </div>
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">过期时间</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700; white-space: nowrap">{{r.expT}}</dd>
+            <dd style="margin: 1px 0 0; font-size: 11px; font-weight: 600; color: {{r.leftFg}}; white-space: nowrap">{{r.left}}</dd>
+          </div>
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">下载次数</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700; white-space: nowrap">{{r.used}} <span style="color: var(--ink2); font-weight: 600">/ {{r.limitT}}</span></dd>
+            <dd style="margin: 6px 0 0"><div class="bar"><span style="width: {{r.pctW}}; background: {{r.barBg}}"></span></div></dd>
+          </div>
+        </dl>
+        <div style="display: flex; align-items: center; gap: 2px; padding-top: 6px; border-top: 1px solid var(--line)">
+          <div style="flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px">
+            <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 8px; background: var(--s2); color: var(--ink2); font-size: 12px; font-weight: 600">{{r.kindT}}</span>
+          </div>
+          <button class="ib" aria-label="{{r.n}} 二维码"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.qr}}"></path></svg></button>
+          <button class="ib" aria-label="编辑 {{r.n}} 的分享"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.edit}}"></path></svg></button>
+          <button class="ib" aria-label="删除 {{r.n}} 的分享" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg></button>
+          <button class="ib" aria-label="{{r.n}} 更多操作"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+
+  <div style="position: sticky; bottom: 92px; margin-top: auto; display: flex; justify-content: flex-end; padding: 0 16px 12px; pointer-events: none">
+    <button class="btn btn-p" style="pointer-events: auto; min-height: 56px; padding: 0 22px; font-size: 15px; box-shadow: 0 12px 28px -10px var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新建分享</button>
+  </div>
+
+  <nav aria-label="底部导航" style="position: sticky; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":3100}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  qr: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2',
+  fileText: 'M6 3h8l5 5v13H6zM14 3v5h5M9 13h6M9 17h6',
+  image: 'M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5M15 8.5h.01',
+  video: 'M3 6h13v12H3zM16 10l5-3v10l-5-3',
+  archive: 'M4 4h16v4H4zM5 8v12h14V8M10 12h4',
+  logs: 'M5 4h14v16H5zM9 8h6M9 12h6M9 16h4'
+};
+const KIND = { dir: [IC.folder, 'av-a', '文件夹'], doc: [IC.fileText, 'av-a2', '文档'], img: [IC.image, 'av-ok', '图片'], video: [IC.video, 'av-p', '视频'], zip: [IC.archive, 'k-warn', '压缩包'], log: [IC.logs, 'k-off', '日志'] };
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+const SHARES = [
+  { id: 1, n: 'blog 素材 2026', k: 'dir', size: '14 个文件 · 1.36 GB', src: '本地磁盘', code: 'k7Qm', slug: 'Xa9fK2', exp: '11-10 23:59', left: '还剩 7 天', used: 12, limit: 50, created: '11-03 10:12', s: 'ok' },
+  { id: 2, n: 'backup-2026-11-01.tar.gz', k: 'zip', size: '1.21 GB', src: '本地磁盘', code: '', slug: 'Pq3LmZ', exp: '', left: '永久有效', used: 3, limit: 5, created: '11-01 08:30', s: 'ok' },
+  { id: 3, n: 'intro.mp4', k: 'video', size: '268 MB', src: '本地磁盘', code: '9xdA', slug: 'Vb2rT8', exp: '11-05 12:00', left: '还剩 2 天', used: 41, limit: 0, created: '10-29 21:40', s: 'ok', soon: true },
+  { id: 8, n: 'server.log', k: 'log', size: '48.6 MB', src: '本地磁盘', code: 'L0g9', slug: 'Rt6vBm', exp: '11-04 09:00', left: '还剩 18 小时', used: 1, limit: 3, created: '11-03 09:05', s: 'ok', soon: true },
+  { id: 6, n: 'mc-survival 整合包.zip', k: 'zip', size: '742 MB', src: '本地磁盘', code: 'mc66', slug: 'Zk4sNa', exp: '12-01 00:00', left: '还剩 28 天', used: 87, limit: 200, created: '10-15 20:30', s: 'ok' },
+  { id: 4, n: '周报-第44周.docx', k: 'doc', size: '46 KB', src: '坚果云', code: '', slug: 'Hn5wQe', exp: '11-02 23:59', left: '已过期 1 天', used: 7, limit: 20, created: '10-30 18:02', s: 'exp' },
+  { id: 7, n: 'cover.png', k: 'img', size: '842 KB', src: '本地磁盘', code: '', slug: 'Qe8pDf', exp: '10-31 23:59', left: '已过期 3 天', used: 2, limit: 10, created: '10-21 19:50', s: 'exp' },
+  { id: 5, n: '旅行照片', k: 'dir', size: '326 个文件 · 4.8 GB', src: '阿里云 OSS', code: 'tr8v', slug: 'Lm7cYu', exp: '', left: '永久有效', used: 100, limit: 100, created: '08-22 09:15', s: 'used' },
+  { id: 9, n: 'og-cover.jpg', k: 'img', size: '1.2 MB', src: '阿里云 OSS', code: '', slug: 'Wy3hJk', exp: '', left: '永久有效', used: 10, limit: 10, created: '09-30 18:50', s: 'used' }
+];
+const ST = { ok: ['ok', '有效'], exp: ['off', '已过期'], used: ['warn', '次数用完'] };
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const filter = st.filter || 'all';
+    const copied = st.copied || 0;
+    const count = (s) => SHARES.filter((r) => s === 'all' || r.s === s).length;
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      filters: [['all', '全部'], ['ok', '有效'], ['exp', '已过期'], ['used', '次数用完']].map(([k, t]) => ({ t, n: count(k), on: k === filter, cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
+      rows: SHARES.filter((r) => filter === 'all' || r.s === filter).map((r) => {
+        const pct = r.limit ? Math.min(100, Math.round(r.used / r.limit * 100)) : 0;
+        const isCopied = copied === r.id;
+        return {
+          ...r,
+          d: KIND[r.k][0], av: KIND[r.k][1], kindT: KIND[r.k][2] + ' · ' + r.size, rot: ROTS[r.id % 4],
+          link: 'momoko.example.com/s/' + r.slug,
+          linkFg: r.s === 'ok' ? 'var(--ink)' : 'var(--ink2)',
+          hasCode: !!r.code, noCode: !r.code,
+          expT: r.exp || '永久',
+          leftFg: r.s === 'exp' ? 'var(--bad)' : (r.soon ? 'var(--warn)' : 'var(--ink2)'),
+          limitT: r.limit ? r.limit : '不限',
+          pctW: r.limit ? pct + '%' : '100%',
+          barBg: !r.limit ? 'var(--s2)' : (pct >= 100 ? 'var(--bad)' : (pct >= 80 ? 'var(--warn)' : 'var(--p)')),
+          st: ST[r.s][0], stT: ST[r.s][1],
+          copy: () => this.setState({ copied: r.id }),
+          copyT: isCopied ? '链接已复制' : '复制 ' + r.n + ' 的链接',
+          copyD: isCopied ? IC.check : IC.copy,
+          copyFg: isCopied ? 'var(--ok)' : 'var(--ink2)'
+        };
+      }),
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: 'tab-on' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: '' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -215,7 +215,7 @@ defineExpose({ showDialog })
   gap: 6px;
 }
 .key-form__preset {
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -243,5 +243,10 @@ defineExpose({ showDialog })
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+@media (width < 640px) {
+  .key-form__preset {
+    min-height: 44px;
+  }
 }
 </style>

@@ -3,33 +3,24 @@
      行内常用：连接容器 / 重建(编辑) / 删除，其余（详情、编辑标签）收进「⋯」。内置网络不能删除或重建。 -->
 <template>
   <div class="dk-page">
-    <PageHeader>
-      <template #title>{{ t('docker.network.title') }}<DockerEnginePill /></template>
-      <template #description>
-        <template v-if="stats">
-          {{ t('docker.network.statsLine', { total: stats.total, custom: stats.custom }) }}
-          · {{ t('docker.network.statsIps') }} <strong class="dk-em m-num">{{ stats.allocatedIps }}</strong>
-        </template>
-        <template v-else>{{ t('docker.network.pageDesc') }}</template>
+    <DockerHeader @tasks="openTasks">
+      <!-- 引擎不可用时没有统计，不再显示一句功能介绍，与容器 / 连接配置标签一致 -->
+      <template v-if="stats" #description>
+        {{ t('docker.network.statsLine', { total: stats.total, custom: stats.custom }) }}
+        · {{ t('docker.network.statsIps') }} <strong class="dk-em m-num">{{ stats.allocatedIps }}</strong>
       </template>
       <template #actions>
-        <UButton color="neutral" variant="soft" icon="i-lucide-clock" @click="openTasks">
-          {{ t('docker.common.tasks') }}
-        </UButton>
-        <UButton
-          v-if="canManage && ready"
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-brush-cleaning"
-          @click="handlePrune"
-        >
-          {{ menuStore.isMobile ? t('docker.network.pruneShort') : t('docker.network.prune') }}
+        <UButton v-if="canManage && ready" color="neutral" variant="outline" icon="i-lucide-brush-cleaning" @click="handlePrune">
+          {{ t('docker.network.prune') }}
         </UButton>
         <UButton v-if="canManage" color="primary" icon="i-lucide-plus" :disabled="!ready" @click="openCreate">
           {{ t('docker.network.createNetwork') }}
         </UButton>
       </template>
-    </PageHeader>
+      <template #mobile-actions>
+        <AppIconButton v-if="canManage && ready" class="dk-hdr__ib" icon="HOutline:SparklesIcon" :label="t('docker.network.prune')" :box="44" :size="22" @click="handlePrune" />
+      </template>
+    </DockerHeader>
 
     <DockerSubNav />
 
@@ -125,6 +116,14 @@
                     :size="18"
                     :disabled="!canConnect(row)"
                     @click="openConnect(row)"
+                  />
+                  <AppIconButton
+                    icon="HOutline:LinkSlashIcon"
+                    :label="t('docker.netx.disconnectFrom', { name: row.name })"
+                    :box="36"
+                    :size="18"
+                    :disabled="!containersOf(row).length"
+                    @click="openDisconnect(row)"
                   />
                   <AppIconButton
                     icon="HOutline:ArrowPathIcon"
@@ -264,6 +263,30 @@
                   </span>
                   <span v-else class="dk-sub">{{ t('docker.network.noCtr') }}</span>
                 </div>
+                <template v-if="canManage">
+                  <AppIconButton
+                    icon="HOutline:LinkIcon"
+                    :label="t('docker.network.connectTo', { name: row.name })"
+                    :box="44"
+                    :disabled="!canConnect(row)"
+                    @click="openConnect(row)"
+                  />
+                  <AppIconButton
+                    icon="HOutline:ArrowPathIcon"
+                    :label="`${t('docker.network.recreate')} ${row.name}`"
+                    :box="44"
+                    :disabled="row.builtin"
+                    @click="openEdit(row, true)"
+                  />
+                  <AppIconButton
+                    class="is-bad"
+                    icon="HOutline:TrashIcon"
+                    :label="deleteLabel(row)"
+                    :box="44"
+                    :disabled="!canDelete(row)"
+                    @click="handleDelete(row)"
+                  />
+                </template>
                 <AppIconButton
                   :icon="isOpen(row.id) ? 'HOutline:ChevronUpIcon' : 'HOutline:ChevronDownIcon'"
                   :label="isOpen(row.id) ? t('docker.network.collapse') : t('docker.network.expand')"
@@ -271,16 +294,7 @@
                   :box="44"
                   @click="toggle(row.id)"
                 />
-                <AppIconButton
-                  v-if="canManage"
-                  class="is-bad"
-                  icon="HOutline:TrashIcon"
-                  :label="deleteLabel(row)"
-                  :box="44"
-                  :disabled="!canDelete(row)"
-                  @click="handleDelete(row)"
-                />
-                <ActionMenu :items="menuActionsFor(row, true)" @select="(key) => onRowAction(key, row)" />
+                <ActionMenu :items="menuActionsFor(row, true)" :label="t('docker.netx.moreOf', { name: row.name })" @select="(key) => onRowAction(key, row)" />
               </footer>
             </article>
           </div>
@@ -299,6 +313,29 @@
         </div>
       </div>
     </template>
+
+    <!-- 手机：悬浮创建 -->
+    <button v-if="menuStore.isMobile && canManage && ready" type="button" class="dk-fab" :aria-label="t('docker.network.createNetwork')" @click="openCreate">
+      <UIcon name="i-lucide-plus" />
+    </button>
+
+    <!-- 从网络断开容器 -->
+    <FormDialog v-model="disconnectVisible" :title="t('docker.netx.disconnectFrom', { name: disconnectNetwork?.name || '' })" :width="480" @confirm="submitDisconnect">
+      <div class="dk-form">
+        <div class="app-field">
+          <label class="app-label app-label--required">{{ t('docker.network.container') }}</label>
+          <AppSelect v-model="disconnectId" :options="disconnectOptions" :placeholder="t('docker.network.pickContainer')" />
+        </div>
+        <label class="nt-switch nt-switch--box">
+          <span><strong>{{ t('docker.netx.forceDisconnect') }}</strong><small>{{ t('docker.netx.forceDisconnectDesc') }}</small></span>
+          <AppSwitch v-model="disconnectForce" />
+        </label>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('docker.common.cancel') }}</UButton>
+        <UButton color="error" :disabled="!disconnectId" @click="submitDisconnect">{{ t('docker.network.disconnect') }}</UButton>
+      </template>
+    </FormDialog>
 
     <!-- 创建网络 -->
     <FormDialog v-model="createVisible" :title="t('docker.network.createNetwork')" :width="560" :loading="createSubmitting" @confirm="submitCreate">
@@ -477,7 +514,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import DockerSubNav from '@/views/docker/components/DockerSubNav.vue'
-import DockerEnginePill from '@/views/docker/components/DockerEnginePill.vue'
+import DockerHeader from '@/views/docker/components/DockerHeader.vue'
 import DockerUnavailable from '@/views/docker/components/DockerUnavailable.vue'
 import DockerTaskDialogs from '@/views/docker/components/DockerTaskDialogs.vue'
 import { useDockerStatus } from '@/views/docker/components/useDockerStatus'
@@ -579,9 +616,8 @@ const menuActionsFor = (row: DockerNetworkInfo, mobile = false): ActionMenuItem[
   const manage = canManage.value
   return [
     { key: 'detail', label: t('docker.common.detail'), icon: 'HOutline:InformationCircleIcon' },
-    { key: 'connect', label: t('docker.network.connectShort'), icon: 'HOutline:LinkIcon', hidden: !manage || !mobile || !canConnect(row) },
+    { key: 'disconnect', label: t('docker.netx.disconnectShort'), icon: 'HOutline:LinkSlashIcon', hidden: !manage || !mobile || !containersOf(row).length },
     { key: 'edit', label: t('docker.network.editLabels'), icon: 'HOutline:PencilSquareIcon', hidden: !manage || row.builtin },
-    { key: 'recreate', label: t('docker.network.recreate'), icon: 'HOutline:ArrowPathIcon', hidden: !manage || !mobile || row.builtin },
   ]
 }
 const onRowAction = (key: string, row: DockerNetworkInfo) => {
@@ -589,6 +625,7 @@ const onRowAction = (key: string, row: DockerNetworkInfo) => {
   else if (key === 'edit') void openEdit(row, false)
   else if (key === 'recreate') void openEdit(row, true)
   else if (key === 'connect') void openConnect(row)
+  else if (key === 'disconnect') openDisconnect(row)
 }
 
 const getList = async () => {
@@ -711,7 +748,7 @@ const openConnect = async (row: DockerNetworkInfo) => {
   Object.assign(connectForm, { containerId: '', aliases: '', ipv4: '' })
   connectVisible.value = true
   try {
-    const { data } = await listDockerContainers({ all: true, page: 1, pageSize: 500, status: '', name: '', image: '', network: '', labels: {} })
+    const { data } = await listDockerContainers({ page: 1, pageSize: 500, status: '', keyword: '', network: '', labels: {} })
     connectCandidates.value = data?.items || []
   } catch { connectCandidates.value = [] }
 }
@@ -748,6 +785,34 @@ const handleDisconnect = (network: DockerNetworkInfo, containerId: string, name:
       } catch (e) { showRequestError(e, t('docker.network.disconnectFailed')) }
     },
   })
+}
+
+// 行内「断开」：只连了一个容器时直接确认，多个时先选容器
+const disconnectVisible = ref(false)
+const disconnectNetwork = ref<DockerNetworkInfo | null>(null)
+const disconnectId = ref('')
+const disconnectForce = ref(false)
+const disconnectOptions = computed(() =>
+  disconnectNetwork.value ? containersOf(disconnectNetwork.value).map((c) => ({ label: `${c.name || shortId(c.id)}${c.ipv4Address ? ` · ${c.ipv4Address}` : ''}`, value: c.id })) : [],
+)
+const openDisconnect = (row: DockerNetworkInfo) => {
+  const ctrs = containersOf(row)
+  if (!ctrs.length) return
+  if (ctrs.length === 1 && ctrs[0]) { handleDisconnect(row, ctrs[0].id, ctrs[0].name); return }
+  disconnectNetwork.value = row
+  disconnectId.value = ''
+  disconnectForce.value = false
+  disconnectVisible.value = true
+}
+const submitDisconnect = async () => {
+  const network = disconnectNetwork.value
+  if (!network || !disconnectId.value) return
+  try {
+    await disconnectDockerNetwork({ networkId: network.id, containerId: disconnectId.value, force: disconnectForce.value })
+    feedback.success(t('docker.network.disconnectSuccess'))
+    disconnectVisible.value = false
+    await getList()
+  } catch (e) { showRequestError(e, t('docker.network.disconnectFailed')) }
 }
 
 // —— 详情 ——

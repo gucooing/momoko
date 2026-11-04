@@ -104,6 +104,48 @@ func (_u *TaskUpdate) SetNillableTitle(v *string) *TaskUpdate {
 	return _u
 }
 
+// SetTarget sets the "target" field.
+func (_u *TaskUpdate) SetTarget(v string) *TaskUpdate {
+	_u.mutation.SetTarget(v)
+	return _u
+}
+
+// SetNillableTarget sets the "target" field if the given value is not nil.
+func (_u *TaskUpdate) SetNillableTarget(v *string) *TaskUpdate {
+	if v != nil {
+		_u.SetTarget(*v)
+	}
+	return _u
+}
+
+// SetSource sets the "source" field.
+func (_u *TaskUpdate) SetSource(v string) *TaskUpdate {
+	_u.mutation.SetSource(v)
+	return _u
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_u *TaskUpdate) SetNillableSource(v *string) *TaskUpdate {
+	if v != nil {
+		_u.SetSource(*v)
+	}
+	return _u
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (_u *TaskUpdate) SetTriggerType(v task.TriggerType) *TaskUpdate {
+	_u.mutation.SetTriggerType(v)
+	return _u
+}
+
+// SetNillableTriggerType sets the "trigger_type" field if the given value is not nil.
+func (_u *TaskUpdate) SetNillableTriggerType(v *task.TriggerType) *TaskUpdate {
+	if v != nil {
+		_u.SetTriggerType(*v)
+	}
+	return _u
+}
+
 // SetUserID sets the "user_id" field.
 func (_u *TaskUpdate) SetUserID(v string) *TaskUpdate {
 	_u.mutation.SetUserID(v)
@@ -114,6 +156,20 @@ func (_u *TaskUpdate) SetUserID(v string) *TaskUpdate {
 func (_u *TaskUpdate) SetNillableUserID(v *string) *TaskUpdate {
 	if v != nil {
 		_u.SetUserID(*v)
+	}
+	return _u
+}
+
+// SetOperator sets the "operator" field.
+func (_u *TaskUpdate) SetOperator(v string) *TaskUpdate {
+	_u.mutation.SetOperator(v)
+	return _u
+}
+
+// SetNillableOperator sets the "operator" field if the given value is not nil.
+func (_u *TaskUpdate) SetNillableOperator(v *string) *TaskUpdate {
+	if v != nil {
+		_u.SetOperator(*v)
 	}
 	return _u
 }
@@ -156,6 +212,34 @@ func (_u *TaskUpdate) SetResult(v string) *TaskUpdate {
 func (_u *TaskUpdate) SetNillableResult(v *string) *TaskUpdate {
 	if v != nil {
 		_u.SetResult(*v)
+	}
+	return _u
+}
+
+// SetSteps sets the "steps" field.
+func (_u *TaskUpdate) SetSteps(v string) *TaskUpdate {
+	_u.mutation.SetSteps(v)
+	return _u
+}
+
+// SetNillableSteps sets the "steps" field if the given value is not nil.
+func (_u *TaskUpdate) SetNillableSteps(v *string) *TaskUpdate {
+	if v != nil {
+		_u.SetSteps(*v)
+	}
+	return _u
+}
+
+// SetLogs sets the "logs" field.
+func (_u *TaskUpdate) SetLogs(v string) *TaskUpdate {
+	_u.mutation.SetLogs(v)
+	return _u
+}
+
+// SetNillableLogs sets the "logs" field if the given value is not nil.
+func (_u *TaskUpdate) SetNillableLogs(v *string) *TaskUpdate {
+	if v != nil {
+		_u.SetLogs(*v)
 	}
 	return _u
 }
@@ -272,6 +356,40 @@ func (_u *TaskUpdate) AddTimeoutMs(v int64) *TaskUpdate {
 	return _u
 }
 
+// SetCanceledBy sets the "canceled_by" field.
+func (_u *TaskUpdate) SetCanceledBy(v string) *TaskUpdate {
+	_u.mutation.SetCanceledBy(v)
+	return _u
+}
+
+// SetNillableCanceledBy sets the "canceled_by" field if the given value is not nil.
+func (_u *TaskUpdate) SetNillableCanceledBy(v *string) *TaskUpdate {
+	if v != nil {
+		_u.SetCanceledBy(*v)
+	}
+	return _u
+}
+
+// SetStartTime sets the "start_time" field.
+func (_u *TaskUpdate) SetStartTime(v time.Time) *TaskUpdate {
+	_u.mutation.SetStartTime(v)
+	return _u
+}
+
+// SetNillableStartTime sets the "start_time" field if the given value is not nil.
+func (_u *TaskUpdate) SetNillableStartTime(v *time.Time) *TaskUpdate {
+	if v != nil {
+		_u.SetStartTime(*v)
+	}
+	return _u
+}
+
+// ClearStartTime clears the value of the "start_time" field.
+func (_u *TaskUpdate) ClearStartTime() *TaskUpdate {
+	_u.mutation.ClearStartTime()
+	return _u
+}
+
 // SetEndTime sets the "end_time" field.
 func (_u *TaskUpdate) SetEndTime(v time.Time) *TaskUpdate {
 	_u.mutation.SetEndTime(v)
@@ -350,6 +468,11 @@ func (_u *TaskUpdate) check() error {
 			return &ValidationError{Name: "resume_policy", err: fmt.Errorf(`gen: validator failed for field "Task.resume_policy": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.TriggerType(); ok {
+		if err := task.TriggerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "trigger_type", err: fmt.Errorf(`gen: validator failed for field "Task.trigger_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -383,8 +506,20 @@ func (_u *TaskUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(task.FieldTitle, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Target(); ok {
+		_spec.SetField(task.FieldTarget, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Source(); ok {
+		_spec.SetField(task.FieldSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TriggerType(); ok {
+		_spec.SetField(task.FieldTriggerType, field.TypeEnum, value)
+	}
 	if value, ok := _u.mutation.UserID(); ok {
 		_spec.SetField(task.FieldUserID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Operator(); ok {
+		_spec.SetField(task.FieldOperator, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Payload(); ok {
 		_spec.SetField(task.FieldPayload, field.TypeString, value)
@@ -394,6 +529,12 @@ func (_u *TaskUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Result(); ok {
 		_spec.SetField(task.FieldResult, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steps(); ok {
+		_spec.SetField(task.FieldSteps, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Logs(); ok {
+		_spec.SetField(task.FieldLogs, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ProgressTotal(); ok {
 		_spec.SetField(task.FieldProgressTotal, field.TypeInt64, value)
@@ -424,6 +565,15 @@ func (_u *TaskUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedTimeoutMs(); ok {
 		_spec.AddField(task.FieldTimeoutMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.CanceledBy(); ok {
+		_spec.SetField(task.FieldCanceledBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StartTime(); ok {
+		_spec.SetField(task.FieldStartTime, field.TypeTime, value)
+	}
+	if _u.mutation.StartTimeCleared() {
+		_spec.ClearField(task.FieldStartTime, field.TypeTime)
 	}
 	if value, ok := _u.mutation.EndTime(); ok {
 		_spec.SetField(task.FieldEndTime, field.TypeTime, value)
@@ -527,6 +677,48 @@ func (_u *TaskUpdateOne) SetNillableTitle(v *string) *TaskUpdateOne {
 	return _u
 }
 
+// SetTarget sets the "target" field.
+func (_u *TaskUpdateOne) SetTarget(v string) *TaskUpdateOne {
+	_u.mutation.SetTarget(v)
+	return _u
+}
+
+// SetNillableTarget sets the "target" field if the given value is not nil.
+func (_u *TaskUpdateOne) SetNillableTarget(v *string) *TaskUpdateOne {
+	if v != nil {
+		_u.SetTarget(*v)
+	}
+	return _u
+}
+
+// SetSource sets the "source" field.
+func (_u *TaskUpdateOne) SetSource(v string) *TaskUpdateOne {
+	_u.mutation.SetSource(v)
+	return _u
+}
+
+// SetNillableSource sets the "source" field if the given value is not nil.
+func (_u *TaskUpdateOne) SetNillableSource(v *string) *TaskUpdateOne {
+	if v != nil {
+		_u.SetSource(*v)
+	}
+	return _u
+}
+
+// SetTriggerType sets the "trigger_type" field.
+func (_u *TaskUpdateOne) SetTriggerType(v task.TriggerType) *TaskUpdateOne {
+	_u.mutation.SetTriggerType(v)
+	return _u
+}
+
+// SetNillableTriggerType sets the "trigger_type" field if the given value is not nil.
+func (_u *TaskUpdateOne) SetNillableTriggerType(v *task.TriggerType) *TaskUpdateOne {
+	if v != nil {
+		_u.SetTriggerType(*v)
+	}
+	return _u
+}
+
 // SetUserID sets the "user_id" field.
 func (_u *TaskUpdateOne) SetUserID(v string) *TaskUpdateOne {
 	_u.mutation.SetUserID(v)
@@ -537,6 +729,20 @@ func (_u *TaskUpdateOne) SetUserID(v string) *TaskUpdateOne {
 func (_u *TaskUpdateOne) SetNillableUserID(v *string) *TaskUpdateOne {
 	if v != nil {
 		_u.SetUserID(*v)
+	}
+	return _u
+}
+
+// SetOperator sets the "operator" field.
+func (_u *TaskUpdateOne) SetOperator(v string) *TaskUpdateOne {
+	_u.mutation.SetOperator(v)
+	return _u
+}
+
+// SetNillableOperator sets the "operator" field if the given value is not nil.
+func (_u *TaskUpdateOne) SetNillableOperator(v *string) *TaskUpdateOne {
+	if v != nil {
+		_u.SetOperator(*v)
 	}
 	return _u
 }
@@ -579,6 +785,34 @@ func (_u *TaskUpdateOne) SetResult(v string) *TaskUpdateOne {
 func (_u *TaskUpdateOne) SetNillableResult(v *string) *TaskUpdateOne {
 	if v != nil {
 		_u.SetResult(*v)
+	}
+	return _u
+}
+
+// SetSteps sets the "steps" field.
+func (_u *TaskUpdateOne) SetSteps(v string) *TaskUpdateOne {
+	_u.mutation.SetSteps(v)
+	return _u
+}
+
+// SetNillableSteps sets the "steps" field if the given value is not nil.
+func (_u *TaskUpdateOne) SetNillableSteps(v *string) *TaskUpdateOne {
+	if v != nil {
+		_u.SetSteps(*v)
+	}
+	return _u
+}
+
+// SetLogs sets the "logs" field.
+func (_u *TaskUpdateOne) SetLogs(v string) *TaskUpdateOne {
+	_u.mutation.SetLogs(v)
+	return _u
+}
+
+// SetNillableLogs sets the "logs" field if the given value is not nil.
+func (_u *TaskUpdateOne) SetNillableLogs(v *string) *TaskUpdateOne {
+	if v != nil {
+		_u.SetLogs(*v)
 	}
 	return _u
 }
@@ -695,6 +929,40 @@ func (_u *TaskUpdateOne) AddTimeoutMs(v int64) *TaskUpdateOne {
 	return _u
 }
 
+// SetCanceledBy sets the "canceled_by" field.
+func (_u *TaskUpdateOne) SetCanceledBy(v string) *TaskUpdateOne {
+	_u.mutation.SetCanceledBy(v)
+	return _u
+}
+
+// SetNillableCanceledBy sets the "canceled_by" field if the given value is not nil.
+func (_u *TaskUpdateOne) SetNillableCanceledBy(v *string) *TaskUpdateOne {
+	if v != nil {
+		_u.SetCanceledBy(*v)
+	}
+	return _u
+}
+
+// SetStartTime sets the "start_time" field.
+func (_u *TaskUpdateOne) SetStartTime(v time.Time) *TaskUpdateOne {
+	_u.mutation.SetStartTime(v)
+	return _u
+}
+
+// SetNillableStartTime sets the "start_time" field if the given value is not nil.
+func (_u *TaskUpdateOne) SetNillableStartTime(v *time.Time) *TaskUpdateOne {
+	if v != nil {
+		_u.SetStartTime(*v)
+	}
+	return _u
+}
+
+// ClearStartTime clears the value of the "start_time" field.
+func (_u *TaskUpdateOne) ClearStartTime() *TaskUpdateOne {
+	_u.mutation.ClearStartTime()
+	return _u
+}
+
 // SetEndTime sets the "end_time" field.
 func (_u *TaskUpdateOne) SetEndTime(v time.Time) *TaskUpdateOne {
 	_u.mutation.SetEndTime(v)
@@ -786,6 +1054,11 @@ func (_u *TaskUpdateOne) check() error {
 			return &ValidationError{Name: "resume_policy", err: fmt.Errorf(`gen: validator failed for field "Task.resume_policy": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.TriggerType(); ok {
+		if err := task.TriggerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "trigger_type", err: fmt.Errorf(`gen: validator failed for field "Task.trigger_type": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -836,8 +1109,20 @@ func (_u *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) {
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(task.FieldTitle, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Target(); ok {
+		_spec.SetField(task.FieldTarget, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Source(); ok {
+		_spec.SetField(task.FieldSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TriggerType(); ok {
+		_spec.SetField(task.FieldTriggerType, field.TypeEnum, value)
+	}
 	if value, ok := _u.mutation.UserID(); ok {
 		_spec.SetField(task.FieldUserID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Operator(); ok {
+		_spec.SetField(task.FieldOperator, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Payload(); ok {
 		_spec.SetField(task.FieldPayload, field.TypeString, value)
@@ -847,6 +1132,12 @@ func (_u *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) {
 	}
 	if value, ok := _u.mutation.Result(); ok {
 		_spec.SetField(task.FieldResult, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Steps(); ok {
+		_spec.SetField(task.FieldSteps, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Logs(); ok {
+		_spec.SetField(task.FieldLogs, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ProgressTotal(); ok {
 		_spec.SetField(task.FieldProgressTotal, field.TypeInt64, value)
@@ -877,6 +1168,15 @@ func (_u *TaskUpdateOne) sqlSave(ctx context.Context) (_node *Task, err error) {
 	}
 	if value, ok := _u.mutation.AddedTimeoutMs(); ok {
 		_spec.AddField(task.FieldTimeoutMs, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.CanceledBy(); ok {
+		_spec.SetField(task.FieldCanceledBy, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.StartTime(); ok {
+		_spec.SetField(task.FieldStartTime, field.TypeTime, value)
+	}
+	if _u.mutation.StartTimeCleared() {
+		_spec.ClearField(task.FieldStartTime, field.TypeTime)
 	}
 	if value, ok := _u.mutation.EndTime(); ok {
 		_spec.SetField(task.FieldEndTime, field.TypeTime, value)

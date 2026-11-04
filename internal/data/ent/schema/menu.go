@@ -22,6 +22,7 @@ func (Menu) Fields() []ent.Field {
 		field.Bool("is_system").Default(false).Comment("是否系统默认菜单(不可修改)"),
 		field.Enum("status").Values("active", "inactive").Default("active").Comment("启用状态"),
 		field.String("parent_id").Optional().Comment("父菜单id"),
+		field.Bool("hidden").Default(false).Comment("在侧边栏隐藏（页面与权限仍然有效）"),
 	}
 }
 

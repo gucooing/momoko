@@ -1,25 +1,46 @@
-<!-- 实例管理（重写 · P1 列表）：概览指标带 + PageHeader + FilterBar + 批量条 + 卡/表切换
-     + InstanceCard 卡片流 / DataTable 表视图 + Pagination + 受控 InstanceEditor。
-     页面为 store(useInstanceListStore) 的薄壳：保留全部状态/动作契约与业务处理逻辑。 -->
+<!-- 应用列表：页头（标题 + 共 N 个 · N 个运行中 + 应用类型 / 新建应用）+ 状态 chips（带数量，后端统计）+ 搜索 + 类型 + 卡/表切换
+     + InstanceCard 卡片流 / DataTable 表视图（行内小图标 + ⋯）+ Pagination + 底部深色批量条（启动 / 停止 / 重启 / 删除）
+     + 手机悬浮「新建应用」+ 受控 InstanceEditor。页面为 store(useInstanceListStore) 的薄壳。 -->
 <template>
   <div class="inst-page">
-    <PageHeader :title="t('instance.title')" :description="t('instance.pageDesc')">
+    <PageHeader :title="t('instance.ui.listTitle')">
+      <template #description>
+        {{ t('instance.ui.listCount', { n: statusCounts.all }) }} ·
+        <span class="inst-page__running">{{ t('instance.ui.runningCount', { n: statusCounts.running }) }}</span>
+      </template>
       <template #actions>
         <UButton
           color="neutral"
-          variant="soft"
+          variant="ghost"
           icon="i-lucide-rotate-cw"
+          class="inst-ico-btn"
+          :aria-label="t('common.refresh')"
+          :title="t('common.refresh')"
+          :loading="loading"
           @click="handleRefreshStatus"
-        >
-          {{ t('common.refresh') }}
-        </UButton>
-        <UButton color="primary" icon="i-lucide-plus" @click="handleOpenCreateEditor">
-          {{ t('instance.createInstance') }}
+        />
+        <template v-if="canSeeTypes">
+          <UButton
+            v-if="menuStore.isMobile"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-layers"
+            class="inst-ico-btn"
+            :aria-label="t('instance.ui.appTypes')"
+            :title="t('instance.ui.appTypes')"
+            to="/instance/type"
+          />
+          <UButton v-else color="neutral" variant="outline" icon="i-lucide-layers" to="/instance/type">
+            {{ t('instance.ui.appTypes') }}
+          </UButton>
+        </template>
+        <UButton v-if="!menuStore.isMobile" color="primary" icon="i-lucide-plus" @click="handleOpenCreateEditor">
+          {{ t('instance.ui.newApp') }}
         </UButton>
       </template>
     </PageHeader>
 
-    <!-- 工具条：状态胶囊 + 搜索 + 类型 + 视图切换（替代表单式筛选） -->
+    <!-- 工具条：状态 chips（带数量）+ 搜索 + 类型 + 视图切换 -->
     <div class="inst-tools">
       <div class="inst-chips" role="tablist" :aria-label="t('common.status')">
         <button
@@ -32,7 +53,7 @@
           :aria-selected="queryForm.status === opt.value"
           @click="setStatusFilter(opt.value)"
         >
-          {{ opt.label }}
+          {{ opt.label }} <span class="inst-chip__n m-num">{{ opt.count }}</span>
         </button>
       </div>
       <span class="inst-tools__spacer" />
@@ -41,20 +62,21 @@
         <input
           v-model="queryForm.keyword"
           type="search"
-          :placeholder="t('instance.searchPlaceholder')"
-          :aria-label="t('instance.searchPlaceholder')"
+          :placeholder="t('instance.ui.searchApps')"
+          :aria-label="t('instance.ui.searchApps')"
           @keyup.enter="applyFilters"
         />
       </label>
       <div class="inst-type">
         <AppSelect v-model="queryForm.type" :options="typeFilterOptions" />
       </div>
-      <div v-if="!menuStore.isMobile" class="seg">
+      <div v-if="!menuStore.isMobile" class="seg" :aria-label="t('instance.ui.viewMode')">
         <button
           type="button"
           class="seg__btn"
           :class="{ 'is-active': viewMode === 'card' }"
           :aria-label="t('system.common.card')"
+          :aria-pressed="viewMode === 'card'"
           @click="viewMode = 'card'"
         >
           <component :is="menuStore.iconComponents['HOutline:Squares2X2Icon']" />
@@ -64,6 +86,7 @@
           class="seg__btn"
           :class="{ 'is-active': viewMode === 'table' }"
           :aria-label="t('system.common.table')"
+          :aria-pressed="viewMode === 'table'"
           @click="viewMode = 'table'"
         >
           <component :is="menuStore.iconComponents['HOutline:Bars3Icon']" />
@@ -71,42 +94,29 @@
       </div>
     </div>
 
-    <!-- 主体：卡/表切换（桌面）；移动强制卡片 -->
+    <!-- 主体：卡/表切换（桌面）；手机强制卡片 -->
     <div class="inst-page__body">
-      <div class="inst-page__bar">
-        <div class="inst-page__stats">
-          <span class="inst-page__bar-hint">{{ t('system.common.total', { total: pagination.total }) }}</span>
-          <span class="inst-page__stat">
-            <span class="inst-page__dot is-run" />{{ t('instance.running') }} {{ runningCount }}
-          </span>
-          <span class="inst-page__stat">
-            <span class="inst-page__dot is-stop" />{{ t('instance.stopped') }} {{ stoppedCount }}
-          </span>
-        </div>
-        <button
-          v-if="menuStore.isMobile || viewMode === 'card'"
-          type="button"
-          class="inst-page__selall"
-          @click="toggleCurrentPageSelection"
-        >
+      <div v-if="isCardView && pagedInstances.length" class="inst-page__bar">
+        <span class="inst-page__bar-hint m-num">{{ t('instance.ui.filteredCount', { n: pagination.total }) }}</span>
+        <button type="button" class="inst-page__selall" @click="toggleCurrentPageSelection">
           {{ isCurrentPageAllSelected ? t('instance.deselectAll') : t('instance.selectCurrentPage') }}
         </button>
       </div>
 
       <!-- 卡片流 -->
-      <template v-if="menuStore.isMobile || viewMode === 'card'">
-        <div v-if="loading" class="inst-grid">
+      <template v-if="isCardView">
+        <div v-if="loading && !pagedInstances.length" class="inst-grid">
           <div v-for="i in 6" :key="i" class="inst-skeleton" />
         </div>
         <EmptyState
           v-else-if="!pagedInstances.length"
           icon="HOutline:ServerStackIcon"
-          :title="t('instance.noMatchedInstances')"
-          :description="t('instance.emptyDesc')"
+          :title="hasFilter ? t('instance.noMatchedInstances') : t('instance.ui.emptyTitle')"
+          :description="hasFilter ? t('instance.ui.emptyFilteredDesc') : t('instance.ui.emptyDesc')"
         >
           <template #action>
             <UButton color="primary" variant="soft" icon="i-lucide-plus" @click="handleOpenCreateEditor">
-              {{ t('instance.createInstance') }}
+              {{ t('instance.ui.newApp') }}
             </UButton>
           </template>
         </EmptyState>
@@ -118,6 +128,7 @@
             :type-label="resolveTypeLabel(item.type)"
             :can-delete="item.userId === currentUserId"
             :selected="selectedIdSet.has(item.id)"
+            :now="now"
             @toggle-select="setSelection(item.id, $event)"
             @console="openInstanceConsole(item)"
             @config="handleOpenEditEditor(item.id)"
@@ -136,15 +147,48 @@
         row-key="id"
         selectable
         :loading="loading"
-        :empty-text="t('instance.noMatchedInstances')"
+        :empty-text="hasFilter ? t('instance.noMatchedInstances') : t('instance.ui.emptyTitle')"
       >
-        <template #cell-type="{ row }">{{ resolveTypeLabel(String(row.type || '')) }}</template>
+        <template #cell-name="{ row }">
+          <span class="inst-cell-name">
+            <span class="inst-cell-name__av m-sticker" :class="`m-sticker--${toneOf(String(row.id))}`">
+              {{ initialOf(String(row.name || '')) }}
+            </span>
+            <span class="inst-cell-name__text">
+              <RouterLink class="inst-cell-name__n" :to="consoleRoute(row)">{{ row.name }}</RouterLink>
+              <span class="inst-cell-name__r">{{ row.remark || t('instance.noRemark') }}</span>
+            </span>
+          </span>
+        </template>
+        <template #cell-type="{ row }">{{ typeText(row) }}</template>
         <template #cell-status="{ row }">
           <StatusPill :variant="statusVariant(row.status)" :label="statusLabel(row.status)" />
         </template>
-        <template #cell-createTime="{ row }">{{ fmtTime(row.createTime) }}</template>
+        <template #cell-uptime="{ row }">
+          <span class="m-num">{{ uptimeCell(row) }}</span>
+        </template>
+        <template #cell-instancePath="{ row }">
+          <span class="m-mono inst-cell-mono" :title="String(row.instancePath || '')">{{ row.instancePath || '—' }}</span>
+        </template>
         <template #cell-operation="{ row }">
-          <ActionMenu :items="rowActionsFor(row)" @select="(key) => onRowAction(key, row)" />
+          <span class="inst-row-acts">
+            <AppIconButton
+              icon="HOutline:CommandLineIcon"
+              :label="t('instance.console')"
+              :size="18"
+              :box="36"
+              @click="openById(String(row.id))"
+            />
+            <AppIconButton
+              :icon="isRunningRow(row) ? 'HOutline:StopIcon' : 'HOutline:PlayIcon'"
+              :label="isRunningRow(row) ? t('instance.stop') : t('instance.start')"
+              :class="isRunningRow(row) ? 'is-stop' : 'is-start'"
+              :size="18"
+              :box="36"
+              @click="togglePowerById(String(row.id))"
+            />
+            <ActionMenu :items="rowActionsFor(row)" :label="t('instance.moreActions')" @select="(key) => onRowAction(key, row)" />
+          </span>
         </template>
       </DataTable>
 
@@ -157,17 +201,24 @@
       />
     </div>
 
+    <!-- 手机：悬浮新建（有勾选时让位给批量条） -->
+    <div v-if="menuStore.isMobile && !selectedIds.length" class="inst-fab">
+      <UButton color="primary" size="xl" icon="i-lucide-plus" class="inst-fab__btn" @click="handleOpenCreateEditor">
+        {{ t('instance.ui.newApp') }}
+      </UButton>
+    </div>
+
     <!-- 批量操作条：选中后浮在底部 -->
     <Transition name="batch-pop">
-      <div v-if="selectedIds.length" class="inst-batch" role="toolbar">
-        <span class="inst-batch__count">{{ t('instance.selectedItems', { count: selectedIds.length }) }}</span>
+      <div v-if="selectedIds.length" class="inst-batch" role="toolbar" :aria-label="t('instance.ui.bulkActions')">
+        <span class="inst-batch__count">{{ t('instance.ui.selectedApps', { n: selectedIds.length }) }}</span>
         <button
           type="button"
           class="inst-batch__btn"
           :disabled="!canBatchStart"
           @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_RUNNING)"
         >
-          <component :is="menuStore.iconComponents['HOutline:PlayIcon']" />{{ t('instance.batchStart') }}
+          <component :is="menuStore.iconComponents['HOutline:PlayIcon']" />{{ t('instance.start') }}
         </button>
         <button
           type="button"
@@ -175,10 +226,13 @@
           :disabled="!canBatchStop"
           @click="handleBatchChangeStatus(InstanceStatus.INSTANCE_STATUS_STOPPED)"
         >
-          <component :is="menuStore.iconComponents['HOutline:StopIcon']" />{{ t('instance.batchStop') }}
+          <component :is="menuStore.iconComponents['HOutline:StopIcon']" />{{ t('instance.stop') }}
+        </button>
+        <button type="button" class="inst-batch__btn" :disabled="!canBatchRestart" @click="handleBatchRestart">
+          <component :is="menuStore.iconComponents['HOutline:ArrowPathIcon']" />{{ t('instance.restart') }}
         </button>
         <button type="button" class="inst-batch__btn is-danger" :disabled="!canBatchDelete" @click="handleBatchDelete">
-          <component :is="menuStore.iconComponents['HOutline:TrashIcon']" />{{ t('instance.batchDelete') }}
+          <component :is="menuStore.iconComponents['HOutline:TrashIcon']" />{{ t('common.delete') }}
         </button>
         <button type="button" class="inst-batch__btn is-icon" :aria-label="t('instance.deselectAll')" @click="selectedIds = []">
           <component :is="menuStore.iconComponents['HOutline:XMarkIcon']" />
@@ -193,6 +247,8 @@
       :submitting="instanceEditorSubmitting"
       :form="instanceEditorForm"
       :type-options="typeOptions"
+      allow-run
+      :running="editingRunning"
       @close="handleEditorClose"
       @submit="handleEditorSubmit"
     />
@@ -212,23 +268,31 @@ import {
   type InstanceRecord,
 } from '@/stores/instance/types'
 import { useUserStore } from '@/stores/user'
+import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import InstanceCard from '@/views/instance/list/instanceCard.vue'
 import InstanceEditor from '@/views/instance/list/instanceEditor.vue'
+import { fmtDuration, initialOf, toneOf } from '@/views/instance/shared'
 
 defineOptions({ name: 'ListView' })
+
+type SwitchStatus = typeof InstanceStatus.INSTANCE_STATUS_RUNNING | typeof InstanceStatus.INSTANCE_STATUS_STOPPED
+type MoreAction = 'forceRestart' | 'restart' | 'delete' | 'fileManager' | 'maintenanceOn' | 'maintenanceOff'
 
 const menuStore = useMenuStore()
 const router = useRouter()
 const instanceListStore = useInstanceListStore()
 const userStore = useUserStore()
+const accessible = useAccessibleRoutes()
 const { t } = useI18n()
 
 const INSTANCE_PAGE_SIZES = [9, 18, 27]
 const viewMode = ref<'card' | 'table'>('card')
+const isCardView = computed(() => menuStore.isMobile || viewMode.value === 'card')
+const canSeeTypes = computed(() => accessible.value.has('/instance/type'))
 
 const nodeStore = useNodeStore()
 // 实例归属按所在节点的用户比较：远程节点上为该节点 API Key 所属用户。
@@ -241,6 +305,7 @@ const {
   loading,
   selectedIds,
   pagination,
+  statusCounts,
   selectedIdSet,
   typeOptions,
   statusOptions,
@@ -248,6 +313,7 @@ const {
   isCurrentPageAllSelected,
   canBatchStart,
   canBatchStop,
+  canBatchRestart,
   canBatchDelete,
   instanceEditorVisible,
   instanceEditorMode,
@@ -267,55 +333,57 @@ const {
   handlePageChange,
   refreshStatus,
   batchChangeStatus,
+  batchRestart,
   batchDeleteInstances,
   changeInstanceStatus,
   deleteInstances,
   restartInstance,
+  setMaintenance,
+  endMaintenanceAndStart,
   findInstanceById,
   resolveTypeLabel,
   initialize,
 } = instanceListStore
 
-// —— 当前页运行/停止计数（内联进工具条，替代大号总览带）——
-const runningCount = computed(
-  () => pagedInstances.value.filter((i) => i.status === InstanceStatus.INSTANCE_STATUS_RUNNING).length,
-)
-const stoppedCount = computed(
-  () => pagedInstances.value.filter((i) => i.status === InstanceStatus.INSTANCE_STATUS_STOPPED).length,
-)
+// 运行时长每 30 秒刷新一次
+const now = ref(Date.now())
+let clockTimer: ReturnType<typeof setInterval> | undefined
 
-// —— 筛选下拉（补“全部”项，值为空串，对应 store 的 keyword/type/status='' 语义）——
-const typeFilterOptions = computed(() => [
-  { label: t('instance.allTypes'), value: '' },
-  ...typeOptions.value,
-])
-// 只给用户能理解的三种状态做筛选胶囊（未指定/未知不单列）
-const CHIP_STATUSES = [
-  InstanceStatus.INSTANCE_STATUS_RUNNING,
-  InstanceStatus.INSTANCE_STATUS_STOPPED,
-  InstanceStatus.INSTANCE_STATUS_MAINTENANCE,
-] as const
-const statusChips = computed(() => [
-  { label: t('instance.allStatus'), value: '' as InstanceStatus | '' },
-  ...statusOptions.value.filter((o) => (CHIP_STATUSES as readonly InstanceStatus[]).includes(o.value)),
-])
+const hasFilter = computed(() => !!(queryForm.value.keyword.trim() || queryForm.value.type || queryForm.value.status))
+
+// —— 筛选 ——
+const typeFilterOptions = computed(() => [{ label: t('instance.allTypes'), value: '' }, ...typeOptions.value])
+const statusChips = computed(() => {
+  const c = statusCounts.value
+  const label = (s: InstanceStatus) => statusOptions.value.find((o) => o.value === s)?.label || ''
+  return [
+    { label: t('instance.ui.chipAll'), value: '' as InstanceStatus | '', count: c.all },
+    { label: label(InstanceStatus.INSTANCE_STATUS_RUNNING), value: InstanceStatus.INSTANCE_STATUS_RUNNING, count: c.running },
+    { label: label(InstanceStatus.INSTANCE_STATUS_STOPPED), value: InstanceStatus.INSTANCE_STATUS_STOPPED, count: c.stopped },
+    {
+      label: label(InstanceStatus.INSTANCE_STATUS_MAINTENANCE),
+      value: InstanceStatus.INSTANCE_STATUS_MAINTENANCE,
+      count: c.maintenance,
+    },
+  ]
+})
 const setStatusFilter = (value: InstanceStatus | '') => {
   queryForm.value.status = value
   applyFilters()
 }
-// 输入即搜索（防抖）、切换类型即筛选，省去「搜索」按钮
+// 输入即搜索（防抖）、切换类型即筛选
 const debouncedApply = useDebounceFn(() => applyFilters(), 350)
 watch(() => queryForm.value.keyword, () => debouncedApply())
 watch(() => queryForm.value.type, () => applyFilters())
 
-// —— 表视图列 + 单元格渲染 ——
+// —— 表视图 ——
 const columns = computed<DataTableColumn[]>(() => [
-  { key: 'name', title: t('instance.instanceName'), minWidth: 160 },
-  { key: 'type', title: t('common.type'), width: 150 },
+  { key: 'name', title: t('instance.ui.name'), minWidth: 220 },
+  { key: 'type', title: t('common.type'), width: 130 },
   { key: 'status', title: t('common.status'), width: 110 },
-  { key: 'instancePath', title: t('instance.instancePath'), minWidth: 180 },
-  { key: 'createTime', title: t('instance.createTime'), width: 170 },
-  { key: 'operation', title: t('common.operation'), width: 80, align: 'center' },
+  { key: 'uptime', title: t('instance.ui.colUptime'), width: 170 },
+  { key: 'instancePath', title: t('instance.ui.workdir'), minWidth: 180 },
+  { key: 'operation', title: t('common.operation'), width: 140, align: 'right' },
 ])
 
 type PillVariant = 'success' | 'neutral' | 'warning' | 'error'
@@ -326,30 +394,45 @@ const statusVariantMap: Record<InstanceStatus, PillVariant> = {
   [InstanceStatus.INSTANCE_STATUS_UNSPECIFIED]: 'neutral',
   [InstanceStatus.UNRECOGNIZED]: 'error',
 }
-const statusVariant = (status: unknown) =>
-  statusVariantMap[status as InstanceStatus] || 'neutral'
+const statusVariant = (status: unknown) => statusVariantMap[status as InstanceStatus] || 'neutral'
 const statusLabel = (status: unknown) => {
   const meta = statusMeta[status as InstanceStatus]
   return meta ? t(meta.labelKey) : t('instance.unknownStatus')
 }
-const fmtTime = (value: unknown) => {
-  if (!value) return '—'
-  const date = dayjs(value as string | Date)
-  return date.isValid() ? date.format('YYYY-MM-DD HH:mm') : '—'
+const typeText = (row: Record<string, unknown>) =>
+  row.type ? resolveTypeLabel(String(row.type)) : t('instance.ui.uncategorized')
+const isRunningRow = (row: Record<string, unknown>) => row.status === InstanceStatus.INSTANCE_STATUS_RUNNING
+const fmtShort = (value: unknown) => {
+  if (!value) return ''
+  const d = dayjs(value as string | Date)
+  return d.isValid() ? d.format('MM-DD HH:mm') : ''
 }
+const uptimeCell = (row: Record<string, unknown>) => {
+  const inst = row as unknown as InstanceRecord
+  if (inst.status === InstanceStatus.INSTANCE_STATUS_RUNNING && inst.startTime) {
+    return fmtDuration(t, now.value - dayjs(inst.startTime as unknown as string).valueOf())
+  }
+  if (inst.status === InstanceStatus.INSTANCE_STATUS_MAINTENANCE && inst.maintenanceTime) {
+    return `${t('instance.ui.upMaintenance')} ${fmtShort(inst.maintenanceTime)}`
+  }
+  if (inst.stopTime) return `${t('instance.ui.upStoppedAt')} ${fmtShort(inst.stopTime)}`
+  return t('instance.ui.neverRun')
+}
+const consoleRoute = (row: Record<string, unknown>) => ({
+  path: `/instance/app/${String(row.id)}`,
+  query: { tabTitle: String(row.name || '') },
+})
 
 const rowActionsFor = (row: Record<string, unknown>): ActionMenuItem[] => {
-  const isRunning = row.status === InstanceStatus.INSTANCE_STATUS_RUNNING
+  const maintenance = row.maintenance === true
   return [
-    { key: 'console', label: t('instance.console'), icon: 'HOutline:CommandLineIcon' },
-    { key: 'config', label: t('instance.config'), icon: 'HOutline:Cog6ToothIcon' },
-    {
-      key: isRunning ? 'stop' : 'start',
-      label: isRunning ? t('instance.stop') : t('instance.start'),
-      icon: isRunning ? 'HOutline:StopIcon' : 'HOutline:PlayIcon',
-    },
-    { key: 'forceRestart', label: t('instance.forceRestart'), icon: 'HOutline:ArrowPathIcon' },
-    { key: 'fileManager', label: t('instance.fileManagerTitle'), icon: 'HOutline:FolderIcon' },
+    { key: 'config', label: t('instance.ui.editApp'), icon: 'HOutline:PencilSquareIcon' },
+    { key: 'fileManager', label: t('instance.ui.appFiles'), icon: 'HOutline:FolderIcon' },
+    { key: 'restart', label: t('instance.restart'), icon: 'HOutline:ArrowPathIcon', disabled: maintenance },
+    { key: 'forceRestart', label: t('instance.forceRestart'), icon: 'HOutline:BoltIcon', disabled: maintenance },
+    maintenance
+      ? { key: 'maintenanceOff', label: t('instance.ui.endMaintenance'), icon: 'HOutline:CheckBadgeIcon' }
+      : { key: 'maintenanceOn', label: t('instance.ui.enterMaintenance'), icon: 'HOutline:WrenchScrewdriverIcon' },
     {
       key: 'delete',
       label: t('common.delete'),
@@ -363,35 +446,40 @@ const rowActionsFor = (row: Record<string, unknown>): ActionMenuItem[] => {
 const onRowAction = (key: string, row: Record<string, unknown>) => {
   const inst = findInstanceById(String(row.id))
   if (!inst) return
-  if (key === 'console') openInstanceConsole(inst)
-  else if (key === 'config') handleOpenEditEditor(inst.id)
-  else if (key === 'start') handleChangeInstanceStatus(inst.id, InstanceStatus.INSTANCE_STATUS_RUNNING)
-  else if (key === 'stop') handleChangeInstanceStatus(inst.id, InstanceStatus.INSTANCE_STATUS_STOPPED)
-  else handleMoreAction(inst.id, key as 'forceRestart' | 'delete' | 'fileManager')
+  if (key === 'config') handleOpenEditEditor(inst.id)
+  else handleMoreAction(inst.id, key as MoreAction)
+}
+
+const openById = (id: string) => {
+  const inst = findInstanceById(id)
+  if (inst) openInstanceConsole(inst)
+}
+const togglePowerById = (id: string) => {
+  const inst = findInstanceById(id)
+  if (!inst) return
+  handleChangeInstanceStatus(
+    id,
+    inst.status === InstanceStatus.INSTANCE_STATUS_RUNNING
+      ? InstanceStatus.INSTANCE_STATUS_STOPPED
+      : InstanceStatus.INSTANCE_STATUS_RUNNING,
+  )
 }
 
 // —— 导航 ——
 const openInstanceConsole = (item: InstanceRecord) => {
-  router.push({
-    path: `/instance/app/${item.id}`,
-    query: { tabTitle: item.name },
-  })
+  router.push({ path: `/instance/app/${item.id}`, query: { tabTitle: item.name } })
 }
-
-const openInstanceFileManager = (
-  item: Pick<InstanceRecord, 'id' | 'name' | 'status' | 'instancePath'>,
-) => {
-  // 实例文件 API 以实例目录为根，不能再把 instancePath 当地址（会 500「路径不存在」）
-  router.push({
-    path: `/instance/app/${item.id}`,
-    query: { tab: 'files', tabTitle: item.name },
-  })
+// 实例文件 API 以实例目录为根：进详情页的「文件」标签
+const openInstanceFileManager = (item: Pick<InstanceRecord, 'id' | 'name'>) => {
+  router.push({ path: `/instance/app/${item.id}`, query: { tab: 'files', tabTitle: item.name } })
 }
 
 // —— 编辑器 ——
-const handleOpenCreateEditor = () => {
-  openCreateEditor()
-}
+const editingRunning = computed(() => {
+  const id = instanceEditorForm.value.id
+  return !!id && findInstanceById(id)?.status === InstanceStatus.INSTANCE_STATUS_RUNNING
+})
+const handleOpenCreateEditor = () => openCreateEditor()
 
 const handleOpenEditEditor = async (instanceId: string) => {
   try {
@@ -401,16 +489,22 @@ const handleOpenEditEditor = async (instanceId: string) => {
   }
 }
 
-const handleEditorClose = () => {
-  closeInstanceEditor()
-}
+const handleEditorClose = () => closeInstanceEditor()
 
-const handleEditorSubmit = async (form: InstanceEditorFormValue) => {
+const handleEditorSubmit = async (form: InstanceEditorFormValue, options?: { run: boolean }) => {
   const mode = instanceEditorMode.value
+  const wasRunning = editingRunning.value
   try {
     instanceEditorForm.value = { ...form }
-    await submitInstanceEditor()
+    const saved = await submitInstanceEditor()
     feedback.success(mode === 'create' ? t('instance.createSuccess') : t('instance.configSaveSuccess'))
+    if (!options?.run || !saved?.id) return
+    // 保存并启动 / 保存并重启
+    const ok =
+      wasRunning && mode === 'edit'
+        ? await restartInstance(saved.id)
+        : await changeInstanceStatus(saved.id, InstanceStatus.INSTANCE_STATUS_RUNNING)
+    if (ok) feedback.success(wasRunning && mode === 'edit' ? t('instance.ui.restarted') : t('instance.instanceStarted'))
   } catch (error) {
     showRequestError(error, mode === 'create' ? t('instance.createFailed') : t('instance.configSaveFailed'))
   }
@@ -424,11 +518,7 @@ const handleRefreshStatus = async () => {
 // —— 批量 / 单条 状态与删除 ——
 const failedSuffix = (count: number) => (count ? t('instance.failedCountSuffix', { count }) : '')
 
-const executeBatchChangeStatus = async (
-  targetStatus:
-    | typeof InstanceStatus.INSTANCE_STATUS_RUNNING
-    | typeof InstanceStatus.INSTANCE_STATUS_STOPPED,
-) => {
+const executeBatchChangeStatus = async (targetStatus: SwitchStatus) => {
   if (!selectedIds.value.length) return
   const { successCount, failedCount } = await batchChangeStatus(targetStatus)
   if (!successCount && failedCount) return
@@ -439,11 +529,7 @@ const executeBatchChangeStatus = async (
   )
 }
 
-const handleBatchChangeStatus = async (
-  targetStatus:
-    | typeof InstanceStatus.INSTANCE_STATUS_RUNNING
-    | typeof InstanceStatus.INSTANCE_STATUS_STOPPED,
-) => {
+const handleBatchChangeStatus = async (targetStatus: SwitchStatus) => {
   if (!selectedIds.value.length) return
   if (targetStatus === InstanceStatus.INSTANCE_STATUS_STOPPED) {
     Dialog.confirm({
@@ -451,19 +537,31 @@ const handleBatchChangeStatus = async (
       content: t('instance.confirmBatchStopContent', { count: selectedIds.value.length }),
       cancelText: t('common.cancel'),
       confirmText: t('instance.confirmStop'),
-      onConfirm: async () => { await executeBatchChangeStatus(targetStatus) },
+      onConfirm: async () => {
+        await executeBatchChangeStatus(targetStatus)
+      },
     })
     return
   }
   await executeBatchChangeStatus(targetStatus)
 }
 
-const executeChangeInstanceStatus = async (
-  id: string,
-  targetStatus:
-    | typeof InstanceStatus.INSTANCE_STATUS_RUNNING
-    | typeof InstanceStatus.INSTANCE_STATUS_STOPPED,
-) => {
+const handleBatchRestart = () => {
+  if (!selectedIds.value.length) return
+  Dialog.confirm({
+    title: t('instance.ui.confirmBatchRestartTitle'),
+    content: t('instance.ui.confirmBatchRestartContent', { count: selectedIds.value.length }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.confirmRestart'),
+    onConfirm: async () => {
+      const { successCount, failedCount } = await batchRestart()
+      if (!successCount && failedCount) return
+      feedback.success(t('instance.ui.batchRestartSuccess', { success: successCount, failed: failedSuffix(failedCount) }))
+    },
+  })
+}
+
+const executeChangeInstanceStatus = async (id: string, targetStatus: SwitchStatus) => {
   const success = await changeInstanceStatus(id, targetStatus)
   if (!success) return
   feedback.success(
@@ -471,21 +569,34 @@ const executeChangeInstanceStatus = async (
   )
 }
 
-const handleChangeInstanceStatus = async (
-  id: string,
-  targetStatus:
-    | typeof InstanceStatus.INSTANCE_STATUS_RUNNING
-    | typeof InstanceStatus.INSTANCE_STATUS_STOPPED,
-) => {
+const handleChangeInstanceStatus = async (id: string, targetStatus: SwitchStatus) => {
   const current = findInstanceById(id)
   if (!current) return
+  if (targetStatus === InstanceStatus.INSTANCE_STATUS_RUNNING && current.maintenance) {
+    Dialog.confirm({
+      title: t('instance.ui.endMaintenanceStartTitle'),
+      content: t('instance.ui.endMaintenanceStartContent', { name: current.name }),
+      cancelText: t('common.cancel'),
+      confirmText: t('instance.ui.endAndStart'),
+      onConfirm: async () => {
+        try {
+          if (await endMaintenanceAndStart(id)) feedback.success(t('instance.instanceStarted'))
+        } catch (error) {
+          showRequestError(error, t('instance.configSaveFailed'))
+        }
+      },
+    })
+    return
+  }
   if (targetStatus === InstanceStatus.INSTANCE_STATUS_STOPPED) {
     Dialog.confirm({
       title: t('instance.confirmStopInstanceTitle'),
       content: t('instance.confirmStopInstanceContent', { name: current.name }),
       cancelText: t('common.cancel'),
       confirmText: t('instance.confirmStop'),
-      onConfirm: async () => { await executeChangeInstanceStatus(id, targetStatus) },
+      onConfirm: async () => {
+        await executeChangeInstanceStatus(id, targetStatus)
+      },
     })
     return
   }
@@ -506,46 +617,84 @@ const handleBatchDelete = async () => {
   })
 }
 
-const handleMoreAction = async (id: string, action: 'forceRestart' | 'delete' | 'fileManager') => {
+const toggleMaintenance = (current: InstanceRecord, on: boolean) => {
+  const run = async () => {
+    try {
+      await setMaintenance(current.id, on)
+      feedback.success(on ? t('instance.ui.maintenanceOnDone') : t('instance.ui.maintenanceOffDone'))
+    } catch (error) {
+      showRequestError(error, t('instance.configSaveFailed'))
+    }
+  }
+  if (!on) {
+    void run()
+    return
+  }
+  Dialog.confirm({
+    title: t('instance.ui.enterMaintenance'),
+    content: t('instance.ui.maintenanceOnContent', { name: current.name }),
+    cancelText: t('common.cancel'),
+    confirmText: t('instance.ui.enterMaintenance'),
+    onConfirm: run,
+  })
+}
+
+const handleMoreAction = async (id: string, action: MoreAction) => {
   const current = findInstanceById(id)
   if (!current) return
 
-  if (action === 'forceRestart') {
-    Dialog.confirm({
-      title: t('instance.confirmForceRestartInstanceTitle'),
-      content: t('instance.confirmForceRestartInstanceContent', { name: current.name }),
-      cancelText: t('common.cancel'),
-      confirmText: t('instance.confirmRestart'),
-      onConfirm: async () => {
-        const success = await restartInstance(id)
-        if (!success) return
-        feedback.success(t('instance.forceRestarting'))
-      },
-    })
-    return
+  switch (action) {
+    case 'restart':
+      Dialog.confirm({
+        title: t('instance.confirmRestartInstanceTitle'),
+        content: t('instance.confirmRestartInstanceContent', { name: current.name }),
+        cancelText: t('common.cancel'),
+        confirmText: t('instance.confirmRestart'),
+        onConfirm: async () => {
+          if (await restartInstance(id)) feedback.success(t('instance.ui.restarted'))
+        },
+      })
+      return
+    case 'forceRestart':
+      Dialog.confirm({
+        title: t('instance.confirmForceRestartInstanceTitle'),
+        content: t('instance.confirmForceRestartInstanceContent', { name: current.name }),
+        cancelText: t('common.cancel'),
+        confirmText: t('instance.confirmRestart'),
+        onConfirm: async () => {
+          if (await restartInstance(id)) feedback.success(t('instance.forceRestarting'))
+        },
+      })
+      return
+    case 'maintenanceOn':
+    case 'maintenanceOff':
+      toggleMaintenance(current, action === 'maintenanceOn')
+      return
+    case 'delete':
+      if (current.userId !== currentUserId.value) return
+      Dialog.confirm({
+        title: t('instance.confirmDeleteInstanceTitle'),
+        content: t('instance.confirmDeleteInstanceContent', { name: current.name }),
+        cancelText: t('common.cancel'),
+        confirmText: t('common.delete'),
+        onConfirm: async () => {
+          const { successCount, failedCount } = await deleteInstances([id])
+          if (!successCount && failedCount) return
+          feedback.success(t('instance.instanceDeleted', { name: current.name, failed: failedSuffix(failedCount) }))
+        },
+      })
+      return
+    case 'fileManager':
+      openInstanceFileManager(current)
   }
-
-  if (action === 'delete') {
-    if (current.userId !== currentUserId.value) return
-    Dialog.confirm({
-      title: t('instance.confirmDeleteInstanceTitle'),
-      content: t('instance.confirmDeleteInstanceContent', { name: current.name }),
-      cancelText: t('common.cancel'),
-      confirmText: t('common.delete'),
-      onConfirm: async () => {
-        const { successCount, failedCount } = await deleteInstances([id])
-        if (!successCount && failedCount) return
-        feedback.success(t('instance.instanceDeleted', { name: current.name, failed: failedSuffix(failedCount) }))
-      },
-    })
-    return
-  }
-
-  openInstanceFileManager(current)
 }
 
 onMounted(() => {
   void initialize()
+  clockTimer = setInterval(() => (now.value = Date.now()), 30000)
+})
+onBeforeUnmount(() => {
+  if (clockTimer) clearInterval(clockTimer)
 })
 </script>
 
@@ -554,6 +703,20 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.inst-page__running {
+  font-weight: 700;
+  color: var(--m-ok);
+}
+.inst-page .inst-ico-btn {
+  width: 40px;
+  padding-inline: 0;
+  justify-content: center;
+}
+@media (width <= 768px) {
+  .inst-page .inst-ico-btn {
+    width: 44px;
+  }
 }
 
 /* 工具条 */
@@ -578,6 +741,9 @@ onMounted(() => {
 }
 .inst-chip {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 40px;
   padding: 0 16px;
   border-radius: 999px;
@@ -598,6 +764,10 @@ onMounted(() => {
   background: var(--m-ink);
   border-color: var(--m-ink);
   color: var(--m-bg);
+}
+.inst-chip__n {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 .inst-search {
   display: flex;
@@ -634,21 +804,11 @@ onMounted(() => {
 .inst-type {
   width: 170px;
 }
-@media (width < 768px) {
-  .inst-tools__spacer {
-    display: none;
-  }
-  .inst-chips {
-    order: 3;
-    width: 100%;
-  }
-  .inst-search {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-  .inst-type {
-    width: 128px;
-  }
+/* 与搜索胶囊同高 */
+.inst-type :deep(.app-sel__trigger) {
+  height: 40px;
+  border-radius: 999px;
+  padding-inline: 14px 10px;
 }
 
 /* 主体 */
@@ -662,35 +822,12 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: -4px;
 }
-.inst-page__stats {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-}
-.inst-page__bar-hint,
-.inst-page__stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.inst-page__bar-hint {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--el-text-color-secondary);
-  font-variant-numeric: tabular-nums;
-}
-.inst-page__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-.inst-page__dot.is-run {
-  background: var(--m-ok);
-}
-.inst-page__dot.is-stop {
-  background: var(--el-text-color-secondary);
-  opacity: 0.5;
 }
 .inst-page__selall {
   min-height: 36px;
@@ -765,6 +902,75 @@ onMounted(() => {
   }
 }
 
+/* 表格单元格 */
+.inst-cell-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.inst-cell-name__av {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  font-size: 0.9375rem;
+  flex: none;
+}
+.inst-cell-name__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.inst-cell-name__n {
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inst-cell-name__n:hover {
+  color: var(--m-pInk);
+}
+.inst-cell-name__r {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inst-cell-mono {
+  font-size: 0.78rem;
+}
+.inst-row-acts {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+.inst-row-acts :deep(.is-stop) {
+  color: var(--m-bad);
+}
+.inst-row-acts :deep(.is-start) {
+  color: var(--m-ok);
+}
+
+/* 手机悬浮新建 */
+.inst-fab {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+  z-index: 5;
+}
+.inst-fab__btn {
+  pointer-events: auto;
+  min-height: 56px;
+  padding: 0 22px;
+  border-radius: var(--app-radius-pill);
+  font-weight: 700;
+  box-shadow: var(--app-shadow-brand);
+}
+
 /* 浮动批量条 */
 .inst-batch {
   position: sticky;
@@ -783,6 +989,9 @@ onMounted(() => {
   overflow-x: auto;
   scrollbar-width: none;
 }
+.inst-batch::-webkit-scrollbar {
+  display: none;
+}
 .inst-batch__count {
   margin-right: 10px;
   font-size: 0.875rem;
@@ -791,6 +1000,7 @@ onMounted(() => {
 }
 .inst-batch__btn {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: 6px;
   min-height: 40px;
@@ -823,11 +1033,6 @@ onMounted(() => {
   width: 16px;
   height: 16px;
 }
-@media (width < 992px) {
-  .inst-batch {
-    bottom: calc(78px + env(safe-area-inset-bottom));
-  }
-}
 .batch-pop-enter-active,
 .batch-pop-leave-active {
   transition: opacity 0.18s, transform 0.18s;
@@ -836,5 +1041,62 @@ onMounted(() => {
 .batch-pop-leave-to {
   opacity: 0;
   transform: translateY(12px);
+}
+
+@media (width < 992px) {
+  .inst-batch {
+    bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+}
+@media (width < 768px) {
+  .inst-tools__spacer {
+    display: none;
+  }
+  .inst-chips {
+    order: 3;
+    width: 100%;
+  }
+  .inst-search {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 44px;
+  }
+  .inst-type {
+    width: 128px;
+  }
+  .inst-type :deep(.app-sel__trigger) {
+    height: 44px;
+  }
+  .inst-chip {
+    min-height: 44px;
+  }
+  .inst-page__selall {
+    min-height: 44px;
+    padding-inline: 4px;
+    margin-right: -4px;
+  }
+  /* 手机：图标在上、文字在下，整条放进 358px 宽，不用横向滚动 */
+  .inst-batch {
+    padding: 4px 4px 4px 14px;
+  }
+  .inst-batch__count {
+    margin-right: 4px;
+  }
+  .inst-batch__btn {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 0 6px;
+    font-size: 0.6875rem;
+  }
+  .inst-batch__btn.is-icon {
+    width: 44px;
+    min-width: 44px;
+  }
+  .inst-page {
+    padding-bottom: 72px;
+  }
 }
 </style>

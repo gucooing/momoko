@@ -183,6 +183,54 @@ func (_c *InstanceCreate) SetEnv(v []string) *InstanceCreate {
 	return _c
 }
 
+// SetSecretEnvKeys sets the "secret_env_keys" field.
+func (_c *InstanceCreate) SetSecretEnvKeys(v []string) *InstanceCreate {
+	_c.mutation.SetSecretEnvKeys(v)
+	return _c
+}
+
+// SetMaintenance sets the "maintenance" field.
+func (_c *InstanceCreate) SetMaintenance(v bool) *InstanceCreate {
+	_c.mutation.SetMaintenance(v)
+	return _c
+}
+
+// SetNillableMaintenance sets the "maintenance" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableMaintenance(v *bool) *InstanceCreate {
+	if v != nil {
+		_c.SetMaintenance(*v)
+	}
+	return _c
+}
+
+// SetMaintenanceTime sets the "maintenance_time" field.
+func (_c *InstanceCreate) SetMaintenanceTime(v time.Time) *InstanceCreate {
+	_c.mutation.SetMaintenanceTime(v)
+	return _c
+}
+
+// SetNillableMaintenanceTime sets the "maintenance_time" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableMaintenanceTime(v *time.Time) *InstanceCreate {
+	if v != nil {
+		_c.SetMaintenanceTime(*v)
+	}
+	return _c
+}
+
+// SetLastStopTime sets the "last_stop_time" field.
+func (_c *InstanceCreate) SetLastStopTime(v time.Time) *InstanceCreate {
+	_c.mutation.SetLastStopTime(v)
+	return _c
+}
+
+// SetNillableLastStopTime sets the "last_stop_time" field if the given value is not nil.
+func (_c *InstanceCreate) SetNillableLastStopTime(v *time.Time) *InstanceCreate {
+	if v != nil {
+		_c.SetLastStopTime(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *InstanceCreate) SetID(v string) *InstanceCreate {
 	_c.mutation.SetID(v)
@@ -218,6 +266,14 @@ func (_c *InstanceCreate) AddUsers(v ...*User) *InstanceCreate {
 // SetTypeID sets the "type" edge to the InstanceType entity by ID.
 func (_c *InstanceCreate) SetTypeID(id string) *InstanceCreate {
 	_c.mutation.SetTypeID(id)
+	return _c
+}
+
+// SetNillableTypeID sets the "type" edge to the InstanceType entity by ID if the given value is not nil.
+func (_c *InstanceCreate) SetNillableTypeID(id *string) *InstanceCreate {
+	if id != nil {
+		_c = _c.SetTypeID(*id)
+	}
 	return _c
 }
 
@@ -293,6 +349,10 @@ func (_c *InstanceCreate) defaults() {
 		v := instance.DefaultStopTimeout
 		_c.mutation.SetStopTimeout(v)
 	}
+	if _, ok := _c.mutation.Maintenance(); !ok {
+		v := instance.DefaultMaintenance
+		_c.mutation.SetMaintenance(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -342,6 +402,9 @@ func (_c *InstanceCreate) check() error {
 	if _, ok := _c.mutation.StopTimeout(); !ok {
 		return &ValidationError{Name: "stop_timeout", err: errors.New(`gen: missing required field "Instance.stop_timeout"`)}
 	}
+	if _, ok := _c.mutation.Maintenance(); !ok {
+		return &ValidationError{Name: "maintenance", err: errors.New(`gen: missing required field "Instance.maintenance"`)}
+	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := instance.IDValidator(v); err != nil {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`gen: validator failed for field "Instance.id": %w`, err)}
@@ -349,9 +412,6 @@ func (_c *InstanceCreate) check() error {
 	}
 	if len(_c.mutation.UserIDs()) == 0 {
 		return &ValidationError{Name: "user", err: errors.New(`gen: missing required edge "Instance.user"`)}
-	}
-	if len(_c.mutation.TypeIDs()) == 0 {
-		return &ValidationError{Name: "type", err: errors.New(`gen: missing required edge "Instance.type"`)}
 	}
 	return nil
 }
@@ -440,6 +500,22 @@ func (_c *InstanceCreate) createSpec() (*Instance, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Env(); ok {
 		_spec.SetField(instance.FieldEnv, field.TypeJSON, value)
 		_node.Env = value
+	}
+	if value, ok := _c.mutation.SecretEnvKeys(); ok {
+		_spec.SetField(instance.FieldSecretEnvKeys, field.TypeJSON, value)
+		_node.SecretEnvKeys = value
+	}
+	if value, ok := _c.mutation.Maintenance(); ok {
+		_spec.SetField(instance.FieldMaintenance, field.TypeBool, value)
+		_node.Maintenance = value
+	}
+	if value, ok := _c.mutation.MaintenanceTime(); ok {
+		_spec.SetField(instance.FieldMaintenanceTime, field.TypeTime, value)
+		_node.MaintenanceTime = &value
+	}
+	if value, ok := _c.mutation.LastStopTime(); ok {
+		_spec.SetField(instance.FieldLastStopTime, field.TypeTime, value)
+		_node.LastStopTime = &value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -711,6 +787,72 @@ func (u *InstanceUpsert) ClearEnv() *InstanceUpsert {
 	return u
 }
 
+// SetSecretEnvKeys sets the "secret_env_keys" field.
+func (u *InstanceUpsert) SetSecretEnvKeys(v []string) *InstanceUpsert {
+	u.Set(instance.FieldSecretEnvKeys, v)
+	return u
+}
+
+// UpdateSecretEnvKeys sets the "secret_env_keys" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateSecretEnvKeys() *InstanceUpsert {
+	u.SetExcluded(instance.FieldSecretEnvKeys)
+	return u
+}
+
+// ClearSecretEnvKeys clears the value of the "secret_env_keys" field.
+func (u *InstanceUpsert) ClearSecretEnvKeys() *InstanceUpsert {
+	u.SetNull(instance.FieldSecretEnvKeys)
+	return u
+}
+
+// SetMaintenance sets the "maintenance" field.
+func (u *InstanceUpsert) SetMaintenance(v bool) *InstanceUpsert {
+	u.Set(instance.FieldMaintenance, v)
+	return u
+}
+
+// UpdateMaintenance sets the "maintenance" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateMaintenance() *InstanceUpsert {
+	u.SetExcluded(instance.FieldMaintenance)
+	return u
+}
+
+// SetMaintenanceTime sets the "maintenance_time" field.
+func (u *InstanceUpsert) SetMaintenanceTime(v time.Time) *InstanceUpsert {
+	u.Set(instance.FieldMaintenanceTime, v)
+	return u
+}
+
+// UpdateMaintenanceTime sets the "maintenance_time" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateMaintenanceTime() *InstanceUpsert {
+	u.SetExcluded(instance.FieldMaintenanceTime)
+	return u
+}
+
+// ClearMaintenanceTime clears the value of the "maintenance_time" field.
+func (u *InstanceUpsert) ClearMaintenanceTime() *InstanceUpsert {
+	u.SetNull(instance.FieldMaintenanceTime)
+	return u
+}
+
+// SetLastStopTime sets the "last_stop_time" field.
+func (u *InstanceUpsert) SetLastStopTime(v time.Time) *InstanceUpsert {
+	u.Set(instance.FieldLastStopTime, v)
+	return u
+}
+
+// UpdateLastStopTime sets the "last_stop_time" field to the value that was provided on create.
+func (u *InstanceUpsert) UpdateLastStopTime() *InstanceUpsert {
+	u.SetExcluded(instance.FieldLastStopTime)
+	return u
+}
+
+// ClearLastStopTime clears the value of the "last_stop_time" field.
+func (u *InstanceUpsert) ClearLastStopTime() *InstanceUpsert {
+	u.SetNull(instance.FieldLastStopTime)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -955,6 +1097,83 @@ func (u *InstanceUpsertOne) UpdateEnv() *InstanceUpsertOne {
 func (u *InstanceUpsertOne) ClearEnv() *InstanceUpsertOne {
 	return u.Update(func(s *InstanceUpsert) {
 		s.ClearEnv()
+	})
+}
+
+// SetSecretEnvKeys sets the "secret_env_keys" field.
+func (u *InstanceUpsertOne) SetSecretEnvKeys(v []string) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetSecretEnvKeys(v)
+	})
+}
+
+// UpdateSecretEnvKeys sets the "secret_env_keys" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateSecretEnvKeys() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateSecretEnvKeys()
+	})
+}
+
+// ClearSecretEnvKeys clears the value of the "secret_env_keys" field.
+func (u *InstanceUpsertOne) ClearSecretEnvKeys() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearSecretEnvKeys()
+	})
+}
+
+// SetMaintenance sets the "maintenance" field.
+func (u *InstanceUpsertOne) SetMaintenance(v bool) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetMaintenance(v)
+	})
+}
+
+// UpdateMaintenance sets the "maintenance" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateMaintenance() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateMaintenance()
+	})
+}
+
+// SetMaintenanceTime sets the "maintenance_time" field.
+func (u *InstanceUpsertOne) SetMaintenanceTime(v time.Time) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetMaintenanceTime(v)
+	})
+}
+
+// UpdateMaintenanceTime sets the "maintenance_time" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateMaintenanceTime() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateMaintenanceTime()
+	})
+}
+
+// ClearMaintenanceTime clears the value of the "maintenance_time" field.
+func (u *InstanceUpsertOne) ClearMaintenanceTime() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearMaintenanceTime()
+	})
+}
+
+// SetLastStopTime sets the "last_stop_time" field.
+func (u *InstanceUpsertOne) SetLastStopTime(v time.Time) *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetLastStopTime(v)
+	})
+}
+
+// UpdateLastStopTime sets the "last_stop_time" field to the value that was provided on create.
+func (u *InstanceUpsertOne) UpdateLastStopTime() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateLastStopTime()
+	})
+}
+
+// ClearLastStopTime clears the value of the "last_stop_time" field.
+func (u *InstanceUpsertOne) ClearLastStopTime() *InstanceUpsertOne {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearLastStopTime()
 	})
 }
 
@@ -1369,6 +1588,83 @@ func (u *InstanceUpsertBulk) UpdateEnv() *InstanceUpsertBulk {
 func (u *InstanceUpsertBulk) ClearEnv() *InstanceUpsertBulk {
 	return u.Update(func(s *InstanceUpsert) {
 		s.ClearEnv()
+	})
+}
+
+// SetSecretEnvKeys sets the "secret_env_keys" field.
+func (u *InstanceUpsertBulk) SetSecretEnvKeys(v []string) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetSecretEnvKeys(v)
+	})
+}
+
+// UpdateSecretEnvKeys sets the "secret_env_keys" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateSecretEnvKeys() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateSecretEnvKeys()
+	})
+}
+
+// ClearSecretEnvKeys clears the value of the "secret_env_keys" field.
+func (u *InstanceUpsertBulk) ClearSecretEnvKeys() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearSecretEnvKeys()
+	})
+}
+
+// SetMaintenance sets the "maintenance" field.
+func (u *InstanceUpsertBulk) SetMaintenance(v bool) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetMaintenance(v)
+	})
+}
+
+// UpdateMaintenance sets the "maintenance" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateMaintenance() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateMaintenance()
+	})
+}
+
+// SetMaintenanceTime sets the "maintenance_time" field.
+func (u *InstanceUpsertBulk) SetMaintenanceTime(v time.Time) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetMaintenanceTime(v)
+	})
+}
+
+// UpdateMaintenanceTime sets the "maintenance_time" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateMaintenanceTime() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateMaintenanceTime()
+	})
+}
+
+// ClearMaintenanceTime clears the value of the "maintenance_time" field.
+func (u *InstanceUpsertBulk) ClearMaintenanceTime() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearMaintenanceTime()
+	})
+}
+
+// SetLastStopTime sets the "last_stop_time" field.
+func (u *InstanceUpsertBulk) SetLastStopTime(v time.Time) *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.SetLastStopTime(v)
+	})
+}
+
+// UpdateLastStopTime sets the "last_stop_time" field to the value that was provided on create.
+func (u *InstanceUpsertBulk) UpdateLastStopTime() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.UpdateLastStopTime()
+	})
+}
+
+// ClearLastStopTime clears the value of the "last_stop_time" field.
+func (u *InstanceUpsertBulk) ClearLastStopTime() *InstanceUpsertBulk {
+	return u.Update(func(s *InstanceUpsert) {
+		s.ClearLastStopTime()
 	})
 }
 

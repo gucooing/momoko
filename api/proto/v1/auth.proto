@@ -125,6 +125,8 @@ message LoginRequest {
   string device_id = 5;
   // 邮箱验证码
   string code = 6;
+  // 保持登录：true 时会话按刷新令牌有效期（天）续期；false 时 1 天不活动即需重新登录
+  bool remember = 7;
 }
 
 // 注册请求
@@ -164,7 +166,10 @@ message SendLoginEmailCodeRequest {
 }
 
 // 发送登录邮件验证码响应
-message SendLoginEmailCodeResponse {}
+message SendLoginEmailCodeResponse {
+  // 验证码有效期（秒）
+  int64 expires_in_seconds = 1;
+}
 
 // 发送重置密码邮件验证码请求
 message SendResetPasswordEmailCodeRequest {

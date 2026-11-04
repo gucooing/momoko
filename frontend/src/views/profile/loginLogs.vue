@@ -227,7 +227,7 @@ onMounted(() => {
   color: var(--el-text-color-primary);
 }
 .pf-link {
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 2px;
   border: 0;
   background: none;
@@ -476,6 +476,9 @@ onMounted(() => {
 @media (width < 640px) {
   .logs-detail {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .pf-link {
+    min-height: 44px;
   }
 }
 </style>

@@ -2,3 +2,7 @@
 <template>
   <PageGroupHost group="docker" />
 </template>
+
+<script setup lang="ts">
+defineOptions({ name: 'DockerGroupView' })
+</script>

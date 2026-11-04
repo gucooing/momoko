@@ -51,6 +51,8 @@ export interface FileUploadSignParams {
   fileSize: number
   hash: string
   partSize?: number
+  // 系统级：上传目标来源（加入队列时冻结，避免排队期间切换来源导致传错地方）；缺省取 client 当前来源。
+  sourceId?: string
 }
 
 // 打开文件的解码结果。
@@ -120,6 +122,8 @@ export interface FileTreeContext {
   multiple: boolean
   // 'file'=仅文件可选（编辑器）；'all'=文件与文件夹均可选（分享/选择器）
   selectable: 'file' | 'all'
+  // 只显示文件夹（文件管理左栏目录树 / 目标目录选择）
+  dirsOnly?: boolean
   select: (path: string, name: string, isDir: boolean) => void
 }
 

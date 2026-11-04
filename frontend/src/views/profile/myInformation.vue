@@ -15,7 +15,7 @@
       :chevron="compact"
       @click="openPassword"
     >
-      <UButton v-if="!compact" color="primary" variant="outline" size="sm" @click="openPassword">
+      <UButton v-if="!compact" color="primary" variant="outline" size="sm" class="pf-btn-sm" @click="openPassword">
         {{ t('user.passwordCardTitle') }}
       </UButton>
     </ProfileRow>
@@ -106,6 +106,9 @@ const ipScopeOf = (ip: string) => {
 </script>
 
 <style scoped lang="scss">
+.pf-btn-sm {
+  min-height: 36px;
+}
 .sec :deep(.app-panel__body) {
   padding-top: 8px;
   padding-bottom: 8px;

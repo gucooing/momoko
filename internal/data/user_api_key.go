@@ -11,6 +11,7 @@ import (
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/predicate"
+	entuser "momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
 	"momoko/pkg/nodeauth"
 )
@@ -42,7 +43,24 @@ func (r *UserAPIKeyRepo) CreateUserAPIKey(ctx context.Context, userID, name, rem
 		create.SetExpiresAt(*expiresAt)
 	}
 
-	return create.Save(ctx)
+	item, err := create.Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return r.withOwner(ctx, item.ID)
+}
+
+// withOwnerUser 只取所属用户展示用字段。
+func withOwnerUser(q *gen.UserQuery) {
+	q.Select(entuser.FieldID, entuser.FieldName, entuser.FieldUsername, entuser.FieldAvatar)
+}
+
+// withOwner 重新读取一条 API Key 并带上所属用户。
+func (r *UserAPIKeyRepo) withOwner(ctx context.Context, id string) (*gen.UserAPIKey, error) {
+	return r.data.db.UserAPIKey.Query().
+		Where(userapikey.IDEQ(id)).
+		WithUser(withOwnerUser).
+		Only(ctx)
 }
 
 func (r *UserAPIKeyRepo) GetUserAPIKey(ctx context.Context, userID, id string) (*gen.UserAPIKey, error) {
@@ -51,6 +69,7 @@ func (r *UserAPIKeyRepo) GetUserAPIKey(ctx context.Context, userID, id string) (
 			userapikey.IDEQ(id),
 			userapikey.UserIDEQ(userID),
 		).
+		WithUser(withOwnerUser).
 		Only(ctx)
 }
 
@@ -80,6 +99,7 @@ func apiKeyStatusPredicate(status v1.APIKeyStatus, now time.Time) predicate.User
 	}
 }
 
+// ListUserAPIKeys userID 为空表示全部用户（关键字同时匹配所属用户的昵称 / 用户名）。
 func (r *UserAPIKeyRepo) ListUserAPIKeys(ctx context.Context, userID string, page, pageSize int64, keywords *string, status *v1.APIKeyStatus) ([]*gen.UserAPIKey, int64, *biz.APIKeyStatusCounts, error) {
 	if page <= 0 {
 		page = 1
@@ -89,11 +109,21 @@ func (r *UserAPIKeyRepo) ListUserAPIKeys(ctx context.Context, userID string, pag
 	}
 
 	now := time.Now()
-	query := r.data.db.UserAPIKey.Query().
-		Where(userapikey.UserIDEQ(userID))
+	query := r.data.db.UserAPIKey.Query()
+	if userID != "" {
+		query = query.Where(userapikey.UserIDEQ(userID))
+	}
 	if keywords != nil && strings.TrimSpace(*keywords) != "" {
 		kw := strings.TrimSpace(*keywords)
-		query = query.Where(userapikey.Or(userapikey.NameContains(kw), userapikey.RemarkContains(kw), userapikey.KeyIDHasPrefix(kw)))
+		match := []predicate.UserAPIKey{
+			userapikey.NameContains(kw),
+			userapikey.RemarkContains(kw),
+			userapikey.KeyIDHasPrefix(kw),
+		}
+		if userID == "" {
+			match = append(match, userapikey.HasUserWith(entuser.Or(entuser.NameContains(kw), entuser.UsernameContains(kw))))
+		}
+		query = query.Where(userapikey.Or(match...))
 	}
 
 	counts := &biz.APIKeyStatusCounts{}
@@ -122,6 +152,7 @@ func (r *UserAPIKeyRepo) ListUserAPIKeys(ctx context.Context, userID string, pag
 	}
 
 	apiKeys, err := query.
+		WithUser(withOwnerUser).
 		Order(userapikey.ByCreateTime()).
 		Offset(int((page - 1) * pageSize)).
 		Limit(int(pageSize)).
@@ -133,9 +164,50 @@ func (r *UserAPIKeyRepo) ListUserAPIKeys(ctx context.Context, userID string, pag
 	return apiKeys, int64(total), counts, nil
 }
 
+// APIKeyOwners 全部 API Key 的所属用户及各自的密钥数（按用户 id 升序）。
+func (r *UserAPIKeyRepo) APIKeyOwners(ctx context.Context) ([]*biz.APIKeyOwnerCount, error) {
+	var rows []struct {
+		UserID string `json:"user_id"`
+		Count  int64  `json:"count"`
+	}
+	if err := r.data.db.UserAPIKey.Query().
+		GroupBy(userapikey.FieldUserID).
+		Aggregate(gen.Count()).
+		Scan(ctx, &rows); err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return []*biz.APIKeyOwnerCount{}, nil
+	}
+	ids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		ids = append(ids, row.UserID)
+	}
+	users, err := r.data.db.User.Query().
+		Where(entuser.IDIn(ids...)).
+		Select(entuser.FieldID, entuser.FieldName, entuser.FieldUsername, entuser.FieldAvatar).
+		Order(gen.Asc(entuser.FieldID)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	counts := make(map[string]int64, len(rows))
+	for _, row := range rows {
+		counts[row.UserID] = row.Count
+	}
+	out := make([]*biz.APIKeyOwnerCount, 0, len(users))
+	for _, u := range users {
+		out = append(out, &biz.APIKeyOwnerCount{User: u, Count: counts[u.ID]})
+	}
+	return out, nil
+}
+
+// UpdateUserAPIKey userID 为空表示不限所属用户（管理全部 API Key）。
 func (r *UserAPIKeyRepo) UpdateUserAPIKey(ctx context.Context, userID string, id string, name, remark *string, expiresAt *time.Time, clearExpiresAt *bool, permissions *[]string) (*gen.UserAPIKey, error) {
-	update := r.data.db.UserAPIKey.UpdateOneID(id).
-		Where(userapikey.UserIDEQ(userID))
+	update := r.data.db.UserAPIKey.UpdateOneID(id)
+	if userID != "" {
+		update.Where(userapikey.UserIDEQ(userID))
+	}
 	if name != nil {
 		update.SetName(*name)
 	}
@@ -150,15 +222,21 @@ func (r *UserAPIKeyRepo) UpdateUserAPIKey(ctx context.Context, userID string, id
 	if permissions != nil {
 		update.SetPermissions(*permissions)
 	}
-	return update.Save(ctx)
+	if err := update.Exec(ctx); err != nil {
+		return nil, err
+	}
+	return r.withOwner(ctx, id)
 }
 
 func (r *UserAPIKeyRepo) RefreshUserAPIKey(ctx context.Context, userID, id, apiKey string) (*gen.UserAPIKey, error) {
-	return r.data.db.UserAPIKey.UpdateOneID(id).
+	if err := r.data.db.UserAPIKey.UpdateOneID(id).
 		Where(userapikey.UserIDEQ(userID)).
 		SetAPIKey(apiKey).
 		SetKeyID(nodeauth.KeyID(apiKey)).
-		Save(ctx)
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+	return r.withOwner(ctx, id)
 }
 
 // TouchAPIKeyUsed 只写最近使用信息，保持 update_time 不变（它表示配置修改时间）。
@@ -174,10 +252,13 @@ func (r *UserAPIKeyRepo) TouchAPIKeyUsed(ctx context.Context, id string, at time
 		Exec(ctx)
 }
 
+// DeleteUserAPIKey userID 为空表示不限所属用户（管理全部 API Key）。
 func (r *UserAPIKeyRepo) DeleteUserAPIKey(ctx context.Context, userID, id string) error {
-	return r.data.db.UserAPIKey.DeleteOneID(id).
-		Where(userapikey.UserIDEQ(userID)).
-		Exec(ctx)
+	del := r.data.db.UserAPIKey.DeleteOneID(id)
+	if userID != "" {
+		del.Where(userapikey.UserIDEQ(userID))
+	}
+	return del.Exec(ctx)
 }
 
 // backfillAPIKeyIDs 为引入签名鉴权前创建的 API Key 补齐派生标识。

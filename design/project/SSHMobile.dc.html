@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>SSH 主机 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.card-bad{border-color:color-mix(in srgb, var(--bad) 45%, var(--line))}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:var(--s2);color:var(--ink2);font-size:12px;font-weight:600;white-space:nowrap}
+.tag-share{background:var(--a2Soft);color:var(--ink)}
+.inp{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 16px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; min-height: 2700px; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: flex-end; gap: 6px; padding: 22px 12px 12px 20px">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.01em">SSH 主机</h1>
+      <div style="font-size: 13px; color: var(--ink2)">8 台 · 3 个分组 · <span style="color: var(--pInk); font-weight: 700">2 台已分享</span></div>
+    </div>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    <button class="ib" aria-label="批量测试全部主机" onClick="{{runBatch}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.pulse}}"></path></svg></button>
+  </header>
+
+  <div style="padding: 0 16px 12px">
+    <section class="card" aria-label="批量测试结果" style="padding: 14px 14px 14px 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span class="av av-ok" style="width: 42px; height: 42px; border-radius: 14px; transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.pulse}}"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <span style="font-size: 12px; font-weight: 600; color: var(--ink2)">{{batchWhen}}</span>
+          <span class="num" style="font-size: 20px; font-weight: 800">8 台 · <span style="color: var(--ok)">7 通</span> · <span style="color: var(--bad)">1 失败</span></span>
+        </span>
+      </div>
+      <div aria-hidden="true" style="display: flex; gap: 4px">
+        <sc-for list="{{bars}}" as="b" hint-placeholder-count="8">
+          <span style="flex: 1; height: 8px; border-radius: 4px; background: {{b}}"></span>
+        </sc-for>
+      </div>
+      <button onClick="{{showBad}}" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 14px; border: 0; background: var(--badSoft); color: var(--bad); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; text-align: left">
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.alert}}"></path></svg>
+        <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">hk-relay · 连接超时（10 秒）</span>
+        <span style="font-weight: 800">只看失败</span>
+      </button>
+    </section>
+  </div>
+
+  <div style="padding: 0 16px 10px">
+    <label class="inp">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+      <input type="search" placeholder="名称、地址或用户名" aria-label="搜索主机">
+    </label>
+  </div>
+
+  <div class="hs" role="tablist" aria-label="按状态筛选" style="display: flex; gap: 8px; padding: 2px 16px 14px; overflow-x: auto">
+    <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+      <button class="chip {{f.cls}}" role="tab" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 20px">
+    <sc-for list="{{hosts}}" as="h" hint-placeholder-count="8">
+      <article class="card {{h.cardCls}}" style="padding: 16px 12px 6px 16px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 12px; padding-right: 4px">
+          <span class="av {{h.av}}" style="width: 46px; height: 46px; border-radius: 15px; font-size: 19px; transform: rotate({{h.rot}})">{{h.l}}</span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 16px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{h.n}}</span>
+            <span class="mono" style="font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{h.addr}}</span>
+          </span>
+          <span class="pill {{h.st}}">{{h.stT}}</span>
+        </div>
+        <dl style="margin: 0 4px 0 0; padding: 10px 12px; border-radius: 14px; background: var(--s2); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px">
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">认证方式</dt>
+            <dd style="margin: 2px 0 0; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 5px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px; color: var(--ink2)"><path d="{{h.authD}}"></path></svg>{{h.auth}}</dd>
+          </div>
+          <div style="min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">上次连接</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{h.last}}</dd>
+          </div>
+          <div style="grid-column: 1 / -1; min-width: 0">
+            <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">上次测试 · 今天 14:32</dt>
+            <dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700; color: {{h.testFg}}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{h.test}}</dd>
+          </div>
+        </dl>
+        <div style="display: flex; align-items: center; gap: 0; padding-top: 6px; border-top: 1px solid var(--line)">
+          <div style="flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px">
+            <span class="tag">#{{h.group}}</span>
+            <sc-if value="{{h.shared}}" hint-placeholder-val="{{false}}">
+              <span class="tag tag-share">已分享</span>
+            </sc-if>
+          </div>
+          <a class="ib" href="TerminalMobile.dc.html" aria-label="打开 {{h.n}} 终端" style="color: var(--pInk)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.terminal}}"></path></svg></a>
+          <button class="ib" aria-label="测试 {{h.n}} 连接"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.pulse}}"></path></svg></button>
+          <button class="ib" aria-label="分享 {{h.n}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.share}}"></path></svg></button>
+          <button class="ib" aria-label="编辑 {{h.n}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.edit}}"></path></svg></button>
+          <button class="ib" aria-label="{{h.n}} 更多操作"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+
+  <div style="position: sticky; bottom: 92px; margin-top: auto; display: flex; justify-content: flex-end; padding: 0 16px 12px; pointer-events: none">
+    <button class="btn btn-p" style="pointer-events: auto; min-height: 56px; padding: 0 22px; font-size: 15px; box-shadow: 0 12px 28px -10px var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>添加主机</button>
+  </div>
+
+  <nav aria-label="底部导航" style="position: sticky; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":2700}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  pulse: 'M3 12h4l3-7 4 14 3-7h4',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  key: 'M15 3a6 6 0 1 1-5.6 8.1L3 17.5V21h3.5v-2h2v-2h2l1.4-1.4A6 6 0 0 1 15 3zM16.5 7.5h.01',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  alert: 'M12 3l10 18H2zM12 10v4M12 17.5h.01',
+  more: 'M5 12h.01M12 12h.01M19 12h.01'
+};
+const HOSTS = [
+  { id: 1, n: 'vps-tokyo', l: 'T', addr: 'root@203.0.113.24:22', auth: 'key', group: '生产', ok: true, ms: 42, last: '10 分钟前', share: 0 },
+  { id: 2, n: 'blog', l: 'B', addr: 'deploy@198.51.100.7:22', auth: 'key', group: '生产', ok: true, ms: 68, last: '今天 09:12', share: 2 },
+  { id: 3, n: 'hk-relay', l: 'H', addr: 'root@hk.relay.example.com:2222', auth: 'key', group: '生产', ok: false, err: '失败 · 连接超时（10 秒）', last: '3 天前', share: 0 },
+  { id: 4, n: 'nas-home', l: 'N', addr: 'admin@192.168.1.20:22', auth: 'pwd', group: '家里', ok: true, ms: 3, last: '昨天 22:40', share: 0 },
+  { id: 5, n: 'raspberrypi', l: 'R', addr: 'pi@192.168.1.31:22', auth: 'pwd', group: '家里', ok: true, ms: 5, last: '10 月 28 日', share: 0 },
+  { id: 6, n: 'mc-server', l: 'M', addr: 'mc@203.0.113.88:22022', auth: 'key', group: '个人', ok: true, ms: 51, last: '今天 13:05', share: 1 },
+  { id: 7, n: 'dev-box', l: 'D', addr: 'dev@10.0.0.12:22', auth: 'key', group: '个人', ok: true, ms: 12, last: '11 月 1 日', share: 0 },
+  { id: 8, n: 'oracle-arm', l: 'O', addr: 'ubuntu@192.0.2.45:22', auth: 'key', group: '个人', ok: true, ms: 186, last: '10 月 20 日', share: 0 }
+];
+const AVS = ['av-p', 'av-a2', 'av-a', 'av-ok'];
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const filter = st.filter || 'all';
+    const ran = st.ran || 0;
+    const match = (h, k) => k === 'all' || (k === 'ok' && h.ok) || (k === 'bad' && !h.ok) || (k === 'shared' && h.share > 0);
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      batchWhen: ran ? '批量测试 · 刚刚完成' : '批量测试 · 今天 14:32',
+      bars: HOSTS.map((h) => (h.ok ? 'var(--ok)' : 'var(--bad)')),
+      runBatch: () => this.setState({ ran: ran + 1 }),
+      showBad: () => this.setState({ filter: 'bad' }),
+      filters: [['all', '全部'], ['ok', '连通'], ['bad', '失败'], ['shared', '已分享']].map(([k, t]) => ({ t, n: HOSTS.filter((h) => match(h, k)).length, cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
+      hosts: HOSTS.filter((h) => match(h, filter)).map((h) => {
+        const k = (h.id - 1) % 4;
+        return {
+          ...h,
+          av: AVS[k], rot: ROTS[k],
+          cardCls: h.ok ? '' : 'card-bad',
+          st: h.ok ? (h.ms > 150 ? 'warn' : 'ok') : 'bad',
+          stT: h.ok ? h.ms + ' ms' : '失败',
+          auth: h.auth === 'key' ? '密钥' : '密码',
+          authD: h.auth === 'key' ? IC.key : IC.lock,
+          shared: h.share > 0,
+          test: h.ok ? '通 · 延迟 ' + h.ms + ' ms' : h.err,
+          testFg: h.ok ? 'var(--ink)' : 'var(--bad)'
+        };
+      }),
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: '' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: 'tab-on' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

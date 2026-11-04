@@ -1,0 +1,795 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "ApiKeysMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "API Key · 手机",
+      "w": 390,
+      "x": 3630,
+      "y": 18440
+    },
+    "ApiKeysPC.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "is_interactive": true,
+      "title": "API Key · PC",
+      "w": 1440,
+      "x": 2110,
+      "y": 18440
+    },
+    "AppDetailMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "应用详情 · 手机（控制台）",
+      "w": 390,
+      "x": 3630,
+      "y": 5420
+    },
+    "AppDetailPC.dc.html": {
+      "expand": "fill",
+      "h": 1180,
+      "is_interactive": true,
+      "title": "应用详情 · PC",
+      "w": 1440,
+      "x": 2110,
+      "y": 5420
+    },
+    "AppEditMobile.dc.html": {
+      "h": 2040,
+      "is_interactive": true,
+      "title": "新建应用 · 手机",
+      "w": 390,
+      "x": 5740,
+      "y": 5420
+    },
+    "AppEditPC.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "新建 / 编辑应用 · PC（抽屉）",
+      "w": 1440,
+      "x": 4220,
+      "y": 5420
+    },
+    "AppTypesMobile.dc.html": {
+      "h": 2300,
+      "is_interactive": true,
+      "title": "应用类型 · 手机",
+      "w": 390,
+      "x": 7850,
+      "y": 5420
+    },
+    "AppTypesPC.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "应用类型 · PC",
+      "w": 1440,
+      "x": 6330,
+      "y": 5420
+    },
+    "AppsMobile.dc.html": {
+      "h": 3000,
+      "is_interactive": true,
+      "title": "应用列表 · 手机",
+      "w": 390,
+      "x": 1520,
+      "y": 5420
+    },
+    "AppsPC.dc.html": {
+      "expand": "fill",
+      "h": 1140,
+      "is_interactive": true,
+      "title": "应用列表 · PC",
+      "w": 1440,
+      "x": 0,
+      "y": 5420
+    },
+    "AuditMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "操作记录 · 手机",
+      "w": 390,
+      "x": 14180,
+      "y": 18440
+    },
+    "AuditPC.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "is_interactive": true,
+      "title": "操作记录 · PC",
+      "w": 1440,
+      "x": 12660,
+      "y": 18440
+    },
+    "ContainerCreateMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "创建容器 · 手机",
+      "w": 390,
+      "x": 3630,
+      "y": 12280
+    },
+    "ContainerCreatePC.dc.html": {
+      "expand": "fill",
+      "h": 2560,
+      "is_interactive": true,
+      "title": "创建容器 · PC",
+      "w": 1440,
+      "x": 2110,
+      "y": 12280
+    },
+    "ContainersMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "容器 · 手机（操作面板）",
+      "w": 390,
+      "x": 1520,
+      "y": 12280
+    },
+    "ContainersPC.dc.html": {
+      "expand": "fill",
+      "h": 1140,
+      "is_interactive": true,
+      "title": "容器 · PC",
+      "w": 1440,
+      "x": 0,
+      "y": 12280
+    },
+    "DashboardMobile.dc.html": {
+      "h": 1760,
+      "is_interactive": true,
+      "title": "工作台 · 手机",
+      "w": 390,
+      "x": 1520,
+      "y": 3280
+    },
+    "DashboardPC.dc.html": {
+      "expand": "fill",
+      "h": 1320,
+      "is_interactive": true,
+      "title": "工作台 · PC（顶栏快速换主题）",
+      "w": 1440,
+      "x": 0,
+      "y": 3280
+    },
+    "DockerConfigMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Docker 连接配置 · 手机",
+      "w": 390,
+      "x": 9960,
+      "y": 12280
+    },
+    "DockerConfigPC.dc.html": {
+      "expand": "fill",
+      "h": 1640,
+      "is_interactive": true,
+      "title": "Docker 连接配置 · PC",
+      "w": 1440,
+      "x": 8440,
+      "y": 12280
+    },
+    "ErrorMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "404 与 403 · 手机",
+      "w": 390,
+      "x": 12070,
+      "y": 21900
+    },
+    "ErrorPC.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "404 与 403 · PC",
+      "w": 1440,
+      "x": 10550,
+      "y": 21900
+    },
+    "FileSourcesMobile.dc.html": {
+      "h": 2140,
+      "is_interactive": true,
+      "title": "文件源管理 · 手机",
+      "w": 390,
+      "x": 5740,
+      "y": 8800
+    },
+    "FileSourcesPC.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "文件源管理 · PC（新增表单）",
+      "w": 1440,
+      "x": 4220,
+      "y": 8800
+    },
+    "FilesMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "文件管理 · 手机（操作面板）",
+      "w": 390,
+      "x": 1520,
+      "y": 8800
+    },
+    "FilesPC.dc.html": {
+      "expand": "fill",
+      "h": 1320,
+      "is_interactive": true,
+      "title": "文件管理 · PC",
+      "w": 1440,
+      "x": 0,
+      "y": 8800
+    },
+    "IQCheckMobile.dc.html": {
+      "h": 2300,
+      "is_interactive": true,
+      "title": "智商检测 · 手机",
+      "w": 390,
+      "x": 9960,
+      "y": 15220
+    },
+    "IQCheckPC.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "title": "智商检测 · PC",
+      "w": 1440,
+      "x": 8440,
+      "y": 15220
+    },
+    "IQPublicMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "智商检测公示页 · 手机",
+      "w": 390,
+      "x": 12070,
+      "y": 15220
+    },
+    "IQPublicPC.dc.html": {
+      "expand": "fill",
+      "h": 2840,
+      "is_interactive": true,
+      "title": "智商检测公示页 · PC",
+      "w": 1440,
+      "x": 10550,
+      "y": 15220
+    },
+    "ImagesMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "镜像 · 手机",
+      "w": 390,
+      "x": 5740,
+      "y": 12280
+    },
+    "ImagesPC.dc.html": {
+      "expand": "fill",
+      "h": 1480,
+      "is_interactive": true,
+      "title": "镜像 · PC",
+      "w": 1440,
+      "x": 4220,
+      "y": 12280
+    },
+    "InitMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "初始化向导 · 手机",
+      "w": 390,
+      "x": 5740,
+      "y": 21900
+    },
+    "InitPC.dc.html": {
+      "expand": "fill",
+      "h": 960,
+      "is_interactive": true,
+      "title": "初始化向导 · PC",
+      "w": 1440,
+      "x": 4220,
+      "y": 21900
+    },
+    "LoginMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "登录 · 手机",
+      "w": 390,
+      "x": 1520,
+      "y": 21900
+    },
+    "LoginPC.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "登录 · PC",
+      "w": 1440,
+      "x": 0,
+      "y": 21900
+    },
+    "Main.dc.html": {
+      "h": 1280,
+      "title": "配色方案 · 六套可自选",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "MenusMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "菜单管理 · 手机",
+      "w": 390,
+      "x": 9960,
+      "y": 18440
+    },
+    "MenusPC.dc.html": {
+      "expand": "fill",
+      "h": 1680,
+      "is_interactive": true,
+      "title": "菜单管理 · PC",
+      "w": 1440,
+      "x": 8440,
+      "y": 18440
+    },
+    "MoreMobile.dc.html": {
+      "h": 1680,
+      "is_interactive": true,
+      "title": "更多 · 手机",
+      "w": 390,
+      "x": 12660,
+      "y": 21900
+    },
+    "NetworksMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "网络 · 手机",
+      "w": 390,
+      "x": 7850,
+      "y": 12280
+    },
+    "NetworksPC.dc.html": {
+      "expand": "fill",
+      "h": 1160,
+      "is_interactive": true,
+      "title": "网络 · PC",
+      "w": 1440,
+      "x": 6330,
+      "y": 12280
+    },
+    "NodesMobile.dc.html": {
+      "h": 2200,
+      "is_interactive": true,
+      "title": "节点 · 手机",
+      "w": 390,
+      "x": 1520,
+      "y": 18440
+    },
+    "NodesPC.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "is_interactive": true,
+      "title": "节点 · PC",
+      "w": 1440,
+      "x": 0,
+      "y": 18440
+    },
+    "OIDCAuthorizeMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "OIDC 授权确认 · 手机",
+      "w": 390,
+      "x": 9960,
+      "y": 21900
+    },
+    "OIDCAuthorizePC.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "OIDC 授权确认 · PC",
+      "w": 1440,
+      "x": 8440,
+      "y": 21900
+    },
+    "OIDCMobile.dc.html": {
+      "h": 2860,
+      "is_interactive": true,
+      "title": "OIDC 身份提供方 · 手机",
+      "w": 390,
+      "x": 18400,
+      "y": 18440
+    },
+    "OIDCPC.dc.html": {
+      "expand": "fill",
+      "h": 1420,
+      "is_interactive": true,
+      "title": "OIDC 身份提供方 · PC",
+      "w": 1440,
+      "x": 16880,
+      "y": 18440
+    },
+    "PortForwardMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "端口转发 · 手机",
+      "w": 390,
+      "x": 1520,
+      "y": 15220
+    },
+    "PortForwardPC.dc.html": {
+      "expand": "fill",
+      "h": 1180,
+      "is_interactive": true,
+      "title": "端口转发 · PC",
+      "w": 1440,
+      "x": 0,
+      "y": 15220
+    },
+    "ProfileMobile.dc.html": {
+      "h": 2160,
+      "is_interactive": true,
+      "title": "个人中心 · 手机",
+      "w": 390,
+      "x": 7850,
+      "y": 21900
+    },
+    "ProfilePC.dc.html": {
+      "expand": "fill",
+      "h": 1540,
+      "is_interactive": true,
+      "title": "个人资料 · PC",
+      "w": 1440,
+      "x": 6330,
+      "y": 21900
+    },
+    "PublicShareMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "公开分享页 · 手机",
+      "w": 390,
+      "x": 7850,
+      "y": 8800
+    },
+    "PublicSharePC.dc.html": {
+      "expand": "fill",
+      "h": 1120,
+      "is_interactive": true,
+      "title": "公开分享页 · PC（提取码 → 文件列表）",
+      "w": 1440,
+      "x": 6330,
+      "y": 8800
+    },
+    "RegisterMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "注册与找回密码 · 手机",
+      "w": 390,
+      "x": 3630,
+      "y": 21900
+    },
+    "RegisterPC.dc.html": {
+      "expand": "fill",
+      "h": 960,
+      "is_interactive": true,
+      "title": "注册与找回密码 · PC",
+      "w": 1440,
+      "x": 2110,
+      "y": 21900
+    },
+    "RolesMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "角色 · 手机",
+      "w": 390,
+      "x": 7850,
+      "y": 18440
+    },
+    "RolesPC.dc.html": {
+      "expand": "fill",
+      "h": 2440,
+      "is_interactive": true,
+      "title": "角色 · PC",
+      "w": 1440,
+      "x": 6330,
+      "y": 18440
+    },
+    "SSHMobile.dc.html": {
+      "h": 2700,
+      "is_interactive": true,
+      "title": "SSH 主机 · 手机",
+      "w": 390,
+      "x": 5740,
+      "y": 15220
+    },
+    "SSHPC.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "title": "SSH 主机 · PC",
+      "w": 1440,
+      "x": 4220,
+      "y": 15220
+    },
+    "SettingsMobile.dc.html": {
+      "h": 2720,
+      "is_interactive": true,
+      "title": "系统设置 · 手机",
+      "w": 390,
+      "x": 16290,
+      "y": 18440
+    },
+    "SettingsPC.dc.html": {
+      "expand": "fill",
+      "h": 2640,
+      "is_interactive": true,
+      "title": "系统设置 · PC",
+      "w": 1440,
+      "x": 14770,
+      "y": 18440
+    },
+    "SharesMobile.dc.html": {
+      "h": 3100,
+      "is_interactive": true,
+      "title": "分享管理 · 手机",
+      "w": 390,
+      "x": 3630,
+      "y": 8800
+    },
+    "SharesPC.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "title": "分享管理 · PC",
+      "w": 1440,
+      "x": 2110,
+      "y": 8800
+    },
+    "TasksMobile.dc.html": {
+      "h": 3080,
+      "is_interactive": true,
+      "title": "后台任务 · 手机",
+      "w": 390,
+      "x": 12070,
+      "y": 18440
+    },
+    "TasksPC.dc.html": {
+      "expand": "fill",
+      "h": 1560,
+      "is_interactive": true,
+      "title": "后台任务 · PC",
+      "w": 1440,
+      "x": 10550,
+      "y": 18440
+    },
+    "TerminalMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Web SSH 终端 · 手机",
+      "w": 390,
+      "x": 7850,
+      "y": 15220
+    },
+    "TerminalPC.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "title": "Web SSH 终端 · PC",
+      "w": 1440,
+      "x": 6330,
+      "y": 15220
+    },
+    "ThemeMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "外观设置 · 手机",
+      "w": 390,
+      "x": 1520,
+      "y": 1660
+    },
+    "ThemePC.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "is_interactive": true,
+      "title": "外观设置 · PC",
+      "w": 1440,
+      "x": 0,
+      "y": 1660
+    },
+    "TunnelMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "内网穿透 · 手机",
+      "w": 390,
+      "x": 3630,
+      "y": 15220
+    },
+    "TunnelPC.dc.html": {
+      "expand": "fill",
+      "h": 1140,
+      "is_interactive": true,
+      "title": "内网穿透 · PC",
+      "w": 1440,
+      "x": 2110,
+      "y": 15220
+    },
+    "UsersMobile.dc.html": {
+      "h": 2560,
+      "is_interactive": true,
+      "title": "用户 · 手机",
+      "w": 390,
+      "x": 5740,
+      "y": 18440
+    },
+    "UsersPC.dc.html": {
+      "expand": "fill",
+      "h": 1160,
+      "is_interactive": true,
+      "title": "用户 · PC",
+      "w": 1440,
+      "x": 4220,
+      "y": 18440
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-11-03T14:20:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "rowTheme",
+    "rowDash",
+    "rowApps",
+    "rowFiles",
+    "rowDocker",
+    "rowTools",
+    "rowManage",
+    "rowAccount"
+  ],
+  "notes": {
+    "rowAccount": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "账号与入口",
+      "w": 240,
+      "x": 0,
+      "y": 21620
+    },
+    "rowApps": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "应用",
+      "w": 240,
+      "x": 0,
+      "y": 5140
+    },
+    "rowDash": {
+      "kind": "title1",
+      "maxW": 1910,
+      "text": "工作台",
+      "w": 240,
+      "x": 0,
+      "y": 3000
+    },
+    "rowDocker": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "Docker",
+      "w": 240,
+      "x": 0,
+      "y": 12000
+    },
+    "rowFiles": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "文件",
+      "w": 240,
+      "x": 0,
+      "y": 8520
+    },
+    "rowManage": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "管理",
+      "w": 240,
+      "x": 0,
+      "y": 18160
+    },
+    "rowTheme": {
+      "kind": "title1",
+      "maxW": 1910,
+      "text": "外观 · 自选主题",
+      "w": 240,
+      "x": 0,
+      "y": 1380
+    },
+    "rowTools": {
+      "kind": "title1",
+      "maxW": 8000,
+      "text": "工具",
+      "w": 240,
+      "x": 0,
+      "y": 14940
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "ThemePC.dc.html",
+    "ThemeMobile.dc.html",
+    "DashboardPC.dc.html",
+    "DashboardMobile.dc.html",
+    "AppsPC.dc.html",
+    "AppsMobile.dc.html",
+    "AppDetailPC.dc.html",
+    "AppDetailMobile.dc.html",
+    "AppEditPC.dc.html",
+    "AppEditMobile.dc.html",
+    "AppTypesPC.dc.html",
+    "AppTypesMobile.dc.html",
+    "FilesPC.dc.html",
+    "FilesMobile.dc.html",
+    "SharesPC.dc.html",
+    "SharesMobile.dc.html",
+    "FileSourcesPC.dc.html",
+    "FileSourcesMobile.dc.html",
+    "PublicSharePC.dc.html",
+    "PublicShareMobile.dc.html",
+    "ContainersPC.dc.html",
+    "ContainersMobile.dc.html",
+    "ContainerCreatePC.dc.html",
+    "ContainerCreateMobile.dc.html",
+    "ImagesPC.dc.html",
+    "ImagesMobile.dc.html",
+    "NetworksPC.dc.html",
+    "NetworksMobile.dc.html",
+    "DockerConfigPC.dc.html",
+    "DockerConfigMobile.dc.html",
+    "PortForwardPC.dc.html",
+    "PortForwardMobile.dc.html",
+    "TunnelPC.dc.html",
+    "TunnelMobile.dc.html",
+    "SSHPC.dc.html",
+    "SSHMobile.dc.html",
+    "TerminalPC.dc.html",
+    "TerminalMobile.dc.html",
+    "IQCheckPC.dc.html",
+    "IQCheckMobile.dc.html",
+    "IQPublicPC.dc.html",
+    "IQPublicMobile.dc.html",
+    "NodesPC.dc.html",
+    "NodesMobile.dc.html",
+    "ApiKeysPC.dc.html",
+    "ApiKeysMobile.dc.html",
+    "UsersPC.dc.html",
+    "UsersMobile.dc.html",
+    "RolesPC.dc.html",
+    "RolesMobile.dc.html",
+    "MenusPC.dc.html",
+    "MenusMobile.dc.html",
+    "TasksPC.dc.html",
+    "TasksMobile.dc.html",
+    "AuditPC.dc.html",
+    "AuditMobile.dc.html",
+    "SettingsPC.dc.html",
+    "SettingsMobile.dc.html",
+    "OIDCPC.dc.html",
+    "OIDCMobile.dc.html",
+    "LoginPC.dc.html",
+    "LoginMobile.dc.html",
+    "RegisterPC.dc.html",
+    "RegisterMobile.dc.html",
+    "InitPC.dc.html",
+    "InitMobile.dc.html",
+    "ProfilePC.dc.html",
+    "ProfileMobile.dc.html",
+    "OIDCAuthorizePC.dc.html",
+    "OIDCAuthorizeMobile.dc.html",
+    "ErrorPC.dc.html",
+    "ErrorMobile.dc.html",
+    "MoreMobile.dc.html"
+  ],
+  "pages": [],
+  "title": "Momoko 前端改版"
+}

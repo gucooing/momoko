@@ -1,4 +1,4 @@
-<!-- 智商检测 · 提示词 创建/编辑弹窗：FormDialog + 标题/内容/启用/排序 + 内联校验。保存后 emit refresh。 -->
+<!-- 智商检测 · 提示词 创建/编辑弹窗：FormDialog + 标题/内容/分类/评分方式/排序/启用 + 内联校验。保存后 emit refresh。 -->
 <template>
   <FormDialog
     v-model="open"
@@ -34,6 +34,25 @@
 
       <div class="iq-prompt-form__row">
         <div class="app-field">
+          <label class="app-label">{{ t('iqcheck.ui.prompt.form.category') }}</label>
+          <AppSelect v-model="form.category" :options="categoryOptions" />
+        </div>
+        <div class="app-field">
+          <label class="app-label">{{ t('iqcheck.ui.prompt.form.grading') }}</label>
+          <input
+            v-model="form.grading"
+            class="app-input"
+            :class="{ 'is-error': errors.grading }"
+            maxlength="64"
+            :placeholder="t('iqcheck.ui.prompt.form.gradingPlaceholder')"
+          />
+          <span v-if="errors.grading" class="app-field__error">{{ errors.grading }}</span>
+          <span v-else class="iq-prompt-form__hint">{{ t('iqcheck.ui.prompt.form.gradingHint') }}</span>
+        </div>
+      </div>
+
+      <div class="iq-prompt-form__row">
+        <div class="app-field">
           <label class="app-label">{{ t('iqcheck.prompt.colOrder') }}</label>
           <input v-model.number="form.order" type="number" class="app-input" />
         </div>
@@ -52,7 +71,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { createIQCheckPrompt, updateIQCheckPrompt } from '@/api/iqcheck'
-import type { IQCheckPromptInfo } from '@/types/v1/iqcheck'
+import { IQCheckPromptCategory, type IQCheckPromptInfo } from '@/types/v1/iqcheck'
+import { PROMPT_CATEGORIES } from '@/views/iqcheck/prompt/category'
 
 defineOptions({ name: 'IQCheckPromptForm' })
 
@@ -63,8 +83,20 @@ const open = ref(false)
 const saving = ref(false)
 const errors = ref<Record<string, string>>({})
 
-const emptyForm = () => ({ id: '', title: '', content: '', enabled: true, order: 0 })
+const emptyForm = () => ({
+  id: '',
+  title: '',
+  content: '',
+  enabled: true,
+  order: 0,
+  category: IQCheckPromptCategory.IQ_CHECK_PROMPT_CATEGORY_OTHER as IQCheckPromptCategory,
+  grading: '',
+})
 const form = ref(emptyForm())
+
+const categoryOptions = computed(() =>
+  PROMPT_CATEGORIES.map((c) => ({ label: t(`iqcheck.ui.category.${c.key}`), value: c.value })),
+)
 
 const close = () => {
   open.value = false
@@ -77,6 +109,7 @@ const validate = (): boolean => {
   const e: Record<string, string> = {}
   if (!form.value.title.trim()) e.title = t('iqcheck.prompt.titleRequired')
   if (!form.value.content.trim()) e.content = t('iqcheck.prompt.contentRequired')
+  if ([...form.value.grading.trim()].length > 64) e.grading = t('iqcheck.ui.prompt.form.gradingTooLong')
   errors.value = e
   return Object.keys(e).length === 0
 }
@@ -90,6 +123,8 @@ const confirm = async () => {
       content: form.value.content.trim(),
       enabled: form.value.enabled,
       order: Number(form.value.order) || 0,
+      category: form.value.category,
+      grading: form.value.grading.trim(),
     }
     if (form.value.id) await updateIQCheckPrompt({ id: form.value.id, ...payload })
     else await createIQCheckPrompt(payload)
@@ -109,6 +144,8 @@ const showDialog = (row?: IQCheckPromptInfo) => {
     content: row?.content || '',
     enabled: row?.enabled ?? true,
     order: row?.order ?? 0,
+    category: row?.category || IQCheckPromptCategory.IQ_CHECK_PROMPT_CATEGORY_OTHER,
+    grading: row?.grading || '',
   }
   open.value = true
 }
@@ -131,6 +168,10 @@ defineExpose({ showDialog })
   .iq-prompt-form__row {
     grid-template-columns: 1fr;
   }
+}
+.iq-prompt-form__hint {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
 }
 .iq-prompt-form__switch {
   display: flex;

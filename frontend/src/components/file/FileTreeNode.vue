@@ -34,7 +34,7 @@
         class="ftn-empty"
         :style="{ paddingLeft: `${(depth + 1) * 14 + 24}px` }"
       >
-        {{ t('fileManager.directoryEmpty') }}
+        {{ ctx.dirsOnly ? t('fileManager.noSubfolders') : t('fileManager.directoryEmpty') }}
       </div>
     </div>
   </div>
@@ -103,7 +103,8 @@ const loadChildren = async () => {
   if (loaded.value || loading.value) return
   loading.value = true
   try {
-    children.value = await ctx.client.tree(props.node.path)
+    const list = await ctx.client.tree(props.node.path)
+    children.value = ctx.dirsOnly ? list.filter((n) => n.isDir) : list
     loaded.value = true
   } catch (error) {
     fb.error(getRequestErrorMessage(error, t('fileManager.treeLoadFailed')))

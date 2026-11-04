@@ -1,5 +1,6 @@
-<!-- 公开分享页（无需登录）：主色 hero（分享者 + 名称 + 文件数/有效期/剩余次数贴纸）+ 上浮卡片。
-     需要提取码时卡片为输入门；验证后为文件列表（PC 表格可多选打包下载，手机卡片行 + 底部打包下载）。 -->
+<!-- 公开分享页（无需登录）：主色 hero（分享者 + 名称 + 文件数·总大小 / 有效期 / 剩余次数贴纸）+ 上浮卡片。
+     需要提取码时卡片为输入门；验证后为文件列表（PC 表格可多选打包下载，手机行列表 + 底部「全部下载 · ZIP 大小」）。
+     文件数与总大小为后端递归统计（文件夹内文件也计入）；文件夹行显示其直接子项数。 -->
 <template>
   <div class="sp">
     <section class="sp-hero">
@@ -143,7 +144,8 @@
             <nav class="sp-crumbs" :aria-label="t('publicPage.share.location')">
               <button type="button" class="sp-crumb" :class="{ 'is-on': !subPath }" @click="goTo('')">
                 <component :is="menuStore.iconComponents['HOutline:FolderIcon']" />
-                <span>{{ meta.name }}</span>
+                <span class="sp-crumb__root">{{ meta.name }}</span>
+                <span class="sp-crumb__all">{{ t('publicShare.all') }}</span>
               </button>
               <template v-for="seg in subSegments" :key="seg.path">
                 <component :is="menuStore.iconComponents['HOutline:ChevronRightIcon']" class="sp-crumbs__sep" />
@@ -158,6 +160,16 @@
               </template>
               <span class="sp-crumbs__count m-num">{{ dirCountText }}</span>
             </nav>
+            <button
+              v-if="meta.needCode"
+              type="button"
+              class="sp-relock-ico"
+              :aria-label="t('publicPage.share.relock')"
+              :title="t('publicPage.share.relock')"
+              @click="relock"
+            >
+              <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" />
+            </button>
             <a
               v-if="selectedPaths.length"
               class="sp-btn-link sp-btn-link--outline"
@@ -176,9 +188,7 @@
             >
               <component :is="menuStore.iconComponents['HOutline:ArchiveBoxArrowDownIcon']" />
               {{ subPath ? t('publicPage.share.downloadFolder') : t('publicPage.share.downloadAll') }}
-              <span v-if="!subPath && Number(meta.totalSize) > 0 && !meta.dirCount" class="m-num">
-                · {{ formatFileSize(meta.totalSize) }}
-              </span>
+              <span v-if="!subPath && Number(meta.totalSize) > 0" class="m-num">{{ formatFileSize(meta.totalSize) }}</span>
             </a>
           </div>
 
@@ -239,7 +249,7 @@
                       </button>
                     </td>
                     <td class="sp-table__size m-num" :class="{ 'is-dim': entry.isDir }">
-                      {{ entry.isDir ? t('publicPage.share.folder') : formatFileSize(entry.size) }}
+                      {{ sizeText(entry) }}
                     </td>
                     <td class="sp-table__time m-num">{{ shortTime(entry.updateTime) }}</td>
                     <td class="sp-table__ops">
@@ -282,10 +292,7 @@
                   </span>
                   <span class="sp-row__text">
                     <span class="sp-row__name">{{ entry.name }}</span>
-                    <span class="sp-row__meta m-num">
-                      {{ entry.isDir ? t('publicPage.share.folder') : formatFileSize(entry.size) }} ·
-                      {{ shortTime(entry.updateTime) }}
-                    </span>
+                    <span class="sp-row__meta m-num">{{ sizeText(entry) }} · {{ shortDate(entry.updateTime) }}</span>
                   </span>
                 </button>
                 <component
@@ -311,7 +318,7 @@
         <div class="sp-notes">
           <span class="sp-note">
             <component :is="menuStore.iconComponents['HOutline:BoltIcon']" class="is-ok" />
-            {{ t('publicPage.share.noteDirect') }}
+            {{ meta.directDownload ? t('publicShare.noteStorage') : t('publicShare.noteProxy') }}
           </span>
           <span class="sp-note">
             <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" />
@@ -329,7 +336,12 @@
           <a class="sp-btn-link sp-btn-link--primary sp-mbar__btn" :href="downloadUrl(subPath)" target="_blank" rel="noopener">
             <component :is="menuStore.iconComponents['HOutline:ArchiveBoxArrowDownIcon']" />
             {{ subPath ? t('publicPage.share.downloadFolder') : t('publicPage.share.downloadAll') }}
+            <span v-if="!subPath && Number(meta.totalSize) > 0" class="m-num">{{ formatFileSize(meta.totalSize) }}</span>
           </a>
+          <span class="sp-mbar__note">
+            <component :is="menuStore.iconComponents['HOutline:BoltIcon']" class="is-ok" />
+            {{ meta.directDownload ? t('publicShare.noteStorageShort') : t('publicShare.noteProxyShort') }}
+          </span>
         </div>
       </template>
 
@@ -433,27 +445,26 @@ const toggleAll = () => {
 const sharedWhat = computed(() => {
   const m = meta.value
   if (!m) return ''
-  const files = Number(m.fileCount) || 0
+  const items = Number(m.itemCount) || 0
   const dirs = Number(m.dirCount) || 0
-  if (dirs === 1 && files === 0) return t('publicPage.share.whatFolder')
-  if (files === 1 && dirs === 0) return t('publicPage.share.whatFile')
-  return t('publicPage.share.whatItems', { n: files + dirs })
+  if (items === 1) return dirs ? t('publicPage.share.whatFolder') : t('publicPage.share.whatFile')
+  return t('publicPage.share.whatItems', { n: items })
 })
 const heroIcon = computed(() => {
   const m = meta.value
-  if (m && Number(m.fileCount) === 1 && Number(m.dirCount) === 0) return 'HOutline:DocumentIcon'
+  if (m && Number(m.itemCount) === 1 && Number(m.dirCount) === 0) return 'HOutline:DocumentIcon'
   return 'HOutline:FolderIcon'
 })
+// 「14 个文件 · 1.36 GB」：文件数为递归统计；目录过大未能统计时（-1）回退为顶层条目数
 const countText = computed(() => {
   const m = meta.value
   if (!m) return ''
-  const files = Number(m.fileCount) || 0
-  const dirs = Number(m.dirCount) || 0
+  const files = Number(m.fileCount)
   const parts: string[] = []
-  if (dirs) parts.push(t('publicPage.share.dirs', { n: dirs }))
-  if (files) parts.push(t('publicPage.share.files', { n: files }))
-  if (files && Number(m.totalSize) > 0) parts.push(formatFileSize(m.totalSize))
-  return parts.join(' · ') || t('file.share.empty')
+  if (files >= 0) parts.push(t('publicPage.share.files', { n: files }))
+  else parts.push(t('publicShare.items', { n: Number(m.itemCount) || 0 }))
+  if (Number(m.totalSize) > 0) parts.push(formatFileSize(m.totalSize))
+  return parts.join(' · ')
 })
 const expiryText = computed(() => {
   const exp = meta.value?.expiresAt
@@ -505,6 +516,16 @@ const shortTime = (v: unknown) => {
   if (!v) return '—'
   const d = dayjs(v as string)
   return d.isValid() ? d.format('YYYY-MM-DD HH:mm') : '—'
+}
+const shortDate = (v: unknown) => {
+  if (!v) return '—'
+  const d = dayjs(v as string)
+  return d.isValid() ? d.format(d.year() === dayjs().year() ? 'MM-DD HH:mm' : 'YYYY-MM-DD HH:mm') : '—'
+}
+// 大小列：文件=大小；文件夹=直接子项数（来源可统计时），否则「文件夹」
+const sizeText = (entry: ShareEntry) => {
+  if (!entry.isDir) return formatFileSize(entry.size)
+  return entry.childCount === undefined ? t('publicPage.share.folder') : t('publicShare.items', { n: Number(entry.childCount) })
 }
 
 // 用 token(+提取码) 换取会话签名；失败时按 need_code/message 提示。返回是否成功。
@@ -1100,6 +1121,30 @@ html.dark .sp-hero__mode {
   background: var(--m-pSoft);
   color: var(--m-pInk);
 }
+.sp-crumb__all {
+  display: none;
+}
+.sp-relock-ico {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+}
+.sp-relock-ico:hover {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+}
+.sp-relock-ico svg {
+  width: 20px;
+  height: 20px;
+}
 .sp-btn-link {
   display: inline-flex;
   align-items: center;
@@ -1383,13 +1428,16 @@ html.dark .sp-hero__mode {
     font-size: 1.25rem;
   }
   .sp-hero__login {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0 14px;
     font-size: 0.8125rem;
   }
   .sp-hero__mode {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+  }
+  .sp-crumb {
+    min-height: 44px;
   }
   .sp-hero__body {
     margin-top: 22px;
@@ -1452,8 +1500,24 @@ html.dark .sp-hero__mode {
   .sp-files__bar {
     padding: 4px 0;
   }
+  .sp-files__bar {
+    flex-wrap: nowrap;
+  }
   .sp-crumbs {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
+  }
+  .sp-crumb__root {
+    display: none;
+  }
+  .sp-crumb__all {
+    display: inline;
+  }
+  .sp-relock-ico {
+    display: inline-flex;
+  }
+  /* 手机：说明并入底部下载条，退出分享改为路径行右侧的锁图标 */
+  .sp-notes {
+    display: none !important;
   }
   .sp-files__all,
   .sp-files__bar .sp-btn-link--outline,
@@ -1525,6 +1589,8 @@ html.dark .sp-hero__mode {
     bottom: 0;
     z-index: 3;
     display: flex;
+    flex-direction: column;
+    gap: 8px;
     width: 100%;
     padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--el-border-color-lighter);
@@ -1532,8 +1598,21 @@ html.dark .sp-hero__mode {
   }
   .sp-mbar__btn {
     flex: 1;
-    min-height: 52px;
-    font-size: 0.9375rem;
+    min-height: 56px;
+    font-size: 1rem;
+  }
+  .sp-mbar__note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--el-text-color-secondary);
+  }
+  .sp-mbar__note svg {
+    width: 14px;
+    height: 14px;
+    color: var(--m-ok);
   }
   .sp-foot {
     padding: 8px 16px 20px;

@@ -174,6 +174,13 @@ service System {
       get: "/api/v1/system/operation-logs/stats"
     };
   }
+  // 修改操作记录保留策略（保留天数，0=永久保留）；超期记录由「操作记录清理」定时任务删除
+  rpc UpdateOperationLogRetention(UpdateOperationLogRetentionRequest) returns (UpdateOperationLogRetentionResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/system/operation-logs/retention"
+      body: "*"
+    };
+  }
 }
 
 // 获取当前角色的全部权限请求
@@ -242,6 +249,8 @@ message MenuInfo {
   google.protobuf.Timestamp update_time = 12;
   // 子权限菜单
   repeated MenuInfo children = 13;
+  // 在侧边栏隐藏：只影响导航显示，页面与权限仍然有效
+  bool hidden = 14;
 }
 
 // 菜单状态
@@ -300,6 +309,8 @@ message AdminAddPermissionsRequest{
   MenuStatus status = 7;
   // 权限标识
   string permissions = 8;
+  // 在侧边栏隐藏
+  bool hidden = 9;
 }
 
 // 管理员添加权限菜单响应
@@ -321,6 +332,8 @@ message AdminEditPermissionsRequest{
   MenuStatus status = 6;
   // 权限标识
   string permissions = 7;
+  // 在侧边栏隐藏
+  bool hidden = 8;
 }
 
 // 管理员编辑权限菜单响应
@@ -378,6 +391,20 @@ message RoleInfo {
   repeated string menu_ids = 8;
   // 分配了该角色的用户数
   int64 user_count = 9;
+  // 成员预览（最多 5 个，按用户 id 升序）
+  repeated RoleMember members = 10;
+}
+
+// 角色成员预览
+message RoleMember {
+  // 用户 id
+  string user_id = 1;
+  // 昵称（为空时前端显示用户名）
+  string name = 2;
+  // 用户名
+  string username = 3;
+  // 头像
+  string avatar = 4;
 }
 
 enum RoleStatus {
@@ -477,6 +504,8 @@ message LoginConfigResponse {
   string site_name = 2;
   // 默认语言（zh-CN / zh-HK / en-US；auto 表示跟随浏览器）
   string default_language = 3;
+  // 邮件服务是否已启用：关闭时邮箱验证码登录、注册邮箱验证与找回密码都无法发信
+  bool mail_enabled = 4;
 }
 
 // 更新登录配置请求
@@ -1306,6 +1335,8 @@ enum OperationType {
   OperationTypeSystemSiteConfigUpdate = 120;
   // Docker 仓库凭据验证
   OperationTypeDockerRegistryAuthTest = 121;
+  // 操作记录保留策略更新
+  OperationTypeSystemOperationLogRetentionUpdate = 160;
 }
 
 message ListOperationLogsRequest {
@@ -1364,6 +1395,21 @@ message OperationLogStatsResponse {
   int64 total = 5;
   // 最早一条记录的时间
   google.protobuf.Timestamp earliest_time = 6;
+  // 记录保留天数（0=永久保留）
+  int32 retention_days = 7;
+}
+
+// 修改操作记录保留策略请求
+message UpdateOperationLogRetentionRequest {
+  // 保留天数：0=永久保留，否则 7–3650
+  int32 retention_days = 1;
+}
+
+// 修改操作记录保留策略响应
+message UpdateOperationLogRetentionResponse {
+  int32 retention_days = 1;
+  // 本次立即清理掉的超期记录数
+  int64 deleted = 2;
 }
 message OperationLogInfo {
   // 操作用户id
@@ -1384,4 +1430,10 @@ message OperationLogInfo {
   int64 duration_ms = 8;
   // 操作时间
   google.protobuf.Timestamp operation_time = 9;
+  // 记录 id
+  int64 id = 10;
+  // 来源 IP 归属（loopback / lan / public，空=未知）
+  string ip_scope = 11;
+  // 响应状态码（HTTP 语义：成功 200，失败取错误码）
+  int32 status_code = 12;
 }

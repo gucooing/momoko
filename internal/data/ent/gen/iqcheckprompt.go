@@ -29,7 +29,11 @@ type IQCheckPrompt struct {
 	// 是否启用
 	Enabled bool `json:"enabled,omitempty"`
 	// 排序，越小越靠前
-	Order        int `json:"order,omitempty"`
+	Order int `json:"order,omitempty"`
+	// 分类：other=其他，logic=逻辑推理，math=数学，coding=编程，drawing=画图，writing=写作
+	Category iqcheckprompt.Category `json:"category,omitempty"`
+	// 评分方式说明
+	Grading      string `json:"grading,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -42,7 +46,7 @@ func (*IQCheckPrompt) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case iqcheckprompt.FieldOrder:
 			values[i] = new(sql.NullInt64)
-		case iqcheckprompt.FieldID, iqcheckprompt.FieldTitle, iqcheckprompt.FieldContent:
+		case iqcheckprompt.FieldID, iqcheckprompt.FieldTitle, iqcheckprompt.FieldContent, iqcheckprompt.FieldCategory, iqcheckprompt.FieldGrading:
 			values[i] = new(sql.NullString)
 		case iqcheckprompt.FieldCreateTime, iqcheckprompt.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -103,6 +107,18 @@ func (_m *IQCheckPrompt) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Order = int(value.Int64)
 			}
+		case iqcheckprompt.FieldCategory:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field category", values[i])
+			} else if value.Valid {
+				_m.Category = iqcheckprompt.Category(value.String)
+			}
+		case iqcheckprompt.FieldGrading:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field grading", values[i])
+			} else if value.Valid {
+				_m.Grading = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -156,6 +172,12 @@ func (_m *IQCheckPrompt) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Order))
+	builder.WriteString(", ")
+	builder.WriteString("category=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Category))
+	builder.WriteString(", ")
+	builder.WriteString("grading=")
+	builder.WriteString(_m.Grading)
 	builder.WriteByte(')')
 	return builder.String()
 }

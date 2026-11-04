@@ -1,26 +1,27 @@
-<!-- 智商检测 · 检测站点：标题（站点数 · 模型数 · 今天已检测次数）+ 新建站点；子导航（站点 / 提示词）；
-     状态 chips（带数量）+ 搜索 + 卡片/列表切换（桌面可切换并记住，手机固定卡片）。
-     卡片：贴纸头像 + 名称/协议/端点 + 状态；上次结果（成功数/模型数、平均耗时、首个失败原因、近 8 轮成功率走势）；
-     检测模型 · 推理强度；间隔/上次/下次/次数/结果数/Key 信息格；公示页链接；立即检测 + 编辑 + ⋯（复制公示页链接 / 删除）。
-     子弹窗：siteForm（创建编辑，含拉取模型列表勾选）。有站点正在检测时每 8 秒静默刷新。 -->
+<!-- 智商检测 · 检测站点：标题（标语 · 站点数 · 模型数 · 今天已检测次数）+ 新建站点（手机为右下悬浮按钮）；
+     子导航（站点 / 提示词，手机为分段切换）；状态 chips（全部 / 正常 / 部分失败 / 检测失败 / 未检测 / 已停用，带数量）+ 搜索 + 卡片/列表切换（记住偏好）。
+     卡片：贴纸头像 + 名称/协议/端点 + 状态；最近一轮（成功数/结果数、较上轮变化或上次成功时间、本轮规模/失败原因、近 8 轮成功率走势）；
+     检测模型 · 推理强度；间隔/上次/下次/次数/结果数/Key 信息格；公示页链接；立即检测 + 拉取模型 + 编辑 + ⋯（打开/复制公示页链接 / 删除）。
+     桌面列表视图为表格；手机列表视图为紧凑行。子弹窗：siteForm（创建编辑，含拉取模型列表勾选）。有站点正在检测时每 8 秒静默刷新。 -->
 <template>
   <div class="iq-page">
     <PageHeader :title="t('iqcheck.nav.title')">
       <template #description>
-        {{ t('iqcheck.nav.desc') }} ·
-        {{ t('iqcheck.siteList.summary', { sites: stats.total, models: stats.modelCount }) }}
+        <template v-if="!menuStore.isMobile">{{ t('iqcheck.ui.tagline') }} · </template>
+        {{ t('iqcheck.ui.sitesCount', { n: stats.total }) }}
+        <template v-if="!menuStore.isMobile"> · {{ t('iqcheck.ui.modelsCount', { n: stats.modelCount }) }}</template>
         <template v-if="stats.checksToday">
           · <span class="iq-page__ok">{{ t('iqcheck.siteList.checksToday', { count: stats.checksToday }) }}</span>
         </template>
       </template>
-      <template #actions>
+      <template v-if="!menuStore.isMobile" #actions>
         <UButton v-permission="[PERM.IQCHECK_EDIT]" color="primary" icon="i-lucide-plus" @click="openForm()">
           {{ t('iqcheck.site.create') }}
         </UButton>
       </template>
     </PageHeader>
 
-    <IqSubNav :site-count="stats.total" />
+    <IqSubNav :site-count="Number(stats.total)" />
 
     <ListToolbar
       v-model:status="filter"
@@ -30,7 +31,7 @@
       :placeholder="t('iqcheck.siteList.searchPlaceholder')"
       @search="reload"
     >
-      <div v-if="!menuStore.isMobile" class="iq-seg" role="group" :aria-label="t('iqcheck.siteList.view')">
+      <div class="iq-seg" role="group" :aria-label="t('iqcheck.siteList.view')">
         <button
           type="button"
           class="iq-seg__btn"
@@ -56,17 +57,20 @@
       </div>
     </ListToolbar>
 
-    <!-- 列表视图 -->
+    <!-- 桌面列表视图：表格 -->
     <DataTable
-      v-if="!useCards"
+      v-if="viewMode === 'table' && !menuStore.isMobile"
       :columns="columns"
       :rows="sites as unknown as Record<string, unknown>[]"
       row-key="id"
       :loading="loading"
-      :empty-text="t('iqcheck.site.emptyTitle')"
+      :empty-text="stats.total ? t('iqcheck.siteList.noMatch') : t('iqcheck.site.emptyTitle')"
     >
       <template #cell-name="{ row }">
-        <div class="iq-cell-name">{{ asSite(row).name }}</div>
+        <div class="iq-cell-name">
+          {{ asSite(row).name }}
+          <span v-if="!asSite(row).enabled" class="iq-tag">{{ t('iqcheck.siteList.disabled') }}</span>
+        </div>
         <div class="iq-cell-ep m-mono" :title="asSite(row).endpoint">{{ asSite(row).endpoint }}</div>
       </template>
       <template #cell-protocol="{ row }">
@@ -90,7 +94,7 @@
       <template #cell-result="{ row }">
         <div class="iq-cell-result">
           <span v-if="asSite(row).lastRound" class="m-num iq-cell-score" :style="{ color: scoreColor(asSite(row)) }">
-            {{ asSite(row).lastRound!.success }}/{{ roundTotal(asSite(row).lastRound!) }}
+            {{ scoreText(asSite(row)) }}
           </span>
           <StatusPill :variant="healthPill(asSite(row)).variant" :label="healthPill(asSite(row)).label" />
         </div>
@@ -102,13 +106,21 @@
         <div class="iq-ops">
           <template v-if="canEdit">
             <AppIconButton
-              icon="HOutline:PlayIcon"
+              :icon="asSite(row).checking ? 'HOutline:ArrowPathIcon' : 'HOutline:PlayIcon'"
               class="is-primary"
+              :class="{ 'is-spin': asSite(row).checking }"
               :label="t('iqcheck.siteList.checkNowOf', { name: asSite(row).name })"
               :box="36"
               :size="18"
               :disabled="asSite(row).checking || !asSite(row).models.length"
               @click="checkNow(asSite(row))"
+            />
+            <AppIconButton
+              icon="HOutline:ArrowDownTrayIcon"
+              :label="t('iqcheck.ui.site.fetchModelsOf', { name: asSite(row).name })"
+              :box="36"
+              :size="18"
+              @click="openForm(asSite(row), true)"
             />
             <AppIconButton
               icon="HOutline:PencilSquareIcon"
@@ -118,15 +130,18 @@
               @click="openForm(asSite(row))"
             />
           </template>
-          <ActionMenu :items="moreActions" @select="(key) => onRowAction(key, asSite(row))" />
+          <ActionMenu
+            :items="moreActions"
+            :label="t('iqcheck.siteList.moreOf', { name: asSite(row).name })"
+            @select="(key) => onRowAction(key, asSite(row))"
+          />
         </div>
       </template>
     </DataTable>
 
-    <!-- 卡片视图 -->
     <template v-else>
-      <div v-if="loading && !sites.length" class="iq-grid">
-        <div v-for="i in 4" :key="i" class="iq-skeleton" />
+      <div v-if="loading && !sites.length" :class="viewMode === 'table' ? 'iq-rows-skel' : 'iq-grid'">
+        <div v-for="i in 4" :key="i" class="iq-skeleton" :class="{ 'is-row': viewMode === 'table' }" />
       </div>
       <EmptyState
         v-else-if="!sites.length"
@@ -138,7 +153,37 @@
           <UButton color="primary" variant="soft" icon="i-lucide-plus" @click="openForm()">{{ t('iqcheck.site.create') }}</UButton>
         </template>
       </EmptyState>
-      <div v-else class="iq-grid">
+
+      <!-- 手机列表视图：紧凑行 -->
+      <div v-else-if="viewMode === 'table'" class="iq-rows" :class="{ 'is-loading': loading }">
+        <div v-for="s in sites" :key="s.id" class="iq-row">
+          <span class="iq-row__score m-num" :style="{ color: scoreColor(s) }">{{ s.lastRound ? scoreText(s) : '—' }}</span>
+          <button type="button" class="iq-row__main" :disabled="!canEdit" @click="openForm(s)">
+            <span class="iq-row__name">
+              <b>{{ s.name }}</b>
+              <span class="iq-proto is-sm">{{ protocolLabel(s.protocol) }}</span>
+            </span>
+            <span class="iq-row__meta m-num">
+              {{ t('iqcheck.ui.site.listMeta', { time: s.checking ? t('iqcheck.site.checking') : fmtRel(s.lastCheckAt), models: s.models.length }) }}
+            </span>
+          </button>
+          <StatusPill :variant="healthPill(s).variant" :label="healthPill(s).label" />
+          <AppIconButton
+            v-if="canEdit"
+            :icon="s.checking ? 'HOutline:ArrowPathIcon' : 'HOutline:PlayIcon'"
+            class="is-primary"
+            :class="{ 'is-spin': s.checking }"
+            :label="t('iqcheck.siteList.checkNowOf', { name: s.name })"
+            :box="44"
+            :size="20"
+            :disabled="s.checking || !s.models.length"
+            @click="checkNow(s)"
+          />
+        </div>
+      </div>
+
+      <!-- 卡片视图 -->
+      <div v-else class="iq-grid" :class="{ 'is-loading': loading }">
         <article v-for="s in sites" :key="s.id" class="iq-card">
           <header class="iq-card__head">
             <span class="iq-card__av m-sticker" :class="`m-sticker--${toneOf(s.id)}`" :style="{ transform: `rotate(${rotOf(s.id)})` }">
@@ -147,27 +192,30 @@
             <span class="iq-card__title">
               <span class="iq-card__namerow">
                 <span class="iq-card__name" :title="s.name">{{ s.name }}</span>
-                <span class="iq-proto">{{ protocolLabel(s.protocol) }}</span>
+                <span v-if="!menuStore.isMobile" class="iq-proto">{{ protocolLabel(s.protocol) }}</span>
                 <span v-if="!s.enabled" class="iq-tag">{{ t('iqcheck.siteList.disabled') }}</span>
               </span>
-              <span class="iq-card__ep m-mono" :title="s.endpoint">{{ s.endpoint }}</span>
+              <span class="iq-card__ep m-mono" :title="s.endpoint">{{ menuStore.isMobile ? hostOf(s.endpoint) : s.endpoint }}</span>
             </span>
             <StatusPill :variant="healthPill(s).variant" :label="healthPill(s).label" />
           </header>
 
           <div class="iq-card__score">
             <div class="iq-card__score-main">
-              <span class="iq-card__label">{{ t('iqcheck.siteList.lastResult') }}</span>
+              <span v-if="!menuStore.isMobile" class="iq-card__label">{{ t('iqcheck.siteList.lastResult') }}</span>
               <span class="iq-card__score-val">
-                <span class="m-num" :style="{ color: scoreColor(s) }">
-                  {{ s.lastRound ? `${s.lastRound.success}/${roundTotal(s.lastRound)}` : '—' }}
-                </span>
-                <span class="iq-card__unit">{{ t('iqcheck.siteList.successUnit') }}</span>
+                <span class="m-num" :style="{ color: scoreColor(s) }">{{ s.lastRound ? scoreText(s) : '—' }}</span>
+                <span v-if="s.lastRound" class="iq-card__unit">{{ t('iqcheck.siteList.successUnit') }}</span>
               </span>
             </div>
             <div class="iq-card__score-note">
-              <span class="m-num iq-strong" :class="deltaClass(s)">{{ deltaText(s) }}</span>
-              <span class="iq-card__note" :title="noteText(s)">{{ noteText(s) }}</span>
+              <template v-if="menuStore.isMobile && isFailed(s)">
+                <span class="m-num iq-strong is-bad iq-ellipsis" :title="noteText(s)">{{ noteText(s) }}</span>
+              </template>
+              <template v-else>
+                <span class="m-num iq-strong iq-ellipsis" :class="deltaClass(s)">{{ deltaText(s) }}</span>
+                <span v-if="!menuStore.isMobile" class="iq-card__note" :title="noteText(s)">{{ noteText(s) }}</span>
+              </template>
             </div>
             <svg
               v-if="s.recentRounds.length > 1"
@@ -181,7 +229,7 @@
           </div>
 
           <div class="iq-card__block">
-            <span class="iq-card__label">{{ t('iqcheck.siteList.modelsEffort') }}</span>
+            <span v-if="!menuStore.isMobile" class="iq-card__label">{{ t('iqcheck.siteList.modelsEffort') }}</span>
             <div class="iq-models">
               <span v-for="m in s.models" :key="m.model + m.effort" class="iq-mdl">
                 <span class="m-mono">{{ m.model }}</span>
@@ -208,42 +256,106 @@
               <dt>{{ t('iqcheck.site.colRuns') }}</dt>
               <dd class="m-num">{{ runsLabel(s) }}</dd>
             </div>
-            <div>
-              <dt>{{ t('iqcheck.siteList.results') }}</dt>
-              <dd class="m-num">{{ t('iqcheck.siteList.resultsCount', { count: s.resultCount }) }}</dd>
-            </div>
-            <div>
-              <dt>API Key</dt>
-              <dd class="m-mono" :title="s.apiKey">{{ s.apiKey || '—' }}</dd>
-            </div>
+            <template v-if="!menuStore.isMobile">
+              <div>
+                <dt>{{ t('iqcheck.siteList.results') }}</dt>
+                <dd class="m-num">{{ t('iqcheck.siteList.resultsCount', { count: s.resultCount }) }}</dd>
+              </div>
+              <div>
+                <dt>API Key</dt>
+                <dd class="m-mono" :title="s.apiKey">{{ s.apiKey || '—' }}</dd>
+              </div>
+            </template>
+            <template v-else>
+              <div class="is-wide">
+                <dt>{{ t('iqcheck.ui.site.endpoint') }}</dt>
+                <dd class="m-mono" :title="s.endpoint">{{ s.endpoint }}</dd>
+              </div>
+              <div class="is-wide">
+                <dt>{{ t('iqcheck.site.colPublic') }}</dt>
+                <dd class="m-mono">
+                  <a class="iq-link" :href="publicUrl(s.slug)" target="_blank" rel="noopener">/public/iqcheck/{{ s.slug }}</a>
+                </dd>
+              </div>
+            </template>
           </dl>
 
-          <a class="iq-card__public" :href="publicUrl(s.slug)" target="_blank" rel="noopener">
+          <a v-if="!menuStore.isMobile" class="iq-card__public" :href="publicUrl(s.slug)" target="_blank" rel="noopener">
             <UIcon name="i-lucide-globe" />
             <span class="iq-card__public-l">{{ t('iqcheck.site.colPublic') }}</span>
             <span class="iq-card__public-p m-mono">/public/iqcheck/{{ s.slug }}</span>
             <UIcon name="i-lucide-external-link" />
           </a>
 
-          <footer class="iq-card__foot">
-            <UButton
+          <!-- 手机：左侧协议标签，右侧一排小图标 -->
+          <footer v-if="menuStore.isMobile" class="iq-card__foot is-mobile">
+            <span class="iq-card__tags">
+              <span class="iq-proto">{{ protocolLabel(s.protocol) }}</span>
+            </span>
+            <AppIconButton
               v-if="canEdit"
-              color="primary"
-              size="sm"
-              class="iq-card__run"
-              :icon="s.checking ? 'i-lucide-loader-circle' : 'i-lucide-play'"
+              :icon="s.checking ? 'HOutline:ArrowPathIcon' : 'HOutline:PlayIcon'"
+              class="is-primary"
+              :class="{ 'is-spin': s.checking }"
+              :label="t('iqcheck.siteList.checkNowOf', { name: s.name })"
+              :box="44"
+              :size="20"
               :disabled="s.checking || !s.models.length"
-              :ui="s.checking ? { leadingIcon: 'animate-spin' } : undefined"
               @click="checkNow(s)"
+            />
+            <AppIconButton
+              v-if="canEdit"
+              icon="HOutline:ArrowDownTrayIcon"
+              :label="t('iqcheck.ui.site.fetchModelsOf', { name: s.name })"
+              :box="44"
+              :size="20"
+              @click="openForm(s, true)"
+            />
+            <a
+              class="iq-ib"
+              :href="publicUrl(s.slug)"
+              target="_blank"
+              rel="noopener"
+              :aria-label="t('iqcheck.ui.site.openPublicOf', { name: s.name })"
+              :title="t('iqcheck.ui.site.openPublicOf', { name: s.name })"
             >
-              {{ s.checking ? t('iqcheck.site.checking') : t('iqcheck.site.checkNow') }}
-            </UButton>
+              <component :is="menuStore.iconComponents['HOutline:GlobeAltIcon']" />
+            </a>
+            <AppIconButton
+              v-if="canEdit"
+              icon="HOutline:PencilSquareIcon"
+              :label="t('iqcheck.siteList.editOf', { name: s.name })"
+              :box="44"
+              :size="20"
+              @click="openForm(s)"
+            />
+            <ActionMenu :items="moreActions" :label="t('iqcheck.siteList.moreOf', { name: s.name })" @select="(key) => onRowAction(key, s)" />
+          </footer>
+
+          <!-- 桌面：立即检测 + 拉取模型，右侧编辑 / 更多 -->
+          <footer v-else class="iq-card__foot">
+            <template v-if="canEdit">
+              <UButton
+                color="primary"
+                size="sm"
+                class="iq-card__btn"
+                :icon="s.checking ? 'i-lucide-loader-circle' : 'i-lucide-play'"
+                :disabled="s.checking || !s.models.length"
+                :ui="s.checking ? { leadingIcon: 'animate-spin' } : undefined"
+                @click="checkNow(s)"
+              >
+                {{ s.checking ? t('iqcheck.site.checking') : t('iqcheck.site.checkNow') }}
+              </UButton>
+              <UButton color="neutral" variant="soft" size="sm" class="iq-card__btn" icon="i-lucide-download" @click="openForm(s, true)">
+                {{ t('iqcheck.ui.site.fetchModels') }}
+              </UButton>
+            </template>
             <span class="iq-card__spacer" />
             <AppIconButton
               v-if="canEdit"
               icon="HOutline:PencilSquareIcon"
               :label="t('iqcheck.siteList.editOf', { name: s.name })"
-              :box="menuStore.isMobile ? 44 : 36"
+              :box="36"
               :size="18"
               @click="openForm(s)"
             />
@@ -260,6 +372,13 @@
       :total="pagination.total"
       @change="loadSites()"
     />
+
+    <!-- 手机：悬浮新建 -->
+    <div v-if="menuStore.isMobile && canEdit" class="iq-fab">
+      <UButton color="primary" size="xl" icon="i-lucide-plus" class="iq-fab__btn" @click="openForm()">
+        {{ t('iqcheck.site.create') }}
+      </UButton>
+    </div>
 
     <SiteForm ref="formRef" @refresh="loadSites()" />
   </div>
@@ -295,7 +414,7 @@ const { t } = useI18n()
 const formRef = useTemplateRef<InstanceType<typeof SiteForm> | null>('formRef')
 const canEdit = computed(() => menuStore.hasButtonPermission(PERM.IQCHECK_EDIT))
 
-// 视图偏好：桌面端可在卡片/列表之间切换并记住；移动端固定卡片。
+// 视图偏好：卡片 / 列表（桌面为表格、手机为紧凑行），记住选择。
 type ViewMode = 'table' | 'card'
 const VIEW_STORAGE_KEY = 'iqcheck-site-view'
 const readView = (): ViewMode => {
@@ -314,7 +433,6 @@ const setView = (mode: ViewMode) => {
     // 浏览器禁用存储时忽略
   }
 }
-const useCards = computed(() => menuStore.isMobile || viewMode.value === 'card')
 
 const loading = ref(false)
 const sites = ref<IQCheckSiteInfo[]>([])
@@ -325,7 +443,8 @@ const pagination = ref({ page: 1, pageSize: 12, total: 0 })
 const emptyStats = (): IQCheckSiteStats => ({
   total: 0,
   healthy: 0,
-  failing: 0,
+  partial: 0,
+  failed: 0,
   disabled: 0,
   never: 0,
   checking: 0,
@@ -339,22 +458,25 @@ const chips = computed<ToolbarChip<IQCheckSiteFilter>[]>(() => {
   const out: ToolbarChip<IQCheckSiteFilter>[] = [
     { value: IQCheckSiteFilter.IQ_CHECK_SITE_FILTER_ALL, label: t('iqcheck.siteList.chipAll'), count: Number(s.total) },
     { value: IQCheckSiteFilter.IQ_CHECK_SITE_FILTER_HEALTHY, label: t('iqcheck.siteList.chipHealthy'), count: Number(s.healthy) },
-    { value: IQCheckSiteFilter.IQ_CHECK_SITE_FILTER_FAILING, label: t('iqcheck.siteList.chipFailing'), count: Number(s.failing) },
+    { value: IQCheckSiteFilter.IQ_CHECK_SITE_FILTER_PARTIAL, label: t('iqcheck.ui.site.chipPartial'), count: Number(s.partial) },
+    { value: IQCheckSiteFilter.IQ_CHECK_SITE_FILTER_FAILED, label: t('iqcheck.ui.site.chipFailed'), count: Number(s.failed) },
   ]
   if (Number(s.never)) out.push({ value: IQCheckSiteFilter.IQ_CHECK_SITE_FILTER_NEVER, label: t('iqcheck.siteList.chipNever'), count: Number(s.never) })
-  out.push({ value: IQCheckSiteFilter.IQ_CHECK_SITE_FILTER_DISABLED, label: t('iqcheck.siteList.chipDisabled'), count: Number(s.disabled) })
+  if (Number(s.disabled)) {
+    out.push({ value: IQCheckSiteFilter.IQ_CHECK_SITE_FILTER_DISABLED, label: t('iqcheck.siteList.chipDisabled'), count: Number(s.disabled) })
+  }
   return out
 })
 
 const columns = computed<DataTableColumn[]>(() => [
-  { key: 'name', title: t('iqcheck.siteList.colSite'), minWidth: 220 },
+  { key: 'name', title: t('iqcheck.siteList.colSite'), minWidth: 180 },
   { key: 'protocol', title: t('iqcheck.site.colProtocol'), width: 110 },
-  { key: 'models', title: t('iqcheck.siteList.colModels'), minWidth: 240 },
+  { key: 'models', title: t('iqcheck.siteList.colModels'), minWidth: 200 },
   { key: 'interval', title: t('iqcheck.site.colInterval'), width: 120 },
   { key: 'last', title: t('iqcheck.siteList.lastRun'), width: 130 },
   { key: 'result', title: t('iqcheck.siteList.lastResult'), width: 170 },
   { key: 'public', title: t('iqcheck.site.colPublic'), width: 140 },
-  { key: 'operation', title: t('system.common.operation'), width: 140, align: 'right' },
+  { key: 'operation', title: t('system.common.operation'), width: 180, align: 'right' },
 ])
 
 const asSite = (row: Record<string, unknown>) => row as unknown as IQCheckSiteInfo
@@ -373,6 +495,14 @@ const toneOf = (id: string) => TONES[hashOf(id) % TONES.length]
 const rotOf = (id: string) => ROTS[hashOf(id) % ROTS.length]
 const initialOf = (name: string) => (name || '?').trim().charAt(0).toUpperCase()
 
+const hostOf = (endpoint: string) => {
+  try {
+    return new URL(endpoint).host || endpoint
+  } catch {
+    return endpoint
+  }
+}
+
 const protocolLabels: Record<string, string> = {
   [IQCheckProtocol.IQ_CHECK_PROTOCOL_CHAT]: 'chat',
   [IQCheckProtocol.IQ_CHECK_PROTOCOL_RESPONSES]: 'responses',
@@ -389,16 +519,18 @@ const effClass = (effort: string) => {
 
 const roundTotal = (r: IQCheckRoundSummary) => Number(r.success) + Number(r.failed)
 const ratioOf = (r: IQCheckRoundSummary) => (roundTotal(r) ? Number(r.success) / roundTotal(r) : 0)
+const scoreText = (s: IQCheckSiteInfo) => (s.lastRound ? `${s.lastRound.success}/${roundTotal(s.lastRound)}` : '—')
+const isFailed = (s: IQCheckSiteInfo) => s.health === IQCheckSiteHealth.IQ_CHECK_SITE_HEALTH_FAILED
 
 const healthPill = (s: IQCheckSiteInfo): { variant: 'success' | 'warning' | 'error' | 'neutral'; label: string } => {
-  if (s.checking) return { variant: 'warning', label: t('iqcheck.site.checking') }
+  if (s.checking) return { variant: 'neutral', label: t('iqcheck.site.checking') }
   switch (s.health) {
     case IQCheckSiteHealth.IQ_CHECK_SITE_HEALTH_HEALTHY:
-      return { variant: 'success', label: t('iqcheck.siteList.healthy') }
+      return { variant: 'success', label: t('iqcheck.siteList.chipHealthy') }
     case IQCheckSiteHealth.IQ_CHECK_SITE_HEALTH_PARTIAL:
-      return { variant: 'warning', label: t('iqcheck.siteList.partial') }
+      return { variant: 'warning', label: t('iqcheck.ui.site.chipPartial') }
     case IQCheckSiteHealth.IQ_CHECK_SITE_HEALTH_FAILED:
-      return { variant: 'error', label: t('iqcheck.siteList.failed') }
+      return { variant: 'error', label: t('iqcheck.ui.site.chipFailed') }
     default:
       return { variant: 'neutral', label: t('iqcheck.siteList.never') }
   }
@@ -419,11 +551,17 @@ const scoreColor = (s: IQCheckSiteInfo) => {
 
 const seconds = (ms: number) => (Number(ms) / 1000).toFixed(1)
 
-// 「与上一轮相比」：成功率变化；只有一轮时显示平均耗时
+const lastSuccessText = (s: IQCheckSiteInfo) =>
+  s.lastSuccessAt
+    ? t('iqcheck.ui.site.lastSuccess', { time: fmtRel(s.lastSuccessAt) })
+    : t('iqcheck.ui.site.neverSucceeded')
+
+// 「与上一轮相比」：成功率变化；整轮失败时改为显示上次成功的时间
 const deltaText = (s: IQCheckSiteInfo) => {
   const rounds = s.recentRounds
   const last = s.lastRound
   if (!last) return t('iqcheck.siteList.noResultYet')
+  if (isFailed(s)) return lastSuccessText(s)
   if (rounds.length >= 2) {
     const prev = rounds[rounds.length - 2]!
     const diff = Math.round((ratioOf(last) - ratioOf(prev)) * 100)
@@ -435,16 +573,23 @@ const deltaText = (s: IQCheckSiteInfo) => {
 }
 const deltaClass = (s: IQCheckSiteInfo) => {
   const rounds = s.recentRounds
-  if (!s.lastRound || rounds.length < 2) return ''
+  if (!s.lastRound || rounds.length < 2 || isFailed(s)) return ''
   const diff = ratioOf(s.lastRound) - ratioOf(rounds[rounds.length - 2]!)
-  return diff < 0 ? 'is-bad' : diff > 0 ? 'is-ok' : ''
+  if (diff <= -0.05) return 'is-warn'
+  if (diff < 0) return ''
+  return diff > 0 ? 'is-ok' : ''
 }
+// 备注：有失败时显示第一条失败原因；否则显示本轮规模（模型数 · 随机抽到的题目）与平均耗时
 const noteText = (s: IQCheckSiteInfo) => {
   const last = s.lastRound
   if (!last) return s.models.length ? t('iqcheck.siteList.waitFirst') : t('iqcheck.site.form.noModels')
   if (Number(last.failed) && last.error) return last.error
-  const parts = [t('iqcheck.siteList.avgDuration', { s: seconds(last.avgDurationMs) })]
-  if (last.promptTitle) parts.push(last.promptTitle)
+  const parts = [
+    last.promptTitle
+      ? t('iqcheck.ui.site.roundSize', { models: last.modelCount, title: last.promptTitle })
+      : t('iqcheck.ui.site.roundModels', { models: last.modelCount }),
+  ]
+  if (Number(last.avgDurationMs)) parts.push(t('iqcheck.siteList.avgDuration', { s: seconds(last.avgDurationMs) }))
   return parts.join(' · ')
 }
 
@@ -524,7 +669,8 @@ const reload = () => {
   loadSites()
 }
 
-const openForm = (row?: IQCheckSiteInfo) => formRef.value?.showDialog(row)
+// fetchModels：打开编辑弹窗并立即拉取上游模型列表（卡片上的「拉取模型」）
+const openForm = (row?: IQCheckSiteInfo, fetchModels = false) => formRef.value?.showDialog(row, { fetchModels })
 
 const onRowAction = (key: string, site: IQCheckSiteInfo) => {
   if (key === 'edit') openForm(site)
@@ -536,7 +682,9 @@ const onRowAction = (key: string, site: IQCheckSiteInfo) => {
 
 const checkNow = async (site: IQCheckSiteInfo) => {
   const { data } = await triggerIQCheck({ id: site.id })
-  feedback.success(t('iqcheck.site.checkStarted', { count: data?.modelCount ?? site.models.length }))
+  feedback.success(
+    t('iqcheck.ui.site.checkStarted', { models: data?.modelCount ?? site.models.length }),
+  )
   loadSites(true)
 }
 
@@ -576,14 +724,29 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
 .iq-strong {
   font-weight: 700;
 }
+.iq-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .iq-dim {
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
+}
+.is-ok {
+  color: var(--m-ok);
+}
+.is-warn {
+  color: var(--m-warn);
+}
+.is-bad {
+  color: var(--m-bad);
 }
 
 /* 视图切换 */
 .iq-seg {
   display: inline-flex;
+  flex: none;
   gap: 2px;
   padding: 4px;
   border-radius: var(--app-radius-pill);
@@ -605,7 +768,7 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
 .iq-seg__btn.is-on {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
-  box-shadow: 0 1px 3px rgba(20, 10, 30, 0.12);
+  box-shadow: var(--app-shadow-sm);
 }
 .iq-seg__btn :deep(.iconify) {
   width: 16px;
@@ -616,6 +779,7 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
 .iq-proto {
   display: inline-flex;
   align-items: center;
+  flex: none;
   height: 24px;
   padding: 0 9px;
   border-radius: 8px;
@@ -626,9 +790,15 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   font-weight: 700;
   white-space: nowrap;
 }
+.iq-proto.is-sm {
+  height: 20px;
+  padding: 0 7px;
+  font-size: 0.6875rem;
+}
 .iq-tag {
   display: inline-flex;
   align-items: center;
+  flex: none;
   height: 22px;
   padding: 0 8px;
   border-radius: 7px;
@@ -686,7 +856,10 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
 }
 .iq-eff.is-medium {
   background: var(--m-aSoft);
-  color: var(--m-ink);
+  color: var(--m-aOn);
+}
+html.dark .iq-eff.is-medium {
+  color: var(--m-a);
 }
 .iq-eff.is-low {
   background: var(--el-fill-color-light);
@@ -695,6 +868,9 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
 
 /* 表格单元格 */
 .iq-cell-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 800;
   color: var(--el-text-color-primary);
 }
@@ -731,9 +907,101 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   align-items: center;
   gap: 2px;
 }
-.iq-ops :deep(.is-primary),
-.iq-card__foot :deep(.is-primary) {
+.iq-page :deep(.is-primary) {
   color: var(--m-pInk);
+}
+.iq-page :deep(.is-spin svg) {
+  animation: iq-spin 1s linear infinite;
+}
+@keyframes iq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.iq-page :deep(.app-icon-btn:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 手机紧凑行 */
+.iq-rows {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px 4px 14px;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: var(--app-radius-xl);
+  background: var(--el-bg-color);
+  transition: opacity 0.15s;
+}
+.iq-rows.is-loading,
+.iq-grid.is-loading {
+  opacity: 0.6;
+}
+.iq-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 68px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+.iq-row:last-child {
+  border-bottom: 0;
+}
+.iq-row__score {
+  flex: none;
+  width: 48px;
+  font-family: var(--app-font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.iq-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 44px;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.iq-row__main:disabled {
+  cursor: default;
+}
+.iq-row__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+}
+.iq-row__name b {
+  min-width: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.iq-row__meta {
+  max-width: 100%;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.iq-rows-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* 卡片 */
@@ -741,6 +1009,7 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
   gap: 16px;
+  transition: opacity 0.15s;
 }
 .iq-card {
   display: flex;
@@ -838,12 +1107,6 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   gap: 2px;
   font-size: 0.8125rem;
 }
-.iq-card__score-note .is-ok {
-  color: var(--m-ok);
-}
-.iq-card__score-note .is-bad {
-  color: var(--m-bad);
-}
 .iq-card__note {
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
@@ -875,6 +1138,9 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
 }
 .iq-card__info > div {
   min-width: 0;
+}
+.iq-card__info > .is-wide {
+  grid-column: 1 / -1;
 }
 .iq-card__info dt {
   font-size: 0.6875rem;
@@ -934,18 +1200,70 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   padding-top: 12px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
-.iq-card__run {
-  border-radius: var(--app-radius-pill);
+.iq-card__btn {
   min-height: 36px;
   padding: 0 14px;
+  border-radius: var(--app-radius-pill);
+  font-weight: 700;
 }
 .iq-card__spacer {
   flex: 1;
+}
+.iq-card__tags {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.iq-ib {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  color: var(--el-text-color-secondary);
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.iq-ib:hover {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+}
+.iq-ib svg {
+  width: 20px;
+  height: 20px;
 }
 .iq-skeleton {
   height: 420px;
   border-radius: var(--app-radius-xl);
   background: var(--el-fill-color-light);
+}
+.iq-skeleton.is-row {
+  height: 68px;
+  border-radius: var(--app-radius);
+}
+
+/* 手机悬浮新建 */
+.iq-fab {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+  z-index: 5;
+}
+.iq-fab__btn {
+  pointer-events: auto;
+  min-height: 56px;
+  padding: 0 22px;
+  border-radius: var(--app-radius-pill);
+  font-weight: 700;
+  box-shadow: var(--app-shadow-brand);
 }
 
 @media (width <= 768px) {
@@ -956,28 +1274,62 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
     gap: 12px;
   }
   .iq-card {
-    padding: 16px 14px 8px 16px;
+    padding: 16px 12px 6px 16px;
     gap: 12px;
+  }
+  .iq-card__head {
+    align-items: center;
+    padding-right: 4px;
+  }
+  .iq-card__av {
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+  }
+  .iq-card__ep {
+    font-size: 0.6875rem;
   }
   .iq-card__score {
     gap: 12px;
+    margin-right: 4px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+  .iq-card__score-main {
+    min-width: 0;
+  }
+  .iq-card__score-val .m-num {
+    font-size: 1.875rem;
+  }
+  .iq-card__score-note {
+    font-size: 0.75rem;
   }
   .iq-card__spark {
-    width: 80px;
+    width: 96px;
+    height: 32px;
+  }
+  .iq-card__block {
+    padding-right: 4px;
   }
   .iq-card__info {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-right: 4px;
     padding: 10px 12px;
     border-radius: 14px;
     background: var(--el-fill-color-light);
   }
-  .iq-card__run {
-    min-height: 44px;
+  .iq-card__foot.is-mobile {
+    gap: 0;
+    padding-top: 6px;
   }
   .iq-card__foot :deep(.action-menu__trigger) {
     width: 44px;
     height: 44px;
     border-radius: 14px;
+  }
+  .iq-seg__btn {
+    min-width: 44px;
+    min-height: 40px;
   }
 }
 </style>

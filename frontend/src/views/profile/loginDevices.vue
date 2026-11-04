@@ -20,6 +20,7 @@
             color="error"
             variant="soft"
             size="sm"
+            class="dev-kick"
             icon="i-lucide-log-out"
             :loading="loggingOutOthers"
           >
@@ -361,6 +362,9 @@ onMounted(() => {
 @media (width < 640px) {
   .dev-detail__grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .dev-kick {
+    min-height: 44px;
   }
 }
 </style>

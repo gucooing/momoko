@@ -1,28 +1,43 @@
-<!-- 任务与日志 · 操作记录（第二期）：标题 + 计数说明 + 导出 → LogsSubNav → 今日统计贴纸卡 → 时间/模块/类型/用户筛选 + 结果 chips(带数) + 搜索
-     → PC 按天分组表格（模块 chip、动作 + 目标、目标节点/转发标签、结果 pill、IP）/ 手机按天分组卡片；点行打开右侧详情抽屉（转发链路、信息格、请求 JSON）。
-     保留 listOperationLogs 契约（用户/类型/结果/路径筛选）与用户预加载；新增 keywords/module/时间范围、成功失败计数与统计接口。 -->
+<!-- 任务与日志 · 操作记录：标题 + 「近 7 天共 N 条 · N 条失败 · 记录保留 N 天」+ 保留策略 / 导出 → LogsSubNav
+     → 今日统计贴纸卡（PC）→ 时间/模块/用户/类型筛选 + 结果 chips(带数) + 搜索
+     → PC 按天分组表格（模块 chip、动作 + 目标、目标节点/转发链路、结果 pill、IP），点行打开右侧详情抽屉；
+       手机按天分组时间线卡片（上拉加载更多），点卡片打开底部详情面板。
+     详情：结果条、转发链路、信息格（归属地/请求 ID/客户端…）、请求 JSON、响应（状态码）、复制 / 该用户的全部记录。 -->
 <template>
   <div class="au-page">
     <PageHeader :title="t('system.logsNav.label')">
       <template #description>
-        <span class="m-num">{{ t('system.audit.summary', { total: fmtNum(stats.total) }) }}</span>
-        <template v-if="stats.todayFailed">
-          · <b class="au-tone-bad">{{ t('system.audit.summaryFailed', { n: fmtNum(stats.todayFailed) }) }}</b>
+        <span class="m-num">{{ summaryText }}</span>
+        <template v-if="counts.failed">
+          · <b class="au-tone-bad">{{ t('systemV2.audit.summaryFailed', { n: fmtNum(counts.failed) }) }}</b>
         </template>
-        <template v-if="stats.earliest">
-          · {{ t('system.audit.summarySince', { date: stats.earliest }) }}
-        </template>
+        · {{ retentionText }}
       </template>
       <template #actions>
-        <UButton color="primary" icon="i-lucide-download" :loading="exporting" :disabled="!pagination.total" @click="exportCsv">
-          {{ t('system.audit.export') }}
-        </UButton>
+        <template v-if="!menuStore.isMobile">
+          <UButton v-if="canEdit" color="neutral" variant="outline" icon="i-lucide-settings" @click="openRetention">
+            {{ t('systemV2.audit.retention') }}
+          </UButton>
+          <UButton color="primary" icon="i-lucide-download" :loading="exporting" :disabled="!pagination.total" @click="exportCsv">
+            {{ t('systemV2.audit.export') }}
+          </UButton>
+        </template>
+        <template v-else>
+          <AppIconButton v-if="canEdit" icon="HOutline:Cog6ToothIcon" :label="t('systemV2.audit.retention')" :box="44" @click="openRetention" />
+          <AppIconButton
+            icon="HOutline:ArrowDownTrayIcon"
+            :label="t('systemV2.audit.exportCsv')"
+            :box="44"
+            :disabled="!pagination.total || exporting"
+            @click="exportCsv"
+          />
+        </template>
       </template>
     </PageHeader>
 
     <LogsSubNav :counts="navCounts" />
 
-    <div class="au-stats">
+    <div v-if="!menuStore.isMobile" class="au-stats">
       <div v-for="s in statCards" :key="s.key" class="au-stat">
         <span class="m-sticker au-stat__icon" :class="`m-sticker--${s.tone}`" :style="{ transform: `rotate(${s.rot})` }">
           <component :is="menuStore.iconComponents[s.icon]" />
@@ -34,48 +49,69 @@
       </div>
     </div>
 
-    <div class="au-filters">
-      <div class="au-filters__sel au-filters__sel--range">
-        <AppSelect v-model="queryForm.range" :options="rangeOptions" fit @update:model-value="search" />
-      </div>
-      <div class="au-filters__sel">
-        <AppSelect v-model="queryForm.module" :options="moduleOptions" fit @update:model-value="onModuleChange" />
-      </div>
-      <div class="au-filters__sel au-filters__sel--wide">
-        <AppSelect
-          v-model="queryForm.operationType"
-          :options="typeSelectOptions"
-          searchable
-          fit
-          :search-placeholder="t('system.operation.selectOperationType')"
-          :no-match-text="t('system.common.noData')"
-          @update:model-value="search"
-        />
-      </div>
-      <div class="au-filters__sel au-filters__sel--wide">
-        <AppSelect
-          v-model="queryForm.userId"
-          :options="userOptions"
-          searchable
-          fit
-          :search-placeholder="t('system.operation.searchUserPlaceholder')"
-          :no-match-text="t('system.common.noData')"
-          @update:model-value="search"
-        />
-      </div>
-    </div>
-
     <ListToolbar
       v-model:status="queryForm.result"
       v-model:keyword="queryForm.keywords"
       :chips="resultChips"
       :chips-label="t('system.operation.result')"
-      :placeholder="t('system.audit.searchPlaceholder')"
+      :placeholder="t('systemV2.audit.searchPlaceholder')"
+      class="au-toolbar"
       @search="search"
     >
-      <UButton v-if="hasFilters" color="neutral" variant="ghost" icon="i-lucide-rotate-ccw" @click="reset">
-        {{ t('system.common.reset') }}
-      </UButton>
+      <div class="au-filters" role="group" :aria-label="t('systemV2.audit.filters')">
+        <div class="au-filter au-filter--range">
+          <component :is="menuStore.iconComponents['HOutline:CalendarIcon']" class="au-filter__icon" />
+          <AppSelect v-model="queryForm.range" :options="rangeOptions" fit @update:model-value="onRangeChange" />
+        </div>
+        <template v-if="queryForm.range === 'custom'">
+          <input
+            v-model="queryForm.from"
+            type="date"
+            class="au-date m-num"
+            :max="queryForm.to || undefined"
+            :aria-label="t('systemV2.audit.rangeStart')"
+            @change="search"
+          />
+          <span class="au-date__to">{{ t('systemV2.audit.rangeTo') }}</span>
+          <input
+            v-model="queryForm.to"
+            type="date"
+            class="au-date m-num"
+            :min="queryForm.from || undefined"
+            :aria-label="t('systemV2.audit.rangeEnd')"
+            @change="search"
+          />
+        </template>
+        <div class="au-filter">
+          <AppSelect v-model="queryForm.module" :options="moduleOptions" fit @update:model-value="onModuleChange" />
+        </div>
+        <div class="au-filter">
+          <AppSelect
+            v-model="queryForm.userId"
+            :options="userOptions"
+            searchable
+            fit
+            :search-placeholder="t('system.operation.searchUserPlaceholder')"
+            :no-match-text="t('system.common.noData')"
+            @update:model-value="search"
+          />
+        </div>
+        <div class="au-filter">
+          <AppSelect
+            v-model="queryForm.operationType"
+            :options="typeSelectOptions"
+            searchable
+            fit
+            :search-placeholder="t('system.operation.selectOperationType')"
+            :no-match-text="t('system.common.noData')"
+            @update:model-value="search"
+          />
+        </div>
+        <UButton v-if="hasFilters" color="neutral" variant="ghost" icon="i-lucide-rotate-ccw" class="au-reset" @click="reset">
+          {{ t('system.common.reset') }}
+        </UButton>
+        <span class="au-filters__sep" aria-hidden="true" />
+      </div>
     </ListToolbar>
 
     <!-- PC：按天分组表格 -->
@@ -119,7 +155,7 @@
             <td class="m-num au-time">{{ r.tm }}</td>
             <td>
               <span class="au-user">
-                <span class="au-avatar" :class="r.userId ? 'm-sticker--a' : 'm-sticker--a2'">{{ r.userInitial }}</span>
+                <span class="au-avatar" :class="`m-sticker--${r.userTone}`">{{ r.userInitial }}</span>
                 <span class="au-user__name">{{ r.userName }}</span>
               </span>
             </td>
@@ -138,6 +174,7 @@
                 <component :is="menuStore.iconComponents[r.forwarded ? 'HOutline:ArrowsRightLeftIcon' : 'HOutline:ServerStackIcon']" />
                 {{ r.nodeLabel }}
               </span>
+              <div v-if="r.forwarded" class="au-node__line">{{ r.fwdLine }}</div>
             </td>
             <td>
               <StatusPill :variant="r.success ? 'success' : 'error'" :label="r.success ? t('system.common.success') : t('system.common.failed')" />
@@ -151,7 +188,7 @@
       </table>
     </div>
 
-    <!-- 手机：按天分组卡片 -->
+    <!-- 手机：按天分组时间线 -->
     <template v-else>
       <div v-if="loading && !logs.length" class="au-cards">
         <div v-for="i in 4" :key="i" class="au-skeleton au-skeleton--card" />
@@ -164,66 +201,93 @@
       />
       <div v-else class="au-cards">
         <section v-for="g in groups" :key="g.key" class="au-cards__group">
-          <h3 class="au-cards__day">{{ g.label }} <span class="m-num">{{ t('system.audit.groupCount', { n: g.rows.length }) }}</span></h3>
-          <button v-for="r in g.rows" :key="r.key" type="button" class="au-card" @click="openDetail(r)">
-            <span class="m-sticker au-card__icon" :class="`m-sticker--${r.module.tone}`">
-              <component :is="menuStore.iconComponents[r.module.icon]" />
-            </span>
-            <span class="au-card__main">
-              <span class="au-card__line">
-                <b class="au-card__title">{{ r.action }}</b>
-                <StatusPill :variant="r.success ? 'success' : 'error'" :label="r.success ? t('system.common.success') : t('system.common.failed')" />
-              </span>
-              <span class="au-card__target m-mono">{{ r.target }}</span>
-              <span class="au-card__meta">
-                <span class="m-num">{{ r.tm }}</span>
-                <span>{{ r.userName }}</span>
-                <span class="au-node au-node--sm" :class="{ 'is-fwd': r.forwarded }">{{ r.nodeLabel }}</span>
-              </span>
-            </span>
-          </button>
+          <h3 class="au-cards__day">{{ g.label }} · <span class="m-num">{{ t('system.audit.groupCount', { n: g.rows.length }) }}</span></h3>
+          <ol class="au-tl">
+            <li v-for="r in g.rows" :key="r.key" class="au-tl__item">
+              <span class="au-tl__dot" :class="r.success ? 'is-ok' : 'is-bad'" aria-hidden="true" />
+              <button
+                type="button"
+                class="au-ent"
+                :class="{ 'is-on': current?.key === r.key }"
+                :aria-label="`${r.action} ${r.target}`"
+                @click="openDetail(r)"
+              >
+                <span class="au-ent__line">
+                  <b class="au-ent__title">{{ r.action }}</b>
+                  <StatusPill :variant="r.success ? 'success' : 'error'" :label="r.success ? t('system.common.success') : t('system.common.failed')" />
+                </span>
+                <span class="au-ent__target m-mono">{{ r.target }}</span>
+                <span class="au-ent__meta">
+                  <span class="au-avatar au-avatar--sm" :class="`m-sticker--${r.userTone}`">{{ r.userInitial }}</span>
+                  <b>{{ r.userName }}</b>
+                  <span class="au-mod au-mod--sm" :class="`m-sticker--${r.module.tone}`">{{ t(r.module.labelKey) }}</span>
+                  <span class="au-ent__tm m-num">{{ r.hm }}</span>
+                </span>
+                <span v-if="r.forwarded" class="au-ent__fwd">
+                  <component :is="menuStore.iconComponents['HOutline:ArrowsRightLeftIcon']" />
+                  {{ r.fwdLine }}
+                </span>
+              </button>
+            </li>
+          </ol>
         </section>
+        <div ref="moreRef" class="au-more">
+          {{ loadingMore ? t('systemV2.audit.loadingMore') : hasMore ? t('systemV2.audit.loadMore') : t('systemV2.audit.noMore') }}
+        </div>
       </div>
     </template>
 
     <Pagination
+      v-if="!menuStore.isMobile"
       v-model:page="pagination.page"
       v-model:page-size="pagination.pageSize"
       :total="pagination.total"
       @change="getList"
     />
 
-    <!-- 详情抽屉 -->
+    <!-- 详情：PC 右侧抽屉 / 手机底部面板 -->
     <Teleport to="body">
-      <Transition name="au-drawer">
-        <div v-if="current" class="au-drawer" @keydown.esc="current = null">
+      <Transition :name="menuStore.isMobile ? 'au-sheet' : 'au-drawer'">
+        <div v-if="current" class="au-drawer" :class="{ 'is-sheet': menuStore.isMobile }">
           <button type="button" class="au-drawer__mask" :aria-label="t('system.common.close')" @click="current = null" />
-          <aside class="au-drawer__panel" role="dialog" :aria-label="t('system.operation.detailTitle')">
+          <aside class="au-drawer__panel" role="dialog" aria-modal="true" :aria-label="t('system.operation.detailTitle')">
+            <span v-if="menuStore.isMobile" class="au-sheet__handle" aria-hidden="true" />
             <header class="au-drawer__head">
               <span class="m-sticker au-drawer__icon" :class="`m-sticker--${current.module.tone}`">
                 <component :is="menuStore.iconComponents[current.module.icon]" />
               </span>
               <div class="au-drawer__title">
-                <span class="au-drawer__kicker">{{ t(current.module.labelKey) }} · {{ t('system.operation.detailTitle') }}</span>
+                <span class="au-drawer__kicker">
+                  {{ t(current.module.labelKey) }} ·
+                  {{ menuStore.isMobile ? current.fullTime : t('system.operation.detailTitle') }}
+                </span>
                 <h2>{{ current.action }}</h2>
                 <span class="m-mono au-drawer__target">{{ current.target }}</span>
               </div>
-              <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" @click="current = null" />
+              <StatusPill
+                v-if="menuStore.isMobile"
+                :variant="current.success ? 'success' : 'error'"
+                :label="current.success ? t('system.common.success') : t('system.common.failed')"
+              />
+              <AppIconButton v-else icon="HOutline:XMarkIcon" :label="t('system.common.close')" @click="current = null" />
             </header>
 
-            <div class="au-result" :class="current.success ? 'is-ok' : 'is-bad'">
+            <div v-if="!menuStore.isMobile" class="au-result" :class="current.success ? 'is-ok' : 'is-bad'">
               <StatusPill :variant="current.success ? 'success' : 'error'" :label="current.success ? t('system.common.success') : t('system.common.failed')" />
               <span class="au-result__msg">{{ current.success ? t('system.audit.done') : current.error || t('system.audit.failedNoReason') }}</span>
               <span class="m-num au-result__dur">{{ fmtMs(current.durationMs) }}</span>
             </div>
+            <p v-else-if="!current.success" class="au-result au-result--line is-bad">
+              {{ current.error || t('system.audit.failedNoReason') }}
+            </p>
 
             <section v-if="current.forwarded" class="au-chain">
-              <h3 class="au-label">{{ t('system.audit.chain') }}</h3>
+              <h3 v-if="!menuStore.isMobile" class="au-label">{{ t('system.audit.chain') }}</h3>
               <div class="au-chain__row">
                 <div class="au-chain__box">
                   <span>{{ current.apiKey ? t('system.audit.remoteMaster') : t('system.audit.master') }}</span>
                   <b>{{ current.operator || current.userName }}</b>
-                  <span v-if="current.apiKey" class="m-mono">API Key · {{ current.apiKey }}</span>
+                  <span v-if="current.apiKey && !menuStore.isMobile" class="m-mono">API Key · {{ current.apiKey }}</span>
                 </div>
                 <span class="m-sticker m-sticker--a2 au-chain__arrow">
                   <component :is="menuStore.iconComponents['HOutline:ArrowRightIcon']" />
@@ -233,50 +297,133 @@
                   <b>{{ current.apiKey ? t('system.audit.thisNode') : current.node }}</b>
                 </div>
               </div>
+              <p v-if="!menuStore.isMobile" class="au-chain__hint">{{ current.chainHint }}</p>
             </section>
 
             <dl class="au-dl">
-              <div><dt>{{ t('system.audit.time') }}</dt><dd class="m-num">{{ current.fullTime }}</dd></div>
-              <div><dt>{{ t('system.operation.user') }}</dt><dd>{{ current.userName }}</dd></div>
-              <div><dt>{{ t('system.audit.sourceIp') }}</dt><dd class="m-mono">{{ current.ip || '—' }}</dd></div>
-              <div><dt>{{ t('system.audit.targetNode') }}</dt><dd>{{ current.nodeLabel }}</dd></div>
-              <div><dt>{{ t('system.operation.operationType') }}</dt><dd>{{ current.action }}</dd></div>
-              <div><dt>{{ t('system.operation.duration') }}</dt><dd class="m-num">{{ fmtMs(current.durationMs) }}</dd></div>
-              <div class="is-full"><dt>{{ t('system.audit.endpoint') }}</dt><dd class="m-mono">{{ current.method }} {{ current.path || '—' }}</dd></div>
-              <div class="is-full"><dt>{{ t('system.audit.client') }}</dt><dd class="m-mono">{{ current.userAgent || '—' }}</dd></div>
+              <template v-if="!menuStore.isMobile">
+                <div><dt>{{ t('system.audit.time') }}</dt><dd class="m-num">{{ current.fullTime }}</dd></div>
+                <div><dt>{{ t('system.operation.user') }}</dt><dd>{{ current.userName }}</dd></div>
+                <div><dt>{{ t('system.audit.sourceIp') }}</dt><dd class="m-mono">{{ current.ip || '—' }}</dd></div>
+                <div><dt>{{ t('systemV2.audit.location') }}</dt><dd>{{ current.scopeLabel }}</dd></div>
+                <div><dt>{{ t('system.audit.targetNode') }}</dt><dd>{{ current.nodeLabel }}</dd></div>
+                <div><dt>{{ t('systemV2.audit.requestId') }}</dt><dd class="m-mono">{{ current.rid }}</dd></div>
+                <div class="is-full"><dt>{{ t('system.audit.endpoint') }}</dt><dd class="m-mono">{{ current.method }} {{ current.path || '—' }}</dd></div>
+                <div class="is-full"><dt>{{ t('system.audit.client') }}</dt><dd class="m-mono is-clip">{{ current.userAgent || '—' }}</dd></div>
+              </template>
+              <template v-else>
+                <div><dt>{{ t('system.operation.user') }}</dt><dd>{{ current.userName }}</dd></div>
+                <div><dt>{{ t('system.audit.sourceIp') }}</dt><dd class="m-mono">{{ current.ip || '—' }}</dd></div>
+                <div><dt>{{ t('system.audit.targetNode') }}</dt><dd>{{ current.nodeLabel }}</dd></div>
+                <div><dt>{{ t('system.operation.duration') }}</dt><dd class="m-num">{{ fmtMs(current.durationMs) }}</dd></div>
+                <div><dt>{{ t('systemV2.audit.location') }}</dt><dd>{{ current.scopeLabel }}</dd></div>
+                <div><dt>{{ t('systemV2.audit.requestId') }}</dt><dd class="m-mono">{{ current.rid }}</dd></div>
+              </template>
             </dl>
 
             <section class="au-json">
               <div class="au-json__head">
-                <h3 class="au-label">{{ t('system.audit.request') }}</h3>
-                <span v-if="current.method" class="au-tag m-mono">{{ current.method }}</span>
-                <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('system.audit.copyRequest')" :box="36" @click="copyText(current.requestJson)" />
+                <h3 class="au-label">{{ t('systemV2.audit.requestDetail') }}</h3>
+                <span v-if="current.method" class="au-tag m-mono">
+                  {{ current.method }}<template v-if="menuStore.isMobile"> · HTTP {{ current.statusCode }}</template>
+                </span>
+                <AppIconButton
+                  v-if="!menuStore.isMobile"
+                  icon="HOutline:ClipboardDocumentIcon"
+                  :label="t('system.audit.copyRequest')"
+                  :box="36"
+                  @click="copyText(current.requestJson)"
+                />
               </div>
               <pre class="m-mono">{{ current.requestJson }}</pre>
             </section>
 
+            <section v-if="!menuStore.isMobile" class="au-json">
+              <div class="au-json__head">
+                <h3 class="au-label">{{ t('systemV2.audit.response') }}</h3>
+                <span class="au-tag m-mono" :class="current.success ? 'is-ok' : 'is-bad'">HTTP {{ current.statusCode }}</span>
+              </div>
+              <pre class="m-mono">{{ current.responseJson }}</pre>
+            </section>
+
             <footer class="au-drawer__foot">
-              <UButton color="neutral" variant="soft" icon="i-lucide-copy" block @click="copyText(current.rawJson)">
-                {{ t('system.audit.copyAll') }}
-              </UButton>
-              <UButton v-if="current.userId" color="neutral" variant="outline" icon="i-lucide-user" block @click="filterUser(current.userId)">
-                {{ t('system.audit.userRecords') }}
-              </UButton>
+              <template v-if="!menuStore.isMobile">
+                <UButton color="neutral" variant="soft" icon="i-lucide-copy" block @click="copyText(current.rawJson)">
+                  {{ t('systemV2.audit.copyAll') }}
+                </UButton>
+                <UButton v-if="current.userId" color="neutral" variant="outline" icon="i-lucide-user" block @click="filterUser(current.userId)">
+                  {{ t('systemV2.audit.userRecords') }}
+                </UButton>
+              </template>
+              <template v-else>
+                <UButton color="neutral" variant="soft" icon="i-lucide-copy" block @click="copyText(current.rawJson)">
+                  {{ t('systemV2.audit.copyJson') }}
+                </UButton>
+                <UButton color="neutral" variant="outline" block @click="current = null">
+                  {{ t('systemV2.audit.close') }}
+                </UButton>
+                <UButton
+                  v-if="current.userId"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-user"
+                  block
+                  class="au-drawer__wide"
+                  @click="filterUser(current.userId)"
+                >
+                  {{ t('systemV2.audit.userRecords') }}
+                </UButton>
+              </template>
             </footer>
           </aside>
         </div>
       </Transition>
     </Teleport>
+
+    <!-- 保留策略 -->
+    <FormDialog
+      v-model="retentionOpen"
+      :title="t('systemV2.audit.retentionTitle')"
+      :width="460"
+      :loading="retentionSaving"
+      @confirm="saveRetention"
+    >
+      <div class="au-ret">
+        <p class="au-ret__desc">{{ t('systemV2.audit.retentionDesc') }}</p>
+        <div class="au-ret__opts" role="radiogroup" :aria-label="t('systemV2.audit.retention')">
+          <button
+            v-for="o in retentionChoices"
+            :key="o.value"
+            type="button"
+            role="radio"
+            class="au-ret__opt"
+            :class="{ 'is-on': retentionPick === o.value }"
+            :aria-checked="retentionPick === o.value"
+            @click="retentionPick = o.value"
+          >
+            {{ o.label }}
+          </button>
+        </div>
+        <label v-if="retentionPick === 'custom'" class="app-field au-ret__custom">
+          <span class="app-label">{{ t('systemV2.audit.retentionCustom') }}</span>
+          <input v-model.number="retentionCustom" type="number" min="7" max="3650" class="app-input m-num" :class="{ 'is-error': retentionError }" />
+          <span class="au-ret__hint" :class="{ 'is-bad': retentionError }">
+            {{ retentionError ? t('systemV2.audit.retentionInvalid') : t('systemV2.audit.retentionCustomHint') }}
+          </span>
+        </label>
+      </div>
+    </FormDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
-import { useClipboard } from '@vueuse/core'
-import { listOperationLogs, getOperationLogStats } from '@/api/system'
+import { useClipboard, useIntersectionObserver } from '@vueuse/core'
+import { listOperationLogs, getOperationLogStats, updateOperationLogRetention } from '@/api/system'
 import { listTasks } from '@/api/task'
 import { userPage } from '@/api/user'
+import { showRequestError } from '@/utils/request'
 import { PERM } from '@/config/permission'
 import { OperationType, type OperationLogInfo } from '@/types/v1/system'
 import type { UserInfo } from '@/types/v1/user'
@@ -290,16 +437,18 @@ const menuStore = useMenuStore()
 const { t, locale } = useI18n()
 const { copy } = useClipboard()
 
-type RangeKey = 'today' | '7d' | '30d' | 'all'
+type RangeKey = 'today' | '7d' | '30d' | 'all' | 'custom'
 type ResultKey = '' | 'ok' | 'fail'
 
 const loading = ref(false)
+const loadingMore = ref(false)
 const exporting = ref(false)
 const logs = ref<OperationLogInfo[]>([])
 const users = ref<UserInfo[]>([])
 const counts = ref({ success: 0, failed: 0 })
-const stats = ref({ todayTotal: 0, todayFailed: 0, todayActiveUsers: 0, todayForwarded: 0, total: 0, earliest: '' })
+const stats = ref({ todayTotal: 0, todayFailed: 0, todayActiveUsers: 0, todayForwarded: 0, total: 0, retentionDays: 0 })
 const taskTotal = ref<number | null>(null)
+const canEdit = computed(() => menuStore.hasButtonPermission(PERM.SYSTEM_CONFIG_EDIT))
 
 const emptyQuery = () => ({
   userId: '' as string,
@@ -308,9 +457,12 @@ const emptyQuery = () => ({
   result: '' as ResultKey,
   keywords: '',
   range: '7d' as RangeKey,
+  from: '',
+  to: '',
 })
 const queryForm = ref(emptyQuery())
 const pagination = ref({ page: 1, pageSize: 20, total: 0 })
+const hasMore = computed(() => logs.value.length < pagination.value.total)
 
 const hasFilters = computed(() => {
   const q = queryForm.value
@@ -331,18 +483,22 @@ const userDisplay = (id?: string) => {
   return u ? u.name || u.username : id
 }
 const userOptions = computed(() => [
-  { label: t('system.operation.allUsers'), value: '' },
+  { label: t('systemV2.audit.allUsers'), value: '' },
   ...users.value.map((u) => ({ label: `${u.username}${u.name ? ` (${u.name})` : ''}`, value: u.userId })),
 ])
 
+const RANGE_KEYS: Record<Exclude<RangeKey, 'custom'>, string> = {
+  today: 'system.audit.rangeToday',
+  '7d': 'system.audit.range7d',
+  '30d': 'system.audit.range30d',
+  all: 'system.audit.rangeAll',
+}
 const rangeOptions = computed<{ label: string; value: RangeKey }[]>(() => [
-  { label: t('system.audit.rangeToday'), value: 'today' },
-  { label: t('system.audit.range7d'), value: '7d' },
-  { label: t('system.audit.range30d'), value: '30d' },
-  { label: t('system.audit.rangeAll'), value: 'all' },
+  ...(Object.keys(RANGE_KEYS) as Exclude<RangeKey, 'custom'>[]).map((k) => ({ label: t(RANGE_KEYS[k]), value: k })),
+  { label: t('systemV2.audit.rangeCustom'), value: 'custom' as const },
 ])
 const moduleOptions = computed(() => [
-  { label: t('system.audit.allModules'), value: '' },
+  { label: t('systemV2.audit.allModules'), value: '' },
   ...OPERATION_MODULES.map((m) => ({ label: t(m.labelKey), value: m.key })),
 ])
 const getOperationTypeLabel = (operationType: string) => {
@@ -350,7 +506,7 @@ const getOperationTypeLabel = (operationType: string) => {
   return labelKey ? t(labelKey) : operationType
 }
 const typeSelectOptions = computed(() => [
-  { label: t('system.operation.allTypes'), value: '' },
+  { label: t('systemV2.audit.allTypes'), value: '' },
   ...Object.entries(operationTypeLabelKeys)
     .filter(([value]) => value !== OperationType.UNRECOGNIZED)
     .filter(([value]) => !queryForm.value.module || moduleOf(value).key === queryForm.value.module)
@@ -369,6 +525,23 @@ const statCards = computed(() => [
   { key: 'fwd', label: t('system.audit.statForwarded'), value: stats.value.todayForwarded, icon: 'HOutline:ArrowsRightLeftIcon', tone: 'solid-a2', rot: '4deg' },
 ])
 
+// —— 页头计数说明 ——
+const summaryText = computed(() => {
+  const total = fmtNum(pagination.value.total)
+  const q = queryForm.value
+  if (q.range === 'all') return t('systemV2.audit.summaryAll', { total })
+  const range =
+    q.range === 'custom'
+      ? `${q.from || '…'} ${t('systemV2.audit.rangeTo')} ${q.to || '…'} `
+      : t(RANGE_KEYS[q.range])
+  return t('systemV2.audit.summaryRange', { range, total })
+})
+const retentionText = computed(() =>
+  stats.value.retentionDays > 0
+    ? t('systemV2.audit.retentionDays', { days: stats.value.retentionDays })
+    : t('systemV2.audit.retentionForever'),
+)
+
 // —— 行视图 ——
 interface DetailJson {
   method?: string
@@ -377,6 +550,7 @@ interface DetailJson {
   request?: unknown
   success?: boolean
   error?: string
+  code?: number
   duration_ms?: number
   node?: string
   api_key?: string
@@ -386,26 +560,34 @@ interface LogRow {
   key: string
   day: string
   tm: string
+  hm: string
   fullTime: string
   userId: string
   userName: string
   userInitial: string
+  userTone: string
   module: OperationModule
   action: string
   target: string
   node: string
   nodeLabel: string
   forwarded: boolean
+  fwdLine: string
+  chainHint: string
   apiKey: string
   operator: string
   success: boolean
   error: string
   ip: string
+  scopeLabel: string
+  rid: string
   userAgent: string
   method: string
   path: string
+  statusCode: number
   durationMs: number
   requestJson: string
+  responseJson: string
   rawJson: string
 }
 
@@ -418,7 +600,7 @@ const parseDetail = (raw: string): DetailJson => {
     return {}
   }
 }
-const TARGET_KEYS = ['name', 'title', 'username', 'image', 'path', 'paths', 'host', 'email', 'id', 'ids']
+const TARGET_KEYS = ['name', 'title', 'username', 'reference', 'image', 'path', 'paths', 'host', 'email', 'id', 'ids']
 const pickTarget = (req: unknown, fallback: string) => {
   if (req && typeof req === 'object') {
     const obj = req as Record<string, unknown>
@@ -431,6 +613,7 @@ const pickTarget = (req: unknown, fallback: string) => {
   }
   return fallback
 }
+const SCOPES = ['loopback', 'lan', 'public']
 
 const toRow = (log: OperationLogInfo, idx: number): LogRow => {
   const d = parseDetail(log.detail)
@@ -441,30 +624,46 @@ const toRow = (log: OperationLogInfo, idx: number): LogRow => {
   const node = d.node || ''
   const forwarded = !!(node || d.api_key)
   const path = log.path || d.path || ''
+  const nodeLabel = d.api_key ? t('system.audit.fromMaster') : node || t('system.audit.local')
+  const statusCode = Number(log.statusCode) || (log.success ? 200 : 500)
+  const chainUser = operator || userName
+  const response: Record<string, unknown> = { code: statusCode, success: log.success }
+  if (d.error) response.error = d.error
+  response.duration_ms = Number(log.durationMs) || 0
   return {
-    key: `${time?.valueOf() ?? 0}-${idx}`,
+    key: log.id ? String(log.id) : `${time?.valueOf() ?? 0}-${idx}`,
     day: time ? time.format('YYYY-MM-DD') : '',
     tm: time ? time.format('HH:mm:ss') : '—',
+    hm: time ? time.format('HH:mm') : '—',
     fullTime: time ? time.format('YYYY-MM-DD HH:mm:ss') : '—',
     userId,
     userName,
-    userInitial: [...userName][0]?.toUpperCase() ?? '?',
+    userInitial: userId || operator ? ([...userName][0]?.toUpperCase() ?? '?') : '?',
+    userTone: userId ? 'a' : d.api_key ? 'ok' : 'ink',
     module: moduleOf(String(log.operationType)),
     action: getOperationTypeLabel(String(log.operationType)),
     target: pickTarget(d.request, path || '—'),
     node,
-    nodeLabel: d.api_key ? t('system.audit.fromMaster') : node || t('system.audit.local'),
+    nodeLabel,
     forwarded,
+    fwdLine: t('systemV2.audit.fwdLine', { user: chainUser, node: d.api_key ? t('system.audit.thisNode') : node }),
+    chainHint: d.api_key
+      ? t('systemV2.audit.chainHintRemote', { user: chainUser, key: d.api_key })
+      : t('systemV2.audit.chainHint', { user: chainUser, node }),
     apiKey: d.api_key || '',
     operator,
     success: log.success,
     error: d.error || '',
     ip: log.ip,
+    scopeLabel: SCOPES.includes(log.ipScope) ? t(`systemV2.audit.scopes.${log.ipScope}`) : '—',
+    rid: log.id ? `#${log.id}` : '—',
     userAgent: log.userAgent,
     method: d.method || '',
     path,
+    statusCode,
     durationMs: Number(log.durationMs) || 0,
     requestJson: JSON.stringify(d.request ?? {}, null, 2),
+    responseJson: JSON.stringify(response, null, 2),
     rawJson: (() => {
       try {
         return JSON.stringify(JSON.parse(log.detail), null, 2)
@@ -499,7 +698,7 @@ const groups = computed(() => {
 
 const fmtMs = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(ms >= 10000 ? 0 : 1)} s` : `${ms} ms`)
 
-// —— 详情抽屉 ——
+// —— 详情 ——
 const current = ref<LogRow | null>(null)
 const openDetail = (r: LogRow) => {
   current.value = r
@@ -519,11 +718,24 @@ const filterUser = (userId: string) => {
 }
 
 // —— 查询 ——
-const rangeStart = (range: RangeKey) => {
-  if (range === 'today') return dayjs().startOf('day').toDate()
-  if (range === '7d') return dayjs().startOf('day').subtract(6, 'day').toDate()
-  if (range === '30d') return dayjs().startOf('day').subtract(29, 'day').toDate()
-  return undefined
+const rangeBounds = (): { startTime?: Date; endTime?: Date } => {
+  const q = queryForm.value
+  const today = dayjs().startOf('day')
+  switch (q.range) {
+    case 'today':
+      return { startTime: today.toDate() }
+    case '7d':
+      return { startTime: today.subtract(6, 'day').toDate() }
+    case '30d':
+      return { startTime: today.subtract(29, 'day').toDate() }
+    case 'custom':
+      return {
+        startTime: q.from ? dayjs(q.from).startOf('day').toDate() : undefined,
+        endTime: q.to ? dayjs(q.to).endOf('day').toDate() : undefined,
+      }
+    default:
+      return {}
+  }
 }
 const buildQuery = (page: number, pageSize: number) => {
   const q = queryForm.value
@@ -535,9 +747,8 @@ const buildQuery = (page: number, pageSize: number) => {
     keywords: q.keywords.trim() || undefined,
     page,
     pageSize,
-    startTime: rangeStart(q.range),
-    endTime: undefined,
-  }
+    ...rangeBounds(),
+  } as Parameters<typeof listOperationLogs>[0]
 }
 
 const loadUsers = async () => {
@@ -565,6 +776,27 @@ const getList = async () => {
   }
 }
 
+// 手机：上拉加载下一页并追加
+const loadMore = async () => {
+  if (loading.value || loadingMore.value || !hasMore.value) return
+  loadingMore.value = true
+  try {
+    const next = pagination.value.page + 1
+    const { data } = await listOperationLogs(buildQuery(next, pagination.value.pageSize))
+    logs.value = [...logs.value, ...(data?.logs || [])]
+    pagination.value.page = next
+    pagination.value.total = Number(data?.total || pagination.value.total)
+  } catch {
+    /* 下次滚动再试 */
+  } finally {
+    loadingMore.value = false
+  }
+}
+const moreRef = ref<HTMLElement | null>(null)
+useIntersectionObserver(moreRef, ([entry]) => {
+  if (entry?.isIntersecting && menuStore.isMobile) void loadMore()
+})
+
 const loadStats = async () => {
   try {
     const { data } = await getOperationLogStats()
@@ -574,7 +806,7 @@ const loadStats = async () => {
       todayActiveUsers: Number(data?.todayActiveUsers) || 0,
       todayForwarded: Number(data?.todayForwarded) || 0,
       total: Number(data?.total) || 0,
-      earliest: data?.earliestTime ? dayjs(data.earliestTime).format('YYYY-MM-DD') : '',
+      retentionDays: Number(data?.retentionDays) || 0,
     }
   } catch {
     /* 统计失败不影响列表 */
@@ -595,6 +827,14 @@ const search = () => {
   pagination.value.page = 1
   getList()
 }
+const onRangeChange = () => {
+  const q = queryForm.value
+  if (q.range === 'custom' && !q.from && !q.to) {
+    q.from = dayjs().subtract(6, 'day').format('YYYY-MM-DD')
+    q.to = dayjs().format('YYYY-MM-DD')
+  }
+  search()
+}
 const onModuleChange = () => {
   if (queryForm.value.operationType && moduleOf(queryForm.value.operationType).key !== queryForm.value.module) {
     queryForm.value.operationType = ''
@@ -604,6 +844,48 @@ const onModuleChange = () => {
 const reset = () => {
   queryForm.value = emptyQuery()
   search()
+}
+
+// —— 保留策略 ——
+const RETENTION_PRESETS = [30, 90, 180, 365]
+const retentionOpen = ref(false)
+const retentionSaving = ref(false)
+const retentionPick = ref<string>('180')
+const retentionCustom = ref<number>(180)
+const retentionChoices = computed(() => [
+  ...RETENTION_PRESETS.map((n) => ({ value: String(n), label: t('systemV2.audit.retentionDaysOpt', { n }) })),
+  { value: '0', label: t('systemV2.audit.retentionForeverOpt') },
+  { value: 'custom', label: t('systemV2.audit.retentionCustom') },
+])
+const retentionError = computed(
+  () => retentionPick.value === 'custom' && !(Number.isInteger(retentionCustom.value) && retentionCustom.value >= 7 && retentionCustom.value <= 3650),
+)
+const openRetention = () => {
+  const days = stats.value.retentionDays
+  if (days === 0 || RETENTION_PRESETS.includes(days)) {
+    retentionPick.value = String(days)
+  } else {
+    retentionPick.value = 'custom'
+  }
+  retentionCustom.value = days || 180
+  retentionOpen.value = true
+}
+const saveRetention = async () => {
+  if (retentionError.value) return
+  const days = retentionPick.value === 'custom' ? retentionCustom.value : Number(retentionPick.value)
+  retentionSaving.value = true
+  try {
+    const { data } = await updateOperationLogRetention({ retentionDays: days })
+    const deleted = Number(data?.deleted) || 0
+    feedback.success(deleted ? t('systemV2.audit.retentionSavedPurged', { n: fmtNum(deleted) }) : t('systemV2.audit.retentionSaved'))
+    retentionOpen.value = false
+    loadStats()
+    if (deleted) search()
+  } catch (error) {
+    showRequestError(error)
+  } finally {
+    retentionSaving.value = false
+  }
 }
 
 // 导出：按当前筛选逐页拉取（上限 5000 条），生成 CSV
@@ -627,10 +909,13 @@ const exportCsv = async () => {
       t('system.audit.target'),
       t('system.audit.targetNode'),
       t('system.operation.result'),
+      'HTTP',
       'IP',
+      t('systemV2.audit.location'),
       t('system.operation.duration'),
       t('system.audit.endpoint'),
       t('system.audit.client'),
+      t('systemV2.audit.requestId'),
     ]
     const lines = all.map(toRow).map((r) =>
       [
@@ -641,10 +926,13 @@ const exportCsv = async () => {
         r.target,
         r.nodeLabel,
         r.success ? t('system.common.success') : t('system.common.failed'),
+        String(r.statusCode),
         r.ip,
+        r.scopeLabel,
         String(r.durationMs),
         `${r.method} ${r.path}`.trim(),
         r.userAgent,
+        r.rid,
       ]
         .map(csvCell)
         .join(','),
@@ -741,23 +1029,78 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   color: var(--el-text-color-primary);
 }
 
-/* 筛选 */
+/* 筛选：时间/模块/用户/类型 放在结果 chips 之前 */
+.au-toolbar :deep(.ltb__chips) {
+  order: 1;
+}
+.au-toolbar :deep(.ltb__spacer) {
+  order: 2;
+}
+.au-toolbar :deep(.ltb__search) {
+  order: 3;
+  flex-basis: 240px;
+}
 .au-filters {
+  order: 0;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
-}
-.au-filters__sel {
-  flex: 0 0 150px;
   min-width: 0;
 }
-.au-filters__sel--range {
-  flex-basis: 140px;
+.au-filters__sep {
+  width: 1px;
+  height: 26px;
+  margin: 0 4px;
+  background: var(--el-border-color-light);
 }
-.au-filters__sel--wide {
-  flex-basis: 200px;
+.au-filter {
+  position: relative;
+  flex: none;
+  min-width: 0;
 }
-.au-filters__sel :deep(button) {
+.au-filter :deep(.app-sel__trigger) {
+  min-height: 40px;
+  padding-inline: 16px;
+  border-radius: var(--app-radius-pill);
+  border-width: 1.5px;
+  font-weight: 600;
+}
+.au-filter--range :deep(.app-sel__trigger) {
+  padding-left: 38px;
+  color: var(--el-text-color-primary);
+}
+.au-filter__icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  transform: translateY(-50%);
+  color: var(--el-text-color-primary);
+  pointer-events: none;
+}
+.au-date {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--app-radius-pill);
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.au-date:focus {
+  outline: none;
+  border-color: var(--m-p);
+}
+.au-date__to {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.au-reset {
   min-height: 40px;
   border-radius: var(--app-radius-pill);
 }
@@ -776,24 +1119,26 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-table table {
   width: 100%;
-  min-width: 980px;
+  min-width: 1040px;
   border-collapse: separate;
   border-spacing: 0;
 }
 .au-table th {
-  padding: 12px 10px;
+  padding: 14px 12px;
   text-align: left;
   font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--el-text-color-secondary);
   border-bottom: 1px solid var(--el-border-color-lighter);
   white-space: nowrap;
 }
 .au-table td {
-  padding: 12px 10px;
+  padding: 11px 12px;
   vertical-align: middle;
   font-size: 0.875rem;
   color: var(--el-text-color-primary);
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .au-col-time {
   width: 96px;
@@ -803,7 +1148,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   position: relative;
 }
 .au-group td {
-  padding: 16px 10px 6px;
+  padding: 16px 12px 8px;
   font-size: 0.8125rem;
   font-weight: 800;
   color: var(--el-text-color-primary);
@@ -815,22 +1160,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-row {
   cursor: pointer;
-  transition: background 0.15s;
 }
-.au-row td {
-  border-top: 1px solid var(--el-border-color-lighter);
-}
-.au-row td:first-child {
-  border-radius: var(--app-radius-sm) 0 0 var(--app-radius-sm);
-}
-.au-row td:last-child {
-  border-radius: 0 var(--app-radius-sm) var(--app-radius-sm) 0;
-}
-.au-row:hover {
+.au-row:hover td {
   background: var(--el-fill-color-light);
 }
-.au-row.is-sel {
-  background: var(--m-pSoft);
+.au-row.is-sel td {
+  background: color-mix(in srgb, var(--m-pSoft) 70%, var(--el-bg-color));
+}
+.au-row.is-sel td:first-child {
+  box-shadow: inset 4px 0 0 var(--m-p);
 }
 .au-row:focus-visible {
   outline: 3px solid var(--m-a2);
@@ -855,20 +1193,25 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   font-size: 0.75rem;
   font-weight: 800;
 }
+.au-avatar--sm {
+  width: 20px;
+  height: 20px;
+  font-size: 0.625rem;
+}
 .au-user__name {
   font-weight: 700;
   white-space: nowrap;
-  max-width: 140px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .au-mod {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 28px;
+  gap: 5px;
+  height: 26px;
   padding: 0 10px;
-  border-radius: var(--app-radius-pill);
+  border-radius: 9px;
   font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
@@ -877,12 +1220,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   width: 14px;
   height: 14px;
 }
+.au-mod--sm {
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 7px;
+  font-size: 0.6875rem;
+}
 .m-sticker--ink {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
 }
 .au-act {
-  max-width: 300px;
+  max-width: 280px;
 }
 .au-act__title {
   font-weight: 800;
@@ -898,11 +1247,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 26px;
+  height: 24px;
   padding: 0 9px;
   border-radius: var(--app-radius-xs);
   background: var(--el-fill-color-light);
-  color: var(--el-text-color-regular);
+  color: var(--el-text-color-secondary);
   font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
@@ -915,9 +1264,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   background: var(--m-a2Soft);
   color: var(--m-ink);
 }
-.au-node--sm {
-  height: 22px;
-  padding: 0 7px;
+.au-node__line {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
 }
 .au-ip {
   font-size: 0.75rem;
@@ -932,7 +1283,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   animation: au-shimmer 1.4s ease-in-out infinite;
 }
 .au-skeleton--card {
-  height: 96px;
+  height: 110px;
   border-radius: var(--app-radius-lg);
 }
 @keyframes au-shimmer {
@@ -944,101 +1295,153 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   }
 }
 
-/* 手机卡片 */
+/* 手机时间线 */
 .au-cards {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 6px;
 }
 .au-cards__group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 .au-cards__day {
-  margin: 0;
+  margin: 6px 0 10px;
   font-size: 0.8125rem;
   font-weight: 800;
-  color: var(--el-text-color-primary);
-}
-.au-cards__day span {
-  margin-left: 4px;
-  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--el-text-color-secondary);
 }
-.au-card {
+.au-tl {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 12px;
-  width: 100%;
-  padding: 14px;
-  border-radius: var(--app-radius-lg);
-  border: 1px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
-  font: inherit;
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
 }
-.au-card__icon {
+.au-tl__item {
+  position: relative;
+  display: flex;
+  gap: 12px;
+}
+.au-tl__item::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: -12px;
+  width: 2px;
+  background: var(--el-border-color-light);
+}
+.au-tl__item:last-child::before {
+  bottom: 50%;
+}
+.au-tl__dot {
+  position: relative;
+  z-index: 1;
   flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
+  width: 16px;
+  height: 16px;
+  margin-top: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--el-bg-color-page, var(--m-bg));
 }
-.au-card__icon :deep(svg) {
-  width: 20px;
-  height: 20px;
+.au-tl__dot.is-ok {
+  background: var(--m-ok);
 }
-.au-card__main {
+.au-tl__dot.is-bad {
+  background: var(--m-bad);
+}
+.au-ent {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  font: inherit;
+  color: var(--el-text-color-primary);
+  text-align: left;
+  cursor: pointer;
 }
-.au-card__line {
+.au-ent.is-on {
+  border-color: var(--m-p);
+  box-shadow: 0 0 0 3px var(--m-pSoft);
+}
+.au-ent__line {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.au-card__title {
+.au-ent__title {
   flex: 1;
   min-width: 0;
   font-size: 0.9375rem;
   font-weight: 800;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-.au-card__target {
+.au-ent__target {
+  width: 100%;
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.au-card__meta {
+.au-ent__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 10px;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.au-ent__meta b {
+  color: var(--el-text-color-primary);
+  font-weight: 700;
+}
+.au-ent__tm {
+  margin-left: auto;
+  font-weight: 700;
+}
+.au-ent__fwd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--m-a2Soft);
+  color: var(--m-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.au-ent__fwd :deep(svg) {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.au-more {
+  padding: 4px 0 8px;
+  text-align: center;
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
 }
 
-/* 抽屉 */
+/* 详情：抽屉 / 底部面板 */
 .au-drawer {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: 2100;
 }
 .au-drawer__mask {
   position: absolute;
   inset: 0;
   border: 0;
   padding: 0;
-  background: color-mix(in srgb, var(--m-ink) 18%, transparent);
+  background: color-mix(in srgb, var(--m-ink) 16%, transparent);
   cursor: pointer;
 }
 .au-drawer__panel {
@@ -1056,10 +1459,31 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   padding: 24px;
   background: var(--el-bg-color);
   border-left: 1px solid var(--el-border-color-light);
-  box-shadow: var(--app-shadow-brand);
+  box-shadow: var(--app-shadow-lg);
 }
 .au-drawer__panel::-webkit-scrollbar {
   display: none;
+}
+.au-drawer.is-sheet .au-drawer__mask {
+  background: color-mix(in srgb, var(--m-ink) 50%, transparent);
+}
+.au-drawer.is-sheet .au-drawer__panel {
+  top: auto;
+  left: 0;
+  width: 100%;
+  max-height: 86%;
+  gap: 14px;
+  padding: 10px 16px calc(28px + env(safe-area-inset-bottom, 0px));
+  border-left: none;
+  border-radius: 30px 30px 0 0;
+}
+.au-sheet__handle {
+  align-self: center;
+  flex: none;
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--el-border-color-light);
 }
 .au-drawer__head {
   display: flex;
@@ -1096,6 +1520,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   font-weight: 800;
   color: var(--el-text-color-primary);
 }
+.is-sheet .au-drawer__title h2 {
+  font-size: 1.1875rem;
+}
 .au-drawer__target {
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
@@ -1105,6 +1532,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   display: flex;
   align-items: center;
   gap: 10px;
+  margin: 0;
   padding: 12px 14px;
   border-radius: var(--app-radius);
 }
@@ -1115,6 +1543,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .au-result.is-bad {
   background: var(--m-badSoft);
   color: var(--m-bad);
+}
+.au-result--line {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  word-break: break-word;
 }
 .au-result :deep(.status-pill) {
   background: var(--el-bg-color) !important;
@@ -1183,10 +1616,31 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   width: 16px;
   height: 16px;
 }
+.au-chain__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.is-sheet .au-chain {
+  padding: 12px;
+  border-radius: var(--app-radius);
+  background: var(--m-a2Soft);
+}
+.is-sheet .au-chain__box {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+.is-sheet .au-chain__box.is-node {
+  text-align: right;
+}
+.is-sheet .au-chain__arrow {
+  background: transparent;
+}
 .au-dl {
   margin: 0;
   padding: 14px 16px;
-  border-radius: var(--app-radius);
+  border-radius: 18px;
   background: var(--el-fill-color-light);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1210,6 +1664,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   color: var(--el-text-color-primary);
   word-break: break-all;
 }
+.au-dl dd.m-mono {
+  font-size: 0.75rem;
+}
+.au-dl dd.is-clip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 400;
+}
 .au-json {
   display: flex;
   flex-direction: column;
@@ -1227,11 +1690,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   display: inline-flex;
   align-items: center;
   height: 24px;
-  padding: 0 8px;
+  padding: 0 9px;
   border-radius: var(--app-radius-xs);
   background: var(--el-fill-color-light);
+  color: var(--el-text-color-secondary);
   font-size: 0.75rem;
   font-weight: 700;
+}
+.au-tag.is-ok {
+  background: var(--m-okSoft);
+  color: var(--m-ok);
+}
+.au-tag.is-bad {
+  background: var(--m-badSoft);
+  color: var(--m-bad);
 }
 .au-json pre {
   margin: 0;
@@ -1247,34 +1719,103 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   color: var(--el-text-color-primary);
   white-space: pre;
 }
+.is-sheet .au-json pre {
+  max-height: 210px;
+}
 .au-json pre::-webkit-scrollbar {
   display: none;
 }
 .au-drawer__foot {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: auto;
   padding-top: 4px;
 }
 .au-drawer__foot > * {
-  flex: 1;
+  flex: 1 1 0;
   min-height: 44px;
 }
+.is-sheet .au-drawer__foot > * {
+  min-height: 50px;
+}
+.au-drawer__wide {
+  flex-basis: 100%;
+}
 .au-drawer-enter-active,
-.au-drawer-leave-active {
+.au-drawer-leave-active,
+.au-sheet-enter-active,
+.au-sheet-leave-active {
   transition: opacity 0.2s;
 }
 .au-drawer-enter-active .au-drawer__panel,
-.au-drawer-leave-active .au-drawer__panel {
+.au-drawer-leave-active .au-drawer__panel,
+.au-sheet-enter-active .au-drawer__panel,
+.au-sheet-leave-active .au-drawer__panel {
   transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .au-drawer-enter-from,
-.au-drawer-leave-to {
+.au-drawer-leave-to,
+.au-sheet-enter-from,
+.au-sheet-leave-to {
   opacity: 0;
 }
 .au-drawer-enter-from .au-drawer__panel,
 .au-drawer-leave-to .au-drawer__panel {
   transform: translateX(24px);
+}
+.au-sheet-enter-from .au-drawer__panel,
+.au-sheet-leave-to .au-drawer__panel {
+  transform: translateY(32px);
+}
+
+/* 保留策略 */
+.au-ret {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.au-ret__desc {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--el-text-color-secondary);
+}
+.au-ret__opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.au-ret__opt {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--app-radius-pill);
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.au-ret__opt:hover {
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.au-ret__opt.is-on {
+  background: var(--m-ink);
+  border-color: var(--m-ink);
+  color: var(--m-bg);
+}
+.au-ret__custom .app-input {
+  max-width: 200px;
+}
+.au-ret__hint {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.au-ret__hint.is-bad {
+  color: var(--m-bad);
 }
 
 @media (width <= 1100px) {
@@ -1282,36 +1823,31 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (width <= 768px) {
-  .au-stats {
-    gap: 10px;
-  }
-  .au-stat {
-    padding: 12px;
-    gap: 10px;
-  }
-  .au-stat__icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 13px;
-  }
-  .au-stat__value {
-    font-size: 1.375rem;
-  }
+@media (width < 768px) {
   .au-filters {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .au-filters__sel--wide {
-    grid-column: 1 / -1;
-  }
-  .au-drawer__panel {
     width: 100%;
-    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
-  .au-drawer__foot {
-    flex-direction: column;
+  .au-filters::-webkit-scrollbar {
+    display: none;
+  }
+  .au-filter :deep(.app-sel__trigger) {
+    min-height: 44px;
+  }
+  .au-filters__sep {
+    display: none;
+  }
+  .au-toolbar :deep(.ltb__chips) {
+    order: 1;
+  }
+  .au-toolbar :deep(.ltb__search) {
+    order: 2;
+    flex-basis: 100%;
+  }
+  .au-ret__opt {
+    min-height: 44px;
   }
 }
 </style>

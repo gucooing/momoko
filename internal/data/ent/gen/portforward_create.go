@@ -140,6 +140,20 @@ func (_c *PortForwardCreate) SetNillableIsEnable(v *bool) *PortForwardCreate {
 	return _c
 }
 
+// SetAutoStart sets the "auto_start" field.
+func (_c *PortForwardCreate) SetAutoStart(v bool) *PortForwardCreate {
+	_c.mutation.SetAutoStart(v)
+	return _c
+}
+
+// SetNillableAutoStart sets the "auto_start" field if the given value is not nil.
+func (_c *PortForwardCreate) SetNillableAutoStart(v *bool) *PortForwardCreate {
+	if v != nil {
+		_c.SetAutoStart(*v)
+	}
+	return _c
+}
+
 // SetRemark sets the "remark" field.
 func (_c *PortForwardCreate) SetRemark(v string) *PortForwardCreate {
 	_c.mutation.SetRemark(v)
@@ -256,6 +270,10 @@ func (_c *PortForwardCreate) defaults() {
 		v := portforward.DefaultIsEnable
 		_c.mutation.SetIsEnable(v)
 	}
+	if _, ok := _c.mutation.AutoStart(); !ok {
+		v := portforward.DefaultAutoStart
+		_c.mutation.SetAutoStart(v)
+	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		v := portforward.DefaultRemark
 		_c.mutation.SetRemark(v)
@@ -316,6 +334,9 @@ func (_c *PortForwardCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsEnable(); !ok {
 		return &ValidationError{Name: "is_enable", err: errors.New(`gen: missing required field "PortForward.is_enable"`)}
+	}
+	if _, ok := _c.mutation.AutoStart(); !ok {
+		return &ValidationError{Name: "auto_start", err: errors.New(`gen: missing required field "PortForward.auto_start"`)}
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		return &ValidationError{Name: "remark", err: errors.New(`gen: missing required field "PortForward.remark"`)}
@@ -405,6 +426,10 @@ func (_c *PortForwardCreate) createSpec() (*PortForward, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsEnable(); ok {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
 		_node.IsEnable = value
+	}
+	if value, ok := _c.mutation.AutoStart(); ok {
+		_spec.SetField(portforward.FieldAutoStart, field.TypeBool, value)
+		_node.AutoStart = value
 	}
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(portforward.FieldRemark, field.TypeString, value)
@@ -604,6 +629,18 @@ func (u *PortForwardUpsert) SetIsEnable(v bool) *PortForwardUpsert {
 // UpdateIsEnable sets the "is_enable" field to the value that was provided on create.
 func (u *PortForwardUpsert) UpdateIsEnable() *PortForwardUpsert {
 	u.SetExcluded(portforward.FieldIsEnable)
+	return u
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (u *PortForwardUpsert) SetAutoStart(v bool) *PortForwardUpsert {
+	u.Set(portforward.FieldAutoStart, v)
+	return u
+}
+
+// UpdateAutoStart sets the "auto_start" field to the value that was provided on create.
+func (u *PortForwardUpsert) UpdateAutoStart() *PortForwardUpsert {
+	u.SetExcluded(portforward.FieldAutoStart)
 	return u
 }
 
@@ -843,6 +880,20 @@ func (u *PortForwardUpsertOne) SetIsEnable(v bool) *PortForwardUpsertOne {
 func (u *PortForwardUpsertOne) UpdateIsEnable() *PortForwardUpsertOne {
 	return u.Update(func(s *PortForwardUpsert) {
 		s.UpdateIsEnable()
+	})
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (u *PortForwardUpsertOne) SetAutoStart(v bool) *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.SetAutoStart(v)
+	})
+}
+
+// UpdateAutoStart sets the "auto_start" field to the value that was provided on create.
+func (u *PortForwardUpsertOne) UpdateAutoStart() *PortForwardUpsertOne {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.UpdateAutoStart()
 	})
 }
 
@@ -1257,6 +1308,20 @@ func (u *PortForwardUpsertBulk) SetIsEnable(v bool) *PortForwardUpsertBulk {
 func (u *PortForwardUpsertBulk) UpdateIsEnable() *PortForwardUpsertBulk {
 	return u.Update(func(s *PortForwardUpsert) {
 		s.UpdateIsEnable()
+	})
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (u *PortForwardUpsertBulk) SetAutoStart(v bool) *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.SetAutoStart(v)
+	})
+}
+
+// UpdateAutoStart sets the "auto_start" field to the value that was provided on create.
+func (u *PortForwardUpsertBulk) UpdateAutoStart() *PortForwardUpsertBulk {
+	return u.Update(func(s *PortForwardUpsert) {
+		s.UpdateAutoStart()
 	})
 }
 

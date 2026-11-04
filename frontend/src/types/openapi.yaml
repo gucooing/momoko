@@ -295,6 +295,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SendRegisterEmailCodeResponse'
+    /api/v1/docker/compose/parse:
+        post:
+            tags:
+                - DockerManager
+            description: 解析 docker compose 文件为容器创建参数（创建容器页「从 Compose 导入」）
+            operationId: DockerManager_ParseDockerCompose
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ParseDockerComposeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ParseDockerComposeResponse'
     /api/v1/docker/config:
         get:
             tags:
@@ -345,6 +364,27 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.TestDockerConfigResponse'
+    /api/v1/docker/container-usage:
+        get:
+            tags:
+                - DockerManager
+            description: 批量获取容器资源占用（CPU / 内存），列表页异步补齐
+            operationId: DockerManager_ListDockerContainerUsage
+            parameters:
+                - name: ids
+                  in: query
+                  description: 容器ID（只统计运行中的容器）
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListDockerContainerUsageResponse'
     /api/v1/docker/containers:
         get:
             tags:
@@ -352,24 +392,14 @@ paths:
             description: 获取容器列表
             operationId: DockerManager_ListDockerContainers
             parameters:
-                - name: all
-                  in: query
-                  description: 是否包含停止容器
-                  schema:
-                    type: boolean
                 - name: status
                   in: query
-                  description: 状态筛选
+                  description: 状态分类：running / stopped（正常退出或未启动）/ exited（异常退出）/ paused；空为全部
                   schema:
                     type: string
-                - name: name
+                - name: keyword
                   in: query
-                  description: 名称筛选
-                  schema:
-                    type: string
-                - name: image
-                  in: query
-                  description: 镜像筛选
+                  description: 关键字：匹配容器名、ID、镜像、端口
                   schema:
                     type: string
                 - name: network
@@ -1220,6 +1250,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListDockerTasksResponse'
+    /api/v1/docker/tasks/{id}/cancel:
+        post:
+            tags:
+                - DockerManager
+            description: 取消进行中的Docker任务（如拉取镜像）
+            operationId: DockerManager_CancelDockerTask
+            parameters:
+                - name: id
+                  in: path
+                  description: 任务ID
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CancelDockerTaskRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CancelDockerTaskResponse'
     /api/v1/file/share/create:
         post:
             tags:
@@ -1292,6 +1348,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListSharesResponse'
+    /api/v1/file/share/qrcode:
+        get:
+            tags:
+                - FileManager
+            description: 分享链接二维码(系统级)：返回公开链接的 PNG 二维码
+            operationId: FileManager_GetShareQRCode
+            parameters:
+                - name: id
+                  in: query
+                  description: 分享 id
+                  schema:
+                    type: string
+                - name: origin
+                  in: query
+                  description: 访问面板所用的站点源（如 https://momoko.example.com），用于拼出公开链接
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetShareQRCodeResponse'
     /api/v1/file/share/update:
         post:
             tags:
@@ -1813,7 +1893,7 @@ paths:
                     type: string
                 - name: keywords
                   in: query
-                  description: 实例名称/标签
+                  description: 名称/备注/标签/工作目录
                   schema:
                     type: string
                 - name: type
@@ -1852,6 +1932,32 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CreateInstanceResponse'
+    /api/v1/instance/events/{id}:
+        get:
+            tags:
+                - InstanceManager
+            description: 获取应用最近事件(操作记录 + 进程退出/自动重启)
+            operationId: InstanceManager_GetInstanceEvents
+            parameters:
+                - name: id
+                  in: path
+                  description: 实例id
+                  required: true
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  description: 条数(默认 10，最多 50)
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetInstanceEventsResponse'
     /api/v1/instance/file/compress/{id}:
         post:
             tags:
@@ -2375,6 +2481,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetInstanceStatsResponse'
+    /api/v1/instance/tags:
+        get:
+            tags:
+                - InstanceManager
+            description: 获取全部应用用过的标签(按使用次数排序)
+            operationId: InstanceManager_GetInstanceTags
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetInstanceTagsResponse'
     /api/v1/instance/type:
         get:
             tags:
@@ -2437,7 +2556,7 @@ paths:
         delete:
             tags:
                 - InstanceManager
-            description: 删除实例类型(仍有应用在用时拒绝)
+            description: 删除实例类型(在用的应用变为未分类)
             operationId: InstanceManager_DelInstanceType
             parameters:
                 - name: id
@@ -2686,7 +2805,7 @@ paths:
         post:
             tags:
                 - IQCheckManager
-            description: 立即对站点勾选的全部模型执行一轮检测
+            description: 立即执行一轮检测：把全部启用的提示词逐个发给站点勾选的每个模型
             operationId: IQCheckManager_TriggerIQCheck
             parameters:
                 - name: id
@@ -2937,7 +3056,7 @@ paths:
                     type: string
                 - name: keywords
                   in: query
-                  description: 名称关键字
+                  description: 关键字：名称 / 备注 / Key ID 前缀；查看全部用户时还匹配所属用户
                   schema:
                     type: string
                 - name: status
@@ -2946,6 +3065,16 @@ paths:
                   schema:
                     type: integer
                     format: enum
+                - name: allUsers
+                  in: query
+                  description: 查看全部用户的 API Key（需要 api_key:manage）；为 false 只列出自己的
+                  schema:
+                    type: boolean
+                - name: ownerId
+                  in: query
+                  description: 按所属用户筛选（仅 all_users 时有效）
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -4188,6 +4317,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListOperationLogsResponse'
+    /api/v1/system/operation-logs/retention:
+        put:
+            tags:
+                - System
+            description: 修改操作记录保留策略（保留天数，0=永久保留）；超期记录由「操作记录清理」定时任务删除
+            operationId: System_UpdateOperationLogRetention
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateOperationLogRetentionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateOperationLogRetentionResponse'
     /api/v1/system/operation-logs/stats:
         get:
             tags:
@@ -4287,106 +4435,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.CheckUpdateResponse'
-    /api/v1/task/cancel:
-        post:
-            tags:
-                - TaskManager
-            description: 取消运行中的任务
-            operationId: TaskManager_CancelTask
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.CancelTaskRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.CancelTaskResponse'
-    /api/v1/task/clear:
-        post:
-            tags:
-                - TaskManager
-            description: 批量清理终态任务行（成功/失败/已取消）
-            operationId: TaskManager_ClearTasks
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.ClearTasksRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ClearTasksResponse'
-    /api/v1/task/delete:
-        post:
-            tags:
-                - TaskManager
-            description: 删除终态任务行（清理列表）
-            operationId: TaskManager_DeleteTask
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.DeleteTaskRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.DeleteTaskResponse'
-    /api/v1/task/retry:
-        post:
-            tags:
-                - TaskManager
-            description: 重试失败的任务（按工厂重建重投）
-            operationId: TaskManager_RetryTask
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.RetryTaskRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.RetryTaskResponse'
-    /api/v1/task/{id}:
-        get:
-            tags:
-                - TaskManager
-            description: 获取单个任务
-            operationId: TaskManager_GetTask
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetTaskResponse'
     /api/v1/tasks:
         get:
             tags:
                 - TaskManager
-            description: 列出全部任务（跨用户 + 系统任务）
+            description: 列出任务（跨用户 + 系统任务），带状态统计与类型统计；列表项不带日志
             operationId: TaskManager_ListTasks
             parameters:
                 - name: page
@@ -4401,22 +4454,22 @@ paths:
                     type: string
                 - name: keywords
                   in: query
-                  description: 关键字（标题/类型）
+                  description: 关键字（标题/类型/关联对象）
                   schema:
                     type: string
                 - name: status
                   in: query
-                  description: 按状态过滤
+                  description: 按状态过滤（pending/running/success/failed/canceled）
                   schema:
                     type: string
                 - name: type
                   in: query
-                  description: 按类型过滤
+                  description: 按类型过滤（类型键前缀）
                   schema:
                     type: string
                 - name: kind
                   in: query
-                  description: 按种类过滤
+                  description: 按种类过滤（oneshot/scheduled/daemon）
                   schema:
                     type: string
             responses:
@@ -4426,6 +4479,101 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListTasksResponse'
+    /api/v1/tasks/cancel:
+        post:
+            tags:
+                - TaskManager
+            description: 取消若干运行中的任务（记录取消人）
+            operationId: TaskManager_CancelTasks
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TaskIdsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TaskBatchResponse'
+    /api/v1/tasks/clear:
+        post:
+            tags:
+                - TaskManager
+            description: 批量清理已结束的任务记录（成功/失败/已取消）
+            operationId: TaskManager_ClearTasks
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ClearTasksRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ClearTasksResponse'
+    /api/v1/tasks/delete:
+        post:
+            tags:
+                - TaskManager
+            description: 删除若干已结束的任务记录
+            operationId: TaskManager_DeleteTasks
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TaskIdsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TaskBatchResponse'
+    /api/v1/tasks/retry:
+        post:
+            tags:
+                - TaskManager
+            description: 重试若干已结束的任务（按工厂重建重投）
+            operationId: TaskManager_RetryTasks
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TaskIdsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TaskBatchResponse'
+    /api/v1/tasks/{id}:
+        get:
+            tags:
+                - TaskManager
+            description: 获取单个任务（带步骤与完整日志）
+            operationId: TaskManager_GetTask
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetTaskResponse'
     /api/v1/tunnel/frps-config:
         get:
             tags:
@@ -4786,6 +4934,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.MeInfoResponse'
+    /api/v1/user/me/appearance:
+        put:
+            tags:
+                - UserService
+            description: 保存自己的外观偏好（跟随账号同步到所有设备；不记操作日志）
+            operationId: UserService_UpdateMyAppearance
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateMyAppearanceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateMyAppearanceResponse'
     /api/v1/user/me/login-logs:
         get:
             tags:
@@ -4934,6 +5101,37 @@ components:
                     type: integer
                     description: 有效状态
                     format: enum
+                owner:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.APIKeyOwner'
+                    description: 所属用户
+                mine:
+                    type: boolean
+                    description: 是否当前用户自己的密钥（只有自己的密钥可以复制完整密钥与刷新）
+        v1.APIKeyOwner:
+            type: object
+            properties:
+                userId:
+                    type: string
+                    description: 用户 id
+                name:
+                    type: string
+                    description: 昵称
+                username:
+                    type: string
+                    description: 用户名
+                avatar:
+                    type: string
+                    description: 头像
+            description: API Key 所属用户
+        v1.APIKeyOwnerStat:
+            type: object
+            properties:
+                owner:
+                    $ref: '#/components/schemas/v1.APIKeyOwner'
+                count:
+                    type: string
+            description: 所属用户的密钥数
         v1.APIKeyPermissionSet:
             type: object
             properties:
@@ -4971,9 +5169,11 @@ components:
                     type: integer
                     description: status
                     format: enum
-                roleId:
-                    type: string
-                    description: 角色id
+                roleIds:
+                    type: array
+                    items:
+                        type: string
+                    description: 角色id（可多个；为空时分配内置「无权限」角色）
             description: 添加用户请求
         v1.AddUserResponse:
             type: object
@@ -5013,6 +5213,9 @@ components:
                 permissions:
                     type: string
                     description: 权限标识
+                hidden:
+                    type: boolean
+                    description: 在侧边栏隐藏
             description: 管理员添加权限菜单请求
         v1.AdminAddPermissionsResponse:
             type: object
@@ -5079,6 +5282,9 @@ components:
                 permissions:
                     type: string
                     description: 权限标识
+                hidden:
+                    type: boolean
+                    description: 在侧边栏隐藏
             description: 管理员编辑权限菜单请求
         v1.AdminEditPermissionsResponse:
             type: object
@@ -5255,9 +5461,10 @@ components:
                     type: integer
                     description: 新状态（不传则不修改）
                     format: enum
-                roleId:
-                    type: string
-                    description: 新角色id（不传则不修改）
+                roles:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserRoleIds'
+                    description: 新角色集合（不传则不修改；传入即替换为该集合，空集合表示只保留「无权限」）
             description: 批量修改用户请求
         v1.BatchUpdateUserResponse:
             type: object
@@ -5269,6 +5476,17 @@ components:
                     type: string
                     description: 跳过的用户数（内置账号）
             description: 批量修改用户响应
+        v1.CancelDockerTaskRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 任务ID
+            description: 取消Docker任务请求
+        v1.CancelDockerTaskResponse:
+            type: object
+            properties: {}
+            description: 取消Docker任务响应
         v1.CancelFileUploadRequest:
             type: object
             properties:
@@ -5280,14 +5498,6 @@ components:
             type: object
             properties: {}
             description: 取消文件上传响应
-        v1.CancelTaskRequest:
-            type: object
-            properties:
-                id:
-                    type: string
-        v1.CancelTaskResponse:
-            type: object
-            properties: {}
         v1.CheckUpdateResponse:
             type: object
             properties:
@@ -5561,8 +5771,12 @@ components:
             properties:
                 id:
                     type: string
-                    description: 容器ID
-            description: 创建容器响应
+                    description: 容器ID（直接创建时）
+                task:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerTaskInfo'
+                    description: 拉取镜像并创建容器的任务（本地没有镜像时）
+            description: 创建容器响应：本地已有镜像时直接创建并返回容器ID；否则返回「拉取并创建」任务
         v1.CreateDockerNetworkRequest:
             type: object
             properties:
@@ -5586,7 +5800,7 @@ components:
                     description: 展示名称
                 type:
                     type: string
-                    description: 类型 oss/ftp/webdav
+                    description: 类型 local/oss/ftp/webdav
                 enabled:
                     type: boolean
                     description: 是否启用
@@ -5637,6 +5851,13 @@ components:
                     type: integer
                     description: 排序
                     format: int32
+                category:
+                    type: integer
+                    description: 分类
+                    format: enum
+                grading:
+                    type: string
+                    description: 评分方式说明，最多 64 个字符
             description: 创建提示词请求
         v1.CreateIQCheckPromptResponse:
             type: object
@@ -5738,8 +5959,8 @@ components:
                 env:
                     type: array
                     items:
-                        type: string
-                    description: 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
+                        $ref: '#/components/schemas/v1.InstanceEnvVar'
+                    description: 环境变量
                 stopTimeout:
                     type: integer
                     description: 停止超时(秒)：发送停止命令后超时未退出则强制结束，<=0 使用默认值
@@ -5908,10 +6129,13 @@ components:
                     format: int32
                 isEnable:
                     type: boolean
-                    description: 是否启用
+                    description: 是否启用（创建后立即运行）
                 remark:
                     type: string
                     description: 备注
+                autoStart:
+                    type: boolean
+                    description: 开机自启（服务启动时自动运行）
         v1.CreatePortForwardResponse:
             type: object
             properties:
@@ -5962,6 +6186,11 @@ components:
                     items:
                         type: string
                     description: 分享给指定用户
+                quickCommands:
+                    type: array
+                    items:
+                        type: string
+                    description: 终端快捷命令
         v1.CreateSSHHostResponse:
             type: object
             properties:
@@ -6142,7 +6371,10 @@ components:
             description: 删除实例响应
         v1.DelInstanceTypeResponse:
             type: object
-            properties: {}
+            properties:
+                uncategorizedApps:
+                    type: string
+                    description: 因此变为未分类的应用数
             description: 删除实例类型响应
         v1.DeleteAPIKeyResponse:
             type: object
@@ -6221,14 +6453,6 @@ components:
             type: object
             properties: {}
             description: 删除分享响应
-        v1.DeleteTaskRequest:
-            type: object
-            properties:
-                id:
-                    type: string
-        v1.DeleteTaskResponse:
-            type: object
-            properties: {}
         v1.DeleteTunnelResponse:
             type: object
             properties: {}
@@ -6458,6 +6682,22 @@ components:
                     type: string
                     description: 总用量
             description: CPU用量
+        v1.DockerComposeService:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 服务名
+                options:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerCreateOptions'
+                    description: 转换后的容器创建参数
+                warnings:
+                    type: array
+                    items:
+                        type: string
+                    description: 无法转换、已忽略的字段
+            description: compose 服务
         v1.DockerConfigInfo:
             type: object
             properties:
@@ -6547,6 +6787,36 @@ components:
                     items:
                         type: string
                     description: 环境变量
+                cmd:
+                    type: array
+                    items:
+                        type: string
+                    description: 启动命令
+                entrypoint:
+                    type: array
+                    items:
+                        type: string
+                    description: 入口命令
+                workingDir:
+                    type: string
+                    description: 工作目录
+                user:
+                    type: string
+                    description: 用户
+                hostname:
+                    type: string
+                    description: 主机名
+                labels:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 标签
+                tty:
+                    type: boolean
+                    description: 是否开启TTY
+                openStdin:
+                    type: boolean
+                    description: 是否打开stdin
             description: 容器配置
         v1.DockerContainerCreateOptions:
             type: object
@@ -6680,6 +6950,10 @@ components:
                 nanoCpus:
                     type: string
                     description: Nano CPU数量
+                restartMaxRetries:
+                    type: integer
+                    description: on-failure 重启策略的最大重试次数
+                    format: int32
             description: 容器主机配置
         v1.DockerContainerInfo:
             type: object
@@ -6748,6 +7022,25 @@ components:
                     type: string
                     description: Exec WebSocket路径
             description: 容器详情
+        v1.DockerContainerListStats:
+            type: object
+            properties:
+                total:
+                    type: string
+                    description: 容器总数
+                running:
+                    type: string
+                    description: 运行中（含重启中）
+                stopped:
+                    type: string
+                    description: 已停止（退出码 0 或尚未启动）
+                exited:
+                    type: string
+                    description: 已退出（退出码非 0 或已死亡）
+                paused:
+                    type: string
+                    description: 已暂停
+            description: 容器列表统计
         v1.DockerContainerNetworkEndpoint:
             type: object
             properties:
@@ -6889,7 +7182,36 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.DockerContainerNetworkEndpoint'
                     description: 网络端点
+                exitCode:
+                    type: integer
+                    description: 最近一次退出码（运行中为 0）
+                    format: int32
+                startedAt:
+                    type: string
+                    description: 最近一次启动时间
+                    format: date-time
+                finishedAt:
+                    type: string
+                    description: 最近一次停止时间
+                    format: date-time
             description: 容器摘要
+        v1.DockerContainerUsage:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 容器ID
+                cpuPercent:
+                    type: number
+                    description: CPU 占用百分比（相对单核，与 docker stats 一致）
+                    format: double
+                memoryUsage:
+                    type: string
+                    description: 内存占用（字节，已扣除页缓存）
+                memoryLimit:
+                    type: string
+                    description: 内存上限（字节）
+            description: 容器资源占用
         v1.DockerEndpointSettings:
             type: object
             properties:
@@ -7443,6 +7765,56 @@ components:
                     type: string
                     description: 主机端口
             description: 端口映射
+        v1.DockerPullLayer:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 分层ID（短）
+                status:
+                    type: string
+                    description: 状态：waiting / downloading / extracting / done / exists
+                current:
+                    type: string
+                    description: 已下载字节
+                total:
+                    type: string
+                    description: 分层大小（字节）
+            description: 镜像分层拉取进度
+        v1.DockerPullProgress:
+            type: object
+            properties:
+                percent:
+                    type: integer
+                    description: 总进度百分比
+                    format: int32
+                current:
+                    type: string
+                    description: 已下载字节
+                total:
+                    type: string
+                    description: 需下载总字节
+                bytesPerSecond:
+                    type: string
+                    description: 当前下载速度（字节/秒）
+                layersTotal:
+                    type: integer
+                    description: 分层总数
+                    format: int32
+                layersDone:
+                    type: integer
+                    description: 已完成分层数
+                    format: int32
+                layersDownloading:
+                    type: integer
+                    description: 下载中分层数
+                    format: int32
+                layers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerPullLayer'
+                    description: 各分层进度
+            description: 镜像拉取进度
         v1.DockerRegistryAuth:
             type: object
             properties:
@@ -7565,6 +7937,13 @@ components:
                 wsPath:
                     type: string
                     description: WebSocket路径
+                pull:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerPullProgress'
+                    description: 拉取进度（拉取镜像、创建容器时自动拉取镜像的任务才有）
+                target:
+                    type: string
+                    description: 任务目标（拉取任务为镜像引用，容器任务为容器名）
             description: Docker任务
         v1.EditFileSystemFileRequest:
             type: object
@@ -7627,9 +8006,11 @@ components:
                     type: integer
                     description: status
                     format: enum
-                roleId:
-                    type: string
-                    description: 角色id
+                roleIds:
+                    type: array
+                    items:
+                        type: string
+                    description: 角色id（可多个；为空时分配内置「无权限」角色）
             description: 更新用户请求
         v1.EditUserResponse:
             type: object
@@ -7843,6 +8224,9 @@ components:
                     type: string
                     description: 修改时间
                     format: date-time
+                childCount:
+                    type: string
+                    description: 目录的直接子项数（仅本地来源统计；远端来源为空）
             description: 系统文件条目信息
         v1.FileOperationResult:
             type: object
@@ -7922,7 +8306,7 @@ components:
                     description: 密码（仅写入，响应恒为空；更新时留空=保留原值）
                 basePath:
                     type: string
-                    description: 基础路径
+                    description: 基础路径（本地来源为必填的根目录绝对路径）
                 tls:
                     type: boolean
                     description: 是否启用 TLS（FTP over TLS）
@@ -7943,7 +8327,7 @@ components:
                     description: 展示名称
                 type:
                     type: string
-                    description: 类型 oss/ftp/webdav
+                    description: 类型 local/oss/ftp/webdav
                 enabled:
                     type: boolean
                     description: 是否启用
@@ -7990,6 +8374,12 @@ components:
                     type: string
                     description: 测试时间
                     format: date-time
+                usedBytes:
+                    type: string
+                    description: 已用空间（字节；来源可统计时有值，0=未知）
+                totalBytes:
+                    type: string
+                    description: 总容量（字节；来源有配额/容量时有值，0=未知或不限）
             description: 文件来源连通性测试结果
         v1.FileSystemPreSignResponse:
             type: object
@@ -8241,6 +8631,14 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.FrpsLogEntry'
                     description: 日志（按时间升序）
+        v1.GetInstanceEventsResponse:
+            type: object
+            properties:
+                events:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.InstanceEvent'
+            description: 获取应用事件响应
         v1.GetInstanceFileListResponse:
             type: object
             properties:
@@ -8329,6 +8727,14 @@ components:
                     description: 启动时间
                     format: date-time
             description: 获取实例资源占用响应
+        v1.GetInstanceTagsResponse:
+            type: object
+            properties:
+                tags:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.InstanceTag'
+            description: 获取应用标签响应
         v1.GetInstanceTypesResponse:
             type: object
             properties:
@@ -8355,6 +8761,10 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.InstanceInfo'
                     description: 列表
+                counts:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceStatusCount'
+                    description: 各状态数量(按关键字/类型筛选，不按状态筛选)
             description: 获取实例列表响应
         v1.GetNodeContextResponse:
             type: object
@@ -8453,13 +8863,13 @@ components:
                     description: 分享者头像（公开展示）
                 fileCount:
                     type: string
-                    description: 顶层文件数
+                    description: 分享内文件总数（含文件夹内，递归统计）
                 dirCount:
                     type: string
                     description: 顶层文件夹数
                 totalSize:
                     type: string
-                    description: 顶层文件总大小（不含文件夹内容）
+                    description: 分享内全部文件的总大小（含文件夹内，递归统计）
                 createTime:
                     type: string
                     description: 分享创建时间
@@ -8472,7 +8882,24 @@ components:
                     type: integer
                     description: 提取码位数（需要提取码时有值，便于提示访问者）
                     format: int32
+                itemCount:
+                    type: string
+                    description: 顶层条目数（被分享的文件/文件夹个数）
+                directDownload:
+                    type: boolean
+                    description: 是否全部条目都由存储端直接下发（来源开启 302 直链且支持预签名）
             description: 获取分享元信息响应（公开，不含提取码本身）
+        v1.GetShareQRCodeResponse:
+            type: object
+            properties:
+                png:
+                    type: string
+                    description: PNG 图片（JSON 中为 base64）
+                    format: bytes
+                link:
+                    type: string
+                    description: 二维码内容：公开访问链接
+            description: 分享二维码响应
         v1.GetTaskResponse:
             type: object
             properties:
@@ -8524,7 +8951,7 @@ components:
                     description: 提示词内容
                 enabled:
                     type: boolean
-                    description: 是否启用；只有启用的提示词会被随机选中
+                    description: 是否启用；每轮检测会把全部启用的提示词逐个发给模型
                 order:
                     type: integer
                     description: 排序，越小越靠前
@@ -8547,6 +8974,16 @@ components:
                 siteCount:
                     type: string
                     description: 被检测使用过的站点数
+                category:
+                    type: integer
+                    description: 分类
+                    format: enum
+                grading:
+                    type: string
+                    description: 评分方式说明（如「步骤正确性」「渲染后人工比对」）；为空表示未填写
+                avgInputTokens:
+                    type: string
+                    description: 使用该提示词的检测中，上游返回的平均输入 token 数；没有用量数据时为 0
             description: 检测提示词
         v1.IQCheckResultInfo:
             type: object
@@ -8608,11 +9045,11 @@ components:
                     format: date-time
                 success:
                     type: integer
-                    description: 成功的模型数
+                    description: 成功的结果数
                     format: int32
                 failed:
                     type: integer
-                    description: 失败的模型数
+                    description: 失败的结果数
                     format: int32
                 avgDurationMs:
                     type: string
@@ -8622,8 +9059,12 @@ components:
                     description: 第一条失败原因
                 promptTitle:
                     type: string
-                    description: 提示词标题
-            description: 一轮检测的汇总
+                    description: 本轮随机抽到的提示词标题
+                modelCount:
+                    type: integer
+                    description: 本轮参与的模型数（模型 + 推理强度去重）
+                    format: int32
+            description: 一轮检测的汇总；一轮会把全部启用的提示词逐个发给站点的每个模型，每个「模型 × 提示词」产生一条结果
         v1.IQCheckSiteInfo:
             type: object
             properties:
@@ -8704,6 +9145,10 @@ components:
                     type: integer
                     description: 站点健康状态
                     format: enum
+                lastSuccessAt:
+                    type: string
+                    description: 最近一条成功结果的检测时间；从未成功时为空
+                    format: date-time
             description: 检测站点
         v1.IQCheckSiteStats:
             type: object
@@ -8714,9 +9159,12 @@ components:
                 healthy:
                     type: string
                     description: 最近一轮全部成功
-                failing:
+                partial:
                     type: string
-                    description: 最近一轮有失败
+                    description: 最近一轮部分模型失败
+                failed:
+                    type: string
+                    description: 最近一轮全部失败
                 disabled:
                     type: string
                     description: 未启用定时检测
@@ -8803,6 +9251,53 @@ components:
                     type: string
                     description: SQLite 默认数据库文件路径
             description: 获取系统初始化状态响应
+        v1.InstanceEnvList:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.InstanceEnvVar'
+            description: 环境变量列表(用于更新时区分「不修改」与「清空」)
+        v1.InstanceEnvVar:
+            type: object
+            properties:
+                key:
+                    type: string
+                    description: 变量名
+                value:
+                    type: string
+                    description: 普通变量的值
+                isSecret:
+                    type: boolean
+                    description: 是否按密钥保存(值只写不读，控制台输出里打码)
+                secret:
+                    type: string
+                    description: 密钥变量的值：只写，响应中总为空；更新时留空表示保持原值
+            description: 环境变量
+        v1.InstanceEvent:
+            type: object
+            properties:
+                kind:
+                    type: integer
+                    format: enum
+                time:
+                    type: string
+                    format: date-time
+                userName:
+                    type: string
+                    description: 操作者(进程事件为空)
+                success:
+                    type: boolean
+                    description: 是否成功
+                exitCode:
+                    type: integer
+                    description: 进程退出码(仅进程事件)
+                    format: int32
+                error:
+                    type: string
+                    description: 失败原因
+            description: 应用事件
         v1.InstanceFilePreSignResponse:
             type: object
             properties:
@@ -8869,8 +9364,8 @@ components:
                 env:
                     type: array
                     items:
-                        type: string
-                    description: 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
+                        $ref: '#/components/schemas/v1.InstanceEnvVar'
+                    description: 环境变量(密钥变量的值不返回)
                 stopTimeout:
                     type: integer
                     description: 停止超时(秒)
@@ -8897,6 +9392,20 @@ components:
                     items:
                         type: string
                     description: 所属类型的控制台快捷命令
+                stopTime:
+                    type: string
+                    description: 最近一次进程退出时间
+                    format: date-time
+                absolutePath:
+                    type: string
+                    description: 解析后的工作目录绝对路径
+                maintenance:
+                    type: boolean
+                    description: 维护中
+                maintenanceTime:
+                    type: string
+                    description: 进入维护的时间
+                    format: date-time
             description: 实例详情
         v1.InstanceQuickCommands:
             type: object
@@ -8906,6 +9415,27 @@ components:
                     items:
                         type: string
             description: 控制台快捷命令列表（用于区分「不修改」与「清空」）
+        v1.InstanceStatusCount:
+            type: object
+            properties:
+                all:
+                    type: string
+                running:
+                    type: string
+                stopped:
+                    type: string
+                maintenance:
+                    type: string
+            description: 各状态应用数量
+        v1.InstanceTag:
+            type: object
+            properties:
+                name:
+                    type: string
+                count:
+                    type: string
+                    description: 使用该标签的应用数
+            description: 应用标签
         v1.InstanceTypeApp:
             type: object
             properties:
@@ -9006,6 +9536,20 @@ components:
                 expiredCount:
                     type: string
                     description: 已过期数量
+                owners:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.APIKeyOwnerStat'
+                    description: 所属用户及其密钥数（仅 all_users 时返回，用于「所属用户」筛选）
+        v1.ListDockerContainerUsageResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerContainerUsage'
+                    description: 资源占用
+            description: 批量获取容器资源占用响应
         v1.ListDockerContainersResponse:
             type: object
             properties:
@@ -9016,7 +9560,11 @@ components:
                     description: 容器列表
                 total:
                     type: string
-                    description: 总数
+                    description: 总数（筛选后）
+                stats:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.DockerContainerListStats'
+                    description: 全量统计（不受状态/关键字筛选影响）
             description: 获取容器列表响应
         v1.ListDockerImagesResponse:
             type: object
@@ -9075,6 +9623,12 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.FileSourceInfo'
                     description: 列表
+                localDiskTotal:
+                    type: string
+                    description: 内置本地磁盘（服务所在磁盘）总容量，字节；0=未知
+                localDiskFree:
+                    type: string
+                    description: 内置本地磁盘可用容量，字节
             description: 文件来源列表响应
         v1.ListIQCheckPromptsResponse:
             type: object
@@ -9296,6 +9850,10 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.TaskTypeCount'
                     description: 全部任务里出现过的类型（不受任何过滤影响），供类型筛选
+                retentionDays:
+                    type: integer
+                    description: 已结束任务记录的保留天数（超过后由「任务记录清理」定时任务删除）
+                    format: int32
             description: 列出任务响应
         v1.ListTunnelsResponse:
             type: object
@@ -9390,6 +9948,9 @@ components:
                 defaultLanguage:
                     type: string
                     description: 默认语言（zh-CN / zh-HK / en-US；auto 表示跟随浏览器）
+                mailEnabled:
+                    type: boolean
+                    description: 邮件服务是否已启用：关闭时邮箱验证码登录、注册邮箱验证与找回密码都无法发信
             description: 获取登录配置响应（公开接口，登录页使用）
         v1.LoginDevice:
             type: object
@@ -9494,6 +10055,9 @@ components:
                 code:
                     type: string
                     description: 邮箱验证码
+                remember:
+                    type: boolean
+                    description: 保持登录：true 时会话按刷新令牌有效期（天）续期；false 时 1 天不活动即需重新登录
             description: 账号登录请求
         v1.LoginResponse:
             type: object
@@ -9530,6 +10094,10 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
+                appearance:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserAppearance'
+                    description: 外观偏好（从未保存过为空，前端沿用本机设置）
             description: 获取自己信息响应
         v1.MePermissionsResponse:
             type: object
@@ -9621,6 +10189,9 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.MenuInfo'
                     description: 子权限菜单
+                hidden:
+                    type: boolean
+                    description: 在侧边栏隐藏：只影响导航显示，页面与权限仍然有效
             description: 权限菜单信息
         v1.MyLoginLogsResponse:
             type: object
@@ -10103,6 +10674,16 @@ components:
                     type: string
                     description: 操作时间
                     format: date-time
+                id:
+                    type: string
+                    description: 记录 id
+                ipScope:
+                    type: string
+                    description: 来源 IP 归属（loopback / lan / public，空=未知）
+                statusCode:
+                    type: integer
+                    description: 响应状态码（HTTP 语义：成功 200，失败取错误码）
+                    format: int32
         v1.OperationLogStatsResponse:
             type: object
             properties:
@@ -10125,7 +10706,27 @@ components:
                     type: string
                     description: 最早一条记录的时间
                     format: date-time
+                retentionDays:
+                    type: integer
+                    description: 记录保留天数（0=永久保留）
+                    format: int32
             description: 操作日志统计响应（统计范围：服务器本地时间今天 0 点起）
+        v1.ParseDockerComposeRequest:
+            type: object
+            properties:
+                content:
+                    type: string
+                    description: compose 文件内容（YAML）
+            description: 解析 compose 文件请求
+        v1.ParseDockerComposeResponse:
+            type: object
+            properties:
+                services:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.DockerComposeService'
+                    description: 文件里的服务
+            description: 解析 compose 文件响应
         v1.PauseDockerContainerRequest:
             type: object
             properties:
@@ -10271,6 +10872,9 @@ components:
                     type: string
                     description: 本次启动时间（运行中才有效）
                     format: date-time
+                autoStart:
+                    type: boolean
+                    description: 开机自启（服务启动时自动运行；关闭时服务重启后保持停用）
         v1.PortForwardOverview:
             type: object
             properties:
@@ -10434,13 +11038,6 @@ components:
                 name:
                     type: string
                     description: 名称
-                endpoint:
-                    type: string
-                    description: 站点接口地址（端点）
-                protocol:
-                    type: integer
-                    description: 协议
-                    format: enum
                 models:
                     type: array
                     items:
@@ -10461,7 +11058,11 @@ components:
                 enabled:
                     type: boolean
                     description: 是否启用定时检测
-            description: 公开页站点信息
+                lastRound:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.IQCheckRoundSummary'
+                    description: 最近一轮检测汇总；从未检测时为空
+            description: 公开页站点信息；不含 API Key 与接口地址
         v1.PublicIQCheckSiteResponse:
             type: object
             properties:
@@ -10821,16 +11422,6 @@ components:
             type: object
             properties: {}
             description: 重启实例响应
-        v1.RetryTaskRequest:
-            type: object
-            properties:
-                id:
-                    type: string
-        v1.RetryTaskResponse:
-            type: object
-            properties:
-                task:
-                    $ref: '#/components/schemas/v1.TaskInfo'
         v1.RoleInfo:
             type: object
             properties:
@@ -10866,7 +11457,28 @@ components:
                 userCount:
                     type: string
                     description: 分配了该角色的用户数
+                members:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.RoleMember'
+                    description: 成员预览（最多 5 个，按用户 id 升序）
             description: 角色详情
+        v1.RoleMember:
+            type: object
+            properties:
+                userId:
+                    type: string
+                    description: 用户 id
+                name:
+                    type: string
+                    description: 昵称（为空时前端显示用户名）
+                username:
+                    type: string
+                    description: 用户名
+                avatar:
+                    type: string
+                    description: 头像
+            description: 角色成员预览
         v1.RotateOIDCSigningKeyRequest:
             type: object
             properties: {}
@@ -10952,6 +11564,14 @@ components:
                     type: string
                     description: 上次打开终端连接的时间；从未连接为空
                     format: date-time
+                keyType:
+                    type: string
+                    description: 私钥算法（如 ed25519、rsa-4096、ecdsa-256）；密码认证为空
+                quickCommands:
+                    type: array
+                    items:
+                        type: string
+                    description: 终端快捷命令
         v1.SSHHostSharedUser:
             type: object
             properties:
@@ -11020,6 +11640,14 @@ components:
                     type: string
                     description: 失败原因
             description: 主机上次测试状态标记
+        v1.SSHQuickCommands:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        type: string
+            description: 终端快捷命令列表（用于区分「不修改」与「清空」）
         v1.SearchDockerImagesResponse:
             type: object
             properties:
@@ -11038,7 +11666,10 @@ components:
             description: 发送登录邮件验证码请求
         v1.SendLoginEmailCodeResponse:
             type: object
-            properties: {}
+            properties:
+                expiresInSeconds:
+                    type: string
+                    description: 验证码有效期（秒）
             description: 发送登录邮件验证码响应
         v1.SendRegisterEmailCodeRequest:
             type: object
@@ -11098,6 +11729,9 @@ components:
                 relPath:
                     type: string
                     description: 相对分享根的路径（用于继续浏览/下载）
+                childCount:
+                    type: string
+                    description: 目录的直接子项数（来源可统计时有值）
             description: 分享目录条目
         v1.ShareInfo:
             type: object
@@ -11158,7 +11792,10 @@ components:
                     description: 是否目录（缓存；请求时可留空）
                 size:
                     type: string
-                    description: 大小（缓存，字节；请求时可留空）
+                    description: 大小（缓存，字节；目录为其下全部文件的递归总大小；请求时可留空）
+                fileCount:
+                    type: string
+                    description: 包含的文件数（缓存；目录为递归统计，文件恒为 1；请求时可留空）
             description: |-
                 分享条目（可跨来源）。请求时仅需填 source_id + path，名称/类型/大小由服务端创建时 Stat 探测并缓存；
                  管理视图（ShareInfo）中回传全部字段（含来源 id）。公开访问端另用 ShareEntry，不含来源信息。
@@ -11198,12 +11835,15 @@ components:
                 disabled:
                     type: string
                     description: 已停用
-                downloads:
-                    type: string
-                    description: 累计下载次数
                 expiringSoon:
                     type: string
                     description: 3 天内到期的有效分享数
+                monthDownloads:
+                    type: string
+                    description: 本月下载次数（自然月，含打包下载）
+                monthRedirectDownloads:
+                    type: string
+                    description: 本月下载中经 302 直链由存储端直接下发的次数
             description: 分享统计（当前用户全部分享，不受筛选/分页影响）
         v1.SiteConfig:
             type: object
@@ -11399,6 +12039,34 @@ components:
             type: object
             properties: {}
             description: 给镜像打标签响应
+        v1.TaskBatchFailure:
+            type: object
+            properties:
+                id:
+                    type: string
+                message:
+                    type: string
+            description: 批量操作中单个失败项
+        v1.TaskBatchResponse:
+            type: object
+            properties:
+                succeeded:
+                    type: string
+                    description: 成功数
+                failures:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.TaskBatchFailure'
+                    description: 失败项
+            description: 批量操作结果
+        v1.TaskIdsRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+            description: 按 id 批量操作任务
         v1.TaskInfo:
             type: object
             properties:
@@ -11415,12 +12083,25 @@ components:
                 title:
                     type: string
                     description: 展示标题
+                target:
+                    type: string
+                    description: 关联对象（镜像引用、容器/网络名、目标目录、文件名）
+                source:
+                    type: string
+                    description: 发起入口（页面/模块键，如 docker.container、docker.image、file、instance.file）
+                trigger:
+                    type: integer
+                    description: 触发方式
+                    format: enum
                 userId:
                     type: string
                     description: 发起用户id（空=系统任务）
                 userName:
                     type: string
                     description: 发起用户名（解析自 user_id）
+                operator:
+                    type: string
+                    description: 远程主控侧操作者（主控转发时）
                 status:
                     type: integer
                     description: 任务状态
@@ -11433,7 +12114,7 @@ components:
                     description: 已完成进度
                 message:
                     type: string
-                    description: 当前消息
+                    description: 当前进度说明
                 error:
                     type: string
                     description: 错误信息
@@ -11442,15 +12123,57 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.TaskResult'
                     description: 执行结果明细
+                steps:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.TaskStep'
+                    description: 执行步骤
+                logs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.TaskLog'
+                    description: 任务日志（仅 GetTask 返回）
+                intervalMs:
+                    type: string
+                    description: 定时任务触发周期（毫秒）
+                retryable:
+                    type: boolean
+                    description: 是否可重试（该类型注册了重建工厂）
+                canceledBy:
+                    type: string
+                    description: 取消人用户id
+                canceledByName:
+                    type: string
+                    description: 取消人名称
                 createTime:
                     type: string
-                    description: 创建时间
+                    description: 提交时间
+                    format: date-time
+                startTime:
+                    type: string
+                    description: 开始执行时间
                     format: date-time
                 endTime:
                     type: string
                     description: 结束时间
                     format: date-time
+                nextRunTime:
+                    type: string
+                    description: 定时任务下次触发时间（等待下次执行时有值）
+                    format: date-time
             description: 任务信息
+        v1.TaskLog:
+            type: object
+            properties:
+                time:
+                    type: string
+                    format: date-time
+                level:
+                    type: integer
+                    format: enum
+                message:
+                    type: string
+            description: 一行任务日志
         v1.TaskResult:
             type: object
             properties:
@@ -11477,6 +12200,28 @@ components:
                 canceled:
                     type: string
             description: 任务状态统计（与列表同一组关键字/类型/种类条件，不受状态过滤影响）
+        v1.TaskStep:
+            type: object
+            properties:
+                title:
+                    type: string
+                    description: 步骤标题
+                state:
+                    type: integer
+                    description: 步骤状态
+                    format: enum
+                detail:
+                    type: string
+                    description: 步骤说明（进度、错误等）
+                startTime:
+                    type: string
+                    description: 开始时间
+                    format: date-time
+                endTime:
+                    type: string
+                    description: 结束时间
+                    format: date-time
+            description: 执行步骤
         v1.TaskTypeCount:
             type: object
             properties:
@@ -11551,7 +12296,7 @@ components:
                     description: 已存在来源 id（优先）
                 type:
                     type: string
-                    description: 类型 oss/ftp/webdav
+                    description: 类型 local/oss/ftp/webdav
                 config:
                     allOf:
                         - $ref: '#/components/schemas/v1.FileSourceConfig'
@@ -11560,19 +12305,10 @@ components:
         v1.TestFileSourceResponse:
             type: object
             properties:
-                ok:
-                    type: boolean
-                    description: 是否连通
-                message:
-                    type: string
-                    description: 结果消息
-                latencyMs:
-                    type: string
-                    description: 耗时（毫秒）
-                testedAt:
-                    type: string
-                    description: 测试时间
-                    format: date-time
+                result:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.FileSourceTestResult'
+                    description: 测试结果（含连通性、延迟与容量）
             description: 测试文件来源连通性响应
         v1.TestInitializeDatabaseRequest:
             type: object
@@ -11594,6 +12330,15 @@ components:
                 latencyMs:
                     type: string
                     description: 连接 + 查询耗时（毫秒）
+                databaseExists:
+                    type: boolean
+                    description: SQLite：测试前数据库文件是否已存在（不存在时初始化会自动创建）；MySQL/PostgreSQL 恒为 true
+                tableCount:
+                    type: string
+                    description: 目标库里已有的数据表数量（0 表示空库）
+                sqlitePath:
+                    type: string
+                    description: SQLite 实际使用的数据库文件路径（已补全默认值）；其它类型为空
             description: 测试数据库连接响应
         v1.TestNodeRequest:
             type: object
@@ -12278,6 +13023,13 @@ components:
                     type: integer
                     description: 排序
                     format: int32
+                category:
+                    type: integer
+                    description: 分类
+                    format: enum
+                grading:
+                    type: string
+                    description: 评分方式说明，最多 64 个字符
             description: 更新提示词请求
         v1.UpdateIQCheckPromptResponse:
             type: object
@@ -12354,7 +13106,7 @@ components:
                     description: 标签(,号隔开)
                 type:
                     type: string
-                    description: 类型
+                    description: 类型(空字符串为未分类)
                 startCommand:
                     type: string
                     description: 启动命令
@@ -12368,10 +13120,9 @@ components:
                     type: boolean
                     description: 是否自启动
                 env:
-                    type: array
-                    items:
-                        type: string
-                    description: 环境变量(一行一个 如:GO_WANT_HELPER_PROCESS=1
+                    allOf:
+                        - $ref: '#/components/schemas/v1.InstanceEnvList'
+                    description: 环境变量(不传则不修改)
                 stopTimeout:
                     type: integer
                     description: 停止超时(秒)
@@ -12379,6 +13130,9 @@ components:
                 autoRestart:
                     type: boolean
                     description: 崩溃后自动重启
+                maintenance:
+                    type: boolean
+                    description: 维护中(进入维护会先停止应用)
         v1.UpdateInstanceResponse:
             type: object
             properties:
@@ -12493,6 +13247,22 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 更新个人资料响应
+        v1.UpdateMyAppearanceRequest:
+            type: object
+            properties:
+                appearance:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserAppearance'
+                    description: 外观偏好（整体替换；未知取值落回默认）
+            description: 保存外观偏好请求
+        v1.UpdateMyAppearanceResponse:
+            type: object
+            properties:
+                appearance:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserAppearance'
+                    description: 规范化后实际保存的外观偏好
+            description: 保存外观偏好响应
         v1.UpdateNodeRequest:
             type: object
             properties:
@@ -12585,6 +13355,24 @@ components:
                         - $ref: '#/components/schemas/v1.OIDCConfig'
                     description: 更新后的 OIDC 服务端配置
             description: 更新 OIDC 配置响应
+        v1.UpdateOperationLogRetentionRequest:
+            type: object
+            properties:
+                retentionDays:
+                    type: integer
+                    description: 保留天数：0=永久保留，否则 7–3650
+                    format: int32
+            description: 修改操作记录保留策略请求
+        v1.UpdateOperationLogRetentionResponse:
+            type: object
+            properties:
+                retentionDays:
+                    type: integer
+                    format: int32
+                deleted:
+                    type: string
+                    description: 本次立即清理掉的超期记录数
+            description: 修改操作记录保留策略响应
         v1.UpdatePasswordRequest:
             type: object
             properties:
@@ -12632,6 +13420,9 @@ components:
                 remark:
                     type: string
                     description: 备注
+                autoStart:
+                    type: boolean
+                    description: 开机自启
         v1.UpdatePortForwardResponse:
             type: object
             properties:
@@ -12680,6 +13471,10 @@ components:
                 tags:
                     type: string
                     description: 标签
+                quickCommands:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.SSHQuickCommands'
+                    description: 终端快捷命令（不传表示不修改）
         v1.UpdateSSHHostResponse:
             type: object
             properties:
@@ -12840,6 +13635,28 @@ components:
                         各分片的上传 URL（partNumber→URL）。本地/FTP/WebDAV 指向 momoko 签名端点，OSS 指向来源预签名直链。
                          前端对每片 PUT part_urls[n]，来源透明、一套代码。
             description: 上传信息
+        v1.UserAppearance:
+            type: object
+            properties:
+                palette:
+                    type: string
+                    description: 配色：sakura / mint / volt / grape / sunset / classic
+                mode:
+                    type: string
+                    description: 深浅色：light / dark / auto（跟随系统）
+                compact:
+                    type: boolean
+                    description: 紧凑模式
+                reduceMotion:
+                    type: boolean
+                    description: 减少动效
+                radius:
+                    type: string
+                    description: 圆角：round（圆润） / standard（标准）
+                showTabs:
+                    type: boolean
+                    description: 显示已打开页面的标签栏
+            description: 个人外观偏好：只对自己生效，跟随账号同步到所有设备
         v1.UserInfo:
             type: object
             properties:
@@ -12876,12 +13693,6 @@ components:
                 username:
                     type: string
                     description: 账户名
-                roleName:
-                    type: string
-                    description: 角色名称
-                roleId:
-                    type: string
-                    description: 角色id
                 lastLoginTime:
                     type: string
                     description: 最近一次登录时间（未登录过为空）
@@ -12902,6 +13713,11 @@ components:
                 isBuiltin:
                     type: boolean
                     description: 是否系统内置账号（初始化时创建的超级管理员；不能删除、停用或修改角色）
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.UserRole'
+                    description: 用户拥有的角色（可多个，权限取并集；按角色 id 升序）
             description: 用户信息
         v1.UserInfoResponse:
             type: object
@@ -12948,6 +13764,27 @@ components:
                     type: string
                     description: 发布者头像（仅 notice）
             description: 用户消息
+        v1.UserRole:
+            type: object
+            properties:
+                roleId:
+                    type: string
+                    description: 角色id
+                name:
+                    type: string
+                    description: 角色名称
+                isBuiltin:
+                    type: boolean
+                    description: 是否内置角色
+            description: 用户拥有的角色
+        v1.UserRoleIds:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+            description: 角色 id 集合（批量分配角色时用；字段存在即表示替换为该集合）
         v1.VirtualMemoryOverview:
             type: object
             properties:
@@ -13018,7 +13855,7 @@ tags:
     - name: TaskManager
       description: |-
         任务管理：通用任务管理器（pkg/task）的统一对外面板，可见可操作全部任务
-         （文件复制/剪切/远端上传收尾、上传 GC、Docker 拉取、常驻任务等）。
+         （文件复制/剪切/远端上传收尾、上传 GC、Docker 拉取/重建、常驻任务等）。
     - name: TunnelManager
       description: 内网穿透（frp）管理
     - name: UserService

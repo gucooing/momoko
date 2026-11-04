@@ -142,6 +142,12 @@ service FileManager {
       body: "*"
     };
   }
+  // 分享链接二维码(系统级)：返回公开链接的 PNG 二维码
+  rpc GetShareQRCode(GetShareQRCodeRequest) returns (GetShareQRCodeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/file/share/qrcode"
+    };
+  }
   // 公开：获取分享元信息（无需提取码）
   rpc GetShareMeta(GetShareMetaRequest) returns (GetShareMetaResponse) {
     option (google.api.http) = {
@@ -210,8 +216,10 @@ message ShareItem {
   string name = 3;
   // 是否目录（缓存；请求时可留空）
   bool is_dir = 4;
-  // 大小（缓存，字节；请求时可留空）
+  // 大小（缓存，字节；目录为其下全部文件的递归总大小；请求时可留空）
   uint64 size = 5;
+  // 包含的文件数（缓存；目录为递归统计，文件恒为 1；请求时可留空）
+  int64 file_count = 6;
 }
 
 // 分享信息（仅创建者可见的管理视图，含提取码）
@@ -286,10 +294,12 @@ message ShareStats {
   int64 exhausted = 4;
   // 已停用
   int64 disabled = 5;
-  // 累计下载次数
-  int64 downloads = 6;
   // 3 天内到期的有效分享数
-  int64 expiring_soon = 7;
+  int64 expiring_soon = 6;
+  // 本月下载次数（自然月，含打包下载）
+  int64 month_downloads = 7;
+  // 本月下载中经 302 直链由存储端直接下发的次数
+  int64 month_redirect_downloads = 8;
 }
 
 // 分享列表响应
@@ -339,6 +349,22 @@ message DeleteShareRequest {
 // 删除分享响应
 message DeleteShareResponse {}
 
+// 分享二维码请求
+message GetShareQRCodeRequest {
+  // 分享 id
+  string id = 1;
+  // 访问面板所用的站点源（如 https://momoko.example.com），用于拼出公开链接
+  string origin = 2;
+}
+
+// 分享二维码响应
+message GetShareQRCodeResponse {
+  // PNG 图片（JSON 中为 base64）
+  bytes png = 1;
+  // 二维码内容：公开访问链接
+  string link = 2;
+}
+
 // 获取分享元信息请求（公开）
 message GetShareMetaRequest {
   // 公开访问令牌
@@ -363,11 +389,11 @@ message GetShareMetaResponse {
   string owner_name = 7;
   // 分享者头像（公开展示）
   string owner_avatar = 8;
-  // 顶层文件数
+  // 分享内文件总数（含文件夹内，递归统计）
   int64 file_count = 9;
   // 顶层文件夹数
   int64 dir_count = 10;
-  // 顶层文件总大小（不含文件夹内容）
+  // 分享内全部文件的总大小（含文件夹内，递归统计）
   uint64 total_size = 11;
   // 分享创建时间
   google.protobuf.Timestamp create_time = 12;
@@ -375,6 +401,10 @@ message GetShareMetaResponse {
   google.protobuf.Timestamp locked_until = 13;
   // 提取码位数（需要提取码时有值，便于提示访问者）
   int32 code_length = 14;
+  // 顶层条目数（被分享的文件/文件夹个数）
+  int64 item_count = 15;
+  // 是否全部条目都由存储端直接下发（来源开启 302 直链且支持预签名）
+  bool direct_download = 16;
 }
 
 // 浏览分享目录请求（公开，需会话签名）
@@ -399,6 +429,8 @@ message ShareEntry {
   google.protobuf.Timestamp update_time = 4;
   // 相对分享根的路径（用于继续浏览/下载）
   string rel_path = 5;
+  // 目录的直接子项数（来源可统计时有值）
+  optional int64 child_count = 6;
 }
 
 // 浏览分享目录响应
@@ -475,7 +507,7 @@ message FileSourceConfig {
   string username = 11;
   // 密码（仅写入，响应恒为空；更新时留空=保留原值）
   string password = 12;
-  // 基础路径
+  // 基础路径（本地来源为必填的根目录绝对路径）
   string base_path = 13;
   // 是否启用 TLS（FTP over TLS）
   bool tls = 14;
@@ -490,7 +522,7 @@ message FileSourceInfo {
   string id = 1;
   // 展示名称
   string name = 2;
-  // 类型 oss/ftp/webdav
+  // 类型 local/oss/ftp/webdav
   string type = 3;
   // 是否启用
   bool enabled = 4;
@@ -520,6 +552,10 @@ message FileSourceTestResult {
   string message = 3;
   // 测试时间
   google.protobuf.Timestamp tested_at = 4;
+  // 已用空间（字节；来源可统计时有值，0=未知）
+  uint64 used_bytes = 5;
+  // 总容量（字节；来源有配额/容量时有值，0=未知或不限）
+  uint64 total_bytes = 6;
 }
 
 // 文件来源列表请求
@@ -534,13 +570,17 @@ message ListFileSourcesRequest {
 message ListFileSourcesResponse {
   // 列表
   repeated FileSourceInfo items = 1;
+  // 内置本地磁盘（服务所在磁盘）总容量，字节；0=未知
+  uint64 local_disk_total = 2;
+  // 内置本地磁盘可用容量，字节
+  uint64 local_disk_free = 3;
 }
 
 // 新增文件来源请求
 message CreateFileSourceRequest {
   // 展示名称
   string name = 1;
-  // 类型 oss/ftp/webdav
+  // 类型 local/oss/ftp/webdav
   string type = 2;
   // 是否启用
   bool enabled = 3;
@@ -589,7 +629,7 @@ message DeleteFileSourceResponse {}
 message TestFileSourceRequest {
   // 已存在来源 id（优先）
   string id = 1;
-  // 类型 oss/ftp/webdav
+  // 类型 local/oss/ftp/webdav
   string type = 2;
   // 配置
   FileSourceConfig config = 3;
@@ -597,14 +637,8 @@ message TestFileSourceRequest {
 
 // 测试文件来源连通性响应
 message TestFileSourceResponse {
-  // 是否连通
-  bool ok = 1;
-  // 结果消息
-  string message = 2;
-  // 耗时（毫秒）
-  int64 latency_ms = 3;
-  // 测试时间
-  google.protobuf.Timestamp tested_at = 4;
+  // 测试结果（含连通性、延迟与容量）
+  FileSourceTestResult result = 1;
 }
 
 // 文件排序字段
@@ -615,6 +649,8 @@ enum FileSortField {
   FILE_SORT_FIELD_NAME = 1;
   // 修改时间
   FILE_SORT_FIELD_UPDATE_TIME = 2;
+  // 大小
+  FILE_SORT_FIELD_SIZE = 3;
 }
 
 // 文件任务状态
@@ -709,6 +745,8 @@ message FileEntryInfo {
   uint64 size = 9;
   // 修改时间
   google.protobuf.Timestamp update_time = 10;
+  // 目录的直接子项数（仅本地来源统计；远端来源为空）
+  optional int64 child_count = 11;
 }
 
 // 目录树节点(懒加载，仅含直接子项的轻量信息；instance.proto 已 import 本文件可复用)

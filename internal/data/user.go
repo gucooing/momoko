@@ -25,7 +25,7 @@ func NewUserRepo(data *Data) biz.UserRepo {
 func (ur *userRepo) FindByName(ctx context.Context, name string) (*gen.User, error) {
 	query := ur.data.db.User.Query()
 
-	query.Where(user.UsernameEQ(name)).WithRole()
+	query.Where(user.UsernameEQ(name)).WithRoles(orderRoles)
 
 	return query.First(ctx)
 }
@@ -33,7 +33,7 @@ func (ur *userRepo) FindByName(ctx context.Context, name string) (*gen.User, err
 func (ur *userRepo) FindByEmail(ctx context.Context, email string) (*gen.User, error) {
 	query := ur.data.db.User.Query()
 
-	query.Where(user.EmailEQ(email)).WithRole()
+	query.Where(user.EmailEQ(email)).WithRoles(orderRoles)
 
 	return query.First(ctx)
 }
@@ -41,7 +41,7 @@ func (ur *userRepo) FindByEmail(ctx context.Context, email string) (*gen.User, e
 func (ur *userRepo) FindByID(ctx context.Context, id string) (*gen.User, error) {
 	query := ur.data.db.User.Query()
 
-	query.Where(user.IDEQ(id)).WithRole()
+	query.Where(user.IDEQ(id)).WithRoles(orderRoles)
 
 	return query.First(ctx)
 }
@@ -59,7 +59,7 @@ func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, filter 
 		))
 	}
 	if filter.RoleID != nil && *filter.RoleID != "" {
-		query = query.Where(user.HasRoleWith(role.IDEQ(*filter.RoleID)))
+		query = query.Where(user.HasRolesWith(role.IDEQ(*filter.RoleID)))
 	}
 
 	counts := &biz.UserListCounts{}
@@ -89,7 +89,7 @@ func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, filter 
 	}
 
 	users, err := query.
-		WithRole().
+		WithRoles(orderRoles).
 		Offset(int((page - 1) * pageSize)).
 		Limit(int(pageSize)).
 		Order(gen.Asc(user.FieldID)).
@@ -101,11 +101,43 @@ func (ur *userRepo) ListUsers(ctx context.Context, page, pageSize int64, filter 
 	return users, int64(total), counts, nil
 }
 
-func (ur *userRepo) CreateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error) {
-	if roleId == "" {
-		roleId = noPermissionRoleID // 注册时默认给予无权限
+// orderRoles 用户的角色按 id 升序返回（内置角色 role_1 / role_2 在前）。
+func orderRoles(q *gen.RoleQuery) {
+	q.Order(gen.Asc(role.FieldID))
+}
+
+// normalizeRoleIDs 去重、去空；为空时给内置「无权限」角色；有其它角色时去掉「无权限」占位。
+func normalizeRoleIDs(roleIDs []string) []string {
+	out := make([]string, 0, len(roleIDs))
+	seen := make(map[string]struct{}, len(roleIDs))
+	for _, id := range roleIDs {
+		id = strings.TrimSpace(id)
+		if id == "" {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		out = append(out, id)
 	}
-	builder := ur.data.db.User.Create().
+	if len(out) > 1 {
+		kept := out[:0]
+		for _, id := range out {
+			if id != noPermissionRoleID {
+				kept = append(kept, id)
+			}
+		}
+		out = kept
+	}
+	if len(out) == 0 {
+		out = []string{noPermissionRoleID} // 注册 / 未分配角色时默认给予无权限
+	}
+	return out
+}
+
+func (ur *userRepo) CreateUser(ctx context.Context, userInfo *gen.User, roleIDs []string) (*gen.User, error) {
+	created, err := ur.data.db.User.Create().
 		SetID(userInfo.ID).
 		SetUsername(userInfo.Username).
 		SetPassword(userInfo.Password).
@@ -115,25 +147,28 @@ func (ur *userRepo) CreateUser(ctx context.Context, userInfo *gen.User, roleId s
 		SetBio(userInfo.Bio).
 		SetName(userInfo.Name).
 		SetTags(userInfo.Tags).
-		SetRoleID(roleId)
-
-	return builder.Save(ctx)
+		AddRoleIDs(normalizeRoleIDs(roleIDs)...).
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return ur.FindByID(ctx, created.ID)
 }
 
-func (ur *userRepo) UpdateUser(ctx context.Context, userInfo *gen.User, roleId string) (*gen.User, error) {
-	if roleId == "" {
-		roleId = noPermissionRoleID
-	}
-	builder := ur.data.db.User.UpdateOneID(userInfo.ID).
+func (ur *userRepo) UpdateUser(ctx context.Context, userInfo *gen.User, roleIDs []string) (*gen.User, error) {
+	if err := ur.data.db.User.UpdateOneID(userInfo.ID).
 		SetEmail(userInfo.Email).
 		SetStatus(userInfo.Status).
 		SetAvatar(userInfo.Avatar).
 		SetBio(userInfo.Bio).
 		SetName(userInfo.Name).
 		SetTags(userInfo.Tags).
-		SetRoleID(roleId)
-
-	return builder.Save(ctx)
+		ClearRoles().
+		AddRoleIDs(normalizeRoleIDs(roleIDs)...).
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+	return ur.FindByID(ctx, userInfo.ID)
 }
 
 func (ur *userRepo) DeleteUser(ctx context.Context, userIds []string) error {
@@ -145,10 +180,13 @@ func (ur *userRepo) DeleteUser(ctx context.Context, userIds []string) error {
 }
 
 func (ur *userRepo) UpdatePassword(ctx context.Context, userId string, passwordHash string) (*gen.User, error) {
-	return ur.data.db.User.UpdateOneID(userId).
+	if err := ur.data.db.User.UpdateOneID(userId).
 		SetPassword(passwordHash).
 		SetPasswordUpdatedAt(time.Now()).
-		Save(ctx)
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+	return ur.FindByID(ctx, userId)
 }
 
 // TouchLastLogin 记录用户最近一次登录的时间、来源 IP 与方式（password / email_code）。
@@ -160,13 +198,13 @@ func (ur *userRepo) TouchLastLogin(ctx context.Context, userId, ip, method strin
 		Exec(ctx)
 }
 
-func (ur *userRepo) BatchUpdateUsers(ctx context.Context, userIds []string, status *user.Status, roleId *string) (int64, error) {
+func (ur *userRepo) BatchUpdateUsers(ctx context.Context, userIds []string, status *user.Status, roleIDs *[]string) (int64, error) {
 	update := ur.data.db.User.Update().Where(user.IDIn(userIds...))
 	if status != nil {
 		update.SetStatus(*status)
 	}
-	if roleId != nil {
-		update.SetRoleID(*roleId)
+	if roleIDs != nil {
+		update.ClearRoles().AddRoleIDs(normalizeRoleIDs(*roleIDs)...)
 	}
 	n, err := update.Save(ctx)
 	return int64(n), err
@@ -196,5 +234,8 @@ func (ur *userRepo) UpdateMe(ctx context.Context, userId string, req *v1.UpdateM
 		update.SetPhone(strings.TrimSpace(*req.Phone))
 	}
 
-	return update.Save(ctx)
+	if err := update.Exec(ctx); err != nil {
+		return nil, err
+	}
+	return ur.FindByID(ctx, userId)
 }

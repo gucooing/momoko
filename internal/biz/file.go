@@ -63,17 +63,23 @@ type FileRepo interface {
 	CreateShare(ctx context.Context, userID, token, name string, items []sharetype.Item, req *v1.CreateShareRequest) (*gen.FileShare, error)
 	ListShares(ctx context.Context, userID string, page, pageSize int64, keywords, status string) ([]*gen.FileShare, int64, error)
 	ShareStats(ctx context.Context, userID string) (*v1.ShareStats, error)
+	GetShare(ctx context.Context, userID, id string) (*gen.FileShare, error)
 	GetShareByToken(ctx context.Context, token string) (*gen.FileShare, error)
 	UpdateShare(ctx context.Context, userID, name string, items []sharetype.Item, req *v1.UpdateShareRequest) (*gen.FileShare, error)
 	DeleteShare(ctx context.Context, userID, id string) error
-	IncrShareDownload(ctx context.Context, id string) error
+	// UpdateShareItems 回写分享条目缓存（旧记录补统计后使用）。
+	UpdateShareItems(ctx context.Context, id string, items []sharetype.Item) error
+	// RecordShareDownload 记一次计数下载（次数 +1 并写下载记录，redirect=是否 302 直链）。
+	RecordShareDownload(ctx context.Context, shareID, ownerID string, redirect bool) error
+	// DeleteSharesExpiredBefore 删除过期时间早于 before 的分享及其下载记录。
+	DeleteSharesExpiredBefore(ctx context.Context, before time.Time) (int, error)
 
 	CreateFileSource(ctx context.Context, userID, name, typ, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error)
 	ListFileSources(ctx context.Context, keywords string, enabledOnly bool) ([]*gen.FileSource, error)
 	GetFileSource(ctx context.Context, id string) (*gen.FileSource, error)
 	UpdateFileSource(ctx context.Context, id, name, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error)
 	DeleteFileSource(ctx context.Context, id string) error
-	SaveFileSourceTest(ctx context.Context, id string, ok bool, latencyMs int64, message string, at time.Time) error
+	SaveFileSourceTest(ctx context.Context, id string, res *v1.FileSourceTestResult) error
 }
 
 type FileUsecase struct {
@@ -101,6 +107,8 @@ func NewFileUsecase(repo FileRepo, tasks *task.Manager) *FileUsecase {
 	// 上传会话清理改为定时单例任务（开机随任务管理器启动），清理时一并中止 OSS 残留 multipart。
 	gcTask := file.NewUploadGCTask(repo, uploadGCInterval, 2*UploadPeriod, uc.cancelStaleUpload)
 	_ = tasks.EnsureSingleton(context.Background(), gcTask)
+	// 过期满 30 天的分享由定时单例任务自动删除（连同下载记录）。
+	_ = tasks.EnsureSingleton(context.Background(), share.NewCleanupTask(repo, shareCleanupInterval, share.ExpiredRetention))
 	return uc
 }
 
@@ -157,8 +165,11 @@ func (f *FileUsecase) registerTaskFactories() {
 // uploadGCInterval 是清理废弃上传会话的周期。
 const uploadGCInterval = 30 * time.Minute
 
-// storeFor 按来源 id 解析存储后端：空/"local" 为本地磁盘（系统级，含 Windows 盘符虚拟根），
-// 否则从 file_source 表读取并解密配置后构造对应来源。第二返回值在远端来源时为来源记录。
+// shareCleanupInterval 是清理过期分享的周期。
+const shareCleanupInterval = 6 * time.Hour
+
+// storeFor 按来源 id 解析存储后端：空/"local" 为整机本地磁盘（系统级，含 Windows 盘符虚拟根），
+// 否则从 file_source 表读取并解密配置后构造对应来源（本机目录 / OSS / FTP / WebDAV）。第二返回值为来源记录。
 func (f *FileUsecase) storeFor(ctx context.Context, sourceID string) (file.Store, *gen.FileSource, error) {
 	if sourceID == "" || sourceID == "local" {
 		s, err := file.NewLocalStore(file.SystemPath)
@@ -201,6 +212,8 @@ func (f *FileUsecase) GetFileSystemList(ctx context.Context, req *v1.GetFileSyst
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
+	// 远端来源的 List 不保证顺序：统一排序（目录在前，名称/修改时间/大小）。
+	file.SortEntries(result, req.SortField, req.IsDesc)
 	// 分页
 	total := int64(len(result))
 	pages := make([]*v1.FileEntryInfo, 0)
@@ -214,6 +227,8 @@ func (f *FileUsecase) GetFileSystemList(ctx context.Context, req *v1.GetFileSyst
 		}
 		pages = result[start:end]
 	}
+	// 只为当前页的目录统计直接子项数（本地来源）。
+	file.FillChildCounts(ctx, store, pages)
 	directory, err := store.DirInfo(ctx, req.Path)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -582,14 +597,17 @@ func (f *FileUsecase) FileSystemPreSignUpload(ctx context.Context, userID string
 	if err != nil {
 		return nil, err
 	}
-	// 本地来源落地到真实路径（便于原子 rename）；远端来源用逻辑路径（来源在接口内自行处理）。
+	// 本地类来源（整机 / 本机目录）落地到真实路径、分片缓冲在目标旁（便于原子 rename）；
+	// 远端来源用逻辑路径、分片缓冲在统一临时目录（来源在接口内自行处理）。
 	targetPath := req.Path
-	if req.SourceId == "" {
-		if targetPath, err = file.ResolveLocalPath(file.SystemPath, req.Path); err != nil {
+	bufferLocal := false
+	if ls, ok := store.(*file.LocalStore); ok {
+		if targetPath, err = ls.RealPath(req.Path); err != nil {
 			return nil, ErrSystem(err)
 		}
+		bufferLocal = true
 	}
-	seed := file.NewChunkedUpload(req.Hash, targetPath, req.FileName, req.FileSize)
+	seed := file.NewChunkedUpload(req.Hash, targetPath, req.FileName, req.FileSize, bufferLocal)
 	seed.SourceID = req.SourceId
 	row, err := f.repo.GetOrCreate(ctx, userID, seed)
 	if err != nil {
@@ -766,10 +784,10 @@ func (f *FileUsecase) PreFileUpload(w khttp.ResponseWriter, r *khttp.Request, pr
 	return nil
 }
 
-// ---- 文件来源（OSS/FTP/WebDAV，全局/管理员维护）----
+// ---- 文件来源（本机目录 / OSS / FTP / WebDAV，全局/管理员维护）----
 
 func validSourceType(typ string) bool {
-	return typ == "oss" || typ == "ftp" || typ == "webdav"
+	return typ == "local" || typ == "oss" || typ == "ftp" || typ == "webdav"
 }
 
 // parseStoredConfig 解析数据库中存储的配置 JSON（密钥字段仍为加密态）。
@@ -924,10 +942,12 @@ func lastTestOf(rec *gen.FileSource) *v1.FileSourceTestResult {
 		return nil
 	}
 	return &v1.FileSourceTestResult{
-		Ok:        rec.LastTestOk,
-		LatencyMs: rec.LastTestLatencyMs,
-		Message:   rec.LastTestMessage,
-		TestedAt:  timestamppb.New(*rec.LastTestTime),
+		Ok:         rec.LastTestOk,
+		LatencyMs:  rec.LastTestLatencyMs,
+		Message:    rec.LastTestMessage,
+		TestedAt:   timestamppb.New(*rec.LastTestTime),
+		UsedBytes:  rec.LastTestUsedBytes,
+		TotalBytes: rec.LastTestTotalBytes,
 	}
 }
 
@@ -936,22 +956,43 @@ func (f *FileUsecase) ListFileSources(ctx context.Context, req *v1.ListFileSourc
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	resp := &v1.ListFileSourcesResponse{Items: make([]*v1.FileSourceInfo, 0, len(items))}
+	total, free := file.LocalDiskUsage("")
+	resp := &v1.ListFileSourcesResponse{
+		Items:          make([]*v1.FileSourceInfo, 0, len(items)),
+		LocalDiskTotal: total,
+		LocalDiskFree:  free,
+	}
 	for _, it := range items {
 		resp.Items = append(resp.Items, f.toFileSourceInfo(it))
 	}
 	return resp, nil
 }
 
+// checkLocalSource 校验本机目录来源的根目录（绝对路径、已存在的文件夹）；其它类型不校验。
+func checkLocalSource(typ string, c *v1.FileSourceConfig) error {
+	if typ != "local" {
+		return nil
+	}
+	if _, err := file.NewStore(requestToConfig(typ, c)); err != nil {
+		return ErrSystem(err)
+	}
+	return nil
+}
+
 func (f *FileUsecase) CreateFileSource(ctx context.Context, userID string, req *v1.CreateFileSourceRequest) (*v1.FileSourceInfo, error) {
 	if !validSourceType(req.Type) {
 		return nil, ErrFileSourceType
+	}
+	if err := checkLocalSource(req.Type, req.Config); err != nil {
+		return nil, err
 	}
 	cfgJSON, err := f.buildStoredConfig(req.Type, req.Config, nil)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	rec, err := f.repo.CreateFileSource(ctx, userID, req.Name, req.Type, cfgJSON, req.Enabled, req.Redirect_302)
+	// 302 直链仅对支持预签名的来源（对象存储）有意义。
+	redirect := req.Redirect_302 && file.CapsForType(req.Type).Presign
+	rec, err := f.repo.CreateFileSource(ctx, userID, req.Name, req.Type, cfgJSON, req.Enabled, redirect)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -966,12 +1007,16 @@ func (f *FileUsecase) UpdateFileSource(ctx context.Context, req *v1.UpdateFileSo
 	if err != nil {
 		return nil, ErrFileSourceNotFound
 	}
+	if err := checkLocalSource(string(rec.Type), req.Config); err != nil {
+		return nil, err
+	}
 	existing, _ := f.parseStoredConfig(rec)
 	cfgJSON, err := f.buildStoredConfig(string(rec.Type), req.Config, &existing)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	if _, err := f.repo.UpdateFileSource(ctx, req.Id, req.Name, cfgJSON, req.Enabled, req.Redirect_302); err != nil {
+	redirect := req.Redirect_302 && file.CapsForType(string(rec.Type)).Presign
+	if _, err := f.repo.UpdateFileSource(ctx, req.Id, req.Name, cfgJSON, req.Enabled, redirect); err != nil {
 		return nil, ErrSystem(err)
 	}
 	full, err := f.repo.GetFileSource(ctx, req.Id)
@@ -988,45 +1033,57 @@ func (f *FileUsecase) DeleteFileSource(ctx context.Context, id string) error {
 	return nil
 }
 
+// sourceUsageTimeout 是测试时查询来源容量的超时（不影响连通性结论）。
+const sourceUsageTimeout = 5 * time.Second
+
 // TestFileSource 测试来源连通性：传 id 测已存在来源（结果回写为「最近一次测试」）；否则用请求里的明文配置测未保存的来源。
+// 连通后顺带查询来源容量（本机目录=所在磁盘、WebDAV=RFC 4331 配额；其它来源未知）。
 func (f *FileUsecase) TestFileSource(ctx context.Context, req *v1.TestFileSourceRequest) (*v1.TestFileSourceResponse, error) {
 	var cfg file.Config
 	if req.Id != "" {
 		rec, err := f.repo.GetFileSource(ctx, req.Id)
 		if err != nil {
-			return &v1.TestFileSourceResponse{Ok: false, Message: "来源不存在", TestedAt: timestamppb.Now()}, nil
+			return &v1.TestFileSourceResponse{Result: &v1.FileSourceTestResult{Message: "来源不存在", TestedAt: timestamppb.Now()}}, nil
 		}
 		cfg, err = f.decryptedConfig(rec)
 		if err != nil {
-			return f.finishSourceTest(ctx, req.Id, false, 0, err.Error()), nil
+			return f.finishSourceTest(ctx, req.Id, &v1.FileSourceTestResult{Message: err.Error()}), nil
 		}
 	} else {
 		if !validSourceType(req.Type) {
-			return &v1.TestFileSourceResponse{Ok: false, Message: "类型不合法", TestedAt: timestamppb.Now()}, nil
+			return &v1.TestFileSourceResponse{Result: &v1.FileSourceTestResult{Message: "类型不合法", TestedAt: timestamppb.Now()}}, nil
 		}
 		cfg = requestToConfig(req.Type, req.Config)
 	}
 	start := time.Now()
 	store, err := file.NewStore(cfg)
 	if err != nil {
-		return f.finishSourceTest(ctx, req.Id, false, time.Since(start).Milliseconds(), err.Error()), nil
+		return f.finishSourceTest(ctx, req.Id, &v1.FileSourceTestResult{LatencyMs: time.Since(start).Milliseconds(), Message: err.Error()}), nil
 	}
 	if _, err := store.List(ctx, "", v1.FileSortField_FILE_SORT_FIELD_NAME, false); err != nil {
-		return f.finishSourceTest(ctx, req.Id, false, time.Since(start).Milliseconds(), err.Error()), nil
+		return f.finishSourceTest(ctx, req.Id, &v1.FileSourceTestResult{LatencyMs: time.Since(start).Milliseconds(), Message: err.Error()}), nil
 	}
-	return f.finishSourceTest(ctx, req.Id, true, time.Since(start).Milliseconds(), "连接成功"), nil
+	res := &v1.FileSourceTestResult{Ok: true, LatencyMs: time.Since(start).Milliseconds(), Message: "连接成功"}
+	if ur, ok := store.(file.UsageReporter); ok {
+		uctx, cancel := context.WithTimeout(ctx, sourceUsageTimeout)
+		if used, total, err := ur.Usage(uctx); err == nil {
+			res.UsedBytes, res.TotalBytes = used, total
+		}
+		cancel()
+	}
+	return f.finishSourceTest(ctx, req.Id, res), nil
 }
 
-// finishSourceTest 组装测试结果；已保存来源同时回写最近一次测试记录（回写失败不影响本次结果）。
-func (f *FileUsecase) finishSourceTest(ctx context.Context, id string, ok bool, latencyMs int64, msg string) *v1.TestFileSourceResponse {
-	if latencyMs < 1 {
-		latencyMs = 1
+// finishSourceTest 补全测试结果（耗时下限 1ms、测试时间）；已保存来源同时回写最近一次测试记录（回写失败不影响本次结果）。
+func (f *FileUsecase) finishSourceTest(ctx context.Context, id string, res *v1.FileSourceTestResult) *v1.TestFileSourceResponse {
+	if res.LatencyMs < 1 {
+		res.LatencyMs = 1
 	}
-	now := time.Now()
+	res.TestedAt = timestamppb.Now()
 	if id != "" {
-		_ = f.repo.SaveFileSourceTest(ctx, id, ok, latencyMs, msg, now)
+		_ = f.repo.SaveFileSourceTest(ctx, id, res)
 	}
-	return &v1.TestFileSourceResponse{Ok: ok, Message: msg, LatencyMs: latencyMs, TestedAt: timestamppb.New(now)}
+	return &v1.TestFileSourceResponse{Result: res}
 }
 
 // ---- 分享 ----
@@ -1066,9 +1123,20 @@ func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.Lis
 		Items:    make([]*v1.ShareInfo, 0, len(items)),
 	}
 	for _, it := range items {
+		f.ensureShareCounted(ctx, it)
 		resp.Items = append(resp.Items, share.ToInfo(it))
 	}
 	return resp, nil
+}
+
+// ensureShareCounted 为旧分享记录补做条目统计（文件数 / 总大小 / 子项数）并回写，回写失败不影响本次展示。
+func (f *FileUsecase) ensureShareCounted(ctx context.Context, rec *gen.FileShare) {
+	items, changed := share.EnsureCounted(ctx, f.storeFor, rec)
+	if !changed {
+		return
+	}
+	rec.Items = items
+	_ = f.repo.UpdateShareItems(ctx, rec.ID, items)
 }
 
 // UpdateShare 编辑分享（含启停/续期，过期分享亦可二次编辑开启）。
@@ -1096,6 +1164,22 @@ func (f *FileUsecase) UpdateShare(ctx context.Context, userID string, req *v1.Up
 	return share.ToInfo(rec), nil
 }
 
+// GetShareQRCode 生成分享公开链接的二维码（PNG）。origin 为访问面板所用的站点源，仅接受 http(s)。
+func (f *FileUsecase) GetShareQRCode(ctx context.Context, userID string, req *v1.GetShareQRCodeRequest) (*v1.GetShareQRCodeResponse, error) {
+	rec, err := f.repo.GetShare(ctx, userID, req.Id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, ErrShareNotFound
+		}
+		return nil, ErrSystem(err)
+	}
+	link, png, err := share.QRCode(req.Origin, rec.Token)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return &v1.GetShareQRCodeResponse{Png: png, Link: link}, nil
+}
+
 // DeleteShare 删除分享。
 func (f *FileUsecase) DeleteShare(ctx context.Context, userID, id string) error {
 	if err := f.repo.DeleteShare(ctx, userID, id); err != nil {
@@ -1111,7 +1195,9 @@ func (f *FileUsecase) GetShareMeta(ctx context.Context, token string) (*v1.GetSh
 	if err != nil {
 		return nil, ErrShareNotFound
 	}
+	f.ensureShareCounted(ctx, rec)
 	meta := share.ToMeta(rec, rec.Edges.User, time.Now())
+	meta.DirectDownload = share.DirectDownload(ctx, f.storeFor, rec)
 	if until, locked := shareCodeLockedUntil(shareAttemptKey(ctx, token)); locked {
 		meta.LockedUntil = timestamppb.New(until)
 	}
@@ -1277,11 +1363,12 @@ func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
 	countable := r.Header.Get("Range") == "" && !inline
 	// 传入来源解析器：目标条目按其来源解析 Store，并由该来源自身的 redirect_302 决定是否 302 直链。
 	// path 可重复出现（访问者多选下载），多个时打包为一个 zip。
-	if err := share.ServeDownload(ctx, f.storeFor, rec, q["path"], inline, w, r); err != nil {
+	redirected, err := share.ServeDownload(ctx, f.storeFor, rec, q["path"], inline, w, r)
+	if err != nil {
 		return
 	}
 	if countable {
-		_ = f.repo.IncrShareDownload(ctx, rec.ID)
+		_ = f.repo.RecordShareDownload(ctx, rec.ID, rec.UserID, redirected)
 	}
 }
 

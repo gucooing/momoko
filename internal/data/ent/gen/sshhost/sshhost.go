@@ -49,6 +49,10 @@ const (
 	FieldLastTestMessage = "last_test_message"
 	// FieldLastConnectAt holds the string denoting the last_connect_at field in the database.
 	FieldLastConnectAt = "last_connect_at"
+	// FieldKeyType holds the string denoting the key_type field in the database.
+	FieldKeyType = "key_type"
+	// FieldQuickCommands holds the string denoting the quick_commands field in the database.
+	FieldQuickCommands = "quick_commands"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeSharedUsers holds the string denoting the shared_users edge name in mutations.
@@ -89,6 +93,8 @@ var Columns = []string{
 	FieldLastTestLatencyMs,
 	FieldLastTestMessage,
 	FieldLastConnectAt,
+	FieldKeyType,
+	FieldQuickCommands,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "ssh_hosts"
@@ -257,6 +263,11 @@ func ByLastTestMessage(opts ...sql.OrderTermOption) OrderOption {
 // ByLastConnectAt orders the results by the last_connect_at field.
 func ByLastConnectAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastConnectAt, opts...).ToFunc()
+}
+
+// ByKeyType orders the results by the key_type field.
+func ByKeyType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKeyType, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.

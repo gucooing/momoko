@@ -104,7 +104,7 @@ export default {
         summary: '可进入 {pages} 个页面 · {actions} 项操作权限',
         nodes: '可管理 {n} 个节点',
       },
-      appearance: { onlyYou: '只对你生效' },
+      appearance: { onlyYou: '只对你生效', rowHint: '配色、深浅色、紧凑模式' },
       pref: { title: '偏好与消息' },
       time: {
         justNow: '刚刚',
@@ -222,7 +222,7 @@ export default {
         summary: '可進入 {pages} 個頁面 · {actions} 項操作權限',
         nodes: '可管理 {n} 個節點',
       },
-      appearance: { onlyYou: '只對你生效' },
+      appearance: { onlyYou: '只對你生效', rowHint: '配色、深淺色、緊湊模式' },
       pref: { title: '偏好與訊息' },
       time: {
         justNow: '剛剛',
@@ -340,7 +340,7 @@ export default {
         summary: '{pages} pages · {actions} action permissions',
         nodes: 'manages {n} nodes',
       },
-      appearance: { onlyYou: 'Only applies to you' },
+      appearance: { onlyYou: 'Only applies to you', rowHint: 'Palette, dark mode, compact mode' },
       pref: { title: 'Preferences and messages' },
       time: {
         justNow: 'Just now',

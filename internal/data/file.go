@@ -11,6 +11,7 @@ import (
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/fileshare"
+	"momoko/internal/data/ent/gen/filesharedownload"
 	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
@@ -57,6 +58,7 @@ func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.Ch
 			SetChunkSize(info.ChunkSize).
 			SetTotalChunks(info.TotalChunks).
 			SetSourceID(info.SourceID).
+			SetBufferLocal(info.BufferLocal).
 			SetUserID(userId).Save(ctx)
 		if err != nil {
 			return err
@@ -202,7 +204,7 @@ func (f *fileRepo) ListShares(ctx context.Context, userID string, page, pageSize
 	return items, int64(total), nil
 }
 
-// ShareStats 统计某用户全部分享的状态分布与累计下载次数（不受筛选/分页影响）。
+// ShareStats 统计某用户全部分享的状态分布、本月下载次数与其中 302 直链下发次数（不受筛选/分页影响）。
 func (f *fileRepo) ShareStats(ctx context.Context, userID string) (*v1.ShareStats, error) {
 	rows, err := f.data.db.FileShare.Query().
 		Where(fileshare.UserIDEQ(userID)).
@@ -217,9 +219,25 @@ func (f *fileRepo) ShareStats(ctx context.Context, userID string) (*v1.ShareStat
 	}
 	now := time.Now()
 	soon := now.Add(72 * time.Hour)
-	stats := &v1.ShareStats{Total: int64(len(rows))}
+	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	monthQuery := f.data.db.FileShareDownload.Query().Where(
+		filesharedownload.UserIDEQ(userID),
+		filesharedownload.CreateTimeGTE(monthStart),
+	)
+	month, err := monthQuery.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	redirect, err := monthQuery.Where(filesharedownload.RedirectEQ(true)).Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+	stats := &v1.ShareStats{
+		Total:                  int64(len(rows)),
+		MonthDownloads:         int64(month),
+		MonthRedirectDownloads: int64(redirect),
+	}
 	for _, r := range rows {
-		stats.Downloads += r.DownloadCount
 		switch {
 		case !r.Enabled:
 			stats.Disabled++
@@ -235,6 +253,11 @@ func (f *fileRepo) ShareStats(ctx context.Context, userID string) (*v1.ShareStat
 		}
 	}
 	return stats, nil
+}
+
+// GetShare 按 id 获取某用户自己的分享。
+func (f *fileRepo) GetShare(ctx context.Context, userID, id string) (*gen.FileShare, error) {
+	return f.data.db.FileShare.Query().Where(fileshare.IDEQ(id), fileshare.UserIDEQ(userID)).Only(ctx)
 }
 
 // GetShareByToken 按公开令牌获取分享（不限用户）。供公开访问使用；带出分享者用于公开展示。
@@ -262,17 +285,56 @@ func (f *fileRepo) UpdateShare(ctx context.Context, userID, name string, items [
 	return builder.Save(ctx)
 }
 
-// DeleteShare 删除一条分享（仅限本人）。
+// DeleteShare 删除一条分享（仅限本人）及其下载记录。
 func (f *fileRepo) DeleteShare(ctx context.Context, userID, id string) error {
-	_, err := f.data.db.FileShare.Delete().
-		Where(fileshare.IDEQ(id), fileshare.UserIDEQ(userID)).
-		Exec(ctx)
-	return err
+	return utils.WithTx(ctx, f.data.db, func(tx *gen.Tx) error {
+		n, err := tx.FileShare.Delete().
+			Where(fileshare.IDEQ(id), fileshare.UserIDEQ(userID)).
+			Exec(ctx)
+		if err != nil || n == 0 {
+			return err
+		}
+		_, err = tx.FileShareDownload.Delete().Where(filesharedownload.ShareIDEQ(id)).Exec(ctx)
+		return err
+	})
 }
 
-// IncrShareDownload 原子地将下载次数 +1。
-func (f *fileRepo) IncrShareDownload(ctx context.Context, id string) error {
-	return f.data.db.FileShare.UpdateOneID(id).AddDownloadCount(1).Exec(ctx)
+// UpdateShareItems 回写分享条目缓存（旧记录补统计后使用），不改动其它字段与更新时间语义之外的内容。
+func (f *fileRepo) UpdateShareItems(ctx context.Context, id string, items []sharetype.Item) error {
+	return f.data.db.FileShare.UpdateOneID(id).SetItems(items).Exec(ctx)
+}
+
+// RecordShareDownload 记一次计数下载：下载次数 +1，并写一条下载记录（是否 302 直链）供统计。
+func (f *fileRepo) RecordShareDownload(ctx context.Context, shareID, ownerID string, redirect bool) error {
+	return utils.WithTx(ctx, f.data.db, func(tx *gen.Tx) error {
+		if err := tx.FileShare.UpdateOneID(shareID).AddDownloadCount(1).Exec(ctx); err != nil {
+			return err
+		}
+		return tx.FileShareDownload.Create().
+			SetShareID(shareID).
+			SetUserID(ownerID).
+			SetRedirect(redirect).
+			Exec(ctx)
+	})
+}
+
+// DeleteSharesExpiredBefore 删除过期时间早于 before 的分享及其下载记录（后台定时清理）。
+func (f *fileRepo) DeleteSharesExpiredBefore(ctx context.Context, before time.Time) (int, error) {
+	var deleted int
+	err := utils.WithTx(ctx, f.data.db, func(tx *gen.Tx) error {
+		ids, err := tx.FileShare.Query().
+			Where(fileshare.ExpiresAtNotNil(), fileshare.ExpiresAtLT(before)).
+			IDs(ctx)
+		if err != nil || len(ids) == 0 {
+			return err
+		}
+		if _, err := tx.FileShareDownload.Delete().Where(filesharedownload.ShareIDIn(ids...)).Exec(ctx); err != nil {
+			return err
+		}
+		deleted, err = tx.FileShare.Delete().Where(fileshare.IDIn(ids...)).Exec(ctx)
+		return err
+	})
+	return deleted, err
 }
 
 // ---- 文件来源（OSS/FTP/WebDAV，全局/管理员维护）----
@@ -317,13 +379,15 @@ func (f *fileRepo) UpdateFileSource(ctx context.Context, id, name, configJSON st
 		Save(ctx)
 }
 
-// SaveFileSourceTest 回写一条文件来源最近一次连通性测试结果。
-func (f *fileRepo) SaveFileSourceTest(ctx context.Context, id string, ok bool, latencyMs int64, message string, at time.Time) error {
+// SaveFileSourceTest 回写一条文件来源最近一次连通性测试结果（含测得的已用空间 / 总容量，0=未知）。
+func (f *fileRepo) SaveFileSourceTest(ctx context.Context, id string, res *v1.FileSourceTestResult) error {
 	return f.data.db.FileSource.UpdateOneID(id).
-		SetLastTestOk(ok).
-		SetLastTestLatencyMs(latencyMs).
-		SetLastTestMessage(message).
-		SetLastTestTime(at).
+		SetLastTestOk(res.Ok).
+		SetLastTestLatencyMs(res.LatencyMs).
+		SetLastTestMessage(res.Message).
+		SetLastTestTime(res.TestedAt.AsTime()).
+		SetLastTestUsedBytes(res.UsedBytes).
+		SetLastTestTotalBytes(res.TotalBytes).
 		Exec(ctx)
 }
 

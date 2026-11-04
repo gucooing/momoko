@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"io"
 	"io/fs"
 	"mime"
 	"net/http"
@@ -39,9 +40,8 @@ func (f distFile) hasCompressedVariant() bool {
 }
 
 type distHandler struct {
-	files      fs.FS
-	fileServer http.Handler
-	distFiles  map[string]distFile
+	files     fs.FS
+	distFiles map[string]distFile
 }
 
 func distMiddleware() httpm.FilterFunc {
@@ -76,9 +76,8 @@ func newDistHandler() (*distHandler, bool) {
 
 func newDistHandlerWithFS(distFS fs.FS) *distHandler {
 	return &distHandler{
-		files:      distFS,
-		fileServer: http.FileServer(http.FS(distFS)),
-		distFiles:  buildDistFiles(distFS),
+		files:     distFS,
+		distFiles: buildDistFiles(distFS),
 	}
 }
 
@@ -123,7 +122,21 @@ func (h *distHandler) serveDistFile(w http.ResponseWriter, r *http.Request, file
 		appendVary(w.Header(), "Accept-Encoding")
 	}
 
-	h.fileServer.ServeHTTP(w, requestWithPath(r, "/"+item.rawPath))
+	// 不经 http.FileServer：它会把 /index.html 重定向到 ./，未压缩的入口页会陷入 301 循环。
+	file, err := h.files.Open(item.rawPath)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	content, ok := file.(io.ReadSeeker)
+	if !ok {
+		data, err := io.ReadAll(file)
+		if err != nil {
+			return false
+		}
+		content = bytes.NewReader(data)
+	}
+	http.ServeContent(w, r, path.Base(filePath), item.modTime, content)
 	return true
 }
 
@@ -264,18 +277,6 @@ func setDistCacheHeaders(h http.Header, filePath string) {
 
 func isImmutableDistAsset(filePath string) bool {
 	return strings.HasPrefix(filePath, "assets/")
-}
-
-func requestWithPath(r *http.Request, cleanPath string) *http.Request {
-	clone := r.Clone(r.Context())
-	if r.URL == nil {
-		return clone
-	}
-
-	urlCopy := *r.URL
-	urlCopy.Path = cleanPath
-	clone.URL = &urlCopy
-	return clone
 }
 
 func fileExists(fsys fs.FS, name string) bool {

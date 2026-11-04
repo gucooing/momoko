@@ -82,11 +82,11 @@ func (s *IQCheckService) FetchIQCheckModels(ctx context.Context, req *v1.FetchIQ
 }
 
 func (s *IQCheckService) TriggerIQCheck(ctx context.Context, req *v1.TriggerIQCheckRequest) (*v1.TriggerIQCheckResponse, error) {
-	count, err := s.uc.TriggerCheck(ctx, req.Id)
+	models, err := s.uc.TriggerCheck(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.TriggerIQCheckResponse{ModelCount: count}, nil
+	return &v1.TriggerIQCheckResponse{ModelCount: models}, nil
 }
 
 func (s *IQCheckService) PublicIQCheckSite(ctx context.Context, req *v1.PublicIQCheckSiteRequest) (*v1.PublicIQCheckSiteResponse, error) {

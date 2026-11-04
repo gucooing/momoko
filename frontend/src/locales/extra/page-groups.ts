@@ -4,6 +4,7 @@ export default {
     pageGroup: {
       noAccessTitle: '没有可查看的内容',
       noAccessDesc: '当前账号在这里没有任何可访问的标签，请联系管理员分配权限。',
+      file: { label: '文件', index: '文件管理', share: '分享', source: '文件源' },
       docker: { label: 'Docker', container: '容器', image: '镜像', network: '网络', config: '连接配置' },
       node: { label: '节点与 API Key', list: '节点', key: 'API Key' },
       access: { label: '用户与权限', user: '用户', role: '角色', menu: '菜单' },
@@ -16,6 +17,7 @@ export default {
     pageGroup: {
       noAccessTitle: '沒有可查看的內容',
       noAccessDesc: '當前帳號在這裡沒有任何可訪問的標籤，請聯絡管理員分配權限。',
+      file: { label: '文件', index: '文件管理', share: '分享', source: '文件源' },
       docker: { label: 'Docker', container: '容器', image: '鏡像', network: '網絡', config: '連接配置' },
       node: { label: '節點與 API Key', list: '節點', key: 'API Key' },
       access: { label: '用戶與權限', user: '用戶', role: '角色', menu: '選單' },
@@ -28,6 +30,7 @@ export default {
     pageGroup: {
       noAccessTitle: 'Nothing to show here',
       noAccessDesc: 'Your account has no access to any tab on this page. Ask an administrator for permission.',
+      file: { label: 'Files', index: 'File manager', share: 'Shares', source: 'File sources' },
       docker: { label: 'Docker', container: 'Containers', image: 'Images', network: 'Networks', config: 'Connection' },
       node: { label: 'Nodes and API keys', list: 'Nodes', key: 'API keys' },
       access: { label: 'Users and access', user: 'Users', role: 'Roles', menu: 'Menus' },

@@ -9,10 +9,36 @@
         <path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z" />
       </svg>
 
-      <div class="init-brand__logo">
-        <img :src="APP_CONFIG.logoSrc" alt="" />
-        <span>{{ APP_CONFIG.name }}</span>
-        <span class="init-brand__badge">{{ t('initialize.firstRun') }}</span>
+      <div class="init-brand__bar">
+        <div class="init-brand__logo">
+          <img :src="APP_CONFIG.logoSrc" alt="" />
+          <span class="init-brand__name">{{ APP_CONFIG.name }}</span>
+          <span class="init-brand__badge">{{ t('initialize.firstRun') }}</span>
+        </div>
+        <!-- 手机：语言 / 主题 / 深浅色放在品牌区 -->
+        <div class="init-brand__tools">
+          <AuthLangMenu compact on-brand />
+          <button
+            v-if="APP_CONFIG.showThemeConfig"
+            type="button"
+            class="init-brand__btn init-brand__btn--chip"
+            :aria-label="t('layout.themeConfig')"
+            @click="themeStore.themeConfigDrawerOpen = true"
+          >
+            <component :is="menuStore.iconComponents['HOutline:SwatchIcon']" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            class="init-brand__btn init-brand__btn--mode"
+            :aria-label="t('login.toggleTheme')"
+            @click="toggleTheme"
+          >
+            <component
+              :is="menuStore.iconComponents[themeStore.isDarkTheme ? 'HOutline:SunIcon' : 'HOutline:MoonIcon']"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
       </div>
 
       <div class="init-brand__copy">
@@ -28,13 +54,14 @@
         <span class="init-brand__mcount">
           {{ t('initialize.firstRun') }} · {{ t('initialize.stepOf', { step: currentStep + 1, total: steps.length }) }}
         </span>
-        <h1 class="init-brand__mtitle">{{ steps[currentStep]?.title }}</h1>
+        <h1 class="init-brand__mtitle">{{ currentStep === 3 ? resultTitle : steps[currentStep]?.title }}</h1>
         <ol class="init-brand__bars" :aria-label="t('initialize.pageTitle')">
           <li
             v-for="(s, i) in steps"
             :key="s.key"
-            :class="{ 'is-on': i <= currentStep }"
+            :class="{ 'is-done': stepDone(i), 'is-on': i === currentStep && !stepDone(i) }"
             :aria-label="s.title"
+            :aria-current="i === currentStep ? 'step' : undefined"
           />
         </ol>
       </div>
@@ -82,15 +109,17 @@
         </span>
         <span class="init-panel__spacer" />
         <div class="init-panel__chrome">
-          <LanguageMenu />
+          <AuthLangMenu />
           <AppIconButton
             v-if="APP_CONFIG.showThemeConfig"
             icon="HOutline:SwatchIcon"
+            :box="44"
             :label="t('layout.themeConfig')"
             @click="themeStore.themeConfigDrawerOpen = true"
           />
           <AppIconButton
             :icon="themeStore.isDarkTheme ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
+            :box="44"
             :label="t('login.toggleTheme')"
             @click="toggleTheme"
           />
@@ -194,7 +223,7 @@
                   <label class="init-field">
                     <span class="init-field__label">{{ t('initialize.host') }}</span>
                     <span class="init-fld" :class="{ 'is-error': dbErrors.address }">
-                      <component :is="menuStore.iconComponents['HOutline:ServerIcon']" class="init-fld__ico" />
+                      <component :is="menuStore.iconComponents['HOutline:ServerIcon']" class="init-fld__ico init-fld__ico--pc" />
                       <input
                         v-model="dbForm.host"
                         class="init-fld__input m-mono"
@@ -209,7 +238,7 @@
                   <label class="init-field">
                     <span class="init-field__label">{{ t('initialize.port') }}</span>
                     <span class="init-fld">
-                      <component :is="menuStore.iconComponents['HOutline:HashtagIcon']" class="init-fld__ico" />
+                      <component :is="menuStore.iconComponents['HOutline:HashtagIcon']" class="init-fld__ico init-fld__ico--pc" />
                       <input
                         v-model="dbForm.port"
                         class="init-fld__input m-mono"
@@ -346,13 +375,16 @@
               </div>
 
               <label class="init-field">
-                <span class="init-field__label">{{ t('initialize.adminName') }}</span>
+                <span class="init-field__label">
+                  {{ t('initialize.adminName') }}
+                  <span class="init-field__opt">{{ t('initialize.optional') }}</span>
+                </span>
                 <span class="init-fld" :class="{ 'is-error': adminErrors.name }">
                   <component :is="menuStore.iconComponents['HOutline:IdentificationIcon']" class="init-fld__ico" />
                   <input
                     v-model="adminForm.name"
                     class="init-fld__input"
-                    :placeholder="t('initialize.adminNamePlaceholder')"
+                    :placeholder="t('initialize.adminNameOptionalPlaceholder')"
                     autocomplete="nickname"
                   />
                 </span>
@@ -394,6 +426,7 @@
                     {{ t('initialize.strength', { level: adminForm.password ? strength.label : '—' }) }}
                   </span>
                 </div>
+                <span class="init-field__hint init-rules-hint">{{ t('authPage.strength.hint') }}</span>
                 <ul class="init-rules">
                   <li v-for="r in strength.rules" :key="r.key" :class="{ 'is-ok': r.ok }">
                     <component :is="menuStore.iconComponents[r.ok ? 'HOutline:CheckIcon' : 'HOutline:MinusIcon']" />
@@ -467,29 +500,27 @@
               </header>
 
               <dl class="init-summary">
-                <div>
+                <div class="is-db">
                   <dt>{{ t('initialize.summaryDatabase') }}</dt>
                   <dd>{{ databaseTypeLabel(dbForm.type) }}</dd>
                 </div>
-                <div>
+                <div class="is-target">
+                  <dt>{{ t('initialize.summaryTarget') }}</dt>
+                  <dd class="m-mono is-mono" :title="dbTarget">{{ dbTarget }}</dd>
+                </div>
+                <div class="is-admin">
                   <dt>{{ t('initialize.summaryAdmin') }}</dt>
                   <dd>{{ adminForm.username }}</dd>
                 </div>
-                <div class="is-wide">
-                  <dt>{{ t('initialize.summaryTarget') }}</dt>
-                  <dd class="m-mono is-mono">{{ dbTarget }}</dd>
-                </div>
-                <div v-if="status.hostname">
+                <div class="is-node">
                   <dt>{{ t('initialize.summaryNode') }}</dt>
-                  <dd>{{ status.hostname }}</dd>
+                  <dd>{{ status.hostname || '—' }}</dd>
                 </div>
-                <div v-if="status.version">
-                  <dt>{{ t('initialize.summaryVersion') }}</dt>
-                  <dd class="m-mono is-mono">{{ status.version }}</dd>
-                </div>
-                <div class="is-wide">
+                <div class="is-wide is-addr">
                   <dt>{{ t('initialize.summaryAddress') }}</dt>
-                  <dd class="m-mono is-mono">{{ accessAddress }}</dd>
+                  <dd class="m-mono is-mono">
+                    {{ accessAddress }}<template v-if="status.version"> · {{ APP_CONFIG.name }} {{ status.version }}</template>
+                  </dd>
                 </div>
               </dl>
 
@@ -577,7 +608,8 @@ import { DatabaseType } from '@/types/v1/initialize'
 import type { TestInitializeDatabaseRequest, ConfirmInitializeRequest } from '@/types/v1/initialize'
 import { useFeedback } from '@/utils/feedback'
 import ThemeConfig from '@/components/ThemeConfig.vue'
-import LanguageMenu from '@/layouts/app/LanguageMenu.vue'
+import AuthLangMenu from '@/views/login/components/AuthLangMenu.vue'
+import { MIN_PASSWORD_LENGTH, scorePassword } from '@/views/login/composables/passwordStrength'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InitializeView' })
@@ -591,11 +623,10 @@ const router = useRouter()
 const { t } = useI18n()
 const fb = useFeedback()
 
-const currentYear = new Date().getFullYear()
 const currentStep = ref(0)
 const testing = ref(false)
 const connectionTested = ref(false)
-const testResult = reactive({ serverVersion: '', latencyMs: 0 })
+const testResult = reactive({ serverVersion: '', latencyMs: 0, databaseExists: true, tableCount: 0, sqlitePath: '' })
 const confirming = ref(false)
 const confirmed = ref(false)
 const polling = ref(false)
@@ -651,10 +682,7 @@ const adminForm = reactive<AdminForm>({
 })
 
 const footerText = computed(() =>
-  [
-    status.version ? `${APP_CONFIG.name} ${status.version}` : APP_CONFIG.name,
-    t('login.copyright', { year: currentYear, name: APP_CONFIG.name }),
-  ].join(' · '),
+  t('authPage.footer', { name: status.version ? `${APP_CONFIG.name} ${status.version}` : APP_CONFIG.name }),
 )
 
 const heroTags = computed(() => t('initialize.heroTags').split(',').filter(Boolean))
@@ -710,25 +738,34 @@ const dbTarget = computed(() => {
 
 const accessAddress = computed(() => (typeof window !== 'undefined' ? window.location.origin : ''))
 
+// 例：「目录可写 · momoko.db 将自动创建 · SQLite 3.46」/「MySQL 8.0.36 · 延迟 3 ms · 数据库 momoko 可读写 · 空库」
 const testSummary = computed(() => {
   const parts: string[] = []
-  if (testResult.serverVersion) parts.push(`${databaseTypeLabel(dbForm.type)} ${testResult.serverVersion}`)
-  parts.push(t('initialize.latency', { ms: testResult.latencyMs }))
-  parts.push(isSqlite.value ? t('initialize.sqliteWritable') : t('initialize.remoteWritable', { db: dbForm.databaseName.trim() }))
+  const tables = testResult.tableCount > 0 ? t('initialize.tablesExisting', { n: testResult.tableCount }) : ''
+  if (isSqlite.value) {
+    const file = (testResult.sqlitePath || dbTarget.value).split('/').pop() || ''
+    parts.push(t('initialize.sqliteWritable'))
+    parts.push(testResult.databaseExists ? t('initialize.sqliteExists', { file }) : t('initialize.sqliteWillCreate', { file }))
+    if (tables) parts.push(tables)
+    if (testResult.serverVersion) parts.push(testResult.serverVersion)
+  } else {
+    if (testResult.serverVersion) parts.push(testResult.serverVersion)
+    parts.push(t('initialize.latency', { ms: testResult.latencyMs }))
+    parts.push(t('initialize.remoteWritable', { db: dbForm.databaseName.trim() }))
+    parts.push(tables || t('initialize.emptyDatabase'))
+  }
   return parts.join(' · ')
 })
 
-// 密码强度：仅提示，不参与校验（后端规则仍以 passwordMin 为准）
+// 密码强度：仅提示；最少位数（MIN_PASSWORD_LENGTH）由校验与后端保证
 const strength = computed(() => {
-  const pw = adminForm.password
+  const { score, rules } = scorePassword(adminForm.password)
   const checks = [
-    { key: 'len', ok: pw.length >= 8, label: t('initialize.rules.length') },
-    { key: 'case', ok: /[a-z]/.test(pw) && /[A-Z]/.test(pw), label: t('initialize.rules.case') },
-    { key: 'digit', ok: /\d/.test(pw), label: t('initialize.rules.digit') },
-    { key: 'symbol', ok: /[^A-Za-z0-9]/.test(pw), label: t('initialize.rules.symbol') },
+    { key: 'len', ok: rules.length, label: t('initialize.rules.length') },
+    { key: 'case', ok: rules.case, label: t('initialize.rules.case') },
+    { key: 'digit', ok: rules.digit, label: t('initialize.rules.digit') },
+    { key: 'symbol', ok: rules.symbol, label: t('initialize.rules.symbol') },
   ]
-  let score = checks.filter((c) => c.ok).length
-  if (pw.length < 6) score = Math.min(score, 1)
   const tones = ['bad', 'bad', 'warn', 'ok', 'ok'] as const
   const levels = ['veryWeak', 'weak', 'fair', 'strong', 'veryStrong'] as const
   return {
@@ -839,8 +876,8 @@ function validateAdminForm(): boolean {
   if (!adminForm.username.trim()) next.username = t('initialize.adminUsernameRequired')
   if (!adminForm.password) {
     next.password = t('initialize.adminPasswordRequired')
-  } else if (adminForm.password.length < 6) {
-    next.password = t('initialize.passwordMin')
+  } else if (adminForm.password.length < MIN_PASSWORD_LENGTH) {
+    next.password = t('authPage.strength.tooShort')
   }
   if (!adminForm.confirmPassword) {
     next.confirmPassword = t('initialize.adminConfirmPasswordRequired')
@@ -853,7 +890,6 @@ function validateAdminForm(): boolean {
   } else if (!EMAIL_REGEXP.test(email)) {
     next.email = t('initialize.adminEmailInvalid')
   }
-  if (!adminForm.name.trim()) next.name = t('initialize.adminNameRequired')
   adminErrors.value = next
   return Object.keys(next).length === 0
 }
@@ -897,6 +933,9 @@ async function handleTestConnection() {
     if (data?.success) {
       testResult.serverVersion = data.serverVersion || ''
       testResult.latencyMs = Number(data.latencyMs) || 0
+      testResult.databaseExists = data.databaseExists ?? true
+      testResult.tableCount = Number(data.tableCount) || 0
+      testResult.sqlitePath = data.sqlitePath || ''
       connectionTested.value = true
     } else {
       fb.error(t('initialize.databaseConnectFailed'))
@@ -992,7 +1031,13 @@ function startPolling() {
   }, 1000)
 }
 
+// 去登录页时预填刚创建的超级管理员用户名
 function goToLogin() {
+  try {
+    if (adminForm.username.trim()) localStorage.setItem('remember_username', adminForm.username.trim())
+  } catch {
+    // 忽略
+  }
   router.replace({ path: '/login' })
 }
 
@@ -1080,16 +1125,64 @@ onBeforeUnmount(clearPoll)
   height: 56px;
   fill: var(--m-pOn);
 }
+.init-brand__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .init-brand__logo {
   position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   font-family: var(--app-font-display);
   font-size: 1.625rem;
   font-weight: 800;
 }
+.init-brand__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.init-brand__tools {
+  display: none;
+}
+.init-brand__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--m-pOn);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.init-brand__btn:hover {
+  background: color-mix(in srgb, var(--m-pOn) 14%, transparent);
+}
+.init-brand__btn svg {
+  width: 20px;
+  height: 20px;
+}
+/* 主题按钮：实心底 + 主色图标（与语言按钮一致），压在黄色圆上也看得清 */
+.init-brand__btn--chip,
+.init-brand__btn--chip:hover {
+  background: var(--m-pOn);
+  color: var(--m-p);
+}
+.init-brand__btn--mode,
+.init-brand__btn--mode:hover {
+  background: var(--m-a);
+  color: var(--m-aOn);
+}
 .init-brand__logo img {
+  flex: none;
   width: 48px;
   height: 48px;
   border-radius: 15px;
@@ -1487,6 +1580,15 @@ onBeforeUnmount(clearPoll)
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--el-text-color-secondary);
+}
+.init-field__opt {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+}
+.init-rules-hint {
+  display: none;
 }
 .init-fld {
   display: flex;
@@ -1902,12 +2004,14 @@ onBeforeUnmount(clearPoll)
 /* ---- 窄屏：品牌区在上（步骤标题 + 进度条），表单卡片上浮，底部操作条固定 ---- */
 @media (width < 900px) {
   .init {
+    flex-direction: column;
+    flex-wrap: nowrap;
     overflow-x: clip;
   }
   /* 品牌区不建立定位上下文：装饰相对整页定位，表单卡片的背景与圆角才能盖住品牌区底部 */
   .init-brand {
     position: static;
-    flex: 1 1 100%;
+    flex: none;
     min-height: 0;
     padding: 16px 20px 56px;
     gap: 0;
@@ -1929,9 +2033,19 @@ onBeforeUnmount(clearPoll)
   .init-brand__badge {
     display: none;
   }
+  .init-brand__bar {
+    gap: 6px;
+  }
   .init-brand__logo {
+    flex: 1;
+    gap: 10px;
     font-size: 1.25rem;
-    padding-right: 150px;
+  }
+  .init-brand__tools {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: none;
   }
   .init-brand__logo img {
     width: 38px;
@@ -1969,33 +2083,30 @@ onBeforeUnmount(clearPoll)
     border-radius: 999px;
     background: color-mix(in srgb, var(--m-pOn) 30%, transparent);
   }
+  .init-brand__bars li.is-done {
+    background: var(--m-pOn);
+  }
   .init-brand__bars li.is-on {
     background: var(--m-a);
   }
 
   .init-panel {
     position: static;
-    flex: 1 1 100%;
+    flex: 1 0 auto;
     margin-top: -32px;
     padding: 24px 20px 0;
     gap: 0;
     border-radius: 30px 30px 0 0;
   }
-  .init-panel__top {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 2;
-    padding: 2px;
-    border-radius: 999px;
-    background: var(--el-bg-color);
-    box-shadow: var(--app-shadow-sm);
-  }
-  .init-panel__count,
-  .init-panel__spacer,
+  .init-panel__top,
   .init-panel__bars,
-  .init-head h2 {
+  .init-head h2,
+  .init-fld__ico--pc,
+  .init-rules {
     display: none;
+  }
+  .init-rules-hint {
+    display: inline;
   }
   .init-head--done h2 {
     display: block;
@@ -2005,7 +2116,10 @@ onBeforeUnmount(clearPoll)
     padding-top: 0;
   }
   .init-panel__copy {
-    padding: 8px 0 20px;
+    display: none;
+  }
+  .init-step {
+    flex: 1 0 auto;
   }
   .init-form,
   .init-step {
@@ -2107,8 +2221,39 @@ onBeforeUnmount(clearPoll)
   .init-summary dd {
     font-size: 0.875rem;
   }
+  .init-summary dd.is-mono {
+    font-size: 0.75rem;
+  }
+  /* 手机上的顺序：数据库 | 超级管理员，下面整行依次是连接、本机节点、访问地址 */
+  .init-summary .is-db {
+    order: 1;
+  }
+  .init-summary .is-admin {
+    order: 2;
+  }
+  .init-summary .is-target {
+    order: 3;
+    grid-column: 1 / -1;
+  }
+  .init-summary .is-node {
+    order: 4;
+    grid-column: 1 / -1;
+  }
+  .init-summary .is-addr {
+    order: 5;
+  }
+  .init-done-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: auto -20px 0;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--el-border-color-lighter);
+    background: var(--el-bg-color);
+  }
   .init-done-actions :deep(.init-btn) {
     width: 100%;
+    flex: 1;
   }
 
   .init-foot {

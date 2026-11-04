@@ -123,13 +123,11 @@ func (s *AuthService) SendRegisterEmailCode(ctx context.Context, req *v1.SendReg
 		return nil, biz.ErrSystem(err)
 	}
 
-	code, err := s.uc.NewEmailCode(req.Email, biz.EmailCodeTypeRegister)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.system.SendEmail(ctx, v1.EmailTemplateType_EmailTemplateType_Register, req.Email, map[string]string{
-		"code":  code,
-		"email": req.Email,
+	if err := s.uc.IssueEmailCode(req.Email, biz.EmailCodeTypeRegister, func(code string) error {
+		return s.system.SendEmail(ctx, v1.EmailTemplateType_EmailTemplateType_Register, req.Email, map[string]string{
+			"code":  code,
+			"email": req.Email,
+		})
 	}); err != nil {
 		return nil, err
 	}
@@ -156,18 +154,16 @@ func (s *AuthService) SendLoginEmailCode(ctx context.Context, req *v1.SendLoginE
 		return nil, biz.ErrUserInactive
 	}
 
-	code, err := s.uc.NewEmailCode(req.Email, biz.EmailCodeTypeLogin)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.system.SendEmail(ctx, v1.EmailTemplateType_EmailTemplateType_Login, req.Email, map[string]string{
-		"code":  code,
-		"email": req.Email,
-		"name":  userInfo.Name,
+	if err := s.uc.IssueEmailCode(req.Email, biz.EmailCodeTypeLogin, func(code string) error {
+		return s.system.SendEmail(ctx, v1.EmailTemplateType_EmailTemplateType_Login, req.Email, map[string]string{
+			"code":  code,
+			"email": req.Email,
+			"name":  userInfo.Name,
+		})
 	}); err != nil {
 		return nil, err
 	}
-	return &v1.SendLoginEmailCodeResponse{}, nil
+	return &v1.SendLoginEmailCodeResponse{ExpiresInSeconds: int64(biz.EmailCodeTTL.Seconds())}, nil
 }
 
 func (s *AuthService) SendResetPasswordEmailCode(ctx context.Context, req *v1.SendResetPasswordEmailCodeRequest) (*v1.SendResetPasswordEmailCodeResponse, error) {
@@ -186,14 +182,12 @@ func (s *AuthService) SendResetPasswordEmailCode(ctx context.Context, req *v1.Se
 		return nil, biz.ErrUserInactive
 	}
 
-	code, err := s.uc.NewEmailCode(email, biz.EmailCodeTypeReset)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.system.SendEmail(ctx, v1.EmailTemplateType_EmailTemplateType_ResetPassword, email, map[string]string{
-		"code":  code,
-		"email": email,
-		"name":  userInfo.Name,
+	if err := s.uc.IssueEmailCode(email, biz.EmailCodeTypeReset, func(code string) error {
+		return s.system.SendEmail(ctx, v1.EmailTemplateType_EmailTemplateType_ResetPassword, email, map[string]string{
+			"code":  code,
+			"email": email,
+			"name":  userInfo.Name,
+		})
 	}); err != nil {
 		return nil, err
 	}

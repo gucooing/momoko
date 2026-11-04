@@ -31,7 +31,7 @@
         <label class="frpc-reveal">
           <input v-model="reveal" type="checkbox" />
           {{ t('tools.tunnel.frpcDialog.reveal') }}
-          <span v-if="reveal" class="frpc-reveal__warn">{{ t('tools.tunnel.frpcDialog.revealHint') }}</span>
+          <span v-if="reveal || menuStore.isMobile" class="frpc-reveal__warn">{{ t('tools.tunnel.frpcDialog.revealHint') }}</span>
         </label>
       </div>
 
@@ -54,7 +54,7 @@
         <component :is="menuStore.iconComponents['HOutline:CommandLineIcon']" class="frpc-cmd__ico" />
         <span class="frpc-cmd__text m-mono">{{ START_CMD }}</span>
         <span class="frpc-cmd__hint">{{ t('tools.tunnel.frpc.windowsHint') }}</span>
-        <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('tools.tunnel.frpc.copyCmd')" :box="40" :size="18" @click="copyCmd" />
+        <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('tools.tunnel.frpc.copyCmd')" :box="menuStore.isMobile ? 44 : 40" :size="18" @click="copyCmd" />
       </div>
 
       <div class="frpc-foot">
@@ -410,7 +410,7 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
 
 @media (width <= 768px) {
   .frpc-seg { width: 100%; }
-  .frpc-seg__btn { flex: 1; min-height: 40px; padding: 0 8px; }
+  .frpc-seg__btn { flex: 1; min-height: 44px; padding: 0 8px; }
   .frpc-spacer { display: none; }
   .frpc-reveal { width: 100%; }
   .frpc-reveal__warn { margin-left: auto; }

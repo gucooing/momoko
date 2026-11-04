@@ -1,0 +1,205 @@
+// 登录 / 注册 / 找回密码三个表单共用的样式（各组件 scoped 引入）。
+
+.auth-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-height: 0;
+}
+
+.auth-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.auth-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  cursor: pointer;
+  user-select: none;
+}
+.auth-check input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--m-p);
+  cursor: pointer;
+}
+
+.auth-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--m-pInk);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.auth-link:hover {
+  color: var(--el-text-color-primary);
+}
+
+.auth-status {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--m-ok);
+}
+.auth-status svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  stroke-width: 2.6;
+}
+.auth-status.is-bad {
+  color: var(--m-bad);
+}
+.auth-status__short {
+  display: none;
+}
+
+.auth-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--m-a2Soft);
+  color: var(--el-text-color-primary);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+.auth-note svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+.auth-note--warn {
+  background: var(--m-warnSoft);
+}
+.auth-note--warn svg {
+  color: var(--m-warn);
+}
+.auth-note__short {
+  display: none;
+}
+
+.auth-pw {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--app-shadow-brand);
+  transition:
+    filter 0.15s,
+    transform 0.15s,
+    opacity 0.15s;
+}
+.auth-submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.auth-submit:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.auth-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.auth-submit svg {
+  width: 20px;
+  height: 20px;
+}
+.auth-submit .is-spin {
+  animation: auth-spin 0.9s linear infinite;
+}
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-switch {
+  margin: 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--el-text-color-secondary);
+}
+.auth-switch .auth-link {
+  min-height: 40px;
+}
+
+@media (width < 900px) {
+  .auth-form {
+    gap: 16px;
+  }
+  .auth-switch .auth-link {
+    min-height: 44px;
+  }
+  .auth-status__long,
+  .auth-note__long {
+    display: none;
+  }
+  .auth-status__short,
+  .auth-note__short {
+    display: inline;
+  }
+  /* 主按钮贴在屏幕底部（内容短时沉到底，内容长时吸底） */
+  .auth-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    gap: 8px;
+    margin: auto -20px 0;
+    padding: 10px 20px calc(20px + env(safe-area-inset-bottom));
+    background: var(--el-bg-color);
+  }
+  .auth-actions--bar {
+    border-top: 1px solid var(--el-border-color-lighter);
+  }
+  .auth-switch {
+    line-height: 32px;
+  }
+}

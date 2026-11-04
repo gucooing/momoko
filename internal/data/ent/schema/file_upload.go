@@ -29,6 +29,8 @@ func (FileUpload) Fields() []ent.Field {
 		field.String("source_id").Default("").Comment("目标文件来源id，空=本地"),
 		// 来源侧句柄：如 OSS 分片上传的 uploadID；用于浏览器直传 OSS 时重启续传/收尾/中止。
 		field.String("provider_ref").Default("").Comment("来源侧上传句柄(如OSS multipart uploadID)"),
+		// 分片缓冲位置：true=缓冲在目标目录旁（本地类来源，收尾原子 rename），false=缓冲在统一本地临时目录（远端来源）。
+		field.Bool("buffer_local").Default(false).Comment("分片是否缓冲在目标目录旁(本地类来源)"),
 	}
 }
 

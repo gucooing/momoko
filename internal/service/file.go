@@ -199,6 +199,14 @@ func (f *FileService) DeleteShare(ctx context.Context, req *v1.DeleteShareReques
 }
 
 // GetShareMeta 公开接口：无需登录（/api/v1/public/ 前缀免鉴权），仅返回引导用的元信息。
+func (f *FileService) GetShareQRCode(ctx context.Context, req *v1.GetShareQRCodeRequest) (*v1.GetShareQRCodeResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	return f.uc.GetShareQRCode(ctx, authCtx.UserID, req)
+}
+
 func (f *FileService) GetShareMeta(ctx context.Context, req *v1.GetShareMetaRequest) (*v1.GetShareMetaResponse, error) {
 	return f.uc.GetShareMeta(ctx, req.Token)
 }

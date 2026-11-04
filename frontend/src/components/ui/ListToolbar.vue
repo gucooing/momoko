@@ -160,6 +160,11 @@ const pick = (value: T) => {
   .ltb__search {
     flex: 1 1 0;
     min-width: 0;
+    min-height: 44px;
+  }
+  /* 手机点击区 ≥ 44px */
+  .ltb__chip {
+    min-height: 44px;
   }
 }
 </style>

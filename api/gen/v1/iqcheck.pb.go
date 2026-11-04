@@ -133,6 +133,71 @@ func (IQCheckResultStatus) EnumDescriptor() ([]byte, []int) {
 	return file_v1_iqcheck_proto_rawDescGZIP(), []int{1}
 }
 
+// 提示词分类（决定列表里的图标与分类名）
+type IQCheckPromptCategory int32
+
+const (
+	// 其他 / 未分类
+	IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_OTHER IQCheckPromptCategory = 0
+	// 逻辑推理
+	IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_LOGIC IQCheckPromptCategory = 1
+	// 数学
+	IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_MATH IQCheckPromptCategory = 2
+	// 编程
+	IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_CODING IQCheckPromptCategory = 3
+	// 画图（SVG / HTML 等可渲染输出）
+	IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_DRAWING IQCheckPromptCategory = 4
+	// 写作
+	IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_WRITING IQCheckPromptCategory = 5
+)
+
+// Enum value maps for IQCheckPromptCategory.
+var (
+	IQCheckPromptCategory_name = map[int32]string{
+		0: "IQ_CHECK_PROMPT_CATEGORY_OTHER",
+		1: "IQ_CHECK_PROMPT_CATEGORY_LOGIC",
+		2: "IQ_CHECK_PROMPT_CATEGORY_MATH",
+		3: "IQ_CHECK_PROMPT_CATEGORY_CODING",
+		4: "IQ_CHECK_PROMPT_CATEGORY_DRAWING",
+		5: "IQ_CHECK_PROMPT_CATEGORY_WRITING",
+	}
+	IQCheckPromptCategory_value = map[string]int32{
+		"IQ_CHECK_PROMPT_CATEGORY_OTHER":   0,
+		"IQ_CHECK_PROMPT_CATEGORY_LOGIC":   1,
+		"IQ_CHECK_PROMPT_CATEGORY_MATH":    2,
+		"IQ_CHECK_PROMPT_CATEGORY_CODING":  3,
+		"IQ_CHECK_PROMPT_CATEGORY_DRAWING": 4,
+		"IQ_CHECK_PROMPT_CATEGORY_WRITING": 5,
+	}
+)
+
+func (x IQCheckPromptCategory) Enum() *IQCheckPromptCategory {
+	p := new(IQCheckPromptCategory)
+	*p = x
+	return p
+}
+
+func (x IQCheckPromptCategory) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (IQCheckPromptCategory) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_iqcheck_proto_enumTypes[2].Descriptor()
+}
+
+func (IQCheckPromptCategory) Type() protoreflect.EnumType {
+	return &file_v1_iqcheck_proto_enumTypes[2]
+}
+
+func (x IQCheckPromptCategory) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use IQCheckPromptCategory.Descriptor instead.
+func (IQCheckPromptCategory) EnumDescriptor() ([]byte, []int) {
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{2}
+}
+
 // 站点健康状态
 type IQCheckSiteHealth int32
 
@@ -174,11 +239,11 @@ func (x IQCheckSiteHealth) String() string {
 }
 
 func (IQCheckSiteHealth) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1_iqcheck_proto_enumTypes[2].Descriptor()
+	return file_v1_iqcheck_proto_enumTypes[3].Descriptor()
 }
 
 func (IQCheckSiteHealth) Type() protoreflect.EnumType {
-	return &file_v1_iqcheck_proto_enumTypes[2]
+	return &file_v1_iqcheck_proto_enumTypes[3]
 }
 
 func (x IQCheckSiteHealth) Number() protoreflect.EnumNumber {
@@ -187,7 +252,7 @@ func (x IQCheckSiteHealth) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use IQCheckSiteHealth.Descriptor instead.
 func (IQCheckSiteHealth) EnumDescriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{2}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{3}
 }
 
 // 站点列表筛选
@@ -198,8 +263,10 @@ const (
 	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_ALL IQCheckSiteFilter = 0
 	// 最近一轮全部成功
 	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_HEALTHY IQCheckSiteFilter = 1
-	// 最近一轮有失败
-	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_FAILING IQCheckSiteFilter = 2
+	// 最近一轮部分模型失败
+	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_PARTIAL IQCheckSiteFilter = 5
+	// 最近一轮全部失败
+	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_FAILED IQCheckSiteFilter = 6
 	// 未启用定时检测
 	IQCheckSiteFilter_IQ_CHECK_SITE_FILTER_DISABLED IQCheckSiteFilter = 3
 	// 从未检测
@@ -211,14 +278,16 @@ var (
 	IQCheckSiteFilter_name = map[int32]string{
 		0: "IQ_CHECK_SITE_FILTER_ALL",
 		1: "IQ_CHECK_SITE_FILTER_HEALTHY",
-		2: "IQ_CHECK_SITE_FILTER_FAILING",
+		5: "IQ_CHECK_SITE_FILTER_PARTIAL",
+		6: "IQ_CHECK_SITE_FILTER_FAILED",
 		3: "IQ_CHECK_SITE_FILTER_DISABLED",
 		4: "IQ_CHECK_SITE_FILTER_NEVER",
 	}
 	IQCheckSiteFilter_value = map[string]int32{
 		"IQ_CHECK_SITE_FILTER_ALL":      0,
 		"IQ_CHECK_SITE_FILTER_HEALTHY":  1,
-		"IQ_CHECK_SITE_FILTER_FAILING":  2,
+		"IQ_CHECK_SITE_FILTER_PARTIAL":  5,
+		"IQ_CHECK_SITE_FILTER_FAILED":   6,
 		"IQ_CHECK_SITE_FILTER_DISABLED": 3,
 		"IQ_CHECK_SITE_FILTER_NEVER":    4,
 	}
@@ -235,11 +304,11 @@ func (x IQCheckSiteFilter) String() string {
 }
 
 func (IQCheckSiteFilter) Descriptor() protoreflect.EnumDescriptor {
-	return file_v1_iqcheck_proto_enumTypes[3].Descriptor()
+	return file_v1_iqcheck_proto_enumTypes[4].Descriptor()
 }
 
 func (IQCheckSiteFilter) Type() protoreflect.EnumType {
-	return &file_v1_iqcheck_proto_enumTypes[3]
+	return &file_v1_iqcheck_proto_enumTypes[4]
 }
 
 func (x IQCheckSiteFilter) Number() protoreflect.EnumNumber {
@@ -248,7 +317,7 @@ func (x IQCheckSiteFilter) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use IQCheckSiteFilter.Descriptor instead.
 func (IQCheckSiteFilter) EnumDescriptor() ([]byte, []int) {
-	return file_v1_iqcheck_proto_rawDescGZIP(), []int{3}
+	return file_v1_iqcheck_proto_rawDescGZIP(), []int{4}
 }
 
 // 检测提示词
@@ -260,7 +329,7 @@ type IQCheckPromptInfo struct {
 	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	// 提示词内容
 	Content string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	// 是否启用；只有启用的提示词会被随机选中
+	// 是否启用；每轮检测会把全部启用的提示词逐个发给模型
 	Enabled bool `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	// 排序，越小越靠前
 	Order int32 `protobuf:"varint,5,opt,name=order,proto3" json:"order,omitempty"`
@@ -273,9 +342,15 @@ type IQCheckPromptInfo struct {
 	// 最近一次被使用的时间
 	LastUsedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_used_at,json=lastUsedAt,proto3" json:"last_used_at,omitempty"`
 	// 被检测使用过的站点数
-	SiteCount     int64 `protobuf:"varint,10,opt,name=site_count,json=siteCount,proto3" json:"site_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	SiteCount int64 `protobuf:"varint,10,opt,name=site_count,json=siteCount,proto3" json:"site_count,omitempty"`
+	// 分类
+	Category IQCheckPromptCategory `protobuf:"varint,11,opt,name=category,proto3,enum=v1.IQCheckPromptCategory" json:"category,omitempty"`
+	// 评分方式说明（如「步骤正确性」「渲染后人工比对」）；为空表示未填写
+	Grading string `protobuf:"bytes,12,opt,name=grading,proto3" json:"grading,omitempty"`
+	// 使用该提示词的检测中，上游返回的平均输入 token 数；没有用量数据时为 0
+	AvgInputTokens int64 `protobuf:"varint,13,opt,name=avg_input_tokens,json=avgInputTokens,proto3" json:"avg_input_tokens,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *IQCheckPromptInfo) Reset() {
@@ -374,6 +449,27 @@ func (x *IQCheckPromptInfo) GetLastUsedAt() *timestamppb.Timestamp {
 func (x *IQCheckPromptInfo) GetSiteCount() int64 {
 	if x != nil {
 		return x.SiteCount
+	}
+	return 0
+}
+
+func (x *IQCheckPromptInfo) GetCategory() IQCheckPromptCategory {
+	if x != nil {
+		return x.Category
+	}
+	return IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_OTHER
+}
+
+func (x *IQCheckPromptInfo) GetGrading() string {
+	if x != nil {
+		return x.Grading
+	}
+	return ""
+}
+
+func (x *IQCheckPromptInfo) GetAvgInputTokens() int64 {
+	if x != nil {
+		return x.AvgInputTokens
 	}
 	return 0
 }
@@ -543,7 +639,11 @@ type CreateIQCheckPromptRequest struct {
 	// 是否启用
 	Enabled bool `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	// 排序
-	Order         int32 `protobuf:"varint,4,opt,name=order,proto3" json:"order,omitempty"`
+	Order int32 `protobuf:"varint,4,opt,name=order,proto3" json:"order,omitempty"`
+	// 分类
+	Category IQCheckPromptCategory `protobuf:"varint,5,opt,name=category,proto3,enum=v1.IQCheckPromptCategory" json:"category,omitempty"`
+	// 评分方式说明，最多 64 个字符
+	Grading       string `protobuf:"bytes,6,opt,name=grading,proto3" json:"grading,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -606,6 +706,20 @@ func (x *CreateIQCheckPromptRequest) GetOrder() int32 {
 	return 0
 }
 
+func (x *CreateIQCheckPromptRequest) GetCategory() IQCheckPromptCategory {
+	if x != nil {
+		return x.Category
+	}
+	return IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_OTHER
+}
+
+func (x *CreateIQCheckPromptRequest) GetGrading() string {
+	if x != nil {
+		return x.Grading
+	}
+	return ""
+}
+
 // 创建提示词响应
 type CreateIQCheckPromptResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -664,7 +778,11 @@ type UpdateIQCheckPromptRequest struct {
 	// 是否启用
 	Enabled bool `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	// 排序
-	Order         int32 `protobuf:"varint,5,opt,name=order,proto3" json:"order,omitempty"`
+	Order int32 `protobuf:"varint,5,opt,name=order,proto3" json:"order,omitempty"`
+	// 分类
+	Category IQCheckPromptCategory `protobuf:"varint,6,opt,name=category,proto3,enum=v1.IQCheckPromptCategory" json:"category,omitempty"`
+	// 评分方式说明，最多 64 个字符
+	Grading       string `protobuf:"bytes,7,opt,name=grading,proto3" json:"grading,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -732,6 +850,20 @@ func (x *UpdateIQCheckPromptRequest) GetOrder() int32 {
 		return x.Order
 	}
 	return 0
+}
+
+func (x *UpdateIQCheckPromptRequest) GetCategory() IQCheckPromptCategory {
+	if x != nil {
+		return x.Category
+	}
+	return IQCheckPromptCategory_IQ_CHECK_PROMPT_CATEGORY_OTHER
+}
+
+func (x *UpdateIQCheckPromptRequest) GetGrading() string {
+	if x != nil {
+		return x.Grading
+	}
+	return ""
 }
 
 // 更新提示词响应
@@ -962,7 +1094,9 @@ type IQCheckSiteInfo struct {
 	// 检测结果总条数
 	ResultCount int64 `protobuf:"varint,20,opt,name=result_count,json=resultCount,proto3" json:"result_count,omitempty"`
 	// 站点健康状态
-	Health        IQCheckSiteHealth `protobuf:"varint,21,opt,name=health,proto3,enum=v1.IQCheckSiteHealth" json:"health,omitempty"`
+	Health IQCheckSiteHealth `protobuf:"varint,21,opt,name=health,proto3,enum=v1.IQCheckSiteHealth" json:"health,omitempty"`
+	// 最近一条成功结果的检测时间；从未成功时为空
+	LastSuccessAt *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=last_success_at,json=lastSuccessAt,proto3" json:"last_success_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1144,23 +1278,32 @@ func (x *IQCheckSiteInfo) GetHealth() IQCheckSiteHealth {
 	return IQCheckSiteHealth_IQ_CHECK_SITE_HEALTH_UNSPECIFIED
 }
 
-// 一轮检测的汇总
+func (x *IQCheckSiteInfo) GetLastSuccessAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastSuccessAt
+	}
+	return nil
+}
+
+// 一轮检测的汇总；一轮会把全部启用的提示词逐个发给站点的每个模型，每个「模型 × 提示词」产生一条结果
 type IQCheckRoundSummary struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 轮次编号
 	RoundId string `protobuf:"bytes,1,opt,name=round_id,json=roundId,proto3" json:"round_id,omitempty"`
 	// 检测时间
 	RequestAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=request_at,json=requestAt,proto3" json:"request_at,omitempty"`
-	// 成功的模型数
+	// 成功的结果数
 	Success int32 `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
-	// 失败的模型数
+	// 失败的结果数
 	Failed int32 `protobuf:"varint,4,opt,name=failed,proto3" json:"failed,omitempty"`
 	// 成功结果的平均耗时（毫秒）
 	AvgDurationMs int64 `protobuf:"varint,5,opt,name=avg_duration_ms,json=avgDurationMs,proto3" json:"avg_duration_ms,omitempty"`
 	// 第一条失败原因
 	Error string `protobuf:"bytes,6,opt,name=error,proto3" json:"error,omitempty"`
-	// 提示词标题
-	PromptTitle   string `protobuf:"bytes,7,opt,name=prompt_title,json=promptTitle,proto3" json:"prompt_title,omitempty"`
+	// 本轮随机抽到的提示词标题
+	PromptTitle string `protobuf:"bytes,7,opt,name=prompt_title,json=promptTitle,proto3" json:"prompt_title,omitempty"`
+	// 本轮参与的模型数（模型 + 推理强度去重）
+	ModelCount    int32 `protobuf:"varint,8,opt,name=model_count,json=modelCount,proto3" json:"model_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1244,6 +1387,13 @@ func (x *IQCheckRoundSummary) GetPromptTitle() string {
 	return ""
 }
 
+func (x *IQCheckRoundSummary) GetModelCount() int32 {
+	if x != nil {
+		return x.ModelCount
+	}
+	return 0
+}
+
 // 站点统计（不受筛选影响）
 type IQCheckSiteStats struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1251,8 +1401,10 @@ type IQCheckSiteStats struct {
 	Total int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
 	// 最近一轮全部成功
 	Healthy int64 `protobuf:"varint,2,opt,name=healthy,proto3" json:"healthy,omitempty"`
-	// 最近一轮有失败
-	Failing int64 `protobuf:"varint,3,opt,name=failing,proto3" json:"failing,omitempty"`
+	// 最近一轮部分模型失败
+	Partial int64 `protobuf:"varint,9,opt,name=partial,proto3" json:"partial,omitempty"`
+	// 最近一轮全部失败
+	Failed int64 `protobuf:"varint,10,opt,name=failed,proto3" json:"failed,omitempty"`
 	// 未启用定时检测
 	Disabled int64 `protobuf:"varint,4,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	// 从未检测
@@ -1311,9 +1463,16 @@ func (x *IQCheckSiteStats) GetHealthy() int64 {
 	return 0
 }
 
-func (x *IQCheckSiteStats) GetFailing() int64 {
+func (x *IQCheckSiteStats) GetPartial() int64 {
 	if x != nil {
-		return x.Failing
+		return x.Partial
+	}
+	return 0
+}
+
+func (x *IQCheckSiteStats) GetFailed() int64 {
+	if x != nil {
+		return x.Failed
 	}
 	return 0
 }
@@ -2320,15 +2479,11 @@ func (x *IQCheckResultInfo) GetRequestAt() *timestamppb.Timestamp {
 	return nil
 }
 
-// 公开页站点信息
+// 公开页站点信息；不含 API Key 与接口地址
 type PublicIQCheckSiteInfo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 名称
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// 站点接口地址（端点）
-	Endpoint string `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
-	// 协议
-	Protocol IQCheckProtocol `protobuf:"varint,3,opt,name=protocol,proto3,enum=v1.IQCheckProtocol" json:"protocol,omitempty"`
 	// 检测的模型
 	Models []*IQCheckModelConfig `protobuf:"bytes,4,rep,name=models,proto3" json:"models,omitempty"`
 	// 检测间隔，单位分钟
@@ -2338,7 +2493,9 @@ type PublicIQCheckSiteInfo struct {
 	// 检测统计
 	Stats *PublicIQCheckStats `protobuf:"bytes,7,opt,name=stats,proto3" json:"stats,omitempty"`
 	// 是否启用定时检测
-	Enabled       bool `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Enabled bool `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// 最近一轮检测汇总；从未检测时为空
+	LastRound     *IQCheckRoundSummary `protobuf:"bytes,9,opt,name=last_round,json=lastRound,proto3" json:"last_round,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2380,20 +2537,6 @@ func (x *PublicIQCheckSiteInfo) GetName() string {
 	return ""
 }
 
-func (x *PublicIQCheckSiteInfo) GetEndpoint() string {
-	if x != nil {
-		return x.Endpoint
-	}
-	return ""
-}
-
-func (x *PublicIQCheckSiteInfo) GetProtocol() IQCheckProtocol {
-	if x != nil {
-		return x.Protocol
-	}
-	return IQCheckProtocol_IQ_CHECK_PROTOCOL_UNSPECIFIED
-}
-
 func (x *PublicIQCheckSiteInfo) GetModels() []*IQCheckModelConfig {
 	if x != nil {
 		return x.Models
@@ -2427,6 +2570,13 @@ func (x *PublicIQCheckSiteInfo) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+func (x *PublicIQCheckSiteInfo) GetLastRound() *IQCheckRoundSummary {
+	if x != nil {
+		return x.LastRound
+	}
+	return nil
 }
 
 // 公开页检测统计
@@ -2826,7 +2976,7 @@ var File_v1_iqcheck_proto protoreflect.FileDescriptor
 
 const file_v1_iqcheck_proto_rawDesc = "" +
 	"\n" +
-	"\x10v1/iqcheck.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf7\x02\n" +
+	"\x10v1/iqcheck.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf2\x03\n" +
 	"\x11IQCheckPromptInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
@@ -2842,7 +2992,10 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"lastUsedAt\x12\x1d\n" +
 	"\n" +
 	"site_count\x18\n" +
-	" \x01(\x03R\tsiteCount\"z\n" +
+	" \x01(\x03R\tsiteCount\x125\n" +
+	"\bcategory\x18\v \x01(\x0e2\x19.v1.IQCheckPromptCategoryR\bcategory\x12\x18\n" +
+	"\agrading\x18\f \x01(\tR\agrading\x12(\n" +
+	"\x10avg_input_tokens\x18\r \x01(\x03R\x0eavgInputTokens\"z\n" +
 	"\x19ListIQCheckPromptsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
@@ -2854,20 +3007,24 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\x05total\x18\x03 \x01(\x03R\x05total\x12/\n" +
 	"\aprompts\x18\x04 \x03(\v2\x15.v1.IQCheckPromptInfoR\aprompts\x12#\n" +
 	"\renabled_count\x18\x05 \x01(\x03R\fenabledCount\x12\x1b\n" +
-	"\tall_count\x18\x06 \x01(\x03R\ballCount\"|\n" +
+	"\tall_count\x18\x06 \x01(\x03R\ballCount\"\xcd\x01\n" +
 	"\x1aCreateIQCheckPromptRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x18\n" +
 	"\aenabled\x18\x03 \x01(\bR\aenabled\x12\x14\n" +
-	"\x05order\x18\x04 \x01(\x05R\x05order\"L\n" +
+	"\x05order\x18\x04 \x01(\x05R\x05order\x125\n" +
+	"\bcategory\x18\x05 \x01(\x0e2\x19.v1.IQCheckPromptCategoryR\bcategory\x12\x18\n" +
+	"\agrading\x18\x06 \x01(\tR\agrading\"L\n" +
 	"\x1bCreateIQCheckPromptResponse\x12-\n" +
-	"\x06prompt\x18\x01 \x01(\v2\x15.v1.IQCheckPromptInfoR\x06prompt\"\x8c\x01\n" +
+	"\x06prompt\x18\x01 \x01(\v2\x15.v1.IQCheckPromptInfoR\x06prompt\"\xdd\x01\n" +
 	"\x1aUpdateIQCheckPromptRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x18\n" +
 	"\aenabled\x18\x04 \x01(\bR\aenabled\x12\x14\n" +
-	"\x05order\x18\x05 \x01(\x05R\x05order\"L\n" +
+	"\x05order\x18\x05 \x01(\x05R\x05order\x125\n" +
+	"\bcategory\x18\x06 \x01(\x0e2\x19.v1.IQCheckPromptCategoryR\bcategory\x12\x18\n" +
+	"\agrading\x18\a \x01(\tR\agrading\"L\n" +
 	"\x1bUpdateIQCheckPromptResponse\x12-\n" +
 	"\x06prompt\x18\x01 \x01(\v2\x15.v1.IQCheckPromptInfoR\x06prompt\",\n" +
 	"\x1aDeleteIQCheckPromptRequest\x12\x0e\n" +
@@ -2875,7 +3032,7 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\x1bDeleteIQCheckPromptResponse\"B\n" +
 	"\x12IQCheckModelConfig\x12\x14\n" +
 	"\x05model\x18\x01 \x01(\tR\x05model\x12\x16\n" +
-	"\x06effort\x18\x02 \x01(\tR\x06effort\"\xd9\x06\n" +
+	"\x06effort\x18\x02 \x01(\tR\x06effort\"\x9d\a\n" +
 	"\x0fIQCheckSiteInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
@@ -2902,7 +3059,8 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"last_round\x18\x12 \x01(\v2\x17.v1.IQCheckRoundSummaryR\tlastRound\x12<\n" +
 	"\rrecent_rounds\x18\x13 \x03(\v2\x17.v1.IQCheckRoundSummaryR\frecentRounds\x12!\n" +
 	"\fresult_count\x18\x14 \x01(\x03R\vresultCount\x12-\n" +
-	"\x06health\x18\x15 \x01(\x0e2\x15.v1.IQCheckSiteHealthR\x06health\"\xfe\x01\n" +
+	"\x06health\x18\x15 \x01(\x0e2\x15.v1.IQCheckSiteHealthR\x06health\x12B\n" +
+	"\x0flast_success_at\x18\x16 \x01(\v2\x1a.google.protobuf.TimestampR\rlastSuccessAt\"\x9f\x02\n" +
 	"\x13IQCheckRoundSummary\x12\x19\n" +
 	"\bround_id\x18\x01 \x01(\tR\aroundId\x129\n" +
 	"\n" +
@@ -2911,17 +3069,21 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\x06failed\x18\x04 \x01(\x05R\x06failed\x12&\n" +
 	"\x0favg_duration_ms\x18\x05 \x01(\x03R\ravgDurationMs\x12\x14\n" +
 	"\x05error\x18\x06 \x01(\tR\x05error\x12!\n" +
-	"\fprompt_title\x18\a \x01(\tR\vpromptTitle\"\xee\x01\n" +
+	"\fprompt_title\x18\a \x01(\tR\vpromptTitle\x12\x1f\n" +
+	"\vmodel_count\x18\b \x01(\x05R\n" +
+	"modelCount\"\x8c\x02\n" +
 	"\x10IQCheckSiteStats\x12\x14\n" +
 	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x18\n" +
 	"\ahealthy\x18\x02 \x01(\x03R\ahealthy\x12\x18\n" +
-	"\afailing\x18\x03 \x01(\x03R\afailing\x12\x1a\n" +
+	"\apartial\x18\t \x01(\x03R\apartial\x12\x16\n" +
+	"\x06failed\x18\n" +
+	" \x01(\x03R\x06failed\x12\x1a\n" +
 	"\bdisabled\x18\x04 \x01(\x03R\bdisabled\x12\x14\n" +
 	"\x05never\x18\x05 \x01(\x03R\x05never\x12\x1a\n" +
 	"\bchecking\x18\x06 \x01(\x03R\bchecking\x12\x1f\n" +
 	"\vmodel_count\x18\a \x01(\x03R\n" +
 	"modelCount\x12!\n" +
-	"\fchecks_today\x18\b \x01(\x03R\vchecksToday\"\xb7\x01\n" +
+	"\fchecks_today\x18\b \x01(\x03R\vchecksTodayJ\x04\b\x03\x10\x04\"\xb7\x01\n" +
 	"\x17ListIQCheckSitesRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\x12\x1f\n" +
@@ -2998,16 +3160,16 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\finput_tokens\x18\f \x01(\x03R\vinputTokens\x12#\n" +
 	"\routput_tokens\x18\r \x01(\x03R\foutputTokens\x129\n" +
 	"\n" +
-	"request_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\trequestAt\"\xdb\x02\n" +
+	"request_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\trequestAt\"\xd2\x02\n" +
 	"\x15PublicIQCheckSiteInfo\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
-	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12/\n" +
-	"\bprotocol\x18\x03 \x01(\x0e2\x13.v1.IQCheckProtocolR\bprotocol\x12.\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12.\n" +
 	"\x06models\x18\x04 \x03(\v2\x16.v1.IQCheckModelConfigR\x06models\x12)\n" +
 	"\x10interval_minutes\x18\x05 \x01(\x05R\x0fintervalMinutes\x12>\n" +
 	"\rlast_check_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\vlastCheckAt\x12,\n" +
 	"\x05stats\x18\a \x01(\v2\x16.v1.PublicIQCheckStatsR\x05stats\x12\x18\n" +
-	"\aenabled\x18\b \x01(\bR\aenabled\"\xeb\x01\n" +
+	"\aenabled\x18\b \x01(\bR\aenabled\x126\n" +
+	"\n" +
+	"last_round\x18\t \x01(\v2\x17.v1.IQCheckRoundSummaryR\tlastRoundJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04\"\xeb\x01\n" +
 	"\x12PublicIQCheckStats\x12\x14\n" +
 	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x18\n" +
 	"\asuccess\x18\x02 \x01(\x03R\asuccess\x12&\n" +
@@ -3044,18 +3206,26 @@ const file_v1_iqcheck_proto_rawDesc = "" +
 	"\x13IQCheckResultStatus\x12&\n" +
 	"\"IQ_CHECK_RESULT_STATUS_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eIQ_CHECK_RESULT_STATUS_SUCCESS\x10\x01\x12!\n" +
-	"\x1dIQ_CHECK_RESULT_STATUS_FAILED\x10\x02*\x9e\x01\n" +
+	"\x1dIQ_CHECK_RESULT_STATUS_FAILED\x10\x02*\xf3\x01\n" +
+	"\x15IQCheckPromptCategory\x12\"\n" +
+	"\x1eIQ_CHECK_PROMPT_CATEGORY_OTHER\x10\x00\x12\"\n" +
+	"\x1eIQ_CHECK_PROMPT_CATEGORY_LOGIC\x10\x01\x12!\n" +
+	"\x1dIQ_CHECK_PROMPT_CATEGORY_MATH\x10\x02\x12#\n" +
+	"\x1fIQ_CHECK_PROMPT_CATEGORY_CODING\x10\x03\x12$\n" +
+	" IQ_CHECK_PROMPT_CATEGORY_DRAWING\x10\x04\x12$\n" +
+	" IQ_CHECK_PROMPT_CATEGORY_WRITING\x10\x05*\x9e\x01\n" +
 	"\x11IQCheckSiteHealth\x12$\n" +
 	" IQ_CHECK_SITE_HEALTH_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cIQ_CHECK_SITE_HEALTH_HEALTHY\x10\x01\x12 \n" +
 	"\x1cIQ_CHECK_SITE_HEALTH_PARTIAL\x10\x02\x12\x1f\n" +
-	"\x1bIQ_CHECK_SITE_HEALTH_FAILED\x10\x03*\xb8\x01\n" +
+	"\x1bIQ_CHECK_SITE_HEALTH_FAILED\x10\x03*\xdf\x01\n" +
 	"\x11IQCheckSiteFilter\x12\x1c\n" +
 	"\x18IQ_CHECK_SITE_FILTER_ALL\x10\x00\x12 \n" +
 	"\x1cIQ_CHECK_SITE_FILTER_HEALTHY\x10\x01\x12 \n" +
-	"\x1cIQ_CHECK_SITE_FILTER_FAILING\x10\x02\x12!\n" +
+	"\x1cIQ_CHECK_SITE_FILTER_PARTIAL\x10\x05\x12\x1f\n" +
+	"\x1bIQ_CHECK_SITE_FILTER_FAILED\x10\x06\x12!\n" +
 	"\x1dIQ_CHECK_SITE_FILTER_DISABLED\x10\x03\x12\x1e\n" +
-	"\x1aIQ_CHECK_SITE_FILTER_NEVER\x10\x042\xc0\t\n" +
+	"\x1aIQ_CHECK_SITE_FILTER_NEVER\x10\x04\"\x04\b\x02\x10\x022\xc0\t\n" +
 	"\x0eIQCheckManager\x12t\n" +
 	"\x12ListIQCheckPrompts\x12\x1d.v1.ListIQCheckPromptsRequest\x1a\x1e.v1.ListIQCheckPromptsResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/iqcheck/prompts\x12z\n" +
 	"\x13CreateIQCheckPrompt\x12\x1e.v1.CreateIQCheckPromptRequest\x1a\x1f.v1.CreateIQCheckPromptResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/iqcheck/prompts\x12\x7f\n" +
@@ -3083,113 +3253,118 @@ func file_v1_iqcheck_proto_rawDescGZIP() []byte {
 	return file_v1_iqcheck_proto_rawDescData
 }
 
-var file_v1_iqcheck_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_v1_iqcheck_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_v1_iqcheck_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_v1_iqcheck_proto_goTypes = []any{
 	(IQCheckProtocol)(0),                 // 0: v1.IQCheckProtocol
 	(IQCheckResultStatus)(0),             // 1: v1.IQCheckResultStatus
-	(IQCheckSiteHealth)(0),               // 2: v1.IQCheckSiteHealth
-	(IQCheckSiteFilter)(0),               // 3: v1.IQCheckSiteFilter
-	(*IQCheckPromptInfo)(nil),            // 4: v1.IQCheckPromptInfo
-	(*ListIQCheckPromptsRequest)(nil),    // 5: v1.ListIQCheckPromptsRequest
-	(*ListIQCheckPromptsResponse)(nil),   // 6: v1.ListIQCheckPromptsResponse
-	(*CreateIQCheckPromptRequest)(nil),   // 7: v1.CreateIQCheckPromptRequest
-	(*CreateIQCheckPromptResponse)(nil),  // 8: v1.CreateIQCheckPromptResponse
-	(*UpdateIQCheckPromptRequest)(nil),   // 9: v1.UpdateIQCheckPromptRequest
-	(*UpdateIQCheckPromptResponse)(nil),  // 10: v1.UpdateIQCheckPromptResponse
-	(*DeleteIQCheckPromptRequest)(nil),   // 11: v1.DeleteIQCheckPromptRequest
-	(*DeleteIQCheckPromptResponse)(nil),  // 12: v1.DeleteIQCheckPromptResponse
-	(*IQCheckModelConfig)(nil),           // 13: v1.IQCheckModelConfig
-	(*IQCheckSiteInfo)(nil),              // 14: v1.IQCheckSiteInfo
-	(*IQCheckRoundSummary)(nil),          // 15: v1.IQCheckRoundSummary
-	(*IQCheckSiteStats)(nil),             // 16: v1.IQCheckSiteStats
-	(*ListIQCheckSitesRequest)(nil),      // 17: v1.ListIQCheckSitesRequest
-	(*ListIQCheckSitesResponse)(nil),     // 18: v1.ListIQCheckSitesResponse
-	(*CreateIQCheckSiteRequest)(nil),     // 19: v1.CreateIQCheckSiteRequest
-	(*CreateIQCheckSiteResponse)(nil),    // 20: v1.CreateIQCheckSiteResponse
-	(*UpdateIQCheckSiteRequest)(nil),     // 21: v1.UpdateIQCheckSiteRequest
-	(*UpdateIQCheckSiteResponse)(nil),    // 22: v1.UpdateIQCheckSiteResponse
-	(*DeleteIQCheckSiteRequest)(nil),     // 23: v1.DeleteIQCheckSiteRequest
-	(*DeleteIQCheckSiteResponse)(nil),    // 24: v1.DeleteIQCheckSiteResponse
-	(*FetchIQCheckModelsRequest)(nil),    // 25: v1.FetchIQCheckModelsRequest
-	(*FetchIQCheckModelsResponse)(nil),   // 26: v1.FetchIQCheckModelsResponse
-	(*TriggerIQCheckRequest)(nil),        // 27: v1.TriggerIQCheckRequest
-	(*TriggerIQCheckResponse)(nil),       // 28: v1.TriggerIQCheckResponse
-	(*IQCheckResultInfo)(nil),            // 29: v1.IQCheckResultInfo
-	(*PublicIQCheckSiteInfo)(nil),        // 30: v1.PublicIQCheckSiteInfo
-	(*PublicIQCheckStats)(nil),           // 31: v1.PublicIQCheckStats
-	(*PublicIQCheckModelCount)(nil),      // 32: v1.PublicIQCheckModelCount
-	(*PublicIQCheckSiteRequest)(nil),     // 33: v1.PublicIQCheckSiteRequest
-	(*PublicIQCheckSiteResponse)(nil),    // 34: v1.PublicIQCheckSiteResponse
-	(*PublicIQCheckResultsRequest)(nil),  // 35: v1.PublicIQCheckResultsRequest
-	(*PublicIQCheckResultsResponse)(nil), // 36: v1.PublicIQCheckResultsResponse
-	(*timestamppb.Timestamp)(nil),        // 37: google.protobuf.Timestamp
+	(IQCheckPromptCategory)(0),           // 2: v1.IQCheckPromptCategory
+	(IQCheckSiteHealth)(0),               // 3: v1.IQCheckSiteHealth
+	(IQCheckSiteFilter)(0),               // 4: v1.IQCheckSiteFilter
+	(*IQCheckPromptInfo)(nil),            // 5: v1.IQCheckPromptInfo
+	(*ListIQCheckPromptsRequest)(nil),    // 6: v1.ListIQCheckPromptsRequest
+	(*ListIQCheckPromptsResponse)(nil),   // 7: v1.ListIQCheckPromptsResponse
+	(*CreateIQCheckPromptRequest)(nil),   // 8: v1.CreateIQCheckPromptRequest
+	(*CreateIQCheckPromptResponse)(nil),  // 9: v1.CreateIQCheckPromptResponse
+	(*UpdateIQCheckPromptRequest)(nil),   // 10: v1.UpdateIQCheckPromptRequest
+	(*UpdateIQCheckPromptResponse)(nil),  // 11: v1.UpdateIQCheckPromptResponse
+	(*DeleteIQCheckPromptRequest)(nil),   // 12: v1.DeleteIQCheckPromptRequest
+	(*DeleteIQCheckPromptResponse)(nil),  // 13: v1.DeleteIQCheckPromptResponse
+	(*IQCheckModelConfig)(nil),           // 14: v1.IQCheckModelConfig
+	(*IQCheckSiteInfo)(nil),              // 15: v1.IQCheckSiteInfo
+	(*IQCheckRoundSummary)(nil),          // 16: v1.IQCheckRoundSummary
+	(*IQCheckSiteStats)(nil),             // 17: v1.IQCheckSiteStats
+	(*ListIQCheckSitesRequest)(nil),      // 18: v1.ListIQCheckSitesRequest
+	(*ListIQCheckSitesResponse)(nil),     // 19: v1.ListIQCheckSitesResponse
+	(*CreateIQCheckSiteRequest)(nil),     // 20: v1.CreateIQCheckSiteRequest
+	(*CreateIQCheckSiteResponse)(nil),    // 21: v1.CreateIQCheckSiteResponse
+	(*UpdateIQCheckSiteRequest)(nil),     // 22: v1.UpdateIQCheckSiteRequest
+	(*UpdateIQCheckSiteResponse)(nil),    // 23: v1.UpdateIQCheckSiteResponse
+	(*DeleteIQCheckSiteRequest)(nil),     // 24: v1.DeleteIQCheckSiteRequest
+	(*DeleteIQCheckSiteResponse)(nil),    // 25: v1.DeleteIQCheckSiteResponse
+	(*FetchIQCheckModelsRequest)(nil),    // 26: v1.FetchIQCheckModelsRequest
+	(*FetchIQCheckModelsResponse)(nil),   // 27: v1.FetchIQCheckModelsResponse
+	(*TriggerIQCheckRequest)(nil),        // 28: v1.TriggerIQCheckRequest
+	(*TriggerIQCheckResponse)(nil),       // 29: v1.TriggerIQCheckResponse
+	(*IQCheckResultInfo)(nil),            // 30: v1.IQCheckResultInfo
+	(*PublicIQCheckSiteInfo)(nil),        // 31: v1.PublicIQCheckSiteInfo
+	(*PublicIQCheckStats)(nil),           // 32: v1.PublicIQCheckStats
+	(*PublicIQCheckModelCount)(nil),      // 33: v1.PublicIQCheckModelCount
+	(*PublicIQCheckSiteRequest)(nil),     // 34: v1.PublicIQCheckSiteRequest
+	(*PublicIQCheckSiteResponse)(nil),    // 35: v1.PublicIQCheckSiteResponse
+	(*PublicIQCheckResultsRequest)(nil),  // 36: v1.PublicIQCheckResultsRequest
+	(*PublicIQCheckResultsResponse)(nil), // 37: v1.PublicIQCheckResultsResponse
+	(*timestamppb.Timestamp)(nil),        // 38: google.protobuf.Timestamp
 }
 var file_v1_iqcheck_proto_depIdxs = []int32{
-	37, // 0: v1.IQCheckPromptInfo.create_time:type_name -> google.protobuf.Timestamp
-	37, // 1: v1.IQCheckPromptInfo.update_time:type_name -> google.protobuf.Timestamp
-	37, // 2: v1.IQCheckPromptInfo.last_used_at:type_name -> google.protobuf.Timestamp
-	4,  // 3: v1.ListIQCheckPromptsResponse.prompts:type_name -> v1.IQCheckPromptInfo
-	4,  // 4: v1.CreateIQCheckPromptResponse.prompt:type_name -> v1.IQCheckPromptInfo
-	4,  // 5: v1.UpdateIQCheckPromptResponse.prompt:type_name -> v1.IQCheckPromptInfo
-	0,  // 6: v1.IQCheckSiteInfo.protocol:type_name -> v1.IQCheckProtocol
-	13, // 7: v1.IQCheckSiteInfo.models:type_name -> v1.IQCheckModelConfig
-	37, // 8: v1.IQCheckSiteInfo.last_check_at:type_name -> google.protobuf.Timestamp
-	37, // 9: v1.IQCheckSiteInfo.create_time:type_name -> google.protobuf.Timestamp
-	37, // 10: v1.IQCheckSiteInfo.update_time:type_name -> google.protobuf.Timestamp
-	37, // 11: v1.IQCheckSiteInfo.next_check_at:type_name -> google.protobuf.Timestamp
-	15, // 12: v1.IQCheckSiteInfo.last_round:type_name -> v1.IQCheckRoundSummary
-	15, // 13: v1.IQCheckSiteInfo.recent_rounds:type_name -> v1.IQCheckRoundSummary
-	2,  // 14: v1.IQCheckSiteInfo.health:type_name -> v1.IQCheckSiteHealth
-	37, // 15: v1.IQCheckRoundSummary.request_at:type_name -> google.protobuf.Timestamp
-	3,  // 16: v1.ListIQCheckSitesRequest.filter:type_name -> v1.IQCheckSiteFilter
-	14, // 17: v1.ListIQCheckSitesResponse.sites:type_name -> v1.IQCheckSiteInfo
-	16, // 18: v1.ListIQCheckSitesResponse.stats:type_name -> v1.IQCheckSiteStats
-	0,  // 19: v1.CreateIQCheckSiteRequest.protocol:type_name -> v1.IQCheckProtocol
-	13, // 20: v1.CreateIQCheckSiteRequest.models:type_name -> v1.IQCheckModelConfig
-	14, // 21: v1.CreateIQCheckSiteResponse.site:type_name -> v1.IQCheckSiteInfo
-	0,  // 22: v1.UpdateIQCheckSiteRequest.protocol:type_name -> v1.IQCheckProtocol
-	13, // 23: v1.UpdateIQCheckSiteRequest.models:type_name -> v1.IQCheckModelConfig
-	14, // 24: v1.UpdateIQCheckSiteResponse.site:type_name -> v1.IQCheckSiteInfo
-	0,  // 25: v1.FetchIQCheckModelsRequest.protocol:type_name -> v1.IQCheckProtocol
-	1,  // 26: v1.IQCheckResultInfo.status:type_name -> v1.IQCheckResultStatus
-	37, // 27: v1.IQCheckResultInfo.request_at:type_name -> google.protobuf.Timestamp
-	0,  // 28: v1.PublicIQCheckSiteInfo.protocol:type_name -> v1.IQCheckProtocol
-	13, // 29: v1.PublicIQCheckSiteInfo.models:type_name -> v1.IQCheckModelConfig
-	37, // 30: v1.PublicIQCheckSiteInfo.last_check_at:type_name -> google.protobuf.Timestamp
-	31, // 31: v1.PublicIQCheckSiteInfo.stats:type_name -> v1.PublicIQCheckStats
-	32, // 32: v1.PublicIQCheckStats.models:type_name -> v1.PublicIQCheckModelCount
-	30, // 33: v1.PublicIQCheckSiteResponse.site:type_name -> v1.PublicIQCheckSiteInfo
-	29, // 34: v1.PublicIQCheckResultsResponse.results:type_name -> v1.IQCheckResultInfo
-	5,  // 35: v1.IQCheckManager.ListIQCheckPrompts:input_type -> v1.ListIQCheckPromptsRequest
-	7,  // 36: v1.IQCheckManager.CreateIQCheckPrompt:input_type -> v1.CreateIQCheckPromptRequest
-	9,  // 37: v1.IQCheckManager.UpdateIQCheckPrompt:input_type -> v1.UpdateIQCheckPromptRequest
-	11, // 38: v1.IQCheckManager.DeleteIQCheckPrompt:input_type -> v1.DeleteIQCheckPromptRequest
-	17, // 39: v1.IQCheckManager.ListIQCheckSites:input_type -> v1.ListIQCheckSitesRequest
-	19, // 40: v1.IQCheckManager.CreateIQCheckSite:input_type -> v1.CreateIQCheckSiteRequest
-	21, // 41: v1.IQCheckManager.UpdateIQCheckSite:input_type -> v1.UpdateIQCheckSiteRequest
-	23, // 42: v1.IQCheckManager.DeleteIQCheckSite:input_type -> v1.DeleteIQCheckSiteRequest
-	25, // 43: v1.IQCheckManager.FetchIQCheckModels:input_type -> v1.FetchIQCheckModelsRequest
-	27, // 44: v1.IQCheckManager.TriggerIQCheck:input_type -> v1.TriggerIQCheckRequest
-	33, // 45: v1.IQCheckPublic.PublicIQCheckSite:input_type -> v1.PublicIQCheckSiteRequest
-	35, // 46: v1.IQCheckPublic.PublicIQCheckResults:input_type -> v1.PublicIQCheckResultsRequest
-	6,  // 47: v1.IQCheckManager.ListIQCheckPrompts:output_type -> v1.ListIQCheckPromptsResponse
-	8,  // 48: v1.IQCheckManager.CreateIQCheckPrompt:output_type -> v1.CreateIQCheckPromptResponse
-	10, // 49: v1.IQCheckManager.UpdateIQCheckPrompt:output_type -> v1.UpdateIQCheckPromptResponse
-	12, // 50: v1.IQCheckManager.DeleteIQCheckPrompt:output_type -> v1.DeleteIQCheckPromptResponse
-	18, // 51: v1.IQCheckManager.ListIQCheckSites:output_type -> v1.ListIQCheckSitesResponse
-	20, // 52: v1.IQCheckManager.CreateIQCheckSite:output_type -> v1.CreateIQCheckSiteResponse
-	22, // 53: v1.IQCheckManager.UpdateIQCheckSite:output_type -> v1.UpdateIQCheckSiteResponse
-	24, // 54: v1.IQCheckManager.DeleteIQCheckSite:output_type -> v1.DeleteIQCheckSiteResponse
-	26, // 55: v1.IQCheckManager.FetchIQCheckModels:output_type -> v1.FetchIQCheckModelsResponse
-	28, // 56: v1.IQCheckManager.TriggerIQCheck:output_type -> v1.TriggerIQCheckResponse
-	34, // 57: v1.IQCheckPublic.PublicIQCheckSite:output_type -> v1.PublicIQCheckSiteResponse
-	36, // 58: v1.IQCheckPublic.PublicIQCheckResults:output_type -> v1.PublicIQCheckResultsResponse
-	47, // [47:59] is the sub-list for method output_type
-	35, // [35:47] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	38, // 0: v1.IQCheckPromptInfo.create_time:type_name -> google.protobuf.Timestamp
+	38, // 1: v1.IQCheckPromptInfo.update_time:type_name -> google.protobuf.Timestamp
+	38, // 2: v1.IQCheckPromptInfo.last_used_at:type_name -> google.protobuf.Timestamp
+	2,  // 3: v1.IQCheckPromptInfo.category:type_name -> v1.IQCheckPromptCategory
+	5,  // 4: v1.ListIQCheckPromptsResponse.prompts:type_name -> v1.IQCheckPromptInfo
+	2,  // 5: v1.CreateIQCheckPromptRequest.category:type_name -> v1.IQCheckPromptCategory
+	5,  // 6: v1.CreateIQCheckPromptResponse.prompt:type_name -> v1.IQCheckPromptInfo
+	2,  // 7: v1.UpdateIQCheckPromptRequest.category:type_name -> v1.IQCheckPromptCategory
+	5,  // 8: v1.UpdateIQCheckPromptResponse.prompt:type_name -> v1.IQCheckPromptInfo
+	0,  // 9: v1.IQCheckSiteInfo.protocol:type_name -> v1.IQCheckProtocol
+	14, // 10: v1.IQCheckSiteInfo.models:type_name -> v1.IQCheckModelConfig
+	38, // 11: v1.IQCheckSiteInfo.last_check_at:type_name -> google.protobuf.Timestamp
+	38, // 12: v1.IQCheckSiteInfo.create_time:type_name -> google.protobuf.Timestamp
+	38, // 13: v1.IQCheckSiteInfo.update_time:type_name -> google.protobuf.Timestamp
+	38, // 14: v1.IQCheckSiteInfo.next_check_at:type_name -> google.protobuf.Timestamp
+	16, // 15: v1.IQCheckSiteInfo.last_round:type_name -> v1.IQCheckRoundSummary
+	16, // 16: v1.IQCheckSiteInfo.recent_rounds:type_name -> v1.IQCheckRoundSummary
+	3,  // 17: v1.IQCheckSiteInfo.health:type_name -> v1.IQCheckSiteHealth
+	38, // 18: v1.IQCheckSiteInfo.last_success_at:type_name -> google.protobuf.Timestamp
+	38, // 19: v1.IQCheckRoundSummary.request_at:type_name -> google.protobuf.Timestamp
+	4,  // 20: v1.ListIQCheckSitesRequest.filter:type_name -> v1.IQCheckSiteFilter
+	15, // 21: v1.ListIQCheckSitesResponse.sites:type_name -> v1.IQCheckSiteInfo
+	17, // 22: v1.ListIQCheckSitesResponse.stats:type_name -> v1.IQCheckSiteStats
+	0,  // 23: v1.CreateIQCheckSiteRequest.protocol:type_name -> v1.IQCheckProtocol
+	14, // 24: v1.CreateIQCheckSiteRequest.models:type_name -> v1.IQCheckModelConfig
+	15, // 25: v1.CreateIQCheckSiteResponse.site:type_name -> v1.IQCheckSiteInfo
+	0,  // 26: v1.UpdateIQCheckSiteRequest.protocol:type_name -> v1.IQCheckProtocol
+	14, // 27: v1.UpdateIQCheckSiteRequest.models:type_name -> v1.IQCheckModelConfig
+	15, // 28: v1.UpdateIQCheckSiteResponse.site:type_name -> v1.IQCheckSiteInfo
+	0,  // 29: v1.FetchIQCheckModelsRequest.protocol:type_name -> v1.IQCheckProtocol
+	1,  // 30: v1.IQCheckResultInfo.status:type_name -> v1.IQCheckResultStatus
+	38, // 31: v1.IQCheckResultInfo.request_at:type_name -> google.protobuf.Timestamp
+	14, // 32: v1.PublicIQCheckSiteInfo.models:type_name -> v1.IQCheckModelConfig
+	38, // 33: v1.PublicIQCheckSiteInfo.last_check_at:type_name -> google.protobuf.Timestamp
+	32, // 34: v1.PublicIQCheckSiteInfo.stats:type_name -> v1.PublicIQCheckStats
+	16, // 35: v1.PublicIQCheckSiteInfo.last_round:type_name -> v1.IQCheckRoundSummary
+	33, // 36: v1.PublicIQCheckStats.models:type_name -> v1.PublicIQCheckModelCount
+	31, // 37: v1.PublicIQCheckSiteResponse.site:type_name -> v1.PublicIQCheckSiteInfo
+	30, // 38: v1.PublicIQCheckResultsResponse.results:type_name -> v1.IQCheckResultInfo
+	6,  // 39: v1.IQCheckManager.ListIQCheckPrompts:input_type -> v1.ListIQCheckPromptsRequest
+	8,  // 40: v1.IQCheckManager.CreateIQCheckPrompt:input_type -> v1.CreateIQCheckPromptRequest
+	10, // 41: v1.IQCheckManager.UpdateIQCheckPrompt:input_type -> v1.UpdateIQCheckPromptRequest
+	12, // 42: v1.IQCheckManager.DeleteIQCheckPrompt:input_type -> v1.DeleteIQCheckPromptRequest
+	18, // 43: v1.IQCheckManager.ListIQCheckSites:input_type -> v1.ListIQCheckSitesRequest
+	20, // 44: v1.IQCheckManager.CreateIQCheckSite:input_type -> v1.CreateIQCheckSiteRequest
+	22, // 45: v1.IQCheckManager.UpdateIQCheckSite:input_type -> v1.UpdateIQCheckSiteRequest
+	24, // 46: v1.IQCheckManager.DeleteIQCheckSite:input_type -> v1.DeleteIQCheckSiteRequest
+	26, // 47: v1.IQCheckManager.FetchIQCheckModels:input_type -> v1.FetchIQCheckModelsRequest
+	28, // 48: v1.IQCheckManager.TriggerIQCheck:input_type -> v1.TriggerIQCheckRequest
+	34, // 49: v1.IQCheckPublic.PublicIQCheckSite:input_type -> v1.PublicIQCheckSiteRequest
+	36, // 50: v1.IQCheckPublic.PublicIQCheckResults:input_type -> v1.PublicIQCheckResultsRequest
+	7,  // 51: v1.IQCheckManager.ListIQCheckPrompts:output_type -> v1.ListIQCheckPromptsResponse
+	9,  // 52: v1.IQCheckManager.CreateIQCheckPrompt:output_type -> v1.CreateIQCheckPromptResponse
+	11, // 53: v1.IQCheckManager.UpdateIQCheckPrompt:output_type -> v1.UpdateIQCheckPromptResponse
+	13, // 54: v1.IQCheckManager.DeleteIQCheckPrompt:output_type -> v1.DeleteIQCheckPromptResponse
+	19, // 55: v1.IQCheckManager.ListIQCheckSites:output_type -> v1.ListIQCheckSitesResponse
+	21, // 56: v1.IQCheckManager.CreateIQCheckSite:output_type -> v1.CreateIQCheckSiteResponse
+	23, // 57: v1.IQCheckManager.UpdateIQCheckSite:output_type -> v1.UpdateIQCheckSiteResponse
+	25, // 58: v1.IQCheckManager.DeleteIQCheckSite:output_type -> v1.DeleteIQCheckSiteResponse
+	27, // 59: v1.IQCheckManager.FetchIQCheckModels:output_type -> v1.FetchIQCheckModelsResponse
+	29, // 60: v1.IQCheckManager.TriggerIQCheck:output_type -> v1.TriggerIQCheckResponse
+	35, // 61: v1.IQCheckPublic.PublicIQCheckSite:output_type -> v1.PublicIQCheckSiteResponse
+	37, // 62: v1.IQCheckPublic.PublicIQCheckResults:output_type -> v1.PublicIQCheckResultsResponse
+	51, // [51:63] is the sub-list for method output_type
+	39, // [39:51] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_v1_iqcheck_proto_init() }
@@ -3205,7 +3380,7 @@ func file_v1_iqcheck_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_iqcheck_proto_rawDesc), len(file_v1_iqcheck_proto_rawDesc)),
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   2,

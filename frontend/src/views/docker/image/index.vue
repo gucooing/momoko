@@ -3,45 +3,42 @@
      行内常用：打标签 / 构建历史 / 删除，其余（详情、编辑标签、用它建容器、复制 ID）收进「⋯」。 -->
 <template>
   <div class="dk-page">
-    <PageHeader>
-      <template #title>{{ t('docker.image.title') }}<DockerEnginePill /></template>
-      <template #description>
-        <template v-if="stats">
-          {{ t('docker.image.statsCount', { n: stats.total }) }} · {{ t('docker.image.statsSize') }}
-          <strong class="dk-em m-num">{{ formatBytes(stats.totalSize) }}</strong>
-          <template v-if="stats.reclaimableSize">
-            · {{ t('docker.image.statsReclaimable') }}
-            <strong class="dk-em dk-em--warn m-num">{{ formatBytes(stats.reclaimableSize) }}</strong>
+    <DockerHeader @tasks="openTasks">
+      <!-- 引擎不可用时没有统计，不再显示一句功能介绍，与容器 / 连接配置标签一致 -->
+      <template v-if="stats" #description>
+        {{ t('docker.image.statsCount', { n: stats.total }) }} · {{ t('docker.image.statsSize') }}
+        <strong class="dk-em m-num">{{ formatBytes(stats.totalSize) }}</strong>
+        <template v-if="Number(stats.reclaimableSize)">
+          · {{ t('docker.image.statsReclaimable') }}
+          <strong class="dk-em dk-em--warn m-num">{{ formatBytes(stats.reclaimableSize) }}</strong>
           </template>
-        </template>
-        <template v-else>{{ t('docker.image.pageDesc') }}</template>
       </template>
       <template #actions>
-        <UButton color="neutral" variant="soft" icon="i-lucide-clock" @click="openTasks">
-          {{ t('docker.common.tasks') }}
-        </UButton>
         <UButton
-          v-if="canManage && ready && !menuStore.isMobile"
+          v-if="canManage && ready"
           color="neutral"
           variant="outline"
           icon="i-lucide-brush-cleaning"
-          :disabled="!stats?.dangling"
+          :disabled="!Number(stats?.dangling)"
           @click="handlePrune"
         >
           {{ t('docker.image.pruneDangling') }}
+        </UButton>
+        <UButton v-if="canManage && ready" color="neutral" variant="outline" icon="i-lucide-upload" @click="openImport">
+          {{ t('docker.imgx.import') }}
         </UButton>
         <UButton v-if="canManage" color="primary" icon="i-lucide-download" :disabled="!ready" @click="openPull">
           {{ t('docker.image.pullImage') }}
         </UButton>
       </template>
-    </PageHeader>
+    </DockerHeader>
 
     <DockerSubNav />
 
     <DockerUnavailable v-if="engineLoaded && !ready" @retry="init(true)" />
 
     <template v-else>
-      <DockerPullTasks ref="pullTasksRef" @open="openTask" @finished="getList" />
+      <DockerPullTasks ref="pullTasksRef" :can-cancel="canManage" @open="openTask" @finished="onTasksFinished" />
 
       <ListToolbar
         v-model:status="queryForm.usage"
@@ -61,8 +58,11 @@
           {{ t('docker.image.statsSize') }} <strong class="dk-em m-num">{{ formatBytes(stats.totalSize) }}</strong>
           · {{ t('docker.image.statsReclaimable') }} <strong class="dk-em dk-em--warn m-num">{{ formatBytes(stats.reclaimableSize) }}</strong>
         </span>
-        <button v-if="canManage" type="button" class="dk-linkbtn" :disabled="!stats.dangling" @click="handlePrune">
-          <component :is="menuStore.iconComponents['HOutline:SparklesIcon']" />{{ t('docker.image.pruneShort') }}
+        <button v-if="canManage" type="button" class="dk-linkbtn" @click="openImport">
+          <UIcon name="i-lucide-upload" />{{ t('docker.imgx.import') }}
+        </button>
+        <button v-if="canManage" type="button" class="dk-linkbtn" :disabled="!Number(stats.dangling)" @click="handlePrune">
+          <UIcon name="i-lucide-brush-cleaning" />{{ t('docker.image.pruneShort') }}
         </button>
       </div>
 
@@ -75,7 +75,6 @@
           :rows="list"
           row-key="id"
           :selectable="canManage"
-          :row-selectable="(row) => !Number(row.containers)"
           :loading="loading"
           :empty-text="t('docker.image.noImages')"
         >
@@ -157,17 +156,18 @@
                   <span v-for="tag in tagNamesOf(row)" :key="tag" class="dk-tag" :class="{ 'dk-tag--none': row.dangling }">{{ tag }}</span>
                 </div>
                 <template v-if="canManage">
-                  <AppIconButton icon="HOutline:TagIcon" :label="t('docker.image.tagImage')" :box="44" @click="onRowAction('tag', row)" />
+                  <AppIconButton icon="HOutline:TagIcon" :label="`${t('docker.image.tagImage')} ${labelOf(row)}`" :box="44" @click="onRowAction('tag', row)" />
+                  <AppIconButton icon="HOutline:ClockIcon" :label="`${t('docker.image.history')} ${labelOf(row)}`" :box="44" @click="onRowAction('history', row)" />
                   <AppIconButton
                     class="is-bad"
                     icon="HOutline:TrashIcon"
-                    :label="t('docker.common.delete')"
+                    :label="Number(row.containers) ? t('docker.image.inUseNoDelete') : `${t('docker.common.delete')} ${labelOf(row)}`"
                     :box="44"
-                    :disabled="!!row.containers"
+                    :disabled="!!Number(row.containers)"
                     @click="onRowAction('delete', row)"
                   />
                 </template>
-                <ActionMenu :items="menuActionsFor(row, true)" @select="(key) => onRowAction(key, row)" />
+                <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('docker.imgx.moreOf', { name: labelOf(row) })" :box="44" @click="openSheet(row)" />
               </footer>
             </article>
           </div>
@@ -183,7 +183,13 @@
         <Transition name="dk-pop">
           <div v-if="selected.length" class="dk-batch" role="toolbar" :aria-label="t('docker.image.batchLabel')">
             <span class="dk-batch__count">{{ t('docker.image.selectedCount', { n: selected.length }) }}</span>
-            <button type="button" class="dk-batch__btn is-danger" :disabled="batchDeleting" @click="handleBatchDelete">
+            <button type="button" class="dk-batch__btn" :disabled="batchDeleting" @click="openBatchTag">
+              <component :is="menuStore.iconComponents['HOutline:TagIcon']" />{{ t('docker.image.tagImage') }}
+            </button>
+            <button type="button" class="dk-batch__btn" :disabled="batchDeleting || exporting" @click="exportImages(selected)">
+              <component :is="menuStore.iconComponents['HOutline:ArrowDownTrayIcon']" />{{ t('docker.imgx.exportTar') }}
+            </button>
+            <button type="button" class="dk-batch__btn is-danger" :disabled="batchDeleting || !deletableSelected.length" @click="handleBatchDelete">
               <component :is="menuStore.iconComponents['HOutline:TrashIcon']" />{{ t('docker.common.delete') }}
             </button>
             <button type="button" class="dk-batch__btn is-icon" :aria-label="t('docker.image.clearSelection')" @click="selected = []">
@@ -193,6 +199,71 @@
         </Transition>
       </div>
     </template>
+
+    <!-- 手机：悬浮拉取 -->
+    <button v-if="menuStore.isMobile && canManage && ready" type="button" class="dk-fab" :aria-label="t('docker.image.pullImage')" @click="openPull">
+      <UIcon name="i-lucide-download" />
+    </button>
+
+    <!-- 手机：行操作面板 -->
+    <DockerActionSheet
+      v-model="sheet.open"
+      :title="sheet.row ? labelOf(sheet.row) : ''"
+      :subtitle="sheet.row ? `${shortId(sheet.row.id)} · ${formatBytes(sheet.row.size)}` : ''"
+      icon="i-lucide-layers"
+      tone="a2"
+      :quick="sheetQuick"
+      :items="sheetItems"
+      @select="onSheetSelect"
+    />
+
+    <!-- 导入镜像 -->
+    <FormDialog v-model="importVisible" :title="t('docker.imgx.importTitle')" :width="520" :loading="importing">
+      <div class="dk-form">
+        <p class="dk-hint">{{ t('docker.imgx.importDesc') }}</p>
+        <button type="button" class="im-drop" :class="{ 'has-file': !!importFile }" :disabled="importing" @click="importInput?.click()">
+          <span class="im-drop__sticker m-sticker" :class="importFile ? 'm-sticker--ok' : 'm-sticker--a'">
+            <UIcon :name="importFile ? 'i-lucide-file-archive' : 'i-lucide-upload'" />
+          </span>
+          <span class="im-drop__text">
+            <strong class="m-mono">{{ importFile ? importFile.name : t('docker.imgx.pickTar') }}</strong>
+            <small>{{ importFile ? formatBytes(importFile.size) : t('docker.imgx.tarHint') }}</small>
+          </span>
+        </button>
+        <input ref="importInput" type="file" class="im-hidden" accept=".tar,.tar.gz,.tgz,.tar.xz,.tar.bz2,application/x-tar,application/gzip" @change="onImportPicked" />
+        <div v-if="importing" class="im-progress" role="progressbar" :aria-valuenow="importPct" aria-valuemin="0" aria-valuemax="100">
+          <span :style="{ width: `${importPct}%` }" />
+        </div>
+        <span v-if="importing" class="dk-hint m-num">{{ importPct < 100 ? t('docker.imgx.uploading', { pct: importPct }) : t('docker.imgx.loading') }}</span>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" :disabled="importing" @click="close">{{ t('docker.common.cancel') }}</UButton>
+        <UButton color="primary" icon="i-lucide-upload" :loading="importing" :disabled="!importFile" @click="submitImport">{{ t('docker.imgx.import') }}</UButton>
+      </template>
+    </FormDialog>
+
+    <!-- 批量打标签：给选中镜像加仓库前缀（推到私有仓库前常用） -->
+    <FormDialog v-model="batchTagVisible" :title="t('docker.imgx.batchTagTitle', { n: batchTagRows.length })" :width="560" :loading="batchTagging" @confirm="submitBatchTag">
+      <div class="dk-form">
+        <div class="app-field">
+          <label class="app-label app-label--required">{{ t('docker.imgx.prefix') }}</label>
+          <input v-model.trim="batchPrefix" class="app-input m-mono" placeholder="registry.example.com/team" @keyup.enter="submitBatchTag" />
+          <span class="dk-hint">{{ t('docker.imgx.prefixHint') }}</span>
+        </div>
+        <div v-if="batchTagPreview.length" class="im-preview">
+          <div v-for="p in batchTagPreview" :key="p.from" class="im-preview__row">
+            <span class="m-mono">{{ p.from }}</span>
+            <UIcon name="i-lucide-arrow-right" />
+            <strong class="m-mono">{{ p.to }}</strong>
+          </div>
+        </div>
+        <span v-if="batchTagSkipped" class="dk-hint">{{ t('docker.imgx.danglingSkipped', { n: batchTagSkipped }) }}</span>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="soft" @click="close">{{ t('docker.common.cancel') }}</UButton>
+        <UButton color="primary" :loading="batchTagging" :disabled="!batchTagPreview.length" @click="submitBatchTag">{{ t('docker.image.tagImage') }}</UButton>
+      </template>
+    </FormDialog>
 
     <!-- 拉取镜像 -->
     <FormDialog v-model="pullVisible" :title="t('docker.image.pullImage')" :width="480" :loading="pullSubmitting" @confirm="submitPull">
@@ -325,21 +396,22 @@
 import { pageTabTo } from '@/config/pageGroups'
 import { useI18n } from 'vue-i18n'
 import DockerSubNav from '@/views/docker/components/DockerSubNav.vue'
-import DockerEnginePill from '@/views/docker/components/DockerEnginePill.vue'
+import DockerHeader from '@/views/docker/components/DockerHeader.vue'
+import DockerActionSheet from '@/views/docker/components/DockerActionSheet.vue'
 import DockerUnavailable from '@/views/docker/components/DockerUnavailable.vue'
 import DockerPullTasks from '@/views/docker/components/DockerPullTasks.vue'
 import DockerTaskDialogs from '@/views/docker/components/DockerTaskDialogs.vue'
 import { useDockerStatus } from '@/views/docker/components/useDockerStatus'
 import { formatAgo, formatBytes, formatDate, formatDateTime, shortId } from '@/views/docker/components/format'
 import {
-  deleteDockerImage, getDockerImage, imageHistory, listDockerImages,
+  deleteDockerImage, exportDockerImages, getDockerImage, imageHistory, importDockerImages, listDockerImages,
   pruneDockerImages, pullDockerImage, tagDockerImage, updateDockerImageTags,
 } from '@/api/docker'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
-import { copyTextToClipboard } from '@/utils/file'
+import { copyTextToClipboard, downloadFileFromUrl } from '@/utils/file'
 import type {
   DockerImageHistoryItem, DockerImageInfo, DockerImageStats, DockerImageSummary, DockerTaskInfo,
 } from '@/types/v1/docker'
@@ -418,6 +490,7 @@ const menuActionsFor = (row: Record<string, unknown>, mobile = false): ActionMen
     { key: 'editTags', label: t('docker.image.editTags'), icon: 'HOutline:PencilSquareIcon', hidden: !manage },
     { key: 'repull', label: t('docker.image.repull'), icon: 'HOutline:ArrowPathIcon', hidden: !manage || !!row.dangling },
     { key: 'copyId', label: t('docker.image.copyId'), icon: 'HOutline:ClipboardDocumentIcon' },
+    { key: 'export', label: t('docker.imgx.exportTar'), icon: 'HOutline:ArrowDownTrayIcon', hidden: !manage },
     { key: 'forceDelete', label: t('docker.image.forceDelete'), icon: 'HOutline:TrashIcon', danger: true, hidden: !manage },
   ]
 }
@@ -434,6 +507,7 @@ const onRowAction = (key: string, row: Record<string, unknown>) => {
   else if (key === 'forceDelete') handleDelete(record, true)
   else if (key === 'create') router.push(pageTabTo('docker', 'container', { create: '1', image: tagsOf(row)[0] || '' }))
   else if (key === 'repull') { pullForm.reference = tagsOf(row)[0] || ''; pullForm.platform = ''; void submitPull() }
+  else if (key === 'export') void exportImages([record.id])
   else if (key === 'copyId') {
     void copyTextToClipboard(String(record.id).replace(/^sha256:/, '')).then(() => feedback.success(t('docker.image.copied')))
   }
@@ -477,6 +551,130 @@ const openTask = (task: DockerTaskInfo | undefined) => {
   taskDialogsVisible.value = true
 }
 const handleTaskFinished = async () => { await getList(); void pullTasksRef.value?.refresh() }
+const onTasksFinished = () => { void getList(); void refreshEngine(true) }
+
+// —— 手机操作面板 ——
+const sheet = reactive({ open: false, row: null as DockerImageSummary | null })
+const openSheet = (row: DockerImageSummary) => {
+  sheet.row = row
+  sheet.open = true
+}
+const onSheetSelect = (key: string) => {
+  if (sheet.row) onRowAction(key, sheet.row as unknown as Record<string, unknown>)
+}
+const sheetQuick = computed<ActionMenuItem[]>(() => {
+  const row = sheet.row
+  if (!row) return []
+  return [
+    { key: 'create', label: t('docker.image.createFrom'), icon: 'i-lucide-box', hidden: row.dangling },
+    { key: 'repull', label: t('docker.image.repull'), icon: 'i-lucide-download', hidden: !canManage.value || row.dangling },
+    { key: 'copyId', label: t('docker.image.copyId'), icon: 'i-lucide-copy' },
+  ]
+})
+const sheetItems = computed<ActionMenuItem[]>(() => {
+  const row = sheet.row
+  if (!row) return []
+  const manage = canManage.value
+  return [
+    { key: 'export', label: t('docker.imgx.exportTarLong'), icon: 'i-lucide-upload', hidden: !manage },
+    { key: 'editTags', label: t('docker.image.editTags'), icon: 'i-lucide-tags', hidden: !manage },
+    { key: 'detail', label: t('docker.imgx.inspect'), icon: 'i-lucide-file-text' },
+    { key: 'forceDelete', label: t('docker.image.forceDelete'), icon: 'i-lucide-trash-2', danger: true, hidden: !manage },
+  ]
+})
+
+// —— 导出 .tar ——
+const exporting = ref(false)
+const exportImages = async (ids: string[]) => {
+  const rows = ids.map(findRow).filter((r): r is DockerImageSummary => !!r)
+  if (!rows.length || exporting.value) return
+  // 有标签的按标签导出（导入时能带回标签），悬空镜像按 ID
+  const refs = rows.map((r) => (r.dangling ? r.id : tagsOf(r as unknown as Record<string, unknown>)[0] || r.id))
+  exporting.value = true
+  feedback.info(t('docker.imgx.exporting'))
+  try {
+    const { data } = await exportDockerImages(refs)
+    const first = String(refs[0] || 'image').replace(/^sha256:/, '').replace(/[^a-zA-Z0-9._-]+/g, '_')
+    const name = refs.length === 1 ? `${first}.tar` : `images-${refs.length}.tar`
+    const url = URL.createObjectURL(data)
+    downloadFileFromUrl(url, name)
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    feedback.success(t('docker.imgx.exported', { n: refs.length, size: formatBytes(data.size) }))
+  } catch (e) { showRequestError(e, t('docker.imgx.exportFailed')) }
+  finally { exporting.value = false }
+}
+
+// —— 导入 .tar ——
+const importVisible = ref(false)
+const importing = ref(false)
+const importPct = ref(0)
+const importFile = ref<File | null>(null)
+const importInput = ref<HTMLInputElement | null>(null)
+const openImport = () => {
+  importFile.value = null
+  importPct.value = 0
+  importVisible.value = true
+}
+const onImportPicked = (e: Event) => {
+  importFile.value = (e.target as HTMLInputElement).files?.[0] || null
+}
+const submitImport = async () => {
+  if (!importFile.value || importing.value) return
+  importing.value = true
+  importPct.value = 0
+  try {
+    const { data } = await importDockerImages(importFile.value, (pct) => { importPct.value = pct })
+    const loaded = data?.loaded || []
+    feedback.success(loaded.length ? t('docker.imgx.imported', { names: loaded.join('、') }) : t('docker.imgx.importedNone'))
+    importVisible.value = false
+    await getList()
+    void refreshEngine(true)
+  } catch (e) { showRequestError(e, t('docker.imgx.importFailed')) }
+  finally { importing.value = false }
+}
+
+// —— 批量打标签：加仓库前缀 ——
+const batchTagVisible = ref(false)
+const batchTagging = ref(false)
+const batchPrefix = ref('')
+const batchTagRows = computed(() => selected.value.map(findRow).filter((r): r is DockerImageSummary => !!r))
+const batchTagSkipped = computed(() => batchTagRows.value.filter((r) => r.dangling).length)
+const batchTagPreview = computed(() => {
+  const prefix = batchPrefix.value.replace(/\/+$/, '')
+  if (!prefix) return []
+  return batchTagRows.value
+    .filter((r) => !r.dangling)
+    .map((r) => {
+      const from = tagsOf(r as unknown as Record<string, unknown>)[0] || ''
+      const [repo = '', tag = 'latest'] = splitRef(from)
+      const parts = repo.split('/')
+      const first = parts[0] || ''
+      // 原引用带仓库主机时去掉主机部分，换成新前缀
+      const base = parts.length > 1 && (first.includes('.') || first.includes(':') || first === 'localhost') ? parts.slice(1).join('/') : repo
+      return { id: r.id, from, to: `${prefix}/${base}:${tag}` }
+    })
+    .filter((p) => p.from)
+})
+const openBatchTag = () => {
+  batchPrefix.value = ''
+  batchTagVisible.value = true
+}
+const submitBatchTag = async () => {
+  if (!batchTagPreview.value.length || batchTagging.value) return
+  batchTagging.value = true
+  let ok = 0
+  for (const p of batchTagPreview.value) {
+    try {
+      await tagDockerImage({ id: p.id, target: p.to })
+      ok++
+    } catch (e) { showRequestError(e, `${p.from}：${t('docker.image.tagFailed')}`) }
+  }
+  batchTagging.value = false
+  if (ok) feedback.success(t('docker.imgx.batchTagged', { n: ok }))
+  batchTagVisible.value = false
+  selected.value = []
+  await getList()
+}
 
 // —— 清理悬空 ——
 const handlePrune = () => {
@@ -560,8 +758,9 @@ const handleDelete = (row: DockerImageSummary, force: boolean) => {
   })
 }
 const batchDeleting = ref(false)
+const deletableSelected = computed(() => selected.value.map(findRow).filter((r): r is DockerImageSummary => !!r && !Number(r.containers)))
 const handleBatchDelete = () => {
-  const rows = selected.value.map(findRow).filter((r): r is DockerImageSummary => !!r && !r.containers)
+  const rows = deletableSelected.value
   if (!rows.length) return
   Dialog.confirm({
     title: t('docker.image.batchDeleteTitle'),
@@ -749,7 +948,8 @@ onMounted(() => { void init() })
   opacity: 0.4;
   cursor: not-allowed;
 }
-.dk-linkbtn :deep(svg) {
+.dk-linkbtn :deep(svg),
+.dk-linkbtn :deep(.iconify) {
   width: 16px;
   height: 16px;
 }
@@ -831,6 +1031,100 @@ onMounted(() => { void init() })
 .dk-hist__size {
   flex: none;
   font-size: 0.8125rem;
+}
+
+/* 导入 */
+.im-drop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 72px;
+  padding: 12px 16px;
+  border-radius: var(--app-radius-lg);
+  border: 1.5px dashed var(--el-border-color-light);
+  background: var(--el-bg-color);
+  text-align: left;
+  cursor: pointer;
+}
+.im-drop:hover:not(:disabled),
+.im-drop.has-file {
+  border-color: var(--m-p);
+}
+.im-drop__sticker {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+}
+.im-drop__sticker :deep(.iconify),
+.im-drop__sticker :deep(svg) {
+  width: 22px;
+  height: 22px;
+}
+.im-drop__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.im-drop__text strong {
+  font-size: 0.875rem;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.im-drop__text small {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.im-hidden {
+  display: none;
+}
+.im-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--el-fill-color-light);
+  overflow: hidden;
+}
+.im-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--m-p);
+  transition: width 0.3s;
+}
+.im-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 10px 12px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+  font-size: 0.75rem;
+}
+.im-preview__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.im-preview__row > span,
+.im-preview__row > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.im-preview__row :deep(.iconify) {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--el-text-color-secondary);
 }
 
 .dk-pop-enter-active,

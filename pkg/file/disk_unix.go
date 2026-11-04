@@ -1,4 +1,6 @@
-//go:build unix
+//go:build linux || darwin || freebsd || dragonfly
+
+// 只限这些平台：它们的 syscall.Statfs_t 才有 Bsize/Blocks/Bavail（NetBSD 没有 statfs，OpenBSD 字段名不同）。
 
 package file
 

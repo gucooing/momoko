@@ -222,6 +222,26 @@ func (_c *SSHHostCreate) SetNillableLastConnectAt(v *time.Time) *SSHHostCreate {
 	return _c
 }
 
+// SetKeyType sets the "key_type" field.
+func (_c *SSHHostCreate) SetKeyType(v string) *SSHHostCreate {
+	_c.mutation.SetKeyType(v)
+	return _c
+}
+
+// SetNillableKeyType sets the "key_type" field if the given value is not nil.
+func (_c *SSHHostCreate) SetNillableKeyType(v *string) *SSHHostCreate {
+	if v != nil {
+		_c.SetKeyType(*v)
+	}
+	return _c
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (_c *SSHHostCreate) SetQuickCommands(v []string) *SSHHostCreate {
+	_c.mutation.SetQuickCommands(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *SSHHostCreate) SetID(v string) *SSHHostCreate {
 	_c.mutation.SetID(v)
@@ -479,6 +499,14 @@ func (_c *SSHHostCreate) createSpec() (*SSHHost, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LastConnectAt(); ok {
 		_spec.SetField(sshhost.FieldLastConnectAt, field.TypeTime, value)
 		_node.LastConnectAt = &value
+	}
+	if value, ok := _c.mutation.KeyType(); ok {
+		_spec.SetField(sshhost.FieldKeyType, field.TypeString, value)
+		_node.KeyType = value
+	}
+	if value, ok := _c.mutation.QuickCommands(); ok {
+		_spec.SetField(sshhost.FieldQuickCommands, field.TypeJSON, value)
+		_node.QuickCommands = value
 	}
 	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -808,6 +836,42 @@ func (u *SSHHostUpsert) UpdateLastConnectAt() *SSHHostUpsert {
 // ClearLastConnectAt clears the value of the "last_connect_at" field.
 func (u *SSHHostUpsert) ClearLastConnectAt() *SSHHostUpsert {
 	u.SetNull(sshhost.FieldLastConnectAt)
+	return u
+}
+
+// SetKeyType sets the "key_type" field.
+func (u *SSHHostUpsert) SetKeyType(v string) *SSHHostUpsert {
+	u.Set(sshhost.FieldKeyType, v)
+	return u
+}
+
+// UpdateKeyType sets the "key_type" field to the value that was provided on create.
+func (u *SSHHostUpsert) UpdateKeyType() *SSHHostUpsert {
+	u.SetExcluded(sshhost.FieldKeyType)
+	return u
+}
+
+// ClearKeyType clears the value of the "key_type" field.
+func (u *SSHHostUpsert) ClearKeyType() *SSHHostUpsert {
+	u.SetNull(sshhost.FieldKeyType)
+	return u
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (u *SSHHostUpsert) SetQuickCommands(v []string) *SSHHostUpsert {
+	u.Set(sshhost.FieldQuickCommands, v)
+	return u
+}
+
+// UpdateQuickCommands sets the "quick_commands" field to the value that was provided on create.
+func (u *SSHHostUpsert) UpdateQuickCommands() *SSHHostUpsert {
+	u.SetExcluded(sshhost.FieldQuickCommands)
+	return u
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (u *SSHHostUpsert) ClearQuickCommands() *SSHHostUpsert {
+	u.SetNull(sshhost.FieldQuickCommands)
 	return u
 }
 
@@ -1146,6 +1210,48 @@ func (u *SSHHostUpsertOne) UpdateLastConnectAt() *SSHHostUpsertOne {
 func (u *SSHHostUpsertOne) ClearLastConnectAt() *SSHHostUpsertOne {
 	return u.Update(func(s *SSHHostUpsert) {
 		s.ClearLastConnectAt()
+	})
+}
+
+// SetKeyType sets the "key_type" field.
+func (u *SSHHostUpsertOne) SetKeyType(v string) *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetKeyType(v)
+	})
+}
+
+// UpdateKeyType sets the "key_type" field to the value that was provided on create.
+func (u *SSHHostUpsertOne) UpdateKeyType() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateKeyType()
+	})
+}
+
+// ClearKeyType clears the value of the "key_type" field.
+func (u *SSHHostUpsertOne) ClearKeyType() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearKeyType()
+	})
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (u *SSHHostUpsertOne) SetQuickCommands(v []string) *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetQuickCommands(v)
+	})
+}
+
+// UpdateQuickCommands sets the "quick_commands" field to the value that was provided on create.
+func (u *SSHHostUpsertOne) UpdateQuickCommands() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateQuickCommands()
+	})
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (u *SSHHostUpsertOne) ClearQuickCommands() *SSHHostUpsertOne {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearQuickCommands()
 	})
 }
 
@@ -1651,6 +1757,48 @@ func (u *SSHHostUpsertBulk) UpdateLastConnectAt() *SSHHostUpsertBulk {
 func (u *SSHHostUpsertBulk) ClearLastConnectAt() *SSHHostUpsertBulk {
 	return u.Update(func(s *SSHHostUpsert) {
 		s.ClearLastConnectAt()
+	})
+}
+
+// SetKeyType sets the "key_type" field.
+func (u *SSHHostUpsertBulk) SetKeyType(v string) *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetKeyType(v)
+	})
+}
+
+// UpdateKeyType sets the "key_type" field to the value that was provided on create.
+func (u *SSHHostUpsertBulk) UpdateKeyType() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateKeyType()
+	})
+}
+
+// ClearKeyType clears the value of the "key_type" field.
+func (u *SSHHostUpsertBulk) ClearKeyType() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearKeyType()
+	})
+}
+
+// SetQuickCommands sets the "quick_commands" field.
+func (u *SSHHostUpsertBulk) SetQuickCommands(v []string) *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.SetQuickCommands(v)
+	})
+}
+
+// UpdateQuickCommands sets the "quick_commands" field to the value that was provided on create.
+func (u *SSHHostUpsertBulk) UpdateQuickCommands() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.UpdateQuickCommands()
+	})
+}
+
+// ClearQuickCommands clears the value of the "quick_commands" field.
+func (u *SSHHostUpsertBulk) ClearQuickCommands() *SSHHostUpsertBulk {
+	return u.Update(func(s *SSHHostUpsert) {
+		s.ClearQuickCommands()
 	})
 }
 

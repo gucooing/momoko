@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -10,6 +12,7 @@ import (
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
+	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/user"
 )
 
@@ -76,13 +79,6 @@ func (i *instanceRepo) UpdateType(ctx context.Context, req *v1.UpdateInstanceTyp
 	return update.Save(ctx)
 }
 
-// CountTypeUsage 统计使用该类型的实例数(不区分用户，用于删除校验)
-func (i *instanceRepo) CountTypeUsage(ctx context.Context, id string) (int, error) {
-	return i.data.db.Instance.Query().
-		Where(instance.HasTypeWith(instancetype.IDEQ(id))).
-		Count(ctx)
-}
-
 // GetVisibleInstancesWithType 获取当前用户可见的全部实例(带类型)，用于类型使用统计
 func (i *instanceRepo) GetVisibleInstancesWithType(ctx context.Context, userId string) ([]*gen.Instance, error) {
 	return i.data.db.Instance.Query().
@@ -97,15 +93,31 @@ func (i *instanceRepo) GetVisibleInstancesWithType(ctx context.Context, userId s
 		All(ctx)
 }
 
-// DeleteType 删除实例类型
-func (i *instanceRepo) DeleteType(ctx context.Context, id string) error {
-	return i.data.db.InstanceType.DeleteOneID(id).
+// DeleteType 删除实例类型：在用的应用改为未分类，返回受影响的应用数
+func (i *instanceRepo) DeleteType(ctx context.Context, id string) (int, error) {
+	tx, err := i.data.db.Tx(ctx)
+	if err != nil {
+		return 0, err
+	}
+	n, err := tx.Instance.Update().
+		Where(instance.HasTypeWith(instancetype.IDEQ(id))).
+		ClearType().
+		Save(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	if err := tx.InstanceType.DeleteOneID(id).
 		Where(instancetype.IsSystem(false)).
-		Exec(ctx)
+		Exec(ctx); err != nil {
+		_ = tx.Rollback()
+		return 0, err
+	}
+	return n, tx.Commit()
 }
 
-// GetInstances 获取该账号下管辖的实例列表
-func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, userId string, keywords, types *string) ([]*gen.Instance, int64, error) {
+// GetInstances 获取该账号下管辖的、符合关键字/类型条件的全部实例(运行状态在内存里，分页由 biz 完成)
+func (i *instanceRepo) GetInstances(ctx context.Context, userId string, keywords, types *string) ([]*gen.Instance, error) {
 	query := i.data.db.Instance.Query().Where(
 		instance.Or(
 			instance.HasUserWith(user.IDEQ(userId)),  // 主人
@@ -114,10 +126,13 @@ func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, u
 	)
 
 	if keywords != nil {
+		kw := strings.TrimSpace(*keywords)
 		query.Where(
 			instance.Or(
-				instance.NameContains(*keywords),
-				instance.TagsContains(*keywords),
+				instance.NameContainsFold(kw),
+				instance.TagsContainsFold(kw),
+				instance.RemarkContainsFold(kw),
+				instance.PathContainsFold(kw),
 			),
 		)
 	}
@@ -127,21 +142,10 @@ func (i *instanceRepo) GetInstances(ctx context.Context, page, pageSize int64, u
 		)
 	}
 
-	total, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-	instances, err := query.
+	return query.
 		WithUser().WithUsers().WithType().
-		Offset(int((page - 1) * pageSize)).
-		Limit(int(pageSize)).
 		Order(gen.Asc(instance.FieldCreateTime)).
 		All(ctx)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return instances, int64(total), nil
 }
 
 // GetInstanceByUserID 获取该账号下管辖的实例
@@ -165,7 +169,7 @@ func (i *instanceRepo) GetInstanceByUserID(ctx context.Context, userId, instance
 	return info, nil
 }
 
-func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string) (*gen.Instance, error) {
+func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string, env biz.InstanceEnv) (*gen.Instance, error) {
 	create := i.data.db.Instance.Create().
 		SetUserID(userId).
 		SetID(uuid.NewString()).
@@ -176,15 +180,22 @@ func (i *instanceRepo) CreateInstance(ctx context.Context, req *v1.CreateInstanc
 		SetStartCommand(req.StartCommand).
 		SetStopCommand(req.StopCommand).
 		SetAutoStart(req.AutoStart).
-		SetTypeID(req.Type).
-		SetEnv(req.Env).
+		SetEnv(env.Lines).
+		SetSecretEnvKeys(env.SecretKeys).
 		SetStopTimeout(req.StopTimeout).
 		SetAutoRestart(req.AutoRestart)
+	if t := strings.TrimSpace(req.Type); t != "" {
+		create.SetTypeID(t)
+	}
 
-	return create.Save(ctx)
+	item, err := create.Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return i.GetInstanceByUserID(ctx, userId, item.ID)
 }
 
-func (i *instanceRepo) UpdateInstance(ctx context.Context, req *v1.UpdateInstanceRequest, userId string) (*gen.Instance, error) {
+func (i *instanceRepo) UpdateInstance(ctx context.Context, current *gen.Instance, req *v1.UpdateInstanceRequest, userId string, env *biz.InstanceEnv) (*gen.Instance, error) {
 	update := i.data.db.Instance.UpdateOneID(req.Id).Where(
 		instance.Or(
 			instance.HasUserWith(user.IDEQ(userId)),  // 主人
@@ -201,7 +212,11 @@ func (i *instanceRepo) UpdateInstance(ctx context.Context, req *v1.UpdateInstanc
 		update.SetTags(*req.Tags)
 	}
 	if req.Type != nil {
-		update.SetTypeID(*req.Type)
+		if t := strings.TrimSpace(*req.Type); t != "" {
+			update.SetTypeID(t)
+		} else {
+			update.ClearType()
+		}
 	}
 	if req.StartCommand != nil {
 		update.SetStartCommand(*req.StartCommand)
@@ -215,14 +230,24 @@ func (i *instanceRepo) UpdateInstance(ctx context.Context, req *v1.UpdateInstanc
 	if req.AutoStart != nil {
 		update.SetAutoStart(*req.AutoStart)
 	}
-	if req.Env != nil {
-		update.SetEnv(req.Env)
+	if env != nil {
+		update.SetEnv(env.Lines).SetSecretEnvKeys(env.SecretKeys)
 	}
 	if req.StopTimeout != nil {
 		update.SetStopTimeout(*req.StopTimeout)
 	}
 	if req.AutoRestart != nil {
 		update.SetAutoRestart(*req.AutoRestart)
+	}
+	if req.Maintenance != nil {
+		if *req.Maintenance {
+			update.SetMaintenance(true)
+			if !current.Maintenance || current.MaintenanceTime == nil {
+				update.SetMaintenanceTime(time.Now())
+			}
+		} else {
+			update.SetMaintenance(false).ClearMaintenanceTime()
+		}
 	}
 	if _, err := update.Save(ctx); err != nil {
 		return nil, err
@@ -237,7 +262,38 @@ func (i *instanceRepo) DeleteInstance(ctx context.Context, id, userId string) er
 		)).Exec(ctx)
 }
 
-// GetAllAutoStartInstances 获取全部自动启动的实例
+// GetAllAutoStartInstances 获取全部自动启动的实例(维护中的除外)
 func (i *instanceRepo) GetAllAutoStartInstances(ctx context.Context) ([]*gen.Instance, error) {
-	return i.data.db.Instance.Query().Where(instance.AutoStartEQ(true)).All(ctx)
+	return i.data.db.Instance.Query().
+		Where(instance.AutoStartEQ(true), instance.MaintenanceEQ(false)).
+		All(ctx)
+}
+
+// SetLastStopTime 记录最近一次进程退出时间(不改动「更新时间」)
+func (i *instanceRepo) SetLastStopTime(ctx context.Context, id string, t time.Time) error {
+	item, err := i.data.db.Instance.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	return i.data.db.Instance.UpdateOne(item).
+		SetLastStopTime(t).
+		SetUpdateTime(item.UpdateTime).
+		Exec(ctx)
+}
+
+// ListInstanceOperationLogs 按实例 id 查最近的应用相关操作记录(请求路径或请求参数里带该 id)
+func (i *instanceRepo) ListInstanceOperationLogs(ctx context.Context, instanceID string, limit int) ([]*gen.OperationLog, error) {
+	return i.data.db.OperationLog.Query().
+		Where(
+			operationlog.OperationTypeHasPrefix("OperationTypeInstance"),
+			operationlog.Not(operationlog.OperationTypeHasPrefix("OperationTypeInstanceType")),
+			operationlog.Or(
+				operationlog.PathContains(instanceID),
+				operationlog.DetailContains(instanceID),
+			),
+		).
+		WithUser().
+		Order(gen.Desc(operationlog.FieldOperationTime)).
+		Limit(limit).
+		All(ctx)
 }

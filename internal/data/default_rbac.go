@@ -56,6 +56,7 @@ type defaultUser struct {
 }
 
 var (
+	builtinAdminUserID          = "admin_1"
 	adminPermissionRoleID       = "role_1"
 	noPermissionRoleID          = "role_2"
 	builtinRoleWithMenuPermsIDs = []string{"role_1"}
@@ -70,10 +71,12 @@ var (
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:Squares2X2Icon", new("menu_2"), 0, constant.Instance, entmenu.StatusActive),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "HOutline:RectangleStackIcon", new("menu_2"), 1, "", entmenu.StatusActive),
 
+		// 文件：一个页面，标签 文件管理 / 分享 / 文件源（PC 侧边栏把标签展开成三个入口）
 		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 2, "", entmenu.StatusActive),
-		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file/index", "文件管理", "HOutline:FolderIcon", new("menu_3"), 0, constant.Terminal, entmenu.StatusActive),
-		newDefaultMenu("menu_3_2", entmenu.TypeMenu, "/file/share", "分享", "HOutline:ShareIcon", new("menu_3"), 1, constant.FileShare, entmenu.StatusActive),
-		newDefaultMenu("menu_3_3", entmenu.TypeMenu, "/file/source", "文件源", "HOutline:CircleStackIcon", new("menu_3"), 2, constant.FileSource, entmenu.StatusActive),
+		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file", "文件", "HOutline:FolderIcon", new("menu_3"), 0, "", entmenu.StatusActive),
+		newDefaultMenu("menu_3_1_button_0", entmenu.TypeButton, "", "文件管理", "", new("menu_3_1"), 0, constant.Terminal, entmenu.StatusActive),
+		newDefaultMenu("menu_3_2", entmenu.TypeButton, "", "分享", "", new("menu_3_1"), 1, constant.FileShare, entmenu.StatusActive),
+		newDefaultMenu("menu_3_3", entmenu.TypeButton, "", "文件源", "", new("menu_3_1"), 2, constant.FileSource, entmenu.StatusActive),
 
 		// Docker：一个页面，标签 容器 / 镜像 / 网络 / 连接配置
 		newDefaultMenu("menu_5", entmenu.TypeDirectory, "", "Docker", "HOutline:CubeIcon", nil, 3, constant.DockerView, entmenu.StatusActive),
@@ -100,6 +103,7 @@ var (
 		newDefaultMenu("menu_4_2_button_1", entmenu.TypeButton, "", "查看节点", "", new("menu_4_2"), 0, constant.NodeView, entmenu.StatusActive),
 		newDefaultMenu("menu_4_2_button_0", entmenu.TypeButton, "", "管理节点", "", new("menu_4_2"), 1, constant.NodeManage, entmenu.StatusActive),
 		newDefaultMenu("menu_4_1", entmenu.TypeButton, "", "查看 API Key", "", new("menu_4_2"), 2, constant.ApiKeyView, entmenu.StatusActive),
+		newDefaultMenu("menu_4_3", entmenu.TypeButton, "", "管理全部 API Key", "", new("menu_4_2"), 3, constant.ApiKeyManage, entmenu.StatusActive),
 		// 用户与权限：标签 用户 / 角色 / 菜单
 		newDefaultMenu("menu_12_1", entmenu.TypeMenu, "/system/access", "用户与权限", "HOutline:UserGroupIcon", new("menu_12"), 1, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_1_button_3", entmenu.TypeButton, "", "查看用户", "", new("menu_12_1"), 0, constant.UserView, entmenu.StatusActive),
@@ -130,6 +134,9 @@ var (
 	// 旧版菜单（每个子页一个菜单）合并成单页后，把原先拥有子页菜单的自定义角色迁移到新结构：
 	// 拥有 source 的角色补上 target。只在 source 仍是旧结构（legacyPath 菜单）时执行一次。
 	builtinMenuGrants = []builtinMenuGrant{
+		{Target: "menu_3_1_button_0", Source: "menu_3_1", LegacyPath: "/file/index"},
+		{Target: "menu_3_1", Source: "menu_3_2", LegacyPath: "/file/share"},
+		{Target: "menu_3_1", Source: "menu_3_3", LegacyPath: "/file/source"},
 		{Target: "menu_5_1", Source: "menu_5_2", LegacyPath: "/docker/image"},
 		{Target: "menu_5_1", Source: "menu_5_3", LegacyPath: "/docker/network"},
 		{Target: "menu_5_1", Source: "menu_5_5", LegacyPath: "/docker/config"},
@@ -363,9 +370,6 @@ func syncDefaultRBACWithUsers(ctx context.Context, client *gen.Client, users []*
 			SetBio(item.Bio).
 			SetName(item.Name).
 			SetTags(item.Tags)
-		if item.RoleID != "" {
-			builder.SetRoleID(item.RoleID)
-		}
 		userBuilders = append(userBuilders, builder)
 	}
 	if len(userBuilders) > 0 {
@@ -377,16 +381,33 @@ func syncDefaultRBACWithUsers(ctx context.Context, client *gen.Client, users []*
 		}
 	}
 
-	if adminPermissionRoleID != "" {
-		if _, err := tx.Role.Get(ctx, adminPermissionRoleID); err != nil {
-			return rollback(fmt.Errorf("default role %s not found: %w", adminPermissionRoleID, err))
+	// 默认用户（新建时）绑定指定角色；已存在且已有角色的用户不动。
+	for _, item := range users {
+		if item.RoleID == "" {
+			continue
 		}
 		if err := tx.User.Update().
-			Where(entuser.Not(entuser.HasRole())).
-			SetRoleID(adminPermissionRoleID).
+			Where(entuser.IDEQ(item.ID), entuser.Not(entuser.HasRoles())).
+			AddRoleIDs(item.RoleID).
 			Exec(ctx); err != nil {
-			return rollback(fmt.Errorf("bind default role failed: %w", err))
+			return rollback(fmt.Errorf("bind default user role failed: %w", err))
 		}
+	}
+	// 内置超级管理员始终拥有超级管理员角色；其余没有任何角色的用户给内置「无权限」角色。
+	if err := tx.User.Update().
+		Where(
+			entuser.IDEQ(builtinAdminUserID),
+			entuser.Not(entuser.HasRolesWith(entrole.IDEQ(adminPermissionRoleID))),
+		).
+		AddRoleIDs(adminPermissionRoleID).
+		Exec(ctx); err != nil {
+		return rollback(fmt.Errorf("bind builtin admin role failed: %w", err))
+	}
+	if err := tx.User.Update().
+		Where(entuser.Not(entuser.HasRoles())).
+		AddRoleIDs(noPermissionRoleID).
+		Exec(ctx); err != nil {
+		return rollback(fmt.Errorf("bind default role failed: %w", err))
 	}
 
 	if err := tx.Commit(); err != nil {

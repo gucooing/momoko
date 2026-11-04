@@ -22,6 +22,9 @@
     :font-size="fontSize"
     :variant="variant"
     :keys-open="keysOpen"
+    :actions-end="actionsEnd"
+    :compact-action-labels="compactActionLabels"
+    :compact-footer="compactFooter"
     @toggle-theme="toggleTheme"
     @action="(key) => emit('action', key)"
     @soft-key="onSoftKey"
@@ -34,6 +37,7 @@
 
     <template v-if="$slots.lead" #lead><slot name="lead" /></template>
     <template #overlay><slot name="overlay" /></template>
+    <template v-if="$slots['footer-meta']" #footer-meta><slot name="footer-meta" /></template>
     <template #footer-right><slot name="footer-right" /></template>
     <template v-if="$slots.below" #below><slot name="below" /></template>
   </TerminalShell>
@@ -63,8 +67,21 @@ const props = withDefaults(
     /** console：应用控制台深色卡片（原型样式），屏幕固定深色 */
     variant?: 'card' | 'console'
     keysOpen?: boolean
+    /** 透传 TerminalShell：动作放工具最右 / 窄屏动作带文字 / 窄屏显示底栏 */
+    actionsEnd?: boolean
+    compactActionLabels?: boolean
+    compactFooter?: boolean
   }>(),
-  { icon: 'HOutline:CommandLineIcon', actions: () => [], busy: false, variant: 'card', keysOpen: false },
+  {
+    icon: 'HOutline:CommandLineIcon',
+    actions: () => [],
+    busy: false,
+    variant: 'card',
+    keysOpen: false,
+    actionsEnd: false,
+    compactActionLabels: false,
+    compactFooter: true,
+  },
 )
 
 const emit = defineEmits<{

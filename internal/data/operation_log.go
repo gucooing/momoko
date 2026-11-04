@@ -150,3 +150,9 @@ func (r *operationLogRepo) OperationLogStats(ctx context.Context, since time.Tim
 	}
 	return out, nil
 }
+
+// DeleteOperationLogsBefore 删除操作时间早于 before 的记录，返回删除条数。
+func (r *operationLogRepo) DeleteOperationLogsBefore(ctx context.Context, before time.Time) (int64, error) {
+	n, err := r.data.db.OperationLog.Delete().Where(operationlog.OperationTimeLT(before)).Exec(ctx)
+	return int64(n), err
+}

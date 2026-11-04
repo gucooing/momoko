@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>注册与找回密码 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--s);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.98)}
+.btn-p{background:var(--p);color:var(--pOn)}.btn-p:hover{color:var(--pOn)}
+.btn-wait{background:var(--s);color:var(--ink2);border:1.5px solid var(--line);cursor:default}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;flex:none}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.seg{display:flex;padding:4px;border-radius:999px;background:var(--s2);gap:2px}
+.seg button{flex:1;min-height:44px;border-radius:999px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer}
+.seg .on{background:var(--s);color:var(--ink);box-shadow:0 1px 3px rgba(20,10,30,.12)}
+.fl{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:700;color:var(--ink)}
+.fld{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 6px 0 16px;border-radius:16px;background:var(--s2);border:1.5px solid transparent;color:var(--ink2)}
+.fld:focus-within{border-color:var(--p);background:var(--s)}
+.fld input{flex:1;min-width:0;height:48px;border:0;background:transparent;font:inherit;font-size:16px;font-weight:500;color:var(--ink);outline:none}
+.fld input::placeholder{color:var(--ink2)}
+.sticker{position:absolute;display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:999px;font-size:14px;font-weight:800;white-space:nowrap}
+.cb{width:20px;height:20px;accent-color:var(--p);margin:0;flex:none}
+.meter{display:flex;gap:6px;flex:1}
+.meter span{flex:1;height:6px;border-radius:999px}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <section style="background: var(--p); color: var(--pOn); padding: 16px 16px 60px 20px; position: relative; overflow: hidden; height: 214px; flex: none">
+    <div aria-hidden="true" style="position: absolute; right: -70px; top: -70px; width: 210px; height: 210px; border-radius: 50%; background: var(--a)"></div>
+    <div aria-hidden="true" style="position: absolute; left: 230px; top: 112px; width: 62px; height: 62px; border-radius: 50%; border: 11px solid var(--a2)"></div>
+    <div style="position: relative; display: flex; align-items: center; gap: 10px">
+      <a class="ib" href="LoginMobile.dc.html" aria-label="返回登录" style="color: var(--pOn); margin-left: -10px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+      <div style="width: 36px; height: 36px; border-radius: 12px; background: var(--pOn); color: var(--p); display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 20px; font-weight: 800; flex: 1">Momoko</span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}" style="color: var(--aOn); background: var(--a)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    </div>
+    <h1 style="position: relative; margin: 22px 0 0; font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.01em">{{heroT1}}<br>{{heroT2}}</h1>
+    <span class="sticker" aria-hidden="true" style="right: 20px; bottom: 50px; background: var(--ink); color: var(--bg); transform: rotate(5deg)">{{sticker}}</span>
+  </section>
+
+  <section style="flex: 1; min-height: 0; margin-top: -36px; background: var(--s); border-radius: 32px 32px 0 0; position: relative; display: flex; flex-direction: column">
+    <form class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding: 22px 20px 16px; display: flex; flex-direction: column; gap: 16px">
+      <div class="seg" role="tablist" aria-label="注册或找回密码" style="flex: none">
+        <sc-for list="{{modes}}" as="m" hint-placeholder-count="2">
+          <button type="button" role="tab" class="{{m.cls}}" aria-selected="{{m.on}}" onClick="{{m.pick}}">{{m.t}}</button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{isReg}}" hint-placeholder-val="{{true}}">
+        <label class="fl">用户名
+          <span class="fld"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.user}}"></path></svg><input type="text" placeholder="3–20 位字母、数字或下划线" autocomplete="username"></span>
+        </label>
+      </sc-if>
+      <label class="fl">邮箱
+        <span class="fld"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.mail}}"></path></svg><input type="email" placeholder="name@example.com" autocomplete="email"><button type="button" class="btn {{codeCls}}" aria-disabled="{{sent}}" onClick="{{sendCode}}" style="min-height: 40px; padding: 0 12px; font-size: 13px">{{codeT}}</button></span>
+      </label>
+      <label class="fl">验证码
+        <span class="fld"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.shield}}"></path></svg><input type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字" autocomplete="one-time-code"></span>
+        <sc-if value="{{sent}}" hint-placeholder-val="{{false}}">
+          <span role="status" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ok)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 2.6"><path d="{{i.check}}"></path></svg>已发送，10 分钟内有效</span>
+        </sc-if>
+      </label>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <label class="fl">{{pwLabel}}
+          <span class="fld"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.lock}}"></path></svg><input type="{{pwType}}" value="{{pw}}" onChange="{{setPw}}" placeholder="至少 8 位" autocomplete="new-password"><button type="button" class="ib" aria-label="{{eyeT}}" onClick="{{toggleEye}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{eyeIcon}}"></path></svg></button></span>
+        </label>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span class="meter" aria-hidden="true">
+            <sc-for list="{{meter}}" as="m" hint-placeholder-count="4"><span style="background: {{m.bg}}"></span></sc-for>
+          </span>
+          <span style="font-size: 13px; font-weight: 800; color: {{lvC}}">强度：{{lvT}}</span>
+        </div>
+        <span style="font-size: 12px; color: var(--ink2)">混合大小写字母、数字和符号会更安全</span>
+      </div>
+      <sc-if value="{{isReg}}" hint-placeholder-val="{{true}}">
+        <label style="display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 13px; font-weight: 600; cursor: pointer">
+          <input class="cb" type="checkbox" checked="{{agree}}" onChange="{{toggleAgree}}">
+          <span>我已阅读并同意 <a href="#" style="font-weight: 700; text-decoration: none">《用户协议》</a> 和 <a href="#" style="font-weight: 700; text-decoration: none">《隐私政策》</a></span>
+        </label>
+      </sc-if>
+      <sc-if value="{{isReset}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 16px; background: var(--a2Soft); font-size: 13px; line-height: 1.55">
+          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 2px"><path d="{{i.info}}"></path></svg>
+          <span>重置后，其它设备上的登录会全部失效。</span>
+        </div>
+      </sc-if>
+    </form>
+    <div style="flex: none; padding: 10px 20px 24px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line)">
+      <button type="button" class="btn btn-p" style="min-height: 56px; font-size: 16px">{{submitT}}<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.arrowR}}"></path></svg></button>
+      <div style="text-align: center; line-height: 32px; font-size: 14px; color: var(--ink2)">{{backQ}} <a href="LoginMobile.dc.html" style="font-weight: 700; text-decoration: none">{{backT}}</a></div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  user: 'M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM4 21a8 8 0 0 1 16 0',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  eyeOff: 'M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6C3.8 8.4 2 12 2 12s4 7 10 7c1.8 0 3.4-.6 4.8-1.4M9.9 9.9a3 3 0 0 0 4.2 4.2',
+  mail: 'M3 5h18v14H3zM3 6l9 7 9-7',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  info: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v5M12 7.5h.01',
+  arrowR: 'M5 12h14M13 6l6 6-6 6'
+};
+const LV = [['太弱', 'var(--bad)'], ['弱', 'var(--bad)'], ['一般', 'var(--warn)'], ['强', 'var(--ok)'], ['很强', 'var(--ok)']];
+function scorePw(pw) {
+  let s = [pw.length >= 8, /[a-z]/.test(pw) && /[A-Z]/.test(pw), /\d/.test(pw), /[^A-Za-z0-9]/.test(pw)].filter(Boolean).length;
+  if (pw.length < 6) s = Math.min(s, 1);
+  return s;
+}
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const way = st.way || 'reg';
+    const isReg = way === 'reg';
+    const sent = !!st.sent;
+    const show = !!st.show;
+    const agree = st.agree != null ? st.agree : true;
+    const pw = st.pw != null ? st.pw : 'momoko2026';
+    const sc = scorePw(pw);
+    const val = (e) => (e && e.target && typeof e.target.value === 'string') ? e.target.value : '';
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      modes: [['reg', '注册账号'], ['reset', '找回密码']].map(([k, t]) => ({ t, on: k === way, cls: k === way ? 'on' : '', pick: () => this.setState({ way: k, sent: false }) })),
+      isReg,
+      isReset: !isReg,
+      heroT1: isReg ? '加入 Momoko' : '别着急',
+      heroT2: isReg ? '一起把服务器管起来' : '密码马上找回来',
+      sticker: isReg ? '一分钟搞定' : '邮箱验证',
+      pwLabel: isReg ? '密码' : '新密码',
+      submitT: isReg ? '注册' : '重置密码',
+      backQ: isReg ? '已有账号？' : '想起来了？',
+      backT: isReg ? '去登录' : '返回登录',
+      sent,
+      codeCls: sent ? 'btn-wait' : 'btn-p',
+      codeT: sent ? '58 秒' : '获取验证码',
+      sendCode: () => { if (!sent) this.setState({ sent: true }); },
+      pw,
+      setPw: (e) => this.setState({ pw: val(e) }),
+      pwType: show ? 'text' : 'password',
+      eyeIcon: show ? IC.eyeOff : IC.eye,
+      eyeT: show ? '隐藏密码' : '显示密码',
+      toggleEye: () => this.setState({ show: !show }),
+      meter: [0, 1, 2, 3].map((k) => ({ bg: (pw.length && k < sc) ? LV[sc][1] : 'var(--line)' })),
+      lvT: pw.length ? LV[sc][0] : '—',
+      lvC: pw.length ? LV[sc][1] : 'var(--ink2)',
+      agree,
+      toggleAgree: () => this.setState({ agree: !agree })
+    };
+  }
+}
+</script>
+</body>
+</html>

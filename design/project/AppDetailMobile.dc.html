@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>应用详情 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}
+.utab{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 2px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--ink2);font:inherit;font-size:15px;font-weight:700;cursor:pointer;flex:none}
+.utab-on{color:var(--ink);border-bottom-color:var(--p)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.tib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:#E8E3EE;cursor:pointer;flex:none}
+.tib:hover{background:rgba(255,255,255,.1)}
+.tib-on{background:rgba(255,255,255,.12);color:#FFFFFF}
+.tl{white-space:pre-wrap;word-break:break-word}
+.tin{flex:1;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1.5px solid var(--p)}
+.tin input{flex:1;min-width:0;border:0;background:transparent;color:#E8E3EE;font-size:14px;outline:none}
+.tin input::placeholder{color:#9C93A8}
+.qc{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:transparent;color:#D6CFE0;font-size:12px;cursor:pointer;white-space:nowrap;flex:none}
+.key{display:flex;align-items:center;justify-content:center;height:40px;border-radius:8px;background:var(--s);color:var(--ink);font-size:16px;font-weight:500;box-shadow:0 1px 0 var(--line)}
+.key-f{background:var(--line);font-size:13px;font-weight:700}
+.key-p{background:var(--p);color:var(--pOn);font-size:14px;font-weight:700}
+.li{display:flex;align-items:center;gap:14px;width:100%;min-height:52px;padding:0 6px;border:0;border-radius:14px;background:transparent;color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer;text-align:left;text-decoration:none}
+.li:hover{background:var(--s2);color:var(--ink)}
+.qa{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px;border-radius:20px;border:0;background:var(--s2);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 0;border-top:1px solid var(--line)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: center; gap: 4px; padding: 14px 6px 6px 4px; background: var(--s)">
+    <a class="ib" href="AppsMobile.dc.html" aria-label="返回应用列表"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg></a>
+    <span class="av av-p" style="width: 40px; height: 40px; border-radius: 13px; font-size: 18px; transform: rotate(-5deg); box-shadow: 3px 3px 0 var(--a)">M</span>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-left: 8px">
+      <span style="font-size: 17px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">mc-survival</span>
+      <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink2); white-space: nowrap"><span class="pill {{stCls}}">{{stT}}</span>{{uptime}}</span>
+    </span>
+    <button class="ib" aria-label="{{mainT}}" onClick="{{toggleRun}}" style="color: {{mainFg}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{mainD}}"></path></svg></button>
+    <button class="ib" aria-label="重启"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.restart}}"></path></svg></button>
+    <button class="ib" aria-label="更多操作" onClick="{{openSheet}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+  </header>
+  <nav class="hs" role="tablist" aria-label="应用详情" style="display: flex; gap: 24px; padding: 0 20px; background: var(--s); border-bottom: 1px solid var(--line); overflow-x: auto">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+      <button class="utab {{t.cls}}" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}">{{t.t}}</button>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{isConsole}}" hint-placeholder-val="{{true}}">
+    <section aria-label="控制台" style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #0F0B14; color: #E8E3EE">
+      <div style="display: flex; align-items: center; gap: 2px; padding: 2px 6px 2px 16px; border-bottom: 1px solid rgba(255,255,255,.08)">
+        <span style="flex: 1; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: {{connC}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{connC}}"></span>{{connT}}</span>
+        <button class="tib" aria-label="清屏" onClick="{{clear}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.eraser}}"></path></svg></button>
+        <button class="tib" aria-label="重新连接" onClick="{{reconnect}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.rebuild}}"></path></svg></button>
+        <button class="tib {{autoCls}}" aria-label="自动滚动" aria-pressed="{{auto}}" onClick="{{toggleAuto}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.toBottom}}"></path></svg></button>
+      </div>
+      <div class="hs mono" role="log" aria-label="控制台输出" style="flex: 1; min-height: 0; overflow-y: auto; padding: 10px 14px; font-size: 11.5px; line-height: 1.6; display: flex; flex-direction: column">
+        <div style="flex: 1 0 0"></div>
+        <sc-if value="{{cleared}}" hint-placeholder-val="{{false}}">
+          <div class="tl" style="color: #9C93A8">— 已清屏，仅影响本页显示 —</div>
+        </sc-if>
+        <sc-for list="{{lines}}" as="l" hint-placeholder-count="12">
+          <div class="tl" style="padding: 1px 0"><span style="color: #8E86A0">{{l.t}} </span><span style="color: {{l.c}}; font-weight: 700">{{l.lv}}</span> <span style="color: {{l.mc}}">{{l.m}}</span></div>
+        </sc-for>
+      </div>
+      <div class="hs" style="display: flex; gap: 6px; padding: 6px 12px; overflow-x: auto">
+        <sc-for list="{{quick}}" as="q" hint-placeholder-count="4">
+          <button class="qc mono" onClick="{{q.run}}">{{q.c}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 6px 8px {{inPad}} 12px; border-top: 1px solid rgba(255,255,255,.08)">
+        <label class="tin">
+          <span class="mono" aria-hidden="true" style="color: var(--a); font-weight: 800">&gt;</span>
+          <input class="mono" type="text" value="say 今晚 10 点" aria-label="控制台命令">
+        </label>
+        <button class="tib" aria-label="{{kbT}}" onClick="{{toggleKb}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.keyboard}}"></path></svg></button>
+        <button class="btn btn-p" aria-label="发送命令" style="width: 44px; padding: 0; flex: none"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.send}}"></path></svg></button>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{isFiles}}" hint-placeholder-val="{{false}}">
+    <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 12px">
+      <div class="mono" style="padding: 10px 14px; border-radius: 14px; background: var(--s2); font-size: 12px; color: var(--ink2)">D:/apps/mc-survival</div>
+      <div class="card" style="padding: 0 6px 0 16px">
+        <sc-for list="{{files}}" as="f" hint-placeholder-count="6">
+          <div class="row" style="border-top-color: {{f.bc}}">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: {{f.c}}"><path d="{{f.d}}"></path></svg>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 700">{{f.n}}</span><span class="num" style="font-size: 12px; color: var(--ink2)">{{f.size}} · {{f.time}}</span></span>
+            <button class="ib" aria-label="{{f.n}} 更多操作"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+          </div>
+        </sc-for>
+      </div>
+      <a class="btn btn-s" href="FilesMobile.dc.html" style="min-height: 48px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg>在文件管理中打开</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isConfig}}" hint-placeholder-val="{{false}}">
+    <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 12px">
+      <dl class="card" style="margin: 0; padding: 4px 16px">
+        <sc-for list="{{config}}" as="c" hint-placeholder-count="6">
+          <div style="padding: 10px 0; border-top: 1px solid {{c.bc}}">
+            <dt style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{c.k}}</dt>
+            <dd class="mono" style="margin: 3px 0 0; font-size: 13px; word-break: break-all">{{c.v}}</dd>
+          </div>
+        </sc-for>
+      </dl>
+      <a class="btn btn-p" href="AppEditMobile.dc.html" style="min-height: 48px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.edit}}"></path></svg>编辑配置</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{kbShow}}" hint-placeholder-val="{{true}}">
+    <div aria-hidden="true" style="background: var(--s2); padding: 8px 4px 22px; display: flex; flex-direction: column; gap: 9px; border-top: 1px solid var(--line)">
+      <sc-for list="{{keys}}" as="kr" hint-placeholder-count="4">
+        <div style="display: flex; gap: 5px; padding: 0 {{kr.pad}}">
+          <sc-for list="{{kr.k}}" as="k" hint-placeholder-count="10">
+            <span class="key {{k.cls}}" style="flex: {{k.f}}">{{k.t}}</span>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{false}}">
+    <button aria-label="关闭操作面板" onClick="{{closeSheet}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(12, 6, 18, 0.5); cursor: pointer"></button>
+    <section role="dialog" aria-label="mc-survival 操作" style="position: absolute; left: 0; right: 0; bottom: 0; background: var(--s); border-radius: 30px 30px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 14px">
+      <div style="align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--line)"></div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <button class="qa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.restart}}"></path></svg>重启</button>
+        <a class="qa" href="AppEditMobile.dc.html" style="text-decoration: none"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.edit}}"></path></svg>编辑</a>
+        <button class="qa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.logs}}"></path></svg>下载日志</button>
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <button class="li"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.copy}}"></path></svg>复制为新应用</button>
+        <button class="li" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.zap}}"></path></svg><span style="display: flex; flex-direction: column"><span>强制停止</span><span style="font-size: 12px; font-weight: 500; color: var(--ink2)">直接结束进程，可能丢失未保存的存档</span></span></button>
+        <button class="li" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg>删除应用</button>
+      </div>
+      <button class="btn btn-s" onClick="{{closeSheet}}" style="min-height: 52px; font-size: 15px">取消</button>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  file: 'M6 3h8l5 5v13H6zM14 3v5h5',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  play: 'M7 4.5v15l12-7.5z',
+  stop: 'M7 7h10v10H7z',
+  restart: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+  rebuild: 'M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4',
+  zap: 'M13 2 4 14h7l-1 8 9-12h-7z',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+  logs: 'M5 4h14v16H5zM9 8h6M9 12h6M9 16h4',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  eraser: 'M20 20H9l-5-5 10-10 7 7-6 6M9.5 9.5l7 7',
+  send: 'M21 3 10 14M21 3l-7 18-4-7-7-4z',
+  toBottom: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  keyboard: 'M3 5h18v10H3zM7 9h.01M11 9h.01M15 9h.01M8 12h8M9 19l3 2 3-2',
+  chevL: 'M15 6l-6 6 6 6',
+  more: 'M5 12h.01M12 12h.01M19 12h.01'
+};
+const TC = { INFO: '#5FD38D', WARN: '#F5C451', ERROR: '#FF7A8A', CMD: '#B9A6FF' };
+const LOG = [
+  ['09:12:04', 'INFO', 'Starting Minecraft server on *:25565'],
+  ['09:12:05', 'INFO', 'Preparing level "world"'],
+  ['09:12:11', 'INFO', 'Done (7.892s)! For help, type "help"'],
+  ['09:30:46', 'INFO', 'Steve_CN joined the game'],
+  ['10:02:17', 'WARN', "Can't keep up! Is the server overloaded? Running 2140ms or 42 ticks behind"],
+  ['10:15:02', 'INFO', '<Steve_CN> 有人来帮我搬箱子吗', 'chat'],
+  ['10:15:30', 'INFO', 'Alex_mo joined the game'],
+  ['10:16:12', 'INFO', '<Alex_mo> 来了来了，带了两组木头', 'chat'],
+  ['11:00:00', 'INFO', '[AutoSave] Saving the world…'],
+  ['11:00:02', 'INFO', 'Saved the game'],
+  ['11:41:55', 'WARN', 'Alex_mo moved too quickly! 12.4,0.0,9.8'],
+  ['12:03:20', 'INFO', 'Steve_CN has made the advancement [Diamonds!]'],
+  ['12:10:44', 'INFO', 'Alex_mo left the game']
+];
+const QUICK = [
+  ['list', [['INFO', 'There are 1 of a max of 20 players online: Steve_CN']]],
+  ['save-all', [['INFO', 'Saving the game (this may take a moment!)'], ['INFO', 'Saved the game']]],
+  ['tps', [['INFO', 'TPS from last 1m, 5m, 15m: 19.8, 19.9, 20.0']]],
+  ['weather clear', [['INFO', 'Set the weather to clear']]]
+];
+const FILES = [
+  ['world', '文件夹', '今天 11:00', 'dir'],
+  ['plugins', '文件夹', '10 月 30 日', 'dir'],
+  ['logs', '文件夹', '今天 12:10', 'dir'],
+  ['server.jar', '51.2 MB', '8 月 12 日', 'file'],
+  ['server.properties', '1.4 KB', '10 月 21 日', 'file'],
+  ['eula.txt', '158 B', '8 月 12 日', 'file']
+];
+const CONFIG = [
+  ['应用类型', 'Java 应用'],
+  ['工作目录', 'D:/apps/mc-survival'],
+  ['启动命令', 'java -Xmx6G -jar server.jar nogui'],
+  ['停止命令', 'stop'],
+  ['环境变量', 'JAVA_HOME · EULA · RCON_PASSWORD（3 个）'],
+  ['标签', '#游戏 #生存服 #每周备份'],
+  ['自启动', '已开启'],
+  ['创建时间', '2026-08-12 21:40']
+];
+const KEYS = [
+  { pad: '0', k: 'qwertyuiop'.split('').map((t) => ({ t, f: 1, cls: '' })) },
+  { pad: '18px', k: 'asdfghjkl'.split('').map((t) => ({ t, f: 1, cls: '' })) },
+  { pad: '0', k: [{ t: '⇧', f: 1.5, cls: 'key-f' }].concat('zxcvbnm'.split('').map((t) => ({ t, f: 1, cls: '' }))).concat([{ t: '⌫', f: 1.5, cls: 'key-f' }]) },
+  { pad: '0', k: [{ t: '123', f: 1.4, cls: 'key-f' }, { t: '中/英', f: 1.4, cls: 'key-f' }, { t: '空格', f: 5, cls: '' }, { t: '发送', f: 2, cls: 'key-p' }] }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const tab = st.tab || 'console';
+    const running = st.running != null ? st.running : true;
+    const auto = st.auto != null ? st.auto : true;
+    const kb = st.kb != null ? st.kb : true;
+    const cleared = !!st.cleared;
+    const extra = st.extra || [];
+    const conn = st.conn || 'ok';
+    const base = cleared ? [] : LOG.map(([t, lv, m, kind]) => ({ t, lv, m, c: TC[lv], mc: kind === 'chat' ? '#7CC7FF' : (lv === 'WARN' ? '#F5C451' : '#E8E3EE') }));
+    const isConsole = tab === 'console';
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      stCls: running ? 'ok' : 'off',
+      stT: running ? '运行中' : '已停止',
+      uptime: running ? '3 天 4 小时' : '刚刚停止',
+      mainFg: running ? 'var(--bad)' : 'var(--ok)',
+      mainD: running ? IC.stop : IC.play,
+      mainT: running ? '停止' : '启动',
+      toggleRun: () => this.setState({ running: !running }),
+      tabs: [['console', '控制台'], ['files', '文件'], ['config', '配置']].map(([k, t]) => ({ t, on: k === tab, cls: k === tab ? 'utab-on' : '', pick: () => this.setState({ tab: k }) })),
+      isConsole,
+      isFiles: tab === 'files',
+      isConfig: tab === 'config',
+      connT: conn === 'ok' ? '已连接 · WebSocket' : '正在重新连接…',
+      connC: conn === 'ok' ? '#5FD38D' : '#F5C451',
+      reconnect: () => { this.setState({ conn: 'wait' }); setTimeout(() => this.setState({ conn: 'ok' }), 1200); },
+      clear: () => this.setState({ cleared: true, extra: [] }),
+      auto,
+      autoCls: auto ? 'tib-on' : '',
+      toggleAuto: () => this.setState({ auto: !auto }),
+      cleared,
+      lines: base.concat(extra),
+      quick: QUICK.map(([c, out]) => ({
+        c,
+        run: () => {
+          const t = '12:' + String(14 + extra.length).padStart(2, '0') + ':0' + (extra.length % 10);
+          const add = [{ t, lv: 'CMD', m: '> ' + c, c: TC.CMD, mc: '#B9A6FF' }].concat(out.map(([lv, m]) => ({ t, lv, m, c: TC[lv], mc: '#E8E3EE' })));
+          this.setState({ extra: extra.concat(add).slice(-20) });
+        }
+      })),
+      kbShow: kb && isConsole,
+      kbT: kb ? '收起键盘' : '弹出键盘',
+      inPad: kb ? '8px' : '26px',
+      toggleKb: () => this.setState({ kb: !kb }),
+      keys: KEYS,
+      files: FILES.map(([n, size, time, k], idx) => ({ n, size, time, d: k === 'dir' ? IC.folder : IC.file, c: k === 'dir' ? 'var(--a2)' : 'var(--ink2)', bc: idx === 0 ? 'transparent' : 'var(--line)' })),
+      config: CONFIG.map(([k, v], idx) => ({ k, v, bc: idx === 0 ? 'transparent' : 'var(--line)' })),
+      sheetOpen: !!st.sheet,
+      openSheet: () => this.setState({ sheet: true }),
+      closeSheet: () => this.setState({ sheet: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

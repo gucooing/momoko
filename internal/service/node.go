@@ -35,7 +35,7 @@ func (n *NodeService) ListAPIKeys(ctx context.Context, req *v1.ListAPIKeysReques
 	if !ok {
 		return nil, biz.ErrTokenInvalid
 	}
-	infos, total, counts, err := n.uc.ListAPIKeys(ctx, authCtx.UserID, req)
+	infos, total, counts, owners, err := n.uc.ListAPIKeys(ctx, authCtx.UserID, req)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +47,7 @@ func (n *NodeService) ListAPIKeys(ctx context.Context, req *v1.ListAPIKeysReques
 		ValidCount:    counts.Valid,
 		ExpiringCount: counts.Expiring,
 		ExpiredCount:  counts.Expired,
+		Owners:        owners,
 	}, nil
 }
 

@@ -3,6 +3,7 @@
 package gen
 
 import (
+	"encoding/json"
 	"fmt"
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/user"
@@ -53,6 +54,10 @@ type SSHHost struct {
 	LastTestMessage string `json:"last_test_message,omitempty"`
 	// 上次打开终端连接的时间
 	LastConnectAt *time.Time `json:"last_connect_at,omitempty"`
+	// 私钥算法（如 ed25519、rsa-4096）；密码认证为空
+	KeyType string `json:"key_type,omitempty"`
+	// 终端快捷命令
+	QuickCommands []string `json:"quick_commands,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SSHHostQuery when eager-loading is set.
 	Edges          SSHHostEdges `json:"edges"`
@@ -96,11 +101,13 @@ func (*SSHHost) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case sshhost.FieldQuickCommands:
+			values[i] = new([]byte)
 		case sshhost.FieldLastTestOk:
 			values[i] = new(sql.NullBool)
 		case sshhost.FieldPort, sshhost.FieldLastTestLatencyMs:
 			values[i] = new(sql.NullInt64)
-		case sshhost.FieldID, sshhost.FieldName, sshhost.FieldHost, sshhost.FieldUsername, sshhost.FieldAuthType, sshhost.FieldCredential, sshhost.FieldPassphrase, sshhost.FieldFingerprint, sshhost.FieldRemark, sshhost.FieldTags, sshhost.FieldLastTestMessage:
+		case sshhost.FieldID, sshhost.FieldName, sshhost.FieldHost, sshhost.FieldUsername, sshhost.FieldAuthType, sshhost.FieldCredential, sshhost.FieldPassphrase, sshhost.FieldFingerprint, sshhost.FieldRemark, sshhost.FieldTags, sshhost.FieldLastTestMessage, sshhost.FieldKeyType:
 			values[i] = new(sql.NullString)
 		case sshhost.FieldCreateTime, sshhost.FieldUpdateTime, sshhost.FieldLastTestAt, sshhost.FieldLastConnectAt:
 			values[i] = new(sql.NullTime)
@@ -231,6 +238,20 @@ func (_m *SSHHost) assignValues(columns []string, values []any) error {
 				_m.LastConnectAt = new(time.Time)
 				*_m.LastConnectAt = value.Time
 			}
+		case sshhost.FieldKeyType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field key_type", values[i])
+			} else if value.Valid {
+				_m.KeyType = value.String
+			}
+		case sshhost.FieldQuickCommands:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field quick_commands", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.QuickCommands); err != nil {
+					return fmt.Errorf("unmarshal field quick_commands: %w", err)
+				}
+			}
 		case sshhost.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ssh_host_owner", values[i])
@@ -336,6 +357,12 @@ func (_m *SSHHost) String() string {
 		builder.WriteString("last_connect_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("key_type=")
+	builder.WriteString(_m.KeyType)
+	builder.WriteString(", ")
+	builder.WriteString("quick_commands=")
+	builder.WriteString(fmt.Sprintf("%v", _m.QuickCommands))
 	builder.WriteByte(')')
 	return builder.String()
 }

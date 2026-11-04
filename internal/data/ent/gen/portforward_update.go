@@ -161,6 +161,20 @@ func (_u *PortForwardUpdate) SetNillableIsEnable(v *bool) *PortForwardUpdate {
 	return _u
 }
 
+// SetAutoStart sets the "auto_start" field.
+func (_u *PortForwardUpdate) SetAutoStart(v bool) *PortForwardUpdate {
+	_u.mutation.SetAutoStart(v)
+	return _u
+}
+
+// SetNillableAutoStart sets the "auto_start" field if the given value is not nil.
+func (_u *PortForwardUpdate) SetNillableAutoStart(v *bool) *PortForwardUpdate {
+	if v != nil {
+		_u.SetAutoStart(*v)
+	}
+	return _u
+}
+
 // SetRemark sets the "remark" field.
 func (_u *PortForwardUpdate) SetRemark(v string) *PortForwardUpdate {
 	_u.mutation.SetRemark(v)
@@ -333,6 +347,9 @@ func (_u *PortForwardUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AutoStart(); ok {
+		_spec.SetField(portforward.FieldAutoStart, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(portforward.FieldRemark, field.TypeString, value)
@@ -526,6 +543,20 @@ func (_u *PortForwardUpdateOne) SetIsEnable(v bool) *PortForwardUpdateOne {
 func (_u *PortForwardUpdateOne) SetNillableIsEnable(v *bool) *PortForwardUpdateOne {
 	if v != nil {
 		_u.SetIsEnable(*v)
+	}
+	return _u
+}
+
+// SetAutoStart sets the "auto_start" field.
+func (_u *PortForwardUpdateOne) SetAutoStart(v bool) *PortForwardUpdateOne {
+	_u.mutation.SetAutoStart(v)
+	return _u
+}
+
+// SetNillableAutoStart sets the "auto_start" field if the given value is not nil.
+func (_u *PortForwardUpdateOne) SetNillableAutoStart(v *bool) *PortForwardUpdateOne {
+	if v != nil {
+		_u.SetAutoStart(*v)
 	}
 	return _u
 }
@@ -732,6 +763,9 @@ func (_u *PortForwardUpdateOne) sqlSave(ctx context.Context) (_node *PortForward
 	}
 	if value, ok := _u.mutation.IsEnable(); ok {
 		_spec.SetField(portforward.FieldIsEnable, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.AutoStart(); ok {
+		_spec.SetField(portforward.FieldAutoStart, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(portforward.FieldRemark, field.TypeString, value)

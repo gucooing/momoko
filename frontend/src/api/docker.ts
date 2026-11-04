@@ -18,6 +18,12 @@ import type {
   TestDockerRegistryAuthResponse,
   ListDockerTasksRequest,
   ListDockerTasksResponse,
+  CancelDockerTaskRequest,
+  CancelDockerTaskResponse,
+  ListDockerContainerUsageRequest,
+  ListDockerContainerUsageResponse,
+  ParseDockerComposeRequest,
+  ParseDockerComposeResponse,
   ListDockerContainersRequest,
   ListDockerContainersResponse,
   GetDockerContainerRequest,
@@ -107,10 +113,23 @@ export const listDockerTasks = (params?: ListDockerTasksRequest) => {
   return request.get<ListDockerTasksResponse>('/docker/tasks', { params })
 }
 
+export const cancelDockerTask = (data: CancelDockerTaskRequest) => {
+  return request.post<CancelDockerTaskResponse>(`/docker/tasks/${data.id}/cancel`, data)
+}
+
 // ==================== Containers ====================
 
 export const listDockerContainers = (params: ListDockerContainersRequest) => {
   return request.get<ListDockerContainersResponse>('/docker/containers', { params })
+}
+
+/** 运行中容器的 CPU / 内存占用（一次性采样，约 1–2 秒） */
+export const listDockerContainerUsage = (params: ListDockerContainerUsageRequest) => {
+  return request.get<ListDockerContainerUsageResponse>('/docker/container-usage', { params, timeout: 60000 })
+}
+
+export const parseDockerCompose = (data: ParseDockerComposeRequest) => {
+  return request.post<ParseDockerComposeResponse>('/docker/compose/parse', data)
 }
 
 export const getDockerContainer = (params: GetDockerContainerRequest) => {
@@ -243,4 +262,25 @@ export const disconnectDockerNetwork = (data: DisconnectDockerNetworkRequest) =>
 
 export const pruneDockerNetworks = (data: PruneDockerNetworksRequest = {}) => {
   return request.post<PruneDockerNetworksResponse>('/docker/network-prune', data)
+}
+
+// ==================== Image export / import（原始 HTTP 流） ====================
+
+/** 导出镜像为 tar（docker save），返回 Blob */
+export const exportDockerImages = (ids: string[], onProgress?: (loaded: number) => void) => {
+  return request.get<Blob>('/docker/image-export', {
+    params: { ids },
+    responseType: 'blob',
+    timeout: 0,
+    onDownloadProgress: (e) => onProgress?.(e.loaded),
+  })
+}
+
+/** 从 tar 导入镜像（docker load），返回导入的镜像引用 */
+export const importDockerImages = (file: Blob, onProgress?: (percent: number) => void) => {
+  return request.post<{ loaded: string[] }>('/docker/image-import', file, {
+    headers: { 'Content-Type': 'application/x-tar' },
+    timeout: 0,
+    onUploadProgress: (e) => onProgress?.(e.total ? Math.round((e.loaded / e.total) * 100) : 0),
+  })
 }

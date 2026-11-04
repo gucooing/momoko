@@ -2,3 +2,7 @@
 <template>
   <PageGroupHost group="iqcheck" />
 </template>
+
+<script setup lang="ts">
+defineOptions({ name: 'IqcheckGroupView' })
+</script>

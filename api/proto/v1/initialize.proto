@@ -117,4 +117,10 @@ message TestInitializeDatabaseResponse {
   string server_version = 2;
   // 连接 + 查询耗时（毫秒）
   int64 latency_ms = 3;
+  // SQLite：测试前数据库文件是否已存在（不存在时初始化会自动创建）；MySQL/PostgreSQL 恒为 true
+  bool database_exists = 4;
+  // 目标库里已有的数据表数量（0 表示空库）
+  int64 table_count = 5;
+  // SQLite 实际使用的数据库文件路径（已补全默认值）；其它类型为空
+  string sqlite_path = 6;
 }

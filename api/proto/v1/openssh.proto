@@ -183,6 +183,8 @@ message CreateSSHHostRequest {
   string tags = 11;
   // 分享给指定用户
   repeated string shared_user_ids = 12;
+  // 终端快捷命令
+  repeated string quick_commands = 13;
 }
 
 message CreateSSHHostResponse {
@@ -225,6 +227,13 @@ message UpdateSSHHostRequest {
   optional string remark = 11;
   // 标签
   optional string tags = 12;
+  // 终端快捷命令（不传表示不修改）
+  SSHQuickCommands quick_commands = 13;
+}
+
+// 终端快捷命令列表（用于区分「不修改」与「清空」）
+message SSHQuickCommands {
+  repeated string items = 1;
 }
 
 message UpdateSSHHostResponse {
@@ -325,6 +334,10 @@ message SSHHostInfo {
   string last_test_message = 19;
   // 上次打开终端连接的时间；从未连接为空
   google.protobuf.Timestamp last_connect_time = 20;
+  // 私钥算法（如 ed25519、rsa-4096、ecdsa-256）；密码认证为空
+  string key_type = 21;
+  // 终端快捷命令
+  repeated string quick_commands = 22;
 }
 
 message SSHHostSharedUser {

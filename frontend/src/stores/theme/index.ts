@@ -3,6 +3,18 @@ import { useDark, usePreferredDark, useToggle } from '@vueuse/core'
 
 export type ThemeMode = 'light' | 'dark' | 'auto'
 export type PaletteKey = 'sakura' | 'mint' | 'volt' | 'grape' | 'sunset' | 'classic'
+/** 圆角：round 圆润（默认） / standard 标准（更小的圆角） */
+export type RadiusMode = 'round' | 'standard'
+
+/** 一份完整的外观偏好（跟随账号同步，见 stores/theme/sync.ts） */
+export interface AppearancePrefs {
+  palette: PaletteKey
+  mode: ThemeMode
+  compact: boolean
+  reduceMotion: boolean
+  radius: RadiusMode
+  showTabs: boolean
+}
 
 export interface PaletteOption {
   key: PaletteKey
@@ -25,7 +37,9 @@ export const PALETTE_OPTIONS: PaletteOption[] = [
 ]
 
 const DEFAULT_PALETTE: PaletteKey = 'sakura'
-const isPaletteKey = (v: unknown): v is PaletteKey => PALETTE_OPTIONS.some((p) => p.key === v)
+export const isPaletteKey = (v: unknown): v is PaletteKey => PALETTE_OPTIONS.some((p) => p.key === v)
+export const isThemeMode = (v: unknown): v is ThemeMode => v === 'light' || v === 'dark' || v === 'auto'
+export const isRadiusMode = (v: unknown): v is RadiusMode => v === 'round' || v === 'standard'
 const readBool = (key: string, fallback: boolean) => {
   try {
     const raw = localStorage.getItem(key)
@@ -42,11 +56,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   // ---- 深浅色 ----
   const themeModeStorage = localStorage.getItem('themeMode')
-  const themeMode = ref<ThemeMode>(
-    themeModeStorage === 'light' || themeModeStorage === 'dark' || themeModeStorage === 'auto'
-      ? themeModeStorage
-      : 'auto',
-  )
+  const themeMode = ref<ThemeMode>(isThemeMode(themeModeStorage) ? themeModeStorage : 'auto')
   const isDarkTheme = computed(() =>
     themeMode.value === 'auto' ? preferredDark.value : themeMode.value === 'dark',
   )
@@ -62,12 +72,15 @@ export const useThemeStore = defineStore('theme', () => {
   const compact = ref(readBool('theme-compact', false))
   const reduceMotion = ref(readBool('theme-reduce-motion', false))
   const showTabs = ref(readBool('showTabs', false))
+  const storedRadius = localStorage.getItem('theme-radius')
+  const radius = ref<RadiusMode>(isRadiusMode(storedRadius) ? storedRadius : 'round')
 
   const applyAttributes = () => {
     const root = document.documentElement
     root.dataset.palette = palette.value
     root.classList.toggle('is-compact', compact.value)
     root.classList.toggle('is-reduce-motion', reduceMotion.value)
+    root.classList.toggle('is-radius-std', radius.value === 'standard')
   }
 
   const applyThemeMode = () => {
@@ -107,11 +120,38 @@ export const useThemeStore = defineStore('theme', () => {
     localStorage.setItem('showTabs', JSON.stringify(value))
   }
 
+  const setRadius = (value: RadiusMode) => {
+    radius.value = value
+    localStorage.setItem('theme-radius', value)
+    applyAttributes()
+  }
+
   const resetAppearance = () => {
     setPalette(DEFAULT_PALETTE)
     setCompact(false)
     setReduceMotion(false)
+    setRadius('round')
     toggleThemeMode('auto')
+  }
+
+  /** 当前外观偏好快照 */
+  const appearance = computed<AppearancePrefs>(() => ({
+    palette: palette.value,
+    mode: themeMode.value,
+    compact: compact.value,
+    reduceMotion: reduceMotion.value,
+    radius: radius.value,
+    showTabs: showTabs.value,
+  }))
+
+  /** 一次性套用一份外观偏好（如账号里同步来的设置），非法值保持当前值 */
+  const applyAppearance = (prefs: Partial<AppearancePrefs>) => {
+    if (isPaletteKey(prefs.palette)) setPalette(prefs.palette)
+    if (typeof prefs.compact === 'boolean') setCompact(prefs.compact)
+    if (typeof prefs.reduceMotion === 'boolean') setReduceMotion(prefs.reduceMotion)
+    if (isRadiusMode(prefs.radius)) setRadius(prefs.radius)
+    if (typeof prefs.showTabs === 'boolean') toggleShowTabs(prefs.showTabs)
+    if (isThemeMode(prefs.mode)) toggleThemeMode(prefs.mode)
   }
 
   const themeConfigDrawerOpen = ref(false)
@@ -131,6 +171,8 @@ export const useThemeStore = defineStore('theme', () => {
     compact,
     reduceMotion,
     showTabs,
+    radius,
+    appearance,
     themeConfigDrawerOpen,
     toggleThemeMode,
     toggleDarkQuick,
@@ -138,6 +180,8 @@ export const useThemeStore = defineStore('theme', () => {
     setCompact,
     setReduceMotion,
     toggleShowTabs,
+    setRadius,
+    applyAppearance,
     resetAppearance,
   }
 })

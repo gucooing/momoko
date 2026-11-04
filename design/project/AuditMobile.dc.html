@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>操作记录 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn-s{background:var(--s2);color:var(--ink)}
+.btn-o{background:var(--s);color:var(--ink);border:1.5px solid var(--line)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.bad{background:var(--badSoft);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.utab{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 2px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700;flex:none}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}.av-off{background:var(--s2);color:var(--ink2)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.mchip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:7px;font-size:11px;font-weight:700;white-space:nowrap}
+.tl{position:relative;display:flex;gap:12px}
+.tl::before{content:'';position:absolute;left:7px;top:0;bottom:-12px;width:2px;background:var(--line)}
+.tl-dot{position:relative;z-index:1;width:16px;height:16px;border-radius:50%;margin-top:20px;flex:none;border:3px solid var(--bg)}
+.ent{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding:14px 14px 12px;border-radius:20px;border:1px solid var(--line);background:var(--s);font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.ent:hover{border-color:var(--ink2)}
+.ent-on,.ent-on:hover{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 110px">
+    <header style="display: flex; align-items: center; gap: 4px; padding: 14px 12px 4px">
+      <a class="ib" href="MoreMobile.dc.html" aria-label="返回更多"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg></a>
+      <h1 style="margin: 0; font-size: 22px; font-weight: 800; flex: 1">任务与日志</h1>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="导出操作记录"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg></button>
+    </header>
+    <nav class="hs" aria-label="任务与日志分类" style="display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+      <a class="utab" href="TasksMobile.dc.html">后台任务</a>
+      <a class="utab utab-on" href="AuditMobile.dc.html" aria-current="page">操作记录 <span class="num" style="font-size: 13px; color: var(--ink2)">1,284</span></a>
+    </nav>
+
+    <div class="hs" aria-label="筛选" style="display: flex; gap: 8px; padding: 14px 16px 6px; overflow-x: auto">
+      <button class="chip" style="color: var(--ink)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.calendar}}"></path></svg>近 7 天<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+      <button class="chip">模块<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+      <button class="chip">用户<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+    </div>
+    <div class="hs" role="tablist" aria-label="按结果筛选" style="display: flex; gap: 8px; padding: 6px 16px 14px; overflow-x: auto">
+      <sc-for list="{{results}}" as="f" hint-placeholder-count="3">
+        <button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 0 16px">
+      <sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+        <h2 style="margin: 6px 0 4px; font-size: 13px; font-weight: 800; letter-spacing: .04em; color: var(--ink2)">{{g.t}} · <span class="num">{{g.n}}</span> 条</h2>
+        <ol style="list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="4">
+            <li class="tl">
+              <span class="tl-dot" style="background: {{r.dotC}}"></span>
+              <button class="ent {{r.entCls}}" onClick="{{r.pick}}" aria-label="{{r.act}} {{r.target}}，{{r.stT}}，查看详情">
+                <span style="display: flex; align-items: center; gap: 8px; width: 100%">
+                  <span style="flex: 1; min-width: 0; font-size: 15px; font-weight: 800">{{r.act}}</span>
+                  <span class="pill {{r.st}}">{{r.stT}}</span>
+                </span>
+                <span class="mono" style="font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%">{{r.target}}</span>
+                <span style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--ink2)">
+                  <span class="av {{r.uAv}}" style="width: 20px; height: 20px; border-radius: 50%; font-size: 10px">{{r.uL}}</span>
+                  <span style="font-weight: 700; color: var(--ink)">{{r.user}}</span>
+                  <span class="mchip" style="background: {{r.mb}}; color: {{r.mf}}; border: 1px solid {{r.mborder}}">{{r.mod}}</span>
+                  <span class="num" style="margin-left: auto; font-weight: 700">{{r.tm}}</span>
+                </span>
+                <sc-if value="{{r.fwd}}" hint-placeholder-val="{{false}}">
+                  <span style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; background: var(--a2Soft); color: var(--ink); font-size: 12px; font-weight: 700">
+                    <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="{{i.forward}}"></path></svg>主控 {{r.user}} → 节点 {{r.node}}
+                  </span>
+                </sc-if>
+              </button>
+            </li>
+          </sc-for>
+        </ol>
+      </sc-for>
+      <div style="text-align: center; font-size: 12px; color: var(--ink2); padding: 4px 0 8px">上拉加载更多</div>
+    </div>
+  </div>
+
+  <nav aria-label="底部导航" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{hasCur}}" hint-placeholder-val="{{true}}">
+    <button aria-label="关闭详情" onClick="{{close}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(12, 6, 18, 0.5); cursor: pointer"></button>
+    <section role="dialog" aria-label="操作详情" class="hs" style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 86%; overflow-y: auto; background: var(--s); border-radius: 30px 30px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 14px">
+      <div style="align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--line); flex: none"></div>
+      <div style="display: flex; align-items: flex-start; gap: 12px">
+        <span class="av" style="width: 46px; height: 46px; border-radius: 15px; background: {{cur.mb}}; color: {{cur.mf}}; border: 1px solid {{cur.mborder}}; transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{cur.md}}"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{cur.mod}} · {{cur.date}} {{cur.tm}}</span>
+          <span style="font-size: 19px; font-weight: 800">{{cur.act}}</span>
+          <span class="mono" style="font-size: 12px; color: var(--ink2); word-break: break-all">{{cur.target}}</span>
+        </span>
+        <span class="pill {{cur.st}}">{{cur.stT}}</span>
+      </div>
+
+      <sc-if value="{{cur.fwd}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 16px; background: var(--a2Soft)">
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 11px; font-weight: 700; color: var(--ink2)">主控</span><span style="font-size: 14px; font-weight: 800">{{cur.user}}</span></span>
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.arrowR}}"></path></svg>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: right"><span style="font-size: 11px; font-weight: 700; color: var(--ink2)">节点</span><span style="font-size: 14px; font-weight: 800">{{cur.node}}</span></span>
+        </div>
+      </sc-if>
+
+      <dl style="margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--s2); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px">
+        <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">用户</dt><dd style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.user}}</dd></div>
+        <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">来源 IP</dt><dd class="mono" style="margin: 2px 0 0; font-size: 12px; font-weight: 700">{{cur.ip}}</dd></div>
+        <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">目标节点</dt><dd style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.node}}</dd></div>
+        <div style="min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">耗时</dt><dd class="num" style="margin: 2px 0 0; font-size: 13px; font-weight: 700">{{cur.dur}}</dd></div>
+        <div style="grid-column: 1 / -1; min-width: 0"><dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">请求 ID</dt><dd class="mono" style="margin: 2px 0 0; font-size: 12px; font-weight: 700">{{cur.rid}}</dd></div>
+      </dl>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <h3 style="margin: 0; flex: 1; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: var(--ink2)">请求详情</h3>
+          <span class="mono" style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 8px; background: var(--s2); font-size: 11px; font-weight: 700; color: var(--ink2)">{{cur.method}} · HTTP {{cur.http}}</span>
+        </div>
+        <pre class="mono hs" style="margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--s2); border: 1px solid var(--line); font-size: 11.5px; line-height: 1.6; color: var(--ink); max-height: 210px; overflow: auto; white-space: pre">{{cur.json}}</pre>
+      </div>
+
+      <div style="display: flex; gap: 10px">
+        <button class="btn btn-s" style="flex: 1; min-height: 50px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.copy}}"></path></svg>复制 JSON</button>
+        <button class="btn btn-o" onClick="{{close}}" style="flex: 1; min-height: 50px">关闭</button>
+      </div>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+  copy: 'M8 8h12v12H8zM4 16V4h12',
+  arrowR: 'M5 12h14M13 6l6 6-6 6',
+  chevD: 'M6 9l6 6 6-6',
+  chevL: 'M15 5l-7 7 7 7'
+};
+const MOD = {
+  '应用': [IC.apps, 'var(--pSoft)', 'var(--pInk)', 'transparent'],
+  '容器': [IC.box, 'var(--a2Soft)', 'var(--ink)', 'transparent'],
+  '文件': [IC.folder, 'var(--aSoft)', 'var(--aOn)', 'transparent'],
+  '系统': [IC.settings, 'var(--s2)', 'var(--ink2)', 'transparent'],
+  '用户': [IC.users, 'var(--okSoft)', 'var(--ok)', 'transparent'],
+  '工具': [IC.forward, 'var(--s)', 'var(--ink)', 'var(--line)']
+};
+const LOGS = [
+  { id: 'a1', day: 0, tm: '14:36', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '应用', act: '启动应用', target: 'mc-survival', node: '本机', ok: true, ip: '192.168.1.23', dur: '312 ms',
+    req: { method: 'POST', path: '/api/apps/mc-survival/start', body: {}, response: { code: 0, data: { pid: 18244, status: 'running' } } } },
+  { id: 'a3', day: 0, tm: '14:28', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '文件', act: '删除文件', target: '/srv/blog-api/logs/old.log', node: 'vps-tokyo', fwd: true, ok: true, ip: '192.168.1.23', dur: '86 ms',
+    req: { method: 'DELETE', path: '/api/node/vps-tokyo/files', forwarded: { from: '主控 DESKTOP-K5K9BBC', operator: '超级管理员', to: 'vps-tokyo' }, body: { paths: ['/srv/blog-api/logs/old.log'], recycle: true }, response: { code: 0, msg: 'ok', data: { deleted: 1 } } } },
+  { id: 'a4', day: 0, tm: '14:15', user: '小林', uL: '林', uAv: 'av-a2', mod: '文件', act: '上传文件', target: '/srv/mc-survival/world.zip', node: '本机', ok: true, ip: '10.0.0.8', dur: '1.2 s',
+    req: { method: 'POST', path: '/api/files/upload/init', body: { path: '/srv/mc-survival/world.zip', chunks: 32 }, response: { code: 0, data: { task_id: 'task_8f2b97' } } } },
+  { id: 'a5', day: 0, tm: '13:58', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '容器', act: '重建网络', target: 'blog_net', node: '本机', ok: false, ip: '192.168.1.23', dur: '4.0 s',
+    req: { method: 'POST', path: '/api/docker/networks/blog_net/recreate', body: { driver: 'bridge' }, response: { code: 409, msg: 'network blog_net has active endpoints' } } },
+  { id: 'a7', day: 0, tm: '12:03', user: '未登录', uL: '?', uAv: 'av-off', mod: '系统', act: '登录失败', target: '用户名 admin', node: '本机', ok: false, ip: '203.0.113.42', dur: '220 ms',
+    req: { method: 'POST', path: '/api/auth/login', body: { username: 'admin', password: '******' }, response: { code: 401, msg: '用户名或密码错误' } } },
+  { id: 'a8', day: 0, tm: '11:20', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '容器', act: '创建容器', target: 'pg-tokyo · postgres:16', node: 'vps-tokyo', fwd: true, ok: true, ip: '192.168.1.23', dur: '47 s',
+    req: { method: 'POST', path: '/api/node/vps-tokyo/docker/containers', forwarded: { from: '主控 DESKTOP-K5K9BBC', operator: '超级管理员', to: 'vps-tokyo' }, body: { name: 'pg-tokyo', image: 'postgres:16' }, response: { code: 0 } } },
+  { id: 'b1', day: 1, tm: '23:10', user: '小林', uL: '林', uAv: 'av-a2', mod: '应用', act: '停止应用', target: 'palworld', node: '本机', ok: true, ip: '10.0.0.8', dur: '2.1 s',
+    req: { method: 'POST', path: '/api/apps/palworld/stop', body: { graceful: true }, response: { code: 0 } } },
+  { id: 'b2', day: 1, tm: '21:47', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '用户', act: '修改角色', target: '运维 · 新增 3 项权限', node: '本机', ok: true, ip: '192.168.1.23', dur: '63 ms',
+    req: { method: 'PUT', path: '/api/roles/ops', body: { add: ['docker.image.pull', 'file.upload', 'app.restart'] }, response: { code: 0 } } },
+  { id: 'b4', day: 1, tm: '18:05', user: '超级管理员', uL: '超', uAv: 'av-a', mod: '工具', act: '新建端口转发', target: '25565 → 192.168.1.50:25565', node: '本机', ok: true, ip: '192.168.1.23', dur: '29 ms',
+    req: { method: 'POST', path: '/api/tools/port-forward', body: { listen: 25565, target: '192.168.1.50:25565' }, response: { code: 0 } } }
+];
+const DAYS = [['今天 · 11 月 3 日', '2026-11-03'], ['昨天 · 11 月 2 日', '2026-11-02']];
+function view(l) {
+  const m = MOD[l.mod];
+  return { ...l, md: m[0], mb: m[1], mf: m[2], mborder: m[3], fwd: !!l.fwd, st: l.ok ? 'ok' : 'bad', stT: l.ok ? '成功' : '失败', dotC: l.ok ? 'var(--ok)' : 'var(--bad)' };
+}
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const res = st.res || 'all';
+    const curId = st.cur === undefined ? 'a3' : st.cur;
+    const keep = (l) => res === 'all' || (res === 'ok' ? l.ok : !l.ok);
+    const groups = DAYS.map(([t], d) => {
+      const rows = LOGS.filter((l) => l.day === d && keep(l)).map((l) => ({ ...view(l), entCls: l.id === curId ? 'ent-on' : '', pick: () => this.setState({ cur: l.id }) }));
+      return { t, n: rows.length, rows };
+    }).filter((g) => g.rows.length > 0);
+    const c = LOGS.find((l) => l.id === curId);
+    let cur = {};
+    if (c) {
+      cur = { ...view(c), date: DAYS[c.day][1], rid: 'req_' + c.id + '7f3a91c2', method: c.req.method, http: c.req.response.code === 0 ? 200 : c.req.response.code, json: JSON.stringify(c.req, null, 2) };
+    }
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      results: [['all', '全部', '1,284'], ['ok', '成功', '1,272'], ['fail', '失败', '12']].map(([k, t, n]) => ({ t, n, on: k === res ? 'true' : 'false', cls: k === res ? 'chip-on' : '', pick: () => this.setState({ res: k }) })),
+      groups,
+      hasCur: !!c,
+      cur,
+      close: () => this.setState({ cur: null }),
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: '' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: 'tab-on' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

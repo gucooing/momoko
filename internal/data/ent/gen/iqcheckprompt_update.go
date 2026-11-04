@@ -97,6 +97,34 @@ func (_u *IQCheckPromptUpdate) AddOrder(v int) *IQCheckPromptUpdate {
 	return _u
 }
 
+// SetCategory sets the "category" field.
+func (_u *IQCheckPromptUpdate) SetCategory(v iqcheckprompt.Category) *IQCheckPromptUpdate {
+	_u.mutation.SetCategory(v)
+	return _u
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (_u *IQCheckPromptUpdate) SetNillableCategory(v *iqcheckprompt.Category) *IQCheckPromptUpdate {
+	if v != nil {
+		_u.SetCategory(*v)
+	}
+	return _u
+}
+
+// SetGrading sets the "grading" field.
+func (_u *IQCheckPromptUpdate) SetGrading(v string) *IQCheckPromptUpdate {
+	_u.mutation.SetGrading(v)
+	return _u
+}
+
+// SetNillableGrading sets the "grading" field if the given value is not nil.
+func (_u *IQCheckPromptUpdate) SetNillableGrading(v *string) *IQCheckPromptUpdate {
+	if v != nil {
+		_u.SetGrading(*v)
+	}
+	return _u
+}
+
 // Mutation returns the IQCheckPromptMutation object of the builder.
 func (_u *IQCheckPromptUpdate) Mutation() *IQCheckPromptMutation {
 	return _u.mutation
@@ -150,6 +178,11 @@ func (_u *IQCheckPromptUpdate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`gen: validator failed for field "IQCheckPrompt.content": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Category(); ok {
+		if err := iqcheckprompt.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`gen: validator failed for field "IQCheckPrompt.category": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -182,6 +215,12 @@ func (_u *IQCheckPromptUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	}
 	if value, ok := _u.mutation.AddedOrder(); ok {
 		_spec.AddField(iqcheckprompt.FieldOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Category(); ok {
+		_spec.SetField(iqcheckprompt.FieldCategory, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Grading(); ok {
+		_spec.SetField(iqcheckprompt.FieldGrading, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -272,6 +311,34 @@ func (_u *IQCheckPromptUpdateOne) AddOrder(v int) *IQCheckPromptUpdateOne {
 	return _u
 }
 
+// SetCategory sets the "category" field.
+func (_u *IQCheckPromptUpdateOne) SetCategory(v iqcheckprompt.Category) *IQCheckPromptUpdateOne {
+	_u.mutation.SetCategory(v)
+	return _u
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (_u *IQCheckPromptUpdateOne) SetNillableCategory(v *iqcheckprompt.Category) *IQCheckPromptUpdateOne {
+	if v != nil {
+		_u.SetCategory(*v)
+	}
+	return _u
+}
+
+// SetGrading sets the "grading" field.
+func (_u *IQCheckPromptUpdateOne) SetGrading(v string) *IQCheckPromptUpdateOne {
+	_u.mutation.SetGrading(v)
+	return _u
+}
+
+// SetNillableGrading sets the "grading" field if the given value is not nil.
+func (_u *IQCheckPromptUpdateOne) SetNillableGrading(v *string) *IQCheckPromptUpdateOne {
+	if v != nil {
+		_u.SetGrading(*v)
+	}
+	return _u
+}
+
 // Mutation returns the IQCheckPromptMutation object of the builder.
 func (_u *IQCheckPromptUpdateOne) Mutation() *IQCheckPromptMutation {
 	return _u.mutation
@@ -338,6 +405,11 @@ func (_u *IQCheckPromptUpdateOne) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`gen: validator failed for field "IQCheckPrompt.content": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Category(); ok {
+		if err := iqcheckprompt.CategoryValidator(v); err != nil {
+			return &ValidationError{Name: "category", err: fmt.Errorf(`gen: validator failed for field "IQCheckPrompt.category": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -387,6 +459,12 @@ func (_u *IQCheckPromptUpdateOne) sqlSave(ctx context.Context) (_node *IQCheckPr
 	}
 	if value, ok := _u.mutation.AddedOrder(); ok {
 		_spec.AddField(iqcheckprompt.FieldOrder, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Category(); ok {
+		_spec.SetField(iqcheckprompt.FieldCategory, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Grading(); ok {
+		_spec.SetField(iqcheckprompt.FieldGrading, field.TypeString, value)
 	}
 	_node = &IQCheckPrompt{config: _u.config}
 	_spec.Assign = _node.assignValues

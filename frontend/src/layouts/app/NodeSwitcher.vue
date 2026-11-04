@@ -1,19 +1,32 @@
-<!-- 节点切换器：显示当前操作的节点（本机 / 远程）与在线状态，下拉切换。切换会整页重载（见 stores/node）。
-     仅在有 node:view 权限且已接入节点（或当前处于远程节点）时显示。 -->
+<!-- 节点切换器：显示当前操作的节点（本机 / 远程）、在线状态与主机名，下拉切换。切换会整页重载（见 stores/node）。
+     variant='sidebar'：侧栏卡片（虚线框 + 贴纸）；'pill'：手机工作台的虚线胶囊；'hero'：主色卡片上的半透明胶囊。
+     没有可切换的节点时只展示当前机器，不弹出菜单。 -->
 <template>
-  <AppDropdown v-if="visible" align="end" :width="320">
+  <AppDropdown v-if="canSwitch" align="start" :width="320" :block="variant === 'sidebar'">
     <template #trigger="{ open }">
       <button
         type="button"
-        class="node-switch"
-        :class="{ 'is-remote': nodeStore.isRemote }"
+        :class="triggerClass"
         :title="t('node.switcher.tooltip')"
+        :aria-label="`${t('node.switcher.tooltip')}：${stateLine} · ${nameLine}`"
+        :aria-expanded="open"
         @click="!open && onOpen()"
       >
-        <UIcon :name="nodeStore.isRemote ? 'i-lucide-server' : 'i-lucide-monitor'" class="node-switch__icon" />
-        <span class="node-switch__label">{{ currentLabel }}</span>
-        <span class="node-switch__dot" :style="{ background: currentTone }" />
-        <UIcon name="i-lucide-chevrons-up-down" class="node-switch__caret" />
+        <template v-if="variant === 'sidebar'">
+          <span class="ns-card__sk m-sticker m-sticker--a2" aria-hidden="true">
+            <component :is="ic('HOutline:ServerIcon')" />
+          </span>
+          <span v-if="!collapsed" class="ns-card__text">
+            <span class="ns-card__state" :style="{ color: tone }">● {{ stateLine }}</span>
+            <span class="ns-card__name">{{ nameLine }}</span>
+          </span>
+          <component :is="ic('HOutline:ChevronUpDownIcon')" v-if="!collapsed" class="ns-card__caret" />
+        </template>
+        <template v-else>
+          <span class="ns-pill__dot" :style="{ background: variant === 'hero' ? 'var(--m-a)' : tone }" />
+          <span class="ns-pill__label">{{ pillLabel }}</span>
+          <component :is="ic('HOutline:ChevronUpDownIcon')" class="ns-pill__caret" />
+        </template>
       </button>
     </template>
     <template #default="{ close }">
@@ -24,6 +37,7 @@
             type="button"
             class="node-menu__refresh"
             :title="t('node.switcher.refresh')"
+            :aria-label="t('node.switcher.refresh')"
             @click="nodeStore.loadNodes()"
           >
             <UIcon name="i-lucide-refresh-cw" :class="{ 'is-spinning': nodeStore.nodesLoading }" />
@@ -34,14 +48,19 @@
           type="button"
           class="node-row"
           :class="{ 'is-active': !nodeStore.isRemote }"
+          :aria-pressed="!nodeStore.isRemote"
           @click="pick('', close)"
         >
-          <UIcon name="i-lucide-monitor" class="node-row__icon" />
-          <span class="node-row__body">
-            <span class="node-row__name">{{ t('node.switcher.local') }}</span>
-            <span class="node-row__meta">{{ t('node.switcher.localDesc') }}</span>
+          <span class="node-row__sk m-sticker m-sticker--a2" aria-hidden="true">
+            <component :is="ic('HOutline:ComputerDesktopIcon')" />
           </span>
-          <UIcon v-if="!nodeStore.isRemote" name="i-lucide-check" class="node-row__check" />
+          <span class="node-row__body">
+            <span class="node-row__name">{{ localHostname || t('node.switcher.local') }}</span>
+            <span class="node-row__meta" style="color: var(--m-ok)">
+              ● {{ t('node.switcher.local') }} · {{ t('node.state.online') }}
+            </span>
+          </span>
+          <component :is="ic('HOutline:CheckIcon')" v-if="!nodeStore.isRemote" class="node-row__check" />
         </button>
 
         <div class="node-menu__list">
@@ -51,73 +70,116 @@
             type="button"
             class="node-row"
             :class="{ 'is-active': node.id === nodeStore.nodeId }"
+            :aria-pressed="node.id === nodeStore.nodeId"
             @click="pick(node.id, close)"
           >
-            <UIcon name="i-lucide-server" class="node-row__icon" />
+            <span class="node-row__sk m-sticker m-sticker--a2" aria-hidden="true">
+              <component :is="ic('HOutline:ServerIcon')" />
+            </span>
             <span class="node-row__body">
               <span class="node-row__name">{{ node.name }}</span>
-              <span class="node-row__meta">{{ node.address }}</span>
+              <span class="node-row__meta" :style="{ color: stateTone(node.status?.state) }">
+                ● {{ t('node.switcher.remote') }} · {{ nodeStateText(node) }}
+              </span>
             </span>
-            <StatusPill
-              :variant="stateVariant(node.status?.state)"
-              :label="stateLabel(node.status?.state)"
-            />
-            <UIcon v-if="node.id === nodeStore.nodeId" name="i-lucide-check" class="node-row__check" />
+            <component :is="ic('HOutline:CheckIcon')" v-if="node.id === nodeStore.nodeId" class="node-row__check" />
           </button>
           <p v-if="!nodeStore.nodes.length" class="node-menu__empty">{{ t('node.switcher.empty') }}</p>
         </div>
 
         <button v-if="canViewNodes" type="button" class="node-menu__foot" @click="goManage(close)">
-          <UIcon name="i-lucide-settings-2" />
-          <span>{{ t('node.switcher.manage') }}</span>
+          {{ t('shell.node.manage') }}
         </button>
       </div>
     </template>
   </AppDropdown>
+
+  <!-- 不可切换：只展示当前机器 -->
+  <div v-else :class="triggerClass" class="is-static">
+    <template v-if="variant === 'sidebar'">
+      <span class="ns-card__sk m-sticker m-sticker--a2" aria-hidden="true">
+        <component :is="ic('HOutline:ServerIcon')" />
+      </span>
+      <span v-if="!collapsed" class="ns-card__text">
+        <span class="ns-card__state" :style="{ color: tone }">● {{ stateLine }}</span>
+        <span class="ns-card__name">{{ nameLine }}</span>
+      </span>
+    </template>
+    <template v-else>
+      <span class="ns-pill__dot" :style="{ background: variant === 'hero' ? 'var(--m-a)' : tone }" />
+      <span class="ns-pill__label">{{ pillLabel }}</span>
+    </template>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { NodeState } from '@/types/v1/node'
+import { NodeState, type NodeInfo } from '@/types/v1/node'
+import { useCurrentHostname } from './useLocalHost'
+
+const props = withDefaults(
+  defineProps<{ variant?: 'sidebar' | 'pill' | 'hero'; collapsed?: boolean }>(),
+  { variant: 'sidebar', collapsed: false },
+)
 
 const nodeStore = useNodeStore()
 const menuStore = useMenuStore()
 const router = useRouter()
 const { t } = useI18n()
+const ic = (name: string) => menuStore.iconComponents[name]
+const hostname = useCurrentHostname()
+const localHostname = computed(() => (nodeStore.isRemote ? '' : hostname.value))
 
 const canViewNodes = computed(() => menuStore.hasButtonPermission('node:view'))
-const visible = computed(
+const canSwitch = computed(
   () => nodeStore.isRemote || (canViewNodes.value && nodeStore.nodes.length > 0),
 )
 
-const STATE_TONE: Record<string, string> = {
-  [NodeState.NodeState_Online]: 'var(--el-color-success, #16a34a)',
-  [NodeState.NodeState_Offline]: 'var(--el-color-danger, #ef4444)',
-  [NodeState.NodeState_Unauthorized]: 'var(--el-color-warning, #f59e0b)',
-}
-
-const currentLabel = computed(() =>
-  nodeStore.isRemote
-    ? nodeStore.contextInfo?.name || t('node.switcher.remote')
-    : t('node.switcher.local'),
-)
-const currentTone = computed(() => {
-  if (!nodeStore.isRemote) return 'var(--el-color-success, #16a34a)'
-  return STATE_TONE[nodeStore.contextInfo?.status?.state || ''] || 'var(--el-text-color-placeholder)'
-})
-
-const stateVariant = (state?: NodeState) => {
-  if (state === NodeState.NodeState_Online) return 'success'
-  if (state === NodeState.NodeState_Offline) return 'error'
-  if (state === NodeState.NodeState_Unauthorized) return 'warning'
-  return 'neutral'
-}
 const stateLabel = (state?: NodeState) => {
   if (state === NodeState.NodeState_Online) return t('node.state.online')
   if (state === NodeState.NodeState_Offline) return t('node.state.offline')
   if (state === NodeState.NodeState_Unauthorized) return t('node.state.unauthorized')
   return t('node.state.unknown')
 }
+const stateTone = (state?: NodeState) => {
+  if (state === NodeState.NodeState_Online) return 'var(--m-ok)'
+  if (state === NodeState.NodeState_Offline) return 'var(--m-bad)'
+  if (state === NodeState.NodeState_Unauthorized) return 'var(--m-warn)'
+  return 'var(--el-text-color-secondary)'
+}
+const nodeStateText = (node: NodeInfo) => {
+  const st = node.status
+  const label = stateLabel(st?.state)
+  if (st?.state === NodeState.NodeState_Online && st.latencyMs) return `${label} · ${st.latencyMs} ms`
+  return label
+}
+
+const tone = computed(() =>
+  nodeStore.isRemote ? stateTone(nodeStore.contextInfo?.status?.state) : 'var(--m-ok)',
+)
+const stateLine = computed(() =>
+  nodeStore.isRemote
+    ? `${t('node.switcher.remote')} · ${stateLabel(nodeStore.contextInfo?.status?.state)}`
+    : `${t('node.switcher.local')} · ${t('node.state.online')}`,
+)
+const nameLine = computed(() =>
+  nodeStore.isRemote
+    ? nodeStore.contextInfo?.name || hostname.value || t('node.switcher.remote')
+    : hostname.value || t('node.switcher.localDesc'),
+)
+const pillLabel = computed(() =>
+  nodeStore.isRemote
+    ? `${t('node.switcher.remote')} · ${nameLine.value}`
+    : hostname.value
+      ? `${t('node.switcher.local')} · ${hostname.value}`
+      : t('node.switcher.local'),
+)
+
+const triggerClass = computed(() =>
+  props.variant === 'sidebar'
+    ? ['ns-card', { 'is-collapsed': props.collapsed, 'is-remote': nodeStore.isRemote }]
+    : ['ns-pill', `ns-pill--${props.variant}`],
+)
 
 const onOpen = () => {
   if (canViewNodes.value) void nodeStore.loadNodes()
@@ -130,82 +192,158 @@ const pick = (id: string, close: () => void) => {
 
 const goManage = (close: () => void) => {
   close()
+  if (menuStore.isMobileMenuOpen) menuStore.isMobileMenuOpen = false
   void router.push('/node')
 }
 
 onMounted(() => {
-  if (canViewNodes.value) void nodeStore.loadNodes()
+  if (canViewNodes.value && !nodeStore.nodes.length) void nodeStore.loadNodes()
 })
 </script>
 
 <style scoped lang="scss">
-.node-switch {
-  display: inline-flex;
+/* ---- 侧栏卡片 ---- */
+.ns-card {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  height: 34px;
-  max-width: 220px;
-  padding: 0 10px;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: var(--app-radius-sm);
-  background: transparent;
-  color: var(--el-text-color-regular);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-.node-switch:hover {
-  background: var(--el-fill-color-light);
+  gap: 10px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 1.5px dashed var(--el-border-color-light);
+  border-radius: 16px;
+  background: var(--el-bg-color-page);
   color: var(--el-text-color-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
-.node-switch.is-remote {
-  border-color: color-mix(in srgb, var(--el-color-primary) 45%, transparent);
-  background: color-mix(in srgb, var(--el-color-primary) 8%, transparent);
-  color: var(--el-color-primary);
+button.ns-card:hover {
+  border-color: var(--m-p);
 }
-.node-switch__icon,
-.node-switch__caret {
+.ns-card.is-static {
+  cursor: default;
+}
+.ns-card.is-remote {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--m-p) 45%, transparent);
+  background: var(--m-pSoft);
+}
+.ns-card.is-collapsed {
+  justify-content: center;
+  width: 52px;
+  min-height: 52px;
+  padding: 0;
+  margin: 0 auto;
+}
+.ns-card__sk {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+.ns-card__sk :deep(svg) {
+  width: 17px;
+  height: 17px;
+}
+.ns-card__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ns-card__state {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ns-card__name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ns-card__caret {
   width: 16px;
   height: 16px;
-  flex-shrink: 0;
+  flex: none;
+  color: var(--el-text-color-secondary);
 }
-.node-switch__caret {
-  opacity: 0.6;
+
+/* ---- 胶囊 ---- */
+.ns-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 14px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
 }
-.node-switch__label {
+.ns-pill.is-static {
+  cursor: default;
+}
+.ns-pill--pill {
+  border: 1.5px dashed var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+}
+.ns-pill--hero {
+  border: 0;
+  background: color-mix(in srgb, var(--m-pOn) 20%, transparent);
+  color: var(--m-pOn);
+}
+.ns-pill__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+}
+.ns-pill__label {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.8125rem;
-  font-weight: 600;
 }
-.node-switch__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  flex-shrink: 0;
+.ns-pill__caret {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  opacity: 0.75;
 }
 
+/* ---- 下拉 ---- */
 .node-menu {
   display: flex;
   flex-direction: column;
-  padding: 6px;
+  gap: 2px;
+  padding: 8px;
 }
 .node-menu__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px 6px;
+  padding: 2px 6px 6px 8px;
   font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--el-text-color-secondary);
 }
 .node-menu__refresh {
   display: inline-flex;
-  padding: 4px;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: var(--app-radius-sm);
+  border-radius: 10px;
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -222,40 +360,58 @@ onMounted(() => {
   }
 }
 .node-menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   max-height: 320px;
   overflow-y: auto;
+  scrollbar-width: none;
+}
+.node-menu__list::-webkit-scrollbar {
+  display: none;
 }
 .node-menu__empty {
   padding: 10px 8px;
   font-size: 0.8125rem;
-  color: var(--el-text-color-placeholder);
+  color: var(--el-text-color-secondary);
 }
 .node-row {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 8px;
+  min-height: 52px;
+  padding: 8px 10px;
   border: none;
-  border-radius: var(--app-radius-sm);
+  border-radius: 14px;
   background: transparent;
-  color: var(--el-text-color-regular);
+  color: var(--el-text-color-primary);
+  font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s;
 }
 .node-row:hover {
   background: var(--el-fill-color-light);
-  color: var(--el-text-color-primary);
 }
 .node-row.is-active {
-  color: var(--el-color-primary);
+  background: var(--m-pSoft);
 }
-.node-row__icon,
-.node-row__check {
+.node-row__sk {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+}
+.node-row__sk :deep(svg) {
   width: 16px;
   height: 16px;
+}
+.node-row__check {
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
+  color: var(--m-pInk);
+  stroke-width: 2.6;
 }
 .node-row__body {
   display: flex;
@@ -265,14 +421,14 @@ onMounted(() => {
 }
 .node-row__name {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .node-row__meta {
   font-size: 0.75rem;
-  color: var(--el-text-color-secondary);
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -280,23 +436,19 @@ onMounted(() => {
 .node-menu__foot {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-  padding: 8px;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 2px;
   border: none;
-  border-top: 1px solid var(--el-border-color-lighter);
+  border-radius: 12px;
   background: transparent;
-  color: var(--el-text-color-secondary);
+  color: var(--m-pInk);
+  font: inherit;
   font-size: 0.8125rem;
+  font-weight: 700;
   cursor: pointer;
 }
 .node-menu__foot:hover {
-  color: var(--el-color-primary);
-}
-@media (width <= 768px) {
-  .node-switch__label,
-  .node-switch__caret {
-    display: none;
-  }
+  background: var(--el-fill-color-light);
 }
 </style>

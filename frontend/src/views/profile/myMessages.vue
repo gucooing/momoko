@@ -317,7 +317,7 @@ defineExpose({ openCenter })
   justify-content: center;
 }
 .pf-link {
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 2px;
   border: 0;
   background: none;
@@ -536,6 +536,9 @@ defineExpose({ openCenter })
   color: var(--m-bad);
 }
 @media (width < 640px) {
+  .pf-link {
+    min-height: 44px;
+  }
   .msg-item {
     flex-wrap: wrap;
   }

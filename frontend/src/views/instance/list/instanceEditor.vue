@@ -1,19 +1,23 @@
-<!-- 应用新建/编辑抽屉（第二期）：右侧抽屉（手机全屏），三段编号分区：基本信息 / 运行 / 环境变量。
-     类型带模板：新建时切换类型自动预填默认启动/停止命令；标签为 chips 输入；环境变量逐条编辑或文本编辑，可从 .env 导入。
-     保留受控契约：props(visible/mode/loading/submitting/form/typeOptions) + emits(close/submit)。
-     可选 allowRun：显示「保存并启动/重启」，submit 第二参数带 { run: true }，由父级执行启动。 -->
+<!-- 应用新建/编辑：PC 右侧抽屉，手机全屏长页（顶部返回 + 底部「仅保存 / 保存并启动」）。三段编号分区：基本信息 / 运行 / 环境变量。
+     类型带模板：新建时切换类型自动预填默认启动/停止命令；标签为 chips 输入 + 常用标签；工作目录可从文件管理选择文件夹；
+     环境变量逐条编辑（可按密钥保存：只写不读、控制台打码）或文本编辑，可从 .env 导入。
+     受控契约：props(visible/mode/loading/submitting/form/typeOptions/allowRun/running) + emits(close/submit)。
+     allowRun：显示「保存并启动 / 保存并重启」，submit 第二参数带 { run: true }，由父级执行启动。 -->
 <template>
   <Teleport to="body">
     <Transition name="inst-drawer">
-      <div v-if="visible" class="inst-drawer" @mousedown.self="handleClose">
-        <section
-          class="inst-drawer__panel"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="inst-drawer-title"
-        >
+      <div v-if="visible" class="inst-drawer" :class="{ 'is-mobile': isMobile }" @mousedown.self="handleClose">
+        <section class="inst-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="inst-drawer-title">
           <header class="inst-drawer__head">
+            <AppIconButton
+              v-if="isMobile"
+              icon="HOutline:ChevronLeftIcon"
+              :box="44"
+              :label="t('instance.ui.backToList')"
+              @click="handleClose"
+            />
             <span
+              v-else
               class="inst-drawer__av m-sticker"
               :class="mode === 'create' ? 'm-sticker--a' : 'm-sticker--p'"
             >
@@ -24,12 +28,9 @@
               <h2 id="inst-drawer-title" class="inst-drawer__title">
                 {{ mode === 'create' ? t('instance.ui.editorCreateTitle') : t('instance.ui.editorEditTitle') }}
               </h2>
-              <span class="inst-drawer__sub">
-                <template v-if="mode === 'edit' && localForm.name">{{ localForm.name }} · </template>
-                {{ mode === 'create' ? t('instance.ui.editorCreateSub') : t('instance.ui.editorEditSub') }}
-              </span>
+              <span class="inst-drawer__sub">{{ subtitle }}</span>
             </span>
-            <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" @click="handleClose" />
+            <AppIconButton v-if="!isMobile" icon="HOutline:XMarkIcon" :label="t('system.common.close')" @click="handleClose" />
           </header>
 
           <div v-if="loading" class="inst-drawer__loading">{{ t('common.loading') }}…</div>
@@ -50,15 +51,18 @@
                     class="app-input inst-input"
                     :class="{ 'is-error': errors.name }"
                     maxlength="100"
+                    autocomplete="off"
                   />
                   <span v-if="errors.name" class="app-field__error">{{ errors.name }}</span>
                   <span v-else class="inst-hint">{{ t('instance.ui.nameHint') }}</span>
                 </div>
                 <div class="app-field">
-                  <label class="app-label app-label--required">{{ t('instance.ui.appType') }}</label>
+                  <label class="app-label" :class="{ 'app-label--required': mode === 'create' }">
+                    {{ t('instance.ui.appType') }}
+                  </label>
                   <AppSelect
                     v-model="localForm.type"
-                    :options="typeOptions"
+                    :options="typeSelectOptions"
                     :placeholder="t('instance.selectInstanceType')"
                     :error="!!errors.type"
                   />
@@ -75,13 +79,7 @@
                 <label class="app-label" for="inst-f-remark">
                   {{ t('common.remark') }}<span class="inst-opt">{{ t('instance.ui.optional') }}</span>
                 </label>
-                <textarea
-                  id="inst-f-remark"
-                  v-model="localForm.remark"
-                  class="app-textarea inst-input"
-                  rows="2"
-                  maxlength="500"
-                />
+                <textarea id="inst-f-remark" v-model="localForm.remark" class="app-textarea inst-input" rows="2" maxlength="500" />
               </div>
               <div class="app-field">
                 <label class="app-label" for="inst-f-tag">{{ t('instance.tags') }}</label>
@@ -98,11 +96,18 @@
                     v-model="tagDraft"
                     type="text"
                     class="inst-tags__input"
-                    :placeholder="t('instance.ui.tagPlaceholder')"
+                    enterkeyhint="done"
+                    :placeholder="isMobile ? t('instance.ui.tagPlaceholderShort') : t('instance.ui.tagPlaceholder')"
                     @keydown.enter.prevent="commitTag"
                     @keydown="onTagKey"
                     @blur="commitTag"
                   />
+                </div>
+                <div v-if="tagSuggestions.length" class="inst-sugs">
+                  <span class="inst-hint">{{ t('instance.ui.commonTags') }}</span>
+                  <button v-for="tag in tagSuggestions" :key="tag" type="button" class="inst-sug" @click="addTag(tag)">
+                    <UIcon name="i-lucide-plus" />{{ tag }}
+                  </button>
                 </div>
               </div>
             </section>
@@ -119,14 +124,29 @@
               </div>
               <div class="app-field">
                 <label class="app-label app-label--required" for="inst-f-dir">{{ t('instance.ui.workdir') }}</label>
-                <input
-                  id="inst-f-dir"
-                  v-model="localForm.instancePath"
-                  class="app-input inst-input inst-mono"
-                  :class="{ 'is-error': errors.instancePath }"
-                />
+                <div class="inst-row">
+                  <input
+                    id="inst-f-dir"
+                    v-model="localForm.instancePath"
+                    class="app-input inst-input inst-mono"
+                    :class="{ 'is-error': errors.instancePath }"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    icon="i-lucide-folder-open"
+                    class="inst-pick"
+                    :class="{ 'is-icon': isMobile }"
+                    :aria-label="t('instance.ui.pickFolder')"
+                    @click="pickerOpen = true"
+                  >
+                    <template v-if="!isMobile">{{ t('instance.ui.pickFolder') }}</template>
+                  </UButton>
+                </div>
                 <span v-if="errors.instancePath" class="app-field__error">{{ errors.instancePath }}</span>
-                <span v-else class="inst-hint">{{ t('instance.ui.workdirHint') }}</span>
+                <span v-else class="inst-hint">{{ workdirHint }}</span>
               </div>
               <div class="app-field">
                 <label class="app-label app-label--required" for="inst-f-start">{{ t('instance.startCommand') }}</label>
@@ -136,6 +156,7 @@
                   class="app-textarea inst-input inst-mono"
                   :class="{ 'is-error': errors.startCommand }"
                   rows="2"
+                  spellcheck="false"
                 />
                 <span v-if="errors.startCommand" class="app-field__error">{{ errors.startCommand }}</span>
                 <span v-else class="inst-hint">{{ t('instance.ui.startCmdHint') }}</span>
@@ -143,7 +164,7 @@
               <div class="inst-grid inst-grid--stop">
                 <div class="app-field">
                   <label class="app-label" for="inst-f-stop">{{ t('instance.stopCommand') }}</label>
-                  <input id="inst-f-stop" v-model="localForm.stopCommand" class="app-input inst-input inst-mono" />
+                  <input id="inst-f-stop" v-model="localForm.stopCommand" class="app-input inst-input inst-mono" spellcheck="false" />
                   <span class="inst-hint">{{ t('instance.ui.stopCmdHint') }}</span>
                 </div>
                 <div class="app-field">
@@ -154,6 +175,7 @@
                       v-model.number="localForm.stopTimeout"
                       class="app-input inst-input m-num"
                       type="number"
+                      inputmode="numeric"
                       min="0"
                       max="3600"
                       :placeholder="String(DEFAULT_STOP_TIMEOUT)"
@@ -166,7 +188,7 @@
               <div class="inst-switches">
                 <label class="inst-swr">
                   <span class="inst-swr__text">
-                    <span class="inst-swr__t">{{ t('instance.autoStart') }}</span>
+                    <span class="inst-swr__t">{{ t('instance.ui.bootStart') }}</span>
                     <span class="inst-swr__d">{{ t('instance.ui.autoStartDesc') }}</span>
                   </span>
                   <AppSwitch v-model="localForm.autoStart" />
@@ -187,16 +209,25 @@
                 <span class="inst-sec__n is-3">3</span>
                 <h3 id="inst-sec-3" class="inst-sec__title">
                   {{ t('instance.ui.secEnv') }}
-                  <span class="inst-sec__count m-num">{{ envCount }}</span>
+                  <span class="inst-sec__count m-num">{{ t('instance.ui.envCount', { count: envCount }) }}</span>
                 </h3>
                 <span class="inst-sec__acts">
-                  <UButton color="neutral" variant="soft" size="sm" icon="i-lucide-upload" @click="envFileRef?.click()">
-                    {{ t('instance.ui.importEnv') }}
+                  <UButton
+                    color="neutral"
+                    variant="soft"
+                    size="sm"
+                    icon="i-lucide-upload"
+                    :class="{ 'inst-ico-only': isMobile }"
+                    :aria-label="t('instance.ui.importEnv')"
+                    @click="envFileRef?.click()"
+                  >
+                    <template v-if="!isMobile">{{ t('instance.ui.importEnv') }}</template>
                   </UButton>
                   <AppIconButton
                     :icon="envMode === 'rows' ? 'HOutline:DocumentTextIcon' : 'HOutline:Bars3BottomLeftIcon'"
                     :label="envMode === 'rows' ? t('instance.ui.envTextMode') : t('instance.ui.envTableMode')"
                     :size="18"
+                    :box="isMobile ? 44 : 40"
                     @click="toggleEnvMode"
                   />
                 </span>
@@ -205,7 +236,7 @@
 
               <template v-if="envMode === 'rows'">
                 <div class="inst-env">
-                  <div v-if="envRows.length" class="inst-env__row inst-env__row--head">
+                  <div v-if="envRows.length && !isMobile" class="inst-env__row inst-env__row--head">
                     <span>{{ t('instance.ui.envKey') }}</span>
                     <span>{{ t('instance.ui.envValue') }}</span>
                     <span />
@@ -213,21 +244,48 @@
                   <div v-for="(row, idx) in envRows" :key="row.id" class="inst-env__row">
                     <input
                       v-model="row.k"
-                      class="app-input inst-input inst-mono"
-                      placeholder="KEY"
+                      class="app-input inst-input inst-mono inst-env__key"
+                      :placeholder="isMobile ? t('instance.ui.envKey') : 'KEY'"
                       :aria-label="`${t('instance.ui.envKey')} ${idx + 1}`"
-                      @input="syncEnvText"
+                      autocomplete="off"
+                      spellcheck="false"
                     />
-                    <input
-                      v-model="row.v"
-                      class="app-input inst-input inst-mono"
-                      :placeholder="t('instance.ui.envValue')"
-                      :aria-label="`${t('instance.ui.envValue')} ${row.k || idx + 1}`"
-                      @input="syncEnvText"
-                    />
+                    <div class="inst-env__val" :class="{ 'is-secret': row.secret }">
+                      <button
+                        type="button"
+                        class="inst-env__lock"
+                        :class="{ 'is-on': row.secret }"
+                        :aria-pressed="row.secret"
+                        :aria-label="row.secret ? t('instance.ui.envUnlock') : t('instance.ui.envLock')"
+                        :title="row.secret ? t('instance.ui.envUnlock') : t('instance.ui.envLock')"
+                        @click="toggleSecret(row)"
+                      >
+                        <UIcon :name="row.secret ? 'i-lucide-lock' : 'i-lucide-lock-open'" />
+                      </button>
+                      <input
+                        v-model="row.v"
+                        class="inst-env__input m-mono"
+                        :type="row.secret && !revealed.has(row.id) ? 'password' : 'text'"
+                        :placeholder="row.secret && row.saved ? t('instance.ui.envSecretKeep') : t('instance.ui.envValue')"
+                        :aria-label="`${t('instance.ui.envValue')} ${row.k || idx + 1}`"
+                        autocomplete="new-password"
+                        spellcheck="false"
+                      />
+                      <button
+                        v-if="row.secret"
+                        type="button"
+                        class="inst-env__eye"
+                        :aria-pressed="revealed.has(row.id)"
+                        :aria-label="revealed.has(row.id) ? t('instance.ui.hideValue') : t('instance.ui.showValue')"
+                        @click="toggleReveal(row.id)"
+                      >
+                        <UIcon :name="revealed.has(row.id) ? 'i-lucide-eye-off' : 'i-lucide-eye'" />
+                      </button>
+                    </div>
                     <AppIconButton
-                      icon="HOutline:MinusCircleIcon"
+                      :icon="isMobile ? 'HOutline:TrashIcon' : 'HOutline:MinusCircleIcon'"
                       class="inst-env__del"
+                      :box="isMobile ? 44 : 40"
                       :label="t('instance.ui.removeEnv', { name: row.k || idx + 1 })"
                       @click="removeEnv(row.id)"
                     />
@@ -235,64 +293,79 @@
                   <button type="button" class="inst-env__add" @click="addEnv">
                     <UIcon name="i-lucide-plus" />{{ t('instance.ui.addEnv') }}
                   </button>
+                  <span class="inst-hint">{{ t('instance.ui.envSecretHint') }}</span>
                 </div>
               </template>
               <template v-else>
                 <textarea
-                  v-model="localForm.envText"
+                  v-model="envText"
                   class="app-textarea inst-input inst-mono"
                   rows="6"
+                  spellcheck="false"
                   :placeholder="t('instance.envPlaceholder')"
-                  @input="syncEnvRows"
                 />
-                <span class="inst-hint">{{ t('instance.ui.envHint') }}</span>
+                <span class="inst-hint">
+                  {{ t('instance.ui.envHint') }}
+                  <template v-if="secretRowCount">{{ t('instance.ui.envTextSecretNote', { n: secretRowCount }) }}</template>
+                </span>
               </template>
             </section>
           </div>
 
           <footer class="inst-drawer__foot">
-            <span class="inst-drawer__dirty" :class="{ 'is-dirty': dirty }">
+            <span v-if="!isMobile" class="inst-drawer__dirty" :class="{ 'is-dirty': dirtyCount > 0 }">
               <span class="inst-drawer__dirty-dot" />
-              {{ dirty ? t('instance.ui.unsaved') : t('instance.ui.noChanges') }}
+              {{ dirtyText }}
             </span>
-            <UButton color="neutral" variant="soft" class="inst-drawer__btn" @click="handleClose">
+            <UButton v-if="!isMobile" color="neutral" variant="soft" class="inst-drawer__btn" @click="handleClose">
               {{ t('common.cancel') }}
             </UButton>
             <UButton
-              v-if="allowRun"
-              color="neutral"
-              variant="outline"
+              :color="isMobile && allowRun ? 'neutral' : 'primary'"
+              :variant="isMobile && allowRun ? 'soft' : 'solid'"
               class="inst-drawer__btn"
-              :icon="running ? 'i-lucide-rotate-cw' : 'i-lucide-play'"
-              :disabled="loading"
-              :loading="submitting && runIntent"
-              @click="handleSubmit(true)"
-            >
-              {{ running ? t('instance.ui.saveAndRestart') : t('instance.ui.saveAndStart') }}
-            </UButton>
-            <UButton
-              color="primary"
-              class="inst-drawer__btn inst-drawer__btn--main"
-              icon="i-lucide-check"
+              :class="{ 'inst-drawer__btn--main': !(isMobile && allowRun) }"
+              :icon="isMobile && allowRun ? undefined : 'i-lucide-check'"
               :disabled="loading"
               :loading="submitting && !runIntent"
               @click="handleSubmit(false)"
             >
-              {{ t('common.save') }}
+              {{ isMobile && allowRun ? t('instance.ui.saveOnly') : t('common.save') }}
+            </UButton>
+            <UButton
+              v-if="allowRun"
+              :color="isMobile ? 'primary' : 'neutral'"
+              :variant="isMobile ? 'solid' : 'outline'"
+              class="inst-drawer__btn"
+              :class="{ 'inst-drawer__btn--main': isMobile }"
+              :icon="running && mode === 'edit' ? 'i-lucide-rotate-cw' : 'i-lucide-play'"
+              :disabled="loading"
+              :loading="submitting && runIntent"
+              @click="handleSubmit(true)"
+            >
+              {{ running && mode === 'edit' ? t('instance.ui.saveAndRestart') : t('instance.ui.saveAndStart') }}
             </UButton>
           </footer>
         </section>
       </div>
     </Transition>
   </Teleport>
+
+  <!-- 选择工作目录：系统文件管理里的本机文件夹 -->
+  <FilePicker v-model="pickerOpen" :title="t('instance.ui.pickFolder')" @confirm="onPickFolder" />
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import {
-  type InstanceEditorFormValue,
-  type InstanceEditorMode,
-  type InstanceTypeOption,
+import { getInstanceStatsRequest, getInstanceTagsRequest } from '@/api/instance'
+import FilePicker from '@/components/file/FilePicker.vue'
+import type { PickedFile } from '@/components/file/types'
+import { formatFileSize } from '@/utils/file'
+import type {
+  InstanceEditorFormValue,
+  InstanceEditorMode,
+  InstanceEnvRow,
+  InstanceTypeOption,
 } from '@/stores/instance/types'
 
 defineOptions({ name: 'InstanceEditor' })
@@ -321,8 +394,11 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const menuStore = useMenuStore()
+const isMobile = computed(() => menuStore.isMobile)
 
-const localForm = reactive<InstanceEditorFormValue>({
+type FormFields = Omit<InstanceEditorFormValue, 'env'>
+const localForm = reactive<FormFields>({
   id: '',
   name: '',
   remark: '',
@@ -334,27 +410,40 @@ const localForm = reactive<InstanceEditorFormValue>({
   autoStart: false,
   autoRestart: false,
   stopTimeout: 0,
-  envText: '',
 })
 
 const errors = ref<Record<string, string>>({})
 const runIntent = ref(false)
-const snapshot = ref('')
+const snapshot = ref<Record<string, string> | null>(null)
 
 const initial = computed(() => (localForm.name || '?').trim().charAt(0).toUpperCase())
+const subtitle = computed(() => {
+  if (props.mode === 'create') return t('instance.ui.editorCreateSub')
+  const name = localForm.name || props.form.name
+  const state = props.running ? t('instance.running') : t('instance.stopped')
+  return `${name} · ${state}，${t('instance.ui.editorEditSubShort')}`
+})
 
-// —— 标签 chips（存储仍是逗号分隔字符串）——
+// —— 类型选项：编辑未分类的应用时可保持「未分类」 ——
+const typeSelectOptions = computed(() =>
+  props.mode === 'edit' ? [{ label: t('instance.ui.uncategorized'), value: '' }, ...props.typeOptions] : props.typeOptions,
+)
+
+// —— 标签 chips（存储仍是逗号分隔字符串）+ 常用标签 ——
 const tagInputRef = ref<HTMLInputElement>()
 const tagDraft = ref('')
+const knownTags = ref<string[]>([])
 const tagList = computed(() =>
   localForm.tags
     .split(/[,，]/u)
     .map((s) => s.trim().replace(/^#/u, ''))
     .filter(Boolean),
 )
+const tagSuggestions = computed(() => knownTags.value.filter((tag) => !tagList.value.includes(tag)).slice(0, isMobile.value ? 8 : 5))
 const setTags = (list: string[]) => {
   localForm.tags = Array.from(new Set(list)).join(',')
 }
+const addTag = (tag: string) => setTags([...tagList.value, tag])
 const commitTag = () => {
   const parts = tagDraft.value
     .split(/[,，\s]+/u)
@@ -372,19 +461,61 @@ const onTagKey = (e: KeyboardEvent) => {
     removeTag(tagList.value[tagList.value.length - 1]!)
   }
 }
+const loadKnownTags = async () => {
+  try {
+    const { data } = await getInstanceTagsRequest()
+    knownTags.value = (data?.tags || []).map((tag) => tag.name)
+  } catch {
+    knownTags.value = []
+  }
+}
 
-// —— 环境变量：逐条 ⇄ 文本 ——
+// —— 工作目录：选择文件夹 + 状态提示 ——
+const pickerOpen = ref(false)
+const dirUsage = ref('')
+const onPickFolder = (items: PickedFile[]) => {
+  const picked = items[0]
+  if (!picked) return
+  if (picked.sourceId) {
+    feedback.warning(t('instance.ui.pickFolderLocalOnly'))
+    return
+  }
+  localForm.instancePath = picked.path
+}
+const workdirHint = computed(() => {
+  if (props.mode === 'edit' && localForm.instancePath.trim() === props.form.instancePath.trim() && dirUsage.value) {
+    return t('instance.ui.workdirExists', { size: dirUsage.value })
+  }
+  return t('instance.ui.workdirAutoCreate')
+})
+const loadDirUsage = async (id: string) => {
+  dirUsage.value = ''
+  if (!id) return
+  try {
+    const { data } = await getInstanceStatsRequest({ id })
+    if (data?.diskScanTime) dirUsage.value = formatFileSize(Number(data.diskUsageBytes || 0))
+  } catch {
+    dirUsage.value = ''
+  }
+}
+
+// —— 环境变量：逐条（可按密钥保存）⇄ 文本（只编辑普通变量）——
 interface EnvRow {
   id: number
   k: string
   v: string
+  secret: boolean
+  /** 服务器上已保存的密钥：值不回显，留空保持不变 */
+  saved: boolean
 }
 let envSeq = 0
 const envMode = ref<'rows' | 'text'>('rows')
 const envRows = ref<EnvRow[]>([])
+const envText = ref('')
 const envFileRef = ref<HTMLInputElement>()
+const revealed = ref(new Set<number>())
 
-const parseEnv = (text: string): EnvRow[] =>
+const parseEnvText = (text: string): EnvRow[] =>
   text
     .split(/\r?\n/u)
     .map((line) => line.trim())
@@ -397,40 +528,52 @@ const parseEnv = (text: string): EnvRow[] =>
       if (v.length >= 2 && ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'")))) {
         v = v.slice(1, -1)
       }
-      return { id: ++envSeq, k, v }
+      return { id: ++envSeq, k, v, secret: false, saved: false }
     })
-const serializeEnv = (rows: EnvRow[]) =>
+const plainToText = (rows: EnvRow[]) =>
   rows
-    .filter((r) => r.k.trim())
+    .filter((r) => !r.secret && r.k.trim())
     .map((r) => `${r.k.trim()}=${r.v}`)
     .join('\n')
+const secretRowCount = computed(() => envRows.value.filter((r) => r.secret && r.k.trim()).length)
 
-const syncEnvText = () => {
-  localForm.envText = serializeEnv(envRows.value)
-}
-const syncEnvRows = () => {
-  envRows.value = parseEnv(localForm.envText)
-}
-const addEnv = () => {
-  envRows.value.push({ id: ++envSeq, k: '', v: '' })
-}
-const removeEnv = (id: number) => {
-  envRows.value = envRows.value.filter((r) => r.id !== id)
-  syncEnvText()
+// 文本模式下改的是普通变量；密钥变量原样保留在逐条列表里
+const syncFromText = () => {
+  const secrets = envRows.value.filter((r) => r.secret)
+  const secretKeys = new Set(secrets.map((r) => r.k.trim()))
+  envRows.value = [...parseEnvText(envText.value).filter((r) => !secretKeys.has(r.k.trim())), ...secrets]
 }
 const toggleEnvMode = () => {
   if (envMode.value === 'rows') {
-    syncEnvText()
+    envText.value = plainToText(envRows.value)
     envMode.value = 'text'
   } else {
-    syncEnvRows()
+    syncFromText()
     envMode.value = 'rows'
   }
 }
+const addEnv = () => {
+  envRows.value.push({ id: ++envSeq, k: '', v: '', secret: false, saved: false })
+}
+const removeEnv = (id: number) => {
+  envRows.value = envRows.value.filter((r) => r.id !== id)
+}
+const toggleSecret = (row: EnvRow) => {
+  row.secret = !row.secret
+  // 已保存的密钥改成普通变量时，旧值不可见，需要重新填写
+  if (!row.secret) row.saved = false
+}
+const toggleReveal = (id: number) => {
+  const next = new Set(revealed.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  revealed.value = next
+}
+const currentRows = () => (envMode.value === 'text' ? (syncFromText(), envRows.value) : envRows.value)
 const envCount = computed(() =>
   envMode.value === 'rows'
     ? envRows.value.filter((r) => r.k.trim()).length
-    : parseEnv(localForm.envText).filter((r) => r.k.trim()).length,
+    : parseEnvText(envText.value).length + secretRowCount.value,
 )
 
 const onEnvFile = async (e: Event) => {
@@ -438,20 +581,27 @@ const onEnvFile = async (e: Event) => {
   const file = input.files?.[0]
   input.value = ''
   if (!file) return
-  const text = await file.text()
-  const incoming = parseEnv(text)
+  const incoming = parseEnvText(await file.text())
   if (!incoming.length) {
     feedback.warning(t('instance.ui.importEnvEmpty'))
     return
   }
-  // 同名变量以导入的为准，其余追加
-  const current = envMode.value === 'rows' ? envRows.value : parseEnv(localForm.envText)
-  const map = new Map(current.filter((r) => r.k.trim()).map((r) => [r.k.trim(), r] as const))
-  incoming.forEach((r) => map.set(r.k, r))
+  // 同名变量以导入的为准（已是密钥的保持密钥），其余追加
+  const rows = currentRows()
+  const map = new Map(rows.filter((r) => r.k.trim()).map((r) => [r.k.trim(), r] as const))
+  incoming.forEach((r) => {
+    const old = map.get(r.k)
+    map.set(r.k, old ? { ...old, v: r.v } : r)
+  })
   envRows.value = Array.from(map.values())
-  syncEnvText()
+  if (envMode.value === 'text') envText.value = plainToText(envRows.value)
   feedback.success(t('instance.ui.importEnvDone', { count: incoming.length }))
 }
+
+const toFormEnv = (rows: EnvRow[]): InstanceEnvRow[] =>
+  rows
+    .filter((r) => r.k.trim())
+    .map((r) => ({ key: r.k.trim(), value: r.v, secret: r.secret, saved: r.saved }))
 
 // —— 类型模板预填（仅新建）——
 const typeOf = (id: string) => props.typeOptions.find((o) => o.value === id)
@@ -478,20 +628,40 @@ watch(
   },
 )
 
-// —— 脏检查 ——
-const serializeForm = () =>
-  JSON.stringify({
-    ...localForm,
-    envText: envMode.value === 'rows' ? serializeEnv(envRows.value) : localForm.envText.trim(),
+// —— 脏检查：逐项比较，显示改了几处 ——
+const fieldValues = (): Record<string, string> => {
+  const rows = envMode.value === 'text' ? [...parseEnvText(envText.value), ...envRows.value.filter((r) => r.secret)] : envRows.value
+  return {
+    name: localForm.name.trim(),
+    type: localForm.type,
+    remark: localForm.remark.trim(),
     tags: tagList.value.join(','),
-    stopTimeout: Number(localForm.stopTimeout) || 0,
-  })
-const dirty = computed(() => !!snapshot.value && serializeForm() !== snapshot.value)
+    instancePath: localForm.instancePath.trim(),
+    startCommand: localForm.startCommand.trim(),
+    stopCommand: localForm.stopCommand.trim(),
+    stopTimeout: String(Number(localForm.stopTimeout) || 0),
+    autoStart: String(localForm.autoStart),
+    autoRestart: String(localForm.autoRestart),
+    env: JSON.stringify(
+      rows.filter((r) => r.k.trim()).map((r) => [r.k.trim(), r.secret ? (r.v ? `*${r.v}` : '*') : r.v]),
+    ),
+  }
+}
+const dirtyCount = computed(() => {
+  const base = snapshot.value
+  if (!base) return 0
+  const now = fieldValues()
+  return Object.keys(now).filter((k) => now[k] !== base[k]).length
+})
+const dirtyText = computed(() => {
+  if (props.mode === 'create') return dirtyCount.value ? t('instance.ui.notSavedYet') : t('instance.ui.noChanges')
+  return dirtyCount.value ? t('instance.ui.unsavedCount', { n: dirtyCount.value }) : t('instance.ui.noChanges')
+})
 
 const validate = (): boolean => {
   const e: Record<string, string> = {}
   if (!localForm.name.trim()) e.name = t('instance.instanceNameRequired')
-  if (!localForm.type.trim()) e.type = t('instance.instanceTypeRequired')
+  if (props.mode === 'create' && !localForm.type.trim()) e.type = t('instance.instanceTypeRequired')
   if (!localForm.instancePath.trim()) e.instancePath = t('instance.instancePathRequired')
   if (!localForm.startCommand.trim()) e.startCommand = t('instance.startCommandRequired')
   errors.value = e
@@ -505,21 +675,24 @@ const handleClose = () => {
 
 const handleSubmit = (run: boolean) => {
   commitTag()
-  if (envMode.value === 'rows') syncEnvText()
   if (!validate()) return
   runIntent.value = run
   const value: InstanceEditorFormValue = {
     ...localForm,
     stopTimeout: Math.max(0, Math.round(Number(localForm.stopTimeout) || 0)),
+    env: toFormEnv(currentRows()),
   }
   if (run) emit('submit', value, { run: true })
   else emit('submit', value)
 }
 
 const resetFromProps = (formValue: InstanceEditorFormValue) => {
-  Object.assign(localForm, formValue)
+  const { env, ...fields } = formValue
+  Object.assign(localForm, fields)
   if (!Number.isFinite(Number(localForm.stopTimeout))) localForm.stopTimeout = 0
-  envRows.value = parseEnv(localForm.envText || '')
+  envRows.value = (env || []).map((r) => ({ id: ++envSeq, k: r.key, v: r.value, secret: r.secret, saved: r.saved }))
+  envText.value = ''
+  revealed.value = new Set()
   tagDraft.value = ''
   // 新建时启动命令为空：按当前类型模板预填
   if (props.mode === 'create') {
@@ -530,7 +703,7 @@ const resetFromProps = (formValue: InstanceEditorFormValue) => {
     }
   }
   nextTick(() => {
-    snapshot.value = serializeForm()
+    snapshot.value = fieldValues()
   })
 }
 
@@ -540,23 +713,29 @@ watch(
     if (!visible) {
       errors.value = {}
       runIntent.value = false
-      snapshot.value = ''
+      snapshot.value = null
+      dirUsage.value = ''
     } else {
       envMode.value = 'rows'
       resetFromProps(props.form)
+      void loadKnownTags()
+      if (props.mode === 'edit') void loadDirUsage(props.form.id)
     }
   },
 )
 
 watch(
   () => props.form,
-  (formValue) => resetFromProps(formValue),
+  (formValue) => {
+    resetFromProps(formValue)
+    if (props.visible && props.mode === 'edit' && formValue.id) void loadDirUsage(formValue.id)
+  },
   { immediate: true, deep: true },
 )
 
 // Esc 关闭 + 打开时锁定页面滚动
 const onKey = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.visible) handleClose()
+  if (e.key === 'Escape' && props.visible && !pickerOpen.value) handleClose()
 }
 watch(
   () => props.visible,
@@ -576,7 +755,8 @@ onBeforeUnmount(() => {
 .inst-drawer {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  /* 高于手机底部导航（2050），否则底部「保存」被挡住 */
+  z-index: 2100;
   display: flex;
   justify-content: flex-end;
   background: color-mix(in srgb, var(--m-ink) 48%, transparent);
@@ -651,7 +831,10 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+}
+.inst-drawer__body::-webkit-scrollbar {
+  display: none;
 }
 .inst-drawer__foot {
   display: flex;
@@ -710,9 +893,9 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
   font-family: var(--app-font-display);
   font-size: 0.9375rem;
   font-weight: 800;
@@ -751,7 +934,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
+  min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
   background: var(--m-aSoft);
@@ -773,9 +956,16 @@ onBeforeUnmount(() => {
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 }
 .inst-input {
-  min-height: 44px;
+  min-height: 46px;
   border-radius: 14px;
   background: var(--el-bg-color);
+}
+/* 类型下拉与同表单的输入框同高同圆角 */
+.inst-drawer :deep(.app-sel__trigger) {
+  height: 46px;
+  padding: 0 12px 0 14px;
+  border-radius: 14px;
+  font-size: 0.875rem;
 }
 textarea.inst-input {
   min-height: 0;
@@ -801,6 +991,31 @@ textarea.inst-input {
 .inst-hidden {
   display: none;
 }
+.inst-row {
+  display: flex;
+  gap: 8px;
+}
+.inst-row > .inst-input {
+  flex: 1;
+  min-width: 0;
+}
+.inst-pick {
+  flex: none;
+  min-height: 46px;
+  border-radius: 14px;
+  padding: 0 16px;
+}
+.inst-pick.is-icon {
+  width: 50px;
+  padding: 0;
+  justify-content: center;
+}
+.inst-ico-only {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+}
 
 /* 标签 chips 输入 */
 .inst-tags {
@@ -814,17 +1029,18 @@ textarea.inst-input {
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   cursor: text;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 .inst-tags:focus-within {
-  border-color: var(--el-color-primary);
+  border-color: var(--m-p);
+  box-shadow: 0 0 0 3px var(--m-pSoft);
 }
 .inst-tchip {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   height: 30px;
-  padding: 0 4px 0 10px;
+  padding: 0 4px 0 11px;
   border-radius: 999px;
   background: var(--m-pSoft);
   color: var(--m-pInk);
@@ -858,12 +1074,43 @@ textarea.inst-input {
   font: inherit;
   font-size: 0.875rem;
 }
+.inst-sugs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.inst-sug {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--el-border-color-light);
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.inst-sug:hover {
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.inst-sug :deep(.iconify) {
+  width: 12px;
+  height: 12px;
+}
 
 /* 停止超时：带单位后缀 */
 .inst-suffix {
   position: relative;
 }
 .inst-suffix input {
+  width: 100%;
   padding-right: 44px;
 }
 .inst-suffix__u {
@@ -927,6 +1174,62 @@ textarea.inst-input {
   font-weight: 700;
   color: var(--el-text-color-secondary);
 }
+.inst-env__val {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 4px;
+  border-radius: 14px;
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.inst-env__val:focus-within {
+  border-color: var(--m-p);
+  box-shadow: 0 0 0 3px var(--m-pSoft);
+}
+.inst-env__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--el-text-color-primary);
+  font-size: 0.8125rem;
+}
+.inst-env__input::placeholder {
+  color: var(--el-text-color-secondary);
+}
+.inst-env__lock,
+.inst-env__eye {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+}
+.inst-env__lock:hover,
+.inst-env__eye:hover {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+}
+.inst-env__lock.is-on {
+  color: var(--m-warn);
+}
+.inst-env__lock :deep(.iconify),
+.inst-env__eye :deep(.iconify) {
+  width: 16px;
+  height: 16px;
+}
 .inst-env__del {
   color: var(--m-bad) !important;
 }
@@ -972,50 +1275,117 @@ textarea.inst-input {
   transform: translateX(40px);
 }
 
-@media (width < 768px) {
-  .inst-drawer__panel {
-    width: 100%;
-    border-radius: 0;
-  }
-  .inst-drawer__head {
-    padding: calc(12px + env(safe-area-inset-top)) 8px 12px 16px;
-  }
-  .inst-drawer__av {
-    width: 40px;
-    height: 40px;
-    border-radius: 13px;
-  }
-  .inst-drawer__title {
-    font-size: 1.1875rem;
-  }
-  .inst-drawer__body {
-    padding: 12px 12px 20px;
-    gap: 12px;
-  }
-  .inst-sec {
-    padding: 16px 14px 16px;
-  }
-  .inst-grid,
-  .inst-grid--stop {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .inst-env__row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px;
-    gap: 6px;
-  }
-  .inst-drawer__foot {
-    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
-    gap: 8px;
-  }
-  .inst-drawer__dirty {
-    flex-basis: 100%;
-  }
-  .inst-drawer__btn {
-    flex: 1 1 0;
-    min-height: 48px;
-  }
-  .inst-drawer__btn--main {
-    flex: 1.4 1 0;
-  }
+/* ========== 手机：全屏长页 ========== */
+.inst-drawer.is-mobile .inst-drawer__panel {
+  width: 100%;
+  border-radius: 0;
+  box-shadow: none;
+}
+.inst-drawer.is-mobile .inst-drawer__head {
+  gap: 4px;
+  padding: calc(10px + env(safe-area-inset-top)) 8px 10px 4px;
+  background: var(--m-bg);
+}
+.inst-drawer.is-mobile .inst-drawer__title {
+  font-size: 1.25rem;
+}
+.inst-drawer.is-mobile .inst-drawer__sub {
+  font-size: 0.75rem;
+}
+.inst-drawer.is-mobile .inst-drawer__body {
+  padding: 16px 16px 24px;
+  gap: 14px;
+}
+.inst-drawer.is-mobile .inst-sec {
+  padding: 18px 16px;
+}
+.inst-drawer.is-mobile .inst-grid,
+.inst-drawer.is-mobile .inst-grid--stop {
+  grid-template-columns: minmax(0, 1fr);
+}
+.inst-drawer.is-mobile .inst-input,
+.inst-drawer.is-mobile .inst-pick {
+  min-height: 50px;
+  font-size: 1rem;
+}
+.inst-drawer.is-mobile :deep(.app-sel__trigger) {
+  height: 50px;
+  font-size: 1rem;
+}
+.inst-drawer.is-mobile .inst-mono {
+  font-size: 0.875rem;
+}
+.inst-drawer.is-mobile .inst-sec__badge {
+  order: 5;
+  flex-basis: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 0.8125rem;
+}
+.inst-drawer.is-mobile .inst-sugs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px;
+  scrollbar-width: none;
+}
+.inst-drawer.is-mobile .inst-sugs::-webkit-scrollbar {
+  display: none;
+}
+.inst-drawer.is-mobile .inst-sug {
+  min-height: 36px;
+}
+.inst-drawer.is-mobile .inst-tags__input {
+  font-size: 1rem;
+  min-width: 100px;
+}
+/* 手机环境变量：每条一张小卡（变量名 + 删除 / 值） */
+.inst-drawer.is-mobile .inst-env__row {
+  grid-template-columns: minmax(0, 1fr) 44px;
+  grid-template-areas:
+    'key del'
+    'val val';
+  gap: 8px 6px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--el-fill-color-light);
+}
+.inst-drawer.is-mobile .inst-env__key {
+  grid-area: key;
+}
+.inst-drawer.is-mobile .inst-env__val {
+  grid-area: val;
+  min-height: 50px;
+}
+.inst-drawer.is-mobile .inst-env__del {
+  grid-area: del;
+}
+.inst-drawer.is-mobile .inst-env__input {
+  font-size: 0.9375rem;
+}
+.inst-drawer.is-mobile .inst-env__lock,
+.inst-drawer.is-mobile .inst-env__eye {
+  width: 44px;
+  height: 44px;
+}
+.inst-drawer.is-mobile .inst-env__add {
+  min-height: 50px;
+}
+.inst-drawer.is-mobile .inst-drawer__foot {
+  flex-wrap: nowrap;
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  box-shadow: 0 -12px 30px -18px color-mix(in srgb, var(--m-ink) 30%, transparent);
+}
+.inst-drawer.is-mobile .inst-drawer__btn {
+  flex: 1 1 0;
+  min-height: 52px;
+  font-size: 0.9375rem;
+}
+.inst-drawer.is-mobile .inst-drawer__btn--main {
+  flex: 1.5 1 0;
+}
+.inst-drawer.is-mobile .inst-swr {
+  min-height: 64px;
 }
 </style>

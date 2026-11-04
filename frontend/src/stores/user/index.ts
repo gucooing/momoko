@@ -6,6 +6,7 @@ import router, { resetRouter } from '@/router'
 import { useMenuStore } from '@/stores/menu'
 import { useTabsStore } from '@/stores/tabs'
 import { useUserProfileStore } from '@/stores/user/profile'
+import { applyRemoteAppearance } from '@/stores/theme/sync'
 import type {
   UserPasswordFormValue,
   UserProfileFormValue,
@@ -37,10 +38,14 @@ export const useUserStore = defineStore('user', () => {
   const getUserInfo = async () => {
     const { data: meRes } = await userMeInfoRequest({})
     applyUserInfo(meRes?.user)
+    // 外观偏好跟随账号（见 stores/theme/sync.ts）
+    if (meRes?.user) applyRemoteAppearance(meRes.appearance)
   }
 
+  // 用户可以有多个角色：以「、」连接显示
   const getUserRoleName = () => {
-    return userInfo.value?.roleName || translate('user.noPermission')
+    const names = (userInfo.value?.roles || []).map((r) => r.name).filter(Boolean)
+    return names.join('、') || translate('user.noPermission')
   }
 
   const resolvedUserAvatar = computed(() => {

@@ -3,7 +3,9 @@ package biz
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -141,7 +143,8 @@ func (s *SystemUsecase) Check(ctx context.Context, permissions constant.Permissi
 }
 
 type SystemRepo interface {
-	GetMenusByRoleId(ctx context.Context, roleId string) ([]*gen.Menu, error)
+	// GetMenusByRoleIds 这些角色关联菜单的并集（去重）。
+	GetMenusByRoleIds(ctx context.Context, roleIds []string) ([]*gen.Menu, error)
 	GetMenus(ctx context.Context) ([]*gen.Menu, error)
 	GetMenu(ctx context.Context, menuId string) (*gen.Menu, error)
 	CreateMenu(ctx context.Context, menu *gen.Menu) (*gen.Menu, error)
@@ -155,7 +158,12 @@ type SystemRepo interface {
 	DeleteRole(ctx context.Context, roleIds []string) error
 	// CountUsersByRoles 统计各角色下的用户数。
 	CountUsersByRoles(ctx context.Context, roleIds []string) (map[string]int64, error)
+	// RoleMembers 各角色的前 limit 个成员（成员头像预览）。
+	RoleMembers(ctx context.Context, roleIds []string, limit int) (map[string][]*gen.User, error)
 }
+
+// roleMemberPreview 角色列表里每个角色带出的成员数量上限。
+const roleMemberPreview = 5
 
 func NewSystemUsecase(sys SystemRepo, userRepo UserRepo, config ConfigRepo) *SystemUsecase {
 	systemUc := &SystemUsecase{
@@ -301,16 +309,24 @@ func (s *SystemUsecase) SystemStatus(ctx context.Context, req *v1.SystemStatusRe
 	}, nil
 }
 
+// GetRoleOjbByUserID 用户的权限 = 其全部「启用」角色的菜单并集；按角色集合缓存。
 func (s *SystemUsecase) GetRoleOjbByUserID(ctx context.Context, userID string) (*RoleOjb, error) {
 	userInfo, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	if userInfo.Edges.Role == nil {
+	if len(userInfo.Edges.Roles) == 0 {
 		return nil, ErrUserNoRole
 	}
+	roleIDs := make([]string, 0, len(userInfo.Edges.Roles))
+	for _, r := range userInfo.Edges.Roles {
+		if r.Status == role.StatusActive {
+			roleIDs = append(roleIDs, r.ID)
+		}
+	}
+	sort.Strings(roleIDs)
 	add := func() (*RoleOjb, error) {
-		menuInfos, err := s.sys.GetMenusByRoleId(ctx, userInfo.Edges.Role.ID)
+		menuInfos, err := s.sys.GetMenusByRoleIds(ctx, roleIDs)
 		if err != nil {
 			return nil, ErrSystem(err)
 		}
@@ -319,7 +335,7 @@ func (s *SystemUsecase) GetRoleOjbByUserID(ctx context.Context, userID string) (
 			Permissions: toPermissions(menuInfos),
 		}, nil
 	}
-	ojb, ok := s.cache.GetByAdd(userInfo.Edges.Role.ID, add)
+	ojb, ok := s.cache.GetByAdd("roles:"+strings.Join(roleIDs, ","), add)
 	if !ok {
 		return nil, ErrUserNoRole
 	}
@@ -364,6 +380,7 @@ func (s *SystemUsecase) AddMenu(ctx context.Context, menu *v1.AdminAddPermission
 		Icon:       menu.Icon,
 		IsSystem:   false,
 		Status:     toEntMenuStatus(menu.Status),
+		Hidden:     menu.Hidden,
 		ParentID:   menu.ParentId,
 	})
 	if err != nil {
@@ -382,6 +399,7 @@ func (s *SystemUsecase) UpdateMenu(ctx context.Context, menu *v1.AdminEditPermis
 		Order:      int(menu.Order),
 		Icon:       menu.Icon,
 		Status:     toEntMenuStatus(menu.Status),
+		Hidden:     menu.Hidden,
 	})
 	if err != nil {
 		return ErrSystem(err)
@@ -422,10 +440,15 @@ func (s *SystemUsecase) GetAllRoles(ctx context.Context, req *v1.AdminRolesReque
 	if err != nil {
 		return nil, 0, ErrSystem(err)
 	}
+	members, err := s.sys.RoleMembers(ctx, roleIds, roleMemberPreview)
+	if err != nil {
+		return nil, 0, ErrSystem(err)
+	}
 	roles := make([]*v1.RoleInfo, 0, len(roleInfos))
 	for _, roleInfo := range roleInfos {
 		info := toRoleInfo(roleInfo)
 		info.UserCount = userCounts[roleInfo.ID]
+		info.Members = toRoleMembers(members[roleInfo.ID])
 		roles = append(roles, info)
 	}
 	return roles, total, nil
@@ -439,6 +462,9 @@ func (s *SystemUsecase) GetRole(ctx context.Context, roleId string) (*v1.RoleInf
 	info := toRoleInfo(roleInfo)
 	if userCounts, err := s.sys.CountUsersByRoles(ctx, []string{roleId}); err == nil {
 		info.UserCount = userCounts[roleId]
+	}
+	if members, err := s.sys.RoleMembers(ctx, []string{roleId}, roleMemberPreview); err == nil {
+		info.Members = toRoleMembers(members[roleId])
 	}
 	return info, nil
 }
@@ -541,7 +567,16 @@ func toMenuInfo(data *gen.Menu) *v1.MenuInfo {
 		CreateTime:  timestamppb.New(data.CreateTime),
 		UpdateTime:  timestamppb.New(data.UpdateTime),
 		Children:    make([]*v1.MenuInfo, 0),
+		Hidden:      data.Hidden,
 	}
+}
+
+func toRoleMembers(users []*gen.User) []*v1.RoleMember {
+	out := make([]*v1.RoleMember, 0, len(users))
+	for _, u := range users {
+		out = append(out, &v1.RoleMember{UserId: u.ID, Name: u.Name, Username: u.Username, Avatar: u.Avatar})
+	}
+	return out
 }
 
 func toRoleInfo(data *gen.Role) *v1.RoleInfo {

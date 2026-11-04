@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>个人中心 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;border:0;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.bad{background:var(--badSoft);color:var(--bad)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.h{margin:0 0 8px 6px;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.grp{background:var(--s);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.srow{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:8px 14px;border:0;background:transparent;font:inherit;color:var(--ink);text-decoration:none;text-align:left;cursor:pointer}
+a.srow:hover,button.srow:hover{background:var(--s2);color:var(--ink)}
+.srow + .srow{border-top:1px solid var(--line)}
+.sk{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:11px;flex:none}
+.sk .ic{width:18px;height:18px}
+.st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.st b{font-size:15px;font-weight:700}
+.st small{font-size:12px;color:var(--ink2)}
+.sv{font-size:14px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.chev{color:var(--ink2)}
+.tag{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:9px;background:var(--s2);color:var(--ink);font-size:12px;font-weight:700;white-space:nowrap}
+.kick{min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--bad);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.kick:hover{background:var(--badSoft);border-color:var(--badSoft)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; min-height: 2160px; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: center; gap: 4px; padding: 14px 12px 8px">
+    <a class="ib" href="MoreMobile.dc.html" aria-label="返回更多"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg></a>
+    <h1 style="margin: 0; font-size: 20px; font-weight: 800; flex: 1">个人中心</h1>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 22px; padding: 4px 16px 28px">
+    <section aria-label="个人信息" style="background: var(--p); color: var(--pOn); border-radius: 28px; padding: 22px 20px 20px; position: relative; overflow: hidden">
+      <div aria-hidden="true" style="position: absolute; right: -50px; top: -60px; width: 170px; height: 170px; border-radius: 50%; background: var(--a)"></div>
+      <div aria-hidden="true" style="position: absolute; right: 96px; bottom: -24px; width: 56px; height: 56px; border-radius: 50%; border: 10px solid var(--a2)"></div>
+      <div style="position: relative; display: flex; align-items: center; gap: 16px">
+        <span style="position: relative; flex: none">
+          <span class="av" style="width: 84px; height: 84px; border-radius: 28px; font-size: 38px; background: var(--a); color: var(--aOn); border: 4px solid var(--pOn); transform: rotate(-5deg)">超</span>
+          <button aria-label="更换头像" style="position: absolute; right: -8px; bottom: -8px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--p); background: var(--pOn); color: var(--p); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.camera}}"></path></svg></button>
+        </span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 24px; font-weight: 800; line-height: 1.15">超级管理员</span>
+          <span style="font-size: 13px; opacity: 0.95; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">admin@momoko.local</span>
+        </span>
+      </div>
+      <div style="position: relative; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px">
+        <span style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; background: var(--pOn); color: var(--p); font-size: 13px; font-weight: 800"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.shield}}"></path></svg>超级管理员</span>
+        <span style="display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px; background: color-mix(in srgb, var(--pOn) 18%, transparent); color: var(--pOn); font-size: 13px; font-weight: 700">运维</span>
+        <span class="num" style="display: inline-flex; align-items: center; height: 30px; padding: 0 4px; font-size: 12px; opacity: 0.92">加入于 2025-12-01</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="g1">
+      <h2 id="g1" class="h">个人资料</h2>
+      <div class="grp">
+        <a class="srow" href="#">
+          <span class="sk" style="background: var(--p); color: var(--pOn)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.user}}"></path></svg></span>
+          <span class="st"><b>昵称</b></span>
+          <span class="sv">超级管理员</span>
+          <svg class="ic ic-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg>
+        </a>
+        <div class="srow" style="cursor: default">
+          <span class="sk" style="background: var(--s2); color: var(--ink2)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.lock}}"></path></svg></span>
+          <span class="st"><b>用户名</b><small>用于登录，不能修改</small></span>
+          <span class="sv mono" style="font-size: 13px">admin</span>
+        </div>
+        <a class="srow" href="#">
+          <span class="sk" style="background: var(--a2); color: #FFFFFF"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.mail}}"></path></svg></span>
+          <span class="st"><b>邮箱</b><small>admin@momoko.local</small></span>
+          <span class="pill ok">已验证</span>
+          <svg class="ic ic-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg>
+        </a>
+        <a class="srow" href="#">
+          <span class="sk" style="background: var(--a); color: var(--aOn)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.phone}}"></path></svg></span>
+          <span class="st"><b>手机</b></span>
+          <span class="sv num">138 **** 6021</span>
+          <svg class="ic ic-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg>
+        </a>
+      </div>
+    </section>
+
+    <section aria-labelledby="g2">
+      <h2 id="g2" class="h">账号安全</h2>
+      <div class="grp">
+        <a class="srow" href="#">
+          <span class="sk" style="background: var(--pSoft); color: var(--pInk)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.key}}"></path></svg></span>
+          <span class="st"><b>修改密码</b><small>47 天前修改过 · 建议每 90 天更换</small></span>
+          <svg class="ic ic-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg>
+        </a>
+        <div class="srow" style="cursor: default">
+          <span class="sk" style="background: var(--okSoft); color: var(--ok)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.shield}}"></path></svg></span>
+          <span class="st"><b>邮箱验证</b><small>可用于找回密码和接收告警</small></span>
+          <span class="pill ok">已验证</span>
+        </div>
+        <a class="srow" href="#">
+          <span class="sk" style="background: var(--a2Soft); color: var(--ink)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.link}}"></path></svg></span>
+          <span class="st"><b>单点登录绑定</b><small>已绑定 [身份提供方名称]</small></span>
+          <svg class="ic ic-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg>
+        </a>
+      </div>
+    </section>
+
+    <section aria-labelledby="g3">
+      <h2 id="g3" class="h">偏好与消息</h2>
+      <div class="grp">
+        <a class="srow" href="ThemeMobile.dc.html">
+          <span class="sk" style="background: var(--a); color: var(--aOn); transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 2.1"><path d="{{i.palette}}"></path></svg></span>
+          <span class="st"><b>外观</b><small>配色、深浅色、紧凑模式</small></span>
+          <span class="sv">樱桃汽水 · 浅色</span>
+          <svg class="ic ic-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg>
+        </a>
+        <a class="srow" href="#">
+          <span class="sk" style="background: var(--a2); color: #FFFFFF; transform: rotate(3deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.globe}}"></path></svg></span>
+          <span class="st"><b>语言</b></span>
+          <span class="sv">简体中文</span>
+          <svg class="ic ic-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg>
+        </a>
+        <a class="srow" href="#">
+          <span class="sk" style="background: var(--p); color: var(--pOn); transform: rotate(-2deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg></span>
+          <span class="st"><b>我的消息</b><small>redis-cache 已退出 · 12 分钟前</small></span>
+          <span class="num" style="min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; background: var(--p); color: var(--pOn); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center">3</span>
+          <svg class="ic ic-sm chev" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevR}}"></path></svg>
+        </a>
+      </div>
+    </section>
+
+    <section aria-labelledby="g4">
+      <h2 id="g4" class="h">我的权限</h2>
+      <div class="grp" style="padding: 14px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span class="sk" style="width: 40px; height: 40px; border-radius: 13px; background: var(--a2Soft); color: var(--ink); transform: rotate(4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.shield}}"></path></svg></span>
+          <span class="st"><b>超级管理员 + 运维</b><small>全部 46 项权限 · 3 个节点</small></span>
+          <a href="RolesMobile.dc.html" style="font-size: 13px; font-weight: 700; text-decoration: none; padding: 12px 4px">查看 →</a>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{perms}}" as="p" hint-placeholder-count="6">
+            <span class="tag"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px; color: var(--ok); stroke-width: 2.6"><path d="{{i.check}}"></path></svg>{{p}}</span>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="g5">
+      <div style="display: flex; align-items: baseline; gap: 8px; margin: 0 6px 8px">
+        <h2 id="g5" class="h" style="margin: 0; flex: 1">登录设备 · <span class="num">{{devCount}}</span></h2>
+        <button onClick="{{kickAll}}" style="min-height: 36px; padding: 0 4px; border: 0; background: transparent; font: inherit; font-size: 13px; font-weight: 700; color: var(--bad); cursor: pointer">全部下线</button>
+      </div>
+      <div class="grp">
+        <sc-for list="{{devices}}" as="d" hint-placeholder-count="4">
+          <div class="srow" style="cursor: default; border-top: {{d.bt}}">
+            <span class="sk" style="background: {{d.bg}}; color: {{d.fg}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{d.icon}}"></path></svg></span>
+            <span class="st"><b>{{d.n}}</b><small class="num">{{d.meta}}</small></span>
+            <sc-if value="{{d.cur}}" hint-placeholder-val="{{false}}">
+              <span class="pill ok">当前设备</span>
+            </sc-if>
+            <sc-if value="{{d.other}}" hint-placeholder-val="{{true}}">
+              <button class="kick" aria-label="下线 {{d.n}}" onClick="{{d.kick}}">下线</button>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-labelledby="g6">
+      <div style="display: flex; align-items: baseline; gap: 8px; margin: 0 6px 8px">
+        <h2 id="g6" class="h" style="margin: 0; flex: 1">最近登录</h2>
+        <a href="AuditMobile.dc.html" style="font-size: 13px; font-weight: 700; text-decoration: none">全部 →</a>
+      </div>
+      <div class="grp">
+        <sc-for list="{{logins}}" as="l" hint-placeholder-count="4">
+          <div class="srow" style="cursor: default; border-top: {{l.bt}}">
+            <span class="st"><b class="num" style="font-size: 14px">{{l.tm}}</b><small><span class="mono">{{l.ip}}</span> · {{l.loc}} · {{l.via}}</small></span>
+            <span class="pill {{l.st}}">{{l.stT}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <div class="grp">
+      <button class="srow" style="justify-content: center; color: var(--bad); font-size: 15px; font-weight: 800">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.logout}}"></path></svg>退出登录
+      </button>
+    </div>
+    <div style="text-align: center; font-size: 12px; color: var(--ink2)">Momoko [版本号] · DESKTOP-K5K9BBC</div>
+  </div>
+
+  <nav aria-label="底部导航" style="position: sticky; bottom: 0; margin-top: auto; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":2160}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 21 9.7C21 5.9 17 3 12 3zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01M17 11.5h.01',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
+  lock: 'M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4',
+  mail: 'M3 5h18v14H3zM3 7l9 6 9-6',
+  phone: 'M7 3h10v18H7zM11 18h2',
+  monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  laptop: 'M5 5h14v10H5zM2 19h20',
+  shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',
+  key: 'M7.5 10a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.8 11.7 20 3M16 7l3 3M18.5 4.5l2 2',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  globe: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z',
+  camera: 'M4 8h3l2-3h6l2 3h3v11H4zM12 10.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  logout: 'M10 4H5v16h5M15 8l4 4-4 4M19 12H9',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  chevR: 'M9 6l6 6-6 6',
+  chevL: 'M15 5l-7 7 7 7'
+};
+const DEVICES = [
+  { id: 'd1', n: 'Windows · Chrome', meta: '192.168.1.23 · 本机 · 正在使用', icon: IC.monitor, bg: 'var(--pSoft)', fg: 'var(--pInk)', cur: true },
+  { id: 'd2', n: 'iPhone · Safari', meta: '10.0.0.15 · 2 小时前', icon: IC.phone, bg: 'var(--a2Soft)', fg: 'var(--ink)' },
+  { id: 'd3', n: 'macOS · Edge', meta: '[归属地] · 昨天 22:10', icon: IC.laptop, bg: 'var(--aSoft)', fg: 'var(--aOn)' },
+  { id: 'd4', n: 'Android · Chrome', meta: '[归属地] · 3 天前', icon: IC.phone, bg: 'var(--okSoft)', fg: 'var(--ok)' }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const kicked = st.kicked || {};
+    const devices = DEVICES.filter((d) => !kicked[d.id]).map((d, k) => ({
+      ...d,
+      cur: !!d.cur,
+      other: !d.cur,
+      bt: k === 0 ? '0' : '1px solid var(--line)',
+      kick: () => this.setState({ kicked: { ...kicked, [d.id]: true } })
+    }));
+    const logins = [
+      { tm: '今天 09:12', ip: '192.168.1.23', loc: '局域网', via: '密码', st: 'ok', stT: '成功' },
+      { tm: '今天 07:48', ip: '10.0.0.15', loc: '局域网', via: '密码', st: 'ok', stT: '成功' },
+      { tm: '昨天 22:10', ip: '[公网 IP]', loc: '[归属地]', via: '单点登录', st: 'ok', stT: '成功' },
+      { tm: '昨天 22:09', ip: '[公网 IP]', loc: '[归属地]', via: '密码', st: 'bad', stT: '失败' }
+    ].map((l, k) => ({ ...l, bt: k === 0 ? '0' : '1px solid var(--line)' }));
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      devices,
+      devCount: devices.length,
+      kickAll: () => this.setState({ kicked: { d2: true, d3: true, d4: true } }),
+      perms: ['应用 · 全部', '容器 · 全部', '文件 · 读写', 'SSH 终端', '节点管理', '用户与角色', '系统设置'],
+      logins,
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: '' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: 'tab-on' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

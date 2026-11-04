@@ -233,7 +233,7 @@ func (m *Manager) UpdateNetwork(ctx context.Context, req *v1.UpdateDockerNetwork
 	if titleTarget == "" {
 		titleTarget = req.GetId()
 	}
-	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_RECREATE, "重建网络 "+titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
+	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_RECREATE, "重建网络 "+titleTarget, titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
 		oldInfo, err := m.Network(taskCtx, req.GetId())
 		if err != nil {
 			return "", err
@@ -260,7 +260,7 @@ func (m *Manager) RecreateNetwork(ctx context.Context, req *v1.RecreateDockerNet
 	if titleTarget == "" {
 		titleTarget = req.GetId()
 	}
-	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_RECREATE, "重建网络 "+titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
+	return m.tasks.Start(ctx, v1.DockerTaskType_DOCKER_TASK_TYPE_NETWORK_RECREATE, "重建网络 "+titleTarget, titleTarget, m.taskTimeout(), func(taskCtx context.Context, emit func(*v1.DockerTaskInfo)) (string, error) {
 		oldInfo, err := m.Network(taskCtx, req.GetId())
 		if err != nil {
 			return "", err

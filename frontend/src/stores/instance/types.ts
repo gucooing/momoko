@@ -8,14 +8,6 @@ export interface StatusMetaItem {
   labelKey: string
 }
 
-export interface OverviewCardItem {
-  label: string
-  value: number
-  note: string
-  icon: string
-  skin: 'tone-a' | 'tone-b' | 'tone-c'
-}
-
 export interface QueryFormValue {
   keyword: string
   type: string
@@ -46,7 +38,17 @@ export interface InstanceEditorFormValue {
   autoRestart: boolean
   /** 停止超时（秒），0 表示默认 */
   stopTimeout: number
-  envText: string
+  env: InstanceEnvRow[]
+}
+
+/** 编辑器里的一条环境变量 */
+export interface InstanceEnvRow {
+  key: string
+  value: string
+  /** 按密钥保存：值只写不读，控制台输出里打码 */
+  secret: boolean
+  /** 服务器上已保存过这个密钥（值不返回，留空表示保持不变） */
+  saved: boolean
 }
 
 export const statusMeta: Record<InstanceStatus, StatusMetaItem> = {

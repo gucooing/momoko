@@ -27,7 +27,10 @@ func (r *taskRepo) Upsert(ctx context.Context, rec *task.Record) error {
 	if err != nil {
 		return err
 	}
-	resultJSON := marshalResults(rec.Results)
+	trigger := rec.Trigger
+	if trigger == "" {
+		trigger = task.TriggerSystem
+	}
 	if exists {
 		upd := r.data.db.Task.UpdateOneID(rec.ID).
 			SetType(rec.Type).
@@ -35,16 +38,28 @@ func (r *taskRepo) Upsert(ctx context.Context, rec *task.Record) error {
 			SetStatus(enttask.Status(rec.Status)).
 			SetResumePolicy(enttask.ResumePolicy(rec.Resume)).
 			SetTitle(rec.Title).
+			SetTarget(rec.Target).
+			SetSource(rec.Source).
+			SetTriggerType(enttask.TriggerType(trigger)).
 			SetUserID(rec.UserID).
+			SetOperator(rec.Operator).
 			SetPayload(string(rec.Payload)).
 			SetState(string(rec.State)).
-			SetResult(resultJSON).
+			SetResult(marshalJSON(rec.Results)).
+			SetSteps(marshalJSON(rec.Steps)).
+			SetLogs(marshalJSON(rec.Logs)).
 			SetProgressTotal(rec.Total).
 			SetProgressFinished(rec.Finished).
 			SetMessage(rec.Message).
 			SetError(rec.Error).
+			SetCanceledBy(rec.CanceledBy).
 			SetIntervalMs(rec.IntervalMS).
 			SetTimeoutMs(rec.TimeoutMS)
+		if rec.StartTime != nil {
+			upd.SetStartTime(*rec.StartTime)
+		} else {
+			upd.ClearStartTime()
+		}
 		if rec.EndTime != nil {
 			upd.SetEndTime(*rec.EndTime)
 		} else {
@@ -59,47 +74,64 @@ func (r *taskRepo) Upsert(ctx context.Context, rec *task.Record) error {
 		SetStatus(enttask.Status(rec.Status)).
 		SetResumePolicy(enttask.ResumePolicy(rec.Resume)).
 		SetTitle(rec.Title).
+		SetTarget(rec.Target).
+		SetSource(rec.Source).
+		SetTriggerType(enttask.TriggerType(trigger)).
 		SetUserID(rec.UserID).
+		SetOperator(rec.Operator).
 		SetPayload(string(rec.Payload)).
 		SetState(string(rec.State)).
-		SetResult(resultJSON).
+		SetResult(marshalJSON(rec.Results)).
+		SetSteps(marshalJSON(rec.Steps)).
+		SetLogs(marshalJSON(rec.Logs)).
 		SetProgressTotal(rec.Total).
 		SetProgressFinished(rec.Finished).
 		SetMessage(rec.Message).
 		SetError(rec.Error).
+		SetCanceledBy(rec.CanceledBy).
 		SetIntervalMs(rec.IntervalMS).
-		SetTimeoutMs(rec.TimeoutMS)
+		SetTimeoutMs(rec.TimeoutMS).
+		SetNillableStartTime(rec.StartTime).
+		SetNillableEndTime(rec.EndTime)
 	if !rec.CreateTime.IsZero() {
 		c.SetCreateTime(rec.CreateTime)
-	}
-	if rec.EndTime != nil {
-		c.SetEndTime(*rec.EndTime)
 	}
 	return c.Exec(ctx)
 }
 
-func (r *taskRepo) SetStatus(ctx context.Context, id string, s task.Status, message, errText string, end *time.Time) error {
-	upd := r.data.db.Task.UpdateOneID(id).SetStatus(enttask.Status(s))
-	if message != "" {
-		upd.SetMessage(message)
-	}
-	if errText != "" {
-		upd.SetError(errText)
-	}
-	if end != nil {
-		upd.SetEndTime(*end)
-	}
-	return ignoreNotFound(upd.Exec(ctx))
+func (r *taskRepo) SetRunning(ctx context.Context, id string, start time.Time) error {
+	return ignoreNotFound(r.data.db.Task.UpdateOneID(id).
+		SetStatus(enttask.StatusRunning).
+		SetStartTime(start).
+		Exec(ctx))
 }
 
-func (r *taskRepo) SetProgress(ctx context.Context, id string, finished, total int64, message string) error {
-	upd := r.data.db.Task.UpdateOneID(id).
-		SetProgressFinished(finished).
-		SetProgressTotal(total)
-	if message != "" {
-		upd.SetMessage(message)
-	}
-	return ignoreNotFound(upd.Exec(ctx))
+func (r *taskRepo) SetStatus(ctx context.Context, id string, s task.Status) error {
+	return ignoreNotFound(r.data.db.Task.UpdateOneID(id).SetStatus(enttask.Status(s)).Exec(ctx))
+}
+
+func (r *taskRepo) SaveSnapshot(ctx context.Context, id string, s task.Snapshot) error {
+	return ignoreNotFound(r.data.db.Task.UpdateOneID(id).
+		SetProgressTotal(s.Total).
+		SetProgressFinished(s.Finished).
+		SetMessage(s.Message).
+		SetSteps(marshalJSON(s.Steps)).
+		SetLogs(marshalJSON(s.Logs)).
+		Exec(ctx))
+}
+
+func (r *taskRepo) Finish(ctx context.Context, id string, s task.Status, errText, canceledBy string, end time.Time, snap task.Snapshot) error {
+	return ignoreNotFound(r.data.db.Task.UpdateOneID(id).
+		SetStatus(enttask.Status(s)).
+		SetError(errText).
+		SetCanceledBy(canceledBy).
+		SetEndTime(end).
+		SetProgressTotal(snap.Total).
+		SetProgressFinished(snap.Finished).
+		SetMessage(snap.Message).
+		SetSteps(marshalJSON(snap.Steps)).
+		SetLogs(marshalJSON(snap.Logs)).
+		Exec(ctx))
 }
 
 func (r *taskRepo) SaveState(ctx context.Context, id string, state json.RawMessage) error {
@@ -107,7 +139,7 @@ func (r *taskRepo) SaveState(ctx context.Context, id string, state json.RawMessa
 }
 
 func (r *taskRepo) SaveResults(ctx context.Context, id string, results []task.Result) error {
-	return ignoreNotFound(r.data.db.Task.UpdateOneID(id).SetResult(marshalResults(results)).Exec(ctx))
+	return ignoreNotFound(r.data.db.Task.UpdateOneID(id).SetResult(marshalJSON(results)).Exec(ctx))
 }
 
 func (r *taskRepo) Get(ctx context.Context, id string) (*task.Record, error) {
@@ -115,7 +147,7 @@ func (r *taskRepo) Get(ctx context.Context, id string) (*task.Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	return toTaskRecord(row), nil
+	return toTaskRecord(row, true), nil
 }
 
 func (r *taskRepo) List(ctx context.Context, f task.Filter, page, pageSize int64) ([]*task.Record, int64, error) {
@@ -140,7 +172,7 @@ func (r *taskRepo) List(ctx context.Context, f task.Filter, page, pageSize int64
 	}
 	recs := make([]*task.Record, 0, len(rows))
 	for _, row := range rows {
-		recs = append(recs, toTaskRecord(row))
+		recs = append(recs, toTaskRecord(row, false))
 	}
 	return recs, int64(total), nil
 }
@@ -154,13 +186,17 @@ func (r *taskRepo) LoadResumable(ctx context.Context) ([]*task.Record, error) {
 	}
 	recs := make([]*task.Record, 0, len(rows))
 	for _, row := range rows {
-		recs = append(recs, toTaskRecord(row))
+		recs = append(recs, toTaskRecord(row, true))
 	}
 	return recs, nil
 }
 
-func (r *taskRepo) Delete(ctx context.Context, id string) error {
-	return ignoreNotFound(r.data.db.Task.DeleteOneID(id).Exec(ctx))
+func (r *taskRepo) Delete(ctx context.Context, ids []string) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	n, err := r.data.db.Task.Delete().Where(enttask.IDIn(ids...)).Exec(ctx)
+	return int64(n), err
 }
 
 func (r *taskRepo) applyFilter(q *gen.TaskQuery, f task.Filter) *gen.TaskQuery {
@@ -180,6 +216,7 @@ func (r *taskRepo) applyFilter(q *gen.TaskQuery, f task.Filter) *gen.TaskQuery {
 		q = q.Where(enttask.Or(
 			enttask.TitleContainsFold(f.Keywords),
 			enttask.TypeContainsFold(f.Keywords),
+			enttask.TargetContainsFold(f.Keywords),
 		))
 	}
 	return q
@@ -235,9 +272,18 @@ func (r *taskRepo) DeleteByStatus(ctx context.Context, statuses []task.Status) (
 	return int64(n), err
 }
 
+func (r *taskRepo) DeleteFinishedBefore(ctx context.Context, before time.Time) (int64, error) {
+	n, err := r.data.db.Task.Delete().Where(
+		enttask.StatusIn(enttask.StatusSuccess, enttask.StatusFailed, enttask.StatusCanceled),
+		enttask.EndTimeLT(before),
+	).Exec(ctx)
+	return int64(n), err
+}
+
 // ---- 映射 ----
 
-func toTaskRecord(row *gen.Task) *task.Record {
+// toTaskRecord 映射一行；withLogs=false 时不解析日志（列表只需要行数，日志按需单查）。
+func toTaskRecord(row *gen.Task, withLogs bool) *task.Record {
 	rec := &task.Record{
 		ID:         row.ID,
 		Type:       row.Type,
@@ -245,42 +291,52 @@ func toTaskRecord(row *gen.Task) *task.Record {
 		Status:     task.Status(row.Status),
 		Resume:     task.ResumePolicy(row.ResumePolicy),
 		Title:      row.Title,
+		Target:     row.Target,
+		Source:     row.Source,
+		Trigger:    task.Trigger(row.TriggerType),
 		UserID:     row.UserID,
+		Operator:   row.Operator,
 		Payload:    json.RawMessage(row.Payload),
 		State:      json.RawMessage(row.State),
-		Results:    unmarshalResults(row.Result),
+		Results:    unmarshalJSON[task.Result](row.Result),
+		Steps:      unmarshalJSON[task.Step](row.Steps),
 		Total:      row.ProgressTotal,
 		Finished:   row.ProgressFinished,
 		Message:    row.Message,
 		Error:      row.Error,
+		CanceledBy: row.CanceledBy,
 		IntervalMS: row.IntervalMs,
 		TimeoutMS:  row.TimeoutMs,
 		CreateTime: row.CreateTime,
+		StartTime:  row.StartTime,
 		EndTime:    row.EndTime,
+	}
+	if withLogs {
+		rec.Logs = unmarshalJSON[task.LogEntry](row.Logs)
 	}
 	return rec
 }
 
-func marshalResults(results []task.Result) string {
-	if len(results) == 0 {
+func marshalJSON[T any](items []T) string {
+	if len(items) == 0 {
 		return ""
 	}
-	b, err := json.Marshal(results)
+	b, err := json.Marshal(items)
 	if err != nil {
 		return ""
 	}
 	return string(b)
 }
 
-func unmarshalResults(s string) []task.Result {
+func unmarshalJSON[T any](s string) []T {
 	if s == "" {
 		return nil
 	}
-	var results []task.Result
-	if err := json.Unmarshal([]byte(s), &results); err != nil {
+	var items []T
+	if err := json.Unmarshal([]byte(s), &items); err != nil {
 		return nil
 	}
-	return results
+	return items
 }
 
 // ignoreNotFound 把「行已被删」视作幂等成功（任务终态写入与删除可能并发）。

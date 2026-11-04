@@ -154,6 +154,20 @@ func (_c *MenuCreate) SetNillableParentID(v *string) *MenuCreate {
 	return _c
 }
 
+// SetHidden sets the "hidden" field.
+func (_c *MenuCreate) SetHidden(v bool) *MenuCreate {
+	_c.mutation.SetHidden(v)
+	return _c
+}
+
+// SetNillableHidden sets the "hidden" field if the given value is not nil.
+func (_c *MenuCreate) SetNillableHidden(v *bool) *MenuCreate {
+	if v != nil {
+		_c.SetHidden(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *MenuCreate) SetID(v string) *MenuCreate {
 	_c.mutation.SetID(v)
@@ -226,6 +240,10 @@ func (_c *MenuCreate) defaults() {
 		v := menu.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
+	if _, ok := _c.mutation.Hidden(); !ok {
+		v := menu.DefaultHidden
+		_c.mutation.SetHidden(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -265,6 +283,9 @@ func (_c *MenuCreate) check() error {
 		if err := menu.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "Menu.status": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.Hidden(); !ok {
+		return &ValidationError{Name: "hidden", err: errors.New(`gen: missing required field "Menu.hidden"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := menu.IDValidator(v); err != nil {
@@ -350,6 +371,10 @@ func (_c *MenuCreate) createSpec() (*Menu, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ParentID(); ok {
 		_spec.SetField(menu.FieldParentID, field.TypeString, value)
 		_node.ParentID = value
+	}
+	if value, ok := _c.mutation.Hidden(); ok {
+		_spec.SetField(menu.FieldHidden, field.TypeBool, value)
+		_node.Hidden = value
 	}
 	if nodes := _c.mutation.RolesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -566,6 +591,18 @@ func (u *MenuUpsert) UpdateParentID() *MenuUpsert {
 // ClearParentID clears the value of the "parent_id" field.
 func (u *MenuUpsert) ClearParentID() *MenuUpsert {
 	u.SetNull(menu.FieldParentID)
+	return u
+}
+
+// SetHidden sets the "hidden" field.
+func (u *MenuUpsert) SetHidden(v bool) *MenuUpsert {
+	u.Set(menu.FieldHidden, v)
+	return u
+}
+
+// UpdateHidden sets the "hidden" field to the value that was provided on create.
+func (u *MenuUpsert) UpdateHidden() *MenuUpsert {
+	u.SetExcluded(menu.FieldHidden)
 	return u
 }
 
@@ -792,6 +829,20 @@ func (u *MenuUpsertOne) UpdateParentID() *MenuUpsertOne {
 func (u *MenuUpsertOne) ClearParentID() *MenuUpsertOne {
 	return u.Update(func(s *MenuUpsert) {
 		s.ClearParentID()
+	})
+}
+
+// SetHidden sets the "hidden" field.
+func (u *MenuUpsertOne) SetHidden(v bool) *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetHidden(v)
+	})
+}
+
+// UpdateHidden sets the "hidden" field to the value that was provided on create.
+func (u *MenuUpsertOne) UpdateHidden() *MenuUpsertOne {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdateHidden()
 	})
 }
 
@@ -1185,6 +1236,20 @@ func (u *MenuUpsertBulk) UpdateParentID() *MenuUpsertBulk {
 func (u *MenuUpsertBulk) ClearParentID() *MenuUpsertBulk {
 	return u.Update(func(s *MenuUpsert) {
 		s.ClearParentID()
+	})
+}
+
+// SetHidden sets the "hidden" field.
+func (u *MenuUpsertBulk) SetHidden(v bool) *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.SetHidden(v)
+	})
+}
+
+// UpdateHidden sets the "hidden" field to the value that was provided on create.
+func (u *MenuUpsertBulk) UpdateHidden() *MenuUpsertBulk {
+	return u.Update(func(s *MenuUpsert) {
+		s.UpdateHidden()
 	})
 }
 

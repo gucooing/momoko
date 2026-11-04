@@ -68,7 +68,7 @@ service IQCheckManager {
       body: "*"
     };
   }
-  // 立即对站点勾选的全部模型执行一轮检测
+  // 立即执行一轮检测：把全部启用的提示词逐个发给站点勾选的每个模型
   rpc TriggerIQCheck(TriggerIQCheckRequest) returns (TriggerIQCheckResponse) {
     option (google.api.http) = {
       post: "/api/v1/iqcheck/sites/{id}/check"
@@ -115,6 +115,22 @@ enum IQCheckResultStatus {
   IQ_CHECK_RESULT_STATUS_FAILED = 2;
 }
 
+// 提示词分类（决定列表里的图标与分类名）
+enum IQCheckPromptCategory {
+  // 其他 / 未分类
+  IQ_CHECK_PROMPT_CATEGORY_OTHER = 0;
+  // 逻辑推理
+  IQ_CHECK_PROMPT_CATEGORY_LOGIC = 1;
+  // 数学
+  IQ_CHECK_PROMPT_CATEGORY_MATH = 2;
+  // 编程
+  IQ_CHECK_PROMPT_CATEGORY_CODING = 3;
+  // 画图（SVG / HTML 等可渲染输出）
+  IQ_CHECK_PROMPT_CATEGORY_DRAWING = 4;
+  // 写作
+  IQ_CHECK_PROMPT_CATEGORY_WRITING = 5;
+}
+
 // 检测提示词
 message IQCheckPromptInfo {
   // 提示词 id
@@ -123,7 +139,7 @@ message IQCheckPromptInfo {
   string title = 2;
   // 提示词内容
   string content = 3;
-  // 是否启用；只有启用的提示词会被随机选中
+  // 是否启用；每轮检测会把全部启用的提示词逐个发给模型
   bool enabled = 4;
   // 排序，越小越靠前
   int32 order = 5;
@@ -137,6 +153,12 @@ message IQCheckPromptInfo {
   google.protobuf.Timestamp last_used_at = 9;
   // 被检测使用过的站点数
   int64 site_count = 10;
+  // 分类
+  IQCheckPromptCategory category = 11;
+  // 评分方式说明（如「步骤正确性」「渲染后人工比对」）；为空表示未填写
+  string grading = 12;
+  // 使用该提示词的检测中，上游返回的平均输入 token 数；没有用量数据时为 0
+  int64 avg_input_tokens = 13;
 }
 
 // 获取提示词列表请求
@@ -175,6 +197,10 @@ message CreateIQCheckPromptRequest {
   bool enabled = 3;
   // 排序
   int32 order = 4;
+  // 分类
+  IQCheckPromptCategory category = 5;
+  // 评分方式说明，最多 64 个字符
+  string grading = 6;
 }
 
 // 创建提示词响应
@@ -195,6 +221,10 @@ message UpdateIQCheckPromptRequest {
   bool enabled = 4;
   // 排序
   int32 order = 5;
+  // 分类
+  IQCheckPromptCategory category = 6;
+  // 评分方式说明，最多 64 个字符
+  string grading = 7;
 }
 
 // 更新提示词响应
@@ -264,6 +294,8 @@ message IQCheckSiteInfo {
   int64 result_count = 20;
   // 站点健康状态
   IQCheckSiteHealth health = 21;
+  // 最近一条成功结果的检测时间；从未成功时为空
+  google.protobuf.Timestamp last_success_at = 22;
 }
 
 // 站点健康状态
@@ -278,32 +310,37 @@ enum IQCheckSiteHealth {
   IQ_CHECK_SITE_HEALTH_FAILED = 3;
 }
 
-// 一轮检测的汇总
+// 一轮检测的汇总；一轮会把全部启用的提示词逐个发给站点的每个模型，每个「模型 × 提示词」产生一条结果
 message IQCheckRoundSummary {
   // 轮次编号
   string round_id = 1;
   // 检测时间
   google.protobuf.Timestamp request_at = 2;
-  // 成功的模型数
+  // 成功的结果数
   int32 success = 3;
-  // 失败的模型数
+  // 失败的结果数
   int32 failed = 4;
   // 成功结果的平均耗时（毫秒）
   int64 avg_duration_ms = 5;
   // 第一条失败原因
   string error = 6;
-  // 提示词标题
+  // 本轮随机抽到的提示词标题
   string prompt_title = 7;
+  // 本轮参与的模型数（模型 + 推理强度去重）
+  int32 model_count = 8;
 }
 
 // 站点列表筛选
 enum IQCheckSiteFilter {
+  reserved 2;
   // 全部
   IQ_CHECK_SITE_FILTER_ALL = 0;
   // 最近一轮全部成功
   IQ_CHECK_SITE_FILTER_HEALTHY = 1;
-  // 最近一轮有失败
-  IQ_CHECK_SITE_FILTER_FAILING = 2;
+  // 最近一轮部分模型失败
+  IQ_CHECK_SITE_FILTER_PARTIAL = 5;
+  // 最近一轮全部失败
+  IQ_CHECK_SITE_FILTER_FAILED = 6;
   // 未启用定时检测
   IQ_CHECK_SITE_FILTER_DISABLED = 3;
   // 从未检测
@@ -312,12 +349,15 @@ enum IQCheckSiteFilter {
 
 // 站点统计（不受筛选影响）
 message IQCheckSiteStats {
+  reserved 3;
   // 站点总数
   int64 total = 1;
   // 最近一轮全部成功
   int64 healthy = 2;
-  // 最近一轮有失败
-  int64 failing = 3;
+  // 最近一轮部分模型失败
+  int64 partial = 9;
+  // 最近一轮全部失败
+  int64 failed = 10;
   // 未启用定时检测
   int64 disabled = 4;
   // 从未检测
@@ -489,14 +529,11 @@ message IQCheckResultInfo {
   google.protobuf.Timestamp request_at = 14;
 }
 
-// 公开页站点信息
+// 公开页站点信息；不含 API Key 与接口地址
 message PublicIQCheckSiteInfo {
+  reserved 2, 3;
   // 名称
   string name = 1;
-  // 站点接口地址（端点）
-  string endpoint = 2;
-  // 协议
-  IQCheckProtocol protocol = 3;
   // 检测的模型
   repeated IQCheckModelConfig models = 4;
   // 检测间隔，单位分钟
@@ -507,6 +544,8 @@ message PublicIQCheckSiteInfo {
   PublicIQCheckStats stats = 7;
   // 是否启用定时检测
   bool enabled = 8;
+  // 最近一轮检测汇总；从未检测时为空
+  IQCheckRoundSummary last_round = 9;
 }
 
 // 公开页检测统计

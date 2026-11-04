@@ -1,6 +1,6 @@
-<!-- 实例卡片：贴纸头像 + 名称/类型/自启动 + 状态，备注，信息格（运行时长/创建时间/启动命令/目录），
-     底部标签 + 小图标操作（控制台 / 文件 / 启停 / 更多）。
-     保留 props(item/typeLabel/canDelete/selected) 与 emits(toggleSelect/console/config/changeStatus/moreAction) 契约。 -->
+<!-- 应用卡片：贴纸头像 + 名称 / 类型 / 开机自启 + 状态 + 勾选，备注，信息格（已运行 · 停止于 · 维护开始 / 创建于 / 启动命令 / 工作目录），
+     底部 #标签 + 小图标操作（控制台 / 文件 / 启停 / ⋯）。
+     props(item/typeLabel/canDelete/selected/now) + emits(toggleSelect/console/config/changeStatus/moreAction)。 -->
 <template>
   <article class="inst-card" :class="{ 'is-selected': selected }">
     <header class="inst-card__head">
@@ -8,40 +8,44 @@
         {{ initial }}
       </span>
       <span class="inst-card__title">
-        <span class="inst-card__name" :title="item.name">{{ item.name }}</span>
+        <RouterLink class="inst-card__name" :to="detailRoute" :title="item.name">{{ item.name }}</RouterLink>
         <span class="inst-card__type">
-          {{ typeLabel || '—' }}
-          <span v-if="item.autoStart" class="inst-card__badge">{{ t('instance.autoStart') }}</span>
+          <span class="inst-card__type-t">{{ item.type ? typeLabel : t('instance.ui.uncategorized') }}</span>
+          <span v-if="item.autoStart" class="inst-card__badge">{{ t('instance.ui.bootStart') }}</span>
         </span>
       </span>
       <StatusPill :variant="statusVariant" :label="t(statusMeta[item.status]?.labelKey || 'instance.unknownStatus')" />
-      <input
-        type="checkbox"
-        class="inst-card__check"
-        :checked="selected"
-        :aria-label="item.name"
-        @change="emit('toggleSelect', ($event.target as HTMLInputElement).checked)"
-      />
+      <label class="inst-card__hit">
+        <input
+          type="checkbox"
+          class="inst-card__check"
+          :checked="selected"
+          :aria-label="t('instance.ui.selectApp', { name: item.name })"
+          @change="emit('toggleSelect', ($event.target as HTMLInputElement).checked)"
+        />
+      </label>
     </header>
 
-    <p class="inst-card__remark">{{ item.remark || t('instance.noRemark') }}</p>
+    <p class="inst-card__remark" :class="{ 'is-empty': !item.remark }" :title="item.remark">
+      {{ item.remark || t('instance.noRemark') }}
+    </p>
 
     <dl class="inst-card__info">
       <div>
-        <dt>{{ isRunningLike ? t('instance.startedAt') : t('instance.createTime') }}</dt>
-        <dd class="m-num">{{ isRunningLike ? fmtTime(item.startTime) : fmtTime(item.createTime) }}</dd>
+        <dt>{{ upLabel }}</dt>
+        <dd class="m-num">{{ upValue }}</dd>
       </div>
       <div>
-        <dt>{{ t('instance.autoStart') }}</dt>
-        <dd>{{ item.autoStart ? t('common.yes') : t('common.no') }}</dd>
+        <dt>{{ t('instance.ui.createdAt') }}</dt>
+        <dd class="m-num">{{ fmtDate(item.createTime) }}</dd>
       </div>
       <div class="is-wide">
         <dt>{{ t('instance.startCommand') }}</dt>
         <dd class="m-mono" :title="item.startCommand">{{ item.startCommand || '—' }}</dd>
       </div>
       <div class="is-wide">
-        <dt>{{ t('instance.instancePath') }}</dt>
-        <dd class="m-mono" :title="item.instancePath">{{ item.instancePath || '—' }}</dd>
+        <dt>{{ t('instance.ui.workdir') }}</dt>
+        <dd class="m-mono" :title="item.absolutePath || item.instancePath">{{ item.instancePath || '—' }}</dd>
       </div>
     </dl>
 
@@ -49,24 +53,24 @@
       <div class="inst-card__tags">
         <span v-for="tag in tags" :key="tag" class="inst-card__tag">#{{ tag }}</span>
       </div>
-      <AppIconButton icon="HOutline:CommandLineIcon" :label="t('instance.console')" @click="emit('console')" />
+      <AppIconButton icon="HOutline:CommandLineIcon" :label="t('instance.ui.consoleOf', { name: item.name })" @click="emit('console')" />
       <AppIconButton
         icon="HOutline:FolderIcon"
-        :label="t('instance.fileManagerTitle')"
+        :label="t('instance.ui.filesOf', { name: item.name })"
         @click="emit('moreAction', 'fileManager')"
       />
       <AppIconButton
-        :icon="isRunningLike ? 'HOutline:StopIcon' : 'HOutline:PlayIcon'"
-        :label="isRunningLike ? t('instance.stop') : t('instance.start')"
-        :class="isRunningLike ? 'is-stop' : 'is-start'"
+        :icon="isRunning ? 'HOutline:StopIcon' : 'HOutline:PlayIcon'"
+        :label="isRunning ? t('instance.stop') : t('instance.start')"
+        :class="isRunning ? 'is-stop' : 'is-start'"
         @click="
           emit(
             'changeStatus',
-            isRunningLike ? InstanceStatus.INSTANCE_STATUS_STOPPED : InstanceStatus.INSTANCE_STATUS_RUNNING,
+            isRunning ? InstanceStatus.INSTANCE_STATUS_STOPPED : InstanceStatus.INSTANCE_STATUS_RUNNING,
           )
         "
       />
-      <ActionMenu :items="moreItems" @select="onMore" />
+      <ActionMenu :items="moreItems" :label="t('instance.ui.moreOf', { name: item.name })" @select="onMore" />
     </footer>
   </article>
 </template>
@@ -76,47 +80,44 @@ import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { InstanceStatus, statusMeta, type InstanceRecord } from '@/stores/instance/types'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
+import { fmtDuration, initialOf, rotOf, toneOf } from '@/views/instance/shared'
 
-type MoreAction = 'forceRestart' | 'delete' | 'fileManager'
+type MoreAction = 'forceRestart' | 'restart' | 'delete' | 'fileManager' | 'maintenanceOn' | 'maintenanceOff'
 
 const props = defineProps<{
   item: InstanceRecord
   typeLabel: string
   canDelete: boolean
   selected: boolean
+  /** 当前时间（父级定时刷新，用于运行时长） */
+  now: number
 }>()
 
 const emit = defineEmits<{
   toggleSelect: [value: boolean]
   console: []
   config: []
-  changeStatus: [
-    value:
-      | typeof InstanceStatus.INSTANCE_STATUS_RUNNING
-      | typeof InstanceStatus.INSTANCE_STATUS_STOPPED,
-  ]
+  changeStatus: [value: typeof InstanceStatus.INSTANCE_STATUS_RUNNING | typeof InstanceStatus.INSTANCE_STATUS_STOPPED]
   moreAction: [value: MoreAction]
 }>()
 
 const { t } = useI18n()
 
-const TONES = ['p', 'a2', 'a', 'ok']
-const ROTS = ['-4deg', '3deg', '-2deg', '4deg']
-// 按 id 稳定取色，同一个应用每次都是同一种贴纸色
-const hash = computed(() => [...(props.item.id || '')].reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 7))
-const tone = computed(() => TONES[hash.value % TONES.length])
-const rot = computed(() => ROTS[hash.value % ROTS.length])
-const initial = computed(() => (props.item.name || '?').trim().charAt(0).toUpperCase())
+const tone = computed(() => toneOf(props.item.id))
+const rot = computed(() => rotOf(props.item.id))
+const initial = computed(() => initialOf(props.item.name))
+const detailRoute = computed(() => ({ path: `/instance/app/${props.item.id}`, query: { tabTitle: props.item.name } }))
 
 const tags = computed(() =>
   (props.item.tags || '')
-    .split(',')
-    .map((s) => s.trim())
+    .split(/[,，]/u)
+    .map((s) => s.trim().replace(/^#/u, ''))
     .filter(Boolean)
     .slice(0, 3),
 )
 
-const isRunningLike = computed(() => props.item.status === InstanceStatus.INSTANCE_STATUS_RUNNING)
+const isRunning = computed(() => props.item.status === InstanceStatus.INSTANCE_STATUS_RUNNING)
+const isMaintenance = computed(() => props.item.status === InstanceStatus.INSTANCE_STATUS_MAINTENANCE)
 
 const statusVariantMap: Record<InstanceStatus, 'success' | 'neutral' | 'warning' | 'error'> = {
   [InstanceStatus.INSTANCE_STATUS_RUNNING]: 'success',
@@ -127,27 +128,45 @@ const statusVariantMap: Record<InstanceStatus, 'success' | 'neutral' | 'warning'
 }
 const statusVariant = computed(() => statusVariantMap[props.item.status] || 'neutral')
 
+const fmtTime = (value: unknown) => {
+  if (!value) return '—'
+  const date = dayjs(value as string | Date)
+  return date.isValid() ? date.format('MM-DD HH:mm') : '—'
+}
+const fmtDate = (value: unknown) => {
+  if (!value) return '—'
+  const date = dayjs(value as string | Date)
+  return date.isValid() ? date.format('YYYY-MM-DD') : '—'
+}
+
+// 信息格第一格：运行中显示已运行时长；维护中显示维护开始时间；否则显示最近一次停止时间
+const upLabel = computed(() => {
+  if (isRunning.value) return t('instance.ui.upRunning')
+  if (isMaintenance.value) return t('instance.ui.upMaintenance')
+  return t('instance.ui.upStoppedAt')
+})
+const upValue = computed(() => {
+  const i = props.item
+  if (isRunning.value) {
+    return i.startTime ? fmtDuration(t, props.now - dayjs(i.startTime as unknown as string).valueOf()) : '—'
+  }
+  if (isMaintenance.value) return fmtTime(i.maintenanceTime)
+  return i.stopTime ? fmtTime(i.stopTime) : t('instance.ui.neverRun')
+})
+
 const moreItems = computed<ActionMenuItem[]>(() => [
-  { key: 'config', label: t('instance.config'), icon: 'HOutline:Cog6ToothIcon' },
-  { key: 'forceRestart', label: t('instance.forceRestart'), icon: 'HOutline:ArrowPathIcon' },
-  {
-    key: 'delete',
-    label: t('common.delete'),
-    icon: 'HOutline:TrashIcon',
-    danger: true,
-    hidden: !props.canDelete,
-  },
+  { key: 'config', label: t('instance.ui.editApp'), icon: 'HOutline:PencilSquareIcon' },
+  { key: 'restart', label: t('instance.restart'), icon: 'HOutline:ArrowPathIcon', disabled: isMaintenance.value },
+  { key: 'forceRestart', label: t('instance.forceRestart'), icon: 'HOutline:BoltIcon', disabled: isMaintenance.value },
+  props.item.maintenance
+    ? { key: 'maintenanceOff', label: t('instance.ui.endMaintenance'), icon: 'HOutline:CheckBadgeIcon' }
+    : { key: 'maintenanceOn', label: t('instance.ui.enterMaintenance'), icon: 'HOutline:WrenchScrewdriverIcon' },
+  { key: 'delete', label: t('common.delete'), icon: 'HOutline:TrashIcon', danger: true, hidden: !props.canDelete },
 ])
 
 const onMore = (key: string) => {
   if (key === 'config') emit('config')
   else emit('moreAction', key as MoreAction)
-}
-
-const fmtTime = (value: unknown) => {
-  if (!value) return '—'
-  const date = dayjs(value as string | Date)
-  return date.isValid() ? date.format('MM-DD HH:mm') : '—'
 }
 </script>
 
@@ -179,6 +198,7 @@ const fmtTime = (value: unknown) => {
   height: 46px;
   border-radius: 15px;
   font-size: 1.2rem;
+  flex: none;
 }
 .inst-card__title {
   flex: 1;
@@ -191,9 +211,13 @@ const fmtTime = (value: unknown) => {
   font-size: 1.0625rem;
   font-weight: 800;
   color: var(--el-text-color-primary);
+  text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.inst-card__name:hover {
+  color: var(--m-pInk);
 }
 .inst-card__type {
   display: flex;
@@ -204,7 +228,13 @@ const fmtTime = (value: unknown) => {
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
+.inst-card__type-t {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .inst-card__badge {
+  flex: none;
   display: inline-flex;
   align-items: center;
   height: 20px;
@@ -215,21 +245,43 @@ const fmtTime = (value: unknown) => {
   font-size: 0.6875rem;
   font-weight: 700;
 }
+/* 勾选框本身 20px，外面一圈透明点击区（PC 40 / 手机 44），负边距不占布局 */
+.inst-card__hit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin: -10px;
+  cursor: pointer;
+}
 .inst-card__check {
   width: 20px;
   height: 20px;
+  margin: 0;
   flex: none;
   accent-color: var(--m-p);
   cursor: pointer;
+}
+@media (width < 768px) {
+  .inst-card__hit {
+    width: 44px;
+    height: 44px;
+    margin: -12px;
+  }
 }
 .inst-card__remark {
   padding-right: 4px;
   font-size: 0.875rem;
   line-height: 1.45;
-  color: var(--el-text-color-regular);
+  color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.inst-card__remark.is-empty {
+  color: var(--el-text-color-secondary);
 }
 .inst-card__info {
   display: grid;
@@ -254,7 +306,7 @@ const fmtTime = (value: unknown) => {
 .inst-card__info dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -311,5 +363,12 @@ const fmtTime = (value: unknown) => {
   width: 40px;
   height: 40px;
   border-radius: 14px;
+}
+@media (width < 768px) {
+  .inst-card__foot :deep(.app-icon-btn),
+  .inst-card__foot :deep(.action-menu__trigger) {
+    width: 44px !important;
+    height: 44px !important;
+  }
 }
 </style>

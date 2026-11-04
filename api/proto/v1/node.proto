@@ -112,10 +112,14 @@ message ListAPIKeysRequest {
   int64 page = 1;
   // page size
   int64 page_size = 2;
-  // 名称关键字
+  // 关键字：名称 / 备注 / Key ID 前缀；查看全部用户时还匹配所属用户
   optional string keywords = 3;
   // 按有效状态筛选；不传表示全部
   optional APIKeyStatus status = 4;
+  // 查看全部用户的 API Key（需要 api_key:manage）；为 false 只列出自己的
+  bool all_users = 5;
+  // 按所属用户筛选（仅 all_users 时有效）
+  optional string owner_id = 6;
 }
 
 // API Key 有效状态
@@ -143,6 +147,26 @@ message ListAPIKeysResponse {
   int64 expiring_count = 6;
   // 已过期数量
   int64 expired_count = 7;
+  // 所属用户及其密钥数（仅 all_users 时返回，用于「所属用户」筛选）
+  repeated APIKeyOwnerStat owners = 8;
+}
+
+// API Key 所属用户
+message APIKeyOwner {
+  // 用户 id
+  string user_id = 1;
+  // 昵称
+  string name = 2;
+  // 用户名
+  string username = 3;
+  // 头像
+  string avatar = 4;
+}
+
+// 所属用户的密钥数
+message APIKeyOwnerStat {
+  APIKeyOwner owner = 1;
+  int64 count = 2;
 }
 
 message CopyAPIKeyRequest {
@@ -223,6 +247,10 @@ message APIKeyInfo {
   string last_used_ip = 11;
   // 有效状态
   APIKeyStatus status = 12;
+  // 所属用户
+  APIKeyOwner owner = 13;
+  // 是否当前用户自己的密钥（只有自己的密钥可以复制完整密钥与刷新）
+  bool mine = 14;
 }
 
 // 节点连接状态

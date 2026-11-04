@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// IQCheckPrompt 智商检测提示词：定时检测时从启用的提示词中随机选一条发给上游模型。
+// IQCheckPrompt 智商检测提示词：每轮检测把全部启用的提示词逐个发给站点的每个模型。
 type IQCheckPrompt struct {
 	ent.Schema
 }
@@ -20,6 +20,11 @@ func (IQCheckPrompt) Fields() []ent.Field {
 		field.Text("content").NotEmpty().Comment("提示词内容"),
 		field.Bool("enabled").Default(true).Comment("是否启用"),
 		field.Int("order").Default(0).Comment("排序，越小越靠前"),
+		field.Enum("category").
+			Values("other", "logic", "math", "coding", "drawing", "writing").
+			Default("other").
+			Comment("分类：other=其他，logic=逻辑推理，math=数学，coding=编程，drawing=画图，writing=写作"),
+		field.String("grading").Default("").Comment("评分方式说明"),
 	}
 }
 

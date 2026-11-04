@@ -192,6 +192,20 @@ func (_u *MenuUpdate) ClearParentID() *MenuUpdate {
 	return _u
 }
 
+// SetHidden sets the "hidden" field.
+func (_u *MenuUpdate) SetHidden(v bool) *MenuUpdate {
+	_u.mutation.SetHidden(v)
+	return _u
+}
+
+// SetNillableHidden sets the "hidden" field if the given value is not nil.
+func (_u *MenuUpdate) SetNillableHidden(v *bool) *MenuUpdate {
+	if v != nil {
+		_u.SetHidden(*v)
+	}
+	return _u
+}
+
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
 func (_u *MenuUpdate) AddRoleIDs(ids ...string) *MenuUpdate {
 	_u.mutation.AddRoleIDs(ids...)
@@ -345,6 +359,9 @@ func (_u *MenuUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.ParentIDCleared() {
 		_spec.ClearField(menu.FieldParentID, field.TypeString)
+	}
+	if value, ok := _u.mutation.Hidden(); ok {
+		_spec.SetField(menu.FieldHidden, field.TypeBool, value)
 	}
 	if _u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -574,6 +591,20 @@ func (_u *MenuUpdateOne) ClearParentID() *MenuUpdateOne {
 	return _u
 }
 
+// SetHidden sets the "hidden" field.
+func (_u *MenuUpdateOne) SetHidden(v bool) *MenuUpdateOne {
+	_u.mutation.SetHidden(v)
+	return _u
+}
+
+// SetNillableHidden sets the "hidden" field if the given value is not nil.
+func (_u *MenuUpdateOne) SetNillableHidden(v *bool) *MenuUpdateOne {
+	if v != nil {
+		_u.SetHidden(*v)
+	}
+	return _u
+}
+
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
 func (_u *MenuUpdateOne) AddRoleIDs(ids ...string) *MenuUpdateOne {
 	_u.mutation.AddRoleIDs(ids...)
@@ -757,6 +788,9 @@ func (_u *MenuUpdateOne) sqlSave(ctx context.Context) (_node *Menu, err error) {
 	}
 	if _u.mutation.ParentIDCleared() {
 		_spec.ClearField(menu.FieldParentID, field.TypeString)
+	}
+	if value, ok := _u.mutation.Hidden(); ok {
+		_spec.SetField(menu.FieldHidden, field.TypeBool, value)
 	}
 	if _u.mutation.RolesCleared() {
 		edge := &sqlgraph.EdgeSpec{

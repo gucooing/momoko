@@ -97,7 +97,12 @@ func NewNetworkUsecase(repo NetworkRepo) (*NetworkUsecase, func(), error) {
 		return nil, nil, err
 	}
 	for _, info := range list {
-		uc.manager.RegisterExample(toPortForwardOption(info))
+		if info.AutoStart {
+			uc.manager.RegisterExample(toPortForwardOption(info))
+			continue
+		}
+		// 未开机自启：服务重启后保持停用，避免被判为「已启用但未运行」的异常。
+		_, _ = repo.UpdatePortForward(context.Background(), nil, &v1.UpdatePortForwardRequest{Id: info.ID, IsEnable: new(false)})
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -504,6 +509,7 @@ func (n *NetworkUsecase) toV1PortForwardInfo(forward *gen.PortForward) *v1.PortF
 		TargetAddress: forward.TargetAddress,
 		TargetPort:    int32(forward.TargetPort),
 		IsEnable:      forward.IsEnable,
+		AutoStart:     forward.AutoStart,
 		Remark:        forward.Remark,
 		CreateTime:    timestamppb.New(forward.CreateTime),
 		UpdateTime:    timestamppb.New(forward.UpdateTime),

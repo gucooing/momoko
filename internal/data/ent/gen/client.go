@@ -13,6 +13,7 @@ import (
 
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
+	"momoko/internal/data/ent/gen/filesharedownload"
 	"momoko/internal/data/ent/gen/filesource"
 	"momoko/internal/data/ent/gen/fileupload"
 	"momoko/internal/data/ent/gen/fileuploadchunk"
@@ -56,6 +57,8 @@ type Client struct {
 	EmailTemplate *EmailTemplateClient
 	// FileShare is the client for interacting with the FileShare builders.
 	FileShare *FileShareClient
+	// FileShareDownload is the client for interacting with the FileShareDownload builders.
+	FileShareDownload *FileShareDownloadClient
 	// FileSource is the client for interacting with the FileSource builders.
 	FileSource *FileSourceClient
 	// FileUpload is the client for interacting with the FileUpload builders.
@@ -119,6 +122,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.EmailTemplate = NewEmailTemplateClient(c.config)
 	c.FileShare = NewFileShareClient(c.config)
+	c.FileShareDownload = NewFileShareDownloadClient(c.config)
 	c.FileSource = NewFileSourceClient(c.config)
 	c.FileUpload = NewFileUploadClient(c.config)
 	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
@@ -234,35 +238,36 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		EmailTemplate:   NewEmailTemplateClient(cfg),
-		FileShare:       NewFileShareClient(cfg),
-		FileSource:      NewFileSourceClient(cfg),
-		FileUpload:      NewFileUploadClient(cfg),
-		FileUploadChunk: NewFileUploadChunkClient(cfg),
-		FrpTunnel:       NewFrpTunnelClient(cfg),
-		FrpTunnelStat:   NewFrpTunnelStatClient(cfg),
-		IQCheckPrompt:   NewIQCheckPromptClient(cfg),
-		IQCheckResult:   NewIQCheckResultClient(cfg),
-		IQCheckSite:     NewIQCheckSiteClient(cfg),
-		Instance:        NewInstanceClient(cfg),
-		InstanceType:    NewInstanceTypeClient(cfg),
-		Menu:            NewMenuClient(cfg),
-		Node:            NewNodeClient(cfg),
-		OIDCClient:      NewOIDCClientClient(cfg),
-		OperationLog:    NewOperationLogClient(cfg),
-		PortForward:     NewPortForwardClient(cfg),
-		PortForwardStat: NewPortForwardStatClient(cfg),
-		Role:            NewRoleClient(cfg),
-		SQLMigration:    NewSQLMigrationClient(cfg),
-		SSHHost:         NewSSHHostClient(cfg),
-		Session:         NewSessionClient(cfg),
-		SystemConfig:    NewSystemConfigClient(cfg),
-		Task:            NewTaskClient(cfg),
-		User:            NewUserClient(cfg),
-		UserAPIKey:      NewUserAPIKeyClient(cfg),
-		UserMessage:     NewUserMessageClient(cfg),
+		ctx:               ctx,
+		config:            cfg,
+		EmailTemplate:     NewEmailTemplateClient(cfg),
+		FileShare:         NewFileShareClient(cfg),
+		FileShareDownload: NewFileShareDownloadClient(cfg),
+		FileSource:        NewFileSourceClient(cfg),
+		FileUpload:        NewFileUploadClient(cfg),
+		FileUploadChunk:   NewFileUploadChunkClient(cfg),
+		FrpTunnel:         NewFrpTunnelClient(cfg),
+		FrpTunnelStat:     NewFrpTunnelStatClient(cfg),
+		IQCheckPrompt:     NewIQCheckPromptClient(cfg),
+		IQCheckResult:     NewIQCheckResultClient(cfg),
+		IQCheckSite:       NewIQCheckSiteClient(cfg),
+		Instance:          NewInstanceClient(cfg),
+		InstanceType:      NewInstanceTypeClient(cfg),
+		Menu:              NewMenuClient(cfg),
+		Node:              NewNodeClient(cfg),
+		OIDCClient:        NewOIDCClientClient(cfg),
+		OperationLog:      NewOperationLogClient(cfg),
+		PortForward:       NewPortForwardClient(cfg),
+		PortForwardStat:   NewPortForwardStatClient(cfg),
+		Role:              NewRoleClient(cfg),
+		SQLMigration:      NewSQLMigrationClient(cfg),
+		SSHHost:           NewSSHHostClient(cfg),
+		Session:           NewSessionClient(cfg),
+		SystemConfig:      NewSystemConfigClient(cfg),
+		Task:              NewTaskClient(cfg),
+		User:              NewUserClient(cfg),
+		UserAPIKey:        NewUserAPIKeyClient(cfg),
+		UserMessage:       NewUserMessageClient(cfg),
 	}, nil
 }
 
@@ -280,35 +285,36 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:             ctx,
-		config:          cfg,
-		EmailTemplate:   NewEmailTemplateClient(cfg),
-		FileShare:       NewFileShareClient(cfg),
-		FileSource:      NewFileSourceClient(cfg),
-		FileUpload:      NewFileUploadClient(cfg),
-		FileUploadChunk: NewFileUploadChunkClient(cfg),
-		FrpTunnel:       NewFrpTunnelClient(cfg),
-		FrpTunnelStat:   NewFrpTunnelStatClient(cfg),
-		IQCheckPrompt:   NewIQCheckPromptClient(cfg),
-		IQCheckResult:   NewIQCheckResultClient(cfg),
-		IQCheckSite:     NewIQCheckSiteClient(cfg),
-		Instance:        NewInstanceClient(cfg),
-		InstanceType:    NewInstanceTypeClient(cfg),
-		Menu:            NewMenuClient(cfg),
-		Node:            NewNodeClient(cfg),
-		OIDCClient:      NewOIDCClientClient(cfg),
-		OperationLog:    NewOperationLogClient(cfg),
-		PortForward:     NewPortForwardClient(cfg),
-		PortForwardStat: NewPortForwardStatClient(cfg),
-		Role:            NewRoleClient(cfg),
-		SQLMigration:    NewSQLMigrationClient(cfg),
-		SSHHost:         NewSSHHostClient(cfg),
-		Session:         NewSessionClient(cfg),
-		SystemConfig:    NewSystemConfigClient(cfg),
-		Task:            NewTaskClient(cfg),
-		User:            NewUserClient(cfg),
-		UserAPIKey:      NewUserAPIKeyClient(cfg),
-		UserMessage:     NewUserMessageClient(cfg),
+		ctx:               ctx,
+		config:            cfg,
+		EmailTemplate:     NewEmailTemplateClient(cfg),
+		FileShare:         NewFileShareClient(cfg),
+		FileShareDownload: NewFileShareDownloadClient(cfg),
+		FileSource:        NewFileSourceClient(cfg),
+		FileUpload:        NewFileUploadClient(cfg),
+		FileUploadChunk:   NewFileUploadChunkClient(cfg),
+		FrpTunnel:         NewFrpTunnelClient(cfg),
+		FrpTunnelStat:     NewFrpTunnelStatClient(cfg),
+		IQCheckPrompt:     NewIQCheckPromptClient(cfg),
+		IQCheckResult:     NewIQCheckResultClient(cfg),
+		IQCheckSite:       NewIQCheckSiteClient(cfg),
+		Instance:          NewInstanceClient(cfg),
+		InstanceType:      NewInstanceTypeClient(cfg),
+		Menu:              NewMenuClient(cfg),
+		Node:              NewNodeClient(cfg),
+		OIDCClient:        NewOIDCClientClient(cfg),
+		OperationLog:      NewOperationLogClient(cfg),
+		PortForward:       NewPortForwardClient(cfg),
+		PortForwardStat:   NewPortForwardStatClient(cfg),
+		Role:              NewRoleClient(cfg),
+		SQLMigration:      NewSQLMigrationClient(cfg),
+		SSHHost:           NewSSHHostClient(cfg),
+		Session:           NewSessionClient(cfg),
+		SystemConfig:      NewSystemConfigClient(cfg),
+		Task:              NewTaskClient(cfg),
+		User:              NewUserClient(cfg),
+		UserAPIKey:        NewUserAPIKeyClient(cfg),
+		UserMessage:       NewUserMessageClient(cfg),
 	}, nil
 }
 
@@ -338,11 +344,12 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite,
-		c.Instance, c.InstanceType, c.Menu, c.Node, c.OIDCClient, c.OperationLog,
-		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.User, c.UserAPIKey, c.UserMessage,
+		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
+		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt,
+		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu, c.Node,
+		c.OIDCClient, c.OperationLog, c.PortForward, c.PortForwardStat, c.Role,
+		c.SQLMigration, c.SSHHost, c.Session, c.SystemConfig, c.Task, c.User,
+		c.UserAPIKey, c.UserMessage,
 	} {
 		n.Use(hooks...)
 	}
@@ -352,11 +359,12 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.EmailTemplate, c.FileShare, c.FileSource, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite,
-		c.Instance, c.InstanceType, c.Menu, c.Node, c.OIDCClient, c.OperationLog,
-		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.User, c.UserAPIKey, c.UserMessage,
+		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
+		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt,
+		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu, c.Node,
+		c.OIDCClient, c.OperationLog, c.PortForward, c.PortForwardStat, c.Role,
+		c.SQLMigration, c.SSHHost, c.Session, c.SystemConfig, c.Task, c.User,
+		c.UserAPIKey, c.UserMessage,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -369,6 +377,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.EmailTemplate.mutate(ctx, m)
 	case *FileShareMutation:
 		return c.FileShare.mutate(ctx, m)
+	case *FileShareDownloadMutation:
+		return c.FileShareDownload.mutate(ctx, m)
 	case *FileSourceMutation:
 		return c.FileSource.mutate(ctx, m)
 	case *FileUploadMutation:
@@ -703,6 +713,139 @@ func (c *FileShareClient) mutate(ctx context.Context, m *FileShareMutation) (Val
 		return (&FileShareDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown FileShare mutation op: %q", m.Op())
+	}
+}
+
+// FileShareDownloadClient is a client for the FileShareDownload schema.
+type FileShareDownloadClient struct {
+	config
+}
+
+// NewFileShareDownloadClient returns a client for the FileShareDownload from the given config.
+func NewFileShareDownloadClient(c config) *FileShareDownloadClient {
+	return &FileShareDownloadClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `filesharedownload.Hooks(f(g(h())))`.
+func (c *FileShareDownloadClient) Use(hooks ...Hook) {
+	c.hooks.FileShareDownload = append(c.hooks.FileShareDownload, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `filesharedownload.Intercept(f(g(h())))`.
+func (c *FileShareDownloadClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FileShareDownload = append(c.inters.FileShareDownload, interceptors...)
+}
+
+// Create returns a builder for creating a FileShareDownload entity.
+func (c *FileShareDownloadClient) Create() *FileShareDownloadCreate {
+	mutation := newFileShareDownloadMutation(c.config, OpCreate)
+	return &FileShareDownloadCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FileShareDownload entities.
+func (c *FileShareDownloadClient) CreateBulk(builders ...*FileShareDownloadCreate) *FileShareDownloadCreateBulk {
+	return &FileShareDownloadCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FileShareDownloadClient) MapCreateBulk(slice any, setFunc func(*FileShareDownloadCreate, int)) *FileShareDownloadCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FileShareDownloadCreateBulk{err: fmt.Errorf("calling to FileShareDownloadClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FileShareDownloadCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FileShareDownloadCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FileShareDownload.
+func (c *FileShareDownloadClient) Update() *FileShareDownloadUpdate {
+	mutation := newFileShareDownloadMutation(c.config, OpUpdate)
+	return &FileShareDownloadUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FileShareDownloadClient) UpdateOne(_m *FileShareDownload) *FileShareDownloadUpdateOne {
+	mutation := newFileShareDownloadMutation(c.config, OpUpdateOne, withFileShareDownload(_m))
+	return &FileShareDownloadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FileShareDownloadClient) UpdateOneID(id int) *FileShareDownloadUpdateOne {
+	mutation := newFileShareDownloadMutation(c.config, OpUpdateOne, withFileShareDownloadID(id))
+	return &FileShareDownloadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FileShareDownload.
+func (c *FileShareDownloadClient) Delete() *FileShareDownloadDelete {
+	mutation := newFileShareDownloadMutation(c.config, OpDelete)
+	return &FileShareDownloadDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FileShareDownloadClient) DeleteOne(_m *FileShareDownload) *FileShareDownloadDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FileShareDownloadClient) DeleteOneID(id int) *FileShareDownloadDeleteOne {
+	builder := c.Delete().Where(filesharedownload.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FileShareDownloadDeleteOne{builder}
+}
+
+// Query returns a query builder for FileShareDownload.
+func (c *FileShareDownloadClient) Query() *FileShareDownloadQuery {
+	return &FileShareDownloadQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFileShareDownload},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FileShareDownload entity by its id.
+func (c *FileShareDownloadClient) Get(ctx context.Context, id int) (*FileShareDownload, error) {
+	return c.Query().Where(filesharedownload.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FileShareDownloadClient) GetX(ctx context.Context, id int) *FileShareDownload {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *FileShareDownloadClient) Hooks() []Hook {
+	return c.hooks.FileShareDownload
+}
+
+// Interceptors returns the client interceptors.
+func (c *FileShareDownloadClient) Interceptors() []Interceptor {
+	return c.inters.FileShareDownload
+}
+
+func (c *FileShareDownloadClient) mutate(ctx context.Context, m *FileShareDownloadMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FileShareDownloadCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FileShareDownloadUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FileShareDownloadUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FileShareDownloadDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown FileShareDownload mutation op: %q", m.Op())
 	}
 }
 
@@ -3166,6 +3309,22 @@ func (c *RoleClient) QueryMenus(_m *Role) *MenuQuery {
 	return query
 }
 
+// QueryUsers queries the users edge of a Role.
+func (c *RoleClient) QueryUsers(_m *Role) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(role.Table, role.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, role.UsersTable, role.UsersPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *RoleClient) Hooks() []Hook {
 	return c.hooks.Role
@@ -4012,15 +4171,15 @@ func (c *UserClient) GetX(ctx context.Context, id string) *User {
 	return obj
 }
 
-// QueryRole queries the role edge of a User.
-func (c *UserClient) QueryRole(_m *User) *RoleQuery {
+// QueryRoles queries the roles edge of a User.
+func (c *UserClient) QueryRoles(_m *User) *RoleQuery {
 	query := (&RoleClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(role.Table, role.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, user.RoleTable, user.RoleColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.RolesTable, user.RolesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -4370,18 +4529,18 @@ func (c *UserMessageClient) mutate(ctx context.Context, m *UserMessageMutation) 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
-		InstanceType, Menu, Node, OIDCClient, OperationLog, PortForward,
-		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
-		User, UserAPIKey, UserMessage []ent.Hook
+		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
+		FileUploadChunk, FrpTunnel, FrpTunnelStat, IQCheckPrompt, IQCheckResult,
+		IQCheckSite, Instance, InstanceType, Menu, Node, OIDCClient, OperationLog,
+		PortForward, PortForwardStat, Role, SQLMigration, SSHHost, Session,
+		SystemConfig, Task, User, UserAPIKey, UserMessage []ent.Hook
 	}
 	inters struct {
-		EmailTemplate, FileShare, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
-		InstanceType, Menu, Node, OIDCClient, OperationLog, PortForward,
-		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
-		User, UserAPIKey, UserMessage []ent.Interceptor
+		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
+		FileUploadChunk, FrpTunnel, FrpTunnelStat, IQCheckPrompt, IQCheckResult,
+		IQCheckSite, Instance, InstanceType, Menu, Node, OIDCClient, OperationLog,
+		PortForward, PortForwardStat, Role, SQLMigration, SSHHost, Session,
+		SystemConfig, Task, User, UserAPIKey, UserMessage []ent.Interceptor
 	}
 )
 

@@ -37,8 +37,10 @@ type PortForward struct {
 	TargetAddress string `json:"target_address,omitempty"`
 	// 目标端口
 	TargetPort int `json:"target_port,omitempty"`
-	// 是否启用
+	// 是否启用（当前是否应在运行）
 	IsEnable bool `json:"is_enable,omitempty"`
+	// 开机自启：服务启动时自动运行；关闭时服务重启后规则保持停用
+	AutoStart bool `json:"auto_start,omitempty"`
 	// 备注
 	Remark string `json:"remark,omitempty"`
 	// 自创建（或上次清零）起累计入站流量(字节)，运行中定期落库
@@ -76,7 +78,7 @@ func (*PortForward) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case portforward.FieldIsEnable:
+		case portforward.FieldIsEnable, portforward.FieldAutoStart:
 			values[i] = new(sql.NullBool)
 		case portforward.FieldListenPort, portforward.FieldTargetPort, portforward.FieldTotalBytesIn, portforward.FieldTotalBytesOut:
 			values[i] = new(sql.NullInt64)
@@ -164,6 +166,12 @@ func (_m *PortForward) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_enable", values[i])
 			} else if value.Valid {
 				_m.IsEnable = value.Bool
+			}
+		case portforward.FieldAutoStart:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field auto_start", values[i])
+			} else if value.Valid {
+				_m.AutoStart = value.Bool
 			}
 		case portforward.FieldRemark:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -253,6 +261,9 @@ func (_m *PortForward) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_enable=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsEnable))
+	builder.WriteString(", ")
+	builder.WriteString("auto_start=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AutoStart))
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)

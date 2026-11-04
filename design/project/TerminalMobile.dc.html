@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Web SSH 终端 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-stop{background:var(--badSoft);color:var(--bad)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.term{background:#0F0B14;color:#E8E3EE;font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-size:11.5px;line-height:1.5}
+.ln{white-space:pre-wrap;word-break:break-all;min-height:1.5em}
+.cur{display:inline-block;width:.62em;height:1.15em;vertical-align:-.2em;background:#E8E3EE;animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){.cur{animation:none}}
+.xk{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;padding:0 10px;border-radius:12px;border:1px solid var(--line);background:var(--s);color:var(--ink);font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-size:14px;font-weight:700;cursor:pointer;flex:none}
+.xk:active{background:var(--s2)}
+.xk-on,.xk-on:active{background:var(--p);border-color:var(--p);color:var(--pOn)}
+.kb{display:flex;flex-direction:column;gap:9px;padding:9px 4px 26px;background:var(--s2)}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1;max-width:34px;height:42px;border-radius:7px;background:var(--s);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500;box-shadow:0 1px 0 var(--line)}
+.k-fn{max-width:48px;flex:1.4;font-size:13px;font-weight:700;background:var(--line)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: center; gap: 4px; padding: 14px 10px 10px 6px; background: var(--s); border-bottom: 1px solid var(--line)">
+    <a class="ib" href="SSHMobile.dc.html" aria-label="返回 SSH 主机"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg></a>
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+      <span class="mono" style="font-size: 15px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">root@vps-tokyo</span>
+      <span class="num" style="font-size: 12px; font-weight: 700; color: {{connFg}}">● {{connT}}</span>
+    </div>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    <button class="ib" aria-label="复制、粘贴与字号"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    <button class="btn {{connBtnCls}}" onClick="{{toggleConn}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.power}}"></path></svg>{{connBtn}}</button>
+  </header>
+
+  <div class="term" role="log" aria-label="vps-tokyo 终端输出" style="flex: 1; min-height: 0; padding: 10px 12px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; position: relative">
+    <sc-for list="{{lines}}" as="ln" hint-placeholder-count="20">
+      <div class="ln"><sc-for list="{{ln.s}}" as="sg" hint-placeholder-count="2"><span style="color: {{sg.c}}; font-weight: {{sg.w}}">{{sg.t}}</span></sc-for></div>
+    </sc-for>
+    <div class="ln"><span style="color: #7EE787; font-weight: 700">root@vps-tokyo</span><span>:</span><span style="color: #79C0FF; font-weight: 700">~</span><span># docker logs -f --tail 20 bl</span><sc-if value="{{connected}}" hint-placeholder-val="{{true}}"><span class="cur"></span></sc-if></div>
+    <sc-if value="{{disconnected}}" hint-placeholder-val="{{false}}">
+      <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15, 11, 20, 0.8)">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; font-family: 'Outfit', sans-serif; text-align: center; padding: 0 24px">
+          <span style="font-size: 19px; font-weight: 800; color: #E8E3EE">连接已断开</span>
+          <span style="font-size: 13px; color: #B8B0C2">输出记录还在，重新连接即可继续</span>
+          <button class="btn btn-p" onClick="{{toggleConn}}">重新连接</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 0; background: var(--s); border-top: 1px solid var(--line)">
+    <div class="hs" role="toolbar" aria-label="终端扩展按键" style="flex: 1; min-width: 0; display: flex; gap: 6px; padding: 8px 8px; overflow-x: auto">
+      <sc-for list="{{keys}}" as="k" hint-placeholder-count="12">
+        <button class="xk {{k.cls}}" aria-label="{{k.a}}" aria-pressed="{{k.on}}" onClick="{{k.pick}}">{{k.t}}</button>
+      </sc-for>
+    </div>
+    <button class="ib" aria-label="{{kbLabel}}" onClick="{{toggleKb}}" style="border-left: 1px solid var(--line); border-radius: 0; width: 52px; height: 60px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.kbd}}"></path></svg></button>
+  </div>
+
+  <sc-if value="{{kbOpen}}" hint-placeholder-val="{{true}}">
+    <div class="kb" aria-hidden="true">
+      <sc-for list="{{kbRows}}" as="row" hint-placeholder-count="4">
+        <div class="kr"><sc-for list="{{row}}" as="kk" hint-placeholder-count="10"><span class="k {{kk.cls}}" style="max-width: {{kk.mw}}">{{kk.t}}</span></sc-for></div>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  chevL: 'M15 6l-6 6 6 6',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  power: 'M12 3v9M6.3 6.8a8 8 0 1 0 11.4 0',
+  kbd: 'M3 6h18v12H3zM7 10h.01M11 10h.01M15 10h.01M7 14h10',
+  more: 'M5 12h.01M12 12h.01M19 12h.01'
+};
+const COL = { T: '#E8E3EE', D: '#8B8494', G: '#7EE787', B: '#79C0FF', Y: '#F2CC60', R: '#FF7B72', C: '#56D4DD' };
+const S = (t, c, b) => ({ t, c: COL[c || 'T'], w: b ? 700 : 400 });
+const P = (cmd) => [S('root@vps-tokyo', 'G', 1), S(':'), S('~', 'B', 1), S('# ' + cmd)];
+const LINES = [
+  [S('Last login: Tue Nov  3 14:28:51 2026 from 198.51.100.23')],
+  P('uptime'),
+  [S(' 14:41:07 up 7 days,  3:12,  1 user,  load average: 0.21, 0.18, 0.15')],
+  P('systemctl status nginx'),
+  [S('●', 'G'), S(' nginx.service - A high performance web server')],
+  [S('     Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled)', 'D')],
+  [S('     Active: '), S('active (running)', 'G', 1), S(' since Tue 2026-10-27 11:30:02 CST; 1 week ago')],
+  [S('   Main PID: 1123 (nginx)', 'D')],
+  [S('     Memory: 9.8M', 'D')],
+  P('ls /srv'),
+  [S('backup.sh', 'G', 1), S('  '), S('blog-api', 'B', 1), S('  '), S('qq-bot', 'B', 1), S('  '), S('rsshub', 'B', 1)],
+  P('df -h /'),
+  [S('Filesystem      Size  Used Avail Use% Mounted on')],
+  [S('/dev/vda1        80G   31G   46G  '), S('41%', 'Y'), S(' /')],
+  P('dps    # 别名：docker ps 精简列'),
+  [S('NAMES          STATUS', 'T', 1)],
+  [S('nginx-proxy', 'C'), S('    '), S('Up 7 days', 'G')],
+  [S('blog-db', 'C'), S('        '), S('Up 2 hours', 'G')],
+  [S('redis-cache', 'C'), S('    '), S('Exited (137) 12 minutes ago', 'R')],
+  [S('uptime-kuma', 'C'), S('    '), S('Up 7 days', 'G')]
+];
+const XKEYS = [['Esc', 'Esc'], ['Tab', 'Tab'], ['Ctrl', 'Ctrl'], ['Alt', 'Alt'], ['↑', '上'], ['↓', '下'], ['←', '左'], ['→', '右'], ['|', '竖线'], ['/', '斜杠'], ['-', '减号'], ['~', '波浪号']];
+const KB = [
+  'q w e r t y u i o p'.split(' ').map((t) => ({ t })),
+  'a s d f g h j k l'.split(' ').map((t) => ({ t })),
+  [{ t: '⇧', cls: 'k-fn' }].concat('z x c v b n m'.split(' ').map((t) => ({ t }))).concat([{ t: '⌫', cls: 'k-fn' }]),
+  [{ t: '123', cls: 'k-fn' }, { t: '中/英', cls: 'k-fn' }, { t: '空格', mw: '180px' }, { t: '.', cls: '' }, { t: '换行', cls: 'k-fn', mw: '70px' }]
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const mods = st.mods || { Ctrl: true };
+    const kbOpen = st.kb !== false;
+    const off = !!st.off;
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      lines: LINES.map((s) => ({ s })),
+      connected: !off,
+      disconnected: off,
+      connFg: off ? 'var(--bad)' : 'var(--ok)',
+      connT: off ? '已断开' : '已连接 · 延迟 42ms · 120×36',
+      connBtn: off ? '重连' : '断开',
+      connBtnCls: off ? 'btn-p' : 'btn-stop',
+      toggleConn: () => this.setState({ off: !off }),
+      keys: XKEYS.map(([t, a]) => {
+        const sticky = t === 'Ctrl' || t === 'Alt';
+        const on = sticky && !!mods[t];
+        return { t, a: sticky ? a + '（粘滞）' : a, on, cls: on ? 'xk-on' : '', pick: () => { if (sticky) this.setState({ mods: { ...mods, [t]: !mods[t] } }); } };
+      }),
+      kbOpen,
+      kbLabel: kbOpen ? '收起键盘' : '弹出键盘',
+      toggleKb: () => this.setState({ kb: !kbOpen }),
+      kbRows: KB.map((r) => r.map((k) => ({ t: k.t, cls: k.cls || '', mw: k.mw || (k.cls ? '48px' : '34px') })))
+    };
+  }
+}
+</script>
+</body>
+</html>

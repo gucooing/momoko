@@ -5,7 +5,11 @@
   <main
     ref="mainRef"
     class="app-content"
-    :class="{ 'app-content--bleed': isBleed, 'app-content--tabbar': menuStore.isMobile }"
+    :class="{
+      'app-content--bleed': isBleed,
+      'app-content--tabbar': menuStore.isMobile && !route.meta?.hideTabbar,
+      'app-content--notabbar': menuStore.isMobile && !!route.meta?.hideTabbar,
+    }"
   >
     <RouterView v-slot="{ Component, route: r }">
       <Transition :name="transitionName(r)" mode="out-in">
@@ -87,17 +91,23 @@ const isBleed = computed(() => !!route.meta?.fullBleed || contentFullBleed.value
   background: var(--el-bg-color-page);
   padding: 16px;
 }
-@media (width >= 1024px) {
+@media (width >= 992px) {
   .app-content {
-    padding: 28px 32px;
+    padding: 24px 32px 40px;
   }
 }
-/* 手机底部导航高度 ≈ 66px + 安全区，内容区留出空间 */
+/* 手机底部导航高度 ≈ 70px + 安全区，内容区留出空间 */
 .app-content--tabbar {
-  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  padding-top: calc(18px + env(safe-area-inset-top));
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
 }
 .app-content--bleed.app-content--tabbar {
-  padding-bottom: calc(66px + env(safe-area-inset-bottom));
+  padding-bottom: calc(71px + env(safe-area-inset-bottom));
+}
+/* 手机整屏页面（route.meta.hideTabbar）：没有底部导航，只留安全区 */
+.app-content--bleed.app-content--notabbar {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .app-page {
   display: flex;

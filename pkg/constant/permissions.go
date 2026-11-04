@@ -46,6 +46,8 @@ const (
 	ApiKeyEdit   Permissions = "api_key:edit"
 	ApiKeyDelete Permissions = "api_key:delete"
 	ApiKeyView   Permissions = "api_key:view"
+	// ApiKeyManage 允许查看全部用户的 API Key，并吊销 / 延期 / 删除他人的密钥（不能复制或刷新他人的密钥）。
+	ApiKeyManage Permissions = "api_key:manage"
 
 	// DockerView 允许查看 Docker 资源。
 	DockerView Permissions = "docker:view"

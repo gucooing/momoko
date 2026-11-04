@@ -1,6 +1,6 @@
-<!-- 极简下划线标签（复用 tabsStore 逻辑，重写视觉）。仅在多于一个标签时显示（04 §5）。 -->
+<!-- 极简下划线标签（复用 tabsStore 逻辑，重写视觉）。仅 PC、且多于一个标签时显示（04 §5）。 -->
 <template>
-  <div v-if="themeStore.showTabs && tabsStore.tabs.length > 1" class="app-tabs">
+  <div v-if="!menuStore.isMobile && themeStore.showTabs && tabsStore.tabs.length > 1" class="app-tabs">
     <div class="app-tabs__scroll">
       <button
         v-for="tab in tabsStore.tabs"
@@ -54,11 +54,11 @@ const closeTab = (tab: TabLike) => {
 .app-tabs {
   display: flex;
   align-items: center;
-  height: 40px;
+  height: 44px;
   flex-shrink: 0;
-  padding: 0 8px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  margin: 12px 32px 0;
+  background: transparent;
+  border-bottom: 1px solid var(--el-border-color-light);
   overflow: hidden;
 }
 .app-tabs__scroll {
@@ -82,8 +82,8 @@ const closeTab = (tab: TabLike) => {
   border: none;
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   transition: color 0.15s;
@@ -92,7 +92,7 @@ const closeTab = (tab: TabLike) => {
   color: var(--el-text-color-primary);
 }
 .app-tab.is-active {
-  color: var(--el-color-primary);
+  color: var(--el-text-color-primary);
 }
 .app-tab.is-active::after {
   content: '';
@@ -100,9 +100,9 @@ const closeTab = (tab: TabLike) => {
   left: 10px;
   right: 10px;
   bottom: 0;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--el-color-primary);
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--m-p);
 }
 .app-tab__close {
   display: flex;

@@ -1,19 +1,28 @@
 <!-- 单个 SSH 会话：TerminalConsole + SSH 传输层（getSshHostInfo → wsPath → buildBackendWebSocketUrl → ws 直连，
-     @data 原样发送、onmessage 写入、@resize 上报、onopen 补发初始尺寸）。
-     同一页面可同时开多个会话（由 index.vue 用 v-show 切换），#lead 插槽由页面传入会话标签。 -->
+     @data 原样发送、文本帧写入终端、@resize 上报、onopen 补发初始尺寸）。
+     服务端控制帧走 WebSocket 二进制帧（JSON）：{"type":"latency","ms":N} 为 momoko → SSH 服务端往返延迟。
+     顶栏工具按原型：复制 / 粘贴 / 字号 / 明暗 / 全屏，最右是「断开 / 重连」药丸；底栏：状态 · 地址 · 终端类型 · 列×行 · 延迟 · 会话时长 · 认证方式。
+     手机：顶栏由 #lead 放主机与状态（插槽参数 latency / cols / rows），无底栏，终端满屏、下方按键条。
+     同一页面可同时开多个会话（由 index.vue 用 v-show 切换）。暴露 sendCommand(cmd) 给「快捷命令」。 -->
 <template>
   <TerminalConsole
     ref="term"
+    class="ssh-session"
     :title="connInfo.name || connInfo.username"
     :subtitle="addr"
     :status="socketStatus"
     :status-label="statusLabel"
     :actions="actions"
+    actions-end
+    compact-action-labels
+    :compact-footer="false"
     @data="onData"
     @resize="onResize"
     @action="onAction"
   >
-    <template v-if="$slots.lead" #lead><slot name="lead" /></template>
+    <template v-if="$slots.lead" #lead>
+      <slot name="lead" :latency="latencyMs" :cols="term?.cols || 0" :rows="term?.rows || 0" />
+    </template>
 
     <template #overlay>
       <div v-if="showOverlay" class="ssh-session__overlay">
@@ -29,9 +38,15 @@
       </div>
     </template>
 
+    <template #footer-meta>
+      <span v-if="socketStatus === 'connected' && latencyMs" class="ssh-session__meta m-num">
+        <UIcon name="i-lucide-activity" />{{ t('ssh.term.latency', { ms: latencyMs }) }}
+      </span>
+    </template>
+
     <template #footer-right>
       <span class="ssh-session__foot">
-        <span v-if="startedAt" class="m-num">{{ t('ssh.term.duration', { time: durationText }) }}</span>
+        <span v-if="startedAt" class="m-num">{{ t('ssh.term.sessionDuration', { time: durationText }) }}</span>
         <span v-if="authLabel">{{ authLabel }}</span>
       </span>
     </template>
@@ -60,11 +75,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const socketStatus = ref<ConsoleSocketStatus>('disconnected')
-const connInfo = ref({ host: '-', port: '22', username: 'root', name: '', authType: '' as string })
+const connInfo = ref({ host: '-', port: '22', username: 'root', name: '', authType: '' as string, keyType: '' })
 const wsPath = ref('')
 const everConnected = ref(false)
 const startedAt = ref(0)
 const now = ref(Date.now())
+const latencyMs = ref(0)
 
 let ws: WebSocket | null = null
 const term = ref<InstanceType<typeof TerminalConsole>>()
@@ -77,7 +93,9 @@ const setStatus = (s: ConsoleSocketStatus) => {
 const addr = computed(() => `${connInfo.value.username}@${connInfo.value.host}:${connInfo.value.port}`)
 
 const authLabel = computed(() => {
-  if (connInfo.value.authType === SSHAuthType.SSH_AUTH_TYPE_KEY) return t('ssh.term.authKey')
+  if (connInfo.value.authType === SSHAuthType.SSH_AUTH_TYPE_KEY) {
+    return connInfo.value.keyType ? `${t('ssh.term.authKey')} · ${connInfo.value.keyType}` : t('ssh.term.authKey')
+  }
   if (connInfo.value.authType === SSHAuthType.SSH_AUTH_TYPE_PASSWORD) return t('ssh.term.authPassword')
   return ''
 })
@@ -121,8 +139,8 @@ const actions = computed<TerminalAction[]>(() => {
   const live = socketStatus.value === 'connected' || socketStatus.value === 'connecting'
   return [
     live
-      ? { key: 'disconnect', icon: 'HOutline:PowerIcon', label: t('ssh.term.disconnect'), tone: 'danger' }
-      : { key: 'reconnect', icon: 'HOutline:ArrowPathIcon', label: t('ssh.common.reconnect'), tone: 'primary' },
+      ? { key: 'disconnect', icon: 'HOutline:PowerIcon', label: t('ssh.term.disconnectShort'), tone: 'danger' }
+      : { key: 'reconnect', icon: 'HOutline:ArrowPathIcon', label: t('ssh.term.reconnectShort'), tone: 'primary' },
   ]
 })
 
@@ -138,6 +156,38 @@ const buildWsUrl = () => {
   })
 }
 
+// 服务端控制帧（二进制 JSON）
+const onControl = (raw: ArrayBuffer) => {
+  try {
+    const msg = JSON.parse(new TextDecoder().decode(raw)) as { type?: string; ms?: number }
+    if (msg.type === 'latency' && typeof msg.ms === 'number') latencyMs.value = Math.max(1, Math.round(msg.ms))
+  } catch {
+    /* 非控制帧的二进制数据忽略 */
+  }
+}
+
+/** 重新拉取主机信息（快捷命令等改了之后刷新），不影响当前连接 */
+const loadInfo = async () => {
+  try {
+    const { data } = await getSshHostInfo({ id: props.hostId })
+    if (!data?.info) return null
+    const info = data.info
+    wsPath.value = info.wsPath
+    connInfo.value = {
+      host: info.host,
+      port: String(info.port),
+      username: info.username,
+      name: info.name,
+      authType: info.authType,
+      keyType: info.keyType,
+    }
+    emit('info', info)
+    return info
+  } catch {
+    return null
+  }
+}
+
 const connect = async () => {
   if (!props.hostId) {
     feedback.warning(t('ssh.common.missingParams'))
@@ -145,24 +195,8 @@ const connect = async () => {
   }
 
   setStatus('connecting')
-
-  try {
-    const { data } = await getSshHostInfo({ id: props.hostId })
-    if (data?.info) {
-      const info = data.info
-      wsPath.value = info.wsPath
-      connInfo.value = {
-        host: info.host,
-        port: String(info.port),
-        username: info.username,
-        name: info.name,
-        authType: info.authType,
-      }
-      emit('info', info)
-    }
-  } catch {
-    wsPath.value = ''
-  }
+  latencyMs.value = 0
+  if (!(await loadInfo())) wsPath.value = ''
 
   const url = buildWsUrl()
   if (!url) {
@@ -172,6 +206,7 @@ const connect = async () => {
   }
 
   const socket = new WebSocket(url)
+  socket.binaryType = 'arraybuffer'
   ws = socket
 
   socket.onopen = () => {
@@ -187,14 +222,9 @@ const connect = async () => {
     terminal?.focus()
   }
 
-  socket.onmessage = async (event) => {
-    const text =
-      typeof event.data === 'string'
-        ? event.data
-        : event.data instanceof Blob
-          ? await event.data.text()
-          : new TextDecoder().decode(event.data)
-    term.value?.write(text)
+  socket.onmessage = (event) => {
+    if (typeof event.data === 'string') term.value?.write(event.data)
+    else if (event.data instanceof ArrayBuffer) onControl(event.data)
   }
 
   socket.onerror = () => {
@@ -206,6 +236,7 @@ const connect = async () => {
     if (ws !== socket) return
     ws = null
     startedAt.value = 0
+    latencyMs.value = 0
     if (socketStatus.value !== 'disconnected') {
       if (socketStatus.value !== 'error') setStatus('disconnected')
       term.value?.writeln('')
@@ -218,6 +249,7 @@ const disconnect = () => {
   const socket = ws
   ws = null
   startedAt.value = 0
+  latencyMs.value = 0
   setStatus('disconnected')
   if (socket) {
     socket.close()
@@ -229,6 +261,16 @@ const disconnect = () => {
 const reconnect = () => {
   disconnect()
   window.setTimeout(() => void connect(), 200)
+}
+
+/** 快捷命令：整行发送并回车 */
+const sendCommand = (cmd: string) => {
+  if (ws?.readyState !== WebSocket.OPEN) {
+    feedback.warning(t('ssh.term.notConnected'))
+    return
+  }
+  ws.send(`${cmd}\r`)
+  term.value?.focus()
 }
 
 const focus = () => term.value?.focus()
@@ -244,7 +286,7 @@ onBeforeUnmount(() => {
   socket?.close()
 })
 
-defineExpose({ reconnect, disconnect, focus, fit })
+defineExpose({ reconnect, disconnect, focus, fit, sendCommand, reloadInfo: loadInfo })
 </script>
 
 <style scoped lang="scss">
@@ -275,9 +317,59 @@ defineExpose({ reconnect, disconnect, focus, fit })
   font-size: 0.875rem;
   color: #b8b0c2;
 }
+.ssh-session__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+}
+.ssh-session__meta :deep(.iconify) {
+  width: 14px;
+  height: 14px;
+}
 .ssh-session__foot {
   display: inline-flex;
   align-items: center;
   gap: 18px;
+}
+
+/* 手机（按原型）：终端满屏 —— 顶栏实底 + 下边线，屏幕无圆角，按键条实底 + 上边线 */
+@media (width <= 768px) {
+  .ssh-session.term-shell {
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .ssh-session :deep(.term-shell__bar) {
+    min-height: 60px;
+    padding: 6px 10px 6px 6px;
+    background: var(--el-bg-color);
+    border-bottom: 1px solid var(--el-border-color-light);
+  }
+  .ssh-session :deep(.term-shell__lead) {
+    gap: 2px;
+  }
+  .ssh-session :deep(.term-shell__screen) {
+    border-radius: 0;
+  }
+  .ssh-session :deep(.term-shell__keysrow) {
+    margin: 0;
+    padding: 8px 0 8px 8px;
+    gap: 0;
+    background: var(--el-bg-color);
+    border-top: 1px solid var(--el-border-color-light);
+  }
+  .ssh-session :deep(.term-shell__keys) {
+    padding-right: 8px;
+  }
+  .ssh-session :deep(.term-shell__kbd) {
+    width: 52px;
+    height: 60px;
+    margin: -8px 0;
+  }
 }
 </style>

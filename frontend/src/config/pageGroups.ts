@@ -17,6 +17,8 @@ export interface PageTab {
   labelKey: string
   perm?: string
   nodePath?: string
+  /** 标签单独作为导航入口时的图标（heroicons 名，如 HOutline:FolderIcon） */
+  icon?: string
   component: Component
 }
 
@@ -24,12 +26,24 @@ export interface PageGroup {
   path: string
   labelKey: string
   tabs: PageTab[]
+  /** PC 侧边栏把各标签展开成独立入口（原型里「文件」分组是三个入口），页内不再显示子导航，手机端照常显示 */
+  sidebarTabs?: boolean
 }
 
 const lazy = (loader: () => Promise<unknown>) =>
   defineAsyncComponent(loader as () => Promise<{ default: Component }>)
 
 export const PAGE_GROUPS = {
+  file: {
+    path: '/file',
+    labelKey: 'pageGroup.file.label',
+    sidebarTabs: true,
+    tabs: [
+      { key: 'index', labelKey: 'pageGroup.file.index', perm: 'terminal', icon: 'HOutline:FolderIcon', component: lazy(() => import('@/views/file/index/index.vue')) },
+      { key: 'share', labelKey: 'pageGroup.file.share', perm: 'file:share', icon: 'HOutline:ShareIcon', component: lazy(() => import('@/views/file/share/index.vue')) },
+      { key: 'source', labelKey: 'pageGroup.file.source', perm: 'file:source', icon: 'HOutline:CircleStackIcon', component: lazy(() => import('@/views/file/source/index.vue')) },
+    ],
+  },
   docker: {
     path: '/docker',
     labelKey: 'pageGroup.docker.label',
@@ -79,6 +93,15 @@ export const PAGE_GROUPS = {
     tabs: [
       { key: 'site', labelKey: 'pageGroup.iqcheck.site', component: lazy(() => import('@/views/iqcheck/site/index.vue')) },
       { key: 'prompt', labelKey: 'pageGroup.iqcheck.prompt', component: lazy(() => import('@/views/iqcheck/prompt/index.vue')) },
+    ],
+  },
+  // 个人中心：个人资料 / 外观（任何登录用户都可见）
+  profile: {
+    path: '/profile',
+    labelKey: 'pageGroup.profile.label',
+    tabs: [
+      { key: 'info', labelKey: 'pageGroup.profile.info', component: lazy(() => import('@/views/profile/infoTab.vue')) },
+      { key: 'appearance', labelKey: 'pageGroup.profile.appearance', component: lazy(() => import('@/views/profile/appearanceTab.vue')) },
     ],
   },
 } satisfies Record<string, PageGroup>

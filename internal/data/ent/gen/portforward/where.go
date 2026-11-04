@@ -110,6 +110,11 @@ func IsEnable(v bool) predicate.PortForward {
 	return predicate.PortForward(sql.FieldEQ(FieldIsEnable, v))
 }
 
+// AutoStart applies equality check predicate on the "auto_start" field. It's identical to AutoStartEQ.
+func AutoStart(v bool) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEQ(FieldAutoStart, v))
+}
+
 // Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
 func Remark(v string) predicate.PortForward {
 	return predicate.PortForward(sql.FieldEQ(FieldRemark, v))
@@ -573,6 +578,16 @@ func IsEnableEQ(v bool) predicate.PortForward {
 // IsEnableNEQ applies the NEQ predicate on the "is_enable" field.
 func IsEnableNEQ(v bool) predicate.PortForward {
 	return predicate.PortForward(sql.FieldNEQ(FieldIsEnable, v))
+}
+
+// AutoStartEQ applies the EQ predicate on the "auto_start" field.
+func AutoStartEQ(v bool) predicate.PortForward {
+	return predicate.PortForward(sql.FieldEQ(FieldAutoStart, v))
+}
+
+// AutoStartNEQ applies the NEQ predicate on the "auto_start" field.
+func AutoStartNEQ(v bool) predicate.PortForward {
+	return predicate.PortForward(sql.FieldNEQ(FieldAutoStart, v))
 }
 
 // RemarkEQ applies the EQ predicate on the "remark" field.

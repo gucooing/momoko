@@ -2,7 +2,8 @@
      顶栏：#lead 插槽（默认是 贴纸图标 + 标题/标签 + 副标题；SSH 页放会话标签）+ 工具（动作 / 复制 / 粘贴 / 字号 / 终端明暗 / 全屏）；
      手机端工具收进「⋯」菜单。屏幕：default 插槽承载 xterm，#overlay 插槽给断线遮罩。
      手机端屏幕下方是常用按键条（Esc/Tab/Ctrl/Alt/方向键/符号…，Ctrl/Alt 为一次性粘滞修饰，同样作用于系统键盘输入）+ 键盘开关。
-     底栏：连接状态 pill + 副标题 + 终端类型 + 列×行 + 字号 + #footer-right。
+     底栏：连接状态 pill + 副标题 + 终端类型 + 列×行 + 字号 + #footer-meta（如延迟）+ #footer-right。
+     可选：actionsEnd（动作放工具最右）、compactActionLabels（窄屏动作仍带文字）、compactFooter=false（窄屏隐藏底栏）。
      对 TerminalConsole 暴露 applyModifiers(data)，用于把粘滞的 Ctrl/Alt 应用到下一次键盘输入。
      variant="console"（应用控制台，按原型）：整张深色卡片；顶栏 = 连接状态 + 信息 + 文字按钮（清屏 / 重新连接 / 自动滚动…），
      没有底栏；#below 插槽放快捷命令与命令输入；手机按键条由 keysOpen 控制（输入行里的键盘按钮切换）。 -->
@@ -94,9 +95,9 @@
       </div>
 
       <div class="term-shell__tools" role="toolbar" :aria-label="t('terminal.tools')">
-        <template v-for="act in visibleActions" :key="act.key">
+        <template v-for="act in actionsEnd ? [] : visibleActions" :key="act.key">
           <button
-            v-if="!compact && act.tone && act.tone !== 'default'"
+            v-if="(!compact || compactActionLabels) && act.tone && act.tone !== 'default'"
             type="button"
             class="term-shell__pill"
             :class="`is-${act.tone}`"
@@ -122,7 +123,7 @@
         </template>
 
         <template v-if="!compact">
-          <span v-if="visibleActions.length" class="term-shell__sep" />
+          <span v-if="visibleActions.length && !actionsEnd" class="term-shell__sep" />
           <button type="button" class="term-shell__pill is-soft" :title="t('terminal.copy')" @click="emit('copy')">
             <UIcon name="i-lucide-copy" />
             <span>{{ t('terminal.copy') }}</span>
@@ -156,6 +157,34 @@
           </button>
         </template>
         <ActionMenu v-else :items="moreItems" :label="t('terminal.more')" @select="onMore" />
+
+        <!-- actionsEnd：连接类动作放在工具最右侧（SSH 终端按原型：… 全屏 / 断开） -->
+        <template v-for="act in actionsEnd ? visibleActions : []" :key="act.key">
+          <button
+            v-if="(!compact || compactActionLabels) && act.tone && act.tone !== 'default'"
+            type="button"
+            class="term-shell__pill"
+            :class="`is-${act.tone}`"
+            :disabled="busy || act.disabled"
+            :title="act.label"
+            @click="emit('action', act.key)"
+          >
+            <component :is="menuStore.iconComponents[act.icon]" v-if="menuStore.iconComponents[act.icon]" />
+            <span>{{ act.label }}</span>
+          </button>
+          <button
+            v-else
+            type="button"
+            class="term-shell__ib"
+            :class="`is-${act.tone || 'default'}`"
+            :disabled="busy || act.disabled"
+            :title="act.label"
+            :aria-label="act.label"
+            @click="emit('action', act.key)"
+          >
+            <component :is="menuStore.iconComponents[act.icon]" v-if="menuStore.iconComponents[act.icon]" />
+          </button>
+        </template>
       </div>
     </header>
 
@@ -196,7 +225,7 @@
 
     <slot name="below" />
 
-    <footer v-if="!isConsole" class="term-shell__foot">
+    <footer v-if="!isConsole && (compactFooter || !compact)" class="term-shell__foot">
       <StatusPill :variant="statusVariant" :label="statusLabel" />
       <span v-if="subtitle && !compact" class="term-shell__sb m-mono">{{ subtitle }}</span>
       <span v-if="!compact" class="term-shell__sb">xterm-256color · UTF-8</span>
@@ -204,6 +233,7 @@
         <UIcon name="i-lucide-scaling" />{{ cols }}×{{ rows }}
         <template v-if="fontSize && compact">· {{ fontSize }}px</template>
       </span>
+      <slot name="footer-meta" />
       <span class="term-shell__spacer" />
       <span class="term-shell__sb term-shell__foot-right"><slot name="footer-right" /></span>
     </footer>
@@ -255,10 +285,19 @@ const props = withDefaults(
     busy?: boolean
     variant?: 'card' | 'console'
     keysOpen?: boolean
+    /** 卡片顶栏：动作按钮放在工具最右侧（默认放在最左侧） */
+    actionsEnd?: boolean
+    /** 窄屏时带色调的动作仍显示文字药丸（默认只显示图标） */
+    compactActionLabels?: boolean
+    /** 窄屏是否显示底栏（默认显示；SSH 终端把状态放到顶栏） */
+    compactFooter?: boolean
   }>(),
   {
     variant: 'card',
     keysOpen: false,
+    actionsEnd: false,
+    compactActionLabels: false,
+    compactFooter: true,
     icon: 'HOutline:CommandLineIcon',
     actions: () => [],
     cols: 0,
@@ -433,7 +472,8 @@ defineExpose({ applyModifiers })
 .term-shell.is-max {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  /* 高于手机底部导航（2050） */
+  z-index: 2100;
   height: 100vh;
   border: 0;
   border-radius: 0;
@@ -955,5 +995,9 @@ defineExpose({ applyModifiers })
   width: 44px;
   height: 44px;
   border-radius: 14px;
+}
+.term-shell.is-compact .term-shell__pill {
+  min-height: 44px;
+  padding: 0 14px;
 }
 </style>

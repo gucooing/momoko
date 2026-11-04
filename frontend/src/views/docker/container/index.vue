@@ -1,172 +1,247 @@
-<!-- Docker 容器（重写 · P1 列表）：PageHeader(创建容器/任务) + FilterBar(名称/状态/镜像) + DataTable/移动卡 + Pagination。
-     行内 ActionMenu 按状态给生命周期动作 + 日志/统计/终端 + 编辑/详情/删除（管理权限门控）。
-     创建/详情/编辑走 FormDialog；日志/终端复用 TerminalConsole，统计令牌壳（见 components/*）。 -->
+<!-- Docker 容器：页头（Docker · 引擎状态 · 任务角标 · 创建容器）→ 子导航 → 进行中的创建/重建任务卡
+     → 状态 chips（全部 / 运行中 / 已停止 / 已退出 / 已暂停，带数量）+ 搜索（容器名、镜像或端口）
+     → PC 表格（可多选；名称+短 ID / 镜像 / 状态+运行时长或退出信息 / 端口 / CPU / 内存 / 日志·终端·启停 +「⋯」）
+       手机卡片（底部端口 + 日志·终端·启停·⋯，⋯ 打开底部操作面板）→ 分页 → 深色批量条（启动 / 停止 / 重启 / 删除）。
+     创建 / 重建是本标签里的子视图（?create=1 / ?recreate=<id>），编辑配置、详情、日志、统计、终端走弹窗。 -->
 <template>
-  <div class="dk-page">
-    <PageHeader :title="t('docker.container.title')" :description="t('docker.container.pageDesc')">
+  <ContainerCreate
+    v-if="createMode"
+    :key="createState.key"
+    :mode="createMode"
+    :recreate-id="createState.id"
+    :initial-image="createState.image"
+    @back="closeCreate"
+    @done="onCreateDone"
+  />
+
+  <div v-show="!createMode" class="dk-page">
+    <DockerHeader @tasks="openTasks">
       <template #actions>
-        <UButton color="neutral" variant="soft" icon="i-lucide-clock" @click="openTasks">
-          {{ t('docker.common.tasks') }}
-        </UButton>
-        <UButton v-if="canManage" color="primary" icon="i-lucide-plus" @click="openCreate">
+        <UButton v-if="canManage" color="primary" icon="i-lucide-plus" :disabled="!ready" @click="openCreate">
           {{ t('docker.container.createContainer') }}
         </UButton>
       </template>
-    </PageHeader>
+    </DockerHeader>
 
     <DockerSubNav />
 
-    <ListToolbar
-      v-model:status="queryForm.status"
-      v-model:keyword="queryForm.name"
-      :chips="statusFilterOptions"
-      :chips-label="t('docker.common.status')"
-      :placeholder="t('docker.container.namePlaceholder')"
-      @search="search"
-    >
-      <label class="dk-image-search">
-        <component :is="menuStore.iconComponents['HOutline:PhotoIcon']" />
-        <input
-          v-model="queryForm.image"
-          type="search"
-          :placeholder="t('docker.container.imagePlaceholder')"
-          :aria-label="t('docker.container.imagePlaceholder')"
-          @keyup.enter="search"
-        />
-      </label>
-    </ListToolbar>
+    <DockerUnavailable v-if="engineLoaded && !ready" @retry="init(true)" />
 
-    <div class="dk-page__body">
-      <div class="dk-page__bar">
-        <span class="dk-page__hint">{{ t('system.common.total', { total: pagination.total }) }}</span>
-      </div>
+    <template v-else>
+      <DockerPullTasks :types="ACTIVE_TYPES" :can-cancel="false" @open="openTask" />
 
-      <!-- 桌面：表格 -->
-      <DataTable
-        v-if="!menuStore.isMobile"
-        :columns="columns"
-        :rows="list"
-        row-key="id"
-        :loading="loading"
-        :empty-text="t('docker.container.noContainers')"
-      >
-        <template #cell-names="{ row }">{{ displayNames(row) }}</template>
-        <template #cell-state="{ row }">
-          <StatusPill :variant="stateVariant(row.state)" :label="stateLabel(String(row.state || ''))" />
-        </template>
-        <template #cell-status="{ row }">{{ formatContainerRuntime(row) }}</template>
-        <template #cell-network="{ row }">
-          <div v-if="networkDisplay(row).ips.length || networkDisplay(row).ports.length" class="dk-net">
-            <span v-for="ip in networkDisplay(row).ips" :key="ip" class="dk-tag">{{ ip }}</span>
-            <span v-for="port in networkDisplay(row).ports" :key="port" class="dk-tag dk-tag--port">{{ port }}</span>
-          </div>
-          <span v-else class="dk-dim">—</span>
-        </template>
-        <template #cell-operation="{ row }">
-          <div class="dk-acts">
-            <AppIconButton
-              v-for="qa in quickActionsFor(row)"
-              :key="qa.key"
-              :icon="qa.icon"
-              :label="qa.label"
-              :box="36"
-              :size="18"
-              :class="qa.tone"
-              @click="onRowAction(qa.key, row)"
-            />
-            <ActionMenu :items="menuActionsFor(row)" @select="(key) => onRowAction(key, row)" />
-          </div>
-        </template>
-      </DataTable>
+      <ListToolbar
+        v-model:status="queryForm.status"
+        v-model:keyword="queryForm.keyword"
+        :chips="statusChips"
+        :chips-label="t('docker.ctr.filterLabel')"
+        :placeholder="t('docker.ctr.searchPlaceholder')"
+        @search="search"
+      />
 
-      <!-- 移动：卡片 -->
-      <template v-else>
-        <div v-if="loading" class="dk-cards">
-          <div v-for="i in 4" :key="i" class="dk-skeleton" />
-        </div>
-        <EmptyState
-          v-else-if="!list.length"
-          icon="HOutline:CubeIcon"
-          :title="t('docker.container.noContainers')"
-          :description="t('docker.container.emptyDesc')"
-        />
-        <div v-else class="dk-cards">
-          <article v-for="row in list" :key="row.id" class="dk-card">
-            <header class="dk-card__head">
-              <span class="dk-card__name">{{ displayNames(row) }}</span>
-              <StatusPill :variant="stateVariant(row.state)" :label="stateLabel(String(row.state || ''))" />
-            </header>
-            <div class="dk-card__sub m-mono">{{ row.image }} · {{ formatContainerRuntime(row) }}</div>
-            <footer class="dk-card__foot">
-              <div class="dk-card__ports">
-                <span v-for="port in networkDisplay(row).ports" :key="port" class="dk-tag dk-tag--port">{{ port }}</span>
-                <span v-if="!networkDisplay(row).ports.length" class="dk-dim">{{ formatNetworkText(row) }}</span>
-              </div>
+      <div class="dk-page__body">
+        <!-- PC：表格 -->
+        <DataTable
+          v-if="!menuStore.isMobile"
+          v-model="selected"
+          :columns="columns"
+          :rows="list"
+          row-key="id"
+          :selectable="canManage"
+          :loading="loading"
+          :empty-text="t('docker.container.noContainers')"
+        >
+          <template #cell-names="{ row }">
+            <div class="ct-name">
+              <strong>{{ nameOf(row) }}</strong>
+              <span class="m-mono">{{ shortId(row.id) }}</span>
+            </div>
+          </template>
+          <template #cell-image="{ row }"><span class="ct-img m-mono" :title="String(row.image)">{{ row.image }}</span></template>
+          <template #cell-state="{ row }">
+            <div class="ct-state">
+              <StatusPill :variant="pillOf(row).variant" :label="pillOf(row).label" />
+              <span class="ct-sub m-num">{{ subLineOf(row) }}</span>
+            </div>
+          </template>
+          <template #cell-ports="{ row }">
+            <div v-if="portsOf(row).length" class="dk-tags">
+              <span v-for="p in portsOf(row)" :key="p" class="ct-port m-mono">{{ p }}</span>
+            </div>
+            <span v-else class="dk-dim">—</span>
+          </template>
+          <template #cell-cpu="{ row }">
+            <div v-if="usageOf(row)" class="ct-cpu">
+              <span class="ct-bar"><span :style="{ width: `${cpuBar(usageOf(row)!.cpu)}%` }" /></span>
+              <strong class="m-num">{{ usageOf(row)!.cpu.toFixed(1) }}%</strong>
+            </div>
+            <span v-else class="dk-dim">—</span>
+          </template>
+          <template #cell-mem="{ row }">
+            <strong v-if="usageOf(row)" class="ct-mem m-num" :title="usageOf(row)!.limit ? t('docker.ctr.memOf', { limit: formatBytes(usageOf(row)!.limit) }) : undefined">
+              {{ formatBytes(usageOf(row)!.mem) }}
+            </strong>
+            <span v-else class="dk-dim">—</span>
+          </template>
+          <template #cell-operation="{ row }">
+            <div class="dk-acts">
               <AppIconButton
                 v-for="qa in quickActionsFor(row)"
                 :key="qa.key"
                 :icon="qa.icon"
-                :label="qa.label"
+                :label="`${qa.label} ${nameOf(row)}`"
+                :box="36"
+                :size="18"
                 :class="qa.tone"
                 @click="onRowAction(qa.key, row)"
               />
-              <ActionMenu :items="menuActionsFor(row)" @select="(key) => onRowAction(key, row)" />
-            </footer>
-          </article>
+              <ActionMenu :items="menuActionsFor(row)" :label="t('docker.ctr.moreOf', { name: nameOf(row) })" @select="(key) => onRowAction(key, row)" />
+            </div>
+          </template>
+        </DataTable>
+
+        <!-- 手机：卡片 -->
+        <template v-else>
+          <div v-if="loading && !list.length" class="dk-cards">
+            <div v-for="i in 4" :key="i" class="dk-skeleton ct-skel" />
+          </div>
+          <EmptyState
+            v-else-if="!list.length"
+            icon="HOutline:CubeIcon"
+            :title="t('docker.container.noContainers')"
+            :description="queryForm.keyword || queryForm.status ? t('docker.ctr.noMatch') : t('docker.container.emptyDesc')"
+          />
+          <div v-else class="dk-cards">
+            <article v-for="row in list" :key="row.id" class="dk-card ct-card">
+              <header class="dk-card__head">
+                <span class="dk-card__name ct-card__name">{{ nameOf(row) }}</span>
+                <StatusPill :variant="pillOf(row).variant" :label="pillOf(row).label" />
+              </header>
+              <div class="ct-card__line">
+                <span class="ct-card__img m-mono">{{ row.image }} · {{ shortLineOf(row) }}</span>
+                <span class="ct-card__use m-num">{{ usageOf(row) ? `${usageOf(row)!.cpu.toFixed(1)}% · ${formatBytes(usageOf(row)!.mem)}` : '— · —' }}</span>
+              </div>
+              <footer class="dk-card__foot">
+                <div class="dk-card__lead ct-card__ports">
+                  <span v-for="p in portsOf(row)" :key="p" class="ct-port m-mono">{{ p }}</span>
+                </div>
+                <AppIconButton
+                  v-for="qa in quickActionsFor(row)"
+                  :key="qa.key"
+                  :icon="qa.icon"
+                  :label="`${qa.label} ${nameOf(row)}`"
+                  :box="44"
+                  :class="qa.tone"
+                  @click="onRowAction(qa.key, row)"
+                />
+                <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('docker.ctr.moreOf', { name: nameOf(row) })" :box="44" @click="openSheet(row)" />
+              </footer>
+            </article>
+          </div>
+        </template>
+
+        <div v-if="pagination.total" class="dk-pager">
+          <span class="dk-pager__info m-num">{{ rangeText }}</span>
+          <Pagination
+            v-model:page="pagination.page"
+            v-model:page-size="pagination.pageSize"
+            :total="pagination.total"
+            @change="getList"
+          />
         </div>
-      </template>
 
-      <Pagination
-        v-model:page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        @change="getList"
-      />
-    </div>
+        <Transition name="dk-pop">
+          <div v-if="selected.length" class="dk-batch" role="toolbar" :aria-label="t('docker.ctr.batchLabel')">
+            <span class="dk-batch__count">{{ t('docker.ctr.selected', { n: selected.length }) }}</span>
+            <button type="button" class="dk-batch__btn" :disabled="batchBusy" @click="runBatch('start')">
+              <component :is="menuStore.iconComponents['HOutline:PlayIcon']" />{{ t('docker.lifecycle.start') }}
+            </button>
+            <button type="button" class="dk-batch__btn" :disabled="batchBusy" @click="runBatch('stop')">
+              <component :is="menuStore.iconComponents['HOutline:StopIcon']" />{{ t('docker.lifecycle.stop') }}
+            </button>
+            <button type="button" class="dk-batch__btn" :disabled="batchBusy" @click="runBatch('restart')">
+              <component :is="menuStore.iconComponents['HOutline:ArrowPathIcon']" />{{ t('docker.lifecycle.restart') }}
+            </button>
+            <button type="button" class="dk-batch__btn is-danger" :disabled="batchBusy" @click="runBatch('delete')">
+              <component :is="menuStore.iconComponents['HOutline:TrashIcon']" />{{ t('docker.common.delete') }}
+            </button>
+            <button type="button" class="dk-batch__btn is-icon" :aria-label="t('docker.ctr.clearSelection')" @click="selected = []">
+              <component :is="menuStore.iconComponents['HOutline:XMarkIcon']" />
+            </button>
+          </div>
+        </Transition>
+      </div>
+    </template>
 
-    <!-- 创建容器 -->
-    <FormDialog v-model="createVisible" :title="t('docker.container.createContainer')" :width="700" :loading="createSubmitting" @confirm="submitCreate">
+    <!-- 手机：悬浮创建 -->
+    <button v-if="menuStore.isMobile && canManage && ready" type="button" class="dk-fab" :aria-label="t('docker.container.createContainer')" @click="openCreate">
+      <UIcon name="i-lucide-plus" />
+    </button>
+
+    <!-- 手机：行操作面板 -->
+    <DockerActionSheet
+      v-model="sheet.open"
+      :title="sheet.row ? nameOf(sheet.row) : ''"
+      :subtitle="sheet.row ? String(sheet.row.image || '') : ''"
+      icon="i-lucide-box"
+      tone="a2"
+      :pill="sheet.row ? pillOf(sheet.row) : null"
+      :quick="sheetQuick"
+      :items="sheetItems"
+      @select="(key) => sheet.row && onRowAction(key, sheet.row)"
+    />
+
+    <!-- 编辑配置 -->
+    <FormDialog v-model="editVisible" :title="t('docker.ctr.editConfig')" :width="620" :loading="editSubmitting" @confirm="submitEdit">
       <div class="dk-form">
-        <div class="dk-grid">
-          <div class="app-field">
-            <label class="app-label">{{ t('docker.container.namePlaceholder') }}</label>
-            <input v-model="createForm.name" class="app-input" :placeholder="t('docker.common.optional')" />
-          </div>
-          <div class="app-field">
-            <label class="app-label app-label--required">{{ t('docker.common.image') }}</label>
-            <AppCombobox v-model="createForm.image" :options="imageOptions" :placeholder="t('docker.container.imageInputPlaceholder')" />
-          </div>
+        <p class="dk-hint">{{ t('docker.ctr.editHint') }}</p>
+        <div class="app-field">
+          <label class="app-label">{{ t('docker.container.namePlaceholder') }}</label>
+          <input v-model="editForm.name" class="app-input m-mono" :placeholder="t('docker.container.namePlaceholder')" />
         </div>
         <div class="app-field">
-          <label class="app-label">{{ t('docker.container.startCommand') }}</label>
-          <input v-model="createForm.cmdText" class="app-input dk-mono" :placeholder="t('docker.container.commandPlaceholder')" />
+          <label class="app-label">{{ t('docker.container.restartPolicy') }}</label>
+          <div class="ct-seg" role="radiogroup" :aria-label="t('docker.container.restartPolicy')">
+            <button
+              v-for="opt in restartSeg"
+              :key="opt.value"
+              type="button"
+              role="radio"
+              :aria-checked="editForm.restartPolicy === opt.value"
+              :class="{ 'is-on': editForm.restartPolicy === opt.value }"
+              @click="editForm.restartPolicy = opt.value"
+            >{{ opt.label }}</button>
+          </div>
         </div>
         <div class="dk-grid">
           <div class="app-field">
-            <label class="app-label">{{ t('docker.common.network') }}</label>
-            <AppSelect v-model="createForm.network" :options="networkSelectOptions" searchable :placeholder="t('docker.container.defaultBridge')" />
+            <label class="app-label">{{ t('docker.container.memoryLimitMb') }}</label>
+            <div class="ct-num">
+              <input v-model.number="editForm.memoryMB" type="number" min="0" step="64" class="app-input" />
+              <span>MB</span>
+            </div>
+            <div class="ct-presets">
+              <button v-for="m in MEMORY_PRESETS" :key="m" type="button" :class="{ 'is-on': editForm.memoryMB === m }" @click="editForm.memoryMB = m">{{ m }}</button>
+              <button type="button" :class="{ 'is-on': !editForm.memoryMB }" @click="editForm.memoryMB = 0">{{ t('docker.common.unlimited') }}</button>
+            </div>
           </div>
           <div class="app-field">
-            <label class="app-label">{{ t('docker.container.restartPolicy') }}</label>
-            <div class="seg seg--wide">
-              <button
-                v-for="opt in restartSeg"
-                :key="opt.value"
-                type="button"
-                class="seg__btn"
-                :class="{ 'is-active': createForm.restartPolicy === opt.value }"
-                @click="createForm.restartPolicy = opt.value"
-              >{{ opt.label }}</button>
+            <label class="app-label">{{ t('docker.container.cpuLimitCores') }}</label>
+            <div class="ct-num">
+              <input v-model.number="editForm.nanoCpuCores" type="number" min="0" step="0.5" class="app-input" />
+              <span>{{ t('docker.common.cpuUnit') }}</span>
+            </div>
+            <div class="ct-presets">
+              <button v-for="c in CPU_PRESETS" :key="c" type="button" :class="{ 'is-on': editForm.nanoCpuCores === c }" @click="editForm.nanoCpuCores = c">{{ c }}</button>
+              <button type="button" :class="{ 'is-on': !editForm.nanoCpuCores }" @click="editForm.nanoCpuCores = 0">{{ t('docker.common.unlimited') }}</button>
             </div>
           </div>
         </div>
-        <ContainerEnvEditor v-model="createEnv" />
-        <ContainerPortEditor v-model="createPorts" />
-        <ContainerMountEditor v-model="createMounts" />
       </div>
       <template #footer="{ close }">
+        <UButton color="neutral" variant="ghost" icon="i-lucide-refresh-cw" @click="close(); openRecreate(editId)">{{ t('docker.ctr.recreate') }}</UButton>
         <UButton color="neutral" variant="soft" @click="close">{{ t('docker.common.cancel') }}</UButton>
-        <UButton color="primary" :loading="createSubmitting" @click="submitCreate">{{ t('docker.common.create') }}</UButton>
+        <UButton color="primary" :loading="editSubmitting" @click="submitEdit">{{ t('docker.common.save') }}</UButton>
       </template>
     </FormDialog>
 
@@ -174,64 +249,72 @@
     <FormDialog v-model="detailVisible" :title="t('docker.container.containerDetail')" :width="860">
       <div v-if="detail" class="dk-detail">
         <div class="dk-detail__hero">
-          <div class="dk-detail__title">
-            <span>{{ detail.name || '-' }}</span>
-            <StatusPill :variant="stateVariant(detail.state?.status || '')" :label="stateLabel(detail.state?.status || '')" />
-          </div>
-          <div class="dk-detail__sub">{{ shortId(detail.id) }} · {{ detailImageName }} · {{ detailNetworkMode }}</div>
-          <div v-if="detailPortTags.length" class="dk-tags dk-detail__ports">
-            <span v-for="p in detailPortTags" :key="p" class="dk-tag dk-tag--port">{{ p }}</span>
+          <span class="dk-detail__sticker m-sticker m-sticker--a2"><UIcon name="i-lucide-box" /></span>
+          <div class="dk-detail__head">
+            <div class="dk-detail__title">
+              {{ detail.name || '-' }}
+              <StatusPill :variant="detailPill.variant" :label="detailPill.label" />
+            </div>
+            <div class="dk-detail__sub">{{ shortId(detail.id) }} · {{ detailImageName }} · {{ detailNetworkMode }}</div>
+            <div v-if="detailPortTags.length" class="dk-tags ct-detail-ports">
+              <span v-for="p in detailPortTags" :key="p" class="ct-port m-mono">{{ p }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="dk-detail__grid2">
-          <div class="dk-detail__block">
+        <div class="dk-grid">
+          <div>
             <div class="dk-detail__label">{{ t('docker.container.runtime') }}</div>
-            <div class="dk-kv">
-              <div><span>PID</span><strong>{{ detail.state?.pid || '-' }}</strong></div>
-              <div><span>{{ t('docker.container.restartCount') }}</span><strong>{{ detail.restartCount }}</strong></div>
-              <div><span>{{ t('docker.container.exitCode') }}</span><strong>{{ detail.state?.exitCode ?? '-' }}</strong></div>
-              <div><span>{{ t('docker.common.platform') }}</span><strong>{{ detail.platform || '-' }}</strong></div>
-              <div><span>{{ t('docker.container.created') }}</span><strong>{{ formatDateTime(detail.created) }}</strong></div>
-              <div><span>{{ t('docker.container.started') }}</span><strong>{{ formatDateTime(detail.state?.startedAt) }}</strong></div>
-            </div>
+            <dl class="dk-kv ct-kv">
+              <div><dt>PID</dt><dd class="m-num">{{ detail.state?.pid || '-' }}</dd></div>
+              <div><dt>{{ t('docker.container.restartCount') }}</dt><dd class="m-num">{{ detail.restartCount }}</dd></div>
+              <div><dt>{{ t('docker.container.exitCode') }}</dt><dd class="m-num">{{ detail.state?.exitCode ?? '-' }}</dd></div>
+              <div><dt>{{ t('docker.common.platform') }}</dt><dd>{{ detail.platform || '-' }}</dd></div>
+              <div><dt>{{ t('docker.container.created') }}</dt><dd class="m-num">{{ formatDateTime(detail.created) }}</dd></div>
+              <div><dt>{{ t('docker.container.started') }}</dt><dd class="m-num">{{ formatDateTime(detail.state?.startedAt) }}</dd></div>
+            </dl>
           </div>
-          <div class="dk-detail__block">
+          <div>
             <div class="dk-detail__label">{{ t('docker.container.resource') }}</div>
-            <div class="dk-kv">
-              <div><span>{{ t('docker.container.restartPolicy') }}</span><strong>{{ detailRestartPolicy }}</strong></div>
-              <div><span>{{ t('docker.container.networkMode') }}</span><strong>{{ detailNetworkMode }}</strong></div>
-              <div><span>{{ t('docker.common.memory') }}</span><strong>{{ detailMemoryLimit }}</strong></div>
-              <div><span>CPU</span><strong>{{ detailCpuLimit }}</strong></div>
-              <div><span>{{ t('docker.container.autoRemove') }}</span><strong>{{ detailAutoRemove }}</strong></div>
-              <div><span>{{ t('docker.container.privileged') }}</span><strong>{{ detailPrivileged }}</strong></div>
-            </div>
+            <dl class="dk-kv ct-kv">
+              <div><dt>{{ t('docker.container.restartPolicy') }}</dt><dd class="m-mono">{{ detailRestartPolicy }}</dd></div>
+              <div><dt>{{ t('docker.container.networkMode') }}</dt><dd class="m-mono">{{ detailNetworkMode }}</dd></div>
+              <div><dt>{{ t('docker.common.memory') }}</dt><dd class="m-num">{{ detailMemoryLimit }}</dd></div>
+              <div><dt>CPU</dt><dd class="m-num">{{ detailCpuLimit }}</dd></div>
+              <div><dt>{{ t('docker.container.autoRemove') }}</dt><dd>{{ detail.hostConfig?.autoRemove ? t('docker.common.yes') : t('docker.common.no') }}</dd></div>
+              <div><dt>{{ t('docker.container.privileged') }}</dt><dd>{{ detail.hostConfig?.privileged ? t('docker.common.yes') : t('docker.common.no') }}</dd></div>
+            </dl>
           </div>
         </div>
 
-        <div v-if="detailNetworks.length" class="dk-detail__block">
+        <div v-if="detailNetworks.length">
           <div class="dk-detail__label">{{ t('docker.common.network') }}</div>
-          <div class="dk-list dk-list--net4">
-            <div v-for="item in detailNetworks" :key="item.name" class="dk-list__row">
-              <span class="dk-list__name">{{ item.name }}</span>
-              <span>{{ item.ipAddress || '-' }}</span>
-              <span>{{ item.gateway || '-' }}</span>
-              <span>{{ item.macAddress || '-' }}</span>
+          <div class="ct-list">
+            <div v-for="item in detailNetworks" :key="item.name" class="ct-list__row ct-list--net">
+              <strong>{{ item.name }}</strong>
+              <span class="m-mono">{{ item.ipAddress || '-' }}</span>
+              <span class="m-mono">{{ item.gateway || '-' }}</span>
+              <span class="m-mono">{{ item.macAddress || '-' }}</span>
             </div>
           </div>
         </div>
 
-        <div class="dk-detail__block">
+        <div>
           <div class="dk-detail__label">{{ t('docker.container.startup') }}</div>
           <div class="dk-code">{{ detailCommand }}</div>
         </div>
 
-        <div v-if="detail.mounts?.length" class="dk-detail__block">
+        <div v-if="detail.mounts?.length">
           <div class="dk-detail__label">{{ t('docker.container.mounts') }}</div>
-          <div class="dk-list dk-list--mounts">
-            <div class="dk-list__head"><span>{{ t('docker.common.type') }}</span><span>{{ t('docker.common.source') }}</span><span>{{ t('docker.common.target') }}</span><span>{{ t('docker.common.mode') }}</span><span>RW</span></div>
-            <div v-for="(m, i) in detail.mounts" :key="i" class="dk-list__row">
-              <span>{{ m.type }}</span><span :title="m.source">{{ m.source }}</span><span :title="m.destination">{{ m.destination }}</span><span>{{ m.mode }}</span>
+          <div class="ct-list">
+            <div class="ct-list__row ct-list--mounts ct-list__head">
+              <span>{{ t('docker.common.type') }}</span><span>{{ t('docker.common.source') }}</span><span>{{ t('docker.common.target') }}</span><span>{{ t('docker.common.mode') }}</span><span>RW</span>
+            </div>
+            <div v-for="(m, i) in detail.mounts" :key="i" class="ct-list__row ct-list--mounts">
+              <span>{{ m.type }}</span>
+              <span class="m-mono" :title="m.source">{{ m.source || m.name }}</span>
+              <span class="m-mono" :title="m.destination">{{ m.destination }}</span>
+              <span>{{ m.mode || '-' }}</span>
               <span><StatusPill :variant="m.rw ? 'success' : 'warning'" :label="m.rw ? 'RW' : 'RO'" :dot="false" /></span>
             </div>
           </div>
@@ -246,85 +329,6 @@
       </template>
     </FormDialog>
 
-    <!-- 编辑容器 -->
-    <FormDialog v-model="editVisible" :title="t('docker.container.editContainer')" :width="760" :loading="editSubmitting" @confirm="submitEdit">
-      <div class="dk-form">
-        <div class="dk-grid">
-          <div class="app-field">
-            <label class="app-label">{{ t('docker.container.namePlaceholder') }}</label>
-            <input v-model="editForm.name" class="app-input" :placeholder="t('docker.container.namePlaceholder')" />
-          </div>
-          <div class="app-field">
-            <label class="app-label">{{ t('docker.container.restartPolicy') }}</label>
-            <div class="seg seg--wide">
-              <button
-                v-for="opt in restartSeg"
-                :key="opt.value"
-                type="button"
-                class="seg__btn"
-                :class="{ 'is-active': editForm.restartPolicy === opt.value }"
-                @click="editForm.restartPolicy = opt.value"
-              >{{ opt.label }}</button>
-            </div>
-          </div>
-          <div class="app-field" />
-          <div class="app-field">
-            <label class="app-label">{{ t('docker.container.memoryLimitMb') }}</label>
-            <div class="dk-num">
-              <input v-model.number="editForm.memoryMB" type="number" min="0" step="64" class="app-input" />
-              <span class="dk-num__unit">MB</span>
-            </div>
-            <div class="dk-chips">
-              <button v-for="m in MEMORY_PRESETS" :key="m" type="button" class="dk-chip" :class="{ 'is-on': editForm.memoryMB === m }" @click="editForm.memoryMB = m">{{ m }}</button>
-              <button type="button" class="dk-chip" :class="{ 'is-on': !editForm.memoryMB }" @click="editForm.memoryMB = 0">{{ t('docker.common.unlimited') }}</button>
-            </div>
-          </div>
-          <div class="app-field">
-            <label class="app-label">{{ t('docker.container.cpuLimitCores') }}</label>
-            <div class="dk-num">
-              <input v-model.number="editForm.nanoCpuCores" type="number" min="0" step="0.5" class="app-input" />
-              <span class="dk-num__unit">{{ t('docker.common.cpuUnit') }}</span>
-            </div>
-            <div class="dk-chips">
-              <button v-for="c in CPU_PRESETS" :key="c" type="button" class="dk-chip" :class="{ 'is-on': editForm.nanoCpuCores === c }" @click="editForm.nanoCpuCores = c">{{ c }}</button>
-              <button type="button" class="dk-chip" :class="{ 'is-on': !editForm.nanoCpuCores }" @click="editForm.nanoCpuCores = 0">{{ t('docker.common.unlimited') }}</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="app-field dk-switch">
-          <label class="app-label">{{ t('docker.container.recreateTip') }}</label>
-          <AppSwitch v-model="editForm.recreate" />
-        </div>
-
-        <template v-if="editForm.recreate">
-          <div class="dk-grid">
-            <div class="app-field dk-grid__full">
-              <label class="app-label app-label--required">{{ t('docker.common.image') }}</label>
-              <AppCombobox v-model="editForm.image" :options="imageOptions" :placeholder="t('docker.container.imageInputPlaceholder')" />
-            </div>
-            <div class="app-field dk-grid__full">
-              <label class="app-label">{{ t('docker.common.network') }}</label>
-              <AppSelect v-model="editForm.network" :options="networkSelectOptions" searchable :placeholder="t('docker.container.defaultBridge')" />
-            </div>
-          </div>
-
-          <ContainerPortEditor v-model="editPorts" />
-          <ContainerMountEditor v-model="editMounts" />
-          <ContainerEnvEditor v-model="editEnv" />
-
-          <div class="app-field dk-switch">
-            <label class="app-label">{{ t('docker.container.forceDeleteOld') }}</label>
-            <AppSwitch v-model="editForm.force" />
-          </div>
-        </template>
-      </div>
-      <template #footer="{ close }">
-        <UButton color="neutral" variant="soft" @click="close">{{ t('docker.common.cancel') }}</UButton>
-        <UButton color="primary" :loading="editSubmitting" @click="submitEdit">{{ t('docker.common.save') }}</UButton>
-      </template>
-    </FormDialog>
-
     <DockerTaskDialogs v-model="taskDialogsVisible" :active-task="activeTask" @finished="handleTaskFinished" />
     <DockerContainerLogsDialog v-model="logsVisible" :container-id="logsContainerId" :container-name="logsContainerName" :ws-path="logsWsPath" />
     <DockerContainerStatsDialog v-model="statsVisible" :container-id="statsContainerId" :container-name="statsContainerName" />
@@ -333,132 +337,211 @@
 </template>
 
 <script setup lang="ts">
-import { useDebounceFn } from '@vueuse/core'
-import DockerSubNav from '@/views/docker/components/DockerSubNav.vue'
 import { useI18n } from 'vue-i18n'
+import { PAGE_GROUPS, pageTabTo } from '@/config/pageGroups'
 import {
-  createDockerContainer, deleteDockerContainer, getDockerContainer,
-  killDockerContainer, listDockerContainers, listDockerImages, listDockerNetworks,
-  pauseDockerContainer, restartDockerContainer, startDockerContainer,
-  stopDockerContainer, unpauseDockerContainer, updateDockerContainer,
+  deleteDockerContainer, getDockerContainer, killDockerContainer, listDockerContainerUsage, listDockerContainers,
+  pauseDockerContainer, restartDockerContainer, startDockerContainer, stopDockerContainer, unpauseDockerContainer,
+  updateDockerContainer,
 } from '@/api/docker'
+import DockerHeader from '@/views/docker/components/DockerHeader.vue'
+import DockerSubNav from '@/views/docker/components/DockerSubNav.vue'
+import DockerUnavailable from '@/views/docker/components/DockerUnavailable.vue'
+import DockerPullTasks from '@/views/docker/components/DockerPullTasks.vue'
+import DockerActionSheet from '@/views/docker/components/DockerActionSheet.vue'
 import DockerTaskDialogs from '@/views/docker/components/DockerTaskDialogs.vue'
 import DockerContainerLogsDialog from '@/views/docker/components/DockerContainerLogsDialog.vue'
 import DockerContainerStatsDialog from '@/views/docker/components/DockerContainerStatsDialog.vue'
 import DockerContainerExecDialog from '@/views/docker/components/DockerContainerExecDialog.vue'
+import ContainerCreate from './ContainerCreate.vue'
+import { useDockerStatus } from '@/views/docker/components/useDockerStatus'
+import { useDockerTasks } from '@/views/docker/components/useDockerTasks'
+import { formatAgo, formatBytes, formatDateTime, formatDuration, formatMonthDay, shortId } from '@/views/docker/components/format'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { Dialog } from '@/utils/dialog'
 import { showRequestError } from '@/utils/request'
-import type { DockerContainerInfo, DockerContainerSummary, DockerPortBinding, DockerMount, DockerTaskInfo } from '@/types/v1/docker'
+import { DockerTaskType } from '@/types/v1/docker'
+import type {
+  DockerContainerInfo, DockerContainerListStats, DockerContainerSummary, DockerTaskInfo,
+} from '@/types/v1/docker'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
-import ContainerPortEditor from '@/views/docker/components/ContainerPortEditor.vue'
-import ContainerMountEditor from '@/views/docker/components/ContainerMountEditor.vue'
-import ContainerEnvEditor from '@/views/docker/components/ContainerEnvEditor.vue'
-import type { PortRow, MountRow, EnvRow } from '@/views/docker/components/specTypes'
 
 defineOptions({ name: 'DockerContainerView' })
 
 const menuStore = useMenuStore()
-const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
+const { t, locale } = useI18n()
 const canManage = useButtonPermission([PERM.DOCKER_CONTAINER_MANAGE], [])
+const { ready, loaded: engineLoaded, refresh: refreshEngine } = useDockerStatus()
+const { finishedTick, refresh: refreshTasks } = useDockerTasks()
 
+const ACTIVE_TYPES = [DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_CREATE, DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_RECREATE]
+
+type Row = Record<string, unknown>
+type Category = '' | 'running' | 'stopped' | 'exited' | 'paused'
 const list = ref<DockerContainerSummary[]>([])
+const stats = ref<DockerContainerListStats | null>(null)
 const loading = ref(false)
-/** docker 引擎不可用时为 true（列表/选项接口返回失败后置位），避免创建弹窗再打镜像/网络选项接口刷 toast */
-const dockerUnavailable = ref(false)
-const queryForm = reactive({ name: '', status: '', image: '' })
+const selected = ref<string[]>([])
+const queryForm = reactive({ keyword: '', status: '' as Category })
 const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
-const statusFilterOptions = computed(() => [
-  { label: t('docker.common.all'), value: '' },
-  { label: t('docker.states.running'), value: 'running' },
-  { label: t('docker.states.exited'), value: 'exited' },
-  { label: t('docker.states.paused'), value: 'paused' },
-])
-const restartSeg = computed(() => [
-  { label: t('docker.container.restartNo'), value: '' },
-  { label: t('docker.container.restartAlways'), value: 'always' },
-  { label: t('docker.container.restartOnFailure'), value: 'on-failure' },
-  { label: t('docker.container.restartUnlessStopped'), value: 'unless-stopped' },
-])
-const MEMORY_PRESETS = [512, 1024, 2048, 4096]
-const CPU_PRESETS = [0.5, 1, 2, 4]
-
-// —— 状态/运行时/网络 ——
-const STATE_KEY_MAP: Record<string, string> = {
-  running: 'docker.states.running', exited: 'docker.states.exited', paused: 'docker.states.paused',
-  restarting: 'docker.states.restarting', created: 'docker.states.created', removing: 'docker.states.removing', dead: 'docker.states.dead',
-}
-type PillVariant = 'success' | 'info' | 'warning' | 'error' | 'neutral'
-const STATE_VARIANT: Record<string, PillVariant> = { running: 'success', exited: 'info', paused: 'warning', restarting: 'warning', created: 'info', dead: 'error', removing: 'neutral' }
-const stateLabel = (s: string) => (STATE_KEY_MAP[s] ? t(STATE_KEY_MAP[s]) : s || '-')
-const stateVariant = (s: unknown) => STATE_VARIANT[String(s || '')] || 'neutral'
-const displayNames = (row: Record<string, unknown>) => ((row.names as string[]) || []).map((n) => n.replace(/^\//, '')).join(', ') || '-'
-
-const DURATION_UNIT_KEY_MAP: Record<string, string> = {
-  second: 'docker.container.duration.second', seconds: 'docker.container.duration.second',
-  minute: 'docker.container.duration.minute', minutes: 'docker.container.duration.minute',
-  hour: 'docker.container.duration.hour', hours: 'docker.container.duration.hour',
-  day: 'docker.container.duration.day', days: 'docker.container.duration.day',
-  week: 'docker.container.duration.week', weeks: 'docker.container.duration.week',
-  month: 'docker.container.duration.month', months: 'docker.container.duration.month',
-  year: 'docker.container.duration.year', years: 'docker.container.duration.year',
-}
-const formatDockerDuration = (value: string) => {
-  const text = value.trim()
-  const lower = text.toLowerCase()
-  if (lower === 'less than a second') return t('docker.container.duration.lessThanSecond')
-  if (lower === 'about a minute') return t('docker.container.duration.aboutMinute')
-  if (lower === 'about an hour') return t('docker.container.duration.aboutHour')
-  const parts: string[] = []
-  for (const match of text.matchAll(/(\d+)\s+([a-z]+)/gi)) {
-    const amount = match[1]
-    const unit = match[2]
-    if (!amount || !unit) continue
-    const unitKey = DURATION_UNIT_KEY_MAP[unit.toLowerCase()]
-    parts.push(`${amount} ${unitKey ? t(unitKey) : unit}`)
-  }
-  return parts.length ? parts.join(' ') : text
-}
-const formatContainerRuntime = (row: Record<string, unknown>) => {
-  if (row.state !== 'running') return '—'
-  const match = String(row.status || '').match(/^Up\s+(.+?)(?:\s+\(.+\))?$/i)
-  return match?.[1] ? formatDockerDuration(match[1]) : '—'
-}
-
-const uniqueItems = (items: string[]) => Array.from(new Set(items))
-const formatPortItem = (port: DockerContainerSummary['ports'][number]) => {
-  const protocol = (port.type || 'tcp').toLowerCase()
-  const privatePort = port.privatePort || 0
-  const publicPort = port.publicPort || 0
-  if (!privatePort && !publicPort) return ''
-  if (publicPort && privatePort) return `${port.ip ? `${port.ip}:` : ''}${publicPort}->${privatePort}/${protocol}`
-  return `${privatePort || publicPort}/${protocol}`
-}
-const networkDisplay = (row: Record<string, unknown>) => {
-  const r = row as unknown as DockerContainerSummary
-  if (r.networkMode === 'host' || r.networks?.includes('host')) return { ips: ['host'], ports: [] as string[] }
-  const ips = uniqueItems((r.networkEndpoints || []).map((e) => e.ipAddress).filter(Boolean))
-  const ports = uniqueItems((r.ports || []).map((p) => formatPortItem(p)).filter(Boolean))
-  return { ips, ports }
-}
-const formatNetworkText = (row: Record<string, unknown>) => {
-  const n = networkDisplay(row)
-  return [...n.ips, ...n.ports].join(' ') || '—'
-}
+const statusChips = computed(() => {
+  const s = stats.value
+  const n = (v: unknown) => (s ? Number(v || 0) : null)
+  const chips = [
+    { label: t('docker.common.all'), value: '' as Category, count: n(s?.total) },
+    { label: t('docker.states.running'), value: 'running' as Category, count: n(s?.running) },
+    { label: t('docker.ctr.catStopped'), value: 'stopped' as Category, count: n(s?.stopped) },
+    { label: t('docker.ctr.catExited'), value: 'exited' as Category, count: n(s?.exited) },
+  ]
+  if (Number(s?.paused || 0) || queryForm.status === 'paused') chips.push({ label: t('docker.ctr.catPaused'), value: 'paused', count: n(s?.paused) })
+  return chips
+})
 
 const columns = computed<DataTableColumn[]>(() => [
-  { key: 'names', title: t('docker.common.name'), minWidth: 150 },
+  { key: 'names', title: t('docker.common.name'), minWidth: 160 },
   { key: 'image', title: t('docker.common.image'), minWidth: 170 },
-  { key: 'state', title: t('docker.common.status'), width: 90 },
-  { key: 'status', title: t('docker.container.runtime'), width: 120 },
-  { key: 'network', title: t('docker.common.network'), minWidth: 240 },
-  { key: 'operation', title: t('docker.common.operation'), width: 180, align: 'right' },
+  { key: 'state', title: t('docker.common.status'), width: 170 },
+  { key: 'ports', title: t('docker.ctr.ports'), minWidth: 150, ellipsis: false },
+  { key: 'cpu', title: 'CPU', width: 120 },
+  { key: 'mem', title: t('docker.common.memory'), width: 100 },
+  { key: 'operation', title: t('docker.common.operation'), width: 190, align: 'right' },
 ])
 
-// —— 行动作（按状态） ——
+/* ───────── 行展示 ───────── */
+const asSummary = (row: Row) => row as unknown as DockerContainerSummary
+const nameOf = (row: Row) => (asSummary(row).names || []).map((n) => n.replace(/^\//, '')).join(', ') || shortId(row.id)
+const catOf = (row: Row): Category => {
+  const r = asSummary(row)
+  if (r.state === 'running' || r.state === 'restarting') return 'running'
+  if (r.state === 'paused') return 'paused'
+  if (r.state === 'dead' || (r.state === 'exited' && Number(r.exitCode))) return 'exited'
+  return 'stopped'
+}
+type PillVariant = 'success' | 'warning' | 'error' | 'neutral' | 'info'
+const pillOf = (row: Row): { variant: PillVariant; label: string } => {
+  const r = asSummary(row)
+  if (r.state === 'restarting') return { variant: 'warning', label: t('docker.states.restarting') }
+  if (r.state === 'removing') return { variant: 'neutral', label: t('docker.states.removing') }
+  if (r.state === 'created') return { variant: 'neutral', label: t('docker.states.created') }
+  const cat = catOf(row)
+  if (cat === 'running') return { variant: 'success', label: t('docker.states.running') }
+  if (cat === 'paused') return { variant: 'warning', label: t('docker.ctr.catPaused') }
+  if (cat === 'exited') return { variant: 'error', label: t('docker.ctr.catExited') }
+  return { variant: 'neutral', label: t('docker.ctr.catStopped') }
+}
+const now = ref(Date.now())
+const sinceMs = (value: unknown) => {
+  const d = value ? new Date(String(value)) : null
+  return d && !Number.isNaN(d.getTime()) && d.getFullYear() > 1971 ? now.value - d.getTime() : -1
+}
+const subLineOf = (row: Row) => {
+  const r = asSummary(row)
+  const cat = catOf(row)
+  if (cat === 'running' || cat === 'paused') {
+    const ms = sinceMs(r.startedAt)
+    return ms >= 0 ? t('docker.ctr.upFor', { d: formatDuration(ms, t) }) : '—'
+  }
+  if (sinceMs(r.finishedAt) < 0) return t('docker.ctr.neverStarted')
+  if (cat === 'exited') return t('docker.ctr.exitAgo', { code: r.exitCode, ago: formatAgo(r.finishedAt, t) })
+  return t('docker.ctr.stoppedOn', { date: formatMonthDay(r.finishedAt, locale.value) })
+}
+const shortLineOf = (row: Row) => {
+  const r = asSummary(row)
+  const cat = catOf(row)
+  if (cat === 'running' || cat === 'paused') {
+    const ms = sinceMs(r.startedAt)
+    return ms >= 0 ? formatDuration(ms, t) : '—'
+  }
+  if (sinceMs(r.finishedAt) < 0) return t('docker.ctr.neverStarted')
+  if (cat === 'exited') return t('docker.ctr.exitCode', { code: r.exitCode })
+  return formatMonthDay(r.finishedAt, locale.value)
+}
+const portsOf = (row: Row) => {
+  const r = asSummary(row)
+  if (r.networkMode === 'host') return ['host']
+  const out = new Set<string>()
+  for (const p of r.ports || []) {
+    const proto = (p.type || 'tcp').toLowerCase() === 'udp' ? '/udp' : ''
+    const ip = p.ip && p.ip !== '0.0.0.0' && p.ip !== '::' ? `${p.ip.includes(':') ? `[${p.ip}]` : p.ip}:` : ''
+    if (p.publicPort) out.add(`${ip}${p.publicPort}→${p.privatePort}${proto}`)
+    else if (p.privatePort) out.add(`${p.privatePort}${proto}`)
+  }
+  return [...out]
+}
+
+/* ───────── 资源占用（异步补齐，可见时每 10 秒刷新） ───────── */
+const usage = ref<Record<string, { cpu: number; mem: number; limit: number }>>({})
+const usageOf = (row: Row) => (catOf(row) === 'running' || catOf(row) === 'paused' ? usage.value[String(row.id)] : undefined)
+const cpuBar = (cpu: number) => (cpu > 0 ? Math.max(4, Math.min(100, cpu)) : 0)
+let usageTimer: ReturnType<typeof setInterval> | null = null
+let usageBusy = false
+const loadUsage = async () => {
+  const ids = list.value.filter((r) => r.state === 'running').map((r) => r.id)
+  if (!ids.length || usageBusy || document.hidden) return
+  usageBusy = true
+  try {
+    const { data } = await listDockerContainerUsage({ ids })
+    const next = { ...usage.value }
+    for (const item of data?.items || []) {
+      next[item.id] = { cpu: Number(item.cpuPercent) || 0, mem: Number(item.memoryUsage) || 0, limit: Number(item.memoryLimit) || 0 }
+    }
+    usage.value = next
+  } catch { /* 资源占用是辅助信息 */ } finally {
+    usageBusy = false
+  }
+}
+const startUsageTimer = () => {
+  stopUsageTimer()
+  usageTimer = setInterval(() => {
+    now.value = Date.now()
+    if (!createState.mode) void loadUsage()
+  }, 10000)
+}
+const stopUsageTimer = () => {
+  if (usageTimer) clearInterval(usageTimer)
+  usageTimer = null
+}
+
+/* ───────── 列表 ───────── */
+const getList = async () => {
+  if (!ready.value) return
+  loading.value = true
+  try {
+    const { data } = await listDockerContainers({
+      page: pagination.value.page, pageSize: pagination.value.pageSize,
+      status: queryForm.status, keyword: queryForm.keyword.trim(), network: '', labels: {},
+    })
+    list.value = data?.items || []
+    stats.value = data?.stats || null
+    pagination.value.total = Number(data?.total || 0)
+    const ids = new Set(list.value.map((i) => i.id))
+    selected.value = selected.value.filter((id) => ids.has(id))
+    now.value = Date.now()
+    void loadUsage()
+  } catch {
+    list.value = []
+    pagination.value.total = 0
+  } finally {
+    loading.value = false
+  }
+}
+const search = () => { pagination.value.page = 1; void getList() }
+const rangeText = computed(() => {
+  const { page, pageSize, total } = pagination.value
+  const from = total ? (page - 1) * pageSize + 1 : 0
+  return t('docker.page.range', { from, to: Math.min(total, page * pageSize), total })
+})
+const init = async (force = false) => {
+  await refreshEngine(force)
+  if (ready.value) await getList()
+}
+
+/* ───────── 动作 ───────── */
 type LifecycleAction = 'start' | 'stop' | 'restart' | 'kill' | 'pause' | 'unpause' | 'delete'
 const actionMap: Record<LifecycleAction, { labelKey: string; fn: (id: string) => Promise<unknown>; confirm: boolean }> = {
   start: { labelKey: 'docker.lifecycle.start', fn: (id) => startDockerContainer({ id }), confirm: false },
@@ -470,48 +553,70 @@ const actionMap: Record<LifecycleAction, { labelKey: string; fn: (id: string) =>
   delete: { labelKey: 'docker.lifecycle.delete', fn: (id) => deleteDockerContainer({ id, force: false, removeVolumes: false }), confirm: true },
 }
 
-const rowActionsFor = (row: Record<string, unknown>): ActionMenuItem[] => {
-  if (!canManage.value) return [{ key: 'detail', label: t('docker.common.detail'), icon: 'HOutline:InformationCircleIcon' }]
-  const items: ActionMenuItem[] = []
-  const state = String(row.state || '')
-  if (state === 'running') {
-    items.push(
-      { key: 'pause', label: t('docker.lifecycle.pause'), icon: 'HOutline:PauseIcon' },
-      { key: 'stop', label: t('docker.lifecycle.stop'), icon: 'HOutline:StopIcon' },
-      { key: 'restart', label: t('docker.lifecycle.restart'), icon: 'HOutline:ArrowPathIcon' },
-      { key: 'logs', label: t('docker.common.logs'), icon: 'HOutline:DocumentTextIcon' },
-      { key: 'stats', label: t('docker.common.stats'), icon: 'HOutline:ChartBarIcon' },
-      { key: 'exec', label: t('docker.common.terminal'), icon: 'HOutline:CommandLineIcon' },
-    )
-  } else if (state === 'paused') {
-    items.push({ key: 'unpause', label: t('docker.lifecycle.unpause'), icon: 'HOutline:PlayIcon' })
-  } else if (state === 'exited' || state === 'created') {
-    items.push({ key: 'start', label: t('docker.lifecycle.start'), icon: 'HOutline:PlayIcon' })
-  }
-  items.push(
-    { key: 'edit', label: t('docker.common.edit'), icon: 'HOutline:PencilSquareIcon' },
+/** 行内常用：日志 / 终端 / 启停（停止红、启动绿；异常退出的给「重启」） */
+const quickActionsFor = (row: Row) => {
+  const out: { key: string; icon: string; label: string; tone: string }[] = [
+    { key: 'logs', icon: 'HOutline:DocumentTextIcon', label: t('docker.common.logs'), tone: '' },
+  ]
+  if (!canManage.value) return out
+  const cat = catOf(row)
+  out.push({ key: 'exec', icon: 'HOutline:CommandLineIcon', label: t('docker.common.terminal'), tone: '' })
+  if (row.state === 'running') out.push({ key: 'stop', icon: 'HOutline:StopIcon', label: t('docker.lifecycle.stop'), tone: 'is-stop' })
+  else if (cat === 'paused') out.push({ key: 'unpause', icon: 'HOutline:PlayIcon', label: t('docker.lifecycle.unpause'), tone: 'is-start' })
+  else if (cat === 'exited') out.push({ key: 'start', icon: 'HOutline:ArrowPathIcon', label: t('docker.lifecycle.restart'), tone: 'is-start' })
+  else if (cat === 'stopped' && row.state !== 'removing') out.push({ key: 'start', icon: 'HOutline:PlayIcon', label: t('docker.lifecycle.start'), tone: 'is-start' })
+  return out
+}
+const menuActionsFor = (row: Row): ActionMenuItem[] => {
+  const manage = canManage.value
+  const running = row.state === 'running'
+  return [
+    { key: 'pause', label: t('docker.lifecycle.pause'), icon: 'HOutline:PauseIcon', hidden: !manage || !running },
+    { key: 'restart', label: t('docker.lifecycle.restart'), icon: 'HOutline:ArrowPathIcon', hidden: !manage || !running },
+    { key: 'stats', label: t('docker.common.stats'), icon: 'HOutline:ChartBarIcon', hidden: !running },
+    { key: 'edit', label: t('docker.ctr.editConfig'), icon: 'HOutline:PencilSquareIcon', hidden: !manage },
+    { key: 'recreate', label: t('docker.ctr.recreate'), icon: 'HOutline:ArrowPathRoundedSquareIcon', hidden: !manage },
     { key: 'detail', label: t('docker.common.detail'), icon: 'HOutline:InformationCircleIcon' },
-    { key: 'delete', label: t('docker.common.delete'), icon: 'HOutline:TrashIcon', danger: true },
-  )
-  return items
+    { key: 'kill', label: t('docker.lifecycle.kill'), icon: 'HOutline:BoltSlashIcon', hidden: !manage || !running },
+    { key: 'delete', label: t('docker.ctr.deleteContainer'), icon: 'HOutline:TrashIcon', danger: true, hidden: !manage },
+  ]
 }
 
-// 常用动作直接露出成图标（日志 / 终端 / 启停），其余收进「⋯」
-const QUICK_KEYS = ['logs', 'exec', 'start', 'stop', 'unpause'] as const
-const quickActionsFor = (row: Record<string, unknown>) =>
-  rowActionsFor(row)
-    .filter((i) => (QUICK_KEYS as readonly string[]).includes(i.key))
-    .map((i) => ({
-      key: i.key,
-      icon: i.icon || 'HOutline:EllipsisHorizontalIcon',
-      label: i.label,
-      tone: i.key === 'stop' ? 'is-stop' : i.key === 'start' || i.key === 'unpause' ? 'is-start' : '',
-    }))
-const menuActionsFor = (row: Record<string, unknown>) =>
-  rowActionsFor(row).filter((i) => !(QUICK_KEYS as readonly string[]).includes(i.key))
+/* 手机操作面板 */
+const sheet = reactive({ open: false, row: null as Row | null })
+const openSheet = (row: Row) => {
+  sheet.row = row
+  sheet.open = true
+}
+const sheetQuick = computed<ActionMenuItem[]>(() => {
+  const row = sheet.row
+  if (!row) return []
+  const running = row.state === 'running'
+  return [
+    { key: 'logs', label: t('docker.common.logs'), icon: 'i-lucide-file-text' },
+    { key: 'exec', label: t('docker.common.terminal'), icon: 'i-lucide-terminal', hidden: !canManage.value, disabled: !running },
+    { key: catOf(row) === 'running' ? 'restart' : 'start', label: t('docker.lifecycle.restart'), icon: 'i-lucide-rotate-cw', hidden: !canManage.value || catOf(row) === 'paused' },
+    { key: 'stats', label: t('docker.common.stats'), icon: 'i-lucide-bar-chart-3', disabled: !running },
+  ]
+})
+const sheetItems = computed<ActionMenuItem[]>(() => {
+  const row = sheet.row
+  if (!row) return []
+  const manage = canManage.value
+  const cat = catOf(row)
+  return [
+    { key: 'edit', label: t('docker.ctr.editConfig'), icon: 'i-lucide-pencil', hidden: !manage },
+    { key: 'recreate', label: t('docker.ctr.recreate'), icon: 'i-lucide-refresh-cw', hidden: !manage },
+    { key: 'pause', label: t('docker.lifecycle.pause'), icon: 'i-lucide-pause', hidden: !manage || row.state !== 'running' },
+    { key: 'unpause', label: t('docker.lifecycle.unpause'), icon: 'i-lucide-play', hidden: !manage || cat !== 'paused' },
+    { key: 'stop', label: t('docker.lifecycle.stop'), icon: 'i-lucide-square', hidden: !manage || row.state !== 'running' },
+    { key: 'detail', label: t('docker.ctr.detailInspect'), icon: 'i-lucide-info' },
+    { key: 'delete', label: t('docker.ctr.deleteContainer'), icon: 'i-lucide-trash-2', danger: true, hidden: !manage },
+  ]
+})
 
 const findRow = (id: string) => list.value.find((x) => x.id === id)
-const onRowAction = (key: string, row: Record<string, unknown>) => {
+const onRowAction = (key: string, row: Row) => {
   const record = findRow(String(row.id))
   if (!record) return
   if (key in actionMap) { void handleAction(record, key as LifecycleAction); return }
@@ -519,18 +624,20 @@ const onRowAction = (key: string, row: Record<string, unknown>) => {
   else if (key === 'stats') openStats(record)
   else if (key === 'exec') void openExec(record)
   else if (key === 'edit') void openEdit(record)
+  else if (key === 'recreate') openRecreate(record.id)
   else if (key === 'detail') void openDetail(record)
 }
 
 const handleAction = async (row: DockerContainerSummary, action: LifecycleAction) => {
   const def = actionMap[action]
-  const name = displayNames(row as unknown as Record<string, unknown>)
+  const name = nameOf(row as unknown as Row)
   const actionLabel = t(def.labelKey)
   const run = async () => {
     try {
       await def.fn(row.id)
       feedback.success(t('docker.container.actionSuccess', { action: actionLabel }))
       await getList()
+      void refreshEngine(true)
     } catch (e) { showRequestError(e, t('docker.container.actionFailed', { action: actionLabel })) }
   }
   if (def.confirm) {
@@ -546,183 +653,165 @@ const handleAction = async (row: DockerContainerSummary, action: LifecycleAction
   await run()
 }
 
-const getList = async () => {
-  loading.value = true
-  try {
-    const { data } = await listDockerContainers({
-      all: true, page: pagination.value.page, pageSize: pagination.value.pageSize,
-      status: queryForm.status || '', name: queryForm.name || '', image: queryForm.image || '', network: '', labels: {},
-    })
-    list.value = data?.items || []
-    pagination.value.total = Number(data?.total || 0)
-    dockerUnavailable.value = false
-  } catch {
-    list.value = []
-    pagination.value.total = 0
-    dockerUnavailable.value = true
-  } finally { loading.value = false }
+/* 批量 */
+const batchBusy = ref(false)
+const runBatch = (action: 'start' | 'stop' | 'restart' | 'delete') => {
+  const rows = selected.value.map(findRow).filter((r): r is DockerContainerSummary => !!r)
+  if (!rows.length) return
+  const def = actionMap[action]
+  const actionLabel = t(def.labelKey)
+  const run = async () => {
+    batchBusy.value = true
+    let ok = 0
+    for (const row of rows) {
+      try {
+        await def.fn(row.id)
+        ok++
+      } catch (e) { showRequestError(e, `${nameOf(row as unknown as Row)}：${t('docker.container.actionFailed', { action: actionLabel })}`) }
+    }
+    batchBusy.value = false
+    if (ok) feedback.success(t('docker.ctr.batchDone', { action: actionLabel, n: ok }))
+    selected.value = []
+    await getList()
+    void refreshEngine(true)
+  }
+  if (action === 'start') { void run(); return }
+  Dialog.confirm({
+    title: t('docker.ctr.batchConfirmTitle', { action: actionLabel }),
+    content: t('docker.ctr.batchConfirmContent', { action: actionLabel, n: rows.length }),
+    confirmText: t('docker.container.confirmActionText', { action: actionLabel }),
+    cancelText: t('docker.common.cancel'),
+    onConfirm: run,
+  })
 }
-const search = () => { pagination.value.page = 1; getList() }
-const debouncedSearch = useDebounceFn(search, 350)
-watch(() => queryForm.image, () => debouncedSearch())
 
-// —— 任务 ——
+/* ───────── 创建 / 重建子视图（?create=1 / ?recreate=<id>） ───────── */
+const createState = reactive({ mode: '' as '' | 'create' | 'recreate', id: '', image: '', key: 0 })
+watch(
+  () => [route.path, route.query.tab, route.query.create, route.query.recreate, route.query.image] as const,
+  ([path, tab, create, recreate, image]) => {
+    if (path !== PAGE_GROUPS.docker.path || (tab && tab !== 'container')) return
+    const id = typeof recreate === 'string' ? recreate : ''
+    const mode = id ? 'recreate' : create === '1' ? 'create' : ''
+    if (mode && (mode !== createState.mode || id !== createState.id)) createState.key++
+    createState.mode = mode
+    createState.id = id
+    createState.image = typeof image === 'string' ? image : ''
+  },
+  { immediate: true },
+)
+// 引擎不可用时（直接打开 ?create=1 链接）停在列表页显示不可用状态，不挂载创建页去请求镜像/网络/容器
+const createMode = computed(() => (ready.value ? createState.mode : ''))
+const openCreate = () => { void router.push(pageTabTo('docker', 'container', { create: '1' })) }
+const openRecreate = (id: string) => { if (id) void router.push(pageTabTo('docker', 'container', { recreate: id })) }
+const closeCreate = () => {
+  const back = (window.history.state as { back?: string } | null)?.back || ''
+  if (back.startsWith(PAGE_GROUPS.docker.path) && !back.includes('create=') && !back.includes('recreate=')) router.back()
+  else void router.replace(pageTabTo('docker', 'container'))
+}
+const onCreateDone = (result: { id?: string; task?: DockerTaskInfo }) => {
+  // 创建完回到容器列表（从镜像页「用它建容器」进来时也一样），新容器 / 创建任务就在列表里
+  void router.replace(pageTabTo('docker', 'container'))
+  if (result.task?.id) void refreshTasks()
+  void getList()
+  void refreshEngine(true)
+}
+
+/* ───────── 任务 ───────── */
 const taskDialogsVisible = ref(false)
 const activeTask = ref<DockerTaskInfo | null>(null)
-const openTasks = () => { taskDialogsVisible.value = true }
+const openTasks = () => { activeTask.value = null; taskDialogsVisible.value = true }
 const openTask = (task: DockerTaskInfo | undefined) => {
   if (!task?.id) return
   activeTask.value = task
   taskDialogsVisible.value = true
 }
 const handleTaskFinished = async () => { await getList() }
+watch(finishedTick, () => { void getList(); void refreshEngine(true) })
 
-// —— 镜像/网络 选项 ——
-const imageOptions = ref<string[]>([])
-const networkOptions = ref<string[]>([])
-const networkSelectOptions = computed(() => [
-  { label: t('docker.container.defaultBridge'), value: '' },
-  ...networkOptions.value.map((n) => ({ label: n, value: n })),
+/* ───────── 编辑配置（可在线修改的：名称 / 重启策略 / 资源限制） ───────── */
+const restartSeg = computed(() => [
+  { label: t('docker.container.restartNo'), value: '' },
+  { label: t('docker.container.restartAlways'), value: 'always' },
+  { label: t('docker.container.restartOnFailure'), value: 'on-failure' },
+  { label: t('docker.container.restartUnlessStopped'), value: 'unless-stopped' },
 ])
-const loadImageOptions = async () => {
-  if (dockerUnavailable.value || imageOptions.value.length) return
+const MEMORY_PRESETS = [512, 1024, 2048, 4096]
+const CPU_PRESETS = [0.5, 1, 2, 4]
+const editVisible = ref(false)
+const editSubmitting = ref(false)
+const editId = ref('')
+const editForm = reactive({ name: '', restartPolicy: '', memoryMB: 0, nanoCpuCores: 0 })
+const openEdit = async (row: DockerContainerSummary) => {
+  editId.value = row.id
+  Object.assign(editForm, { name: nameOf(row as unknown as Row), restartPolicy: '', memoryMB: 0, nanoCpuCores: 0 })
+  editVisible.value = true
   try {
-    const { data } = await listDockerImages({ all: true, keyword: '', labels: {}, page: 1, pageSize: 200, usage: '', sort: '' })
-    imageOptions.value = Array.from(new Set((data?.items || []).flatMap((i) => i.repoTags || []).filter((i) => i && i !== '<none>:<none>')))
-  } catch { /* interceptor 已 toast；选项为空时允许手输镜像 */ }
+    const { data } = await getDockerContainer({ id: row.id })
+    const info = data?.info
+    if (!info) return
+    const host = info.hostConfig
+    editForm.name = info.name || editForm.name
+    editForm.restartPolicy = host?.restartPolicy === 'no' ? '' : host?.restartPolicy || ''
+    if (host?.memory) editForm.memoryMB = Math.round(Number(host.memory) / 1024 / 1024)
+    if (host?.nanoCpus) editForm.nanoCpuCores = Math.round((Number(host.nanoCpus) / 1e9) * 10) / 10
+  } catch { /* 用列表里的值 */ }
 }
-const loadNetworkOptions = async () => {
-  if (dockerUnavailable.value || networkOptions.value.length) return
+const submitEdit = async () => {
+  editSubmitting.value = true
   try {
-    const { data } = await listDockerNetworks({ name: '', driver: '', scope: '', labels: {}, page: 1, pageSize: 200, kind: '', keyword: '' })
-    networkOptions.value = Array.from(new Set((data?.items || []).map((i) => i.name).filter(Boolean)))
-  } catch { /* ignore */ }
-}
-
-// —— 创建 ——
-const createVisible = ref(false)
-const createSubmitting = ref(false)
-const createForm = reactive({ name: '', image: '', cmdText: '', network: '', restartPolicy: '' })
-const createEnv = ref<EnvRow[]>([])
-const createPorts = ref<PortRow[]>([])
-const createMounts = ref<MountRow[]>([])
-const openCreate = () => {
-  Object.assign(createForm, { name: '', image: '', cmdText: '', network: '', restartPolicy: '' })
-  createEnv.value = []
-  createPorts.value = []
-  createMounts.value = []
-  createVisible.value = true
-  void loadImageOptions()
-  void loadNetworkOptions()
-}
-const buildPorts = (rows: PortRow[]): DockerPortBinding[] =>
-  rows
-    .map((item) => ({
-      hostIp: item.hostIp.trim(),
-      hostPort: item.hostPort.trim(),
-      containerPort: item.containerPort.trim()
-        ? `${item.containerPort.trim()}/${item.protocol || 'tcp'}`
-        : '',
-    }))
-    .filter((item) => item.containerPort)
-const buildMounts = (rows: MountRow[]): DockerMount[] =>
-  rows
-    .map((item) => ({
-      type: item.type || 'bind',
-      source: item.source.trim(),
-      target: item.target.trim(),
-      readOnly: item.readOnly,
-    }))
-    .filter((item) => item.target)
-const buildEnv = (rows: EnvRow[]) =>
-  rows.filter((item) => item.key.trim()).map((item) => `${item.key.trim()}=${item.value}`)
-const submitCreate = async () => {
-  const image = createForm.image.trim()
-  if (!image) { feedback.error(t('docker.container.enterImage')); return }
-  createSubmitting.value = true
-  try {
-    await createDockerContainer({
-      options: {
-        name: (createForm.name.trim() || undefined) as unknown as string,
-        image,
-        cmd: createForm.cmdText.trim() ? createForm.cmdText.trim().split(/\s+/) : [],
-        env: buildEnv(createEnv.value),
-        ports: buildPorts(createPorts.value),
-        mounts: buildMounts(createMounts.value),
-        network: (createForm.network.trim() || undefined) as unknown as string,
-        restartPolicy: (createForm.restartPolicy || undefined) as unknown as string,
-        hostname: '', user: '', entrypoint: [], workingDir: '', labels: {},
-        tty: false, openStdin: false, autoRemove: false, privileged: false,
-        memory: 0, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0, nanoCpus: 0, platform: '',
-        start: true, restartMaxRetries: 0,
-      },
+    await updateDockerContainer({
+      id: editId.value, name: editForm.name.trim(), restartPolicy: editForm.restartPolicy,
+      memory: (Number(editForm.memoryMB) || 0) * 1024 * 1024, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0,
+      nanoCpus: Math.round((Number(editForm.nanoCpuCores) || 0) * 1e9), recreate: false, force: false, removeVolumes: false, options: undefined,
     })
-    feedback.success(t('docker.container.createSuccess'))
-    createVisible.value = false
+    feedback.success(t('docker.container.updateSuccess'))
+    editVisible.value = false
     await getList()
-  } catch (e) { showRequestError(e, t('docker.container.createFailed')) }
-  finally { createSubmitting.value = false }
+  } catch (e) { showRequestError(e, t('docker.container.updateFailed')) }
+  finally { editSubmitting.value = false }
 }
 
-// —— 详情 ——
+/* ───────── 详情 ───────── */
 const detailVisible = ref(false)
 const detail = ref<DockerContainerInfo | null>(null)
-const shortId = (id?: unknown) => { const s = String(id || ''); return s ? s.slice(0, 12) : '-' }
-const formatDateTime = (value?: unknown) => {
-  const s = value ? String(value) : ''
-  if (!s || s.startsWith('0001-')) return '-'
-  const date = new Date(s)
-  if (Number.isNaN(date.getTime())) return s
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-const formatBytes = (bytes?: number | string) => {
-  const n = Number(bytes)
-  if (!n) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let i = 0
-  let v = n
-  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++ }
-  return `${v.toFixed(i > 0 ? 1 : 0)} ${units[i]}`
-}
+const detailPill = computed(() => {
+  const s = detail.value?.state
+  if (!s) return { variant: 'neutral' as PillVariant, label: '-' }
+  return pillOf({ state: s.status, exitCode: s.exitCode } as unknown as Row)
+})
 const detailCommand = computed(() => {
   const item = detail.value
   if (!item) return '-'
   return [item.path, ...(item.args || [])].filter(Boolean).join(' ') || '-'
 })
-const detailHostConfig = computed(() => detail.value?.hostConfig)
 const detailImageName = computed(() => detail.value?.config?.image || detail.value?.image || '-')
-const detailRestartPolicy = computed(() => detailHostConfig.value?.restartPolicy || '-')
-const detailNetworkMode = computed(() => detailHostConfig.value?.networkMode || '-')
-const detailAutoRemove = computed(() => (detailHostConfig.value?.autoRemove ? t('docker.common.yes') : t('docker.common.no')))
-const detailPrivileged = computed(() => (detailHostConfig.value?.privileged ? t('docker.common.yes') : t('docker.common.no')))
+const detailRestartPolicy = computed(() => detail.value?.hostConfig?.restartPolicy || '-')
+const detailNetworkMode = computed(() => detail.value?.hostConfig?.networkMode || '-')
 const detailMemoryLimit = computed(() => {
-  const memory = detailHostConfig.value?.memory || 0
+  const memory = Number(detail.value?.hostConfig?.memory || 0)
   return memory ? formatBytes(memory) : t('docker.common.unlimited')
 })
 const detailCpuLimit = computed(() => {
-  const nanoCpus = detailHostConfig.value?.nanoCpus || 0
-  if (nanoCpus) return `${(nanoCpus / 1e9).toFixed(2)} ${t('docker.common.cpuUnit')}`
-  const cpuQuota = detailHostConfig.value?.cpuQuota || 0
-  const cpuPeriod = detailHostConfig.value?.cpuPeriod || 0
-  if (cpuQuota && cpuPeriod) return `${(cpuQuota / cpuPeriod).toFixed(2)} ${t('docker.common.cpuUnit')}`
+  const host = detail.value?.hostConfig
+  const nano = Number(host?.nanoCpus || 0)
+  if (nano) return `${(nano / 1e9).toFixed(2)} ${t('docker.common.cpuUnit')}`
+  const quota = Number(host?.cpuQuota || 0)
+  const period = Number(host?.cpuPeriod || 0)
+  if (quota && period) return `${(quota / period).toFixed(2)} ${t('docker.common.cpuUnit')}`
   return t('docker.common.unlimited')
 })
-const detailNetworks = computed(() => {
-  const networks = detail.value?.network?.networks || {}
-  return Object.entries(networks).map(([name, item]) => ({
+const detailNetworks = computed(() =>
+  Object.entries(detail.value?.network?.networks || {}).map(([name, item]) => ({
     name, ipAddress: item?.ipAddress || '', gateway: item?.gateway || '', macAddress: item?.macAddress || '',
-  }))
-})
-const detailPortTags = computed(() => {
-  const bindings = detailHostConfig.value?.portBindings || []
-  return bindings.map((b) => {
-    const containerPort = b.containerPort || ''
-    const hostIp = b.hostIp || ''
-    const hostPort = b.hostPort || ''
-    return hostPort ? `${hostIp ? `${hostIp}:` : ''}${hostPort}->${containerPort}` : containerPort
-  }).filter(Boolean)
-})
+  })),
+)
+const detailPortTags = computed(() =>
+  (detail.value?.hostConfig?.portBindings || []).map((b) => {
+    const cp = b.containerPort || ''
+    return b.hostPort ? `${b.hostIp ? `${b.hostIp}:` : ''}${b.hostPort}→${cp}` : cp
+  }).filter(Boolean),
+)
 const openDetail = async (row: DockerContainerSummary) => {
   detailVisible.value = true
   detail.value = null
@@ -750,7 +839,7 @@ const openDetailExec = () => {
   execVisible.value = true
 }
 
-// —— 日志 / 统计 / 终端 ——
+/* ───────── 日志 / 统计 / 终端 ───────── */
 const logsVisible = ref(false)
 const logsContainerId = ref('')
 const logsContainerName = ref('')
@@ -761,7 +850,7 @@ const openLogs = async (row: DockerContainerSummary) => {
     const info = data?.info
     if (!info?.logsWsPath) { feedback.warning(t('docker.container.missingLogsWsPath')); return }
     logsContainerId.value = info.id || row.id
-    logsContainerName.value = info.name || displayNames(row as unknown as Record<string, unknown>)
+    logsContainerName.value = info.name || nameOf(row as unknown as Row)
     logsWsPath.value = info.logsWsPath
     logsVisible.value = true
   } catch (e) { showRequestError(e, t('docker.container.getDetailFailed')) }
@@ -771,7 +860,7 @@ const statsContainerId = ref('')
 const statsContainerName = ref('')
 const openStats = (row: DockerContainerSummary) => {
   statsContainerId.value = row.id
-  statsContainerName.value = displayNames(row as unknown as Record<string, unknown>)
+  statsContainerName.value = nameOf(row as unknown as Row)
   statsVisible.value = true
 }
 const execVisible = ref(false)
@@ -784,281 +873,271 @@ const openExec = async (row: DockerContainerSummary) => {
     const info = data?.info
     if (!info?.execWsPath) { feedback.warning(t('docker.container.missingExecWsPath')); return }
     execContainerId.value = info.id || row.id
-    execContainerName.value = info.name || displayNames(row as unknown as Record<string, unknown>)
+    execContainerName.value = info.name || nameOf(row as unknown as Row)
     execWsPath.value = info.execWsPath
     execVisible.value = true
   } catch (e) { showRequestError(e, t('docker.container.getDetailFailed')) }
 }
 
-// —— 编辑 ——
-const editVisible = ref(false)
-const editSubmitting = ref(false)
-const editId = ref('')
-type LooseRecord = Record<string, unknown>
-const editForm = reactive({ name: '', restartPolicy: '', memoryMB: 0, nanoCpuCores: 0, recreate: false, image: '', network: '', force: false })
-const editPorts = ref<PortRow[]>([])
-const editMounts = ref<MountRow[]>([])
-const editEnv = ref<EnvRow[]>([])
-
-const asRecord = (value: unknown): LooseRecord => (value && typeof value === 'object' && !Array.isArray(value) ? value as LooseRecord : {})
-const readString = (source: LooseRecord, ...keys: string[]) => {
-  for (const key of keys) {
-    const value = source[key]
-    if (value !== undefined && value !== null && value !== '') return String(value)
-  }
-  return ''
-}
-const resetEditForm = () => {
-  Object.assign(editForm, { name: '', restartPolicy: '', memoryMB: 0, nanoCpuCores: 0, recreate: false, image: '', network: '', force: false })
-  editPorts.value = []
-  editMounts.value = []
-  editEnv.value = []
-}
-const splitPortProtocol = (value: string): Pick<PortRow, 'containerPort' | 'protocol'> => {
-  const [port, protocol] = value.trim().split('/')
-  return { containerPort: port || '', protocol: protocol?.toLowerCase() === 'udp' ? 'udp' : 'tcp' }
-}
-const fillEditPorts = (items: unknown) => {
-  if (!Array.isArray(items)) return
-  editPorts.value = items.map((raw) => {
-    const item = asRecord(raw)
-    const port = splitPortProtocol(readString(item, 'ContainerPort', 'containerPort'))
-    return { hostIp: readString(item, 'HostIP', 'HostIp', 'hostIp', 'hostIP'), hostPort: readString(item, 'HostPort', 'hostPort'), containerPort: port.containerPort, protocol: port.protocol }
-  }).filter((item) => item.containerPort)
-}
-const fillEditMounts = (hostMounts: unknown, points: DockerContainerInfo['mounts']) => {
-  if (Array.isArray(hostMounts) && hostMounts.length) {
-    editMounts.value = hostMounts.map((raw) => {
-      const item = asRecord(raw)
-      return { type: readString(item, 'Type', 'type') || 'bind', source: readString(item, 'Source', 'source'), target: readString(item, 'Target', 'target'), readOnly: !!(item.ReadOnly ?? item.readOnly) }
-    }).filter((item) => item.target)
-    return
-  }
-  editMounts.value = (points || []).map((item) => ({ type: item.type || 'bind', source: item.source || item.name || '', target: item.destination || '', readOnly: !item.rw })).filter((item) => item.target)
-}
-const fillEditEnv = (items: unknown) => {
-  if (!Array.isArray(items)) return
-  editEnv.value = items.map((raw) => {
-    const text = String(raw)
-    const index = text.indexOf('=')
-    return index >= 0 ? { key: text.slice(0, index), value: text.slice(index + 1) } : { key: text, value: '' }
-  }).filter((item) => item.key)
-}
-
-const openEdit = async (row: DockerContainerSummary) => {
-  editId.value = row.id
-  resetEditForm()
-  editForm.name = displayNames(row as unknown as Record<string, unknown>)
-  editForm.image = row.image
-  editVisible.value = true
-  void loadImageOptions()
-  void loadNetworkOptions()
-  try {
-    const { data } = await getDockerContainer({ id: row.id })
-    const info = data?.info
-    if (info) {
-      editForm.name = info.name || editForm.name
-      const config = info.config
-      const hostConfig = info.hostConfig
-      editForm.image = config?.image || info.image || editForm.image
-      editForm.restartPolicy = hostConfig?.restartPolicy || ''
-      editForm.network = hostConfig?.networkMode || ''
-      const memory = hostConfig?.memory || 0
-      const nanoCpus = hostConfig?.nanoCpus || 0
-      if (memory) editForm.memoryMB = Math.round(memory / 1024 / 1024)
-      if (nanoCpus) editForm.nanoCpuCores = Math.round((nanoCpus / 1e9) * 10) / 10
-      fillEditPorts(hostConfig?.portBindings)
-      fillEditMounts(hostConfig?.mounts, info.mounts)
-      fillEditEnv(config?.env)
-    }
-  } catch { /* use defaults */ }
-}
-const submitEdit = async () => {
-  editSubmitting.value = true
-  try {
-    if (editForm.recreate) {
-      if (!editForm.image.trim()) { feedback.error(t('docker.container.enterImage')); editSubmitting.value = false; return }
-      const { data } = await updateDockerContainer({
-        id: editId.value, name: editForm.name.trim(), restartPolicy: editForm.restartPolicy,
-        memory: editForm.memoryMB * 1024 * 1024, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0,
-        nanoCpus: Math.round(editForm.nanoCpuCores * 1e9), recreate: true, force: editForm.force, removeVolumes: false,
-        options: {
-          name: (editForm.name.trim() || undefined) as unknown as string, image: editForm.image.trim(),
-          cmd: [], env: buildEnv(editEnv.value), ports: buildPorts(editPorts.value), mounts: buildMounts(editMounts.value),
-          network: (editForm.network.trim() || undefined) as unknown as string,
-          restartPolicy: (editForm.restartPolicy || undefined) as unknown as string,
-          hostname: '', user: '', entrypoint: [], workingDir: '', labels: {},
-          tty: false, openStdin: false, autoRemove: false, privileged: false,
-          memory: editForm.memoryMB * 1024 * 1024, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0,
-          nanoCpus: Math.round(editForm.nanoCpuCores * 1e9), platform: '',
-          start: true, restartMaxRetries: 0,
-        },
-      })
-      openTask(data?.task)
-    } else {
-      await updateDockerContainer({
-        id: editId.value, name: editForm.name.trim(), restartPolicy: editForm.restartPolicy,
-        memory: editForm.memoryMB * 1024 * 1024, memorySwap: 0, cpuShares: 0, cpuQuota: 0, cpuPeriod: 0,
-        nanoCpus: Math.round(editForm.nanoCpuCores * 1e9), recreate: false, force: false, removeVolumes: false, options: undefined,
-      })
-    }
-    feedback.success(editForm.recreate ? t('docker.container.recreateTaskCreated') : t('docker.container.updateSuccess'))
-    editVisible.value = false
-    if (!editForm.recreate) await getList()
-  } catch (e) { showRequestError(e, t('docker.container.updateFailed')) }
-  finally { editSubmitting.value = false }
-}
-
-onMounted(() => { getList() })
+onMounted(() => { void init() })
+onActivated(() => {
+  startUsageTimer()
+  if (ready.value && !loading.value) void loadUsage()
+})
+onDeactivated(stopUsageTimer)
+onBeforeUnmount(stopUsageTimer)
 </script>
 
 <style scoped lang="scss">
-.dk-page { display: flex; flex-direction: column; gap: 16px; }
-.dk-page__body { display: flex; flex-direction: column; gap: 10px; }
-.dk-page__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.dk-page__hint { font-size: 0.8125rem; color: var(--el-text-color-secondary); font-variant-numeric: tabular-nums; }
-.dk-dim { color: var(--el-text-color-placeholder); }
-.dk-net { display: flex; flex-wrap: wrap; gap: 4px; }
-.dk-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-.dk-tag {
-  display: inline-flex; align-items: center; max-width: 240px; height: 24px; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  border-radius: 8px; background: var(--el-fill-color-light); color: var(--el-text-color-regular); font-size: 0.75rem; font-weight: 600;
-  font-family: var(--app-font-mono);
+@use '../components/dk-page.scss';
+
+.ct-name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
 }
-.dk-tag--port { background: var(--m-a2Soft); color: var(--m-ink); }
-
-/* 工具条：镜像搜索 */
-.dk-image-search {
-  display: flex; align-items: center; gap: 8px; flex: 0 1 240px; min-width: 160px; min-height: 40px; padding: 0 14px;
-  border-radius: 999px; border: 1.5px solid var(--el-border-color-light); background: var(--el-bg-color); color: var(--el-text-color-secondary);
+.ct-name strong {
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.dk-image-search:focus-within { border-color: var(--m-p); }
-.dk-image-search :deep(svg) { width: 16px; height: 16px; flex: none; }
-.dk-image-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: var(--el-text-color-primary); font: inherit; font-size: 0.875rem; }
-@media (width < 768px) { .dk-image-search { flex: 1 1 100%; } }
-
-/* 行内动作 */
-.dk-acts { display: inline-flex; align-items: center; justify-content: flex-end; gap: 2px; }
-.dk-acts :deep(.is-stop), .dk-card__foot :deep(.is-stop) { color: var(--m-bad); }
-.dk-acts :deep(.is-start), .dk-card__foot :deep(.is-start) { color: var(--m-ok); }
-.dk-acts :deep(.is-stop:hover), .dk-card__foot :deep(.is-stop:hover) { background: var(--m-badSoft); }
-.dk-acts :deep(.is-start:hover), .dk-card__foot :deep(.is-start:hover) { background: var(--m-okSoft); }
-
-/* 表单 */
-.dk-form { display: flex; flex-direction: column; gap: 14px; }
-.dk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.dk-grid__full { grid-column: 1 / -1; }
-.dk-switch { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
-.dk-mono { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace; font-size: 0.8125rem; }
-
-/* 分段 / 数字 / 预设 chips */
-.seg {
+.ct-name span,
+.ct-sub {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+.ct-img {
+  display: block;
+  max-width: 220px;
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ct-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.ct-port {
   display: inline-flex;
-  padding: 2px;
-  gap: 2px;
-  background: var(--el-fill-color-light);
-  border-radius: var(--app-radius);
-  max-width: 100%;
-  flex-wrap: wrap;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: var(--m-a2Soft);
+  color: var(--m-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
-.seg--wide { width: 100%; }
-.seg__btn {
+.ct-cpu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+.ct-bar {
+  flex: none;
+  width: 48px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--el-fill-color-light);
+  overflow: hidden;
+}
+.ct-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--m-p);
+}
+.ct-mem {
+  font-size: 0.8125rem;
+}
+.dk-acts :deep(.is-stop),
+.dk-card__foot :deep(.is-stop) {
+  color: var(--m-bad);
+}
+.dk-acts :deep(.is-start),
+.dk-card__foot :deep(.is-start) {
+  color: var(--m-ok);
+}
+.dk-acts :deep(.is-stop:hover),
+.dk-card__foot :deep(.is-stop:hover) {
+  background: var(--m-badSoft);
+}
+.dk-acts :deep(.is-start:hover),
+.dk-card__foot :deep(.is-start:hover) {
+  background: var(--m-okSoft);
+}
+
+/* 手机卡片 */
+.ct-skel {
+  height: 132px;
+}
+.ct-card {
+  gap: 10px;
+}
+.ct-card__name {
+  font-size: 1rem;
+}
+.ct-card__line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: -4px;
+  padding-right: 6px;
+  min-width: 0;
+}
+.ct-card__img {
   flex: 1;
   min-width: 0;
-  padding: 5px 8px;
-  border: none;
-  background: transparent;
-  border-radius: var(--app-radius-sm);
-  color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
-.seg__btn.is-active {
+.ct-card__use {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+}
+.ct-card__ports {
+  align-items: center;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+/* 编辑配置 */
+.ct-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--el-fill-color-light);
+}
+.ct-seg button {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ct-seg button.is-on {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   box-shadow: var(--app-shadow-sm);
 }
-.dk-num {
+.ct-num {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-.dk-num .app-input { flex: 1; min-width: 0; }
-.dk-num__unit {
-  flex-shrink: 0;
-  font-size: 0.75rem;
+  gap: 8px;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
-.dk-chips {
+.ct-num .app-input {
+  flex: 1;
+  min-width: 0;
+}
+.ct-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
   margin-top: 6px;
 }
-.dk-chip {
-  padding: 2px 8px;
-  border: 1px solid var(--el-border-color-lighter);
+.ct-presets button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1.5px solid var(--el-border-color-light);
   border-radius: 999px;
-  background: var(--el-fill-color-blank, var(--el-bg-color));
+  background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.dk-chip.is-on {
-  border-color: color-mix(in srgb, var(--el-color-primary) 45%, transparent);
-  background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
-  color: var(--el-color-primary);
+.ct-presets button.is-on {
+  border-color: var(--m-p);
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
 }
 
 /* 详情 */
-.dk-detail { display: flex; flex-direction: column; gap: 14px; }
-.dk-detail__hero { padding: 12px; border: 1px solid var(--el-border-color-lighter); border-radius: var(--app-radius); background: var(--el-fill-color-lighter); }
-.dk-detail__title { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-weight: 700; color: var(--el-text-color-primary); }
-.dk-detail__sub { margin-top: 4px; font-size: 0.78rem; color: var(--el-text-color-secondary); word-break: break-all; }
-.dk-detail__ports { margin-top: 8px; }
-.dk-detail__grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.dk-detail__label { margin-bottom: 6px; font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); }
-.dk-kv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--el-border-color-lighter); border-radius: var(--app-radius); overflow: hidden; }
-.dk-kv > div { padding: 8px 10px; border-right: 1px solid var(--el-border-color-lighter); border-bottom: 1px solid var(--el-border-color-lighter); }
-.dk-kv > div:nth-child(3n) { border-right: 0; }
-.dk-kv > div:nth-last-child(-n + 3) { border-bottom: 0; }
-.dk-kv span { display: block; color: var(--el-text-color-secondary); font-size: 0.72rem; }
-.dk-kv strong { display: block; margin-top: 2px; color: var(--el-text-color-primary); font-size: 0.8rem; font-weight: 600; word-break: break-word; }
-.dk-code { padding: 8px 10px; border: 1px solid var(--el-border-color-lighter); border-radius: var(--app-radius); background: var(--el-fill-color-lighter); color: var(--el-text-color-regular); font-size: 0.75rem; line-height: 1.6; word-break: break-all; }
-.dk-list { border: 1px solid var(--el-border-color-lighter); border-radius: var(--app-radius); overflow: hidden; font-size: 0.78rem; }
-.dk-list__head, .dk-list__row { display: grid; gap: 8px; align-items: center; padding: 7px 10px; }
-.dk-list__head { color: var(--el-text-color-secondary); font-size: 0.72rem; background: var(--el-fill-color-lighter); }
-.dk-list__row { border-top: 1px solid var(--el-border-color-lighter); color: var(--el-text-color-regular); }
-.dk-list--net4 .dk-list__row { grid-template-columns: 1fr 1fr 1fr 1fr; }
-.dk-list--mounts .dk-list__head, .dk-list--mounts .dk-list__row { grid-template-columns: 0.7fr 1.6fr 1.4fr 0.7fr 0.6fr; }
-.dk-list__name { font-weight: 600; color: var(--el-text-color-primary); }
-.dk-list span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dk-detail__loading { padding: 40px 0; text-align: center; color: var(--el-text-color-secondary); }
-
-/* 移动卡片 */
-.dk-cards { display: flex; flex-direction: column; gap: 12px; }
-.dk-card {
-  display: flex; flex-direction: column; gap: 8px; padding: 16px 12px 6px 16px;
-  border-radius: var(--app-radius-lg); border: 1px solid var(--el-border-color-light); background: var(--el-bg-color);
+.ct-detail-ports {
+  margin-top: 6px;
 }
-.dk-card__head { display: flex; align-items: center; gap: 10px; padding-right: 4px; }
-.dk-card__name { flex: 1; min-width: 0; font-size: 1rem; font-weight: 800; color: var(--el-text-color-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dk-card__sub { padding-right: 4px; font-size: 0.75rem; color: var(--el-text-color-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dk-card__foot { display: flex; align-items: center; gap: 2px; margin-top: 2px; padding-top: 6px; border-top: 1px solid var(--el-border-color-lighter); }
-.dk-card__ports { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.75rem; }
-.dk-card__full { flex-basis: 100%; }
-.dk-skeleton {
-  height: 120px; border-radius: var(--app-radius-lg);
-  background: linear-gradient(100deg, var(--el-fill-color-light) 30%, var(--el-fill-color) 50%, var(--el-fill-color-light) 70%);
-  background-size: 200% 100%; animation: dk-shimmer 1.4s ease-in-out infinite;
+.ct-kv {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-@keyframes dk-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.ct-list {
+  border-radius: var(--app-radius);
+  border: 1px solid var(--el-border-color-lighter);
+  overflow: hidden;
+  font-size: 0.78125rem;
+}
+.ct-list__row {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-top: 1px solid var(--el-border-color-lighter);
+  color: var(--el-text-color-regular);
+}
+.ct-list__row:first-child {
+  border-top: none;
+}
+.ct-list__row > * {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ct-list__head {
+  background: var(--el-fill-color-light);
+  font-size: 0.71875rem;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+}
+.ct-list--net {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.ct-list--mounts {
+  grid-template-columns: 0.7fr 1.6fr 1.4fr 0.7fr 0.6fr;
+}
+.dk-pop-enter-active,
+.dk-pop-leave-active {
+  transition: opacity 0.18s, transform 0.18s;
+}
+.dk-pop-enter-from,
+.dk-pop-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
 @media (width <= 768px) {
-  .dk-grid, .dk-detail__grid2 { grid-template-columns: 1fr; }
-  .dk-grid__full { grid-column: 1; }
+  .ct-kv {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ct-list--mounts {
+    grid-template-columns: 0.8fr 1.4fr 1.4fr 0.6fr;
+  }
+  .ct-list--mounts > :nth-child(4) {
+    display: none;
+  }
 }
 </style>

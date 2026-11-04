@@ -1,7 +1,8 @@
-<!-- API Key：标题 + 状态计数说明 + 子导航 → 新建 / 刷新结果横幅（完整密钥 + 复制）→ 状态 chips（带数量）+ 搜索
-     → 桌面表格（可多选，行内 复制 / 刷新 / 编辑 / 删除 小图标）/ 手机卡片 → 说明条 + 分页；多选时底部悬浮批量条（吊销 / 删除）。
-     API Key 是远程主控调用本节点的签名种子：主控只发送派生的 Key ID 与时间戳签名，授权范围决定其可用功能。
-     保留 list / copy / refresh / create / update / delete 契约。 -->
+<!-- API Key：标题 + 状态计数说明 + 子导航 → 新建 / 刷新结果（PC 顶部横幅、手机底部抽屉：完整密钥 + 复制）→ 状态 chips（带数量）
+     + 搜索 +「所属用户」筛选（有 api_key:manage 时可看全部用户）→ 桌面表格（可多选；名称 / 密钥 / 所属用户 / 节点权限 / 有效期 /
+     最后使用 / 创建于；行内 复制 / 刷新（仅自己的密钥）/ 编辑 / 删除）/ 手机卡片（<dl> 信息格、底部权限标签 + 图标操作）
+     → 说明条 + 「显示 N 个，共 M 个」+ 分页；多选时底部悬浮批量条（延长有效期 / 吊销 / 删除）；手机右下悬浮新建。
+     API Key 是远程主控调用本节点的签名种子：主控只发送派生的 Key ID 与时间戳签名，授权范围决定其可用功能。 -->
 <template>
   <div class="key-page">
     <PageHeader :title="t('node.page.title')">
@@ -34,8 +35,8 @@
     </PageHeader>
     <NodeSubNav :key-count="counts.total" />
 
-    <!-- 新建 / 刷新结果：完整密钥 -->
-    <section v-if="created" class="key-created" role="status">
+    <!-- 新建 / 刷新结果：完整密钥（PC 横幅；手机见下方底部抽屉） -->
+    <section v-if="created && !menuStore.isMobile" class="key-created" role="status">
       <span class="key-created__av m-sticker m-sticker--ok">
         <component :is="menuStore.iconComponents['HOutline:CheckIcon']" />
       </span>
@@ -45,7 +46,7 @@
             {{ created.kind === 'refresh' ? t('node.keyx.refreshedTitle') : t('node.keyx.createdTitle') }}
           </h2>
           <p class="key-created__desc">
-            {{ t('node.keyx.createdDesc', { name: created.info.name, owner: ownerName, expiry: expiryShort(created.info) }) }}
+            {{ t('node.keyx.createdDesc', { name: created.info.name, owner: ownerOf(created.info), expiry: expiryShort(created.info) }) }}
           </p>
         </div>
         <div class="key-created__row">
@@ -74,9 +75,19 @@
       v-model:keyword="queryForm.keywords"
       :chips="chips"
       :chips-label="t('node.list.status')"
-      :placeholder="t('access.key.searchPlaceholder')"
+      :placeholder="canManageAll ? t('accessV2.key.searchAllPlaceholder') : t('access.key.searchPlaceholder')"
       @search="reload"
-    />
+    >
+      <AppSelect
+        v-if="canManageAll"
+        v-model="ownerFilter"
+        class="key-owner"
+        fit
+        :options="ownerOptions"
+        :aria-label="t('accessV2.key.owner')"
+        @update:model-value="reload"
+      />
+    </ListToolbar>
 
     <!-- 桌面：表格 -->
     <DataTable
@@ -105,6 +116,19 @@
           <span class="m-mono key-cell__sub" :title="t('node.key.keyIdTip')">{{ asKey(row).keyId }}</span>
         </div>
       </template>
+      <template #cell-owner="{ row }">
+        <div class="key-owner-cell">
+          <AppAvatar
+            v-if="asKey(row).owner?.avatar"
+            :src="resolveAvatarUrl(asKey(row).owner?.avatar)"
+            :size="28"
+            :name="ownerOf(asKey(row))"
+          />
+          <span v-else class="m-sticker key-owner-cell__av" :class="ownerTone(asKey(row))">{{ initialOf(ownerOf(asKey(row))) }}</span>
+          <span class="key-owner-cell__name">{{ ownerOf(asKey(row)) }}</span>
+          <span v-if="asKey(row).mine" class="key-me">{{ t('access.user.me') }}</span>
+        </div>
+      </template>
       <template #cell-permissions="{ row }">
         <NodePermissionChips variant="groups" only-granted :permissions="asKey(row).permissions" class="key-perms" />
       </template>
@@ -130,10 +154,12 @@
       </template>
       <template #cell-operation="{ row }">
         <div class="key-ops">
-          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :box="34" :size="17" :label="t('node.key.copy')" @click="openCopy(asKey(row))" />
-          <AppIconButton icon="HOutline:ArrowPathIcon" :box="34" :size="17" :label="t('node.key.refresh')" @click="openRefresh(asKey(row))" />
-          <AppIconButton icon="HOutline:PencilSquareIcon" :box="34" :size="17" :label="t('node.key.edit')" @click="apiKeyCreateRef?.showDialog(asKey(row))" />
-          <AppIconButton class="is-danger" icon="HOutline:TrashIcon" :box="34" :size="17" :label="t('node.key.delete')" @click="openDelete(asKey(row))" />
+          <template v-if="asKey(row).mine">
+            <AppIconButton icon="HOutline:ClipboardDocumentIcon" :box="34" :size="17" :label="`${t('node.key.copy')} ${asKey(row).name}`" @click="openCopy(asKey(row))" />
+            <AppIconButton icon="HOutline:ArrowPathIcon" :box="34" :size="17" :label="`${t('node.key.refresh')} ${asKey(row).name}`" @click="openRefresh(asKey(row))" />
+          </template>
+          <AppIconButton icon="HOutline:PencilSquareIcon" :box="34" :size="17" :label="`${t('node.key.edit')} ${asKey(row).name}`" @click="apiKeyCreateRef?.showDialog(asKey(row))" />
+          <AppIconButton class="is-danger" icon="HOutline:TrashIcon" :box="34" :size="17" :label="`${t('node.key.delete')} ${asKey(row).name}`" @click="openDelete(asKey(row))" />
         </div>
       </template>
     </DataTable>
@@ -166,6 +192,10 @@
           </header>
           <p v-if="row.remark" class="key-card__remark">{{ row.remark }}</p>
           <dl class="key-card__info">
+            <div v-if="canManageAll">
+              <dt>{{ t('accessV2.key.owner') }}</dt>
+              <dd>{{ ownerOf(row) }}<template v-if="row.mine"> · {{ t('access.user.me') }}</template></dd>
+            </div>
             <div>
               <dt>{{ t('node.key.expiresAt') }}</dt>
               <dd class="m-num" :class="expiryTone(row)">{{ expiry(row).main }}</dd>
@@ -178,18 +208,19 @@
               <dt>{{ t('node.keyx.createdAt') }}</dt>
               <dd class="m-num">{{ date(row.createTime) }}</dd>
             </div>
-            <div>
+            <div :class="{ 'is-wide': !canManageAll }">
               <dt>{{ t('node.keyx.sourceIp') }}</dt>
               <dd class="m-mono">{{ row.lastUsedIp || '—' }}</dd>
             </div>
           </dl>
-          <NodePermissionChips variant="groups" only-granted :permissions="row.permissions" class="key-card__perms" />
           <footer class="key-card__foot">
-            <span class="key-card__spacer" />
-            <AppIconButton icon="HOutline:ClipboardDocumentIcon" :box="44" :label="t('node.key.copy')" @click="openCopy(row)" />
-            <AppIconButton icon="HOutline:ArrowPathIcon" :box="44" :label="t('node.key.refresh')" @click="openRefresh(row)" />
-            <AppIconButton icon="HOutline:PencilSquareIcon" :box="44" :label="t('node.key.edit')" @click="apiKeyCreateRef?.showDialog(row)" />
-            <AppIconButton class="is-danger" icon="HOutline:TrashIcon" :box="44" :label="t('node.key.delete')" @click="openDelete(row)" />
+            <NodePermissionChips variant="groups" only-granted :permissions="row.permissions" class="key-card__perms" />
+            <template v-if="row.mine">
+              <AppIconButton icon="HOutline:ClipboardDocumentIcon" :box="44" :label="`${t('node.key.copy')} ${row.name}`" @click="openCopy(row)" />
+              <AppIconButton icon="HOutline:ArrowPathIcon" :box="44" :label="`${t('node.key.refresh')} ${row.name}`" @click="openRefresh(row)" />
+            </template>
+            <AppIconButton icon="HOutline:PencilSquareIcon" :box="44" :label="`${t('node.key.edit')} ${row.name}`" @click="apiKeyCreateRef?.showDialog(row)" />
+            <AppIconButton class="is-danger" icon="HOutline:TrashIcon" :box="44" :label="`${t('node.key.delete')} ${row.name}`" @click="openDelete(row)" />
           </footer>
         </article>
       </div>
@@ -200,6 +231,9 @@
         <component :is="menuStore.iconComponents['HOutline:ShieldCheckIcon']" />
         <span>{{ t('node.keyx.formula') }} {{ t('access.key.tip') }}</span>
       </div>
+      <span v-if="pagination.total && !menuStore.isMobile" class="key-shown tnum">
+        {{ t('accessV2.key.shown', { count: list.length, total: pagination.total }) }}
+      </span>
     </div>
 
     <Pagination
@@ -213,6 +247,9 @@
     <Transition name="key-pop">
       <div v-if="selectedIds.length" class="key-batch" role="toolbar">
         <span class="key-batch__count">{{ t('node.keyx.selected', { count: selectedIds.length }) }}</span>
+        <button type="button" class="key-batch__btn" @click="openExtend">
+          <component :is="menuStore.iconComponents['HOutline:ClockIcon']" />{{ t('accessV2.key.extend') }}
+        </button>
         <button type="button" class="key-batch__btn" @click="bulkRevoke">
           <component :is="menuStore.iconComponents['HOutline:NoSymbolIcon']" />{{ t('node.keyx.revoke') }}
         </button>
@@ -226,11 +263,78 @@
     </Transition>
 
     <!-- 手机：悬浮新建 -->
-    <div v-if="menuStore.isMobile && !created" class="key-fab">
-      <UButton color="primary" size="xl" icon="i-lucide-plus" class="key-fab__btn" @click="apiKeyCreateRef?.showDialog()">
-        {{ t('node.key.add') }}
-      </UButton>
-    </div>
+    <button
+      v-if="menuStore.isMobile && !selectedIds.length"
+      type="button"
+      class="key-fab"
+      :aria-label="t('node.key.add')"
+      @click="apiKeyCreateRef?.showDialog()"
+    >
+      <component :is="menuStore.iconComponents['HOutline:PlusIcon']" />
+    </button>
+
+    <!-- 手机：新建 / 刷新结果抽屉 -->
+    <FormDialog
+      v-if="menuStore.isMobile"
+      :model-value="!!created"
+      :title="created?.kind === 'refresh' ? t('node.keyx.refreshedTitle') : t('node.keyx.createdTitle')"
+      :show-footer="false"
+      :close-on-overlay="false"
+      @update:model-value="(v) => !v && closeCreated()"
+    >
+      <div v-if="created" class="key-sheet">
+        <div class="key-sheet__head">
+          <span class="key-created__av m-sticker m-sticker--ok">
+            <component :is="menuStore.iconComponents['HOutline:CheckIcon']" />
+          </span>
+          <span class="key-sheet__title">
+            <span class="key-sheet__name">{{ created.info.name }}</span>
+            <span class="key-sheet__sub">{{ expiryShort(created.info) }}</span>
+          </span>
+        </div>
+        <div class="key-sheet__tags">
+          <NodePermissionChips variant="groups" only-granted :permissions="created.info.permissions" />
+          <span class="key-sheet__owner">{{ t('accessV2.key.ownedBy', { name: ownerOf(created.info) }) }}</span>
+        </div>
+        <div class="key-copy__key m-mono">{{ created.info.apiKey }}</div>
+        <UButton color="primary" size="xl" block :icon="createdCopied ? 'i-lucide-check' : 'i-lucide-copy'" class="key-sheet__btn" @click="copyCreated">
+          {{ createdCopied ? t('node.keyx.copied') : t('node.key.copy') }}
+        </UButton>
+        <div class="key-created__warn">
+          <component :is="menuStore.iconComponents['HOutline:ExclamationTriangleIcon']" />
+          <span>{{ t('node.keyx.saveTip') }}</span>
+        </div>
+        <UButton color="neutral" variant="soft" size="xl" block class="key-sheet__btn" @click="closeCreated">
+          {{ t('node.keyx.saved') }}
+        </UButton>
+      </div>
+    </FormDialog>
+
+    <!-- 批量延长有效期 -->
+    <FormDialog
+      v-model="extendOpen"
+      :title="t('accessV2.key.extendTitle', { count: selectedIds.length })"
+      :width="460"
+      :loading="extendLoading"
+      @confirm="submitExtend"
+    >
+      <div class="key-extend">
+        <button
+          v-for="opt in extendOptions"
+          :key="opt.value"
+          type="button"
+          role="radio"
+          class="key-extend__opt"
+          :class="{ 'is-on': extendBy === opt.value }"
+          :aria-checked="extendBy === opt.value"
+          @click="extendBy = opt.value"
+        >
+          <span class="key-extend__label">{{ opt.label }}</span>
+          <span class="key-extend__desc">{{ opt.desc }}</span>
+        </button>
+        <p class="key-extend__hint">{{ t('accessV2.key.extendHint') }}</p>
+      </div>
+    </FormDialog>
 
     <ApiKeyCreate ref="apiKeyCreateRef" @refresh="onFormRefresh" />
 
@@ -254,10 +358,13 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import dayjs from 'dayjs'
 import { copyAPIKey, deleteAPIKey, listAPIKeys, refreshAPIKey, updateAPIKey } from '@/api/node'
-import { APIKeyStatus, type APIKeyInfo } from '@/types/v1/node'
+import { APIKeyStatus, type APIKeyInfo, type APIKeyOwnerStat } from '@/types/v1/node'
 import { Dialog } from '@/utils/dialog'
+import { resolveAvatarUrl } from '@/utils/assets'
 import { useUserStore } from '@/stores/user'
+import { initialOf, stickerOf } from '@/views/system/components/accessTone'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 import type { ToolbarChip } from '@/components/ui/ListToolbar.vue'
 import ApiKeyCreate from '@/views/node/key/create.vue'
@@ -293,8 +400,37 @@ const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 
 const tableRows = computed(() => list.value as unknown as Record<string, unknown>[])
 const asKey = (row: Record<string, unknown>) => row as unknown as APIKeyInfo
-const hasFilter = computed(() => statusFilter.value !== 'all' || !!queryForm.value.keywords.trim())
-const ownerName = computed(() => userStore.userInfo?.name || userStore.userInfo?.username || '—')
+
+// 所属用户：有 api_key:manage 时可以看全部用户的密钥（只能复制 / 刷新自己的）
+const canManageAll = computed(() => menuStore.hasButtonPermission('api_key:manage'))
+const OWNER_MINE = '__mine__'
+const OWNER_ALL = '__all__'
+const ownerFilter = ref<string>(OWNER_ALL)
+const owners = ref<APIKeyOwnerStat[]>([])
+const myId = computed(() => userStore.userInfo?.userId || '')
+const ownerOptions = computed(() => {
+  const total = owners.value.reduce((n, o) => n + Number(o.count || 0), 0)
+  return [
+    { label: t('accessV2.key.ownerAll', { count: total }), value: OWNER_ALL },
+    { label: t('accessV2.key.ownerMine'), value: OWNER_MINE },
+    ...owners.value
+      .filter((o) => o.owner && o.owner.userId !== myId.value)
+      .map((o) => ({
+        label: `${o.owner!.name || o.owner!.username}（${Number(o.count || 0)}）`,
+        value: o.owner!.userId,
+      })),
+  ]
+})
+const ownerOf = (row: APIKeyInfo) =>
+  row.owner?.name || row.owner?.username || (row.mine ? userStore.userInfo?.name || userStore.userInfo?.username : '') || '—'
+const ownerTone = (row: APIKeyInfo) => stickerOf(row.owner?.userId || '').cls
+
+const hasFilter = computed(
+  () =>
+    statusFilter.value !== 'all' ||
+    !!queryForm.value.keywords.trim() ||
+    (canManageAll.value && ownerFilter.value !== OWNER_ALL),
+)
 
 // 「共 n 个密钥 · x 个有效 · y 个即将过期 · z 个已过期」拆成可着色的片段
 const summaryParts = computed(() => {
@@ -317,13 +453,14 @@ const chips = computed<ToolbarChip<StatusFilter>[]>(() => [
 ])
 
 const columns = computed<DataTableColumn[]>(() => [
-  { key: 'name', title: t('node.key.name'), minWidth: 150 },
-  { key: 'apiKey', title: t('node.keyx.colKey'), minWidth: 150 },
-  { key: 'permissions', title: t('node.key.permissions'), minWidth: 200, ellipsis: false },
-  { key: 'expiresAt', title: t('node.key.expiresAt'), minWidth: 130 },
-  { key: 'lastUsed', title: t('node.keyx.lastUsed'), minWidth: 110 },
-  { key: 'createTime', title: t('node.keyx.createdAt'), width: 108 },
-  { key: 'operation', title: t('node.key.operation'), width: 160, align: 'right' },
+  { key: 'name', title: t('node.key.name'), minWidth: 120 },
+  { key: 'apiKey', title: t('node.keyx.colKey'), minWidth: 130 },
+  ...(canManageAll.value ? [{ key: 'owner', title: t('accessV2.key.owner'), minWidth: 120 }] : []),
+  { key: 'permissions', title: t('node.key.permissions'), minWidth: 160, ellipsis: false },
+  { key: 'expiresAt', title: t('node.key.expiresAt'), minWidth: 112 },
+  { key: 'lastUsed', title: t('node.keyx.lastUsed'), minWidth: 100 },
+  { key: 'createTime', title: t('node.keyx.createdAt'), width: 100 },
+  { key: 'operation', title: t('node.key.operation'), width: 156, align: 'right' },
 ])
 
 // —— 有效期展示 ——
@@ -362,13 +499,18 @@ const isNew = (row: APIKeyInfo) => {
 const getList = async () => {
   loading.value = true
   try {
+    const scoped = canManageAll.value && ownerFilter.value !== OWNER_MINE
     const { data: res } = await listAPIKeys({
       page: pagination.value.page,
       pageSize: pagination.value.pageSize,
       keywords: queryForm.value.keywords.trim() || undefined,
       status: statusFilter.value === 'all' ? undefined : statusFilter.value,
+      allUsers: scoped,
+      ownerId: scoped && ownerFilter.value !== OWNER_ALL ? ownerFilter.value : undefined,
     })
     list.value = res?.infos || []
+    // 所属用户统计只在查看全部用户时返回；切到「我的」时保留上次的选项
+    if (scoped) owners.value = res?.owners || []
     pagination.value.total = Number(res?.total || 0)
     pagination.value.page = Number(res?.page || pagination.value.page)
     pagination.value.pageSize = Number(res?.pageSize || pagination.value.pageSize)
@@ -466,6 +608,41 @@ const bulkRevoke = () => {
     },
   })
 }
+// 批量延长有效期：在原到期时间（已过期则从现在起）上顺延，或设为永久有效
+type ExtendBy = '30' | '90' | '365' | 'never'
+const extendOpen = ref(false)
+const extendLoading = ref(false)
+const extendBy = ref<ExtendBy>('90')
+const extendOptions = computed<{ value: ExtendBy; label: string; desc: string }[]>(() => [
+  { value: '30', label: t('accessV2.key.extendDays', { days: 30 }), desc: t('accessV2.key.extendDesc') },
+  { value: '90', label: t('accessV2.key.extendDays', { days: 90 }), desc: t('accessV2.key.extendDesc') },
+  { value: '365', label: t('accessV2.key.extendYear'), desc: t('accessV2.key.extendDesc') },
+  { value: 'never', label: t('node.key.permanent'), desc: t('accessV2.key.neverDesc') },
+])
+const openExtend = () => {
+  extendBy.value = '90'
+  extendOpen.value = true
+}
+const submitExtend = async () => {
+  const byId = new Map(list.value.map((k) => [k.id, k]))
+  const days = extendBy.value === 'never' ? 0 : Number(extendBy.value)
+  extendLoading.value = true
+  try {
+    const ok = await runBatch((id) => {
+      if (!days) return updateAPIKey({ id, neverExpires: true, permissions: undefined })
+      const cur = toDayjs(byId.get(id)?.expiresAt)
+      const base = cur && cur.isAfter(dayjs()) ? cur : dayjs()
+      return updateAPIKey({ id, expiresAt: base.add(days, 'day').toDate(), permissions: undefined })
+    })
+    feedback.success(t('accessV2.key.extendSuccess', { count: ok }))
+    extendOpen.value = false
+    selectedIds.value = []
+    getList()
+  } finally {
+    extendLoading.value = false
+  }
+}
+
 const bulkDelete = () => {
   const count = selectedIds.value.length
   Dialog.confirm({
@@ -639,10 +816,10 @@ onMounted(() => {
   max-width: 190px;
 }
 .key-cell.is-key {
-  max-width: 150px;
+  max-width: 130px;
 }
 .key-perms {
-  max-width: 220px;
+  max-width: 200px;
 }
 .key-cell__title {
   display: inline-flex;
@@ -688,6 +865,146 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 2px;
+}
+.key-owner {
+  flex: none;
+}
+.key-owner :deep(button) {
+  min-height: 40px;
+  border-radius: 999px;
+}
+.key-owner-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.key-owner-cell__av {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  font-size: 0.75rem;
+}
+.key-owner-cell__name {
+  min-width: 0;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.key-me {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--m-pInk);
+}
+.key-shown {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+}
+
+/* 批量延长有效期 */
+.key-extend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.key-extend__opt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--el-border-color-light);
+  border-radius: var(--app-radius);
+  background: var(--el-bg-color);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.key-extend__opt:hover {
+  border-color: var(--m-p);
+}
+.key-extend__opt.is-on {
+  border-color: var(--m-p);
+  background: var(--m-pSoft);
+}
+.key-extend__label {
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+}
+.key-extend__desc,
+.key-extend__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+}
+
+/* 手机：新建结果抽屉 */
+.key-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.key-sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.key-sheet__head .key-created__av {
+  width: 52px;
+  height: 52px;
+  border-radius: 17px;
+}
+.key-sheet__title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.key-sheet__name {
+  font-family: var(--app-font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--el-text-color-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.key-sheet__sub {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+}
+.key-sheet__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.key-sheet__owner {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: var(--m-aSoft);
+  color: var(--m-aOn, var(--m-ink));
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+html.dark .key-sheet__owner {
+  color: var(--m-a);
+}
+.key-sheet__btn {
+  min-height: 52px;
+  border-radius: 999px;
+  justify-content: center;
+  font-weight: 700;
 }
 .key-ops :deep(.is-danger),
 .key-card__foot :deep(.is-danger) {
@@ -801,6 +1118,9 @@ onMounted(() => {
 .key-card__info > div {
   min-width: 0;
 }
+.key-card__info > div.is-wide {
+  grid-column: 1 / -1;
+}
 .key-card__info dt {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -829,11 +1149,13 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
 }
 .key-card__perms {
-  padding-right: 4px;
+  flex: 1;
+  min-width: 0;
 }
 .key-card__foot {
   display: flex;
   align-items: center;
+  gap: 2px;
   padding-top: 6px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
@@ -969,27 +1291,36 @@ onMounted(() => {
   transform: translateY(12px);
 }
 
-/* 手机 */
+/* 手机：悬浮新建（方形图标按钮） */
 .key-fab {
   position: sticky;
-  bottom: calc(92px + env(safe-area-inset-bottom));
-  display: flex;
-  justify-content: flex-end;
-  margin-top: -56px;
-  pointer-events: none;
+  bottom: 0;
   z-index: 5;
-}
-.key-fab__btn {
-  pointer-events: auto;
-  min-height: 56px;
-  padding: 0 22px;
-  border-radius: var(--app-radius-pill);
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--m-p);
+  color: var(--m-pOn);
   box-shadow: var(--app-shadow-brand);
+  cursor: pointer;
+}
+.key-fab :deep(svg) {
+  width: 26px;
+  height: 26px;
+}
+.key-fab:active {
+  transform: scale(0.97);
 }
 @media (width < 768px) {
   .key-page {
     gap: 14px;
-    padding-bottom: 72px;
+    /* 悬浮新建按钮贴在底部导航上方 100px 处；留出同样高度，滚到底时按钮不压住分页和最后一张卡片 */
+    padding-bottom: 100px;
   }
   .key-created {
     flex-wrap: wrap;

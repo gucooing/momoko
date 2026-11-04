@@ -8,6 +8,12 @@ import (
 	"momoko/pkg/task"
 )
 
+// 远端上传收尾任务的执行步骤。
+const (
+	finalizeStepPush = "推送到文件源"
+	finalizeStepMark = "标记上传完成"
+)
+
 // 上传相关任务类型键。
 const (
 	TaskTypeUploadFinalize = "file.upload_finalize"
@@ -41,6 +47,11 @@ func NewFinalizeTask(meta task.Meta, store Store, upload *Upload, db UploadStore
 	meta.Kind = task.KindOneShot
 	meta.Resume = task.ResumeRerun
 	meta.Total = 1
+	meta.Source = "file"
+	meta.Steps = []string{finalizeStepPush, finalizeStepMark}
+	if upload != nil && meta.Target == "" {
+		meta.Target = upload.FileName
+	}
 	return &finalizeTask{meta: meta, store: store, upload: upload, db: db}
 }
 
@@ -48,9 +59,11 @@ func (t *finalizeTask) Meta() task.Meta { return t.meta }
 func (t *finalizeTask) Payload() any    { return FinalizePayload{UploadID: t.upload.ID} }
 func (t *finalizeTask) Run(ctx context.Context, r task.Reporter) error {
 	r.SetProgress(0, 1, "上传收尾中")
+	r.Step(finalizeStepPush, "")
 	if err := t.store.CompleteUpload(ctx, t.upload); err != nil {
 		return err
 	}
+	r.Step(finalizeStepMark, "")
 	if err := t.db.SetUploadCompleted(ctx, t.upload.ID); err != nil {
 		return err
 	}

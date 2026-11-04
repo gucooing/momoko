@@ -195,6 +195,20 @@ func (_u *SessionUpdate) SetNillableLastIP(v *string) *SessionUpdate {
 	return _u
 }
 
+// SetPersistent sets the "persistent" field.
+func (_u *SessionUpdate) SetPersistent(v bool) *SessionUpdate {
+	_u.mutation.SetPersistent(v)
+	return _u
+}
+
+// SetNillablePersistent sets the "persistent" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillablePersistent(v *bool) *SessionUpdate {
+	if v != nil {
+		_u.SetPersistent(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *SessionUpdate) SetUser(v *User) *SessionUpdate {
 	return _u.SetUserID(v.ID)
@@ -327,6 +341,9 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.LastIP(); ok {
 		_spec.SetField(session.FieldLastIP, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Persistent(); ok {
+		_spec.SetField(session.FieldPersistent, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -543,6 +560,20 @@ func (_u *SessionUpdateOne) SetNillableLastIP(v *string) *SessionUpdateOne {
 	return _u
 }
 
+// SetPersistent sets the "persistent" field.
+func (_u *SessionUpdateOne) SetPersistent(v bool) *SessionUpdateOne {
+	_u.mutation.SetPersistent(v)
+	return _u
+}
+
+// SetNillablePersistent sets the "persistent" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillablePersistent(v *bool) *SessionUpdateOne {
+	if v != nil {
+		_u.SetPersistent(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *SessionUpdateOne) SetUser(v *User) *SessionUpdateOne {
 	return _u.SetUserID(v.ID)
@@ -705,6 +736,9 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 	}
 	if value, ok := _u.mutation.LastIP(); ok {
 		_spec.SetField(session.FieldLastIP, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Persistent(); ok {
+		_spec.SetField(session.FieldPersistent, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

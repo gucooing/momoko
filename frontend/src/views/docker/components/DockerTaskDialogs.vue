@@ -140,6 +140,7 @@ const TASK_TYPE_KEY_MAP: Partial<Record<DockerTaskType, string>> = {
   [DockerTaskType.DOCKER_TASK_TYPE_IMAGE_PULL]: 'docker.task.type.imagePull',
   [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_RECREATE]: 'docker.task.type.networkRecreate',
   [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_PRUNE]: 'docker.task.type.networkPrune',
+  [DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_CREATE]: 'docker.task.type.containerCreate',
 }
 
 const logTitle = computed(() => selectedTask.value ? displayTaskTitle(selectedTask.value) : t('docker.task.logTitle'))
@@ -181,12 +182,14 @@ const TYPE_ICON: Partial<Record<DockerTaskType, string>> = {
   [DockerTaskType.DOCKER_TASK_TYPE_IMAGE_PULL]: 'HOutline:ArrowDownTrayIcon',
   [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_RECREATE]: 'HOutline:GlobeAltIcon',
   [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_PRUNE]: 'HOutline:TrashIcon',
+  [DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_CREATE]: 'HOutline:CubeIcon',
 }
 const TYPE_TONE: Partial<Record<DockerTaskType, 'p' | 'a' | 'a2' | 'ok'>> = {
   [DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_RECREATE]: 'p',
   [DockerTaskType.DOCKER_TASK_TYPE_IMAGE_PULL]: 'a2',
   [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_RECREATE]: 'ok',
   [DockerTaskType.DOCKER_TASK_TYPE_NETWORK_PRUNE]: 'a',
+  [DockerTaskType.DOCKER_TASK_TYPE_CONTAINER_CREATE]: 'p',
 }
 const typeIcon = (type: DockerTaskType) => TYPE_ICON[type] || 'HOutline:CommandLineIcon'
 const typeTone = (type: DockerTaskType) => TYPE_TONE[type] || 'a2'
@@ -218,11 +221,6 @@ const formatTime = (value: Date | string | undefined) => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
-const taskTimeRange = (task: DockerTaskInfo) => {
-  const start = formatTime(task.startTime)
-  const end = formatTime(task.endTime)
-  return end === '-' ? start : `${start} / ${end}`
-}
 
 const sortTasks = (items: DockerTaskInfo[]) => {
   return [...items].sort((a, b) => {

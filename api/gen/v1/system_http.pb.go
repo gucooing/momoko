@@ -44,6 +44,7 @@ const OperationSystemTestEmailConfig = "/v1.System/TestEmailConfig"
 const OperationSystemUpdateEmailConfig = "/v1.System/UpdateEmailConfig"
 const OperationSystemUpdateEmailTemplate = "/v1.System/UpdateEmailTemplate"
 const OperationSystemUpdateLoginConfig = "/v1.System/UpdateLoginConfig"
+const OperationSystemUpdateOperationLogRetention = "/v1.System/UpdateOperationLogRetention"
 const OperationSystemUpdateSiteConfig = "/v1.System/UpdateSiteConfig"
 
 type SystemHTTPServer interface {
@@ -97,6 +98,8 @@ type SystemHTTPServer interface {
 	UpdateEmailTemplate(context.Context, *UpdateEmailTemplateRequest) (*UpdateEmailTemplateResponse, error)
 	// UpdateLoginConfig 更新登录配置
 	UpdateLoginConfig(context.Context, *UpdateLoginConfigRequest) (*UpdateLoginConfigResponse, error)
+	// UpdateOperationLogRetention 修改操作记录保留策略（保留天数，0=永久保留）；超期记录由「操作记录清理」定时任务删除
+	UpdateOperationLogRetention(context.Context, *UpdateOperationLogRetentionRequest) (*UpdateOperationLogRetentionResponse, error)
 	// UpdateSiteConfig 更新站点常规配置
 	UpdateSiteConfig(context.Context, *UpdateSiteConfigRequest) (*UpdateSiteConfigResponse, error)
 }
@@ -129,6 +132,7 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/operation-logs", _System_ListOperationLogs0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/operation-logs/stats", _System_OperationLogStats0_HTTP_Handler(srv))
+	r.PUT("/api/v1/system/operation-logs/retention", _System_UpdateOperationLogRetention0_HTTP_Handler(srv))
 }
 
 func _System_MePermissions0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
@@ -667,6 +671,28 @@ func _System_OperationLogStats0_HTTP_Handler(srv SystemHTTPServer) func(ctx http
 	}
 }
 
+func _System_UpdateOperationLogRetention0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateOperationLogRetentionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemUpdateOperationLogRetention)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateOperationLogRetention(ctx, req.(*UpdateOperationLogRetentionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateOperationLogRetentionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SystemHTTPClient interface {
 	// AdminAddPermissions 管理员添加权限菜单
 	AdminAddPermissions(ctx context.Context, req *AdminAddPermissionsRequest, opts ...http.CallOption) (rsp *AdminAddPermissionsResponse, err error)
@@ -718,6 +744,8 @@ type SystemHTTPClient interface {
 	UpdateEmailTemplate(ctx context.Context, req *UpdateEmailTemplateRequest, opts ...http.CallOption) (rsp *UpdateEmailTemplateResponse, err error)
 	// UpdateLoginConfig 更新登录配置
 	UpdateLoginConfig(ctx context.Context, req *UpdateLoginConfigRequest, opts ...http.CallOption) (rsp *UpdateLoginConfigResponse, err error)
+	// UpdateOperationLogRetention 修改操作记录保留策略（保留天数，0=永久保留）；超期记录由「操作记录清理」定时任务删除
+	UpdateOperationLogRetention(ctx context.Context, req *UpdateOperationLogRetentionRequest, opts ...http.CallOption) (rsp *UpdateOperationLogRetentionResponse, err error)
 	// UpdateSiteConfig 更新站点常规配置
 	UpdateSiteConfig(ctx context.Context, req *UpdateSiteConfigRequest, opts ...http.CallOption) (rsp *UpdateSiteConfigResponse, err error)
 }
@@ -1072,6 +1100,20 @@ func (c *SystemHTTPClientImpl) UpdateLoginConfig(ctx context.Context, in *Update
 	pattern := "/api/v1/system/login-config"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSystemUpdateLoginConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateOperationLogRetention 修改操作记录保留策略（保留天数，0=永久保留）；超期记录由「操作记录清理」定时任务删除
+func (c *SystemHTTPClientImpl) UpdateOperationLogRetention(ctx context.Context, in *UpdateOperationLogRetentionRequest, opts ...http.CallOption) (*UpdateOperationLogRetentionResponse, error) {
+	var out UpdateOperationLogRetentionResponse
+	pattern := "/api/v1/system/operation-logs/retention"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemUpdateOperationLogRetention))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

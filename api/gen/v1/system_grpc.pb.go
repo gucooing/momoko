@@ -19,32 +19,33 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	System_MePermissions_FullMethodName          = "/v1.System/MePermissions"
-	System_CheckUpdate_FullMethodName            = "/v1.System/CheckUpdate"
-	System_AdminPermissions_FullMethodName       = "/v1.System/AdminPermissions"
-	System_AdminPermissionsInfo_FullMethodName   = "/v1.System/AdminPermissionsInfo"
-	System_AdminAddPermissions_FullMethodName    = "/v1.System/AdminAddPermissions"
-	System_AdminEditPermissions_FullMethodName   = "/v1.System/AdminEditPermissions"
-	System_AdminDeletePermissions_FullMethodName = "/v1.System/AdminDeletePermissions"
-	System_AdminRoles_FullMethodName             = "/v1.System/AdminRoles"
-	System_AdminRole_FullMethodName              = "/v1.System/AdminRole"
-	System_AdminAddRole_FullMethodName           = "/v1.System/AdminAddRole"
-	System_AdminEditRole_FullMethodName          = "/v1.System/AdminEditRole"
-	System_AdminDeleteRole_FullMethodName        = "/v1.System/AdminDeleteRole"
-	System_LoginConfig_FullMethodName            = "/v1.System/LoginConfig"
-	System_UpdateLoginConfig_FullMethodName      = "/v1.System/UpdateLoginConfig"
-	System_SiteConfig_FullMethodName             = "/v1.System/SiteConfig"
-	System_UpdateSiteConfig_FullMethodName       = "/v1.System/UpdateSiteConfig"
-	System_EmailConfig_FullMethodName            = "/v1.System/EmailConfig"
-	System_UpdateEmailConfig_FullMethodName      = "/v1.System/UpdateEmailConfig"
-	System_UpdateEmailTemplate_FullMethodName    = "/v1.System/UpdateEmailTemplate"
-	System_EmailTemplate_FullMethodName          = "/v1.System/EmailTemplate"
-	System_ListEmailTemplates_FullMethodName     = "/v1.System/ListEmailTemplates"
-	System_TestEmailConfig_FullMethodName        = "/v1.System/TestEmailConfig"
-	System_SystemOverview_FullMethodName         = "/v1.System/SystemOverview"
-	System_SystemStatus_FullMethodName           = "/v1.System/SystemStatus"
-	System_ListOperationLogs_FullMethodName      = "/v1.System/ListOperationLogs"
-	System_OperationLogStats_FullMethodName      = "/v1.System/OperationLogStats"
+	System_MePermissions_FullMethodName               = "/v1.System/MePermissions"
+	System_CheckUpdate_FullMethodName                 = "/v1.System/CheckUpdate"
+	System_AdminPermissions_FullMethodName            = "/v1.System/AdminPermissions"
+	System_AdminPermissionsInfo_FullMethodName        = "/v1.System/AdminPermissionsInfo"
+	System_AdminAddPermissions_FullMethodName         = "/v1.System/AdminAddPermissions"
+	System_AdminEditPermissions_FullMethodName        = "/v1.System/AdminEditPermissions"
+	System_AdminDeletePermissions_FullMethodName      = "/v1.System/AdminDeletePermissions"
+	System_AdminRoles_FullMethodName                  = "/v1.System/AdminRoles"
+	System_AdminRole_FullMethodName                   = "/v1.System/AdminRole"
+	System_AdminAddRole_FullMethodName                = "/v1.System/AdminAddRole"
+	System_AdminEditRole_FullMethodName               = "/v1.System/AdminEditRole"
+	System_AdminDeleteRole_FullMethodName             = "/v1.System/AdminDeleteRole"
+	System_LoginConfig_FullMethodName                 = "/v1.System/LoginConfig"
+	System_UpdateLoginConfig_FullMethodName           = "/v1.System/UpdateLoginConfig"
+	System_SiteConfig_FullMethodName                  = "/v1.System/SiteConfig"
+	System_UpdateSiteConfig_FullMethodName            = "/v1.System/UpdateSiteConfig"
+	System_EmailConfig_FullMethodName                 = "/v1.System/EmailConfig"
+	System_UpdateEmailConfig_FullMethodName           = "/v1.System/UpdateEmailConfig"
+	System_UpdateEmailTemplate_FullMethodName         = "/v1.System/UpdateEmailTemplate"
+	System_EmailTemplate_FullMethodName               = "/v1.System/EmailTemplate"
+	System_ListEmailTemplates_FullMethodName          = "/v1.System/ListEmailTemplates"
+	System_TestEmailConfig_FullMethodName             = "/v1.System/TestEmailConfig"
+	System_SystemOverview_FullMethodName              = "/v1.System/SystemOverview"
+	System_SystemStatus_FullMethodName                = "/v1.System/SystemStatus"
+	System_ListOperationLogs_FullMethodName           = "/v1.System/ListOperationLogs"
+	System_OperationLogStats_FullMethodName           = "/v1.System/OperationLogStats"
+	System_UpdateOperationLogRetention_FullMethodName = "/v1.System/UpdateOperationLogRetention"
 )
 
 // SystemClient is the client API for System service.
@@ -105,6 +106,8 @@ type SystemClient interface {
 	ListOperationLogs(ctx context.Context, in *ListOperationLogsRequest, opts ...grpc.CallOption) (*ListOperationLogsResponse, error)
 	// 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
 	OperationLogStats(ctx context.Context, in *OperationLogStatsRequest, opts ...grpc.CallOption) (*OperationLogStatsResponse, error)
+	// 修改操作记录保留策略（保留天数，0=永久保留）；超期记录由「操作记录清理」定时任务删除
+	UpdateOperationLogRetention(ctx context.Context, in *UpdateOperationLogRetentionRequest, opts ...grpc.CallOption) (*UpdateOperationLogRetentionResponse, error)
 }
 
 type systemClient struct {
@@ -375,6 +378,16 @@ func (c *systemClient) OperationLogStats(ctx context.Context, in *OperationLogSt
 	return out, nil
 }
 
+func (c *systemClient) UpdateOperationLogRetention(ctx context.Context, in *UpdateOperationLogRetentionRequest, opts ...grpc.CallOption) (*UpdateOperationLogRetentionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateOperationLogRetentionResponse)
+	err := c.cc.Invoke(ctx, System_UpdateOperationLogRetention_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SystemServer is the server API for System service.
 // All implementations must embed UnimplementedSystemServer
 // for forward compatibility.
@@ -433,6 +446,8 @@ type SystemServer interface {
 	ListOperationLogs(context.Context, *ListOperationLogsRequest) (*ListOperationLogsResponse, error)
 	// 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
 	OperationLogStats(context.Context, *OperationLogStatsRequest) (*OperationLogStatsResponse, error)
+	// 修改操作记录保留策略（保留天数，0=永久保留）；超期记录由「操作记录清理」定时任务删除
+	UpdateOperationLogRetention(context.Context, *UpdateOperationLogRetentionRequest) (*UpdateOperationLogRetentionResponse, error)
 	mustEmbedUnimplementedSystemServer()
 }
 
@@ -520,6 +535,9 @@ func (UnimplementedSystemServer) ListOperationLogs(context.Context, *ListOperati
 }
 func (UnimplementedSystemServer) OperationLogStats(context.Context, *OperationLogStatsRequest) (*OperationLogStatsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OperationLogStats not implemented")
+}
+func (UnimplementedSystemServer) UpdateOperationLogRetention(context.Context, *UpdateOperationLogRetentionRequest) (*UpdateOperationLogRetentionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateOperationLogRetention not implemented")
 }
 func (UnimplementedSystemServer) mustEmbedUnimplementedSystemServer() {}
 func (UnimplementedSystemServer) testEmbeddedByValue()                {}
@@ -1010,6 +1028,24 @@ func _System_OperationLogStats_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _System_UpdateOperationLogRetention_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOperationLogRetentionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).UpdateOperationLogRetention(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_UpdateOperationLogRetention_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).UpdateOperationLogRetention(ctx, req.(*UpdateOperationLogRetentionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // System_ServiceDesc is the grpc.ServiceDesc for System service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1120,6 +1156,10 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OperationLogStats",
 			Handler:    _System_OperationLogStats_Handler,
+		},
+		{
+			MethodName: "UpdateOperationLogRetention",
+			Handler:    _System_UpdateOperationLogRetention_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

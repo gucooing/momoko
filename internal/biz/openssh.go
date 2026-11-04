@@ -24,6 +24,7 @@ type OpenSSHRepo interface {
 	ListAccessibleSSHHosts(ctx context.Context, userID string) ([]*gen.SSHHost, error)
 	SaveSSHHostTestResult(ctx context.Context, hostID string, at time.Time, ok bool, latencyMs int, message string) error
 	TouchSSHHostConnect(ctx context.Context, hostID string, at time.Time) error
+	SaveSSHHostKeyType(ctx context.Context, hostID, keyType string) error
 	GetSSHHostByUserID(ctx context.Context, userID, hostID string) (*gen.SSHHost, error)
 	GetSSHHostByOwnerID(ctx context.Context, ownerID, hostID string) (*gen.SSHHost, error)
 	CreateSSHHost(ctx context.Context, req *v1.CreateSSHHostRequest, ownerID string, sharedUserIDs []string) (*gen.SSHHost, error)
@@ -228,6 +229,15 @@ func (o *OpenSSHUsecase) GetSSHHostByUserID(ctx context.Context, userID, hostID 
 	if err != nil {
 		return nil, o.wrapSSHRepoErr(err)
 	}
+	// 早期保存的密钥主机没有记录私钥算法：详情（终端页）读取时识别一次并回填
+	if item.AuthType == sshcore.AuthKey && item.KeyType == "" {
+		if cfg, err := o.repo.GetSSHHostConfigByUserID(ctx, userID, hostID); err == nil {
+			if keyType := sshcore.KeyType(cfg.Credential, cfg.Passphrase); keyType != "" {
+				item.KeyType = keyType
+				_ = o.repo.SaveSSHHostKeyType(ctx, hostID, keyType)
+			}
+		}
+	}
 	return o.toSSHHostInfo(item, userID), nil
 }
 
@@ -415,6 +425,8 @@ func (o *OpenSSHUsecase) toSSHHostInfo(item *gen.SSHHost, userID string) *v1.SSH
 		LastTestOk:        item.LastTestOk,
 		LastTestLatencyMs: int32(item.LastTestLatencyMs),
 		LastTestMessage:   item.LastTestMessage,
+		KeyType:           item.KeyType,
+		QuickCommands:     item.QuickCommands,
 	}
 	if item.LastTestAt != nil {
 		info.LastTestTime = timestamppb.New(*item.LastTestAt)

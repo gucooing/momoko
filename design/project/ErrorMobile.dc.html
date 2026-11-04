@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>404 与 403 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.98)}
+.btn-p{background:var(--p);color:var(--pOn)}.btn-p:hover{color:var(--pOn)}
+.btn-o{background:var(--s);color:var(--ink);border:1.5px solid var(--line)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;flex:none}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.seg{display:flex;padding:4px;border-radius:999px;background:var(--s2);gap:2px}
+.seg button{flex:1;min-height:44px;border-radius:999px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer}
+.seg .on{background:var(--s);color:var(--ink);box-shadow:0 1px 3px rgba(20,10,30,.12)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.big{font-family:'Outfit',sans-serif;font-size:132px;line-height:1;font-weight:800;letter-spacing:-0.04em}
+.stk{position:absolute;display:inline-flex;align-items:center;height:34px;padding:0 13px;border-radius:999px;font-size:14px;font-weight:800;white-space:nowrap;box-shadow:0 8px 20px -10px rgba(0,0,0,.35)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div aria-hidden="true" style="position: absolute; right: -110px; bottom: -120px; width: 300px; height: 300px; border-radius: 50%; background: var(--pSoft)"></div>
+  <div aria-hidden="true" style="position: absolute; left: -24px; top: 150px; width: 70px; height: 70px; border-radius: 50%; border: 12px solid var(--a2Soft)"></div>
+  <svg aria-hidden="true" viewBox="0 0 24 24" width="32" height="32" style="position: absolute; right: 34px; top: 136px; fill: var(--a)"><path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z"></path></svg>
+
+  <header style="position: relative; display: flex; align-items: center; gap: 10px; padding: 16px 12px 8px 20px; flex: none">
+    <span style="width: 36px; height: 36px; border-radius: 12px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; transform: rotate(-6deg)">M</span>
+    <span style="font-size: 20px; font-weight: 800; flex: 1">Momoko</span>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+  </header>
+  <div style="position: relative; padding: 4px 16px 0; flex: none">
+    <div class="seg" role="tablist" aria-label="预览错误页">
+      <sc-for list="{{codes}}" as="c" hint-placeholder-count="2">
+        <button type="button" role="tab" class="{{c.cls}}" aria-selected="{{c.on}}" onClick="{{c.pick}}">{{c.t}}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <main style="position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 0 24px; text-align: center">
+    <div role="img" aria-label="错误代码 {{code}}" style="position: relative; display: flex; align-items: center; gap: 8px; margin-top: 10px">
+      <span class="big" aria-hidden="true" style="color: var(--ink); transform: rotate(-4deg)">4</span>
+      <sc-if value="{{is404}}" hint-placeholder-val="{{true}}">
+        <span aria-hidden="true" style="position: relative; width: 114px; height: 114px; flex: none">
+          <span style="position: absolute; inset: 0; border-radius: 50%; background: var(--a)"></span>
+          <span style="position: absolute; right: -14px; bottom: -8px; width: 48px; height: 48px; border-radius: 50%; border: 9px solid var(--a2)"></span>
+          <span style="position: absolute; left: 34px; top: 44px; width: 11px; height: 14px; border-radius: 50%; background: var(--aOn)"></span>
+          <span style="position: absolute; right: 34px; top: 44px; width: 11px; height: 14px; border-radius: 50%; background: var(--aOn)"></span>
+          <svg viewBox="0 0 60 24" width="32" height="13" style="position: absolute; left: 41px; top: 72px; fill: none; stroke: var(--aOn); stroke-width: 6; stroke-linecap: round"><path d="M6 18c8-10 40-10 48 0"></path></svg>
+          <span style="position: absolute; right: 0; top: -8px; width: 32px; height: 32px; border-radius: 10px; background: var(--ink); color: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; transform: rotate(12deg)">?</span>
+        </span>
+      </sc-if>
+      <sc-if value="{{is403}}" hint-placeholder-val="{{false}}">
+        <span aria-hidden="true" style="position: relative; width: 114px; height: 114px; flex: none">
+          <span style="position: absolute; left: -8px; top: 10px; width: 62px; height: 62px; border-radius: 50%; background: var(--a)"></span>
+          <span style="position: absolute; inset: 7px; border-radius: 30px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; transform: rotate(-8deg)">
+            <svg viewBox="0 0 24 24" width="54" height="54" style="fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round"><path d="{{i.lock}}"></path></svg>
+          </span>
+          <span style="position: absolute; right: -12px; bottom: -4px; width: 44px; height: 44px; border-radius: 50%; border: 8px solid var(--a2)"></span>
+        </span>
+      </sc-if>
+      <span class="big" aria-hidden="true" style="color: {{lastC}}; transform: rotate(5deg)">{{last}}</span>
+      <span class="stk" aria-hidden="true" style="left: -14px; top: -22px; background: {{stk1Bg}}; color: {{stk1Fg}}; transform: rotate(-9deg)">{{stk1}}</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+      <h1 style="margin: 0; font-size: 26px; line-height: 1.3; font-weight: 800">{{title}}</h1>
+      <p style="margin: 0; font-size: 14px; line-height: 1.65; color: var(--ink2)">{{desc}}</p>
+      <div style="display: inline-flex; align-items: center; gap: 8px; max-width: 100%; margin-top: 2px; padding: 8px 12px; border-radius: 12px; background: var(--s2); font-size: 12px; color: var(--ink2)">
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{detailD}}"></path></svg>
+        <span style="white-space: nowrap">{{detailK}}</span>
+        <span class="mono" style="font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{detailV}}</span>
+      </div>
+    </div>
+  </main>
+
+  <div style="position: relative; flex: none; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 28px">
+    <a class="btn btn-p" href="DashboardMobile.dc.html" style="min-height: 56px; font-size: 16px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.home}}"></path></svg>返回工作台</a>
+    <button type="button" class="btn btn-o" style="min-height: 52px; font-size: 15px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.arrowL}}"></path></svg>返回上一页</button>
+    <sc-if value="{{is403}}" hint-placeholder-val="{{false}}">
+      <div style="text-align: center; line-height: 32px; font-size: 13px; color: var(--ink2)">不是这个账号？ <a href="LoginMobile.dc.html" style="font-weight: 700; text-decoration: none">切换账号登录</a></div>
+    </sc-if>
+    <sc-if value="{{is404}}" hint-placeholder-val="{{true}}">
+      <div style="text-align: center; line-height: 32px; font-size: 12px; color: var(--ink2)">请求 ID <span class="mono">{{reqId}}</span></div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  arrowL: 'M19 12H5M11 6l-6 6 6 6',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4M12 15v2.5',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  user: 'M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM4 21a8 8 0 0 1 16 0'
+};
+const PAGES = {
+  '404': { last: '4', lastC: 'var(--p)', stk1: '走丢了', stk1Bg: 'var(--p)', stk1Fg: 'var(--pOn)', title: '页面走丢了', desc: '你要找的页面可能已经被移动、删除，或者地址输错了。', detailD: IC.link, detailK: '请求地址', detailV: '/apps/mc-survival/setings', reqId: '7f3a9c21-0b7d' },
+  '403': { last: '3', lastC: 'var(--a2)', stk1: '禁止入内', stk1Bg: 'var(--ink)', stk1Fg: 'var(--bg)', title: '你没有访问这个页面的权限', desc: '这个页面需要「系统设置」权限，请联系超级管理员为你分配角色。', detailD: IC.user, detailK: '当前角色', detailV: '普通成员', reqId: 'c4d2e9a0-55e0' }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const code = st.code || '404';
+    const pg = PAGES[code];
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      codes: [['404', '404 页面不存在'], ['403', '403 无权限']].map(([k, t]) => ({ t, on: k === code, cls: k === code ? 'on' : '', pick: () => this.setState({ code: k }) })),
+      code,
+      is404: code === '404',
+      is403: code === '403',
+      ...pg
+    };
+  }
+}
+</script>
+</body>
+</html>

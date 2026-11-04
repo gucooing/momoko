@@ -3,10 +3,15 @@ package file
 import (
 	"bytes"
 	"context"
+	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/studio-b12/gowebdav"
@@ -19,6 +24,11 @@ import (
 type webdavStore struct {
 	client *gowebdav.Client
 	base   string // 规整后的根路径（URL 之下的子目录）
+
+	// 配额查询（RFC 4331 PROPFIND）需要直接发请求：保留地址与凭证。
+	url      string
+	username string
+	password string
 }
 
 func newWebDAVStore(cfg Config) (Store, error) {
@@ -27,8 +37,11 @@ func newWebDAVStore(cfg Config) (Store, error) {
 	}
 	c := gowebdav.NewClient(cfg.URL, cfg.Username, cfg.Password)
 	return &webdavStore{
-		client: c,
-		base:   strings.Trim(strings.ReplaceAll(cfg.BasePath, "\\", "/"), "/"),
+		client:   c,
+		base:     strings.Trim(strings.ReplaceAll(cfg.BasePath, "\\", "/"), "/"),
+		url:      strings.TrimRight(cfg.URL, "/"),
+		username: cfg.Username,
+		password: cfg.Password,
 	}, nil
 }
 
@@ -226,4 +239,53 @@ func webdavEntry(info os.FileInfo, logical string) *v1.FileEntryInfo {
 		Size:       uint64(info.Size()),
 		UpdateTime: timestamppb.New(info.ModTime()),
 	}
+}
+
+// davQuota 是 PROPFIND 响应里配额属性的最小解析结构（按本地名匹配，忽略命名空间前缀）。
+type davQuota struct {
+	Responses []struct {
+		Used  string `xml:"propstat>prop>quota-used-bytes"`
+		Avail string `xml:"propstat>prop>quota-available-bytes"`
+	} `xml:"response"`
+}
+
+const davQuotaBody = `<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:"><d:prop><d:quota-available-bytes/><d:quota-used-bytes/></d:prop></d:propfind>`
+
+// Usage 用 RFC 4331 配额属性查询根目录的已用 / 可用空间（坚果云、Nextcloud 等支持）；服务端不支持时返回错误。
+func (s *webdavStore) Usage(ctx context.Context) (used, total uint64, err error) {
+	target := s.url + (&url.URL{Path: s.p("")}).EscapedPath()
+	req, err := http.NewRequestWithContext(ctx, "PROPFIND", target, strings.NewReader(davQuotaBody))
+	if err != nil {
+		return 0, 0, err
+	}
+	req.Header.Set("Depth", "0")
+	req.Header.Set("Content-Type", "application/xml; charset=utf-8")
+	if s.username != "" || s.password != "" {
+		req.SetBasicAuth(s.username, s.password)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusMultiStatus && resp.StatusCode != http.StatusOK {
+		return 0, 0, fmt.Errorf("PROPFIND 返回 %d", resp.StatusCode)
+	}
+	var q davQuota
+	if err := xml.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&q); err != nil {
+		return 0, 0, err
+	}
+	for _, r := range q.Responses {
+		u, uerr := strconv.ParseInt(strings.TrimSpace(r.Used), 10, 64)
+		if uerr != nil || u < 0 {
+			continue
+		}
+		used = uint64(u)
+		// 可用空间为负（RFC 4331：-1/-2/-3）表示不限或未知。
+		if a, aerr := strconv.ParseInt(strings.TrimSpace(r.Avail), 10, 64); aerr == nil && a >= 0 {
+			total = used + uint64(a)
+		}
+		return used, total, nil
+	}
+	return 0, 0, errors.New("来源未提供配额信息")
 }

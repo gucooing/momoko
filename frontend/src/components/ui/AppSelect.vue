@@ -262,19 +262,19 @@ onBeforeUnmount(close)
   width: auto;
 }
 
-/* 触发器：与 .app-input/.app-select 视觉一致（32 高、hairline、圆角、聚焦环） */
+/* 触发器：与 .app-input/.app-select 视觉一致（38 高、1.5px 边框、浅底、圆角、聚焦环） */
 .app-sel__trigger {
   display: flex;
   align-items: center;
   gap: 6px;
   width: 100%;
-  height: 32px;
-  padding: 0 8px 0 10px;
-  font-size: 0.8125rem;
+  height: 38px;
+  padding: 0 10px 0 12px;
+  font-size: 0.875rem;
   font-family: inherit;
   color: var(--el-text-color-primary);
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
+  background: var(--el-fill-color-lighter);
+  border: 1.5px solid var(--el-border-color-light);
   border-radius: var(--app-radius-sm);
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;

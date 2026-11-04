@@ -45,21 +45,21 @@ const (
 	FieldLastLoginIP = "last_login_ip"
 	// FieldLastLoginMethod holds the string denoting the last_login_method field in the database.
 	FieldLastLoginMethod = "last_login_method"
-	// EdgeRole holds the string denoting the role edge name in mutations.
-	EdgeRole = "role"
+	// FieldAppearance holds the string denoting the appearance field in the database.
+	FieldAppearance = "appearance"
+	// EdgeRoles holds the string denoting the roles edge name in mutations.
+	EdgeRoles = "roles"
 	// EdgeSharedSSHHosts holds the string denoting the shared_ssh_hosts edge name in mutations.
 	EdgeSharedSSHHosts = "shared_ssh_hosts"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// RoleTable is the table that holds the role relation/edge.
-	RoleTable = "users"
-	// RoleInverseTable is the table name for the Role entity.
+	// RolesTable is the table that holds the roles relation/edge. The primary key declared below.
+	RolesTable = "user_roles"
+	// RolesInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
-	RoleInverseTable = "roles"
-	// RoleColumn is the table column denoting the role relation/edge.
-	RoleColumn = "user_role"
+	RolesInverseTable = "roles"
 	// SharedSSHHostsTable is the table that holds the shared_ssh_hosts relation/edge. The primary key declared below.
 	SharedSSHHostsTable = "ssh_host_shares"
 	// SharedSSHHostsInverseTable is the table name for the SSHHost entity.
@@ -92,16 +92,19 @@ var Columns = []string{
 	FieldPasswordUpdatedAt,
 	FieldLastLoginIP,
 	FieldLastLoginMethod,
+	FieldAppearance,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"instance_users",
-	"user_role",
 }
 
 var (
+	// RolesPrimaryKey and RolesColumn2 are the table columns denoting the
+	// primary key for the roles relation (M2M).
+	RolesPrimaryKey = []string{"user_id", "role_id"}
 	// SharedSSHHostsPrimaryKey and SharedSSHHostsColumn2 are the table columns denoting the
 	// primary key for the shared_ssh_hosts relation (M2M).
 	SharedSSHHostsPrimaryKey = []string{"ssh_host_id", "user_id"}
@@ -250,10 +253,22 @@ func ByLastLoginMethod(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastLoginMethod, opts...).ToFunc()
 }
 
-// ByRoleField orders the results by role field.
-func ByRoleField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByAppearance orders the results by the appearance field.
+func ByAppearance(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAppearance, opts...).ToFunc()
+}
+
+// ByRolesCount orders the results by roles count.
+func ByRolesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newRoleStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newRolesStep(), opts...)
+	}
+}
+
+// ByRoles orders the results by roles terms.
+func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -284,11 +299,11 @@ func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newRoleStep() *sqlgraph.Step {
+func newRolesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(RoleInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, RoleTable, RoleColumn),
+		sqlgraph.To(RolesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, RolesTable, RolesPrimaryKey...),
 	)
 }
 func newSharedSSHHostsStep() *sqlgraph.Step {

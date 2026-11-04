@@ -1,6 +1,7 @@
-<!-- 用户（第二期改版）：组标题「用户与权限」+ 计数说明 + AccessSubNav；状态 chips（带数量）+ 角色分段 + 搜索；
-     PC 表格（用户贴纸/角色/状态/最近登录+方式+IP/创建于/行内图标操作）、手机卡片（<dl> 信息格）；底部深色批量条
-     （分配角色/启用/停用/删除）。内置超级管理员不可选、不可停用、不可删除。保留 userPage/deleteUser 与 PERM 权限。 -->
+<!-- 用户（第二期改版）：组标题「用户与权限」+ 计数说明 + 邀请链接 / 新建用户 + AccessSubNav；状态 chips（带数量）
+     + 角色分段（手机为 chips 行）+ 搜索；PC 表格（用户贴纸/多个角色/状态/最近登录+方式+IP/创建于/行内图标操作 + ⋯）、
+     手机卡片（<dl> 信息格、底部角色标签 + 图标操作、右下悬浮新建）；底部深色批量条（分配角色/启用/停用/删除）。
+     用户可以有多个角色（权限取并集）。内置超级管理员不可选、不可停用、不可删除、不可改角色。 -->
 <template>
   <div class="acc-page">
     <PageHeader :title="t('access.nav.access')">
@@ -16,13 +17,25 @@
         </template>
       </template>
       <template #actions>
-        <UButton v-permission="[PERM.USER_ADD]" color="primary" icon="i-lucide-plus" @click="openCreate">
-          {{ t('system.user.addUser') }}
-        </UButton>
+        <template v-if="!menuStore.isMobile">
+          <UButton v-if="canAdd" color="neutral" variant="outline" icon="i-lucide-link" @click="openInvite">
+            {{ t('accessV2.invite.button') }}
+          </UButton>
+          <UButton v-if="canAdd" color="primary" icon="i-lucide-plus" @click="openCreate">
+            {{ t('system.user.addUser') }}
+          </UButton>
+        </template>
+        <AppIconButton
+          v-else-if="canAdd"
+          icon="HOutline:LinkIcon"
+          :box="44"
+          :label="t('accessV2.invite.button')"
+          @click="openInvite"
+        />
       </template>
     </PageHeader>
 
-    <AccessSubNav :user-count="summary.total" :role-count="roles.length || null" />
+    <AccessSubNav :user-count="summary.total" :role-count="roles.length || null" :menu-count="null" />
 
     <ListToolbar
       v-model:status="queryForm.status"
@@ -32,7 +45,13 @@
       :placeholder="t('accessAdmin.user.searchPlaceholder')"
       @search="search"
     >
-      <div v-if="roles.length" class="acc-seg" role="group" :aria-label="t('accessAdmin.user.roleFilter')">
+      <div
+        v-if="roles.length"
+        class="acc-seg"
+        :class="{ 'is-chips': menuStore.isMobile }"
+        role="group"
+        :aria-label="t('accessAdmin.user.roleFilter')"
+      >
         <button
           v-for="opt in roleFilters"
           :key="opt.value"
@@ -84,10 +103,13 @@
           </div>
         </div>
       </template>
-      <template #cell-roleName="{ row }">
-        <span class="acc-role" :class="`is-${roleTone(String(row.roleId || ''))}`">
-          {{ row.roleName || t('access.user.noRole') }}
-        </span>
+      <template #cell-roles="{ row }">
+        <div class="acc-roles">
+          <span v-for="r in rolesOf(row)" :key="r.roleId" class="acc-role" :class="`is-${roleTone(r.roleId)}`">
+            {{ r.name }}
+          </span>
+          <span v-if="!rolesOf(row).length" class="acc-role is-none">{{ t('access.user.noRole') }}</span>
+        </div>
       </template>
       <template #cell-status="{ row }">
         <StatusPill :variant="statusVariant(row.status)" :label="statusLabel(row.status)" />
@@ -100,7 +122,7 @@
               {{ loginMethodLabel(t, String(row.lastLoginMethod)) }}
             </span>
           </div>
-          <div v-if="row.lastLoginIp" class="acc-login__ip m-mono">{{ row.lastLoginIp }}</div>
+          <div class="acc-login__ip m-mono">{{ row.lastLoginIp || '—' }}</div>
         </div>
       </template>
       <template #cell-createTime="{ row }">
@@ -111,7 +133,7 @@
           <template v-if="canEdit">
             <AppIconButton
               icon="HOutline:PencilSquareIcon"
-              :label="t('system.common.edit')"
+              :label="`${t('system.common.edit')} ${nameOf(asUser(row))}`"
               :box="36"
               :size="18"
               @click="openEdit(asUser(row))"
@@ -134,8 +156,8 @@
             />
           </template>
           <ActionMenu
-            v-if="!row.isBuiltin && canDelete"
-            :items="rowMenu"
+            v-if="rowMenuOf(asUser(row)).length"
+            :items="rowMenuOf(asUser(row))"
             @select="(key) => onMenu(key, asUser(row))"
           />
         </div>
@@ -186,6 +208,7 @@
                 <span v-if="row.isBuiltin" class="acc-tag">
                   <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" />{{ t('system.common.builtIn') }}
                 </span>
+                <span v-if="row.userId === myId" class="acc-me">（{{ t('access.user.me') }}）</span>
               </div>
               <span class="acc-card__sub">{{ row.email || row.username }}</span>
             </div>
@@ -211,21 +234,22 @@
           </dl>
           <footer class="acc-card__foot">
             <div class="acc-card__roles">
-              <span class="acc-role" :class="`is-${roleTone(row.roleId)}`">{{ row.roleName || t('access.user.noRole') }}</span>
-              <span v-if="row.userId === myId" class="acc-me">{{ t('access.user.me') }}</span>
+              <span v-for="r in row.roles" :key="r.roleId" class="acc-role" :class="`is-${roleTone(r.roleId)}`">{{ r.name }}</span>
+              <span v-if="!row.roles?.length" class="acc-role is-none">{{ t('access.user.noRole') }}</span>
             </div>
             <template v-if="canEdit">
-              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('system.common.edit')" @click="openEdit(row)" />
-              <AppIconButton icon="HOutline:KeyIcon" :label="t('accessAdmin.user.resetPassword')" @click="openReset(row)" />
+              <AppIconButton icon="HOutline:PencilSquareIcon" :box="44" :label="`${t('system.common.edit')} ${nameOf(row)}`" @click="openEdit(row)" />
+              <AppIconButton icon="HOutline:KeyIcon" :box="44" :label="t('accessAdmin.user.resetPassword')" @click="openReset(row)" />
               <AppIconButton
                 :icon="isActive(row) ? 'HOutline:NoSymbolIcon' : 'HOutline:CheckCircleIcon'"
+                :box="44"
                 :label="toggleLabel(row)"
                 :class="row.isBuiltin ? 'is-locked' : isActive(row) ? 'is-stop' : 'is-start'"
                 :disabled="row.isBuiltin"
                 @click="toggleStatus(row)"
               />
             </template>
-            <ActionMenu v-if="!row.isBuiltin && canDelete" :items="rowMenu" @select="(key) => onMenu(key, row)" />
+            <ActionMenu v-if="rowMenuOf(row).length" :items="rowMenuOf(row)" @select="(key) => onMenu(key, row)" />
           </footer>
         </article>
       </div>
@@ -234,9 +258,12 @@
     <div class="acc-foot">
       <span class="acc-foot__tip">
         <component :is="menuStore.iconComponents['HOutline:LockClosedIcon']" />
-        {{ t('accessAdmin.user.builtinTip') }}
+        {{ menuStore.isMobile ? t('accessV2.user.builtinTipShort') : t('accessAdmin.user.builtinTip') }}
       </span>
       <span class="acc-foot__spacer" />
+      <span v-if="pagination.total" class="acc-foot__shown tnum">
+        {{ t('accessAdmin.user.shown', { count: userList.length, total: pagination.total }) }}
+      </span>
       <Pagination
         v-model:page="pagination.page"
         v-model:page-size="pagination.pageSize"
@@ -245,12 +272,19 @@
       />
     </div>
 
+    <!-- 手机：悬浮新建 -->
+    <div v-if="menuStore.isMobile && canAdd && !selectedIds.length" class="acc-fab">
+      <UButton color="primary" size="xl" icon="i-lucide-plus" class="acc-fab__btn" @click="openCreate">
+        {{ t('system.user.addUser') }}
+      </UButton>
+    </div>
+
     <!-- 浮动批量条 -->
     <Transition name="acc-pop">
       <div v-if="selectedIds.length" class="acc-batch" role="toolbar">
         <span class="acc-batch__count">{{ t('accessAdmin.user.selectedUsers', { count: selectedIds.length }) }}</span>
         <template v-if="canEdit">
-          <button type="button" class="acc-batch__btn" @click="openAssign">
+          <button type="button" class="acc-batch__btn" @click="openAssign()">
             <component :is="menuStore.iconComponents['HOutline:ShieldCheckIcon']" />{{ t('accessAdmin.user.assignRole') }}
           </button>
           <button type="button" class="acc-batch__btn" @click="batchStatus(UserStatus.Active)">
@@ -274,11 +308,11 @@
       </div>
     </Transition>
 
-    <!-- 批量分配角色 -->
+    <!-- 分配角色（多选，替换为所选集合） -->
     <FormDialog
       v-model="assignOpen"
-      :title="t('accessAdmin.user.assignTitle', { count: selectedIds.length })"
-      :width="460"
+      :title="t('accessAdmin.user.assignTitle', { count: assignTargets.length })"
+      :width="480"
       :loading="assignLoading"
       @confirm="submitAssign"
     >
@@ -287,16 +321,64 @@
           v-for="r in roles"
           :key="r.roleId"
           type="button"
+          role="checkbox"
           class="acc-assign__opt"
-          :class="{ 'is-on': assignRoleId === r.roleId }"
-          :aria-pressed="assignRoleId === r.roleId"
-          @click="assignRoleId = r.roleId"
+          :class="{ 'is-on': assignRoleIds.includes(r.roleId) }"
+          :aria-checked="assignRoleIds.includes(r.roleId)"
+          @click="toggleAssign(r.roleId)"
         >
+          <span class="acc-assign__check" aria-hidden="true">
+            <component :is="menuStore.iconComponents['HOutline:CheckIcon']" />
+          </span>
           <span class="acc-role" :class="`is-${roleTone(r.roleId)}`">{{ r.name }}</span>
           <span class="acc-assign__desc">{{ r.description }}</span>
           <span class="acc-assign__n tnum">{{ t('accessAdmin.role.memberCount', { count: Number(r.userCount || 0) }) }}</span>
         </button>
-        <p class="acc-assign__hint">{{ t('accessAdmin.user.assignHint') }}</p>
+        <p class="acc-assign__hint">{{ t('accessV2.user.assignMultiHint') }}</p>
+      </div>
+    </FormDialog>
+
+    <!-- 邀请链接 -->
+    <FormDialog v-model="inviteOpen" :title="t('accessV2.invite.title')" :width="520" :show-footer="false">
+      <div class="acc-invite">
+        <div v-if="inviteLoading" class="acc-invite__loading">
+          <span class="acc-spinner" />{{ t('accessV2.invite.loading') }}
+        </div>
+        <template v-else>
+          <div class="acc-invite__state" :class="registerEnabled ? 'is-on' : 'is-off'">
+            <component :is="menuStore.iconComponents[registerEnabled ? 'HOutline:CheckCircleIcon' : 'HOutline:ExclamationTriangleIcon']" />
+            <span>{{ registerEnabled ? t('accessV2.invite.enabled') : t('accessV2.invite.disabled') }}</span>
+          </div>
+          <div class="acc-invite__link">
+            <span class="acc-invite__url m-mono">{{ inviteUrl }}</span>
+            <UButton
+              color="primary"
+              :icon="inviteCopied ? 'i-lucide-check' : 'i-lucide-copy'"
+              :disabled="!registerEnabled"
+              @click="copyInvite"
+            >
+              {{ inviteCopied ? t('accessV2.invite.copied') : t('accessV2.invite.copy') }}
+            </UButton>
+          </div>
+          <ul class="acc-invite__notes">
+            <li>{{ t('accessV2.invite.noteRegister') }}</li>
+            <li>{{ t('accessV2.invite.noteRole') }}</li>
+            <li v-if="registerEmailRequired">{{ t('accessV2.invite.noteEmail') }}</li>
+          </ul>
+          <div class="acc-invite__acts">
+            <UButton
+              v-if="canSettings"
+              color="neutral"
+              variant="soft"
+              icon="i-lucide-settings"
+              :to="pageTabTo('settings', 'general')"
+              @click="inviteOpen = false"
+            >
+              {{ t('accessV2.invite.settings') }}
+            </UButton>
+            <UButton color="neutral" variant="soft" @click="inviteOpen = false">{{ t('system.common.close') }}</UButton>
+          </div>
+        </template>
       </div>
     </FormDialog>
 
@@ -310,11 +392,13 @@ import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import { batchUpdateUser, deleteUser, userPage } from '@/api/user'
 import { rolePage } from '@/api/role'
+import { getLoginConfig } from '@/api/login'
+import { pageTabTo } from '@/config/pageGroups'
 import { PERM } from '@/config/permission'
 import { Dialog } from '@/utils/dialog'
 import { resolveAvatarUrl } from '@/utils/assets'
 import { useUserStore } from '@/stores/user'
-import { UserStatus, type UserInfo } from '@/types/v1/user'
+import { UserStatus, type UserInfo, type UserRole } from '@/types/v1/user'
 import type { RoleInfo } from '@/types/v1/system'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
@@ -323,6 +407,7 @@ import UserCreate from '@/views/system/user/create.vue'
 import UserResetPassword from '@/views/system/user/resetPassword.vue'
 import AccessSubNav from '@/views/system/components/AccessSubNav.vue'
 import {
+  NO_PERMISSION_ROLE_ID,
   formatLastLogin,
   initialOf,
   loginMethodLabel,
@@ -346,10 +431,11 @@ const selectedIds = ref<string[]>([])
 const selectedSet = computed(() => new Set(selectedIds.value))
 const myId = computed(() => userStore.userInfo?.userId || '')
 
+const queryRoleId = () => (typeof route.query.roleId === 'string' ? route.query.roleId : '')
 const queryForm = ref<{ keyword: string; status: string; roleId: string }>({
   keyword: '',
   status: '',
-  roleId: typeof route.query.roleId === 'string' ? route.query.roleId : '',
+  roleId: queryRoleId(),
 })
 const pagination = ref({ page: 1, pageSize: 10, total: 0 })
 // chips 计数（随关键字/角色筛选变化，不受状态筛选影响）
@@ -357,8 +443,10 @@ const counts = ref({ active: 0, inactive: 0, today: 0 })
 // 页头概况（无关键字/角色筛选时的全量统计）
 const summary = ref({ total: 0, active: 0, inactive: 0, today: 0 })
 
+const canAdd = computed(() => menuStore.hasButtonPermission(PERM.USER_ADD))
 const canEdit = computed(() => menuStore.hasButtonPermission(PERM.USER_EDIT))
 const canDelete = computed(() => menuStore.hasButtonPermission(PERM.USER_DELETE))
+const canSettings = computed(() => menuStore.hasButtonPermission(PERM.SYSTEM_CONFIG_VIEW))
 const canBatch = computed(() => canEdit.value || canDelete.value)
 const hasFilter = computed(
   () => !!(queryForm.value.keyword || queryForm.value.status || queryForm.value.roleId),
@@ -379,18 +467,24 @@ const roleFilters = computed(() => [
 
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'username', title: t('accessAdmin.user.colUser'), minWidth: 260 },
-  { key: 'roleName', title: t('system.common.role'), minWidth: 120 },
+  { key: 'roles', title: t('system.common.role'), minWidth: 170, ellipsis: false },
   { key: 'status', title: t('system.common.status'), width: 110 },
   { key: 'lastLoginTime', title: t('accessAdmin.user.colLastLogin'), minWidth: 170 },
   { key: 'createTime', title: t('accessAdmin.user.colCreated'), width: 120 },
   { key: 'operation', title: t('system.common.operation'), width: 190, align: 'right' },
 ])
 
-const rowMenu = computed<ActionMenuItem[]>(() => [
-  { key: 'delete', label: t('system.common.delete'), icon: 'HOutline:TrashIcon', danger: true },
-])
+// 「⋯」：分配角色 / 删除（内置账号没有）
+const rowMenuOf = (u: UserInfo): ActionMenuItem[] => {
+  if (u.isBuiltin) return []
+  const items: ActionMenuItem[] = []
+  if (canEdit.value) items.push({ key: 'assign', label: t('accessAdmin.user.assignRole'), icon: 'HOutline:ShieldCheckIcon' })
+  if (canDelete.value) items.push({ key: 'delete', label: t('system.common.delete'), icon: 'HOutline:TrashIcon', danger: true })
+  return items
+}
 
 const asUser = (row: Record<string, unknown>) => row as unknown as UserInfo
+const rolesOf = (row: Record<string, unknown>) => (row.roles || []) as UserRole[]
 const avatarOf = (row: { avatar?: unknown }) => (row.avatar ? resolveAvatarUrl(String(row.avatar)) : '')
 const indexMap = computed(() => new Map(userList.value.map((u, i) => [u.userId, i])))
 const sticker = (row: { userId?: unknown }) =>
@@ -469,13 +563,25 @@ const clearFilters = () => {
   search()
 }
 
+// 角色页「管理成员」跳过来时带 ?roleId=（同一页面内切换标签不会重新挂载）
+watch(
+  () => route.query.roleId,
+  () => {
+    const next = queryRoleId()
+    if (next === queryForm.value.roleId) return
+    queryForm.value.roleId = next
+    search()
+    if (next) loadSummary()
+  },
+)
+
 const openCreate = () => userCreateRef.value?.showDialog()
-const openEdit = (u: UserInfo) =>
-  userCreateRef.value?.showDialog({ userId: u.userId, roleName: u.roleName, isBuiltin: u.isBuiltin })
+const openEdit = (u: UserInfo) => userCreateRef.value?.showDialog({ userId: u.userId, isBuiltin: u.isBuiltin })
 const openReset = (u: UserInfo) => resetRef.value?.showDialog(u)
 
 const onMenu = (key: string, u: UserInfo) => {
   if (key === 'delete') confirmDelete([u.userId])
+  else if (key === 'assign') openAssign([u.userId], (u.roles || []).map((r) => r.roleId))
 }
 
 const toggleStatus = (u: UserInfo) => {
@@ -488,14 +594,14 @@ const toggleStatus = (u: UserInfo) => {
       confirmText: t('accessAdmin.user.disable'),
       cancelText: t('system.common.cancel'),
       onConfirm: async () => {
-        await batchUpdateUser({ userIds: [u.userId], status: UserStatus.InActive })
+        await batchUpdateUser({ userIds: [u.userId], status: UserStatus.InActive, roles: undefined })
         feedback.success(t('accessAdmin.user.disabledOne', { name }))
         afterChange()
       },
     })
     return
   }
-  batchUpdateUser({ userIds: [u.userId], status: UserStatus.Active }).then(() => {
+  batchUpdateUser({ userIds: [u.userId], status: UserStatus.Active, roles: undefined }).then(() => {
     feedback.success(t('accessAdmin.user.enabledOne', { name }))
     afterChange()
   })
@@ -514,7 +620,7 @@ const batchStatus = (status: UserStatus) => {
   const ids = [...selectedIds.value]
   if (!ids.length) return
   const run = async () => {
-    const { data } = await batchUpdateUser({ userIds: ids, status })
+    const { data } = await batchUpdateUser({ userIds: ids, status, roles: undefined })
     reportBatch(data)
     selectedIds.value = []
     afterChange()
@@ -530,25 +636,39 @@ const batchStatus = (status: UserStatus) => {
   } else run()
 }
 
+// 分配角色：批量条（所选用户）或行内「⋯」（单个用户，预选其当前角色）；提交即替换为所选角色集合
 const assignOpen = ref(false)
 const assignLoading = ref(false)
-const assignRoleId = ref('')
-const openAssign = () => {
+const assignRoleIds = ref<string[]>([])
+const assignTargets = ref<string[]>([])
+const openAssign = (targets?: string[], preset?: string[]) => {
   if (!roles.value.length) getRoles()
-  assignRoleId.value = ''
+  assignTargets.value = targets?.length ? targets : [...selectedIds.value]
+  assignRoleIds.value = preset ? [...preset] : []
   assignOpen.value = true
 }
+// 「无权限」与其它角色互斥
+const toggleAssign = (roleId: string) => {
+  const cur = assignRoleIds.value
+  if (cur.includes(roleId)) {
+    assignRoleIds.value = cur.filter((id) => id !== roleId)
+    return
+  }
+  assignRoleIds.value =
+    roleId === NO_PERMISSION_ROLE_ID ? [roleId] : [...cur.filter((id) => id !== NO_PERMISSION_ROLE_ID), roleId]
+}
 const submitAssign = async () => {
-  if (!assignRoleId.value) {
+  if (!assignRoleIds.value.length) {
     feedback.warning(t('accessAdmin.user.pickRole'))
     return
   }
   assignLoading.value = true
   try {
-    const { data } = await batchUpdateUser({ userIds: [...selectedIds.value], roleId: assignRoleId.value })
+    const targets = [...assignTargets.value]
+    const { data } = await batchUpdateUser({ userIds: targets, roles: { ids: [...assignRoleIds.value] } })
     reportBatch(data)
     assignOpen.value = false
-    selectedIds.value = []
+    selectedIds.value = selectedIds.value.filter((id) => !targets.includes(id))
     afterChange()
     getRoles()
   } finally {
@@ -574,6 +694,33 @@ const confirmDelete = (ids: string[]) => {
   })
 }
 
+// 邀请链接：注册入口在登录页（「立即注册」），这里显示是否开放注册与新账号的默认角色
+const inviteOpen = ref(false)
+const inviteLoading = ref(false)
+const inviteCopied = ref(false)
+const registerEnabled = ref(false)
+const registerEmailRequired = ref(false)
+const inviteUrl = computed(() => `${window.location.origin}/login`)
+const openInvite = async () => {
+  inviteOpen.value = true
+  inviteCopied.value = false
+  inviteLoading.value = true
+  try {
+    const { data } = await getLoginConfig()
+    registerEnabled.value = !!data?.config?.registerEnabled
+    registerEmailRequired.value = !!data?.config?.registerEmailVerificationRequired
+  } catch {
+    registerEnabled.value = false
+  } finally {
+    inviteLoading.value = false
+  }
+}
+const copyInvite = async () => {
+  await navigator.clipboard.writeText(inviteUrl.value)
+  inviteCopied.value = true
+  feedback.success(t('accessV2.invite.copied'))
+}
+
 const afterChange = () => {
   getUserList()
   if (queryForm.value.keyword.trim() || queryForm.value.roleId) loadSummary()
@@ -593,6 +740,10 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+.acc-page :deep(.page-header__actions .app-icon-btn) {
+  padding: 0;
+  border-radius: 14px;
+}
 .acc-page {
   display: flex;
   flex-direction: column;
@@ -646,6 +797,27 @@ onMounted(() => {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   box-shadow: var(--app-shadow-sm);
+}
+
+/* 手机：角色筛选改为 chips 行 */
+.acc-seg.is-chips {
+  gap: 8px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.acc-seg.is-chips .acc-seg__btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  font-size: 0.875rem;
+}
+.acc-seg.is-chips .acc-seg__btn.is-on {
+  background: var(--m-ink);
+  border-color: var(--m-ink);
+  color: var(--m-bg);
+  box-shadow: none;
 }
 
 /* 用户单元格 */
@@ -715,6 +887,12 @@ onMounted(() => {
 }
 
 /* 角色标签 */
+.acc-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
 .acc-role {
   display: inline-flex;
   align-items: center;
@@ -729,6 +907,7 @@ onMounted(() => {
   text-overflow: ellipsis;
 }
 .acc-role.is-a { background: var(--m-aSoft); color: var(--m-aOn, var(--m-ink)); }
+html.dark .acc-role.is-a { color: var(--m-a); }
 .acc-role.is-p { background: var(--m-pSoft); color: var(--m-pInk); }
 .acc-role.is-a2 { background: var(--m-a2Soft); color: var(--m-ink); }
 .acc-role.is-ok { background: var(--m-okSoft); color: var(--m-ok); }
@@ -803,6 +982,28 @@ onMounted(() => {
 }
 .acc-foot__spacer {
   flex: 1;
+}
+.acc-foot__shown {
+  font-size: 0.8125rem;
+  color: var(--el-text-color-secondary);
+  white-space: nowrap;
+}
+
+/* 手机：悬浮新建 */
+.acc-fab {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+.acc-fab__btn {
+  pointer-events: auto;
+  min-height: 56px;
+  padding: 0 22px;
+  border-radius: var(--app-radius-pill);
+  box-shadow: var(--app-shadow-brand);
 }
 
 /* 手机卡片 */
@@ -1015,7 +1216,7 @@ onMounted(() => {
 }
 .acc-assign__opt {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto;
   align-items: center;
   gap: 10px;
   min-height: 52px;
@@ -1033,6 +1234,26 @@ onMounted(() => {
 .acc-assign__opt.is-on {
   border-color: var(--m-p);
   background: var(--m-pSoft);
+}
+.acc-assign__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--el-border-color);
+  color: transparent;
+}
+.acc-assign__check :deep(svg) {
+  width: 13px;
+  height: 13px;
+  stroke-width: 3;
+}
+.acc-assign__opt.is-on .acc-assign__check {
+  border-color: var(--m-p);
+  background: var(--m-p);
+  color: var(--m-pOn);
 }
 .acc-assign__desc {
   min-width: 0;
@@ -1053,6 +1274,110 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
 }
 
+/* 邀请链接 */
+.acc-invite {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.acc-invite__loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  font-size: 0.875rem;
+  color: var(--el-text-color-secondary);
+}
+.acc-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--el-border-color);
+  border-top-color: var(--m-p);
+  border-radius: 999px;
+  animation: acc-spin 0.8s linear infinite;
+}
+@keyframes acc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.acc-invite__state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--app-radius);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.acc-invite__state :deep(svg) {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.acc-invite__state.is-on {
+  background: var(--m-okSoft);
+  color: var(--m-ok);
+}
+.acc-invite__state.is-off {
+  background: var(--m-warnSoft);
+  color: var(--m-warn);
+}
+.acc-invite__link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.acc-invite__url {
+  flex: 1 1 260px;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: var(--app-radius);
+  border: 1.5px dashed var(--el-border-color-light);
+  background: var(--el-fill-color-light);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.acc-invite__url::-webkit-scrollbar {
+  display: none;
+}
+.acc-invite__link :deep(button) {
+  min-height: 48px;
+  border-radius: 999px;
+  padding: 0 20px;
+  font-weight: 700;
+}
+.acc-invite__notes {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--el-text-color-secondary);
+}
+.acc-invite__acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.acc-invite__acts :deep(button),
+.acc-invite__acts :deep(a) {
+  min-height: 44px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
 @media (width < 768px) {
   .acc-foot__tip {
     font-size: 0.75rem;
@@ -1060,6 +1385,9 @@ onMounted(() => {
   .acc-seg {
     order: 4;
     width: 100%;
+  }
+  .acc-foot__shown {
+    display: none;
   }
 }
 </style>

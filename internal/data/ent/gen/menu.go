@@ -40,6 +40,8 @@ type Menu struct {
 	Status menu.Status `json:"status,omitempty"`
 	// 父菜单id
 	ParentID string `json:"parent_id,omitempty"`
+	// 在侧边栏隐藏（页面与权限仍然有效）
+	Hidden bool `json:"hidden,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MenuQuery when eager-loading is set.
 	Edges        MenuEdges `json:"edges"`
@@ -69,7 +71,7 @@ func (*Menu) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case menu.FieldIsSystem:
+		case menu.FieldIsSystem, menu.FieldHidden:
 			values[i] = new(sql.NullBool)
 		case menu.FieldOrder:
 			values[i] = new(sql.NullInt64)
@@ -164,6 +166,12 @@ func (_m *Menu) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ParentID = value.String
 			}
+		case menu.FieldHidden:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field hidden", values[i])
+			} else if value.Valid {
+				_m.Hidden = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -237,6 +245,9 @@ func (_m *Menu) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("parent_id=")
 	builder.WriteString(_m.ParentID)
+	builder.WriteString(", ")
+	builder.WriteString("hidden=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Hidden))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	v1 "momoko/api/gen/v1"
+	"momoko/pkg/auth"
 	dockerpkg "momoko/pkg/docker"
 	"momoko/pkg/task"
 )
@@ -19,6 +20,8 @@ const (
 	DockerContainerLogsWSPath = dockerpkg.ContainerLogsWSPath
 	DockerContainerExecWSPath = dockerpkg.ContainerExecWSPath
 	DockerTaskWSPath          = dockerpkg.TaskWSPath
+	DockerImageExportPath     = dockerpkg.ImageExportPath
+	DockerImageImportPath     = dockerpkg.ImageImportPath
 )
 
 type DockerUsecase struct {
@@ -185,12 +188,43 @@ func (d *DockerUsecase) Container(ctx context.Context, id string) (*v1.DockerCon
 	return info, nil
 }
 
-func (d *DockerUsecase) CreateContainer(ctx context.Context, req *v1.CreateDockerContainerRequest) (string, error) {
-	id, err := d.docker.CreateContainer(ctx, req.GetOptions())
+// CreateContainer 本地有镜像时直接创建返回容器 ID；否则返回「拉取镜像并创建」任务。
+func (d *DockerUsecase) CreateContainer(ctx context.Context, req *v1.CreateDockerContainerRequest) (string, *v1.DockerTaskInfo, error) {
+	id, task, err := d.docker.CreateContainer(ctx, req.GetOptions())
 	if err != nil {
-		return "", ErrSystem(err)
+		return "", nil, ErrSystem(err)
 	}
-	return id, nil
+	return id, task, nil
+}
+
+// ContainersUsage 批量取运行中容器的 CPU / 内存占用。
+func (d *DockerUsecase) ContainersUsage(ctx context.Context, ids []string) ([]*v1.DockerContainerUsage, error) {
+	items, err := d.docker.ContainersUsage(ctx, ids)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return items, nil
+}
+
+// ParseCompose 把 compose 文件转换成各服务的容器创建参数。
+func (d *DockerUsecase) ParseCompose(content string) ([]*v1.DockerComposeService, error) {
+	services, err := dockerpkg.ParseCompose(content)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return services, nil
+}
+
+// CancelTask 取消进行中的 Docker 任务，记录取消人。
+func (d *DockerUsecase) CancelTask(ctx context.Context, id string) error {
+	by := ""
+	if uid := auth.GetUserIDFromContext(ctx); uid != nil {
+		by = *uid
+	}
+	if err := d.docker.CancelTask(id, by); err != nil {
+		return ErrSystem(err)
+	}
+	return nil
 }
 
 func (d *DockerUsecase) UpdateContainer(ctx context.Context, req *v1.UpdateDockerContainerRequest) (*v1.DockerContainerInfo, *v1.DockerTaskInfo, error) {
@@ -325,6 +359,24 @@ func (d *DockerUsecase) DeleteImage(ctx context.Context, id string, force, prune
 		return ErrSystem(err)
 	}
 	return nil
+}
+
+// SaveImages 导出镜像为 tar 流。
+func (d *DockerUsecase) SaveImages(ctx context.Context, ids []string) (io.ReadCloser, error) {
+	reader, err := d.docker.SaveImages(ctx, ids)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return reader, nil
+}
+
+// LoadImages 从 tar 流导入镜像。
+func (d *DockerUsecase) LoadImages(ctx context.Context, input io.Reader) ([]string, error) {
+	loaded, err := d.docker.LoadImages(ctx, input)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return loaded, nil
 }
 
 func (d *DockerUsecase) ImageHistory(ctx context.Context, id string) ([]*v1.DockerImageHistoryItem, error) {

@@ -4,7 +4,6 @@ package gen
 
 import (
 	"fmt"
-	"momoko/internal/data/ent/gen/role"
 	"momoko/internal/data/ent/gen/user"
 	"strings"
 	"time"
@@ -49,18 +48,19 @@ type User struct {
 	LastLoginIP string `json:"last_login_ip,omitempty"`
 	// 最近一次登录方式：password / email_code
 	LastLoginMethod string `json:"last_login_method,omitempty"`
+	// 外观偏好（JSON：配色 / 深浅色 / 紧凑 / 减少动效 / 圆角 / 标签栏）
+	Appearance string `json:"appearance,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges          UserEdges `json:"edges"`
 	instance_users *string
-	user_role      *string
 	selectValues   sql.SelectValues
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// 关联的角色
-	Role *Role `json:"role,omitempty"`
+	// 拥有的角色（多个，权限取并集）
+	Roles []*Role `json:"roles,omitempty"`
 	// 被分享的SSH服务端
 	SharedSSHHosts []*SSHHost `json:"shared_ssh_hosts,omitempty"`
 	// 登录会话
@@ -70,15 +70,13 @@ type UserEdges struct {
 	loadedTypes [3]bool
 }
 
-// RoleOrErr returns the Role value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) RoleOrErr() (*Role, error) {
-	if e.Role != nil {
-		return e.Role, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: role.Label}
+// RolesOrErr returns the Roles value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RolesOrErr() ([]*Role, error) {
+	if e.loadedTypes[0] {
+		return e.Roles, nil
 	}
-	return nil, &NotLoadedError{edge: "role"}
+	return nil, &NotLoadedError{edge: "roles"}
 }
 
 // SharedSSHHostsOrErr returns the SharedSSHHosts value or an error if the edge
@@ -104,13 +102,11 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus, user.FieldAvatar, user.FieldBio, user.FieldName, user.FieldTags, user.FieldPhone, user.FieldLastLoginIP, user.FieldLastLoginMethod:
+		case user.FieldID, user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus, user.FieldAvatar, user.FieldBio, user.FieldName, user.FieldTags, user.FieldPhone, user.FieldLastLoginIP, user.FieldLastLoginMethod, user.FieldAppearance:
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime, user.FieldLastLoginAt, user.FieldPasswordUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.ForeignKeys[0]: // instance_users
-			values[i] = new(sql.NullString)
-		case user.ForeignKeys[1]: // user_role
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -225,19 +221,18 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LastLoginMethod = value.String
 			}
+		case user.FieldAppearance:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field appearance", values[i])
+			} else if value.Valid {
+				_m.Appearance = value.String
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field instance_users", values[i])
 			} else if value.Valid {
 				_m.instance_users = new(string)
 				*_m.instance_users = value.String
-			}
-		case user.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field user_role", values[i])
-			} else if value.Valid {
-				_m.user_role = new(string)
-				*_m.user_role = value.String
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -252,9 +247,9 @@ func (_m *User) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryRole queries the "role" edge of the User entity.
-func (_m *User) QueryRole() *RoleQuery {
-	return NewUserClient(_m.config).QueryRole(_m)
+// QueryRoles queries the "roles" edge of the User entity.
+func (_m *User) QueryRoles() *RoleQuery {
+	return NewUserClient(_m.config).QueryRoles(_m)
 }
 
 // QuerySharedSSHHosts queries the "shared_ssh_hosts" edge of the User entity.
@@ -338,6 +333,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_login_method=")
 	builder.WriteString(_m.LastLoginMethod)
+	builder.WriteString(", ")
+	builder.WriteString("appearance=")
+	builder.WriteString(_m.Appearance)
 	builder.WriteByte(')')
 	return builder.String()
 }

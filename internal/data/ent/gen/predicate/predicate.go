@@ -12,6 +12,9 @@ type EmailTemplate func(*sql.Selector)
 // FileShare is the predicate function for fileshare builders.
 type FileShare func(*sql.Selector)
 
+// FileShareDownload is the predicate function for filesharedownload builders.
+type FileShareDownload func(*sql.Selector)
+
 // FileSource is the predicate function for filesource builders.
 type FileSource func(*sql.Selector)
 

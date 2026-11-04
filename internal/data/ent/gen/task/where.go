@@ -84,9 +84,24 @@ func Title(v string) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldTitle, v))
 }
 
+// Target applies equality check predicate on the "target" field. It's identical to TargetEQ.
+func Target(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldTarget, v))
+}
+
+// Source applies equality check predicate on the "source" field. It's identical to SourceEQ.
+func Source(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldSource, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v string) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldUserID, v))
+}
+
+// Operator applies equality check predicate on the "operator" field. It's identical to OperatorEQ.
+func Operator(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldOperator, v))
 }
 
 // Payload applies equality check predicate on the "payload" field. It's identical to PayloadEQ.
@@ -102,6 +117,16 @@ func State(v string) predicate.Task {
 // Result applies equality check predicate on the "result" field. It's identical to ResultEQ.
 func Result(v string) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldResult, v))
+}
+
+// Steps applies equality check predicate on the "steps" field. It's identical to StepsEQ.
+func Steps(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldSteps, v))
+}
+
+// Logs applies equality check predicate on the "logs" field. It's identical to LogsEQ.
+func Logs(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldLogs, v))
 }
 
 // ProgressTotal applies equality check predicate on the "progress_total" field. It's identical to ProgressTotalEQ.
@@ -132,6 +157,16 @@ func IntervalMs(v int64) predicate.Task {
 // TimeoutMs applies equality check predicate on the "timeout_ms" field. It's identical to TimeoutMsEQ.
 func TimeoutMs(v int64) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldTimeoutMs, v))
+}
+
+// CanceledBy applies equality check predicate on the "canceled_by" field. It's identical to CanceledByEQ.
+func CanceledBy(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldCanceledBy, v))
+}
+
+// StartTime applies equality check predicate on the "start_time" field. It's identical to StartTimeEQ.
+func StartTime(v time.Time) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldStartTime, v))
 }
 
 // EndTime applies equality check predicate on the "end_time" field. It's identical to EndTimeEQ.
@@ -409,6 +444,156 @@ func TitleContainsFold(v string) predicate.Task {
 	return predicate.Task(sql.FieldContainsFold(FieldTitle, v))
 }
 
+// TargetEQ applies the EQ predicate on the "target" field.
+func TargetEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldTarget, v))
+}
+
+// TargetNEQ applies the NEQ predicate on the "target" field.
+func TargetNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldTarget, v))
+}
+
+// TargetIn applies the In predicate on the "target" field.
+func TargetIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldTarget, vs...))
+}
+
+// TargetNotIn applies the NotIn predicate on the "target" field.
+func TargetNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldTarget, vs...))
+}
+
+// TargetGT applies the GT predicate on the "target" field.
+func TargetGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldTarget, v))
+}
+
+// TargetGTE applies the GTE predicate on the "target" field.
+func TargetGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldTarget, v))
+}
+
+// TargetLT applies the LT predicate on the "target" field.
+func TargetLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldTarget, v))
+}
+
+// TargetLTE applies the LTE predicate on the "target" field.
+func TargetLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldTarget, v))
+}
+
+// TargetContains applies the Contains predicate on the "target" field.
+func TargetContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldTarget, v))
+}
+
+// TargetHasPrefix applies the HasPrefix predicate on the "target" field.
+func TargetHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldTarget, v))
+}
+
+// TargetHasSuffix applies the HasSuffix predicate on the "target" field.
+func TargetHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldTarget, v))
+}
+
+// TargetEqualFold applies the EqualFold predicate on the "target" field.
+func TargetEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldTarget, v))
+}
+
+// TargetContainsFold applies the ContainsFold predicate on the "target" field.
+func TargetContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldTarget, v))
+}
+
+// SourceEQ applies the EQ predicate on the "source" field.
+func SourceEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldSource, v))
+}
+
+// SourceNEQ applies the NEQ predicate on the "source" field.
+func SourceNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldSource, v))
+}
+
+// SourceIn applies the In predicate on the "source" field.
+func SourceIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldSource, vs...))
+}
+
+// SourceNotIn applies the NotIn predicate on the "source" field.
+func SourceNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldSource, vs...))
+}
+
+// SourceGT applies the GT predicate on the "source" field.
+func SourceGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldSource, v))
+}
+
+// SourceGTE applies the GTE predicate on the "source" field.
+func SourceGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldSource, v))
+}
+
+// SourceLT applies the LT predicate on the "source" field.
+func SourceLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldSource, v))
+}
+
+// SourceLTE applies the LTE predicate on the "source" field.
+func SourceLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldSource, v))
+}
+
+// SourceContains applies the Contains predicate on the "source" field.
+func SourceContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldSource, v))
+}
+
+// SourceHasPrefix applies the HasPrefix predicate on the "source" field.
+func SourceHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldSource, v))
+}
+
+// SourceHasSuffix applies the HasSuffix predicate on the "source" field.
+func SourceHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldSource, v))
+}
+
+// SourceEqualFold applies the EqualFold predicate on the "source" field.
+func SourceEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldSource, v))
+}
+
+// SourceContainsFold applies the ContainsFold predicate on the "source" field.
+func SourceContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldSource, v))
+}
+
+// TriggerTypeEQ applies the EQ predicate on the "trigger_type" field.
+func TriggerTypeEQ(v TriggerType) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldTriggerType, v))
+}
+
+// TriggerTypeNEQ applies the NEQ predicate on the "trigger_type" field.
+func TriggerTypeNEQ(v TriggerType) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldTriggerType, v))
+}
+
+// TriggerTypeIn applies the In predicate on the "trigger_type" field.
+func TriggerTypeIn(vs ...TriggerType) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldTriggerType, vs...))
+}
+
+// TriggerTypeNotIn applies the NotIn predicate on the "trigger_type" field.
+func TriggerTypeNotIn(vs ...TriggerType) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldTriggerType, vs...))
+}
+
 // UserIDEQ applies the EQ predicate on the "user_id" field.
 func UserIDEQ(v string) predicate.Task {
 	return predicate.Task(sql.FieldEQ(FieldUserID, v))
@@ -472,6 +657,71 @@ func UserIDEqualFold(v string) predicate.Task {
 // UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
 func UserIDContainsFold(v string) predicate.Task {
 	return predicate.Task(sql.FieldContainsFold(FieldUserID, v))
+}
+
+// OperatorEQ applies the EQ predicate on the "operator" field.
+func OperatorEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldOperator, v))
+}
+
+// OperatorNEQ applies the NEQ predicate on the "operator" field.
+func OperatorNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldOperator, v))
+}
+
+// OperatorIn applies the In predicate on the "operator" field.
+func OperatorIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldOperator, vs...))
+}
+
+// OperatorNotIn applies the NotIn predicate on the "operator" field.
+func OperatorNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldOperator, vs...))
+}
+
+// OperatorGT applies the GT predicate on the "operator" field.
+func OperatorGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldOperator, v))
+}
+
+// OperatorGTE applies the GTE predicate on the "operator" field.
+func OperatorGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldOperator, v))
+}
+
+// OperatorLT applies the LT predicate on the "operator" field.
+func OperatorLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldOperator, v))
+}
+
+// OperatorLTE applies the LTE predicate on the "operator" field.
+func OperatorLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldOperator, v))
+}
+
+// OperatorContains applies the Contains predicate on the "operator" field.
+func OperatorContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldOperator, v))
+}
+
+// OperatorHasPrefix applies the HasPrefix predicate on the "operator" field.
+func OperatorHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldOperator, v))
+}
+
+// OperatorHasSuffix applies the HasSuffix predicate on the "operator" field.
+func OperatorHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldOperator, v))
+}
+
+// OperatorEqualFold applies the EqualFold predicate on the "operator" field.
+func OperatorEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldOperator, v))
+}
+
+// OperatorContainsFold applies the ContainsFold predicate on the "operator" field.
+func OperatorContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldOperator, v))
 }
 
 // PayloadEQ applies the EQ predicate on the "payload" field.
@@ -667,6 +917,136 @@ func ResultEqualFold(v string) predicate.Task {
 // ResultContainsFold applies the ContainsFold predicate on the "result" field.
 func ResultContainsFold(v string) predicate.Task {
 	return predicate.Task(sql.FieldContainsFold(FieldResult, v))
+}
+
+// StepsEQ applies the EQ predicate on the "steps" field.
+func StepsEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldSteps, v))
+}
+
+// StepsNEQ applies the NEQ predicate on the "steps" field.
+func StepsNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldSteps, v))
+}
+
+// StepsIn applies the In predicate on the "steps" field.
+func StepsIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldSteps, vs...))
+}
+
+// StepsNotIn applies the NotIn predicate on the "steps" field.
+func StepsNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldSteps, vs...))
+}
+
+// StepsGT applies the GT predicate on the "steps" field.
+func StepsGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldSteps, v))
+}
+
+// StepsGTE applies the GTE predicate on the "steps" field.
+func StepsGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldSteps, v))
+}
+
+// StepsLT applies the LT predicate on the "steps" field.
+func StepsLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldSteps, v))
+}
+
+// StepsLTE applies the LTE predicate on the "steps" field.
+func StepsLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldSteps, v))
+}
+
+// StepsContains applies the Contains predicate on the "steps" field.
+func StepsContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldSteps, v))
+}
+
+// StepsHasPrefix applies the HasPrefix predicate on the "steps" field.
+func StepsHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldSteps, v))
+}
+
+// StepsHasSuffix applies the HasSuffix predicate on the "steps" field.
+func StepsHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldSteps, v))
+}
+
+// StepsEqualFold applies the EqualFold predicate on the "steps" field.
+func StepsEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldSteps, v))
+}
+
+// StepsContainsFold applies the ContainsFold predicate on the "steps" field.
+func StepsContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldSteps, v))
+}
+
+// LogsEQ applies the EQ predicate on the "logs" field.
+func LogsEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldLogs, v))
+}
+
+// LogsNEQ applies the NEQ predicate on the "logs" field.
+func LogsNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldLogs, v))
+}
+
+// LogsIn applies the In predicate on the "logs" field.
+func LogsIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldLogs, vs...))
+}
+
+// LogsNotIn applies the NotIn predicate on the "logs" field.
+func LogsNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldLogs, vs...))
+}
+
+// LogsGT applies the GT predicate on the "logs" field.
+func LogsGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldLogs, v))
+}
+
+// LogsGTE applies the GTE predicate on the "logs" field.
+func LogsGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldLogs, v))
+}
+
+// LogsLT applies the LT predicate on the "logs" field.
+func LogsLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldLogs, v))
+}
+
+// LogsLTE applies the LTE predicate on the "logs" field.
+func LogsLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldLogs, v))
+}
+
+// LogsContains applies the Contains predicate on the "logs" field.
+func LogsContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldLogs, v))
+}
+
+// LogsHasPrefix applies the HasPrefix predicate on the "logs" field.
+func LogsHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldLogs, v))
+}
+
+// LogsHasSuffix applies the HasSuffix predicate on the "logs" field.
+func LogsHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldLogs, v))
+}
+
+// LogsEqualFold applies the EqualFold predicate on the "logs" field.
+func LogsEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldLogs, v))
+}
+
+// LogsContainsFold applies the ContainsFold predicate on the "logs" field.
+func LogsContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldLogs, v))
 }
 
 // ProgressTotalEQ applies the EQ predicate on the "progress_total" field.
@@ -957,6 +1337,121 @@ func TimeoutMsLT(v int64) predicate.Task {
 // TimeoutMsLTE applies the LTE predicate on the "timeout_ms" field.
 func TimeoutMsLTE(v int64) predicate.Task {
 	return predicate.Task(sql.FieldLTE(FieldTimeoutMs, v))
+}
+
+// CanceledByEQ applies the EQ predicate on the "canceled_by" field.
+func CanceledByEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldCanceledBy, v))
+}
+
+// CanceledByNEQ applies the NEQ predicate on the "canceled_by" field.
+func CanceledByNEQ(v string) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldCanceledBy, v))
+}
+
+// CanceledByIn applies the In predicate on the "canceled_by" field.
+func CanceledByIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldCanceledBy, vs...))
+}
+
+// CanceledByNotIn applies the NotIn predicate on the "canceled_by" field.
+func CanceledByNotIn(vs ...string) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldCanceledBy, vs...))
+}
+
+// CanceledByGT applies the GT predicate on the "canceled_by" field.
+func CanceledByGT(v string) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldCanceledBy, v))
+}
+
+// CanceledByGTE applies the GTE predicate on the "canceled_by" field.
+func CanceledByGTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldCanceledBy, v))
+}
+
+// CanceledByLT applies the LT predicate on the "canceled_by" field.
+func CanceledByLT(v string) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldCanceledBy, v))
+}
+
+// CanceledByLTE applies the LTE predicate on the "canceled_by" field.
+func CanceledByLTE(v string) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldCanceledBy, v))
+}
+
+// CanceledByContains applies the Contains predicate on the "canceled_by" field.
+func CanceledByContains(v string) predicate.Task {
+	return predicate.Task(sql.FieldContains(FieldCanceledBy, v))
+}
+
+// CanceledByHasPrefix applies the HasPrefix predicate on the "canceled_by" field.
+func CanceledByHasPrefix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasPrefix(FieldCanceledBy, v))
+}
+
+// CanceledByHasSuffix applies the HasSuffix predicate on the "canceled_by" field.
+func CanceledByHasSuffix(v string) predicate.Task {
+	return predicate.Task(sql.FieldHasSuffix(FieldCanceledBy, v))
+}
+
+// CanceledByEqualFold applies the EqualFold predicate on the "canceled_by" field.
+func CanceledByEqualFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldEqualFold(FieldCanceledBy, v))
+}
+
+// CanceledByContainsFold applies the ContainsFold predicate on the "canceled_by" field.
+func CanceledByContainsFold(v string) predicate.Task {
+	return predicate.Task(sql.FieldContainsFold(FieldCanceledBy, v))
+}
+
+// StartTimeEQ applies the EQ predicate on the "start_time" field.
+func StartTimeEQ(v time.Time) predicate.Task {
+	return predicate.Task(sql.FieldEQ(FieldStartTime, v))
+}
+
+// StartTimeNEQ applies the NEQ predicate on the "start_time" field.
+func StartTimeNEQ(v time.Time) predicate.Task {
+	return predicate.Task(sql.FieldNEQ(FieldStartTime, v))
+}
+
+// StartTimeIn applies the In predicate on the "start_time" field.
+func StartTimeIn(vs ...time.Time) predicate.Task {
+	return predicate.Task(sql.FieldIn(FieldStartTime, vs...))
+}
+
+// StartTimeNotIn applies the NotIn predicate on the "start_time" field.
+func StartTimeNotIn(vs ...time.Time) predicate.Task {
+	return predicate.Task(sql.FieldNotIn(FieldStartTime, vs...))
+}
+
+// StartTimeGT applies the GT predicate on the "start_time" field.
+func StartTimeGT(v time.Time) predicate.Task {
+	return predicate.Task(sql.FieldGT(FieldStartTime, v))
+}
+
+// StartTimeGTE applies the GTE predicate on the "start_time" field.
+func StartTimeGTE(v time.Time) predicate.Task {
+	return predicate.Task(sql.FieldGTE(FieldStartTime, v))
+}
+
+// StartTimeLT applies the LT predicate on the "start_time" field.
+func StartTimeLT(v time.Time) predicate.Task {
+	return predicate.Task(sql.FieldLT(FieldStartTime, v))
+}
+
+// StartTimeLTE applies the LTE predicate on the "start_time" field.
+func StartTimeLTE(v time.Time) predicate.Task {
+	return predicate.Task(sql.FieldLTE(FieldStartTime, v))
+}
+
+// StartTimeIsNil applies the IsNil predicate on the "start_time" field.
+func StartTimeIsNil() predicate.Task {
+	return predicate.Task(sql.FieldIsNull(FieldStartTime))
+}
+
+// StartTimeNotNil applies the NotNil predicate on the "start_time" field.
+func StartTimeNotNil() predicate.Task {
+	return predicate.Task(sql.FieldNotNull(FieldStartTime))
 }
 
 // EndTimeEQ applies the EQ predicate on the "end_time" field.

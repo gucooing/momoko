@@ -17,7 +17,7 @@
           </header>
           <div v-if="path" class="fas__path m-mono">{{ path }}</div>
 
-          <div v-if="quick.length" class="fas__quick">
+          <div v-if="quick.length" class="fas__quick" :style="{ gridTemplateColumns: `repeat(${quick.length}, minmax(0, 1fr))` }">
             <button
               v-for="item in quick"
               :key="item.key"
@@ -87,7 +87,8 @@ const pick = (item: ActionMenuItem) => {
 .fas {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  /* 高于手机底部导航（2050） */
+  z-index: 2100;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;

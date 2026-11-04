@@ -111,7 +111,11 @@ const { t } = useI18n()
 const detailOpen = ref(false)
 const TAG_LIMIT = 9
 
-const roleLabel = computed(() => userStore.getUserRoleName() || t('user.noPermission'))
+// 多个角色用「+」连起来（权限取并集）
+const roleLabel = computed(() => {
+  const names = (userStore.userInfo?.roles || []).map((r) => r.name).filter(Boolean)
+  return names.join(' + ') || t('user.noPermission')
+})
 const canViewRoles = computed(() => accessible.value.has('/system/access') && menuStore.hasButtonPermission('role:view'))
 
 const columns = computed(() => [
@@ -198,7 +202,7 @@ const summaryText = computed(() => {
 .pf-link {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
+  min-height: 40px;
   color: var(--m-pInk);
   font-size: 0.8125rem;
   font-weight: 700;
@@ -330,5 +334,10 @@ const summaryText = computed(() => {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--el-text-color-primary);
+}
+@media (width < 640px) {
+  .pf-link {
+    min-height: 44px;
+  }
 }
 </style>

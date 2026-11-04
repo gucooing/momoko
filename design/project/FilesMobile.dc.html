@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>文件管理 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.bad{background:var(--badSoft);color:var(--bad)}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none;text-decoration:none}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.crumb{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:0;background:var(--s2);color:var(--ink2);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
+.crumb-on{background:var(--pSoft);color:var(--pInk)}
+.utab{display:inline-flex;align-items:center;min-height:44px;padding:0 2px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700;flex:none}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.inp{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 16px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.k-warn{background:var(--warnSoft);color:var(--warn)}.k-off{background:var(--s2);color:var(--ink2)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.frow{display:flex;align-items:center;gap:12px;padding:6px 4px 6px 12px;min-height:64px}
+.frow + .frow{border-top:1px solid var(--line)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;padding-top:6px;color:var(--ink2);text-decoration:none;font-size:11px;font-weight:600}
+.tab .tb{display:flex;align-items:center;justify-content:center;width:52px;height:30px;border-radius:999px}
+.tab-on{color:var(--pInk)}.tab-on .tb{background:var(--pSoft)}
+.qa{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px;border-radius:20px;border:0;background:var(--s2);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.qa:hover{background:var(--pSoft);color:var(--pInk)}
+.li{display:flex;align-items:center;gap:14px;width:100%;min-height:52px;padding:0 6px;border:0;border-radius:14px;background:transparent;color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer;text-align:left}
+.li:hover{background:var(--s2)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 170px">
+    <header style="display: flex; align-items: center; gap: 6px; padding: 22px 12px 4px 20px">
+      <h1 style="margin: 0; flex: 1; font-size: 32px; font-weight: 800; letter-spacing: -0.01em">文件</h1>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="新建文件夹"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folderPlus}}"></path></svg></button>
+    </header>
+    <nav class="hs" aria-label="文件分类" style="display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+      <a class="utab utab-on" href="FilesMobile.dc.html">文件</a>
+      <a class="utab" href="SharesMobile.dc.html">分享</a>
+      <a class="utab" href="FileSourcesMobile.dc.html">文件源</a>
+    </nav>
+
+    <div class="hs" role="tablist" aria-label="切换文件源" style="display: flex; gap: 8px; padding: 14px 16px 4px; overflow-x: auto">
+      <sc-for list="{{sources}}" as="s" hint-placeholder-count="4">
+        <button class="chip {{s.cls}}" role="tab" aria-selected="{{s.on}}" onClick="{{s.pick}}" style="padding-left: 6px">
+          <span class="av {{s.av}}" style="width: 30px; height: 30px; border-radius: 10px; transform: rotate({{s.rot}})"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{s.d}}"></path></svg></span>{{s.t}}
+        </button>
+      </sc-for>
+    </div>
+
+    <nav class="hs" aria-label="当前路径" style="display: flex; align-items: center; gap: 4px; padding: 10px 16px 6px; overflow-x: auto">
+      <button class="crumb"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{cur.d}}"></path></svg>{{cur.root}}</button>
+      <sc-for list="{{crumbs}}" as="cr" hint-placeholder-count="2">
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2); flex: none"><path d="{{i.chevR}}"></path></svg>
+        <button class="crumb {{cr.cls}}">{{cr.t}}</button>
+      </sc-for>
+    </nav>
+
+    <div style="display: flex; gap: 8px; padding: 6px 16px 12px">
+      <label class="inp" style="flex: 1">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="在当前目录搜索" aria-label="搜索文件">
+      </label>
+      <button class="ib" aria-label="{{sortT}}，点按切换" onClick="{{cycleSort}}" style="width: 48px; height: 48px; border-radius: 50%; background: var(--s); border: 1.5px solid var(--line)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.sort}}"></path></svg></button>
+    </div>
+
+    <sc-if value="{{showUp}}" hint-placeholder-val="{{true}}">
+      <div style="margin: 0 16px 12px; padding: 12px 14px; border-radius: 20px; background: var(--s); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span class="av av-p" style="width: 34px; height: 34px; border-radius: 11px; transform: rotate(-4deg)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.upload}}"></path></svg></span>
+          <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+            <span style="font-size: 14px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">intro-final-4k.mp4</span>
+            <span class="num" style="font-size: 12px; color: var(--ink2)">分片上传 23/36 · {{speedT}}</span>
+          </span>
+          <span class="num" style="font-size: 18px; font-weight: 800">64%</span>
+          <button class="ib" aria-label="{{pauseT}}" onClick="{{togglePause}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{pauseD}}"></path></svg></button>
+        </div>
+        <div role="img" aria-label="共 36 片，已完成 23 片" style="display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 3px">
+          <sc-for list="{{chunks}}" as="ck" hint-placeholder-count="36">
+            <span style="height: 7px; border-radius: 3px; background: {{ck.bg}}"></span>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}">
+      <section class="card" style="margin: 0 16px; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+        <span class="av bad" style="width: 56px; height: 56px; border-radius: 19px; transform: rotate(-6deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 26px; height: 26px"><path d="{{i.plugOff}}"></path></svg></span>
+        <h2 style="margin: 0; font-size: 19px; font-weight: 800">无法连接到 NAS 备份</h2>
+        <p class="mono" style="margin: 0; font-size: 12px; color: var(--ink2)">ftp://192.168.1.20:21 · 连接超时</p>
+        <div style="display: flex; gap: 8px; margin-top: 4px">
+          <button class="btn btn-p"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.refresh}}"></path></svg>重试</button>
+          <a class="btn btn-s" href="FileSourcesMobile.dc.html">检查配置</a>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{hasFiles}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 22px 8px; font-size: 12px; font-weight: 700; color: var(--ink2)">
+        <span class="num">{{cur.count}}</span>
+        <span>{{sortT}}</span>
+      </div>
+      <div class="card" style="margin: 0 16px; padding: 4px 0">
+        <sc-for list="{{files}}" as="f" hint-placeholder-count="10">
+          <div class="frow">
+            <span class="av {{f.av}}" style="width: 42px; height: 42px; border-radius: 14px; transform: rotate({{f.rot}})"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{f.d}}"></path></svg></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.n}}</span>
+              <span class="num" style="font-size: 12px; color: var(--ink2)">{{f.sizeT}} · {{f.mShort}}</span>
+            </span>
+            <button class="ib" aria-label="{{f.n}} 更多操作" onClick="{{f.open}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <button class="btn btn-p" style="position: absolute; right: 16px; bottom: 100px; min-height: 56px; padding: 0 22px; font-size: 15px; box-shadow: 0 12px 28px -10px var(--p)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.upload}}"></path></svg>上传</button>
+
+  <nav aria-label="底部导航" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; padding: 6px 8px 22px; background: var(--s); border-top: 1px solid var(--line)">
+    <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+      <a class="tab {{tb.cls}}" href="{{tb.href}}"><span class="tb"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{tb.d}}"></path></svg></span>{{tb.t}}</a>
+    </sc-for>
+  </nav>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{true}}">
+    <button aria-label="关闭操作面板" onClick="{{closeSheet}}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(12, 6, 18, 0.5); cursor: pointer"></button>
+    <section role="dialog" aria-label="{{c.n}} 操作" style="position: absolute; left: 0; right: 0; bottom: 0; background: var(--s); border-radius: 30px 30px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 14px">
+      <div style="align-self: center; width: 44px; height: 5px; border-radius: 999px; background: var(--line)"></div>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span class="av {{c.av}}" style="width: 48px; height: 48px; border-radius: 16px; transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 18px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.n}}</span>
+          <span class="num" style="font-size: 12px; color: var(--ink2)">{{c.kindT}} · {{c.sizeT}} · {{c.m}}</span>
+        </span>
+      </div>
+      <div class="mono" style="padding: 10px 12px; border-radius: 14px; background: var(--s2); font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.path}}</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+        <button class="qa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.eye}}"></path></svg>预览</button>
+        <button class="qa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>下载</button>
+        <a class="qa" href="SharesMobile.dc.html" style="text-decoration: none"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.share}}"></path></svg>分享</a>
+        <button class="qa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.rename}}"></path></svg>重命名</button>
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <button class="li"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.move}}"></path></svg>移动到…</button>
+        <button class="li"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.archive}}"></path></svg>压缩为 ZIP</button>
+        <button class="li" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg>删除</button>
+      </div>
+      <button class="btn btn-s" onClick="{{closeSheet}}" style="min-height: 52px; font-size: 15px">取消</button>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  folderPlus: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 10v6M9 13h6',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  chevR: 'M9 6l6 6-6 6',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  fileText: 'M6 3h8l5 5v13H6zM14 3v5h5M9 13h6M9 17h6',
+  code: 'M6 3h8l5 5v13H6zM14 3v5h5M10.5 12 8.5 14.5l2 2.5M13.5 12l2 2.5-2 2.5',
+  image: 'M4 4h16v16H4zM4 16l5-5 4 4 2-2 5 5M15 8.5h.01',
+  video: 'M3 6h13v12H3zM16 10l5-3v10l-5-3',
+  archive: 'M4 4h16v4H4zM5 8v12h14V8M10 12h4',
+  logs: 'M5 4h14v16H5zM9 8h6M9 12h6M9 16h4',
+  download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  upload: 'M12 20V9M7 14l5-5 5 5M5 4h14',
+  rename: 'M3 7h11M3 12h7M3 17h11M18 4v16M16 4h4M16 20h4',
+  move: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM10 13h6M13 10l3 3-3 3',
+  refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+  sort: 'M7 4v16M3 16l4 4 4-4M14 6h7M14 11h5M14 16h3',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  pause: 'M8 5v14M16 5v14',
+  play: 'M7 4.5v15l12-7.5z',
+  hdd: 'M3 13l3-8h12l3 8v6H3zM3 13h18M7 16.5h.01M11 16.5h.01',
+  cloud: 'M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19.5 10 4 4 0 0 1 18 18z',
+  transfer: 'M7 4v14M3 14l4 4 4-4M17 20V6M13 10l4-4 4 4',
+  globe: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z',
+  plugOff: 'M9 3v4M15 3v4M6 7h12v4a6 6 0 0 1-12 0zM12 17v4M3 3l18 18'
+};
+const KIND = {
+  dir: [IC.folder, 'av-a', '文件夹'],
+  text: [IC.fileText, 'av-a2', '文本'],
+  code: [IC.code, 'av-a2', '代码'],
+  doc: [IC.fileText, 'av-a2', '文档'],
+  img: [IC.image, 'av-ok', '图片'],
+  video: [IC.video, 'av-p', '视频'],
+  zip: [IC.archive, 'k-warn', '压缩包'],
+  log: [IC.logs, 'k-off', '日志']
+};
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+const SRC = [
+  { k: 'local', t: '本地磁盘', d: IC.hdd, av: 'av-a', root: '/', path: ['srv', 'blog-api'], count: '11 项 · 1.53 GB' },
+  { k: 'oss', t: '阿里云 OSS', d: IC.cloud, av: 'av-p', root: 'momoko-assets', path: ['images', '2026'], count: '6 项 · 1.6 MB' },
+  { k: 'ftp', t: 'NAS 备份', d: IC.transfer, av: 'av-ok', root: '/backup', path: ['daily'], count: '', err: true },
+  { k: 'dav', t: '坚果云', d: IC.globe, av: 'av-a2', root: '/dav', path: ['文档'], count: '5 项 · 1.40 GB' }
+];
+const FILES = {
+  local: [
+    { id: 1, n: 'dist', k: 'dir', sub: '12 项', b: 0, m: '2026-11-01 22:14' },
+    { id: 2, n: 'node_modules', k: 'dir', sub: '846 项', b: 0, m: '2026-10-28 10:02' },
+    { id: 3, n: 'uploads', k: 'dir', sub: '2,318 项', b: 0, m: '2026-11-03 09:41' },
+    { id: 4, n: 'config.yaml', k: 'text', size: '2.4 KB', b: 2458, m: '2026-11-02 23:18' },
+    { id: 5, n: '.env.production', k: 'text', size: '612 B', b: 612, m: '2026-10-30 16:05' },
+    { id: 6, n: 'package.json', k: 'code', size: '1.8 KB', b: 1843, m: '2026-10-28 10:01' },
+    { id: 7, n: 'README.md', k: 'text', size: '4.1 KB', b: 4198, m: '2026-09-14 11:20' },
+    { id: 8, n: 'server.log', k: 'log', size: '48.6 MB', b: 50960000, m: '2026-11-03 14:02' },
+    { id: 9, n: 'backup-2026-11-01.tar.gz', k: 'zip', size: '1.21 GB', b: 1299000000, m: '2026-11-01 03:00' },
+    { id: 10, n: 'cover.png', k: 'img', size: '842 KB', b: 862000, m: '2026-10-21 19:47' },
+    { id: 11, n: 'intro.mp4', k: 'video', size: '268 MB', b: 281000000, m: '2026-10-19 21:30' }
+  ],
+  oss: [
+    { id: 21, n: '10', k: 'dir', sub: '1,204 项', b: 0, m: '2026-10-31 23:59' },
+    { id: 22, n: '11', k: 'dir', sub: '318 项', b: 0, m: '2026-11-03 13:12' },
+    { id: 23, n: 'banner-autumn.webp', k: 'img', size: '386 KB', b: 395000, m: '2026-10-08 12:30' },
+    { id: 24, n: 'avatar-default.png', k: 'img', size: '24 KB', b: 24500, m: '2026-03-02 09:00' },
+    { id: 25, n: 'og-cover.jpg', k: 'img', size: '1.2 MB', b: 1230000, m: '2026-09-30 18:44' },
+    { id: 26, n: 'manifest.json', k: 'code', size: '3.6 KB', b: 3690, m: '2026-11-03 13:12' }
+  ],
+  ftp: [],
+  dav: [
+    { id: 31, n: '合同', k: 'dir', sub: '8 项', b: 0, m: '2026-10-12 10:40' },
+    { id: 32, n: '发票', k: 'dir', sub: '42 项', b: 0, m: '2026-11-02 18:20' },
+    { id: 33, n: '周报-第44周.docx', k: 'doc', size: '46 KB', b: 47100, m: '2026-11-01 20:15' },
+    { id: 34, n: '服务器账单-2026-10.xlsx', k: 'doc', size: '18 KB', b: 18400, m: '2026-11-01 09:02' },
+    { id: 35, n: '旅行照片.zip', k: 'zip', size: '1.40 GB', b: 1503000000, m: '2026-08-21 22:48' }
+  ]
+};
+const SORTS = [['m', '按修改时间'], ['n', '按名称'], ['b', '按大小']];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const srcK = st.src || 'local';
+    const sortK = st.sort || 'm';
+    const sheet = st.sheet === undefined ? 4 : st.sheet;
+    const paused = !!st.paused;
+    const src = SRC.find((s) => s.k === srcK) || SRC[0];
+    const raw = FILES[src.k];
+    const sorted = [...raw].sort((a, b) => {
+      if ((a.k === 'dir') !== (b.k === 'dir')) return a.k === 'dir' ? -1 : 1;
+      if (sortK === 'n') return a.n.localeCompare(b.n);
+      if (sortK === 'b') return b.b - a.b;
+      return b.m.localeCompare(a.m);
+    });
+    const shape = (f) => {
+      const kd = KIND[f.k];
+      return { ...f, d: kd[0], av: kd[1], kindT: kd[2], rot: ROTS[f.id % 4], sizeT: f.k === 'dir' ? f.sub : f.size, mShort: f.m.slice(5) };
+    };
+    const files = sorted.map((f) => ({ ...shape(f), open: () => this.setState({ sheet: f.id }) }));
+    const cf = raw.find((f) => f.id === sheet);
+    const c = cf ? { ...shape(cf), path: (src.root === '/' ? '' : src.root) + '/' + src.path.join('/') + '/' + cf.n } : { n: '', path: '' };
+    const sortIdx = SORTS.findIndex((s) => s[0] === sortK);
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      sources: SRC.map((s, k) => ({ ...s, on: s.k === src.k, rot: ROTS[k], cls: s.k === src.k ? 'chip-on' : '', pick: () => this.setState({ src: s.k, sheet: null }) })),
+      cur: src,
+      crumbs: src.path.map((t, k) => ({ t, cls: k === src.path.length - 1 ? 'crumb-on' : '' })),
+      sortT: SORTS[sortIdx][1],
+      cycleSort: () => this.setState({ sort: SORTS[(sortIdx + 1) % SORTS.length][0] }),
+      showUp: src.k === 'local',
+      chunks: Array.from({ length: 36 }, (_, k) => ({ bg: k < 23 ? 'var(--p)' : (k < 25 && !paused ? 'var(--a)' : 'var(--line)') })),
+      speedT: paused ? '已暂停' : '12.4 MB/s',
+      pauseT: paused ? '继续上传' : '暂停上传',
+      pauseD: paused ? IC.play : IC.pause,
+      togglePause: () => this.setState({ paused: !paused }),
+      hasErr: !!src.err,
+      hasFiles: !src.err,
+      files,
+      sheetOpen: !!cf,
+      c,
+      closeSheet: () => this.setState({ sheet: null }),
+      tabs: [
+        { t: '首页', d: IC.home, href: 'DashboardMobile.dc.html', cls: '' },
+        { t: '应用', d: IC.apps, href: 'AppsMobile.dc.html', cls: '' },
+        { t: '容器', d: IC.box, href: 'ContainersMobile.dc.html', cls: '' },
+        { t: '文件', d: IC.folder, href: 'FilesMobile.dc.html', cls: 'tab-on' },
+        { t: '更多', d: IC.grid, href: 'MoreMobile.dc.html', cls: '' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
