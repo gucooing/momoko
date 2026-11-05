@@ -78,6 +78,10 @@ const (
 	OIDCView Permissions = "oidc:view"
 	// OIDCEdit 允许编辑 OIDC 服务端配置与客户端。
 	OIDCEdit Permissions = "oidc:edit"
+	// MonitorView 允许查看性能监控（历史曲线、磁盘趋势、应用占用排行）。
+	MonitorView Permissions = "monitor:view"
+	// MonitorEdit 允许修改性能监控设置与清空历史数据。
+	MonitorEdit Permissions = "monitor:edit"
 )
 
 const (

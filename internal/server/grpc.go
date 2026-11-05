@@ -32,6 +32,7 @@ func NewGRPCServer(c *conf.Server,
 	tunnelApi *service.TunnelService,
 	taskApi *service.TaskService,
 	openSSHApi *service.OpenSSHService,
+	monitorApi *service.MonitorService,
 ) (*grpc.Server, error) {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
@@ -82,6 +83,7 @@ func NewGRPCServer(c *conf.Server,
 	v1.RegisterTunnelManagerServer(srv, tunnelApi)
 	v1.RegisterTaskManagerServer(srv, taskApi)
 	v1.RegisterOpenSSHManagerServer(srv, openSSHApi)
+	v1.RegisterMonitorManagerServer(srv, monitorApi)
 
 	startNodeTunnelServer(hs, nodeAgentApi, nodeAgent)
 	return srv, nil

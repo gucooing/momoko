@@ -35,6 +35,7 @@ func NewHTTPServer(c *conf.Server,
 	iqCheckApi *service.IQCheckService,
 	oidcApi *service.OIDCService,
 	taskApi *service.TaskService,
+	monitorApi *service.MonitorService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
@@ -85,6 +86,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterIQCheckPublicHTTPServer(srv, iqCheckApi)
 	v1.RegisterOIDCServiceHTTPServer(srv, oidcApi)
 	v1.RegisterTaskManagerHTTPServer(srv, taskApi)
+	v1.RegisterMonitorManagerHTTPServer(srv, monitorApi)
 	oidcApi.RegisterOIDCServer(srv)
 	instanceApi.RegisterWsServer(srv)
 	openSSHApi.RegisterWsServer(srv)

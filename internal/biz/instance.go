@@ -73,6 +73,7 @@ type InstanceRepo interface {
 	UpdateInstance(ctx context.Context, current *gen.Instance, req *v1.UpdateInstanceRequest, userId string, env *InstanceEnv) (*gen.Instance, error)
 	DeleteInstance(ctx context.Context, id, userId string) error
 	GetAllAutoStartInstances(ctx context.Context) ([]*gen.Instance, error)
+	GetInstanceNames(ctx context.Context, ids []string) (map[string]string, error)
 	SetLastStopTime(ctx context.Context, id string, t time.Time) error
 	ListInstanceOperationLogs(ctx context.Context, instanceID string, limit int) ([]*gen.OperationLog, error)
 }
@@ -102,6 +103,29 @@ func (i *InstanceUsecase) start() {
 		}
 		core.Start()
 	}
+}
+
+// RunningProcesses 返回正在运行的实例 id → 主进程 pid（性能监控按应用统计用）。
+func (i *InstanceUsecase) RunningProcesses() map[string]int {
+	out := map[string]int{}
+	for _, core := range i.instance.List() {
+		if pid := core.PID(); pid > 0 {
+			out[core.ID()] = pid
+		}
+	}
+	return out
+}
+
+// InstanceNames 按 id 查实例名称（已删除的实例不在结果里）。
+func (i *InstanceUsecase) InstanceNames(ctx context.Context, ids []string) map[string]string {
+	if len(ids) == 0 {
+		return map[string]string{}
+	}
+	names, err := i.repo.GetInstanceNames(ctx, ids)
+	if err != nil {
+		return map[string]string{}
+	}
+	return names
 }
 
 // Close 关闭实例管理器，超时后自动强制停止剩余进程。

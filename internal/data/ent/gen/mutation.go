@@ -20,6 +20,7 @@ import (
 	"momoko/internal/data/ent/gen/iqcheckresult"
 	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/monitorsample"
 	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
@@ -67,6 +68,7 @@ const (
 	TypeInstance          = "Instance"
 	TypeInstanceType      = "InstanceType"
 	TypeMenu              = "Menu"
+	TypeMonitorSample     = "MonitorSample"
 	TypeNode              = "Node"
 	TypeOIDCClient        = "OIDCClient"
 	TypeOperationLog      = "OperationLog"
@@ -14134,6 +14136,476 @@ func (m *MenuMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Menu edge %s", name)
+}
+
+// MonitorSampleMutation represents an operation that mutates the MonitorSample nodes in the graph.
+type MonitorSampleMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	tier          *int8
+	addtier       *int8
+	sample_time   *time.Time
+	data          *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*MonitorSample, error)
+	predicates    []predicate.MonitorSample
+}
+
+var _ ent.Mutation = (*MonitorSampleMutation)(nil)
+
+// monitorsampleOption allows management of the mutation configuration using functional options.
+type monitorsampleOption func(*MonitorSampleMutation)
+
+// newMonitorSampleMutation creates new mutation for the MonitorSample entity.
+func newMonitorSampleMutation(c config, op Op, opts ...monitorsampleOption) *MonitorSampleMutation {
+	m := &MonitorSampleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMonitorSample,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMonitorSampleID sets the ID field of the mutation.
+func withMonitorSampleID(id int) monitorsampleOption {
+	return func(m *MonitorSampleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MonitorSample
+		)
+		m.oldValue = func(ctx context.Context) (*MonitorSample, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MonitorSample.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMonitorSample sets the old MonitorSample of the mutation.
+func withMonitorSample(node *MonitorSample) monitorsampleOption {
+	return func(m *MonitorSampleMutation) {
+		m.oldValue = func(context.Context) (*MonitorSample, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MonitorSampleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MonitorSampleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MonitorSampleMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MonitorSampleMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MonitorSample.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTier sets the "tier" field.
+func (m *MonitorSampleMutation) SetTier(i int8) {
+	m.tier = &i
+	m.addtier = nil
+}
+
+// Tier returns the value of the "tier" field in the mutation.
+func (m *MonitorSampleMutation) Tier() (r int8, exists bool) {
+	v := m.tier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTier returns the old "tier" field's value of the MonitorSample entity.
+// If the MonitorSample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MonitorSampleMutation) OldTier(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTier: %w", err)
+	}
+	return oldValue.Tier, nil
+}
+
+// AddTier adds i to the "tier" field.
+func (m *MonitorSampleMutation) AddTier(i int8) {
+	if m.addtier != nil {
+		*m.addtier += i
+	} else {
+		m.addtier = &i
+	}
+}
+
+// AddedTier returns the value that was added to the "tier" field in this mutation.
+func (m *MonitorSampleMutation) AddedTier() (r int8, exists bool) {
+	v := m.addtier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTier resets all changes to the "tier" field.
+func (m *MonitorSampleMutation) ResetTier() {
+	m.tier = nil
+	m.addtier = nil
+}
+
+// SetSampleTime sets the "sample_time" field.
+func (m *MonitorSampleMutation) SetSampleTime(t time.Time) {
+	m.sample_time = &t
+}
+
+// SampleTime returns the value of the "sample_time" field in the mutation.
+func (m *MonitorSampleMutation) SampleTime() (r time.Time, exists bool) {
+	v := m.sample_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSampleTime returns the old "sample_time" field's value of the MonitorSample entity.
+// If the MonitorSample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MonitorSampleMutation) OldSampleTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSampleTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSampleTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSampleTime: %w", err)
+	}
+	return oldValue.SampleTime, nil
+}
+
+// ResetSampleTime resets all changes to the "sample_time" field.
+func (m *MonitorSampleMutation) ResetSampleTime() {
+	m.sample_time = nil
+}
+
+// SetData sets the "data" field.
+func (m *MonitorSampleMutation) SetData(s string) {
+	m.data = &s
+}
+
+// Data returns the value of the "data" field in the mutation.
+func (m *MonitorSampleMutation) Data() (r string, exists bool) {
+	v := m.data
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldData returns the old "data" field's value of the MonitorSample entity.
+// If the MonitorSample object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MonitorSampleMutation) OldData(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldData is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldData requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldData: %w", err)
+	}
+	return oldValue.Data, nil
+}
+
+// ResetData resets all changes to the "data" field.
+func (m *MonitorSampleMutation) ResetData() {
+	m.data = nil
+}
+
+// Where appends a list predicates to the MonitorSampleMutation builder.
+func (m *MonitorSampleMutation) Where(ps ...predicate.MonitorSample) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MonitorSampleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MonitorSampleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MonitorSample, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MonitorSampleMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MonitorSampleMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MonitorSample).
+func (m *MonitorSampleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MonitorSampleMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.tier != nil {
+		fields = append(fields, monitorsample.FieldTier)
+	}
+	if m.sample_time != nil {
+		fields = append(fields, monitorsample.FieldSampleTime)
+	}
+	if m.data != nil {
+		fields = append(fields, monitorsample.FieldData)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MonitorSampleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case monitorsample.FieldTier:
+		return m.Tier()
+	case monitorsample.FieldSampleTime:
+		return m.SampleTime()
+	case monitorsample.FieldData:
+		return m.Data()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MonitorSampleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case monitorsample.FieldTier:
+		return m.OldTier(ctx)
+	case monitorsample.FieldSampleTime:
+		return m.OldSampleTime(ctx)
+	case monitorsample.FieldData:
+		return m.OldData(ctx)
+	}
+	return nil, fmt.Errorf("unknown MonitorSample field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MonitorSampleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case monitorsample.FieldTier:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTier(v)
+		return nil
+	case monitorsample.FieldSampleTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSampleTime(v)
+		return nil
+	case monitorsample.FieldData:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetData(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MonitorSample field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MonitorSampleMutation) AddedFields() []string {
+	var fields []string
+	if m.addtier != nil {
+		fields = append(fields, monitorsample.FieldTier)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MonitorSampleMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case monitorsample.FieldTier:
+		return m.AddedTier()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MonitorSampleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case monitorsample.FieldTier:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTier(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MonitorSample numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MonitorSampleMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MonitorSampleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MonitorSampleMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown MonitorSample nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MonitorSampleMutation) ResetField(name string) error {
+	switch name {
+	case monitorsample.FieldTier:
+		m.ResetTier()
+		return nil
+	case monitorsample.FieldSampleTime:
+		m.ResetSampleTime()
+		return nil
+	case monitorsample.FieldData:
+		m.ResetData()
+		return nil
+	}
+	return fmt.Errorf("unknown MonitorSample field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MonitorSampleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MonitorSampleMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MonitorSampleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MonitorSampleMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MonitorSampleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MonitorSampleMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MonitorSampleMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown MonitorSample unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MonitorSampleMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown MonitorSample edge %s", name)
 }
 
 // NodeMutation represents an operation that mutates the Node nodes in the graph.

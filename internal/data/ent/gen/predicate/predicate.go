@@ -48,6 +48,9 @@ type InstanceType func(*sql.Selector)
 // Menu is the predicate function for menu builders.
 type Menu func(*sql.Selector)
 
+// MonitorSample is the predicate function for monitorsample builders.
+type MonitorSample func(*sql.Selector)
+
 // Node is the predicate function for node builders.
 type Node func(*sql.Selector)
 

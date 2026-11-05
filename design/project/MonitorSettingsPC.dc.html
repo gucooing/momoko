@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>性能监控设置 · PC</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;transition:transform .15s,filter .15s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}.btn-p:hover{filter:brightness(1.08);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}.btn-s:hover{background:var(--pSoft);color:var(--pInk)}
+.btn-o{background:var(--s);color:var(--ink);border:1.5px solid var(--line)}.btn-o:hover{border-color:var(--p);color:var(--pInk)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.btn-on,.btn-on:hover{background:var(--ink);color:var(--bg)}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ib-sm{width:36px;height:36px;border-radius:12px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}
+.run{background:var(--pSoft);color:var(--pInk)}
+.run::before{animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25}}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:var(--p);color:var(--pInk)}
+.chip-on,.chip-on:hover{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-size:12px;opacity:.7}
+.nav{display:flex;align-items:center;gap:12px;min-height:42px;padding:0 12px;border-radius:14px;color:var(--ink2);text-decoration:none;font-size:14px;font-weight:500}
+.nav:hover{background:var(--s2);color:var(--ink)}
+.nav-on,.nav-on:hover{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.kbd{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;background:var(--s2);color:var(--ink2)}
+.utab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700}
+.utab:hover{color:var(--ink)}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.utab .n{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--s2);color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.dot{position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--p);border:2px solid var(--s)}
+.cb{width:20px;height:20px;accent-color:var(--p);cursor:pointer;margin:0}
+.trow{display:grid;grid-template-columns:32px minmax(0,2.4fr) minmax(0,1.5fr) minmax(0,1.15fr) minmax(0,1fr) minmax(0,.7fr) 176px;align-items:center;gap:14px;padding:12px}
+.thd{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink2);padding-top:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.tr{border-bottom:1px solid var(--line);border-radius:0}
+.tr:hover{background:var(--s2)}
+.tr-open,.tr-open:hover{background:var(--s2);border-radius:20px;border-bottom-color:transparent;margin:6px 0}
+.tr-sel{background:color-mix(in srgb, var(--pSoft) 70%, var(--s))}
+.bar{display:block;flex:none;height:6px;border-radius:999px;background:var(--line);overflow:hidden;width:100%;max-width:150px}
+.bar span{display:block;height:100%;border-radius:999px;background:var(--p)}
+.stp{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;flex:none;position:relative;z-index:1}
+.stp-ok{background:var(--okSoft);color:var(--ok)}
+.stp-run{background:var(--p);color:var(--pOn)}
+.stp-wait{background:var(--s2);color:var(--ink2);border:1.5px dashed var(--line)}
+.stp-fail{background:var(--badSoft);color:var(--bad)}
+.stl{position:relative;display:flex;gap:12px;align-items:flex-start;padding-bottom:16px}
+.stl-line::after{content:'';position:absolute;left:13px;top:30px;bottom:0;width:2px;background:var(--line)}
+.bulk-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:var(--bg);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.bulk-btn:hover{background:color-mix(in srgb, var(--bg) 14%, transparent)}
+.pg{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;border-radius:12px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer}
+.pg:hover{background:var(--s2);color:var(--ink)}
+.pg-on,.pg-on:hover{background:var(--ink);color:var(--bg)}
+.tb-ib{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:#E8E3EE;cursor:pointer}
+.tb-ib:hover{background:#2A2333}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+.seg{display:inline-flex;padding:4px;border-radius:999px;background:var(--s2);gap:2px}
+.seg button{min-height:34px;padding:0 14px;border-radius:999px;border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.seg button:hover{color:var(--ink)}
+.seg .on{background:var(--s);color:var(--ink);box-shadow:0 1px 3px rgba(20,10,30,.12)}
+.chip-sm{min-height:34px;padding:0 12px;font-size:13px}
+.tile{transition:border-color .15s,transform .15s}
+.tile:hover{border-color:var(--p);transform:translateY(-2px)}
+.lg{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:0 4px;border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer;border-radius:8px}
+.lg:hover{background:var(--s2)}
+.lg-off{opacity:.45;text-decoration:line-through}
+.fr{display:flex;align-items:center;gap:12px}
+.live{background:var(--okSoft);color:var(--ok)}.live:hover{background:var(--okSoft);color:var(--ok)}
+.row-h:hover{background:var(--s2)}
+.tg{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none;transition:background .15s}
+.tg::after{content:'';position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.tg:checked{background:var(--p)}
+.tg:checked::after{transform:translateX(20px)}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="min-height: {{rootMin}}; height: {{rootH}}; overflow: hidden; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span>{{n.t}}</span>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <a href="ProfilePC.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg); color: var(--ink); text-decoration: none">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chevR}}"></path></svg>
+    </a>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px; position: relative">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <label class="inp" style="flex: 1 1 320px; max-width: 520px">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="搜索页面、应用、容器、文件…" aria-label="全局搜索">
+        <span class="kbd">Ctrl K</span>
+      </label>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知，3 条未读"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">性能监控</h1>
+        <div style="font-size: 14px; color: var(--ink2)">DESKTOP-K5K9BBC · 每 <span class="num" style="color: var(--ink); font-weight: 700">{{intervalT}}</span> 采样一次 · 历史保留 <span class="num" style="color: var(--ink); font-weight: 700">{{retainT}}</span> · 已记录 <span class="num">23</span> 天</div>
+      </div>
+      <button class="btn {{liveCls}}" aria-pressed="{{live}}" onClick="{{toggleLive}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor"></span>{{liveT}}</button>
+      <button class="btn btn-o" onClick="{{openSettings}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.settings}}"></path></svg>监控设置</button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: -4px">
+        <div class="seg" role="tablist" aria-label="时间范围">
+          <sc-for list="{{ranges}}" as="r" hint-placeholder-count="5">
+            <button class="{{r.cls}}" role="tab" aria-selected="{{r.on}}" onClick="{{r.pick}}">{{r.t}}</button>
+          </sc-for>
+        </div>
+        <div style="position: relative">
+          <button class="btn btn-o" aria-expanded="{{customOpen}}" onClick="{{toggleCustom}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.cal}}"></path></svg>自定义</button>
+          <sc-if value="{{customOpen}}" hint-placeholder-val="{{false}}">
+            <div role="dialog" aria-label="自定义时间范围" class="card" style="position: absolute; top: 54px; right: 0; z-index: 30; width: 340px; padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 24px 48px -20px rgba(20,10,30,.35)">
+              <span style="font-size: 16px; font-weight: 800">自定义时间范围</span>
+              <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ink2)">开始
+                <span class="inp"><input type="text" value="2026-10-28 00:00" aria-label="开始时间"></span>
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ink2)">结束
+                <span class="inp"><input type="text" value="2026-11-05 14:30" aria-label="结束时间"></span>
+              </label>
+              <div style="font-size: 12px; color: var(--ink2); line-height: 1.5">可查看最近 30 天内的任意时段；超过 7 天的数据为 10 分钟精度。</div>
+              <div style="display: flex; gap: 8px; justify-content: flex-end">
+                <button class="btn btn-s btn-sm" onClick="{{toggleCustom}}">取消</button>
+                <button class="btn btn-p btn-sm" onClick="{{toggleCustom}}">查看</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      <span style="flex: 1"></span>
+      <span style="font-size: 13px; color: var(--ink2)">点图例可隐藏曲线 · 拖动图表可框选放大</span>
+    </div>
+
+    <!-- 概览：五项当前值 + 时段平均 / 峰值 + 小走势 -->
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{tiles}}" as="k" hint-placeholder-count="5">
+        <a class="card tile" href="#{{k.id}}" style="padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: var(--ink)">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span class="av {{k.av}}" style="width: 34px; height: 34px; border-radius: 11px; transform: rotate({{k.rot}})"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{k.d}}"></path></svg></span>
+            <span style="flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: var(--ink2)">{{k.t}}</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 6px">
+            <span class="num" style="font-size: 28px; font-weight: 800; line-height: 1">{{k.v}}</span>
+            <span class="num" style="font-size: 13px; font-weight: 700; color: var(--ink2)">{{k.u}}</span>
+          </div>
+          <div style="font-size: 12px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{k.sub}}</div>
+          <svg viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true" style="width: 100%; height: 34px; display: block">
+            <path d="{{k.area}}" style="fill: {{k.c}}; opacity: .14"></path>
+            <path d="{{k.line}}" vector-effect="non-scaling-stroke" style="fill: none; stroke: {{k.c}}; stroke-width: 2"></path>
+          </svg>
+          <div class="num" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--ink2)"><span>平均 {{k.avg}}</span><span>峰值 {{k.peak}}</span></div>
+        </a>
+      </sc-for>
+    </div>
+
+    <!-- 详细曲线 -->
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+      <sc-for list="{{charts}}" as="c" hint-placeholder-count="5">
+        <section class="card" id="{{c.id}}" aria-label="{{c.t}}" style="padding: 18px 20px 16px; display: flex; flex-direction: column; gap: 12px; grid-column: {{c.span}}">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+            <span class="av {{c.av}}" style="width: 36px; height: 36px; border-radius: 12px; transform: rotate({{c.rot}})"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg></span>
+            <span style="display: flex; flex-direction: column; min-width: 0">
+              <span style="font-size: 17px; font-weight: 800">{{c.t}}</span>
+              <span style="font-size: 12px; color: var(--ink2)">{{c.sub}}</span>
+            </span>
+            <span style="flex: 1"></span>
+            <sc-for list="{{c.picks}}" as="pk" hint-placeholder-count="0">
+              <button class="chip chip-sm {{pk.cls}}" aria-pressed="{{pk.on}}" onClick="{{pk.pick}}">{{pk.t}}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{c.empty}}" hint-placeholder-val="{{false}}">
+            <div style="min-height: 230px; border-radius: 18px; background: var(--s2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; text-align: center">
+              <span class="av av-a2" style="width: 48px; height: 48px; border-radius: 16px; transform: rotate(-5deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.gpu}}"></path></svg></span>
+              <span style="font-size: 15px; font-weight: 800">这台机器没有检测到独立显卡</span>
+              <span style="font-size: 13px; color: var(--ink2); line-height: 1.55; max-width: 380px">支持 NVIDIA（nvidia-smi）、AMD（rocm-smi）和 Intel 核显。装好驱动后会自动开始采集，不用重启 Momoko。</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{c.has}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; flex-wrap: wrap; gap: 6px 18px">
+              <sc-for list="{{c.series}}" as="s" hint-placeholder-count="2">
+                <button class="lg {{s.offCls}}" aria-pressed="{{s.on}}" onClick="{{s.toggle}}">
+                  <span style="width: 10px; height: 10px; border-radius: 3px; background: {{s.c}}"></span>{{s.t}}
+                  <span class="num" style="color: var(--ink); font-weight: 800">{{s.now}}</span>
+                  <span class="num" style="color: var(--ink2); font-weight: 600">均 {{s.avg}} · 峰 {{s.peak}}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="position: relative; height: 210px; padding-left: 44px">
+              <sc-for list="{{c.grid}}" as="g" hint-placeholder-count="3">
+                <div style="position: absolute; left: 44px; right: 0; top: {{g.top}}; border-top: 1px dashed var(--line)"></div>
+                <span class="num" style="position: absolute; left: 0; top: {{g.top}}; transform: translateY(-50%); width: 38px; text-align: right; font-size: 11px; color: var(--ink2)">{{g.t}}</span>
+              </sc-for>
+              <sc-if value="{{c.gap}}" hint-placeholder-val="{{false}}">
+                <div title="Momoko 服务停止，这段时间没有数据" style="position: absolute; top: 0; height: 200px; left: calc(44px + (100% - 44px) * 0.4); width: calc((100% - 44px) * 0.045); background: repeating-linear-gradient(135deg, var(--line) 0 5px, transparent 5px 10px); border-left: 1px dashed var(--ink2); border-right: 1px dashed var(--ink2)"></div>
+                <span style="position: absolute; top: -2px; left: calc(44px + (100% - 44px) * 0.4225); transform: translate(-50%, 6px); padding: 2px 8px; border-radius: 999px; background: var(--s2); font-size: 11px; font-weight: 700; color: var(--ink2); white-space: nowrap">服务停止 · 无数据</span>
+              </sc-if>
+              <svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-label="{{c.t}}曲线" role="img" style="position: absolute; left: 44px; right: 0; top: 0; width: calc(100% - 44px); height: 200px; display: block">
+                <sc-for list="{{c.paths}}" as="p" hint-placeholder-count="2">
+                  <path d="{{p.area}}" style="fill: {{p.c}}; opacity: {{p.fo}}"></path>
+                  <path d="{{p.line}}" vector-effect="non-scaling-stroke" style="fill: none; stroke: {{p.c}}; stroke-width: 2; stroke-linejoin: round"></path>
+                </sc-for>
+              </svg>
+              <sc-if value="{{c.probe}}" hint-placeholder-val="{{false}}">
+                <div style="position: absolute; top: 0; height: 200px; left: calc(44px + (100% - 44px) * 0.72); border-left: 1.5px solid var(--ink)"></div>
+                <div class="card" style="position: absolute; top: 8px; left: calc(44px + (100% - 44px) * 0.72 + 10px); padding: 8px 12px; border-radius: 14px; box-shadow: 0 12px 28px -14px rgba(20,10,30,.4); display: flex; flex-direction: column; gap: 3px; font-size: 12px; white-space: nowrap">
+                  <span class="num" style="font-weight: 800">{{probeTime}}</span>
+                  <sc-for list="{{c.probeRows}}" as="pr" hint-placeholder-count="2">
+                    <span style="display: flex; align-items: center; gap: 6px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{pr.c}}"></span>{{pr.t}} <b class="num">{{pr.v}}</b></span>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div class="num" style="position: absolute; left: 44px; right: 0; top: 204px; display: flex; justify-content: space-between; font-size: 11px; color: var(--ink2)">
+                <sc-for list="{{xTicks}}" as="x" hint-placeholder-count="5"><span>{{x}}</span></sc-for>
+              </div>
+            </div>
+            <sc-if value="{{c.hasFacts}}" hint-placeholder-val="{{true}}">
+              <dl style="margin: 10px 0 0; padding: 12px 14px; border-radius: 16px; background: var(--s2); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 14px">
+                <sc-for list="{{c.facts}}" as="f" hint-placeholder-count="4">
+                  <div style="min-width: 0">
+                    <dt style="font-size: 11px; font-weight: 700; color: var(--ink2)">{{f.t}}</dt>
+                    <dd class="num" style="margin: 2px 0 0; font-size: 14px; font-weight: 800; color: {{f.c}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{f.v}}</dd>
+                  </div>
+                </sc-for>
+              </dl>
+            </sc-if>
+          </sc-if>
+        </section>
+      </sc-for>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+      <!-- 磁盘容量与趋势 -->
+      <section class="card" aria-label="磁盘容量" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="font-size: 17px; font-weight: 800; flex: 1">磁盘容量与趋势</span>
+          <span style="font-size: 12px; color: var(--ink2)">按最近 30 天的增长估算</span>
+        </div>
+        <sc-for list="{{disks}}" as="dk" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line)">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <span class="mono" style="font-size: 14px; font-weight: 700">{{dk.m}}</span>
+              <span style="font-size: 12px; color: var(--ink2)">{{dk.fs}}</span>
+              <span style="flex: 1"></span>
+              <span class="num" style="font-size: 13px; font-weight: 700">{{dk.used}} / {{dk.total}}</span>
+            </div>
+            <div style="height: 10px; border-radius: 999px; background: var(--s2); overflow: hidden"><span style="display: block; height: 100%; width: {{dk.pctW}}; border-radius: 999px; background: {{dk.c}}"></span></div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 12px">
+              <span class="num" style="font-weight: 800; color: {{dk.c}}">{{dk.pct}}</span>
+              <span style="color: var(--ink2)">{{dk.grow}}</span>
+              <span style="flex: 1"></span>
+              <span style="font-weight: 700; color: {{dk.etaC}}">{{dk.eta}}</span>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+
+      <!-- 应用占用排行 -->
+      <section class="card" aria-label="占用最高的应用" style="padding: 18px 12px 12px 20px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 10px; padding-right: 8px">
+          <span style="font-size: 17px; font-weight: 800; flex: 1">占用最高的应用</span>
+          <div class="seg" aria-label="排序">
+            <sc-for list="{{topSorts}}" as="ts" hint-placeholder-count="2">
+              <button class="{{ts.cls}}" onClick="{{ts.pick}}">{{ts.t}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: var(--ink2); padding-right: 8px">所选时段内的平均值</div>
+        <sc-for list="{{tops}}" as="tp" hint-placeholder-count="5">
+          <a class="row-h" href="AppDetailPC.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 6px 8px; border-radius: 14px; color: var(--ink); text-decoration: none">
+            <span class="av {{tp.av}}" style="width: 34px; height: 34px; border-radius: 11px; font-size: 15px; transform: rotate({{tp.rot}})">{{tp.l}}</span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+              <span style="font-size: 14px; font-weight: 700">{{tp.n}}</span>
+              <span style="height: 6px; border-radius: 999px; background: var(--s2); margin-top: 6px; overflow: hidden"><span style="display: block; height: 100%; width: {{tp.w}}; background: var(--p); border-radius: 999px"></span></span>
+            </span>
+            <span class="num" style="width: 64px; text-align: right; font-size: 14px; font-weight: 800">{{tp.cpu}}</span>
+            <span class="num" style="width: 76px; text-align: right; font-size: 13px; color: var(--ink2); font-weight: 600">{{tp.mem}}</span>
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chevR}}"></path></svg>
+          </a>
+        </sc-for>
+      </section>
+    </div>
+
+    <!-- 监控设置 -->
+    <sc-if value="{{settingsOpen}}" hint-placeholder-val="{{false}}">
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 1000px; z-index: 40; background: rgba(20,10,30,.42); display: flex; justify-content: flex-end">
+        <section role="dialog" aria-modal="true" aria-label="监控设置" style="width: 520px; max-width: 100%; background: var(--s); display: flex; flex-direction: column; box-shadow: -24px 0 60px -30px rgba(20,10,30,.5)">
+          <header style="display: flex; align-items: center; gap: 12px; padding: 22px 20px 16px 26px; border-bottom: 1px solid var(--line)">
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 20px; font-weight: 800">监控设置</span>
+              <span style="font-size: 13px; color: var(--ink2)">只对当前节点 DESKTOP-K5K9BBC 生效</span>
+            </span>
+            <button class="ib" aria-label="关闭" onClick="{{closeSettings}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+          </header>
+          <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding: 20px 26px; display: flex; flex-direction: column; gap: 22px">
+            <div class="fr">
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">记录历史数据</span><span style="font-size: 13px; color: var(--ink2)">关闭后只显示实时数据，已有的历史会保留到期满</span></span>
+              <input class="tg" type="checkbox" role="switch" aria-label="记录历史数据" checked="{{recOn}}" onChange="{{flipRec}}">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px">
+              <span class="lbl">采样间隔</span>
+              <div class="seg" style="display: flex">
+                <sc-for list="{{intervals}}" as="iv" hint-placeholder-count="4">
+                  <button class="{{iv.cls}}" style="flex: 1" onClick="{{iv.pick}}">{{iv.t}}</button>
+                </sc-for>
+              </div>
+              <span style="font-size: 12px; color: var(--ink2)">间隔越短曲线越细，数据库占用也越大。工作台的实时图不受影响。</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px">
+              <span class="lbl">历史保留时长</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                <sc-for list="{{retains}}" as="rt" hint-placeholder-count="6">
+                  <button class="chip chip-sm {{rt.cls}}" aria-pressed="{{rt.on}}" onClick="{{rt.pick}}">{{rt.t}}</button>
+                </sc-for>
+              </div>
+              <sc-if value="{{retainCustom}}" hint-placeholder-val="{{false}}">
+                <label class="inp" style="max-width: 220px"><input type="text" value="45" aria-label="自定义保留天数"><span style="font-size: 13px; font-weight: 700">天</span></label>
+              </sc-if>
+              <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: var(--s2)">
+                <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">按时间自动降低精度，越旧的数据越粗</span>
+                <sc-for list="{{tiers}}" as="tr" hint-placeholder-count="3">
+                  <div style="display: flex; align-items: center; gap: 10px; font-size: 13px">
+                    <span style="width: 10px; height: 10px; border-radius: 3px; background: {{tr.c}}"></span>
+                    <span style="flex: 1">{{tr.t}}</span>
+                    <span class="num" style="font-weight: 700">{{tr.v}}</span>
+                  </div>
+                </sc-for>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px">
+                  <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.db}}"></path></svg>
+                  <span style="flex: 1">当前占用 <b class="num">186 MB</b></span>
+                  <span class="num" style="color: var(--ink2)">预计稳定在 <b style="color: var(--ink)">{{storeT}}</b></span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span class="lbl" style="margin-bottom: 6px">采集项目</span>
+              <sc-for list="{{metricsCfg}}" as="mc" hint-placeholder-count="5">
+                <div class="fr" style="padding: 10px 0; border-top: 1px solid var(--line)">
+                  <span class="av {{mc.av}}" style="width: 32px; height: 32px; border-radius: 10px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{mc.d}}"></path></svg></span>
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">{{mc.t}}</span><span style="font-size: 12px; color: var(--ink2)">{{mc.sub}}</span></span>
+                  <input class="tg" type="checkbox" role="switch" aria-label="{{mc.t}}" checked="{{mc.on}}" disabled="{{mc.lock}}" onChange="{{mc.flip}}">
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px">
+              <span class="lbl">数据</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                <button class="btn btn-o btn-sm"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>导出所选时段（CSV）</button>
+                <button class="btn btn-sm" style="background: var(--badSoft); color: var(--bad)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.trash}}"></path></svg>清空历史数据</button>
+              </div>
+            </div>
+          </div>
+          <footer style="display: flex; gap: 10px; justify-content: flex-end; padding: 14px 20px; border-top: 1px solid var(--line)">
+            <button class="btn btn-s" onClick="{{closeSettings}}">取消</button>
+            <button class="btn btn-p" onClick="{{closeSettings}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.check}}"></path></svg>保存</button>
+          </footer>
+        </section>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"gpu":{"editor":"boolean","default":true},"settings":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":1000}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  restart: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+  rebuild: 'M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 20h16',
+  archive: 'M3 4h18v4H3zM5 8v12h14V8M10 12h4',
+  net: 'M9 3h6v5H9zM3 16h6v5H3zM15 16h6v5h-6zM12 8v4M6 16v-4h12v4',
+  copy: 'M8 8h12v12H8zM4 16V4h12',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  arc: 'M12 4a8 8 0 1 0 8 8',
+  dash: 'M8 12h8',
+  x: 'M6 6l12 12M18 6 6 18',
+  chevD: 'M6 9l6 6 6-6',
+  chevU: 'M6 15l6-6 6 6',
+  chevR: 'M9 6l6 6-6 6',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  pulse: 'M3 12h4l2.5-6 4 12 2.5-6H21',
+  cpu: 'M7 7h10v10H7zM10 10h4v4h-4zM10 2v5M14 2v5M10 17v5M14 17v5M2 10h5M2 14h5M17 10h5M17 14h5',
+  gpu: 'M2 7h17a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H2zM6 10.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM12 10.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zM5 17v3M16 10h2M16 13h2',
+  mem: 'M3 7h18v10H3zM7 7v10M11 7v10M15 7v10M3 20v-3M21 20v-3M8 20v-3M16 20v-3',
+  disk: 'M12 3c4.4 0 8 1.3 8 3v12c0 1.7-3.6 3-8 3s-8-1.3-8-3V6c0-1.7 3.6-3 8-3zM4 6c0 1.7 3.6 3 8 3s8-1.3 8-3M17 15h.01',
+  cal: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5',
+};
+// —— 示例数据：按时间范围生成有昼夜起伏、偶有尖峰的曲线（固定种子，切换范围结果稳定）——
+const RANGES = [
+  { k: '1h', t: '1 小时', n: 120, ticks: ['13:30', '13:45', '14:00', '14:15', '14:30'], probe: '今天 14:13:20', period: 120 },
+  { k: '6h', t: '6 小时', n: 144, ticks: ['08:30', '10:00', '11:30', '13:00', '14:30'], probe: '今天 12:49', period: 144 },
+  { k: '24h', t: '24 小时', n: 144, ticks: ['昨天 14:30', '20:30', '02:30', '08:30', '14:30'], probe: '今天 07:50', period: 144 },
+  { k: '7d', t: '7 天', n: 168, ticks: ['10-29', '10-31', '11-02', '11-04', '今天'], probe: '11-03 21:00', period: 24 },
+  { k: '30d', t: '30 天', n: 180, ticks: ['10-06', '10-13', '10-20', '10-27', '11-03'], probe: '10-27 18:00', period: 6 }
+];
+function rng(seed) {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+}
+function gen(seed, n, o) {
+  const r = rng(seed);
+  const out = [];
+  let drift = 0;
+  for (let k = 0; k < n; k++) {
+    drift = drift * 0.82 + (r() - 0.5) * o.jit;
+    const wave = Math.sin((k / o.period) * Math.PI * 2 + o.phase);
+    let v = o.base + o.amp * (0.5 + 0.5 * wave) + drift;
+    if (r() > 1 - o.spike) v += o.spikeAmp * (0.5 + r() * 0.5);
+    out.push(Math.max(o.min || 0, Math.min(o.max, v)));
+  }
+  return out;
+}
+function pathOf(data, max) {
+  const n = data.length;
+  const pts = data.map((v, k) => [((k / (n - 1)) * 600).toFixed(1), (200 - (v / max) * 196).toFixed(1)]);
+  const line = 'M' + pts.map((p) => p.join(' ')).join('L');
+  return { line, area: line + 'L600 200L0 200Z' };
+}
+function sparkOf(data, max) {
+  const n = data.length;
+  const pts = data.map((v, k) => [((k / (n - 1)) * 200).toFixed(1), (40 - (v / max) * 36).toFixed(1)]);
+  const line = 'M' + pts.map((p) => p.join(' ')).join('L');
+  return { line, area: line + 'L200 40L0 40Z' };
+}
+const avgOf = (d) => d.reduce((a, b) => a + b, 0) / d.length;
+const peakOf = (d) => Math.max.apply(null, d);
+const f1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
+
+// 每个范围、每条曲线的形状参数
+function seriesFor(rk, gpuOn) {
+  const R = RANGES.find((x) => x.k === rk);
+  const n = R.n, P = R.period;
+  const sd = { '1h': 11, '6h': 23, '24h': 37, '7d': 53, '30d': 71 }[rk];
+  return {
+    cpu: gen(sd * 3, n, { base: 12, amp: 22, phase: 1.2, period: P, jit: 7, spike: 0.04, spikeAmp: 40, max: 100 }),
+    iow: gen(sd * 5, n, { base: 0.5, amp: 2.5, phase: 2.1, period: P, jit: 1.6, spike: 0.03, spikeAmp: 9, max: 100 }),
+    mem: gen(sd * 7, n, { base: 33, amp: 9, phase: 0.6, period: P, jit: 1.2, spike: 0.01, spikeAmp: 8, max: 100 }),
+    cache: gen(sd * 9, n, { base: 21, amp: 4, phase: 0.2, period: P, jit: 0.8, spike: 0, spikeAmp: 0, max: 100 }),
+    gpu: gpuOn ? gen(sd * 11, n, { base: 6, amp: 34, phase: 2.6, period: P, jit: 9, spike: 0.05, spikeAmp: 45, max: 100 }) : [],
+    vram: gpuOn ? gen(sd * 13, n, { base: 30, amp: 26, phase: 2.4, period: P, jit: 2, spike: 0.01, spikeAmp: 10, max: 100 }) : [],
+    rx: gen(sd * 17, n, { base: 3, amp: 16, phase: 1.7, period: P, jit: 5, spike: 0.05, spikeAmp: 60, max: 100 }),
+    tx: gen(sd * 19, n, { base: 1, amp: 5, phase: 1.9, period: P, jit: 2, spike: 0.04, spikeAmp: 20, max: 100 }),
+    rd: gen(sd * 23, n, { base: 2, amp: 10, phase: 0.9, period: P, jit: 4, spike: 0.05, spikeAmp: 70, max: 160 }),
+    wr: gen(sd * 29, n, { base: 6, amp: 18, phase: 1.1, period: P, jit: 6, spike: 0.06, spikeAmp: 90, max: 160 })
+  };
+}
+
+const DISKS = [
+  { m: '/', fs: 'ext4 · nvme0n1p2', used: '182 GB', total: '476 GB', pct: 38, grow: '近 30 天 +4.1 GB', eta: '增长平缓', etaC: 'var(--ok)' },
+  { m: '/data', fs: 'xfs · sda1', used: '1.62 TB', total: '1.82 TB', pct: 89, grow: '近 30 天 +214 GB', eta: '按当前速度约 21 天后写满', etaC: 'var(--bad)' },
+  { m: '/var/lib/docker', fs: 'ext4 · nvme0n1p3', used: '146 GB', total: '240 GB', pct: 61, grow: '近 30 天 +18 GB', eta: '约 5 个月后写满', etaC: 'var(--warn)' }
+];
+const TOPS = [
+  { n: 'mc-survival', l: 'M', av: 'av-p', rot: '-4deg', cpu: 31.2, mem: 5.8 },
+  { n: 'palworld', l: 'P', av: 'av-a2', rot: '3deg', cpu: 18.6, mem: 9.4 },
+  { n: 'blog-api', l: 'B', av: 'av-ok', rot: '-2deg', cpu: 4.1, mem: 0.41 },
+  { n: 'rsshub', l: 'R', av: 'av-a', rot: '4deg', cpu: 2.7, mem: 0.62 },
+  { n: 'qq-bot', l: 'Q', av: 'av-p', rot: '-3deg', cpu: 1.3, mem: 0.18 }
+];
+const memT = (g) => (g >= 1 ? f1(g) + ' GB' : Math.round(g * 1024) + ' MB');
+const INTERVALS = [['5', '5 秒'], ['10', '10 秒'], ['30', '30 秒'], ['60', '60 秒']];
+const RETAINS = [['7', '7 天'], ['30', '30 天'], ['90', '90 天'], ['180', '180 天'], ['365', '1 年'], ['custom', '自定义']];
+const STORE = { '7': '约 60 MB', '30': '约 210 MB', '90': '约 320 MB', '180': '约 380 MB', '365': '约 450 MB', 'custom': '约 260 MB' };
+function tiersFor(rv, ivT) {
+  const days = rv === 'custom' ? 45 : Number(rv);
+  const dT = (d) => (d >= 365 ? '1 年' : d + ' 天');
+  const t = [{ t: '原始精度（' + ivT + '）', v: '保留 24 小时', c: 'var(--p)' }, { t: '1 分钟精度', v: '保留 ' + dT(Math.min(days, 7)), c: 'var(--a2)' }];
+  if (days > 7) t.push({ t: '10 分钟精度', v: '保留 ' + dT(Math.min(days, 90)), c: 'var(--a)' });
+  if (days > 90) t.push({ t: '1 小时精度', v: '保留 ' + dT(days), c: 'var(--ok)' });
+  return t;
+}
+
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const hasGpu = this.props.gpu ?? true;
+    const rk = st.range || '24h';
+    const R = RANGES.find((x) => x.k === rk);
+    const off = st.off || {};
+    const nic = st.nic || 'all';
+    const dev = st.dev || 'all';
+    const iv = st.iv || '10';
+    const rv = st.rv || '30';
+    const cfg = st.cfg || { gpu: true, disk: true, net: true, app: true };
+    const settingsOpen = st.settings != null ? st.settings : (this.props.settings ?? false);
+    const live = st.live != null ? st.live : true;
+    const topSort = st.topSort || 'cpu';
+    const S = seriesFor(rk, hasGpu);
+    const ivT = INTERVALS.find((x) => x[0] === iv)[1];
+    const rvT = RETAINS.find((x) => x[0] === rv)[1];
+
+    const nav = [
+      { title: '', items: [{ t: '工作台', d: IC.home, href: 'DashboardPC.dc.html', key: 'dash' }, { t: '性能监控', d: IC.pulse, href: 'MonitorPC.dc.html', key: 'monitor' }] },
+      { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: 'AppsPC.dc.html', key: 'apps' }, { t: '应用类型', d: IC.layers, href: 'AppTypesPC.dc.html', key: 'types' }] },
+      { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: 'FilesPC.dc.html', key: 'files' }, { t: '分享', d: IC.share, href: 'SharesPC.dc.html', key: 'shares' }, { t: '文件源', d: IC.db, href: 'FileSourcesPC.dc.html', key: 'sources' }] },
+      { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: 'ContainersPC.dc.html', key: 'docker' }] },
+      { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: 'PortForwardPC.dc.html', key: 'pf' }, { t: '内网穿透', d: IC.tunnel, href: 'TunnelPC.dc.html', key: 'tunnel' }, { t: 'SSH 终端', d: IC.terminal, href: 'SSHPC.dc.html', key: 'ssh' }, { t: '智商检测', d: IC.spark, href: 'IQCheckPC.dc.html', key: 'iq' }] },
+      { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: 'NodesPC.dc.html', key: 'nodes' }, { t: '用户与权限', d: IC.users, href: 'UsersPC.dc.html', key: 'users' }, { t: '任务与日志', d: IC.clock, href: 'TasksPC.dc.html', key: 'tasks' }, { t: '系统设置', d: IC.settings, href: 'SettingsPC.dc.html', key: 'settings' }] }
+    ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === 'monitor' ? 'nav-on' : '' })) }));
+
+    const flip = (key) => () => this.setState({ off: { ...off, [key]: !off[key] } });
+    // 一条曲线：图例（当前 / 平均 / 峰值，可点掉）+ 路径
+    const mk = (key, t, c, data, max, fmt, fo) => ({
+      key, t, c, on: !off[key], offCls: off[key] ? 'lg-off' : '', toggle: flip(key),
+      now: fmt(data[data.length - 1]), avg: fmt(avgOf(data)), peak: fmt(peakOf(data)),
+      path: off[key] ? null : { ...pathOf(data, max), c, fo }
+    });
+    const pct = (v) => f1(v) + '%';
+    const mbs = (v) => f1(v) + ' MB/s';
+    // 网卡 / 磁盘筛选只是缩放示例数据
+    const nicK = { all: 1, eth0: 0.82, wg0: 0.11, docker0: 0.07 }[nic];
+    const devK = { all: 1, nvme0n1: 0.64, sda: 0.36 }[dev];
+    const rx = S.rx.map((v) => v * nicK), tx = S.tx.map((v) => v * nicK);
+    const rd = S.rd.map((v) => v * devK), wr = S.wr.map((v) => v * devK);
+    const gridOf = (max, unit) => [max, max / 2, 0].map((v, k) => ({ top: (k * 98) + 'px', t: (Math.round(v * 10) / 10) + unit }));
+    const pickRow = (list, cur, key) => list.map(([k, t]) => ({ t, on: cur === k, cls: cur === k ? 'chip-on' : '', pick: () => this.setState({ [key]: k }) }));
+
+    const chartDefs = [
+      {
+        id: 'cpu', t: 'CPU', sub: 'Intel Core i7-12700 · 12 核 20 线程 · 负载 1.42 / 1.18 / 0.96', av: 'av-p', rot: '-4deg', d: IC.cpu, max: 100, unit: '%',
+        series: [mk('cpu', '使用率', 'var(--p)', S.cpu, 100, pct, 0.14), mk('iow', 'I/O 等待', 'var(--warn)', S.iow, 100, pct, 0.08)],
+        facts: [{ t: '1 分钟负载', v: '1.42' }, { t: '进程数', v: '312' }, { t: 'CPU 温度', v: '58 °C' }, { t: '上下文切换', v: '18.2k/s' }],
+        gap: rk !== '1h', probe: true
+      },
+      hasGpu ? {
+        id: 'gpu', t: 'GPU', sub: 'NVIDIA GeForce RTX 4070 · 12 GB · 驱动 560.94', av: 'av-a2', rot: '3deg', d: IC.gpu, max: 100, unit: '%',
+        series: [mk('gpu', '使用率', 'var(--a2)', S.gpu, 100, pct, 0.14), mk('vram', '显存', 'var(--p)', S.vram, 100, pct, 0.06)],
+        facts: [{ t: '温度', v: '63 °C', c: 'var(--warn)' }, { t: '功耗', v: '112 / 200 W' }, { t: '风扇', v: '42%' }, { t: '显存', v: '7.2 / 12 GB' }]
+      } : { id: 'gpu', t: 'GPU', sub: '未检测到', av: 'av-a2', rot: '3deg', d: IC.gpu, empty: true },
+      {
+        id: 'mem', t: '内存', sub: '32 GB · 交换分区 8 GB', av: 'av-ok', rot: '-2deg', d: IC.mem, max: 100, unit: '%',
+        series: [mk('mem', '已用', 'var(--ok)', S.mem, 100, pct, 0.14), mk('cache', '缓存', 'var(--a2)', S.cache, 100, pct, 0.06)],
+        facts: [{ t: '已用', v: '12.4 GB' }, { t: '可用', v: '19.6 GB' }, { t: '交换已用', v: '0.6 GB' }, { t: '时段峰值', v: '10-31 21:40' }],
+        gap: rk !== '1h'
+      },
+      {
+        id: 'net', t: '网络', sub: '按网卡统计 · 单位 MB/s', av: 'av-a', rot: '4deg', d: IC.net, max: 100, unit: '',
+        picks: pickRow([['all', '全部'], ['eth0', 'eth0'], ['wg0', 'wg0'], ['docker0', 'docker0']], nic, 'nic'),
+        series: [mk('rx', '接收', 'var(--ok)', rx, 100, mbs, 0.12), mk('tx', '发送', 'var(--a2)', tx, 100, mbs, 0.06)],
+        facts: [{ t: '时段接收', v: f1(182.4 * nicK) + ' GB' }, { t: '时段发送', v: f1(41.7 * nicK) + ' GB' }, { t: '峰值', v: mbs(peakOf(rx)) }, { t: 'TCP 连接', v: '1,284' }]
+      },
+      {
+        id: 'disk', t: '磁盘读写', sub: '按设备统计 · 单位 MB/s', av: 'av-p', rot: '-3deg', d: IC.disk, max: 160, unit: '', span: '1 / -1',
+        picks: pickRow([['all', '全部'], ['nvme0n1', 'nvme0n1'], ['sda', 'sda']], dev, 'dev'),
+        series: [mk('rd', '读取', 'var(--p)', rd, 160, mbs, 0.12), mk('wr', '写入', 'var(--a)', wr, 160, mbs, 0.1)],
+        facts: [{ t: '时段读取', v: f1(36.1 * devK) + ' GB' }, { t: '时段写入', v: f1(58.4 * devK) + ' GB' }, { t: 'IOPS 峰值', v: Math.round(4210 * devK).toLocaleString('en-US') }, { t: '平均延迟', v: '0.8 ms' }]
+      }
+    ];
+    const charts = chartDefs.map((c) => {
+      const series = c.series || [];
+      return {
+        ...c,
+        span: c.span || 'auto',
+        has: !c.empty,
+        empty: !!c.empty,
+        picks: c.picks || [],
+        series,
+        paths: series.filter((s) => s.path).map((s) => s.path),
+        grid: c.empty ? [] : gridOf(c.max, c.unit),
+        gap: !!c.gap,
+        probe: !!c.probe,
+        probeRows: c.probe ? series.filter((s) => s.on).map((s) => ({ t: s.t, c: s.c, v: s.key === 'cpu' ? pct(S.cpu[Math.round(S.cpu.length * 0.72)]) : pct(S.iow[Math.round(S.iow.length * 0.72)]) })) : [],
+        hasFacts: !c.empty,
+        facts: (c.facts || []).map((f) => ({ c: 'var(--ink)', ...f }))
+      };
+    });
+
+    const tile = (id, t, av, rot, d, c, v, u, sub, data, max, fmt) => ({ id, t, av, rot, d, c, v, u, sub, ...sparkOf(data, max), avg: fmt(avgOf(data)), peak: fmt(peakOf(data)) });
+    const last = (d) => d[d.length - 1];
+    const tiles = [
+      tile('cpu', 'CPU', 'av-p', '-4deg', IC.cpu, 'var(--p)', f1(last(S.cpu)), '%', '20 线程 · 负载 1.42', S.cpu, 100, pct),
+      hasGpu ? tile('gpu', 'GPU', 'av-a2', '3deg', IC.gpu, 'var(--a2)', f1(last(S.gpu)), '%', 'RTX 4070 · 63 °C', S.gpu, 100, pct)
+        : { id: 'gpu', t: 'GPU', av: 'av-a2', rot: '3deg', d: IC.gpu, c: 'var(--ink2)', v: '—', u: '', sub: '未检测到显卡', line: '', area: '', avg: '—', peak: '—' },
+      tile('mem', '内存', 'av-ok', '-2deg', IC.mem, 'var(--ok)', f1(last(S.mem)), '%', '12.4 / 32 GB', S.mem, 100, pct),
+      tile('disk', '磁盘读写', 'av-p', '2deg', IC.disk, 'var(--a)', f1(last(S.rd) + last(S.wr)), 'MB/s', '/data 已用 89%', S.wr, 160, mbs),
+      tile('net', '网络', 'av-a', '4deg', IC.net, 'var(--ok)', f1(last(S.rx) + last(S.tx)), 'MB/s', '↓ ' + f1(last(S.rx)) + ' · ↑ ' + f1(last(S.tx)), S.rx, 100, mbs)
+    ];
+
+    const tops = TOPS.slice().sort((a, b) => (topSort === 'cpu' ? b.cpu - a.cpu : b.mem - a.mem)).map((x) => ({
+      ...x, cpu: f1(x.cpu) + '%', mem: memT(x.mem), w: (topSort === 'cpu' ? (x.cpu / 31.2) * 100 : (x.mem / 9.4) * 100) + '%'
+    }));
+
+    const metricsCfg = [
+      { k: 'base', t: 'CPU 与内存', sub: '基础指标，始终采集', d: IC.cpu, av: 'av-p', on: true, lock: true },
+      { k: 'gpu', t: 'GPU', sub: hasGpu ? '检测到 NVIDIA GeForce RTX 4070' : '未检测到显卡，装好驱动后自动开始', d: IC.gpu, av: 'av-a2' },
+      { k: 'disk', t: '磁盘容量与读写', sub: '按设备与挂载点统计，用于预测写满时间', d: IC.disk, av: 'av-ok' },
+      { k: 'net', t: '网络', sub: '按网卡统计收发速率与连接数', d: IC.net, av: 'av-a' },
+      { k: 'app', t: '按应用统计', sub: '每个应用的 CPU 与内存，用于占用排行', d: IC.apps, av: 'av-p' }
+    ].map((m) => ({ ...m, on: m.lock ? true : cfg[m.k] !== false, lock: !!m.lock, flip: () => { if (!m.lock) this.setState({ cfg: { ...cfg, [m.k]: cfg[m.k] === false } }); } }));
+
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav,
+      intervalT: ivT,
+      retainT: rvT === '自定义' ? '45 天' : rvT,
+      ranges: RANGES.map((x) => ({ t: x.t, on: x.k === rk, cls: x.k === rk ? 'on' : '', pick: () => this.setState({ range: x.k }) })),
+      xTicks: R.ticks,
+      probeTime: R.probe,
+      customOpen: !!st.custom,
+      toggleCustom: () => this.setState({ custom: !st.custom }),
+      live,
+      liveCls: live ? 'btn-s live' : 'btn-o',
+      liveT: live ? '实时更新中' : '已暂停',
+      toggleLive: () => this.setState({ live: !live }),
+      tiles,
+      charts,
+      disks: DISKS.map((dk) => ({ ...dk, pct: dk.pct + '%', pctW: dk.pct + '%', c: dk.pct >= 85 ? 'var(--bad)' : dk.pct >= 60 ? 'var(--warn)' : 'var(--ok)' })),
+      topSorts: [['cpu', 'CPU'], ['mem', '内存']].map(([k, t]) => ({ t, cls: topSort === k ? 'on' : '', pick: () => this.setState({ topSort: k }) })),
+      tops,
+      settingsOpen,
+      // 打开设置时把页面收成一屏，抽屉盖在这一屏上
+      rootMin: settingsOpen ? '1000px' : '2260px',
+      rootH: settingsOpen ? '1000px' : 'auto',
+      openSettings: () => this.setState({ settings: true }),
+      closeSettings: () => this.setState({ settings: false }),
+      recOn: st.rec != null ? st.rec : true,
+      flipRec: () => this.setState({ rec: !(st.rec != null ? st.rec : true) }),
+      intervals: INTERVALS.map(([k, t]) => ({ t, cls: iv === k ? 'on' : '', pick: () => this.setState({ iv: k }) })),
+      retains: RETAINS.map(([k, t]) => ({ t, on: rv === k, cls: rv === k ? 'chip-on' : '', pick: () => this.setState({ rv: k }) })),
+      retainCustom: rv === 'custom',
+      tiers: tiersFor(rv, ivT),
+      storeT: STORE[rv],
+      metricsCfg
+    };
+  }
+}
+</script>
+</body>
+</html>

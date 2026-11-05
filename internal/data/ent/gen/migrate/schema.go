@@ -462,6 +462,26 @@ var (
 		Columns:    MenusColumns,
 		PrimaryKey: []*schema.Column{MenusColumns[0]},
 	}
+	// MonitorSamplesColumns holds the columns for the "monitor_samples" table.
+	MonitorSamplesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "tier", Type: field.TypeInt8, Default: 0},
+		{Name: "sample_time", Type: field.TypeTime},
+		{Name: "data", Type: field.TypeString, Size: 2147483647},
+	}
+	// MonitorSamplesTable holds the schema information for the "monitor_samples" table.
+	MonitorSamplesTable = &schema.Table{
+		Name:       "monitor_samples",
+		Columns:    MonitorSamplesColumns,
+		PrimaryKey: []*schema.Column{MonitorSamplesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "monitorsample_tier_sample_time",
+				Unique:  true,
+				Columns: []*schema.Column{MonitorSamplesColumns[1], MonitorSamplesColumns[2]},
+			},
+		},
+	}
 	// NodesColumns holds the columns for the "nodes" table.
 	NodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -1011,6 +1031,7 @@ var (
 		InstancesTable,
 		InstanceTypesTable,
 		MenusTable,
+		MonitorSamplesTable,
 		NodesTable,
 		OidcClientsTable,
 		OperationLogsTable,

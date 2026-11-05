@@ -522,6 +522,7 @@ const TYPE_META: Record<string, TypeMeta> = {
   'iqcheck.tick': { key: 'iqcheckTick', icon: 'HOutline:LightBulbIcon', tone: 'a2', tag: 'iqcheck' },
   'task.cleanup': { key: 'taskCleanup', icon: 'HOutline:TrashIcon', tone: 'bad', tag: 'cleanup' },
   'audit.cleanup': { key: 'auditCleanup', icon: 'HOutline:ClipboardDocumentListIcon', tone: 'warn', tag: 'cleanup' },
+  'monitor.cleanup': { key: 'monitorCleanup', icon: 'HOutline:PresentationChartLineIcon', tone: 'a2', tag: 'cleanup' },
 }
 const ROTS = ['-4deg', '3deg', '-2deg', '4deg', '-3deg']
 const hashRot = (s: string) => ROTS[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % ROTS.length] ?? '0deg'

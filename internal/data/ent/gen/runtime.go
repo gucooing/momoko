@@ -17,6 +17,7 @@ import (
 	"momoko/internal/data/ent/gen/iqcheckresult"
 	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/monitorsample"
 	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
@@ -593,6 +594,12 @@ func init() {
 	menuDescID := menuFields[0].Descriptor()
 	// menu.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	menu.IDValidator = menuDescID.Validators[0].(func(string) error)
+	monitorsampleFields := schema.MonitorSample{}.Fields()
+	_ = monitorsampleFields
+	// monitorsampleDescTier is the schema descriptor for tier field.
+	monitorsampleDescTier := monitorsampleFields[0].Descriptor()
+	// monitorsample.DefaultTier holds the default value on creation for the tier field.
+	monitorsample.DefaultTier = monitorsampleDescTier.Default.(int8)
 	nodeMixin := schema.Node{}.Mixin()
 	nodeMixinFields0 := nodeMixin[0].Fields()
 	_ = nodeMixinFields0

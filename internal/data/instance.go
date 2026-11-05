@@ -269,6 +269,22 @@ func (i *instanceRepo) GetAllAutoStartInstances(ctx context.Context) ([]*gen.Ins
 		All(ctx)
 }
 
+// GetInstanceNames 按 id 批量查实例名称
+func (i *instanceRepo) GetInstanceNames(ctx context.Context, ids []string) (map[string]string, error) {
+	items, err := i.data.db.Instance.Query().
+		Where(instance.IDIn(ids...)).
+		Select(instance.FieldID, instance.FieldName).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]string, len(items))
+	for _, item := range items {
+		out[item.ID] = item.Name
+	}
+	return out, nil
+}
+
 // SetLastStopTime 记录最近一次进程退出时间(不改动「更新时间」)
 func (i *instanceRepo) SetLastStopTime(ctx context.Context, id string, t time.Time) error {
 	item, err := i.data.db.Instance.Get(ctx, id)

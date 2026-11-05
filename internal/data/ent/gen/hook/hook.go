@@ -176,6 +176,18 @@ func (f MenuFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.MenuMutation", m)
 }
 
+// The MonitorSampleFunc type is an adapter to allow the use of ordinary
+// function as MonitorSample mutator.
+type MonitorSampleFunc func(context.Context, *gen.MonitorSampleMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MonitorSampleFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.MonitorSampleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.MonitorSampleMutation", m)
+}
+
 // The NodeFunc type is an adapter to allow the use of ordinary
 // function as Node mutator.
 type NodeFunc func(context.Context, *gen.NodeMutation) (gen.Value, error)

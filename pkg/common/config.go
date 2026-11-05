@@ -22,6 +22,15 @@ const (
 	// ConfigAuditRetentionDays 操作记录保留天数（0=永久保留）。
 	ConfigAuditRetentionDays ConfigKey = "audit.retention_days"
 
+	// 持久性能监控（只对当前节点生效）
+	ConfigMonitorRecordEnabled  ConfigKey = "monitor.record_enabled"
+	ConfigMonitorInterval       ConfigKey = "monitor.interval_seconds"
+	ConfigMonitorRetentionDays  ConfigKey = "monitor.retention_days"
+	ConfigMonitorCollectGPU     ConfigKey = "monitor.collect_gpu"
+	ConfigMonitorCollectDisk    ConfigKey = "monitor.collect_disk"
+	ConfigMonitorCollectNetwork ConfigKey = "monitor.collect_network"
+	ConfigMonitorCollectApps    ConfigKey = "monitor.collect_apps"
+
 	ConfigOIDCEnabled                     ConfigKey = "oidc.enabled"
 	ConfigOIDCIssuerURL                   ConfigKey = "oidc.issuer_url"
 	ConfigOIDCAccessTokenTTLSeconds       ConfigKey = "oidc.access_token_ttl_seconds"
@@ -87,6 +96,14 @@ var configDefaults = map[ConfigKey]string{
 	ConfigUpdateChannel:       "UpdateChannel_Stable",
 	ConfigUpdateLastCheck:     "",
 	ConfigAuditRetentionDays:  "180",
+
+	ConfigMonitorRecordEnabled:  "true",
+	ConfigMonitorInterval:       "10",
+	ConfigMonitorRetentionDays:  "30",
+	ConfigMonitorCollectGPU:     "true",
+	ConfigMonitorCollectDisk:    "true",
+	ConfigMonitorCollectNetwork: "true",
+	ConfigMonitorCollectApps:    "true",
 
 	ConfigOIDCEnabled:                     "false",
 	ConfigOIDCIssuerURL:                   "",

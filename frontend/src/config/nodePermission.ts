@@ -23,6 +23,7 @@ export const NODE_PERMISSION_GROUPS: NodePermissionGroup[] = [
     labelKey: 'node.permission.groups.status',
     items: [
       { code: 'system:status', labelKey: 'node.permission.items.systemStatus', loginOnly: true },
+      { code: 'monitor:edit', labelKey: 'node.permission.items.monitorEdit' },
     ],
   },
   {
@@ -84,6 +85,7 @@ export const nodePermissionLabelKey = (code: string) =>
  */
 const NODE_ROUTE_PERMISSIONS: Array<[string, string | null]> = [
   ['/dashboard/home', ''],
+  ['/monitor', 'system:status'],
   ['/instance/list', 'instance:manage'],
   ['/instance/type', 'instance:manage'],
   ['/instance/app', 'instance:manage'],

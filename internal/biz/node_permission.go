@@ -15,6 +15,7 @@ type nodePermissionSpec struct {
 // nodePermissionSpecs 可授予 API Key 的节点权限，顺序即展示与存储顺序。
 var nodePermissionSpecs = []nodePermissionSpec{
 	{code: constant.SystemStatus, rbac: false},
+	{code: constant.MonitorEdit, rbac: true},
 	{code: constant.Instance, rbac: true},
 	{code: constant.Terminal, rbac: true},
 	{code: constant.FileSource, rbac: true},

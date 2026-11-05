@@ -25,6 +25,7 @@ import (
 	"momoko/internal/data/ent/gen/iqcheckresult"
 	"momoko/internal/data/ent/gen/iqchecksite"
 	"momoko/internal/data/ent/gen/menu"
+	"momoko/internal/data/ent/gen/monitorsample"
 	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
@@ -81,6 +82,8 @@ type Client struct {
 	InstanceType *InstanceTypeClient
 	// Menu is the client for interacting with the Menu builders.
 	Menu *MenuClient
+	// MonitorSample is the client for interacting with the MonitorSample builders.
+	MonitorSample *MonitorSampleClient
 	// Node is the client for interacting with the Node builders.
 	Node *NodeClient
 	// OIDCClient is the client for interacting with the OIDCClient builders.
@@ -134,6 +137,7 @@ func (c *Client) init() {
 	c.Instance = NewInstanceClient(c.config)
 	c.InstanceType = NewInstanceTypeClient(c.config)
 	c.Menu = NewMenuClient(c.config)
+	c.MonitorSample = NewMonitorSampleClient(c.config)
 	c.Node = NewNodeClient(c.config)
 	c.OIDCClient = NewOIDCClientClient(c.config)
 	c.OperationLog = NewOperationLogClient(c.config)
@@ -254,6 +258,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Instance:          NewInstanceClient(cfg),
 		InstanceType:      NewInstanceTypeClient(cfg),
 		Menu:              NewMenuClient(cfg),
+		MonitorSample:     NewMonitorSampleClient(cfg),
 		Node:              NewNodeClient(cfg),
 		OIDCClient:        NewOIDCClientClient(cfg),
 		OperationLog:      NewOperationLogClient(cfg),
@@ -301,6 +306,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Instance:          NewInstanceClient(cfg),
 		InstanceType:      NewInstanceTypeClient(cfg),
 		Menu:              NewMenuClient(cfg),
+		MonitorSample:     NewMonitorSampleClient(cfg),
 		Node:              NewNodeClient(cfg),
 		OIDCClient:        NewOIDCClientClient(cfg),
 		OperationLog:      NewOperationLogClient(cfg),
@@ -346,10 +352,10 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt,
-		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu, c.Node,
-		c.OIDCClient, c.OperationLog, c.PortForward, c.PortForwardStat, c.Role,
-		c.SQLMigration, c.SSHHost, c.Session, c.SystemConfig, c.Task, c.User,
-		c.UserAPIKey, c.UserMessage,
+		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu,
+		c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog, c.PortForward,
+		c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey, c.UserMessage,
 	} {
 		n.Use(hooks...)
 	}
@@ -361,10 +367,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt,
-		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu, c.Node,
-		c.OIDCClient, c.OperationLog, c.PortForward, c.PortForwardStat, c.Role,
-		c.SQLMigration, c.SSHHost, c.Session, c.SystemConfig, c.Task, c.User,
-		c.UserAPIKey, c.UserMessage,
+		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu,
+		c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog, c.PortForward,
+		c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
+		c.SystemConfig, c.Task, c.User, c.UserAPIKey, c.UserMessage,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -401,6 +407,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.InstanceType.mutate(ctx, m)
 	case *MenuMutation:
 		return c.Menu.mutate(ctx, m)
+	case *MonitorSampleMutation:
+		return c.MonitorSample.mutate(ctx, m)
 	case *NodeMutation:
 		return c.Node.mutate(ctx, m)
 	case *OIDCClientMutation:
@@ -2488,6 +2496,139 @@ func (c *MenuClient) mutate(ctx context.Context, m *MenuMutation) (Value, error)
 	}
 }
 
+// MonitorSampleClient is a client for the MonitorSample schema.
+type MonitorSampleClient struct {
+	config
+}
+
+// NewMonitorSampleClient returns a client for the MonitorSample from the given config.
+func NewMonitorSampleClient(c config) *MonitorSampleClient {
+	return &MonitorSampleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `monitorsample.Hooks(f(g(h())))`.
+func (c *MonitorSampleClient) Use(hooks ...Hook) {
+	c.hooks.MonitorSample = append(c.hooks.MonitorSample, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `monitorsample.Intercept(f(g(h())))`.
+func (c *MonitorSampleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MonitorSample = append(c.inters.MonitorSample, interceptors...)
+}
+
+// Create returns a builder for creating a MonitorSample entity.
+func (c *MonitorSampleClient) Create() *MonitorSampleCreate {
+	mutation := newMonitorSampleMutation(c.config, OpCreate)
+	return &MonitorSampleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MonitorSample entities.
+func (c *MonitorSampleClient) CreateBulk(builders ...*MonitorSampleCreate) *MonitorSampleCreateBulk {
+	return &MonitorSampleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MonitorSampleClient) MapCreateBulk(slice any, setFunc func(*MonitorSampleCreate, int)) *MonitorSampleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MonitorSampleCreateBulk{err: fmt.Errorf("calling to MonitorSampleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MonitorSampleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MonitorSampleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MonitorSample.
+func (c *MonitorSampleClient) Update() *MonitorSampleUpdate {
+	mutation := newMonitorSampleMutation(c.config, OpUpdate)
+	return &MonitorSampleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MonitorSampleClient) UpdateOne(_m *MonitorSample) *MonitorSampleUpdateOne {
+	mutation := newMonitorSampleMutation(c.config, OpUpdateOne, withMonitorSample(_m))
+	return &MonitorSampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MonitorSampleClient) UpdateOneID(id int) *MonitorSampleUpdateOne {
+	mutation := newMonitorSampleMutation(c.config, OpUpdateOne, withMonitorSampleID(id))
+	return &MonitorSampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MonitorSample.
+func (c *MonitorSampleClient) Delete() *MonitorSampleDelete {
+	mutation := newMonitorSampleMutation(c.config, OpDelete)
+	return &MonitorSampleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MonitorSampleClient) DeleteOne(_m *MonitorSample) *MonitorSampleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MonitorSampleClient) DeleteOneID(id int) *MonitorSampleDeleteOne {
+	builder := c.Delete().Where(monitorsample.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MonitorSampleDeleteOne{builder}
+}
+
+// Query returns a query builder for MonitorSample.
+func (c *MonitorSampleClient) Query() *MonitorSampleQuery {
+	return &MonitorSampleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMonitorSample},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MonitorSample entity by its id.
+func (c *MonitorSampleClient) Get(ctx context.Context, id int) (*MonitorSample, error) {
+	return c.Query().Where(monitorsample.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MonitorSampleClient) GetX(ctx context.Context, id int) *MonitorSample {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *MonitorSampleClient) Hooks() []Hook {
+	return c.hooks.MonitorSample
+}
+
+// Interceptors returns the client interceptors.
+func (c *MonitorSampleClient) Interceptors() []Interceptor {
+	return c.inters.MonitorSample
+}
+
+func (c *MonitorSampleClient) mutate(ctx context.Context, m *MonitorSampleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MonitorSampleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MonitorSampleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MonitorSampleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MonitorSampleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown MonitorSample mutation op: %q", m.Op())
+	}
+}
+
 // NodeClient is a client for the Node schema.
 type NodeClient struct {
 	config
@@ -4531,16 +4672,16 @@ type (
 	hooks struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
 		FileUploadChunk, FrpTunnel, FrpTunnelStat, IQCheckPrompt, IQCheckResult,
-		IQCheckSite, Instance, InstanceType, Menu, Node, OIDCClient, OperationLog,
-		PortForward, PortForwardStat, Role, SQLMigration, SSHHost, Session,
-		SystemConfig, Task, User, UserAPIKey, UserMessage []ent.Hook
+		IQCheckSite, Instance, InstanceType, Menu, MonitorSample, Node, OIDCClient,
+		OperationLog, PortForward, PortForwardStat, Role, SQLMigration, SSHHost,
+		Session, SystemConfig, Task, User, UserAPIKey, UserMessage []ent.Hook
 	}
 	inters struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
 		FileUploadChunk, FrpTunnel, FrpTunnelStat, IQCheckPrompt, IQCheckResult,
-		IQCheckSite, Instance, InstanceType, Menu, Node, OIDCClient, OperationLog,
-		PortForward, PortForwardStat, Role, SQLMigration, SSHHost, Session,
-		SystemConfig, Task, User, UserAPIKey, UserMessage []ent.Interceptor
+		IQCheckSite, Instance, InstanceType, Menu, MonitorSample, Node, OIDCClient,
+		OperationLog, PortForward, PortForwardStat, Role, SQLMigration, SSHHost,
+		Session, SystemConfig, Task, User, UserAPIKey, UserMessage []ent.Interceptor
 	}
 )
 

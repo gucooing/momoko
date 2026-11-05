@@ -191,6 +191,11 @@ func (m *ServerManager) Remove(id string) {
 	}
 }
 
+// List 返回当前已注册实例的快照。
+func (m *ServerManager) List() []*Server {
+	return m.snapshotServers()
+}
+
 // snapshotServers 返回当前已注册实例的快照，避免长时间持有读锁。
 func (m *ServerManager) snapshotServers() []*Server {
 	m.mu.RLock()

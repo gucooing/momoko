@@ -125,6 +125,10 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationOIDCServiceRefreshOIDCClientSecret: constant.OIDCEdit,
 	v1.OperationOIDCServiceRotateOIDCSigningKey:    constant.OIDCEdit,
 
+	// —— 性能监控（修改设置 / 清空历史；查看与导出回退到 MonitorManager 默认的 monitor:view）——
+	v1.OperationMonitorManagerUpdateMonitorSettings: constant.MonitorEdit,
+	v1.OperationMonitorManagerClearMonitorHistory:   constant.MonitorEdit,
+
 	// —— 远程节点 ——
 	v1.OperationNodeServiceListNodes:      constant.NodeView,
 	v1.OperationNodeServiceGetNodeContext: constant.NodeView,
@@ -147,6 +151,7 @@ var servicePrefixPermissions = []struct {
 	{"/v1.NetworkManager/", constant.Network},
 	{"/v1.TunnelManager/", constant.Tunnel},
 	{"/v1.IQCheckManager/", constant.IQCheckView},
+	{"/v1.MonitorManager/", constant.MonitorView},
 }
 
 // requiredPermission 返回某操作所需的权限；ok=false 表示该操作无需特定权限（仅需登录的自助类操作）。

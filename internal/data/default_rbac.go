@@ -66,6 +66,9 @@ var (
 	builtinDefaultMenus = []defaultMenu{
 		newDefaultMenu("menu_1", entmenu.TypeDirectory, "", "主页", "HOutline:HomeIcon", nil, 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_1_1", entmenu.TypeMenu, "/dashboard/home", "工作台", "HOutline:ComputerDesktopIcon", new("menu_1"), 0, "", entmenu.StatusActive),
+		// 性能监控：持久化的历史曲线、磁盘趋势与应用占用排行；按钮项控制「监控设置」与「清空历史」
+		newDefaultMenu("menu_1_2", entmenu.TypeMenu, "/monitor", "性能监控", "HOutline:PresentationChartLineIcon", new("menu_1"), 1, constant.MonitorView, entmenu.StatusActive),
+		newDefaultMenu("menu_1_2_button_0", entmenu.TypeButton, "", "修改监控设置", "", new("menu_1_2"), 0, constant.MonitorEdit, entmenu.StatusActive),
 
 		newDefaultMenu("menu_2", entmenu.TypeDirectory, "", "应用", "HOutline:ServerStackIcon", nil, 1, "", entmenu.StatusActive),
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:Squares2X2Icon", new("menu_2"), 0, constant.Instance, entmenu.StatusActive),

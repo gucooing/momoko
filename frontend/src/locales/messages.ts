@@ -6679,6 +6679,8 @@ export const messages = {
 export const knownTextMessages: Record<AppLocale, Record<string, string>> = {
   'zh-CN': {},
   'zh-HK': {
+    性能监控: '效能監控',
+    修改监控设置: '修改監控設定',
     智商检测: '智商檢測',
     提示词配置: '提示詞配置',
     检测配置: '檢測配置',
@@ -6766,6 +6768,8 @@ export const knownTextMessages: Record<AppLocale, Record<string, string>> = {
     删除菜单: '刪除選單',
   },
   'en-US': {
+    性能监控: 'Monitoring',
+    修改监控设置: 'Edit monitoring settings',
     智商检测: 'IQ check',
     提示词配置: 'Prompts',
     检测配置: 'Check Config',

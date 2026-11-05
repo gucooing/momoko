@@ -1,0 +1,218 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+
+// 持久性能监控：常驻采集协程按间隔采样写库，分级降采样（原始 → 1 分钟 → 10 分钟 → 1 小时），
+// 查询时按时间范围自动选精度。设置与数据都属于当前节点（远程节点经主控转发）。
+service MonitorManager {
+  // 查询时间范围内的监控曲线、汇总、磁盘容量趋势与应用占用排行
+  rpc GetMonitorData(GetMonitorDataRequest) returns (GetMonitorDataResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/monitor/data"
+    };
+  }
+  // 获取监控设置与历史数据占用
+  rpc GetMonitorSettings(GetMonitorSettingsRequest) returns (GetMonitorSettingsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/monitor/settings"
+    };
+  }
+  // 修改监控设置（是否记录、采样间隔、保留时长、采集项目）；保存后立即按新的保留时长清理一次
+  rpc UpdateMonitorSettings(UpdateMonitorSettingsRequest) returns (UpdateMonitorSettingsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/monitor/settings"
+      body: "*"
+    };
+  }
+  // 导出所选时段的监控数据（CSV 文本，按该时段可用的最细精度）
+  rpc ExportMonitorData(ExportMonitorDataRequest) returns (ExportMonitorDataResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/monitor/export"
+    };
+  }
+  // 清空全部历史监控数据
+  rpc ClearMonitorHistory(ClearMonitorHistoryRequest) returns (ClearMonitorHistoryResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/monitor/history"
+    };
+  }
+}
+
+// 监控设置
+message MonitorSettings {
+  // 是否把采样写入历史（关闭后只保留最近 1 小时的内存数据，已有历史保留到期满）
+  bool record_enabled = 1;
+  // 采样间隔秒数：5 / 10 / 30 / 60
+  int32 interval_seconds = 2;
+  // 历史保留天数：1–3650
+  int32 retention_days = 3;
+  // 采集 GPU
+  bool collect_gpu = 4;
+  // 采集磁盘容量与读写
+  bool collect_disk = 5;
+  // 采集网络
+  bool collect_network = 6;
+  // 按应用统计 CPU 与内存
+  bool collect_apps = 7;
+}
+
+// 查询监控数据请求（unix 秒；都为 0 时取最近 24 小时，end 为 0 表示到现在）
+message GetMonitorDataRequest {
+  int64 start = 1;
+  int64 end = 2;
+}
+
+// 一条曲线：只列出有数据的桶（idx 为桶序号，其余桶为「无数据」）
+message MonitorSeries {
+  // 指标键：cpu / iow / mem / cache / swap / gpu:0 / vram:0 / rx / tx / rx:eth0 / rd / wr / rd:sda ...
+  string key = 1;
+  repeated int32 idx = 2;
+  // 桶内平均值（只有画曲线的指标才带逐桶数据，其余指标只有下面的汇总）
+  repeated double avg = 3;
+  // 整个时段的平均值（按样本数加权）
+  double mean = 5;
+  // 整个时段的峰值与其所在桶的开始时间（unix 秒）
+  double peak = 6;
+  int64 peak_time = 7;
+  // 整个时段的累计量：速率类指标为 速率 × 时长（字节），其余为 0
+  double total = 8;
+}
+
+// 一段没有数据的区间（服务停止或暂停记录），unix 秒，左闭右开
+message MonitorGap {
+  int64 start = 1;
+  int64 end = 2;
+}
+
+// 显卡静态信息
+message MonitorGPU {
+  // 序号（与曲线键 gpu:<index> 对应）
+  int32 index = 1;
+  string name = 2;
+  // 厂商：nvidia / amd / intel / other
+  string vendor = 3;
+  string driver = 4;
+  // 显存总量（字节，未知为 0）
+  uint64 memory_total = 5;
+}
+
+// 主机静态信息
+message MonitorHost {
+  string hostname = 1;
+  string os = 2;
+  string cpu_model = 3;
+  int32 cpu_cores = 4;
+  int32 cpu_threads = 5;
+  uint64 memory_total = 6;
+  uint64 swap_total = 7;
+  repeated MonitorGPU gpus = 8;
+  // 显卡探测说明（未检测到时的原因，如「未找到 nvidia-smi」）
+  string gpu_note = 9;
+  // 是否支持 I/O 等待、缓存等仅 Linux 才有的指标
+  bool linux = 10;
+}
+
+// 磁盘容量与写满预测
+message MonitorDiskUsage {
+  string mountpoint = 1;
+  string device = 2;
+  string fstype = 3;
+  uint64 used = 4;
+  uint64 total = 5;
+  // 估算所用历史跨度（秒）与该跨度内的已用增长（字节，可为负）
+  int64 growth_span = 6;
+  double growth = 7;
+  // 按当前增长速度写满还需的秒数；-1 表示增长平缓或在减少
+  int64 full_in = 8;
+}
+
+// 应用占用（所选时段内的平均值）
+message MonitorAppUsage {
+  string id = 1;
+  string name = 2;
+  // 占整机 CPU 的百分比（已按逻辑核心数折算）
+  double cpu = 3;
+  // 常驻内存字节
+  double memory = 4;
+  // 当前是否在运行
+  bool running = 5;
+}
+
+// 查询监控数据响应
+message GetMonitorDataResponse {
+  // 对齐后的时段（unix 秒）与桶宽；第 i 个桶覆盖 [start + i*step, start + (i+1)*step)
+  int64 start = 1;
+  int64 end = 2;
+  int32 step = 3;
+  int32 buckets = 4;
+  // 数据来源精度：raw / 1m / 10m / 1h
+  string resolution = 5;
+  repeated MonitorSeries series = 6;
+  repeated MonitorGap gaps = 7;
+  MonitorHost host = 8;
+  // 最新一次采样的即时值（键同曲线，另有 load1/load5/load15、procs、ctx、ctemp、memu、mema、swapu、
+  // vramu:0、gtemp:0、gpow:0、gpowl:0、gfan:0、tcp、iops、lat 等）
+  map<string, double> current = 9;
+  // 最新一次采样时间（unix 秒，0 表示还没有采样）
+  int64 current_time = 10;
+  repeated MonitorDiskUsage disks = 11;
+  repeated MonitorAppUsage apps = 12;
+  MonitorSettings settings = 13;
+  // 最早一条历史数据的时间（unix 秒，0 表示没有历史）
+  int64 first_time = 14;
+}
+
+// 获取监控设置请求
+message GetMonitorSettingsRequest {}
+
+// 获取监控设置响应
+message GetMonitorSettingsResponse {
+  MonitorSettings settings = 1;
+  // 历史数据当前占用（字节，估算）与行数
+  int64 storage_bytes = 2;
+  int64 rows = 3;
+  // 每行平均占用（字节），前端据此估算不同设置下的稳定占用
+  int64 row_bytes = 4;
+  // 最早一条历史数据的时间（unix 秒）
+  int64 first_time = 5;
+  repeated MonitorGPU gpus = 6;
+  string gpu_note = 7;
+}
+
+// 修改监控设置请求
+message UpdateMonitorSettingsRequest {
+  MonitorSettings settings = 1;
+}
+
+// 修改监控设置响应
+message UpdateMonitorSettingsResponse {
+  MonitorSettings settings = 1;
+  // 本次按新的保留时长立即清理掉的行数
+  int64 deleted = 2;
+}
+
+// 导出监控数据请求（unix 秒）
+message ExportMonitorDataRequest {
+  int64 start = 1;
+  int64 end = 2;
+}
+
+// 导出监控数据响应
+message ExportMonitorDataResponse {
+  string filename = 1;
+  // CSV 文本（UTF-8，带 BOM 方便 Excel 识别）
+  string content = 2;
+  int32 rows = 3;
+}
+
+// 清空历史请求
+message ClearMonitorHistoryRequest {}
+
+// 清空历史响应
+message ClearMonitorHistoryResponse {
+  int64 deleted = 1;
+}

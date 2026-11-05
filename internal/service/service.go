@@ -20,4 +20,5 @@ var ProviderSet = wire.NewSet(
 	NewDockerService,
 	NewIQCheckService,
 	NewOIDCService,
+	NewMonitorService,
 )

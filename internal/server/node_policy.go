@@ -22,6 +22,8 @@ var nodeServicePrefixes = []struct {
 	{"/v1.TunnelManager/", constant.Tunnel},
 	{"/v1.TaskManager/", constant.TaskManage},
 	{"/v1.OpenSSHManager/", constant.SSHManage},
+	// 性能监控：查看与「机器状态」同属 system:status，修改设置 / 清空历史需 monitor:edit
+	{"/v1.MonitorManager/", constant.SystemStatus},
 }
 
 // nodeOperationPermissions 是上述服务之外单独开放给远程节点的操作。

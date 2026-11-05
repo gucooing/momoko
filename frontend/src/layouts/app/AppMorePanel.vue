@@ -200,6 +200,11 @@ const searchRef = ref<HTMLInputElement>()
 const TONES = ['solid-p', 'solid-a2', 'solid-a', 'p', 'a2', 'ok', 'a', 'solid-ink']
 const ROTS = ['-4deg', '3deg', '-2deg', '4deg', '-3deg', '2deg']
 
+// 内置目录 id（internal/data/default_rbac.go）
+const HOME_DIR_ID = 'menu_1'
+const APPS_DIR_ID = 'menu_2'
+const FILE_DIR_ID = 'menu_3'
+
 // 同一页面里的标签直接展开成入口（智商检测只是一个工具，不展开）
 const EXPAND_GROUPS: PageGroupKey[] = ['file', 'docker', 'node', 'access', 'logs', 'settings']
 const TAB_ICONS: Record<string, string> = {
@@ -282,6 +287,22 @@ const groups = computed<Group[]>(() => {
   }
   if (loose.length) out.push({ key: 'loose', title: '', items: loose })
 
+  // 「主页」目录里除工作台（在底部导航）外的入口（性能监控）并进「应用」组，组名改为「应用与监控」（MoreMobile）
+  const home = out.find((g) => g.key === HOME_DIR_ID)
+  const appsGroup = out.find((g) => g.key === APPS_DIR_ID)
+  if (home && appsGroup) {
+    appsGroup.items.push(...home.items)
+    appsGroup.title = t('shell.more.appsAndMonitor')
+    out.splice(out.indexOf(home), 1)
+    // 与原型一致：「文件」在左、「应用与监控」在右
+    const fileIdx = out.findIndex((g) => g.key === FILE_DIR_ID)
+    const appsIdx = out.indexOf(appsGroup)
+    if (fileIdx > appsIdx) {
+      out.splice(appsIdx, 1)
+      out.splice(fileIdx, 0, appsGroup)
+    }
+  }
+
   let n = 0
   return out.map((g) => {
     const items = g.items.map((it) => {
@@ -291,8 +312,8 @@ const groups = computed<Group[]>(() => {
     })
     const len = items.length
     const cols = len <= 4 ? len : len % 4 === 0 ? 4 : 3
-    // 入口很少的分组两两并排（如「文件」和「应用」），其余独占一行
-    const flex = len <= 2 ? `${len} 1 ${len * 100}px` : '1 1 100%'
+    // 入口很少的分组两两并排（如「文件」和「应用与监控」），其余独占一行
+    const flex = len === 1 ? '1 1 100px' : len === 2 ? '1 1 150px' : '1 1 100%'
     return { ...g, items, cols, flex }
   })
 })

@@ -116,10 +116,14 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	oidcService := service.NewOIDCService(oidcUsecase)
 	taskUsecase := biz.NewTaskUsecase(manager, userRepo)
 	taskService := service.NewTaskService(taskUsecase)
-	httpServer := server.NewHTTPServer(confServer, avatarManager, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService)
+	monitorRepo := data.NewMonitorRepo(dataData)
+	monitorUsecase, cleanup7 := biz.NewMonitorUsecase(monitorRepo, configRepo, instanceUsecase, manager)
+	monitorService := service.NewMonitorService(monitorUsecase)
+	httpServer := server.NewHTTPServer(confServer, avatarManager, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService, monitorService)
 	nodeAgentService := service.NewNodeAgentService(nodeAgentUsecase)
-	grpcServer, err := server.NewGRPCServer(confServer, authorization, operationLogMiddleware, httpServer, nodeAgentUsecase, nodeAgentService, systemService, fileService, instanceService, dockerService, networkService, tunnelService, taskService, openSSHService)
+	grpcServer, err := server.NewGRPCServer(confServer, authorization, operationLogMiddleware, httpServer, nodeAgentUsecase, nodeAgentService, systemService, fileService, instanceService, dockerService, networkService, tunnelService, taskService, openSSHService, monitorService)
 	if err != nil {
+		cleanup7()
 		cleanup6()
 		cleanup5()
 		cleanup4()
@@ -130,6 +134,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	}
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
+		cleanup7()
 		cleanup6()
 		cleanup5()
 		cleanup4()

@@ -2827,6 +2827,94 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.TriggerIQCheckResponse'
+    /api/v1/monitor/data:
+        get:
+            tags:
+                - MonitorManager
+            description: 查询时间范围内的监控曲线、汇总、磁盘容量趋势与应用占用排行
+            operationId: MonitorManager_GetMonitorData
+            parameters:
+                - name: start
+                  in: query
+                  schema:
+                    type: string
+                - name: end
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetMonitorDataResponse'
+    /api/v1/monitor/export:
+        get:
+            tags:
+                - MonitorManager
+            description: 导出所选时段的监控数据（CSV 文本，按该时段可用的最细精度）
+            operationId: MonitorManager_ExportMonitorData
+            parameters:
+                - name: start
+                  in: query
+                  schema:
+                    type: string
+                - name: end
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ExportMonitorDataResponse'
+    /api/v1/monitor/history:
+        delete:
+            tags:
+                - MonitorManager
+            description: 清空全部历史监控数据
+            operationId: MonitorManager_ClearMonitorHistory
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ClearMonitorHistoryResponse'
+    /api/v1/monitor/settings:
+        get:
+            tags:
+                - MonitorManager
+            description: 获取监控设置与历史数据占用
+            operationId: MonitorManager_GetMonitorSettings
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetMonitorSettingsResponse'
+        put:
+            tags:
+                - MonitorManager
+            description: 修改监控设置（是否记录、采样间隔、保留时长、采集项目）；保存后立即按新的保留时长清理一次
+            operationId: MonitorManager_UpdateMonitorSettings
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateMonitorSettingsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateMonitorSettingsResponse'
     /api/v1/network/port-forwards:
         get:
             tags:
@@ -5532,6 +5620,12 @@ components:
                     description: 检查所用的更新通道
                     format: enum
             description: 检查更新响应
+        v1.ClearMonitorHistoryResponse:
+            type: object
+            properties:
+                deleted:
+                    type: string
+            description: 清空历史响应
         v1.ClearTasksRequest:
             type: object
             properties:
@@ -8114,6 +8208,18 @@ components:
                     type: string
                     description: 耗时毫秒
             description: 邮件测试发送结果
+        v1.ExportMonitorDataResponse:
+            type: object
+            properties:
+                filename:
+                    type: string
+                content:
+                    type: string
+                    description: CSV 文本（UTF-8，带 BOM 方便 Excel 识别）
+                rows:
+                    type: integer
+                    format: int32
+            description: 导出监控数据响应
         v1.FetchIQCheckModelsRequest:
             type: object
             properties:
@@ -8766,6 +8872,81 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceStatusCount'
                     description: 各状态数量(按关键字/类型筛选，不按状态筛选)
             description: 获取实例列表响应
+        v1.GetMonitorDataResponse:
+            type: object
+            properties:
+                start:
+                    type: string
+                    description: 对齐后的时段（unix 秒）与桶宽；第 i 个桶覆盖 [start + i*step, start + (i+1)*step)
+                end:
+                    type: string
+                step:
+                    type: integer
+                    format: int32
+                buckets:
+                    type: integer
+                    format: int32
+                resolution:
+                    type: string
+                    description: 数据来源精度：raw / 1m / 10m / 1h
+                series:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MonitorSeries'
+                gaps:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MonitorGap'
+                host:
+                    $ref: '#/components/schemas/v1.MonitorHost'
+                current:
+                    type: object
+                    additionalProperties:
+                        type: number
+                        format: double
+                    description: |-
+                        最新一次采样的即时值（键同曲线，另有 load1/load5/load15、procs、ctx、ctemp、memu、mema、swapu、
+                         vramu:0、gtemp:0、gpow:0、gpowl:0、gfan:0、tcp、iops、lat 等）
+                currentTime:
+                    type: string
+                    description: 最新一次采样时间（unix 秒，0 表示还没有采样）
+                disks:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MonitorDiskUsage'
+                apps:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MonitorAppUsage'
+                settings:
+                    $ref: '#/components/schemas/v1.MonitorSettings'
+                firstTime:
+                    type: string
+                    description: 最早一条历史数据的时间（unix 秒，0 表示没有历史）
+            description: 查询监控数据响应
+        v1.GetMonitorSettingsResponse:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/v1.MonitorSettings'
+                storageBytes:
+                    type: string
+                    description: 历史数据当前占用（字节，估算）与行数
+                rows:
+                    type: string
+                rowBytes:
+                    type: string
+                    description: 每行平均占用（字节），前端据此估算不同设置下的稳定占用
+                firstTime:
+                    type: string
+                    description: 最早一条历史数据的时间（unix 秒）
+                gpus:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MonitorGPU'
+                gpuNote:
+                    type: string
+            description: 获取监控设置响应
         v1.GetNodeContextResponse:
             type: object
             properties:
@@ -10193,6 +10374,163 @@ components:
                     type: boolean
                     description: 在侧边栏隐藏：只影响导航显示，页面与权限仍然有效
             description: 权限菜单信息
+        v1.MonitorAppUsage:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                cpu:
+                    type: number
+                    description: 占整机 CPU 的百分比（已按逻辑核心数折算）
+                    format: double
+                memory:
+                    type: number
+                    description: 常驻内存字节
+                    format: double
+                running:
+                    type: boolean
+                    description: 当前是否在运行
+            description: 应用占用（所选时段内的平均值）
+        v1.MonitorDiskUsage:
+            type: object
+            properties:
+                mountpoint:
+                    type: string
+                device:
+                    type: string
+                fstype:
+                    type: string
+                used:
+                    type: string
+                total:
+                    type: string
+                growthSpan:
+                    type: string
+                    description: 估算所用历史跨度（秒）与该跨度内的已用增长（字节，可为负）
+                growth:
+                    type: number
+                    format: double
+                fullIn:
+                    type: string
+                    description: 按当前增长速度写满还需的秒数；-1 表示增长平缓或在减少
+            description: 磁盘容量与写满预测
+        v1.MonitorGPU:
+            type: object
+            properties:
+                index:
+                    type: integer
+                    description: 序号（与曲线键 gpu:<index> 对应）
+                    format: int32
+                name:
+                    type: string
+                vendor:
+                    type: string
+                    description: 厂商：nvidia / amd / intel / other
+                driver:
+                    type: string
+                memoryTotal:
+                    type: string
+                    description: 显存总量（字节，未知为 0）
+            description: 显卡静态信息
+        v1.MonitorGap:
+            type: object
+            properties:
+                start:
+                    type: string
+                end:
+                    type: string
+            description: 一段没有数据的区间（服务停止或暂停记录），unix 秒，左闭右开
+        v1.MonitorHost:
+            type: object
+            properties:
+                hostname:
+                    type: string
+                os:
+                    type: string
+                cpuModel:
+                    type: string
+                cpuCores:
+                    type: integer
+                    format: int32
+                cpuThreads:
+                    type: integer
+                    format: int32
+                memoryTotal:
+                    type: string
+                swapTotal:
+                    type: string
+                gpus:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.MonitorGPU'
+                gpuNote:
+                    type: string
+                    description: 显卡探测说明（未检测到时的原因，如「未找到 nvidia-smi」）
+                linux:
+                    type: boolean
+                    description: 是否支持 I/O 等待、缓存等仅 Linux 才有的指标
+            description: 主机静态信息
+        v1.MonitorSeries:
+            type: object
+            properties:
+                key:
+                    type: string
+                    description: 指标键：cpu / iow / mem / cache / swap / gpu:0 / vram:0 / rx / tx / rx:eth0 / rd / wr / rd:sda ...
+                idx:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                avg:
+                    type: array
+                    items:
+                        type: number
+                        format: double
+                    description: 桶内平均值（只有画曲线的指标才带逐桶数据，其余指标只有下面的汇总）
+                mean:
+                    type: number
+                    description: 整个时段的平均值（按样本数加权）
+                    format: double
+                peak:
+                    type: number
+                    description: 整个时段的峰值与其所在桶的开始时间（unix 秒）
+                    format: double
+                peakTime:
+                    type: string
+                total:
+                    type: number
+                    description: 整个时段的累计量：速率类指标为 速率 × 时长（字节），其余为 0
+                    format: double
+            description: 一条曲线：只列出有数据的桶（idx 为桶序号，其余桶为「无数据」）
+        v1.MonitorSettings:
+            type: object
+            properties:
+                recordEnabled:
+                    type: boolean
+                    description: 是否把采样写入历史（关闭后只保留最近 1 小时的内存数据，已有历史保留到期满）
+                intervalSeconds:
+                    type: integer
+                    description: 采样间隔秒数：5 / 10 / 30 / 60
+                    format: int32
+                retentionDays:
+                    type: integer
+                    description: 历史保留天数：1–3650
+                    format: int32
+                collectGpu:
+                    type: boolean
+                    description: 采集 GPU
+                collectDisk:
+                    type: boolean
+                    description: 采集磁盘容量与读写
+                collectNetwork:
+                    type: boolean
+                    description: 采集网络
+                collectApps:
+                    type: boolean
+                    description: 按应用统计 CPU 与内存
+            description: 监控设置
         v1.MyLoginLogsResponse:
             type: object
             properties:
@@ -13247,6 +13585,21 @@ components:
                         - $ref: '#/components/schemas/v1.UserInfo'
                     description: 用户信息
             description: 更新个人资料响应
+        v1.UpdateMonitorSettingsRequest:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/v1.MonitorSettings'
+            description: 修改监控设置请求
+        v1.UpdateMonitorSettingsResponse:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/v1.MonitorSettings'
+                deleted:
+                    type: string
+                    description: 本次按新的保留时长立即清理掉的行数
+            description: 修改监控设置响应
         v1.UpdateMyAppearanceRequest:
             type: object
             properties:
@@ -13842,6 +14195,10 @@ tags:
       description: 系统初始化
     - name: InstanceManager
       description: 应用管理
+    - name: MonitorManager
+      description: |-
+        持久性能监控：常驻采集协程按间隔采样写库，分级降采样（原始 → 1 分钟 → 10 分钟 → 1 小时），
+         查询时按时间范围自动选精度。设置与数据都属于当前节点（远程节点经主控转发）。
     - name: NetworkManager
       description: 网络管理
     - name: NodeService

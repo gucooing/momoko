@@ -1,12 +1,14 @@
 <!-- 工具页（端口转发 / 内网穿透）统计面板外壳：PC 从右侧滑出的抽屉（左侧大圆角、整列内部滚动），
      手机为底部面板（顶部拖动条、最高 92vh）。头部 / 关闭按钮 / 内容由使用方放进默认插槽（插槽参数 close）。
-     遮罩点击与 Esc 关闭；打开时锁定页面滚动。层级低于确认框（2200），确认断开连接等操作可叠在上面。 -->
+     遮罩点击与 Esc 关闭；打开时锁定页面滚动。层级低于确认框（2200），确认断开连接等操作可叠在上面。
+     flush：面板不留内边距、自身不滚动，由使用方自己排固定的头 / 可滚动的体 / 固定的脚（如性能监控的「监控设置」）。 -->
 <template>
   <Teleport to="body">
     <Transition name="tool-sheet">
       <div v-if="modelValue" class="tool-sheet" @mousedown.self="close">
         <section
           class="tool-sheet__panel"
+          :class="{ 'tool-sheet__panel--flush': flush }"
           role="dialog"
           aria-modal="true"
           :aria-label="label"
@@ -21,9 +23,10 @@
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(defineProps<{ modelValue: boolean; label?: string; width?: number }>(), {
+const props = withDefaults(defineProps<{ modelValue: boolean; label?: string; width?: number; flush?: boolean }>(), {
   label: '',
   width: 500,
+  flush: false,
 })
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; close: [] }>()
 
@@ -79,6 +82,11 @@ onBeforeUnmount(() => {
 .tool-sheet__grip {
   display: none;
 }
+.tool-sheet__panel--flush {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
 
 @media (width <= 768px) {
   .tool-sheet {
@@ -94,6 +102,13 @@ onBeforeUnmount(() => {
     border-left: 0;
     border-top: 1px solid var(--el-border-color-light);
     border-radius: 30px 30px 0 0;
+  }
+  .tool-sheet__panel--flush {
+    gap: 0;
+    padding: 0;
+  }
+  .tool-sheet__panel--flush .tool-sheet__grip {
+    margin: 10px 0 2px;
   }
   .tool-sheet__grip {
     display: block;
