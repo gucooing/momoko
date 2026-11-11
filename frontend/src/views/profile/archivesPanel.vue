@@ -10,6 +10,7 @@
           <AppAvatar :src="userStore.resolvedUserAvatar" :name="displayName" :size="avatarSize" />
         </span>
         <button
+          v-if="userStore.avatarUploadEnabled"
           type="button"
           class="pf-hero__cam"
           :class="{ 'is-round': compact }"
@@ -45,14 +46,13 @@
       </div>
     </div>
 
-    <SelectAvatarDialog ref="selectAvatarDialogRef" @get-avatar="onPickAvatar" />
+    <SelectAvatarDialog ref="selectAvatarDialogRef" @pick="onPickAvatar" />
   </section>
 </template>
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { UserStatus } from '@/types/v1/user'
-import { useUserProfileStore } from '@/stores/user/profile'
 import SelectAvatarDialog from '@/components/dialog/SelectAvatarDialog.vue'
 import { getRequestErrorMessage } from '@/utils/request'
 import { useFeedback } from '@/utils/feedback'
@@ -61,7 +61,6 @@ import { useProfileFormat } from './components/useProfileFormat'
 
 const userStore = useUserStore()
 const menuStore = useMenuStore()
-const userProfileStore = useUserProfileStore()
 const { t } = useI18n()
 const fb = useFeedback()
 const { relTime } = useProfileFormat()
@@ -97,15 +96,13 @@ const tagNames = computed(() => {
     .filter(Boolean)
 })
 
-/** 选中头像后直接保存（其余资料字段沿用当前值） */
-const onPickAvatar = async (avatar: string) => {
-  userProfileStore.syncProfileForm(userStore.userInfo)
-  userProfileStore.setProfileAvatar(avatar)
+/** 选中图片后直接直传到对象存储并设为头像 */
+const onPickAvatar = async (file: File) => {
   savingAvatar.value = true
   try {
-    await userStore.updateUserProfile(userProfileStore.profileForm)
+    await userStore.uploadAvatar(file)
   } catch (error) {
-    fb.error(getRequestErrorMessage(error, t('user.profileUpdateFailed')))
+    fb.error(getRequestErrorMessage(error, t('avatar.uploadFailed')))
   } finally {
     savingAvatar.value = false
   }

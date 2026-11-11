@@ -1,5 +1,5 @@
 <!-- 系统设置（第二期）：标题(作用范围 · 上次修改) → 子导航(系统设置 / OIDC) → 左侧本页目录（手机为横向 chips）+
-     右侧分组卡片：常规 / 登录 / 邮件（含测试与模板列表）/ 版本更新 → 底部吸附保存条（按分组记录修改，一次保存）。
+     右侧分组卡片：常规 / 登录 / 邮件（含测试与模板列表）/ 储存（头像 S3）/ 版本更新 → 底部吸附保存条（按分组记录修改，一次保存）。
      模板编辑、模板测试发送、预览用 FormDialog。权限：PERM.SYSTEM_CONFIG_EDIT 控制编辑，system:update 控制检查更新。 -->
 <template>
   <div class="st-page">
@@ -388,6 +388,143 @@
           </div>
         </section>
 
+        <!-- 储存 -->
+        <section id="st-sec-storage" ref="secStorage" class="st-card" aria-labelledby="st-h-storage">
+          <header class="st-card__head">
+            <span class="st-card__sticker m-sticker m-sticker--p" style="--rot: 3deg"><UIcon name="i-lucide-hard-drive" /></span>
+            <div class="st-card__title">
+              <h2 id="st-h-storage">{{ t('system.settings.sec.storage') }}</h2>
+              <span>{{ t('system.settings.sec.storageDesc') }}</span>
+            </div>
+            <StatusPill
+              class="st-card__pill"
+              :variant="storageForm.enabled ? 'success' : 'neutral'"
+              :label="storageForm.enabled ? t('system.settings.storage.on') : t('system.settings.storage.off')"
+            />
+          </header>
+
+          <div class="st-sub">
+            <h3>{{ t('system.settings.storage.avatar') }}</h3>
+            <span>{{ t('system.settings.storage.avatarHint') }}</span>
+          </div>
+
+          <div class="st-row st-row--switch">
+            <div class="st-row__l">
+              <span class="st-row__t">{{ t('system.settings.storage.enable') }}</span>
+              <span class="st-row__d">{{ t('system.settings.storage.enableDesc') }}</span>
+            </div>
+            <AppSwitch v-model="storageForm.enabled" :disabled="!canEdit" :aria-label="t('system.settings.storage.enable')" />
+          </div>
+
+          <div class="st-row">
+            <div class="st-row__l">
+              <label class="st-row__t" for="st-s3-endpoint">{{ t('system.settings.storage.endpoint') }}</label>
+              <span class="st-row__d">{{ t('system.settings.storage.endpointDesc') }}</span>
+            </div>
+            <div class="st-row__c">
+              <input id="st-s3-endpoint" v-model.trim="storageForm.endpoint" class="app-input st-input m-mono" placeholder="s3.amazonaws.com" autocomplete="off" :disabled="!canEdit" />
+            </div>
+          </div>
+
+          <div class="st-row">
+            <div class="st-row__l">
+              <label class="st-row__t" for="st-s3-bucket">{{ t('system.settings.storage.bucket') }}</label>
+              <span class="st-row__d">{{ t('system.settings.storage.bucketDesc') }}</span>
+            </div>
+            <div class="st-row__c">
+              <input id="st-s3-bucket" v-model.trim="storageForm.bucket" class="app-input st-input m-mono" placeholder="momoko-avatars" autocomplete="off" :disabled="!canEdit" />
+            </div>
+          </div>
+
+          <div class="st-row">
+            <div class="st-row__l">
+              <label class="st-row__t" for="st-s3-region">{{ t('system.settings.storage.region') }}</label>
+              <span class="st-row__d">{{ t('system.settings.storage.regionDesc') }}</span>
+            </div>
+            <div class="st-row__c">
+              <input id="st-s3-region" v-model.trim="storageForm.region" class="app-input st-input m-mono" placeholder="us-east-1" autocomplete="off" :disabled="!canEdit" />
+            </div>
+          </div>
+
+          <div class="st-row">
+            <div class="st-row__l">
+              <label class="st-row__t" for="st-s3-ak">{{ t('system.settings.storage.accessKey') }}</label>
+              <span class="st-row__d">{{ t('system.settings.storage.accessKeyDesc') }}</span>
+            </div>
+            <div class="st-row__c">
+              <input id="st-s3-ak" v-model.trim="storageForm.accessKey" class="app-input st-input m-mono" autocomplete="off" :disabled="!canEdit" />
+            </div>
+          </div>
+
+          <div class="st-row">
+            <div class="st-row__l">
+              <label class="st-row__t" for="st-s3-sk">{{ t('system.settings.storage.secretKey') }}</label>
+              <span class="st-row__d">{{ t('system.settings.storage.secretKeyDesc') }}</span>
+            </div>
+            <div class="st-row__c">
+              <span class="st-pwd">
+                <input
+                  id="st-s3-sk"
+                  v-model="storageForm.secretKey"
+                  :type="showSecret ? 'text' : 'password'"
+                  class="m-mono"
+                  autocomplete="new-password"
+                  :placeholder="storageForm.secretKeySet ? t('system.settings.storage.secretKeep') : t('system.settings.storage.secretKeyPlaceholder')"
+                  :disabled="!canEdit"
+                />
+                <AppIconButton :label="showSecret ? t('system.settings.hidePwd') : t('system.settings.showPwd')" :box="40" @click="showSecret = !showSecret">
+                  <UIcon :name="showSecret ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="st-pwd__ico" />
+                </AppIconButton>
+              </span>
+            </div>
+          </div>
+
+          <div class="st-row st-row--switch">
+            <div class="st-row__l">
+              <span class="st-row__t">{{ t('system.settings.storage.useSsl') }}</span>
+              <span class="st-row__d">{{ t('system.settings.storage.useSslDesc') }}</span>
+            </div>
+            <AppSwitch v-model="storageForm.useSsl" :disabled="!canEdit" :aria-label="t('system.settings.storage.useSsl')" />
+          </div>
+
+          <div class="st-row st-row--switch">
+            <div class="st-row__l">
+              <span class="st-row__t">{{ t('system.settings.storage.pathStyle') }}</span>
+              <span class="st-row__d">{{ t('system.settings.storage.pathStyleDesc') }}</span>
+            </div>
+            <AppSwitch v-model="storageForm.pathStyle" :disabled="!canEdit" :aria-label="t('system.settings.storage.pathStyle')" />
+          </div>
+
+          <div class="st-row">
+            <div class="st-row__l">
+              <label class="st-row__t" for="st-s3-prefix">{{ t('system.settings.storage.prefix') }}</label>
+              <span class="st-row__d">{{ t('system.settings.storage.prefixDesc') }}</span>
+            </div>
+            <div class="st-row__c">
+              <input id="st-s3-prefix" v-model.trim="storageForm.prefix" class="app-input st-input m-mono" placeholder="avatars" autocomplete="off" :disabled="!canEdit" />
+            </div>
+          </div>
+
+          <div class="st-row">
+            <div class="st-row__l">
+              <label class="st-row__t" for="st-s3-public">{{ t('system.settings.storage.publicUrl') }}</label>
+              <span class="st-row__d">{{ t('system.settings.storage.publicUrlDesc') }}</span>
+            </div>
+            <div class="st-row__c st-row__c--col">
+              <input
+                id="st-s3-public"
+                v-model.trim="storageForm.publicUrl"
+                type="url"
+                class="app-input st-input m-mono"
+                placeholder="https://cdn.example.com"
+                autocomplete="off"
+                :disabled="!canEdit"
+              />
+              <span class="st-hint">{{ t('system.settings.storage.corsHint') }}</span>
+            </div>
+          </div>
+        </section>
+
         <!-- 版本更新 -->
         <section id="st-sec-update" ref="secUpdate" class="st-card" aria-labelledby="st-h-update">
           <header class="st-card__head">
@@ -563,14 +700,16 @@ import { getLoginConfig, updateLoginConfig } from '@/api/login'
 import {
   getEmailConfig,
   getSiteConfig,
+  getStorageConfig,
   listEmailTemplates,
   testEmailConfig,
   updateEmailConfig,
   updateEmailTemplate,
   updateSiteConfig,
+  updateStorageConfig,
 } from '@/api/system'
 import { EmailEncryption, EmailTemplateType, UpdateChannel } from '@/types/v1/system'
-import type { EmailConfig, EmailTemplate, EmailTestResult, SiteConfig } from '@/types/v1/system'
+import type { AvatarStorageConfig, EmailConfig, EmailTemplate, EmailTestResult, SiteConfig } from '@/types/v1/system'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { checkForUpdate } from '@/utils/updateCheck'
@@ -656,21 +795,38 @@ const emailForm = reactive<EmailForm>({
 const lastTest = ref<EmailTestResult | null>(null)
 const showPwd = ref(false)
 
+// 头像储存（S3 兼容）：Secret Key 不回显，留空表示保持不变
+const storageForm = reactive<AvatarStorageConfig>({
+  enabled: false,
+  endpoint: '',
+  region: '',
+  bucket: '',
+  accessKey: '',
+  secretKey: '',
+  secretKeySet: false,
+  useSsl: true,
+  pathStyle: false,
+  prefix: '',
+  publicUrl: '',
+})
+const showSecret = ref(false)
+
 /* ───────── 分组修改记录 ───────── */
-type SecKey = 'general' | 'login' | 'mail' | 'update'
+type SecKey = 'general' | 'login' | 'mail' | 'storage' | 'update'
 const pickGeneral = () => ({ siteName: siteForm.siteName, externalUrl: siteForm.externalUrl, defaultLanguage: siteForm.defaultLanguage })
 const pickUpdate = () => ({ autoCheckUpdate: siteForm.autoCheckUpdate, updateChannel: siteForm.updateChannel })
-const snapshot = reactive<Record<SecKey, string>>({ general: '', login: '', mail: '', update: '' })
-const loaded = reactive<Record<SecKey, boolean>>({ general: false, login: false, mail: false, update: false })
+const snapshot = reactive<Record<SecKey, string>>({ general: '', login: '', mail: '', storage: '', update: '' })
+const loaded = reactive<Record<SecKey, boolean>>({ general: false, login: false, mail: false, storage: false, update: false })
 const current = computed<Record<SecKey, string>>(() => ({
   general: JSON.stringify(pickGeneral()),
   login: JSON.stringify({ ...loginForm }),
   mail: JSON.stringify({ ...emailForm }),
+  storage: JSON.stringify({ ...storageForm }),
   update: JSON.stringify(pickUpdate()),
 }))
 const dirty = computed<Record<SecKey, boolean>>(() => {
   const out = {} as Record<SecKey, boolean>
-  for (const k of ['general', 'login', 'mail', 'update'] as SecKey[]) out[k] = loaded[k] && current.value[k] !== snapshot[k]
+  for (const k of ['general', 'login', 'mail', 'storage', 'update'] as SecKey[]) out[k] = loaded[k] && current.value[k] !== snapshot[k]
   return out
 })
 const dirtyCount = computed(() => Object.values(dirty.value).filter(Boolean).length)
@@ -695,14 +851,22 @@ const sections = computed(() => [
   { key: 'general' as SecKey, label: t('system.settings.sec.general'), short: '', icon: 'i-lucide-settings' },
   { key: 'login' as SecKey, label: t('system.settings.sec.login'), short: '', icon: 'i-lucide-log-in' },
   { key: 'mail' as SecKey, label: t('system.settings.sec.mail'), short: '', icon: 'i-lucide-mail' },
+  { key: 'storage' as SecKey, label: t('system.settings.sec.storage'), short: '', icon: 'i-lucide-hard-drive' },
   { key: 'update' as SecKey, label: t('system.settings.sec.update'), short: t('system.settings.sec.updateShort'), icon: 'i-lucide-download' },
 ])
 const activeSec = ref<SecKey>('general')
 const secGeneral = ref<HTMLElement>()
 const secLogin = ref<HTMLElement>()
 const secMail = ref<HTMLElement>()
+const secStorage = ref<HTMLElement>()
 const secUpdate = ref<HTMLElement>()
-const secEls = () => ({ general: secGeneral.value, login: secLogin.value, mail: secMail.value, update: secUpdate.value })
+const secEls = () => ({
+  general: secGeneral.value,
+  login: secLogin.value,
+  mail: secMail.value,
+  storage: secStorage.value,
+  update: secUpdate.value,
+})
 let lockSpyUntil = 0
 const scrollToSec = (k: SecKey) => {
   activeSec.value = k
@@ -721,7 +885,7 @@ const setupSpy = () => {
         else visibleSecs.delete(key)
       }
       if (Date.now() < lockSpyUntil || !visibleSecs.size) return
-      const order: SecKey[] = ['general', 'login', 'mail', 'update']
+      const order: SecKey[] = ['general', 'login', 'mail', 'storage', 'update']
       const first = order.find((k) => visibleSecs.has(k))
       if (first) activeSec.value = first
     },
@@ -874,6 +1038,20 @@ const loadEmailConfig = async () => {
   }
 }
 
+const applyStorage = (c?: AvatarStorageConfig) => {
+  if (!c) return
+  Object.assign(storageForm, { ...c, secretKey: '' })
+  markClean('storage')
+}
+const loadStorageConfig = async () => {
+  try {
+    const { data } = await getStorageConfig()
+    applyStorage(data?.config?.avatar)
+  } catch {
+    feedback.error(t('system.settings.storage.getFailed'))
+  }
+}
+
 /* ───────── 保存 / 放弃 ───────── */
 const saving = ref(false)
 const saveAll = async () => {
@@ -909,6 +1087,16 @@ const saveAll = async () => {
         showRequestError(e)
       }
     }
+    if (dirty.value.storage) {
+      try {
+        const { data } = await updateStorageConfig({ avatar: { ...storageForm } })
+        if (data?.config?.avatar) applyStorage(data.config.avatar)
+        else markClean('storage')
+      } catch (e) {
+        ok = false
+        showRequestError(e)
+      }
+    }
     await refreshSiteMeta()
     if (ok) {
       justSaved.value = true
@@ -923,6 +1111,7 @@ const discardChanges = () => {
   if (dirty.value.update) Object.assign(siteForm, JSON.parse(snapshot.update))
   if (dirty.value.login) Object.assign(loginForm, JSON.parse(snapshot.login))
   if (dirty.value.mail) Object.assign(emailForm, JSON.parse(snapshot.mail))
+  if (dirty.value.storage) Object.assign(storageForm, JSON.parse(snapshot.storage))
 }
 
 /* ───────── 测试邮件 ───────── */
@@ -1142,7 +1331,7 @@ const handleCheckUpdate = async () => {
 onMounted(async () => {
   testRecipient.value = userStore.userInfo?.email || ''
   setupSpy()
-  await Promise.all([loadSiteConfig(), loadLoginConfig(), loadEmailConfig(), loadTemplates()])
+  await Promise.all([loadSiteConfig(), loadLoginConfig(), loadEmailConfig(), loadStorageConfig(), loadTemplates()])
 })
 onBeforeUnmount(() => {
   observer?.disconnect()

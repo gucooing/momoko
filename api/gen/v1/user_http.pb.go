@@ -21,11 +21,13 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationUserServiceAddUser = "/v1.UserService/AddUser"
 const OperationUserServiceBatchUpdateUser = "/v1.UserService/BatchUpdateUser"
+const OperationUserServiceCompleteMyAvatarUpload = "/v1.UserService/CompleteMyAvatarUpload"
 const OperationUserServiceDeleteUser = "/v1.UserService/DeleteUser"
 const OperationUserServiceEditUser = "/v1.UserService/EditUser"
 const OperationUserServiceListUser = "/v1.UserService/ListUser"
 const OperationUserServiceMeInfo = "/v1.UserService/MeInfo"
 const OperationUserServiceMyLoginLogs = "/v1.UserService/MyLoginLogs"
+const OperationUserServicePresignMyAvatarUpload = "/v1.UserService/PresignMyAvatarUpload"
 const OperationUserServiceResetUserPassword = "/v1.UserService/ResetUserPassword"
 const OperationUserServiceUpdateMe = "/v1.UserService/UpdateMe"
 const OperationUserServiceUpdateMyAppearance = "/v1.UserService/UpdateMyAppearance"
@@ -36,6 +38,8 @@ type UserServiceHTTPServer interface {
 	AddUser(context.Context, *AddUserRequest) (*AddUserResponse, error)
 	// BatchUpdateUser 批量修改用户状态 / 角色（内置超级管理员会被跳过）
 	BatchUpdateUser(context.Context, *BatchUpdateUserRequest) (*BatchUpdateUserResponse, error)
+	// CompleteMyAvatarUpload 完成上传头像：凭证校验通过且对象已在对象存储里，才设为自己的头像（并删除旧头像）
+	CompleteMyAvatarUpload(context.Context, *CompleteMyAvatarUploadRequest) (*CompleteMyAvatarUploadResponse, error)
 	// DeleteUser 删除用户
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	// EditUser 更新用户
@@ -46,6 +50,9 @@ type UserServiceHTTPServer interface {
 	MeInfo(context.Context, *MeInfoRequest) (*MeInfoResponse, error)
 	// MyLoginLogs 获取自己的登录日志
 	MyLoginLogs(context.Context, *MyLoginLogsRequest) (*MyLoginLogsResponse, error)
+	// PresignMyAvatarUpload 申请上传头像：返回对象存储的预签名直传地址和上传凭证，浏览器把图片直接 PUT 到对象存储（不经过服务端）。
+	// 头像只能这样上传，需在系统设置开启头像储存。
+	PresignMyAvatarUpload(context.Context, *PresignMyAvatarUploadRequest) (*PresignMyAvatarUploadResponse, error)
 	// ResetUserPassword 管理员重置用户密码（重置后该用户所有会话下线）
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
 	// UpdateMe 更新个人资料
@@ -60,6 +67,8 @@ func RegisterUserServiceHTTPServer(s *http.Server, srv UserServiceHTTPServer) {
 	r := s.Route("/")
 	r.GET("/api/v1/user/me", _UserService_MeInfo0_HTTP_Handler(srv))
 	r.PUT("/api/v1/auth/me", _UserService_UpdateMe0_HTTP_Handler(srv))
+	r.POST("/api/v1/user/me/avatar/presign", _UserService_PresignMyAvatarUpload0_HTTP_Handler(srv))
+	r.POST("/api/v1/user/me/avatar/complete", _UserService_CompleteMyAvatarUpload0_HTTP_Handler(srv))
 	r.PUT("/api/v1/user/me/appearance", _UserService_UpdateMyAppearance0_HTTP_Handler(srv))
 	r.GET("/api/v1/user/me/login-logs", _UserService_MyLoginLogs0_HTTP_Handler(srv))
 	r.GET("/api/v1/user/list", _UserService_ListUser0_HTTP_Handler(srv))
@@ -108,6 +117,50 @@ func _UserService_UpdateMe0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx htt
 			return err
 		}
 		reply := out.(*UpdateMeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserService_PresignMyAvatarUpload0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PresignMyAvatarUploadRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserServicePresignMyAvatarUpload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PresignMyAvatarUpload(ctx, req.(*PresignMyAvatarUploadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PresignMyAvatarUploadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _UserService_CompleteMyAvatarUpload0_HTTP_Handler(srv UserServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CompleteMyAvatarUploadRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationUserServiceCompleteMyAvatarUpload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CompleteMyAvatarUpload(ctx, req.(*CompleteMyAvatarUploadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CompleteMyAvatarUploadResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -312,6 +365,8 @@ type UserServiceHTTPClient interface {
 	AddUser(ctx context.Context, req *AddUserRequest, opts ...http.CallOption) (rsp *AddUserResponse, err error)
 	// BatchUpdateUser 批量修改用户状态 / 角色（内置超级管理员会被跳过）
 	BatchUpdateUser(ctx context.Context, req *BatchUpdateUserRequest, opts ...http.CallOption) (rsp *BatchUpdateUserResponse, err error)
+	// CompleteMyAvatarUpload 完成上传头像：凭证校验通过且对象已在对象存储里，才设为自己的头像（并删除旧头像）
+	CompleteMyAvatarUpload(ctx context.Context, req *CompleteMyAvatarUploadRequest, opts ...http.CallOption) (rsp *CompleteMyAvatarUploadResponse, err error)
 	// DeleteUser 删除用户
 	DeleteUser(ctx context.Context, req *DeleteUserRequest, opts ...http.CallOption) (rsp *DeleteUserResponse, err error)
 	// EditUser 更新用户
@@ -322,6 +377,9 @@ type UserServiceHTTPClient interface {
 	MeInfo(ctx context.Context, req *MeInfoRequest, opts ...http.CallOption) (rsp *MeInfoResponse, err error)
 	// MyLoginLogs 获取自己的登录日志
 	MyLoginLogs(ctx context.Context, req *MyLoginLogsRequest, opts ...http.CallOption) (rsp *MyLoginLogsResponse, err error)
+	// PresignMyAvatarUpload 申请上传头像：返回对象存储的预签名直传地址和上传凭证，浏览器把图片直接 PUT 到对象存储（不经过服务端）。
+	// 头像只能这样上传，需在系统设置开启头像储存。
+	PresignMyAvatarUpload(ctx context.Context, req *PresignMyAvatarUploadRequest, opts ...http.CallOption) (rsp *PresignMyAvatarUploadResponse, err error)
 	// ResetUserPassword 管理员重置用户密码（重置后该用户所有会话下线）
 	ResetUserPassword(ctx context.Context, req *ResetUserPasswordRequest, opts ...http.CallOption) (rsp *ResetUserPasswordResponse, err error)
 	// UpdateMe 更新个人资料
@@ -360,6 +418,20 @@ func (c *UserServiceHTTPClientImpl) BatchUpdateUser(ctx context.Context, in *Bat
 	pattern := "/api/v1/user/batch"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationUserServiceBatchUpdateUser))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CompleteMyAvatarUpload 完成上传头像：凭证校验通过且对象已在对象存储里，才设为自己的头像（并删除旧头像）
+func (c *UserServiceHTTPClientImpl) CompleteMyAvatarUpload(ctx context.Context, in *CompleteMyAvatarUploadRequest, opts ...http.CallOption) (*CompleteMyAvatarUploadResponse, error) {
+	var out CompleteMyAvatarUploadResponse
+	pattern := "/api/v1/user/me/avatar/complete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserServiceCompleteMyAvatarUpload))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -432,6 +504,21 @@ func (c *UserServiceHTTPClientImpl) MyLoginLogs(ctx context.Context, in *MyLogin
 	opts = append(opts, http.Operation(OperationUserServiceMyLoginLogs))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PresignMyAvatarUpload 申请上传头像：返回对象存储的预签名直传地址和上传凭证，浏览器把图片直接 PUT 到对象存储（不经过服务端）。
+// 头像只能这样上传，需在系统设置开启头像储存。
+func (c *UserServiceHTTPClientImpl) PresignMyAvatarUpload(ctx context.Context, in *PresignMyAvatarUploadRequest, opts ...http.CallOption) (*PresignMyAvatarUploadResponse, error) {
+	var out PresignMyAvatarUploadResponse
+	pattern := "/api/v1/user/me/avatar/presign"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationUserServicePresignMyAvatarUpload))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -38,6 +38,7 @@ const OperationSystemLoginConfig = "/v1.System/LoginConfig"
 const OperationSystemMePermissions = "/v1.System/MePermissions"
 const OperationSystemOperationLogStats = "/v1.System/OperationLogStats"
 const OperationSystemSiteConfig = "/v1.System/SiteConfig"
+const OperationSystemStorageConfig = "/v1.System/StorageConfig"
 const OperationSystemSystemOverview = "/v1.System/SystemOverview"
 const OperationSystemSystemStatus = "/v1.System/SystemStatus"
 const OperationSystemTestEmailConfig = "/v1.System/TestEmailConfig"
@@ -46,6 +47,7 @@ const OperationSystemUpdateEmailTemplate = "/v1.System/UpdateEmailTemplate"
 const OperationSystemUpdateLoginConfig = "/v1.System/UpdateLoginConfig"
 const OperationSystemUpdateOperationLogRetention = "/v1.System/UpdateOperationLogRetention"
 const OperationSystemUpdateSiteConfig = "/v1.System/UpdateSiteConfig"
+const OperationSystemUpdateStorageConfig = "/v1.System/UpdateStorageConfig"
 
 type SystemHTTPServer interface {
 	// AdminAddPermissions 管理员添加权限菜单
@@ -86,6 +88,8 @@ type SystemHTTPServer interface {
 	OperationLogStats(context.Context, *OperationLogStatsRequest) (*OperationLogStatsResponse, error)
 	// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
 	SiteConfig(context.Context, *SiteConfigRequest) (*SiteConfigResponse, error)
+	// StorageConfig 获取储存设置（头像储存等）
+	StorageConfig(context.Context, *StorageConfigRequest) (*StorageConfigResponse, error)
 	// SystemOverview 获取系统信息概览
 	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
 	// SystemStatus 获取系统实时状态
@@ -102,6 +106,8 @@ type SystemHTTPServer interface {
 	UpdateOperationLogRetention(context.Context, *UpdateOperationLogRetentionRequest) (*UpdateOperationLogRetentionResponse, error)
 	// UpdateSiteConfig 更新站点常规配置
 	UpdateSiteConfig(context.Context, *UpdateSiteConfigRequest) (*UpdateSiteConfigResponse, error)
+	// UpdateStorageConfig 更新储存设置
+	UpdateStorageConfig(context.Context, *UpdateStorageConfigRequest) (*UpdateStorageConfigResponse, error)
 }
 
 func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
@@ -128,6 +134,8 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r.GET("/api/v1/system/email-template", _System_EmailTemplate0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/email-templates", _System_ListEmailTemplates0_HTTP_Handler(srv))
 	r.POST("/api/v1/system/email-config/test", _System_TestEmailConfig0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/storage-config", _System_StorageConfig0_HTTP_Handler(srv))
+	r.PUT("/api/v1/system/storage-config", _System_UpdateStorageConfig0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/overview", _System_SystemOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/status", _System_SystemStatus0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/operation-logs", _System_ListOperationLogs0_HTTP_Handler(srv))
@@ -595,6 +603,47 @@ func _System_TestEmailConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.C
 	}
 }
 
+func _System_StorageConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in StorageConfigRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemStorageConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.StorageConfig(ctx, req.(*StorageConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StorageConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_UpdateStorageConfig0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateStorageConfigRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemUpdateStorageConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateStorageConfig(ctx, req.(*UpdateStorageConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateStorageConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _System_SystemOverview0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in SystemOverviewRequest
@@ -732,6 +781,8 @@ type SystemHTTPClient interface {
 	OperationLogStats(ctx context.Context, req *OperationLogStatsRequest, opts ...http.CallOption) (rsp *OperationLogStatsResponse, err error)
 	// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
 	SiteConfig(ctx context.Context, req *SiteConfigRequest, opts ...http.CallOption) (rsp *SiteConfigResponse, err error)
+	// StorageConfig 获取储存设置（头像储存等）
+	StorageConfig(ctx context.Context, req *StorageConfigRequest, opts ...http.CallOption) (rsp *StorageConfigResponse, err error)
 	// SystemOverview 获取系统信息概览
 	SystemOverview(ctx context.Context, req *SystemOverviewRequest, opts ...http.CallOption) (rsp *SystemOverviewResponse, err error)
 	// SystemStatus 获取系统实时状态
@@ -748,6 +799,8 @@ type SystemHTTPClient interface {
 	UpdateOperationLogRetention(ctx context.Context, req *UpdateOperationLogRetentionRequest, opts ...http.CallOption) (rsp *UpdateOperationLogRetentionResponse, err error)
 	// UpdateSiteConfig 更新站点常规配置
 	UpdateSiteConfig(ctx context.Context, req *UpdateSiteConfigRequest, opts ...http.CallOption) (rsp *UpdateSiteConfigResponse, err error)
+	// UpdateStorageConfig 更新储存设置
+	UpdateStorageConfig(ctx context.Context, req *UpdateStorageConfigRequest, opts ...http.CallOption) (rsp *UpdateStorageConfigResponse, err error)
 }
 
 type SystemHTTPClientImpl struct {
@@ -1024,6 +1077,20 @@ func (c *SystemHTTPClientImpl) SiteConfig(ctx context.Context, in *SiteConfigReq
 	return &out, nil
 }
 
+// StorageConfig 获取储存设置（头像储存等）
+func (c *SystemHTTPClientImpl) StorageConfig(ctx context.Context, in *StorageConfigRequest, opts ...http.CallOption) (*StorageConfigResponse, error) {
+	var out StorageConfigResponse
+	pattern := "/api/v1/system/storage-config"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemStorageConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // SystemOverview 获取系统信息概览
 func (c *SystemHTTPClientImpl) SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...http.CallOption) (*SystemOverviewResponse, error) {
 	var out SystemOverviewResponse
@@ -1128,6 +1195,20 @@ func (c *SystemHTTPClientImpl) UpdateSiteConfig(ctx context.Context, in *UpdateS
 	pattern := "/api/v1/system/site-config"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSystemUpdateSiteConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateStorageConfig 更新储存设置
+func (c *SystemHTTPClientImpl) UpdateStorageConfig(ctx context.Context, in *UpdateStorageConfigRequest, opts ...http.CallOption) (*UpdateStorageConfigResponse, error) {
+	var out UpdateStorageConfigResponse
+	pattern := "/api/v1/system/storage-config"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemUpdateStorageConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {

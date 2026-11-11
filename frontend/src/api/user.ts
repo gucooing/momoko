@@ -11,6 +11,10 @@ import type {
   EditUserResponse,
   ListUserRequest,
   ListUserResponse,
+  CompleteMyAvatarUploadRequest,
+  CompleteMyAvatarUploadResponse,
+  PresignMyAvatarUploadRequest,
+  PresignMyAvatarUploadResponse,
   ResetUserPasswordRequest,
   ResetUserPasswordResponse,
   UserInfoRequest,
@@ -53,6 +57,21 @@ export const resetUserPassword = (data: ResetUserPasswordRequest) => {
 
 export const updateMeRequest = (data: UpdateMeRequest) => {
   return request.put<UpdateMeResponse>('/auth/me', data)
+}
+
+// 头像只能直传对象存储：申请直传地址与凭证 → 浏览器 PUT 到对象存储（不经过服务端）→ 凭凭证完成上传
+export const presignMyAvatarUpload = (data: PresignMyAvatarUploadRequest) => {
+  return request.post<PresignMyAvatarUploadResponse>('/user/me/avatar/presign', data)
+}
+
+export const completeMyAvatarUpload = (data: CompleteMyAvatarUploadRequest) => {
+  return request.post<CompleteMyAvatarUploadResponse>('/user/me/avatar/complete', data)
+}
+
+/** 把头像图片直接 PUT 到对象存储的预签名地址；Content-Type 须与申请时一致（已签进签名）。 */
+export const putAvatarToStorage = async (uploadUrl: string, file: File) => {
+  const res = await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
 
 // 外观偏好跟随账号同步（不记操作日志）

@@ -172,6 +172,7 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationSystemUpdateEmailTemplate:                v1.OperationType_OperationTypeSystemEmailTemplateUpdate,
 	v1.OperationSystemTestEmailConfig:                    v1.OperationType_OperationTypeSystemEmailConfigTest,
 	v1.OperationSystemUpdateOperationLogRetention:        v1.OperationType_OperationTypeSystemOperationLogRetentionUpdate,
+	v1.OperationSystemUpdateStorageConfig:                v1.OperationType_OperationTypeSystemStorageConfigUpdate,
 	v1.OperationFileManagerCreateFileSystem:              v1.OperationType_OperationTypeFileCreate,
 	v1.OperationFileManagerRenameFileSystem:              v1.OperationType_OperationTypeFileRename,
 	v1.OperationFileManagerCopyFileSystem:                v1.OperationType_OperationTypeFileCopy,

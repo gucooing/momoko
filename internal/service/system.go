@@ -194,6 +194,23 @@ func (s *SystemService) UpdateEmailConfig(ctx context.Context, req *v1.UpdateEma
 	return &v1.UpdateEmailConfigResponse{Config: config}, nil
 }
 
+func (s *SystemService) StorageConfig(ctx context.Context, _ *v1.StorageConfigRequest) (*v1.StorageConfigResponse, error) {
+	config, err := s.config.StorageConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.StorageConfigResponse{Config: config}, nil
+}
+
+func (s *SystemService) UpdateStorageConfig(ctx context.Context, req *v1.UpdateStorageConfigRequest) (*v1.UpdateStorageConfigResponse, error) {
+	config, err := s.config.UpdateStorageConfig(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	s.uc.TouchSettings(ctx)
+	return &v1.UpdateStorageConfigResponse{Config: config}, nil
+}
+
 func (s *SystemService) UpdateEmailTemplate(ctx context.Context, req *v1.UpdateEmailTemplateRequest) (*v1.UpdateEmailTemplateResponse, error) {
 	template, err := s.config.UpdateEmailTemplate(ctx, req)
 	if err != nil {

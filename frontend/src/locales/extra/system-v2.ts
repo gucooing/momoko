@@ -70,6 +70,7 @@ export default {
           systemSiteConfigUpdate: '修改常规设置',
           dockerRegistryAuthTest: '验证仓库凭据',
           systemOperationLogRetentionUpdate: '修改操作记录保留策略',
+          systemStorageConfigUpdate: '修改储存设置',
         },
       },
       tasks: {
@@ -278,6 +279,7 @@ export default {
           systemSiteConfigUpdate: '修改常規設定',
           dockerRegistryAuthTest: '驗證倉庫憑據',
           systemOperationLogRetentionUpdate: '修改操作記錄保留策略',
+          systemStorageConfigUpdate: '修改儲存設定',
         },
       },
       tasks: {
@@ -486,6 +488,7 @@ export default {
           systemSiteConfigUpdate: 'Update general settings',
           dockerRegistryAuthTest: 'Verify registry credentials',
           systemOperationLogRetentionUpdate: 'Update record retention',
+          systemStorageConfigUpdate: 'Update storage settings',
         },
       },
       tasks: {

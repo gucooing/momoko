@@ -95,6 +95,11 @@ func Avatar(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldAvatar, v))
 }
 
+// AvatarKey applies equality check predicate on the "avatar_key" field. It's identical to AvatarKeyEQ.
+func AvatarKey(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAvatarKey, v))
+}
+
 // Bio applies equality check predicate on the "bio" field. It's identical to BioEQ.
 func Bio(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldBio, v))
@@ -498,6 +503,71 @@ func AvatarEqualFold(v string) predicate.User {
 // AvatarContainsFold applies the ContainsFold predicate on the "avatar" field.
 func AvatarContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldAvatar, v))
+}
+
+// AvatarKeyEQ applies the EQ predicate on the "avatar_key" field.
+func AvatarKeyEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAvatarKey, v))
+}
+
+// AvatarKeyNEQ applies the NEQ predicate on the "avatar_key" field.
+func AvatarKeyNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldAvatarKey, v))
+}
+
+// AvatarKeyIn applies the In predicate on the "avatar_key" field.
+func AvatarKeyIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldAvatarKey, vs...))
+}
+
+// AvatarKeyNotIn applies the NotIn predicate on the "avatar_key" field.
+func AvatarKeyNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldAvatarKey, vs...))
+}
+
+// AvatarKeyGT applies the GT predicate on the "avatar_key" field.
+func AvatarKeyGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldAvatarKey, v))
+}
+
+// AvatarKeyGTE applies the GTE predicate on the "avatar_key" field.
+func AvatarKeyGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldAvatarKey, v))
+}
+
+// AvatarKeyLT applies the LT predicate on the "avatar_key" field.
+func AvatarKeyLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldAvatarKey, v))
+}
+
+// AvatarKeyLTE applies the LTE predicate on the "avatar_key" field.
+func AvatarKeyLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldAvatarKey, v))
+}
+
+// AvatarKeyContains applies the Contains predicate on the "avatar_key" field.
+func AvatarKeyContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldAvatarKey, v))
+}
+
+// AvatarKeyHasPrefix applies the HasPrefix predicate on the "avatar_key" field.
+func AvatarKeyHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldAvatarKey, v))
+}
+
+// AvatarKeyHasSuffix applies the HasSuffix predicate on the "avatar_key" field.
+func AvatarKeyHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldAvatarKey, v))
+}
+
+// AvatarKeyEqualFold applies the EqualFold predicate on the "avatar_key" field.
+func AvatarKeyEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldAvatarKey, v))
+}
+
+// AvatarKeyContainsFold applies the ContainsFold predicate on the "avatar_key" field.
+func AvatarKeyContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldAvatarKey, v))
 }
 
 // BioEQ applies the EQ predicate on the "bio" field.

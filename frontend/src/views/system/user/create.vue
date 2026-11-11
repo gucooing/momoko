@@ -140,7 +140,6 @@ const emptyForm = () => ({
   email: '',
   roleIds: [] as string[],
   status: UserStatus.Active as UserStatus,
-  avatar: '',
   bio: '',
   tags: '',
 })
@@ -182,7 +181,6 @@ const getUserDetail = async (userId: string) => {
     email: user.email || '',
     roleIds: (user.roles || []).map((r) => r.roleId),
     status: user.status || UserStatus.Active,
-    avatar: user.avatar || '',
     bio: user.bio || '',
     tags: user.tags || '',
   }
@@ -220,7 +218,6 @@ const confirm = async () => {
         userId: f.userId,
         email: f.email,
         name: f.name,
-        avatar: f.avatar,
         bio: f.bio,
         tags: f.tags,
         status: f.status,
@@ -232,7 +229,6 @@ const confirm = async () => {
         password: f.password,
         email: f.email,
         name: f.name,
-        avatar: f.avatar,
         bio: f.bio,
         tags: f.tags,
         status: f.status,

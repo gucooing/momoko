@@ -30,8 +30,10 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// 账号状态
 	Status user.Status `json:"status,omitempty"`
-	// 头像
+	// 头像图片链接（对象存储里的公开链接）
 	Avatar string `json:"avatar,omitempty"`
+	// 头像在对象存储里的对象 key（换头像、删用户时按它删除旧对象）
+	AvatarKey string `json:"avatar_key,omitempty"`
 	// 个人简介
 	Bio string `json:"bio,omitempty"`
 	// 昵称
@@ -102,7 +104,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus, user.FieldAvatar, user.FieldBio, user.FieldName, user.FieldTags, user.FieldPhone, user.FieldLastLoginIP, user.FieldLastLoginMethod, user.FieldAppearance:
+		case user.FieldID, user.FieldUsername, user.FieldPassword, user.FieldEmail, user.FieldStatus, user.FieldAvatar, user.FieldAvatarKey, user.FieldBio, user.FieldName, user.FieldTags, user.FieldPhone, user.FieldLastLoginIP, user.FieldLastLoginMethod, user.FieldAppearance:
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime, user.FieldLastLoginAt, user.FieldPasswordUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -170,6 +172,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field avatar", values[i])
 			} else if value.Valid {
 				_m.Avatar = value.String
+			}
+		case user.FieldAvatarKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field avatar_key", values[i])
+			} else if value.Valid {
+				_m.AvatarKey = value.String
 			}
 		case user.FieldBio:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -305,6 +313,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("avatar=")
 	builder.WriteString(_m.Avatar)
+	builder.WriteString(", ")
+	builder.WriteString("avatar_key=")
+	builder.WriteString(_m.AvatarKey)
 	builder.WriteString(", ")
 	builder.WriteString("bio=")
 	builder.WriteString(_m.Bio)

@@ -151,5 +151,5 @@ func ensureSQLiteDir(database *v1.InitializeDatabaseConfig) error {
 	if err != nil {
 		return err
 	}
-	return os.MkdirAll(filepath.Dir(path), 0o755)
+	return os.MkdirAll(filepath.Dir(path), 0o777)
 }

@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
 import { logoutRequest, userMeInfoRequest } from '@/api/login'
-import { updateMeRequest, updatePasswordRequest } from '@/api/user'
+import {
+  completeMyAvatarUpload,
+  presignMyAvatarUpload,
+  putAvatarToStorage,
+  updateMeRequest,
+  updatePasswordRequest,
+} from '@/api/user'
 import defaultAvatarSvg from '@/assets/defaultAvatar.svg'
 import router, { resetRouter } from '@/router'
 import { useMenuStore } from '@/stores/menu'
@@ -19,6 +25,8 @@ import { translate } from '@/locales'
 export const useUserStore = defineStore('user', () => {
   const defaultAvatarImg = ref(defaultAvatarSvg)
   const userInfo = ref<UserInfo | null>(null)
+  /** 能否更换头像（系统设置开启了头像储存） */
+  const avatarUploadEnabled = ref(false)
   let isRedirectingToLogin = false
 
   const applyUserInfo = (nextUser?: UserInfo | null) => {
@@ -38,6 +46,7 @@ export const useUserStore = defineStore('user', () => {
   const getUserInfo = async () => {
     const { data: meRes } = await userMeInfoRequest({})
     applyUserInfo(meRes?.user)
+    avatarUploadEnabled.value = !!meRes?.avatarUploadEnabled
     // 外观偏好跟随账号（见 stores/theme/sync.ts）
     if (meRes?.user) applyRemoteAppearance(meRes.appearance, meRes.currentTheme, meRes.siteTheme)
   }
@@ -105,6 +114,17 @@ export const useUserStore = defineStore('user', () => {
     feedback.success(translate('user.profileUpdateSuccess'))
   }
 
+  /** 更换头像：申请直传 → 浏览器直接 PUT 到对象存储 → 凭凭证完成上传（服务端确认对象已存在才设为头像）。 */
+  const uploadAvatar = async (file: File) => {
+    const { data: presign } = await presignMyAvatarUpload({ contentType: file.type, size: file.size })
+    if (!presign?.uploadUrl || !presign.uploadToken) throw new Error(translate('avatar.uploadFailed'))
+    await putAvatarToStorage(presign.uploadUrl, file)
+    const { data } = await completeMyAvatarUpload({ uploadToken: presign.uploadToken })
+    if (data?.user) applyUserInfo(data.user)
+    else await getUserInfo()
+    feedback.success(translate('avatar.uploadSuccess'))
+  }
+
   const logoutLocal = (options?: { forceReload?: boolean; redirectPath?: string }) => {
     clearSessionAndRedirect(options)
   }
@@ -128,10 +148,12 @@ export const useUserStore = defineStore('user', () => {
 
   return {
     userInfo,
+    avatarUploadEnabled,
     resolvedUserAvatar,
     getUserInfo,
     getUserRoleName,
     updateUserProfile,
+    uploadAvatar,
     updatePassword,
     logoutLocal,
     logout,

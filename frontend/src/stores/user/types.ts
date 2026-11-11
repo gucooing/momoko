@@ -37,7 +37,7 @@ export interface UserMessageItem {
 export type UserProfileFormValue = {
   [K in keyof Pick<
     UpdateMeRequest,
-    'username' | 'name' | 'email' | 'avatar' | 'bio' | 'tags' | 'phone'
+    'username' | 'name' | 'email' | 'bio' | 'tags' | 'phone'
   >]-?: NonNullable<UpdateMeRequest[K]>
 }
 

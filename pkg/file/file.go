@@ -350,13 +350,76 @@ func (f *FileOper) Create(item *v1.FileCreateItem) error {
 		return err
 	}
 	if item.IsDir {
-		return os.MkdirAll(absPath, 0o755)
+		return os.MkdirAll(absPath, 0o777)
 	}
-	if err = os.MkdirAll(filepath.Dir(absPath), 0o755); err != nil {
+	if err = os.MkdirAll(filepath.Dir(absPath), 0o777); err != nil {
 		return err
 	}
 	// Content 允许为空（创建即编辑）；写失败必须返回，不能吞成成功。
-	return os.WriteFile(absPath, item.Content, 0o644)
+	return os.WriteFile(absPath, item.Content, 0o666)
+}
+
+// ---- 落地助手 ----
+// 新建的文件/目录一律以 0666/0777 创建，实际权限由系统 umask 决定；
+// 覆盖已有文件只替换内容，绝不改动原文件的权限位与属主属组。
+
+// placeFile 把已写好的临时文件 src 落到 target。
+//   - target 不存在：直接 rename，权限即 src 创建时的系统默认（umask）。
+//   - target 已存在：先把原文件的属主属组与权限位套到 src 上，再原子 rename 替换
+//     （正在运行的进程仍持有旧文件，不会读到写了一半的内容）；
+//     若无法套用（如非特权进程不能 chown 给他人），退化为把内容就地写回原文件，原文件元数据天然保留。
+func placeFile(src, target string) error {
+	info, err := os.Stat(target)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		if err := os.Rename(src, target); err != nil {
+			return fmt.Errorf("重命名文件失败: %w", err)
+		}
+		return nil
+	case err != nil:
+		return fmt.Errorf("读取目标文件失败: %w", err)
+	case !info.Mode().IsRegular():
+		return errors.New("目标路径已存在且不是普通文件")
+	}
+
+	if inheritFileMeta(src, info) == nil {
+		if err := os.Rename(src, target); err != nil {
+			return fmt.Errorf("替换文件失败: %w", err)
+		}
+		return nil
+	}
+	if err := overwriteFileContent(src, target); err != nil {
+		return fmt.Errorf("覆盖文件失败: %w", err)
+	}
+	_ = os.Remove(src)
+	return nil
+}
+
+// inheritFileMeta 把 ref 的属主属组与权限位（含 setuid/setgid/sticky）套到 path 上。
+// 先 chown 后 chmod：Linux 上 chown 会清掉 setuid/setgid 位。
+func inheritFileMeta(path string, ref fs.FileInfo) error {
+	if err := copyOwner(path, ref); err != nil {
+		return err
+	}
+	return os.Chmod(path, ref.Mode()&(fs.ModePerm|fs.ModeSetuid|fs.ModeSetgid|fs.ModeSticky))
+}
+
+// overwriteFileContent 用 src 的内容截断覆写已存在的 dst（不带 O_CREATE，不重建文件，dst 的元数据保持不变）。
+func overwriteFileContent(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_WRONLY|os.O_TRUNC, 0)
+	if err != nil {
+		return err
+	}
+	if _, err = io.Copy(out, in); err != nil {
+		_ = out.Close()
+		return err
+	}
+	return out.Close()
 }
 
 // Rename 重命名文件或目录，目标名称不能包含路径分隔符。
@@ -490,13 +553,14 @@ func (u *ChunkedUpload) UploadFilePart(r io.Reader, chunk uint64) (uint64, strin
 	}
 
 	bufPath := uploadBufferPath(u.FileUpload)
-	if err := os.MkdirAll(filepath.Dir(bufPath), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(bufPath), 0o777); err != nil {
 		return 0, "", errors.New("创建临时目录失败")
 	}
+	// 新文件权限按系统 umask；覆盖已有文件时收尾会改为继承原文件的权限与属主。
 	tempFile, err := os.OpenFile(
 		bufPath,
 		os.O_CREATE|os.O_WRONLY,
-		0o644,
+		0o666,
 	)
 	if err != nil {
 		return 0, "", errors.New("创建临时文件失败")

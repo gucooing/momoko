@@ -24,6 +24,21 @@ service UserService {
       body: "*"
     };
   }
+  // 申请上传头像：返回对象存储的预签名直传地址和上传凭证，浏览器把图片直接 PUT 到对象存储（不经过服务端）。
+  // 头像只能这样上传，需在系统设置开启头像储存。
+  rpc PresignMyAvatarUpload(PresignMyAvatarUploadRequest) returns (PresignMyAvatarUploadResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/me/avatar/presign"
+      body: "*"
+    };
+  }
+  // 完成上传头像：凭证校验通过且对象已在对象存储里，才设为自己的头像（并删除旧头像）
+  rpc CompleteMyAvatarUpload(CompleteMyAvatarUploadRequest) returns (CompleteMyAvatarUploadResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/me/avatar/complete"
+      body: "*"
+    };
+  }
   // 保存自己的外观偏好（跟随账号同步到所有设备；不记操作日志）
   rpc UpdateMyAppearance(UpdateMyAppearanceRequest) returns (UpdateMyAppearanceResponse) {
     option (google.api.http) = {
@@ -98,6 +113,8 @@ message MeInfoResponse{
   Theme current_theme = 3;
   // 全站默认主题（没设置过为空）
   SiteTheme site_theme = 4;
+  // 能否更换头像（系统设置开启了头像储存）
+  bool avatar_upload_enabled = 5;
 }
 
 // 个人外观偏好：只对自己生效，跟随账号同步到所有设备
@@ -124,8 +141,7 @@ message UpdateMeRequest {
   optional string bio = 1;
   // 邮箱
   optional string email = 2;
-  // 头像url
-  optional string avatar = 3;
+  reserved 3;
   // 昵称
   optional string name = 4;
   // 标签
@@ -151,6 +167,34 @@ message UpdateMyAppearanceResponse {
 // 更新个人资料响应
 message UpdateMeResponse {
   // 用户信息
+  UserInfo user = 1;
+}
+
+// 申请上传头像请求
+message PresignMyAvatarUploadRequest {
+  // 图片类型：image/jpeg / image/png / image/webp / image/gif
+  string content_type = 1;
+  // 文件大小（字节），不超过 20MB
+  int64 size = 2;
+}
+
+// 申请上传头像响应
+message PresignMyAvatarUploadResponse {
+  // 预签名直传地址：PUT 文件内容，Content-Type 与文件大小须与申请时一致（已签进签名）
+  string upload_url = 1;
+  // 上传凭证：上传成功后交给 CompleteMyAvatarUpload（加密，绑定本人与本次对象，限时有效）
+  string upload_token = 2;
+}
+
+// 完成上传头像请求
+message CompleteMyAvatarUploadRequest {
+  // PresignMyAvatarUpload 返回的上传凭证
+  string upload_token = 1;
+}
+
+// 完成上传头像响应
+message CompleteMyAvatarUploadResponse {
+  // 用户信息（头像已换成新上传的图片）
   UserInfo user = 1;
 }
 
@@ -340,8 +384,7 @@ message AddUserRequest {
   string email = 3;
   // 昵称
   string name = 4;
-  // 头像url
-  string avatar = 5;
+  reserved 5;
   // bio
   string bio = 6;
   // 标签
@@ -367,8 +410,7 @@ message EditUserRequest {
   string email = 2;
   // 昵称
   string name = 3;
-  // 头像url
-  string avatar = 4;
+  reserved 4;
   // bio
   string bio = 5;
   // 标签

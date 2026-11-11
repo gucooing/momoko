@@ -39,7 +39,7 @@ func ApplyDatabaseConfig(configPath string, database *conf.Data_Database) error 
 			},
 		}
 	}
-	if err := os.MkdirAll(filepath.Dir(filePath), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(filePath), 0o777); err != nil {
 		return err
 	}
 	if len(root.Content) == 0 || root.Content[0].Kind != yaml.MappingNode {
@@ -70,7 +70,7 @@ func ApplyDatabaseConfig(configPath string, database *conf.Data_Database) error 
 		return err
 	}
 
-	return os.WriteFile(filePath, next, 0o644)
+	return os.WriteFile(filePath, next, 0o666)
 }
 
 func resolveConfigFile(configPath string) (string, error) {

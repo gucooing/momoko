@@ -14,7 +14,6 @@ import (
 	"momoko/internal/data"
 	"momoko/internal/server"
 	"momoko/internal/service"
-	"momoko/pkg/avatar"
 	"momoko/pkg/themeasset"
 )
 
@@ -43,16 +42,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	manager, cleanup2 := biz.NewTaskManager(store)
 	operationLogUsecase := biz.NewOperationLogUsecase(operationLogRepo, configRepo, manager)
 	operationLogMiddleware := service.NewOperationLogMiddleware(operationLogUsecase, logger)
-	avatarManager, err := avatar.NewManager()
-	if err != nil {
-		cleanup2()
-		cleanup()
-		return nil, nil, err
-	}
 	nodeRepo := data.NewNodeRepo(dataData)
 	nodeUsecase, cleanup3 := biz.NewNodeUsecase(apiKeyRepo, nodeRepo, systemUsecase)
 	nodeProxy := server.NewNodeProxy(nodeUsecase, systemUsecase, userRepo)
 	authUsecase := biz.NewAuthUsecase(authRepo, userRepo)
+	configUsecase := biz.NewConfigUsecase(configRepo)
 	themeRepo := data.NewThemeRepo(dataData)
 	themeassetManager, err := themeasset.NewManager()
 	if err != nil {
@@ -62,8 +56,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		return nil, nil, err
 	}
 	themeUsecase := biz.NewThemeUsecase(themeRepo, configRepo, userRepo, themeassetManager)
-	userUsecase := biz.NewUserUsecase(userRepo, authRepo, avatarManager, themeUsecase)
-	configUsecase := biz.NewConfigUsecase(configRepo)
+	userUsecase := biz.NewUserUsecase(userRepo, authRepo, configUsecase, themeUsecase)
 	authService := service.NewAuthService(authUsecase, userUsecase, configUsecase, systemUsecase)
 	fileRepo := data.NewFileRepo(dataData)
 	fileUsecase := biz.NewFileUsecase(fileRepo, manager)
@@ -130,7 +123,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	monitorUsecase, cleanup7 := biz.NewMonitorUsecase(monitorRepo, configRepo, instanceUsecase, manager)
 	monitorService := service.NewMonitorService(monitorUsecase)
 	themeService := service.NewThemeService(themeUsecase)
-	httpServer := server.NewHTTPServer(confServer, avatarManager, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService, monitorService, themeassetManager, themeService)
+	httpServer := server.NewHTTPServer(confServer, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService, monitorService, themeassetManager, themeService)
 	nodeAgentService := service.NewNodeAgentService(nodeAgentUsecase)
 	grpcServer, err := server.NewGRPCServer(confServer, authorization, operationLogMiddleware, httpServer, nodeAgentUsecase, nodeAgentService, systemService, fileService, instanceService, dockerService, networkService, tunnelService, taskService, openSSHService, monitorService)
 	if err != nil {

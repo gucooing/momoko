@@ -114,7 +114,7 @@ func TestDatabaseConnection(ctx context.Context, database *conf.Data_Database) e
 	if database == nil {
 		return fmt.Errorf("database config is required")
 	}
-	if err := os.MkdirAll(initialize.DataDir, 0o755); err != nil {
+	if err := os.MkdirAll(initialize.DataDir, 0o777); err != nil {
 		return err
 	}
 
@@ -134,7 +134,7 @@ func MigrateAndSeedInitialData(ctx context.Context, database *conf.Data_Database
 	if admin == nil {
 		return fmt.Errorf("admin user is required")
 	}
-	if err := os.MkdirAll(initialize.DataDir, 0o755); err != nil {
+	if err := os.MkdirAll(initialize.DataDir, 0o777); err != nil {
 		return err
 	}
 
@@ -158,7 +158,6 @@ func MigrateAndSeedInitialData(ctx context.Context, database *conf.Data_Database
 			Password: admin.Password,
 			Email:    strings.TrimSpace(admin.Email),
 			Status:   entuser.StatusActive,
-			Avatar:   "",
 			Bio:      "",
 			Name:     strings.TrimSpace(admin.Name),
 			Tags:     "",

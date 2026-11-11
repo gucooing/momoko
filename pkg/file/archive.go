@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"momoko/pkg/utils"
 )
 
 const (
@@ -38,14 +40,14 @@ func (f *FileOper) BatchCompress(paths []string, targetPath string) (string, err
 	}
 
 	targetDir := filepath.Dir(targetAbs)
-	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+	if err := os.MkdirAll(targetDir, 0o777); err != nil {
 		return "", err
 	}
 	if info, err := os.Stat(targetAbs); err == nil && info.IsDir() {
 		return "", errors.New("目标压缩文件路径不能是目录")
 	}
 
-	tempFile, err := os.CreateTemp(targetDir, "."+filepath.Base(targetAbs)+".*.tmp")
+	tempFile, err := utils.CreateTemp(targetDir, "."+filepath.Base(targetAbs)+".*.tmp")
 	if err != nil {
 		return "", fmt.Errorf("创建临时压缩文件失败: %w", err)
 	}
@@ -81,10 +83,8 @@ func (f *FileOper) BatchCompress(paths []string, targetPath string) (string, err
 	if err := tempFile.Close(); err != nil {
 		return "", fmt.Errorf("关闭临时压缩文件失败: %w", err)
 	}
-	if err := os.Remove(targetAbs); err != nil && !os.IsNotExist(err) {
-		return "", fmt.Errorf("清理旧压缩文件失败: %w", err)
-	}
-	if err := os.Rename(tempPath, targetAbs); err != nil {
+	// 覆盖同名压缩包时保留其原有权限与属主。
+	if err := placeFile(tempPath, targetAbs); err != nil {
 		return "", fmt.Errorf("保存压缩文件失败: %w", err)
 	}
 
@@ -109,7 +109,7 @@ func (f *FileOper) Unzip(sourcePath, targetPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := os.MkdirAll(targetAbs, 0o755); err != nil {
+	if err := os.MkdirAll(targetAbs, 0o777); err != nil {
 		return "", fmt.Errorf("创建解压目录失败: %w", err)
 	}
 
@@ -134,13 +134,13 @@ func (f *FileOper) Unzip(sourcePath, targetPath string) (string, error) {
 		}
 
 		if entry.FileInfo().IsDir() {
-			if err := os.MkdirAll(destPath, entry.Mode().Perm()); err != nil {
+			if err := os.MkdirAll(destPath, archiveEntryPerm(entry, 0o777)); err != nil {
 				return "", fmt.Errorf("创建目录失败: %w", err)
 			}
 			continue
 		}
 
-		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(destPath), 0o777); err != nil {
 			return "", fmt.Errorf("创建解压目录失败: %w", err)
 		}
 
@@ -328,6 +328,14 @@ func addEntryToZip(zw *zip.Writer, parentPath, currentPath string, entry fs.DirE
 	return nil
 }
 
+// archiveEntryPerm 返回压缩条目记录的权限位（保留脚本的可执行位等）；未记录时用 fallback（0666/0777，交给 umask）。
+func archiveEntryPerm(entry *zip.File, fallback os.FileMode) os.FileMode {
+	if mode := entry.Mode().Perm(); mode != 0 {
+		return mode
+	}
+	return fallback
+}
+
 func extractArchiveFile(entry *zip.File, destPath string) error {
 	reader, err := entry.Open()
 	if err != nil {
@@ -335,12 +343,8 @@ func extractArchiveFile(entry *zip.File, destPath string) error {
 	}
 	defer reader.Close()
 
-	mode := entry.Mode().Perm()
-	if mode == 0 {
-		mode = 0o644
-	}
-
-	file, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode)
+	// 已存在则就地截断覆写（权限/属主不变）；新建时用压缩包记录的权限（仍受 umask 约束）。
+	file, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, archiveEntryPerm(entry, 0o666))
 	if err != nil {
 		return errors.New("创建解压文件失败")
 	}

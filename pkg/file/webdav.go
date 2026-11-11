@@ -140,16 +140,16 @@ func (s *webdavStore) Read(ctx context.Context, p string, max int64) ([]byte, er
 }
 
 func (s *webdavStore) Write(_ context.Context, p string, r io.Reader) error {
-	_ = s.client.MkdirAll(path.Dir(s.p(p)), 0o755)
-	return s.client.WriteStream(s.p(p), r, 0o644)
+	_ = s.client.MkdirAll(path.Dir(s.p(p)), 0o777)
+	return s.client.WriteStream(s.p(p), r, 0o666)
 }
 
 func (s *webdavStore) Create(_ context.Context, item *v1.FileCreateItem) error {
 	if item.IsDir {
-		return s.client.MkdirAll(s.p(item.Path), 0o755)
+		return s.client.MkdirAll(s.p(item.Path), 0o777)
 	}
-	_ = s.client.MkdirAll(path.Dir(s.p(item.Path)), 0o755)
-	return s.client.WriteStream(s.p(item.Path), bytes.NewReader(item.Content), 0o644)
+	_ = s.client.MkdirAll(path.Dir(s.p(item.Path)), 0o777)
+	return s.client.WriteStream(s.p(item.Path), bytes.NewReader(item.Content), 0o666)
 }
 
 func (s *webdavStore) Delete(_ context.Context, paths []string) []*v1.FileOperationResult {

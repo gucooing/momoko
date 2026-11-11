@@ -223,7 +223,7 @@ func (f *FileOper) copyDir(sourcePath, targetPath string, mode fs.FileMode) erro
 }
 
 func copyFile(sourcePath, targetPath string, mode fs.FileMode) error {
-	if err := os.MkdirAll(filepath.Dir(targetPath), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(targetPath), 0o777); err != nil {
 		return fmt.Errorf("创建目标目录失败: %w", err)
 	}
 

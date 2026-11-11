@@ -150,7 +150,7 @@ const save = async () => {
   if (!dirty.value || saving.value) return
   saving.value = true
   try {
-    await userStore.updateUserProfile({ ...profileForm.value, avatar: userStore.userInfo?.avatar || '' })
+    await userStore.updateUserProfile({ ...profileForm.value })
     reset()
     emit('saved')
   } catch (error) {

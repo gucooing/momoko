@@ -49,7 +49,6 @@ type defaultUser struct {
 	Password string
 	Username string
 	Status   entuser.Status
-	Avatar   string
 	Bio      string
 	Tags     string
 	RoleID   string
@@ -369,7 +368,6 @@ func syncDefaultRBACWithUsers(ctx context.Context, client *gen.Client, users []*
 			SetPassword(passwordHash).
 			SetEmail(item.Email).
 			SetStatus(item.Status).
-			SetAvatar(item.Avatar).
 			SetBio(item.Bio).
 			SetName(item.Name).
 			SetTags(item.Tags)

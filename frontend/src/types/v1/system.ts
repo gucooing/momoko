@@ -289,6 +289,8 @@ export enum OperationType {
   OperationTypeDockerRegistryAuthTest = "OperationTypeDockerRegistryAuthTest",
   /** OperationTypeSystemOperationLogRetentionUpdate - 操作记录保留策略更新 */
   OperationTypeSystemOperationLogRetentionUpdate = "OperationTypeSystemOperationLogRetentionUpdate",
+  /** OperationTypeSystemStorageConfigUpdate - 储存设置更新 */
+  OperationTypeSystemStorageConfigUpdate = "OperationTypeSystemStorageConfigUpdate",
   UNRECOGNIZED = "UNRECOGNIZED",
 }
 
@@ -874,6 +876,61 @@ export interface TestEmailConfigRequest_DataEntry {
 
 /** 测试邮件配置响应 */
 export interface TestEmailConfigResponse {
+}
+
+/** 储存设置 */
+export interface StorageConfig {
+  /** 头像储存 */
+  avatar: AvatarStorageConfig | undefined;
+}
+
+/**
+ * 头像储存设置：S3 兼容对象存储，开启后允许用户上传头像（单张不超过 20MB）。
+ * 头像以公开链接存进用户资料，存储桶（或前缀）需允许公开读取。
+ */
+export interface AvatarStorageConfig {
+  /** 是否开启头像上传 */
+  enabled: boolean;
+  /** 服务地址（如 s3.amazonaws.com、minio.example.com:9000，不含协议） */
+  endpoint: string;
+  /** 区域（如 us-east-1，可留空） */
+  region: string;
+  /** 存储桶 */
+  bucket: string;
+  /** Access Key */
+  accessKey: string;
+  /** Secret Key：读取时恒为空；更新时留空表示保留原值 */
+  secretKey: string;
+  /** 是否已保存过 Secret Key（只读） */
+  secretKeySet: boolean;
+  /** 使用 HTTPS */
+  useSsl: boolean;
+  /** 路径风格访问（MinIO 等自建服务一般需要开启） */
+  pathStyle: boolean;
+  /** 对象 key 前缀（如 avatars），可留空 */
+  prefix: string;
+  /** 公开访问地址（自定义域名 / CDN，如 https://cdn.example.com）；留空则按服务地址与存储桶拼接 */
+  publicUrl: string;
+}
+
+/** 获取储存设置请求 */
+export interface StorageConfigRequest {
+}
+
+/** 获取储存设置响应 */
+export interface StorageConfigResponse {
+  config: StorageConfig | undefined;
+}
+
+/** 更新储存设置请求 */
+export interface UpdateStorageConfigRequest {
+  /** 头像储存 */
+  avatar: AvatarStorageConfig | undefined;
+}
+
+/** 更新储存设置响应 */
+export interface UpdateStorageConfigResponse {
+  config: StorageConfig | undefined;
 }
 
 /** 获取系统信息概览请求 */

@@ -13,7 +13,6 @@ import (
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/pkg/auth"
-	"momoko/pkg/avatar"
 	"momoko/pkg/response"
 )
 
@@ -29,6 +28,8 @@ type UserRepo interface {
 	DeleteUser(ctx context.Context, userIds []string) error
 	UpdatePassword(ctx context.Context, userId string, passwordHash string) (*gen.User, error)
 	UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*gen.User, error)
+	// SetAvatar 设置头像链接与对象 key（只由头像直传完成时调用）。
+	SetAvatar(ctx context.Context, userId, avatar, avatarKey string) (*gen.User, error)
 	TouchLastLogin(ctx context.Context, userId, ip, method string) error
 	// SaveAppearance 保存个人外观偏好（JSON，见 user_appearance.go）。
 	SaveAppearance(ctx context.Context, userId string, appearance string) error
@@ -63,15 +64,15 @@ type UserListCounts struct {
 type UserUsecase struct {
 	user   UserRepo
 	auth   AuthRepo
-	avatar *avatar.Manager
+	config *ConfigUsecase // 头像储存
 	theme  *ThemeUsecase
 }
 
-func NewUserUsecase(user UserRepo, auth AuthRepo, avatarManager *avatar.Manager, theme *ThemeUsecase) *UserUsecase {
+func NewUserUsecase(user UserRepo, auth AuthRepo, config *ConfigUsecase, theme *ThemeUsecase) *UserUsecase {
 	return &UserUsecase{
 		user:   user,
 		auth:   auth,
-		avatar: avatarManager,
+		config: config,
 		theme:  theme,
 	}
 }
@@ -92,29 +93,41 @@ func (u *UserUsecase) UserInfo(ctx context.Context, userId string) (*v1.UserInfo
 }
 
 func (u *UserUsecase) UpdateMe(ctx context.Context, userId string, req *v1.UpdateMeRequest) (*v1.UserInfo, error) {
-	commit := func() error { return nil }
-	rollback := func() {}
-
-	if req.Avatar != nil {
-		newAvatar, nextCommit, nextRollback, err := u.avatar.Prepare(userId, *req.Avatar)
-		if err != nil {
-			return nil, response.BadRequest(500, err.Error())
-		}
-
-		req.Avatar = &newAvatar
-		commit = nextCommit
-		rollback = nextRollback
-	}
-
 	info, err := u.user.UpdateMe(ctx, userId, req)
 	if err != nil {
-		rollback()
-		return nil, ErrSystem(err)
-	}
-	if err := commit(); err != nil {
 		return nil, ErrSystem(err)
 	}
 	return u.toUserInfo(info), nil
+}
+
+// PresignMyAvatarUpload 签发头像直传地址与上传凭证：浏览器把图片直接 PUT 到对象存储，再凭凭证完成上传。
+func (u *UserUsecase) PresignMyAvatarUpload(ctx context.Context, userId, contentType string, size int64) (uploadURL, token string, err error) {
+	return u.config.presignAvatar(ctx, userId, contentType, size)
+}
+
+// CompleteMyAvatarUpload 凭上传凭证把对象存储里新传的图片设为自己的头像，并删除之前的头像。
+func (u *UserUsecase) CompleteMyAvatarUpload(ctx context.Context, userId, token string) (*v1.UserInfo, error) {
+	current, err := u.user.FindByID(ctx, userId)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	link, key, err := u.config.completeAvatar(ctx, userId, token)
+	if err != nil {
+		return nil, err
+	}
+	info, err := u.user.SetAvatar(ctx, userId, link, key)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	if current.AvatarKey != key {
+		u.config.deleteAvatarObject(ctx, current.AvatarKey)
+	}
+	return u.toUserInfo(info), nil
+}
+
+// AvatarUploadEnabled 是否允许更换头像（系统设置开启了头像储存）。
+func (u *UserUsecase) AvatarUploadEnabled(ctx context.Context) bool {
+	return u.config.AvatarUploadEnabled(ctx)
 }
 
 func (u *UserUsecase) ListUsers(ctx context.Context, req *v1.ListUserRequest) ([]*v1.UserInfo, int64, *UserListCounts, error) {
@@ -161,7 +174,6 @@ func (u *UserUsecase) AddUser(ctx context.Context, req *v1.AddUserRequest) (*v1.
 		Password: passwordHash,
 		Email:    req.Email,
 		Status:   u.toEntUserStatus(req.Status),
-		Avatar:   req.Avatar,
 		Bio:      req.Bio,
 		Name:     req.Name,
 		Tags:     req.Tags,
@@ -188,7 +200,6 @@ func (u *UserUsecase) EditUser(ctx context.Context, req *v1.EditUserRequest) (*v
 		ID:     req.UserId,
 		Email:  req.Email,
 		Status: u.toEntUserStatus(req.Status),
-		Avatar: req.Avatar,
 		Bio:    req.Bio,
 		Name:   req.Name,
 		Tags:   req.Tags,
@@ -205,13 +216,18 @@ func (u *UserUsecase) DeleteUser(ctx context.Context, userIds []string) error {
 			return ErrBuiltinUserProtected
 		}
 	}
-	err := u.user.DeleteUser(ctx, userIds)
-	if err != nil {
+	// 先记下头像对象 key，删号后按 key 尽力删掉对象存储里的头像。
+	avatarKeys := make([]string, 0, len(userIds))
+	for _, id := range userIds {
+		if info, err := u.user.FindByID(ctx, id); err == nil && info.AvatarKey != "" {
+			avatarKeys = append(avatarKeys, info.AvatarKey)
+		}
+	}
+	if err := u.user.DeleteUser(ctx, userIds); err != nil {
 		return ErrSystem(err)
 	}
-
-	for _, userID := range userIds {
-		_ = u.avatar.DeleteByUserID(userID)
+	for _, key := range avatarKeys {
+		u.config.deleteAvatarObject(ctx, key)
 	}
 	return nil
 }

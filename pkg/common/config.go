@@ -78,6 +78,9 @@ const (
 	ConfigFrpsStatSampleInterval ConfigKey = "frps.stat_sample_interval"
 	ConfigFrpsServerAddr         ConfigKey = "frps.server_addr"
 	ConfigFrpsTLSForce           ConfigKey = "frps.tls_force"
+
+	// ConfigStorageAvatar 头像储存（S3 兼容）设置：v1.AvatarStorageConfig 的 protojson（Secret Key 加密存放），空表示没配置过。
+	ConfigStorageAvatar ConfigKey = "storage.avatar"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -152,6 +155,8 @@ var configDefaults = map[ConfigKey]string{
 	ConfigFrpsStatSampleInterval: "30",
 	ConfigFrpsServerAddr:         "",
 	ConfigFrpsTLSForce:           "false",
+
+	ConfigStorageAvatar: "",
 }
 
 func (k ConfigKey) String() string {

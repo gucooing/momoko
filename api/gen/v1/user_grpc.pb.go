@@ -19,17 +19,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_MeInfo_FullMethodName             = "/v1.UserService/MeInfo"
-	UserService_UpdateMe_FullMethodName           = "/v1.UserService/UpdateMe"
-	UserService_UpdateMyAppearance_FullMethodName = "/v1.UserService/UpdateMyAppearance"
-	UserService_MyLoginLogs_FullMethodName        = "/v1.UserService/MyLoginLogs"
-	UserService_ListUser_FullMethodName           = "/v1.UserService/ListUser"
-	UserService_UserInfo_FullMethodName           = "/v1.UserService/UserInfo"
-	UserService_AddUser_FullMethodName            = "/v1.UserService/AddUser"
-	UserService_EditUser_FullMethodName           = "/v1.UserService/EditUser"
-	UserService_DeleteUser_FullMethodName         = "/v1.UserService/DeleteUser"
-	UserService_BatchUpdateUser_FullMethodName    = "/v1.UserService/BatchUpdateUser"
-	UserService_ResetUserPassword_FullMethodName  = "/v1.UserService/ResetUserPassword"
+	UserService_MeInfo_FullMethodName                 = "/v1.UserService/MeInfo"
+	UserService_UpdateMe_FullMethodName               = "/v1.UserService/UpdateMe"
+	UserService_PresignMyAvatarUpload_FullMethodName  = "/v1.UserService/PresignMyAvatarUpload"
+	UserService_CompleteMyAvatarUpload_FullMethodName = "/v1.UserService/CompleteMyAvatarUpload"
+	UserService_UpdateMyAppearance_FullMethodName     = "/v1.UserService/UpdateMyAppearance"
+	UserService_MyLoginLogs_FullMethodName            = "/v1.UserService/MyLoginLogs"
+	UserService_ListUser_FullMethodName               = "/v1.UserService/ListUser"
+	UserService_UserInfo_FullMethodName               = "/v1.UserService/UserInfo"
+	UserService_AddUser_FullMethodName                = "/v1.UserService/AddUser"
+	UserService_EditUser_FullMethodName               = "/v1.UserService/EditUser"
+	UserService_DeleteUser_FullMethodName             = "/v1.UserService/DeleteUser"
+	UserService_BatchUpdateUser_FullMethodName        = "/v1.UserService/BatchUpdateUser"
+	UserService_ResetUserPassword_FullMethodName      = "/v1.UserService/ResetUserPassword"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -42,6 +44,11 @@ type UserServiceClient interface {
 	MeInfo(ctx context.Context, in *MeInfoRequest, opts ...grpc.CallOption) (*MeInfoResponse, error)
 	// 更新个人资料
 	UpdateMe(ctx context.Context, in *UpdateMeRequest, opts ...grpc.CallOption) (*UpdateMeResponse, error)
+	// 申请上传头像：返回对象存储的预签名直传地址和上传凭证，浏览器把图片直接 PUT 到对象存储（不经过服务端）。
+	// 头像只能这样上传，需在系统设置开启头像储存。
+	PresignMyAvatarUpload(ctx context.Context, in *PresignMyAvatarUploadRequest, opts ...grpc.CallOption) (*PresignMyAvatarUploadResponse, error)
+	// 完成上传头像：凭证校验通过且对象已在对象存储里，才设为自己的头像（并删除旧头像）
+	CompleteMyAvatarUpload(ctx context.Context, in *CompleteMyAvatarUploadRequest, opts ...grpc.CallOption) (*CompleteMyAvatarUploadResponse, error)
 	// 保存自己的外观偏好（跟随账号同步到所有设备；不记操作日志）
 	UpdateMyAppearance(ctx context.Context, in *UpdateMyAppearanceRequest, opts ...grpc.CallOption) (*UpdateMyAppearanceResponse, error)
 	// 获取自己的登录日志
@@ -84,6 +91,26 @@ func (c *userServiceClient) UpdateMe(ctx context.Context, in *UpdateMeRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateMeResponse)
 	err := c.cc.Invoke(ctx, UserService_UpdateMe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) PresignMyAvatarUpload(ctx context.Context, in *PresignMyAvatarUploadRequest, opts ...grpc.CallOption) (*PresignMyAvatarUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PresignMyAvatarUploadResponse)
+	err := c.cc.Invoke(ctx, UserService_PresignMyAvatarUpload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CompleteMyAvatarUpload(ctx context.Context, in *CompleteMyAvatarUploadRequest, opts ...grpc.CallOption) (*CompleteMyAvatarUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteMyAvatarUploadResponse)
+	err := c.cc.Invoke(ctx, UserService_CompleteMyAvatarUpload_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +217,11 @@ type UserServiceServer interface {
 	MeInfo(context.Context, *MeInfoRequest) (*MeInfoResponse, error)
 	// 更新个人资料
 	UpdateMe(context.Context, *UpdateMeRequest) (*UpdateMeResponse, error)
+	// 申请上传头像：返回对象存储的预签名直传地址和上传凭证，浏览器把图片直接 PUT 到对象存储（不经过服务端）。
+	// 头像只能这样上传，需在系统设置开启头像储存。
+	PresignMyAvatarUpload(context.Context, *PresignMyAvatarUploadRequest) (*PresignMyAvatarUploadResponse, error)
+	// 完成上传头像：凭证校验通过且对象已在对象存储里，才设为自己的头像（并删除旧头像）
+	CompleteMyAvatarUpload(context.Context, *CompleteMyAvatarUploadRequest) (*CompleteMyAvatarUploadResponse, error)
 	// 保存自己的外观偏好（跟随账号同步到所有设备；不记操作日志）
 	UpdateMyAppearance(context.Context, *UpdateMyAppearanceRequest) (*UpdateMyAppearanceResponse, error)
 	// 获取自己的登录日志
@@ -223,6 +255,12 @@ func (UnimplementedUserServiceServer) MeInfo(context.Context, *MeInfoRequest) (*
 }
 func (UnimplementedUserServiceServer) UpdateMe(context.Context, *UpdateMeRequest) (*UpdateMeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateMe not implemented")
+}
+func (UnimplementedUserServiceServer) PresignMyAvatarUpload(context.Context, *PresignMyAvatarUploadRequest) (*PresignMyAvatarUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PresignMyAvatarUpload not implemented")
+}
+func (UnimplementedUserServiceServer) CompleteMyAvatarUpload(context.Context, *CompleteMyAvatarUploadRequest) (*CompleteMyAvatarUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteMyAvatarUpload not implemented")
 }
 func (UnimplementedUserServiceServer) UpdateMyAppearance(context.Context, *UpdateMyAppearanceRequest) (*UpdateMyAppearanceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateMyAppearance not implemented")
@@ -304,6 +342,42 @@ func _UserService_UpdateMe_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).UpdateMe(ctx, req.(*UpdateMeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_PresignMyAvatarUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PresignMyAvatarUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).PresignMyAvatarUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_PresignMyAvatarUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).PresignMyAvatarUpload(ctx, req.(*PresignMyAvatarUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CompleteMyAvatarUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteMyAvatarUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CompleteMyAvatarUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CompleteMyAvatarUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CompleteMyAvatarUpload(ctx, req.(*CompleteMyAvatarUploadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -484,6 +558,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateMe",
 			Handler:    _UserService_UpdateMe_Handler,
+		},
+		{
+			MethodName: "PresignMyAvatarUpload",
+			Handler:    _UserService_PresignMyAvatarUpload_Handler,
+		},
+		{
+			MethodName: "CompleteMyAvatarUpload",
+			Handler:    _UserService_CompleteMyAvatarUpload_Handler,
 		},
 		{
 			MethodName: "UpdateMyAppearance",

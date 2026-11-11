@@ -56,7 +56,7 @@ func IsInitialized() bool {
 }
 
 func WriteMarker() error {
-	if err := os.MkdirAll(DataDir, 0o755); err != nil {
+	if err := os.MkdirAll(DataDir, 0o777); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func WriteMarker() error {
 	}
 	content = append(content, '\n')
 
-	if err := os.WriteFile(MarkerPath(), content, 0o600); err != nil {
+	if err := os.WriteFile(MarkerPath(), content, 0o666); err != nil {
 		return err
 	}
 

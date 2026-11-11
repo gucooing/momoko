@@ -168,9 +168,11 @@ type MeInfoResponse struct {
 	// 当前主题是「我的主题」时附带它的内容（避免再请求一次）
 	CurrentTheme *Theme `protobuf:"bytes,3,opt,name=current_theme,json=currentTheme,proto3" json:"current_theme,omitempty"`
 	// 全站默认主题（没设置过为空）
-	SiteTheme     *SiteTheme `protobuf:"bytes,4,opt,name=site_theme,json=siteTheme,proto3" json:"site_theme,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	SiteTheme *SiteTheme `protobuf:"bytes,4,opt,name=site_theme,json=siteTheme,proto3" json:"site_theme,omitempty"`
+	// 能否更换头像（系统设置开启了头像储存）
+	AvatarUploadEnabled bool `protobuf:"varint,5,opt,name=avatar_upload_enabled,json=avatarUploadEnabled,proto3" json:"avatar_upload_enabled,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *MeInfoResponse) Reset() {
@@ -229,6 +231,13 @@ func (x *MeInfoResponse) GetSiteTheme() *SiteTheme {
 		return x.SiteTheme
 	}
 	return nil
+}
+
+func (x *MeInfoResponse) GetAvatarUploadEnabled() bool {
+	if x != nil {
+		return x.AvatarUploadEnabled
+	}
+	return false
 }
 
 // 个人外观偏好：只对自己生效，跟随账号同步到所有设备
@@ -338,8 +347,6 @@ type UpdateMeRequest struct {
 	Bio *string `protobuf:"bytes,1,opt,name=bio,proto3,oneof" json:"bio,omitempty"`
 	// 邮箱
 	Email *string `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
-	// 头像url
-	Avatar *string `protobuf:"bytes,3,opt,name=avatar,proto3,oneof" json:"avatar,omitempty"`
 	// 昵称
 	Name *string `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	// 标签
@@ -392,13 +399,6 @@ func (x *UpdateMeRequest) GetBio() string {
 func (x *UpdateMeRequest) GetEmail() string {
 	if x != nil && x.Email != nil {
 		return *x.Email
-	}
-	return ""
-}
-
-func (x *UpdateMeRequest) GetAvatar() string {
-	if x != nil && x.Avatar != nil {
-		return *x.Avatar
 	}
 	return ""
 }
@@ -569,6 +569,208 @@ func (x *UpdateMeResponse) GetUser() *UserInfo {
 	return nil
 }
 
+// 申请上传头像请求
+type PresignMyAvatarUploadRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 图片类型：image/jpeg / image/png / image/webp / image/gif
+	ContentType string `protobuf:"bytes,1,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	// 文件大小（字节），不超过 20MB
+	Size          int64 `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PresignMyAvatarUploadRequest) Reset() {
+	*x = PresignMyAvatarUploadRequest{}
+	mi := &file_v1_user_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PresignMyAvatarUploadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PresignMyAvatarUploadRequest) ProtoMessage() {}
+
+func (x *PresignMyAvatarUploadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_user_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PresignMyAvatarUploadRequest.ProtoReflect.Descriptor instead.
+func (*PresignMyAvatarUploadRequest) Descriptor() ([]byte, []int) {
+	return file_v1_user_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *PresignMyAvatarUploadRequest) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+func (x *PresignMyAvatarUploadRequest) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+// 申请上传头像响应
+type PresignMyAvatarUploadResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 预签名直传地址：PUT 文件内容，Content-Type 与文件大小须与申请时一致（已签进签名）
+	UploadUrl string `protobuf:"bytes,1,opt,name=upload_url,json=uploadUrl,proto3" json:"upload_url,omitempty"`
+	// 上传凭证：上传成功后交给 CompleteMyAvatarUpload（加密，绑定本人与本次对象，限时有效）
+	UploadToken   string `protobuf:"bytes,2,opt,name=upload_token,json=uploadToken,proto3" json:"upload_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PresignMyAvatarUploadResponse) Reset() {
+	*x = PresignMyAvatarUploadResponse{}
+	mi := &file_v1_user_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PresignMyAvatarUploadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PresignMyAvatarUploadResponse) ProtoMessage() {}
+
+func (x *PresignMyAvatarUploadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_user_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PresignMyAvatarUploadResponse.ProtoReflect.Descriptor instead.
+func (*PresignMyAvatarUploadResponse) Descriptor() ([]byte, []int) {
+	return file_v1_user_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *PresignMyAvatarUploadResponse) GetUploadUrl() string {
+	if x != nil {
+		return x.UploadUrl
+	}
+	return ""
+}
+
+func (x *PresignMyAvatarUploadResponse) GetUploadToken() string {
+	if x != nil {
+		return x.UploadToken
+	}
+	return ""
+}
+
+// 完成上传头像请求
+type CompleteMyAvatarUploadRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// PresignMyAvatarUpload 返回的上传凭证
+	UploadToken   string `protobuf:"bytes,1,opt,name=upload_token,json=uploadToken,proto3" json:"upload_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteMyAvatarUploadRequest) Reset() {
+	*x = CompleteMyAvatarUploadRequest{}
+	mi := &file_v1_user_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteMyAvatarUploadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteMyAvatarUploadRequest) ProtoMessage() {}
+
+func (x *CompleteMyAvatarUploadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_user_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteMyAvatarUploadRequest.ProtoReflect.Descriptor instead.
+func (*CompleteMyAvatarUploadRequest) Descriptor() ([]byte, []int) {
+	return file_v1_user_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CompleteMyAvatarUploadRequest) GetUploadToken() string {
+	if x != nil {
+		return x.UploadToken
+	}
+	return ""
+}
+
+// 完成上传头像响应
+type CompleteMyAvatarUploadResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 用户信息（头像已换成新上传的图片）
+	User          *UserInfo `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CompleteMyAvatarUploadResponse) Reset() {
+	*x = CompleteMyAvatarUploadResponse{}
+	mi := &file_v1_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompleteMyAvatarUploadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompleteMyAvatarUploadResponse) ProtoMessage() {}
+
+func (x *CompleteMyAvatarUploadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompleteMyAvatarUploadResponse.ProtoReflect.Descriptor instead.
+func (*CompleteMyAvatarUploadResponse) Descriptor() ([]byte, []int) {
+	return file_v1_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *CompleteMyAvatarUploadResponse) GetUser() *UserInfo {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 // 获取自己的登录日志请求
 type MyLoginLogsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -584,7 +786,7 @@ type MyLoginLogsRequest struct {
 
 func (x *MyLoginLogsRequest) Reset() {
 	*x = MyLoginLogsRequest{}
-	mi := &file_v1_user_proto_msgTypes[7]
+	mi := &file_v1_user_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -596,7 +798,7 @@ func (x *MyLoginLogsRequest) String() string {
 func (*MyLoginLogsRequest) ProtoMessage() {}
 
 func (x *MyLoginLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[7]
+	mi := &file_v1_user_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -609,7 +811,7 @@ func (x *MyLoginLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MyLoginLogsRequest.ProtoReflect.Descriptor instead.
 func (*MyLoginLogsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{7}
+	return file_v1_user_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *MyLoginLogsRequest) GetPage() int64 {
@@ -654,7 +856,7 @@ type MyLoginLogsResponse struct {
 
 func (x *MyLoginLogsResponse) Reset() {
 	*x = MyLoginLogsResponse{}
-	mi := &file_v1_user_proto_msgTypes[8]
+	mi := &file_v1_user_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -666,7 +868,7 @@ func (x *MyLoginLogsResponse) String() string {
 func (*MyLoginLogsResponse) ProtoMessage() {}
 
 func (x *MyLoginLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[8]
+	mi := &file_v1_user_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -679,7 +881,7 @@ func (x *MyLoginLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MyLoginLogsResponse.ProtoReflect.Descriptor instead.
 func (*MyLoginLogsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{8}
+	return file_v1_user_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *MyLoginLogsResponse) GetLogs() []*LoginLogInfo {
@@ -753,7 +955,7 @@ type LoginLogInfo struct {
 
 func (x *LoginLogInfo) Reset() {
 	*x = LoginLogInfo{}
-	mi := &file_v1_user_proto_msgTypes[9]
+	mi := &file_v1_user_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -765,7 +967,7 @@ func (x *LoginLogInfo) String() string {
 func (*LoginLogInfo) ProtoMessage() {}
 
 func (x *LoginLogInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[9]
+	mi := &file_v1_user_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -778,7 +980,7 @@ func (x *LoginLogInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginLogInfo.ProtoReflect.Descriptor instead.
 func (*LoginLogInfo) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{9}
+	return file_v1_user_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *LoginLogInfo) GetTime() *timestamppb.Timestamp {
@@ -870,7 +1072,7 @@ type ListUserRequest struct {
 
 func (x *ListUserRequest) Reset() {
 	*x = ListUserRequest{}
-	mi := &file_v1_user_proto_msgTypes[10]
+	mi := &file_v1_user_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -882,7 +1084,7 @@ func (x *ListUserRequest) String() string {
 func (*ListUserRequest) ProtoMessage() {}
 
 func (x *ListUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[10]
+	mi := &file_v1_user_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -895,7 +1097,7 @@ func (x *ListUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserRequest.ProtoReflect.Descriptor instead.
 func (*ListUserRequest) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{10}
+	return file_v1_user_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListUserRequest) GetPage() int64 {
@@ -956,7 +1158,7 @@ type ListUserResponse struct {
 
 func (x *ListUserResponse) Reset() {
 	*x = ListUserResponse{}
-	mi := &file_v1_user_proto_msgTypes[11]
+	mi := &file_v1_user_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -968,7 +1170,7 @@ func (x *ListUserResponse) String() string {
 func (*ListUserResponse) ProtoMessage() {}
 
 func (x *ListUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[11]
+	mi := &file_v1_user_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -981,7 +1183,7 @@ func (x *ListUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserResponse.ProtoReflect.Descriptor instead.
 func (*ListUserResponse) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{11}
+	return file_v1_user_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListUserResponse) GetUsers() []*UserInfo {
@@ -1044,7 +1246,7 @@ type UserInfoRequest struct {
 
 func (x *UserInfoRequest) Reset() {
 	*x = UserInfoRequest{}
-	mi := &file_v1_user_proto_msgTypes[12]
+	mi := &file_v1_user_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1056,7 +1258,7 @@ func (x *UserInfoRequest) String() string {
 func (*UserInfoRequest) ProtoMessage() {}
 
 func (x *UserInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[12]
+	mi := &file_v1_user_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1069,7 +1271,7 @@ func (x *UserInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfoRequest.ProtoReflect.Descriptor instead.
 func (*UserInfoRequest) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{12}
+	return file_v1_user_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UserInfoRequest) GetUserId() string {
@@ -1090,7 +1292,7 @@ type UserInfoResponse struct {
 
 func (x *UserInfoResponse) Reset() {
 	*x = UserInfoResponse{}
-	mi := &file_v1_user_proto_msgTypes[13]
+	mi := &file_v1_user_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1102,7 +1304,7 @@ func (x *UserInfoResponse) String() string {
 func (*UserInfoResponse) ProtoMessage() {}
 
 func (x *UserInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[13]
+	mi := &file_v1_user_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1115,7 +1317,7 @@ func (x *UserInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfoResponse.ProtoReflect.Descriptor instead.
 func (*UserInfoResponse) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{13}
+	return file_v1_user_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UserInfoResponse) GetUser() *UserInfo {
@@ -1168,7 +1370,7 @@ type UserInfo struct {
 
 func (x *UserInfo) Reset() {
 	*x = UserInfo{}
-	mi := &file_v1_user_proto_msgTypes[14]
+	mi := &file_v1_user_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1180,7 +1382,7 @@ func (x *UserInfo) String() string {
 func (*UserInfo) ProtoMessage() {}
 
 func (x *UserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[14]
+	mi := &file_v1_user_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1193,7 +1395,7 @@ func (x *UserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
 func (*UserInfo) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{14}
+	return file_v1_user_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UserInfo) GetUserId() string {
@@ -1330,7 +1532,7 @@ type UserRole struct {
 
 func (x *UserRole) Reset() {
 	*x = UserRole{}
-	mi := &file_v1_user_proto_msgTypes[15]
+	mi := &file_v1_user_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1342,7 +1544,7 @@ func (x *UserRole) String() string {
 func (*UserRole) ProtoMessage() {}
 
 func (x *UserRole) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[15]
+	mi := &file_v1_user_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1355,7 +1557,7 @@ func (x *UserRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRole.ProtoReflect.Descriptor instead.
 func (*UserRole) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{15}
+	return file_v1_user_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UserRole) GetRoleId() string {
@@ -1389,7 +1591,7 @@ type UserRoleIds struct {
 
 func (x *UserRoleIds) Reset() {
 	*x = UserRoleIds{}
-	mi := &file_v1_user_proto_msgTypes[16]
+	mi := &file_v1_user_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1401,7 +1603,7 @@ func (x *UserRoleIds) String() string {
 func (*UserRoleIds) ProtoMessage() {}
 
 func (x *UserRoleIds) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[16]
+	mi := &file_v1_user_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1414,7 +1616,7 @@ func (x *UserRoleIds) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRoleIds.ProtoReflect.Descriptor instead.
 func (*UserRoleIds) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{16}
+	return file_v1_user_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *UserRoleIds) GetIds() []string {
@@ -1441,7 +1643,7 @@ type LoginInfo struct {
 
 func (x *LoginInfo) Reset() {
 	*x = LoginInfo{}
-	mi := &file_v1_user_proto_msgTypes[17]
+	mi := &file_v1_user_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1453,7 +1655,7 @@ func (x *LoginInfo) String() string {
 func (*LoginInfo) ProtoMessage() {}
 
 func (x *LoginInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[17]
+	mi := &file_v1_user_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1466,7 +1668,7 @@ func (x *LoginInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginInfo.ProtoReflect.Descriptor instead.
 func (*LoginInfo) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{17}
+	return file_v1_user_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *LoginInfo) GetDeviceId() string {
@@ -1508,8 +1710,6 @@ type AddUserRequest struct {
 	Email string `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	// 昵称
 	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	// 头像url
-	Avatar string `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
 	// bio
 	Bio string `protobuf:"bytes,6,opt,name=bio,proto3" json:"bio,omitempty"`
 	// 标签
@@ -1524,7 +1724,7 @@ type AddUserRequest struct {
 
 func (x *AddUserRequest) Reset() {
 	*x = AddUserRequest{}
-	mi := &file_v1_user_proto_msgTypes[18]
+	mi := &file_v1_user_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1536,7 +1736,7 @@ func (x *AddUserRequest) String() string {
 func (*AddUserRequest) ProtoMessage() {}
 
 func (x *AddUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[18]
+	mi := &file_v1_user_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1549,7 +1749,7 @@ func (x *AddUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserRequest.ProtoReflect.Descriptor instead.
 func (*AddUserRequest) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{18}
+	return file_v1_user_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *AddUserRequest) GetUsername() string {
@@ -1576,13 +1776,6 @@ func (x *AddUserRequest) GetEmail() string {
 func (x *AddUserRequest) GetName() string {
 	if x != nil {
 		return x.Name
-	}
-	return ""
-}
-
-func (x *AddUserRequest) GetAvatar() string {
-	if x != nil {
-		return x.Avatar
 	}
 	return ""
 }
@@ -1626,7 +1819,7 @@ type AddUserResponse struct {
 
 func (x *AddUserResponse) Reset() {
 	*x = AddUserResponse{}
-	mi := &file_v1_user_proto_msgTypes[19]
+	mi := &file_v1_user_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1638,7 +1831,7 @@ func (x *AddUserResponse) String() string {
 func (*AddUserResponse) ProtoMessage() {}
 
 func (x *AddUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[19]
+	mi := &file_v1_user_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1651,7 +1844,7 @@ func (x *AddUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddUserResponse.ProtoReflect.Descriptor instead.
 func (*AddUserResponse) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{19}
+	return file_v1_user_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *AddUserResponse) GetUser() *UserInfo {
@@ -1670,8 +1863,6 @@ type EditUserRequest struct {
 	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// 昵称
 	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	// 头像url
-	Avatar string `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`
 	// bio
 	Bio string `protobuf:"bytes,5,opt,name=bio,proto3" json:"bio,omitempty"`
 	// 标签
@@ -1686,7 +1877,7 @@ type EditUserRequest struct {
 
 func (x *EditUserRequest) Reset() {
 	*x = EditUserRequest{}
-	mi := &file_v1_user_proto_msgTypes[20]
+	mi := &file_v1_user_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1698,7 +1889,7 @@ func (x *EditUserRequest) String() string {
 func (*EditUserRequest) ProtoMessage() {}
 
 func (x *EditUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[20]
+	mi := &file_v1_user_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1711,7 +1902,7 @@ func (x *EditUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditUserRequest.ProtoReflect.Descriptor instead.
 func (*EditUserRequest) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{20}
+	return file_v1_user_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *EditUserRequest) GetUserId() string {
@@ -1731,13 +1922,6 @@ func (x *EditUserRequest) GetEmail() string {
 func (x *EditUserRequest) GetName() string {
 	if x != nil {
 		return x.Name
-	}
-	return ""
-}
-
-func (x *EditUserRequest) GetAvatar() string {
-	if x != nil {
-		return x.Avatar
 	}
 	return ""
 }
@@ -1781,7 +1965,7 @@ type EditUserResponse struct {
 
 func (x *EditUserResponse) Reset() {
 	*x = EditUserResponse{}
-	mi := &file_v1_user_proto_msgTypes[21]
+	mi := &file_v1_user_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1793,7 +1977,7 @@ func (x *EditUserResponse) String() string {
 func (*EditUserResponse) ProtoMessage() {}
 
 func (x *EditUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[21]
+	mi := &file_v1_user_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1806,7 +1990,7 @@ func (x *EditUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditUserResponse.ProtoReflect.Descriptor instead.
 func (*EditUserResponse) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{21}
+	return file_v1_user_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *EditUserResponse) GetUser() *UserInfo {
@@ -1827,7 +2011,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_v1_user_proto_msgTypes[22]
+	mi := &file_v1_user_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1839,7 +2023,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[22]
+	mi := &file_v1_user_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1852,7 +2036,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{22}
+	return file_v1_user_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DeleteUserRequest) GetUserIds() []string {
@@ -1871,7 +2055,7 @@ type DeleteUserResponse struct {
 
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
-	mi := &file_v1_user_proto_msgTypes[23]
+	mi := &file_v1_user_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1883,7 +2067,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[23]
+	mi := &file_v1_user_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1896,7 +2080,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{23}
+	return file_v1_user_proto_rawDescGZIP(), []int{27}
 }
 
 // 批量修改用户请求
@@ -1914,7 +2098,7 @@ type BatchUpdateUserRequest struct {
 
 func (x *BatchUpdateUserRequest) Reset() {
 	*x = BatchUpdateUserRequest{}
-	mi := &file_v1_user_proto_msgTypes[24]
+	mi := &file_v1_user_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1926,7 +2110,7 @@ func (x *BatchUpdateUserRequest) String() string {
 func (*BatchUpdateUserRequest) ProtoMessage() {}
 
 func (x *BatchUpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[24]
+	mi := &file_v1_user_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1939,7 +2123,7 @@ func (x *BatchUpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchUpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*BatchUpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{24}
+	return file_v1_user_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *BatchUpdateUserRequest) GetUserIds() []string {
@@ -1976,7 +2160,7 @@ type BatchUpdateUserResponse struct {
 
 func (x *BatchUpdateUserResponse) Reset() {
 	*x = BatchUpdateUserResponse{}
-	mi := &file_v1_user_proto_msgTypes[25]
+	mi := &file_v1_user_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1988,7 +2172,7 @@ func (x *BatchUpdateUserResponse) String() string {
 func (*BatchUpdateUserResponse) ProtoMessage() {}
 
 func (x *BatchUpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[25]
+	mi := &file_v1_user_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2001,7 +2185,7 @@ func (x *BatchUpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchUpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*BatchUpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{25}
+	return file_v1_user_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *BatchUpdateUserResponse) GetUpdated() int64 {
@@ -2031,7 +2215,7 @@ type ResetUserPasswordRequest struct {
 
 func (x *ResetUserPasswordRequest) Reset() {
 	*x = ResetUserPasswordRequest{}
-	mi := &file_v1_user_proto_msgTypes[26]
+	mi := &file_v1_user_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2043,7 +2227,7 @@ func (x *ResetUserPasswordRequest) String() string {
 func (*ResetUserPasswordRequest) ProtoMessage() {}
 
 func (x *ResetUserPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[26]
+	mi := &file_v1_user_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2056,7 +2240,7 @@ func (x *ResetUserPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetUserPasswordRequest.ProtoReflect.Descriptor instead.
 func (*ResetUserPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{26}
+	return file_v1_user_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ResetUserPasswordRequest) GetUserId() string {
@@ -2082,7 +2266,7 @@ type ResetUserPasswordResponse struct {
 
 func (x *ResetUserPasswordResponse) Reset() {
 	*x = ResetUserPasswordResponse{}
-	mi := &file_v1_user_proto_msgTypes[27]
+	mi := &file_v1_user_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2094,7 +2278,7 @@ func (x *ResetUserPasswordResponse) String() string {
 func (*ResetUserPasswordResponse) ProtoMessage() {}
 
 func (x *ResetUserPasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_user_proto_msgTypes[27]
+	mi := &file_v1_user_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2107,7 +2291,7 @@ func (x *ResetUserPasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetUserPasswordResponse.ProtoReflect.Descriptor instead.
 func (*ResetUserPasswordResponse) Descriptor() ([]byte, []int) {
-	return file_v1_user_proto_rawDescGZIP(), []int{27}
+	return file_v1_user_proto_rawDescGZIP(), []int{31}
 }
 
 var File_v1_user_proto protoreflect.FileDescriptor
@@ -2115,7 +2299,7 @@ var File_v1_user_proto protoreflect.FileDescriptor
 const file_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"\rv1/user.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x0fv1/system.proto\x1a\x0ev1/theme.proto\"\x0f\n" +
-	"\rMeInfoRequest\"\xc4\x01\n" +
+	"\rMeInfoRequest\"\xf8\x01\n" +
 	"\x0eMeInfoResponse\x12 \n" +
 	"\x04user\x18\x01 \x01(\v2\f.v1.UserInfoR\x04user\x122\n" +
 	"\n" +
@@ -2123,7 +2307,8 @@ const file_v1_user_proto_rawDesc = "" +
 	"appearance\x12.\n" +
 	"\rcurrent_theme\x18\x03 \x01(\v2\t.v1.ThemeR\fcurrentTheme\x12,\n" +
 	"\n" +
-	"site_theme\x18\x04 \x01(\v2\r.v1.SiteThemeR\tsiteTheme\"\xe3\x01\n" +
+	"site_theme\x18\x04 \x01(\v2\r.v1.SiteThemeR\tsiteTheme\x122\n" +
+	"\x15avatar_upload_enabled\x18\x05 \x01(\bR\x13avatarUploadEnabled\"\xe3\x01\n" +
 	"\x0eUserAppearance\x12\x14\n" +
 	"\x05theme\x18\x01 \x01(\tR\x05theme\x12\x12\n" +
 	"\x04mode\x18\x02 \x01(\tR\x04mode\x12\x18\n" +
@@ -2133,22 +2318,20 @@ const file_v1_user_proto_rawDesc = "" +
 	"\tshow_tabs\x18\x06 \x01(\bR\bshowTabs\x123\n" +
 	"\n" +
 	"background\x18\a \x01(\v2\x13.v1.ThemeBackgroundR\n" +
-	"background\"\x94\x02\n" +
+	"background\"\xf2\x01\n" +
 	"\x0fUpdateMeRequest\x12\x15\n" +
 	"\x03bio\x18\x01 \x01(\tH\x00R\x03bio\x88\x01\x01\x12\x19\n" +
-	"\x05email\x18\x02 \x01(\tH\x01R\x05email\x88\x01\x01\x12\x1b\n" +
-	"\x06avatar\x18\x03 \x01(\tH\x02R\x06avatar\x88\x01\x01\x12\x17\n" +
-	"\x04name\x18\x04 \x01(\tH\x03R\x04name\x88\x01\x01\x12\x17\n" +
-	"\x04tags\x18\x05 \x01(\tH\x04R\x04tags\x88\x01\x01\x12\x1f\n" +
-	"\busername\x18\x06 \x01(\tH\x05R\busername\x88\x01\x01\x12\x19\n" +
-	"\x05phone\x18\a \x01(\tH\x06R\x05phone\x88\x01\x01B\x06\n" +
+	"\x05email\x18\x02 \x01(\tH\x01R\x05email\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x04 \x01(\tH\x02R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04tags\x18\x05 \x01(\tH\x03R\x04tags\x88\x01\x01\x12\x1f\n" +
+	"\busername\x18\x06 \x01(\tH\x04R\busername\x88\x01\x01\x12\x19\n" +
+	"\x05phone\x18\a \x01(\tH\x05R\x05phone\x88\x01\x01B\x06\n" +
 	"\x04_bioB\b\n" +
-	"\x06_emailB\t\n" +
-	"\a_avatarB\a\n" +
+	"\x06_emailB\a\n" +
 	"\x05_nameB\a\n" +
 	"\x05_tagsB\v\n" +
 	"\t_usernameB\b\n" +
-	"\x06_phone\"O\n" +
+	"\x06_phoneJ\x04\b\x03\x10\x04\"O\n" +
 	"\x19UpdateMyAppearanceRequest\x122\n" +
 	"\n" +
 	"appearance\x18\x01 \x01(\v2\x12.v1.UserAppearanceR\n" +
@@ -2158,6 +2341,17 @@ const file_v1_user_proto_rawDesc = "" +
 	"appearance\x18\x01 \x01(\v2\x12.v1.UserAppearanceR\n" +
 	"appearance\"4\n" +
 	"\x10UpdateMeResponse\x12 \n" +
+	"\x04user\x18\x01 \x01(\v2\f.v1.UserInfoR\x04user\"U\n" +
+	"\x1cPresignMyAvatarUploadRequest\x12!\n" +
+	"\fcontent_type\x18\x01 \x01(\tR\vcontentType\x12\x12\n" +
+	"\x04size\x18\x02 \x01(\x03R\x04size\"a\n" +
+	"\x1dPresignMyAvatarUploadResponse\x12\x1d\n" +
+	"\n" +
+	"upload_url\x18\x01 \x01(\tR\tuploadUrl\x12!\n" +
+	"\fupload_token\x18\x02 \x01(\tR\vuploadToken\"B\n" +
+	"\x1dCompleteMyAvatarUploadRequest\x12!\n" +
+	"\fupload_token\x18\x01 \x01(\tR\vuploadToken\"B\n" +
+	"\x1eCompleteMyAvatarUploadResponse\x12 \n" +
 	"\x04user\x18\x01 \x01(\v2\f.v1.UserInfoR\x04user\"p\n" +
 	"\x12MyLoginLogsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
@@ -2241,30 +2435,28 @@ const file_v1_user_proto_rawDesc = "" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12.\n" +
 	"\x04time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x0e\n" +
 	"\x02ip\x18\x03 \x01(\tR\x02ip\x12'\n" +
-	"\x06status\x18\x04 \x01(\x0e2\x0f.v1.LoginStatusR\x06status\"\xf9\x01\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x0f.v1.LoginStatusR\x06status\"\xe7\x01\n" +
 	"\x0eAddUserRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x12\n" +
-	"\x04name\x18\x04 \x01(\tR\x04name\x12\x16\n" +
-	"\x06avatar\x18\x05 \x01(\tR\x06avatar\x12\x10\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x10\n" +
 	"\x03bio\x18\x06 \x01(\tR\x03bio\x12\x12\n" +
 	"\x04tags\x18\a \x01(\tR\x04tags\x12&\n" +
 	"\x06status\x18\b \x01(\x0e2\x0e.v1.UserStatusR\x06status\x12\x19\n" +
 	"\brole_ids\x18\n" +
-	" \x03(\tR\aroleIdsJ\x04\b\t\x10\n" +
+	" \x03(\tR\aroleIdsJ\x04\b\x05\x10\x06J\x04\b\t\x10\n" +
 	"\"3\n" +
 	"\x0fAddUserResponse\x12 \n" +
-	"\x04user\x18\x01 \x01(\v2\f.v1.UserInfoR\x04user\"\xdb\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\f.v1.UserInfoR\x04user\"\xc9\x01\n" +
 	"\x0fEditUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
-	"\x06avatar\x18\x04 \x01(\tR\x06avatar\x12\x10\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x10\n" +
 	"\x03bio\x18\x05 \x01(\tR\x03bio\x12\x12\n" +
 	"\x04tags\x18\x06 \x01(\tR\x04tags\x12&\n" +
 	"\x06status\x18\a \x01(\x0e2\x0e.v1.UserStatusR\x06status\x12\x19\n" +
-	"\brole_ids\x18\t \x03(\tR\aroleIdsJ\x04\b\b\x10\t\"4\n" +
+	"\brole_ids\x18\t \x03(\tR\aroleIdsJ\x04\b\x04\x10\x05J\x04\b\b\x10\t\"4\n" +
 	"\x10EditUserResponse\x12 \n" +
 	"\x04user\x18\x01 \x01(\v2\f.v1.UserInfoR\x04user\".\n" +
 	"\x11DeleteUserRequest\x12\x19\n" +
@@ -2289,10 +2481,13 @@ const file_v1_user_proto_rawDesc = "" +
 	"\x06Active\x10\x01*(\n" +
 	"\vLoginStatus\x12\v\n" +
 	"\aSuccess\x10\x00\x12\f\n" +
-	"\bPassword\x10\x012\x9e\b\n" +
+	"\bPassword\x10\x012\xb6\n" +
+	"\n" +
 	"\vUserService\x12H\n" +
 	"\x06MeInfo\x12\x11.v1.MeInfoRequest\x1a\x12.v1.MeInfoResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/v1/user/me\x12Q\n" +
-	"\bUpdateMe\x12\x13.v1.UpdateMeRequest\x1a\x14.v1.UpdateMeResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\x1a\x0f/api/v1/auth/me\x12z\n" +
+	"\bUpdateMe\x12\x13.v1.UpdateMeRequest\x1a\x14.v1.UpdateMeResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\x1a\x0f/api/v1/auth/me\x12\x87\x01\n" +
+	"\x15PresignMyAvatarUpload\x12 .v1.PresignMyAvatarUploadRequest\x1a!.v1.PresignMyAvatarUploadResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/user/me/avatar/presign\x12\x8b\x01\n" +
+	"\x16CompleteMyAvatarUpload\x12!.v1.CompleteMyAvatarUploadRequest\x1a\".v1.CompleteMyAvatarUploadResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/user/me/avatar/complete\x12z\n" +
 	"\x12UpdateMyAppearance\x12\x1d.v1.UpdateMyAppearanceRequest\x1a\x1e.v1.UpdateMyAppearanceResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/v1/user/me/appearance\x12b\n" +
 	"\vMyLoginLogs\x12\x16.v1.MyLoginLogsRequest\x1a\x17.v1.MyLoginLogsResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/user/me/login-logs\x12P\n" +
 	"\bListUser\x12\x13.v1.ListUserRequest\x1a\x14.v1.ListUserResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/api/v1/user/list\x12U\n" +
@@ -2317,98 +2512,107 @@ func file_v1_user_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_user_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_v1_user_proto_goTypes = []any{
-	(UserStatus)(0),                    // 0: v1.UserStatus
-	(LoginStatus)(0),                   // 1: v1.LoginStatus
-	(*MeInfoRequest)(nil),              // 2: v1.MeInfoRequest
-	(*MeInfoResponse)(nil),             // 3: v1.MeInfoResponse
-	(*UserAppearance)(nil),             // 4: v1.UserAppearance
-	(*UpdateMeRequest)(nil),            // 5: v1.UpdateMeRequest
-	(*UpdateMyAppearanceRequest)(nil),  // 6: v1.UpdateMyAppearanceRequest
-	(*UpdateMyAppearanceResponse)(nil), // 7: v1.UpdateMyAppearanceResponse
-	(*UpdateMeResponse)(nil),           // 8: v1.UpdateMeResponse
-	(*MyLoginLogsRequest)(nil),         // 9: v1.MyLoginLogsRequest
-	(*MyLoginLogsResponse)(nil),        // 10: v1.MyLoginLogsResponse
-	(*LoginLogInfo)(nil),               // 11: v1.LoginLogInfo
-	(*ListUserRequest)(nil),            // 12: v1.ListUserRequest
-	(*ListUserResponse)(nil),           // 13: v1.ListUserResponse
-	(*UserInfoRequest)(nil),            // 14: v1.UserInfoRequest
-	(*UserInfoResponse)(nil),           // 15: v1.UserInfoResponse
-	(*UserInfo)(nil),                   // 16: v1.UserInfo
-	(*UserRole)(nil),                   // 17: v1.UserRole
-	(*UserRoleIds)(nil),                // 18: v1.UserRoleIds
-	(*LoginInfo)(nil),                  // 19: v1.LoginInfo
-	(*AddUserRequest)(nil),             // 20: v1.AddUserRequest
-	(*AddUserResponse)(nil),            // 21: v1.AddUserResponse
-	(*EditUserRequest)(nil),            // 22: v1.EditUserRequest
-	(*EditUserResponse)(nil),           // 23: v1.EditUserResponse
-	(*DeleteUserRequest)(nil),          // 24: v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),         // 25: v1.DeleteUserResponse
-	(*BatchUpdateUserRequest)(nil),     // 26: v1.BatchUpdateUserRequest
-	(*BatchUpdateUserResponse)(nil),    // 27: v1.BatchUpdateUserResponse
-	(*ResetUserPasswordRequest)(nil),   // 28: v1.ResetUserPasswordRequest
-	(*ResetUserPasswordResponse)(nil),  // 29: v1.ResetUserPasswordResponse
-	(*Theme)(nil),                      // 30: v1.Theme
-	(*SiteTheme)(nil),                  // 31: v1.SiteTheme
-	(*ThemeBackground)(nil),            // 32: v1.ThemeBackground
-	(*timestamppb.Timestamp)(nil),      // 33: google.protobuf.Timestamp
+	(UserStatus)(0),                        // 0: v1.UserStatus
+	(LoginStatus)(0),                       // 1: v1.LoginStatus
+	(*MeInfoRequest)(nil),                  // 2: v1.MeInfoRequest
+	(*MeInfoResponse)(nil),                 // 3: v1.MeInfoResponse
+	(*UserAppearance)(nil),                 // 4: v1.UserAppearance
+	(*UpdateMeRequest)(nil),                // 5: v1.UpdateMeRequest
+	(*UpdateMyAppearanceRequest)(nil),      // 6: v1.UpdateMyAppearanceRequest
+	(*UpdateMyAppearanceResponse)(nil),     // 7: v1.UpdateMyAppearanceResponse
+	(*UpdateMeResponse)(nil),               // 8: v1.UpdateMeResponse
+	(*PresignMyAvatarUploadRequest)(nil),   // 9: v1.PresignMyAvatarUploadRequest
+	(*PresignMyAvatarUploadResponse)(nil),  // 10: v1.PresignMyAvatarUploadResponse
+	(*CompleteMyAvatarUploadRequest)(nil),  // 11: v1.CompleteMyAvatarUploadRequest
+	(*CompleteMyAvatarUploadResponse)(nil), // 12: v1.CompleteMyAvatarUploadResponse
+	(*MyLoginLogsRequest)(nil),             // 13: v1.MyLoginLogsRequest
+	(*MyLoginLogsResponse)(nil),            // 14: v1.MyLoginLogsResponse
+	(*LoginLogInfo)(nil),                   // 15: v1.LoginLogInfo
+	(*ListUserRequest)(nil),                // 16: v1.ListUserRequest
+	(*ListUserResponse)(nil),               // 17: v1.ListUserResponse
+	(*UserInfoRequest)(nil),                // 18: v1.UserInfoRequest
+	(*UserInfoResponse)(nil),               // 19: v1.UserInfoResponse
+	(*UserInfo)(nil),                       // 20: v1.UserInfo
+	(*UserRole)(nil),                       // 21: v1.UserRole
+	(*UserRoleIds)(nil),                    // 22: v1.UserRoleIds
+	(*LoginInfo)(nil),                      // 23: v1.LoginInfo
+	(*AddUserRequest)(nil),                 // 24: v1.AddUserRequest
+	(*AddUserResponse)(nil),                // 25: v1.AddUserResponse
+	(*EditUserRequest)(nil),                // 26: v1.EditUserRequest
+	(*EditUserResponse)(nil),               // 27: v1.EditUserResponse
+	(*DeleteUserRequest)(nil),              // 28: v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),             // 29: v1.DeleteUserResponse
+	(*BatchUpdateUserRequest)(nil),         // 30: v1.BatchUpdateUserRequest
+	(*BatchUpdateUserResponse)(nil),        // 31: v1.BatchUpdateUserResponse
+	(*ResetUserPasswordRequest)(nil),       // 32: v1.ResetUserPasswordRequest
+	(*ResetUserPasswordResponse)(nil),      // 33: v1.ResetUserPasswordResponse
+	(*Theme)(nil),                          // 34: v1.Theme
+	(*SiteTheme)(nil),                      // 35: v1.SiteTheme
+	(*ThemeBackground)(nil),                // 36: v1.ThemeBackground
+	(*timestamppb.Timestamp)(nil),          // 37: google.protobuf.Timestamp
 }
 var file_v1_user_proto_depIdxs = []int32{
-	16, // 0: v1.MeInfoResponse.user:type_name -> v1.UserInfo
+	20, // 0: v1.MeInfoResponse.user:type_name -> v1.UserInfo
 	4,  // 1: v1.MeInfoResponse.appearance:type_name -> v1.UserAppearance
-	30, // 2: v1.MeInfoResponse.current_theme:type_name -> v1.Theme
-	31, // 3: v1.MeInfoResponse.site_theme:type_name -> v1.SiteTheme
-	32, // 4: v1.UserAppearance.background:type_name -> v1.ThemeBackground
+	34, // 2: v1.MeInfoResponse.current_theme:type_name -> v1.Theme
+	35, // 3: v1.MeInfoResponse.site_theme:type_name -> v1.SiteTheme
+	36, // 4: v1.UserAppearance.background:type_name -> v1.ThemeBackground
 	4,  // 5: v1.UpdateMyAppearanceRequest.appearance:type_name -> v1.UserAppearance
 	4,  // 6: v1.UpdateMyAppearanceResponse.appearance:type_name -> v1.UserAppearance
-	16, // 7: v1.UpdateMeResponse.user:type_name -> v1.UserInfo
-	11, // 8: v1.MyLoginLogsResponse.logs:type_name -> v1.LoginLogInfo
-	33, // 9: v1.LoginLogInfo.time:type_name -> google.protobuf.Timestamp
-	0,  // 10: v1.ListUserRequest.status:type_name -> v1.UserStatus
-	16, // 11: v1.ListUserResponse.users:type_name -> v1.UserInfo
-	16, // 12: v1.UserInfoResponse.user:type_name -> v1.UserInfo
-	33, // 13: v1.UserInfo.create_time:type_name -> google.protobuf.Timestamp
-	0,  // 14: v1.UserInfo.status:type_name -> v1.UserStatus
-	33, // 15: v1.UserInfo.update_time:type_name -> google.protobuf.Timestamp
-	33, // 16: v1.UserInfo.last_login_time:type_name -> google.protobuf.Timestamp
-	33, // 17: v1.UserInfo.password_update_time:type_name -> google.protobuf.Timestamp
-	17, // 18: v1.UserInfo.roles:type_name -> v1.UserRole
-	33, // 19: v1.LoginInfo.time:type_name -> google.protobuf.Timestamp
-	1,  // 20: v1.LoginInfo.status:type_name -> v1.LoginStatus
-	0,  // 21: v1.AddUserRequest.status:type_name -> v1.UserStatus
-	16, // 22: v1.AddUserResponse.user:type_name -> v1.UserInfo
-	0,  // 23: v1.EditUserRequest.status:type_name -> v1.UserStatus
-	16, // 24: v1.EditUserResponse.user:type_name -> v1.UserInfo
-	0,  // 25: v1.BatchUpdateUserRequest.status:type_name -> v1.UserStatus
-	18, // 26: v1.BatchUpdateUserRequest.roles:type_name -> v1.UserRoleIds
-	2,  // 27: v1.UserService.MeInfo:input_type -> v1.MeInfoRequest
-	5,  // 28: v1.UserService.UpdateMe:input_type -> v1.UpdateMeRequest
-	6,  // 29: v1.UserService.UpdateMyAppearance:input_type -> v1.UpdateMyAppearanceRequest
-	9,  // 30: v1.UserService.MyLoginLogs:input_type -> v1.MyLoginLogsRequest
-	12, // 31: v1.UserService.ListUser:input_type -> v1.ListUserRequest
-	14, // 32: v1.UserService.UserInfo:input_type -> v1.UserInfoRequest
-	20, // 33: v1.UserService.AddUser:input_type -> v1.AddUserRequest
-	22, // 34: v1.UserService.EditUser:input_type -> v1.EditUserRequest
-	24, // 35: v1.UserService.DeleteUser:input_type -> v1.DeleteUserRequest
-	26, // 36: v1.UserService.BatchUpdateUser:input_type -> v1.BatchUpdateUserRequest
-	28, // 37: v1.UserService.ResetUserPassword:input_type -> v1.ResetUserPasswordRequest
-	3,  // 38: v1.UserService.MeInfo:output_type -> v1.MeInfoResponse
-	8,  // 39: v1.UserService.UpdateMe:output_type -> v1.UpdateMeResponse
-	7,  // 40: v1.UserService.UpdateMyAppearance:output_type -> v1.UpdateMyAppearanceResponse
-	10, // 41: v1.UserService.MyLoginLogs:output_type -> v1.MyLoginLogsResponse
-	13, // 42: v1.UserService.ListUser:output_type -> v1.ListUserResponse
-	15, // 43: v1.UserService.UserInfo:output_type -> v1.UserInfoResponse
-	21, // 44: v1.UserService.AddUser:output_type -> v1.AddUserResponse
-	23, // 45: v1.UserService.EditUser:output_type -> v1.EditUserResponse
-	25, // 46: v1.UserService.DeleteUser:output_type -> v1.DeleteUserResponse
-	27, // 47: v1.UserService.BatchUpdateUser:output_type -> v1.BatchUpdateUserResponse
-	29, // 48: v1.UserService.ResetUserPassword:output_type -> v1.ResetUserPasswordResponse
-	38, // [38:49] is the sub-list for method output_type
-	27, // [27:38] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	20, // 7: v1.UpdateMeResponse.user:type_name -> v1.UserInfo
+	20, // 8: v1.CompleteMyAvatarUploadResponse.user:type_name -> v1.UserInfo
+	15, // 9: v1.MyLoginLogsResponse.logs:type_name -> v1.LoginLogInfo
+	37, // 10: v1.LoginLogInfo.time:type_name -> google.protobuf.Timestamp
+	0,  // 11: v1.ListUserRequest.status:type_name -> v1.UserStatus
+	20, // 12: v1.ListUserResponse.users:type_name -> v1.UserInfo
+	20, // 13: v1.UserInfoResponse.user:type_name -> v1.UserInfo
+	37, // 14: v1.UserInfo.create_time:type_name -> google.protobuf.Timestamp
+	0,  // 15: v1.UserInfo.status:type_name -> v1.UserStatus
+	37, // 16: v1.UserInfo.update_time:type_name -> google.protobuf.Timestamp
+	37, // 17: v1.UserInfo.last_login_time:type_name -> google.protobuf.Timestamp
+	37, // 18: v1.UserInfo.password_update_time:type_name -> google.protobuf.Timestamp
+	21, // 19: v1.UserInfo.roles:type_name -> v1.UserRole
+	37, // 20: v1.LoginInfo.time:type_name -> google.protobuf.Timestamp
+	1,  // 21: v1.LoginInfo.status:type_name -> v1.LoginStatus
+	0,  // 22: v1.AddUserRequest.status:type_name -> v1.UserStatus
+	20, // 23: v1.AddUserResponse.user:type_name -> v1.UserInfo
+	0,  // 24: v1.EditUserRequest.status:type_name -> v1.UserStatus
+	20, // 25: v1.EditUserResponse.user:type_name -> v1.UserInfo
+	0,  // 26: v1.BatchUpdateUserRequest.status:type_name -> v1.UserStatus
+	22, // 27: v1.BatchUpdateUserRequest.roles:type_name -> v1.UserRoleIds
+	2,  // 28: v1.UserService.MeInfo:input_type -> v1.MeInfoRequest
+	5,  // 29: v1.UserService.UpdateMe:input_type -> v1.UpdateMeRequest
+	9,  // 30: v1.UserService.PresignMyAvatarUpload:input_type -> v1.PresignMyAvatarUploadRequest
+	11, // 31: v1.UserService.CompleteMyAvatarUpload:input_type -> v1.CompleteMyAvatarUploadRequest
+	6,  // 32: v1.UserService.UpdateMyAppearance:input_type -> v1.UpdateMyAppearanceRequest
+	13, // 33: v1.UserService.MyLoginLogs:input_type -> v1.MyLoginLogsRequest
+	16, // 34: v1.UserService.ListUser:input_type -> v1.ListUserRequest
+	18, // 35: v1.UserService.UserInfo:input_type -> v1.UserInfoRequest
+	24, // 36: v1.UserService.AddUser:input_type -> v1.AddUserRequest
+	26, // 37: v1.UserService.EditUser:input_type -> v1.EditUserRequest
+	28, // 38: v1.UserService.DeleteUser:input_type -> v1.DeleteUserRequest
+	30, // 39: v1.UserService.BatchUpdateUser:input_type -> v1.BatchUpdateUserRequest
+	32, // 40: v1.UserService.ResetUserPassword:input_type -> v1.ResetUserPasswordRequest
+	3,  // 41: v1.UserService.MeInfo:output_type -> v1.MeInfoResponse
+	8,  // 42: v1.UserService.UpdateMe:output_type -> v1.UpdateMeResponse
+	10, // 43: v1.UserService.PresignMyAvatarUpload:output_type -> v1.PresignMyAvatarUploadResponse
+	12, // 44: v1.UserService.CompleteMyAvatarUpload:output_type -> v1.CompleteMyAvatarUploadResponse
+	7,  // 45: v1.UserService.UpdateMyAppearance:output_type -> v1.UpdateMyAppearanceResponse
+	14, // 46: v1.UserService.MyLoginLogs:output_type -> v1.MyLoginLogsResponse
+	17, // 47: v1.UserService.ListUser:output_type -> v1.ListUserResponse
+	19, // 48: v1.UserService.UserInfo:output_type -> v1.UserInfoResponse
+	25, // 49: v1.UserService.AddUser:output_type -> v1.AddUserResponse
+	27, // 50: v1.UserService.EditUser:output_type -> v1.EditUserResponse
+	29, // 51: v1.UserService.DeleteUser:output_type -> v1.DeleteUserResponse
+	31, // 52: v1.UserService.BatchUpdateUser:output_type -> v1.BatchUpdateUserResponse
+	33, // 53: v1.UserService.ResetUserPassword:output_type -> v1.ResetUserPasswordResponse
+	41, // [41:54] is the sub-list for method output_type
+	28, // [28:41] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_v1_user_proto_init() }
@@ -2419,16 +2623,16 @@ func file_v1_user_proto_init() {
 	file_v1_system_proto_init()
 	file_v1_theme_proto_init()
 	file_v1_user_proto_msgTypes[3].OneofWrappers = []any{}
-	file_v1_user_proto_msgTypes[7].OneofWrappers = []any{}
-	file_v1_user_proto_msgTypes[10].OneofWrappers = []any{}
-	file_v1_user_proto_msgTypes[24].OneofWrappers = []any{}
+	file_v1_user_proto_msgTypes[11].OneofWrappers = []any{}
+	file_v1_user_proto_msgTypes[14].OneofWrappers = []any{}
+	file_v1_user_proto_msgTypes[28].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_user_proto_rawDesc), len(file_v1_user_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   28,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

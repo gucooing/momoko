@@ -29,6 +29,8 @@ const (
 	FieldStatus = "status"
 	// FieldAvatar holds the string denoting the avatar field in the database.
 	FieldAvatar = "avatar"
+	// FieldAvatarKey holds the string denoting the avatar_key field in the database.
+	FieldAvatarKey = "avatar_key"
 	// FieldBio holds the string denoting the bio field in the database.
 	FieldBio = "bio"
 	// FieldName holds the string denoting the name field in the database.
@@ -84,6 +86,7 @@ var Columns = []string{
 	FieldEmail,
 	FieldStatus,
 	FieldAvatar,
+	FieldAvatarKey,
 	FieldBio,
 	FieldName,
 	FieldTags,
@@ -136,6 +139,8 @@ var (
 	UsernameValidator func(string) error
 	// DefaultAvatar holds the default value on creation for the "avatar" field.
 	DefaultAvatar string
+	// DefaultAvatarKey holds the default value on creation for the "avatar_key" field.
+	DefaultAvatarKey string
 	// DefaultName holds the default value on creation for the "name" field.
 	DefaultName string
 	// DefaultPhone holds the default value on creation for the "phone" field.
@@ -211,6 +216,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByAvatar orders the results by the avatar field.
 func ByAvatar(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAvatar, opts...).ToFunc()
+}
+
+// ByAvatarKey orders the results by the avatar_key field.
+func ByAvatarKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAvatarKey, opts...).ToFunc()
 }
 
 // ByBio orders the results by the bio field.

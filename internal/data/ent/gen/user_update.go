@@ -107,6 +107,20 @@ func (_u *UserUpdate) SetNillableAvatar(v *string) *UserUpdate {
 	return _u
 }
 
+// SetAvatarKey sets the "avatar_key" field.
+func (_u *UserUpdate) SetAvatarKey(v string) *UserUpdate {
+	_u.mutation.SetAvatarKey(v)
+	return _u
+}
+
+// SetNillableAvatarKey sets the "avatar_key" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableAvatarKey(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetAvatarKey(*v)
+	}
+	return _u
+}
+
 // SetBio sets the "bio" field.
 func (_u *UserUpdate) SetBio(v string) *UserUpdate {
 	_u.mutation.SetBio(v)
@@ -469,6 +483,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.AvatarKey(); ok {
+		_spec.SetField(user.FieldAvatarKey, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Bio(); ok {
 		_spec.SetField(user.FieldBio, field.TypeString, value)
 	}
@@ -744,6 +761,20 @@ func (_u *UserUpdateOne) SetAvatar(v string) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillableAvatar(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetAvatar(*v)
+	}
+	return _u
+}
+
+// SetAvatarKey sets the "avatar_key" field.
+func (_u *UserUpdateOne) SetAvatarKey(v string) *UserUpdateOne {
+	_u.mutation.SetAvatarKey(v)
+	return _u
+}
+
+// SetNillableAvatarKey sets the "avatar_key" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableAvatarKey(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetAvatarKey(*v)
 	}
 	return _u
 }
@@ -1139,6 +1170,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AvatarKey(); ok {
+		_spec.SetField(user.FieldAvatarKey, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Bio(); ok {
 		_spec.SetField(user.FieldBio, field.TypeString, value)

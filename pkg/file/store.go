@@ -257,7 +257,8 @@ func (s *LocalStore) Write(_ context.Context, path string, r io.Reader) error {
 		return err
 	}
 	target := filepath.Join(realDir, filepath.Base(path))
-	f, err := os.OpenFile(target, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	// 已存在则就地截断覆写（权限/属主不变）；不存在则按系统默认权限（umask）新建。
+	f, err := os.OpenFile(target, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o666)
 	if err != nil {
 		return err
 	}
@@ -299,7 +300,8 @@ func (s *LocalStore) Unzip(_ context.Context, path, targetPath string) (string, 
 	return s.oper.Unzip(path, targetPath)
 }
 
-// ---- 本地分片上传：分片经 momoko 签名端点落本地缓冲，收尾时原子 rename 到目标真实路径 ----
+// ---- 本地分片上传：分片经 momoko 签名端点落本地缓冲，收尾时落到目标真实路径 ----
+// 覆盖同名文件只替换内容，绝不改动原文件的权限位与属主属组；新文件的权限交给系统默认（umask）。
 
 func (s *LocalStore) PrepareUpload(_ context.Context, u *Upload) error {
 	fillSignedParts(u)
@@ -308,8 +310,8 @@ func (s *LocalStore) PrepareUpload(_ context.Context, u *Upload) error {
 
 func (s *LocalStore) CompleteUpload(_ context.Context, u *Upload) error {
 	finalPath := filepath.Join(u.Path, u.FileName)
-	if u.TotalParts == 0 { // 空文件无分片，直接落一个空文件
-		f, err := os.OpenFile(finalPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	if u.TotalParts == 0 { // 空文件无分片：已存在则就地截断（元数据不变），否则按系统默认权限新建
+		f, err := os.OpenFile(finalPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o666)
 		if err != nil {
 			return fmt.Errorf("创建文件失败: %w", err)
 		}
@@ -319,10 +321,7 @@ func (s *LocalStore) CompleteUpload(_ context.Context, u *Upload) error {
 	if err := verifyBuffer(bufPath, uint64(len(u.Uploaded)), u.TotalParts, u.FileSize); err != nil {
 		return err
 	}
-	if err := os.Rename(bufPath, finalPath); err != nil {
-		return fmt.Errorf("重命名文件失败: %w", err)
-	}
-	return nil
+	return placeFile(bufPath, finalPath)
 }
 
 func (s *LocalStore) CancelUpload(_ context.Context, u *Upload) error {

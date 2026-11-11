@@ -100,6 +100,20 @@ func (_c *UserCreate) SetNillableAvatar(v *string) *UserCreate {
 	return _c
 }
 
+// SetAvatarKey sets the "avatar_key" field.
+func (_c *UserCreate) SetAvatarKey(v string) *UserCreate {
+	_c.mutation.SetAvatarKey(v)
+	return _c
+}
+
+// SetNillableAvatarKey sets the "avatar_key" field if the given value is not nil.
+func (_c *UserCreate) SetNillableAvatarKey(v *string) *UserCreate {
+	if v != nil {
+		_c.SetAvatarKey(*v)
+	}
+	return _c
+}
+
 // SetBio sets the "bio" field.
 func (_c *UserCreate) SetBio(v string) *UserCreate {
 	_c.mutation.SetBio(v)
@@ -328,6 +342,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultAvatar
 		_c.mutation.SetAvatar(v)
 	}
+	if _, ok := _c.mutation.AvatarKey(); !ok {
+		v := user.DefaultAvatarKey
+		_c.mutation.SetAvatarKey(v)
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		v := user.DefaultName
 		_c.mutation.SetName(v)
@@ -370,6 +388,9 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Avatar(); !ok {
 		return &ValidationError{Name: "avatar", err: errors.New(`gen: missing required field "User.avatar"`)}
+	}
+	if _, ok := _c.mutation.AvatarKey(); !ok {
+		return &ValidationError{Name: "avatar_key", err: errors.New(`gen: missing required field "User.avatar_key"`)}
 	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`gen: missing required field "User.name"`)}
@@ -445,6 +466,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Avatar(); ok {
 		_spec.SetField(user.FieldAvatar, field.TypeString, value)
 		_node.Avatar = value
+	}
+	if value, ok := _c.mutation.AvatarKey(); ok {
+		_spec.SetField(user.FieldAvatarKey, field.TypeString, value)
+		_node.AvatarKey = value
 	}
 	if value, ok := _c.mutation.Bio(); ok {
 		_spec.SetField(user.FieldBio, field.TypeString, value)
@@ -651,6 +676,18 @@ func (u *UserUpsert) SetAvatar(v string) *UserUpsert {
 // UpdateAvatar sets the "avatar" field to the value that was provided on create.
 func (u *UserUpsert) UpdateAvatar() *UserUpsert {
 	u.SetExcluded(user.FieldAvatar)
+	return u
+}
+
+// SetAvatarKey sets the "avatar_key" field.
+func (u *UserUpsert) SetAvatarKey(v string) *UserUpsert {
+	u.Set(user.FieldAvatarKey, v)
+	return u
+}
+
+// UpdateAvatarKey sets the "avatar_key" field to the value that was provided on create.
+func (u *UserUpsert) UpdateAvatarKey() *UserUpsert {
+	u.SetExcluded(user.FieldAvatarKey)
 	return u
 }
 
@@ -936,6 +973,20 @@ func (u *UserUpsertOne) SetAvatar(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateAvatar() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateAvatar()
+	})
+}
+
+// SetAvatarKey sets the "avatar_key" field.
+func (u *UserUpsertOne) SetAvatarKey(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAvatarKey(v)
+	})
+}
+
+// UpdateAvatarKey sets the "avatar_key" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateAvatarKey() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAvatarKey()
 	})
 }
 
@@ -1413,6 +1464,20 @@ func (u *UserUpsertBulk) SetAvatar(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateAvatar() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateAvatar()
+	})
+}
+
+// SetAvatarKey sets the "avatar_key" field.
+func (u *UserUpsertBulk) SetAvatarKey(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAvatarKey(v)
+	})
+}
+
+// UpdateAvatarKey sets the "avatar_key" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateAvatarKey() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAvatarKey()
 	})
 }
 

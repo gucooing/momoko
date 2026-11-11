@@ -46,7 +46,11 @@ export interface MeInfoResponse {
     | Theme
     | undefined;
   /** 全站默认主题（没设置过为空） */
-  siteTheme: SiteTheme | undefined;
+  siteTheme:
+    | SiteTheme
+    | undefined;
+  /** 能否更换头像（系统设置开启了头像储存） */
+  avatarUploadEnabled: boolean;
 }
 
 /** 个人外观偏好：只对自己生效，跟随账号同步到所有设备 */
@@ -75,10 +79,6 @@ export interface UpdateMeRequest {
     | undefined;
   /** 邮箱 */
   email?:
-    | string
-    | undefined;
-  /** 头像url */
-  avatar?:
     | string
     | undefined;
   /** 昵称 */
@@ -112,6 +112,34 @@ export interface UpdateMyAppearanceResponse {
 /** 更新个人资料响应 */
 export interface UpdateMeResponse {
   /** 用户信息 */
+  user: UserInfo | undefined;
+}
+
+/** 申请上传头像请求 */
+export interface PresignMyAvatarUploadRequest {
+  /** 图片类型：image/jpeg / image/png / image/webp / image/gif */
+  contentType: string;
+  /** 文件大小（字节），不超过 20MB */
+  size: number;
+}
+
+/** 申请上传头像响应 */
+export interface PresignMyAvatarUploadResponse {
+  /** 预签名直传地址：PUT 文件内容，Content-Type 与文件大小须与申请时一致（已签进签名） */
+  uploadUrl: string;
+  /** 上传凭证：上传成功后交给 CompleteMyAvatarUpload（加密，绑定本人与本次对象，限时有效） */
+  uploadToken: string;
+}
+
+/** 完成上传头像请求 */
+export interface CompleteMyAvatarUploadRequest {
+  /** PresignMyAvatarUpload 返回的上传凭证 */
+  uploadToken: string;
+}
+
+/** 完成上传头像响应 */
+export interface CompleteMyAvatarUploadResponse {
+  /** 用户信息（头像已换成新上传的图片） */
   user: UserInfo | undefined;
 }
 
@@ -300,8 +328,6 @@ export interface AddUserRequest {
   email: string;
   /** 昵称 */
   name: string;
-  /** 头像url */
-  avatar: string;
   /** bio */
   bio: string;
   /** 标签 */
@@ -326,8 +352,6 @@ export interface EditUserRequest {
   email: string;
   /** 昵称 */
   name: string;
-  /** 头像url */
-  avatar: string;
   /** bio */
   bio: string;
   /** 标签 */

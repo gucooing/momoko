@@ -4542,6 +4542,37 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SystemStatusResponse'
+    /api/v1/system/storage-config:
+        get:
+            tags:
+                - System
+            description: 获取储存设置（头像储存等）
+            operationId: System_StorageConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.StorageConfigResponse'
+        put:
+            tags:
+                - System
+            description: 更新储存设置
+            operationId: System_UpdateStorageConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateStorageConfigRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateStorageConfigResponse'
     /api/v1/system/update/check:
         get:
             tags:
@@ -5073,6 +5104,46 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.UpdateMyAppearanceResponse'
+    /api/v1/user/me/avatar/complete:
+        post:
+            tags:
+                - UserService
+            description: 完成上传头像：凭证校验通过且对象已在对象存储里，才设为自己的头像（并删除旧头像）
+            operationId: UserService_CompleteMyAvatarUpload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CompleteMyAvatarUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CompleteMyAvatarUploadResponse'
+    /api/v1/user/me/avatar/presign:
+        post:
+            tags:
+                - UserService
+            description: |-
+                申请上传头像：返回对象存储的预签名直传地址和上传凭证，浏览器把图片直接 PUT 到对象存储（不经过服务端）。
+                 头像只能这样上传，需在系统设置开启头像储存。
+            operationId: UserService_PresignMyAvatarUpload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PresignMyAvatarUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PresignMyAvatarUploadResponse'
     /api/v1/user/me/login-logs:
         get:
             tags:
@@ -5469,9 +5540,6 @@ components:
                 name:
                     type: string
                     description: 昵称
-                avatar:
-                    type: string
-                    description: 头像url
                 bio:
                     type: string
                     description: bio
@@ -5676,6 +5744,45 @@ components:
                     type: string
                     description: 总数
             description: 管理员获取角色列表响应
+        v1.AvatarStorageConfig:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: 是否开启头像上传
+                endpoint:
+                    type: string
+                    description: 服务地址（如 s3.amazonaws.com、minio.example.com:9000，不含协议）
+                region:
+                    type: string
+                    description: 区域（如 us-east-1，可留空）
+                bucket:
+                    type: string
+                    description: 存储桶
+                accessKey:
+                    type: string
+                    description: Access Key
+                secretKey:
+                    type: string
+                    description: Secret Key：读取时恒为空；更新时留空表示保留原值
+                secretKeySet:
+                    type: boolean
+                    description: 是否已保存过 Secret Key（只读）
+                useSsl:
+                    type: boolean
+                    description: 使用 HTTPS
+                pathStyle:
+                    type: boolean
+                    description: 路径风格访问（MinIO 等自建服务一般需要开启）
+                prefix:
+                    type: string
+                    description: 对象 key 前缀（如 avatars），可留空
+                publicUrl:
+                    type: string
+                    description: 公开访问地址（自定义域名 / CDN，如 https://cdn.example.com）；留空则按服务地址与存储桶拼接
+            description: |-
+                头像储存设置：S3 兼容对象存储，开启后允许用户上传头像（单张不超过 20MB）。
+                 头像以公开链接存进用户资料，存储桶（或前缀）需允许公开读取。
         v1.BatchCompressFileSystemRequest:
             type: object
             properties:
@@ -5898,6 +6005,21 @@ components:
                         - $ref: '#/components/schemas/v1.FileTaskInfo'
                     description: 远端长收尾（FTP/WebDAV）异步任务；本地/OSS 瞬时收尾时为空。前端据此决定是否轮询任务。
             description: 上传完成合并分片响应
+        v1.CompleteMyAvatarUploadRequest:
+            type: object
+            properties:
+                uploadToken:
+                    type: string
+                    description: PresignMyAvatarUpload 返回的上传凭证
+            description: 完成上传头像请求
+        v1.CompleteMyAvatarUploadResponse:
+            type: object
+            properties:
+                user:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.UserInfo'
+                    description: 用户信息（头像已换成新上传的图片）
+            description: 完成上传头像响应
         v1.ConfirmInitializeRequest:
             type: object
             properties:
@@ -8342,9 +8464,6 @@ components:
                 name:
                     type: string
                     description: 昵称
-                avatar:
-                    type: string
-                    description: 头像url
                 bio:
                     type: string
                     description: bio
@@ -10629,6 +10748,9 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.SiteTheme'
                     description: 全站默认主题（没设置过为空）
+                avatarUploadEnabled:
+                    type: boolean
+                    description: 能否更换头像（系统设置开启了头像储存）
             description: 获取自己信息响应
         v1.MePermissionsResponse:
             type: object
@@ -11662,6 +11784,26 @@ components:
                     type: string
                     description: 累计出站流量(字节)
             description: 端口转发时间序列采样点
+        v1.PresignMyAvatarUploadRequest:
+            type: object
+            properties:
+                contentType:
+                    type: string
+                    description: 图片类型：image/jpeg / image/png / image/webp / image/gif
+                size:
+                    type: string
+                    description: 文件大小（字节），不超过 20MB
+            description: 申请上传头像请求
+        v1.PresignMyAvatarUploadResponse:
+            type: object
+            properties:
+                uploadUrl:
+                    type: string
+                    description: 预签名直传地址：PUT 文件内容，Content-Type 与文件大小须与申请时一致（已签进签名）
+                uploadToken:
+                    type: string
+                    description: 上传凭证：上传成功后交给 CompleteMyAvatarUpload（加密，绑定本人与本次对象，限时有效）
+            description: 申请上传头像响应
         v1.PruneDockerImagesRequest:
             type: object
             properties:
@@ -12654,6 +12796,20 @@ components:
             type: object
             properties: {}
             description: 停止实例响应
+        v1.StorageConfig:
+            type: object
+            properties:
+                avatar:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AvatarStorageConfig'
+                    description: 头像储存
+            description: 储存设置
+        v1.StorageConfigResponse:
+            type: object
+            properties:
+                config:
+                    $ref: '#/components/schemas/v1.StorageConfig'
+            description: 获取储存设置响应
         v1.SystemOverviewResponse:
             type: object
             properties:
@@ -14275,9 +14431,6 @@ components:
                 email:
                     type: string
                     description: 邮箱
-                avatar:
-                    type: string
-                    description: 头像url
                 name:
                     type: string
                     description: 昵称
@@ -14611,6 +14764,20 @@ components:
                 config:
                     $ref: '#/components/schemas/v1.SiteConfig'
             description: 更新站点常规配置响应
+        v1.UpdateStorageConfigRequest:
+            type: object
+            properties:
+                avatar:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AvatarStorageConfig'
+                    description: 头像储存
+            description: 更新储存设置请求
+        v1.UpdateStorageConfigResponse:
+            type: object
+            properties:
+                config:
+                    $ref: '#/components/schemas/v1.StorageConfig'
+            description: 更新储存设置响应
         v1.UpdateThemeRequest:
             type: object
             properties:

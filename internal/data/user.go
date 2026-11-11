@@ -143,7 +143,6 @@ func (ur *userRepo) CreateUser(ctx context.Context, userInfo *gen.User, roleIDs 
 		SetPassword(userInfo.Password).
 		SetEmail(userInfo.Email).
 		SetStatus(userInfo.Status).
-		SetAvatar(userInfo.Avatar).
 		SetBio(userInfo.Bio).
 		SetName(userInfo.Name).
 		SetTags(userInfo.Tags).
@@ -155,11 +154,17 @@ func (ur *userRepo) CreateUser(ctx context.Context, userInfo *gen.User, roleIDs 
 	return ur.FindByID(ctx, created.ID)
 }
 
+func (ur *userRepo) SetAvatar(ctx context.Context, userId, avatar, avatarKey string) (*gen.User, error) {
+	if err := ur.data.db.User.UpdateOneID(userId).SetAvatar(avatar).SetAvatarKey(avatarKey).Exec(ctx); err != nil {
+		return nil, err
+	}
+	return ur.FindByID(ctx, userId)
+}
+
 func (ur *userRepo) UpdateUser(ctx context.Context, userInfo *gen.User, roleIDs []string) (*gen.User, error) {
 	if err := ur.data.db.User.UpdateOneID(userInfo.ID).
 		SetEmail(userInfo.Email).
 		SetStatus(userInfo.Status).
-		SetAvatar(userInfo.Avatar).
 		SetBio(userInfo.Bio).
 		SetName(userInfo.Name).
 		SetTags(userInfo.Tags).
@@ -223,9 +228,6 @@ func (ur *userRepo) UpdateMe(ctx context.Context, userId string, req *v1.UpdateM
 	}
 	if req.Tags != nil {
 		update.SetTags(*req.Tags)
-	}
-	if req.Avatar != nil {
-		update.SetAvatar(*req.Avatar)
 	}
 	if req.Username != nil {
 		update.SetUsername(*req.Username)

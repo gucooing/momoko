@@ -104,6 +104,8 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationSystemEmailTemplate:               constant.SystemConfigView,
 	v1.OperationSystemUpdateEmailTemplate:         constant.SystemConfigEdit,
 	v1.OperationSystemTestEmailConfig:             constant.SystemConfigEdit,
+	v1.OperationSystemStorageConfig:               constant.SystemConfigView,
+	v1.OperationSystemUpdateStorageConfig:         constant.SystemConfigEdit,
 	v1.OperationSystemListOperationLogs:           constant.SystemConfigView,
 	v1.OperationSystemListEmailTemplates:          constant.SystemConfigView,
 	v1.OperationSystemOperationLogStats:           constant.SystemConfigView,

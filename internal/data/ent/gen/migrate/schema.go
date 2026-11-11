@@ -873,6 +873,7 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"inactive", "active"}, Default: "inactive"},
 		{Name: "avatar", Type: field.TypeString, Default: ""},
+		{Name: "avatar_key", Type: field.TypeString, Default: ""},
 		{Name: "bio", Type: field.TypeString, Nullable: true},
 		{Name: "name", Type: field.TypeString, Default: "gucooing"},
 		{Name: "tags", Type: field.TypeString, Nullable: true},
@@ -892,7 +893,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_instances_users",
-				Columns:    []*schema.Column{UsersColumns[17]},
+				Columns:    []*schema.Column{UsersColumns[18]},
 				RefColumns: []*schema.Column{InstancesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

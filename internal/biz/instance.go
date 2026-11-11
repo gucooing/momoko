@@ -426,7 +426,7 @@ func ensureWorkDir(dir string) error {
 		}
 		return nil
 	}
-	return os.MkdirAll(abs, 0o755)
+	return os.MkdirAll(abs, 0o777)
 }
 
 func (i *InstanceUsecase) CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userID string) (*v1.InstanceInfo, error) {

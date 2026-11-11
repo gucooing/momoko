@@ -41,6 +41,8 @@ const (
 	System_EmailTemplate_FullMethodName               = "/v1.System/EmailTemplate"
 	System_ListEmailTemplates_FullMethodName          = "/v1.System/ListEmailTemplates"
 	System_TestEmailConfig_FullMethodName             = "/v1.System/TestEmailConfig"
+	System_StorageConfig_FullMethodName               = "/v1.System/StorageConfig"
+	System_UpdateStorageConfig_FullMethodName         = "/v1.System/UpdateStorageConfig"
 	System_SystemOverview_FullMethodName              = "/v1.System/SystemOverview"
 	System_SystemStatus_FullMethodName                = "/v1.System/SystemStatus"
 	System_ListOperationLogs_FullMethodName           = "/v1.System/ListOperationLogs"
@@ -98,6 +100,10 @@ type SystemClient interface {
 	ListEmailTemplates(ctx context.Context, in *ListEmailTemplatesRequest, opts ...grpc.CallOption) (*ListEmailTemplatesResponse, error)
 	// 测试邮件配置
 	TestEmailConfig(ctx context.Context, in *TestEmailConfigRequest, opts ...grpc.CallOption) (*TestEmailConfigResponse, error)
+	// 获取储存设置（头像储存等）
+	StorageConfig(ctx context.Context, in *StorageConfigRequest, opts ...grpc.CallOption) (*StorageConfigResponse, error)
+	// 更新储存设置
+	UpdateStorageConfig(ctx context.Context, in *UpdateStorageConfigRequest, opts ...grpc.CallOption) (*UpdateStorageConfigResponse, error)
 	// 获取系统信息概览
 	SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...grpc.CallOption) (*SystemOverviewResponse, error)
 	// 获取系统实时状态
@@ -338,6 +344,26 @@ func (c *systemClient) TestEmailConfig(ctx context.Context, in *TestEmailConfigR
 	return out, nil
 }
 
+func (c *systemClient) StorageConfig(ctx context.Context, in *StorageConfigRequest, opts ...grpc.CallOption) (*StorageConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StorageConfigResponse)
+	err := c.cc.Invoke(ctx, System_StorageConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) UpdateStorageConfig(ctx context.Context, in *UpdateStorageConfigRequest, opts ...grpc.CallOption) (*UpdateStorageConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateStorageConfigResponse)
+	err := c.cc.Invoke(ctx, System_UpdateStorageConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *systemClient) SystemOverview(ctx context.Context, in *SystemOverviewRequest, opts ...grpc.CallOption) (*SystemOverviewResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SystemOverviewResponse)
@@ -438,6 +464,10 @@ type SystemServer interface {
 	ListEmailTemplates(context.Context, *ListEmailTemplatesRequest) (*ListEmailTemplatesResponse, error)
 	// 测试邮件配置
 	TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error)
+	// 获取储存设置（头像储存等）
+	StorageConfig(context.Context, *StorageConfigRequest) (*StorageConfigResponse, error)
+	// 更新储存设置
+	UpdateStorageConfig(context.Context, *UpdateStorageConfigRequest) (*UpdateStorageConfigResponse, error)
 	// 获取系统信息概览
 	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
 	// 获取系统实时状态
@@ -523,6 +553,12 @@ func (UnimplementedSystemServer) ListEmailTemplates(context.Context, *ListEmailT
 }
 func (UnimplementedSystemServer) TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TestEmailConfig not implemented")
+}
+func (UnimplementedSystemServer) StorageConfig(context.Context, *StorageConfigRequest) (*StorageConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StorageConfig not implemented")
+}
+func (UnimplementedSystemServer) UpdateStorageConfig(context.Context, *UpdateStorageConfigRequest) (*UpdateStorageConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateStorageConfig not implemented")
 }
 func (UnimplementedSystemServer) SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SystemOverview not implemented")
@@ -956,6 +992,42 @@ func _System_TestEmailConfig_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _System_StorageConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StorageConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).StorageConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_StorageConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).StorageConfig(ctx, req.(*StorageConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_UpdateStorageConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateStorageConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).UpdateStorageConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_UpdateStorageConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).UpdateStorageConfig(ctx, req.(*UpdateStorageConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _System_SystemOverview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SystemOverviewRequest)
 	if err := dec(in); err != nil {
@@ -1140,6 +1212,14 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TestEmailConfig",
 			Handler:    _System_TestEmailConfig_Handler,
+		},
+		{
+			MethodName: "StorageConfig",
+			Handler:    _System_StorageConfig_Handler,
+		},
+		{
+			MethodName: "UpdateStorageConfig",
+			Handler:    _System_UpdateStorageConfig_Handler,
 		},
 		{
 			MethodName: "SystemOverview",

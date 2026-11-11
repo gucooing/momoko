@@ -8,6 +8,9 @@ import type {
   ListOperationLogsResponse,
   ListEmailTemplatesResponse,
   SiteConfigResponse,
+  StorageConfigResponse,
+  UpdateStorageConfigRequest,
+  UpdateStorageConfigResponse,
   UpdateSiteConfigRequest,
   UpdateSiteConfigResponse,
   OperationLogStatsResponse,
@@ -46,6 +49,14 @@ export const updateEmailConfig = (params: UpdateEmailConfigRequest) => {
 
 export const testEmailConfig = (params: TestEmailConfigRequest) => {
   return request.post<TestEmailConfigResponse>('/system/email-config/test', params)
+}
+
+export const getStorageConfig = () => {
+  return request.get<StorageConfigResponse>('/system/storage-config')
+}
+
+export const updateStorageConfig = (params: UpdateStorageConfigRequest) => {
+  return request.put<UpdateStorageConfigResponse>('/system/storage-config', params)
 }
 
 export const getEmailTemplate = (params: EmailTemplateRequest) => {

@@ -115,7 +115,6 @@ const toLoginLogItem = (log: LoginLogInfo): LoginLogItem => ({
 })
 
 const createEmptyProfileForm = (): UserProfileFormValue => ({
-  avatar: '',
   username: '',
   name: '',
   email: '',
@@ -311,17 +310,12 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   }
 
   const syncProfileForm = (userInfo?: Partial<UserInfo> | null) => {
-    profileForm.value.avatar = userInfo?.avatar || ''
     profileForm.value.username = userInfo?.username || ''
     profileForm.value.name = userInfo?.name || ''
     profileForm.value.email = userInfo?.email || ''
     profileForm.value.bio = userInfo?.bio || ''
     profileForm.value.tags = userInfo?.tags || ''
     profileForm.value.phone = userInfo?.phone || ''
-  }
-
-  const setProfileAvatar = (avatar: string) => {
-    profileForm.value.avatar = avatar
   }
 
   const isCurrentDevice = (device: LoginDeviceRow) => {
@@ -474,7 +468,6 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     currentDeviceLabel,
     extraColumns,
     syncProfileForm,
-    setProfileAvatar,
     formatDateTime,
     formatCellValue,
     getExtraColumnLabel,

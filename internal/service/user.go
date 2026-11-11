@@ -36,10 +36,11 @@ func (u *UserService) MeInfo(ctx context.Context, req *v1.MeInfoRequest) (*v1.Me
 		return nil, err
 	}
 	rsp := &v1.MeInfoResponse{
-		User:         userInfo,
-		Appearance:   appearance,
-		CurrentTheme: currentTheme,
-		SiteTheme:    siteTheme,
+		User:                userInfo,
+		Appearance:          appearance,
+		CurrentTheme:        currentTheme,
+		SiteTheme:           siteTheme,
+		AvatarUploadEnabled: u.uc.AvatarUploadEnabled(ctx),
 	}
 
 	return rsp, nil
@@ -55,6 +56,30 @@ func (u *UserService) UpdateMe(ctx context.Context, req *v1.UpdateMeRequest) (*v
 		return nil, err
 	}
 	return &v1.UpdateMeResponse{User: info}, nil
+}
+
+func (u *UserService) PresignMyAvatarUpload(ctx context.Context, req *v1.PresignMyAvatarUploadRequest) (*v1.PresignMyAvatarUploadResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	uploadURL, token, err := u.uc.PresignMyAvatarUpload(ctx, authCtx.UserID, req.GetContentType(), req.GetSize())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PresignMyAvatarUploadResponse{UploadUrl: uploadURL, UploadToken: token}, nil
+}
+
+func (u *UserService) CompleteMyAvatarUpload(ctx context.Context, req *v1.CompleteMyAvatarUploadRequest) (*v1.CompleteMyAvatarUploadResponse, error) {
+	authCtx, ok := auth.FromContext(ctx)
+	if !ok {
+		return nil, biz.ErrTokenInvalid
+	}
+	info, err := u.uc.CompleteMyAvatarUpload(ctx, authCtx.UserID, req.GetUploadToken())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CompleteMyAvatarUploadResponse{User: info}, nil
 }
 
 func (u *UserService) UpdateMyAppearance(ctx context.Context, req *v1.UpdateMyAppearanceRequest) (*v1.UpdateMyAppearanceResponse, error) {

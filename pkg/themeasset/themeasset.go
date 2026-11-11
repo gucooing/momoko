@@ -17,6 +17,7 @@ import (
 	httpm "github.com/go-kratos/kratos/v2/transport/http"
 
 	"momoko/pkg/response"
+	"momoko/pkg/utils"
 )
 
 const (
@@ -93,10 +94,10 @@ func (m *Manager) Save(id string, data []byte) error {
 	if !ok {
 		return fmt.Errorf("非法的资源文件名: %q", id)
 	}
-	if err := os.MkdirAll(m.rootDir, 0o755); err != nil {
+	if err := os.MkdirAll(m.rootDir, 0o777); err != nil {
 		return fmt.Errorf("创建主题资源目录失败: %w", err)
 	}
-	tmp, err := os.CreateTemp(m.rootDir, id+".*.tmp")
+	tmp, err := utils.CreateTemp(m.rootDir, id+".*.tmp")
 	if err != nil {
 		return fmt.Errorf("创建主题资源临时文件失败: %w", err)
 	}

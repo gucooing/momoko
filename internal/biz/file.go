@@ -91,10 +91,10 @@ type FileUsecase struct {
 // NewFileUsecase 创建文件操作用例。
 func NewFileUsecase(repo FileRepo, tasks *task.Manager) *FileUsecase {
 	if _, err := os.Stat(file.ServersPath); os.IsNotExist(err) {
-		os.MkdirAll(file.ServersPath, 0755)
+		os.MkdirAll(file.ServersPath, 0o777)
 	}
 	// 远端来源上传的本地分片缓冲目录。
-	os.MkdirAll(file.UploadBufferDir, 0755)
+	os.MkdirAll(file.UploadBufferDir, 0o777)
 	uc := &FileUsecase{
 		repo:  repo,
 		box:   secretbox.New(auth.AuthSecretKey),

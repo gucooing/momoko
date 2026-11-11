@@ -1104,12 +1104,16 @@ func init() {
 	userDescAvatar := userFields[5].Descriptor()
 	// user.DefaultAvatar holds the default value on creation for the avatar field.
 	user.DefaultAvatar = userDescAvatar.Default.(string)
+	// userDescAvatarKey is the schema descriptor for avatar_key field.
+	userDescAvatarKey := userFields[6].Descriptor()
+	// user.DefaultAvatarKey holds the default value on creation for the avatar_key field.
+	user.DefaultAvatarKey = userDescAvatarKey.Default.(string)
 	// userDescName is the schema descriptor for name field.
-	userDescName := userFields[7].Descriptor()
+	userDescName := userFields[8].Descriptor()
 	// user.DefaultName holds the default value on creation for the name field.
 	user.DefaultName = userDescName.Default.(string)
 	// userDescPhone is the schema descriptor for phone field.
-	userDescPhone := userFields[9].Descriptor()
+	userDescPhone := userFields[10].Descriptor()
 	// user.DefaultPhone holds the default value on creation for the phone field.
 	user.DefaultPhone = userDescPhone.Default.(string)
 	// userDescID is the schema descriptor for id field.

@@ -10,3 +10,6 @@ import (
 
 // fillOwnerInfo 在非 unix 平台无属主/属组概念，保持空实现。
 func fillOwnerInfo(_ *v1.FileEntryInfo, _ fs.FileInfo) {}
+
+// copyOwner 在非 unix 平台无属主/属组概念，保持空实现。
+func copyOwner(_ string, _ fs.FileInfo) error { return nil }

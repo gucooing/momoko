@@ -120,3 +120,17 @@ func (c *ConfigRepo) SaveSiteTheme(ctx context.Context, theme *v1.SiteTheme) err
 	}
 	return c.saveProtoConfig(ctx, common.ConfigSiteTheme, theme)
 }
+
+// AvatarStorage 头像储存设置（Secret Key 为加密态）；没配置过返回空配置。
+func (c *ConfigRepo) AvatarStorage(ctx context.Context) (*v1.AvatarStorageConfig, error) {
+	cfg := new(v1.AvatarStorageConfig)
+	if _, err := c.getProtoConfig(ctx, common.ConfigStorageAvatar, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// SaveAvatarStorage 保存头像储存设置（调用方负责把 Secret Key 加密后再传入）。
+func (c *ConfigRepo) SaveAvatarStorage(ctx context.Context, cfg *v1.AvatarStorageConfig) error {
+	return c.saveProtoConfig(ctx, common.ConfigStorageAvatar, cfg)
+}
