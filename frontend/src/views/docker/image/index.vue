@@ -1040,7 +1040,7 @@ onMounted(() => { void init() })
   gap: 14px;
   width: 100%;
   min-height: 72px;
-  padding: 12px 16px;
+  padding: calc(var(--cmp-card-unit) * 12) calc(var(--cmp-card-unit) * 16);
   border-radius: var(--app-radius-lg);
   border: 1.5px dashed var(--el-border-color-light);
   background: var(--el-bg-color);

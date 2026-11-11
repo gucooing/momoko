@@ -1,10 +1,12 @@
 // xterm.js 封装：创建终端 + fit 自适应 + ResizeObserver + 手动主题（明暗两套 ITheme）。
 // 实例控制台 / SSH 终端共用。主题由 useTerminalTheme 的 ref 驱动，切换即热更新 canvas。
-import { onBeforeUnmount, ref, watch, type Ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch, type Ref } from 'vue'
 import { Terminal, type ITheme } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import type { TerminalThemeMode } from './useTerminalTheme'
+import { useThemeStore } from '@/stores/theme'
+import type { TermTokenKey } from '@/theme/palettes'
 
 const FONT_FAMILY =
   "'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Source Code Pro', Consolas, Menlo, Monaco, monospace"
@@ -59,8 +61,37 @@ const LIGHT_THEME: ITheme = {
   brightWhite: '#8c959f',
 }
 
-export const terminalThemeFor = (mode: TerminalThemeMode): ITheme =>
-  mode === 'light' ? LIGHT_THEME : DARK_THEME
+const ANSI_NAMES = [
+  'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
+  'brightBlack', 'brightRed', 'brightGreen', 'brightYellow', 'brightBlue', 'brightMagenta', 'brightCyan', 'brightWhite',
+] as const
+
+const alpha = (hex: string, a: number) => {
+  const n = parseInt(hex.slice(1, 7), 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
+}
+
+/**
+ * 明 / 暗两套终端主题；主题里设置了终端专用 token（终端背景、文字、光标、ANSI 16 色）时，
+ * 深色终端改用主题的颜色（浅色终端保持固定配色）。
+ */
+export const terminalThemeFor = (mode: TerminalThemeMode, custom?: Partial<Record<TermTokenKey, string>> | null): ITheme => {
+  if (mode === 'light') return LIGHT_THEME
+  if (!custom?.termBg) return DARK_THEME
+  const out: ITheme = {
+    ...DARK_THEME,
+    background: custom.termBg,
+    foreground: custom.termFg || DARK_THEME.foreground,
+    cursor: custom.termCursor || DARK_THEME.cursor,
+    cursorAccent: custom.termBg,
+    selectionBackground: alpha(custom.termFg || '#E8E3EE', 0.24),
+  }
+  ANSI_NAMES.forEach((name, i) => {
+    const c = custom[`ansi${i}` as TermTokenKey]
+    if (c) out[name] = c
+  })
+  return out
+}
 
 const FONT_SIZE_MIN = 10
 const FONT_SIZE_MAX = 22
@@ -101,6 +132,9 @@ export function useTerminalX(options: UseTerminalXOptions) {
   const cols = ref(0)
   const rows = ref(0)
   const fontSize = sharedFontSize
+  // 当前主题（含页面单独设置）的终端专用色；没设置时为 null，用默认终端配色
+  const themeStore = useThemeStore()
+  const themeTerm = computed(() => (themeStore.hasTerminalTokens ? themeStore.tokens : null))
 
   let terminal: Terminal | null = null
   let fitAddon: FitAddon | null = null
@@ -145,7 +179,7 @@ export function useTerminalX(options: UseTerminalXOptions) {
       fontSize: fontSize.value,
       lineHeight: 1.2,
       scrollback: 5000,
-      theme: terminalThemeFor(options.theme.value),
+      theme: terminalThemeFor(options.theme.value, themeTerm.value),
     })
 
     fitAddon = new FitAddon()
@@ -182,9 +216,9 @@ export function useTerminalX(options: UseTerminalXOptions) {
   const bumpFontSize = (delta: number) => applyFontSize(fontSize.value + delta)
 
   watch(
-    () => options.theme.value,
-    (mode) => {
-      if (terminal) terminal.options.theme = terminalThemeFor(mode)
+    () => [options.theme.value, themeTerm.value] as const,
+    ([mode, custom]) => {
+      if (terminal) terminal.options.theme = terminalThemeFor(mode, custom)
     },
   )
 

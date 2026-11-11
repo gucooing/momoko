@@ -1260,7 +1260,7 @@ onBeforeUnmount(() => {
 }
 
 .st-card {
-  padding: 22px 26px 8px;
+  padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 26) calc(var(--cmp-card-unit) * 8);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

@@ -269,7 +269,7 @@ const onMenu = (key: string) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
+  padding: calc(var(--cmp-card-unit) * 14);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);

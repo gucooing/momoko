@@ -15,8 +15,8 @@
           :key="p.key"
           type="button"
           class="pal-card"
-          :class="{ 'is-on': themeStore.palette === p.key }"
-          :aria-pressed="themeStore.palette === p.key"
+          :class="{ 'is-on': themeStore.isBuiltin && !themeStore.usingSite && themeStore.currentTheme === p.key }"
+          :aria-pressed="themeStore.isBuiltin && !themeStore.usingSite && themeStore.currentTheme === p.key"
           @click="themeStore.setPalette(p.key)"
         >
           <!-- 迷你界面：外层带 data-palette，内部直接读该配色的 --m-* -->
@@ -41,8 +41,8 @@
               <b>{{ t(p.labelKey) }}</b>
               <small v-if="isPage">{{ p.en }}</small>
             </span>
-            <span class="ap-check" :class="{ 'is-on': themeStore.palette === p.key }">
-              <component :is="ic('HOutline:CheckIcon')" v-if="themeStore.palette === p.key" />
+            <span class="ap-check" :class="{ 'is-on': themeStore.isBuiltin && !themeStore.usingSite && themeStore.currentTheme === p.key }">
+              <component :is="ic('HOutline:CheckIcon')" v-if="themeStore.isBuiltin && !themeStore.usingSite && themeStore.currentTheme === p.key" />
             </span>
           </span>
         </button>

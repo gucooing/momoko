@@ -66,12 +66,16 @@ type Tx struct {
 	SystemConfig *SystemConfigClient
 	// Task is the client for interacting with the Task builders.
 	Task *TaskClient
+	// ThemeAsset is the client for interacting with the ThemeAsset builders.
+	ThemeAsset *ThemeAssetClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserAPIKey is the client for interacting with the UserAPIKey builders.
 	UserAPIKey *UserAPIKeyClient
 	// UserMessage is the client for interacting with the UserMessage builders.
 	UserMessage *UserMessageClient
+	// UserTheme is the client for interacting with the UserTheme builders.
+	UserTheme *UserThemeClient
 
 	// lazily loaded.
 	client     *Client
@@ -229,9 +233,11 @@ func (tx *Tx) init() {
 	tx.Session = NewSessionClient(tx.config)
 	tx.SystemConfig = NewSystemConfigClient(tx.config)
 	tx.Task = NewTaskClient(tx.config)
+	tx.ThemeAsset = NewThemeAssetClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserAPIKey = NewUserAPIKeyClient(tx.config)
 	tx.UserMessage = NewUserMessageClient(tx.config)
+	tx.UserTheme = NewUserThemeClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

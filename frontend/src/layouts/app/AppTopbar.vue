@@ -36,14 +36,14 @@ const onDashboard = computed(() => route.path === '/dashboard/home')
   display: flex;
   align-items: center;
   gap: 4px;
-  min-height: 68px;
+  min-height: var(--cmp-topbar-height);
   flex-shrink: 0;
-  padding: 24px 32px 0;
-  background: var(--el-bg-color-page);
+  padding: var(--cmp-page-padding-top) var(--cmp-page-padding-x) 0;
+  background: var(--app-surface-page);
 }
 .app-topbar__search {
   flex: 1 1 320px;
-  max-width: 520px;
+  max-width: var(--cmp-search-width);
   margin-right: 8px;
 }
 .app-topbar__spacer {

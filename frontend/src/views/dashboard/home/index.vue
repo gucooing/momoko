@@ -29,13 +29,16 @@
     </template>
 
     <div class="dash-row">
-      <!-- 问候卡：主色实底 + 黄色圆与第二强调色圆环装饰 -->
-      <section class="dash-hero">
-        <span class="dash-hero__blob" aria-hidden="true" />
-        <span class="dash-hero__ring" aria-hidden="true" />
-        <svg class="dash-hero__star" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z" />
-        </svg>
+      <!-- 问候卡：默认主色实底 + 黄色圆与第二强调色圆环装饰；主题可换成渐变或自己的图片（横幅，见 theme/useThemeBanner） -->
+      <section class="dash-hero" :class="{ 'is-custom': !bannerLook.deco }" :style="bannerStyle" data-theme-pick="hero">
+        <span v-if="!bannerLook.deco" class="dash-hero__shade" aria-hidden="true" />
+        <template v-else>
+          <span class="dash-hero__blob" aria-hidden="true" />
+          <span class="dash-hero__ring" aria-hidden="true" />
+          <svg class="dash-hero__star" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z" />
+          </svg>
+        </template>
         <div class="dash-hero__body">
           <div class="dash-hero__date">{{ heroDate }}</div>
           <h1 class="dash-hero__title">{{ isMobile ? headline : `${greeting}，${displayName}` }}</h1>
@@ -196,6 +199,7 @@ import { checkForUpdate } from '@/utils/updateCheck'
 import { useAccessibleRoutes } from '@/composables/useAccessibleRoutes'
 import { useProfileFormat } from '@/views/profile/components/useProfileFormat'
 import { useI18n } from 'vue-i18n'
+import { useThemeBanner } from '@/theme/useThemeBanner'
 
 defineOptions({ name: 'HomeView' })
 
@@ -210,6 +214,8 @@ const accessible = useAccessibleRoutes()
 const more = useMorePanel()
 const extras = useDashboardExtras()
 const { t, locale } = useI18n()
+// 欢迎横幅的背景（主色 / 渐变 / 自定义图片），由当前主题决定
+const { look: bannerLook, style: bannerStyle } = useThemeBanner()
 const { relTime } = useProfileFormat()
 
 const isMobile = computed(() => menuStore.isMobile)
@@ -611,11 +617,16 @@ onBeforeUnmount(() => {
 .dash-hero {
   position: relative;
   overflow: hidden;
-  min-height: 248px;
-  padding: 32px 36px;
+  min-height: var(--cmp-hero-min-height);
+  padding: calc(var(--cmp-hero-padding) * 0.89) var(--cmp-hero-padding);
   border-radius: var(--app-radius-xl);
-  background: var(--m-p);
-  color: var(--m-pOn);
+  background: var(--banner-bg, var(--m-p));
+  color: var(--banner-fg, var(--m-pOn));
+}
+.dash-hero__shade {
+  position: absolute;
+  inset: 0;
+  background: var(--banner-shade);
 }
 .dash-hero__blob {
   position: absolute;
@@ -641,7 +652,7 @@ onBeforeUnmount(() => {
   top: 40px;
   width: 44px;
   height: 44px;
-  fill: var(--m-pOn);
+  fill: var(--banner-fg, var(--m-pOn));
 }
 .dash-hero__body {
   position: relative;
@@ -658,7 +669,7 @@ onBeforeUnmount(() => {
 .dash-hero__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 2.375rem;
+  font-size: var(--cmp-hero-title-size);
   line-height: 1.15;
   font-weight: 800;
   letter-spacing: -0.01em;
@@ -683,7 +694,7 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   font-size: 0.8125rem;
   font-weight: 600;
-  background: color-mix(in srgb, var(--m-pOn) 16%, transparent);
+  background: color-mix(in srgb, var(--banner-soft, var(--m-pOn)) 16%, transparent);
 }
 .dash-hero__actions {
   display: flex;
@@ -699,8 +710,8 @@ onBeforeUnmount(() => {
   padding: 0 18px;
   border: none;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--m-pOn) 18%, transparent);
-  color: var(--m-pOn);
+  background: color-mix(in srgb, var(--banner-soft, var(--m-pOn)) 18%, transparent);
+  color: var(--banner-fg, var(--m-pOn));
   font: inherit;
   font-size: 0.875rem;
   font-weight: 600;
@@ -714,8 +725,8 @@ onBeforeUnmount(() => {
   transform: scale(0.97);
 }
 .dash-hero__btn.is-primary {
-  background: var(--m-pOn);
-  color: var(--m-p);
+  background: var(--banner-btn-bg, var(--m-pOn));
+  color: var(--banner-btn-fg, var(--m-p));
 }
 .dash-hero__btn :deep(svg) {
   width: 20px;
@@ -734,7 +745,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 22px;
+  padding: calc(var(--cmp-card-unit) * 22);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
@@ -854,7 +865,7 @@ onBeforeUnmount(() => {
     font-size: 0.8125rem;
   }
   .dash-hero__title {
-    font-size: 1.75rem;
+    font-size: calc(var(--cmp-hero-title-size) * 0.74);
   }
   .dash-hero__sub {
     font-size: 0.875rem;

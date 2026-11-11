@@ -102,3 +102,21 @@ func (c *ConfigRepo) saveProtoConfig(ctx context.Context, key common.ConfigKey, 
 	}
 	return c.BatchUpdate(ctx, map[common.ConfigKey]string{key: string(raw)})
 }
+
+// SiteTheme 全站默认外观主题；没设置过（或内容损坏）返回 nil。
+func (c *ConfigRepo) SiteTheme(ctx context.Context) (*v1.SiteTheme, error) {
+	theme := new(v1.SiteTheme)
+	ok, err := c.getProtoConfig(ctx, common.ConfigSiteTheme, theme)
+	if err != nil || !ok {
+		return nil, err
+	}
+	return theme, nil
+}
+
+// SaveSiteTheme 保存全站默认外观主题；nil 表示取消。
+func (c *ConfigRepo) SaveSiteTheme(ctx context.Context, theme *v1.SiteTheme) error {
+	if theme == nil {
+		return c.BatchUpdate(ctx, map[common.ConfigKey]string{common.ConfigSiteTheme: ""})
+	}
+	return c.saveProtoConfig(ctx, common.ConfigSiteTheme, theme)
+}

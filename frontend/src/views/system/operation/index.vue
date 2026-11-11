@@ -991,7 +991,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 18px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 18);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

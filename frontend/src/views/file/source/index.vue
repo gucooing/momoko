@@ -553,7 +553,7 @@ onMounted(getList)
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 18px;
+  padding: calc(var(--cmp-card-unit) * 18);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);

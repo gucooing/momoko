@@ -163,14 +163,14 @@ const navigateTo = (to: RouteLocationRaw) => {
   align-items: center;
   gap: 12px;
   width: 100%;
-  min-height: 42px;
+  min-height: var(--cmp-nav-item-height);
   padding: 0 12px;
   margin: 2px 0;
   border: none;
   border-radius: 14px;
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
+  font-size: var(--cmp-nav-font-size);
   font-weight: 500;
   text-align: left;
   cursor: pointer;
@@ -189,13 +189,13 @@ const navigateTo = (to: RouteLocationRaw) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: var(--cmp-nav-icon-size);
+  height: var(--cmp-nav-icon-size);
   flex-shrink: 0;
 }
 .nav-link__icon :deep(svg) {
-  width: 20px;
-  height: 20px;
+  width: var(--cmp-nav-icon-size);
+  height: var(--cmp-nav-icon-size);
 }
 .nav-link.is-active .nav-link__icon :deep(svg) {
   stroke-width: 2;

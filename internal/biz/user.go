@@ -64,13 +64,15 @@ type UserUsecase struct {
 	user   UserRepo
 	auth   AuthRepo
 	avatar *avatar.Manager
+	theme  *ThemeUsecase
 }
 
-func NewUserUsecase(user UserRepo, auth AuthRepo, avatarManager *avatar.Manager) *UserUsecase {
+func NewUserUsecase(user UserRepo, auth AuthRepo, avatarManager *avatar.Manager, theme *ThemeUsecase) *UserUsecase {
 	return &UserUsecase{
 		user:   user,
 		auth:   auth,
 		avatar: avatarManager,
+		theme:  theme,
 	}
 }
 

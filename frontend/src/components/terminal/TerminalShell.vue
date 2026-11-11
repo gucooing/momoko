@@ -14,6 +14,7 @@
       isConsole || theme !== 'light' ? 'is-dark' : 'is-light',
       { 'is-max': isMax, 'is-compact': compact, 'is-console': isConsole },
     ]"
+    :style="termVars"
   >
     <!-- 应用控制台顶栏（深色）：连接状态 + 信息 + 文字按钮 -->
     <header v-if="isConsole" class="term-shell__cbar">
@@ -322,6 +323,13 @@ const { t } = useI18n()
 
 const visibleActions = computed(() => props.actions.filter((a) => !a.hidden))
 const isConsole = computed(() => props.variant === 'console')
+// 主题设置了终端专用色时，深色终端的外框（控制台卡片底色、文字）跟着变
+const themeStore = useThemeStore()
+const termVars = computed(() =>
+  props.theme !== 'light' && themeStore.hasTerminalTokens
+    ? { '--term-bg': themeStore.tokens.termBg, '--term-fg': themeStore.tokens.termFg }
+    : undefined,
+)
 
 // 窄屏（≤768，与顶栏移动断点一致）：工具收进菜单 + 显示按键条
 const compact = useMediaQuery('(max-width: 768px)')

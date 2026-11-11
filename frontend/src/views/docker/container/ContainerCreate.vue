@@ -1184,7 +1184,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 22px 24px 24px;
+  padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 24) calc(var(--cmp-card-unit) * 24);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -1635,7 +1635,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 22px;
+  padding: calc(var(--cmp-card-unit) * 22);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

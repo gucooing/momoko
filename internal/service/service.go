@@ -21,4 +21,5 @@ var ProviderSet = wire.NewSet(
 	NewIQCheckService,
 	NewOIDCService,
 	NewMonitorService,
+	NewThemeService,
 )

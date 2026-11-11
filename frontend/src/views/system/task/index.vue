@@ -1467,7 +1467,7 @@ onBeforeUnmount(stopTimer)
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 18px;
+  padding: calc(var(--cmp-card-unit) * 18);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
@@ -1780,7 +1780,7 @@ onBeforeUnmount(stopTimer)
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 12px 6px 16px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 12) calc(var(--cmp-card-unit) * 6) calc(var(--cmp-card-unit) * 16);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

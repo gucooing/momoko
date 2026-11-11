@@ -1,9 +1,13 @@
 import { updateMyAppearanceRequest } from '@/api/user'
 import type { UserAppearance } from '@/types/v1/user'
+import type { SiteTheme, Theme } from '@/types/v1/theme'
 import { useThemeStore, type AppearancePrefs } from '@/stores/theme'
+import { IS_THEME_PREVIEW_FRAME } from '@/theme/frame'
 
-// 外观偏好跟随账号同步：登录后用账号里保存的偏好覆盖本机设置；之后在本机改动会自动保存回账号，
-// 换设备登录也是同一套外观。从未保存过时，把本机当前设置作为初始值存上去。
+// 外观偏好跟随账号同步：登录后用账号里保存的偏好（含当前主题、未保存的背景修改）覆盖本机设置；
+// 之后在本机改动会自动保存回账号，换设备登录也是同一套外观。
+// 账号从没保存过外观时：有全站默认主题就跟随它（不主动保存，直到用户自己改了什么），没有就把本机设置存为初始值。
+// 编辑器的预览框里只套用草稿，不读写账号外观。
 
 const SAVE_DELAY_MS = 600
 
@@ -14,12 +18,13 @@ let ready = false
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 
 const toRemote = (p: AppearancePrefs): UserAppearance => ({
-  palette: p.palette,
+  theme: p.theme,
   mode: p.mode,
   compact: p.compact,
   reduceMotion: p.reduceMotion,
   radius: p.radius,
   showTabs: p.showTabs,
+  background: p.background ?? undefined,
 })
 
 const save = async (prefs: AppearancePrefs) => {
@@ -41,19 +46,35 @@ const scheduleSave = (prefs: AppearancePrefs) => {
 }
 
 /** 套用账号里保存的外观偏好（获取个人信息后调用）。 */
-export const applyRemoteAppearance = (remote?: UserAppearance | null) => {
+export const applyRemoteAppearance = (
+  remote?: UserAppearance | null,
+  currentTheme?: Theme | null,
+  siteTheme?: SiteTheme | null,
+) => {
+  if (IS_THEME_PREVIEW_FRAME) return
   const theme = useThemeStore()
+  theme.setSiteThemeData(siteTheme)
   if (remote) {
-    theme.applyAppearance({
-      palette: remote.palette as AppearancePrefs['palette'],
-      mode: remote.mode as AppearancePrefs['mode'],
-      compact: remote.compact,
-      reduceMotion: remote.reduceMotion,
-      radius: remote.radius as AppearancePrefs['radius'],
-      showTabs: remote.showTabs,
-    })
+    theme.applyAppearance(
+      {
+        theme: remote.theme,
+        mode: remote.mode as AppearancePrefs['mode'],
+        compact: remote.compact,
+        reduceMotion: remote.reduceMotion,
+        radius: remote.radius as AppearancePrefs['radius'],
+        showTabs: remote.showTabs,
+        background: remote.background ?? null,
+      },
+      currentTheme,
+    )
+    lastSynced = JSON.stringify(theme.appearance)
+  } else if (siteTheme?.content) {
+    // 从没保存过外观、有全站默认：跟随全站默认，不主动保存
+    theme.setFollowSite(true)
     lastSynced = JSON.stringify(theme.appearance)
   } else {
+    // 从没保存过、也没有全站默认：把本机当前外观作为初始值存上去
+    theme.setFollowSite(false)
     lastSynced = ''
     scheduleSave({ ...theme.appearance })
   }
@@ -70,8 +91,9 @@ export const stopAppearanceSync = () => {
   }
 }
 
-/** 在已登录的外壳里挂载：本机外观变化时自动保存到账号。 */
+/** 在根组件里挂载一次：已登录时本机外观变化自动保存到账号。 */
 export const useAppearanceSync = () => {
+  if (IS_THEME_PREVIEW_FRAME) return
   const theme = useThemeStore()
   const userStore = useUserStore()
 

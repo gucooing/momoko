@@ -69,7 +69,7 @@ const go = (path: string) => {
   z-index: 2050;
   display: flex;
   padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
-  background: var(--el-bg-color);
+  background: var(--app-sidebar-bg);
   border-top: 1px solid var(--el-border-color-light);
 }
 .tabbar__item {
@@ -78,7 +78,7 @@ const go = (path: string) => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  min-height: 56px;
+  min-height: var(--cmp-tabbar-height);
   padding-top: 6px;
   border: none;
   background: transparent;
@@ -102,8 +102,8 @@ const go = (path: string) => {
   transition: background 0.18s, color 0.18s;
 }
 .tabbar__icon :deep(svg) {
-  width: 20px;
-  height: 20px;
+  width: var(--cmp-tabbar-icon-size);
+  height: var(--cmp-tabbar-icon-size);
 }
 .tabbar__dot {
   position: absolute;

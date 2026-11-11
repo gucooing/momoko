@@ -49,12 +49,12 @@ const { def, tabs, current } = usePageGroupTabs(props.group)
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--cmp-subnav-height);
   padding: 0 2px;
   border-bottom: 3px solid transparent;
   margin-bottom: -1px;
   color: var(--el-text-color-secondary);
-  font-size: 0.9375rem;
+  font-size: var(--cmp-subnav-font-size);
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;

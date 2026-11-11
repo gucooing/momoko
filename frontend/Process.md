@@ -246,7 +246,7 @@ export default defineConfig({
 ```html
 <div id="__app-loading__" class="app-loading">
   <div class="app-loading-content">
-    <img src="/logo.png" alt="logo" class="loading-logo" />
+    <!-- logo 由脚本注入，src 取 index.html 里 favicon（/src/assets/logo.svg，打包后带 hash）的 href -->
     <div class="loading-text">正在加载...</div>
   </div>
 </div>

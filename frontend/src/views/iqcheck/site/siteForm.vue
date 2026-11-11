@@ -379,7 +379,7 @@ defineExpose({ showDialog })
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 16px;
+  padding: calc(var(--cmp-card-unit) * 16);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);

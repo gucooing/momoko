@@ -5,6 +5,7 @@
 // source: v1/user.proto
 
 /* eslint-disable */
+import type { SiteTheme, Theme, ThemeBackground } from "./theme";
 
 export const protobufPackage = "v1";
 
@@ -36,14 +37,22 @@ export interface MeInfoResponse {
   user:
     | UserInfo
     | undefined;
-  /** 外观偏好（从未保存过为空，前端沿用本机设置） */
-  appearance: UserAppearance | undefined;
+  /** 外观偏好（从未保存过为空：前端套用全站默认主题，没有全站默认时沿用本机设置） */
+  appearance:
+    | UserAppearance
+    | undefined;
+  /** 当前主题是「我的主题」时附带它的内容（避免再请求一次） */
+  currentTheme:
+    | Theme
+    | undefined;
+  /** 全站默认主题（没设置过为空） */
+  siteTheme: SiteTheme | undefined;
 }
 
 /** 个人外观偏好：只对自己生效，跟随账号同步到所有设备 */
 export interface UserAppearance {
-  /** 配色：sakura / mint / volt / grape / sunset / classic */
-  palette: string;
+  /** 当前主题：内置主题为配色键（sakura / mint / volt / grape / sunset / classic），「我的主题」为主题 id */
+  theme: string;
   /** 深浅色：light / dark / auto（跟随系统） */
   mode: string;
   /** 紧凑模式 */
@@ -54,6 +63,8 @@ export interface UserAppearance {
   radius: string;
   /** 显示已打开页面的标签栏 */
   showTabs: boolean;
+  /** 外观页上改过、还没存进主题的背景（为空表示用主题自己的背景） */
+  background: ThemeBackground | undefined;
 }
 
 /** 更新个人资料请求 */

@@ -61,10 +61,10 @@ const logoSrc = APP_CONFIG.logoSrc
   display: flex;
   flex-direction: column;
   gap: 14px;
-  width: 252px;
+  width: var(--cmp-sidebar-width);
   height: 100%;
   padding: 20px 16px 16px;
-  background: var(--el-bg-color);
+  background: var(--app-sidebar-bg);
   border-right: 1px solid var(--el-border-color-light);
   transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }

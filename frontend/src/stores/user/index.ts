@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', () => {
     const { data: meRes } = await userMeInfoRequest({})
     applyUserInfo(meRes?.user)
     // 外观偏好跟随账号（见 stores/theme/sync.ts）
-    if (meRes?.user) applyRemoteAppearance(meRes.appearance)
+    if (meRes?.user) applyRemoteAppearance(meRes.appearance, meRes.currentTheme, meRes.siteTheme)
   }
 
   // 用户可以有多个角色：以「、」连接显示

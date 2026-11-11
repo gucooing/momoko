@@ -604,7 +604,7 @@ onMounted(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 14px 18px;
-  padding: 16px 18px 16px 20px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 20);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl);
   background: var(--el-bg-color);
@@ -718,7 +718,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 18px 18px 14px;
+  padding: calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 14);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl);
   background: var(--el-bg-color);

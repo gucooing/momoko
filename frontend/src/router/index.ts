@@ -6,6 +6,7 @@ import { buildLoginRoute } from '@/utils/authRedirect'
 import { getInitializeStatus } from '@/api/initialize'
 import { translate } from '@/locales'
 import NProgress from 'nprogress'
+import { IS_THEME_PREVIEW_FRAME } from '@/theme/frame'
 
 // 配置 NProgress
 NProgress.configure({
@@ -105,6 +106,9 @@ router.beforeEach(async (to) => {
     feedback.warning(translate('node.context.routeForbidden'))
     return { path: '/dashboard/home', replace: true }
   }
+
+  // 主题编辑器的预览框里要能看到访客页面（登录页等，路由 meta.siteTheme）
+  if (IS_THEME_PREVIEW_FRAME && to.meta?.siteTheme) return true
 
   // 访问登录页：重定向到第一个菜单项
   if (to.path === '/login') {

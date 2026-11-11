@@ -338,7 +338,7 @@ const meSub = computed(() => {
   return email ? `${email} · ${t('layout.profile')}` : t('layout.profile')
 })
 const appearanceSummary = computed(
-  () => `${t(themeStore.currentPalette.labelKey)} · ${t(`theme.${themeStore.themeMode}`)}`,
+  () => `${themeStore.activeName || t(themeStore.currentPalette.labelKey)} · ${t(`theme.${themeStore.themeMode}`)}`,
 )
 const currentLanguage = computed(() => {
   const item = languageOptions.find((o) => o.code === locale.value)

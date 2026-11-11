@@ -458,7 +458,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 22px;
-  padding: 32px;
+  padding: calc(var(--cmp-card-unit) * 32);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);

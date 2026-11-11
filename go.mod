@@ -8,6 +8,7 @@ require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.7.0
 	github.com/fatedier/frp v0.71.1
+	github.com/gen2brain/webp v0.6.4
 	github.com/glebarez/go-sqlite v1.22.0
 	github.com/go-jose/go-jose/v4 v4.1.4
 	github.com/go-kratos/kratos/v2 v2.9.2
@@ -24,6 +25,7 @@ require (
 	go.einride.tech/aip v0.76.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.56.0
+	golang.org/x/image v0.41.0
 	golang.org/x/mod v0.38.0
 	golang.org/x/net v0.57.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260401024825-9d38bb4040a9
@@ -56,7 +58,7 @@ require (
 	github.com/distribution/reference v0.6.0
 	github.com/docker/go-units v0.5.0
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.10.0 // indirect
+	github.com/ebitengine/purego v0.10.1 // indirect
 	github.com/fatedier/golib v0.8.2
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect

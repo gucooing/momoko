@@ -1,6 +1,6 @@
 <!-- 单个 SSH 会话：TerminalConsole + SSH 传输层（getSshHostInfo → wsPath → buildBackendWebSocketUrl → ws 直连，
      @data 原样发送、文本帧写入终端、@resize 上报、onopen 补发初始尺寸）。
-     服务端控制帧走 WebSocket 二进制帧（JSON）：{"type":"latency","ms":N} 为 momoko → SSH 服务端往返延迟。
+     服务端控制帧走 WebSocket 二进制帧（JSON），需在握手 URL 中订阅：latency=1 → {"type":"latency","ms":N}（momoko → SSH 服务端往返延迟）。
      顶栏工具按原型：复制 / 粘贴 / 字号 / 明暗 / 全屏，最右是「断开 / 重连」药丸；底栏：状态 · 地址 · 终端类型 · 列×行 · 延迟 · 会话时长 · 认证方式。
      手机：顶栏由 #lead 放主机与状态（插槽参数 latency / cols / rows），无底栏，终端满屏、下方按键条。
      同一页面可同时开多个会话（由 index.vue 用 v-show 切换）。暴露 sendCommand(cmd) 给「快捷命令」。 -->
@@ -153,6 +153,7 @@ const buildWsUrl = () => {
   if (!props.hostId || !wsPath.value) return ''
   return buildBackendWebSocketUrl(wsPath.value, (url) => {
     url.searchParams.set('hostID', props.hostId)
+    url.searchParams.set('latency', '1')
   })
 }
 

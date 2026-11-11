@@ -23,4 +23,5 @@ var ProviderSet = wire.NewSet(
 	NewIQCheckUsecase,
 	NewOIDCUsecase,
 	NewMonitorUsecase,
+	NewThemeUsecase,
 )

@@ -872,7 +872,7 @@ onMounted(() => {
 
 /* ── 引擎卡 ── */
 .dc-engine {
-  padding: 22px 26px;
+  padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 26);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -1015,7 +1015,7 @@ onMounted(() => {
   min-width: 0;
 }
 .dc-card {
-  padding: 22px 24px 8px;
+  padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 24) calc(var(--cmp-card-unit) * 8);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

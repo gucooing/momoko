@@ -108,6 +108,8 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationSystemListEmailTemplates:          constant.SystemConfigView,
 	v1.OperationSystemOperationLogStats:           constant.SystemConfigView,
 	v1.OperationSystemUpdateOperationLogRetention: constant.SystemConfigEdit,
+	// 全站默认外观主题（ThemeService 其余操作是只对自己生效的自助操作，仅需登录）
+	v1.OperationThemeServiceSetSiteTheme: constant.SystemConfigEdit,
 
 	// —— 系统：更新检查 ——
 	v1.OperationSystemCheckUpdate: constant.SystemUpdate,

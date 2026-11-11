@@ -1,4 +1,4 @@
-<!-- 顶栏主题快捷菜单（DashboardPC）：调色板按钮 → 六套配色色块 + 浅色/深色/跟随系统 + 更多外观设置（个人中心 · 外观）。 -->
+<!-- 顶栏主题快捷菜单（DashboardPC）：调色板按钮 → 六套内置主题 + 我的主题 + 浅色/深色/跟随系统 + 更多外观设置（个人中心 · 外观）。 -->
 <template>
   <AppDropdown align="end" :width="340">
     <template #trigger="{ open }">
@@ -26,8 +26,8 @@
             :key="p.key"
             type="button"
             class="tq__sw"
-            :class="{ 'is-on': themeStore.palette === p.key }"
-            :aria-pressed="themeStore.palette === p.key"
+            :class="{ 'is-on': themeStore.isBuiltin && !themeStore.usingSite && themeStore.currentTheme === p.key }"
+            :aria-pressed="themeStore.isBuiltin && !themeStore.usingSite && themeStore.currentTheme === p.key"
             @click="themeStore.setPalette(p.key)"
           >
             <span class="tq__dot" :data-palette="p.key">
@@ -38,6 +38,28 @@
             <span class="tq__name">{{ t(p.labelKey) }}</span>
           </button>
         </div>
+
+        <template v-if="mineList.length">
+          <div class="tq__lbl">{{ t('theme.mineShort') }}</div>
+          <div class="tq__grid">
+            <button
+              v-for="m in mineList"
+              :key="m.id"
+              type="button"
+              class="tq__sw"
+              :class="{ 'is-on': m.on }"
+              :aria-pressed="m.on"
+              @click="themeStore.setTheme(m.id, m.theme)"
+            >
+              <span class="tq__dot">
+                <i class="is-p" :style="{ background: m.colors[0] }" />
+                <i class="is-a" :style="{ background: m.colors[1] }" />
+                <i class="is-a2" :style="{ background: m.colors[2] }" />
+              </span>
+              <span class="tq__name">{{ m.name }}</span>
+            </button>
+          </div>
+        </template>
 
         <div class="tq__seg" role="group" :aria-label="t('theme.mode')">
           <button
@@ -59,6 +81,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { ThemeMode } from '@/stores/theme'
+import { normalizeContent, resolveTokens } from '@/theme/content'
 
 const themeStore = useThemeStore()
 const menuStore = useMenuStore()
@@ -70,6 +93,23 @@ const modes: { key: ThemeMode; label: string; icon: string }[] = [
   { key: 'dark', label: 'theme.dark', icon: 'HOutline:MoonIcon' },
   { key: 'auto', label: 'theme.auto', icon: 'HOutline:ComputerDesktopIcon' },
 ]
+
+// 我的主题（最多 6 个）：色块取主题实际的主色 / 强调色 / 辅助色
+const mineList = computed(() =>
+  themeStore.myThemes.slice(0, 6).map((th) => {
+    const tk = resolveTokens(normalizeContent(th.content), themeStore.scheme)
+    return {
+      id: th.id,
+      theme: th,
+      name: th.name,
+      colors: [tk.p, tk.a, tk.a2],
+      on: !themeStore.usingSite && themeStore.currentTheme === th.id,
+    }
+  }),
+)
+onMounted(() => {
+  if (!themeStore.themesLoaded) themeStore.loadThemes().catch(() => undefined)
+})
 
 const router = useRouter()
 const openAppearance = (close: () => void) => {
@@ -163,7 +203,17 @@ const openAppearance = (close: () => void) => {
   background: var(--m-a2);
 }
 .tq__name {
+  max-width: 100%;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tq__lbl {
+  margin-bottom: -6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--el-text-color-secondary);
 }
 .tq__seg {
   display: flex;

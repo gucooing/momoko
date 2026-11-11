@@ -158,7 +158,7 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 18px 20px 16px;
+  padding: calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 20) calc(var(--cmp-card-unit) * 16);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

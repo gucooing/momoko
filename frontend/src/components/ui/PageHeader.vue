@@ -80,7 +80,7 @@ const goBack = () => {
 }
 .page-header__title {
   font-family: var(--app-font-display);
-  font-size: 1.875rem;
+  font-size: var(--cmp-page-title-size);
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--el-text-color-primary);
@@ -136,7 +136,7 @@ const goBack = () => {
     gap: 4px;
   }
   .page-header__title {
-    font-size: 1.5rem;
+    font-size: calc(var(--cmp-page-title-size) * 0.8);
   }
   .page-header__desc {
     display: -webkit-box;

@@ -1213,7 +1213,7 @@ onMounted(() => { void init() })
   flex: 1 1 0;
   min-width: 240px;
   margin: 0;
-  padding: 14px 18px;
+  padding: calc(var(--cmp-card-unit) * 14) calc(var(--cmp-card-unit) * 18);
   display: flex;
   flex-direction: column;
   gap: 12px;

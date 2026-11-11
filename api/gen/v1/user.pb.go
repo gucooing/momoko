@@ -163,8 +163,12 @@ type MeInfoResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 用户信息
 	User *UserInfo `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	// 外观偏好（从未保存过为空，前端沿用本机设置）
-	Appearance    *UserAppearance `protobuf:"bytes,2,opt,name=appearance,proto3" json:"appearance,omitempty"`
+	// 外观偏好（从未保存过为空：前端套用全站默认主题，没有全站默认时沿用本机设置）
+	Appearance *UserAppearance `protobuf:"bytes,2,opt,name=appearance,proto3" json:"appearance,omitempty"`
+	// 当前主题是「我的主题」时附带它的内容（避免再请求一次）
+	CurrentTheme *Theme `protobuf:"bytes,3,opt,name=current_theme,json=currentTheme,proto3" json:"current_theme,omitempty"`
+	// 全站默认主题（没设置过为空）
+	SiteTheme     *SiteTheme `protobuf:"bytes,4,opt,name=site_theme,json=siteTheme,proto3" json:"site_theme,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -213,11 +217,25 @@ func (x *MeInfoResponse) GetAppearance() *UserAppearance {
 	return nil
 }
 
+func (x *MeInfoResponse) GetCurrentTheme() *Theme {
+	if x != nil {
+		return x.CurrentTheme
+	}
+	return nil
+}
+
+func (x *MeInfoResponse) GetSiteTheme() *SiteTheme {
+	if x != nil {
+		return x.SiteTheme
+	}
+	return nil
+}
+
 // 个人外观偏好：只对自己生效，跟随账号同步到所有设备
 type UserAppearance struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 配色：sakura / mint / volt / grape / sunset / classic
-	Palette string `protobuf:"bytes,1,opt,name=palette,proto3" json:"palette,omitempty"`
+	// 当前主题：内置主题为配色键（sakura / mint / volt / grape / sunset / classic），「我的主题」为主题 id
+	Theme string `protobuf:"bytes,1,opt,name=theme,proto3" json:"theme,omitempty"`
 	// 深浅色：light / dark / auto（跟随系统）
 	Mode string `protobuf:"bytes,2,opt,name=mode,proto3" json:"mode,omitempty"`
 	// 紧凑模式
@@ -227,7 +245,9 @@ type UserAppearance struct {
 	// 圆角：round（圆润） / standard（标准）
 	Radius string `protobuf:"bytes,5,opt,name=radius,proto3" json:"radius,omitempty"`
 	// 显示已打开页面的标签栏
-	ShowTabs      bool `protobuf:"varint,6,opt,name=show_tabs,json=showTabs,proto3" json:"show_tabs,omitempty"`
+	ShowTabs bool `protobuf:"varint,6,opt,name=show_tabs,json=showTabs,proto3" json:"show_tabs,omitempty"`
+	// 外观页上改过、还没存进主题的背景（为空表示用主题自己的背景）
+	Background    *ThemeBackground `protobuf:"bytes,7,opt,name=background,proto3" json:"background,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -262,9 +282,9 @@ func (*UserAppearance) Descriptor() ([]byte, []int) {
 	return file_v1_user_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *UserAppearance) GetPalette() string {
+func (x *UserAppearance) GetTheme() string {
 	if x != nil {
-		return x.Palette
+		return x.Theme
 	}
 	return ""
 }
@@ -302,6 +322,13 @@ func (x *UserAppearance) GetShowTabs() bool {
 		return x.ShowTabs
 	}
 	return false
+}
+
+func (x *UserAppearance) GetBackground() *ThemeBackground {
+	if x != nil {
+		return x.Background
+	}
+	return nil
 }
 
 // 更新个人资料请求
@@ -2087,20 +2114,26 @@ var File_v1_user_proto protoreflect.FileDescriptor
 
 const file_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\rv1/user.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x0fv1/system.proto\"\x0f\n" +
-	"\rMeInfoRequest\"f\n" +
+	"\rv1/user.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x0fv1/system.proto\x1a\x0ev1/theme.proto\"\x0f\n" +
+	"\rMeInfoRequest\"\xc4\x01\n" +
 	"\x0eMeInfoResponse\x12 \n" +
 	"\x04user\x18\x01 \x01(\v2\f.v1.UserInfoR\x04user\x122\n" +
 	"\n" +
 	"appearance\x18\x02 \x01(\v2\x12.v1.UserAppearanceR\n" +
-	"appearance\"\xb2\x01\n" +
-	"\x0eUserAppearance\x12\x18\n" +
-	"\apalette\x18\x01 \x01(\tR\apalette\x12\x12\n" +
+	"appearance\x12.\n" +
+	"\rcurrent_theme\x18\x03 \x01(\v2\t.v1.ThemeR\fcurrentTheme\x12,\n" +
+	"\n" +
+	"site_theme\x18\x04 \x01(\v2\r.v1.SiteThemeR\tsiteTheme\"\xe3\x01\n" +
+	"\x0eUserAppearance\x12\x14\n" +
+	"\x05theme\x18\x01 \x01(\tR\x05theme\x12\x12\n" +
 	"\x04mode\x18\x02 \x01(\tR\x04mode\x12\x18\n" +
 	"\acompact\x18\x03 \x01(\bR\acompact\x12#\n" +
 	"\rreduce_motion\x18\x04 \x01(\bR\freduceMotion\x12\x16\n" +
 	"\x06radius\x18\x05 \x01(\tR\x06radius\x12\x1b\n" +
-	"\tshow_tabs\x18\x06 \x01(\bR\bshowTabs\"\x94\x02\n" +
+	"\tshow_tabs\x18\x06 \x01(\bR\bshowTabs\x123\n" +
+	"\n" +
+	"background\x18\a \x01(\v2\x13.v1.ThemeBackgroundR\n" +
+	"background\"\x94\x02\n" +
 	"\x0fUpdateMeRequest\x12\x15\n" +
 	"\x03bio\x18\x01 \x01(\tH\x00R\x03bio\x88\x01\x01\x12\x19\n" +
 	"\x05email\x18\x02 \x01(\tH\x01R\x05email\x88\x01\x01\x12\x1b\n" +
@@ -2316,60 +2349,66 @@ var file_v1_user_proto_goTypes = []any{
 	(*BatchUpdateUserResponse)(nil),    // 27: v1.BatchUpdateUserResponse
 	(*ResetUserPasswordRequest)(nil),   // 28: v1.ResetUserPasswordRequest
 	(*ResetUserPasswordResponse)(nil),  // 29: v1.ResetUserPasswordResponse
-	(*timestamppb.Timestamp)(nil),      // 30: google.protobuf.Timestamp
+	(*Theme)(nil),                      // 30: v1.Theme
+	(*SiteTheme)(nil),                  // 31: v1.SiteTheme
+	(*ThemeBackground)(nil),            // 32: v1.ThemeBackground
+	(*timestamppb.Timestamp)(nil),      // 33: google.protobuf.Timestamp
 }
 var file_v1_user_proto_depIdxs = []int32{
 	16, // 0: v1.MeInfoResponse.user:type_name -> v1.UserInfo
 	4,  // 1: v1.MeInfoResponse.appearance:type_name -> v1.UserAppearance
-	4,  // 2: v1.UpdateMyAppearanceRequest.appearance:type_name -> v1.UserAppearance
-	4,  // 3: v1.UpdateMyAppearanceResponse.appearance:type_name -> v1.UserAppearance
-	16, // 4: v1.UpdateMeResponse.user:type_name -> v1.UserInfo
-	11, // 5: v1.MyLoginLogsResponse.logs:type_name -> v1.LoginLogInfo
-	30, // 6: v1.LoginLogInfo.time:type_name -> google.protobuf.Timestamp
-	0,  // 7: v1.ListUserRequest.status:type_name -> v1.UserStatus
-	16, // 8: v1.ListUserResponse.users:type_name -> v1.UserInfo
-	16, // 9: v1.UserInfoResponse.user:type_name -> v1.UserInfo
-	30, // 10: v1.UserInfo.create_time:type_name -> google.protobuf.Timestamp
-	0,  // 11: v1.UserInfo.status:type_name -> v1.UserStatus
-	30, // 12: v1.UserInfo.update_time:type_name -> google.protobuf.Timestamp
-	30, // 13: v1.UserInfo.last_login_time:type_name -> google.protobuf.Timestamp
-	30, // 14: v1.UserInfo.password_update_time:type_name -> google.protobuf.Timestamp
-	17, // 15: v1.UserInfo.roles:type_name -> v1.UserRole
-	30, // 16: v1.LoginInfo.time:type_name -> google.protobuf.Timestamp
-	1,  // 17: v1.LoginInfo.status:type_name -> v1.LoginStatus
-	0,  // 18: v1.AddUserRequest.status:type_name -> v1.UserStatus
-	16, // 19: v1.AddUserResponse.user:type_name -> v1.UserInfo
-	0,  // 20: v1.EditUserRequest.status:type_name -> v1.UserStatus
-	16, // 21: v1.EditUserResponse.user:type_name -> v1.UserInfo
-	0,  // 22: v1.BatchUpdateUserRequest.status:type_name -> v1.UserStatus
-	18, // 23: v1.BatchUpdateUserRequest.roles:type_name -> v1.UserRoleIds
-	2,  // 24: v1.UserService.MeInfo:input_type -> v1.MeInfoRequest
-	5,  // 25: v1.UserService.UpdateMe:input_type -> v1.UpdateMeRequest
-	6,  // 26: v1.UserService.UpdateMyAppearance:input_type -> v1.UpdateMyAppearanceRequest
-	9,  // 27: v1.UserService.MyLoginLogs:input_type -> v1.MyLoginLogsRequest
-	12, // 28: v1.UserService.ListUser:input_type -> v1.ListUserRequest
-	14, // 29: v1.UserService.UserInfo:input_type -> v1.UserInfoRequest
-	20, // 30: v1.UserService.AddUser:input_type -> v1.AddUserRequest
-	22, // 31: v1.UserService.EditUser:input_type -> v1.EditUserRequest
-	24, // 32: v1.UserService.DeleteUser:input_type -> v1.DeleteUserRequest
-	26, // 33: v1.UserService.BatchUpdateUser:input_type -> v1.BatchUpdateUserRequest
-	28, // 34: v1.UserService.ResetUserPassword:input_type -> v1.ResetUserPasswordRequest
-	3,  // 35: v1.UserService.MeInfo:output_type -> v1.MeInfoResponse
-	8,  // 36: v1.UserService.UpdateMe:output_type -> v1.UpdateMeResponse
-	7,  // 37: v1.UserService.UpdateMyAppearance:output_type -> v1.UpdateMyAppearanceResponse
-	10, // 38: v1.UserService.MyLoginLogs:output_type -> v1.MyLoginLogsResponse
-	13, // 39: v1.UserService.ListUser:output_type -> v1.ListUserResponse
-	15, // 40: v1.UserService.UserInfo:output_type -> v1.UserInfoResponse
-	21, // 41: v1.UserService.AddUser:output_type -> v1.AddUserResponse
-	23, // 42: v1.UserService.EditUser:output_type -> v1.EditUserResponse
-	25, // 43: v1.UserService.DeleteUser:output_type -> v1.DeleteUserResponse
-	27, // 44: v1.UserService.BatchUpdateUser:output_type -> v1.BatchUpdateUserResponse
-	29, // 45: v1.UserService.ResetUserPassword:output_type -> v1.ResetUserPasswordResponse
-	35, // [35:46] is the sub-list for method output_type
-	24, // [24:35] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	30, // 2: v1.MeInfoResponse.current_theme:type_name -> v1.Theme
+	31, // 3: v1.MeInfoResponse.site_theme:type_name -> v1.SiteTheme
+	32, // 4: v1.UserAppearance.background:type_name -> v1.ThemeBackground
+	4,  // 5: v1.UpdateMyAppearanceRequest.appearance:type_name -> v1.UserAppearance
+	4,  // 6: v1.UpdateMyAppearanceResponse.appearance:type_name -> v1.UserAppearance
+	16, // 7: v1.UpdateMeResponse.user:type_name -> v1.UserInfo
+	11, // 8: v1.MyLoginLogsResponse.logs:type_name -> v1.LoginLogInfo
+	33, // 9: v1.LoginLogInfo.time:type_name -> google.protobuf.Timestamp
+	0,  // 10: v1.ListUserRequest.status:type_name -> v1.UserStatus
+	16, // 11: v1.ListUserResponse.users:type_name -> v1.UserInfo
+	16, // 12: v1.UserInfoResponse.user:type_name -> v1.UserInfo
+	33, // 13: v1.UserInfo.create_time:type_name -> google.protobuf.Timestamp
+	0,  // 14: v1.UserInfo.status:type_name -> v1.UserStatus
+	33, // 15: v1.UserInfo.update_time:type_name -> google.protobuf.Timestamp
+	33, // 16: v1.UserInfo.last_login_time:type_name -> google.protobuf.Timestamp
+	33, // 17: v1.UserInfo.password_update_time:type_name -> google.protobuf.Timestamp
+	17, // 18: v1.UserInfo.roles:type_name -> v1.UserRole
+	33, // 19: v1.LoginInfo.time:type_name -> google.protobuf.Timestamp
+	1,  // 20: v1.LoginInfo.status:type_name -> v1.LoginStatus
+	0,  // 21: v1.AddUserRequest.status:type_name -> v1.UserStatus
+	16, // 22: v1.AddUserResponse.user:type_name -> v1.UserInfo
+	0,  // 23: v1.EditUserRequest.status:type_name -> v1.UserStatus
+	16, // 24: v1.EditUserResponse.user:type_name -> v1.UserInfo
+	0,  // 25: v1.BatchUpdateUserRequest.status:type_name -> v1.UserStatus
+	18, // 26: v1.BatchUpdateUserRequest.roles:type_name -> v1.UserRoleIds
+	2,  // 27: v1.UserService.MeInfo:input_type -> v1.MeInfoRequest
+	5,  // 28: v1.UserService.UpdateMe:input_type -> v1.UpdateMeRequest
+	6,  // 29: v1.UserService.UpdateMyAppearance:input_type -> v1.UpdateMyAppearanceRequest
+	9,  // 30: v1.UserService.MyLoginLogs:input_type -> v1.MyLoginLogsRequest
+	12, // 31: v1.UserService.ListUser:input_type -> v1.ListUserRequest
+	14, // 32: v1.UserService.UserInfo:input_type -> v1.UserInfoRequest
+	20, // 33: v1.UserService.AddUser:input_type -> v1.AddUserRequest
+	22, // 34: v1.UserService.EditUser:input_type -> v1.EditUserRequest
+	24, // 35: v1.UserService.DeleteUser:input_type -> v1.DeleteUserRequest
+	26, // 36: v1.UserService.BatchUpdateUser:input_type -> v1.BatchUpdateUserRequest
+	28, // 37: v1.UserService.ResetUserPassword:input_type -> v1.ResetUserPasswordRequest
+	3,  // 38: v1.UserService.MeInfo:output_type -> v1.MeInfoResponse
+	8,  // 39: v1.UserService.UpdateMe:output_type -> v1.UpdateMeResponse
+	7,  // 40: v1.UserService.UpdateMyAppearance:output_type -> v1.UpdateMyAppearanceResponse
+	10, // 41: v1.UserService.MyLoginLogs:output_type -> v1.MyLoginLogsResponse
+	13, // 42: v1.UserService.ListUser:output_type -> v1.ListUserResponse
+	15, // 43: v1.UserService.UserInfo:output_type -> v1.UserInfoResponse
+	21, // 44: v1.UserService.AddUser:output_type -> v1.AddUserResponse
+	23, // 45: v1.UserService.EditUser:output_type -> v1.EditUserResponse
+	25, // 46: v1.UserService.DeleteUser:output_type -> v1.DeleteUserResponse
+	27, // 47: v1.UserService.BatchUpdateUser:output_type -> v1.BatchUpdateUserResponse
+	29, // 48: v1.UserService.ResetUserPassword:output_type -> v1.ResetUserPasswordResponse
+	38, // [38:49] is the sub-list for method output_type
+	27, // [27:38] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_v1_user_proto_init() }
@@ -2378,6 +2417,7 @@ func file_v1_user_proto_init() {
 		return
 	}
 	file_v1_system_proto_init()
+	file_v1_theme_proto_init()
 	file_v1_user_proto_msgTypes[3].OneofWrappers = []any{}
 	file_v1_user_proto_msgTypes[7].OneofWrappers = []any{}
 	file_v1_user_proto_msgTypes[10].OneofWrappers = []any{}

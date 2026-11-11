@@ -117,3 +117,28 @@ var (
 		return response.BadRequest(500, fmt.Sprintf("API Key 未授予该节点权限：%s", perm))
 	}
 )
+
+// 外观主题（前端只在 code=500 时展示 message，故沿用 500）
+var (
+	ErrThemeNotFound          = response.BadRequest(500, "主题不存在")
+	ErrThemeNameEmpty         = response.BadRequest(500, "主题名称不能为空")
+	ErrThemeNameTooLong       = response.BadRequest(500, "主题名称不能超过 40 个字")
+	ErrThemeDescriptionLong   = response.BadRequest(500, "主题说明不能超过 200 个字")
+	ErrThemeLimit             = response.BadRequest(500, "最多只能保存 50 个主题，请先删除不用的主题")
+	ErrThemeAssetKind         = response.BadRequest(500, "资源类型只能是图片（image）或字体（font）")
+	ErrThemeAssetData         = response.BadRequest(500, "文件内容为空或不是有效的 base64")
+	ErrThemeAssetMissing      = response.BadRequest(500, "主题引用的资源文件已丢失")
+	ErrThemePackageData       = response.BadRequest(500, "主题包内容为空或不是有效的 base64")
+	ErrThemePackageTooLarge   = response.BadRequest(500, "主题包不能超过 40 MB")
+	ErrThemePackageInvalid    = response.BadRequest(500, "不是有效的主题包（.momoko-theme）")
+	ErrThemePackageEntries    = response.BadRequest(500, "主题包里的文件太多（最多 64 个）")
+	ErrThemePackageUnsafePath = response.BadRequest(500, "主题包包含不安全的文件路径")
+	ErrThemePackageNoManifest = response.BadRequest(500, "主题包缺少 theme.json")
+	ErrThemePackageManifest   = response.BadRequest(500, "主题包里的 theme.json 格式不正确")
+	ErrThemePackageNewer      = response.BadRequest(500, "主题包来自更新的版本，请先升级 Momoko")
+	ErrThemePackageEntryLarge = response.BadRequest(500, "主题包里的文件过大")
+	ErrThemeExportPage        = response.BadRequest(500, "这个页面没有单独设置，无法单独导出")
+	ErrThemeAsset             = func(err error) error {
+		return response.BadRequest(500, err.Error())
+	}
+)

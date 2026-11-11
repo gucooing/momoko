@@ -611,7 +611,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 20px 14px 6px 20px;
+  padding: calc(var(--cmp-card-unit) * 20) calc(var(--cmp-card-unit) * 14) calc(var(--cmp-card-unit) * 6) calc(var(--cmp-card-unit) * 20);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

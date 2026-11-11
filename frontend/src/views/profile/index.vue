@@ -1,5 +1,5 @@
 <!-- 个人中心（ProfilePC / ThemePC / ProfileMobile / ThemeMobile）：一个菜单 = 一个页面，页内标签 个人资料 / 外观（?tab=）。
-     PC：小标题「个人中心」+ 当前标签名 + 下划线子导航；手机：返回 + 标题（外观页右上角「恢复默认」），从「个人资料」里的外观入口进入外观。 -->
+     PC：小标题「个人中心」+ 当前标签名 + 下划线子导航；手机：返回 + 标题（外观页右上角「导入主题包」「恢复默认」），从「个人资料」里的外观入口进入外观。 -->
 <template>
   <div class="profile-page">
     <header v-if="!isMobile" class="profile-head">
@@ -15,6 +15,7 @@
       :theme-toggle="!onAppearance"
     >
       <template v-if="onAppearance" #actions>
+        <AppIconButton icon="HOutline:ArrowUpTrayIcon" :label="t('theme.importPkg')" :box="44" @click="openThemeImport()" />
         <button type="button" class="profile-reset" @click="themeStore.resetAppearance()">
           {{ t('theme.reset') }}
         </button>
@@ -27,6 +28,7 @@
 
 <script setup lang="ts">
 import { usePageGroupTabs } from '@/config/pageGroups'
+import { openThemeImport } from './appearance/useAppearancePage'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'ProfileView' })

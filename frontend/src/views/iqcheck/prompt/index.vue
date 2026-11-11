@@ -290,7 +290,7 @@ onMounted(loadPrompts)
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 20px;
+  padding: calc(var(--cmp-card-unit) * 20);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl);
   background: var(--el-bg-color);

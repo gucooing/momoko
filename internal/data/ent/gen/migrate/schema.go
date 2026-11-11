@@ -837,6 +837,32 @@ var (
 			},
 		},
 	}
+	// ThemeAssetsColumns holds the columns for the "theme_assets" table.
+	ThemeAssetsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"image", "font"}},
+		{Name: "name", Type: field.TypeString, Default: ""},
+		{Name: "size", Type: field.TypeInt64, Default: 0},
+		{Name: "original_size", Type: field.TypeInt64, Default: 0},
+		{Name: "width", Type: field.TypeInt32, Default: 0},
+		{Name: "height", Type: field.TypeInt32, Default: 0},
+	}
+	// ThemeAssetsTable holds the schema information for the "theme_assets" table.
+	ThemeAssetsTable = &schema.Table{
+		Name:       "theme_assets",
+		Columns:    ThemeAssetsColumns,
+		PrimaryKey: []*schema.Column{ThemeAssetsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "themeasset_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{ThemeAssetsColumns[3]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -855,7 +881,7 @@ var (
 		{Name: "password_updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "last_login_ip", Type: field.TypeString, Nullable: true},
 		{Name: "last_login_method", Type: field.TypeString, Nullable: true},
-		{Name: "appearance", Type: field.TypeString, Nullable: true},
+		{Name: "appearance", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "instance_users", Type: field.TypeString, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -937,6 +963,32 @@ var (
 				Name:    "usermessage_user_id_read_at",
 				Unique:  false,
 				Columns: []*schema.Column{UserMessagesColumns[3], UserMessagesColumns[10]},
+			},
+		},
+	}
+	// UserThemesColumns holds the columns for the "user_themes" table.
+	UserThemesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "author", Type: field.TypeString, Default: ""},
+		{Name: "version", Type: field.TypeString, Default: "1.0"},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "source", Type: field.TypeEnum, Enums: []string{"custom", "import"}, Default: "custom"},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+	}
+	// UserThemesTable holds the schema information for the "user_themes" table.
+	UserThemesTable = &schema.Table{
+		Name:       "user_themes",
+		Columns:    UserThemesColumns,
+		PrimaryKey: []*schema.Column{UserThemesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "usertheme_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserThemesColumns[3]},
 			},
 		},
 	}
@@ -1043,9 +1095,11 @@ var (
 		SessionsTable,
 		ConfigsTable,
 		TasksTable,
+		ThemeAssetsTable,
 		UsersTable,
 		UserAPIKeysTable,
 		UserMessagesTable,
+		UserThemesTable,
 		RoleMenusTable,
 		SSHHostSharesTable,
 		UserRolesTable,

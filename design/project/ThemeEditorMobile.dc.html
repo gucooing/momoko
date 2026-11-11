@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>主题编辑器 · 手机</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:0 14px;border-radius:999px;border:0;font:inherit;font-size:13px;font-weight:700;white-space:nowrap}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink);cursor:pointer;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.bad{background:var(--badSoft);color:var(--bad)}
+.pc{display:flex;flex-direction:column;gap:10px;padding:8px;border-radius:20px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.pc-on{border-color:var(--p);box-shadow:0 0 0 4px var(--pSoft)}
+.chk{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;flex:none}
+.chk-on{background:var(--p);color:var(--pOn)}
+.chk-off{border:2px solid var(--line)}
+.seg{display:flex;padding:4px;border-radius:999px;background:var(--s2);gap:2px}
+.seg button{flex:1;min-height:44px;border-radius:999px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer}
+.seg .on{background:var(--s);color:var(--ink);box-shadow:0 1px 3px rgba(20,10,30,.12)}
+.tg{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none}
+.tg::after{content:'';position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.tg:checked{background:var(--p)}
+.tg:checked::after{transform:translateX(20px)}
+.row{display:flex;align-items:center;gap:14px;min-height:60px;padding:6px 0;cursor:pointer}
+.row + .row{border-top:1px solid var(--line)}
+.h{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+.sb{background:var(--s)}
+.glass .card,.glass .sb{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+.glass .inp{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(12px)}
+.mini{display:flex;gap:6px;height:84px;padding:8px;border-radius:14px;border:1px solid var(--line);overflow:hidden}
+.mini-sb{width:24%;border-radius:8px;background:var(--s);display:flex;flex-direction:column;gap:4px;padding:5px}
+.mini-sb span{height:5px;border-radius:3px;background:var(--line)}
+.mini-sb span:first-child{height:8px}
+.mini-main{flex:1;display:flex;flex-direction:column;gap:5px}
+.mini-hero{flex:1.3;border-radius:9px;position:relative;overflow:hidden}
+.mini-hero span{position:absolute;right:-12px;bottom:-18px;width:40px;height:40px;border-radius:50%}
+.mini-row{flex:1;display:flex;gap:5px}
+.mini-row span{flex:1;border-radius:7px;background:var(--s)}
+.mini-glass{background:color-mix(in srgb,var(--s) 72%,transparent)!important}
+.ib-xs{width:32px;height:32px;border-radius:10px;text-decoration:none}
+.newt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:170px;border-radius:22px;border:2px dashed var(--line);text-decoration:none;padding:12px}
+.newt:hover{border-color:var(--p)}
+.thumb{aspect-ratio:16/10;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:0}
+.thumb-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.thumb-up{display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--s2);color:var(--ink2);border-style:dashed;font:inherit;text-align:left}
+.rng{accent-color:var(--p);width:100%;margin:0;height:24px;cursor:pointer}
+.seg-sm button{min-height:32px;padding:0 12px;font-size:12px}
+.gsw{width:64px;height:44px;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:0}
+.gsw-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.stopc{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 7px;border-radius:999px;background:var(--s);border:1px solid var(--line)}
+.pat{display:flex;flex-direction:column;gap:6px;padding:6px 6px 8px;border-radius:16px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:center}
+.pat-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.tagc{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--s2);font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.mb{position:absolute;top:0;left:0;right:0;height:1000px;z-index:50;background:rgba(20,10,30,.45);display:flex;align-items:center;justify-content:center;padding:24px}
+.dlg{max-width:100%;max-height:100%;overflow:auto;box-shadow:0 30px 70px -30px rgba(20,10,30,.6);background:var(--s)!important;backdrop-filter:none!important}
+.dlg-h{display:flex;align-items:center;gap:12px;padding:20px 16px 14px 24px}
+.dlg-f{display:flex;align-items:center;gap:10px;padding:14px 24px 20px;border-top:1px solid var(--line)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip:hover{border-color:var(--p);color:var(--pInk)}
+.chip-on,.chip-on:hover{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip-sm{min-height:34px;padding:0 12px;font-size:13px}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-on{background:var(--ink);color:var(--bg)}
+.sheet{max-height:92%;background:var(--s);border-radius:28px 28px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.btn-p{background:var(--p);color:var(--pOn)}
+.mini{height:auto}
+.btn{text-decoration:none}
+.btn-s{background:var(--s2);color:var(--ink)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.seg button{white-space:nowrap}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.tchip{display:inline-flex;align-items:center;gap:6px;flex:none;min-height:38px;padding:0 12px 0 8px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;white-space:nowrap}
+.tchip.tok-on{border-color:var(--p);background:var(--pSoft)}
+.btn-on{background:var(--ink);color:var(--bg)}
+.tname{border:0;background:transparent;font:inherit;font-size:17px;font-weight:800;color:var(--ink);padding:0;width:200px;outline:none}
+.tok{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:14px;border:0;background:transparent;font:inherit;color:var(--ink);cursor:pointer;width:100%}
+.tok:hover{background:var(--s2)}
+.tok-on,.tok-on:hover{background:var(--pSoft)}
+.sw{width:30px;height:30px;border-radius:10px;border:1px solid rgba(0,0,0,.1);flex:none}
+.tagx{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:999px;background:var(--aSoft);color:var(--aOn);font-size:10px;font-weight:800;white-space:nowrap}
+.dotx{width:7px;height:7px;border-radius:50%;background:var(--p);display:inline-block;flex:none}
+.menu{padding:6px;box-shadow:0 20px 50px -20px rgba(20,10,30,.4)}
+.mi{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:6px 8px;border:0;border-radius:12px;background:transparent;font:inherit;color:var(--ink);cursor:pointer}
+.mi:hover{background:var(--s2)}
+.frame{background:#FFFFFF;border:1px solid var(--line);overflow:hidden;box-shadow:0 24px 50px -30px rgba(20,10,30,.35);max-width:100%;flex:none}
+.frame-bar{display:flex;align-items:center;gap:10px;height:30px;padding:0 12px;background:#F4F1F6;border-bottom:1px solid #E6E0EA}
+.frame-bar i{width:9px;height:9px;border-radius:50%;display:block}
+.pv{color:var(--ink);background:var(--bg);font-size:13px}
+.pv-card{background:var(--s);border:1px solid var(--line);border-radius:var(--r)}
+.pv-sb{background:var(--s)}
+.glass .pv-card,.glass .pv-sb,.glass .pv-tabbar{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3)}
+.pv-nav{display:flex;align-items:center;min-height:30px;padding:0 10px;border-radius:10px;font-size:12px;color:var(--ink2)}
+.pv-nav-on{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.pv-btn{display:inline-flex;align-items:center;min-height:30px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:700}
+.pv-chip{display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font-size:11px;font-weight:600;color:var(--ink2)}
+.pv-pill{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.pv-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.pv-ib{width:24px;height:24px;border-radius:8px;background:var(--s2)}
+.pv-tabbar{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;padding:6px 6px 18px;background:var(--s);border-top:1px solid var(--line)}
+.pv-tabbar span{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--ink2)}
+.pv-tabbar i{width:40px;height:22px;border-radius:999px;background:var(--s2);display:block}
+.pv-tabbar .on{color:var(--pInk)}.pv-tabbar .on i{background:var(--pSoft)}
+.hot{outline:2px dashed #7B5CFF;outline-offset:3px}
+.picking{cursor:crosshair}
+.pv-note{position:absolute;right:12px;z-index:5;display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:rgba(20,10,30,.8);color:#FFFFFF;font-size:11px;font-weight:700}
+.sv{position:relative;height:150px;border-radius:14px}
+.sv span{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.hue{position:relative;height:14px;border-radius:999px;background:linear-gradient(90deg,#F00,#FF0,#0F0,#0FF,#00F,#F0F,#F00)}
+.hue span{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.sgw{aspect-ratio:1;border-radius:9px;border:1px solid var(--line);cursor:pointer;padding:0}
+.sgw-on{box-shadow:0 0 0 2px var(--s),0 0 0 4px var(--p)}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.sb{background:var(--s)}
+.glass .card,.glass .sb{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+.glass .inp{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(12px)}
+.mini{display:flex;gap:6px;height:84px;padding:8px;border-radius:14px;border:1px solid var(--line);overflow:hidden}
+.mini-sb{width:24%;border-radius:8px;background:var(--s);display:flex;flex-direction:column;gap:4px;padding:5px}
+.mini-sb span{height:5px;border-radius:3px;background:var(--line)}
+.mini-sb span:first-child{height:8px}
+.mini-main{flex:1;display:flex;flex-direction:column;gap:5px}
+.mini-hero{flex:1.3;border-radius:9px;position:relative;overflow:hidden}
+.mini-hero span{position:absolute;right:-12px;bottom:-18px;width:40px;height:40px;border-radius:50%}
+.mini-row{flex:1;display:flex;gap:5px}
+.mini-row span{flex:1;border-radius:7px;background:var(--s)}
+.mini-glass{background:color-mix(in srgb,var(--s) 72%,transparent)!important}
+.ib-xs{width:32px;height:32px;border-radius:10px;text-decoration:none}
+.newt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:170px;border-radius:22px;border:2px dashed var(--line);text-decoration:none;padding:12px}
+.newt:hover{border-color:var(--p)}
+.thumb{aspect-ratio:16/10;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:0}
+.thumb-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.thumb-up{display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--s2);color:var(--ink2);border-style:dashed;font:inherit;text-align:left}
+.rng{accent-color:var(--p);width:100%;margin:0;height:24px;cursor:pointer}
+.seg-sm button{min-height:32px;padding:0 12px;font-size:12px}
+.gsw{width:64px;height:44px;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:0}
+.gsw-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.stopc{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 7px;border-radius:999px;background:var(--s);border:1px solid var(--line)}
+.pat{display:flex;flex-direction:column;gap:6px;padding:6px 6px 8px;border-radius:16px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:center}
+.pat-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.tagc{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--s2);font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.mb{position:absolute;top:0;left:0;right:0;height:1000px;z-index:50;background:rgba(20,10,30,.45);display:flex;align-items:center;justify-content:center;padding:24px}
+.dlg{display:flex;flex-direction:column;max-width:100%;max-height:100%;overflow:hidden;box-shadow:0 30px 70px -30px rgba(20,10,30,.6);background:var(--s)!important;backdrop-filter:none!important}
+.dlg-h{display:flex;align-items:center;gap:12px;padding:20px 16px 14px 24px}
+.dlg-f{display:flex;align-items:center;gap:10px;padding:14px 24px 20px;border-top:1px solid var(--line)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.ipv{position:relative;height:230px;border-radius:18px;overflow:hidden;color:var(--ink);border:1px solid var(--line)}
+.ipg{background:color-mix(in srgb,var(--s) 72%,transparent);backdrop-filter:blur(10px);border-radius:12px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.ipchips{position:absolute;left:12px;top:12px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:999px;background:rgba(15,10,25,.62);backdrop-filter:blur(8px)}
+.ipchips button,.pvseg button{min-height:28px;padding:0 11px;border-radius:999px;border:0;background:transparent;color:rgba(255,255,255,.75);font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.ipchips .on,.pvseg .on{background:#FFFFFF;color:#2A1630}
+.pvbar{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 8px;border-radius:999px;background:rgba(15,10,25,.9);color:#FFFFFF;box-shadow:0 18px 40px -16px rgba(0,0,0,.6);backdrop-filter:blur(10px)}
+.pvseg{display:inline-flex;padding:3px;border-radius:999px;background:rgba(255,255,255,.12)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip:hover{border-color:var(--p);color:var(--pInk)}
+.chip-on,.chip-on:hover{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip-sm{min-height:34px;padding:0 12px;font-size:13px}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-on{background:var(--ink);color:var(--bg)}
+.sheet{max-height:92%;background:var(--s);border-radius:28px 28px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.btn-p{background:var(--p);color:var(--pOn)}
+.mini{height:auto}
+.btn{text-decoration:none}
+.btn-s{background:var(--s2);color:var(--ink)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.seg button{white-space:nowrap}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.tchip{display:inline-flex;align-items:center;gap:6px;flex:none;min-height:38px;padding:0 12px 0 8px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;white-space:nowrap}
+.tchip.tok-on{border-color:var(--p);background:var(--pSoft)}
+.btn-on{background:var(--ink);color:var(--bg)}
+.tname{border:0;background:transparent;font:inherit;font-size:17px;font-weight:800;color:var(--ink);padding:0;width:200px;outline:none}
+.tok{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:14px;border:0;background:transparent;font:inherit;color:var(--ink);cursor:pointer;width:100%}
+.tok:hover{background:var(--s2)}
+.tok-on,.tok-on:hover{background:var(--pSoft)}
+.sw{width:30px;height:30px;border-radius:10px;border:1px solid rgba(0,0,0,.1);flex:none}
+.tagx{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:999px;background:var(--aSoft);color:var(--aOn);font-size:10px;font-weight:800;white-space:nowrap}
+.dotx{width:7px;height:7px;border-radius:50%;background:var(--p);display:inline-block;flex:none}
+.menu{padding:6px;box-shadow:0 20px 50px -20px rgba(20,10,30,.4)}
+.mi{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:6px 8px;border:0;border-radius:12px;background:transparent;font:inherit;color:var(--ink);cursor:pointer}
+.mi:hover{background:var(--s2)}
+.frame{background:#FFFFFF;border:1px solid var(--line);overflow:hidden;box-shadow:0 24px 50px -30px rgba(20,10,30,.35);max-width:100%;flex:none}
+.frame-bar{display:flex;align-items:center;gap:10px;height:30px;padding:0 12px;background:#F4F1F6;border-bottom:1px solid #E6E0EA}
+.frame-bar i{width:9px;height:9px;border-radius:50%;display:block}
+.pv{color:var(--ink);background:var(--bg);font-size:13px}
+.pv-card{background:var(--s);border:1px solid var(--line);border-radius:var(--r)}
+.pv-sb{background:var(--s)}
+.glass .pv-card,.glass .pv-sb,.glass .pv-tabbar{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3)}
+.pv-nav{display:flex;align-items:center;min-height:30px;padding:0 10px;border-radius:10px;font-size:12px;color:var(--ink2)}
+.pv-nav-on{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.pv-btn{display:inline-flex;align-items:center;min-height:30px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:700}
+.pv-chip{display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font-size:11px;font-weight:600;color:var(--ink2)}
+.pv-pill{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.pv-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.pv-ib{width:24px;height:24px;border-radius:8px;background:var(--s2)}
+.pv-tabbar{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;padding:6px 6px 18px;background:var(--s);border-top:1px solid var(--line)}
+.pv-tabbar span{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--ink2)}
+.pv-tabbar i{width:40px;height:22px;border-radius:999px;background:var(--s2);display:block}
+.pv-tabbar .on{color:var(--pInk)}.pv-tabbar .on i{background:var(--pSoft)}
+.hot{outline:2px dashed #7B5CFF;outline-offset:3px}
+.picking{cursor:crosshair}
+.pv-note{position:absolute;right:12px;z-index:5;display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:rgba(20,10,30,.8);color:#FFFFFF;font-size:11px;font-weight:700}
+.sv{position:relative;height:150px;border-radius:14px}
+.sv span{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.hue{position:relative;height:14px;border-radius:999px;background:linear-gradient(90deg,#F00,#FF0,#0F0,#0FF,#00F,#F0F,#F00)}
+.hue span{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.sgw{aspect-ratio:1;border-radius:9px;border:1px solid var(--line);cursor:pointer;padding:0}
+.sgw-on{box-shadow:0 0 0 2px var(--s),0 0 0 4px var(--p)}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{uiMode}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; display: flex; flex-direction: column">
+  <header style="flex: none; display: flex; align-items: center; gap: 4px; padding: 12px 10px 8px; background: var(--s)">
+    <a class="ib" href="ThemeMobile.dc.html" aria-label="返回外观"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg></a>
+    <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+      <b style="font-size: 17px">樱花晴空</b>
+      <span style="font-size: 11px; color: var(--warn); font-weight: 700">{{changeT}}</span>
+    </span>
+    <button class="ib" aria-label="切换深浅色" onClick="{{flipMode}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    <button class="ib" aria-label="导出主题包"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg></button>
+    <button class="btn btn-p btn-sm" style="min-height: 40px">保存</button>
+  </header>
+  <div class="hs" role="tablist" aria-label="预览页面" style="flex: none; display: flex; gap: 6px; padding: 4px 12px 10px; overflow-x: auto; background: var(--s); border-bottom: 1px solid var(--line)">
+    <sc-for list="{{pages}}" as="pg" hint-placeholder-count="5">
+      <button class="chip chip-sm {{pg.cls}}" role="tab" aria-selected="{{pg.on}}" onClick="{{pg.pick}}">{{pg.t}}<sc-if value="{{pg.ov}}" hint-placeholder-val="{{false}}"><span class="dotx" style="background: {{pg.dotC}}"></span></sc-if></button>
+    </sc-for>
+  </div>
+
+  <!-- 预览：手机版页面 -->
+  <div class="th-{{palette}}-{{mode}} pv {{pvGlass}}" style="{{pvVars}}; --cardA: {{cardA}}%; --r: 16px; position: relative; flex: 1; min-height: 0; overflow: hidden">
+    <div aria-hidden="true" style="position: absolute; inset: -30px; background: {{pvBg}}; filter: blur({{blurPx}})"></div>
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) {{dim}}%, transparent)"></div>
+    <div style="position: relative; z-index: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; height: 100%">
+      <sc-if value="{{isDash}}" hint-placeholder-val="{{true}}">
+        <b class="{{hl.ink}}" onClick="{{pk.ink}}" style="font-size: 19px">晚上好，超级管理员</b>
+        <div class="{{hl.hero}}" onClick="{{pk.hero}}" style="background: {{heroCss}}; color: {{heroFg}}; border-radius: var(--r); padding: 14px; position: relative; overflow: hidden">
+  <span aria-hidden="true" style="position: absolute; inset: 0; background: {{heroShade}}"></span>
+  <sc-if value="{{heroDeco}}" hint-placeholder-val="{{true}}"><span class="{{hl.a}}" onClick="{{pk.a}}" style="position: absolute; right: -26px; bottom: -40px; width: 100px; height: 100px; border-radius: 50%; background: var(--a)"></span></sc-if>
+  <span style="position: relative; display: flex; flex-direction: column; gap: 8px"><b style="font-size: 15px">一切运行正常</b><span style="display: flex; gap: 6px"><span class="pv-btn {{hl.p}}" onClick="{{pk.p}}" style="background: {{heroBtnBg}}; color: {{heroBtnFg}}">新建应用</span><span class="pv-btn" style="background: color-mix(in srgb, {{heroFg}} 20%, transparent); color: {{heroFg}}">终端</span></span></span>
+</div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{stats2}}" as="sx" hint-placeholder-count="2">
+            <div class="pv-card" style="padding: 10px; display: flex; align-items: center; gap: 8px">
+              <svg viewBox="0 0 64 64" width="32" height="32" aria-hidden="true"><circle cx="32" cy="32" r="25" style="fill: none; stroke: var(--s2); stroke-width: 9"></circle><circle cx="32" cy="32" r="25" transform="rotate(-90 32 32)" stroke-dasharray="{{sx.dash}}" stroke-linecap="round" style="fill: none; stroke: {{sx.c}}; stroke-width: 9"></circle></svg>
+              <span style="display: flex; flex-direction: column"><span style="font-size: 10px; color: var(--ink2)">{{sx.t}}</span><b class="num" style="font-size: 15px">{{sx.v}}</b></span>
+            </div>
+          </sc-for>
+        </div>
+        <div class="pv-card {{hl.s}}" onClick="{{pk.s}}" style="padding: 2px 12px">
+          <sc-for list="{{pvApps}}" as="pa" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 42px; border-top: 1px solid var(--line)">
+              <span style="width: 26px; height: 26px; border-radius: 8px; background: var(--pSoft); color: var(--pInk); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800">{{pa.l}}</span>
+              <span style="flex: 1; display: flex; flex-direction: column"><b style="font-size: 12px">{{pa.n}}</b><span class="{{hl.ink2}}" style="font-size: 10px; color: var(--ink2)">{{pa.sub}}</span></span>
+              <span class="pv-pill {{pa.hl}}" style="background: {{pa.bg}}; color: {{pa.c}}">{{pa.st}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{isListPage}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: center"><b class="{{hl.ink}}" style="font-size: 19px; flex: 1">{{pageName}}</b><span class="pv-btn {{hl.p}}" onClick="{{pk.p}}" style="background: var(--p); color: var(--pOn)">＋ 新建</span></div>
+        <div class="{{hl.s2}}" onClick="{{pk.s2}}" style="height: 34px; border-radius: 999px; background: var(--s2); padding: 0 12px; display: flex; align-items: center; font-size: 11px; color: var(--ink2)">搜索…</div>
+        <sc-for list="{{pvApps}}" as="pa" hint-placeholder-count="4">
+          <div class="pv-card {{hl.s}}" onClick="{{pk.s}}" style="padding: 10px 12px; display: flex; align-items: center; gap: 10px">
+            <span style="width: 30px; height: 30px; border-radius: 10px; background: {{pa.stk}}; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; transform: rotate({{pa.rot}})">{{pa.l}}</span>
+            <span style="flex: 1; display: flex; flex-direction: column"><b style="font-size: 13px">{{pa.n}}</b><span style="font-size: 10px; color: var(--ink2)">{{pa.sub}}</span></span>
+            <span class="pv-pill {{pa.hl}}" style="background: {{pa.bg}}; color: {{pa.c}}">{{pa.st}}</span>
+          </div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{isTerm}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; gap: 16px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 700"><span class="{{hl.p}}" style="padding-bottom: 6px; border-bottom: 3px solid var(--p)">控制台</span><span style="color: var(--ink2)">文件</span><span style="color: var(--ink2)">配置</span></div>
+        <div class="mono {{hlTerm}}" onClick="{{pkTerm}}" style="flex: 1; min-height: 0; border-radius: var(--r); background: {{termBg}}; color: {{termFg}}; padding: 10px 12px; font-size: 10.5px; line-height: 1.7; overflow: hidden">
+          <sc-for list="{{termLines}}" as="tl" hint-placeholder-count="8"><div><span style="color: {{tl.c}}">{{tl.x}}</span></div></sc-for>
+          <div><span style="color: {{termCursor}}">❯</span> list</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{isLogin}}" hint-placeholder-val="{{false}}">
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center">
+          <div class="pv-card {{hl.s}}" onClick="{{pk.s}}" style="width: 100%; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center; gap: 8px"><span style="width: 32px; height: 32px; border-radius: 10px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-weight: 800; transform: rotate(-6deg)">M</span><b style="font-size: 19px">Momoko</b></div>
+            <span style="height: 38px; border-radius: 999px; background: var(--s2); padding: 0 14px; display: flex; align-items: center; font-size: 11px; color: var(--ink2)">用户名或邮箱</span>
+            <span style="height: 38px; border-radius: 999px; background: var(--s2); padding: 0 14px; display: flex; align-items: center; font-size: 11px; color: var(--ink2)">密码</span>
+            <span class="pv-btn {{hl.p}}" onClick="{{pk.p}}" style="height: 40px; justify-content: center; background: var(--p); color: var(--pOn); font-size: 13px">登录</span>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+    <div class="pv-note" style="bottom: 10px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{selHex}}"></span>正在编辑：{{selName}}</div>
+  </div>
+
+  <!-- 底部编辑面板 -->
+  <section aria-label="编辑面板" style="flex: none; background: var(--s); border-radius: 24px 24px 0 0; box-shadow: 0 -12px 30px -18px rgba(20,10,30,.35); padding: 8px 16px 22px; display: flex; flex-direction: column; gap: 12px; margin-top: -14px; position: relative; z-index: 2">
+    <div style="display: flex; justify-content: center"><span style="width: 40px; height: 5px; border-radius: 999px; background: var(--line)"></span></div>
+    <div class="seg" style="display: flex"><sc-for list="{{scopes}}" as="sc" hint-placeholder-count="2"><button class="{{sc.cls}}" style="flex: 1" onClick="{{sc.pick}}">{{sc.t}}</button></sc-for></div>
+    <div class="hs" style="display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px; padding: 0 16px">
+      <sc-for list="{{tokens}}" as="tk" hint-placeholder-count="13">
+        <button class="tchip {{tk.cls}}" aria-pressed="{{tk.on}}" onClick="{{tk.pick}}"><span style="width: 18px; height: 18px; border-radius: 6px; background: {{tk.hex}}; border: 1px solid rgba(0,0,0,.1)"></span>{{tk.t}}<sc-if value="{{tk.pageTag}}" hint-placeholder-val="{{false}}"><span class="tagx">本页</span></sc-if></button>
+      </sc-for>
+    </div>
+    <div class="hue" style="height: 18px"><span style="left: {{hueX}}; width: 22px; height: 22px; margin: -11px 0 0 -11px"></span></div>
+    <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px">
+      <sc-for list="{{suggest}}" as="sg" hint-placeholder-count="8"><button class="sgw {{sg.cls}}" aria-label="{{sg.c}}" onClick="{{sg.pick}}" style="background: {{sg.c}}"></button></sc-for>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center">
+      <label class="inp" style="flex: 1; min-width: 0; min-height: 44px"><span style="width: 22px; height: 22px; border-radius: 7px; background: {{selHex}}; flex: none"></span><input class="mono" type="text" value="{{selHex}}" aria-label="颜色值"></label>
+      <button class="btn btn-s" style="flex: none">背景 · 字体 · 组件</button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><span style="flex: 1">「{{pageName}}」单独设置 <b class="num" style="color: var(--ink)">{{pageOvCount}}</b> 项 · 点预览里的元素直接选颜色</span></div>
+  </section>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"page":{"editor":"enum","options":["dash","apps","files","term","login"],"default":"dash"},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  pulse: 'M3 12h4l2.5-6 4 12 2.5-6H21',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 20h16',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  plus: 'M12 5v14M5 12h14',
+  pen: 'M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16zM13.5 6.5l4 4',
+  copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+  x: 'M6 6l12 12M18 6 6 18',
+  alert: 'M12 3 2 20h20zM12 10v4M12 17h.01',
+  pkg: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9M7.5 5.2l9 4.6',
+  chevL: 'M15 5l-7 7 7 7',
+  chevD: 'M6 9l6 6 6-6',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  phone: 'M7 2h10v20H7zM11 18h2',
+  undo: 'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',
+  redo: 'M15 14l5-5-5-5M20 9H9a5 5 0 0 0 0 10h3',
+  cursor: 'M5 3l14 7-6 2-2 6z',
+  drop: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z',
+  wand: 'M4 20 16 8M14 6l4 4M18 3v3M21 6h-3M8 3v2M9 4H7',
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+  chevR: 'M9 5l7 7-7 7',
+  eye: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  pulse: 'M3 12h4l2.5-6 4 12 2.5-6H21',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 20h16',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  plus: 'M12 5v14M5 12h14',
+  pen: 'M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16zM13.5 6.5l4 4',
+  copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+  x: 'M6 6l12 12M18 6 6 18',
+  alert: 'M12 3 2 20h20zM12 10v4M12 17h.01',
+  pkg: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9M7.5 5.2l9 4.6',
+  chevL: 'M15 5l-7 7 7 7',
+  chevD: 'M6 9l6 6 6-6',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  phone: 'M7 2h10v20H7zM11 18h2',
+  undo: 'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',
+  redo: 'M15 14l5-5-5-5M20 9H9a5 5 0 0 0 0 10h3',
+  cursor: 'M5 3l14 7-6 2-2 6z',
+  drop: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z',
+  wand: 'M4 20 16 8M14 6l4 4M18 3v3M21 6h-3M8 3v2M9 4H7',
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 21 9.7C21 5.9 17 3 12 3zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01M17 11.5h.01',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4'
+};
+// —— 主题与背景的示例数据（PC / 手机 / 编辑器共用）——
+const PAL = [
+  ['sakura', '樱桃汽水', 'SAKURA SODA'],
+  ['mint', '薄荷柠檬', 'MINT LEMON'],
+  ['volt', '电光蓝橙', 'VOLT'],
+  ['grape', '葡萄气泡', 'GRAPE FIZZ'],
+  ['sunset', '橘子海', 'SUNSET'],
+  ['classic', '经典青', 'CLASSIC']
+];
+// 「图片」背景：原型里用渐变画的壁纸代替用户上传的照片
+const IMGS = [
+  { k: 'sky', n: '樱花晴空.jpg', meta: '1920 × 1080 · 412 KB', css: 'radial-gradient(60% 50% at 18% 20%, #FFC9DE 0%, transparent 62%), radial-gradient(50% 45% at 86% 14%, #C7DDFF 0%, transparent 62%), radial-gradient(55% 50% at 72% 88%, #FFE1A8 0%, transparent 66%), radial-gradient(45% 40% at 8% 92%, #DCCBFF 0%, transparent 62%), linear-gradient(160deg, #FFEFF6, #F1ECFF)' },
+  { k: 'dusk', n: '海边黄昏.webp', meta: '2560 × 1440 · 688 KB', css: 'radial-gradient(14% 22% at 72% 57%, #FFF1B8 0%, #FFC27A 45%, transparent 75%), linear-gradient(180deg, #3B2A6B 0%, #9C4A93 34%, #FF8F70 58%, #FFB386 61.5%, #34407A 62%, #1D2654 100%)' },
+  { k: 'night', n: '星夜.png', meta: '1920 × 1200 · 1.1 MB', css: 'radial-gradient(1.6px 1.6px at 12% 22%, #FFF 98%, transparent), radial-gradient(1.2px 1.2px at 34% 12%, #FFF 98%, transparent), radial-gradient(1.8px 1.8px at 58% 30%, #FFF 98%, transparent), radial-gradient(1.2px 1.2px at 80% 18%, #FFF 98%, transparent), radial-gradient(1.4px 1.4px at 90% 46%, #FFF 98%, transparent), radial-gradient(1.2px 1.2px at 22% 52%, #FFF 98%, transparent), radial-gradient(40% 30% at 70% 80%, rgba(160,110,255,.45), transparent 70%), radial-gradient(45% 35% at 20% 75%, rgba(255,90,160,.35), transparent 70%), linear-gradient(180deg, #0D0F2E, #2A1A4E)' },
+  { k: 'mist', n: '雾林.jpg', meta: '1920 × 1080 · 530 KB', css: 'radial-gradient(70% 45% at 50% 0%, rgba(255,255,255,.85), transparent 70%), radial-gradient(60% 40% at 15% 100%, #2F6B55 0%, transparent 70%), radial-gradient(60% 40% at 85% 100%, #3D7C61 0%, transparent 70%), linear-gradient(180deg, #E6F2EA 0%, #A9D2BB 45%, #4E8C71 100%)' }
+];
+const GRADS = [
+  ['peach', ['#FFD3E2', '#FFE9C7', '#D9E4FF'], 135],
+  ['lagoon', ['#C9F2E6', '#D7E8FF', '#EBDDFF'], 160],
+  ['candy', ['#FFB8D2', '#C8B6FF'], 120],
+  ['lemon', ['#FFF4B8', '#C9F5D9'], 150],
+  ['berry', ['#2B1747', '#5B1F4F', '#1B2350'], 135],
+  ['ocean', ['#0E2340', '#13405A', '#1D1A45'], 170]
+];
+const gradCss = (stops, ang, kind) => kind === 'radial'
+  ? 'radial-gradient(120% 90% at 20% 10%, ' + stops.join(', ') + ')'
+  : 'linear-gradient(' + ang + 'deg, ' + stops.join(', ') + ')';
+const PATS = [
+  ['dots', '点阵', (c) => 'radial-gradient(' + c + ' 1.6px, transparent 1.8px) 0 0 / 18px 18px'],
+  ['grid', '网格', (c) => 'linear-gradient(' + c + ' 1px, transparent 1px) 0 0 / 26px 26px, linear-gradient(90deg, ' + c + ' 1px, transparent 1px) 0 0 / 26px 26px'],
+  ['stripe', '斜纹', (c) => 'repeating-linear-gradient(45deg, ' + c + ' 0 1.5px, transparent 1.5px 14px)'],
+  ['polka', '波点', (c) => 'radial-gradient(' + c + ' 5px, transparent 5.5px) 0 0 / 34px 34px, radial-gradient(' + c + ' 5px, transparent 5.5px) 17px 17px / 34px 34px'],
+  ['wave', '波纹', (c) => 'radial-gradient(circle at 50% 100%, transparent 9px, ' + c + ' 9.5px 10.5px, transparent 11px) 0 0 / 24px 12px']
+];
+const SOLIDS = ['#FFF6F9', '#F4F1FF', '#EFF8F3', '#FFF7EC', '#EEF3FA', '#1A1424', '#101820'];
+// 我的主题（自建 / 导入）。base 是基于哪套内置配色
+const MINE = [
+  { k: 'm-sky', n: '樱花晴空', by: '我', src: '自建', base: 'sakura', bg: { type: 'image', img: 'sky' }, pages: 1 },
+  { k: 'm-night', n: '夜樱 Night Sakura', by: '@momo', src: '导入 · v1.2', base: 'grape', bg: { type: 'image', img: 'night' }, pages: 2, site: true },
+  { k: 'm-lagoon', n: '海盐汽水', by: '我', src: '自建', base: 'mint', bg: { type: 'gradient', g: 'lagoon' }, pages: 0 },
+  { k: 'm-paper', n: '方格本', by: '小林', src: '导入 · v1.0', base: 'classic', bg: { type: 'pattern', pat: 'grid' }, pages: 0 }
+];
+// 背景描述 → CSS
+function bgCssOf(bg) {
+  if (!bg || bg.type === 'theme') return 'var(--bg)';
+  if (bg.type === 'image') return (IMGS.find((x) => x.k === bg.img) || IMGS[0]).css;
+  if (bg.type === 'gradient') { const g = GRADS.find((x) => x[0] === bg.g) || GRADS[0]; return gradCss(bg.stops || g[1], bg.ang != null ? bg.ang : g[2], bg.kind); }
+  if (bg.type === 'pattern') { const p = PATS.find((x) => x[0] === bg.pat) || PATS[0]; return p[2](bg.c || 'color-mix(in srgb, var(--ink) 14%, transparent)') + ', var(--bg)'; }
+  if (bg.type === 'solid') return bg.c || SOLIDS[0];
+  return 'var(--bg)';
+}
+// 编辑器里的配色项（以「樱桃汽水 · 浅色 / 深色」为底）
+const TOKENS = [
+  ['p', '主色', '按钮、选中、链接', '#D6245F', '#FF4F8B'],
+  ['pOn', '主色上的文字', '主按钮文字', '#FFFFFF', '#1A0B14'],
+  ['a', '强调色', '贴纸、装饰圆', '#FFC93C', '#FFD25A'],
+  ['a2', '辅助色', '图表第二色、焦点框', '#7B5CFF', '#A08BFF'],
+  ['bg', '页面背景', '没有自定义背景时', '#FFF6F9', '#140E17'],
+  ['s', '卡片', '卡片、侧栏、弹窗', '#FFFFFF', '#1E1622'],
+  ['s2', '次级面', '输入框、分段按钮底', '#FFF0F5', '#271D2C'],
+  ['line', '分隔线', '边框、虚线网格', '#F6DCE6', '#33263A'],
+  ['ink', '文字', '标题与正文', '#2A1630', '#F8EEF4'],
+  ['ink2', '次要文字', '说明、标签', '#6E5A72', '#B9A6BE'],
+  ['ok', '成功', '运行中、已保存', '#0B7F57', '#3DDC97'],
+  ['warn', '警告', '维护、即将写满', '#B25E00', '#FFB547'],
+  ['bad', '危险', '已退出、删除', '#D21F3C', '#FF6B81']
+];
+
+const PAGES = [
+  ['dash', '工作台', 'momoko.local/dashboard'],
+  ['apps', '应用列表', 'momoko.local/apps'],
+  ['files', '文件管理', 'momoko.local/files'],
+  ['term', '应用控制台', 'momoko.local/instance/app/12?tab=console'],
+  ['login', '登录页', 'momoko.local/login']
+];
+// 这个主题已有的页面单独设置：登录页换了背景图和主色
+const POV0 = { login: { bg: { type: 'image', img: 'dusk' }, dim: 8, cardA: 68, tok: { 'light:p': '#E2502A', 'dark:p': '#FF7A4D' } } };
+const TERM0 = { termBg: ['终端背景', '只在控制台和 SSH 终端', '#1A1220'], termFg: ['终端文字', '普通输出', '#EDE3F2'], termCursor: ['光标与提示符', '❯ 和闪烁光标', '#FF85AE'] };
+const ANSI = ['#2A1F33', '#FF6B81', '#3DDC97', '#FFD25A', '#7FA8FF', '#C792EA', '#5ED8E8', '#EDE3F2'];
+const SUG = {
+  accent: ['#D6245F', '#FF4F8B', '#E2502A', '#FFC93C', '#7B5CFF', '#3450FF', '#00A884', '#0F7F72'],
+  surfL: ['#FFFFFF', '#FFF6F9', '#FFF0F5', '#F6F1FF', '#F2F7F5', '#F6DCE6', '#ECE6F5', '#FAF7F2'],
+  surfD: ['#140E17', '#1E1622', '#271D2C', '#33263A', '#0E1116', '#171B22', '#1B1430', '#22160E'],
+  text: ['#2A1630', '#1B2333', '#11163A', '#6E5A72', '#5F6878', '#FFFFFF', '#F8EEF4', '#B9A6BE']
+};
+function hsvOf(hex) {
+  const n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0;
+  if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return { h: (h * 60 + 360) % 360, s: mx ? d / mx : 0, v: mx };
+}
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const uiDark = this.props.dark ?? false;
+    const mode = st.mode || 'light';
+    const page = st.page || this.props.page || 'dash';
+    const device = st.device || 'pc';
+    const tab = st.tab || 'color';
+    const ov = st.ov || { 'light:a2': '#6A4DF5' };
+    const pov = st.pov || POV0;
+    const pageScope = st.scope != null ? st.scope === 'page' : page === 'login';
+    const selTok = st.sel || this.props.sel || 'p';
+    const picking = st.picking != null ? st.picking : true;
+    const fixed = !!st.fixed;
+    const P = PAGES.find((x) => x[0] === page);
+    const pageOv = pov[page] || { tok: {} };
+    const key = (t) => mode + ':' + t;
+    const baseHex = (t) => { const r = TOKENS.find((x) => x[0] === t); return r ? r[mode === 'dark' ? 4 : 3] : (TERM0[t] || [])[2]; };
+    const eff = (t) => (pageOv.tok || {})[key(t)] || ov[key(t)] || baseHex(t);
+    const setTok = (t, hex) => {
+      if (pageScope) {
+        const cur = pov[page] || { tok: {} };
+        this.setState({ pov: { ...pov, [page]: { ...cur, tok: { ...(cur.tok || {}), [key(t)]: hex } } } });
+      } else this.setState({ ov: { ...ov, [key(t)]: hex } });
+    };
+    const dropTok = (t) => {
+      const cur = pov[page] || { tok: {} };
+      const tok = { ...(cur.tok || {}) }; delete tok[key(t)];
+      this.setState({ pov: { ...pov, [page]: { ...cur, tok } } });
+    };
+    const selRow = TOKENS.find((x) => x[0] === selTok);
+    const selHero = selTok === 'hero';
+    const selName = selHero ? '欢迎横幅' : (selRow ? selRow[1] : (TERM0[selTok] || [])[0]);
+    const selHex = selHero ? eff('p') : eff(selTok);
+    // 欢迎横幅背景：主色 / 渐变 / 自定义图片
+    const hero = st.hero || { type: 'image', img: 'dusk', dim: 35, ink: 'auto' };
+    const setHero = (h) => this.setState({ hero: { ...hero, ...h } });
+    const HERO_GRADS = ['linear-gradient(120deg, var(--p), var(--a2))', 'linear-gradient(120deg, var(--a2), var(--ok))', 'linear-gradient(120deg, var(--p), var(--a))'];
+    const heroImg = IMGS.find((x) => x.k === hero.img) || IMGS[1];
+    const heroDark = hero.type === 'image' && (hero.ink === 'dark' || (hero.ink === 'auto' && heroImg.k === 'sky' && hero.dim < 30));
+    const heroFg = hero.type === 'color' ? 'var(--pOn)' : (heroDark ? '#1A1020' : '#FFFFFF');
+    const hsv = hsvOf(selHex);
+
+    // 预览用的变量：只写出被改过的
+    const changed = TOKENS.map((t) => t[0]).filter((t) => eff(t) !== baseHex(t));
+    const pvVars = changed.map((t) => '--' + t + ':' + eff(t)).join(';');
+    const pageBg = pageOv.bg;
+    const bg = pageBg || { type: 'image', img: st.img || 'sky' };
+    const glassy = bg.type === 'image' || bg.type === 'gradient';
+    const blur = st.blur != null ? st.blur : 0;
+    const dim = fixed && page === 'login' ? 30 : (pageOv.dim != null ? pageOv.dim : (st.dim != null ? st.dim : (mode === 'dark' ? 45 : 22)));
+    const cardA = pageOv.cardA != null ? pageOv.cardA : (st.cardA != null ? st.cardA : 76);
+    const hl = {}; const pk = {};
+    ['p', 'pOn', 'a', 'a2', 'bg', 's', 's2', 'line', 'ink', 'ink2', 'ok', 'warn', 'bad', 'hero'].forEach((t) => { hl[t] = selTok === t ? 'hot' : ''; pk[t] = () => { if (picking) this.setState({ sel: t, tab: t === 'hero' ? 'comp' : 'color' }); }; });
+    pk.hero = () => this.setState({ sel: 'hero', tab: 'comp' });
+    const pageOvCount = Object.keys(pageOv.tok || {}).filter((k) => k.startsWith(mode + ':')).length + (pageOv.bg ? 1 : 0) + (pageOv.cardA != null ? 1 : 0);
+    const nEdits = Object.keys(ov).length + Object.values(pov).reduce((a, p) => a + Object.keys(p.tok || {}).length + (p.bg ? 1 : 0), 0);
+    const okI = { d: IC.check, bg: 'var(--okSoft)', c: 'var(--ok)' };
+    const warnI = { d: IC.alert, bg: 'var(--warnSoft)', c: 'var(--warn)' };
+    const checks = page === 'login' && !fixed && mode === 'light'
+      ? [{ t: '标题 / 卡片', v: '12.8 : 1', ...okI }, { t: '主按钮文字（白 / 橙）', v: '3.6 : 1', ...warnI }, { t: '卡片外的文字 / 背景图', v: '3.1 : 1', ...warnI }, { t: '链接 / 卡片', v: '4.7 : 1', ...okI }]
+      : [{ t: '正文 / 卡片', v: mode === 'dark' ? '14.1 : 1' : '13.6 : 1', ...okI }, { t: '次要文字 / 卡片', v: mode === 'dark' ? '7.2 : 1' : '5.9 : 1', ...okI }, { t: '主按钮文字', v: page === 'login' ? '4.6 : 1' : '4.9 : 1', ...okI }, { t: page === 'term' ? '终端文字 / 终端背景' : '状态标签', v: page === 'term' ? '13.9 : 1' : '4.6 : 1', ...okI }];
+    const sugKey = ['p', 'a', 'a2', 'ok', 'warn', 'bad', 'termCursor'].includes(selTok) ? 'accent' : ['ink', 'ink2', 'pOn', 'termFg'].includes(selTok) ? 'text' : (mode === 'dark' || selTok === 'termBg' ? 'surfD' : 'surfL');
+    const apps = [
+      { l: 'M', n: 'mc-survival', sub: 'Java 21 · 3 天', st: '运行中', bg: 'var(--okSoft)', c: 'var(--ok)', hl: hl.ok, stk: 'var(--pSoft)', rot: '-4deg' },
+      { l: 'B', n: 'blog-api', sub: 'Node.js · 7 天', st: '运行中', bg: 'var(--okSoft)', c: 'var(--ok)', hl: hl.ok, stk: 'var(--a2Soft)', rot: '3deg' },
+      { l: 'P', n: 'palworld', sub: 'Steam · 维护中', st: '维护', bg: 'var(--warnSoft)', c: 'var(--warn)', hl: hl.warn, stk: 'var(--aSoft)', rot: '-2deg' },
+      { l: 'Q', n: 'qq-bot', sub: 'Python · 已停止', st: '已退出', bg: 'var(--badSoft)', c: 'var(--bad)', hl: hl.bad, stk: 'var(--okSoft)', rot: '4deg' }
+    ];
+    const isMobile = device === 'mobile';
+    const navKey = { dash: '工作台', apps: '应用列表', files: '文件管理', term: '应用列表' }[page];
+
+    return {
+      palette: 'sakura',
+      uiMode: uiDark ? 'dark' : 'light',
+      mode,
+      i: IC,
+      changeT: nEdits + ' 处改动未保存',
+      modes: [['light', '浅色', IC.sun], ['dark', '深色', IC.moon]].map(([k, t, d]) => ({ t, d, cls: mode === k ? 'on' : '', pick: () => this.setState({ mode: k }) })),
+      devices: [['pc', '电脑', IC.monitor], ['mobile', '手机', IC.phone]].map(([k, t, d]) => ({ t, d, cls: device === k ? 'on' : '', pick: () => this.setState({ device: k }) })),
+      expOpen: !!st.exp,
+      toggleExp: () => this.setState({ exp: !st.exp }),
+      expItems: [
+        { t: '导出主题包', sub: '.momoko-theme · 含背景图和页面设置', d: IC.pkg, bg: 'var(--pSoft)', fg: 'var(--pInk)' },
+        { t: '只导出「' + P[1] + '」的设置', sub: '别人导入后只覆盖这个页面', d: IC.file, bg: 'var(--a2Soft)', fg: 'var(--ink)' },
+        { t: '复制主题代码', sub: 'CSS 变量，贴到「自定义 CSS」也能用', d: IC.copy, bg: 'var(--aSoft)', fg: 'var(--aOn)' }
+      ],
+      scopes: [['all', '全局'], ['page', '仅「' + P[1] + '」']].map(([k, t]) => ({ t, cls: (pageScope ? 'page' : 'all') === k ? 'on' : '', pick: () => this.setState({ scope: k }) })),
+      scopeBg: pageScope ? 'var(--aSoft)' : 'var(--s2)',
+      scopeHint: pageScope ? '改动只影响「' + P[1] + '」，记为页面单独设置，导出时一起打包。' : '改动影响所有页面。想让某一页不一样，切到「仅本页」再改。',
+      scopeTag: selTok.startsWith('term') ? '终端专用' : (pageScope ? '仅本页' : '全局'),
+      scopeTagBg: pageScope ? 'var(--aSoft)' : 'var(--s2)',
+      scopeTagC: pageScope ? 'var(--aOn)' : 'var(--ink2)',
+      tabs: [['color', '配色'], ['bg', '背景'], ['shape', '字体形状'], ['comp', '组件']].map(([k, t]) => ({ t, on: tab === k, cls: tab === k ? 'on' : '', pick: () => this.setState({ tab: k }) })),
+      tabColor: tab === 'color', tabBg: tab === 'bg', tabShape: tab === 'shape', tabComp: tab === 'comp',
+      tokens: TOKENS.map(([t, name, use]) => ({
+        t: name, use, hex: eff(t), on: selTok === t, cls: selTok === t ? 'tok-on' : '',
+        pageTag: !!(pageOv.tok || {})[key(t)], edited: eff(t) !== baseHex(t),
+        pick: () => this.setState({ sel: t })
+      })),
+      isTerm: page === 'term',
+      termTokens: Object.entries(TERM0).map(([t, v]) => ({ t: v[0], use: v[1], hex: eff(t), cls: selTok === t ? 'tok-on' : '', pick: () => this.setState({ sel: t }) })),
+      ansi: ANSI,
+      bgTypes: ['跟随主题', '纯色', '图案', '渐变', '图片'].map((t, k) => ({ t, cls: k === 4 ? 'chip-on' : '', pick: () => {} })),
+      imgs: IMGS.map((x) => ({ ...x, cls: x.k === bg.img ? 'thumb-on' : '', pick: () => { if (pageScope) { const cur = pov[page] || { tok: {} }; this.setState({ pov: { ...pov, [page]: { ...cur, bg: { type: 'image', img: x.k } } } }); } else this.setState({ img: x.k }); } })),
+      sliders: [['blur', '模糊', blur, 0, 40, 'px'], ['dim', '遮罩', dim, 0, 80, '%'], ['cardA', '卡片不透明度', cardA, 40, 100, '%']].map(([k, t, v, mn, mx, u]) => ({ t, v, vT: v + ' ' + u, min: mn, max: mx, set: (e) => this.setState({ [k]: Number(e && e.target ? e.target.value : v) }) })),
+      fontSizes: [['s', '小'], ['m', '标准'], ['l', '大']].map(([k, t]) => ({ t, cls: (st.fs || 'm') === k ? 'on' : '', pick: () => this.setState({ fs: k }) })),
+      radius: st.radius != null ? st.radius : 22,
+      radiusT: (st.radius != null ? st.radius : 22) + ' px',
+      radiusPx: (st.radius != null ? st.radius : 22) * 0.7 + 'px',
+      setRadius: (e) => this.setState({ radius: Number(e && e.target ? e.target.value : 22) }),
+      shadows: [['none', '无'], ['soft', '柔和'], ['strong', '明显']].map(([k, t]) => ({ t, cls: (st.sh || 'none') === k ? 'on' : '', pick: () => this.setState({ sh: k }) })),
+      btnShapes: [['pill', '胶囊'], ['round', '圆角'], ['square', '方角']].map(([k, t]) => ({ t, cls: (st.bs || 'pill') === k ? 'on' : '', pick: () => this.setState({ bs: k }) })),
+      sideStyles: [['solid', '实色'], ['clear', '透明'], ['glass', '毛玻璃']].map(([k, t]) => ({ t, cls: (st.ss || 'glass') === k ? 'on' : '', pick: () => this.setState({ ss: k }) })),
+      pillStyles: [['dot', '圆点'], ['fill', '实心']].map(([k, t]) => ({ t, cls: (st.ps || 'dot') === k ? 'on' : '', pick: () => this.setState({ ps: k }) })),
+      chartCols: [eff('p'), eff('a2'), eff('a'), eff('ok'), eff('warn')],
+      pages: PAGES.map(([k, t]) => ({ t, on: page === k, cls: page === k ? 'chip-on' : '', ov: !!pov[k] && (Object.keys(pov[k].tok || {}).length > 0 || !!pov[k].bg), dotC: page === k ? 'var(--a)' : 'var(--p)', pick: () => this.setState({ page: k, scope: undefined }) })),
+      picking,
+      pickCls: picking ? 'btn-on' : 'btn-s',
+      togglePick: () => this.setState({ picking: !picking }),
+      pickHint: picking ? '点预览里的任意元素，左边会跳到它用的颜色' : '已关闭点选，预览可以正常点击',
+      zoomT: isMobile ? '手机 · 390 宽' : '电脑 · 宽屏布局',
+      frameW: isMobile ? '360px' : '100%',
+      frameR: isMobile ? '34px' : '16px',
+      frameH: isMobile ? '760px' : '780px',
+      pageUrl: P[2],
+      pickMode: picking ? 'picking' : '',
+      pvVars,
+      pvGlass: glassy ? 'glass' : '',
+      pvBg: bgCssOf(bg),
+      blurPx: blur + 'px',
+      dim,
+      cardA,
+      hl, pk,
+      hasShell: page !== 'login',
+      isPC: !isMobile,
+      isMobile,
+      mainPad: isMobile ? '16px 14px 80px' : '18px 20px',
+      isDash: page === 'dash', isApps: page === 'apps', isFiles: page === 'files', isLogin: page === 'login',
+      pvNav: ['工作台', '性能监控', '应用列表', '文件管理', '容器', '系统设置'].map((t) => ({ t, cls: t === navKey ? 'pv-nav-on' : '' })),
+      pvTabs: ['首页', '应用', '容器', '文件', '更多'].map((t, k) => ({ t, cls: (page === 'dash' && k === 0) || ((page === 'apps' || page === 'term') && k === 1) || (page === 'files' && k === 3) ? 'on' : '' })),
+      stats: [['CPU', '16.5%', 'var(--p)', 26], ['内存', '46.0%', 'var(--a2)', 72], ['磁盘', '61%', 'var(--a)', 96]].map(([t, v, c, d]) => ({ t, v, c, dash: d + ' 157' })),
+      pvApps: apps,
+      stats2: [['CPU', '16.5%', 'var(--p)', 26], ['内存', '46.0%', 'var(--a2)', 72]].map(([t, v, c, d]) => ({ t, v, c, dash: d + ' 157' })),
+      isListPage: page === 'apps' || page === 'files',
+      modeIcon: mode === 'dark' ? IC.sun : IC.moon,
+      flipMode: () => this.setState({ mode: mode === 'dark' ? 'light' : 'dark' }),
+      noteBottom: isMobile ? '84px' : '12px',
+      ...(() => {
+        const mk = (seed, base, amp) => { let x = seed; const pts = []; for (let k = 0; k < 60; k++) { x = (x * 16807) % 2147483647; const v = base + amp * (0.5 + 0.5 * Math.sin(k / 9 + seed)) + ((x / 2147483647) - 0.5) * amp * 0.6; pts.push([(k / 59 * 600).toFixed(1), (120 - v * 1.1).toFixed(1)]); } const l = 'M' + pts.map((q) => q.join(' ')).join('L'); return [l + 'L600 120L0 120Z', l]; };
+        const c = mk(7, 14, 30), m = mk(3, 40, 14);
+        return { chartP: c[0], chartPl: c[1], chartA: m[0], chartAl: m[1] };
+      })(),
+      pvFiles: [['region', '—', '11-04 22:10', 'var(--aSoft)'], ['playerdata', '—', '11-05 09:41', 'var(--aSoft)'], ['level.dat', '6.2 KB', '11-05 09:40', 'var(--a2Soft)'], ['server.properties', '1.4 KB', '11-02 18:03', 'var(--a2Soft)'], ['world.zip', '3.2 GB', '11-01 03:00', 'var(--pSoft)'], ['latest.log', '88 KB', '11-05 09:42', 'var(--okSoft)']].map(([n, s, d, ic], k) => ({ n, s, d, ic, bg: k === 2 ? 'var(--pSoft)' : 'transparent' })),
+      termLines: [['09:41:02', '[Server] Starting minecraft server version 1.21.3', ANSI[7]], ['09:41:05', '[Server] Preparing level "world"', ANSI[7]], ['09:41:09', '[Server] Done (6.214s)! For help, type "help"', ANSI[2]], ['09:42:11', '[Server] momo joined the game', ANSI[6]], ['09:42:30', '<momo> 今晚一起打末影龙吗', ANSI[7]], ['09:43:02', '[Server] Can\'t keep up! Running 2041ms behind', ANSI[3]], ['09:44:15', '[Server] Saved the game', ANSI[2]], ['09:45:20', '[Server] Error: Could not pass event to plugin', ANSI[1]]].map(([t, x, c]) => ({ t, x, c })),
+      termBg: eff('termBg'), termFg: eff('termFg'), termCursor: eff('termCursor'),
+      hlTerm: ['termBg', 'termFg', 'termCursor'].includes(selTok) ? 'hot' : '',
+      pkTerm: () => { if (picking) this.setState({ sel: 'termBg', tab: 'color' }); },
+      selTok, selName, selHex,
+      selBase: selHero ? '' : baseHex(selTok),
+      selEdited: !selHero && selHex !== baseHex(selTok),
+      selHero, selColor: !selHero,
+      heroCss: hero.type === 'image' ? heroImg.css : hero.type === 'grad' ? HERO_GRADS[hero.g || 0] : 'var(--p)',
+      heroShade: hero.type === 'image' ? (heroDark ? 'linear-gradient(90deg, rgba(255,255,255,' + (hero.dim / 100) + '), transparent 75%)' : 'linear-gradient(90deg, rgba(12,6,24,' + (hero.dim / 100) + ') 0%, rgba(12,6,24,' + (hero.dim / 250) + ') 65%, transparent)') : 'transparent',
+      heroFg,
+      heroBtnBg: hero.type === 'color' ? 'var(--pOn)' : heroFg,
+      heroBtnFg: heroDark ? '#FFFFFF' : 'var(--p)',
+      heroDeco: hero.type === 'color',
+      heroTokCls: selHero ? 'tok-on' : '',
+      heroTypeT: { color: '主色', grad: '渐变', image: '图片 · ' + heroImg.n }[hero.type],
+      heroTypes: [['color', '主色'], ['grad', '渐变'], ['image', '图片']].map(([k, t]) => ({ t, cls: hero.type === k ? 'on' : '', pick: () => setHero({ type: k }) })),
+      heroIsImg: hero.type === 'image', heroIsGrad: hero.type === 'grad',
+      heroImgs: IMGS.map((x) => ({ ...x, cls: hero.type === 'image' && x.k === heroImg.k ? 'thumb-on' : '', pick: () => setHero({ type: 'image', img: x.k }) })),
+      heroGrads: HERO_GRADS.map((css, k) => ({ css, cls: hero.type === 'grad' && (hero.g || 0) === k ? 'gsw-on' : '', pick: () => setHero({ type: 'grad', g: k }) })),
+      heroDim: hero.dim, heroDimT: hero.dim + '%',
+      setHeroDim: (e) => setHero({ dim: Number(e && e.target ? e.target.value : hero.dim) }),
+      heroInks: [['auto', '自动'], ['light', '白字'], ['dark', '黑字']].map(([k, t]) => ({ t, cls: (hero.ink || 'auto') === k ? 'on' : '', pick: () => setHero({ ink: k }) })),
+      revertSel: () => { if ((pageOv.tok || {})[key(selTok)]) dropTok(selTok); else { const o = { ...ov }; delete o[key(selTok)]; this.setState({ ov: o }); } },
+      hueCss: 'hsl(' + Math.round(hsv.h) + ', 100%, 50%)',
+      svX: Math.round(hsv.s * 100) + '%',
+      svY: Math.round((1 - hsv.v) * 100) + '%',
+      hueX: Math.round((hsv.h / 360) * 100) + '%',
+      suggest: SUG[sugKey].map((c) => ({ c, cls: c.toUpperCase() === selHex.toUpperCase() ? 'sgw-on' : '', pick: () => setTok(selTok, c) })),
+      pageName: P[1],
+      pageOvCount,
+      hasPageOv: pageOvCount > 0,
+      noPageOv: pageOvCount === 0,
+      pageOvList: [
+        ...(pageOv.bg ? [{ t: '背景', v: '图片 · ' + (IMGS.find((x) => x.k === pageOv.bg.img) || IMGS[0]).n, sw: bgCssOf(pageOv.bg), drop: () => { const cur = { ...pageOv }; delete cur.bg; this.setState({ pov: { ...pov, [page]: cur } }); } }] : []),
+        ...(pageOv.cardA != null ? [{ t: '卡片不透明度', v: pageOv.cardA + '%（全局 76%）', sw: 'var(--s)', drop: () => { const cur = { ...pageOv }; delete cur.cardA; this.setState({ pov: { ...pov, [page]: cur } }); } }] : []),
+        ...Object.entries(pageOv.tok || {}).filter(([k]) => k.startsWith(mode + ':')).map(([k, v]) => { const t = k.split(':')[1]; const r = TOKENS.find((x) => x[0] === t); return { t: r ? r[1] : t, v: v + '（全局 ' + (ov[k] || baseHex(t)) + '）', sw: v, drop: () => dropTok(t) }; })
+      ],
+      checks,
+      hasWarn: checks.some((c) => c.d === IC.alert),
+      fixWarn: () => this.setState({ fixed: true, pov: { ...pov, login: { ...(pov.login || {}), tok: { ...((pov.login || {}).tok || {}), 'light:p': '#C7411D' } } } })
+    };
+  }
+}
+</script>
+</body>
+</html>

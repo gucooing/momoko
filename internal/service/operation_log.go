@@ -167,6 +167,7 @@ var keyOperationTypes = map[string]v1.OperationType{
 	v1.OperationSystemAdminDeleteRole:                    v1.OperationType_OperationTypeSystemRoleDelete,
 	v1.OperationSystemUpdateLoginConfig:                  v1.OperationType_OperationTypeSystemLoginConfigUpdate,
 	v1.OperationSystemUpdateSiteConfig:                   v1.OperationType_OperationTypeSystemSiteConfigUpdate,
+	v1.OperationThemeServiceSetSiteTheme:                 v1.OperationType_OperationTypeSystemSiteConfigUpdate,
 	v1.OperationSystemUpdateEmailConfig:                  v1.OperationType_OperationTypeSystemEmailConfigUpdate,
 	v1.OperationSystemUpdateEmailTemplate:                v1.OperationType_OperationTypeSystemEmailTemplateUpdate,
 	v1.OperationSystemTestEmailConfig:                    v1.OperationType_OperationTypeSystemEmailConfigTest,

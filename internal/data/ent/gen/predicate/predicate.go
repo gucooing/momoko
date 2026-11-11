@@ -84,6 +84,9 @@ type SystemConfig func(*sql.Selector)
 // Task is the predicate function for task builders.
 type Task func(*sql.Selector)
 
+// ThemeAsset is the predicate function for themeasset builders.
+type ThemeAsset func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
@@ -92,3 +95,6 @@ type UserAPIKey func(*sql.Selector)
 
 // UserMessage is the predicate function for usermessage builders.
 type UserMessage func(*sql.Selector)
+
+// UserTheme is the predicate function for usertheme builders.
+type UserTheme func(*sql.Selector)

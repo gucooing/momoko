@@ -1223,7 +1223,7 @@ onMounted(() => {
   }
   .role-item {
     min-height: 88px;
-    padding: 16px;
+    padding: calc(var(--cmp-card-unit) * 16);
     border: 1px solid var(--el-border-color-light);
     border-radius: var(--app-radius-lg);
     background: var(--el-bg-color);

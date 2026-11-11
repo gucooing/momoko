@@ -477,7 +477,7 @@ defineExpose({ openCenter })
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px;
+  padding: calc(var(--cmp-card-unit) * 12);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);

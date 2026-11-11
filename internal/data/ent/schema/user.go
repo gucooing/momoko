@@ -27,7 +27,7 @@ func (User) Fields() []ent.Field {
 		field.Time("password_updated_at").Optional().Nillable().Comment("最近一次修改密码时间"),
 		field.String("last_login_ip").Optional().Comment("最近一次登录 IP"),
 		field.String("last_login_method").Optional().Comment("最近一次登录方式：password / email_code"),
-		field.String("appearance").Optional().Comment("外观偏好（JSON：配色 / 深浅色 / 紧凑 / 减少动效 / 圆角 / 标签栏）"),
+		field.Text("appearance").Optional().Comment("外观偏好（JSON：当前主题 / 深浅色 / 紧凑 / 减少动效 / 圆角 / 标签栏 / 未存进主题的背景）"),
 	}
 }
 

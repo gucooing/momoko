@@ -744,7 +744,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 18px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 18);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);
@@ -942,7 +942,7 @@ onMounted(async () => {
   flex: 1;
   min-width: 0;
   margin-bottom: 16px;
-  padding: 18px 20px;
+  padding: calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 20);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1191,7 +1191,7 @@ html.dark .iqp-eff.is-a {
   max-height: calc(100vh - 48px);
   overflow-y: auto;
   scrollbar-width: none;
-  padding: 20px;
+  padding: calc(var(--cmp-card-unit) * 20);
   display: flex;
   flex-direction: column;
   gap: 16px;

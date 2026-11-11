@@ -1367,7 +1367,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 20px;
   margin-top: -6px;
-  padding: 22px 24px;
+  padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 24);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -1897,7 +1897,7 @@ onBeforeUnmount(() => {
 .app-card {
   display: flex;
   flex-direction: column;
-  padding: 8px 20px 14px;
+  padding: calc(var(--cmp-card-unit) * 8) calc(var(--cmp-card-unit) * 20) calc(var(--cmp-card-unit) * 14);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

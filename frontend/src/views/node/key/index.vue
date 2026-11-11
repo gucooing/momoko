@@ -696,7 +696,7 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  padding: 22px 22px 22px 24px;
+  padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 24);
   border-radius: var(--app-radius-lg);
   border: 2px solid var(--m-ok);
   background: var(--el-bg-color);
@@ -1052,7 +1052,7 @@ html.dark .key-sheet__owner {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 16px 12px 6px 16px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 12) calc(var(--cmp-card-unit) * 6) calc(var(--cmp-card-unit) * 16);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

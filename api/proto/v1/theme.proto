@@ -1,0 +1,443 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// 自定义外观主题：「我的主题」增删改查、背景图 / 字体上传、主题包（.momoko-theme）导入导出、全站默认主题。
+// 除「设为全站默认」（需 system:config:edit）外都是只对自己生效的自助操作，仅需登录；
+// 全站默认主题对未登录访客公开（登录页使用）。
+service ThemeService {
+  // 我的主题列表（新的在前）
+  rpc ListThemes(ListThemesRequest) returns (ListThemesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/user/me/themes"
+    };
+  }
+  // 我的某个主题
+  rpc GetTheme(GetThemeRequest) returns (GetThemeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/user/me/themes/{id}"
+    };
+  }
+  // 新建主题
+  rpc CreateTheme(CreateThemeRequest) returns (CreateThemeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/me/themes"
+      body: "*"
+    };
+  }
+  // 保存主题（整体替换名称与内容）
+  rpc UpdateTheme(UpdateThemeRequest) returns (UpdateThemeResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/user/me/themes/{id}"
+      body: "*"
+    };
+  }
+  // 删除主题（正在被全站默认使用的背景图不会被清理）
+  rpc DeleteTheme(DeleteThemeRequest) returns (DeleteThemeResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/user/me/themes/{id}"
+    };
+  }
+  // 复制一份主题（名称加「副本」）
+  rpc DuplicateTheme(DuplicateThemeRequest) returns (DuplicateThemeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/me/themes/{id}/duplicate"
+      body: "*"
+    };
+  }
+  // 上传背景图（JPG / PNG / WebP ≤ 10 MB，服务端转成 WebP）或字体（woff2 ≤ 4 MB）
+  rpc UploadThemeAsset(UploadThemeAssetRequest) returns (UploadThemeAssetResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/me/theme-assets"
+      body: "*"
+    };
+  }
+  // 读取主题包：校验格式、转换图片、返回内容与检查结果（不保存，用于导入前预览）
+  rpc InspectThemePackage(InspectThemePackageRequest) returns (InspectThemePackageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/me/themes/inspect"
+      body: "*"
+    };
+  }
+  // 导入主题包为「我的主题」
+  rpc ImportThemePackage(ImportThemePackageRequest) returns (ImportThemePackageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/me/themes/import"
+      body: "*"
+    };
+  }
+  // 导出主题包（已保存的主题，或内置 / 未保存的当前外观）
+  rpc ExportThemePackage(ExportThemePackageRequest) returns (ExportThemePackageResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/me/themes/export"
+      body: "*"
+    };
+  }
+  // 全站默认主题（公开：登录页和没设置过外观的用户使用）
+  rpc GetSiteTheme(GetSiteThemeRequest) returns (GetSiteThemeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/public/site-theme"
+    };
+  }
+  // 设为 / 取消全站默认主题（需 system:config:edit）
+  rpc SetSiteTheme(SetSiteThemeRequest) returns (SetSiteThemeResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/system/site-theme"
+      body: "*"
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 主题内容（与主题包里的 theme.json 一一对应）
+// ---------------------------------------------------------------------------
+
+// 主题内容 = 配色（浅色 + 深色两套 token 覆盖）+ 背景 + 细节 + 欢迎横幅 + 页面单独设置
+message ThemeContent {
+  // 基于哪套内置配色（没改过的 token 取它的值）：sakura / mint / volt / grape / sunset / classic
+  string base = 1;
+  // 浅色 token 覆盖：键见 ThemeTokenKeys（p / pOn / pInk / pSoft / a / aOn / aSoft / a2 / a2Soft / bg / s / s2 / line /
+  // ink / ink2 / ok / okSoft / warn / warnSoft / bad / badSoft / termBg / termFg / termCursor / ansi0 … ansi15），值为 #RRGGBB
+  map<string, string> tokens_light = 2;
+  // 深色 token 覆盖（键、值同上）
+  map<string, string> tokens_dark = 3;
+  // 背景
+  ThemeBackground background = 4;
+  // 细节：圆角、字体、字号、阴影、按钮形状、侧栏样式等
+  ThemeShape shape = 5;
+  // 大图区域（工作台欢迎横幅、登录页插画区、手机首页顶部卡片）
+  ThemeBanner banner = 6;
+  // 页面单独设置，键为页面路由（如 /login、/dashboard/home、/instance/app/:instanceId）
+  map<string, ThemePageOverride> pages = 7;
+  // 组件尺寸覆盖（键为前端组件尺寸注册表里的键，如 button-height、card-padding、sidebar-width；值为 px）
+  map<string, double> sizes = 8;
+}
+
+// 背景（铺在整个界面下面）
+message ThemeBackground {
+  // 类型：theme（跟随主题）/ solid（纯色）/ pattern（图案）/ gradient（渐变）/ image（图片）
+  string type = 1;
+  // 纯色：#RRGGBB
+  string color = 2;
+  // 图案：dots / grid / stripe / polka / wave
+  string pattern = 3;
+  // 图案颜色：ink（跟随主题）/ p（主色）/ a2（辅助色）
+  string pattern_color = 4;
+  // 渐变色标（2 - 5 个 #RRGGBB，均匀分布）
+  repeated string gradient_stops = 5;
+  // 渐变角度 0 - 360
+  int32 gradient_angle = 6;
+  // 渐变类型：linear / radial
+  string gradient_kind = 7;
+  // 渐变缓慢流动（开启「减少动效」时前端自动停止）
+  bool gradient_flow = 8;
+  // 图片：资源文件名（如 4f0c….webp，访问地址 /api/v1/theme-asset/{image}）
+  string image = 9;
+  // 图片填充方式：cover（铺满）/ contain（适应）/ tile（平铺）/ center（居中）
+  string fit = 10;
+  // 模糊 0 - 40 px
+  int32 blur = 11;
+  // 遮罩 0 - 80（%，盖一层页面背景色）
+  int32 dim = 12;
+  // 卡片不透明度 40 - 100（%）
+  int32 card_opacity = 13;
+  // 深色模式自动加深遮罩
+  bool auto_dark_dim = 14;
+}
+
+// 细节
+message ThemeShape {
+  // 卡片圆角 0 - 32 px（不设为默认 22）
+  optional int32 radius = 1;
+  // 字体：outfit（Outfit + 系统黑体）/ system（系统字体）/ rounded（圆体）/ serif（衬线）/ mono（等宽）/ custom（上传的字体）
+  string font = 2;
+  // 自定义字体资源文件名（woff2）
+  string font_asset = 3;
+  // 自定义字体显示名
+  string font_name = 4;
+  // 字号：s / m / l
+  string font_size = 5;
+  // 卡片阴影：none / soft / strong
+  string shadow = 6;
+  // 按钮形状：pill（胶囊）/ round（圆角）/ square（方角）
+  string button = 7;
+  // 侧栏：solid（实色）/ clear（透明）/ glass（毛玻璃）
+  string sidebar = 8;
+  // 状态标签：dot（圆点）/ fill（实心）
+  string pill = 9;
+  // 卡片描边（不设为开）
+  optional bool card_border = 10;
+  // 贴纸图标轻微旋转（不设为开）
+  optional bool sticker_tilt = 11;
+}
+
+// 大图区域的背景
+message ThemeBanner {
+  // 类型：color（主色）/ gradient（渐变）/ image（自定义图片）
+  string type = 1;
+  // 渐变预设序号 0 - 2（主色→辅助色 / 辅助色→成功色 / 主色→强调色）
+  int32 gradient = 2;
+  // 图片资源文件名
+  string image = 3;
+  // 压暗 0 - 80（%）
+  int32 dim = 4;
+  // 文字颜色：auto（按图片亮度）/ light（白字）/ dark（黑字）
+  string ink = 5;
+  // 图片焦点（0 - 100，百分比）
+  int32 focus_x = 6;
+  int32 focus_y = 7;
+}
+
+// 某个页面的单独设置（没设置的项跟随全局）
+message ThemePageOverride {
+  map<string, string> tokens_light = 1;
+  map<string, string> tokens_dark = 2;
+  // 有值即替换全局背景
+  ThemeBackground background = 3;
+  // 卡片不透明度 40 - 100
+  optional int32 card_opacity = 4;
+  // 有值即替换全局横幅
+  ThemeBanner banner = 5;
+  // 本页的组件尺寸覆盖（同 ThemeContent.sizes）
+  map<string, double> sizes = 6;
+}
+
+// ---------------------------------------------------------------------------
+// 我的主题
+// ---------------------------------------------------------------------------
+
+// 主题引用的资源文件
+message ThemeAsset {
+  // 资源文件名（id + 扩展名，如 4f0c….webp）
+  string id = 1;
+  // image / font
+  string kind = 2;
+  // 上传时的原文件名
+  string name = 3;
+  // 访问地址
+  string url = 4;
+  // 转换后的大小（字节）
+  int64 size = 5;
+  // 原始大小（字节）
+  int64 original_size = 6;
+  // 图片宽高
+  int32 width = 7;
+  int32 height = 8;
+}
+
+message Theme {
+  string id = 1;
+  string name = 2;
+  // 作者：自建为创建人昵称，导入为主题包里的作者
+  string author = 3;
+  // 版本（导入时取主题包的 version，自建从 1.0 开始，每次保存不变）
+  string version = 4;
+  // 说明
+  string description = 5;
+  // 来源：custom（自建）/ import（导入）
+  string source = 6;
+  ThemeContent content = 7;
+  // 引用到的资源
+  repeated ThemeAsset assets = 8;
+  // 是否当前全站默认主题
+  bool site_default = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message ListThemesRequest {}
+
+message ListThemesResponse {
+  repeated Theme themes = 1;
+}
+
+message GetThemeRequest {
+  string id = 1;
+}
+
+message GetThemeResponse {
+  Theme theme = 1;
+}
+
+message CreateThemeRequest {
+  string name = 1;
+  string description = 2;
+  ThemeContent content = 3;
+}
+
+message CreateThemeResponse {
+  Theme theme = 1;
+}
+
+message UpdateThemeRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  ThemeContent content = 4;
+}
+
+message UpdateThemeResponse {
+  Theme theme = 1;
+}
+
+message DeleteThemeRequest {
+  string id = 1;
+}
+
+message DeleteThemeResponse {}
+
+message DuplicateThemeRequest {
+  string id = 1;
+  // 新名称（空则为「原名 副本」）
+  string name = 2;
+}
+
+message DuplicateThemeResponse {
+  Theme theme = 1;
+}
+
+message UploadThemeAssetRequest {
+  // image / font
+  string kind = 1;
+  // 原文件名
+  string file_name = 2;
+  // 文件内容（base64）
+  string data = 3;
+}
+
+message UploadThemeAssetResponse {
+  ThemeAsset asset = 1;
+}
+
+// ---------------------------------------------------------------------------
+// 主题包
+// ---------------------------------------------------------------------------
+
+// 主题包里的一张图片（导入前预览用）
+message ThemePackageImage {
+  // 包内路径（如 assets/bg.jpg），与 content 里引用的值相同
+  string path = 1;
+  // 已转成 WebP 的预览（data:image/webp;base64,…）
+  string data_url = 2;
+  int32 width = 3;
+  int32 height = 4;
+  // 包内原始大小 / 转换后大小（字节）
+  int64 original_size = 5;
+  int64 size = 6;
+}
+
+// 导入前的一条检查结果
+message ThemePackageCheck {
+  // ok / warn
+  string level = 1;
+  // format_ok（格式正确且兼容）/ image_converted（图片转 WebP，params: path width height from to）/
+  // font_ok（字体，params: name size）/ safe_content（只含颜色、图片和数值）/
+  // dropped_fields（忽略了无法识别或不安全的内容，params: count）/ newer_format（主题包来自更新的版本，params: format）
+  string code = 2;
+  map<string, string> params = 3;
+}
+
+message ThemePackageInfo {
+  // 主题包格式版本
+  int32 format = 1;
+  string name = 2;
+  string author = 3;
+  string version = 4;
+  string description = 5;
+  // 主题内容（图片 / 字体引用为包内路径）
+  ThemeContent content = 6;
+  repeated ThemePackageImage images = 7;
+  repeated ThemePackageCheck checks = 8;
+  // 主题包大小（字节）
+  int64 package_size = 9;
+  // 已有同名主题（为空表示没有）
+  string conflict_theme_id = 10;
+  string conflict_version = 11;
+  // 包内字体（文件名 → 大小）
+  map<string, int64> fonts = 12;
+}
+
+message InspectThemePackageRequest {
+  string file_name = 1;
+  // 主题包内容（base64，≤ 40 MB）
+  string data = 2;
+}
+
+message InspectThemePackageResponse {
+  ThemePackageInfo info = 1;
+}
+
+message ImportThemePackageRequest {
+  string file_name = 1;
+  // 主题包内容（base64）
+  string data = 2;
+  // 有同名主题时：copy（另存为副本）/ overwrite（覆盖旧版本）
+  string conflict = 3;
+}
+
+message ImportThemePackageResponse {
+  Theme theme = 1;
+}
+
+message ExportThemePackageRequest {
+  // 导出已保存的主题（与 content 二选一；都给时以 content 为准，名称等元数据取自该主题）
+  string theme_id = 1;
+  // 内置主题或未保存的当前外观
+  ThemeContent content = 2;
+  string name = 3;
+  string description = 4;
+  // 包含背景图片（不含时图片背景落回跟随主题）
+  bool include_images = 5;
+  // 包含页面单独设置
+  bool include_pages = 6;
+  // 包含细节（圆角、字体、阴影、按钮形状、侧栏样式）与全局组件尺寸
+  bool include_shape = 7;
+  // 只导出这个页面的单独设置（别人导入后只覆盖这个页面）
+  string only_page = 8;
+  // 文件名（不含扩展名时自动补 .momoko-theme）
+  string file_name = 9;
+}
+
+message ExportThemePackageResponse {
+  string file_name = 1;
+  // zip 内容（base64）
+  string data = 2;
+  int64 size = 3;
+}
+
+// ---------------------------------------------------------------------------
+// 全站默认主题
+// ---------------------------------------------------------------------------
+
+message SiteTheme {
+  // 来源：内置配色键，或「我的主题」的 id
+  string theme_id = 1;
+  string name = 2;
+  ThemeContent content = 3;
+  google.protobuf.Timestamp updated_at = 4;
+  string updated_by = 5;
+}
+
+message GetSiteThemeRequest {}
+
+message GetSiteThemeResponse {
+  // 没设置过为空
+  SiteTheme theme = 1;
+}
+
+message SetSiteThemeRequest {
+  // false 取消全站默认
+  bool enabled = 1;
+  string theme_id = 2;
+  string name = 3;
+  ThemeContent content = 4;
+}
+
+message SetSiteThemeResponse {
+  SiteTheme theme = 1;
+}

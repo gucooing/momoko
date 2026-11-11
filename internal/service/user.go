@@ -31,13 +31,15 @@ func (u *UserService) MeInfo(ctx context.Context, req *v1.MeInfoRequest) (*v1.Me
 	if err != nil {
 		return nil, err
 	}
-	appearance, err := u.uc.MeAppearance(ctx, authCtx.UserID)
+	appearance, currentTheme, siteTheme, err := u.uc.MeAppearance(ctx, authCtx.UserID)
 	if err != nil {
 		return nil, err
 	}
 	rsp := &v1.MeInfoResponse{
-		User:       userInfo,
-		Appearance: appearance,
+		User:         userInfo,
+		Appearance:   appearance,
+		CurrentTheme: currentTheme,
+		SiteTheme:    siteTheme,
 	}
 
 	return rsp, nil

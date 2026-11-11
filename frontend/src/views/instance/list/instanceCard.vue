@@ -176,7 +176,7 @@ const onMore = (key: string) => {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 18px 14px 6px 18px;
+  padding: calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 14) calc(var(--cmp-card-unit) * 6) calc(var(--cmp-card-unit) * 18);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

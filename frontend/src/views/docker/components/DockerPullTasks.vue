@@ -185,7 +185,7 @@ defineExpose({ refresh })
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 20px 16px 20px 22px;
+  padding: calc(var(--cmp-card-unit) * 20) calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 20) calc(var(--cmp-card-unit) * 22);
   border-radius: var(--app-radius-xl);
   border: 1.5px solid var(--m-a2);
   background: var(--el-bg-color);

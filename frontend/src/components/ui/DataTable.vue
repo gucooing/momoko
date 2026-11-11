@@ -323,22 +323,22 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: var(--cmp-table-font-size);
 }
 .data-table th,
 .data-table td {
-  padding: 12px 12px;
+  padding: var(--cmp-table-row-padding) 12px;
   text-align: left;
   white-space: nowrap;
 }
 .data-table thead th {
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: var(--cmp-table-row-padding);
+  padding-bottom: var(--cmp-table-row-padding);
 }
 :global(html.is-compact) .data-table th,
 :global(html.is-compact) .data-table td {
-  padding-top: 7px;
-  padding-bottom: 7px;
+  padding-top: calc(var(--cmp-table-row-padding) * 0.58);
+  padding-bottom: calc(var(--cmp-table-row-padding) * 0.58);
 }
 .data-table th.is-center,
 .data-table td.is-center {
@@ -354,7 +354,7 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   z-index: 1;
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.75rem;
+  font-size: var(--cmp-table-head-size);
   font-weight: 700;
   letter-spacing: 0.06em;
   border-bottom: 1px solid var(--el-border-color-light);

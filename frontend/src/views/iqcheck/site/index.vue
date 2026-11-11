@@ -927,7 +927,7 @@ html.dark .iq-eff.is-medium {
 .iq-rows {
   display: flex;
   flex-direction: column;
-  padding: 4px 6px 4px 14px;
+  padding: calc(var(--cmp-card-unit) * 4) calc(var(--cmp-card-unit) * 6) calc(var(--cmp-card-unit) * 4) calc(var(--cmp-card-unit) * 14);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl);
   background: var(--el-bg-color);
@@ -1016,7 +1016,7 @@ html.dark .iq-eff.is-medium {
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 20px;
+  padding: calc(var(--cmp-card-unit) * 20);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl);
   background: var(--el-bg-color);

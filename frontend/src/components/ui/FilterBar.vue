@@ -39,7 +39,7 @@ const expanded = ref(false)
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-lg);
-  padding: 14px 16px;
+  padding: calc(var(--cmp-card-unit) * 14) calc(var(--cmp-card-unit) * 16);
 }
 .filter-bar__body {
   display: flex;

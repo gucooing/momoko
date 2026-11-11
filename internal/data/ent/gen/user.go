@@ -48,7 +48,7 @@ type User struct {
 	LastLoginIP string `json:"last_login_ip,omitempty"`
 	// 最近一次登录方式：password / email_code
 	LastLoginMethod string `json:"last_login_method,omitempty"`
-	// 外观偏好（JSON：配色 / 深浅色 / 紧凑 / 减少动效 / 圆角 / 标签栏）
+	// 外观偏好（JSON：当前主题 / 深浅色 / 紧凑 / 减少动效 / 圆角 / 标签栏 / 未存进主题的背景）
 	Appearance string `json:"appearance,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.

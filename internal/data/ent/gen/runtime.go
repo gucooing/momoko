@@ -29,9 +29,11 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/task"
+	"momoko/internal/data/ent/gen/themeasset"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
 	"momoko/internal/data/ent/gen/usermessage"
+	"momoko/internal/data/ent/gen/usertheme"
 	"momoko/internal/data/ent/schema"
 	"time"
 )
@@ -1036,6 +1038,49 @@ func init() {
 	taskDescCanceledBy := taskFields[22].Descriptor()
 	// task.DefaultCanceledBy holds the default value on creation for the canceled_by field.
 	task.DefaultCanceledBy = taskDescCanceledBy.Default.(string)
+	themeassetMixin := schema.ThemeAsset{}.Mixin()
+	themeassetMixinFields0 := themeassetMixin[0].Fields()
+	_ = themeassetMixinFields0
+	themeassetFields := schema.ThemeAsset{}.Fields()
+	_ = themeassetFields
+	// themeassetDescCreateTime is the schema descriptor for create_time field.
+	themeassetDescCreateTime := themeassetMixinFields0[0].Descriptor()
+	// themeasset.DefaultCreateTime holds the default value on creation for the create_time field.
+	themeasset.DefaultCreateTime = themeassetDescCreateTime.Default.(func() time.Time)
+	// themeassetDescUpdateTime is the schema descriptor for update_time field.
+	themeassetDescUpdateTime := themeassetMixinFields0[1].Descriptor()
+	// themeasset.DefaultUpdateTime holds the default value on creation for the update_time field.
+	themeasset.DefaultUpdateTime = themeassetDescUpdateTime.Default.(func() time.Time)
+	// themeasset.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	themeasset.UpdateDefaultUpdateTime = themeassetDescUpdateTime.UpdateDefault.(func() time.Time)
+	// themeassetDescUserID is the schema descriptor for user_id field.
+	themeassetDescUserID := themeassetFields[1].Descriptor()
+	// themeasset.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	themeasset.UserIDValidator = themeassetDescUserID.Validators[0].(func(string) error)
+	// themeassetDescName is the schema descriptor for name field.
+	themeassetDescName := themeassetFields[3].Descriptor()
+	// themeasset.DefaultName holds the default value on creation for the name field.
+	themeasset.DefaultName = themeassetDescName.Default.(string)
+	// themeassetDescSize is the schema descriptor for size field.
+	themeassetDescSize := themeassetFields[4].Descriptor()
+	// themeasset.DefaultSize holds the default value on creation for the size field.
+	themeasset.DefaultSize = themeassetDescSize.Default.(int64)
+	// themeassetDescOriginalSize is the schema descriptor for original_size field.
+	themeassetDescOriginalSize := themeassetFields[5].Descriptor()
+	// themeasset.DefaultOriginalSize holds the default value on creation for the original_size field.
+	themeasset.DefaultOriginalSize = themeassetDescOriginalSize.Default.(int64)
+	// themeassetDescWidth is the schema descriptor for width field.
+	themeassetDescWidth := themeassetFields[6].Descriptor()
+	// themeasset.DefaultWidth holds the default value on creation for the width field.
+	themeasset.DefaultWidth = themeassetDescWidth.Default.(int32)
+	// themeassetDescHeight is the schema descriptor for height field.
+	themeassetDescHeight := themeassetFields[7].Descriptor()
+	// themeasset.DefaultHeight holds the default value on creation for the height field.
+	themeasset.DefaultHeight = themeassetDescHeight.Default.(int32)
+	// themeassetDescID is the schema descriptor for id field.
+	themeassetDescID := themeassetFields[0].Descriptor()
+	// themeasset.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	themeasset.IDValidator = themeassetDescID.Validators[0].(func(string) error)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
@@ -1145,4 +1190,43 @@ func init() {
 	usermessageDescID := usermessageFields[0].Descriptor()
 	// usermessage.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	usermessage.IDValidator = usermessageDescID.Validators[0].(func(string) error)
+	userthemeMixin := schema.UserTheme{}.Mixin()
+	userthemeMixinFields0 := userthemeMixin[0].Fields()
+	_ = userthemeMixinFields0
+	userthemeFields := schema.UserTheme{}.Fields()
+	_ = userthemeFields
+	// userthemeDescCreateTime is the schema descriptor for create_time field.
+	userthemeDescCreateTime := userthemeMixinFields0[0].Descriptor()
+	// usertheme.DefaultCreateTime holds the default value on creation for the create_time field.
+	usertheme.DefaultCreateTime = userthemeDescCreateTime.Default.(func() time.Time)
+	// userthemeDescUpdateTime is the schema descriptor for update_time field.
+	userthemeDescUpdateTime := userthemeMixinFields0[1].Descriptor()
+	// usertheme.DefaultUpdateTime holds the default value on creation for the update_time field.
+	usertheme.DefaultUpdateTime = userthemeDescUpdateTime.Default.(func() time.Time)
+	// usertheme.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	usertheme.UpdateDefaultUpdateTime = userthemeDescUpdateTime.UpdateDefault.(func() time.Time)
+	// userthemeDescUserID is the schema descriptor for user_id field.
+	userthemeDescUserID := userthemeFields[1].Descriptor()
+	// usertheme.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	usertheme.UserIDValidator = userthemeDescUserID.Validators[0].(func(string) error)
+	// userthemeDescName is the schema descriptor for name field.
+	userthemeDescName := userthemeFields[2].Descriptor()
+	// usertheme.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	usertheme.NameValidator = userthemeDescName.Validators[0].(func(string) error)
+	// userthemeDescAuthor is the schema descriptor for author field.
+	userthemeDescAuthor := userthemeFields[3].Descriptor()
+	// usertheme.DefaultAuthor holds the default value on creation for the author field.
+	usertheme.DefaultAuthor = userthemeDescAuthor.Default.(string)
+	// userthemeDescVersion is the schema descriptor for version field.
+	userthemeDescVersion := userthemeFields[4].Descriptor()
+	// usertheme.DefaultVersion holds the default value on creation for the version field.
+	usertheme.DefaultVersion = userthemeDescVersion.Default.(string)
+	// userthemeDescDescription is the schema descriptor for description field.
+	userthemeDescDescription := userthemeFields[5].Descriptor()
+	// usertheme.DefaultDescription holds the default value on creation for the description field.
+	usertheme.DefaultDescription = userthemeDescDescription.Default.(string)
+	// userthemeDescID is the schema descriptor for id field.
+	userthemeDescID := userthemeFields[0].Descriptor()
+	// usertheme.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	usertheme.IDValidator = userthemeDescID.Validators[0].(func(string) error)
 }

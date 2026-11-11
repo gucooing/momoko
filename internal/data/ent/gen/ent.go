@@ -32,9 +32,11 @@ import (
 	"momoko/internal/data/ent/gen/sshhost"
 	"momoko/internal/data/ent/gen/systemconfig"
 	"momoko/internal/data/ent/gen/task"
+	"momoko/internal/data/ent/gen/themeasset"
 	"momoko/internal/data/ent/gen/user"
 	"momoko/internal/data/ent/gen/userapikey"
 	"momoko/internal/data/ent/gen/usermessage"
+	"momoko/internal/data/ent/gen/usertheme"
 	"reflect"
 	"sync"
 
@@ -127,9 +129,11 @@ func checkColumn(t, c string) error {
 			session.Table:           session.ValidColumn,
 			systemconfig.Table:      systemconfig.ValidColumn,
 			task.Table:              task.ValidColumn,
+			themeasset.Table:        themeasset.ValidColumn,
 			user.Table:              user.ValidColumn,
 			userapikey.Table:        userapikey.ValidColumn,
 			usermessage.Table:       usermessage.ValidColumn,
+			usertheme.Table:         usertheme.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

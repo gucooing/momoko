@@ -779,7 +779,7 @@ onBeforeUnmount(stopPoll)
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-  padding: 20px 22px;
+  padding: calc(var(--cmp-card-unit) * 20) calc(var(--cmp-card-unit) * 22);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);
@@ -924,7 +924,7 @@ onBeforeUnmount(stopPoll)
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 12px 6px 16px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 12) calc(var(--cmp-card-unit) * 6) calc(var(--cmp-card-unit) * 16);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);

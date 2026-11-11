@@ -39,7 +39,7 @@ const clamped = computed(() => Math.min(100, Math.max(0, Number(props.percent) |
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-lg);
-  padding: 18px 20px;
+  padding: calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 20);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

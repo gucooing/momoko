@@ -162,7 +162,7 @@ const isMobile = computed(() => menuStore.isMobile)
 const editOpen = ref(false)
 
 const appearanceSummary = computed(() => {
-  const palette = t(themeStore.currentPalette.labelKey)
+  const palette = themeStore.activeName || t(themeStore.currentPalette.labelKey)
   const mode = t(`theme.${themeStore.themeMode}`)
   return `${palette} · ${mode}`
 })
@@ -229,7 +229,7 @@ onMounted(() => {
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 16px 18px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 18);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);

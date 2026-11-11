@@ -23,14 +23,12 @@ import AppTabs from './AppTabs.vue'
 import AppContent from './AppContent.vue'
 import AppTabbar from './AppTabbar.vue'
 import AppMorePanel from './AppMorePanel.vue'
-import { useAppearanceSync } from '@/stores/theme/sync'
 
 defineOptions({ name: 'AppShell' })
 
 const route = useRoute()
 const menuStore = useMenuStore()
 const userStore = useUserStore()
-useAppearanceSync()
 
 onMounted(() => {
   if (!userStore.userInfo) void userStore.getUserInfo()
@@ -44,7 +42,7 @@ onMounted(() => {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: var(--el-bg-color-page);
+  background: var(--app-surface-page);
 }
 .app-shell__main {
   display: flex;

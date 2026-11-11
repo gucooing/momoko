@@ -9,6 +9,7 @@ import (
 	"momoko/internal/service"
 	"momoko/pkg/avatar"
 	"momoko/pkg/response"
+	"momoko/pkg/themeasset"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -36,11 +37,14 @@ func NewHTTPServer(c *conf.Server,
 	oidcApi *service.OIDCService,
 	taskApi *service.TaskService,
 	monitorApi *service.MonitorService,
+	themeAssets *themeasset.Manager,
+	themeApi *service.ThemeService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
 			corsMiddleware(),
 			avatarManager.Filter(),     // 头像服务
+			themeAssets.Filter(),       // 主题资源（背景图 / 字体，公开）
 			distMiddleware(),           // 前端资源
 			authorization.Middleware(), // 身份验证
 			nodeProxy.Filter(),         // 远程节点：WebSocket / 预签名上传下载经 gRPC 隧道转发
@@ -87,6 +91,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterOIDCServiceHTTPServer(srv, oidcApi)
 	v1.RegisterTaskManagerHTTPServer(srv, taskApi)
 	v1.RegisterMonitorManagerHTTPServer(srv, monitorApi)
+	v1.RegisterThemeServiceHTTPServer(srv, themeApi)
 	oidcApi.RegisterOIDCServer(srv)
 	instanceApi.RegisterWsServer(srv)
 	openSSHApi.RegisterWsServer(srv)

@@ -106,7 +106,8 @@ export default defineConfig(({ mode }) => {
         // 这里的 primary/neutral 仅作为 Nuxt UI 生成色阶的兜底。按钮/徽标统一全圆角药丸。
         ui: {
           colors: { primary: 'pink', neutral: 'slate' },
-          button: { slots: { base: 'rounded-full font-semibold' } },
+          // 按钮圆角跟随主题「按钮形状」（--app-radius-btn，默认全圆角）；app-ui-btn 供主题的组件尺寸（按钮缩放）识别
+          button: { slots: { base: 'app-ui-btn rounded-(--app-radius-btn) font-semibold' } },
           badge: { slots: { base: 'rounded-full font-semibold' } },
         },
         autoImport: {

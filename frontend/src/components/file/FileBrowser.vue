@@ -2172,7 +2172,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px 8px;
+  padding: calc(var(--cmp-card-unit) * 12) calc(var(--cmp-card-unit) * 8);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
@@ -2493,7 +2493,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 12px;
+  padding: calc(var(--cmp-card-unit) * 12);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);

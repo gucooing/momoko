@@ -74,7 +74,7 @@ const shown = computed(() =>
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 22px;
+  padding: calc(var(--cmp-card-unit) * 22);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);

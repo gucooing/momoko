@@ -28,9 +28,9 @@ defineEmits<{ click: [] }>()
   gap: 0.75rem;
   width: 100%;
   text-align: left;
-  padding: 18px;
+  padding: calc(var(--cmp-card-padding) * 0.82);
   background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-light);
+  border: var(--cmp-card-border-width) solid var(--el-border-color-light);
   border-radius: var(--app-radius-lg);
   color: inherit;
   font: inherit;

@@ -720,7 +720,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px 18px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 18);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);

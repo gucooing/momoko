@@ -56,7 +56,7 @@ defineExpose({ add })
   grid-template-columns: minmax(0, 0.85fr) 14px minmax(0, 1.15fr) 36px;
 }
 .ee-mcard {
-  padding: 4px 4px 4px 14px;
+  padding: calc(var(--cmp-card-unit) * 4) calc(var(--cmp-card-unit) * 4) calc(var(--cmp-card-unit) * 4) calc(var(--cmp-card-unit) * 14);
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

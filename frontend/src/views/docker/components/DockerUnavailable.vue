@@ -38,7 +38,7 @@ const canConfig = computed(() => menuStore.hasButtonPermission('docker_config:ed
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 56px 24px 52px;
+  padding: calc(var(--cmp-card-unit) * 56) calc(var(--cmp-card-unit) * 24) calc(var(--cmp-card-unit) * 52);
   border-radius: var(--app-radius-xl);
   border: 1.5px dashed var(--el-border-color-light);
   background: var(--el-bg-color);

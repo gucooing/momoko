@@ -53,107 +53,541 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
 .h{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
 .hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+.sb{background:var(--s)}
+.glass .card,.glass .sb{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+.glass .inp{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(12px)}
+.mini{display:flex;gap:6px;height:84px;padding:8px;border-radius:14px;border:1px solid var(--line);overflow:hidden}
+.mini-sb{width:24%;border-radius:8px;background:var(--s);display:flex;flex-direction:column;gap:4px;padding:5px}
+.mini-sb span{height:5px;border-radius:3px;background:var(--line)}
+.mini-sb span:first-child{height:8px}
+.mini-main{flex:1;display:flex;flex-direction:column;gap:5px}
+.mini-hero{flex:1.3;border-radius:9px;position:relative;overflow:hidden}
+.mini-hero span{position:absolute;right:-12px;bottom:-18px;width:40px;height:40px;border-radius:50%}
+.mini-row{flex:1;display:flex;gap:5px}
+.mini-row span{flex:1;border-radius:7px;background:var(--s)}
+.mini-glass{background:color-mix(in srgb,var(--s) 72%,transparent)!important}
+.ib-xs{width:32px;height:32px;border-radius:10px;text-decoration:none}
+.newt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:170px;border-radius:22px;border:2px dashed var(--line);text-decoration:none;padding:12px}
+.newt:hover{border-color:var(--p)}
+.thumb{aspect-ratio:16/10;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:0}
+.thumb-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.thumb-up{display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--s2);color:var(--ink2);border-style:dashed;font:inherit;text-align:left}
+.rng{accent-color:var(--p);width:100%;margin:0;height:24px;cursor:pointer}
+.seg-sm button{min-height:32px;padding:0 12px;font-size:12px}
+.gsw{width:64px;height:44px;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:0}
+.gsw-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.stopc{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 7px;border-radius:999px;background:var(--s);border:1px solid var(--line)}
+.pat{display:flex;flex-direction:column;gap:6px;padding:6px 6px 8px;border-radius:16px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:center}
+.pat-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.tagc{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--s2);font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.mb{position:absolute;top:0;left:0;right:0;height:1000px;z-index:50;background:rgba(20,10,30,.45);display:flex;align-items:center;justify-content:center;padding:24px}
+.dlg{max-width:100%;max-height:100%;overflow:auto;box-shadow:0 30px 70px -30px rgba(20,10,30,.6);background:var(--s)!important;backdrop-filter:none!important}
+.dlg-h{display:flex;align-items:center;gap:12px;padding:20px 16px 14px 24px}
+.dlg-f{display:flex;align-items:center;gap:10px;padding:14px 24px 20px;border-top:1px solid var(--line)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip:hover{border-color:var(--p);color:var(--pInk)}
+.chip-on,.chip-on:hover{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip-sm{min-height:34px;padding:0 12px;font-size:13px}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-on{background:var(--ink);color:var(--bg)}
+.sheet{max-height:92%;background:var(--s);border-radius:28px 28px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.btn-p{background:var(--p);color:var(--pOn)}
+.mini{height:auto}
+.btn{text-decoration:none}
+.btn-s{background:var(--s2);color:var(--ink)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.seg button{white-space:nowrap}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.tchip{display:inline-flex;align-items:center;gap:6px;flex:none;min-height:38px;padding:0 12px 0 8px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;white-space:nowrap}
+.tchip.tok-on{border-color:var(--p);background:var(--pSoft)}
+.btn-on{background:var(--ink);color:var(--bg)}
+.tname{border:0;background:transparent;font:inherit;font-size:17px;font-weight:800;color:var(--ink);padding:0;width:200px;outline:none}
+.tok{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:14px;border:0;background:transparent;font:inherit;color:var(--ink);cursor:pointer;width:100%}
+.tok:hover{background:var(--s2)}
+.tok-on,.tok-on:hover{background:var(--pSoft)}
+.sw{width:30px;height:30px;border-radius:10px;border:1px solid rgba(0,0,0,.1);flex:none}
+.tagx{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:999px;background:var(--aSoft);color:var(--aOn);font-size:10px;font-weight:800;white-space:nowrap}
+.dotx{width:7px;height:7px;border-radius:50%;background:var(--p);display:inline-block;flex:none}
+.menu{padding:6px;box-shadow:0 20px 50px -20px rgba(20,10,30,.4)}
+.mi{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:6px 8px;border:0;border-radius:12px;background:transparent;font:inherit;color:var(--ink);cursor:pointer}
+.mi:hover{background:var(--s2)}
+.frame{background:#FFFFFF;border:1px solid var(--line);overflow:hidden;box-shadow:0 24px 50px -30px rgba(20,10,30,.35);max-width:100%;flex:none}
+.frame-bar{display:flex;align-items:center;gap:10px;height:30px;padding:0 12px;background:#F4F1F6;border-bottom:1px solid #E6E0EA}
+.frame-bar i{width:9px;height:9px;border-radius:50%;display:block}
+.pv{color:var(--ink);background:var(--bg);font-size:13px}
+.pv-card{background:var(--s);border:1px solid var(--line);border-radius:var(--r)}
+.pv-sb{background:var(--s)}
+.glass .pv-card,.glass .pv-sb,.glass .pv-tabbar{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3)}
+.pv-nav{display:flex;align-items:center;min-height:30px;padding:0 10px;border-radius:10px;font-size:12px;color:var(--ink2)}
+.pv-nav-on{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.pv-btn{display:inline-flex;align-items:center;min-height:30px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:700}
+.pv-chip{display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font-size:11px;font-weight:600;color:var(--ink2)}
+.pv-pill{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.pv-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.pv-ib{width:24px;height:24px;border-radius:8px;background:var(--s2)}
+.pv-tabbar{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;padding:6px 6px 18px;background:var(--s);border-top:1px solid var(--line)}
+.pv-tabbar span{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--ink2)}
+.pv-tabbar i{width:40px;height:22px;border-radius:999px;background:var(--s2);display:block}
+.pv-tabbar .on{color:var(--pInk)}.pv-tabbar .on i{background:var(--pSoft)}
+.hot{outline:2px dashed #7B5CFF;outline-offset:3px}
+.picking{cursor:crosshair}
+.pv-note{position:absolute;right:12px;z-index:5;display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:rgba(20,10,30,.8);color:#FFFFFF;font-size:11px;font-weight:700}
+.sv{position:relative;height:150px;border-radius:14px}
+.sv span{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.hue{position:relative;height:14px;border-radius:999px;background:linear-gradient(90deg,#F00,#FF0,#0F0,#0FF,#00F,#F0F,#F00)}
+.hue span{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.sgw{aspect-ratio:1;border-radius:9px;border:1px solid var(--line);cursor:pointer;padding:0}
+.sgw-on{box-shadow:0 0 0 2px var(--s),0 0 0 4px var(--p)}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.sb{background:var(--s)}
+.glass .card,.glass .sb{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+.glass .inp{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(12px)}
+.mini{display:flex;gap:6px;height:84px;padding:8px;border-radius:14px;border:1px solid var(--line);overflow:hidden}
+.mini-sb{width:24%;border-radius:8px;background:var(--s);display:flex;flex-direction:column;gap:4px;padding:5px}
+.mini-sb span{height:5px;border-radius:3px;background:var(--line)}
+.mini-sb span:first-child{height:8px}
+.mini-main{flex:1;display:flex;flex-direction:column;gap:5px}
+.mini-hero{flex:1.3;border-radius:9px;position:relative;overflow:hidden}
+.mini-hero span{position:absolute;right:-12px;bottom:-18px;width:40px;height:40px;border-radius:50%}
+.mini-row{flex:1;display:flex;gap:5px}
+.mini-row span{flex:1;border-radius:7px;background:var(--s)}
+.mini-glass{background:color-mix(in srgb,var(--s) 72%,transparent)!important}
+.ib-xs{width:32px;height:32px;border-radius:10px;text-decoration:none}
+.newt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:170px;border-radius:22px;border:2px dashed var(--line);text-decoration:none;padding:12px}
+.newt:hover{border-color:var(--p)}
+.thumb{aspect-ratio:16/10;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:0}
+.thumb-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.thumb-up{display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--s2);color:var(--ink2);border-style:dashed;font:inherit;text-align:left}
+.rng{accent-color:var(--p);width:100%;margin:0;height:24px;cursor:pointer}
+.seg-sm button{min-height:32px;padding:0 12px;font-size:12px}
+.gsw{width:64px;height:44px;border-radius:14px;border:2px solid var(--line);cursor:pointer;padding:0}
+.gsw-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.stopc{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 7px;border-radius:999px;background:var(--s);border:1px solid var(--line)}
+.pat{display:flex;flex-direction:column;gap:6px;padding:6px 6px 8px;border-radius:16px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:center}
+.pat-on{border-color:var(--p);box-shadow:0 0 0 3px var(--pSoft)}
+.tagc{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;background:var(--s2);font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.mb{position:absolute;top:0;left:0;right:0;height:1000px;z-index:50;background:rgba(20,10,30,.45);display:flex;align-items:center;justify-content:center;padding:24px}
+.dlg{display:flex;flex-direction:column;max-width:100%;max-height:100%;overflow:hidden;box-shadow:0 30px 70px -30px rgba(20,10,30,.6);background:var(--s)!important;backdrop-filter:none!important}
+.dlg-h{display:flex;align-items:center;gap:12px;padding:20px 16px 14px 24px}
+.dlg-f{display:flex;align-items:center;gap:10px;padding:14px 24px 20px;border-top:1px solid var(--line)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.ipv{position:relative;height:230px;border-radius:18px;overflow:hidden;color:var(--ink);border:1px solid var(--line)}
+.ipg{background:color-mix(in srgb,var(--s) 72%,transparent);backdrop-filter:blur(10px);border-radius:12px;border:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.ipchips{position:absolute;left:12px;top:12px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:999px;background:rgba(15,10,25,.62);backdrop-filter:blur(8px)}
+.ipchips button,.pvseg button{min-height:28px;padding:0 11px;border-radius:999px;border:0;background:transparent;color:rgba(255,255,255,.75);font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.ipchips .on,.pvseg .on{background:#FFFFFF;color:#2A1630}
+.pvbar{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 8px;border-radius:999px;background:rgba(15,10,25,.9);color:#FFFFFF;box-shadow:0 18px 40px -16px rgba(0,0,0,.6);backdrop-filter:blur(10px)}
+.pvseg{display:inline-flex;padding:3px;border-radius:999px;background:rgba(255,255,255,.12)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none}
+.chip:hover{border-color:var(--p);color:var(--pInk)}
+.chip-on,.chip-on:hover{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip-sm{min-height:34px;padding:0 12px;font-size:13px}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-on{background:var(--ink);color:var(--bg)}
+.sheet{max-height:92%;background:var(--s);border-radius:28px 28px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.tg:disabled{opacity:.55;cursor:not-allowed}
+.btn-p{background:var(--p);color:var(--pOn)}
+.mini{height:auto}
+.btn{text-decoration:none}
+.btn-s{background:var(--s2);color:var(--ink)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.seg button{white-space:nowrap}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.tchip{display:inline-flex;align-items:center;gap:6px;flex:none;min-height:38px;padding:0 12px 0 8px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;white-space:nowrap}
+.tchip.tok-on{border-color:var(--p);background:var(--pSoft)}
+.btn-on{background:var(--ink);color:var(--bg)}
+.tname{border:0;background:transparent;font:inherit;font-size:17px;font-weight:800;color:var(--ink);padding:0;width:200px;outline:none}
+.tok{display:flex;align-items:center;gap:10px;min-height:48px;padding:6px 8px;border-radius:14px;border:0;background:transparent;font:inherit;color:var(--ink);cursor:pointer;width:100%}
+.tok:hover{background:var(--s2)}
+.tok-on,.tok-on:hover{background:var(--pSoft)}
+.sw{width:30px;height:30px;border-radius:10px;border:1px solid rgba(0,0,0,.1);flex:none}
+.tagx{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:999px;background:var(--aSoft);color:var(--aOn);font-size:10px;font-weight:800;white-space:nowrap}
+.dotx{width:7px;height:7px;border-radius:50%;background:var(--p);display:inline-block;flex:none}
+.menu{padding:6px;box-shadow:0 20px 50px -20px rgba(20,10,30,.4)}
+.mi{display:flex;align-items:center;gap:10px;width:100%;min-height:54px;padding:6px 8px;border:0;border-radius:12px;background:transparent;font:inherit;color:var(--ink);cursor:pointer}
+.mi:hover{background:var(--s2)}
+.frame{background:#FFFFFF;border:1px solid var(--line);overflow:hidden;box-shadow:0 24px 50px -30px rgba(20,10,30,.35);max-width:100%;flex:none}
+.frame-bar{display:flex;align-items:center;gap:10px;height:30px;padding:0 12px;background:#F4F1F6;border-bottom:1px solid #E6E0EA}
+.frame-bar i{width:9px;height:9px;border-radius:50%;display:block}
+.pv{color:var(--ink);background:var(--bg);font-size:13px}
+.pv-card{background:var(--s);border:1px solid var(--line);border-radius:var(--r)}
+.pv-sb{background:var(--s)}
+.glass .pv-card,.glass .pv-sb,.glass .pv-tabbar{background:color-mix(in srgb,var(--s) var(--cardA),transparent);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3)}
+.pv-nav{display:flex;align-items:center;min-height:30px;padding:0 10px;border-radius:10px;font-size:12px;color:var(--ink2)}
+.pv-nav-on{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.pv-btn{display:inline-flex;align-items:center;min-height:30px;padding:0 12px;border-radius:999px;font-size:12px;font-weight:700}
+.pv-chip{display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font-size:11px;font-weight:600;color:var(--ink2)}
+.pv-pill{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.pv-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.pv-ib{width:24px;height:24px;border-radius:8px;background:var(--s2)}
+.pv-tabbar{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;padding:6px 6px 18px;background:var(--s);border-top:1px solid var(--line)}
+.pv-tabbar span{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--ink2)}
+.pv-tabbar i{width:40px;height:22px;border-radius:999px;background:var(--s2);display:block}
+.pv-tabbar .on{color:var(--pInk)}.pv-tabbar .on i{background:var(--pSoft)}
+.hot{outline:2px dashed #7B5CFF;outline-offset:3px}
+.picking{cursor:crosshair}
+.pv-note{position:absolute;right:12px;z-index:5;display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:rgba(20,10,30,.8);color:#FFFFFF;font-size:11px;font-weight:700}
+.sv{position:relative;height:150px;border-radius:14px}
+.sv span{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.hue{position:relative;height:14px;border-radius:999px;background:linear-gradient(90deg,#F00,#FF0,#0F0,#0FF,#00F,#F0F,#F00)}
+.hue span{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.sgw{aspect-ratio:1;border-radius:9px;border:1px solid var(--line);cursor:pointer;padding:0}
+.sgw-on{box-shadow:0 0 0 2px var(--s),0 0 0 4px var(--p)}
+.tg:disabled{opacity:.55;cursor:not-allowed}
 </style>
 </helmet>
-<div class="root th-{{palette}}-{{mode}}" style="width: 390px; height: 844px; display: flex; flex-direction: column; overflow: hidden">
-  <header style="display: flex; align-items: center; gap: 4px; padding: 14px 12px 8px; flex: none">
-    <a class="ib" href="DashboardMobile.dc.html" aria-label="返回"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+<div class="root th-{{palette}}-{{mode}} {{glassCls}}" style="position: relative; width: 390px; min-height: {{rootMin}}; height: {{rootH}}; overflow: hidden; display: flex; flex-direction: column; --cardA: {{cardA}}%">
+  <div aria-hidden="true" style="position: absolute; inset: -40px; z-index: 0; background: {{bgCss}}; filter: blur({{blurPx}})"></div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; z-index: 0; background: color-mix(in srgb, var(--bg) {{dim}}%, transparent)"></div>
+
+  <header style="position: relative; z-index: 1; display: flex; align-items: center; gap: 4px; padding: 14px 12px 8px">
+    <a class="ib" href="MoreMobile.dc.html" aria-label="返回"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg></a>
     <h1 style="margin: 0; font-size: 20px; font-weight: 800; flex: 1">外观</h1>
+    <button class="ib" aria-label="导入主题包" onClick="{{openImport}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.upload}}"></path></svg></button>
     <button class="ib" onClick="{{reset}}" style="width: auto; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 700; color: var(--pInk)">恢复默认</button>
   </header>
 
-  <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 28px; display: flex; flex-direction: column; gap: 22px">
-    <div style="background: var(--p); color: var(--pOn); border-radius: 24px; padding: 18px; position: relative; overflow: hidden; flex: none">
-      <div aria-hidden="true" style="position: absolute; right: -40px; bottom: -56px; width: 140px; height: 140px; border-radius: 50%; background: var(--a)"></div>
-      <div aria-hidden="true" style="position: absolute; right: 76px; top: -18px; width: 50px; height: 50px; border-radius: 50%; border: 9px solid var(--a2)"></div>
-      <div style="position: relative; display: flex; flex-direction: column; gap: 4px">
-        <div style="font-size: 12px; font-weight: 700; opacity: 0.9">当前 · {{curName}} · {{curMode}}</div>
-        <div style="font-size: 22px; font-weight: 800">晚上好，超级管理员</div>
-        <div style="display: flex; gap: 8px; margin-top: 10px">
-          <span class="btn" style="background: var(--pOn); color: var(--p)">新建应用</span>
-          <span class="btn" style="background: color-mix(in srgb, var(--pOn) 18%, transparent); color: var(--pOn)">终端</span>
-        </div>
+  <div style="position: relative; z-index: 1; padding: 4px 16px 32px; display: flex; flex-direction: column; gap: 22px">
+    <!-- 当前主题 -->
+    <section class="card" style="padding: 14px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px; align-items: center">
+        <span class="mini" style="flex: none; width: 112px; height: 76px; background: {{bgCss}}; padding: 6px">
+          <span class="mini-main"><span class="mini-hero" style="background: var(--p)"><span style="background: var(--a)"></span></span><span class="mini-row"><span class="mini-glass"></span><span class="mini-glass"></span></span></span>
+        </span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+          <span class="lbl">当前主题</span>
+          <span style="font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{cur.n}}</span>
+          <span style="font-size: 12px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">背景 · {{bgName}} · {{cur.pagesT}}</span>
+        </span>
       </div>
-    </div>
+      <div style="display: flex; gap: 8px">
+        <a class="btn btn-p" href="ThemeEditorMobile.dc.html" style="flex: 1"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.pen}}"></path></svg>在线编辑</a>
+        <button class="btn btn-s" style="flex: 1" onClick="{{openExport}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>导出主题包</button>
+      </div>
+    </section>
 
-    <section style="display: flex; flex-direction: column; gap: 12px">
-      <h2 class="h">配色</h2>
-      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
-        <sc-for list="{{palettes}}" as="pl" hint-placeholder-count="6">
-          <button class="pc {{pl.cls}}" aria-pressed="{{pl.on}}" onClick="{{pl.pick}}">
-            <span class="th-{{pl.key}}-{{mode}}" style="display: flex; flex-direction: column; gap: 5px; height: 76px; padding: 8px; border-radius: 13px; background: var(--bg); border: 1px solid var(--line)">
-              <span style="flex: 1.4; border-radius: 9px; background: var(--p); position: relative; overflow: hidden"><span style="position: absolute; right: -10px; bottom: -14px; width: 36px; height: 36px; border-radius: 50%; background: var(--a)"></span></span>
-              <span style="flex: 1; display: flex; gap: 5px"><span style="flex: 1; border-radius: 7px; background: var(--s)"></span><span style="flex: 1; border-radius: 7px; background: var(--s)"></span><span style="width: 16px; border-radius: 7px; background: var(--a2)"></span></span>
+    <!-- 主题 -->
+    <section style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: center"><h2 class="h" style="flex: 1">主题</h2><a href="ThemeEditorMobile.dc.html" style="font-size: 14px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; min-height: 44px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 2.4"><path d="{{i.plus}}"></path></svg>新建</a></div>
+      <div class="hs" style="display: flex; gap: 10px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 6px">
+        <sc-for list="{{themes}}" as="t" hint-placeholder-count="10">
+          <button class="pc {{t.cls}}" aria-pressed="{{t.on}}" onClick="{{t.pick}}" style="flex: none; width: 136px; gap: 8px; padding: 8px">
+            <span class="th-{{t.base}}-{{mode}} mini" style="height: 70px; background: {{t.bg}}; position: relative">
+              <span class="mini-main"><span class="mini-hero" style="background: var(--p)"><span style="background: var(--a)"></span></span><span class="mini-row"><span class="{{t.glass}}"></span><span class="{{t.glass}}"></span><span style="background: var(--a2); flex: none; width: 12px"></span></span></span>
+              <sc-if value="{{t.mine}}" hint-placeholder-val="{{false}}"><span style="position: absolute; left: 6px; top: 6px; height: 18px; padding: 0 6px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 10px; font-weight: 800; display: inline-flex; align-items: center">{{t.tag}}</span></sc-if>
             </span>
-            <span style="display: flex; align-items: center; gap: 6px; padding: 0 4px 2px">
-              <span style="flex: 1; font-size: 14px; font-weight: 800">{{pl.name}}</span>
-              <span class="chk {{pl.chk}}"><sc-if value="{{pl.on}}" hint-placeholder-val="{{false}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if></span>
+            <span style="display: flex; align-items: center; gap: 6px; padding: 0 2px">
+              <span style="flex: 1; min-width: 0; font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left">{{t.n}}</span>
+              <span class="chk {{t.chk}}" style="width: 22px; height: 22px"><sc-if value="{{t.on}}" hint-placeholder-val="{{false}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px; stroke-width: 3"><path d="{{i.check}}"></path></svg></sc-if></span>
             </span>
           </button>
         </sc-for>
       </div>
     </section>
 
+    <!-- 背景 -->
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 class="h">背景</h2>
+      <div class="hs" style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 0 16px">
+        <sc-for list="{{bgTypes}}" as="bt" hint-placeholder-count="5"><button class="chip {{bt.cls}}" aria-pressed="{{bt.on}}" onClick="{{bt.pick}}">{{bt.t}}</button></sc-for>
+      </div>
+      <div class="card" style="padding: 14px; display: flex; flex-direction: column; gap: 14px">
+        <sc-if value="{{isImage}}" hint-placeholder-val="{{true}}">
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{imgs}}" as="im" hint-placeholder-count="4"><button class="thumb {{im.cls}}" aria-label="{{im.n}}" aria-pressed="{{im.on}}" onClick="{{im.pick}}" style="background: {{im.css}}; aspect-ratio: 3 / 4"></button></sc-for>
+            <button class="thumb thumb-up" style="aspect-ratio: 3 / 4; flex-direction: column; justify-content: center; padding: 0; gap: 4px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.upload}}"></path></svg><b style="font-size: 12px">上传</b></button>
+          </div>
+          <sc-for list="{{sliders}}" as="sl" hint-placeholder-count="3">
+            <label style="display: flex; flex-direction: column; gap: 4px">
+              <span style="display: flex; font-size: 13px; font-weight: 700"><span style="flex: 1">{{sl.t}}</span><span class="num" style="color: var(--pInk)">{{sl.vT}}</span></span>
+              <input class="rng" type="range" min="{{sl.min}}" max="{{sl.max}}" value="{{sl.v}}" onInput="{{sl.set}}" aria-label="{{sl.t}}" style="height: 30px">
+            </label>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{isGradient}}" hint-placeholder-val="{{false}}">
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px"><sc-for list="{{grads}}" as="gr" hint-placeholder-count="6"><button class="gsw {{gr.cls}}" onClick="{{gr.pick}}" style="background: {{gr.css}}; width: auto; height: 56px"></button></sc-for></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{stops}}" as="sp" hint-placeholder-count="3"><span class="stopc"><span style="width: 20px; height: 20px; border-radius: 7px; background: {{sp.c}}"></span><span class="mono" style="font-size: 12px">{{sp.c}}</span></span></sc-for></div>
+        </sc-if>
+        <sc-if value="{{isPattern}}" hint-placeholder-val="{{false}}">
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px"><sc-for list="{{pats}}" as="pt" hint-placeholder-count="5"><button class="pat {{pt.cls}}" onClick="{{pt.pick}}"><span style="display: block; height: 52px; border-radius: 10px; background: {{pt.css}}"></span><span style="font-size: 12px; font-weight: 700">{{pt.t}}</span></button></sc-for></div>
+        </sc-if>
+        <sc-if value="{{isSolid}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; flex-wrap: wrap; gap: 10px"><sc-for list="{{solids}}" as="so" hint-placeholder-count="7"><button class="gsw {{so.cls}}" onClick="{{so.pick}}" style="background: {{so.c}}; width: 44px"></button></sc-for></div>
+        </sc-if>
+        <sc-if value="{{isTheme}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 13px; color: var(--ink2)">使用主题自带的背景色，卡片保持不透明。</div>
+        </sc-if>
+      </div>
+    </section>
+
     <section style="display: flex; flex-direction: column; gap: 12px">
       <h2 class="h">深浅色</h2>
-      <div class="seg" aria-label="深浅色">
-        <sc-for list="{{prefs}}" as="pf" hint-placeholder-count="3">
-          <button class="{{pf.cls}}" onClick="{{pf.pick}}">{{pf.t}}</button>
-        </sc-for>
-      </div>
+      <div class="seg" style="display: flex"><sc-for list="{{prefs}}" as="pf" hint-placeholder-count="3"><button class="{{pf.cls}}" style="flex: 1" onClick="{{pf.pick}}">{{pf.t}}</button></sc-for></div>
     </section>
 
     <section style="display: flex; flex-direction: column; gap: 4px">
       <h2 class="h" style="margin-bottom: 4px">细节</h2>
       <div class="card" style="padding: 4px 16px">
-        <label class="row">
-          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">紧凑模式</span><span style="font-size: 12px; color: var(--ink2)">列表行高更小，一屏看更多</span></span>
-          <input class="tg" type="checkbox" role="switch">
-        </label>
-        <label class="row">
-          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">减少动效</span><span style="font-size: 12px; color: var(--ink2)">关闭浮动和切换动画</span></span>
-          <input class="tg" type="checkbox" role="switch">
-        </label>
+        <label class="row"><span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">紧凑模式</span><span style="font-size: 12px; color: var(--ink2)">列表行高更小，一屏看更多</span></span><input class="tg" type="checkbox" role="switch"></label>
+        <label class="row"><span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 700">减少动效</span><span style="font-size: 12px; color: var(--ink2)">关闭浮动、背景流动和切换动画</span></span><input class="tg" type="checkbox" role="switch"></label>
       </div>
     </section>
-
-    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
-      <span class="pill ok">运行中</span>
-      <span class="pill bad">已退出</span>
-      <span style="font-size: 12px; color: var(--ink2)">已自动保存，所有设备同步</span>
-    </div>
+    <div style="text-align: center; font-size: 12px; color: var(--ink2)">外观跟着账号走 · 已自动保存</div>
   </div>
+
+  <!-- 导入 / 导出：底部面板 -->
+  <sc-if value="{{dlgOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; z-index: 20; background: rgba(20,10,30,.45); display: flex; flex-direction: column; justify-content: flex-end">
+      <section class="sheet" role="dialog" aria-modal="true" aria-label="{{dlgTitle}}">
+        <div style="display: flex; justify-content: center; padding: 10px 0 2px"><span style="width: 40px; height: 5px; border-radius: 999px; background: var(--line)"></span></div>
+        <header style="display: flex; align-items: center; padding: 4px 8px 8px 20px"><span style="flex: 1; font-size: 18px; font-weight: 800">{{dlgTitle}}</span><button class="ib" aria-label="关闭" onClick="{{closeDlg}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button></header>
+        <sc-if value="{{dlgImport}}" hint-placeholder-val="{{false}}">
+          <div style="padding: 0 20px 16px; display: flex; flex-direction: column; gap: 12px">
+            <div class="th-grape-dark" style="height: 120px; border-radius: 18px; position: relative; overflow: hidden; background: {{nightCss}}"><div style="position: absolute; inset: 12px; display: flex; gap: 8px"><span style="width: 26%; border-radius: 10px; background: color-mix(in srgb, var(--s) 70%, transparent)"></span><span style="flex: 1; display: flex; flex-direction: column; gap: 6px"><span style="flex: 1.2; border-radius: 10px; background: var(--p)"></span><span style="flex: 1; border-radius: 10px; background: color-mix(in srgb, var(--s) 70%, transparent)"></span></span></div></div>
+            <div style="display: flex; gap: 6px"><button class="chip chip-sm chip-on">工作台</button><button class="chip chip-sm">登录页</button><button class="chip chip-sm">终端</button><span style="flex: 1"></span><button class="btn btn-sm btn-s"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.eye}}"></path></svg>全屏</button></div>
+            <div style="display: flex; flex-direction: column; gap: 2px"><b style="font-size: 17px">夜樱 Night Sakura</b><span style="font-size: 12px; color: var(--ink2)">@momo · v1.2 · 1.4 MB · 含背景图和 2 个页面设置</span></div>
+            <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 14px; background: var(--s2); font-size: 12px">
+              <span style="display: flex; gap: 6px; align-items: center"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok); stroke-width: 2.6"><path d="{{i.check}}"></path></svg>格式正确，不含脚本</span>
+              <span style="display: flex; gap: 6px; align-items: flex-start; color: var(--warn)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 2.4"><path d="{{i.alert}}"></path></svg>浅色下次要文字对比度偏低，导入后可一键修正</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px"><span style="flex: 1">已有同名主题</span><div class="seg seg-sm"><button class="on">另存副本</button><button>覆盖</button></div></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{dlgExport}}" hint-placeholder-val="{{false}}">
+          <div style="padding: 0 20px 12px; display: flex; flex-direction: column">
+            <sc-for list="{{exportOpts}}" as="eo" hint-placeholder-count="3">
+              <label class="row" style="min-height: 56px"><span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">{{eo.t}}</span><span style="font-size: 12px; color: var(--ink2)">{{eo.sub}}</span></span><input class="tg" type="checkbox" role="switch" checked="{{eo.on}}" disabled="{{eo.lock}}" aria-label="{{eo.t}}"></label>
+            </sc-for>
+            <span style="font-size: 12px; color: var(--ink2); padding-top: 8px">导出为 {{exportName}}，预计 {{exportSize}}。手机上会保存到「下载」或弹出分享。</span>
+          </div>
+        </sc-if>
+        <footer style="display: flex; gap: 10px; padding: 12px 16px 26px; border-top: 1px solid var(--line)">
+          <button class="btn btn-s" style="flex: 1" onClick="{{closeDlg}}">取消</button>
+          <button class="btn btn-p" style="flex: 2" onClick="{{closeDlg}}">{{dlgOk}}</button>
+        </footer>
+      </section>
+    </div>
+  </sc-if>
 </div>
+
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"grape"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"dlg":{"editor":"enum","options":["none","import","export"],"default":"none"},"$preview":{"width":390,"height":1400}}'>
+const IC = {
+  pulse: 'M3 12h4l2.5-6 4 12 2.5-6H21',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 20h16',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  plus: 'M12 5v14M5 12h14',
+  pen: 'M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16zM13.5 6.5l4 4',
+  copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+  x: 'M6 6l12 12M18 6 6 18',
+  alert: 'M12 3 2 20h20zM12 10v4M12 17h.01',
+  pkg: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9M7.5 5.2l9 4.6',
+  chevL: 'M15 5l-7 7 7 7',
+  chevD: 'M6 9l6 6 6-6',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  phone: 'M7 2h10v20H7zM11 18h2',
+  undo: 'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',
+  redo: 'M15 14l5-5-5-5M20 9H9a5 5 0 0 0 0 10h3',
+  cursor: 'M5 3l14 7-6 2-2 6z',
+  drop: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z',
+  wand: 'M4 20 16 8M14 6l4 4M18 3v3M21 6h-3M8 3v2M9 4H7',
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+  chevR: 'M9 5l7 7-7 7',
+  eye: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  pulse: 'M3 12h4l2.5-6 4 12 2.5-6H21',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 20h16',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  plus: 'M12 5v14M5 12h14',
+  pen: 'M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16zM13.5 6.5l4 4',
+  copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+  x: 'M6 6l12 12M18 6 6 18',
+  alert: 'M12 3 2 20h20zM12 10v4M12 17h.01',
+  pkg: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9M7.5 5.2l9 4.6',
+  chevL: 'M15 5l-7 7 7 7',
+  chevD: 'M6 9l6 6 6-6',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  phone: 'M7 2h10v20H7zM11 18h2',
+  undo: 'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',
+  redo: 'M15 14l5-5-5-5M20 9H9a5 5 0 0 0 0 10h3',
+  cursor: 'M5 3l14 7-6 2-2 6z',
+  drop: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z',
+  wand: 'M4 20 16 8M14 6l4 4M18 3v3M21 6h-3M8 3v2M9 4H7',
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 21 9.7C21 5.9 17 3 12 3zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01M17 11.5h.01',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4'
+};
+// —— 主题与背景的示例数据（PC / 手机 / 编辑器共用）——
 const PAL = [
-  ['sakura', '樱桃汽水'],
-  ['mint', '薄荷柠檬'],
-  ['volt', '电光蓝橙'],
-  ['grape', '葡萄气泡'],
-  ['sunset', '橘子海'],
-  ['classic', '经典青']
+  ['sakura', '樱桃汽水', 'SAKURA SODA'],
+  ['mint', '薄荷柠檬', 'MINT LEMON'],
+  ['volt', '电光蓝橙', 'VOLT'],
+  ['grape', '葡萄气泡', 'GRAPE FIZZ'],
+  ['sunset', '橘子海', 'SUNSET'],
+  ['classic', '经典青', 'CLASSIC']
 ];
+// 「图片」背景：原型里用渐变画的壁纸代替用户上传的照片
+const IMGS = [
+  { k: 'sky', n: '樱花晴空.jpg', meta: '1920 × 1080 · 412 KB', css: 'radial-gradient(60% 50% at 18% 20%, #FFC9DE 0%, transparent 62%), radial-gradient(50% 45% at 86% 14%, #C7DDFF 0%, transparent 62%), radial-gradient(55% 50% at 72% 88%, #FFE1A8 0%, transparent 66%), radial-gradient(45% 40% at 8% 92%, #DCCBFF 0%, transparent 62%), linear-gradient(160deg, #FFEFF6, #F1ECFF)' },
+  { k: 'dusk', n: '海边黄昏.webp', meta: '2560 × 1440 · 688 KB', css: 'radial-gradient(14% 22% at 72% 57%, #FFF1B8 0%, #FFC27A 45%, transparent 75%), linear-gradient(180deg, #3B2A6B 0%, #9C4A93 34%, #FF8F70 58%, #FFB386 61.5%, #34407A 62%, #1D2654 100%)' },
+  { k: 'night', n: '星夜.png', meta: '1920 × 1200 · 1.1 MB', css: 'radial-gradient(1.6px 1.6px at 12% 22%, #FFF 98%, transparent), radial-gradient(1.2px 1.2px at 34% 12%, #FFF 98%, transparent), radial-gradient(1.8px 1.8px at 58% 30%, #FFF 98%, transparent), radial-gradient(1.2px 1.2px at 80% 18%, #FFF 98%, transparent), radial-gradient(1.4px 1.4px at 90% 46%, #FFF 98%, transparent), radial-gradient(1.2px 1.2px at 22% 52%, #FFF 98%, transparent), radial-gradient(40% 30% at 70% 80%, rgba(160,110,255,.45), transparent 70%), radial-gradient(45% 35% at 20% 75%, rgba(255,90,160,.35), transparent 70%), linear-gradient(180deg, #0D0F2E, #2A1A4E)' },
+  { k: 'mist', n: '雾林.jpg', meta: '1920 × 1080 · 530 KB', css: 'radial-gradient(70% 45% at 50% 0%, rgba(255,255,255,.85), transparent 70%), radial-gradient(60% 40% at 15% 100%, #2F6B55 0%, transparent 70%), radial-gradient(60% 40% at 85% 100%, #3D7C61 0%, transparent 70%), linear-gradient(180deg, #E6F2EA 0%, #A9D2BB 45%, #4E8C71 100%)' }
+];
+const GRADS = [
+  ['peach', ['#FFD3E2', '#FFE9C7', '#D9E4FF'], 135],
+  ['lagoon', ['#C9F2E6', '#D7E8FF', '#EBDDFF'], 160],
+  ['candy', ['#FFB8D2', '#C8B6FF'], 120],
+  ['lemon', ['#FFF4B8', '#C9F5D9'], 150],
+  ['berry', ['#2B1747', '#5B1F4F', '#1B2350'], 135],
+  ['ocean', ['#0E2340', '#13405A', '#1D1A45'], 170]
+];
+const gradCss = (stops, ang, kind) => kind === 'radial'
+  ? 'radial-gradient(120% 90% at 20% 10%, ' + stops.join(', ') + ')'
+  : 'linear-gradient(' + ang + 'deg, ' + stops.join(', ') + ')';
+const PATS = [
+  ['dots', '点阵', (c) => 'radial-gradient(' + c + ' 1.6px, transparent 1.8px) 0 0 / 18px 18px'],
+  ['grid', '网格', (c) => 'linear-gradient(' + c + ' 1px, transparent 1px) 0 0 / 26px 26px, linear-gradient(90deg, ' + c + ' 1px, transparent 1px) 0 0 / 26px 26px'],
+  ['stripe', '斜纹', (c) => 'repeating-linear-gradient(45deg, ' + c + ' 0 1.5px, transparent 1.5px 14px)'],
+  ['polka', '波点', (c) => 'radial-gradient(' + c + ' 5px, transparent 5.5px) 0 0 / 34px 34px, radial-gradient(' + c + ' 5px, transparent 5.5px) 17px 17px / 34px 34px'],
+  ['wave', '波纹', (c) => 'radial-gradient(circle at 50% 100%, transparent 9px, ' + c + ' 9.5px 10.5px, transparent 11px) 0 0 / 24px 12px']
+];
+const SOLIDS = ['#FFF6F9', '#F4F1FF', '#EFF8F3', '#FFF7EC', '#EEF3FA', '#1A1424', '#101820'];
+// 我的主题（自建 / 导入）。base 是基于哪套内置配色
+const MINE = [
+  { k: 'm-sky', n: '樱花晴空', by: '我', src: '自建', base: 'sakura', bg: { type: 'image', img: 'sky' }, pages: 1 },
+  { k: 'm-night', n: '夜樱 Night Sakura', by: '@momo', src: '导入 · v1.2', base: 'grape', bg: { type: 'image', img: 'night' }, pages: 2, site: true },
+  { k: 'm-lagoon', n: '海盐汽水', by: '我', src: '自建', base: 'mint', bg: { type: 'gradient', g: 'lagoon' }, pages: 0 },
+  { k: 'm-paper', n: '方格本', by: '小林', src: '导入 · v1.0', base: 'classic', bg: { type: 'pattern', pat: 'grid' }, pages: 0 }
+];
+// 背景描述 → CSS
+function bgCssOf(bg) {
+  if (!bg || bg.type === 'theme') return 'var(--bg)';
+  if (bg.type === 'image') return (IMGS.find((x) => x.k === bg.img) || IMGS[0]).css;
+  if (bg.type === 'gradient') { const g = GRADS.find((x) => x[0] === bg.g) || GRADS[0]; return gradCss(bg.stops || g[1], bg.ang != null ? bg.ang : g[2], bg.kind); }
+  if (bg.type === 'pattern') { const p = PATS.find((x) => x[0] === bg.pat) || PATS[0]; return p[2](bg.c || 'color-mix(in srgb, var(--ink) 14%, transparent)') + ', var(--bg)'; }
+  if (bg.type === 'solid') return bg.c || SOLIDS[0];
+  return 'var(--bg)';
+}
+// 编辑器里的配色项（以「樱桃汽水 · 浅色 / 深色」为底）
+const TOKENS = [
+  ['p', '主色', '按钮、选中、链接', '#D6245F', '#FF4F8B'],
+  ['pOn', '主色上的文字', '主按钮文字', '#FFFFFF', '#1A0B14'],
+  ['a', '强调色', '贴纸、装饰圆', '#FFC93C', '#FFD25A'],
+  ['a2', '辅助色', '图表第二色、焦点框', '#7B5CFF', '#A08BFF'],
+  ['bg', '页面背景', '没有自定义背景时', '#FFF6F9', '#140E17'],
+  ['s', '卡片', '卡片、侧栏、弹窗', '#FFFFFF', '#1E1622'],
+  ['s2', '次级面', '输入框、分段按钮底', '#FFF0F5', '#271D2C'],
+  ['line', '分隔线', '边框、虚线网格', '#F6DCE6', '#33263A'],
+  ['ink', '文字', '标题与正文', '#2A1630', '#F8EEF4'],
+  ['ink2', '次要文字', '说明、标签', '#6E5A72', '#B9A6BE'],
+  ['ok', '成功', '运行中、已保存', '#0B7F57', '#3DDC97'],
+  ['warn', '警告', '维护、即将写满', '#B25E00', '#FFB547'],
+  ['bad', '危险', '已退出、删除', '#D21F3C', '#FF6B81']
+];
+
+const BG_NAMES = { theme: '跟随主题', solid: '纯色', pattern: '图案', gradient: '渐变', image: '图片' };
 class Component extends DCLogic {
   renderVals() {
     const st = this.state || {};
-    const palette = st.palette || this.props.palette || 'grape';
     const pref = st.pref || (this.props.dark ? 'dark' : 'light');
     let dark = pref === 'dark';
     if (pref === 'system') { try { dark = window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { dark = false; } }
-    const cur = PAL.find((p) => p[0] === palette) || PAL[0];
-    const prefNames = { light: '浅色', dark: '深色', system: '跟随系统' };
+    const sel = st.sel || 'm-sky';
+    const mineCur = MINE.find((m) => m.k === sel);
+    const bg = st.bg || (mineCur ? mineCur.bg : { type: 'theme' });
+    const palette = mineCur ? mineCur.base : (PAL.find((p) => p[0] === sel) ? sel : (this.props.palette ?? 'sakura'));
+    const glassy = bg.type === 'image' || bg.type === 'gradient';
+    const blur = st.blur != null ? st.blur : 0;
+    const dim = st.dim != null ? st.dim : (bg.type === 'image' ? (dark ? 45 : 22) : (bg.type === 'gradient' ? 10 : 0));
+    const cardA = st.cardA != null ? st.cardA : (glassy ? 76 : 100);
+    const dlg = st.dlg != null ? st.dlg : (this.props.dlg ?? 'none');
+    const setBg = (b) => this.setState({ bg: b, blur: undefined, dim: undefined, cardA: undefined });
+    const baseName = (PAL.find((p) => p[0] === palette) || PAL[0])[1];
+    const cur = mineCur ? { n: mineCur.n, pagesT: mineCur.pages ? '单独设置 ' + mineCur.pages + ' 页' : '全局' } : { n: baseName, pagesT: '内置' };
+    const img = IMGS.find((x) => x.k === bg.img) || IMGS[0];
+    const g = GRADS.find((x) => x[0] === (bg.g || 'peach')) || GRADS[0];
+    const themes = [
+      ...MINE.map((m) => ({ k: m.k, n: m.n, base: m.base, bg: bgCssOf(m.bg), mine: true, tag: m.site ? '全站默认' : '我的', glass: 'mini-glass' })),
+      ...PAL.map(([k, n]) => ({ k, n, base: k, bg: 'var(--bg)', mine: false, tag: '', glass: '' }))
+    ].map((t) => ({ ...t, on: t.k === sel, cls: t.k === sel ? 'pc-on' : '', chk: t.k === sel ? 'chk-on' : 'chk-off', pick: () => this.setState({ sel: t.k, bg: undefined }) }));
     return {
       palette,
       mode: dark ? 'dark' : 'light',
-      curName: cur[1],
-      curMode: prefNames[pref],
-      palettes: PAL.map(([key, name]) => {
-        const on = key === palette;
-        return { key, name, on, cls: on ? 'pc-on' : '', chk: on ? 'chk-on' : 'chk-off', pick: () => this.setState({ palette: key }) };
-      }),
+      i: IC,
+      glassCls: glassy ? 'glass' : '',
+      bgCss: bgCssOf(bg),
+      blurPx: blur + 'px',
+      dim, cardA,
+      rootMin: dlg !== 'none' ? '844px' : '1400px',
+      rootH: dlg !== 'none' ? '844px' : 'auto',
+      cur,
+      bgName: BG_NAMES[bg.type] + (bg.type === 'image' ? ' · ' + img.n.replace(/\.\w+$/, '') : ''),
+      themes,
+      bgTypes: ['theme', 'solid', 'pattern', 'gradient', 'image'].map((k) => ({
+        t: BG_NAMES[k], on: bg.type === k, cls: bg.type === k ? 'chip-on' : '',
+        pick: () => setBg(k === 'image' ? { type: 'image', img: 'sky' } : k === 'gradient' ? { type: 'gradient', g: 'peach' } : k === 'pattern' ? { type: 'pattern', pat: 'dots' } : k === 'solid' ? { type: 'solid', c: SOLIDS[1] } : { type: 'theme' })
+      })),
+      isImage: bg.type === 'image', isGradient: bg.type === 'gradient', isPattern: bg.type === 'pattern', isSolid: bg.type === 'solid', isTheme: bg.type === 'theme',
+      imgs: IMGS.slice(0, 5).map((x) => ({ ...x, on: x.k === img.k, cls: x.k === img.k ? 'thumb-on' : '', pick: () => setBg({ type: 'image', img: x.k }) })),
+      sliders: [['blur', '模糊', blur, 0, 40, 'px'], ['dim', '遮罩', dim, 0, 80, '%'], ['cardA', '卡片不透明度', cardA, 40, 100, '%']].map(([k, t, v, mn, mx, u]) => ({ t, v, vT: v + ' ' + u, min: mn, max: mx, set: (e) => this.setState({ [k]: Number(e && e.target ? e.target.value : v) }) })),
+      grads: GRADS.map(([k, stops, ang]) => ({ css: gradCss(stops, ang), cls: bg.g === k ? 'gsw-on' : '', pick: () => setBg({ type: 'gradient', g: k }) })),
+      stops: (bg.stops || g[1]).map((c) => ({ c })),
+      pats: PATS.map(([k, t, f]) => ({ t, css: f('color-mix(in srgb, var(--ink) 22%, transparent)') + ', var(--bg)', cls: bg.pat === k ? 'pat-on' : '', pick: () => setBg({ type: 'pattern', pat: k }) })),
+      solids: SOLIDS.map((c) => ({ c, cls: bg.c === c ? 'gsw-on' : '', pick: () => setBg({ type: 'solid', c }) })),
       prefs: [['light', '浅色'], ['dark', '深色'], ['system', '跟随系统']].map(([k, t]) => ({ t, cls: k === pref ? 'on' : '', pick: () => this.setState({ pref: k }) })),
-      reset: () => this.setState({ palette: 'sakura', pref: 'light' })
+      reset: () => this.setState({ sel: 'sakura', bg: undefined, pref: 'light', blur: undefined, dim: undefined, cardA: undefined }),
+      dlgOpen: dlg !== 'none',
+      dlgImport: dlg === 'import',
+      dlgExport: dlg === 'export',
+      dlgTitle: dlg === 'import' ? '导入主题包' : '导出主题包',
+      dlgOk: dlg === 'import' ? '导入并使用' : '导出',
+      openImport: () => this.setState({ dlg: 'import' }),
+      openExport: () => this.setState({ dlg: 'export' }),
+      closeDlg: () => this.setState({ dlg: 'none' }),
+      nightCss: IMGS[2].css,
+      exportOpts: [
+        { t: '配色（浅色 + 深色）', sub: '必含', on: true, lock: true },
+        { t: '背景图片', sub: bg.type === 'image' ? img.n + ' · ' + img.meta.split(' · ')[1] : '当前背景不是图片', on: bg.type === 'image', lock: bg.type !== 'image' },
+        { t: '页面单独设置', sub: mineCur && mineCur.pages ? mineCur.pages + ' 个页面' : '没有', on: !!(mineCur && mineCur.pages), lock: !(mineCur && mineCur.pages) }
+      ],
+      exportName: cur.n.split(' ')[0] + '.momoko-theme',
+      exportSize: bg.type === 'image' ? '约 ' + img.meta.split(' · ')[1] : '约 3 KB'
     };
   }
 }

@@ -88,12 +88,13 @@ const isBleed = computed(() => !!route.meta?.fullBleed || contentFullBleed.value
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--el-bg-color-page);
+  background: var(--app-surface-page);
   padding: 16px;
 }
 @media (width >= 992px) {
   .app-content {
-    padding: 24px 32px 40px;
+    /* 页面边距跟随主题的组件尺寸（theme/sizeTokens.ts · layout） */
+    padding: var(--cmp-page-padding-top) var(--cmp-page-padding-x) 40px;
   }
 }
 /* 手机底部导航高度 ≈ 70px + 安全区，内容区留出空间 */

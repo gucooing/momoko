@@ -402,7 +402,7 @@ const summary = computed(() => {
   flex-direction: column;
   gap: 16px;
   min-width: 0;
-  padding: 22px 24px;
+  padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 24);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);

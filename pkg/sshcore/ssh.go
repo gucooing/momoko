@@ -28,6 +28,8 @@ const (
 	wsPingInterval     = 20 * time.Second
 	// latencyInterval 终端会话中测量 momoko → SSH 服务端往返延迟的间隔。
 	latencyInterval = 5 * time.Second
+	// latencyQueryKey 握手 URL 带 latency=1 的客户端才会收到延迟控制帧。
+	latencyQueryKey = "latency"
 )
 
 type Config struct {
@@ -52,6 +54,7 @@ type wsControl struct {
 }
 
 // ServerControl 是服务端发往浏览器的控制帧（以 WebSocket 二进制帧发送，终端输出始终是文本帧）。
+// 控制帧需客户端在握手 URL 中声明（如 latency=1）才发送：不认识控制帧的旧前端会把二进制帧当终端输出写出来。
 //   - {"type":"latency","ms":42}：momoko 到 SSH 服务端的往返延迟（keepalive 请求测得）
 type ServerControl struct {
 	Type string `json:"type"`
@@ -232,27 +235,9 @@ func ServeWebSocket(conn *websocket.Conn, cfg Config) error {
 		closeDone()
 	}()
 
-	go func() {
-		measure := func() {
-			started := time.Now()
-			// keepalive 请求：OpenSSH 等服务端会回复（成功或失败均可），往返即为延迟
-			if _, _, err := client.SendRequest("keepalive@openssh.com", true, nil); err != nil {
-				return
-			}
-			_ = sendControl(ServerControl{Type: "latency", Ms: max(time.Since(started).Milliseconds(), 1)})
-		}
-		measure()
-		ticker := time.NewTicker(latencyInterval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-done:
-				return
-			case <-ticker.C:
-				measure()
-			}
-		}
-	}()
+	if wantsLatency(conn) {
+		go reportLatency(client, done, sendControl)
+	}
 
 	go func() {
 		pingTicker := time.NewTicker(wsPingInterval)
@@ -285,6 +270,35 @@ func ServeWebSocket(conn *websocket.Conn, cfg Config) error {
 			_ = sendText(fmt.Sprintf("\r\n[SSH] 输入写入失败: %v\r\n", err))
 			closeDone()
 			return nil
+		}
+	}
+}
+
+// wantsLatency 判断客户端是否在握手 URL 中订阅了延迟控制帧。
+func wantsLatency(conn *websocket.Conn) bool {
+	req := conn.Request()
+	return req != nil && req.URL != nil && req.URL.Query().Get(latencyQueryKey) == "1"
+}
+
+// reportLatency 按 latencyInterval 测量 momoko → SSH 服务端往返延迟并以控制帧推送，直到 done 关闭。
+func reportLatency(client *ssh.Client, done <-chan struct{}, sendControl func(ServerControl) error) {
+	measure := func() {
+		started := time.Now()
+		// keepalive 请求：OpenSSH 等服务端会回复（成功或失败均可），往返即为延迟
+		if _, _, err := client.SendRequest("keepalive@openssh.com", true, nil); err != nil {
+			return
+		}
+		_ = sendControl(ServerControl{Type: "latency", Ms: max(time.Since(started).Milliseconds(), 1)})
+	}
+	measure()
+	ticker := time.NewTicker(latencyInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			measure()
 		}
 	}
 }

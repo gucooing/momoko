@@ -1236,7 +1236,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  padding: 16px 16px 12px;
+  padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 12);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -1327,7 +1327,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   flex-direction: column;
   gap: 14px;
   min-width: 0;
-  padding: 18px 20px;
+  padding: calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 20);
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);

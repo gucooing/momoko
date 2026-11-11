@@ -320,6 +320,18 @@ func (f TaskFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.TaskMutation", m)
 }
 
+// The ThemeAssetFunc type is an adapter to allow the use of ordinary
+// function as ThemeAsset mutator.
+type ThemeAssetFunc func(context.Context, *gen.ThemeAssetMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ThemeAssetFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ThemeAssetMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ThemeAssetMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *gen.UserMutation) (gen.Value, error)
@@ -354,6 +366,18 @@ func (f UserMessageFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value,
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserMessageMutation", m)
+}
+
+// The UserThemeFunc type is an adapter to allow the use of ordinary
+// function as UserTheme mutator.
+type UserThemeFunc func(context.Context, *gen.UserThemeMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserThemeFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.UserThemeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserThemeMutation", m)
 }
 
 // Condition is a hook condition function.

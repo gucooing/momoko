@@ -16,9 +16,11 @@ const (
 	ConfigSiteExternalURL     ConfigKey = "site.external_url"
 	ConfigSiteDefaultLanguage ConfigKey = "site.default_language"
 	ConfigSiteSettingsAudit   ConfigKey = "site.settings_audit"
-	ConfigUpdateAutoCheck     ConfigKey = "update.auto_check"
-	ConfigUpdateChannel       ConfigKey = "update.channel"
-	ConfigUpdateLastCheck     ConfigKey = "update.last_check"
+	// ConfigSiteTheme 全站默认外观主题（v1.SiteTheme 的 protojson，空表示没设置）。
+	ConfigSiteTheme       ConfigKey = "site.theme"
+	ConfigUpdateAutoCheck ConfigKey = "update.auto_check"
+	ConfigUpdateChannel   ConfigKey = "update.channel"
+	ConfigUpdateLastCheck ConfigKey = "update.last_check"
 	// ConfigAuditRetentionDays 操作记录保留天数（0=永久保留）。
 	ConfigAuditRetentionDays ConfigKey = "audit.retention_days"
 
@@ -92,6 +94,7 @@ var configDefaults = map[ConfigKey]string{
 	ConfigSiteExternalURL:     "",
 	ConfigSiteDefaultLanguage: "auto",
 	ConfigSiteSettingsAudit:   "",
+	ConfigSiteTheme:           "",
 	ConfigUpdateAutoCheck:     "true",
 	ConfigUpdateChannel:       "UpdateChannel_Stable",
 	ConfigUpdateLastCheck:     "",

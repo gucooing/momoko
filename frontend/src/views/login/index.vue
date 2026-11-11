@@ -2,12 +2,16 @@
      手机上品牌区在上、表单卡片上浮，主按钮固定在底部。模式写在 ?mode=register|forgot，可直接链接、可后退。 -->
 <template>
   <div class="auth" :class="`auth--${loginMode}`">
-    <section class="auth-brand">
-      <span class="auth-brand__blob" aria-hidden="true" />
-      <span class="auth-brand__ring" aria-hidden="true" />
-      <svg class="auth-brand__star" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z" />
-      </svg>
+    <!-- 品牌区：默认主色实底 + 装饰；主题可换成渐变或自己的图片（与工作台欢迎横幅同一套设置，可按页面单独设置） -->
+    <section class="auth-brand" :style="bannerStyle" data-theme-pick="hero">
+      <span v-if="!bannerLook.deco" class="auth-brand__shade" aria-hidden="true" />
+      <template v-else>
+        <span class="auth-brand__blob" aria-hidden="true" />
+        <span class="auth-brand__ring" aria-hidden="true" />
+        <svg class="auth-brand__star" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z" />
+        </svg>
+      </template>
 
       <div class="auth-brand__bar">
         <button
@@ -148,6 +152,7 @@ import Register from '@/views/login/register.vue'
 import AuthLangMenu from '@/views/login/components/AuthLangMenu.vue'
 import AuthSeg from '@/views/login/components/AuthSeg.vue'
 import ThemeConfig from '@/components/ThemeConfig.vue'
+import { useThemeBanner } from '@/theme/useThemeBanner'
 import { i18n } from '@/locales'
 import { APP_LOCALES, type AppLocale } from '@/locales/types'
 import type { LoginConfig } from '@/types/v1/system'
@@ -162,6 +167,8 @@ const menuStore = useMenuStore()
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+// 品牌区背景（主色 / 渐变 / 自定义图片）跟随主题的横幅设置
+const { look: bannerLook, style: bannerStyle } = useThemeBanner()
 
 const loginConfig = reactive<LoginConfig>({
   registerEnabled: false,
@@ -288,8 +295,18 @@ onMounted(async () => {
   gap: 40px;
   padding: 48px 56px;
   overflow: hidden;
-  background: var(--m-p);
-  color: var(--m-pOn);
+  --brand-fg: var(--banner-fg, var(--m-pOn));
+  background: var(--banner-bg, var(--m-p));
+  color: var(--brand-fg);
+}
+.auth-brand__shade {
+  position: absolute;
+  inset: 0;
+  background: var(--banner-shade);
+}
+/* 有自定义背景时页面底透明，露出背景层（表单面板按主题变成毛玻璃） */
+:global(html.has-theme-bg) .auth {
+  background: transparent;
 }
 .auth-brand__blob {
   position: absolute;
@@ -315,7 +332,7 @@ onMounted(async () => {
   top: 120px;
   width: 64px;
   height: 64px;
-  fill: var(--m-pOn);
+  fill: var(--brand-fg);
 }
 .auth-brand__bar {
   position: relative;
@@ -344,7 +361,7 @@ onMounted(async () => {
   border-radius: 15px;
   object-fit: cover;
   transform: rotate(-6deg);
-  box-shadow: 0 0 0 3px var(--m-pOn);
+  box-shadow: 0 0 0 3px var(--brand-fg);
 }
 .auth-brand__tools,
 .auth-brand__bar .auth-brand__back,
@@ -361,12 +378,12 @@ onMounted(async () => {
   border: 0;
   border-radius: 14px;
   background: transparent;
-  color: var(--m-pOn);
+  color: var(--brand-fg);
   cursor: pointer;
   transition: background-color 0.15s;
 }
 .auth-brand__btn:hover {
-  background: color-mix(in srgb, var(--m-pOn) 14%, transparent);
+  background: color-mix(in srgb, var(--brand-fg) 14%, transparent);
 }
 .auth-brand__btn svg {
   width: 20px;
@@ -375,7 +392,7 @@ onMounted(async () => {
 /* 主题按钮：实心底 + 主色图标（与语言按钮一致），压在黄色圆上也看得清 */
 .auth-brand__btn--chip,
 .auth-brand__btn--chip:hover {
-  background: var(--m-pOn);
+  background: var(--brand-fg);
   color: var(--m-p);
 }
 .auth-brand__btn--mode,
@@ -423,7 +440,7 @@ onMounted(async () => {
   box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--m-ink) 60%, transparent);
 }
 .auth-brand__tags .is-0 {
-  background: var(--m-pOn);
+  background: var(--brand-fg);
   color: var(--m-p);
   transform: rotate(-5deg);
 }
@@ -447,7 +464,7 @@ html.dark .auth-brand__tags .is-3 {
   color: var(--m-a);
 }
 .auth-brand__tags .is-4 {
-  background: var(--m-pOn);
+  background: var(--brand-fg);
   color: var(--m-p);
   transform: translateY(8px) rotate(-3deg);
 }

@@ -37,7 +37,7 @@ const menuStore = useMenuStore()
 <style scoped lang="scss">
 .app-panel {
   background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-light);
+  border: var(--cmp-card-border-width) solid var(--el-border-color-light);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-card);
   overflow: hidden;
@@ -47,7 +47,7 @@ const menuStore = useMenuStore()
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 18px 22px 0;
+  padding: calc(var(--cmp-card-padding) * 0.82) var(--cmp-card-padding) 0;
   min-width: 0;
 }
 @media (width < 640px) {
@@ -68,7 +68,7 @@ const menuStore = useMenuStore()
   min-width: 0;
 }
 .app-panel__title h2 {
-  font-size: 1.0625rem;
+  font-size: var(--cmp-card-title-size);
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
@@ -91,7 +91,7 @@ const menuStore = useMenuStore()
   min-width: 0;
 }
 .app-panel__body {
-  padding: 18px 22px 22px;
+  padding: calc(var(--cmp-card-padding) * 0.82) var(--cmp-card-padding) var(--cmp-card-padding);
 }
 .app-panel--flush .app-panel__body {
   padding: 0;
@@ -100,7 +100,7 @@ const menuStore = useMenuStore()
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 22px;
+  padding: 14px var(--cmp-card-padding);
   border-top: 1px solid var(--el-border-color-lighter);
 }
 </style>
