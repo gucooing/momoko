@@ -163,6 +163,7 @@ import ConfigRevisionsDrawer from './shared/ConfigRevisionsDrawer.vue'
 import { deepEqual } from './shared/diff'
 import { useServerClock } from './shared/serverClock'
 import { formatDay } from './shared/time'
+import { gashaConfig } from '@/api/gakumas'
 import { useConfigDomain } from './shared/useConfigDomain'
 
 defineOptions({ name: 'GmGashaTab' })
@@ -176,7 +177,7 @@ const ctx = useGmContext()
 const clock = useServerClock(ctx)
 const lookup = useCatalogLookup(ctx)
 const labels = useGashaLabels()
-const state = useConfigDomain<GashaConfig>(DOMAIN)
+const state = useConfigDomain<GashaConfig>(DOMAIN, gashaConfig)
 
 const revisionsOpen = ref(false)
 const unsupported = computed(() => !!ctx.game.value && ctx.game.value !== 'gakumas')

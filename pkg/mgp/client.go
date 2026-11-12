@@ -1,9 +1,9 @@
-// Package mgp 是 Momoko 调用游戏服务端 MGP v1（Momoko Game Protocol）的客户端：
-// 请求签名（pkg/mgpauth）、超时、GET 重试、统一响应信封解析与错误码映射，
-// 主 server 与用户通行证 server 共用。
+// Package mgp 是 Momoko 调用游戏服务端 MGP v1（Momoko Game Protocol）的通用客户端：
+// 请求签名（pkg/mgpauth）、超时、GET 重试、统一响应信封解析与错误码映射、操作的幂等键与试运行，
+// 以及服务器管理用到的 manifest、status 与事件流。各游戏的接口与类型在 pkg/mgp/<游戏> 下实现。
 //
 // 协议约定（与游戏服务端一致）：基础路径 /mgp/v1；响应 { code, message, data, requestId }；
-// 列表 { items, nextCursor, total, summary }；时间为 Unix 毫秒；只返回资源 ID，不提供图片。
+// 时间为 Unix 毫秒；只返回资源 ID，不提供图片。
 package mgp
 
 import (
@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"momoko/pkg/mgpauth"
+	"momoko/pkg/response"
 )
 
 // Prefix 是 MGP 路由前缀。
@@ -28,9 +29,16 @@ const Prefix = "/mgp/v1"
 
 const (
 	defaultTimeout = 15 * time.Second
-	// CommandTimeout 执行指令（全服邮件等服务器指令可能较慢）的超时。
-	CommandTimeout = 2 * time.Minute
-	maxResponse    = 64 << 20
+	// OperationTimeout 执行操作（全服邮件等可能较慢）的超时。
+	OperationTimeout = 2 * time.Minute
+	maxResponse      = 64 << 20
+)
+
+// 操作的请求头与响应头（与服务端一致）。
+const (
+	headerIdempotencyKey = "Idempotency-Key"
+	headerOperator       = "X-MGP-Operator"
+	headerReplayed       = "Idempotent-Replayed"
 )
 
 // Error 是 MGP 返回的业务错误或传输错误。
@@ -56,6 +64,20 @@ func CodeOf(err error) string {
 		return e.Code
 	}
 	return ""
+}
+
+// ResponseError 把 MGP 错误映射为 Momoko 接口错误：连接不上与签名失败为 502（不能让前端当成 Momoko 登录失效），
+// 其余沿用 MGP 的 HTTP 状态，信息为「错误码: 信息」；不是 MGP 错误时原样返回。
+func ResponseError(err error) error {
+	var e *Error
+	if !errors.As(err, &e) {
+		return err
+	}
+	status := e.Status
+	if status == 0 || status == http.StatusUnauthorized || status < 400 {
+		status = http.StatusBadGateway
+	}
+	return response.BadRequest(status, e.Code+": "+e.Message)
 }
 
 // IsUnreachable 判断错误是否为连接不上游戏服务端（网络错误、超时）。
@@ -134,22 +156,40 @@ type envelope struct {
 	RequestID string          `json:"requestId"`
 }
 
+// OperationOptions 是一次操作（改变数据的请求）的选项。
+type OperationOptions struct {
+	// IdempotencyKey 幂等键：同一个键只执行一次，重复请求返回首次的结果；试运行可为空。
+	IdempotencyKey string
+	// Operator 操作者（写进服务端日志与事件）。
+	Operator string
+	// DryRun 试运行：不改变任何数据。
+	DryRun bool
+}
+
 // Call 是一次请求的选项。
 type Call struct {
 	Method string
-	// Path 是 /mgp/v1 之后的路径，例如 /players/12/views/items（各段需已转义）。
+	// Path 是 /mgp/v1 之后的路径，例如 /players/12/items（各段需已转义）。
 	Path  string
 	Query url.Values
 	// Body 为 nil 时不带请求体；否则按 JSON 编码（json.RawMessage 原样发送）。
 	Body any
 	// RequestID 透传为 X-MGP-Request-Id，便于两端日志对应。
 	RequestID string
+	// Operation 操作的幂等键、操作者与试运行；查询为 nil。
+	Operation *OperationOptions
 	// Timeout 为 0 时取默认超时。
 	Timeout time.Duration
 }
 
-// Do 发送请求并返回 data 的原始 JSON。GET 在网络错误时重试一次。
-func (c *Client) Do(ctx context.Context, call Call) (json.RawMessage, error) {
+// Result 是一次请求的结果：data 的原始 JSON，以及操作是否为幂等键的重放（服务端返回首次执行的结果）。
+type Result struct {
+	Data     json.RawMessage
+	Replayed bool
+}
+
+// Do 发送请求并返回结果。GET 在网络错误时重试一次。
+func (c *Client) Do(ctx context.Context, call Call) (Result, error) {
 	var body []byte
 	if call.Body != nil {
 		switch b := call.Body.(type) {
@@ -160,7 +200,7 @@ func (c *Client) Do(ctx context.Context, call Call) (json.RawMessage, error) {
 		default:
 			raw, err := json.Marshal(b)
 			if err != nil {
-				return nil, err
+				return Result{}, err
 			}
 			body = raw
 		}
@@ -171,18 +211,24 @@ func (c *Client) Do(ctx context.Context, call Call) (json.RawMessage, error) {
 	}
 	var err error
 	for i := 0; i < attempts; i++ {
-		var data json.RawMessage
-		data, err = c.do(ctx, call, body)
+		var r Result
+		r, err = c.do(ctx, call, body)
 		if err == nil || !IsUnreachable(err) || ctx.Err() != nil {
-			return data, err
+			return r, err
 		}
 	}
-	return nil, err
+	return Result{}, err
 }
 
-// Get 是 Do 的 GET 简写。
+// Get 是 Do 的 GET 简写，返回 data 的原始 JSON。
 func (c *Client) Get(ctx context.Context, path string, query url.Values) (json.RawMessage, error) {
-	return c.Do(ctx, Call{Method: http.MethodGet, Path: path, Query: query})
+	r, err := c.Do(ctx, Call{Method: http.MethodGet, Path: path, Query: query})
+	return r.Data, err
+}
+
+// Operate 执行一次操作（POST / PUT / DELETE），body 为 nil 时不带请求体。
+func (c *Client) Operate(ctx context.Context, method, path string, body any, opt OperationOptions) (Result, error) {
+	return c.Do(ctx, Call{Method: method, Path: path, Body: body, Operation: &opt, RequestID: opt.IdempotencyKey, Timeout: OperationTimeout})
 }
 
 // GetInto 发送 GET 并把 data 解码进 out。
@@ -198,8 +244,16 @@ func (c *Client) newRequest(ctx context.Context, call Call, body []byte) (*http.
 	u := *c.base
 	u.Path = u.Path + Prefix + call.Path
 	u.RawPath = ""
-	if len(call.Query) > 0 {
-		u.RawQuery = call.Query.Encode()
+	query := call.Query
+	if call.Operation != nil && call.Operation.DryRun {
+		query = url.Values{}
+		for k, v := range call.Query {
+			query[k] = v
+		}
+		query.Set("dryRun", "true")
+	}
+	if len(query) > 0 {
+		u.RawQuery = query.Encode()
 	}
 	var reader io.Reader
 	if body != nil {
@@ -216,13 +270,21 @@ func (c *Client) newRequest(ctx context.Context, call Call, body []byte) (*http.
 	if call.RequestID != "" {
 		req.Header.Set(mgpauth.HeaderRequestID, call.RequestID)
 	}
+	if op := call.Operation; op != nil {
+		if op.IdempotencyKey != "" {
+			req.Header.Set(headerIdempotencyKey, op.IdempotencyKey)
+		}
+		if op.Operator != "" {
+			req.Header.Set(headerOperator, op.Operator)
+		}
+	}
 	if err := mgpauth.SignRequest(req, c.keyID, c.secret, body, time.Now()); err != nil {
 		return nil, err
 	}
 	return req, nil
 }
 
-func (c *Client) do(ctx context.Context, call Call, body []byte) (json.RawMessage, error) {
+func (c *Client) do(ctx context.Context, call Call, body []byte) (Result, error) {
 	timeout := call.Timeout
 	if timeout <= 0 {
 		timeout = defaultTimeout
@@ -231,7 +293,7 @@ func (c *Client) do(ctx context.Context, call Call, body []byte) (json.RawMessag
 	defer cancel()
 	req, err := c.newRequest(ctx, call, body)
 	if err != nil {
-		return nil, err
+		return Result{}, err
 	}
 	res, err := c.http.Do(req)
 	if err != nil {
@@ -239,12 +301,12 @@ func (c *Client) do(ctx context.Context, call Call, body []byte) (json.RawMessag
 		if errors.Is(err, context.DeadlineExceeded) {
 			code = "TIMEOUT"
 		}
-		return nil, &Error{Code: code, Message: err.Error()}
+		return Result{}, &Error{Code: code, Message: err.Error()}
 	}
 	defer res.Body.Close()
 	raw, err := io.ReadAll(io.LimitReader(res.Body, maxResponse))
 	if err != nil {
-		return nil, &Error{Code: "UNREACHABLE", Message: err.Error()}
+		return Result{}, &Error{Code: "UNREACHABLE", Message: err.Error()}
 	}
 	var env envelope
 	if err := json.Unmarshal(raw, &env); err != nil || env.Code == "" {
@@ -255,20 +317,20 @@ func (c *Client) do(ctx context.Context, call Call, body []byte) (json.RawMessag
 		if msg == "" {
 			msg = res.Status
 		}
-		return nil, &Error{Status: res.StatusCode, Code: "BAD_RESPONSE", Message: msg}
+		return Result{}, &Error{Status: res.StatusCode, Code: "BAD_RESPONSE", Message: msg}
 	}
 	if res.StatusCode != http.StatusOK || env.Code != "OK" {
-		return nil, &Error{Status: res.StatusCode, Code: env.Code, Message: env.Message, RequestID: env.RequestID}
+		return Result{}, &Error{Status: res.StatusCode, Code: env.Code, Message: env.Message, RequestID: env.RequestID}
 	}
 	if len(env.Data) == 0 {
 		env.Data = json.RawMessage("null")
 	}
-	return env.Data, nil
+	return Result{Data: env.Data, Replayed: res.Header.Get(headerReplayed) == "true"}, nil
 }
 
 // Event 是 /events 事件流中的一条事件。
 type Event struct {
-	// Kind 事件类型：session.login、session.disconnect、session.kick、gasha.draw、produce.finish、gm.command、config.publish。
+	// Kind 事件类型，由游戏服务端定义（学マス：session.login、session.disconnect、session.kick、gasha.draw、produce.finish、gm.operation、config.publish）。
 	Kind string `json:"kind"`
 	// Time Unix 毫秒。
 	Time         int64           `json:"time"`

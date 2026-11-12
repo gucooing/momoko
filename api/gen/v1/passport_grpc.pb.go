@@ -58,11 +58,7 @@ const (
 	PassportService_BindPassportAccount_FullMethodName              = "/v1.PassportService/BindPassportAccount"
 	PassportService_GetPassportGame_FullMethodName                  = "/v1.PassportService/GetPassportGame"
 	PassportService_GetPassportGameBrief_FullMethodName             = "/v1.PassportService/GetPassportGameBrief"
-	PassportService_GetPassportGameView_FullMethodName              = "/v1.PassportService/GetPassportGameView"
-	PassportService_GetPassportGameCatalog_FullMethodName           = "/v1.PassportService/GetPassportGameCatalog"
-	PassportService_ListPassportGameOngoing_FullMethodName          = "/v1.PassportService/ListPassportGameOngoing"
 	PassportService_ListPassportSelfService_FullMethodName          = "/v1.PassportService/ListPassportSelfService"
-	PassportService_ExecutePassportSelfService_FullMethodName       = "/v1.PassportService/ExecutePassportSelfService"
 	PassportService_ListPassportGameRequests_FullMethodName         = "/v1.PassportService/ListPassportGameRequests"
 	PassportService_ListPassportGameRecords_FullMethodName          = "/v1.PassportService/ListPassportGameRecords"
 	PassportService_RedeemPassportGiftCode_FullMethodName           = "/v1.PassportService/RedeemPassportGiftCode"
@@ -151,21 +147,13 @@ type PassportServiceClient interface {
 	SearchPassportBindServers(ctx context.Context, in *SearchPassportBindServersRequest, opts ...grpc.CallOption) (*SearchPassportBindServersResponse, error)
 	// 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
 	BindPassportAccount(ctx context.Context, in *BindPassportAccountRequest, opts ...grpc.CallOption) (*PassportLink, error)
-	// 游戏空间：服务器、绑定、manifest 中玩家端用到的部分、玩家摘要；同时记录 last_seen_at
+	// 游戏空间：服务器、绑定与时区；同时记录 last_seen_at。游戏数据由游戏模块的通行证服务提供（学マス：GakumasPassportService）
 	GetPassportGame(ctx context.Context, in *PassportGameRequest, opts ...grpc.CallOption) (*PassportGameResponse, error)
-	// 首页卡片用的摘要（玩家摘要，刷新绑定快照；不记录 last_seen_at）
+	// 首页卡片用的摘要（刷新绑定快照；不记录 last_seen_at）
 	GetPassportGameBrief(ctx context.Context, in *PassportGameRequest, opts ...grpc.CallOption) (*PassportGameResponse, error)
-	// 自己的分页数据（MGP /players/{我的 pid}/views/{view}）
-	GetPassportGameView(ctx context.Context, in *PassportGameViewRequest, opts ...grpc.CallOption) (*PassportDataResponse, error)
-	// 选择器数据（MGP /catalogs/{kind}，名称与素材 ID；每次最多 50 条）
-	GetPassportGameCatalog(ctx context.Context, in *PassportGameCatalogRequest, opts ...grpc.CallOption) (*PassportDataResponse, error)
-	// 正在进行的卡池（只含 id、名称、横幅素材与起止时间）
-	ListPassportGameOngoing(ctx context.Context, in *PassportGameRequest, opts ...grpc.CallOption) (*PassportDataResponse, error)
-	// 自助服务：已开放的指令与我的使用情况
+	// 自助服务：已开放的操作与我的使用情况；执行由游戏模块的通行证服务提供
 	ListPassportSelfService(ctx context.Context, in *PassportGameRequest, opts ...grpc.CallOption) (*ListPassportSelfServiceResponse, error)
-	// 执行一条自助指令（目标强制为我绑定的游戏账号；需要审批的只提交申请）
-	ExecutePassportSelfService(ctx context.Context, in *ExecutePassportSelfServiceRequest, opts ...grpc.CallOption) (*ExecutePassportSelfServiceResponse, error)
-	// 我的申请（需要审批的自助指令）
+	// 我的申请（需要审批的自助操作）
 	ListPassportGameRequests(ctx context.Context, in *ListPassportGameRecordsRequest, opts ...grpc.CallOption) (*ListPassportGameRecordsResponse, error)
 	// 操作记录（我在这台服务器上的自助操作与兑换码）
 	ListPassportGameRecords(ctx context.Context, in *ListPassportGameRecordsRequest, opts ...grpc.CallOption) (*ListPassportGameRecordsResponse, error)
@@ -575,50 +563,10 @@ func (c *passportServiceClient) GetPassportGameBrief(ctx context.Context, in *Pa
 	return out, nil
 }
 
-func (c *passportServiceClient) GetPassportGameView(ctx context.Context, in *PassportGameViewRequest, opts ...grpc.CallOption) (*PassportDataResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PassportDataResponse)
-	err := c.cc.Invoke(ctx, PassportService_GetPassportGameView_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *passportServiceClient) GetPassportGameCatalog(ctx context.Context, in *PassportGameCatalogRequest, opts ...grpc.CallOption) (*PassportDataResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PassportDataResponse)
-	err := c.cc.Invoke(ctx, PassportService_GetPassportGameCatalog_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *passportServiceClient) ListPassportGameOngoing(ctx context.Context, in *PassportGameRequest, opts ...grpc.CallOption) (*PassportDataResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PassportDataResponse)
-	err := c.cc.Invoke(ctx, PassportService_ListPassportGameOngoing_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *passportServiceClient) ListPassportSelfService(ctx context.Context, in *PassportGameRequest, opts ...grpc.CallOption) (*ListPassportSelfServiceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListPassportSelfServiceResponse)
 	err := c.cc.Invoke(ctx, PassportService_ListPassportSelfService_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *passportServiceClient) ExecutePassportSelfService(ctx context.Context, in *ExecutePassportSelfServiceRequest, opts ...grpc.CallOption) (*ExecutePassportSelfServiceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ExecutePassportSelfServiceResponse)
-	err := c.cc.Invoke(ctx, PassportService_ExecutePassportSelfService_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -756,21 +704,13 @@ type PassportServiceServer interface {
 	SearchPassportBindServers(context.Context, *SearchPassportBindServersRequest) (*SearchPassportBindServersResponse, error)
 	// 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
 	BindPassportAccount(context.Context, *BindPassportAccountRequest) (*PassportLink, error)
-	// 游戏空间：服务器、绑定、manifest 中玩家端用到的部分、玩家摘要；同时记录 last_seen_at
+	// 游戏空间：服务器、绑定与时区；同时记录 last_seen_at。游戏数据由游戏模块的通行证服务提供（学マス：GakumasPassportService）
 	GetPassportGame(context.Context, *PassportGameRequest) (*PassportGameResponse, error)
-	// 首页卡片用的摘要（玩家摘要，刷新绑定快照；不记录 last_seen_at）
+	// 首页卡片用的摘要（刷新绑定快照；不记录 last_seen_at）
 	GetPassportGameBrief(context.Context, *PassportGameRequest) (*PassportGameResponse, error)
-	// 自己的分页数据（MGP /players/{我的 pid}/views/{view}）
-	GetPassportGameView(context.Context, *PassportGameViewRequest) (*PassportDataResponse, error)
-	// 选择器数据（MGP /catalogs/{kind}，名称与素材 ID；每次最多 50 条）
-	GetPassportGameCatalog(context.Context, *PassportGameCatalogRequest) (*PassportDataResponse, error)
-	// 正在进行的卡池（只含 id、名称、横幅素材与起止时间）
-	ListPassportGameOngoing(context.Context, *PassportGameRequest) (*PassportDataResponse, error)
-	// 自助服务：已开放的指令与我的使用情况
+	// 自助服务：已开放的操作与我的使用情况；执行由游戏模块的通行证服务提供
 	ListPassportSelfService(context.Context, *PassportGameRequest) (*ListPassportSelfServiceResponse, error)
-	// 执行一条自助指令（目标强制为我绑定的游戏账号；需要审批的只提交申请）
-	ExecutePassportSelfService(context.Context, *ExecutePassportSelfServiceRequest) (*ExecutePassportSelfServiceResponse, error)
-	// 我的申请（需要审批的自助指令）
+	// 我的申请（需要审批的自助操作）
 	ListPassportGameRequests(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
 	// 操作记录（我在这台服务器上的自助操作与兑换码）
 	ListPassportGameRecords(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
@@ -907,20 +847,8 @@ func (UnimplementedPassportServiceServer) GetPassportGame(context.Context, *Pass
 func (UnimplementedPassportServiceServer) GetPassportGameBrief(context.Context, *PassportGameRequest) (*PassportGameResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPassportGameBrief not implemented")
 }
-func (UnimplementedPassportServiceServer) GetPassportGameView(context.Context, *PassportGameViewRequest) (*PassportDataResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetPassportGameView not implemented")
-}
-func (UnimplementedPassportServiceServer) GetPassportGameCatalog(context.Context, *PassportGameCatalogRequest) (*PassportDataResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetPassportGameCatalog not implemented")
-}
-func (UnimplementedPassportServiceServer) ListPassportGameOngoing(context.Context, *PassportGameRequest) (*PassportDataResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListPassportGameOngoing not implemented")
-}
 func (UnimplementedPassportServiceServer) ListPassportSelfService(context.Context, *PassportGameRequest) (*ListPassportSelfServiceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPassportSelfService not implemented")
-}
-func (UnimplementedPassportServiceServer) ExecutePassportSelfService(context.Context, *ExecutePassportSelfServiceRequest) (*ExecutePassportSelfServiceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ExecutePassportSelfService not implemented")
 }
 func (UnimplementedPassportServiceServer) ListPassportGameRequests(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPassportGameRequests not implemented")
@@ -1660,60 +1588,6 @@ func _PassportService_GetPassportGameBrief_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PassportService_GetPassportGameView_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PassportGameViewRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PassportServiceServer).GetPassportGameView(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: PassportService_GetPassportGameView_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PassportServiceServer).GetPassportGameView(ctx, req.(*PassportGameViewRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PassportService_GetPassportGameCatalog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PassportGameCatalogRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PassportServiceServer).GetPassportGameCatalog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: PassportService_GetPassportGameCatalog_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PassportServiceServer).GetPassportGameCatalog(ctx, req.(*PassportGameCatalogRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PassportService_ListPassportGameOngoing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PassportGameRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PassportServiceServer).ListPassportGameOngoing(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: PassportService_ListPassportGameOngoing_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PassportServiceServer).ListPassportGameOngoing(ctx, req.(*PassportGameRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _PassportService_ListPassportSelfService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PassportGameRequest)
 	if err := dec(in); err != nil {
@@ -1728,24 +1602,6 @@ func _PassportService_ListPassportSelfService_Handler(srv interface{}, ctx conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PassportServiceServer).ListPassportSelfService(ctx, req.(*PassportGameRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PassportService_ExecutePassportSelfService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExecutePassportSelfServiceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PassportServiceServer).ExecutePassportSelfService(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: PassportService_ExecutePassportSelfService_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PassportServiceServer).ExecutePassportSelfService(ctx, req.(*ExecutePassportSelfServiceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2004,24 +1860,8 @@ var PassportService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PassportService_GetPassportGameBrief_Handler,
 		},
 		{
-			MethodName: "GetPassportGameView",
-			Handler:    _PassportService_GetPassportGameView_Handler,
-		},
-		{
-			MethodName: "GetPassportGameCatalog",
-			Handler:    _PassportService_GetPassportGameCatalog_Handler,
-		},
-		{
-			MethodName: "ListPassportGameOngoing",
-			Handler:    _PassportService_ListPassportGameOngoing_Handler,
-		},
-		{
 			MethodName: "ListPassportSelfService",
 			Handler:    _PassportService_ListPassportSelfService_Handler,
-		},
-		{
-			MethodName: "ExecutePassportSelfService",
-			Handler:    _PassportService_ExecutePassportSelfService_Handler,
 		},
 		{
 			MethodName: "ListPassportGameRequests",

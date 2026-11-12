@@ -53,7 +53,6 @@ type gameHostingOptions struct {
 	AutoRestart    bool             `json:"autoRestart"`
 	ResourceServer bool             `json:"resourceServer"`
 	ResourceListen string           `json:"resourceListen"`
-	ResourceOrigin string           `json:"resourceOrigin"`
 	ResourceRoot   string           `json:"resourceRoot"`
 	Backup         gameBackupPolicy `json:"backup"`
 }
@@ -94,7 +93,6 @@ type gameHostAdapter interface {
 	fillLayout(l *gameHostLayout, doc *jsondoc.Object)
 	processes(l *gameHostLayout, opts *gameHostingOptions) []gameHostProcess
 	settingsSchema() []*v1.GameSettingsSection
-	topKeys() map[string]bool
 	checkBuild(path string) *v1.GameServerBuildInfo
 	resolveBuildPath(dir, path string) string
 }
@@ -154,6 +152,7 @@ func NewGameHostingUsecase(servers *GameServerUsecase, instances *InstanceUsecas
 		h.log.Warnf("mark interrupted hosting records: %v", err)
 	}
 	go h.scheduleLoop()
+	servers.SetHostedSync(h.syncFromConfig)
 	return h
 }
 
@@ -325,6 +324,33 @@ func (h *GameHostingUsecase) ensureProcesses(ctx context.Context, s *gen.GameSer
 	for _, p := range s.Processes {
 		existing[p.Role] = p.InstanceID
 	}
+	// 同一服务端目录下遗留的托管进程（以前切换接入方式后留在应用列表里的）：按可执行文件认领，
+	// 而不是再建一个新的；认领不了的在最后删除，避免应用列表里越堆越多。
+	tracked := map[string]bool{}
+	for _, id := range existing {
+		tracked[id] = true
+	}
+	var strays []*gen.Instance
+	if list, err := h.servers.repo.ListHostedInstances(ctx, s.InstallDir); err == nil {
+		for _, it := range list {
+			if !tracked[it.ID] && !h.instanceOfOtherServer(ctx, s.ID, it.ID) {
+				strays = append(strays, it)
+			}
+		}
+	}
+	for _, d := range defs {
+		if _, ok := existing[d.Role]; ok {
+			continue
+		}
+		exe := roleExecutable(ha, d.Role)
+		for i, it := range strays {
+			if it != nil && strings.HasPrefix(strings.TrimSpace(it.StartCommand), exe) {
+				existing[d.Role] = it.ID
+				strays[i] = nil
+				break
+			}
+		}
+	}
 	var out []entschema.GameServerProcess
 	for _, d := range defs {
 		name := s.Name + " · " + roleExecutable(ha, d.Role)
@@ -385,6 +411,11 @@ func (h *GameHostingUsecase) ensureProcesses(ctx context.Context, s *gen.GameSer
 	for _, id := range existing {
 		h.removeInstance(ctx, id)
 	}
+	for _, it := range strays {
+		if it != nil {
+			h.removeInstance(ctx, it.ID)
+		}
+	}
 	s.Processes = out
 	return nil
 }
@@ -405,6 +436,48 @@ func (h *GameHostingUsecase) removeInstance(ctx context.Context, id string) {
 	if err := h.instances.DeleteInstance(ctx, owner, id); err != nil {
 		h.log.Warnf("delete hosted instance %s: %v", id, err)
 	}
+}
+
+// removeHostedInstances 停止并删除这台服务器的全部托管进程：记录在案的，以及同一服务端目录下遗留的托管进程
+// （以前切换接入方式时没有删除、只解除了关联的那些）。
+func (h *GameHostingUsecase) removeHostedInstances(ctx context.Context, s *gen.GameServer) {
+	seen := map[string]bool{}
+	for _, p := range s.Processes {
+		seen[p.InstanceID] = true
+		h.removeInstance(ctx, p.InstanceID)
+	}
+	if s.InstallDir == "" {
+		return
+	}
+	stray, err := h.servers.repo.ListHostedInstances(ctx, s.InstallDir)
+	if err != nil {
+		h.log.Warnf("list hosted instances of %s: %v", s.ID, err)
+		return
+	}
+	for _, it := range stray {
+		if !seen[it.ID] && !h.instanceOfOtherServer(ctx, s.ID, it.ID) {
+			h.removeInstance(ctx, it.ID)
+		}
+	}
+}
+
+// instanceOfOtherServer 这个应用实例是否是另一台服务器正在用的托管进程（同一目录被两台服务器托管时不误删）。
+func (h *GameHostingUsecase) instanceOfOtherServer(ctx context.Context, selfID, instanceID string) bool {
+	list, err := h.servers.repo.List(ctx)
+	if err != nil {
+		return true
+	}
+	for _, o := range list {
+		if o.ID == selfID {
+			continue
+		}
+		for _, p := range o.Processes {
+			if p.InstanceID == instanceID {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // Detect 识别服务端目录（接入前的预检）。
@@ -447,13 +520,9 @@ func (h *GameHostingUsecase) setupHosted(ctx context.Context, s *gen.GameServer,
 	opts.ResourceServer = spec.ResourceServer
 	if opts.ResourceServer {
 		opts.ResourceListen = firstNonEmpty(spec.ResourceListen, det.Listens["resource"])
-		opts.ResourceOrigin = strings.TrimRight(firstNonEmpty(spec.ResourceOrigin, det.ResourceOrigin), "/")
 		opts.ResourceRoot = firstNonEmpty(spec.ResourceRoot, det.ResourceRoot)
 		if !validListen(opts.ResourceListen) {
 			return response.BadRequest(400, "资源服务器监听地址无效")
-		}
-		if opts.ResourceOrigin != "" && !validOrigin(opts.ResourceOrigin) {
-			return response.BadRequest(400, "资源服务器 origin 无效")
 		}
 		if opts.ResourceRoot != "" && !filepath.IsAbs(opts.ResourceRoot) {
 			return response.BadRequest(400, "资源数据目录必须是绝对路径")
@@ -466,12 +535,17 @@ func (h *GameHostingUsecase) setupHosted(ctx context.Context, s *gen.GameServer,
 			return err
 		}
 	}
+	// 资源服务器的对外地址写进服务端配置的 resource_server_url（以配置为准，Momoko 不另存）
+	origin := strings.TrimRight(firstNonEmpty(spec.ResourceOrigin, det.ResourceOrigin), "/")
+	if opts.ResourceServer && origin != "" && !validOrigin(origin) {
+		return response.BadRequest(400, "资源服务器 origin 无效")
+	}
 	cfg := &v1.GameServerHostedSpec{
 		ConfigFile:     det.ConfigFile,
 		ConfigTemplate: det.ConfigTemplate,
 		Listens:        spec.Listens,
 		ResourceServer: opts.ResourceServer,
-		ResourceOrigin: opts.ResourceOrigin,
+		ResourceOrigin: origin,
 	}
 	l, err := ha.configure(det.InstallDir, cfg, keyID, secret)
 	if err != nil {
@@ -509,6 +583,41 @@ func firstNonEmpty(v ...string) string {
 		}
 	}
 	return ""
+}
+
+// syncFromConfig 托管服务器的接入信息以服务端配置文件为准：不管配置是在专用设置、文件管理还是直接在磁盘上改的，
+// 读取服务器时都按当前配置刷新 MGP 地址与密钥；有变化才写库并清掉客户端缓存。配置读不了时保持原样。
+func (h *GameHostingUsecase) syncFromConfig(ctx context.Context, s *gen.GameServer) {
+	if s.InstallDir == "" {
+		return
+	}
+	ha, ok := hostAdapterOf(s.Game)
+	if !ok {
+		return
+	}
+	l, err := h.layoutOf(s, ha, hostingOptionsOf(s))
+	if err != nil {
+		return
+	}
+	endpoint, keyID, secret := "", "", ""
+	if l.MGPKeyID != "" && l.MGPSecret != "" {
+		endpoint, keyID, secret = l.mgpEndpoint(), l.MGPKeyID, l.MGPSecret
+	}
+	current := ""
+	if s.Secret != "" {
+		current, _ = gameBox().Decrypt(s.Secret)
+	}
+	if endpoint == s.MgpEndpoint && keyID == s.KeyID && secret == current {
+		return
+	}
+	keyChanged := keyID != "" && (keyID != s.KeyID || secret != current)
+	if err := h.applyLayoutMGP(s, l, keyChanged); err != nil {
+		return
+	}
+	if _, err := h.servers.repo.Update(ctx, s); err != nil {
+		h.log.Warnf("sync %s from config: %v", s.ID, err)
+	}
+	h.servers.forget(s.ID)
 }
 
 // applyLayoutMGP 用服务端配置里的 MGP 监听与密钥更新接入信息（托管服务器的 MGP 以配置为准）。
@@ -602,11 +711,8 @@ func (h *GameHostingUsecase) SwitchMode(ctx context.Context, req *v1.SwitchGameS
 		if !MGPConfigured(s) {
 			return nil, response.BadRequest(400, "仅 GM 需要 MGP 地址与密钥")
 		}
-		if req.DeleteInstances {
-			for _, p := range s.Processes {
-				h.removeInstance(ctx, p.InstanceID)
-			}
-		}
+		// 托管进程属于这台服务器：切走时一并停止并删除（包括以前遗留在应用列表里的同目录托管进程）
+		h.removeHostedInstances(ctx, s)
 		s.Mode = entgameserver.ModeRemote
 		s.Processes = nil
 		s.InstallDir = ""
@@ -632,7 +738,7 @@ func (h *GameHostingUsecase) SwitchMode(ctx context.Context, req *v1.SwitchGameS
 	}
 	h.servers.forget(s.ID)
 	h.forgetLayout(s.ID)
-	h.history(ctx, s.ID, "mode", "switch", map[string]string{"from": from, "to": req.Mode, "deleteInstances": boolStr(req.DeleteInstances)}, "success", "")
+	h.history(ctx, s.ID, "mode", "switch", map[string]string{"from": from, "to": req.Mode}, "success", "")
 	if req.Mode == "hosted" && req.Hosted != nil && req.Hosted.Start {
 		if err := h.startRoles(ctx, updated, ""); err != nil {
 			h.history(ctx, s.ID, "process", "start", nil, "failed", err.Error())
@@ -876,13 +982,31 @@ func (h *GameHostingUsecase) UpdateHosting(ctx context.Context, req *v1.UpdateGa
 			return nil, response.BadRequest(400, "服务端目录里没有资源服务器可执行文件")
 		}
 		opts.ResourceListen = firstNonEmpty(req.ResourceListen, opts.ResourceListen, gakumasDefaultResourceListen)
-		opts.ResourceOrigin = strings.TrimRight(firstNonEmpty(req.ResourceOrigin, opts.ResourceOrigin, l.ResOrigin), "/")
 		opts.ResourceRoot = firstNonEmpty(req.ResourceRoot, opts.ResourceRoot, gakumasResourceRoot(s.InstallDir))
-		if !validListen(opts.ResourceListen) || (opts.ResourceOrigin != "" && !validOrigin(opts.ResourceOrigin)) {
+		if !validListen(opts.ResourceListen) {
 			return nil, ErrGameServerInvalid
 		}
 		if opts.ResourceRoot != "" && !filepath.IsAbs(opts.ResourceRoot) {
 			return nil, response.BadRequest(400, "资源数据目录必须是绝对路径")
+		}
+		// 对外地址在服务端配置里（resource_server_url）：改了就写回配置
+		if origin := strings.TrimRight(strings.TrimSpace(req.ResourceOrigin), "/"); origin != "" && origin != l.ResOrigin {
+			if !validOrigin(origin) {
+				return nil, response.BadRequest(400, "资源服务器 origin 无效")
+			}
+			nl, err := ha.loadLayout(s.InstallDir, opts.ConfigFile)
+			if err != nil {
+				return nil, response.BadRequest(400, "读取服务端配置失败："+err.Error())
+			}
+			if err := nl.Doc.Assign("resource_server_url", origin); err != nil {
+				return nil, ErrSystem(err)
+			}
+			if err := writeConfigDoc(s.InstallDir, nl.ConfigPath, nl.Doc); err != nil {
+				return nil, ErrSystem(err)
+			}
+			ha.fillLayout(nl, nl.Doc)
+			h.forgetLayout(s.ID)
+			l = nl
 		}
 	}
 	ownerID, _ := h.actor(ctx)
@@ -900,7 +1024,7 @@ func (h *GameHostingUsecase) UpdateHosting(ctx context.Context, req *v1.UpdateGa
 	return updated, nil
 }
 
-// Delete 删除服务器；托管时按需停止并删除应用实例。
+// Delete 删除服务器；托管时同时停止并删除它的托管进程（应用实例）。
 func (h *GameHostingUsecase) Delete(ctx context.Context, req *v1.DeleteGameServerRequest) error {
 	s, err := h.servers.Get(ctx, req.Id)
 	if err != nil {
@@ -909,10 +1033,8 @@ func (h *GameHostingUsecase) Delete(ctx context.Context, req *v1.DeleteGameServe
 	if h.isBusy(s.ID) {
 		return ErrGameHostingBusy
 	}
-	if s.Mode == entgameserver.ModeHosted && req.DeleteInstances {
-		for _, p := range s.Processes {
-			h.removeInstance(ctx, p.InstanceID)
-		}
+	if s.Mode == entgameserver.ModeHosted {
+		h.removeHostedInstances(ctx, s)
 	}
 	if err := h.servers.DeleteServer(ctx, s.ID); err != nil {
 		return err
@@ -930,7 +1052,6 @@ func (h *GameHostingUsecase) describe(ctx context.Context, s *gen.GameServer, in
 		AutoRestart:    opts.AutoRestart,
 		ResourceServer: opts.ResourceServer,
 		ResourceListen: opts.ResourceListen,
-		ResourceOrigin: opts.ResourceOrigin,
 		ResourceRoot:   opts.ResourceRoot,
 	}
 	info.HostName = LocalNodeInfo(ctx).Hostname
@@ -941,6 +1062,7 @@ func (h *GameHostingUsecase) describe(ctx context.Context, s *gen.GameServer, in
 	}
 	if l != nil {
 		info.Hosting.StopTimeout = int32(l.stopTimeout())
+		info.Hosting.ResourceOrigin = l.ResOrigin
 	}
 	info.Processes = nil
 	for _, p := range s.Processes {
@@ -1010,6 +1132,16 @@ func (h *GameHostingUsecase) ConsoleCore(ctx context.Context, serverID, role str
 	}
 	_, core, err := h.instanceCore(ctx, id)
 	return core, err
+}
+
+// ClearConsole 清空托管进程控制台的输出记录（与应用实例的「清屏」相同：重新连接时不再回放旧输出）。
+func (h *GameHostingUsecase) ClearConsole(ctx context.Context, serverID, role string) error {
+	core, err := h.ConsoleCore(ctx, serverID, role)
+	if err != nil {
+		return err
+	}
+	core.ClearLogs()
+	return nil
 }
 
 // Instances 托管进程所复用的应用实例用例（控制台 WebSocket）。
@@ -1110,9 +1242,6 @@ func (h *GameHostingUsecase) Overview(ctx context.Context, id string) (*v1.GameS
 			probe.LatencyMs = float64(s.ProbeLatencyMs)
 			if probe.LatencyMs == 0 {
 				probe.LatencyMs = float64(time.Since(start).Microseconds()) / 1000
-			}
-			if m := cachedManifestOf(s); m != nil {
-				probe.Params["commands"] = itoa(len(m.Commands))
 			}
 			out.Probes = append(out.Probes, probe)
 			out.Status = JSONValue(st.Raw)

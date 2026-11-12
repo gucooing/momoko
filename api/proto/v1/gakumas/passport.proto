@@ -1,0 +1,484 @@
+syntax = "proto3";
+
+package v1.gakumas;
+
+option go_package = "momoko/api/gen/v1/gakumas;gakumasv1";
+
+import "google/api/annotations.proto";
+import "v1/game_common.proto";
+import "v1/gakumas/types.proto";
+
+// 学マス 用户通行证的游戏空间：玩家只能查看与操作自己绑定的游戏账号（pid 由 Momoko 按绑定决定）。
+// 只注册在用户通行证 server 上，请求与响应都在本文件定义，不引用管理端（gm.proto）的消息；共用的只有游戏数据（types.proto）。
+// 自助操作按管理端设置的规则执行（开放、每日次数、间隔、审批）；高风险操作在开启两步验证时需要 totp_code。
+service GakumasPassportService {
+  // 游戏与已配置的玩法（不含服务端与资源版本）
+  rpc GetGame(MyRequest) returns (PlayerGame) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/game"};
+  }
+  // 我的玩家条目、概览与登录次数
+  rpc GetMyPlayer(MyRequest) returns (PlayerDetail) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/player"};
+  }
+  rpc ListMyIdolCards(MyIdolCardsRequest) returns (IdolCardPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/idol-cards"};
+  }
+  rpc ListMySupportCards(MySupportCardsRequest) returns (SupportCardPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/support-cards"};
+  }
+  rpc ListMyGifts(MyGiftsRequest) returns (GiftPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/gifts"};
+  }
+  rpc ListMyGashaDraws(MyGashaDrawsRequest) returns (GashaDrawPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/gasha-draws"};
+  }
+  // 我的记忆（produced 只保留培育结果，即培育记录）
+  rpc ListMyMemories(MyMemoriesRequest) returns (MemoryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/memories"};
+  }
+  // 一条记忆的详情与培育记录
+  rpc GetMyMemory(MyMemoryRequest) returns (MemoryDetail) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/memories/{memory_id}"};
+  }
+  // 记忆照片（记忆或培育记录编成记忆的 image_path；游戏里玩家都能看到记忆照片）
+  rpc GetMemoryPhoto(MyMemoryPhotoRequest) returns (MemoryPhoto) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/memory-photo"};
+  }
+  // 设为援助（资料展示并出借）的记忆，与游戏内的资料设置相同
+  rpc SetMyRentalMemory(MyRentalMemoryRequest) returns (RentalChange) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/rental-memory", body: "*"};
+  }
+  // 设为援助（资料展示并出借）的支援卡，与游戏内的资料设置相同
+  rpc SetMyRentalSupportCard(MyRentalSupportCardRequest) returns (RentalChange) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/rental-support-card", body: "*"};
+  }
+  // 我的资料名片的图片（没有图片时 404 MEISHI_IMAGE_NOT_FOUND）
+  rpc GetMyMeishiImage(MyRequest) returns (MeishiImage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/meishi-image"};
+  }
+  rpc GetMyPvp(MyRequest) returns (PlayerPvp) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/pvp"};
+  }
+  rpc GetMySeminar(MyRequest) returns (PlayerSeminar) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/seminar"};
+  }
+  // 现在开放的卡池
+  rpc ListOngoingGashas(MyRequest) returns (GashaEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/gashas/ongoing"};
+  }
+
+  // 目录（名称与素材 ID）
+  rpc ListCurrencies(MyCatalogRequest) returns (CurrencyPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/currencies"};
+  }
+  rpc ListItemCatalog(MyItemCatalogRequest) returns (ItemEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/items"};
+  }
+  rpc ListIdolCardSkins(MyIdolCardSkinCatalogRequest) returns (IdolCardSkinPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/idol-card-skins"};
+  }
+  rpc ListSupportCardCatalog(MySupportCardCatalogRequest) returns (SupportCardEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/support-cards"};
+  }
+  rpc ListCharacters(MyCatalogRequest) returns (CharacterPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/characters"};
+  }
+  rpc ListCostumes(MyCostumeCatalogRequest) returns (CostumePage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/costumes"};
+  }
+  rpc ListCostumeHeads(MyCostumeCatalogRequest) returns (CostumePage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/costume-heads"};
+  }
+  rpc ListMusic(MyCatalogRequest) returns (MusicPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/music"};
+  }
+  rpc ListProduceCatalog(MyProduceCatalogRequest) returns (ProduceEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/produces"};
+  }
+  rpc ListSeminars(MyCatalogRequest) returns (SeminarEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/seminars"};
+  }
+  rpc ListProduceCards(MyCatalogRequest) returns (ProduceCardEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/produce-cards"};
+  }
+  rpc ListProduceItems(MyCatalogRequest) returns (ProduceItemEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/produce-items"};
+  }
+  rpc ListMemoryAbilities(MyCatalogRequest) returns (MemoryAbilityPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/memory-abilities"};
+  }
+
+  // 自助操作（目标为我绑定的游戏账号）
+  rpc RefillMyActionPoint(SelfServiceRequest) returns (MyChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/action-point-refill", body: "*"};
+  }
+  rpc GrantMyIdolCards(SelfServiceGrantRequest) returns (MyIdolCardGrantResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/idol-card-grant-all", body: "*"};
+  }
+  rpc GrantMySupportCards(SelfServiceGrantRequest) returns (MySupportCardGrantResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/support-card-grant-all", body: "*"};
+  }
+  rpc KickMe(SelfServiceRequest) returns (MyKickResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/kick", body: "*"};
+  }
+  rpc RenameMe(SelfServiceRenameRequest) returns (MyRenameResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/rename", body: "*"};
+  }
+  rpc ResetMyPvpDaily(SelfServiceRequest) returns (MyChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/pvp-reset-daily", body: "*"};
+  }
+  rpc ExportMyArchive(SelfServiceRequest) returns (MyArchiveExportResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/archive-export", body: "*"};
+  }
+  rpc SendMyGift(SelfServiceGiftRequest) returns (MyGiftSendResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/gift-send", body: "*"};
+  }
+  rpc RevokeMyGifts(SelfServiceGiftRevokeRequest) returns (MyGiftRevokeResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/gift-revoke", body: "*"};
+  }
+  rpc AdjustMyJewel(SelfServiceJewelRequest) returns (MyChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/jewel-adjust", body: "*"};
+  }
+  rpc AdjustMyItem(SelfServiceItemRequest) returns (MyChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/item-adjust", body: "*"};
+  }
+  rpc AddMyExp(SelfServiceExpRequest) returns (MyChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/exp-add", body: "*"};
+  }
+  rpc BanMe(SelfServiceBanRequest) returns (MyBanResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/ban", body: "*"};
+  }
+  rpc UnbanMe(SelfServiceRequest) returns (MyBanResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/unban", body: "*"};
+  }
+  rpc SetMyPassword(SelfServicePasswordRequest) returns (MyPasswordResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/password", body: "*"};
+  }
+  rpc SetMyPvpRate(SelfServiceRateRequest) returns (MyChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/pvp-rate", body: "*"};
+  }
+  rpc ClearMySeminar(SelfServiceRequest) returns (MySeminarClearResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/seminar-clear", body: "*"};
+  }
+  rpc ResetMySeminar(SelfServiceRequest) returns (MySeminarResetResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/games/{server_id}/self-service/seminar-reset", body: "*"};
+  }
+}
+
+// ---------------- 请求 ----------------
+
+message MyRequest {
+  string server_id = 1;
+}
+
+message MyMemoriesRequest {
+  string server_id = 1;
+  // 只保留培育结果（培育记录）
+  bool produced = 2;
+  // 模糊匹配记忆的偶像卡 ID、卡名或角色名（游戏原文）
+  string q = 3;
+  // 偶像卡稀有度
+  int32 rarity = 7;
+  // 评价（ResultGrade），可多个
+  repeated int32 grades = 8;
+  repeated string idol_card_ids = 4;
+  string cursor = 5;
+  // 默认 50，最大 500
+  int32 limit = 6;
+}
+
+message MyMemoryRequest {
+  string server_id = 1;
+  string memory_id = 2;
+}
+
+message MyMemoryPhotoRequest {
+  string server_id = 1;
+  // 相册对象：album/<publicUserId>/<id>.jpg
+  string path = 2;
+}
+
+message MyRentalMemoryRequest {
+  string server_id = 1;
+  string memory_id = 2;
+}
+
+message MyRentalSupportCardRequest {
+  string server_id = 1;
+  string support_card_id = 2;
+}
+
+message MyIdolCardsRequest {
+  string server_id = 1;
+  // 模糊匹配卡 ID、卡名或角色名（游戏原文）
+  string q = 7;
+  string character_id = 2;
+  int32 rarity = 3;
+  repeated string idol_card_ids = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+message MySupportCardsRequest {
+  string server_id = 1;
+  // 模糊匹配卡 ID 或卡名（游戏原文）
+  string q = 6;
+  int32 rarity = 2;
+  repeated string support_card_ids = 3;
+  string cursor = 4;
+  int32 limit = 5;
+}
+
+message MyGiftsRequest {
+  string server_id = 1;
+  // unreceived / received / expired（空为全部）
+  string state = 2;
+  // game（游戏内发出）/ admin（管理操作、邮件、兑换码）（空为全部）
+  string source = 5;
+  // 只保留 24 小时内到期的礼物
+  bool expiring = 6;
+  string cursor = 3;
+  int32 limit = 4;
+}
+
+message MyGashaDrawsRequest {
+  string server_id = 1;
+  repeated string gasha_ids = 2;
+  repeated string card_ids = 3;
+  string cursor = 4;
+  int32 limit = 5;
+}
+
+// 目录：q 匹配 ID 或名称的一部分，ids 只保留这些 ID。
+message MyCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  string cursor = 4;
+  // 默认 50，最大 1000
+  int32 limit = 5;
+}
+
+message MyItemCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  int32 type = 4;
+  string character_id = 5;
+  int32 rarity = 6;
+  string cursor = 7;
+  int32 limit = 8;
+}
+
+message MyIdolCardSkinCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  string character_id = 4;
+  int32 rarity = 5;
+  int32 plan_type = 6;
+  repeated string idol_card_ids = 7;
+  string cursor = 8;
+  int32 limit = 9;
+}
+
+message MySupportCardCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  int32 rarity = 4;
+  int32 type = 5;
+  string cursor = 6;
+  int32 limit = 7;
+}
+
+message MyCostumeCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  string character_id = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+message MyProduceCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  string produce_group_id = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+// 自助操作：reason 为给管理员看的说明（需要审批时），totp_code 为两步验证码。
+message SelfServiceRequest {
+  string server_id = 1;
+  string reason = 2;
+  string totp_code = 3;
+}
+
+message SelfServiceGrantRequest {
+  string server_id = 1;
+  // 礼物箱文案
+  string message = 2;
+  string reason = 3;
+  string totp_code = 4;
+}
+
+message SelfServiceRenameRequest {
+  string server_id = 1;
+  string name = 2;
+  string reason = 3;
+  string totp_code = 4;
+}
+
+message SelfServiceGiftRequest {
+  string server_id = 1;
+  // 1–20 项（来自游戏目录）
+  repeated v1.GameReward rewards = 2;
+  // 礼物箱文案（最多 64 字）
+  string message = 3;
+  // 领取期限（天，0–365，0 不过期）
+  int32 expire_days = 4;
+  string reason = 5;
+  string totp_code = 6;
+}
+
+// 撤回我礼物箱里某来源（gm / mail / code）未领取的礼物：source_id 与 gift_ids 至少一项。
+message SelfServiceGiftRevokeRequest {
+  string server_id = 1;
+  string source_kind = 2;
+  string source_id = 3;
+  repeated string gift_ids = 4;
+  string reason = 5;
+  string totp_code = 6;
+}
+
+// 钻石增减（免费 / 付费）
+message SelfServiceJewelRequest {
+  string server_id = 1;
+  int64 free = 2;
+  int64 paid = 3;
+  string reason = 4;
+  string totp_code = 5;
+}
+
+// 金币与道具增减
+message SelfServiceItemRequest {
+  string server_id = 1;
+  string item_id = 2;
+  int64 quantity = 3;
+  string reason = 4;
+  string totp_code = 5;
+}
+
+// 增加制作人经验
+message SelfServiceExpRequest {
+  string server_id = 1;
+  int64 exp = 2;
+  string reason = 3;
+  string totp_code = 4;
+}
+
+// 封禁我的游戏账号：until 为 Unix 毫秒；ban_reason 为游戏内显示的封禁原因
+message SelfServiceBanRequest {
+  string server_id = 1;
+  double until = 2;
+  bool permanent = 3;
+  string ban_reason = 4;
+  string reason = 5;
+  string totp_code = 6;
+}
+
+// 新的游戏登录密码
+message SelfServicePasswordRequest {
+  string server_id = 1;
+  string password = 2;
+  string reason = 3;
+  string totp_code = 4;
+}
+
+// 竞赛 Rate
+message SelfServiceRateRequest {
+  string server_id = 1;
+  int32 rate = 2;
+  string reason = 3;
+  string totp_code = 4;
+}
+
+// ---------------- 响应 ----------------
+
+message PlayerGame {
+  ManifestGame game = 1;
+  Modes modes = 2;
+}
+
+// 自助操作的处理情况：record_id 为「操作记录」里的这一条；
+// status 为 success / failed，或 pending（需要审批，只提交了申请，没有结果）。
+message SelfServiceResult {
+  string record_id = 1;
+  string status = 2;
+  string error_code = 3;
+  string error_message = 4;
+}
+
+// 自助操作在我的游戏账号上的结果（失败与待审批时没有 data）。
+message MyChangesResponse {
+  SelfServiceResult result = 1;
+  ChangeList data = 2;
+}
+
+message MyIdolCardGrantResponse {
+  SelfServiceResult result = 1;
+  IdolCardGrant data = 2;
+}
+
+message MySupportCardGrantResponse {
+  SelfServiceResult result = 1;
+  SupportCardGrant data = 2;
+}
+
+message MyKickResponse {
+  SelfServiceResult result = 1;
+  KickResult data = 2;
+}
+
+message MyRenameResponse {
+  SelfServiceResult result = 1;
+  RenameResult data = 2;
+}
+
+message MyArchiveExportResponse {
+  SelfServiceResult result = 1;
+  ArchiveExport data = 2;
+}
+
+message MyGiftSendResponse {
+  SelfServiceResult result = 1;
+  GiftSendResult data = 2;
+}
+
+message MyGiftRevokeResponse {
+  SelfServiceResult result = 1;
+  GiftRevokeResult data = 2;
+}
+
+message MyBanResponse {
+  SelfServiceResult result = 1;
+  BanResult data = 2;
+}
+
+message MyPasswordResponse {
+  SelfServiceResult result = 1;
+  PasswordResult data = 2;
+}
+
+message MySeminarClearResponse {
+  SelfServiceResult result = 1;
+  SeminarClearResult data = 2;
+}
+
+message MySeminarResetResponse {
+  SelfServiceResult result = 1;
+  SeminarResetResult data = 2;
+}

@@ -1,4 +1,5 @@
-"""Export localized 学マス names (characters, items, cards, costumes, music, produce, towers) for the frontend.
+"""Export localized 学マス names and texts (characters, items, cards, costumes, music, produce, towers,
+skill cards, P items, memory abilities) for the frontend.
 
 Like the images, names are frontend resources: the game server (MGP) returns IDs and the original
 (Japanese) names; the frontend shows the localized name when the current language has one and
@@ -12,6 +13,11 @@ Sources:
 
 Output (one small file per kind and language, loaded lazily by src/games/names.ts):
   src/games/gakumas/names/<lang>/<kind>.json     {"<id>": "<name>"}; kinds match the MGP catalog kinds
+  besides the catalog kinds, texts use their own kinds and keys:
+    produceCard         "<id>" (not upgraded) and "<id>+<n>" (upgraded n times; the name carries the "+")
+    produceItemText     "<id>": the P item effect text
+    memoryAbilityText   "<id>@<level>": the effect text of a memory ability level (its ProduceSkill)
+  texts are the description segments joined without rich text tags (<nobr>, <color=...>)
   lang = zh (translation package), en (characters and currencies only), ja (the game's original names
   from the master data: the fallback when the current language has no translation, so the UI never
   has to show an ID)
@@ -28,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 FRONTEND = Path(__file__).resolve().parents[3]
@@ -40,6 +47,47 @@ def rows(path: Path) -> list[dict]:
     if "data" in d:
         return d["data"]
     return next(iter(d.values()))
+
+
+TAG = re.compile(r"</?[a-zA-Z][^<>]*>")
+
+
+def description(r: dict) -> str:
+    """The plain text of a row's produceDescriptions."""
+    return TAG.sub("", "".join((d.get("text") or "") for d in r.get("produceDescriptions") or [])).strip()
+
+
+def produce_cards(path: Path) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for r in rows(path):
+        name, n = (r.get("name") or "").strip(), r.get("upgradeCount") or 0
+        if r.get("id") and name:
+            out.setdefault(r["id"] if not n else f"{r['id']}+{n}", name)
+    return out
+
+
+def item_texts(path: Path) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for r in rows(path):
+        text = description(r)
+        if r.get("id") and text:
+            out.setdefault(r["id"], text)
+    return out
+
+
+def ability_texts(abilities: Path, skills: Path) -> dict[str, str]:
+    """Memory ability (id, level) -> the text of its skill (skillId, level)."""
+    texts: dict[tuple[str, int], str] = {}
+    for r in rows(skills):
+        text = description(r)
+        if r.get("id") and text:
+            texts.setdefault((r["id"], r.get("level") or 0), text)
+    out: dict[str, str] = {}
+    for r in rows(abilities):
+        text = texts.get((r.get("skillId") or "", r.get("level") or 0))
+        if r.get("id") and text:
+            out.setdefault(f"{r['id']}@{r.get('level') or 0}", text)
+    return out
 
 
 def by_id(path: Path, field: str) -> dict[str, str]:
@@ -87,6 +135,11 @@ def main() -> int:
     zh["produce"] = by_id(tr / "Produce.json", "name")
     zh["tower"] = by_id(tr / "Tower.json", "title")
     zh["gashaButton"] = by_id(tr / "GashaButton.json", "name")
+    zh["produceCard"] = produce_cards(tr / "ProduceCard.json")
+    zh["produceItem"] = by_id(tr / "ProduceItem.json", "name")
+    zh["produceItemText"] = item_texts(tr / "ProduceItem.json")
+    # 记忆能力：主数据的 MemoryAbility（id、level → skillId）对上译文的 ProduceSkill
+    zh["memoryAbilityText"] = ability_texts(a.master / "MemoryAbility.json", tr / "ProduceSkill.json")
 
     # 货币：MGP 的 currency 目录是固定的四项，名字取游戏界面文案
     ui = json.loads((a.localization / "localization.json").read_text(encoding="utf-8"))
@@ -133,6 +186,10 @@ def main() -> int:
     ja["produce"] = by_id(m / "Produce.json", "name")
     ja["tower"] = by_id(m / "Tower.json", "title")
     ja["gashaButton"] = by_id(m / "GashaButton.json", "name")
+    ja["produceCard"] = produce_cards(m / "ProduceCard.json")
+    ja["produceItem"] = by_id(m / "ProduceItem.json", "name")
+    ja["produceItemText"] = item_texts(m / "ProduceItem.json")
+    ja["memoryAbilityText"] = ability_texts(m / "MemoryAbility.json", m / "ProduceSkill.json")
 
     for lang, kinds in (("zh", zh), ("en", en), ("ja", ja)):
         folder = a.out / lang

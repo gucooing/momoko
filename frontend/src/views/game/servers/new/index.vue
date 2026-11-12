@@ -256,7 +256,7 @@ const pill = computed<{ variant: PillVariant; label: string }>(() => {
 const manifestNote = computed(() => {
   const m = checks.value.find((c) => c.key === 'manifest' && c.state === 'ok')
   if (!m) return ''
-  return t('gameServers.new.afterManifest', { views: m.params.views, commands: m.params.commands, configs: m.params.configs })
+  return t('gameServers.new.afterManifest', { gameName: m.params.gameName, protocol: m.params.protocol })
 })
 
 const runCheck = async () => {

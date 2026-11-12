@@ -3,6 +3,7 @@ import { gakumas } from '@/games'
 import { gameName } from '@/games/names'
 import { getCurrentLocale, i18n } from '@/locales'
 import type { CurrencyKind } from '@/games/gakumas/assets'
+import { resourceRef } from '@/games/gakumas/catalog'
 import type { ConfigReward } from '@/games/gakumas/types'
 import type { GmReward } from '../../components/types'
 import type { CatalogLookup } from './shared/catalogLookup'
@@ -26,32 +27,31 @@ export function mergeRewards(original: ConfigReward[] | undefined, next: GmRewar
   })
 }
 
-const CURRENCY_KINDS = ['jewelFree', 'jewelPaid', 'actionPoint', 'exp']
-
 export interface RewardView {
   name: string
   image: string
   quantity: number
 }
 
-/** 奖励的名称与图片：类型按 manifest.resourceTypes 找目录；名称先查前端名称表，再查目录，都没有时为「未命名」（不显示 ID）。 */
-export function rewardView(r: ConfigReward, resourceTypes: Record<string, number>, lookup: CatalogLookup): RewardView {
-  const type = r.resourceType || 0
-  const id = r.resourceId || ''
-  const key = Object.keys(resourceTypes).find((k) => resourceTypes[k] === type) || ''
+/** 奖励的名称与图片：类型按资源类型表（games/gakumas/catalog.ts）找目录；名称先查前端名称表，再查目录，都没有时为「未命名」（不显示 ID）。 */
+export function rewardView(r: ConfigReward, lookup: CatalogLookup): RewardView {
+  const ref = resourceRef(r.resourceType || 0, r.resourceId || '')
   const quantity = r.quantity || 0
   const unnamed = i18n.global.t('game.unnamed')
   const nameOf = (kind: string, entryId: string, fallback?: string) =>
     gameName('gakumas', getCurrentLocale(), kind, entryId, fallback) || unnamed
-  if (CURRENCY_KINDS.includes(key)) {
-    const entry = lookup.lookup('currency', key)
-    return { name: nameOf('currency', key, entry?.name), image: gakumas.currencyImage(key as CurrencyKind), quantity }
+  if (!ref) return { name: unnamed, image: '', quantity }
+  const key = ref.kind
+  const id = ref.id
+  if (key === 'currency') {
+    const entry = lookup.lookup('currency', id)
+    return { name: nameOf('currency', id, entry?.name), image: gakumas.currencyImage(id as CurrencyKind), quantity }
   }
   if (!id) return { name: unnamed, image: '', quantity }
-  const entry = key ? lookup.lookup(key, id) : undefined
+  const entry = lookup.lookup(key, id)
   let image = ''
   if (key === 'idolCardSkin') image = gakumas.idolCardImage(id)
   else if (key === 'supportCard') image = gakumas.supportCardImage(id)
   else if (key === 'item') image = gakumas.itemImage(entry?.assetId || id)
-  return { name: key ? nameOf(key, id, entry?.name) : unnamed, image, quantity }
+  return { name: nameOf(key, id, entry?.name), image, quantity }
 }

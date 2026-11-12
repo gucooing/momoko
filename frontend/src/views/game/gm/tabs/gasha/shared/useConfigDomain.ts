@@ -1,13 +1,7 @@
-// 一个配置域（MGP /configs/{domain}）的编辑状态：服务端内容、草稿、自动保存、校验、发布与冲突处理。
+// 一份可编辑配置文档（卡池、公告，接口见 src/api/gakumas.ts）的编辑状态：服务端内容、草稿、自动保存、校验、发布与冲突处理。
 // 内容以 JSON 文本往返：JSON.parse 后直接改对象，再 JSON.stringify 同一个对象发回，未改动的字段和键顺序原样保留。
 import { computed, onBeforeUnmount, ref, shallowRef, toRaw, watch, type ComputedRef, type Ref, type ShallowRef } from 'vue'
-import {
-  discardGmConfigDraft,
-  getGmConfig,
-  publishGmConfig,
-  saveGmConfigDraft,
-  validateGmConfig,
-} from '@/api/gameGm'
+import type { EditableConfigApi } from '@/api/gakumas'
 import type { GetGmConfigResponse, GmConfigDomain } from '@/types/v1/game_gm'
 import { getRequestErrorMessage } from '@/utils/request'
 import { useGmContext } from '../../../context'
@@ -25,6 +19,8 @@ export interface ConfigValidation {
 export interface ConfigDomainState<T> {
   domain: string
   serverId: string
+  /** 这份文档的接口 */
+  api: EditableConfigApi
   info: ShallowRef<GmConfigDomain | undefined>
   /** 服务端当前内容 */
   published: ShallowRef<T | undefined>
@@ -63,7 +59,7 @@ const AUTOSAVE_MS = 1200
 const pretty = (v: unknown) => JSON.stringify(v, null, 2)
 const errorCode = (e: unknown) => (e && typeof e === 'object' && 'code' in e ? (e as { code?: number }).code : undefined)
 
-export function useConfigDomain<T>(domain: string): ConfigDomainState<T> {
+export function useConfigDomain<T>(domain: string, api: EditableConfigApi): ConfigDomainState<T> {
   const ctx = useGmContext()
   const serverId = ctx.serverId.value
 
@@ -117,8 +113,7 @@ export function useConfigDomain<T>(domain: string): ConfigDomainState<T> {
     loading.value = true
     error.value = ''
     try {
-      const { data } = await getGmConfig(serverId, domain)
-      apply(data, false)
+      apply(await api.get(serverId), false)
       validation.value = undefined
       recomputeChanges()
     } catch (e) {
@@ -137,17 +132,11 @@ export function useConfigDomain<T>(domain: string): ConfigDomainState<T> {
       if (!dirty.value) {
         // 改回了与服务端一致：草稿没有意义了
         if (info.value?.draft) {
-          await discardGmConfigDraft(serverId, domain)
+          await api.discardDraft(serverId)
           info.value = { ...info.value, draft: undefined }
         }
       } else {
-        const { data } = await saveGmConfigDraft({
-          serverId,
-          domain,
-          content: pretty(working.value),
-          baseRevision: baseRevision.value,
-          comment: '',
-        })
+        const data = await api.saveDraft(serverId, pretty(working.value), baseRevision.value)
         if (info.value) info.value = { ...info.value, draft: { ...data, content: '' } }
       }
       lastSaved = current
@@ -188,7 +177,7 @@ export function useConfigDomain<T>(domain: string): ConfigDomainState<T> {
     if (timer) clearTimeout(timer)
     timer = undefined
     if (inflight) await inflight
-    if (info.value?.draft) await discardGmConfigDraft(serverId, domain)
+    if (info.value?.draft) await api.discardDraft(serverId)
     if (info.value) info.value = { ...info.value, draft: undefined }
     working.value = JSON.parse(publishedText || 'null') as T
     baseRevision.value = info.value?.revision || ''
@@ -202,7 +191,7 @@ export function useConfigDomain<T>(domain: string): ConfigDomainState<T> {
     const snapshot = text.value
     validating.value = true
     try {
-      const { data } = await validateGmConfig(serverId, domain, pretty(working.value))
+      const data = await api.validate(serverId, pretty(working.value))
       validation.value = { valid: data.valid, error: data.error || '', text: snapshot, failed: false }
     } catch (e) {
       validation.value = { valid: false, error: getRequestErrorMessage(e), text: snapshot, failed: true }
@@ -214,8 +203,7 @@ export function useConfigDomain<T>(domain: string): ConfigDomainState<T> {
 
   // 服务端内容有变化（发布冲突）：更新服务端内容与 revision，保留正在编辑的内容
   const refreshServer = async () => {
-    const { data } = await getGmConfig(serverId, domain)
-    apply(data, true)
+    apply(await api.get(serverId), true)
     recomputeChanges()
   }
 
@@ -223,13 +211,7 @@ export function useConfigDomain<T>(domain: string): ConfigDomainState<T> {
     await flush()
     if (working.value === undefined) throw new Error('nothing to publish')
     try {
-      const { data } = await publishGmConfig({
-        serverId,
-        domain,
-        content: pretty(working.value),
-        baseRevision: baseRevision.value,
-        comment,
-      })
+      const data = await api.publish(serverId, pretty(working.value), baseRevision.value, comment)
       await load()
       return data.seq
     } catch (e) {
@@ -265,6 +247,7 @@ export function useConfigDomain<T>(domain: string): ConfigDomainState<T> {
   return {
     domain,
     serverId,
+    api,
     info,
     published,
     working,

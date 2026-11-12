@@ -1,21 +1,17 @@
-// GM 运营的页面上下文：当前服务器、manifest、实时 status 与目录查询。
+// GM 运营的页面上下文：当前服务器、学マス manifest 与实时 status、操作定义与目录查询。
 // GM 页面（/game/gm/:serverId）提供，各标签与玩家详情用 useGmContext() 取用。
-// 页面里可用的标签、指令、配置域、报表、玩法全部按服务端 manifest 判断，不按游戏写死。
 import { computed, inject, provide, reactive, ref, shallowRef, type ComputedRef, type InjectionKey, type Ref } from 'vue'
-import { getGmCatalog, getGmContext, mgpQuery } from '@/api/gameGm'
+import { getGmContext } from '@/api/gameGm'
+import * as gakumasApi from '@/api/gakumas'
 import { getCurrentLocale, i18n } from '@/locales'
 import { localizeEntries, lookupGameName, searchGameNames } from '@/games/names'
-import { fuzzyMatch } from '@/games/search'
+import { queryCatalog, type GakumasCatalogApi } from '@/games/gakumas/catalog'
+import { gakumasOperation, gakumasOperations } from './operations'
 import type { GameServerBrief } from '@/types/v1/game_common'
-import type { CatalogEntry, ListPage, Manifest, ManifestCommand, Status } from '@/games/mgp'
+import type { Manifest, Modes, Status } from '@/types/v1/gakumas/types'
+import type { CatalogEntry, CatalogQuery, ListPage, OperationDef } from '@/games/mgp'
 
-export interface GmCatalogQuery {
-  q?: string
-  characterId?: string
-  rarity?: string | number
-  limit?: number
-  cursor?: string
-}
+export type GmCatalogQuery = CatalogQuery
 
 export interface GmContext {
   serverId: Ref<string>
@@ -32,26 +28,26 @@ export interface GmContext {
   loading: Ref<boolean>
   /** 加载失败（服务器不存在、没有接入 MGP 等） */
   error: Ref<string>
-  /** 游戏 id（manifest.game.id，没有 manifest 时用服务器的适配器 id）；只用于判断与调接口，不显示 */
+  /** 游戏 id；只用于判断与调接口，不显示 */
   game: ComputedRef<string>
   /** 游戏名称（显示用） */
   gameName: ComputedRef<string>
+  /** 已配置的玩法 */
+  modes: ComputedRef<Modes | undefined>
   refresh: () => Promise<void>
-  command: (id: string) => ManifestCommand | undefined
-  hasCommand: (id: string) => boolean
-  hasConfig: (id: string) => boolean
-  hasReport: (id: string) => boolean
-  hasView: (id: string) => boolean
-  /** 目录查询（同样的查询 60 秒内复用结果；只按需请求，不一次性拉全量） */
+  /** 操作定义（菜单、表单与接口） */
+  operations: OperationDef[]
+  operation: (id: string) => OperationDef | undefined
+  /** 目录查询（同样的查询 60 秒内复用结果；只按需请求） */
   catalog: (kind: string, query?: GmCatalogQuery) => Promise<ListPage<CatalogEntry>>
   /**
    * 游戏里的东西（角色、卡、道具、卡池、玩法……）的名称（响应式），从不返回 ID：
-   * 前端名称表（当前语言的译名 → 游戏原文名）→ 服务端目录里的名称 → fallback。界面上只显示名称，ID 只用来调接口。
+   * 前端名称表（当前语言的译名 → 游戏原文名）→ 服务端目录里的名称 → fallback。
    */
   name: (kind: string, id: string | null | undefined, fallback?: string) => string
   /** 同 name，查不到名称时显示「未命名」。 */
   label: (kind: string, id: string | null | undefined) => string
-  /** 指令结果里一项变化（kind + resourceId）的名称：道具等显示条目名称，货币与等级等显示对应文案。 */
+  /** 操作结果里一项变化（kind + resourceId）的名称：道具等显示条目名称，货币与等级等显示对应文案。 */
   changeLabel: (kind: string, resourceId?: string) => string
 }
 
@@ -59,6 +55,25 @@ const GM_CONTEXT: InjectionKey<GmContext> = Symbol('gm-context')
 
 const CATALOG_TTL = 60_000
 const CATALOG_CACHE_MAX = 100
+
+const catalogApi: GakumasCatalogApi = {
+  currencies: gakumasApi.listCurrencies,
+  items: gakumasApi.listItemCatalog,
+  idolCardSkins: gakumasApi.listIdolCardSkins,
+  supportCards: gakumasApi.listSupportCardCatalog,
+  characters: gakumasApi.listCharacters,
+  costumes: gakumasApi.listCostumes,
+  costumeHeads: gakumasApi.listCostumeHeads,
+  music: gakumasApi.listMusic,
+  gashas: gakumasApi.listGashas,
+  produceGroups: gakumasApi.listProduceGroups,
+  produces: gakumasApi.listProduceCatalog,
+  seminars: gakumasApi.listSeminars,
+  towers: gakumasApi.listTowers,
+  produceCards: gakumasApi.listProduceCards,
+  produceItems: gakumasApi.listProduceItems,
+  memoryAbilities: gakumasApi.listMemoryAbilities,
+}
 
 /** 创建并提供 GM 上下文（GM 页面与玩家详情页调用）。 */
 export function provideGmContext(serverId: Ref<string>): GmContext {
@@ -73,9 +88,10 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
   const loading = ref(false)
   const error = ref('')
   const catalogCache = new Map<string, { at: number; value: Promise<ListPage<CatalogEntry>> }>()
-  // 服务端目录里的名称（前端名称表里没有的类型，如卡池、研修，才会用到；每类整表拉一次）
-  const serverNames = reactive(new Map<string, Record<string, string>>())
-  const serverNamesPending = new Set<string>()
+  // 服务端目录里的名称（前端名称表里没有的种类，如卡池、研修，才会用到）：按 ID 成批查询
+  const serverNames = reactive(new Map<string, string>())
+  const wanted = new Map<string, Set<string>>()
+  let flushing = false
   let loadedFor = ''
 
   const refresh = async () => {
@@ -84,7 +100,6 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
     loading.value = true
     if (loadedFor !== id) {
       catalogCache.clear()
-      fullCatalogs.clear()
       serverNames.clear()
       manifest.value = undefined
       status.value = undefined
@@ -94,14 +109,16 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
       if (serverId.value !== id) return
       loadedFor = id
       server.value = data.server
-      manifest.value = (data.manifest as Manifest | undefined) || undefined
-      status.value = (data.status as Status | undefined) || undefined
-      statusError.value = data.statusError || ''
       timezone.value = data.timezone || ''
       pendingApprovals.value = data.pendingApprovals || 0
       selfServiceEnabled.value = data.selfServiceEnabled || 0
       linkedAccounts.value = data.linkedAccounts || 0
       error.value = ''
+      const [m, st] = await Promise.allSettled([gakumasApi.getGakumasManifest(id), gakumasApi.getGakumasStatus(id)])
+      if (serverId.value !== id) return
+      manifest.value = m.status === 'fulfilled' ? m.value : undefined
+      status.value = st.status === 'fulfilled' ? st.value : undefined
+      statusError.value = st.status === 'rejected' ? (st.reason instanceof Error ? st.reason.message : String(st.reason)) : ''
     } catch (e) {
       if (serverId.value !== id) return
       error.value = e instanceof Error ? e.message : String(e)
@@ -110,62 +127,52 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
     }
   }
 
-  const command = (id: string) => manifest.value?.commands?.find((c) => c.id === id)
-  const has = <T extends { id: string }>(list: T[] | null | undefined, id: string) => !!list?.some((x) => x.id === id)
-
   const game = computed(() => manifest.value?.game?.id || server.value?.game || '')
   const gameName = computed(() => {
     const key = `game.adapters.${game.value}`
     return manifest.value?.game?.name || (game.value && i18n.global.te(key) ? i18n.global.t(key) : i18n.global.t('game.unnamed'))
   })
 
-  // 按译名搜索时用到的完整目录（每类最多 1000 条，各类实际只有几百条；只在按译名搜索时才拉取）
-  const fullCatalogs = new Map<string, Promise<CatalogEntry[]>>()
-  const fullCatalog = (kind: string) => {
-    const key = `${serverId.value}|${kind}`
-    let p = fullCatalogs.get(key)
-    if (!p) {
-      p = getGmCatalog<ListPage<CatalogEntry>>(serverId.value, kind, mgpQuery({ limit: 1000 })).then((page) => page.items || [])
-      p.catch(() => fullCatalogs.delete(key))
-      fullCatalogs.set(key, p)
-    }
-    return p
-  }
-
-  // 目录条目的名称换成当前语言的译名；关键字命中译名时（服务端只认原文与 ID）在本地筛选分页。
+  // 关键字命中当前语言的译名时，把命中的 ID 交给服务端筛选（服务端只认原文与 ID）。
   const fetchCatalog = async (kind: string, query: GmCatalogQuery, locale: string): Promise<ListPage<CatalogEntry>> => {
     const q = query.q?.trim() || ''
+    let req = { ...query }
     if (q) {
       const ids = await searchGameNames(game.value, locale, kind, q)
-      if (ids.size) {
-        // e.id === q：按 ID 查条目（lookup）时也走这里，ID 恰好模糊命中某些名称时不能把它自己漏掉
-        let list = (await fullCatalog(kind)).filter((e) => e.id === q || ids.has(e.id) || fuzzyMatch(q, [e.name]))
-        if (query.characterId) list = list.filter((e) => e.characterId === query.characterId)
-        if (query.rarity !== undefined && query.rarity !== '') list = list.filter((e) => String(e.rarity) === String(query.rarity))
-        const offset = Number(query.cursor) || 0
-        const limit = query.limit || 50
-        const items = await localizeEntries(game.value, locale, kind, list.slice(offset, offset + limit))
-        return { items, nextCursor: offset + limit < list.length ? String(offset + limit) : '', total: list.length }
-      }
+      if (ids.size) req = { ...query, q: '', ids: [...new Set([...ids, ...(query.ids || [])])] }
     }
-    const page = await getGmCatalog<ListPage<CatalogEntry>>(serverId.value, kind, mgpQuery({ ...query }))
-    return { ...page, items: await localizeEntries(game.value, locale, kind, page.items || []) }
+    const page = await queryCatalog(catalogApi, serverId.value, kind, req)
+    return { ...page, items: await localizeEntries(game.value, locale, kind, page.items) }
+  }
+
+  const flush = () => {
+    flushing = false
+    for (const [kind, ids] of wanted) {
+      wanted.delete(kind)
+      const list = [...ids]
+      queryCatalog(catalogApi, serverId.value, kind, { ids: list, limit: list.length })
+        .then((page) => {
+          for (const id of list) serverNames.set(`${serverId.value}|${kind}|${id}`, '')
+          for (const e of page.items) serverNames.set(`${serverId.value}|${kind}|${e.id}`, e.name)
+        })
+        .catch(() => {
+          for (const id of list) serverNames.set(`${serverId.value}|${kind}|${id}`, '')
+        })
+    }
   }
 
   const serverName = (kind: string, id: string): string => {
-    const key = `${serverId.value}|${kind}`
-    const table = serverNames.get(key)
-    if (table) return table[id] || ''
-    if (!serverNamesPending.has(key) && has(manifest.value?.catalogs, kind)) {
-      serverNamesPending.add(key)
-      fullCatalog(kind)
-        .then((items) => {
-          const names: Record<string, string> = {}
-          for (const e of items) if (e.name) names[e.id] = e.name
-          serverNames.set(key, names)
-        })
-        .catch(() => serverNames.set(key, {}))
-        .finally(() => serverNamesPending.delete(key))
+    const key = `${serverId.value}|${kind}|${id}`
+    if (serverNames.has(key)) return serverNames.get(key) || ''
+    let ids = wanted.get(kind)
+    if (!ids) {
+      ids = new Set()
+      wanted.set(kind, ids)
+    }
+    ids.add(id)
+    if (!flushing) {
+      flushing = true
+      queueMicrotask(flush)
     }
     return ''
   }
@@ -189,7 +196,7 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
 
   const catalog = (kind: string, query: GmCatalogQuery = {}) => {
     const locale = getCurrentLocale()
-    const key = `${serverId.value}|${locale}|${kind}|${mgpQuery({ ...query })}`
+    const key = `${serverId.value}|${locale}|${kind}|${JSON.stringify(query)}`
     const hit = catalogCache.get(key)
     if (hit && Date.now() - hit.at < CATALOG_TTL) return hit.value
     const value = fetchCatalog(kind, query, locale).catch((e) => {
@@ -218,12 +225,10 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
     error,
     game,
     gameName,
+    modes: computed(() => manifest.value?.modes),
     refresh,
-    command,
-    hasCommand: (id) => !!command(id),
-    hasConfig: (id) => has(manifest.value?.configs, id),
-    hasReport: (id) => has(manifest.value?.reports, id),
-    hasView: (id) => has(manifest.value?.views, id),
+    operations: gakumasOperations,
+    operation: gakumasOperation,
     catalog,
     name,
     label,

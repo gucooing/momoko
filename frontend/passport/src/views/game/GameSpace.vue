@@ -23,7 +23,8 @@
     <div class="gs__wrap">
       <!-- 电脑：横幅 -->
       <section v-if="!ui.isMobile && server" class="gs__hero">
-        <GameImage v-if="heroArt" :src="heroArt" eager class="gs__hero-img" />
+        <img v-if="meishiImage" :src="meishiImage" alt="" class="gs__hero-img gs__hero-img--meishi" />
+        <GameImage v-else-if="heroArt" :src="heroArt" eager class="gs__hero-img" />
         <div class="gs__hero-row">
           <div class="gs__hero-card">
             <GameMark :game="server.game" :name="server.gameName" :size="56" />
@@ -81,7 +82,7 @@
         v-else-if="data && !player"
         :icon="SignalSlashIcon"
         :title="t('game.playerError.title')"
-        :description="t('game.playerError.desc', { code: data.playerError || '—' })"
+        :description="t('game.playerError.desc', { code: playerError || data.playerError || '—' })"
       >
         <PButton :icon="ArrowPathIcon" :loading="loading" @click="load">{{ t('game.retry') }}</PButton>
       </PEmpty>
@@ -159,12 +160,17 @@ import PButton from '@passport/components/PButton.vue'
 import PDialog from '@passport/components/PDialog.vue'
 import PEmpty from '@passport/components/PEmpty.vue'
 import { getGame } from '@passport/api/passport'
+import * as gk from '@passport/api/gakumas'
 import { PassportError } from '@passport/api/request'
 import { useUiStore } from '@passport/stores/ui'
 import { errorText, fmtNum } from '@passport/utils/format'
 import type { PassportGameResponse } from '@/types/v1/passport'
 import type { PlayerDetail } from '@/games/gakumas/types'
-import { createCatalogs, idolCardArt, provideGameContext, type GameTab, type PlayerManifest } from './context'
+import type { GakumasMode } from '@/games/gakumas/modes'
+import { imageDataUrl } from '@/games/gakumas/display'
+import type { PlayerGame } from '@/types/v1/gakumas/passport'
+import type { PlayerDetail as MyPlayer } from '@/types/v1/gakumas/types'
+import { createCatalogs, idolCardArt, modeTitleOf, provideGameContext, type GameTab } from './context'
 import GameHomeTab from './GameHomeTab.vue'
 import GameCardsTab from './GameCardsTab.vue'
 import GameGiftsTab from './GameGiftsTab.vue'
@@ -178,6 +184,10 @@ const ui = useUiStore()
 
 const serverId = computed(() => String(route.params.serverId || ''))
 const data = ref<PassportGameResponse | null>(null)
+// 游戏模块的数据：玩法与我的玩家条目
+const playerGame = ref<PlayerGame | null>(null)
+const me = ref<MyPlayer | null>(null)
+const playerError = ref('')
 const loading = ref(false)
 const loadError = ref<unknown>(null)
 const switchOpen = ref(false)
@@ -186,8 +196,10 @@ const server = computed(() => data.value?.server)
 const link = computed(() => data.value?.link)
 const others = computed(() => data.value?.others ?? [])
 const game = computed(() => server.value?.game || '')
-const manifest = computed(() => (data.value?.manifest ?? null) as PlayerManifest | null)
-const player = computed(() => (data.value?.player ?? null) as PlayerDetail | null)
+const modes = computed(() => playerGame.value?.modes)
+const player = computed<PlayerDetail | null>(() =>
+  me.value?.player ? { ...me.value.player, overview: me.value.overview, logins: me.value.logins } : null,
+)
 const overview = computed(() => player.value?.overview ?? null)
 const timezone = computed(() => data.value?.timezone || '')
 const level = computed(() => overview.value?.level ?? player.value?.level ?? link.value?.level ?? 0)
@@ -196,12 +208,27 @@ const ready = computed(() => !!data.value && !!player.value && !loadError.value)
 
 const avatarCard = computed(() => player.value?.avatarIdolCardId || link.value?.avatarAsset || '')
 const heroArt = computed(() => idolCardArt(game.value, avatarCard.value, 'land'))
+
+// 头图背景是资料名片（游戏里保存名片时上传的图片）；默认名片没有图片，这时用头像偶像卡的卡面
+const meishiImage = ref('')
+const meishiPath = computed(() => overview.value?.meishiImagePath || '')
+watch(
+  () => [serverId.value, meishiPath.value] as const,
+  async ([sid, path]) => {
+    meishiImage.value = ''
+    if (!sid || !path) return
+    try {
+      const img = await gk.getMyMeishiImage(sid)
+      if (sid === serverId.value && path === meishiPath.value) meishiImage.value = imageDataUrl(img)
+    } catch {
+      // 名片图片读不到时保持卡面
+    }
+  },
+  { immediate: true },
+)
 const avatarArt = computed(() => idolCardArt(game.value, avatarCard.value, 'sq'))
 
-const hasView = (id: string) => !!manifest.value?.views?.some((v) => v.id === id)
-const hasMode = (id: string) => !!manifest.value?.modes?.some((m) => m.id === id)
-const viewTitle = (id: string) => manifest.value?.views?.find((v) => v.id === id)?.title || id
-const modeTitle = (id: string) => manifest.value?.modes?.find((m) => m.id === id)?.title || id
+const hasMode = (id: GakumasMode) => !!modes.value?.[id]
 
 interface TabItem {
   key: GameTab
@@ -213,22 +240,16 @@ interface TabItem {
 
 const tabs = computed<TabItem[]>(() => {
   const out: TabItem[] = [{ key: 'home', label: t('game.tabs.home'), short: t('game.tabs.home'), icon: PresentationChartLineIcon }]
-  if (hasView('idolCards') || hasView('supportCards')) {
-    const n = (overview.value?.idolCardCount ?? 0) + (overview.value?.supportCardCount ?? 0)
-    out.push({ key: 'cards', label: t('game.tabs.cards'), short: t('game.tabs.cards'), icon: RectangleStackIcon, count: n })
-  }
-  if (hasView('giftBox')) {
-    out.push({
-      key: 'gifts',
-      label: t('game.tabs.gifts'),
-      short: t('game.tabs.gifts'),
-      icon: GiftIcon,
-      count: overview.value?.gifts?.unreceived ?? 0,
-    })
-  }
-  if (['gashaHistory', 'pvp', 'produceHistory', 'seminar'].some(hasView)) {
-    out.push({ key: 'records', label: t('game.tabs.records'), short: t('game.tabs.records'), icon: ClockIcon })
-  }
+  const n = (overview.value?.idolCardCount ?? 0) + (overview.value?.supportCardCount ?? 0)
+  out.push({ key: 'cards', label: t('game.tabs.cards'), short: t('game.tabs.cards'), icon: RectangleStackIcon, count: n })
+  out.push({
+    key: 'gifts',
+    label: t('game.tabs.gifts'),
+    short: t('game.tabs.gifts'),
+    icon: GiftIcon,
+    count: overview.value?.gifts?.unreceived ?? 0,
+  })
+  out.push({ key: 'records', label: t('game.tabs.records'), short: t('game.tabs.records'), icon: ClockIcon })
   out.push({ key: 'self', label: t('game.tabs.self'), short: t('game.tabs.selfShort'), icon: SparklesIcon })
   return out
 })
@@ -258,10 +279,27 @@ async function load() {
   loading.value = true
   loadError.value = null
   try {
-    data.value = await getGame(serverId.value)
+    const id = serverId.value
+    const space = await getGame(id)
+    let game: PlayerGame | null = null
+    let mine: MyPlayer | null = null
+    let mineError = ''
+    if (space.server?.game === 'gakumas') {
+      const [g, p] = await Promise.allSettled([gk.getGame(id), gk.getMyPlayer(id)])
+      if (g.status === 'fulfilled') game = g.value
+      if (p.status === 'fulfilled') mine = p.value
+      else mineError = p.reason instanceof PassportError ? p.reason.code : String(p.reason)
+    }
+    if (serverId.value !== id) return
+    data.value = space
+    playerGame.value = game
+    me.value = mine
+    playerError.value = mineError
   } catch (e) {
     loadError.value = e
     data.value = null
+    playerGame.value = null
+    me.value = null
   } finally {
     loading.value = false
   }
@@ -269,20 +307,18 @@ async function load() {
 
 watch(serverId, () => void load(), { immediate: true })
 
-const catalogs = createCatalogs(serverId, game, manifest)
+const catalogs = createCatalogs(serverId, game)
 
 provideGameContext({
   serverId,
   game,
   data,
-  manifest,
+  modes,
   player,
   overview,
   timezone,
-  hasView,
   hasMode,
-  viewTitle,
-  modeTitle,
+  modeTitle: modeTitleOf,
   ...catalogs,
   setTab,
   reload: load,
@@ -320,6 +356,9 @@ provideGameContext({
   height: 100%;
   object-fit: cover;
   object-position: 50% 28%;
+}
+.gs__hero-img--meishi {
+  object-position: 50% 50%;
 }
 .gs__hero-row {
   position: relative;

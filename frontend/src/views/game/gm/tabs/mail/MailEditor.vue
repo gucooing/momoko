@@ -8,7 +8,7 @@
         <span class="me__title">{{ headTitle }}</span>
         <span class="me__meta">{{ headMeta }}</span>
       </span>
-      <GmRiskPill v-if="command" :risk="command.risk" />
+      <GmRiskPill v-if="giftOperation" :risk="giftOperation.risk" />
       <ActionMenu v-if="mail && menuItems.length" :items="menuItems" @select="onMenu" />
     </header>
 
@@ -101,7 +101,7 @@
         <span class="me__spacer" />
         <span class="me__hint">{{ t('gmOps.mail.rewardsHint') }}</span>
       </div>
-      <GmRewardPicker v-model="form.rewards" :max="rewardMax" :exclude="['jewelPaid']" :disabled="!editable" />
+      <GmRewardPicker v-model="form.rewards" :max="rewardMax" :exclude="[RESOURCE_JEWEL_PAID]" :disabled="!editable" />
     </section>
 
     <!-- 3 内容 + 预览 -->
@@ -177,7 +177,7 @@
 
     <footer class="me__foot">
       <span class="me__hint me__foot-hint">
-        {{ t('gmOps.mail.footHint', { command: 'mail.broadcast' }) }}
+        {{ t('gmOps.mail.footHint') }}
         <template v-if="savedAt"> · {{ t('gmOps.mail.autoSaved', { time: savedAt }) }}</template>
       </span>
       <template v-if="editable">
@@ -235,7 +235,8 @@ import {
   sendGameMail,
   updateGameMail,
 } from '@/api/gameOps'
-import { listGmPlayers } from '@/api/gameGm'
+import { listPlayers } from '@/api/gakumas'
+import { RESOURCE_JEWEL_PAID } from '@/games/gakumas/catalog'
 import type { GameReward, GameTarget } from '@/types/v1/game_common'
 import type { GameMail, SaveGameMailRequest } from '@/types/v1/game_ops'
 import { Dialog } from '@/utils/dialog'
@@ -270,8 +271,9 @@ const ctx = useGmContext()
 const { label, summary } = useRewardLabels()
 const zone = localZone()
 
-const command = computed(() => ctx.command('mail.broadcast'))
-const rewardMax = computed(() => command.value?.params?.properties?.rewards?.maxItems || 20)
+// 邮件奖励与礼物的风险、上限相同（领取时都进礼物箱）
+const giftOperation = computed(() => ctx.operation('gift.send'))
+const rewardMax = computed(() => giftOperation.value?.params?.properties?.rewards?.maxItems || 20)
 
 const blank = () => ({
   title: '',
@@ -371,8 +373,8 @@ const registered = computed(() => (typeof ctx.status.value?.registered === 'numb
 const bannedCount = ref(-1)
 const loadBanned = async () => {
   try {
-    const { data } = await listGmPlayers({ serverId: ctx.serverId.value, q: '', filter: 'banned', cursor: '', limit: 1 })
-    bannedCount.value = typeof data.summary?.banned === 'number' ? data.summary.banned : -1
+    const data = await listPlayers({ serverId: ctx.serverId.value, q: '', filter: 'banned', cursor: '', limit: 1 })
+    bannedCount.value = data.summary ? data.summary.banned : -1
   } catch {
     bannedCount.value = -1
   }

@@ -7,8 +7,7 @@ first shows an image of that group, and the browser fetches only the images it s
 File names carry a content hash, so they can be cached forever. Momoko never fetches
 images from the game server.
 
-Usage (Windows example):
-  pip install UnityPy Pillow
+Usage (Windows example; UnityPy and Pillow are the client tools' copies in <codec>/vendor/unitypy):
   python frontend/scripts/games/gakumas/extract-assets.py ^
       --resource C:/Users/gucooing/Desktop/gakumas/resource ^
       --codec    C:/Users/gucooing/Desktop/gakumas/client/tools
@@ -41,17 +40,25 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-# (group, regex on manifest object name, key template, (max_w, max_h or None))
+# (group, regex on manifest object name, key template, (max_w, max_h or None[, (aspect_w, aspect_h)]))
+# The client stores large illustrations as power-of-two textures (a 9:16 card illustration as 1024x2048 or
+# 2048x2048, a 16:9 support card illustration as 2048x1024); an aspect restores the original proportions:
+# the output is max_w wide (at most the texture width) and max_w * aspect_h / aspect_w high.
 RULES = [
     ("chara", r"^img_chr_(?P<c>[a-z]+)_00-thumb-circle$", "{c}", (128, 128)),
     ("chara", r"^img_chr_(?P<c>[a-z]+)_00-bustup$", "{c}-bust", (512, None)),
     ("cards/idol", r"^img_general_cidol-(?P<id>[a-z]+-\d-\d{3})_1-thumb-square$", "{id}-sq", (256, 256)),
     ("cards/idol", r"^img_general_cidol-(?P<id>[a-z]+-\d-\d{3})_1-thumb-landscape-large$", "{id}-land", (960, 540)),
+    ("cards/idol", r"^img_general_cidol-(?P<id>[a-z]+-\d-\d{3})_1-full$", "{id}-full", (960, None, (9, 16))),
     ("cards/support", r"^img_general_csprt-(?P<id>\d-\d{4})_thumb-square$", "{id}-sq", (256, 256)),
     ("cards/support", r"^img_general_csprt-(?P<id>\d-\d{4})_thumb-landscape$", "{id}-land", (960, 540)),
+    ("cards/support", r"^img_general_csprt-(?P<id>\d-\d{4})_full$", "{id}-full", (1280, None, (16, 9))),
     ("gasha", r"^img_gasha_banner_(?P<id>gasha[-_].+)-select-m$", "{id}", (920, 320)),
     ("gasha", r"^img_general_gasha_bg_(?P<id>.+)$", "bg-{id}", (1280, None)),
     ("items", r"^img_general_item_(?P<id>.+)$", "{id}", (96, 96)),
+    ("skillcards", r"^img_general_skillcard_(?P<id>.+)$", "{id}", (128, 128)),
+    ("pitems", r"^img_general_pitem_(?P<id>.+)$", "{id}", (128, 128)),
+    ("memories", r"^img_general_memory_(?P<id>.+)$", "{id}", (640, None)),
     ("events", r"^img_general_event_(?P<t>[a-z-]+)_(?P<id>.+)-(?P<p>banner|logo)$", "{id}-{p}", (1024, None)),
     ("events", r"^img_notice_gasha_(?P<id>gasha-.+)-banner-01-large$", "notice-{id}", (1024, None)),
     ("ui", r"^img_login_title_(?P<id>.+)$", "login-{id}", (1024, None)),
@@ -96,6 +103,7 @@ def main() -> int:
     a = ap.parse_args()
 
     sys.path.insert(0, str(a.codec))
+    sys.path.insert(0, str(a.codec / "vendor" / "unitypy"))
     from resource_codec import unmask  # noqa: E402  (gakumas client tool)
     import UnityPy  # noqa: E402
     from PIL import Image  # noqa: E402
@@ -114,7 +122,9 @@ def main() -> int:
     jobs = []
     for obj in manifest["objects"]:
         name, md5 = obj["name"], obj["md5"]
-        for group, rx, key_tpl, (max_w, max_h) in compiled:
+        for group, rx, key_tpl, size in compiled:
+            max_w, max_h, *rest = size
+            aspect = rest[0] if rest else None
             m = rx.match(name)
             if not m:
                 continue
@@ -129,10 +139,10 @@ def main() -> int:
                 stats["missing"] += 1
                 print("missing", name)
                 break
-            jobs.append((key, name, md5, blob, dst, max_w, max_h))
+            jobs.append((key, name, md5, blob, dst, max_w, max_h, aspect))
             break
 
-    def export(key: str, name: str, md5: str, blob: Path, dst: Path, max_w: int, max_h: int | None) -> dict:
+    def export(key: str, name: str, md5: str, blob: Path, dst: Path, max_w: int, max_h: int | None, aspect: tuple[int, int] | None) -> dict:
         raw = blob.read_bytes()
         data = raw if raw.startswith(b"UnityFS\0") else unmask(raw, name)
         env = UnityPy.load(data)
@@ -141,7 +151,11 @@ def main() -> int:
             raise ValueError("no Texture2D")
         tex = max(textures, key=lambda t: t.m_Width * t.m_Height)
         img = tex.image.convert("RGBA")
-        w, h = fit(img.width, img.height, max_w, max_h)
+        if aspect:
+            w = min(max_w, img.width)
+            h = round(w * aspect[1] / aspect[0])
+        else:
+            w, h = fit(img.width, img.height, max_w, max_h)
         if (w, h) != img.size:
             img = img.resize((w, h), Image.LANCZOS)
         buf = io.BytesIO()

@@ -73,7 +73,6 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmConfigRevision, listGmConfigRevisions } from '@/api/gameGm'
 import type { GmConfigRevision } from '@/types/v1/game_gm'
 import { Dialog } from '@/utils/dialog'
 import { getRequestErrorMessage, isRequestErrorHandled } from '@/utils/request'
@@ -115,7 +114,7 @@ const close = () => emit('update:modelValue', false)
 const load = async (p: number) => {
   loading.value = true
   try {
-    const { data } = await listGmConfigRevisions(props.state.serverId, props.state.domain, p, PAGE_SIZE)
+    const data = await props.state.api.revisions(props.state.serverId, p, PAGE_SIZE)
     items.value = p === 1 ? data.items || [] : [...items.value, ...(data.items || [])]
     total.value = data.total || 0
     page.value = p
@@ -144,7 +143,7 @@ const timeOf = (r: GmConfigRevision) => {
 const contentOf = async (r: GmConfigRevision) => {
   const hit = contents.get(r.id)
   if (hit !== undefined) return hit
-  const { data } = await getGmConfigRevision(props.state.serverId, props.state.domain, r.id)
+  const data = await props.state.api.revision(props.state.serverId, r.id)
   contents.set(r.id, data.content)
   return data.content
 }

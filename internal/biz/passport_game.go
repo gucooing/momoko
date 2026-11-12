@@ -3,19 +3,22 @@ package biz
 import (
 	"context"
 	"encoding/json"
-	"net/url"
+	"errors"
 	"sort"
-	"strconv"
 	"strings"
+	"sync"
 	"time"
 
-	"google.golang.org/protobuf/types/known/structpb"
+	"github.com/google/uuid"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	entgmexecution "momoko/internal/data/ent/gen/gmexecution"
+	entschema "momoko/internal/data/ent/schema"
 	"momoko/pkg/mgp"
-	"momoko/pkg/passporttoken"
 )
 
 // gameLink 当前用户在这台服务器上的绑定（游戏空间的一切数据都只针对它）。
@@ -30,20 +33,6 @@ func (uc *PassportUsecase) gameLink(ctx context.Context, userID, serverID string
 	return l, nil
 }
 
-// playerManifest manifest 中玩家端用到的部分（不含指令）。
-func playerManifest(m *mgp.Manifest) json.RawMessage {
-	return jsonRaw(map[string]any{
-		"protocol":      m.Protocol,
-		"game":          m.Game,
-		"capabilities":  m.Capabilities,
-		"views":         m.Views,
-		"modes":         m.Modes,
-		"reports":       m.Reports,
-		"catalogs":      m.Catalogs,
-		"resourceTypes": m.ResourceType,
-	})
-}
-
 // Game 游戏空间上下文；touch 时记录 last_seen_at（进入游戏空间），否则只是首页卡片的摘要。
 func (uc *PassportUsecase) Game(ctx context.Context, userID, serverID string, touch bool) (*v1.PassportGameResponse, error) {
 	l, err := uc.gameLink(ctx, userID, serverID)
@@ -54,25 +43,21 @@ func (uc *PassportUsecase) Game(ctx context.Context, userID, serverID string, to
 	if err != nil {
 		return nil, err
 	}
-	out := &v1.PassportGameResponse{Server: uc.Servers().Brief(ctx, s), Timezone: uc.Servers().Location(s).String()}
+	out := &v1.PassportGameResponse{
+		Server:   uc.Servers().Brief(ctx, s),
+		Timezone: uc.Servers().Location(s).String(),
+	}
 	if touch {
 		now := time.Now()
 		l.LastSeenAt = &now
 		if err := uc.repo.TouchLink(ctx, l.ID, now); err != nil {
 			uc.log.Warnf("touch link: %v", err)
 		}
-		if m, err := uc.Servers().Manifest(ctx, s); err == nil {
-			out.Manifest = JSONValue(playerManifest(m))
-		}
 	}
-	client, err := uc.Servers().Client(s)
-	if err != nil {
+	if client, err := uc.Servers().Client(s); err != nil {
 		out.PlayerError = "PASSPORT_GAME_UNAVAILABLE"
-	} else if raw, err := client.Get(ctx, playerPath(l.PlayerID), nil); err != nil {
+	} else if err := uc.refreshSnapshot(ctx, s, client, l); err != nil {
 		out.PlayerError = passportFirst(mgp.CodeOf(err), "PASSPORT_GAME_UNAVAILABLE")
-	} else {
-		out.Player = JSONValue(raw)
-		uc.refreshSnapshot(ctx, l, raw)
 	}
 	ss := uc.selfServiceCounts(ctx)
 	servers := map[string]*gen.GameServer{s.ID: s}
@@ -91,137 +76,45 @@ func (uc *PassportUsecase) Game(ctx context.Context, userID, serverID string, to
 	return out, nil
 }
 
-// clientFor 绑定所在服务器的 MGP 客户端与 manifest。
-func (uc *PassportUsecase) clientFor(ctx context.Context, serverID string) (*gen.GameServer, *mgp.Client, *mgp.Manifest, error) {
-	s, client, err := uc.Servers().ClientOf(ctx, serverID)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	m, err := uc.Servers().Manifest(ctx, s)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	return s, client, m, nil
-}
-
-func hasEntry(list []mgp.ManifestEntry, id string) bool {
-	for _, e := range list {
-		if e.ID == id {
-			return true
-		}
-	}
-	return false
-}
-
-// clampQuery 解析前端透传的查询串，并限制 limit。
-func clampQuery(raw string, def, maxLimit int, allowed map[string]bool) url.Values {
-	in := MGPQuery(raw)
-	out := url.Values{}
-	for k, v := range in {
-		if len(v) == 0 || (allowed != nil && !allowed[k]) {
-			continue
-		}
-		out.Set(k, v[0])
-	}
-	n, err := strconv.Atoi(out.Get("limit"))
-	if err != nil || n <= 0 {
-		n = def
-	}
-	if n > maxLimit {
-		n = maxLimit
-	}
-	out.Set("limit", strconv.Itoa(n))
-	return out
-}
-
-// View 自己的分页数据（pid 强制为绑定的游戏账号）。
-func (uc *PassportUsecase) View(ctx context.Context, userID, serverID, view, query string) (json.RawMessage, error) {
+// LinkedPlayer 当前用户在服务器上绑定的游戏账号与用户的显示名（玩家自己操作时作为执行者）。
+func (uc *PassportUsecase) LinkedPlayer(ctx context.Context, userID, serverID string) (string, string, error) {
 	l, err := uc.gameLink(ctx, userID, serverID)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
-	_, client, m, err := uc.clientFor(ctx, serverID)
+	u, err := uc.user(ctx, userID)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
-	if !hasEntry(m.Views, view) {
-		return nil, ErrPassportViewNotFound
-	}
-	q := clampQuery(query, 20, 200, nil)
-	raw, err := client.Get(ctx, playerPath(l.PlayerID)+"/views/"+url.PathEscape(view), q)
-	if err != nil {
-		return nil, GameMGPError(err)
-	}
-	return raw, nil
+	return l.PlayerID, displayName(u), nil
 }
 
-var catalogQueryKeys = map[string]bool{"q": true, "characterId": true, "rarity": true, "cursor": true, "limit": true}
-
-// Catalog 选择器数据（名称与素材 ID，每次最多 50 条）。
-func (uc *PassportUsecase) Catalog(ctx context.Context, userID, serverID, kind, query string) (json.RawMessage, error) {
-	if _, err := uc.gameLink(ctx, userID, serverID); err != nil {
-		return nil, err
-	}
-	_, client, m, err := uc.clientFor(ctx, serverID)
+// LinkedPID 当前用户在服务器上绑定的游戏账号。
+func (uc *PassportUsecase) LinkedPID(ctx context.Context, userID, serverID string) (string, error) {
+	l, err := uc.gameLink(ctx, userID, serverID)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	if !hasEntry(m.Catalogs, kind) {
-		return nil, ErrPassportViewNotFound
-	}
-	raw, err := client.Get(ctx, "/catalogs/"+url.PathEscape(kind), clampQuery(query, 20, 50, catalogQueryKeys))
-	if err != nil {
-		return nil, GameMGPError(err)
-	}
-	return raw, nil
+	return l.PlayerID, nil
 }
 
-// Ongoing 正在进行的卡池（来自 gasha 报表，只保留 id、名称、横幅与起止时间，不含抽卡统计）。
-func (uc *PassportUsecase) Ongoing(ctx context.Context, userID, serverID string) (json.RawMessage, error) {
-	if _, err := uc.gameLink(ctx, userID, serverID); err != nil {
-		return nil, err
-	}
-	_, client, m, err := uc.clientFor(ctx, serverID)
-	if err != nil {
-		return nil, err
-	}
-	type banner struct {
-		GashaID       string `json:"gashaId"`
-		Name          string `json:"name"`
-		Type          int    `json:"type"`
-		BannerAssetID string `json:"bannerAssetId"`
-		StartTime     int64  `json:"startTime"`
-		EndTime       int64  `json:"endTime"`
-		Open          bool   `json:"open"`
-	}
-	out := []banner{}
-	if !hasEntry(m.Reports, "gasha") {
-		return jsonRaw(out), nil
-	}
-	var list []banner
-	if err := client.GetInto(ctx, "/reports/gasha", nil, &list); err != nil {
-		return nil, GameMGPError(err)
-	}
-	now := time.Now().UnixMilli()
-	for _, b := range list {
-		if !b.Open || (b.EndTime != 0 && b.EndTime < now) || (b.StartTime != 0 && b.StartTime > now) {
-			continue
-		}
-		out = append(out, b)
-	}
-	sort.SliceStable(out, func(i, j int) bool {
-		if (out[i].EndTime == 0) != (out[j].EndTime == 0) {
-			return out[j].EndTime == 0
-		}
-		return out[i].EndTime < out[j].EndTime
-	})
-	return jsonRaw(out), nil
+func riskNeedsTotp(risk string) bool { return risk == RiskHigh || risk == RiskDanger }
+
+// PassportOperation 通行证上玩家可以执行的一个操作（由游戏的通行证用例给出）：标题、分组、风险与目标写进 GM 记录，
+// 管理员在「GM 记录」里看到并审批；高风险操作在开启了两步验证时要验证码。
+type PassportOperation struct {
+	ID     string
+	Title  string
+	Group  string
+	Risk   string
+	Target string
 }
 
-func riskNeedsTotp(risk string) bool { return risk == mgp.RiskHigh || risk == mgp.RiskDanger }
+// PassportCall 对玩家绑定的游戏账号调用游戏服务端，返回内容。
+type PassportCall func(ctx context.Context, pid string, opt mgp.OperationOptions) (proto.Message, error)
 
-// SelfService 已开放的自助指令与我的使用情况。
-func (uc *PassportUsecase) SelfService(ctx context.Context, userID, serverID string) (*v1.ListPassportSelfServiceResponse, error) {
+// SelfService 已开放的自助操作（ops 中管理员开放了的）与我的使用情况。
+func (uc *PassportUsecase) SelfService(ctx context.Context, userID, serverID string, ops []PassportOperation) (*v1.ListPassportSelfServiceResponse, error) {
 	if _, err := uc.gameLink(ctx, userID, serverID); err != nil {
 		return nil, err
 	}
@@ -229,113 +122,237 @@ func (uc *PassportUsecase) SelfService(ctx context.Context, userID, serverID str
 	if err != nil {
 		return nil, err
 	}
-	totpOn := u.TotpSecret != "" && u.TotpEnabledAt != nil
-	list, err := uc.gm.SelfServiceFor(ctx, serverID, userID)
+	s, err := uc.servers.Get(ctx, serverID)
 	if err != nil {
 		return nil, err
 	}
+	rows, err := uc.records.ListSelfService(ctx, serverID)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	policies := map[string]*gen.GmSelfService{}
+	for _, r := range rows {
+		policies[r.Command] = r
+	}
+	totpOn := u.TotpSecret != "" && u.TotpEnabledAt != nil
+	now := time.Now()
+	dayStart := uc.servers.DayStart(s, now)
 	out := &v1.ListPassportSelfServiceResponse{}
-	for _, it := range list {
-		p := it.Policy
-		item := &v1.PassportSelfService{
-			Command:       p.Command,
-			Title:         p.Title,
-			Group:         p.Group,
-			Risk:          p.Risk,
-			Target:        p.Target,
-			Params:        p.Params,
-			DailyLimit:    p.DailyLimit,
-			CooldownSec:   p.CooldownSec,
-			NeedApproval:  p.NeedApproval,
-			PlayerNote:    p.PlayerNote,
-			UsedToday:     int32(it.UsedToday),
-			Remaining:     int32(it.Remaining),
-			NextAvailable: tsOrNil(it.NextAvailable),
-			HasPending:    it.HasPending,
-			NeedTotp:      totpOn && riskNeedsTotp(p.Risk),
+	for _, op := range ops {
+		p, ok := policies[op.ID]
+		if !ok || !p.Enabled {
+			continue
 		}
-		if it.Last != nil {
-			item.LastUsedAt = timestamppb.New(it.Last.CreateTime)
-			item.LastStatus = string(it.Last.Status)
+		item := &v1.PassportSelfService{
+			Command:      op.ID,
+			Title:        op.Title,
+			Group:        op.Group,
+			Risk:         op.Risk,
+			Target:       op.Target,
+			DailyLimit:   int32(p.DailyLimit),
+			CooldownSec:  int32(p.CooldownSec),
+			NeedApproval: p.NeedApproval,
+			PlayerNote:   p.PlayerNote,
+			Remaining:    -1,
+			NeedTotp:     totpOn && riskNeedsTotp(op.Risk),
+		}
+		if n, err := uc.records.CountUses(ctx, serverID, userID, op.ID, dayStart); err == nil {
+			item.UsedToday = int32(n)
+			if p.DailyLimit > 0 {
+				item.Remaining = int32(max(p.DailyLimit-n, 0))
+			}
+		}
+		if last, err := uc.records.LastUse(ctx, serverID, userID, op.ID); err == nil && last != nil {
+			item.LastUsedAt = timestamppb.New(last.CreateTime)
+			item.LastStatus = string(last.Status)
+			item.HasPending = last.Status == "pending"
+			if p.CooldownSec > 0 {
+				if next := last.CreateTime.Add(time.Duration(p.CooldownSec) * time.Second); next.After(now) {
+					item.NextAvailable = timestamppb.New(next)
+				}
+			}
 		}
 		out.Items = append(out.Items, item)
 	}
 	return out, nil
 }
 
-// changesOf 读出指令结果里某个玩家的变化与 detail。
-func changesOf(result string, pid string) ([]*v1.PassportChange, *structpb.Value) {
-	if result == "" {
-		return nil, nil
-	}
-	var r mgp.CommandResult
-	if json.Unmarshal([]byte(result), &r) != nil {
-		return nil, nil
-	}
-	for _, t := range r.Results {
-		if t.PID != pid && len(r.Results) > 1 {
-			continue
-		}
-		var out []*v1.PassportChange
-		for _, c := range t.Changes {
-			out = append(out, &v1.PassportChange{Kind: c.Kind, ResourceId: c.ResourceID, Before: JSONValue(c.Before), After: JSONValue(c.After)})
-		}
-		return out, JSONValue(t.Detail)
-	}
-	return nil, nil
+// passportActor 执行操作的玩家（写进 GM 记录）。
+type passportActor struct {
+	UserID   string
+	Name     string
+	IP       string
+	Platform string
 }
 
-// ExecuteSelfService 执行一条自助指令（目标强制为我绑定的游戏账号）。
-func (uc *PassportUsecase) ExecuteSelfService(ctx context.Context, c *passporttoken.Claims, req *v1.ExecutePassportSelfServiceRequest) (*v1.ExecutePassportSelfServiceResponse, error) {
-	l, err := uc.gameLink(ctx, c.UserID, req.ServerId)
+// selfServiceActor 当前用户与他在服务器上的绑定；高风险操作在开启了两步验证时校验验证码。
+func (uc *PassportUsecase) selfServiceActor(ctx context.Context, userID, serverID, risk, totpCode string) (passportActor, *gen.GameAccountLink, error) {
+	l, err := uc.gameLink(ctx, userID, serverID)
 	if err != nil {
-		return nil, err
+		return passportActor{}, nil, err
 	}
-	u, err := uc.user(ctx, c.UserID)
+	u, err := uc.user(ctx, userID)
 	if err != nil {
-		return nil, err
+		return passportActor{}, nil, err
 	}
-	_, _, m, err := uc.clientFor(ctx, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	if cmd, ok := m.Command(req.Command); ok && riskNeedsTotp(cmd.Risk) && u.TotpSecret != "" && u.TotpEnabledAt != nil {
-		if strings.TrimSpace(req.TotpCode) == "" {
-			return nil, ErrPassportTotpRequired
+	if riskNeedsTotp(risk) && u.TotpSecret != "" && u.TotpEnabledAt != nil {
+		if strings.TrimSpace(totpCode) == "" {
+			return passportActor{}, nil, ErrPassportTotpRequired
 		}
-		if err := uc.checkSecondFactor(ctx, u, req.TotpCode, ""); err != nil {
-			return nil, err
+		if err := uc.checkSecondFactor(ctx, u, totpCode, ""); err != nil {
+			return passportActor{}, nil, err
 		}
-	}
-	params := ValueJSON(req.Params)
-	if string(params) == "null" {
-		params = json.RawMessage("{}")
-	}
-	reason := strings.TrimSpace(req.Reason)
-	if len([]rune(reason)) > 200 {
-		reason = string([]rune(reason)[:200])
 	}
 	client := PassportClientOf(ctx)
-	actor := GmActor{
+	return passportActor{
 		UserID:   u.ID,
 		Name:     displayName(u),
-		Kind:     "player",
-		Channel:  "passport",
 		IP:       client.IP,
 		Platform: Platform(client.UserAgent),
+	}, l, nil
+}
+
+// selfServiceReason 玩家写给管理员的申请理由（最多 200 字）。
+func selfServiceReason(reason string) string {
+	reason = strings.TrimSpace(reason)
+	if r := []rune(reason); len(r) > 200 {
+		reason = string(r[:200])
 	}
-	e, _, err := uc.gm.ExecuteSelfService(ctx, actor, req.ServerId, req.Command, l.PlayerID, params, reason, nil)
+	return reason
+}
+
+// RunSelfService 玩家执行开放给自己的操作（目标为自己绑定的游戏账号）：检查开放状态、每天次数（服务器时区的自然日）、
+// 间隔与待审批；需要审批时只写一条待审批的 GM 记录（返回的内容为空），否则写记录并调用 call。
+// params 为操作参数（游戏服务端接口的 body，记入 GM 记录，管理员批准后按它执行）。
+func (uc *PassportUsecase) RunSelfService(ctx context.Context, userID, serverID string, op PassportOperation, params any, reason, totpCode string, call PassportCall) (*gen.GmExecution, proto.Message, error) {
+	actor, l, err := uc.selfServiceActor(ctx, userID, serverID, op.Risk, totpCode)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	out := &v1.ExecutePassportSelfServiceResponse{
-		ExecutionId:  e.ID,
-		Status:       string(e.Status),
-		ErrorCode:    e.ErrorCode,
-		ErrorMessage: e.ErrorMessage,
+	s, err := uc.servers.Get(ctx, serverID)
+	if err != nil {
+		return nil, nil, err
 	}
-	out.Changes, out.Detail = changesOf(e.Result, l.PlayerID)
-	return out, nil
+	raw, err := json.Marshal(params)
+	if err != nil {
+		return nil, nil, ErrPassportInvalidArgument
+	}
+	lock, _ := uc.selfServiceLocks.LoadOrStore(s.ID+"\x00"+actor.UserID+"\x00"+op.ID, &sync.Mutex{})
+	mu := lock.(*sync.Mutex)
+	mu.Lock()
+	defer mu.Unlock()
+
+	policy, err := uc.records.GetSelfService(ctx, s.ID, op.ID)
+	if err != nil || policy == nil || !policy.Enabled {
+		return nil, nil, ErrPassportSelfServiceClosed
+	}
+	now := time.Now()
+	if policy.DailyLimit > 0 {
+		n, err := uc.records.CountUses(ctx, s.ID, actor.UserID, op.ID, uc.servers.DayStart(s, now))
+		if err != nil {
+			return nil, nil, ErrSystem(err)
+		}
+		if n >= policy.DailyLimit {
+			return nil, nil, ErrPassportSelfServiceLimit
+		}
+	}
+	if last, err := uc.records.LastUse(ctx, s.ID, actor.UserID, op.ID); err == nil && last != nil {
+		if last.Status == "pending" {
+			return nil, nil, ErrPassportSelfServicePending
+		}
+		if policy.CooldownSec > 0 && now.Before(last.CreateTime.Add(time.Duration(policy.CooldownSec)*time.Second)) {
+			return nil, nil, ErrPassportSelfServiceWait
+		}
+	}
+	e := newPlayerRecord(s, op, actor, l.PlayerID, l.Nickname, raw, selfServiceReason(reason), nil, "self-service")
+	if policy.NeedApproval {
+		e.Status = "pending"
+		if e, err = uc.records.CreateExecution(ctx, e); err != nil {
+			return nil, nil, ErrSystem(err)
+		}
+		return e, nil, nil
+	}
+	e.Status = "running"
+	if e, err = uc.records.CreateExecution(ctx, e); err != nil {
+		return nil, nil, ErrSystem(err)
+	}
+	e, result := uc.runPlayerRecord(ctx, e, l.Nickname, call)
+	return e, result, nil
+}
+
+// newPlayerRecord 玩家执行的一条 GM 记录（目标为 pid；记录格式与管理端执行的相同，管理员在 GM 记录里查看与审批）。
+func newPlayerRecord(s *gen.GameServer, op PassportOperation, actor passportActor, pid, name string, params json.RawMessage, reason string, summary map[string]string, source string) *gen.GmExecution {
+	if len(params) == 0 {
+		params = json.RawMessage("{}")
+	}
+	return &gen.GmExecution{
+		ID:           uuid.NewString(),
+		ServerID:     s.ID,
+		Command:      op.ID,
+		CommandTitle: op.Title,
+		CommandGroup: op.Group,
+		Risk:         op.Risk,
+		TargetKind:   op.Target,
+		ActorID:      actor.UserID,
+		ActorName:    actor.Name,
+		ActorKind:    entgmexecution.ActorKindPlayer,
+		Channel:      entgmexecution.ChannelPassport,
+		ClientIP:     actor.IP,
+		Platform:     actor.Platform,
+		Targets:      []entschema.GmTarget{{PID: pid, Name: name}},
+		TargetPids:   []string{pid},
+		Params:       string(params),
+		Summary:      summary,
+		Reason:       reason,
+		RequestID:    "momoko-" + uuid.NewString(),
+		Source:       source,
+	}
+}
+
+// runPlayerRecord 调用游戏服务端并把结果写回记录。幂等键为记录的 requestId 加上 pid，网络重试不会重复执行。
+func (uc *PassportUsecase) runPlayerRecord(ctx context.Context, e *gen.GmExecution, name string, call PassportCall) (*gen.GmExecution, proto.Message) {
+	pid := e.TargetPids[0]
+	start := time.Now()
+	o := entschema.GmOutcome{PID: pid, Name: name, Status: "success"}
+	result, err := call(ctx, pid, mgp.OperationOptions{Operator: e.ActorName, IdempotencyKey: e.RequestID + ":" + pid})
+	if err == nil {
+		o.Data, err = protojson.Marshal(result)
+	}
+	if err != nil {
+		result, o.Status, o.Data = nil, "failed", nil
+		var me *mgp.Error
+		if errors.As(err, &me) {
+			o.Code, o.Message = me.Code, me.Message
+		} else {
+			o.Code, o.Message = "INTERNAL", err.Error()
+		}
+	}
+	now := time.Now()
+	e.DurationMs, e.FinishedAt = int(now.Sub(start).Milliseconds()), &now
+	if o.Status == "success" {
+		e.Status, e.SuccessCount, e.FailedCount = "success", 1, 0
+	} else {
+		e.Status, e.SuccessCount, e.FailedCount = "failed", 0, 1
+		e.ErrorCode, e.ErrorMessage = o.Code, o.Message
+	}
+	raw, _ := json.Marshal([]entschema.GmOutcome{o})
+	e.Result = string(raw)
+	saved, err := uc.records.SaveExecution(context.WithoutCancel(ctx), e)
+	if err != nil {
+		uc.log.Errorf("save gm execution %s: %v", e.ID, err)
+		saved = e
+	}
+	return saved, result
+}
+
+// outcomeData 记录中某个玩家的结果（JSON 文本）。
+func outcomeData(e *gen.GmExecution, pid string) string {
+	for _, o := range entschema.ParseGmOutcomes(e.Result) {
+		if o.PID == pid {
+			return string(o.Data)
+		}
+	}
+	return ""
 }
 
 func (uc *PassportUsecase) recordOf(e *gen.GmExecution) *v1.PassportGameRecord {
@@ -343,7 +360,6 @@ func (uc *PassportUsecase) recordOf(e *gen.GmExecution) *v1.PassportGameRecord {
 	if len(e.TargetPids) > 0 {
 		pid = e.TargetPids[0]
 	}
-	changes, _ := changesOf(e.Result, pid)
 	return &v1.PassportGameRecord{
 		Id:           e.ID,
 		Kind:         "self_service",
@@ -355,7 +371,7 @@ func (uc *PassportUsecase) recordOf(e *gen.GmExecution) *v1.PassportGameRecord {
 		ReviewedAt:   tsOrNil(e.ReviewedAt),
 		CreateTime:   timestamppb.New(e.CreateTime),
 		FinishedAt:   tsOrNil(e.FinishedAt),
-		Changes:      changes,
+		Data:         outcomeData(e, pid),
 		ErrorCode:    e.ErrorCode,
 	}
 }
@@ -371,7 +387,7 @@ func pageOf(page, size int32, def int) (int, int) {
 	return p, s
 }
 
-// Requests 我的申请（需要审批的自助指令）。
+// Requests 我的申请（需要审批的自助操作）。
 func (uc *PassportUsecase) Requests(ctx context.Context, userID string, req *v1.ListPassportGameRecordsRequest) (*v1.ListPassportGameRecordsResponse, error) {
 	if _, err := uc.gameLink(ctx, userID, req.ServerId); err != nil {
 		return nil, err
@@ -421,42 +437,6 @@ func (uc *PassportUsecase) Records(ctx context.Context, userID string, req *v1.L
 	from := (page - 1) * size
 	for i := from; i < len(items) && i < from+size; i++ {
 		out.Items = append(out.Items, items[i])
-	}
-	return out, nil
-}
-
-// Redeem 兑换码（奖励进礼物箱）。
-func (uc *PassportUsecase) Redeem(ctx context.Context, userID, serverID, code string) (*v1.RedeemPassportGiftCodeResponse, error) {
-	l, err := uc.gameLink(ctx, userID, serverID)
-	if err != nil {
-		return nil, err
-	}
-	u, err := uc.user(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	code = strings.TrimSpace(code)
-	if code == "" || len(code) > 64 {
-		return nil, ErrPassportInvalidArgument
-	}
-	client := PassportClientOf(ctx)
-	res, err := uc.ops.RedeemGiftCode(ctx, GiftRedeemInput{
-		ServerID:       serverID,
-		PassportUserID: u.ID,
-		PassportName:   displayName(u),
-		PID:            l.PlayerID,
-		Nickname:       l.Nickname,
-		Code:           code,
-		Channel:        "passport",
-		Platform:       Platform(client.UserAgent),
-		IP:             client.IP,
-	})
-	if err != nil {
-		return nil, err
-	}
-	out := &v1.RedeemPassportGiftCodeResponse{Result: res.Result, ExecutionId: res.ExecutionID}
-	for _, r := range res.Rewards {
-		out.Rewards = append(out.Rewards, &v1.GameReward{ResourceType: r.ResourceType, ResourceId: r.ResourceID, Quantity: r.Quantity})
 	}
 	return out, nil
 }

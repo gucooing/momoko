@@ -232,6 +232,13 @@ func (r *gameServerRepo) GetInstance(ctx context.Context, id string) (*gen.Insta
 	return r.data.db.Instance.Query().Where(entinstance.IDEQ(id)).WithUser().WithType().Only(ctx)
 }
 
+func (r *gameServerRepo) ListHostedInstances(ctx context.Context, dir string) ([]*gen.Instance, error) {
+	return r.data.db.Instance.Query().
+		Where(entinstance.PathEQ(dir), entinstance.TagsEQ("game")).
+		WithUser().
+		All(ctx)
+}
+
 func (r *gameServerRepo) CreateBackup(ctx context.Context, b *gen.GameServerBackup) (*gen.GameServerBackup, error) {
 	if b.ID == "" {
 		b.ID = uuid.NewString()

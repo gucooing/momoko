@@ -1,5 +1,5 @@
 <!-- 控制台：托管进程的伪终端（复用应用实例的控制台 WebSocket 协议与 TerminalConsole 组件），
-     多个进程（游戏服务端 / 资源服务器）时可切换；底部是一行命令输入。 -->
+     多个进程（游戏服务端 / 资源服务器）时可切换；底部是一行命令输入。「清空」同时清掉服务端保存的输出记录，重新连接时不再回放。 -->
 <template>
   <div class="ct">
     <div v-if="roles.length > 1" class="ct__roles" role="tablist" :aria-label="t('gameServers.console.roles')">
@@ -57,13 +57,14 @@ import { useI18n } from 'vue-i18n'
 import TerminalConsole from '@/components/terminal/TerminalConsole.vue'
 import type { TerminalAction } from '@/components/terminal/TerminalShell.vue'
 import type { ConsoleSocketStatus } from '@/stores/instance/types'
-import { gameServerConsolePath } from '@/api/gameServer'
-import { normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
+import { clearGameServerConsole, gameServerConsolePath } from '@/api/gameServer'
+import { getRequestErrorMessage, normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
 import type { GameAdapter, GameServerInfo } from '@/types/v1/game_server'
 import { stateVariant } from '../../shared'
 
 const props = defineProps<{ server: GameServerInfo; adapter?: GameAdapter | null }>()
 const { t } = useI18n()
+const fb = useFeedback()
 
 const term = ref<InstanceType<typeof TerminalConsole>>()
 const roles = computed(() => props.server.processes || [])
@@ -76,11 +77,12 @@ let retry: ReturnType<typeof setTimeout> | undefined
 let closing = false
 
 const proc = computed(() => roles.value.find((r) => r.role === role.value))
-const subtitle = computed(() => [proc.value?.command, proc.value?.pid ? `PID ${proc.value.pid}` : ''].filter(Boolean).join(' · '))
+const subtitle = computed(() => proc.value?.command || '')
 const statusLabel = computed(() =>
   t(status.value === 'connected' ? 'gameServers.console.connected' : status.value === 'connecting' ? 'gameServers.console.connecting' : 'gameServers.console.disconnected'),
 )
 const actions = computed<TerminalAction[]>(() => [
+  { key: 'clear', icon: 'HOutline:BackspaceIcon', label: t('gameServers.console.clear'), disabled: clearing.value },
   { key: 'reconnect', icon: 'i-lucide-plug-zap', label: t('gameServers.console.reconnect'), hidden: status.value === 'connected' || status.value === 'connecting' },
 ])
 
@@ -149,8 +151,22 @@ const submit = () => {
   sendRaw(`${cmd}\r`)
   command.value = ''
 }
+const clearing = ref(false)
+const clear = async () => {
+  clearing.value = true
+  try {
+    await clearGameServerConsole(props.server.brief?.id || '', role.value)
+    term.value?.clear()
+    fb.success(t('gameServers.console.cleared'))
+  } catch (e) {
+    fb.error(getRequestErrorMessage(e, t('gameServers.common.failed')))
+  } finally {
+    clearing.value = false
+  }
+}
 const onAction = (key: string) => {
   if (key === 'reconnect') connect()
+  if (key === 'clear') void clear()
 }
 const switchRole = (r: string) => {
   if (r === role.value) return

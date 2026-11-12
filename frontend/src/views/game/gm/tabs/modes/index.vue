@@ -1,5 +1,5 @@
-<!-- GM 运营 · 玩法：每个服务端实际配置了的玩法一个标签（manifest modes，标题由服务端给出）。
-     已知玩法有专门界面（竞赛排名 + 阵容、全服培育列表、研修通关、塔排名），其他玩法读同名报表用通用表格显示。 -->
+<!-- GM 运营 · 玩法：服务端实际配置了的玩法（manifest modes）各一个标签：
+     竞赛排名 + 阵容、全服培育列表、研修通关、塔排名。 -->
 <template>
   <div class="gmo game-skin">
     <PageHeader :title="t('gm.tabs.modes')" :back="false" :theme-toggle="false" />
@@ -17,12 +17,12 @@
           :aria-selected="m.id === current?.id"
           @click="active = m.id"
         >
-          {{ m.title || t('game.unnamed') }}
+          {{ m.title }}
         </button>
       </nav>
 
       <KeepAlive>
-        <component :is="viewOf(current.id)" v-if="current" :key="current.id" :mode="current" />
+        <component :is="VIEWS[current.id]" v-if="current" :key="current.id" />
       </KeepAlive>
     </template>
   </div>
@@ -31,6 +31,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { enabledModes, type GakumasMode } from '@/games/gakumas/modes'
 import { useGmContext } from '../../context'
 
 defineOptions({ name: 'GmModesTab' })
@@ -38,17 +39,13 @@ defineOptions({ name: 'GmModesTab' })
 const { t } = useI18n()
 const ctx = useGmContext()
 
-// 已知玩法 → 专门界面；其他玩法用同名报表的通用显示
-const VIEWS: Record<string, Component> = {
+const VIEWS: Record<GakumasMode, Component> = {
   pvp: defineAsyncComponent(() => import('./PvpMode.vue')),
   produce: defineAsyncComponent(() => import('./ProduceMode.vue')),
   seminar: defineAsyncComponent(() => import('./SeminarMode.vue')),
   tower: defineAsyncComponent(() => import('./TowerMode.vue')),
 }
-const generic = defineAsyncComponent(() => import('./GenericMode.vue'))
-const viewOf = (id: string) => VIEWS[id] || generic
-
-const modes = computed(() => ctx.manifest.value?.modes || [])
+const modes = computed(() => enabledModes(ctx.modes.value))
 const active = ref('')
 const current = computed(() => modes.value.find((m) => m.id === active.value) || modes.value[0])
 </script>

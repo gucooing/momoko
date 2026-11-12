@@ -74,7 +74,7 @@
           <div v-if="detail.errorCode"><dt>{{ t('gmData.gmLog.error') }}</dt><dd>{{ detail.errorMessage || detail.errorCode }}</dd></div>
           <div v-if="detail.durationMs"><dt>{{ t('gmData.gmLog.duration') }}</dt><dd class="m-num">{{ detail.durationMs }} ms</dd></div>
         </dl>
-        <GmCommandResult v-if="detailResult" :result="detailResult" />
+        <GmOperationResult v-if="detailResult" :outcome="detailResult" />
       </div>
       <div v-if="detailError" class="pv__error">{{ detailError }}</div>
     </FormDialog>
@@ -87,16 +87,14 @@ import { useI18n } from 'vue-i18n'
 import { getGmExecution, listGmExecutions } from '@/api/gameGm'
 import { getRequestErrorMessage } from '@/utils/request'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
-import type { CommandResult, ManifestView } from '@/games/mgp'
+import { executionOutcome } from '../../operations'
 import type { GmExecution } from '@/types/v1/game_gm'
 import { useGmContext } from '../../context'
-import GmCommandResult from '../../components/GmCommandResult.vue'
+import GmOperationResult from '../../components/GmOperationResult.vue'
 import GmRiskPill from '../../components/GmRiskPill.vue'
 import { usePlayerPage } from '../context'
 import { executionVariant, gmExecutionsQuery } from '../shared/executions'
 import { useGmFormat } from '../shared/format'
-
-defineProps<{ view?: ManifestView }>()
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -149,8 +147,9 @@ const detail = shallowRef<GmExecution>()
 const detailLoading = ref(false)
 const detailError = ref('')
 const detailResult = computed(() => {
-  const r = detail.value?.result as CommandResult | undefined
-  return r && (r.results?.length || r.summary !== undefined) ? r : undefined
+  const e = detail.value
+  if (!e?.results.length) return undefined
+  return executionOutcome(e)
 })
 
 const open = async (e: GmExecution) => {

@@ -1,33 +1,33 @@
-<!-- 研修：各研修组的试题数与已通关数（MGP seminar 视图），组名来自 MGP 研修目录；
-     有 seminar.clear / seminar.reset 指令时可以「全部通关」「重置进度」（走通用指令对话框）。 -->
+<!-- 研修：各研修组的试题数与已通关数，组名来自研修目录；
+     可以「全部通关」「重置进度」（seminar.clear / seminar.reset，走操作对话框）。 -->
 <template>
   <div class="pv">
     <div class="pv__line">
-      <span v-if="list.items.value.length">
+      <span v-if="groups.length">
         {{ t('gmData.seminar.summary', { cleared: cleared, total: totalExams }) }}
       </span>
       <span class="pv__spacer" />
-      <UButton v-for="cmd in commands" :key="cmd.id" color="neutral" variant="outline" size="sm" @click="page.run(cmd.id)">
-        {{ cmd.title }}
+      <UButton v-for="op in operations" :key="op.id" color="neutral" variant="outline" size="sm" @click="page.run(op.id)">
+        {{ op.title }}
       </UButton>
     </div>
 
-    <div v-if="list.error.value" class="pv__error">{{ list.error.value }}</div>
-    <div v-if="list.loading.value && !list.items.value.length" class="pv__hint">{{ t('gmData.common.loading') }}</div>
-    <EmptyState v-else-if="!list.items.value.length" icon="HOutline:BuildingLibraryIcon" :title="t('gmData.seminar.empty')" />
+    <div v-if="error" class="pv__error">{{ error }}</div>
+    <div v-if="loading && !groups.length" class="pv__hint">{{ t('gmData.common.loading') }}</div>
+    <EmptyState v-else-if="!groups.length" icon="HOutline:BuildingLibraryIcon" :title="t('gmData.seminar.empty')" />
     <div v-else class="sem">
-      <article v-for="(g, i) in list.items.value" :key="g.GroupID" class="sem__group">
+      <article v-for="(g, i) in groups" :key="g.groupId" class="sem__group">
         <span class="sem__order m-num">{{ i + 1 }}</span>
         <span class="sem__text">
-          <span class="pv__strong pv__ellipsis">{{ lookup.name('seminar', g.GroupID) }}</span>
+          <span class="pv__strong pv__ellipsis">{{ lookup.name('seminar', g.groupId) }}</span>
         </span>
-        <span class="sem__bar" role="progressbar" :aria-valuenow="pct(g.Cleared, g.Total)" aria-valuemin="0" aria-valuemax="100">
-          <span :style="{ width: `${pct(g.Cleared, g.Total)}%` }" />
+        <span class="sem__bar" role="progressbar" :aria-valuenow="pct(g.cleared, g.total)" aria-valuemin="0" aria-valuemax="100">
+          <span :style="{ width: `${pct(g.cleared, g.total)}%` }" />
         </span>
-        <span class="sem__count m-num">{{ g.Cleared }} / {{ g.Total }}</span>
+        <span class="sem__count m-num">{{ g.cleared }} / {{ g.total }}</span>
         <StatusPill
-          :variant="g.Total > 0 && g.Cleared >= g.Total ? 'success' : g.Cleared ? 'primary' : 'neutral'"
-          :label="g.Total > 0 && g.Cleared >= g.Total ? t('gmData.seminar.full') : g.Cleared ? t('gmData.seminar.partial') : t('gmData.seminar.none')"
+          :variant="g.total > 0 && g.cleared >= g.total ? 'success' : g.cleared ? 'primary' : 'neutral'"
+          :label="g.total > 0 && g.cleared >= g.total ? t('gmData.seminar.full') : g.cleared ? t('gmData.seminar.partial') : t('gmData.seminar.none')"
         />
       </article>
     </div>
@@ -35,18 +35,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmPlayerView, mgpQuery } from '@/api/gameGm'
-import type { ListPage, ManifestCommand, ManifestView } from '@/games/mgp'
+import { getPlayerSeminar } from '@/api/gakumas'
+import type { OperationDef } from '@/games/mgp'
 import type { SeminarProgress } from '@/games/gakumas/types'
+import { getRequestErrorMessage } from '@/utils/request'
 import { useGmContext } from '../../context'
 import { usePlayerPage } from '../context'
 import { useGmFormat } from '../shared/format'
 import { useCatalogLookup } from '../shared/lookup'
-import { usePagedList } from '../shared/paging'
-
-const props = defineProps<{ view?: ManifestView }>()
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -54,17 +52,33 @@ const page = usePlayerPage()
 const lookup = useCatalogLookup()
 const { pct } = useGmFormat()
 
-// 研修组只有几组：一次读完（视图上限 500）
-const list = usePagedList<SeminarProgress>(
-  (q) => getGmPlayerView<ListPage<SeminarProgress>>(ctx.serverId.value, page.pid.value, props.view?.id || 'seminar', mgpQuery({ ...q })),
-  { pageSize: 200, append: true },
-)
-watch(page.version, () => void list.reload(), { immediate: true })
+const groups = shallowRef<SeminarProgress[]>([])
+const loading = ref(false)
+const error = ref('')
+let seq = 0
 
-const totalExams = computed(() => list.items.value.reduce((s, g) => s + g.Total, 0))
-const cleared = computed(() => list.items.value.reduce((s, g) => s + g.Cleared, 0))
+const load = async () => {
+  const id = ++seq
+  loading.value = true
+  error.value = ''
+  try {
+    const data = await getPlayerSeminar(ctx.serverId.value, page.pid.value)
+    if (id === seq) groups.value = data.groups
+  } catch (e) {
+    if (id === seq) {
+      error.value = getRequestErrorMessage(e)
+      groups.value = []
+    }
+  } finally {
+    if (id === seq) loading.value = false
+  }
+}
+watch(page.version, () => void load(), { immediate: true })
 
-const commands = computed(() => ['seminar.clear', 'seminar.reset'].map((id) => ctx.command(id)).filter((c): c is ManifestCommand => !!c))
+const totalExams = computed(() => groups.value.reduce((s, g) => s + g.total, 0))
+const cleared = computed(() => groups.value.reduce((s, g) => s + g.cleared, 0))
+
+const operations = computed(() => ['seminar.clear', 'seminar.reset'].map((id) => ctx.operation(id)).filter((c): c is OperationDef => !!c))
 </script>
 
 <style scoped lang="scss">

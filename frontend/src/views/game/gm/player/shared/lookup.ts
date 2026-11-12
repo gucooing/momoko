@@ -1,17 +1,18 @@
 // 按 ID 查名称与素材 ID（道具、卡池、角色、培育……）：名称先查前端名称表（当前语言的译名 → 游戏原文名），
-// 没有时再查 MGP 目录；界面上只显示名称，从不显示 ID。
-// 只查页面上真正显示出来的条目：每个 ID 一次 q=ID 的小查询（并发最多 4 个），结果在页面实例里缓存；
+// 没有时再查目录接口；界面上只显示名称，从不显示 ID。
+// 只查页面上真正显示出来的条目：同一类目录的 ID 攒成一批（ids 筛选，并发最多 4 个），结果在页面实例里缓存；
 // 不一次性拉整个目录。偶像卡皮肤可以按角色分组查（一个角色一次，见 group）。
 import { reactive } from 'vue'
 import type { CatalogEntry } from '@/games/mgp'
+import { resourceRef, type GakumasCatalogKind } from '@/games/gakumas/catalog'
 import { gameNameVariants, lookupGameName } from '@/games/names'
 import { getCurrentLocale, i18n } from '@/locales'
 import { useGmContext, type GmContext } from '../../context'
 import { catalogImage } from './game'
 
 export interface RewardRef {
-  /** 目录 id（货币统一在 currency 目录） */
-  kind: string
+  /** 目录种类（货币统一在 currency 目录） */
+  kind: GakumasCatalogKind
   /** 目录条目 id（货币为 jewelFree 等） */
   id: string
 }
@@ -29,20 +30,20 @@ export interface CatalogLookup {
   group: (kind: string, characterId: string) => CatalogEntry[] | null | undefined
   /** 奖励资源（resourceType + resourceId）对应的目录条目 */
   rewardRef: (resourceType: number, resourceId: string) => RewardRef | undefined
-  /** manifest 里有没有这个目录 */
-  hasCatalog: (kind: string) => boolean
 }
 
 const PARALLEL = 4
-const CURRENCY = 'currency'
+const BATCH = 100
 const lookups = new WeakMap<GmContext, CatalogLookup>()
 
 function createLookup(ctx: GmContext): CatalogLookup {
   const found = reactive(new Map<string, CatalogEntry | null>())
   const groups = reactive(new Map<string, CatalogEntry[] | null>())
   const queued = new Set<string>()
+  const pending = new Map<string, Set<string>>()
   const waiting: Array<() => Promise<void>> = []
   let running = 0
+  let scheduled = false
 
   const pump = () => {
     while (running < PARALLEL && waiting.length) {
@@ -56,25 +57,45 @@ function createLookup(ctx: GmContext): CatalogLookup {
     }
   }
 
-  const hasCatalog = (kind: string) => !!ctx.manifest.value?.catalogs?.some((c) => c.id === kind)
+  // 同一轮里要查的 ID 按目录种类攒成批，每批一次 ids 查询
+  const flush = () => {
+    scheduled = false
+    const serverId = ctx.serverId.value
+    for (const [kind, set] of pending) {
+      pending.delete(kind)
+      const all = [...set]
+      for (let i = 0; i < all.length; i += BATCH) {
+        const ids = all.slice(i, i + BATCH)
+        waiting.push(async () => {
+          try {
+            const page = await ctx.catalog(kind, { ids, limit: ids.length })
+            const byId = new Map(page.items.map((e) => [e.id, e]))
+            for (const id of ids) found.set(`${serverId}|${kind}|${id}`, byId.get(id) || null)
+          } catch {
+            for (const id of ids) found.set(`${serverId}|${kind}|${id}`, null)
+          }
+        })
+      }
+    }
+    pump()
+  }
 
   const entry = (kind: string, id: string): CatalogEntry | null | undefined => {
     if (!id) return null
     const key = `${ctx.serverId.value}|${kind}|${id}`
     if (found.has(key)) return found.get(key)
-    if (!ctx.manifest.value) return undefined
-    if (!hasCatalog(kind)) return null
     if (!queued.has(key)) {
       queued.add(key)
-      waiting.push(async () => {
-        try {
-          const page = await ctx.catalog(kind, { q: id, limit: 50 })
-          found.set(key, page.items?.find((e) => e.id === id) || null)
-        } catch {
-          found.set(key, null)
-        }
-      })
-      pump()
+      let set = pending.get(kind)
+      if (!set) {
+        set = new Set()
+        pending.set(kind, set)
+      }
+      set.add(id)
+      if (!scheduled) {
+        scheduled = true
+        queueMicrotask(flush)
+      }
     }
     return undefined
   }
@@ -83,14 +104,12 @@ function createLookup(ctx: GmContext): CatalogLookup {
     if (!characterId) return null
     const key = `${ctx.serverId.value}|${kind}|@${characterId}`
     if (groups.has(key)) return groups.get(key)
-    if (!ctx.manifest.value) return undefined
-    if (!hasCatalog(kind)) return null
     if (!queued.has(key)) {
       queued.add(key)
       waiting.push(async () => {
         try {
           const page = await ctx.catalog(kind, { characterId, limit: 500 })
-          groups.set(key, page.items || [])
+          groups.set(key, page.items)
         } catch {
           groups.set(key, null)
         }
@@ -124,15 +143,7 @@ function createLookup(ctx: GmContext): CatalogLookup {
     return catalogImage(ctx.game.value, kind, e || { id })
   }
 
-  const rewardRef = (resourceType: number, resourceId: string): RewardRef | undefined => {
-    const types = ctx.manifest.value?.resourceTypes || {}
-    const key = Object.keys(types).find((k) => types[k] === resourceType)
-    if (!key) return undefined
-    if (key !== CURRENCY && hasCatalog(key) && resourceId) return { kind: key, id: resourceId }
-    return { kind: CURRENCY, id: key }
-  }
-
-  return { entry, name, names, image, group, rewardRef, hasCatalog }
+  return { entry, name, names, image, group, rewardRef: resourceRef }
 }
 
 /** 某个 GM 上下文的目录查询（提供上下文的页面自己用这个：同一组件里 inject 读不到自己 provide 的值）。 */

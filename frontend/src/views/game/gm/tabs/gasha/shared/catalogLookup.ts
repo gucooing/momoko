@@ -1,4 +1,4 @@
-// 按 ID 查 MGP 目录条目（名称、稀有度、角色），每个 ID 只请求一次（搜索 + 小 limit，不拉全量）。
+// 按 ID 查目录条目（名称、稀有度、角色），每个 ID 只请求一次（ids 筛选，不拉全量）。
 // lookup() 在渲染里调用即可：还没查到时返回 undefined 并开始查询，查到后用到它的组件自动更新。
 import { reactive } from 'vue'
 import type { CatalogEntry } from '@/games/mgp'
@@ -25,7 +25,7 @@ export function useCatalogLookup(ctx: GmContext): CatalogLookup {
     if (!id || pending.has(key) || failed.has(key) || entries.has(key)) return
     pending.add(key)
     ctx
-      .catalog(kind, { q: id, limit: 20 })
+      .catalog(kind, { ids: [id], limit: 1 })
       .then((page) => {
         entries.set(key, (page.items || []).find((e) => e.id === id) ?? null)
       })

@@ -16,7 +16,7 @@
         <UButton color="neutral" variant="outline" icon="i-lucide-download" :loading="exporting" @click="exportCsv">
           {{ exporting ? t('gmData.players.exporting', { n: exported }) : t('gmData.players.export') }}
         </UButton>
-        <UButton v-if="ctx.hasCommand('gift.send')" color="primary" icon="i-lucide-gift" @click="openGift(selectedPlayers)">
+        <UButton v-if="ctx.operation('gift.send')" color="primary" icon="i-lucide-gift" @click="openGift(selectedPlayers)">
           {{ t('gmData.players.sendGift') }}
         </UButton>
       </template>
@@ -82,7 +82,7 @@
       <template #cell-op="{ row }">
         <div class="gpl__acts">
           <AppIconButton
-            v-if="ctx.hasCommand('gift.send')"
+            v-if="ctx.operation('gift.send')"
             icon="HOutline:GiftIcon"
             :label="t('gmData.players.giftTo', { name: p(row).name })"
             :box="36"
@@ -90,22 +90,17 @@
             @click="openGift([p(row)])"
           />
           <AppIconButton
-            v-if="ctx.hasCommand('session.kick')"
+            v-if="ctx.operation('player.kick')"
             icon="HOutline:ArrowLeftStartOnRectangleIcon"
             :label="t('gmData.players.kick', { name: p(row).name })"
             :box="36"
             :size="18"
             :class="{ 'gpl__kick': p(row).online }"
             :disabled="!p(row).online"
-            @click="run('session.kick', [p(row)])"
+            @click="run('player.kick', [p(row)])"
           />
           <AppIconButton icon="HOutline:EyeIcon" :label="t('gmData.players.view', { name: p(row).name })" :box="36" :size="18" @click="view(p(row))" />
-          <ActionMenu
-            v-if="rowMenu.length"
-            :items="rowMenu"
-            :label="t('gmData.players.more', { name: p(row).name })"
-            @select="(key) => run(key, [p(row)])"
-          />
+          <ActionMenu :items="rowMenu" :label="t('gmData.players.more', { name: p(row).name })" @select="() => openOperations(p(row).pid)" />
         </div>
       </template>
     </DataTable>
@@ -149,16 +144,16 @@
           </dl>
           <footer class="gpl__card-foot">
             <span class="gpl__dim gpl__card-dev">{{ deviceOf(pl) }}</span>
-            <AppIconButton v-if="ctx.hasCommand('gift.send')" icon="HOutline:GiftIcon" :label="t('gmData.players.giftTo', { name: pl.name })" :box="44" @click="openGift([pl])" />
+            <AppIconButton v-if="ctx.operation('gift.send')" icon="HOutline:GiftIcon" :label="t('gmData.players.giftTo', { name: pl.name })" :box="44" @click="openGift([pl])" />
             <AppIconButton
-              v-if="ctx.hasCommand('session.kick') && pl.online"
+              v-if="ctx.operation('player.kick') && pl.online"
               icon="HOutline:ArrowLeftStartOnRectangleIcon"
               :label="t('gmData.players.kick', { name: pl.name })"
               :box="44"
               class="gpl__kick"
-              @click="run('session.kick', [pl])"
+              @click="run('player.kick', [pl])"
             />
-            <ActionMenu v-if="rowMenu.length" :items="rowMenu" :label="t('gmData.players.more', { name: pl.name })" @select="(key) => run(key, [pl])" />
+            <ActionMenu :items="rowMenu" :label="t('gmData.players.more', { name: pl.name })" @select="() => openOperations(pl.pid)" />
           </footer>
         </article>
       </div>
@@ -173,8 +168,12 @@
       <div v-if="selected.length" class="gpl__batch" role="toolbar" :aria-label="t('gmData.players.batchLabel')">
         <span class="gpl__batch-count">{{ t('gmData.players.selected', { n: selected.length }) }}</span>
         <button v-for="cmd in batchCommands" :key="cmd.id" type="button" class="gpl__batch-btn" :class="{ 'is-danger': cmd.risk === 'high' || cmd.risk === 'danger' }" @click="runBatch(cmd)">
-          <component :is="menuStore.iconComponents[COMMAND_ICONS[cmd.id] || '']" v-if="COMMAND_ICONS[cmd.id]" />
+          <component :is="menuStore.iconComponents[OPERATION_ICONS[cmd.id] || '']" v-if="OPERATION_ICONS[cmd.id]" />
           {{ cmd.title }}
+        </button>
+        <button type="button" class="gpl__batch-btn" @click="openOperationsFor(selectedPlayers)">
+          <component :is="menuStore.iconComponents['HOutline:CommandLineIcon']" />
+          {{ t('gmData.player.gmOperations') }}
         </button>
         <button type="button" class="gpl__batch-btn is-icon" :aria-label="t('gmData.players.clearSelection')" @click="selected = []">
           <component :is="menuStore.iconComponents['HOutline:XMarkIcon']" />
@@ -182,8 +181,8 @@
       </div>
     </Transition>
 
-    <GiftDrawer v-model="giftOpen" :players="giftPlayers" @done="load" />
-    <GmCommandDialog v-model="dialog.open" :command="dialog.command" :targets="dialog.targets" @done="load" />
+    <GiftDialog v-model="giftOpen" :players="giftPlayers" @done="load" />
+    <GmOperationDialog v-model="dialog.open" :operation="dialog.operation" :targets="dialog.targets" @done="load" />
   </div>
 </template>
 
@@ -192,20 +191,22 @@ import { computed, reactive, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
-import { listGmPlayers } from '@/api/gameGm'
+import { listPlayers } from '@/api/gakumas'
 import { getRequestErrorMessage } from '@/utils/request'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 import type { ToolbarChip } from '@/components/ui/ListToolbar.vue'
-import type { ManifestCommand } from '@/games/mgp'
-import type { PlayerListItem } from '@/games/gakumas/types'
+import type { OperationDef } from '@/games/mgp'
+import type { Player } from '@/games/gakumas/types'
 import type { GmPlayerLink } from '@/types/v1/game_gm'
 import { useGmContext } from '../../context'
-import GmCommandDialog from '../../components/GmCommandDialog.vue'
+import GmOperationDialog from '../../components/GmOperationDialog.vue'
 import type { GmTargetRef } from '../../components/types'
-import GiftDrawer, { type GiftTarget } from '../../player/GiftDrawer.vue'
+import { PLAYER_LIST_BATCH } from '../../operations'
+import type { GiftTarget } from '../../components/GmGiftSend.vue'
+import GiftDialog from '../../player/GiftDialog.vue'
 import PlayerAvatar from '../../player/shared/PlayerAvatar.vue'
-import { COMMAND_ICONS } from '../../player/shared/executions'
+import { OPERATION_ICONS } from '../../player/shared/executions'
 import { catalogImage, isPermanentBan } from '../../player/shared/game'
 import { useGmFormat } from '../../player/shared/format'
 
@@ -223,16 +224,16 @@ const filter = ref<Filter>('all')
 const keyword = ref('')
 const page = ref(1)
 const pageSize = ref(20)
-const players = shallowRef<PlayerListItem[]>([])
+const players = shallowRef<Player[]>([])
 const total = ref(0)
-const summary = ref<Record<string, number>>({})
+const summary = ref<{ all?: number; online?: number; activeToday?: number; banned?: number; unlinked?: number }>({})
 const linkedCount = ref(ctx.linkedAccounts.value)
 const links = shallowRef(new Map<string, GmPlayerLink>())
 const loading = ref(false)
 const error = ref('')
 const selected = ref<string[]>([])
 // 选中过的玩家（翻页后仍要知道名字与头像）
-const known = new Map<string, PlayerListItem>()
+const known = new Map<string, Player>()
 let seq = 0
 
 const load = async () => {
@@ -240,7 +241,7 @@ const load = async () => {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await listGmPlayers({
+    const data = await listPlayers({
       serverId: ctx.serverId.value,
       q: keyword.value.trim(),
       filter: filter.value,
@@ -248,13 +249,12 @@ const load = async () => {
       limit: pageSize.value,
     })
     if (id !== seq) return
-    const items = (data.items as PlayerListItem[] | undefined) || []
-    players.value = items
-    for (const it of items) known.set(it.pid, it)
-    total.value = data.total || 0
-    summary.value = data.summary || {}
-    linkedCount.value = data.linkedCount || 0
-    links.value = new Map((data.links || []).map((l) => [l.pid, l]))
+    players.value = data.items
+    for (const it of data.items) known.set(it.pid, it)
+    total.value = data.total
+    summary.value = { ...data.summary, unlinked: data.unlinked }
+    linkedCount.value = data.linkedCount
+    links.value = new Map(data.links.map((l) => [l.pid, l]))
   } catch (e) {
     if (id === seq) error.value = getRequestErrorMessage(e)
   } finally {
@@ -288,7 +288,7 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'op', title: t('gmData.players.colOp'), width: 170, align: 'right' },
 ])
 const rows = computed(() => players.value as unknown as Record<string, unknown>[])
-const p = (row: Record<string, unknown>) => row as unknown as PlayerListItem
+const p = (row: Record<string, unknown>) => row as unknown as Player
 
 const jewelImage = computed(() => catalogImage(ctx.game.value, 'currency', { id: 'jewelFree' }))
 
@@ -298,12 +298,12 @@ const linkName = (pid: string) => {
 }
 const passportLink = (pid: string) => ({ path: '/game/passport', query: { user: links.value.get(pid)?.passportUserId } })
 
-const deviceOf = (pl: PlayerListItem) => [pl.platform, pl.device].filter(Boolean).join(' · ') || '—'
-const lastText = (pl: PlayerListItem) => {
+const deviceOf = (pl: Player) => [pl.platform, pl.device].filter(Boolean).join(' · ') || '—'
+const lastText = (pl: Player) => {
   if (pl.online && pl.sessionLoginAt) return t('gmData.players.onlineFor', { d: duration(Date.now() - pl.sessionLoginAt) })
   return pl.lastLoginAt ? when(pl.lastLoginAt) : t('gmData.players.neverLogin')
 }
-const statusOf = (pl: PlayerListItem): { variant: 'success' | 'error' | 'neutral'; label: string } => {
+const statusOf = (pl: Player): { variant: 'success' | 'error' | 'neutral'; label: string } => {
   if (pl.bannedUntil) {
     return {
       variant: 'error',
@@ -316,35 +316,38 @@ const statusOf = (pl: PlayerListItem): { variant: 'success' | 'error' | 'neutral
 const rangeFrom = computed(() => (total.value ? (page.value - 1) * pageSize.value + 1 : 0))
 const rangeTo = computed(() => (page.value - 1) * pageSize.value + players.value.length)
 
-const view = (pl: PlayerListItem) => {
+const view = (pl: Player) => {
   void router.push(`/game/gm/${encodeURIComponent(ctx.serverId.value)}/players/${encodeURIComponent(pl.pid)}`)
 }
 
-// ---------- 指令 ----------
-const ICON_SHOWN = ['gift.send', 'session.kick']
-const rowMenu = computed<ActionMenuItem[]>(() =>
-  (ctx.manifest.value?.commands || [])
-    .filter((c) => (c.target === 'player' || c.target === 'players') && !ICON_SHOWN.includes(c.id))
-    .map((c) => ({ key: c.id, label: c.title, danger: c.risk === 'danger' })),
-)
-const batchCommands = computed(() => (ctx.manifest.value?.commands || []).filter((c) => c.target === 'players'))
+// ---------- 操作 ----------
+// 行菜单：带着这名玩家打开 GM 操作页（发礼物、强制下线在行内图标）；勾选多名时工具条里带着全部勾选的玩家打开
+const rowMenu = computed<ActionMenuItem[]>(() => [{ key: 'operations', label: t('gmData.player.gmOperations'), icon: 'HOutline:CommandLineIcon' }])
+const openOperationsFor = (list: Pick<Player, 'pid' | 'name' | 'avatarIdolCardId'>[]) =>
+  void router.push({
+    path: `/game/gm/${encodeURIComponent(ctx.serverId.value)}`,
+    query: { tab: 'operations', pid: list.map((x) => x.pid).join(',') },
+    state: { players: list.map((x) => ({ pid: x.pid, name: x.name, avatarIdolCardId: x.avatarIdolCardId })) },
+  })
+const openOperations = (pid: string) => openOperationsFor([known.get(pid) || { pid, name: '', avatarIdolCardId: '' }])
+const batchCommands = computed(() => ctx.operations.filter((c) => PLAYER_LIST_BATCH.includes(c.id)))
 
-const dialog = reactive<{ open: boolean; command?: ManifestCommand; targets: GmTargetRef[] }>({ open: false, command: undefined, targets: [] })
-const run = (commandId: string, list: PlayerListItem[]) => {
-  const cmd = ctx.command(commandId)
-  if (!cmd) return
-  if (cmd.id === 'gift.send') return openGift(list)
-  dialog.command = cmd
+const dialog = reactive<{ open: boolean; operation?: OperationDef; targets: GmTargetRef[] }>({ open: false, operation: undefined, targets: [] })
+const run = (operationId: string, list: Pick<Player, 'pid' | 'name' | 'avatarIdolCardId'>[]) => {
+  const op = ctx.operation(operationId)
+  if (!op) return
+  if (op.id === 'gift.send') return openGift(list)
+  dialog.operation = op
   dialog.targets = list.map((x) => ({ pid: x.pid, name: x.name }))
   dialog.open = true
 }
 
-const selectedPlayers = computed(() => selected.value.map((pid) => known.get(pid) || ({ pid, name: '' } as PlayerListItem)))
-const runBatch = (cmd: ManifestCommand) => run(cmd.id, selectedPlayers.value)
+const selectedPlayers = computed(() => selected.value.map((pid) => known.get(pid) || { pid, name: '', avatarIdolCardId: '' }))
+const runBatch = (op: OperationDef) => run(op.id, selectedPlayers.value)
 
 const giftOpen = ref(false)
 const giftPlayers = ref<GiftTarget[]>([])
-const openGift = (list: PlayerListItem[]) => {
+const openGift = (list: Pick<Player, 'pid' | 'name' | 'avatarIdolCardId'>[]) => {
   giftPlayers.value = list.map((x) => ({ pid: x.pid, name: x.name, avatarIdolCardId: x.avatarIdolCardId }))
   giftOpen.value = true
 }
@@ -360,15 +363,15 @@ const exportCsv = async () => {
   if (exporting.value) return
   exporting.value = true
   exported.value = 0
-  const all: PlayerListItem[] = []
+  const all: Player[] = []
   const allLinks = new Map<string, GmPlayerLink>()
   try {
     let cursor = ''
     const seen = new Set<string>()
     do {
-      const { data } = await listGmPlayers({ serverId: ctx.serverId.value, q: keyword.value.trim(), filter: filter.value, cursor, limit: 200 })
-      all.push(...((data.items as PlayerListItem[] | undefined) || []))
-      for (const l of data.links || []) allLinks.set(l.pid, l)
+      const data = await listPlayers({ serverId: ctx.serverId.value, q: keyword.value.trim(), filter: filter.value, cursor, limit: 200 })
+      all.push(...data.items)
+      for (const l of data.links) allLinks.set(l.pid, l)
       exported.value = all.length
       seen.add(cursor)
       cursor = data.nextCursor || ''

@@ -1,5 +1,5 @@
 <!-- 礼物箱：未领取 / 已领取 / 已过期（MGP state 筛选），按发放时间从新到旧；内容名称与图片来自 MGP 目录。
-     按礼物名称、来源或留言模糊搜索：读出这个状态下的全部礼物在本地筛选。
+     按礼物内容搜索：关键字解析成道具、卡、乐曲、服装的 ID 后由服务端筛选分页。
      管理端（GM 指令、邮件、兑换码）发出且未领取的礼物可以撤回（gift.revoke，走通用指令对话框，记进 GM 记录）。 -->
 <template>
   <div class="pv">
@@ -20,16 +20,16 @@
       <span class="pv__spacer" />
       <span v-if="canRevoke" class="pv__hint">{{ t('gmData.giftBox.revokeHint') }}</span>
     </div>
-    <ListToolbar v-model:keyword="keyword" :placeholder="t('gmData.giftBox.search')" />
+    <ListToolbar v-model:keyword="search.keyword.value" :placeholder="t('gmData.giftBox.search')" />
 
-    <div v-if="list.error.value || searchError" class="pv__error">{{ list.error.value || searchError }}</div>
+    <div v-if="list.error.value || search.error.value" class="pv__error">{{ list.error.value || search.error.value }}</div>
 
     <DataTable
       v-if="!menuStore.isMobile"
       :columns="columns"
       :rows="rows"
       row-key="giftId"
-      :loading="list.loading.value || searchLoading"
+      :loading="list.loading.value || search.loading.value"
       :empty-text="t('gmData.giftBox.empty')"
     >
       <template #cell-content="{ row }">
@@ -59,11 +59,11 @@
     </DataTable>
 
     <template v-else>
-      <div v-if="searchLoading" class="pv__hint">{{ t('gmData.common.searching') }}</div>
+      <div v-if="search.loading.value" class="pv__hint">{{ t('gmData.common.searching') }}</div>
       <EmptyState
         v-else-if="!list.loading.value && !shownGifts.length"
         icon="HOutline:GiftIcon"
-        :title="searching ? t('gmData.common.noMatch') : t('gmData.giftBox.empty')"
+        :title="search.active.value ? t('gmData.common.noMatch') : t('gmData.giftBox.empty')"
       />
       <div v-else class="pv__mcards">
         <article v-for="gift in shownGifts" :key="gift.giftId" class="pv__mcard">
@@ -87,10 +87,7 @@
       </div>
     </template>
 
-    <div v-if="searching" class="pv__foot">
-      <span class="m-num">{{ t('gmData.common.matched', { n: shownGifts.length }) }}</span>
-    </div>
-    <div v-else-if="list.total.value" class="pv__foot">
+    <div v-if="list.total.value" class="pv__foot">
       <span class="m-num">{{ t('gmData.giftBox.total', { n: list.total.value }) }}</span>
       <Pagination v-model:page="list.page.value" v-model:page-size="list.pageSize.value" :total="list.total.value" @change="list.load()" />
     </div>
@@ -100,19 +97,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmPlayerView, mgpQuery } from '@/api/gameGm'
+import { listPlayerGifts } from '@/api/gakumas'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
-import type { ListPage, ManifestView } from '@/games/mgp'
 import type { Gift, GiftState } from '@/games/gakumas/types'
 import { useGmContext } from '../../context'
 import { usePlayerPage } from '../context'
 import { giftSourceName } from '../shared/game'
 import { useGmFormat } from '../shared/format'
 import { useCatalogLookup } from '../shared/lookup'
-import { fetchAllPages, usePagedList } from '../shared/paging'
-import { useNameSearch } from '../shared/search'
-
-const props = defineProps<{ view?: ManifestView }>()
+import { usePagedList, type PageQuery } from '../shared/paging'
+import { rewardIds, useIdSearch } from '../shared/search'
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -122,10 +116,23 @@ const menuStore = useMenuStore()
 const { num, when, dateTime } = useGmFormat()
 
 const state = ref<GiftState>('unreceived')
-const fetchPage = (q: { cursor: string; limit: number }) =>
-  getGmPlayerView<ListPage<Gift>>(ctx.serverId.value, page.pid.value, props.view?.id || 'giftBox', mgpQuery({ state: state.value, ...q }))
+const search = useIdSearch((q) => rewardIds(ctx, q))
+
+const fetchPage = async (q: PageQuery) => {
+  if (search.none.value) return { items: [], nextCursor: '', total: 0 }
+  return listPlayerGifts({
+    serverId: ctx.serverId.value,
+    pid: page.pid.value,
+    state: state.value,
+    resourceIds: search.ids.value || [],
+    source: '',
+    expiring: false,
+    cursor: q.cursor,
+    limit: q.limit,
+  })
+}
 const list = usePagedList<Gift>(fetchPage, { pageSize: 20 })
-watch([state, page.version], () => void list.reload(), { immediate: true })
+watch([state, page.version, search.ids], () => void list.reload(), { immediate: true })
 
 const states = computed(() => {
   const unreceived = page.player.value?.overview?.gifts?.unreceived
@@ -143,21 +150,7 @@ const columns = computed<DataTableColumn[]>(() => [
   { key: 'limit', title: t('gmData.giftBox.limit'), width: 170 },
   { key: 'op', title: '', width: 100, align: 'right' },
 ])
-const {
-  keyword,
-  active: searching,
-  results,
-  loading: searchLoading,
-  error: searchError,
-} = useNameSearch<Gift>({
-  fetchAll: () => fetchAllPages(fetchPage),
-  names: (gift) => {
-    const rr = giftRef(gift)
-    return [...(rr ? lookup.names(rr.kind, rr.id) : []), sourceLabel(gift), gift.message]
-  },
-  version: [page.version, state],
-})
-const shownGifts = computed(() => (searching.value ? results.value : list.items.value))
+const shownGifts = computed(() => list.items.value)
 const rows = computed(() => shownGifts.value as unknown as Record<string, unknown>[])
 const g = (row: Record<string, unknown>) => row as unknown as Gift
 
@@ -188,7 +181,7 @@ const limitPill = (gift: Gift): { variant: 'success' | 'warning' | 'error' | 'ne
   }
 }
 
-const canRevoke = computed(() => ctx.hasCommand('gift.revoke'))
+const canRevoke = computed(() => !!ctx.operation('gift.revoke'))
 const revocable = (gift: Gift) => canRevoke.value && gift.state === 'unreceived' && !!giftSourceName(gift.sourceKind)
 const revoke = (gift: Gift) => {
   const source = giftSourceName(gift.sourceKind)

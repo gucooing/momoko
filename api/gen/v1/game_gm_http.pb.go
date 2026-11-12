@@ -20,99 +20,43 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationGameGMServiceApproveGmExecution = "/v1.GameGMService/ApproveGmExecution"
-const OperationGameGMServiceDiscardGmConfigDraft = "/v1.GameGMService/DiscardGmConfigDraft"
-const OperationGameGMServiceExecuteGmCommand = "/v1.GameGMService/ExecuteGmCommand"
-const OperationGameGMServiceGetGmCatalog = "/v1.GameGMService/GetGmCatalog"
-const OperationGameGMServiceGetGmConfig = "/v1.GameGMService/GetGmConfig"
-const OperationGameGMServiceGetGmConfigRevision = "/v1.GameGMService/GetGmConfigRevision"
 const OperationGameGMServiceGetGmContext = "/v1.GameGMService/GetGmContext"
 const OperationGameGMServiceGetGmExecution = "/v1.GameGMService/GetGmExecution"
-const OperationGameGMServiceGetGmPlayer = "/v1.GameGMService/GetGmPlayer"
-const OperationGameGMServiceGetGmPlayerView = "/v1.GameGMService/GetGmPlayerView"
-const OperationGameGMServiceGetGmReport = "/v1.GameGMService/GetGmReport"
-const OperationGameGMServiceListGmConfigRevisions = "/v1.GameGMService/ListGmConfigRevisions"
-const OperationGameGMServiceListGmConfigs = "/v1.GameGMService/ListGmConfigs"
 const OperationGameGMServiceListGmExecutions = "/v1.GameGMService/ListGmExecutions"
-const OperationGameGMServiceListGmPlayers = "/v1.GameGMService/ListGmPlayers"
 const OperationGameGMServiceListGmSelfService = "/v1.GameGMService/ListGmSelfService"
-const OperationGameGMServicePublishGmConfig = "/v1.GameGMService/PublishGmConfig"
 const OperationGameGMServiceRejectGmExecution = "/v1.GameGMService/RejectGmExecution"
-const OperationGameGMServiceSaveGmConfigDraft = "/v1.GameGMService/SaveGmConfigDraft"
 const OperationGameGMServiceSearchGmServers = "/v1.GameGMService/SearchGmServers"
 const OperationGameGMServiceUpdateGmSelfService = "/v1.GameGMService/UpdateGmSelfService"
-const OperationGameGMServiceValidateGmConfig = "/v1.GameGMService/ValidateGmConfig"
 
 type GameGMServiceHTTPServer interface {
 	// ApproveGmExecution 批准玩家的申请并执行
 	ApproveGmExecution(context.Context, *ApproveGmExecutionRequest) (*GmExecution, error)
-	// DiscardGmConfigDraft 放弃草稿
-	DiscardGmConfigDraft(context.Context, *DiscardGmConfigDraftRequest) (*DiscardGmConfigDraftResponse, error)
-	// ExecuteGmCommand 执行 GM 指令（含试运行）；高风险必须填原因，危险指令需要输入玩家昵称确认
-	ExecuteGmCommand(context.Context, *ExecuteGmCommandRequest) (*ExecuteGmCommandResponse, error)
-	// GetGmCatalog 选择器数据（MGP /catalogs/{kind}）
-	GetGmCatalog(context.Context, *GetGmCatalogRequest) (*GmDataResponse, error)
-	// GetGmConfig 读取配置域：服务端当前内容与 revision，以及草稿（有的话）
-	GetGmConfig(context.Context, *GetGmConfigRequest) (*GetGmConfigResponse, error)
-	// GetGmConfigRevision 某个版本的内容（对比、恢复为草稿用）
-	GetGmConfigRevision(context.Context, *GetGmConfigRevisionRequest) (*GmConfigRevision, error)
-	// GetGmContext GM 页面上下文：服务器摘要、manifest、实时 status、待审批数；同时记入「最近查看」
+	// GetGmContext GM 页面上下文：服务器摘要、待审批数、自助与绑定统计；同时记入「最近查看」
 	GetGmContext(context.Context, *GetGmContextRequest) (*GetGmContextResponse, error)
-	// GetGmExecution GM 记录详情（不含请求参数）
+	// GetGmExecution GM 记录详情（逐个对象的结果，不含请求参数）
 	GetGmExecution(context.Context, *GetGmExecutionRequest) (*GmExecution, error)
-	// GetGmPlayer 玩家摘要与概览（MGP /players/{pid} + 通行证绑定 + GM 记录数）
-	GetGmPlayer(context.Context, *GetGmPlayerRequest) (*GetGmPlayerResponse, error)
-	// GetGmPlayerView 玩家的分页数据（MGP /players/{pid}/views/{view}）
-	GetGmPlayerView(context.Context, *GetGmPlayerViewRequest) (*GmDataResponse, error)
-	// GetGmReport 全服统计与列表（MGP /reports/{report}）
-	GetGmReport(context.Context, *GetGmReportRequest) (*GmDataResponse, error)
-	// ListGmConfigRevisions 版本记录（不含内容）
-	ListGmConfigRevisions(context.Context, *ListGmConfigRevisionsRequest) (*ListGmConfigRevisionsResponse, error)
-	// ListGmConfigs 配置域列表（服务端 revision + Momoko 草稿与最近发布）
-	ListGmConfigs(context.Context, *ListGmConfigsRequest) (*ListGmConfigsResponse, error)
 	// ListGmExecutions GM 记录（管理端与玩家自助）
 	ListGmExecutions(context.Context, *ListGmExecutionsRequest) (*ListGmExecutionsResponse, error)
-	// ListGmPlayers 玩家列表（MGP /players + 通行证绑定；filter=unlinked 为未绑定通行证）
-	ListGmPlayers(context.Context, *ListGmPlayersRequest) (*ListGmPlayersResponse, error)
-	// ListGmSelfService 玩家自助：只列出 manifest 里允许自助的指令
+	// ListGmSelfService 玩家自助：列出游戏模块声明为可自助的操作与设置
 	ListGmSelfService(context.Context, *ListGmSelfServiceRequest) (*ListGmSelfServiceResponse, error)
-	// PublishGmConfig 发布（高风险，必须填原因）：写回服务端并热重载，记一条 config.publish GM 记录与一个版本
-	PublishGmConfig(context.Context, *PublishGmConfigRequest) (*PublishGmConfigResponse, error)
 	// RejectGmExecution 驳回玩家的申请
 	RejectGmExecution(context.Context, *RejectGmExecutionRequest) (*GmExecution, error)
-	// SaveGmConfigDraft 保存草稿（每个配置域一份，自动保存用）
-	SaveGmConfigDraft(context.Context, *SaveGmConfigDraftRequest) (*GmConfigDraft, error)
 	// SearchGmServers 搜索可运营的服务器（搜索 + 最近查看，最多 20 条）
 	SearchGmServers(context.Context, *SearchGameServersRequest) (*SearchGameServersResponse, error)
-	// UpdateGmSelfService 修改一条指令的玩家自助设置（立即生效）
+	// UpdateGmSelfService 修改一个操作的玩家自助设置（立即生效）
 	UpdateGmSelfService(context.Context, *UpdateGmSelfServiceRequest) (*GmSelfServicePolicy, error)
-	// ValidateGmConfig 校验内容（MGP PUT dryRun，与服务端启动时相同的校验）
-	ValidateGmConfig(context.Context, *ValidateGmConfigRequest) (*ValidateGmConfigResponse, error)
 }
 
 func RegisterGameGMServiceHTTPServer(s *http.Server, srv GameGMServiceHTTPServer) {
 	r := s.Route("/")
 	r.GET("/api/v1/game/gm/servers", _GameGMService_SearchGmServers0_HTTP_Handler(srv))
 	r.GET("/api/v1/game/gm/{server_id}/context", _GameGMService_GetGmContext0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/players", _GameGMService_ListGmPlayers0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/players/{pid}", _GameGMService_GetGmPlayer0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/players/{pid}/views/{view}", _GameGMService_GetGmPlayerView0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/reports/{report}", _GameGMService_GetGmReport0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/catalogs/{kind}", _GameGMService_GetGmCatalog0_HTTP_Handler(srv))
-	r.POST("/api/v1/game/gm/{server_id}/commands/{command}", _GameGMService_ExecuteGmCommand0_HTTP_Handler(srv))
 	r.GET("/api/v1/game/gm/{server_id}/executions", _GameGMService_ListGmExecutions0_HTTP_Handler(srv))
 	r.GET("/api/v1/game/gm/{server_id}/executions/{id}", _GameGMService_GetGmExecution0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/gm/{server_id}/executions/{id}/approve", _GameGMService_ApproveGmExecution0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/gm/{server_id}/executions/{id}/reject", _GameGMService_RejectGmExecution0_HTTP_Handler(srv))
 	r.GET("/api/v1/game/gm/{server_id}/self-service", _GameGMService_ListGmSelfService0_HTTP_Handler(srv))
 	r.PUT("/api/v1/game/gm/{server_id}/self-service/{command}", _GameGMService_UpdateGmSelfService0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/configs", _GameGMService_ListGmConfigs0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/configs/{domain}", _GameGMService_GetGmConfig0_HTTP_Handler(srv))
-	r.PUT("/api/v1/game/gm/{server_id}/configs/{domain}/draft", _GameGMService_SaveGmConfigDraft0_HTTP_Handler(srv))
-	r.DELETE("/api/v1/game/gm/{server_id}/configs/{domain}/draft", _GameGMService_DiscardGmConfigDraft0_HTTP_Handler(srv))
-	r.POST("/api/v1/game/gm/{server_id}/configs/{domain}/validate", _GameGMService_ValidateGmConfig0_HTTP_Handler(srv))
-	r.POST("/api/v1/game/gm/{server_id}/configs/{domain}/publish", _GameGMService_PublishGmConfig0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/configs/{domain}/revisions", _GameGMService_ListGmConfigRevisions0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/configs/{domain}/revisions/{id}", _GameGMService_GetGmConfigRevision0_HTTP_Handler(srv))
 }
 
 func _GameGMService_SearchGmServers0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
@@ -152,141 +96,6 @@ func _GameGMService_GetGmContext0_HTTP_Handler(srv GameGMServiceHTTPServer) func
 			return err
 		}
 		reply := out.(*GetGmContextResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_ListGmPlayers0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListGmPlayersRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceListGmPlayers)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListGmPlayers(ctx, req.(*ListGmPlayersRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListGmPlayersResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_GetGmPlayer0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetGmPlayerRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceGetGmPlayer)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetGmPlayer(ctx, req.(*GetGmPlayerRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetGmPlayerResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_GetGmPlayerView0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetGmPlayerViewRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceGetGmPlayerView)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetGmPlayerView(ctx, req.(*GetGmPlayerViewRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GmDataResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_GetGmReport0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetGmReportRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceGetGmReport)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetGmReport(ctx, req.(*GetGmReportRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GmDataResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_GetGmCatalog0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetGmCatalogRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceGetGmCatalog)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetGmCatalog(ctx, req.(*GetGmCatalogRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GmDataResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_ExecuteGmCommand0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ExecuteGmCommandRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceExecuteGmCommand)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ExecuteGmCommand(ctx, req.(*ExecuteGmCommandRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ExecuteGmCommandResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -432,236 +241,23 @@ func _GameGMService_UpdateGmSelfService0_HTTP_Handler(srv GameGMServiceHTTPServe
 	}
 }
 
-func _GameGMService_ListGmConfigs0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListGmConfigsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceListGmConfigs)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListGmConfigs(ctx, req.(*ListGmConfigsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListGmConfigsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_GetGmConfig0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetGmConfigRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceGetGmConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetGmConfig(ctx, req.(*GetGmConfigRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_SaveGmConfigDraft0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in SaveGmConfigDraftRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceSaveGmConfigDraft)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.SaveGmConfigDraft(ctx, req.(*SaveGmConfigDraftRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GmConfigDraft)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_DiscardGmConfigDraft0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in DiscardGmConfigDraftRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceDiscardGmConfigDraft)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DiscardGmConfigDraft(ctx, req.(*DiscardGmConfigDraftRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*DiscardGmConfigDraftResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_ValidateGmConfig0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ValidateGmConfigRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceValidateGmConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ValidateGmConfig(ctx, req.(*ValidateGmConfigRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ValidateGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_PublishGmConfig0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PublishGmConfigRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServicePublishGmConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.PublishGmConfig(ctx, req.(*PublishGmConfigRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PublishGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_ListGmConfigRevisions0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListGmConfigRevisionsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceListGmConfigRevisions)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListGmConfigRevisions(ctx, req.(*ListGmConfigRevisionsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListGmConfigRevisionsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GameGMService_GetGmConfigRevision0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetGmConfigRevisionRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGameGMServiceGetGmConfigRevision)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetGmConfigRevision(ctx, req.(*GetGmConfigRevisionRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GmConfigRevision)
-		return ctx.Result(200, reply)
-	}
-}
-
 type GameGMServiceHTTPClient interface {
 	// ApproveGmExecution 批准玩家的申请并执行
 	ApproveGmExecution(ctx context.Context, req *ApproveGmExecutionRequest, opts ...http.CallOption) (rsp *GmExecution, err error)
-	// DiscardGmConfigDraft 放弃草稿
-	DiscardGmConfigDraft(ctx context.Context, req *DiscardGmConfigDraftRequest, opts ...http.CallOption) (rsp *DiscardGmConfigDraftResponse, err error)
-	// ExecuteGmCommand 执行 GM 指令（含试运行）；高风险必须填原因，危险指令需要输入玩家昵称确认
-	ExecuteGmCommand(ctx context.Context, req *ExecuteGmCommandRequest, opts ...http.CallOption) (rsp *ExecuteGmCommandResponse, err error)
-	// GetGmCatalog 选择器数据（MGP /catalogs/{kind}）
-	GetGmCatalog(ctx context.Context, req *GetGmCatalogRequest, opts ...http.CallOption) (rsp *GmDataResponse, err error)
-	// GetGmConfig 读取配置域：服务端当前内容与 revision，以及草稿（有的话）
-	GetGmConfig(ctx context.Context, req *GetGmConfigRequest, opts ...http.CallOption) (rsp *GetGmConfigResponse, err error)
-	// GetGmConfigRevision 某个版本的内容（对比、恢复为草稿用）
-	GetGmConfigRevision(ctx context.Context, req *GetGmConfigRevisionRequest, opts ...http.CallOption) (rsp *GmConfigRevision, err error)
-	// GetGmContext GM 页面上下文：服务器摘要、manifest、实时 status、待审批数；同时记入「最近查看」
+	// GetGmContext GM 页面上下文：服务器摘要、待审批数、自助与绑定统计；同时记入「最近查看」
 	GetGmContext(ctx context.Context, req *GetGmContextRequest, opts ...http.CallOption) (rsp *GetGmContextResponse, err error)
-	// GetGmExecution GM 记录详情（不含请求参数）
+	// GetGmExecution GM 记录详情（逐个对象的结果，不含请求参数）
 	GetGmExecution(ctx context.Context, req *GetGmExecutionRequest, opts ...http.CallOption) (rsp *GmExecution, err error)
-	// GetGmPlayer 玩家摘要与概览（MGP /players/{pid} + 通行证绑定 + GM 记录数）
-	GetGmPlayer(ctx context.Context, req *GetGmPlayerRequest, opts ...http.CallOption) (rsp *GetGmPlayerResponse, err error)
-	// GetGmPlayerView 玩家的分页数据（MGP /players/{pid}/views/{view}）
-	GetGmPlayerView(ctx context.Context, req *GetGmPlayerViewRequest, opts ...http.CallOption) (rsp *GmDataResponse, err error)
-	// GetGmReport 全服统计与列表（MGP /reports/{report}）
-	GetGmReport(ctx context.Context, req *GetGmReportRequest, opts ...http.CallOption) (rsp *GmDataResponse, err error)
-	// ListGmConfigRevisions 版本记录（不含内容）
-	ListGmConfigRevisions(ctx context.Context, req *ListGmConfigRevisionsRequest, opts ...http.CallOption) (rsp *ListGmConfigRevisionsResponse, err error)
-	// ListGmConfigs 配置域列表（服务端 revision + Momoko 草稿与最近发布）
-	ListGmConfigs(ctx context.Context, req *ListGmConfigsRequest, opts ...http.CallOption) (rsp *ListGmConfigsResponse, err error)
 	// ListGmExecutions GM 记录（管理端与玩家自助）
 	ListGmExecutions(ctx context.Context, req *ListGmExecutionsRequest, opts ...http.CallOption) (rsp *ListGmExecutionsResponse, err error)
-	// ListGmPlayers 玩家列表（MGP /players + 通行证绑定；filter=unlinked 为未绑定通行证）
-	ListGmPlayers(ctx context.Context, req *ListGmPlayersRequest, opts ...http.CallOption) (rsp *ListGmPlayersResponse, err error)
-	// ListGmSelfService 玩家自助：只列出 manifest 里允许自助的指令
+	// ListGmSelfService 玩家自助：列出游戏模块声明为可自助的操作与设置
 	ListGmSelfService(ctx context.Context, req *ListGmSelfServiceRequest, opts ...http.CallOption) (rsp *ListGmSelfServiceResponse, err error)
-	// PublishGmConfig 发布（高风险，必须填原因）：写回服务端并热重载，记一条 config.publish GM 记录与一个版本
-	PublishGmConfig(ctx context.Context, req *PublishGmConfigRequest, opts ...http.CallOption) (rsp *PublishGmConfigResponse, err error)
 	// RejectGmExecution 驳回玩家的申请
 	RejectGmExecution(ctx context.Context, req *RejectGmExecutionRequest, opts ...http.CallOption) (rsp *GmExecution, err error)
-	// SaveGmConfigDraft 保存草稿（每个配置域一份，自动保存用）
-	SaveGmConfigDraft(ctx context.Context, req *SaveGmConfigDraftRequest, opts ...http.CallOption) (rsp *GmConfigDraft, err error)
 	// SearchGmServers 搜索可运营的服务器（搜索 + 最近查看，最多 20 条）
 	SearchGmServers(ctx context.Context, req *SearchGameServersRequest, opts ...http.CallOption) (rsp *SearchGameServersResponse, err error)
-	// UpdateGmSelfService 修改一条指令的玩家自助设置（立即生效）
+	// UpdateGmSelfService 修改一个操作的玩家自助设置（立即生效）
 	UpdateGmSelfService(ctx context.Context, req *UpdateGmSelfServiceRequest, opts ...http.CallOption) (rsp *GmSelfServicePolicy, err error)
-	// ValidateGmConfig 校验内容（MGP PUT dryRun，与服务端启动时相同的校验）
-	ValidateGmConfig(ctx context.Context, req *ValidateGmConfigRequest, opts ...http.CallOption) (rsp *ValidateGmConfigResponse, err error)
 }
 
 type GameGMServiceHTTPClientImpl struct {
@@ -686,77 +282,7 @@ func (c *GameGMServiceHTTPClientImpl) ApproveGmExecution(ctx context.Context, in
 	return &out, nil
 }
 
-// DiscardGmConfigDraft 放弃草稿
-func (c *GameGMServiceHTTPClientImpl) DiscardGmConfigDraft(ctx context.Context, in *DiscardGmConfigDraftRequest, opts ...http.CallOption) (*DiscardGmConfigDraftResponse, error) {
-	var out DiscardGmConfigDraftResponse
-	pattern := "/api/v1/game/gm/{server_id}/configs/{domain}/draft"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceDiscardGmConfigDraft))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ExecuteGmCommand 执行 GM 指令（含试运行）；高风险必须填原因，危险指令需要输入玩家昵称确认
-func (c *GameGMServiceHTTPClientImpl) ExecuteGmCommand(ctx context.Context, in *ExecuteGmCommandRequest, opts ...http.CallOption) (*ExecuteGmCommandResponse, error) {
-	var out ExecuteGmCommandResponse
-	pattern := "/api/v1/game/gm/{server_id}/commands/{command}"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGameGMServiceExecuteGmCommand))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetGmCatalog 选择器数据（MGP /catalogs/{kind}）
-func (c *GameGMServiceHTTPClientImpl) GetGmCatalog(ctx context.Context, in *GetGmCatalogRequest, opts ...http.CallOption) (*GmDataResponse, error) {
-	var out GmDataResponse
-	pattern := "/api/v1/game/gm/{server_id}/catalogs/{kind}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceGetGmCatalog))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetGmConfig 读取配置域：服务端当前内容与 revision，以及草稿（有的话）
-func (c *GameGMServiceHTTPClientImpl) GetGmConfig(ctx context.Context, in *GetGmConfigRequest, opts ...http.CallOption) (*GetGmConfigResponse, error) {
-	var out GetGmConfigResponse
-	pattern := "/api/v1/game/gm/{server_id}/configs/{domain}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceGetGmConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetGmConfigRevision 某个版本的内容（对比、恢复为草稿用）
-func (c *GameGMServiceHTTPClientImpl) GetGmConfigRevision(ctx context.Context, in *GetGmConfigRevisionRequest, opts ...http.CallOption) (*GmConfigRevision, error) {
-	var out GmConfigRevision
-	pattern := "/api/v1/game/gm/{server_id}/configs/{domain}/revisions/{id}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceGetGmConfigRevision))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetGmContext GM 页面上下文：服务器摘要、manifest、实时 status、待审批数；同时记入「最近查看」
+// GetGmContext GM 页面上下文：服务器摘要、待审批数、自助与绑定统计；同时记入「最近查看」
 func (c *GameGMServiceHTTPClientImpl) GetGmContext(ctx context.Context, in *GetGmContextRequest, opts ...http.CallOption) (*GetGmContextResponse, error) {
 	var out GetGmContextResponse
 	pattern := "/api/v1/game/gm/{server_id}/context"
@@ -770,82 +296,12 @@ func (c *GameGMServiceHTTPClientImpl) GetGmContext(ctx context.Context, in *GetG
 	return &out, nil
 }
 
-// GetGmExecution GM 记录详情（不含请求参数）
+// GetGmExecution GM 记录详情（逐个对象的结果，不含请求参数）
 func (c *GameGMServiceHTTPClientImpl) GetGmExecution(ctx context.Context, in *GetGmExecutionRequest, opts ...http.CallOption) (*GmExecution, error) {
 	var out GmExecution
 	pattern := "/api/v1/game/gm/{server_id}/executions/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationGameGMServiceGetGmExecution))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetGmPlayer 玩家摘要与概览（MGP /players/{pid} + 通行证绑定 + GM 记录数）
-func (c *GameGMServiceHTTPClientImpl) GetGmPlayer(ctx context.Context, in *GetGmPlayerRequest, opts ...http.CallOption) (*GetGmPlayerResponse, error) {
-	var out GetGmPlayerResponse
-	pattern := "/api/v1/game/gm/{server_id}/players/{pid}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceGetGmPlayer))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetGmPlayerView 玩家的分页数据（MGP /players/{pid}/views/{view}）
-func (c *GameGMServiceHTTPClientImpl) GetGmPlayerView(ctx context.Context, in *GetGmPlayerViewRequest, opts ...http.CallOption) (*GmDataResponse, error) {
-	var out GmDataResponse
-	pattern := "/api/v1/game/gm/{server_id}/players/{pid}/views/{view}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceGetGmPlayerView))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetGmReport 全服统计与列表（MGP /reports/{report}）
-func (c *GameGMServiceHTTPClientImpl) GetGmReport(ctx context.Context, in *GetGmReportRequest, opts ...http.CallOption) (*GmDataResponse, error) {
-	var out GmDataResponse
-	pattern := "/api/v1/game/gm/{server_id}/reports/{report}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceGetGmReport))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ListGmConfigRevisions 版本记录（不含内容）
-func (c *GameGMServiceHTTPClientImpl) ListGmConfigRevisions(ctx context.Context, in *ListGmConfigRevisionsRequest, opts ...http.CallOption) (*ListGmConfigRevisionsResponse, error) {
-	var out ListGmConfigRevisionsResponse
-	pattern := "/api/v1/game/gm/{server_id}/configs/{domain}/revisions"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceListGmConfigRevisions))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ListGmConfigs 配置域列表（服务端 revision + Momoko 草稿与最近发布）
-func (c *GameGMServiceHTTPClientImpl) ListGmConfigs(ctx context.Context, in *ListGmConfigsRequest, opts ...http.CallOption) (*ListGmConfigsResponse, error) {
-	var out ListGmConfigsResponse
-	pattern := "/api/v1/game/gm/{server_id}/configs"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceListGmConfigs))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -868,21 +324,7 @@ func (c *GameGMServiceHTTPClientImpl) ListGmExecutions(ctx context.Context, in *
 	return &out, nil
 }
 
-// ListGmPlayers 玩家列表（MGP /players + 通行证绑定；filter=unlinked 为未绑定通行证）
-func (c *GameGMServiceHTTPClientImpl) ListGmPlayers(ctx context.Context, in *ListGmPlayersRequest, opts ...http.CallOption) (*ListGmPlayersResponse, error) {
-	var out ListGmPlayersResponse
-	pattern := "/api/v1/game/gm/{server_id}/players"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGameGMServiceListGmPlayers))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ListGmSelfService 玩家自助：只列出 manifest 里允许自助的指令
+// ListGmSelfService 玩家自助：列出游戏模块声明为可自助的操作与设置
 func (c *GameGMServiceHTTPClientImpl) ListGmSelfService(ctx context.Context, in *ListGmSelfServiceRequest, opts ...http.CallOption) (*ListGmSelfServiceResponse, error) {
 	var out ListGmSelfServiceResponse
 	pattern := "/api/v1/game/gm/{server_id}/self-service"
@@ -890,20 +332,6 @@ func (c *GameGMServiceHTTPClientImpl) ListGmSelfService(ctx context.Context, in 
 	opts = append(opts, http.Operation(OperationGameGMServiceListGmSelfService))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// PublishGmConfig 发布（高风险，必须填原因）：写回服务端并热重载，记一条 config.publish GM 记录与一个版本
-func (c *GameGMServiceHTTPClientImpl) PublishGmConfig(ctx context.Context, in *PublishGmConfigRequest, opts ...http.CallOption) (*PublishGmConfigResponse, error) {
-	var out PublishGmConfigResponse
-	pattern := "/api/v1/game/gm/{server_id}/configs/{domain}/publish"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGameGMServicePublishGmConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -924,20 +352,6 @@ func (c *GameGMServiceHTTPClientImpl) RejectGmExecution(ctx context.Context, in 
 	return &out, nil
 }
 
-// SaveGmConfigDraft 保存草稿（每个配置域一份，自动保存用）
-func (c *GameGMServiceHTTPClientImpl) SaveGmConfigDraft(ctx context.Context, in *SaveGmConfigDraftRequest, opts ...http.CallOption) (*GmConfigDraft, error) {
-	var out GmConfigDraft
-	pattern := "/api/v1/game/gm/{server_id}/configs/{domain}/draft"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGameGMServiceSaveGmConfigDraft))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // SearchGmServers 搜索可运营的服务器（搜索 + 最近查看，最多 20 条）
 func (c *GameGMServiceHTTPClientImpl) SearchGmServers(ctx context.Context, in *SearchGameServersRequest, opts ...http.CallOption) (*SearchGameServersResponse, error) {
 	var out SearchGameServersResponse
@@ -952,7 +366,7 @@ func (c *GameGMServiceHTTPClientImpl) SearchGmServers(ctx context.Context, in *S
 	return &out, nil
 }
 
-// UpdateGmSelfService 修改一条指令的玩家自助设置（立即生效）
+// UpdateGmSelfService 修改一个操作的玩家自助设置（立即生效）
 func (c *GameGMServiceHTTPClientImpl) UpdateGmSelfService(ctx context.Context, in *UpdateGmSelfServiceRequest, opts ...http.CallOption) (*GmSelfServicePolicy, error) {
 	var out GmSelfServicePolicy
 	pattern := "/api/v1/game/gm/{server_id}/self-service/{command}"
@@ -960,20 +374,6 @@ func (c *GameGMServiceHTTPClientImpl) UpdateGmSelfService(ctx context.Context, i
 	opts = append(opts, http.Operation(OperationGameGMServiceUpdateGmSelfService))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ValidateGmConfig 校验内容（MGP PUT dryRun，与服务端启动时相同的校验）
-func (c *GameGMServiceHTTPClientImpl) ValidateGmConfig(ctx context.Context, in *ValidateGmConfigRequest, opts ...http.CallOption) (*ValidateGmConfigResponse, error) {
-	var out ValidateGmConfigResponse
-	pattern := "/api/v1/game/gm/{server_id}/configs/{domain}/validate"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGameGMServiceValidateGmConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

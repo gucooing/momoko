@@ -50,6 +50,7 @@ import GameMark from '@passport/components/GameMark.vue'
 import LinkAvatar from '@passport/components/LinkAvatar.vue'
 import PPill from '@passport/components/PPill.vue'
 import * as api from '@passport/api/passport'
+import * as gk from '@passport/api/gakumas'
 import type { PassportLink } from '@/types/v1/passport'
 
 const props = withDefaults(defineProps<{ links: PassportLink[]; compact?: boolean; showAdd?: boolean; bindable?: string }>(), {
@@ -125,8 +126,10 @@ watch(
     for (const l of props.links.slice(0, 8)) {
       if (!l.server?.id || briefs[l.id]) continue
       try {
-        const res = await api.getGameBrief(l.server.id)
-        const gifts = (res.player as { overview?: { gifts?: { unreceived?: number; expiring?: number } } } | undefined)?.overview?.gifts
+        // 刷新绑定快照；礼物提醒来自游戏模块的玩家概览
+        await api.getGameBrief(l.server.id)
+        if (l.server.game !== 'gakumas') continue
+        const gifts = (await gk.getMyPlayer(l.server.id)).overview?.gifts
         briefs[l.id] = { unreceived: gifts?.unreceived ?? 0, expiring: gifts?.expiring ?? 0 }
       } catch {
         // 服务器暂时连不上：不显示提醒

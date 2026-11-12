@@ -1,5 +1,5 @@
-<!-- 玩法 · 研修：各研修组（MGP seminar 报表，按顺序）：试题数、全部试题的钻石奖励、全部通关的玩家占比；
-     试题名来自 MGP 研修目录（每组一次小查询）。 -->
+<!-- 玩法 · 研修：各研修组（研修统计接口，按顺序）：试题数、全部试题的钻石奖励、全部通关的玩家占比；
+     试题名来自研修目录（按组 ID 一次查询）。 -->
 <template>
   <div class="pv">
     <div v-if="error" class="pv__error">{{ error }}</div>
@@ -40,15 +40,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmReport } from '@/api/gameGm'
+import { getSeminarStats } from '@/api/gakumas'
 import { getRequestErrorMessage } from '@/utils/request'
-import type { CatalogEntry, ManifestEntry } from '@/games/mgp'
-import type { SeminarGroupStats } from '@/games/gakumas/types'
+import type { CatalogEntry } from '@/games/mgp'
+import type { SeminarGroupStat } from '@/games/gakumas/types'
 import { useGmContext } from '../../context'
 import { catalogImage } from '../../player/shared/game'
 import { useGmFormat } from '../../player/shared/format'
-
-const props = defineProps<{ mode: ManifestEntry }>()
 
 const STICKERS = ['m-sticker--p', 'm-sticker--a2', 'm-sticker--a', 'm-sticker--ok']
 
@@ -56,7 +54,7 @@ const { t } = useI18n()
 const ctx = useGmContext()
 const { num, pct } = useGmFormat()
 
-const groups = shallowRef<SeminarGroupStats[]>()
+const groups = shallowRef<SeminarGroupStat[]>()
 const loading = ref(false)
 const error = ref('')
 
@@ -64,9 +62,9 @@ const load = async () => {
   loading.value = true
   error.value = ''
   try {
-    const data = await getGmReport<SeminarGroupStats[]>(ctx.serverId.value, props.mode.id)
-    groups.value = [...(data || [])].sort((a, b) => a.order - b.order)
-    for (const g of groups.value) void loadExams(g.groupId)
+    const data = await getSeminarStats(ctx.serverId.value)
+    groups.value = [...data.groups].sort((a, b) => a.order - b.order)
+    void loadExams(groups.value.map((g) => g.groupId))
   } catch (e) {
     error.value = getRequestErrorMessage(e)
   } finally {
@@ -78,15 +76,15 @@ const totalExams = computed(() => (groups.value || []).reduce((s, g) => s + g.ex
 const totalJewel = computed(() => (groups.value || []).reduce((s, g) => s + g.jewelReward, 0))
 const jewelImage = computed(() => catalogImage(ctx.game.value, 'currency', { id: 'jewelFree' }))
 
-// 试题名：研修目录里 parentId 为组 ID 的条目（试题 ID 以组 ID 开头，q=组 ID 一次查到）
+// 试题名：研修目录按组 ID 一次查出这些组，其中 parentId 为组 ID 的条目是该组的试题
 const exams = reactive(new Map<string, CatalogEntry[]>())
-const loadExams = async (groupId: string) => {
-  if (exams.has(groupId) || !ctx.manifest.value?.catalogs?.some((c) => c.id === 'seminar')) return
+const loadExams = async (groupIds: string[]) => {
+  if (!groupIds.length) return
   try {
-    const page = await ctx.catalog('seminar', { q: groupId, limit: 100 })
-    exams.set(groupId, (page.items || []).filter((e) => e.parentId === groupId))
+    const page = await ctx.catalog('seminar', { ids: groupIds, limit: groupIds.length })
+    for (const id of groupIds) exams.set(id, page.items.filter((e) => e.parentId === id))
   } catch {
-    exams.set(groupId, [])
+    for (const id of groupIds) exams.set(id, [])
   }
 }
 const examNames = (groupId: string) => (exams.get(groupId) || []).map((e) => e.name || t('game.unnamed')).join('、')

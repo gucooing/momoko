@@ -280,20 +280,6 @@ func (_u *GmExecutionUpdate) SetNillableReason(v *string) *GmExecutionUpdate {
 	return _u
 }
 
-// SetConfirmed sets the "confirmed" field.
-func (_u *GmExecutionUpdate) SetConfirmed(v bool) *GmExecutionUpdate {
-	_u.mutation.SetConfirmed(v)
-	return _u
-}
-
-// SetNillableConfirmed sets the "confirmed" field if the given value is not nil.
-func (_u *GmExecutionUpdate) SetNillableConfirmed(v *bool) *GmExecutionUpdate {
-	if v != nil {
-		_u.SetConfirmed(*v)
-	}
-	return _u
-}
-
 // SetDryRun sets the "dry_run" field.
 func (_u *GmExecutionUpdate) SetDryRun(v bool) *GmExecutionUpdate {
 	_u.mutation.SetDryRun(v)
@@ -712,9 +698,6 @@ func (_u *GmExecutionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.Reason(); ok {
 		_spec.SetField(gmexecution.FieldReason, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Confirmed(); ok {
-		_spec.SetField(gmexecution.FieldConfirmed, field.TypeBool, value)
-	}
 	if value, ok := _u.mutation.DryRun(); ok {
 		_spec.SetField(gmexecution.FieldDryRun, field.TypeBool, value)
 	}
@@ -1044,20 +1027,6 @@ func (_u *GmExecutionUpdateOne) SetReason(v string) *GmExecutionUpdateOne {
 func (_u *GmExecutionUpdateOne) SetNillableReason(v *string) *GmExecutionUpdateOne {
 	if v != nil {
 		_u.SetReason(*v)
-	}
-	return _u
-}
-
-// SetConfirmed sets the "confirmed" field.
-func (_u *GmExecutionUpdateOne) SetConfirmed(v bool) *GmExecutionUpdateOne {
-	_u.mutation.SetConfirmed(v)
-	return _u
-}
-
-// SetNillableConfirmed sets the "confirmed" field if the given value is not nil.
-func (_u *GmExecutionUpdateOne) SetNillableConfirmed(v *bool) *GmExecutionUpdateOne {
-	if v != nil {
-		_u.SetConfirmed(*v)
 	}
 	return _u
 }
@@ -1509,9 +1478,6 @@ func (_u *GmExecutionUpdateOne) sqlSave(ctx context.Context) (_node *GmExecution
 	}
 	if value, ok := _u.mutation.Reason(); ok {
 		_spec.SetField(gmexecution.FieldReason, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Confirmed(); ok {
-		_spec.SetField(gmexecution.FieldConfirmed, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.DryRun(); ok {
 		_spec.SetField(gmexecution.FieldDryRun, field.TypeBool, value)

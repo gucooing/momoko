@@ -986,60 +986,56 @@ func init() {
 	gmexecutionDescReason := gmexecutionFields[17].Descriptor()
 	// gmexecution.DefaultReason holds the default value on creation for the reason field.
 	gmexecution.DefaultReason = gmexecutionDescReason.Default.(string)
-	// gmexecutionDescConfirmed is the schema descriptor for confirmed field.
-	gmexecutionDescConfirmed := gmexecutionFields[18].Descriptor()
-	// gmexecution.DefaultConfirmed holds the default value on creation for the confirmed field.
-	gmexecution.DefaultConfirmed = gmexecutionDescConfirmed.Default.(bool)
 	// gmexecutionDescDryRun is the schema descriptor for dry_run field.
-	gmexecutionDescDryRun := gmexecutionFields[19].Descriptor()
+	gmexecutionDescDryRun := gmexecutionFields[18].Descriptor()
 	// gmexecution.DefaultDryRun holds the default value on creation for the dry_run field.
 	gmexecution.DefaultDryRun = gmexecutionDescDryRun.Default.(bool)
 	// gmexecutionDescResult is the schema descriptor for result field.
-	gmexecutionDescResult := gmexecutionFields[21].Descriptor()
+	gmexecutionDescResult := gmexecutionFields[20].Descriptor()
 	// gmexecution.DefaultResult holds the default value on creation for the result field.
 	gmexecution.DefaultResult = gmexecutionDescResult.Default.(string)
 	// gmexecutionDescSuccessCount is the schema descriptor for success_count field.
-	gmexecutionDescSuccessCount := gmexecutionFields[22].Descriptor()
+	gmexecutionDescSuccessCount := gmexecutionFields[21].Descriptor()
 	// gmexecution.DefaultSuccessCount holds the default value on creation for the success_count field.
 	gmexecution.DefaultSuccessCount = gmexecutionDescSuccessCount.Default.(int)
 	// gmexecutionDescFailedCount is the schema descriptor for failed_count field.
-	gmexecutionDescFailedCount := gmexecutionFields[23].Descriptor()
+	gmexecutionDescFailedCount := gmexecutionFields[22].Descriptor()
 	// gmexecution.DefaultFailedCount holds the default value on creation for the failed_count field.
 	gmexecution.DefaultFailedCount = gmexecutionDescFailedCount.Default.(int)
 	// gmexecutionDescBackupRef is the schema descriptor for backup_ref field.
-	gmexecutionDescBackupRef := gmexecutionFields[24].Descriptor()
+	gmexecutionDescBackupRef := gmexecutionFields[23].Descriptor()
 	// gmexecution.DefaultBackupRef holds the default value on creation for the backup_ref field.
 	gmexecution.DefaultBackupRef = gmexecutionDescBackupRef.Default.(string)
 	// gmexecutionDescErrorCode is the schema descriptor for error_code field.
-	gmexecutionDescErrorCode := gmexecutionFields[25].Descriptor()
+	gmexecutionDescErrorCode := gmexecutionFields[24].Descriptor()
 	// gmexecution.DefaultErrorCode holds the default value on creation for the error_code field.
 	gmexecution.DefaultErrorCode = gmexecutionDescErrorCode.Default.(string)
 	// gmexecutionDescErrorMessage is the schema descriptor for error_message field.
-	gmexecutionDescErrorMessage := gmexecutionFields[26].Descriptor()
+	gmexecutionDescErrorMessage := gmexecutionFields[25].Descriptor()
 	// gmexecution.DefaultErrorMessage holds the default value on creation for the error_message field.
 	gmexecution.DefaultErrorMessage = gmexecutionDescErrorMessage.Default.(string)
 	// gmexecutionDescRequestID is the schema descriptor for request_id field.
-	gmexecutionDescRequestID := gmexecutionFields[27].Descriptor()
+	gmexecutionDescRequestID := gmexecutionFields[26].Descriptor()
 	// gmexecution.RequestIDValidator is a validator for the "request_id" field. It is called by the builders before save.
 	gmexecution.RequestIDValidator = gmexecutionDescRequestID.Validators[0].(func(string) error)
 	// gmexecutionDescSource is the schema descriptor for source field.
-	gmexecutionDescSource := gmexecutionFields[28].Descriptor()
+	gmexecutionDescSource := gmexecutionFields[27].Descriptor()
 	// gmexecution.DefaultSource holds the default value on creation for the source field.
 	gmexecution.DefaultSource = gmexecutionDescSource.Default.(string)
 	// gmexecutionDescReviewedBy is the schema descriptor for reviewed_by field.
-	gmexecutionDescReviewedBy := gmexecutionFields[29].Descriptor()
+	gmexecutionDescReviewedBy := gmexecutionFields[28].Descriptor()
 	// gmexecution.DefaultReviewedBy holds the default value on creation for the reviewed_by field.
 	gmexecution.DefaultReviewedBy = gmexecutionDescReviewedBy.Default.(string)
 	// gmexecutionDescReviewerName is the schema descriptor for reviewer_name field.
-	gmexecutionDescReviewerName := gmexecutionFields[30].Descriptor()
+	gmexecutionDescReviewerName := gmexecutionFields[29].Descriptor()
 	// gmexecution.DefaultReviewerName holds the default value on creation for the reviewer_name field.
 	gmexecution.DefaultReviewerName = gmexecutionDescReviewerName.Default.(string)
 	// gmexecutionDescReviewNote is the schema descriptor for review_note field.
-	gmexecutionDescReviewNote := gmexecutionFields[32].Descriptor()
+	gmexecutionDescReviewNote := gmexecutionFields[31].Descriptor()
 	// gmexecution.DefaultReviewNote holds the default value on creation for the review_note field.
 	gmexecution.DefaultReviewNote = gmexecutionDescReviewNote.Default.(string)
 	// gmexecutionDescDurationMs is the schema descriptor for duration_ms field.
-	gmexecutionDescDurationMs := gmexecutionFields[34].Descriptor()
+	gmexecutionDescDurationMs := gmexecutionFields[33].Descriptor()
 	// gmexecution.DefaultDurationMs holds the default value on creation for the duration_ms field.
 	gmexecution.DefaultDurationMs = gmexecutionDescDurationMs.Default.(int)
 	// gmexecutionDescID is the schema descriptor for id field.

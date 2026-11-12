@@ -1,6 +1,6 @@
 <!-- GM 运营 · 工作台（只读观测）：今日关键数据 → 活跃玩家 / 抽卡次数（近 7 / 14 天单系列图，悬停看数值）
      → 卡池表现 · 今天 → 需要留意（待审批、今天失败的 GM 操作、定时邮件、未发布的配置草稿、即将结束的卡池与赛季、维护与依赖异常）
-     + 玩法概况 + 服务器 + 最近 GM 操作。数据：MGP dashboard 报表（days=14）、status、Momoko 的 GM 记录 / 邮件 / 配置草稿；
+     + 玩法概况 + 服务器 + 最近 GM 操作。数据：dashboard 接口（days=14）、status、Momoko 的 GM 记录 / 邮件 / 配置草稿；
      每块只链接到对应页面，不放操作入口。每 5 分钟自动刷新（标签可见时）。 -->
 <template>
   <div ref="root" class="gh game-skin">
@@ -196,11 +196,13 @@ import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMoun
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import dayjs from 'dayjs'
-import { getGmReport, listGmConfigs, listGmExecutions } from '@/api/gameGm'
+import { gashaConfig, getDashboard, noticeConfig } from '@/api/gakumas'
+import { listGmExecutions } from '@/api/gameGm'
 import { listGameMails } from '@/api/gameOps'
 import { getRequestErrorMessage } from '@/utils/request'
 import { usePaletteColors } from '@/composables/usePaletteColors'
-import type { DashboardReport, GashaStats } from '@/games/gakumas/types'
+import { enabledModes } from '@/games/gakumas/modes'
+import type { Dashboard, DrawTotals, GashaStat } from '@/games/gakumas/types'
 import type { GmConfigDomain, GmExecution } from '@/types/v1/game_gm'
 import type { GameMail } from '@/types/v1/game_ops'
 import { useGmContext } from '../../context'
@@ -223,7 +225,21 @@ const menuStore = useMenuStore()
 const { num, when, duration, pct, delta } = useGmFormat()
 
 const days = ref<7 | 14>(7)
-const report = shallowRef<DashboardReport>()
+// 合计在报表里总是有值（接口类型里是可选的消息字段），读到后补齐成非空
+type GashaRow = GashaStat & { today: DrawTotals; total: DrawTotals }
+type HomeReport = Omit<Dashboard, 'drawsToday' | 'drawsYesterday' | 'gashas'> & {
+  drawsToday: DrawTotals
+  drawsYesterday: DrawTotals
+  gashas: GashaRow[]
+}
+const ZERO: DrawTotals = { requests: 0, draws: 0, ssr: 0, pickup: 0, jewelFree: 0, jewelPaid: 0 }
+const homeReport = (r: Dashboard): HomeReport => ({
+  ...r,
+  drawsToday: r.drawsToday || ZERO,
+  drawsYesterday: r.drawsYesterday || ZERO,
+  gashas: r.gashas.map((g) => ({ ...g, today: g.today || ZERO, total: g.total || ZERO })),
+})
+const report = shallowRef<HomeReport>()
 const error = ref('')
 const recent = shallowRef<GmExecution[]>([])
 const pending = shallowRef<GmExecution[]>([])
@@ -241,9 +257,9 @@ const load = async () => {
   error.value = ''
   const since = new Date(zonedDayStart(ctx.timezone.value, Date.now()))
   const jobs: Promise<unknown>[] = [
-    getGmReport<DashboardReport>(sid, 'dashboard', `days=${RANGES[RANGES.length - 1]}`)
+    getDashboard({ serverId: sid, days: Math.max(...RANGES) })
       .then((r) => {
-        if (id === seq) report.value = r
+        if (id === seq) report.value = homeReport(r)
       })
       .catch((e) => {
         if (id === seq) error.value = getRequestErrorMessage(e)
@@ -259,20 +275,14 @@ const load = async () => {
       lastFailed.value = data.items?.[0]
     }),
   ]
-  if (ctx.hasCommand('mail.broadcast')) {
-    jobs.push(
-      listGameMails({ serverId: sid, status: 'scheduled', q: '', page: 1, pageSize: 20 }).then(({ data }) => {
-        if (id === seq) scheduledMails.value = data.items || []
-      }),
-    )
-  }
-  if (ctx.manifest.value?.configs?.length) {
-    jobs.push(
-      listGmConfigs(sid).then(({ data }) => {
-        if (id === seq) drafts.value = (data.items || []).filter((d) => !!d.draft)
-      }),
-    )
-  }
+  jobs.push(
+    listGameMails({ serverId: sid, status: 'scheduled', q: '', page: 1, pageSize: 20 }).then(({ data }) => {
+      if (id === seq) scheduledMails.value = data.items || []
+    }),
+    Promise.all([gashaConfig.get(sid), noticeConfig.get(sid)]).then((docs) => {
+      if (id === seq) drafts.value = docs.map((d) => d.domain).filter((d): d is GmConfigDomain => !!d?.draft)
+    }),
+  )
   await Promise.allSettled(jobs)
 }
 
@@ -451,9 +461,9 @@ const gashas = computed(() =>
     .slice(0, GASHA_ROWS),
 )
 const maxToday = computed(() => Math.max(1, ...gashas.value.map((g) => g.today.draws)))
-const barWidth = (g: GashaStats) => Math.round((g.today.draws / maxToday.value) * 100)
-const gashaImage = (g: GashaStats) => catalogImage(ctx.game.value, 'gasha', { id: g.gashaId, assetId: g.bannerAssetId })
-const gashaState = (g: GashaStats): { variant: 'success' | 'info' | 'primary' | 'neutral'; label: string } => {
+const barWidth = (g: GashaRow) => Math.round((g.today.draws / maxToday.value) * 100)
+const gashaImage = (g: GashaRow) => catalogImage(ctx.game.value, 'gasha', { id: g.gashaId, assetId: g.bannerAssetId })
+const gashaState = (g: GashaRow): { variant: 'success' | 'info' | 'primary' | 'neutral'; label: string } => {
   if (g.open) return g.endTime ? { variant: 'success', label: t('gmData.home.gashaOpen') } : { variant: 'info', label: t('gmData.home.permanent') }
   if (g.startTime > Date.now()) return { variant: 'primary', label: t('gmData.home.gashaSoon') }
   return { variant: 'neutral', label: t('gmData.home.gashaEnded') }
@@ -603,8 +613,8 @@ const MODE_ICONS: Record<string, string> = {
 }
 const modes = computed(() => {
   const r = report.value
-  return (ctx.manifest.value?.modes || []).map((m) => {
-    const out = { id: m.id, title: m.title || t('game.unnamed'), icon: MODE_ICONS[m.id] || 'HOutline:PuzzlePieceIcon', sub: '', value: '', unit: '' }
+  return enabledModes(ctx.modes.value).map((m) => {
+    const out = { id: m.id, title: m.title, icon: MODE_ICONS[m.id] || 'HOutline:PuzzlePieceIcon', sub: '', value: '', unit: '' }
     if (!r) return out
     if (m.id === 'pvp') {
       if (r.pvp) {

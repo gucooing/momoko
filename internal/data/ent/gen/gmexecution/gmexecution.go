@@ -52,8 +52,6 @@ const (
 	FieldSummary = "summary"
 	// FieldReason holds the string denoting the reason field in the database.
 	FieldReason = "reason"
-	// FieldConfirmed holds the string denoting the confirmed field in the database.
-	FieldConfirmed = "confirmed"
 	// FieldDryRun holds the string denoting the dry_run field in the database.
 	FieldDryRun = "dry_run"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -112,7 +110,6 @@ var Columns = []string{
 	FieldParams,
 	FieldSummary,
 	FieldReason,
-	FieldConfirmed,
 	FieldDryRun,
 	FieldStatus,
 	FieldResult,
@@ -172,8 +169,6 @@ var (
 	DefaultParams string
 	// DefaultReason holds the default value on creation for the "reason" field.
 	DefaultReason string
-	// DefaultConfirmed holds the default value on creation for the "confirmed" field.
-	DefaultConfirmed bool
 	// DefaultDryRun holds the default value on creation for the "dry_run" field.
 	DefaultDryRun bool
 	// DefaultResult holds the default value on creation for the "result" field.
@@ -367,11 +362,6 @@ func ByParams(opts ...sql.OrderTermOption) OrderOption {
 // ByReason orders the results by the reason field.
 func ByReason(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReason, opts...).ToFunc()
-}
-
-// ByConfirmed orders the results by the confirmed field.
-func ByConfirmed(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldConfirmed, opts...).ToFunc()
 }
 
 // ByDryRun orders the results by the dry_run field.

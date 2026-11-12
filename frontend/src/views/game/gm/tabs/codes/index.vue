@@ -1,4 +1,4 @@
-<!-- GM 运营 · 兑换码：统计卡片、批次表（状态 chips、搜索）、批次详情与最近兑换、导出、新建 / 编辑抽屉、停用。
+<!-- GM 运营 · 兑换码：统计卡片、批次表（状态 chips、搜索）、批次详情与最近兑换、导出、新建 / 编辑对话框、停用。
      兑换码在 Momoko 校验，兑换成功以玩家身份执行 gift.send（sourceKind=code）把奖励放进礼物箱。 -->
 <template>
   <div class="gmc game-skin">
@@ -172,7 +172,7 @@
       </section>
     </div>
 
-    <BatchDrawer v-model="drawerOpen" :batch="editing" @saved="onSaved" />
+    <BatchDialog v-model="dialogOpen" :batch="editing" @saved="onSaved" />
   </div>
 </template>
 
@@ -193,7 +193,7 @@ import { Dialog } from '@/utils/dialog'
 import { feedback } from '@/utils/feedback'
 import { useGmContext } from '../../context'
 import { downloadCsv, fetchAllPages, fmtDateTime, fmtShort, useRewardLabels } from '../mail/shared'
-import BatchDrawer from './BatchDrawer.vue'
+import BatchDialog from './BatchDialog.vue'
 
 defineOptions({ name: 'GmCodesTab' })
 
@@ -337,15 +337,15 @@ const select = async (b: GiftCodeBatch, scroll = true) => {
 }
 
 // ---- 新建 / 编辑 / 停用 ----
-const drawerOpen = ref(false)
+const dialogOpen = ref(false)
 const editing = ref<GiftCodeBatch>()
 const openCreate = () => {
   editing.value = undefined
-  drawerOpen.value = true
+  dialogOpen.value = true
 }
 const openEdit = () => {
   editing.value = detail.value?.batch
-  drawerOpen.value = true
+  dialogOpen.value = true
 }
 const onSaved = async (b: GiftCodeBatch) => {
   await reload()

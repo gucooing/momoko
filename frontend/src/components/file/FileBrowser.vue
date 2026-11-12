@@ -4,7 +4,7 @@
      文件编辑为弹窗（FileEditor）。手机：单栏列表 + 上传进度卡，行「⋯」打开底部操作面板，右下角悬浮上传按钮。
      逻辑全部复用 fileClient（scope 无关，系统级/实例级同构）。 -->
 <template>
-  <div class="fb" :class="{ 'is-mobile': isMobile }">
+  <div class="fb" :class="{ 'is-mobile': isMobile, 'fb--inset': inset }">
     <div class="fb__inner">
       <!-- 页头（手机端由 PageHeader 自带深浅色切换；实例文件页内嵌时不带返回/切换） -->
       <PageHeader
@@ -652,6 +652,8 @@ const props = defineProps<{
   initialPath?: string
   // 系统级：初始打开的文件来源 id（如从文件源页「浏览」进入）；空=本地磁盘
   initialSourceId?: string
+  // 嵌在已有内边距、自己会滚动的页面里（如游戏服务器的「文件」标签）：不再加整页内边距、背景与内部滚动
+  inset?: boolean
 }>()
 
 const { t } = useI18n()
@@ -1666,6 +1668,18 @@ defineExpose({ refresh, navigateTo, switchSource })
   min-height: 100%;
 }
 
+/* 嵌入模式：外层页面已有内边距与滚动，这里与页面里其他内容对齐 */
+.fb.fb--inset {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+  padding: 0;
+  background: transparent;
+}
+.fb.fb--inset .fb__inner {
+  max-width: none;
+}
+
 /* ===== 页头（PageHeader） ===== */
 /* 内嵌在应用详情「文件」标签里：外层已有应用名与目录条，不再重复大标题 */
 .fb-head--embedded :deep(.page-header__title) {
@@ -2654,6 +2668,9 @@ defineExpose({ refresh, navigateTo, switchSource })
 /* ===== 手机 ===== */
 .fb.is-mobile {
   padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+}
+.fb.fb--inset.is-mobile {
+  padding: 0 0 calc(96px + env(safe-area-inset-bottom));
 }
 .fb.is-mobile .fb__inner {
   gap: 12px;

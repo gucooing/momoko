@@ -158,6 +158,7 @@ var servicePrefixPermissions = []struct {
 	{"/v1.MonitorManager/", constant.MonitorView},
 	{"/v1.GameServerService/", constant.GameServer},
 	{"/v1.GameGMService/", constant.GameGM},
+	{"/v1.gakumas.GakumasGMService/", constant.GameGM},
 	{"/v1.GameOpsService/", constant.GameGM},
 	{"/v1.PassportAdminService/", constant.GamePassport},
 }

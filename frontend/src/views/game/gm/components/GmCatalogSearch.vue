@@ -1,4 +1,4 @@
-<!-- 目录搜索：按名称（当前语言的译名或游戏原文名）搜索 MGP 目录（每次最多 30 条，按需请求，不拉全量），点选一条。 -->
+<!-- 目录搜索：按名称（当前语言的译名或游戏原文名）搜索目录（每次最多 30 条，按需请求，不拉全量），点选一条。 -->
 <template>
   <div class="gcs">
     <label class="gcs__search">
@@ -7,7 +7,7 @@
     </label>
     <div class="gcs__list" role="listbox">
       <button
-        v-for="entry in items"
+        v-for="entry in visible"
         :key="entry.id"
         type="button"
         role="option"
@@ -24,14 +24,14 @@
       </button>
       <div v-if="loading" class="gcs__hint">{{ t('gm.catalog.loading') }}</div>
       <div v-else-if="error" class="gcs__hint">{{ error }}</div>
-      <div v-else-if="!items.length" class="gcs__hint">{{ t('gm.catalog.empty') }}</div>
+      <div v-else-if="!visible.length" class="gcs__hint">{{ t('gm.catalog.empty') }}</div>
       <button v-if="nextCursor && !loading" type="button" class="gcs__more" @click="load(true)">{{ t('gm.catalog.more') }}</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
 import { gameCatalogImage } from '@/games'
@@ -46,6 +46,8 @@ const props = defineProps<{
   rarity?: string | number
   /** 只列出可以作为礼物发放的条目（resourceType 非 0） */
   grantableOnly?: boolean
+  /** 不列出的条目（已经选上的，避免在下面重复出现） */
+  excludeIds?: string[]
 }>()
 const emit = defineEmits<{ pick: [entry: CatalogEntry] }>()
 
@@ -61,6 +63,11 @@ const loading = ref(false)
 const error = ref('')
 let seq = 0
 
+const visible = computed(() => {
+  const ex = new Set(props.excludeIds || [])
+  return ex.size ? items.value.filter((e) => !ex.has(e.id)) : items.value
+})
+
 const image = (entry: CatalogEntry) => gameCatalogImage(ctx.game.value, props.kind, entry)
 
 const load = async (more = false) => {
@@ -71,7 +78,7 @@ const load = async (more = false) => {
     const page = await ctx.catalog(props.kind, {
       q: q.value.trim() || undefined,
       characterId: props.characterId,
-      rarity: props.rarity,
+      rarity: Number(props.rarity) || undefined,
       limit: PAGE,
       cursor: more ? nextCursor.value : undefined,
     })

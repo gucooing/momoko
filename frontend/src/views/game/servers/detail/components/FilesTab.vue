@@ -1,7 +1,7 @@
 <!-- 文件：服务端目录（复用应用实例的文件管理组件，接口为游戏服务器的同构文件接口）。 -->
 <template>
   <div class="fs">
-    <FileBrowser :key="id" :scope="{ kind: 'instance', id }" :client="client" />
+    <FileBrowser :key="id" :scope="{ kind: 'instance', id }" :client="client" inset />
   </div>
 </template>
 
@@ -18,11 +18,6 @@ const client = computed(() => createGameServerFileClient(id.value))
 
 <style scoped lang="scss">
 .fs {
-  min-height: 560px;
-  display: flex;
-  flex-direction: column;
-}
-.fs > :deep(*) {
-  flex: 1;
+  min-width: 0;
 }
 </style>

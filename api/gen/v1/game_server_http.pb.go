@@ -21,6 +21,7 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationGameServerServiceCancelGameServerTask = "/v1.GameServerService/CancelGameServerTask"
 const OperationGameServerServiceCheckGameServerBuild = "/v1.GameServerService/CheckGameServerBuild"
+const OperationGameServerServiceClearGameServerConsole = "/v1.GameServerService/ClearGameServerConsole"
 const OperationGameServerServiceCompressGameServerFiles = "/v1.GameServerService/CompressGameServerFiles"
 const OperationGameServerServiceControlGameServer = "/v1.GameServerService/ControlGameServer"
 const OperationGameServerServiceCopyGameServerFile = "/v1.GameServerService/CopyGameServerFile"
@@ -69,6 +70,8 @@ type GameServerServiceHTTPServer interface {
 	CancelGameServerTask(context.Context, *CancelGameServerTaskRequest) (*GameServerTask, error)
 	// CheckGameServerBuild 检查候选构建（路径为服务端目录内的相对路径或本机绝对路径）
 	CheckGameServerBuild(context.Context, *CheckGameServerBuildRequest) (*GameServerBuildInfo, error)
+	// ClearGameServerConsole 清空托管进程控制台的输出记录（重新连接时不再回放）
+	ClearGameServerConsole(context.Context, *ClearGameServerConsoleRequest) (*ClearGameServerConsoleResponse, error)
 	CompressGameServerFiles(context.Context, *BatchCompressInstanceFileRequest) (*BatchCompressInstanceFileResponse, error)
 	// ControlGameServer 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
 	ControlGameServer(context.Context, *ControlGameServerRequest) (*GameServerInfo, error)
@@ -79,7 +82,7 @@ type GameServerServiceHTTPServer interface {
 	CreateGameServerBackup(context.Context, *CreateGameServerBackupRequest) (*GameServerTaskResponse, error)
 	CreateGameServerFile(context.Context, *CreateInstanceFileRequest) (*CreateInstanceFileResponse, error)
 	CutGameServerFile(context.Context, *CutInstanceFileRequest) (*CutInstanceFileResponse, error)
-	// DeleteGameServer 删除服务器（只删除接入记录与 Momoko 侧数据；托管的应用实例按 delete_instances 决定）
+	// DeleteGameServer 删除服务器（删除接入记录与 Momoko 侧数据；托管时同时停止并删除它的托管进程）
 	DeleteGameServer(context.Context, *DeleteGameServerRequest) (*DeleteGameServerResponse, error)
 	DeleteGameServerBackup(context.Context, *DeleteGameServerBackupRequest) (*DeleteGameServerBackupResponse, error)
 	DeleteGameServerFiles(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error)
@@ -155,6 +158,7 @@ func RegisterGameServerServiceHTTPServer(s *http.Server, srv GameServerServiceHT
 	r.POST("/api/v1/game/servers/{id}/mode", _GameServerService_SwitchGameServerMode0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/servers/{id}/rotate-key", _GameServerService_RotateGameServerKey0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/servers/{id}/control", _GameServerService_ControlGameServer0_HTTP_Handler(srv))
+	r.POST("/api/v1/game/servers/{id}/console/clear", _GameServerService_ClearGameServerConsole0_HTTP_Handler(srv))
 	r.PUT("/api/v1/game/servers/{id}/hosting", _GameServerService_UpdateGameServerHosting0_HTTP_Handler(srv))
 	r.GET("/api/v1/game/servers/{id}/overview", _GameServerService_GetGameServerOverview0_HTTP_Handler(srv))
 	r.GET("/api/v1/game/servers/{id}/settings", _GameServerService_GetGameServerSettings0_HTTP_Handler(srv))
@@ -458,6 +462,31 @@ func _GameServerService_ControlGameServer0_HTTP_Handler(srv GameServerServiceHTT
 			return err
 		}
 		reply := out.(*GameServerInfo)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _GameServerService_ClearGameServerConsole0_HTTP_Handler(srv GameServerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ClearGameServerConsoleRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationGameServerServiceClearGameServerConsole)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ClearGameServerConsole(ctx, req.(*ClearGameServerConsoleRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ClearGameServerConsoleResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1222,6 +1251,8 @@ type GameServerServiceHTTPClient interface {
 	CancelGameServerTask(ctx context.Context, req *CancelGameServerTaskRequest, opts ...http.CallOption) (rsp *GameServerTask, err error)
 	// CheckGameServerBuild 检查候选构建（路径为服务端目录内的相对路径或本机绝对路径）
 	CheckGameServerBuild(ctx context.Context, req *CheckGameServerBuildRequest, opts ...http.CallOption) (rsp *GameServerBuildInfo, err error)
+	// ClearGameServerConsole 清空托管进程控制台的输出记录（重新连接时不再回放）
+	ClearGameServerConsole(ctx context.Context, req *ClearGameServerConsoleRequest, opts ...http.CallOption) (rsp *ClearGameServerConsoleResponse, err error)
 	CompressGameServerFiles(ctx context.Context, req *BatchCompressInstanceFileRequest, opts ...http.CallOption) (rsp *BatchCompressInstanceFileResponse, err error)
 	// ControlGameServer 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
 	ControlGameServer(ctx context.Context, req *ControlGameServerRequest, opts ...http.CallOption) (rsp *GameServerInfo, err error)
@@ -1232,7 +1263,7 @@ type GameServerServiceHTTPClient interface {
 	CreateGameServerBackup(ctx context.Context, req *CreateGameServerBackupRequest, opts ...http.CallOption) (rsp *GameServerTaskResponse, err error)
 	CreateGameServerFile(ctx context.Context, req *CreateInstanceFileRequest, opts ...http.CallOption) (rsp *CreateInstanceFileResponse, err error)
 	CutGameServerFile(ctx context.Context, req *CutInstanceFileRequest, opts ...http.CallOption) (rsp *CutInstanceFileResponse, err error)
-	// DeleteGameServer 删除服务器（只删除接入记录与 Momoko 侧数据；托管的应用实例按 delete_instances 决定）
+	// DeleteGameServer 删除服务器（删除接入记录与 Momoko 侧数据；托管时同时停止并删除它的托管进程）
 	DeleteGameServer(ctx context.Context, req *DeleteGameServerRequest, opts ...http.CallOption) (rsp *DeleteGameServerResponse, err error)
 	DeleteGameServerBackup(ctx context.Context, req *DeleteGameServerBackupRequest, opts ...http.CallOption) (rsp *DeleteGameServerBackupResponse, err error)
 	DeleteGameServerFiles(ctx context.Context, req *BatchDeleteInstanceFileRequest, opts ...http.CallOption) (rsp *BatchDeleteInstanceFileResponse, err error)
@@ -1322,6 +1353,20 @@ func (c *GameServerServiceHTTPClientImpl) CheckGameServerBuild(ctx context.Conte
 	pattern := "/api/v1/game/servers/{id}/build/check"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationGameServerServiceCheckGameServerBuild))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ClearGameServerConsole 清空托管进程控制台的输出记录（重新连接时不再回放）
+func (c *GameServerServiceHTTPClientImpl) ClearGameServerConsole(ctx context.Context, in *ClearGameServerConsoleRequest, opts ...http.CallOption) (*ClearGameServerConsoleResponse, error) {
+	var out ClearGameServerConsoleResponse
+	pattern := "/api/v1/game/servers/{id}/console/clear"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationGameServerServiceClearGameServerConsole))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1424,7 +1469,7 @@ func (c *GameServerServiceHTTPClientImpl) CutGameServerFile(ctx context.Context,
 	return &out, nil
 }
 
-// DeleteGameServer 删除服务器（只删除接入记录与 Momoko 侧数据；托管的应用实例按 delete_instances 决定）
+// DeleteGameServer 删除服务器（删除接入记录与 Momoko 侧数据；托管时同时停止并删除它的托管进程）
 func (c *GameServerServiceHTTPClientImpl) DeleteGameServer(ctx context.Context, in *DeleteGameServerRequest, opts ...http.CallOption) (*DeleteGameServerResponse, error) {
 	var out DeleteGameServerResponse
 	pattern := "/api/v1/game/servers/{id}"

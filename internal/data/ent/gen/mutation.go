@@ -20514,7 +20514,6 @@ type GmExecutionMutation struct {
 	params            *string
 	summary           *map[string]string
 	reason            *string
-	confirmed         *bool
 	dry_run           *bool
 	status            *gmexecution.Status
 	result            *string
@@ -21399,42 +21398,6 @@ func (m *GmExecutionMutation) ResetReason() {
 	m.reason = nil
 }
 
-// SetConfirmed sets the "confirmed" field.
-func (m *GmExecutionMutation) SetConfirmed(b bool) {
-	m.confirmed = &b
-}
-
-// Confirmed returns the value of the "confirmed" field in the mutation.
-func (m *GmExecutionMutation) Confirmed() (r bool, exists bool) {
-	v := m.confirmed
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldConfirmed returns the old "confirmed" field's value of the GmExecution entity.
-// If the GmExecution object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GmExecutionMutation) OldConfirmed(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldConfirmed is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldConfirmed requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldConfirmed: %w", err)
-	}
-	return oldValue.Confirmed, nil
-}
-
-// ResetConfirmed resets all changes to the "confirmed" field.
-func (m *GmExecutionMutation) ResetConfirmed() {
-	m.confirmed = nil
-}
-
 // SetDryRun sets the "dry_run" field.
 func (m *GmExecutionMutation) SetDryRun(b bool) {
 	m.dry_run = &b
@@ -22131,7 +22094,7 @@ func (m *GmExecutionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GmExecutionMutation) Fields() []string {
-	fields := make([]string, 0, 36)
+	fields := make([]string, 0, 35)
 	if m.create_time != nil {
 		fields = append(fields, gmexecution.FieldCreateTime)
 	}
@@ -22188,9 +22151,6 @@ func (m *GmExecutionMutation) Fields() []string {
 	}
 	if m.reason != nil {
 		fields = append(fields, gmexecution.FieldReason)
-	}
-	if m.confirmed != nil {
-		fields = append(fields, gmexecution.FieldConfirmed)
 	}
 	if m.dry_run != nil {
 		fields = append(fields, gmexecution.FieldDryRun)
@@ -22286,8 +22246,6 @@ func (m *GmExecutionMutation) Field(name string) (ent.Value, bool) {
 		return m.Summary()
 	case gmexecution.FieldReason:
 		return m.Reason()
-	case gmexecution.FieldConfirmed:
-		return m.Confirmed()
 	case gmexecution.FieldDryRun:
 		return m.DryRun()
 	case gmexecution.FieldStatus:
@@ -22367,8 +22325,6 @@ func (m *GmExecutionMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldSummary(ctx)
 	case gmexecution.FieldReason:
 		return m.OldReason(ctx)
-	case gmexecution.FieldConfirmed:
-		return m.OldConfirmed(ctx)
 	case gmexecution.FieldDryRun:
 		return m.OldDryRun(ctx)
 	case gmexecution.FieldStatus:
@@ -22542,13 +22498,6 @@ func (m *GmExecutionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetReason(v)
-		return nil
-	case gmexecution.FieldConfirmed:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetConfirmed(v)
 		return nil
 	case gmexecution.FieldDryRun:
 		v, ok := value.(bool)
@@ -22839,9 +22788,6 @@ func (m *GmExecutionMutation) ResetField(name string) error {
 		return nil
 	case gmexecution.FieldReason:
 		m.ResetReason()
-		return nil
-	case gmexecution.FieldConfirmed:
-		m.ResetConfirmed()
 		return nil
 	case gmexecution.FieldDryRun:
 		m.ResetDryRun()

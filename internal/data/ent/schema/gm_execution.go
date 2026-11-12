@@ -1,12 +1,34 @@
 package schema
 
 import (
+	"encoding/json"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
 
-// GmTarget 指令目标快照。
+// GmOutcome GM 记录里一个目标的结果（result 列的 JSON 数组元素）：状态、错误与游戏服务端返回的内容（失败时为空）。
+// 管理端执行、审批后的执行与玩家自助都按这个格式写入。
+type GmOutcome struct {
+	PID     string          `json:"pid"`
+	Name    string          `json:"name"`
+	Status  string          `json:"status"`
+	Code    string          `json:"code,omitempty"`
+	Message string          `json:"message,omitempty"`
+	Data    json.RawMessage `json:"data,omitempty"`
+}
+
+// ParseGmOutcomes 读出 result 列里逐个目标的结果（空或无法解析时为空）。
+func ParseGmOutcomes(result string) []GmOutcome {
+	var out []GmOutcome
+	if result != "" {
+		_ = json.Unmarshal([]byte(result), &out)
+	}
+	return out
+}
+
+// GmTarget 操作目标快照。
 type GmTarget struct {
 	PID       string `json:"pid"`
 	Name      string `json:"name,omitempty"`
@@ -38,7 +60,6 @@ func (GmExecution) Fields() []ent.Field {
 		field.Text("params").Default("").Sensitive().Comment("请求参数（只存不展示）"),
 		field.JSON("summary", map[string]string{}).Optional().Comment("可展示的摘要参数（礼物文案、邮件标题、配置 revision 等，不含参数原文；前端本地化）"),
 		field.String("reason").Default("").Comment("玩家自助申请理由"),
-		field.Bool("confirmed").Default(false).Comment("执行前输入了玩家昵称确认（危险指令）"),
 		field.Bool("dry_run").Default(false).Comment("是否试运行"),
 		field.Enum("status").Values("success", "partial", "failed", "pending", "running", "rejected").Comment("状态"),
 		field.Text("result").Default("").Comment("MGP 返回的结果（results / summary 的 JSON）"),

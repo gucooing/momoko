@@ -198,7 +198,7 @@
 import { computed, onActivated, onMounted, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { getGmConfig } from '@/api/gameGm'
+import { gashaConfig, homeConfig, loginBonusConfig, noticeConfig, pvpRateConfig, researchConfig, storyEventConfig, type GakumasConfigApi } from '@/api/gakumas'
 import { getRequestErrorMessage } from '@/utils/request'
 import { useGmContext } from '../../context'
 import { GM_TABS } from '../../tabs'
@@ -221,17 +221,26 @@ const zone = clock.zone
 const zoneLabel = computed(() => `${zone.value} · ${offsetLabel(zone.value, clock.now.value)}`)
 const fmt = (ms: number) => formatZoned(ms, zone.value)
 
-// ---- 读取配置域（每次访问一次） ----
+// ---- 读取配置文档（每次访问一次） ----
+const CONFIGS: Record<string, GakumasConfigApi> = {
+  gasha: gashaConfig,
+  notice: noticeConfig,
+  pvpRate: pvpRateConfig,
+  home: homeConfig,
+  research: researchConfig,
+  storyEvent: storyEventConfig,
+  loginBonus: loginBonusConfig,
+}
 const domains = shallowRef(new Map<string, DomainContent>())
 const failures = ref<{ domain: string; error: string }[]>([])
 const loading = ref(false)
 
 const load = async () => {
   const serverId = ctx.serverId.value
-  const needed = [...new Set(LANES.flatMap((l) => l.domains))].filter((d) => ctx.hasConfig(d))
+  const needed = [...new Set(LANES.flatMap((l) => l.domains))].filter((d) => !!CONFIGS[d])
   loading.value = true
   try {
-    const results = await Promise.allSettled(needed.map((d) => getGmConfig(serverId, d)))
+    const results = await Promise.allSettled(needed.map((d) => CONFIGS[d]!.get(serverId)))
     const next = new Map<string, DomainContent>()
     const failed: { domain: string; error: string }[] = []
     results.forEach((r, i) => {
@@ -241,7 +250,7 @@ const load = async () => {
         return
       }
       try {
-        const { data } = r.value
+        const data = r.value
         const draft = data.domain?.draft
         next.set(domain, {
           domain,
@@ -365,8 +374,8 @@ const periodText = (x: CalItem) => {
 }
 const barTitle = (x: CalItem) => [x.title, periodText(x), x.sub].filter(Boolean).join('\n')
 
-// 条目来自哪份配置：显示配置的标题（manifest configs[].title）
-const sourceTitle = (domain: string) => ctx.manifest.value?.configs?.find((c) => c.id === domain)?.title || ''
+// 条目来自哪份配置：显示配置的标题
+const sourceTitle = (domain: string) => domains.value.get(domain)?.title || ''
 
 const selected = ref<CalItem | null>(null)
 

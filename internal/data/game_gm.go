@@ -14,9 +14,9 @@ import (
 	entlink "momoko/internal/data/ent/gen/gameaccountlink"
 	entrevision "momoko/internal/data/ent/gen/gameconfigrevision"
 	entexec "momoko/internal/data/ent/gen/gmexecution"
-	"momoko/internal/data/ent/gen/predicate"
 	entselfservice "momoko/internal/data/ent/gen/gmselfservice"
 	entpuser "momoko/internal/data/ent/gen/passportuser"
+	"momoko/internal/data/ent/gen/predicate"
 )
 
 type gmRepo struct {
@@ -50,7 +50,6 @@ func (r *gmRepo) CreateExecution(ctx context.Context, e *gen.GmExecution) (*gen.
 		SetParams(e.Params).
 		SetSummary(e.Summary).
 		SetReason(e.Reason).
-		SetConfirmed(e.Confirmed).
 		SetDryRun(e.DryRun).
 		SetStatus(e.Status).
 		SetRequestID(e.RequestID).
@@ -62,7 +61,6 @@ func (r *gmRepo) SaveExecution(ctx context.Context, e *gen.GmExecution) (*gen.Gm
 	u := r.data.db.GmExecution.UpdateOneID(e.ID).
 		SetTargets(e.Targets).
 		SetSummary(e.Summary).
-		SetConfirmed(e.Confirmed).
 		SetStatus(e.Status).
 		SetResult(e.Result).
 		SetSuccessCount(e.SuccessCount).

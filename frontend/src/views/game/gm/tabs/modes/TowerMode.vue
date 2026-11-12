@@ -1,4 +1,4 @@
-<!-- 玩法 · 塔：塔列表来自 MGP 塔目录（ID 与层数），选一座塔看当前排行季每个玩家到达的最高层与到达时间（MGP tower 报表，搜索玩家、分页）。 -->
+<!-- 玩法 · 塔：塔列表来自塔目录（ID 与层数），选一座塔看当前排行季每个玩家到达的最高层与到达时间（塔排名接口，搜索玩家、分页）。 -->
 <template>
   <div class="pv">
     <div class="pv__line">
@@ -17,8 +17,8 @@
           <span v-if="tw.type" class="tw__count m-num">{{ t('gmData.tower.layers', { n: tw.type }) }}</span>
         </button>
       </div>
-      <span v-if="list.summary.value?.seasonStart" class="pv__hint">
-        {{ t('gmData.tower.season', { date: date(list.summary.value.seasonStart) }) }}
+      <span v-if="list.summary.value" class="pv__hint">
+        {{ t('gmData.tower.season', { date: date(list.summary.value) }) }}
       </span>
       <span class="pv__spacer" />
       <label class="tw__search">
@@ -64,16 +64,14 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
-import { getGmReport, mgpQuery } from '@/api/gameGm'
+import { getTowerRanking } from '@/api/gakumas'
 import { getRequestErrorMessage } from '@/utils/request'
-import type { CatalogEntry, ManifestEntry } from '@/games/mgp'
-import type { TowerEntry, TowerReport, TowerReportSummary } from '@/games/gakumas/types'
+import type { CatalogEntry } from '@/games/mgp'
+import type { TowerRank } from '@/types/v1/gakumas/types'
 import { useGmContext } from '../../context'
 import PlayerAvatar from '../../player/shared/PlayerAvatar.vue'
 import { useGmFormat } from '../../player/shared/format'
 import { usePagedList } from '../../player/shared/paging'
-
-const props = defineProps<{ mode: ManifestEntry }>()
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -99,8 +97,12 @@ const loadTowers = async () => {
 void loadTowers()
 
 const keyword = ref('')
-const list = usePagedList<TowerEntry, TowerReportSummary>(
-  (q) => getGmReport<TowerReport>(ctx.serverId.value, props.mode.id, mgpQuery({ towerId: towerId.value, q: keyword.value.trim(), ...q })),
+// summary 为排行季开始时间（不在排行季为 0）
+const list = usePagedList<TowerRank, number>(
+  async (q) => {
+    const page = await getTowerRanking({ serverId: ctx.serverId.value, towerId: towerId.value, q: keyword.value.trim(), cursor: q.cursor, limit: q.limit })
+    return { items: page.items, nextCursor: page.nextCursor, total: page.total, summary: page.seasonStart }
+  },
   { pageSize: 20 },
 )
 watch(towerId, (id) => {

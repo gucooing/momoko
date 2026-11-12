@@ -1,5 +1,5 @@
 <!-- 培育结果列表：玩家详情的「培育记录」与玩法页的全服培育列表共用。
-     剧本（培育组）与难度（培育）名称来自 MGP 目录；偶像显示角色名与卡面。手机端为卡片。 -->
+     剧本（培育组）与难度（培育）名称来自 MGP 目录；偶像显示角色名与卡面。手机端为卡片。openable 时行可点开（发出 open）。 -->
 <template>
   <div class="ptab">
     <DataTable
@@ -9,6 +9,8 @@
       row-key="memoryId"
       :loading="loading"
       :empty-text="emptyText"
+      :row-clickable="openable"
+      @row-click="(row) => openable && emit('open', r(row))"
     >
       <template #cell-time="{ row }">
         <span class="ptab__dim m-num">{{ when(r(row).createdTime) }}</span>
@@ -45,7 +47,13 @@
     <template v-else>
       <EmptyState v-if="!loading && !rows.length" icon="HOutline:SparklesIcon" :title="emptyText" />
       <div v-else class="ptab__cards">
-        <article v-for="row in rows" :key="row.memoryId" class="ptab__mcard">
+        <article
+          v-for="row in rows"
+          :key="row.memoryId"
+          class="ptab__mcard"
+          :class="{ 'is-clickable': openable }"
+          @click="openable && emit('open', row)"
+        >
           <GameImage :src="cardImage(row)" class="ptab__mimg" width="52" height="52" />
           <div class="ptab__mbody">
             <div class="ptab__mline">
@@ -88,11 +96,23 @@ export interface ProduceRow extends Memory {
   produceGroupId?: string
 }
 
-const props = withDefaults(defineProps<{ rows: ProduceRow[]; loading?: boolean; showPlayer?: boolean; emptyText?: string }>(), {
-  loading: false,
-  showPlayer: false,
-  emptyText: '',
-})
+const props = withDefaults(
+  defineProps<{
+    rows: ProduceRow[]
+    loading?: boolean
+    showPlayer?: boolean
+    emptyText?: string
+    /** 行可点开（发出 open） */
+    openable?: boolean
+  }>(),
+  {
+    loading: false,
+    showPlayer: false,
+    emptyText: '',
+    openable: false,
+  },
+)
+const emit = defineEmits<{ open: [row: ProduceRow] }>()
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -177,6 +197,9 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
+}
+.ptab__mcard.is-clickable {
+  cursor: pointer;
 }
 .ptab__mimg {
   flex: none;

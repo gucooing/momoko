@@ -1,18 +1,18 @@
 <!-- 道具：未过期且数量大于 0 的道具栈（名称与图片来自 MGP 道具目录，只查当前页）、数量、期限；
      有 item.adjust 指令时每行可以「调整」（预填这个道具，走通用指令对话框，只需填数量）。手机端为卡片。
-     按名称模糊搜索：输入后读出全部道具在本地筛选（当前语言的译名与原文名都能搜）。 -->
+     按名称搜索：关键字解析成道具 ID（当前语言的译名与原文名都能搜）后由服务端筛选分页。 -->
 <template>
   <div class="pv">
-    <ListToolbar v-model:keyword="keyword" :placeholder="t('gmData.items.search')" />
-    <div v-if="list.error.value || searchError" class="pv__error">{{ list.error.value || searchError }}</div>
+    <ListToolbar v-model:keyword="search.keyword.value" :placeholder="t('gmData.items.search')" />
+    <div v-if="list.error.value || search.error.value" class="pv__error">{{ list.error.value || search.error.value }}</div>
 
     <DataTable
       v-if="!menuStore.isMobile"
       :columns="columns"
       :rows="rows"
       row-key="key"
-      :loading="list.loading.value || searchLoading"
-      :empty-text="searching ? t('gmData.common.noMatch') : t('gmData.items.empty')"
+      :loading="list.loading.value || search.loading.value"
+      :empty-text="search.active.value ? t('gmData.common.noMatch') : t('gmData.items.empty')"
     >
       <template #cell-item="{ row }">
         <span class="pv__cell">
@@ -36,11 +36,11 @@
     </DataTable>
 
     <template v-else>
-      <div v-if="searchLoading" class="pv__hint">{{ t('gmData.common.searching') }}</div>
+      <div v-if="search.loading.value" class="pv__hint">{{ t('gmData.common.searching') }}</div>
       <EmptyState
         v-else-if="!list.loading.value && !shownItems.length"
         icon="HOutline:CubeIcon"
-        :title="searching ? t('gmData.common.noMatch') : t('gmData.items.empty')"
+        :title="search.active.value ? t('gmData.common.noMatch') : t('gmData.items.empty')"
       />
       <div v-else class="pv__mcards">
         <article v-for="item in shownItems" :key="`${item.itemId}:${item.expiryTime}`" class="pv__mcard">
@@ -63,10 +63,7 @@
       </div>
     </template>
 
-    <div v-if="searching" class="pv__foot">
-      <span class="m-num">{{ t('gmData.common.matched', { n: shownItems.length }) }}</span>
-    </div>
-    <div v-else-if="list.total.value" class="pv__foot">
+    <div v-if="list.total.value" class="pv__foot">
       <span class="m-num">{{ t('gmData.items.total', { n: list.total.value }) }}</span>
       <Pagination v-model:page="list.page.value" v-model:page-size="list.pageSize.value" :total="list.total.value" @change="list.load()" />
     </div>
@@ -76,18 +73,15 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmPlayerView, mgpQuery } from '@/api/gameGm'
+import { listPlayerItems } from '@/api/gakumas'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
-import type { ListPage, ManifestView } from '@/games/mgp'
 import type { Item } from '@/games/gakumas/types'
 import { useGmContext } from '../../context'
 import { usePlayerPage } from '../context'
 import { useGmFormat } from '../shared/format'
 import { useCatalogLookup } from '../shared/lookup'
-import { fetchAllPages, usePagedList } from '../shared/paging'
-import { useNameSearch } from '../shared/search'
-
-const props = defineProps<{ view?: ManifestView }>()
+import { usePagedList, type PageQuery } from '../shared/paging'
+import { catalogEntries, useIdSearch } from '../shared/search'
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -96,23 +90,23 @@ const lookup = useCatalogLookup()
 const menuStore = useMenuStore()
 const { num, dateTime } = useGmFormat()
 
-const fetchPage = (q: { cursor: string; limit: number }) =>
-  getGmPlayerView<ListPage<Item>>(ctx.serverId.value, page.pid.value, props.view?.id || 'items', mgpQuery({ ...q }))
-const list = usePagedList<Item>(fetchPage, { pageSize: 20 })
-watch(page.version, () => void list.load(), { immediate: true })
+const search = useIdSearch(async (q) => (await catalogEntries(ctx, 'item', { q })).map((e) => e.id))
 
-const {
-  keyword,
-  active: searching,
-  results,
-  loading: searchLoading,
-  error: searchError,
-} = useNameSearch<Item>({
-  fetchAll: () => fetchAllPages(fetchPage),
-  names: (x) => lookup.names('item', x.itemId),
-  version: page.version,
-})
-const shownItems = computed(() => (searching.value ? results.value : list.items.value))
+const fetchPage = async (q: PageQuery) => {
+  if (search.none.value) return { items: [], nextCursor: '', total: 0 }
+  return listPlayerItems({
+    serverId: ctx.serverId.value,
+    pid: page.pid.value,
+    type: 0,
+    itemIds: search.ids.value || [],
+    cursor: q.cursor,
+    limit: q.limit,
+  })
+}
+const list = usePagedList<Item>(fetchPage, { pageSize: 20 })
+watch([page.version, search.ids], () => void list.reload(), { immediate: true })
+
+const shownItems = computed(() => list.items.value)
 
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'item', title: t('gmData.items.item'), minWidth: 220 },
@@ -123,7 +117,7 @@ const columns = computed<DataTableColumn[]>(() => [
 const rows = computed(() => shownItems.value.map((x) => ({ ...x, key: `${x.itemId}:${x.expiryTime}` })) as unknown as Record<string, unknown>[])
 const it = (row: Record<string, unknown>) => row as unknown as Item
 
-const canAdjust = computed(() => ctx.hasCommand('item.adjust'))
+const canAdjust = computed(() => !!ctx.operation('item.adjust'))
 const adjust = (itemId: string) => page.run('item.adjust', { itemId })
 </script>
 

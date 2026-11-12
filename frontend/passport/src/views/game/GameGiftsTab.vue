@@ -1,4 +1,5 @@
-<!-- 游戏空间 · 礼物箱（只读）：未领取 / 领取记录，按到期与来源筛选已加载的礼物。领取在游戏里完成。 -->
+<!-- 游戏空间 · 礼物箱（只读）：未领取 / 领取记录；未领取按今天到期、管理端发出、游戏内筛选，都由服务端筛选，页码分页。
+     领取在游戏里完成。 -->
 <template>
   <div class="gg">
     <div class="gg__bar">
@@ -55,9 +56,14 @@
           :title="emptyTitle"
         />
         <p v-if="state.error" class="pp-hint gg__err">{{ state.error }}</p>
-        <div v-if="state.cursor || state.loading" class="gg__more">
-          <PButton size="sm" :loading="state.loading" :disabled="!state.cursor" @click="load(true)">{{ t('game.loadMore') }}</PButton>
-        </div>
+        <PPager
+          v-if="state.loaded"
+          :page="state.page"
+          :total="state.total"
+          :page-size="PAGE"
+          :disabled="state.loading"
+          @update:page="(p) => void gifts.load(p)"
+        />
       </section>
       <aside class="gg__aside">
         <div class="pp-card gg__info">
@@ -73,23 +79,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { GiftIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import GameImage from '@/components/game/GameImage.vue'
-import PButton from '@passport/components/PButton.vue'
 import PEmpty from '@passport/components/PEmpty.vue'
+import PPager from '@passport/components/PPager.vue'
 import PPill from '@passport/components/PPill.vue'
-import { getGameView } from '@passport/api/passport'
-import { errorText, fmtLeft, fmtNum, fmtTime } from '@passport/utils/format'
-import type { ListPage } from '@/games/mgp'
+import { listMyGifts } from '@passport/api/gakumas'
+import { fmtLeft, fmtNum, fmtTime } from '@passport/utils/format'
+import { offsetCursor, usePagedList } from '@passport/utils/paged'
 import type { Gift } from '@/games/gakumas/types'
 import { useGameContext } from './context'
 
 type View = 'unreceived' | 'received'
 type Filter = 'all' | 'today' | 'admin' | 'ingame'
 
-const PAGE = 30
+const PAGE = 20
 const DAY = 86_400_000
 
 const { t } = useI18n()
@@ -98,7 +104,21 @@ const ctx = useGameContext()
 const view = ref<View>('unreceived')
 const filter = ref<Filter>('all')
 
-const state = reactive({ items: [] as Gift[], cursor: '', loading: false, error: '' })
+// 筛选 → 服务端的 source / expiring
+const sourceOf: Record<Filter, string> = { all: '', today: '', admin: 'admin', ingame: 'game' }
+const gifts = usePagedList<Gift>(
+  (page, size) =>
+    listMyGifts({
+      serverId: ctx.serverId.value,
+      state: view.value,
+      source: view.value === 'unreceived' ? sourceOf[filter.value] : '',
+      expiring: view.value === 'unreceived' && filter.value === 'today',
+      cursor: offsetCursor(page, size),
+      limit: size,
+    }),
+  PAGE,
+)
+const state = gifts.list
 
 const views = computed(() => [
   { key: 'unreceived' as View, label: t('game.gifts.unreceived') },
@@ -117,59 +137,21 @@ const filters = computed(() => {
   ]
 })
 
-let seq = 0
-
-async function load(more = false) {
-  if (state.loading && more) return
-  const id = ++seq
-  state.loading = true
-  state.error = ''
-  const forView = view.value
-  try {
-    const page = await getGameView<ListPage<Gift>>(ctx.serverId.value, 'giftBox', {
-      state: forView,
-      limit: PAGE,
-      cursor: more ? state.cursor : undefined,
-    })
-    if (id !== seq) return
-    state.items = more ? [...state.items, ...(page?.items ?? [])] : (page?.items ?? [])
-    state.cursor = page?.nextCursor || ''
-  } catch (e) {
-    if (id === seq) state.error = errorText(e)
-  } finally {
-    if (id === seq) state.loading = false
-  }
-}
-
+// 换视图回到「全部」；视图或筛选变化都从第一页重新读
 watch(
   view,
   () => {
-    filter.value = 'all'
-    state.items = []
-    state.cursor = ''
-    void load()
+    if (filter.value !== 'all') filter.value = 'all'
+    else void gifts.reload()
   },
   { immediate: true },
 )
+watch(filter, () => void gifts.reload())
 
-const expiresWithinDay = (g: Gift) => g.limitTime > 0 && g.limitTime - Date.now() <= DAY
-
-const shown = computed(() => {
-  if (view.value !== 'unreceived') return state.items
-  switch (filter.value) {
-    case 'today':
-      return state.items.filter(expiresWithinDay)
-    case 'admin':
-      return state.items.filter((g) => g.sourceKind !== 0)
-    case 'ingame':
-      return state.items.filter((g) => g.sourceKind === 0)
-    default:
-      return state.items
-  }
-})
+const shown = computed(() => state.items)
 
 const emptyTitle = computed(() => {
-  if (state.items.length) return t('game.gifts.emptyFiltered')
+  if (view.value === 'unreceived' && filter.value !== 'all') return t('game.gifts.emptyFiltered')
   return view.value === 'received' ? t('game.gifts.emptyReceived') : t('game.gifts.emptyTitle')
 })
 
@@ -273,11 +255,6 @@ const expiry = (g: Gift): { tone: 'ok' | 'warn' | 'bad' | 'off'; text: string } 
 }
 .gg__pill {
   justify-self: end;
-}
-.gg__more {
-  display: flex;
-  justify-content: center;
-  padding: 10px 0 4px;
 }
 .gg__err {
   color: var(--m-bad);

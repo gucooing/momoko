@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 	"sync"
 	"time"
@@ -109,8 +108,11 @@ var (
 	ErrPassportBindCooldown       = passportErr(409, "PASSPORT_BIND_COOLDOWN")
 	ErrPassportGameCredentials    = passportErr(400, "PASSPORT_GAME_CREDENTIALS_INVALID")
 	ErrPassportBindTooMany        = passportErr(429, "PASSPORT_BIND_TOO_MANY_ATTEMPTS")
+	ErrPassportSelfServiceClosed  = passportErr(403, "PASSPORT_SELF_SERVICE_CLOSED")
+	ErrPassportSelfServiceLimit   = passportErr(429, "PASSPORT_SELF_SERVICE_LIMIT")
+	ErrPassportSelfServiceWait    = passportErr(429, "PASSPORT_SELF_SERVICE_COOLDOWN")
+	ErrPassportSelfServicePending = passportErr(409, "PASSPORT_SELF_SERVICE_PENDING")
 	ErrPassportGameUnavailable    = passportErr(502, "PASSPORT_GAME_UNAVAILABLE")
-	ErrPassportViewNotFound       = passportErr(404, "PASSPORT_VIEW_NOT_FOUND")
 	ErrPassportAvatarAsset        = passportErr(400, "PASSPORT_AVATAR_ASSET_INVALID")
 	ErrPassportNameTooLong        = passportErr(400, "PASSPORT_NAME_TOO_LONG")
 	ErrPassportBioTooLong         = passportErr(400, "PASSPORT_BIO_TOO_LONG")
@@ -252,12 +254,14 @@ type PassportRepo interface {
 	DeleteGrant(ctx context.Context, userID, id string) error
 }
 
-// PassportUsecase 用户通行证：独立于 Momoko 管理后台用户的玩家账号体系（自己的账号、会话与令牌），
-// 绑定游戏账号、查看自己的游戏数据、玩家自助 GM（经 GmUsecase.ExecuteSelfService）、兑换码（经 GameOpsUsecase）。
-// 玩家端接口只注册在独立的 passport server 上；后台管理接口在主 server（PassportAdminService，权限 game:passport）。
+// PassportUsecase 用户通行证（玩家端）：独立于 Momoko 管理后台用户的玩家账号体系（自己的账号、会话与令牌），
+// 绑定游戏账号、游戏空间、玩家自助操作与兑换码。只服务注册在独立 passport server 上的玩家接口；
+// 后台管理（PassportAdminService）由 PassportAdminUsecase 负责，两边互不调用。
+// 自助操作与兑换码写进管理端也读写的表（GM 记录、玩家自助规则、兑换码），经 records / codes 访问。
 type PassportUsecase struct {
-	gm       *GmUsecase
-	ops      *GameOpsUsecase
+	servers  *GameServerUsecase
+	records  GmRepo
+	codes    GameOpsRepo
 	repo     PassportRepo
 	config   ConfigRepo
 	configUc *ConfigUsecase
@@ -278,6 +282,10 @@ type PassportUsecase struct {
 	oidcCodes *cache.Cache[string, expiring[oidcCode]]
 
 	bindLocks sync.Map
+	// selfServiceLocks 串行化同一玩家同一自助操作，避免并发绕过次数限制。
+	selfServiceLocks sync.Map
+	// redeemLocks 串行化同一玩家、同一批次的兑换。
+	redeemLocks sync.Map
 }
 
 // expiring 带过期时间的缓存值（pkg/cache 只做滑动清理，这里自己判断过期）。
@@ -293,10 +301,11 @@ type failCount struct {
 	First time.Time
 }
 
-func NewPassportUsecase(gm *GmUsecase, ops *GameOpsUsecase, repo PassportRepo, config ConfigRepo, configUc *ConfigUsecase, system *SystemUsecase, logger log.Logger) *PassportUsecase {
+func NewPassportUsecase(servers *GameServerUsecase, records GmRepo, codes GameOpsRepo, repo PassportRepo, config ConfigRepo, configUc *ConfigUsecase, system *SystemUsecase, logger log.Logger) *PassportUsecase {
 	uc := &PassportUsecase{
-		gm:            gm,
-		ops:           ops,
+		servers:       servers,
+		records:       records,
+		codes:         codes,
 		repo:          repo,
 		config:        config,
 		configUc:      configUc,
@@ -316,7 +325,7 @@ func NewPassportUsecase(gm *GmUsecase, ops *GameOpsUsecase, repo PassportRepo, c
 }
 
 // Servers 游戏服务器用例。
-func (uc *PassportUsecase) Servers() *GameServerUsecase { return uc.gm.Servers() }
+func (uc *PassportUsecase) Servers() *GameServerUsecase { return uc.servers }
 
 // ---------------- 设置 ----------------
 
@@ -332,14 +341,19 @@ func defaultPassportSettings() *v1.PassportSettings {
 
 // Settings 读取通行证设置（没保存过时为默认值）。
 func (uc *PassportUsecase) Settings(ctx context.Context) *v1.PassportSettings {
+	return passportSettings(ctx, uc.config, uc.log)
+}
+
+// passportSettings 读取通行证设置（没保存过时为默认值；玩家端按它运行，后台编辑它）。
+func passportSettings(ctx context.Context, config ConfigRepo, logger *log.Helper) *v1.PassportSettings {
 	out := defaultPassportSettings()
-	raw, err := uc.config.Get(ctx, common.ConfigPassportSettings)
+	raw, err := config.Get(ctx, common.ConfigPassportSettings)
 	if err != nil || strings.TrimSpace(raw) == "" {
 		return out
 	}
 	saved := &v1.PassportSettings{}
 	if err := protojson.Unmarshal([]byte(raw), saved); err != nil {
-		uc.log.Warnf("parse passport settings: %v", err)
+		logger.Warnf("parse passport settings: %v", err)
 		return out
 	}
 	normalizePassportSettings(saved)
@@ -361,30 +375,13 @@ func normalizePassportSettings(s *v1.PassportSettings) {
 	s.SiteName = strings.TrimSpace(s.SiteName)
 }
 
-// SaveSettings 保存通行证设置。
-func (uc *PassportUsecase) SaveSettings(ctx context.Context, s *v1.PassportSettings) (*v1.PassportSettings, error) {
-	switch s.RegisterMode {
-	case PassportRegisterOpen, PassportRegisterInviteOnly, PassportRegisterClosed:
-	default:
-		return nil, ErrPassportSettingsInvalid
-	}
-	if s.SessionDays < 1 || s.SessionDays > 365 || len([]rune(strings.TrimSpace(s.SiteName))) > 40 {
-		return nil, ErrPassportSettingsInvalid
-	}
-	normalizePassportSettings(s)
-	raw, err := protojson.Marshal(s)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if err := uc.config.BatchUpdate(ctx, map[common.ConfigKey]string{common.ConfigPassportSettings: string(raw)}); err != nil {
-		return nil, ErrSystem(err)
-	}
-	return s, nil
-}
-
 // EmailEnabled 是否配置并开启了邮件。
 func (uc *PassportUsecase) EmailEnabled(ctx context.Context) bool {
-	cfg, err := uc.config.EmailConfig(ctx)
+	return passportEmailEnabled(ctx, uc.config)
+}
+
+func passportEmailEnabled(ctx context.Context, config ConfigRepo) bool {
+	cfg, err := config.EmailConfig(ctx)
 	return err == nil && cfg.Enabled
 }
 
@@ -437,15 +434,6 @@ func displayName(u *gen.PassportUser) string {
 		return u.Name
 	}
 	return u.Username
-}
-
-// jsonRaw 把任意值编码成 JSON（出错时为 null）。
-func jsonRaw(v any) json.RawMessage {
-	raw, err := json.Marshal(v)
-	if err != nil {
-		return json.RawMessage("null")
-	}
-	return raw
 }
 
 // deletionLoop 定时删除注销期满的通行证。

@@ -14,7 +14,7 @@
               <SparklesIcon aria-hidden="true" />
             </span>
             <span class="gsv__fn-text">
-              <span class="gsv__fn-title">{{ f.title }}</span>
+              <span class="gsv__fn-title">{{ opTitle(f.command, f.title) }}</span>
               <span v-if="f.playerNote" class="pp-hint">{{ f.playerNote }}</span>
             </span>
           </div>
@@ -73,7 +73,7 @@
           <div v-if="requests.items.length" class="pp-rows">
             <div v-for="r in requests.items" :key="r.id" class="gsv__row">
               <span class="gsv__row-text">
-                <span class="gsv__row-t">{{ r.commandTitle || r.command }}</span>
+                <span class="gsv__row-t">{{ opTitle(r.command, r.commandTitle) }}</span>
                 <span class="pp-hint">{{ requestLine(r) }}</span>
                 <span v-if="r.reviewNote" class="pp-hint">{{ t('game.self.reviewNote', { note: r.reviewNote }) }}</span>
               </span>
@@ -81,9 +81,14 @@
             </div>
           </div>
           <span v-else-if="requests.loaded" class="pp-hint">{{ requests.error || t('game.self.requestsEmpty') }}</span>
-          <PButton v-if="requests.items.length < requests.total" size="sm" variant="ghost" :loading="requests.loading" @click="loadRequests(true)">
-            {{ t('game.loadMore') }}
-          </PButton>
+          <PPager
+            v-if="requests.loaded && requests.total"
+            :page="requests.page"
+            :total="requests.total"
+            :page-size="PAGE"
+            :disabled="requests.loading"
+            @update:page="(p) => void requestPages.load(p)"
+          />
         </div>
 
         <div class="pp-card gsv__box">
@@ -95,9 +100,14 @@
             </div>
           </div>
           <span v-else-if="records.loaded" class="pp-hint">{{ records.error || t('game.self.recordsEmpty') }}</span>
-          <PButton v-if="records.items.length < records.total" size="sm" variant="ghost" :loading="records.loading" @click="loadRecords(true)">
-            {{ t('game.loadMore') }}
-          </PButton>
+          <PPager
+            v-if="records.loaded && records.total"
+            :page="records.page"
+            :total="records.total"
+            :page-size="PAGE"
+            :disabled="records.loading"
+            @update:page="(p) => void recordPages.load(p)"
+          />
         </div>
       </aside>
     </div>
@@ -107,23 +117,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ShieldCheckIcon, SparklesIcon, TicketIcon } from '@heroicons/vue/24/outline'
 import GameImage from '@/components/game/GameImage.vue'
 import PButton from '@passport/components/PButton.vue'
+import PPager from '@passport/components/PPager.vue'
 import PEmpty from '@passport/components/PEmpty.vue'
 import PPill from '@passport/components/PPill.vue'
 import { listGameRecords, listGameRequests, listSelfService, redeemGiftCode } from '@passport/api/passport'
 import { useUiStore } from '@passport/stores/ui'
 import { errorText, fmtDuration, fmtNum, fmtTime, toDate } from '@passport/utils/format'
+import { usePagedList } from '@passport/utils/paged'
 import type { PassportGameRecord, PassportSelfService, RedeemPassportGiftCodeResponse } from '@/types/v1/passport'
 import SelfServiceDialog from './SelfServiceDialog.vue'
-import { useGameContext, valueText } from './context'
+import { recordChanges, useGameContext, valueText } from './context'
 
-const PAGE = 10
+const PAGE = 20
 
 const { t, te } = useI18n()
+
+/** 操作名称：当前语言的译名，没有时用服务端给的标题。 */
+const opTitle = (command: string, title: string) => (command && te(`game.self.ops.${command}`) ? t(`game.self.ops.${command}`) : title || command)
 const ctx = useGameContext()
 const ui = useUiStore()
 
@@ -213,39 +228,19 @@ async function redeem() {
   }
 }
 
-// ---------- 我的申请、操作记录 ----------
-interface RecordList {
-  items: PassportGameRecord[]
-  total: number
-  page: number
-  loading: boolean
-  loaded: boolean
-  error: string
-}
-
-const requests = reactive<RecordList>({ items: [], total: 0, page: 0, loading: false, loaded: false, error: '' })
-const records = reactive<RecordList>({ items: [], total: 0, page: 0, loading: false, loaded: false, error: '' })
-
-async function loadList(list: RecordList, fetch: (page: number) => Promise<{ items: PassportGameRecord[]; total: number }>, more: boolean) {
-  if (list.loading) return
-  list.loading = true
-  const page = more ? list.page + 1 : 1
-  try {
-    const res = await fetch(page)
-    list.items = more ? [...list.items, ...(res.items ?? [])] : (res.items ?? [])
-    list.total = res.total ?? 0
-    list.page = page
-    list.error = ''
-  } catch (e) {
-    list.error = errorText(e)
-  } finally {
-    list.loading = false
-    list.loaded = true
-  }
-}
-
-const loadRequests = (more = false) => loadList(requests, (p) => listGameRequests(ctx.serverId.value, p, PAGE), more)
-const loadRecords = (more = false) => loadList(records, (p) => listGameRecords(ctx.serverId.value, p, PAGE), more)
+// ---------- 我的申请、操作记录（页码分页） ----------
+const requestPages = usePagedList<PassportGameRecord>(async (page, size) => {
+  const res = await listGameRequests(ctx.serverId.value, page, size)
+  return { items: res.items ?? [], total: res.total ?? 0 }
+}, PAGE)
+const recordPages = usePagedList<PassportGameRecord>(async (page, size) => {
+  const res = await listGameRecords(ctx.serverId.value, page, size)
+  return { items: res.items ?? [], total: res.total ?? 0 }
+}, PAGE)
+const requests = requestPages.list
+const records = recordPages.list
+const loadRequests = () => requestPages.reload()
+const loadRecords = () => recordPages.reload()
 
 const statusTone = (status: string): 'ok' | 'warn' | 'bad' | 'off' => {
   switch (status) {
@@ -274,8 +269,10 @@ const requestLine = (r: PassportGameRecord) => {
 
 const recordText = (r: PassportGameRecord) => {
   if (r.kind === 'redeem') return `${t('game.self.redeemRecord', { code: r.code })} · ${redeemText(r.status)}`
-  const changes = (r.changes ?? []).map((c) => `${valueText(c.before)} → ${valueText(c.after)}`).join(' · ')
-  const title = r.commandTitle || r.command
+  const changes = recordChanges(r.data)
+    .map((c) => `${valueText(c.before)} → ${valueText(c.after)}`)
+    .join(' · ')
+  const title = opTitle(r.command, r.commandTitle)
   return changes ? `${title} · ${changes}` : `${title} · ${statusText(r.status)}`
 }
 

@@ -460,12 +460,9 @@ type GameServerInfo struct {
 	ProbeError   string                 `protobuf:"bytes,5,opt,name=probe_error,json=probeError,proto3" json:"probe_error,omitempty"`
 	ProbeAt      *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=probe_at,json=probeAt,proto3" json:"probe_at,omitempty"`
 	LastOnlineAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=last_online_at,json=lastOnlineAt,proto3" json:"last_online_at,omitempty"`
-	// manifest 摘要：协议版本、服务端版本、视图 / 指令 / 配置域数量
+	// manifest 摘要：协议版本与服务端版本
 	Protocol      int32  `protobuf:"varint,8,opt,name=protocol,proto3" json:"protocol,omitempty"`
 	ServerVersion string `protobuf:"bytes,9,opt,name=server_version,json=serverVersion,proto3" json:"server_version,omitempty"`
-	ViewCount     int32  `protobuf:"varint,10,opt,name=view_count,json=viewCount,proto3" json:"view_count,omitempty"`
-	CommandCount  int32  `protobuf:"varint,11,opt,name=command_count,json=commandCount,proto3" json:"command_count,omitempty"`
-	ConfigCount   int32  `protobuf:"varint,12,opt,name=config_count,json=configCount,proto3" json:"config_count,omitempty"`
 	// status 缓存原样（在线、注册、资源版本、健康…）
 	Status   *structpb.Value        `protobuf:"bytes,13,opt,name=status,proto3" json:"status,omitempty"`
 	StatusAt *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=status_at,json=statusAt,proto3" json:"status_at,omitempty"`
@@ -582,27 +579,6 @@ func (x *GameServerInfo) GetServerVersion() string {
 		return x.ServerVersion
 	}
 	return ""
-}
-
-func (x *GameServerInfo) GetViewCount() int32 {
-	if x != nil {
-		return x.ViewCount
-	}
-	return 0
-}
-
-func (x *GameServerInfo) GetCommandCount() int32 {
-	if x != nil {
-		return x.CommandCount
-	}
-	return 0
-}
-
-func (x *GameServerInfo) GetConfigCount() int32 {
-	if x != nil {
-		return x.ConfigCount
-	}
-	return 0
 }
 
 func (x *GameServerInfo) GetStatus() *structpb.Value {
@@ -1588,12 +1564,10 @@ func (x *UpdateGameServerRequest) GetTimezone() string {
 }
 
 type DeleteGameServerRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// 同时删除托管的应用实例（先停止）
-	DeleteInstances bool `protobuf:"varint,2,opt,name=delete_instances,json=deleteInstances,proto3" json:"delete_instances,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DeleteGameServerRequest) Reset() {
@@ -1631,13 +1605,6 @@ func (x *DeleteGameServerRequest) GetId() string {
 		return x.Id
 	}
 	return ""
-}
-
-func (x *DeleteGameServerRequest) GetDeleteInstances() bool {
-	if x != nil {
-		return x.DeleteInstances
-	}
-	return false
 }
 
 type DeleteGameServerResponse struct {
@@ -2165,13 +2132,11 @@ type SwitchGameServerModeRequest struct {
 	// 切到托管
 	Hosted *GameServerHostedSpec `protobuf:"bytes,3,opt,name=hosted,proto3" json:"hosted,omitempty"`
 	// 切到仅 GM：MGP 地址、Key ID、密钥（留空沿用当前）
-	MgpEndpoint string `protobuf:"bytes,4,opt,name=mgp_endpoint,json=mgpEndpoint,proto3" json:"mgp_endpoint,omitempty"`
-	KeyId       string `protobuf:"bytes,5,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
-	Secret      string `protobuf:"bytes,6,opt,name=secret,proto3" json:"secret,omitempty"`
-	// 切到仅 GM 时：删除托管的应用实例（否则只解除关联，进程保持原状）
-	DeleteInstances bool `protobuf:"varint,7,opt,name=delete_instances,json=deleteInstances,proto3" json:"delete_instances,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	MgpEndpoint   string `protobuf:"bytes,4,opt,name=mgp_endpoint,json=mgpEndpoint,proto3" json:"mgp_endpoint,omitempty"`
+	KeyId         string `protobuf:"bytes,5,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	Secret        string `protobuf:"bytes,6,opt,name=secret,proto3" json:"secret,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SwitchGameServerModeRequest) Reset() {
@@ -2244,13 +2209,6 @@ func (x *SwitchGameServerModeRequest) GetSecret() string {
 		return x.Secret
 	}
 	return ""
-}
-
-func (x *SwitchGameServerModeRequest) GetDeleteInstances() bool {
-	if x != nil {
-		return x.DeleteInstances
-	}
-	return false
 }
 
 type RotateGameServerKeyRequest struct {
@@ -2393,6 +2351,95 @@ func (x *RotateGameServerKeyResponse) GetPendingRestart() bool {
 	return false
 }
 
+type ClearGameServerConsoleRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 进程角色：main / resource；空为 main
+	Role          string `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearGameServerConsoleRequest) Reset() {
+	*x = ClearGameServerConsoleRequest{}
+	mi := &file_v1_game_server_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearGameServerConsoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearGameServerConsoleRequest) ProtoMessage() {}
+
+func (x *ClearGameServerConsoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_game_server_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearGameServerConsoleRequest.ProtoReflect.Descriptor instead.
+func (*ClearGameServerConsoleRequest) Descriptor() ([]byte, []int) {
+	return file_v1_game_server_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ClearGameServerConsoleRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ClearGameServerConsoleRequest) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+type ClearGameServerConsoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearGameServerConsoleResponse) Reset() {
+	*x = ClearGameServerConsoleResponse{}
+	mi := &file_v1_game_server_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearGameServerConsoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearGameServerConsoleResponse) ProtoMessage() {}
+
+func (x *ClearGameServerConsoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_game_server_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearGameServerConsoleResponse.ProtoReflect.Descriptor instead.
+func (*ClearGameServerConsoleResponse) Descriptor() ([]byte, []int) {
+	return file_v1_game_server_proto_rawDescGZIP(), []int{28}
+}
+
 type ControlGameServerRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -2407,7 +2454,7 @@ type ControlGameServerRequest struct {
 
 func (x *ControlGameServerRequest) Reset() {
 	*x = ControlGameServerRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[27]
+	mi := &file_v1_game_server_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2419,7 +2466,7 @@ func (x *ControlGameServerRequest) String() string {
 func (*ControlGameServerRequest) ProtoMessage() {}
 
 func (x *ControlGameServerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[27]
+	mi := &file_v1_game_server_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2432,7 +2479,7 @@ func (x *ControlGameServerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControlGameServerRequest.ProtoReflect.Descriptor instead.
 func (*ControlGameServerRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{27}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ControlGameServerRequest) GetId() string {
@@ -2478,7 +2525,7 @@ type UpdateGameServerHostingRequest struct {
 
 func (x *UpdateGameServerHostingRequest) Reset() {
 	*x = UpdateGameServerHostingRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[28]
+	mi := &file_v1_game_server_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2490,7 +2537,7 @@ func (x *UpdateGameServerHostingRequest) String() string {
 func (*UpdateGameServerHostingRequest) ProtoMessage() {}
 
 func (x *UpdateGameServerHostingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[28]
+	mi := &file_v1_game_server_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2503,7 +2550,7 @@ func (x *UpdateGameServerHostingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateGameServerHostingRequest.ProtoReflect.Descriptor instead.
 func (*UpdateGameServerHostingRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{28}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdateGameServerHostingRequest) GetId() string {
@@ -2564,7 +2611,7 @@ type GetGameServerOverviewRequest struct {
 
 func (x *GetGameServerOverviewRequest) Reset() {
 	*x = GetGameServerOverviewRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[29]
+	mi := &file_v1_game_server_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2576,7 +2623,7 @@ func (x *GetGameServerOverviewRequest) String() string {
 func (*GetGameServerOverviewRequest) ProtoMessage() {}
 
 func (x *GetGameServerOverviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[29]
+	mi := &file_v1_game_server_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2589,7 +2636,7 @@ func (x *GetGameServerOverviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGameServerOverviewRequest.ProtoReflect.Descriptor instead.
 func (*GetGameServerOverviewRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{29}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetGameServerOverviewRequest) GetId() string {
@@ -2615,7 +2662,7 @@ type GameServerProcessStats struct {
 
 func (x *GameServerProcessStats) Reset() {
 	*x = GameServerProcessStats{}
-	mi := &file_v1_game_server_proto_msgTypes[30]
+	mi := &file_v1_game_server_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2627,7 +2674,7 @@ func (x *GameServerProcessStats) String() string {
 func (*GameServerProcessStats) ProtoMessage() {}
 
 func (x *GameServerProcessStats) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[30]
+	mi := &file_v1_game_server_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2640,7 +2687,7 @@ func (x *GameServerProcessStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerProcessStats.ProtoReflect.Descriptor instead.
 func (*GameServerProcessStats) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{30}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GameServerProcessStats) GetRole() string {
@@ -2708,7 +2755,7 @@ type GameServerProbe struct {
 
 func (x *GameServerProbe) Reset() {
 	*x = GameServerProbe{}
-	mi := &file_v1_game_server_proto_msgTypes[31]
+	mi := &file_v1_game_server_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2720,7 +2767,7 @@ func (x *GameServerProbe) String() string {
 func (*GameServerProbe) ProtoMessage() {}
 
 func (x *GameServerProbe) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[31]
+	mi := &file_v1_game_server_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2733,7 +2780,7 @@ func (x *GameServerProbe) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerProbe.ProtoReflect.Descriptor instead.
 func (*GameServerProbe) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{31}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GameServerProbe) GetKey() string {
@@ -2788,7 +2835,7 @@ type GameServerOverview struct {
 
 func (x *GameServerOverview) Reset() {
 	*x = GameServerOverview{}
-	mi := &file_v1_game_server_proto_msgTypes[32]
+	mi := &file_v1_game_server_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2800,7 +2847,7 @@ func (x *GameServerOverview) String() string {
 func (*GameServerOverview) ProtoMessage() {}
 
 func (x *GameServerOverview) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[32]
+	mi := &file_v1_game_server_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2813,7 +2860,7 @@ func (x *GameServerOverview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerOverview.ProtoReflect.Descriptor instead.
 func (*GameServerOverview) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{32}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GameServerOverview) GetProcesses() []*GameServerProcessStats {
@@ -2879,15 +2926,13 @@ type GameSettingsField struct {
 	HasMax          bool     `protobuf:"varint,7,opt,name=has_max,json=hasMax,proto3" json:"has_max,omitempty"`
 	Max             int64    `protobuf:"varint,8,opt,name=max,proto3" json:"max,omitempty"`
 	Required        bool     `protobuf:"varint,9,opt,name=required,proto3" json:"required,omitempty"`
-	// 由 Momoko 托管（如 MGP 密钥），表单里只读
-	Managed       bool `protobuf:"varint,10,opt,name=managed,proto3" json:"managed,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *GameSettingsField) Reset() {
 	*x = GameSettingsField{}
-	mi := &file_v1_game_server_proto_msgTypes[33]
+	mi := &file_v1_game_server_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2899,7 +2944,7 @@ func (x *GameSettingsField) String() string {
 func (*GameSettingsField) ProtoMessage() {}
 
 func (x *GameSettingsField) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[33]
+	mi := &file_v1_game_server_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2912,7 +2957,7 @@ func (x *GameSettingsField) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameSettingsField.ProtoReflect.Descriptor instead.
 func (*GameSettingsField) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{33}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GameSettingsField) GetKey() string {
@@ -2978,13 +3023,6 @@ func (x *GameSettingsField) GetRequired() bool {
 	return false
 }
 
-func (x *GameSettingsField) GetManaged() bool {
-	if x != nil {
-		return x.Managed
-	}
-	return false
-}
-
 type GameSettingsSection struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -2995,7 +3033,7 @@ type GameSettingsSection struct {
 
 func (x *GameSettingsSection) Reset() {
 	*x = GameSettingsSection{}
-	mi := &file_v1_game_server_proto_msgTypes[34]
+	mi := &file_v1_game_server_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3007,7 +3045,7 @@ func (x *GameSettingsSection) String() string {
 func (*GameSettingsSection) ProtoMessage() {}
 
 func (x *GameSettingsSection) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[34]
+	mi := &file_v1_game_server_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3020,7 +3058,7 @@ func (x *GameSettingsSection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameSettingsSection.ProtoReflect.Descriptor instead.
 func (*GameSettingsSection) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{34}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GameSettingsSection) GetKey() string {
@@ -3046,7 +3084,7 @@ type GetGameServerSettingsRequest struct {
 
 func (x *GetGameServerSettingsRequest) Reset() {
 	*x = GetGameServerSettingsRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[35]
+	mi := &file_v1_game_server_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3058,7 +3096,7 @@ func (x *GetGameServerSettingsRequest) String() string {
 func (*GetGameServerSettingsRequest) ProtoMessage() {}
 
 func (x *GetGameServerSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[35]
+	mi := &file_v1_game_server_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3071,7 +3109,7 @@ func (x *GetGameServerSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGameServerSettingsRequest.ProtoReflect.Descriptor instead.
 func (*GetGameServerSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{35}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GetGameServerSettingsRequest) GetId() string {
@@ -3093,16 +3131,14 @@ type GameServerSettings struct {
 	ConfigFile string                 `protobuf:"bytes,5,opt,name=config_file,json=configFile,proto3" json:"config_file,omitempty"`
 	ModifiedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=modified_at,json=modifiedAt,proto3" json:"modified_at,omitempty"`
 	// 服务端运行中（修改需要重启生效）
-	Running bool `protobuf:"varint,7,opt,name=running,proto3" json:"running,omitempty"`
-	// 表单不认识的顶层字段（保存时原样保留）
-	UnknownKeys   []string `protobuf:"bytes,8,rep,name=unknown_keys,json=unknownKeys,proto3" json:"unknown_keys,omitempty"`
+	Running       bool `protobuf:"varint,7,opt,name=running,proto3" json:"running,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GameServerSettings) Reset() {
 	*x = GameServerSettings{}
-	mi := &file_v1_game_server_proto_msgTypes[36]
+	mi := &file_v1_game_server_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3114,7 +3150,7 @@ func (x *GameServerSettings) String() string {
 func (*GameServerSettings) ProtoMessage() {}
 
 func (x *GameServerSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[36]
+	mi := &file_v1_game_server_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3127,7 +3163,7 @@ func (x *GameServerSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerSettings.ProtoReflect.Descriptor instead.
 func (*GameServerSettings) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{36}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GameServerSettings) GetSections() []*GameSettingsSection {
@@ -3179,18 +3215,12 @@ func (x *GameServerSettings) GetRunning() bool {
 	return false
 }
 
-func (x *GameServerSettings) GetUnknownKeys() []string {
-	if x != nil {
-		return x.UnknownKeys
-	}
-	return nil
-}
-
 type SaveGameServerSettingsRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Revision string                 `protobuf:"bytes,2,opt,name=revision,proto3" json:"revision,omitempty"`
-	// 表单模式：按路径给出修改的值 {"database.driver": "sqlite", …}
+	// 表单模式：按路径给出修改的值 {"database.driver": "sqlite", …}；任何路径都可以改（不限于表单提示里的字段），
+	// 值为 null 表示删除这一项（服务端取默认值）
 	Values *structpb.Struct `protobuf:"bytes,3,opt,name=values,proto3" json:"values,omitempty"`
 	// 原文模式：完整 JSON
 	Raw string `protobuf:"bytes,4,opt,name=raw,proto3" json:"raw,omitempty"`
@@ -3202,7 +3232,7 @@ type SaveGameServerSettingsRequest struct {
 
 func (x *SaveGameServerSettingsRequest) Reset() {
 	*x = SaveGameServerSettingsRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[37]
+	mi := &file_v1_game_server_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3214,7 +3244,7 @@ func (x *SaveGameServerSettingsRequest) String() string {
 func (*SaveGameServerSettingsRequest) ProtoMessage() {}
 
 func (x *SaveGameServerSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[37]
+	mi := &file_v1_game_server_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3227,7 +3257,7 @@ func (x *SaveGameServerSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveGameServerSettingsRequest.ProtoReflect.Descriptor instead.
 func (*SaveGameServerSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{37}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SaveGameServerSettingsRequest) GetId() string {
@@ -3278,7 +3308,7 @@ type SaveGameServerSettingsResponse struct {
 
 func (x *SaveGameServerSettingsResponse) Reset() {
 	*x = SaveGameServerSettingsResponse{}
-	mi := &file_v1_game_server_proto_msgTypes[38]
+	mi := &file_v1_game_server_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3290,7 +3320,7 @@ func (x *SaveGameServerSettingsResponse) String() string {
 func (*SaveGameServerSettingsResponse) ProtoMessage() {}
 
 func (x *SaveGameServerSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[38]
+	mi := &file_v1_game_server_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3303,7 +3333,7 @@ func (x *SaveGameServerSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveGameServerSettingsResponse.ProtoReflect.Descriptor instead.
 func (*SaveGameServerSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{38}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *SaveGameServerSettingsResponse) GetRevision() string {
@@ -3358,7 +3388,7 @@ type GameServerBuildInfo struct {
 
 func (x *GameServerBuildInfo) Reset() {
 	*x = GameServerBuildInfo{}
-	mi := &file_v1_game_server_proto_msgTypes[39]
+	mi := &file_v1_game_server_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3370,7 +3400,7 @@ func (x *GameServerBuildInfo) String() string {
 func (*GameServerBuildInfo) ProtoMessage() {}
 
 func (x *GameServerBuildInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[39]
+	mi := &file_v1_game_server_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3383,7 +3413,7 @@ func (x *GameServerBuildInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerBuildInfo.ProtoReflect.Descriptor instead.
 func (*GameServerBuildInfo) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{39}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GameServerBuildInfo) GetPath() string {
@@ -3484,7 +3514,7 @@ type GameServerTaskStep struct {
 
 func (x *GameServerTaskStep) Reset() {
 	*x = GameServerTaskStep{}
-	mi := &file_v1_game_server_proto_msgTypes[40]
+	mi := &file_v1_game_server_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3496,7 +3526,7 @@ func (x *GameServerTaskStep) String() string {
 func (*GameServerTaskStep) ProtoMessage() {}
 
 func (x *GameServerTaskStep) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[40]
+	mi := &file_v1_game_server_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3509,7 +3539,7 @@ func (x *GameServerTaskStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerTaskStep.ProtoReflect.Descriptor instead.
 func (*GameServerTaskStep) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{40}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GameServerTaskStep) GetKey() string {
@@ -3545,7 +3575,7 @@ type GameServerTaskLog struct {
 
 func (x *GameServerTaskLog) Reset() {
 	*x = GameServerTaskLog{}
-	mi := &file_v1_game_server_proto_msgTypes[41]
+	mi := &file_v1_game_server_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3557,7 +3587,7 @@ func (x *GameServerTaskLog) String() string {
 func (*GameServerTaskLog) ProtoMessage() {}
 
 func (x *GameServerTaskLog) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[41]
+	mi := &file_v1_game_server_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3570,7 +3600,7 @@ func (x *GameServerTaskLog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerTaskLog.ProtoReflect.Descriptor instead.
 func (*GameServerTaskLog) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{41}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GameServerTaskLog) GetTime() *timestamppb.Timestamp {
@@ -3618,7 +3648,7 @@ type GameServerTask struct {
 
 func (x *GameServerTask) Reset() {
 	*x = GameServerTask{}
-	mi := &file_v1_game_server_proto_msgTypes[42]
+	mi := &file_v1_game_server_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3630,7 +3660,7 @@ func (x *GameServerTask) String() string {
 func (*GameServerTask) ProtoMessage() {}
 
 func (x *GameServerTask) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[42]
+	mi := &file_v1_game_server_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3643,7 +3673,7 @@ func (x *GameServerTask) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerTask.ProtoReflect.Descriptor instead.
 func (*GameServerTask) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{42}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GameServerTask) GetId() string {
@@ -3746,7 +3776,7 @@ type GameServerTaskResponse struct {
 
 func (x *GameServerTaskResponse) Reset() {
 	*x = GameServerTaskResponse{}
-	mi := &file_v1_game_server_proto_msgTypes[43]
+	mi := &file_v1_game_server_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3758,7 +3788,7 @@ func (x *GameServerTaskResponse) String() string {
 func (*GameServerTaskResponse) ProtoMessage() {}
 
 func (x *GameServerTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[43]
+	mi := &file_v1_game_server_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3771,7 +3801,7 @@ func (x *GameServerTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerTaskResponse.ProtoReflect.Descriptor instead.
 func (*GameServerTaskResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{43}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GameServerTaskResponse) GetTaskId() string {
@@ -3790,7 +3820,7 @@ type GetGameServerBuildRequest struct {
 
 func (x *GetGameServerBuildRequest) Reset() {
 	*x = GetGameServerBuildRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[44]
+	mi := &file_v1_game_server_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3802,7 +3832,7 @@ func (x *GetGameServerBuildRequest) String() string {
 func (*GetGameServerBuildRequest) ProtoMessage() {}
 
 func (x *GetGameServerBuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[44]
+	mi := &file_v1_game_server_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3815,7 +3845,7 @@ func (x *GetGameServerBuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGameServerBuildRequest.ProtoReflect.Descriptor instead.
 func (*GetGameServerBuildRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{44}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *GetGameServerBuildRequest) GetId() string {
@@ -3846,7 +3876,7 @@ type GameServerBuild struct {
 
 func (x *GameServerBuild) Reset() {
 	*x = GameServerBuild{}
-	mi := &file_v1_game_server_proto_msgTypes[45]
+	mi := &file_v1_game_server_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3858,7 +3888,7 @@ func (x *GameServerBuild) String() string {
 func (*GameServerBuild) ProtoMessage() {}
 
 func (x *GameServerBuild) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[45]
+	mi := &file_v1_game_server_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3871,7 +3901,7 @@ func (x *GameServerBuild) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerBuild.ProtoReflect.Descriptor instead.
 func (*GameServerBuild) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{45}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GameServerBuild) GetCurrent() *GameServerBuildInfo {
@@ -3933,7 +3963,7 @@ type CheckGameServerBuildRequest struct {
 
 func (x *CheckGameServerBuildRequest) Reset() {
 	*x = CheckGameServerBuildRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[46]
+	mi := &file_v1_game_server_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3945,7 +3975,7 @@ func (x *CheckGameServerBuildRequest) String() string {
 func (*CheckGameServerBuildRequest) ProtoMessage() {}
 
 func (x *CheckGameServerBuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[46]
+	mi := &file_v1_game_server_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3958,7 +3988,7 @@ func (x *CheckGameServerBuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckGameServerBuildRequest.ProtoReflect.Descriptor instead.
 func (*CheckGameServerBuildRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{46}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *CheckGameServerBuildRequest) GetId() string {
@@ -3987,7 +4017,7 @@ type UpdateGameServerBuildRequest struct {
 
 func (x *UpdateGameServerBuildRequest) Reset() {
 	*x = UpdateGameServerBuildRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[47]
+	mi := &file_v1_game_server_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3999,7 +4029,7 @@ func (x *UpdateGameServerBuildRequest) String() string {
 func (*UpdateGameServerBuildRequest) ProtoMessage() {}
 
 func (x *UpdateGameServerBuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[47]
+	mi := &file_v1_game_server_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4012,7 +4042,7 @@ func (x *UpdateGameServerBuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateGameServerBuildRequest.ProtoReflect.Descriptor instead.
 func (*UpdateGameServerBuildRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{47}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *UpdateGameServerBuildRequest) GetId() string {
@@ -4045,7 +4075,7 @@ type GetGameServerResourceRequest struct {
 
 func (x *GetGameServerResourceRequest) Reset() {
 	*x = GetGameServerResourceRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[48]
+	mi := &file_v1_game_server_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4057,7 +4087,7 @@ func (x *GetGameServerResourceRequest) String() string {
 func (*GetGameServerResourceRequest) ProtoMessage() {}
 
 func (x *GetGameServerResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[48]
+	mi := &file_v1_game_server_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4070,7 +4100,7 @@ func (x *GetGameServerResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGameServerResourceRequest.ProtoReflect.Descriptor instead.
 func (*GetGameServerResourceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{48}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GetGameServerResourceRequest) GetId() string {
@@ -4115,7 +4145,7 @@ type GameServerResource struct {
 
 func (x *GameServerResource) Reset() {
 	*x = GameServerResource{}
-	mi := &file_v1_game_server_proto_msgTypes[49]
+	mi := &file_v1_game_server_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4127,7 +4157,7 @@ func (x *GameServerResource) String() string {
 func (*GameServerResource) ProtoMessage() {}
 
 func (x *GameServerResource) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[49]
+	mi := &file_v1_game_server_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4140,7 +4170,7 @@ func (x *GameServerResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerResource.ProtoReflect.Descriptor instead.
 func (*GameServerResource) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{49}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GameServerResource) GetHosted() bool {
@@ -4275,7 +4305,7 @@ type RunGameServerResourceTaskRequest struct {
 
 func (x *RunGameServerResourceTaskRequest) Reset() {
 	*x = RunGameServerResourceTaskRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[50]
+	mi := &file_v1_game_server_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4287,7 +4317,7 @@ func (x *RunGameServerResourceTaskRequest) String() string {
 func (*RunGameServerResourceTaskRequest) ProtoMessage() {}
 
 func (x *RunGameServerResourceTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[50]
+	mi := &file_v1_game_server_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4300,7 +4330,7 @@ func (x *RunGameServerResourceTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunGameServerResourceTaskRequest.ProtoReflect.Descriptor instead.
 func (*RunGameServerResourceTaskRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{50}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *RunGameServerResourceTaskRequest) GetId() string {
@@ -4334,7 +4364,7 @@ type GetGameServerTaskRequest struct {
 
 func (x *GetGameServerTaskRequest) Reset() {
 	*x = GetGameServerTaskRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[51]
+	mi := &file_v1_game_server_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4346,7 +4376,7 @@ func (x *GetGameServerTaskRequest) String() string {
 func (*GetGameServerTaskRequest) ProtoMessage() {}
 
 func (x *GetGameServerTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[51]
+	mi := &file_v1_game_server_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4359,7 +4389,7 @@ func (x *GetGameServerTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGameServerTaskRequest.ProtoReflect.Descriptor instead.
 func (*GetGameServerTaskRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{51}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetGameServerTaskRequest) GetId() string {
@@ -4386,7 +4416,7 @@ type CancelGameServerTaskRequest struct {
 
 func (x *CancelGameServerTaskRequest) Reset() {
 	*x = CancelGameServerTaskRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[52]
+	mi := &file_v1_game_server_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4398,7 +4428,7 @@ func (x *CancelGameServerTaskRequest) String() string {
 func (*CancelGameServerTaskRequest) ProtoMessage() {}
 
 func (x *CancelGameServerTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[52]
+	mi := &file_v1_game_server_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4411,7 +4441,7 @@ func (x *CancelGameServerTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelGameServerTaskRequest.ProtoReflect.Descriptor instead.
 func (*CancelGameServerTaskRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{52}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *CancelGameServerTaskRequest) GetId() string {
@@ -4441,7 +4471,7 @@ type ListGameServerHistoryRequest struct {
 
 func (x *ListGameServerHistoryRequest) Reset() {
 	*x = ListGameServerHistoryRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[53]
+	mi := &file_v1_game_server_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4453,7 +4483,7 @@ func (x *ListGameServerHistoryRequest) String() string {
 func (*ListGameServerHistoryRequest) ProtoMessage() {}
 
 func (x *ListGameServerHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[53]
+	mi := &file_v1_game_server_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4466,7 +4496,7 @@ func (x *ListGameServerHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGameServerHistoryRequest.ProtoReflect.Descriptor instead.
 func (*ListGameServerHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{53}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListGameServerHistoryRequest) GetId() string {
@@ -4515,7 +4545,7 @@ type GameServerHistoryEntry struct {
 
 func (x *GameServerHistoryEntry) Reset() {
 	*x = GameServerHistoryEntry{}
-	mi := &file_v1_game_server_proto_msgTypes[54]
+	mi := &file_v1_game_server_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4527,7 +4557,7 @@ func (x *GameServerHistoryEntry) String() string {
 func (*GameServerHistoryEntry) ProtoMessage() {}
 
 func (x *GameServerHistoryEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[54]
+	mi := &file_v1_game_server_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4540,7 +4570,7 @@ func (x *GameServerHistoryEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerHistoryEntry.ProtoReflect.Descriptor instead.
 func (*GameServerHistoryEntry) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{54}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GameServerHistoryEntry) GetId() string {
@@ -4609,7 +4639,7 @@ type ListGameServerHistoryResponse struct {
 
 func (x *ListGameServerHistoryResponse) Reset() {
 	*x = ListGameServerHistoryResponse{}
-	mi := &file_v1_game_server_proto_msgTypes[55]
+	mi := &file_v1_game_server_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4621,7 +4651,7 @@ func (x *ListGameServerHistoryResponse) String() string {
 func (*ListGameServerHistoryResponse) ProtoMessage() {}
 
 func (x *ListGameServerHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[55]
+	mi := &file_v1_game_server_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4634,7 +4664,7 @@ func (x *ListGameServerHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGameServerHistoryResponse.ProtoReflect.Descriptor instead.
 func (*ListGameServerHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{55}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ListGameServerHistoryResponse) GetItems() []*GameServerHistoryEntry {
@@ -4674,7 +4704,7 @@ type GameServerBackupInfo struct {
 
 func (x *GameServerBackupInfo) Reset() {
 	*x = GameServerBackupInfo{}
-	mi := &file_v1_game_server_proto_msgTypes[56]
+	mi := &file_v1_game_server_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4686,7 +4716,7 @@ func (x *GameServerBackupInfo) String() string {
 func (*GameServerBackupInfo) ProtoMessage() {}
 
 func (x *GameServerBackupInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[56]
+	mi := &file_v1_game_server_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4699,7 +4729,7 @@ func (x *GameServerBackupInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerBackupInfo.ProtoReflect.Descriptor instead.
 func (*GameServerBackupInfo) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{56}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GameServerBackupInfo) GetId() string {
@@ -4795,7 +4825,7 @@ type GameServerBackupPolicy struct {
 
 func (x *GameServerBackupPolicy) Reset() {
 	*x = GameServerBackupPolicy{}
-	mi := &file_v1_game_server_proto_msgTypes[57]
+	mi := &file_v1_game_server_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4807,7 +4837,7 @@ func (x *GameServerBackupPolicy) String() string {
 func (*GameServerBackupPolicy) ProtoMessage() {}
 
 func (x *GameServerBackupPolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[57]
+	mi := &file_v1_game_server_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4820,7 +4850,7 @@ func (x *GameServerBackupPolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerBackupPolicy.ProtoReflect.Descriptor instead.
 func (*GameServerBackupPolicy) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{57}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GameServerBackupPolicy) GetEnabled() bool {
@@ -4869,7 +4899,7 @@ type ListGameServerBackupsRequest struct {
 
 func (x *ListGameServerBackupsRequest) Reset() {
 	*x = ListGameServerBackupsRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[58]
+	mi := &file_v1_game_server_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4881,7 +4911,7 @@ func (x *ListGameServerBackupsRequest) String() string {
 func (*ListGameServerBackupsRequest) ProtoMessage() {}
 
 func (x *ListGameServerBackupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[58]
+	mi := &file_v1_game_server_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4894,7 +4924,7 @@ func (x *ListGameServerBackupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGameServerBackupsRequest.ProtoReflect.Descriptor instead.
 func (*ListGameServerBackupsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{58}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ListGameServerBackupsRequest) GetId() string {
@@ -4935,7 +4965,7 @@ type ListGameServerBackupsResponse struct {
 
 func (x *ListGameServerBackupsResponse) Reset() {
 	*x = ListGameServerBackupsResponse{}
-	mi := &file_v1_game_server_proto_msgTypes[59]
+	mi := &file_v1_game_server_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4947,7 +4977,7 @@ func (x *ListGameServerBackupsResponse) String() string {
 func (*ListGameServerBackupsResponse) ProtoMessage() {}
 
 func (x *ListGameServerBackupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[59]
+	mi := &file_v1_game_server_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4960,7 +4990,7 @@ func (x *ListGameServerBackupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGameServerBackupsResponse.ProtoReflect.Descriptor instead.
 func (*ListGameServerBackupsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{59}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ListGameServerBackupsResponse) GetItems() []*GameServerBackupInfo {
@@ -5022,7 +5052,7 @@ type CreateGameServerBackupRequest struct {
 
 func (x *CreateGameServerBackupRequest) Reset() {
 	*x = CreateGameServerBackupRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[60]
+	mi := &file_v1_game_server_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5034,7 +5064,7 @@ func (x *CreateGameServerBackupRequest) String() string {
 func (*CreateGameServerBackupRequest) ProtoMessage() {}
 
 func (x *CreateGameServerBackupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[60]
+	mi := &file_v1_game_server_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5047,7 +5077,7 @@ func (x *CreateGameServerBackupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGameServerBackupRequest.ProtoReflect.Descriptor instead.
 func (*CreateGameServerBackupRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{60}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *CreateGameServerBackupRequest) GetId() string {
@@ -5074,7 +5104,7 @@ type DeleteGameServerBackupRequest struct {
 
 func (x *DeleteGameServerBackupRequest) Reset() {
 	*x = DeleteGameServerBackupRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[61]
+	mi := &file_v1_game_server_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5086,7 +5116,7 @@ func (x *DeleteGameServerBackupRequest) String() string {
 func (*DeleteGameServerBackupRequest) ProtoMessage() {}
 
 func (x *DeleteGameServerBackupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[61]
+	mi := &file_v1_game_server_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5099,7 +5129,7 @@ func (x *DeleteGameServerBackupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGameServerBackupRequest.ProtoReflect.Descriptor instead.
 func (*DeleteGameServerBackupRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{61}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *DeleteGameServerBackupRequest) GetId() string {
@@ -5124,7 +5154,7 @@ type DeleteGameServerBackupResponse struct {
 
 func (x *DeleteGameServerBackupResponse) Reset() {
 	*x = DeleteGameServerBackupResponse{}
-	mi := &file_v1_game_server_proto_msgTypes[62]
+	mi := &file_v1_game_server_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5136,7 +5166,7 @@ func (x *DeleteGameServerBackupResponse) String() string {
 func (*DeleteGameServerBackupResponse) ProtoMessage() {}
 
 func (x *DeleteGameServerBackupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[62]
+	mi := &file_v1_game_server_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5149,7 +5179,7 @@ func (x *DeleteGameServerBackupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGameServerBackupResponse.ProtoReflect.Descriptor instead.
 func (*DeleteGameServerBackupResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{62}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{64}
 }
 
 type RestoreGameServerBackupRequest struct {
@@ -5162,7 +5192,7 @@ type RestoreGameServerBackupRequest struct {
 
 func (x *RestoreGameServerBackupRequest) Reset() {
 	*x = RestoreGameServerBackupRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[63]
+	mi := &file_v1_game_server_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5174,7 +5204,7 @@ func (x *RestoreGameServerBackupRequest) String() string {
 func (*RestoreGameServerBackupRequest) ProtoMessage() {}
 
 func (x *RestoreGameServerBackupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[63]
+	mi := &file_v1_game_server_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5187,7 +5217,7 @@ func (x *RestoreGameServerBackupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestoreGameServerBackupRequest.ProtoReflect.Descriptor instead.
 func (*RestoreGameServerBackupRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{63}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *RestoreGameServerBackupRequest) GetId() string {
@@ -5214,7 +5244,7 @@ type DownloadGameServerBackupRequest struct {
 
 func (x *DownloadGameServerBackupRequest) Reset() {
 	*x = DownloadGameServerBackupRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[64]
+	mi := &file_v1_game_server_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5226,7 +5256,7 @@ func (x *DownloadGameServerBackupRequest) String() string {
 func (*DownloadGameServerBackupRequest) ProtoMessage() {}
 
 func (x *DownloadGameServerBackupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[64]
+	mi := &file_v1_game_server_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5239,7 +5269,7 @@ func (x *DownloadGameServerBackupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadGameServerBackupRequest.ProtoReflect.Descriptor instead.
 func (*DownloadGameServerBackupRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{64}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *DownloadGameServerBackupRequest) GetId() string {
@@ -5265,7 +5295,7 @@ type DownloadGameServerBackupResponse struct {
 
 func (x *DownloadGameServerBackupResponse) Reset() {
 	*x = DownloadGameServerBackupResponse{}
-	mi := &file_v1_game_server_proto_msgTypes[65]
+	mi := &file_v1_game_server_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5277,7 +5307,7 @@ func (x *DownloadGameServerBackupResponse) String() string {
 func (*DownloadGameServerBackupResponse) ProtoMessage() {}
 
 func (x *DownloadGameServerBackupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[65]
+	mi := &file_v1_game_server_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5290,7 +5320,7 @@ func (x *DownloadGameServerBackupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadGameServerBackupResponse.ProtoReflect.Descriptor instead.
 func (*DownloadGameServerBackupResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{65}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *DownloadGameServerBackupResponse) GetDownloadUrlPath() string {
@@ -5312,7 +5342,7 @@ type UpdateGameServerBackupPolicyRequest struct {
 
 func (x *UpdateGameServerBackupPolicyRequest) Reset() {
 	*x = UpdateGameServerBackupPolicyRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[66]
+	mi := &file_v1_game_server_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5324,7 +5354,7 @@ func (x *UpdateGameServerBackupPolicyRequest) String() string {
 func (*UpdateGameServerBackupPolicyRequest) ProtoMessage() {}
 
 func (x *UpdateGameServerBackupPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[66]
+	mi := &file_v1_game_server_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5337,7 +5367,7 @@ func (x *UpdateGameServerBackupPolicyRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use UpdateGameServerBackupPolicyRequest.ProtoReflect.Descriptor instead.
 func (*UpdateGameServerBackupPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{66}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *UpdateGameServerBackupPolicyRequest) GetId() string {
@@ -5382,7 +5412,7 @@ type GameServerLogModule struct {
 
 func (x *GameServerLogModule) Reset() {
 	*x = GameServerLogModule{}
-	mi := &file_v1_game_server_proto_msgTypes[67]
+	mi := &file_v1_game_server_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5394,7 +5424,7 @@ func (x *GameServerLogModule) String() string {
 func (*GameServerLogModule) ProtoMessage() {}
 
 func (x *GameServerLogModule) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[67]
+	mi := &file_v1_game_server_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5407,7 +5437,7 @@ func (x *GameServerLogModule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerLogModule.ProtoReflect.Descriptor instead.
 func (*GameServerLogModule) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{67}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *GameServerLogModule) GetKey() string {
@@ -5454,7 +5484,7 @@ type ListGameServerLogsRequest struct {
 
 func (x *ListGameServerLogsRequest) Reset() {
 	*x = ListGameServerLogsRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[68]
+	mi := &file_v1_game_server_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5466,7 +5496,7 @@ func (x *ListGameServerLogsRequest) String() string {
 func (*ListGameServerLogsRequest) ProtoMessage() {}
 
 func (x *ListGameServerLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[68]
+	mi := &file_v1_game_server_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5479,7 +5509,7 @@ func (x *ListGameServerLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGameServerLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListGameServerLogsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{68}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ListGameServerLogsRequest) GetId() string {
@@ -5501,7 +5531,7 @@ type ListGameServerLogsResponse struct {
 
 func (x *ListGameServerLogsResponse) Reset() {
 	*x = ListGameServerLogsResponse{}
-	mi := &file_v1_game_server_proto_msgTypes[69]
+	mi := &file_v1_game_server_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5513,7 +5543,7 @@ func (x *ListGameServerLogsResponse) String() string {
 func (*ListGameServerLogsResponse) ProtoMessage() {}
 
 func (x *ListGameServerLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[69]
+	mi := &file_v1_game_server_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5526,7 +5556,7 @@ func (x *ListGameServerLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGameServerLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListGameServerLogsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{69}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *ListGameServerLogsResponse) GetModules() []*GameServerLogModule {
@@ -5568,7 +5598,7 @@ type TailGameServerLogRequest struct {
 
 func (x *TailGameServerLogRequest) Reset() {
 	*x = TailGameServerLogRequest{}
-	mi := &file_v1_game_server_proto_msgTypes[70]
+	mi := &file_v1_game_server_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5580,7 +5610,7 @@ func (x *TailGameServerLogRequest) String() string {
 func (*TailGameServerLogRequest) ProtoMessage() {}
 
 func (x *TailGameServerLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[70]
+	mi := &file_v1_game_server_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5593,7 +5623,7 @@ func (x *TailGameServerLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TailGameServerLogRequest.ProtoReflect.Descriptor instead.
 func (*TailGameServerLogRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{70}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *TailGameServerLogRequest) GetId() string {
@@ -5653,7 +5683,7 @@ type GameServerLogEntry struct {
 
 func (x *GameServerLogEntry) Reset() {
 	*x = GameServerLogEntry{}
-	mi := &file_v1_game_server_proto_msgTypes[71]
+	mi := &file_v1_game_server_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5665,7 +5695,7 @@ func (x *GameServerLogEntry) String() string {
 func (*GameServerLogEntry) ProtoMessage() {}
 
 func (x *GameServerLogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[71]
+	mi := &file_v1_game_server_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5678,7 +5708,7 @@ func (x *GameServerLogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameServerLogEntry.ProtoReflect.Descriptor instead.
 func (*GameServerLogEntry) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{71}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *GameServerLogEntry) GetTime() *timestamppb.Timestamp {
@@ -5728,7 +5758,7 @@ type TailGameServerLogResponse struct {
 
 func (x *TailGameServerLogResponse) Reset() {
 	*x = TailGameServerLogResponse{}
-	mi := &file_v1_game_server_proto_msgTypes[72]
+	mi := &file_v1_game_server_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5740,7 +5770,7 @@ func (x *TailGameServerLogResponse) String() string {
 func (*TailGameServerLogResponse) ProtoMessage() {}
 
 func (x *TailGameServerLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_server_proto_msgTypes[72]
+	mi := &file_v1_game_server_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5753,7 +5783,7 @@ func (x *TailGameServerLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TailGameServerLogResponse.ProtoReflect.Descriptor instead.
 func (*TailGameServerLogResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_server_proto_rawDescGZIP(), []int{72}
+	return file_v1_game_server_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *TailGameServerLogResponse) GetItems() []*GameServerLogEntry {
@@ -5817,7 +5847,7 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\x0fresource_listen\x18\x05 \x01(\tR\x0eresourceListen\x12'\n" +
 	"\x0fresource_origin\x18\x06 \x01(\tR\x0eresourceOrigin\x12#\n" +
 	"\rresource_root\x18\a \x01(\tR\fresourceRoot\x12!\n" +
-	"\fstop_timeout\x18\b \x01(\x05R\vstopTimeout\"\x81\t\n" +
+	"\fstop_timeout\x18\b \x01(\x05R\vstopTimeout\"\x9a\b\n" +
 	"\x0eGameServerInfo\x12)\n" +
 	"\x05brief\x18\x01 \x01(\v2\x13.v1.GameServerBriefR\x05brief\x12!\n" +
 	"\fmgp_endpoint\x18\x02 \x01(\tR\vmgpEndpoint\x12\x15\n" +
@@ -5828,12 +5858,7 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\bprobe_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\aprobeAt\x12@\n" +
 	"\x0elast_online_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\flastOnlineAt\x12\x1a\n" +
 	"\bprotocol\x18\b \x01(\x05R\bprotocol\x12%\n" +
-	"\x0eserver_version\x18\t \x01(\tR\rserverVersion\x12\x1d\n" +
-	"\n" +
-	"view_count\x18\n" +
-	" \x01(\x05R\tviewCount\x12#\n" +
-	"\rcommand_count\x18\v \x01(\x05R\fcommandCount\x12!\n" +
-	"\fconfig_count\x18\f \x01(\x05R\vconfigCount\x12.\n" +
+	"\x0eserver_version\x18\t \x01(\tR\rserverVersion\x12.\n" +
 	"\x06status\x18\r \x01(\v2\x16.google.protobuf.ValueR\x06status\x127\n" +
 	"\tstatus_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\bstatusAt\x12\x1f\n" +
 	"\vinstall_dir\x18\x0f \x01(\tR\n" +
@@ -5946,10 +5971,9 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\x13passport_visibility\x18\t \x01(\tR\x12passportVisibility\x120\n" +
 	"\x14passport_invite_code\x18\n" +
 	" \x01(\tR\x12passportInviteCode\x12\x1a\n" +
-	"\btimezone\x18\v \x01(\tR\btimezone\"T\n" +
+	"\btimezone\x18\v \x01(\tR\btimezone\")\n" +
 	"\x17DeleteGameServerRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12)\n" +
-	"\x10delete_instances\x18\x02 \x01(\bR\x0fdeleteInstances\"\x1a\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x1a\n" +
 	"\x18DeleteGameServerResponse\"y\n" +
 	"\x15TestGameServerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
@@ -6003,15 +6027,14 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\thost_name\x18\x0e \x01(\tR\bhostName\x1a:\n" +
 	"\fListensEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xf0\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc5\x01\n" +
 	"\x1bSwitchGameServerModeRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04mode\x18\x02 \x01(\tR\x04mode\x120\n" +
 	"\x06hosted\x18\x03 \x01(\v2\x18.v1.GameServerHostedSpecR\x06hosted\x12!\n" +
 	"\fmgp_endpoint\x18\x04 \x01(\tR\vmgpEndpoint\x12\x15\n" +
 	"\x06key_id\x18\x05 \x01(\tR\x05keyId\x12\x16\n" +
-	"\x06secret\x18\x06 \x01(\tR\x06secret\x12)\n" +
-	"\x10delete_instances\x18\a \x01(\bR\x0fdeleteInstances\"u\n" +
+	"\x06secret\x18\x06 \x01(\tR\x06secret\"u\n" +
 	"\x1aRotateGameServerKeyRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\arestart\x18\x02 \x01(\bR\arestart\x12\x15\n" +
@@ -6021,7 +6044,11 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\x04info\x18\x01 \x01(\v2\x12.v1.GameServerInfoR\x04info\x12\x15\n" +
 	"\x06key_id\x18\x02 \x01(\tR\x05keyId\x12\x1c\n" +
 	"\trestarted\x18\x03 \x01(\bR\trestarted\x12'\n" +
-	"\x0fpending_restart\x18\x04 \x01(\bR\x0ependingRestart\"l\n" +
+	"\x0fpending_restart\x18\x04 \x01(\bR\x0ependingRestart\"C\n" +
+	"\x1dClearGameServerConsoleRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04role\x18\x02 \x01(\tR\x04role\" \n" +
+	"\x1eClearGameServerConsoleResponse\"l\n" +
 	"\x18ControlGameServerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06action\x18\x02 \x01(\tR\x06action\x12\x12\n" +
@@ -6065,7 +6092,7 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\x06status\x18\x04 \x01(\v2\x16.google.protobuf.ValueR\x06status\x12!\n" +
 	"\fstatus_error\x18\x05 \x01(\tR\vstatusError\x12+\n" +
 	"\x06probes\x18\x06 \x03(\v2\x13.v1.GameServerProbeR\x06probes\x12?\n" +
-	"\x0fresource_health\x18\a \x01(\v2\x16.google.protobuf.ValueR\x0eresourceHealth\"\x8a\x02\n" +
+	"\x0fresource_health\x18\a \x01(\v2\x16.google.protobuf.ValueR\x0eresourceHealth\"\xf0\x01\n" +
 	"\x11GameSettingsField\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x18\n" +
@@ -6075,14 +6102,12 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\x03min\x18\x06 \x01(\x03R\x03min\x12\x17\n" +
 	"\ahas_max\x18\a \x01(\bR\x06hasMax\x12\x10\n" +
 	"\x03max\x18\b \x01(\x03R\x03max\x12\x1a\n" +
-	"\brequired\x18\t \x01(\bR\brequired\x12\x18\n" +
-	"\amanaged\x18\n" +
-	" \x01(\bR\amanaged\"V\n" +
+	"\brequired\x18\t \x01(\bR\brequired\"V\n" +
 	"\x13GameSettingsSection\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12-\n" +
 	"\x06fields\x18\x02 \x03(\v2\x15.v1.GameSettingsFieldR\x06fields\".\n" +
 	"\x1cGetGameServerSettingsRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xc2\x02\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x9f\x02\n" +
 	"\x12GameServerSettings\x123\n" +
 	"\bsections\x18\x01 \x03(\v2\x17.v1.GameSettingsSectionR\bsections\x12.\n" +
 	"\x06values\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x06values\x12\x1a\n" +
@@ -6092,8 +6117,7 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"configFile\x12;\n" +
 	"\vmodified_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"modifiedAt\x12\x18\n" +
-	"\arunning\x18\a \x01(\bR\arunning\x12!\n" +
-	"\funknown_keys\x18\b \x03(\tR\vunknownKeys\"\xa8\x01\n" +
+	"\arunning\x18\a \x01(\bR\arunning\"\xa8\x01\n" +
 	"\x1dSaveGameServerSettingsRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\brevision\x18\x02 \x01(\tR\brevision\x12/\n" +
@@ -6303,7 +6327,7 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x16.v1.GameServerLogEntryR\x05items\x12\x1f\n" +
 	"\vnext_before\x18\x02 \x01(\x03R\n" +
 	"nextBefore\x12\x12\n" +
-	"\x04size\x18\x03 \x01(\x03R\x04size2\xc0-\n" +
+	"\x04size\x18\x03 \x01(\x03R\x04size2\xd6.\n" +
 	"\x11GameServerService\x12l\n" +
 	"\x10ListGameAdapters\x12\x1b.v1.ListGameAdaptersRequest\x1a\x1c.v1.ListGameAdaptersResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/game/adapters\x12h\n" +
 	"\x0fListGameServers\x12\x1a.v1.ListGameServersRequest\x1a\x1b.v1.ListGameServersResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/game/servers\x12`\n" +
@@ -6316,7 +6340,8 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\x13DetectGameServerDir\x12\x1e.v1.DetectGameServerDirRequest\x1a\x1f.v1.DetectGameServerDirResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/game/servers/detect\x12v\n" +
 	"\x14SwitchGameServerMode\x12\x1f.v1.SwitchGameServerModeRequest\x1a\x12.v1.GameServerInfo\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/game/servers/{id}/mode\x12\x87\x01\n" +
 	"\x13RotateGameServerKey\x12\x1e.v1.RotateGameServerKeyRequest\x1a\x1f.v1.RotateGameServerKeyResponse\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/game/servers/{id}/rotate-key\x12s\n" +
-	"\x11ControlGameServer\x12\x1c.v1.ControlGameServerRequest\x1a\x12.v1.GameServerInfo\",\x82\xd3\xe4\x93\x02&:\x01*\"!/api/v1/game/servers/{id}/control\x12\x7f\n" +
+	"\x11ControlGameServer\x12\x1c.v1.ControlGameServerRequest\x1a\x12.v1.GameServerInfo\",\x82\xd3\xe4\x93\x02&:\x01*\"!/api/v1/game/servers/{id}/control\x12\x93\x01\n" +
+	"\x16ClearGameServerConsole\x12!.v1.ClearGameServerConsoleRequest\x1a\".v1.ClearGameServerConsoleResponse\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/game/servers/{id}/console/clear\x12\x7f\n" +
 	"\x17UpdateGameServerHosting\x12\".v1.UpdateGameServerHostingRequest\x1a\x12.v1.GameServerInfo\",\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/game/servers/{id}/hosting\x12}\n" +
 	"\x15GetGameServerOverview\x12 .v1.GetGameServerOverviewRequest\x1a\x16.v1.GameServerOverview\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1/game/servers/{id}/overview\x12}\n" +
 	"\x15GetGameServerSettings\x12 .v1.GetGameServerSettingsRequest\x1a\x16.v1.GameServerSettings\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1/game/servers/{id}/settings\x12\x8e\x01\n" +
@@ -6362,7 +6387,7 @@ func file_v1_game_server_proto_rawDescGZIP() []byte {
 	return file_v1_game_server_proto_rawDescData
 }
 
-var file_v1_game_server_proto_msgTypes = make([]protoimpl.MessageInfo, 81)
+var file_v1_game_server_proto_msgTypes = make([]protoimpl.MessageInfo, 83)
 var file_v1_game_server_proto_goTypes = []any{
 	(*GameAdapterCapability)(nil),               // 0: v1.GameAdapterCapability
 	(*GameAdapterRole)(nil),                     // 1: v1.GameAdapterRole
@@ -6391,161 +6416,163 @@ var file_v1_game_server_proto_goTypes = []any{
 	(*SwitchGameServerModeRequest)(nil),         // 24: v1.SwitchGameServerModeRequest
 	(*RotateGameServerKeyRequest)(nil),          // 25: v1.RotateGameServerKeyRequest
 	(*RotateGameServerKeyResponse)(nil),         // 26: v1.RotateGameServerKeyResponse
-	(*ControlGameServerRequest)(nil),            // 27: v1.ControlGameServerRequest
-	(*UpdateGameServerHostingRequest)(nil),      // 28: v1.UpdateGameServerHostingRequest
-	(*GetGameServerOverviewRequest)(nil),        // 29: v1.GetGameServerOverviewRequest
-	(*GameServerProcessStats)(nil),              // 30: v1.GameServerProcessStats
-	(*GameServerProbe)(nil),                     // 31: v1.GameServerProbe
-	(*GameServerOverview)(nil),                  // 32: v1.GameServerOverview
-	(*GameSettingsField)(nil),                   // 33: v1.GameSettingsField
-	(*GameSettingsSection)(nil),                 // 34: v1.GameSettingsSection
-	(*GetGameServerSettingsRequest)(nil),        // 35: v1.GetGameServerSettingsRequest
-	(*GameServerSettings)(nil),                  // 36: v1.GameServerSettings
-	(*SaveGameServerSettingsRequest)(nil),       // 37: v1.SaveGameServerSettingsRequest
-	(*SaveGameServerSettingsResponse)(nil),      // 38: v1.SaveGameServerSettingsResponse
-	(*GameServerBuildInfo)(nil),                 // 39: v1.GameServerBuildInfo
-	(*GameServerTaskStep)(nil),                  // 40: v1.GameServerTaskStep
-	(*GameServerTaskLog)(nil),                   // 41: v1.GameServerTaskLog
-	(*GameServerTask)(nil),                      // 42: v1.GameServerTask
-	(*GameServerTaskResponse)(nil),              // 43: v1.GameServerTaskResponse
-	(*GetGameServerBuildRequest)(nil),           // 44: v1.GetGameServerBuildRequest
-	(*GameServerBuild)(nil),                     // 45: v1.GameServerBuild
-	(*CheckGameServerBuildRequest)(nil),         // 46: v1.CheckGameServerBuildRequest
-	(*UpdateGameServerBuildRequest)(nil),        // 47: v1.UpdateGameServerBuildRequest
-	(*GetGameServerResourceRequest)(nil),        // 48: v1.GetGameServerResourceRequest
-	(*GameServerResource)(nil),                  // 49: v1.GameServerResource
-	(*RunGameServerResourceTaskRequest)(nil),    // 50: v1.RunGameServerResourceTaskRequest
-	(*GetGameServerTaskRequest)(nil),            // 51: v1.GetGameServerTaskRequest
-	(*CancelGameServerTaskRequest)(nil),         // 52: v1.CancelGameServerTaskRequest
-	(*ListGameServerHistoryRequest)(nil),        // 53: v1.ListGameServerHistoryRequest
-	(*GameServerHistoryEntry)(nil),              // 54: v1.GameServerHistoryEntry
-	(*ListGameServerHistoryResponse)(nil),       // 55: v1.ListGameServerHistoryResponse
-	(*GameServerBackupInfo)(nil),                // 56: v1.GameServerBackupInfo
-	(*GameServerBackupPolicy)(nil),              // 57: v1.GameServerBackupPolicy
-	(*ListGameServerBackupsRequest)(nil),        // 58: v1.ListGameServerBackupsRequest
-	(*ListGameServerBackupsResponse)(nil),       // 59: v1.ListGameServerBackupsResponse
-	(*CreateGameServerBackupRequest)(nil),       // 60: v1.CreateGameServerBackupRequest
-	(*DeleteGameServerBackupRequest)(nil),       // 61: v1.DeleteGameServerBackupRequest
-	(*DeleteGameServerBackupResponse)(nil),      // 62: v1.DeleteGameServerBackupResponse
-	(*RestoreGameServerBackupRequest)(nil),      // 63: v1.RestoreGameServerBackupRequest
-	(*DownloadGameServerBackupRequest)(nil),     // 64: v1.DownloadGameServerBackupRequest
-	(*DownloadGameServerBackupResponse)(nil),    // 65: v1.DownloadGameServerBackupResponse
-	(*UpdateGameServerBackupPolicyRequest)(nil), // 66: v1.UpdateGameServerBackupPolicyRequest
-	(*GameServerLogModule)(nil),                 // 67: v1.GameServerLogModule
-	(*ListGameServerLogsRequest)(nil),           // 68: v1.ListGameServerLogsRequest
-	(*ListGameServerLogsResponse)(nil),          // 69: v1.ListGameServerLogsResponse
-	(*TailGameServerLogRequest)(nil),            // 70: v1.TailGameServerLogRequest
-	(*GameServerLogEntry)(nil),                  // 71: v1.GameServerLogEntry
-	(*TailGameServerLogResponse)(nil),           // 72: v1.TailGameServerLogResponse
-	nil,                                         // 73: v1.GameServerProcessInfo.ListensEntry
-	nil,                                         // 74: v1.ListGameServersResponse.CountsEntry
-	nil,                                         // 75: v1.GameServerHostedSpec.ListensEntry
-	nil,                                         // 76: v1.GameServerCheck.ParamsEntry
-	nil,                                         // 77: v1.DetectGameServerDirRequest.ListensEntry
-	nil,                                         // 78: v1.DetectGameServerDirResponse.ListensEntry
-	nil,                                         // 79: v1.GameServerProbe.ParamsEntry
-	nil,                                         // 80: v1.GameServerHistoryEntry.ParamsEntry
-	(*GameServerBrief)(nil),                     // 81: v1.GameServerBrief
-	(*timestamppb.Timestamp)(nil),               // 82: google.protobuf.Timestamp
-	(*structpb.Value)(nil),                      // 83: google.protobuf.Value
-	(*structpb.Struct)(nil),                     // 84: google.protobuf.Struct
-	(*GetInstanceFileListRequest)(nil),          // 85: v1.GetInstanceFileListRequest
-	(*GetInstanceFileTreeRequest)(nil),          // 86: v1.GetInstanceFileTreeRequest
-	(*CreateInstanceFileRequest)(nil),           // 87: v1.CreateInstanceFileRequest
-	(*RenameInstanceFileRequest)(nil),           // 88: v1.RenameInstanceFileRequest
-	(*CopyInstanceFileRequest)(nil),             // 89: v1.CopyInstanceFileRequest
-	(*CutInstanceFileRequest)(nil),              // 90: v1.CutInstanceFileRequest
-	(*BatchDeleteInstanceFileRequest)(nil),      // 91: v1.BatchDeleteInstanceFileRequest
-	(*BatchCompressInstanceFileRequest)(nil),    // 92: v1.BatchCompressInstanceFileRequest
-	(*UnzipInstanceFileRequest)(nil),            // 93: v1.UnzipInstanceFileRequest
-	(*EditInstanceFileRequest)(nil),             // 94: v1.EditInstanceFileRequest
-	(*InstanceFilePreSignRequest)(nil),          // 95: v1.InstanceFilePreSignRequest
-	(*InstanceFilePreSignUploadRequest)(nil),    // 96: v1.InstanceFilePreSignUploadRequest
-	(*GetInstanceFileListResponse)(nil),         // 97: v1.GetInstanceFileListResponse
-	(*GetInstanceFileTreeResponse)(nil),         // 98: v1.GetInstanceFileTreeResponse
-	(*CreateInstanceFileResponse)(nil),          // 99: v1.CreateInstanceFileResponse
-	(*RenameInstanceFileResponse)(nil),          // 100: v1.RenameInstanceFileResponse
-	(*CopyInstanceFileResponse)(nil),            // 101: v1.CopyInstanceFileResponse
-	(*CutInstanceFileResponse)(nil),             // 102: v1.CutInstanceFileResponse
-	(*BatchDeleteInstanceFileResponse)(nil),     // 103: v1.BatchDeleteInstanceFileResponse
-	(*BatchCompressInstanceFileResponse)(nil),   // 104: v1.BatchCompressInstanceFileResponse
-	(*UnzipInstanceFileResponse)(nil),           // 105: v1.UnzipInstanceFileResponse
-	(*EditInstanceFileResponse)(nil),            // 106: v1.EditInstanceFileResponse
-	(*InstanceFilePreSignResponse)(nil),         // 107: v1.InstanceFilePreSignResponse
-	(*InstanceFilePreSignUploadResponse)(nil),   // 108: v1.InstanceFilePreSignUploadResponse
+	(*ClearGameServerConsoleRequest)(nil),       // 27: v1.ClearGameServerConsoleRequest
+	(*ClearGameServerConsoleResponse)(nil),      // 28: v1.ClearGameServerConsoleResponse
+	(*ControlGameServerRequest)(nil),            // 29: v1.ControlGameServerRequest
+	(*UpdateGameServerHostingRequest)(nil),      // 30: v1.UpdateGameServerHostingRequest
+	(*GetGameServerOverviewRequest)(nil),        // 31: v1.GetGameServerOverviewRequest
+	(*GameServerProcessStats)(nil),              // 32: v1.GameServerProcessStats
+	(*GameServerProbe)(nil),                     // 33: v1.GameServerProbe
+	(*GameServerOverview)(nil),                  // 34: v1.GameServerOverview
+	(*GameSettingsField)(nil),                   // 35: v1.GameSettingsField
+	(*GameSettingsSection)(nil),                 // 36: v1.GameSettingsSection
+	(*GetGameServerSettingsRequest)(nil),        // 37: v1.GetGameServerSettingsRequest
+	(*GameServerSettings)(nil),                  // 38: v1.GameServerSettings
+	(*SaveGameServerSettingsRequest)(nil),       // 39: v1.SaveGameServerSettingsRequest
+	(*SaveGameServerSettingsResponse)(nil),      // 40: v1.SaveGameServerSettingsResponse
+	(*GameServerBuildInfo)(nil),                 // 41: v1.GameServerBuildInfo
+	(*GameServerTaskStep)(nil),                  // 42: v1.GameServerTaskStep
+	(*GameServerTaskLog)(nil),                   // 43: v1.GameServerTaskLog
+	(*GameServerTask)(nil),                      // 44: v1.GameServerTask
+	(*GameServerTaskResponse)(nil),              // 45: v1.GameServerTaskResponse
+	(*GetGameServerBuildRequest)(nil),           // 46: v1.GetGameServerBuildRequest
+	(*GameServerBuild)(nil),                     // 47: v1.GameServerBuild
+	(*CheckGameServerBuildRequest)(nil),         // 48: v1.CheckGameServerBuildRequest
+	(*UpdateGameServerBuildRequest)(nil),        // 49: v1.UpdateGameServerBuildRequest
+	(*GetGameServerResourceRequest)(nil),        // 50: v1.GetGameServerResourceRequest
+	(*GameServerResource)(nil),                  // 51: v1.GameServerResource
+	(*RunGameServerResourceTaskRequest)(nil),    // 52: v1.RunGameServerResourceTaskRequest
+	(*GetGameServerTaskRequest)(nil),            // 53: v1.GetGameServerTaskRequest
+	(*CancelGameServerTaskRequest)(nil),         // 54: v1.CancelGameServerTaskRequest
+	(*ListGameServerHistoryRequest)(nil),        // 55: v1.ListGameServerHistoryRequest
+	(*GameServerHistoryEntry)(nil),              // 56: v1.GameServerHistoryEntry
+	(*ListGameServerHistoryResponse)(nil),       // 57: v1.ListGameServerHistoryResponse
+	(*GameServerBackupInfo)(nil),                // 58: v1.GameServerBackupInfo
+	(*GameServerBackupPolicy)(nil),              // 59: v1.GameServerBackupPolicy
+	(*ListGameServerBackupsRequest)(nil),        // 60: v1.ListGameServerBackupsRequest
+	(*ListGameServerBackupsResponse)(nil),       // 61: v1.ListGameServerBackupsResponse
+	(*CreateGameServerBackupRequest)(nil),       // 62: v1.CreateGameServerBackupRequest
+	(*DeleteGameServerBackupRequest)(nil),       // 63: v1.DeleteGameServerBackupRequest
+	(*DeleteGameServerBackupResponse)(nil),      // 64: v1.DeleteGameServerBackupResponse
+	(*RestoreGameServerBackupRequest)(nil),      // 65: v1.RestoreGameServerBackupRequest
+	(*DownloadGameServerBackupRequest)(nil),     // 66: v1.DownloadGameServerBackupRequest
+	(*DownloadGameServerBackupResponse)(nil),    // 67: v1.DownloadGameServerBackupResponse
+	(*UpdateGameServerBackupPolicyRequest)(nil), // 68: v1.UpdateGameServerBackupPolicyRequest
+	(*GameServerLogModule)(nil),                 // 69: v1.GameServerLogModule
+	(*ListGameServerLogsRequest)(nil),           // 70: v1.ListGameServerLogsRequest
+	(*ListGameServerLogsResponse)(nil),          // 71: v1.ListGameServerLogsResponse
+	(*TailGameServerLogRequest)(nil),            // 72: v1.TailGameServerLogRequest
+	(*GameServerLogEntry)(nil),                  // 73: v1.GameServerLogEntry
+	(*TailGameServerLogResponse)(nil),           // 74: v1.TailGameServerLogResponse
+	nil,                                         // 75: v1.GameServerProcessInfo.ListensEntry
+	nil,                                         // 76: v1.ListGameServersResponse.CountsEntry
+	nil,                                         // 77: v1.GameServerHostedSpec.ListensEntry
+	nil,                                         // 78: v1.GameServerCheck.ParamsEntry
+	nil,                                         // 79: v1.DetectGameServerDirRequest.ListensEntry
+	nil,                                         // 80: v1.DetectGameServerDirResponse.ListensEntry
+	nil,                                         // 81: v1.GameServerProbe.ParamsEntry
+	nil,                                         // 82: v1.GameServerHistoryEntry.ParamsEntry
+	(*GameServerBrief)(nil),                     // 83: v1.GameServerBrief
+	(*timestamppb.Timestamp)(nil),               // 84: google.protobuf.Timestamp
+	(*structpb.Value)(nil),                      // 85: google.protobuf.Value
+	(*structpb.Struct)(nil),                     // 86: google.protobuf.Struct
+	(*GetInstanceFileListRequest)(nil),          // 87: v1.GetInstanceFileListRequest
+	(*GetInstanceFileTreeRequest)(nil),          // 88: v1.GetInstanceFileTreeRequest
+	(*CreateInstanceFileRequest)(nil),           // 89: v1.CreateInstanceFileRequest
+	(*RenameInstanceFileRequest)(nil),           // 90: v1.RenameInstanceFileRequest
+	(*CopyInstanceFileRequest)(nil),             // 91: v1.CopyInstanceFileRequest
+	(*CutInstanceFileRequest)(nil),              // 92: v1.CutInstanceFileRequest
+	(*BatchDeleteInstanceFileRequest)(nil),      // 93: v1.BatchDeleteInstanceFileRequest
+	(*BatchCompressInstanceFileRequest)(nil),    // 94: v1.BatchCompressInstanceFileRequest
+	(*UnzipInstanceFileRequest)(nil),            // 95: v1.UnzipInstanceFileRequest
+	(*EditInstanceFileRequest)(nil),             // 96: v1.EditInstanceFileRequest
+	(*InstanceFilePreSignRequest)(nil),          // 97: v1.InstanceFilePreSignRequest
+	(*InstanceFilePreSignUploadRequest)(nil),    // 98: v1.InstanceFilePreSignUploadRequest
+	(*GetInstanceFileListResponse)(nil),         // 99: v1.GetInstanceFileListResponse
+	(*GetInstanceFileTreeResponse)(nil),         // 100: v1.GetInstanceFileTreeResponse
+	(*CreateInstanceFileResponse)(nil),          // 101: v1.CreateInstanceFileResponse
+	(*RenameInstanceFileResponse)(nil),          // 102: v1.RenameInstanceFileResponse
+	(*CopyInstanceFileResponse)(nil),            // 103: v1.CopyInstanceFileResponse
+	(*CutInstanceFileResponse)(nil),             // 104: v1.CutInstanceFileResponse
+	(*BatchDeleteInstanceFileResponse)(nil),     // 105: v1.BatchDeleteInstanceFileResponse
+	(*BatchCompressInstanceFileResponse)(nil),   // 106: v1.BatchCompressInstanceFileResponse
+	(*UnzipInstanceFileResponse)(nil),           // 107: v1.UnzipInstanceFileResponse
+	(*EditInstanceFileResponse)(nil),            // 108: v1.EditInstanceFileResponse
+	(*InstanceFilePreSignResponse)(nil),         // 109: v1.InstanceFilePreSignResponse
+	(*InstanceFilePreSignUploadResponse)(nil),   // 110: v1.InstanceFilePreSignUploadResponse
 }
 var file_v1_game_server_proto_depIdxs = []int32{
 	0,   // 0: v1.GameAdapter.capabilities:type_name -> v1.GameAdapterCapability
 	1,   // 1: v1.GameAdapter.roles:type_name -> v1.GameAdapterRole
 	2,   // 2: v1.ListGameAdaptersResponse.items:type_name -> v1.GameAdapter
-	81,  // 3: v1.GameServerInfo.brief:type_name -> v1.GameServerBrief
-	82,  // 4: v1.GameServerInfo.key_rotated_at:type_name -> google.protobuf.Timestamp
-	82,  // 5: v1.GameServerInfo.probe_at:type_name -> google.protobuf.Timestamp
-	82,  // 6: v1.GameServerInfo.last_online_at:type_name -> google.protobuf.Timestamp
-	83,  // 7: v1.GameServerInfo.status:type_name -> google.protobuf.Value
-	82,  // 8: v1.GameServerInfo.status_at:type_name -> google.protobuf.Timestamp
+	83,  // 3: v1.GameServerInfo.brief:type_name -> v1.GameServerBrief
+	84,  // 4: v1.GameServerInfo.key_rotated_at:type_name -> google.protobuf.Timestamp
+	84,  // 5: v1.GameServerInfo.probe_at:type_name -> google.protobuf.Timestamp
+	84,  // 6: v1.GameServerInfo.last_online_at:type_name -> google.protobuf.Timestamp
+	85,  // 7: v1.GameServerInfo.status:type_name -> google.protobuf.Value
+	84,  // 8: v1.GameServerInfo.status_at:type_name -> google.protobuf.Timestamp
 	7,   // 9: v1.GameServerInfo.processes:type_name -> v1.GameServerProcessInfo
-	82,  // 10: v1.GameServerInfo.create_time:type_name -> google.protobuf.Timestamp
-	82,  // 11: v1.GameServerInfo.update_time:type_name -> google.protobuf.Timestamp
+	84,  // 10: v1.GameServerInfo.create_time:type_name -> google.protobuf.Timestamp
+	84,  // 11: v1.GameServerInfo.update_time:type_name -> google.protobuf.Timestamp
 	5,   // 12: v1.GameServerInfo.hosting:type_name -> v1.GameServerHostingOptions
-	42,  // 13: v1.GameServerInfo.running_tasks:type_name -> v1.GameServerTask
-	82,  // 14: v1.GameServerProcessInfo.start_time:type_name -> google.protobuf.Timestamp
-	73,  // 15: v1.GameServerProcessInfo.listens:type_name -> v1.GameServerProcessInfo.ListensEntry
-	82,  // 16: v1.GameServerProcessInfo.stop_time:type_name -> google.protobuf.Timestamp
+	44,  // 13: v1.GameServerInfo.running_tasks:type_name -> v1.GameServerTask
+	84,  // 14: v1.GameServerProcessInfo.start_time:type_name -> google.protobuf.Timestamp
+	75,  // 15: v1.GameServerProcessInfo.listens:type_name -> v1.GameServerProcessInfo.ListensEntry
+	84,  // 16: v1.GameServerProcessInfo.stop_time:type_name -> google.protobuf.Timestamp
 	6,   // 17: v1.ListGameServersResponse.items:type_name -> v1.GameServerInfo
-	74,  // 18: v1.ListGameServersResponse.counts:type_name -> v1.ListGameServersResponse.CountsEntry
+	76,  // 18: v1.ListGameServersResponse.counts:type_name -> v1.ListGameServersResponse.CountsEntry
 	10,  // 19: v1.ListGameServersResponse.tags:type_name -> v1.GameServerTagCount
 	9,   // 20: v1.ListGameServersResponse.summary:type_name -> v1.GameServersSummary
-	75,  // 21: v1.GameServerHostedSpec.listens:type_name -> v1.GameServerHostedSpec.ListensEntry
+	77,  // 21: v1.GameServerHostedSpec.listens:type_name -> v1.GameServerHostedSpec.ListensEntry
 	13,  // 22: v1.CreateGameServerRequest.hosted:type_name -> v1.GameServerHostedSpec
-	76,  // 23: v1.GameServerCheck.params:type_name -> v1.GameServerCheck.ParamsEntry
+	78,  // 23: v1.GameServerCheck.params:type_name -> v1.GameServerCheck.ParamsEntry
 	19,  // 24: v1.TestGameServerResponse.checks:type_name -> v1.GameServerCheck
-	77,  // 25: v1.DetectGameServerDirRequest.listens:type_name -> v1.DetectGameServerDirRequest.ListensEntry
+	79,  // 25: v1.DetectGameServerDirRequest.listens:type_name -> v1.DetectGameServerDirRequest.ListensEntry
 	19,  // 26: v1.DetectGameServerDirResponse.checks:type_name -> v1.GameServerCheck
-	78,  // 27: v1.DetectGameServerDirResponse.listens:type_name -> v1.DetectGameServerDirResponse.ListensEntry
-	39,  // 28: v1.DetectGameServerDirResponse.build:type_name -> v1.GameServerBuildInfo
+	80,  // 27: v1.DetectGameServerDirResponse.listens:type_name -> v1.DetectGameServerDirResponse.ListensEntry
+	41,  // 28: v1.DetectGameServerDirResponse.build:type_name -> v1.GameServerBuildInfo
 	13,  // 29: v1.SwitchGameServerModeRequest.hosted:type_name -> v1.GameServerHostedSpec
 	6,   // 30: v1.RotateGameServerKeyResponse.info:type_name -> v1.GameServerInfo
-	82,  // 31: v1.GameServerProcessStats.start_time:type_name -> google.protobuf.Timestamp
-	79,  // 32: v1.GameServerProbe.params:type_name -> v1.GameServerProbe.ParamsEntry
-	30,  // 33: v1.GameServerOverview.processes:type_name -> v1.GameServerProcessStats
-	83,  // 34: v1.GameServerOverview.status:type_name -> google.protobuf.Value
-	31,  // 35: v1.GameServerOverview.probes:type_name -> v1.GameServerProbe
-	83,  // 36: v1.GameServerOverview.resource_health:type_name -> google.protobuf.Value
-	33,  // 37: v1.GameSettingsSection.fields:type_name -> v1.GameSettingsField
-	34,  // 38: v1.GameServerSettings.sections:type_name -> v1.GameSettingsSection
-	83,  // 39: v1.GameServerSettings.values:type_name -> google.protobuf.Value
-	82,  // 40: v1.GameServerSettings.modified_at:type_name -> google.protobuf.Timestamp
-	84,  // 41: v1.SaveGameServerSettingsRequest.values:type_name -> google.protobuf.Struct
-	82,  // 42: v1.GameServerBuildInfo.modified_at:type_name -> google.protobuf.Timestamp
-	82,  // 43: v1.GameServerBuildInfo.vcs_time:type_name -> google.protobuf.Timestamp
-	82,  // 44: v1.GameServerTaskLog.time:type_name -> google.protobuf.Timestamp
-	40,  // 45: v1.GameServerTask.steps:type_name -> v1.GameServerTaskStep
-	41,  // 46: v1.GameServerTask.logs:type_name -> v1.GameServerTaskLog
-	82,  // 47: v1.GameServerTask.create_time:type_name -> google.protobuf.Timestamp
-	82,  // 48: v1.GameServerTask.start_time:type_name -> google.protobuf.Timestamp
-	82,  // 49: v1.GameServerTask.end_time:type_name -> google.protobuf.Timestamp
-	39,  // 50: v1.GameServerBuild.current:type_name -> v1.GameServerBuildInfo
-	42,  // 51: v1.GameServerBuild.task:type_name -> v1.GameServerTask
-	82,  // 52: v1.GameServerBuild.last_update_time:type_name -> google.protobuf.Timestamp
-	39,  // 53: v1.GameServerBuild.uploads:type_name -> v1.GameServerBuildInfo
-	83,  // 54: v1.GameServerResource.progress:type_name -> google.protobuf.Value
-	83,  // 55: v1.GameServerResource.health:type_name -> google.protobuf.Value
-	83,  // 56: v1.GameServerResource.server_resource:type_name -> google.protobuf.Value
-	42,  // 57: v1.GameServerResource.task:type_name -> v1.GameServerTask
-	80,  // 58: v1.GameServerHistoryEntry.params:type_name -> v1.GameServerHistoryEntry.ParamsEntry
-	82,  // 59: v1.GameServerHistoryEntry.create_time:type_name -> google.protobuf.Timestamp
-	54,  // 60: v1.ListGameServerHistoryResponse.items:type_name -> v1.GameServerHistoryEntry
-	82,  // 61: v1.GameServerBackupInfo.create_time:type_name -> google.protobuf.Timestamp
-	82,  // 62: v1.GameServerBackupPolicy.last_run_time:type_name -> google.protobuf.Timestamp
-	82,  // 63: v1.GameServerBackupPolicy.next_run_time:type_name -> google.protobuf.Timestamp
-	56,  // 64: v1.ListGameServerBackupsResponse.items:type_name -> v1.GameServerBackupInfo
-	57,  // 65: v1.ListGameServerBackupsResponse.policy:type_name -> v1.GameServerBackupPolicy
-	82,  // 66: v1.GameServerLogModule.modified_at:type_name -> google.protobuf.Timestamp
-	67,  // 67: v1.ListGameServerLogsResponse.modules:type_name -> v1.GameServerLogModule
-	82,  // 68: v1.GameServerLogEntry.time:type_name -> google.protobuf.Timestamp
-	84,  // 69: v1.GameServerLogEntry.attrs:type_name -> google.protobuf.Struct
-	71,  // 70: v1.TailGameServerLogResponse.items:type_name -> v1.GameServerLogEntry
+	84,  // 31: v1.GameServerProcessStats.start_time:type_name -> google.protobuf.Timestamp
+	81,  // 32: v1.GameServerProbe.params:type_name -> v1.GameServerProbe.ParamsEntry
+	32,  // 33: v1.GameServerOverview.processes:type_name -> v1.GameServerProcessStats
+	85,  // 34: v1.GameServerOverview.status:type_name -> google.protobuf.Value
+	33,  // 35: v1.GameServerOverview.probes:type_name -> v1.GameServerProbe
+	85,  // 36: v1.GameServerOverview.resource_health:type_name -> google.protobuf.Value
+	35,  // 37: v1.GameSettingsSection.fields:type_name -> v1.GameSettingsField
+	36,  // 38: v1.GameServerSettings.sections:type_name -> v1.GameSettingsSection
+	85,  // 39: v1.GameServerSettings.values:type_name -> google.protobuf.Value
+	84,  // 40: v1.GameServerSettings.modified_at:type_name -> google.protobuf.Timestamp
+	86,  // 41: v1.SaveGameServerSettingsRequest.values:type_name -> google.protobuf.Struct
+	84,  // 42: v1.GameServerBuildInfo.modified_at:type_name -> google.protobuf.Timestamp
+	84,  // 43: v1.GameServerBuildInfo.vcs_time:type_name -> google.protobuf.Timestamp
+	84,  // 44: v1.GameServerTaskLog.time:type_name -> google.protobuf.Timestamp
+	42,  // 45: v1.GameServerTask.steps:type_name -> v1.GameServerTaskStep
+	43,  // 46: v1.GameServerTask.logs:type_name -> v1.GameServerTaskLog
+	84,  // 47: v1.GameServerTask.create_time:type_name -> google.protobuf.Timestamp
+	84,  // 48: v1.GameServerTask.start_time:type_name -> google.protobuf.Timestamp
+	84,  // 49: v1.GameServerTask.end_time:type_name -> google.protobuf.Timestamp
+	41,  // 50: v1.GameServerBuild.current:type_name -> v1.GameServerBuildInfo
+	44,  // 51: v1.GameServerBuild.task:type_name -> v1.GameServerTask
+	84,  // 52: v1.GameServerBuild.last_update_time:type_name -> google.protobuf.Timestamp
+	41,  // 53: v1.GameServerBuild.uploads:type_name -> v1.GameServerBuildInfo
+	85,  // 54: v1.GameServerResource.progress:type_name -> google.protobuf.Value
+	85,  // 55: v1.GameServerResource.health:type_name -> google.protobuf.Value
+	85,  // 56: v1.GameServerResource.server_resource:type_name -> google.protobuf.Value
+	44,  // 57: v1.GameServerResource.task:type_name -> v1.GameServerTask
+	82,  // 58: v1.GameServerHistoryEntry.params:type_name -> v1.GameServerHistoryEntry.ParamsEntry
+	84,  // 59: v1.GameServerHistoryEntry.create_time:type_name -> google.protobuf.Timestamp
+	56,  // 60: v1.ListGameServerHistoryResponse.items:type_name -> v1.GameServerHistoryEntry
+	84,  // 61: v1.GameServerBackupInfo.create_time:type_name -> google.protobuf.Timestamp
+	84,  // 62: v1.GameServerBackupPolicy.last_run_time:type_name -> google.protobuf.Timestamp
+	84,  // 63: v1.GameServerBackupPolicy.next_run_time:type_name -> google.protobuf.Timestamp
+	58,  // 64: v1.ListGameServerBackupsResponse.items:type_name -> v1.GameServerBackupInfo
+	59,  // 65: v1.ListGameServerBackupsResponse.policy:type_name -> v1.GameServerBackupPolicy
+	84,  // 66: v1.GameServerLogModule.modified_at:type_name -> google.protobuf.Timestamp
+	69,  // 67: v1.ListGameServerLogsResponse.modules:type_name -> v1.GameServerLogModule
+	84,  // 68: v1.GameServerLogEntry.time:type_name -> google.protobuf.Timestamp
+	86,  // 69: v1.GameServerLogEntry.attrs:type_name -> google.protobuf.Struct
+	73,  // 70: v1.TailGameServerLogResponse.items:type_name -> v1.GameServerLogEntry
 	3,   // 71: v1.GameServerService.ListGameAdapters:input_type -> v1.ListGameAdaptersRequest
 	8,   // 72: v1.GameServerService.ListGameServers:input_type -> v1.ListGameServersRequest
 	12,  // 73: v1.GameServerService.GetGameServer:input_type -> v1.GetGameServerRequest
@@ -6557,85 +6584,87 @@ var file_v1_game_server_proto_depIdxs = []int32{
 	22,  // 79: v1.GameServerService.DetectGameServerDir:input_type -> v1.DetectGameServerDirRequest
 	24,  // 80: v1.GameServerService.SwitchGameServerMode:input_type -> v1.SwitchGameServerModeRequest
 	25,  // 81: v1.GameServerService.RotateGameServerKey:input_type -> v1.RotateGameServerKeyRequest
-	27,  // 82: v1.GameServerService.ControlGameServer:input_type -> v1.ControlGameServerRequest
-	28,  // 83: v1.GameServerService.UpdateGameServerHosting:input_type -> v1.UpdateGameServerHostingRequest
-	29,  // 84: v1.GameServerService.GetGameServerOverview:input_type -> v1.GetGameServerOverviewRequest
-	35,  // 85: v1.GameServerService.GetGameServerSettings:input_type -> v1.GetGameServerSettingsRequest
-	37,  // 86: v1.GameServerService.SaveGameServerSettings:input_type -> v1.SaveGameServerSettingsRequest
-	44,  // 87: v1.GameServerService.GetGameServerBuild:input_type -> v1.GetGameServerBuildRequest
-	46,  // 88: v1.GameServerService.CheckGameServerBuild:input_type -> v1.CheckGameServerBuildRequest
-	47,  // 89: v1.GameServerService.UpdateGameServerBuild:input_type -> v1.UpdateGameServerBuildRequest
-	48,  // 90: v1.GameServerService.GetGameServerResource:input_type -> v1.GetGameServerResourceRequest
-	50,  // 91: v1.GameServerService.RunGameServerResourceTask:input_type -> v1.RunGameServerResourceTaskRequest
-	51,  // 92: v1.GameServerService.GetGameServerTask:input_type -> v1.GetGameServerTaskRequest
-	52,  // 93: v1.GameServerService.CancelGameServerTask:input_type -> v1.CancelGameServerTaskRequest
-	53,  // 94: v1.GameServerService.ListGameServerHistory:input_type -> v1.ListGameServerHistoryRequest
-	58,  // 95: v1.GameServerService.ListGameServerBackups:input_type -> v1.ListGameServerBackupsRequest
-	60,  // 96: v1.GameServerService.CreateGameServerBackup:input_type -> v1.CreateGameServerBackupRequest
-	61,  // 97: v1.GameServerService.DeleteGameServerBackup:input_type -> v1.DeleteGameServerBackupRequest
-	63,  // 98: v1.GameServerService.RestoreGameServerBackup:input_type -> v1.RestoreGameServerBackupRequest
-	64,  // 99: v1.GameServerService.DownloadGameServerBackup:input_type -> v1.DownloadGameServerBackupRequest
-	66,  // 100: v1.GameServerService.UpdateGameServerBackupPolicy:input_type -> v1.UpdateGameServerBackupPolicyRequest
-	68,  // 101: v1.GameServerService.ListGameServerLogs:input_type -> v1.ListGameServerLogsRequest
-	70,  // 102: v1.GameServerService.TailGameServerLog:input_type -> v1.TailGameServerLogRequest
-	85,  // 103: v1.GameServerService.GetGameServerFileList:input_type -> v1.GetInstanceFileListRequest
-	86,  // 104: v1.GameServerService.GetGameServerFileTree:input_type -> v1.GetInstanceFileTreeRequest
-	87,  // 105: v1.GameServerService.CreateGameServerFile:input_type -> v1.CreateInstanceFileRequest
-	88,  // 106: v1.GameServerService.RenameGameServerFile:input_type -> v1.RenameInstanceFileRequest
-	89,  // 107: v1.GameServerService.CopyGameServerFile:input_type -> v1.CopyInstanceFileRequest
-	90,  // 108: v1.GameServerService.CutGameServerFile:input_type -> v1.CutInstanceFileRequest
-	91,  // 109: v1.GameServerService.DeleteGameServerFiles:input_type -> v1.BatchDeleteInstanceFileRequest
-	92,  // 110: v1.GameServerService.CompressGameServerFiles:input_type -> v1.BatchCompressInstanceFileRequest
-	93,  // 111: v1.GameServerService.UnzipGameServerFile:input_type -> v1.UnzipInstanceFileRequest
-	94,  // 112: v1.GameServerService.EditGameServerFile:input_type -> v1.EditInstanceFileRequest
-	95,  // 113: v1.GameServerService.GameServerFilePreSign:input_type -> v1.InstanceFilePreSignRequest
-	96,  // 114: v1.GameServerService.GameServerFilePreSignUpload:input_type -> v1.InstanceFilePreSignUploadRequest
-	4,   // 115: v1.GameServerService.ListGameAdapters:output_type -> v1.ListGameAdaptersResponse
-	11,  // 116: v1.GameServerService.ListGameServers:output_type -> v1.ListGameServersResponse
-	6,   // 117: v1.GameServerService.GetGameServer:output_type -> v1.GameServerInfo
-	6,   // 118: v1.GameServerService.CreateGameServer:output_type -> v1.GameServerInfo
-	6,   // 119: v1.GameServerService.UpdateGameServer:output_type -> v1.GameServerInfo
-	17,  // 120: v1.GameServerService.DeleteGameServer:output_type -> v1.DeleteGameServerResponse
-	20,  // 121: v1.GameServerService.TestGameServer:output_type -> v1.TestGameServerResponse
-	6,   // 122: v1.GameServerService.RefreshGameServer:output_type -> v1.GameServerInfo
-	23,  // 123: v1.GameServerService.DetectGameServerDir:output_type -> v1.DetectGameServerDirResponse
-	6,   // 124: v1.GameServerService.SwitchGameServerMode:output_type -> v1.GameServerInfo
-	26,  // 125: v1.GameServerService.RotateGameServerKey:output_type -> v1.RotateGameServerKeyResponse
-	6,   // 126: v1.GameServerService.ControlGameServer:output_type -> v1.GameServerInfo
-	6,   // 127: v1.GameServerService.UpdateGameServerHosting:output_type -> v1.GameServerInfo
-	32,  // 128: v1.GameServerService.GetGameServerOverview:output_type -> v1.GameServerOverview
-	36,  // 129: v1.GameServerService.GetGameServerSettings:output_type -> v1.GameServerSettings
-	38,  // 130: v1.GameServerService.SaveGameServerSettings:output_type -> v1.SaveGameServerSettingsResponse
-	45,  // 131: v1.GameServerService.GetGameServerBuild:output_type -> v1.GameServerBuild
-	39,  // 132: v1.GameServerService.CheckGameServerBuild:output_type -> v1.GameServerBuildInfo
-	43,  // 133: v1.GameServerService.UpdateGameServerBuild:output_type -> v1.GameServerTaskResponse
-	49,  // 134: v1.GameServerService.GetGameServerResource:output_type -> v1.GameServerResource
-	43,  // 135: v1.GameServerService.RunGameServerResourceTask:output_type -> v1.GameServerTaskResponse
-	42,  // 136: v1.GameServerService.GetGameServerTask:output_type -> v1.GameServerTask
-	42,  // 137: v1.GameServerService.CancelGameServerTask:output_type -> v1.GameServerTask
-	55,  // 138: v1.GameServerService.ListGameServerHistory:output_type -> v1.ListGameServerHistoryResponse
-	59,  // 139: v1.GameServerService.ListGameServerBackups:output_type -> v1.ListGameServerBackupsResponse
-	43,  // 140: v1.GameServerService.CreateGameServerBackup:output_type -> v1.GameServerTaskResponse
-	62,  // 141: v1.GameServerService.DeleteGameServerBackup:output_type -> v1.DeleteGameServerBackupResponse
-	43,  // 142: v1.GameServerService.RestoreGameServerBackup:output_type -> v1.GameServerTaskResponse
-	65,  // 143: v1.GameServerService.DownloadGameServerBackup:output_type -> v1.DownloadGameServerBackupResponse
-	57,  // 144: v1.GameServerService.UpdateGameServerBackupPolicy:output_type -> v1.GameServerBackupPolicy
-	69,  // 145: v1.GameServerService.ListGameServerLogs:output_type -> v1.ListGameServerLogsResponse
-	72,  // 146: v1.GameServerService.TailGameServerLog:output_type -> v1.TailGameServerLogResponse
-	97,  // 147: v1.GameServerService.GetGameServerFileList:output_type -> v1.GetInstanceFileListResponse
-	98,  // 148: v1.GameServerService.GetGameServerFileTree:output_type -> v1.GetInstanceFileTreeResponse
-	99,  // 149: v1.GameServerService.CreateGameServerFile:output_type -> v1.CreateInstanceFileResponse
-	100, // 150: v1.GameServerService.RenameGameServerFile:output_type -> v1.RenameInstanceFileResponse
-	101, // 151: v1.GameServerService.CopyGameServerFile:output_type -> v1.CopyInstanceFileResponse
-	102, // 152: v1.GameServerService.CutGameServerFile:output_type -> v1.CutInstanceFileResponse
-	103, // 153: v1.GameServerService.DeleteGameServerFiles:output_type -> v1.BatchDeleteInstanceFileResponse
-	104, // 154: v1.GameServerService.CompressGameServerFiles:output_type -> v1.BatchCompressInstanceFileResponse
-	105, // 155: v1.GameServerService.UnzipGameServerFile:output_type -> v1.UnzipInstanceFileResponse
-	106, // 156: v1.GameServerService.EditGameServerFile:output_type -> v1.EditInstanceFileResponse
-	107, // 157: v1.GameServerService.GameServerFilePreSign:output_type -> v1.InstanceFilePreSignResponse
-	108, // 158: v1.GameServerService.GameServerFilePreSignUpload:output_type -> v1.InstanceFilePreSignUploadResponse
-	115, // [115:159] is the sub-list for method output_type
-	71,  // [71:115] is the sub-list for method input_type
+	29,  // 82: v1.GameServerService.ControlGameServer:input_type -> v1.ControlGameServerRequest
+	27,  // 83: v1.GameServerService.ClearGameServerConsole:input_type -> v1.ClearGameServerConsoleRequest
+	30,  // 84: v1.GameServerService.UpdateGameServerHosting:input_type -> v1.UpdateGameServerHostingRequest
+	31,  // 85: v1.GameServerService.GetGameServerOverview:input_type -> v1.GetGameServerOverviewRequest
+	37,  // 86: v1.GameServerService.GetGameServerSettings:input_type -> v1.GetGameServerSettingsRequest
+	39,  // 87: v1.GameServerService.SaveGameServerSettings:input_type -> v1.SaveGameServerSettingsRequest
+	46,  // 88: v1.GameServerService.GetGameServerBuild:input_type -> v1.GetGameServerBuildRequest
+	48,  // 89: v1.GameServerService.CheckGameServerBuild:input_type -> v1.CheckGameServerBuildRequest
+	49,  // 90: v1.GameServerService.UpdateGameServerBuild:input_type -> v1.UpdateGameServerBuildRequest
+	50,  // 91: v1.GameServerService.GetGameServerResource:input_type -> v1.GetGameServerResourceRequest
+	52,  // 92: v1.GameServerService.RunGameServerResourceTask:input_type -> v1.RunGameServerResourceTaskRequest
+	53,  // 93: v1.GameServerService.GetGameServerTask:input_type -> v1.GetGameServerTaskRequest
+	54,  // 94: v1.GameServerService.CancelGameServerTask:input_type -> v1.CancelGameServerTaskRequest
+	55,  // 95: v1.GameServerService.ListGameServerHistory:input_type -> v1.ListGameServerHistoryRequest
+	60,  // 96: v1.GameServerService.ListGameServerBackups:input_type -> v1.ListGameServerBackupsRequest
+	62,  // 97: v1.GameServerService.CreateGameServerBackup:input_type -> v1.CreateGameServerBackupRequest
+	63,  // 98: v1.GameServerService.DeleteGameServerBackup:input_type -> v1.DeleteGameServerBackupRequest
+	65,  // 99: v1.GameServerService.RestoreGameServerBackup:input_type -> v1.RestoreGameServerBackupRequest
+	66,  // 100: v1.GameServerService.DownloadGameServerBackup:input_type -> v1.DownloadGameServerBackupRequest
+	68,  // 101: v1.GameServerService.UpdateGameServerBackupPolicy:input_type -> v1.UpdateGameServerBackupPolicyRequest
+	70,  // 102: v1.GameServerService.ListGameServerLogs:input_type -> v1.ListGameServerLogsRequest
+	72,  // 103: v1.GameServerService.TailGameServerLog:input_type -> v1.TailGameServerLogRequest
+	87,  // 104: v1.GameServerService.GetGameServerFileList:input_type -> v1.GetInstanceFileListRequest
+	88,  // 105: v1.GameServerService.GetGameServerFileTree:input_type -> v1.GetInstanceFileTreeRequest
+	89,  // 106: v1.GameServerService.CreateGameServerFile:input_type -> v1.CreateInstanceFileRequest
+	90,  // 107: v1.GameServerService.RenameGameServerFile:input_type -> v1.RenameInstanceFileRequest
+	91,  // 108: v1.GameServerService.CopyGameServerFile:input_type -> v1.CopyInstanceFileRequest
+	92,  // 109: v1.GameServerService.CutGameServerFile:input_type -> v1.CutInstanceFileRequest
+	93,  // 110: v1.GameServerService.DeleteGameServerFiles:input_type -> v1.BatchDeleteInstanceFileRequest
+	94,  // 111: v1.GameServerService.CompressGameServerFiles:input_type -> v1.BatchCompressInstanceFileRequest
+	95,  // 112: v1.GameServerService.UnzipGameServerFile:input_type -> v1.UnzipInstanceFileRequest
+	96,  // 113: v1.GameServerService.EditGameServerFile:input_type -> v1.EditInstanceFileRequest
+	97,  // 114: v1.GameServerService.GameServerFilePreSign:input_type -> v1.InstanceFilePreSignRequest
+	98,  // 115: v1.GameServerService.GameServerFilePreSignUpload:input_type -> v1.InstanceFilePreSignUploadRequest
+	4,   // 116: v1.GameServerService.ListGameAdapters:output_type -> v1.ListGameAdaptersResponse
+	11,  // 117: v1.GameServerService.ListGameServers:output_type -> v1.ListGameServersResponse
+	6,   // 118: v1.GameServerService.GetGameServer:output_type -> v1.GameServerInfo
+	6,   // 119: v1.GameServerService.CreateGameServer:output_type -> v1.GameServerInfo
+	6,   // 120: v1.GameServerService.UpdateGameServer:output_type -> v1.GameServerInfo
+	17,  // 121: v1.GameServerService.DeleteGameServer:output_type -> v1.DeleteGameServerResponse
+	20,  // 122: v1.GameServerService.TestGameServer:output_type -> v1.TestGameServerResponse
+	6,   // 123: v1.GameServerService.RefreshGameServer:output_type -> v1.GameServerInfo
+	23,  // 124: v1.GameServerService.DetectGameServerDir:output_type -> v1.DetectGameServerDirResponse
+	6,   // 125: v1.GameServerService.SwitchGameServerMode:output_type -> v1.GameServerInfo
+	26,  // 126: v1.GameServerService.RotateGameServerKey:output_type -> v1.RotateGameServerKeyResponse
+	6,   // 127: v1.GameServerService.ControlGameServer:output_type -> v1.GameServerInfo
+	28,  // 128: v1.GameServerService.ClearGameServerConsole:output_type -> v1.ClearGameServerConsoleResponse
+	6,   // 129: v1.GameServerService.UpdateGameServerHosting:output_type -> v1.GameServerInfo
+	34,  // 130: v1.GameServerService.GetGameServerOverview:output_type -> v1.GameServerOverview
+	38,  // 131: v1.GameServerService.GetGameServerSettings:output_type -> v1.GameServerSettings
+	40,  // 132: v1.GameServerService.SaveGameServerSettings:output_type -> v1.SaveGameServerSettingsResponse
+	47,  // 133: v1.GameServerService.GetGameServerBuild:output_type -> v1.GameServerBuild
+	41,  // 134: v1.GameServerService.CheckGameServerBuild:output_type -> v1.GameServerBuildInfo
+	45,  // 135: v1.GameServerService.UpdateGameServerBuild:output_type -> v1.GameServerTaskResponse
+	51,  // 136: v1.GameServerService.GetGameServerResource:output_type -> v1.GameServerResource
+	45,  // 137: v1.GameServerService.RunGameServerResourceTask:output_type -> v1.GameServerTaskResponse
+	44,  // 138: v1.GameServerService.GetGameServerTask:output_type -> v1.GameServerTask
+	44,  // 139: v1.GameServerService.CancelGameServerTask:output_type -> v1.GameServerTask
+	57,  // 140: v1.GameServerService.ListGameServerHistory:output_type -> v1.ListGameServerHistoryResponse
+	61,  // 141: v1.GameServerService.ListGameServerBackups:output_type -> v1.ListGameServerBackupsResponse
+	45,  // 142: v1.GameServerService.CreateGameServerBackup:output_type -> v1.GameServerTaskResponse
+	64,  // 143: v1.GameServerService.DeleteGameServerBackup:output_type -> v1.DeleteGameServerBackupResponse
+	45,  // 144: v1.GameServerService.RestoreGameServerBackup:output_type -> v1.GameServerTaskResponse
+	67,  // 145: v1.GameServerService.DownloadGameServerBackup:output_type -> v1.DownloadGameServerBackupResponse
+	59,  // 146: v1.GameServerService.UpdateGameServerBackupPolicy:output_type -> v1.GameServerBackupPolicy
+	71,  // 147: v1.GameServerService.ListGameServerLogs:output_type -> v1.ListGameServerLogsResponse
+	74,  // 148: v1.GameServerService.TailGameServerLog:output_type -> v1.TailGameServerLogResponse
+	99,  // 149: v1.GameServerService.GetGameServerFileList:output_type -> v1.GetInstanceFileListResponse
+	100, // 150: v1.GameServerService.GetGameServerFileTree:output_type -> v1.GetInstanceFileTreeResponse
+	101, // 151: v1.GameServerService.CreateGameServerFile:output_type -> v1.CreateInstanceFileResponse
+	102, // 152: v1.GameServerService.RenameGameServerFile:output_type -> v1.RenameInstanceFileResponse
+	103, // 153: v1.GameServerService.CopyGameServerFile:output_type -> v1.CopyInstanceFileResponse
+	104, // 154: v1.GameServerService.CutGameServerFile:output_type -> v1.CutInstanceFileResponse
+	105, // 155: v1.GameServerService.DeleteGameServerFiles:output_type -> v1.BatchDeleteInstanceFileResponse
+	106, // 156: v1.GameServerService.CompressGameServerFiles:output_type -> v1.BatchCompressInstanceFileResponse
+	107, // 157: v1.GameServerService.UnzipGameServerFile:output_type -> v1.UnzipInstanceFileResponse
+	108, // 158: v1.GameServerService.EditGameServerFile:output_type -> v1.EditInstanceFileResponse
+	109, // 159: v1.GameServerService.GameServerFilePreSign:output_type -> v1.InstanceFilePreSignResponse
+	110, // 160: v1.GameServerService.GameServerFilePreSignUpload:output_type -> v1.InstanceFilePreSignUploadResponse
+	116, // [116:161] is the sub-list for method output_type
+	71,  // [71:116] is the sub-list for method input_type
 	71,  // [71:71] is the sub-list for extension type_name
 	71,  // [71:71] is the sub-list for extension extendee
 	0,   // [0:71] is the sub-list for field type_name
@@ -6654,7 +6683,7 @@ func file_v1_game_server_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_game_server_proto_rawDesc), len(file_v1_game_server_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   81,
+			NumMessages:   83,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

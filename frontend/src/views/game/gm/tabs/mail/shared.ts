@@ -1,10 +1,10 @@
 // 邮件补偿、兑换码、玩家自助、GM 记录四个标签共用的小工具：时间格式、CSV 导出、奖励名称与图片。
-import { reactive } from 'vue'
 import dayjs from 'dayjs'
-import { gameCatalogImage } from '@/games'
+import { resourceRef } from '@/games/gakumas/catalog'
 import { i18n } from '@/locales'
 import type { GameReward } from '@/types/v1/game_common'
 import { useGmContext } from '../../context'
+import { catalogLookupFor } from '../../player/shared/lookup'
 
 /** 接口里的时间（JSON 是 RFC3339 字符串，类型标成 Date）转成 Date；没有值时返回 undefined。 */
 export function toDate(value: Date | string | number | undefined | null): Date | undefined {
@@ -91,51 +91,18 @@ export interface RewardLabel {
   image: string
 }
 
-const CURRENCY = 'currency'
-
 /**
- * 奖励的名称与图片：按需查 MGP 目录（同样的查询由 GM 上下文缓存 60 秒），查到后记住。
- * 只查列表里实际出现的奖励，不拉整个目录。
+ * 奖励的名称与图片：资源类型按 games/gakumas/catalog.ts 对应到目录，名称先查前端名称表（当前语言 → 原文），
+ * 再查目录（只查列表里实际出现的奖励，同一类成批查询并缓存）；从不显示 ID。
  */
 export function useRewardLabels() {
   const ctx = useGmContext()
-  const labels = reactive(new Map<string, RewardLabel>())
-  const pending = new Set<string>()
-  const keyOf = (r: Pick<GameReward, 'resourceType' | 'resourceId'>) => `${r.resourceType}:${r.resourceId}`
-
-  const kindOfType = (resourceType: number) => {
-    const types = ctx.manifest.value?.resourceTypes || {}
-    const key = Object.keys(types).find((k) => types[k] === resourceType)
-    if (!key) return ''
-    return (ctx.manifest.value?.catalogs || []).some((c) => c.id === key) ? key : CURRENCY
-  }
-
-  const describe = async (r: GameReward) => {
-    const key = keyOf(r)
-    if (labels.has(key) || pending.has(key)) return
-    const kind = kindOfType(r.resourceType)
-    if (!kind) return
-    pending.add(key)
-    try {
-      const page = await ctx.catalog(kind, kind === CURRENCY ? { limit: 20 } : { q: r.resourceId, limit: 10 })
-      const entry = page.items.find((e) => (kind === CURRENCY ? e.resourceType === r.resourceType : e.id === r.resourceId))
-      if (entry) labels.set(key, { name: entry.name, image: gameCatalogImage(ctx.game.value, kind, entry) })
-    } catch {
-      // 查不到时显示「未命名」
-    } finally {
-      pending.delete(key)
-    }
-  }
+  const lookup = catalogLookupFor(ctx)
 
   const label = (r: GameReward): RewardLabel => {
-    const hit = labels.get(keyOf(r))
-    // 名称先查前端名称表（当前语言 → 原文），再用目录里的名称；从不显示 ID
-    const kind = kindOfType(r.resourceType)
-    const types = ctx.manifest.value?.resourceTypes || {}
-    const typeKey = Object.keys(types).find((k) => types[k] === r.resourceType) || ''
-    const local = kind === CURRENCY || !r.resourceId ? ctx.name(CURRENCY, typeKey) : ctx.name(kind, r.resourceId)
-    if (!hit) void describe(r)
-    return { name: local || hit?.name || i18n.global.t('game.unnamed'), image: hit?.image || '' }
+    const ref = resourceRef(r.resourceType, r.resourceId)
+    if (!ref) return { name: i18n.global.t('game.unnamed'), image: '' }
+    return { name: lookup.name(ref.kind, ref.id) || i18n.global.t('game.unnamed'), image: lookup.image(ref.kind, ref.id) }
   }
 
   /** 「钻石 ×300、AP 回复药 ×3」 */

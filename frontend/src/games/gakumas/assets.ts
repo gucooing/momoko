@@ -10,7 +10,8 @@ function after(value: string, prefix: string): string | undefined {
 
 // ---------- 偶像卡 / 支援卡 ----------
 
-export type CardVariant = 'sq' | 'land'
+/** sq 方图、land 横图、full 原画（偶像卡 9:16、支援卡 16:9） */
+export type CardVariant = 'sq' | 'land' | 'full'
 
 // {角色}-{稀有度}-{编号}，例如 hski-3-000
 const IDOL_CARD_RE = /(?:^|[-_])([a-z][a-z0-9]*-\d-\d{3})(?:_|$)/
@@ -63,6 +64,39 @@ export function itemKey(idOrAssetId: string): string {
 
 export function itemImage(idOrAssetId: string): string {
   return gameAsset(GAME, itemKey(idOrAssetId))
+}
+
+// ---------- 技能卡 / P 道具 / 记忆 ----------
+
+/**
+ * 技能卡 key：skillcards/act-0_001。传技能卡目录（produce-cards）的 assetId（img_general_skillcard_act-0_001）；
+ * 按偶像区分图片的卡（目录 characterAsset）再传角色 ID：skillcards/act-100_003-kcna。
+ */
+export function skillCardKey(assetId: string, characterId = ''): string {
+  const base = after(assetId, 'img_general_skillcard_') ?? assetId
+  return `skillcards/${characterId ? `${base}-${characterId}` : base}`
+}
+
+export function skillCardImage(assetId: string, characterId = ''): string {
+  return assetId ? gameAsset(GAME, skillCardKey(assetId, characterId)) : ''
+}
+
+/** P 道具 key：pitems/0-004。传 P 道具目录（produce-items）的 assetId（img_general_pitem_0-004）。 */
+export function produceItemKey(assetId: string): string {
+  return `pitems/${after(assetId, 'img_general_pitem_') ?? assetId}`
+}
+
+export function produceItemImage(assetId: string): string {
+  return assetId ? gameAsset(GAME, produceItemKey(assetId)) : ''
+}
+
+/** 没有照片的记忆显示的游戏图片 key：memories/noimage-002。传记忆的 assetId（img_general_memory_noimage-002）。 */
+export function memoryAssetKey(assetId: string): string {
+  return `memories/${after(assetId, 'img_general_memory_') ?? assetId}`
+}
+
+export function memoryAssetImage(assetId: string): string {
+  return assetId ? gameAsset(GAME, memoryAssetKey(assetId)) : ''
 }
 
 /** catalogs/currency 的 ID（jewelFree / jewelPaid / actionPoint / exp），加上道具 item-money。 */
@@ -189,6 +223,10 @@ export function catalogEntryImage(kind: string, entry: { id: string; assetId?: s
       return charaImage(entry.id)
     case 'gasha':
       return gashaBanner(ref)
+    case 'produceCard':
+      return skillCardImage(entry.assetId || '')
+    case 'produceItem':
+      return produceItemImage(entry.assetId || '')
     default:
       return ''
   }

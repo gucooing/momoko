@@ -1,5 +1,5 @@
-<!-- 按指令参数的 JSON Schema 渲染表单（游戏服务端在 manifest 里声明；x-picker 提示用选择器代替原始输入）：
-     reward → 奖励选择，item → 道具目录，backup → 该玩家的存档备份。字段标题由服务端给出。
+<!-- 按操作参数的 JSON Schema 渲染表单（games/<游戏>/operations.ts 里声明；x-picker 提示用选择器代替原始输入）：
+     reward → 奖励选择，item → 道具目录，backup → 该玩家的存档备份。
      已经选好的道具只显示图和名称（可「更换」）；locked 里的字段（从某一行点进来时已定好的道具、备份）不能改，只填其余的。 -->
 <template>
   <div class="gsf">
@@ -128,7 +128,8 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
-import { getGmPlayerView } from '@/api/gameGm'
+import { listPlayerBackups } from '@/api/gakumas'
+import type { Backup } from '@/games/gakumas/types'
 import type { JSONSchema } from '@/games/mgp'
 import { useGmContext } from '../context'
 import GmCatalogSearch from './GmCatalogSearch.vue'
@@ -144,8 +145,8 @@ const props = withDefaults(
     modelValue: Record<string, unknown>
     /** 单个目标玩家（备份选择器用） */
     pid?: string
-    /** 奖励里不允许的资源类型（manifest resourceTypes 的键） */
-    excludeRewards?: string[]
+    /** 奖励里不允许的资源类型 */
+    excludeRewards?: number[]
     disabled?: boolean
     /** 不渲染的字段（由使用方单独提供） */
     hidden?: string[]
@@ -226,31 +227,24 @@ const isTimeField = (schema: JSONSchema) => schema.type === 'integer' && /unix/i
 const toLocalInput = (ms: number | undefined) => (ms ? dayjs(ms).format('YYYY-MM-DDTHH:mm') : '')
 const fromLocalInput = (raw: string) => (raw ? dayjs(raw).valueOf() : undefined)
 
-// 备份选择器：读取目标玩家的 backups 视图。
-interface BackupRow {
-  id: number
-  note?: string
-  createdAt?: number
-  kind?: number
-}
-const backups = ref<BackupRow[]>([])
+// 备份选择器：读取目标玩家的存档备份。
+const backups = ref<Backup[]>([])
 const backupsLoading = ref(false)
 const needsBackups = computed(() => fields.value.some((f) => f.schema['x-picker'] === 'backup'))
 const backupOptions = computed(() =>
   backups.value.map((b) => ({
     label: b.createdAt ? dayjs(b.createdAt).format('YYYY-MM-DD HH:mm') : t('game.unnamed'),
     value: b.id,
-    description: [b.kind !== undefined ? t(`gmData.backups.kind.${b.kind}`) : '', b.note || ''].filter(Boolean).join(' · '),
+    description: [t(`gmData.backups.kind.${b.kind}`), b.note].filter(Boolean).join(' · '),
   })),
 )
 watch(
   () => [needsBackups.value, props.pid] as const,
   async ([need, pid]) => {
-    if (!need || !pid || !ctx.hasView('backups')) return
+    if (!need || !pid) return
     backupsLoading.value = true
     try {
-      const data = await getGmPlayerView<{ items?: BackupRow[] } | BackupRow[]>(ctx.serverId.value, pid, 'backups')
-      backups.value = Array.isArray(data) ? data : data?.items || []
+      backups.value = (await listPlayerBackups(ctx.serverId.value, pid)).backups
     } catch {
       backups.value = []
     } finally {

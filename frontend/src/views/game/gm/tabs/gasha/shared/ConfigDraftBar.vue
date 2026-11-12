@@ -67,7 +67,7 @@
           <span class="cpd__label">{{ t('gmConfig.publish.comment') }}</span>
           <input v-model="comment" class="cpd__input" :placeholder="t('gmConfig.publish.commentHint')" :disabled="publishing" />
         </label>
-        <p v-if="state.info.value?.hotReload" class="cpd__hint">{{ t('gmConfig.publish.hotReload') }}</p>
+        <p class="cpd__hint">{{ t('gmConfig.publish.hotReload') }}</p>
 
         <div class="cpd__actions">
           <UButton class="gmc-btn" color="neutral" variant="ghost" :disabled="publishing" @click="publishOpen = false">{{ t('gmConfig.common.cancel') }}</UButton>
@@ -143,7 +143,7 @@ const subline = computed(() => {
     if (!s.saving.value && !s.saveError.value && at) {
       parts.push(t('gmConfig.bar.savedBy', { name: draft?.authorName || '—', time: formatZoned(at, props.zone) }))
     }
-    if (s.info.value?.hotReload) parts.push(t('gmConfig.bar.hotReload'))
+    parts.push(t('gmConfig.bar.hotReload'))
   } else {
     const info = s.info.value
     const at = toMs(info?.lastPublishedAt)

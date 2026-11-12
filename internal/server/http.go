@@ -4,6 +4,7 @@ import (
 	nethttp "net/http"
 
 	"momoko/api/gen/v1"
+	gakumasv1 "momoko/api/gen/v1/gakumas"
 
 	"momoko/internal/conf"
 	"momoko/internal/service"
@@ -39,6 +40,7 @@ func NewHTTPServer(c *conf.Server,
 	themeApi *service.ThemeService,
 	gameServerApi *service.GameServerService,
 	gameGMApi *service.GameGMService,
+	gakumasGMApi *service.GakumasGMService,
 	gameOpsApi *service.GameOpsService,
 	passportAdminApi *service.PassportAdminService,
 ) *http.Server {
@@ -95,6 +97,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterThemeServiceHTTPServer(srv, themeApi)
 	v1.RegisterGameServerServiceHTTPServer(srv, gameServerApi)
 	v1.RegisterGameGMServiceHTTPServer(srv, gameGMApi)
+	gakumasv1.RegisterGakumasGMServiceHTTPServer(srv, gakumasGMApi)
 	v1.RegisterGameOpsServiceHTTPServer(srv, gameOpsApi)
 	v1.RegisterPassportAdminServiceHTTPServer(srv, passportAdminApi)
 	gameGMApi.RegisterEventsServer(srv)

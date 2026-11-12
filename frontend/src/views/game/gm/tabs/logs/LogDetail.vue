@@ -31,10 +31,6 @@
         </template>
         <dt>{{ t('gmOps.logs.kv.review') }}</dt>
         <dd>{{ reviewLine }}</dd>
-        <template v-if="exec.confirmed">
-          <dt>{{ t('gmOps.logs.kv.confirm') }}</dt>
-          <dd>{{ t('gmOps.logs.confirmed') }}</dd>
-        </template>
         <template v-if="exec.backupRef">
           <dt>{{ t('gmOps.logs.kv.backup') }}</dt>
           <dd>{{ t('gmOps.logs.backupDone') }}</dd>
@@ -72,7 +68,6 @@
                   <span class="m-num">{{ num(c.before) }} → {{ num(c.after) }}</span>
                 </span>
               </template>
-              <template v-else-if="r.backupId">{{ t('gmOps.logs.backupDone') }}</template>
             </span>
             <StatusPill :variant="r.status === 'success' ? 'success' : 'error'" :label="statusText(r.status === 'success' ? 'success' : 'failed')" />
           </div>
@@ -94,7 +89,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getGmExecution } from '@/api/gameGm'
-import type { Change } from '@/games/mgp'
+import { executionOutcome } from '../../operations'
 import type { GmExecution } from '@/types/v1/game_gm'
 import { useGmContext } from '../../context'
 import GmRiskPill from '../../components/GmRiskPill.vue'
@@ -102,15 +97,6 @@ import { fmtDateTime } from '../mail/shared'
 import { useExecText } from './useExecText'
 
 /** 记录结果里逐个对象的部分（不含 detail 原文）。 */
-interface ResultRow {
-  pid: string
-  name?: string
-  status: string
-  code?: string
-  message?: string
-  changes?: Change[]
-  backupId?: number | string
-}
 
 const props = defineProps<{ id: string; preview?: GmExecution }>()
 const emit = defineEmits<{ loaded: [exec: GmExecution] }>()
@@ -142,13 +128,11 @@ watch(
   { immediate: true },
 )
 
-const results = computed<ResultRow[]>(() => {
-  const r = exec.value?.result as { results?: unknown } | undefined
-  return Array.isArray(r?.results) ? (r.results as ResultRow[]) : []
-})
+// 逐个对象的结果（服务器操作的结果在 summary）
+const outcome = computed(() => (exec.value?.results.length ? executionOutcome(exec.value) : undefined))
+const results = computed(() => (outcome.value?.summary === undefined ? outcome.value?.results || [] : []))
 const summaryEntries = computed<Array<[string, string]>>(() => {
-  const r = exec.value?.result as { summary?: unknown } | undefined
-  const s = r?.summary
+  const s = outcome.value?.summary
   if (!s || typeof s !== 'object' || Array.isArray(s)) return []
   return Object.entries(s as Record<string, unknown>)
     .filter(([k]) => !/(^id$|^pid$|Id$|Ids$)/.test(k))

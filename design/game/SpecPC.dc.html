@@ -112,7 +112,7 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
     <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
       <div class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
         <span style="font-size: 16px; font-weight: 800">管理端：能进就能执行全部指令</span>
-        <span style="font-size: 13px; line-height: 1.75; color: var(--ink2)">沿用现有用户权限，只加一个权限项 <span class="mono">game:gm</span>（能否进入 GM 运营）。能进的管理员可以对任何服务器执行全部指令，不做按角色、按指令的授权。风险等级只决定交互：「高」要填原因，「危险」执行前输入玩家昵称确认，并自动备份。</span>
+        <span style="font-size: 13px; line-height: 1.75; color: var(--ink2)">沿用现有用户权限，只加一个权限项 <span class="mono">game:gm</span>（能否进入 GM 运营）。能进的管理员可以对任何服务器执行全部指令，不做按角色、按指令的授权。风险等级只决定交互：「高」要填原因，「危险」执行前自动备份；不做任何二次确认。</span>
       </div>
       <div class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
         <span style="font-size: 16px; font-weight: 800">玩家端：自助开放</span>
@@ -257,7 +257,7 @@ const RISKS = [
   { t: '低', cls: 'risk-1', rule: '可撤销、影响小，直接执行。', ex: '强制下线、改名、回满体力' },
   { t: '中', cls: 'risk-2', rule: '发东西进礼物箱，执行前显示预览。', ex: '发送到礼物箱、邮件补偿' },
   { t: '高', cls: 'risk-3', rule: '直接改数值或影响很多人，必须填原因。', ex: '改钻石、封禁、全服补偿、发布卡池' },
-  { t: '危险', cls: 'risk-4', rule: '不可逆，执行前输入玩家昵称确认，并自动备份当前进度。', ex: '回档、批量全卡、删除账号' }
+  { t: '危险', cls: 'risk-4', rule: '不可逆，执行前自动备份当前进度。', ex: '回档、批量全卡、删除账号' }
 ];
 const S = { has: ['ok', '已有'], easy: ['info', '可直接做'], add: ['warn', '需新增'] };
 const CMDS = [

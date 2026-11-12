@@ -1,10 +1,8 @@
-// 用户通行证接口（只在通行证 server 上）。游戏数据是 MGP 原样透传的 JSON，形状见 src/games/<game>/types.ts。
+// 用户通行证接口（只在通行证 server 上）：账号、绑定与游戏空间的通用部分；游戏数据见各游戏的模块（学マス：./gakumas.ts）。
 import { http } from './request'
 import type {
   BindPassportAccountRequest,
   ChangePassportEmailRequest,
-  ExecutePassportSelfServiceRequest,
-  ExecutePassportSelfServiceResponse,
   GetPassportConfigResponse,
   ListPassportActivityResponse,
   ListPassportAppsResponse,
@@ -13,7 +11,6 @@ import type {
   ListPassportLinksResponse,
   ListPassportMessagesResponse,
   ListPassportSelfServiceResponse,
-  PassportDataResponse,
   PassportGameResponse,
   PassportLink,
   PassportLoginRequest,
@@ -34,8 +31,6 @@ import type {
 } from '@/types/v1/passport'
 
 const seg = encodeURIComponent
-
-type QueryValue = string | number | boolean | undefined | null
 
 // ---------- 公开 ----------
 export const getConfig = () => http.get<GetPassportConfigResponse>('/config')
@@ -91,42 +86,11 @@ export const bindAccount = (req: BindPassportAccountRequest) => http.post<Passpo
 // ---------- 游戏空间 ----------
 const gbase = (serverId: string) => `/games/${seg(serverId)}`
 
-/** 把查询参数对象转成透传给 MGP 的查询串（空值省略）。 */
-export const mgpQuery = (params: Record<string, QueryValue>) => {
-  const q = new URLSearchParams()
-  for (const [k, v] of Object.entries(params)) {
-    if (v === undefined || v === null || v === '') continue
-    q.set(k, String(v))
-  }
-  return q.toString()
-}
-
 export const getGame = (serverId: string) => http.get<PassportGameResponse>(gbase(serverId))
 export const getGameBrief = (serverId: string) => http.get<PassportGameResponse>(`${gbase(serverId)}/brief`)
 
-/** 自己的游戏视图（MGP /players/{我的 pid}/views/{view}），返回 data 原样。 */
-export const getGameView = async <T>(serverId: string, view: string, query: Record<string, QueryValue> = {}) =>
-  (await http.get<PassportDataResponse>(`${gbase(serverId)}/views/${seg(view)}`, { query: mgpQuery(query) })).data as T
-
-/** 目录（名称与素材 ID，每次最多 50 条）。 */
-export const getGameCatalog = async <T>(serverId: string, kind: string, query: Record<string, QueryValue> = {}) =>
-  (await http.get<PassportDataResponse>(`${gbase(serverId)}/catalogs/${seg(kind)}`, { query: mgpQuery(query) })).data as T
-
-/** 正在进行的卡池（id、名称、横幅素材与起止时间）。 */
-export const listOngoing = async <T>(serverId: string) =>
-  (await http.get<PassportDataResponse>(`${gbase(serverId)}/ongoing`)).data as T
-
 export const listSelfService = (serverId: string) =>
   http.get<ListPassportSelfServiceResponse>(`${gbase(serverId)}/self-service`)
-
-export const executeSelfService = (
-  req: Partial<ExecutePassportSelfServiceRequest> & { serverId: string; command: string },
-) =>
-  http.post<ExecutePassportSelfServiceResponse>(`${gbase(req.serverId)}/self-service/${seg(req.command)}`, {
-    params: req.params ?? {},
-    reason: req.reason ?? '',
-    totpCode: req.totpCode ?? '',
-  })
 
 export const listGameRequests = (serverId: string, page = 1, pageSize = 10) =>
   http.get<ListPassportGameRecordsResponse>(`${gbase(serverId)}/requests`, { page, pageSize })

@@ -1,0 +1,899 @@
+syntax = "proto3";
+
+package v1.gakumas;
+
+option go_package = "momoko/api/gen/v1/gakumas;gakumasv1";
+
+import "google/api/annotations.proto";
+import "v1/game_common.proto";
+import "v1/game_gm.proto";
+import "v1/gakumas/types.proto";
+
+// 学マス GM 运营（权限 game:gm）。每个查询与操作对应游戏服务端 MGP 的一个接口，筛选与分页由服务端完成。
+// 操作写 GM 记录（执行者为当前管理员）：dry_run 为试运行；对玩家的操作都可以同时作用于多名玩家（pids）。
+service GakumasGMService {
+  // manifest：游戏、服务端版本与已配置的玩法
+  rpc GetManifest(ServerRequest) returns (Manifest) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/manifest"};
+  }
+  // 实时运行状态
+  rpc GetStatus(ServerRequest) returns (Status) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/status"};
+  }
+  // 工作台
+  rpc GetDashboard(GetDashboardRequest) returns (Dashboard) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/dashboard"};
+  }
+
+  // ---------------- 玩家 ----------------
+
+  // 玩家列表（含通行证绑定；filter=unlinked 为未绑定通行证）
+  rpc ListPlayers(ListPlayersRequest) returns (ListPlayersResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players"};
+  }
+  // 玩家条目、概览、登录次数、通行证绑定与 GM 记录数
+  rpc GetPlayer(PlayerRequest) returns (GetPlayerResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}"};
+  }
+  rpc ListPlayerSessions(PageRequest) returns (SessionPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/sessions"};
+  }
+  rpc ListPlayerIdolCards(ListIdolCardsRequest) returns (IdolCardPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/idol-cards"};
+  }
+  rpc ListPlayerSupportCards(ListSupportCardsRequest) returns (SupportCardPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/support-cards"};
+  }
+  rpc ListPlayerItems(ListItemsRequest) returns (ItemPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/items"};
+  }
+  rpc ListPlayerGifts(ListGiftsRequest) returns (GiftPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/gifts"};
+  }
+  rpc ListPlayerGashaDraws(ListGashaDrawsRequest) returns (GashaDrawPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/gasha-draws"};
+  }
+  rpc ListPlayerMemories(ListMemoriesRequest) returns (MemoryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/memories"};
+  }
+  // 一条记忆的详情与培育记录
+  rpc GetPlayerMemory(PlayerMemoryRequest) returns (MemoryDetail) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/memories/{memory_id}"};
+  }
+  // 记忆照片（记忆或培育记录编成记忆的 image_path）
+  rpc GetMemoryPhoto(MemoryPhotoRequest) returns (MemoryPhoto) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/memory-photo"};
+  }
+  // 资料名片的图片（没有图片时 404 MEISHI_IMAGE_NOT_FOUND）
+  rpc GetPlayerMeishiImage(PlayerRequest) returns (MeishiImage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/meishi-image"};
+  }
+  rpc GetPlayerPvp(PlayerRequest) returns (PlayerPvp) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/pvp"};
+  }
+  rpc GetPlayerSeminar(PlayerRequest) returns (PlayerSeminar) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/seminar"};
+  }
+  rpc ListPlayerBackups(PlayerRequest) returns (BackupList) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/players/{pid}/backups"};
+  }
+
+  // ---------------- 全服 ----------------
+
+  rpc GetGashaStats(ServerRequest) returns (GashaStatList) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/gashas/stats"};
+  }
+  rpc ListProduces(ListProducesRequest) returns (ProducePage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/produces"};
+  }
+  rpc GetPvpRanking(RankingRequest) returns (PvpRankingPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/pvp/ranking"};
+  }
+  rpc GetSeminarStats(ServerRequest) returns (SeminarStatList) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/seminar/stats"};
+  }
+  rpc GetTowerRanking(TowerRankingRequest) returns (TowerRankingPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/towers/{tower_id}/ranking"};
+  }
+
+  // ---------------- 目录 ----------------
+
+  rpc ListCurrencies(CatalogRequest) returns (CurrencyPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/currencies"};
+  }
+  rpc ListItemCatalog(ItemCatalogRequest) returns (ItemEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/items"};
+  }
+  rpc ListIdolCardSkins(IdolCardSkinCatalogRequest) returns (IdolCardSkinPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/idol-card-skins"};
+  }
+  rpc ListSupportCardCatalog(SupportCardCatalogRequest) returns (SupportCardEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/support-cards"};
+  }
+  rpc ListCharacters(CatalogRequest) returns (CharacterPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/characters"};
+  }
+  rpc ListCostumes(CostumeCatalogRequest) returns (CostumePage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/costumes"};
+  }
+  rpc ListCostumeHeads(CostumeCatalogRequest) returns (CostumePage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/costume-heads"};
+  }
+  rpc ListMusic(CatalogRequest) returns (MusicPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/music"};
+  }
+  rpc ListGashas(GashaCatalogRequest) returns (GashaEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/gashas"};
+  }
+  rpc ListProduceGroups(CatalogRequest) returns (ProduceGroupPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/produce-groups"};
+  }
+  rpc ListProduceCatalog(ProduceCatalogRequest) returns (ProduceEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/produces"};
+  }
+  rpc ListSeminars(CatalogRequest) returns (SeminarEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/seminars"};
+  }
+  rpc ListTowers(CatalogRequest) returns (TowerEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/towers"};
+  }
+  rpc ListProduceCards(CatalogRequest) returns (ProduceCardEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/produce-cards"};
+  }
+  rpc ListProduceItems(CatalogRequest) returns (ProduceItemEntryPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/produce-items"};
+  }
+  rpc ListMemoryAbilities(CatalogRequest) returns (MemoryAbilityPage) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/memory-abilities"};
+  }
+
+  // ---------------- 操作 ----------------
+
+  // 发送到礼物箱（1–200 名玩家，逐个执行）
+  rpc SendGift(SendGiftRequest) returns (GiftSendResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/gifts", body: "*"};
+  }
+  // 撤回未领取的礼物
+  rpc RevokeGifts(RevokeGiftsRequest) returns (GiftRevokeResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/gifts/revoke", body: "*"};
+  }
+  // 全部偶像卡（含满潜能碎片）
+  rpc GrantAllIdolCards(GrantAllRequest) returns (IdolCardGrantResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/idol-cards/grant-all", body: "*"};
+  }
+  // 全部支援卡（满突破）
+  rpc GrantAllSupportCards(GrantAllRequest) returns (SupportCardGrantResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/support-cards/grant-all", body: "*"};
+  }
+  // 调整金币与道具
+  rpc AdjustItem(AdjustItemRequest) returns (ChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/items/adjust", body: "*"};
+  }
+  // 调整钻石（免费 / 付费）
+  rpc AdjustJewel(AdjustJewelRequest) returns (ChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/jewels/adjust", body: "*"};
+  }
+  // 回满体力
+  rpc RefillActionPoint(PlayersOperationRequest) returns (ChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/action-point/refill", body: "*"};
+  }
+  // 增加制作人经验
+  rpc AddExp(AddExpRequest) returns (ChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/exp/add", body: "*"};
+  }
+  // 强制下线（1–200 名玩家）
+  rpc KickPlayers(PlayersOperationRequest) returns (KickResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/kick", body: "*"};
+  }
+  // 封禁（1–200 名玩家）
+  rpc BanPlayers(BanPlayersRequest) returns (BanResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/ban", body: "*"};
+  }
+  // 解封（1–200 名玩家）
+  rpc UnbanPlayers(PlayersOperationRequest) returns (BanResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/unban", body: "*"};
+  }
+  // 重置登录密码
+  rpc ResetPassword(ResetPasswordRequest) returns (PasswordResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/password", body: "*"};
+  }
+  // 改昵称
+  rpc RenamePlayer(RenamePlayerRequest) returns (RenameResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/name", body: "*"};
+  }
+  // 设为援助（资料展示并出借）的记忆
+  rpc SetRentalMemory(SetRentalMemoryRequest) returns (RentalResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/{pid}/rental-memory", body: "*"};
+  }
+  // 设为援助（资料展示并出借）的支援卡
+  rpc SetRentalSupportCard(SetRentalSupportCardRequest) returns (RentalResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/{pid}/rental-support-card", body: "*"};
+  }
+  // 竞赛：调整 Rate
+  rpc SetPvpRate(SetPvpRateRequest) returns (ChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/pvp/rate", body: "*"};
+  }
+  // 竞赛：重置今日次数
+  rpc ResetPvpDaily(PlayersOperationRequest) returns (ChangesResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/pvp/reset-daily", body: "*"};
+  }
+  // 研修：通关全部并发放奖励
+  rpc ClearSeminar(PlayersOperationRequest) returns (SeminarClearResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/seminar/clear", body: "*"};
+  }
+  // 研修：重置进度
+  rpc ResetSeminar(PlayersOperationRequest) returns (SeminarResetResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/seminar/reset", body: "*"};
+  }
+  // 备份当前存档
+  rpc BackupArchive(BackupArchiveRequest) returns (BackupResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/{pid}/backups", body: "*"};
+  }
+  // 导出完整存档 JSON（不含礼物箱）
+  rpc ExportArchive(PlayersOperationRequest) returns (ArchiveExportResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/archive/export", body: "*"};
+  }
+  // 回档到备份
+  rpc RestoreArchive(RestoreArchiveRequest) returns (RestoreResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/players/{pid}/backups/{backup_id}/restore", body: "*"};
+  }
+  // 维护模式与登录白名单
+  rpc SetMaintenance(SetMaintenanceRequest) returns (MaintenanceResponse) {
+    option (google.api.http) = {put: "/api/v1/gakumas/gm/{server_id}/maintenance", body: "*"};
+  }
+
+  // ---------------- 配置文档 ----------------
+
+  // 卡池（Gasha.json）
+  rpc GetGashaConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/gasha"};
+  }
+  rpc SaveGashaConfigDraft(SaveConfigDraftRequest) returns (v1.GmConfigDraft) {
+    option (google.api.http) = {put: "/api/v1/gakumas/gm/{server_id}/config/gasha/draft", body: "*"};
+  }
+  rpc DiscardGashaConfigDraft(ServerRequest) returns (v1.DiscardGmConfigDraftResponse) {
+    option (google.api.http) = {delete: "/api/v1/gakumas/gm/{server_id}/config/gasha/draft"};
+  }
+  rpc ValidateGashaConfig(ValidateConfigRequest) returns (v1.ValidateGmConfigResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/gasha/validate", body: "*"};
+  }
+  rpc PublishGashaConfig(PublishConfigRequest) returns (v1.PublishGmConfigResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/gasha/publish", body: "*"};
+  }
+  rpc ListGashaConfigRevisions(ConfigRevisionsRequest) returns (v1.ListGmConfigRevisionsResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/gasha/revisions"};
+  }
+  rpc GetGashaConfigRevision(ConfigRevisionRequest) returns (v1.GmConfigRevision) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/gasha/revisions/{id}"};
+  }
+  // 公告（Notice.json）
+  rpc GetNoticeConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/notice"};
+  }
+  rpc SaveNoticeConfigDraft(SaveConfigDraftRequest) returns (v1.GmConfigDraft) {
+    option (google.api.http) = {put: "/api/v1/gakumas/gm/{server_id}/config/notice/draft", body: "*"};
+  }
+  rpc DiscardNoticeConfigDraft(ServerRequest) returns (v1.DiscardGmConfigDraftResponse) {
+    option (google.api.http) = {delete: "/api/v1/gakumas/gm/{server_id}/config/notice/draft"};
+  }
+  rpc ValidateNoticeConfig(ValidateConfigRequest) returns (v1.ValidateGmConfigResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/notice/validate", body: "*"};
+  }
+  rpc PublishNoticeConfig(PublishConfigRequest) returns (v1.PublishGmConfigResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/notice/publish", body: "*"};
+  }
+  rpc ListNoticeConfigRevisions(ConfigRevisionsRequest) returns (v1.ListGmConfigRevisionsResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/notice/revisions"};
+  }
+  rpc GetNoticeConfigRevision(ConfigRevisionRequest) returns (v1.GmConfigRevision) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/notice/revisions/{id}"};
+  }
+  // 运营日历读取的配置（只读）
+  rpc GetPvpRateConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/pvp-rate"};
+  }
+  rpc GetHomeConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/home"};
+  }
+  rpc GetResearchConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/research"};
+  }
+  rpc GetStoryEventConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/story-event"};
+  }
+  rpc GetLoginBonusConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/login-bonus"};
+  }
+}
+
+// ---------------- 请求 ----------------
+
+message ServerRequest {
+  string server_id = 1;
+}
+
+message PlayerRequest {
+  string server_id = 1;
+  string pid = 2;
+}
+
+// 玩家的分页数据。
+message PageRequest {
+  string server_id = 1;
+  string pid = 2;
+  // 上一页的 next_cursor
+  string cursor = 3;
+  // 每页条数（默认与上限见各接口）
+  int32 limit = 4;
+}
+
+message GetDashboardRequest {
+  string server_id = 1;
+  // 每日序列的天数，默认 7，最大 60
+  int32 days = 2;
+}
+
+message ListPlayersRequest {
+  string server_id = 1;
+  // 账号名、User ID、昵称（服务端）或通行证用户名 / 昵称（Momoko）
+  string q = 2;
+  // all / online / activeToday / banned / unlinked（未绑定通行证）
+  string filter = 3;
+  string cursor = 4;
+  // 默认 20，最大 200
+  int32 limit = 5;
+}
+
+message ListIdolCardsRequest {
+  string server_id = 1;
+  string pid = 2;
+  // 模糊匹配卡 ID、卡名或角色名（游戏原文）
+  string q = 8;
+  string character_id = 3;
+  int32 rarity = 4;
+  repeated string idol_card_ids = 5;
+  string cursor = 6;
+  // 默认 50，最大 500
+  int32 limit = 7;
+}
+
+message ListSupportCardsRequest {
+  string server_id = 1;
+  string pid = 2;
+  // 模糊匹配卡 ID 或卡名（游戏原文）
+  string q = 7;
+  int32 rarity = 3;
+  repeated string support_card_ids = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+message ListItemsRequest {
+  string server_id = 1;
+  string pid = 2;
+  int32 type = 3;
+  repeated string item_ids = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+message ListGiftsRequest {
+  string server_id = 1;
+  string pid = 2;
+  // unreceived / received / expired（空为全部）
+  string state = 3;
+  repeated string resource_ids = 4;
+  // game（游戏内发出）/ admin（管理操作、邮件、兑换码）（空为全部）
+  string source = 7;
+  // 只保留 24 小时内到期的礼物
+  bool expiring = 8;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+message ListGashaDrawsRequest {
+  string server_id = 1;
+  string pid = 2;
+  // 只保留这些卡池的抽卡
+  repeated string gasha_ids = 3;
+  // 只保留抽到其中任一张卡的抽卡
+  repeated string card_ids = 4;
+  string cursor = 5;
+  // 默认 20，最大 200
+  int32 limit = 6;
+}
+
+message ListMemoriesRequest {
+  string server_id = 1;
+  string pid = 2;
+  // 只保留培育结果（培育记录）
+  bool produced = 3;
+  // 模糊匹配记忆的偶像卡 ID、卡名或角色名（游戏原文）
+  string q = 8;
+  // 偶像卡稀有度
+  int32 rarity = 9;
+  // 评价（ResultGrade），可多个
+  repeated int32 grades = 10;
+  string character_id = 4;
+  repeated string idol_card_ids = 5;
+  string cursor = 6;
+  int32 limit = 7;
+}
+
+message ListProducesRequest {
+  string server_id = 1;
+  string produce_group_id = 2;
+  string produce_id = 3;
+  string character_id = 4;
+  // Unix 毫秒（0 不限）
+  double since = 5;
+  double until = 6;
+  // 玩家搜索
+  string q = 7;
+  string cursor = 8;
+  int32 limit = 9;
+}
+
+message RankingRequest {
+  string server_id = 1;
+  // 玩家搜索
+  string q = 2;
+  string cursor = 3;
+  int32 limit = 4;
+}
+
+message TowerRankingRequest {
+  string server_id = 1;
+  string tower_id = 2;
+  string q = 3;
+  string cursor = 4;
+  int32 limit = 5;
+}
+
+// 目录：q 匹配 ID 或名称的一部分，ids 只保留这些 ID。
+message CatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  string cursor = 4;
+  // 默认 50，最大 1000
+  int32 limit = 5;
+}
+
+message ItemCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  int32 type = 4;
+  string character_id = 5;
+  int32 rarity = 6;
+  string cursor = 7;
+  int32 limit = 8;
+}
+
+message IdolCardSkinCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  string character_id = 4;
+  int32 rarity = 5;
+  int32 plan_type = 6;
+  repeated string idol_card_ids = 7;
+  string cursor = 8;
+  int32 limit = 9;
+}
+
+message SupportCardCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  int32 rarity = 4;
+  int32 type = 5;
+  string cursor = 6;
+  int32 limit = 7;
+}
+
+message CostumeCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  string character_id = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+message GashaCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  // 只保留现在开放的卡池
+  bool open = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+message ProduceCatalogRequest {
+  string server_id = 1;
+  string q = 2;
+  repeated string ids = 3;
+  string produce_group_id = 4;
+  string cursor = 5;
+  int32 limit = 6;
+}
+
+
+// 1–200 名玩家、没有参数的操作。
+message PlayersOperationRequest {
+  string server_id = 1;
+  repeated string pids = 2;
+  bool dry_run = 3;
+}
+
+message SendGiftRequest {
+  string server_id = 1;
+  repeated string pids = 2;
+  // 1–20 项
+  repeated v1.GameReward rewards = 3;
+  // 礼物箱文案（最多 64 字，空为「GMプレゼント」）
+  string message = 4;
+  // 领取期限（天，0–365，0 不过期）
+  int32 expire_days = 5;
+  bool dry_run = 6;
+  // GM 记录里展示的摘要
+  map<string, string> summary = 7;
+}
+
+message RevokeGiftsRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  // gm / mail / code
+  string source_kind = 3;
+  string source_id = 4;
+  repeated string gift_ids = 5;
+  bool dry_run = 6;
+}
+
+message GrantAllRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  // 礼物箱文案
+  string message = 3;
+  bool dry_run = 4;
+}
+
+message AdjustItemRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  string item_id = 3;
+  // 增减量
+  int64 quantity = 4;
+  bool dry_run = 5;
+}
+
+message AdjustJewelRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  // 免费钻石增减
+  int64 free = 3;
+  // 付费钻石增减
+  int64 paid = 4;
+  bool dry_run = 5;
+}
+
+message AddExpRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  int64 exp = 3;
+  bool dry_run = 4;
+}
+
+message BanPlayersRequest {
+  string server_id = 1;
+  repeated string pids = 2;
+  // 封禁到（Unix 毫秒）
+  double until = 3;
+  bool permanent = 4;
+  // 游戏内显示的封禁原因
+  string reason = 5;
+  bool dry_run = 6;
+}
+
+message ResetPasswordRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  string password = 3;
+}
+
+message PlayerMemoryRequest {
+  string server_id = 1;
+  string pid = 2;
+  string memory_id = 3;
+}
+
+message MemoryPhotoRequest {
+  string server_id = 1;
+  // 相册对象：album/<publicUserId>/<id>.jpg
+  string path = 2;
+}
+
+message SetRentalMemoryRequest {
+  string server_id = 1;
+  string pid = 2;
+  string memory_id = 3;
+  bool dry_run = 4;
+}
+
+message SetRentalSupportCardRequest {
+  string server_id = 1;
+  string pid = 2;
+  string support_card_id = 3;
+  bool dry_run = 4;
+}
+
+message RenamePlayerRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  string name = 3;
+  bool dry_run = 4;
+}
+
+message SetPvpRateRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  int32 rate = 3;
+  bool dry_run = 4;
+}
+
+message BackupArchiveRequest {
+  string server_id = 1;
+  string pid = 2;
+  string note = 3;
+}
+
+message RestoreArchiveRequest {
+  string server_id = 1;
+  string pid = 2;
+  double backup_id = 3;
+  bool dry_run = 4;
+}
+
+message SetMaintenanceRequest {
+  string server_id = 1;
+  bool enabled = 2;
+  // 维护期间可登录的玩家 pid
+  repeated string whitelist = 3;
+  bool dry_run = 4;
+}
+
+message SaveConfigDraftRequest {
+  string server_id = 1;
+  // 文档内容（JSON）
+  string content = 2;
+  // 编辑所基于的服务端 revision
+  string base_revision = 3;
+  string comment = 4;
+}
+
+message ValidateConfigRequest {
+  string server_id = 1;
+  string content = 2;
+}
+
+message PublishConfigRequest {
+  string server_id = 1;
+  // 为空时发布草稿
+  string content = 2;
+  string base_revision = 3;
+  string comment = 4;
+}
+
+message ConfigRevisionsRequest {
+  string server_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ConfigRevisionRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+// ---------------- 响应 ----------------
+
+// 操作对一个目标的状态。
+message OperationTarget {
+  string pid = 1;
+  string name = 2;
+  // success / failed
+  string status = 3;
+  string code = 4;
+  string message = 5;
+}
+
+message ListPlayersResponse {
+  repeated Player items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+  // 各筛选的人数（unlinked 由 Momoko 计算）
+  PlayerCounts summary = 4;
+  int32 unlinked = 5;
+  // 本页玩家绑定的通行证
+  repeated v1.GmPlayerLink links = 6;
+  // 已绑定通行证的游戏账号数
+  int32 linked_count = 7;
+}
+
+message GetPlayerResponse {
+  Player player = 1;
+  Overview overview = 2;
+  LoginCounts logins = 3;
+  // 绑定的通行证（没有为空）
+  v1.GmPlayerLink link = 4;
+  // 涉及该玩家的 GM 记录数
+  int32 gm_executions = 5;
+}
+
+// 操作的响应：GM 记录与逐个目标的结果（目标失败时没有 data）。
+message ChangesTarget {
+  OperationTarget target = 1;
+  ChangeList data = 2;
+}
+
+message ChangesResponse {
+  v1.GmExecution execution = 1;
+  repeated ChangesTarget results = 2;
+}
+
+message GiftSendTarget {
+  OperationTarget target = 1;
+  GiftSendResult data = 2;
+}
+
+message GiftSendResponse {
+  v1.GmExecution execution = 1;
+  repeated GiftSendTarget results = 2;
+}
+
+message GiftRevokeTarget {
+  OperationTarget target = 1;
+  GiftRevokeResult data = 2;
+}
+
+message GiftRevokeResponse {
+  v1.GmExecution execution = 1;
+  repeated GiftRevokeTarget results = 2;
+}
+
+message IdolCardGrantTarget {
+  OperationTarget target = 1;
+  IdolCardGrant data = 2;
+}
+
+message IdolCardGrantResponse {
+  v1.GmExecution execution = 1;
+  repeated IdolCardGrantTarget results = 2;
+}
+
+message SupportCardGrantTarget {
+  OperationTarget target = 1;
+  SupportCardGrant data = 2;
+}
+
+message SupportCardGrantResponse {
+  v1.GmExecution execution = 1;
+  repeated SupportCardGrantTarget results = 2;
+}
+
+message KickTarget {
+  OperationTarget target = 1;
+  KickResult data = 2;
+}
+
+message KickResponse {
+  v1.GmExecution execution = 1;
+  repeated KickTarget results = 2;
+}
+
+message BanTarget {
+  OperationTarget target = 1;
+  BanResult data = 2;
+}
+
+message BanResponse {
+  v1.GmExecution execution = 1;
+  repeated BanTarget results = 2;
+}
+
+message PasswordTarget {
+  OperationTarget target = 1;
+  PasswordResult data = 2;
+}
+
+message PasswordResponse {
+  v1.GmExecution execution = 1;
+  repeated PasswordTarget results = 2;
+}
+
+message RenameTarget {
+  OperationTarget target = 1;
+  RenameResult data = 2;
+}
+
+message RenameResponse {
+  v1.GmExecution execution = 1;
+  repeated RenameTarget results = 2;
+}
+
+message RentalTarget {
+  OperationTarget target = 1;
+  RentalChange data = 2;
+}
+
+message RentalResponse {
+  v1.GmExecution execution = 1;
+  repeated RentalTarget results = 2;
+}
+
+message SeminarClearTarget {
+  OperationTarget target = 1;
+  SeminarClearResult data = 2;
+}
+
+message SeminarClearResponse {
+  v1.GmExecution execution = 1;
+  repeated SeminarClearTarget results = 2;
+}
+
+message SeminarResetTarget {
+  OperationTarget target = 1;
+  SeminarResetResult data = 2;
+}
+
+message SeminarResetResponse {
+  v1.GmExecution execution = 1;
+  repeated SeminarResetTarget results = 2;
+}
+
+message BackupTarget {
+  OperationTarget target = 1;
+  Backup data = 2;
+}
+
+message BackupResponse {
+  v1.GmExecution execution = 1;
+  repeated BackupTarget results = 2;
+}
+
+message RestoreTarget {
+  OperationTarget target = 1;
+  RestoreResult data = 2;
+}
+
+message RestoreResponse {
+  v1.GmExecution execution = 1;
+  repeated RestoreTarget results = 2;
+}
+
+message ArchiveExportTarget {
+  OperationTarget target = 1;
+  ArchiveExport data = 2;
+}
+
+message ArchiveExportResponse {
+  v1.GmExecution execution = 1;
+  repeated ArchiveExportTarget results = 2;
+}
+
+message MaintenanceResponse {
+  v1.GmExecution execution = 1;
+  // 生效后（试运行为将生效）的维护设置；执行失败时为空
+  Maintenance data = 2;
+}

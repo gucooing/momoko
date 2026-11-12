@@ -19,81 +19,39 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GameGMService_SearchGmServers_FullMethodName       = "/v1.GameGMService/SearchGmServers"
-	GameGMService_GetGmContext_FullMethodName          = "/v1.GameGMService/GetGmContext"
-	GameGMService_ListGmPlayers_FullMethodName         = "/v1.GameGMService/ListGmPlayers"
-	GameGMService_GetGmPlayer_FullMethodName           = "/v1.GameGMService/GetGmPlayer"
-	GameGMService_GetGmPlayerView_FullMethodName       = "/v1.GameGMService/GetGmPlayerView"
-	GameGMService_GetGmReport_FullMethodName           = "/v1.GameGMService/GetGmReport"
-	GameGMService_GetGmCatalog_FullMethodName          = "/v1.GameGMService/GetGmCatalog"
-	GameGMService_ExecuteGmCommand_FullMethodName      = "/v1.GameGMService/ExecuteGmCommand"
-	GameGMService_ListGmExecutions_FullMethodName      = "/v1.GameGMService/ListGmExecutions"
-	GameGMService_GetGmExecution_FullMethodName        = "/v1.GameGMService/GetGmExecution"
-	GameGMService_ApproveGmExecution_FullMethodName    = "/v1.GameGMService/ApproveGmExecution"
-	GameGMService_RejectGmExecution_FullMethodName     = "/v1.GameGMService/RejectGmExecution"
-	GameGMService_ListGmSelfService_FullMethodName     = "/v1.GameGMService/ListGmSelfService"
-	GameGMService_UpdateGmSelfService_FullMethodName   = "/v1.GameGMService/UpdateGmSelfService"
-	GameGMService_ListGmConfigs_FullMethodName         = "/v1.GameGMService/ListGmConfigs"
-	GameGMService_GetGmConfig_FullMethodName           = "/v1.GameGMService/GetGmConfig"
-	GameGMService_SaveGmConfigDraft_FullMethodName     = "/v1.GameGMService/SaveGmConfigDraft"
-	GameGMService_DiscardGmConfigDraft_FullMethodName  = "/v1.GameGMService/DiscardGmConfigDraft"
-	GameGMService_ValidateGmConfig_FullMethodName      = "/v1.GameGMService/ValidateGmConfig"
-	GameGMService_PublishGmConfig_FullMethodName       = "/v1.GameGMService/PublishGmConfig"
-	GameGMService_ListGmConfigRevisions_FullMethodName = "/v1.GameGMService/ListGmConfigRevisions"
-	GameGMService_GetGmConfigRevision_FullMethodName   = "/v1.GameGMService/GetGmConfigRevision"
+	GameGMService_SearchGmServers_FullMethodName     = "/v1.GameGMService/SearchGmServers"
+	GameGMService_GetGmContext_FullMethodName        = "/v1.GameGMService/GetGmContext"
+	GameGMService_ListGmExecutions_FullMethodName    = "/v1.GameGMService/ListGmExecutions"
+	GameGMService_GetGmExecution_FullMethodName      = "/v1.GameGMService/GetGmExecution"
+	GameGMService_ApproveGmExecution_FullMethodName  = "/v1.GameGMService/ApproveGmExecution"
+	GameGMService_RejectGmExecution_FullMethodName   = "/v1.GameGMService/RejectGmExecution"
+	GameGMService_ListGmSelfService_FullMethodName   = "/v1.GameGMService/ListGmSelfService"
+	GameGMService_UpdateGmSelfService_FullMethodName = "/v1.GameGMService/UpdateGmSelfService"
 )
 
 // GameGMServiceClient is the client API for GameGMService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// GM 运营（权限 game:gm）：能进的管理员可以对任何服务器执行全部指令。
-// 游戏数据经 MGP 透传（只带资源 ID，前端查素材包）；GM 记录、玩家自助、配置草稿与版本保存在 Momoko。
+// GM 运营的通用部分（权限 game:gm）：服务器上下文、GM 记录与审批、玩家自助设置。
+// 各游戏特有的查询与操作（玩家数据、目录、配置文档、发奖等）由游戏模块的服务提供（学マス：GakumasGMService）。
 type GameGMServiceClient interface {
 	// 搜索可运营的服务器（搜索 + 最近查看，最多 20 条）
 	SearchGmServers(ctx context.Context, in *SearchGameServersRequest, opts ...grpc.CallOption) (*SearchGameServersResponse, error)
-	// GM 页面上下文：服务器摘要、manifest、实时 status、待审批数；同时记入「最近查看」
+	// GM 页面上下文：服务器摘要、待审批数、自助与绑定统计；同时记入「最近查看」
 	GetGmContext(ctx context.Context, in *GetGmContextRequest, opts ...grpc.CallOption) (*GetGmContextResponse, error)
-	// 玩家列表（MGP /players + 通行证绑定；filter=unlinked 为未绑定通行证）
-	ListGmPlayers(ctx context.Context, in *ListGmPlayersRequest, opts ...grpc.CallOption) (*ListGmPlayersResponse, error)
-	// 玩家摘要与概览（MGP /players/{pid} + 通行证绑定 + GM 记录数）
-	GetGmPlayer(ctx context.Context, in *GetGmPlayerRequest, opts ...grpc.CallOption) (*GetGmPlayerResponse, error)
-	// 玩家的分页数据（MGP /players/{pid}/views/{view}）
-	GetGmPlayerView(ctx context.Context, in *GetGmPlayerViewRequest, opts ...grpc.CallOption) (*GmDataResponse, error)
-	// 全服统计与列表（MGP /reports/{report}）
-	GetGmReport(ctx context.Context, in *GetGmReportRequest, opts ...grpc.CallOption) (*GmDataResponse, error)
-	// 选择器数据（MGP /catalogs/{kind}）
-	GetGmCatalog(ctx context.Context, in *GetGmCatalogRequest, opts ...grpc.CallOption) (*GmDataResponse, error)
-	// 执行 GM 指令（含试运行）；高风险必须填原因，危险指令需要输入玩家昵称确认
-	ExecuteGmCommand(ctx context.Context, in *ExecuteGmCommandRequest, opts ...grpc.CallOption) (*ExecuteGmCommandResponse, error)
 	// GM 记录（管理端与玩家自助）
 	ListGmExecutions(ctx context.Context, in *ListGmExecutionsRequest, opts ...grpc.CallOption) (*ListGmExecutionsResponse, error)
-	// GM 记录详情（不含请求参数）
+	// GM 记录详情（逐个对象的结果，不含请求参数）
 	GetGmExecution(ctx context.Context, in *GetGmExecutionRequest, opts ...grpc.CallOption) (*GmExecution, error)
 	// 批准玩家的申请并执行
 	ApproveGmExecution(ctx context.Context, in *ApproveGmExecutionRequest, opts ...grpc.CallOption) (*GmExecution, error)
 	// 驳回玩家的申请
 	RejectGmExecution(ctx context.Context, in *RejectGmExecutionRequest, opts ...grpc.CallOption) (*GmExecution, error)
-	// 玩家自助：只列出 manifest 里允许自助的指令
+	// 玩家自助：列出游戏模块声明为可自助的操作与设置
 	ListGmSelfService(ctx context.Context, in *ListGmSelfServiceRequest, opts ...grpc.CallOption) (*ListGmSelfServiceResponse, error)
-	// 修改一条指令的玩家自助设置（立即生效）
+	// 修改一个操作的玩家自助设置（立即生效）
 	UpdateGmSelfService(ctx context.Context, in *UpdateGmSelfServiceRequest, opts ...grpc.CallOption) (*GmSelfServicePolicy, error)
-	// 配置域列表（服务端 revision + Momoko 草稿与最近发布）
-	ListGmConfigs(ctx context.Context, in *ListGmConfigsRequest, opts ...grpc.CallOption) (*ListGmConfigsResponse, error)
-	// 读取配置域：服务端当前内容与 revision，以及草稿（有的话）
-	GetGmConfig(ctx context.Context, in *GetGmConfigRequest, opts ...grpc.CallOption) (*GetGmConfigResponse, error)
-	// 保存草稿（每个配置域一份，自动保存用）
-	SaveGmConfigDraft(ctx context.Context, in *SaveGmConfigDraftRequest, opts ...grpc.CallOption) (*GmConfigDraft, error)
-	// 放弃草稿
-	DiscardGmConfigDraft(ctx context.Context, in *DiscardGmConfigDraftRequest, opts ...grpc.CallOption) (*DiscardGmConfigDraftResponse, error)
-	// 校验内容（MGP PUT dryRun，与服务端启动时相同的校验）
-	ValidateGmConfig(ctx context.Context, in *ValidateGmConfigRequest, opts ...grpc.CallOption) (*ValidateGmConfigResponse, error)
-	// 发布（高风险，必须填原因）：写回服务端并热重载，记一条 config.publish GM 记录与一个版本
-	PublishGmConfig(ctx context.Context, in *PublishGmConfigRequest, opts ...grpc.CallOption) (*PublishGmConfigResponse, error)
-	// 版本记录（不含内容）
-	ListGmConfigRevisions(ctx context.Context, in *ListGmConfigRevisionsRequest, opts ...grpc.CallOption) (*ListGmConfigRevisionsResponse, error)
-	// 某个版本的内容（对比、恢复为草稿用）
-	GetGmConfigRevision(ctx context.Context, in *GetGmConfigRevisionRequest, opts ...grpc.CallOption) (*GmConfigRevision, error)
 }
 
 type gameGMServiceClient struct {
@@ -118,66 +76,6 @@ func (c *gameGMServiceClient) GetGmContext(ctx context.Context, in *GetGmContext
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetGmContextResponse)
 	err := c.cc.Invoke(ctx, GameGMService_GetGmContext_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) ListGmPlayers(ctx context.Context, in *ListGmPlayersRequest, opts ...grpc.CallOption) (*ListGmPlayersResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListGmPlayersResponse)
-	err := c.cc.Invoke(ctx, GameGMService_ListGmPlayers_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) GetGmPlayer(ctx context.Context, in *GetGmPlayerRequest, opts ...grpc.CallOption) (*GetGmPlayerResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetGmPlayerResponse)
-	err := c.cc.Invoke(ctx, GameGMService_GetGmPlayer_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) GetGmPlayerView(ctx context.Context, in *GetGmPlayerViewRequest, opts ...grpc.CallOption) (*GmDataResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GmDataResponse)
-	err := c.cc.Invoke(ctx, GameGMService_GetGmPlayerView_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) GetGmReport(ctx context.Context, in *GetGmReportRequest, opts ...grpc.CallOption) (*GmDataResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GmDataResponse)
-	err := c.cc.Invoke(ctx, GameGMService_GetGmReport_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) GetGmCatalog(ctx context.Context, in *GetGmCatalogRequest, opts ...grpc.CallOption) (*GmDataResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GmDataResponse)
-	err := c.cc.Invoke(ctx, GameGMService_GetGmCatalog_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) ExecuteGmCommand(ctx context.Context, in *ExecuteGmCommandRequest, opts ...grpc.CallOption) (*ExecuteGmCommandResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ExecuteGmCommandResponse)
-	err := c.cc.Invoke(ctx, GameGMService_ExecuteGmCommand_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -244,137 +142,29 @@ func (c *gameGMServiceClient) UpdateGmSelfService(ctx context.Context, in *Updat
 	return out, nil
 }
 
-func (c *gameGMServiceClient) ListGmConfigs(ctx context.Context, in *ListGmConfigsRequest, opts ...grpc.CallOption) (*ListGmConfigsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListGmConfigsResponse)
-	err := c.cc.Invoke(ctx, GameGMService_ListGmConfigs_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) GetGmConfig(ctx context.Context, in *GetGmConfigRequest, opts ...grpc.CallOption) (*GetGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetGmConfigResponse)
-	err := c.cc.Invoke(ctx, GameGMService_GetGmConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) SaveGmConfigDraft(ctx context.Context, in *SaveGmConfigDraftRequest, opts ...grpc.CallOption) (*GmConfigDraft, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GmConfigDraft)
-	err := c.cc.Invoke(ctx, GameGMService_SaveGmConfigDraft_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) DiscardGmConfigDraft(ctx context.Context, in *DiscardGmConfigDraftRequest, opts ...grpc.CallOption) (*DiscardGmConfigDraftResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DiscardGmConfigDraftResponse)
-	err := c.cc.Invoke(ctx, GameGMService_DiscardGmConfigDraft_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) ValidateGmConfig(ctx context.Context, in *ValidateGmConfigRequest, opts ...grpc.CallOption) (*ValidateGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ValidateGmConfigResponse)
-	err := c.cc.Invoke(ctx, GameGMService_ValidateGmConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) PublishGmConfig(ctx context.Context, in *PublishGmConfigRequest, opts ...grpc.CallOption) (*PublishGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PublishGmConfigResponse)
-	err := c.cc.Invoke(ctx, GameGMService_PublishGmConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) ListGmConfigRevisions(ctx context.Context, in *ListGmConfigRevisionsRequest, opts ...grpc.CallOption) (*ListGmConfigRevisionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListGmConfigRevisionsResponse)
-	err := c.cc.Invoke(ctx, GameGMService_ListGmConfigRevisions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gameGMServiceClient) GetGmConfigRevision(ctx context.Context, in *GetGmConfigRevisionRequest, opts ...grpc.CallOption) (*GmConfigRevision, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GmConfigRevision)
-	err := c.cc.Invoke(ctx, GameGMService_GetGmConfigRevision_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GameGMServiceServer is the server API for GameGMService service.
 // All implementations must embed UnimplementedGameGMServiceServer
 // for forward compatibility.
 //
-// GM 运营（权限 game:gm）：能进的管理员可以对任何服务器执行全部指令。
-// 游戏数据经 MGP 透传（只带资源 ID，前端查素材包）；GM 记录、玩家自助、配置草稿与版本保存在 Momoko。
+// GM 运营的通用部分（权限 game:gm）：服务器上下文、GM 记录与审批、玩家自助设置。
+// 各游戏特有的查询与操作（玩家数据、目录、配置文档、发奖等）由游戏模块的服务提供（学マス：GakumasGMService）。
 type GameGMServiceServer interface {
 	// 搜索可运营的服务器（搜索 + 最近查看，最多 20 条）
 	SearchGmServers(context.Context, *SearchGameServersRequest) (*SearchGameServersResponse, error)
-	// GM 页面上下文：服务器摘要、manifest、实时 status、待审批数；同时记入「最近查看」
+	// GM 页面上下文：服务器摘要、待审批数、自助与绑定统计；同时记入「最近查看」
 	GetGmContext(context.Context, *GetGmContextRequest) (*GetGmContextResponse, error)
-	// 玩家列表（MGP /players + 通行证绑定；filter=unlinked 为未绑定通行证）
-	ListGmPlayers(context.Context, *ListGmPlayersRequest) (*ListGmPlayersResponse, error)
-	// 玩家摘要与概览（MGP /players/{pid} + 通行证绑定 + GM 记录数）
-	GetGmPlayer(context.Context, *GetGmPlayerRequest) (*GetGmPlayerResponse, error)
-	// 玩家的分页数据（MGP /players/{pid}/views/{view}）
-	GetGmPlayerView(context.Context, *GetGmPlayerViewRequest) (*GmDataResponse, error)
-	// 全服统计与列表（MGP /reports/{report}）
-	GetGmReport(context.Context, *GetGmReportRequest) (*GmDataResponse, error)
-	// 选择器数据（MGP /catalogs/{kind}）
-	GetGmCatalog(context.Context, *GetGmCatalogRequest) (*GmDataResponse, error)
-	// 执行 GM 指令（含试运行）；高风险必须填原因，危险指令需要输入玩家昵称确认
-	ExecuteGmCommand(context.Context, *ExecuteGmCommandRequest) (*ExecuteGmCommandResponse, error)
 	// GM 记录（管理端与玩家自助）
 	ListGmExecutions(context.Context, *ListGmExecutionsRequest) (*ListGmExecutionsResponse, error)
-	// GM 记录详情（不含请求参数）
+	// GM 记录详情（逐个对象的结果，不含请求参数）
 	GetGmExecution(context.Context, *GetGmExecutionRequest) (*GmExecution, error)
 	// 批准玩家的申请并执行
 	ApproveGmExecution(context.Context, *ApproveGmExecutionRequest) (*GmExecution, error)
 	// 驳回玩家的申请
 	RejectGmExecution(context.Context, *RejectGmExecutionRequest) (*GmExecution, error)
-	// 玩家自助：只列出 manifest 里允许自助的指令
+	// 玩家自助：列出游戏模块声明为可自助的操作与设置
 	ListGmSelfService(context.Context, *ListGmSelfServiceRequest) (*ListGmSelfServiceResponse, error)
-	// 修改一条指令的玩家自助设置（立即生效）
+	// 修改一个操作的玩家自助设置（立即生效）
 	UpdateGmSelfService(context.Context, *UpdateGmSelfServiceRequest) (*GmSelfServicePolicy, error)
-	// 配置域列表（服务端 revision + Momoko 草稿与最近发布）
-	ListGmConfigs(context.Context, *ListGmConfigsRequest) (*ListGmConfigsResponse, error)
-	// 读取配置域：服务端当前内容与 revision，以及草稿（有的话）
-	GetGmConfig(context.Context, *GetGmConfigRequest) (*GetGmConfigResponse, error)
-	// 保存草稿（每个配置域一份，自动保存用）
-	SaveGmConfigDraft(context.Context, *SaveGmConfigDraftRequest) (*GmConfigDraft, error)
-	// 放弃草稿
-	DiscardGmConfigDraft(context.Context, *DiscardGmConfigDraftRequest) (*DiscardGmConfigDraftResponse, error)
-	// 校验内容（MGP PUT dryRun，与服务端启动时相同的校验）
-	ValidateGmConfig(context.Context, *ValidateGmConfigRequest) (*ValidateGmConfigResponse, error)
-	// 发布（高风险，必须填原因）：写回服务端并热重载，记一条 config.publish GM 记录与一个版本
-	PublishGmConfig(context.Context, *PublishGmConfigRequest) (*PublishGmConfigResponse, error)
-	// 版本记录（不含内容）
-	ListGmConfigRevisions(context.Context, *ListGmConfigRevisionsRequest) (*ListGmConfigRevisionsResponse, error)
-	// 某个版本的内容（对比、恢复为草稿用）
-	GetGmConfigRevision(context.Context, *GetGmConfigRevisionRequest) (*GmConfigRevision, error)
 	mustEmbedUnimplementedGameGMServiceServer()
 }
 
@@ -390,24 +180,6 @@ func (UnimplementedGameGMServiceServer) SearchGmServers(context.Context, *Search
 }
 func (UnimplementedGameGMServiceServer) GetGmContext(context.Context, *GetGmContextRequest) (*GetGmContextResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetGmContext not implemented")
-}
-func (UnimplementedGameGMServiceServer) ListGmPlayers(context.Context, *ListGmPlayersRequest) (*ListGmPlayersResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListGmPlayers not implemented")
-}
-func (UnimplementedGameGMServiceServer) GetGmPlayer(context.Context, *GetGmPlayerRequest) (*GetGmPlayerResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetGmPlayer not implemented")
-}
-func (UnimplementedGameGMServiceServer) GetGmPlayerView(context.Context, *GetGmPlayerViewRequest) (*GmDataResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetGmPlayerView not implemented")
-}
-func (UnimplementedGameGMServiceServer) GetGmReport(context.Context, *GetGmReportRequest) (*GmDataResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetGmReport not implemented")
-}
-func (UnimplementedGameGMServiceServer) GetGmCatalog(context.Context, *GetGmCatalogRequest) (*GmDataResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetGmCatalog not implemented")
-}
-func (UnimplementedGameGMServiceServer) ExecuteGmCommand(context.Context, *ExecuteGmCommandRequest) (*ExecuteGmCommandResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ExecuteGmCommand not implemented")
 }
 func (UnimplementedGameGMServiceServer) ListGmExecutions(context.Context, *ListGmExecutionsRequest) (*ListGmExecutionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListGmExecutions not implemented")
@@ -426,30 +198,6 @@ func (UnimplementedGameGMServiceServer) ListGmSelfService(context.Context, *List
 }
 func (UnimplementedGameGMServiceServer) UpdateGmSelfService(context.Context, *UpdateGmSelfServiceRequest) (*GmSelfServicePolicy, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateGmSelfService not implemented")
-}
-func (UnimplementedGameGMServiceServer) ListGmConfigs(context.Context, *ListGmConfigsRequest) (*ListGmConfigsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListGmConfigs not implemented")
-}
-func (UnimplementedGameGMServiceServer) GetGmConfig(context.Context, *GetGmConfigRequest) (*GetGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetGmConfig not implemented")
-}
-func (UnimplementedGameGMServiceServer) SaveGmConfigDraft(context.Context, *SaveGmConfigDraftRequest) (*GmConfigDraft, error) {
-	return nil, status.Error(codes.Unimplemented, "method SaveGmConfigDraft not implemented")
-}
-func (UnimplementedGameGMServiceServer) DiscardGmConfigDraft(context.Context, *DiscardGmConfigDraftRequest) (*DiscardGmConfigDraftResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DiscardGmConfigDraft not implemented")
-}
-func (UnimplementedGameGMServiceServer) ValidateGmConfig(context.Context, *ValidateGmConfigRequest) (*ValidateGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ValidateGmConfig not implemented")
-}
-func (UnimplementedGameGMServiceServer) PublishGmConfig(context.Context, *PublishGmConfigRequest) (*PublishGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PublishGmConfig not implemented")
-}
-func (UnimplementedGameGMServiceServer) ListGmConfigRevisions(context.Context, *ListGmConfigRevisionsRequest) (*ListGmConfigRevisionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListGmConfigRevisions not implemented")
-}
-func (UnimplementedGameGMServiceServer) GetGmConfigRevision(context.Context, *GetGmConfigRevisionRequest) (*GmConfigRevision, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetGmConfigRevision not implemented")
 }
 func (UnimplementedGameGMServiceServer) mustEmbedUnimplementedGameGMServiceServer() {}
 func (UnimplementedGameGMServiceServer) testEmbeddedByValue()                       {}
@@ -504,114 +252,6 @@ func _GameGMService_GetGmContext_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GameGMServiceServer).GetGmContext(ctx, req.(*GetGmContextRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_ListGmPlayers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListGmPlayersRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).ListGmPlayers(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_ListGmPlayers_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).ListGmPlayers(ctx, req.(*ListGmPlayersRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_GetGmPlayer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGmPlayerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).GetGmPlayer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_GetGmPlayer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).GetGmPlayer(ctx, req.(*GetGmPlayerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_GetGmPlayerView_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGmPlayerViewRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).GetGmPlayerView(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_GetGmPlayerView_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).GetGmPlayerView(ctx, req.(*GetGmPlayerViewRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_GetGmReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGmReportRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).GetGmReport(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_GetGmReport_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).GetGmReport(ctx, req.(*GetGmReportRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_GetGmCatalog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGmCatalogRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).GetGmCatalog(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_GetGmCatalog_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).GetGmCatalog(ctx, req.(*GetGmCatalogRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_ExecuteGmCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExecuteGmCommandRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).ExecuteGmCommand(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_ExecuteGmCommand_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).ExecuteGmCommand(ctx, req.(*ExecuteGmCommandRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -724,150 +364,6 @@ func _GameGMService_UpdateGmSelfService_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GameGMService_ListGmConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListGmConfigsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).ListGmConfigs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_ListGmConfigs_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).ListGmConfigs(ctx, req.(*ListGmConfigsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_GetGmConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGmConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).GetGmConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_GetGmConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).GetGmConfig(ctx, req.(*GetGmConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_SaveGmConfigDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SaveGmConfigDraftRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).SaveGmConfigDraft(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_SaveGmConfigDraft_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).SaveGmConfigDraft(ctx, req.(*SaveGmConfigDraftRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_DiscardGmConfigDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DiscardGmConfigDraftRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).DiscardGmConfigDraft(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_DiscardGmConfigDraft_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).DiscardGmConfigDraft(ctx, req.(*DiscardGmConfigDraftRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_ValidateGmConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ValidateGmConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).ValidateGmConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_ValidateGmConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).ValidateGmConfig(ctx, req.(*ValidateGmConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_PublishGmConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PublishGmConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).PublishGmConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_PublishGmConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).PublishGmConfig(ctx, req.(*PublishGmConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_ListGmConfigRevisions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListGmConfigRevisionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).ListGmConfigRevisions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_ListGmConfigRevisions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).ListGmConfigRevisions(ctx, req.(*ListGmConfigRevisionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GameGMService_GetGmConfigRevision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGmConfigRevisionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GameGMServiceServer).GetGmConfigRevision(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GameGMService_GetGmConfigRevision_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameGMServiceServer).GetGmConfigRevision(ctx, req.(*GetGmConfigRevisionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // GameGMService_ServiceDesc is the grpc.ServiceDesc for GameGMService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -882,30 +378,6 @@ var GameGMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGmContext",
 			Handler:    _GameGMService_GetGmContext_Handler,
-		},
-		{
-			MethodName: "ListGmPlayers",
-			Handler:    _GameGMService_ListGmPlayers_Handler,
-		},
-		{
-			MethodName: "GetGmPlayer",
-			Handler:    _GameGMService_GetGmPlayer_Handler,
-		},
-		{
-			MethodName: "GetGmPlayerView",
-			Handler:    _GameGMService_GetGmPlayerView_Handler,
-		},
-		{
-			MethodName: "GetGmReport",
-			Handler:    _GameGMService_GetGmReport_Handler,
-		},
-		{
-			MethodName: "GetGmCatalog",
-			Handler:    _GameGMService_GetGmCatalog_Handler,
-		},
-		{
-			MethodName: "ExecuteGmCommand",
-			Handler:    _GameGMService_ExecuteGmCommand_Handler,
 		},
 		{
 			MethodName: "ListGmExecutions",
@@ -930,38 +402,6 @@ var GameGMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateGmSelfService",
 			Handler:    _GameGMService_UpdateGmSelfService_Handler,
-		},
-		{
-			MethodName: "ListGmConfigs",
-			Handler:    _GameGMService_ListGmConfigs_Handler,
-		},
-		{
-			MethodName: "GetGmConfig",
-			Handler:    _GameGMService_GetGmConfig_Handler,
-		},
-		{
-			MethodName: "SaveGmConfigDraft",
-			Handler:    _GameGMService_SaveGmConfigDraft_Handler,
-		},
-		{
-			MethodName: "DiscardGmConfigDraft",
-			Handler:    _GameGMService_DiscardGmConfigDraft_Handler,
-		},
-		{
-			MethodName: "ValidateGmConfig",
-			Handler:    _GameGMService_ValidateGmConfig_Handler,
-		},
-		{
-			MethodName: "PublishGmConfig",
-			Handler:    _GameGMService_PublishGmConfig_Handler,
-		},
-		{
-			MethodName: "ListGmConfigRevisions",
-			Handler:    _GameGMService_ListGmConfigRevisions_Handler,
-		},
-		{
-			MethodName: "GetGmConfigRevision",
-			Handler:    _GameGMService_GetGmConfigRevision_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

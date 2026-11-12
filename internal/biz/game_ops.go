@@ -4,8 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
-	"errors"
-	"net/url"
 	"regexp"
 	"slices"
 	"strings"
@@ -19,32 +17,25 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
+	gk "momoko/api/gen/v1/gakumas"
 	"momoko/internal/data/ent/gen"
 	entmail "momoko/internal/data/ent/gen/gamemail"
 	entbatch "momoko/internal/data/ent/gen/giftcodebatch"
-	entredeem "momoko/internal/data/ent/gen/giftcoderedeem"
 	entschema "momoko/internal/data/ent/schema"
-	"momoko/pkg/mgp"
+	"momoko/pkg/mgp/gakumas"
 	"momoko/pkg/response"
 )
 
 var (
-	ErrGameMailNotFound    = response.BadRequest(404, "邮件不存在")
-	ErrGameMailState       = response.BadRequest(409, "邮件当前的状态不能这样操作，请刷新后再试")
-	ErrGameMailIncomplete  = response.BadRequest(400, "邮件还没写完：需要标题、至少一项奖励和收件人")
-	ErrGiftBatchNotFound   = response.BadRequest(404, "兑换码批次不存在")
-	ErrGiftCodeTaken       = response.BadRequest(409, "这台服务器上已经有这个兑换码")
-	ErrGiftBatchInvalid    = response.BadRequest(400, "兑换码批次参数无效")
-	ErrGiftRedeemNoAccount = response.BadRequest(400, "没有绑定这台服务器的游戏账号")
-	ErrGiftRedeemEmpty     = response.BadRequest(400, "请输入兑换码")
+	ErrGameMailNotFound   = response.BadRequest(404, "邮件不存在")
+	ErrGameMailState      = response.BadRequest(409, "邮件当前的状态不能这样操作，请刷新后再试")
+	ErrGameMailIncomplete = response.BadRequest(400, "邮件还没写完：需要标题、至少一项奖励和收件人")
+	ErrGiftBatchNotFound  = response.BadRequest(404, "兑换码批次不存在")
+	ErrGiftCodeTaken      = response.BadRequest(409, "这台服务器上已经有这个兑换码")
+	ErrGiftBatchInvalid   = response.BadRequest(400, "兑换码批次参数无效")
 )
 
 const (
-	mailCommand       = "mail.broadcast"
-	mailRevokeCommand = "mail.revoke"
-	giftCommand       = "gift.send"
-	giftsReport       = "gifts"
-
 	// mailStatsTTL 已发送邮件的领取统计缓存多久后重新向 MGP 报表查询。
 	mailStatsTTL = 60 * time.Second
 	// mailDeliverTimeout 一次后台投递 / 撤回最长的执行时间。
@@ -63,35 +54,6 @@ const (
 	giftPerPlayerMax  = 1000
 	giftEligibleMax   = 3650
 	giftRecentRedeems = 20
-
-	// 兑换频率限制：每个通行证用户每分钟最多尝试的次数（被限流的尝试不计）。
-	redeemRateLimit  = 10
-	redeemRateWindow = time.Minute
-)
-
-// 兑换结果（gift_code_redeem.result）。
-const (
-	RedeemSuccess         = "success"
-	RedeemAlreadyRedeemed = "already_redeemed"
-	RedeemExpired         = "expired"
-	RedeemNotStarted      = "not_started"
-	RedeemExhausted       = "exhausted"
-	RedeemDisabled        = "disabled"
-	RedeemNotEligible     = "not_eligible"
-	RedeemBanned          = "banned"
-	RedeemRateLimited     = "rate_limited"
-	RedeemNotFound        = "not_found"
-	RedeemCodeUsed        = "code_used"
-	RedeemChannelClosed   = "channel_closed"
-	RedeemFailed          = "failed"
-)
-
-// 兑换入口。游戏内（game）入口需要游戏服务端把玩家输入的码转给 Momoko，MGP v1 没有这条通道，
-// 所以 game 只能作为批次设置保存，目前只有通行证（passport）会真正调用兑换。
-const (
-	GiftChannelPassport = "passport"
-	GiftChannelGame     = "game"
-	GiftChannelAdmin    = "admin"
 )
 
 // GameMailFilter 邮件列表筛选。
@@ -186,14 +148,14 @@ type GameOpsRepo interface {
 
 // GameOpsUsecase GM 运营里的邮件补偿与兑换码：
 // 邮件经 MGP mail.broadcast 投递、mail.revoke 撤回，定时邮件由后台循环到点发送；
-// 兑换码在 Momoko 校验，兑换成功用 gift.send（sourceKind=code）发放，供通行证「自助服务」调用。
-// 发送、撤回与兑换发放都经 GmUsecase.Execute，写进 GM 记录（source = mail:<id> / code:<batchId>）。
+// GameOpsUsecase 运营（管理端）：邮件补偿的编写、投递与撤回，兑换码批次的管理与兑换记录。
+// 邮件的发送与撤回经 GmUsecase.Execute，写进 GM 记录（source = mail:<id>）；玩家兑换在通行证一侧（PassportUsecase.Redeem）。
 type GameOpsUsecase struct {
 	gm   *GmUsecase
 	repo GameOpsRepo
 	log  *log.Helper
 
-	// locks 串行化同一批次、同一通行证用户的兑换，避免并发超发或绕过频率限制。
+	// locks 串行化同一台服务器的批次创建与同一批次的修改。
 	locks sync.Map
 }
 
@@ -282,15 +244,6 @@ func validateRewards(rewards []entschema.GameReward, allowEmpty bool, forbidden 
 	return nil
 }
 
-// errText 把执行错误转成存储与展示用的「错误码: 信息」。
-func errText(err error) string {
-	var re response.Error
-	if errors.As(err, &re) {
-		return re.Message
-	}
-	return err.Error()
-}
-
 // ---------------- 邮件补偿 ----------------
 
 // mailOf 读取邮件并确认属于这台服务器。
@@ -349,14 +302,12 @@ func GameMailProto(m *gen.GameMail) *v1.GameMail {
 	return out
 }
 
-// paidJewelType 返回 manifest 里付费钻石的资源类型（邮件不能发放）；不知道时返回 false。
-func (uc *GameOpsUsecase) paidJewelType(ctx context.Context, s *gen.GameServer) (int32, bool) {
-	m, err := uc.gm.Servers().Manifest(ctx, s)
-	if err != nil {
-		return 0, false
+// mailForbidden 服务器所运行游戏的邮件不能发放的资源类型。
+func mailForbidden(s *gen.GameServer) []int32 {
+	if s.Game == gakumas.ID {
+		return []int32{gakumas.ResourceJewelPaid}
 	}
-	v, ok := m.ResourceType["jewelPaid"]
-	return v, ok
+	return nil
 }
 
 // applyMailInput 把编辑内容写进邮件（草稿可以不完整，发送时再检查）。
@@ -370,11 +321,7 @@ func (uc *GameOpsUsecase) applyMailInput(ctx context.Context, s *gen.GameServer,
 		return response.BadRequest(400, "正文最多 2000 字")
 	}
 	rewards := rewardsOf(req.Rewards)
-	var forbidden []int32
-	if paid, ok := uc.paidJewelType(ctx, s); ok {
-		forbidden = append(forbidden, paid)
-	}
-	if err := validateRewards(rewards, true, forbidden...); err != nil {
+	if err := validateRewards(rewards, true, mailForbidden(s)...); err != nil {
 		return err
 	}
 	target := req.Target
@@ -436,32 +383,37 @@ func mailReady(m *gen.GameMail) error {
 	return nil
 }
 
-// mailParams 生成 mail.broadcast 的参数（邮件 id 即 MGP mailId）。
-func mailParams(m *gen.GameMail) json.RawMessage {
-	pids := make([]string, 0, len(m.Players))
-	for _, p := range m.Players {
-		pids = append(pids, p.PID)
+// mailOf 邮件在学マス 服务端的投递内容（邮件 id 即 mailId）。
+func gakumasMail(m *gen.GameMail) gakumas.Mail {
+	mail := gakumas.Mail{
+		MailID:        m.ID,
+		Target:        string(m.Target),
+		ExcludeBanned: m.ExcludeBanned,
+		Rewards:       make([]gakumas.Reward, 0, len(m.Rewards)),
+		Message:       m.Title,
+		ExpireDays:    int32(m.ExpireDays),
 	}
-	rewards := m.Rewards
-	if rewards == nil {
-		rewards = []entschema.GameReward{}
-	}
-	params := map[string]any{
-		"mailId":        m.ID,
-		"target":        string(m.Target),
-		"excludeBanned": m.ExcludeBanned,
-		"rewards":       rewards,
-		"message":       m.Title,
-		"expireDays":    m.ExpireDays,
+	for _, r := range m.Rewards {
+		mail.Rewards = append(mail.Rewards, gakumas.Reward{
+			ResourceType: r.ResourceType,
+			ResourceID:   r.ResourceID,
+			Quantity:     r.Quantity,
+		})
 	}
 	switch m.Target {
 	case entmail.TargetPlayers:
-		params["players"] = pids
+		for _, p := range m.Players {
+			mail.Players = append(mail.Players, p.PID)
+		}
 	case entmail.TargetCondition:
-		params["condition"] = m.Condition
+		mail.Condition = &gakumas.MailCondition{
+			CreatedSince:    m.Condition.CreatedSince,
+			CreatedBefore:   m.Condition.CreatedBefore,
+			LastLoginSince:  m.Condition.LastLoginSince,
+			LastLoginBefore: m.Condition.LastLoginBefore,
+		}
 	}
-	raw, _ := json.Marshal(params)
-	return raw
+	return mail
 }
 
 // mailSummary GM 记录里可展示的摘要（不含参数原文）。
@@ -478,53 +430,52 @@ func mailSummary(m *gen.GameMail) map[string]string {
 	return out
 }
 
-// mailBroadcastSummary mail.broadcast / mail.revoke 的 summary。
-type mailBroadcastSummary struct {
-	MailID    string `json:"mailId"`
-	Matched   int    `json:"matched"`
-	Delivered int    `json:"delivered"`
-	Gifts     int    `json:"gifts"`
-	Failed    int    `json:"failed"`
-}
-
-func parseMailSummary(raw json.RawMessage) mailBroadcastSummary {
-	var r mgp.CommandResult
-	var out mailBroadcastSummary
-	if json.Unmarshal(raw, &r) == nil && len(r.Summary) > 0 {
-		_ = json.Unmarshal(r.Summary, &out)
-	}
-	return out
-}
-
-// giftStats MGP gifts 报表。
-type giftStats struct {
-	Gifts           int `json:"gifts"`
-	ReceivedGifts   int `json:"receivedGifts"`
-	Players         int `json:"players"`
-	ReceivedPlayers int `json:"receivedPlayers"`
-}
-
-// hasReport 判断服务端是否提供某个报表。
-func hasReport(m *mgp.Manifest, id string) bool {
-	if m == nil {
-		return false
-	}
-	for _, r := range m.Reports {
-		if r.ID == id {
-			return true
+// mailResultOf 投递或撤回操作的结果。
+func mailResultOf(outcomes []GmTargetOutcome) *gk.MailResult {
+	for _, o := range outcomes {
+		if r, ok := o.Result.(*gk.MailResult); ok {
+			return r
 		}
 	}
-	return false
+	return &gk.MailResult{}
 }
 
-// fetchMailStats 查询一封邮件的礼物领取统计。
-func fetchMailStats(ctx context.Context, client *mgp.Client, mailID string) (*giftStats, error) {
-	var st giftStats
-	q := url.Values{"sourceKind": {"mail"}, "sourceId": {mailID}}
-	if err := client.GetInto(ctx, "/reports/"+giftsReport, q, &st); err != nil {
+// mailOperation 以执行者对邮件所在的学マス 服务器执行邮件操作（写 GM 记录）。
+func (uc *GameOpsUsecase) mailOperation(ctx context.Context, actor GmActor, serverID, opID string, params any, dryRun bool, summary map[string]string, source string) (*gen.GmExecution, []GmTargetOutcome, error) {
+	s, client, err := uc.gm.Servers().ClientOf(ctx, serverID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if s.Game != gakumas.ID {
+		return nil, nil, ErrGmGameUnsupported
+	}
+	op, _ := gakumasOperation(opID)
+	raw, err := json.Marshal(params)
+	if err != nil {
+		return nil, nil, ErrGmParams
+	}
+	call, err := gakumasCall(gakumas.New(client), opID, raw)
+	if err != nil {
+		return nil, nil, err
+	}
+	return uc.gm.Execute(ctx, actor, s, op, GmExecutionInput{
+		Params:  raw,
+		DryRun:  dryRun,
+		Summary: summary,
+		Source:  source,
+	}, nil, call)
+}
+
+// mailStats 查询一封邮件的礼物领取统计。
+func (uc *GameOpsUsecase) mailStats(ctx context.Context, serverID, mailID string) (*gakumas.GiftSourceStats, error) {
+	s, client, err := uc.gm.Servers().ClientOf(ctx, serverID)
+	if err != nil {
 		return nil, err
 	}
-	return &st, nil
+	if s.Game != gakumas.ID {
+		return nil, ErrGmGameUnsupported
+	}
+	return gakumas.New(client).MailStats(ctx, mailID)
 }
 
 // refreshMailStats 已发送（含已撤回）的邮件领取统计超过 60 秒就重新查询（并发、整体 5 秒超时；失败时保留缓存）。
@@ -539,11 +490,7 @@ func (uc *GameOpsUsecase) refreshMailStats(ctx context.Context, serverID string,
 	if len(stale) == 0 {
 		return
 	}
-	s, client, err := uc.gm.Servers().ClientOf(ctx, serverID)
-	if err != nil {
-		return
-	}
-	if mf, err := uc.gm.Servers().Manifest(ctx, s); err != nil || !hasReport(mf, giftsReport) {
+	if s, err := uc.gm.Servers().Get(ctx, serverID); err != nil || s.Game != gakumas.ID {
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -556,7 +503,7 @@ func (uc *GameOpsUsecase) refreshMailStats(ctx context.Context, serverID string,
 		go func(m *gen.GameMail) {
 			defer wg.Done()
 			defer func() { <-sem }()
-			st, err := fetchMailStats(ctx, client, m.ID)
+			st, err := uc.mailStats(ctx, serverID, m.ID)
 			if err != nil {
 				return
 			}
@@ -747,29 +694,24 @@ func (uc *GameOpsUsecase) DryRunMail(ctx context.Context, actor GmActor, serverI
 	if err := mailReady(m); err != nil {
 		return nil, err
 	}
-	e, raw, err := uc.gm.Execute(ctx, actor, serverID, mailCommand, GmCommandInput{
-		Params:  mailParams(m),
-		DryRun:  true,
-		Summary: mailSummary(m),
-		Source:  "mail:" + m.ID,
-	})
+	e, outcomes, err := uc.mailOperation(ctx, actor, serverID, gkMailSend, gakumasMail(m), true, mailSummary(m), "mail:"+m.ID)
 	if err != nil {
 		return nil, err
 	}
 	if e.Status == "failed" {
 		return nil, executeError(e)
 	}
-	sum := parseMailSummary(raw)
+	sum := mailResultOf(outcomes)
 	now := time.Now()
 	// 只写回试运行结果，不覆盖期间的其他修改。
-	latest, err := uc.repo.SaveMailMatched(ctx, m.ID, sum.Matched, now)
+	latest, err := uc.repo.SaveMailMatched(ctx, m.ID, int(sum.Matched), now)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	out := &v1.DryRunGameMailResponse{Matched: int32(sum.Matched), Mail: GameMailProto(latest), ExecutionId: e.ID}
-	var r mgp.CommandResult
-	if json.Unmarshal(raw, &r) == nil && len(r.Summary) > 0 {
-		out.Summary = string(r.Summary)
+	out := &v1.DryRunGameMailResponse{
+		Matched:     sum.Matched,
+		Mail:        GameMailProto(latest),
+		ExecutionId: e.ID,
 	}
 	if s, err := uc.gm.Servers().Get(ctx, serverID); err == nil {
 		if st, err := uc.gm.Servers().Status(ctx, s); err == nil {
@@ -795,15 +737,11 @@ func (uc *GameOpsUsecase) SendMail(ctx context.Context, actor GmActor, req *v1.S
 	if err != nil {
 		return nil, err
 	}
-	if mf, err := uc.gm.Servers().Manifest(ctx, s); err != nil {
-		return nil, err
-	} else if _, ok := mf.Command(mailCommand); !ok {
-		return nil, ErrGmCommandNotFound
+	if s.Game != gakumas.ID {
+		return nil, ErrGmGameUnsupported
 	}
-	if paid, ok := uc.paidJewelType(ctx, s); ok {
-		if err := validateRewards(m.Rewards, false, paid); err != nil {
-			return nil, err
-		}
+	if err := validateRewards(m.Rewards, false, mailForbidden(s)...); err != nil {
+		return nil, err
 	}
 	m.SentBy, m.SentByName, m.Error = actor.UserID, actor.Name, ""
 	if at := timeOf(req.ScheduledAt); at != nil && at.After(time.Now().Add(30*time.Second)) {
@@ -844,25 +782,19 @@ func (uc *GameOpsUsecase) deliver(ctx context.Context, actor GmActor, id string)
 		uc.log.Errorf("deliver mail %s: %v", id, err)
 		return
 	}
-	e, raw, err := uc.gm.Execute(ctx, actor, m.ServerID, mailCommand, GmCommandInput{
-		Params:  mailParams(m),
-		Summary: mailSummary(m),
-		Source:  "mail:" + m.ID,
-	})
+	e, outcomes, err := uc.mailOperation(ctx, actor, m.ServerID, gkMailSend, gakumasMail(m), false, mailSummary(m), "mail:"+m.ID)
 	now := time.Now()
 	switch {
 	case err != nil:
 		m.Status, m.Error = entmail.StatusFailed, errText(err)
-	case e.Status == "failed" && e.ErrorCode == "MAIL_ALREADY_SENT":
+	case e.Status == "failed" && e.ErrorCode == gakumas.MailAlreadySent:
 		// 之前的投递（例如超时或中断的那次）其实已经送达：以服务端的礼物统计为准。
 		m.Status, m.Error, m.ExecutionID = entmail.StatusSent, "", e.ID
 		if m.SentAt == nil {
 			m.SentAt = &now
 		}
-		if _, client, err := uc.gm.Servers().ClientOf(ctx, m.ServerID); err == nil {
-			if st, err := fetchMailStats(ctx, client, m.ID); err == nil {
-				m.RecipientCount, m.ClaimedCount, m.StatsAt = st.Players, st.ReceivedPlayers, &now
-			}
+		if st, err := uc.mailStats(ctx, m.ServerID, m.ID); err == nil {
+			m.RecipientCount, m.ClaimedCount, m.StatsAt = st.Players, st.ReceivedPlayers, &now
 		}
 	case e.Status == "failed":
 		m.Status, m.ExecutionID = entmail.StatusFailed, e.ID
@@ -871,9 +803,9 @@ func (uc *GameOpsUsecase) deliver(ctx context.Context, actor GmActor, id string)
 			m.Error = e.ErrorCode + ": " + e.ErrorMessage
 		}
 	default:
-		sum := parseMailSummary(raw)
+		sum := mailResultOf(outcomes)
 		m.Status, m.Error, m.ExecutionID = entmail.StatusSent, "", e.ID
-		m.RecipientCount, m.FailedCount, m.ClaimedCount = sum.Delivered, sum.Failed, 0
+		m.RecipientCount, m.FailedCount, m.ClaimedCount = int(sum.Done), int(sum.Failed), 0
 		m.SentAt, m.StatsAt = &now, &now
 	}
 	if _, err := uc.repo.SaveMail(context.WithoutCancel(ctx), m); err != nil {
@@ -912,10 +844,8 @@ func (uc *GameOpsUsecase) RevokeMail(ctx context.Context, actor GmActor, req *v1
 	if err != nil {
 		return nil, err
 	}
-	if mf, err := uc.gm.Servers().Manifest(ctx, s); err != nil {
-		return nil, err
-	} else if _, ok := mf.Command(mailRevokeCommand); !ok {
-		return nil, ErrGmCommandNotFound
+	if s.Game != gakumas.ID {
+		return nil, ErrGmGameUnsupported
 	}
 	ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, []string{"sent"}, "revoking")
 	if err != nil {
@@ -941,12 +871,7 @@ func (uc *GameOpsUsecase) revoke(ctx context.Context, actor GmActor, id string) 
 		uc.log.Errorf("revoke mail %s: %v", id, err)
 		return
 	}
-	params, _ := json.Marshal(map[string]string{"mailId": m.ID})
-	e, raw, err := uc.gm.Execute(ctx, actor, m.ServerID, mailRevokeCommand, GmCommandInput{
-		Params:  params,
-		Summary: map[string]string{"mailId": m.ID, "title": m.Title},
-		Source:  "mail:" + m.ID,
-	})
+	e, outcomes, err := uc.mailOperation(ctx, actor, m.ServerID, gkMailRevoke, gkMailID{MailID: m.ID}, false, map[string]string{"mailId": m.ID, "title": m.Title}, "mail:"+m.ID)
 	now := time.Now()
 	switch {
 	case err != nil:
@@ -958,9 +883,9 @@ func (uc *GameOpsUsecase) revoke(ctx context.Context, actor GmActor, id string) 
 			m.Error = e.ErrorCode + ": " + e.ErrorMessage
 		}
 	default:
-		sum := parseMailSummary(raw)
+		sum := mailResultOf(outcomes)
 		m.Status, m.Error, m.RevokeExecutionID = entmail.StatusRevoked, "", e.ID
-		m.RevokedCount, m.RevokedAt, m.StatsAt = sum.Delivered, &now, nil
+		m.RevokedCount, m.RevokedAt, m.StatsAt = int(sum.Done), &now, nil
 	}
 	if _, err := uc.repo.SaveMail(context.WithoutCancel(ctx), m); err != nil {
 		uc.log.Errorf("save revoked mail %s: %v", m.ID, err)
@@ -1053,27 +978,6 @@ func uniqueCode(prefix string) (string, error) {
 		return a + "-" + b, nil
 	}
 	return prefix + "-" + a + "-" + b, nil
-}
-
-// NormalizeGiftCode 规范化玩家输入的兑换码：去掉空白、转大写。
-func NormalizeGiftCode(code string) string {
-	return strings.ToUpper(strings.Join(strings.Fields(code), ""))
-}
-
-// GiftBatchStatus 批次状态：disabled / expired / exhausted / not_started / active。
-func GiftBatchStatus(b *gen.GiftCodeBatch, now time.Time) string {
-	switch {
-	case b.DisabledAt != nil:
-		return "disabled"
-	case b.EndAt != nil && !now.Before(*b.EndAt):
-		return "expired"
-	case b.TotalLimit > 0 && b.UsedCount >= b.TotalLimit:
-		return "exhausted"
-	case b.StartAt != nil && now.Before(*b.StartAt):
-		return "not_started"
-	default:
-		return "active"
-	}
 }
 
 // GiftCodeBatchProto 转为接口结构。
@@ -1502,219 +1406,4 @@ func (uc *GameOpsUsecase) ListRedeems(ctx context.Context, req *v1.ListGiftCodeR
 		out.Items = append(out.Items, GiftCodeRedeemProto(r, names[r.BatchID]))
 	}
 	return out, nil
-}
-
-// GiftRedeemInput 玩家兑换一个兑换码（通行证「自助服务」调用；目标是该通行证在这台服务器绑定的游戏账号）。
-type GiftRedeemInput struct {
-	ServerID       string
-	PassportUserID string
-	PassportName   string
-	PID            string
-	Nickname       string
-	Code           string
-	// Channel passport / game
-	Channel  string
-	Platform string
-	IP       string
-}
-
-// GiftRedeemOutcome 兑换结果。Result 为 gift_code_redeem.result 的取值（success / already_redeemed / expired …）。
-// 兑换没有成功（码不存在、过期、次数用完、发放失败……）时返回 Result 与 nil 错误；只有参数或系统错误才返回 error。
-type GiftRedeemOutcome struct {
-	Result      string
-	Rewards     []entschema.GameReward
-	ExecutionID string
-	// BatchName 批次名称（码不存在时为空；只给管理端看，玩家端不要展示）
-	BatchName string
-	// ErrorMessage 发放失败时的错误详情（Result = failed）
-	ErrorMessage string
-}
-
-// RedeemGiftCode 校验兑换码并发放奖励（每次都写一条 gift_code_redeem）。
-// 同一通行证用户、同一批次的兑换串行执行；每个通行证用户每分钟最多尝试 10 次。
-// 校验顺序：频率 → 码 → 停用 / 未开始 / 过期 / 用完 → 兑换入口 → 一次性码是否已用 → 每人次数 → 封禁 → 适用玩家；
-// 通过后先占用次数（与一次性码），再以玩家身份执行 gift.send（sourceKind=code、sourceId=批次 id），失败时释放占用。
-func (uc *GameOpsUsecase) RedeemGiftCode(ctx context.Context, in GiftRedeemInput) (*GiftRedeemOutcome, error) {
-	ctx = context.WithoutCancel(ctx)
-	if strings.TrimSpace(in.PID) == "" || in.PassportUserID == "" {
-		return nil, ErrGiftRedeemNoAccount
-	}
-	code := NormalizeGiftCode(in.Code)
-	if code == "" {
-		return nil, ErrGiftRedeemEmpty
-	}
-	if len(code) > 64 {
-		code = code[:64]
-	}
-	channel := in.Channel
-	if channel == "" {
-		channel = GiftChannelPassport
-	}
-	if channel != GiftChannelPassport && channel != GiftChannelGame && channel != GiftChannelAdmin {
-		return nil, response.BadRequest(400, "兑换入口无效")
-	}
-	s, client, err := uc.gm.Servers().ClientOf(ctx, in.ServerID)
-	if err != nil {
-		return nil, err
-	}
-	rec := &gen.GiftCodeRedeem{
-		ServerID:       s.ID,
-		Code:           code,
-		PlayerID:       in.PID,
-		Nickname:       in.Nickname,
-		PassportUserID: in.PassportUserID,
-		Channel:        entredeem.Channel(channel),
-		Platform:       in.Platform,
-	}
-	out := &GiftRedeemOutcome{}
-	finish := func(result, message string) (*GiftRedeemOutcome, error) {
-		rec.Result, rec.ErrorMessage = entredeem.Result(result), message
-		if _, err := uc.repo.CreateRedeem(ctx, rec); err != nil {
-			return nil, ErrSystem(err)
-		}
-		out.Result, out.ErrorMessage, out.ExecutionID = result, message, rec.ExecutionID
-		return out, nil
-	}
-
-	unlockUser := uc.lock("user:" + in.PassportUserID)
-	defer unlockUser()
-	now := time.Now()
-	attempts, err := uc.repo.CountAttempts(ctx, in.PassportUserID, now.Add(-redeemRateWindow))
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if attempts >= redeemRateLimit {
-		return finish(RedeemRateLimited, "")
-	}
-
-	found, gc, err := uc.repo.FindCode(ctx, s.ID, code)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if found == nil {
-		return finish(RedeemNotFound, "")
-	}
-	rec.BatchID = found.ID
-	unlockBatch := uc.lock("batch:" + found.ID)
-	defer unlockBatch()
-	// 拿到锁之后重新读取，保证次数与状态是最新的。
-	b, err := uc.repo.GetBatch(ctx, found.ID)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	out.BatchName = b.Name
-	now = time.Now()
-	switch GiftBatchStatus(b, now) {
-	case "disabled":
-		return finish(RedeemDisabled, "")
-	case "not_started":
-		return finish(RedeemNotStarted, "")
-	case "expired":
-		return finish(RedeemExpired, "")
-	case "exhausted":
-		return finish(RedeemExhausted, "")
-	}
-	if channel != GiftChannelAdmin && !slices.Contains(b.Channels, channel) {
-		return finish(RedeemChannelClosed, "")
-	}
-	if gc != nil {
-		if gc, err = uc.repo.GetCode(ctx, gc.ID); err != nil {
-			return nil, ErrSystem(err)
-		}
-		if gc.UsedByPlayer != "" {
-			if gc.UsedByPlayer == in.PID {
-				return finish(RedeemAlreadyRedeemed, "")
-			}
-			return finish(RedeemCodeUsed, "")
-		}
-	}
-	used, err := uc.repo.CountPlayerRedeems(ctx, s.ID, b.ID, in.PID)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if used >= max(b.PerPlayerLimit, 1) {
-		return finish(RedeemAlreadyRedeemed, "")
-	}
-	var player struct {
-		mgp.Player
-		CreatedAt int64 `json:"createdAt"`
-	}
-	if err := client.GetInto(ctx, "/players/"+url.PathEscape(in.PID), nil, &player); err != nil {
-		return finish(RedeemFailed, errText(GameMGPError(err)))
-	}
-	if player.Name != "" {
-		rec.Nickname = player.Name
-	}
-	if player.BannedUntil > now.UnixMilli() {
-		return finish(RedeemBanned, "")
-	}
-	if b.Eligibility == entbatch.EligibilityCondition && b.RegisteredWithinDays > 0 {
-		since := now.AddDate(0, 0, -b.RegisteredWithinDays).UnixMilli()
-		if player.CreatedAt <= 0 || player.CreatedAt < since {
-			return finish(RedeemNotEligible, "")
-		}
-	}
-
-	// 占用次数与一次性码，再发放；发放失败时释放。
-	ok, err := uc.repo.ReserveUse(ctx, b.ID)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if !ok {
-		return finish(RedeemExhausted, "")
-	}
-	release := func() {
-		if err := uc.repo.ReleaseUse(ctx, b.ID); err != nil {
-			uc.log.Errorf("release gift batch %s: %v", b.ID, err)
-		}
-		if gc != nil {
-			if err := uc.repo.ReleaseCode(ctx, gc.ID); err != nil {
-				uc.log.Errorf("release gift code %s: %v", gc.ID, err)
-			}
-		}
-	}
-	if gc != nil {
-		ok, err := uc.repo.ClaimCode(ctx, gc.ID, in.PID, rec.Nickname, now)
-		if err != nil || !ok {
-			if err := uc.repo.ReleaseUse(ctx, b.ID); err != nil {
-				uc.log.Errorf("release gift batch %s: %v", b.ID, err)
-			}
-			if err != nil {
-				return nil, ErrSystem(err)
-			}
-			return finish(RedeemCodeUsed, "")
-		}
-	}
-	params, _ := json.Marshal(map[string]any{
-		"rewards":    b.Rewards,
-		"message":    b.Message,
-		"sourceKind": "code",
-		"sourceId":   b.ID,
-	})
-	actorName := in.PassportName
-	if actorName == "" {
-		actorName = rec.Nickname
-	}
-	actor := GmActor{UserID: in.PassportUserID, Name: actorName, Kind: "player", Channel: channel, IP: in.IP, Platform: in.Platform}
-	e, _, err := uc.gm.Execute(ctx, actor, s.ID, giftCommand, GmCommandInput{
-		Targets: []string{in.PID},
-		Params:  params,
-		Summary: map[string]string{"batchId": b.ID, "batch": b.Name, "code": code, "rewards": itoa(len(b.Rewards))},
-		Source:  "code:" + b.ID,
-	})
-	if err != nil {
-		release()
-		return finish(RedeemFailed, errText(err))
-	}
-	rec.ExecutionID = e.ID
-	if e.Status != "success" {
-		release()
-		msg := e.ErrorMessage
-		if e.ErrorCode != "" {
-			msg = e.ErrorCode + ": " + msg
-		}
-		return finish(RedeemFailed, msg)
-	}
-	out.Rewards = b.Rewards
-	return finish(RedeemSuccess, "")
 }

@@ -1,5 +1,5 @@
-<!-- 玩法 · 竞赛：当前赛季全部段位的排名（MGP pvp 报表：段位高、Rate 高者在前；搜索玩家、分页）+ 选中玩家当前配置的阵容
-     （MGP 玩家视图 pvp-unit，只读）。不显示段位规则、奖励与结算。 -->
+<!-- 玩法 · 竞赛：当前赛季全部段位的排名（竞赛排名接口：段位高、Rate 高者在前；搜索玩家、分页）+ 选中玩家当前配置的阵容
+     （玩家竞赛接口，只读）。不显示段位规则、奖励与结算。 -->
 <template>
   <div class="pv">
     <div class="pv__line">
@@ -93,17 +93,14 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { getGmPlayerView, getGmReport, mgpQuery } from '@/api/gameGm'
+import { getPlayerPvp, getPvpRanking } from '@/api/gakumas'
 import { getRequestErrorMessage } from '@/utils/request'
-import type { ManifestEntry } from '@/games/mgp'
-import type { PvpEntry, PvpReport, PvpSeasonSummary, PvpUnit } from '@/games/gakumas/types'
+import type { PlayerPvp, PvpEntry, PvpSeason } from '@/games/gakumas/types'
 import { useGmContext } from '../../context'
 import PlayerAvatar from '../../player/shared/PlayerAvatar.vue'
 import PvpStages from '../../player/shared/PvpStages.vue'
 import { useGmFormat } from '../../player/shared/format'
 import { usePagedList } from '../../player/shared/paging'
-
-const props = defineProps<{ mode: ManifestEntry }>()
 
 const { t } = useI18n()
 const router = useRouter()
@@ -112,8 +109,12 @@ const menuStore = useMenuStore()
 const { num, when } = useGmFormat()
 
 const keyword = ref('')
-const list = usePagedList<PvpEntry, PvpSeasonSummary>(
-  (q) => getGmReport<PvpReport>(ctx.serverId.value, props.mode.id, mgpQuery({ q: keyword.value.trim(), ...q })),
+// summary 为当前赛季（不在赛季中为空）
+const list = usePagedList<PvpEntry, PvpSeason | undefined>(
+  async (q) => {
+    const page = await getPvpRanking({ serverId: ctx.serverId.value, q: keyword.value.trim(), cursor: q.cursor, limit: q.limit })
+    return { items: page.items, nextCursor: page.nextCursor, total: page.total, summary: page.season }
+  },
   { pageSize: 20 },
 )
 void list.load()
@@ -136,21 +137,19 @@ const rangeTo = computed(() => (list.page.value - 1) * list.pageSize.value + lis
 
 // ---------- 阵容 ----------
 const selected = shallowRef<PvpEntry>()
-const unit = shallowRef<PvpUnit>()
+const unit = shallowRef<PlayerPvp>()
 const unitLoading = ref(false)
 const unitError = ref('')
-const unitView = computed(() => (ctx.hasView('pvp-unit') ? 'pvp-unit' : ctx.hasView('pvp') ? 'pvp' : ''))
 let unitSeq = 0
 
 const select = async (r: PvpEntry) => {
   selected.value = r
   unit.value = undefined
   unitError.value = ''
-  if (!unitView.value) return
   const id = ++unitSeq
   unitLoading.value = true
   try {
-    const data = await getGmPlayerView<PvpUnit>(ctx.serverId.value, r.pid, unitView.value)
+    const data = await getPlayerPvp(ctx.serverId.value, r.pid)
     if (id === unitSeq) unit.value = data
   } catch (e) {
     if (id === unitSeq) unitError.value = getRequestErrorMessage(e)

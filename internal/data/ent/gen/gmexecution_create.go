@@ -242,20 +242,6 @@ func (_c *GmExecutionCreate) SetNillableReason(v *string) *GmExecutionCreate {
 	return _c
 }
 
-// SetConfirmed sets the "confirmed" field.
-func (_c *GmExecutionCreate) SetConfirmed(v bool) *GmExecutionCreate {
-	_c.mutation.SetConfirmed(v)
-	return _c
-}
-
-// SetNillableConfirmed sets the "confirmed" field if the given value is not nil.
-func (_c *GmExecutionCreate) SetNillableConfirmed(v *bool) *GmExecutionCreate {
-	if v != nil {
-		_c.SetConfirmed(*v)
-	}
-	return _c
-}
-
 // SetDryRun sets the "dry_run" field.
 func (_c *GmExecutionCreate) SetDryRun(v bool) *GmExecutionCreate {
 	_c.mutation.SetDryRun(v)
@@ -557,10 +543,6 @@ func (_c *GmExecutionCreate) defaults() {
 		v := gmexecution.DefaultReason
 		_c.mutation.SetReason(v)
 	}
-	if _, ok := _c.mutation.Confirmed(); !ok {
-		v := gmexecution.DefaultConfirmed
-		_c.mutation.SetConfirmed(v)
-	}
 	if _, ok := _c.mutation.DryRun(); !ok {
 		v := gmexecution.DefaultDryRun
 		_c.mutation.SetDryRun(v)
@@ -680,9 +662,6 @@ func (_c *GmExecutionCreate) check() error {
 	}
 	if _, ok := _c.mutation.Reason(); !ok {
 		return &ValidationError{Name: "reason", err: errors.New(`gen: missing required field "GmExecution.reason"`)}
-	}
-	if _, ok := _c.mutation.Confirmed(); !ok {
-		return &ValidationError{Name: "confirmed", err: errors.New(`gen: missing required field "GmExecution.confirmed"`)}
 	}
 	if _, ok := _c.mutation.DryRun(); !ok {
 		return &ValidationError{Name: "dry_run", err: errors.New(`gen: missing required field "GmExecution.dry_run"`)}
@@ -852,10 +831,6 @@ func (_c *GmExecutionCreate) createSpec() (*GmExecution, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Reason(); ok {
 		_spec.SetField(gmexecution.FieldReason, field.TypeString, value)
 		_node.Reason = value
-	}
-	if value, ok := _c.mutation.Confirmed(); ok {
-		_spec.SetField(gmexecution.FieldConfirmed, field.TypeBool, value)
-		_node.Confirmed = value
 	}
 	if value, ok := _c.mutation.DryRun(); ok {
 		_spec.SetField(gmexecution.FieldDryRun, field.TypeBool, value)
@@ -1204,18 +1179,6 @@ func (u *GmExecutionUpsert) SetReason(v string) *GmExecutionUpsert {
 // UpdateReason sets the "reason" field to the value that was provided on create.
 func (u *GmExecutionUpsert) UpdateReason() *GmExecutionUpsert {
 	u.SetExcluded(gmexecution.FieldReason)
-	return u
-}
-
-// SetConfirmed sets the "confirmed" field.
-func (u *GmExecutionUpsert) SetConfirmed(v bool) *GmExecutionUpsert {
-	u.Set(gmexecution.FieldConfirmed, v)
-	return u
-}
-
-// UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
-func (u *GmExecutionUpsert) UpdateConfirmed() *GmExecutionUpsert {
-	u.SetExcluded(gmexecution.FieldConfirmed)
 	return u
 }
 
@@ -1762,20 +1725,6 @@ func (u *GmExecutionUpsertOne) SetReason(v string) *GmExecutionUpsertOne {
 func (u *GmExecutionUpsertOne) UpdateReason() *GmExecutionUpsertOne {
 	return u.Update(func(s *GmExecutionUpsert) {
 		s.UpdateReason()
-	})
-}
-
-// SetConfirmed sets the "confirmed" field.
-func (u *GmExecutionUpsertOne) SetConfirmed(v bool) *GmExecutionUpsertOne {
-	return u.Update(func(s *GmExecutionUpsert) {
-		s.SetConfirmed(v)
-	})
-}
-
-// UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
-func (u *GmExecutionUpsertOne) UpdateConfirmed() *GmExecutionUpsertOne {
-	return u.Update(func(s *GmExecutionUpsert) {
-		s.UpdateConfirmed()
 	})
 }
 
@@ -2526,20 +2475,6 @@ func (u *GmExecutionUpsertBulk) SetReason(v string) *GmExecutionUpsertBulk {
 func (u *GmExecutionUpsertBulk) UpdateReason() *GmExecutionUpsertBulk {
 	return u.Update(func(s *GmExecutionUpsert) {
 		s.UpdateReason()
-	})
-}
-
-// SetConfirmed sets the "confirmed" field.
-func (u *GmExecutionUpsertBulk) SetConfirmed(v bool) *GmExecutionUpsertBulk {
-	return u.Update(func(s *GmExecutionUpsert) {
-		s.SetConfirmed(v)
-	})
-}
-
-// UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
-func (u *GmExecutionUpsertBulk) UpdateConfirmed() *GmExecutionUpsertBulk {
-	return u.Update(func(s *GmExecutionUpsert) {
-		s.UpdateConfirmed()
 	})
 }
 

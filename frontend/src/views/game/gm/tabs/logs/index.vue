@@ -157,11 +157,7 @@
     >
       <div v-if="acted" class="gml__dialog">
         <p class="gml__dialog-text">{{ t('gmOps.logs.approveDesc', { who: actorName(acted), title: commandTitle(acted) }) }}</p>
-        <label v-if="acted.risk === 'danger'" class="gml__field">
-          <span class="gml__label">{{ t('gmOps.logs.confirmName', { name: targetName(acted) }) }} <span class="gml__req">*</span></span>
-          <input v-model="confirmName" type="text" class="gml__input" autocomplete="off" />
-          <span class="gml__hint">{{ t('gmOps.logs.dangerHint') }}</span>
-        </label>
+        <p v-if="acted.risk === 'danger'" class="gml__dialog-text gml__hint">{{ t('gmOps.logs.dangerHint') }}</p>
         <label class="gml__field">
           <span class="gml__label">{{ t('gmOps.logs.note') }}</span>
           <textarea v-model="note" rows="2" maxlength="500" class="gml__input gml__textarea" />
@@ -342,12 +338,10 @@ const acted = ref<GmExecution>()
 const approveOpen = ref(false)
 const rejectOpen = ref(false)
 const acting = ref(false)
-const confirmName = ref('')
 const note = ref('')
 
 const openApprove = (p: GmExecution) => {
   acted.value = p
-  confirmName.value = ''
   note.value = ''
   approveOpen.value = true
 }
@@ -360,13 +354,9 @@ const openReject = (p: GmExecution) => {
 const approve = async () => {
   const p = acted.value
   if (!p) return
-  if (p.risk === 'danger' && !confirmName.value.trim()) {
-    feedback.warning(t('gmOps.logs.confirmRequired'))
-    return
-  }
   acting.value = true
   try {
-    const { data } = await approveGmExecution({ serverId: ctx.serverId.value, id: p.id, confirmName: confirmName.value.trim(), note: note.value.trim() })
+    const { data } = await approveGmExecution({ serverId: ctx.serverId.value, id: p.id, note: note.value.trim() })
     approveOpen.value = false
     if (data.status === 'success') feedback.success(t('gmOps.logs.approved'))
     else feedback.warning(t('gmOps.logs.approvedFailed', { status: statusText(data.status) }))

@@ -46,7 +46,7 @@ service GameServerService {
       body: "*"
     };
   }
-  // 删除服务器（只删除接入记录与 Momoko 侧数据；托管的应用实例按 delete_instances 决定）
+  // 删除服务器（删除接入记录与 Momoko 侧数据；托管时同时停止并删除它的托管进程）
   rpc DeleteGameServer(DeleteGameServerRequest) returns (DeleteGameServerResponse) {
     option (google.api.http) = {
       delete: "/api/v1/game/servers/{id}"
@@ -94,6 +94,13 @@ service GameServerService {
   rpc ControlGameServer(ControlGameServerRequest) returns (GameServerInfo) {
     option (google.api.http) = {
       post: "/api/v1/game/servers/{id}/control"
+      body: "*"
+    };
+  }
+  // 清空托管进程控制台的输出记录（重新连接时不再回放）
+  rpc ClearGameServerConsole(ClearGameServerConsoleRequest) returns (ClearGameServerConsoleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/console/clear"
       body: "*"
     };
   }
@@ -384,12 +391,9 @@ message GameServerInfo {
   string probe_error = 5;
   google.protobuf.Timestamp probe_at = 6;
   google.protobuf.Timestamp last_online_at = 7;
-  // manifest 摘要：协议版本、服务端版本、视图 / 指令 / 配置域数量
+  // manifest 摘要：协议版本与服务端版本
   int32 protocol = 8;
   string server_version = 9;
-  int32 view_count = 10;
-  int32 command_count = 11;
-  int32 config_count = 12;
   // status 缓存原样（在线、注册、资源版本、健康…）
   google.protobuf.Value status = 13;
   google.protobuf.Timestamp status_at = 14;
@@ -533,8 +537,6 @@ message UpdateGameServerRequest {
 
 message DeleteGameServerRequest {
   string id = 1;
-  // 同时删除托管的应用实例（先停止）
-  bool delete_instances = 2;
 }
 
 message DeleteGameServerResponse {}
@@ -615,8 +617,6 @@ message SwitchGameServerModeRequest {
   string mgp_endpoint = 4;
   string key_id = 5;
   string secret = 6;
-  // 切到仅 GM 时：删除托管的应用实例（否则只解除关联，进程保持原状）
-  bool delete_instances = 7;
 }
 
 message RotateGameServerKeyRequest {
@@ -636,6 +636,14 @@ message RotateGameServerKeyResponse {
   // 服务端运行中且未重启：新密钥要等下次启动才生效
   bool pending_restart = 4;
 }
+
+message ClearGameServerConsoleRequest {
+  string id = 1;
+  // 进程角色：main / resource；空为 main
+  string role = 2;
+}
+
+message ClearGameServerConsoleResponse {}
 
 message ControlGameServerRequest {
   string id = 1;
@@ -709,8 +717,6 @@ message GameSettingsField {
   bool has_max = 7;
   int64 max = 8;
   bool required = 9;
-  // 由 Momoko 托管（如 MGP 密钥），表单里只读
-  bool managed = 10;
 }
 
 message GameSettingsSection {
@@ -734,14 +740,13 @@ message GameServerSettings {
   google.protobuf.Timestamp modified_at = 6;
   // 服务端运行中（修改需要重启生效）
   bool running = 7;
-  // 表单不认识的顶层字段（保存时原样保留）
-  repeated string unknown_keys = 8;
 }
 
 message SaveGameServerSettingsRequest {
   string id = 1;
   string revision = 2;
-  // 表单模式：按路径给出修改的值 {"database.driver": "sqlite", …}
+  // 表单模式：按路径给出修改的值 {"database.driver": "sqlite", …}；任何路径都可以改（不限于表单提示里的字段），
+  // 值为 null 表示删除这一项（服务端取默认值）
   google.protobuf.Struct values = 3;
   // 原文模式：完整 JSON
   string raw = 4;

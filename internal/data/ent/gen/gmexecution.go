@@ -58,8 +58,6 @@ type GmExecution struct {
 	Summary map[string]string `json:"summary,omitempty"`
 	// 玩家自助申请理由
 	Reason string `json:"reason,omitempty"`
-	// 执行前输入了玩家昵称确认（危险指令）
-	Confirmed bool `json:"confirmed,omitempty"`
 	// 是否试运行
 	DryRun bool `json:"dry_run,omitempty"`
 	// 状态
@@ -102,7 +100,7 @@ func (*GmExecution) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case gmexecution.FieldTargets, gmexecution.FieldTargetPids, gmexecution.FieldSummary:
 			values[i] = new([]byte)
-		case gmexecution.FieldConfirmed, gmexecution.FieldDryRun:
+		case gmexecution.FieldDryRun:
 			values[i] = new(sql.NullBool)
 		case gmexecution.FieldSuccessCount, gmexecution.FieldFailedCount, gmexecution.FieldDurationMs:
 			values[i] = new(sql.NullInt64)
@@ -250,12 +248,6 @@ func (_m *GmExecution) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field reason", values[i])
 			} else if value.Valid {
 				_m.Reason = value.String
-			}
-		case gmexecution.FieldConfirmed:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field confirmed", values[i])
-			} else if value.Valid {
-				_m.Confirmed = value.Bool
 			}
 		case gmexecution.FieldDryRun:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -446,9 +438,6 @@ func (_m *GmExecution) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("reason=")
 	builder.WriteString(_m.Reason)
-	builder.WriteString(", ")
-	builder.WriteString("confirmed=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Confirmed))
 	builder.WriteString(", ")
 	builder.WriteString("dry_run=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DryRun))

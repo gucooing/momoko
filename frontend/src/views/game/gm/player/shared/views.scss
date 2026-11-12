@@ -86,6 +86,19 @@
   background: var(--el-bg-color);
   min-width: 0;
 }
+/* 可点开详情的卡（button） */
+.pv__card--btn {
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.pv__card--btn:hover,
+.pv__card--btn:focus-visible {
+  border-color: var(--el-color-primary);
+  outline: none;
+}
 .pv__card-art {
   position: relative;
   display: block;

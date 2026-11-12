@@ -436,48 +436,22 @@ export interface PassportGameResponse {
   link:
     | PassportLink
     | undefined;
-  /** manifest 中玩家端用到的部分：game、views、modes、reports、catalogs、capabilities、resourceTypes（不含指令） */
-  manifest:
-    | any
-    | undefined;
   /** 服务器时区（IANA） */
   timezone: string;
-  /** MGP /players/{pid}（含 overview）；取不到时为空并带 player_error */
-  player: any | undefined;
+  /** 读取我的游戏账号失败时的错误码（成功时为空，绑定快照随之刷新） */
   playerError: string;
   /** 我在其他服务器上的绑定（切换服务器用） */
   others: PassportLink[];
 }
 
-export interface PassportGameViewRequest {
-  serverId: string;
-  view: string;
-  /** 透传给 MGP 的查询串（cursor、limit、state、gashaId…） */
-  query: string;
-}
-
-export interface PassportGameCatalogRequest {
-  serverId: string;
-  kind: string;
-  /** q、characterId、rarity、cursor、limit（最大 50） */
-  query: string;
-}
-
-export interface PassportDataResponse {
-  data: any | undefined;
-}
-
 export interface PassportSelfService {
+  /** 操作 id */
   command: string;
-  /** 指令标题（游戏服务端给出） */
+  /** 操作标题（游戏模块给出） */
   title: string;
   group: string;
   risk: string;
   target: string;
-  /** 参数 JSON Schema */
-  params:
-    | any
-    | undefined;
   /** 规则 */
   dailyLimit: number;
   cooldownSec: number;
@@ -492,43 +466,12 @@ export interface PassportSelfService {
   lastUsedAt: Date | undefined;
   lastStatus: string;
   hasPending: boolean;
-  /** 执行前需要两步验证码（开启了两步验证且指令是高风险） */
+  /** 执行前需要两步验证码（开启了两步验证且操作是高风险） */
   needTotp: boolean;
 }
 
 export interface ListPassportSelfServiceResponse {
   items: PassportSelfService[];
-}
-
-export interface ExecutePassportSelfServiceRequest {
-  serverId: string;
-  command: string;
-  params:
-    | any
-    | undefined;
-  /** 申请理由（需要审批时） */
-  reason: string;
-  /** 两步验证码（need_totp 时） */
-  totpCode: string;
-}
-
-export interface ExecutePassportSelfServiceResponse {
-  executionId: string;
-  /** success / partial / failed / pending */
-  status: string;
-  /** 我的游戏账号上的变化 */
-  changes: PassportChange[];
-  /** 指令结果里给玩家的数据（例如导出的存档） */
-  detail: any | undefined;
-  errorCode: string;
-  errorMessage: string;
-}
-
-export interface PassportChange {
-  kind: string;
-  resourceId: string;
-  before: any | undefined;
-  after: any | undefined;
 }
 
 export interface ListPassportGameRecordsRequest {
@@ -539,7 +482,7 @@ export interface ListPassportGameRecordsRequest {
 
 export interface PassportGameRecord {
   id: string;
-  /** self_service 自助指令 / redeem 兑换码 */
+  /** self_service 自助操作 / redeem 兑换码 */
   kind: string;
   command: string;
   commandTitle: string;
@@ -551,8 +494,11 @@ export interface PassportGameRecord {
   reviewNote: string;
   reviewedAt: Date | undefined;
   createTime: Date | undefined;
-  finishedAt: Date | undefined;
-  changes: PassportChange[];
+  finishedAt:
+    | Date
+    | undefined;
+  /** 自助操作在我的游戏账号上的结果（JSON 文本，结构由操作决定；没有结果时为空） */
+  data: string;
   errorCode: string;
   /** 兑换码与奖励 */
   code: string;

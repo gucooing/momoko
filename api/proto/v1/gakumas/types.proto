@@ -1,0 +1,1094 @@
+syntax = "proto3";
+
+package v1.gakumas;
+
+option go_package = "momoko/api/gen/v1/gakumas;gakumasv1";
+
+// 学マス MGP 的数据结构。字段与 MGP 返回的 JSON 一一对应（字段名的 lowerCamel 即 JSON 名），
+// 由游戏服务端的数据直接解码；只带资源 ID，名称与图片由前端素材包解析。
+// 时间均为 Unix 毫秒；可能超出 32 位的数值（时间、经验、金币、数量、合计、数据库 id）用 double。
+// 这里只有游戏数据本身：管理端的接口（gm.proto）与用户通行证的接口（passport.proto）各自定义请求与响应，只共用这些数据结构。
+
+// ---------------- 服务器 ----------------
+
+message ResourceVersion {
+  string app = 1;
+  string master = 2;
+  int32 octo = 3;
+}
+
+// 已配置的玩法：produce 总是 true；pvp 有赛季；seminar 有研修组；tower 塔排行季已开始且配置了塔。
+message Modes {
+  bool pvp = 1;
+  bool produce = 2;
+  bool seminar = 3;
+  bool tower = 4;
+}
+
+message ManifestGame {
+  string id = 1;
+  string name = 2;
+  string theme = 3;
+  string icon = 4;
+}
+
+message ManifestServer {
+  string version = 1;
+  ResourceVersion resource = 2;
+}
+
+// GET /manifest。
+message Manifest {
+  int32 protocol = 1;
+  ManifestGame game = 2;
+  ManifestServer server = 3;
+  Modes modes = 4;
+}
+
+message Health {
+  string name = 1;
+  bool ok = 2;
+  string detail = 3;
+  double latency_ms = 4;
+}
+
+message Maintenance {
+  bool enabled = 1;
+  // 维护期间可登录的玩家 pid
+  repeated string whitelist = 2;
+}
+
+message SaveQueue {
+  int32 waiting = 1;
+  int32 capacity = 2;
+}
+
+message DatabaseStatus {
+  // 已应用的迁移编号
+  int32 migration = 1;
+}
+
+// GET /status。
+message Status {
+  int32 online = 1;
+  int32 online_peak = 2;
+  double online_peak_at = 3;
+  double registered = 4;
+  double new_today = 5;
+  double uptime_seconds = 6;
+  double now = 7;
+  string version = 8;
+  ResourceVersion resource = 9;
+  DatabaseStatus database = 10;
+  Maintenance maintenance = 11;
+  SaveQueue saves = 12;
+  repeated Health health = 13;
+}
+
+// ---------------- 玩家 ----------------
+
+// 玩家条目。
+message Player {
+  string pid = 1;
+  // 游戏内显示的 User ID
+  string display_id = 2;
+  // 登录账号
+  string account = 3;
+  string name = 4;
+  int32 level = 5;
+  int32 jewel_free = 6;
+  // 付费钻石（含网页商店付费）
+  int32 jewel_paid = 7;
+  double created_at = 8;
+  // 最后登录游戏时间（从未登录为 0）
+  double last_login_at = 9;
+  bool online = 10;
+  // 最近一次登录：时间、平台、设备、地址
+  double session_login_at = 11;
+  string platform = 12;
+  string device = 13;
+  string remote_addr = 14;
+  // 出借记忆的偶像卡（没有出借为空）
+  string avatar_idol_card_id = 15;
+  // 封禁到（未封禁为 0）
+  double banned_until = 16;
+  string ban_reason = 17;
+}
+
+// 各筛选的人数。
+message PlayerCounts {
+  int32 all = 1;
+  int32 online = 2;
+  int32 active_today = 3;
+  int32 banned = 4;
+}
+
+// 记忆（培育结果、记忆礼物或研究记忆）。
+message Memory {
+  string memory_id = 1;
+  string idol_card_id = 2;
+  string character_id = 3;
+  // 培育（非培育结果为空）
+  string produce_id = 4;
+  string research_id = 5;
+  // 评价
+  int32 grade = 6;
+  // 评价值
+  int32 score = 7;
+  int32 power = 8;
+  int32 vocal = 9;
+  int32 dance = 10;
+  int32 visual = 11;
+  int32 stamina = 12;
+  // 资料出借中
+  bool lent = 13;
+  bool protected = 14;
+  double created_time = 15;
+  // 记忆的照片（相册对象，GetMemoryPhoto）；没有照片时 asset_id 为显示的游戏图片
+  string image_path = 16;
+  string asset_id = 17;
+}
+
+// 记忆照片：图片类型与内容。
+message MemoryPhoto {
+  string content_type = 1;
+  bytes data = 2;
+}
+
+// 资料名片的图片：图片类型与内容。
+message MeishiImage {
+  string content_type = 1;
+  bytes data = 2;
+}
+
+// 进行中的培育。
+message ProduceRun {
+  string produce_id = 1;
+  string idol_card_id = 2;
+  string character_id = 3;
+  int32 step_number = 4;
+  double started_at = 5;
+}
+
+// 礼物箱计数：未领取、一天内到期、管理端发出。
+message GiftSummary {
+  int32 unreceived = 1;
+  int32 expiring = 2;
+  int32 from_admin = 3;
+}
+
+// 一个研修组的试题数与已通关数。
+message SeminarProgress {
+  string group_id = 1;
+  int32 total = 2;
+  int32 cleared = 3;
+}
+
+// 玩家概览。
+message Overview {
+  string name = 1;
+  string comment = 2;
+  int32 level = 3;
+  double exp = 4;
+  // 当前等级内已得经验
+  double level_exp = 5;
+  // 升级所需经验（满级为 0）
+  double next_level_exp = 6;
+  int32 jewel_free = 7;
+  int32 jewel_paid = 8;
+  int32 jewel_web_store_paid = 9;
+  double money = 10;
+  int32 action_point = 11;
+  int32 action_point_max = 12;
+  double total_fan_count = 13;
+  string home_character_id = 14;
+  double login_count = 15;
+  bool tutorial_cleared = 16;
+  int32 idol_card_count = 17;
+  // 稀有度 → 张数
+  map<int32, int32> idol_card_rarities = 18;
+  int32 support_card_count = 19;
+  map<int32, int32> support_card_rarities = 20;
+  int32 item_count = 21;
+  int32 memory_count = 22;
+  int32 produce_count = 23;
+  // 最好的一次培育
+  Memory best_produce = 24;
+  // 进行中的培育
+  ProduceRun produce = 25;
+  GiftSummary gifts = 26;
+  repeated SeminarProgress seminar = 27;
+  // 资料名片的图片（客户端保存名片时上传；默认名片或没有图片时为空，图片用 GetPlayerMeishiImage / GetMyMeishiImage 读取）
+  string meishi_image_path = 28;
+}
+
+// 登录次数：累计与今天。
+message LoginCounts {
+  int32 total = 1;
+  int32 today = 2;
+}
+
+// 登录记录。
+message Session {
+  double id = 1;
+  double login_at = 2;
+  double last_seen_at = 3;
+  // 玩家在线时最新一条为 true
+  bool live = 4;
+  string platform = 5;
+  string device = 6;
+  string remote_addr = 7;
+}
+
+// 偶像卡。
+message IdolCard {
+  string idol_card_id = 1;
+  // 当前皮肤
+  string skin_id = 2;
+  // 持有的全部皮肤
+  repeated string skin_ids = 3;
+  string character_id = 4;
+  int32 rarity = 5;
+  // 上限解放等级
+  int32 level_limit_rank = 6;
+  // 才能开花等级
+  int32 potential_rank = 7;
+  bool prima_stella = 8;
+  double created_time = 10;
+}
+
+// 支援卡。
+message SupportCard {
+  string support_card_id = 1;
+  int32 rarity = 2;
+  int32 level = 3;
+  int32 level_limit_rank = 4;
+  // 库存
+  int32 stock_quantity = 5;
+  // 资料出借中
+  bool lent = 6;
+  double created_time = 7;
+}
+
+// 道具栈（未过期且数量大于 0）。
+message Item {
+  string item_id = 1;
+  int32 type = 2;
+  double quantity = 3;
+  // 期限（没有为 0）
+  double expiry_time = 4;
+}
+
+// 礼物箱中的一件礼物。
+message Gift {
+  string gift_id = 1;
+  int32 resource_type = 2;
+  string resource_id = 3;
+  int32 quantity = 4;
+  string message = 5;
+  // 领取期限（0 不过期）
+  double limit_time = 6;
+  double created_at = 7;
+  // 领取时间（未领取为 0）
+  double received_at = 8;
+  // 来源：0 游戏内、1 管理操作、2 邮件、3 兑换码
+  int32 source_kind = 9;
+  string source_id = 10;
+  // unreceived / received / expired
+  string state = 11;
+}
+
+// 抽卡请求抽到的一张卡（按抽出顺序）。
+message GashaDrawCard {
+  int32 resource_type = 1;
+  string resource_id = 2;
+  int32 rarity = 3;
+  bool is_new = 4;
+  bool is_pickup = 5;
+  // 重复时转换成的资源（没有转换为 0 / 空串）
+  int32 provided_type = 6;
+  string provided_id = 7;
+  int32 provided_quantity = 8;
+}
+
+// 一次抽卡请求。
+message GashaDraw {
+  double id = 1;
+  string gasha_id = 2;
+  // 卡池名称（卡池已不在配置中时为空）
+  string gasha_name = 14;
+  string button_id = 3;
+  int32 draw_count = 4;
+  // 消耗的资源：1100 钻石、1101 付费钻石、2 道具（抽卡券）
+  int32 cost_resource_type = 5;
+  string cost_resource_id = 6;
+  double cost_quantity = 7;
+  // 实际扣除的免费 / 付费钻石
+  int32 jewel_free = 8;
+  int32 jewel_paid = 9;
+  int32 ssr_count = 10;
+  int32 pickup_count = 11;
+  repeated GashaDrawCard cards = 12;
+  double created_at = 13;
+}
+
+// 抽卡合计：请求数、抽数、SSR、UP、消耗的免费与付费钻石。
+message DrawTotals {
+  double requests = 1;
+  double draws = 2;
+  double ssr = 3;
+  double pickup = 4;
+  double jewel_free = 5;
+  double jewel_paid = 6;
+}
+
+// 竞赛编成的一个槽位：主记忆与至多一张副记忆。
+message PvpSlot {
+  Memory main = 1;
+  Memory sub = 2;
+}
+
+// 竞赛编成的一个阶段。
+message PvpStage {
+  int32 stage = 1;
+  int32 power = 2;
+  repeated PvpSlot slots = 3;
+}
+
+// 保留的对战记录。
+message PvpBattle {
+  double play_time = 1;
+  string season_id = 2;
+  int32 grade = 3;
+  int32 rate = 4;
+  int32 earned_rate = 5;
+  bool is_win = 6;
+  string rival_pid = 7;
+  string rival_display_id = 8;
+  string rival_name = 9;
+}
+
+// 玩家的竞赛：当前赛季的条目、编成、名次与对战记录。
+message PlayerPvp {
+  string season_id = 1;
+  bool entered = 2;
+  int32 grade = 3;
+  int32 best_grade = 4;
+  int32 rate = 5;
+  int32 play_count = 6;
+  int32 win_count = 7;
+  int32 remaining_plays = 8;
+  int32 max_daily_plays = 9;
+  int32 unit_power = 10;
+  double unit_updated_time = 11;
+  repeated PvpStage stages = 12;
+  // 名次（未参赛为 0）
+  double rank = 13;
+  repeated PvpBattle battles = 14;
+}
+
+// 存档备份。
+message Backup {
+  double id = 1;
+  int32 kind = 2;
+  string note = 3;
+  double revision = 4;
+  double created_at = 5;
+}
+
+// 操作改变的一个值：kind 为 jewelFree / jewelPaid / item / actionPoint / exp / level / pvpRate / pvpRemainingPlays。
+message Change {
+  string kind = 1;
+  string resource_id = 2;
+  double before = 3;
+  double after = 4;
+}
+
+// 发礼物前对一项奖励的预览：是否已持有、领取时转换成什么。
+message GiftPreview {
+  int32 resource_type = 1;
+  string resource_id = 2;
+  int32 quantity = 3;
+  bool owned = 4;
+  string converts_to = 5;
+  int32 converted_quantity = 6;
+}
+
+// ---------------- 全服 ----------------
+
+// 每日序列中的一天。
+message DaySeries {
+  // YYYY-MM-DD（服务器时区）
+  string day = 1;
+  double active = 2;
+  double draws = 3;
+}
+
+// 卡池表现：开放中或有过抽卡的卡池，今日与累计。
+message GashaStat {
+  string gasha_id = 1;
+  string name = 2;
+  int32 type = 3;
+  string banner_asset_id = 4;
+  double start_time = 5;
+  double end_time = 6;
+  bool open = 7;
+  DrawTotals today = 8;
+  DrawTotals total = 9;
+}
+
+// 竞赛赛季。
+message PvpSeason {
+  string season_id = 1;
+  double prepare_start_time = 2;
+  double start_time = 3;
+  double end_time = 4;
+  double participants = 5;
+  double battles_today = 6;
+}
+
+// 竞赛排名条目。
+message PvpEntry {
+  double rank = 1;
+  string pid = 2;
+  string display_id = 3;
+  string name = 4;
+  string avatar_idol_card_id = 5;
+  int32 grade = 6;
+  int32 rate = 7;
+  int32 play_count = 8;
+  int32 win_count = 9;
+  int32 power = 10;
+  double updated_time = 11;
+}
+
+// 全服培育结果：玩家与记忆。
+message ProduceResult {
+  string pid = 1;
+  string display_id = 2;
+  string name = 3;
+  string memory_id = 4;
+  string idol_card_id = 5;
+  string character_id = 6;
+  string produce_id = 7;
+  string produce_group_id = 8;
+  string research_id = 9;
+  int32 grade = 10;
+  int32 score = 11;
+  int32 power = 12;
+  int32 vocal = 13;
+  int32 dance = 14;
+  int32 visual = 15;
+  int32 stamina = 16;
+  bool lent = 17;
+  bool protected = 18;
+  double created_time = 19;
+  // 记忆的照片（相册对象）；没有照片时 asset_id 为显示的游戏图片
+  string image_path = 20;
+  string asset_id = 21;
+}
+
+// 研修组的通关统计。
+message SeminarGroupStat {
+  string group_id = 1;
+  string name = 2;
+  int32 order = 3;
+  int32 exams = 4;
+  // 试题钻石奖励合计
+  double jewel_reward = 5;
+  // 全部通关的玩家数
+  double cleared_players = 6;
+  double players = 7;
+}
+
+// 塔排名条目。
+message TowerRank {
+  double rank = 1;
+  string pid = 2;
+  string display_id = 3;
+  string name = 4;
+  string avatar_idol_card_id = 5;
+  int32 layer = 6;
+  double reached_at = 7;
+}
+
+// 工作台。
+message Dashboard {
+  double as_of = 1;
+  int32 online = 2;
+  int32 online_peak = 3;
+  double online_peak_at = 4;
+  double active_today = 5;
+  double active_yesterday = 6;
+  double new_accounts_today = 7;
+  repeated string new_account_pids = 8;
+  double registered = 9;
+  DrawTotals draws_today = 10;
+  DrawTotals draws_yesterday = 11;
+  repeated DaySeries series = 12;
+  repeated GashaStat gashas = 13;
+  // 当前赛季（不在赛季中为空）
+  PvpSeason pvp = 14;
+  PvpEntry pvp_top = 15;
+  double produces_today = 16;
+  double produces_total = 17;
+  ProduceResult best_produce_today = 18;
+  double seminar_clears_today = 19;
+  repeated SeminarGroupStat seminar = 20;
+  double uptime_seconds = 21;
+  string version = 22;
+  bool maintenance_enabled = 23;
+  int32 save_waiting = 24;
+}
+
+// ---------------- 目录 ----------------
+// resource_type 为条目作为奖励时的资源类型。
+
+message CurrencyEntry {
+  // jewelFree / jewelPaid / actionPoint / exp（作为奖励时 resourceId 为空串）
+  string id = 1;
+  string name = 2;
+  int32 resource_type = 3;
+}
+
+message ItemEntry {
+  string id = 1;
+  string name = 2;
+  int32 resource_type = 3;
+  int32 rarity = 4;
+  int32 type = 5;
+  string character_id = 6;
+  string asset_id = 7;
+}
+
+message IdolCardSkinEntry {
+  string id = 1;
+  string name = 2;
+  int32 resource_type = 3;
+  string idol_card_id = 4;
+  string character_id = 5;
+  int32 rarity = 6;
+  int32 plan_type = 7;
+  string asset_id = 8;
+}
+
+message SupportCardEntry {
+  string id = 1;
+  string name = 2;
+  int32 resource_type = 3;
+  int32 rarity = 4;
+  int32 type = 5;
+  string asset_id = 6;
+}
+
+message CharacterEntry {
+  string id = 1;
+  string name = 2;
+}
+
+message CostumeEntry {
+  string id = 1;
+  string name = 2;
+  int32 resource_type = 3;
+  string character_id = 4;
+}
+
+message MusicEntry {
+  string id = 1;
+  string name = 2;
+  int32 resource_type = 3;
+  string jacket_asset_id = 4;
+}
+
+message GashaEntry {
+  string id = 1;
+  string name = 2;
+  int32 type = 3;
+  string banner_asset_id = 4;
+  double start_time = 5;
+  double end_time = 6;
+}
+
+message ProduceGroupEntry {
+  string id = 1;
+  string name = 2;
+  int32 type = 3;
+  string asset_id = 4;
+  repeated string produce_ids = 5;
+}
+
+message ProduceEntry {
+  string id = 1;
+  string name = 2;
+  string produce_group_id = 3;
+  string asset_id = 4;
+}
+
+message SeminarExamEntry {
+  string id = 1;
+  string name = 2;
+}
+
+message SeminarEntry {
+  string id = 1;
+  string name = 2;
+  int32 order = 3;
+  repeated SeminarExamEntry exams = 4;
+}
+
+message TowerEntry {
+  string id = 1;
+  int32 layers = 2;
+}
+
+// 一条记忆的详情：记忆字段，培育中可获得的技能卡与获得时机、能力（按顺序）、舞台上的技能卡与 P 道具，
+// 以及保留的培育结果的培育记录（没有为空）。
+message MemoryDetail {
+  string memory_id = 1;
+  string idol_card_id = 2;
+  string character_id = 3;
+  string produce_id = 4;
+  string research_id = 5;
+  int32 grade = 6;
+  int32 score = 7;
+  int32 power = 8;
+  int32 vocal = 9;
+  int32 dance = 10;
+  int32 visual = 11;
+  int32 stamina = 12;
+  bool lent = 13;
+  bool protected = 14;
+  double created_time = 15;
+  string skin_id = 16;
+  int32 level_limit_rank = 17;
+  int32 potential_rank = 18;
+  bool prima_stella = 19;
+  MemoryCardRef produce_card = 20;
+  // 可获得技能卡的时机（ProduceCardPhaseType）
+  int32 produce_card_phase_type = 21;
+  repeated MemoryAbilityRef abilities = 22;
+  repeated MemoryCardRef cards = 23;
+  repeated string item_ids = 24;
+  ProduceRecord record = 25;
+  // 记忆的照片（相册对象）；没有照片时 asset_id 为显示的游戏图片
+  string image_path = 26;
+  string asset_id = 27;
+  // 能力值的评价（ResultGrade）
+  int32 vocal_grade = 28;
+  int32 dance_grade = 29;
+  int32 visual_grade = 30;
+}
+
+message MemoryAbilityRef {
+  string ability_id = 1;
+  int32 level = 2;
+}
+
+message MemoryCardRef {
+  string card_id = 1;
+  int32 upgrade_count = 2;
+}
+
+// 培育记录：结果、能力值与成长率、编成、最终持有的技能卡与 P 道具。
+message ProduceRecord {
+  string produce_id = 1;
+  int32 score = 2;
+  int32 grade = 3;
+  string user_name = 4;
+  int32 producer_level = 5;
+  double cleared_time = 6;
+  string idol_card_id = 7;
+  string skin_id = 8;
+  int32 level_limit_rank = 9;
+  int32 potential_rank = 10;
+  bool prima_stella = 11;
+  int32 vocal = 12;
+  int32 dance = 13;
+  int32 visual = 14;
+  // 成长率（千分比）
+  int32 vocal_growth_rate_permil = 15;
+  int32 dance_growth_rate_permil = 16;
+  int32 visual_growth_rate_permil = 17;
+  int32 max_stamina = 18;
+  int32 vote_count = 19;
+  int32 star = 20;
+  repeated RecordSupportCard support_cards = 21;
+  repeated RecordMemory memories = 22;
+  repeated RecordCard cards = 23;
+  repeated string item_ids = 24;
+  // 能力值的评价（ResultGrade）
+  int32 vocal_grade = 25;
+  int32 dance_grade = 26;
+  int32 visual_grade = 27;
+}
+
+// 编成的支援卡；rental 为租借的卡。
+message RecordSupportCard {
+  string support_card_id = 1;
+  int32 level = 2;
+  int32 level_limit_rank = 3;
+  bool rental = 4;
+}
+
+// 编成的记忆。
+message RecordMemory {
+  string memory_id = 1;
+  string idol_card_id = 2;
+  string skin_id = 3;
+  int32 grade = 4;
+  int32 power = 5;
+  bool rental = 6;
+  // 记忆的照片（相册对象）；没有照片时 asset_id 为显示的游戏图片
+  string image_path = 7;
+  string asset_id = 8;
+}
+
+// 最终持有的技能卡；from_memory 为记忆带来的卡。
+message RecordCard {
+  string card_id = 1;
+  int32 upgrade_count = 2;
+  bool from_memory = 3;
+}
+
+// 技能卡。
+message ProduceCardEntry {
+  string id = 1;
+  string name = 2;
+  // 强化后的名称
+  string upgraded_name = 3;
+  int32 rarity = 4;
+  int32 plan_type = 5;
+  int32 category = 6;
+  string asset_id = 7;
+  // 按偶像区分图片：图片为 asset_id 加「-」和角色 ID
+  bool character_asset = 8;
+}
+
+// P 道具。
+message ProduceItemEntry {
+  string id = 1;
+  string name = 2;
+  int32 rarity = 3;
+  string asset_id = 4;
+  string description = 5;
+}
+
+// 记忆能力与各等级的效果文字。
+message MemoryAbilityEntry {
+  string id = 1;
+  int32 rarity = 2;
+  repeated MemoryAbilityLevel levels = 3;
+}
+
+message MemoryAbilityLevel {
+  int32 level = 1;
+  string description = 2;
+}
+
+// ---------------- 操作结果 ----------------
+
+// 改变的值。
+message ChangeList {
+  repeated Change changes = 1;
+}
+
+// 发礼物的结果：礼物箱前后件数、来源 ID、发出的礼物；试运行时 preview 为每项奖励的预览。
+message GiftSendResult {
+  string source_id = 1;
+  int32 gift_box_before = 2;
+  int32 gift_box_after = 3;
+  repeated Gift gifts = 4;
+  repeated GiftPreview preview = 5;
+}
+
+// 撤回的礼物（试运行为将撤回的礼物）。
+message GiftRevokeResult {
+  repeated Gift gifts = 1;
+}
+
+// 全部偶像卡：皮肤礼物数、碎片礼物数与碎片数。
+message IdolCardGrant {
+  int32 skin_gifts = 1;
+  int32 piece_gifts = 2;
+  double pieces = 3;
+}
+
+// 全部支援卡：礼物数与张数。
+message SupportCardGrant {
+  int32 gifts = 1;
+  double copies = 2;
+}
+
+// 强制下线：玩家是否在线、是否结束了游戏会话。
+message KickResult {
+  bool online = 1;
+  bool session_ended = 2;
+}
+
+// 封禁前后（Unix 毫秒，0 未封禁）。
+message BanResult {
+  double before = 1;
+  double after = 2;
+  string reason = 3;
+}
+
+// 重置密码：是否结束了游戏会话。
+message PasswordResult {
+  bool session_ended = 1;
+}
+
+// 改昵称前后。
+message RenameResult {
+  string before = 1;
+  string after = 2;
+}
+
+// 出借的记忆或支援卡：之前与之后的 ID。
+message RentalChange {
+  string before = 1;
+  string after = 2;
+}
+
+// 研修：通关的试题。
+message SeminarClearResult {
+  repeated string cleared = 1;
+}
+
+// 研修：清除的通关记录数。
+message SeminarResetResult {
+  int32 removed = 1;
+}
+
+// 导出的完整存档（JSON 文本：基础信息、钻石、记忆、研修通关与档案，不含礼物箱）。
+message ArchiveExport {
+  string archive = 1;
+}
+
+// 邮件投递或撤回：匹配的玩家、处理完的玩家、礼物件数、失败的玩家（至多列出 50 个）。
+message MailResult {
+  string mail_id = 1;
+  int32 matched = 2;
+  int32 done = 3;
+  int32 gifts = 4;
+  int32 failed = 5;
+  repeated string failed_pids = 6;
+}
+
+// 回档：回档用的备份与回档前的备份。
+message RestoreResult {
+  Backup restored = 1;
+  Backup kept = 2;
+}
+
+// ---------------- 列表与详情（MGP 的分页结果） ----------------
+
+// 玩家列表的一页（GET /players）：各筛选的人数在 summary。
+message PlayerPage {
+  repeated Player items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+  PlayerCounts summary = 4;
+}
+
+// 一名玩家（GET /players/{pid}）：玩家条目、概览与登录次数。
+message PlayerDetail {
+  Player player = 1;
+  Overview overview = 2;
+  LoginCounts logins = 3;
+}
+
+message SessionPage {
+  repeated Session items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message IdolCardPage {
+  repeated IdolCard items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+  IdolCardCounts summary = 4;
+}
+
+// 偶像卡按稀有度、按角色的张数：各自带上列表的其余全部筛选（包括另一项），不带自己这一项。
+message IdolCardCounts {
+  map<int32, int32> rarities = 1;
+  map<string, int32> characters = 2;
+}
+
+message SupportCardPage {
+  repeated SupportCard items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message ItemPage {
+  repeated Item items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message GiftPage {
+  repeated Gift items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message GashaDrawPage {
+  repeated GashaDraw items = 1;
+  string next_cursor = 2;
+  // 筛选后的请求数
+  int32 total = 3;
+  // 该玩家全部抽卡的合计
+  DrawTotals summary = 4;
+}
+
+message MemoryPage {
+  repeated Memory items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+  MemoryCounts summary = 4;
+}
+
+// 记忆按稀有度、按评价（ResultGrade）的条数：各自带上列表的其余全部筛选（包括另一项），不带自己这一项。
+message MemoryCounts {
+  map<int32, int32> rarities = 1;
+  map<int32, int32> grades = 2;
+}
+
+message PlayerSeminar {
+  repeated SeminarProgress groups = 1;
+}
+
+message BackupList {
+  repeated Backup backups = 1;
+}
+
+message GashaStatList {
+  repeated GashaStat gashas = 1;
+}
+
+message ProduceCounts {
+  double today = 1;
+  double total = 2;
+}
+
+message ProducePage {
+  repeated ProduceResult items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+  ProduceCounts summary = 4;
+}
+
+message PvpRankingPage {
+  repeated PvpEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+  // 当前赛季（不在赛季中为空）
+  PvpSeason season = 4;
+}
+
+message SeminarStatList {
+  repeated SeminarGroupStat groups = 1;
+}
+
+message TowerRankingPage {
+  repeated TowerRank items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+  string tower_id = 4;
+  // 排行季开始时间（不在排行季为 0）
+  double season_start = 5;
+}
+
+// ---------------- 目录的分页结果 ----------------
+
+message CurrencyPage {
+  repeated CurrencyEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message ItemEntryPage {
+  repeated ItemEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message IdolCardSkinPage {
+  repeated IdolCardSkinEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message SupportCardEntryPage {
+  repeated SupportCardEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message CharacterPage {
+  repeated CharacterEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message CostumePage {
+  repeated CostumeEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message MusicPage {
+  repeated MusicEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message GashaEntryPage {
+  repeated GashaEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message ProduceGroupPage {
+  repeated ProduceGroupEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message ProduceEntryPage {
+  repeated ProduceEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message SeminarEntryPage {
+  repeated SeminarEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message TowerEntryPage {
+  repeated TowerEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message ProduceCardEntryPage {
+  repeated ProduceCardEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message ProduceItemEntryPage {
+  repeated ProduceItemEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}
+
+message MemoryAbilityPage {
+  repeated MemoryAbilityEntry items = 1;
+  string next_cursor = 2;
+  int32 total = 3;
+}

@@ -1,4 +1,4 @@
-// 游戏（游戏服务器、GM 运营、用户通行证后台）共用文案：服务器选择、GM 页面外壳、指令执行。
+// 游戏（游戏服务器、GM 运营、用户通行证后台）共用文案：服务器选择、GM 页面外壳、操作执行。
 // 各页面自己的文案放在同目录的 game-*.ts；本目录的文案只在进入 /game 页面时才加载。
 export default {
   'zh-CN': {
@@ -56,7 +56,7 @@ export default {
         mail: '邮件补偿',
         codes: '兑换码',
         notices: '公告',
-        selfService: '玩家自助',
+        operations: 'GM 操作',
         logs: 'GM 记录',
       },
       risk: { low: '低', medium: '中', high: '高', danger: '危险' },
@@ -82,7 +82,6 @@ export default {
       },
       command: {
         targets: '对象 · {n} 名玩家',
-        confirmName: '输入玩家昵称「{name}」确认',
         dangerHint: '危险操作不可逆，执行前服务端会自动备份当前存档。',
         dryRun: '试运行',
         execute: '执行',
@@ -152,7 +151,7 @@ export default {
         mail: '郵件補償',
         codes: '兌換碼',
         notices: '公告',
-        selfService: '玩家自助',
+        operations: 'GM 操作',
         logs: 'GM 記錄',
       },
       risk: { low: '低', medium: '中', high: '高', danger: '危險' },
@@ -178,7 +177,6 @@ export default {
       },
       command: {
         targets: '對象 · {n} 名玩家',
-        confirmName: '輸入玩家暱稱「{name}」確認',
         dangerHint: '危險操作不可逆，執行前服務端會自動備份當前存檔。',
         dryRun: '試運行',
         execute: '執行',
@@ -248,7 +246,7 @@ export default {
         mail: 'Mail',
         codes: 'Gift codes',
         notices: 'Notices',
-        selfService: 'Self-service',
+        operations: 'GM operations',
         logs: 'GM log',
       },
       risk: { low: 'Low', medium: 'Medium', high: 'High', danger: 'Danger' },
@@ -274,7 +272,6 @@ export default {
       },
       command: {
         targets: 'Targets · {n} players',
-        confirmName: 'Type the player name "{name}" to confirm',
         dangerHint: 'This cannot be undone. The server backs up the current save before running it.',
         dryRun: 'Dry run',
         execute: 'Run',

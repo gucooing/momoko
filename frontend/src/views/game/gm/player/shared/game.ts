@@ -25,8 +25,12 @@ export const catalogImage = (game: string, kind: string, entry: { id: string; as
   entry.id ? gameCatalogImage(game, kind, entry) : ''
 
 /** 偶像卡横图（名片、阵容大图）；只有学マス 有。 */
-export const idolCardArt = (game: string, idOrSkinId: string) =>
-  game === 'gakumas' && idOrSkinId ? gakumas.idolCardImage(idOrSkinId, 'land') : ''
+/** 偶像卡大图：land 横图（名片、阵容），full 原画（9:16，详情）；只有学マス 有。 */
+export const idolCardArt = (game: string, idOrSkinId: string, variant: 'land' | 'full' = 'land') =>
+  game === 'gakumas' && idOrSkinId ? gakumas.idolCardImage(idOrSkinId, variant) : ''
+
+/** 支援卡原画（16:9，详情）；只有学マス 有。 */
+export const supportCardArt = (game: string, id: string) => (game === 'gakumas' && id ? gakumas.supportCardImage(id, 'full') : '')
 
 /** 角色半身像；只有学マス 有。 */
 export const charaBust = (game: string, characterId: string) =>

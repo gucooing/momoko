@@ -55,9 +55,9 @@
         <span v-if="ctx.timezone.value" class="pp-hint">{{ t('game.home.timezone', { tz: ctx.timezone.value }) }}</span>
       </div>
       <div class="gh__ongoing pp-scroll-x">
-        <div v-for="b in banners" :key="b.gashaId" class="gh__banner">
+        <div v-for="b in banners" :key="b.id" class="gh__banner">
           <GameImage :src="bannerArt(b)" :alt="b.name" class="gh__banner-img" />
-          <span class="gh__banner-name">{{ b.name || ctx.nameOf('gasha', b.gashaId) || t('game.unnamed') }}</span>
+          <span class="gh__banner-name">{{ b.name || t('game.unnamed') }}</span>
           <span class="pp-hint pp-num">{{ b.endTime ? t('game.home.endsAt', { time: fmtTime(b.endTime) }) : t('game.home.noEnd') }}</span>
         </div>
         <button v-if="pvpShown" type="button" class="gh__pvp" @click="ctx.setTab('records', { rec: 'pvp' })">
@@ -73,7 +73,7 @@
       </div>
     </section>
 
-    <section v-if="ctx.hasView('idolCards')" class="gh__sec">
+    <section class="gh__sec">
       <div class="gh__sec-head">
         <h2 class="gh__h2">{{ t('game.home.recent') }}</h2>
         <button type="button" class="gh__link" @click="ctx.setTab('cards')">{{ t('game.home.allCards') }}</button>
@@ -100,20 +100,12 @@ import { computed, onMounted, ref, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChevronRightIcon, ClipboardDocumentCheckIcon, GiftIcon, SparklesIcon, TrophyIcon } from '@heroicons/vue/24/outline'
 import GameImage from '@/components/game/GameImage.vue'
-import { getGameView, listGameRequests, listOngoing, listSelfService } from '@passport/api/passport'
+import { listGameRequests, listSelfService } from '@passport/api/passport'
+import { getMyPvp, listMyIdolCards, listOngoingGashas } from '@passport/api/gakumas'
 import { fmtNum, fmtTime, toDate } from '@passport/utils/format'
-import type { ListPage } from '@/games/mgp'
-import type { IdolCard, PvpView } from '@/games/gakumas/types'
+import type { GashaEntry, IdolCard, PlayerPvp } from '@/games/gakumas/types'
 import type { PassportSelfService } from '@/types/v1/passport'
 import { charaArt, currencyArt, gashaArt, idolCardArt, rarityLabel, spacedId, useGameContext } from './context'
-
-interface OngoingBanner {
-  gashaId: string
-  name: string
-  bannerAssetId: string
-  startTime: number
-  endTime: number
-}
 
 const { t } = useI18n()
 const ctx = useGameContext()
@@ -189,7 +181,7 @@ const usable = (s: PassportSelfService) => {
 const todos = computed<Todo[]>(() => {
   const out: Todo[] = []
   const gifts = ov.value?.gifts
-  if (gifts && gifts.unreceived > 0 && ctx.hasView('giftBox')) {
+  if (gifts && gifts.unreceived > 0) {
     out.push({
       key: 'gifts',
       title: t('game.home.giftTitle', { n: gifts.unreceived }),
@@ -221,12 +213,12 @@ const todos = computed<Todo[]>(() => {
 })
 
 // ---------- 正在进行 ----------
-const banners = ref<OngoingBanner[]>([])
+const banners = ref<GashaEntry[]>([])
 const ongoingLoaded = ref(false)
-const pvp = ref<PvpView | null>(null)
-const pvpShown = computed(() => ctx.hasMode('pvp') && ctx.hasView('pvp') && !!pvp.value)
+const pvp = ref<PlayerPvp | null>(null)
+const pvpShown = computed(() => ctx.hasMode('pvp') && !!pvp.value)
 
-const bannerArt = (b: OngoingBanner) => gashaArt(game.value, b.bannerAssetId || b.gashaId)
+const bannerArt = (b: GashaEntry) => gashaArt(game.value, b.bannerAssetId || b.id)
 
 const pvpHeadline = computed(() => {
   const p = pvp.value
@@ -246,21 +238,19 @@ onMounted(() => {
   void listGameRequests(id, 1, 20)
     .then((r) => (pendingCount.value = (r.items ?? []).filter((x) => x.status === 'pending').length))
     .catch(() => undefined)
-  void listOngoing<OngoingBanner[]>(id)
-    .then((list) => (banners.value = list ?? []))
+  void listOngoingGashas(id)
+    .then((page) => (banners.value = page.items))
     .catch(() => undefined)
     .finally(() => (ongoingLoaded.value = true))
-  if (ctx.hasMode('pvp') && ctx.hasView('pvp')) {
-    void getGameView<PvpView>(id, 'pvp')
+  if (ctx.hasMode('pvp')) {
+    void getMyPvp(id)
       .then((v) => (pvp.value = v))
       .catch(() => undefined)
   }
-  if (ctx.hasView('idolCards')) {
-    void getGameView<ListPage<IdolCard>>(id, 'idolCards', { limit: 4 })
-      .then((p) => (recent.value = p?.items ?? []))
-      .catch(() => undefined)
-      .finally(() => (recentLoaded.value = true))
-  }
+  void listMyIdolCards({ serverId: id, q: '', characterId: '', rarity: 0, idolCardIds: [], cursor: '', limit: 4 })
+    .then((p) => (recent.value = p.items))
+    .catch(() => undefined)
+    .finally(() => (recentLoaded.value = true))
 })
 </script>
 

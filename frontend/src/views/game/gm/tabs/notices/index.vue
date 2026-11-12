@@ -268,6 +268,7 @@ import DateTimeField from '../gasha/shared/DateTimeField.vue'
 import { deepEqual } from '../gasha/shared/diff'
 import { useServerClock } from '../gasha/shared/serverClock'
 import { formatShort } from '../gasha/shared/time'
+import { noticeConfig } from '@/api/gakumas'
 import { useConfigDomain } from '../gasha/shared/useConfigDomain'
 import NoticePreview from './NoticePreview.vue'
 import {
@@ -292,7 +293,7 @@ const router = useRouter()
 const menuStore = useMenuStore()
 const ctx = useGmContext()
 const clock = useServerClock(ctx)
-const state = useConfigDomain<NoticeConfig>(DOMAIN)
+const state = useConfigDomain<NoticeConfig>(DOMAIN, noticeConfig)
 
 const revisionsOpen = ref(false)
 const bannerOpen = ref(false)

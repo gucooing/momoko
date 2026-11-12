@@ -81,6 +81,30 @@ func listDrives() []*v1.FileEntryInfo {
 	return drives
 }
 
+// ResolveRealPathLoose 返回 targetPath 对应的绝对路径（不要求存在、不解析符号链接），只按字面检查不越出 basePath。
+// 用于还不存在的目标（创建目录前）；存在后应再用 ResolveRealPath 按真实路径检查。
+func (f *FileOper) ResolveRealPathLoose(targetPath string) (string, error) {
+	candidate := targetPath
+	if f.basePath != SystemPath && !filepath.IsAbs(candidate) {
+		candidate = filepath.Join(f.basePath, targetPath)
+	}
+	abs, err := filepath.Abs(candidate)
+	if err != nil {
+		return "", errors.New("路径不存在")
+	}
+	if f.basePath == SystemPath {
+		return abs, nil
+	}
+	rel, err := filepath.Rel(f.basePath, abs)
+	if err != nil {
+		return "", errors.New("路径不存在")
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", errors.New("路径穿越！")
+	}
+	return abs, nil
+}
+
 // ResolveRealPath 返回 targetPath 对应的真实路径。
 // 如果目标越过 basePath，返回错误。
 func (f *FileOper) ResolveRealPath(targetPath string) (string, error) {

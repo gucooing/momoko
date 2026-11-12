@@ -10,6 +10,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 
 	v1 "momoko/api/gen/v1"
+	gakumasv1 "momoko/api/gen/v1/gakumas"
 	"momoko/internal/biz"
 	"momoko/internal/conf"
 	"momoko/internal/service"
@@ -95,7 +96,7 @@ func PassportEnabled(c *conf.Passport) bool {
 }
 
 // NewPassportServer 创建用户通行证 server（默认 0.0.0.0:22634）。
-func NewPassportServer(c *conf.Passport, passportApi *service.PassportService) *PassportServer {
+func NewPassportServer(c *conf.Passport, passportApi *service.PassportService, gakumasApi *service.GakumasPassportService) *PassportServer {
 	if !PassportEnabled(c) {
 		return &PassportServer{enabled: false}
 	}
@@ -128,6 +129,7 @@ func NewPassportServer(c *conf.Passport, passportApi *service.PassportService) *
 	}
 	srv := http.NewServer(opts...)
 	v1.RegisterPassportServiceHTTPServer(srv, passportApi)
+	gakumasv1.RegisterGakumasPassportServiceHTTPServer(srv, gakumasApi)
 	passportApi.RegisterOIDCServer(srv)
 	return &PassportServer{Server: srv, enabled: true}
 }

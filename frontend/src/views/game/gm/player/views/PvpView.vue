@@ -1,5 +1,5 @@
 <!-- 竞赛：当前配置的阵容（各阶段编成力、主 / 副记忆）与本赛季（名次、Rate、段位、胜负、今日剩余次数、保留的对战记录）。
-     数据来自 MGP 玩家视图 pvp（只有 pvp-unit 时只显示阵容），只读。 -->
+     数据来自玩家竞赛接口，只读。 -->
 <template>
   <div class="pv">
     <div v-if="error" class="pv__error">{{ error }}</div>
@@ -49,25 +49,21 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmPlayerView } from '@/api/gameGm'
+import { getPlayerPvp } from '@/api/gakumas'
 import { getRequestErrorMessage } from '@/utils/request'
-import type { ManifestView } from '@/games/mgp'
-import type { PvpView } from '@/games/gakumas/types'
+import type { PlayerPvp } from '@/games/gakumas/types'
 import { useGmContext } from '../../context'
 import { GM_TABS } from '../../tabs'
 import { usePlayerPage } from '../context'
 import PvpStages from '../shared/PvpStages.vue'
 import { useGmFormat } from '../shared/format'
 
-const props = defineProps<{ view?: ManifestView }>()
-
 const { t } = useI18n()
 const ctx = useGmContext()
 const page = usePlayerPage()
 const { num, when, delta } = useGmFormat()
 
-// pvp 视图带名次与对战记录；pvp-unit 只有赛季条目与阵容
-const data = shallowRef<Partial<PvpView>>()
+const data = shallowRef<PlayerPvp>()
 const loading = ref(false)
 const error = ref('')
 
@@ -75,7 +71,7 @@ const load = async () => {
   loading.value = true
   error.value = ''
   try {
-    data.value = await getGmPlayerView<PvpView>(ctx.serverId.value, page.pid.value, props.view?.id || 'pvp')
+    data.value = await getPlayerPvp(ctx.serverId.value, page.pid.value)
   } catch (e) {
     error.value = getRequestErrorMessage(e)
   } finally {
@@ -91,9 +87,9 @@ const stats = computed(() => {
   if (!d) return []
   if (!d.entered) return [{ key: 'entered', label: t('gmData.pvp.status'), value: t('gmData.pvp.notEntered') }]
   const out = [
-    ...(d.rank !== undefined ? [{ key: 'rank', label: t('gmData.pvp.rank'), value: d.rank ? num(d.rank) : '—' }] : []),
+    { key: 'rank', label: t('gmData.pvp.rank'), value: d.rank ? num(d.rank) : '—' },
     { key: 'rate', label: 'Rate', value: num(d.rate) },
-    { key: 'wl', label: t('gmData.pvp.winLose'), value: `${num(d.winCount)} / ${num((d.playCount || 0) - (d.winCount || 0))}` },
+    { key: 'wl', label: t('gmData.pvp.winLose'), value: `${num(d.winCount)} / ${num(d.playCount - d.winCount)}` },
     { key: 'grade', label: t('gmData.pvp.gradeLabel'), value: t('gmData.pvp.gradeBest', { n: d.grade, best: d.bestGrade }) },
     { key: 'plays', label: t('gmData.pvp.remaining'), value: `${num(d.remainingPlays)} / ${num(d.maxDailyPlays)}` },
   ]

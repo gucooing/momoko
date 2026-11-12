@@ -71,6 +71,8 @@ type Envelope<T> = { code?: number; message?: string; data?: T }
 const client = axios.create({
   baseURL: import.meta.env.VITE_PASSPORT_API_BASE_URL || '/api/v1',
   timeout: 60_000,
+  // 列表参数重复给出（ids=a&ids=b）
+  paramsSerializer: { indexes: null },
 })
 
 client.interceptors.request.use((config: InternalAxiosRequestConfig) => {

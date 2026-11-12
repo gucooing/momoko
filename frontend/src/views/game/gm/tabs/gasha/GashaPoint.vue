@@ -162,7 +162,6 @@ import { useI18n } from 'vue-i18n'
 import type { GashaPoint, GashaPointExchange } from '@/games/gakumas/types'
 import GmRewardPicker from '../../components/GmRewardPicker.vue'
 import type { GmReward } from '../../components/types'
-import { useGmContext } from '../../context'
 import { useGashaEditor } from './editor'
 import { useGashaLabels } from './labels'
 import { freeId, otherPointUsers, RESOURCE_IDOL, RESOURCE_SUPPORT } from './gasha'
@@ -171,12 +170,10 @@ import DateTimeField from './shared/DateTimeField.vue'
 import { formatShort } from './shared/time'
 
 const { t } = useI18n()
-const ctx = useGmContext()
 const ed = useGashaEditor()
 const labels = useGashaLabels()
 const g = computed(() => ed.gasha.value)
 const cfg = computed(() => ed.cfg.value)
-const resourceTypes = computed(() => ctx.manifest.value?.resourceTypes || {})
 
 const choosing = ref(false)
 const point = computed(() => (g.value?.gashaPointId ? cfg.value?.points.find((p) => p.id === g.value!.gashaPointId) : undefined))
@@ -244,7 +241,7 @@ const createPoint = () => {
 // ---- 折算奖励 ----
 const expireView = computed(() => {
   const r = point.value?.expireReward
-  return r && (r.resourceType || 0) > 0 ? rewardView(r, resourceTypes.value, ed.lookup) : undefined
+  return r && (r.resourceType || 0) > 0 ? rewardView(r, ed.lookup) : undefined
 })
 const expireOpen = ref(false)
 const expireDraft = ref<GmReward[]>([])
@@ -269,7 +266,7 @@ const shownExchanges = computed(() => {
   return (p.exchanges || []).slice(0, exchangeLimit.value).map((x, index) => ({
     index,
     x,
-    rewards: (x.rewards || []).map((r) => rewardView(r, resourceTypes.value, ed.lookup)),
+    rewards: (x.rewards || []).map((r) => rewardView(r, ed.lookup)),
     period:
       x.startTime === p.startTime && x.endTime === p.endTime
         ? ''

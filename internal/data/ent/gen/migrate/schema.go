@@ -706,7 +706,6 @@ var (
 		{Name: "params", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "summary", Type: field.TypeJSON, Nullable: true},
 		{Name: "reason", Type: field.TypeString, Default: ""},
-		{Name: "confirmed", Type: field.TypeBool, Default: false},
 		{Name: "dry_run", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"success", "partial", "failed", "pending", "running", "rejected"}},
 		{Name: "result", Type: field.TypeString, Size: 2147483647, Default: ""},
@@ -738,7 +737,7 @@ var (
 			{
 				Name:    "gmexecution_server_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{GmExecutionsColumns[3], GmExecutionsColumns[22]},
+				Columns: []*schema.Column{GmExecutionsColumns[3], GmExecutionsColumns[21]},
 			},
 			{
 				Name:    "gmexecution_actor_id_create_time",
@@ -748,7 +747,7 @@ var (
 			{
 				Name:    "gmexecution_request_id",
 				Unique:  true,
-				Columns: []*schema.Column{GmExecutionsColumns[29]},
+				Columns: []*schema.Column{GmExecutionsColumns[28]},
 			},
 		},
 	}

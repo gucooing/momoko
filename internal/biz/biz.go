@@ -27,6 +27,9 @@ var ProviderSet = wire.NewSet(
 	NewGameServerUsecase,
 	NewGameHostingUsecase,
 	NewGmUsecase,
+	NewGakumasUsecase,
 	NewGameOpsUsecase,
 	NewPassportUsecase,
+	NewPassportAdminUsecase,
+	NewGakumasPassportUsecase,
 )

@@ -61,8 +61,7 @@ export const createGameServer = (data: Partial<CreateGameServerRequest>) => requ
 
 export const updateGameServer = (data: UpdateGameServerRequest) => request.put<GameServerInfo>(base(data.id), data)
 
-export const deleteGameServer = (id: string, deleteInstances = false) =>
-  request.delete<DeleteGameServerResponse>(base(id), { params: { deleteInstances } })
+export const deleteGameServer = (id: string) => request.delete<DeleteGameServerResponse>(base(id))
 
 export const testGameServer = (data: Partial<TestGameServerRequest>) =>
   request.post<TestGameServerResponse>('/game/servers/test', data)
@@ -84,6 +83,9 @@ export type GameServerAction = 'start' | 'stop' | 'restart'
 
 export const controlGameServer = (id: string, action: GameServerAction, role = '', force = false) =>
   request.post<GameServerInfo>(`${base(id)}/control`, { id, action, role, force })
+
+/** 清空托管进程控制台的输出记录（重新连接时不再回放）。 */
+export const clearGameServerConsole = (id: string, role = '') => request.post(`${base(id)}/console/clear`, { id, role })
 
 export const updateGameServerHosting = (data: UpdateGameServerHostingRequest) =>
   request.put<GameServerInfo>(`${base(data.id)}/hosting`, data)

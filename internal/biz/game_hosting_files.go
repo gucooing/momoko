@@ -71,7 +71,7 @@ func findField(sections []*v1.GameSettingsSection, key string) *v1.GameSettingsF
 	return nil
 }
 
-// GetSettings 读取专用设置：适配器表单、配置内容、原文与版本。
+// GetSettings 读取专用设置：整个配置文件的内容（前端按内容展示全部字段）、适配器给的字段提示、原文与版本。
 func (h *GameHostingUsecase) GetSettings(ctx context.Context, id string) (*v1.GameServerSettings, error) {
 	s, ha, _, opts, err := h.hosted(ctx, id)
 	if err != nil {
@@ -97,13 +97,102 @@ func (h *GameHostingUsecase) GetSettings(ctx context.Context, id string) (*v1.Ga
 	if st, err := os.Stat(path); err == nil {
 		out.ModifiedAt = timestamppb.New(st.ModTime())
 	}
-	known := ha.topKeys()
-	for _, k := range doc.Keys() {
-		if !known[k] {
-			out.UnknownKeys = append(out.UnknownKeys, k)
+	return out, nil
+}
+
+// configValue 表单传来的值（structpb 解出的普通结构，数字是 float64）转成配置文档的值：整数写成整数。
+func configValue(v any) any {
+	switch t := v.(type) {
+	case float64:
+		if t == math.Trunc(t) && math.Abs(t) < 1<<53 {
+			return json.Number(strconv.FormatInt(int64(t), 10))
+		}
+		return json.Number(strconv.FormatFloat(t, 'f', -1, 64))
+	case map[string]any:
+		m := make(map[string]any, len(t))
+		for k, x := range t {
+			m[k] = configValue(x)
+		}
+		return jsondoc.FromPlain(m)
+	case []any:
+		out := make([]any, len(t))
+		for i, x := range t {
+			out[i] = configValue(x)
+		}
+		return out
+	default:
+		return v
+	}
+}
+
+// deleteConfigPath 删除点分路径上的一项（不存在时什么也不做）。
+func deleteConfigPath(doc *jsondoc.Object, path string) {
+	parent, key := doc, path
+	if i := strings.LastIndex(path, "."); i >= 0 {
+		v, ok := doc.Lookup(path[:i])
+		if !ok {
+			return
+		}
+		obj, ok := v.(*jsondoc.Object)
+		if !ok {
+			return
+		}
+		parent, key = obj, path[i+1:]
+	}
+	parent.Delete(key)
+}
+
+// validConfigPath 点分路径：每一段都不能为空。
+func validConfigPath(path string) bool {
+	if strings.TrimSpace(path) == "" {
+		return false
+	}
+	for _, part := range strings.Split(path, ".") {
+		if strings.TrimSpace(part) == "" {
+			return false
 		}
 	}
-	return out, nil
+	return true
+}
+
+// diffConfig 两份配置的差异：逐个叶子（非对象的值）比较，返回变化的点分路径。
+func diffConfig(old, next any, prefix string, out *[]string) {
+	oo, ook := old.(*jsondoc.Object)
+	no, nok := next.(*jsondoc.Object)
+	if ook && nok {
+		seen := map[string]bool{}
+		for _, k := range append(oo.Keys(), no.Keys()...) {
+			if seen[k] {
+				continue
+			}
+			seen[k] = true
+			ov, _ := oo.Get(k)
+			nv, _ := no.Get(k)
+			diffConfig(ov, nv, joinConfigPath(prefix, k), out)
+		}
+		return
+	}
+	if ook || nok || !jsondoc.Equal(old, next) {
+		if prefix != "" {
+			*out = append(*out, prefix)
+		}
+	}
+}
+
+func joinConfigPath(prefix, k string) string {
+	if prefix == "" {
+		return k
+	}
+	return prefix + "." + k
+}
+
+// sensitiveConfigKey 写进变更记录时不记明文的字段（适配器标为 secret 的，以及名字像密钥的）。
+func sensitiveConfigKey(f *v1.GameSettingsField, path string) bool {
+	if f != nil && f.Type == "secret" {
+		return true
+	}
+	k := strings.ToLower(path[strings.LastIndex(path, ".")+1:])
+	return strings.Contains(k, "secret") || strings.Contains(k, "password") || strings.Contains(k, "token") || k == "dsn"
 }
 
 // coerceSetting 把表单值转成配置里的类型。
@@ -235,8 +324,8 @@ func settingPreview(f *v1.GameSettingsField, v any, present bool) string {
 	}
 }
 
-// SaveSettings 保存专用设置：版本不一致拒绝；表单模式只改动给出的字段，原文模式整体替换；未识别的字段原样保留。
-// MGP 监听或密钥变化时同步 Momoko 保存的接入信息。
+// SaveSettings 保存专用设置：版本不一致拒绝；表单模式按路径改给出的字段（任何路径都可以，null 删除这一项），
+// 原文模式整体替换。适配器认识的字段按提示校验，其余字段按给出的 JSON 类型写入。保存后 Momoko 按新配置刷新接入信息。
 func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameServerSettingsRequest) (*v1.SaveGameServerSettingsResponse, error) {
 	s, ha, _, opts, err := h.hosted(ctx, req.Id)
 	if err != nil {
@@ -274,14 +363,26 @@ func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameS
 	} else {
 		next, _ = jsondoc.Parse(raw)
 		if req.Values != nil {
-			for k, v := range req.Values.AsMap() {
-				f := findField(schema, k)
-				if f == nil || f.Managed {
-					return nil, response.BadRequest(400, "不能修改配置项 "+k)
+			values := req.Values.AsMap()
+			paths := make([]string, 0, len(values))
+			for k := range values {
+				paths = append(paths, k)
+			}
+			sort.Strings(paths)
+			for _, k := range paths {
+				v := values[k]
+				if !validConfigPath(k) {
+					return nil, response.BadRequest(400, "配置项路径无效："+k)
 				}
-				val, err := coerceSetting(f, v)
-				if err != nil {
-					return nil, response.BadRequest(400, "配置项 "+k+" 无效："+err.Error())
+				if v == nil {
+					deleteConfigPath(next, k)
+					continue
+				}
+				val := configValue(v)
+				if f := findField(schema, k); f != nil {
+					if val, err = coerceSetting(f, v); err != nil {
+						return nil, response.BadRequest(400, "配置项 "+k+" 无效："+err.Error())
+					}
 				}
 				if err := next.Assign(k, val); err != nil {
 					return nil, response.BadRequest(400, "配置项 "+k+" 无效："+err.Error())
@@ -292,38 +393,30 @@ func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameS
 			return nil, ErrSystem(err)
 		}
 	}
-	// 校验与差异
-	params := map[string]string{}
-	var changed []string
+	// 校验（适配器认识的字段）与差异（整个配置逐个叶子比较）
 	for _, sec := range schema {
 		for _, f := range sec.Fields {
 			nv, nok := next.Lookup(f.Key)
 			if err := validateSetting(f, nv, nok); err != nil {
 				return nil, response.BadRequest(400, "配置项 "+f.Key+" 无效："+err.Error())
 			}
-			ov, ook := old.Lookup(f.Key)
-			if nok == ook && (!nok || jsondoc.Equal(ov, nv)) {
-				continue
-			}
-			changed = append(changed, f.Key)
-			if f.Type != "secret" && !f.Managed && len(params) < 24 {
-				params["old:"+f.Key] = settingPreview(f, ov, ook)
-				params["new:"+f.Key] = settingPreview(f, nv, nok)
-			}
 		}
 	}
-	known := ha.topKeys()
-	seen := map[string]bool{}
-	for _, k := range append(old.Keys(), next.Keys()...) {
-		if known[k] || seen[k] {
+	params := map[string]string{}
+	var changed []string
+	diffConfig(old, next, "", &changed)
+	for _, k := range changed {
+		if len(params) >= 24 {
+			break
+		}
+		f := findField(schema, k)
+		if sensitiveConfigKey(f, k) {
 			continue
 		}
-		seen[k] = true
-		ov, ook := old.Get(k)
-		nv, nok := next.Get(k)
-		if nok != ook || (nok && !jsondoc.Equal(ov, nv)) {
-			changed = append(changed, k)
-		}
+		ov, ook := old.Lookup(k)
+		nv, nok := next.Lookup(k)
+		params["old:"+k] = settingPreview(f, ov, ook)
+		params["new:"+k] = settingPreview(f, nv, nok)
 	}
 	res := &v1.SaveGameServerSettingsResponse{Revision: rev, ChangedKeys: changed}
 	if len(changed) == 0 {
@@ -334,18 +427,8 @@ func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameS
 	}
 	res.Revision = configRevision(out)
 	h.forgetLayout(s.ID)
-	// MGP 监听 / 密钥变化：同步接入信息
-	if nl, err := ha.loadLayout(s.InstallDir, opts.ConfigFile); err == nil {
-		keyChanged := nl.MGPKeyID != docString(old, "mgp.key_id", "") || nl.MGPSecret != docString(old, "mgp.secret", "")
-		if keyChanged || nl.mgpEndpoint() != s.MgpEndpoint {
-			if err := h.applyLayoutMGP(s, nl, keyChanged); err == nil {
-				if _, err := h.servers.repo.Update(ctx, s); err != nil {
-					h.log.Warnf("sync mgp of %s: %v", s.ID, err)
-				}
-				h.servers.forget(s.ID)
-			}
-		}
-	}
+	// 接入信息（MGP 监听与密钥）以配置为准：立即按新配置刷新
+	h.syncFromConfig(ctx, s)
 	sort.Strings(changed)
 	keys := changed
 	if len(keys) > 40 {
@@ -581,11 +664,9 @@ func (h *GameHostingUsecase) FilePreSignUpload(ctx context.Context, req *v1.Inst
 	if uid == "" {
 		return nil, ErrTokenInvalid
 	}
-	realPath, err := file.ResolveLocalPath(base, req.Path)
+	// 上传目录可能还不存在（例如更新页的 .momoko/uploads）：在服务端目录内安全地创建
+	realPath, err := file.EnsureLocalDir(base, req.Path)
 	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if err := os.MkdirAll(realPath, 0o755); err != nil {
 		return nil, ErrSystem(err)
 	}
 	seed := file.NewChunkedUpload(req.Hash, realPath, req.FileName, req.FileSize, true)

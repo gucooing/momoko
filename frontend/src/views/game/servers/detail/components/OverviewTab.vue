@@ -108,7 +108,7 @@ const probeDesc = (p: GameServerProbe) => {
       return t(`gameServers.overview.probeDesc.${p.key}`, params)
     case 'mgp':
       if (p.state === 'pending') return t('gameServers.overview.probeDesc.mgpNone')
-      return p.error || t('gameServers.overview.probeDesc.mgp', { endpoint: params.endpoint, commands: params.commands ?? '—' })
+      return p.error || t('gameServers.overview.probeDesc.mgp', { endpoint: params.endpoint })
     case 'database':
       return p.error || t('gameServers.overview.probeDesc.database', params)
     case 'saves':

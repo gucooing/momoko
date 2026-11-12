@@ -10,7 +10,6 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	structpb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -73,20 +72,14 @@ type GetGmContextResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 服务器摘要
 	Server *GameServerBrief `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
-	// manifest（MGP 原样；未接入或拉取失败时为空）
-	Manifest *structpb.Value `protobuf:"bytes,2,opt,name=manifest,proto3" json:"manifest,omitempty"`
-	// 实时 status（MGP 原样；连接失败时为空，见 status_error）
-	Status *structpb.Value `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
-	// status 拉取失败的原因（错误码）
-	StatusError string `protobuf:"bytes,4,opt,name=status_error,json=statusError,proto3" json:"status_error,omitempty"`
 	// 服务器时区（IANA），「今天」按它的自然日计算
-	Timezone string `protobuf:"bytes,5,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	Timezone string `protobuf:"bytes,2,opt,name=timezone,proto3" json:"timezone,omitempty"`
 	// 待审批的玩家申请数
-	PendingApprovals int32 `protobuf:"varint,6,opt,name=pending_approvals,json=pendingApprovals,proto3" json:"pending_approvals,omitempty"`
-	// 已开放的玩家自助指令数
-	SelfServiceEnabled int32 `protobuf:"varint,7,opt,name=self_service_enabled,json=selfServiceEnabled,proto3" json:"self_service_enabled,omitempty"`
+	PendingApprovals int32 `protobuf:"varint,3,opt,name=pending_approvals,json=pendingApprovals,proto3" json:"pending_approvals,omitempty"`
+	// 已开放的玩家自助操作数
+	SelfServiceEnabled int32 `protobuf:"varint,4,opt,name=self_service_enabled,json=selfServiceEnabled,proto3" json:"self_service_enabled,omitempty"`
 	// 已绑定通行证的游戏账号数
-	LinkedAccounts int32 `protobuf:"varint,8,opt,name=linked_accounts,json=linkedAccounts,proto3" json:"linked_accounts,omitempty"`
+	LinkedAccounts int32 `protobuf:"varint,5,opt,name=linked_accounts,json=linkedAccounts,proto3" json:"linked_accounts,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -126,27 +119,6 @@ func (x *GetGmContextResponse) GetServer() *GameServerBrief {
 		return x.Server
 	}
 	return nil
-}
-
-func (x *GetGmContextResponse) GetManifest() *structpb.Value {
-	if x != nil {
-		return x.Manifest
-	}
-	return nil
-}
-
-func (x *GetGmContextResponse) GetStatus() *structpb.Value {
-	if x != nil {
-		return x.Status
-	}
-	return nil
-}
-
-func (x *GetGmContextResponse) GetStatusError() string {
-	if x != nil {
-		return x.StatusError
-	}
-	return ""
 }
 
 func (x *GetGmContextResponse) GetTimezone() string {
@@ -268,35 +240,35 @@ func (x *GmPlayerLink) GetLinkedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-type ListGmPlayersRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	// 关键字：账号名、User ID、昵称（MGP）或通行证用户名（Momoko）
-	Q string `protobuf:"bytes,2,opt,name=q,proto3" json:"q,omitempty"`
-	// 筛选：all / online / activeToday / banned / unlinked（未绑定通行证）
-	Filter string `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
-	// 上一页的 next_cursor
-	Cursor string `protobuf:"bytes,4,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	// 每页条数，默认 20，最大 200
-	Limit         int32 `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
+// 操作对一个对象的结果。
+type GmExecutionResult struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Pid   string                 `protobuf:"bytes,1,opt,name=pid,proto3" json:"pid,omitempty"`
+	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// success / failed
+	Status  string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Code    string `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`
+	Message string `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
+	// 游戏服务端返回的结果（JSON 文本，结构由操作决定；失败时为空）
+	Data          string `protobuf:"bytes,6,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListGmPlayersRequest) Reset() {
-	*x = ListGmPlayersRequest{}
+func (x *GmExecutionResult) Reset() {
+	*x = GmExecutionResult{}
 	mi := &file_v1_game_gm_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListGmPlayersRequest) String() string {
+func (x *GmExecutionResult) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListGmPlayersRequest) ProtoMessage() {}
+func (*GmExecutionResult) ProtoMessage() {}
 
-func (x *ListGmPlayersRequest) ProtoReflect() protoreflect.Message {
+func (x *GmExecutionResult) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_game_gm_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -308,665 +280,49 @@ func (x *ListGmPlayersRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListGmPlayersRequest.ProtoReflect.Descriptor instead.
-func (*ListGmPlayersRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GmExecutionResult.ProtoReflect.Descriptor instead.
+func (*GmExecutionResult) Descriptor() ([]byte, []int) {
 	return file_v1_game_gm_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ListGmPlayersRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *ListGmPlayersRequest) GetQ() string {
-	if x != nil {
-		return x.Q
-	}
-	return ""
-}
-
-func (x *ListGmPlayersRequest) GetFilter() string {
-	if x != nil {
-		return x.Filter
-	}
-	return ""
-}
-
-func (x *ListGmPlayersRequest) GetCursor() string {
-	if x != nil {
-		return x.Cursor
-	}
-	return ""
-}
-
-func (x *ListGmPlayersRequest) GetLimit() int32 {
-	if x != nil {
-		return x.Limit
-	}
-	return 0
-}
-
-type ListGmPlayersResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 玩家条目（MGP /players 的 items 原样）
-	Items *structpb.Value `protobuf:"bytes,1,opt,name=items,proto3" json:"items,omitempty"`
-	// 下一页游标（空为最后一页）
-	NextCursor string `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
-	// 当前筛选的总数
-	Total int32 `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
-	// 各筛选的人数：all / online / activeToday / banned（MGP）+ unlinked（Momoko 计算）
-	Summary map[string]int32 `protobuf:"bytes,4,rep,name=summary,proto3" json:"summary,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	// 本页玩家绑定的通行证
-	Links []*GmPlayerLink `protobuf:"bytes,5,rep,name=links,proto3" json:"links,omitempty"`
-	// 本服务器已绑定通行证的游戏账号数
-	LinkedCount   int32 `protobuf:"varint,6,opt,name=linked_count,json=linkedCount,proto3" json:"linked_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListGmPlayersResponse) Reset() {
-	*x = ListGmPlayersResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListGmPlayersResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListGmPlayersResponse) ProtoMessage() {}
-
-func (x *ListGmPlayersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListGmPlayersResponse.ProtoReflect.Descriptor instead.
-func (*ListGmPlayersResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *ListGmPlayersResponse) GetItems() *structpb.Value {
-	if x != nil {
-		return x.Items
-	}
-	return nil
-}
-
-func (x *ListGmPlayersResponse) GetNextCursor() string {
-	if x != nil {
-		return x.NextCursor
-	}
-	return ""
-}
-
-func (x *ListGmPlayersResponse) GetTotal() int32 {
-	if x != nil {
-		return x.Total
-	}
-	return 0
-}
-
-func (x *ListGmPlayersResponse) GetSummary() map[string]int32 {
-	if x != nil {
-		return x.Summary
-	}
-	return nil
-}
-
-func (x *ListGmPlayersResponse) GetLinks() []*GmPlayerLink {
-	if x != nil {
-		return x.Links
-	}
-	return nil
-}
-
-func (x *ListGmPlayersResponse) GetLinkedCount() int32 {
-	if x != nil {
-		return x.LinkedCount
-	}
-	return 0
-}
-
-type GetGmPlayerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Pid           string                 `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetGmPlayerRequest) Reset() {
-	*x = GetGmPlayerRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetGmPlayerRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetGmPlayerRequest) ProtoMessage() {}
-
-func (x *GetGmPlayerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetGmPlayerRequest.ProtoReflect.Descriptor instead.
-func (*GetGmPlayerRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *GetGmPlayerRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *GetGmPlayerRequest) GetPid() string {
+func (x *GmExecutionResult) GetPid() string {
 	if x != nil {
 		return x.Pid
 	}
 	return ""
 }
 
-type GetGmPlayerResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// MGP /players/{pid} 原样（条目 + overview + logins）
-	Player *structpb.Value `protobuf:"bytes,1,opt,name=player,proto3" json:"player,omitempty"`
-	// 绑定的通行证（没有为空）
-	Link *GmPlayerLink `protobuf:"bytes,2,opt,name=link,proto3" json:"link,omitempty"`
-	// 涉及该玩家的 GM 记录数
-	GmExecutions  int32 `protobuf:"varint,3,opt,name=gm_executions,json=gmExecutions,proto3" json:"gm_executions,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetGmPlayerResponse) Reset() {
-	*x = GetGmPlayerResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetGmPlayerResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetGmPlayerResponse) ProtoMessage() {}
-
-func (x *GetGmPlayerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[6]
+func (x *GmExecutionResult) GetName() string {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetGmPlayerResponse.ProtoReflect.Descriptor instead.
-func (*GetGmPlayerResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *GetGmPlayerResponse) GetPlayer() *structpb.Value {
-	if x != nil {
-		return x.Player
-	}
-	return nil
-}
-
-func (x *GetGmPlayerResponse) GetLink() *GmPlayerLink {
-	if x != nil {
-		return x.Link
-	}
-	return nil
-}
-
-func (x *GetGmPlayerResponse) GetGmExecutions() int32 {
-	if x != nil {
-		return x.GmExecutions
-	}
-	return 0
-}
-
-type GetGmPlayerViewRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Pid      string                 `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
-	// 视图 id（manifest views）
-	View string `protobuf:"bytes,3,opt,name=view,proto3" json:"view,omitempty"`
-	// 透传给 MGP 的查询串，例如 "state=unreceived&cursor=20&limit=20"
-	Query         string `protobuf:"bytes,4,opt,name=query,proto3" json:"query,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetGmPlayerViewRequest) Reset() {
-	*x = GetGmPlayerViewRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetGmPlayerViewRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetGmPlayerViewRequest) ProtoMessage() {}
-
-func (x *GetGmPlayerViewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetGmPlayerViewRequest.ProtoReflect.Descriptor instead.
-func (*GetGmPlayerViewRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *GetGmPlayerViewRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
+		return x.Name
 	}
 	return ""
 }
 
-func (x *GetGmPlayerViewRequest) GetPid() string {
-	if x != nil {
-		return x.Pid
-	}
-	return ""
-}
-
-func (x *GetGmPlayerViewRequest) GetView() string {
-	if x != nil {
-		return x.View
-	}
-	return ""
-}
-
-func (x *GetGmPlayerViewRequest) GetQuery() string {
-	if x != nil {
-		return x.Query
-	}
-	return ""
-}
-
-// MGP 数据透传。
-type GmDataResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// MGP 返回的 data 原样
-	Data          *structpb.Value `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GmDataResponse) Reset() {
-	*x = GmDataResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GmDataResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GmDataResponse) ProtoMessage() {}
-
-func (x *GmDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GmDataResponse.ProtoReflect.Descriptor instead.
-func (*GmDataResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GmDataResponse) GetData() *structpb.Value {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-type GetGmReportRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	// 报表 id（manifest reports）：dashboard / gasha / pvp / produce / seminar / tower / gifts
-	Report string `protobuf:"bytes,2,opt,name=report,proto3" json:"report,omitempty"`
-	// 透传给 MGP 的查询串，例如 "days=14"
-	Query         string `protobuf:"bytes,3,opt,name=query,proto3" json:"query,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetGmReportRequest) Reset() {
-	*x = GetGmReportRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetGmReportRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetGmReportRequest) ProtoMessage() {}
-
-func (x *GetGmReportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetGmReportRequest.ProtoReflect.Descriptor instead.
-func (*GetGmReportRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *GetGmReportRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *GetGmReportRequest) GetReport() string {
-	if x != nil {
-		return x.Report
-	}
-	return ""
-}
-
-func (x *GetGmReportRequest) GetQuery() string {
-	if x != nil {
-		return x.Query
-	}
-	return ""
-}
-
-type GetGmCatalogRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	// 目录：currency / item / idolCardSkin / supportCard / character / costume / music / gasha …
-	Kind string `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
-	// 透传给 MGP 的查询串，例如 "q=kcna&rarity=3&limit=50"
-	Query         string `protobuf:"bytes,3,opt,name=query,proto3" json:"query,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetGmCatalogRequest) Reset() {
-	*x = GetGmCatalogRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetGmCatalogRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetGmCatalogRequest) ProtoMessage() {}
-
-func (x *GetGmCatalogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetGmCatalogRequest.ProtoReflect.Descriptor instead.
-func (*GetGmCatalogRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *GetGmCatalogRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *GetGmCatalogRequest) GetKind() string {
-	if x != nil {
-		return x.Kind
-	}
-	return ""
-}
-
-func (x *GetGmCatalogRequest) GetQuery() string {
-	if x != nil {
-		return x.Query
-	}
-	return ""
-}
-
-type ExecuteGmCommandRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	// 指令 id
-	Command string `protobuf:"bytes,2,opt,name=command,proto3" json:"command,omitempty"`
-	// 目标玩家 pid（server 指令为空；players 指令 1–200 个）
-	Targets []string `protobuf:"bytes,3,rep,name=targets,proto3" json:"targets,omitempty"`
-	// 参数（按 manifest 的 JSON Schema）
-	Params *structpb.Value `protobuf:"bytes,4,opt,name=params,proto3" json:"params,omitempty"`
-	// 试运行：不改变任何数据，返回与真实执行相同的结果
-	DryRun bool `protobuf:"varint,6,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
-	// 危险指令：输入的玩家昵称（必须与目标当前昵称一致）
-	ConfirmName string `protobuf:"bytes,7,opt,name=confirm_name,json=confirmName,proto3" json:"confirm_name,omitempty"`
-	// 摘要参数（礼物文案等可展示的信息，写进 GM 记录）
-	Summary       map[string]string `protobuf:"bytes,8,rep,name=summary,proto3" json:"summary,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ExecuteGmCommandRequest) Reset() {
-	*x = ExecuteGmCommandRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ExecuteGmCommandRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ExecuteGmCommandRequest) ProtoMessage() {}
-
-func (x *ExecuteGmCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ExecuteGmCommandRequest.ProtoReflect.Descriptor instead.
-func (*ExecuteGmCommandRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *ExecuteGmCommandRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *ExecuteGmCommandRequest) GetCommand() string {
-	if x != nil {
-		return x.Command
-	}
-	return ""
-}
-
-func (x *ExecuteGmCommandRequest) GetTargets() []string {
-	if x != nil {
-		return x.Targets
-	}
-	return nil
-}
-
-func (x *ExecuteGmCommandRequest) GetParams() *structpb.Value {
-	if x != nil {
-		return x.Params
-	}
-	return nil
-}
-
-func (x *ExecuteGmCommandRequest) GetDryRun() bool {
-	if x != nil {
-		return x.DryRun
-	}
-	return false
-}
-
-func (x *ExecuteGmCommandRequest) GetConfirmName() string {
-	if x != nil {
-		return x.ConfirmName
-	}
-	return ""
-}
-
-func (x *ExecuteGmCommandRequest) GetSummary() map[string]string {
-	if x != nil {
-		return x.Summary
-	}
-	return nil
-}
-
-type ExecuteGmCommandResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// GM 记录 id（试运行也记录，但不出现在默认列表里）
-	ExecutionId string `protobuf:"bytes,1,opt,name=execution_id,json=executionId,proto3" json:"execution_id,omitempty"`
-	// success / partial / failed
-	Status string `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	// MGP 指令结果原样（results 逐个对象、summary）
-	Result *structpb.Value `protobuf:"bytes,3,opt,name=result,proto3" json:"result,omitempty"`
-	// 整体失败时的错误码与信息
-	ErrorCode     string `protobuf:"bytes,4,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
-	ErrorMessage  string `protobuf:"bytes,5,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ExecuteGmCommandResponse) Reset() {
-	*x = ExecuteGmCommandResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ExecuteGmCommandResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ExecuteGmCommandResponse) ProtoMessage() {}
-
-func (x *ExecuteGmCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ExecuteGmCommandResponse.ProtoReflect.Descriptor instead.
-func (*ExecuteGmCommandResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *ExecuteGmCommandResponse) GetExecutionId() string {
-	if x != nil {
-		return x.ExecutionId
-	}
-	return ""
-}
-
-func (x *ExecuteGmCommandResponse) GetStatus() string {
+func (x *GmExecutionResult) GetStatus() string {
 	if x != nil {
 		return x.Status
 	}
 	return ""
 }
 
-func (x *ExecuteGmCommandResponse) GetResult() *structpb.Value {
+func (x *GmExecutionResult) GetCode() string {
 	if x != nil {
-		return x.Result
-	}
-	return nil
-}
-
-func (x *ExecuteGmCommandResponse) GetErrorCode() string {
-	if x != nil {
-		return x.ErrorCode
+		return x.Code
 	}
 	return ""
 }
 
-func (x *ExecuteGmCommandResponse) GetErrorMessage() string {
+func (x *GmExecutionResult) GetMessage() string {
 	if x != nil {
-		return x.ErrorMessage
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GmExecutionResult) GetData() string {
+	if x != nil {
+		return x.Data
 	}
 	return ""
 }
@@ -976,7 +332,7 @@ type GmExecution struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ServerId string                 `protobuf:"bytes,2,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	// 指令 id 与标题、分组、风险快照
+	// 操作 id 与标题、分组、风险快照
 	Command      string `protobuf:"bytes,3,opt,name=command,proto3" json:"command,omitempty"`
 	CommandTitle string `protobuf:"bytes,4,opt,name=command_title,json=commandTitle,proto3" json:"command_title,omitempty"`
 	CommandGroup string `protobuf:"bytes,5,opt,name=command_group,json=commandGroup,proto3" json:"command_group,omitempty"`
@@ -997,16 +353,14 @@ type GmExecution struct {
 	Summary map[string]string `protobuf:"bytes,15,rep,name=summary,proto3" json:"summary,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// 原因 / 玩家申请理由
 	Reason string `protobuf:"bytes,16,opt,name=reason,proto3" json:"reason,omitempty"`
-	// 执行前输入了玩家昵称确认
-	Confirmed bool `protobuf:"varint,17,opt,name=confirmed,proto3" json:"confirmed,omitempty"`
-	DryRun    bool `protobuf:"varint,18,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	DryRun bool   `protobuf:"varint,18,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
 	// success / partial / failed / pending / running / rejected
 	Status string `protobuf:"bytes,19,opt,name=status,proto3" json:"status,omitempty"`
-	// 逐个对象的结果（MGP results 原样，详情接口才返回）
-	Result       *structpb.Value `protobuf:"bytes,20,opt,name=result,proto3" json:"result,omitempty"`
-	SuccessCount int32           `protobuf:"varint,21,opt,name=success_count,json=successCount,proto3" json:"success_count,omitempty"`
-	FailedCount  int32           `protobuf:"varint,22,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
-	// 服务端自动备份 id（危险指令）
+	// 逐个对象的结果（详情接口才返回）
+	Results      []*GmExecutionResult `protobuf:"bytes,20,rep,name=results,proto3" json:"results,omitempty"`
+	SuccessCount int32                `protobuf:"varint,21,opt,name=success_count,json=successCount,proto3" json:"success_count,omitempty"`
+	FailedCount  int32                `protobuf:"varint,22,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
+	// 操作产生的存档备份 id
 	BackupRef    string `protobuf:"bytes,23,opt,name=backup_ref,json=backupRef,proto3" json:"backup_ref,omitempty"`
 	ErrorCode    string `protobuf:"bytes,24,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
 	ErrorMessage string `protobuf:"bytes,25,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
@@ -1021,7 +375,7 @@ type GmExecution struct {
 	CreateTime   *timestamppb.Timestamp `protobuf:"bytes,32,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	FinishedAt   *timestamppb.Timestamp `protobuf:"bytes,33,opt,name=finished_at,json=finishedAt,proto3" json:"finished_at,omitempty"`
 	DurationMs   int32                  `protobuf:"varint,34,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
-	// 该玩家此前成功执行过这条指令的次数（待审批卡片「这个账号还没用过这项」）
+	// 该玩家此前成功执行过这个操作的次数（待审批卡片「这个账号还没用过这项」）
 	PriorUses     int32 `protobuf:"varint,35,opt,name=prior_uses,json=priorUses,proto3" json:"prior_uses,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1029,7 +383,7 @@ type GmExecution struct {
 
 func (x *GmExecution) Reset() {
 	*x = GmExecution{}
-	mi := &file_v1_game_gm_proto_msgTypes[13]
+	mi := &file_v1_game_gm_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1041,7 +395,7 @@ func (x *GmExecution) String() string {
 func (*GmExecution) ProtoMessage() {}
 
 func (x *GmExecution) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[13]
+	mi := &file_v1_game_gm_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1054,7 +408,7 @@ func (x *GmExecution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GmExecution.ProtoReflect.Descriptor instead.
 func (*GmExecution) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{13}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GmExecution) GetId() string {
@@ -1169,13 +523,6 @@ func (x *GmExecution) GetReason() string {
 	return ""
 }
 
-func (x *GmExecution) GetConfirmed() bool {
-	if x != nil {
-		return x.Confirmed
-	}
-	return false
-}
-
 func (x *GmExecution) GetDryRun() bool {
 	if x != nil {
 		return x.DryRun
@@ -1190,9 +537,9 @@ func (x *GmExecution) GetStatus() string {
 	return ""
 }
 
-func (x *GmExecution) GetResult() *structpb.Value {
+func (x *GmExecution) GetResults() []*GmExecutionResult {
 	if x != nil {
-		return x.Result
+		return x.Results
 	}
 	return nil
 }
@@ -1311,11 +658,11 @@ type ListGmExecutionsRequest struct {
 	Status string `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	// 风险：low / medium / high / danger
 	Risk string `protobuf:"bytes,4,opt,name=risk,proto3" json:"risk,omitempty"`
-	// 指令 id
+	// 操作 id
 	Command string `protobuf:"bytes,5,opt,name=command,proto3" json:"command,omitempty"`
 	// 涉及的玩家 pid
 	Pid string `protobuf:"bytes,6,opt,name=pid,proto3" json:"pid,omitempty"`
-	// 关键字：玩家、执行者、指令 id、requestId
+	// 关键字：玩家、执行者、操作 id、requestId
 	Q string `protobuf:"bytes,7,opt,name=q,proto3" json:"q,omitempty"`
 	// 时间范围
 	Since *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=since,proto3" json:"since,omitempty"`
@@ -1332,7 +679,7 @@ type ListGmExecutionsRequest struct {
 
 func (x *ListGmExecutionsRequest) Reset() {
 	*x = ListGmExecutionsRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[14]
+	mi := &file_v1_game_gm_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1344,7 +691,7 @@ func (x *ListGmExecutionsRequest) String() string {
 func (*ListGmExecutionsRequest) ProtoMessage() {}
 
 func (x *ListGmExecutionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[14]
+	mi := &file_v1_game_gm_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1357,7 +704,7 @@ func (x *ListGmExecutionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGmExecutionsRequest.ProtoReflect.Descriptor instead.
 func (*ListGmExecutionsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{14}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListGmExecutionsRequest) GetServerId() string {
@@ -1465,7 +812,7 @@ type ListGmExecutionsResponse struct {
 
 func (x *ListGmExecutionsResponse) Reset() {
 	*x = ListGmExecutionsResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[15]
+	mi := &file_v1_game_gm_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1477,7 +824,7 @@ func (x *ListGmExecutionsResponse) String() string {
 func (*ListGmExecutionsResponse) ProtoMessage() {}
 
 func (x *ListGmExecutionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[15]
+	mi := &file_v1_game_gm_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1490,7 +837,7 @@ func (x *ListGmExecutionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGmExecutionsResponse.ProtoReflect.Descriptor instead.
 func (*ListGmExecutionsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{15}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListGmExecutionsResponse) GetItems() []*GmExecution {
@@ -1531,7 +878,7 @@ type GetGmExecutionRequest struct {
 
 func (x *GetGmExecutionRequest) Reset() {
 	*x = GetGmExecutionRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[16]
+	mi := &file_v1_game_gm_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1543,7 +890,7 @@ func (x *GetGmExecutionRequest) String() string {
 func (*GetGmExecutionRequest) ProtoMessage() {}
 
 func (x *GetGmExecutionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[16]
+	mi := &file_v1_game_gm_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1556,7 +903,7 @@ func (x *GetGmExecutionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGmExecutionRequest.ProtoReflect.Descriptor instead.
 func (*GetGmExecutionRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{16}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetGmExecutionRequest) GetServerId() string {
@@ -1577,8 +924,6 @@ type ApproveGmExecutionRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
 	Id       string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	// 危险指令：输入的玩家昵称
-	ConfirmName string `protobuf:"bytes,3,opt,name=confirm_name,json=confirmName,proto3" json:"confirm_name,omitempty"`
 	// 审批意见
 	Note          string `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1587,7 +932,7 @@ type ApproveGmExecutionRequest struct {
 
 func (x *ApproveGmExecutionRequest) Reset() {
 	*x = ApproveGmExecutionRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[17]
+	mi := &file_v1_game_gm_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1599,7 +944,7 @@ func (x *ApproveGmExecutionRequest) String() string {
 func (*ApproveGmExecutionRequest) ProtoMessage() {}
 
 func (x *ApproveGmExecutionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[17]
+	mi := &file_v1_game_gm_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1612,7 +957,7 @@ func (x *ApproveGmExecutionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveGmExecutionRequest.ProtoReflect.Descriptor instead.
 func (*ApproveGmExecutionRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{17}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ApproveGmExecutionRequest) GetServerId() string {
@@ -1625,13 +970,6 @@ func (x *ApproveGmExecutionRequest) GetServerId() string {
 func (x *ApproveGmExecutionRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *ApproveGmExecutionRequest) GetConfirmName() string {
-	if x != nil {
-		return x.ConfirmName
 	}
 	return ""
 }
@@ -1655,7 +993,7 @@ type RejectGmExecutionRequest struct {
 
 func (x *RejectGmExecutionRequest) Reset() {
 	*x = RejectGmExecutionRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[18]
+	mi := &file_v1_game_gm_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1667,7 +1005,7 @@ func (x *RejectGmExecutionRequest) String() string {
 func (*RejectGmExecutionRequest) ProtoMessage() {}
 
 func (x *RejectGmExecutionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[18]
+	mi := &file_v1_game_gm_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1680,7 +1018,7 @@ func (x *RejectGmExecutionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectGmExecutionRequest.ProtoReflect.Descriptor instead.
 func (*RejectGmExecutionRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{18}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *RejectGmExecutionRequest) GetServerId() string {
@@ -1704,32 +1042,30 @@ func (x *RejectGmExecutionRequest) GetNote() string {
 	return ""
 }
 
-// 一条指令的玩家自助设置。
+// 一个操作的玩家自助设置。
 type GmSelfServicePolicy struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 指令 id 与 manifest 信息
+	// 操作 id 与游戏模块声明的标题、分组、风险、目标
 	Command string `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`
 	Title   string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	Group   string `protobuf:"bytes,3,opt,name=group,proto3" json:"group,omitempty"`
 	Risk    string `protobuf:"bytes,4,opt,name=risk,proto3" json:"risk,omitempty"`
 	Target  string `protobuf:"bytes,5,opt,name=target,proto3" json:"target,omitempty"`
-	// 参数 JSON Schema（玩家需要填参数时用）
-	Params *structpb.Value `protobuf:"bytes,6,opt,name=params,proto3" json:"params,omitempty"`
 	// 五项设置
-	Enabled       bool                   `protobuf:"varint,7,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	DailyLimit    int32                  `protobuf:"varint,8,opt,name=daily_limit,json=dailyLimit,proto3" json:"daily_limit,omitempty"`
-	CooldownSec   int32                  `protobuf:"varint,9,opt,name=cooldown_sec,json=cooldownSec,proto3" json:"cooldown_sec,omitempty"`
-	NeedApproval  bool                   `protobuf:"varint,10,opt,name=need_approval,json=needApproval,proto3" json:"need_approval,omitempty"`
-	PlayerNote    string                 `protobuf:"bytes,11,opt,name=player_note,json=playerNote,proto3" json:"player_note,omitempty"`
-	UpdatedByName string                 `protobuf:"bytes,12,opt,name=updated_by_name,json=updatedByName,proto3" json:"updated_by_name,omitempty"`
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	Enabled       bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	DailyLimit    int32                  `protobuf:"varint,7,opt,name=daily_limit,json=dailyLimit,proto3" json:"daily_limit,omitempty"`
+	CooldownSec   int32                  `protobuf:"varint,8,opt,name=cooldown_sec,json=cooldownSec,proto3" json:"cooldown_sec,omitempty"`
+	NeedApproval  bool                   `protobuf:"varint,9,opt,name=need_approval,json=needApproval,proto3" json:"need_approval,omitempty"`
+	PlayerNote    string                 `protobuf:"bytes,10,opt,name=player_note,json=playerNote,proto3" json:"player_note,omitempty"`
+	UpdatedByName string                 `protobuf:"bytes,11,opt,name=updated_by_name,json=updatedByName,proto3" json:"updated_by_name,omitempty"`
+	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GmSelfServicePolicy) Reset() {
 	*x = GmSelfServicePolicy{}
-	mi := &file_v1_game_gm_proto_msgTypes[19]
+	mi := &file_v1_game_gm_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1741,7 +1077,7 @@ func (x *GmSelfServicePolicy) String() string {
 func (*GmSelfServicePolicy) ProtoMessage() {}
 
 func (x *GmSelfServicePolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[19]
+	mi := &file_v1_game_gm_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1754,7 +1090,7 @@ func (x *GmSelfServicePolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GmSelfServicePolicy.ProtoReflect.Descriptor instead.
 func (*GmSelfServicePolicy) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{19}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GmSelfServicePolicy) GetCommand() string {
@@ -1790,13 +1126,6 @@ func (x *GmSelfServicePolicy) GetTarget() string {
 		return x.Target
 	}
 	return ""
-}
-
-func (x *GmSelfServicePolicy) GetParams() *structpb.Value {
-	if x != nil {
-		return x.Params
-	}
-	return nil
 }
 
 func (x *GmSelfServicePolicy) GetEnabled() bool {
@@ -1857,7 +1186,7 @@ type ListGmSelfServiceRequest struct {
 
 func (x *ListGmSelfServiceRequest) Reset() {
 	*x = ListGmSelfServiceRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[20]
+	mi := &file_v1_game_gm_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1869,7 +1198,7 @@ func (x *ListGmSelfServiceRequest) String() string {
 func (*ListGmSelfServiceRequest) ProtoMessage() {}
 
 func (x *ListGmSelfServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[20]
+	mi := &file_v1_game_gm_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1882,7 +1211,7 @@ func (x *ListGmSelfServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGmSelfServiceRequest.ProtoReflect.Descriptor instead.
 func (*ListGmSelfServiceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{20}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListGmSelfServiceRequest) GetServerId() string {
@@ -1903,7 +1232,7 @@ type ListGmSelfServiceResponse struct {
 
 func (x *ListGmSelfServiceResponse) Reset() {
 	*x = ListGmSelfServiceResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[21]
+	mi := &file_v1_game_gm_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1915,7 +1244,7 @@ func (x *ListGmSelfServiceResponse) String() string {
 func (*ListGmSelfServiceResponse) ProtoMessage() {}
 
 func (x *ListGmSelfServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[21]
+	mi := &file_v1_game_gm_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1928,7 +1257,7 @@ func (x *ListGmSelfServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGmSelfServiceResponse.ProtoReflect.Descriptor instead.
 func (*ListGmSelfServiceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{21}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListGmSelfServiceResponse) GetItems() []*GmSelfServicePolicy {
@@ -1962,7 +1291,7 @@ type UpdateGmSelfServiceRequest struct {
 
 func (x *UpdateGmSelfServiceRequest) Reset() {
 	*x = UpdateGmSelfServiceRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[22]
+	mi := &file_v1_game_gm_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1974,7 +1303,7 @@ func (x *UpdateGmSelfServiceRequest) String() string {
 func (*UpdateGmSelfServiceRequest) ProtoMessage() {}
 
 func (x *UpdateGmSelfServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[22]
+	mi := &file_v1_game_gm_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1987,7 +1316,7 @@ func (x *UpdateGmSelfServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateGmSelfServiceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateGmSelfServiceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{22}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *UpdateGmSelfServiceRequest) GetServerId() string {
@@ -2039,7 +1368,7 @@ func (x *UpdateGmSelfServiceRequest) GetPlayerNote() string {
 	return ""
 }
 
-// 配置域草稿。
+// 配置文档草稿。
 type GmConfigDraft struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -2056,7 +1385,7 @@ type GmConfigDraft struct {
 
 func (x *GmConfigDraft) Reset() {
 	*x = GmConfigDraft{}
-	mi := &file_v1_game_gm_proto_msgTypes[23]
+	mi := &file_v1_game_gm_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2068,7 +1397,7 @@ func (x *GmConfigDraft) String() string {
 func (*GmConfigDraft) ProtoMessage() {}
 
 func (x *GmConfigDraft) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[23]
+	mi := &file_v1_game_gm_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2081,7 +1410,7 @@ func (x *GmConfigDraft) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GmConfigDraft.ProtoReflect.Descriptor instead.
 func (*GmConfigDraft) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{23}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GmConfigDraft) GetId() string {
@@ -2126,28 +1455,27 @@ func (x *GmConfigDraft) GetUpdateTime() *timestamppb.Timestamp {
 	return nil
 }
 
-// 配置域。
+// 配置文档（游戏模块声明的一份服务端数据文件）。
 type GmConfigDomain struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Title     string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	File      string                 `protobuf:"bytes,3,opt,name=file,proto3" json:"file,omitempty"`
-	HotReload bool                   `protobuf:"varint,4,opt,name=hot_reload,json=hotReload,proto3" json:"hot_reload,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	File  string                 `protobuf:"bytes,3,opt,name=file,proto3" json:"file,omitempty"`
 	// 服务端当前 revision
-	Revision string `protobuf:"bytes,5,opt,name=revision,proto3" json:"revision,omitempty"`
+	Revision string `protobuf:"bytes,4,opt,name=revision,proto3" json:"revision,omitempty"`
 	// 草稿（没有为空）
-	Draft *GmConfigDraft `protobuf:"bytes,6,opt,name=draft,proto3" json:"draft,omitempty"`
+	Draft *GmConfigDraft `protobuf:"bytes,5,opt,name=draft,proto3" json:"draft,omitempty"`
 	// 最近一次经 Momoko 发布的版本号、时间与作者
-	LastSeq         int32                  `protobuf:"varint,7,opt,name=last_seq,json=lastSeq,proto3" json:"last_seq,omitempty"`
-	LastPublishedAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=last_published_at,json=lastPublishedAt,proto3" json:"last_published_at,omitempty"`
-	LastPublishedBy string                 `protobuf:"bytes,9,opt,name=last_published_by,json=lastPublishedBy,proto3" json:"last_published_by,omitempty"`
+	LastSeq         int32                  `protobuf:"varint,6,opt,name=last_seq,json=lastSeq,proto3" json:"last_seq,omitempty"`
+	LastPublishedAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=last_published_at,json=lastPublishedAt,proto3" json:"last_published_at,omitempty"`
+	LastPublishedBy string                 `protobuf:"bytes,8,opt,name=last_published_by,json=lastPublishedBy,proto3" json:"last_published_by,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
 
 func (x *GmConfigDomain) Reset() {
 	*x = GmConfigDomain{}
-	mi := &file_v1_game_gm_proto_msgTypes[24]
+	mi := &file_v1_game_gm_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2159,7 +1487,7 @@ func (x *GmConfigDomain) String() string {
 func (*GmConfigDomain) ProtoMessage() {}
 
 func (x *GmConfigDomain) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[24]
+	mi := &file_v1_game_gm_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2172,7 +1500,7 @@ func (x *GmConfigDomain) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GmConfigDomain.ProtoReflect.Descriptor instead.
 func (*GmConfigDomain) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{24}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GmConfigDomain) GetId() string {
@@ -2194,13 +1522,6 @@ func (x *GmConfigDomain) GetFile() string {
 		return x.File
 	}
 	return ""
-}
-
-func (x *GmConfigDomain) GetHotReload() bool {
-	if x != nil {
-		return x.HotReload
-	}
-	return false
 }
 
 func (x *GmConfigDomain) GetRevision() string {
@@ -2238,149 +1559,9 @@ func (x *GmConfigDomain) GetLastPublishedBy() string {
 	return ""
 }
 
-type ListGmConfigsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListGmConfigsRequest) Reset() {
-	*x = ListGmConfigsRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListGmConfigsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListGmConfigsRequest) ProtoMessage() {}
-
-func (x *ListGmConfigsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListGmConfigsRequest.ProtoReflect.Descriptor instead.
-func (*ListGmConfigsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *ListGmConfigsRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-type ListGmConfigsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*GmConfigDomain      `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListGmConfigsResponse) Reset() {
-	*x = ListGmConfigsResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[26]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListGmConfigsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListGmConfigsResponse) ProtoMessage() {}
-
-func (x *ListGmConfigsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[26]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListGmConfigsResponse.ProtoReflect.Descriptor instead.
-func (*ListGmConfigsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{26}
-}
-
-func (x *ListGmConfigsResponse) GetItems() []*GmConfigDomain {
-	if x != nil {
-		return x.Items
-	}
-	return nil
-}
-
-type GetGmConfigRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Domain        string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetGmConfigRequest) Reset() {
-	*x = GetGmConfigRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[27]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetGmConfigRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetGmConfigRequest) ProtoMessage() {}
-
-func (x *GetGmConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[27]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetGmConfigRequest.ProtoReflect.Descriptor instead.
-func (*GetGmConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{27}
-}
-
-func (x *GetGmConfigRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *GetGmConfigRequest) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
 type GetGmConfigResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 配置域信息（含草稿元数据）
+	// 配置文档信息（含草稿）
 	Domain *GmConfigDomain `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
 	// 服务端当前内容（JSON 文本，保持键顺序）
 	Content       string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
@@ -2390,7 +1571,7 @@ type GetGmConfigResponse struct {
 
 func (x *GetGmConfigResponse) Reset() {
 	*x = GetGmConfigResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[28]
+	mi := &file_v1_game_gm_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2402,7 +1583,7 @@ func (x *GetGmConfigResponse) String() string {
 func (*GetGmConfigResponse) ProtoMessage() {}
 
 func (x *GetGmConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[28]
+	mi := &file_v1_game_gm_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2415,7 +1596,7 @@ func (x *GetGmConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGmConfigResponse.ProtoReflect.Descriptor instead.
 func (*GetGmConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{28}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetGmConfigResponse) GetDomain() *GmConfigDomain {
@@ -2432,136 +1613,6 @@ func (x *GetGmConfigResponse) GetContent() string {
 	return ""
 }
 
-type SaveGmConfigDraftRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Domain   string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	// 草稿内容（JSON 文本）
-	Content string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	// 编辑所基于的服务端 revision
-	BaseRevision  string `protobuf:"bytes,4,opt,name=base_revision,json=baseRevision,proto3" json:"base_revision,omitempty"`
-	Comment       string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SaveGmConfigDraftRequest) Reset() {
-	*x = SaveGmConfigDraftRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[29]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SaveGmConfigDraftRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SaveGmConfigDraftRequest) ProtoMessage() {}
-
-func (x *SaveGmConfigDraftRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[29]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SaveGmConfigDraftRequest.ProtoReflect.Descriptor instead.
-func (*SaveGmConfigDraftRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{29}
-}
-
-func (x *SaveGmConfigDraftRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *SaveGmConfigDraftRequest) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
-func (x *SaveGmConfigDraftRequest) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *SaveGmConfigDraftRequest) GetBaseRevision() string {
-	if x != nil {
-		return x.BaseRevision
-	}
-	return ""
-}
-
-func (x *SaveGmConfigDraftRequest) GetComment() string {
-	if x != nil {
-		return x.Comment
-	}
-	return ""
-}
-
-type DiscardGmConfigDraftRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Domain        string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DiscardGmConfigDraftRequest) Reset() {
-	*x = DiscardGmConfigDraftRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[30]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DiscardGmConfigDraftRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DiscardGmConfigDraftRequest) ProtoMessage() {}
-
-func (x *DiscardGmConfigDraftRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[30]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DiscardGmConfigDraftRequest.ProtoReflect.Descriptor instead.
-func (*DiscardGmConfigDraftRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{30}
-}
-
-func (x *DiscardGmConfigDraftRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *DiscardGmConfigDraftRequest) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
 type DiscardGmConfigDraftResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -2570,7 +1621,7 @@ type DiscardGmConfigDraftResponse struct {
 
 func (x *DiscardGmConfigDraftResponse) Reset() {
 	*x = DiscardGmConfigDraftResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[31]
+	mi := &file_v1_game_gm_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2582,7 +1633,7 @@ func (x *DiscardGmConfigDraftResponse) String() string {
 func (*DiscardGmConfigDraftResponse) ProtoMessage() {}
 
 func (x *DiscardGmConfigDraftResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[31]
+	mi := &file_v1_game_gm_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2595,68 +1646,7 @@ func (x *DiscardGmConfigDraftResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiscardGmConfigDraftResponse.ProtoReflect.Descriptor instead.
 func (*DiscardGmConfigDraftResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{31}
-}
-
-type ValidateGmConfigRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Domain   string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	// 要校验的内容（JSON 文本）
-	Content       string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ValidateGmConfigRequest) Reset() {
-	*x = ValidateGmConfigRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[32]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ValidateGmConfigRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ValidateGmConfigRequest) ProtoMessage() {}
-
-func (x *ValidateGmConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[32]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ValidateGmConfigRequest.ProtoReflect.Descriptor instead.
-func (*ValidateGmConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{32}
-}
-
-func (x *ValidateGmConfigRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *ValidateGmConfigRequest) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
-func (x *ValidateGmConfigRequest) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{17}
 }
 
 type ValidateGmConfigResponse struct {
@@ -2670,7 +1660,7 @@ type ValidateGmConfigResponse struct {
 
 func (x *ValidateGmConfigResponse) Reset() {
 	*x = ValidateGmConfigResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[33]
+	mi := &file_v1_game_gm_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2682,7 +1672,7 @@ func (x *ValidateGmConfigResponse) String() string {
 func (*ValidateGmConfigResponse) ProtoMessage() {}
 
 func (x *ValidateGmConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[33]
+	mi := &file_v1_game_gm_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2695,7 +1685,7 @@ func (x *ValidateGmConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateGmConfigResponse.ProtoReflect.Descriptor instead.
 func (*ValidateGmConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{33}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ValidateGmConfigResponse) GetValid() bool {
@@ -2708,85 +1698,6 @@ func (x *ValidateGmConfigResponse) GetValid() bool {
 func (x *ValidateGmConfigResponse) GetError() string {
 	if x != nil {
 		return x.Error
-	}
-	return ""
-}
-
-type PublishGmConfigRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Domain   string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	// 要发布的内容（JSON 文本）；为空时发布草稿
-	Content string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	// 编辑所基于的服务端 revision（与服务端不一致时返回冲突）
-	BaseRevision string `protobuf:"bytes,4,opt,name=base_revision,json=baseRevision,proto3" json:"base_revision,omitempty"`
-	// 版本说明
-	Comment       string `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PublishGmConfigRequest) Reset() {
-	*x = PublishGmConfigRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[34]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PublishGmConfigRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PublishGmConfigRequest) ProtoMessage() {}
-
-func (x *PublishGmConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[34]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PublishGmConfigRequest.ProtoReflect.Descriptor instead.
-func (*PublishGmConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{34}
-}
-
-func (x *PublishGmConfigRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *PublishGmConfigRequest) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
-func (x *PublishGmConfigRequest) GetContent() string {
-	if x != nil {
-		return x.Content
-	}
-	return ""
-}
-
-func (x *PublishGmConfigRequest) GetBaseRevision() string {
-	if x != nil {
-		return x.BaseRevision
-	}
-	return ""
-}
-
-func (x *PublishGmConfigRequest) GetComment() string {
-	if x != nil {
-		return x.Comment
 	}
 	return ""
 }
@@ -2804,7 +1715,7 @@ type PublishGmConfigResponse struct {
 
 func (x *PublishGmConfigResponse) Reset() {
 	*x = PublishGmConfigResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[35]
+	mi := &file_v1_game_gm_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2816,7 +1727,7 @@ func (x *PublishGmConfigResponse) String() string {
 func (*PublishGmConfigResponse) ProtoMessage() {}
 
 func (x *PublishGmConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[35]
+	mi := &file_v1_game_gm_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2829,7 +1740,7 @@ func (x *PublishGmConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishGmConfigResponse.ProtoReflect.Descriptor instead.
 func (*PublishGmConfigResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{35}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *PublishGmConfigResponse) GetRevision() string {
@@ -2878,7 +1789,7 @@ type GmConfigRevision struct {
 
 func (x *GmConfigRevision) Reset() {
 	*x = GmConfigRevision{}
-	mi := &file_v1_game_gm_proto_msgTypes[36]
+	mi := &file_v1_game_gm_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2890,7 +1801,7 @@ func (x *GmConfigRevision) String() string {
 func (*GmConfigRevision) ProtoMessage() {}
 
 func (x *GmConfigRevision) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[36]
+	mi := &file_v1_game_gm_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2903,7 +1814,7 @@ func (x *GmConfigRevision) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GmConfigRevision.ProtoReflect.Descriptor instead.
 func (*GmConfigRevision) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{36}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GmConfigRevision) GetId() string {
@@ -2990,74 +1901,6 @@ func (x *GmConfigRevision) GetContent() string {
 	return ""
 }
 
-type ListGmConfigRevisionsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Domain        string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListGmConfigRevisionsRequest) Reset() {
-	*x = ListGmConfigRevisionsRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[37]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListGmConfigRevisionsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListGmConfigRevisionsRequest) ProtoMessage() {}
-
-func (x *ListGmConfigRevisionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[37]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListGmConfigRevisionsRequest.ProtoReflect.Descriptor instead.
-func (*ListGmConfigRevisionsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{37}
-}
-
-func (x *ListGmConfigRevisionsRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *ListGmConfigRevisionsRequest) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
-func (x *ListGmConfigRevisionsRequest) GetPage() int32 {
-	if x != nil {
-		return x.Page
-	}
-	return 0
-}
-
-func (x *ListGmConfigRevisionsRequest) GetPageSize() int32 {
-	if x != nil {
-		return x.PageSize
-	}
-	return 0
-}
-
 type ListGmConfigRevisionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Items         []*GmConfigRevision    `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
@@ -3068,7 +1911,7 @@ type ListGmConfigRevisionsResponse struct {
 
 func (x *ListGmConfigRevisionsResponse) Reset() {
 	*x = ListGmConfigRevisionsResponse{}
-	mi := &file_v1_game_gm_proto_msgTypes[38]
+	mi := &file_v1_game_gm_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3080,7 +1923,7 @@ func (x *ListGmConfigRevisionsResponse) String() string {
 func (*ListGmConfigRevisionsResponse) ProtoMessage() {}
 
 func (x *ListGmConfigRevisionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[38]
+	mi := &file_v1_game_gm_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3093,7 +1936,7 @@ func (x *ListGmConfigRevisionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGmConfigRevisionsResponse.ProtoReflect.Descriptor instead.
 func (*ListGmConfigRevisionsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{38}
+	return file_v1_game_gm_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListGmConfigRevisionsResponse) GetItems() []*GmConfigRevision {
@@ -3110,146 +1953,33 @@ func (x *ListGmConfigRevisionsResponse) GetTotal() int32 {
 	return 0
 }
 
-type GetGmConfigRevisionRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Domain        string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
-	Id            string                 `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetGmConfigRevisionRequest) Reset() {
-	*x = GetGmConfigRevisionRequest{}
-	mi := &file_v1_game_gm_proto_msgTypes[39]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetGmConfigRevisionRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetGmConfigRevisionRequest) ProtoMessage() {}
-
-func (x *GetGmConfigRevisionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_game_gm_proto_msgTypes[39]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetGmConfigRevisionRequest.ProtoReflect.Descriptor instead.
-func (*GetGmConfigRevisionRequest) Descriptor() ([]byte, []int) {
-	return file_v1_game_gm_proto_rawDescGZIP(), []int{39}
-}
-
-func (x *GetGmConfigRevisionRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *GetGmConfigRevisionRequest) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
-func (x *GetGmConfigRevisionRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
 var File_v1_game_gm_proto protoreflect.FileDescriptor
 
 const file_v1_game_gm_proto_rawDesc = "" +
 	"\n" +
-	"\x10v1/game_gm.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14v1/game_common.proto\"2\n" +
+	"\x10v1/game_gm.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14v1/game_common.proto\"2\n" +
 	"\x13GetGmContextRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\"\xee\x02\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\"\xe7\x01\n" +
 	"\x14GetGmContextResponse\x12+\n" +
-	"\x06server\x18\x01 \x01(\v2\x13.v1.GameServerBriefR\x06server\x122\n" +
-	"\bmanifest\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\bmanifest\x12.\n" +
-	"\x06status\x18\x03 \x01(\v2\x16.google.protobuf.ValueR\x06status\x12!\n" +
-	"\fstatus_error\x18\x04 \x01(\tR\vstatusError\x12\x1a\n" +
-	"\btimezone\x18\x05 \x01(\tR\btimezone\x12+\n" +
-	"\x11pending_approvals\x18\x06 \x01(\x05R\x10pendingApprovals\x120\n" +
-	"\x14self_service_enabled\x18\a \x01(\x05R\x12selfServiceEnabled\x12'\n" +
-	"\x0flinked_accounts\x18\b \x01(\x05R\x0elinkedAccounts\"\xcb\x01\n" +
+	"\x06server\x18\x01 \x01(\v2\x13.v1.GameServerBriefR\x06server\x12\x1a\n" +
+	"\btimezone\x18\x02 \x01(\tR\btimezone\x12+\n" +
+	"\x11pending_approvals\x18\x03 \x01(\x05R\x10pendingApprovals\x120\n" +
+	"\x14self_service_enabled\x18\x04 \x01(\x05R\x12selfServiceEnabled\x12'\n" +
+	"\x0flinked_accounts\x18\x05 \x01(\x05R\x0elinkedAccounts\"\xcb\x01\n" +
 	"\fGmPlayerLink\x12\x10\n" +
 	"\x03pid\x18\x01 \x01(\tR\x03pid\x12(\n" +
 	"\x10passport_user_id\x18\x02 \x01(\tR\x0epassportUserId\x12\x1a\n" +
 	"\busername\x18\x03 \x01(\tR\busername\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x16\n" +
 	"\x06method\x18\x05 \x01(\tR\x06method\x127\n" +
-	"\tlinked_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\blinkedAt\"\x87\x01\n" +
-	"\x14ListGmPlayersRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\f\n" +
-	"\x01q\x18\x02 \x01(\tR\x01q\x12\x16\n" +
-	"\x06filter\x18\x03 \x01(\tR\x06filter\x12\x16\n" +
-	"\x06cursor\x18\x04 \x01(\tR\x06cursor\x12\x14\n" +
-	"\x05limit\x18\x05 \x01(\x05R\x05limit\"\xc5\x02\n" +
-	"\x15ListGmPlayersResponse\x12,\n" +
-	"\x05items\x18\x01 \x01(\v2\x16.google.protobuf.ValueR\x05items\x12\x1f\n" +
-	"\vnext_cursor\x18\x02 \x01(\tR\n" +
-	"nextCursor\x12\x14\n" +
-	"\x05total\x18\x03 \x01(\x05R\x05total\x12@\n" +
-	"\asummary\x18\x04 \x03(\v2&.v1.ListGmPlayersResponse.SummaryEntryR\asummary\x12&\n" +
-	"\x05links\x18\x05 \x03(\v2\x10.v1.GmPlayerLinkR\x05links\x12!\n" +
-	"\flinked_count\x18\x06 \x01(\x05R\vlinkedCount\x1a:\n" +
-	"\fSummaryEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"C\n" +
-	"\x12GetGmPlayerRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x10\n" +
-	"\x03pid\x18\x02 \x01(\tR\x03pid\"\x90\x01\n" +
-	"\x13GetGmPlayerResponse\x12.\n" +
-	"\x06player\x18\x01 \x01(\v2\x16.google.protobuf.ValueR\x06player\x12$\n" +
-	"\x04link\x18\x02 \x01(\v2\x10.v1.GmPlayerLinkR\x04link\x12#\n" +
-	"\rgm_executions\x18\x03 \x01(\x05R\fgmExecutions\"q\n" +
-	"\x16GetGmPlayerViewRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x10\n" +
-	"\x03pid\x18\x02 \x01(\tR\x03pid\x12\x12\n" +
-	"\x04view\x18\x03 \x01(\tR\x04view\x12\x14\n" +
-	"\x05query\x18\x04 \x01(\tR\x05query\"<\n" +
-	"\x0eGmDataResponse\x12*\n" +
-	"\x04data\x18\x01 \x01(\v2\x16.google.protobuf.ValueR\x04data\"_\n" +
-	"\x12GetGmReportRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06report\x18\x02 \x01(\tR\x06report\x12\x14\n" +
-	"\x05query\x18\x03 \x01(\tR\x05query\"\\\n" +
-	"\x13GetGmCatalogRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x12\n" +
-	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x14\n" +
-	"\x05query\x18\x03 \x01(\tR\x05query\"\xd6\x02\n" +
-	"\x17ExecuteGmCommandRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x18\n" +
-	"\acommand\x18\x02 \x01(\tR\acommand\x12\x18\n" +
-	"\atargets\x18\x03 \x03(\tR\atargets\x12.\n" +
-	"\x06params\x18\x04 \x01(\v2\x16.google.protobuf.ValueR\x06params\x12\x17\n" +
-	"\adry_run\x18\x06 \x01(\bR\x06dryRun\x12!\n" +
-	"\fconfirm_name\x18\a \x01(\tR\vconfirmName\x12B\n" +
-	"\asummary\x18\b \x03(\v2(.v1.ExecuteGmCommandRequest.SummaryEntryR\asummary\x1a:\n" +
-	"\fSummaryEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc9\x01\n" +
-	"\x18ExecuteGmCommandResponse\x12!\n" +
-	"\fexecution_id\x18\x01 \x01(\tR\vexecutionId\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\x12.\n" +
-	"\x06result\x18\x03 \x01(\v2\x16.google.protobuf.ValueR\x06result\x12\x1d\n" +
-	"\n" +
-	"error_code\x18\x04 \x01(\tR\terrorCode\x12#\n" +
-	"\rerror_message\x18\x05 \x01(\tR\ferrorMessage\"\xf4\t\n" +
+	"\tlinked_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\blinkedAt\"\x93\x01\n" +
+	"\x11GmExecutionResult\x12\x10\n" +
+	"\x03pid\x18\x01 \x01(\tR\x03pid\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x12\n" +
+	"\x04code\x18\x04 \x01(\tR\x04code\x12\x18\n" +
+	"\amessage\x18\x05 \x01(\tR\amessage\x12\x12\n" +
+	"\x04data\x18\x06 \x01(\tR\x04data\"\xd7\t\n" +
 	"\vGmExecution\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tserver_id\x18\x02 \x01(\tR\bserverId\x12\x18\n" +
@@ -3270,11 +2000,10 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"\bplatform\x18\r \x01(\tR\bplatform\x12(\n" +
 	"\atargets\x18\x0e \x03(\v2\x0e.v1.GameTargetR\atargets\x126\n" +
 	"\asummary\x18\x0f \x03(\v2\x1c.v1.GmExecution.SummaryEntryR\asummary\x12\x16\n" +
-	"\x06reason\x18\x10 \x01(\tR\x06reason\x12\x1c\n" +
-	"\tconfirmed\x18\x11 \x01(\bR\tconfirmed\x12\x17\n" +
+	"\x06reason\x18\x10 \x01(\tR\x06reason\x12\x17\n" +
 	"\adry_run\x18\x12 \x01(\bR\x06dryRun\x12\x16\n" +
-	"\x06status\x18\x13 \x01(\tR\x06status\x12.\n" +
-	"\x06result\x18\x14 \x01(\v2\x16.google.protobuf.ValueR\x06result\x12#\n" +
+	"\x06status\x18\x13 \x01(\tR\x06status\x12/\n" +
+	"\aresults\x18\x14 \x03(\v2\x15.v1.GmExecutionResultR\aresults\x12#\n" +
 	"\rsuccess_count\x18\x15 \x01(\x05R\fsuccessCount\x12!\n" +
 	"\ffailed_count\x18\x16 \x01(\x05R\vfailedCount\x12\x1d\n" +
 	"\n" +
@@ -3329,33 +2058,31 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"D\n" +
 	"\x15GetGmExecutionRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id\"\x7f\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\"\\\n" +
 	"\x19ApproveGmExecutionRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id\x12!\n" +
-	"\fconfirm_name\x18\x03 \x01(\tR\vconfirmName\x12\x12\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\x12\x12\n" +
 	"\x04note\x18\x04 \x01(\tR\x04note\"[\n" +
 	"\x18RejectGmExecutionRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x12\n" +
-	"\x04note\x18\x03 \x01(\tR\x04note\"\xc0\x03\n" +
+	"\x04note\x18\x03 \x01(\tR\x04note\"\x90\x03\n" +
 	"\x13GmSelfServicePolicy\x12\x18\n" +
 	"\acommand\x18\x01 \x01(\tR\acommand\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
 	"\x05group\x18\x03 \x01(\tR\x05group\x12\x12\n" +
 	"\x04risk\x18\x04 \x01(\tR\x04risk\x12\x16\n" +
-	"\x06target\x18\x05 \x01(\tR\x06target\x12.\n" +
-	"\x06params\x18\x06 \x01(\v2\x16.google.protobuf.ValueR\x06params\x12\x18\n" +
-	"\aenabled\x18\a \x01(\bR\aenabled\x12\x1f\n" +
-	"\vdaily_limit\x18\b \x01(\x05R\n" +
+	"\x06target\x18\x05 \x01(\tR\x06target\x12\x18\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x1f\n" +
+	"\vdaily_limit\x18\a \x01(\x05R\n" +
 	"dailyLimit\x12!\n" +
-	"\fcooldown_sec\x18\t \x01(\x05R\vcooldownSec\x12#\n" +
-	"\rneed_approval\x18\n" +
-	" \x01(\bR\fneedApproval\x12\x1f\n" +
-	"\vplayer_note\x18\v \x01(\tR\n" +
+	"\fcooldown_sec\x18\b \x01(\x05R\vcooldownSec\x12#\n" +
+	"\rneed_approval\x18\t \x01(\bR\fneedApproval\x12\x1f\n" +
+	"\vplayer_note\x18\n" +
+	" \x01(\tR\n" +
 	"playerNote\x12&\n" +
-	"\x0fupdated_by_name\x18\f \x01(\tR\rupdatedByName\x12;\n" +
-	"\vupdate_time\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"\x0fupdated_by_name\x18\v \x01(\tR\rupdatedByName\x12;\n" +
+	"\vupdate_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"updateTime\"7\n" +
 	"\x18ListGmSelfServiceRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\"d\n" +
@@ -3380,51 +2107,23 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"authorName\x12\x18\n" +
 	"\acomment\x18\x05 \x01(\tR\acomment\x12;\n" +
 	"\vupdate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"\xbd\x02\n" +
+	"updateTime\"\x9e\x02\n" +
 	"\x0eGmConfigDomain\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" +
-	"\x04file\x18\x03 \x01(\tR\x04file\x12\x1d\n" +
-	"\n" +
-	"hot_reload\x18\x04 \x01(\bR\thotReload\x12\x1a\n" +
-	"\brevision\x18\x05 \x01(\tR\brevision\x12'\n" +
-	"\x05draft\x18\x06 \x01(\v2\x11.v1.GmConfigDraftR\x05draft\x12\x19\n" +
-	"\blast_seq\x18\a \x01(\x05R\alastSeq\x12F\n" +
-	"\x11last_published_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\x0flastPublishedAt\x12*\n" +
-	"\x11last_published_by\x18\t \x01(\tR\x0flastPublishedBy\"3\n" +
-	"\x14ListGmConfigsRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\"A\n" +
-	"\x15ListGmConfigsResponse\x12(\n" +
-	"\x05items\x18\x01 \x03(\v2\x12.v1.GmConfigDomainR\x05items\"I\n" +
-	"\x12GetGmConfigRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06domain\x18\x02 \x01(\tR\x06domain\"[\n" +
+	"\x04file\x18\x03 \x01(\tR\x04file\x12\x1a\n" +
+	"\brevision\x18\x04 \x01(\tR\brevision\x12'\n" +
+	"\x05draft\x18\x05 \x01(\v2\x11.v1.GmConfigDraftR\x05draft\x12\x19\n" +
+	"\blast_seq\x18\x06 \x01(\x05R\alastSeq\x12F\n" +
+	"\x11last_published_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\x0flastPublishedAt\x12*\n" +
+	"\x11last_published_by\x18\b \x01(\tR\x0flastPublishedBy\"[\n" +
 	"\x13GetGmConfigResponse\x12*\n" +
 	"\x06domain\x18\x01 \x01(\v2\x12.v1.GmConfigDomainR\x06domain\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"\xa8\x01\n" +
-	"\x18SaveGmConfigDraftRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\x12#\n" +
-	"\rbase_revision\x18\x04 \x01(\tR\fbaseRevision\x12\x18\n" +
-	"\acomment\x18\x05 \x01(\tR\acomment\"R\n" +
-	"\x1bDiscardGmConfigDraftRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06domain\x18\x02 \x01(\tR\x06domain\"\x1e\n" +
-	"\x1cDiscardGmConfigDraftResponse\"h\n" +
-	"\x17ValidateGmConfigRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\"F\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\"\x1e\n" +
+	"\x1cDiscardGmConfigDraftResponse\"F\n" +
 	"\x18ValidateGmConfigResponse\x12\x14\n" +
 	"\x05valid\x18\x01 \x01(\bR\x05valid\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error\"\xa6\x01\n" +
-	"\x16PublishGmConfigRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent\x12#\n" +
-	"\rbase_revision\x18\x04 \x01(\tR\fbaseRevision\x12\x18\n" +
-	"\acomment\x18\x06 \x01(\tR\acomment\"j\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"j\n" +
 	"\x17PublishGmConfigResponse\x12\x1a\n" +
 	"\brevision\x18\x01 \x01(\tR\brevision\x12\x10\n" +
 	"\x03seq\x18\x02 \x01(\x05R\x03seq\x12!\n" +
@@ -3444,42 +2143,19 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12!\n" +
 	"\fexecution_id\x18\v \x01(\tR\vexecutionId\x12\x18\n" +
-	"\acontent\x18\f \x01(\tR\acontent\"\x84\x01\n" +
-	"\x1cListGmConfigRevisionsRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x12\n" +
-	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"a\n" +
+	"\acontent\x18\f \x01(\tR\acontent\"a\n" +
 	"\x1dListGmConfigRevisionsResponse\x12*\n" +
 	"\x05items\x18\x01 \x03(\v2\x14.v1.GmConfigRevisionR\x05items\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x05R\x05total\"a\n" +
-	"\x1aGetGmConfigRevisionRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x0e\n" +
-	"\x02id\x18\x03 \x01(\tR\x02id2\xb3\x16\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total2\x82\b\n" +
 	"\rGameGMService\x12o\n" +
 	"\x0fSearchGmServers\x12\x1c.v1.SearchGameServersRequest\x1a\x1d.v1.SearchGameServersResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/game/gm/servers\x12n\n" +
-	"\fGetGmContext\x12\x17.v1.GetGmContextRequest\x1a\x18.v1.GetGmContextResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/game/gm/{server_id}/context\x12q\n" +
-	"\rListGmPlayers\x12\x18.v1.ListGmPlayersRequest\x1a\x19.v1.ListGmPlayersResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/game/gm/{server_id}/players\x12q\n" +
-	"\vGetGmPlayer\x12\x16.v1.GetGmPlayerRequest\x1a\x17.v1.GetGmPlayerResponse\"1\x82\xd3\xe4\x93\x02+\x12)/api/v1/game/gm/{server_id}/players/{pid}\x12\x81\x01\n" +
-	"\x0fGetGmPlayerView\x12\x1a.v1.GetGmPlayerViewRequest\x1a\x12.v1.GmDataResponse\">\x82\xd3\xe4\x93\x028\x126/api/v1/game/gm/{server_id}/players/{pid}/views/{view}\x12o\n" +
-	"\vGetGmReport\x12\x16.v1.GetGmReportRequest\x1a\x12.v1.GmDataResponse\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/game/gm/{server_id}/reports/{report}\x12p\n" +
-	"\fGetGmCatalog\x12\x17.v1.GetGmCatalogRequest\x1a\x12.v1.GmDataResponse\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/game/gm/{server_id}/catalogs/{kind}\x12\x88\x01\n" +
-	"\x10ExecuteGmCommand\x12\x1b.v1.ExecuteGmCommandRequest\x1a\x1c.v1.ExecuteGmCommandResponse\"9\x82\xd3\xe4\x93\x023:\x01*\"./api/v1/game/gm/{server_id}/commands/{command}\x12}\n" +
+	"\fGetGmContext\x12\x17.v1.GetGmContextRequest\x1a\x18.v1.GetGmContextResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/game/gm/{server_id}/context\x12}\n" +
 	"\x10ListGmExecutions\x12\x1b.v1.ListGmExecutionsRequest\x1a\x1c.v1.ListGmExecutionsResponse\".\x82\xd3\xe4\x93\x02(\x12&/api/v1/game/gm/{server_id}/executions\x12q\n" +
 	"\x0eGetGmExecution\x12\x19.v1.GetGmExecutionRequest\x1a\x0f.v1.GmExecution\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/game/gm/{server_id}/executions/{id}\x12\x84\x01\n" +
 	"\x12ApproveGmExecution\x12\x1d.v1.ApproveGmExecutionRequest\x1a\x0f.v1.GmExecution\">\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/game/gm/{server_id}/executions/{id}/approve\x12\x81\x01\n" +
 	"\x11RejectGmExecution\x12\x1c.v1.RejectGmExecutionRequest\x1a\x0f.v1.GmExecution\"=\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/game/gm/{server_id}/executions/{id}/reject\x12\x82\x01\n" +
 	"\x11ListGmSelfService\x12\x1c.v1.ListGmSelfServiceRequest\x1a\x1d.v1.ListGmSelfServiceResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1/game/gm/{server_id}/self-service\x12\x8d\x01\n" +
-	"\x13UpdateGmSelfService\x12\x1e.v1.UpdateGmSelfServiceRequest\x1a\x17.v1.GmSelfServicePolicy\"=\x82\xd3\xe4\x93\x027:\x01*\x1a2/api/v1/game/gm/{server_id}/self-service/{command}\x12q\n" +
-	"\rListGmConfigs\x12\x18.v1.ListGmConfigsRequest\x1a\x19.v1.ListGmConfigsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/game/gm/{server_id}/configs\x12t\n" +
-	"\vGetGmConfig\x12\x16.v1.GetGmConfigRequest\x1a\x17.v1.GetGmConfigResponse\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/game/gm/{server_id}/configs/{domain}\x12\x83\x01\n" +
-	"\x11SaveGmConfigDraft\x12\x1c.v1.SaveGmConfigDraftRequest\x1a\x11.v1.GmConfigDraft\"=\x82\xd3\xe4\x93\x027:\x01*\x1a2/api/v1/game/gm/{server_id}/configs/{domain}/draft\x12\x95\x01\n" +
-	"\x14DiscardGmConfigDraft\x12\x1f.v1.DiscardGmConfigDraftRequest\x1a .v1.DiscardGmConfigDraftResponse\":\x82\xd3\xe4\x93\x024*2/api/v1/game/gm/{server_id}/configs/{domain}/draft\x12\x8f\x01\n" +
-	"\x10ValidateGmConfig\x12\x1b.v1.ValidateGmConfigRequest\x1a\x1c.v1.ValidateGmConfigResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/game/gm/{server_id}/configs/{domain}/validate\x12\x8b\x01\n" +
-	"\x0fPublishGmConfig\x12\x1a.v1.PublishGmConfigRequest\x1a\x1b.v1.PublishGmConfigResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/game/gm/{server_id}/configs/{domain}/publish\x12\x9c\x01\n" +
-	"\x15ListGmConfigRevisions\x12 .v1.ListGmConfigRevisionsRequest\x1a!.v1.ListGmConfigRevisionsResponse\">\x82\xd3\xe4\x93\x028\x126/api/v1/game/gm/{server_id}/configs/{domain}/revisions\x12\x90\x01\n" +
-	"\x13GetGmConfigRevision\x12\x1e.v1.GetGmConfigRevisionRequest\x1a\x14.v1.GmConfigRevision\"C\x82\xd3\xe4\x93\x02=\x12;/api/v1/game/gm/{server_id}/configs/{domain}/revisions/{id}B\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\x13UpdateGmSelfService\x12\x1e.v1.UpdateGmSelfServiceRequest\x1a\x17.v1.GmSelfServicePolicy\"=\x82\xd3\xe4\x93\x027:\x01*\x1a2/api/v1/game/gm/{server_id}/self-service/{command}B\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_game_gm_proto_rawDescOnce sync.Once
@@ -3493,144 +2169,82 @@ func file_v1_game_gm_proto_rawDescGZIP() []byte {
 	return file_v1_game_gm_proto_rawDescData
 }
 
-var file_v1_game_gm_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
+var file_v1_game_gm_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_v1_game_gm_proto_goTypes = []any{
 	(*GetGmContextRequest)(nil),           // 0: v1.GetGmContextRequest
 	(*GetGmContextResponse)(nil),          // 1: v1.GetGmContextResponse
 	(*GmPlayerLink)(nil),                  // 2: v1.GmPlayerLink
-	(*ListGmPlayersRequest)(nil),          // 3: v1.ListGmPlayersRequest
-	(*ListGmPlayersResponse)(nil),         // 4: v1.ListGmPlayersResponse
-	(*GetGmPlayerRequest)(nil),            // 5: v1.GetGmPlayerRequest
-	(*GetGmPlayerResponse)(nil),           // 6: v1.GetGmPlayerResponse
-	(*GetGmPlayerViewRequest)(nil),        // 7: v1.GetGmPlayerViewRequest
-	(*GmDataResponse)(nil),                // 8: v1.GmDataResponse
-	(*GetGmReportRequest)(nil),            // 9: v1.GetGmReportRequest
-	(*GetGmCatalogRequest)(nil),           // 10: v1.GetGmCatalogRequest
-	(*ExecuteGmCommandRequest)(nil),       // 11: v1.ExecuteGmCommandRequest
-	(*ExecuteGmCommandResponse)(nil),      // 12: v1.ExecuteGmCommandResponse
-	(*GmExecution)(nil),                   // 13: v1.GmExecution
-	(*ListGmExecutionsRequest)(nil),       // 14: v1.ListGmExecutionsRequest
-	(*ListGmExecutionsResponse)(nil),      // 15: v1.ListGmExecutionsResponse
-	(*GetGmExecutionRequest)(nil),         // 16: v1.GetGmExecutionRequest
-	(*ApproveGmExecutionRequest)(nil),     // 17: v1.ApproveGmExecutionRequest
-	(*RejectGmExecutionRequest)(nil),      // 18: v1.RejectGmExecutionRequest
-	(*GmSelfServicePolicy)(nil),           // 19: v1.GmSelfServicePolicy
-	(*ListGmSelfServiceRequest)(nil),      // 20: v1.ListGmSelfServiceRequest
-	(*ListGmSelfServiceResponse)(nil),     // 21: v1.ListGmSelfServiceResponse
-	(*UpdateGmSelfServiceRequest)(nil),    // 22: v1.UpdateGmSelfServiceRequest
-	(*GmConfigDraft)(nil),                 // 23: v1.GmConfigDraft
-	(*GmConfigDomain)(nil),                // 24: v1.GmConfigDomain
-	(*ListGmConfigsRequest)(nil),          // 25: v1.ListGmConfigsRequest
-	(*ListGmConfigsResponse)(nil),         // 26: v1.ListGmConfigsResponse
-	(*GetGmConfigRequest)(nil),            // 27: v1.GetGmConfigRequest
-	(*GetGmConfigResponse)(nil),           // 28: v1.GetGmConfigResponse
-	(*SaveGmConfigDraftRequest)(nil),      // 29: v1.SaveGmConfigDraftRequest
-	(*DiscardGmConfigDraftRequest)(nil),   // 30: v1.DiscardGmConfigDraftRequest
-	(*DiscardGmConfigDraftResponse)(nil),  // 31: v1.DiscardGmConfigDraftResponse
-	(*ValidateGmConfigRequest)(nil),       // 32: v1.ValidateGmConfigRequest
-	(*ValidateGmConfigResponse)(nil),      // 33: v1.ValidateGmConfigResponse
-	(*PublishGmConfigRequest)(nil),        // 34: v1.PublishGmConfigRequest
-	(*PublishGmConfigResponse)(nil),       // 35: v1.PublishGmConfigResponse
-	(*GmConfigRevision)(nil),              // 36: v1.GmConfigRevision
-	(*ListGmConfigRevisionsRequest)(nil),  // 37: v1.ListGmConfigRevisionsRequest
-	(*ListGmConfigRevisionsResponse)(nil), // 38: v1.ListGmConfigRevisionsResponse
-	(*GetGmConfigRevisionRequest)(nil),    // 39: v1.GetGmConfigRevisionRequest
-	nil,                                   // 40: v1.ListGmPlayersResponse.SummaryEntry
-	nil,                                   // 41: v1.ExecuteGmCommandRequest.SummaryEntry
-	nil,                                   // 42: v1.GmExecution.SummaryEntry
-	nil,                                   // 43: v1.ListGmExecutionsResponse.CountsEntry
-	(*GameServerBrief)(nil),               // 44: v1.GameServerBrief
-	(*structpb.Value)(nil),                // 45: google.protobuf.Value
-	(*timestamppb.Timestamp)(nil),         // 46: google.protobuf.Timestamp
-	(*GameTarget)(nil),                    // 47: v1.GameTarget
-	(*SearchGameServersRequest)(nil),      // 48: v1.SearchGameServersRequest
-	(*SearchGameServersResponse)(nil),     // 49: v1.SearchGameServersResponse
+	(*GmExecutionResult)(nil),             // 3: v1.GmExecutionResult
+	(*GmExecution)(nil),                   // 4: v1.GmExecution
+	(*ListGmExecutionsRequest)(nil),       // 5: v1.ListGmExecutionsRequest
+	(*ListGmExecutionsResponse)(nil),      // 6: v1.ListGmExecutionsResponse
+	(*GetGmExecutionRequest)(nil),         // 7: v1.GetGmExecutionRequest
+	(*ApproveGmExecutionRequest)(nil),     // 8: v1.ApproveGmExecutionRequest
+	(*RejectGmExecutionRequest)(nil),      // 9: v1.RejectGmExecutionRequest
+	(*GmSelfServicePolicy)(nil),           // 10: v1.GmSelfServicePolicy
+	(*ListGmSelfServiceRequest)(nil),      // 11: v1.ListGmSelfServiceRequest
+	(*ListGmSelfServiceResponse)(nil),     // 12: v1.ListGmSelfServiceResponse
+	(*UpdateGmSelfServiceRequest)(nil),    // 13: v1.UpdateGmSelfServiceRequest
+	(*GmConfigDraft)(nil),                 // 14: v1.GmConfigDraft
+	(*GmConfigDomain)(nil),                // 15: v1.GmConfigDomain
+	(*GetGmConfigResponse)(nil),           // 16: v1.GetGmConfigResponse
+	(*DiscardGmConfigDraftResponse)(nil),  // 17: v1.DiscardGmConfigDraftResponse
+	(*ValidateGmConfigResponse)(nil),      // 18: v1.ValidateGmConfigResponse
+	(*PublishGmConfigResponse)(nil),       // 19: v1.PublishGmConfigResponse
+	(*GmConfigRevision)(nil),              // 20: v1.GmConfigRevision
+	(*ListGmConfigRevisionsResponse)(nil), // 21: v1.ListGmConfigRevisionsResponse
+	nil,                                   // 22: v1.GmExecution.SummaryEntry
+	nil,                                   // 23: v1.ListGmExecutionsResponse.CountsEntry
+	(*GameServerBrief)(nil),               // 24: v1.GameServerBrief
+	(*timestamppb.Timestamp)(nil),         // 25: google.protobuf.Timestamp
+	(*GameTarget)(nil),                    // 26: v1.GameTarget
+	(*SearchGameServersRequest)(nil),      // 27: v1.SearchGameServersRequest
+	(*SearchGameServersResponse)(nil),     // 28: v1.SearchGameServersResponse
 }
 var file_v1_game_gm_proto_depIdxs = []int32{
-	44, // 0: v1.GetGmContextResponse.server:type_name -> v1.GameServerBrief
-	45, // 1: v1.GetGmContextResponse.manifest:type_name -> google.protobuf.Value
-	45, // 2: v1.GetGmContextResponse.status:type_name -> google.protobuf.Value
-	46, // 3: v1.GmPlayerLink.linked_at:type_name -> google.protobuf.Timestamp
-	45, // 4: v1.ListGmPlayersResponse.items:type_name -> google.protobuf.Value
-	40, // 5: v1.ListGmPlayersResponse.summary:type_name -> v1.ListGmPlayersResponse.SummaryEntry
-	2,  // 6: v1.ListGmPlayersResponse.links:type_name -> v1.GmPlayerLink
-	45, // 7: v1.GetGmPlayerResponse.player:type_name -> google.protobuf.Value
-	2,  // 8: v1.GetGmPlayerResponse.link:type_name -> v1.GmPlayerLink
-	45, // 9: v1.GmDataResponse.data:type_name -> google.protobuf.Value
-	45, // 10: v1.ExecuteGmCommandRequest.params:type_name -> google.protobuf.Value
-	41, // 11: v1.ExecuteGmCommandRequest.summary:type_name -> v1.ExecuteGmCommandRequest.SummaryEntry
-	45, // 12: v1.ExecuteGmCommandResponse.result:type_name -> google.protobuf.Value
-	47, // 13: v1.GmExecution.targets:type_name -> v1.GameTarget
-	42, // 14: v1.GmExecution.summary:type_name -> v1.GmExecution.SummaryEntry
-	45, // 15: v1.GmExecution.result:type_name -> google.protobuf.Value
-	46, // 16: v1.GmExecution.reviewed_at:type_name -> google.protobuf.Timestamp
-	46, // 17: v1.GmExecution.create_time:type_name -> google.protobuf.Timestamp
-	46, // 18: v1.GmExecution.finished_at:type_name -> google.protobuf.Timestamp
-	46, // 19: v1.ListGmExecutionsRequest.since:type_name -> google.protobuf.Timestamp
-	46, // 20: v1.ListGmExecutionsRequest.until:type_name -> google.protobuf.Timestamp
-	13, // 21: v1.ListGmExecutionsResponse.items:type_name -> v1.GmExecution
-	43, // 22: v1.ListGmExecutionsResponse.counts:type_name -> v1.ListGmExecutionsResponse.CountsEntry
-	13, // 23: v1.ListGmExecutionsResponse.pending:type_name -> v1.GmExecution
-	45, // 24: v1.GmSelfServicePolicy.params:type_name -> google.protobuf.Value
-	46, // 25: v1.GmSelfServicePolicy.update_time:type_name -> google.protobuf.Timestamp
-	19, // 26: v1.ListGmSelfServiceResponse.items:type_name -> v1.GmSelfServicePolicy
-	46, // 27: v1.GmConfigDraft.update_time:type_name -> google.protobuf.Timestamp
-	23, // 28: v1.GmConfigDomain.draft:type_name -> v1.GmConfigDraft
-	46, // 29: v1.GmConfigDomain.last_published_at:type_name -> google.protobuf.Timestamp
-	24, // 30: v1.ListGmConfigsResponse.items:type_name -> v1.GmConfigDomain
-	24, // 31: v1.GetGmConfigResponse.domain:type_name -> v1.GmConfigDomain
-	46, // 32: v1.GmConfigRevision.published_at:type_name -> google.protobuf.Timestamp
-	46, // 33: v1.GmConfigRevision.create_time:type_name -> google.protobuf.Timestamp
-	36, // 34: v1.ListGmConfigRevisionsResponse.items:type_name -> v1.GmConfigRevision
-	48, // 35: v1.GameGMService.SearchGmServers:input_type -> v1.SearchGameServersRequest
-	0,  // 36: v1.GameGMService.GetGmContext:input_type -> v1.GetGmContextRequest
-	3,  // 37: v1.GameGMService.ListGmPlayers:input_type -> v1.ListGmPlayersRequest
-	5,  // 38: v1.GameGMService.GetGmPlayer:input_type -> v1.GetGmPlayerRequest
-	7,  // 39: v1.GameGMService.GetGmPlayerView:input_type -> v1.GetGmPlayerViewRequest
-	9,  // 40: v1.GameGMService.GetGmReport:input_type -> v1.GetGmReportRequest
-	10, // 41: v1.GameGMService.GetGmCatalog:input_type -> v1.GetGmCatalogRequest
-	11, // 42: v1.GameGMService.ExecuteGmCommand:input_type -> v1.ExecuteGmCommandRequest
-	14, // 43: v1.GameGMService.ListGmExecutions:input_type -> v1.ListGmExecutionsRequest
-	16, // 44: v1.GameGMService.GetGmExecution:input_type -> v1.GetGmExecutionRequest
-	17, // 45: v1.GameGMService.ApproveGmExecution:input_type -> v1.ApproveGmExecutionRequest
-	18, // 46: v1.GameGMService.RejectGmExecution:input_type -> v1.RejectGmExecutionRequest
-	20, // 47: v1.GameGMService.ListGmSelfService:input_type -> v1.ListGmSelfServiceRequest
-	22, // 48: v1.GameGMService.UpdateGmSelfService:input_type -> v1.UpdateGmSelfServiceRequest
-	25, // 49: v1.GameGMService.ListGmConfigs:input_type -> v1.ListGmConfigsRequest
-	27, // 50: v1.GameGMService.GetGmConfig:input_type -> v1.GetGmConfigRequest
-	29, // 51: v1.GameGMService.SaveGmConfigDraft:input_type -> v1.SaveGmConfigDraftRequest
-	30, // 52: v1.GameGMService.DiscardGmConfigDraft:input_type -> v1.DiscardGmConfigDraftRequest
-	32, // 53: v1.GameGMService.ValidateGmConfig:input_type -> v1.ValidateGmConfigRequest
-	34, // 54: v1.GameGMService.PublishGmConfig:input_type -> v1.PublishGmConfigRequest
-	37, // 55: v1.GameGMService.ListGmConfigRevisions:input_type -> v1.ListGmConfigRevisionsRequest
-	39, // 56: v1.GameGMService.GetGmConfigRevision:input_type -> v1.GetGmConfigRevisionRequest
-	49, // 57: v1.GameGMService.SearchGmServers:output_type -> v1.SearchGameServersResponse
-	1,  // 58: v1.GameGMService.GetGmContext:output_type -> v1.GetGmContextResponse
-	4,  // 59: v1.GameGMService.ListGmPlayers:output_type -> v1.ListGmPlayersResponse
-	6,  // 60: v1.GameGMService.GetGmPlayer:output_type -> v1.GetGmPlayerResponse
-	8,  // 61: v1.GameGMService.GetGmPlayerView:output_type -> v1.GmDataResponse
-	8,  // 62: v1.GameGMService.GetGmReport:output_type -> v1.GmDataResponse
-	8,  // 63: v1.GameGMService.GetGmCatalog:output_type -> v1.GmDataResponse
-	12, // 64: v1.GameGMService.ExecuteGmCommand:output_type -> v1.ExecuteGmCommandResponse
-	15, // 65: v1.GameGMService.ListGmExecutions:output_type -> v1.ListGmExecutionsResponse
-	13, // 66: v1.GameGMService.GetGmExecution:output_type -> v1.GmExecution
-	13, // 67: v1.GameGMService.ApproveGmExecution:output_type -> v1.GmExecution
-	13, // 68: v1.GameGMService.RejectGmExecution:output_type -> v1.GmExecution
-	21, // 69: v1.GameGMService.ListGmSelfService:output_type -> v1.ListGmSelfServiceResponse
-	19, // 70: v1.GameGMService.UpdateGmSelfService:output_type -> v1.GmSelfServicePolicy
-	26, // 71: v1.GameGMService.ListGmConfigs:output_type -> v1.ListGmConfigsResponse
-	28, // 72: v1.GameGMService.GetGmConfig:output_type -> v1.GetGmConfigResponse
-	23, // 73: v1.GameGMService.SaveGmConfigDraft:output_type -> v1.GmConfigDraft
-	31, // 74: v1.GameGMService.DiscardGmConfigDraft:output_type -> v1.DiscardGmConfigDraftResponse
-	33, // 75: v1.GameGMService.ValidateGmConfig:output_type -> v1.ValidateGmConfigResponse
-	35, // 76: v1.GameGMService.PublishGmConfig:output_type -> v1.PublishGmConfigResponse
-	38, // 77: v1.GameGMService.ListGmConfigRevisions:output_type -> v1.ListGmConfigRevisionsResponse
-	36, // 78: v1.GameGMService.GetGmConfigRevision:output_type -> v1.GmConfigRevision
-	57, // [57:79] is the sub-list for method output_type
-	35, // [35:57] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	24, // 0: v1.GetGmContextResponse.server:type_name -> v1.GameServerBrief
+	25, // 1: v1.GmPlayerLink.linked_at:type_name -> google.protobuf.Timestamp
+	26, // 2: v1.GmExecution.targets:type_name -> v1.GameTarget
+	22, // 3: v1.GmExecution.summary:type_name -> v1.GmExecution.SummaryEntry
+	3,  // 4: v1.GmExecution.results:type_name -> v1.GmExecutionResult
+	25, // 5: v1.GmExecution.reviewed_at:type_name -> google.protobuf.Timestamp
+	25, // 6: v1.GmExecution.create_time:type_name -> google.protobuf.Timestamp
+	25, // 7: v1.GmExecution.finished_at:type_name -> google.protobuf.Timestamp
+	25, // 8: v1.ListGmExecutionsRequest.since:type_name -> google.protobuf.Timestamp
+	25, // 9: v1.ListGmExecutionsRequest.until:type_name -> google.protobuf.Timestamp
+	4,  // 10: v1.ListGmExecutionsResponse.items:type_name -> v1.GmExecution
+	23, // 11: v1.ListGmExecutionsResponse.counts:type_name -> v1.ListGmExecutionsResponse.CountsEntry
+	4,  // 12: v1.ListGmExecutionsResponse.pending:type_name -> v1.GmExecution
+	25, // 13: v1.GmSelfServicePolicy.update_time:type_name -> google.protobuf.Timestamp
+	10, // 14: v1.ListGmSelfServiceResponse.items:type_name -> v1.GmSelfServicePolicy
+	25, // 15: v1.GmConfigDraft.update_time:type_name -> google.protobuf.Timestamp
+	14, // 16: v1.GmConfigDomain.draft:type_name -> v1.GmConfigDraft
+	25, // 17: v1.GmConfigDomain.last_published_at:type_name -> google.protobuf.Timestamp
+	15, // 18: v1.GetGmConfigResponse.domain:type_name -> v1.GmConfigDomain
+	25, // 19: v1.GmConfigRevision.published_at:type_name -> google.protobuf.Timestamp
+	25, // 20: v1.GmConfigRevision.create_time:type_name -> google.protobuf.Timestamp
+	20, // 21: v1.ListGmConfigRevisionsResponse.items:type_name -> v1.GmConfigRevision
+	27, // 22: v1.GameGMService.SearchGmServers:input_type -> v1.SearchGameServersRequest
+	0,  // 23: v1.GameGMService.GetGmContext:input_type -> v1.GetGmContextRequest
+	5,  // 24: v1.GameGMService.ListGmExecutions:input_type -> v1.ListGmExecutionsRequest
+	7,  // 25: v1.GameGMService.GetGmExecution:input_type -> v1.GetGmExecutionRequest
+	8,  // 26: v1.GameGMService.ApproveGmExecution:input_type -> v1.ApproveGmExecutionRequest
+	9,  // 27: v1.GameGMService.RejectGmExecution:input_type -> v1.RejectGmExecutionRequest
+	11, // 28: v1.GameGMService.ListGmSelfService:input_type -> v1.ListGmSelfServiceRequest
+	13, // 29: v1.GameGMService.UpdateGmSelfService:input_type -> v1.UpdateGmSelfServiceRequest
+	28, // 30: v1.GameGMService.SearchGmServers:output_type -> v1.SearchGameServersResponse
+	1,  // 31: v1.GameGMService.GetGmContext:output_type -> v1.GetGmContextResponse
+	6,  // 32: v1.GameGMService.ListGmExecutions:output_type -> v1.ListGmExecutionsResponse
+	4,  // 33: v1.GameGMService.GetGmExecution:output_type -> v1.GmExecution
+	4,  // 34: v1.GameGMService.ApproveGmExecution:output_type -> v1.GmExecution
+	4,  // 35: v1.GameGMService.RejectGmExecution:output_type -> v1.GmExecution
+	12, // 36: v1.GameGMService.ListGmSelfService:output_type -> v1.ListGmSelfServiceResponse
+	10, // 37: v1.GameGMService.UpdateGmSelfService:output_type -> v1.GmSelfServicePolicy
+	30, // [30:38] is the sub-list for method output_type
+	22, // [22:30] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_v1_game_gm_proto_init() }
@@ -3645,7 +2259,7 @@ func file_v1_game_gm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_game_gm_proto_rawDesc), len(file_v1_game_gm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   44,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

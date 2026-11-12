@@ -1,4 +1,4 @@
-<!-- 玩法 · 培育：全服玩家的培育结果，从新到旧（MGP produce 报表）。筛选：剧本（MGP 培育组目录）、偶像（MGP 角色目录）、
+<!-- 玩法 · 培育：全服玩家的培育结果，从新到旧（全服培育接口）。筛选：剧本（培育组目录）、偶像（角色目录）、
      日期（按服务器时区的自然日）、搜索玩家。与玩家详情的「培育记录」是同一张表，只是范围是全服。 -->
 <template>
   <div class="pv">
@@ -79,9 +79,9 @@
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
-import { getGmReport, mgpQuery } from '@/api/gameGm'
-import type { CatalogEntry, ManifestEntry } from '@/games/mgp'
-import type { ProduceReport, ProduceEntry, ProduceReportSummary } from '@/games/gakumas/types'
+import { listProduces } from '@/api/gakumas'
+import type { CatalogEntry } from '@/games/mgp'
+import type { ProduceCounts, ProduceResult } from '@/games/gakumas/types'
 import { useGmContext } from '../../context'
 import GmCatalogSearch from '../../components/GmCatalogSearch.vue'
 import { catalogImage } from '../../player/shared/game'
@@ -91,8 +91,6 @@ import { useGmFormat, zonedDayStart } from '../../player/shared/format'
 import { usePagedList } from '../../player/shared/paging'
 
 type Range = 'all' | 'today' | 'week' | 'month' | 'custom'
-
-const props = defineProps<{ mode: ManifestEntry }>()
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -129,31 +127,30 @@ const bounds = computed((): { since?: number; until?: number } => {
   }
 })
 
-const list = usePagedList<ProduceEntry, ProduceReportSummary>(
+const list = usePagedList<ProduceResult, ProduceCounts | undefined>(
   (q) =>
-    getGmReport<ProduceReport>(
-      ctx.serverId.value,
-      props.mode.id,
-      mgpQuery({
-        produceGroupId: groupId.value,
-        characterId: characterId.value,
-        since: bounds.value.since,
-        until: bounds.value.until,
-        q: keyword.value.trim(),
-        ...q,
-      }),
-    ),
+    listProduces({
+      serverId: ctx.serverId.value,
+      produceGroupId: groupId.value,
+      produceId: '',
+      characterId: characterId.value,
+      since: bounds.value.since || 0,
+      until: bounds.value.until || 0,
+      q: keyword.value.trim(),
+      cursor: q.cursor,
+      limit: q.limit,
+    }),
   { pageSize: 20 },
 )
 watch([groupId, characterId, bounds], () => void list.reload(), { immediate: true })
 const search = useDebounceFn(() => void list.reload(), 300)
 watch(keyword, () => void search())
 
-// 剧本 chips 来自 MGP 培育组目录（只有几个，读一页）；偶像从 MGP 角色目录搜索选择
+// 剧本 chips 来自培育组目录（只有几个，读一页）；偶像从角色目录搜索选择
 const groups = shallowRef<CatalogEntry[]>([])
 const loadGroups = async () => {
   try {
-    groups.value = (await ctx.catalog('produceGroup', { limit: 50 })).items || []
+    groups.value = (await ctx.catalog('produceGroup', { limit: 50 })).items
   } catch {
     groups.value = []
   }

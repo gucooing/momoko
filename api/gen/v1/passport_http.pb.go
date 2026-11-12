@@ -27,18 +27,14 @@ const OperationPassportServiceChangePassportPassword = "/v1.PassportService/Chan
 const OperationPassportServiceCompletePassportAvatar = "/v1.PassportService/CompletePassportAvatar"
 const OperationPassportServiceDisablePassportTotp = "/v1.PassportService/DisablePassportTotp"
 const OperationPassportServiceEnablePassportTotp = "/v1.PassportService/EnablePassportTotp"
-const OperationPassportServiceExecutePassportSelfService = "/v1.PassportService/ExecutePassportSelfService"
 const OperationPassportServiceGetPassportConfig = "/v1.PassportService/GetPassportConfig"
 const OperationPassportServiceGetPassportGame = "/v1.PassportService/GetPassportGame"
 const OperationPassportServiceGetPassportGameBrief = "/v1.PassportService/GetPassportGameBrief"
-const OperationPassportServiceGetPassportGameCatalog = "/v1.PassportService/GetPassportGameCatalog"
-const OperationPassportServiceGetPassportGameView = "/v1.PassportService/GetPassportGameView"
 const OperationPassportServiceGetPassportMe = "/v1.PassportService/GetPassportMe"
 const OperationPassportServiceGetPassportOidcAuthorization = "/v1.PassportService/GetPassportOidcAuthorization"
 const OperationPassportServiceListPassportActivity = "/v1.PassportService/ListPassportActivity"
 const OperationPassportServiceListPassportApps = "/v1.PassportService/ListPassportApps"
 const OperationPassportServiceListPassportDevices = "/v1.PassportService/ListPassportDevices"
-const OperationPassportServiceListPassportGameOngoing = "/v1.PassportService/ListPassportGameOngoing"
 const OperationPassportServiceListPassportGameRecords = "/v1.PassportService/ListPassportGameRecords"
 const OperationPassportServiceListPassportGameRequests = "/v1.PassportService/ListPassportGameRequests"
 const OperationPassportServiceListPassportLinks = "/v1.PassportService/ListPassportLinks"
@@ -86,18 +82,12 @@ type PassportServiceHTTPServer interface {
 	DisablePassportTotp(context.Context, *DisablePassportTotpRequest) (*PassportMe, error)
 	// EnablePassportTotp 输入身份验证器的验证码确认开启，返回恢复码（只显示这一次）
 	EnablePassportTotp(context.Context, *EnablePassportTotpRequest) (*PassportRecoveryCodes, error)
-	// ExecutePassportSelfService 执行一条自助指令（目标强制为我绑定的游戏账号；需要审批的只提交申请）
-	ExecutePassportSelfService(context.Context, *ExecutePassportSelfServiceRequest) (*ExecutePassportSelfServiceResponse, error)
 	// GetPassportConfig 公开配置：注册方式、登录方式、站点名称
 	GetPassportConfig(context.Context, *GetPassportConfigRequest) (*GetPassportConfigResponse, error)
-	// GetPassportGame 游戏空间：服务器、绑定、manifest 中玩家端用到的部分、玩家摘要；同时记录 last_seen_at
+	// GetPassportGame 游戏空间：服务器、绑定与时区；同时记录 last_seen_at。游戏数据由游戏模块的通行证服务提供（学マス：GakumasPassportService）
 	GetPassportGame(context.Context, *PassportGameRequest) (*PassportGameResponse, error)
-	// GetPassportGameBrief 首页卡片用的摘要（玩家摘要，刷新绑定快照；不记录 last_seen_at）
+	// GetPassportGameBrief 首页卡片用的摘要（刷新绑定快照；不记录 last_seen_at）
 	GetPassportGameBrief(context.Context, *PassportGameRequest) (*PassportGameResponse, error)
-	// GetPassportGameCatalog 选择器数据（MGP /catalogs/{kind}，名称与素材 ID；每次最多 50 条）
-	GetPassportGameCatalog(context.Context, *PassportGameCatalogRequest) (*PassportDataResponse, error)
-	// GetPassportGameView 自己的分页数据（MGP /players/{我的 pid}/views/{view}）
-	GetPassportGameView(context.Context, *PassportGameViewRequest) (*PassportDataResponse, error)
 	// GetPassportMe 当前账号：资料、安全状态与计数
 	GetPassportMe(context.Context, *PassportEmpty) (*PassportMe, error)
 	// GetPassportOidcAuthorization 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）
@@ -108,17 +98,15 @@ type PassportServiceHTTPServer interface {
 	ListPassportApps(context.Context, *PassportEmpty) (*ListPassportAppsResponse, error)
 	// ListPassportDevices 登录设备
 	ListPassportDevices(context.Context, *PassportEmpty) (*ListPassportDevicesResponse, error)
-	// ListPassportGameOngoing 正在进行的卡池（只含 id、名称、横幅素材与起止时间）
-	ListPassportGameOngoing(context.Context, *PassportGameRequest) (*PassportDataResponse, error)
 	// ListPassportGameRecords 操作记录（我在这台服务器上的自助操作与兑换码）
 	ListPassportGameRecords(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
-	// ListPassportGameRequests 我的申请（需要审批的自助指令）
+	// ListPassportGameRequests 我的申请（需要审批的自助操作）
 	ListPassportGameRequests(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
 	// ListPassportLinks 我绑定的游戏账号（按游戏分组展示）
 	ListPassportLinks(context.Context, *PassportEmpty) (*ListPassportLinksResponse, error)
 	// ListPassportMessages 消息
 	ListPassportMessages(context.Context, *ListPassportMessagesRequest) (*ListPassportMessagesResponse, error)
-	// ListPassportSelfService 自助服务：已开放的指令与我的使用情况
+	// ListPassportSelfService 自助服务：已开放的操作与我的使用情况；执行由游戏模块的通行证服务提供
 	ListPassportSelfService(context.Context, *PassportGameRequest) (*ListPassportSelfServiceResponse, error)
 	// LogoutPassportOthers 退出其他所有设备
 	LogoutPassportOthers(context.Context, *PassportEmpty) (*PassportEmpty, error)
@@ -211,11 +199,7 @@ func RegisterPassportServiceHTTPServer(s *http.Server, srv PassportServiceHTTPSe
 	r.POST("/api/v1/bind", _PassportService_BindPassportAccount0_HTTP_Handler(srv))
 	r.GET("/api/v1/games/{server_id}", _PassportService_GetPassportGame0_HTTP_Handler(srv))
 	r.GET("/api/v1/games/{server_id}/brief", _PassportService_GetPassportGameBrief0_HTTP_Handler(srv))
-	r.GET("/api/v1/games/{server_id}/views/{view}", _PassportService_GetPassportGameView0_HTTP_Handler(srv))
-	r.GET("/api/v1/games/{server_id}/catalogs/{kind}", _PassportService_GetPassportGameCatalog0_HTTP_Handler(srv))
-	r.GET("/api/v1/games/{server_id}/ongoing", _PassportService_ListPassportGameOngoing0_HTTP_Handler(srv))
 	r.GET("/api/v1/games/{server_id}/self-service", _PassportService_ListPassportSelfService0_HTTP_Handler(srv))
-	r.POST("/api/v1/games/{server_id}/self-service/{command}", _PassportService_ExecutePassportSelfService0_HTTP_Handler(srv))
 	r.GET("/api/v1/games/{server_id}/requests", _PassportService_ListPassportGameRequests0_HTTP_Handler(srv))
 	r.GET("/api/v1/games/{server_id}/records", _PassportService_ListPassportGameRecords0_HTTP_Handler(srv))
 	r.POST("/api/v1/games/{server_id}/redeem", _PassportService_RedeemPassportGiftCode0_HTTP_Handler(srv))
@@ -1060,72 +1044,6 @@ func _PassportService_GetPassportGameBrief0_HTTP_Handler(srv PassportServiceHTTP
 	}
 }
 
-func _PassportService_GetPassportGameView0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PassportGameViewRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationPassportServiceGetPassportGameView)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetPassportGameView(ctx, req.(*PassportGameViewRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PassportDataResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _PassportService_GetPassportGameCatalog0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PassportGameCatalogRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationPassportServiceGetPassportGameCatalog)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetPassportGameCatalog(ctx, req.(*PassportGameCatalogRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PassportDataResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _PassportService_ListPassportGameOngoing0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PassportGameRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationPassportServiceListPassportGameOngoing)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListPassportGameOngoing(ctx, req.(*PassportGameRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PassportDataResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _PassportService_ListPassportSelfService0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in PassportGameRequest
@@ -1144,31 +1062,6 @@ func _PassportService_ListPassportSelfService0_HTTP_Handler(srv PassportServiceH
 			return err
 		}
 		reply := out.(*ListPassportSelfServiceResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _PassportService_ExecutePassportSelfService0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ExecutePassportSelfServiceRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationPassportServiceExecutePassportSelfService)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ExecutePassportSelfService(ctx, req.(*ExecutePassportSelfServiceRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ExecutePassportSelfServiceResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1300,18 +1193,12 @@ type PassportServiceHTTPClient interface {
 	DisablePassportTotp(ctx context.Context, req *DisablePassportTotpRequest, opts ...http.CallOption) (rsp *PassportMe, err error)
 	// EnablePassportTotp 输入身份验证器的验证码确认开启，返回恢复码（只显示这一次）
 	EnablePassportTotp(ctx context.Context, req *EnablePassportTotpRequest, opts ...http.CallOption) (rsp *PassportRecoveryCodes, err error)
-	// ExecutePassportSelfService 执行一条自助指令（目标强制为我绑定的游戏账号；需要审批的只提交申请）
-	ExecutePassportSelfService(ctx context.Context, req *ExecutePassportSelfServiceRequest, opts ...http.CallOption) (rsp *ExecutePassportSelfServiceResponse, err error)
 	// GetPassportConfig 公开配置：注册方式、登录方式、站点名称
 	GetPassportConfig(ctx context.Context, req *GetPassportConfigRequest, opts ...http.CallOption) (rsp *GetPassportConfigResponse, err error)
-	// GetPassportGame 游戏空间：服务器、绑定、manifest 中玩家端用到的部分、玩家摘要；同时记录 last_seen_at
+	// GetPassportGame 游戏空间：服务器、绑定与时区；同时记录 last_seen_at。游戏数据由游戏模块的通行证服务提供（学マス：GakumasPassportService）
 	GetPassportGame(ctx context.Context, req *PassportGameRequest, opts ...http.CallOption) (rsp *PassportGameResponse, err error)
-	// GetPassportGameBrief 首页卡片用的摘要（玩家摘要，刷新绑定快照；不记录 last_seen_at）
+	// GetPassportGameBrief 首页卡片用的摘要（刷新绑定快照；不记录 last_seen_at）
 	GetPassportGameBrief(ctx context.Context, req *PassportGameRequest, opts ...http.CallOption) (rsp *PassportGameResponse, err error)
-	// GetPassportGameCatalog 选择器数据（MGP /catalogs/{kind}，名称与素材 ID；每次最多 50 条）
-	GetPassportGameCatalog(ctx context.Context, req *PassportGameCatalogRequest, opts ...http.CallOption) (rsp *PassportDataResponse, err error)
-	// GetPassportGameView 自己的分页数据（MGP /players/{我的 pid}/views/{view}）
-	GetPassportGameView(ctx context.Context, req *PassportGameViewRequest, opts ...http.CallOption) (rsp *PassportDataResponse, err error)
 	// GetPassportMe 当前账号：资料、安全状态与计数
 	GetPassportMe(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *PassportMe, err error)
 	// GetPassportOidcAuthorization 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）
@@ -1322,17 +1209,15 @@ type PassportServiceHTTPClient interface {
 	ListPassportApps(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *ListPassportAppsResponse, err error)
 	// ListPassportDevices 登录设备
 	ListPassportDevices(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *ListPassportDevicesResponse, err error)
-	// ListPassportGameOngoing 正在进行的卡池（只含 id、名称、横幅素材与起止时间）
-	ListPassportGameOngoing(ctx context.Context, req *PassportGameRequest, opts ...http.CallOption) (rsp *PassportDataResponse, err error)
 	// ListPassportGameRecords 操作记录（我在这台服务器上的自助操作与兑换码）
 	ListPassportGameRecords(ctx context.Context, req *ListPassportGameRecordsRequest, opts ...http.CallOption) (rsp *ListPassportGameRecordsResponse, err error)
-	// ListPassportGameRequests 我的申请（需要审批的自助指令）
+	// ListPassportGameRequests 我的申请（需要审批的自助操作）
 	ListPassportGameRequests(ctx context.Context, req *ListPassportGameRecordsRequest, opts ...http.CallOption) (rsp *ListPassportGameRecordsResponse, err error)
 	// ListPassportLinks 我绑定的游戏账号（按游戏分组展示）
 	ListPassportLinks(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *ListPassportLinksResponse, err error)
 	// ListPassportMessages 消息
 	ListPassportMessages(ctx context.Context, req *ListPassportMessagesRequest, opts ...http.CallOption) (rsp *ListPassportMessagesResponse, err error)
-	// ListPassportSelfService 自助服务：已开放的指令与我的使用情况
+	// ListPassportSelfService 自助服务：已开放的操作与我的使用情况；执行由游戏模块的通行证服务提供
 	ListPassportSelfService(ctx context.Context, req *PassportGameRequest, opts ...http.CallOption) (rsp *ListPassportSelfServiceResponse, err error)
 	// LogoutPassportOthers 退出其他所有设备
 	LogoutPassportOthers(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *PassportEmpty, err error)
@@ -1504,20 +1389,6 @@ func (c *PassportServiceHTTPClientImpl) EnablePassportTotp(ctx context.Context, 
 	return &out, nil
 }
 
-// ExecutePassportSelfService 执行一条自助指令（目标强制为我绑定的游戏账号；需要审批的只提交申请）
-func (c *PassportServiceHTTPClientImpl) ExecutePassportSelfService(ctx context.Context, in *ExecutePassportSelfServiceRequest, opts ...http.CallOption) (*ExecutePassportSelfServiceResponse, error) {
-	var out ExecutePassportSelfServiceResponse
-	pattern := "/api/v1/games/{server_id}/self-service/{command}"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationPassportServiceExecutePassportSelfService))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // GetPassportConfig 公开配置：注册方式、登录方式、站点名称
 func (c *PassportServiceHTTPClientImpl) GetPassportConfig(ctx context.Context, in *GetPassportConfigRequest, opts ...http.CallOption) (*GetPassportConfigResponse, error) {
 	var out GetPassportConfigResponse
@@ -1532,7 +1403,7 @@ func (c *PassportServiceHTTPClientImpl) GetPassportConfig(ctx context.Context, i
 	return &out, nil
 }
 
-// GetPassportGame 游戏空间：服务器、绑定、manifest 中玩家端用到的部分、玩家摘要；同时记录 last_seen_at
+// GetPassportGame 游戏空间：服务器、绑定与时区；同时记录 last_seen_at。游戏数据由游戏模块的通行证服务提供（学マス：GakumasPassportService）
 func (c *PassportServiceHTTPClientImpl) GetPassportGame(ctx context.Context, in *PassportGameRequest, opts ...http.CallOption) (*PassportGameResponse, error) {
 	var out PassportGameResponse
 	pattern := "/api/v1/games/{server_id}"
@@ -1546,40 +1417,12 @@ func (c *PassportServiceHTTPClientImpl) GetPassportGame(ctx context.Context, in 
 	return &out, nil
 }
 
-// GetPassportGameBrief 首页卡片用的摘要（玩家摘要，刷新绑定快照；不记录 last_seen_at）
+// GetPassportGameBrief 首页卡片用的摘要（刷新绑定快照；不记录 last_seen_at）
 func (c *PassportServiceHTTPClientImpl) GetPassportGameBrief(ctx context.Context, in *PassportGameRequest, opts ...http.CallOption) (*PassportGameResponse, error) {
 	var out PassportGameResponse
 	pattern := "/api/v1/games/{server_id}/brief"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationPassportServiceGetPassportGameBrief))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetPassportGameCatalog 选择器数据（MGP /catalogs/{kind}，名称与素材 ID；每次最多 50 条）
-func (c *PassportServiceHTTPClientImpl) GetPassportGameCatalog(ctx context.Context, in *PassportGameCatalogRequest, opts ...http.CallOption) (*PassportDataResponse, error) {
-	var out PassportDataResponse
-	pattern := "/api/v1/games/{server_id}/catalogs/{kind}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationPassportServiceGetPassportGameCatalog))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetPassportGameView 自己的分页数据（MGP /players/{我的 pid}/views/{view}）
-func (c *PassportServiceHTTPClientImpl) GetPassportGameView(ctx context.Context, in *PassportGameViewRequest, opts ...http.CallOption) (*PassportDataResponse, error) {
-	var out PassportDataResponse
-	pattern := "/api/v1/games/{server_id}/views/{view}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationPassportServiceGetPassportGameView))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -1658,20 +1501,6 @@ func (c *PassportServiceHTTPClientImpl) ListPassportDevices(ctx context.Context,
 	return &out, nil
 }
 
-// ListPassportGameOngoing 正在进行的卡池（只含 id、名称、横幅素材与起止时间）
-func (c *PassportServiceHTTPClientImpl) ListPassportGameOngoing(ctx context.Context, in *PassportGameRequest, opts ...http.CallOption) (*PassportDataResponse, error) {
-	var out PassportDataResponse
-	pattern := "/api/v1/games/{server_id}/ongoing"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationPassportServiceListPassportGameOngoing))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // ListPassportGameRecords 操作记录（我在这台服务器上的自助操作与兑换码）
 func (c *PassportServiceHTTPClientImpl) ListPassportGameRecords(ctx context.Context, in *ListPassportGameRecordsRequest, opts ...http.CallOption) (*ListPassportGameRecordsResponse, error) {
 	var out ListPassportGameRecordsResponse
@@ -1686,7 +1515,7 @@ func (c *PassportServiceHTTPClientImpl) ListPassportGameRecords(ctx context.Cont
 	return &out, nil
 }
 
-// ListPassportGameRequests 我的申请（需要审批的自助指令）
+// ListPassportGameRequests 我的申请（需要审批的自助操作）
 func (c *PassportServiceHTTPClientImpl) ListPassportGameRequests(ctx context.Context, in *ListPassportGameRecordsRequest, opts ...http.CallOption) (*ListPassportGameRecordsResponse, error) {
 	var out ListPassportGameRecordsResponse
 	pattern := "/api/v1/games/{server_id}/requests"
@@ -1728,7 +1557,7 @@ func (c *PassportServiceHTTPClientImpl) ListPassportMessages(ctx context.Context
 	return &out, nil
 }
 
-// ListPassportSelfService 自助服务：已开放的指令与我的使用情况
+// ListPassportSelfService 自助服务：已开放的操作与我的使用情况；执行由游戏模块的通行证服务提供
 func (c *PassportServiceHTTPClientImpl) ListPassportSelfService(ctx context.Context, in *PassportGameRequest, opts ...http.CallOption) (*ListPassportSelfServiceResponse, error) {
 	var out ListPassportSelfServiceResponse
 	pattern := "/api/v1/games/{server_id}/self-service"

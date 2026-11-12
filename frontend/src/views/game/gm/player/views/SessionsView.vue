@@ -1,5 +1,5 @@
-<!-- 登录会话：登录记录（MGP sessions，从新到旧）：登录时间、时长（在线的那条显示「在线 …」）、平台与设备、地址；
-     在线的那条可以强制下线（session.kick，走通用指令对话框）。手机端为卡片。 -->
+<!-- 登录会话：登录记录（从新到旧）：登录时间、时长（在线的那条显示「在线 …」）、平台与设备、地址；
+     在线的那条可以强制下线（player.kick，走操作对话框）。手机端为卡片。 -->
 <template>
   <div class="pv">
     <div v-if="list.error.value" class="pv__error">{{ list.error.value }}</div>
@@ -27,7 +27,7 @@
       </template>
       <template #cell-op="{ row }">
         <div class="pv__acts">
-          <UButton v-if="s(row).live && canKick" size="sm" color="error" variant="soft" @click="page.run('session.kick')">
+          <UButton v-if="s(row).live && canKick" size="sm" color="error" variant="soft" @click="page.run('player.kick')">
             {{ kickTitle }}
           </UButton>
         </div>
@@ -53,7 +53,7 @@
             :label="kickTitle"
             :box="44"
             class="sess__kick"
-            @click="page.run('session.kick')"
+            @click="page.run('player.kick')"
           />
         </article>
       </div>
@@ -69,16 +69,13 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmPlayerView, mgpQuery } from '@/api/gameGm'
+import { listPlayerSessions } from '@/api/gakumas'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
-import type { ListPage, ManifestView } from '@/games/mgp'
 import type { Session } from '@/games/gakumas/types'
 import { useGmContext } from '../../context'
 import { usePlayerPage } from '../context'
 import { useGmFormat } from '../shared/format'
 import { usePagedList } from '../shared/paging'
-
-const props = defineProps<{ view?: ManifestView }>()
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -87,7 +84,7 @@ const menuStore = useMenuStore()
 const { dateTime, duration } = useGmFormat()
 
 const list = usePagedList<Session>(
-  (q) => getGmPlayerView<ListPage<Session>>(ctx.serverId.value, page.pid.value, props.view?.id || 'sessions', mgpQuery({ ...q })),
+  (q) => listPlayerSessions({ serverId: ctx.serverId.value, pid: page.pid.value, cursor: q.cursor, limit: q.limit }),
   { pageSize: 20 },
 )
 watch(page.version, () => void list.load(), { immediate: true })
@@ -103,8 +100,8 @@ const rows = computed(() => list.items.value as unknown as Record<string, unknow
 const s = (row: Record<string, unknown>) => row as unknown as Session
 const deviceOf = (x: Session) => [x.platform, x.device].filter(Boolean).join(' · ') || '—'
 
-const canKick = computed(() => ctx.hasCommand('session.kick'))
-const kickTitle = computed(() => ctx.command('session.kick')?.title || '')
+const canKick = computed(() => !!ctx.operation('player.kick'))
+const kickTitle = computed(() => ctx.operation('player.kick')?.title || '')
 </script>
 
 <style scoped lang="scss">

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/url"
 	"sort"
 	"strings"
 	"sync"
@@ -50,6 +49,14 @@ func GameMGPError(err error) error {
 		status = 502
 	}
 	return response.BadRequest(status, e.Code+": "+e.Message)
+}
+
+// result 返回游戏服务端接口的内容；游戏服务端的错误转为接口错误。
+func result[T any](v *T, err error) (*T, error) {
+	if err != nil {
+		return nil, GameMGPError(err)
+	}
+	return v, nil
 }
 
 // 游戏服务器运行状态。
@@ -100,6 +107,8 @@ type GameServerRepo interface {
 	FailInterrupted(ctx context.Context, message string) error
 	// GetInstance 按 id 读取应用实例（不按用户过滤；托管进程由游戏服务器管理权限控制）。
 	GetInstance(ctx context.Context, id string) (*gen.Instance, error)
+	// ListHostedInstances 工作目录是 dir 的托管进程（Momoko 托管时创建、标签为 game 的应用实例）。
+	ListHostedInstances(ctx context.Context, dir string) ([]*gen.Instance, error)
 	CreateBackup(ctx context.Context, b *gen.GameServerBackup) (*gen.GameServerBackup, error)
 	UpdateBackup(ctx context.Context, b *gen.GameServerBackup) error
 	GetBackup(ctx context.Context, id string) (*gen.GameServerBackup, error)
@@ -113,6 +122,8 @@ type GameServerRepo interface {
 type GameServerUsecase struct {
 	repo GameServerRepo
 	log  *log.Helper
+	// hostedSync 托管服务器按服务端配置刷新接入信息（GameHostingUsecase 注册）
+	hostedSync func(ctx context.Context, s *gen.GameServer)
 
 	mu        sync.Mutex
 	clients   map[string]*gameClient
@@ -159,7 +170,18 @@ func gameBox() *secretbox.Box { return secretbox.New(authpkg.AuthSecretKey) }
 // EncryptGameSecret 加密 MGP 密钥后再落库。
 func EncryptGameSecret(secret string) (string, error) { return gameBox().Encrypt(secret) }
 
-// Get 读取服务器。
+// SetHostedSync 托管用例注册：读取托管服务器时按服务端配置文件刷新接入信息（配置文件是唯一的依据）。
+func (uc *GameServerUsecase) SetHostedSync(fn func(ctx context.Context, s *gen.GameServer)) {
+	uc.hostedSync = fn
+}
+
+func (uc *GameServerUsecase) syncHosted(ctx context.Context, s *gen.GameServer) {
+	if uc.hostedSync != nil && s.Mode == entgameserver.ModeHosted {
+		uc.hostedSync(ctx, s)
+	}
+}
+
+// Get 读取服务器（托管的按服务端配置文件刷新接入信息）。
 func (uc *GameServerUsecase) Get(ctx context.Context, id string) (*gen.GameServer, error) {
 	s, err := uc.repo.Get(ctx, id)
 	if gen.IsNotFound(err) {
@@ -168,14 +190,18 @@ func (uc *GameServerUsecase) Get(ctx context.Context, id string) (*gen.GameServe
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
+	uc.syncHosted(ctx, s)
 	return s, nil
 }
 
-// List 读取全部服务器（几百台以内，内存筛选）。
+// List 读取全部服务器（几百台以内，内存筛选；托管的按服务端配置文件刷新接入信息）。
 func (uc *GameServerUsecase) List(ctx context.Context) ([]*gen.GameServer, error) {
 	list, err := uc.repo.List(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
+	}
+	for _, s := range list {
+		uc.syncHosted(ctx, s)
 	}
 	return list, nil
 }
@@ -259,14 +285,15 @@ func (uc *GameServerUsecase) FetchManifest(ctx context.Context, s *gen.GameServe
 	if err != nil {
 		return nil, err
 	}
-	raw, err := c.Get(ctx, "/manifest", nil)
+	m, err := c.Manifest(ctx)
 	if err != nil {
-		return nil, GameMGPError(err)
-	}
-	m, err := mgp.ParseManifest(raw)
-	if err != nil {
+		var me *mgp.Error
+		if errors.As(err, &me) {
+			return nil, GameMGPError(err)
+		}
 		return nil, response.BadRequest(502, "manifest 无法解析："+err.Error())
 	}
+	raw := m.Raw
 	now := time.Now()
 	uc.mu.Lock()
 	uc.manifests[s.ID] = &cachedManifest{at: now, manifest: m}
@@ -298,15 +325,11 @@ func (uc *GameServerUsecase) probe(ctx context.Context, s *gen.GameServer) (*mgp
 		return nil, err
 	}
 	start := time.Now()
-	raw, err := c.Get(ctx, "/status", nil)
+	st, err := c.Status(ctx)
 	p := GameProbe{At: time.Now(), LatencyMs: int(time.Since(start).Milliseconds())}
-	var st *mgp.Status
 	if err == nil {
-		st, err = mgp.ParseStatus(raw)
-		if err == nil {
-			p.OK = true
-			p.Status = string(raw)
-		}
+		p.OK = true
+		p.Status = string(st.Raw)
 	}
 	if err != nil {
 		p.Error = err.Error()
@@ -342,7 +365,7 @@ func (uc *GameServerUsecase) probeLoop() {
 func (uc *GameServerUsecase) probeAll() {
 	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer cancel()
-	list, err := uc.repo.List(ctx)
+	list, err := uc.List(ctx)
 	if err != nil {
 		return
 	}
@@ -555,18 +578,6 @@ func JSONValue(raw json.RawMessage) *structpb.Value {
 	return pv
 }
 
-// ValueJSON 把 protobuf Value 转回原始 JSON（nil 为 null）。
-func ValueJSON(v *structpb.Value) json.RawMessage {
-	if v == nil {
-		return json.RawMessage("null")
-	}
-	raw, err := v.MarshalJSON()
-	if err != nil {
-		return json.RawMessage("null")
-	}
-	return raw
-}
-
 // Info 生成服务器详情。
 func (uc *GameServerUsecase) Info(ctx context.Context, s *gen.GameServer) *v1.GameServerInfo {
 	info := &v1.GameServerInfo{
@@ -598,9 +609,6 @@ func (uc *GameServerUsecase) Info(ctx context.Context, s *gen.GameServer) *v1.Ga
 	if m := cachedManifestOf(s); m != nil {
 		info.Protocol = int32(m.Protocol)
 		info.ServerVersion = m.Server.Version
-		info.ViewCount = int32(len(m.Views))
-		info.CommandCount = int32(len(m.Commands))
-		info.ConfigCount = int32(len(m.Configs))
 	}
 	if a, ok := GameAdapterByID(s.Game); ok {
 		info.Capabilities = a.ServerCapabilities(s)
@@ -912,7 +920,7 @@ func (uc *GameServerUsecase) TestServer(ctx context.Context, req *v1.TestGameSer
 	}
 	normalized, _ := mgp.NormalizeEndpoint(endpoint)
 	start := time.Now()
-	raw, err := client.Get(ctx, "/status", nil)
+	st, err := client.Status(ctx)
 	latency := time.Since(start)
 	switch {
 	case err != nil && mgp.IsUnreachable(err):
@@ -932,7 +940,6 @@ func (uc *GameServerUsecase) TestServer(ctx context.Context, req *v1.TestGameSer
 		return out, nil
 	}
 	add("connect", "ok", map[string]string{"endpoint": normalized, "latencyMs": itoa(int(latency.Milliseconds()))}, nil)
-	st, _ := mgp.ParseStatus(raw)
 	skew := ""
 	if st != nil && st.Now > 0 {
 		d := time.Since(time.UnixMilli(st.Now)) - latency/2
@@ -942,19 +949,14 @@ func (uc *GameServerUsecase) TestServer(ctx context.Context, req *v1.TestGameSer
 		skew = strconvFormatSeconds(d)
 	}
 	add("signature", "ok", map[string]string{"keyId": keyID, "skewSeconds": skew}, nil)
-	mraw, err := client.Get(ctx, "/manifest", nil)
-	if err != nil {
+	if m, err := client.Manifest(ctx); err != nil {
 		add("manifest", "fail", nil, err)
-	} else if m, perr := mgp.ParseManifest(mraw); perr != nil {
-		add("manifest", "fail", nil, perr)
 	} else {
 		add("manifest", "ok", map[string]string{
 			"game":     m.Game.ID,
 			"gameName": m.Game.Name,
 			"protocol": itoa(m.Protocol),
-			"commands": itoa(len(m.Commands)),
-			"views":    itoa(len(m.Views)),
-			"configs":  itoa(len(m.Configs)),
+			"version":  m.Server.Version,
 		}, nil)
 	}
 	if st != nil {
@@ -988,18 +990,6 @@ func (uc *GameServerUsecase) RefreshServer(ctx context.Context, id string) (*gen
 	}
 	_, _ = uc.probe(ctx, s)
 	return uc.Get(ctx, id)
-}
-
-// MGPQuery 解析前端透传的查询串（只保留合法的键值）。
-func MGPQuery(raw string) url.Values {
-	if raw == "" {
-		return nil
-	}
-	v, err := url.ParseQuery(strings.TrimPrefix(raw, "?"))
-	if err != nil {
-		return nil
-	}
-	return v
 }
 
 // ValidateMGPKey 校验（由前端生成的）MGP Key ID 与密钥，返回去掉首尾空白后的值。

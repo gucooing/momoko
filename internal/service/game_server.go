@@ -130,6 +130,13 @@ func (s *GameServerService) ControlGameServer(ctx context.Context, req *v1.Contr
 	return s.uc.Info(ctx, srv), nil
 }
 
+func (s *GameServerService) ClearGameServerConsole(ctx context.Context, req *v1.ClearGameServerConsoleRequest) (*v1.ClearGameServerConsoleResponse, error) {
+	if err := s.hosting.ClearConsole(ctx, req.Id, req.Role); err != nil {
+		return nil, err
+	}
+	return &v1.ClearGameServerConsoleResponse{}, nil
+}
+
 func (s *GameServerService) UpdateGameServerHosting(ctx context.Context, req *v1.UpdateGameServerHostingRequest) (*v1.GameServerInfo, error) {
 	srv, err := s.hosting.UpdateHosting(ctx, req)
 	if err != nil {

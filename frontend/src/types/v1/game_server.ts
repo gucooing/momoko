@@ -93,12 +93,9 @@ export interface GameServerInfo {
   lastOnlineAt:
     | Date
     | undefined;
-  /** manifest 摘要：协议版本、服务端版本、视图 / 指令 / 配置域数量 */
+  /** manifest 摘要：协议版本与服务端版本 */
   protocol: number;
   serverVersion: string;
-  viewCount: number;
-  commandCount: number;
-  configCount: number;
   /** status 缓存原样（在线、注册、资源版本、健康…） */
   status: any | undefined;
   statusAt:
@@ -265,8 +262,6 @@ export interface UpdateGameServerRequest {
 
 export interface DeleteGameServerRequest {
   id: string;
-  /** 同时删除托管的应用实例（先停止） */
-  deleteInstances: boolean;
 }
 
 export interface DeleteGameServerResponse {
@@ -367,8 +362,6 @@ export interface SwitchGameServerModeRequest {
   mgpEndpoint: string;
   keyId: string;
   secret: string;
-  /** 切到仅 GM 时：删除托管的应用实例（否则只解除关联，进程保持原状） */
-  deleteInstances: boolean;
 }
 
 export interface RotateGameServerKeyRequest {
@@ -387,6 +380,15 @@ export interface RotateGameServerKeyResponse {
   restarted: boolean;
   /** 服务端运行中且未重启：新密钥要等下次启动才生效 */
   pendingRestart: boolean;
+}
+
+export interface ClearGameServerConsoleRequest {
+  id: string;
+  /** 进程角色：main / resource；空为 main */
+  role: string;
+}
+
+export interface ClearGameServerConsoleResponse {
 }
 
 export interface ControlGameServerRequest {
@@ -464,8 +466,6 @@ export interface GameSettingsField {
   hasMax: boolean;
   max: number;
   required: boolean;
-  /** 由 Momoko 托管（如 MGP 密钥），表单里只读 */
-  managed: boolean;
 }
 
 export interface GameSettingsSection {
@@ -493,14 +493,15 @@ export interface GameServerSettings {
     | undefined;
   /** 服务端运行中（修改需要重启生效） */
   running: boolean;
-  /** 表单不认识的顶层字段（保存时原样保留） */
-  unknownKeys: string[];
 }
 
 export interface SaveGameServerSettingsRequest {
   id: string;
   revision: string;
-  /** 表单模式：按路径给出修改的值 {"database.driver": "sqlite", …} */
+  /**
+   * 表单模式：按路径给出修改的值 {"database.driver": "sqlite", …}；任何路径都可以改（不限于表单提示里的字段），
+   * 值为 null 表示删除这一项（服务端取默认值）
+   */
   values:
     | { [key: string]: any }
     | undefined;

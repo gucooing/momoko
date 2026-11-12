@@ -24,6 +24,8 @@ var ProviderSet = wire.NewSet(
 	NewThemeService,
 	NewGameServerService,
 	NewGameGMService,
+	NewGakumasGMService,
+	NewGakumasPassportService,
 	NewGameOpsService,
 	NewPassportService,
 	NewPassportAdminService,

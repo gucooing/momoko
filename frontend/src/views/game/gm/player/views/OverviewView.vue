@@ -47,7 +47,7 @@
         </dl>
       </AppPanel>
 
-      <button v-if="o && page.hasTab('giftBox')" type="button" class="ov__gift" @click="page.goto('giftBox')">
+      <button v-if="o?.gifts && page.hasTab('giftBox')" type="button" class="ov__gift" @click="page.goto('giftBox')">
         <span class="ov__gift-icon" aria-hidden="true">
           <component :is="menuStore.iconComponents['HOutline:GiftIcon']" />
         </span>
@@ -64,9 +64,9 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmPlayerView, listGmExecutions } from '@/api/gameGm'
-import type { ListPage, ManifestView } from '@/games/mgp'
-import type { GashaHistoryPage, Memory, PvpView, Session } from '@/games/gakumas/types'
+import { getPlayerPvp, listPlayerGashaDraws, listPlayerMemories, listPlayerSessions } from '@/api/gakumas'
+import { listGmExecutions } from '@/api/gameGm'
+import type { GashaDraw, Memory, PlayerPvp, Session } from '@/games/gakumas/types'
 import type { GmExecution } from '@/types/v1/game_gm'
 import { useGmContext } from '../../context'
 import { usePlayerPage } from '../context'
@@ -74,8 +74,6 @@ import { catalogImage, gradeLabel, rarityLabel } from '../shared/game'
 import { gmExecutionsQuery } from '../shared/executions'
 import { toMs, useGmFormat } from '../shared/format'
 import { useCatalogLookup } from '../shared/lookup'
-
-defineProps<{ view?: ManifestView }>()
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -87,11 +85,11 @@ const { num, when, dateTime, date } = useGmFormat()
 const o = computed(() => page.player.value?.overview)
 
 // ---------- 进度 ----------
-const pvp = shallowRef<PvpView>()
-const rarities = (counts: Record<string, number> | undefined) =>
-  ['3', '2', '1']
+const pvp = shallowRef<PlayerPvp>()
+const rarities = (counts: Record<number, number> | undefined) =>
+  [3, 2, 1]
     .filter((r) => counts?.[r])
-    .map((r) => `${rarityLabel(Number(r))} ${counts?.[r]}`)
+    .map((r) => `${rarityLabel(r)} ${counts?.[r]}`)
     .join(' · ')
 
 const progress = computed(() => {
@@ -99,7 +97,7 @@ const progress = computed(() => {
   if (!ov) return []
   const out: { key: string; title: string; value: string; sub: string; tab?: string }[] = []
   const tab = (id: string) => (page.hasTab(id) ? id : undefined)
-  if (ctx.hasView('pvp')) {
+  if (ctx.modes.value?.pvp) {
     const p = pvp.value
     out.push({
       key: 'pvp',
@@ -132,9 +130,9 @@ const progress = computed(() => {
     tab: tab('supportCards'),
   })
   if (ov.seminar?.length) {
-    const total = ov.seminar.reduce((s, g) => s + g.Total, 0)
-    const cleared = ov.seminar.reduce((s, g) => s + g.Cleared, 0)
-    const full = ov.seminar.filter((g) => g.Total > 0 && g.Cleared >= g.Total).length
+    const total = ov.seminar.reduce((s, g) => s + g.total, 0)
+    const cleared = ov.seminar.reduce((s, g) => s + g.cleared, 0)
+    const full = ov.seminar.filter((g) => g.total > 0 && g.cleared >= g.total).length
     out.push({
       key: 'seminar',
       title: t('gmData.overview.seminar'),
@@ -186,9 +184,9 @@ const facts = computed(() => {
 })
 
 // ---------- 最近动态 ----------
-const draws = shallowRef<GashaHistoryPage>()
-const produces = shallowRef<ListPage<Memory>>()
-const sessions = shallowRef<ListPage<Session>>()
+const draws = shallowRef<GashaDraw[]>([])
+const produces = shallowRef<Memory[]>([])
+const sessions = shallowRef<Session[]>([])
 const gmLogs = shallowRef<GmExecution[]>([])
 const feedLoading = ref(false)
 const FEED_EACH = 5
@@ -198,12 +196,12 @@ const loadFeed = async () => {
   const pid = page.pid.value
   if (!sid || !pid || !ctx.manifest.value) return
   feedLoading.value = true
-  const q = `limit=${FEED_EACH}`
+  const page0 = { cursor: '', limit: FEED_EACH }
   await Promise.allSettled([
-    ctx.hasView('pvp') ? getGmPlayerView<PvpView>(sid, pid, 'pvp').then((v) => (pvp.value = v)) : undefined,
-    ctx.hasView('gashaHistory') ? getGmPlayerView<GashaHistoryPage>(sid, pid, 'gashaHistory', q).then((v) => (draws.value = v)) : undefined,
-    ctx.hasView('produceHistory') ? getGmPlayerView<ListPage<Memory>>(sid, pid, 'produceHistory', q).then((v) => (produces.value = v)) : undefined,
-    ctx.hasView('sessions') ? getGmPlayerView<ListPage<Session>>(sid, pid, 'sessions', q).then((v) => (sessions.value = v)) : undefined,
+    ctx.modes.value?.pvp ? getPlayerPvp(sid, pid).then((v) => (pvp.value = v)) : undefined,
+    listPlayerGashaDraws({ serverId: sid, pid, gashaIds: [], cardIds: [], ...page0 }).then((v) => (draws.value = v.items)),
+    listPlayerMemories({ serverId: sid, pid, produced: true, q: '', rarity: 0, grades: [], characterId: '', idolCardIds: [], ...page0 }).then((v) => (produces.value = v.items)),
+    listPlayerSessions({ serverId: sid, pid, ...page0 }).then((v) => (sessions.value = v.items)),
     listGmExecutions(gmExecutionsQuery(sid, { pid, pageSize: FEED_EACH })).then(({ data }) => (gmLogs.value = data.items || [])),
   ])
   feedLoading.value = false
@@ -232,20 +230,20 @@ const resourceImage = (resourceType: number, resourceId: string) => {
 
 const feed = computed<FeedItem[]>(() => {
   const out: FeedItem[] = []
-  for (const d of draws.value?.items || []) {
-    const top = [...(d.cards || [])].sort((a, b) => b.rarity - a.rarity)[0]
+  for (const d of draws.value) {
+    const top = [...d.cards].sort((a, b) => b.rarity - a.rarity)[0]
     out.push({
       key: `g${d.id}`,
       time: d.createdAt,
       text: d.ssrCount
-        ? t('gmData.overview.feedGashaSsr', { gasha: lookup.name('gasha', d.gashaId), n: d.drawCount, ssr: d.ssrCount })
-        : t('gmData.overview.feedGasha', { gasha: lookup.name('gasha', d.gashaId), n: d.drawCount }),
+        ? t('gmData.overview.feedGashaSsr', { gasha: d.gashaName || lookup.name('gasha', d.gashaId), n: d.drawCount, ssr: d.ssrCount })
+        : t('gmData.overview.feedGasha', { gasha: d.gashaName || lookup.name('gasha', d.gashaId), n: d.drawCount }),
       tag: t('gmData.overview.tagGasha'),
       image: top ? resourceImage(top.resourceType, top.resourceId) : '',
       icon: 'HOutline:SparklesIcon',
     })
   }
-  for (const m of produces.value?.items || []) {
+  for (const m of produces.value) {
     out.push({
       key: `p${m.memoryId}`,
       time: m.createdTime,
@@ -267,7 +265,7 @@ const feed = computed<FeedItem[]>(() => {
       icon: 'HOutline:TrophyIcon',
     })
   }
-  for (const s of sessions.value?.items || []) {
+  for (const s of sessions.value) {
     out.push({
       key: `s${s.id}`,
       time: s.loginAt,

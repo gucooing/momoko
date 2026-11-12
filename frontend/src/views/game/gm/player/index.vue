@@ -1,6 +1,6 @@
 <!-- 玩家详情：/game/gm/:serverId/players/:pid?tab=…（独立路由，自己提供 GM 上下文）。
      返回「玩家」→ GM 运营标签 → 玩家卡（担当、昵称、在线状态、ID、通行证、等级经验、钱包、常用指令）
-     → 分页（来自 manifest 的玩家视图 + Momoko 的 GM 记录）。所有数据来自 MGP / Momoko，指令按 manifest 出现。 -->
+     → 分页（学マス 玩家数据的各分页 + Momoko 的 GM 记录）。数据来自学マス 接口与 Momoko。 -->
 <template>
   <div class="gp game-skin" :data-game="ctx.game.value || undefined">
     <div class="gp__top">
@@ -45,7 +45,8 @@
     <div v-else-if="!player || !ctx.manifest.value" class="gp__skeleton" aria-busy="true" />
 
     <template v-else>
-      <section class="gp-hero">
+      <section class="gp-hero" :class="{ 'has-meishi': !!meishiImage }">
+        <img v-if="meishiImage" :src="meishiImage" alt="" class="gp-hero__meishi" />
         <div class="gp-hero__main">
           <div class="gp-hero__id">
             <span class="gp-hero__avatar">
@@ -91,7 +92,7 @@
           </div>
 
           <div class="gp-hero__actions">
-            <UButton v-if="ctx.hasCommand('gift.send')" color="primary" icon="i-lucide-gift" @click="openGift">
+            <UButton v-if="ctx.operation('gift.send')" color="primary" icon="i-lucide-gift" @click="openGift">
               {{ t('gmData.player.sendGift') }}
             </UButton>
             <AppDropdown v-if="resourceCommands.length" align="start" :width="240">
@@ -115,23 +116,16 @@
                 </div>
               </template>
             </AppDropdown>
-            <UButton
-              v-if="ctx.hasCommand('session.kick')"
-              color="error"
-              variant="outline"
-              icon="i-lucide-log-out"
-              :disabled="!player.online"
-              @click="run('session.kick')"
-            >
-              {{ ctx.command('session.kick')?.title }}
+            <UButton color="error" variant="outline" icon="i-lucide-log-out" :disabled="!player.online" @click="run('player.kick')">
+              {{ ctx.operation('player.kick')?.title }}
             </UButton>
-            <UButton v-if="ctx.hasCommand('archive.export')" color="neutral" variant="outline" icon="i-lucide-download" @click="run('archive.export')">
-              {{ ctx.command('archive.export')?.title }}
+            <UButton color="neutral" variant="outline" icon="i-lucide-download" @click="run('archive.export')">
+              {{ ctx.operation('archive.export')?.title }}
             </UButton>
-            <ActionMenu v-if="moreItems.length" :items="moreItems" :label="t('gmData.player.more')" @select="run" />
+            <ActionMenu :items="moreItems" :label="t('gmData.player.more')" @select="onMore" />
           </div>
         </div>
-        <div v-if="art" class="gp-hero__art">
+        <div v-if="art && !meishiImage" class="gp-hero__art">
           <GameImage :src="art" class="gp-hero__art-img" eager />
           <span class="gp-hero__art-tag">{{ t('gmData.player.lentMemory') }}</span>
         </div>
@@ -154,14 +148,14 @@
       </nav>
 
       <KeepAlive>
-        <component :is="current.component" v-if="current" :key="current.id" :view="current.view" />
+        <component :is="current.component" v-if="current" :key="current.id" />
       </KeepAlive>
     </template>
 
-    <GiftDrawer v-model="giftOpen" :players="giftPlayers" @done="afterCommand" />
-    <GmCommandDialog
+    <GiftDialog v-model="giftOpen" :players="giftPlayers" @done="afterCommand" />
+    <GmOperationDialog
       v-model="dialog.open"
-      :command="dialog.command"
+      :operation="dialog.operation"
       :targets="dialog.targets"
       :initial-params="dialog.params"
       :summary="dialog.summary"
@@ -175,24 +169,26 @@ import { computed, reactive, ref, shallowRef, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import '@/games'
-import { getGmPlayer } from '@/api/gameGm'
+import { getPlayer, getPlayerMeishiImage } from '@/api/gakumas'
+import { imageDataUrl } from '@/games/gakumas/display'
 import { getRequestErrorMessage } from '@/utils/request'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
-import type { ManifestCommand, ManifestView } from '@/games/mgp'
+import type { OperationDef } from '@/games/mgp'
 import type { PlayerDetail } from '@/games/gakumas/types'
 import type { GmPlayerLink } from '@/types/v1/game_gm'
 import { provideGmContext } from '../context'
 import { GM_TABS, gmTabView } from '../tabs'
-import GmCommandDialog from '../components/GmCommandDialog.vue'
+import GmOperationDialog from '../components/GmOperationDialog.vue'
 import GmRiskPill from '../components/GmRiskPill.vue'
+import { PLAYER_PAGE_OPERATIONS } from '../operations'
 import type { GmTargetRef } from '../components/types'
 import { GM_LOG_TAB, providePlayerPage } from './context'
-import GiftDrawer from './GiftDrawer.vue'
+import GiftDialog from './GiftDialog.vue'
 import PlayerAvatar from './shared/PlayerAvatar.vue'
 import { catalogImage, charaBust, idolCardArt, isPermanentBan } from './shared/game'
 import { useGmFormat } from './shared/format'
 import { catalogLookupFor } from './shared/lookup'
-import { gmLogView, playerViewDef } from './views'
+import { PLAYER_VIEWS, gmLogView } from './views'
 
 defineOptions({ name: 'GameGmPlayerView' })
 
@@ -225,8 +221,8 @@ const version = ref(0)
 const loadPlayer = async () => {
   error.value = ''
   try {
-    const { data } = await getGmPlayer(serverRef.value, pid.value)
-    player.value = (data.player as PlayerDetail | undefined) || undefined
+    const data = await getPlayer(serverRef.value, pid.value)
+    player.value = data.player ? { ...data.player, overview: data.overview, logins: data.logins } : undefined
     link.value = data.link || undefined
     gmCount.value = data.gmExecutions || 0
     if (!player.value) error.value = t('gmData.player.notFound')
@@ -245,6 +241,20 @@ const overview = computed(() => player.value?.overview)
 const homeName = computed(() => (overview.value?.homeCharacterId ? lookup.name('character', overview.value.homeCharacterId) : ''))
 const bust = computed(() => charaBust(ctx.game.value, overview.value?.homeCharacterId || ''))
 const art = computed(() => idolCardArt(ctx.game.value, player.value?.avatarIdolCardId || ''))
+
+// 资料名片（游戏里保存名片时上传的图片）作为玩家卡片的背景；默认名片没有图片，这时右侧显示出借记忆的卡面
+const meishiImage = ref('')
+const meishiPath = computed(() => overview.value?.meishiImagePath || '')
+watch(
+  () => [ctx.serverId.value, player.value?.pid || '', meishiPath.value] as const,
+  async ([sid, pid, path]) => {
+    meishiImage.value = ''
+    if (!sid || !pid || !path) return
+    const img = await getPlayerMeishiImage(sid, pid)
+    if (sid === ctx.serverId.value && pid === player.value?.pid && path === meishiPath.value) meishiImage.value = imageDataUrl(img)
+  },
+  { immediate: true },
+)
 const passportLink = computed(() => ({ path: '/game/passport', query: { user: link.value?.passportUserId } }))
 
 const expPct = computed(() => {
@@ -297,36 +307,43 @@ const wallet = computed(() => {
   ]
 })
 
-// ---------- 指令 ----------
-const playerCommands = computed(() =>
-  (ctx.manifest.value?.commands || []).filter((c) => c.target === 'player' || c.target === 'players'),
-)
-// 「调整资源」：与 jewel.adjust 同一分组的玩家指令（分组由服务端给出）
-const resourceCommands = computed<ManifestCommand[]>(() => {
-  const group = ctx.command('jewel.adjust')?.group
+// ---------- 操作 ----------
+const playerCommands = computed(() => ctx.operations.filter((c) => c.target === 'player' || c.target === 'players'))
+// 「调整资源」：与 jewel.adjust 同一分组的玩家操作
+const resourceCommands = computed<OperationDef[]>(() => {
+  const group = ctx.operation('jewel.adjust')?.group
   return group ? playerCommands.value.filter((c) => c.group === group) : []
 })
-const SHOWN = ['gift.send', 'session.kick', 'archive.export']
-const moreItems = computed<ActionMenuItem[]>(() =>
-  playerCommands.value
-    .filter((c) => !SHOWN.includes(c.id) && !resourceCommands.value.includes(c))
+// 「更多」：存档备份与回档，其余操作在 GM 操作页（带着这名玩家打开）
+const GM_OPS = 'gm-operations'
+const moreItems = computed<ActionMenuItem[]>(() => [
+  ...playerCommands.value
+    .filter((c) => PLAYER_PAGE_OPERATIONS.includes(c.id))
     .map((c) => ({ key: c.id, label: c.title, danger: c.risk === 'danger' })),
-)
+  { key: GM_OPS, label: t('gmData.player.gmOperations'), icon: 'HOutline:CommandLineIcon' },
+])
+const onMore = (key: string) => {
+  if (key !== GM_OPS) return run(key)
+  void router.push({
+    path: `/game/gm/${encodeURIComponent(ctx.serverId.value)}`,
+    query: { tab: 'operations', pid: player.value?.pid || route.params.pid },
+  })
+}
 
 const self = computed<GmTargetRef[]>(() => (player.value ? [{ pid: player.value.pid, name: player.value.name }] : []))
 
 const dialog = reactive<{
   open: boolean
-  command?: ManifestCommand
+  operation?: OperationDef
   targets: GmTargetRef[]
   params: Record<string, unknown>
   summary: Record<string, string>
-}>({ open: false, command: undefined, targets: [], params: {}, summary: {} })
+}>({ open: false, operation: undefined, targets: [], params: {}, summary: {} })
 
-const run = (commandId: string, initialParams: Record<string, unknown> = {}, summary: Record<string, string> = {}) => {
-  const cmd = ctx.command(commandId)
+const run = (operationId: string, initialParams: Record<string, unknown> = {}, summary: Record<string, string> = {}) => {
+  const cmd = ctx.operation(operationId)
   if (!cmd) return
-  dialog.command = cmd
+  dialog.operation = cmd
   dialog.targets = self.value
   dialog.params = initialParams
   dialog.summary = summary
@@ -350,20 +367,17 @@ const afterCommand = () => {
 interface PlayerTab {
   id: string
   title: string
-  view?: ManifestView
   component: Component
   count?: number
 }
 
 const tabs = computed<PlayerTab[]>(() => {
-  const views = ctx.manifest.value?.views || []
-  const ids = new Set(views.map((v) => v.id))
-  const list: PlayerTab[] = []
-  for (const v of views) {
-    const def = playerViewDef(v.id)
-    if (def.mergedInto && ids.has(def.mergedInto)) continue
-    list.push({ id: v.id, title: v.title || t('game.unnamed'), view: v, component: def.component, count: player.value ? def.count?.(player.value) : undefined })
-  }
+  const list: PlayerTab[] = PLAYER_VIEWS.filter((v) => !v.mode || !!ctx.modes.value?.[v.mode]).map((v) => ({
+    id: v.id,
+    title: t(v.titleKey),
+    component: v.component,
+    count: player.value ? v.count?.(player.value) : undefined,
+  }))
   list.push({ id: GM_LOG_TAB, title: t('gmData.player.gmLog'), component: gmLogView, count: gmCount.value })
   return list
 })
@@ -504,6 +518,30 @@ providePlayerPage({
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   box-shadow: var(--app-shadow-card);
+}
+/* 有资料名片时名片铺满卡片作背景，左侧加一层渐变让文字可读 */
+.gp-hero.has-meishi {
+  position: relative;
+  isolation: isolate;
+}
+.gp-hero__meishi {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.gp-hero.has-meishi::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, var(--el-bg-color) 0%, color-mix(in srgb, var(--el-bg-color) 82%, transparent) 45%, color-mix(in srgb, var(--el-bg-color) 20%, transparent) 100%);
+}
+.gp-hero.has-meishi .gp-hero__main {
+  position: relative;
+  z-index: 2;
 }
 .gp-hero__main {
   flex: 1 1 560px;

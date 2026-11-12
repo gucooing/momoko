@@ -27,13 +27,12 @@
           <div v-if="searching" class="pp__hint">{{ t('gmOps.common.loading') }}</div>
           <template v-else>
             <button
-              v-for="r in results"
+              v-for="r in shownResults"
               :key="r.pid"
               type="button"
               role="option"
               class="pp__option"
-              :aria-selected="chosen.has(r.pid)"
-              :disabled="chosen.has(r.pid)"
+              :aria-selected="false"
               @mousedown.prevent="add(r)"
             >
               <span class="pp__avatar" aria-hidden="true">{{ initial(r.name || t('gm.player.noName')) }}</span>
@@ -42,9 +41,8 @@
                 <span class="pp__option-sub m-num">{{ [r.displayId, r.account].filter(Boolean).join(' · ') }}</span>
               </span>
               <StatusPill v-if="isBanned(r)" variant="error" :label="t('gmOps.mail.banned')" />
-              <StatusPill v-else-if="chosen.has(r.pid)" variant="neutral" :label="t('gmOps.mail.picked')" />
             </button>
-            <div v-if="!results.length" class="pp__hint">{{ t('gmOps.mail.noPlayer') }}</div>
+            <div v-if="!shownResults.length" class="pp__hint">{{ t('gmOps.mail.noPlayer') }}</div>
           </template>
         </div>
       </div>
@@ -57,18 +55,12 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
-import { listGmPlayers } from '@/api/gameGm'
+import { listPlayers } from '@/api/gakumas'
+import type { Player } from '@/games/gakumas/types'
 import type { GameTarget } from '@/types/v1/game_common'
 import { useGmContext } from '../../context'
 
-/** MGP 玩家条目里这里用到的部分。 */
-interface PlayerHit {
-  pid: string
-  displayId?: string
-  account?: string
-  name?: string
-  bannedUntil?: number
-}
+type PlayerHit = Pick<Player, 'pid' | 'displayId' | 'account' | 'name' | 'bannedUntil'>
 
 const props = withDefaults(defineProps<{ modelValue: GameTarget[]; disabled?: boolean }>(), { disabled: false })
 const emit = defineEmits<{ 'update:modelValue': [value: GameTarget[]] }>()
@@ -79,17 +71,18 @@ const menuStore = useMenuStore()
 
 const query = ref('')
 const results = ref<PlayerHit[]>([])
+// 已经加上的玩家不再出现在搜索结果里
+const shownResults = computed(() => results.value.filter((r) => !chosen.value.has(r.pid)))
 const searching = ref(false)
 const open = ref(false)
 const unresolved = ref<string[]>([])
 const chosen = computed(() => new Set(props.modelValue.map((p) => p.pid)))
 
 const initial = (s: string) => s.slice(0, 1).toUpperCase()
-const isBanned = (p: PlayerHit) => (p.bannedUntil || 0) > Date.now()
+const isBanned = (p: PlayerHit) => p.bannedUntil > Date.now()
 
 const search = async (q: string, limit = 8): Promise<PlayerHit[]> => {
-  const { data } = await listGmPlayers({ serverId: ctx.serverId.value, q, filter: '', cursor: '', limit })
-  return (Array.isArray(data.items) ? data.items : []) as PlayerHit[]
+  return (await listPlayers({ serverId: ctx.serverId.value, q, filter: '', cursor: '', limit })).items
 }
 
 let seq = 0

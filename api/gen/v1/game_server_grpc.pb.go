@@ -31,6 +31,7 @@ const (
 	GameServerService_SwitchGameServerMode_FullMethodName         = "/v1.GameServerService/SwitchGameServerMode"
 	GameServerService_RotateGameServerKey_FullMethodName          = "/v1.GameServerService/RotateGameServerKey"
 	GameServerService_ControlGameServer_FullMethodName            = "/v1.GameServerService/ControlGameServer"
+	GameServerService_ClearGameServerConsole_FullMethodName       = "/v1.GameServerService/ClearGameServerConsole"
 	GameServerService_UpdateGameServerHosting_FullMethodName      = "/v1.GameServerService/UpdateGameServerHosting"
 	GameServerService_GetGameServerOverview_FullMethodName        = "/v1.GameServerService/GetGameServerOverview"
 	GameServerService_GetGameServerSettings_FullMethodName        = "/v1.GameServerService/GetGameServerSettings"
@@ -83,7 +84,7 @@ type GameServerServiceClient interface {
 	CreateGameServer(ctx context.Context, in *CreateGameServerRequest, opts ...grpc.CallOption) (*GameServerInfo, error)
 	// 修改名称、标签、封面、备注、MGP 地址 / 密钥、通行证可见性与时区
 	UpdateGameServer(ctx context.Context, in *UpdateGameServerRequest, opts ...grpc.CallOption) (*GameServerInfo, error)
-	// 删除服务器（只删除接入记录与 Momoko 侧数据；托管的应用实例按 delete_instances 决定）
+	// 删除服务器（删除接入记录与 Momoko 侧数据；托管时同时停止并删除它的托管进程）
 	DeleteGameServer(ctx context.Context, in *DeleteGameServerRequest, opts ...grpc.CallOption) (*DeleteGameServerResponse, error)
 	// 测试 MGP 连接（传 id 时未填写的字段沿用已保存配置）
 	TestGameServer(ctx context.Context, in *TestGameServerRequest, opts ...grpc.CallOption) (*TestGameServerResponse, error)
@@ -97,6 +98,8 @@ type GameServerServiceClient interface {
 	RotateGameServerKey(ctx context.Context, in *RotateGameServerKeyRequest, opts ...grpc.CallOption) (*RotateGameServerKeyResponse, error)
 	// 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
 	ControlGameServer(ctx context.Context, in *ControlGameServerRequest, opts ...grpc.CallOption) (*GameServerInfo, error)
+	// 清空托管进程控制台的输出记录（重新连接时不再回放）
+	ClearGameServerConsole(ctx context.Context, in *ClearGameServerConsoleRequest, opts ...grpc.CallOption) (*ClearGameServerConsoleResponse, error)
 	// 修改托管选项（开机自启动、崩溃后自动重启、资源服务器）
 	UpdateGameServerHosting(ctx context.Context, in *UpdateGameServerHostingRequest, opts ...grpc.CallOption) (*GameServerInfo, error)
 	// 概览：进程占用、实时 status、状态探测
@@ -271,6 +274,16 @@ func (c *gameServerServiceClient) ControlGameServer(ctx context.Context, in *Con
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GameServerInfo)
 	err := c.cc.Invoke(ctx, GameServerService_ControlGameServer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gameServerServiceClient) ClearGameServerConsole(ctx context.Context, in *ClearGameServerConsoleRequest, opts ...grpc.CallOption) (*ClearGameServerConsoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClearGameServerConsoleResponse)
+	err := c.cc.Invoke(ctx, GameServerService_ClearGameServerConsole_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -615,7 +628,7 @@ type GameServerServiceServer interface {
 	CreateGameServer(context.Context, *CreateGameServerRequest) (*GameServerInfo, error)
 	// 修改名称、标签、封面、备注、MGP 地址 / 密钥、通行证可见性与时区
 	UpdateGameServer(context.Context, *UpdateGameServerRequest) (*GameServerInfo, error)
-	// 删除服务器（只删除接入记录与 Momoko 侧数据；托管的应用实例按 delete_instances 决定）
+	// 删除服务器（删除接入记录与 Momoko 侧数据；托管时同时停止并删除它的托管进程）
 	DeleteGameServer(context.Context, *DeleteGameServerRequest) (*DeleteGameServerResponse, error)
 	// 测试 MGP 连接（传 id 时未填写的字段沿用已保存配置）
 	TestGameServer(context.Context, *TestGameServerRequest) (*TestGameServerResponse, error)
@@ -629,6 +642,8 @@ type GameServerServiceServer interface {
 	RotateGameServerKey(context.Context, *RotateGameServerKeyRequest) (*RotateGameServerKeyResponse, error)
 	// 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
 	ControlGameServer(context.Context, *ControlGameServerRequest) (*GameServerInfo, error)
+	// 清空托管进程控制台的输出记录（重新连接时不再回放）
+	ClearGameServerConsole(context.Context, *ClearGameServerConsoleRequest) (*ClearGameServerConsoleResponse, error)
 	// 修改托管选项（开机自启动、崩溃后自动重启、资源服务器）
 	UpdateGameServerHosting(context.Context, *UpdateGameServerHostingRequest) (*GameServerInfo, error)
 	// 概览：进程占用、实时 status、状态探测
@@ -724,6 +739,9 @@ func (UnimplementedGameServerServiceServer) RotateGameServerKey(context.Context,
 }
 func (UnimplementedGameServerServiceServer) ControlGameServer(context.Context, *ControlGameServerRequest) (*GameServerInfo, error) {
 	return nil, status.Error(codes.Unimplemented, "method ControlGameServer not implemented")
+}
+func (UnimplementedGameServerServiceServer) ClearGameServerConsole(context.Context, *ClearGameServerConsoleRequest) (*ClearGameServerConsoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClearGameServerConsole not implemented")
 }
 func (UnimplementedGameServerServiceServer) UpdateGameServerHosting(context.Context, *UpdateGameServerHostingRequest) (*GameServerInfo, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateGameServerHosting not implemented")
@@ -1054,6 +1072,24 @@ func _GameServerService_ControlGameServer_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GameServerServiceServer).ControlGameServer(ctx, req.(*ControlGameServerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GameServerService_ClearGameServerConsole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearGameServerConsoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServerServiceServer).ClearGameServerConsole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameServerService_ClearGameServerConsole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServerServiceServer).ClearGameServerConsole(ctx, req.(*ClearGameServerConsoleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1688,6 +1724,10 @@ var GameServerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ControlGameServer",
 			Handler:    _GameServerService_ControlGameServer_Handler,
+		},
+		{
+			MethodName: "ClearGameServerConsole",
+			Handler:    _GameServerService_ClearGameServerConsole_Handler,
 		},
 		{
 			MethodName: "UpdateGameServerHosting",

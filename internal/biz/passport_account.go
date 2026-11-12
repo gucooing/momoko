@@ -660,8 +660,13 @@ func (uc *PassportUsecase) ReadMessages(ctx context.Context, userID string, ids 
 
 // serverMap 全部服务器（几百台以内）。
 func (uc *PassportUsecase) serverMap(ctx context.Context) map[string]*gen.GameServer {
+	return passportServerMap(ctx, uc.servers)
+}
+
+// passportServerMap 全部服务器（几百台以内），按 id。
+func passportServerMap(ctx context.Context, gs *GameServerUsecase) map[string]*gen.GameServer {
 	out := map[string]*gen.GameServer{}
-	if list, err := uc.Servers().List(ctx); err == nil {
+	if list, err := gs.List(ctx); err == nil {
 		for _, s := range list {
 			out[s.ID] = s
 		}

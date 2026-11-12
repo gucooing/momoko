@@ -202,6 +202,53 @@ func ResolveLocalPath(basePath, logical string) (string, error) {
 	return oper.ResolveRealPath(logical)
 }
 
+// EnsureLocalDir 返回 logical 对应目录的真实路径，目录不存在时先创建（例如上传到还没有的目录）。
+// 目标必须在 basePath 之内：先按字面路径检查，再把已存在的最深一级祖先解析成真实路径（拒绝借符号链接越出
+// basePath），只在它下面创建缺少的部分，最后按真实路径再检查一次。
+func EnsureLocalDir(basePath, logical string) (string, error) {
+	oper, err := NewFileOper(basePath)
+	if err != nil {
+		return "", err
+	}
+	if oper.basePath == SystemPath {
+		target, err := oper.ResolveRealPathLoose(logical)
+		if err != nil {
+			return "", err
+		}
+		if err := os.MkdirAll(target, 0o755); err != nil {
+			return "", err
+		}
+		return oper.ResolveRealPath(target)
+	}
+	target, err := oper.ResolveRealPathLoose(logical)
+	if err != nil {
+		return "", err
+	}
+	existing := target
+	for {
+		if _, err := os.Lstat(existing); err == nil {
+			break
+		}
+		parent := filepath.Dir(existing)
+		if parent == existing {
+			return "", errors.New("路径不存在")
+		}
+		existing = parent
+	}
+	realExisting, err := oper.ResolveRealPath(existing)
+	if err != nil {
+		return "", err
+	}
+	rest, err := filepath.Rel(existing, target)
+	if err != nil {
+		return "", errors.New("路径不存在")
+	}
+	if err := os.MkdirAll(filepath.Join(realExisting, rest), 0o755); err != nil {
+		return "", err
+	}
+	return oper.ResolveRealPath(target)
+}
+
 func (s *LocalStore) List(_ context.Context, dir string, field v1.FileSortField, desc bool) ([]*v1.FileEntryInfo, error) {
 	return s.oper.ListDir(dir, field, desc)
 }

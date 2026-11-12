@@ -5,7 +5,6 @@ package v1;
 option go_package = "momoko/api/gen/v1;v1";
 
 import "google/api/annotations.proto";
-import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 import "v1/game_common.proto";
 
@@ -271,50 +270,25 @@ service PassportService {
 
   // ---------------- 游戏空间（只能看自己绑定的游戏账号） ----------------
 
-  // 游戏空间：服务器、绑定、manifest 中玩家端用到的部分、玩家摘要；同时记录 last_seen_at
+  // 游戏空间：服务器、绑定与时区；同时记录 last_seen_at。游戏数据由游戏模块的通行证服务提供（学マス：GakumasPassportService）
   rpc GetPassportGame(PassportGameRequest) returns (PassportGameResponse) {
     option (google.api.http) = {
       get: "/api/v1/games/{server_id}"
     };
   }
-  // 首页卡片用的摘要（玩家摘要，刷新绑定快照；不记录 last_seen_at）
+  // 首页卡片用的摘要（刷新绑定快照；不记录 last_seen_at）
   rpc GetPassportGameBrief(PassportGameRequest) returns (PassportGameResponse) {
     option (google.api.http) = {
       get: "/api/v1/games/{server_id}/brief"
     };
   }
-  // 自己的分页数据（MGP /players/{我的 pid}/views/{view}）
-  rpc GetPassportGameView(PassportGameViewRequest) returns (PassportDataResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/games/{server_id}/views/{view}"
-    };
-  }
-  // 选择器数据（MGP /catalogs/{kind}，名称与素材 ID；每次最多 50 条）
-  rpc GetPassportGameCatalog(PassportGameCatalogRequest) returns (PassportDataResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/games/{server_id}/catalogs/{kind}"
-    };
-  }
-  // 正在进行的卡池（只含 id、名称、横幅素材与起止时间）
-  rpc ListPassportGameOngoing(PassportGameRequest) returns (PassportDataResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/games/{server_id}/ongoing"
-    };
-  }
-  // 自助服务：已开放的指令与我的使用情况
+  // 自助服务：已开放的操作与我的使用情况；执行由游戏模块的通行证服务提供
   rpc ListPassportSelfService(PassportGameRequest) returns (ListPassportSelfServiceResponse) {
     option (google.api.http) = {
       get: "/api/v1/games/{server_id}/self-service"
     };
   }
-  // 执行一条自助指令（目标强制为我绑定的游戏账号；需要审批的只提交申请）
-  rpc ExecutePassportSelfService(ExecutePassportSelfServiceRequest) returns (ExecutePassportSelfServiceResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/games/{server_id}/self-service/{command}"
-      body: "*"
-    };
-  }
-  // 我的申请（需要审批的自助指令）
+  // 我的申请（需要审批的自助操作）
   rpc ListPassportGameRequests(ListPassportGameRecordsRequest) returns (ListPassportGameRecordsResponse) {
     option (google.api.http) = {
       get: "/api/v1/games/{server_id}/requests"
@@ -754,93 +728,42 @@ message PassportGameRequest {
 message PassportGameResponse {
   GameServerBrief server = 1;
   PassportLink link = 2;
-  // manifest 中玩家端用到的部分：game、views、modes、reports、catalogs、capabilities、resourceTypes（不含指令）
-  google.protobuf.Value manifest = 3;
   // 服务器时区（IANA）
-  string timezone = 4;
-  // MGP /players/{pid}（含 overview）；取不到时为空并带 player_error
-  google.protobuf.Value player = 5;
-  string player_error = 6;
+  string timezone = 3;
+  // 读取我的游戏账号失败时的错误码（成功时为空，绑定快照随之刷新）
+  string player_error = 4;
   // 我在其他服务器上的绑定（切换服务器用）
-  repeated PassportLink others = 7;
-}
-
-message PassportGameViewRequest {
-  string server_id = 1;
-  string view = 2;
-  // 透传给 MGP 的查询串（cursor、limit、state、gashaId…）
-  string query = 3;
-}
-
-message PassportGameCatalogRequest {
-  string server_id = 1;
-  string kind = 2;
-  // q、characterId、rarity、cursor、limit（最大 50）
-  string query = 3;
-}
-
-message PassportDataResponse {
-  google.protobuf.Value data = 1;
+  repeated PassportLink others = 5;
 }
 
 message PassportSelfService {
+  // 操作 id
   string command = 1;
-  // 指令标题（游戏服务端给出）
+  // 操作标题（游戏模块给出）
   string title = 2;
   string group = 3;
   string risk = 4;
   string target = 5;
-  // 参数 JSON Schema
-  google.protobuf.Value params = 6;
   // 规则
-  int32 daily_limit = 7;
-  int32 cooldown_sec = 8;
-  bool need_approval = 9;
+  int32 daily_limit = 6;
+  int32 cooldown_sec = 7;
+  bool need_approval = 8;
   // 管理员写给玩家的说明
-  string player_note = 10;
+  string player_note = 9;
   // 使用情况
-  int32 used_today = 11;
+  int32 used_today = 10;
   // 今天还剩（-1 不限）
-  int32 remaining = 12;
-  google.protobuf.Timestamp next_available = 13;
-  google.protobuf.Timestamp last_used_at = 14;
-  string last_status = 15;
-  bool has_pending = 16;
-  // 执行前需要两步验证码（开启了两步验证且指令是高风险）
-  bool need_totp = 17;
+  int32 remaining = 11;
+  google.protobuf.Timestamp next_available = 12;
+  google.protobuf.Timestamp last_used_at = 13;
+  string last_status = 14;
+  bool has_pending = 15;
+  // 执行前需要两步验证码（开启了两步验证且操作是高风险）
+  bool need_totp = 16;
 }
 
 message ListPassportSelfServiceResponse {
   repeated PassportSelfService items = 1;
-}
-
-message ExecutePassportSelfServiceRequest {
-  string server_id = 1;
-  string command = 2;
-  google.protobuf.Value params = 3;
-  // 申请理由（需要审批时）
-  string reason = 4;
-  // 两步验证码（need_totp 时）
-  string totp_code = 5;
-}
-
-message ExecutePassportSelfServiceResponse {
-  string execution_id = 1;
-  // success / partial / failed / pending
-  string status = 2;
-  // 我的游戏账号上的变化
-  repeated PassportChange changes = 3;
-  // 指令结果里给玩家的数据（例如导出的存档）
-  google.protobuf.Value detail = 4;
-  string error_code = 5;
-  string error_message = 6;
-}
-
-message PassportChange {
-  string kind = 1;
-  string resource_id = 2;
-  google.protobuf.Value before = 3;
-  google.protobuf.Value after = 4;
 }
 
 message ListPassportGameRecordsRequest {
@@ -851,7 +774,7 @@ message ListPassportGameRecordsRequest {
 
 message PassportGameRecord {
   string id = 1;
-  // self_service 自助指令 / redeem 兑换码
+  // self_service 自助操作 / redeem 兑换码
   string kind = 2;
   string command = 3;
   string command_title = 4;
@@ -864,7 +787,8 @@ message PassportGameRecord {
   google.protobuf.Timestamp reviewed_at = 8;
   google.protobuf.Timestamp create_time = 9;
   google.protobuf.Timestamp finished_at = 10;
-  repeated PassportChange changes = 11;
+  // 自助操作在我的游戏账号上的结果（JSON 文本，结构由操作决定；没有结果时为空）
+  string data = 11;
   string error_code = 12;
   // 兑换码与奖励
   string code = 13;

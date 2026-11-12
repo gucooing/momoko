@@ -75,7 +75,9 @@ func newDistHandler() (*distHandler, bool) {
 }
 
 // passportDistMiddleware 用户通行证 server 的前端：frontend/dist-passport（SPA 回退到它的 index.html），
-// 以及游戏素材 /games/（静态文件在管理端产物 frontend/dist/games/ 里，两端共用一份，只按文件提供、不回退）。
+// 以及游戏素材 /games/（静态文件在管理端产物 frontend/dist/games/ 里，两端共用一份）。
+// 通行证自己的页面也在 /games/ 下（/games/<服务器>?tab=…）：带扩展名的路径是素材，找不到就 404；
+// 不带扩展名的是页面，交给 SPA 回退（否则在游戏页里刷新会 404）。
 func passportDistMiddleware() httpm.FilterFunc {
 	app := passportDistHandler()
 	var shared *distHandler
@@ -94,8 +96,10 @@ func passportDistMiddleware() httpm.FilterFunc {
 						return
 					}
 				}
-				http.NotFound(w, r)
-				return
+				if path.Ext(filePath) != "" || app == nil {
+					http.NotFound(w, r)
+					return
+				}
 			}
 			if app != nil && app.tryServe(w, r) {
 				return

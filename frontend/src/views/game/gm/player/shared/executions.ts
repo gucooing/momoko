@@ -36,11 +36,11 @@ export const executionVariant = (status: string) => {
   }
 }
 
-/** 已知指令 → 图标（列表行内按钮与批量条用；未知指令不显示图标）。 */
-export const COMMAND_ICONS: Record<string, string> = {
+/** 操作 → 图标（列表行内按钮与批量条用；没有图标的操作只显示标题）。 */
+export const OPERATION_ICONS: Record<string, string> = {
   'gift.send': 'HOutline:GiftIcon',
-  'session.kick': 'HOutline:ArrowLeftStartOnRectangleIcon',
-  'account.ban': 'HOutline:NoSymbolIcon',
-  'account.unban': 'HOutline:CheckCircleIcon',
+  'player.kick': 'HOutline:ArrowLeftStartOnRectangleIcon',
+  'player.ban': 'HOutline:NoSymbolIcon',
+  'player.unban': 'HOutline:CheckCircleIcon',
   'archive.export': 'HOutline:ArchiveBoxArrowDownIcon',
 }

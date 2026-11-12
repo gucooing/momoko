@@ -42,8 +42,8 @@
           <div v-for="d in gasha.items" :key="d.id" class="gr__draw">
             <span class="pp-hint pp-num gr__at">{{ fmtTime(d.createdAt) }}</span>
             <span class="gr__banner">
-              <GameImage :src="gashaImage(d.gashaId)" :alt="ctx.nameOf('gasha', d.gashaId)" class="gr__banner-img" />
-              <span class="pp-hint gr__banner-name">{{ ctx.nameOf('gasha', d.gashaId) || t('game.unnamed') }} · {{ t('game.records.draws', { n: d.drawCount }) }}</span>
+              <GameImage :src="gashaImage(d.gashaId)" :alt="d.gashaName" class="gr__banner-img" />
+              <span class="pp-hint gr__banner-name">{{ d.gashaName || t('game.unnamed') }} · {{ t('game.records.draws', { n: d.drawCount }) }}</span>
             </span>
             <span class="gr__cards">
               <span
@@ -64,9 +64,14 @@
           </div>
         </div>
         <PEmpty v-else-if="!gasha.loading" compact :icon="SparklesIcon" :title="gasha.error || t('game.records.gashaEmpty')" />
-        <div v-if="gasha.cursor || gasha.loading" class="gr__more">
-          <PButton size="sm" :loading="gasha.loading" :disabled="!gasha.cursor" @click="loadGasha(true)">{{ t('game.loadMore') }}</PButton>
-        </div>
+        <PPager
+          v-if="gasha.loaded"
+          :page="gasha.page"
+          :total="gasha.total"
+          :page-size="PAGE"
+          :disabled="gasha.loading"
+          @update:page="(p) => void gashaPages.load(p)"
+        />
       </section>
     </template>
 
@@ -108,11 +113,37 @@
       </div>
     </template>
 
-    <!-- 培育 -->
+    <!-- 培育：按稀有度与评价筛选（服务端筛选分页，条数来自列表的 summary） -->
     <template v-else-if="rec === 'produce'">
+      <div class="gr__filters">
+        <div class="pp-seg" role="group" :aria-label="t('game.records.rarity')">
+          <button
+            v-for="r in rarityOptions"
+            :key="r.value"
+            type="button"
+            :class="{ 'is-on': produceRarity === r.value }"
+            :aria-pressed="produceRarity === r.value"
+            @click="produceRarity = r.value"
+          >
+            {{ r.label }} <span v-if="r.count != null" class="pp-num">{{ fmtNum(r.count) }}</span>
+          </button>
+        </div>
+        <div class="pp-seg" role="group" :aria-label="t('game.records.gradeFilter')">
+          <button
+            v-for="g in gradeOptions"
+            :key="g.value"
+            type="button"
+            :class="{ 'is-on': produceGrade === g.value }"
+            :aria-pressed="produceGrade === g.value"
+            @click="produceGrade = g.value"
+          >
+            {{ g.label }} <span v-if="g.count != null" class="pp-num">{{ fmtNum(g.count) }}</span>
+          </button>
+        </div>
+      </div>
       <section class="pp-card gr__list">
         <div v-if="produce.items.length" class="pp-rows">
-          <div v-for="m in produce.items" :key="m.memoryId" class="gr__memory">
+          <button v-for="m in produce.items" :key="m.memoryId" type="button" class="gr__memory" @click="memoryId = m.memoryId">
             <span class="pp-hint pp-num">{{ fmtTime(m.createdTime) }}</span>
             <span class="gr__chara"><GameImage :src="charaArt(ctx.game.value, m.characterId)" /></span>
             <span class="gr__mem-text">
@@ -120,22 +151,33 @@
               <span class="pp-hint pp-num">{{ t('game.records.score', { n: fmtNum(m.score) }) }} · Vo {{ fmtNum(m.vocal) }} · Da {{ fmtNum(m.dance) }} · Vi {{ fmtNum(m.visual) }}</span>
             </span>
             <span class="pp-tag pp-tag--g pp-num gr__grade">{{ gradeLabel(m.grade) }}</span>
-          </div>
+          </button>
         </div>
-        <PEmpty v-else-if="!produce.loading" compact :icon="StarIcon" :title="produce.error || t('game.records.produceEmpty')" />
-        <div v-if="produce.cursor || produce.loading" class="gr__more">
-          <PButton size="sm" :loading="produce.loading" :disabled="!produce.cursor" @click="loadProduce(true)">{{ t('game.loadMore') }}</PButton>
-        </div>
+        <PEmpty
+          v-else-if="!produce.loading"
+          compact
+          :icon="StarIcon"
+          :title="produce.error || (produceRarity || produceGrade ? t('game.records.produceNoMatch') : t('game.records.produceEmpty'))"
+        />
+        <PPager
+          v-if="produce.loaded"
+          :page="produce.page"
+          :total="produce.total"
+          :page-size="PAGE"
+          :disabled="produce.loading"
+          @update:page="(p) => void producePages.load(p)"
+        />
       </section>
+      <MemoryDetailDialog v-model:memory-id="memoryId" />
     </template>
 
     <!-- 研修 -->
     <template v-else-if="rec === 'seminar'">
       <div v-if="seminar.length" class="gr__seminars">
-        <div v-for="s in seminar" :key="s.GroupID" class="pp-card gr__seminar">
-          <span class="gr__sem-name">{{ ctx.nameOf('seminar', s.GroupID) || s.GroupID }}</span>
-          <span class="pp-num gr__sem-v">{{ s.Cleared }} / {{ s.Total }}</span>
-          <span class="pp-bar"><span :style="{ width: `${s.Total ? Math.round((s.Cleared / s.Total) * 100) : 0}%` }" /></span>
+        <div v-for="s in seminar" :key="s.groupId" class="pp-card gr__seminar">
+          <span class="gr__sem-name">{{ ctx.nameOf('seminar', s.groupId) || t('game.unnamed') }}</span>
+          <span class="pp-num gr__sem-v">{{ s.cleared }} / {{ s.total }}</span>
+          <span class="pp-bar"><span :style="{ width: `${s.total ? Math.round((s.cleared / s.total) * 100) : 0}%` }" /></span>
         </div>
       </div>
       <PEmpty v-else-if="seminarLoaded" :icon="BookOpenIcon" :title="seminarError || t('game.records.seminarEmpty')" />
@@ -144,18 +186,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch, type Component } from 'vue'
+import { computed, ref, watch, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { BookOpenIcon, SparklesIcon, StarIcon, TrophyIcon } from '@heroicons/vue/24/outline'
 import GameImage from '@/components/game/GameImage.vue'
-import PButton from '@passport/components/PButton.vue'
 import PEmpty from '@passport/components/PEmpty.vue'
+import PPager from '@passport/components/PPager.vue'
 import PPill from '@passport/components/PPill.vue'
-import { getGameView } from '@passport/api/passport'
+import { getMyPvp, getMySeminar, listMyGashaDraws, listMyMemories } from '@passport/api/gakumas'
 import { errorText, fmtNum, fmtTime } from '@passport/utils/format'
-import type { ListPage } from '@/games/mgp'
-import type { DrawTotals, GashaDraw, GashaHistoryPage, Memory, PvpView, SeminarProgress } from '@/games/gakumas/types'
+import { offsetCursor, usePagedList } from '@passport/utils/paged'
+import type { DrawTotals, GashaDraw, Memory, PlayerPvp, SeminarProgress } from '@/games/gakumas/types'
+import { GRADE_GROUPS, RARITY_VALUES, countTotal, gradeGroupCount, gradeGroupGrades } from '@/games/gakumas/display'
+import type { MemoryCounts } from '@/types/v1/gakumas/types'
+import MemoryDetailDialog from './MemoryDetailDialog.vue'
 import { charaArt, gashaArt, gradeLabel, rarityLabel, useGameContext } from './context'
 
 type Rec = 'gasha' | 'pvp' | 'produce' | 'seminar'
@@ -167,10 +212,10 @@ const router = useRouter()
 
 const subs = computed(() => {
   const out: { key: Rec; label: string; icon: Component }[] = []
-  if (ctx.hasView('gashaHistory')) out.push({ key: 'gasha', label: ctx.viewTitle('gashaHistory'), icon: SparklesIcon })
-  if (ctx.hasMode('pvp') && ctx.hasView('pvp')) out.push({ key: 'pvp', label: ctx.modeTitle('pvp'), icon: TrophyIcon })
-  if (ctx.hasMode('produce') && ctx.hasView('produceHistory')) out.push({ key: 'produce', label: ctx.modeTitle('produce'), icon: StarIcon })
-  if (ctx.hasMode('seminar') && ctx.hasView('seminar')) out.push({ key: 'seminar', label: ctx.modeTitle('seminar'), icon: BookOpenIcon })
+  out.push({ key: 'gasha', label: t('game.records.gasha'), icon: SparklesIcon })
+  if (ctx.hasMode('pvp')) out.push({ key: 'pvp', label: ctx.modeTitle('pvp'), icon: TrophyIcon })
+  if (ctx.hasMode('produce')) out.push({ key: 'produce', label: ctx.modeTitle('produce'), icon: StarIcon })
+  if (ctx.hasMode('seminar')) out.push({ key: 'seminar', label: ctx.modeTitle('seminar'), icon: BookOpenIcon })
   return out
 })
 
@@ -181,40 +226,29 @@ const rec = computed<Rec | ''>(() => {
 
 const setRec = (key: Rec) => void router.replace({ query: { ...route.query, tab: 'records', rec: key } })
 
+// 记录列表按页读取（页码分页）
+const PAGE = 20
+
 // ---------- 抽卡 ----------
-const gasha = reactive({ items: [] as GashaDraw[], cursor: '', loading: false, loaded: false, error: '', summary: null as DrawTotals | null })
+const gashaPages = usePagedList<GashaDraw, DrawTotals>(
+  (page, size) =>
+    listMyGashaDraws({ serverId: ctx.serverId.value, gashaIds: [], cardIds: [], cursor: offsetCursor(page, size), limit: size }),
+  PAGE,
+)
+const gasha = gashaPages.list
 
-async function loadGasha(more = false) {
-  if (gasha.loading) return
-  gasha.loading = true
-  gasha.error = ''
-  try {
-    const page = await getGameView<GashaHistoryPage>(ctx.serverId.value, 'gashaHistory', {
-      limit: 20,
-      cursor: more ? gasha.cursor : undefined,
-    })
-    gasha.items = more ? [...gasha.items, ...(page?.items ?? [])] : (page?.items ?? [])
-    gasha.cursor = page?.nextCursor || ''
-    gasha.summary = page?.summary ?? gasha.summary
-    gasha.loaded = true
-  } catch (e) {
-    gasha.error = errorText(e)
-  } finally {
-    gasha.loading = false
-  }
-}
-
-const gashaImage = (gashaId: string) => gashaArt(ctx.game.value, ctx.entry('gasha', gashaId)?.assetId || gashaId)
+// 卡池横幅按卡池 ID 取素材（通行证上没有卡池目录；名称在抽卡记录的 gashaName 里）
+const gashaImage = (gashaId: string) => gashaArt(ctx.game.value, gashaId)
 
 // ---------- 竞赛 ----------
-const pvp = ref<PvpView | null>(null)
+const pvp = ref<PlayerPvp | null>(null)
 const pvpError = ref('')
 const pvpLoaded = ref(false)
 
 async function loadPvp() {
   pvpLoaded.value = true
   try {
-    pvp.value = await getGameView<PvpView>(ctx.serverId.value, 'pvp')
+    pvp.value = await getMyPvp(ctx.serverId.value)
   } catch (e) {
     pvpError.value = errorText(e)
   }
@@ -223,26 +257,50 @@ async function loadPvp() {
 const signed = (n: number) => (n > 0 ? `+${fmtNum(n)}` : n < 0 ? `−${fmtNum(-n)}` : '0')
 
 // ---------- 培育 ----------
-const produce = reactive({ items: [] as Memory[], cursor: '', loading: false, loaded: false, error: '' })
+const memoryId = ref('')
+const produceRarity = ref(0)
+const produceGrade = ref('')
+const producePages = usePagedList<Memory, MemoryCounts>(
+  (page, size) =>
+    listMyMemories({
+      serverId: ctx.serverId.value,
+      produced: true,
+      q: '',
+      rarity: produceRarity.value,
+      grades: gradeGroupGrades(produceGrade.value),
+      idolCardIds: [],
+      cursor: offsetCursor(page, size),
+      limit: size,
+    }),
+  PAGE,
+)
+const produce = producePages.list
 
-async function loadProduce(more = false) {
-  if (produce.loading) return
-  produce.loading = true
-  produce.error = ''
-  try {
-    const page = await getGameView<ListPage<Memory>>(ctx.serverId.value, 'produceHistory', {
-      limit: 20,
-      cursor: more ? produce.cursor : undefined,
-    })
-    produce.items = more ? [...produce.items, ...(page?.items ?? [])] : (page?.items ?? [])
-    produce.cursor = page?.nextCursor || ''
-    produce.loaded = true
-  } catch (e) {
-    produce.error = errorText(e)
-  } finally {
-    produce.loading = false
-  }
-}
+watch([produceRarity, produceGrade], () => void producePages.reload())
+
+// 筛选项：条数为 0 且未选中的不显示
+const rarityOptions = computed(() => {
+  const counts = produce.summary?.rarities
+  return [
+    { value: 0, label: t('game.cards.all'), count: counts ? countTotal(counts) : null },
+    ...RARITY_VALUES.filter((r) => counts?.[r] || produceRarity.value === r).map((r) => ({
+      value: r,
+      label: rarityLabel(r),
+      count: counts?.[r] ?? 0,
+    })),
+  ]
+})
+const gradeOptions = computed(() => {
+  const counts = produce.summary?.grades
+  return [
+    { value: '', label: t('game.records.allGrades'), count: counts ? countTotal(counts) : null },
+    ...GRADE_GROUPS.filter((g) => gradeGroupCount(counts, g) || produceGrade.value === g.key).map((g) => ({
+      value: g.key,
+      label: g.label,
+      count: gradeGroupCount(counts, g),
+    })),
+  ]
+})
 
 const memoryTitle = (m: Memory) => {
   const chara = ctx.nameOf('character', m.characterId) || t('game.unnamed')
@@ -257,8 +315,7 @@ const seminarError = ref('')
 
 async function loadSeminar() {
   try {
-    const page = await getGameView<ListPage<SeminarProgress>>(ctx.serverId.value, 'seminar', { limit: 50 })
-    seminar.value = page?.items ?? []
+    seminar.value = (await getMySeminar(ctx.serverId.value)).groups
   } catch (e) {
     seminarError.value = errorText(e)
   } finally {
@@ -269,9 +326,9 @@ async function loadSeminar() {
 watch(
   rec,
   (r) => {
-    if (r === 'gasha' && !gasha.loaded) void loadGasha()
+    if (r === 'gasha' && !gasha.loaded) void gashaPages.reload()
     if (r === 'pvp' && !pvpLoaded.value) void loadPvp()
-    if (r === 'produce' && !produce.loaded) void loadProduce()
+    if (r === 'produce' && !produce.loaded) void producePages.reload()
     if (r === 'seminar' && !seminarLoaded.value) void loadSeminar()
   },
   { immediate: true },
@@ -397,10 +454,11 @@ watch(
   object-fit: contain;
   background: transparent;
 }
-.gr__more {
+.gr__filters {
   display: flex;
-  justify-content: center;
-  padding: 10px 0 4px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 .gr__pvp {
   display: flex;
@@ -457,7 +515,18 @@ watch(
   grid-template-columns: 110px 48px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
+  width: 100%;
   min-height: 64px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gr__memory:hover .gr__mem-name {
+  color: var(--m-gInk);
 }
 .gr__chara,
 .gr__chara :deep(img) {

@@ -134,11 +134,6 @@ func Reason(v string) predicate.GmExecution {
 	return predicate.GmExecution(sql.FieldEQ(FieldReason, v))
 }
 
-// Confirmed applies equality check predicate on the "confirmed" field. It's identical to ConfirmedEQ.
-func Confirmed(v bool) predicate.GmExecution {
-	return predicate.GmExecution(sql.FieldEQ(FieldConfirmed, v))
-}
-
 // DryRun applies equality check predicate on the "dry_run" field. It's identical to DryRunEQ.
 func DryRun(v bool) predicate.GmExecution {
 	return predicate.GmExecution(sql.FieldEQ(FieldDryRun, v))
@@ -1142,16 +1137,6 @@ func ReasonEqualFold(v string) predicate.GmExecution {
 // ReasonContainsFold applies the ContainsFold predicate on the "reason" field.
 func ReasonContainsFold(v string) predicate.GmExecution {
 	return predicate.GmExecution(sql.FieldContainsFold(FieldReason, v))
-}
-
-// ConfirmedEQ applies the EQ predicate on the "confirmed" field.
-func ConfirmedEQ(v bool) predicate.GmExecution {
-	return predicate.GmExecution(sql.FieldEQ(FieldConfirmed, v))
-}
-
-// ConfirmedNEQ applies the NEQ predicate on the "confirmed" field.
-func ConfirmedNEQ(v bool) predicate.GmExecution {
-	return predicate.GmExecution(sql.FieldNEQ(FieldConfirmed, v))
 }
 
 // DryRunEQ applies the EQ predicate on the "dry_run" field.

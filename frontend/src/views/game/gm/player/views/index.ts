@@ -1,56 +1,62 @@
-// 玩家分页：标签来自服务端 manifest 的 views（顺序与标题由服务端给出），这里只把已知的视图 id
-// 对应到专门的界面；不认识的视图用通用渲染（表格 / 键值）。Momoko 自己的「GM 记录」固定排在最后。
+// 学マス 玩家详情的分页：每个分页调用对应的接口，Momoko 自己的「GM 记录」固定排在最后。
 import { defineAsyncComponent, type Component } from 'vue'
+import type { GakumasMode } from '@/games/gakumas/modes'
 import type { PlayerDetail } from '@/games/gakumas/types'
 
 export interface PlayerViewDef {
+  id: string
+  /** 标签标题（i18n key） */
+  titleKey: string
   component: Component
   /** 标签上显示的数量（从玩家概览里取） */
   count?: (p: PlayerDetail) => number | undefined
-  /** 这个视图的内容已包含在另一个视图里：两个都有时不单独成标签 */
-  mergedInto?: string
+  /** 只在服务器配置了这个玩法时出现 */
+  mode?: GakumasMode
 }
 
-const pvp = defineAsyncComponent(() => import('./PvpView.vue'))
-
-const DEFS: Record<string, PlayerViewDef> = {
-  overview: { component: defineAsyncComponent(() => import('./OverviewView.vue')) },
-  idolCards: {
+export const PLAYER_VIEWS: PlayerViewDef[] = [
+  { id: 'overview', titleKey: 'gmData.views.overview', component: defineAsyncComponent(() => import('./OverviewView.vue')) },
+  {
+    id: 'idolCards',
+    titleKey: 'gmData.views.idolCards',
     component: defineAsyncComponent(() => import('./IdolCardsView.vue')),
     count: (p) => p.overview?.idolCardCount,
   },
-  supportCards: {
+  {
+    id: 'supportCards',
+    titleKey: 'gmData.views.supportCards',
     component: defineAsyncComponent(() => import('./SupportCardsView.vue')),
     count: (p) => p.overview?.supportCardCount,
   },
-  items: {
+  {
+    id: 'items',
+    titleKey: 'gmData.views.items',
     component: defineAsyncComponent(() => import('./ItemsView.vue')),
     count: (p) => p.overview?.itemCount,
   },
-  giftBox: {
+  {
+    id: 'giftBox',
+    titleKey: 'gmData.views.giftBox',
     component: defineAsyncComponent(() => import('./GiftBoxView.vue')),
     count: (p) => p.overview?.gifts?.unreceived,
   },
-  gashaHistory: { component: defineAsyncComponent(() => import('./GashaHistoryView.vue')) },
-  produceHistory: {
+  { id: 'gashaHistory', titleKey: 'gmData.views.gashaHistory', component: defineAsyncComponent(() => import('./GashaHistoryView.vue')) },
+  {
+    id: 'produceHistory',
+    titleKey: 'gmData.views.produceHistory',
     component: defineAsyncComponent(() => import('./ProduceHistoryView.vue')),
     count: (p) => p.overview?.produceCount,
   },
-  memories: {
+  {
+    id: 'memories',
+    titleKey: 'gmData.views.memories',
     component: defineAsyncComponent(() => import('./MemoriesView.vue')),
     count: (p) => p.overview?.memoryCount,
   },
-  pvp: { component: pvp },
-  'pvp-unit': { component: pvp, mergedInto: 'pvp' },
-  seminar: { component: defineAsyncComponent(() => import('./SeminarView.vue')) },
-  sessions: { component: defineAsyncComponent(() => import('./SessionsView.vue')) },
-  backups: { component: defineAsyncComponent(() => import('./BackupsView.vue')) },
-}
-
-const generic = defineAsyncComponent(() => import('./GenericView.vue'))
+  { id: 'pvp', titleKey: 'gmData.views.pvp', component: defineAsyncComponent(() => import('./PvpView.vue')), mode: 'pvp' },
+  { id: 'seminar', titleKey: 'gmData.views.seminar', component: defineAsyncComponent(() => import('./SeminarView.vue')), mode: 'seminar' },
+  { id: 'sessions', titleKey: 'gmData.views.sessions', component: defineAsyncComponent(() => import('./SessionsView.vue')) },
+  { id: 'backups', titleKey: 'gmData.views.backups', component: defineAsyncComponent(() => import('./BackupsView.vue')) },
+]
 
 export const gmLogView = defineAsyncComponent(() => import('./GmLogView.vue'))
-
-export function playerViewDef(id: string): PlayerViewDef {
-  return DEFS[id] || { component: generic }
-}

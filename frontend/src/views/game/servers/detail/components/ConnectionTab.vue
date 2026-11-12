@@ -33,7 +33,7 @@
         <div>
           <dt>{{ t('gameServers.connection.manifest') }}</dt>
           <dd class="m-num">
-            {{ server.protocol ? t('gameServers.connection.manifestValue', { protocol: server.protocol, views: server.viewCount, commands: server.commandCount, configs: server.configCount }) : '—' }}
+            {{ server.protocol ? t('gameServers.connection.manifestValue', { protocol: server.protocol }) : '—' }}
           </dd>
         </div>
       </dl>
@@ -172,13 +172,7 @@
             <MgpKeyGenerator v-model="swKey" :hint="t('gameServers.key.remoteHint')" />
           </div>
         </template>
-        <label class="cn__toggle">
-          <span>
-            <b>{{ t('gameServers.connection.deleteInstances') }}</b>
-            <small>{{ t('gameServers.connection.deleteInstancesDesc') }}</small>
-          </span>
-          <AppSwitch v-model="sw.deleteInstances" :aria-label="t('gameServers.connection.deleteInstances')" />
-        </label>
+        <p class="cn__hint">{{ t('gameServers.connection.removeProcessesNote') }}</p>
       </div>
     </FormDialog>
 
@@ -312,10 +306,10 @@ const saveHosting = async () => {
 // ---- 切换接入方式 ----
 const switching = ref(false)
 const remoteOpen = ref(false)
-const sw = reactive({ keep: true, endpoint: '', deleteInstances: false })
+const sw = reactive({ keep: true, endpoint: '' })
 const swKey = ref<MgpKey | null>(null)
 const openRemote = () => {
-  Object.assign(sw, { keep: !!props.server.mgpEndpoint, endpoint: '', deleteInstances: false })
+  Object.assign(sw, { keep: !!props.server.mgpEndpoint, endpoint: '' })
   swKey.value = null
   remoteOpen.value = true
 }
@@ -333,7 +327,6 @@ const switchToRemote = async () => {
       mgpEndpoint: keep ? '' : sw.endpoint.trim(),
       keyId: keep ? '' : swKey.value?.keyId || '',
       secret: keep ? '' : swKey.value?.secret || '',
-      deleteInstances: sw.deleteInstances,
     })
     fb.success(t('gameServers.connection.switched'))
     remoteOpen.value = false

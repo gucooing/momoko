@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	nethttp "net/http"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -38,12 +37,17 @@ func gmAdmin(ctx context.Context, gm *biz.GmUsecase) (biz.GmActor, error) {
 type GameGMService struct {
 	v1.UnimplementedGameGMServiceServer
 
-	gm     *biz.GmUsecase
-	system *biz.SystemUsecase
+	gm      *biz.GmUsecase
+	gakumas *biz.GakumasUsecase
+	system  *biz.SystemUsecase
 }
 
-func NewGameGMService(gm *biz.GmUsecase, system *biz.SystemUsecase) *GameGMService {
-	return &GameGMService{gm: gm, system: system}
+func NewGameGMService(gm *biz.GmUsecase, gakumas *biz.GakumasUsecase, system *biz.SystemUsecase) *GameGMService {
+	return &GameGMService{
+		gm:      gm,
+		gakumas: gakumas,
+		system:  system,
+	}
 }
 
 func (s *GameGMService) SearchGmServers(ctx context.Context, req *v1.SearchGameServersRequest) (*v1.SearchGameServersResponse, error) {
@@ -62,67 +66,6 @@ func (s *GameGMService) GetGmContext(ctx context.Context, req *v1.GetGmContextRe
 	return s.gm.Context(ctx, a.UserID, req.ServerId)
 }
 
-func (s *GameGMService) ListGmPlayers(ctx context.Context, req *v1.ListGmPlayersRequest) (*v1.ListGmPlayersResponse, error) {
-	return s.gm.ListPlayers(ctx, req)
-}
-
-func (s *GameGMService) GetGmPlayer(ctx context.Context, req *v1.GetGmPlayerRequest) (*v1.GetGmPlayerResponse, error) {
-	return s.gm.GetPlayer(ctx, req.ServerId, req.Pid)
-}
-
-func (s *GameGMService) GetGmPlayerView(ctx context.Context, req *v1.GetGmPlayerViewRequest) (*v1.GmDataResponse, error) {
-	raw, err := s.gm.Proxy(ctx, req.ServerId, "/players/"+url.PathEscape(req.Pid)+"/views/"+url.PathEscape(req.View), req.Query)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.GmDataResponse{Data: biz.JSONValue(raw)}, nil
-}
-
-func (s *GameGMService) GetGmReport(ctx context.Context, req *v1.GetGmReportRequest) (*v1.GmDataResponse, error) {
-	raw, err := s.gm.Proxy(ctx, req.ServerId, "/reports/"+url.PathEscape(req.Report), req.Query)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.GmDataResponse{Data: biz.JSONValue(raw)}, nil
-}
-
-func (s *GameGMService) GetGmCatalog(ctx context.Context, req *v1.GetGmCatalogRequest) (*v1.GmDataResponse, error) {
-	raw, err := s.gm.Proxy(ctx, req.ServerId, "/catalogs/"+url.PathEscape(req.Kind), req.Query)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.GmDataResponse{Data: biz.JSONValue(raw)}, nil
-}
-
-func (s *GameGMService) ExecuteGmCommand(ctx context.Context, req *v1.ExecuteGmCommandRequest) (*v1.ExecuteGmCommandResponse, error) {
-	actor, err := gmAdmin(ctx, s.gm)
-	if err != nil {
-		return nil, err
-	}
-	var params json.RawMessage
-	if req.Params != nil {
-		params = biz.ValueJSON(req.Params)
-	}
-	e, raw, err := s.gm.Execute(ctx, actor, req.ServerId, req.Command, biz.GmCommandInput{
-		Targets:     req.Targets,
-		Params:      params,
-		DryRun:      req.DryRun,
-		ConfirmName: req.ConfirmName,
-		Summary:     req.Summary,
-		Source:      "gm",
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &v1.ExecuteGmCommandResponse{
-		ExecutionId:  e.ID,
-		Status:       string(e.Status),
-		Result:       biz.JSONValue(raw),
-		ErrorCode:    e.ErrorCode,
-		ErrorMessage: e.ErrorMessage,
-	}, nil
-}
-
 func (s *GameGMService) ListGmExecutions(ctx context.Context, req *v1.ListGmExecutionsRequest) (*v1.ListGmExecutionsResponse, error) {
 	return s.gm.ListExecutions(ctx, req)
 }
@@ -136,7 +79,7 @@ func (s *GameGMService) ApproveGmExecution(ctx context.Context, req *v1.ApproveG
 	if err != nil {
 		return nil, err
 	}
-	return s.gm.Approve(ctx, actor, req.ServerId, req.Id, req.ConfirmName, req.Note)
+	return s.gakumas.Approve(ctx, actor, req.ServerId, req.Id, req.Note)
 }
 
 func (s *GameGMService) RejectGmExecution(ctx context.Context, req *v1.RejectGmExecutionRequest) (*v1.GmExecution, error) {
@@ -148,11 +91,13 @@ func (s *GameGMService) RejectGmExecution(ctx context.Context, req *v1.RejectGmE
 }
 
 func (s *GameGMService) ListGmSelfService(ctx context.Context, req *v1.ListGmSelfServiceRequest) (*v1.ListGmSelfServiceResponse, error) {
-	items, _, err := s.gm.SelfServicePolicies(ctx, req.ServerId)
+	items, err := s.gakumas.SelfServicePolicies(ctx, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	out := &v1.ListGmSelfServiceResponse{Items: items}
+	out := &v1.ListGmSelfServiceResponse{
+		Items: items,
+	}
 	for _, p := range items {
 		if p.Enabled {
 			out.Enabled++
@@ -166,50 +111,7 @@ func (s *GameGMService) UpdateGmSelfService(ctx context.Context, req *v1.UpdateG
 	if err != nil {
 		return nil, err
 	}
-	return s.gm.UpdateSelfService(ctx, actor, req)
-}
-
-func (s *GameGMService) ListGmConfigs(ctx context.Context, req *v1.ListGmConfigsRequest) (*v1.ListGmConfigsResponse, error) {
-	return s.gm.ListConfigs(ctx, req.ServerId)
-}
-
-func (s *GameGMService) GetGmConfig(ctx context.Context, req *v1.GetGmConfigRequest) (*v1.GetGmConfigResponse, error) {
-	return s.gm.GetConfig(ctx, req.ServerId, req.Domain)
-}
-
-func (s *GameGMService) SaveGmConfigDraft(ctx context.Context, req *v1.SaveGmConfigDraftRequest) (*v1.GmConfigDraft, error) {
-	actor, err := gmAdmin(ctx, s.gm)
-	if err != nil {
-		return nil, err
-	}
-	return s.gm.SaveConfigDraft(ctx, actor, req)
-}
-
-func (s *GameGMService) DiscardGmConfigDraft(ctx context.Context, req *v1.DiscardGmConfigDraftRequest) (*v1.DiscardGmConfigDraftResponse, error) {
-	if err := s.gm.DiscardConfigDraft(ctx, req.ServerId, req.Domain); err != nil {
-		return nil, err
-	}
-	return &v1.DiscardGmConfigDraftResponse{}, nil
-}
-
-func (s *GameGMService) ValidateGmConfig(ctx context.Context, req *v1.ValidateGmConfigRequest) (*v1.ValidateGmConfigResponse, error) {
-	return s.gm.ValidateConfig(ctx, req.ServerId, req.Domain, strings.TrimSpace(req.Content))
-}
-
-func (s *GameGMService) PublishGmConfig(ctx context.Context, req *v1.PublishGmConfigRequest) (*v1.PublishGmConfigResponse, error) {
-	actor, err := gmAdmin(ctx, s.gm)
-	if err != nil {
-		return nil, err
-	}
-	return s.gm.PublishConfig(ctx, actor, req)
-}
-
-func (s *GameGMService) ListGmConfigRevisions(ctx context.Context, req *v1.ListGmConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error) {
-	return s.gm.ListConfigRevisions(ctx, req)
-}
-
-func (s *GameGMService) GetGmConfigRevision(ctx context.Context, req *v1.GetGmConfigRevisionRequest) (*v1.GmConfigRevision, error) {
-	return s.gm.GetConfigRevision(ctx, req.ServerId, req.Domain, req.Id)
+	return s.gakumas.UpdateSelfService(ctx, actor, req)
 }
 
 // GmEventsPrefix GM 实时动态（SSE）：/api/v1/game/gm-events/{serverId}，转发游戏服务端 MGP /events。

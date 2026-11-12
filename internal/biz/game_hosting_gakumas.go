@@ -616,8 +616,8 @@ func (g *gakumasHosting) processes(l *gameHostLayout, opts *gameHostingOptions) 
 	}}
 	if opts.ResourceServer {
 		cmd := exeName("resource-server") + " serve -listen " + quoteArg(opts.ResourceListen)
-		if opts.ResourceOrigin != "" {
-			cmd += " -origin " + quoteArg(opts.ResourceOrigin)
+		if l.ResOrigin != "" {
+			cmd += " -origin " + quoteArg(strings.TrimRight(l.ResOrigin, "/"))
 		}
 		if opts.ResourceRoot != "" {
 			cmd += " -root " + quoteArg(opts.ResourceRoot)
@@ -657,9 +657,9 @@ func gsOptions(o ...string) func(*v1.GameSettingsField) {
 }
 
 func gsRequired(f *v1.GameSettingsField) { f.Required = true }
-func gsManaged(f *v1.GameSettingsField)  { f.Managed = true }
 
-// settingsSchema 配置表单：服务端只在启动时读取配置，全部修改都要重启生效。
+// settingsSchema 配置字段的提示（标签分组、类型、选项与取值范围）：专用设置展示的是整个配置文件，
+// 这里只给认识的字段补充类型与校验；不在这里的字段照样显示、照样能改。服务端只在启动时读取配置，全部修改都要重启生效。
 func (g *gakumasHosting) settingsSchema() []*v1.GameSettingsSection {
 	return []*v1.GameSettingsSection{
 		{Key: "net", Fields: []*v1.GameSettingsField{
@@ -714,18 +714,8 @@ func (g *gakumasHosting) settingsSchema() []*v1.GameSettingsSection {
 		}},
 		{Key: "mgp", Fields: []*v1.GameSettingsField{
 			gsField("mgp.listen", "listen", gsRequired),
-			gsField("mgp.key_id", "string", gsManaged),
-			gsField("mgp.secret", "secret", gsManaged),
+			gsField("mgp.key_id", "string"),
+			gsField("mgp.secret", "secret"),
 		}},
 	}
-}
-
-func (g *gakumasHosting) topKeys() map[string]bool { return gakumasTopKeys }
-
-// gakumasTopKeys 配置的顶层字段（config.Config 的 json 标签）。
-var gakumasTopKeys = map[string]bool{
-	"game": true, "log": true, "grpc_listen": true, "http_listen": true, "database": true,
-	"resource_path": true, "data_path": true, "resource_server_url": true, "http_url": true,
-	"packet_secret": true, "tls_cert": true, "tls_key": true, "session_hours": true,
-	"auto_register": true, "mgp": true,
 }

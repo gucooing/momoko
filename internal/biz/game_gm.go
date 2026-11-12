@@ -3,15 +3,15 @@ package biz
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"net/url"
-	"strconv"
+	"errors"
+	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
@@ -22,22 +22,20 @@ import (
 )
 
 var (
-	ErrGmCommandNotFound   = response.BadRequest(404, "这台服务器没有这条指令")
-	ErrGmTargets           = response.BadRequest(400, "指令目标不正确")
-	ErrGmConfirmRequired   = response.BadRequest(400, "危险指令需要输入玩家昵称确认")
-	ErrGmConfirmMismatch   = response.BadRequest(400, "输入的昵称与玩家当前昵称不一致")
-	ErrGmExecutionNotFound = response.BadRequest(404, "GM 记录不存在")
-	ErrGmNotPending        = response.BadRequest(400, "这条申请已经处理过了")
-	ErrGmSelfServiceClosed = response.BadRequest(403, "这项功能没有开放")
-	ErrGmSelfServiceLimit  = response.BadRequest(429, "今天的次数已用完")
-	ErrGmSelfServiceWait   = response.BadRequest(429, "操作太频繁，请稍后再试")
-	ErrGmSelfServicePend   = response.BadRequest(409, "已有一条申请在等待审批")
-	ErrGmConfigConflict    = response.BadRequest(409, "服务端的配置已被修改，请刷新后再发布")
-	ErrGmConfigInvalidJSON = response.BadRequest(400, "配置内容不是有效的 JSON")
-	ErrGmConfigNoDraft     = response.BadRequest(400, "没有可发布的草稿")
+	ErrGmCommandNotFound        = response.BadRequest(404, "这款游戏没有这个操作")
+	ErrGmTargets                = response.BadRequest(400, "操作目标不正确")
+	ErrGmExecutionNotFound      = response.BadRequest(404, "GM 记录不存在")
+	ErrGmNotPending             = response.BadRequest(400, "这条申请已经处理过了")
+	ErrGmConfigConflict         = response.BadRequest(409, "服务端的配置已被修改，请刷新后再发布")
+	ErrGmConfigInvalidJSON      = response.BadRequest(400, "配置内容不是有效的 JSON")
+	ErrGmConfigNoDraft          = response.BadRequest(400, "没有可发布的草稿")
+	ErrGmConfigReadOnly         = response.BadRequest(400, "这份配置只读")
+	ErrGmConfigRevisionNotFound = response.BadRequest(404, "版本不存在")
+	ErrGmParams                 = response.BadRequest(400, "操作参数无效")
+	ErrGmGameUnsupported        = response.BadRequest(400, "这台服务器的游戏不支持这项功能")
 )
 
-// GmActor 执行 GM 指令的人。
+// GmActor 执行操作的人。
 type GmActor struct {
 	UserID string
 	Name   string
@@ -47,17 +45,6 @@ type GmActor struct {
 	Channel  string
 	IP       string
 	Platform string
-}
-
-// GmCommandInput 一次指令执行的输入。
-type GmCommandInput struct {
-	Targets     []string
-	Params      json.RawMessage
-	Reason      string
-	DryRun      bool
-	ConfirmName string
-	Summary     map[string]string
-	Source      string
 }
 
 // GmLink 绑定了通行证（passport_users）的游戏账号（GM 页面展示用）。
@@ -123,15 +110,13 @@ type GmRepo interface {
 	FindLinksByUser(ctx context.Context, serverID, q string, limit int) ([]*GmLink, error)
 }
 
-// GmUsecase GM 运营：指令执行与审计、审批、玩家自助规则、玩家与配置。
+// GmUsecase GM 运营（管理端）的通用部分：操作执行与审计（GM 记录）、审批、玩家自助规则的设置、配置文档的草稿与版本。
+// 游戏特有的操作与配置文档由游戏的用例（学マス：GakumasUsecase）给出；玩家自助的执行在通行证一侧（PassportUsecase）。
 type GmUsecase struct {
 	servers *GameServerUsecase
 	repo    GmRepo
 	users   UserRepo
 	log     *log.Helper
-
-	// actorLocks 串行化同一执行者同一指令的自助执行，避免并发绕过次数限制。
-	actorLocks sync.Map
 }
 
 func NewGmUsecase(servers *GameServerUsecase, repo GmRepo, users UserRepo, logger log.Logger) *GmUsecase {
@@ -168,18 +153,10 @@ func (uc *GmUsecase) Context(ctx context.Context, userID, serverID string) (*v1.
 		return nil, err
 	}
 	uc.servers.TouchRecent(ctx, userID, serverID, GameRecentScopeAdmin)
-	out := &v1.GetGmContextResponse{Timezone: uc.servers.Location(s).String()}
-	if MGPConfigured(s) {
-		if m, err := uc.servers.Manifest(ctx, s); err == nil {
-			out.Manifest = JSONValue(m.Raw)
-		}
-		if st, err := uc.servers.Status(ctx, s); err == nil {
-			out.Status = JSONValue(st.Raw)
-		} else {
-			out.StatusError = err.Error()
-		}
+	out := &v1.GetGmContextResponse{
+		Server:   uc.servers.Brief(ctx, s),
+		Timezone: uc.servers.Location(s).String(),
 	}
-	out.Server = uc.servers.Brief(ctx, s)
 	if n, err := uc.repo.CountPending(ctx, serverID); err == nil {
 		out.PendingApprovals = int32(n)
 	}
@@ -196,143 +173,6 @@ func (uc *GmUsecase) Context(ctx context.Context, userID, serverID string) (*v1.
 	return out, nil
 }
 
-// pidOf 读出 MGP 玩家条目的 pid。
-func pidOf(item json.RawMessage) string {
-	var p struct {
-		PID string `json:"pid"`
-	}
-	_ = json.Unmarshal(item, &p)
-	return p.PID
-}
-
-// ListPlayers 玩家列表：MGP 搜索与筛选 + 通行证绑定；unlinked 由 Momoko 排除已绑定的玩家。
-func (uc *GmUsecase) ListPlayers(ctx context.Context, req *v1.ListGmPlayersRequest) (*v1.ListGmPlayersResponse, error) {
-	s, client, err := uc.servers.ClientOf(ctx, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	limit := int(req.Limit)
-	if limit <= 0 || limit > 200 {
-		limit = 20
-	}
-	linked, err := uc.repo.LinkedPIDs(ctx, s.ID)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	out := &v1.ListGmPlayersResponse{Summary: map[string]int32{}, LinkedCount: int32(len(linked))}
-	var items []json.RawMessage
-	if req.Filter == "unlinked" {
-		offset, _ := strconv.Atoi(req.Cursor)
-		skipped, cursor := 0, ""
-		var summary json.RawMessage
-		for {
-			q := url.Values{"filter": {"all"}, "limit": {"200"}}
-			if req.Q != "" {
-				q.Set("q", req.Q)
-			}
-			if cursor != "" {
-				q.Set("cursor", cursor)
-			}
-			var page mgp.Page
-			if err := client.GetInto(ctx, "/players", q, &page); err != nil {
-				return nil, GameMGPError(err)
-			}
-			if summary == nil {
-				summary = page.Summary
-			}
-			var batch []json.RawMessage
-			_ = json.Unmarshal(page.Items, &batch)
-			for _, it := range batch {
-				if _, ok := linked[pidOf(it)]; ok {
-					continue
-				}
-				out.Total++
-				if skipped < offset {
-					skipped++
-					continue
-				}
-				if len(items) < limit {
-					items = append(items, it)
-				}
-			}
-			if page.NextCursor == "" {
-				break
-			}
-			cursor = page.NextCursor
-		}
-		if offset+len(items) < int(out.Total) {
-			out.NextCursor = strconv.Itoa(offset + len(items))
-		}
-		uc.fillSummary(out, summary, len(linked))
-	} else {
-		q := url.Values{"limit": {strconv.Itoa(limit)}}
-		if req.Filter != "" {
-			q.Set("filter", req.Filter)
-		}
-		if req.Q != "" {
-			q.Set("q", req.Q)
-		}
-		if req.Cursor != "" {
-			q.Set("cursor", req.Cursor)
-		}
-		var page mgp.Page
-		if err := client.GetInto(ctx, "/players", q, &page); err != nil {
-			return nil, GameMGPError(err)
-		}
-		_ = json.Unmarshal(page.Items, &items)
-		out.NextCursor, out.Total = page.NextCursor, int32(page.Total)
-		uc.fillSummary(out, page.Summary, len(linked))
-		// 按通行证用户名搜索：MGP 不认识通行证，第一页补上绑定了匹配用户的玩家。
-		if req.Q != "" && req.Cursor == "" && (req.Filter == "" || req.Filter == "all") {
-			have := map[string]struct{}{}
-			for _, it := range items {
-				have[pidOf(it)] = struct{}{}
-			}
-			if links, err := uc.repo.FindLinksByUser(ctx, s.ID, req.Q, 10); err == nil {
-				for _, l := range links {
-					if _, ok := have[l.PID]; ok || l.PID == "" {
-						continue
-					}
-					raw, err := client.Get(ctx, "/players/"+url.PathEscape(l.PID), nil)
-					if err != nil {
-						continue
-					}
-					items = append([]json.RawMessage{raw}, items...)
-					out.Total++
-				}
-			}
-		}
-	}
-	if items == nil {
-		items = []json.RawMessage{}
-	}
-	raw, _ := json.Marshal(items)
-	out.Items = JSONValue(raw)
-	pids := make([]string, 0, len(items))
-	for _, it := range items {
-		pids = append(pids, pidOf(it))
-	}
-	links, err := uc.repo.LinksByPIDs(ctx, s.ID, pids)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	for _, l := range links {
-		out.Links = append(out.Links, gmLinkProto(l))
-	}
-	return out, nil
-}
-
-func (uc *GmUsecase) fillSummary(out *v1.ListGmPlayersResponse, raw json.RawMessage, linked int) {
-	var summary map[string]int32
-	_ = json.Unmarshal(raw, &summary)
-	for k, v := range summary {
-		out.Summary[k] = v
-	}
-	if all, ok := out.Summary["all"]; ok {
-		out.Summary["unlinked"] = max(all-int32(linked), 0)
-	}
-}
-
 func gmLinkProto(l *GmLink) *v1.GmPlayerLink {
 	return &v1.GmPlayerLink{
 		Pid:            l.PID,
@@ -344,115 +184,128 @@ func gmLinkProto(l *GmLink) *v1.GmPlayerLink {
 	}
 }
 
-// GetPlayer 玩家摘要 + 通行证绑定 + GM 记录数。
-func (uc *GmUsecase) GetPlayer(ctx context.Context, serverID, pid string) (*v1.GetGmPlayerResponse, error) {
-	s, client, err := uc.servers.ClientOf(ctx, serverID)
+// Links 这些玩家绑定的通行证。
+func (uc *GmUsecase) Links(ctx context.Context, serverID string, pids []string) ([]*v1.GmPlayerLink, error) {
+	links, err := uc.repo.LinksByPIDs(ctx, serverID, pids)
 	if err != nil {
-		return nil, err
+		return nil, ErrSystem(err)
 	}
-	raw, err := client.Get(ctx, "/players/"+url.PathEscape(pid), nil)
-	if err != nil {
-		return nil, GameMGPError(err)
-	}
-	out := &v1.GetGmPlayerResponse{Player: JSONValue(raw)}
-	if links, err := uc.repo.LinksByPIDs(ctx, s.ID, []string{pid}); err == nil && len(links) > 0 {
-		out.Link = gmLinkProto(links[0])
-	}
-	if n, err := uc.repo.CountByTarget(ctx, s.ID, pid); err == nil {
-		out.GmExecutions = int32(n)
+	out := make([]*v1.GmPlayerLink, 0, len(links))
+	for _, l := range links {
+		out = append(out, gmLinkProto(l))
 	}
 	return out, nil
 }
 
-// Proxy 透传一次 MGP GET（视图、报表、目录）。
-func (uc *GmUsecase) Proxy(ctx context.Context, serverID, path, query string) (json.RawMessage, error) {
-	_, client, err := uc.servers.ClientOf(ctx, serverID)
+// LinkedPIDs 已绑定通行证的全部玩家（按 pid 排序）。
+func (uc *GmUsecase) LinkedPIDs(ctx context.Context, serverID string) ([]string, error) {
+	linked, err := uc.repo.LinkedPIDs(ctx, serverID)
 	if err != nil {
-		return nil, err
+		return nil, ErrSystem(err)
 	}
-	raw, err := client.Get(ctx, path, MGPQuery(query))
-	if err != nil {
-		return nil, GameMGPError(err)
+	out := make([]string, 0, len(linked))
+	for pid := range linked {
+		out = append(out, pid)
 	}
-	return raw, nil
+	sort.Strings(out)
+	return out, nil
 }
 
-// targetsValid 按指令目标类型校验目标数量。
-func targetsValid(cmd *mgp.Command, targets []string) bool {
-	switch cmd.Target {
-	case mgp.TargetServer:
+// FindLinkedPIDs 按通行证用户名或昵称查找绑定的玩家。
+func (uc *GmUsecase) FindLinkedPIDs(ctx context.Context, serverID, q string, limit int) ([]string, error) {
+	links, err := uc.repo.FindLinksByUser(ctx, serverID, q, limit)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	out := make([]string, 0, len(links))
+	for _, l := range links {
+		if l.PID != "" {
+			out = append(out, l.PID)
+		}
+	}
+	return out, nil
+}
+
+// CountExecutions 涉及某玩家的 GM 记录数。
+func (uc *GmUsecase) CountExecutions(ctx context.Context, serverID, pid string) (int32, error) {
+	n, err := uc.repo.CountByTarget(ctx, serverID, pid)
+	if err != nil {
+		return 0, ErrSystem(err)
+	}
+	return int32(n), nil
+}
+
+// 操作的风险等级：low 直接执行；medium 执行前预览；high 玩家自助时开启了两步验证需要验证码；
+// danger 管理员需要输入玩家昵称确认。
+const (
+	RiskLow    = "low"
+	RiskMedium = "medium"
+	RiskHigh   = "high"
+	RiskDanger = "danger"
+)
+
+// 操作目标：player 单个玩家；players 1–GmMaxTargets 个玩家；server 无目标。
+const (
+	TargetPlayer  = "player"
+	TargetPlayers = "players"
+	TargetServer  = "server"
+)
+
+// GmMaxTargets 一次操作最多的玩家数。
+const GmMaxTargets = 200
+
+// GmOperation 一个操作的权限信息：标题、分组、风险、目标与是否允许开放给玩家自助。
+type GmOperation struct {
+	ID          string
+	Title       string
+	Group       string
+	Risk        string
+	Target      string
+	SelfService bool
+}
+
+// GmExecutionInput 一次操作的输入。Params 为操作参数（记入 GM 记录，审批时重放）。
+type GmExecutionInput struct {
+	Targets []string
+	Params  json.RawMessage
+	DryRun  bool
+	Summary map[string]string
+	Reason  string
+	Source  string
+}
+
+// GmCall 对一个目标调用游戏服务端（服务器操作 pid 为空），返回内容。
+type GmCall func(ctx context.Context, pid string, opt mgp.OperationOptions) (proto.Message, error)
+
+// GmTargetOutcome 操作对一个目标的结果：记录格式见 entschema.GmOutcome；Result 为调用返回的内容（失败时为空）。
+type GmTargetOutcome struct {
+	entschema.GmOutcome
+	Result proto.Message `json:"-"`
+}
+
+// targetsValid 按操作的目标类型校验目标数量。
+func targetsValid(op *GmOperation, targets []string) bool {
+	switch op.Target {
+	case TargetServer:
 		return len(targets) == 0
-	case mgp.TargetPlayer:
+	case TargetPlayer:
 		return len(targets) == 1 && targets[0] != ""
 	default:
-		if len(targets) == 0 || len(targets) > mgp.MaxTargets {
+		if len(targets) == 0 || len(targets) > GmMaxTargets {
 			return false
 		}
+		seen := map[string]bool{}
 		for _, t := range targets {
-			if t == "" {
+			if t == "" || seen[t] {
 				return false
 			}
+			seen[t] = true
 		}
 		return true
 	}
 }
 
-// playerName 读取玩家当前昵称（危险指令确认用）。
-func playerName(ctx context.Context, client *mgp.Client, pid string) (string, error) {
-	var p mgp.Player
-	if err := client.GetInto(ctx, "/players/"+url.PathEscape(pid), nil, &p); err != nil {
-		return "", err
-	}
-	return p.Name, nil
-}
-
-// Execute 执行一条 GM 指令并写 GM 记录。管理员与玩家自助（经 ExecuteSelfService）共用。
-func (uc *GmUsecase) Execute(ctx context.Context, actor GmActor, serverID, command string, in GmCommandInput) (*gen.GmExecution, json.RawMessage, error) {
-	s, client, err := uc.servers.ClientOf(ctx, serverID)
-	if err != nil {
-		return nil, nil, err
-	}
-	m, err := uc.servers.Manifest(ctx, s)
-	if err != nil {
-		return nil, nil, err
-	}
-	cmd, ok := m.Command(command)
-	if !ok {
-		return nil, nil, ErrGmCommandNotFound
-	}
-	if !targetsValid(cmd, in.Targets) {
-		return nil, nil, ErrGmTargets
-	}
-	in.Reason = strings.TrimSpace(in.Reason)
-	confirmed := false
-	if !in.DryRun && actor.Kind == "admin" {
-		if cmd.Risk == mgp.RiskDanger {
-			if strings.TrimSpace(in.ConfirmName) == "" {
-				return nil, nil, ErrGmConfirmRequired
-			}
-			for _, pid := range in.Targets {
-				name, err := playerName(ctx, client, pid)
-				if err != nil {
-					return nil, nil, GameMGPError(err)
-				}
-				if name != strings.TrimSpace(in.ConfirmName) {
-					return nil, nil, ErrGmConfirmMismatch
-				}
-			}
-			confirmed = true
-		}
-	}
-	e := uc.newExecution(s, cmd, actor, in)
-	e.Confirmed = confirmed
-	e.Status = "running"
-	e, err = uc.repo.CreateExecution(ctx, e)
-	if err != nil {
-		return nil, nil, ErrSystem(err)
-	}
-	return uc.run(ctx, client, cmd, e, in.Params)
-}
-
-func (uc *GmUsecase) newExecution(s *gen.GameServer, cmd *mgp.Command, actor GmActor, in GmCommandInput) *gen.GmExecution {
+func (uc *GmUsecase) newExecution(s *gen.GameServer, op *GmOperation, actor GmActor, in GmExecutionInput) *gen.GmExecution {
 	params := in.Params
 	if len(params) == 0 {
 		params = json.RawMessage("{}")
@@ -464,11 +317,11 @@ func (uc *GmUsecase) newExecution(s *gen.GameServer, cmd *mgp.Command, actor GmA
 	return &gen.GmExecution{
 		ID:           uuid.NewString(),
 		ServerID:     s.ID,
-		Command:      cmd.ID,
-		CommandTitle: cmd.Title,
-		CommandGroup: cmd.Group,
-		Risk:         cmd.Risk,
-		TargetKind:   cmd.Target,
+		Command:      op.ID,
+		CommandTitle: op.Title,
+		CommandGroup: op.Group,
+		Risk:         op.Risk,
+		TargetKind:   op.Target,
 		ActorID:      actor.UserID,
 		ActorName:    actor.Name,
 		ActorKind:    gmActorKind(actor.Kind),
@@ -479,113 +332,118 @@ func (uc *GmUsecase) newExecution(s *gen.GameServer, cmd *mgp.Command, actor GmA
 		TargetPids:   in.Targets,
 		Params:       string(params),
 		Summary:      in.Summary,
-		Reason:       in.Reason,
+		Reason:       strings.TrimSpace(in.Reason),
 		DryRun:       in.DryRun,
 		RequestID:    "momoko-" + uuid.NewString(),
 		Source:       in.Source,
 	}
 }
 
-// mgpReason MGP 对 high / danger 指令要求带原因（写进游戏服务端自己的日志）。管理端不再填写原因，
-// 由 Momoko 按「谁执行了哪条指令、来自哪里」生成；玩家自助申请带的是玩家自己写的理由。
-func mgpReason(e *gen.GmExecution) string {
-	if e.Reason != "" {
-		return e.Reason
+// Execute 校验目标，写一条 GM 记录，再对每个目标调用 call（单个目标失败不影响其他目标）。
+// names 为目标当前的昵称（记录用）。
+func (uc *GmUsecase) Execute(ctx context.Context, actor GmActor, s *gen.GameServer, op *GmOperation, in GmExecutionInput, names map[string]string, call GmCall) (*gen.GmExecution, []GmTargetOutcome, error) {
+	if !targetsValid(op, in.Targets) {
+		return nil, nil, ErrGmTargets
 	}
-	who := e.ActorName
-	if who == "" {
-		who = "Momoko"
+	e := uc.newExecution(s, op, actor, in)
+	e.Status = "running"
+	e, err := uc.repo.CreateExecution(ctx, e)
+	if err != nil {
+		return nil, nil, ErrSystem(err)
 	}
-	title := e.CommandTitle
-	if title == "" {
-		title = e.Command
-	}
-	if e.Source != "" {
-		return fmt.Sprintf("Momoko · %s · %s（%s）", who, title, e.Source)
-	}
-	return fmt.Sprintf("Momoko · %s · %s", who, title)
+	e, outcomes := uc.run(ctx, op, e, names, call)
+	return e, outcomes, nil
 }
 
-// run 调用 MGP 执行并把结果写回记录。
-func (uc *GmUsecase) run(ctx context.Context, client *mgp.Client, cmd *mgp.Command, e *gen.GmExecution, params json.RawMessage) (*gen.GmExecution, json.RawMessage, error) {
-	if len(params) == 0 {
-		params = json.RawMessage(e.Params)
-	}
-	body := mgp.CommandRequest{
-		Targets:   e.TargetPids,
-		Params:    params,
-		Reason:    mgpReason(e),
-		RequestID: e.RequestID,
-		DryRun:    e.DryRun,
-		Operator:  e.ActorName,
-	}
-	if body.Targets == nil {
-		body.Targets = []string{}
+// run 逐个目标调用并把结果写回记录。幂等键为记录的 requestId（玩家操作再加上 pid），
+// 审批后重放与网络重试都不会让游戏服务端重复执行。
+func (uc *GmUsecase) run(ctx context.Context, op *GmOperation, e *gen.GmExecution, names map[string]string, call GmCall) (*gen.GmExecution, []GmTargetOutcome) {
+	opt := mgp.OperationOptions{
+		Operator: e.ActorName,
+		DryRun:   e.DryRun,
 	}
 	start := time.Now()
-	raw, err := client.Do(ctx, mgp.Call{
-		Method:    "POST",
-		Path:      "/commands/" + url.PathEscape(cmd.ID),
-		Body:      body,
-		RequestID: e.RequestID,
-		Timeout:   mgp.CommandTimeout,
-	})
-	now := time.Now()
-	e.DurationMs, e.FinishedAt = int(now.Sub(start).Milliseconds()), &now
-	if err != nil {
-		e.Status = "failed"
-		e.ErrorCode = mgp.CodeOf(err)
-		e.ErrorMessage = err.Error()
-		if me, ok := err.(*mgp.Error); ok {
-			e.ErrorMessage = me.Message
-		}
-		e.FailedCount = len(e.TargetPids)
-		saved, saveErr := uc.repo.SaveExecution(context.WithoutCancel(ctx), e)
-		if saveErr != nil {
-			uc.log.Errorf("save gm execution %s: %v", e.ID, saveErr)
-			saved = e
-		}
-		return saved, nil, nil
+	targets := e.TargetPids
+	if op.Target == TargetServer {
+		targets = []string{""}
 	}
-	var result mgp.CommandResult
-	_ = json.Unmarshal(raw, &result)
-	e.Result = string(raw)
-	byPID := map[string]string{}
-	var backups []string
-	for _, r := range result.Results {
-		byPID[r.PID] = r.Name
-		if r.Status == "success" {
-			e.SuccessCount++
-		} else {
-			e.FailedCount++
-			if e.ErrorCode == "" {
-				e.ErrorCode, e.ErrorMessage = r.Code, r.Message
+	outcomes := make([]GmTargetOutcome, 0, len(targets))
+	for _, pid := range targets {
+		opt.IdempotencyKey = e.RequestID
+		if pid != "" {
+			opt.IdempotencyKey += ":" + pid
+		}
+		o := GmTargetOutcome{
+			GmOutcome: entschema.GmOutcome{
+				PID:    pid,
+				Name:   names[pid],
+				Status: "success",
+			},
+		}
+		result, err := call(ctx, pid, opt)
+		if err == nil {
+			o.Result = result
+			o.Data, err = protojson.Marshal(result)
+		}
+		if err != nil {
+			o.Status, o.Result, o.Data = "failed", nil, nil
+			var me *mgp.Error
+			if errors.As(err, &me) {
+				o.Code, o.Message = me.Code, me.Message
+			} else {
+				o.Code, o.Message = "INTERNAL", err.Error()
 			}
 		}
-		if r.BackupID != "" && r.BackupID != "0" {
-			backups = append(backups, r.BackupID.String())
+		outcomes = append(outcomes, o)
+	}
+	now := time.Now()
+	e.DurationMs, e.FinishedAt = int(now.Sub(start).Milliseconds()), &now
+	e.SuccessCount, e.FailedCount = 0, 0
+	for _, o := range outcomes {
+		if o.Status == "success" {
+			e.SuccessCount++
+			continue
+		}
+		e.FailedCount++
+		if e.ErrorCode == "" {
+			e.ErrorCode, e.ErrorMessage = o.Code, o.Message
 		}
 	}
-	e.BackupRef = strings.Join(backups, ",")
 	for i, t := range e.Targets {
-		if name, ok := byPID[t.PID]; ok && name != "" {
+		if name := names[t.PID]; name != "" {
 			e.Targets[i].Name = name
 		}
 	}
 	switch {
-	case len(result.Results) == 0 || e.FailedCount == 0:
+	case e.FailedCount == 0:
 		e.Status = "success"
 	case e.SuccessCount == 0:
 		e.Status = "failed"
 	default:
 		e.Status = "partial"
 	}
+	raw, _ := json.Marshal(outcomes)
+	e.Result = string(raw)
 	saved, err := uc.repo.SaveExecution(context.WithoutCancel(ctx), e)
 	if err != nil {
 		uc.log.Errorf("save gm execution %s: %v", e.ID, err)
 		saved = e
 	}
-	return saved, raw, nil
+	return saved, outcomes
+}
+
+// SetBackupRef 记下操作产生的存档备份 id。
+func (uc *GmUsecase) SetBackupRef(ctx context.Context, e *gen.GmExecution, ids []string) *gen.GmExecution {
+	if len(ids) == 0 {
+		return e
+	}
+	e.BackupRef = strings.Join(ids, ",")
+	saved, err := uc.repo.SaveExecution(context.WithoutCancel(ctx), e)
+	if err != nil {
+		uc.log.Errorf("save gm execution %s: %v", e.ID, err)
+		return e
+	}
+	return saved
 }
 
 // ListExecutions GM 记录列表、时间范围内的计数与全部待审批。
@@ -671,7 +529,6 @@ func GmExecutionProto(e *gen.GmExecution, withResult bool) *v1.GmExecution {
 		Platform:     e.Platform,
 		Summary:      e.Summary,
 		Reason:       e.Reason,
-		Confirmed:    e.Confirmed,
 		DryRun:       e.DryRun,
 		Status:       string(e.Status),
 		SuccessCount: int32(e.SuccessCount),
@@ -699,15 +556,16 @@ func GmExecutionProto(e *gen.GmExecution, withResult bool) *v1.GmExecution {
 	if e.FinishedAt != nil {
 		out.FinishedAt = timestamppb.New(*e.FinishedAt)
 	}
-	if withResult && e.Result != "" {
-		// 只透传结果里的 results / summary，不含任何请求参数。
-		var r struct {
-			Results json.RawMessage `json:"results"`
-			Summary json.RawMessage `json:"summary"`
-		}
-		if json.Unmarshal([]byte(e.Result), &r) == nil {
-			raw, _ := json.Marshal(r)
-			out.Result = JSONValue(raw)
+	if withResult {
+		for _, o := range entschema.ParseGmOutcomes(e.Result) {
+			out.Results = append(out.Results, &v1.GmExecutionResult{
+				Pid:     o.PID,
+				Name:    o.Name,
+				Status:  o.Status,
+				Code:    o.Code,
+				Message: o.Message,
+				Data:    string(o.Data),
+			})
 		}
 	}
 	return out
@@ -745,38 +603,22 @@ func (uc *GmUsecase) pendingOf(ctx context.Context, serverID, id string) (*gen.G
 	return e, nil
 }
 
-// Approve 批准玩家的申请并执行（危险指令需要输入玩家昵称）。
-func (uc *GmUsecase) Approve(ctx context.Context, reviewer GmActor, serverID, id, confirmName, note string) (*v1.GmExecution, error) {
+// GmReplay 按记录给出它的操作、按保存的参数调用游戏服务端的函数与目标当前的昵称。
+type GmReplay func(ctx context.Context, s *gen.GameServer, e *gen.GmExecution) (*GmOperation, GmCall, map[string]string, error)
+
+// Approve 批准玩家的申请并执行。
+func (uc *GmUsecase) Approve(ctx context.Context, reviewer GmActor, serverID, id, note string, replay GmReplay) (*v1.GmExecution, error) {
 	e, err := uc.pendingOf(ctx, serverID, id)
 	if err != nil {
 		return nil, err
 	}
-	s, client, err := uc.servers.ClientOf(ctx, serverID)
+	s, err := uc.servers.Get(ctx, serverID)
 	if err != nil {
 		return nil, err
 	}
-	m, err := uc.servers.Manifest(ctx, s)
+	op, call, names, err := replay(ctx, s, e)
 	if err != nil {
 		return nil, err
-	}
-	cmd, ok := m.Command(e.Command)
-	if !ok {
-		return nil, ErrGmCommandNotFound
-	}
-	if cmd.Risk == mgp.RiskDanger {
-		if strings.TrimSpace(confirmName) == "" {
-			return nil, ErrGmConfirmRequired
-		}
-		for _, pid := range e.TargetPids {
-			name, err := playerName(ctx, client, pid)
-			if err != nil {
-				return nil, GameMGPError(err)
-			}
-			if name != strings.TrimSpace(confirmName) {
-				return nil, ErrGmConfirmMismatch
-			}
-		}
-		e.Confirmed = true
 	}
 	now := time.Now()
 	e.ReviewedBy, e.ReviewerName, e.ReviewedAt, e.ReviewNote = reviewer.UserID, reviewer.Name, &now, strings.TrimSpace(note)
@@ -784,10 +626,7 @@ func (uc *GmUsecase) Approve(ctx context.Context, reviewer GmActor, serverID, id
 	if e, err = uc.repo.SaveExecution(ctx, e); err != nil {
 		return nil, ErrSystem(err)
 	}
-	e, _, err = uc.run(ctx, client, cmd, e, nil)
-	if err != nil {
-		return nil, err
-	}
+	e, _ = uc.run(ctx, op, e, names, call)
 	return GmExecutionProto(e, true), nil
 }
 
@@ -810,13 +649,9 @@ func (uc *GmUsecase) Reject(ctx context.Context, reviewer GmActor, serverID, id,
 	return GmExecutionProto(e, true), nil
 }
 
-// SelfServicePolicies 玩家自助设置：只列出 manifest 里允许自助的指令（没有设置的视为未开放）。
-func (uc *GmUsecase) SelfServicePolicies(ctx context.Context, serverID string) ([]*v1.GmSelfServicePolicy, *gen.GameServer, error) {
+// SelfServicePolicies 玩家自助设置：只列出 ops 中允许开放给玩家自助的操作（没有设置的视为未开放）。
+func (uc *GmUsecase) SelfServicePolicies(ctx context.Context, serverID string, ops []GmOperation) ([]*v1.GmSelfServicePolicy, *gen.GameServer, error) {
 	s, err := uc.servers.Get(ctx, serverID)
-	if err != nil {
-		return nil, nil, err
-	}
-	m, err := uc.servers.Manifest(ctx, s)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -829,20 +664,18 @@ func (uc *GmUsecase) SelfServicePolicies(ctx context.Context, serverID string) (
 		byCmd[r.Command] = r
 	}
 	var out []*v1.GmSelfServicePolicy
-	for i := range m.Commands {
-		cmd := &m.Commands[i]
-		if !cmd.SelfService {
+	for _, op := range ops {
+		if !op.SelfService {
 			continue
 		}
 		p := &v1.GmSelfServicePolicy{
-			Command: cmd.ID,
-			Title:   cmd.Title,
-			Group:   cmd.Group,
-			Risk:    cmd.Risk,
-			Target:  cmd.Target,
-			Params:  JSONValue(cmd.Params),
+			Command: op.ID,
+			Title:   op.Title,
+			Group:   op.Group,
+			Risk:    op.Risk,
+			Target:  op.Target,
 		}
-		if r, ok := byCmd[cmd.ID]; ok {
+		if r, ok := byCmd[op.ID]; ok {
 			p.Enabled, p.DailyLimit, p.CooldownSec = r.Enabled, int32(r.DailyLimit), int32(r.CooldownSec)
 			p.NeedApproval, p.PlayerNote, p.UpdatedByName = r.NeedApproval, r.PlayerNote, r.UpdatedByName
 			p.UpdateTime = timestamppb.New(r.UpdateTime)
@@ -852,9 +685,9 @@ func (uc *GmUsecase) SelfServicePolicies(ctx context.Context, serverID string) (
 	return out, s, nil
 }
 
-// UpdateSelfService 修改一条指令的玩家自助设置（立即生效）。
-func (uc *GmUsecase) UpdateSelfService(ctx context.Context, actor GmActor, req *v1.UpdateGmSelfServiceRequest) (*v1.GmSelfServicePolicy, error) {
-	policies, _, err := uc.SelfServicePolicies(ctx, req.ServerId)
+// UpdateSelfService 修改一个操作的玩家自助设置（立即生效）。
+func (uc *GmUsecase) UpdateSelfService(ctx context.Context, actor GmActor, req *v1.UpdateGmSelfServiceRequest, ops []GmOperation) (*v1.GmSelfServicePolicy, error) {
+	policies, _, err := uc.SelfServicePolicies(ctx, req.ServerId, ops)
 	if err != nil {
 		return nil, err
 	}
@@ -866,7 +699,7 @@ func (uc *GmUsecase) UpdateSelfService(ctx context.Context, actor GmActor, req *
 		}
 	}
 	if target == nil {
-		return nil, response.BadRequest(400, "这条指令不允许开放给玩家")
+		return nil, response.BadRequest(400, "这个操作不允许开放给玩家")
 	}
 	if req.DailyLimit < 0 || req.DailyLimit > 1000 || req.CooldownSec < 0 || req.CooldownSec > 30*86400 {
 		return nil, response.BadRequest(400, "次数或间隔超出范围")
@@ -896,140 +729,6 @@ func (uc *GmUsecase) UpdateSelfService(ctx context.Context, actor GmActor, req *
 	return target, nil
 }
 
-// SelfServiceUsage 一个玩家对一条自助指令的使用情况。
-type SelfServiceUsage struct {
-	Policy        *v1.GmSelfServicePolicy
-	UsedToday     int
-	Remaining     int // -1 不限
-	NextAvailable *time.Time
-	Last          *gen.GmExecution
-	HasPending    bool
-}
-
-// SelfServiceFor 列出某玩家在某服务器上可用的自助指令（只含已开放的）与使用情况。
-func (uc *GmUsecase) SelfServiceFor(ctx context.Context, serverID, actorID string) ([]*SelfServiceUsage, error) {
-	policies, s, err := uc.SelfServicePolicies(ctx, serverID)
-	if err != nil {
-		return nil, err
-	}
-	dayStart := uc.servers.DayStart(s, time.Now())
-	var out []*SelfServiceUsage
-	for _, p := range policies {
-		if !p.Enabled {
-			continue
-		}
-		u := &SelfServiceUsage{Policy: p, Remaining: -1}
-		if n, err := uc.repo.CountUses(ctx, serverID, actorID, p.Command, dayStart); err == nil {
-			u.UsedToday = n
-			if p.DailyLimit > 0 {
-				u.Remaining = max(int(p.DailyLimit)-n, 0)
-			}
-		}
-		if last, err := uc.repo.LastUse(ctx, serverID, actorID, p.Command); err == nil && last != nil {
-			u.Last = last
-			u.HasPending = last.Status == "pending"
-			if p.CooldownSec > 0 {
-				next := last.CreateTime.Add(time.Duration(p.CooldownSec) * time.Second)
-				if next.After(time.Now()) {
-					u.NextAvailable = &next
-				}
-			}
-		}
-		out = append(out, u)
-	}
-	return out, nil
-}
-
-// ExecuteSelfService 玩家执行开放给自己的 GM（目标强制为自己绑定的玩家）：
-// 检查开放状态、每天次数（服务器时区的自然日）、间隔；需要审批时只写一条待审批记录。
-func (uc *GmUsecase) ExecuteSelfService(ctx context.Context, actor GmActor, serverID, command, pid string, params json.RawMessage, reason string, summary map[string]string) (*gen.GmExecution, json.RawMessage, error) {
-	actor.Kind = "player"
-	if actor.Channel == "" {
-		actor.Channel = "passport"
-	}
-	lockKey := serverID + "\x00" + actor.UserID + "\x00" + command
-	lock, _ := uc.actorLocks.LoadOrStore(lockKey, &sync.Mutex{})
-	mu := lock.(*sync.Mutex)
-	mu.Lock()
-	defer mu.Unlock()
-
-	s, client, err := uc.servers.ClientOf(ctx, serverID)
-	if err != nil {
-		return nil, nil, err
-	}
-	m, err := uc.servers.Manifest(ctx, s)
-	if err != nil {
-		return nil, nil, err
-	}
-	cmd, ok := m.Command(command)
-	if !ok || !cmd.SelfService {
-		return nil, nil, ErrGmSelfServiceClosed
-	}
-	policy, err := uc.repo.GetSelfService(ctx, serverID, command)
-	if err != nil || policy == nil || !policy.Enabled {
-		return nil, nil, ErrGmSelfServiceClosed
-	}
-	now := time.Now()
-	if policy.DailyLimit > 0 {
-		n, err := uc.repo.CountUses(ctx, serverID, actor.UserID, command, uc.servers.DayStart(s, now))
-		if err != nil {
-			return nil, nil, ErrSystem(err)
-		}
-		if n >= policy.DailyLimit {
-			return nil, nil, ErrGmSelfServiceLimit
-		}
-	}
-	if last, err := uc.repo.LastUse(ctx, serverID, actor.UserID, command); err == nil && last != nil {
-		if last.Status == "pending" {
-			return nil, nil, ErrGmSelfServicePend
-		}
-		if policy.CooldownSec > 0 && now.Before(last.CreateTime.Add(time.Duration(policy.CooldownSec)*time.Second)) {
-			return nil, nil, ErrGmSelfServiceWait
-		}
-	}
-	targets := []string{pid}
-	if cmd.Target == mgp.TargetServer {
-		targets = nil
-	}
-	in := GmCommandInput{Targets: targets, Params: params, Reason: strings.TrimSpace(reason), Summary: summary, Source: "self-service"}
-	e := uc.newExecution(s, cmd, actor, in)
-	if policy.NeedApproval {
-		e.Status = "pending"
-		e, err = uc.repo.CreateExecution(ctx, e)
-		if err != nil {
-			return nil, nil, ErrSystem(err)
-		}
-		return e, nil, nil
-	}
-	e.Status = "running"
-	e, err = uc.repo.CreateExecution(ctx, e)
-	if err != nil {
-		return nil, nil, ErrSystem(err)
-	}
-	return uc.run(ctx, client, cmd, e, params)
-}
-
-// configDomainInfo 读取 MGP 配置域列表。
-func (uc *GmUsecase) mgpConfigs(ctx context.Context, client *mgp.Client) ([]struct {
-	ID        string `json:"id"`
-	Title     string `json:"title"`
-	File      string `json:"file"`
-	Revision  string `json:"revision"`
-	HotReload bool   `json:"hotReload"`
-}, error) {
-	var list []struct {
-		ID        string `json:"id"`
-		Title     string `json:"title"`
-		File      string `json:"file"`
-		Revision  string `json:"revision"`
-		HotReload bool   `json:"hotReload"`
-	}
-	if err := client.GetInto(ctx, "/configs", nil, &list); err != nil {
-		return nil, GameMGPError(err)
-	}
-	return list, nil
-}
-
 func configDraftProto(d *gen.GameConfigRevision) *v1.GmConfigDraft {
 	if d == nil {
 		return nil
@@ -1044,227 +743,8 @@ func configDraftProto(d *gen.GameConfigRevision) *v1.GmConfigDraft {
 	}
 }
 
-// ListConfigs 配置域列表（服务端 revision + 草稿 + 最近发布）。
-func (uc *GmUsecase) ListConfigs(ctx context.Context, serverID string) (*v1.ListGmConfigsResponse, error) {
-	_, client, err := uc.servers.ClientOf(ctx, serverID)
-	if err != nil {
-		return nil, err
-	}
-	list, err := uc.mgpConfigs(ctx, client)
-	if err != nil {
-		return nil, err
-	}
-	last, err := uc.repo.LastPublished(ctx, serverID)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	out := &v1.ListGmConfigsResponse{}
-	for _, c := range list {
-		d := &v1.GmConfigDomain{Id: c.ID, Title: c.Title, File: c.File, HotReload: c.HotReload, Revision: c.Revision}
-		if draft, err := uc.repo.GetConfigDraft(ctx, serverID, c.ID); err == nil && draft != nil {
-			meta := configDraftProto(draft)
-			meta.Content = ""
-			d.Draft = meta
-		}
-		if r, ok := last[c.ID]; ok {
-			d.LastSeq, d.LastPublishedBy = int32(r.Seq), r.AuthorName
-			if r.PublishedAt != nil {
-				d.LastPublishedAt = timestamppb.New(*r.PublishedAt)
-			}
-		}
-		out.Items = append(out.Items, d)
-	}
-	return out, nil
-}
-
-// GetConfig 读取配置域：服务端内容与 revision，以及草稿。
-func (uc *GmUsecase) GetConfig(ctx context.Context, serverID, domain string) (*v1.GetGmConfigResponse, error) {
-	_, client, err := uc.servers.ClientOf(ctx, serverID)
-	if err != nil {
-		return nil, err
-	}
-	var doc struct {
-		ID        string          `json:"id"`
-		Title     string          `json:"title"`
-		File      string          `json:"file"`
-		Revision  string          `json:"revision"`
-		HotReload bool            `json:"hotReload"`
-		Content   json.RawMessage `json:"content"`
-	}
-	if err := client.GetInto(ctx, "/configs/"+url.PathEscape(domain), nil, &doc); err != nil {
-		return nil, GameMGPError(err)
-	}
-	d := &v1.GmConfigDomain{Id: doc.ID, Title: doc.Title, File: doc.File, HotReload: doc.HotReload, Revision: doc.Revision}
-	if draft, err := uc.repo.GetConfigDraft(ctx, serverID, domain); err == nil && draft != nil {
-		d.Draft = configDraftProto(draft)
-	}
-	if last, err := uc.repo.LastPublished(ctx, serverID); err == nil {
-		if r, ok := last[domain]; ok {
-			d.LastSeq, d.LastPublishedBy = int32(r.Seq), r.AuthorName
-			if r.PublishedAt != nil {
-				d.LastPublishedAt = timestamppb.New(*r.PublishedAt)
-			}
-		}
-	}
-	return &v1.GetGmConfigResponse{Domain: d, Content: string(doc.Content)}, nil
-}
-
 func validJSON(content string) bool {
 	return content != "" && json.Valid([]byte(content))
-}
-
-// SaveConfigDraft 保存草稿（每个配置域一份）。
-func (uc *GmUsecase) SaveConfigDraft(ctx context.Context, actor GmActor, req *v1.SaveGmConfigDraftRequest) (*v1.GmConfigDraft, error) {
-	if _, err := uc.servers.Get(ctx, req.ServerId); err != nil {
-		return nil, err
-	}
-	if !validJSON(req.Content) {
-		return nil, ErrGmConfigInvalidJSON
-	}
-	saved, err := uc.repo.SaveConfigDraft(ctx, &gen.GameConfigRevision{
-		ServerID:     req.ServerId,
-		Domain:       req.Domain,
-		BaseRevision: req.BaseRevision,
-		Content:      req.Content,
-		AuthorID:     actor.UserID,
-		AuthorName:   actor.Name,
-		Comment:      strings.TrimSpace(req.Comment),
-	})
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return configDraftProto(saved), nil
-}
-
-// DiscardConfigDraft 放弃草稿。
-func (uc *GmUsecase) DiscardConfigDraft(ctx context.Context, serverID, domain string) error {
-	if err := uc.repo.DeleteConfigDraft(ctx, serverID, domain); err != nil {
-		return ErrSystem(err)
-	}
-	return nil
-}
-
-// ValidateConfig 用服务端的加载逻辑校验内容（不发布）。
-func (uc *GmUsecase) ValidateConfig(ctx context.Context, serverID, domain, content string) (*v1.ValidateGmConfigResponse, error) {
-	if !validJSON(content) {
-		return &v1.ValidateGmConfigResponse{Valid: false, Error: "invalid JSON"}, nil
-	}
-	_, client, err := uc.servers.ClientOf(ctx, serverID)
-	if err != nil {
-		return nil, err
-	}
-	raw, err := client.Do(ctx, mgp.Call{
-		Method:  "PUT",
-		Path:    "/configs/" + url.PathEscape(domain),
-		Body:    mgp.ConfigPut{Content: json.RawMessage(content), DryRun: true},
-		Timeout: time.Minute,
-	})
-	if err != nil {
-		return nil, GameMGPError(err)
-	}
-	var r mgp.ConfigPutResult
-	_ = json.Unmarshal(raw, &r)
-	return &v1.ValidateGmConfigResponse{Valid: r.Valid, Error: r.Error}, nil
-}
-
-// PublishConfig 发布配置：写回服务端并热重载，记一个版本与一条 config.publish GM 记录。
-func (uc *GmUsecase) PublishConfig(ctx context.Context, actor GmActor, req *v1.PublishGmConfigRequest) (*v1.PublishGmConfigResponse, error) {
-	s, client, err := uc.servers.ClientOf(ctx, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	content, base := req.Content, req.BaseRevision
-	draft, _ := uc.repo.GetConfigDraft(ctx, req.ServerId, req.Domain)
-	if content == "" {
-		if draft == nil {
-			return nil, ErrGmConfigNoDraft
-		}
-		content = draft.Content
-		if base == "" {
-			base = draft.BaseRevision
-		}
-	}
-	if !validJSON(content) {
-		return nil, ErrGmConfigInvalidJSON
-	}
-	last, _ := uc.repo.LastPublished(ctx, req.ServerId)
-	fromSeq := 0
-	if r, ok := last[req.Domain]; ok {
-		fromSeq = r.Seq
-	}
-	title := req.Domain
-	if m, err := uc.servers.Manifest(ctx, s); err == nil {
-		for _, c := range m.Configs {
-			if c.ID == req.Domain && c.Title != "" {
-				title = c.Title
-			}
-		}
-	}
-	e := &gen.GmExecution{
-		ID:         uuid.NewString(),
-		ServerID:   s.ID,
-		Command:    "config.publish",
-		Risk:       mgp.RiskHigh,
-		TargetKind: mgp.TargetServer,
-		ActorID:    actor.UserID,
-		ActorName:  actor.Name,
-		ActorKind:  gmActorKind(actor.Kind),
-		Channel:    gmChannel(actor.Channel),
-		ClientIP:   actor.IP,
-		Platform:   actor.Platform,
-		Params:     "{}",
-		Summary:    map[string]string{"domain": req.Domain, "title": title, "fromSeq": strconv.Itoa(fromSeq), "toSeq": strconv.Itoa(fromSeq + 1), "comment": strings.TrimSpace(req.Comment)},
-		Status:     "running",
-		RequestID:  "momoko-" + uuid.NewString(),
-		Source:     "config:" + req.Domain,
-	}
-	if e, err = uc.repo.CreateExecution(ctx, e); err != nil {
-		return nil, ErrSystem(err)
-	}
-	start := time.Now()
-	raw, err := client.Do(ctx, mgp.Call{
-		Method:    "PUT",
-		Path:      "/configs/" + url.PathEscape(req.Domain),
-		Body:      mgp.ConfigPut{Content: json.RawMessage(content), Revision: base, Operator: actor.Name, Comment: strings.TrimSpace(req.Comment)},
-		RequestID: e.RequestID,
-		Timeout:   time.Minute,
-	})
-	now := time.Now()
-	e.DurationMs, e.FinishedAt = int(now.Sub(start).Milliseconds()), &now
-	if err != nil {
-		e.Status, e.ErrorCode, e.ErrorMessage = "failed", mgp.CodeOf(err), err.Error()
-		_, _ = uc.repo.SaveExecution(context.WithoutCancel(ctx), e)
-		if mgp.CodeOf(err) == "REVISION_MISMATCH" {
-			return nil, ErrGmConfigConflict
-		}
-		return nil, GameMGPError(err)
-	}
-	var r mgp.ConfigPutResult
-	_ = json.Unmarshal(raw, &r)
-	e.Status, e.Result, e.SuccessCount = "success", string(raw), 1
-	e.Summary["revision"] = r.Revision
-	rev, err := uc.repo.PublishConfig(ctx, &gen.GameConfigRevision{
-		ServerID:     s.ID,
-		Domain:       req.Domain,
-		Revision:     r.Revision,
-		BaseRevision: base,
-		Content:      content,
-		AuthorID:     actor.UserID,
-		AuthorName:   actor.Name,
-		Comment:      strings.TrimSpace(req.Comment),
-		PublishedAt:  &now,
-		ExecutionID:  e.ID,
-	})
-	if err != nil {
-		uc.log.Errorf("record config revision: %v", err)
-	}
-	seq := fromSeq + 1
-	if rev != nil {
-		seq = rev.Seq
-		e.Summary["toSeq"] = strconv.Itoa(seq)
-	}
-	_, _ = uc.repo.SaveExecution(context.WithoutCancel(ctx), e)
-	return &v1.PublishGmConfigResponse{Revision: r.Revision, Seq: int32(seq), ExecutionId: e.ID}, nil
 }
 
 // ConfigRevisionProto 转为接口结构。
@@ -1288,29 +768,4 @@ func ConfigRevisionProto(r *gen.GameConfigRevision, withContent bool) *v1.GmConf
 		out.Content = r.Content
 	}
 	return out
-}
-
-// ListConfigRevisions 版本记录。
-func (uc *GmUsecase) ListConfigRevisions(ctx context.Context, req *v1.ListGmConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error) {
-	items, total, err := uc.repo.ListConfigRevisions(ctx, req.ServerId, req.Domain, int(req.Page), int(req.PageSize))
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	out := &v1.ListGmConfigRevisionsResponse{Total: int32(total)}
-	for _, r := range items {
-		out.Items = append(out.Items, ConfigRevisionProto(r, false))
-	}
-	return out, nil
-}
-
-// GetConfigRevision 某个版本的内容。
-func (uc *GmUsecase) GetConfigRevision(ctx context.Context, serverID, domain, id string) (*v1.GmConfigRevision, error) {
-	r, err := uc.repo.GetConfigRevision(ctx, id)
-	if gen.IsNotFound(err) || (err == nil && (r.ServerID != serverID || r.Domain != domain)) {
-		return nil, response.BadRequest(404, "版本不存在")
-	}
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return ConfigRevisionProto(r, true), nil
 }

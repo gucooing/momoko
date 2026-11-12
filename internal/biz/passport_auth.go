@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	"github.com/google/uuid"
 
 	v1 "momoko/api/gen/v1"
@@ -657,19 +659,24 @@ func (uc *PassportUsecase) ResetPassword(ctx context.Context, req *v1.PassportRe
 
 // notify 写一条消息；失败只记日志。
 func (uc *PassportUsecase) notify(ctx context.Context, userID, kind, serverID string, params map[string]string) {
+	passportNotify(ctx, uc.repo, uc.log, userID, kind, serverID, params)
+}
+
+// passportNotify 给通行证用户写一条消息（玩家端与后台的操作都会通知玩家）；失败只记日志。
+func passportNotify(ctx context.Context, repo PassportRepo, logger *log.Helper, userID, kind, serverID string, params map[string]string) {
 	if userID == "" {
 		return
 	}
 	if params == nil {
 		params = map[string]string{}
 	}
-	if err := uc.repo.AddMessages(context.WithoutCancel(ctx), []*gen.PassportMessage{{
+	if err := repo.AddMessages(context.WithoutCancel(ctx), []*gen.PassportMessage{{
 		ID:       NewMessageID(),
 		UserID:   userID,
 		Kind:     kind,
 		ServerID: serverID,
 		Params:   params,
 	}}); err != nil {
-		uc.log.Warnf("add passport message: %v", err)
+		logger.Warnf("add passport message: %v", err)
 	}
 }

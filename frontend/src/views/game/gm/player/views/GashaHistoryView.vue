@@ -1,5 +1,5 @@
 <!-- 抽卡记录：玩家全部抽卡的合计（MGP summary），每次抽卡的时间、卡池横幅与名称（MGP 卡池目录）、抽数、消耗、抽到的卡
-     （稀有度描边，NEW / UP 标记）。可按卡池筛选（从 MGP 卡池目录搜索）；按卡池名或抽到的卡名模糊搜索时读出全部记录在本地筛选。 -->
+     （稀有度描边，NEW / UP 标记）。可按卡池筛选（从卡池目录搜索），按抽到的卡名搜索（解析成卡 ID）；筛选与分页由服务端完成。 -->
 <template>
   <div class="pv">
     <div class="pv__line">
@@ -16,27 +16,27 @@
       <AppDropdown align="end" :width="360">
         <template #trigger>
           <button type="button" class="gh__chip">
-            {{ gashaId ? t('gmData.gasha.filterOne', { name: lookup.name('gasha', gashaId) }) : t('gmData.gasha.filterAll') }}
+            {{ gashaId ? t('gmData.gasha.filterOne', { name: gashaName || lookup.name('gasha', gashaId) }) : t('gmData.gasha.filterAll') }}
             <component :is="menuStore.iconComponents['HOutline:ChevronUpDownIcon']" class="gh__chip-icon" />
           </button>
         </template>
         <template #default="{ close }">
           <div class="gh__pick">
             <button v-if="gashaId" type="button" class="gh__pick-all" @click="pick(''); close()">{{ t('gmData.gasha.filterAll') }}</button>
-            <GmCatalogSearch kind="gasha" :selected-id="gashaId" @pick="(e) => (pick(e.id), close())" />
+            <GmCatalogSearch kind="gasha" :selected-id="gashaId" @pick="(e) => (pick(e.id, e.name), close())" />
           </div>
         </template>
       </AppDropdown>
     </div>
-    <ListToolbar v-model:keyword="keyword" :placeholder="t('gmData.gasha.search')" />
+    <ListToolbar v-model:keyword="search.keyword.value" :placeholder="t('gmData.gasha.search')" />
 
-    <div v-if="list.error.value || searchError" class="pv__error">{{ list.error.value || searchError }}</div>
-    <div v-if="searchLoading" class="pv__hint">{{ t('gmData.common.searching') }}</div>
+    <div v-if="list.error.value || search.error.value" class="pv__error">{{ list.error.value || search.error.value }}</div>
+    <div v-if="search.loading.value" class="pv__hint">{{ t('gmData.common.searching') }}</div>
     <div v-else-if="list.loading.value && !list.items.value.length" class="pv__hint">{{ t('gmData.common.loading') }}</div>
     <EmptyState
       v-else-if="!shownDraws.length"
       icon="HOutline:SparklesIcon"
-      :title="searching ? t('gmData.common.noMatch') : t('gmData.gasha.empty')"
+      :title="filtered ? t('gmData.common.noMatch') : t('gmData.gasha.empty')"
     />
 
     <div v-else class="gh__list">
@@ -44,7 +44,7 @@
         <span class="gh__when pv__dim m-num">{{ when(d.createdAt) }}</span>
         <span class="gh__gasha">
           <GameImage :src="lookup.image('gasha', d.gashaId)" class="gh__banner" width="160" height="56" />
-          <span class="pv__dim pv__ellipsis" :title="lookup.name('gasha', d.gashaId)">{{ lookup.name('gasha', d.gashaId) }}</span>
+          <span class="pv__dim pv__ellipsis" :title="drawGashaName(d)">{{ drawGashaName(d) }}</span>
         </span>
         <span class="gh__count pv__strong">{{ t('gmData.gasha.draws', { n: d.drawCount }) }}</span>
         <span class="gh__cost">
@@ -67,12 +67,14 @@
       </article>
     </div>
 
-    <div class="pv__foot">
-      <span v-if="searching">{{ t('gmData.common.matched', { n: shownDraws.length }) }}</span>
-      <span v-else>{{ t('gmData.common.loadedN', { n: list.items.value.length }) }}</span>
-      <button v-if="!searching && list.nextCursor.value" type="button" class="pv__more" :disabled="list.loading.value" @click="list.more()">
-        {{ list.loading.value ? t('gmData.common.loading') : t('gmData.common.loadMore') }}
-      </button>
+    <div v-if="list.total.value" class="pv__foot">
+      <span class="m-num">{{ t('gmData.common.total', { n: list.total.value }) }}</span>
+      <Pagination
+        v-model:page="list.page.value"
+        v-model:page-size="list.pageSize.value"
+        :total="list.total.value"
+        @change="list.load()"
+      />
     </div>
   </div>
 </template>
@@ -80,19 +82,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getGmPlayerView, mgpQuery } from '@/api/gameGm'
-import type { ManifestView } from '@/games/mgp'
-import type { DrawTotals, GashaDraw, GashaDrawnCard, GashaHistoryPage } from '@/games/gakumas/types'
+import { listPlayerGashaDraws } from '@/api/gakumas'
+import type { DrawTotals, GashaDraw, GashaDrawCard } from '@/games/gakumas/types'
 import { useGmContext } from '../../context'
 import GmCatalogSearch from '../../components/GmCatalogSearch.vue'
 import { usePlayerPage } from '../context'
 import { catalogImage, rarityLabel } from '../shared/game'
 import { useGmFormat } from '../shared/format'
 import { useCatalogLookup } from '../shared/lookup'
-import { fetchAllPages, usePagedList } from '../shared/paging'
-import { useNameSearch } from '../shared/search'
-
-const props = defineProps<{ view?: ManifestView }>()
+import { usePagedList, type PageQuery } from '../shared/paging'
+import { gashaCardIds, useIdSearch } from '../shared/search'
 
 const { t } = useI18n()
 const ctx = useGmContext()
@@ -102,45 +101,42 @@ const menuStore = useMenuStore()
 const { num, when } = useGmFormat()
 
 const gashaId = ref('')
-const fetchPage = (q: { cursor: string; limit: number }) =>
-  getGmPlayerView<GashaHistoryPage>(ctx.serverId.value, page.pid.value, props.view?.id || 'gashaHistory', mgpQuery({ gashaId: gashaId.value, ...q }))
-const list = usePagedList<GashaDraw, DrawTotals>(fetchPage, { pageSize: 20, append: true })
-watch([gashaId, page.version], () => void list.reload(), { immediate: true })
+const gashaName = ref('')
+const search = useIdSearch((q) => gashaCardIds(ctx, q))
 
-const {
-  keyword,
-  active: searching,
-  results,
-  loading: searchLoading,
-  error: searchError,
-} = useNameSearch<GashaDraw>({
-  fetchAll: () => fetchAllPages(fetchPage),
-  names: (d) => [
-    ...lookup.names('gasha', d.gashaId),
-    ...(d.cards || []).flatMap((c) => {
-      const rr = cardRef(c)
-      return rr ? lookup.names(rr.kind, rr.id) : []
-    }),
-  ],
-  version: [page.version, gashaId],
-})
-const shownDraws = computed(() => (searching.value ? results.value : list.items.value))
+const fetchPage = async (q: PageQuery) => {
+  if (search.none.value) return { items: [], nextCursor: '', total: 0 }
+  return listPlayerGashaDraws({
+    serverId: ctx.serverId.value,
+    pid: page.pid.value,
+    gashaIds: gashaId.value ? [gashaId.value] : [],
+    cardIds: search.ids.value || [],
+    cursor: q.cursor,
+    limit: q.limit,
+  })
+}
+const list = usePagedList<GashaDraw, DrawTotals | undefined>(fetchPage, { pageSize: 20 })
+watch([gashaId, page.version, search.ids], () => void list.reload(), { immediate: true })
 
+const filtered = computed(() => search.active.value || !!gashaId.value)
+const shownDraws = computed(() => list.items.value)
 const totals = computed(() => list.summary.value)
-const pick = (id: string) => {
+const pick = (id: string, name = '') => {
   gashaId.value = id
+  gashaName.value = name
 }
 
+const drawGashaName = (d: GashaDraw) => d.gashaName || lookup.name('gasha', d.gashaId)
 const costImage = (d: GashaDraw) => {
   const rr = lookup.rewardRef(d.costResourceType, d.costResourceId)
   return rr ? lookup.image(rr.kind, rr.id) : ''
 }
-const cardRef = (c: GashaDrawnCard) => lookup.rewardRef(c.resourceType, c.resourceId)
-const cardImage = (c: GashaDrawnCard) => {
+const cardRef = (c: GashaDrawCard) => lookup.rewardRef(c.resourceType, c.resourceId)
+const cardImage = (c: GashaDrawCard) => {
   const rr = cardRef(c)
   return rr ? catalogImage(ctx.game.value, rr.kind, { id: rr.id }) : ''
 }
-const cardTitle = (c: GashaDrawnCard) => {
+const cardTitle = (c: GashaDrawCard) => {
   const rr = cardRef(c)
   return `${rarityLabel(c.rarity)} ${rr ? lookup.name(rr.kind, rr.id) : t('game.unnamed')}`
 }
