@@ -24,7 +24,7 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logger log.Logger) (*kratos.App, func(), error) {
+func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passport, string2 string, logger log.Logger) (*kratos.App, func(), error) {
 	dataData, cleanup, err := data.NewData(confData)
 	if err != nil {
 		return nil, nil, err
@@ -123,7 +123,20 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 	monitorUsecase, cleanup7 := biz.NewMonitorUsecase(monitorRepo, configRepo, instanceUsecase, manager)
 	monitorService := service.NewMonitorService(monitorUsecase)
 	themeService := service.NewThemeService(themeUsecase)
-	httpServer := server.NewHTTPServer(confServer, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService, monitorService, themeassetManager, themeService)
+	gameServerRepo := data.NewGameServerRepo(dataData)
+	gameServerUsecase := biz.NewGameServerUsecase(gameServerRepo, logger)
+	gameHostingUsecase := biz.NewGameHostingUsecase(gameServerUsecase, instanceUsecase, manager, userRepo, logger)
+	gameServerService := service.NewGameServerService(gameServerUsecase, gameHostingUsecase, systemUsecase)
+	gmRepo := data.NewGmRepo(dataData)
+	gmUsecase := biz.NewGmUsecase(gameServerUsecase, gmRepo, userRepo, logger)
+	gameGMService := service.NewGameGMService(gmUsecase, systemUsecase)
+	gameOpsRepo := data.NewGameOpsRepo(dataData)
+	gameOpsUsecase := biz.NewGameOpsUsecase(gmUsecase, gameOpsRepo, logger)
+	gameOpsService := service.NewGameOpsService(gameOpsUsecase, gmUsecase)
+	passportRepo := data.NewPassportRepo(dataData)
+	passportUsecase := biz.NewPassportUsecase(gmUsecase, gameOpsUsecase, passportRepo, configRepo, configUsecase, systemUsecase, logger)
+	passportAdminService := service.NewPassportAdminService(passportUsecase, passport)
+	httpServer := server.NewHTTPServer(confServer, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService, monitorService, themeassetManager, themeService, gameServerService, gameGMService, gameOpsService, passportAdminService)
 	nodeAgentService := service.NewNodeAgentService(nodeAgentUsecase)
 	grpcServer, err := server.NewGRPCServer(confServer, authorization, operationLogMiddleware, httpServer, nodeAgentUsecase, nodeAgentService, systemService, fileService, instanceService, dockerService, networkService, tunnelService, taskService, openSSHService, monitorService)
 	if err != nil {
@@ -136,7 +149,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, string2 string, logge
 		cleanup()
 		return nil, nil, err
 	}
-	app := newApp(logger, grpcServer, httpServer)
+	passportService := service.NewPassportService(passportUsecase, passport)
+	passportServer := server.NewPassportServer(passport, passportService)
+	app := newApp(logger, grpcServer, httpServer, passportServer)
 	return app, func() {
 		cleanup7()
 		cleanup6()

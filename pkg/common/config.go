@@ -81,6 +81,11 @@ const (
 
 	// ConfigStorageAvatar 头像储存（S3 兼容）设置：v1.AvatarStorageConfig 的 protojson（Secret Key 加密存放），空表示没配置过。
 	ConfigStorageAvatar ConfigKey = "storage.avatar"
+
+	// ConfigPassportSettings 用户通行证设置：v1.PassportSettings 的 protojson，空表示用默认值。
+	ConfigPassportSettings ConfigKey = "passport.settings"
+	// ConfigPassportOIDCPrivateKey 用户通行证 OIDC Provider 的 RS256 签名私钥（PEM，首次使用时生成；与管理后台 OIDC 的密钥无关）。
+	ConfigPassportOIDCPrivateKey ConfigKey = "passport.oidc_private_key"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -157,6 +162,9 @@ var configDefaults = map[ConfigKey]string{
 	ConfigFrpsTLSForce:           "false",
 
 	ConfigStorageAvatar: "",
+
+	ConfigPassportSettings:       "",
+	ConfigPassportOIDCPrivateKey: "",
 }
 
 func (k ConfigKey) String() string {

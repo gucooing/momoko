@@ -647,6 +647,8 @@ import ShareFormDialog from '@/components/share/ShareFormDialog.vue'
 
 const props = defineProps<{
   scope: FileScope
+  // 自定义文件客户端（同构接口的其他后端，如托管游戏服务器的服务端目录）；缺省按 scope 创建
+  client?: FileClient
   initialPath?: string
   // 系统级：初始打开的文件来源 id（如从文件源页「浏览」进入）；空=本地磁盘
   initialSourceId?: string
@@ -737,7 +739,7 @@ const currentChip = computed<SourceChip>(
 const canManageSources = computed(() => isSystemScope && accessible.value.has('/file/source'))
 
 // scope 在组件生命周期内稳定；source_id 动态读取，切换来源无需重建 client。
-const client: FileClient = createFileClient(props.scope, () => currentSourceId.value)
+const client: FileClient = props.client ?? createFileClient(props.scope, () => currentSourceId.value)
 
 // 左侧目录树引用：结构性变更（新建/删除/重命名/粘贴/切换来源）后重载。
 const treeRef = ref<InstanceType<typeof FileTree> | null>(null)

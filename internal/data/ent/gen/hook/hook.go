@@ -104,6 +104,162 @@ func (f FrpTunnelStatFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FrpTunnelStatMutation", m)
 }
 
+// The GameAccountLinkFunc type is an adapter to allow the use of ordinary
+// function as GameAccountLink mutator.
+type GameAccountLinkFunc func(context.Context, *gen.GameAccountLinkMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameAccountLinkFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameAccountLinkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameAccountLinkMutation", m)
+}
+
+// The GameAccountUnlinkFunc type is an adapter to allow the use of ordinary
+// function as GameAccountUnlink mutator.
+type GameAccountUnlinkFunc func(context.Context, *gen.GameAccountUnlinkMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameAccountUnlinkFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameAccountUnlinkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameAccountUnlinkMutation", m)
+}
+
+// The GameConfigRevisionFunc type is an adapter to allow the use of ordinary
+// function as GameConfigRevision mutator.
+type GameConfigRevisionFunc func(context.Context, *gen.GameConfigRevisionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameConfigRevisionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameConfigRevisionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameConfigRevisionMutation", m)
+}
+
+// The GameMailFunc type is an adapter to allow the use of ordinary
+// function as GameMail mutator.
+type GameMailFunc func(context.Context, *gen.GameMailMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameMailFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameMailMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameMailMutation", m)
+}
+
+// The GameRecentServerFunc type is an adapter to allow the use of ordinary
+// function as GameRecentServer mutator.
+type GameRecentServerFunc func(context.Context, *gen.GameRecentServerMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameRecentServerFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameRecentServerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameRecentServerMutation", m)
+}
+
+// The GameServerFunc type is an adapter to allow the use of ordinary
+// function as GameServer mutator.
+type GameServerFunc func(context.Context, *gen.GameServerMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameServerFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameServerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameServerMutation", m)
+}
+
+// The GameServerBackupFunc type is an adapter to allow the use of ordinary
+// function as GameServerBackup mutator.
+type GameServerBackupFunc func(context.Context, *gen.GameServerBackupMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameServerBackupFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameServerBackupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameServerBackupMutation", m)
+}
+
+// The GameServerHistoryFunc type is an adapter to allow the use of ordinary
+// function as GameServerHistory mutator.
+type GameServerHistoryFunc func(context.Context, *gen.GameServerHistoryMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameServerHistoryFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameServerHistoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameServerHistoryMutation", m)
+}
+
+// The GiftCodeFunc type is an adapter to allow the use of ordinary
+// function as GiftCode mutator.
+type GiftCodeFunc func(context.Context, *gen.GiftCodeMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GiftCodeFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GiftCodeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GiftCodeMutation", m)
+}
+
+// The GiftCodeBatchFunc type is an adapter to allow the use of ordinary
+// function as GiftCodeBatch mutator.
+type GiftCodeBatchFunc func(context.Context, *gen.GiftCodeBatchMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GiftCodeBatchFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GiftCodeBatchMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GiftCodeBatchMutation", m)
+}
+
+// The GiftCodeRedeemFunc type is an adapter to allow the use of ordinary
+// function as GiftCodeRedeem mutator.
+type GiftCodeRedeemFunc func(context.Context, *gen.GiftCodeRedeemMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GiftCodeRedeemFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GiftCodeRedeemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GiftCodeRedeemMutation", m)
+}
+
+// The GmExecutionFunc type is an adapter to allow the use of ordinary
+// function as GmExecution mutator.
+type GmExecutionFunc func(context.Context, *gen.GmExecutionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GmExecutionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GmExecutionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GmExecutionMutation", m)
+}
+
+// The GmSelfServiceFunc type is an adapter to allow the use of ordinary
+// function as GmSelfService mutator.
+type GmSelfServiceFunc func(context.Context, *gen.GmSelfServiceMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GmSelfServiceFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GmSelfServiceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GmSelfServiceMutation", m)
+}
+
 // The IQCheckPromptFunc type is an adapter to allow the use of ordinary
 // function as IQCheckPrompt mutator.
 type IQCheckPromptFunc func(context.Context, *gen.IQCheckPromptMutation) (gen.Value, error)
@@ -222,6 +378,90 @@ func (f OperationLogFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.OperationLogMutation", m)
+}
+
+// The PassportInviteFunc type is an adapter to allow the use of ordinary
+// function as PassportInvite mutator.
+type PassportInviteFunc func(context.Context, *gen.PassportInviteMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PassportInviteFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PassportInviteMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportInviteMutation", m)
+}
+
+// The PassportLoginLogFunc type is an adapter to allow the use of ordinary
+// function as PassportLoginLog mutator.
+type PassportLoginLogFunc func(context.Context, *gen.PassportLoginLogMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PassportLoginLogFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PassportLoginLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportLoginLogMutation", m)
+}
+
+// The PassportMessageFunc type is an adapter to allow the use of ordinary
+// function as PassportMessage mutator.
+type PassportMessageFunc func(context.Context, *gen.PassportMessageMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PassportMessageFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PassportMessageMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportMessageMutation", m)
+}
+
+// The PassportOidcClientFunc type is an adapter to allow the use of ordinary
+// function as PassportOidcClient mutator.
+type PassportOidcClientFunc func(context.Context, *gen.PassportOidcClientMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PassportOidcClientFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PassportOidcClientMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportOidcClientMutation", m)
+}
+
+// The PassportOidcGrantFunc type is an adapter to allow the use of ordinary
+// function as PassportOidcGrant mutator.
+type PassportOidcGrantFunc func(context.Context, *gen.PassportOidcGrantMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PassportOidcGrantFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PassportOidcGrantMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportOidcGrantMutation", m)
+}
+
+// The PassportSessionFunc type is an adapter to allow the use of ordinary
+// function as PassportSession mutator.
+type PassportSessionFunc func(context.Context, *gen.PassportSessionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PassportSessionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PassportSessionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportSessionMutation", m)
+}
+
+// The PassportUserFunc type is an adapter to allow the use of ordinary
+// function as PassportUser mutator.
+type PassportUserFunc func(context.Context, *gen.PassportUserMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PassportUserFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PassportUserMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportUserMutation", m)
 }
 
 // The PortForwardFunc type is an adapter to allow the use of ordinary

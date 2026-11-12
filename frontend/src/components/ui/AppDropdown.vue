@@ -68,7 +68,8 @@ const position = () => {
 
   const style: Record<string, string> = {
     position: 'fixed',
-    zIndex: '2100',
+    // 与 AppSelect / AppCombobox 一致：在弹窗（2200）里打开时也要盖在弹窗之上
+    zIndex: '2300',
     left: `${left}px`,
     width: `${panelW}px`,
     // 不用 right，避免 DPR/visualViewport 下 right 算出界

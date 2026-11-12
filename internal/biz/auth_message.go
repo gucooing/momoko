@@ -317,3 +317,25 @@ func toUserMessage(row *gen.UserMessage) *v1.UserMessage {
 func NewMessageID() string {
 	return "msg_" + uuid.NewString()
 }
+
+// RequestUserAgent 返回当前 HTTP 请求的 User-Agent。
+func RequestUserAgent(ctx context.Context) string { return userAgentFromContext(ctx) }
+
+// Platform 从 User-Agent 粗略识别平台（GM 记录「来源」展示用）：Windows / macOS / Android / iOS / Linux。
+func Platform(userAgent string) string {
+	ua := strings.ToLower(userAgent)
+	switch {
+	case strings.Contains(ua, "android"):
+		return "Android"
+	case strings.Contains(ua, "iphone") || strings.Contains(ua, "ipad"):
+		return "iOS"
+	case strings.Contains(ua, "windows"):
+		return "Windows"
+	case strings.Contains(ua, "mac os"):
+		return "macOS"
+	case strings.Contains(ua, "linux"):
+		return "Linux"
+	default:
+		return ""
+	}
+}

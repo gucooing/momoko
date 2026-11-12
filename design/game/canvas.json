@@ -1,0 +1,325 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-11T09:00:00Z"
+  },
+  "title": "Momoko · 游戏服务端管理与 GM",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 280,
+      "w": 1600,
+      "h": 1240,
+      "title": "架构总览 · 托管 / 仅 GM / 用户通行证独立 server"
+    },
+    "SpecPC.dc.html": {
+      "x": 1680,
+      "y": 280,
+      "w": 1440,
+      "h": 2240,
+      "expand": "fill",
+      "title": "统一接口 MGP v1 · 数据模型 · 权限 · 学マス 适配清单 · 游戏素材来源"
+    },
+    "GameServersPC.dc.html": {
+      "x": 0,
+      "y": 2880,
+      "w": 1440,
+      "h": 1240,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "游戏服务器 · PC（列表）"
+    },
+    "GameServerNewPC.dc.html": {
+      "x": 1520,
+      "y": 2880,
+      "w": 1440,
+      "h": 1240,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "接入游戏服务器 · PC（选择游戏与模式）"
+    },
+    "GameServerPC.dc.html": {
+      "x": 3040,
+      "y": 2880,
+      "w": 1440,
+      "h": 1640,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "托管服务器详情 · PC（概览 · 专用设置 · 更新）"
+    },
+    "GkHomePC.dc.html": {
+      "x": 0,
+      "y": 4920,
+      "w": 1440,
+      "h": 1640,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 工作台（数据观测与预览）· PC"
+    },
+    "GkPlayersPC.dc.html": {
+      "x": 1520,
+      "y": 4920,
+      "w": 1440,
+      "h": 1240,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 玩家 · PC"
+    },
+    "GkPlayerPC.dc.html": {
+      "x": 3040,
+      "y": 4920,
+      "w": 1440,
+      "h": 1720,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 玩家详情（10 个分页）· PC"
+    },
+    "GkGashaPC.dc.html": {
+      "x": 4560,
+      "y": 4920,
+      "w": 1440,
+      "h": 2200,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 卡池（表单编辑：规则 + 选角色和卡）· PC"
+    },
+    "GkCalendarPC.dc.html": {
+      "x": 6080,
+      "y": 4920,
+      "w": 1440,
+      "h": 1240,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 运营日历 · PC"
+    },
+    "GmPolicyPC.dc.html": {
+      "x": 0,
+      "y": 7040,
+      "w": 1440,
+      "h": 1240,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 玩家自助（玩家能执行的 GM）· PC"
+    },
+    "PassportPC.dc.html": {
+      "x": 1520,
+      "y": 7040,
+      "w": 1440,
+      "h": 1320,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "用户通行证 · 后台管理 · PC"
+    },
+    "GkModesPC.dc.html": {
+      "x": 7600,
+      "y": 4920,
+      "w": 1440,
+      "h": 1240,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 玩法（竞赛排名与阵容 · 培育 · 研修 · 塔）· PC"
+    },
+    "PassportHomePC.dc.html": {
+      "x": 0,
+      "y": 9000,
+      "w": 1440,
+      "h": 1300,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "通行证 · 首页 · PC（先账号，再游戏）"
+    },
+    "PassportAccountPC.dc.html": {
+      "x": 1520,
+      "y": 9000,
+      "w": 1440,
+      "h": 1200,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "通行证 · 账号与安全 · PC"
+    },
+    "GameHomePC.dc.html": {
+      "x": 3040,
+      "y": 9000,
+      "w": 1440,
+      "h": 1400,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "游戏空间 · 学マス · 概览 · PC"
+    },
+    "GameCardsPC.dc.html": {
+      "x": 4560,
+      "y": 9000,
+      "w": 1440,
+      "h": 1300,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "游戏空间 · 学マス · 卡牌 · PC"
+    },
+    "GameGiftsPC.dc.html": {
+      "x": 6080,
+      "y": 9000,
+      "w": 1440,
+      "h": 1100,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "游戏空间 · 学マス · 礼物箱 · PC"
+    },
+    "GameRecordsPC.dc.html": {
+      "x": 7600,
+      "y": 9000,
+      "w": 1440,
+      "h": 1200,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "游戏空间 · 学マス · 记录 · PC"
+    },
+    "GameSelfPC.dc.html": {
+      "x": 9120,
+      "y": 9000,
+      "w": 1440,
+      "h": 1300,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "游戏空间 · 学マス · 自助服务 · PC"
+    },
+    "PassportHomeMobile.dc.html": {
+      "x": 0,
+      "y": 10800,
+      "w": 390,
+      "h": 1600,
+      "is_interactive": true,
+      "title": "通行证 · 首页 · 手机"
+    },
+    "PortalBindMobile.dc.html": {
+      "x": 470,
+      "y": 10800,
+      "w": 390,
+      "h": 844,
+      "is_interactive": true,
+      "title": "通行证 · 绑定游戏账号 · 手机"
+    },
+    "GameHomeMobile.dc.html": {
+      "x": 940,
+      "y": 10800,
+      "w": 390,
+      "h": 1800,
+      "is_interactive": true,
+      "title": "游戏空间 · 学マス · 概览 · 手机"
+    },
+    "GkMailPC.dc.html": {
+      "x": 9120,
+      "y": 4920,
+      "w": 1440,
+      "h": 1600,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 邮件补偿 · PC"
+    },
+    "GkCodesPC.dc.html": {
+      "x": 10640,
+      "y": 4920,
+      "w": 1440,
+      "h": 1240,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 兑换码 · PC"
+    },
+    "GkNoticePC.dc.html": {
+      "x": 12160,
+      "y": 4920,
+      "w": 1440,
+      "h": 1240,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · 公告 · PC"
+    },
+    "GkLogPC.dc.html": {
+      "x": 13680,
+      "y": 4920,
+      "w": 1440,
+      "h": 1320,
+      "expand": "fill",
+      "is_interactive": true,
+      "title": "学マス GM · GM 记录与审批 · PC"
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "SpecPC.dc.html",
+    "GameServersPC.dc.html",
+    "GameServerNewPC.dc.html",
+    "GameServerPC.dc.html",
+    "GkHomePC.dc.html",
+    "GkPlayersPC.dc.html",
+    "GkPlayerPC.dc.html",
+    "GkGashaPC.dc.html",
+    "GkCalendarPC.dc.html",
+    "GkModesPC.dc.html",
+    "GkMailPC.dc.html",
+    "GkCodesPC.dc.html",
+    "GkNoticePC.dc.html",
+    "GkLogPC.dc.html",
+    "GmPolicyPC.dc.html",
+    "PassportPC.dc.html",
+    "PassportHomePC.dc.html",
+    "PassportAccountPC.dc.html",
+    "GameHomePC.dc.html",
+    "GameCardsPC.dc.html",
+    "GameGiftsPC.dc.html",
+    "GameRecordsPC.dc.html",
+    "GameSelfPC.dc.html",
+    "PassportHomeMobile.dc.html",
+    "PortalBindMobile.dc.html",
+    "GameHomeMobile.dc.html"
+  ],
+  "notes": {
+    "rowArch": {
+      "x": 0,
+      "y": 0,
+      "text": "架构与统一接口",
+      "kind": "title1",
+      "maxW": 3120
+    },
+    "rowServers": {
+      "x": 0,
+      "y": 2600,
+      "text": "游戏服务器 · 托管 / 仅 GM",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "rowGm": {
+      "x": 0,
+      "y": 4640,
+      "text": "学园偶像大师 · GM 管理端",
+      "kind": "title1",
+      "maxW": 15120
+    },
+    "rowPolicy": {
+      "x": 0,
+      "y": 6760,
+      "text": "玩家自助 · 用户通行证管理",
+      "kind": "title1",
+      "maxW": 2960
+    },
+    "rowPortal": {
+      "x": 0,
+      "y": 8720,
+      "text": "用户通行证 · 独立 server :22634（PC）",
+      "kind": "title1",
+      "maxW": 10560
+    },
+    "rowPortalM": {
+      "x": 0,
+      "y": 10520,
+      "text": "用户通行证 · 手机",
+      "kind": "title1",
+      "maxW": 1330
+    }
+  },
+  "designSystems": []
+}

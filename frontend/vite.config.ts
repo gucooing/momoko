@@ -5,6 +5,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 import AppLoading from 'vite-plugin-app-loading'
 import ui from '@nuxt/ui/vite'
+import { NUXT_UI_PREBUNDLE } from './vite.shared'
 
 // Normalize to forward slashes so Windows + pnpm paths match reliably.
 const nm = (id: string) => id.replace(/\\/g, '/')
@@ -27,6 +28,11 @@ const isPkg = (id: string, pkg: string) => {
  * - 重型、边界清晰的库单独拆；其余进 vendor-misc。
  */
 const resolveManualChunks = (id: string) => {
+  // Vite / Rollup 注入的运行时辅助（动态导入的预加载 __vitePreload、CommonJS 互操作）单独成块：
+  // 否则 Rollup 会把它们并进第一个用到的 vendor 块（曾经是 4 MB 的 vendor-monaco），
+  // 每个页面为了这几行辅助代码都得先下载整个 monaco。
+  if (id.includes('vite/preload-helper') || id.includes('commonjsHelpers')) return 'vendor-runtime'
+
   if (!nm(id).includes('/node_modules/')) return undefined
 
   // —— Vue 运行时核心：必须同 chunk，且内部不得再依赖其它 vendor chunk ——
@@ -125,6 +131,12 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
+    },
+    // 依赖预构建只从管理后台自己的入口扫描：默认会扫描根目录下所有 .html，
+    // 会把用户通行证的 passport/index.html（它的 @passport 别名只在 vite.passport.config.ts 里）也扫进来。
+    optimizeDeps: {
+      entries: ['index.html'],
+      include: NUXT_UI_PREBUNDLE,
     },
     build: {
       rollupOptions: {

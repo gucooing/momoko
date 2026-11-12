@@ -19,6 +19,19 @@ import (
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
 	"momoko/internal/data/ent/gen/frptunnelstat"
+	"momoko/internal/data/ent/gen/gameaccountlink"
+	"momoko/internal/data/ent/gen/gameaccountunlink"
+	"momoko/internal/data/ent/gen/gameconfigrevision"
+	"momoko/internal/data/ent/gen/gamemail"
+	"momoko/internal/data/ent/gen/gamerecentserver"
+	"momoko/internal/data/ent/gen/gameserver"
+	"momoko/internal/data/ent/gen/gameserverbackup"
+	"momoko/internal/data/ent/gen/gameserverhistory"
+	"momoko/internal/data/ent/gen/giftcode"
+	"momoko/internal/data/ent/gen/giftcodebatch"
+	"momoko/internal/data/ent/gen/giftcoderedeem"
+	"momoko/internal/data/ent/gen/gmexecution"
+	"momoko/internal/data/ent/gen/gmselfservice"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/iqcheckprompt"
@@ -29,6 +42,13 @@ import (
 	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
+	"momoko/internal/data/ent/gen/passportinvite"
+	"momoko/internal/data/ent/gen/passportloginlog"
+	"momoko/internal/data/ent/gen/passportmessage"
+	"momoko/internal/data/ent/gen/passportoidcclient"
+	"momoko/internal/data/ent/gen/passportoidcgrant"
+	"momoko/internal/data/ent/gen/passportsession"
+	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
@@ -72,6 +92,32 @@ type Client struct {
 	FrpTunnel *FrpTunnelClient
 	// FrpTunnelStat is the client for interacting with the FrpTunnelStat builders.
 	FrpTunnelStat *FrpTunnelStatClient
+	// GameAccountLink is the client for interacting with the GameAccountLink builders.
+	GameAccountLink *GameAccountLinkClient
+	// GameAccountUnlink is the client for interacting with the GameAccountUnlink builders.
+	GameAccountUnlink *GameAccountUnlinkClient
+	// GameConfigRevision is the client for interacting with the GameConfigRevision builders.
+	GameConfigRevision *GameConfigRevisionClient
+	// GameMail is the client for interacting with the GameMail builders.
+	GameMail *GameMailClient
+	// GameRecentServer is the client for interacting with the GameRecentServer builders.
+	GameRecentServer *GameRecentServerClient
+	// GameServer is the client for interacting with the GameServer builders.
+	GameServer *GameServerClient
+	// GameServerBackup is the client for interacting with the GameServerBackup builders.
+	GameServerBackup *GameServerBackupClient
+	// GameServerHistory is the client for interacting with the GameServerHistory builders.
+	GameServerHistory *GameServerHistoryClient
+	// GiftCode is the client for interacting with the GiftCode builders.
+	GiftCode *GiftCodeClient
+	// GiftCodeBatch is the client for interacting with the GiftCodeBatch builders.
+	GiftCodeBatch *GiftCodeBatchClient
+	// GiftCodeRedeem is the client for interacting with the GiftCodeRedeem builders.
+	GiftCodeRedeem *GiftCodeRedeemClient
+	// GmExecution is the client for interacting with the GmExecution builders.
+	GmExecution *GmExecutionClient
+	// GmSelfService is the client for interacting with the GmSelfService builders.
+	GmSelfService *GmSelfServiceClient
 	// IQCheckPrompt is the client for interacting with the IQCheckPrompt builders.
 	IQCheckPrompt *IQCheckPromptClient
 	// IQCheckResult is the client for interacting with the IQCheckResult builders.
@@ -92,6 +138,20 @@ type Client struct {
 	OIDCClient *OIDCClientClient
 	// OperationLog is the client for interacting with the OperationLog builders.
 	OperationLog *OperationLogClient
+	// PassportInvite is the client for interacting with the PassportInvite builders.
+	PassportInvite *PassportInviteClient
+	// PassportLoginLog is the client for interacting with the PassportLoginLog builders.
+	PassportLoginLog *PassportLoginLogClient
+	// PassportMessage is the client for interacting with the PassportMessage builders.
+	PassportMessage *PassportMessageClient
+	// PassportOidcClient is the client for interacting with the PassportOidcClient builders.
+	PassportOidcClient *PassportOidcClientClient
+	// PassportOidcGrant is the client for interacting with the PassportOidcGrant builders.
+	PassportOidcGrant *PassportOidcGrantClient
+	// PassportSession is the client for interacting with the PassportSession builders.
+	PassportSession *PassportSessionClient
+	// PassportUser is the client for interacting with the PassportUser builders.
+	PassportUser *PassportUserClient
 	// PortForward is the client for interacting with the PortForward builders.
 	PortForward *PortForwardClient
 	// PortForwardStat is the client for interacting with the PortForwardStat builders.
@@ -137,6 +197,19 @@ func (c *Client) init() {
 	c.FileUploadChunk = NewFileUploadChunkClient(c.config)
 	c.FrpTunnel = NewFrpTunnelClient(c.config)
 	c.FrpTunnelStat = NewFrpTunnelStatClient(c.config)
+	c.GameAccountLink = NewGameAccountLinkClient(c.config)
+	c.GameAccountUnlink = NewGameAccountUnlinkClient(c.config)
+	c.GameConfigRevision = NewGameConfigRevisionClient(c.config)
+	c.GameMail = NewGameMailClient(c.config)
+	c.GameRecentServer = NewGameRecentServerClient(c.config)
+	c.GameServer = NewGameServerClient(c.config)
+	c.GameServerBackup = NewGameServerBackupClient(c.config)
+	c.GameServerHistory = NewGameServerHistoryClient(c.config)
+	c.GiftCode = NewGiftCodeClient(c.config)
+	c.GiftCodeBatch = NewGiftCodeBatchClient(c.config)
+	c.GiftCodeRedeem = NewGiftCodeRedeemClient(c.config)
+	c.GmExecution = NewGmExecutionClient(c.config)
+	c.GmSelfService = NewGmSelfServiceClient(c.config)
 	c.IQCheckPrompt = NewIQCheckPromptClient(c.config)
 	c.IQCheckResult = NewIQCheckResultClient(c.config)
 	c.IQCheckSite = NewIQCheckSiteClient(c.config)
@@ -147,6 +220,13 @@ func (c *Client) init() {
 	c.Node = NewNodeClient(c.config)
 	c.OIDCClient = NewOIDCClientClient(c.config)
 	c.OperationLog = NewOperationLogClient(c.config)
+	c.PassportInvite = NewPassportInviteClient(c.config)
+	c.PassportLoginLog = NewPassportLoginLogClient(c.config)
+	c.PassportMessage = NewPassportMessageClient(c.config)
+	c.PassportOidcClient = NewPassportOidcClientClient(c.config)
+	c.PassportOidcGrant = NewPassportOidcGrantClient(c.config)
+	c.PassportSession = NewPassportSessionClient(c.config)
+	c.PassportUser = NewPassportUserClient(c.config)
 	c.PortForward = NewPortForwardClient(c.config)
 	c.PortForwardStat = NewPortForwardStatClient(c.config)
 	c.Role = NewRoleClient(c.config)
@@ -250,39 +330,59 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:               ctx,
-		config:            cfg,
-		EmailTemplate:     NewEmailTemplateClient(cfg),
-		FileShare:         NewFileShareClient(cfg),
-		FileShareDownload: NewFileShareDownloadClient(cfg),
-		FileSource:        NewFileSourceClient(cfg),
-		FileUpload:        NewFileUploadClient(cfg),
-		FileUploadChunk:   NewFileUploadChunkClient(cfg),
-		FrpTunnel:         NewFrpTunnelClient(cfg),
-		FrpTunnelStat:     NewFrpTunnelStatClient(cfg),
-		IQCheckPrompt:     NewIQCheckPromptClient(cfg),
-		IQCheckResult:     NewIQCheckResultClient(cfg),
-		IQCheckSite:       NewIQCheckSiteClient(cfg),
-		Instance:          NewInstanceClient(cfg),
-		InstanceType:      NewInstanceTypeClient(cfg),
-		Menu:              NewMenuClient(cfg),
-		MonitorSample:     NewMonitorSampleClient(cfg),
-		Node:              NewNodeClient(cfg),
-		OIDCClient:        NewOIDCClientClient(cfg),
-		OperationLog:      NewOperationLogClient(cfg),
-		PortForward:       NewPortForwardClient(cfg),
-		PortForwardStat:   NewPortForwardStatClient(cfg),
-		Role:              NewRoleClient(cfg),
-		SQLMigration:      NewSQLMigrationClient(cfg),
-		SSHHost:           NewSSHHostClient(cfg),
-		Session:           NewSessionClient(cfg),
-		SystemConfig:      NewSystemConfigClient(cfg),
-		Task:              NewTaskClient(cfg),
-		ThemeAsset:        NewThemeAssetClient(cfg),
-		User:              NewUserClient(cfg),
-		UserAPIKey:        NewUserAPIKeyClient(cfg),
-		UserMessage:       NewUserMessageClient(cfg),
-		UserTheme:         NewUserThemeClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		EmailTemplate:      NewEmailTemplateClient(cfg),
+		FileShare:          NewFileShareClient(cfg),
+		FileShareDownload:  NewFileShareDownloadClient(cfg),
+		FileSource:         NewFileSourceClient(cfg),
+		FileUpload:         NewFileUploadClient(cfg),
+		FileUploadChunk:    NewFileUploadChunkClient(cfg),
+		FrpTunnel:          NewFrpTunnelClient(cfg),
+		FrpTunnelStat:      NewFrpTunnelStatClient(cfg),
+		GameAccountLink:    NewGameAccountLinkClient(cfg),
+		GameAccountUnlink:  NewGameAccountUnlinkClient(cfg),
+		GameConfigRevision: NewGameConfigRevisionClient(cfg),
+		GameMail:           NewGameMailClient(cfg),
+		GameRecentServer:   NewGameRecentServerClient(cfg),
+		GameServer:         NewGameServerClient(cfg),
+		GameServerBackup:   NewGameServerBackupClient(cfg),
+		GameServerHistory:  NewGameServerHistoryClient(cfg),
+		GiftCode:           NewGiftCodeClient(cfg),
+		GiftCodeBatch:      NewGiftCodeBatchClient(cfg),
+		GiftCodeRedeem:     NewGiftCodeRedeemClient(cfg),
+		GmExecution:        NewGmExecutionClient(cfg),
+		GmSelfService:      NewGmSelfServiceClient(cfg),
+		IQCheckPrompt:      NewIQCheckPromptClient(cfg),
+		IQCheckResult:      NewIQCheckResultClient(cfg),
+		IQCheckSite:        NewIQCheckSiteClient(cfg),
+		Instance:           NewInstanceClient(cfg),
+		InstanceType:       NewInstanceTypeClient(cfg),
+		Menu:               NewMenuClient(cfg),
+		MonitorSample:      NewMonitorSampleClient(cfg),
+		Node:               NewNodeClient(cfg),
+		OIDCClient:         NewOIDCClientClient(cfg),
+		OperationLog:       NewOperationLogClient(cfg),
+		PassportInvite:     NewPassportInviteClient(cfg),
+		PassportLoginLog:   NewPassportLoginLogClient(cfg),
+		PassportMessage:    NewPassportMessageClient(cfg),
+		PassportOidcClient: NewPassportOidcClientClient(cfg),
+		PassportOidcGrant:  NewPassportOidcGrantClient(cfg),
+		PassportSession:    NewPassportSessionClient(cfg),
+		PassportUser:       NewPassportUserClient(cfg),
+		PortForward:        NewPortForwardClient(cfg),
+		PortForwardStat:    NewPortForwardStatClient(cfg),
+		Role:               NewRoleClient(cfg),
+		SQLMigration:       NewSQLMigrationClient(cfg),
+		SSHHost:            NewSSHHostClient(cfg),
+		Session:            NewSessionClient(cfg),
+		SystemConfig:       NewSystemConfigClient(cfg),
+		Task:               NewTaskClient(cfg),
+		ThemeAsset:         NewThemeAssetClient(cfg),
+		User:               NewUserClient(cfg),
+		UserAPIKey:         NewUserAPIKeyClient(cfg),
+		UserMessage:        NewUserMessageClient(cfg),
+		UserTheme:          NewUserThemeClient(cfg),
 	}, nil
 }
 
@@ -300,39 +400,59 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:               ctx,
-		config:            cfg,
-		EmailTemplate:     NewEmailTemplateClient(cfg),
-		FileShare:         NewFileShareClient(cfg),
-		FileShareDownload: NewFileShareDownloadClient(cfg),
-		FileSource:        NewFileSourceClient(cfg),
-		FileUpload:        NewFileUploadClient(cfg),
-		FileUploadChunk:   NewFileUploadChunkClient(cfg),
-		FrpTunnel:         NewFrpTunnelClient(cfg),
-		FrpTunnelStat:     NewFrpTunnelStatClient(cfg),
-		IQCheckPrompt:     NewIQCheckPromptClient(cfg),
-		IQCheckResult:     NewIQCheckResultClient(cfg),
-		IQCheckSite:       NewIQCheckSiteClient(cfg),
-		Instance:          NewInstanceClient(cfg),
-		InstanceType:      NewInstanceTypeClient(cfg),
-		Menu:              NewMenuClient(cfg),
-		MonitorSample:     NewMonitorSampleClient(cfg),
-		Node:              NewNodeClient(cfg),
-		OIDCClient:        NewOIDCClientClient(cfg),
-		OperationLog:      NewOperationLogClient(cfg),
-		PortForward:       NewPortForwardClient(cfg),
-		PortForwardStat:   NewPortForwardStatClient(cfg),
-		Role:              NewRoleClient(cfg),
-		SQLMigration:      NewSQLMigrationClient(cfg),
-		SSHHost:           NewSSHHostClient(cfg),
-		Session:           NewSessionClient(cfg),
-		SystemConfig:      NewSystemConfigClient(cfg),
-		Task:              NewTaskClient(cfg),
-		ThemeAsset:        NewThemeAssetClient(cfg),
-		User:              NewUserClient(cfg),
-		UserAPIKey:        NewUserAPIKeyClient(cfg),
-		UserMessage:       NewUserMessageClient(cfg),
-		UserTheme:         NewUserThemeClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		EmailTemplate:      NewEmailTemplateClient(cfg),
+		FileShare:          NewFileShareClient(cfg),
+		FileShareDownload:  NewFileShareDownloadClient(cfg),
+		FileSource:         NewFileSourceClient(cfg),
+		FileUpload:         NewFileUploadClient(cfg),
+		FileUploadChunk:    NewFileUploadChunkClient(cfg),
+		FrpTunnel:          NewFrpTunnelClient(cfg),
+		FrpTunnelStat:      NewFrpTunnelStatClient(cfg),
+		GameAccountLink:    NewGameAccountLinkClient(cfg),
+		GameAccountUnlink:  NewGameAccountUnlinkClient(cfg),
+		GameConfigRevision: NewGameConfigRevisionClient(cfg),
+		GameMail:           NewGameMailClient(cfg),
+		GameRecentServer:   NewGameRecentServerClient(cfg),
+		GameServer:         NewGameServerClient(cfg),
+		GameServerBackup:   NewGameServerBackupClient(cfg),
+		GameServerHistory:  NewGameServerHistoryClient(cfg),
+		GiftCode:           NewGiftCodeClient(cfg),
+		GiftCodeBatch:      NewGiftCodeBatchClient(cfg),
+		GiftCodeRedeem:     NewGiftCodeRedeemClient(cfg),
+		GmExecution:        NewGmExecutionClient(cfg),
+		GmSelfService:      NewGmSelfServiceClient(cfg),
+		IQCheckPrompt:      NewIQCheckPromptClient(cfg),
+		IQCheckResult:      NewIQCheckResultClient(cfg),
+		IQCheckSite:        NewIQCheckSiteClient(cfg),
+		Instance:           NewInstanceClient(cfg),
+		InstanceType:       NewInstanceTypeClient(cfg),
+		Menu:               NewMenuClient(cfg),
+		MonitorSample:      NewMonitorSampleClient(cfg),
+		Node:               NewNodeClient(cfg),
+		OIDCClient:         NewOIDCClientClient(cfg),
+		OperationLog:       NewOperationLogClient(cfg),
+		PassportInvite:     NewPassportInviteClient(cfg),
+		PassportLoginLog:   NewPassportLoginLogClient(cfg),
+		PassportMessage:    NewPassportMessageClient(cfg),
+		PassportOidcClient: NewPassportOidcClientClient(cfg),
+		PassportOidcGrant:  NewPassportOidcGrantClient(cfg),
+		PassportSession:    NewPassportSessionClient(cfg),
+		PassportUser:       NewPassportUserClient(cfg),
+		PortForward:        NewPortForwardClient(cfg),
+		PortForwardStat:    NewPortForwardStatClient(cfg),
+		Role:               NewRoleClient(cfg),
+		SQLMigration:       NewSQLMigrationClient(cfg),
+		SSHHost:            NewSSHHostClient(cfg),
+		Session:            NewSessionClient(cfg),
+		SystemConfig:       NewSystemConfigClient(cfg),
+		Task:               NewTaskClient(cfg),
+		ThemeAsset:         NewThemeAssetClient(cfg),
+		User:               NewUserClient(cfg),
+		UserAPIKey:         NewUserAPIKeyClient(cfg),
+		UserMessage:        NewUserMessageClient(cfg),
+		UserTheme:          NewUserThemeClient(cfg),
 	}, nil
 }
 
@@ -363,9 +483,14 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
-		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt,
-		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu,
-		c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog, c.PortForward,
+		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
+		c.GameAccountUnlink, c.GameConfigRevision, c.GameMail, c.GameRecentServer,
+		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
+		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
+		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
+		c.Menu, c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog,
+		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportOidcClient,
+		c.PassportOidcGrant, c.PassportSession, c.PassportUser, c.PortForward,
 		c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
 		c.SystemConfig, c.Task, c.ThemeAsset, c.User, c.UserAPIKey, c.UserMessage,
 		c.UserTheme,
@@ -379,9 +504,14 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
-		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.IQCheckPrompt,
-		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu,
-		c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog, c.PortForward,
+		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
+		c.GameAccountUnlink, c.GameConfigRevision, c.GameMail, c.GameRecentServer,
+		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
+		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
+		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
+		c.Menu, c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog,
+		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportOidcClient,
+		c.PassportOidcGrant, c.PassportSession, c.PassportUser, c.PortForward,
 		c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
 		c.SystemConfig, c.Task, c.ThemeAsset, c.User, c.UserAPIKey, c.UserMessage,
 		c.UserTheme,
@@ -409,6 +539,32 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FrpTunnel.mutate(ctx, m)
 	case *FrpTunnelStatMutation:
 		return c.FrpTunnelStat.mutate(ctx, m)
+	case *GameAccountLinkMutation:
+		return c.GameAccountLink.mutate(ctx, m)
+	case *GameAccountUnlinkMutation:
+		return c.GameAccountUnlink.mutate(ctx, m)
+	case *GameConfigRevisionMutation:
+		return c.GameConfigRevision.mutate(ctx, m)
+	case *GameMailMutation:
+		return c.GameMail.mutate(ctx, m)
+	case *GameRecentServerMutation:
+		return c.GameRecentServer.mutate(ctx, m)
+	case *GameServerMutation:
+		return c.GameServer.mutate(ctx, m)
+	case *GameServerBackupMutation:
+		return c.GameServerBackup.mutate(ctx, m)
+	case *GameServerHistoryMutation:
+		return c.GameServerHistory.mutate(ctx, m)
+	case *GiftCodeMutation:
+		return c.GiftCode.mutate(ctx, m)
+	case *GiftCodeBatchMutation:
+		return c.GiftCodeBatch.mutate(ctx, m)
+	case *GiftCodeRedeemMutation:
+		return c.GiftCodeRedeem.mutate(ctx, m)
+	case *GmExecutionMutation:
+		return c.GmExecution.mutate(ctx, m)
+	case *GmSelfServiceMutation:
+		return c.GmSelfService.mutate(ctx, m)
 	case *IQCheckPromptMutation:
 		return c.IQCheckPrompt.mutate(ctx, m)
 	case *IQCheckResultMutation:
@@ -429,6 +585,20 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OIDCClient.mutate(ctx, m)
 	case *OperationLogMutation:
 		return c.OperationLog.mutate(ctx, m)
+	case *PassportInviteMutation:
+		return c.PassportInvite.mutate(ctx, m)
+	case *PassportLoginLogMutation:
+		return c.PassportLoginLog.mutate(ctx, m)
+	case *PassportMessageMutation:
+		return c.PassportMessage.mutate(ctx, m)
+	case *PassportOidcClientMutation:
+		return c.PassportOidcClient.mutate(ctx, m)
+	case *PassportOidcGrantMutation:
+		return c.PassportOidcGrant.mutate(ctx, m)
+	case *PassportSessionMutation:
+		return c.PassportSession.mutate(ctx, m)
+	case *PassportUserMutation:
+		return c.PassportUser.mutate(ctx, m)
 	case *PortForwardMutation:
 		return c.PortForward.mutate(ctx, m)
 	case *PortForwardStatMutation:
@@ -1617,6 +1787,1735 @@ func (c *FrpTunnelStatClient) mutate(ctx context.Context, m *FrpTunnelStatMutati
 		return (&FrpTunnelStatDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown FrpTunnelStat mutation op: %q", m.Op())
+	}
+}
+
+// GameAccountLinkClient is a client for the GameAccountLink schema.
+type GameAccountLinkClient struct {
+	config
+}
+
+// NewGameAccountLinkClient returns a client for the GameAccountLink from the given config.
+func NewGameAccountLinkClient(c config) *GameAccountLinkClient {
+	return &GameAccountLinkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gameaccountlink.Hooks(f(g(h())))`.
+func (c *GameAccountLinkClient) Use(hooks ...Hook) {
+	c.hooks.GameAccountLink = append(c.hooks.GameAccountLink, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gameaccountlink.Intercept(f(g(h())))`.
+func (c *GameAccountLinkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameAccountLink = append(c.inters.GameAccountLink, interceptors...)
+}
+
+// Create returns a builder for creating a GameAccountLink entity.
+func (c *GameAccountLinkClient) Create() *GameAccountLinkCreate {
+	mutation := newGameAccountLinkMutation(c.config, OpCreate)
+	return &GameAccountLinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameAccountLink entities.
+func (c *GameAccountLinkClient) CreateBulk(builders ...*GameAccountLinkCreate) *GameAccountLinkCreateBulk {
+	return &GameAccountLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameAccountLinkClient) MapCreateBulk(slice any, setFunc func(*GameAccountLinkCreate, int)) *GameAccountLinkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameAccountLinkCreateBulk{err: fmt.Errorf("calling to GameAccountLinkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameAccountLinkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameAccountLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameAccountLink.
+func (c *GameAccountLinkClient) Update() *GameAccountLinkUpdate {
+	mutation := newGameAccountLinkMutation(c.config, OpUpdate)
+	return &GameAccountLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameAccountLinkClient) UpdateOne(_m *GameAccountLink) *GameAccountLinkUpdateOne {
+	mutation := newGameAccountLinkMutation(c.config, OpUpdateOne, withGameAccountLink(_m))
+	return &GameAccountLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameAccountLinkClient) UpdateOneID(id string) *GameAccountLinkUpdateOne {
+	mutation := newGameAccountLinkMutation(c.config, OpUpdateOne, withGameAccountLinkID(id))
+	return &GameAccountLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameAccountLink.
+func (c *GameAccountLinkClient) Delete() *GameAccountLinkDelete {
+	mutation := newGameAccountLinkMutation(c.config, OpDelete)
+	return &GameAccountLinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameAccountLinkClient) DeleteOne(_m *GameAccountLink) *GameAccountLinkDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameAccountLinkClient) DeleteOneID(id string) *GameAccountLinkDeleteOne {
+	builder := c.Delete().Where(gameaccountlink.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameAccountLinkDeleteOne{builder}
+}
+
+// Query returns a query builder for GameAccountLink.
+func (c *GameAccountLinkClient) Query() *GameAccountLinkQuery {
+	return &GameAccountLinkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameAccountLink},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameAccountLink entity by its id.
+func (c *GameAccountLinkClient) Get(ctx context.Context, id string) (*GameAccountLink, error) {
+	return c.Query().Where(gameaccountlink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameAccountLinkClient) GetX(ctx context.Context, id string) *GameAccountLink {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameAccountLinkClient) Hooks() []Hook {
+	return c.hooks.GameAccountLink
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameAccountLinkClient) Interceptors() []Interceptor {
+	return c.inters.GameAccountLink
+}
+
+func (c *GameAccountLinkClient) mutate(ctx context.Context, m *GameAccountLinkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameAccountLinkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameAccountLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameAccountLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameAccountLinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameAccountLink mutation op: %q", m.Op())
+	}
+}
+
+// GameAccountUnlinkClient is a client for the GameAccountUnlink schema.
+type GameAccountUnlinkClient struct {
+	config
+}
+
+// NewGameAccountUnlinkClient returns a client for the GameAccountUnlink from the given config.
+func NewGameAccountUnlinkClient(c config) *GameAccountUnlinkClient {
+	return &GameAccountUnlinkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gameaccountunlink.Hooks(f(g(h())))`.
+func (c *GameAccountUnlinkClient) Use(hooks ...Hook) {
+	c.hooks.GameAccountUnlink = append(c.hooks.GameAccountUnlink, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gameaccountunlink.Intercept(f(g(h())))`.
+func (c *GameAccountUnlinkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameAccountUnlink = append(c.inters.GameAccountUnlink, interceptors...)
+}
+
+// Create returns a builder for creating a GameAccountUnlink entity.
+func (c *GameAccountUnlinkClient) Create() *GameAccountUnlinkCreate {
+	mutation := newGameAccountUnlinkMutation(c.config, OpCreate)
+	return &GameAccountUnlinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameAccountUnlink entities.
+func (c *GameAccountUnlinkClient) CreateBulk(builders ...*GameAccountUnlinkCreate) *GameAccountUnlinkCreateBulk {
+	return &GameAccountUnlinkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameAccountUnlinkClient) MapCreateBulk(slice any, setFunc func(*GameAccountUnlinkCreate, int)) *GameAccountUnlinkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameAccountUnlinkCreateBulk{err: fmt.Errorf("calling to GameAccountUnlinkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameAccountUnlinkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameAccountUnlinkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameAccountUnlink.
+func (c *GameAccountUnlinkClient) Update() *GameAccountUnlinkUpdate {
+	mutation := newGameAccountUnlinkMutation(c.config, OpUpdate)
+	return &GameAccountUnlinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameAccountUnlinkClient) UpdateOne(_m *GameAccountUnlink) *GameAccountUnlinkUpdateOne {
+	mutation := newGameAccountUnlinkMutation(c.config, OpUpdateOne, withGameAccountUnlink(_m))
+	return &GameAccountUnlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameAccountUnlinkClient) UpdateOneID(id string) *GameAccountUnlinkUpdateOne {
+	mutation := newGameAccountUnlinkMutation(c.config, OpUpdateOne, withGameAccountUnlinkID(id))
+	return &GameAccountUnlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameAccountUnlink.
+func (c *GameAccountUnlinkClient) Delete() *GameAccountUnlinkDelete {
+	mutation := newGameAccountUnlinkMutation(c.config, OpDelete)
+	return &GameAccountUnlinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameAccountUnlinkClient) DeleteOne(_m *GameAccountUnlink) *GameAccountUnlinkDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameAccountUnlinkClient) DeleteOneID(id string) *GameAccountUnlinkDeleteOne {
+	builder := c.Delete().Where(gameaccountunlink.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameAccountUnlinkDeleteOne{builder}
+}
+
+// Query returns a query builder for GameAccountUnlink.
+func (c *GameAccountUnlinkClient) Query() *GameAccountUnlinkQuery {
+	return &GameAccountUnlinkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameAccountUnlink},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameAccountUnlink entity by its id.
+func (c *GameAccountUnlinkClient) Get(ctx context.Context, id string) (*GameAccountUnlink, error) {
+	return c.Query().Where(gameaccountunlink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameAccountUnlinkClient) GetX(ctx context.Context, id string) *GameAccountUnlink {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameAccountUnlinkClient) Hooks() []Hook {
+	return c.hooks.GameAccountUnlink
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameAccountUnlinkClient) Interceptors() []Interceptor {
+	return c.inters.GameAccountUnlink
+}
+
+func (c *GameAccountUnlinkClient) mutate(ctx context.Context, m *GameAccountUnlinkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameAccountUnlinkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameAccountUnlinkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameAccountUnlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameAccountUnlinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameAccountUnlink mutation op: %q", m.Op())
+	}
+}
+
+// GameConfigRevisionClient is a client for the GameConfigRevision schema.
+type GameConfigRevisionClient struct {
+	config
+}
+
+// NewGameConfigRevisionClient returns a client for the GameConfigRevision from the given config.
+func NewGameConfigRevisionClient(c config) *GameConfigRevisionClient {
+	return &GameConfigRevisionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gameconfigrevision.Hooks(f(g(h())))`.
+func (c *GameConfigRevisionClient) Use(hooks ...Hook) {
+	c.hooks.GameConfigRevision = append(c.hooks.GameConfigRevision, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gameconfigrevision.Intercept(f(g(h())))`.
+func (c *GameConfigRevisionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameConfigRevision = append(c.inters.GameConfigRevision, interceptors...)
+}
+
+// Create returns a builder for creating a GameConfigRevision entity.
+func (c *GameConfigRevisionClient) Create() *GameConfigRevisionCreate {
+	mutation := newGameConfigRevisionMutation(c.config, OpCreate)
+	return &GameConfigRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameConfigRevision entities.
+func (c *GameConfigRevisionClient) CreateBulk(builders ...*GameConfigRevisionCreate) *GameConfigRevisionCreateBulk {
+	return &GameConfigRevisionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameConfigRevisionClient) MapCreateBulk(slice any, setFunc func(*GameConfigRevisionCreate, int)) *GameConfigRevisionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameConfigRevisionCreateBulk{err: fmt.Errorf("calling to GameConfigRevisionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameConfigRevisionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameConfigRevisionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameConfigRevision.
+func (c *GameConfigRevisionClient) Update() *GameConfigRevisionUpdate {
+	mutation := newGameConfigRevisionMutation(c.config, OpUpdate)
+	return &GameConfigRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameConfigRevisionClient) UpdateOne(_m *GameConfigRevision) *GameConfigRevisionUpdateOne {
+	mutation := newGameConfigRevisionMutation(c.config, OpUpdateOne, withGameConfigRevision(_m))
+	return &GameConfigRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameConfigRevisionClient) UpdateOneID(id string) *GameConfigRevisionUpdateOne {
+	mutation := newGameConfigRevisionMutation(c.config, OpUpdateOne, withGameConfigRevisionID(id))
+	return &GameConfigRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameConfigRevision.
+func (c *GameConfigRevisionClient) Delete() *GameConfigRevisionDelete {
+	mutation := newGameConfigRevisionMutation(c.config, OpDelete)
+	return &GameConfigRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameConfigRevisionClient) DeleteOne(_m *GameConfigRevision) *GameConfigRevisionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameConfigRevisionClient) DeleteOneID(id string) *GameConfigRevisionDeleteOne {
+	builder := c.Delete().Where(gameconfigrevision.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameConfigRevisionDeleteOne{builder}
+}
+
+// Query returns a query builder for GameConfigRevision.
+func (c *GameConfigRevisionClient) Query() *GameConfigRevisionQuery {
+	return &GameConfigRevisionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameConfigRevision},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameConfigRevision entity by its id.
+func (c *GameConfigRevisionClient) Get(ctx context.Context, id string) (*GameConfigRevision, error) {
+	return c.Query().Where(gameconfigrevision.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameConfigRevisionClient) GetX(ctx context.Context, id string) *GameConfigRevision {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameConfigRevisionClient) Hooks() []Hook {
+	return c.hooks.GameConfigRevision
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameConfigRevisionClient) Interceptors() []Interceptor {
+	return c.inters.GameConfigRevision
+}
+
+func (c *GameConfigRevisionClient) mutate(ctx context.Context, m *GameConfigRevisionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameConfigRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameConfigRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameConfigRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameConfigRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameConfigRevision mutation op: %q", m.Op())
+	}
+}
+
+// GameMailClient is a client for the GameMail schema.
+type GameMailClient struct {
+	config
+}
+
+// NewGameMailClient returns a client for the GameMail from the given config.
+func NewGameMailClient(c config) *GameMailClient {
+	return &GameMailClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gamemail.Hooks(f(g(h())))`.
+func (c *GameMailClient) Use(hooks ...Hook) {
+	c.hooks.GameMail = append(c.hooks.GameMail, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gamemail.Intercept(f(g(h())))`.
+func (c *GameMailClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameMail = append(c.inters.GameMail, interceptors...)
+}
+
+// Create returns a builder for creating a GameMail entity.
+func (c *GameMailClient) Create() *GameMailCreate {
+	mutation := newGameMailMutation(c.config, OpCreate)
+	return &GameMailCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameMail entities.
+func (c *GameMailClient) CreateBulk(builders ...*GameMailCreate) *GameMailCreateBulk {
+	return &GameMailCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameMailClient) MapCreateBulk(slice any, setFunc func(*GameMailCreate, int)) *GameMailCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameMailCreateBulk{err: fmt.Errorf("calling to GameMailClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameMailCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameMailCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameMail.
+func (c *GameMailClient) Update() *GameMailUpdate {
+	mutation := newGameMailMutation(c.config, OpUpdate)
+	return &GameMailUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameMailClient) UpdateOne(_m *GameMail) *GameMailUpdateOne {
+	mutation := newGameMailMutation(c.config, OpUpdateOne, withGameMail(_m))
+	return &GameMailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameMailClient) UpdateOneID(id string) *GameMailUpdateOne {
+	mutation := newGameMailMutation(c.config, OpUpdateOne, withGameMailID(id))
+	return &GameMailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameMail.
+func (c *GameMailClient) Delete() *GameMailDelete {
+	mutation := newGameMailMutation(c.config, OpDelete)
+	return &GameMailDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameMailClient) DeleteOne(_m *GameMail) *GameMailDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameMailClient) DeleteOneID(id string) *GameMailDeleteOne {
+	builder := c.Delete().Where(gamemail.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameMailDeleteOne{builder}
+}
+
+// Query returns a query builder for GameMail.
+func (c *GameMailClient) Query() *GameMailQuery {
+	return &GameMailQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameMail},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameMail entity by its id.
+func (c *GameMailClient) Get(ctx context.Context, id string) (*GameMail, error) {
+	return c.Query().Where(gamemail.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameMailClient) GetX(ctx context.Context, id string) *GameMail {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameMailClient) Hooks() []Hook {
+	return c.hooks.GameMail
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameMailClient) Interceptors() []Interceptor {
+	return c.inters.GameMail
+}
+
+func (c *GameMailClient) mutate(ctx context.Context, m *GameMailMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameMailCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameMailUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameMailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameMailDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameMail mutation op: %q", m.Op())
+	}
+}
+
+// GameRecentServerClient is a client for the GameRecentServer schema.
+type GameRecentServerClient struct {
+	config
+}
+
+// NewGameRecentServerClient returns a client for the GameRecentServer from the given config.
+func NewGameRecentServerClient(c config) *GameRecentServerClient {
+	return &GameRecentServerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gamerecentserver.Hooks(f(g(h())))`.
+func (c *GameRecentServerClient) Use(hooks ...Hook) {
+	c.hooks.GameRecentServer = append(c.hooks.GameRecentServer, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gamerecentserver.Intercept(f(g(h())))`.
+func (c *GameRecentServerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameRecentServer = append(c.inters.GameRecentServer, interceptors...)
+}
+
+// Create returns a builder for creating a GameRecentServer entity.
+func (c *GameRecentServerClient) Create() *GameRecentServerCreate {
+	mutation := newGameRecentServerMutation(c.config, OpCreate)
+	return &GameRecentServerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameRecentServer entities.
+func (c *GameRecentServerClient) CreateBulk(builders ...*GameRecentServerCreate) *GameRecentServerCreateBulk {
+	return &GameRecentServerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameRecentServerClient) MapCreateBulk(slice any, setFunc func(*GameRecentServerCreate, int)) *GameRecentServerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameRecentServerCreateBulk{err: fmt.Errorf("calling to GameRecentServerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameRecentServerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameRecentServerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameRecentServer.
+func (c *GameRecentServerClient) Update() *GameRecentServerUpdate {
+	mutation := newGameRecentServerMutation(c.config, OpUpdate)
+	return &GameRecentServerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameRecentServerClient) UpdateOne(_m *GameRecentServer) *GameRecentServerUpdateOne {
+	mutation := newGameRecentServerMutation(c.config, OpUpdateOne, withGameRecentServer(_m))
+	return &GameRecentServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameRecentServerClient) UpdateOneID(id int) *GameRecentServerUpdateOne {
+	mutation := newGameRecentServerMutation(c.config, OpUpdateOne, withGameRecentServerID(id))
+	return &GameRecentServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameRecentServer.
+func (c *GameRecentServerClient) Delete() *GameRecentServerDelete {
+	mutation := newGameRecentServerMutation(c.config, OpDelete)
+	return &GameRecentServerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameRecentServerClient) DeleteOne(_m *GameRecentServer) *GameRecentServerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameRecentServerClient) DeleteOneID(id int) *GameRecentServerDeleteOne {
+	builder := c.Delete().Where(gamerecentserver.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameRecentServerDeleteOne{builder}
+}
+
+// Query returns a query builder for GameRecentServer.
+func (c *GameRecentServerClient) Query() *GameRecentServerQuery {
+	return &GameRecentServerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameRecentServer},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameRecentServer entity by its id.
+func (c *GameRecentServerClient) Get(ctx context.Context, id int) (*GameRecentServer, error) {
+	return c.Query().Where(gamerecentserver.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameRecentServerClient) GetX(ctx context.Context, id int) *GameRecentServer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameRecentServerClient) Hooks() []Hook {
+	return c.hooks.GameRecentServer
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameRecentServerClient) Interceptors() []Interceptor {
+	return c.inters.GameRecentServer
+}
+
+func (c *GameRecentServerClient) mutate(ctx context.Context, m *GameRecentServerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameRecentServerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameRecentServerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameRecentServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameRecentServerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameRecentServer mutation op: %q", m.Op())
+	}
+}
+
+// GameServerClient is a client for the GameServer schema.
+type GameServerClient struct {
+	config
+}
+
+// NewGameServerClient returns a client for the GameServer from the given config.
+func NewGameServerClient(c config) *GameServerClient {
+	return &GameServerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gameserver.Hooks(f(g(h())))`.
+func (c *GameServerClient) Use(hooks ...Hook) {
+	c.hooks.GameServer = append(c.hooks.GameServer, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gameserver.Intercept(f(g(h())))`.
+func (c *GameServerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameServer = append(c.inters.GameServer, interceptors...)
+}
+
+// Create returns a builder for creating a GameServer entity.
+func (c *GameServerClient) Create() *GameServerCreate {
+	mutation := newGameServerMutation(c.config, OpCreate)
+	return &GameServerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameServer entities.
+func (c *GameServerClient) CreateBulk(builders ...*GameServerCreate) *GameServerCreateBulk {
+	return &GameServerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameServerClient) MapCreateBulk(slice any, setFunc func(*GameServerCreate, int)) *GameServerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameServerCreateBulk{err: fmt.Errorf("calling to GameServerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameServerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameServerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameServer.
+func (c *GameServerClient) Update() *GameServerUpdate {
+	mutation := newGameServerMutation(c.config, OpUpdate)
+	return &GameServerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameServerClient) UpdateOne(_m *GameServer) *GameServerUpdateOne {
+	mutation := newGameServerMutation(c.config, OpUpdateOne, withGameServer(_m))
+	return &GameServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameServerClient) UpdateOneID(id string) *GameServerUpdateOne {
+	mutation := newGameServerMutation(c.config, OpUpdateOne, withGameServerID(id))
+	return &GameServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameServer.
+func (c *GameServerClient) Delete() *GameServerDelete {
+	mutation := newGameServerMutation(c.config, OpDelete)
+	return &GameServerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameServerClient) DeleteOne(_m *GameServer) *GameServerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameServerClient) DeleteOneID(id string) *GameServerDeleteOne {
+	builder := c.Delete().Where(gameserver.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameServerDeleteOne{builder}
+}
+
+// Query returns a query builder for GameServer.
+func (c *GameServerClient) Query() *GameServerQuery {
+	return &GameServerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameServer},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameServer entity by its id.
+func (c *GameServerClient) Get(ctx context.Context, id string) (*GameServer, error) {
+	return c.Query().Where(gameserver.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameServerClient) GetX(ctx context.Context, id string) *GameServer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameServerClient) Hooks() []Hook {
+	return c.hooks.GameServer
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameServerClient) Interceptors() []Interceptor {
+	return c.inters.GameServer
+}
+
+func (c *GameServerClient) mutate(ctx context.Context, m *GameServerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameServerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameServerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameServerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameServerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameServer mutation op: %q", m.Op())
+	}
+}
+
+// GameServerBackupClient is a client for the GameServerBackup schema.
+type GameServerBackupClient struct {
+	config
+}
+
+// NewGameServerBackupClient returns a client for the GameServerBackup from the given config.
+func NewGameServerBackupClient(c config) *GameServerBackupClient {
+	return &GameServerBackupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gameserverbackup.Hooks(f(g(h())))`.
+func (c *GameServerBackupClient) Use(hooks ...Hook) {
+	c.hooks.GameServerBackup = append(c.hooks.GameServerBackup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gameserverbackup.Intercept(f(g(h())))`.
+func (c *GameServerBackupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameServerBackup = append(c.inters.GameServerBackup, interceptors...)
+}
+
+// Create returns a builder for creating a GameServerBackup entity.
+func (c *GameServerBackupClient) Create() *GameServerBackupCreate {
+	mutation := newGameServerBackupMutation(c.config, OpCreate)
+	return &GameServerBackupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameServerBackup entities.
+func (c *GameServerBackupClient) CreateBulk(builders ...*GameServerBackupCreate) *GameServerBackupCreateBulk {
+	return &GameServerBackupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameServerBackupClient) MapCreateBulk(slice any, setFunc func(*GameServerBackupCreate, int)) *GameServerBackupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameServerBackupCreateBulk{err: fmt.Errorf("calling to GameServerBackupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameServerBackupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameServerBackupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameServerBackup.
+func (c *GameServerBackupClient) Update() *GameServerBackupUpdate {
+	mutation := newGameServerBackupMutation(c.config, OpUpdate)
+	return &GameServerBackupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameServerBackupClient) UpdateOne(_m *GameServerBackup) *GameServerBackupUpdateOne {
+	mutation := newGameServerBackupMutation(c.config, OpUpdateOne, withGameServerBackup(_m))
+	return &GameServerBackupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameServerBackupClient) UpdateOneID(id string) *GameServerBackupUpdateOne {
+	mutation := newGameServerBackupMutation(c.config, OpUpdateOne, withGameServerBackupID(id))
+	return &GameServerBackupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameServerBackup.
+func (c *GameServerBackupClient) Delete() *GameServerBackupDelete {
+	mutation := newGameServerBackupMutation(c.config, OpDelete)
+	return &GameServerBackupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameServerBackupClient) DeleteOne(_m *GameServerBackup) *GameServerBackupDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameServerBackupClient) DeleteOneID(id string) *GameServerBackupDeleteOne {
+	builder := c.Delete().Where(gameserverbackup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameServerBackupDeleteOne{builder}
+}
+
+// Query returns a query builder for GameServerBackup.
+func (c *GameServerBackupClient) Query() *GameServerBackupQuery {
+	return &GameServerBackupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameServerBackup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameServerBackup entity by its id.
+func (c *GameServerBackupClient) Get(ctx context.Context, id string) (*GameServerBackup, error) {
+	return c.Query().Where(gameserverbackup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameServerBackupClient) GetX(ctx context.Context, id string) *GameServerBackup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameServerBackupClient) Hooks() []Hook {
+	return c.hooks.GameServerBackup
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameServerBackupClient) Interceptors() []Interceptor {
+	return c.inters.GameServerBackup
+}
+
+func (c *GameServerBackupClient) mutate(ctx context.Context, m *GameServerBackupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameServerBackupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameServerBackupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameServerBackupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameServerBackupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameServerBackup mutation op: %q", m.Op())
+	}
+}
+
+// GameServerHistoryClient is a client for the GameServerHistory schema.
+type GameServerHistoryClient struct {
+	config
+}
+
+// NewGameServerHistoryClient returns a client for the GameServerHistory from the given config.
+func NewGameServerHistoryClient(c config) *GameServerHistoryClient {
+	return &GameServerHistoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gameserverhistory.Hooks(f(g(h())))`.
+func (c *GameServerHistoryClient) Use(hooks ...Hook) {
+	c.hooks.GameServerHistory = append(c.hooks.GameServerHistory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gameserverhistory.Intercept(f(g(h())))`.
+func (c *GameServerHistoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameServerHistory = append(c.inters.GameServerHistory, interceptors...)
+}
+
+// Create returns a builder for creating a GameServerHistory entity.
+func (c *GameServerHistoryClient) Create() *GameServerHistoryCreate {
+	mutation := newGameServerHistoryMutation(c.config, OpCreate)
+	return &GameServerHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameServerHistory entities.
+func (c *GameServerHistoryClient) CreateBulk(builders ...*GameServerHistoryCreate) *GameServerHistoryCreateBulk {
+	return &GameServerHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameServerHistoryClient) MapCreateBulk(slice any, setFunc func(*GameServerHistoryCreate, int)) *GameServerHistoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameServerHistoryCreateBulk{err: fmt.Errorf("calling to GameServerHistoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameServerHistoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameServerHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameServerHistory.
+func (c *GameServerHistoryClient) Update() *GameServerHistoryUpdate {
+	mutation := newGameServerHistoryMutation(c.config, OpUpdate)
+	return &GameServerHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameServerHistoryClient) UpdateOne(_m *GameServerHistory) *GameServerHistoryUpdateOne {
+	mutation := newGameServerHistoryMutation(c.config, OpUpdateOne, withGameServerHistory(_m))
+	return &GameServerHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameServerHistoryClient) UpdateOneID(id string) *GameServerHistoryUpdateOne {
+	mutation := newGameServerHistoryMutation(c.config, OpUpdateOne, withGameServerHistoryID(id))
+	return &GameServerHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameServerHistory.
+func (c *GameServerHistoryClient) Delete() *GameServerHistoryDelete {
+	mutation := newGameServerHistoryMutation(c.config, OpDelete)
+	return &GameServerHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameServerHistoryClient) DeleteOne(_m *GameServerHistory) *GameServerHistoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameServerHistoryClient) DeleteOneID(id string) *GameServerHistoryDeleteOne {
+	builder := c.Delete().Where(gameserverhistory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameServerHistoryDeleteOne{builder}
+}
+
+// Query returns a query builder for GameServerHistory.
+func (c *GameServerHistoryClient) Query() *GameServerHistoryQuery {
+	return &GameServerHistoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameServerHistory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameServerHistory entity by its id.
+func (c *GameServerHistoryClient) Get(ctx context.Context, id string) (*GameServerHistory, error) {
+	return c.Query().Where(gameserverhistory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameServerHistoryClient) GetX(ctx context.Context, id string) *GameServerHistory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameServerHistoryClient) Hooks() []Hook {
+	return c.hooks.GameServerHistory
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameServerHistoryClient) Interceptors() []Interceptor {
+	return c.inters.GameServerHistory
+}
+
+func (c *GameServerHistoryClient) mutate(ctx context.Context, m *GameServerHistoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameServerHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameServerHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameServerHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameServerHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameServerHistory mutation op: %q", m.Op())
+	}
+}
+
+// GiftCodeClient is a client for the GiftCode schema.
+type GiftCodeClient struct {
+	config
+}
+
+// NewGiftCodeClient returns a client for the GiftCode from the given config.
+func NewGiftCodeClient(c config) *GiftCodeClient {
+	return &GiftCodeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `giftcode.Hooks(f(g(h())))`.
+func (c *GiftCodeClient) Use(hooks ...Hook) {
+	c.hooks.GiftCode = append(c.hooks.GiftCode, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `giftcode.Intercept(f(g(h())))`.
+func (c *GiftCodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GiftCode = append(c.inters.GiftCode, interceptors...)
+}
+
+// Create returns a builder for creating a GiftCode entity.
+func (c *GiftCodeClient) Create() *GiftCodeCreate {
+	mutation := newGiftCodeMutation(c.config, OpCreate)
+	return &GiftCodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GiftCode entities.
+func (c *GiftCodeClient) CreateBulk(builders ...*GiftCodeCreate) *GiftCodeCreateBulk {
+	return &GiftCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GiftCodeClient) MapCreateBulk(slice any, setFunc func(*GiftCodeCreate, int)) *GiftCodeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GiftCodeCreateBulk{err: fmt.Errorf("calling to GiftCodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GiftCodeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GiftCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GiftCode.
+func (c *GiftCodeClient) Update() *GiftCodeUpdate {
+	mutation := newGiftCodeMutation(c.config, OpUpdate)
+	return &GiftCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GiftCodeClient) UpdateOne(_m *GiftCode) *GiftCodeUpdateOne {
+	mutation := newGiftCodeMutation(c.config, OpUpdateOne, withGiftCode(_m))
+	return &GiftCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GiftCodeClient) UpdateOneID(id string) *GiftCodeUpdateOne {
+	mutation := newGiftCodeMutation(c.config, OpUpdateOne, withGiftCodeID(id))
+	return &GiftCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GiftCode.
+func (c *GiftCodeClient) Delete() *GiftCodeDelete {
+	mutation := newGiftCodeMutation(c.config, OpDelete)
+	return &GiftCodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GiftCodeClient) DeleteOne(_m *GiftCode) *GiftCodeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GiftCodeClient) DeleteOneID(id string) *GiftCodeDeleteOne {
+	builder := c.Delete().Where(giftcode.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GiftCodeDeleteOne{builder}
+}
+
+// Query returns a query builder for GiftCode.
+func (c *GiftCodeClient) Query() *GiftCodeQuery {
+	return &GiftCodeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGiftCode},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GiftCode entity by its id.
+func (c *GiftCodeClient) Get(ctx context.Context, id string) (*GiftCode, error) {
+	return c.Query().Where(giftcode.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GiftCodeClient) GetX(ctx context.Context, id string) *GiftCode {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GiftCodeClient) Hooks() []Hook {
+	return c.hooks.GiftCode
+}
+
+// Interceptors returns the client interceptors.
+func (c *GiftCodeClient) Interceptors() []Interceptor {
+	return c.inters.GiftCode
+}
+
+func (c *GiftCodeClient) mutate(ctx context.Context, m *GiftCodeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GiftCodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GiftCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GiftCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GiftCodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GiftCode mutation op: %q", m.Op())
+	}
+}
+
+// GiftCodeBatchClient is a client for the GiftCodeBatch schema.
+type GiftCodeBatchClient struct {
+	config
+}
+
+// NewGiftCodeBatchClient returns a client for the GiftCodeBatch from the given config.
+func NewGiftCodeBatchClient(c config) *GiftCodeBatchClient {
+	return &GiftCodeBatchClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `giftcodebatch.Hooks(f(g(h())))`.
+func (c *GiftCodeBatchClient) Use(hooks ...Hook) {
+	c.hooks.GiftCodeBatch = append(c.hooks.GiftCodeBatch, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `giftcodebatch.Intercept(f(g(h())))`.
+func (c *GiftCodeBatchClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GiftCodeBatch = append(c.inters.GiftCodeBatch, interceptors...)
+}
+
+// Create returns a builder for creating a GiftCodeBatch entity.
+func (c *GiftCodeBatchClient) Create() *GiftCodeBatchCreate {
+	mutation := newGiftCodeBatchMutation(c.config, OpCreate)
+	return &GiftCodeBatchCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GiftCodeBatch entities.
+func (c *GiftCodeBatchClient) CreateBulk(builders ...*GiftCodeBatchCreate) *GiftCodeBatchCreateBulk {
+	return &GiftCodeBatchCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GiftCodeBatchClient) MapCreateBulk(slice any, setFunc func(*GiftCodeBatchCreate, int)) *GiftCodeBatchCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GiftCodeBatchCreateBulk{err: fmt.Errorf("calling to GiftCodeBatchClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GiftCodeBatchCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GiftCodeBatchCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GiftCodeBatch.
+func (c *GiftCodeBatchClient) Update() *GiftCodeBatchUpdate {
+	mutation := newGiftCodeBatchMutation(c.config, OpUpdate)
+	return &GiftCodeBatchUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GiftCodeBatchClient) UpdateOne(_m *GiftCodeBatch) *GiftCodeBatchUpdateOne {
+	mutation := newGiftCodeBatchMutation(c.config, OpUpdateOne, withGiftCodeBatch(_m))
+	return &GiftCodeBatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GiftCodeBatchClient) UpdateOneID(id string) *GiftCodeBatchUpdateOne {
+	mutation := newGiftCodeBatchMutation(c.config, OpUpdateOne, withGiftCodeBatchID(id))
+	return &GiftCodeBatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GiftCodeBatch.
+func (c *GiftCodeBatchClient) Delete() *GiftCodeBatchDelete {
+	mutation := newGiftCodeBatchMutation(c.config, OpDelete)
+	return &GiftCodeBatchDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GiftCodeBatchClient) DeleteOne(_m *GiftCodeBatch) *GiftCodeBatchDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GiftCodeBatchClient) DeleteOneID(id string) *GiftCodeBatchDeleteOne {
+	builder := c.Delete().Where(giftcodebatch.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GiftCodeBatchDeleteOne{builder}
+}
+
+// Query returns a query builder for GiftCodeBatch.
+func (c *GiftCodeBatchClient) Query() *GiftCodeBatchQuery {
+	return &GiftCodeBatchQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGiftCodeBatch},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GiftCodeBatch entity by its id.
+func (c *GiftCodeBatchClient) Get(ctx context.Context, id string) (*GiftCodeBatch, error) {
+	return c.Query().Where(giftcodebatch.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GiftCodeBatchClient) GetX(ctx context.Context, id string) *GiftCodeBatch {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GiftCodeBatchClient) Hooks() []Hook {
+	return c.hooks.GiftCodeBatch
+}
+
+// Interceptors returns the client interceptors.
+func (c *GiftCodeBatchClient) Interceptors() []Interceptor {
+	return c.inters.GiftCodeBatch
+}
+
+func (c *GiftCodeBatchClient) mutate(ctx context.Context, m *GiftCodeBatchMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GiftCodeBatchCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GiftCodeBatchUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GiftCodeBatchUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GiftCodeBatchDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GiftCodeBatch mutation op: %q", m.Op())
+	}
+}
+
+// GiftCodeRedeemClient is a client for the GiftCodeRedeem schema.
+type GiftCodeRedeemClient struct {
+	config
+}
+
+// NewGiftCodeRedeemClient returns a client for the GiftCodeRedeem from the given config.
+func NewGiftCodeRedeemClient(c config) *GiftCodeRedeemClient {
+	return &GiftCodeRedeemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `giftcoderedeem.Hooks(f(g(h())))`.
+func (c *GiftCodeRedeemClient) Use(hooks ...Hook) {
+	c.hooks.GiftCodeRedeem = append(c.hooks.GiftCodeRedeem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `giftcoderedeem.Intercept(f(g(h())))`.
+func (c *GiftCodeRedeemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GiftCodeRedeem = append(c.inters.GiftCodeRedeem, interceptors...)
+}
+
+// Create returns a builder for creating a GiftCodeRedeem entity.
+func (c *GiftCodeRedeemClient) Create() *GiftCodeRedeemCreate {
+	mutation := newGiftCodeRedeemMutation(c.config, OpCreate)
+	return &GiftCodeRedeemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GiftCodeRedeem entities.
+func (c *GiftCodeRedeemClient) CreateBulk(builders ...*GiftCodeRedeemCreate) *GiftCodeRedeemCreateBulk {
+	return &GiftCodeRedeemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GiftCodeRedeemClient) MapCreateBulk(slice any, setFunc func(*GiftCodeRedeemCreate, int)) *GiftCodeRedeemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GiftCodeRedeemCreateBulk{err: fmt.Errorf("calling to GiftCodeRedeemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GiftCodeRedeemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GiftCodeRedeemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GiftCodeRedeem.
+func (c *GiftCodeRedeemClient) Update() *GiftCodeRedeemUpdate {
+	mutation := newGiftCodeRedeemMutation(c.config, OpUpdate)
+	return &GiftCodeRedeemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GiftCodeRedeemClient) UpdateOne(_m *GiftCodeRedeem) *GiftCodeRedeemUpdateOne {
+	mutation := newGiftCodeRedeemMutation(c.config, OpUpdateOne, withGiftCodeRedeem(_m))
+	return &GiftCodeRedeemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GiftCodeRedeemClient) UpdateOneID(id string) *GiftCodeRedeemUpdateOne {
+	mutation := newGiftCodeRedeemMutation(c.config, OpUpdateOne, withGiftCodeRedeemID(id))
+	return &GiftCodeRedeemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GiftCodeRedeem.
+func (c *GiftCodeRedeemClient) Delete() *GiftCodeRedeemDelete {
+	mutation := newGiftCodeRedeemMutation(c.config, OpDelete)
+	return &GiftCodeRedeemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GiftCodeRedeemClient) DeleteOne(_m *GiftCodeRedeem) *GiftCodeRedeemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GiftCodeRedeemClient) DeleteOneID(id string) *GiftCodeRedeemDeleteOne {
+	builder := c.Delete().Where(giftcoderedeem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GiftCodeRedeemDeleteOne{builder}
+}
+
+// Query returns a query builder for GiftCodeRedeem.
+func (c *GiftCodeRedeemClient) Query() *GiftCodeRedeemQuery {
+	return &GiftCodeRedeemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGiftCodeRedeem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GiftCodeRedeem entity by its id.
+func (c *GiftCodeRedeemClient) Get(ctx context.Context, id string) (*GiftCodeRedeem, error) {
+	return c.Query().Where(giftcoderedeem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GiftCodeRedeemClient) GetX(ctx context.Context, id string) *GiftCodeRedeem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GiftCodeRedeemClient) Hooks() []Hook {
+	return c.hooks.GiftCodeRedeem
+}
+
+// Interceptors returns the client interceptors.
+func (c *GiftCodeRedeemClient) Interceptors() []Interceptor {
+	return c.inters.GiftCodeRedeem
+}
+
+func (c *GiftCodeRedeemClient) mutate(ctx context.Context, m *GiftCodeRedeemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GiftCodeRedeemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GiftCodeRedeemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GiftCodeRedeemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GiftCodeRedeemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GiftCodeRedeem mutation op: %q", m.Op())
+	}
+}
+
+// GmExecutionClient is a client for the GmExecution schema.
+type GmExecutionClient struct {
+	config
+}
+
+// NewGmExecutionClient returns a client for the GmExecution from the given config.
+func NewGmExecutionClient(c config) *GmExecutionClient {
+	return &GmExecutionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gmexecution.Hooks(f(g(h())))`.
+func (c *GmExecutionClient) Use(hooks ...Hook) {
+	c.hooks.GmExecution = append(c.hooks.GmExecution, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gmexecution.Intercept(f(g(h())))`.
+func (c *GmExecutionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GmExecution = append(c.inters.GmExecution, interceptors...)
+}
+
+// Create returns a builder for creating a GmExecution entity.
+func (c *GmExecutionClient) Create() *GmExecutionCreate {
+	mutation := newGmExecutionMutation(c.config, OpCreate)
+	return &GmExecutionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GmExecution entities.
+func (c *GmExecutionClient) CreateBulk(builders ...*GmExecutionCreate) *GmExecutionCreateBulk {
+	return &GmExecutionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GmExecutionClient) MapCreateBulk(slice any, setFunc func(*GmExecutionCreate, int)) *GmExecutionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GmExecutionCreateBulk{err: fmt.Errorf("calling to GmExecutionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GmExecutionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GmExecutionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GmExecution.
+func (c *GmExecutionClient) Update() *GmExecutionUpdate {
+	mutation := newGmExecutionMutation(c.config, OpUpdate)
+	return &GmExecutionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GmExecutionClient) UpdateOne(_m *GmExecution) *GmExecutionUpdateOne {
+	mutation := newGmExecutionMutation(c.config, OpUpdateOne, withGmExecution(_m))
+	return &GmExecutionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GmExecutionClient) UpdateOneID(id string) *GmExecutionUpdateOne {
+	mutation := newGmExecutionMutation(c.config, OpUpdateOne, withGmExecutionID(id))
+	return &GmExecutionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GmExecution.
+func (c *GmExecutionClient) Delete() *GmExecutionDelete {
+	mutation := newGmExecutionMutation(c.config, OpDelete)
+	return &GmExecutionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GmExecutionClient) DeleteOne(_m *GmExecution) *GmExecutionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GmExecutionClient) DeleteOneID(id string) *GmExecutionDeleteOne {
+	builder := c.Delete().Where(gmexecution.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GmExecutionDeleteOne{builder}
+}
+
+// Query returns a query builder for GmExecution.
+func (c *GmExecutionClient) Query() *GmExecutionQuery {
+	return &GmExecutionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGmExecution},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GmExecution entity by its id.
+func (c *GmExecutionClient) Get(ctx context.Context, id string) (*GmExecution, error) {
+	return c.Query().Where(gmexecution.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GmExecutionClient) GetX(ctx context.Context, id string) *GmExecution {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GmExecutionClient) Hooks() []Hook {
+	return c.hooks.GmExecution
+}
+
+// Interceptors returns the client interceptors.
+func (c *GmExecutionClient) Interceptors() []Interceptor {
+	return c.inters.GmExecution
+}
+
+func (c *GmExecutionClient) mutate(ctx context.Context, m *GmExecutionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GmExecutionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GmExecutionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GmExecutionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GmExecutionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GmExecution mutation op: %q", m.Op())
+	}
+}
+
+// GmSelfServiceClient is a client for the GmSelfService schema.
+type GmSelfServiceClient struct {
+	config
+}
+
+// NewGmSelfServiceClient returns a client for the GmSelfService from the given config.
+func NewGmSelfServiceClient(c config) *GmSelfServiceClient {
+	return &GmSelfServiceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gmselfservice.Hooks(f(g(h())))`.
+func (c *GmSelfServiceClient) Use(hooks ...Hook) {
+	c.hooks.GmSelfService = append(c.hooks.GmSelfService, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gmselfservice.Intercept(f(g(h())))`.
+func (c *GmSelfServiceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GmSelfService = append(c.inters.GmSelfService, interceptors...)
+}
+
+// Create returns a builder for creating a GmSelfService entity.
+func (c *GmSelfServiceClient) Create() *GmSelfServiceCreate {
+	mutation := newGmSelfServiceMutation(c.config, OpCreate)
+	return &GmSelfServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GmSelfService entities.
+func (c *GmSelfServiceClient) CreateBulk(builders ...*GmSelfServiceCreate) *GmSelfServiceCreateBulk {
+	return &GmSelfServiceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GmSelfServiceClient) MapCreateBulk(slice any, setFunc func(*GmSelfServiceCreate, int)) *GmSelfServiceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GmSelfServiceCreateBulk{err: fmt.Errorf("calling to GmSelfServiceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GmSelfServiceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GmSelfServiceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GmSelfService.
+func (c *GmSelfServiceClient) Update() *GmSelfServiceUpdate {
+	mutation := newGmSelfServiceMutation(c.config, OpUpdate)
+	return &GmSelfServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GmSelfServiceClient) UpdateOne(_m *GmSelfService) *GmSelfServiceUpdateOne {
+	mutation := newGmSelfServiceMutation(c.config, OpUpdateOne, withGmSelfService(_m))
+	return &GmSelfServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GmSelfServiceClient) UpdateOneID(id string) *GmSelfServiceUpdateOne {
+	mutation := newGmSelfServiceMutation(c.config, OpUpdateOne, withGmSelfServiceID(id))
+	return &GmSelfServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GmSelfService.
+func (c *GmSelfServiceClient) Delete() *GmSelfServiceDelete {
+	mutation := newGmSelfServiceMutation(c.config, OpDelete)
+	return &GmSelfServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GmSelfServiceClient) DeleteOne(_m *GmSelfService) *GmSelfServiceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GmSelfServiceClient) DeleteOneID(id string) *GmSelfServiceDeleteOne {
+	builder := c.Delete().Where(gmselfservice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GmSelfServiceDeleteOne{builder}
+}
+
+// Query returns a query builder for GmSelfService.
+func (c *GmSelfServiceClient) Query() *GmSelfServiceQuery {
+	return &GmSelfServiceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGmSelfService},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GmSelfService entity by its id.
+func (c *GmSelfServiceClient) Get(ctx context.Context, id string) (*GmSelfService, error) {
+	return c.Query().Where(gmselfservice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GmSelfServiceClient) GetX(ctx context.Context, id string) *GmSelfService {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GmSelfServiceClient) Hooks() []Hook {
+	return c.hooks.GmSelfService
+}
+
+// Interceptors returns the client interceptors.
+func (c *GmSelfServiceClient) Interceptors() []Interceptor {
+	return c.inters.GmSelfService
+}
+
+func (c *GmSelfServiceClient) mutate(ctx context.Context, m *GmSelfServiceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GmSelfServiceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GmSelfServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GmSelfServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GmSelfServiceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GmSelfService mutation op: %q", m.Op())
 	}
 }
 
@@ -3059,6 +4958,937 @@ func (c *OperationLogClient) mutate(ctx context.Context, m *OperationLogMutation
 		return (&OperationLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown OperationLog mutation op: %q", m.Op())
+	}
+}
+
+// PassportInviteClient is a client for the PassportInvite schema.
+type PassportInviteClient struct {
+	config
+}
+
+// NewPassportInviteClient returns a client for the PassportInvite from the given config.
+func NewPassportInviteClient(c config) *PassportInviteClient {
+	return &PassportInviteClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passportinvite.Hooks(f(g(h())))`.
+func (c *PassportInviteClient) Use(hooks ...Hook) {
+	c.hooks.PassportInvite = append(c.hooks.PassportInvite, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passportinvite.Intercept(f(g(h())))`.
+func (c *PassportInviteClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PassportInvite = append(c.inters.PassportInvite, interceptors...)
+}
+
+// Create returns a builder for creating a PassportInvite entity.
+func (c *PassportInviteClient) Create() *PassportInviteCreate {
+	mutation := newPassportInviteMutation(c.config, OpCreate)
+	return &PassportInviteCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PassportInvite entities.
+func (c *PassportInviteClient) CreateBulk(builders ...*PassportInviteCreate) *PassportInviteCreateBulk {
+	return &PassportInviteCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PassportInviteClient) MapCreateBulk(slice any, setFunc func(*PassportInviteCreate, int)) *PassportInviteCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PassportInviteCreateBulk{err: fmt.Errorf("calling to PassportInviteClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PassportInviteCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PassportInviteCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PassportInvite.
+func (c *PassportInviteClient) Update() *PassportInviteUpdate {
+	mutation := newPassportInviteMutation(c.config, OpUpdate)
+	return &PassportInviteUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PassportInviteClient) UpdateOne(_m *PassportInvite) *PassportInviteUpdateOne {
+	mutation := newPassportInviteMutation(c.config, OpUpdateOne, withPassportInvite(_m))
+	return &PassportInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PassportInviteClient) UpdateOneID(id string) *PassportInviteUpdateOne {
+	mutation := newPassportInviteMutation(c.config, OpUpdateOne, withPassportInviteID(id))
+	return &PassportInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PassportInvite.
+func (c *PassportInviteClient) Delete() *PassportInviteDelete {
+	mutation := newPassportInviteMutation(c.config, OpDelete)
+	return &PassportInviteDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PassportInviteClient) DeleteOne(_m *PassportInvite) *PassportInviteDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PassportInviteClient) DeleteOneID(id string) *PassportInviteDeleteOne {
+	builder := c.Delete().Where(passportinvite.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PassportInviteDeleteOne{builder}
+}
+
+// Query returns a query builder for PassportInvite.
+func (c *PassportInviteClient) Query() *PassportInviteQuery {
+	return &PassportInviteQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePassportInvite},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PassportInvite entity by its id.
+func (c *PassportInviteClient) Get(ctx context.Context, id string) (*PassportInvite, error) {
+	return c.Query().Where(passportinvite.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PassportInviteClient) GetX(ctx context.Context, id string) *PassportInvite {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PassportInviteClient) Hooks() []Hook {
+	return c.hooks.PassportInvite
+}
+
+// Interceptors returns the client interceptors.
+func (c *PassportInviteClient) Interceptors() []Interceptor {
+	return c.inters.PassportInvite
+}
+
+func (c *PassportInviteClient) mutate(ctx context.Context, m *PassportInviteMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PassportInviteCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PassportInviteUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PassportInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PassportInviteDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PassportInvite mutation op: %q", m.Op())
+	}
+}
+
+// PassportLoginLogClient is a client for the PassportLoginLog schema.
+type PassportLoginLogClient struct {
+	config
+}
+
+// NewPassportLoginLogClient returns a client for the PassportLoginLog from the given config.
+func NewPassportLoginLogClient(c config) *PassportLoginLogClient {
+	return &PassportLoginLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passportloginlog.Hooks(f(g(h())))`.
+func (c *PassportLoginLogClient) Use(hooks ...Hook) {
+	c.hooks.PassportLoginLog = append(c.hooks.PassportLoginLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passportloginlog.Intercept(f(g(h())))`.
+func (c *PassportLoginLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PassportLoginLog = append(c.inters.PassportLoginLog, interceptors...)
+}
+
+// Create returns a builder for creating a PassportLoginLog entity.
+func (c *PassportLoginLogClient) Create() *PassportLoginLogCreate {
+	mutation := newPassportLoginLogMutation(c.config, OpCreate)
+	return &PassportLoginLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PassportLoginLog entities.
+func (c *PassportLoginLogClient) CreateBulk(builders ...*PassportLoginLogCreate) *PassportLoginLogCreateBulk {
+	return &PassportLoginLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PassportLoginLogClient) MapCreateBulk(slice any, setFunc func(*PassportLoginLogCreate, int)) *PassportLoginLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PassportLoginLogCreateBulk{err: fmt.Errorf("calling to PassportLoginLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PassportLoginLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PassportLoginLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PassportLoginLog.
+func (c *PassportLoginLogClient) Update() *PassportLoginLogUpdate {
+	mutation := newPassportLoginLogMutation(c.config, OpUpdate)
+	return &PassportLoginLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PassportLoginLogClient) UpdateOne(_m *PassportLoginLog) *PassportLoginLogUpdateOne {
+	mutation := newPassportLoginLogMutation(c.config, OpUpdateOne, withPassportLoginLog(_m))
+	return &PassportLoginLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PassportLoginLogClient) UpdateOneID(id string) *PassportLoginLogUpdateOne {
+	mutation := newPassportLoginLogMutation(c.config, OpUpdateOne, withPassportLoginLogID(id))
+	return &PassportLoginLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PassportLoginLog.
+func (c *PassportLoginLogClient) Delete() *PassportLoginLogDelete {
+	mutation := newPassportLoginLogMutation(c.config, OpDelete)
+	return &PassportLoginLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PassportLoginLogClient) DeleteOne(_m *PassportLoginLog) *PassportLoginLogDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PassportLoginLogClient) DeleteOneID(id string) *PassportLoginLogDeleteOne {
+	builder := c.Delete().Where(passportloginlog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PassportLoginLogDeleteOne{builder}
+}
+
+// Query returns a query builder for PassportLoginLog.
+func (c *PassportLoginLogClient) Query() *PassportLoginLogQuery {
+	return &PassportLoginLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePassportLoginLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PassportLoginLog entity by its id.
+func (c *PassportLoginLogClient) Get(ctx context.Context, id string) (*PassportLoginLog, error) {
+	return c.Query().Where(passportloginlog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PassportLoginLogClient) GetX(ctx context.Context, id string) *PassportLoginLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PassportLoginLogClient) Hooks() []Hook {
+	return c.hooks.PassportLoginLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *PassportLoginLogClient) Interceptors() []Interceptor {
+	return c.inters.PassportLoginLog
+}
+
+func (c *PassportLoginLogClient) mutate(ctx context.Context, m *PassportLoginLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PassportLoginLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PassportLoginLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PassportLoginLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PassportLoginLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PassportLoginLog mutation op: %q", m.Op())
+	}
+}
+
+// PassportMessageClient is a client for the PassportMessage schema.
+type PassportMessageClient struct {
+	config
+}
+
+// NewPassportMessageClient returns a client for the PassportMessage from the given config.
+func NewPassportMessageClient(c config) *PassportMessageClient {
+	return &PassportMessageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passportmessage.Hooks(f(g(h())))`.
+func (c *PassportMessageClient) Use(hooks ...Hook) {
+	c.hooks.PassportMessage = append(c.hooks.PassportMessage, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passportmessage.Intercept(f(g(h())))`.
+func (c *PassportMessageClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PassportMessage = append(c.inters.PassportMessage, interceptors...)
+}
+
+// Create returns a builder for creating a PassportMessage entity.
+func (c *PassportMessageClient) Create() *PassportMessageCreate {
+	mutation := newPassportMessageMutation(c.config, OpCreate)
+	return &PassportMessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PassportMessage entities.
+func (c *PassportMessageClient) CreateBulk(builders ...*PassportMessageCreate) *PassportMessageCreateBulk {
+	return &PassportMessageCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PassportMessageClient) MapCreateBulk(slice any, setFunc func(*PassportMessageCreate, int)) *PassportMessageCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PassportMessageCreateBulk{err: fmt.Errorf("calling to PassportMessageClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PassportMessageCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PassportMessageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PassportMessage.
+func (c *PassportMessageClient) Update() *PassportMessageUpdate {
+	mutation := newPassportMessageMutation(c.config, OpUpdate)
+	return &PassportMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PassportMessageClient) UpdateOne(_m *PassportMessage) *PassportMessageUpdateOne {
+	mutation := newPassportMessageMutation(c.config, OpUpdateOne, withPassportMessage(_m))
+	return &PassportMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PassportMessageClient) UpdateOneID(id string) *PassportMessageUpdateOne {
+	mutation := newPassportMessageMutation(c.config, OpUpdateOne, withPassportMessageID(id))
+	return &PassportMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PassportMessage.
+func (c *PassportMessageClient) Delete() *PassportMessageDelete {
+	mutation := newPassportMessageMutation(c.config, OpDelete)
+	return &PassportMessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PassportMessageClient) DeleteOne(_m *PassportMessage) *PassportMessageDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PassportMessageClient) DeleteOneID(id string) *PassportMessageDeleteOne {
+	builder := c.Delete().Where(passportmessage.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PassportMessageDeleteOne{builder}
+}
+
+// Query returns a query builder for PassportMessage.
+func (c *PassportMessageClient) Query() *PassportMessageQuery {
+	return &PassportMessageQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePassportMessage},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PassportMessage entity by its id.
+func (c *PassportMessageClient) Get(ctx context.Context, id string) (*PassportMessage, error) {
+	return c.Query().Where(passportmessage.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PassportMessageClient) GetX(ctx context.Context, id string) *PassportMessage {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PassportMessageClient) Hooks() []Hook {
+	return c.hooks.PassportMessage
+}
+
+// Interceptors returns the client interceptors.
+func (c *PassportMessageClient) Interceptors() []Interceptor {
+	return c.inters.PassportMessage
+}
+
+func (c *PassportMessageClient) mutate(ctx context.Context, m *PassportMessageMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PassportMessageCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PassportMessageUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PassportMessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PassportMessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PassportMessage mutation op: %q", m.Op())
+	}
+}
+
+// PassportOidcClientClient is a client for the PassportOidcClient schema.
+type PassportOidcClientClient struct {
+	config
+}
+
+// NewPassportOidcClientClient returns a client for the PassportOidcClient from the given config.
+func NewPassportOidcClientClient(c config) *PassportOidcClientClient {
+	return &PassportOidcClientClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passportoidcclient.Hooks(f(g(h())))`.
+func (c *PassportOidcClientClient) Use(hooks ...Hook) {
+	c.hooks.PassportOidcClient = append(c.hooks.PassportOidcClient, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passportoidcclient.Intercept(f(g(h())))`.
+func (c *PassportOidcClientClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PassportOidcClient = append(c.inters.PassportOidcClient, interceptors...)
+}
+
+// Create returns a builder for creating a PassportOidcClient entity.
+func (c *PassportOidcClientClient) Create() *PassportOidcClientCreate {
+	mutation := newPassportOidcClientMutation(c.config, OpCreate)
+	return &PassportOidcClientCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PassportOidcClient entities.
+func (c *PassportOidcClientClient) CreateBulk(builders ...*PassportOidcClientCreate) *PassportOidcClientCreateBulk {
+	return &PassportOidcClientCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PassportOidcClientClient) MapCreateBulk(slice any, setFunc func(*PassportOidcClientCreate, int)) *PassportOidcClientCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PassportOidcClientCreateBulk{err: fmt.Errorf("calling to PassportOidcClientClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PassportOidcClientCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PassportOidcClientCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PassportOidcClient.
+func (c *PassportOidcClientClient) Update() *PassportOidcClientUpdate {
+	mutation := newPassportOidcClientMutation(c.config, OpUpdate)
+	return &PassportOidcClientUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PassportOidcClientClient) UpdateOne(_m *PassportOidcClient) *PassportOidcClientUpdateOne {
+	mutation := newPassportOidcClientMutation(c.config, OpUpdateOne, withPassportOidcClient(_m))
+	return &PassportOidcClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PassportOidcClientClient) UpdateOneID(id string) *PassportOidcClientUpdateOne {
+	mutation := newPassportOidcClientMutation(c.config, OpUpdateOne, withPassportOidcClientID(id))
+	return &PassportOidcClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PassportOidcClient.
+func (c *PassportOidcClientClient) Delete() *PassportOidcClientDelete {
+	mutation := newPassportOidcClientMutation(c.config, OpDelete)
+	return &PassportOidcClientDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PassportOidcClientClient) DeleteOne(_m *PassportOidcClient) *PassportOidcClientDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PassportOidcClientClient) DeleteOneID(id string) *PassportOidcClientDeleteOne {
+	builder := c.Delete().Where(passportoidcclient.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PassportOidcClientDeleteOne{builder}
+}
+
+// Query returns a query builder for PassportOidcClient.
+func (c *PassportOidcClientClient) Query() *PassportOidcClientQuery {
+	return &PassportOidcClientQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePassportOidcClient},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PassportOidcClient entity by its id.
+func (c *PassportOidcClientClient) Get(ctx context.Context, id string) (*PassportOidcClient, error) {
+	return c.Query().Where(passportoidcclient.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PassportOidcClientClient) GetX(ctx context.Context, id string) *PassportOidcClient {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PassportOidcClientClient) Hooks() []Hook {
+	return c.hooks.PassportOidcClient
+}
+
+// Interceptors returns the client interceptors.
+func (c *PassportOidcClientClient) Interceptors() []Interceptor {
+	return c.inters.PassportOidcClient
+}
+
+func (c *PassportOidcClientClient) mutate(ctx context.Context, m *PassportOidcClientMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PassportOidcClientCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PassportOidcClientUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PassportOidcClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PassportOidcClientDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PassportOidcClient mutation op: %q", m.Op())
+	}
+}
+
+// PassportOidcGrantClient is a client for the PassportOidcGrant schema.
+type PassportOidcGrantClient struct {
+	config
+}
+
+// NewPassportOidcGrantClient returns a client for the PassportOidcGrant from the given config.
+func NewPassportOidcGrantClient(c config) *PassportOidcGrantClient {
+	return &PassportOidcGrantClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passportoidcgrant.Hooks(f(g(h())))`.
+func (c *PassportOidcGrantClient) Use(hooks ...Hook) {
+	c.hooks.PassportOidcGrant = append(c.hooks.PassportOidcGrant, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passportoidcgrant.Intercept(f(g(h())))`.
+func (c *PassportOidcGrantClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PassportOidcGrant = append(c.inters.PassportOidcGrant, interceptors...)
+}
+
+// Create returns a builder for creating a PassportOidcGrant entity.
+func (c *PassportOidcGrantClient) Create() *PassportOidcGrantCreate {
+	mutation := newPassportOidcGrantMutation(c.config, OpCreate)
+	return &PassportOidcGrantCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PassportOidcGrant entities.
+func (c *PassportOidcGrantClient) CreateBulk(builders ...*PassportOidcGrantCreate) *PassportOidcGrantCreateBulk {
+	return &PassportOidcGrantCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PassportOidcGrantClient) MapCreateBulk(slice any, setFunc func(*PassportOidcGrantCreate, int)) *PassportOidcGrantCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PassportOidcGrantCreateBulk{err: fmt.Errorf("calling to PassportOidcGrantClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PassportOidcGrantCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PassportOidcGrantCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PassportOidcGrant.
+func (c *PassportOidcGrantClient) Update() *PassportOidcGrantUpdate {
+	mutation := newPassportOidcGrantMutation(c.config, OpUpdate)
+	return &PassportOidcGrantUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PassportOidcGrantClient) UpdateOne(_m *PassportOidcGrant) *PassportOidcGrantUpdateOne {
+	mutation := newPassportOidcGrantMutation(c.config, OpUpdateOne, withPassportOidcGrant(_m))
+	return &PassportOidcGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PassportOidcGrantClient) UpdateOneID(id string) *PassportOidcGrantUpdateOne {
+	mutation := newPassportOidcGrantMutation(c.config, OpUpdateOne, withPassportOidcGrantID(id))
+	return &PassportOidcGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PassportOidcGrant.
+func (c *PassportOidcGrantClient) Delete() *PassportOidcGrantDelete {
+	mutation := newPassportOidcGrantMutation(c.config, OpDelete)
+	return &PassportOidcGrantDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PassportOidcGrantClient) DeleteOne(_m *PassportOidcGrant) *PassportOidcGrantDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PassportOidcGrantClient) DeleteOneID(id string) *PassportOidcGrantDeleteOne {
+	builder := c.Delete().Where(passportoidcgrant.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PassportOidcGrantDeleteOne{builder}
+}
+
+// Query returns a query builder for PassportOidcGrant.
+func (c *PassportOidcGrantClient) Query() *PassportOidcGrantQuery {
+	return &PassportOidcGrantQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePassportOidcGrant},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PassportOidcGrant entity by its id.
+func (c *PassportOidcGrantClient) Get(ctx context.Context, id string) (*PassportOidcGrant, error) {
+	return c.Query().Where(passportoidcgrant.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PassportOidcGrantClient) GetX(ctx context.Context, id string) *PassportOidcGrant {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PassportOidcGrantClient) Hooks() []Hook {
+	return c.hooks.PassportOidcGrant
+}
+
+// Interceptors returns the client interceptors.
+func (c *PassportOidcGrantClient) Interceptors() []Interceptor {
+	return c.inters.PassportOidcGrant
+}
+
+func (c *PassportOidcGrantClient) mutate(ctx context.Context, m *PassportOidcGrantMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PassportOidcGrantCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PassportOidcGrantUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PassportOidcGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PassportOidcGrantDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PassportOidcGrant mutation op: %q", m.Op())
+	}
+}
+
+// PassportSessionClient is a client for the PassportSession schema.
+type PassportSessionClient struct {
+	config
+}
+
+// NewPassportSessionClient returns a client for the PassportSession from the given config.
+func NewPassportSessionClient(c config) *PassportSessionClient {
+	return &PassportSessionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passportsession.Hooks(f(g(h())))`.
+func (c *PassportSessionClient) Use(hooks ...Hook) {
+	c.hooks.PassportSession = append(c.hooks.PassportSession, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passportsession.Intercept(f(g(h())))`.
+func (c *PassportSessionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PassportSession = append(c.inters.PassportSession, interceptors...)
+}
+
+// Create returns a builder for creating a PassportSession entity.
+func (c *PassportSessionClient) Create() *PassportSessionCreate {
+	mutation := newPassportSessionMutation(c.config, OpCreate)
+	return &PassportSessionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PassportSession entities.
+func (c *PassportSessionClient) CreateBulk(builders ...*PassportSessionCreate) *PassportSessionCreateBulk {
+	return &PassportSessionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PassportSessionClient) MapCreateBulk(slice any, setFunc func(*PassportSessionCreate, int)) *PassportSessionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PassportSessionCreateBulk{err: fmt.Errorf("calling to PassportSessionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PassportSessionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PassportSessionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PassportSession.
+func (c *PassportSessionClient) Update() *PassportSessionUpdate {
+	mutation := newPassportSessionMutation(c.config, OpUpdate)
+	return &PassportSessionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PassportSessionClient) UpdateOne(_m *PassportSession) *PassportSessionUpdateOne {
+	mutation := newPassportSessionMutation(c.config, OpUpdateOne, withPassportSession(_m))
+	return &PassportSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PassportSessionClient) UpdateOneID(id string) *PassportSessionUpdateOne {
+	mutation := newPassportSessionMutation(c.config, OpUpdateOne, withPassportSessionID(id))
+	return &PassportSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PassportSession.
+func (c *PassportSessionClient) Delete() *PassportSessionDelete {
+	mutation := newPassportSessionMutation(c.config, OpDelete)
+	return &PassportSessionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PassportSessionClient) DeleteOne(_m *PassportSession) *PassportSessionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PassportSessionClient) DeleteOneID(id string) *PassportSessionDeleteOne {
+	builder := c.Delete().Where(passportsession.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PassportSessionDeleteOne{builder}
+}
+
+// Query returns a query builder for PassportSession.
+func (c *PassportSessionClient) Query() *PassportSessionQuery {
+	return &PassportSessionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePassportSession},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PassportSession entity by its id.
+func (c *PassportSessionClient) Get(ctx context.Context, id string) (*PassportSession, error) {
+	return c.Query().Where(passportsession.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PassportSessionClient) GetX(ctx context.Context, id string) *PassportSession {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PassportSessionClient) Hooks() []Hook {
+	return c.hooks.PassportSession
+}
+
+// Interceptors returns the client interceptors.
+func (c *PassportSessionClient) Interceptors() []Interceptor {
+	return c.inters.PassportSession
+}
+
+func (c *PassportSessionClient) mutate(ctx context.Context, m *PassportSessionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PassportSessionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PassportSessionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PassportSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PassportSessionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PassportSession mutation op: %q", m.Op())
+	}
+}
+
+// PassportUserClient is a client for the PassportUser schema.
+type PassportUserClient struct {
+	config
+}
+
+// NewPassportUserClient returns a client for the PassportUser from the given config.
+func NewPassportUserClient(c config) *PassportUserClient {
+	return &PassportUserClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passportuser.Hooks(f(g(h())))`.
+func (c *PassportUserClient) Use(hooks ...Hook) {
+	c.hooks.PassportUser = append(c.hooks.PassportUser, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passportuser.Intercept(f(g(h())))`.
+func (c *PassportUserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PassportUser = append(c.inters.PassportUser, interceptors...)
+}
+
+// Create returns a builder for creating a PassportUser entity.
+func (c *PassportUserClient) Create() *PassportUserCreate {
+	mutation := newPassportUserMutation(c.config, OpCreate)
+	return &PassportUserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PassportUser entities.
+func (c *PassportUserClient) CreateBulk(builders ...*PassportUserCreate) *PassportUserCreateBulk {
+	return &PassportUserCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PassportUserClient) MapCreateBulk(slice any, setFunc func(*PassportUserCreate, int)) *PassportUserCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PassportUserCreateBulk{err: fmt.Errorf("calling to PassportUserClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PassportUserCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PassportUserCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PassportUser.
+func (c *PassportUserClient) Update() *PassportUserUpdate {
+	mutation := newPassportUserMutation(c.config, OpUpdate)
+	return &PassportUserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PassportUserClient) UpdateOne(_m *PassportUser) *PassportUserUpdateOne {
+	mutation := newPassportUserMutation(c.config, OpUpdateOne, withPassportUser(_m))
+	return &PassportUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PassportUserClient) UpdateOneID(id string) *PassportUserUpdateOne {
+	mutation := newPassportUserMutation(c.config, OpUpdateOne, withPassportUserID(id))
+	return &PassportUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PassportUser.
+func (c *PassportUserClient) Delete() *PassportUserDelete {
+	mutation := newPassportUserMutation(c.config, OpDelete)
+	return &PassportUserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PassportUserClient) DeleteOne(_m *PassportUser) *PassportUserDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PassportUserClient) DeleteOneID(id string) *PassportUserDeleteOne {
+	builder := c.Delete().Where(passportuser.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PassportUserDeleteOne{builder}
+}
+
+// Query returns a query builder for PassportUser.
+func (c *PassportUserClient) Query() *PassportUserQuery {
+	return &PassportUserQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePassportUser},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PassportUser entity by its id.
+func (c *PassportUserClient) Get(ctx context.Context, id string) (*PassportUser, error) {
+	return c.Query().Where(passportuser.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PassportUserClient) GetX(ctx context.Context, id string) *PassportUser {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PassportUserClient) Hooks() []Hook {
+	return c.hooks.PassportUser
+}
+
+// Interceptors returns the client interceptors.
+func (c *PassportUserClient) Interceptors() []Interceptor {
+	return c.inters.PassportUser
+}
+
+func (c *PassportUserClient) mutate(ctx context.Context, m *PassportUserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PassportUserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PassportUserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PassportUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PassportUserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PassportUser mutation op: %q", m.Op())
 	}
 }
 
@@ -4955,19 +7785,27 @@ func (c *UserThemeClient) mutate(ctx context.Context, m *UserThemeMutation) (Val
 type (
 	hooks struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
-		FileUploadChunk, FrpTunnel, FrpTunnelStat, IQCheckPrompt, IQCheckResult,
-		IQCheckSite, Instance, InstanceType, Menu, MonitorSample, Node, OIDCClient,
-		OperationLog, PortForward, PortForwardStat, Role, SQLMigration, SSHHost,
-		Session, SystemConfig, Task, ThemeAsset, User, UserAPIKey, UserMessage,
-		UserTheme []ent.Hook
+		FileUploadChunk, FrpTunnel, FrpTunnelStat, GameAccountLink, GameAccountUnlink,
+		GameConfigRevision, GameMail, GameRecentServer, GameServer, GameServerBackup,
+		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
+		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
+		InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
+		PassportInvite, PassportLoginLog, PassportMessage, PassportOidcClient,
+		PassportOidcGrant, PassportSession, PassportUser, PortForward, PortForwardStat,
+		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, ThemeAsset, User,
+		UserAPIKey, UserMessage, UserTheme []ent.Hook
 	}
 	inters struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
-		FileUploadChunk, FrpTunnel, FrpTunnelStat, IQCheckPrompt, IQCheckResult,
-		IQCheckSite, Instance, InstanceType, Menu, MonitorSample, Node, OIDCClient,
-		OperationLog, PortForward, PortForwardStat, Role, SQLMigration, SSHHost,
-		Session, SystemConfig, Task, ThemeAsset, User, UserAPIKey, UserMessage,
-		UserTheme []ent.Interceptor
+		FileUploadChunk, FrpTunnel, FrpTunnelStat, GameAccountLink, GameAccountUnlink,
+		GameConfigRevision, GameMail, GameRecentServer, GameServer, GameServerBackup,
+		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
+		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
+		InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
+		PassportInvite, PassportLoginLog, PassportMessage, PassportOidcClient,
+		PassportOidcGrant, PassportSession, PassportUser, PortForward, PortForwardStat,
+		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, ThemeAsset, User,
+		UserAPIKey, UserMessage, UserTheme []ent.Interceptor
 	}
 )
 

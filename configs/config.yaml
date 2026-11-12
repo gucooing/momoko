@@ -5,6 +5,13 @@ server:
   grpc:
     addr: 0.0.0.0:22733
     timeout: 15s
+passport:
+  # 用户通行证（玩家端）独立端口；后台接口在这个端口上不存在
+  enabled: true
+  addr: 0.0.0.0:22634
+  timeout: 15s
+  # 对外地址：OIDC issuer 与邮件链接使用；留空按请求的 Host 推断
+  public_url: ""
 data:
   database:
     driver: sqlite3

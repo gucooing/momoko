@@ -9,10 +9,12 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "run-p \"dev:admin {@}\" \"dev:passport {@}\" --",
+    "dev:admin": "vite",
+    "dev:passport": "vite --config vite.passport.config.ts",
     "build": "run-s \"build-only {@}\" type-check --",
     "preview": "vite preview",
-    "build-only": "vite build && node -e \"require('node:fs').copyFileSync('dist/index.html','dist/404.html')\" && node scripts/compress-dist.mjs",
+    "build-only": "vite build && node -e \"require('node:fs').copyFileSync('dist/index.html','dist/404.html')\" && node scripts/compress-dist.mjs && vite build --config vite.passport.config.ts && node scripts/compress-dist.mjs dist-passport",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
     "format": "prettier --write src/"

@@ -30,6 +30,45 @@ type FrpTunnel func(*sql.Selector)
 // FrpTunnelStat is the predicate function for frptunnelstat builders.
 type FrpTunnelStat func(*sql.Selector)
 
+// GameAccountLink is the predicate function for gameaccountlink builders.
+type GameAccountLink func(*sql.Selector)
+
+// GameAccountUnlink is the predicate function for gameaccountunlink builders.
+type GameAccountUnlink func(*sql.Selector)
+
+// GameConfigRevision is the predicate function for gameconfigrevision builders.
+type GameConfigRevision func(*sql.Selector)
+
+// GameMail is the predicate function for gamemail builders.
+type GameMail func(*sql.Selector)
+
+// GameRecentServer is the predicate function for gamerecentserver builders.
+type GameRecentServer func(*sql.Selector)
+
+// GameServer is the predicate function for gameserver builders.
+type GameServer func(*sql.Selector)
+
+// GameServerBackup is the predicate function for gameserverbackup builders.
+type GameServerBackup func(*sql.Selector)
+
+// GameServerHistory is the predicate function for gameserverhistory builders.
+type GameServerHistory func(*sql.Selector)
+
+// GiftCode is the predicate function for giftcode builders.
+type GiftCode func(*sql.Selector)
+
+// GiftCodeBatch is the predicate function for giftcodebatch builders.
+type GiftCodeBatch func(*sql.Selector)
+
+// GiftCodeRedeem is the predicate function for giftcoderedeem builders.
+type GiftCodeRedeem func(*sql.Selector)
+
+// GmExecution is the predicate function for gmexecution builders.
+type GmExecution func(*sql.Selector)
+
+// GmSelfService is the predicate function for gmselfservice builders.
+type GmSelfService func(*sql.Selector)
+
 // IQCheckPrompt is the predicate function for iqcheckprompt builders.
 type IQCheckPrompt func(*sql.Selector)
 
@@ -59,6 +98,27 @@ type OIDCClient func(*sql.Selector)
 
 // OperationLog is the predicate function for operationlog builders.
 type OperationLog func(*sql.Selector)
+
+// PassportInvite is the predicate function for passportinvite builders.
+type PassportInvite func(*sql.Selector)
+
+// PassportLoginLog is the predicate function for passportloginlog builders.
+type PassportLoginLog func(*sql.Selector)
+
+// PassportMessage is the predicate function for passportmessage builders.
+type PassportMessage func(*sql.Selector)
+
+// PassportOidcClient is the predicate function for passportoidcclient builders.
+type PassportOidcClient func(*sql.Selector)
+
+// PassportOidcGrant is the predicate function for passportoidcgrant builders.
+type PassportOidcGrant func(*sql.Selector)
+
+// PassportSession is the predicate function for passportsession builders.
+type PassportSession func(*sql.Selector)
+
+// PassportUser is the predicate function for passportuser builders.
+type PassportUser func(*sql.Selector)
 
 // PortForward is the predicate function for portforward builders.
 type PortForward func(*sql.Selector)

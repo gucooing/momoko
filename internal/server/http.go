@@ -37,6 +37,10 @@ func NewHTTPServer(c *conf.Server,
 	monitorApi *service.MonitorService,
 	themeAssets *themeasset.Manager,
 	themeApi *service.ThemeService,
+	gameServerApi *service.GameServerService,
+	gameGMApi *service.GameGMService,
+	gameOpsApi *service.GameOpsService,
+	passportAdminApi *service.PassportAdminService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
@@ -89,6 +93,12 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterTaskManagerHTTPServer(srv, taskApi)
 	v1.RegisterMonitorManagerHTTPServer(srv, monitorApi)
 	v1.RegisterThemeServiceHTTPServer(srv, themeApi)
+	v1.RegisterGameServerServiceHTTPServer(srv, gameServerApi)
+	v1.RegisterGameGMServiceHTTPServer(srv, gameGMApi)
+	v1.RegisterGameOpsServiceHTTPServer(srv, gameOpsApi)
+	v1.RegisterPassportAdminServiceHTTPServer(srv, passportAdminApi)
+	gameGMApi.RegisterEventsServer(srv)
+	gameServerApi.RegisterRawRoutes(srv)
 	oidcApi.RegisterOIDCServer(srv)
 	instanceApi.RegisterWsServer(srv)
 	openSSHApi.RegisterWsServer(srv)

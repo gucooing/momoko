@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>GM 运营 · 卡池</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.hint{font-size:12px;color:var(--ink2);line-height:1.5}
+.bulk-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:var(--bg);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.bulk-btn:hover{background:color-mix(in srgb, var(--bg) 14%, transparent)}
+
+.gl{display:flex;align-items:center;gap:12px;width:100%;padding:10px;border-radius:20px;border:2px solid transparent;background:transparent;font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.gl:hover{background:var(--s2)}
+.gl-on,.gl-on:hover{border-color:var(--g);background:var(--gSoft)}
+.sec{display:flex;flex-direction:column;gap:12px;padding:18px 0;border-top:1px solid var(--line)}
+.sh{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800}
+.sn{width:24px;height:24px;border-radius:8px;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-family:'Outfit',sans-serif}
+.fl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fl>span:first-child{font-size:13px;font-weight:700}
+.fld{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--s);font-size:14px;font-weight:600;color:var(--ink);cursor:text}
+.fld:hover{border-color:var(--p)}
+.fld .u{margin-left:auto;color:var(--ink2);font-weight:600;font-size:13px}
+.upc{display:flex;align-items:center;gap:10px;padding:6px 8px 6px 6px;border-radius:16px;background:var(--gSoft);border:1.5px solid var(--gLine)}
+.chr{display:flex;flex-direction:column;align-items:center;gap:4px;width:64px;padding:6px 0;border:0;border-radius:14px;background:transparent;font:inherit;font-size:11px;font-weight:700;color:var(--ink2);cursor:pointer}
+.chr img{width:44px;height:44px;border-radius:50%;border:2px solid transparent}
+.chr:hover{background:var(--s2)}
+.chr-on{color:var(--ink)}
+.chr-on img{border-color:var(--g)}
+.pk{position:relative;display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:16px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.pk:hover{border-color:var(--g)}
+.pk-on{border-color:var(--g);background:var(--gSoft)}
+.pk img{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;display:block}
+.ck{position:absolute;right:10px;top:10px;width:24px;height:24px;border-radius:50%;background:var(--g);color:var(--gOn);display:flex;align-items:center;justify-content:center}
+.rt{display:grid;grid-template-columns:70px minmax(0,1fr);gap:8px;align-items:center}
+.br{display:grid;grid-template-columns:minmax(0,1.2fr) 150px 90px 130px 36px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 2200px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span style="flex: 1">{{n.t}}</span>
+              <sc-if value="{{n.badge}}" hint-placeholder-val="{{false}}"><span class="gtag" style="height: 20px; padding: 0 7px; font-size: 11px">{{n.badge}}</span></sc-if>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px; position: relative">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <button style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 14px 6px 6px; border-radius: 999px; border: 1.5px solid var(--gLine); background: var(--gSoft); font: inherit; color: var(--ink); cursor: pointer" aria-label="切换服务器：当前 学マス · 正式服">
+        <img src="./assets/hatsuboshi-logo.webp" alt="" style="width: 40px; height: 40px; border-radius: 50%; background: var(--s)">
+        <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 15px; font-weight: 800">学マス · 正式服</span><span style="font-size: 12px; color: var(--gInk); font-weight: 700">托管 · 在线 12 · MGP 正常</span></span>
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--gInk)"><path d="{{i.updown}}"></path></svg>
+      </button>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
+    </div>
+
+    <nav aria-label="GM 运营" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
+      <sc-for list="{{gtabs}}" as="t" hint-placeholder-count="10">
+        <a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}</a>
+      </sc-for>
+    </nav>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">卡池</h1>
+        <div style="font-size: 14px; color: var(--ink2)">9 个卡池 · 5 个进行中 · 草稿里有 1 处修改未发布</div>
+      </div>
+      <button class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.history}}"></path></svg>版本记录</button>
+      <button class="btn btn-g"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新建卡池</button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
+      <section class="card" style="flex: 1 1 360px; max-width: 420px; min-width: 0; padding: 12px; display: flex; flex-direction: column; gap: 8px">
+        <div role="tablist" aria-label="按状态筛选" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 4px">
+          <sc-for list="{{filters}}" as="f" hint-placeholder-count="5"><button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}" style="min-height: 36px; padding: 0 12px; font-size: 13px">{{f.t}} <span class="n num">{{f.n}}</span></button></sc-for>
+        </div>
+        <sc-for list="{{gashas}}" as="g" hint-placeholder-count="9">
+          <button class="gl {{g.cls}}" onClick="{{g.pick}}" aria-pressed="{{g.on}}">
+            <sc-if value="{{g.img}}" hint-placeholder-val="{{true}}"><img src="{{g.img}}" alt="" style="width: 120px; height: 60px; object-fit: contain; flex: none"></sc-if>
+            <sc-if value="{{g.noImg}}" hint-placeholder-val="{{false}}"><span style="width: 120px; height: 60px; border-radius: 999px; background: var(--s2); display: flex; align-items: center; justify-content: center; flex: none"><img src="./assets/item-gasha-ticket-200limit-10-2026-01.webp" alt="" style="width: 34px; height: 34px"></span></sc-if>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+              <span style="font-size: 13px; font-weight: 800; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{g.n}}</span>
+              <span style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center"><span class="pill {{g.st}}" style="height: 22px; font-size: 11px">{{g.stT}}</span><span class="num hint">{{g.period}}</span><sc-if value="{{g.warn}}" hint-placeholder-val="{{false}}"><span class="pill warn" style="height: 22px; font-size: 11px">需检查</span></sc-if></span>
+            </span>
+          </button>
+        </sc-for>
+      </section>
+
+      <section style="flex: 2 1 620px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <div class="card" style="padding: 20px 24px 8px">
+          <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: center; padding-bottom: 16px">
+            <div style="position: relative; flex: none">
+              <img src="{{cur.banner}}" alt="当前横幅" style="width: 260px; height: 130px; object-fit: contain; border-radius: 20px; background: var(--gSoft); display: block">
+              <button class="btn btn-sm" style="position: absolute; right: 8px; bottom: 8px; background: var(--s); color: var(--ink); min-height: 32px">换横幅</button>
+            </div>
+            <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap"><span class="pill ok">进行中 · 还剩 5 天</span><span class="tag">已改 1 处</span></div>
+              <h2 style="margin: 0; font-size: 21px; font-weight: 800; line-height: 1.35">{{cur.n}}</h2>
+              <span class="hint">玩家看到的名称与横幅；横幅可以从游戏素材里选（卡池横幅、偶像卡面）</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center; padding: 12px 14px; margin-bottom: 4px; border-radius: 16px; background: var(--warnSoft)">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--warn); flex: none"><path d="{{i.alert}}"></path></svg>
+            <span style="flex: 1; font-size: 13px; line-height: 1.6">横幅画的是秦谷美鈴，但 UP 选的是倉本千奈。美鈴卡池那边正好反过来，可能是两个横幅填反了。</span>
+            <button class="btn btn-o btn-sm" style="flex: none">换成千奈的横幅</button>
+          </div>
+
+          <div class="sec">
+            <div class="sh"><span class="sn">1</span>基本信息</div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px">
+              <div class="fl" style="grid-column: 1 / -1"><span>名称</span><span class="fld">{{cur.n}}</span></div>
+              <div class="fl"><span>类型</span><div class="seg" role="radiogroup" aria-label="卡池类型" style="align-self: flex-start"><sc-for list="{{kinds}}" as="k" hint-placeholder-count="4"><button class="{{k.cls}}" role="radio" aria-checked="{{k.on}}" onClick="{{k.pick}}">{{k.t}}</button></sc-for></div></div>
+              <div class="fl"><span>列表排序</span><span class="fld num" style="max-width: 140px">1<span class="u">越小越靠前</span></span></div>
+              <div class="fl"><span>开始</span><span class="fld num">2026-11-06 10:00<span class="u">UTC+8</span></span></div>
+              <div class="fl"><span>结束</span><span class="fld num">2026-11-16 09:59<span class="u">UTC+8</span></span></div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sh"><span class="sn">2</span>UP 角色与卡牌</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+              <sc-for list="{{ups}}" as="u" hint-placeholder-count="2">
+                <span class="upc"><img src="{{u.img}}" alt="" style="width: 56px; height: 56px; border-radius: 12px; object-fit: cover"><span style="display: flex; flex-direction: column; gap: 2px"><span style="display: flex; gap: 6px; align-items: center"><span class="rar rar-ssr">SSR</span><span style="font-size: 14px; font-weight: 800">{{u.n}}</span></span><span class="hint">{{u.kind}} · UP 概率 {{u.p}}</span></span><button class="ib ib-sm" aria-label="移除 {{u.n}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button></span>
+              </sc-for>
+              <button class="chip" onClick="{{togglePicker}}" aria-expanded="{{pickerOpen}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>添加 UP</button>
+            </div>
+            <sc-if value="{{pickerOpen}}" hint-placeholder-val="{{true}}">
+              <div style="display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 20px; border: 1.5px solid var(--line); background: var(--bg)">
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+                  <div class="seg" role="radiogroup" aria-label="卡牌种类"><sc-for list="{{pkKinds}}" as="k" hint-placeholder-count="2"><button class="{{k.cls}}" role="radio" aria-checked="{{k.on}}" onClick="{{k.pick}}">{{k.t}}</button></sc-for></div>
+                  <div class="seg" aria-label="稀有度"><button class="on">SSR</button><button>SR</button><button>R</button></div>
+                  <span style="flex: 1"></span>
+                  <label class="inp" style="flex: 0 1 220px; min-height: 38px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg><input type="search" placeholder="卡名或 ID" aria-label="搜索卡牌"></label>
+                </div>
+                <sc-if value="{{isIdolPk}}" hint-placeholder-val="{{true}}">
+                  <div class="hs" role="radiogroup" aria-label="按角色筛选" style="display: flex; gap: 2px; overflow-x: auto">
+                    <sc-for list="{{chars}}" as="c" hint-placeholder-count="10"><button class="chr {{c.cls}}" role="radio" aria-checked="{{c.on}}" onClick="{{c.pick}}"><img src="{{c.img}}" alt="">{{c.n}}</button></sc-for>
+                  </div>
+                </sc-if>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px">
+                  <sc-for list="{{pool}}" as="p" hint-placeholder-count="6">
+                    <button class="pk {{p.cls}}" onClick="{{p.toggle}}" aria-pressed="{{p.on}}">
+                      <img src="{{p.img}}" alt="" style="object-position: {{p.pos}}">
+                      <sc-if value="{{p.on}}" hint-placeholder-val="{{false}}"><span class="ck"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.check}}"></path></svg></span></sc-if>
+                      <span style="font-size: 12px; font-weight: 800; padding: 0 2px">{{p.n}}</span>
+                      <span class="hint" style="padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.sub}}</span>
+                    </button>
+                  </sc-for>
+                </div>
+                <span class="hint">{{poolHint}}</span>
+              </div>
+            </sc-if>
+          </div>
+
+          <div class="sec">
+            <div class="sh"><span class="sn">3</span>概率</div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px">
+              <sc-for list="{{rates}}" as="g" hint-placeholder-count="2">
+                <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 18px; background: var(--s2)">
+                  <span style="font-size: 14px; font-weight: 800">{{g.t}}</span>
+                  <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="3"><div class="rt"><span class="rar {{r.rc}}" style="justify-self: start">{{r.r}}</span><span class="fld num" style="min-height: 40px">{{r.v}}<span class="u">%</span></span></div></sc-for>
+                  <div class="rt"><span class="hint" style="font-weight: 700">其中 UP</span><span class="fld num" style="min-height: 40px; border-color: var(--gLine)">{{g.up}}<span class="u">% · {{g.upShare}}</span></span></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center"><span class="pill ok">合计 100.000%</span><span class="hint">改其中一项时，同类其余稀有度会提示你重新分配，不会自动改。</span></div>
+            <div style="display: flex; flex-direction: column; gap: 10px">
+              <label style="display: flex; align-items: center; gap: 12px; font-size: 14px"><input class="tg tg-sm" type="checkbox" checked="{{fes}}" onChange="{{toggleFes}}"><span style="flex: 1"><b>初星フェス</b>：SSR 概率按 1.5 倍计算<span class="hint" style="margin-left: 8px">上面的数字已包含倍率</span></span></label>
+              <label style="display: flex; align-items: center; gap: 12px; font-size: 14px"><input class="tg tg-sm" type="checkbox" checked="{{true}}"><span style="flex: 1"><b>十连保底</b>：第 10 抽 SR 以上确定</span></label>
+              <div class="fl"><span>UP 以外的 SSR 从哪些卡里出</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{scopes}}" as="s" hint-placeholder-count="4"><button class="chip {{s.cls}}" onClick="{{s.toggle}}" aria-pressed="{{s.on}}" style="min-height: 36px; font-size: 13px"><sc-if value="{{s.on}}" hint-placeholder-val="{{true}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.check}}"></path></svg></sc-if>{{s.t}}</button></sc-for></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sh"><span class="sn">4</span>抽卡按钮</div>
+            <div>
+              <div class="br" style="border-top: 0; font-size: 12px; font-weight: 700; color: var(--ink2)"><span>按钮</span><span>消耗</span><span>抽数</span><span>限制</span><span></span></div>
+              <sc-for list="{{buttons}}" as="b" hint-placeholder-count="3">
+                <div class="br">
+                  <span class="fld" style="min-height: 40px">{{b.t}}</span>
+                  <span class="fld num" style="min-height: 40px"><img src="{{b.img}}" alt="{{b.cur}}" style="width: 22px; height: 22px">{{b.cost}}<svg class="ic ic-sm u" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></span>
+                  <span class="seg"><button class="{{b.c1}}">1</button><button class="{{b.c10}}">10</button></span>
+                  <span class="fld" style="min-height: 40px; font-size: 13px">{{b.lim}}<svg class="ic ic-sm u" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></span>
+                  <button class="ib ib-sm" aria-label="删除按钮 {{b.t}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+                </div>
+              </sc-for>
+              <button class="btn btn-s btn-sm" style="margin-top: 8px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>添加按钮</button>
+            </div>
+          </div>
+
+          <div class="sec">
+            <div class="sh"><span class="sn">5</span>交换点<span style="flex: 1"></span><input class="tg tg-sm" type="checkbox" checked="{{true}}" aria-label="启用交换点"></div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+              <div class="fl"><span>每抽获得</span><span class="fld num">1<span class="u">Pt</span></span></div>
+              <div class="fl"><span>兑换 UP 卡需要</span><span class="fld num">200<span class="u">Pt</span></span></div>
+              <div class="fl"><span>卡池结束后剩余点数</span><span class="fld" style="font-size: 13px">换成偶像碎片兑换券 ×1/Pt</span></div>
+            </div>
+            <span class="hint">可兑换的卡自动跟随上面选的 UP（倉本千奈 SSR、s_card-3-0114）。</span>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+          <div class="card" style="flex: 1 1 360px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; align-items: center; gap: 10px"><h3 style="margin: 0; font-size: 16px; font-weight: 800; flex: 1">模拟抽卡</h3><div class="seg"><button>1,000</button><button class="on">10,000</button><button>100,000</button></div><button class="btn btn-s btn-sm" onClick="{{sim}}">按草稿模拟</button></div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+              <sc-for list="{{simRes}}" as="s" hint-placeholder-count="6"><div style="padding: 10px 12px; border-radius: 14px; background: var(--s2)"><span class="hint">{{s.t}}</span><div class="num" style="font-size: 18px; font-weight: 800">{{s.v}}</div><span class="num hint">{{s.d}}</span></div></sc-for>
+            </div>
+          </div>
+          <div class="card" style="flex: 1 1 300px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+            <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 800">发布前检查</h3>
+            <sc-for list="{{checks}}" as="c" hint-placeholder-count="5">
+              <div style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5"><span class="av" style="width: 24px; height: 24px; border-radius: 8px; background: {{c.bg}}; color: {{c.fg}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg></span><span style="flex: 1">{{c.t}}</span></div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="position: sticky; bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 10px 10px 20px; border-radius: 999px; background: var(--ink); color: var(--bg); box-shadow: 0 16px 40px -12px rgba(20,10,30,.45)">
+          <span style="flex: 1; font-size: 14px; font-weight: 700">草稿 · 改了 1 处（UP 概率）· 发布后热更新，玩家下次打开卡池页生效</span>
+          <button class="btn btn-sm" style="background: transparent; color: var(--bg)">查看改动</button>
+          <button class="btn btn-sm" style="background: transparent; color: var(--bg)">放弃草稿</button>
+          <button class="btn btn-g btn-sm">发布</button>
+        </div>
+      </section>
+    </div>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":2200}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  gamepad: 'M7 7h10a5 5 0 0 1 0 10h-3l-2-2-2 2H7A5 5 0 0 1 7 7zM7 10v4M5 12h4M16 11h.01M18 13h.01',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  idcard: 'M3 5h18v14H3zM9 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16a3.5 3.5 0 0 1 7 0M14 9h4M14 13h4',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  chevD: 'M6 9l6 6 6-6',
+  chevL: 'M15 6l-6 6 6 6',
+  chevR: 'M9 6l6 6-6 6',
+  x: 'M6 6l12 12M18 6 6 18',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  pulse: 'M3 12h4l3-8 4 16 3-8h4',
+  dice: 'M4 4h16v16H4zM8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01',
+  calendar: 'M4 5h16v16H4zM4 10h16M8 3v4M16 3v4',
+  trophy: 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4',
+  gift: 'M3 8h18v4H3zM5 12v9h14v-9M12 8v13M12 8S10.5 3 8 3a2 2 0 0 0 0 5M12 8s1.5-5 4-5a2 2 0 0 1 0 5',
+  mail: 'M3 5h18v14H3zM3 6l9 7 9-7',
+  ticket: 'M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10',
+  megaphone: 'M3 10v4h3l7 5V5L6 10zM17 9a4 4 0 0 1 0 6',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  history: 'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2',
+  logout: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11',
+  ban: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM5.6 5.6l12.8 12.8',
+  download: 'M12 3v12M7 10l5 5 5-5M4 21h16',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'
+};
+
+IC.trophy = 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4';
+IC.check = 'M5 12.5l4.5 4.5L19 7.5';
+IC.alert = 'M12 3 2 21h20zM12 10v5M12 18h.01';
+IC.plus = 'M12 5v14M5 12h14';
+IC.copy = 'M9 9h11v11H9zM5 15H4V4h11v1';
+IC.edit = 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4';
+IC.send = 'M4 12 20 4l-4 16-4-6zM12 14l8-10';
+IC.clockS = 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2';
+IC.filter = 'M3 5h18l-7 8v6l-4 2v-8z';
+IC.stop = 'M7 7h10v10H7z';
+IC.info = 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v6M12 7.5h.01';
+IC.cpu = 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4';
+
+const U = { logo: './assets/hatsuboshi-logo.webp', jewel: './assets/item-jewel-free.webp', jewelPaid: './assets/item-jewel-paid.webp', money: './assets/item-money.webp', ap: './assets/item-ap.webp', ticket: './assets/item-gasha-ticket-200limit-10-2026-01.webp', kcnaL: './assets/cidol-kcna-3-019-L.webp', hmsz: './assets/cidol-hmsz-3-018-land.webp', s114: './assets/csprt-3-0114-land.webp', gn: './assets/gn-01055-notice.webp', gb1: './assets/gb-01055-pickup-001.webp', gb2: './assets/gb-01055-pickup-002.webp', gb3: './assets/gb-01057-ssr-idol-001.webp', gb4: './assets/gb-01060-ssr-idol-001.webp', gbStd: './assets/gb-00000-standard-001.webp', gbWed: './assets/gb-01050-wednesday-001.webp', research: './assets/ev-research-banner.webp', lb: './assets/loginbonus-title.webp' };
+const CHR = { hski: './assets/chr-hski.webp', ttmr: './assets/chr-ttmr.webp', fktn: './assets/chr-fktn.webp', amao: './assets/chr-amao.webp', kllj: './assets/chr-kllj.webp', kcna: './assets/chr-kcna.webp', ssmk: './assets/chr-ssmk.webp', shro: './assets/chr-shro.webp', hmsz: './assets/chr-hmsz.webp', jsna: './assets/chr-jsna.webp', hrnm: './assets/chr-hrnm.webp' };
+function buildNav(active) {
+  return [
+    { title: '', items: [{ t: '工作台', d: IC.home, href: '../project/DashboardPC.dc.html' }, { t: '性能监控', d: IC.activity, href: '../project/MonitorPC.dc.html' }] },
+    { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: '../project/AppsPC.dc.html' }, { t: '应用类型', d: IC.layers, href: '../project/AppTypesPC.dc.html' }] },
+    { title: '游戏', items: [{ t: '游戏服务器', d: IC.gamepad, href: 'GameServersPC.dc.html', key: 'gs' }, { t: 'GM 运营', d: IC.wand, href: 'GkHomePC.dc.html', key: 'gm', badge: '学マス' }, { t: '用户通行证', d: IC.idcard, href: 'PassportPC.dc.html', key: 'pp' }] },
+    { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: '../project/FilesPC.dc.html' }, { t: '分享', d: IC.share, href: '../project/SharesPC.dc.html' }, { t: '文件源', d: IC.db, href: '../project/FileSourcesPC.dc.html' }] },
+    { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: '../project/ContainersPC.dc.html' }] },
+    { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: '../project/PortForwardPC.dc.html' }, { t: '内网穿透', d: IC.tunnel, href: '../project/TunnelPC.dc.html' }, { t: 'SSH 终端', d: IC.terminal, href: '../project/SSHPC.dc.html' }, { t: '智商检测', d: IC.spark, href: '../project/IQCheckPC.dc.html' }] },
+    { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: '../project/NodesPC.dc.html' }, { t: '用户与权限', d: IC.users, href: '../project/UsersPC.dc.html' }, { t: '任务与日志', d: IC.clock, href: '../project/TasksPC.dc.html' }, { t: '系统设置', d: IC.settings, href: '../project/SettingsPC.dc.html' }] }
+  ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === active ? 'nav-on' : '', badge: n.badge || '' })) }));
+}
+function buildGtabs(active) {
+  return [
+    ['home', '工作台', IC.pulse, 'GkHomePC.dc.html'], ['players', '玩家', IC.users, 'GkPlayersPC.dc.html'], ['gasha', '卡池', IC.dice, 'GkGashaPC.dc.html'], ['modes', '玩法', IC.trophy, 'GkModesPC.dc.html'], ['cal', '运营日历', IC.calendar, 'GkCalendarPC.dc.html'],
+    ['mail', '邮件补偿', IC.mail, 'GkMailPC.dc.html'], ['code', '兑换码', IC.ticket, 'GkCodesPC.dc.html'], ['notice', '公告', IC.megaphone, 'GkNoticePC.dc.html'], ['policy', '玩家自助', IC.idcard, 'GmPolicyPC.dc.html'], ['log', 'GM 记录', IC.history, 'GkLogPC.dc.html']
+  ].map(([k, t, d, href]) => ({ t, d, href, cls: k === active ? 'gtab-on' : '' }));
+}
+
+const GB = { p1: './assets/gb-01055-pickup-001.webp', p2: './assets/gb-01055-pickup-002.webp', d1: './assets/gb-01057-ssr-idol-001.webp', d2: './assets/gb-01060-ssr-idol-001.webp', std: './assets/gb-00000-standard-001.webp', wed: './assets/gb-01050-wednesday-001.webp' };
+const GASHAS = [
+  { id: 'p1', n: '【初星フェス】「ガラクタロード」vol.7 千奈ガシャ', img: GB.p1, s: 'run', period: '11/06–11/16', warn: true },
+  { id: 'p2', n: '【初星フェス】「ガラクタロード」vol.7 美鈴ガシャ', img: GB.p2, s: 'run', period: '11/06–11/16', warn: true },
+  { id: 'd1', n: '標ファイナル公演記念ガシャ DAY1', img: GB.d1, s: 'run', period: '11/07–11/16' },
+  { id: 'd2', n: '標ファイナル公演記念ガシャ DAY2', img: GB.d2, s: 'run', period: '11/08–11/16' },
+  { id: 'wed', n: '学マス水曜日ガシャ', img: GB.wed, s: 'run', period: '11/04–11/18' },
+  { id: 'std', n: 'プラチナガシャ', img: GB.std, s: 'perm', period: '至 2026-12-26' },
+  { id: 't1', n: 'SSR Pアイドル1人確定！ガシャ（登录奖励券）', img: '', s: 'run', period: '11/06–11/16' },
+  { id: 't2', n: 'SSR確定ガシャ', img: '', s: 'perm', period: '2024-03 起常驻' },
+  { id: 't3', n: 'N.I.AチャレンジSSR サポートカード確定ガシャ', img: '', s: 'perm', period: '2025-06 起常驻' }
+];
+const ST = { run: ['ok', '进行中'], perm: ['info', '常驻'], soon: ['warn', '未开始'], end: ['off', '已结束'] };
+const CHARS = [['kcna', '千奈'], ['hmsz', '美鈴'], ['hski', '咲季'], ['ttmr', '手毬'], ['fktn', 'ことね'], ['amao', '麻央'], ['kllj', 'リーリヤ'], ['ssmk', '清夏'], ['shro', '広'], ['jsna', '星南'], ['hrnm', '莉波']];
+const IDOL_CARDS = {
+  kcna: [{ k: 'kcna-3-019', n: '倉本千奈', sub: 'i_card-skin-kcna-3-019 · フェス', img: './assets/cidol-kcna-3-019-L.webp', pos: '35% 40%' }],
+  hmsz: [{ k: 'hmsz-3-018', n: '秦谷美鈴', sub: 'i_card-skin-hmsz-3-018 · フェス', img: './assets/cidol-hmsz-3-018-land.webp', pos: '55% 35%' }],
+  hski: [{ k: 'hski-3-000', n: '花海咲季', sub: 'i_card-skin-hski-3-000 · 常驻', img: './assets/cidol-hski-3-000-sq.webp', pos: '50% 50%' }, { k: 'hski-3-000L', n: '花海咲季', sub: 'i_card-skin-hski-3-000 · 卡面', img: './assets/cidol-hski-3-000-L.webp', pos: '40% 30%' }]
+};
+const SUP_CARDS = [
+  { k: 's114', n: '支援卡 SSR', sub: 's_card-3-0114', img: './assets/csprt-3-0114-land.webp', pos: '30% 50%' },
+  { k: 's0002', n: '支援卡 SSR', sub: 's_card-3-0002', img: './assets/csprt-3-0002-sq.webp', pos: '50% 50%' },
+  { k: 's0009', n: '支援卡 SSR', sub: 's_card-3-0009', img: './assets/csprt-3-0009-sq.webp', pos: '50% 50%' },
+  { k: 's0015', n: '支援卡 SSR', sub: 's_card-3-0015', img: './assets/csprt-3-0015-sq.webp', pos: '50% 50%' },
+  { k: 's0016', n: '支援卡 SSR', sub: 's_card-3-0016', img: './assets/csprt-3-0016-sq.webp', pos: '50% 50%' }
+];
+function pageVals(self, st) {
+  const filter = st.filter || 'all';
+  const cur = st.cur || 'p1';
+  const kind = st.kind || 'fes';
+  const pickerOpen = st.pk != null ? st.pk : true;
+  const pkKind = st.pkKind || 'idol';
+  const chr = st.chr || 'kcna';
+  const sel = st.sel || { 'kcna-3-019': true, s114: true };
+  const scopes = st.scopes || { perm: true, fes: true, limited: false };
+  const fes = st.fes != null ? st.fes : true;
+  const g = GASHAS.find((x) => x.id === cur) || GASHAS[0];
+  const ok = (t) => ({ t, d: IC.check, bg: 'var(--okSoft)', fg: 'var(--ok)' });
+  const warn = (t) => ({ t, d: IC.alert, bg: 'var(--warnSoft)', fg: 'var(--warn)' });
+  const pool = (pkKind === 'idol' ? (IDOL_CARDS[chr] || []) : SUP_CARDS).map((p) => ({ ...p, on: !!sel[p.k], cls: sel[p.k] ? 'pk-on' : '', toggle: () => self.setState({ sel: { ...sel, [p.k]: !sel[p.k] } }) }));
+  return {
+    filters: [['all', '全部'], ['run', '进行中'], ['perm', '常驻'], ['soon', '未开始'], ['end', '已结束']].map(([k, t]) => ({ t, n: GASHAS.filter((x) => k === 'all' || x.s === k).length, on: k === filter, cls: k === filter ? 'chip-on' : '', pick: () => self.setState({ filter: k }) })),
+    gashas: GASHAS.filter((x) => filter === 'all' || x.s === filter).map((x) => ({ ...x, noImg: !x.img, warn: !!x.warn, st: ST[x.s][0], stT: ST[x.s][1], on: x.id === cur, cls: x.id === cur ? 'gl-on' : '', pick: () => self.setState({ cur: x.id }) })),
+    cur: { n: g.n, banner: g.img || GB.std },
+    kinds: [['normal', '普通'], ['limited', '限定'], ['fes', '初星フェス'], ['ticket', '确定券']].map(([k, t]) => ({ t, on: k === kind, cls: k === kind ? 'on' : '', pick: () => self.setState({ kind: k }) })),
+    ups: [
+      { n: '倉本千奈', kind: 'P 偶像', p: '0.750%', img: './assets/cidol-kcna-3-019-L.webp' },
+      { n: 's_card-3-0114', kind: '支援卡', p: '1.000%', img: './assets/csprt-3-0114-land.webp' }
+    ],
+    pickerOpen, togglePicker: () => self.setState({ pk: !pickerOpen }),
+    pkKinds: [['idol', 'P 偶像卡'], ['sup', '支援卡']].map(([k, t]) => ({ t, on: k === pkKind, cls: k === pkKind ? 'on' : '', pick: () => self.setState({ pkKind: k }) })),
+    isIdolPk: pkKind === 'idol',
+    chars: CHARS.map(([k, n]) => ({ n, img: CHR[k], on: k === chr, cls: k === chr ? 'chr-on' : '', pick: () => self.setState({ chr: k }) })),
+    pool,
+    poolHint: pkKind === 'idol' ? '先选角色，再选这个角色的卡；卡面来自游戏素材。已选的卡会出现在上面的 UP 里。' : '支援卡按稀有度和名称筛选。',
+    rates: [
+      { t: 'P 偶像卡', rows: [{ r: 'SSR', rc: 'rar-ssr', v: '3.000' }, { r: 'SR', rc: 'rar-sr', v: '6.800' }, { r: 'R', rc: 'rar-r', v: '30.450' }], up: '0.750', upShare: '占 SSR 25%' },
+      { t: '支援卡', rows: [{ r: 'SSR', rc: 'rar-ssr', v: '4.500' }, { r: 'SR', rc: 'rar-sr', v: '10.200' }, { r: 'R', rc: 'rar-r', v: '45.050' }], up: '1.000', upShare: '占 SSR 22%' }
+    ],
+    fes, toggleFes: () => self.setState({ fes: !fes }),
+    scopes: [['perm', '常驻卡'], ['fes', 'フェス限定卡'], ['limited', '期间限定卡']].map(([k, t]) => ({ t, on: !!scopes[k], cls: scopes[k] ? 'chip-on' : '', toggle: () => self.setState({ scopes: { ...scopes, [k]: !scopes[k] } }) })),
+    buttons: [
+      { t: '1日1回', img: './assets/item-jewel-paid.webp', cur: '付费钻石', cost: '60', c1: 'on', c10: '', lim: '每天 1 次' },
+      { t: '单抽', img: './assets/item-jewel-free.webp', cur: '钻石', cost: '250', c1: 'on', c10: '', lim: '不限' },
+      { t: '十连', img: './assets/item-jewel-free.webp', cur: '钻石', cost: '2,500', c1: '', c10: 'on', lim: '不限' }
+    ],
+    sim: () => self.setState({ simAt: Date.now() }),
+    simRes: [
+      { t: 'SSR P 偶像', v: '3.04%', d: '设定 3.000%' },
+      { t: 'UP 倉本千奈', v: '0.74%', d: '设定 0.750%' },
+      { t: 'SSR 支援卡', v: '4.47%', d: '设定 4.500%' },
+      { t: '第一次抽到 UP', v: '平均 133 抽', d: '中位数 92 抽 · 200 Pt 可换' },
+      { t: '十连至少 1 张 SR+', v: '100%', d: '保底生效' },
+      { t: '平均每张 UP 花费', v: '33,250', d: '钻石' }
+    ],
+    checks: [
+      ok('两类卡的概率合计都是 100%'),
+      ok('UP 卡和卡池里的 241 张卡都存在'),
+      ok('交换点时间覆盖卡池开放时间'),
+      warn('横幅和 UP 角色对不上（千奈 / 美鈴两个卡池可能填反了）'),
+      ok('3 个抽卡按钮的消耗都有效')
+    ]
+  };
+}
+
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    return Object.assign({
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav: buildNav('gm'),
+      gtabs: buildGtabs('gasha')
+    }, pageVals(this, st));
+  }
+}
+</script>
+</body>
+</html>

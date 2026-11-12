@@ -1,0 +1,21 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": [
+    "env.d.ts",
+    "vite-env.d.ts",
+    "passport/src/**/*",
+    "passport/src/**/*.vue",
+    "passport/components.d.ts",
+    "passport/auto-imports.d.ts",
+    "src/components/game/**/*",
+    "src/games/**/*"
+  ],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.passport.tsbuildinfo",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@passport/*": ["./passport/src/*"]
+    },
+    "lib": ["dom", "es2020", "dom.iterable"]
+  }
+}

@@ -211,6 +211,10 @@ export default {
         hero: { name: '欢迎横幅' },
       },
       routes: {
+        gameServerNew: '接入游戏服务器',
+        gameServerDetail: '游戏服务器',
+        gameGm: 'GM 运营',
+        gameGmPlayer: '玩家详情',
         login: '登录页',
         publicShare: '公开分享页',
         publicIqcheck: '智商检测公示页',
@@ -540,6 +544,10 @@ export default {
         hero: { name: '歡迎橫幅' },
       },
       routes: {
+        gameServerNew: '接入遊戲伺服器',
+        gameServerDetail: '遊戲伺服器',
+        gameGm: 'GM 營運',
+        gameGmPlayer: '玩家詳情',
         login: '登入頁',
         publicShare: '公開分享頁',
         publicIqcheck: '智商檢測公示頁',
@@ -869,6 +877,10 @@ export default {
         hero: { name: 'Welcome banner' },
       },
       routes: {
+        gameServerNew: 'Add game server',
+        gameServerDetail: 'Game server',
+        gameGm: 'GM operations',
+        gameGmPlayer: 'Player',
         login: 'Login page',
         publicShare: 'Public share page',
         publicIqcheck: 'IQ check public page',

@@ -18,6 +18,10 @@ type UserClaims struct {
 	Name              string
 	PreferredUsername string
 	Email             string
+	// Picture 头像地址（可空，空时不写入令牌）
+	Picture string
+	// EmailVerified 邮箱是否已验证（nil 时不写入令牌）
+	EmailVerified *bool
 }
 
 type TokenClaims struct {
@@ -104,6 +108,12 @@ func SignIDToken(key *rsa.PrivateKey, issuer, clientID, nonce string, user UserC
 	}
 	if nonce != "" {
 		claims["nonce"] = nonce
+	}
+	if user.Picture != "" {
+		claims["picture"] = user.Picture
+	}
+	if user.EmailVerified != nil {
+		claims["email_verified"] = *user.EmailVerified
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token.Header["kid"] = KeyID(key)

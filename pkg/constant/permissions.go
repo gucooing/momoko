@@ -100,6 +100,15 @@ const (
 )
 
 const (
+	// GameServer 允许管理游戏服务器（接入、托管、专用设置、更新与备份）。
+	GameServer Permissions = "game:server"
+	// GameGM 允许进入 GM 运营：能进的管理员可以对任何服务器执行全部 GM 指令，并处理玩家自助申请。
+	GameGM Permissions = "game:gm"
+	// GamePassport 允许管理用户通行证（玩家账号独立于 Momoko 用户）：查看与管理玩家、绑定、邀请与通行证设置。
+	GamePassport Permissions = "game:passport"
+)
+
+const (
 	// IQCheckView 允许查看智商检测的提示词与站点配置。
 	IQCheckView Permissions = "iqcheck:view"
 	// IQCheckEdit 允许编辑智商检测的提示词、站点配置与设置，并手动触发检测。

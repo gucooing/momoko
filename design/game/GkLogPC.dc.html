@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>GM 运营 · GM 记录</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.hint{font-size:12px;color:var(--ink2);line-height:1.5}
+.bulk-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:var(--bg);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.bulk-btn:hover{background:color-mix(in srgb, var(--bg) 14%, transparent)}
+
+.lr{cursor:pointer;border:0;background:transparent;font:inherit;color:var(--ink);text-align:left;width:100%}
+.lr-on,.lr-on:hover{background:var(--gSoft)!important;box-shadow:inset 3px 0 0 var(--g)}
+.kv{display:grid;grid-template-columns:84px minmax(0,1fr);gap:9px 12px;font-size:13px;margin:0}
+.kv dt{color:var(--ink2)}
+.kv dd{margin:0;font-weight:600;min-width:0;overflow-wrap:anywhere}
+
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1320px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span style="flex: 1">{{n.t}}</span>
+              <sc-if value="{{n.badge}}" hint-placeholder-val="{{false}}"><span class="gtag" style="height: 20px; padding: 0 7px; font-size: 11px">{{n.badge}}</span></sc-if>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px; position: relative">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <button style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 14px 6px 6px; border-radius: 999px; border: 1.5px solid var(--gLine); background: var(--gSoft); font: inherit; color: var(--ink); cursor: pointer" aria-label="切换服务器：当前 学マス · 正式服">
+        <img src="./assets/hatsuboshi-logo.webp" alt="" style="width: 40px; height: 40px; border-radius: 50%; background: var(--s)">
+        <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 15px; font-weight: 800">学マス · 正式服</span><span style="font-size: 12px; color: var(--gInk); font-weight: 700">托管 · 在线 12 · MGP 正常</span></span>
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--gInk)"><path d="{{i.updown}}"></path></svg>
+      </button>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
+    </div>
+
+    <nav aria-label="GM 运营" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
+      <sc-for list="{{gtabs}}" as="t" hint-placeholder-count="10">
+        <a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}</a>
+      </sc-for>
+    </nav>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">GM 记录</h1>
+        <div style="font-size: 14px; color: var(--ink2)">管理端和玩家自助执行的每一条指令 · 保留 180 天 · 记录不可修改</div>
+      </div>
+      <button class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>导出审计日志</button>
+    </div>
+
+    <section class="card" style="padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; border-color: var(--gLine); background: var(--gSoft)">
+      <span style="font-size: 15px; font-weight: 800">待审批 <span class="num" style="color: var(--gInk)">1</span></span>
+      <img src="./assets/chr-ssmk.webp" alt="" style="width: 40px; height: 40px; border-radius: 50%">
+      <span style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 800">清夏ちゃん 申请「全部偶像卡」</span><span class="hint">今天 20:36 · 理由：刚回坑，想把缺的卡补齐 · 这个账号还没用过这项</span></span>
+      <button class="btn btn-o btn-sm">驳回</button>
+      <button class="btn btn-g btn-sm"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.check}}"></path></svg>批准并发放</button>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+      <div role="tablist" aria-label="筛选记录" style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{filters}}" as="f" hint-placeholder-count="5"><button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button></sc-for></div>
+      <span style="flex: 1"></span>
+      <button class="chip"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.calendar}}"></path></svg>近 7 天<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+      <button class="chip">风险：全部<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+      <label class="inp" style="flex: 0 1 260px; min-height: 40px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg><input type="search" placeholder="玩家、执行者、指令 ID、requestId" aria-label="搜索记录"></label>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+      <section class="card" style="flex: 3 1 620px; min-width: 0; overflow: hidden">
+        <div style="overflow-x: auto"><div style="min-width: 640px">
+          <div class="row row-h" style="grid-template-columns: 96px 150px minmax(0, 1fr) 64px 84px"><span>时间</span><span>执行者</span><span>指令 · 对象</span><span>风险</span><span>结果</span></div>
+          <sc-for list="{{logs}}" as="l" hint-placeholder-count="10">
+            <button class="row lr {{l.cls}}" onClick="{{l.pick}}" aria-pressed="{{l.on}}" style="grid-template-columns: 96px 150px minmax(0, 1fr) 64px 84px; min-height: 64px">
+              <span class="num hint" style="font-size: 13px">{{l.at}}</span>
+              <span style="display: flex; align-items: center; gap: 8px; min-width: 0"><span class="av {{l.av}}" style="width: 30px; height: 30px; border-radius: 50%; font-size: 12px">{{l.w1}}</span><span style="min-width: 0; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{l.who}}</span><span class="hint">{{l.kind}}</span></span></span>
+              <span style="min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{l.t}} <span class="mono hint" style="font-weight: 600">{{l.id}}</span></span><span style="font-size: 13px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{l.ch}}</span></span>
+              <span class="risk {{l.rc}}" style="justify-self: start">{{l.r}}</span>
+              <span class="pill {{l.st}}" style="justify-self: start">{{l.stT}}</span>
+            </button>
+          </sc-for>
+        </div></div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink2)"><span style="flex: 1">近 7 天共 126 条 · 显示最新 10 条</span><button class="btn btn-s btn-sm">加载更多</button></div>
+      </section>
+
+      <aside class="card" style="flex: 2 1 380px; min-width: 0; padding: 20px 22px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; align-items: flex-start; gap: 10px"><span style="flex: 1; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 18px; font-weight: 800">{{cur.t}}</span><span class="mono hint">{{cur.id}}</span></span><span class="pill {{cur.st}}">{{cur.stT}}</span></div>
+        <dl class="kv">
+          <dt>时间</dt><dd class="num">{{cur.full}}</dd>
+          <dt>执行者</dt><dd>{{cur.who}} · {{cur.kind}}</dd>
+          <dt>来源</dt><dd>{{cur.src}}</dd>
+          <dt>对象</dt><dd>{{cur.ch}}</dd>
+          <dt>风险</dt><dd><span class="risk {{cur.rc}}">{{cur.r}}</span></dd>
+          <dt>原因</dt><dd>{{cur.why}}</dd>
+          <dt>审批</dt><dd>{{cur.rev}}</dd>
+        </dl>
+        <div style="display: flex; flex-direction: column; gap: 6px"><span class="lbl">逐个对象的结果</span>
+          <sc-for list="{{cur.res}}" as="r" hint-placeholder-count="3"><div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px"><span style="flex: 1; min-width: 0">{{r.n}}</span><span class="hint" style="flex: 1; min-width: 0">{{r.d}}</span><span class="pill {{r.st}}" style="height: 22px; font-size: 11px">{{r.stT}}</span></div></sc-for>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap"><span class="hint" style="flex: 1 1 160px; align-self: center">requestId <span class="mono">{{cur.rid}}</span></span><button class="btn btn-o btn-sm"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.copy}}"></path></svg>复制为新操作</button></div>
+      </aside>
+    </div>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1320}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  gamepad: 'M7 7h10a5 5 0 0 1 0 10h-3l-2-2-2 2H7A5 5 0 0 1 7 7zM7 10v4M5 12h4M16 11h.01M18 13h.01',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  idcard: 'M3 5h18v14H3zM9 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16a3.5 3.5 0 0 1 7 0M14 9h4M14 13h4',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  chevD: 'M6 9l6 6 6-6',
+  chevL: 'M15 6l-6 6 6 6',
+  chevR: 'M9 6l6 6-6 6',
+  x: 'M6 6l12 12M18 6 6 18',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  pulse: 'M3 12h4l3-8 4 16 3-8h4',
+  dice: 'M4 4h16v16H4zM8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01',
+  calendar: 'M4 5h16v16H4zM4 10h16M8 3v4M16 3v4',
+  trophy: 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4',
+  gift: 'M3 8h18v4H3zM5 12v9h14v-9M12 8v13M12 8S10.5 3 8 3a2 2 0 0 0 0 5M12 8s1.5-5 4-5a2 2 0 0 1 0 5',
+  mail: 'M3 5h18v14H3zM3 6l9 7 9-7',
+  ticket: 'M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10',
+  megaphone: 'M3 10v4h3l7 5V5L6 10zM17 9a4 4 0 0 1 0 6',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  history: 'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2',
+  logout: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11',
+  ban: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM5.6 5.6l12.8 12.8',
+  download: 'M12 3v12M7 10l5 5 5-5M4 21h16',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'
+};
+
+IC.trophy = 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4';
+IC.check = 'M5 12.5l4.5 4.5L19 7.5';
+IC.alert = 'M12 3 2 21h20zM12 10v5M12 18h.01';
+IC.plus = 'M12 5v14M5 12h14';
+IC.copy = 'M9 9h11v11H9zM5 15H4V4h11v1';
+IC.edit = 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4';
+IC.send = 'M4 12 20 4l-4 16-4-6zM12 14l8-10';
+IC.clockS = 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2';
+IC.filter = 'M3 5h18l-7 8v6l-4 2v-8z';
+IC.stop = 'M7 7h10v10H7z';
+IC.info = 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v6M12 7.5h.01';
+IC.cpu = 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4';
+
+const U = { logo: './assets/hatsuboshi-logo.webp', jewel: './assets/item-jewel-free.webp', jewelPaid: './assets/item-jewel-paid.webp', money: './assets/item-money.webp', ap: './assets/item-ap.webp', ticket: './assets/item-gasha-ticket-200limit-10-2026-01.webp', kcnaL: './assets/cidol-kcna-3-019-L.webp', hmsz: './assets/cidol-hmsz-3-018-land.webp', s114: './assets/csprt-3-0114-land.webp', gn: './assets/gn-01055-notice.webp', gb1: './assets/gb-01055-pickup-001.webp', gb2: './assets/gb-01055-pickup-002.webp', gb3: './assets/gb-01057-ssr-idol-001.webp', gb4: './assets/gb-01060-ssr-idol-001.webp', gbStd: './assets/gb-00000-standard-001.webp', gbWed: './assets/gb-01050-wednesday-001.webp', research: './assets/ev-research-banner.webp', lb: './assets/loginbonus-title.webp' };
+const CHR = { hski: './assets/chr-hski.webp', ttmr: './assets/chr-ttmr.webp', fktn: './assets/chr-fktn.webp', amao: './assets/chr-amao.webp', kllj: './assets/chr-kllj.webp', kcna: './assets/chr-kcna.webp', ssmk: './assets/chr-ssmk.webp', shro: './assets/chr-shro.webp', hmsz: './assets/chr-hmsz.webp', jsna: './assets/chr-jsna.webp', hrnm: './assets/chr-hrnm.webp' };
+function buildNav(active) {
+  return [
+    { title: '', items: [{ t: '工作台', d: IC.home, href: '../project/DashboardPC.dc.html' }, { t: '性能监控', d: IC.activity, href: '../project/MonitorPC.dc.html' }] },
+    { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: '../project/AppsPC.dc.html' }, { t: '应用类型', d: IC.layers, href: '../project/AppTypesPC.dc.html' }] },
+    { title: '游戏', items: [{ t: '游戏服务器', d: IC.gamepad, href: 'GameServersPC.dc.html', key: 'gs' }, { t: 'GM 运营', d: IC.wand, href: 'GkHomePC.dc.html', key: 'gm', badge: '学マス' }, { t: '用户通行证', d: IC.idcard, href: 'PassportPC.dc.html', key: 'pp' }] },
+    { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: '../project/FilesPC.dc.html' }, { t: '分享', d: IC.share, href: '../project/SharesPC.dc.html' }, { t: '文件源', d: IC.db, href: '../project/FileSourcesPC.dc.html' }] },
+    { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: '../project/ContainersPC.dc.html' }] },
+    { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: '../project/PortForwardPC.dc.html' }, { t: '内网穿透', d: IC.tunnel, href: '../project/TunnelPC.dc.html' }, { t: 'SSH 终端', d: IC.terminal, href: '../project/SSHPC.dc.html' }, { t: '智商检测', d: IC.spark, href: '../project/IQCheckPC.dc.html' }] },
+    { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: '../project/NodesPC.dc.html' }, { t: '用户与权限', d: IC.users, href: '../project/UsersPC.dc.html' }, { t: '任务与日志', d: IC.clock, href: '../project/TasksPC.dc.html' }, { t: '系统设置', d: IC.settings, href: '../project/SettingsPC.dc.html' }] }
+  ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === active ? 'nav-on' : '', badge: n.badge || '' })) }));
+}
+function buildGtabs(active) {
+  return [
+    ['home', '工作台', IC.pulse, 'GkHomePC.dc.html'], ['players', '玩家', IC.users, 'GkPlayersPC.dc.html'], ['gasha', '卡池', IC.dice, 'GkGashaPC.dc.html'], ['modes', '玩法', IC.trophy, 'GkModesPC.dc.html'], ['cal', '运营日历', IC.calendar, 'GkCalendarPC.dc.html'],
+    ['mail', '邮件补偿', IC.mail, 'GkMailPC.dc.html'], ['code', '兑换码', IC.ticket, 'GkCodesPC.dc.html'], ['notice', '公告', IC.megaphone, 'GkNoticePC.dc.html'], ['policy', '玩家自助', IC.idcard, 'GmPolicyPC.dc.html'], ['log', 'GM 记录', IC.history, 'GkLogPC.dc.html']
+  ].map(([k, t, d, href]) => ({ t, d, href, cls: k === active ? 'gtab-on' : '' }));
+}
+
+const LOGS = [
+  { k: 'a', at: '今天 21:18', full: '2026-11-11 21:18:07', w1: '超', av: 'av-a', who: '超级管理员', kind: '管理端', t: '发送到礼物箱', id: 'gift.send', ch: '3 名玩家 · 钻石 ×300、10 连券 ×1、倉本千奈 SSR', r: '中', rc: 'risk-2', st: 'ok', stT: '成功', f: 'admin',
+    src: 'Momoko 后台 · 192.168.1.20', why: '维护延长 20 分钟，按公告补偿', rev: '管理端直接执行', rid: 'req_7f3c91a2',
+    res: [{ n: 'P_gucooing', d: '已放入礼物箱', st: 'ok', stT: '成功' }, { n: 'てまりん', d: '已放入礼物箱', st: 'ok', stT: '成功' }, { n: '千奈推し', d: '已有该卡，转为 Lv 素材', st: 'ok', stT: '成功' }] },
+  { k: 'b', at: '今天 20:59', full: '2026-11-11 20:59:41', w1: '千', av: 'av-g', who: '千奈推し', kind: '玩家自助', t: '回满体力', id: 'ap.refill', ch: 'AP 34 → 120 · 今日第 2 次', r: '低', rc: 'risk-1', st: 'ok', stT: '成功', f: 'self',
+    src: '通行证 · 自助服务（Android）', why: '玩家自助，无需原因', rev: '不需要审批', rid: 'req_21be0c55',
+    res: [{ n: '千奈推し', d: 'AP 34 → 120', st: 'ok', stT: '成功' }] },
+  { k: 'c', at: '今天 20:31', full: '2026-11-11 20:31:12', w1: '林', av: 'av-p', who: '运营小林', kind: '管理端', t: '回档到快照', id: 'archive.restore', ch: 'てまりん · 11-10 23:00', r: '危险', rc: 'risk-4', st: 'ok', stT: '成功', f: 'admin',
+    src: 'Momoko 后台 · 192.168.1.35', why: '玩家反馈 11-10 23:10 后抽卡消耗异常，回档后再补发', rev: '管理端直接执行 · 执行前输入了玩家昵称确认', rid: 'req_c0a1d4e9',
+    res: [{ n: 'てまりん', d: '已回档；当前进度另存为 snap_20261111_2031', st: 'ok', stT: '成功' }] },
+  { k: 'p', at: '今天 20:36', full: '2026-11-11 20:36:52', w1: '清', av: 'av-g', who: '清夏ちゃん', kind: '玩家自助', t: '全部偶像卡', id: 'idolcard.grantAll', ch: '申请 · 理由：刚回坑，想把缺的卡补齐', r: '危险', rc: 'risk-4', st: 'warn', stT: '待审批', f: 'review',
+    src: '通行证 · 自助服务（Android）', why: '刚回坑，想把缺的卡补齐', rev: '等待管理员审批', rid: 'req_8b14c2d7',
+    res: [{ n: '清夏ちゃん', d: '未执行，等审批', st: 'warn', stT: '待审批' }] },
+  { k: 'd', at: '今天 19:47', full: '2026-11-11 19:47:03', w1: 'こ', av: 'av-g', who: 'ことね大好き', kind: '玩家自助', t: '兑换礼包码', id: 'giftcode.redeem', ch: 'FES2026 · 钻石 ×500', r: '中', rc: 'risk-2', st: 'ok', stT: '成功', f: 'self',
+    src: '通行证 · 自助服务（Android）', why: '玩家自助，无需原因', rev: '不需要审批', rid: 'req_9d02f1aa',
+    res: [{ n: 'ことね大好き', d: '钻石 ×500 已放入礼物箱', st: 'ok', stT: '成功' }] },
+  { k: 'e', at: '今天 19:02', full: '2026-11-11 19:02:18', w1: 'リ', av: 'av-g', who: 'リーリヤ推し', kind: '玩家自助', t: '全部偶像卡', id: 'idolcard.grantAll', ch: '申请 · 理由：新号想体验全部卡', r: '危险', rc: 'risk-4', st: 'bad', stT: '已驳回', f: 'self',
+    src: '通行证 · 自助服务（Android）', why: '新号想体验全部卡', rev: '超级管理员 19:20 驳回：正式服不开放', rid: 'req_5ab7e310',
+    res: [{ n: 'リーリヤ推し', d: '申请被驳回，未执行', st: 'bad', stT: '已驳回' }] },
+  { k: 'f', at: '今天 18:22', full: '2026-11-11 18:22:50', w1: '清', av: 'av-g', who: '清夏ちゃん', kind: '玩家自助', t: '兑换礼包码', id: 'giftcode.redeem', ch: 'STREAM1031 · 已过期', r: '中', rc: 'risk-2', st: 'bad', stT: '失败', f: 'fail',
+    src: '游戏内（Android）', why: '玩家自助，无需原因', rev: '不需要审批', rid: 'req_e44c0b17',
+    res: [{ n: '清夏ちゃん', d: 'CODE_EXPIRED · 10-31 23:59 已过期', st: 'bad', stT: '失败' }] },
+  { k: 'g', at: '11-06 10:58', full: '2026-11-06 10:58:30', w1: '超', av: 'av-a', who: '超级管理员', kind: '管理端', t: '发布卡池配置', id: 'config.publish', ch: 'Gasha.json r14 → r15 · 新增 4 个卡池', r: '高', rc: 'risk-3', st: 'ok', stT: '成功', f: 'admin',
+    src: 'Momoko 后台 · 192.168.1.20', why: '初星フェス vol.7 与標ファイナル公演記念上线', rev: '管理端直接执行', rid: 'req_0b9e7c21',
+    res: [{ n: 'Gasha.json', d: '热重载成功，在线玩家无需重登', st: 'ok', stT: '成功' }] },
+  { k: 'h', at: '11-06 09:12', full: '2026-11-06 09:12:05', w1: '客', av: 'av-a2', who: '客服阿宁', kind: '管理端', t: '强制下线', id: 'session.kick', ch: 'ことね大好き · 卡在加载', r: '低', rc: 'risk-1', st: 'ok', stT: '成功', f: 'admin',
+    src: 'Momoko 后台 · 10.0.0.8', why: '玩家反馈卡在加载画面', rev: '不需要审批', rid: 'req_77ad3f02',
+    res: [{ n: 'ことね大好き', d: '会话已结束', st: 'ok', stT: '成功' }] },
+  { k: 'i', at: '11-05 22:30', full: '2026-11-05 22:30:44', w1: 'て', av: 'av-g', who: 'てまりん', kind: '玩家自助', t: '兑换礼包码', id: 'giftcode.redeem', ch: 'FES2026 · 钻石 ×500', r: '中', rc: 'risk-2', st: 'ok', stT: '成功', f: 'self',
+    src: '游戏内（Windows 启动器）', why: '玩家自助，无需原因', rev: '不需要审批', rid: 'req_3c51aa90',
+    res: [{ n: 'てまりん', d: '钻石 ×500 已放入礼物箱', st: 'ok', stT: '成功' }] },
+  { k: 'j', at: '11-05 21:44', full: '2026-11-05 21:44:19', w1: '林', av: 'av-p', who: '运营小林', kind: '管理端', t: '调整金币与道具', id: 'item.adjust', ch: '麻央先輩 · 道具 ID 不存在', r: '高', rc: 'risk-3', st: 'bad', stT: '失败', f: 'fail',
+    src: 'Momoko 后台 · 192.168.1.35', why: '补发 11-04 活动奖励', rev: '管理端直接执行', rid: 'req_f1e20d6b',
+    res: [{ n: '麻央先輩', d: 'ITEM_NOT_FOUND · item.gold.bag 不在道具目录里', st: 'bad', stT: '失败' }] }
+];
+function pageVals(self, st) {
+  const f = st.f || 'all';
+  const sel = st.sel || 'a';
+  const cur = LOGS.find((l) => l.k === sel) || LOGS[0];
+  return {
+    filters: [['all', '全部', 126], ['admin', '管理端', 48], ['self', '玩家自助', 74], ['review', '待审批', 1], ['fail', '失败或驳回', 3]].map(([k, t, n]) => ({ t, n, on: k === f, cls: k === f ? 'chip-on' : '', pick: () => self.setState({ f: k }) })),
+    logs: LOGS.filter((l) => f === 'all' || l.f === f || (f === 'self' && l.kind === '玩家自助') || (f === 'fail' && (l.st === 'bad'))).map((l) => ({ ...l, on: l.k === sel, cls: l.k === sel ? 'lr-on' : '', pick: () => self.setState({ sel: l.k }) })),
+    cur
+  };
+}
+
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    return Object.assign({
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav: buildNav('gm'),
+      gtabs: buildGtabs('log')
+    }, pageVals(this, st));
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>游戏空间 · 学マス · 自助服务 · PC</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.hint{font-size:12px;color:var(--ink2);line-height:1.5}
+.tnav{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;color:var(--ink2);text-decoration:none;font-size:14px;font-weight:600}
+.tnav:hover{background:var(--s2);color:var(--ink)}
+.tnav-on,.tnav-on:hover{background:var(--pSoft);color:var(--pInk);font-weight:800}
+.todo{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;border:1.5px solid var(--line);background:var(--s);text-decoration:none;color:var(--ink)}
+.todo:hover{border-color:var(--g)}
+.sec{display:flex;align-items:baseline;gap:10px}
+.sec h2{margin:0;font-size:20px;font-weight:800;flex:1}
+.sec a{font-size:14px;font-weight:700;text-decoration:none}
+.fn{display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:24px;border:1px solid var(--line);background:var(--s)}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1300px; display: flex; flex-direction: column">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 32px; background: var(--s); border-bottom: 1px solid var(--line)">
+    <a href="PassportHomePC.dc.html" style="display: flex; align-items: center; gap: 10px; margin-right: 16px; text-decoration: none; color: var(--ink)"><span style="width: 38px; height: 38px; border-radius: 12px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 19px; transform: rotate(-6deg)">M</span><span style="font-size: 18px; font-weight: 800">用户通行证</span></a>
+    <nav aria-label="通行证" style="display: flex; gap: 4px; flex: 1">
+      <sc-for list="{{tnav}}" as="n" hint-placeholder-count="3"><a class="tnav {{n.cls}}" href="{{n.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>{{n.t}}</a></sc-for>
+    </nav>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
+    <a href="PassportAccountPC.dc.html" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px 4px 4px; border-radius: 999px; background: var(--s2); text-decoration: none; color: var(--ink); font-size: 14px; font-weight: 700"><span class="av av-p" style="width: 36px; height: 36px; border-radius: 50%">G</span>gucooing</a>
+  </header>
+
+  <div style="--p: var(--g); --pOn: var(--gOn); --pInk: var(--gInk); --pSoft: var(--gSoft); width: 100%; max-width: 1240px; margin: 0 auto; padding: 22px 32px 56px; display: flex; flex-direction: column; gap: 24px">
+
+    <section style="position: relative; border-radius: 30px; overflow: hidden; min-height: 132px; background: var(--gSoft)">
+      <img class="ph" src="./assets/cidol-kcna-3-019-L.webp" alt="倉本千奈 卡面" style="position: absolute; inset: 0; width: 100%; height: 100%; object-position: 50% 28%">
+      <div style="position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; padding: 16px 20px; min-height: 132px">
+        <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px 12px 12px; border-radius: 24px; background: var(--s)">
+          <img src="./assets/hatsuboshi-logo.webp" alt="初星学园徽章" style="width: 56px; height: 56px">
+          <span style="display: flex; flex-direction: column; gap: 2px"><span class="hint"><a href="PassportHomePC.dc.html" style="text-decoration: none; color: var(--ink2)">我的游戏</a> › 学園アイドルマスター</span><span style="font-size: 22px; font-weight: 800">正式服</span></span>
+          <button style="display: flex; align-items: center; gap: 6px; min-height: 40px; margin-left: 8px; padding: 0 12px; border-radius: 999px; border: 1.5px solid var(--gLine); background: var(--gSoft); font: inherit; font-size: 13px; font-weight: 800; color: var(--gInk); cursor: pointer" aria-label="切换到我绑定的其他服务器">切换服务器<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.updown}}"></path></svg></button>
+        </div>
+        <span style="flex: 1"></span>
+        <span style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 4px; border-radius: 999px; background: var(--s); font-size: 13px; font-weight: 700"><img src="./assets/chr-hski.webp" alt="" style="width: 32px; height: 32px; border-radius: 50%">P_gucooing · PLv 52</span>
+      </div>
+    </section>
+
+    <nav aria-label="游戏空间" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%; margin-top: -8px">
+      <sc-for list="{{gnav}}" as="t" hint-placeholder-count="5"><a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}<sc-if value="{{t.n}}" hint-placeholder-val="{{false}}"><span class="num" style="font-size: 12px; opacity: .8">{{t.n}}</span></sc-if></a></sc-for>
+    </nav>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 20px; background: var(--gSoft); color: var(--ink)">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--gInk)"><path d="{{i.shield}}"></path></svg>
+      <span style="flex: 1; font-size: 14px; line-height: 1.6">这些功能由「正式服」的管理员开放，只作用于你在这台服务器上的游戏账号 <b>P_gucooing</b>，每次操作都会留下记录。</span>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <section style="flex: 3 1 600px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+        <sc-for list="{{fns}}" as="f" hint-placeholder-count="6">
+          <div class="fn">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <sc-if value="{{f.img}}" hint-placeholder-val="{{true}}"><img src="{{f.img}}" alt="" style="width: 46px; height: 46px; flex: none"></sc-if>
+              <sc-if value="{{f.d}}" hint-placeholder-val="{{false}}"><span class="av {{f.av}}" style="width: 46px; height: 46px; border-radius: 15px; transform: rotate({{f.rot}})"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{f.d}}"></path></svg></span></sc-if>
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 800">{{f.t}}</span><span class="hint">{{f.s}}</span></span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{f.rules}}" as="r" hint-placeholder-count="2"><span class="tag" style="height: 22px; font-size: 11px">{{r}}</span></sc-for></div>
+            <div style="display: flex; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid var(--line)">
+              <span style="flex: 1; font-size: 13px; font-weight: 700; color: {{f.stc}}">{{f.state}}</span>
+              <button class="btn btn-sm {{f.bc}}" disabled="{{f.dis}}" onClick="{{f.run}}">{{f.b}}</button>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+
+      <aside style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+          <span style="display: flex; align-items: center; gap: 10px"><img src="./assets/item-gasha-ticket-200limit-10-2026-01.webp" alt="" style="width: 36px; height: 36px"><span style="font-size: 16px; font-weight: 800">兑换码</span></span>
+          <div style="display: flex; gap: 8px"><label class="inp" style="flex: 1; min-height: 44px"><input class="mono" type="text" placeholder="输入兑换码" aria-label="兑换码"></label><button class="btn btn-ink btn-sm" style="min-height: 44px" onClick="{{redeem}}">兑换</button></div>
+          <sc-if value="{{redeemed}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; font-weight: 700; color: var(--ok)">已发到礼物箱：钻石 ×500</span></sc-if>
+          <span class="hint">奖励进礼物箱；每个兑换码每个账号只能用一次。</span>
+        </div>
+        <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 16px; font-weight: 800; margin-bottom: 6px">我的申请</span>
+          <sc-for list="{{apps}}" as="a" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border-top: 1px solid var(--line)"><span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 700">{{a.t}}</span><span class="hint">{{a.at}}</span></span><span class="pill {{a.st}}">{{a.stT}}</span></div>
+          </sc-for>
+        </div>
+        <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 16px; font-weight: 800; margin-bottom: 6px">操作记录</span>
+          <sc-for list="{{logs}}" as="l" hint-placeholder-count="4">
+            <div style="display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px"><span class="num hint" style="width: 80px; flex: none">{{l.at}}</span><span style="flex: 1">{{l.t}}</span></div>
+          </sc-for>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1300}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  gamepad: 'M7 7h10a5 5 0 0 1 0 10h-3l-2-2-2 2H7A5 5 0 0 1 7 7zM7 10v4M5 12h4M16 11h.01M18 13h.01',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  chevR: 'M9 6l6 6-6 6',
+  pulse: 'M3 12h4l3-8 4 16 3-8h4',
+  cards: 'M7 4h12v16H7zM4 7v13h3',
+  gift: 'M3 8h18v4H3zM5 12v9h14v-9M12 8v13M12 8S10.5 3 8 3a2 2 0 0 0 0 5M12 8s1.5-5 4-5a2 2 0 0 1 0 5',
+  history: 'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  swords: 'M4 4l9 9M4 4h4M4 4v4M20 4l-9 9M20 4h-4M20 4v4M7 17l-3 3M17 17l3 3M9 15l-2 2M15 15l2 2'
+};
+
+IC.chevL = 'M15 6l-6 6 6 6';
+IC.check = 'M5 12.5l4.5 4.5L19 7.5';
+IC.clock = 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2';
+IC.logout = 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11';
+IC.wrench = 'M14.5 6.5a4 4 0 0 0 5 5L21 13l-8 8-3-3 8-8-1.5-1.5a4 4 0 0 0-5-5L13 5zM4 20l3-3';
+IC.download = 'M12 3v12M7 10l5 5 5-5M4 21h16';
+IC.star = 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z';
+IC.edit = 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4';
+IC.book = 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19V5M9 7h6';
+IC.dice = 'M4 4h16v16H4zM8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01';
+IC.restart = 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7';
+IC.info = 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v6M12 7.5h.01';
+
+const U = { jewel: './assets/item-jewel-free.webp', money: './assets/item-money.webp', ap: './assets/item-ap.webp', ticket: './assets/item-gasha-ticket-200limit-10-2026-01.webp', kcnaL: './assets/cidol-kcna-3-019-L.webp', hmsz: './assets/cidol-hmsz-3-018-land.webp', s114: './assets/csprt-3-0114-land.webp' };
+const CHR = { hski: './assets/chr-hski.webp', ttmr: './assets/chr-ttmr.webp', fktn: './assets/chr-fktn.webp', amao: './assets/chr-amao.webp', kllj: './assets/chr-kllj.webp', kcna: './assets/chr-kcna.webp', ssmk: './assets/chr-ssmk.webp', shro: './assets/chr-shro.webp', hume: './assets/chr-hume.webp', hmsz: './assets/chr-hmsz.webp', jsna: './assets/chr-jsna.webp', hrnm: './assets/chr-hrnm.webp', atbm: './assets/chr-atbm.webp' };
+const SQ = { hski: './assets/cidol-hski-3-000-sq.webp', ttmr: './assets/cidol-ttmr-3-000-sq.webp', fktn: './assets/cidol-fktn-3-000-sq.webp', amao: './assets/cidol-amao-3-000-sq.webp', jsna: './assets/cidol-jsna-3-000-sq.webp', hrnm: './assets/cidol-hrnm-3-000-sq.webp' };
+function gameNav(active) {
+  return [['home', '概览', IC.pulse, 'GameHomePC.dc.html', ''], ['cards', '卡牌', IC.cards, 'GameCardsPC.dc.html', '90'], ['gifts', '礼物箱', IC.gift, 'GameGiftsPC.dc.html', '6'], ['rec', '记录', IC.history, 'GameRecordsPC.dc.html', ''], ['self', '自助服务', IC.wand, 'GameSelfPC.dc.html', '']].map(([k, t, d, href, n]) => ({ t, d, href, n, cls: k === active ? 'gtab-on' : '' }));
+}
+
+function pageVals(self, st) {
+  const used = st.used != null ? st.used : 1;
+  const left = 3 - used;
+  return {
+    fns: [
+      { img: U.ap, d: '', t: '回满体力', s: 'AP 回到上限 120', rules: ['每天 3 次', '间隔 1 小时'], state: '今日剩 ' + left + ' 次 · 当前 AP 86', stc: 'var(--gInk)', b: left > 0 ? '回满' : '明天再来', bc: 'btn-g', dis: left <= 0, run: () => self.setState({ used: used + 1 }) },
+      { img: '', d: IC.logout, av: 'av-p', rot: '-3deg', t: '解除卡死', s: '把卡住的游戏会话强制下线', rules: ['每小时 1 次'], state: '游戏当前不在线', stc: 'var(--ink2)', b: '下线', bc: 'btn-o', dis: false, run: null },
+      { img: '', d: IC.edit, av: 'av-ok', rot: '-2deg', t: '改游戏昵称', s: '只改这台服务器上的游戏昵称', rules: ['每天 1 次'], state: '当前：P_gucooing', stc: 'var(--ink2)', b: '修改', bc: 'btn-o', dis: false, run: null },
+      { img: '', d: IC.restart, av: 'av-g', rot: '4deg', t: 'コンテスト 重置今日次数', s: '把今天的 5 次挑战补满', rules: ['每天 1 次'], state: '今日已用 3 / 5', stc: 'var(--ink2)', b: '重置', bc: 'btn-o', dis: false, run: null },
+      { img: '', d: IC.download, av: 'av-a', rot: '-4deg', t: '导出我的存档', s: 'JSON 文件，只包含你自己的数据', rules: ['每天 1 次'], state: '上次导出 11-03', stc: 'var(--ink2)', b: '导出', bc: 'btn-o', dis: false, run: null },
+      { img: '', d: IC.star, av: 'av-g', rot: '2deg', t: '全部偶像卡', s: '提交申请，管理员批准后发到礼物箱', rules: ['需要审核', '每个账号 1 次'], state: '11-03 已批准并领取', stc: 'var(--ok)', b: '已用过', bc: 'btn-s', dis: true, run: null }
+    ],
+    redeemed: !!st.redeemed,
+    redeem: () => self.setState({ redeemed: true }),
+    apps: [{ t: '全部偶像卡', at: '11-03 19:58 提交 · 20:15 批准', st: 'ok', stT: '已批准' }, { t: '全部支援卡', at: '未开放给玩家', st: 'off', stT: '不可申请' }],
+    logs: [{ at: '今天 13:02', t: '回满体力 · 12 → 120' }, { at: '11-05 22:30', t: '兑换码 FES2026 · 钻石 ×500' }, { at: '11-03 20:15', t: '全部偶像卡 · 已发到礼物箱' }, { at: '10-28 09:12', t: '解除卡死 · 已下线' }]
+  };
+}
+
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    return Object.assign({
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      tnav: [['home', '首页', IC.home, 'PassportHomePC.dc.html'], ['games', '我的游戏', IC.gamepad, 'GameHomePC.dc.html'], ['acc', '账号与安全', IC.shield, 'PassportAccountPC.dc.html']].map(([k, t, d, href]) => ({ t, d, href, cls: k === 'games' ? 'tnav-on' : '' })),
+      gnav: gameNav('self')
+    }, pageVals(this, st));
+  }
+}
+</script>
+</body>
+</html>

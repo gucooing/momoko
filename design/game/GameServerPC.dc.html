@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>托管服务器详情 · PC</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.fr{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.fr>span:first-child{display:flex;flex-direction:column;gap:3px;font-size:14px;font-weight:700}
+.fr small{font-size:12px;font-weight:500;color:var(--ink2)}
+.hint{font-size:12px;color:var(--ink2);line-height:1.5}
+.chg{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;background:var(--aSoft);color:var(--aOn);font-size:11px;font-weight:700;margin-left:6px}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1640px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span style="flex: 1">{{n.t}}</span>
+              <sc-if value="{{n.badge}}" hint-placeholder-val="{{false}}"><span class="gtag" style="height: 20px; padding: 0 7px; font-size: 11px">{{n.badge}}</span></sc-if>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <a href="GameServersPC.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 14px; font-weight: 700; color: var(--ink2); text-decoration: none"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg>游戏服务器</a>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg></button>
+    </div>
+
+    <section class="card" style="overflow: hidden; display: flex; flex-wrap: wrap">
+      <div style="flex: 1 1 520px; min-width: 0; padding: 22px 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px">
+          <span style="width: 76px; height: 76px; border-radius: 22px; background: var(--s); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; transform: rotate(-5deg); box-shadow: 4px 4px 0 var(--g); flex: none"><img src="./assets/hatsuboshi-logo.webp" alt="初星学园徽章" style="width: 58px; height: 58px"></span>
+          <div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+              <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em">学マス · 正式服</h1>
+              <span class="pill {{runCls}}">{{runT}}</span>
+              <span class="tag" style="background: var(--pSoft); color: var(--pInk)">托管</span>
+              <span class="gtag">学園アイドルマスター</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink2)">
+              <span>本机 DESKTOP-K5K9BBC</span><span class="num">已运行 2 天 6 小时</span><span class="mono">C:\Users\gucooing\Desktop\gakumas\server</span>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button class="btn {{mainCls}}" onClick="{{toggleRun}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{mainD}}"></path></svg>{{mainT}}</button>
+          <button class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.restart}}"></path></svg>重启</button>
+          <a class="btn btn-g" href="GkHomePC.dc.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.wand}}"></path></svg>进入 GM 运营</a>
+          <button class="ib" aria-label="更多操作" style="border: 1.5px solid var(--line); border-radius: 999px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{procs}}" as="p" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--s2)">
+              <span class="av {{p.av}}" style="width: 38px; height: 38px; border-radius: 12px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{p.d}}"></path></svg></span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">{{p.t}}</span><span class="mono" style="font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.s}}</span></span>
+              <span class="pill {{p.st}}">{{p.stT}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex: 1 1 360px; min-height: 240px; position: relative; background: var(--gSoft)">
+        <img class="ph" src="./assets/meishi-live01.webp" alt="名片底图：舞台" style="position: absolute; inset: 0; width: 100%; height: 100%; object-position: 70% 40%">
+        <div style="position: absolute; left: 16px; bottom: 16px; display: flex; gap: 8px">
+          <span class="tag" style="background: var(--s); color: var(--ink)">在线 <b class="num" style="margin-left: 4px">12</b></span>
+          <span class="tag" style="background: var(--s); color: var(--ink)">资源 <b class="num" style="margin-left: 4px">r83</b></span>
+        </div>
+      </div>
+    </section>
+
+    <nav role="tablist" aria-label="服务器详情" class="hs" style="display: flex; gap: 26px; border-bottom: 1px solid var(--line); overflow-x: auto">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="7">
+        <button class="utab {{t.cls}}" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}<sc-if value="{{t.badge}}" hint-placeholder-val="{{false}}"><span class="chg">{{t.badge}}</span></sc-if></button>
+      </sc-for>
+    </nav>
+
+    <sc-if value="{{isOverview}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-direction: column; gap: 16px">
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+            <div class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 12px; font-weight: 700; color: var(--ink2)">{{s.t}}</span>
+              <span style="display: flex; align-items: baseline; gap: 8px"><span class="num" style="font-size: 30px; font-weight: 800">{{s.v}}</span><span style="font-size: 13px; color: var(--ink2)">{{s.sub}}</span></span>
+              <div class="bar"><span style="width: {{s.w}}; background: {{s.c}}"></span></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+          <section class="card" style="flex: 3 1 520px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 4px">
+            <h2 style="margin: 0 0 8px; font-size: 17px; font-weight: 800">状态探测</h2>
+            <sc-for list="{{health}}" as="h" hint-placeholder-count="6">
+              <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-top: 1px solid var(--line)">
+                <span class="pill {{h.st}}" style="width: 72px; justify-content: center">{{h.stT}}</span>
+                <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 700">{{h.t}}</span><span class="hint">{{h.s}}</span></span>
+                <span class="mono" style="font-size: 12px; color: var(--ink2)">{{h.v}}</span>
+              </div>
+            </sc-for>
+          </section>
+          <section class="card" style="flex: 2 1 340px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 4px">
+            <div style="display: flex; align-items: center; margin-bottom: 8px"><h2 style="margin: 0; font-size: 17px; font-weight: 800; flex: 1">实时动态</h2><span class="pill ok">事件流已连接</span></div>
+            <sc-for list="{{feed}}" as="f" hint-placeholder-count="6">
+              <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-top: 1px solid var(--line)">
+                <img src="{{f.img}}" alt="" style="width: 34px; height: 34px; border-radius: 50%; flex: none">
+                <span style="flex: 1; min-width: 0; font-size: 13px; line-height: 1.5"><b>{{f.who}}</b> {{f.what}}</span>
+                <span class="num" style="font-size: 12px; color: var(--ink2)">{{f.at}}</span>
+              </div>
+            </sc-for>
+          </section>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isSettings}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <nav aria-label="设置分组" class="card" style="flex: 0 0 200px; padding: 10px; display: flex; flex-direction: column; gap: 2px; position: sticky; top: 16px">
+          <sc-for list="{{groups}}" as="g" hint-placeholder-count="6">
+            <a class="nav {{g.cls}}" href="#{{g.k}}"><span style="flex: 1">{{g.t}}</span><sc-if value="{{g.chg}}" hint-placeholder-val="{{false}}"><span class="chg">{{g.chg}}</span></sc-if></a>
+          </sc-for>
+        </nav>
+        <div style="flex: 1 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px; background: var(--gSoft); color: var(--gInk); font-size: 13px; font-weight: 600"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.info}}"></path></svg><span style="flex: 1">表单由学マス适配器根据 config.json 的结构生成；保存时写回 config.json 并保留未识别的字段。也可以 <a href="#raw">直接编辑 JSON</a>。</span></div>
+          <sc-for list="{{sections}}" as="sec" hint-placeholder-count="5">
+            <section id="{{sec.k}}" class="card" style="padding: 6px 22px 10px">
+              <h2 style="margin: 14px 0 6px; font-size: 17px; font-weight: 800">{{sec.t}}</h2>
+              <sc-for list="{{sec.rows}}" as="r" hint-placeholder-count="3">
+                <div class="fr">
+                  <span>{{r.t}}<small class="mono">{{r.key}}</small></span>
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+                    <sc-if value="{{r.isText}}" hint-placeholder-val="{{true}}"><span class="inp inp-sq" style="flex: 1 1 260px; min-height: 40px"><input class="{{r.mono}}" type="text" value="{{r.v}}" aria-label="{{r.t}}"></span></sc-if>
+                    <sc-if value="{{r.isSeg}}" hint-placeholder-val="{{false}}"><div class="seg" role="radiogroup" aria-label="{{r.t}}"><sc-for list="{{r.opts}}" as="o" hint-placeholder-count="3"><button class="{{o.cls}}" role="radio" aria-checked="{{o.on}}">{{o.t}}</button></sc-for></div></sc-if>
+                    <sc-if value="{{r.isTg}}" hint-placeholder-val="{{false}}"><input class="tg" type="checkbox" checked="{{r.on}}" aria-label="{{r.t}}"></sc-if>
+                    <sc-if value="{{r.chg}}" hint-placeholder-val="{{false}}"><span class="chg">已修改</span></sc-if>
+                    <sc-if value="{{r.note}}" hint-placeholder-val="{{false}}"><span class="hint" style="flex-basis: 100%">{{r.note}}</span></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </section>
+          </sc-for>
+          <div style="position: sticky; bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 10px 10px 20px; border-radius: 999px; background: var(--ink); color: var(--bg); box-shadow: 0 16px 40px -12px rgba(20,10,30,.45)">
+            <span style="flex: 1; font-size: 14px; font-weight: 700">2 处修改 · 需要重启服务端生效</span>
+            <button class="btn btn-sm" style="background: transparent; color: var(--bg)">撤销</button>
+            <button class="btn btn-sm" style="background: var(--bg); color: var(--ink)">仅保存</button>
+            <button class="btn btn-p btn-sm">保存并重启</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isUpdate}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 16px">
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+          <section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; align-items: center; gap: 12px"><span class="av av-p" style="width: 44px; height: 44px; border-radius: 14px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.cpu}}"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 17px; font-weight: 800">服务端程序</span><span class="hint">gakumas-server.exe</span></span><span class="pill ok">已是最新</span></div>
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; padding: 12px 14px; border-radius: 16px; background: var(--s2)">
+              <div><dt class="hint">当前版本</dt><dd class="num" style="margin: 0; font-weight: 700">2026.11.10</dd></div>
+              <div><dt class="hint">更新来源</dt><dd style="margin: 0; font-weight: 700">本地构建目录</dd></div>
+              <div><dt class="hint">数据库迁移</dt><dd style="margin: 0; font-weight: 700">sqlite · 09_game_sessions</dd></div>
+              <div><dt class="hint">上次更新</dt><dd class="num" style="margin: 0; font-weight: 700">11-10 21:14</dd></div>
+            </dl>
+            <span class="hint">更新流程：上传或指定新构建 → 停止前自动备份数据库与 data/ → 替换可执行文件 → 启动时服务端自动执行剩余 SQL 迁移 → 健康检查失败则回滚。</span>
+            <div style="display: flex; gap: 8px"><button class="btn btn-o btn-sm"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.upload}}"></path></svg>上传新构建</button><button class="btn btn-s btn-sm">从构建目录更新</button></div>
+          </section>
+          <section class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; align-items: center; gap: 12px"><span class="av av-g" style="width: 44px; height: 44px; border-radius: 14px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.cloud}}"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 17px; font-weight: 800">游戏资源</span><span class="hint">resource-server · Octo 目录与主数据</span></span><span class="pill warn">发现新目录</span></div>
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; padding: 12px 14px; border-radius: 16px; background: var(--s2)">
+              <div><dt class="hint">当前</dt><dd class="num" style="margin: 0; font-weight: 700">Octo 705100 · r83</dd></div>
+              <div><dt class="hint">官方最新</dt><dd class="num" style="margin: 0; font-weight: 700; color: var(--warn)">[新 revision]</dd></div>
+              <div><dt class="hint">对象</dt><dd class="num" style="margin: 0; font-weight: 700">49,411 · 85.1 GB</dd></div>
+              <div><dt class="hint">主数据</dt><dd class="num" style="margin: 0; font-weight: 700">297 份 · e90f8036…</dd></div>
+            </dl>
+            <div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; font-size: 13px"><span style="flex: 1; font-weight: 700">下载新增对象</span><span class="num" style="color: var(--ink2)">1,204 / 3,860 · 2.1 GB</span></div><div class="bar"><span style="width: 31%; background: var(--g)"></span></div><span class="hint">下载期间照常分发已完整落盘的对象；全部校验完成后才发布新版本（active.json），正在运行的服务端不中断。</span></div>
+            <div style="display: flex; gap: 8px"><button class="btn btn-g btn-sm"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.restart}}"></path></svg>检查官方更新</button><button class="btn btn-s btn-sm">校验本地资源</button></div>
+          </section>
+        </div>
+        <section class="card" style="padding: 18px 20px">
+          <h2 style="margin: 0 0 8px; font-size: 17px; font-weight: 800">更新记录</h2>
+          <sc-for list="{{history}}" as="h" hint-placeholder-count="4">
+            <div class="row" style="grid-template-columns: 140px 110px minmax(0, 1fr) 120px; padding: 0">
+              <span class="num" style="color: var(--ink2)">{{h.at}}</span><span class="tag" style="justify-self: start">{{h.kind}}</span><span>{{h.t}}</span><span class="pill {{h.st}}" style="justify-self: start">{{h.stT}}</span>
+            </div>
+          </sc-for>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isOther}}" hint-placeholder-val="{{false}}">
+      <section class="card" style="padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+        <span class="av av-p" style="width: 56px; height: 56px; border-radius: 18px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.terminal}}"></path></svg></span>
+        <span style="font-size: 18px; font-weight: 800">{{otherT}}</span>
+        <span style="font-size: 14px; color: var(--ink2); max-width: 520px; line-height: 1.6">托管服务器复用应用实例的这一页（见「应用详情」原型），区别只有一处：快捷命令换成适配器提供的命令，日志按 SDK / 网关 / 游戏 / 协议包分开看。</span>
+      </section>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1640}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  gamepad: 'M7 7h10a5 5 0 0 1 0 10h-3l-2-2-2 2H7A5 5 0 0 1 7 7zM7 10v4M5 12h4M16 11h.01M18 13h.01',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  idcard: 'M3 5h18v14H3zM9 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16a3.5 3.5 0 0 1 7 0M14 9h4M14 13h4',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  chevL: 'M15 6l-6 6 6 6',
+  play: 'M7 4.5v15l12-7.5z',
+  stop: 'M7 7h10v10H7z',
+  restart: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 20h16',
+  cpu: 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4',
+  cloud: 'M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19.5 10 4 4 0 0 1 18 18z',
+  info: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v6M12 7.5h.01',
+  pulse: 'M3 12h4l3-8 4 16 3-8h4',
+  sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
+  archive: 'M4 4h13l3 3v13H4zM8 4v5h8V4M8 20v-6h8v6',
+  key: 'M15 3a6 6 0 1 1-5.2 9L3 18.8V21h3v-2h2v-2h2l1.2-1.2A6 6 0 0 1 15 3zM16.5 7.5h.01',
+  logs: 'M5 4h14v16H5zM9 8h6M9 12h6M9 16h4'
+};
+const CH = { hski: './assets/chr-hski.webp', kcna: './assets/chr-kcna.webp', hmsz: './assets/chr-hmsz.webp', ttmr: './assets/chr-ttmr.webp', jsna: './assets/chr-jsna.webp', fktn: './assets/chr-fktn.webp' };
+function buildNav(active) {
+  return [
+    { title: '', items: [{ t: '工作台', d: IC.home, href: '../project/DashboardPC.dc.html' }, { t: '性能监控', d: IC.activity, href: '../project/MonitorPC.dc.html' }] },
+    { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: '../project/AppsPC.dc.html' }, { t: '应用类型', d: IC.layers, href: '../project/AppTypesPC.dc.html' }] },
+    { title: '游戏', items: [{ t: '游戏服务器', d: IC.gamepad, href: 'GameServersPC.dc.html', key: 'gs' }, { t: 'GM 运营', d: IC.wand, href: 'GkHomePC.dc.html', key: 'gm', badge: '学マス' }, { t: '用户通行证', d: IC.idcard, href: 'PassportPC.dc.html', key: 'pp' }] },
+    { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: '../project/FilesPC.dc.html' }, { t: '分享', d: IC.share, href: '../project/SharesPC.dc.html' }, { t: '文件源', d: IC.db, href: '../project/FileSourcesPC.dc.html' }] },
+    { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: '../project/ContainersPC.dc.html' }] },
+    { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: '../project/PortForwardPC.dc.html' }, { t: '内网穿透', d: IC.tunnel, href: '../project/TunnelPC.dc.html' }, { t: 'SSH 终端', d: IC.terminal, href: '../project/SSHPC.dc.html' }, { t: '智商检测', d: IC.spark, href: '../project/IQCheckPC.dc.html' }] },
+    { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: '../project/NodesPC.dc.html' }, { t: '用户与权限', d: IC.users, href: '../project/UsersPC.dc.html' }, { t: '任务与日志', d: IC.clock, href: '../project/TasksPC.dc.html' }, { t: '系统设置', d: IC.settings, href: '../project/SettingsPC.dc.html' }] }
+  ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === active ? 'nav-on' : '', badge: n.badge || '' })) }));
+}
+const TXT = (t, key, v, o) => ({ t, key, v, isText: true, mono: 'mono', ...(o || {}) });
+const SEG = (t, key, opts, cur, o) => ({ t, key, isSeg: true, opts: opts.map((x) => ({ t: x, on: x === cur, cls: x === cur ? 'on' : '' })), ...(o || {}) });
+const TG = (t, key, on, o) => ({ t, key, isTg: true, on, ...(o || {}) });
+const SECTIONS = [
+  { k: 'net', t: '网络与地址', rows: [TXT('游戏 gRPC 监听', 'grpc_listen', '127.0.0.1:50051'), TXT('HTTP / SDK 监听', 'http_listen', '0.0.0.0:8080', { chg: true, note: '改成 0.0.0.0 才能让局域网里的手机和其他电脑连进来' }), TXT('对外 HTTP 地址', 'http_url', 'http://192.168.1.10:8080', { chg: true }), TXT('资源服务器地址', 'resource_server_url', 'http://127.0.0.1:8090')] },
+  { k: 'db', t: '数据库', rows: [SEG('驱动', 'database.driver', ['sqlite', 'postgres'], 'sqlite'), TXT('文件路径', 'database.path', './data/gakumas.sqlite'), TXT('忙等待（秒）', 'database.busy_timeout_seconds', '10', { mono: 'num' })] },
+  { k: 'acc', t: '账号与会话', rows: [TG('自动注册', 'auto_register', true, { note: '关掉后只能通过通行证绑定或管理员创建账号' }), TXT('会话有效期（小时）', 'session_hours', '168', { mono: 'num' })] },
+  { k: 'game', t: '存档与在线', rows: [TXT('自动保存间隔（秒）', 'game.save_interval_seconds', '60', { mono: 'num' }), TXT('断线保留（秒）', 'game.disconnect_retention_seconds', '300', { mono: 'num' }), TXT('保存协程 / 队列', 'game.save_workers · save_queue_per_worker', '4 · 64', { mono: 'num' })] },
+  { k: 'log', t: '日志', rows: [SEG('级别', 'log.level', ['debug', 'info', 'warn', 'error'], 'debug'), TG('记录协议包内容', 'log.packet_bodies', true), TXT('协议包黑名单', 'log.packet_blacklist', 'Home/Enter, Notice/FetchList', { note: '命中黑名单的 RPC 不打印包内容' })] },
+  { k: 'mgp', t: 'MGP 接口', rows: [TXT('监听', 'mgp.listen', '127.0.0.1:8081'), TXT('Key ID', 'mgp.key_id', 'mgp_Qa91Lx', { note: '密钥由 Momoko 托管；轮换后旧密钥保留 10 分钟' })] }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const tab = st.tab || 'overview';
+    const running = st.running != null ? st.running : true;
+    const tabs = [['overview', '概览', IC.pulse, ''], ['console', '控制台', IC.terminal, ''], ['settings', '专用设置', IC.sliders, '2'], ['update', '更新', IC.cloud, '1'], ['backup', '备份与回档', IC.archive, ''], ['files', '文件', IC.folder, ''], ['logs', '日志', IC.logs, '']];
+    const OTHER = { console: '控制台', backup: '备份与回档', files: '文件', logs: '日志' };
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav: buildNav('gs'),
+      runCls: running ? 'ok' : 'off', runT: running ? '运行中' : '已停止',
+      mainCls: running ? 'btn-stop' : 'btn-p', mainD: running ? IC.stop : IC.play, mainT: running ? '停止' : '启动',
+      toggleRun: () => this.setState({ running: !running }),
+      procs: [
+        { t: '游戏服务端', s: 'gakumas-server.exe · PID 18244', d: IC.cpu, av: 'av-p', st: running ? 'ok' : 'off', stT: running ? '运行中' : '已停止' },
+        { t: '资源服务器', s: 'resource-server.exe serve · :8090', d: IC.cloud, av: 'av-g', st: 'ok', stT: '运行中' }
+      ],
+      tabs: tabs.map(([k, t, d, badge]) => ({ t, d, badge, on: k === tab, cls: k === tab ? 'utab-on' : '', pick: () => this.setState({ tab: k }) })),
+      isOverview: tab === 'overview', isSettings: tab === 'settings', isUpdate: tab === 'update', isOther: !!OTHER[tab], otherT: OTHER[tab] || '',
+      stats: [
+        { t: '在线玩家', v: '12', sub: '今日峰值 19', w: '63%', c: 'var(--g)' },
+        { t: '注册账号', v: '86', sub: '今日 +3', w: '40%', c: 'var(--p)' },
+        { t: 'CPU · 内存', v: '4.2%', sub: '612 MB', w: '18%', c: 'var(--a2)' },
+        { t: '存档队列', v: '0', sub: '4 协程 × 64', w: '2%', c: 'var(--ok)' }
+      ],
+      health: [
+        { t: '游戏 gRPC', s: 'Auth/Login 探测请求 · 包密钥校验', v: ':50051 · 4 ms', st: 'ok', stT: '正常' },
+        { t: 'SDK HTTP', s: 'GET /health → status ok', v: ':8080 · 2 ms', st: 'ok', stT: '正常' },
+        { t: '资源服务器', s: 'mirror_complete · 49,411 可用 · 0 缺失', v: ':8090 · 3 ms', st: 'ok', stT: '正常' },
+        { t: '数据库', s: 'sqlite · WAL 28 KB · 最近迁移 09_game_sessions', v: '1 ms', st: 'ok', stT: '正常' },
+        { t: 'MGP 接口', s: '签名校验通过 · manifest 21 条指令', v: ':8081 · 3 ms', st: 'ok', stT: '正常' },
+        { t: '自动保存', s: '上次 32 秒前完成，用时 41 ms', v: '每 60 秒', st: 'ok', stT: '正常' }
+      ],
+      feed: [
+        { img: CH.kcna, who: '千奈推し', what: '在「ガラクタロード vol.7 千奈ガシャ」10 连，获得 SSR 倉本千奈', at: '1 分钟前' },
+        { img: CH.hski, who: 'P_gucooing', what: '登录 · Windows 启动器', at: '3 分钟前' },
+        { img: CH.ttmr, who: 'てまりん', what: '领取登录奖励（第 37 天）', at: '8 分钟前' },
+        { img: CH.hmsz, who: '超级管理员', what: '向 3 名玩家发送「维护补偿」', at: '22 分钟前' },
+        { img: CH.jsna, who: '星南会長', what: '培育完成 · 评价 S+', at: '31 分钟前' },
+        { img: CH.fktn, who: 'ことね大好き', what: '绑定了通行证', at: '1 小时前' }
+      ],
+      groups: SECTIONS.map((s, ix) => ({ k: s.k, t: s.t, cls: ix === 0 ? 'nav-on' : '', chg: s.rows.filter((r) => r.chg).length ? String(s.rows.filter((r) => r.chg).length) : '' })),
+      sections: SECTIONS.map((s) => ({ ...s, rows: s.rows.map((r) => ({ isText: false, isSeg: false, isTg: false, chg: false, note: '', mono: '', v: '', opts: [], on: false, ...r })) })),
+      history: [
+        { at: '11-10 21:14', kind: '服务端', t: '2026.11.09 → 2026.11.10 · 迁移 09_game_sessions', st: 'ok', stT: '成功' },
+        { at: '11-07 09:30', kind: '资源', t: 'Octo r82 → r83 · 新增 2,114 个对象', st: 'ok', stT: '成功' },
+        { at: '11-05 20:02', kind: '服务端', t: '2026.11.05 健康检查失败，已自动回滚到 2026.11.04', st: 'bad', stT: '已回滚' },
+        { at: '11-01 18:45', kind: '配置', t: 'session_hours 72 → 168', st: 'ok', stT: '成功' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

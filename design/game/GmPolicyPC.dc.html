@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>GM 运营 · 玩家自助</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.hint{font-size:12px;color:var(--ink2);line-height:1.5}
+.bulk-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:var(--bg);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.bulk-btn:hover{background:color-mix(in srgb, var(--bg) 14%, transparent)}
+
+.cr{display:grid;grid-template-columns:44px minmax(0,1.7fr) 96px minmax(0,1.2fr) 110px 36px;gap:14px;align-items:center;min-height:72px;padding:0 18px;border-top:1px solid var(--line)}
+.cr-h{min-height:40px;border-top:0;font-size:12px;font-weight:700;color:var(--ink2)}
+.cr-on{background:var(--gSoft)}
+.ex{display:flex;flex-wrap:wrap;gap:20px;padding:4px 18px 20px 76px;background:var(--gSoft)}
+.fl{display:flex;flex-direction:column;gap:6px}
+.fl>span:first-child{font-size:13px;font-weight:700}
+.stp{display:inline-flex;align-items:center;border-radius:999px;border:1.5px solid var(--line);background:var(--s);overflow:hidden}
+.stp button{width:36px;height:36px;border:0;background:transparent;font:inherit;font-size:18px;color:var(--ink);cursor:pointer}
+.stp span{min-width:34px;text-align:center;font-weight:800}
+.lim{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1240px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span style="flex: 1">{{n.t}}</span>
+              <sc-if value="{{n.badge}}" hint-placeholder-val="{{false}}"><span class="gtag" style="height: 20px; padding: 0 7px; font-size: 11px">{{n.badge}}</span></sc-if>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px; position: relative">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <button style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 14px 6px 6px; border-radius: 999px; border: 1.5px solid var(--gLine); background: var(--gSoft); font: inherit; color: var(--ink); cursor: pointer" aria-label="切换服务器：当前 学マス · 正式服">
+        <img src="./assets/hatsuboshi-logo.webp" alt="" style="width: 40px; height: 40px; border-radius: 50%; background: var(--s)">
+        <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 15px; font-weight: 800">学マス · 正式服</span><span style="font-size: 12px; color: var(--gInk); font-weight: 700">托管 · 在线 12 · MGP 正常</span></span>
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--gInk)"><path d="{{i.updown}}"></path></svg>
+      </button>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
+    </div>
+
+    <nav aria-label="GM 运营" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
+      <sc-for list="{{gtabs}}" as="t" hint-placeholder-count="10">
+        <a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}</a>
+      </sc-for>
+    </nav>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+      <div style="flex: 1 1 360px; display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">玩家自助</h1>
+        <div style="font-size: 14px; color: var(--ink2)">玩家在通行证「自助服务」里能执行的 GM 指令 · <span style="color: var(--ok); font-weight: 700">已开放 {{openCount}} 条</span> · 改完立即生效</div>
+      </div>
+    </div>
+
+
+    <section class="card" style="overflow-x: auto">
+      <div style="min-width: 880px">
+        <div class="cr cr-h"><span></span><span>指令</span><span>开放给玩家</span><span>限制</span><span>需要我审批</span><span></span></div>
+        <sc-for list="{{cmds}}" as="c" hint-placeholder-count="8">
+          <div>
+            <div class="cr {{c.rowCls}}">
+              <sc-if value="{{c.img}}" hint-placeholder-val="{{true}}"><img src="{{c.img}}" alt="" style="width: 44px; height: 44px; border-radius: {{c.r}}; object-fit: cover"></sc-if>
+              <sc-if value="{{c.d}}" hint-placeholder-val="{{false}}"><span class="av {{c.av}}" style="width: 44px; height: 44px; border-radius: 14px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg></span></sc-if>
+              <span style="min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 800">{{c.t}}</span><span class="hint" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.s}}</span></span>
+              <span><input class="tg" type="checkbox" checked="{{c.open}}" onChange="{{c.toggle}}" aria-label="{{c.t}} 开放给玩家"></span>
+              <span class="lim"><sc-for list="{{c.rules}}" as="r" hint-placeholder-count="2"><span class="tag">{{r}}</span></sc-for><sc-if value="{{c.closed}}" hint-placeholder-val="{{false}}"><span class="hint">未开放</span></sc-if></span>
+              <span><input class="tg tg-sm" type="checkbox" checked="{{c.appr}}" disabled="{{c.closed}}" aria-label="{{c.t}} 需要我审批"></span>
+              <button class="ib ib-sm" onClick="{{c.pick}}" aria-label="编辑 {{c.t}}" aria-expanded="{{c.on}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.chev}}"></path></svg></button>
+            </div>
+            <sc-if value="{{c.on}}" hint-placeholder-val="{{false}}">
+              <div class="ex">
+                <div class="fl"><span>每个玩家每天</span><span style="display: flex; align-items: center; gap: 10px"><span class="stp"><button aria-label="减少">−</button><span class="num">3</span><button aria-label="增加">+</button></span><span class="hint">次</span></span></div>
+                <div class="fl"><span>两次之间至少间隔</span><div class="seg"><button>不限</button><button class="on">1 小时</button><button>6 小时</button><button>24 小时</button></div></div>
+                <label class="fl" style="flex: 1 1 280px"><span>玩家看到的说明</span><span class="inp inp-sq"><input type="text" placeholder="{{c.note}}" aria-label="玩家看到的说明"></span></label>
+                <div style="flex: 0 0 280px; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 20px; background: var(--s); border: 1.5px solid var(--gLine)">
+                  <sc-if value="{{c.img}}" hint-placeholder-val="{{true}}"><img src="{{c.img}}" alt="" style="width: 44px; height: 44px; flex: none; border-radius: {{c.r}}"></sc-if><sc-if value="{{c.d}}" hint-placeholder-val="{{false}}"><span class="av {{c.av}}" style="width: 44px; height: 44px; border-radius: 14px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg></span></sc-if>
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 800">{{c.t}}</span><span style="font-size: 12px; color: var(--gInk); font-weight: 700">{{c.pv}}</span><span class="hint">玩家端预览</span></span>
+                  <span class="btn btn-g btn-sm" style="pointer-events: none">{{c.btn}}</span>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <div style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 18px; background: var(--s2); font-size: 13px; line-height: 1.7; color: var(--ink2)">
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="flex: none; margin-top: 3px"><path d="{{i.info}}"></path></svg>
+      <span>只列出服务端声明「允许玩家自助」的指令。玩家执行时目标固定是自己绑定的游戏账号；需要审批的申请在 <a href="GkLogPC.dc.html">GM 记录</a> 里处理。</span>
+    </div>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1240}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  gamepad: 'M7 7h10a5 5 0 0 1 0 10h-3l-2-2-2 2H7A5 5 0 0 1 7 7zM7 10v4M5 12h4M16 11h.01M18 13h.01',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  idcard: 'M3 5h18v14H3zM9 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16a3.5 3.5 0 0 1 7 0M14 9h4M14 13h4',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  chevD: 'M6 9l6 6 6-6',
+  chevL: 'M15 6l-6 6 6 6',
+  chevR: 'M9 6l6 6-6 6',
+  x: 'M6 6l12 12M18 6 6 18',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  pulse: 'M3 12h4l3-8 4 16 3-8h4',
+  dice: 'M4 4h16v16H4zM8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01',
+  calendar: 'M4 5h16v16H4zM4 10h16M8 3v4M16 3v4',
+  trophy: 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4',
+  gift: 'M3 8h18v4H3zM5 12v9h14v-9M12 8v13M12 8S10.5 3 8 3a2 2 0 0 0 0 5M12 8s1.5-5 4-5a2 2 0 0 1 0 5',
+  mail: 'M3 5h18v14H3zM3 6l9 7 9-7',
+  ticket: 'M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10',
+  megaphone: 'M3 10v4h3l7 5V5L6 10zM17 9a4 4 0 0 1 0 6',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  history: 'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2',
+  logout: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11',
+  ban: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM5.6 5.6l12.8 12.8',
+  download: 'M12 3v12M7 10l5 5 5-5M4 21h16',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'
+};
+
+IC.trophy = 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4';
+IC.check = 'M5 12.5l4.5 4.5L19 7.5';
+IC.alert = 'M12 3 2 21h20zM12 10v5M12 18h.01';
+IC.plus = 'M12 5v14M5 12h14';
+IC.copy = 'M9 9h11v11H9zM5 15H4V4h11v1';
+IC.edit = 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4';
+IC.send = 'M4 12 20 4l-4 16-4-6zM12 14l8-10';
+IC.clockS = 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2';
+IC.filter = 'M3 5h18l-7 8v6l-4 2v-8z';
+IC.stop = 'M7 7h10v10H7z';
+IC.info = 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v6M12 7.5h.01';
+IC.cpu = 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4';
+
+const U = { logo: './assets/hatsuboshi-logo.webp', jewel: './assets/item-jewel-free.webp', jewelPaid: './assets/item-jewel-paid.webp', money: './assets/item-money.webp', ap: './assets/item-ap.webp', ticket: './assets/item-gasha-ticket-200limit-10-2026-01.webp', kcnaL: './assets/cidol-kcna-3-019-L.webp', hmsz: './assets/cidol-hmsz-3-018-land.webp', s114: './assets/csprt-3-0114-land.webp', gn: './assets/gn-01055-notice.webp', gb1: './assets/gb-01055-pickup-001.webp', gb2: './assets/gb-01055-pickup-002.webp', gb3: './assets/gb-01057-ssr-idol-001.webp', gb4: './assets/gb-01060-ssr-idol-001.webp', gbStd: './assets/gb-00000-standard-001.webp', gbWed: './assets/gb-01050-wednesday-001.webp', research: './assets/ev-research-banner.webp', lb: './assets/loginbonus-title.webp' };
+const CHR = { hski: './assets/chr-hski.webp', ttmr: './assets/chr-ttmr.webp', fktn: './assets/chr-fktn.webp', amao: './assets/chr-amao.webp', kllj: './assets/chr-kllj.webp', kcna: './assets/chr-kcna.webp', ssmk: './assets/chr-ssmk.webp', shro: './assets/chr-shro.webp', hmsz: './assets/chr-hmsz.webp', jsna: './assets/chr-jsna.webp', hrnm: './assets/chr-hrnm.webp' };
+function buildNav(active) {
+  return [
+    { title: '', items: [{ t: '工作台', d: IC.home, href: '../project/DashboardPC.dc.html' }, { t: '性能监控', d: IC.activity, href: '../project/MonitorPC.dc.html' }] },
+    { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: '../project/AppsPC.dc.html' }, { t: '应用类型', d: IC.layers, href: '../project/AppTypesPC.dc.html' }] },
+    { title: '游戏', items: [{ t: '游戏服务器', d: IC.gamepad, href: 'GameServersPC.dc.html', key: 'gs' }, { t: 'GM 运营', d: IC.wand, href: 'GkHomePC.dc.html', key: 'gm', badge: '学マス' }, { t: '用户通行证', d: IC.idcard, href: 'PassportPC.dc.html', key: 'pp' }] },
+    { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: '../project/FilesPC.dc.html' }, { t: '分享', d: IC.share, href: '../project/SharesPC.dc.html' }, { t: '文件源', d: IC.db, href: '../project/FileSourcesPC.dc.html' }] },
+    { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: '../project/ContainersPC.dc.html' }] },
+    { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: '../project/PortForwardPC.dc.html' }, { t: '内网穿透', d: IC.tunnel, href: '../project/TunnelPC.dc.html' }, { t: 'SSH 终端', d: IC.terminal, href: '../project/SSHPC.dc.html' }, { t: '智商检测', d: IC.spark, href: '../project/IQCheckPC.dc.html' }] },
+    { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: '../project/NodesPC.dc.html' }, { t: '用户与权限', d: IC.users, href: '../project/UsersPC.dc.html' }, { t: '任务与日志', d: IC.clock, href: '../project/TasksPC.dc.html' }, { t: '系统设置', d: IC.settings, href: '../project/SettingsPC.dc.html' }] }
+  ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === active ? 'nav-on' : '', badge: n.badge || '' })) }));
+}
+function buildGtabs(active) {
+  return [
+    ['home', '工作台', IC.pulse, 'GkHomePC.dc.html'], ['players', '玩家', IC.users, 'GkPlayersPC.dc.html'], ['gasha', '卡池', IC.dice, 'GkGashaPC.dc.html'], ['modes', '玩法', IC.trophy, 'GkModesPC.dc.html'], ['cal', '运营日历', IC.calendar, 'GkCalendarPC.dc.html'],
+    ['mail', '邮件补偿', IC.mail, 'GkMailPC.dc.html'], ['code', '兑换码', IC.ticket, 'GkCodesPC.dc.html'], ['notice', '公告', IC.megaphone, 'GkNoticePC.dc.html'], ['policy', '玩家自助', IC.idcard, 'GmPolicyPC.dc.html'], ['log', 'GM 记录', IC.history, 'GkLogPC.dc.html']
+  ].map(([k, t, d, href]) => ({ t, d, href, cls: k === active ? 'gtab-on' : '' }));
+}
+
+IC.wrench = 'M14.5 6.5a4 4 0 0 0 5 5L21 13l-8 8-3-3 8-8-1.5-1.5a4 4 0 0 0-5-5L13 5zM4 20l3-3';
+IC.restart = 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7';
+const CMDS = [
+  { k: 'ap', pv: '今日剩 2 / 3 次', btn: '回满', t: '回满体力', s: 'ap.refill · AP 回到上限', img: U.ap, r: '0', d: '', open: true, rules: ['每天 3 次', '间隔 1 小时'], appr: false, uses: '64', note: '体力不够时可以自己回满，每天 3 次，间隔 1 小时' },
+  { k: 'kick', pv: '游戏当前不在线', btn: '下线', t: '解除卡死', s: 'session.kick · 把卡住的会话强制下线', img: '', d: IC.logout, av: 'av-p', open: true, rules: ['每小时 1 次'], appr: false, uses: '9', note: '游戏卡在加载时，可以在这里把自己踢下线再重登' },
+  { k: 'rename', pv: '当前：P_gucooing', btn: '修改', t: '改游戏昵称', s: 'account.rename · 只改这台服务器上的昵称', img: '', d: IC.edit, av: 'av-ok', open: true, rules: ['每天 1 次'], appr: false, uses: '5', note: '只改这台服务器上的游戏昵称' },
+  { k: 'contest', pv: '今日已用 3 / 5', btn: '重置', t: 'コンテスト 重置今日次数', s: 'pvp.resetDaily · 把今天的挑战次数补满', img: '', d: IC.restart, av: 'av-g', open: true, rules: ['每天 1 次'], appr: false, uses: '12', note: '把今天的 5 次挑战补满' },
+  { k: 'exp', pv: '上次导出 11-03', btn: '导出', t: '导出我的存档', s: 'archive.export · JSON，只含自己的数据', img: '', d: IC.download, av: 'av-a', open: true, rules: ['每天 1 次'], appr: false, uses: '3', note: '导出的文件只包含你自己的数据' },
+  { k: 'idol', pv: '需要审批 · 每个账号 1 次', btn: '申请', t: '全部偶像卡', s: 'idolcard.grantAll · 所有偶像卡发到礼物箱', img: './assets/cidol-hski-3-000-sq.webp', r: '12px', d: '', open: true, rules: ['每个账号 1 次'], appr: true, uses: '4 申请', note: '提交申请，管理员批准后发到礼物箱' },
+  { k: 'sup', pv: '未开放', btn: '申请', t: '全部支援卡', s: 'supportcard.grantAll · 所有支援卡发到礼物箱', img: './assets/csprt-3-0002-sq.webp', r: '12px', d: '', open: false, rules: [], appr: true, uses: '—', note: '提交申请，管理员批准后发到礼物箱' }
+];
+function pageVals(self, st) {
+  const openMap = st.openMap || {};
+  const cur = st.cur === undefined ? 'ap' : st.cur;
+  const list = CMDS.map((c) => {
+    const open = openMap[c.k] != null ? openMap[c.k] : c.open;
+    return { ...c, open, closed: !open, rules: open ? c.rules : [], appr: open && c.appr, on: c.k === cur, rowCls: c.k === cur ? 'cr-on' : '', chev: c.k === cur ? IC.chevD : IC.chevR,
+      toggle: () => self.setState({ openMap: { ...openMap, [c.k]: !open } }), pick: () => self.setState({ cur: c.k === cur ? '' : c.k }) };
+  });
+  return { cmds: list, openCount: list.filter((c) => c.open).length };
+}
+
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    return Object.assign({
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav: buildNav('gm'),
+      gtabs: buildGtabs('policy')
+    }, pageVals(this, st));
+  }
+}
+</script>
+</body>
+</html>

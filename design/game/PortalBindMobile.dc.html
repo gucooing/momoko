@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>玩家端 · 绑定游戏账号 · 手机</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.hint{font-size:12px;color:var(--ink2);line-height:1.5}
+.srv{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border-radius:20px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.srv-on{border-color:var(--p);background:var(--pSoft)}
+.srv:disabled{cursor:default;opacity:.7}
+.cbx{width:44px;height:52px;border-radius:14px;border:1.5px solid var(--line);background:var(--s);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--bg)">
+    <a class="ib" href="PassportHomeMobile.dc.html" aria-label="返回"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg></a>
+    <span style="flex: 1; font-size: 17px; font-weight: 800">通行证 · 绑定游戏账号</span>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+  </header>
+
+  <div class="hs" style="flex: 1; overflow-y: auto; padding: 16px 16px 120px; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 20px; background: var(--s); border: 1px solid var(--line)">
+      <img src="./assets/chr-kllj.webp" alt="" style="width: 44px; height: 44px; border-radius: 50%">
+      <span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 800">lilja_new</span><span class="hint">用户通行证 · 已登录</span></span>
+      <span class="pill warn">未绑定</span>
+    </div>
+
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 14px; font-weight: 800">1 · 选择服务器</span>
+      <label class="inp inp-sq" style="min-height: 46px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg><input type="search" placeholder="搜索服务器名称，或输入邀请码" aria-label="搜索服务器"></label>
+      <div class="hs" role="tablist" aria-label="按游戏" style="display: flex; gap: 6px; overflow-x: auto"><sc-for list="{{games}}" as="g" hint-placeholder-count="3"><button class="chip {{g.cls}}" role="tab" aria-selected="{{g.on}}" onClick="{{g.pick}}" style="min-height: 36px; padding: 0 12px; font-size: 13px; flex: none">{{g.t}}</button></sc-for></div>
+      <span class="hint">{{listHint}}</span>
+      <sc-for list="{{servers}}" as="s" hint-placeholder-count="3">
+        <button class="srv {{s.cls}}" onClick="{{s.pick}}" aria-pressed="{{s.on}}">
+          <sc-if value="{{s.logo}}" hint-placeholder-val="{{true}}"><img src="{{s.logo}}" alt="" style="width: 40px; height: 40px; flex: none"></sc-if>
+          <sc-if value="{{s.mc}}" hint-placeholder-val="{{false}}"><span class="av av-ok" style="width: 40px; height: 40px; border-radius: 12px; font-size: 12px">MC</span></sc-if>
+          <span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 800">{{s.t}}</span><span class="hint">{{s.s}}</span></span>
+          <sc-if value="{{s.on}}" hint-placeholder-val="{{true}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk)"><path d="{{i.check}}"></path></svg></sc-if>
+        </button>
+      </sc-for>
+      <span class="hint" style="text-align: center">没找到？输入名称搜索；不公开的服务器需要管理员给的邀请码</span>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 14px; font-weight: 800">2 · 证明这是你的游戏账号</span>
+      <div class="seg" role="radiogroup" aria-label="绑定方式" style="align-self: stretch"><sc-for list="{{methods}}" as="m" hint-placeholder-count="3"><button class="{{m.cls}}" role="radio" aria-checked="{{m.on}}" onClick="{{m.pick}}" style="flex: 1">{{m.t}}</button></sc-for></div>
+
+      <sc-if value="{{isPwd}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 700">{{accLabel}}</span><span class="inp inp-sq"><input type="text" placeholder="{{accHint}}" aria-label="{{accLabel}}"></span></label>
+          <sc-if value="{{needPwd}}" hint-placeholder-val="{{true}}"><label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 700">游戏密码</span><span class="inp inp-sq"><input type="password" placeholder="只用来校验一次，不会保存" aria-label="游戏密码"></span></label></sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{isCode}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; gap: 6px; justify-content: space-between"><span class="cbx num">4</span><span class="cbx num">8</span><span class="cbx num">2</span><span class="cbx num" style="border-color: var(--p)"></span><span class="cbx num"></span><span class="cbx num"></span></div>
+          <span class="hint">在游戏登录页或启动器的「通行证绑定」里生成 6 位绑定码，10 分钟内有效。</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{isOidc}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 18px; background: var(--s2)">
+          <img src="./assets/chr-kcna-push.webp" alt="" style="width: 56px; height: 56px; border-radius: 50%; flex: none">
+          <span style="font-size: 13px; line-height: 1.7; color: var(--ink)">下次打开游戏，在登录页点「<b>用户通行证登录</b>」。还没有游戏账号的话会自动创建，并直接绑定到 lilja_new。</span>
+        </div>
+      </sc-if>
+    </section>
+
+    <div style="padding: 12px 14px; border-radius: 16px; background: var(--s2); font-size: 12px; line-height: 1.7; color: var(--ink2)">绑定后你能看到自己在这个服务器的数据（名片、偶像卡、礼物箱、记录），以及管理员开放的自助功能。每个服务器只能绑定一个游戏账号，解绑后 7 天内不能绑定别的账号。</div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 18px; background: var(--s); border-top: 1px solid var(--line)">
+    <a class="btn btn-p" href="PassportHomeMobile.dc.html" style="width: 100%; min-height: 52px; font-size: 16px">{{cta}}</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+const IC = {
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  chevL: 'M15 6l-6 6 6 6',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4'
+};
+const LOGO = './assets/hatsuboshi-logo.webp';
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const srv = st.srv || 'gk1';
+    const method = st.method || 'pwd';
+    const isMc = srv === 'mc';
+    const game = st.game || 'all';
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      games: [['all', '全部游戏'], ['gk', '学園アイドルマスター'], ['mc', 'Minecraft 基岩版']].map(([k, t]) => ({ t, on: k === game, cls: k === game ? 'chip-on' : '', pick: () => this.setState({ game: k }) })),
+      listHint: '推荐 · 最多显示 5 个公开服务器',
+      servers: [
+        { k: 'gk1', g: 'gk', t: '学マス · 正式服', s: '86 个游戏账号 · 自助功能 6 项', logo: LOGO, mc: false },
+        { k: 'mc', g: 'mc', t: 'Minecraft 基岩版 · 生存服', s: '提交 Xbox 玩家代号，管理员加入白名单', logo: '', mc: true }
+      ].filter((s) => game === 'all' || s.g === game).map((s) => ({ ...s, on: s.k === srv, cls: s.k === srv ? 'srv-on' : '', pick: () => this.setState({ srv: s.k, method: s.k === 'mc' ? 'pwd' : method }) })),
+      methods: (isMc ? [['pwd', '提交玩家代号']] : [['pwd', '账号密码'], ['code', '绑定码'], ['oidc', '游戏内登录']]).map(([k, t]) => ({ t, on: k === method, cls: k === method ? 'on' : '', pick: () => this.setState({ method: k }) })),
+      accLabel: isMc ? 'Xbox 玩家代号' : '游戏账号', accHint: isMc ? '游戏里显示的玩家代号' : '登录启动器时用的账号', needPwd: !isMc,
+      isPwd: method === 'pwd', isCode: method === 'code', isOidc: method === 'oidc',
+      cta: method === 'oidc' ? '知道了' : (isMc ? '提交白名单申请' : '绑定')
+    };
+  }
+}
+</script>
+</body>
+</html>

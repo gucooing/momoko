@@ -1,0 +1,919 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "v1/game_common.proto";
+
+// 用户通行证（玩家端，只注册在独立的 passport server 上，独立端口，路由就是 /api/v1/...）。
+// 账号是独立的 passport_users，与 Momoko 管理后台的用户无关；错误的 message 是错误代码（如 PASSPORT_PASSWORD_INVALID），前端本地化。
+service PassportService {
+  // ---------------- 公开 ----------------
+
+  // 公开配置：注册方式、登录方式、站点名称
+  rpc GetPassportConfig(GetPassportConfigRequest) returns (GetPassportConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/config"
+    };
+  }
+  // 发送注册验证码
+  rpc SendPassportRegisterCode(SendPassportEmailCodeRequest) returns (SendPassportEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/register/email-code"
+      body: "*"
+    };
+  }
+  // 注册（成功后直接登录）
+  rpc PassportRegister(PassportRegisterRequest) returns (PassportLoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/register"
+      body: "*"
+    };
+  }
+  // 发送登录验证码
+  rpc SendPassportLoginCode(SendPassportEmailCodeRequest) returns (SendPassportEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login/email-code"
+      body: "*"
+    };
+  }
+  // 登录：用户名 / 邮箱 + 密码，或邮箱 + 验证码；开启了两步验证时返回 mfa_token，再调 PassportLoginMfa
+  rpc PassportLogin(PassportLoginRequest) returns (PassportLoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login"
+      body: "*"
+    };
+  }
+  // 两步验证：用身份验证器的 6 位验证码或恢复码完成登录
+  rpc PassportLoginMfa(PassportLoginMfaRequest) returns (PassportLoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login/mfa"
+      body: "*"
+    };
+  }
+  // 用刷新令牌续期
+  rpc PassportRefresh(PassportRefreshRequest) returns (PassportLoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/refresh"
+      body: "*"
+    };
+  }
+  // 发送找回密码验证码
+  rpc SendPassportResetCode(SendPassportEmailCodeRequest) returns (SendPassportEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/password/reset/email-code"
+      body: "*"
+    };
+  }
+  // 用邮箱验证码重设密码（全部设备随之下线）
+  rpc PassportResetPassword(PassportResetPasswordRequest) returns (PassportEmpty) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/password/reset"
+      body: "*"
+    };
+  }
+
+  // ---------------- 登录后 ----------------
+
+  // 退出当前设备
+  rpc PassportLogout(PassportEmpty) returns (PassportEmpty) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/logout"
+      body: "*"
+    };
+  }
+  // 当前账号：资料、安全状态与计数
+  rpc GetPassportMe(PassportEmpty) returns (PassportMe) {
+    option (google.api.http) = {
+      get: "/api/v1/me"
+    };
+  }
+  // 修改资料（昵称、简介、语言、时区、游戏素材头像）
+  rpc UpdatePassportProfile(UpdatePassportProfileRequest) returns (PassportMe) {
+    option (google.api.http) = {
+      put: "/api/v1/me/profile"
+      body: "*"
+    };
+  }
+  // 申请头像直传地址（需要管理员开启头像储存）
+  rpc PresignPassportAvatar(PresignPassportAvatarRequest) returns (PresignPassportAvatarResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/me/avatar/presign"
+      body: "*"
+    };
+  }
+  // 直传完成后确认头像
+  rpc CompletePassportAvatar(CompletePassportAvatarRequest) returns (PassportMe) {
+    option (google.api.http) = {
+      post: "/api/v1/me/avatar/complete"
+      body: "*"
+    };
+  }
+  // 修改密码（需要当前密码；其他设备随之下线）
+  rpc ChangePassportPassword(ChangePassportPasswordRequest) returns (PassportEmpty) {
+    option (google.api.http) = {
+      put: "/api/v1/me/password"
+      body: "*"
+    };
+  }
+  // 发送更换邮箱的验证码（发到新邮箱）
+  rpc SendPassportEmailChangeCode(SendPassportEmailCodeRequest) returns (SendPassportEmailCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/me/email/code"
+      body: "*"
+    };
+  }
+  // 更换 / 绑定邮箱
+  rpc ChangePassportEmail(ChangePassportEmailRequest) returns (PassportMe) {
+    option (google.api.http) = {
+      put: "/api/v1/me/email"
+      body: "*"
+    };
+  }
+  // 开关邮箱验证码登录
+  rpc SetPassportEmailLogin(SetPassportEmailLoginRequest) returns (PassportMe) {
+    option (google.api.http) = {
+      put: "/api/v1/me/email-login"
+      body: "*"
+    };
+  }
+  // 开始设置两步验证：生成密钥与二维码（确认前不生效）
+  rpc SetupPassportTotp(PassportEmpty) returns (SetupPassportTotpResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/me/totp/setup"
+      body: "*"
+    };
+  }
+  // 输入身份验证器的验证码确认开启，返回恢复码（只显示这一次）
+  rpc EnablePassportTotp(EnablePassportTotpRequest) returns (PassportRecoveryCodes) {
+    option (google.api.http) = {
+      post: "/api/v1/me/totp/enable"
+      body: "*"
+    };
+  }
+  // 关闭两步验证（需要密码与验证码）
+  rpc DisablePassportTotp(DisablePassportTotpRequest) returns (PassportMe) {
+    option (google.api.http) = {
+      post: "/api/v1/me/totp/disable"
+      body: "*"
+    };
+  }
+  // 重新生成恢复码（需要验证码；旧恢复码作废）
+  rpc RegeneratePassportRecoveryCodes(PassportTotpCodeRequest) returns (PassportRecoveryCodes) {
+    option (google.api.http) = {
+      post: "/api/v1/me/totp/recovery-codes"
+      body: "*"
+    };
+  }
+  // 登录设备
+  rpc ListPassportDevices(PassportEmpty) returns (ListPassportDevicesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/me/devices"
+    };
+  }
+  // 让某台设备下线
+  rpc RevokePassportDevice(RevokePassportDeviceRequest) returns (PassportEmpty) {
+    option (google.api.http) = {
+      delete: "/api/v1/me/devices/{session_id}"
+    };
+  }
+  // 退出其他所有设备
+  rpc LogoutPassportOthers(PassportEmpty) returns (PassportEmpty) {
+    option (google.api.http) = {
+      post: "/api/v1/me/devices/logout-others"
+      body: "*"
+    };
+  }
+  // 授权的应用（用「用户通行证登录」登录过的游戏与应用）
+  rpc ListPassportApps(PassportEmpty) returns (ListPassportAppsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/me/apps"
+    };
+  }
+  // 撤销授权（已签发的访问令牌随之失效，下次需要重新确认）
+  rpc RevokePassportApp(RevokePassportAppRequest) returns (PassportEmpty) {
+    option (google.api.http) = {
+      delete: "/api/v1/me/apps/{id}"
+    };
+  }
+  // 申请注销（7 天后删除，期间可撤销）
+  rpc RequestPassportDeletion(RequestPassportDeletionRequest) returns (PassportMe) {
+    option (google.api.http) = {
+      post: "/api/v1/me/deletion"
+      body: "*"
+    };
+  }
+  // 撤销注销申请
+  rpc CancelPassportDeletion(PassportEmpty) returns (PassportMe) {
+    option (google.api.http) = {
+      delete: "/api/v1/me/deletion"
+    };
+  }
+  // 消息
+  rpc ListPassportMessages(ListPassportMessagesRequest) returns (ListPassportMessagesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/me/messages"
+    };
+  }
+  // 标记已读（all 为全部）
+  rpc ReadPassportMessages(ReadPassportMessagesRequest) returns (ReadPassportMessagesResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/me/messages/read"
+      body: "*"
+    };
+  }
+  // 最近活动：登录、绑定与解绑、自助操作、兑换码（都来自真实记录）
+  rpc ListPassportActivity(ListPassportActivityRequest) returns (ListPassportActivityResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/me/activity"
+    };
+  }
+
+  // ---------------- 游戏账号 ----------------
+
+  // 我绑定的游戏账号（按游戏分组展示）
+  rpc ListPassportLinks(PassportEmpty) returns (ListPassportLinksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/links"
+    };
+  }
+  // 设为这款游戏的常用账号
+  rpc SetPassportPrimaryLink(PassportLinkRequest) returns (PassportEmpty) {
+    option (google.api.http) = {
+      post: "/api/v1/links/{id}/primary"
+      body: "*"
+    };
+  }
+  // 解绑（解绑后 7 天内不能在同一服务器绑定别的账号）
+  rpc UnbindPassportLink(PassportLinkRequest) returns (PassportEmpty) {
+    option (google.api.http) = {
+      post: "/api/v1/links/{id}/unbind"
+      body: "*"
+    };
+  }
+  // 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）
+  rpc SearchPassportBindServers(SearchPassportBindServersRequest) returns (SearchPassportBindServersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/bind/servers"
+    };
+  }
+  // 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
+  rpc BindPassportAccount(BindPassportAccountRequest) returns (PassportLink) {
+    option (google.api.http) = {
+      post: "/api/v1/bind"
+      body: "*"
+    };
+  }
+
+  // ---------------- 游戏空间（只能看自己绑定的游戏账号） ----------------
+
+  // 游戏空间：服务器、绑定、manifest 中玩家端用到的部分、玩家摘要；同时记录 last_seen_at
+  rpc GetPassportGame(PassportGameRequest) returns (PassportGameResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{server_id}"
+    };
+  }
+  // 首页卡片用的摘要（玩家摘要，刷新绑定快照；不记录 last_seen_at）
+  rpc GetPassportGameBrief(PassportGameRequest) returns (PassportGameResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{server_id}/brief"
+    };
+  }
+  // 自己的分页数据（MGP /players/{我的 pid}/views/{view}）
+  rpc GetPassportGameView(PassportGameViewRequest) returns (PassportDataResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{server_id}/views/{view}"
+    };
+  }
+  // 选择器数据（MGP /catalogs/{kind}，名称与素材 ID；每次最多 50 条）
+  rpc GetPassportGameCatalog(PassportGameCatalogRequest) returns (PassportDataResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{server_id}/catalogs/{kind}"
+    };
+  }
+  // 正在进行的卡池（只含 id、名称、横幅素材与起止时间）
+  rpc ListPassportGameOngoing(PassportGameRequest) returns (PassportDataResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{server_id}/ongoing"
+    };
+  }
+  // 自助服务：已开放的指令与我的使用情况
+  rpc ListPassportSelfService(PassportGameRequest) returns (ListPassportSelfServiceResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{server_id}/self-service"
+    };
+  }
+  // 执行一条自助指令（目标强制为我绑定的游戏账号；需要审批的只提交申请）
+  rpc ExecutePassportSelfService(ExecutePassportSelfServiceRequest) returns (ExecutePassportSelfServiceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/games/{server_id}/self-service/{command}"
+      body: "*"
+    };
+  }
+  // 我的申请（需要审批的自助指令）
+  rpc ListPassportGameRequests(ListPassportGameRecordsRequest) returns (ListPassportGameRecordsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{server_id}/requests"
+    };
+  }
+  // 操作记录（我在这台服务器上的自助操作与兑换码）
+  rpc ListPassportGameRecords(ListPassportGameRecordsRequest) returns (ListPassportGameRecordsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/games/{server_id}/records"
+    };
+  }
+  // 兑换码（奖励进礼物箱）
+  rpc RedeemPassportGiftCode(RedeemPassportGiftCodeRequest) returns (RedeemPassportGiftCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/games/{server_id}/redeem"
+      body: "*"
+    };
+  }
+
+  // ---------------- OIDC 授权确认页 ----------------
+
+  // 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）
+  rpc GetPassportOidcAuthorization(PassportOidcAuthorizeRequest) returns (PassportOidcAuthorizationInfo) {
+    option (google.api.http) = {
+      get: "/api/v1/oidc/authorize"
+    };
+  }
+  // 同意授权：生成授权码，返回应用的回调地址
+  rpc ApprovePassportOidcAuthorization(PassportOidcAuthorizeRequest) returns (PassportOidcAuthorizeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/oidc/authorize"
+      body: "*"
+    };
+  }
+}
+
+message PassportEmpty {}
+
+// ---------------- 配置与登录 ----------------
+
+message GetPassportConfigRequest {}
+
+message GetPassportConfigResponse {
+  // 站点名称（通行证设置里的名称，空时用 Momoko 站点名称）
+  string site_name = 1;
+  // 注册方式：open 开放 / invite_only 仅邀请 / closed 关闭
+  string register_mode = 2;
+  // 是否开启邮箱验证码登录（需要配置邮件）
+  bool email_login_enabled = 3;
+  // 注册时是否需要邮箱验证码
+  bool register_email_verification = 4;
+  // 是否配置了邮件（找回密码、更换邮箱需要）
+  bool email_enabled = 5;
+  // 是否启用了「用户通行证登录」（OIDC）
+  bool oidc_enabled = 6;
+  // 解绑后不能在同一服务器绑定别的账号的天数
+  int32 unbind_cooldown_days = 7;
+  // 申请注销后可以撤销的天数
+  int32 deletion_grace_days = 8;
+  // 密码最少位数
+  int32 min_password_length = 9;
+}
+
+message SendPassportEmailCodeRequest {
+  string email = 1;
+}
+
+message SendPassportEmailCodeResponse {
+  // 验证码有效秒数
+  int64 expires_in_seconds = 1;
+  // 再次发送需要等待的秒数
+  int64 resend_after_seconds = 2;
+}
+
+message PassportRegisterRequest {
+  // 用户名：3–20 位字母、数字或下划线，注册后不能修改
+  string username = 1;
+  string password = 2;
+  string email = 3;
+  // 邮箱验证码（需要时）
+  string code = 4;
+  // 邀请码（仅邀请时必填）
+  string invite_code = 5;
+  string device_id = 6;
+  string device = 7;
+  // 界面语言（zh-CN / zh-HK / en-US）
+  string language = 8;
+}
+
+message PassportLoginRequest {
+  // 用户名或邮箱（密码登录）
+  string account = 1;
+  string password = 2;
+  // 邮箱与验证码（验证码登录）
+  string email = 3;
+  string code = 4;
+  string device_id = 5;
+  string device = 6;
+  // 保持登录
+  bool remember = 7;
+}
+
+message PassportLoginMfaRequest {
+  string mfa_token = 1;
+  // 身份验证器的 6 位验证码
+  string code = 2;
+  // 或者一个恢复码
+  string recovery_code = 3;
+}
+
+message PassportRefreshRequest {
+  string refresh_token = 1;
+}
+
+message PassportLoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  // 访问令牌有效秒数
+  int64 expires_in = 3;
+  // 需要两步验证：拿 mfa_token 调 PassportLoginMfa
+  bool mfa_required = 4;
+  string mfa_token = 5;
+}
+
+message PassportResetPasswordRequest {
+  string email = 1;
+  string code = 2;
+  string password = 3;
+}
+
+// ---------------- 账号 ----------------
+
+message PassportMe {
+  string id = 1;
+  string username = 2;
+  string name = 3;
+  string email = 4;
+  bool email_verified = 5;
+  string bio = 6;
+  // 上传的头像地址
+  string avatar = 7;
+  // 游戏素材头像：<game>/<素材 key>
+  string avatar_asset = 8;
+  // 语言与时区（空为跟随浏览器）
+  string language = 9;
+  string timezone = 10;
+  // 允许邮箱验证码登录
+  bool email_code_login = 11;
+  bool totp_enabled = 12;
+  google.protobuf.Timestamp totp_enabled_at = 13;
+  // 剩余恢复码
+  int32 recovery_codes_left = 14;
+  google.protobuf.Timestamp password_updated_at = 15;
+  google.protobuf.Timestamp create_time = 16;
+  google.protobuf.Timestamp last_login_at = 17;
+  string last_login_ip = 18;
+  string last_login_device = 19;
+  // 申请注销后计划删除的时间（空为没有申请）
+  google.protobuf.Timestamp deletion_scheduled_at = 20;
+  int32 device_count = 21;
+  int32 app_count = 22;
+  int32 link_count = 23;
+  int32 game_count = 24;
+  int32 unread_messages = 25;
+  // 管理员是否开启了头像上传
+  bool avatar_upload_enabled = 26;
+  // 头像上传大小上限（字节）
+  int64 avatar_max_size = 27;
+  // 最近一次登录使用的方式
+  string last_login_method = 28;
+}
+
+message UpdatePassportProfileRequest {
+  string name = 1;
+  string bio = 2;
+  string language = 3;
+  string timezone = 4;
+  // 游戏素材头像（<game>/<素材 key>）；设置后清除上传的头像；空串表示不用素材头像
+  string avatar_asset = 5;
+  // 清除上传的头像
+  bool clear_avatar = 6;
+}
+
+message PresignPassportAvatarRequest {
+  string content_type = 1;
+  int64 size = 2;
+}
+
+message PresignPassportAvatarResponse {
+  // 预签名 PUT 地址（浏览器直传）
+  string upload_url = 1;
+  // 上传凭证（完成时原样带回）
+  string token = 2;
+}
+
+message CompletePassportAvatarRequest {
+  string token = 1;
+}
+
+message ChangePassportPasswordRequest {
+  string old_password = 1;
+  string new_password = 2;
+}
+
+message ChangePassportEmailRequest {
+  string email = 1;
+  string code = 2;
+  // 当前密码
+  string password = 3;
+}
+
+message SetPassportEmailLoginRequest {
+  bool enabled = 1;
+}
+
+message SetupPassportTotpResponse {
+  // base32 密钥（手动输入用）
+  string secret = 1;
+  // otpauth:// 地址
+  string uri = 2;
+  // 二维码（data:image/png;base64,…）
+  string qr_code = 3;
+}
+
+message EnablePassportTotpRequest {
+  string code = 1;
+}
+
+message DisablePassportTotpRequest {
+  string password = 1;
+  string code = 2;
+}
+
+message PassportTotpCodeRequest {
+  string code = 1;
+}
+
+message PassportRecoveryCodes {
+  repeated string codes = 1;
+}
+
+message PassportDevice {
+  string session_id = 1;
+  string device = 2;
+  // desktop / mobile / tablet / cli
+  string device_type = 3;
+  string user_agent = 4;
+  string ip = 5;
+  string last_ip = 6;
+  // loopback / lan / public
+  string ip_scope = 7;
+  // password / email_code / register / oidc
+  string login_method = 8;
+  // 经 OIDC 登录的应用名称
+  string app_name = 9;
+  google.protobuf.Timestamp create_time = 10;
+  google.protobuf.Timestamp last_active_time = 11;
+  google.protobuf.Timestamp expire_time = 12;
+  // 是否为当前设备
+  bool current = 13;
+}
+
+message ListPassportDevicesResponse {
+  repeated PassportDevice items = 1;
+}
+
+message RevokePassportDeviceRequest {
+  string session_id = 1;
+}
+
+message PassportApp {
+  // 授权 id
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // 已同意的范围
+  repeated string scopes = 4;
+  // 关联的游戏服务器（可空）
+  GameServerBrief server = 5;
+  google.protobuf.Timestamp create_time = 6;
+  google.protobuf.Timestamp last_used_at = 7;
+}
+
+message ListPassportAppsResponse {
+  repeated PassportApp items = 1;
+}
+
+message RevokePassportAppRequest {
+  string id = 1;
+}
+
+message RequestPassportDeletionRequest {
+  string password = 1;
+}
+
+message PassportMessage {
+  string id = 1;
+  // 种类：login_new_device / password_changed / password_reset / email_changed / totp_enabled / totp_disabled /
+  // link_bound_by_admin / link_unbound_by_admin / request_approved / request_rejected / deletion_scheduled / deletion_cancelled / account_enabled
+  string kind = 2;
+  map<string, string> params = 3;
+  // 相关的服务器（可空）
+  GameServerBrief server = 4;
+  bool read = 5;
+  google.protobuf.Timestamp create_time = 6;
+}
+
+message ListPassportMessagesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  bool unread_only = 3;
+}
+
+message ListPassportMessagesResponse {
+  repeated PassportMessage items = 1;
+  int32 total = 2;
+  int32 unread = 3;
+}
+
+message ReadPassportMessagesRequest {
+  repeated string ids = 1;
+  bool all = 2;
+}
+
+message ReadPassportMessagesResponse {
+  int32 unread = 1;
+}
+
+message PassportActivity {
+  // login 登录 / bind 绑定 / unbind 解绑 / self_service 自助操作 / redeem 兑换码
+  string kind = 1;
+  google.protobuf.Timestamp time = 2;
+  // 相关的服务器（可空）
+  GameServerBrief server = 3;
+  // 参数：login {method, device, device_type, ip}；bind/unbind {nickname, method, by}；
+  // self_service {command, title, status}；redeem {code, result}
+  map<string, string> params = 4;
+}
+
+message ListPassportActivityRequest {
+  int32 limit = 1;
+}
+
+message ListPassportActivityResponse {
+  repeated PassportActivity items = 1;
+}
+
+// ---------------- 游戏账号 ----------------
+
+message PassportLink {
+  string id = 1;
+  GameServerBrief server = 2;
+  string game = 3;
+  // MGP pid
+  string player_id = 4;
+  // 游戏内显示的 ID
+  string display_id = 5;
+  // 登录账号
+  string account = 6;
+  // 昵称、头像资源、等级快照
+  string nickname = 7;
+  string avatar_asset = 8;
+  int32 level = 9;
+  // password 账号密码 / code 绑定码 / oidc 通行证登录 / admin 管理员 / request 申请
+  string method = 10;
+  bool is_primary = 11;
+  google.protobuf.Timestamp linked_at = 12;
+  google.protobuf.Timestamp last_seen_at = 13;
+  // 这台服务器开放给玩家的自助指令数
+  int32 self_service_enabled = 14;
+}
+
+message ListPassportLinksResponse {
+  repeated PassportLink items = 1;
+}
+
+message PassportLinkRequest {
+  string id = 1;
+}
+
+message SearchPassportBindServersRequest {
+  // 名称、标签、游戏，或管理员给的邀请码
+  string q = 1;
+  string game = 2;
+}
+
+message PassportBindServer {
+  GameServerBrief server = 1;
+  // 已绑定到通行证的游戏账号数
+  int32 linked_accounts = 2;
+  // 开放给玩家的自助指令数
+  int32 self_service = 3;
+  // 支持的绑定方式（由 manifest capabilities 决定；目前只有 password）
+  repeated string methods = 4;
+  // 是否可以绑定；不能时 reason 为原因代码：linked 已绑定 / cooldown 冷却中 / no_mgp 未接入 / unsupported 不支持校验账号
+  bool bindable = 5;
+  string reason = 6;
+  // 冷却结束时间（reason=cooldown）
+  google.protobuf.Timestamp cooldown_until = 7;
+  // 是凭邀请码找到的
+  bool via_invite = 8;
+}
+
+message PassportBindGame {
+  string id = 1;
+  string name = 2;
+  string icon = 3;
+  int32 servers = 4;
+}
+
+message SearchPassportBindServersResponse {
+  // 搜索结果（q 不为空时；最多 20 条）
+  repeated PassportBindServer items = 1;
+  // 推荐（最多 5 个公开服务器）
+  repeated PassportBindServer recommended = 2;
+  // 可以绑定的游戏（筛选 chips）
+  repeated PassportBindGame games = 3;
+  // 可以搜到的服务器总数
+  int32 total = 4;
+}
+
+message BindPassportAccountRequest {
+  string server_id = 1;
+  // 非公开服务器的邀请码
+  string invite_code = 2;
+  // 游戏登录账号与密码（只用来校验一次，不保存）
+  string account = 3;
+  string password = 4;
+}
+
+// ---------------- 游戏空间 ----------------
+
+message PassportGameRequest {
+  string server_id = 1;
+}
+
+message PassportGameResponse {
+  GameServerBrief server = 1;
+  PassportLink link = 2;
+  // manifest 中玩家端用到的部分：game、views、modes、reports、catalogs、capabilities、resourceTypes（不含指令）
+  google.protobuf.Value manifest = 3;
+  // 服务器时区（IANA）
+  string timezone = 4;
+  // MGP /players/{pid}（含 overview）；取不到时为空并带 player_error
+  google.protobuf.Value player = 5;
+  string player_error = 6;
+  // 我在其他服务器上的绑定（切换服务器用）
+  repeated PassportLink others = 7;
+}
+
+message PassportGameViewRequest {
+  string server_id = 1;
+  string view = 2;
+  // 透传给 MGP 的查询串（cursor、limit、state、gashaId…）
+  string query = 3;
+}
+
+message PassportGameCatalogRequest {
+  string server_id = 1;
+  string kind = 2;
+  // q、characterId、rarity、cursor、limit（最大 50）
+  string query = 3;
+}
+
+message PassportDataResponse {
+  google.protobuf.Value data = 1;
+}
+
+message PassportSelfService {
+  string command = 1;
+  // 指令标题（游戏服务端给出）
+  string title = 2;
+  string group = 3;
+  string risk = 4;
+  string target = 5;
+  // 参数 JSON Schema
+  google.protobuf.Value params = 6;
+  // 规则
+  int32 daily_limit = 7;
+  int32 cooldown_sec = 8;
+  bool need_approval = 9;
+  // 管理员写给玩家的说明
+  string player_note = 10;
+  // 使用情况
+  int32 used_today = 11;
+  // 今天还剩（-1 不限）
+  int32 remaining = 12;
+  google.protobuf.Timestamp next_available = 13;
+  google.protobuf.Timestamp last_used_at = 14;
+  string last_status = 15;
+  bool has_pending = 16;
+  // 执行前需要两步验证码（开启了两步验证且指令是高风险）
+  bool need_totp = 17;
+}
+
+message ListPassportSelfServiceResponse {
+  repeated PassportSelfService items = 1;
+}
+
+message ExecutePassportSelfServiceRequest {
+  string server_id = 1;
+  string command = 2;
+  google.protobuf.Value params = 3;
+  // 申请理由（需要审批时）
+  string reason = 4;
+  // 两步验证码（need_totp 时）
+  string totp_code = 5;
+}
+
+message ExecutePassportSelfServiceResponse {
+  string execution_id = 1;
+  // success / partial / failed / pending
+  string status = 2;
+  // 我的游戏账号上的变化
+  repeated PassportChange changes = 3;
+  // 指令结果里给玩家的数据（例如导出的存档）
+  google.protobuf.Value detail = 4;
+  string error_code = 5;
+  string error_message = 6;
+}
+
+message PassportChange {
+  string kind = 1;
+  string resource_id = 2;
+  google.protobuf.Value before = 3;
+  google.protobuf.Value after = 4;
+}
+
+message ListPassportGameRecordsRequest {
+  string server_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message PassportGameRecord {
+  string id = 1;
+  // self_service 自助指令 / redeem 兑换码
+  string kind = 2;
+  string command = 3;
+  string command_title = 4;
+  // self_service：success / partial / failed / pending / running / rejected；redeem：success / already_redeemed / expired …
+  string status = 5;
+  // 申请理由
+  string reason = 6;
+  // 审批意见 / 驳回原因
+  string review_note = 7;
+  google.protobuf.Timestamp reviewed_at = 8;
+  google.protobuf.Timestamp create_time = 9;
+  google.protobuf.Timestamp finished_at = 10;
+  repeated PassportChange changes = 11;
+  string error_code = 12;
+  // 兑换码与奖励
+  string code = 13;
+  repeated GameReward rewards = 14;
+}
+
+message ListPassportGameRecordsResponse {
+  repeated PassportGameRecord items = 1;
+  int32 total = 2;
+}
+
+message RedeemPassportGiftCodeRequest {
+  string server_id = 1;
+  string code = 2;
+}
+
+message RedeemPassportGiftCodeResponse {
+  // success / already_redeemed / expired / not_started / exhausted / disabled / not_eligible / banned / rate_limited / not_found / failed
+  string result = 1;
+  repeated GameReward rewards = 2;
+  string execution_id = 3;
+}
+
+// ---------------- OIDC ----------------
+
+message PassportOidcAuthorizeRequest {
+  string response_type = 1;
+  string client_id = 2;
+  string redirect_uri = 3;
+  string scope = 4;
+  string state = 5;
+  string nonce = 6;
+  string code_challenge = 7;
+  string code_challenge_method = 8;
+}
+
+message PassportOidcAuthorizationInfo {
+  string client_name = 1;
+  string client_id = 2;
+  string description = 3;
+  string redirect_uri = 4;
+  // 归一化后的范围
+  repeated string scopes = 5;
+  // 关联的游戏服务器（可空）
+  GameServerBrief server = 6;
+  // 已经授权过且范围没有变化（可以直接继续）
+  bool granted = 7;
+}
+
+message PassportOidcAuthorizeResponse {
+  string redirect_url = 1;
+}

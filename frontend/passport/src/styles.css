@@ -1,0 +1,338 @@
+/* 用户通行证的公共样式：只用设计令牌 --m-* / --app-*（以及游戏皮肤 --m-g*）。 */
+html,
+body {
+  margin: 0;
+  background: var(--m-bg);
+  color: var(--m-ink);
+  font-family: var(--app-font-sans);
+}
+
+a {
+  color: var(--m-pInk);
+}
+
+.pp-card {
+  background: var(--m-s);
+  border: 1px solid var(--m-line);
+  border-radius: var(--app-radius-xl, 24px);
+}
+
+.pp-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--m-ink2);
+}
+
+.pp-title {
+  margin: 0;
+  font-family: var(--app-font-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.pp-num {
+  font-family: var(--app-font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.pp-mono {
+  font-family: var(--app-font-mono);
+}
+
+/* 横向滚动的 chips / tab 行：不显示滚动条 */
+.pp-scroll-x {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pp-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+.pp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--app-radius-pill, 999px);
+  border: 1px solid var(--m-line);
+  background: var(--m-s);
+  color: var(--m-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pp-chip:hover {
+  background: var(--m-s2);
+}
+.pp-chip.is-on {
+  background: var(--m-pSoft);
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.pp-chip__n {
+  font-family: var(--app-font-display);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.pp-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--app-radius-pill, 999px);
+  background: var(--m-s2);
+  color: var(--m-ink2);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pp-tag--p {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
+.pp-tag--g {
+  background: var(--m-gSoft);
+  color: var(--m-gInk);
+}
+
+/* 分段选择 */
+.pp-seg {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--app-radius-pill, 999px);
+  background: var(--m-s2);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pp-seg::-webkit-scrollbar {
+  display: none;
+}
+.pp-seg > button {
+  flex: 1 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--app-radius-pill, 999px);
+  background: transparent;
+  color: var(--m-ink2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pp-seg > button.is-on {
+  background: var(--m-s);
+  color: var(--m-ink);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--m-ink) 12%, transparent);
+}
+
+/* 列表行（行与行之间一条细线） */
+.pp-rows > * + * {
+  border-top: 1px solid var(--m-line);
+}
+
+/* 下划线标签 */
+.pp-utabs {
+  display: flex;
+  gap: 22px;
+  border-bottom: 1px solid var(--m-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pp-utabs::-webkit-scrollbar {
+  display: none;
+}
+.pp-utabs > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--m-ink2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pp-utabs > button.is-on {
+  color: var(--m-pInk);
+  border-bottom-color: var(--m-p);
+}
+
+.pp-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--m-s2);
+  overflow: hidden;
+}
+.pp-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--m-g, var(--m-p));
+}
+
+.pp-sticker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .pp-chip,
+  .pp-seg > button {
+    min-height: 44px;
+  }
+}
+
+/* 表单与提示 */
+.pp-form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pp-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--m-badSoft);
+  color: var(--m-bad);
+  font-size: 13px;
+  font-weight: 700;
+}
+.pp-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--m-s2);
+  color: var(--m-ink2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.pp-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--m-pInk);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.pp-code-row {
+  display: flex;
+  gap: 8px;
+}
+.pp-code-row > input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 账号设置的分区卡片与表单行 */
+.pp-section {
+  padding: 22px 26px;
+  display: flex;
+  flex-direction: column;
+}
+.pp-section__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.pp-section__title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--app-font-display);
+  font-size: 26px;
+  font-weight: 800;
+}
+.pp-section__desc {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--m-ink2);
+}
+.pp-frow {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 70px;
+  padding: 10px 0;
+  border-top: 1px solid var(--m-line);
+}
+.pp-frow--icon {
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+}
+.pp-frow__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.pp-frow__label small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--m-ink2);
+}
+.pp-frow__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.pp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--m-line);
+}
+@media (max-width: 768px) {
+  .pp-section {
+    padding: 18px 16px;
+  }
+  .pp-section__title {
+    font-size: 22px;
+  }
+  .pp-frow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .pp-frow--icon {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+  .pp-frow--icon > .pp-frow__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+  .pp-frow__actions {
+    justify-content: flex-start;
+  }
+  .pp-actions > * {
+    flex: 1;
+  }
+}

@@ -2,7 +2,8 @@ import { brotliCompressSync, constants, gzipSync } from 'node:zlib'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
-const distDir = path.resolve('dist')
+// 用法：node scripts/compress-dist.mjs [产物目录]（默认 dist；用户通行证是 dist-passport）
+const distDir = path.resolve(process.argv[2] || 'dist')
 const compressExtList = new Set([
   '.css',
   '.html',

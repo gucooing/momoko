@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>学マス GM · 玩家详情 + 发放奖励 · PC</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.hint{font-size:12px;color:var(--ink2);line-height:1.5}
+.cur{display:flex;align-items:center;gap:10px;padding:10px 14px 10px 10px;border-radius:18px;background:var(--s2)}
+.ic-card{position:relative;display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:20px;background:var(--s);border:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.ic-card:hover{border-color:var(--g)}
+.stp{display:inline-flex;align-items:center;border-radius:999px;background:var(--s2)}
+.stp button{width:34px;height:34px;border:0;background:transparent;border-radius:50%;font:inherit;font-size:18px;font-weight:700;color:var(--ink);cursor:pointer}
+.stp span{min-width:64px;text-align:center;font-weight:800}
+.pick{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:16px;border:1.5px solid var(--line);background:var(--s);font:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;text-align:center}
+.pick:hover{border-color:var(--g)}
+.pick-on{border-color:var(--g);background:var(--gSoft)}
+.h2{margin:0;font-size:16px;font-weight:800}
+.pg{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border-radius:16px;border:0;background:var(--s2);font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.pg:hover{background:var(--gSoft)}
+.ev{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:8px;background:var(--ink);color:var(--bg);font-size:12px;font-weight:800;font-family:'Outfit',sans-serif}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1720px; display: flex; flex-wrap: wrap; align-items: stretch; position: relative">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span style="flex: 1">{{n.t}}</span>
+              <sc-if value="{{n.badge}}" hint-placeholder-val="{{false}}"><span class="gtag" style="height: 20px; padding: 0 7px; font-size: 11px">{{n.badge}}</span></sc-if>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <button style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 14px 6px 6px; border-radius: 999px; border: 1.5px solid var(--gLine); background: var(--gSoft); font: inherit; color: var(--ink); cursor: pointer" aria-label="切换服务器：当前 学マス · 正式服">
+        <img src="./assets/hatsuboshi-logo.webp" alt="" style="width: 40px; height: 40px; border-radius: 50%; background: var(--s)">
+        <span style="display: flex; flex-direction: column; align-items: flex-start"><span style="font-size: 15px; font-weight: 800">学マス · 正式服</span><span style="font-size: 12px; color: var(--gInk); font-weight: 700">托管 · 在线 12 · MGP 正常</span></span>
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--gInk)"><path d="{{i.updown}}"></path></svg>
+      </button>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg></button>
+    </div>
+
+    <nav aria-label="GM 运营" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
+      <sc-for list="{{gtabs}}" as="t" hint-placeholder-count="10">
+        <a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}</a>
+      </sc-for>
+    </nav>
+
+    <a href="GkPlayersPC.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; font-size: 14px; font-weight: 700; color: var(--ink2); text-decoration: none; margin-top: -6px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg>玩家</a>
+
+    <section class="card" style="overflow: hidden; display: flex; flex-wrap: wrap; margin-top: -8px">
+      <div style="flex: 1 1 560px; min-width: 0; padding: 22px 24px; display: flex; flex-direction: column; gap: 18px; position: relative; z-index: 1">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px">
+          <span style="width: 96px; height: 96px; border-radius: 50%; overflow: hidden; flex: none; background: var(--gSoft); border: 4px solid var(--s); box-shadow: 0 0 0 3px var(--g)"><img src="./assets/chr-hski-bust.webp" alt="担当：花海咲季" style="width: 150px; height: 150px; margin: -6px 0 0 -27px; display: block"></span>
+          <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+              <h1 style="margin: 0; font-size: 30px; font-weight: 800">P_gucooing</h1>
+              <span class="pill ok">在线 · Windows 启动器</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--ink2)">
+              <span class="num">User ID 482 019 337</span><span>账号 gucooing</span><span>担当 花海咲季</span><a href="PassportPC.dc.html" style="display: inline-flex; align-items: center; gap: 4px; font-weight: 700; text-decoration: none"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.link}}"></path></svg>通行证 gucooing</a>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; max-width: 420px">
+              <span class="gtag num" style="height: 26px">PLv 52</span>
+              <div class="bar" style="flex: 1"><span style="width: 64%; background: var(--g)"></span></div>
+              <span class="num hint">EXP 64%</span>
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{wallet}}" as="w" hint-placeholder-count="4">
+            <div class="cur"><img src="{{w.img}}" alt="" style="width: 36px; height: 36px; flex: none"><span style="min-width: 0; display: flex; flex-direction: column"><span class="hint">{{w.t}}</span><span class="num" style="font-size: 17px; font-weight: 800; white-space: nowrap">{{w.v}}</span></span></div>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button class="btn btn-g" onClick="{{openGift}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.gift}}"></path></svg>发送礼物</button>
+          <button class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.sliders}}"></path></svg>调整资源</button>
+          <button class="btn btn-o" style="color: var(--bad)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.logout}}"></path></svg>强制下线</button>
+          <button class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>导出存档</button>
+          <button class="ib" aria-label="更多：封禁、重置密码、回档" style="border: 1.5px solid var(--line); border-radius: 999px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+        </div>
+      </div>
+      <div style="flex: 1 1 320px; min-height: 260px; position: relative; background: var(--gSoft)">
+        <img class="ph" src="./assets/cidol-hski-3-000-L.webp" alt="花海咲季 卡面" style="position: absolute; inset: 0; width: 100%; height: 100%; object-position: 40% 30%">
+        <span class="tag" style="position: absolute; right: 14px; bottom: 14px; background: var(--s); color: var(--ink)">名片：花海咲季 SSR</span>
+      </div>
+    </section>
+
+    <nav role="tablist" aria-label="玩家数据" class="hs" style="display: flex; gap: 24px; border-bottom: 1px solid var(--line); overflow-x: auto">
+      <sc-for list="{{views}}" as="t" hint-placeholder-count="9">
+        <button class="utab {{t.cls}}" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}">{{t.t}}<sc-if value="{{t.n}}" hint-placeholder-val="{{true}}"><span class="num" style="font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--s2); color: var(--ink2)">{{t.n}}</span></sc-if></button>
+      </sc-for>
+    </nav>
+
+    <sc-if value="{{isSum}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <div style="flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+          <section class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+            <h2 class="h2">进度</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+              <sc-for list="{{prog}}" as="g" hint-placeholder-count="6">
+                <button class="pg" onClick="{{g.go}}"><span class="hint" style="font-weight: 700">{{g.t}}</span><span class="num" style="font-size: 20px; font-weight: 800">{{g.v}}</span><span class="hint">{{g.s}}</span></button>
+              </sc-for>
+            </div>
+          </section>
+          <section class="card" style="padding: 18px 20px 8px">
+            <h2 class="h2" style="margin-bottom: 4px">最近动态</h2>
+            <sc-for list="{{feed}}" as="f" hint-placeholder-count="6">
+              <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-top: 1px solid var(--line)">
+                <sc-if value="{{f.img}}" hint-placeholder-val="{{true}}"><img src="{{f.img}}" alt="" style="width: 32px; height: 32px; border-radius: {{f.r}}; object-fit: cover; flex: none"></sc-if>
+                <sc-if value="{{f.d}}" hint-placeholder-val="{{false}}"><span class="av av-g" style="width: 32px; height: 32px; border-radius: 10px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{f.d}}"></path></svg></span></sc-if>
+                <span style="flex: 1; min-width: 0; font-size: 14px">{{f.t}}</span>
+                <span class="tag">{{f.k}}</span>
+                <span class="num hint" style="width: 84px; text-align: right">{{f.at}}</span>
+              </div>
+            </sc-for>
+          </section>
+        </div>
+        <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+          <section class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+            <h2 class="h2">账号</h2>
+            <sc-for list="{{facts}}" as="f" hint-placeholder-count="6">
+              <div style="display: flex; gap: 10px; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--line)"><span style="color: var(--ink2); width: 92px; flex: none">{{f.k}}</span><span class="num" style="font-weight: 600">{{f.v}}</span></div>
+            </sc-for>
+          </section>
+          <button class="card" onClick="{{goGift}}" style="padding: 16px 18px; display: flex; align-items: center; gap: 12px; font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+            <span class="av av-g" style="width: 44px; height: 44px; border-radius: 14px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.gift}}"></path></svg></span>
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 800">礼物箱 6 件未领取</span><span class="hint">1 件今天到期 · 3 件来自今天的 GM 补偿</span></span>
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chevR}}"></path></svg>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isIdol}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <div class="seg" aria-label="稀有度"><button class="on">全部 32</button><button>SSR 9</button><button>SR 11</button><button>R 12</button></div>
+          <span style="flex: 1"></span>
+          <label class="inp" style="flex: 0 1 240px; min-height: 40px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg><input type="search" placeholder="偶像名或卡 ID" aria-label="搜索偶像卡"></label>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px">
+          <sc-for list="{{cards}}" as="c" hint-placeholder-count="8">
+            <div class="ic-card">
+              <span style="position: relative; display: block"><img src="{{c.img}}" alt="{{c.n}} 卡面" style="width: 100%; aspect-ratio: 1; border-radius: 14px; display: block; object-fit: cover"><span class="rar {{c.rc}}" style="position: absolute; left: 8px; top: 8px">{{c.r}}</span></span>
+              <span style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px 2px"><span style="font-size: 13px; font-weight: 800">{{c.n}}</span><span class="mono" style="font-size: 11px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.id}}</span></span>
+              <span style="display: flex; gap: 4px; padding: 0 4px 4px"><span class="tag" style="height: 22px; font-size: 11px">潜能 {{c.pot}}</span><span class="tag" style="height: 22px; font-size: 11px">突破 {{c.lim}}</span></span>
+            </div>
+          </sc-for>
+        </div>
+        <span class="hint" style="text-align: center">显示 8 / 32 · 向下滚动加载更多</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isSup}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <div class="seg" aria-label="稀有度"><button class="on">全部 58</button><button>SSR 14</button><button>SR 20</button><button>R 24</button></div>
+          <span style="flex: 1"></span>
+          <label class="inp" style="flex: 0 1 240px; min-height: 40px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg><input type="search" placeholder="支援卡 ID" aria-label="搜索支援卡"></label>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px">
+          <sc-for list="{{supports}}" as="c" hint-placeholder-count="6">
+            <div class="ic-card">
+              <span style="position: relative; display: block"><img src="{{c.img}}" alt="支援卡 {{c.id}}" style="width: 100%; aspect-ratio: 1; border-radius: 14px; display: block; object-fit: cover; object-position: {{c.pos}}"><span class="rar {{c.rc}}" style="position: absolute; left: 8px; top: 8px">{{c.r}}</span></span>
+              <span class="mono" style="font-size: 11px; color: var(--ink2); padding: 0 4px">{{c.id}}</span>
+              <span style="display: flex; gap: 4px; padding: 0 4px 4px"><span class="tag" style="height: 22px; font-size: 11px">Lv {{c.lv}}</span><span class="tag" style="height: 22px; font-size: 11px">突破 {{c.lim}}</span></span>
+            </div>
+          </sc-for>
+        </div>
+        <span class="hint" style="text-align: center">显示 6 / 58 · 向下滚动加载更多</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isItem}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <div class="seg" aria-label="道具分类"><button class="on">全部 146</button><button>货币</button><button>抽卡</button><button>养成素材</button><button>偶像碎片</button></div>
+          <span style="flex: 1"></span>
+          <label class="inp" style="flex: 0 1 240px; min-height: 40px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg><input type="search" placeholder="道具名或 ID" aria-label="搜索道具"></label>
+        </div>
+        <section class="card" style="overflow: hidden">
+          <div class="row row-h" style="grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) 130px 130px 90px"><span></span><span>道具</span><span>ID</span><span style="text-align: right">数量</span><span>期限</span><span></span></div>
+          <sc-for list="{{items}}" as="t" hint-placeholder-count="8">
+            <div class="row" style="grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) 130px 130px 90px">
+              <sc-if value="{{t.img}}" hint-placeholder-val="{{true}}"><img src="{{t.img}}" alt="" style="width: 36px; height: 36px; object-fit: cover; border-radius: {{t.r}}"></sc-if>
+              <sc-if value="{{t.letter}}" hint-placeholder-val="{{false}}"><span class="av av-a2" style="width: 36px; height: 36px; border-radius: 10px; font-size: 13px">{{t.letter}}</span></sc-if>
+              <span style="font-weight: 700">{{t.n}}</span>
+              <span class="mono hint" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{t.id}}</span>
+              <span class="num" style="text-align: right; font-size: 16px; font-weight: 800">{{t.q}}</span>
+              <span class="hint">{{t.exp}}</span>
+              <span style="justify-self: end"><button class="btn btn-o btn-sm">调整</button></span>
+            </div>
+          </sc-for>
+          <div style="padding: 12px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink2)">显示 8 / 146 种 · 数量为 0 的不显示</div>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isGift}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <div class="seg" aria-label="领取状态"><sc-for list="{{giftTabs}}" as="g" hint-placeholder-count="3"><button class="{{g.cls}}" onClick="{{g.pick}}">{{g.t}}</button></sc-for></div>
+          <span style="flex: 1"></span>
+          <span class="hint">礼物箱上限 200 件</span>
+        </div>
+        <section class="card" style="overflow: hidden">
+          <div class="row row-h" style="grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.2fr) 110px 100px 90px"><span></span><span>内容</span><span>来源</span><span>收到</span><span>期限</span><span></span></div>
+          <sc-for list="{{gifts}}" as="g" hint-placeholder-count="6">
+            <div class="row" style="grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.2fr) 110px 100px 90px">
+              <img src="{{g.img}}" alt="" style="width: 36px; height: 36px; object-fit: cover; border-radius: {{g.r}}">
+              <span style="font-weight: 700">{{g.t}}</span>
+              <span style="font-size: 13px; color: var(--ink2)">{{g.from}}</span>
+              <span class="num hint">{{g.at}}</span>
+              <span class="pill {{g.st}}" style="justify-self: start">{{g.exp}}</span>
+              <span style="justify-self: end"><sc-if value="{{g.gm}}" hint-placeholder-val="{{false}}"><button class="btn btn-o btn-sm">撤回</button></sc-if></span>
+            </div>
+          </sc-for>
+        </section>
+        <span class="hint">GM 发出、玩家还没领取的礼物可以在 30 天内撤回；撤回会记进 GM 记录。</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isGasha}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 14px; color: var(--ink2)">
+          <span>累计 <b class="num" style="color: var(--ink)">1,260</b> 抽 · SSR <b class="num" style="color: var(--ink)">31</b> 张 · 消耗钻石 <b class="num" style="color: var(--ink)">286,500</b>（付费 2,400）</span>
+          <span style="flex: 1"></span>
+          <button class="chip">卡池：全部<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+        </div>
+        <section class="card" style="overflow-x: auto">
+          <div style="min-width: 900px">
+            <div class="row row-h" style="grid-template-columns: 110px 176px 110px 100px minmax(0, 1fr)"><span>时间</span><span>卡池</span><span>抽法</span><span>消耗</span><span>结果</span></div>
+            <sc-for list="{{draws}}" as="d" hint-placeholder-count="5">
+              <div class="row" style="grid-template-columns: 110px 176px 110px 100px minmax(0, 1fr); min-height: 76px">
+                <span class="num hint" style="font-size: 13px">{{d.at}}</span>
+                <img src="{{d.banner}}" alt="" style="width: 160px; height: 56px; object-fit: contain; border-radius: 999px; background: var(--s2)">
+                <span style="font-size: 13px; font-weight: 700">{{d.btn}}</span>
+                <span style="display: flex; align-items: center; gap: 6px"><img src="{{d.costImg}}" alt="" style="width: 22px; height: 22px"><span class="num" style="font-weight: 700">{{d.cost}}</span></span>
+                <span style="display: flex; gap: 4px; flex-wrap: wrap">
+                  <sc-for list="{{d.res}}" as="r" hint-placeholder-count="10">
+                    <span style="width: 34px; height: 34px; border-radius: 9px; background: {{r.bg}}; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: var(--ink2)"><sc-if value="{{r.img}}" hint-placeholder-val="{{false}}"><img src="{{r.img}}" alt="{{r.r}}" style="width: 100%; height: 100%; object-fit: cover"></sc-if><sc-if value="{{r.noImg}}" hint-placeholder-val="{{true}}">{{r.r}}</sc-if></span>
+                  </sc-for>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isProduce}}" hint-placeholder-val="{{false}}">
+      <section class="card" style="overflow-x: auto">
+        <div style="min-width: 820px">
+          <div class="row row-h" style="grid-template-columns: 110px minmax(0, 1.2fr) 120px 140px minmax(0, 1fr)"><span>时间</span><span>偶像</span><span>剧本</span><span>评价</span><span>Vo / Da / Vi</span></div>
+          <sc-for list="{{produces}}" as="p" hint-placeholder-count="5">
+            <div class="row" style="grid-template-columns: 110px minmax(0, 1.2fr) 120px 140px minmax(0, 1fr)">
+              <span class="num hint" style="font-size: 13px">{{p.at}}</span>
+              <span style="display: flex; align-items: center; gap: 10px"><img src="{{p.card}}" alt="" style="width: 40px; height: 40px; border-radius: 10px; object-fit: cover"><span style="font-weight: 700">{{p.idol}}</span></span>
+              <span style="display: flex; flex-direction: column"><span style="font-weight: 700">{{p.sc}}</span><span class="hint">{{p.lv}}</span></span>
+              <span style="display: flex; align-items: center; gap: 8px"><span class="ev">{{p.ev}}</span><span class="num" style="font-weight: 700">{{p.score}}</span></span>
+              <span class="num" style="font-size: 13px">{{p.vo}} / {{p.da}} / {{p.vi}}</span>
+            </div>
+          </sc-for>
+          <div style="padding: 12px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink2)">累计培育 41 次 · 显示最新 5 条</div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{isPvp}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <section class="card" style="flex: 3 1 560px; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: center; gap: 12px"><h2 class="h2" style="flex: 1">当前阵容</h2><span class="hint">最后修改 11-09 01:02</span><span class="num" style="font-size: 18px; font-weight: 800">编成力 41,380</span></div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+            <sc-for list="{{stages}}" as="s" hint-placeholder-count="3">
+              <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 20px; background: var(--s2)">
+                <div style="display: flex; align-items: center"><span style="flex: 1; font-size: 14px; font-weight: 800">{{s.t}}</span><span class="num hint">{{s.power}}</span></div>
+                <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; align-items: end">
+                  <sc-for list="{{s.mems}}" as="m" hint-placeholder-count="3">
+                    <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+                      <sc-if value="{{m.img}}" hint-placeholder-val="{{true}}"><img src="{{m.img}}" alt="{{m.n}}" style="width: 100%; aspect-ratio: 1; border-radius: 14px; object-fit: cover; display: block"></sc-if>
+                      <sc-if value="{{m.lock}}" hint-placeholder-val="{{false}}"><span style="aspect-ratio: 1; border-radius: 14px; border: 1.5px dashed var(--line); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--ink2)">空</span></sc-if>
+                      <span style="display: flex; align-items: center; gap: 4px; min-width: 0"><sc-if value="{{m.ev}}" hint-placeholder-val="{{true}}"><span class="ev">{{m.ev}}</span></sc-if><span style="font-size: 11px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{m.n}}</span></span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+        <section class="card" style="flex: 2 1 340px; min-width: 0; padding: 18px 20px 8px">
+          <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px"><h2 class="h2" style="flex: 1">本赛季</h2><a href="GkModesPC.dc.html" style="font-size: 13px; font-weight: 700; text-decoration: none">全服排名 →</a></div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px">
+            <div class="pg" style="cursor: default"><span class="hint">名次</span><span class="num" style="font-size: 20px; font-weight: 800">3</span></div>
+            <div class="pg" style="cursor: default"><span class="hint">Rate</span><span class="num" style="font-size: 20px; font-weight: 800">4,215</span></div>
+            <div class="pg" style="cursor: default"><span class="hint">胜 / 负</span><span class="num" style="font-size: 20px; font-weight: 800">33 / 10</span></div>
+          </div>
+          <sc-for list="{{battles}}" as="b" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border-top: 1px solid var(--line)">
+              <span class="pill {{b.st}}">{{b.res}}</span>
+              <img src="{{b.img}}" alt="" style="width: 32px; height: 32px; border-radius: 50%">
+              <span style="flex: 1; min-width: 0; font-size: 13px; font-weight: 700">{{b.vs}}</span>
+              <span class="num" style="font-weight: 800; color: {{b.c}}">{{b.d}}</span>
+              <span class="num hint" style="width: 70px; text-align: right">{{b.at}}</span>
+            </div>
+          </sc-for>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isSess}}" hint-placeholder-val="{{false}}">
+      <section class="card" style="overflow-x: auto">
+        <div style="min-width: 880px">
+          <div class="row row-h" style="grid-template-columns: 130px 120px minmax(0, 1fr) 130px 120px 100px"><span>登录</span><span>时长</span><span>设备</span><span>IP</span><span>方式</span><span></span></div>
+          <sc-for list="{{sessions}}" as="x" hint-placeholder-count="5">
+            <div class="row" style="grid-template-columns: 130px 120px minmax(0, 1fr) 130px 120px 100px">
+              <span class="num" style="font-size: 13px; font-weight: 600">{{x.at}}</span>
+              <span><sc-if value="{{x.live}}" hint-placeholder-val="{{false}}"><span class="pill ok">在线 {{x.dur}}</span></sc-if><sc-if value="{{x.ended}}" hint-placeholder-val="{{true}}"><span class="num hint">{{x.dur}}</span></sc-if></span>
+              <span style="font-size: 13px">{{x.dev}}</span>
+              <span class="mono hint">{{x.ip}}</span>
+              <span class="hint">{{x.how}}</span>
+              <span style="justify-self: end"><sc-if value="{{x.live}}" hint-placeholder-val="{{false}}"><button class="btn btn-stop btn-sm">强制下线</button></sc-if></span>
+            </div>
+          </sc-for>
+          <div style="padding: 12px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink2)">保留最近 30 天 · 共 52 次登录</div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{isGm}}" hint-placeholder-val="{{false}}">
+      <section class="card" style="overflow-x: auto">
+        <div style="min-width: 860px">
+          <div class="row row-h" style="grid-template-columns: 110px minmax(0, 1.3fr) minmax(0, 1fr) 70px 90px"><span>时间</span><span>指令</span><span>执行者</span><span>风险</span><span>结果</span></div>
+          <sc-for list="{{glog}}" as="l" hint-placeholder-count="5">
+            <a class="row" href="GkLogPC.dc.html" style="grid-template-columns: 110px minmax(0, 1.3fr) minmax(0, 1fr) 70px 90px; text-decoration: none; color: var(--ink)">
+              <span class="num hint" style="font-size: 13px">{{l.at}}</span>
+              <span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 700">{{l.t}}</span><span class="hint" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{l.ch}}</span></span>
+              <span style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 700">{{l.by}}</span><span class="hint">{{l.kind}}</span></span>
+              <span class="risk {{l.rc}}" style="justify-self: start">{{l.r}}</span>
+              <span class="pill {{l.st}}" style="justify-self: start">{{l.stT}}</span>
+            </a>
+          </sc-for>
+          <div style="padding: 12px 16px; border-top: 1px solid var(--line); font-size: 13px"><a href="GkLogPC.dc.html" style="font-weight: 700; text-decoration: none">在 GM 记录里查看详情 →</a></div>
+        </div>
+      </section>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{giftOpen}}" hint-placeholder-val="{{true}}">
+    <div class="scrim" onClick="{{closeGift}}"></div>
+    <section class="drawer" role="dialog" aria-modal="true" aria-label="发送到礼物箱">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 20px 22px; border-bottom: 1px solid var(--line)">
+        <span class="av av-g" style="width: 44px; height: 44px; border-radius: 14px; transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.gift}}"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 19px; font-weight: 800">发送到礼物箱</span><span class="mono hint">gift.send · <span class="risk risk-2" style="height: 20px; font-family: inherit">中</span></span></span>
+        <button class="ib" aria-label="关闭" onClick="{{closeGift}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+      </div>
+      <div class="hs" style="flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 700">发给</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+            <span style="display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 6px 0 4px; border-radius: 999px; background: var(--s2); font-size: 13px; font-weight: 700"><img src="./assets/chr-hski.webp" alt="" style="width: 32px; height: 32px; border-radius: 50%">P_gucooing<button class="ib ib-sm" aria-label="移除 P_gucooing" style="width: 28px; height: 28px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button></span>
+            <button class="chip" style="min-height: 40px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>添加玩家 / 按条件选</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 8px"><span style="font-size: 13px; font-weight: 700; flex: 1">奖励</span><span class="hint">来自 catalogs · 只列出可发放类型</span></div>
+          <div class="seg hs" style="overflow-x: auto; max-width: 100%"><sc-for list="{{cats}}" as="c" hint-placeholder-count="6"><button class="{{c.cls}}" onClick="{{c.pick}}">{{c.t}}</button></sc-for></div>
+          <label class="inp inp-sq" style="min-height: 40px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg><input type="search" placeholder="搜索名称或 ID，例如 jewel、i_card-skin-kcna" aria-label="搜索奖励"></label>
+          <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{picks}}" as="p" hint-placeholder-count="10">
+              <button class="pick {{p.cls}}" onClick="{{p.toggle}}" aria-pressed="{{p.on}}"><img src="{{p.img}}" alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: {{p.radius}}"><span style="line-height: 1.3">{{p.t}}</span></button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 6px 14px; border-radius: 18px; background: var(--s2)">
+          <sc-for list="{{chosen}}" as="c" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; border-bottom: 1px solid var(--line)">
+              <img src="{{c.img}}" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: {{c.radius}}; flex: none">
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 700">{{c.t}}</span><span class="mono hint">{{c.id}}</span></span>
+              <span class="stp"><button aria-label="减少">−</button><span class="num">{{c.q}}</span><button aria-label="增加">+</button></span>
+            </div>
+          </sc-for>
+        </div>
+
+        <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 700">礼物箱文案 <span class="hint">（玩家能看到，最多 64 字）</span></span><span class="inp inp-sq"><input type="text" value="11/11 21:00 临时维护补偿" aria-label="礼物箱文案"></span></label>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 700">领取期限</span><div class="seg"><button>7 天</button><button class="on">30 天</button><button>90 天</button><button>不过期</button></div></div>
+        <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 700">操作原因 <span class="hint">（只进审计，玩家看不到）</span></span><textarea class="ta" aria-label="操作原因">维护延长 20 分钟，按公告补偿</textarea></label>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 18px; background: var(--gSoft); color: var(--gInk)">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.eye}}"></path></svg>预览（dryRun）</span>
+          <span style="font-size: 13px; line-height: 1.7">礼物箱 +4 件（现有 6 件）。玩家已拥有「倉本千奈 SSR」，领取时按游戏规则转成偶像碎片；钻石进入免费钻石，不计入付费。</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--line)">
+        <span class="hint" style="flex: 1">执行后写入 GM 记录，可在 30 天内从礼物箱撤回未领取的部分</span>
+        <button class="btn btn-o" onClick="{{closeGift}}">取消</button>
+        <button class="btn btn-g"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.send}}"></path></svg>发送给 1 人</button>
+      </div>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"giftOpen":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1720}}'>
+const IC = {
+  swords: 'M4 4l9 9M4 4h4M4 4v4M20 4l-9 9M20 4h-4M20 4v4M7 17l-3 3M17 17l3 3M9 15l-2 2M15 15l2 2',
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  gamepad: 'M7 7h10a5 5 0 0 1 0 10h-3l-2-2-2 2H7A5 5 0 0 1 7 7zM7 10v4M5 12h4M16 11h.01M18 13h.01',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  idcard: 'M3 5h18v14H3zM9 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16a3.5 3.5 0 0 1 7 0M14 9h4M14 13h4',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  chevL: 'M15 6l-6 6 6 6',
+  x: 'M6 6l12 12M18 6 6 18',
+  plus: 'M12 5v14M5 12h14',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  send: 'M4 12 20 4l-4 16-4-6zM12 14l8-10',
+  pulse: 'M3 12h4l3-8 4 16 3-8h4',
+  dice: 'M4 4h16v16H4zM8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01',
+  calendar: 'M4 5h16v16H4zM4 10h16M8 3v4M16 3v4',
+  trophy: 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4',
+  gift: 'M3 8h18v4H3zM5 12v9h14v-9M12 8v13M12 8S10.5 3 8 3a2 2 0 0 0 0 5M12 8s1.5-5 4-5a2 2 0 0 1 0 5',
+  mail: 'M3 5h18v14H3zM3 6l9 7 9-7',
+  ticket: 'M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM14 7v10',
+  megaphone: 'M3 10v4h3l7 5V5L6 10zM17 9a4 4 0 0 1 0 6',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  history: 'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2',
+  logout: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11',
+  download: 'M12 3v12M7 10l5 5 5-5M4 21h16',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4'
+};
+const U = {
+  jewel: './assets/item-jewel-free.webp', jewelPaid: './assets/item-jewel-paid.webp', money: './assets/item-money.webp', ap: './assets/item-ap.webp', ticket: './assets/item-gasha-ticket-200limit-10-2026-01.webp',
+  kcnaLand: './assets/cidol-kcna-3-019-L.webp', hmszLand: './assets/cidol-hmsz-3-018-land.webp', s114: './assets/csprt-3-0114-land.webp', logo: './assets/hatsuboshi-logo.webp'
+};
+function buildNav(active) {
+  return [
+    { title: '', items: [{ t: '工作台', d: IC.home, href: '../project/DashboardPC.dc.html' }, { t: '性能监控', d: IC.activity, href: '../project/MonitorPC.dc.html' }] },
+    { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: '../project/AppsPC.dc.html' }, { t: '应用类型', d: IC.layers, href: '../project/AppTypesPC.dc.html' }] },
+    { title: '游戏', items: [{ t: '游戏服务器', d: IC.gamepad, href: 'GameServersPC.dc.html', key: 'gs' }, { t: 'GM 运营', d: IC.wand, href: 'GkHomePC.dc.html', key: 'gm', badge: '学マス' }, { t: '用户通行证', d: IC.idcard, href: 'PassportPC.dc.html', key: 'pp' }] },
+    { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: '../project/FilesPC.dc.html' }, { t: '分享', d: IC.share, href: '../project/SharesPC.dc.html' }, { t: '文件源', d: IC.db, href: '../project/FileSourcesPC.dc.html' }] },
+    { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: '../project/ContainersPC.dc.html' }] },
+    { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: '../project/PortForwardPC.dc.html' }, { t: '内网穿透', d: IC.tunnel, href: '../project/TunnelPC.dc.html' }, { t: 'SSH 终端', d: IC.terminal, href: '../project/SSHPC.dc.html' }, { t: '智商检测', d: IC.spark, href: '../project/IQCheckPC.dc.html' }] },
+    { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: '../project/NodesPC.dc.html' }, { t: '用户与权限', d: IC.users, href: '../project/UsersPC.dc.html' }, { t: '任务与日志', d: IC.clock, href: '../project/TasksPC.dc.html' }, { t: '系统设置', d: IC.settings, href: '../project/SettingsPC.dc.html' }] }
+  ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === active ? 'nav-on' : '', badge: n.badge || '' })) }));
+}
+function buildGtabs(active) {
+  return [
+    ['home', '工作台', IC.pulse, 'GkHomePC.dc.html'], ['players', '玩家', IC.users, 'GkPlayersPC.dc.html'], ['gasha', '卡池', IC.dice, 'GkGashaPC.dc.html'], ['modes', '玩法', IC.trophy, 'GkModesPC.dc.html'], ['cal', '运营日历', IC.calendar, 'GkCalendarPC.dc.html'],
+    ['mail', '邮件补偿', IC.mail, 'GkMailPC.dc.html'], ['code', '兑换码', IC.ticket, 'GkCodesPC.dc.html'], ['notice', '公告', IC.megaphone, 'GkNoticePC.dc.html'], ['policy', '玩家自助', IC.idcard, 'GmPolicyPC.dc.html'], ['log', 'GM 记录', IC.history, 'GkLogPC.dc.html']
+  ].map(([k, t, d, href]) => ({ t, d, href, cls: k === active ? 'gtab-on' : '' }));
+}
+const CARDS = [
+  { n: '倉本千奈', id: 'i_card-skin-kcna-3-019', img: U.kcnaLand, r: 'SSR', pot: 'A', lim: '4' },
+  { n: '秦谷美鈴', id: 'i_card-skin-hmsz-3-018', img: U.hmszLand, r: 'SSR', pot: 'B', lim: '2' },
+  { n: '花海咲季', id: 'i_card-skin-hski-3-000', img: './assets/cidol-hski-3-000-sq.webp', r: 'SSR', pot: 'S', lim: '5' },
+  { n: '月村手毬', id: 'i_card-skin-ttmr-3-000', img: './assets/cidol-ttmr-3-000-sq.webp', r: 'SSR', pot: 'A', lim: '3' },
+  { n: '藤田ことね', id: 'i_card-skin-fktn-3-000', img: './assets/cidol-fktn-3-000-sq.webp', r: 'SSR', pot: 'C', lim: '1' },
+  { n: '有村麻央', id: 'i_card-skin-amao-3-000', img: './assets/cidol-amao-3-000-sq.webp', r: 'SSR', pot: 'B', lim: '2' },
+  { n: '十王星南', id: 'i_card-skin-jsna-3-000', img: './assets/cidol-jsna-3-000-sq.webp', r: 'SSR', pot: 'A', lim: '3' },
+  { n: '姫崎莉波', id: 'i_card-skin-hrnm-3-000', img: './assets/cidol-hrnm-3-000-sq.webp', r: 'SSR', pot: 'C', lim: '0' }
+];
+const PICKS = [
+  { k: 'jf', t: '免费钻石', id: 'jewel · free', img: U.jewel, radius: '0', cat: 'cur' },
+  { k: 'jp', t: '付费钻石', id: 'jewel · paid', img: U.jewelPaid, radius: '0', cat: 'cur' },
+  { k: 'money', t: '金币', id: 'item-money', img: U.money, radius: '0', cat: 'cur' },
+  { k: 'ap', t: 'AP', id: 'ActionPoint', img: U.ap, radius: '0', cat: 'cur' },
+  { k: 'ticket', t: '10 连券', id: 'item-gasha-ticket-200limit-10-2026-01', img: U.ticket, radius: '0', cat: 'item' },
+  { k: 'kcna', t: '倉本千奈 SSR', id: 'i_card-skin-kcna-3-019', img: U.kcnaLand, radius: '10px', cat: 'idol' },
+  { k: 'hmsz', t: '秦谷美鈴 SSR', id: 'i_card-skin-hmsz-3-018', img: U.hmszLand, radius: '10px', cat: 'idol' },
+  { k: 's114', t: '支援卡 SSR', id: 's_card-3-0114', img: U.s114, radius: '10px', cat: 'sup' },
+  { k: 's0002', t: '支援卡 SSR', id: 's_card-3-0002', img: './assets/csprt-3-0002-sq.webp', radius: '10px', cat: 'sup' },
+  { k: 's0009', t: '支援卡 SSR', id: 's_card-3-0009', img: './assets/csprt-3-0009-sq.webp', radius: '10px', cat: 'sup' }
+];
+const QTY = { jf: '300', money: '50,000', ticket: '1', kcna: '1', jp: '100', ap: '120', hmsz: '1', s114: '1', s0002: '1', s0009: '1' };
+const VIEWS = [['sum', '概览', ''], ['idol', '偶像卡', '32'], ['sup', '支援卡', '58'], ['item', '道具', '146'], ['gift', '礼物箱', '6'], ['gasha', '抽卡记录', ''], ['produce', '培育记录', ''], ['pvp', '竞赛', ''], ['sess', '登录会话', ''], ['gm', 'GM 记录', '5']];
+const GIFTS = [
+  { img: U.money, r: '0', t: '金币 ×10,000', from: '登录奖励 · 第 37 天', at: '今天 09:12', exp: '今天到期', st: 'bad', gm: false },
+  { img: U.jewel, r: '0', t: '钻石 ×300', from: 'GM · 11/11 21:00 临时维护补偿', at: '今天 21:18', exp: '30 天', st: 'off', gm: true },
+  { img: U.ticket, r: '0', t: '10 连券 ×1', from: 'GM · 11/11 21:00 临时维护补偿', at: '今天 21:18', exp: '30 天', st: 'off', gm: true },
+  { img: U.kcnaLand, r: '8px', t: '倉本千奈 SSR', from: 'GM · 11/11 21:00 临时维护补偿', at: '今天 21:18', exp: '30 天', st: 'off', gm: true },
+  { img: U.money, r: '0', t: '金币 ×10,000', from: '登录奖励 · 第 36 天', at: '昨天 08:40', exp: '6 天', st: 'warn', gm: false },
+  { img: U.jewel, r: '0', t: '钻石 ×500', from: '兑换码 FES2026', at: '11-05 22:30', exp: '24 天', st: 'off', gm: false }
+];
+const GIFTS_DONE = [
+  { img: U.jewel, r: '0', t: '钻石 ×100', from: 'コンテスト Rate 奖励', at: '11-09 22:10', exp: '已领取', st: 'ok', gm: false },
+  { img: U.ticket, r: '0', t: '10 连券 ×1', from: '登录奖励 · 第 30 天', at: '11-04 08:02', exp: '已领取', st: 'ok', gm: false }
+];
+const GIFTS_EXP = [
+  { img: U.money, r: '0', t: '金币 ×5,000', from: '登录奖励 · 第 20 天', at: '10-24 08:15', exp: '已过期', st: 'off', gm: false }
+];
+const RR = (r, img) => ({ r, img: img || '', noImg: !img, bg: r === 'SSR' ? '#FFE07A' : (r === 'SR' ? '#DCE3FF' : 'var(--s2)') });
+function ten(ssr) { const a = []; for (let k = 0; k < 10; k++) a.push(k === 3 && ssr ? RR('SSR', ssr) : (k % 4 === 1 || k === 9 ? RR('SR') : RR('R'))); return a; }
+const DRAWS = [
+  { at: '11-08 22:41', banner: './assets/gb-01055-pickup-001.webp', btn: '10 回ガシャ', res: ten(U.hmszLand), cost: '2,500', costImg: U.jewel },
+  { at: '11-08 22:39', banner: './assets/gb-01055-pickup-001.webp', btn: '10 回ガシャ', res: ten(''), cost: '2,500', costImg: U.jewel },
+  { at: '11-07 21:05', banner: './assets/gb-01057-ssr-idol-001.webp', btn: '10 回ガシャ', res: ten(U.s114), cost: '1', costImg: U.ticket },
+  { at: '11-04 05:12', banner: './assets/gb-01050-wednesday-001.webp', btn: '1日1回', res: [RR('SR')], cost: '60', costImg: U.jewelPaid },
+  { at: '11-02 12:20', banner: './assets/gb-00000-standard-001.webp', btn: '10 回ガシャ', res: ten('./assets/cidol-jsna-3-000-sq.webp'), cost: '2,500', costImg: U.jewel }
+];
+const MEM = (img, n, ev) => ({ img, n, ev, lock: false });
+const STAGES = [
+  { t: 'ステージ 1', power: '14,600', mems: [MEM('./assets/cidol-hski-3-000-sq.webp', '花海咲季', 'SS'), MEM('./assets/cidol-hski-3-000-L.webp', '花海咲季', 'S+'), MEM('./assets/cidol-ttmr-3-000-sq.webp', '月村手毬', 'S')] },
+  { t: 'ステージ 2', power: '13,920', mems: [MEM(U.kcnaLand, '倉本千奈', 'S+'), MEM('./assets/cidol-fktn-3-000-sq.webp', '藤田ことね', 'S'), MEM('./assets/cidol-amao-3-000-sq.webp', '有村麻央', 'A+')] },
+  { t: 'ステージ 3', power: '12,860', mems: [MEM('./assets/cidol-hrnm-3-000-sq.webp', '姫崎莉波', 'S+'), MEM('./assets/cidol-jsna-3-000-sq.webp', '十王星南', 'S'), { img: '', n: '未设置', ev: '', lock: true }] }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const giftOpen = st.giftOpen != null ? st.giftOpen : (this.props.giftOpen ?? false);
+    const view = st.view || 'sum';
+    const giftTab = st.giftTab || 'open';
+    const cat = st.cat || 'all';
+    const picked = st.picked || { jf: true, money: true, ticket: true, kcna: true };
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav: buildNav('gm'),
+      gtabs: buildGtabs('players'),
+      wallet: [
+        { t: '钻石 免费 / 付费', v: '12,480 / 0', img: U.jewel },
+        { t: '金币', v: '1,284,000', img: U.money },
+        { t: 'AP', v: '112 / 120', img: U.ap },
+        { t: '10 连券', v: '2', img: U.ticket }
+      ],
+      views: VIEWS.map(([k, t, n]) => ({ t, n, on: k === view, cls: k === view ? 'utab-on' : '', pick: () => this.setState({ view: k }) })),
+      isSum: view === 'sum', isIdol: view === 'idol', isSup: view === 'sup', isItem: view === 'item', isGift: view === 'gift', isGasha: view === 'gasha', isProduce: view === 'produce', isPvp: view === 'pvp', isSess: view === 'sess', isGm: view === 'gm',
+      goGift: () => this.setState({ view: 'gift' }),
+      prog: [
+        ['pvp', 'コンテスト', '第 3 名', 'Rate 4,215 · 段位 6'], ['produce', '培育', '41 次', '最高 S+ · 月村手毬'], ['idol', '偶像卡', '32 张', 'SSR 9 · SR 11 · R 12'],
+        ['sup', '支援卡', '58 张', 'SSR 14'], ['sum', '研修', '15 / 25 题', '基礎研修已全通'], ['sum', '塔', '第 35 层', '塔 1 · 11 月第 3 名']
+      ].map(([k, t, v, sub]) => ({ t, v, s: sub, go: () => this.setState({ view: k }) })),
+      feed: [
+        { img: U.jewel, r: '0', d: '', t: '收到 GM 礼物：钻石 ×300、10 连券 ×1、倉本千奈 SSR', k: 'GM', at: '今天 21:18' },
+        { img: '', r: '', d: IC.swords, t: 'コンテスト 胜 莉波お姉さん，Rate +71', k: '竞赛', at: '今天 20:40' },
+        { img: '', r: '', d: IC.swords, t: 'コンテスト 胜 てまりん，Rate +82', k: '竞赛', at: '今天 20:31' },
+        { img: './assets/chr-hski.webp', r: '50%', d: '', t: '开始培育 花海咲季 · 初', k: '培育', at: '今天 18:20' },
+        { img: U.ap, r: '0', d: '', t: '自助回满体力 12 → 120', k: '自助', at: '今天 13:02' },
+        { img: U.hmszLand, r: '8px', d: '', t: '抽到 秦谷美鈴 SSR（vol.7 美鈴 · 十连）', k: '抽卡', at: '11-08 22:41' }
+      ],
+      cards: CARDS.map((c) => ({ ...c, rc: c.r === 'SSR' ? 'rar-ssr' : (c.r === 'SR' ? 'rar-sr' : 'rar-r') })),
+      supports: [
+        { img: U.s114, id: 's_card-3-0114', lv: 60, lim: 4, pos: '30% 50%' },
+        { img: './assets/csprt-3-0002-sq.webp', id: 's_card-3-0002', lv: 50, lim: 3, pos: '50% 50%' },
+        { img: './assets/csprt-3-0009-sq.webp', id: 's_card-3-0009', lv: 50, lim: 2, pos: '50% 50%' },
+        { img: './assets/csprt-3-0015-sq.webp', id: 's_card-3-0015', lv: 45, lim: 1, pos: '50% 50%' },
+        { img: './assets/csprt-3-0016-sq.webp', id: 's_card-3-0016', lv: 40, lim: 0, pos: '50% 50%' },
+        { img: U.s114, id: 's_card-3-0114 · 重复', lv: 1, lim: 0, pos: '75% 50%' }
+      ].map((c) => ({ ...c, r: 'SSR', rc: 'rar-ssr' })),
+      items: [
+        { img: U.jewel, r: '0', letter: '', n: '钻石（免费）', id: 'jewel.free', q: '12,480', exp: '—' },
+        { img: U.jewelPaid, r: '0', letter: '', n: '钻石（付费）', id: 'jewel.paid', q: '0', exp: '—' },
+        { img: U.money, r: '0', letter: '', n: '金币', id: 'item-money', q: '1,284,000', exp: '—' },
+        { img: U.ticket, r: '0', letter: '', n: '10 连券', id: 'item-gasha-ticket-200limit-10-2026-01', q: '2', exp: '2026-01-31 到期' },
+        { img: U.ap, r: '0', letter: '', n: 'AP 回复药', id: 'item.ap.recover', q: '3', exp: '—' },
+        { img: './assets/cidol-hski-3-000-sq.webp', r: '8px', letter: '', n: '偶像碎片 · 花海咲季', id: 'item-piece-hski', q: '120', exp: '—' },
+        { img: U.kcnaLand, r: '8px', letter: '', n: '偶像碎片 · 倉本千奈', id: 'item-piece-kcna', q: '40', exp: '—' },
+        { img: '', r: '', letter: 'Pt', n: '支援卡强化 Pt', id: 'item-support-enhance', q: '4,200', exp: '—' }
+      ],
+      giftTabs: [['open', '未领取 6'], ['done', '已领取'], ['exp', '已过期']].map(([k, t]) => ({ t, cls: k === giftTab ? 'on' : '', pick: () => this.setState({ giftTab: k }) })),
+      gifts: (giftTab === 'open' ? GIFTS : (giftTab === 'done' ? GIFTS_DONE : GIFTS_EXP)),
+      draws: DRAWS,
+      produces: [
+        { at: '11-10 22:05', card: './assets/cidol-ttmr-3-000-sq.webp', idol: '月村手毬', sc: 'NIA', lv: 'Master', ev: 'S+', score: '15,820', vo: '1,780', da: '1,540', vi: '1,600' },
+        { at: '11-09 21:40', card: U.kcnaLand, idol: '倉本千奈', sc: '初', lv: 'Master', ev: 'S', score: '12,410', vo: '1,420', da: '1,350', vi: '1,310' },
+        { at: '11-08 19:15', card: './assets/cidol-jsna-3-000-sq.webp', idol: '十王星南', sc: '初', lv: 'Pro', ev: 'A+', score: '9,880', vo: '1,150', da: '1,060', vi: '990' },
+        { at: '11-06 23:02', card: './assets/cidol-hski-3-000-sq.webp', idol: '花海咲季', sc: '初', lv: 'Master', ev: 'S', score: '11,960', vo: '1,520', da: '1,280', vi: '1,190' },
+        { at: '11-03 20:44', card: './assets/cidol-fktn-3-000-sq.webp', idol: '藤田ことね', sc: '初', lv: 'Pro', ev: 'A', score: '8,420', vo: '980', da: '1,010', vi: '1,060' }
+      ],
+      stages: STAGES,
+      battles: [
+        { at: '今天 20:40', res: '胜', st: 'ok', vs: '莉波お姉さん · 段位 6', img: './assets/chr-hrnm.webp', d: '+71', c: 'var(--ok)' },
+        { at: '今天 20:31', res: '胜', st: 'ok', vs: 'てまりん · 段位 6', img: './assets/chr-ttmr.webp', d: '+82', c: 'var(--ok)' },
+        { at: '今天 12:02', res: '负', st: 'bad', vs: '星南会長 · 段位 7', img: './assets/chr-jsna.webp', d: '−30', c: 'var(--bad)' },
+        { at: '昨天 23:10', res: '胜', st: 'ok', vs: '麻央先輩 · 段位 5', img: './assets/chr-amao.webp', d: '+58', c: 'var(--ok)' }
+      ],
+      sessions: [
+        { at: '今天 19:32', dur: '2 小时 8 分', live: true, ended: false, dev: 'Windows 启动器 1.4.2', ip: '192.168.1.23', how: '通行证登录' },
+        { at: '今天 12:01', dur: '1 小时 19 分', live: false, ended: true, dev: 'Windows 启动器 1.4.2', ip: '192.168.1.23', how: '通行证登录' },
+        { at: '昨天 22:48', dur: '42 分', live: false, ended: true, dev: 'Android 14 · Pixel 8', ip: '10.0.0.31', how: '通行证登录' },
+        { at: '11-10 20:05', dur: '1 小时 5 分', live: false, ended: true, dev: 'Windows 启动器 1.4.1', ip: '192.168.1.23', how: '账号密码' },
+        { at: '11-09 00:10', dur: '55 分', live: false, ended: true, dev: 'Windows 启动器 1.4.1', ip: '192.168.1.23', how: '账号密码' }
+      ],
+      facts: [
+        { k: '注册', v: '2026-10-02 19:41' }, { k: '累计登录', v: '37 天 · 今天第 2 次' }, { k: '最近设备', v: 'Windows 启动器 · 192.168.1.23' }, { k: '教程', v: '已完成' }, { k: '当前培育', v: '初 · 花海咲季 · 第 9 周' }, { k: '封禁', v: '无' }
+      ],
+      glog: [
+        { at: '今天 21:18', t: '发送到礼物箱', ch: '钻石 ×300、10 连券 ×1、倉本千奈 SSR', by: '超级管理员', kind: '管理端', r: '中', rc: 'risk-2', st: 'ok', stT: '成功' },
+        { at: '今天 13:02', t: '回满体力', ch: 'AP 12 → 120', by: '本人', kind: '玩家自助', r: '低', rc: 'risk-1', st: 'ok', stT: '成功' },
+        { at: '11-05 22:30', t: '兑换礼包码', ch: 'FES2026 · 钻石 ×500', by: '本人', kind: '玩家自助', r: '中', rc: 'risk-2', st: 'ok', stT: '成功' },
+        { at: '11-03 20:15', t: '全部偶像卡', ch: '申请 11-03 19:58 · 超级管理员批准', by: '本人', kind: '玩家自助 · 审批', r: '危险', rc: 'risk-4', st: 'ok', stT: '成功' },
+        { at: '10-28 09:12', t: '解除卡死', ch: '会话已结束', by: '本人', kind: '玩家自助', r: '低', rc: 'risk-1', st: 'ok', stT: '成功' }
+      ],
+      giftOpen,
+      openGift: () => this.setState({ giftOpen: true }),
+      closeGift: () => this.setState({ giftOpen: false }),
+      cats: [['all', '全部'], ['cur', '货币'], ['item', '道具'], ['idol', '偶像卡'], ['sup', '支援卡'], ['cos', '服装'], ['other', '名片 · 乐曲 · 照片']].map(([k, t]) => ({ t, cls: k === cat ? 'on' : '', pick: () => this.setState({ cat: k }) })),
+      picks: PICKS.filter((p) => cat === 'all' || p.cat === cat).map((p) => ({ ...p, on: !!picked[p.k], cls: picked[p.k] ? 'pick-on' : '', toggle: () => this.setState({ picked: { ...picked, [p.k]: !picked[p.k] } }) })),
+      chosen: PICKS.filter((p) => picked[p.k]).map((p) => ({ ...p, q: QTY[p.k] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

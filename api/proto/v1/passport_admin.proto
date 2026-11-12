@@ -1,0 +1,400 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "v1/game_common.proto";
+
+// 用户通行证后台管理（主 server，权限 game:passport）。通行证账号独立于 Momoko 用户。
+service PassportAdminService {
+  // 统计：通行证数、绑定的游戏账号（分布在几台服务器、几款游戏）、本周新增与其中已绑定的、近 7 天登录、已停用、待注销
+  rpc GetPassportStats(GetPassportStatsRequest) returns (GetPassportStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/passport/stats"
+    };
+  }
+  // 通行证列表：状态 chips（带数量）、搜索（用户名、昵称、邮箱、游戏 ID / 昵称）、按服务器筛选
+  rpc ListPassportUsers(ListPassportUsersRequest) returns (ListPassportUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/passport/users"
+    };
+  }
+  // 通行证详情：资料与全部绑定（按最近使用排序）
+  rpc GetPassportUser(GetPassportUserRequest) returns (GetPassportUserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/passport/users/{id}"
+    };
+  }
+  // 停用 / 启用（停用时全部设备下线）
+  rpc SetPassportUserStatus(SetPassportUserStatusRequest) returns (GetPassportUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/passport/users/{id}/status"
+      body: "*"
+    };
+  }
+  // 替玩家解绑
+  rpc AdminUnbindPassportLink(AdminUnbindPassportLinkRequest) returns (GetPassportUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/passport/users/{user_id}/links/{link_id}/unbind"
+      body: "*"
+    };
+  }
+  // 替玩家绑定（绑定方式记为 admin）
+  rpc AdminBindPassportLink(AdminBindPassportLinkRequest) returns (GetPassportUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/passport/users/{user_id}/links"
+      body: "*"
+    };
+  }
+  // 搜索服务器（筛选与替他绑定用，搜索 + 最近查看，最多 20 条）
+  rpc SearchPassportServers(SearchGameServersRequest) returns (SearchGameServersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/passport/servers"
+    };
+  }
+  // 替他绑定时搜索游戏玩家（MGP /players，最多 20 条，标出已绑定的）
+  rpc SearchPassportGamePlayers(SearchPassportGamePlayersRequest) returns (SearchPassportGamePlayersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/passport/servers/{server_id}/players"
+    };
+  }
+  // 邀请码
+  rpc ListPassportInvites(ListPassportInvitesRequest) returns (ListPassportInvitesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/passport/invites"
+    };
+  }
+  rpc CreatePassportInvite(CreatePassportInviteRequest) returns (PassportInvite) {
+    option (google.api.http) = {
+      post: "/api/v1/game/passport/invites"
+      body: "*"
+    };
+  }
+  rpc RevokePassportInvite(RevokePassportInviteRequest) returns (PassportInvite) {
+    option (google.api.http) = {
+      post: "/api/v1/game/passport/invites/{id}/revoke"
+      body: "*"
+    };
+  }
+  // 通行证设置（存在系统配置里）
+  rpc GetPassportSettings(GetPassportSettingsRequest) returns (GetPassportSettingsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/passport/settings"
+    };
+  }
+  rpc UpdatePassportSettings(PassportSettings) returns (GetPassportSettingsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/game/passport/settings"
+      body: "*"
+    };
+  }
+  // 「用户通行证登录」的 OIDC 应用（游戏 SDK 等）
+  rpc ListPassportOidcClients(ListPassportOidcClientsRequest) returns (ListPassportOidcClientsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/passport/oidc-clients"
+    };
+  }
+  rpc CreatePassportOidcClient(SavePassportOidcClientRequest) returns (PassportOidcClient) {
+    option (google.api.http) = {
+      post: "/api/v1/game/passport/oidc-clients"
+      body: "*"
+    };
+  }
+  rpc UpdatePassportOidcClient(SavePassportOidcClientRequest) returns (PassportOidcClient) {
+    option (google.api.http) = {
+      put: "/api/v1/game/passport/oidc-clients/{id}"
+      body: "*"
+    };
+  }
+  rpc DeletePassportOidcClient(DeletePassportOidcClientRequest) returns (DeletePassportOidcClientResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/game/passport/oidc-clients/{id}"
+    };
+  }
+  // 重新生成 Client Secret（只在本次返回完整值）
+  rpc RefreshPassportOidcClientSecret(DeletePassportOidcClientRequest) returns (PassportOidcClient) {
+    option (google.api.http) = {
+      post: "/api/v1/game/passport/oidc-clients/{id}/secret"
+      body: "*"
+    };
+  }
+}
+
+message GetPassportStatsRequest {}
+
+message GetPassportStatsResponse {
+  // 通行证账号数
+  int32 player_count = 1;
+  // 绑定的游戏账号数，分布在多少台服务器、多少款游戏
+  int32 linked_account_count = 2;
+  int32 server_count = 3;
+  int32 game_count = 4;
+  // 本周（近 7 天）新注册，其中已绑定的
+  int32 new_this_week = 5;
+  int32 new_this_week_linked = 6;
+  // 近 7 天登录过的通行证
+  int32 active_this_week = 7;
+  // 已停用、待注销
+  int32 disabled_count = 8;
+  int32 deleting_count = 9;
+  // 绑定涉及的游戏（适配器 id）
+  repeated string games = 10;
+}
+
+message ListPassportUsersRequest {
+  // all / linked 已绑定 / unlinked 未绑定 / disabled 已停用 / deleting 待注销
+  string status = 1;
+  // 用户名、昵称、邮箱、游戏 ID / 昵称 / 账号
+  string q = 2;
+  // 只看在这台服务器上有绑定的
+  string server_id = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+// 列表里的一条绑定（只有一个绑定时展示）。
+message PassportAdminLinkBrief {
+  string server_id = 1;
+  string server_name = 2;
+  string game = 3;
+  string game_name = 4;
+  string icon = 5;
+  string nickname = 6;
+  string display_id = 7;
+}
+
+message PassportAdminUser {
+  string id = 1;
+  string username = 2;
+  string name = 3;
+  // 邮箱（只显示部分）
+  string email_masked = 4;
+  bool email_verified = 5;
+  string avatar = 6;
+  string avatar_asset = 7;
+  // active / disabled
+  string status = 8;
+  google.protobuf.Timestamp create_time = 9;
+  google.protobuf.Timestamp last_login_at = 10;
+  google.protobuf.Timestamp deletion_scheduled_at = 11;
+  bool totp_enabled = 12;
+  // 绑定数、涉及的游戏数与游戏（最多 3 个，图标用）
+  int32 link_count = 13;
+  int32 game_count = 14;
+  repeated PassportAdminGame games = 15;
+  // 只有一个绑定时的那条
+  PassportAdminLinkBrief first_link = 16;
+}
+
+message PassportAdminGame {
+  string id = 1;
+  string name = 2;
+  string icon = 3;
+}
+
+message ListPassportUsersResponse {
+  repeated PassportAdminUser items = 1;
+  int32 total = 2;
+  // 各状态 chip 的数量（不受 status 影响，受 q 与 server_id 影响）
+  map<string, int32> counts = 3;
+  // 按服务器筛选时的服务器摘要
+  GameServerBrief server = 4;
+}
+
+message GetPassportUserRequest {
+  string id = 1;
+}
+
+message PassportAdminLink {
+  string id = 1;
+  GameServerBrief server = 2;
+  string player_id = 3;
+  string display_id = 4;
+  string account = 5;
+  string nickname = 6;
+  string avatar_asset = 7;
+  int32 level = 8;
+  // password / code / oidc / admin / request
+  string method = 9;
+  bool is_primary = 10;
+  google.protobuf.Timestamp linked_at = 11;
+  google.protobuf.Timestamp last_seen_at = 12;
+  // 这台服务器开放给玩家的自助指令数
+  int32 self_service_enabled = 13;
+}
+
+message GetPassportUserResponse {
+  PassportAdminUser user = 1;
+  string bio = 2;
+  string language = 3;
+  string timezone = 4;
+  string last_login_ip = 5;
+  string last_login_device = 6;
+  string register_ip = 7;
+  // 注册用的邀请码
+  string invite_code = 8;
+  int32 device_count = 9;
+  int32 app_count = 10;
+  // 全部绑定，按最近使用排序（没用过的按绑定时间）
+  repeated PassportAdminLink links = 11;
+  google.protobuf.Timestamp disabled_at = 12;
+  string disabled_by_name = 13;
+}
+
+message SetPassportUserStatusRequest {
+  string id = 1;
+  bool disabled = 2;
+}
+
+message AdminUnbindPassportLinkRequest {
+  string user_id = 1;
+  string link_id = 2;
+}
+
+message AdminBindPassportLinkRequest {
+  string user_id = 1;
+  string server_id = 2;
+  // 游戏玩家 pid
+  string pid = 3;
+}
+
+message SearchPassportGamePlayersRequest {
+  string server_id = 1;
+  // 账号名、User ID 或昵称
+  string q = 2;
+}
+
+message PassportGamePlayer {
+  string pid = 1;
+  string display_id = 2;
+  string account = 3;
+  string name = 4;
+  int32 level = 5;
+  string avatar_idol_card_id = 6;
+  // 已绑定到的通行证（空为未绑定）
+  string linked_user_id = 7;
+  string linked_username = 8;
+}
+
+message SearchPassportGamePlayersResponse {
+  repeated PassportGamePlayer items = 1;
+}
+
+message PassportInvite {
+  string id = 1;
+  string code = 2;
+  // 限定邮箱（空不限）
+  string email = 3;
+  // 附带的服务器绑定资格（可空）
+  GameServerBrief server = 4;
+  int32 max_uses = 5;
+  int32 used = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  string created_by_name = 8;
+  bool revoked = 9;
+  string note = 10;
+  google.protobuf.Timestamp create_time = 11;
+  // active 可用 / used_up 已用完 / expired 已过期 / revoked 已作废
+  string state = 12;
+}
+
+message ListPassportInvitesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListPassportInvitesResponse {
+  repeated PassportInvite items = 1;
+  int32 total = 2;
+}
+
+message CreatePassportInviteRequest {
+  // 自定义邀请码（空则自动生成）
+  string code = 1;
+  string email = 2;
+  string server_id = 3;
+  // 可用次数（默认 1）
+  int32 max_uses = 4;
+  // 几天后过期（0 不过期）
+  int32 expires_days = 5;
+  string note = 6;
+}
+
+message RevokePassportInviteRequest {
+  string id = 1;
+}
+
+message GetPassportSettingsRequest {}
+
+message PassportSettings {
+  // 显示名称（空用 Momoko 站点名称）
+  string site_name = 1;
+  // open / invite_only / closed
+  string register_mode = 2;
+  // 注册需要邮箱验证码
+  bool register_email_verification = 3;
+  // 允许邮箱验证码登录
+  bool email_login_enabled = 4;
+  // 保持登录的会话天数（1–365）
+  int32 session_days = 5;
+  // 启用「用户通行证登录」（OIDC Provider）
+  bool oidc_enabled = 6;
+}
+
+message GetPassportSettingsResponse {
+  PassportSettings settings = 1;
+  // 是否配置了邮件（验证码相关设置需要）
+  bool email_configured = 2;
+  // 通行证 server 是否启用、监听地址、对外地址（来自配置文件）
+  bool server_enabled = 3;
+  string listen_addr = 4;
+  string public_url = 5;
+  // OIDC issuer 与 Discovery 地址（public_url 为空时按请求推断，无法推断时为空）
+  string oidc_issuer = 6;
+  string oidc_discovery_url = 7;
+  int32 oidc_client_count = 8;
+  // 管理员在系统设置里开启了头像储存（通行证头像上传依赖它）
+  bool avatar_upload_enabled = 9;
+}
+
+message ListPassportOidcClientsRequest {}
+
+message PassportOidcClient {
+  string id = 1;
+  string name = 2;
+  string client_id = 3;
+  // 创建与重新生成时返回完整值，其余时候脱敏
+  string client_secret = 4;
+  repeated string redirect_uris = 5;
+  repeated string scopes = 6;
+  bool active = 7;
+  string description = 8;
+  GameServerBrief server = 9;
+  google.protobuf.Timestamp last_used_at = 10;
+  google.protobuf.Timestamp create_time = 11;
+  // 授权过的通行证数
+  int32 grant_count = 12;
+}
+
+message ListPassportOidcClientsResponse {
+  repeated PassportOidcClient items = 1;
+}
+
+message SavePassportOidcClientRequest {
+  string id = 1;
+  string name = 2;
+  repeated string redirect_uris = 3;
+  repeated string scopes = 4;
+  bool active = 5;
+  string description = 6;
+  string server_id = 7;
+}
+
+message DeletePassportOidcClientRequest {
+  string id = 1;
+}
+
+message DeletePassportOidcClientResponse {}

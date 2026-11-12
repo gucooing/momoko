@@ -56,10 +56,11 @@ pnpm install
 pnpm dev
 ```
 
-开发服务器默认地址为 `http://localhost:3007`。默认后端 API 地址来自 `.env.development`：
+`pnpm dev` 同时启动两个开发服务器：管理后台 `http://localhost:3007`（`pnpm dev:admin`）和用户通行证玩家端 `http://localhost:3008`（`pnpm dev:passport`，源码在 `passport/`）。后端地址来自 `.env.development`：
 
 ```env
 VITE_API_BASE_URL="http://localhost:22633/api/v1"
+VITE_PASSPORT_API_BASE_URL="http://localhost:22634/api/v1"
 VITE_STATIC_URL="/"
 ```
 
@@ -82,8 +83,12 @@ VITE_STATIC_URL="/"
 ## 常用命令
 
 ```bash
-# 启动开发服务器
+# 启动开发服务器（管理后台 + 用户通行证）
 pnpm dev
+
+# 只启动管理后台 / 只启动用户通行证
+pnpm dev:admin
+pnpm dev:passport
 
 # 类型检查并构建生产版本
 pnpm build
@@ -98,7 +103,7 @@ pnpm lint
 pnpm format
 ```
 
-`pnpm build` 会执行类型检查、Vite 构建、复制 `dist/index.html` 为 `dist/404.html`，并通过 `scripts/compress-dist.mjs` 生成压缩资源，供后端静态资源服务优先返回 gzip/brotli 版本。
+`pnpm build` 会执行类型检查、Vite 构建、复制 `dist/index.html` 为 `dist/404.html`，并通过 `scripts/compress-dist.mjs` 生成压缩资源，供后端静态资源服务优先返回 gzip/brotli 版本；随后构建用户通行证到 `dist-passport/`（同样预压缩），由通行证 server（默认 `:22634`）单独提供。
 
 ## 与后端集成
 

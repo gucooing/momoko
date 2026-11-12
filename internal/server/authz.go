@@ -156,6 +156,10 @@ var servicePrefixPermissions = []struct {
 	{"/v1.TunnelManager/", constant.Tunnel},
 	{"/v1.IQCheckManager/", constant.IQCheckView},
 	{"/v1.MonitorManager/", constant.MonitorView},
+	{"/v1.GameServerService/", constant.GameServer},
+	{"/v1.GameGMService/", constant.GameGM},
+	{"/v1.GameOpsService/", constant.GameGM},
+	{"/v1.PassportAdminService/", constant.GamePassport},
 }
 
 // requiredPermission 返回某操作所需的权限；ok=false 表示该操作无需特定权限（仅需登录的自助类操作）。
@@ -178,6 +182,8 @@ var wsRoutePermissions = map[string]constant.Permissions{
 	biz.DockerContainerLogsWSPath: constant.DockerView,
 	biz.DockerTaskWSPath:          constant.DockerView,
 	biz.InstanceWsPath:            constant.Instance,
+	// 托管游戏服务器的控制台
+	biz.GameServerConsoleWsPath: constant.GameServer,
 	// 镜像导出 / 导入（原始 HTTP 流，不走 operation 中间件）
 	biz.DockerImageExportPath: constant.DockerImageManage,
 	biz.DockerImageImportPath: constant.DockerImageManage,

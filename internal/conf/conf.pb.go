@@ -27,6 +27,7 @@ type Bootstrap struct {
 	Server        *Server                `protobuf:"bytes,1,opt,name=server,proto3" json:"server,omitempty"`
 	Data          *Data                  `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
 	Auth          *Auth                  `protobuf:"bytes,3,opt,name=auth,proto3" json:"auth,omitempty"`
+	Passport      *Passport              `protobuf:"bytes,4,opt,name=passport,proto3" json:"passport,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -78,6 +79,13 @@ func (x *Bootstrap) GetData() *Data {
 func (x *Bootstrap) GetAuth() *Auth {
 	if x != nil {
 		return x.Auth
+	}
+	return nil
+}
+
+func (x *Bootstrap) GetPassport() *Passport {
+	if x != nil {
+		return x.Passport
 	}
 	return nil
 }
@@ -222,6 +230,78 @@ func (x *Auth) GetSecret() string {
 	return ""
 }
 
+// 用户通行证：玩家端独立 HTTP server，只注册玩家路由。
+type Passport struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 是否启用；不写时默认启用
+	Enabled *bool `protobuf:"varint,1,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	// 监听地址，默认 0.0.0.0:22634
+	Addr string `protobuf:"bytes,2,opt,name=addr,proto3" json:"addr,omitempty"`
+	// 对外地址（OIDC issuer、邮件里的链接），例如 https://passport.example.com；空时按请求的 Host 推断
+	PublicUrl     string               `protobuf:"bytes,3,opt,name=public_url,json=publicUrl,proto3" json:"public_url,omitempty"`
+	Timeout       *durationpb.Duration `protobuf:"bytes,4,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Passport) Reset() {
+	*x = Passport{}
+	mi := &file_conf_conf_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Passport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Passport) ProtoMessage() {}
+
+func (x *Passport) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Passport.ProtoReflect.Descriptor instead.
+func (*Passport) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Passport) GetEnabled() bool {
+	if x != nil && x.Enabled != nil {
+		return *x.Enabled
+	}
+	return false
+}
+
+func (x *Passport) GetAddr() string {
+	if x != nil {
+		return x.Addr
+	}
+	return ""
+}
+
+func (x *Passport) GetPublicUrl() string {
+	if x != nil {
+		return x.PublicUrl
+	}
+	return ""
+}
+
+func (x *Passport) GetTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
+}
+
 type Server_HTTP struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Network       string                 `protobuf:"bytes,1,opt,name=network,proto3" json:"network,omitempty"`
@@ -233,7 +313,7 @@ type Server_HTTP struct {
 
 func (x *Server_HTTP) Reset() {
 	*x = Server_HTTP{}
-	mi := &file_conf_conf_proto_msgTypes[4]
+	mi := &file_conf_conf_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -245,7 +325,7 @@ func (x *Server_HTTP) String() string {
 func (*Server_HTTP) ProtoMessage() {}
 
 func (x *Server_HTTP) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[4]
+	mi := &file_conf_conf_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -297,7 +377,7 @@ type Server_GRPC struct {
 
 func (x *Server_GRPC) Reset() {
 	*x = Server_GRPC{}
-	mi := &file_conf_conf_proto_msgTypes[5]
+	mi := &file_conf_conf_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -309,7 +389,7 @@ func (x *Server_GRPC) String() string {
 func (*Server_GRPC) ProtoMessage() {}
 
 func (x *Server_GRPC) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[5]
+	mi := &file_conf_conf_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -370,7 +450,7 @@ type Data_Database struct {
 
 func (x *Data_Database) Reset() {
 	*x = Data_Database{}
-	mi := &file_conf_conf_proto_msgTypes[6]
+	mi := &file_conf_conf_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -382,7 +462,7 @@ func (x *Data_Database) String() string {
 func (*Data_Database) ProtoMessage() {}
 
 func (x *Data_Database) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_conf_proto_msgTypes[6]
+	mi := &file_conf_conf_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -417,11 +497,12 @@ var File_conf_conf_proto protoreflect.FileDescriptor
 const file_conf_conf_proto_rawDesc = "" +
 	"\n" +
 	"\x0fconf/conf.proto\x12\n" +
-	"kratos.api\x1a\x1egoogle/protobuf/duration.proto\"\x83\x01\n" +
+	"kratos.api\x1a\x1egoogle/protobuf/duration.proto\"\xb5\x01\n" +
 	"\tBootstrap\x12*\n" +
 	"\x06server\x18\x01 \x01(\v2\x12.kratos.api.ServerR\x06server\x12$\n" +
 	"\x04data\x18\x02 \x01(\v2\x10.kratos.api.DataR\x04data\x12$\n" +
-	"\x04auth\x18\x03 \x01(\v2\x10.kratos.api.AuthR\x04auth\"\xff\x02\n" +
+	"\x04auth\x18\x03 \x01(\v2\x10.kratos.api.AuthR\x04auth\x120\n" +
+	"\bpassport\x18\x04 \x01(\v2\x14.kratos.api.PassportR\bpassport\"\xff\x02\n" +
 	"\x06Server\x12+\n" +
 	"\x04http\x18\x01 \x01(\v2\x17.kratos.api.Server.HTTPR\x04http\x12+\n" +
 	"\x04grpc\x18\x02 \x01(\v2\x17.kratos.api.Server.GRPCR\x04grpc\x1ai\n" +
@@ -442,7 +523,15 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\x06driver\x18\x01 \x01(\tR\x06driver\x12\x16\n" +
 	"\x06source\x18\x02 \x01(\tR\x06source\"\x1e\n" +
 	"\x04Auth\x12\x16\n" +
-	"\x06secret\x18\x01 \x01(\tR\x06secretB!Z\x1fkratos-admin/internal/conf;confb\x06proto3"
+	"\x06secret\x18\x01 \x01(\tR\x06secret\"\x9d\x01\n" +
+	"\bPassport\x12\x1d\n" +
+	"\aenabled\x18\x01 \x01(\bH\x00R\aenabled\x88\x01\x01\x12\x12\n" +
+	"\x04addr\x18\x02 \x01(\tR\x04addr\x12\x1d\n" +
+	"\n" +
+	"public_url\x18\x03 \x01(\tR\tpublicUrl\x123\n" +
+	"\atimeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\atimeoutB\n" +
+	"\n" +
+	"\b_enabledB!Z\x1fkratos-admin/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_conf_proto_rawDescOnce sync.Once
@@ -456,31 +545,34 @@ func file_conf_conf_proto_rawDescGZIP() []byte {
 	return file_conf_conf_proto_rawDescData
 }
 
-var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_conf_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: kratos.api.Bootstrap
 	(*Server)(nil),              // 1: kratos.api.Server
 	(*Data)(nil),                // 2: kratos.api.Data
 	(*Auth)(nil),                // 3: kratos.api.Auth
-	(*Server_HTTP)(nil),         // 4: kratos.api.Server.HTTP
-	(*Server_GRPC)(nil),         // 5: kratos.api.Server.GRPC
-	(*Data_Database)(nil),       // 6: kratos.api.Data.Database
-	(*durationpb.Duration)(nil), // 7: google.protobuf.Duration
+	(*Passport)(nil),            // 4: kratos.api.Passport
+	(*Server_HTTP)(nil),         // 5: kratos.api.Server.HTTP
+	(*Server_GRPC)(nil),         // 6: kratos.api.Server.GRPC
+	(*Data_Database)(nil),       // 7: kratos.api.Data.Database
+	(*durationpb.Duration)(nil), // 8: google.protobuf.Duration
 }
 var file_conf_conf_proto_depIdxs = []int32{
-	1, // 0: kratos.api.Bootstrap.server:type_name -> kratos.api.Server
-	2, // 1: kratos.api.Bootstrap.data:type_name -> kratos.api.Data
-	3, // 2: kratos.api.Bootstrap.auth:type_name -> kratos.api.Auth
-	4, // 3: kratos.api.Server.http:type_name -> kratos.api.Server.HTTP
-	5, // 4: kratos.api.Server.grpc:type_name -> kratos.api.Server.GRPC
-	6, // 5: kratos.api.Data.database:type_name -> kratos.api.Data.Database
-	7, // 6: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	7, // 7: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	1,  // 0: kratos.api.Bootstrap.server:type_name -> kratos.api.Server
+	2,  // 1: kratos.api.Bootstrap.data:type_name -> kratos.api.Data
+	3,  // 2: kratos.api.Bootstrap.auth:type_name -> kratos.api.Auth
+	4,  // 3: kratos.api.Bootstrap.passport:type_name -> kratos.api.Passport
+	5,  // 4: kratos.api.Server.http:type_name -> kratos.api.Server.HTTP
+	6,  // 5: kratos.api.Server.grpc:type_name -> kratos.api.Server.GRPC
+	7,  // 6: kratos.api.Data.database:type_name -> kratos.api.Data.Database
+	8,  // 7: kratos.api.Passport.timeout:type_name -> google.protobuf.Duration
+	8,  // 8: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	8,  // 9: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }
@@ -488,13 +580,14 @@ func file_conf_conf_proto_init() {
 	if File_conf_conf_proto != nil {
 		return
 	}
+	file_conf_conf_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_conf_proto_rawDesc), len(file_conf_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

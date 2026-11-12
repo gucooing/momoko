@@ -92,6 +92,33 @@ export const languageOptions: Array<{ code: AppLocale; shortLabel: string; label
   { code: 'en-US', shortLabel: 'EN', labelKey: 'language.english' },
 ]
 
+// 页面专用文案按路由按需加载：locales/route/<路由第一段>/*.ts 只在进入 /<路由第一段>/… 时加载并合并，
+// 不打进首屏（例如 route/game/ 只在游戏服务器、GM 运营、用户通行证后台页面里用到）。
+const routeModules = import.meta.glob<{ default: Partial<Record<AppLocale, LocaleTree>> }>('./route/*/*.ts')
+const routeLoads = new Map<string, Promise<void>>()
+
+/** 加载某个路由路径需要的页面文案（只加载一次；没有对应目录时立即完成）。 */
+export const ensureRouteLocales = (path: string): Promise<void> => {
+  const segment = path.split('/').filter(Boolean)[0] || ''
+  if (!segment) return Promise.resolve()
+  let p = routeLoads.get(segment)
+  if (!p) {
+    const loaders = Object.entries(routeModules)
+      .filter(([file]) => file.startsWith(`./route/${segment}/`))
+      .map(([, load]) => load)
+    p = Promise.all(loaders.map((load) => load())).then((mods) => {
+      for (const mod of mods) {
+        for (const [locale, tree] of Object.entries(mod.default)) {
+          i18n.global.mergeLocaleMessage(locale, tree as LocaleTree)
+        }
+      }
+    })
+    p.catch(() => routeLoads.delete(segment))
+    routeLoads.set(segment, p)
+  }
+  return p
+}
+
 export const getCurrentLocale = () => i18n.global.locale.value as AppLocale
 
 export const setAppLocale = (locale: AppLocale) => {

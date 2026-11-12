@@ -6,6 +6,12 @@
  * meta.siteTheme: true marks a visitor page that uses the site default theme (login).
  * Every other page (static or from menus) is listed in the theme editor automatically, see theme/pages.ts.
  */
+import type { RouteComponent } from 'vue-router'
+
+// 游戏页面的子路由（服务器详情、玩家详情…）：视图文件按需加载，文件不存在时落到 404 视图（同 menuToRoute）。
+const gameViews = import.meta.glob('@/views/game/**/index.vue')
+const gameView = (path: string) =>
+  (gameViews[`/src/views/game/${path}/index.vue`] || (() => import('@/views/exception/404/index.vue'))) as RouteComponent
 export const staticRoutes = [
   {
     path: '/login',
@@ -67,6 +73,34 @@ export const staticRoutes = [
         component: () => import('@/views/openssh/terminal/index.vue'),
         // hideTabbar：手机端整屏页面（原型无底部导航），见 AppShell / AppContent
         meta: { title: 'SSH 终端', titleKey: 'theme.routes.sshTerminal', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true, hideTabbar: true },
+      },
+      {
+        // 接入游戏服务器（选择游戏与接入方式）
+        path: '/game/servers/new',
+        name: 'GameServerNewView',
+        component: gameView('servers/new'),
+        meta: { title: '接入游戏服务器', titleKey: 'theme.routes.gameServerNew', icon: 'HOutline:ServerStackIcon', keepAlive: false },
+      },
+      {
+        // 游戏服务器详情：概览 / 控制台 / 专用设置 / 更新 / 备份 / 文件 / 日志，?tab= 切换
+        path: '/game/servers/:id',
+        name: 'GameServerDetailView',
+        component: gameView('servers/detail'),
+        meta: { title: '游戏服务器', titleKey: 'theme.routes.gameServerDetail', icon: 'HOutline:ServerStackIcon', keepAlive: true },
+      },
+      {
+        // GM 运营（带服务器）：与菜单 /game/gm 是同一个页面
+        path: '/game/gm/:serverId',
+        name: 'GameGmServerView',
+        component: gameView('gm'),
+        meta: { title: 'GM 运营', titleKey: 'theme.routes.gameGm', icon: 'HOutline:SparklesIcon', keepAlive: true },
+      },
+      {
+        // 玩家详情：/game/gm/:serverId/players/:pid?tab=…
+        path: '/game/gm/:serverId/players/:pid',
+        name: 'GameGmPlayerView',
+        component: gameView('gm/player'),
+        meta: { title: '玩家详情', titleKey: 'theme.routes.gameGmPlayer', icon: 'HOutline:UserIcon', keepAlive: true },
       },
       {
         // 应用详情：控制台 / 文件 / 配置 在同一页，?tab= 切换

@@ -9,6 +9,7 @@ message Bootstrap {
   Server server = 1;
   Data data = 2;
   Auth auth = 3;
+  Passport passport = 4;
 }
 
 message Server {
@@ -40,4 +41,15 @@ message Data {
 
 message Auth {
   string secret = 1;
+}
+
+// 用户通行证：玩家端独立 HTTP server，只注册玩家路由。
+message Passport {
+  // 是否启用；不写时默认启用
+  optional bool enabled = 1;
+  // 监听地址，默认 0.0.0.0:22634
+  string addr = 2;
+  // 对外地址（OIDC issuer、邮件里的链接），例如 https://passport.example.com；空时按请求的 Host 推断
+  string public_url = 3;
+  google.protobuf.Duration timeout = 4;
 }

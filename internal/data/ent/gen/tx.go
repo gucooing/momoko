@@ -30,6 +30,32 @@ type Tx struct {
 	FrpTunnel *FrpTunnelClient
 	// FrpTunnelStat is the client for interacting with the FrpTunnelStat builders.
 	FrpTunnelStat *FrpTunnelStatClient
+	// GameAccountLink is the client for interacting with the GameAccountLink builders.
+	GameAccountLink *GameAccountLinkClient
+	// GameAccountUnlink is the client for interacting with the GameAccountUnlink builders.
+	GameAccountUnlink *GameAccountUnlinkClient
+	// GameConfigRevision is the client for interacting with the GameConfigRevision builders.
+	GameConfigRevision *GameConfigRevisionClient
+	// GameMail is the client for interacting with the GameMail builders.
+	GameMail *GameMailClient
+	// GameRecentServer is the client for interacting with the GameRecentServer builders.
+	GameRecentServer *GameRecentServerClient
+	// GameServer is the client for interacting with the GameServer builders.
+	GameServer *GameServerClient
+	// GameServerBackup is the client for interacting with the GameServerBackup builders.
+	GameServerBackup *GameServerBackupClient
+	// GameServerHistory is the client for interacting with the GameServerHistory builders.
+	GameServerHistory *GameServerHistoryClient
+	// GiftCode is the client for interacting with the GiftCode builders.
+	GiftCode *GiftCodeClient
+	// GiftCodeBatch is the client for interacting with the GiftCodeBatch builders.
+	GiftCodeBatch *GiftCodeBatchClient
+	// GiftCodeRedeem is the client for interacting with the GiftCodeRedeem builders.
+	GiftCodeRedeem *GiftCodeRedeemClient
+	// GmExecution is the client for interacting with the GmExecution builders.
+	GmExecution *GmExecutionClient
+	// GmSelfService is the client for interacting with the GmSelfService builders.
+	GmSelfService *GmSelfServiceClient
 	// IQCheckPrompt is the client for interacting with the IQCheckPrompt builders.
 	IQCheckPrompt *IQCheckPromptClient
 	// IQCheckResult is the client for interacting with the IQCheckResult builders.
@@ -50,6 +76,20 @@ type Tx struct {
 	OIDCClient *OIDCClientClient
 	// OperationLog is the client for interacting with the OperationLog builders.
 	OperationLog *OperationLogClient
+	// PassportInvite is the client for interacting with the PassportInvite builders.
+	PassportInvite *PassportInviteClient
+	// PassportLoginLog is the client for interacting with the PassportLoginLog builders.
+	PassportLoginLog *PassportLoginLogClient
+	// PassportMessage is the client for interacting with the PassportMessage builders.
+	PassportMessage *PassportMessageClient
+	// PassportOidcClient is the client for interacting with the PassportOidcClient builders.
+	PassportOidcClient *PassportOidcClientClient
+	// PassportOidcGrant is the client for interacting with the PassportOidcGrant builders.
+	PassportOidcGrant *PassportOidcGrantClient
+	// PassportSession is the client for interacting with the PassportSession builders.
+	PassportSession *PassportSessionClient
+	// PassportUser is the client for interacting with the PassportUser builders.
+	PassportUser *PassportUserClient
 	// PortForward is the client for interacting with the PortForward builders.
 	PortForward *PortForwardClient
 	// PortForwardStat is the client for interacting with the PortForwardStat builders.
@@ -215,6 +255,19 @@ func (tx *Tx) init() {
 	tx.FileUploadChunk = NewFileUploadChunkClient(tx.config)
 	tx.FrpTunnel = NewFrpTunnelClient(tx.config)
 	tx.FrpTunnelStat = NewFrpTunnelStatClient(tx.config)
+	tx.GameAccountLink = NewGameAccountLinkClient(tx.config)
+	tx.GameAccountUnlink = NewGameAccountUnlinkClient(tx.config)
+	tx.GameConfigRevision = NewGameConfigRevisionClient(tx.config)
+	tx.GameMail = NewGameMailClient(tx.config)
+	tx.GameRecentServer = NewGameRecentServerClient(tx.config)
+	tx.GameServer = NewGameServerClient(tx.config)
+	tx.GameServerBackup = NewGameServerBackupClient(tx.config)
+	tx.GameServerHistory = NewGameServerHistoryClient(tx.config)
+	tx.GiftCode = NewGiftCodeClient(tx.config)
+	tx.GiftCodeBatch = NewGiftCodeBatchClient(tx.config)
+	tx.GiftCodeRedeem = NewGiftCodeRedeemClient(tx.config)
+	tx.GmExecution = NewGmExecutionClient(tx.config)
+	tx.GmSelfService = NewGmSelfServiceClient(tx.config)
 	tx.IQCheckPrompt = NewIQCheckPromptClient(tx.config)
 	tx.IQCheckResult = NewIQCheckResultClient(tx.config)
 	tx.IQCheckSite = NewIQCheckSiteClient(tx.config)
@@ -225,6 +278,13 @@ func (tx *Tx) init() {
 	tx.Node = NewNodeClient(tx.config)
 	tx.OIDCClient = NewOIDCClientClient(tx.config)
 	tx.OperationLog = NewOperationLogClient(tx.config)
+	tx.PassportInvite = NewPassportInviteClient(tx.config)
+	tx.PassportLoginLog = NewPassportLoginLogClient(tx.config)
+	tx.PassportMessage = NewPassportMessageClient(tx.config)
+	tx.PassportOidcClient = NewPassportOidcClientClient(tx.config)
+	tx.PassportOidcGrant = NewPassportOidcGrantClient(tx.config)
+	tx.PassportSession = NewPassportSessionClient(tx.config)
+	tx.PassportUser = NewPassportUserClient(tx.config)
 	tx.PortForward = NewPortForwardClient(tx.config)
 	tx.PortForwardStat = NewPortForwardStatClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)

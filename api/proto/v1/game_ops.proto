@@ -1,0 +1,443 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "v1/game_common.proto";
+
+// GM 运营里的邮件补偿与兑换码（权限 game:gm）。
+// 邮件经 MGP mail.broadcast 投递到礼物箱、mail.revoke 撤回；领取统计来自 MGP gifts 报表。
+// 兑换码在 Momoko 校验，兑换成功用 gift.send（sourceKind=code）发放；玩家在通行证「自助服务」里兑换。
+service GameOpsService {
+  // 邮件列表（含各状态数量与本月已发数）
+  rpc ListGameMails(ListGameMailsRequest) returns (ListGameMailsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/mails"
+    };
+  }
+  // 邮件详情（已发送的会刷新领取统计）
+  rpc GetGameMail(GetGameMailRequest) returns (GameMail) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/mails/{id}"
+    };
+  }
+  // 新建草稿
+  rpc CreateGameMail(SaveGameMailRequest) returns (GameMail) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/mails"
+      body: "*"
+    };
+  }
+  // 修改草稿 / 定时邮件
+  rpc UpdateGameMail(SaveGameMailRequest) returns (GameMail) {
+    option (google.api.http) = {
+      put: "/api/v1/game/gm/{server_id}/mails/{id}"
+      body: "*"
+    };
+  }
+  // 删除草稿
+  rpc DeleteGameMail(DeleteGameMailRequest) returns (DeleteGameMailResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/game/gm/{server_id}/mails/{id}"
+    };
+  }
+  // 复制一封邮件为新草稿
+  rpc DuplicateGameMail(DuplicateGameMailRequest) returns (GameMail) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/mails/{id}/duplicate"
+      body: "*"
+    };
+  }
+  // 试运行：返回按当前条件匹配的人数（不投递）
+  rpc DryRunGameMail(DryRunGameMailRequest) returns (DryRunGameMailResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/mails/{id}/dry-run"
+      body: "*"
+    };
+  }
+  // 立即发送，或按 scheduled_at 定时发送（高风险，必须填原因）
+  rpc SendGameMail(SendGameMailRequest) returns (GameMail) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/mails/{id}/send"
+      body: "*"
+    };
+  }
+  // 取消定时，回到草稿
+  rpc CancelGameMail(CancelGameMailRequest) returns (GameMail) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/mails/{id}/cancel"
+      body: "*"
+    };
+  }
+  // 撤回已发送邮件里尚未领取的礼物（高风险，必须填原因）
+  rpc RevokeGameMail(RevokeGameMailRequest) returns (GameMail) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/mails/{id}/revoke"
+      body: "*"
+    };
+  }
+
+  // 兑换码批次列表（含统计卡片的数据）
+  rpc ListGiftCodeBatches(ListGiftCodeBatchesRequest) returns (ListGiftCodeBatchesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/code-batches"
+    };
+  }
+  // 批次详情与最近兑换
+  rpc GetGiftCodeBatch(GetGiftCodeBatchRequest) returns (GetGiftCodeBatchResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/code-batches/{id}"
+    };
+  }
+  // 新建批次（中风险，需填原因）
+  rpc CreateGiftCodeBatch(CreateGiftCodeBatchRequest) returns (GiftCodeBatch) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/code-batches"
+      body: "*"
+    };
+  }
+  // 编辑批次（名称、结束时间、次数、兑换入口；码、类型与奖励不能改）
+  rpc UpdateGiftCodeBatch(UpdateGiftCodeBatchRequest) returns (GiftCodeBatch) {
+    option (google.api.http) = {
+      put: "/api/v1/game/gm/{server_id}/code-batches/{id}"
+      body: "*"
+    };
+  }
+  // 停用批次
+  rpc DisableGiftCodeBatch(DisableGiftCodeBatchRequest) returns (GiftCodeBatch) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/code-batches/{id}/disable"
+      body: "*"
+    };
+  }
+  // 一次性码列表（导出用）
+  rpc ListGiftCodes(ListGiftCodesRequest) returns (ListGiftCodesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/code-batches/{batch_id}/codes"
+    };
+  }
+  // 兑换记录（可按批次与结果筛选，导出用）
+  rpc ListGiftCodeRedeems(ListGiftCodeRedeemsRequest) returns (ListGiftCodeRedeemsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/code-redeems"
+    };
+  }
+}
+
+// 按条件发送的收件人条件（Unix 毫秒，0 不限）。
+message GameMailCondition {
+  int64 created_since = 1;
+  int64 created_before = 2;
+  int64 last_login_since = 3;
+  int64 last_login_before = 4;
+}
+
+// 邮件补偿。
+message GameMail {
+  string id = 1;
+  string server_id = 2;
+  // 标题（玩家可见，作为礼物箱文案）
+  string title = 3;
+  // 正文
+  string body = 4;
+  repeated GameReward rewards = 5;
+  // 收件人：players 指定玩家 / condition 按条件 / all 全服
+  string target = 6;
+  repeated GameTarget players = 7;
+  GameMailCondition condition = 8;
+  // 跳过封禁玩家
+  bool exclude_banned = 9;
+  // 领取期限（天，0 不过期）
+  int32 expire_days = 10;
+  // 定时发送时间
+  google.protobuf.Timestamp scheduled_at = 11;
+  // draft / scheduled / sending（后台投递中）/ sent / failed / revoking（后台撤回中）/ revoked
+  string status = 13;
+  // 投递人数（发送后）
+  int32 recipient_count = 14;
+  // 已领取人数（MGP gifts 报表 receivedPlayers，60 秒内的缓存）
+  int32 claimed_count = 15;
+  google.protobuf.Timestamp stats_at = 16;
+  string error = 17;
+  string execution_id = 18;
+  string created_by_name = 19;
+  string updated_by_name = 20;
+  string sent_by_name = 21;
+  google.protobuf.Timestamp sent_at = 22;
+  string revoked_by_name = 23;
+  google.protobuf.Timestamp revoked_at = 24;
+  google.protobuf.Timestamp create_time = 25;
+  google.protobuf.Timestamp update_time = 26;
+  // 最近一次试运行匹配的人数与时间（收件人改动后清零）
+  int32 matched_count = 27;
+  google.protobuf.Timestamp matched_at = 28;
+  // 投递失败人数
+  int32 failed_count = 29;
+  // 撤回了未领取礼物的玩家数
+  int32 revoked_count = 30;
+  string revoke_execution_id = 31;
+}
+
+message ListGameMailsRequest {
+  string server_id = 1;
+  // 状态：draft / scheduled / sent（含 sending、failed、revoked）；空为全部
+  string status = 2;
+  // 关键字：标题、收件人、道具 ID
+  string q = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message ListGameMailsResponse {
+  repeated GameMail items = 1;
+  int32 total = 2;
+  // all / sent / scheduled / draft
+  map<string, int32> counts = 3;
+  // 本月已发送
+  int32 sent_this_month = 4;
+}
+
+message GetGameMailRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+message SaveGameMailRequest {
+  string server_id = 1;
+  // 修改时必填
+  string id = 2;
+  string title = 3;
+  string body = 4;
+  repeated GameReward rewards = 5;
+  string target = 6;
+  repeated GameTarget players = 7;
+  GameMailCondition condition = 8;
+  bool exclude_banned = 9;
+  int32 expire_days = 10;
+  google.protobuf.Timestamp scheduled_at = 11;
+}
+
+message DeleteGameMailRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+message DeleteGameMailResponse {}
+
+message DuplicateGameMailRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+message DryRunGameMailRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+message DryRunGameMailResponse {
+  // 按当前条件匹配的人数
+  int32 matched = 1;
+  // 服务端注册总数
+  int32 registered = 2;
+  // MGP 返回的 summary 原样（JSON 字符串）
+  string summary = 3;
+  // 记下了匹配人数的邮件
+  GameMail mail = 4;
+  // 这次试运行的 GM 记录 id
+  string execution_id = 5;
+}
+
+message SendGameMailRequest {
+  string server_id = 1;
+  string id = 2;
+  // 定时发送；为空立即发送
+  google.protobuf.Timestamp scheduled_at = 4;
+}
+
+message CancelGameMailRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+message RevokeGameMailRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+// 兑换码批次。
+message GiftCodeBatch {
+  string id = 1;
+  string server_id = 2;
+  string name = 3;
+  // universal 通用码 / unique 一次性码
+  string kind = 4;
+  // 通用码
+  string code = 5;
+  // 一次性码前缀与数量
+  string prefix = 6;
+  int32 quantity = 7;
+  repeated GameReward rewards = 8;
+  // 礼物箱文案
+  string message = 9;
+  // 总次数上限（0 不限）
+  int32 total_limit = 10;
+  int32 per_player_limit = 11;
+  google.protobuf.Timestamp start_at = 12;
+  google.protobuf.Timestamp end_at = 13;
+  // all 所有玩家 / condition 注册 N 天内
+  string eligibility = 14;
+  int32 registered_within_days = 15;
+  // 兑换入口：passport / game
+  repeated string channels = 16;
+  int32 used_count = 18;
+  // not_started / active / expired / exhausted / disabled
+  string status = 19;
+  google.protobuf.Timestamp disabled_at = 20;
+  string disabled_by_name = 21;
+  string created_by_name = 22;
+  google.protobuf.Timestamp create_time = 23;
+  // 今日兑换次数
+  int32 today_count = 24;
+}
+
+message ListGiftCodeBatchesRequest {
+  string server_id = 1;
+  // active 进行中（含未开始）/ ended 已结束（过期、用完、停用）；空为全部
+  string status = 2;
+  // 关键字：码或批次名
+  string q = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message GiftCodeStats {
+  // 进行中与已结束的批次数
+  int32 active_batches = 1;
+  int32 ended_batches = 2;
+  // 今日成功兑换次数，以及占比最高的批次
+  int32 today_redeems = 3;
+  string today_top_batch = 4;
+  int32 today_top_count = 5;
+  // 累计成功兑换与首次兑换时间
+  int32 total_redeems = 6;
+  google.protobuf.Timestamp first_redeem_at = 7;
+  // 今日失败次数与按原因的分布
+  int32 today_failures = 8;
+  map<string, int32> today_failure_reasons = 9;
+}
+
+message ListGiftCodeBatchesResponse {
+  repeated GiftCodeBatch items = 1;
+  int32 total = 2;
+  // all / active / ended
+  map<string, int32> counts = 3;
+  GiftCodeStats stats = 4;
+}
+
+message GetGiftCodeBatchRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+// 一条兑换记录。
+message GiftCodeRedeem {
+  string id = 1;
+  string batch_id = 2;
+  string batch_name = 3;
+  string code = 4;
+  string player_id = 5;
+  string nickname = 6;
+  // 通行证用户 id（passport_users）
+  string passport_user_id = 7;
+  // passport / game / admin
+  string channel = 8;
+  string platform = 9;
+  // success / already_redeemed / expired / not_started / exhausted / disabled / not_eligible / banned / rate_limited / not_found / code_used / channel_closed / failed
+  string result = 10;
+  string error_message = 11;
+  string execution_id = 12;
+  google.protobuf.Timestamp create_time = 13;
+}
+
+message GetGiftCodeBatchResponse {
+  GiftCodeBatch batch = 1;
+  // 最近兑换（最多 20 条）
+  repeated GiftCodeRedeem recent = 2;
+  int32 success_count = 3;
+  int32 failure_count = 4;
+}
+
+message CreateGiftCodeBatchRequest {
+  string server_id = 1;
+  string name = 2;
+  string kind = 3;
+  // 通用码：4–16 位字母数字；为空时自动生成
+  string code = 4;
+  // 一次性码：前缀与数量（1–10000）
+  string prefix = 5;
+  int32 quantity = 6;
+  repeated GameReward rewards = 7;
+  string message = 8;
+  int32 total_limit = 9;
+  int32 per_player_limit = 10;
+  google.protobuf.Timestamp start_at = 11;
+  google.protobuf.Timestamp end_at = 12;
+  string eligibility = 13;
+  int32 registered_within_days = 14;
+  repeated string channels = 15;
+}
+
+message UpdateGiftCodeBatchRequest {
+  string server_id = 1;
+  string id = 2;
+  string name = 3;
+  google.protobuf.Timestamp end_at = 4;
+  int32 total_limit = 5;
+  int32 per_player_limit = 6;
+  repeated string channels = 7;
+  string message = 8;
+}
+
+message DisableGiftCodeBatchRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+message ListGiftCodesRequest {
+  string server_id = 1;
+  string batch_id = 2;
+  // used / unused；空为全部
+  string state = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message GiftCodeItem {
+  string code = 1;
+  string used_by_player = 2;
+  google.protobuf.Timestamp used_at = 3;
+  // 使用者昵称快照
+  string used_by_name = 4;
+}
+
+message ListGiftCodesResponse {
+  repeated GiftCodeItem items = 1;
+  int32 total = 2;
+}
+
+message ListGiftCodeRedeemsRequest {
+  string server_id = 1;
+  string batch_id = 2;
+  // success / failed（除 success 外的全部）；空为全部
+  string result = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message ListGiftCodeRedeemsResponse {
+  repeated GiftCodeRedeem items = 1;
+  int32 total = 2;
+}

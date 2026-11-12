@@ -120,6 +120,13 @@ jobs:
           path: frontend/dist
           if-no-files-found: error
 
+      - name: Upload passport frontend dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist-passport
+          path: frontend/dist-passport
+          if-no-files-found: error
+
   binaries:
     name: Build ${{ matrix.target }}
     runs-on: ubuntu-latest
@@ -157,6 +164,12 @@ jobs:
         with:
           name: frontend-dist
           path: frontend/dist
+
+      - name: Download passport frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist-passport
+          path: frontend/dist-passport
 
       - name: Build binary
         shell: bash

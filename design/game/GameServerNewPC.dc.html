@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>接入游戏服务器 · PC</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.opt{display:flex;flex-direction:column;gap:0;padding:0;border-radius:22px;border:2px solid var(--line);background:var(--s);font:inherit;color:var(--ink);cursor:pointer;text-align:left;overflow:hidden}
+.opt:hover{border-color:var(--p)}
+.opt-on,.opt-on:hover{border-color:var(--p);box-shadow:0 0 0 4px var(--pSoft)}
+.opt:disabled{cursor:not-allowed;opacity:.62}
+.fld{display:flex;flex-direction:column;gap:8px}
+.fld>span{font-size:13px;font-weight:700}
+.hint{font-size:12px;color:var(--ink2);line-height:1.5}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1240px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span style="flex: 1">{{n.t}}</span>
+              <sc-if value="{{n.badge}}" hint-placeholder-val="{{false}}"><span class="gtag" style="height: 20px; padding: 0 7px; font-size: 11px">{{n.badge}}</span></sc-if>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <a href="GameServersPC.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 14px; font-weight: 700; color: var(--ink2); text-decoration: none"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevL}}"></path></svg>游戏服务器</a>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px">
+      <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em; flex: 1 1 300px">接入游戏服务器</h1>
+      <ol style="display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none">
+        <sc-for list="{{steps}}" as="sp" hint-placeholder-count="4">
+          <li style="display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px 0 6px; border-radius: 999px; background: {{sp.bg}}; color: {{sp.fg}}; font-size: 13px; font-weight: 700"><span class="num" style="width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: {{sp.nbg}}; color: {{sp.nfg}}; font-size: 12px">{{sp.n}}</span>{{sp.t}}</li>
+        </sc-for>
+      </ol>
+    </div>
+
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">1 · 选择游戏</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+        <sc-for list="{{games}}" as="gm" hint-placeholder-count="4">
+          <button class="opt {{gm.cls}}" onClick="{{gm.pick}}" disabled="{{gm.disabled}}" aria-pressed="{{gm.on}}">
+            <span style="display: block; position: relative; height: 112px; background: {{gm.bg}}">
+              <sc-if value="{{gm.cover}}" hint-placeholder-val="{{true}}"><img class="ph" src="{{gm.cover}}" alt="" style="width: 100%; height: 112px; object-position: 50% 28%"></sc-if>
+              <span style="position: absolute; left: 14px; bottom: -22px; width: 52px; height: 52px; border-radius: 16px; background: var(--s); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: {{gm.letterC}}">
+                <sc-if value="{{gm.logo}}" hint-placeholder-val="{{true}}"><img src="{{gm.logo}}" alt="" style="width: 40px; height: 40px"></sc-if>{{gm.letter}}
+              </span>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 6px; padding: 30px 16px 16px">
+              <span style="font-size: 16px; font-weight: 800">{{gm.t}}</span>
+              <span style="font-size: 12px; line-height: 1.55; color: var(--ink2)">{{gm.s}}</span>
+              <span style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px">
+                <sc-for list="{{gm.caps}}" as="c" hint-placeholder-count="3"><span class="tag" style="height: 22px; font-size: 11px">{{c}}</span></sc-for>
+              </span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 800">2 · 接入方式</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+        <sc-for list="{{modes}}" as="md" hint-placeholder-count="2">
+          <button class="opt {{md.cls}}" onClick="{{md.pick}}" aria-pressed="{{md.on}}" style="flex-direction: row; align-items: flex-start; gap: 16px; padding: 20px">
+            <span class="av {{md.av}}" style="width: 52px; height: 52px; border-radius: 16px; transform: rotate(-4deg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 24px; height: 24px"><path d="{{md.d}}"></path></svg></span>
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+              <span style="display: flex; align-items: center; gap: 10px"><span style="font-size: 18px; font-weight: 800">{{md.t}}</span><span class="tag">{{md.tag}}</span></span>
+              <span style="font-size: 13px; line-height: 1.6; color: var(--ink2)">{{md.s}}</span>
+              <span style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px">
+                <sc-for list="{{md.feats}}" as="f" hint-placeholder-count="6"><span style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: {{f.fg}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{f.d}}"></path></svg>{{f.t}}</span></sc-for>
+              </span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <div class="card" style="flex: 3 1 560px; min-width: 0; padding: 22px 24px; display: flex; flex-direction: column; gap: 18px">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 800">3 · {{formTitle}}</h2>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+          <label class="fld"><span>名称</span><span class="inp inp-sq"><input type="text" value="学マス · 正式服" aria-label="名称"></span></label>
+          <label class="fld"><span>标签 <span class="hint" style="font-weight: 500">可选，只用来筛选</span></span><span class="inp inp-sq"><input type="text" placeholder="例如：自启动、朋友服" aria-label="标签"></span></label>
+        </div>
+
+        <sc-if value="{{isHosted}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; flex-direction: column; gap: 16px">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+              <label class="fld"><span>运行节点</span><span class="inp inp-sq"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg><select aria-label="运行节点"><option>本机 · DESKTOP-K5K9BBC</option><option>home-nas</option></select></span></label>
+              <div class="fld"><span>安装方式</span><div class="seg" role="radiogroup" aria-label="安装方式"><button class="on" role="radio" aria-checked="true">使用已有目录</button><button role="radio" aria-checked="false">从构建包安装</button></div></div>
+            </div>
+            <label class="fld"><span>服务端目录</span><span class="inp inp-sq mono"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg><input class="mono" type="text" value="C:\Users\gucooing\Desktop\gakumas\server" aria-label="服务端目录"><button class="btn btn-s btn-sm" style="min-height: 32px">浏览</button></span><span class="hint">识别到 config.json、data/、res/ 与 gakumas-server.exe；端口和数据库从 config.json 读取</span></label>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+              <label class="fld"><span>gRPC 端口</span><span class="inp inp-sq"><input class="num" type="text" value="50051" aria-label="gRPC 端口"></span></label>
+              <label class="fld"><span>HTTP / SDK 端口</span><span class="inp inp-sq"><input class="num" type="text" value="8080" aria-label="HTTP 端口"></span></label>
+              <label class="fld"><span>资源服务器端口</span><span class="inp inp-sq"><input class="num" type="text" value="8090" aria-label="资源服务器端口"></span></label>
+            </div>
+            <div style="display: flex; flex-direction: column; border-top: 1px solid var(--line)">
+              <sc-for list="{{toggles}}" as="t" hint-placeholder-count="4">
+                <label style="display: flex; align-items: center; gap: 14px; min-height: 64px; border-bottom: 1px solid var(--line); cursor: pointer">
+                  <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">{{t.t}}</span><span class="hint">{{t.s}}</span></span>
+                  <input class="tg" type="checkbox" checked="{{t.on}}" aria-label="{{t.t}}">
+                </label>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isRemote}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; flex-direction: column; gap: 16px">
+            <label class="fld"><span>MGP 地址</span><span class="inp inp-sq"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.globe}}"></path></svg><input class="mono" type="text" value="http://10.0.0.12:8080/mgp/v1" aria-label="MGP 地址"></span><span class="hint">服务端开启 MGP 后在启动日志里打印这个地址</span></label>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+              <label class="fld"><span>Key ID</span><span class="inp inp-sq"><input class="mono" type="text" value="mgp_7Hk2pQ" aria-label="Key ID"></span></label>
+              <label class="fld"><span>密钥</span><span class="inp inp-sq"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.lock}}"></path></svg><input class="mono" type="password" value="xxxxxxxxxxxxxxxxxxxx" aria-label="密钥"></span></label>
+            </div>
+            <div style="padding: 14px 16px; border-radius: 16px; background: var(--s2); font-size: 13px; line-height: 1.7; color: var(--ink2)">密钥在服务端生成：<span class="mono" style="color: var(--ink)">gakumas-server mgp keygen</span>，把输出的 Key ID 和密钥贴到这里。Momoko 只保存加密后的密钥，之后可在服务器设置里轮换。</div>
+          </div>
+        </sc-if>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; padding-top: 6px">
+          <a class="btn btn-o" href="GameServersPC.dc.html">取消</a>
+          <button class="btn btn-s" onClick="{{test}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.zap}}"></path></svg>{{testT}}</button>
+          <a class="btn btn-p" href="GameServerPC.dc.html"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.check}}"></path></svg>{{submitT}}</a>
+        </div>
+      </div>
+
+      <aside class="card" style="flex: 2 1 340px; min-width: 0; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 800; flex: 1">{{checkTitle}}</h2>
+          <span class="pill {{checkPill}}">{{checkPillT}}</span>
+        </div>
+        <sc-for list="{{checks}}" as="c" hint-placeholder-count="6">
+          <div style="display: flex; align-items: flex-start; gap: 12px">
+            <span class="av" style="width: 28px; height: 28px; border-radius: 9px; background: {{c.bg}}; color: {{c.fg}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg></span>
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">{{c.t}}</span><span class="hint">{{c.s}}</span></span>
+          </div>
+        </sc-for>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 18px; background: var(--gSoft)">
+          <img src="./assets/chr-kcna-push.webp" alt="倉本千奈" style="width: 56px; height: 56px; border-radius: 50%; flex: none">
+          <span style="font-size: 13px; line-height: 1.6; color: var(--gInk); font-weight: 600">接入后自动拉取 manifest：12 个玩家视图、21 条 GM 指令、7 个配置域，以及卡面和图标素材。</span>
+        </div>
+      </aside>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1240}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  gamepad: 'M7 7h10a5 5 0 0 1 0 10h-3l-2-2-2 2H7A5 5 0 0 1 7 7zM7 10v4M5 12h4M16 11h.01M18 13h.01',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  idcard: 'M3 5h18v14H3zM9 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16a3.5 3.5 0 0 1 7 0M14 9h4M14 13h4',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  chevL: 'M15 6l-6 6 6 6',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  minus: 'M6 12h12',
+  alert: 'M12 3 2 21h20zM12 10v5M12 18h.01',
+  zap: 'M13 2 4 14h7l-1 8 9-12h-7z',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  globe: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z',
+  cpu: 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4',
+  cloud: 'M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19.5 10 4 4 0 0 1 18 18z'
+};
+function buildNav(active) {
+  return [
+    { title: '', items: [{ t: '工作台', d: IC.home, href: '../project/DashboardPC.dc.html' }, { t: '性能监控', d: IC.activity, href: '../project/MonitorPC.dc.html' }] },
+    { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: '../project/AppsPC.dc.html' }, { t: '应用类型', d: IC.layers, href: '../project/AppTypesPC.dc.html' }] },
+    { title: '游戏', items: [{ t: '游戏服务器', d: IC.gamepad, href: 'GameServersPC.dc.html', key: 'gs' }, { t: 'GM 运营', d: IC.wand, href: 'GkHomePC.dc.html', key: 'gm', badge: '学マス' }, { t: '用户通行证', d: IC.idcard, href: 'PassportPC.dc.html', key: 'pp' }] },
+    { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: '../project/FilesPC.dc.html' }, { t: '分享', d: IC.share, href: '../project/SharesPC.dc.html' }, { t: '文件源', d: IC.db, href: '../project/FileSourcesPC.dc.html' }] },
+    { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: '../project/ContainersPC.dc.html' }] },
+    { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: '../project/PortForwardPC.dc.html' }, { t: '内网穿透', d: IC.tunnel, href: '../project/TunnelPC.dc.html' }, { t: 'SSH 终端', d: IC.terminal, href: '../project/SSHPC.dc.html' }, { t: '智商检测', d: IC.spark, href: '../project/IQCheckPC.dc.html' }] },
+    { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: '../project/NodesPC.dc.html' }, { t: '用户与权限', d: IC.users, href: '../project/UsersPC.dc.html' }, { t: '任务与日志', d: IC.clock, href: '../project/TasksPC.dc.html' }, { t: '系统设置', d: IC.settings, href: '../project/SettingsPC.dc.html' }] }
+  ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === active ? 'nav-on' : '', badge: n.badge || '' })) }));
+}
+const GAMES = [
+  { k: 'gk', t: '学園アイドルマスター', s: '本地服务端 · Go。原生实现 MGP，支持托管与仅 GM。', cover: './assets/meishi-live01.webp', logo: './assets/hatsuboshi-logo.webp', letter: '', caps: ['托管', 'GM', '玩家端', '素材'] },
+  { k: 'mc', t: 'Minecraft 基岩版', s: 'BDS。GM 由适配器桥接到控制台命令与白名单文件。', cover: '', logo: '', letter: 'MC', bg: 'var(--okSoft)', caps: ['托管', 'GM 桥接'] },
+  { k: 'java', t: 'Minecraft Java 版', s: '规划中。可先用「通用」托管。', cover: '', logo: '', letter: 'J', bg: 'var(--aSoft)', caps: ['规划中'], disabled: true },
+  { k: 'gen', t: '通用', s: '任意服务端：Momoko 托管进程；服务端实现 MGP 后自动出现 GM。', cover: '', logo: '', letter: 'G', bg: 'var(--a2Soft)', caps: ['托管', 'MGP 可选'] }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const game = st.game || 'gk';
+    const mode = st.mode || 'hosted';
+    const tested = !!st.tested;
+    const hosted = mode === 'hosted';
+    const feat = (on, t) => ({ t, d: on ? IC.check : IC.minus, fg: on ? 'var(--ink)' : 'var(--ink2)' });
+    const ok = (t, s) => ({ t, s, d: IC.check, bg: 'var(--okSoft)', fg: 'var(--ok)' });
+    const warn = (t, s) => ({ t, s, d: IC.alert, bg: 'var(--warnSoft)', fg: 'var(--warn)' });
+    const wait = (t, s) => ({ t, s, d: IC.clock, bg: 'var(--s2)', fg: 'var(--ink2)' });
+    const hostedChecks = [
+      ok('找到服务端', 'gakumas-server.exe · 2026.11.10 构建'),
+      ok('config.json 可读', 'sqlite · data/gakumas.sqlite（582 KB）'),
+      ok('资源表齐全', 'res/Excel 与 res/Config 共 303 张表'),
+      ok('资源镜像', '../resource：Octo 705100 · r83，49,411 个对象，已完整发布'),
+      warn('旧 GM 令牌将停用', 'config.json 里的 gm_token 会被 MGP 密钥替换，旧的两个 GM 链接失效'),
+      wait('端口占用检查', '启动前再检查 50051 / 8080 / 8090')
+    ];
+    const remoteChecks = tested ? [
+      ok('连接成功', 'http://10.0.0.12:8080/mgp/v1 · 18 ms'),
+      ok('签名校验通过', 'Key mgp_7Hk2pQ · 时间偏差 0.4 秒'),
+      ok('manifest', 'gakumas · protocol 1 · 21 条指令 · 7 个配置域'),
+      ok('状态', '在线 1 · 注册 9 · 版本 dev-a3f9c1')
+    ] : [
+      wait('还没有测试', '填好地址和密钥后点「测试连接」'),
+      wait('签名校验', '需要服务端与本机时间相差 5 分钟以内'),
+      wait('manifest', '读取能力、指令与配置域')
+    ];
+    const steps = [['1', '选择游戏', true], ['2', '接入方式', true], ['3', hosted ? '目录与端口' : '地址与密钥', true], ['4', '完成', false]];
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav: buildNav('gs'),
+      steps: steps.map(([n, t, done], idx) => ({ n, t, bg: done ? 'var(--pSoft)' : 'var(--s2)', fg: done ? 'var(--pInk)' : 'var(--ink2)', nbg: done ? 'var(--p)' : 'var(--line)', nfg: done ? 'var(--pOn)' : 'var(--ink2)' })),
+      games: GAMES.map((g) => ({ ...g, bg: g.bg || 'var(--s2)', letterC: g.k === 'mc' ? 'var(--ok)' : 'var(--ink)', on: g.k === game, cls: g.k === game ? 'opt-on' : '', disabled: !!g.disabled, pick: () => this.setState({ game: g.k }) })),
+      modes: [
+        { k: 'hosted', t: '托管到 Momoko', tag: 'Momoko 运行它', av: 'av-p', d: IC.cpu, s: '服务端在本机或节点上由 Momoko 启停，复用应用实例的控制台、文件、自启动，并开启适配器的深度能力。', feats: [feat(true, '启停 · 控制台 · 文件'), feat(true, '专用设置表单'), feat(true, '服务端与资源更新'), feat(true, '状态探测与告警'), feat(true, '备份与回档'), feat(true, 'GM（自动配置密钥）')] },
+        { k: 'remote', t: '仅对接 GM', tag: '服务端在别处', av: 'av-a2', d: IC.cloud, s: '服务端已经部署在另一台机器、容器或云上。只填 MGP 地址与密钥，Momoko 不管理进程。', feats: [feat(false, '启停 · 控制台 · 文件'), feat(false, '专用设置表单'), feat(false, '服务端与资源更新'), feat(true, '状态监测'), feat(true, '玩家查询与 GM'), feat(true, '运营配置（服务端允许时）')] }
+      ].map((m) => ({ ...m, on: m.k === mode, cls: m.k === mode ? 'opt-on' : '', pick: () => this.setState({ mode: m.k, tested: false }) })),
+      isHosted: hosted,
+      isRemote: !hosted,
+      formTitle: hosted ? '目录与端口' : '地址与密钥',
+      toggles: [
+        { t: '同时托管资源服务器', s: 'resource-server.exe serve，客户端 resourceServer 指向 8090', on: true },
+        { t: '自动生成 MGP 密钥并写入 config.json', s: '替换 gm_token；密钥只保存在 Momoko 与服务端', on: true },
+        { t: '开机自启动', s: '本机启动后自动拉起服务端与资源服务器', on: true },
+        { t: '崩溃后自动重启', s: '停止超时 15 秒（与 save_timeout_seconds 一致）', on: true }
+      ],
+      test: () => this.setState({ tested: true }),
+      testT: hosted ? '预检' : '测试连接',
+      submitT: hosted ? '接入并启动' : '接入',
+      checkTitle: hosted ? '预检' : '连接测试',
+      checkPill: hosted ? 'warn' : (tested ? 'ok' : 'off'),
+      checkPillT: hosted ? '1 项需注意' : (tested ? '通过' : '未测试'),
+      checks: hosted ? hostedChecks : remoteChecks
+    };
+  }
+}
+</script>
+</body>
+</html>

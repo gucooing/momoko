@@ -6653,6 +6653,10 @@ export const messages = {
 export const knownTextMessages: Record<AppLocale, Record<string, string>> = {
   'zh-CN': {},
   'zh-HK': {
+    游戏: '遊戲',
+    游戏服务器: '遊戲伺服器',
+    'GM 运营': 'GM 營運',
+    用户通行证: '用戶通行證',
     性能监控: '效能監控',
     修改监控设置: '修改監控設定',
     智商检测: '智商檢測',
@@ -6742,6 +6746,10 @@ export const knownTextMessages: Record<AppLocale, Record<string, string>> = {
     删除菜单: '刪除選單',
   },
   'en-US': {
+    游戏: 'Games',
+    游戏服务器: 'Game servers',
+    'GM 运营': 'GM operations',
+    用户通行证: 'Player passport',
     性能监控: 'Monitoring',
     修改监控设置: 'Edit monitoring settings',
     智商检测: 'IQ check',

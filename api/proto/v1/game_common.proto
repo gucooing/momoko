@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+
+// 游戏服务器摘要：服务器搜索下拉、GM 运营页头、通行证等处共用。
+message GameServerBrief {
+  // 服务器 id
+  string id = 1;
+  // 游戏（适配器 id）：gakumas / bedrock / generic …
+  string game = 2;
+  // 游戏名称（manifest 或适配器给出，如「学園アイドルマスター」）
+  string game_name = 3;
+  // 服务器名称（只是名字）
+  string name = 4;
+  // 接入方式：hosted 托管 / remote 仅 GM
+  string mode = 5;
+  // 标签
+  repeated string tags = 6;
+  // 运行状态：running 运行中 / stopped 已停止 / unreachable 无法连接 / maintenance 维护中 / starting / stopping / unknown
+  string state = 7;
+  // 在线人数（MGP status 缓存；未知为 -1）
+  int32 online = 8;
+  // 注册人数（MGP status 缓存；未知为 -1）
+  int32 registered = 9;
+  // MGP 是否可达
+  bool mgp_ok = 10;
+  // 最近一次 MGP 探测延迟（毫秒）
+  int32 mgp_latency_ms = 11;
+  // 是否接入了 MGP（有地址与密钥）
+  bool mgp_configured = 12;
+  // 游戏图标资源 ID（manifest game.icon，前端素材包解析）
+  string icon = 13;
+  // 游戏主题色（manifest game.theme）
+  string theme = 14;
+  // 封面素材 key
+  string cover = 15;
+  // 托管所在节点 id（空为本机）
+  string node_id = 16;
+  // 最近查看时间（「最近查看」列表里有值）
+  google.protobuf.Timestamp viewed_at = 17;
+}
+
+// 一项奖励（与 MGP gift.send 的 rewards 相同）。
+message GameReward {
+  // 资源类型（manifest resourceTypes 的值）
+  int32 resource_type = 1;
+  // 资源 ID（货币为空串）
+  string resource_id = 2;
+  // 数量
+  int64 quantity = 3;
+}
+
+// 指令目标快照。
+message GameTarget {
+  // 玩家 id（MGP pid）
+  string pid = 1;
+  // 昵称
+  string name = 2;
+  // 游戏内显示的 ID
+  string display_id = 3;
+}
+
+// 搜索游戏服务器（搜索 + 最近查看；结果最多 20 条）。
+message SearchGameServersRequest {
+  // 关键字：名称、标签、游戏
+  string q = 1;
+  // 按游戏筛选
+  string game = 2;
+  // 条数，默认 20，最大 20
+  int32 limit = 3;
+}
+
+message SearchGameServersResponse {
+  // 搜索结果（按名称）
+  repeated GameServerBrief items = 1;
+  // 最近查看（最多 5 个，q 为空时返回）
+  repeated GameServerBrief recent = 2;
+  // 服务器总数
+  int32 total = 3;
+}

@@ -14,6 +14,19 @@ import (
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
 	"momoko/internal/data/ent/gen/frptunnelstat"
+	"momoko/internal/data/ent/gen/gameaccountlink"
+	"momoko/internal/data/ent/gen/gameaccountunlink"
+	"momoko/internal/data/ent/gen/gameconfigrevision"
+	"momoko/internal/data/ent/gen/gamemail"
+	"momoko/internal/data/ent/gen/gamerecentserver"
+	"momoko/internal/data/ent/gen/gameserver"
+	"momoko/internal/data/ent/gen/gameserverbackup"
+	"momoko/internal/data/ent/gen/gameserverhistory"
+	"momoko/internal/data/ent/gen/giftcode"
+	"momoko/internal/data/ent/gen/giftcodebatch"
+	"momoko/internal/data/ent/gen/giftcoderedeem"
+	"momoko/internal/data/ent/gen/gmexecution"
+	"momoko/internal/data/ent/gen/gmselfservice"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/iqcheckprompt"
@@ -24,6 +37,13 @@ import (
 	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
+	"momoko/internal/data/ent/gen/passportinvite"
+	"momoko/internal/data/ent/gen/passportloginlog"
+	"momoko/internal/data/ent/gen/passportmessage"
+	"momoko/internal/data/ent/gen/passportoidcclient"
+	"momoko/internal/data/ent/gen/passportoidcgrant"
+	"momoko/internal/data/ent/gen/passportsession"
+	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
@@ -103,37 +123,57 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			emailtemplate.Table:     emailtemplate.ValidColumn,
-			fileshare.Table:         fileshare.ValidColumn,
-			filesharedownload.Table: filesharedownload.ValidColumn,
-			filesource.Table:        filesource.ValidColumn,
-			fileupload.Table:        fileupload.ValidColumn,
-			fileuploadchunk.Table:   fileuploadchunk.ValidColumn,
-			frptunnel.Table:         frptunnel.ValidColumn,
-			frptunnelstat.Table:     frptunnelstat.ValidColumn,
-			iqcheckprompt.Table:     iqcheckprompt.ValidColumn,
-			iqcheckresult.Table:     iqcheckresult.ValidColumn,
-			iqchecksite.Table:       iqchecksite.ValidColumn,
-			instance.Table:          instance.ValidColumn,
-			instancetype.Table:      instancetype.ValidColumn,
-			menu.Table:              menu.ValidColumn,
-			monitorsample.Table:     monitorsample.ValidColumn,
-			node.Table:              node.ValidColumn,
-			oidcclient.Table:        oidcclient.ValidColumn,
-			operationlog.Table:      operationlog.ValidColumn,
-			portforward.Table:       portforward.ValidColumn,
-			portforwardstat.Table:   portforwardstat.ValidColumn,
-			role.Table:              role.ValidColumn,
-			sqlmigration.Table:      sqlmigration.ValidColumn,
-			sshhost.Table:           sshhost.ValidColumn,
-			session.Table:           session.ValidColumn,
-			systemconfig.Table:      systemconfig.ValidColumn,
-			task.Table:              task.ValidColumn,
-			themeasset.Table:        themeasset.ValidColumn,
-			user.Table:              user.ValidColumn,
-			userapikey.Table:        userapikey.ValidColumn,
-			usermessage.Table:       usermessage.ValidColumn,
-			usertheme.Table:         usertheme.ValidColumn,
+			emailtemplate.Table:      emailtemplate.ValidColumn,
+			fileshare.Table:          fileshare.ValidColumn,
+			filesharedownload.Table:  filesharedownload.ValidColumn,
+			filesource.Table:         filesource.ValidColumn,
+			fileupload.Table:         fileupload.ValidColumn,
+			fileuploadchunk.Table:    fileuploadchunk.ValidColumn,
+			frptunnel.Table:          frptunnel.ValidColumn,
+			frptunnelstat.Table:      frptunnelstat.ValidColumn,
+			gameaccountlink.Table:    gameaccountlink.ValidColumn,
+			gameaccountunlink.Table:  gameaccountunlink.ValidColumn,
+			gameconfigrevision.Table: gameconfigrevision.ValidColumn,
+			gamemail.Table:           gamemail.ValidColumn,
+			gamerecentserver.Table:   gamerecentserver.ValidColumn,
+			gameserver.Table:         gameserver.ValidColumn,
+			gameserverbackup.Table:   gameserverbackup.ValidColumn,
+			gameserverhistory.Table:  gameserverhistory.ValidColumn,
+			giftcode.Table:           giftcode.ValidColumn,
+			giftcodebatch.Table:      giftcodebatch.ValidColumn,
+			giftcoderedeem.Table:     giftcoderedeem.ValidColumn,
+			gmexecution.Table:        gmexecution.ValidColumn,
+			gmselfservice.Table:      gmselfservice.ValidColumn,
+			iqcheckprompt.Table:      iqcheckprompt.ValidColumn,
+			iqcheckresult.Table:      iqcheckresult.ValidColumn,
+			iqchecksite.Table:        iqchecksite.ValidColumn,
+			instance.Table:           instance.ValidColumn,
+			instancetype.Table:       instancetype.ValidColumn,
+			menu.Table:               menu.ValidColumn,
+			monitorsample.Table:      monitorsample.ValidColumn,
+			node.Table:               node.ValidColumn,
+			oidcclient.Table:         oidcclient.ValidColumn,
+			operationlog.Table:       operationlog.ValidColumn,
+			passportinvite.Table:     passportinvite.ValidColumn,
+			passportloginlog.Table:   passportloginlog.ValidColumn,
+			passportmessage.Table:    passportmessage.ValidColumn,
+			passportoidcclient.Table: passportoidcclient.ValidColumn,
+			passportoidcgrant.Table:  passportoidcgrant.ValidColumn,
+			passportsession.Table:    passportsession.ValidColumn,
+			passportuser.Table:       passportuser.ValidColumn,
+			portforward.Table:        portforward.ValidColumn,
+			portforwardstat.Table:    portforwardstat.ValidColumn,
+			role.Table:               role.ValidColumn,
+			sqlmigration.Table:       sqlmigration.ValidColumn,
+			sshhost.Table:            sshhost.ValidColumn,
+			session.Table:            session.ValidColumn,
+			systemconfig.Table:       systemconfig.ValidColumn,
+			task.Table:               task.ValidColumn,
+			themeasset.Table:         themeasset.ValidColumn,
+			user.Table:               user.ValidColumn,
+			userapikey.Table:         userapikey.ValidColumn,
+			usermessage.Table:        usermessage.ValidColumn,
+			usertheme.Table:          usertheme.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

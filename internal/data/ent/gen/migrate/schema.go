@@ -276,6 +276,510 @@ var (
 			},
 		},
 	}
+	// GameAccountLinksColumns holds the columns for the "game_account_links" table.
+	GameAccountLinksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "passport_user_id", Type: field.TypeString},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "game", Type: field.TypeString, Default: ""},
+		{Name: "player_id", Type: field.TypeString, Default: ""},
+		{Name: "display_id", Type: field.TypeString, Default: ""},
+		{Name: "account", Type: field.TypeString, Default: ""},
+		{Name: "nickname", Type: field.TypeString, Default: ""},
+		{Name: "avatar_asset", Type: field.TypeString, Default: ""},
+		{Name: "level", Type: field.TypeInt, Default: 0},
+		{Name: "method", Type: field.TypeEnum, Enums: []string{"password", "code", "oidc", "admin", "request"}},
+		{Name: "state", Type: field.TypeEnum, Enums: []string{"active", "pending", "rejected"}, Default: "active"},
+		{Name: "review_note", Type: field.TypeString, Default: ""},
+		{Name: "reviewed_by", Type: field.TypeString, Default: ""},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "linked_at", Type: field.TypeTime},
+		{Name: "last_seen_at", Type: field.TypeTime, Nullable: true},
+	}
+	// GameAccountLinksTable holds the schema information for the "game_account_links" table.
+	GameAccountLinksTable = &schema.Table{
+		Name:       "game_account_links",
+		Columns:    GameAccountLinksColumns,
+		PrimaryKey: []*schema.Column{GameAccountLinksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gameaccountlink_passport_user_id_server_id",
+				Unique:  true,
+				Columns: []*schema.Column{GameAccountLinksColumns[3], GameAccountLinksColumns[4]},
+			},
+			{
+				Name:    "gameaccountlink_server_id_player_id",
+				Unique:  false,
+				Columns: []*schema.Column{GameAccountLinksColumns[4], GameAccountLinksColumns[6]},
+			},
+			{
+				Name:    "gameaccountlink_server_id_state",
+				Unique:  false,
+				Columns: []*schema.Column{GameAccountLinksColumns[4], GameAccountLinksColumns[13]},
+			},
+		},
+	}
+	// GameAccountUnlinksColumns holds the columns for the "game_account_unlinks" table.
+	GameAccountUnlinksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "passport_user_id", Type: field.TypeString},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "player_id", Type: field.TypeString, Default: ""},
+		{Name: "nickname", Type: field.TypeString, Default: ""},
+		{Name: "by", Type: field.TypeEnum, Enums: []string{"self", "admin"}, Default: "self"},
+		{Name: "unlinked_at", Type: field.TypeTime},
+	}
+	// GameAccountUnlinksTable holds the schema information for the "game_account_unlinks" table.
+	GameAccountUnlinksTable = &schema.Table{
+		Name:       "game_account_unlinks",
+		Columns:    GameAccountUnlinksColumns,
+		PrimaryKey: []*schema.Column{GameAccountUnlinksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gameaccountunlink_passport_user_id_server_id_unlinked_at",
+				Unique:  false,
+				Columns: []*schema.Column{GameAccountUnlinksColumns[1], GameAccountUnlinksColumns[2], GameAccountUnlinksColumns[6]},
+			},
+		},
+	}
+	// GameConfigRevisionsColumns holds the columns for the "game_config_revisions" table.
+	GameConfigRevisionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "domain", Type: field.TypeString},
+		{Name: "seq", Type: field.TypeInt, Default: 0},
+		{Name: "revision", Type: field.TypeString, Default: ""},
+		{Name: "base_revision", Type: field.TypeString, Default: ""},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "author_id", Type: field.TypeString, Default: ""},
+		{Name: "author_name", Type: field.TypeString, Default: ""},
+		{Name: "comment", Type: field.TypeString, Default: ""},
+		{Name: "state", Type: field.TypeEnum, Enums: []string{"draft", "published"}, Default: "draft"},
+		{Name: "published_at", Type: field.TypeTime, Nullable: true},
+		{Name: "execution_id", Type: field.TypeString, Default: ""},
+	}
+	// GameConfigRevisionsTable holds the schema information for the "game_config_revisions" table.
+	GameConfigRevisionsTable = &schema.Table{
+		Name:       "game_config_revisions",
+		Columns:    GameConfigRevisionsColumns,
+		PrimaryKey: []*schema.Column{GameConfigRevisionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gameconfigrevision_server_id_domain_state",
+				Unique:  false,
+				Columns: []*schema.Column{GameConfigRevisionsColumns[3], GameConfigRevisionsColumns[4], GameConfigRevisionsColumns[12]},
+			},
+			{
+				Name:    "gameconfigrevision_server_id_domain_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GameConfigRevisionsColumns[3], GameConfigRevisionsColumns[4], GameConfigRevisionsColumns[1]},
+			},
+		},
+	}
+	// GameMailsColumns holds the columns for the "game_mails" table.
+	GameMailsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "body", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "rewards", Type: field.TypeJSON, Nullable: true},
+		{Name: "target", Type: field.TypeEnum, Enums: []string{"players", "condition", "all"}, Default: "all"},
+		{Name: "players", Type: field.TypeJSON, Nullable: true},
+		{Name: "condition", Type: field.TypeJSON, Nullable: true},
+		{Name: "exclude_banned", Type: field.TypeBool, Default: true},
+		{Name: "expire_days", Type: field.TypeInt, Default: 14},
+		{Name: "scheduled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "scheduled", "sending", "sent", "failed", "revoking", "revoked"}, Default: "draft"},
+		{Name: "matched_count", Type: field.TypeInt, Default: 0},
+		{Name: "matched_at", Type: field.TypeTime, Nullable: true},
+		{Name: "recipient_count", Type: field.TypeInt, Default: 0},
+		{Name: "failed_count", Type: field.TypeInt, Default: 0},
+		{Name: "claimed_count", Type: field.TypeInt, Default: 0},
+		{Name: "stats_at", Type: field.TypeTime, Nullable: true},
+		{Name: "error", Type: field.TypeString, Default: ""},
+		{Name: "execution_id", Type: field.TypeString, Default: ""},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "created_by_name", Type: field.TypeString, Default: ""},
+		{Name: "updated_by_name", Type: field.TypeString, Default: ""},
+		{Name: "sent_by", Type: field.TypeString, Default: ""},
+		{Name: "sent_by_name", Type: field.TypeString, Default: ""},
+		{Name: "sent_at", Type: field.TypeTime, Nullable: true},
+		{Name: "revoked_by_name", Type: field.TypeString, Default: ""},
+		{Name: "revoked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "revoked_count", Type: field.TypeInt, Default: 0},
+		{Name: "revoke_execution_id", Type: field.TypeString, Default: ""},
+	}
+	// GameMailsTable holds the schema information for the "game_mails" table.
+	GameMailsTable = &schema.Table{
+		Name:       "game_mails",
+		Columns:    GameMailsColumns,
+		PrimaryKey: []*schema.Column{GameMailsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gamemail_server_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{GameMailsColumns[3], GameMailsColumns[13]},
+			},
+			{
+				Name:    "gamemail_server_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GameMailsColumns[3], GameMailsColumns[1]},
+			},
+			{
+				Name:    "gamemail_status_scheduled_at",
+				Unique:  false,
+				Columns: []*schema.Column{GameMailsColumns[13], GameMailsColumns[12]},
+			},
+		},
+	}
+	// GameRecentServersColumns holds the columns for the "game_recent_servers" table.
+	GameRecentServersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "scope", Type: field.TypeEnum, Enums: []string{"admin", "passport"}, Default: "admin"},
+		{Name: "viewed_at", Type: field.TypeTime},
+	}
+	// GameRecentServersTable holds the schema information for the "game_recent_servers" table.
+	GameRecentServersTable = &schema.Table{
+		Name:       "game_recent_servers",
+		Columns:    GameRecentServersColumns,
+		PrimaryKey: []*schema.Column{GameRecentServersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gamerecentserver_user_id_scope_server_id",
+				Unique:  true,
+				Columns: []*schema.Column{GameRecentServersColumns[1], GameRecentServersColumns[3], GameRecentServersColumns[2]},
+			},
+			{
+				Name:    "gamerecentserver_user_id_scope_viewed_at",
+				Unique:  false,
+				Columns: []*schema.Column{GameRecentServersColumns[1], GameRecentServersColumns[3], GameRecentServersColumns[4]},
+			},
+		},
+	}
+	// GameServersColumns holds the columns for the "game_servers" table.
+	GameServersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "game", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "tags", Type: field.TypeJSON, Nullable: true},
+		{Name: "mode", Type: field.TypeEnum, Enums: []string{"hosted", "remote"}},
+		{Name: "node_id", Type: field.TypeString, Default: ""},
+		{Name: "install_dir", Type: field.TypeString, Default: ""},
+		{Name: "processes", Type: field.TypeJSON, Nullable: true},
+		{Name: "options", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "cover", Type: field.TypeString, Default: ""},
+		{Name: "mgp_endpoint", Type: field.TypeString, Default: ""},
+		{Name: "key_id", Type: field.TypeString, Default: ""},
+		{Name: "secret", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "key_rotated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "manifest", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "manifest_at", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "status_at", Type: field.TypeTime, Nullable: true},
+		{Name: "probe_ok", Type: field.TypeBool, Default: false},
+		{Name: "probe_latency_ms", Type: field.TypeInt, Default: 0},
+		{Name: "probe_error", Type: field.TypeString, Default: ""},
+		{Name: "probe_at", Type: field.TypeTime, Nullable: true},
+		{Name: "last_online_at", Type: field.TypeTime, Nullable: true},
+		{Name: "timezone", Type: field.TypeString, Default: ""},
+		{Name: "passport_visibility", Type: field.TypeEnum, Enums: []string{"public", "invite", "hidden"}, Default: "public"},
+		{Name: "passport_invite_code", Type: field.TypeString, Default: ""},
+		{Name: "remark", Type: field.TypeString, Default: ""},
+	}
+	// GameServersTable holds the schema information for the "game_servers" table.
+	GameServersTable = &schema.Table{
+		Name:       "game_servers",
+		Columns:    GameServersColumns,
+		PrimaryKey: []*schema.Column{GameServersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gameserver_game",
+				Unique:  false,
+				Columns: []*schema.Column{GameServersColumns[3]},
+			},
+		},
+	}
+	// GameServerBackupsColumns holds the columns for the "game_server_backups" table.
+	GameServerBackupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "trigger", Type: field.TypeEnum, Enums: []string{"manual", "schedule", "update", "restore"}, Default: "manual"},
+		{Name: "scope", Type: field.TypeJSON, Nullable: true},
+		{Name: "path", Type: field.TypeString, Default: ""},
+		{Name: "size", Type: field.TypeInt64, Default: 0},
+		{Name: "state", Type: field.TypeEnum, Enums: []string{"running", "ready", "failed"}, Default: "running"},
+		{Name: "note", Type: field.TypeString, Default: ""},
+		{Name: "error", Type: field.TypeString, Default: ""},
+		{Name: "operator_id", Type: field.TypeString, Default: ""},
+		{Name: "operator_name", Type: field.TypeString, Default: ""},
+	}
+	// GameServerBackupsTable holds the schema information for the "game_server_backups" table.
+	GameServerBackupsTable = &schema.Table{
+		Name:       "game_server_backups",
+		Columns:    GameServerBackupsColumns,
+		PrimaryKey: []*schema.Column{GameServerBackupsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gameserverbackup_server_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GameServerBackupsColumns[3], GameServerBackupsColumns[1]},
+			},
+		},
+	}
+	// GameServerHistoriesColumns holds the columns for the "game_server_histories" table.
+	GameServerHistoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeString},
+		{Name: "action", Type: field.TypeString, Default: ""},
+		{Name: "params", Type: field.TypeJSON, Nullable: true},
+		{Name: "result", Type: field.TypeEnum, Enums: []string{"success", "failed", "rolled_back", "running"}, Default: "success"},
+		{Name: "message", Type: field.TypeString, Default: ""},
+		{Name: "operator_id", Type: field.TypeString, Default: ""},
+		{Name: "operator_name", Type: field.TypeString, Default: ""},
+	}
+	// GameServerHistoriesTable holds the schema information for the "game_server_histories" table.
+	GameServerHistoriesTable = &schema.Table{
+		Name:       "game_server_histories",
+		Columns:    GameServerHistoriesColumns,
+		PrimaryKey: []*schema.Column{GameServerHistoriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gameserverhistory_server_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GameServerHistoriesColumns[3], GameServerHistoriesColumns[1]},
+			},
+		},
+	}
+	// GiftCodesColumns holds the columns for the "gift_codes" table.
+	GiftCodesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "batch_id", Type: field.TypeString},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "code", Type: field.TypeString},
+		{Name: "used_by_player", Type: field.TypeString, Default: ""},
+		{Name: "used_by_name", Type: field.TypeString, Default: ""},
+		{Name: "used_at", Type: field.TypeTime, Nullable: true},
+	}
+	// GiftCodesTable holds the schema information for the "gift_codes" table.
+	GiftCodesTable = &schema.Table{
+		Name:       "gift_codes",
+		Columns:    GiftCodesColumns,
+		PrimaryKey: []*schema.Column{GiftCodesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "giftcode_server_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{GiftCodesColumns[4], GiftCodesColumns[5]},
+			},
+			{
+				Name:    "giftcode_batch_id",
+				Unique:  false,
+				Columns: []*schema.Column{GiftCodesColumns[3]},
+			},
+		},
+	}
+	// GiftCodeBatchesColumns holds the columns for the "gift_code_batches" table.
+	GiftCodeBatchesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"universal", "unique"}},
+		{Name: "code", Type: field.TypeString, Default: ""},
+		{Name: "prefix", Type: field.TypeString, Default: ""},
+		{Name: "quantity", Type: field.TypeInt, Default: 0},
+		{Name: "rewards", Type: field.TypeJSON, Nullable: true},
+		{Name: "message", Type: field.TypeString, Default: ""},
+		{Name: "total_limit", Type: field.TypeInt, Default: 0},
+		{Name: "per_player_limit", Type: field.TypeInt, Default: 1},
+		{Name: "start_at", Type: field.TypeTime, Nullable: true},
+		{Name: "end_at", Type: field.TypeTime, Nullable: true},
+		{Name: "eligibility", Type: field.TypeEnum, Enums: []string{"all", "condition"}, Default: "all"},
+		{Name: "registered_within_days", Type: field.TypeInt, Default: 0},
+		{Name: "channels", Type: field.TypeJSON, Nullable: true},
+		{Name: "used_count", Type: field.TypeInt, Default: 0},
+		{Name: "disabled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "disabled_by_name", Type: field.TypeString, Default: ""},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "created_by_name", Type: field.TypeString, Default: ""},
+	}
+	// GiftCodeBatchesTable holds the schema information for the "gift_code_batches" table.
+	GiftCodeBatchesTable = &schema.Table{
+		Name:       "gift_code_batches",
+		Columns:    GiftCodeBatchesColumns,
+		PrimaryKey: []*schema.Column{GiftCodeBatchesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "giftcodebatch_server_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GiftCodeBatchesColumns[3], GiftCodeBatchesColumns[1]},
+			},
+			{
+				Name:    "giftcodebatch_server_id_code",
+				Unique:  false,
+				Columns: []*schema.Column{GiftCodeBatchesColumns[3], GiftCodeBatchesColumns[6]},
+			},
+		},
+	}
+	// GiftCodeRedeemsColumns holds the columns for the "gift_code_redeems" table.
+	GiftCodeRedeemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "batch_id", Type: field.TypeString, Default: ""},
+		{Name: "code", Type: field.TypeString},
+		{Name: "player_id", Type: field.TypeString, Default: ""},
+		{Name: "nickname", Type: field.TypeString, Default: ""},
+		{Name: "passport_user_id", Type: field.TypeString, Default: ""},
+		{Name: "channel", Type: field.TypeEnum, Enums: []string{"passport", "game", "admin"}, Default: "passport"},
+		{Name: "platform", Type: field.TypeString, Default: ""},
+		{Name: "result", Type: field.TypeEnum, Enums: []string{"success", "already_redeemed", "expired", "not_started", "exhausted", "disabled", "not_eligible", "banned", "rate_limited", "not_found", "code_used", "channel_closed", "failed"}},
+		{Name: "error_message", Type: field.TypeString, Default: ""},
+		{Name: "execution_id", Type: field.TypeString, Default: ""},
+	}
+	// GiftCodeRedeemsTable holds the schema information for the "gift_code_redeems" table.
+	GiftCodeRedeemsTable = &schema.Table{
+		Name:       "gift_code_redeems",
+		Columns:    GiftCodeRedeemsColumns,
+		PrimaryKey: []*schema.Column{GiftCodeRedeemsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "giftcoderedeem_server_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GiftCodeRedeemsColumns[3], GiftCodeRedeemsColumns[1]},
+			},
+			{
+				Name:    "giftcoderedeem_batch_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GiftCodeRedeemsColumns[4], GiftCodeRedeemsColumns[1]},
+			},
+			{
+				Name:    "giftcoderedeem_server_id_player_id_batch_id",
+				Unique:  false,
+				Columns: []*schema.Column{GiftCodeRedeemsColumns[3], GiftCodeRedeemsColumns[6], GiftCodeRedeemsColumns[4]},
+			},
+			{
+				Name:    "giftcoderedeem_passport_user_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GiftCodeRedeemsColumns[8], GiftCodeRedeemsColumns[1]},
+			},
+		},
+	}
+	// GmExecutionsColumns holds the columns for the "gm_executions" table.
+	GmExecutionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "command", Type: field.TypeString},
+		{Name: "command_title", Type: field.TypeString, Default: ""},
+		{Name: "command_group", Type: field.TypeString, Default: ""},
+		{Name: "risk", Type: field.TypeString, Default: ""},
+		{Name: "target_kind", Type: field.TypeString, Default: ""},
+		{Name: "actor_id", Type: field.TypeString, Default: ""},
+		{Name: "actor_name", Type: field.TypeString, Default: ""},
+		{Name: "actor_kind", Type: field.TypeEnum, Enums: []string{"admin", "player"}},
+		{Name: "channel", Type: field.TypeEnum, Enums: []string{"admin", "passport", "game"}, Default: "admin"},
+		{Name: "client_ip", Type: field.TypeString, Default: ""},
+		{Name: "platform", Type: field.TypeString, Default: ""},
+		{Name: "targets", Type: field.TypeJSON, Nullable: true},
+		{Name: "target_pids", Type: field.TypeJSON, Nullable: true},
+		{Name: "params", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "summary", Type: field.TypeJSON, Nullable: true},
+		{Name: "reason", Type: field.TypeString, Default: ""},
+		{Name: "confirmed", Type: field.TypeBool, Default: false},
+		{Name: "dry_run", Type: field.TypeBool, Default: false},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"success", "partial", "failed", "pending", "running", "rejected"}},
+		{Name: "result", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "success_count", Type: field.TypeInt, Default: 0},
+		{Name: "failed_count", Type: field.TypeInt, Default: 0},
+		{Name: "backup_ref", Type: field.TypeString, Default: ""},
+		{Name: "error_code", Type: field.TypeString, Default: ""},
+		{Name: "error_message", Type: field.TypeString, Default: ""},
+		{Name: "request_id", Type: field.TypeString},
+		{Name: "source", Type: field.TypeString, Default: ""},
+		{Name: "reviewed_by", Type: field.TypeString, Default: ""},
+		{Name: "reviewer_name", Type: field.TypeString, Default: ""},
+		{Name: "reviewed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "review_note", Type: field.TypeString, Default: ""},
+		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
+		{Name: "duration_ms", Type: field.TypeInt, Default: 0},
+	}
+	// GmExecutionsTable holds the schema information for the "gm_executions" table.
+	GmExecutionsTable = &schema.Table{
+		Name:       "gm_executions",
+		Columns:    GmExecutionsColumns,
+		PrimaryKey: []*schema.Column{GmExecutionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gmexecution_server_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GmExecutionsColumns[3], GmExecutionsColumns[1]},
+			},
+			{
+				Name:    "gmexecution_server_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{GmExecutionsColumns[3], GmExecutionsColumns[22]},
+			},
+			{
+				Name:    "gmexecution_actor_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{GmExecutionsColumns[9], GmExecutionsColumns[1]},
+			},
+			{
+				Name:    "gmexecution_request_id",
+				Unique:  true,
+				Columns: []*schema.Column{GmExecutionsColumns[29]},
+			},
+		},
+	}
+	// GmSelfServicesColumns holds the columns for the "gm_self_services" table.
+	GmSelfServicesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "command", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: false},
+		{Name: "daily_limit", Type: field.TypeInt, Default: 0},
+		{Name: "cooldown_sec", Type: field.TypeInt, Default: 0},
+		{Name: "need_approval", Type: field.TypeBool, Default: false},
+		{Name: "player_note", Type: field.TypeString, Default: ""},
+		{Name: "updated_by", Type: field.TypeString, Default: ""},
+		{Name: "updated_by_name", Type: field.TypeString, Default: ""},
+	}
+	// GmSelfServicesTable holds the schema information for the "gm_self_services" table.
+	GmSelfServicesTable = &schema.Table{
+		Name:       "gm_self_services",
+		Columns:    GmSelfServicesColumns,
+		PrimaryKey: []*schema.Column{GmSelfServicesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gmselfservice_server_id_command",
+				Unique:  true,
+				Columns: []*schema.Column{GmSelfServicesColumns[3], GmSelfServicesColumns[4]},
+			},
+		},
+	}
 	// IqCheckPromptsColumns holds the columns for the "iq_check_prompts" table.
 	IqCheckPromptsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -575,6 +1079,253 @@ var (
 				Name:    "operationlog_operation_time",
 				Unique:  false,
 				Columns: []*schema.Column{OperationLogsColumns[8]},
+			},
+		},
+	}
+	// PassportInvitesColumns holds the columns for the "passport_invites" table.
+	PassportInvitesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "email", Type: field.TypeString, Default: ""},
+		{Name: "server_id", Type: field.TypeString, Default: ""},
+		{Name: "max_uses", Type: field.TypeInt, Default: 1},
+		{Name: "used", Type: field.TypeInt, Default: 0},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "created_by_name", Type: field.TypeString, Default: ""},
+		{Name: "note", Type: field.TypeString, Default: ""},
+		{Name: "revoked", Type: field.TypeBool, Default: false},
+	}
+	// PassportInvitesTable holds the schema information for the "passport_invites" table.
+	PassportInvitesTable = &schema.Table{
+		Name:       "passport_invites",
+		Columns:    PassportInvitesColumns,
+		PrimaryKey: []*schema.Column{PassportInvitesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passportinvite_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{PassportInvitesColumns[1]},
+			},
+		},
+	}
+	// PassportLoginLogsColumns holds the columns for the "passport_login_logs" table.
+	PassportLoginLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "method", Type: field.TypeString, Default: ""},
+		{Name: "success", Type: field.TypeBool, Default: true},
+		{Name: "error_code", Type: field.TypeString, Default: ""},
+		{Name: "ip", Type: field.TypeString, Default: ""},
+		{Name: "device_id", Type: field.TypeString, Default: ""},
+		{Name: "device", Type: field.TypeString, Default: ""},
+		{Name: "user_agent", Type: field.TypeString, Default: ""},
+	}
+	// PassportLoginLogsTable holds the schema information for the "passport_login_logs" table.
+	PassportLoginLogsTable = &schema.Table{
+		Name:       "passport_login_logs",
+		Columns:    PassportLoginLogsColumns,
+		PrimaryKey: []*schema.Column{PassportLoginLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passportloginlog_user_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{PassportLoginLogsColumns[3], PassportLoginLogsColumns[1]},
+			},
+			{
+				Name:    "passportloginlog_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{PassportLoginLogsColumns[1]},
+			},
+			{
+				Name:    "passportloginlog_user_id_device_id",
+				Unique:  false,
+				Columns: []*schema.Column{PassportLoginLogsColumns[3], PassportLoginLogsColumns[8]},
+			},
+		},
+	}
+	// PassportMessagesColumns holds the columns for the "passport_messages" table.
+	PassportMessagesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeString},
+		{Name: "server_id", Type: field.TypeString, Default: ""},
+		{Name: "params", Type: field.TypeJSON, Nullable: true},
+		{Name: "read_at", Type: field.TypeTime, Nullable: true},
+	}
+	// PassportMessagesTable holds the schema information for the "passport_messages" table.
+	PassportMessagesTable = &schema.Table{
+		Name:       "passport_messages",
+		Columns:    PassportMessagesColumns,
+		PrimaryKey: []*schema.Column{PassportMessagesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passportmessage_user_id_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{PassportMessagesColumns[3], PassportMessagesColumns[1]},
+			},
+			{
+				Name:    "passportmessage_user_id_read_at",
+				Unique:  false,
+				Columns: []*schema.Column{PassportMessagesColumns[3], PassportMessagesColumns[7]},
+			},
+		},
+	}
+	// PassportOidcClientsColumns holds the columns for the "passport_oidc_clients" table.
+	PassportOidcClientsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "client_id", Type: field.TypeString, Unique: true},
+		{Name: "client_secret", Type: field.TypeString},
+		{Name: "redirect_uris", Type: field.TypeJSON},
+		{Name: "scopes", Type: field.TypeJSON},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "server_id", Type: field.TypeString, Default: ""},
+		{Name: "created_by_name", Type: field.TypeString, Default: ""},
+		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
+	}
+	// PassportOidcClientsTable holds the schema information for the "passport_oidc_clients" table.
+	PassportOidcClientsTable = &schema.Table{
+		Name:       "passport_oidc_clients",
+		Columns:    PassportOidcClientsColumns,
+		PrimaryKey: []*schema.Column{PassportOidcClientsColumns[0]},
+	}
+	// PassportOidcGrantsColumns holds the columns for the "passport_oidc_grants" table.
+	PassportOidcGrantsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "client_id", Type: field.TypeString},
+		{Name: "scopes", Type: field.TypeJSON, Nullable: true},
+		{Name: "last_used_at", Type: field.TypeTime},
+	}
+	// PassportOidcGrantsTable holds the schema information for the "passport_oidc_grants" table.
+	PassportOidcGrantsTable = &schema.Table{
+		Name:       "passport_oidc_grants",
+		Columns:    PassportOidcGrantsColumns,
+		PrimaryKey: []*schema.Column{PassportOidcGrantsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passportoidcgrant_user_id_client_id",
+				Unique:  true,
+				Columns: []*schema.Column{PassportOidcGrantsColumns[3], PassportOidcGrantsColumns[4]},
+			},
+			{
+				Name:    "passportoidcgrant_client_id",
+				Unique:  false,
+				Columns: []*schema.Column{PassportOidcGrantsColumns[4]},
+			},
+		},
+	}
+	// PassportSessionsColumns holds the columns for the "passport_sessions" table.
+	PassportSessionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "device_id", Type: field.TypeString},
+		{Name: "device", Type: field.TypeString, Default: ""},
+		{Name: "user_agent", Type: field.TypeString, Default: ""},
+		{Name: "client_id", Type: field.TypeString, Default: ""},
+		{Name: "login_method", Type: field.TypeString, Default: ""},
+		{Name: "ip", Type: field.TypeString, Default: ""},
+		{Name: "last_ip", Type: field.TypeString, Default: ""},
+		{Name: "last_active_at", Type: field.TypeTime, Nullable: true},
+		{Name: "access_noise", Type: field.TypeString},
+		{Name: "refresh_noise", Type: field.TypeString},
+		{Name: "persistent", Type: field.TypeBool, Default: true},
+		{Name: "expires_at", Type: field.TypeTime},
+	}
+	// PassportSessionsTable holds the schema information for the "passport_sessions" table.
+	PassportSessionsTable = &schema.Table{
+		Name:       "passport_sessions",
+		Columns:    PassportSessionsColumns,
+		PrimaryKey: []*schema.Column{PassportSessionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passportsession_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{PassportSessionsColumns[3]},
+			},
+			{
+				Name:    "passportsession_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{PassportSessionsColumns[15]},
+			},
+			{
+				Name:    "passportsession_device_id_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{PassportSessionsColumns[4], PassportSessionsColumns[3]},
+			},
+		},
+	}
+	// PassportUsersColumns holds the columns for the "passport_users" table.
+	PassportUsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "username", Type: field.TypeString, Unique: true},
+		{Name: "email", Type: field.TypeString, Default: ""},
+		{Name: "email_verified", Type: field.TypeBool, Default: false},
+		{Name: "password", Type: field.TypeString, Default: ""},
+		{Name: "password_updated_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Default: ""},
+		{Name: "bio", Type: field.TypeString, Default: ""},
+		{Name: "avatar", Type: field.TypeString, Default: ""},
+		{Name: "avatar_key", Type: field.TypeString, Default: ""},
+		{Name: "avatar_asset", Type: field.TypeString, Default: ""},
+		{Name: "language", Type: field.TypeString, Default: ""},
+		{Name: "timezone", Type: field.TypeString, Default: ""},
+		{Name: "email_code_login", Type: field.TypeBool, Default: true},
+		{Name: "totp_secret", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "totp_enabled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "recovery_codes", Type: field.TypeJSON, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "disabled"}, Default: "active"},
+		{Name: "last_login_at", Type: field.TypeTime, Nullable: true},
+		{Name: "last_login_ip", Type: field.TypeString, Default: ""},
+		{Name: "last_login_device", Type: field.TypeString, Default: ""},
+		{Name: "deletion_scheduled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "invite_id", Type: field.TypeString, Default: ""},
+		{Name: "register_ip", Type: field.TypeString, Default: ""},
+		{Name: "disabled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "disabled_by_name", Type: field.TypeString, Default: ""},
+		{Name: "reviews_synced_at", Type: field.TypeTime, Nullable: true},
+	}
+	// PassportUsersTable holds the schema information for the "passport_users" table.
+	PassportUsersTable = &schema.Table{
+		Name:       "passport_users",
+		Columns:    PassportUsersColumns,
+		PrimaryKey: []*schema.Column{PassportUsersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passportuser_email",
+				Unique:  false,
+				Columns: []*schema.Column{PassportUsersColumns[4]},
+			},
+			{
+				Name:    "passportuser_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{PassportUsersColumns[1]},
+			},
+			{
+				Name:    "passportuser_status",
+				Unique:  false,
+				Columns: []*schema.Column{PassportUsersColumns[19]},
+			},
+			{
+				Name:    "passportuser_deletion_scheduled_at",
+				Unique:  false,
+				Columns: []*schema.Column{PassportUsersColumns[23]},
 			},
 		},
 	}
@@ -1078,6 +1829,19 @@ var (
 		FileUploadChunksTable,
 		FrpTunnelsTable,
 		FrpTunnelStatsTable,
+		GameAccountLinksTable,
+		GameAccountUnlinksTable,
+		GameConfigRevisionsTable,
+		GameMailsTable,
+		GameRecentServersTable,
+		GameServersTable,
+		GameServerBackupsTable,
+		GameServerHistoriesTable,
+		GiftCodesTable,
+		GiftCodeBatchesTable,
+		GiftCodeRedeemsTable,
+		GmExecutionsTable,
+		GmSelfServicesTable,
 		IqCheckPromptsTable,
 		IqCheckResultsTable,
 		IqCheckSitesTable,
@@ -1088,6 +1852,13 @@ var (
 		NodesTable,
 		OidcClientsTable,
 		OperationLogsTable,
+		PassportInvitesTable,
+		PassportLoginLogsTable,
+		PassportMessagesTable,
+		PassportOidcClientsTable,
+		PassportOidcGrantsTable,
+		PassportSessionsTable,
+		PassportUsersTable,
 		PortForwardsTable,
 		PortForwardStatsTable,
 		RolesTable,

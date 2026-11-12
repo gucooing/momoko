@@ -1,0 +1,582 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "v1/game_common.proto";
+
+// GM 运营（权限 game:gm）：能进的管理员可以对任何服务器执行全部指令。
+// 游戏数据经 MGP 透传（只带资源 ID，前端查素材包）；GM 记录、玩家自助、配置草稿与版本保存在 Momoko。
+service GameGMService {
+  // 搜索可运营的服务器（搜索 + 最近查看，最多 20 条）
+  rpc SearchGmServers(SearchGameServersRequest) returns (SearchGameServersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/servers"
+    };
+  }
+  // GM 页面上下文：服务器摘要、manifest、实时 status、待审批数；同时记入「最近查看」
+  rpc GetGmContext(GetGmContextRequest) returns (GetGmContextResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/context"
+    };
+  }
+  // 玩家列表（MGP /players + 通行证绑定；filter=unlinked 为未绑定通行证）
+  rpc ListGmPlayers(ListGmPlayersRequest) returns (ListGmPlayersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/players"
+    };
+  }
+  // 玩家摘要与概览（MGP /players/{pid} + 通行证绑定 + GM 记录数）
+  rpc GetGmPlayer(GetGmPlayerRequest) returns (GetGmPlayerResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/players/{pid}"
+    };
+  }
+  // 玩家的分页数据（MGP /players/{pid}/views/{view}）
+  rpc GetGmPlayerView(GetGmPlayerViewRequest) returns (GmDataResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/players/{pid}/views/{view}"
+    };
+  }
+  // 全服统计与列表（MGP /reports/{report}）
+  rpc GetGmReport(GetGmReportRequest) returns (GmDataResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/reports/{report}"
+    };
+  }
+  // 选择器数据（MGP /catalogs/{kind}）
+  rpc GetGmCatalog(GetGmCatalogRequest) returns (GmDataResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/catalogs/{kind}"
+    };
+  }
+  // 执行 GM 指令（含试运行）；高风险必须填原因，危险指令需要输入玩家昵称确认
+  rpc ExecuteGmCommand(ExecuteGmCommandRequest) returns (ExecuteGmCommandResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/commands/{command}"
+      body: "*"
+    };
+  }
+
+  // GM 记录（管理端与玩家自助）
+  rpc ListGmExecutions(ListGmExecutionsRequest) returns (ListGmExecutionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/executions"
+    };
+  }
+  // GM 记录详情（不含请求参数）
+  rpc GetGmExecution(GetGmExecutionRequest) returns (GmExecution) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/executions/{id}"
+    };
+  }
+  // 批准玩家的申请并执行
+  rpc ApproveGmExecution(ApproveGmExecutionRequest) returns (GmExecution) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/executions/{id}/approve"
+      body: "*"
+    };
+  }
+  // 驳回玩家的申请
+  rpc RejectGmExecution(RejectGmExecutionRequest) returns (GmExecution) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/executions/{id}/reject"
+      body: "*"
+    };
+  }
+
+  // 玩家自助：只列出 manifest 里允许自助的指令
+  rpc ListGmSelfService(ListGmSelfServiceRequest) returns (ListGmSelfServiceResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/self-service"
+    };
+  }
+  // 修改一条指令的玩家自助设置（立即生效）
+  rpc UpdateGmSelfService(UpdateGmSelfServiceRequest) returns (GmSelfServicePolicy) {
+    option (google.api.http) = {
+      put: "/api/v1/game/gm/{server_id}/self-service/{command}"
+      body: "*"
+    };
+  }
+
+  // 配置域列表（服务端 revision + Momoko 草稿与最近发布）
+  rpc ListGmConfigs(ListGmConfigsRequest) returns (ListGmConfigsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/configs"
+    };
+  }
+  // 读取配置域：服务端当前内容与 revision，以及草稿（有的话）
+  rpc GetGmConfig(GetGmConfigRequest) returns (GetGmConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/configs/{domain}"
+    };
+  }
+  // 保存草稿（每个配置域一份，自动保存用）
+  rpc SaveGmConfigDraft(SaveGmConfigDraftRequest) returns (GmConfigDraft) {
+    option (google.api.http) = {
+      put: "/api/v1/game/gm/{server_id}/configs/{domain}/draft"
+      body: "*"
+    };
+  }
+  // 放弃草稿
+  rpc DiscardGmConfigDraft(DiscardGmConfigDraftRequest) returns (DiscardGmConfigDraftResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/game/gm/{server_id}/configs/{domain}/draft"
+    };
+  }
+  // 校验内容（MGP PUT dryRun，与服务端启动时相同的校验）
+  rpc ValidateGmConfig(ValidateGmConfigRequest) returns (ValidateGmConfigResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/configs/{domain}/validate"
+      body: "*"
+    };
+  }
+  // 发布（高风险，必须填原因）：写回服务端并热重载，记一条 config.publish GM 记录与一个版本
+  rpc PublishGmConfig(PublishGmConfigRequest) returns (PublishGmConfigResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/gm/{server_id}/configs/{domain}/publish"
+      body: "*"
+    };
+  }
+  // 版本记录（不含内容）
+  rpc ListGmConfigRevisions(ListGmConfigRevisionsRequest) returns (ListGmConfigRevisionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/configs/{domain}/revisions"
+    };
+  }
+  // 某个版本的内容（对比、恢复为草稿用）
+  rpc GetGmConfigRevision(GetGmConfigRevisionRequest) returns (GmConfigRevision) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/configs/{domain}/revisions/{id}"
+    };
+  }
+}
+
+message GetGmContextRequest {
+  // 服务器 id
+  string server_id = 1;
+}
+
+message GetGmContextResponse {
+  // 服务器摘要
+  GameServerBrief server = 1;
+  // manifest（MGP 原样；未接入或拉取失败时为空）
+  google.protobuf.Value manifest = 2;
+  // 实时 status（MGP 原样；连接失败时为空，见 status_error）
+  google.protobuf.Value status = 3;
+  // status 拉取失败的原因（错误码）
+  string status_error = 4;
+  // 服务器时区（IANA），「今天」按它的自然日计算
+  string timezone = 5;
+  // 待审批的玩家申请数
+  int32 pending_approvals = 6;
+  // 已开放的玩家自助指令数
+  int32 self_service_enabled = 7;
+  // 已绑定通行证的游戏账号数
+  int32 linked_accounts = 8;
+}
+
+// 玩家绑定的通行证。
+message GmPlayerLink {
+  // 玩家 id
+  string pid = 1;
+  // 通行证用户 id（passport_users）
+  string passport_user_id = 2;
+  // 通行证用户名
+  string username = 3;
+  // 通行证昵称
+  string name = 4;
+  // 绑定方式：password / code / oidc / admin / request
+  string method = 5;
+  // 绑定时间
+  google.protobuf.Timestamp linked_at = 6;
+}
+
+message ListGmPlayersRequest {
+  string server_id = 1;
+  // 关键字：账号名、User ID、昵称（MGP）或通行证用户名（Momoko）
+  string q = 2;
+  // 筛选：all / online / activeToday / banned / unlinked（未绑定通行证）
+  string filter = 3;
+  // 上一页的 next_cursor
+  string cursor = 4;
+  // 每页条数，默认 20，最大 200
+  int32 limit = 5;
+}
+
+message ListGmPlayersResponse {
+  // 玩家条目（MGP /players 的 items 原样）
+  google.protobuf.Value items = 1;
+  // 下一页游标（空为最后一页）
+  string next_cursor = 2;
+  // 当前筛选的总数
+  int32 total = 3;
+  // 各筛选的人数：all / online / activeToday / banned（MGP）+ unlinked（Momoko 计算）
+  map<string, int32> summary = 4;
+  // 本页玩家绑定的通行证
+  repeated GmPlayerLink links = 5;
+  // 本服务器已绑定通行证的游戏账号数
+  int32 linked_count = 6;
+}
+
+message GetGmPlayerRequest {
+  string server_id = 1;
+  string pid = 2;
+}
+
+message GetGmPlayerResponse {
+  // MGP /players/{pid} 原样（条目 + overview + logins）
+  google.protobuf.Value player = 1;
+  // 绑定的通行证（没有为空）
+  GmPlayerLink link = 2;
+  // 涉及该玩家的 GM 记录数
+  int32 gm_executions = 3;
+}
+
+message GetGmPlayerViewRequest {
+  string server_id = 1;
+  string pid = 2;
+  // 视图 id（manifest views）
+  string view = 3;
+  // 透传给 MGP 的查询串，例如 "state=unreceived&cursor=20&limit=20"
+  string query = 4;
+}
+
+// MGP 数据透传。
+message GmDataResponse {
+  // MGP 返回的 data 原样
+  google.protobuf.Value data = 1;
+}
+
+message GetGmReportRequest {
+  string server_id = 1;
+  // 报表 id（manifest reports）：dashboard / gasha / pvp / produce / seminar / tower / gifts
+  string report = 2;
+  // 透传给 MGP 的查询串，例如 "days=14"
+  string query = 3;
+}
+
+message GetGmCatalogRequest {
+  string server_id = 1;
+  // 目录：currency / item / idolCardSkin / supportCard / character / costume / music / gasha …
+  string kind = 2;
+  // 透传给 MGP 的查询串，例如 "q=kcna&rarity=3&limit=50"
+  string query = 3;
+}
+
+message ExecuteGmCommandRequest {
+  string server_id = 1;
+  // 指令 id
+  string command = 2;
+  // 目标玩家 pid（server 指令为空；players 指令 1–200 个）
+  repeated string targets = 3;
+  // 参数（按 manifest 的 JSON Schema）
+  google.protobuf.Value params = 4;
+  // 试运行：不改变任何数据，返回与真实执行相同的结果
+  bool dry_run = 6;
+  // 危险指令：输入的玩家昵称（必须与目标当前昵称一致）
+  string confirm_name = 7;
+  // 摘要参数（礼物文案等可展示的信息，写进 GM 记录）
+  map<string, string> summary = 8;
+}
+
+message ExecuteGmCommandResponse {
+  // GM 记录 id（试运行也记录，但不出现在默认列表里）
+  string execution_id = 1;
+  // success / partial / failed
+  string status = 2;
+  // MGP 指令结果原样（results 逐个对象、summary）
+  google.protobuf.Value result = 3;
+  // 整体失败时的错误码与信息
+  string error_code = 4;
+  string error_message = 5;
+}
+
+// GM 记录（不含请求参数）。
+message GmExecution {
+  string id = 1;
+  string server_id = 2;
+  // 指令 id 与标题、分组、风险快照
+  string command = 3;
+  string command_title = 4;
+  string command_group = 5;
+  string risk = 6;
+  string target_kind = 7;
+  // 执行者
+  string actor_id = 8;
+  string actor_name = 9;
+  // admin 管理端 / player 玩家自助
+  string actor_kind = 10;
+  // 来源：admin Momoko 后台 / passport 通行证 / game 游戏内
+  string channel = 11;
+  string client_ip = 12;
+  string platform = 13;
+  // 目标快照
+  repeated GameTarget targets = 14;
+  // 可展示的摘要参数（前端本地化）
+  map<string, string> summary = 15;
+  // 原因 / 玩家申请理由
+  string reason = 16;
+  // 执行前输入了玩家昵称确认
+  bool confirmed = 17;
+  bool dry_run = 18;
+  // success / partial / failed / pending / running / rejected
+  string status = 19;
+  // 逐个对象的结果（MGP results 原样，详情接口才返回）
+  google.protobuf.Value result = 20;
+  int32 success_count = 21;
+  int32 failed_count = 22;
+  // 服务端自动备份 id（危险指令）
+  string backup_ref = 23;
+  string error_code = 24;
+  string error_message = 25;
+  string request_id = 26;
+  // 来源对象：mail:<id> / code:<id> / config:<domain> / self-service
+  string source = 27;
+  // 审批
+  string reviewed_by = 28;
+  string reviewer_name = 29;
+  google.protobuf.Timestamp reviewed_at = 30;
+  string review_note = 31;
+  google.protobuf.Timestamp create_time = 32;
+  google.protobuf.Timestamp finished_at = 33;
+  int32 duration_ms = 34;
+  // 该玩家此前成功执行过这条指令的次数（待审批卡片「这个账号还没用过这项」）
+  int32 prior_uses = 35;
+}
+
+message ListGmExecutionsRequest {
+  string server_id = 1;
+  // admin / player；空为全部
+  string actor_kind = 2;
+  // 状态筛选：pending / failed（含 failed、partial、rejected）/ success；空为全部
+  string status = 3;
+  // 风险：low / medium / high / danger
+  string risk = 4;
+  // 指令 id
+  string command = 5;
+  // 涉及的玩家 pid
+  string pid = 6;
+  // 关键字：玩家、执行者、指令 id、requestId
+  string q = 7;
+  // 时间范围
+  google.protobuf.Timestamp since = 8;
+  google.protobuf.Timestamp until = 9;
+  // 包含试运行
+  bool include_dry_run = 10;
+  int32 page = 11;
+  int32 page_size = 12;
+  // 执行者用户 id（玩家「我的申请 / 操作记录」用）
+  string actor_id = 13;
+}
+
+message ListGmExecutionsResponse {
+  repeated GmExecution items = 1;
+  int32 total = 2;
+  // 时间范围内各分类的数量：all / admin / player / pending / failed
+  map<string, int32> counts = 3;
+  // 全部待审批（不受筛选影响，按时间从旧到新，最多 20 条）
+  repeated GmExecution pending = 4;
+}
+
+message GetGmExecutionRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+message ApproveGmExecutionRequest {
+  string server_id = 1;
+  string id = 2;
+  // 危险指令：输入的玩家昵称
+  string confirm_name = 3;
+  // 审批意见
+  string note = 4;
+}
+
+message RejectGmExecutionRequest {
+  string server_id = 1;
+  string id = 2;
+  // 驳回原因（玩家可见）
+  string note = 3;
+}
+
+// 一条指令的玩家自助设置。
+message GmSelfServicePolicy {
+  // 指令 id 与 manifest 信息
+  string command = 1;
+  string title = 2;
+  string group = 3;
+  string risk = 4;
+  string target = 5;
+  // 参数 JSON Schema（玩家需要填参数时用）
+  google.protobuf.Value params = 6;
+  // 五项设置
+  bool enabled = 7;
+  int32 daily_limit = 8;
+  int32 cooldown_sec = 9;
+  bool need_approval = 10;
+  string player_note = 11;
+  string updated_by_name = 12;
+  google.protobuf.Timestamp update_time = 13;
+}
+
+message ListGmSelfServiceRequest {
+  string server_id = 1;
+}
+
+message ListGmSelfServiceResponse {
+  repeated GmSelfServicePolicy items = 1;
+  // 已开放的条数
+  int32 enabled = 2;
+}
+
+message UpdateGmSelfServiceRequest {
+  string server_id = 1;
+  string command = 2;
+  bool enabled = 3;
+  // 每个玩家每天次数（0 不限）
+  int32 daily_limit = 4;
+  // 间隔秒数（0 不限）
+  int32 cooldown_sec = 5;
+  bool need_approval = 6;
+  string player_note = 7;
+}
+
+// 配置域草稿。
+message GmConfigDraft {
+  string id = 1;
+  // 草稿内容（JSON 文本，保持键顺序）
+  string content = 2;
+  // 编辑所基于的服务端 revision
+  string base_revision = 3;
+  string author_name = 4;
+  string comment = 5;
+  google.protobuf.Timestamp update_time = 6;
+}
+
+// 配置域。
+message GmConfigDomain {
+  string id = 1;
+  string title = 2;
+  string file = 3;
+  bool hot_reload = 4;
+  // 服务端当前 revision
+  string revision = 5;
+  // 草稿（没有为空）
+  GmConfigDraft draft = 6;
+  // 最近一次经 Momoko 发布的版本号、时间与作者
+  int32 last_seq = 7;
+  google.protobuf.Timestamp last_published_at = 8;
+  string last_published_by = 9;
+}
+
+message ListGmConfigsRequest {
+  string server_id = 1;
+}
+
+message ListGmConfigsResponse {
+  repeated GmConfigDomain items = 1;
+}
+
+message GetGmConfigRequest {
+  string server_id = 1;
+  string domain = 2;
+}
+
+message GetGmConfigResponse {
+  // 配置域信息（含草稿元数据）
+  GmConfigDomain domain = 1;
+  // 服务端当前内容（JSON 文本，保持键顺序）
+  string content = 2;
+}
+
+message SaveGmConfigDraftRequest {
+  string server_id = 1;
+  string domain = 2;
+  // 草稿内容（JSON 文本）
+  string content = 3;
+  // 编辑所基于的服务端 revision
+  string base_revision = 4;
+  string comment = 5;
+}
+
+message DiscardGmConfigDraftRequest {
+  string server_id = 1;
+  string domain = 2;
+}
+
+message DiscardGmConfigDraftResponse {}
+
+message ValidateGmConfigRequest {
+  string server_id = 1;
+  string domain = 2;
+  // 要校验的内容（JSON 文本）
+  string content = 3;
+}
+
+message ValidateGmConfigResponse {
+  bool valid = 1;
+  // 校验失败的原因（服务端原文）
+  string error = 2;
+}
+
+message PublishGmConfigRequest {
+  string server_id = 1;
+  string domain = 2;
+  // 要发布的内容（JSON 文本）；为空时发布草稿
+  string content = 3;
+  // 编辑所基于的服务端 revision（与服务端不一致时返回冲突）
+  string base_revision = 4;
+  // 版本说明
+  string comment = 6;
+}
+
+message PublishGmConfigResponse {
+  // 发布后服务端的 revision
+  string revision = 1;
+  // Momoko 版本号
+  int32 seq = 2;
+  string execution_id = 3;
+}
+
+// 配置版本。
+message GmConfigRevision {
+  string id = 1;
+  string domain = 2;
+  // Momoko 版本号（r1、r2…；草稿为 0）
+  int32 seq = 3;
+  // 服务端 revision
+  string revision = 4;
+  string base_revision = 5;
+  string author_name = 6;
+  string comment = 7;
+  // draft / published
+  string state = 8;
+  google.protobuf.Timestamp published_at = 9;
+  google.protobuf.Timestamp create_time = 10;
+  string execution_id = 11;
+  // 内容（JSON 文本，只在单个版本接口返回）
+  string content = 12;
+}
+
+message ListGmConfigRevisionsRequest {
+  string server_id = 1;
+  string domain = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ListGmConfigRevisionsResponse {
+  repeated GmConfigRevision items = 1;
+  int32 total = 2;
+}
+
+message GetGmConfigRevisionRequest {
+  string server_id = 1;
+  string domain = 2;
+  string id = 3;
+}

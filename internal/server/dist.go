@@ -74,6 +74,37 @@ func newDistHandler() (*distHandler, bool) {
 	return newDistHandlerWithFS(distFS), true
 }
 
+// passportDistMiddleware 用户通行证 server 的前端：frontend/dist-passport（SPA 回退到它的 index.html），
+// 以及游戏素材 /games/（静态文件在管理端产物 frontend/dist/games/ 里，两端共用一份，只按文件提供、不回退）。
+func passportDistMiddleware() httpm.FilterFunc {
+	app := passportDistHandler()
+	var shared *distHandler
+	if distFS, ok := embeddedDistFS(); ok {
+		shared = newDistHandlerWithFS(distFS)
+	}
+	if app == nil && shared == nil {
+		return passthroughFilter()
+	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if (r.Method == http.MethodGet || r.Method == http.MethodHead) && strings.HasPrefix(r.URL.Path, "/games/") {
+				filePath := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
+				if shared != nil {
+					if _, ok := shared.distFiles[filePath]; ok && shared.serveDistFile(w, r, filePath) {
+						return
+					}
+				}
+				http.NotFound(w, r)
+				return
+			}
+			if app != nil && app.tryServe(w, r) {
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func newDistHandlerWithFS(distFS fs.FS) *distHandler {
 	return &distHandler{
 		files:     distFS,
@@ -88,7 +119,8 @@ func (h *distHandler) tryServe(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL == nil {
 		return false
 	}
-	if r.URL.Path == apiPrefix || strings.HasPrefix(r.URL.Path, apiPrefix+"/") {
+	// 所有 /api/ 路径都交给接口处理，不做 SPA 回退。
+	if r.URL.Path == "/api" || strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == apiPrefix {
 		return false
 	}
 
@@ -276,7 +308,8 @@ func setDistCacheHeaders(h http.Header, filePath string) {
 }
 
 func isImmutableDistAsset(filePath string) bool {
-	return strings.HasPrefix(filePath, "assets/")
+	// assets/ 是 Vite 带哈希的产物；games/ 是游戏素材（文件名 <name>.<hash>.webp，内容变了文件名就变）。
+	return strings.HasPrefix(filePath, "assets/") || strings.HasPrefix(filePath, "games/")
 }
 
 func fileExists(fsys fs.FS, name string) bool {
@@ -290,6 +323,18 @@ func fileModTime(fsys fs.FS, name string) time.Time {
 		return time.Time{}
 	}
 	return info.ModTime()
+}
+
+// passportDistHandler 用户通行证前端产物（没有构建时为 nil）。
+func passportDistHandler() *distHandler {
+	distFS, err := fs.Sub(root.EmbeddedPassportDist, "frontend/dist-passport")
+	if err != nil {
+		return nil
+	}
+	if info, err := fs.Stat(distFS, distIndex); err != nil || info.IsDir() {
+		return nil
+	}
+	return newDistHandlerWithFS(distFS)
 }
 
 func embeddedDistFS() (fs.FS, bool) {

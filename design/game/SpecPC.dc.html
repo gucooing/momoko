@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>统一接口 MGP v1 · 数据模型 · 权限模型</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.sn2{width:26px;height:26px;border-radius:9px;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:'Outfit',sans-serif;flex:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 2240px; padding: 56px 32px 80px">
+<div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px">
+
+  <header style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px">
+    <div style="flex: 1 1 520px; display: flex; flex-direction: column; gap: 10px">
+      <span class="lbl" style="color: var(--pInk)">设计说明 · 给实现方</span>
+      <h1 style="margin: 0; font-size: 40px; font-weight: 800; letter-spacing: -0.01em">统一接口 MGP v1 · 数据模型 · 权限模型</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 1.7; color: var(--ink2); max-width: 820px">MGP（Momoko Game Protocol）是游戏服务端对 Momoko 暴露的一组 HTTP 接口。Momoko 只认这一份接口：页面上的玩家查询、GM 表单、卡池与活动编辑、玩家端自助功能，全部由服务端的 manifest 声明驱动。游戏差异留在服务端和适配器里，Momoko 前端不按游戏写死。</p>
+    </div>
+    <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}" style="border: 1.5px solid var(--line); border-radius: 999px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+  </header>
+
+  <section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+    <sc-for list="{{concepts}}" as="c" hint-placeholder-count="8">
+      <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span class="av {{c.av}}" style="width: 34px; height: 34px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg></span>
+          <span style="font-size: 16px; font-weight: 800">{{c.t}}</span>
+        </div>
+        <span style="font-size: 13px; line-height: 1.65; color: var(--ink2)">{{c.s}}</span>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px">
+      <h2 style="margin: 0; font-size: 26px; font-weight: 800">1 · MGP v1 接口</h2>
+      <span style="font-size: 14px; color: var(--ink2)">前缀 <span class="mono">/mgp/v1</span>，JSON，统一返回 <span class="mono">{ code, message, data, requestId }</span></span>
+    </div>
+    <div class="card" style="overflow-x: auto">
+      <div style="min-width: 1080px">
+        <div class="row row-h" style="grid-template-columns: 70px 300px minmax(0, 1fr) 360px"><span>方法</span><span>路径</span><span>作用</span><span>学マス 服务端实现要点</span></div>
+        <sc-for list="{{api}}" as="r" hint-placeholder-count="11">
+          <div class="row" style="grid-template-columns: 70px 300px minmax(0, 1fr) 360px; padding-top: 12px; padding-bottom: 12px; align-items: start">
+            <span class="tag mono" style="justify-self: start; background: {{r.mbg}}; color: {{r.mfg}}">{{r.m}}</span>
+            <span class="mono" style="font-size: 13px; font-weight: 600; word-break: break-all">{{r.p}}</span>
+            <span style="font-size: 14px; line-height: 1.6">{{r.what}}</span>
+            <span style="font-size: 13px; line-height: 1.6; color: var(--ink2)">{{r.gk}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+      <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 15px; font-weight: 800">签名鉴权</span>
+        <span style="font-size: 13px; line-height: 1.7; color: var(--ink2)">请求头 <span class="mono">X-MGP-Key / Timestamp / Nonce / Signature</span>；签名 = HMAC-SHA256(方法、路径、时间戳、随机数、body 摘要)。±5 分钟时间窗、拒绝重放——与现有节点 API Key 同一套方案，代码直接复用。托管模式下密钥由 Momoko 生成并写入服务端配置。</span>
+      </div>
+      <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 15px; font-weight: 800">写操作约束</span>
+        <span style="font-size: 13px; line-height: 1.7; color: var(--ink2)">每个指令带 <span class="mono">requestId</span> 幂等；支持 <span class="mono">dryRun</span> 先预览变化；服务端提交成功后才返回成功，返回值列出实际变化（发了什么、扣了什么、剩余多少），Momoko 原样写进审计。</span>
+      </div>
+      <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 15px; font-weight: 800">视图与表单不写死</span>
+        <span style="font-size: 13px; line-height: 1.7; color: var(--ink2)">views 声明玩家详情里有哪些分页（卡片网格 / 表格 / 键值），commands 的参数用 JSON Schema + <span class="mono">x-picker</span> 提示（奖励、偶像卡、道具…）。Momoko 按声明渲染；需要更讲究的展示时，再给该游戏加专属前端组件。</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+    <div style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 26px; font-weight: 800">2 · manifest 片段（学マス）</h2>
+      <pre class="code hs">{{manifest}}</pre>
+    </div>
+    <div style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 26px; font-weight: 800">3 · Momoko 新增数据表</h2>
+      <sc-for list="{{tables}}" as="t" hint-placeholder-count="5">
+        <div class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span class="mono" style="font-size: 14px; font-weight: 800; color: var(--pInk)">{{t.n}}</span>
+            <span style="font-size: 13px; color: var(--ink2)">{{t.s}}</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{t.f}}" as="f" hint-placeholder-count="6">
+              <span class="tag mono" style="font-weight: 500">{{f}}</span>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <h2 style="margin: 0; font-size: 26px; font-weight: 800">4 · 权限模型</h2>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{risks}}" as="k" hint-placeholder-count="5">
+        <div class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+          <span class="risk {{k.cls}}" style="align-self: flex-start">{{k.t}}</span>
+          <span style="font-size: 13px; line-height: 1.65">{{k.rule}}</span>
+          <span style="font-size: 12px; line-height: 1.6; color: var(--ink2)">例：{{k.ex}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+      <div class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 16px; font-weight: 800">管理端：能进就能执行全部指令</span>
+        <span style="font-size: 13px; line-height: 1.75; color: var(--ink2)">沿用现有用户权限，只加一个权限项 <span class="mono">game:gm</span>（能否进入 GM 运营）。能进的管理员可以对任何服务器执行全部指令，不做按角色、按指令的授权。风险等级只决定交互：「高」要填原因，「危险」执行前输入玩家昵称确认，并自动备份。</span>
+      </div>
+      <div class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 16px; font-weight: 800">玩家端：自助开放</span>
+        <span style="font-size: 13px; line-height: 1.75; color: var(--ink2)">用户通行证跑在独立 server（默认 :22634，主后台是 :22633），只注册玩家路由，和后台不共享会话与令牌。每台服务器、每条指令一行：是否开放给玩家、每天次数、间隔、是否需要管理员审批、玩家看到的说明。目标固定为「自己绑定的那个游戏账号」。服务端在 manifest 里先声明哪些指令「允许自助」，Momoko 只能在这个范围内开放。玩家执行同样进 GM 记录，标「玩家自助」。</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px">
+      <h2 style="margin: 0; font-size: 26px; font-weight: 800">5 · 学マス GM 目录（按服务端能做什么设计）</h2>
+      <span style="font-size: 14px; color: var(--ink2)">依据 server/game/model、sdk/gm.go、data/*.json 的现有实现</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <span class="pill ok">已有：服务端已有对应实现</span>
+      <span class="pill info">可直接做：底层能力已有，补一个 MGP 指令</span>
+      <span class="pill warn">需新增：服务端要加数据或流程</span>
+    </div>
+    <div class="card" style="overflow-x: auto">
+      <div style="min-width: 1100px">
+        <div class="row row-h" style="grid-template-columns: 90px 260px 90px 150px minmax(0, 1fr) 130px"><span>分组</span><span>指令</span><span>风险</span><span>玩家端</span><span>依据 / 实现位置</span><span>状态</span></div>
+        <sc-for list="{{cmds}}" as="c" hint-placeholder-count="25">
+          <div class="row" style="grid-template-columns: 90px 260px 90px 150px minmax(0, 1fr) 130px; min-height: 52px">
+            <span class="gtag" style="justify-self: start">{{c.g}}</span>
+            <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 700">{{c.t}}</span><span class="mono" style="font-size: 12px; color: var(--ink2)">{{c.id}}</span></span>
+            <span class="risk {{c.rc}}" style="justify-self: start">{{c.r}}</span>
+            <span style="font-size: 13px; color: {{c.pc}}; font-weight: 600">{{c.p}}</span>
+            <span style="font-size: 13px; line-height: 1.55; color: var(--ink2)">{{c.how}}</span>
+            <span class="pill {{c.sc}}" style="justify-self: start">{{c.s}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px">
+      <h2 style="margin: 0; font-size: 26px; font-weight: 800">6 · 游戏素材：当前端资源管理，不走游戏服务端</h2>
+      <span style="font-size: 14px; color: var(--ink2)">MGP 只返回 ID（卡 ID、卡池 ID、道具 ID…），图片全部由前端自带</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+      <div class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+        <span style="display: flex; align-items: center; gap: 10px"><span class="sn2">1</span><span style="font-size: 16px; font-weight: 800">从哪里拿</span></span>
+        <span style="font-size: 13px; line-height: 1.75; color: var(--ink2)">学マス客户端资源目录 <span class="mono">resource/</span>：<span class="mono">manifest.json</span> 记录资源名与 md5，文件在 <span class="mono">blobs/&lt;md5 前 2 位&gt;/&lt;md5&gt;</span>。每个文件前 256 字节按资源名用 <span class="mono">resource_codec.name_mask(name)</span> 还原，再用 UnityPy 读 UnityFS（<span class="mono">FALLBACK_UNITY_VERSION = "2022.3.21f1"</span>），导出 Texture2D。</span>
+      </div>
+      <div class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+        <span style="display: flex; align-items: center; gap: 10px"><span class="sn2">2</span><span style="font-size: 16px; font-weight: 800">离线导出</span></span>
+        <span style="font-size: 13px; line-height: 1.75; color: var(--ink2)">脚本 <span class="mono">frontend/scripts/games/gakumas/extract-assets.py</span>：按一份资源名前缀清单只导出界面用得到的几类，转 WebP（质量 82），超过上限才缩小、不放大，输出到 <span class="mono">frontend/src/games/gakumas/assets/</span>，同时生成 <span class="mono">manifest.ts</span>（游戏资源 ID → 文件）。游戏更新后重新跑一次再提交；文件多了就用 Git LFS。</span>
+      </div>
+      <div class="card" style="padding: 20px 22px; display: flex; flex-direction: column; gap: 8px">
+        <span style="display: flex; align-items: center; gap: 10px"><span class="sn2">3</span><span style="font-size: 16px; font-weight: 800">前端怎么用</span></span>
+        <span style="font-size: 13px; line-height: 1.75; color: var(--ink2)">页面拿到游戏数据里的 ID，调用 <span class="mono">gameAsset('gakumas', id)</span> 查 manifest；文件用 <span class="mono">import.meta.glob(..., { query: '?url' })</span> 按需加载，Vite 打包带 hash、可长期缓存，随前端一起嵌进 Momoko 二进制。用户通行证 server 用同一份构建。查不到的 ID 显示占位图，不去请求游戏服务端。</span>
+      </div>
+    </div>
+    <div class="card" style="overflow-x: auto">
+      <div style="min-width: 1100px">
+        <div class="row row-h" style="grid-template-columns: 150px minmax(0, 0.9fr) minmax(0, 1.6fr) 110px 150px"><span>目录</span><span>内容</span><span>资源名规则（resource/manifest.json）</span><span style="text-align: right">数量</span><span>导出尺寸（实测）</span></div>
+        <sc-for list="{{assetDirs}}" as="a" hint-placeholder-count="7">
+          <div class="row" style="grid-template-columns: 150px minmax(0, 0.9fr) minmax(0, 1.6fr) 110px 150px; min-height: 60px">
+            <span class="mono" style="font-size: 13px; font-weight: 700">{{a.dir}}</span>
+            <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px">{{a.what}}</span><span class="hint">{{a.use}}</span></span>
+            <span class="mono" style="font-size: 11.5px; line-height: 1.6; color: var(--ink2); overflow-wrap: anywhere; white-space: pre-line">{{a.rule}}</span>
+            <span class="num" style="font-size: 13px; text-align: right; font-weight: 700">{{a.n}}</span>
+            <span class="num" style="font-size: 13px; color: var(--ink2)">{{a.size}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <span style="font-size: 13px; color: var(--ink2)">资源清单当前版本 705100 · rev 83，共 49,411 个对象，按上面的规则约 2,000 个要导出。其他游戏照同样的结构建自己的 <span class="mono">frontend/src/games/&lt;game&gt;/assets/</span>；游戏服务端自带的资源服务器只给游戏客户端下载用，Momoko 不依赖它。</span>
+  </section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":2240}}'>
+const IC = {
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  plug: 'M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5',
+  idcard: 'M3 5h18v14H3zM9 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16a3.5 3.5 0 0 1 7 0M14 9h4M14 13h4',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6z',
+  shield: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM9 12l2 2 4-4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z'
+};
+const M = { GET: ['var(--okSoft)', 'var(--ok)'], POST: ['var(--a2Soft)', 'var(--ink)'], PUT: ['var(--warnSoft)', 'var(--warn)'] };
+const API = [
+  ['GET', '/manifest', '能力声明：游戏信息与主题色、协议版本、能力列表、玩家视图、GM 指令（参数 Schema、风险、目标类型、是否允许自助）、配置域、目录', '新增 server/mgp 包；指令注册表与 gdconf 生成；替换现在 sdk/gm.go 的 gm_token 查询参数'],
+  ['GET', '/status', '在线人数、注册数、运行时长、服务端版本、资源版本、维护状态、各依赖健康', 'Game 会话计数；db Ping；资源服务器 /health（mirror_complete、available、missing）'],
+  ['GET', '/players?q=&cursor=', '搜索与分页：账号名、User ID、昵称；返回头像资源、等级、最后登录、在线、封禁', 'db.Account（Username、PublicUserID）+ PlayerBasic；在线状态取会话表'],
+  ['GET', '/players/{pid}', '玩家摘要：统一字段（显示 ID、昵称、等级、注册与登录时间、在线、封禁）+ 游戏字段', '在线取常驻 Player，离线按 AGENTS 约定读压缩档案只读解码'],
+  ['GET', '/players/{pid}/views/{view}', '分页数据：偶像卡、支援卡、道具、礼物箱、制作记录、抽卡记录、登录会话…', 'PlayerData 各 Model 的只读投影；卡面/图标给 assetId'],
+  ['POST', '/commands/{cmd}', '执行 GM：targets、params、reason、requestId、dryRun；返回实际变化', 'game.Game.WithPlayer 串行写档并在提交后返回（gmSend 已是这个模式）'],
+  ['GET', '/catalogs/{kind}?q=', '选择器数据：道具、偶像卡、支援卡、角色、服装、乐曲、名片素材…', 'gdconf 的 Excel 表 + 本地化名；可发放类型以 rewardGrantable 为准'],
+  ['GET', '/configs/{domain}', '运营配置读取（带 revision）：卡池、活动、公告、登录奖励、生日、硬币扭蛋…', '对应 server/data/*.json；revision = 文件内容哈希'],
+  ['PUT', '/configs/{domain}', '保存草稿 / 发布（If-Match revision）；发布后热重载', '校验沿用 gdconf 加载逻辑；需新增 Catalog 原子替换（热重载）'],
+  ['POST', '/accounts/verify', '绑定校验：游戏账号 + 密码，或游戏内生成的绑定码，返回 pid', 'account.Service.Login；绑定码可放进 SDK 登录页'],
+  ['GET', '/events', 'SSE 事件流：登录、登出、抽卡、充值、GM 执行，用于实时动态与统计', '在会话建立、Gasha 抽取、gmSend 处发布事件']
+];
+const MANIFEST = [
+  '{',
+  '  "protocol": 1,',
+  '  "game": { "id": "gakumas", "name": "学園アイドルマスター",',
+  '            "theme": "#F07A1E", "icon": "img_general_meishi_illust_hatsuboshi-logo" },',
+  '  "server": { "version": "2026.11.10", "resource": { "octo": 705100, "revision": 83 } },',
+  '  "capabilities": ["players", "commands", "configs", "catalogs",',
+  '                   "accounts.verify", "events"],',
+  '  "views": [',
+  '    { "id": "idolCards", "title": "偶像卡", "kind": "cardGrid" },',
+  '    { "id": "supportCards", "title": "支援卡", "kind": "cardGrid" },',
+  '    { "id": "items", "title": "道具", "kind": "table" },',
+  '    { "id": "giftBox", "title": "礼物箱", "kind": "table" },',
+  '    { "id": "gashaHistory", "title": "抽卡记录", "kind": "table" }',
+  '  ],',
+  '  "commands": [',
+  '    { "id": "gift.send", "title": "发送到礼物箱", "group": "发放",',
+  '      "risk": "medium", "target": "players", "selfService": false,',
+  '      "params": { "type": "object", "required": ["rewards", "message"],',
+  '        "properties": {',
+  '          "rewards": { "type": "array", "x-picker": "reward", "maxItems": 20 },',
+  '          "message": { "type": "string", "maxLength": 64 },',
+  '          "expireDays": { "type": "integer", "minimum": 1, "maximum": 365 } } } },',
+  '    { "id": "ap.refill", "title": "回满体力", "group": "资源",',
+  '      "risk": "low", "target": "player", "selfService": true }',
+  '  ],',
+  '  "configs": [',
+  '    { "id": "gasha", "title": "卡池", "file": "data/Gasha.json", "hotReload": true },',
+  '    { "id": "loginBonus", "title": "登录奖励", "file": "data/LoginBonus.json" }',
+  '  ]',
+  '}'
+].join('\n');
+const TABLES = [
+  { n: 'game_server', s: '接入的游戏服务器（一游戏可多服）', f: ['id', 'game（适配器 id）', 'name（只是名字）', 'tags', 'mode hosted|remote', 'node_id', 'instance_id?', 'mgp_endpoint', 'key_id', 'secret（加密）', 'manifest 缓存', 'status 缓存'] },
+  { n: 'game_account_link', s: '通行证 ↔ 游戏账号（统一用户中心）', f: ['user_id', 'server_id', 'player_id', 'display_id', 'nickname', 'avatar_asset', 'method 密码/绑定码/OIDC/管理员', 'is_primary', 'linked_at', 'last_seen_at'] },
+  { n: 'gm_self_service', s: '玩家自助开放（每台服务器每条指令一行）', f: ['server_id', 'command', 'enabled', 'daily_limit', 'cooldown_sec', 'need_approval', 'player_note'] },
+  { n: 'gm_execution', s: 'GM 执行与审计（含玩家自助）', f: ['server_id', 'command', 'actor user_id', 'actor_kind admin|player', 'targets', 'params', 'reason', 'dry_run', 'status', 'changes', 'reviewed_by', 'request_id'] },
+  { n: 'game_config_revision', s: '运营配置版本（可对比、回滚）', f: ['server_id', 'domain', 'revision', 'content', 'author', 'comment', 'state 草稿/已发布', 'published_at'] }
+];
+const RISKS = [
+  { t: '查询', cls: 'risk-0', rule: '只读，不改档。玩家端默认开放自己的数据。', ex: '玩家概览、偶像卡、礼物箱' },
+  { t: '低', cls: 'risk-1', rule: '可撤销、影响小，直接执行。', ex: '强制下线、改名、回满体力' },
+  { t: '中', cls: 'risk-2', rule: '发东西进礼物箱，执行前显示预览。', ex: '发送到礼物箱、邮件补偿' },
+  { t: '高', cls: 'risk-3', rule: '直接改数值或影响很多人，必须填原因。', ex: '改钻石、封禁、全服补偿、发布卡池' },
+  { t: '危险', cls: 'risk-4', rule: '不可逆，执行前输入玩家昵称确认，并自动备份当前进度。', ex: '回档、批量全卡、删除账号' }
+];
+const S = { has: ['ok', '已有'], easy: ['info', '可直接做'], add: ['warn', '需新增'] };
+const CMDS = [
+  ['查询', '玩家概览 / 货币 / 道具', 'player.view', '查询', 'risk-0', '默认开放（自己）', 'PlayerData.User、Money、Item', 'easy'],
+  ['查询', '偶像卡 / 支援卡 / 回忆', 'player.cards', '查询', 'risk-0', '默认开放（自己）', 'IdolCard、IdolCardSkin、SupportCardModel、Memory', 'easy'],
+  ['查询', '礼物箱 / 抽卡记录 / 制作记录', 'player.history', '查询', 'risk-0', '默认开放（自己）', 'GiftModel、GashaModel、ProduceModel、ProduceHighScore', 'easy'],
+  ['发放', '发送到礼物箱', 'gift.send', '中', 'risk-2', '不开放', 'Player.sendGift（已有，带文案与期限）', 'easy'],
+  ['发放', '全部偶像卡（含满潜能碎片）', 'idolcard.grantAll', '危险', 'risk-4', '可开放（私服娱乐）', 'sdk/gm.go gmIdolCards → SendAllIdolCardGifts', 'has'],
+  ['发放', '全部支援卡（满突破）', 'supportcard.grantAll', '危险', 'risk-4', '可开放（私服娱乐）', 'sdk/gm.go gmSupportCards → SendAllSupportCardGifts', 'has'],
+  ['资源', '调整钻石（免费 / 付费）', 'jewel.adjust', '高', 'risk-3', '不开放', 'UserState.Balance（Free / Paid / WebStorePaid）', 'easy'],
+  ['资源', '调整金币与道具', 'item.adjust', '高', 'risk-3', '不开放', 'AddItem / consumeItem', 'easy'],
+  ['资源', '回满体力', 'ap.refill', '低', 'risk-1', '可开放 3 次/天', 'ActionPoint + Setting.ActionPointMaxValue', 'easy'],
+  ['养成', '制作人经验 / 等级', 'producer.exp', '高', 'risk-3', '不开放', 'grantReward UserEXP → 等级奖励随之发放', 'easy'],
+  ['账号', '强制下线', 'session.kick', '低', 'risk-1', '可开放（自己）', 'game/session.go 断开并释放常驻 Player', 'add'],
+  ['账号', '封禁 / 解封（时长 + 原因）', 'account.ban', '高', 'risk-3', '不开放', 'Account 增加封禁字段，SDK 登录与会话建立处校验', 'add'],
+  ['账号', '重置登录密码', 'account.password', '高', 'risk-3', '不开放', 'account/password.go', 'easy'],
+  ['账号', '改昵称', 'account.rename', '低', 'risk-1', '可开放 1 次/天', 'PlayerBasic.Name', 'easy'],
+  ['玩法', '竞赛：调整 Rate / 重置今日次数', 'pvp.setRate · pvp.resetDaily', '高', 'risk-3', '重置次数可开放 1 次/天', 'PvpRateModel + db.PvpRateScore（排名表）', 'easy'],
+  ['玩法', '竞赛：赛季结算与发奖', 'pvp.settle', '高', 'risk-3', '不开放', 'PvpRate grades 的 rateRewards / rankRewards，结算后进礼物箱', 'add'],
+  ['玩法', '研修：标记通关 / 重置进度', 'seminar.clear · seminar.reset', '中', 'risk-2', '不开放', 'Seminar.json 4 组 25 题；EndSeminarExam 的通关记录', 'easy'],
+  ['玩法', '塔：重置本月进度', 'tower.reset', '中', 'risk-2', '不开放', 'TowerModel + 月度排名赛季（data/Tower.json）', 'easy'],
+  ['存档', '导出存档（JSON）', 'archive.export', '中', 'risk-2', '可开放（自己）', '档案解压后按 PlayerData 序列化', 'easy'],
+  ['存档', '回档到快照', 'archive.restore', '危险', 'risk-4', '不开放', '保存时保留最近 N 份档案快照（新表）', 'add'],
+  ['运营', '全服补偿 / 定向邮件', 'mail.broadcast', '高', 'risk-3', '不开放', '按注册 / 最后登录筛选，后台任务逐个 WithPlayer', 'add'],
+  ['运营', '兑换码（批次、次数、期限）', 'giftcode.*', '中', 'risk-2', '玩家端「兑换」开放', '新表 gift_code；兑换走 sendGift', 'add'],
+  ['运营', '发布卡池 / 活动 / 公告 / 登录奖励', 'config.publish', '高', 'risk-3', '不开放', 'data/Gasha.json 等 + gdconf 热重载', 'add'],
+  ['运营', '维护模式 / 登录白名单', 'server.maintenance', '高', 'risk-3', '不开放', 'SDK 登录与 Auth/Login 入口检查', 'add']
+];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    return {
+      assetDirs: [
+        { dir: 'chara/', what: '角色圆形头像、半身像', use: '玩家头像、角色筛选、排名', rule: 'img_chr_{角色}_00-thumb-circle\nimg_chr_{角色}_00-bustup', n: '22 + 14', size: '128² / 512²' },
+        { dir: 'cards/idol/', what: 'P 偶像卡（方形 + 横版）', use: '卡牌列表、UP 选择、阵容、礼物', rule: 'img_general_cidol-{角色}-{稀有度}-{编号}_1-thumb-square\n…_1-thumb-landscape-large', n: '312 + 312', size: '128² / 960×480' },
+        { dir: 'cards/support/', what: '支援卡（方形 + 横版）', use: '支援卡列表、UP 选择', rule: 'img_general_csprt-{稀有度}-{编号}_thumb-square\n…_thumb-landscape', n: '212 + 212', size: '128² / 256×128' },
+        { dir: 'gasha/', what: '卡池横幅、卡池背景', use: '卡池列表与编辑、公告、工作台', rule: 'img_gasha_banner_{卡池 ID}-select-m\nimg_general_gasha_bg_*', n: '245 + 57', size: '512×256 / 1024×2048' },
+        { dir: 'items/', what: '道具图标', use: '奖励选择、礼物箱、钱包', rule: 'img_general_item_{道具 ID}', n: '185', size: '96²' },
+        { dir: 'events/', what: '活动横幅 / Logo、卡池公告图', use: '运营日历、公告', rule: 'img_general_event_{类型}_{活动 ID}-banner | -logo\nimg_notice_gasha_{卡池 ID}-banner-01-large', n: '204 + 177', size: '1024×256 / 920×320' },
+        { dir: 'ui/', what: '登录标题；名片默认不导出', use: '服务器卡片、通行证首页', rule: 'img_login_title_*\nimg_general_meishi_*（2,349 个，用到再加）', n: '29', size: '1024×256' }
+      ],
+      palette,
+      mode: dark ? 'dark' : 'light',
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      concepts: [
+        { t: '游戏', d: IC.layers, av: 'av-g', s: '一款被适配的游戏，例如学マス、Minecraft 基岩版。带名称、图标、主题色、素材来源。' },
+        { t: '适配器', d: IC.plug, av: 'av-p', s: '编进 Momoko 的游戏驱动：托管驱动（安装、设置表单、更新、状态、备份）+ GM 驱动（原生 MGP 或桥接）。' },
+        { t: '服务器', d: IC.server, av: 'av-a2', s: '某个游戏的一个服务端实例。同一游戏可以接入任意多个服务器，彼此完全独立：玩家、配置、策略、绑定都不共享，名称只是名字。' },
+        { t: '接入方式', d: IC.sliders, av: 'av-a', s: '托管：Momoko 运行进程并做 GM；仅 GM：服务端在别处，只对接 MGP。两者随时可切换。' },
+        { t: '通行证', d: IC.idcard, av: 'av-p', s: 'Momoko 账号就是玩家的统一账号；一个通行证绑定多个游戏、多个服务器的游戏账号。' },
+        { t: 'GM 指令', d: IC.wand, av: 'av-g', s: '服务端在 manifest 里声明的操作，带参数 Schema、风险等级、目标类型、是否允许玩家自助。' },
+        { t: '视图', d: IC.eye, av: 'av-ok', s: '玩家详情里的分页（卡片网格、表格、键值），玩家端只能看到自己的。' },
+        { t: '配置域', d: IC.shield, av: 'av-a2', s: '可在线编辑的运营配置：卡池、活动、公告、登录奖励…有草稿、版本与发布。' }
+      ],
+      api: API.map(([m, p, what, gk]) => ({ m, p, what, gk, mbg: M[m][0], mfg: M[m][1] })),
+      manifest: MANIFEST,
+      tables: TABLES,
+      risks: RISKS,
+      cmds: CMDS.map(([g, t, id, r, rc, p, how, s]) => ({ g, t, id, r, rc, p, how, s: S[s][1], sc: S[s][0], pc: p === '不开放' ? 'var(--ink2)' : 'var(--ok)' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -11,6 +11,19 @@ import (
 	"momoko/internal/data/ent/gen/fileuploadchunk"
 	"momoko/internal/data/ent/gen/frptunnel"
 	"momoko/internal/data/ent/gen/frptunnelstat"
+	"momoko/internal/data/ent/gen/gameaccountlink"
+	"momoko/internal/data/ent/gen/gameaccountunlink"
+	"momoko/internal/data/ent/gen/gameconfigrevision"
+	"momoko/internal/data/ent/gen/gamemail"
+	"momoko/internal/data/ent/gen/gamerecentserver"
+	"momoko/internal/data/ent/gen/gameserver"
+	"momoko/internal/data/ent/gen/gameserverbackup"
+	"momoko/internal/data/ent/gen/gameserverhistory"
+	"momoko/internal/data/ent/gen/giftcode"
+	"momoko/internal/data/ent/gen/giftcodebatch"
+	"momoko/internal/data/ent/gen/giftcoderedeem"
+	"momoko/internal/data/ent/gen/gmexecution"
+	"momoko/internal/data/ent/gen/gmselfservice"
 	"momoko/internal/data/ent/gen/instance"
 	"momoko/internal/data/ent/gen/instancetype"
 	"momoko/internal/data/ent/gen/iqcheckprompt"
@@ -21,6 +34,13 @@ import (
 	"momoko/internal/data/ent/gen/node"
 	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
+	"momoko/internal/data/ent/gen/passportinvite"
+	"momoko/internal/data/ent/gen/passportloginlog"
+	"momoko/internal/data/ent/gen/passportmessage"
+	"momoko/internal/data/ent/gen/passportoidcclient"
+	"momoko/internal/data/ent/gen/passportoidcgrant"
+	"momoko/internal/data/ent/gen/passportsession"
+	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/internal/data/ent/gen/portforward"
 	"momoko/internal/data/ent/gen/portforwardstat"
 	"momoko/internal/data/ent/gen/role"
@@ -300,6 +320,787 @@ func init() {
 	frptunnelstatDescBytesOut := frptunnelstatFields[4].Descriptor()
 	// frptunnelstat.DefaultBytesOut holds the default value on creation for the bytes_out field.
 	frptunnelstat.DefaultBytesOut = frptunnelstatDescBytesOut.Default.(int64)
+	gameaccountlinkMixin := schema.GameAccountLink{}.Mixin()
+	gameaccountlinkMixinFields0 := gameaccountlinkMixin[0].Fields()
+	_ = gameaccountlinkMixinFields0
+	gameaccountlinkFields := schema.GameAccountLink{}.Fields()
+	_ = gameaccountlinkFields
+	// gameaccountlinkDescCreateTime is the schema descriptor for create_time field.
+	gameaccountlinkDescCreateTime := gameaccountlinkMixinFields0[0].Descriptor()
+	// gameaccountlink.DefaultCreateTime holds the default value on creation for the create_time field.
+	gameaccountlink.DefaultCreateTime = gameaccountlinkDescCreateTime.Default.(func() time.Time)
+	// gameaccountlinkDescUpdateTime is the schema descriptor for update_time field.
+	gameaccountlinkDescUpdateTime := gameaccountlinkMixinFields0[1].Descriptor()
+	// gameaccountlink.DefaultUpdateTime holds the default value on creation for the update_time field.
+	gameaccountlink.DefaultUpdateTime = gameaccountlinkDescUpdateTime.Default.(func() time.Time)
+	// gameaccountlink.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	gameaccountlink.UpdateDefaultUpdateTime = gameaccountlinkDescUpdateTime.UpdateDefault.(func() time.Time)
+	// gameaccountlinkDescPassportUserID is the schema descriptor for passport_user_id field.
+	gameaccountlinkDescPassportUserID := gameaccountlinkFields[1].Descriptor()
+	// gameaccountlink.PassportUserIDValidator is a validator for the "passport_user_id" field. It is called by the builders before save.
+	gameaccountlink.PassportUserIDValidator = gameaccountlinkDescPassportUserID.Validators[0].(func(string) error)
+	// gameaccountlinkDescServerID is the schema descriptor for server_id field.
+	gameaccountlinkDescServerID := gameaccountlinkFields[2].Descriptor()
+	// gameaccountlink.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gameaccountlink.ServerIDValidator = gameaccountlinkDescServerID.Validators[0].(func(string) error)
+	// gameaccountlinkDescGame is the schema descriptor for game field.
+	gameaccountlinkDescGame := gameaccountlinkFields[3].Descriptor()
+	// gameaccountlink.DefaultGame holds the default value on creation for the game field.
+	gameaccountlink.DefaultGame = gameaccountlinkDescGame.Default.(string)
+	// gameaccountlinkDescPlayerID is the schema descriptor for player_id field.
+	gameaccountlinkDescPlayerID := gameaccountlinkFields[4].Descriptor()
+	// gameaccountlink.DefaultPlayerID holds the default value on creation for the player_id field.
+	gameaccountlink.DefaultPlayerID = gameaccountlinkDescPlayerID.Default.(string)
+	// gameaccountlinkDescDisplayID is the schema descriptor for display_id field.
+	gameaccountlinkDescDisplayID := gameaccountlinkFields[5].Descriptor()
+	// gameaccountlink.DefaultDisplayID holds the default value on creation for the display_id field.
+	gameaccountlink.DefaultDisplayID = gameaccountlinkDescDisplayID.Default.(string)
+	// gameaccountlinkDescAccount is the schema descriptor for account field.
+	gameaccountlinkDescAccount := gameaccountlinkFields[6].Descriptor()
+	// gameaccountlink.DefaultAccount holds the default value on creation for the account field.
+	gameaccountlink.DefaultAccount = gameaccountlinkDescAccount.Default.(string)
+	// gameaccountlinkDescNickname is the schema descriptor for nickname field.
+	gameaccountlinkDescNickname := gameaccountlinkFields[7].Descriptor()
+	// gameaccountlink.DefaultNickname holds the default value on creation for the nickname field.
+	gameaccountlink.DefaultNickname = gameaccountlinkDescNickname.Default.(string)
+	// gameaccountlinkDescAvatarAsset is the schema descriptor for avatar_asset field.
+	gameaccountlinkDescAvatarAsset := gameaccountlinkFields[8].Descriptor()
+	// gameaccountlink.DefaultAvatarAsset holds the default value on creation for the avatar_asset field.
+	gameaccountlink.DefaultAvatarAsset = gameaccountlinkDescAvatarAsset.Default.(string)
+	// gameaccountlinkDescLevel is the schema descriptor for level field.
+	gameaccountlinkDescLevel := gameaccountlinkFields[9].Descriptor()
+	// gameaccountlink.DefaultLevel holds the default value on creation for the level field.
+	gameaccountlink.DefaultLevel = gameaccountlinkDescLevel.Default.(int)
+	// gameaccountlinkDescReviewNote is the schema descriptor for review_note field.
+	gameaccountlinkDescReviewNote := gameaccountlinkFields[12].Descriptor()
+	// gameaccountlink.DefaultReviewNote holds the default value on creation for the review_note field.
+	gameaccountlink.DefaultReviewNote = gameaccountlinkDescReviewNote.Default.(string)
+	// gameaccountlinkDescReviewedBy is the schema descriptor for reviewed_by field.
+	gameaccountlinkDescReviewedBy := gameaccountlinkFields[13].Descriptor()
+	// gameaccountlink.DefaultReviewedBy holds the default value on creation for the reviewed_by field.
+	gameaccountlink.DefaultReviewedBy = gameaccountlinkDescReviewedBy.Default.(string)
+	// gameaccountlinkDescIsPrimary is the schema descriptor for is_primary field.
+	gameaccountlinkDescIsPrimary := gameaccountlinkFields[14].Descriptor()
+	// gameaccountlink.DefaultIsPrimary holds the default value on creation for the is_primary field.
+	gameaccountlink.DefaultIsPrimary = gameaccountlinkDescIsPrimary.Default.(bool)
+	// gameaccountlinkDescLinkedAt is the schema descriptor for linked_at field.
+	gameaccountlinkDescLinkedAt := gameaccountlinkFields[15].Descriptor()
+	// gameaccountlink.DefaultLinkedAt holds the default value on creation for the linked_at field.
+	gameaccountlink.DefaultLinkedAt = gameaccountlinkDescLinkedAt.Default.(func() time.Time)
+	// gameaccountlinkDescID is the schema descriptor for id field.
+	gameaccountlinkDescID := gameaccountlinkFields[0].Descriptor()
+	// gameaccountlink.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gameaccountlink.IDValidator = gameaccountlinkDescID.Validators[0].(func(string) error)
+	gameaccountunlinkFields := schema.GameAccountUnlink{}.Fields()
+	_ = gameaccountunlinkFields
+	// gameaccountunlinkDescPassportUserID is the schema descriptor for passport_user_id field.
+	gameaccountunlinkDescPassportUserID := gameaccountunlinkFields[1].Descriptor()
+	// gameaccountunlink.PassportUserIDValidator is a validator for the "passport_user_id" field. It is called by the builders before save.
+	gameaccountunlink.PassportUserIDValidator = gameaccountunlinkDescPassportUserID.Validators[0].(func(string) error)
+	// gameaccountunlinkDescServerID is the schema descriptor for server_id field.
+	gameaccountunlinkDescServerID := gameaccountunlinkFields[2].Descriptor()
+	// gameaccountunlink.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gameaccountunlink.ServerIDValidator = gameaccountunlinkDescServerID.Validators[0].(func(string) error)
+	// gameaccountunlinkDescPlayerID is the schema descriptor for player_id field.
+	gameaccountunlinkDescPlayerID := gameaccountunlinkFields[3].Descriptor()
+	// gameaccountunlink.DefaultPlayerID holds the default value on creation for the player_id field.
+	gameaccountunlink.DefaultPlayerID = gameaccountunlinkDescPlayerID.Default.(string)
+	// gameaccountunlinkDescNickname is the schema descriptor for nickname field.
+	gameaccountunlinkDescNickname := gameaccountunlinkFields[4].Descriptor()
+	// gameaccountunlink.DefaultNickname holds the default value on creation for the nickname field.
+	gameaccountunlink.DefaultNickname = gameaccountunlinkDescNickname.Default.(string)
+	// gameaccountunlinkDescUnlinkedAt is the schema descriptor for unlinked_at field.
+	gameaccountunlinkDescUnlinkedAt := gameaccountunlinkFields[6].Descriptor()
+	// gameaccountunlink.DefaultUnlinkedAt holds the default value on creation for the unlinked_at field.
+	gameaccountunlink.DefaultUnlinkedAt = gameaccountunlinkDescUnlinkedAt.Default.(func() time.Time)
+	// gameaccountunlinkDescID is the schema descriptor for id field.
+	gameaccountunlinkDescID := gameaccountunlinkFields[0].Descriptor()
+	// gameaccountunlink.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gameaccountunlink.IDValidator = gameaccountunlinkDescID.Validators[0].(func(string) error)
+	gameconfigrevisionMixin := schema.GameConfigRevision{}.Mixin()
+	gameconfigrevisionMixinFields0 := gameconfigrevisionMixin[0].Fields()
+	_ = gameconfigrevisionMixinFields0
+	gameconfigrevisionFields := schema.GameConfigRevision{}.Fields()
+	_ = gameconfigrevisionFields
+	// gameconfigrevisionDescCreateTime is the schema descriptor for create_time field.
+	gameconfigrevisionDescCreateTime := gameconfigrevisionMixinFields0[0].Descriptor()
+	// gameconfigrevision.DefaultCreateTime holds the default value on creation for the create_time field.
+	gameconfigrevision.DefaultCreateTime = gameconfigrevisionDescCreateTime.Default.(func() time.Time)
+	// gameconfigrevisionDescUpdateTime is the schema descriptor for update_time field.
+	gameconfigrevisionDescUpdateTime := gameconfigrevisionMixinFields0[1].Descriptor()
+	// gameconfigrevision.DefaultUpdateTime holds the default value on creation for the update_time field.
+	gameconfigrevision.DefaultUpdateTime = gameconfigrevisionDescUpdateTime.Default.(func() time.Time)
+	// gameconfigrevision.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	gameconfigrevision.UpdateDefaultUpdateTime = gameconfigrevisionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// gameconfigrevisionDescServerID is the schema descriptor for server_id field.
+	gameconfigrevisionDescServerID := gameconfigrevisionFields[1].Descriptor()
+	// gameconfigrevision.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gameconfigrevision.ServerIDValidator = gameconfigrevisionDescServerID.Validators[0].(func(string) error)
+	// gameconfigrevisionDescDomain is the schema descriptor for domain field.
+	gameconfigrevisionDescDomain := gameconfigrevisionFields[2].Descriptor()
+	// gameconfigrevision.DomainValidator is a validator for the "domain" field. It is called by the builders before save.
+	gameconfigrevision.DomainValidator = gameconfigrevisionDescDomain.Validators[0].(func(string) error)
+	// gameconfigrevisionDescSeq is the schema descriptor for seq field.
+	gameconfigrevisionDescSeq := gameconfigrevisionFields[3].Descriptor()
+	// gameconfigrevision.DefaultSeq holds the default value on creation for the seq field.
+	gameconfigrevision.DefaultSeq = gameconfigrevisionDescSeq.Default.(int)
+	// gameconfigrevisionDescRevision is the schema descriptor for revision field.
+	gameconfigrevisionDescRevision := gameconfigrevisionFields[4].Descriptor()
+	// gameconfigrevision.DefaultRevision holds the default value on creation for the revision field.
+	gameconfigrevision.DefaultRevision = gameconfigrevisionDescRevision.Default.(string)
+	// gameconfigrevisionDescBaseRevision is the schema descriptor for base_revision field.
+	gameconfigrevisionDescBaseRevision := gameconfigrevisionFields[5].Descriptor()
+	// gameconfigrevision.DefaultBaseRevision holds the default value on creation for the base_revision field.
+	gameconfigrevision.DefaultBaseRevision = gameconfigrevisionDescBaseRevision.Default.(string)
+	// gameconfigrevisionDescAuthorID is the schema descriptor for author_id field.
+	gameconfigrevisionDescAuthorID := gameconfigrevisionFields[7].Descriptor()
+	// gameconfigrevision.DefaultAuthorID holds the default value on creation for the author_id field.
+	gameconfigrevision.DefaultAuthorID = gameconfigrevisionDescAuthorID.Default.(string)
+	// gameconfigrevisionDescAuthorName is the schema descriptor for author_name field.
+	gameconfigrevisionDescAuthorName := gameconfigrevisionFields[8].Descriptor()
+	// gameconfigrevision.DefaultAuthorName holds the default value on creation for the author_name field.
+	gameconfigrevision.DefaultAuthorName = gameconfigrevisionDescAuthorName.Default.(string)
+	// gameconfigrevisionDescComment is the schema descriptor for comment field.
+	gameconfigrevisionDescComment := gameconfigrevisionFields[9].Descriptor()
+	// gameconfigrevision.DefaultComment holds the default value on creation for the comment field.
+	gameconfigrevision.DefaultComment = gameconfigrevisionDescComment.Default.(string)
+	// gameconfigrevisionDescExecutionID is the schema descriptor for execution_id field.
+	gameconfigrevisionDescExecutionID := gameconfigrevisionFields[12].Descriptor()
+	// gameconfigrevision.DefaultExecutionID holds the default value on creation for the execution_id field.
+	gameconfigrevision.DefaultExecutionID = gameconfigrevisionDescExecutionID.Default.(string)
+	// gameconfigrevisionDescID is the schema descriptor for id field.
+	gameconfigrevisionDescID := gameconfigrevisionFields[0].Descriptor()
+	// gameconfigrevision.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gameconfigrevision.IDValidator = gameconfigrevisionDescID.Validators[0].(func(string) error)
+	gamemailMixin := schema.GameMail{}.Mixin()
+	gamemailMixinFields0 := gamemailMixin[0].Fields()
+	_ = gamemailMixinFields0
+	gamemailFields := schema.GameMail{}.Fields()
+	_ = gamemailFields
+	// gamemailDescCreateTime is the schema descriptor for create_time field.
+	gamemailDescCreateTime := gamemailMixinFields0[0].Descriptor()
+	// gamemail.DefaultCreateTime holds the default value on creation for the create_time field.
+	gamemail.DefaultCreateTime = gamemailDescCreateTime.Default.(func() time.Time)
+	// gamemailDescUpdateTime is the schema descriptor for update_time field.
+	gamemailDescUpdateTime := gamemailMixinFields0[1].Descriptor()
+	// gamemail.DefaultUpdateTime holds the default value on creation for the update_time field.
+	gamemail.DefaultUpdateTime = gamemailDescUpdateTime.Default.(func() time.Time)
+	// gamemail.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	gamemail.UpdateDefaultUpdateTime = gamemailDescUpdateTime.UpdateDefault.(func() time.Time)
+	// gamemailDescServerID is the schema descriptor for server_id field.
+	gamemailDescServerID := gamemailFields[1].Descriptor()
+	// gamemail.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gamemail.ServerIDValidator = gamemailDescServerID.Validators[0].(func(string) error)
+	// gamemailDescTitle is the schema descriptor for title field.
+	gamemailDescTitle := gamemailFields[2].Descriptor()
+	// gamemail.DefaultTitle holds the default value on creation for the title field.
+	gamemail.DefaultTitle = gamemailDescTitle.Default.(string)
+	// gamemailDescBody is the schema descriptor for body field.
+	gamemailDescBody := gamemailFields[3].Descriptor()
+	// gamemail.DefaultBody holds the default value on creation for the body field.
+	gamemail.DefaultBody = gamemailDescBody.Default.(string)
+	// gamemailDescExcludeBanned is the schema descriptor for exclude_banned field.
+	gamemailDescExcludeBanned := gamemailFields[8].Descriptor()
+	// gamemail.DefaultExcludeBanned holds the default value on creation for the exclude_banned field.
+	gamemail.DefaultExcludeBanned = gamemailDescExcludeBanned.Default.(bool)
+	// gamemailDescExpireDays is the schema descriptor for expire_days field.
+	gamemailDescExpireDays := gamemailFields[9].Descriptor()
+	// gamemail.DefaultExpireDays holds the default value on creation for the expire_days field.
+	gamemail.DefaultExpireDays = gamemailDescExpireDays.Default.(int)
+	// gamemailDescMatchedCount is the schema descriptor for matched_count field.
+	gamemailDescMatchedCount := gamemailFields[12].Descriptor()
+	// gamemail.DefaultMatchedCount holds the default value on creation for the matched_count field.
+	gamemail.DefaultMatchedCount = gamemailDescMatchedCount.Default.(int)
+	// gamemailDescRecipientCount is the schema descriptor for recipient_count field.
+	gamemailDescRecipientCount := gamemailFields[14].Descriptor()
+	// gamemail.DefaultRecipientCount holds the default value on creation for the recipient_count field.
+	gamemail.DefaultRecipientCount = gamemailDescRecipientCount.Default.(int)
+	// gamemailDescFailedCount is the schema descriptor for failed_count field.
+	gamemailDescFailedCount := gamemailFields[15].Descriptor()
+	// gamemail.DefaultFailedCount holds the default value on creation for the failed_count field.
+	gamemail.DefaultFailedCount = gamemailDescFailedCount.Default.(int)
+	// gamemailDescClaimedCount is the schema descriptor for claimed_count field.
+	gamemailDescClaimedCount := gamemailFields[16].Descriptor()
+	// gamemail.DefaultClaimedCount holds the default value on creation for the claimed_count field.
+	gamemail.DefaultClaimedCount = gamemailDescClaimedCount.Default.(int)
+	// gamemailDescError is the schema descriptor for error field.
+	gamemailDescError := gamemailFields[18].Descriptor()
+	// gamemail.DefaultError holds the default value on creation for the error field.
+	gamemail.DefaultError = gamemailDescError.Default.(string)
+	// gamemailDescExecutionID is the schema descriptor for execution_id field.
+	gamemailDescExecutionID := gamemailFields[19].Descriptor()
+	// gamemail.DefaultExecutionID holds the default value on creation for the execution_id field.
+	gamemail.DefaultExecutionID = gamemailDescExecutionID.Default.(string)
+	// gamemailDescCreatedBy is the schema descriptor for created_by field.
+	gamemailDescCreatedBy := gamemailFields[20].Descriptor()
+	// gamemail.DefaultCreatedBy holds the default value on creation for the created_by field.
+	gamemail.DefaultCreatedBy = gamemailDescCreatedBy.Default.(string)
+	// gamemailDescCreatedByName is the schema descriptor for created_by_name field.
+	gamemailDescCreatedByName := gamemailFields[21].Descriptor()
+	// gamemail.DefaultCreatedByName holds the default value on creation for the created_by_name field.
+	gamemail.DefaultCreatedByName = gamemailDescCreatedByName.Default.(string)
+	// gamemailDescUpdatedByName is the schema descriptor for updated_by_name field.
+	gamemailDescUpdatedByName := gamemailFields[22].Descriptor()
+	// gamemail.DefaultUpdatedByName holds the default value on creation for the updated_by_name field.
+	gamemail.DefaultUpdatedByName = gamemailDescUpdatedByName.Default.(string)
+	// gamemailDescSentBy is the schema descriptor for sent_by field.
+	gamemailDescSentBy := gamemailFields[23].Descriptor()
+	// gamemail.DefaultSentBy holds the default value on creation for the sent_by field.
+	gamemail.DefaultSentBy = gamemailDescSentBy.Default.(string)
+	// gamemailDescSentByName is the schema descriptor for sent_by_name field.
+	gamemailDescSentByName := gamemailFields[24].Descriptor()
+	// gamemail.DefaultSentByName holds the default value on creation for the sent_by_name field.
+	gamemail.DefaultSentByName = gamemailDescSentByName.Default.(string)
+	// gamemailDescRevokedByName is the schema descriptor for revoked_by_name field.
+	gamemailDescRevokedByName := gamemailFields[26].Descriptor()
+	// gamemail.DefaultRevokedByName holds the default value on creation for the revoked_by_name field.
+	gamemail.DefaultRevokedByName = gamemailDescRevokedByName.Default.(string)
+	// gamemailDescRevokedCount is the schema descriptor for revoked_count field.
+	gamemailDescRevokedCount := gamemailFields[28].Descriptor()
+	// gamemail.DefaultRevokedCount holds the default value on creation for the revoked_count field.
+	gamemail.DefaultRevokedCount = gamemailDescRevokedCount.Default.(int)
+	// gamemailDescRevokeExecutionID is the schema descriptor for revoke_execution_id field.
+	gamemailDescRevokeExecutionID := gamemailFields[29].Descriptor()
+	// gamemail.DefaultRevokeExecutionID holds the default value on creation for the revoke_execution_id field.
+	gamemail.DefaultRevokeExecutionID = gamemailDescRevokeExecutionID.Default.(string)
+	// gamemailDescID is the schema descriptor for id field.
+	gamemailDescID := gamemailFields[0].Descriptor()
+	// gamemail.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gamemail.IDValidator = gamemailDescID.Validators[0].(func(string) error)
+	gamerecentserverFields := schema.GameRecentServer{}.Fields()
+	_ = gamerecentserverFields
+	// gamerecentserverDescUserID is the schema descriptor for user_id field.
+	gamerecentserverDescUserID := gamerecentserverFields[0].Descriptor()
+	// gamerecentserver.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	gamerecentserver.UserIDValidator = gamerecentserverDescUserID.Validators[0].(func(string) error)
+	// gamerecentserverDescServerID is the schema descriptor for server_id field.
+	gamerecentserverDescServerID := gamerecentserverFields[1].Descriptor()
+	// gamerecentserver.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gamerecentserver.ServerIDValidator = gamerecentserverDescServerID.Validators[0].(func(string) error)
+	// gamerecentserverDescViewedAt is the schema descriptor for viewed_at field.
+	gamerecentserverDescViewedAt := gamerecentserverFields[3].Descriptor()
+	// gamerecentserver.DefaultViewedAt holds the default value on creation for the viewed_at field.
+	gamerecentserver.DefaultViewedAt = gamerecentserverDescViewedAt.Default.(func() time.Time)
+	gameserverMixin := schema.GameServer{}.Mixin()
+	gameserverMixinFields0 := gameserverMixin[0].Fields()
+	_ = gameserverMixinFields0
+	gameserverFields := schema.GameServer{}.Fields()
+	_ = gameserverFields
+	// gameserverDescCreateTime is the schema descriptor for create_time field.
+	gameserverDescCreateTime := gameserverMixinFields0[0].Descriptor()
+	// gameserver.DefaultCreateTime holds the default value on creation for the create_time field.
+	gameserver.DefaultCreateTime = gameserverDescCreateTime.Default.(func() time.Time)
+	// gameserverDescUpdateTime is the schema descriptor for update_time field.
+	gameserverDescUpdateTime := gameserverMixinFields0[1].Descriptor()
+	// gameserver.DefaultUpdateTime holds the default value on creation for the update_time field.
+	gameserver.DefaultUpdateTime = gameserverDescUpdateTime.Default.(func() time.Time)
+	// gameserver.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	gameserver.UpdateDefaultUpdateTime = gameserverDescUpdateTime.UpdateDefault.(func() time.Time)
+	// gameserverDescGame is the schema descriptor for game field.
+	gameserverDescGame := gameserverFields[1].Descriptor()
+	// gameserver.GameValidator is a validator for the "game" field. It is called by the builders before save.
+	gameserver.GameValidator = gameserverDescGame.Validators[0].(func(string) error)
+	// gameserverDescName is the schema descriptor for name field.
+	gameserverDescName := gameserverFields[2].Descriptor()
+	// gameserver.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	gameserver.NameValidator = gameserverDescName.Validators[0].(func(string) error)
+	// gameserverDescNodeID is the schema descriptor for node_id field.
+	gameserverDescNodeID := gameserverFields[5].Descriptor()
+	// gameserver.DefaultNodeID holds the default value on creation for the node_id field.
+	gameserver.DefaultNodeID = gameserverDescNodeID.Default.(string)
+	// gameserverDescInstallDir is the schema descriptor for install_dir field.
+	gameserverDescInstallDir := gameserverFields[6].Descriptor()
+	// gameserver.DefaultInstallDir holds the default value on creation for the install_dir field.
+	gameserver.DefaultInstallDir = gameserverDescInstallDir.Default.(string)
+	// gameserverDescOptions is the schema descriptor for options field.
+	gameserverDescOptions := gameserverFields[8].Descriptor()
+	// gameserver.DefaultOptions holds the default value on creation for the options field.
+	gameserver.DefaultOptions = gameserverDescOptions.Default.(string)
+	// gameserverDescCover is the schema descriptor for cover field.
+	gameserverDescCover := gameserverFields[9].Descriptor()
+	// gameserver.DefaultCover holds the default value on creation for the cover field.
+	gameserver.DefaultCover = gameserverDescCover.Default.(string)
+	// gameserverDescMgpEndpoint is the schema descriptor for mgp_endpoint field.
+	gameserverDescMgpEndpoint := gameserverFields[10].Descriptor()
+	// gameserver.DefaultMgpEndpoint holds the default value on creation for the mgp_endpoint field.
+	gameserver.DefaultMgpEndpoint = gameserverDescMgpEndpoint.Default.(string)
+	// gameserverDescKeyID is the schema descriptor for key_id field.
+	gameserverDescKeyID := gameserverFields[11].Descriptor()
+	// gameserver.DefaultKeyID holds the default value on creation for the key_id field.
+	gameserver.DefaultKeyID = gameserverDescKeyID.Default.(string)
+	// gameserverDescSecret is the schema descriptor for secret field.
+	gameserverDescSecret := gameserverFields[12].Descriptor()
+	// gameserver.DefaultSecret holds the default value on creation for the secret field.
+	gameserver.DefaultSecret = gameserverDescSecret.Default.(string)
+	// gameserverDescManifest is the schema descriptor for manifest field.
+	gameserverDescManifest := gameserverFields[14].Descriptor()
+	// gameserver.DefaultManifest holds the default value on creation for the manifest field.
+	gameserver.DefaultManifest = gameserverDescManifest.Default.(string)
+	// gameserverDescStatus is the schema descriptor for status field.
+	gameserverDescStatus := gameserverFields[16].Descriptor()
+	// gameserver.DefaultStatus holds the default value on creation for the status field.
+	gameserver.DefaultStatus = gameserverDescStatus.Default.(string)
+	// gameserverDescProbeOk is the schema descriptor for probe_ok field.
+	gameserverDescProbeOk := gameserverFields[18].Descriptor()
+	// gameserver.DefaultProbeOk holds the default value on creation for the probe_ok field.
+	gameserver.DefaultProbeOk = gameserverDescProbeOk.Default.(bool)
+	// gameserverDescProbeLatencyMs is the schema descriptor for probe_latency_ms field.
+	gameserverDescProbeLatencyMs := gameserverFields[19].Descriptor()
+	// gameserver.DefaultProbeLatencyMs holds the default value on creation for the probe_latency_ms field.
+	gameserver.DefaultProbeLatencyMs = gameserverDescProbeLatencyMs.Default.(int)
+	// gameserverDescProbeError is the schema descriptor for probe_error field.
+	gameserverDescProbeError := gameserverFields[20].Descriptor()
+	// gameserver.DefaultProbeError holds the default value on creation for the probe_error field.
+	gameserver.DefaultProbeError = gameserverDescProbeError.Default.(string)
+	// gameserverDescTimezone is the schema descriptor for timezone field.
+	gameserverDescTimezone := gameserverFields[23].Descriptor()
+	// gameserver.DefaultTimezone holds the default value on creation for the timezone field.
+	gameserver.DefaultTimezone = gameserverDescTimezone.Default.(string)
+	// gameserverDescPassportInviteCode is the schema descriptor for passport_invite_code field.
+	gameserverDescPassportInviteCode := gameserverFields[25].Descriptor()
+	// gameserver.DefaultPassportInviteCode holds the default value on creation for the passport_invite_code field.
+	gameserver.DefaultPassportInviteCode = gameserverDescPassportInviteCode.Default.(string)
+	// gameserverDescRemark is the schema descriptor for remark field.
+	gameserverDescRemark := gameserverFields[26].Descriptor()
+	// gameserver.DefaultRemark holds the default value on creation for the remark field.
+	gameserver.DefaultRemark = gameserverDescRemark.Default.(string)
+	// gameserverDescID is the schema descriptor for id field.
+	gameserverDescID := gameserverFields[0].Descriptor()
+	// gameserver.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gameserver.IDValidator = gameserverDescID.Validators[0].(func(string) error)
+	gameserverbackupMixin := schema.GameServerBackup{}.Mixin()
+	gameserverbackupMixinFields0 := gameserverbackupMixin[0].Fields()
+	_ = gameserverbackupMixinFields0
+	gameserverbackupFields := schema.GameServerBackup{}.Fields()
+	_ = gameserverbackupFields
+	// gameserverbackupDescCreateTime is the schema descriptor for create_time field.
+	gameserverbackupDescCreateTime := gameserverbackupMixinFields0[0].Descriptor()
+	// gameserverbackup.DefaultCreateTime holds the default value on creation for the create_time field.
+	gameserverbackup.DefaultCreateTime = gameserverbackupDescCreateTime.Default.(func() time.Time)
+	// gameserverbackupDescUpdateTime is the schema descriptor for update_time field.
+	gameserverbackupDescUpdateTime := gameserverbackupMixinFields0[1].Descriptor()
+	// gameserverbackup.DefaultUpdateTime holds the default value on creation for the update_time field.
+	gameserverbackup.DefaultUpdateTime = gameserverbackupDescUpdateTime.Default.(func() time.Time)
+	// gameserverbackup.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	gameserverbackup.UpdateDefaultUpdateTime = gameserverbackupDescUpdateTime.UpdateDefault.(func() time.Time)
+	// gameserverbackupDescServerID is the schema descriptor for server_id field.
+	gameserverbackupDescServerID := gameserverbackupFields[1].Descriptor()
+	// gameserverbackup.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gameserverbackup.ServerIDValidator = gameserverbackupDescServerID.Validators[0].(func(string) error)
+	// gameserverbackupDescPath is the schema descriptor for path field.
+	gameserverbackupDescPath := gameserverbackupFields[4].Descriptor()
+	// gameserverbackup.DefaultPath holds the default value on creation for the path field.
+	gameserverbackup.DefaultPath = gameserverbackupDescPath.Default.(string)
+	// gameserverbackupDescSize is the schema descriptor for size field.
+	gameserverbackupDescSize := gameserverbackupFields[5].Descriptor()
+	// gameserverbackup.DefaultSize holds the default value on creation for the size field.
+	gameserverbackup.DefaultSize = gameserverbackupDescSize.Default.(int64)
+	// gameserverbackupDescNote is the schema descriptor for note field.
+	gameserverbackupDescNote := gameserverbackupFields[7].Descriptor()
+	// gameserverbackup.DefaultNote holds the default value on creation for the note field.
+	gameserverbackup.DefaultNote = gameserverbackupDescNote.Default.(string)
+	// gameserverbackupDescError is the schema descriptor for error field.
+	gameserverbackupDescError := gameserverbackupFields[8].Descriptor()
+	// gameserverbackup.DefaultError holds the default value on creation for the error field.
+	gameserverbackup.DefaultError = gameserverbackupDescError.Default.(string)
+	// gameserverbackupDescOperatorID is the schema descriptor for operator_id field.
+	gameserverbackupDescOperatorID := gameserverbackupFields[9].Descriptor()
+	// gameserverbackup.DefaultOperatorID holds the default value on creation for the operator_id field.
+	gameserverbackup.DefaultOperatorID = gameserverbackupDescOperatorID.Default.(string)
+	// gameserverbackupDescOperatorName is the schema descriptor for operator_name field.
+	gameserverbackupDescOperatorName := gameserverbackupFields[10].Descriptor()
+	// gameserverbackup.DefaultOperatorName holds the default value on creation for the operator_name field.
+	gameserverbackup.DefaultOperatorName = gameserverbackupDescOperatorName.Default.(string)
+	// gameserverbackupDescID is the schema descriptor for id field.
+	gameserverbackupDescID := gameserverbackupFields[0].Descriptor()
+	// gameserverbackup.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gameserverbackup.IDValidator = gameserverbackupDescID.Validators[0].(func(string) error)
+	gameserverhistoryMixin := schema.GameServerHistory{}.Mixin()
+	gameserverhistoryMixinFields0 := gameserverhistoryMixin[0].Fields()
+	_ = gameserverhistoryMixinFields0
+	gameserverhistoryFields := schema.GameServerHistory{}.Fields()
+	_ = gameserverhistoryFields
+	// gameserverhistoryDescCreateTime is the schema descriptor for create_time field.
+	gameserverhistoryDescCreateTime := gameserverhistoryMixinFields0[0].Descriptor()
+	// gameserverhistory.DefaultCreateTime holds the default value on creation for the create_time field.
+	gameserverhistory.DefaultCreateTime = gameserverhistoryDescCreateTime.Default.(func() time.Time)
+	// gameserverhistoryDescUpdateTime is the schema descriptor for update_time field.
+	gameserverhistoryDescUpdateTime := gameserverhistoryMixinFields0[1].Descriptor()
+	// gameserverhistory.DefaultUpdateTime holds the default value on creation for the update_time field.
+	gameserverhistory.DefaultUpdateTime = gameserverhistoryDescUpdateTime.Default.(func() time.Time)
+	// gameserverhistory.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	gameserverhistory.UpdateDefaultUpdateTime = gameserverhistoryDescUpdateTime.UpdateDefault.(func() time.Time)
+	// gameserverhistoryDescServerID is the schema descriptor for server_id field.
+	gameserverhistoryDescServerID := gameserverhistoryFields[1].Descriptor()
+	// gameserverhistory.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gameserverhistory.ServerIDValidator = gameserverhistoryDescServerID.Validators[0].(func(string) error)
+	// gameserverhistoryDescKind is the schema descriptor for kind field.
+	gameserverhistoryDescKind := gameserverhistoryFields[2].Descriptor()
+	// gameserverhistory.KindValidator is a validator for the "kind" field. It is called by the builders before save.
+	gameserverhistory.KindValidator = gameserverhistoryDescKind.Validators[0].(func(string) error)
+	// gameserverhistoryDescAction is the schema descriptor for action field.
+	gameserverhistoryDescAction := gameserverhistoryFields[3].Descriptor()
+	// gameserverhistory.DefaultAction holds the default value on creation for the action field.
+	gameserverhistory.DefaultAction = gameserverhistoryDescAction.Default.(string)
+	// gameserverhistoryDescMessage is the schema descriptor for message field.
+	gameserverhistoryDescMessage := gameserverhistoryFields[6].Descriptor()
+	// gameserverhistory.DefaultMessage holds the default value on creation for the message field.
+	gameserverhistory.DefaultMessage = gameserverhistoryDescMessage.Default.(string)
+	// gameserverhistoryDescOperatorID is the schema descriptor for operator_id field.
+	gameserverhistoryDescOperatorID := gameserverhistoryFields[7].Descriptor()
+	// gameserverhistory.DefaultOperatorID holds the default value on creation for the operator_id field.
+	gameserverhistory.DefaultOperatorID = gameserverhistoryDescOperatorID.Default.(string)
+	// gameserverhistoryDescOperatorName is the schema descriptor for operator_name field.
+	gameserverhistoryDescOperatorName := gameserverhistoryFields[8].Descriptor()
+	// gameserverhistory.DefaultOperatorName holds the default value on creation for the operator_name field.
+	gameserverhistory.DefaultOperatorName = gameserverhistoryDescOperatorName.Default.(string)
+	// gameserverhistoryDescID is the schema descriptor for id field.
+	gameserverhistoryDescID := gameserverhistoryFields[0].Descriptor()
+	// gameserverhistory.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gameserverhistory.IDValidator = gameserverhistoryDescID.Validators[0].(func(string) error)
+	giftcodeMixin := schema.GiftCode{}.Mixin()
+	giftcodeMixinFields0 := giftcodeMixin[0].Fields()
+	_ = giftcodeMixinFields0
+	giftcodeFields := schema.GiftCode{}.Fields()
+	_ = giftcodeFields
+	// giftcodeDescCreateTime is the schema descriptor for create_time field.
+	giftcodeDescCreateTime := giftcodeMixinFields0[0].Descriptor()
+	// giftcode.DefaultCreateTime holds the default value on creation for the create_time field.
+	giftcode.DefaultCreateTime = giftcodeDescCreateTime.Default.(func() time.Time)
+	// giftcodeDescUpdateTime is the schema descriptor for update_time field.
+	giftcodeDescUpdateTime := giftcodeMixinFields0[1].Descriptor()
+	// giftcode.DefaultUpdateTime holds the default value on creation for the update_time field.
+	giftcode.DefaultUpdateTime = giftcodeDescUpdateTime.Default.(func() time.Time)
+	// giftcode.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	giftcode.UpdateDefaultUpdateTime = giftcodeDescUpdateTime.UpdateDefault.(func() time.Time)
+	// giftcodeDescBatchID is the schema descriptor for batch_id field.
+	giftcodeDescBatchID := giftcodeFields[1].Descriptor()
+	// giftcode.BatchIDValidator is a validator for the "batch_id" field. It is called by the builders before save.
+	giftcode.BatchIDValidator = giftcodeDescBatchID.Validators[0].(func(string) error)
+	// giftcodeDescServerID is the schema descriptor for server_id field.
+	giftcodeDescServerID := giftcodeFields[2].Descriptor()
+	// giftcode.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	giftcode.ServerIDValidator = giftcodeDescServerID.Validators[0].(func(string) error)
+	// giftcodeDescCode is the schema descriptor for code field.
+	giftcodeDescCode := giftcodeFields[3].Descriptor()
+	// giftcode.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	giftcode.CodeValidator = giftcodeDescCode.Validators[0].(func(string) error)
+	// giftcodeDescUsedByPlayer is the schema descriptor for used_by_player field.
+	giftcodeDescUsedByPlayer := giftcodeFields[4].Descriptor()
+	// giftcode.DefaultUsedByPlayer holds the default value on creation for the used_by_player field.
+	giftcode.DefaultUsedByPlayer = giftcodeDescUsedByPlayer.Default.(string)
+	// giftcodeDescUsedByName is the schema descriptor for used_by_name field.
+	giftcodeDescUsedByName := giftcodeFields[5].Descriptor()
+	// giftcode.DefaultUsedByName holds the default value on creation for the used_by_name field.
+	giftcode.DefaultUsedByName = giftcodeDescUsedByName.Default.(string)
+	// giftcodeDescID is the schema descriptor for id field.
+	giftcodeDescID := giftcodeFields[0].Descriptor()
+	// giftcode.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	giftcode.IDValidator = giftcodeDescID.Validators[0].(func(string) error)
+	giftcodebatchMixin := schema.GiftCodeBatch{}.Mixin()
+	giftcodebatchMixinFields0 := giftcodebatchMixin[0].Fields()
+	_ = giftcodebatchMixinFields0
+	giftcodebatchFields := schema.GiftCodeBatch{}.Fields()
+	_ = giftcodebatchFields
+	// giftcodebatchDescCreateTime is the schema descriptor for create_time field.
+	giftcodebatchDescCreateTime := giftcodebatchMixinFields0[0].Descriptor()
+	// giftcodebatch.DefaultCreateTime holds the default value on creation for the create_time field.
+	giftcodebatch.DefaultCreateTime = giftcodebatchDescCreateTime.Default.(func() time.Time)
+	// giftcodebatchDescUpdateTime is the schema descriptor for update_time field.
+	giftcodebatchDescUpdateTime := giftcodebatchMixinFields0[1].Descriptor()
+	// giftcodebatch.DefaultUpdateTime holds the default value on creation for the update_time field.
+	giftcodebatch.DefaultUpdateTime = giftcodebatchDescUpdateTime.Default.(func() time.Time)
+	// giftcodebatch.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	giftcodebatch.UpdateDefaultUpdateTime = giftcodebatchDescUpdateTime.UpdateDefault.(func() time.Time)
+	// giftcodebatchDescServerID is the schema descriptor for server_id field.
+	giftcodebatchDescServerID := giftcodebatchFields[1].Descriptor()
+	// giftcodebatch.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	giftcodebatch.ServerIDValidator = giftcodebatchDescServerID.Validators[0].(func(string) error)
+	// giftcodebatchDescName is the schema descriptor for name field.
+	giftcodebatchDescName := giftcodebatchFields[2].Descriptor()
+	// giftcodebatch.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	giftcodebatch.NameValidator = giftcodebatchDescName.Validators[0].(func(string) error)
+	// giftcodebatchDescCode is the schema descriptor for code field.
+	giftcodebatchDescCode := giftcodebatchFields[4].Descriptor()
+	// giftcodebatch.DefaultCode holds the default value on creation for the code field.
+	giftcodebatch.DefaultCode = giftcodebatchDescCode.Default.(string)
+	// giftcodebatchDescPrefix is the schema descriptor for prefix field.
+	giftcodebatchDescPrefix := giftcodebatchFields[5].Descriptor()
+	// giftcodebatch.DefaultPrefix holds the default value on creation for the prefix field.
+	giftcodebatch.DefaultPrefix = giftcodebatchDescPrefix.Default.(string)
+	// giftcodebatchDescQuantity is the schema descriptor for quantity field.
+	giftcodebatchDescQuantity := giftcodebatchFields[6].Descriptor()
+	// giftcodebatch.DefaultQuantity holds the default value on creation for the quantity field.
+	giftcodebatch.DefaultQuantity = giftcodebatchDescQuantity.Default.(int)
+	// giftcodebatchDescMessage is the schema descriptor for message field.
+	giftcodebatchDescMessage := giftcodebatchFields[8].Descriptor()
+	// giftcodebatch.DefaultMessage holds the default value on creation for the message field.
+	giftcodebatch.DefaultMessage = giftcodebatchDescMessage.Default.(string)
+	// giftcodebatchDescTotalLimit is the schema descriptor for total_limit field.
+	giftcodebatchDescTotalLimit := giftcodebatchFields[9].Descriptor()
+	// giftcodebatch.DefaultTotalLimit holds the default value on creation for the total_limit field.
+	giftcodebatch.DefaultTotalLimit = giftcodebatchDescTotalLimit.Default.(int)
+	// giftcodebatchDescPerPlayerLimit is the schema descriptor for per_player_limit field.
+	giftcodebatchDescPerPlayerLimit := giftcodebatchFields[10].Descriptor()
+	// giftcodebatch.DefaultPerPlayerLimit holds the default value on creation for the per_player_limit field.
+	giftcodebatch.DefaultPerPlayerLimit = giftcodebatchDescPerPlayerLimit.Default.(int)
+	// giftcodebatchDescRegisteredWithinDays is the schema descriptor for registered_within_days field.
+	giftcodebatchDescRegisteredWithinDays := giftcodebatchFields[14].Descriptor()
+	// giftcodebatch.DefaultRegisteredWithinDays holds the default value on creation for the registered_within_days field.
+	giftcodebatch.DefaultRegisteredWithinDays = giftcodebatchDescRegisteredWithinDays.Default.(int)
+	// giftcodebatchDescUsedCount is the schema descriptor for used_count field.
+	giftcodebatchDescUsedCount := giftcodebatchFields[16].Descriptor()
+	// giftcodebatch.DefaultUsedCount holds the default value on creation for the used_count field.
+	giftcodebatch.DefaultUsedCount = giftcodebatchDescUsedCount.Default.(int)
+	// giftcodebatchDescDisabledByName is the schema descriptor for disabled_by_name field.
+	giftcodebatchDescDisabledByName := giftcodebatchFields[18].Descriptor()
+	// giftcodebatch.DefaultDisabledByName holds the default value on creation for the disabled_by_name field.
+	giftcodebatch.DefaultDisabledByName = giftcodebatchDescDisabledByName.Default.(string)
+	// giftcodebatchDescCreatedBy is the schema descriptor for created_by field.
+	giftcodebatchDescCreatedBy := giftcodebatchFields[19].Descriptor()
+	// giftcodebatch.DefaultCreatedBy holds the default value on creation for the created_by field.
+	giftcodebatch.DefaultCreatedBy = giftcodebatchDescCreatedBy.Default.(string)
+	// giftcodebatchDescCreatedByName is the schema descriptor for created_by_name field.
+	giftcodebatchDescCreatedByName := giftcodebatchFields[20].Descriptor()
+	// giftcodebatch.DefaultCreatedByName holds the default value on creation for the created_by_name field.
+	giftcodebatch.DefaultCreatedByName = giftcodebatchDescCreatedByName.Default.(string)
+	// giftcodebatchDescID is the schema descriptor for id field.
+	giftcodebatchDescID := giftcodebatchFields[0].Descriptor()
+	// giftcodebatch.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	giftcodebatch.IDValidator = giftcodebatchDescID.Validators[0].(func(string) error)
+	giftcoderedeemMixin := schema.GiftCodeRedeem{}.Mixin()
+	giftcoderedeemMixinFields0 := giftcoderedeemMixin[0].Fields()
+	_ = giftcoderedeemMixinFields0
+	giftcoderedeemFields := schema.GiftCodeRedeem{}.Fields()
+	_ = giftcoderedeemFields
+	// giftcoderedeemDescCreateTime is the schema descriptor for create_time field.
+	giftcoderedeemDescCreateTime := giftcoderedeemMixinFields0[0].Descriptor()
+	// giftcoderedeem.DefaultCreateTime holds the default value on creation for the create_time field.
+	giftcoderedeem.DefaultCreateTime = giftcoderedeemDescCreateTime.Default.(func() time.Time)
+	// giftcoderedeemDescUpdateTime is the schema descriptor for update_time field.
+	giftcoderedeemDescUpdateTime := giftcoderedeemMixinFields0[1].Descriptor()
+	// giftcoderedeem.DefaultUpdateTime holds the default value on creation for the update_time field.
+	giftcoderedeem.DefaultUpdateTime = giftcoderedeemDescUpdateTime.Default.(func() time.Time)
+	// giftcoderedeem.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	giftcoderedeem.UpdateDefaultUpdateTime = giftcoderedeemDescUpdateTime.UpdateDefault.(func() time.Time)
+	// giftcoderedeemDescServerID is the schema descriptor for server_id field.
+	giftcoderedeemDescServerID := giftcoderedeemFields[1].Descriptor()
+	// giftcoderedeem.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	giftcoderedeem.ServerIDValidator = giftcoderedeemDescServerID.Validators[0].(func(string) error)
+	// giftcoderedeemDescBatchID is the schema descriptor for batch_id field.
+	giftcoderedeemDescBatchID := giftcoderedeemFields[2].Descriptor()
+	// giftcoderedeem.DefaultBatchID holds the default value on creation for the batch_id field.
+	giftcoderedeem.DefaultBatchID = giftcoderedeemDescBatchID.Default.(string)
+	// giftcoderedeemDescCode is the schema descriptor for code field.
+	giftcoderedeemDescCode := giftcoderedeemFields[3].Descriptor()
+	// giftcoderedeem.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	giftcoderedeem.CodeValidator = giftcoderedeemDescCode.Validators[0].(func(string) error)
+	// giftcoderedeemDescPlayerID is the schema descriptor for player_id field.
+	giftcoderedeemDescPlayerID := giftcoderedeemFields[4].Descriptor()
+	// giftcoderedeem.DefaultPlayerID holds the default value on creation for the player_id field.
+	giftcoderedeem.DefaultPlayerID = giftcoderedeemDescPlayerID.Default.(string)
+	// giftcoderedeemDescNickname is the schema descriptor for nickname field.
+	giftcoderedeemDescNickname := giftcoderedeemFields[5].Descriptor()
+	// giftcoderedeem.DefaultNickname holds the default value on creation for the nickname field.
+	giftcoderedeem.DefaultNickname = giftcoderedeemDescNickname.Default.(string)
+	// giftcoderedeemDescPassportUserID is the schema descriptor for passport_user_id field.
+	giftcoderedeemDescPassportUserID := giftcoderedeemFields[6].Descriptor()
+	// giftcoderedeem.DefaultPassportUserID holds the default value on creation for the passport_user_id field.
+	giftcoderedeem.DefaultPassportUserID = giftcoderedeemDescPassportUserID.Default.(string)
+	// giftcoderedeemDescPlatform is the schema descriptor for platform field.
+	giftcoderedeemDescPlatform := giftcoderedeemFields[8].Descriptor()
+	// giftcoderedeem.DefaultPlatform holds the default value on creation for the platform field.
+	giftcoderedeem.DefaultPlatform = giftcoderedeemDescPlatform.Default.(string)
+	// giftcoderedeemDescErrorMessage is the schema descriptor for error_message field.
+	giftcoderedeemDescErrorMessage := giftcoderedeemFields[10].Descriptor()
+	// giftcoderedeem.DefaultErrorMessage holds the default value on creation for the error_message field.
+	giftcoderedeem.DefaultErrorMessage = giftcoderedeemDescErrorMessage.Default.(string)
+	// giftcoderedeemDescExecutionID is the schema descriptor for execution_id field.
+	giftcoderedeemDescExecutionID := giftcoderedeemFields[11].Descriptor()
+	// giftcoderedeem.DefaultExecutionID holds the default value on creation for the execution_id field.
+	giftcoderedeem.DefaultExecutionID = giftcoderedeemDescExecutionID.Default.(string)
+	// giftcoderedeemDescID is the schema descriptor for id field.
+	giftcoderedeemDescID := giftcoderedeemFields[0].Descriptor()
+	// giftcoderedeem.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	giftcoderedeem.IDValidator = giftcoderedeemDescID.Validators[0].(func(string) error)
+	gmexecutionMixin := schema.GmExecution{}.Mixin()
+	gmexecutionMixinFields0 := gmexecutionMixin[0].Fields()
+	_ = gmexecutionMixinFields0
+	gmexecutionFields := schema.GmExecution{}.Fields()
+	_ = gmexecutionFields
+	// gmexecutionDescCreateTime is the schema descriptor for create_time field.
+	gmexecutionDescCreateTime := gmexecutionMixinFields0[0].Descriptor()
+	// gmexecution.DefaultCreateTime holds the default value on creation for the create_time field.
+	gmexecution.DefaultCreateTime = gmexecutionDescCreateTime.Default.(func() time.Time)
+	// gmexecutionDescUpdateTime is the schema descriptor for update_time field.
+	gmexecutionDescUpdateTime := gmexecutionMixinFields0[1].Descriptor()
+	// gmexecution.DefaultUpdateTime holds the default value on creation for the update_time field.
+	gmexecution.DefaultUpdateTime = gmexecutionDescUpdateTime.Default.(func() time.Time)
+	// gmexecution.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	gmexecution.UpdateDefaultUpdateTime = gmexecutionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// gmexecutionDescServerID is the schema descriptor for server_id field.
+	gmexecutionDescServerID := gmexecutionFields[1].Descriptor()
+	// gmexecution.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gmexecution.ServerIDValidator = gmexecutionDescServerID.Validators[0].(func(string) error)
+	// gmexecutionDescCommand is the schema descriptor for command field.
+	gmexecutionDescCommand := gmexecutionFields[2].Descriptor()
+	// gmexecution.CommandValidator is a validator for the "command" field. It is called by the builders before save.
+	gmexecution.CommandValidator = gmexecutionDescCommand.Validators[0].(func(string) error)
+	// gmexecutionDescCommandTitle is the schema descriptor for command_title field.
+	gmexecutionDescCommandTitle := gmexecutionFields[3].Descriptor()
+	// gmexecution.DefaultCommandTitle holds the default value on creation for the command_title field.
+	gmexecution.DefaultCommandTitle = gmexecutionDescCommandTitle.Default.(string)
+	// gmexecutionDescCommandGroup is the schema descriptor for command_group field.
+	gmexecutionDescCommandGroup := gmexecutionFields[4].Descriptor()
+	// gmexecution.DefaultCommandGroup holds the default value on creation for the command_group field.
+	gmexecution.DefaultCommandGroup = gmexecutionDescCommandGroup.Default.(string)
+	// gmexecutionDescRisk is the schema descriptor for risk field.
+	gmexecutionDescRisk := gmexecutionFields[5].Descriptor()
+	// gmexecution.DefaultRisk holds the default value on creation for the risk field.
+	gmexecution.DefaultRisk = gmexecutionDescRisk.Default.(string)
+	// gmexecutionDescTargetKind is the schema descriptor for target_kind field.
+	gmexecutionDescTargetKind := gmexecutionFields[6].Descriptor()
+	// gmexecution.DefaultTargetKind holds the default value on creation for the target_kind field.
+	gmexecution.DefaultTargetKind = gmexecutionDescTargetKind.Default.(string)
+	// gmexecutionDescActorID is the schema descriptor for actor_id field.
+	gmexecutionDescActorID := gmexecutionFields[7].Descriptor()
+	// gmexecution.DefaultActorID holds the default value on creation for the actor_id field.
+	gmexecution.DefaultActorID = gmexecutionDescActorID.Default.(string)
+	// gmexecutionDescActorName is the schema descriptor for actor_name field.
+	gmexecutionDescActorName := gmexecutionFields[8].Descriptor()
+	// gmexecution.DefaultActorName holds the default value on creation for the actor_name field.
+	gmexecution.DefaultActorName = gmexecutionDescActorName.Default.(string)
+	// gmexecutionDescClientIP is the schema descriptor for client_ip field.
+	gmexecutionDescClientIP := gmexecutionFields[11].Descriptor()
+	// gmexecution.DefaultClientIP holds the default value on creation for the client_ip field.
+	gmexecution.DefaultClientIP = gmexecutionDescClientIP.Default.(string)
+	// gmexecutionDescPlatform is the schema descriptor for platform field.
+	gmexecutionDescPlatform := gmexecutionFields[12].Descriptor()
+	// gmexecution.DefaultPlatform holds the default value on creation for the platform field.
+	gmexecution.DefaultPlatform = gmexecutionDescPlatform.Default.(string)
+	// gmexecutionDescParams is the schema descriptor for params field.
+	gmexecutionDescParams := gmexecutionFields[15].Descriptor()
+	// gmexecution.DefaultParams holds the default value on creation for the params field.
+	gmexecution.DefaultParams = gmexecutionDescParams.Default.(string)
+	// gmexecutionDescReason is the schema descriptor for reason field.
+	gmexecutionDescReason := gmexecutionFields[17].Descriptor()
+	// gmexecution.DefaultReason holds the default value on creation for the reason field.
+	gmexecution.DefaultReason = gmexecutionDescReason.Default.(string)
+	// gmexecutionDescConfirmed is the schema descriptor for confirmed field.
+	gmexecutionDescConfirmed := gmexecutionFields[18].Descriptor()
+	// gmexecution.DefaultConfirmed holds the default value on creation for the confirmed field.
+	gmexecution.DefaultConfirmed = gmexecutionDescConfirmed.Default.(bool)
+	// gmexecutionDescDryRun is the schema descriptor for dry_run field.
+	gmexecutionDescDryRun := gmexecutionFields[19].Descriptor()
+	// gmexecution.DefaultDryRun holds the default value on creation for the dry_run field.
+	gmexecution.DefaultDryRun = gmexecutionDescDryRun.Default.(bool)
+	// gmexecutionDescResult is the schema descriptor for result field.
+	gmexecutionDescResult := gmexecutionFields[21].Descriptor()
+	// gmexecution.DefaultResult holds the default value on creation for the result field.
+	gmexecution.DefaultResult = gmexecutionDescResult.Default.(string)
+	// gmexecutionDescSuccessCount is the schema descriptor for success_count field.
+	gmexecutionDescSuccessCount := gmexecutionFields[22].Descriptor()
+	// gmexecution.DefaultSuccessCount holds the default value on creation for the success_count field.
+	gmexecution.DefaultSuccessCount = gmexecutionDescSuccessCount.Default.(int)
+	// gmexecutionDescFailedCount is the schema descriptor for failed_count field.
+	gmexecutionDescFailedCount := gmexecutionFields[23].Descriptor()
+	// gmexecution.DefaultFailedCount holds the default value on creation for the failed_count field.
+	gmexecution.DefaultFailedCount = gmexecutionDescFailedCount.Default.(int)
+	// gmexecutionDescBackupRef is the schema descriptor for backup_ref field.
+	gmexecutionDescBackupRef := gmexecutionFields[24].Descriptor()
+	// gmexecution.DefaultBackupRef holds the default value on creation for the backup_ref field.
+	gmexecution.DefaultBackupRef = gmexecutionDescBackupRef.Default.(string)
+	// gmexecutionDescErrorCode is the schema descriptor for error_code field.
+	gmexecutionDescErrorCode := gmexecutionFields[25].Descriptor()
+	// gmexecution.DefaultErrorCode holds the default value on creation for the error_code field.
+	gmexecution.DefaultErrorCode = gmexecutionDescErrorCode.Default.(string)
+	// gmexecutionDescErrorMessage is the schema descriptor for error_message field.
+	gmexecutionDescErrorMessage := gmexecutionFields[26].Descriptor()
+	// gmexecution.DefaultErrorMessage holds the default value on creation for the error_message field.
+	gmexecution.DefaultErrorMessage = gmexecutionDescErrorMessage.Default.(string)
+	// gmexecutionDescRequestID is the schema descriptor for request_id field.
+	gmexecutionDescRequestID := gmexecutionFields[27].Descriptor()
+	// gmexecution.RequestIDValidator is a validator for the "request_id" field. It is called by the builders before save.
+	gmexecution.RequestIDValidator = gmexecutionDescRequestID.Validators[0].(func(string) error)
+	// gmexecutionDescSource is the schema descriptor for source field.
+	gmexecutionDescSource := gmexecutionFields[28].Descriptor()
+	// gmexecution.DefaultSource holds the default value on creation for the source field.
+	gmexecution.DefaultSource = gmexecutionDescSource.Default.(string)
+	// gmexecutionDescReviewedBy is the schema descriptor for reviewed_by field.
+	gmexecutionDescReviewedBy := gmexecutionFields[29].Descriptor()
+	// gmexecution.DefaultReviewedBy holds the default value on creation for the reviewed_by field.
+	gmexecution.DefaultReviewedBy = gmexecutionDescReviewedBy.Default.(string)
+	// gmexecutionDescReviewerName is the schema descriptor for reviewer_name field.
+	gmexecutionDescReviewerName := gmexecutionFields[30].Descriptor()
+	// gmexecution.DefaultReviewerName holds the default value on creation for the reviewer_name field.
+	gmexecution.DefaultReviewerName = gmexecutionDescReviewerName.Default.(string)
+	// gmexecutionDescReviewNote is the schema descriptor for review_note field.
+	gmexecutionDescReviewNote := gmexecutionFields[32].Descriptor()
+	// gmexecution.DefaultReviewNote holds the default value on creation for the review_note field.
+	gmexecution.DefaultReviewNote = gmexecutionDescReviewNote.Default.(string)
+	// gmexecutionDescDurationMs is the schema descriptor for duration_ms field.
+	gmexecutionDescDurationMs := gmexecutionFields[34].Descriptor()
+	// gmexecution.DefaultDurationMs holds the default value on creation for the duration_ms field.
+	gmexecution.DefaultDurationMs = gmexecutionDescDurationMs.Default.(int)
+	// gmexecutionDescID is the schema descriptor for id field.
+	gmexecutionDescID := gmexecutionFields[0].Descriptor()
+	// gmexecution.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gmexecution.IDValidator = gmexecutionDescID.Validators[0].(func(string) error)
+	gmselfserviceMixin := schema.GmSelfService{}.Mixin()
+	gmselfserviceMixinFields0 := gmselfserviceMixin[0].Fields()
+	_ = gmselfserviceMixinFields0
+	gmselfserviceFields := schema.GmSelfService{}.Fields()
+	_ = gmselfserviceFields
+	// gmselfserviceDescCreateTime is the schema descriptor for create_time field.
+	gmselfserviceDescCreateTime := gmselfserviceMixinFields0[0].Descriptor()
+	// gmselfservice.DefaultCreateTime holds the default value on creation for the create_time field.
+	gmselfservice.DefaultCreateTime = gmselfserviceDescCreateTime.Default.(func() time.Time)
+	// gmselfserviceDescUpdateTime is the schema descriptor for update_time field.
+	gmselfserviceDescUpdateTime := gmselfserviceMixinFields0[1].Descriptor()
+	// gmselfservice.DefaultUpdateTime holds the default value on creation for the update_time field.
+	gmselfservice.DefaultUpdateTime = gmselfserviceDescUpdateTime.Default.(func() time.Time)
+	// gmselfservice.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	gmselfservice.UpdateDefaultUpdateTime = gmselfserviceDescUpdateTime.UpdateDefault.(func() time.Time)
+	// gmselfserviceDescServerID is the schema descriptor for server_id field.
+	gmselfserviceDescServerID := gmselfserviceFields[1].Descriptor()
+	// gmselfservice.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gmselfservice.ServerIDValidator = gmselfserviceDescServerID.Validators[0].(func(string) error)
+	// gmselfserviceDescCommand is the schema descriptor for command field.
+	gmselfserviceDescCommand := gmselfserviceFields[2].Descriptor()
+	// gmselfservice.CommandValidator is a validator for the "command" field. It is called by the builders before save.
+	gmselfservice.CommandValidator = gmselfserviceDescCommand.Validators[0].(func(string) error)
+	// gmselfserviceDescEnabled is the schema descriptor for enabled field.
+	gmselfserviceDescEnabled := gmselfserviceFields[3].Descriptor()
+	// gmselfservice.DefaultEnabled holds the default value on creation for the enabled field.
+	gmselfservice.DefaultEnabled = gmselfserviceDescEnabled.Default.(bool)
+	// gmselfserviceDescDailyLimit is the schema descriptor for daily_limit field.
+	gmselfserviceDescDailyLimit := gmselfserviceFields[4].Descriptor()
+	// gmselfservice.DefaultDailyLimit holds the default value on creation for the daily_limit field.
+	gmselfservice.DefaultDailyLimit = gmselfserviceDescDailyLimit.Default.(int)
+	// gmselfserviceDescCooldownSec is the schema descriptor for cooldown_sec field.
+	gmselfserviceDescCooldownSec := gmselfserviceFields[5].Descriptor()
+	// gmselfservice.DefaultCooldownSec holds the default value on creation for the cooldown_sec field.
+	gmselfservice.DefaultCooldownSec = gmselfserviceDescCooldownSec.Default.(int)
+	// gmselfserviceDescNeedApproval is the schema descriptor for need_approval field.
+	gmselfserviceDescNeedApproval := gmselfserviceFields[6].Descriptor()
+	// gmselfservice.DefaultNeedApproval holds the default value on creation for the need_approval field.
+	gmselfservice.DefaultNeedApproval = gmselfserviceDescNeedApproval.Default.(bool)
+	// gmselfserviceDescPlayerNote is the schema descriptor for player_note field.
+	gmselfserviceDescPlayerNote := gmselfserviceFields[7].Descriptor()
+	// gmselfservice.DefaultPlayerNote holds the default value on creation for the player_note field.
+	gmselfservice.DefaultPlayerNote = gmselfserviceDescPlayerNote.Default.(string)
+	// gmselfserviceDescUpdatedBy is the schema descriptor for updated_by field.
+	gmselfserviceDescUpdatedBy := gmselfserviceFields[8].Descriptor()
+	// gmselfservice.DefaultUpdatedBy holds the default value on creation for the updated_by field.
+	gmselfservice.DefaultUpdatedBy = gmselfserviceDescUpdatedBy.Default.(string)
+	// gmselfserviceDescUpdatedByName is the schema descriptor for updated_by_name field.
+	gmselfserviceDescUpdatedByName := gmselfserviceFields[9].Descriptor()
+	// gmselfservice.DefaultUpdatedByName holds the default value on creation for the updated_by_name field.
+	gmselfservice.DefaultUpdatedByName = gmselfserviceDescUpdatedByName.Default.(string)
+	// gmselfserviceDescID is the schema descriptor for id field.
+	gmselfserviceDescID := gmselfserviceFields[0].Descriptor()
+	// gmselfservice.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gmselfservice.IDValidator = gmselfserviceDescID.Validators[0].(func(string) error)
 	iqcheckpromptMixin := schema.IQCheckPrompt{}.Mixin()
 	iqcheckpromptMixinFields0 := iqcheckpromptMixin[0].Fields()
 	_ = iqcheckpromptMixinFields0
@@ -714,6 +1515,375 @@ func init() {
 	operationlogDescOperationTime := operationlogFields[8].Descriptor()
 	// operationlog.DefaultOperationTime holds the default value on creation for the operation_time field.
 	operationlog.DefaultOperationTime = operationlogDescOperationTime.Default.(func() time.Time)
+	passportinviteMixin := schema.PassportInvite{}.Mixin()
+	passportinviteMixinFields0 := passportinviteMixin[0].Fields()
+	_ = passportinviteMixinFields0
+	passportinviteFields := schema.PassportInvite{}.Fields()
+	_ = passportinviteFields
+	// passportinviteDescCreateTime is the schema descriptor for create_time field.
+	passportinviteDescCreateTime := passportinviteMixinFields0[0].Descriptor()
+	// passportinvite.DefaultCreateTime holds the default value on creation for the create_time field.
+	passportinvite.DefaultCreateTime = passportinviteDescCreateTime.Default.(func() time.Time)
+	// passportinviteDescUpdateTime is the schema descriptor for update_time field.
+	passportinviteDescUpdateTime := passportinviteMixinFields0[1].Descriptor()
+	// passportinvite.DefaultUpdateTime holds the default value on creation for the update_time field.
+	passportinvite.DefaultUpdateTime = passportinviteDescUpdateTime.Default.(func() time.Time)
+	// passportinvite.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	passportinvite.UpdateDefaultUpdateTime = passportinviteDescUpdateTime.UpdateDefault.(func() time.Time)
+	// passportinviteDescCode is the schema descriptor for code field.
+	passportinviteDescCode := passportinviteFields[1].Descriptor()
+	// passportinvite.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	passportinvite.CodeValidator = passportinviteDescCode.Validators[0].(func(string) error)
+	// passportinviteDescEmail is the schema descriptor for email field.
+	passportinviteDescEmail := passportinviteFields[2].Descriptor()
+	// passportinvite.DefaultEmail holds the default value on creation for the email field.
+	passportinvite.DefaultEmail = passportinviteDescEmail.Default.(string)
+	// passportinviteDescServerID is the schema descriptor for server_id field.
+	passportinviteDescServerID := passportinviteFields[3].Descriptor()
+	// passportinvite.DefaultServerID holds the default value on creation for the server_id field.
+	passportinvite.DefaultServerID = passportinviteDescServerID.Default.(string)
+	// passportinviteDescMaxUses is the schema descriptor for max_uses field.
+	passportinviteDescMaxUses := passportinviteFields[4].Descriptor()
+	// passportinvite.DefaultMaxUses holds the default value on creation for the max_uses field.
+	passportinvite.DefaultMaxUses = passportinviteDescMaxUses.Default.(int)
+	// passportinviteDescUsed is the schema descriptor for used field.
+	passportinviteDescUsed := passportinviteFields[5].Descriptor()
+	// passportinvite.DefaultUsed holds the default value on creation for the used field.
+	passportinvite.DefaultUsed = passportinviteDescUsed.Default.(int)
+	// passportinviteDescCreatedBy is the schema descriptor for created_by field.
+	passportinviteDescCreatedBy := passportinviteFields[7].Descriptor()
+	// passportinvite.DefaultCreatedBy holds the default value on creation for the created_by field.
+	passportinvite.DefaultCreatedBy = passportinviteDescCreatedBy.Default.(string)
+	// passportinviteDescCreatedByName is the schema descriptor for created_by_name field.
+	passportinviteDescCreatedByName := passportinviteFields[8].Descriptor()
+	// passportinvite.DefaultCreatedByName holds the default value on creation for the created_by_name field.
+	passportinvite.DefaultCreatedByName = passportinviteDescCreatedByName.Default.(string)
+	// passportinviteDescNote is the schema descriptor for note field.
+	passportinviteDescNote := passportinviteFields[9].Descriptor()
+	// passportinvite.DefaultNote holds the default value on creation for the note field.
+	passportinvite.DefaultNote = passportinviteDescNote.Default.(string)
+	// passportinviteDescRevoked is the schema descriptor for revoked field.
+	passportinviteDescRevoked := passportinviteFields[10].Descriptor()
+	// passportinvite.DefaultRevoked holds the default value on creation for the revoked field.
+	passportinvite.DefaultRevoked = passportinviteDescRevoked.Default.(bool)
+	// passportinviteDescID is the schema descriptor for id field.
+	passportinviteDescID := passportinviteFields[0].Descriptor()
+	// passportinvite.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	passportinvite.IDValidator = passportinviteDescID.Validators[0].(func(string) error)
+	passportloginlogMixin := schema.PassportLoginLog{}.Mixin()
+	passportloginlogMixinFields0 := passportloginlogMixin[0].Fields()
+	_ = passportloginlogMixinFields0
+	passportloginlogFields := schema.PassportLoginLog{}.Fields()
+	_ = passportloginlogFields
+	// passportloginlogDescCreateTime is the schema descriptor for create_time field.
+	passportloginlogDescCreateTime := passportloginlogMixinFields0[0].Descriptor()
+	// passportloginlog.DefaultCreateTime holds the default value on creation for the create_time field.
+	passportloginlog.DefaultCreateTime = passportloginlogDescCreateTime.Default.(func() time.Time)
+	// passportloginlogDescUpdateTime is the schema descriptor for update_time field.
+	passportloginlogDescUpdateTime := passportloginlogMixinFields0[1].Descriptor()
+	// passportloginlog.DefaultUpdateTime holds the default value on creation for the update_time field.
+	passportloginlog.DefaultUpdateTime = passportloginlogDescUpdateTime.Default.(func() time.Time)
+	// passportloginlog.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	passportloginlog.UpdateDefaultUpdateTime = passportloginlogDescUpdateTime.UpdateDefault.(func() time.Time)
+	// passportloginlogDescUserID is the schema descriptor for user_id field.
+	passportloginlogDescUserID := passportloginlogFields[1].Descriptor()
+	// passportloginlog.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	passportloginlog.UserIDValidator = passportloginlogDescUserID.Validators[0].(func(string) error)
+	// passportloginlogDescMethod is the schema descriptor for method field.
+	passportloginlogDescMethod := passportloginlogFields[2].Descriptor()
+	// passportloginlog.DefaultMethod holds the default value on creation for the method field.
+	passportloginlog.DefaultMethod = passportloginlogDescMethod.Default.(string)
+	// passportloginlogDescSuccess is the schema descriptor for success field.
+	passportloginlogDescSuccess := passportloginlogFields[3].Descriptor()
+	// passportloginlog.DefaultSuccess holds the default value on creation for the success field.
+	passportloginlog.DefaultSuccess = passportloginlogDescSuccess.Default.(bool)
+	// passportloginlogDescErrorCode is the schema descriptor for error_code field.
+	passportloginlogDescErrorCode := passportloginlogFields[4].Descriptor()
+	// passportloginlog.DefaultErrorCode holds the default value on creation for the error_code field.
+	passportloginlog.DefaultErrorCode = passportloginlogDescErrorCode.Default.(string)
+	// passportloginlogDescIP is the schema descriptor for ip field.
+	passportloginlogDescIP := passportloginlogFields[5].Descriptor()
+	// passportloginlog.DefaultIP holds the default value on creation for the ip field.
+	passportloginlog.DefaultIP = passportloginlogDescIP.Default.(string)
+	// passportloginlogDescDeviceID is the schema descriptor for device_id field.
+	passportloginlogDescDeviceID := passportloginlogFields[6].Descriptor()
+	// passportloginlog.DefaultDeviceID holds the default value on creation for the device_id field.
+	passportloginlog.DefaultDeviceID = passportloginlogDescDeviceID.Default.(string)
+	// passportloginlogDescDevice is the schema descriptor for device field.
+	passportloginlogDescDevice := passportloginlogFields[7].Descriptor()
+	// passportloginlog.DefaultDevice holds the default value on creation for the device field.
+	passportloginlog.DefaultDevice = passportloginlogDescDevice.Default.(string)
+	// passportloginlogDescUserAgent is the schema descriptor for user_agent field.
+	passportloginlogDescUserAgent := passportloginlogFields[8].Descriptor()
+	// passportloginlog.DefaultUserAgent holds the default value on creation for the user_agent field.
+	passportloginlog.DefaultUserAgent = passportloginlogDescUserAgent.Default.(string)
+	// passportloginlogDescID is the schema descriptor for id field.
+	passportloginlogDescID := passportloginlogFields[0].Descriptor()
+	// passportloginlog.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	passportloginlog.IDValidator = passportloginlogDescID.Validators[0].(func(string) error)
+	passportmessageMixin := schema.PassportMessage{}.Mixin()
+	passportmessageMixinFields0 := passportmessageMixin[0].Fields()
+	_ = passportmessageMixinFields0
+	passportmessageFields := schema.PassportMessage{}.Fields()
+	_ = passportmessageFields
+	// passportmessageDescCreateTime is the schema descriptor for create_time field.
+	passportmessageDescCreateTime := passportmessageMixinFields0[0].Descriptor()
+	// passportmessage.DefaultCreateTime holds the default value on creation for the create_time field.
+	passportmessage.DefaultCreateTime = passportmessageDescCreateTime.Default.(func() time.Time)
+	// passportmessageDescUpdateTime is the schema descriptor for update_time field.
+	passportmessageDescUpdateTime := passportmessageMixinFields0[1].Descriptor()
+	// passportmessage.DefaultUpdateTime holds the default value on creation for the update_time field.
+	passportmessage.DefaultUpdateTime = passportmessageDescUpdateTime.Default.(func() time.Time)
+	// passportmessage.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	passportmessage.UpdateDefaultUpdateTime = passportmessageDescUpdateTime.UpdateDefault.(func() time.Time)
+	// passportmessageDescUserID is the schema descriptor for user_id field.
+	passportmessageDescUserID := passportmessageFields[1].Descriptor()
+	// passportmessage.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	passportmessage.UserIDValidator = passportmessageDescUserID.Validators[0].(func(string) error)
+	// passportmessageDescKind is the schema descriptor for kind field.
+	passportmessageDescKind := passportmessageFields[2].Descriptor()
+	// passportmessage.KindValidator is a validator for the "kind" field. It is called by the builders before save.
+	passportmessage.KindValidator = passportmessageDescKind.Validators[0].(func(string) error)
+	// passportmessageDescServerID is the schema descriptor for server_id field.
+	passportmessageDescServerID := passportmessageFields[3].Descriptor()
+	// passportmessage.DefaultServerID holds the default value on creation for the server_id field.
+	passportmessage.DefaultServerID = passportmessageDescServerID.Default.(string)
+	// passportmessageDescID is the schema descriptor for id field.
+	passportmessageDescID := passportmessageFields[0].Descriptor()
+	// passportmessage.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	passportmessage.IDValidator = passportmessageDescID.Validators[0].(func(string) error)
+	passportoidcclientMixin := schema.PassportOidcClient{}.Mixin()
+	passportoidcclientMixinFields0 := passportoidcclientMixin[0].Fields()
+	_ = passportoidcclientMixinFields0
+	passportoidcclientFields := schema.PassportOidcClient{}.Fields()
+	_ = passportoidcclientFields
+	// passportoidcclientDescCreateTime is the schema descriptor for create_time field.
+	passportoidcclientDescCreateTime := passportoidcclientMixinFields0[0].Descriptor()
+	// passportoidcclient.DefaultCreateTime holds the default value on creation for the create_time field.
+	passportoidcclient.DefaultCreateTime = passportoidcclientDescCreateTime.Default.(func() time.Time)
+	// passportoidcclientDescUpdateTime is the schema descriptor for update_time field.
+	passportoidcclientDescUpdateTime := passportoidcclientMixinFields0[1].Descriptor()
+	// passportoidcclient.DefaultUpdateTime holds the default value on creation for the update_time field.
+	passportoidcclient.DefaultUpdateTime = passportoidcclientDescUpdateTime.Default.(func() time.Time)
+	// passportoidcclient.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	passportoidcclient.UpdateDefaultUpdateTime = passportoidcclientDescUpdateTime.UpdateDefault.(func() time.Time)
+	// passportoidcclientDescName is the schema descriptor for name field.
+	passportoidcclientDescName := passportoidcclientFields[1].Descriptor()
+	// passportoidcclient.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	passportoidcclient.NameValidator = passportoidcclientDescName.Validators[0].(func(string) error)
+	// passportoidcclientDescClientID is the schema descriptor for client_id field.
+	passportoidcclientDescClientID := passportoidcclientFields[2].Descriptor()
+	// passportoidcclient.ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
+	passportoidcclient.ClientIDValidator = passportoidcclientDescClientID.Validators[0].(func(string) error)
+	// passportoidcclientDescClientSecret is the schema descriptor for client_secret field.
+	passportoidcclientDescClientSecret := passportoidcclientFields[3].Descriptor()
+	// passportoidcclient.ClientSecretValidator is a validator for the "client_secret" field. It is called by the builders before save.
+	passportoidcclient.ClientSecretValidator = passportoidcclientDescClientSecret.Validators[0].(func(string) error)
+	// passportoidcclientDescActive is the schema descriptor for active field.
+	passportoidcclientDescActive := passportoidcclientFields[6].Descriptor()
+	// passportoidcclient.DefaultActive holds the default value on creation for the active field.
+	passportoidcclient.DefaultActive = passportoidcclientDescActive.Default.(bool)
+	// passportoidcclientDescDescription is the schema descriptor for description field.
+	passportoidcclientDescDescription := passportoidcclientFields[7].Descriptor()
+	// passportoidcclient.DefaultDescription holds the default value on creation for the description field.
+	passportoidcclient.DefaultDescription = passportoidcclientDescDescription.Default.(string)
+	// passportoidcclientDescServerID is the schema descriptor for server_id field.
+	passportoidcclientDescServerID := passportoidcclientFields[8].Descriptor()
+	// passportoidcclient.DefaultServerID holds the default value on creation for the server_id field.
+	passportoidcclient.DefaultServerID = passportoidcclientDescServerID.Default.(string)
+	// passportoidcclientDescCreatedByName is the schema descriptor for created_by_name field.
+	passportoidcclientDescCreatedByName := passportoidcclientFields[9].Descriptor()
+	// passportoidcclient.DefaultCreatedByName holds the default value on creation for the created_by_name field.
+	passportoidcclient.DefaultCreatedByName = passportoidcclientDescCreatedByName.Default.(string)
+	// passportoidcclientDescID is the schema descriptor for id field.
+	passportoidcclientDescID := passportoidcclientFields[0].Descriptor()
+	// passportoidcclient.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	passportoidcclient.IDValidator = passportoidcclientDescID.Validators[0].(func(string) error)
+	passportoidcgrantMixin := schema.PassportOidcGrant{}.Mixin()
+	passportoidcgrantMixinFields0 := passportoidcgrantMixin[0].Fields()
+	_ = passportoidcgrantMixinFields0
+	passportoidcgrantFields := schema.PassportOidcGrant{}.Fields()
+	_ = passportoidcgrantFields
+	// passportoidcgrantDescCreateTime is the schema descriptor for create_time field.
+	passportoidcgrantDescCreateTime := passportoidcgrantMixinFields0[0].Descriptor()
+	// passportoidcgrant.DefaultCreateTime holds the default value on creation for the create_time field.
+	passportoidcgrant.DefaultCreateTime = passportoidcgrantDescCreateTime.Default.(func() time.Time)
+	// passportoidcgrantDescUpdateTime is the schema descriptor for update_time field.
+	passportoidcgrantDescUpdateTime := passportoidcgrantMixinFields0[1].Descriptor()
+	// passportoidcgrant.DefaultUpdateTime holds the default value on creation for the update_time field.
+	passportoidcgrant.DefaultUpdateTime = passportoidcgrantDescUpdateTime.Default.(func() time.Time)
+	// passportoidcgrant.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	passportoidcgrant.UpdateDefaultUpdateTime = passportoidcgrantDescUpdateTime.UpdateDefault.(func() time.Time)
+	// passportoidcgrantDescUserID is the schema descriptor for user_id field.
+	passportoidcgrantDescUserID := passportoidcgrantFields[1].Descriptor()
+	// passportoidcgrant.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	passportoidcgrant.UserIDValidator = passportoidcgrantDescUserID.Validators[0].(func(string) error)
+	// passportoidcgrantDescClientID is the schema descriptor for client_id field.
+	passportoidcgrantDescClientID := passportoidcgrantFields[2].Descriptor()
+	// passportoidcgrant.ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
+	passportoidcgrant.ClientIDValidator = passportoidcgrantDescClientID.Validators[0].(func(string) error)
+	// passportoidcgrantDescLastUsedAt is the schema descriptor for last_used_at field.
+	passportoidcgrantDescLastUsedAt := passportoidcgrantFields[4].Descriptor()
+	// passportoidcgrant.DefaultLastUsedAt holds the default value on creation for the last_used_at field.
+	passportoidcgrant.DefaultLastUsedAt = passportoidcgrantDescLastUsedAt.Default.(func() time.Time)
+	// passportoidcgrantDescID is the schema descriptor for id field.
+	passportoidcgrantDescID := passportoidcgrantFields[0].Descriptor()
+	// passportoidcgrant.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	passportoidcgrant.IDValidator = passportoidcgrantDescID.Validators[0].(func(string) error)
+	passportsessionMixin := schema.PassportSession{}.Mixin()
+	passportsessionMixinFields0 := passportsessionMixin[0].Fields()
+	_ = passportsessionMixinFields0
+	passportsessionFields := schema.PassportSession{}.Fields()
+	_ = passportsessionFields
+	// passportsessionDescCreateTime is the schema descriptor for create_time field.
+	passportsessionDescCreateTime := passportsessionMixinFields0[0].Descriptor()
+	// passportsession.DefaultCreateTime holds the default value on creation for the create_time field.
+	passportsession.DefaultCreateTime = passportsessionDescCreateTime.Default.(func() time.Time)
+	// passportsessionDescUpdateTime is the schema descriptor for update_time field.
+	passportsessionDescUpdateTime := passportsessionMixinFields0[1].Descriptor()
+	// passportsession.DefaultUpdateTime holds the default value on creation for the update_time field.
+	passportsession.DefaultUpdateTime = passportsessionDescUpdateTime.Default.(func() time.Time)
+	// passportsession.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	passportsession.UpdateDefaultUpdateTime = passportsessionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// passportsessionDescUserID is the schema descriptor for user_id field.
+	passportsessionDescUserID := passportsessionFields[1].Descriptor()
+	// passportsession.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	passportsession.UserIDValidator = passportsessionDescUserID.Validators[0].(func(string) error)
+	// passportsessionDescDeviceID is the schema descriptor for device_id field.
+	passportsessionDescDeviceID := passportsessionFields[2].Descriptor()
+	// passportsession.DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
+	passportsession.DeviceIDValidator = passportsessionDescDeviceID.Validators[0].(func(string) error)
+	// passportsessionDescDevice is the schema descriptor for device field.
+	passportsessionDescDevice := passportsessionFields[3].Descriptor()
+	// passportsession.DefaultDevice holds the default value on creation for the device field.
+	passportsession.DefaultDevice = passportsessionDescDevice.Default.(string)
+	// passportsessionDescUserAgent is the schema descriptor for user_agent field.
+	passportsessionDescUserAgent := passportsessionFields[4].Descriptor()
+	// passportsession.DefaultUserAgent holds the default value on creation for the user_agent field.
+	passportsession.DefaultUserAgent = passportsessionDescUserAgent.Default.(string)
+	// passportsessionDescClientID is the schema descriptor for client_id field.
+	passportsessionDescClientID := passportsessionFields[5].Descriptor()
+	// passportsession.DefaultClientID holds the default value on creation for the client_id field.
+	passportsession.DefaultClientID = passportsessionDescClientID.Default.(string)
+	// passportsessionDescLoginMethod is the schema descriptor for login_method field.
+	passportsessionDescLoginMethod := passportsessionFields[6].Descriptor()
+	// passportsession.DefaultLoginMethod holds the default value on creation for the login_method field.
+	passportsession.DefaultLoginMethod = passportsessionDescLoginMethod.Default.(string)
+	// passportsessionDescIP is the schema descriptor for ip field.
+	passportsessionDescIP := passportsessionFields[7].Descriptor()
+	// passportsession.DefaultIP holds the default value on creation for the ip field.
+	passportsession.DefaultIP = passportsessionDescIP.Default.(string)
+	// passportsessionDescLastIP is the schema descriptor for last_ip field.
+	passportsessionDescLastIP := passportsessionFields[8].Descriptor()
+	// passportsession.DefaultLastIP holds the default value on creation for the last_ip field.
+	passportsession.DefaultLastIP = passportsessionDescLastIP.Default.(string)
+	// passportsessionDescAccessNoise is the schema descriptor for access_noise field.
+	passportsessionDescAccessNoise := passportsessionFields[10].Descriptor()
+	// passportsession.AccessNoiseValidator is a validator for the "access_noise" field. It is called by the builders before save.
+	passportsession.AccessNoiseValidator = passportsessionDescAccessNoise.Validators[0].(func(string) error)
+	// passportsessionDescRefreshNoise is the schema descriptor for refresh_noise field.
+	passportsessionDescRefreshNoise := passportsessionFields[11].Descriptor()
+	// passportsession.RefreshNoiseValidator is a validator for the "refresh_noise" field. It is called by the builders before save.
+	passportsession.RefreshNoiseValidator = passportsessionDescRefreshNoise.Validators[0].(func(string) error)
+	// passportsessionDescPersistent is the schema descriptor for persistent field.
+	passportsessionDescPersistent := passportsessionFields[12].Descriptor()
+	// passportsession.DefaultPersistent holds the default value on creation for the persistent field.
+	passportsession.DefaultPersistent = passportsessionDescPersistent.Default.(bool)
+	// passportsessionDescID is the schema descriptor for id field.
+	passportsessionDescID := passportsessionFields[0].Descriptor()
+	// passportsession.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	passportsession.IDValidator = passportsessionDescID.Validators[0].(func(string) error)
+	passportuserMixin := schema.PassportUser{}.Mixin()
+	passportuserMixinFields0 := passportuserMixin[0].Fields()
+	_ = passportuserMixinFields0
+	passportuserFields := schema.PassportUser{}.Fields()
+	_ = passportuserFields
+	// passportuserDescCreateTime is the schema descriptor for create_time field.
+	passportuserDescCreateTime := passportuserMixinFields0[0].Descriptor()
+	// passportuser.DefaultCreateTime holds the default value on creation for the create_time field.
+	passportuser.DefaultCreateTime = passportuserDescCreateTime.Default.(func() time.Time)
+	// passportuserDescUpdateTime is the schema descriptor for update_time field.
+	passportuserDescUpdateTime := passportuserMixinFields0[1].Descriptor()
+	// passportuser.DefaultUpdateTime holds the default value on creation for the update_time field.
+	passportuser.DefaultUpdateTime = passportuserDescUpdateTime.Default.(func() time.Time)
+	// passportuser.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	passportuser.UpdateDefaultUpdateTime = passportuserDescUpdateTime.UpdateDefault.(func() time.Time)
+	// passportuserDescUsername is the schema descriptor for username field.
+	passportuserDescUsername := passportuserFields[1].Descriptor()
+	// passportuser.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	passportuser.UsernameValidator = passportuserDescUsername.Validators[0].(func(string) error)
+	// passportuserDescEmail is the schema descriptor for email field.
+	passportuserDescEmail := passportuserFields[2].Descriptor()
+	// passportuser.DefaultEmail holds the default value on creation for the email field.
+	passportuser.DefaultEmail = passportuserDescEmail.Default.(string)
+	// passportuserDescEmailVerified is the schema descriptor for email_verified field.
+	passportuserDescEmailVerified := passportuserFields[3].Descriptor()
+	// passportuser.DefaultEmailVerified holds the default value on creation for the email_verified field.
+	passportuser.DefaultEmailVerified = passportuserDescEmailVerified.Default.(bool)
+	// passportuserDescPassword is the schema descriptor for password field.
+	passportuserDescPassword := passportuserFields[4].Descriptor()
+	// passportuser.DefaultPassword holds the default value on creation for the password field.
+	passportuser.DefaultPassword = passportuserDescPassword.Default.(string)
+	// passportuserDescName is the schema descriptor for name field.
+	passportuserDescName := passportuserFields[6].Descriptor()
+	// passportuser.DefaultName holds the default value on creation for the name field.
+	passportuser.DefaultName = passportuserDescName.Default.(string)
+	// passportuserDescBio is the schema descriptor for bio field.
+	passportuserDescBio := passportuserFields[7].Descriptor()
+	// passportuser.DefaultBio holds the default value on creation for the bio field.
+	passportuser.DefaultBio = passportuserDescBio.Default.(string)
+	// passportuserDescAvatar is the schema descriptor for avatar field.
+	passportuserDescAvatar := passportuserFields[8].Descriptor()
+	// passportuser.DefaultAvatar holds the default value on creation for the avatar field.
+	passportuser.DefaultAvatar = passportuserDescAvatar.Default.(string)
+	// passportuserDescAvatarKey is the schema descriptor for avatar_key field.
+	passportuserDescAvatarKey := passportuserFields[9].Descriptor()
+	// passportuser.DefaultAvatarKey holds the default value on creation for the avatar_key field.
+	passportuser.DefaultAvatarKey = passportuserDescAvatarKey.Default.(string)
+	// passportuserDescAvatarAsset is the schema descriptor for avatar_asset field.
+	passportuserDescAvatarAsset := passportuserFields[10].Descriptor()
+	// passportuser.DefaultAvatarAsset holds the default value on creation for the avatar_asset field.
+	passportuser.DefaultAvatarAsset = passportuserDescAvatarAsset.Default.(string)
+	// passportuserDescLanguage is the schema descriptor for language field.
+	passportuserDescLanguage := passportuserFields[11].Descriptor()
+	// passportuser.DefaultLanguage holds the default value on creation for the language field.
+	passportuser.DefaultLanguage = passportuserDescLanguage.Default.(string)
+	// passportuserDescTimezone is the schema descriptor for timezone field.
+	passportuserDescTimezone := passportuserFields[12].Descriptor()
+	// passportuser.DefaultTimezone holds the default value on creation for the timezone field.
+	passportuser.DefaultTimezone = passportuserDescTimezone.Default.(string)
+	// passportuserDescEmailCodeLogin is the schema descriptor for email_code_login field.
+	passportuserDescEmailCodeLogin := passportuserFields[13].Descriptor()
+	// passportuser.DefaultEmailCodeLogin holds the default value on creation for the email_code_login field.
+	passportuser.DefaultEmailCodeLogin = passportuserDescEmailCodeLogin.Default.(bool)
+	// passportuserDescTotpSecret is the schema descriptor for totp_secret field.
+	passportuserDescTotpSecret := passportuserFields[14].Descriptor()
+	// passportuser.DefaultTotpSecret holds the default value on creation for the totp_secret field.
+	passportuser.DefaultTotpSecret = passportuserDescTotpSecret.Default.(string)
+	// passportuserDescLastLoginIP is the schema descriptor for last_login_ip field.
+	passportuserDescLastLoginIP := passportuserFields[19].Descriptor()
+	// passportuser.DefaultLastLoginIP holds the default value on creation for the last_login_ip field.
+	passportuser.DefaultLastLoginIP = passportuserDescLastLoginIP.Default.(string)
+	// passportuserDescLastLoginDevice is the schema descriptor for last_login_device field.
+	passportuserDescLastLoginDevice := passportuserFields[20].Descriptor()
+	// passportuser.DefaultLastLoginDevice holds the default value on creation for the last_login_device field.
+	passportuser.DefaultLastLoginDevice = passportuserDescLastLoginDevice.Default.(string)
+	// passportuserDescInviteID is the schema descriptor for invite_id field.
+	passportuserDescInviteID := passportuserFields[22].Descriptor()
+	// passportuser.DefaultInviteID holds the default value on creation for the invite_id field.
+	passportuser.DefaultInviteID = passportuserDescInviteID.Default.(string)
+	// passportuserDescRegisterIP is the schema descriptor for register_ip field.
+	passportuserDescRegisterIP := passportuserFields[23].Descriptor()
+	// passportuser.DefaultRegisterIP holds the default value on creation for the register_ip field.
+	passportuser.DefaultRegisterIP = passportuserDescRegisterIP.Default.(string)
+	// passportuserDescDisabledByName is the schema descriptor for disabled_by_name field.
+	passportuserDescDisabledByName := passportuserFields[25].Descriptor()
+	// passportuser.DefaultDisabledByName holds the default value on creation for the disabled_by_name field.
+	passportuser.DefaultDisabledByName = passportuserDescDisabledByName.Default.(string)
+	// passportuserDescID is the schema descriptor for id field.
+	passportuserDescID := passportuserFields[0].Descriptor()
+	// passportuser.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	passportuser.IDValidator = passportuserDescID.Validators[0].(func(string) error)
 	portforwardMixin := schema.PortForward{}.Mixin()
 	portforwardMixinFields0 := portforwardMixin[0].Fields()
 	_ = portforwardMixinFields0

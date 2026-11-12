@@ -1,0 +1,1062 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "v1/game_common.proto";
+import "v1/instance.proto";
+
+// 游戏服务器管理（权限 game:server）：接入（托管 / 仅 GM）、状态、进程、专用设置、更新、备份、文件与日志。
+// 托管服务器的进程是应用实例（本机），控制台 WebSocket：/api/v1/game/server-console/ws?id=&role=；
+// 实时动态（SSE，转发 MGP /events）：/api/v1/game/server-events/{id}。
+service GameServerService {
+  // 内置的游戏适配器
+  rpc ListGameAdapters(ListGameAdaptersRequest) returns (ListGameAdaptersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/adapters"
+    };
+  }
+  // 服务器列表（按游戏、接入方式、状态、标签筛选；搜索；分页）
+  rpc ListGameServers(ListGameServersRequest) returns (ListGameServersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers"
+    };
+  }
+  // 服务器详情
+  rpc GetGameServer(GetGameServerRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}"
+    };
+  }
+  // 接入服务器（仅 GM：MGP 地址与密钥；托管：服务端目录、端口与进程）
+  rpc CreateGameServer(CreateGameServerRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers"
+      body: "*"
+    };
+  }
+  // 修改名称、标签、封面、备注、MGP 地址 / 密钥、通行证可见性与时区
+  rpc UpdateGameServer(UpdateGameServerRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      put: "/api/v1/game/servers/{id}"
+      body: "*"
+    };
+  }
+  // 删除服务器（只删除接入记录与 Momoko 侧数据；托管的应用实例按 delete_instances 决定）
+  rpc DeleteGameServer(DeleteGameServerRequest) returns (DeleteGameServerResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/game/servers/{id}"
+    };
+  }
+  // 测试 MGP 连接（传 id 时未填写的字段沿用已保存配置）
+  rpc TestGameServer(TestGameServerRequest) returns (TestGameServerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/test"
+      body: "*"
+    };
+  }
+  // 重新拉取 manifest 与 status
+  rpc RefreshGameServer(RefreshGameServerRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/refresh"
+      body: "*"
+    };
+  }
+
+  // ---- 托管 ----
+
+  // 识别服务端目录（托管接入前的预检）：可执行文件、配置、端口、数据库、资源与端口占用
+  rpc DetectGameServerDir(DetectGameServerDirRequest) returns (DetectGameServerDirResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/detect"
+      body: "*"
+    };
+  }
+  // 切换接入方式（托管 ↔ 仅 GM）
+  rpc SwitchGameServerMode(SwitchGameServerModeRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/mode"
+      body: "*"
+    };
+  }
+  // 轮换 MGP 密钥（托管：写回服务端配置，运行中按需重启）
+  rpc RotateGameServerKey(RotateGameServerKeyRequest) returns (RotateGameServerKeyResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/rotate-key"
+      body: "*"
+    };
+  }
+  // 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
+  rpc ControlGameServer(ControlGameServerRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/control"
+      body: "*"
+    };
+  }
+  // 修改托管选项（开机自启动、崩溃后自动重启、资源服务器）
+  rpc UpdateGameServerHosting(UpdateGameServerHostingRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      put: "/api/v1/game/servers/{id}/hosting"
+      body: "*"
+    };
+  }
+  // 概览：进程占用、实时 status、状态探测
+  rpc GetGameServerOverview(GetGameServerOverviewRequest) returns (GameServerOverview) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/overview"
+    };
+  }
+
+  // ---- 专用设置 ----
+
+  // 读取专用设置（适配器表单 + 配置原文 + 版本）
+  rpc GetGameServerSettings(GetGameServerSettingsRequest) returns (GameServerSettings) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/settings"
+    };
+  }
+  // 保存专用设置（表单值或原文；revision 不一致时拒绝；可保存后重启）
+  rpc SaveGameServerSettings(SaveGameServerSettingsRequest) returns (SaveGameServerSettingsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/game/servers/{id}/settings"
+      body: "*"
+    };
+  }
+
+  // ---- 更新 ----
+
+  // 当前服务端程序与最近的更新任务
+  rpc GetGameServerBuild(GetGameServerBuildRequest) returns (GameServerBuild) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/build"
+    };
+  }
+  // 检查候选构建（路径为服务端目录内的相对路径或本机绝对路径）
+  rpc CheckGameServerBuild(CheckGameServerBuildRequest) returns (GameServerBuildInfo) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/build/check"
+      body: "*"
+    };
+  }
+  // 更新服务端程序（后台任务：检查 → 停止 → 备份 → 替换 → 启动 → 健康检查，失败自动回滚）
+  rpc UpdateGameServerBuild(UpdateGameServerBuildRequest) returns (GameServerTaskResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/build/update"
+      body: "*"
+    };
+  }
+  // 资源镜像：清单、发布状态、下载进度与资源服务器 /health
+  rpc GetGameServerResource(GetGameServerResourceRequest) returns (GameServerResource) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/resource"
+    };
+  }
+  // 运行资源服务器的显式任务：verify 校验本地资源 / update 访问官方目录并下载
+  rpc RunGameServerResourceTask(RunGameServerResourceTaskRequest) returns (GameServerTaskResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/resource/run"
+      body: "*"
+    };
+  }
+  // 查看一个托管任务（更新、资源、备份、回档）
+  rpc GetGameServerTask(GetGameServerTaskRequest) returns (GameServerTask) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/tasks/{task_id}"
+    };
+  }
+  // 取消一个托管任务
+  rpc CancelGameServerTask(CancelGameServerTaskRequest) returns (GameServerTask) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/tasks/{task_id}/cancel"
+      body: "*"
+    };
+  }
+  // 变更记录（服务端、资源、配置、备份、密钥、接入方式）
+  rpc ListGameServerHistory(ListGameServerHistoryRequest) returns (ListGameServerHistoryResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/history"
+    };
+  }
+
+  // ---- 备份与回档 ----
+
+  rpc ListGameServerBackups(ListGameServerBackupsRequest) returns (ListGameServerBackupsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/backups"
+    };
+  }
+  // 立即备份（后台任务）
+  rpc CreateGameServerBackup(CreateGameServerBackupRequest) returns (GameServerTaskResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/backups"
+      body: "*"
+    };
+  }
+  rpc DeleteGameServerBackup(DeleteGameServerBackupRequest) returns (DeleteGameServerBackupResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/game/servers/{id}/backups/{backup_id}"
+    };
+  }
+  // 回档（后台任务：停止 → 备份当前 → 解压 → 启动）
+  rpc RestoreGameServerBackup(RestoreGameServerBackupRequest) returns (GameServerTaskResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/backups/{backup_id}/restore"
+      body: "*"
+    };
+  }
+  // 下载备份（预签名下载地址）
+  rpc DownloadGameServerBackup(DownloadGameServerBackupRequest) returns (DownloadGameServerBackupResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/backups/{backup_id}/download"
+    };
+  }
+  // 定时备份与保留份数
+  rpc UpdateGameServerBackupPolicy(UpdateGameServerBackupPolicyRequest) returns (GameServerBackupPolicy) {
+    option (google.api.http) = {
+      put: "/api/v1/game/servers/{id}/backup-policy"
+      body: "*"
+    };
+  }
+
+  // ---- 日志 ----
+
+  // 服务端日志文件（适配器给出的模块）
+  rpc ListGameServerLogs(ListGameServerLogsRequest) returns (ListGameServerLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/logs"
+    };
+  }
+  // 读取一个日志模块的最近记录（从末尾向前，按级别与关键字筛选）
+  rpc TailGameServerLog(TailGameServerLogRequest) returns (TailGameServerLogResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/logs/{module}"
+    };
+  }
+
+  // ---- 文件（服务端目录；与应用实例的文件接口同构，id 为服务器 id）----
+
+  rpc GetGameServerFileList(GetInstanceFileListRequest) returns (GetInstanceFileListResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/files"
+    };
+  }
+  rpc GetGameServerFileTree(GetInstanceFileTreeRequest) returns (GetInstanceFileTreeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/files/tree"
+    };
+  }
+  rpc CreateGameServerFile(CreateInstanceFileRequest) returns (CreateInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/files/create"
+      body: "*"
+    };
+  }
+  rpc RenameGameServerFile(RenameInstanceFileRequest) returns (RenameInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/files/rename"
+      body: "*"
+    };
+  }
+  rpc CopyGameServerFile(CopyInstanceFileRequest) returns (CopyInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/files/copy"
+      body: "*"
+    };
+  }
+  rpc CutGameServerFile(CutInstanceFileRequest) returns (CutInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/files/cut"
+      body: "*"
+    };
+  }
+  rpc DeleteGameServerFiles(BatchDeleteInstanceFileRequest) returns (BatchDeleteInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/files/delete"
+      body: "*"
+    };
+  }
+  rpc CompressGameServerFiles(BatchCompressInstanceFileRequest) returns (BatchCompressInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/files/compress"
+      body: "*"
+    };
+  }
+  rpc UnzipGameServerFile(UnzipInstanceFileRequest) returns (UnzipInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/files/unzip"
+      body: "*"
+    };
+  }
+  rpc EditGameServerFile(EditInstanceFileRequest) returns (EditInstanceFileResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/files/edit"
+      body: "*"
+    };
+  }
+  rpc GameServerFilePreSign(InstanceFilePreSignRequest) returns (InstanceFilePreSignResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/files/pre-sign"
+    };
+  }
+  rpc GameServerFilePreSignUpload(InstanceFilePreSignUploadRequest) returns (InstanceFilePreSignUploadResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/servers/{id}/files/upload/pre-sign"
+    };
+  }
+}
+
+// 适配器的一项能力。
+message GameAdapterCapability {
+  // 能力 key：hosting 托管 / settings 专用设置 / update 服务端更新 / resource 资源镜像 / backup 备份 /
+  // logs 日志 / files 文件 / console 控制台 / gm / passport
+  string key = 1;
+  bool enabled = 2;
+}
+
+// 托管进程角色的定义（适配器给出）。
+message GameAdapterRole {
+  // main 游戏服务端 / resource 资源服务器
+  string key = 1;
+  // 可执行文件名（不含扩展名）
+  string executable = 2;
+  // 是否可选（可不托管）
+  bool optional = 3;
+}
+
+// 游戏适配器（随 Momoko 版本内置）。
+message GameAdapter {
+  // 适配器 id（gakumas）
+  string id = 1;
+  // 是否可接入（至少支持一种接入方式）
+  bool available = 2;
+  // 支持的接入方式：hosted / remote
+  repeated string modes = 3;
+  // GM 驱动：mgp 原生
+  string gm_driver = 4;
+  // 已实现的能力（由适配器的驱动推出）
+  repeated GameAdapterCapability capabilities = 5;
+  // 托管：进程角色
+  repeated GameAdapterRole roles = 7;
+  // 托管：配置文件名（默认）
+  string config_file = 8;
+  // 托管：日志模块
+  repeated string log_modules = 9;
+  // 托管：备份范围（相对服务端目录）
+  repeated string backup_scope = 10;
+}
+
+message ListGameAdaptersRequest {}
+
+message ListGameAdaptersResponse {
+  repeated GameAdapter items = 1;
+}
+
+// 托管选项。
+message GameServerHostingOptions {
+  // 配置文件（相对服务端目录）
+  string config_file = 1;
+  // 开机自启动、崩溃后自动重启
+  bool auto_start = 2;
+  bool auto_restart = 3;
+  // 同时托管资源服务器
+  bool resource_server = 4;
+  // 资源服务器监听、对客户端的 origin 与数据目录
+  string resource_listen = 5;
+  string resource_origin = 6;
+  string resource_root = 7;
+  // 停止超时（秒）
+  int32 stop_timeout = 8;
+}
+
+// 游戏服务器。
+message GameServerInfo {
+  // 摘要（状态、在线、MGP 健康）
+  GameServerBrief brief = 1;
+  // MGP 地址与 Key ID（密钥不返回）
+  string mgp_endpoint = 2;
+  string key_id = 3;
+  google.protobuf.Timestamp key_rotated_at = 4;
+  // 最近一次 MGP 探测
+  string probe_error = 5;
+  google.protobuf.Timestamp probe_at = 6;
+  google.protobuf.Timestamp last_online_at = 7;
+  // manifest 摘要：协议版本、服务端版本、视图 / 指令 / 配置域数量
+  int32 protocol = 8;
+  string server_version = 9;
+  int32 view_count = 10;
+  int32 command_count = 11;
+  int32 config_count = 12;
+  // status 缓存原样（在线、注册、资源版本、健康…）
+  google.protobuf.Value status = 13;
+  google.protobuf.Timestamp status_at = 14;
+  // 托管：服务端目录与进程（应用实例）
+  string install_dir = 15;
+  repeated GameServerProcessInfo processes = 16;
+  // 通行证绑定可见性：public / invite / hidden，以及邀请码
+  string passport_visibility = 17;
+  string passport_invite_code = 18;
+  string timezone = 19;
+  string remark = 20;
+  google.protobuf.Timestamp create_time = 21;
+  google.protobuf.Timestamp update_time = 22;
+  // 托管选项
+  GameServerHostingOptions hosting = 23;
+  // 托管所在机器的主机名（本机）
+  string host_name = 24;
+  // 这台服务器当前可用的能力（适配器能力 ∩ 接入方式）
+  repeated string capabilities = 25;
+  // 进行中的托管任务（更新 / 资源 / 备份 / 回档）
+  repeated GameServerTask running_tasks = 26;
+}
+
+// 托管服务器的一个进程。
+message GameServerProcessInfo {
+  // main 游戏服务端 / resource 资源服务器
+  string role = 1;
+  string instance_id = 2;
+  // 应用实例名称与状态：running / stopped / maintenance / missing（应用实例已被删除）
+  string instance_name = 3;
+  string state = 4;
+  int32 pid = 5;
+  google.protobuf.Timestamp start_time = 6;
+  // 启动命令
+  string command = 7;
+  bool auto_start = 8;
+  bool auto_restart = 9;
+  int32 stop_timeout = 10;
+  // 应用实例的所属用户（应用列表里可见）
+  string owner_name = 11;
+  // 监听地址（grpc / http / mgp / resource）
+  map<string, string> listens = 12;
+  google.protobuf.Timestamp stop_time = 13;
+}
+
+message ListGameServersRequest {
+  // 名称、地址、节点、标签
+  string q = 1;
+  string game = 2;
+  // hosted / remote
+  string mode = 3;
+  // running / stopped / unreachable …
+  string state = 4;
+  string tag = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+}
+
+// 列表顶部统计（不受筛选影响）。
+message GameServersSummary {
+  int32 total = 1;
+  int32 games = 2;
+  int32 running = 3;
+  int32 online = 4;
+}
+
+// 标签与数量。
+message GameServerTagCount {
+  string tag = 1;
+  int32 count = 2;
+}
+
+message ListGameServersResponse {
+  repeated GameServerInfo items = 1;
+  int32 total = 2;
+  // 各筛选的数量（受其他筛选影响）：mode:all / mode:hosted / mode:remote / game:<id> / state:<state>
+  map<string, int32> counts = 3;
+  repeated GameServerTagCount tags = 4;
+  GameServersSummary summary = 5;
+}
+
+message GetGameServerRequest {
+  string id = 1;
+}
+
+// 托管接入参数。
+message GameServerHostedSpec {
+  // 服务端目录（本机绝对路径）
+  string install_dir = 1;
+  // 配置文件（相对服务端目录；不存在时从 config_template 复制）
+  string config_file = 2;
+  string config_template = 3;
+  // 写入配置的监听地址：grpc / http / mgp
+  map<string, string> listens = 4;
+  // 同时托管资源服务器，及其监听、origin 与数据目录
+  bool resource_server = 5;
+  string resource_listen = 6;
+  string resource_origin = 7;
+  string resource_root = 8;
+  // 写入新的 MGP 密钥（key_id / secret，由前端生成）；否则沿用配置里已有的密钥
+  bool generate_key = 9;
+  bool auto_start = 10;
+  bool auto_restart = 11;
+  // 接入后立即启动
+  bool start = 12;
+  // generate_key 时写入配置的 MGP Key ID 与密钥（前端生成）
+  string key_id = 13;
+  string secret = 14;
+}
+
+message CreateGameServerRequest {
+  string game = 1;
+  string name = 2;
+  repeated string tags = 3;
+  // hosted / remote
+  string mode = 4;
+  // 仅 GM：MGP 地址、Key ID 与密钥
+  string mgp_endpoint = 5;
+  string key_id = 6;
+  string secret = 7;
+  string cover = 8;
+  string remark = 9;
+  // 托管
+  GameServerHostedSpec hosted = 10;
+}
+
+message UpdateGameServerRequest {
+  string id = 1;
+  string name = 2;
+  repeated string tags = 3;
+  string cover = 4;
+  string remark = 5;
+  // MGP 地址与 Key ID；secret 为空时保留原密钥（托管服务器的 MGP 由配置决定，忽略这三项）
+  string mgp_endpoint = 6;
+  string key_id = 7;
+  string secret = 8;
+  string passport_visibility = 9;
+  string passport_invite_code = 10;
+  string timezone = 11;
+}
+
+message DeleteGameServerRequest {
+  string id = 1;
+  // 同时删除托管的应用实例（先停止）
+  bool delete_instances = 2;
+}
+
+message DeleteGameServerResponse {}
+
+message TestGameServerRequest {
+  string id = 1;
+  string mgp_endpoint = 2;
+  string key_id = 3;
+  string secret = 4;
+}
+
+// 一项检查结果。
+message GameServerCheck {
+  // 检查项 key（前端本地化）：connect / signature / manifest / status / executable / config / …
+  string key = 1;
+  // ok / warn / fail / pending
+  string state = 2;
+  // 参数（地址、延迟、时间偏差、指令数…）
+  map<string, string> params = 3;
+  // 失败时的错误码与原文
+  string error_code = 4;
+  string error_message = 5;
+}
+
+message TestGameServerResponse {
+  bool ok = 1;
+  repeated GameServerCheck checks = 2;
+}
+
+message RefreshGameServerRequest {
+  string id = 1;
+}
+
+message DetectGameServerDirRequest {
+  string game = 1;
+  string install_dir = 2;
+  // 指定配置文件（相对服务端目录）；空时自动选择
+  string config_file = 3;
+  // 要检查占用的监听地址（grpc / http / mgp / resource）；空时取配置里的值
+  map<string, string> listens = 4;
+  // 检测时排除的服务器（切换接入方式时传自身 id，不把自己的进程算作占用）
+  string server_id = 5;
+}
+
+message DetectGameServerDirResponse {
+  // 可以托管（没有 fail 项）
+  bool ok = 1;
+  // 规范化后的目录
+  string install_dir = 2;
+  // 使用的配置文件、是否已存在、不存在时复制的模板
+  string config_file = 3;
+  bool config_exists = 4;
+  string config_template = 5;
+  // 检查项：executable / config / database / resources / data / resourceServer / mirror / mgpKey / tokenSecret / port:<role>
+  repeated GameServerCheck checks = 6;
+  // 配置里的监听地址（grpc / http / mgp）与资源服务器默认监听
+  map<string, string> listens = 7;
+  // 资源服务器：是否找到可执行文件、默认 origin 与数据目录
+  bool has_resource_server = 8;
+  string resource_origin = 9;
+  string resource_root = 10;
+  // 配置里已有 MGP 密钥
+  bool mgp_key_present = 11;
+  string mgp_key_id = 12;
+  // 服务端可执行文件与版本（从可执行文件的构建信息读取）
+  GameServerBuildInfo build = 13;
+  // 托管所在机器（本机）的主机名
+  string host_name = 14;
+}
+
+message SwitchGameServerModeRequest {
+  string id = 1;
+  // hosted / remote
+  string mode = 2;
+  // 切到托管
+  GameServerHostedSpec hosted = 3;
+  // 切到仅 GM：MGP 地址、Key ID、密钥（留空沿用当前）
+  string mgp_endpoint = 4;
+  string key_id = 5;
+  string secret = 6;
+  // 切到仅 GM 时：删除托管的应用实例（否则只解除关联，进程保持原状）
+  bool delete_instances = 7;
+}
+
+message RotateGameServerKeyRequest {
+  string id = 1;
+  // 运行中时重启服务端使新密钥生效
+  bool restart = 2;
+  // 新的 MGP Key ID 与密钥（前端生成）
+  string key_id = 3;
+  string secret = 4;
+}
+
+message RotateGameServerKeyResponse {
+  GameServerInfo info = 1;
+  string key_id = 2;
+  // 已重启
+  bool restarted = 3;
+  // 服务端运行中且未重启：新密钥要等下次启动才生效
+  bool pending_restart = 4;
+}
+
+message ControlGameServerRequest {
+  string id = 1;
+  // start / stop / restart
+  string action = 2;
+  // 进程角色；空为全部
+  string role = 3;
+  bool force = 4;
+}
+
+message UpdateGameServerHostingRequest {
+  string id = 1;
+  bool auto_start = 2;
+  bool auto_restart = 3;
+  bool resource_server = 4;
+  string resource_listen = 5;
+  string resource_origin = 6;
+  string resource_root = 7;
+}
+
+message GetGameServerOverviewRequest {
+  string id = 1;
+}
+
+// 一个进程的资源占用。
+message GameServerProcessStats {
+  string role = 1;
+  string state = 2;
+  int32 pid = 3;
+  double cpu_percent = 4;
+  uint64 memory_bytes = 5;
+  int32 process_count = 6;
+  google.protobuf.Timestamp start_time = 7;
+}
+
+// 一项状态探测。
+message GameServerProbe {
+  // grpc / http / mgp / database / resourceServer / saves …
+  string key = 1;
+  // ok / warn / fail / pending
+  string state = 2;
+  double latency_ms = 3;
+  map<string, string> params = 4;
+  string error = 5;
+}
+
+message GameServerOverview {
+  repeated GameServerProcessStats processes = 1;
+  int32 cpu_cores = 2;
+  uint64 memory_total = 3;
+  // MGP status 实时原样
+  google.protobuf.Value status = 4;
+  string status_error = 5;
+  repeated GameServerProbe probes = 6;
+  // 资源服务器 /health 原样
+  google.protobuf.Value resource_health = 7;
+}
+
+// ---- 专用设置 ----
+
+// 设置表单的一个字段（标题与说明由前端按 key 本地化）。
+message GameSettingsField {
+  // 配置里的路径，例如 "database.driver"
+  string key = 1;
+  // string / int / bool / enum / list / secret / listen / url / path
+  string type = 2;
+  repeated string options = 3;
+  bool requires_restart = 4;
+  bool has_min = 5;
+  int64 min = 6;
+  bool has_max = 7;
+  int64 max = 8;
+  bool required = 9;
+  // 由 Momoko 托管（如 MGP 密钥），表单里只读
+  bool managed = 10;
+}
+
+message GameSettingsSection {
+  string key = 1;
+  repeated GameSettingsField fields = 2;
+}
+
+message GetGameServerSettingsRequest {
+  string id = 1;
+}
+
+message GameServerSettings {
+  repeated GameSettingsSection sections = 1;
+  // 配置的当前内容（JSON）
+  google.protobuf.Value values = 2;
+  // 内容版本（SHA-256 前 16 位）：保存时带回，不一致说明已被别处修改
+  string revision = 3;
+  // 配置原文
+  string raw = 4;
+  string config_file = 5;
+  google.protobuf.Timestamp modified_at = 6;
+  // 服务端运行中（修改需要重启生效）
+  bool running = 7;
+  // 表单不认识的顶层字段（保存时原样保留）
+  repeated string unknown_keys = 8;
+}
+
+message SaveGameServerSettingsRequest {
+  string id = 1;
+  string revision = 2;
+  // 表单模式：按路径给出修改的值 {"database.driver": "sqlite", …}
+  google.protobuf.Struct values = 3;
+  // 原文模式：完整 JSON
+  string raw = 4;
+  // 保存后重启
+  bool restart = 5;
+}
+
+message SaveGameServerSettingsResponse {
+  string revision = 1;
+  repeated string changed_keys = 2;
+  bool restarted = 3;
+  // 运行中且未重启：修改等下次启动生效
+  bool pending_restart = 4;
+}
+
+// ---- 更新 ----
+
+// 一个服务端可执行文件的构建信息（不运行它，从文件读取）。
+message GameServerBuildInfo {
+  string path = 1;
+  bool exists = 2;
+  int64 size = 3;
+  google.protobuf.Timestamp modified_at = 4;
+  // 构建时注入的版本（-ldflags -X …Version=）；空为未注入
+  string version = 5;
+  string go_version = 6;
+  string module = 7;
+  string vcs_revision = 8;
+  google.protobuf.Timestamp vcs_time = 9;
+  // 是这款游戏的服务端程序
+  bool valid = 10;
+  // 无效原因代码：not_found / not_go_binary / wrong_module / is_directory
+  string error = 11;
+  string sha256 = 12;
+}
+
+// 托管任务的一个步骤。
+message GameServerTaskStep {
+  // 步骤 key（前端本地化）
+  string key = 1;
+  // waiting / running / success / failed / skipped
+  string state = 2;
+  string detail = 3;
+}
+
+message GameServerTaskLog {
+  google.protobuf.Timestamp time = 1;
+  // info / success / warn / error
+  string level = 2;
+  string message = 3;
+}
+
+// 托管任务（更新、资源、备份、回档）。
+message GameServerTask {
+  string id = 1;
+  // build.update / resource.verify / resource.update / backup / restore
+  string kind = 2;
+  // pending / running / success / failed / canceled
+  string status = 3;
+  repeated GameServerTaskStep steps = 4;
+  repeated GameServerTaskLog logs = 5;
+  string error = 6;
+  int64 total = 7;
+  int64 finished = 8;
+  string message = 9;
+  google.protobuf.Timestamp create_time = 10;
+  google.protobuf.Timestamp start_time = 11;
+  google.protobuf.Timestamp end_time = 12;
+  string user_name = 13;
+}
+
+message GameServerTaskResponse {
+  string task_id = 1;
+}
+
+message GetGameServerBuildRequest {
+  string id = 1;
+}
+
+message GameServerBuild {
+  // 当前服务端程序
+  GameServerBuildInfo current = 1;
+  // 运行中的服务端报告的版本与数据库迁移序号（MGP status）
+  string running_version = 2;
+  int32 migration = 3;
+  // 上传新构建的目录（相对服务端目录）
+  string upload_dir = 4;
+  // 最近一次更新任务
+  GameServerTask task = 5;
+  // 最近一次成功更新的时间
+  google.protobuf.Timestamp last_update_time = 6;
+  // 已上传、可用于更新的构建（upload_dir 里的文件）
+  repeated GameServerBuildInfo uploads = 7;
+}
+
+message CheckGameServerBuildRequest {
+  string id = 1;
+  string path = 2;
+}
+
+message UpdateGameServerBuildRequest {
+  string id = 1;
+  string path = 2;
+  // 健康检查等待（秒），默认 60
+  int32 health_timeout_seconds = 3;
+}
+
+message GetGameServerResourceRequest {
+  string id = 1;
+}
+
+// 资源镜像（资源服务器的数据目录）。
+message GameServerResource {
+  // 这台服务器托管了资源服务器
+  bool hosted = 1;
+  string root = 2;
+  // 候选清单（manifest.json）
+  int32 version = 3;
+  int32 revision = 4;
+  int32 objects = 5;
+  int64 bytes = 6;
+  int32 masters = 7;
+  // 已发布的完整版本（active.json）
+  bool published = 8;
+  int32 published_version = 9;
+  int32 published_revision = 10;
+  // 下载进度（progress.json 原样）
+  google.protobuf.Value progress = 11;
+  // 资源服务器 /health 原样
+  google.protobuf.Value health = 12;
+  string health_error = 13;
+  // 游戏服务端加载的资源版本（MGP status.resource）
+  google.protobuf.Value server_resource = 14;
+  // 最近一次资源任务
+  GameServerTask task = 15;
+  // 资源服务器可执行文件存在
+  bool executable = 16;
+  // 读取清单失败的原因
+  string error = 17;
+}
+
+message RunGameServerResourceTaskRequest {
+  string id = 1;
+  // verify / update
+  string action = 2;
+  // update：显式的 MasterGetResponse JSON（本机绝对路径，可空）
+  string master_metadata = 3;
+}
+
+message GetGameServerTaskRequest {
+  string id = 1;
+  string task_id = 2;
+}
+
+message CancelGameServerTaskRequest {
+  string id = 1;
+  string task_id = 2;
+}
+
+message ListGameServerHistoryRequest {
+  string id = 1;
+  // server / resource / config / backup / key / mode；空为全部
+  string kind = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GameServerHistoryEntry {
+  string id = 1;
+  string kind = 2;
+  // 动作（前端本地化）
+  string action = 3;
+  map<string, string> params = 4;
+  // success / failed / rolled_back / running
+  string result = 5;
+  string message = 6;
+  string operator_name = 7;
+  google.protobuf.Timestamp create_time = 8;
+}
+
+message ListGameServerHistoryResponse {
+  repeated GameServerHistoryEntry items = 1;
+  int32 total = 2;
+}
+
+// ---- 备份 ----
+
+message GameServerBackupInfo {
+  string id = 1;
+  // manual / schedule / update / restore
+  string trigger = 2;
+  repeated string scope = 3;
+  int64 size = 4;
+  // running / ready / failed
+  string state = 5;
+  string note = 6;
+  string error = 7;
+  string operator_name = 8;
+  google.protobuf.Timestamp create_time = 9;
+  // 备份文件名
+  string file_name = 10;
+  // 备份文件仍在磁盘上
+  bool exists = 11;
+}
+
+// 定时备份。
+message GameServerBackupPolicy {
+  bool enabled = 1;
+  // 间隔（小时）
+  int32 interval_hours = 2;
+  // 自动备份（定时、更新前、回档前）保留份数
+  int32 keep = 3;
+  google.protobuf.Timestamp last_run_time = 4;
+  google.protobuf.Timestamp next_run_time = 5;
+}
+
+message ListGameServerBackupsRequest {
+  string id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListGameServerBackupsResponse {
+  repeated GameServerBackupInfo items = 1;
+  int32 total = 2;
+  GameServerBackupPolicy policy = 3;
+  // 备份范围（相对服务端目录）与说明码（如 postgres 数据库不在范围内：database_external）
+  repeated string scope = 4;
+  repeated string notes = 5;
+  // 备份目录（相对服务端目录）与总占用
+  string dir = 6;
+  int64 total_size = 7;
+}
+
+message CreateGameServerBackupRequest {
+  string id = 1;
+  string note = 2;
+}
+
+message DeleteGameServerBackupRequest {
+  string id = 1;
+  string backup_id = 2;
+}
+
+message DeleteGameServerBackupResponse {}
+
+message RestoreGameServerBackupRequest {
+  string id = 1;
+  string backup_id = 2;
+}
+
+message DownloadGameServerBackupRequest {
+  string id = 1;
+  string backup_id = 2;
+}
+
+message DownloadGameServerBackupResponse {
+  string download_url_path = 1;
+}
+
+message UpdateGameServerBackupPolicyRequest {
+  string id = 1;
+  bool enabled = 2;
+  int32 interval_hours = 3;
+  int32 keep = 4;
+}
+
+// ---- 日志 ----
+
+message GameServerLogModule {
+  // app / game / gateway / sdk / packet
+  string key = 1;
+  string file = 2;
+  bool exists = 3;
+  int64 size = 4;
+  google.protobuf.Timestamp modified_at = 5;
+}
+
+message ListGameServerLogsRequest {
+  string id = 1;
+}
+
+message ListGameServerLogsResponse {
+  repeated GameServerLogModule modules = 1;
+  // 写日志文件已关闭（log.file=false）
+  bool file_disabled = 2;
+  string dir = 3;
+}
+
+message TailGameServerLogRequest {
+  string id = 1;
+  string module = 2;
+  // 条数，默认 200，最大 1000
+  int32 limit = 3;
+  // 最低级别：debug / info / warn / error
+  string level = 4;
+  // 关键字
+  string q = 5;
+  // 从这个字节位置向前读（翻页）；0 为文件末尾
+  int64 before = 6;
+}
+
+message GameServerLogEntry {
+  google.protobuf.Timestamp time = 1;
+  string level = 2;
+  string message = 3;
+  // 其余字段原样
+  google.protobuf.Struct attrs = 4;
+  // 无法解析为 JSON 时的原文
+  string raw = 5;
+}
+
+message TailGameServerLogResponse {
+  repeated GameServerLogEntry items = 1;
+  // 继续向前翻页的位置（0 表示已到文件开头）
+  int64 next_before = 2;
+  int64 size = 3;
+}

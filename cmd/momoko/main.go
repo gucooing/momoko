@@ -8,6 +8,7 @@ import (
 
 	"momoko/internal/conf"
 	"momoko/internal/initialize"
+	"momoko/internal/server"
 	"momoko/pkg/auth"
 	"momoko/pkg/version"
 
@@ -38,7 +39,7 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "./configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server, ps *server.PassportServer) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -48,6 +49,7 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 		kratos.Server(
 			gs,
 			hs,
+			ps,
 		),
 	)
 }
@@ -115,7 +117,7 @@ func main() {
 		panic(fmt.Sprintf("不安全的 auth.secret 配置: %v（请在 configs/config.yaml 设置高强度随机密钥后重启）", err))
 	}
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, flagconf, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Passport, flagconf, logger)
 	if err != nil {
 		panic(err)
 	}

@@ -4,7 +4,7 @@ import { staticRoutes } from '@/router/route'
 import { useTabsStore } from '@/stores/tabs'
 import { buildLoginRoute } from '@/utils/authRedirect'
 import { getInitializeStatus } from '@/api/initialize'
-import { translate } from '@/locales'
+import { ensureRouteLocales, translate } from '@/locales'
 import NProgress from 'nprogress'
 import { IS_THEME_PREVIEW_FRAME } from '@/theme/frame'
 
@@ -27,6 +27,9 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   NProgress.start()
+
+  // 页面专用文案（locales/route/<路由第一段>/）在进入页面前按需加载
+  await ensureRouteLocales(to.path).catch(() => undefined)
 
   // 公开路由无需鉴权，直接放行
   if (to.meta?.public) return true

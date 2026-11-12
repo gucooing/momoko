@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>游戏服务器 · PC</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="./momoko-game.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1240px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <button style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">● 本机 · 在线</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">DESKTOP-K5K9BBC</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span style="flex: 1">{{n.t}}</span>
+              <sc-if value="{{n.badge}}" hint-placeholder-val="{{false}}"><span class="gtag" style="height: 20px; padding: 0 7px; font-size: 11px">{{n.badge}}</span></sc-if>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <label class="inp" style="flex: 1 1 320px; max-width: 520px">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="搜索页面、应用、玩家、服务器…" aria-label="全局搜索">
+        <span class="kbd">Ctrl K</span>
+      </label>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <button class="ib" aria-label="通知，2 条未读"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
+      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">游戏服务器</h1>
+        <div style="font-size: 14px; color: var(--ink2)">共 5 个服务器 · 3 款游戏 · <span style="color: var(--ok); font-weight: 700">4 个运行中</span> · 当前在线玩家 <span class="num" style="font-weight: 700; color: var(--ink)">17</span></div>
+      </div>
+      <a class="btn btn-o" href="#adapters"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plug}}"></path></svg>游戏适配器</a>
+      <a class="btn btn-p" href="GameServerNewPC.dc.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>接入服务器</a>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+      <div role="tablist" aria-label="按接入方式筛选" style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{modes}}" as="f" hint-placeholder-count="3">
+          <button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}">{{f.t}} <span class="n num">{{f.n}}</span></button>
+        </sc-for>
+      </div>
+      <span style="width: 1px; height: 28px; background: var(--line)"></span>
+      <div role="tablist" aria-label="按游戏筛选" class="hs" style="display: flex; gap: 8px; overflow-x: auto">
+        <sc-for list="{{games}}" as="gm" hint-placeholder-count="3">
+          <button class="chip {{gm.cls}}" role="tab" aria-selected="{{gm.on}}" onClick="{{gm.pick}}" style="padding-left: 6px">
+            <sc-if value="{{gm.img}}" hint-placeholder-val="{{true}}"><img src="{{gm.img}}" alt="" style="width: 28px; height: 28px"></sc-if>
+            <sc-if value="{{gm.letter}}" hint-placeholder-val="{{false}}"><span class="av av-ok" style="width: 28px; height: 28px; border-radius: 9px; font-size: 11px">{{gm.letter}}</span></sc-if>
+            {{gm.t}} <span class="n num">{{gm.n}}</span>
+          </button>
+        </sc-for>
+      </div>
+      <span style="flex: 1"></span>
+      <label class="inp" style="flex: 0 1 260px; min-height: 40px">
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="名称、地址或节点" aria-label="搜索服务器">
+      </label>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px">
+      <sc-for list="{{servers}}" as="s" hint-placeholder-count="5">
+        <article class="card" style="overflow: hidden; display: flex; flex-direction: column">
+          <div style="position: relative; height: 128px; background: {{s.coverBg}}; overflow: hidden">
+            <sc-if value="{{s.cover}}" hint-placeholder-val="{{true}}">
+              <img class="ph" src="{{s.cover}}" alt="{{s.coverAlt}}" style="width: 100%; height: 128px; object-position: {{s.coverPos}}">
+            </sc-if>
+            <sc-if value="{{s.noCover}}" hint-placeholder-val="{{false}}">
+              <div style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); opacity: .55">
+                <sc-for list="{{tiles}}" as="tl" hint-placeholder-count="24"><span style="height: 32px; background: {{tl}}"></span></sc-for>
+              </div>
+            </sc-if>
+            <span class="pill {{s.st}}" style="position: absolute; top: 12px; right: 12px; background: var(--s)">{{s.stT}}</span>
+          </div>
+          <div style="padding: 0 20px 18px; display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; align-items: flex-end; gap: 14px; margin-top: -26px; position: relative">
+              <sc-if value="{{s.logo}}" hint-placeholder-val="{{true}}">
+                <span style="width: 60px; height: 60px; border-radius: 18px; background: var(--s); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; flex: none; transform: rotate(-4deg); box-shadow: 3px 3px 0 var(--g)"><img src="{{s.logo}}" alt="初星学园徽章" style="width: 46px; height: 46px"></span>
+              </sc-if>
+              <sc-if value="{{s.letter}}" hint-placeholder-val="{{false}}">
+                <span class="av av-ok" style="width: 60px; height: 60px; border-radius: 18px; font-size: 20px; transform: rotate(3deg); border: 3px solid var(--s)">{{s.letter}}</span>
+              </sc-if>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-bottom: 2px">
+                <span style="font-size: 18px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{s.n}}</span>
+                <span style="font-size: 13px; color: var(--ink2)">{{s.game}}</span>
+              </span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              <span class="tag" style="background: {{s.modeBg}}; color: {{s.modeFg}}">{{s.mode}}</span>
+              <span class="tag">{{s.where}}</span>
+              <sc-for list="{{s.tags}}" as="tg" hint-placeholder-count="1"><span class="tag">{{tg}}</span></sc-for>
+            </div>
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; padding: 12px 14px; border-radius: 16px; background: var(--s2)">
+              <sc-for list="{{s.kv}}" as="kv" hint-placeholder-count="4">
+                <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                  <dt style="font-size: 12px; color: var(--ink2)">{{kv.k}}</dt>
+                  <dd class="num" style="margin: 0; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: {{kv.c}}">{{kv.v}}</dd>
+                </div>
+              </sc-for>
+            </dl>
+            <div style="display: flex; align-items: center; gap: 4px; padding-top: 10px; border-top: 1px solid var(--line)">
+              <span style="flex: 1; min-width: 0; display: flex; gap: 6px; flex-wrap: wrap">
+                <sc-for list="{{s.caps}}" as="cp" hint-placeholder-count="3"><span class="gtag" style="height: 22px; font-size: 11px">{{cp}}</span></sc-for>
+              </span>
+              <sc-if value="{{s.hasGm}}" hint-placeholder-val="{{true}}">
+                <a class="ib ib-sm" href="GkHomePC.dc.html" aria-label="{{s.n}} GM 运营"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.wand}}"></path></svg></a>
+              </sc-if>
+              <sc-if value="{{s.hosted}}" hint-placeholder-val="{{true}}">
+                <a class="ib ib-sm" href="GameServerPC.dc.html" aria-label="{{s.n}} 控制台"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.terminal}}"></path></svg></a>
+              </sc-if>
+              <a class="ib ib-sm" href="GameServerPC.dc.html" aria-label="{{s.n}} 设置"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.settings}}"></path></svg></a>
+              <sc-if value="{{s.hosted}}" hint-placeholder-val="{{true}}">
+                <button class="ib ib-sm" aria-label="{{s.runT}} {{s.n}}" style="color: {{s.runC}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{s.runD}}"></path></svg></button>
+              </sc-if>
+              <button class="ib ib-sm" aria-label="{{s.n}} 更多操作"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+            </div>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+
+    <section id="adapters" style="display: flex; flex-direction: column; gap: 14px; margin-top: 8px">
+      <div style="display: flex; align-items: baseline; gap: 12px">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 800">游戏适配器</h2>
+        <span style="font-size: 14px; color: var(--ink2)">随 Momoko 版本内置；决定一款游戏能被托管到什么程度、GM 能做什么</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px">
+        <sc-for list="{{adapters}}" as="ad" hint-placeholder-count="4">
+          <div class="card" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <sc-if value="{{ad.img}}" hint-placeholder-val="{{true}}"><img src="{{ad.img}}" alt="" style="width: 40px; height: 40px; flex: none"></sc-if>
+              <sc-if value="{{ad.letter}}" hint-placeholder-val="{{false}}"><span class="av {{ad.av}}" style="width: 40px; height: 40px; border-radius: 13px; font-size: 13px">{{ad.letter}}</span></sc-if>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+                <span style="font-size: 15px; font-weight: 800">{{ad.t}}</span>
+                <span style="font-size: 12px; color: var(--ink2)">{{ad.sub}}</span>
+              </span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <sc-for list="{{ad.caps}}" as="c" hint-placeholder-count="5">
+                <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: {{c.fg}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{c.d}}"></path></svg>{{c.t}}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1240}}'>
+const IC = {
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  gamepad: 'M7 7h10a5 5 0 0 1 0 10h-3l-2-2-2 2H7A5 5 0 0 1 7 7zM7 10v4M5 12h4M16 11h.01M18 13h.01',
+  wand: 'M3 21l12-12M14 4l1-2 1 2 2 1-2 1-1 2-1-2-2-1zM18 10l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z',
+  idcard: 'M3 5h18v14H3zM9 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 16a3.5 3.5 0 0 1 7 0M14 9h4M14 13h4',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  play: 'M7 4.5v15l12-7.5z',
+  stop: 'M7 7h10v10H7z',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  plug: 'M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  minus: 'M6 12h12'
+};
+const IMG = {
+  logo: './assets/hatsuboshi-logo.webp',
+  kcnaL: './assets/cidol-kcna-3-019-L.webp',
+  hskiL: './assets/cidol-hski-3-000-L.webp'
+};
+function buildNav(active) {
+  return [
+    { title: '', items: [{ t: '工作台', d: IC.home, href: '../project/DashboardPC.dc.html' }, { t: '性能监控', d: IC.activity, href: '../project/MonitorPC.dc.html' }] },
+    { title: '应用', items: [{ t: '应用列表', d: IC.apps, href: '../project/AppsPC.dc.html' }, { t: '应用类型', d: IC.layers, href: '../project/AppTypesPC.dc.html' }] },
+    { title: '游戏', items: [{ t: '游戏服务器', d: IC.gamepad, href: 'GameServersPC.dc.html', key: 'gs' }, { t: 'GM 运营', d: IC.wand, href: 'GkHomePC.dc.html', key: 'gm', badge: '学マス' }, { t: '用户通行证', d: IC.idcard, href: 'PassportPC.dc.html', key: 'pp' }] },
+    { title: '文件', items: [{ t: '文件管理', d: IC.folder, href: '../project/FilesPC.dc.html' }, { t: '分享', d: IC.share, href: '../project/SharesPC.dc.html' }, { t: '文件源', d: IC.db, href: '../project/FileSourcesPC.dc.html' }] },
+    { title: 'Docker', items: [{ t: '容器 · 镜像 · 网络', d: IC.box, href: '../project/ContainersPC.dc.html' }] },
+    { title: '工具', items: [{ t: '端口转发', d: IC.forward, href: '../project/PortForwardPC.dc.html' }, { t: '内网穿透', d: IC.tunnel, href: '../project/TunnelPC.dc.html' }, { t: 'SSH 终端', d: IC.terminal, href: '../project/SSHPC.dc.html' }, { t: '智商检测', d: IC.spark, href: '../project/IQCheckPC.dc.html' }] },
+    { title: '管理', items: [{ t: '节点与 API Key', d: IC.server, href: '../project/NodesPC.dc.html' }, { t: '用户与权限', d: IC.users, href: '../project/UsersPC.dc.html' }, { t: '任务与日志', d: IC.clock, href: '../project/TasksPC.dc.html' }, { t: '系统设置', d: IC.settings, href: '../project/SettingsPC.dc.html' }] }
+  ].map((g) => ({ ...g, items: g.items.map((n) => ({ ...n, cls: n.key === active ? 'nav-on' : '', badge: n.badge || '' })) }));
+}
+const SERVERS = [
+  { id: 1, n: '学マス · 正式服', game: '学園アイドルマスター', g: 'gk', m: 'hosted', s: 'run', where: '本机 DESKTOP-K5K9BBC', tags: ['自启动'], cover: IMG.kcnaL, coverPos: '50% 30%', coverAlt: '倉本千奈 卡面', logo: IMG.logo,
+    kv: [['在线 / 注册', '12 / 86'], ['服务端版本', '2026.11.10'], ['资源', 'Octo 705100 · r83'], ['MGP', '已连接 · 3 ms', 'ok']], caps: ['GM', '玩家端', '专用设置'] },
+  { id: 2, n: '学マス · 测试服', game: '学園アイドルマスター', g: 'gk', m: 'remote', s: 'run', where: '10.0.0.12:8080', tags: ['开发'], cover: IMG.hskiL, coverPos: '50% 25%', coverAlt: '花海咲季 卡面', logo: IMG.logo,
+    kv: [['在线 / 注册', '1 / 9'], ['服务端版本', 'dev-a3f9c1'], ['资源', 'Octo 705100 · r83'], ['MGP', '已连接 · 18 ms', 'ok']], caps: ['GM', '只读配置'] },
+  { id: 3, n: '基岩版 · 生存服', game: 'Minecraft 基岩版', g: 'mc', m: 'hosted', s: 'run', where: '节点 home-nas', tags: ['每日备份'], letter: 'MC',
+    kv: [['在线', '4 / 20'], ['版本', 'BDS [版本号]'], ['世界', 'Bedrock level'], ['GM 桥', '控制台 · 白名单', 'ok']], caps: ['GM 桥接', '专用设置'] },
+  { id: 4, n: '基岩版 · 创造服', game: 'Minecraft 基岩版', g: 'mc', m: 'hosted', s: 'stop', where: '本机 DESKTOP-K5K9BBC', tags: [], letter: 'MC',
+    kv: [['在线', '—'], ['版本', 'BDS [版本号]'], ['上次停止', '昨天 23:40'], ['GM 桥', '进程未运行', 'ink2']], caps: ['GM 桥接'] },
+  { id: 5, n: 'palworld', game: '通用适配 · 未接入 MGP', g: 'gen', m: 'hosted', s: 'run', where: '本机 DESKTOP-K5K9BBC', tags: ['朋友服'], letter: 'P',
+    kv: [['进程', 'PID 22816'], ['运行时长', '3 天 4 小时'], ['端口', '8211 / UDP'], ['GM', '服务端未实现 MGP', 'ink2']], caps: ['仅托管'] }
+];
+const ST = { run: ['ok', '运行中'], stop: ['off', '已停止'] };
+const TILES = ['#3DAA5C', '#2E8C49', '#7A5230', '#5C3D22', '#3DAA5C', '#56C26F', '#2E8C49', '#3DAA5C', '#7A5230', '#3DAA5C', '#2E8C49', '#56C26F', '#7A5230', '#5C3D22', '#7A5230', '#8D6239', '#5C3D22', '#7A5230', '#8D6239', '#5C3D22', '#7A5230', '#8D6239', '#7A5230', '#5C3D22', '#8C8C8C', '#7A7A7A', '#8C8C8C', '#6B6B6B', '#8C8C8C', '#7A7A7A', '#8C8C8C', '#6B6B6B', '#7A7A7A', '#8C8C8C', '#6B6B6B', '#7A7A7A', '#8C8C8C', '#7A7A7A', '#6B6B6B', '#8C8C8C', '#7A7A7A', '#8C8C8C', '#6B6B6B', '#7A7A7A', '#8C8C8C', '#7A7A7A', '#6B6B6B', '#8C8C8C'];
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const mode = st.mode || 'all';
+    const game = st.game || 'all';
+    const list = SERVERS.filter((s) => (mode === 'all' || s.m === mode) && (game === 'all' || s.g === game));
+    const servers = list.map((s) => {
+      const hosted = s.m === 'hosted';
+      const run = s.s === 'run';
+      return {
+        ...s,
+        hosted,
+        hasGm: s.g === 'gk',
+        st: ST[s.s][0], stT: ST[s.s][1],
+        mode: hosted ? '托管' : '仅 GM',
+        modeBg: hosted ? 'var(--pSoft)' : 'var(--a2Soft)',
+        modeFg: hosted ? 'var(--pInk)' : 'var(--ink)',
+        cover: s.cover || '', noCover: !s.cover, coverBg: s.cover ? 'var(--s2)' : 'var(--okSoft)', coverPos: s.coverPos || 'center', coverAlt: s.coverAlt || '',
+        logo: s.logo || '', letter: s.letter || '',
+        kv: s.kv.map(([k, v, c]) => ({ k, v, c: c === 'ok' ? 'var(--ok)' : (c === 'ink2' ? 'var(--ink2)' : 'var(--ink)') })),
+        runT: run ? '停止' : '启动', runD: run ? IC.stop : IC.play, runC: run ? 'var(--bad)' : 'var(--ok)'
+      };
+    });
+    const cnt = (f) => SERVERS.filter(f).length;
+    const capRow = (on, t) => ({ t, d: on ? IC.check : IC.minus, fg: on ? 'var(--ink)' : 'var(--ink2)' });
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav: buildNav('gs'),
+      tiles: TILES,
+      modes: [['all', '全部'], ['hosted', '托管'], ['remote', '仅 GM']].map(([k, t]) => ({ t, n: cnt((s) => k === 'all' || s.m === k), on: k === mode, cls: k === mode ? 'chip-on' : '', pick: () => this.setState({ mode: k }) })),
+      games: [['all', '全部游戏', '', ''], ['gk', '学マス', IMG.logo, ''], ['mc', 'MC 基岩版', '', 'MC'], ['gen', '通用', '', 'G']].map(([k, t, img, letter]) => ({ t, img, letter: k === 'all' ? '' : letter, n: cnt((s) => k === 'all' || s.g === k), on: k === game, cls: k === game ? 'chip-on' : '', pick: () => this.setState({ game: k }) })),
+      servers,
+      adapters: [
+        { t: '学園アイドルマスター', sub: 'gakumas · 原生 MGP', img: IMG.logo, letter: '', caps: [capRow(true, '托管：进程、专用设置表单'), capRow(true, '更新：服务端构建 + 资源镜像'), capRow(true, 'GM：玩家、卡池、活动、公告'), capRow(true, '玩家端：通行证绑定、自助 GM'), capRow(true, '素材：头像、卡面、横幅、图标')] },
+        { t: 'Minecraft 基岩版', sub: 'bedrock · 适配器内置桥', img: '', letter: 'MC', av: 'av-ok', caps: [capRow(true, '托管：server.properties 表单'), capRow(true, '更新：官方 BDS 包，保留世界'), capRow(true, 'GM：白名单、OP、踢出、命令'), capRow(true, '备份：世界存档定时快照'), capRow(false, '玩家端：仅白名单申请')] },
+        { t: 'Minecraft Java 版', sub: 'java · 规划中', img: '', letter: 'J', av: 'av-a', caps: [capRow(true, '托管：复用应用实例'), capRow(false, '专用设置：待做'), capRow(false, 'GM：RCON 桥，待做'), capRow(false, '更新：待做'), capRow(false, '玩家端：待做')] },
+        { t: '通用', sub: 'generic · 自研服务端', img: '', letter: 'G', av: 'av-a2', caps: [capRow(true, '托管：应用实例全部能力'), capRow(true, '服务端实现 MGP 即可接入 GM'), capRow(false, '专用设置：无（用文件编辑）'), capRow(false, '更新：无'), capRow(true, '玩家端：跟随 manifest')] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

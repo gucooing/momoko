@@ -1,0 +1,58 @@
+/* ============================================================
+   学マス 游戏皮肤（design/game/momoko-game.css 的 .gk-light / .gk-dark）
+   ------------------------------------------------------------
+   在 [data-game='gakumas'] 上定义游戏色 --m-g*：
+     g 游戏主色 · gOn 主色上的文字 · gInk 主色文字(浅底上) · gSoft 主色淡底 · gLine 描边
+     g2 第二色 · g2Ink · g2Soft · g3 第三色 · g3Soft
+   深色跟随 html.dark；和 design-tokens.css 一样，元素上加 data-scheme='light' / 'dark' 可局部强制。
+   游戏空间区域再加 .game-skin（或 data-game-skin 属性），把 --m-p* 指向游戏色；
+   --el-color-primary* / --ui-primary 在 :root 上已求值，这里一并重新映射，组件才会跟着变。
+   通行证外壳（账号、首页）不加 .game-skin，仍用 Momoko 自己的配色。
+   图表线条、柱子用 --m-gInk，保证与背景 3:1 对比。
+   ============================================================ */
+
+/* ---------- 浅色 ---------- */
+[data-game='gakumas'],
+html.dark [data-game='gakumas'][data-scheme='light'],
+html.dark[data-game='gakumas'][data-scheme='light'] {
+  --m-g: #f07a1e; --m-gOn: #2b1708; --m-gInk: #a8470a; --m-gSoft: #ffeee2; --m-gLine: #f6d2b8;
+  --m-g2: #e83e8c; --m-g2Ink: #b8215f; --m-g2Soft: #ffe3ef;
+  --m-g3: #2f8fe0; --m-g3Soft: #e2f0ff;
+}
+
+/* ---------- 深色 ---------- */
+html.dark[data-game='gakumas'],
+html.dark [data-game='gakumas'],
+[data-game='gakumas'][data-scheme='dark'] {
+  --m-g: #ff8a3d; --m-gOn: #1a0f08; --m-gInk: #ffae7a; --m-gSoft: #3a2416; --m-gLine: #5a3822;
+  --m-g2: #ff6fab; --m-g2Ink: #ff9cc5; --m-g2Soft: #3a1a2a;
+  --m-g3: #6eb4ff; --m-g3Soft: #16273d;
+}
+
+/* ---------- 游戏空间：主色换成游戏色 ---------- */
+[data-game='gakumas'].game-skin,
+[data-game='gakumas'] .game-skin,
+[data-game='gakumas'][data-game-skin],
+[data-game='gakumas'] [data-game-skin] {
+  --m-p: var(--m-g);
+  --m-pOn: var(--m-gOn);
+  --m-pInk: var(--m-gInk);
+  --m-pSoft: var(--m-gSoft);
+
+  --el-color-primary: var(--m-p);
+  --el-color-primary-light-3: color-mix(in srgb, var(--m-p) 70%, var(--m-s));
+  --el-color-primary-light-5: color-mix(in srgb, var(--m-p) 50%, var(--m-s));
+  --el-color-primary-light-7: color-mix(in srgb, var(--m-p) 30%, var(--m-s));
+  --el-color-primary-light-8: color-mix(in srgb, var(--m-p) 20%, var(--m-s));
+  --el-color-primary-light-9: var(--m-pSoft);
+  --el-color-primary-dark-2: var(--m-pInk);
+  --ui-primary: var(--m-p);
+  --ui-text-inverted: var(--m-pOn);
+  --app-shadow-brand: 0 12px 28px -12px color-mix(in srgb, var(--m-p) 70%, transparent);
+}
+html.dark [data-game='gakumas'].game-skin,
+html.dark [data-game='gakumas'] .game-skin,
+html.dark [data-game='gakumas'][data-game-skin],
+html.dark [data-game='gakumas'] [data-game-skin] {
+  --app-shadow-brand: 0 12px 28px -12px color-mix(in srgb, var(--m-p) 45%, transparent);
+}

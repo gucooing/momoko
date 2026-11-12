@@ -64,6 +64,8 @@ type UserinfoResponse struct {
 	Name              string `json:"name,omitempty"`
 	PreferredUsername string `json:"preferred_username,omitempty"`
 	Email             string `json:"email,omitempty"`
+	Picture           string `json:"picture,omitempty"`
+	EmailVerified     *bool  `json:"email_verified,omitempty"`
 }
 
 // NewAuthorizeRequest 从 query 参数中提取标准授权请求。

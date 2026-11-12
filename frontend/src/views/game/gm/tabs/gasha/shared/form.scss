@@ -1,0 +1,325 @@
+// 配置表单的公共样式（卡池、公告共用，类名前缀 gmc-）。颜色只用 --m-* / --el-* 令牌。
+
+.gmc-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 0;
+  border-top: 1px solid var(--el-border-color-light);
+  min-width: 0;
+}
+.gmc-sh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  min-width: 0;
+}
+.gmc-sh__title {
+  flex: 1;
+  min-width: 0;
+}
+.gmc-sn {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--m-ink);
+  color: var(--m-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: var(--app-font-display);
+}
+.gmc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.gmc-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.gmc-full {
+  grid-column: 1 / -1;
+}
+.gmc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.gmc-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.gmc-label__aside {
+  margin-left: auto;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+.gmc-input,
+.gmc-textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--app-radius);
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  min-width: 0;
+}
+.gmc-textarea {
+  min-height: 84px;
+  padding: 10px 14px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.gmc-input:focus,
+.gmc-textarea:focus {
+  border-color: var(--m-p);
+}
+.gmc-input.is-invalid {
+  border-color: var(--m-bad);
+}
+.gmc-input:disabled {
+  opacity: 0.6;
+}
+.gmc-input--sm {
+  min-height: 40px;
+}
+.gmc-readonly {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--app-radius);
+  background: var(--el-fill-color-light);
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.gmc-unit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.gmc-unit > .gmc-input {
+  flex: 1;
+}
+.gmc-unit__u {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--el-text-color-secondary);
+}
+.gmc-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--el-text-color-secondary);
+  margin: 0;
+}
+.gmc-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--el-fill-color-light);
+  align-self: flex-start;
+  max-width: 100%;
+}
+.gmc-seg__btn {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.gmc-seg__btn.is-on {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  box-shadow: var(--app-shadow-sm);
+}
+.gmc-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+.gmc-chips::-webkit-scrollbar {
+  display: none;
+}
+.gmc-chips--wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+.gmc-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
+  color: var(--el-text-color-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.gmc-chip:hover {
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.gmc-chip.is-on {
+  background: var(--m-ink);
+  border-color: var(--m-ink);
+  color: var(--m-bg);
+}
+.gmc-chip.is-soft.is-on {
+  background: var(--m-pSoft);
+  border-color: var(--m-p);
+  color: var(--m-pInk);
+}
+.gmc-chip__n {
+  font-size: 12px;
+  opacity: 0.75;
+}
+.gmc-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--m-s2);
+  color: var(--el-text-color-secondary);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.gmc-tag--g {
+  background: var(--m-gSoft, var(--m-pSoft));
+  color: var(--m-gInk, var(--m-pInk));
+}
+.gmc-tag--warn {
+  background: var(--m-warnSoft);
+  color: var(--m-warn);
+}
+.gmc-tag--bad {
+  background: var(--m-badSoft);
+  color: var(--m-bad);
+}
+.gmc-tag--ok {
+  background: var(--m-okSoft);
+  color: var(--m-ok);
+}
+.gmc-rar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-family: var(--app-font-display);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.gmc-rar--3 {
+  background: var(--m-a);
+  color: var(--m-ink);
+}
+.gmc-rar--2 {
+  background: var(--m-a2Soft);
+  color: var(--m-ink);
+}
+.gmc-rar--1 {
+  background: var(--m-s2);
+  color: var(--el-text-color-secondary);
+}
+.gmc-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--app-radius);
+  background: var(--m-warnSoft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.gmc-note--info {
+  background: var(--m-a2Soft);
+}
+.gmc-note__icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: var(--m-warn);
+}
+.gmc-note--info .gmc-note__icon {
+  color: var(--el-text-color-primary);
+}
+.gmc-note__text {
+  flex: 1;
+  min-width: 0;
+}
+.gmc-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 14px;
+}
+.gmc-switch-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 720px) {
+  .gmc-grid,
+  .gmc-grid--3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .gmc-input,
+  .gmc-chip,
+  .gmc-seg__btn {
+    min-height: 44px;
+  }
+}
+
+// 小按钮也保证点击区：PC ≥ 40px，手机 ≥ 44px
+.gmc-btn {
+  min-height: 40px;
+}
+@media (max-width: 991px) {
+  .gmc-btn {
+    min-height: 44px;
+  }
+}

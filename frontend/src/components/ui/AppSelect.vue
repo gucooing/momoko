@@ -48,7 +48,10 @@
             @click="choose(opt)"
             @mouseenter="highlight = i"
           >
-            <span class="app-sel__opt-label">{{ opt.label }}</span>
+            <span class="app-sel__opt-label">
+              {{ opt.label }}
+              <small v-if="opt.description" class="app-sel__opt-desc">{{ opt.description }}</small>
+            </span>
             <component
               :is="menuStore.iconComponents['HOutline:CheckIcon']"
               v-if="opt.value === modelValue"
@@ -67,6 +70,8 @@ interface AppSelectOption {
   label: string
   value: T
   disabled?: boolean
+  /** 选项下方的一行说明（名称相同的选项靠它区分；也参与搜索） */
+  description?: string
 }
 
 const props = withDefaults(
@@ -102,7 +107,7 @@ const selected = computed(() => props.options.find((o) => o.value === props.mode
 const visible = computed(() => {
   const q = query.value.trim().toLowerCase()
   if (!props.searchable || !q) return props.options
-  return props.options.filter((o) => o.label.toLowerCase().includes(q))
+  return props.options.filter((o) => o.label.toLowerCase().includes(q) || !!o.description?.toLowerCase().includes(q))
 })
 
 const panelStyle = ref<Record<string, string>>({})
@@ -385,6 +390,13 @@ onBeforeUnmount(close)
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.app-sel__opt-desc {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
 }
 .app-sel__opt-check {
   width: 15px;

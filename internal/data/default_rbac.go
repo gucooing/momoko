@@ -73,15 +73,21 @@ var (
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:Squares2X2Icon", new("menu_2"), 0, constant.Instance, entmenu.StatusActive),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "HOutline:RectangleStackIcon", new("menu_2"), 1, "", entmenu.StatusActive),
 
+		// 游戏：游戏服务器（托管 / 仅 GM）、GM 运营（服务器切换 + 页内标签）、用户通行证（玩家账号独立于 Momoko 用户）
+		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "游戏", "HOutline:PuzzlePieceIcon", nil, 2, "", entmenu.StatusActive),
+		newDefaultMenu("menu_13_1", entmenu.TypeMenu, "/game/servers", "游戏服务器", "HOutline:ServerStackIcon", new("menu_13"), 0, constant.GameServer, entmenu.StatusActive),
+		newDefaultMenu("menu_13_2", entmenu.TypeMenu, "/game/gm", "GM 运营", "HOutline:SparklesIcon", new("menu_13"), 1, constant.GameGM, entmenu.StatusActive),
+		newDefaultMenu("menu_13_3", entmenu.TypeMenu, "/game/passport", "用户通行证", "HOutline:IdentificationIcon", new("menu_13"), 2, constant.GamePassport, entmenu.StatusActive),
+
 		// 文件：一个页面，标签 文件管理 / 分享 / 文件源（PC 侧边栏把标签展开成三个入口）
-		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 2, "", entmenu.StatusActive),
+		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 3, "", entmenu.StatusActive),
 		newDefaultMenu("menu_3_1", entmenu.TypeMenu, "/file", "文件", "HOutline:FolderIcon", new("menu_3"), 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_3_1_button_0", entmenu.TypeButton, "", "文件管理", "", new("menu_3_1"), 0, constant.Terminal, entmenu.StatusActive),
 		newDefaultMenu("menu_3_2", entmenu.TypeButton, "", "分享", "", new("menu_3_1"), 1, constant.FileShare, entmenu.StatusActive),
 		newDefaultMenu("menu_3_3", entmenu.TypeButton, "", "文件源", "", new("menu_3_1"), 2, constant.FileSource, entmenu.StatusActive),
 
 		// Docker：一个页面，标签 容器 / 镜像 / 网络 / 连接配置
-		newDefaultMenu("menu_5", entmenu.TypeDirectory, "", "Docker", "HOutline:CubeIcon", nil, 3, constant.DockerView, entmenu.StatusActive),
+		newDefaultMenu("menu_5", entmenu.TypeDirectory, "", "Docker", "HOutline:CubeIcon", nil, 4, constant.DockerView, entmenu.StatusActive),
 		newDefaultMenu("menu_5_1", entmenu.TypeMenu, "/docker", "容器 · 镜像 · 网络", "HOutline:CubeIcon", new("menu_5"), 0, constant.DockerView, entmenu.StatusActive),
 		newDefaultMenu("menu_5_1_button_0", entmenu.TypeButton, "", "管理容器", "", new("menu_5_1"), 0, constant.DockerContainerManage, entmenu.StatusActive),
 		newDefaultMenu("menu_5_2_button_0", entmenu.TypeButton, "", "管理镜像", "", new("menu_5_1"), 1, constant.DockerImageManage, entmenu.StatusActive),
@@ -89,7 +95,7 @@ var (
 		newDefaultMenu("menu_5_5_button_0", entmenu.TypeButton, "", "编辑Docker配置", "", new("menu_5_1"), 3, constant.DockerConfigEdit, entmenu.StatusActive),
 
 		// 工具
-		newDefaultMenu("menu_6", entmenu.TypeDirectory, "", "工具", "HOutline:WrenchScrewdriverIcon", nil, 4, "", entmenu.StatusActive),
+		newDefaultMenu("menu_6", entmenu.TypeDirectory, "", "工具", "HOutline:WrenchScrewdriverIcon", nil, 5, "", entmenu.StatusActive),
 		newDefaultMenu("menu_6_1", entmenu.TypeMenu, "/tools/port-forward", "端口转发", "HOutline:PaperAirplaneIcon", new("menu_6"), 0, constant.Network, entmenu.StatusActive),
 		newDefaultMenu("menu_6_2", entmenu.TypeMenu, "/tools/tunnel", "内网穿透", "HOutline:GlobeAltIcon", new("menu_6"), 1, constant.Tunnel, entmenu.StatusActive),
 		newDefaultMenu("menu_6_3", entmenu.TypeMenu, "/openssh/management", "SSH 终端", "HOutline:CommandLineIcon", new("menu_6"), 2, "", entmenu.StatusActive),
@@ -99,7 +105,7 @@ var (
 		newDefaultMenu("menu_8_1_button_0", entmenu.TypeButton, "", "编辑提示词", "", new("menu_8_1"), 1, constant.IQCheckEdit, entmenu.StatusActive),
 
 		// 管理
-		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "管理", "HOutline:Cog6ToothIcon", nil, 5, "", entmenu.StatusActive),
+		newDefaultMenu("menu_12", entmenu.TypeDirectory, "", "管理", "HOutline:Cog6ToothIcon", nil, 6, "", entmenu.StatusActive),
 		// 节点与 API Key：标签 节点 / API Key
 		newDefaultMenu("menu_4_2", entmenu.TypeMenu, "/node", "节点与 API Key", "HOutline:ServerIcon", new("menu_12"), 0, "", entmenu.StatusActive),
 		newDefaultMenu("menu_4_2_button_1", entmenu.TypeButton, "", "查看节点", "", new("menu_4_2"), 0, constant.NodeView, entmenu.StatusActive),
@@ -173,6 +179,7 @@ var (
 			IsBuiltin:   true,
 			Status:      entrole.StatusActive,
 		},
+
 	}
 	defaultUsers = []*defaultUser{}
 )

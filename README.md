@@ -162,10 +162,11 @@ pnpm install
 pnpm dev
 ```
 
-前端开发服务器默认运行在 `http://localhost:3007`。开发环境变量位于 [frontend/.env.development](./frontend/.env.development)：
+`pnpm dev` 同时启动管理后台 `http://localhost:3007`（`pnpm dev:admin`）和用户通行证玩家端 `http://localhost:3008`（`pnpm dev:passport`）。开发环境变量位于 [frontend/.env.development](./frontend/.env.development)：
 
 ```env
 VITE_API_BASE_URL="http://localhost:22633/api/v1"
+VITE_PASSPORT_API_BASE_URL="http://localhost:22634/api/v1"
 VITE_STATIC_URL="/"
 ```
 
