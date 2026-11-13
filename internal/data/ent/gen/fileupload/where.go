@@ -135,6 +135,11 @@ func BufferLocal(v bool) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldEQ(FieldBufferLocal, v))
 }
 
+// Active applies equality check predicate on the "active" field. It's identical to ActiveEQ.
+func Active(v bool) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEQ(FieldActive, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldEQ(FieldCreateTime, v))
@@ -753,6 +758,26 @@ func BufferLocalEQ(v bool) predicate.FileUpload {
 // BufferLocalNEQ applies the NEQ predicate on the "buffer_local" field.
 func BufferLocalNEQ(v bool) predicate.FileUpload {
 	return predicate.FileUpload(sql.FieldNEQ(FieldBufferLocal, v))
+}
+
+// ActiveEQ applies the EQ predicate on the "active" field.
+func ActiveEQ(v bool) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldEQ(FieldActive, v))
+}
+
+// ActiveNEQ applies the NEQ predicate on the "active" field.
+func ActiveNEQ(v bool) predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldNEQ(FieldActive, v))
+}
+
+// ActiveIsNil applies the IsNil predicate on the "active" field.
+func ActiveIsNil() predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldIsNull(FieldActive))
+}
+
+// ActiveNotNil applies the NotNil predicate on the "active" field.
+func ActiveNotNil() predicate.FileUpload {
+	return predicate.FileUpload(sql.FieldNotNull(FieldActive))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

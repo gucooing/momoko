@@ -42,6 +42,8 @@ const (
 	FieldProviderRef = "provider_ref"
 	// FieldBufferLocal holds the string denoting the buffer_local field in the database.
 	FieldBufferLocal = "buffer_local"
+	// FieldActive holds the string denoting the active field in the database.
+	FieldActive = "active"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeChunks holds the string denoting the chunks edge name in mutations.
@@ -81,6 +83,7 @@ var Columns = []string{
 	FieldSourceID,
 	FieldProviderRef,
 	FieldBufferLocal,
+	FieldActive,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -188,6 +191,11 @@ func ByProviderRef(opts ...sql.OrderTermOption) OrderOption {
 // ByBufferLocal orders the results by the buffer_local field.
 func ByBufferLocal(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBufferLocal, opts...).ToFunc()
+}
+
+// ByActive orders the results by the active field.
+func ByActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldActive, opts...).ToFunc()
 }
 
 // ByUserField orders the results by user field.

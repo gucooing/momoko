@@ -140,13 +140,16 @@ const go = (key: string) => {
   gap: 18px;
 }
 @media (max-width: 768px) {
+  /* 单列时不能换行：多行 flex 的行宽按最宽的子项（横向滚动的 chips）计算，会把整页撑出屏幕 */
   .acc {
     padding: 12px 16px 24px;
     gap: 14px;
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
   }
   .acc__nav {
+    min-width: 0;
     margin: 0 -16px;
     padding: 0 16px;
   }

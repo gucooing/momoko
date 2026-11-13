@@ -1,5 +1,5 @@
 <!-- GM 操作 · 玩家权限：玩家在通行证「自助服务」里能执行哪些 GM 操作；只列出允许玩家自助的操作。
-     每条只有五项设置：开放给玩家 / 每天次数 / 两次之间至少间隔（0 为不限）/ 需要审批 / 玩家看到的说明；
+     每条的设置：开放给玩家 / 每 X 天 N 次机会（服务器时区 0 点刷新，或永久不刷新）/ 需要审批 / 玩家看到的说明；
      改动自动保存、立即生效。玩家的审批申请在「GM 记录」里处理。 -->
 <template>
   <div class="gss">
@@ -42,8 +42,7 @@
           </span>
           <span class="gss__limits">
             <template v-if="row.enabled">
-              <span class="gss__tag">{{ dailyText(row.dailyLimit) }}</span>
-              <span class="gss__tag">{{ cooldownTag(row.cooldownSec) }}</span>
+              <span class="gss__tag">{{ limitText(row) }}</span>
             </template>
             <span v-else class="gss__hint">{{ t('gmOps.self.closed') }}</span>
           </span>
@@ -71,54 +70,50 @@
 
         <div v-if="expanded === row.command" class="gss__ex">
           <div class="gss__field">
-            <span class="gss__label">{{ t('gmOps.self.daily') }}</span>
-            <span class="gss__stepper-wrap">
-              <span class="gss__stepper">
-                <button type="button" :aria-label="t('gmOps.self.decrease')" :disabled="row.dailyLimit <= 0" @click="set(row, { dailyLimit: Math.max(0, row.dailyLimit - 1) }, 500)">−</button>
-                <span class="m-num">{{ row.dailyLimit || '∞' }}</span>
-                <button type="button" :aria-label="t('gmOps.self.increase')" :disabled="row.dailyLimit >= 1000" @click="set(row, { dailyLimit: row.dailyLimit + 1 }, 500)">+</button>
-              </span>
-              <span class="gss__hint">{{ row.dailyLimit ? t('gmOps.self.timesPerDay') : t('gmOps.self.unlimitedHint') }}</span>
-            </span>
-          </div>
-          <div class="gss__field">
-            <span class="gss__label">{{ t('gmOps.self.cooldown') }}</span>
-            <div class="gss__seg" role="radiogroup" :aria-label="t('gmOps.self.cooldown')">
+            <span class="gss__label">{{ t('gmOps.self.refresh') }}</span>
+            <div class="gss__seg" role="radiogroup" :aria-label="t('gmOps.self.refresh')">
               <button
-                v-for="sec in cooldownPresets"
-                :key="sec"
                 type="button"
                 role="radio"
                 class="gss__seg-btn"
-                :class="{ 'is-on': row.cooldownSec === sec && !custom[row.command] }"
-                :aria-checked="row.cooldownSec === sec && !custom[row.command]"
-                @click="pickCooldown(row, sec)"
+                :class="{ 'is-on': row.periodDays > 0 }"
+                :aria-checked="row.periodDays > 0"
+                @click="setDays(row, row.periodDays || lastDays[row.command] || 1)"
               >
-                {{ sec ? cooldownText(sec) : t('gmOps.self.noLimit') }}
+                {{ t('gmOps.self.byDays') }}
               </button>
               <button
                 type="button"
                 role="radio"
                 class="gss__seg-btn"
-                :class="{ 'is-on': isCustom(row) }"
-                :aria-checked="isCustom(row)"
-                @click="custom[row.command] = true"
+                :class="{ 'is-on': row.periodDays === 0 }"
+                :aria-checked="row.periodDays === 0"
+                @click="setDays(row, 0)"
               >
-                {{ isCustom(row) && !custom[row.command] ? cooldownText(row.cooldownSec) : t('gmOps.self.custom') }}
+                {{ t('gmOps.self.forever') }}
               </button>
             </div>
-            <label v-if="custom[row.command]" class="gss__inline">
-              <input
-                type="number"
-                min="1"
-                :max="30 * 24 * 60"
-                class="gss__input gss__input--short m-num"
-                :value="Math.round(row.cooldownSec / 60) || ''"
-                :aria-label="t('gmOps.self.minutes')"
-                @input="onMinutes(row, ($event.target as HTMLInputElement).valueAsNumber)"
-              />
-              {{ t('gmOps.self.minutes') }}
-            </label>
+          </div>
+          <div class="gss__field">
+            <span class="gss__label">{{ t('gmOps.self.chances') }}</span>
+            <span class="gss__stepper-wrap">
+              <template v-if="row.periodDays > 0">
+                <span class="gss__unit">{{ t('gmOps.self.every') }}</span>
+                <span class="gss__stepper">
+                  <button type="button" :aria-label="t('gmOps.self.fewerDays')" :disabled="row.periodDays <= 1" @click="setDays(row, row.periodDays - 1, 500)">−</button>
+                  <span class="m-num">{{ row.periodDays }}</span>
+                  <button type="button" :aria-label="t('gmOps.self.moreDays')" :disabled="row.periodDays >= 365" @click="setDays(row, row.periodDays + 1, 500)">+</button>
+                </span>
+                <span class="gss__unit">{{ t('gmOps.self.daysUnit') }}</span>
+              </template>
+              <span class="gss__stepper">
+                <button type="button" :aria-label="t('gmOps.self.decrease')" :disabled="row.limit <= 0" @click="set(row, { limit: Math.max(0, row.limit - 1) }, 500)">−</button>
+                <span class="m-num">{{ row.limit || '∞' }}</span>
+                <button type="button" :aria-label="t('gmOps.self.increase')" :disabled="row.limit >= 1000" @click="set(row, { limit: row.limit + 1 }, 500)">+</button>
+              </span>
+              <span class="gss__unit">{{ t('gmOps.self.timesUnit') }}</span>
+            </span>
+            <span class="gss__hint">{{ limitHint(row) }}</span>
           </div>
           <label class="gss__field gss__field--grow">
             <span class="gss__label">{{ t('gmOps.self.note') }}</span>
@@ -159,7 +154,7 @@ import { useGmContext } from '../../context'
 defineOptions({ name: 'GmPermissionsPanel' })
 
 type SaveState = 'saving' | 'saved' | 'failed'
-type Patch = Partial<Pick<GmSelfServicePolicy, 'enabled' | 'dailyLimit' | 'cooldownSec' | 'needApproval' | 'playerNote'>>
+type Patch = Partial<Pick<GmSelfServicePolicy, 'enabled' | 'limit' | 'periodDays' | 'needApproval' | 'playerNote'>>
 
 const { t } = useI18n()
 const route = useRoute()
@@ -172,9 +167,9 @@ const loading = ref(false)
 const loadError = ref('')
 const expanded = ref('')
 const state = reactive<Record<string, SaveState | undefined>>({})
-const custom = reactive<Record<string, boolean>>({})
+// 切到「永久」前的刷新天数，切回「按天刷新」时恢复
+const lastDays = reactive<Record<string, number>>({})
 
-const cooldownPresets = [0, 3600, 6 * 3600, 24 * 3600]
 const openCount = computed(() => rows.value.filter((r) => r.enabled).length)
 
 const load = async () => {
@@ -208,8 +203,8 @@ const save = async (row: GmSelfServicePolicy) => {
       serverId: ctx.serverId.value,
       command: row.command,
       enabled: row.enabled,
-      dailyLimit: row.dailyLimit,
-      cooldownSec: row.cooldownSec,
+      limit: row.limit,
+      periodDays: row.periodDays,
       needApproval: row.needApproval,
       playerNote: row.playerNote,
     })
@@ -254,24 +249,24 @@ const flush = (row: GmSelfServicePolicy) => {
   void save(row)
 }
 
-const pickCooldown = (row: GmSelfServicePolicy, sec: number) => {
-  custom[row.command] = false
-  set(row, { cooldownSec: sec })
-}
-const isCustom = (row: GmSelfServicePolicy) => !!custom[row.command] || !cooldownPresets.includes(row.cooldownSec)
-const onMinutes = (row: GmSelfServicePolicy, minutes: number) => {
-  if (!Number.isFinite(minutes) || minutes < 1) return
-  set(row, { cooldownSec: Math.min(Math.round(minutes), 30 * 24 * 60) * 60 }, 600)
+const setDays = (row: GmSelfServicePolicy, days: number, delay = 0) => {
+  if (row.periodDays > 0) lastDays[row.command] = row.periodDays
+  set(row, { periodDays: Math.min(Math.max(days, 0), 365) }, delay)
 }
 
 // ---- 文本 ----
-const cooldownText = (sec: number) => {
-  if (sec % 86400 === 0) return t('gmOps.self.days', { n: sec / 86400 })
-  if (sec % 3600 === 0) return t('gmOps.self.hours', { n: sec / 3600 })
-  return t('gmOps.self.mins', { n: Math.max(1, Math.round(sec / 60)) })
+const limitText = (row: GmSelfServicePolicy) => {
+  if (!row.limit) return t('gmOps.self.unlimited')
+  if (!row.periodDays) return t('gmOps.self.perForever', { n: row.limit })
+  if (row.periodDays === 1) return t('gmOps.self.perDay', { n: row.limit })
+  return t('gmOps.self.perDays', { d: row.periodDays, n: row.limit })
 }
-const dailyText = (n: number) => (n ? t('gmOps.self.perDay', { n }) : t('gmOps.self.unlimited'))
-const cooldownTag = (sec: number) => (sec ? t('gmOps.self.gap', { gap: cooldownText(sec) }) : t('gmOps.self.noGap'))
+const limitHint = (row: GmSelfServicePolicy) => {
+  if (!row.limit) return t('gmOps.self.unlimitedHint')
+  if (!row.periodDays) return t('gmOps.self.foreverHint')
+  if (row.periodDays === 1) return t('gmOps.self.dailyHint')
+  return t('gmOps.self.daysHint', { d: row.periodDays })
+}
 
 let activatedOnce = false
 onMounted(() => void load())
@@ -397,6 +392,7 @@ onActivated(() => {
   font-size: 12px;
   font-weight: 700;
 }
+
 .gss__end {
   display: flex;
   align-items: center;
@@ -441,8 +437,13 @@ onActivated(() => {
 }
 .gss__stepper-wrap {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+.gss__unit {
+  font-size: 13px;
+  font-weight: 700;
 }
 .gss__stepper {
   display: inline-flex;
@@ -496,12 +497,6 @@ onActivated(() => {
   background: var(--m-ink);
   color: var(--m-bg);
 }
-.gss__inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
 .gss__input {
   width: 100%;
   min-height: 40px;
@@ -516,9 +511,6 @@ onActivated(() => {
 }
 .gss__input:focus {
   border-color: var(--m-p);
-}
-.gss__input--short {
-  width: 110px;
 }
 .gss__info {
   display: flex;

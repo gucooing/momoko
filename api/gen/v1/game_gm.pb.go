@@ -1051,10 +1051,10 @@ type GmSelfServicePolicy struct {
 	Group   string `protobuf:"bytes,3,opt,name=group,proto3" json:"group,omitempty"`
 	Risk    string `protobuf:"bytes,4,opt,name=risk,proto3" json:"risk,omitempty"`
 	Target  string `protobuf:"bytes,5,opt,name=target,proto3" json:"target,omitempty"`
-	// 五项设置
+	// 设置：每 period_days 天 limit 次（limit 0 不限；服务器时区 0 点刷新，period_days 0 永久不刷新）
 	Enabled       bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	DailyLimit    int32                  `protobuf:"varint,7,opt,name=daily_limit,json=dailyLimit,proto3" json:"daily_limit,omitempty"`
-	CooldownSec   int32                  `protobuf:"varint,8,opt,name=cooldown_sec,json=cooldownSec,proto3" json:"cooldown_sec,omitempty"`
+	Limit         int32                  `protobuf:"varint,7,opt,name=limit,proto3" json:"limit,omitempty"`
+	PeriodDays    int32                  `protobuf:"varint,13,opt,name=period_days,json=periodDays,proto3" json:"period_days,omitempty"`
 	NeedApproval  bool                   `protobuf:"varint,9,opt,name=need_approval,json=needApproval,proto3" json:"need_approval,omitempty"`
 	PlayerNote    string                 `protobuf:"bytes,10,opt,name=player_note,json=playerNote,proto3" json:"player_note,omitempty"`
 	UpdatedByName string                 `protobuf:"bytes,11,opt,name=updated_by_name,json=updatedByName,proto3" json:"updated_by_name,omitempty"`
@@ -1135,16 +1135,16 @@ func (x *GmSelfServicePolicy) GetEnabled() bool {
 	return false
 }
 
-func (x *GmSelfServicePolicy) GetDailyLimit() int32 {
+func (x *GmSelfServicePolicy) GetLimit() int32 {
 	if x != nil {
-		return x.DailyLimit
+		return x.Limit
 	}
 	return 0
 }
 
-func (x *GmSelfServicePolicy) GetCooldownSec() int32 {
+func (x *GmSelfServicePolicy) GetPeriodDays() int32 {
 	if x != nil {
-		return x.CooldownSec
+		return x.PeriodDays
 	}
 	return 0
 }
@@ -1279,10 +1279,10 @@ type UpdateGmSelfServiceRequest struct {
 	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
 	Command  string                 `protobuf:"bytes,2,opt,name=command,proto3" json:"command,omitempty"`
 	Enabled  bool                   `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	// 每个玩家每天次数（0 不限）
-	DailyLimit int32 `protobuf:"varint,4,opt,name=daily_limit,json=dailyLimit,proto3" json:"daily_limit,omitempty"`
-	// 间隔秒数（0 不限）
-	CooldownSec   int32  `protobuf:"varint,5,opt,name=cooldown_sec,json=cooldownSec,proto3" json:"cooldown_sec,omitempty"`
+	// 每个玩家每个周期的次数（0 不限，最多 1000）
+	Limit int32 `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	// 刷新周期天数（服务器时区 0 点刷新；0 永久不刷新，最多 365）
+	PeriodDays    int32  `protobuf:"varint,8,opt,name=period_days,json=periodDays,proto3" json:"period_days,omitempty"`
 	NeedApproval  bool   `protobuf:"varint,6,opt,name=need_approval,json=needApproval,proto3" json:"need_approval,omitempty"`
 	PlayerNote    string `protobuf:"bytes,7,opt,name=player_note,json=playerNote,proto3" json:"player_note,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1340,16 +1340,16 @@ func (x *UpdateGmSelfServiceRequest) GetEnabled() bool {
 	return false
 }
 
-func (x *UpdateGmSelfServiceRequest) GetDailyLimit() int32 {
+func (x *UpdateGmSelfServiceRequest) GetLimit() int32 {
 	if x != nil {
-		return x.DailyLimit
+		return x.Limit
 	}
 	return 0
 }
 
-func (x *UpdateGmSelfServiceRequest) GetCooldownSec() int32 {
+func (x *UpdateGmSelfServiceRequest) GetPeriodDays() int32 {
 	if x != nil {
-		return x.CooldownSec
+		return x.PeriodDays
 	}
 	return 0
 }
@@ -2066,39 +2066,39 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"\x18RejectGmExecutionRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x12\n" +
-	"\x04note\x18\x03 \x01(\tR\x04note\"\x90\x03\n" +
+	"\x04note\x18\x03 \x01(\tR\x04note\"\x89\x03\n" +
 	"\x13GmSelfServicePolicy\x12\x18\n" +
 	"\acommand\x18\x01 \x01(\tR\acommand\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
 	"\x05group\x18\x03 \x01(\tR\x05group\x12\x12\n" +
 	"\x04risk\x18\x04 \x01(\tR\x04risk\x12\x16\n" +
 	"\x06target\x18\x05 \x01(\tR\x06target\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x1f\n" +
-	"\vdaily_limit\x18\a \x01(\x05R\n" +
-	"dailyLimit\x12!\n" +
-	"\fcooldown_sec\x18\b \x01(\x05R\vcooldownSec\x12#\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x14\n" +
+	"\x05limit\x18\a \x01(\x05R\x05limit\x12\x1f\n" +
+	"\vperiod_days\x18\r \x01(\x05R\n" +
+	"periodDays\x12#\n" +
 	"\rneed_approval\x18\t \x01(\bR\fneedApproval\x12\x1f\n" +
 	"\vplayer_note\x18\n" +
 	" \x01(\tR\n" +
 	"playerNote\x12&\n" +
 	"\x0fupdated_by_name\x18\v \x01(\tR\rupdatedByName\x12;\n" +
 	"\vupdate_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"7\n" +
+	"updateTimeJ\x04\b\b\x10\t\"7\n" +
 	"\x18ListGmSelfServiceRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\"d\n" +
 	"\x19ListGmSelfServiceResponse\x12-\n" +
 	"\x05items\x18\x01 \x03(\v2\x17.v1.GmSelfServicePolicyR\x05items\x12\x18\n" +
-	"\aenabled\x18\x02 \x01(\x05R\aenabled\"\xf7\x01\n" +
+	"\aenabled\x18\x02 \x01(\x05R\aenabled\"\xf0\x01\n" +
 	"\x1aUpdateGmSelfServiceRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x18\n" +
 	"\acommand\x18\x02 \x01(\tR\acommand\x12\x18\n" +
-	"\aenabled\x18\x03 \x01(\bR\aenabled\x12\x1f\n" +
-	"\vdaily_limit\x18\x04 \x01(\x05R\n" +
-	"dailyLimit\x12!\n" +
-	"\fcooldown_sec\x18\x05 \x01(\x05R\vcooldownSec\x12#\n" +
+	"\aenabled\x18\x03 \x01(\bR\aenabled\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\x05R\x05limit\x12\x1f\n" +
+	"\vperiod_days\x18\b \x01(\x05R\n" +
+	"periodDays\x12#\n" +
 	"\rneed_approval\x18\x06 \x01(\bR\fneedApproval\x12\x1f\n" +
 	"\vplayer_note\x18\a \x01(\tR\n" +
-	"playerNote\"\xd6\x01\n" +
+	"playerNoteJ\x04\b\x05\x10\x06\"\xd6\x01\n" +
 	"\rGmConfigDraft\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12#\n" +

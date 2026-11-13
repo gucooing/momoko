@@ -60,14 +60,6 @@ export function fmtLeft(v: TimeLike): string {
   return t('common.time.minutes', { n: Math.max(1, Math.ceil(sec / 60)) })
 }
 
-/** 秒数 → 1 小时 / 30 分钟 / 2 天。 */
-export function fmtDuration(seconds: number): string {
-  if (seconds >= 86400 && seconds % 86400 === 0) return t('common.time.days', { n: seconds / 86400 })
-  if (seconds >= 3600 && seconds % 3600 === 0) return t('common.time.hours', { n: seconds / 3600 })
-  if (seconds >= 60) return t('common.time.minutes', { n: Math.round(seconds / 60) })
-  return t('common.time.seconds', { n: seconds })
-}
-
 export function fmtNum(n: number | null | undefined): string {
   if (n === null || n === undefined || Number.isNaN(n)) return '—'
   return new Intl.NumberFormat(i18n.global.locale.value).format(n)

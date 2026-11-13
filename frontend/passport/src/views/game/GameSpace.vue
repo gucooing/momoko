@@ -209,7 +209,7 @@ const ready = computed(() => !!data.value && !!player.value && !loadError.value)
 const avatarCard = computed(() => player.value?.avatarIdolCardId || link.value?.avatarAsset || '')
 const heroArt = computed(() => idolCardArt(game.value, avatarCard.value, 'land'))
 
-// 头图背景是资料名片（游戏里保存名片时上传的图片）；默认名片没有图片，这时用头像偶像卡的卡面
+// 头图与概览名片的背景是资料名片（游戏里保存名片时上传的图片）；默认名片没有图片，这时用头像偶像卡的卡面
 const meishiImage = ref('')
 const meishiPath = computed(() => overview.value?.meishiImagePath || '')
 watch(
@@ -316,6 +316,7 @@ provideGameContext({
   modes,
   player,
   overview,
+  meishiImage,
   timezone,
   hasMode,
   modeTitle: modeTitleOf,

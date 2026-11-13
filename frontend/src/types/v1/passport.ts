@@ -452,17 +452,17 @@ export interface PassportSelfService {
   group: string;
   risk: string;
   target: string;
-  /** 规则 */
-  dailyLimit: number;
-  cooldownSec: number;
+  /** 规则：每 period_days 天 limit 次（limit 0 不限；服务器时区 0 点刷新，period_days 0 永久不刷新） */
+  limit: number;
+  periodDays: number;
   needApproval: boolean;
   /** 管理员写给玩家的说明 */
   playerNote: string;
-  /** 使用情况 */
-  usedToday: number;
-  /** 今天还剩（-1 不限） */
+  /** 使用情况：本周期已用与还剩（-1 不限） */
+  used: number;
   remaining: number;
-  nextAvailable: Date | undefined;
+  /** 次数下次刷新的时间（不限次数或永久不刷新时为空） */
+  resetsAt: Date | undefined;
   lastUsedAt: Date | undefined;
   lastStatus: string;
   hasPending: boolean;

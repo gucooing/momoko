@@ -146,6 +146,7 @@ var (
 		{Name: "source_id", Type: field.TypeString, Default: ""},
 		{Name: "provider_ref", Type: field.TypeString, Default: ""},
 		{Name: "buffer_local", Type: field.TypeBool, Default: false},
+		{Name: "active", Type: field.TypeBool, Nullable: true},
 		{Name: "user_id", Type: field.TypeString},
 	}
 	// FileUploadsTable holds the schema information for the "file_uploads" table.
@@ -156,19 +157,16 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "file_uploads_users_user",
-				Columns:    []*schema.Column{FileUploadsColumns[14]},
+				Columns:    []*schema.Column{FileUploadsColumns[15]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "fileupload_source_id_path_hash",
+				Name:    "fileupload_source_id_path_hash_active",
 				Unique:  true,
-				Columns: []*schema.Column{FileUploadsColumns[11], FileUploadsColumns[4], FileUploadsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "NOT completed AND NOT cancel",
-				},
+				Columns: []*schema.Column{FileUploadsColumns[11], FileUploadsColumns[4], FileUploadsColumns[3], FileUploadsColumns[14]},
 			},
 		},
 	}
@@ -759,8 +757,8 @@ var (
 		{Name: "server_id", Type: field.TypeString},
 		{Name: "command", Type: field.TypeString},
 		{Name: "enabled", Type: field.TypeBool, Default: false},
-		{Name: "daily_limit", Type: field.TypeInt, Default: 0},
-		{Name: "cooldown_sec", Type: field.TypeInt, Default: 0},
+		{Name: "use_limit", Type: field.TypeInt, Default: 0},
+		{Name: "period_days", Type: field.TypeInt, Default: 1},
 		{Name: "need_approval", Type: field.TypeBool, Default: false},
 		{Name: "player_note", Type: field.TypeString, Default: ""},
 		{Name: "updated_by", Type: field.TypeString, Default: ""},

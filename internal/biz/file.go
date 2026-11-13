@@ -754,7 +754,7 @@ func (f *FileUsecase) CancelFileUpload(ctx context.Context, userID, uploadID str
 		_ = store.CancelUpload(ctx, uploadFromRow(row))
 	}
 	if err := f.repo.WithTx(ctx, func(tx *gen.Tx) error {
-		_, e := tx.FileUpload.UpdateOneID(uploadID).SetCancel(true).Save(ctx)
+		_, e := tx.FileUpload.UpdateOneID(uploadID).SetCancel(true).ClearActive().Save(ctx)
 		return e
 	}); err != nil {
 		return ErrSystem(err)

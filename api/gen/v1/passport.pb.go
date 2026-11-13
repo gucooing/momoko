@@ -3328,20 +3328,20 @@ type PassportSelfService struct {
 	Group  string `protobuf:"bytes,3,opt,name=group,proto3" json:"group,omitempty"`
 	Risk   string `protobuf:"bytes,4,opt,name=risk,proto3" json:"risk,omitempty"`
 	Target string `protobuf:"bytes,5,opt,name=target,proto3" json:"target,omitempty"`
-	// 规则
-	DailyLimit   int32 `protobuf:"varint,6,opt,name=daily_limit,json=dailyLimit,proto3" json:"daily_limit,omitempty"`
-	CooldownSec  int32 `protobuf:"varint,7,opt,name=cooldown_sec,json=cooldownSec,proto3" json:"cooldown_sec,omitempty"`
+	// 规则：每 period_days 天 limit 次（limit 0 不限；服务器时区 0 点刷新，period_days 0 永久不刷新）
+	Limit        int32 `protobuf:"varint,6,opt,name=limit,proto3" json:"limit,omitempty"`
+	PeriodDays   int32 `protobuf:"varint,17,opt,name=period_days,json=periodDays,proto3" json:"period_days,omitempty"`
 	NeedApproval bool  `protobuf:"varint,8,opt,name=need_approval,json=needApproval,proto3" json:"need_approval,omitempty"`
 	// 管理员写给玩家的说明
 	PlayerNote string `protobuf:"bytes,9,opt,name=player_note,json=playerNote,proto3" json:"player_note,omitempty"`
-	// 使用情况
-	UsedToday int32 `protobuf:"varint,10,opt,name=used_today,json=usedToday,proto3" json:"used_today,omitempty"`
-	// 今天还剩（-1 不限）
-	Remaining     int32                  `protobuf:"varint,11,opt,name=remaining,proto3" json:"remaining,omitempty"`
-	NextAvailable *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=next_available,json=nextAvailable,proto3" json:"next_available,omitempty"`
-	LastUsedAt    *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=last_used_at,json=lastUsedAt,proto3" json:"last_used_at,omitempty"`
-	LastStatus    string                 `protobuf:"bytes,14,opt,name=last_status,json=lastStatus,proto3" json:"last_status,omitempty"`
-	HasPending    bool                   `protobuf:"varint,15,opt,name=has_pending,json=hasPending,proto3" json:"has_pending,omitempty"`
+	// 使用情况：本周期已用与还剩（-1 不限）
+	Used      int32 `protobuf:"varint,10,opt,name=used,proto3" json:"used,omitempty"`
+	Remaining int32 `protobuf:"varint,11,opt,name=remaining,proto3" json:"remaining,omitempty"`
+	// 次数下次刷新的时间（不限次数或永久不刷新时为空）
+	ResetsAt   *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=resets_at,json=resetsAt,proto3" json:"resets_at,omitempty"`
+	LastUsedAt *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=last_used_at,json=lastUsedAt,proto3" json:"last_used_at,omitempty"`
+	LastStatus string                 `protobuf:"bytes,14,opt,name=last_status,json=lastStatus,proto3" json:"last_status,omitempty"`
+	HasPending bool                   `protobuf:"varint,15,opt,name=has_pending,json=hasPending,proto3" json:"has_pending,omitempty"`
 	// 执行前需要两步验证码（开启了两步验证且操作是高风险）
 	NeedTotp      bool `protobuf:"varint,16,opt,name=need_totp,json=needTotp,proto3" json:"need_totp,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -3413,16 +3413,16 @@ func (x *PassportSelfService) GetTarget() string {
 	return ""
 }
 
-func (x *PassportSelfService) GetDailyLimit() int32 {
+func (x *PassportSelfService) GetLimit() int32 {
 	if x != nil {
-		return x.DailyLimit
+		return x.Limit
 	}
 	return 0
 }
 
-func (x *PassportSelfService) GetCooldownSec() int32 {
+func (x *PassportSelfService) GetPeriodDays() int32 {
 	if x != nil {
-		return x.CooldownSec
+		return x.PeriodDays
 	}
 	return 0
 }
@@ -3441,9 +3441,9 @@ func (x *PassportSelfService) GetPlayerNote() string {
 	return ""
 }
 
-func (x *PassportSelfService) GetUsedToday() int32 {
+func (x *PassportSelfService) GetUsed() int32 {
 	if x != nil {
-		return x.UsedToday
+		return x.Used
 	}
 	return 0
 }
@@ -3455,9 +3455,9 @@ func (x *PassportSelfService) GetRemaining() int32 {
 	return 0
 }
 
-func (x *PassportSelfService) GetNextAvailable() *timestamppb.Timestamp {
+func (x *PassportSelfService) GetResetsAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.NextAvailable
+		return x.ResetsAt
 	}
 	return nil
 }
@@ -4418,31 +4418,30 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\x04link\x18\x02 \x01(\v2\x10.v1.PassportLinkR\x04link\x12\x1a\n" +
 	"\btimezone\x18\x03 \x01(\tR\btimezone\x12!\n" +
 	"\fplayer_error\x18\x04 \x01(\tR\vplayerError\x12(\n" +
-	"\x06others\x18\x05 \x03(\v2\x10.v1.PassportLinkR\x06others\"\xae\x04\n" +
+	"\x06others\x18\x05 \x03(\v2\x10.v1.PassportLinkR\x06others\"\x98\x04\n" +
 	"\x13PassportSelfService\x12\x18\n" +
 	"\acommand\x18\x01 \x01(\tR\acommand\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
 	"\x05group\x18\x03 \x01(\tR\x05group\x12\x12\n" +
 	"\x04risk\x18\x04 \x01(\tR\x04risk\x12\x16\n" +
-	"\x06target\x18\x05 \x01(\tR\x06target\x12\x1f\n" +
-	"\vdaily_limit\x18\x06 \x01(\x05R\n" +
-	"dailyLimit\x12!\n" +
-	"\fcooldown_sec\x18\a \x01(\x05R\vcooldownSec\x12#\n" +
+	"\x06target\x18\x05 \x01(\tR\x06target\x12\x14\n" +
+	"\x05limit\x18\x06 \x01(\x05R\x05limit\x12\x1f\n" +
+	"\vperiod_days\x18\x11 \x01(\x05R\n" +
+	"periodDays\x12#\n" +
 	"\rneed_approval\x18\b \x01(\bR\fneedApproval\x12\x1f\n" +
 	"\vplayer_note\x18\t \x01(\tR\n" +
-	"playerNote\x12\x1d\n" +
-	"\n" +
-	"used_today\x18\n" +
-	" \x01(\x05R\tusedToday\x12\x1c\n" +
-	"\tremaining\x18\v \x01(\x05R\tremaining\x12A\n" +
-	"\x0enext_available\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\rnextAvailable\x12<\n" +
+	"playerNote\x12\x12\n" +
+	"\x04used\x18\n" +
+	" \x01(\x05R\x04used\x12\x1c\n" +
+	"\tremaining\x18\v \x01(\x05R\tremaining\x127\n" +
+	"\tresets_at\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampR\bresetsAt\x12<\n" +
 	"\flast_used_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"lastUsedAt\x12\x1f\n" +
 	"\vlast_status\x18\x0e \x01(\tR\n" +
 	"lastStatus\x12\x1f\n" +
 	"\vhas_pending\x18\x0f \x01(\bR\n" +
 	"hasPending\x12\x1b\n" +
-	"\tneed_totp\x18\x10 \x01(\bR\bneedTotp\"P\n" +
+	"\tneed_totp\x18\x10 \x01(\bR\bneedTotpJ\x04\b\a\x10\bJ\x04\b\f\x10\r\"P\n" +
 	"\x1fListPassportSelfServiceResponse\x12-\n" +
 	"\x05items\x18\x01 \x03(\v2\x17.v1.PassportSelfServiceR\x05items\"n\n" +
 	"\x1eListPassportGameRecordsRequest\x12\x1b\n" +
@@ -4661,7 +4660,7 @@ var file_v1_passport_proto_depIdxs = []int32{
 	62, // 30: v1.PassportGameResponse.server:type_name -> v1.GameServerBrief
 	39, // 31: v1.PassportGameResponse.link:type_name -> v1.PassportLink
 	39, // 32: v1.PassportGameResponse.others:type_name -> v1.PassportLink
-	61, // 33: v1.PassportSelfService.next_available:type_name -> google.protobuf.Timestamp
+	61, // 33: v1.PassportSelfService.resets_at:type_name -> google.protobuf.Timestamp
 	61, // 34: v1.PassportSelfService.last_used_at:type_name -> google.protobuf.Timestamp
 	49, // 35: v1.ListPassportSelfServiceResponse.items:type_name -> v1.PassportSelfService
 	61, // 36: v1.PassportGameRecord.reviewed_at:type_name -> google.protobuf.Timestamp

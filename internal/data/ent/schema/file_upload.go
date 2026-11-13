@@ -2,7 +2,6 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -31,6 +30,9 @@ func (FileUpload) Fields() []ent.Field {
 		field.String("provider_ref").Default("").Comment("来源侧上传句柄(如OSS multipart uploadID)"),
 		// 分片缓冲位置：true=缓冲在目标目录旁（本地类来源，收尾原子 rename），false=缓冲在统一本地临时目录（远端来源）。
 		field.Bool("buffer_local").Default(false).Comment("分片是否缓冲在目标目录旁(本地类来源)"),
+		// 进行中标记：进行中为 true，收尾或取消后置空。唯一索引带上它，只约束进行中的会话
+		// （各数据库的唯一索引都不比较 NULL；MySQL 不支持部分索引，不能用 WHERE 条件限定）。
+		field.Bool("active").Optional().Nillable().Comment("进行中=true，收尾或取消后为空"),
 	}
 }
 
@@ -50,12 +52,9 @@ func (FileUpload) Edges() []ent.Edge {
 
 func (FileUpload) Indexes() []ent.Index {
 	return []ent.Index{
-		// 保证同一来源、同一路径下，同一 hash 文件只能有一条未完成且未取消的上传会话
-		index.Fields("source_id", "path", "hash").
-			Unique().
-			Annotations(
-				entsql.IndexWhere("NOT completed AND NOT cancel"),
-			),
+		// 保证同一来源、同一路径下，同一 hash 文件只能有一条进行中的上传会话；
+		// 已收尾 / 已取消的会话 active 为空，不占用唯一性，同一文件可以再次上传。
+		index.Fields("source_id", "path", "hash", "active").Unique(),
 	}
 }
 

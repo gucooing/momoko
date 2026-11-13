@@ -89,14 +89,14 @@ func Enabled(v bool) predicate.GmSelfService {
 	return predicate.GmSelfService(sql.FieldEQ(FieldEnabled, v))
 }
 
-// DailyLimit applies equality check predicate on the "daily_limit" field. It's identical to DailyLimitEQ.
-func DailyLimit(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldEQ(FieldDailyLimit, v))
+// UseLimit applies equality check predicate on the "use_limit" field. It's identical to UseLimitEQ.
+func UseLimit(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldEQ(FieldUseLimit, v))
 }
 
-// CooldownSec applies equality check predicate on the "cooldown_sec" field. It's identical to CooldownSecEQ.
-func CooldownSec(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldEQ(FieldCooldownSec, v))
+// PeriodDays applies equality check predicate on the "period_days" field. It's identical to PeriodDaysEQ.
+func PeriodDays(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldEQ(FieldPeriodDays, v))
 }
 
 // NeedApproval applies equality check predicate on the "need_approval" field. It's identical to NeedApprovalEQ.
@@ -339,84 +339,84 @@ func EnabledNEQ(v bool) predicate.GmSelfService {
 	return predicate.GmSelfService(sql.FieldNEQ(FieldEnabled, v))
 }
 
-// DailyLimitEQ applies the EQ predicate on the "daily_limit" field.
-func DailyLimitEQ(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldEQ(FieldDailyLimit, v))
+// UseLimitEQ applies the EQ predicate on the "use_limit" field.
+func UseLimitEQ(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldEQ(FieldUseLimit, v))
 }
 
-// DailyLimitNEQ applies the NEQ predicate on the "daily_limit" field.
-func DailyLimitNEQ(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldNEQ(FieldDailyLimit, v))
+// UseLimitNEQ applies the NEQ predicate on the "use_limit" field.
+func UseLimitNEQ(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldNEQ(FieldUseLimit, v))
 }
 
-// DailyLimitIn applies the In predicate on the "daily_limit" field.
-func DailyLimitIn(vs ...int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldIn(FieldDailyLimit, vs...))
+// UseLimitIn applies the In predicate on the "use_limit" field.
+func UseLimitIn(vs ...int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldIn(FieldUseLimit, vs...))
 }
 
-// DailyLimitNotIn applies the NotIn predicate on the "daily_limit" field.
-func DailyLimitNotIn(vs ...int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldNotIn(FieldDailyLimit, vs...))
+// UseLimitNotIn applies the NotIn predicate on the "use_limit" field.
+func UseLimitNotIn(vs ...int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldNotIn(FieldUseLimit, vs...))
 }
 
-// DailyLimitGT applies the GT predicate on the "daily_limit" field.
-func DailyLimitGT(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldGT(FieldDailyLimit, v))
+// UseLimitGT applies the GT predicate on the "use_limit" field.
+func UseLimitGT(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldGT(FieldUseLimit, v))
 }
 
-// DailyLimitGTE applies the GTE predicate on the "daily_limit" field.
-func DailyLimitGTE(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldGTE(FieldDailyLimit, v))
+// UseLimitGTE applies the GTE predicate on the "use_limit" field.
+func UseLimitGTE(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldGTE(FieldUseLimit, v))
 }
 
-// DailyLimitLT applies the LT predicate on the "daily_limit" field.
-func DailyLimitLT(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldLT(FieldDailyLimit, v))
+// UseLimitLT applies the LT predicate on the "use_limit" field.
+func UseLimitLT(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldLT(FieldUseLimit, v))
 }
 
-// DailyLimitLTE applies the LTE predicate on the "daily_limit" field.
-func DailyLimitLTE(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldLTE(FieldDailyLimit, v))
+// UseLimitLTE applies the LTE predicate on the "use_limit" field.
+func UseLimitLTE(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldLTE(FieldUseLimit, v))
 }
 
-// CooldownSecEQ applies the EQ predicate on the "cooldown_sec" field.
-func CooldownSecEQ(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldEQ(FieldCooldownSec, v))
+// PeriodDaysEQ applies the EQ predicate on the "period_days" field.
+func PeriodDaysEQ(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldEQ(FieldPeriodDays, v))
 }
 
-// CooldownSecNEQ applies the NEQ predicate on the "cooldown_sec" field.
-func CooldownSecNEQ(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldNEQ(FieldCooldownSec, v))
+// PeriodDaysNEQ applies the NEQ predicate on the "period_days" field.
+func PeriodDaysNEQ(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldNEQ(FieldPeriodDays, v))
 }
 
-// CooldownSecIn applies the In predicate on the "cooldown_sec" field.
-func CooldownSecIn(vs ...int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldIn(FieldCooldownSec, vs...))
+// PeriodDaysIn applies the In predicate on the "period_days" field.
+func PeriodDaysIn(vs ...int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldIn(FieldPeriodDays, vs...))
 }
 
-// CooldownSecNotIn applies the NotIn predicate on the "cooldown_sec" field.
-func CooldownSecNotIn(vs ...int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldNotIn(FieldCooldownSec, vs...))
+// PeriodDaysNotIn applies the NotIn predicate on the "period_days" field.
+func PeriodDaysNotIn(vs ...int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldNotIn(FieldPeriodDays, vs...))
 }
 
-// CooldownSecGT applies the GT predicate on the "cooldown_sec" field.
-func CooldownSecGT(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldGT(FieldCooldownSec, v))
+// PeriodDaysGT applies the GT predicate on the "period_days" field.
+func PeriodDaysGT(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldGT(FieldPeriodDays, v))
 }
 
-// CooldownSecGTE applies the GTE predicate on the "cooldown_sec" field.
-func CooldownSecGTE(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldGTE(FieldCooldownSec, v))
+// PeriodDaysGTE applies the GTE predicate on the "period_days" field.
+func PeriodDaysGTE(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldGTE(FieldPeriodDays, v))
 }
 
-// CooldownSecLT applies the LT predicate on the "cooldown_sec" field.
-func CooldownSecLT(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldLT(FieldCooldownSec, v))
+// PeriodDaysLT applies the LT predicate on the "period_days" field.
+func PeriodDaysLT(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldLT(FieldPeriodDays, v))
 }
 
-// CooldownSecLTE applies the LTE predicate on the "cooldown_sec" field.
-func CooldownSecLTE(v int) predicate.GmSelfService {
-	return predicate.GmSelfService(sql.FieldLTE(FieldCooldownSec, v))
+// PeriodDaysLTE applies the LTE predicate on the "period_days" field.
+func PeriodDaysLTE(v int) predicate.GmSelfService {
+	return predicate.GmSelfService(sql.FieldLTE(FieldPeriodDays, v))
 }
 
 // NeedApprovalEQ applies the EQ predicate on the "need_approval" field.

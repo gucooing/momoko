@@ -744,17 +744,18 @@ message PassportSelfService {
   string group = 3;
   string risk = 4;
   string target = 5;
-  // 规则
-  int32 daily_limit = 6;
-  int32 cooldown_sec = 7;
+  // 规则：每 period_days 天 limit 次（limit 0 不限；服务器时区 0 点刷新，period_days 0 永久不刷新）
+  int32 limit = 6;
+  int32 period_days = 17;
+  reserved 7, 12;
   bool need_approval = 8;
   // 管理员写给玩家的说明
   string player_note = 9;
-  // 使用情况
-  int32 used_today = 10;
-  // 今天还剩（-1 不限）
+  // 使用情况：本周期已用与还剩（-1 不限）
+  int32 used = 10;
   int32 remaining = 11;
-  google.protobuf.Timestamp next_available = 12;
+  // 次数下次刷新的时间（不限次数或永久不刷新时为空）
+  google.protobuf.Timestamp resets_at = 18;
   google.protobuf.Timestamp last_used_at = 13;
   string last_status = 14;
   bool has_pending = 15;

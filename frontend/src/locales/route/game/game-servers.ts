@@ -451,7 +451,7 @@ export default {
         addPathPh: '路径，例如 game.save_workers',
         addValue: '值',
         add: '添加',
-        addHint: '路径用点分隔层级；值按 JSON 解析（数字、true / false、[…]、{…}），解析不了就当文本。',
+        addHint: "路径用点分隔层级；值按 JSON 解析（数字、true / false、[…]、{'{'}…{'}'}），解析不了就当文本。",
         pathInvalid: '路径无效，或和已有的配置项冲突',
         jsonInvalid: '{key} 不是有效的 JSON',
         fields: {
@@ -1180,7 +1180,7 @@ export default {
         addPathPh: '路徑，例如 game.save_workers',
         addValue: '值',
         add: '新增',
-        addHint: '路徑用點分隔層級；值按 JSON 解析（數字、true / false、[…]、{…}），解析不了就當文字。',
+        addHint: "路徑用點分隔層級；值按 JSON 解析（數字、true / false、[…]、{'{'}…{'}'}），解析不了就當文字。",
         pathInvalid: '路徑無效，或和已有的設定項衝突',
         jsonInvalid: '{key} 不是有效的 JSON',
         fields: {
@@ -1909,7 +1909,7 @@ export default {
         addPathPh: 'Path, e.g. game.save_workers',
         addValue: 'Value',
         add: 'Add',
-        addHint: 'Separate levels with dots; the value is parsed as JSON (numbers, true / false, […], {…}) and otherwise kept as text.',
+        addHint: "Separate levels with dots; the value is parsed as JSON (numbers, true / false, […], {'{'}…{'}'}) and otherwise kept as text.",
         pathInvalid: 'The path is invalid or conflicts with an existing entry',
         jsonInvalid: '{key} is not valid JSON',
         fields: {

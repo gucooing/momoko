@@ -77,30 +77,30 @@ func (_c *GmSelfServiceCreate) SetNillableEnabled(v *bool) *GmSelfServiceCreate 
 	return _c
 }
 
-// SetDailyLimit sets the "daily_limit" field.
-func (_c *GmSelfServiceCreate) SetDailyLimit(v int) *GmSelfServiceCreate {
-	_c.mutation.SetDailyLimit(v)
+// SetUseLimit sets the "use_limit" field.
+func (_c *GmSelfServiceCreate) SetUseLimit(v int) *GmSelfServiceCreate {
+	_c.mutation.SetUseLimit(v)
 	return _c
 }
 
-// SetNillableDailyLimit sets the "daily_limit" field if the given value is not nil.
-func (_c *GmSelfServiceCreate) SetNillableDailyLimit(v *int) *GmSelfServiceCreate {
+// SetNillableUseLimit sets the "use_limit" field if the given value is not nil.
+func (_c *GmSelfServiceCreate) SetNillableUseLimit(v *int) *GmSelfServiceCreate {
 	if v != nil {
-		_c.SetDailyLimit(*v)
+		_c.SetUseLimit(*v)
 	}
 	return _c
 }
 
-// SetCooldownSec sets the "cooldown_sec" field.
-func (_c *GmSelfServiceCreate) SetCooldownSec(v int) *GmSelfServiceCreate {
-	_c.mutation.SetCooldownSec(v)
+// SetPeriodDays sets the "period_days" field.
+func (_c *GmSelfServiceCreate) SetPeriodDays(v int) *GmSelfServiceCreate {
+	_c.mutation.SetPeriodDays(v)
 	return _c
 }
 
-// SetNillableCooldownSec sets the "cooldown_sec" field if the given value is not nil.
-func (_c *GmSelfServiceCreate) SetNillableCooldownSec(v *int) *GmSelfServiceCreate {
+// SetNillablePeriodDays sets the "period_days" field if the given value is not nil.
+func (_c *GmSelfServiceCreate) SetNillablePeriodDays(v *int) *GmSelfServiceCreate {
 	if v != nil {
-		_c.SetCooldownSec(*v)
+		_c.SetPeriodDays(*v)
 	}
 	return _c
 }
@@ -214,13 +214,13 @@ func (_c *GmSelfServiceCreate) defaults() {
 		v := gmselfservice.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
-	if _, ok := _c.mutation.DailyLimit(); !ok {
-		v := gmselfservice.DefaultDailyLimit
-		_c.mutation.SetDailyLimit(v)
+	if _, ok := _c.mutation.UseLimit(); !ok {
+		v := gmselfservice.DefaultUseLimit
+		_c.mutation.SetUseLimit(v)
 	}
-	if _, ok := _c.mutation.CooldownSec(); !ok {
-		v := gmselfservice.DefaultCooldownSec
-		_c.mutation.SetCooldownSec(v)
+	if _, ok := _c.mutation.PeriodDays(); !ok {
+		v := gmselfservice.DefaultPeriodDays
+		_c.mutation.SetPeriodDays(v)
 	}
 	if _, ok := _c.mutation.NeedApproval(); !ok {
 		v := gmselfservice.DefaultNeedApproval
@@ -267,11 +267,11 @@ func (_c *GmSelfServiceCreate) check() error {
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`gen: missing required field "GmSelfService.enabled"`)}
 	}
-	if _, ok := _c.mutation.DailyLimit(); !ok {
-		return &ValidationError{Name: "daily_limit", err: errors.New(`gen: missing required field "GmSelfService.daily_limit"`)}
+	if _, ok := _c.mutation.UseLimit(); !ok {
+		return &ValidationError{Name: "use_limit", err: errors.New(`gen: missing required field "GmSelfService.use_limit"`)}
 	}
-	if _, ok := _c.mutation.CooldownSec(); !ok {
-		return &ValidationError{Name: "cooldown_sec", err: errors.New(`gen: missing required field "GmSelfService.cooldown_sec"`)}
+	if _, ok := _c.mutation.PeriodDays(); !ok {
+		return &ValidationError{Name: "period_days", err: errors.New(`gen: missing required field "GmSelfService.period_days"`)}
 	}
 	if _, ok := _c.mutation.NeedApproval(); !ok {
 		return &ValidationError{Name: "need_approval", err: errors.New(`gen: missing required field "GmSelfService.need_approval"`)}
@@ -346,13 +346,13 @@ func (_c *GmSelfServiceCreate) createSpec() (*GmSelfService, *sqlgraph.CreateSpe
 		_spec.SetField(gmselfservice.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
 	}
-	if value, ok := _c.mutation.DailyLimit(); ok {
-		_spec.SetField(gmselfservice.FieldDailyLimit, field.TypeInt, value)
-		_node.DailyLimit = value
+	if value, ok := _c.mutation.UseLimit(); ok {
+		_spec.SetField(gmselfservice.FieldUseLimit, field.TypeInt, value)
+		_node.UseLimit = value
 	}
-	if value, ok := _c.mutation.CooldownSec(); ok {
-		_spec.SetField(gmselfservice.FieldCooldownSec, field.TypeInt, value)
-		_node.CooldownSec = value
+	if value, ok := _c.mutation.PeriodDays(); ok {
+		_spec.SetField(gmselfservice.FieldPeriodDays, field.TypeInt, value)
+		_node.PeriodDays = value
 	}
 	if value, ok := _c.mutation.NeedApproval(); ok {
 		_spec.SetField(gmselfservice.FieldNeedApproval, field.TypeBool, value)
@@ -470,39 +470,39 @@ func (u *GmSelfServiceUpsert) UpdateEnabled() *GmSelfServiceUpsert {
 	return u
 }
 
-// SetDailyLimit sets the "daily_limit" field.
-func (u *GmSelfServiceUpsert) SetDailyLimit(v int) *GmSelfServiceUpsert {
-	u.Set(gmselfservice.FieldDailyLimit, v)
+// SetUseLimit sets the "use_limit" field.
+func (u *GmSelfServiceUpsert) SetUseLimit(v int) *GmSelfServiceUpsert {
+	u.Set(gmselfservice.FieldUseLimit, v)
 	return u
 }
 
-// UpdateDailyLimit sets the "daily_limit" field to the value that was provided on create.
-func (u *GmSelfServiceUpsert) UpdateDailyLimit() *GmSelfServiceUpsert {
-	u.SetExcluded(gmselfservice.FieldDailyLimit)
+// UpdateUseLimit sets the "use_limit" field to the value that was provided on create.
+func (u *GmSelfServiceUpsert) UpdateUseLimit() *GmSelfServiceUpsert {
+	u.SetExcluded(gmselfservice.FieldUseLimit)
 	return u
 }
 
-// AddDailyLimit adds v to the "daily_limit" field.
-func (u *GmSelfServiceUpsert) AddDailyLimit(v int) *GmSelfServiceUpsert {
-	u.Add(gmselfservice.FieldDailyLimit, v)
+// AddUseLimit adds v to the "use_limit" field.
+func (u *GmSelfServiceUpsert) AddUseLimit(v int) *GmSelfServiceUpsert {
+	u.Add(gmselfservice.FieldUseLimit, v)
 	return u
 }
 
-// SetCooldownSec sets the "cooldown_sec" field.
-func (u *GmSelfServiceUpsert) SetCooldownSec(v int) *GmSelfServiceUpsert {
-	u.Set(gmselfservice.FieldCooldownSec, v)
+// SetPeriodDays sets the "period_days" field.
+func (u *GmSelfServiceUpsert) SetPeriodDays(v int) *GmSelfServiceUpsert {
+	u.Set(gmselfservice.FieldPeriodDays, v)
 	return u
 }
 
-// UpdateCooldownSec sets the "cooldown_sec" field to the value that was provided on create.
-func (u *GmSelfServiceUpsert) UpdateCooldownSec() *GmSelfServiceUpsert {
-	u.SetExcluded(gmselfservice.FieldCooldownSec)
+// UpdatePeriodDays sets the "period_days" field to the value that was provided on create.
+func (u *GmSelfServiceUpsert) UpdatePeriodDays() *GmSelfServiceUpsert {
+	u.SetExcluded(gmselfservice.FieldPeriodDays)
 	return u
 }
 
-// AddCooldownSec adds v to the "cooldown_sec" field.
-func (u *GmSelfServiceUpsert) AddCooldownSec(v int) *GmSelfServiceUpsert {
-	u.Add(gmselfservice.FieldCooldownSec, v)
+// AddPeriodDays adds v to the "period_days" field.
+func (u *GmSelfServiceUpsert) AddPeriodDays(v int) *GmSelfServiceUpsert {
+	u.Add(gmselfservice.FieldPeriodDays, v)
 	return u
 }
 
@@ -661,45 +661,45 @@ func (u *GmSelfServiceUpsertOne) UpdateEnabled() *GmSelfServiceUpsertOne {
 	})
 }
 
-// SetDailyLimit sets the "daily_limit" field.
-func (u *GmSelfServiceUpsertOne) SetDailyLimit(v int) *GmSelfServiceUpsertOne {
+// SetUseLimit sets the "use_limit" field.
+func (u *GmSelfServiceUpsertOne) SetUseLimit(v int) *GmSelfServiceUpsertOne {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.SetDailyLimit(v)
+		s.SetUseLimit(v)
 	})
 }
 
-// AddDailyLimit adds v to the "daily_limit" field.
-func (u *GmSelfServiceUpsertOne) AddDailyLimit(v int) *GmSelfServiceUpsertOne {
+// AddUseLimit adds v to the "use_limit" field.
+func (u *GmSelfServiceUpsertOne) AddUseLimit(v int) *GmSelfServiceUpsertOne {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.AddDailyLimit(v)
+		s.AddUseLimit(v)
 	})
 }
 
-// UpdateDailyLimit sets the "daily_limit" field to the value that was provided on create.
-func (u *GmSelfServiceUpsertOne) UpdateDailyLimit() *GmSelfServiceUpsertOne {
+// UpdateUseLimit sets the "use_limit" field to the value that was provided on create.
+func (u *GmSelfServiceUpsertOne) UpdateUseLimit() *GmSelfServiceUpsertOne {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.UpdateDailyLimit()
+		s.UpdateUseLimit()
 	})
 }
 
-// SetCooldownSec sets the "cooldown_sec" field.
-func (u *GmSelfServiceUpsertOne) SetCooldownSec(v int) *GmSelfServiceUpsertOne {
+// SetPeriodDays sets the "period_days" field.
+func (u *GmSelfServiceUpsertOne) SetPeriodDays(v int) *GmSelfServiceUpsertOne {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.SetCooldownSec(v)
+		s.SetPeriodDays(v)
 	})
 }
 
-// AddCooldownSec adds v to the "cooldown_sec" field.
-func (u *GmSelfServiceUpsertOne) AddCooldownSec(v int) *GmSelfServiceUpsertOne {
+// AddPeriodDays adds v to the "period_days" field.
+func (u *GmSelfServiceUpsertOne) AddPeriodDays(v int) *GmSelfServiceUpsertOne {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.AddCooldownSec(v)
+		s.AddPeriodDays(v)
 	})
 }
 
-// UpdateCooldownSec sets the "cooldown_sec" field to the value that was provided on create.
-func (u *GmSelfServiceUpsertOne) UpdateCooldownSec() *GmSelfServiceUpsertOne {
+// UpdatePeriodDays sets the "period_days" field to the value that was provided on create.
+func (u *GmSelfServiceUpsertOne) UpdatePeriodDays() *GmSelfServiceUpsertOne {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.UpdateCooldownSec()
+		s.UpdatePeriodDays()
 	})
 }
 
@@ -1033,45 +1033,45 @@ func (u *GmSelfServiceUpsertBulk) UpdateEnabled() *GmSelfServiceUpsertBulk {
 	})
 }
 
-// SetDailyLimit sets the "daily_limit" field.
-func (u *GmSelfServiceUpsertBulk) SetDailyLimit(v int) *GmSelfServiceUpsertBulk {
+// SetUseLimit sets the "use_limit" field.
+func (u *GmSelfServiceUpsertBulk) SetUseLimit(v int) *GmSelfServiceUpsertBulk {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.SetDailyLimit(v)
+		s.SetUseLimit(v)
 	})
 }
 
-// AddDailyLimit adds v to the "daily_limit" field.
-func (u *GmSelfServiceUpsertBulk) AddDailyLimit(v int) *GmSelfServiceUpsertBulk {
+// AddUseLimit adds v to the "use_limit" field.
+func (u *GmSelfServiceUpsertBulk) AddUseLimit(v int) *GmSelfServiceUpsertBulk {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.AddDailyLimit(v)
+		s.AddUseLimit(v)
 	})
 }
 
-// UpdateDailyLimit sets the "daily_limit" field to the value that was provided on create.
-func (u *GmSelfServiceUpsertBulk) UpdateDailyLimit() *GmSelfServiceUpsertBulk {
+// UpdateUseLimit sets the "use_limit" field to the value that was provided on create.
+func (u *GmSelfServiceUpsertBulk) UpdateUseLimit() *GmSelfServiceUpsertBulk {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.UpdateDailyLimit()
+		s.UpdateUseLimit()
 	})
 }
 
-// SetCooldownSec sets the "cooldown_sec" field.
-func (u *GmSelfServiceUpsertBulk) SetCooldownSec(v int) *GmSelfServiceUpsertBulk {
+// SetPeriodDays sets the "period_days" field.
+func (u *GmSelfServiceUpsertBulk) SetPeriodDays(v int) *GmSelfServiceUpsertBulk {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.SetCooldownSec(v)
+		s.SetPeriodDays(v)
 	})
 }
 
-// AddCooldownSec adds v to the "cooldown_sec" field.
-func (u *GmSelfServiceUpsertBulk) AddCooldownSec(v int) *GmSelfServiceUpsertBulk {
+// AddPeriodDays adds v to the "period_days" field.
+func (u *GmSelfServiceUpsertBulk) AddPeriodDays(v int) *GmSelfServiceUpsertBulk {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.AddCooldownSec(v)
+		s.AddPeriodDays(v)
 	})
 }
 
-// UpdateCooldownSec sets the "cooldown_sec" field to the value that was provided on create.
-func (u *GmSelfServiceUpsertBulk) UpdateCooldownSec() *GmSelfServiceUpsertBulk {
+// UpdatePeriodDays sets the "period_days" field to the value that was provided on create.
+func (u *GmSelfServiceUpsertBulk) UpdatePeriodDays() *GmSelfServiceUpsertBulk {
 	return u.Update(func(s *GmSelfServiceUpsert) {
-		s.UpdateCooldownSec()
+		s.UpdatePeriodDays()
 	})
 }
 

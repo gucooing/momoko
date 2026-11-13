@@ -28,10 +28,10 @@ type GmSelfService struct {
 	Command string `json:"command,omitempty"`
 	// 是否开放给玩家
 	Enabled bool `json:"enabled,omitempty"`
-	// 每个玩家每天次数（0 不限）
-	DailyLimit int `json:"daily_limit,omitempty"`
-	// 两次之间的间隔（秒，0 不限）
-	CooldownSec int `json:"cooldown_sec,omitempty"`
+	// 每个玩家每个周期的次数（0 不限）
+	UseLimit int `json:"use_limit,omitempty"`
+	// 次数的刷新周期天数，服务器时区 0 点刷新（0 永久不刷新）
+	PeriodDays int `json:"period_days,omitempty"`
 	// 需要管理员审批
 	NeedApproval bool `json:"need_approval,omitempty"`
 	// 玩家看到的说明
@@ -50,7 +50,7 @@ func (*GmSelfService) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case gmselfservice.FieldEnabled, gmselfservice.FieldNeedApproval:
 			values[i] = new(sql.NullBool)
-		case gmselfservice.FieldDailyLimit, gmselfservice.FieldCooldownSec:
+		case gmselfservice.FieldUseLimit, gmselfservice.FieldPeriodDays:
 			values[i] = new(sql.NullInt64)
 		case gmselfservice.FieldID, gmselfservice.FieldServerID, gmselfservice.FieldCommand, gmselfservice.FieldPlayerNote, gmselfservice.FieldUpdatedBy, gmselfservice.FieldUpdatedByName:
 			values[i] = new(sql.NullString)
@@ -107,17 +107,17 @@ func (_m *GmSelfService) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Enabled = value.Bool
 			}
-		case gmselfservice.FieldDailyLimit:
+		case gmselfservice.FieldUseLimit:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field daily_limit", values[i])
+				return fmt.Errorf("unexpected type %T for field use_limit", values[i])
 			} else if value.Valid {
-				_m.DailyLimit = int(value.Int64)
+				_m.UseLimit = int(value.Int64)
 			}
-		case gmselfservice.FieldCooldownSec:
+		case gmselfservice.FieldPeriodDays:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field cooldown_sec", values[i])
+				return fmt.Errorf("unexpected type %T for field period_days", values[i])
 			} else if value.Valid {
-				_m.CooldownSec = int(value.Int64)
+				_m.PeriodDays = int(value.Int64)
 			}
 		case gmselfservice.FieldNeedApproval:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -194,11 +194,11 @@ func (_m *GmSelfService) String() string {
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
 	builder.WriteString(", ")
-	builder.WriteString("daily_limit=")
-	builder.WriteString(fmt.Sprintf("%v", _m.DailyLimit))
+	builder.WriteString("use_limit=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UseLimit))
 	builder.WriteString(", ")
-	builder.WriteString("cooldown_sec=")
-	builder.WriteString(fmt.Sprintf("%v", _m.CooldownSec))
+	builder.WriteString("period_days=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PeriodDays))
 	builder.WriteString(", ")
 	builder.WriteString("need_approval=")
 	builder.WriteString(fmt.Sprintf("%v", _m.NeedApproval))

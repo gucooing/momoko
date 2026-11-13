@@ -179,7 +179,6 @@ var (
 			IsBuiltin:   true,
 			Status:      entrole.StatusActive,
 		},
-
 	}
 	defaultUsers = []*defaultUser{}
 )

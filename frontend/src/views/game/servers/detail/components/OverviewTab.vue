@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref } from 'vue'
+import { computed, onActivated, onBeforeUnmount, onDeactivated, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { gakumas } from '@/games'
 import { gameServerEventsPath, getGameServerOverview } from '@/api/gameServer'
@@ -247,11 +247,7 @@ const startTimers = () => {
     if (document.visibilityState === 'visible') load()
   }, 5000)
 }
-onMounted(() => {
-  load()
-  connect()
-  startTimers()
-})
+// 标签页在 KeepAlive 里，首次挂载也会触发 onActivated：只在这里加载，避免挂载时请求两次
 onActivated(() => {
   load()
   connect()

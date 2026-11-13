@@ -193,7 +193,7 @@ export default {
   },
   'en-US': {
     game: {
-      adapters: { gakumas: 'Gakuen iDOLM@STER' },
+      adapters: { gakumas: "Gakuen iDOLM{'@'}STER" },
       unnamed: 'Unnamed',
       picker: {
         placeholder: 'Choose a server',

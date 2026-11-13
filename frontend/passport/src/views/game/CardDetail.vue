@@ -225,6 +225,8 @@ const setRental = async () => {
   .cd--idol .cd__img {
     width: 100%;
     max-width: none;
+    max-height: 56vh;
+    object-position: 50% 20%;
   }
 }
 .cd__body {

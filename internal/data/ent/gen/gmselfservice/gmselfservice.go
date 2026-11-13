@@ -23,10 +23,10 @@ const (
 	FieldCommand = "command"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
-	// FieldDailyLimit holds the string denoting the daily_limit field in the database.
-	FieldDailyLimit = "daily_limit"
-	// FieldCooldownSec holds the string denoting the cooldown_sec field in the database.
-	FieldCooldownSec = "cooldown_sec"
+	// FieldUseLimit holds the string denoting the use_limit field in the database.
+	FieldUseLimit = "use_limit"
+	// FieldPeriodDays holds the string denoting the period_days field in the database.
+	FieldPeriodDays = "period_days"
 	// FieldNeedApproval holds the string denoting the need_approval field in the database.
 	FieldNeedApproval = "need_approval"
 	// FieldPlayerNote holds the string denoting the player_note field in the database.
@@ -47,8 +47,8 @@ var Columns = []string{
 	FieldServerID,
 	FieldCommand,
 	FieldEnabled,
-	FieldDailyLimit,
-	FieldCooldownSec,
+	FieldUseLimit,
+	FieldPeriodDays,
 	FieldNeedApproval,
 	FieldPlayerNote,
 	FieldUpdatedBy,
@@ -78,10 +78,10 @@ var (
 	CommandValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
-	// DefaultDailyLimit holds the default value on creation for the "daily_limit" field.
-	DefaultDailyLimit int
-	// DefaultCooldownSec holds the default value on creation for the "cooldown_sec" field.
-	DefaultCooldownSec int
+	// DefaultUseLimit holds the default value on creation for the "use_limit" field.
+	DefaultUseLimit int
+	// DefaultPeriodDays holds the default value on creation for the "period_days" field.
+	DefaultPeriodDays int
 	// DefaultNeedApproval holds the default value on creation for the "need_approval" field.
 	DefaultNeedApproval bool
 	// DefaultPlayerNote holds the default value on creation for the "player_note" field.
@@ -127,14 +127,14 @@ func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
 }
 
-// ByDailyLimit orders the results by the daily_limit field.
-func ByDailyLimit(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDailyLimit, opts...).ToFunc()
+// ByUseLimit orders the results by the use_limit field.
+func ByUseLimit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUseLimit, opts...).ToFunc()
 }
 
-// ByCooldownSec orders the results by the cooldown_sec field.
-func ByCooldownSec(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCooldownSec, opts...).ToFunc()
+// ByPeriodDays orders the results by the period_days field.
+func ByPeriodDays(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPeriodDays, opts...).ToFunc()
 }
 
 // ByNeedApproval orders the results by the need_approval field.

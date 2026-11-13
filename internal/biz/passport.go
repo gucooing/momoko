@@ -110,7 +110,6 @@ var (
 	ErrPassportBindTooMany        = passportErr(429, "PASSPORT_BIND_TOO_MANY_ATTEMPTS")
 	ErrPassportSelfServiceClosed  = passportErr(403, "PASSPORT_SELF_SERVICE_CLOSED")
 	ErrPassportSelfServiceLimit   = passportErr(429, "PASSPORT_SELF_SERVICE_LIMIT")
-	ErrPassportSelfServiceWait    = passportErr(429, "PASSPORT_SELF_SERVICE_COOLDOWN")
 	ErrPassportSelfServicePending = passportErr(409, "PASSPORT_SELF_SERVICE_PENDING")
 	ErrPassportGameUnavailable    = passportErr(502, "PASSPORT_GAME_UNAVAILABLE")
 	ErrPassportAvatarAsset        = passportErr(400, "PASSPORT_AVATAR_ASSET_INVALID")

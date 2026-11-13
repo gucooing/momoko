@@ -20,6 +20,8 @@ export interface GameContext {
   modes: ComputedRef<Modes | undefined>
   player: ComputedRef<PlayerDetail | null>
   overview: ComputedRef<Overview | null>
+  /** 资料名片的图片（data URL；默认名片没有图片或还没读到时为空串） */
+  meishiImage: Ref<string>
   timezone: ComputedRef<string>
   hasMode: (id: GakumasMode) => boolean
   modeTitle: (id: GakumasMode) => string

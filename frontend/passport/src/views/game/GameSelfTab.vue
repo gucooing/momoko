@@ -127,7 +127,7 @@ import PEmpty from '@passport/components/PEmpty.vue'
 import PPill from '@passport/components/PPill.vue'
 import { listGameRecords, listGameRequests, listSelfService, redeemGiftCode } from '@passport/api/passport'
 import { useUiStore } from '@passport/stores/ui'
-import { errorText, fmtDuration, fmtNum, fmtTime, toDate } from '@passport/utils/format'
+import { errorText, fmtNum, fmtTime, toDate } from '@passport/utils/format'
 import { usePagedList } from '@passport/utils/paged'
 import type { PassportGameRecord, PassportSelfService, RedeemPassportGiftCodeResponse } from '@/types/v1/passport'
 import SelfServiceDialog from './SelfServiceDialog.vue'
@@ -163,17 +163,18 @@ async function loadItems() {
 
 const tilt = (i: number) => [-3, -2, 4, -4, 2, 3][i % 6]
 
-const cooling = (f: PassportSelfService) => {
-  const next = toDate(f.nextAvailable)
-  return next && next.getTime() > Date.now() ? next : null
-}
+const usable = (f: PassportSelfService) => f.remaining !== 0 && !f.hasPending
 
-const usable = (f: PassportSelfService) => f.remaining !== 0 && !f.hasPending && !cooling(f)
+/** 次数规则：每天 / 每 X 天 / 永久 N 次（0 点刷新）。 */
+const limitRule = (f: PassportSelfService) => {
+  if (!f.periodDays) return t('game.self.perForever', { n: f.limit })
+  if (f.periodDays === 1) return t('game.self.perDay', { n: f.limit })
+  return t('game.self.perDays', { d: f.periodDays, n: f.limit })
+}
 
 const rules = (f: PassportSelfService) => {
   const out: string[] = []
-  if (f.dailyLimit > 0) out.push(t('game.self.perDay', { n: f.dailyLimit }))
-  if (f.cooldownSec > 0) out.push(t('game.self.cooldown', { d: fmtDuration(f.cooldownSec) }))
+  if (f.limit > 0) out.push(limitRule(f))
   if (f.needApproval) out.push(t('game.self.needApproval'))
   if (f.needTotp) out.push(t('game.self.needTotp'))
   if (!out.length) out.push(t('game.self.unlimited'))
@@ -184,10 +185,13 @@ const statusText = (status: string) => (te(`game.self.status.${status}`) ? t(`ga
 
 const stateOf = (f: PassportSelfService): { text: string; tone: 'ok' | 'warn' | 'off' } => {
   if (f.hasPending) return { text: t('game.self.pending'), tone: 'warn' }
-  const next = cooling(f)
-  if (next) return { text: t('game.self.coolingUntil', { time: fmtTime(next) }), tone: 'off' }
-  if (f.remaining === 0) return { text: t('game.self.usedUp'), tone: 'off' }
-  if (f.remaining > 0) return { text: t('game.self.leftToday', { n: f.remaining }), tone: 'ok' }
+  const resets = toDate(f.resetsAt)
+  if (f.remaining === 0) {
+    return { text: resets ? t('game.self.usedUpUntil', { time: fmtTime(resets) }) : t('game.self.usedUp'), tone: 'off' }
+  }
+  if (f.remaining > 0) {
+    return { text: f.periodDays === 1 ? t('game.self.leftToday', { n: f.remaining }) : t('game.self.left', { n: f.remaining }), tone: 'ok' }
+  }
   if (f.lastUsedAt) return { text: t('game.self.last', { time: fmtTime(f.lastUsedAt), status: statusText(f.lastStatus) }), tone: 'off' }
   return { text: t('game.self.never'), tone: 'ok' }
 }

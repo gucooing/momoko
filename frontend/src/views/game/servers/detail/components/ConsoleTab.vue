@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onActivated, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onActivated, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TerminalConsole from '@/components/terminal/TerminalConsole.vue'
 import type { TerminalAction } from '@/components/terminal/TerminalShell.vue'
@@ -74,7 +74,6 @@ const command = ref('')
 let socket: WebSocket | null = null
 let decoder = new TextDecoder('utf-8')
 let retry: ReturnType<typeof setTimeout> | undefined
-let closing = false
 
 const proc = computed(() => roles.value.find((r) => r.role === role.value))
 const subtitle = computed(() => proc.value?.command || '')
@@ -99,10 +98,13 @@ const socketUrl = () => {
 
 const disconnect = () => {
   clearTimeout(retry)
-  closing = true
-  socket?.close()
+  const ws = socket
   socket = null
-  closing = false
+  if (!ws) return
+  ws.onmessage = ws.onerror = ws.onclose = null
+  // 还在握手的连接等握手完成再关，避免浏览器报「WebSocket is closed before the connection is established」
+  if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close()
+  else ws.close()
 }
 
 const connect = () => {
@@ -127,7 +129,7 @@ const connect = () => {
     term.value?.write(text)
   }
   ws.onclose = () => {
-    if (socket !== ws || closing) return
+    if (socket !== ws) return
     socket = null
     status.value = 'disconnected'
     retry = setTimeout(connect, 5000)
@@ -174,7 +176,7 @@ const switchRole = (r: string) => {
   connect()
 }
 
-onMounted(() => nextTick(connect))
+// 标签页在 KeepAlive 里，首次挂载也会触发 onActivated：连接只在这里建立，避免挂载时连两次
 onActivated(() => {
   if (!socket) connect()
   term.value?.fit()

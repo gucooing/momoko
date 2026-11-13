@@ -1069,14 +1069,14 @@ func init() {
 	gmselfserviceDescEnabled := gmselfserviceFields[3].Descriptor()
 	// gmselfservice.DefaultEnabled holds the default value on creation for the enabled field.
 	gmselfservice.DefaultEnabled = gmselfserviceDescEnabled.Default.(bool)
-	// gmselfserviceDescDailyLimit is the schema descriptor for daily_limit field.
-	gmselfserviceDescDailyLimit := gmselfserviceFields[4].Descriptor()
-	// gmselfservice.DefaultDailyLimit holds the default value on creation for the daily_limit field.
-	gmselfservice.DefaultDailyLimit = gmselfserviceDescDailyLimit.Default.(int)
-	// gmselfserviceDescCooldownSec is the schema descriptor for cooldown_sec field.
-	gmselfserviceDescCooldownSec := gmselfserviceFields[5].Descriptor()
-	// gmselfservice.DefaultCooldownSec holds the default value on creation for the cooldown_sec field.
-	gmselfservice.DefaultCooldownSec = gmselfserviceDescCooldownSec.Default.(int)
+	// gmselfserviceDescUseLimit is the schema descriptor for use_limit field.
+	gmselfserviceDescUseLimit := gmselfserviceFields[4].Descriptor()
+	// gmselfservice.DefaultUseLimit holds the default value on creation for the use_limit field.
+	gmselfservice.DefaultUseLimit = gmselfserviceDescUseLimit.Default.(int)
+	// gmselfserviceDescPeriodDays is the schema descriptor for period_days field.
+	gmselfserviceDescPeriodDays := gmselfserviceFields[5].Descriptor()
+	// gmselfservice.DefaultPeriodDays holds the default value on creation for the period_days field.
+	gmselfservice.DefaultPeriodDays = gmselfserviceDescPeriodDays.Default.(int)
 	// gmselfserviceDescNeedApproval is the schema descriptor for need_approval field.
 	gmselfserviceDescNeedApproval := gmselfserviceFields[6].Descriptor()
 	// gmselfservice.DefaultNeedApproval holds the default value on creation for the need_approval field.

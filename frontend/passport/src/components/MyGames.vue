@@ -143,7 +143,7 @@ watch(
 <style scoped>
 .mg {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 18px;
 }
 .mg__card {
@@ -233,6 +233,7 @@ watch(
 }
 .mg__server {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   font-size: 15px;

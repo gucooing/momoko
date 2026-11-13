@@ -468,6 +468,7 @@ watch(
 }
 .gr__pvp-head {
   flex: 1 1 300px;
+  min-width: 0;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -486,6 +487,7 @@ watch(
 }
 .gr__battles {
   flex: 2 1 520px;
+  min-width: 0;
 }
 .gr__battle {
   display: grid;

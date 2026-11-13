@@ -165,6 +165,20 @@ func (_c *FileUploadCreate) SetNillableBufferLocal(v *bool) *FileUploadCreate {
 	return _c
 }
 
+// SetActive sets the "active" field.
+func (_c *FileUploadCreate) SetActive(v bool) *FileUploadCreate {
+	_c.mutation.SetActive(v)
+	return _c
+}
+
+// SetNillableActive sets the "active" field if the given value is not nil.
+func (_c *FileUploadCreate) SetNillableActive(v *bool) *FileUploadCreate {
+	if v != nil {
+		_c.SetActive(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *FileUploadCreate) SetID(v string) *FileUploadCreate {
 	_c.mutation.SetID(v)
@@ -390,6 +404,10 @@ func (_c *FileUploadCreate) createSpec() (*FileUpload, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.BufferLocal(); ok {
 		_spec.SetField(fileupload.FieldBufferLocal, field.TypeBool, value)
 		_node.BufferLocal = value
+	}
+	if value, ok := _c.mutation.Active(); ok {
+		_spec.SetField(fileupload.FieldActive, field.TypeBool, value)
+		_node.Active = &value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -650,6 +668,24 @@ func (u *FileUploadUpsert) UpdateBufferLocal() *FileUploadUpsert {
 	return u
 }
 
+// SetActive sets the "active" field.
+func (u *FileUploadUpsert) SetActive(v bool) *FileUploadUpsert {
+	u.Set(fileupload.FieldActive, v)
+	return u
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FileUploadUpsert) UpdateActive() *FileUploadUpsert {
+	u.SetExcluded(fileupload.FieldActive)
+	return u
+}
+
+// ClearActive clears the value of the "active" field.
+func (u *FileUploadUpsert) ClearActive() *FileUploadUpsert {
+	u.SetNull(fileupload.FieldActive)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -901,6 +937,27 @@ func (u *FileUploadUpsertOne) SetBufferLocal(v bool) *FileUploadUpsertOne {
 func (u *FileUploadUpsertOne) UpdateBufferLocal() *FileUploadUpsertOne {
 	return u.Update(func(s *FileUploadUpsert) {
 		s.UpdateBufferLocal()
+	})
+}
+
+// SetActive sets the "active" field.
+func (u *FileUploadUpsertOne) SetActive(v bool) *FileUploadUpsertOne {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.SetActive(v)
+	})
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FileUploadUpsertOne) UpdateActive() *FileUploadUpsertOne {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.UpdateActive()
+	})
+}
+
+// ClearActive clears the value of the "active" field.
+func (u *FileUploadUpsertOne) ClearActive() *FileUploadUpsertOne {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.ClearActive()
 	})
 }
 
@@ -1322,6 +1379,27 @@ func (u *FileUploadUpsertBulk) SetBufferLocal(v bool) *FileUploadUpsertBulk {
 func (u *FileUploadUpsertBulk) UpdateBufferLocal() *FileUploadUpsertBulk {
 	return u.Update(func(s *FileUploadUpsert) {
 		s.UpdateBufferLocal()
+	})
+}
+
+// SetActive sets the "active" field.
+func (u *FileUploadUpsertBulk) SetActive(v bool) *FileUploadUpsertBulk {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.SetActive(v)
+	})
+}
+
+// UpdateActive sets the "active" field to the value that was provided on create.
+func (u *FileUploadUpsertBulk) UpdateActive() *FileUploadUpsertBulk {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.UpdateActive()
+	})
+}
+
+// ClearActive clears the value of the "active" field.
+func (u *FileUploadUpsertBulk) ClearActive() *FileUploadUpsertBulk {
+	return u.Update(func(s *FileUploadUpsert) {
+		s.ClearActive()
 	})
 }
 

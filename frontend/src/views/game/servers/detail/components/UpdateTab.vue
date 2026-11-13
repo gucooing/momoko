@@ -172,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onMounted, ref } from 'vue'
+import { computed, onActivated, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   checkGameServerBuild,
@@ -340,10 +340,7 @@ const runResource = async (action: 'verify' | 'update') => {
   }
 }
 
-onMounted(() => {
-  loadBuild()
-  loadResource()
-})
+// 标签页在 KeepAlive 里，首次挂载也会触发 onActivated：只在这里加载，避免挂载时请求两次
 onActivated(() => {
   loadBuild()
   loadResource()

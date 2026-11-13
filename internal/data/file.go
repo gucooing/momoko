@@ -40,8 +40,7 @@ func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.Ch
 				fileupload.HashEQ(info.Hash),
 				fileupload.PathEQ(info.Path),
 				fileupload.SourceIDEQ(info.SourceID),
-				fileupload.CompletedEQ(false),
-				fileupload.CancelEQ(false),
+				fileupload.ActiveEQ(true),
 			).
 			WithChunks().
 			Only(ctx)
@@ -59,6 +58,7 @@ func (f *fileRepo) GetOrCreate(ctx context.Context, userId string, info *file.Ch
 			SetTotalChunks(info.TotalChunks).
 			SetSourceID(info.SourceID).
 			SetBufferLocal(info.BufferLocal).
+			SetActive(true).
 			SetUserID(userId).Save(ctx)
 		if err != nil {
 			return err
@@ -117,9 +117,9 @@ func (f *fileRepo) DeleteUploadCascade(ctx context.Context, id string) error {
 	})
 }
 
-// SetUploadCompleted 标记一个上传会话为已完成。
+// SetUploadCompleted 标记一个上传会话为已完成，并让出唯一索引（同一文件可再次上传）。
 func (f *fileRepo) SetUploadCompleted(ctx context.Context, id string) error {
-	return f.data.db.FileUpload.UpdateOneID(id).SetCompleted(true).Exec(ctx)
+	return f.data.db.FileUpload.UpdateOneID(id).SetCompleted(true).ClearActive().Exec(ctx)
 }
 
 // SetUploadProviderRefIfEmpty 仅当 provider_ref 仍为空时写入，返回是否写入成功（OSS uploadID 初始化幂等/防竞态）。

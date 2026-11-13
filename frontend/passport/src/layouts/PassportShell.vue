@@ -236,6 +236,8 @@ const bottomNav = computed(() => [
 .shell__main {
   flex: 1;
   width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 .shell__bottom {
   position: sticky;

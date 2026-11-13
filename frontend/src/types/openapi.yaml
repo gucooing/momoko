@@ -18300,11 +18300,11 @@ components:
                     type: string
                 enabled:
                     type: boolean
-                    description: 五项设置
-                dailyLimit:
+                    description: 设置：每 period_days 天 limit 次（limit 0 不限；服务器时区 0 点刷新，period_days 0 永久不刷新）
+                limit:
                     type: integer
                     format: int32
-                cooldownSec:
+                periodDays:
                     type: integer
                     format: int32
                 needApproval:
@@ -21281,11 +21281,11 @@ components:
                     type: string
                 target:
                     type: string
-                dailyLimit:
+                limit:
                     type: integer
-                    description: 规则
+                    description: 规则：每 period_days 天 limit 次（limit 0 不限；服务器时区 0 点刷新，period_days 0 永久不刷新）
                     format: int32
-                cooldownSec:
+                periodDays:
                     type: integer
                     format: int32
                 needApproval:
@@ -21293,16 +21293,16 @@ components:
                 playerNote:
                     type: string
                     description: 管理员写给玩家的说明
-                usedToday:
+                used:
                     type: integer
-                    description: 使用情况
+                    description: 使用情况：本周期已用与还剩（-1 不限）
                     format: int32
                 remaining:
                     type: integer
-                    description: 今天还剩（-1 不限）
                     format: int32
-                nextAvailable:
+                resetsAt:
                     type: string
+                    description: 次数下次刷新的时间（不限次数或永久不刷新时为空）
                     format: date-time
                 lastUsedAt:
                     type: string
@@ -24487,13 +24487,13 @@ components:
                     type: string
                 enabled:
                     type: boolean
-                dailyLimit:
+                limit:
                     type: integer
-                    description: 每个玩家每天次数（0 不限）
+                    description: 每个玩家每个周期的次数（0 不限，最多 1000）
                     format: int32
-                cooldownSec:
+                periodDays:
                     type: integer
-                    description: 间隔秒数（0 不限）
+                    description: 刷新周期天数（服务器时区 0 点刷新；0 永久不刷新，最多 365）
                     format: int32
                 needApproval:
                     type: boolean

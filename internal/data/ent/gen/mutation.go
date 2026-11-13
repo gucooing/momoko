@@ -3426,6 +3426,7 @@ type FileUploadMutation struct {
 	source_id       *string
 	provider_ref    *string
 	buffer_local    *bool
+	active          *bool
 	clearedFields   map[string]struct{}
 	user            *string
 	cleareduser     bool
@@ -4105,6 +4106,55 @@ func (m *FileUploadMutation) ResetBufferLocal() {
 	m.buffer_local = nil
 }
 
+// SetActive sets the "active" field.
+func (m *FileUploadMutation) SetActive(b bool) {
+	m.active = &b
+}
+
+// Active returns the value of the "active" field in the mutation.
+func (m *FileUploadMutation) Active() (r bool, exists bool) {
+	v := m.active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActive returns the old "active" field's value of the FileUpload entity.
+// If the FileUpload object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileUploadMutation) OldActive(ctx context.Context) (v *bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActive: %w", err)
+	}
+	return oldValue.Active, nil
+}
+
+// ClearActive clears the value of the "active" field.
+func (m *FileUploadMutation) ClearActive() {
+	m.active = nil
+	m.clearedFields[fileupload.FieldActive] = struct{}{}
+}
+
+// ActiveCleared returns if the "active" field was cleared in this mutation.
+func (m *FileUploadMutation) ActiveCleared() bool {
+	_, ok := m.clearedFields[fileupload.FieldActive]
+	return ok
+}
+
+// ResetActive resets all changes to the "active" field.
+func (m *FileUploadMutation) ResetActive() {
+	m.active = nil
+	delete(m.clearedFields, fileupload.FieldActive)
+}
+
 // ClearUser clears the "user" edge to the User entity.
 func (m *FileUploadMutation) ClearUser() {
 	m.cleareduser = true
@@ -4220,7 +4270,7 @@ func (m *FileUploadMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileUploadMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.create_time != nil {
 		fields = append(fields, fileupload.FieldCreateTime)
 	}
@@ -4263,6 +4313,9 @@ func (m *FileUploadMutation) Fields() []string {
 	if m.buffer_local != nil {
 		fields = append(fields, fileupload.FieldBufferLocal)
 	}
+	if m.active != nil {
+		fields = append(fields, fileupload.FieldActive)
+	}
 	return fields
 }
 
@@ -4299,6 +4352,8 @@ func (m *FileUploadMutation) Field(name string) (ent.Value, bool) {
 		return m.ProviderRef()
 	case fileupload.FieldBufferLocal:
 		return m.BufferLocal()
+	case fileupload.FieldActive:
+		return m.Active()
 	}
 	return nil, false
 }
@@ -4336,6 +4391,8 @@ func (m *FileUploadMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldProviderRef(ctx)
 	case fileupload.FieldBufferLocal:
 		return m.OldBufferLocal(ctx)
+	case fileupload.FieldActive:
+		return m.OldActive(ctx)
 	}
 	return nil, fmt.Errorf("unknown FileUpload field %s", name)
 }
@@ -4443,6 +4500,13 @@ func (m *FileUploadMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetBufferLocal(v)
 		return nil
+	case fileupload.FieldActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActive(v)
+		return nil
 	}
 	return fmt.Errorf("unknown FileUpload field %s", name)
 }
@@ -4511,7 +4575,11 @@ func (m *FileUploadMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *FileUploadMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(fileupload.FieldActive) {
+		fields = append(fields, fileupload.FieldActive)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -4524,6 +4592,11 @@ func (m *FileUploadMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *FileUploadMutation) ClearField(name string) error {
+	switch name {
+	case fileupload.FieldActive:
+		m.ClearActive()
+		return nil
+	}
 	return fmt.Errorf("unknown FileUpload nullable field %s", name)
 }
 
@@ -4572,6 +4645,9 @@ func (m *FileUploadMutation) ResetField(name string) error {
 		return nil
 	case fileupload.FieldBufferLocal:
 		m.ResetBufferLocal()
+		return nil
+	case fileupload.FieldActive:
+		m.ResetActive()
 		return nil
 	}
 	return fmt.Errorf("unknown FileUpload field %s", name)
@@ -22900,10 +22976,10 @@ type GmSelfServiceMutation struct {
 	server_id       *string
 	command         *string
 	enabled         *bool
-	daily_limit     *int
-	adddaily_limit  *int
-	cooldown_sec    *int
-	addcooldown_sec *int
+	use_limit       *int
+	adduse_limit    *int
+	period_days     *int
+	addperiod_days  *int
 	need_approval   *bool
 	player_note     *string
 	updated_by      *string
@@ -23198,116 +23274,116 @@ func (m *GmSelfServiceMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
-// SetDailyLimit sets the "daily_limit" field.
-func (m *GmSelfServiceMutation) SetDailyLimit(i int) {
-	m.daily_limit = &i
-	m.adddaily_limit = nil
+// SetUseLimit sets the "use_limit" field.
+func (m *GmSelfServiceMutation) SetUseLimit(i int) {
+	m.use_limit = &i
+	m.adduse_limit = nil
 }
 
-// DailyLimit returns the value of the "daily_limit" field in the mutation.
-func (m *GmSelfServiceMutation) DailyLimit() (r int, exists bool) {
-	v := m.daily_limit
+// UseLimit returns the value of the "use_limit" field in the mutation.
+func (m *GmSelfServiceMutation) UseLimit() (r int, exists bool) {
+	v := m.use_limit
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldDailyLimit returns the old "daily_limit" field's value of the GmSelfService entity.
+// OldUseLimit returns the old "use_limit" field's value of the GmSelfService entity.
 // If the GmSelfService object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GmSelfServiceMutation) OldDailyLimit(ctx context.Context) (v int, err error) {
+func (m *GmSelfServiceMutation) OldUseLimit(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDailyLimit is only allowed on UpdateOne operations")
+		return v, errors.New("OldUseLimit is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDailyLimit requires an ID field in the mutation")
+		return v, errors.New("OldUseLimit requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDailyLimit: %w", err)
+		return v, fmt.Errorf("querying old value for OldUseLimit: %w", err)
 	}
-	return oldValue.DailyLimit, nil
+	return oldValue.UseLimit, nil
 }
 
-// AddDailyLimit adds i to the "daily_limit" field.
-func (m *GmSelfServiceMutation) AddDailyLimit(i int) {
-	if m.adddaily_limit != nil {
-		*m.adddaily_limit += i
+// AddUseLimit adds i to the "use_limit" field.
+func (m *GmSelfServiceMutation) AddUseLimit(i int) {
+	if m.adduse_limit != nil {
+		*m.adduse_limit += i
 	} else {
-		m.adddaily_limit = &i
+		m.adduse_limit = &i
 	}
 }
 
-// AddedDailyLimit returns the value that was added to the "daily_limit" field in this mutation.
-func (m *GmSelfServiceMutation) AddedDailyLimit() (r int, exists bool) {
-	v := m.adddaily_limit
+// AddedUseLimit returns the value that was added to the "use_limit" field in this mutation.
+func (m *GmSelfServiceMutation) AddedUseLimit() (r int, exists bool) {
+	v := m.adduse_limit
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetDailyLimit resets all changes to the "daily_limit" field.
-func (m *GmSelfServiceMutation) ResetDailyLimit() {
-	m.daily_limit = nil
-	m.adddaily_limit = nil
+// ResetUseLimit resets all changes to the "use_limit" field.
+func (m *GmSelfServiceMutation) ResetUseLimit() {
+	m.use_limit = nil
+	m.adduse_limit = nil
 }
 
-// SetCooldownSec sets the "cooldown_sec" field.
-func (m *GmSelfServiceMutation) SetCooldownSec(i int) {
-	m.cooldown_sec = &i
-	m.addcooldown_sec = nil
+// SetPeriodDays sets the "period_days" field.
+func (m *GmSelfServiceMutation) SetPeriodDays(i int) {
+	m.period_days = &i
+	m.addperiod_days = nil
 }
 
-// CooldownSec returns the value of the "cooldown_sec" field in the mutation.
-func (m *GmSelfServiceMutation) CooldownSec() (r int, exists bool) {
-	v := m.cooldown_sec
+// PeriodDays returns the value of the "period_days" field in the mutation.
+func (m *GmSelfServiceMutation) PeriodDays() (r int, exists bool) {
+	v := m.period_days
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCooldownSec returns the old "cooldown_sec" field's value of the GmSelfService entity.
+// OldPeriodDays returns the old "period_days" field's value of the GmSelfService entity.
 // If the GmSelfService object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GmSelfServiceMutation) OldCooldownSec(ctx context.Context) (v int, err error) {
+func (m *GmSelfServiceMutation) OldPeriodDays(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCooldownSec is only allowed on UpdateOne operations")
+		return v, errors.New("OldPeriodDays is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCooldownSec requires an ID field in the mutation")
+		return v, errors.New("OldPeriodDays requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCooldownSec: %w", err)
+		return v, fmt.Errorf("querying old value for OldPeriodDays: %w", err)
 	}
-	return oldValue.CooldownSec, nil
+	return oldValue.PeriodDays, nil
 }
 
-// AddCooldownSec adds i to the "cooldown_sec" field.
-func (m *GmSelfServiceMutation) AddCooldownSec(i int) {
-	if m.addcooldown_sec != nil {
-		*m.addcooldown_sec += i
+// AddPeriodDays adds i to the "period_days" field.
+func (m *GmSelfServiceMutation) AddPeriodDays(i int) {
+	if m.addperiod_days != nil {
+		*m.addperiod_days += i
 	} else {
-		m.addcooldown_sec = &i
+		m.addperiod_days = &i
 	}
 }
 
-// AddedCooldownSec returns the value that was added to the "cooldown_sec" field in this mutation.
-func (m *GmSelfServiceMutation) AddedCooldownSec() (r int, exists bool) {
-	v := m.addcooldown_sec
+// AddedPeriodDays returns the value that was added to the "period_days" field in this mutation.
+func (m *GmSelfServiceMutation) AddedPeriodDays() (r int, exists bool) {
+	v := m.addperiod_days
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetCooldownSec resets all changes to the "cooldown_sec" field.
-func (m *GmSelfServiceMutation) ResetCooldownSec() {
-	m.cooldown_sec = nil
-	m.addcooldown_sec = nil
+// ResetPeriodDays resets all changes to the "period_days" field.
+func (m *GmSelfServiceMutation) ResetPeriodDays() {
+	m.period_days = nil
+	m.addperiod_days = nil
 }
 
 // SetNeedApproval sets the "need_approval" field.
@@ -23504,11 +23580,11 @@ func (m *GmSelfServiceMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, gmselfservice.FieldEnabled)
 	}
-	if m.daily_limit != nil {
-		fields = append(fields, gmselfservice.FieldDailyLimit)
+	if m.use_limit != nil {
+		fields = append(fields, gmselfservice.FieldUseLimit)
 	}
-	if m.cooldown_sec != nil {
-		fields = append(fields, gmselfservice.FieldCooldownSec)
+	if m.period_days != nil {
+		fields = append(fields, gmselfservice.FieldPeriodDays)
 	}
 	if m.need_approval != nil {
 		fields = append(fields, gmselfservice.FieldNeedApproval)
@@ -23540,10 +23616,10 @@ func (m *GmSelfServiceMutation) Field(name string) (ent.Value, bool) {
 		return m.Command()
 	case gmselfservice.FieldEnabled:
 		return m.Enabled()
-	case gmselfservice.FieldDailyLimit:
-		return m.DailyLimit()
-	case gmselfservice.FieldCooldownSec:
-		return m.CooldownSec()
+	case gmselfservice.FieldUseLimit:
+		return m.UseLimit()
+	case gmselfservice.FieldPeriodDays:
+		return m.PeriodDays()
 	case gmselfservice.FieldNeedApproval:
 		return m.NeedApproval()
 	case gmselfservice.FieldPlayerNote:
@@ -23571,10 +23647,10 @@ func (m *GmSelfServiceMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldCommand(ctx)
 	case gmselfservice.FieldEnabled:
 		return m.OldEnabled(ctx)
-	case gmselfservice.FieldDailyLimit:
-		return m.OldDailyLimit(ctx)
-	case gmselfservice.FieldCooldownSec:
-		return m.OldCooldownSec(ctx)
+	case gmselfservice.FieldUseLimit:
+		return m.OldUseLimit(ctx)
+	case gmselfservice.FieldPeriodDays:
+		return m.OldPeriodDays(ctx)
 	case gmselfservice.FieldNeedApproval:
 		return m.OldNeedApproval(ctx)
 	case gmselfservice.FieldPlayerNote:
@@ -23627,19 +23703,19 @@ func (m *GmSelfServiceMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEnabled(v)
 		return nil
-	case gmselfservice.FieldDailyLimit:
+	case gmselfservice.FieldUseLimit:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDailyLimit(v)
+		m.SetUseLimit(v)
 		return nil
-	case gmselfservice.FieldCooldownSec:
+	case gmselfservice.FieldPeriodDays:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCooldownSec(v)
+		m.SetPeriodDays(v)
 		return nil
 	case gmselfservice.FieldNeedApproval:
 		v, ok := value.(bool)
@@ -23677,11 +23753,11 @@ func (m *GmSelfServiceMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *GmSelfServiceMutation) AddedFields() []string {
 	var fields []string
-	if m.adddaily_limit != nil {
-		fields = append(fields, gmselfservice.FieldDailyLimit)
+	if m.adduse_limit != nil {
+		fields = append(fields, gmselfservice.FieldUseLimit)
 	}
-	if m.addcooldown_sec != nil {
-		fields = append(fields, gmselfservice.FieldCooldownSec)
+	if m.addperiod_days != nil {
+		fields = append(fields, gmselfservice.FieldPeriodDays)
 	}
 	return fields
 }
@@ -23691,10 +23767,10 @@ func (m *GmSelfServiceMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *GmSelfServiceMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case gmselfservice.FieldDailyLimit:
-		return m.AddedDailyLimit()
-	case gmselfservice.FieldCooldownSec:
-		return m.AddedCooldownSec()
+	case gmselfservice.FieldUseLimit:
+		return m.AddedUseLimit()
+	case gmselfservice.FieldPeriodDays:
+		return m.AddedPeriodDays()
 	}
 	return nil, false
 }
@@ -23704,19 +23780,19 @@ func (m *GmSelfServiceMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GmSelfServiceMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case gmselfservice.FieldDailyLimit:
+	case gmselfservice.FieldUseLimit:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddDailyLimit(v)
+		m.AddUseLimit(v)
 		return nil
-	case gmselfservice.FieldCooldownSec:
+	case gmselfservice.FieldPeriodDays:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddCooldownSec(v)
+		m.AddPeriodDays(v)
 		return nil
 	}
 	return fmt.Errorf("unknown GmSelfService numeric field %s", name)
@@ -23760,11 +23836,11 @@ func (m *GmSelfServiceMutation) ResetField(name string) error {
 	case gmselfservice.FieldEnabled:
 		m.ResetEnabled()
 		return nil
-	case gmselfservice.FieldDailyLimit:
-		m.ResetDailyLimit()
+	case gmselfservice.FieldUseLimit:
+		m.ResetUseLimit()
 		return nil
-	case gmselfservice.FieldCooldownSec:
-		m.ResetCooldownSec()
+	case gmselfservice.FieldPeriodDays:
+		m.ResetPeriodDays()
 		return nil
 	case gmselfservice.FieldNeedApproval:
 		m.ResetNeedApproval()

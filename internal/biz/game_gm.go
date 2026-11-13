@@ -84,7 +84,7 @@ type GmRepo interface {
 	ListPending(ctx context.Context, serverID string, limit int) ([]*gen.GmExecution, error)
 	CountPending(ctx context.Context, serverID string) (int, error)
 	CountByTarget(ctx context.Context, serverID, pid string) (int, error)
-	// CountUses 统计某执行者某指令在 since 之后有效（成功、部分成功、执行中、待审批）的次数。
+	// CountUses 统计某执行者某指令在 since 之后有效（成功、部分成功、执行中、待审批）的次数；since 为零值时统计全部。
 	CountUses(ctx context.Context, serverID, actorID, command string, since time.Time) (int, error)
 	// LastUse 返回某执行者某指令最近一次有效执行的时间。
 	LastUse(ctx context.Context, serverID, actorID, command string) (*gen.GmExecution, error)
@@ -675,10 +675,9 @@ func (uc *GmUsecase) SelfServicePolicies(ctx context.Context, serverID string, o
 			Risk:    op.Risk,
 			Target:  op.Target,
 		}
+		p.PeriodDays = 1
 		if r, ok := byCmd[op.ID]; ok {
-			p.Enabled, p.DailyLimit, p.CooldownSec = r.Enabled, int32(r.DailyLimit), int32(r.CooldownSec)
-			p.NeedApproval, p.PlayerNote, p.UpdatedByName = r.NeedApproval, r.PlayerNote, r.UpdatedByName
-			p.UpdateTime = timestamppb.New(r.UpdateTime)
+			fillSelfServicePolicy(p, r)
 		}
 		out = append(out, p)
 	}
@@ -701,8 +700,8 @@ func (uc *GmUsecase) UpdateSelfService(ctx context.Context, actor GmActor, req *
 	if target == nil {
 		return nil, response.BadRequest(400, "这个操作不允许开放给玩家")
 	}
-	if req.DailyLimit < 0 || req.DailyLimit > 1000 || req.CooldownSec < 0 || req.CooldownSec > 30*86400 {
-		return nil, response.BadRequest(400, "次数或间隔超出范围")
+	if req.Limit < 0 || req.Limit > 1000 || req.PeriodDays < 0 || req.PeriodDays > 365 {
+		return nil, response.BadRequest(400, "次数或刷新天数超出范围")
 	}
 	note := strings.TrimSpace(req.PlayerNote)
 	if len([]rune(note)) > 200 {
@@ -712,8 +711,8 @@ func (uc *GmUsecase) UpdateSelfService(ctx context.Context, actor GmActor, req *
 		ServerID:      req.ServerId,
 		Command:       req.Command,
 		Enabled:       req.Enabled,
-		DailyLimit:    int(req.DailyLimit),
-		CooldownSec:   int(req.CooldownSec),
+		UseLimit:      int(req.Limit),
+		PeriodDays:    int(req.PeriodDays),
 		NeedApproval:  req.NeedApproval,
 		PlayerNote:    note,
 		UpdatedBy:     actor.UserID,
@@ -723,10 +722,14 @@ func (uc *GmUsecase) UpdateSelfService(ctx context.Context, actor GmActor, req *
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	target.Enabled, target.DailyLimit, target.CooldownSec = saved.Enabled, int32(saved.DailyLimit), int32(saved.CooldownSec)
-	target.NeedApproval, target.PlayerNote, target.UpdatedByName = saved.NeedApproval, saved.PlayerNote, saved.UpdatedByName
-	target.UpdateTime = timestamppb.New(saved.UpdateTime)
+	fillSelfServicePolicy(target, saved)
 	return target, nil
+}
+
+func fillSelfServicePolicy(p *v1.GmSelfServicePolicy, r *gen.GmSelfService) {
+	p.Enabled, p.Limit, p.PeriodDays = r.Enabled, int32(r.UseLimit), int32(r.PeriodDays)
+	p.NeedApproval, p.PlayerNote, p.UpdatedByName = r.NeedApproval, r.PlayerNote, r.UpdatedByName
+	p.UpdateTime = timestamppb.New(r.UpdateTime)
 }
 
 func configDraftProto(d *gen.GameConfigRevision) *v1.GmConfigDraft {

@@ -5,6 +5,8 @@ body {
   background: var(--m-bg);
   color: var(--m-ink);
   font-family: var(--app-font-sans);
+  /* 放不下的长串（邮箱、英文昵称、设备名）折行，不把版面撑宽 */
+  overflow-wrap: break-word;
 }
 
 a {
@@ -285,6 +287,9 @@ a {
 }
 .pp-frow--icon {
   grid-template-columns: 48px minmax(0, 1fr) auto;
+}
+.pp-frow > * {
+  min-width: 0;
 }
 .pp-frow__label {
   display: flex;

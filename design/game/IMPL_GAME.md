@@ -16,7 +16,7 @@
 - **服务器可能有几百个**：任何需要选服务器的地方都用「搜索 + 最近查看」的下拉（结果最多 20 条），不要把所有服务器铺成 chips、tab 或列表项；用户列表里的绑定只显示「N 个服务器 · M 款游戏」和游戏图标。
 - **管理端不做按操作的权限**：能进 GM 运营的管理员就能执行这台服务器的全部操作。风险等级只用于展示与玩家自助的两步验证；执行前不做任何二次确认（不输入昵称、不弹确认框），「危险」操作由服务端先备份存档。没有第二位管理员复核。
 - **对玩家的操作都能同时作用于多名玩家**：除了针对具体一张卡或一条回忆的援助设置、玩家详情里的存档备份与回档，GM 操作的接口都收 `pids`（1–200 名），逐个玩家执行，单个失败不影响其他玩家。
-- **「GM 操作」页的「玩家权限」只管玩家能执行的 GM**：列出的操作与「执行操作」里的完全一致，每项只有 开放 / 每天次数 / 两次之间至少间隔（0 为不限） / 需要审批 / 玩家看到的说明。不掺角色、统计、记录等其他东西。玩家的审批申请在「GM 记录」页处理，批准即按申请时的参数执行。
+- **「GM 操作」页的「玩家权限」只管玩家能执行的 GM**：列出的操作与「执行操作」里的完全一致，每项只有 开放 / 每 X 天 N 次机会（服务器时区 0 点刷新；可设为永久不刷新；N 为 0 不限） / 需要审批 / 玩家看到的说明。不掺角色、统计、记录等其他东西。玩家的审批申请在「GM 记录」页处理，批准即按申请时的参数执行。
 - **工作台只做数据观测和预览**，不放操作入口；邮件补偿、兑换码、公告各自是独立页面。
 - **卡池编辑是表单**：填规则、先选角色再选卡；不让人写 JSON（配置的 JSON 只在后端和适配器里出现）。
 - **玩法页**：竞赛 PvP 只显示排名 + 选中玩家当前配置的阵容（不显示段位规则、奖励、结算按钮）；培育就是全体玩家的培育列表（和玩家详情里的一样，只是范围不同，不要「进行中 / 中止清理」）；只显示服务端实际配置了的玩法，每个玩法一个 tab，没配置的不显示。
@@ -49,7 +49,7 @@
 
 - 只允许 `gm_self_service.enabled = true` 的操作；玩家能执行的操作就是管理端操作表里标了允许自助的（`internal/biz/gakumas.go` 的 `GakumasOperations`，「执行操作」里的操作都允许），通行证用例由它生成 `GakumasSelfService`（`internal/biz/gakumas_passport.go`），每项操作在通行证上有自己的接口（`/self-service/<操作>`），参数与管理端相同：发礼物从游戏目录选奖励，撤回礼物从自己礼物箱里管理端发出且未领取的礼物中勾选（一次一种来源），调整道具从道具目录选，封禁的原因字段为 `ban_reason`（`reason` 是给审批管理员的申请理由）。
 - 目标强制为「当前用户在这台服务器绑定的 player_id」，忽略请求里的 targets。
-- 每天次数、间隔在服务端计数（按服务器时区的自然日）。
+- 次数在服务端计数：周期从 2024-01-01（周一）起按 X 天切分，服务器时区 0 点刷新（X 为 7 时每周一刷新）；永久不刷新时统计全部。
 - `need_approval` 的操作只写一条待审批的 `gm_execution`（status = pending，params 为游戏服务端接口的 body），管理员在「GM 记录」页批准后由管理端按 params 调用 MGP。
 - 每次执行都写 `gm_execution`（actor_kind = player，结果格式为 `internal/data/ent/schema` 的 `GmOutcome`，与管理端执行的记录相同）。
 - 自助操作与兑换码的执行在通行证一侧（`PassportUsecase.RunSelfService`、`PassportUsecase.Redeem`），经数据层直接读写 GM 记录、自助规则与兑换码的表，不调用管理端的用例。
@@ -99,7 +99,7 @@
 
 - `game_server`：id、game（适配器 id）、name（只是名字）、tags、mode（hosted | remote）、node_id、instance_id（托管时关联应用实例）、mgp_endpoint、key_id、secret（加密存储）、manifest 缓存、status 缓存。
 - `game_account_link`：user_id、server_id、player_id、display_id、nickname、avatar_asset、method（密码 / 绑定码 / OIDC / 管理员）、is_primary、linked_at、last_seen_at。每个用户在每台服务器只能绑一个游戏账号；解绑后 7 天内不能绑别的账号。
-- `gm_self_service`：server_id、command、enabled、daily_limit、cooldown_sec、need_approval、player_note。
+- `gm_self_service`：server_id、command、enabled、use_limit、period_days（0 永久不刷新）、need_approval、player_note。
 - `gm_execution`：server_id、command、actor user_id、actor_kind（admin | player）、targets、params、reason、dry_run、status（success | failed | pending | rejected）、changes、reviewed_by、request_id。params 只存不展示。
 - `game_config_revision`：server_id、domain、revision、content、author、comment、state（草稿 / 已发布）、published_at。
 
@@ -123,7 +123,7 @@
 | `GkMailPC` | `?tab=mail` | 邮件列表 + 编写（指定玩家 / 按条件 / 全服、奖励、内容、期限、立即或定时、试运行、礼物箱预览）；由 Momoko 调游戏服务端的邮件接口投递 |
 | `GkCodesPC` | `?tab=codes` | 批次列表、批次详情与兑换记录、新建批次抽屉（通用码 / 一次性码、次数、有效期、适用玩家、兑换入口） |
 | `GkNoticePC` | `?tab=notices` | 公告列表 + 编辑 + 游戏内预览；横幅「从游戏素材选」读前端素材包 |
-| `GmPolicyPC` | `?tab=operations` | GM 操作：「执行操作」左边是玩家列表（状态筛选、搜索、页码分页、勾选，翻页后勾选保留；从玩家详情、玩家列表进来时带 `?pid=a,b` 预先勾选），右边选择操作并执行，每个操作都对勾选的全部玩家执行（援助设置与存档备份、回档不在这里）；「玩家权限」（`?view=permissions`）管理玩家在通行证自助服务里能执行哪些操作（开放 / 每天次数 / 两次之间至少间隔，0 为不限 / 需要审批 / 说明），列出的操作与「执行操作」相同 |
+| `GmPolicyPC` | `?tab=operations` | GM 操作：「执行操作」左边是玩家列表（状态筛选、搜索、页码分页、勾选，翻页后勾选保留；从玩家详情、玩家列表进来时带 `?pid=a,b` 预先勾选），右边选择操作并执行，每个操作都对勾选的全部玩家执行（援助设置与存档备份、回档不在这里）；「玩家权限」（`?view=permissions`）管理玩家在通行证自助服务里能执行哪些操作（开放 / 每 X 天 N 次，0 点刷新或永久不刷新 / 需要审批 / 说明），列出的操作与「执行操作」相同 |
 | `GkLogPC` | `?tab=logs` | 待审批卡片（批准 / 驳回）、筛选、记录表、详情（不含请求参数） |
 | `PassportPC` | `/game/passport` | 用户通行证后台管理：统计、状态筛选 + 服务器搜索下拉、用户表、用户详情（绑定按最近使用，超过 5 个折叠） |
 
@@ -172,4 +172,4 @@
 
 - 前端：`cd frontend && pnpm exec vue-tsc --build`，`pnpm exec vite build`（两个入口都要构建成功）。
 - 后端：`go test ./...`；新增接口照现有方式加鉴权注解和节点策略登记。
-- 手动：`:22634` 上访问后台接口 404；后台令牌访问 passport 接口 401；玩家执行未开放的操作被拒；超过每天次数被拒；需要审批的操作只生成待审批记录。
+- 手动：`:22634` 上访问后台接口 404；后台令牌访问 passport 接口 401；玩家执行未开放的操作被拒；超过本周期的次数被拒；需要审批的操作只生成待审批记录。

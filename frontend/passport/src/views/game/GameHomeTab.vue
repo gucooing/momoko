@@ -1,9 +1,10 @@
-<!-- 游戏空间 · 概览：名片、钱包、需要你处理、正在进行、最近获得。 -->
+<!-- 游戏空间 · 概览：名片（背景是游戏里保存的资料名片，没有时用头像偶像卡的卡面）、钱包、需要你处理、正在进行、最近获得。 -->
 <template>
   <div class="gh">
     <div class="gh__top">
       <section class="gh__card">
-        <GameImage v-if="cardArt" :src="cardArt" eager class="gh__card-img" />
+        <img v-if="ctx.meishiImage.value" :src="ctx.meishiImage.value" alt="" class="gh__card-img gh__card-img--meishi" />
+        <GameImage v-else-if="cardArt" :src="cardArt" eager class="gh__card-img" />
         <span class="pp-tag gh__card-tag">{{ t('game.home.nameCard') }}</span>
         <div class="gh__plate">
           <span class="gh__bust">
@@ -102,7 +103,7 @@ import { ChevronRightIcon, ClipboardDocumentCheckIcon, GiftIcon, SparklesIcon, T
 import GameImage from '@/components/game/GameImage.vue'
 import { listGameRequests, listSelfService } from '@passport/api/passport'
 import { getMyPvp, listMyIdolCards, listOngoingGashas } from '@passport/api/gakumas'
-import { fmtNum, fmtTime, toDate } from '@passport/utils/format'
+import { fmtNum, fmtTime } from '@passport/utils/format'
 import type { GashaEntry, IdolCard, PlayerPvp } from '@/games/gakumas/types'
 import type { PassportSelfService } from '@/types/v1/passport'
 import { charaArt, currencyArt, gashaArt, idolCardArt, rarityLabel, spacedId, useGameContext } from './context'
@@ -173,10 +174,7 @@ interface Todo {
   go: () => void
 }
 
-const usable = (s: PassportSelfService) => {
-  const next = toDate(s.nextAvailable)
-  return s.remaining !== 0 && !s.hasPending && !(next && next.getTime() > Date.now())
-}
+const usable = (s: PassportSelfService) => s.remaining !== 0 && !s.hasPending
 
 const todos = computed<Todo[]>(() => {
   const out: Todo[] = []
@@ -281,6 +279,10 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-position: 60% 30%;
+}
+.gh__card-img--meishi {
+  object-fit: cover;
+  object-position: 50% 50%;
 }
 .gh__card-tag {
   position: absolute;

@@ -94,10 +94,10 @@ func (a *GameAdapter) ServerCapabilities(s *gen.GameServer) []string {
 // ToProto 转为接口结构。
 func (a *GameAdapter) ToProto() *v1.GameAdapter {
 	out := &v1.GameAdapter{
-		Id:         a.ID,
-		Available:  len(a.Modes()) > 0,
-		Modes:      a.Modes(),
-		GmDriver:   a.GMDriver,
+		Id:        a.ID,
+		Available: len(a.Modes()) > 0,
+		Modes:     a.Modes(),
+		GmDriver:  a.GMDriver,
 	}
 	for _, c := range a.Capabilities() {
 		out.Capabilities = append(out.Capabilities, &v1.GameAdapterCapability{Key: c, Enabled: true})

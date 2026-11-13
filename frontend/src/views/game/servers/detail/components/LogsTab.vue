@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
+import { computed, onActivated, onBeforeUnmount, onDeactivated, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import { listGameServerLogs, tailGameServerLog } from '@/api/gameServer'
@@ -129,13 +129,11 @@ const startFollow = () => {
 }
 watch(follow, startFollow)
 
-onMounted(async () => {
-  await loadModules()
-  reload()
-})
-onActivated(() => {
-  loadModules()
+// 标签页在 KeepAlive 里，首次挂载也会触发 onActivated：首次读到模块后拉日志，之后只刷新模块列表并恢复跟随
+onActivated(async () => {
   startFollow()
+  await loadModules()
+  if (!loaded.value) reload()
 })
 onDeactivated(() => clearInterval(timer))
 onBeforeUnmount(() => clearInterval(timer))

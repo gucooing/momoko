@@ -136,7 +136,6 @@ func (uc *PassportUsecase) SelfService(ctx context.Context, userID, serverID str
 	}
 	totpOn := u.TotpSecret != "" && u.TotpEnabledAt != nil
 	now := time.Now()
-	dayStart := uc.servers.DayStart(s, now)
 	out := &v1.ListPassportSelfServiceResponse{}
 	for _, op := range ops {
 		p, ok := policies[op.ID]
@@ -149,28 +148,27 @@ func (uc *PassportUsecase) SelfService(ctx context.Context, userID, serverID str
 			Group:        op.Group,
 			Risk:         op.Risk,
 			Target:       op.Target,
-			DailyLimit:   int32(p.DailyLimit),
-			CooldownSec:  int32(p.CooldownSec),
+			Limit:        int32(p.UseLimit),
+			PeriodDays:   int32(p.PeriodDays),
 			NeedApproval: p.NeedApproval,
 			PlayerNote:   p.PlayerNote,
 			Remaining:    -1,
 			NeedTotp:     totpOn && riskNeedsTotp(op.Risk),
 		}
-		if n, err := uc.records.CountUses(ctx, serverID, userID, op.ID, dayStart); err == nil {
-			item.UsedToday = int32(n)
-			if p.DailyLimit > 0 {
-				item.Remaining = int32(max(p.DailyLimit-n, 0))
+		start, resets := uc.servers.PeriodWindow(s, p.PeriodDays, now)
+		if n, err := uc.records.CountUses(ctx, serverID, userID, op.ID, start); err == nil {
+			item.Used = int32(n)
+			if p.UseLimit > 0 {
+				item.Remaining = int32(max(p.UseLimit-n, 0))
+				if resets != nil {
+					item.ResetsAt = timestamppb.New(*resets)
+				}
 			}
 		}
 		if last, err := uc.records.LastUse(ctx, serverID, userID, op.ID); err == nil && last != nil {
 			item.LastUsedAt = timestamppb.New(last.CreateTime)
 			item.LastStatus = string(last.Status)
 			item.HasPending = last.Status == "pending"
-			if p.CooldownSec > 0 {
-				if next := last.CreateTime.Add(time.Duration(p.CooldownSec) * time.Second); next.After(now) {
-					item.NextAvailable = timestamppb.New(next)
-				}
-			}
 		}
 		out.Items = append(out.Items, item)
 	}
@@ -221,8 +219,8 @@ func selfServiceReason(reason string) string {
 	return reason
 }
 
-// RunSelfService 玩家执行开放给自己的操作（目标为自己绑定的游戏账号）：检查开放状态、每天次数（服务器时区的自然日）、
-// 间隔与待审批；需要审批时只写一条待审批的 GM 记录（返回的内容为空），否则写记录并调用 call。
+// RunSelfService 玩家执行开放给自己的操作（目标为自己绑定的游戏账号）：检查开放状态、本周期的次数（每 N 天，
+// 服务器时区 0 点刷新；或永久不刷新）与待审批；需要审批时只写一条待审批的 GM 记录（返回的内容为空），否则写记录并调用 call。
 // params 为操作参数（游戏服务端接口的 body，记入 GM 记录，管理员批准后按它执行）。
 func (uc *PassportUsecase) RunSelfService(ctx context.Context, userID, serverID string, op PassportOperation, params any, reason, totpCode string, call PassportCall) (*gen.GmExecution, proto.Message, error) {
 	actor, l, err := uc.selfServiceActor(ctx, userID, serverID, op.Risk, totpCode)
@@ -247,22 +245,18 @@ func (uc *PassportUsecase) RunSelfService(ctx context.Context, userID, serverID 
 		return nil, nil, ErrPassportSelfServiceClosed
 	}
 	now := time.Now()
-	if policy.DailyLimit > 0 {
-		n, err := uc.records.CountUses(ctx, s.ID, actor.UserID, op.ID, uc.servers.DayStart(s, now))
+	if policy.UseLimit > 0 {
+		start, _ := uc.servers.PeriodWindow(s, policy.PeriodDays, now)
+		n, err := uc.records.CountUses(ctx, s.ID, actor.UserID, op.ID, start)
 		if err != nil {
 			return nil, nil, ErrSystem(err)
 		}
-		if n >= policy.DailyLimit {
+		if n >= policy.UseLimit {
 			return nil, nil, ErrPassportSelfServiceLimit
 		}
 	}
-	if last, err := uc.records.LastUse(ctx, s.ID, actor.UserID, op.ID); err == nil && last != nil {
-		if last.Status == "pending" {
-			return nil, nil, ErrPassportSelfServicePending
-		}
-		if policy.CooldownSec > 0 && now.Before(last.CreateTime.Add(time.Duration(policy.CooldownSec)*time.Second)) {
-			return nil, nil, ErrPassportSelfServiceWait
-		}
+	if last, err := uc.records.LastUse(ctx, s.ID, actor.UserID, op.ID); err == nil && last != nil && last.Status == "pending" {
+		return nil, nil, ErrPassportSelfServicePending
 	}
 	e := newPlayerRecord(s, op, actor, l.PlayerID, l.Nickname, raw, selfServiceReason(reason), nil, "self-service")
 	if policy.NeedApproval {

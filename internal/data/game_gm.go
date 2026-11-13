@@ -209,8 +209,9 @@ func (r *gmRepo) CountByTarget(ctx context.Context, serverID, pid string) (int, 
 // usedStatuses 计入次数限制的状态：成功、部分成功、执行中、待审批。
 var usedStatuses = []entexec.Status{entexec.StatusSuccess, entexec.StatusPartial, entexec.StatusRunning, entexec.StatusPending}
 
+// CountUses since 为零值时统计全部（次数不刷新）。
 func (r *gmRepo) CountUses(ctx context.Context, serverID, actorID, command string, since time.Time) (int, error) {
-	return r.data.db.GmExecution.Query().
+	q := r.data.db.GmExecution.Query().
 		Where(
 			entexec.ServerID(serverID),
 			entexec.ActorID(actorID),
@@ -218,9 +219,11 @@ func (r *gmRepo) CountUses(ctx context.Context, serverID, actorID, command strin
 			entexec.Command(command),
 			entexec.DryRun(false),
 			entexec.StatusIn(usedStatuses...),
-			entexec.CreateTimeGTE(since),
-		).
-		Count(ctx)
+		)
+	if !since.IsZero() {
+		q = q.Where(entexec.CreateTimeGTE(since))
+	}
+	return q.Count(ctx)
 }
 
 func (r *gmRepo) LastUse(ctx context.Context, serverID, actorID, command string) (*gen.GmExecution, error) {
@@ -273,8 +276,8 @@ func (r *gmRepo) SaveSelfService(ctx context.Context, p *gen.GmSelfService) (*ge
 		SetServerID(p.ServerID).
 		SetCommand(p.Command).
 		SetEnabled(p.Enabled).
-		SetDailyLimit(p.DailyLimit).
-		SetCooldownSec(p.CooldownSec).
+		SetUseLimit(p.UseLimit).
+		SetPeriodDays(p.PeriodDays).
 		SetNeedApproval(p.NeedApproval).
 		SetPlayerNote(p.PlayerNote).
 		SetUpdatedBy(p.UpdatedBy).
@@ -282,8 +285,8 @@ func (r *gmRepo) SaveSelfService(ctx context.Context, p *gen.GmSelfService) (*ge
 		OnConflictColumns(entselfservice.FieldServerID, entselfservice.FieldCommand).
 		Update(func(u *gen.GmSelfServiceUpsert) {
 			u.UpdateEnabled().
-				UpdateDailyLimit().
-				UpdateCooldownSec().
+				UpdateUseLimit().
+				UpdatePeriodDays().
 				UpdateNeedApproval().
 				UpdatePlayerNote().
 				UpdateUpdatedBy().

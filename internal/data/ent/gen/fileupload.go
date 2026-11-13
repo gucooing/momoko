@@ -47,6 +47,8 @@ type FileUpload struct {
 	ProviderRef string `json:"provider_ref,omitempty"`
 	// 分片是否缓冲在目标目录旁(本地类来源)
 	BufferLocal bool `json:"buffer_local,omitempty"`
+	// 进行中=true，收尾或取消后为空
+	Active *bool `json:"active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileUploadQuery when eager-loading is set.
 	Edges        FileUploadEdges `json:"edges"`
@@ -89,7 +91,7 @@ func (*FileUpload) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case fileupload.FieldCompleted, fileupload.FieldCancel, fileupload.FieldBufferLocal:
+		case fileupload.FieldCompleted, fileupload.FieldCancel, fileupload.FieldBufferLocal, fileupload.FieldActive:
 			values[i] = new(sql.NullBool)
 		case fileupload.FieldFileSize, fileupload.FieldChunkSize, fileupload.FieldTotalChunks:
 			values[i] = new(sql.NullInt64)
@@ -202,6 +204,13 @@ func (_m *FileUpload) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.BufferLocal = value.Bool
 			}
+		case fileupload.FieldActive:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field active", values[i])
+			} else if value.Valid {
+				_m.Active = new(bool)
+				*_m.Active = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -289,6 +298,11 @@ func (_m *FileUpload) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("buffer_local=")
 	builder.WriteString(fmt.Sprintf("%v", _m.BufferLocal))
+	builder.WriteString(", ")
+	if v := _m.Active; v != nil {
+		builder.WriteString("active=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

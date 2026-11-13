@@ -181,10 +181,10 @@ export interface GmSelfServicePolicy {
   group: string;
   risk: string;
   target: string;
-  /** 五项设置 */
+  /** 设置：每 period_days 天 limit 次（limit 0 不限；服务器时区 0 点刷新，period_days 0 永久不刷新） */
   enabled: boolean;
-  dailyLimit: number;
-  cooldownSec: number;
+  limit: number;
+  periodDays: number;
   needApproval: boolean;
   playerNote: string;
   updatedByName: string;
@@ -205,10 +205,10 @@ export interface UpdateGmSelfServiceRequest {
   serverId: string;
   command: string;
   enabled: boolean;
-  /** 每个玩家每天次数（0 不限） */
-  dailyLimit: number;
-  /** 间隔秒数（0 不限） */
-  cooldownSec: number;
+  /** 每个玩家每个周期的次数（0 不限，最多 1000） */
+  limit: number;
+  /** 刷新周期天数（服务器时区 0 点刷新；0 永久不刷新，最多 365） */
+  periodDays: number;
   needApproval: boolean;
   playerNote: string;
 }

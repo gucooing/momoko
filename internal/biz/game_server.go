@@ -407,6 +407,27 @@ func (uc *GameServerUsecase) DayStart(s *gen.GameServer, t time.Time) time.Time 
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
+// periodAnchor 多天刷新周期的起点（2024-01-01，周一）：每 7 天的周期在周一 0 点刷新。
+var periodAnchor = time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+
+// PeriodWindow 服务器时区下 t 所在「每 days 天」刷新周期的开始与下次刷新时间（都在 0 点）；
+// 周期从 2024-01-01 起按 days 天切分。days <= 0（永久不刷新）返回零值开始时间（统计全部）与 nil。
+func (uc *GameServerUsecase) PeriodWindow(s *gen.GameServer, days int, t time.Time) (time.Time, *time.Time) {
+	if days <= 0 {
+		return time.Time{}, nil
+	}
+	day := uc.DayStart(s, t)
+	// 按日历日计算距起点的天数（不受夏令时影响）
+	n := int(time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, time.UTC).Sub(periodAnchor).Hours() / 24)
+	offset := n % days
+	if offset < 0 {
+		offset += days
+	}
+	start := day.AddDate(0, 0, -offset)
+	next := start.AddDate(0, 0, days)
+	return start, &next
+}
+
 // cachedStatusOf 解析库里的 status 缓存。
 func cachedStatusOf(s *gen.GameServer) *mgp.Status {
 	if s.Status == "" {
