@@ -845,7 +845,7 @@ func (uc *GameServerUsecase) applyMGP(s *gen.GameServer, endpoint, keyID, secret
 		return response.BadRequest(400, "Key ID 不能为空")
 	}
 	if secret != "" {
-		// 新密钥由前端生成：校验格式后加密保存。
+		// 新密钥（前端生成或手动填写）：校验格式后加密保存。
 		if keyID, secret, err = ValidateMGPKey(keyID, secret); err != nil {
 			return err
 		}
@@ -1031,7 +1031,7 @@ func (uc *GameServerUsecase) RefreshServer(ctx context.Context, id string) (*gen
 	return uc.Get(ctx, id)
 }
 
-// ValidateMGPKey 校验（由前端生成的）MGP Key ID 与密钥，返回去掉首尾空白后的值。
+// ValidateMGPKey 校验 MGP Key ID 与密钥（前端生成或手动填写），返回去掉首尾空白后的值。
 func ValidateMGPKey(keyID, secret string) (string, string, error) {
 	keyID, secret = strings.TrimSpace(keyID), strings.TrimSpace(secret)
 	if err := mgpauth.ValidateKey(keyID, secret); err != nil {

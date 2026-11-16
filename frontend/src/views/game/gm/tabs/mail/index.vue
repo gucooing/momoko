@@ -1,4 +1,5 @@
-<!-- GM 运营 · 邮件补偿：左边邮件列表（状态 chips、搜索、领取进度），右边编写 / 详情。
+<!-- GM 运营 · 邮件补偿：页面上只有邮件列表（状态 chips、搜索、领取进度，一封一行）；
+     「写邮件」和点一封邮件打开弹窗编写 / 查看（设计见 design/game/GkMailPC）。
      邮件经服务端 mail.broadcast 投递到礼物箱；投递与撤回在后台执行，期间每 3 秒刷新一次。 -->
 <template>
   <div class="gmm game-skin">
@@ -34,8 +35,7 @@
           :key="m.id"
           type="button"
           class="gmm__item"
-          :class="{ 'is-on': current?.id === m.id }"
-          :aria-pressed="current?.id === m.id"
+          :class="{ 'is-on': editorOpen && current?.id === m.id }"
           @click="select(m)"
         >
           <span class="gmm__icon m-sticker" :class="stickerOf(m)" aria-hidden="true"><UIcon :name="iconOf(m)" /></span>
@@ -62,21 +62,24 @@
         </div>
       </section>
 
-      <section ref="editorRef" class="gmm__editor">
-        <MailEditor
-          :key="editorKey"
-          :mail="current"
-          @changed="onChanged"
-          @deleted="onDeleted"
-          @duplicated="onDuplicated"
-        />
-      </section>
     </div>
+
+    <!-- 弹窗：写邮件 / 编辑草稿 / 查看已发的邮件（关掉时未保存的草稿改动会自动存下） -->
+    <FormDialog v-model="editorOpen" :title="dialogTitle" :width="960" :show-footer="false">
+      <MailEditor
+        :key="editorKey"
+        :mail="current"
+        in-dialog
+        @changed="onChanged"
+        @deleted="onDeleted"
+        @duplicated="onDuplicated"
+      />
+    </FormDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
+import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getGameMail, listGameMails } from '@/api/gameOps'
 import type { GameMail } from '@/types/v1/game_ops'
@@ -91,7 +94,6 @@ type Pill = 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'primary'
 
 const { t } = useI18n()
 const ctx = useGmContext()
-const menuStore = useMenuStore()
 const { label, summary } = useRewardLabels()
 
 const status = ref('')
@@ -106,7 +108,13 @@ const loading = ref(false)
 const current = ref<GameMail>()
 // 新建时用递增的 key 重建编辑器（清空表单）
 const editorKey = ref('new-0')
-const editorRef = ref<HTMLElement>()
+const editorOpen = ref(false)
+const dialogTitle = computed(() => {
+  const m = current.value
+  if (!m) return t('gmOps.mail.newTitle')
+  if (m.status === 'draft') return t('gmOps.mail.editDraft', { title: m.title || t('gmOps.mail.untitled') })
+  return m.title || t('gmOps.mail.untitled')
+})
 
 const chips = computed<ToolbarChip<string>[]>(() => [
   { label: t('gmOps.mail.chips.all'), value: '', count: counts.value.all ?? null },
@@ -155,20 +163,11 @@ const reload = async (toPage?: number) => {
   }
 }
 
-const scrollToEditor = async () => {
-  if (!menuStore.isMobile) return
-  await nextTick()
-  editorRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
 const select = async (m: GameMail) => {
-  if (current.value?.id === m.id) {
-    void scrollToEditor()
-    return
-  }
+  editorOpen.value = true
+  if (current.value?.id === m.id) return
   current.value = m
   editorKey.value = m.id
-  void scrollToEditor()
   try {
     const { data } = await getGameMail(ctx.serverId.value, m.id)
     if (current.value?.id === data.id) current.value = data
@@ -181,7 +180,7 @@ let newCount = 0
 const newMail = () => {
   current.value = undefined
   editorKey.value = `new-${++newCount}`
-  void scrollToEditor()
+  editorOpen.value = true
 }
 
 const upsert = (m: GameMail) => {
@@ -199,7 +198,9 @@ const onChanged = (m: GameMail) => {
 
 const onDeleted = (id: string) => {
   items.value = items.value.filter((m) => m.id !== id)
-  newMail()
+  editorOpen.value = false
+  current.value = undefined
+  editorKey.value = `new-${++newCount}`
   void reload()
 }
 
@@ -362,20 +363,15 @@ onBeforeUnmount(stopPoll)
   gap: 16px;
   align-items: flex-start;
 }
-.gmm__list,
-.gmm__editor {
+.gmm__list {
   min-width: 0;
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
 }
 .gmm__list {
-  flex: 1 1 360px;
+  flex: 1 1 100%;
   overflow: hidden;
-}
-.gmm__editor {
-  flex: 2 1 600px;
-  padding: 20px 24px;
 }
 .gmm__toolbar {
   padding: 14px 14px 12px;
@@ -488,9 +484,6 @@ onBeforeUnmount(stopPoll)
 @media (width < 768px) {
   .gmm__h {
     font-size: 24px;
-  }
-  .gmm__editor {
-    padding: 16px;
   }
   .gmm__item {
     min-height: 44px;

@@ -11,7 +11,7 @@ export interface HostedDraft {
   resourceListen: string
   resourceOrigin: string
   resourceRoot: string
-  /** 点「生成」得到的新 MGP 密钥（前端生成，Momoko 写入服务端配置）；为空时沿用配置里已有的密钥 */
+  /** 填写或点「生成」得到的新 MGP 密钥（Momoko 写入服务端配置）；为空时沿用配置里已有的密钥 */
   key: MgpKey | null
   autoStart: boolean
   autoRestart: boolean

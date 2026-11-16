@@ -43,6 +43,13 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
 .rt{display:grid;grid-template-columns:70px minmax(0,1fr);gap:8px;align-items:center}
 .br{display:grid;grid-template-columns:minmax(0,1.2fr) 150px 90px 130px 36px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 
+.tr-bars{position:relative;display:flex;align-items:flex-end;gap:6px;height:200px;margin:12px 0 0;padding-top:20px;border-bottom:1px solid var(--line)}
+.tr-col{flex:1;height:100%;position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.tr-fill{width:100%;border-radius:4px 4px 0 0;background:color-mix(in srgb,var(--g) 75%,var(--gInk))}
+.tr-part{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--g) 75%,var(--gInk)) 0 6px,color-mix(in srgb,var(--g) 40%,var(--s)) 6px 10px)}
+.tr-v{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px;white-space:nowrap}
+.tr-x{display:flex;gap:6px;margin-top:6px}
+.tr-x span{flex:1;text-align:center;font-size:11px;color:var(--ink2);white-space:nowrap}
 </style>
 </helmet>
 <div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 2200px; display: flex; flex-wrap: wrap; align-items: stretch">
@@ -98,7 +105,8 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
       <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
     </div>
 
-    <nav aria-label="GM 运营" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
+    <!-- GM 子导航：一行，放不下时横向滑动；不显示滚动条，鼠标滚轮在上面就是横滑，当前页的标签自动滚到看得见的地方 -->
+    <nav aria-label="GM 运营" class="gtabs" onWheel="{{gtabsWheel}}" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
       <sc-for list="{{gtabs}}" as="t" hint-placeholder-count="10">
         <a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}</a>
       </sc-for>
@@ -107,17 +115,19 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
     <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
       <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
         <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">卡池</h1>
-        <div style="font-size: 14px; color: var(--ink2)">9 个卡池 · 5 个进行中 · 草稿里有 1 处修改未发布</div>
+        <div style="font-size: 14px; color: var(--ink2)">9 个卡池 · 5 个进行中 · 今天抽卡 <b class="num" style="color: var(--ink)">1,240</b> 次 · 草稿里有 1 处修改未发布</div>
       </div>
+      <button class="btn btn-o" onClick="{{openTrend}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.pulse}}"></path></svg>抽卡趋势</button>
       <button class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.history}}"></path></svg>版本记录</button>
-      <button class="btn btn-g"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新建卡池</button>
+      <button class="btn btn-g" onClick="{{newGasha}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新建卡池</button>
     </div>
 
-    <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
-      <section class="card" style="flex: 1 1 360px; max-width: 420px; min-width: 0; padding: 12px; display: flex; flex-direction: column; gap: 8px">
+    <!-- 页面上只有卡池列表（宽屏两列）；点一个卡池、或「新建卡池」，在弹窗里编辑 -->
+    <section class="card" style="min-width: 0; padding: 12px; display: flex; flex-direction: column; gap: 8px">
         <div role="tablist" aria-label="按状态筛选" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 4px">
           <sc-for list="{{filters}}" as="f" hint-placeholder-count="5"><button class="chip {{f.cls}}" role="tab" aria-selected="{{f.on}}" onClick="{{f.pick}}" style="min-height: 36px; padding: 0 12px; font-size: 13px">{{f.t}} <span class="n num">{{f.n}}</span></button></sc-for>
         </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 4px 12px">
         <sc-for list="{{gashas}}" as="g" hint-placeholder-count="9">
           <button class="gl {{g.cls}}" onClick="{{g.pick}}" aria-pressed="{{g.on}}">
             <sc-if value="{{g.img}}" hint-placeholder-val="{{true}}"><img src="{{g.img}}" alt="" style="width: 120px; height: 60px; object-fit: contain; flex: none"></sc-if>
@@ -125,12 +135,32 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
             <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
               <span style="font-size: 13px; font-weight: 800; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden">{{g.n}}</span>
               <span style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center"><span class="pill {{g.st}}" style="height: 22px; font-size: 11px">{{g.stT}}</span><span class="num hint">{{g.period}}</span><sc-if value="{{g.warn}}" hint-placeholder-val="{{false}}"><span class="pill warn" style="height: 22px; font-size: 11px">需检查</span></sc-if></span>
+              <span class="hint num">今天 <b style="color: var(--ink)">{{g.today}}</b> 抽 · 累计 {{g.total}} · SSR {{g.ssr}}</span>
             </span>
           </button>
         </sc-for>
-      </section>
+        </div>
+    </section>
 
-      <section style="flex: 2 1 620px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <!-- 草稿条：整份卡池配置一起发布，所以留在页面上，不在弹窗里 -->
+    <div style="position: sticky; bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 10px 10px 20px; border-radius: 999px; background: var(--ink); color: var(--bg); box-shadow: 0 16px 40px -12px rgba(20,10,30,.45)">
+      <span style="flex: 1; font-size: 14px; font-weight: 700">草稿 · 改了 1 处（UP 概率）· 发布后热更新，玩家下次打开卡池页生效</span>
+      <button class="btn btn-sm" style="background: transparent; color: var(--bg)">查看改动</button>
+      <button class="btn btn-sm" style="background: transparent; color: var(--bg)">放弃草稿</button>
+      <button class="btn btn-g btn-sm">发布</button>
+    </div>
+
+  </main>
+
+  <!-- 弹窗：编辑卡池（改动自动存进草稿，关掉弹窗后在页面底部的草稿条里发布） -->
+  <sc-if value="{{editOpen}}" hint-placeholder-val="{{false}}">
+    <div onClick="{{closeEdit}}" style="position: fixed; inset: 0; background: rgba(20,10,30,.42); z-index: 20"></div>
+    <section class="card" role="dialog" aria-modal="true" aria-label="编辑卡池" style="position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(1180px, 96vw); max-height: 94vh; z-index: 21; display: flex; flex-direction: column; overflow: hidden">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--line)">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 19px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">编辑卡池 · {{cur.n}}</span><span class="hint">改动自动存进草稿；关掉弹窗后在页面底部发布</span></span>
+        <button class="ib" aria-label="关闭" onClick="{{closeEdit}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+      </div>
+      <div class="hs" style="flex: 1; overflow-y: auto; padding: 18px 24px; display: flex; flex-direction: column; gap: 16px; background: var(--bg)">
         <div class="card" style="padding: 20px 24px 8px">
           <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: center; padding-bottom: 16px">
             <div style="position: relative; flex: none">
@@ -260,16 +290,30 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
           </div>
         </div>
 
-        <div style="position: sticky; bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 10px 10px 20px; border-radius: 999px; background: var(--ink); color: var(--bg); box-shadow: 0 16px 40px -12px rgba(20,10,30,.45)">
-          <span style="flex: 1; font-size: 14px; font-weight: 700">草稿 · 改了 1 处（UP 概率）· 发布后热更新，玩家下次打开卡池页生效</span>
-          <button class="btn btn-sm" style="background: transparent; color: var(--bg)">查看改动</button>
-          <button class="btn btn-sm" style="background: transparent; color: var(--bg)">放弃草稿</button>
-          <button class="btn btn-g btn-sm">发布</button>
-        </div>
-      </section>
-    </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 12px 24px; border-top: 1px solid var(--line)">
+        <span class="hint" style="flex: 1">草稿 · 改了 1 处（UP 概率）</span>
+        <button class="btn btn-g" onClick="{{closeEdit}}">完成</button>
+      </div>
+    </section>
+  </sc-if>
 
-  </main>
+  <!-- 弹窗：抽卡趋势（近 14 天，所有卡池合计；今天还没过完，斜纹表示截至现在） -->
+  <sc-if value="{{trendOpen}}" hint-placeholder-val="{{false}}">
+    <div onClick="{{closeTrend}}" style="position: fixed; inset: 0; background: rgba(20,10,30,.42); z-index: 20"></div>
+    <section class="card" role="dialog" aria-modal="true" aria-label="抽卡趋势" style="position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(760px, 92vw); z-index: 21; padding: 20px 24px 22px; display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 19px; font-weight: 800">抽卡趋势 · 近 14 天</span><span class="hint">所有卡池合计，十连按 10 次；今天截至 21:40</span></span>
+        <button class="ib" aria-label="关闭" onClick="{{closeTrend}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+      </div>
+      <div class="tr-bars" role="img" aria-label="抽卡次数柱状图，11-06 卡池上线当天最高 3,860 次，今天截至 21:40 为 1,240 次">
+        <sc-for list="{{trend}}" as="b" hint-placeholder-count="14">
+          <div class="tr-col" title="{{b.lab}}"><span class="tr-v">{{b.v}}</span><span class="tr-fill {{b.cls}}" style="height: {{b.h}}"></span></div>
+        </sc-for>
+      </div>
+      <div class="tr-x" aria-hidden="true"><sc-for list="{{trend}}" as="b" hint-placeholder-count="14"><span>{{b.x}}</span></sc-for></div>
+    </section>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":2200}}'>
@@ -352,19 +396,27 @@ function buildGtabs(active) {
     ['mail', '邮件补偿', IC.mail, 'GkMailPC.dc.html'], ['code', '兑换码', IC.ticket, 'GkCodesPC.dc.html'], ['notice', '公告', IC.megaphone, 'GkNoticePC.dc.html'], ['policy', '玩家自助', IC.idcard, 'GmPolicyPC.dc.html'], ['log', 'GM 记录', IC.history, 'GkLogPC.dc.html']
   ].map(([k, t, d, href]) => ({ t, d, href, cls: k === active ? 'gtab-on' : '' }));
 }
+// 子导航上的滚轮：竖向滚动换成横向滑动
+function gtabsWheel(e) {
+  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+  e.currentTarget.scrollLeft += e.deltaY;
+  e.preventDefault();
+}
 
 const GB = { p1: './assets/gb-01055-pickup-001.webp', p2: './assets/gb-01055-pickup-002.webp', d1: './assets/gb-01057-ssr-idol-001.webp', d2: './assets/gb-01060-ssr-idol-001.webp', std: './assets/gb-00000-standard-001.webp', wed: './assets/gb-01050-wednesday-001.webp' };
 const GASHAS = [
-  { id: 'p1', n: '【初星フェス】「ガラクタロード」vol.7 千奈ガシャ', img: GB.p1, s: 'run', period: '11/06–11/16', warn: true },
-  { id: 'p2', n: '【初星フェス】「ガラクタロード」vol.7 美鈴ガシャ', img: GB.p2, s: 'run', period: '11/06–11/16', warn: true },
-  { id: 'd1', n: '標ファイナル公演記念ガシャ DAY1', img: GB.d1, s: 'run', period: '11/07–11/16' },
-  { id: 'd2', n: '標ファイナル公演記念ガシャ DAY2', img: GB.d2, s: 'run', period: '11/08–11/16' },
-  { id: 'wed', n: '学マス水曜日ガシャ', img: GB.wed, s: 'run', period: '11/04–11/18' },
-  { id: 'std', n: 'プラチナガシャ', img: GB.std, s: 'perm', period: '至 2026-12-26' },
-  { id: 't1', n: 'SSR Pアイドル1人確定！ガシャ（登录奖励券）', img: '', s: 'run', period: '11/06–11/16' },
-  { id: 't2', n: 'SSR確定ガシャ', img: '', s: 'perm', period: '2024-03 起常驻' },
-  { id: 't3', n: 'N.I.AチャレンジSSR サポートカード確定ガシャ', img: '', s: 'perm', period: '2025-06 起常驻' }
+  { id: 'p1', today: '290', total: '3,350', ssr: '33',  n: '【初星フェス】「ガラクタロード」vol.7 千奈ガシャ', img: GB.p1, s: 'run', period: '11/06–11/16', warn: true },
+  { id: 'p2', today: '380', total: '4,120', ssr: '41',  n: '【初星フェス】「ガラクタロード」vol.7 美鈴ガシャ', img: GB.p2, s: 'run', period: '11/06–11/16', warn: true },
+  { id: 'd1', today: '160', total: '1,900', ssr: '18',  n: '標ファイナル公演記念ガシャ DAY1', img: GB.d1, s: 'run', period: '11/07–11/16' },
+  { id: 'd2', today: '140', total: '1,640', ssr: '17',  n: '標ファイナル公演記念ガシャ DAY2', img: GB.d2, s: 'run', period: '11/08–11/16' },
+  { id: 'wed', today: '210', total: '1,480', ssr: '15',  n: '学マス水曜日ガシャ', img: GB.wed, s: 'run', period: '11/04–11/18' },
+  { id: 'std', today: '60', total: '9,870', ssr: '96',  n: 'プラチナガシャ', img: GB.std, s: 'perm', period: '至 2026-12-26' },
+  { id: 't1', today: '0', total: '64', ssr: '64',  n: 'SSR Pアイドル1人確定！ガシャ（登录奖励券）', img: '', s: 'run', period: '11/06–11/16' },
+  { id: 't2', today: '0', total: '212', ssr: '212',  n: 'SSR確定ガシャ', img: '', s: 'perm', period: '2024-03 起常驻' },
+  { id: 't3', today: '0', total: '38', ssr: '38',  n: 'N.I.AチャレンジSSR サポートカード確定ガシャ', img: '', s: 'perm', period: '2025-06 起常驻' }
 ];
+const TREND_DAYS = ['10-29', '10-30', '10-31', '11-01', '11-02', '11-03', '11-04', '11-05', '11-06', '11-07', '11-08', '11-09', '11-10', '11-11'];
+const TREND_DRAWS = [420, 380, 510, 620, 450, 400, 430, 470, 3860, 2210, 1680, 1420, 947, 1240];
 const ST = { run: ['ok', '进行中'], perm: ['info', '常驻'], soon: ['warn', '未开始'], end: ['off', '已结束'] };
 const CHARS = [['kcna', '千奈'], ['hmsz', '美鈴'], ['hski', '咲季'], ['ttmr', '手毬'], ['fktn', 'ことね'], ['amao', '麻央'], ['kllj', 'リーリヤ'], ['ssmk', '清夏'], ['shro', '広'], ['jsna', '星南'], ['hrnm', '莉波']];
 const IDOL_CARDS = {
@@ -393,9 +445,21 @@ function pageVals(self, st) {
   const ok = (t) => ({ t, d: IC.check, bg: 'var(--okSoft)', fg: 'var(--ok)' });
   const warn = (t) => ({ t, d: IC.alert, bg: 'var(--warnSoft)', fg: 'var(--warn)' });
   const pool = (pkKind === 'idol' ? (IDOL_CARDS[chr] || []) : SUP_CARDS).map((p) => ({ ...p, on: !!sel[p.k], cls: sel[p.k] ? 'pk-on' : '', toggle: () => self.setState({ sel: { ...sel, [p.k]: !sel[p.k] } }) }));
+  const trendOpen = !!st.trend;
+  const tmax = Math.max(...TREND_DRAWS);
+  const trend = TREND_DRAWS.map((v, ix) => {
+    const last = ix === TREND_DRAWS.length - 1;
+    return { v: v >= 1000 ? (v / 1000).toFixed(1) + 'k' : String(v), h: (v / tmax * 100) + '%', cls: last ? 'tr-part' : '', x: last ? '今天' : TREND_DAYS[ix], lab: TREND_DAYS[ix] + ' · ' + v.toLocaleString('en-US') + ' 次' + (last ? '（截至 21:40）' : '') };
+  });
   return {
+    trendOpen, trend,
+    editOpen: !!st.edit,
+    newGasha: () => self.setState({ edit: true }),
+    closeEdit: () => self.setState({ edit: false }),
+    openTrend: () => self.setState({ trend: true }),
+    closeTrend: () => self.setState({ trend: false }),
     filters: [['all', '全部'], ['run', '进行中'], ['perm', '常驻'], ['soon', '未开始'], ['end', '已结束']].map(([k, t]) => ({ t, n: GASHAS.filter((x) => k === 'all' || x.s === k).length, on: k === filter, cls: k === filter ? 'chip-on' : '', pick: () => self.setState({ filter: k }) })),
-    gashas: GASHAS.filter((x) => filter === 'all' || x.s === filter).map((x) => ({ ...x, noImg: !x.img, warn: !!x.warn, st: ST[x.s][0], stT: ST[x.s][1], on: x.id === cur, cls: x.id === cur ? 'gl-on' : '', pick: () => self.setState({ cur: x.id }) })),
+    gashas: GASHAS.filter((x) => filter === 'all' || x.s === filter).map((x) => ({ ...x, noImg: !x.img, warn: !!x.warn, st: ST[x.s][0], stT: ST[x.s][1], on: x.id === cur, cls: st.edit && x.id === cur ? 'gl-on' : '', pick: () => self.setState({ cur: x.id, edit: true }) })),
     cur: { n: g.n, banner: g.img || GB.std },
     kinds: [['normal', '普通'], ['limited', '限定'], ['fes', '初星フェス'], ['ticket', '确定券']].map(([k, t]) => ({ t, on: k === kind, cls: k === kind ? 'on' : '', pick: () => self.setState({ kind: k }) })),
     ups: [
@@ -450,7 +514,7 @@ class Component extends DCLogic {
       modeIcon: dark ? IC.sun : IC.moon,
       toggleDark: () => this.setState({ dark: !dark }),
       nav: buildNav('gm'),
-      gtabs: buildGtabs('gasha')
+      gtabs: buildGtabs('gasha'), gtabsWheel
     }, pageVals(this, st));
   }
 }

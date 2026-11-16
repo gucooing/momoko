@@ -17,6 +17,11 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
 .hint{font-size:12px;color:var(--ink2);line-height:1.5}
 .bulk-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:var(--bg);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
 .bulk-btn:hover{background:color-mix(in srgb, var(--bg) 14%, transparent)}
+.tr-plot{position:relative;height:200px;margin-top:16px;border-bottom:1px solid var(--line)}
+.tr-dot{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--gInk);box-shadow:0 0 0 2px var(--s)}
+.tr-lab{position:absolute;transform:translate(-50%,-150%);font-size:11px;font-weight:700;white-space:nowrap}
+.tr-x{display:flex;justify-content:space-between;margin-top:6px}
+.tr-x span{font-size:11px;color:var(--ink2);white-space:nowrap}
 </style>
 </helmet>
 <div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1240px; display: flex; flex-wrap: wrap; align-items: stretch">
@@ -72,7 +77,8 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
       <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
     </div>
 
-    <nav aria-label="GM 运营" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
+    <!-- GM 子导航：一行，放不下时横向滑动；不显示滚动条，鼠标滚轮在上面就是横滑，当前页的标签自动滚到看得见的地方 -->
+    <nav aria-label="GM 运营" class="gtabs" onWheel="{{gtabsWheel}}" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
       <sc-for list="{{gtabs}}" as="t" hint-placeholder-count="10">
         <a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}</a>
       </sc-for>
@@ -81,8 +87,9 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
     <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
       <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
         <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">玩家</h1>
-        <div style="font-size: 14px; color: var(--ink2)">共 86 个账号 · <span style="color: var(--ok); font-weight: 700">12 人在线</span> · 55 人已绑定通行证</div>
+        <div style="font-size: 14px; color: var(--ink2)">共 86 个账号 · <span style="color: var(--ok); font-weight: 700">12 人在线</span> · 今天活跃 <b class="num" style="color: var(--ink)">24</b> 人 · 55 人已绑定通行证</div>
       </div>
+      <button class="btn btn-o" onClick="{{openTrend}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.pulse}}"></path></svg>活跃趋势</button>
       <button class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.download}}"></path></svg>导出</button>
       <a class="btn btn-g" href="GkPlayerPC.dc.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.gift}}"></path></svg>发送礼物</a>
     </div>
@@ -148,6 +155,28 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
       </div>
     </sc-if>
   </main>
+
+  <!-- 弹窗：活跃玩家趋势（近 14 天，当天登录过游戏的账号数；今天截至现在） -->
+  <sc-if value="{{trendOpen}}" hint-placeholder-val="{{false}}">
+    <div onClick="{{closeTrend}}" style="position: fixed; inset: 0; background: rgba(20,10,30,.42); z-index: 20"></div>
+    <section class="card" role="dialog" aria-modal="true" aria-label="活跃玩家趋势" style="position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(760px, 92vw); z-index: 21; padding: 20px 24px 22px; display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 19px; font-weight: 800">活跃玩家 · 近 14 天</span><span class="hint">当天登录过游戏的账号数；今天截至 21:40</span></span>
+        <button class="ib" aria-label="关闭" onClick="{{closeTrend}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+      </div>
+      <div class="tr-plot" role="img" aria-label="活跃玩家折线图，最高 28 人（11-09），今天 24 人">
+        <svg viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible">
+          <path d="{{trendArea}}" style="fill: var(--gSoft); opacity: .7"></path>
+          <path d="{{trendLine}}" vector-effect="non-scaling-stroke" style="fill: none; stroke: var(--gInk); stroke-width: 2; stroke-linejoin: round"></path>
+        </svg>
+        <sc-for list="{{trend}}" as="b" hint-placeholder-count="14">
+          <span class="tr-dot" style="left: {{b.l}}; top: {{b.t}}" title="{{b.lab}}"></span>
+          <span class="tr-lab num" style="left: {{b.l}}; top: {{b.t}}">{{b.v}}</span>
+        </sc-for>
+      </div>
+      <div class="tr-x" aria-hidden="true"><sc-for list="{{trend}}" as="b" hint-placeholder-count="14"><span>{{b.x}}</span></sc-for></div>
+    </section>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1240}}'>
@@ -215,6 +244,12 @@ function buildGtabs(active) {
     ['mail', '邮件补偿', IC.mail, 'GkMailPC.dc.html'], ['code', '兑换码', IC.ticket, 'GkCodesPC.dc.html'], ['notice', '公告', IC.megaphone, 'GkNoticePC.dc.html'], ['policy', '玩家自助', IC.idcard, 'GmPolicyPC.dc.html'], ['log', 'GM 记录', IC.history, 'GkLogPC.dc.html']
   ].map(([k, t, d, href]) => ({ t, d, href, cls: k === active ? 'gtab-on' : '' }));
 }
+// 子导航上的滚轮：竖向滚动换成横向滑动
+function gtabsWheel(e) {
+  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+  e.currentTarget.scrollLeft += e.deltaY;
+  e.preventDefault();
+}
 const PLAYERS = [
   { id: '482 019 337', n: 'P_gucooing', acc: 'gucooing', c: 'hski', lv: 52, jf: '12,480', jp: '0', pp: 'gucooing', last: '在线 · 2 小时', dev: 'Windows 启动器', s: 'on' },
   { id: '117 604 925', n: '千奈推し', acc: 'kcna_fan', c: 'kcna', lv: 38, jf: '3,020', jp: '0', pp: '', last: '在线 · 41 分钟', dev: 'Android', s: 'on' },
@@ -227,6 +262,8 @@ const PLAYERS = [
   { id: '551 027 664', n: '麻央先輩', acc: 'mao', c: 'amao', lv: 44, jf: '5,400', jp: '600', pp: 'mao', last: '3 天前', dev: 'Windows 启动器', s: 'off' },
   { id: '118 446 302', n: '篠澤広の研究', acc: 'hiro_lab', c: 'shro', lv: 29, jf: '880', jp: '0', pp: 'hiro', last: '11-08 03:12', dev: 'Android', s: 'ban' }
 ];
+const TREND_DAYS = ['10-29', '10-30', '10-31', '11-01', '11-02', '11-03', '11-04', '11-05', '11-06', '11-07', '11-08', '11-09', '11-10', '11-11'];
+const TREND_ACTIVE = [16, 15, 18, 21, 19, 17, 18, 19, 27, 25, 26, 28, 20, 24];
 const ST = { on: ['ok', '在线'], off: ['off', '离线'], ban: ['bad', '封禁至 11-20'] };
 class Component extends DCLogic {
   renderVals() {
@@ -246,14 +283,21 @@ class Component extends DCLogic {
       };
     });
     const selCount = Object.keys(sel).filter((k) => sel[k]).length;
+    const n = TREND_ACTIVE.length, tmax = 30;
+    const xp = (ix) => ix / (n - 1) * 100, yp = (v) => 100 - v / tmax * 100;
+    const trendLine = TREND_ACTIVE.map((v, ix) => (ix ? 'L' : 'M') + (xp(ix) * 10).toFixed(1) + ' ' + (yp(v) * 2).toFixed(1)).join(' ');
+    const trend = TREND_ACTIVE.map((v, ix) => ({ l: xp(ix) + '%', t: yp(v) + '%', v: String(v), x: ix === n - 1 ? '今天' : TREND_DAYS[ix], lab: TREND_DAYS[ix] + ' · ' + v + ' 人' }));
     return {
+      trendOpen: !!this.state.trend, trend, trendLine, trendArea: trendLine + ' L1000 200 L0 200 Z',
+      openTrend: () => this.setState({ trend: true }),
+      closeTrend: () => this.setState({ trend: false }),
       palette,
       mode: dark ? 'dark' : 'light',
       i: IC,
       modeIcon: dark ? IC.sun : IC.moon,
       toggleDark: () => this.setState({ dark: !dark }),
       nav: buildNav('gm'),
-      gtabs: buildGtabs('players'),
+      gtabs: buildGtabs('players'), gtabsWheel,
       filters: [['all', '全部', 86], ['on', '在线', 12], ['today', '今日活跃', 24], ['nopp', '未绑定通行证', 31], ['ban', '封禁', 1]].map(([k, t, n]) => ({ t, n, on: k === filter, cls: k === filter ? 'chip-on' : '', pick: () => this.setState({ filter: k }) })),
       players,
       allSel: selCount === PLAYERS.length,

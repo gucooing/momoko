@@ -1,11 +1,23 @@
-<!-- GM 运营 · 卡池（?tab=gasha）：配置域 gasha（data/Gasha.json）的表单编辑。
-     左边是卡池列表（状态按开始 / 结束时间与服务器时间计算），右边是表单（基本信息、UP、概率、按钮、交换点）、
-     模拟抽卡与发布前检查；底部草稿条自动保存草稿、查看改动、放弃、发布（发布前服务端校验，必须填原因）。 -->
+<!-- GM 运营 · 卡池（?tab=gasha）：配置域 gasha（data/Gasha.json）的表单编辑（设计见 design/game/GkGashaPC）。
+     页面上只有卡池列表（状态按开始 / 结束时间与服务器时间计算，每个卡池一行今天 / 累计 / SSR）；点一个卡池打开编辑弹窗：
+     表单（基本信息、UP、概率、按钮、交换点）、模拟抽卡与发布前检查。整份配置一起发布，所以底部草稿条留在页面上：
+     自动保存草稿、查看改动、放弃、发布（发布前服务端校验，必须填原因）。 -->
 <template>
-  <div class="gk game-skin">
+  <div ref="rootEl" class="gk game-skin">
     <PageHeader :title="t('gmConfig.gasha.title')" :back="false" :theme-toggle="false">
       <template #description>{{ countLine }}</template>
       <template #actions>
+        <UButton
+          v-if="dash"
+          class="gmc-btn"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-chart-column"
+          :aria-label="t('gmData.home.drawTrend')"
+          @click="trendOpen = true"
+        >
+          <template v-if="!menuStore.isMobile">{{ t('gmData.home.drawTrend') }}</template>
+        </UButton>
         <UButton
           class="gmc-btn"
           color="neutral"
@@ -43,8 +55,8 @@
     </EmptyState>
     <div v-else-if="!cfg" class="gk__loading">{{ t('gmConfig.common.loading') }}</div>
     <template v-else>
-      <div class="gk__body">
-        <section class="gk__list" :aria-label="t('gmConfig.gasha.listLabel')">
+      <!-- 页面上只有卡池列表（宽屏两列）；点一个卡池在弹窗里编辑。整份配置一起发布，草稿条留在页面上 -->
+      <section class="gk__list" :aria-label="t('gmConfig.gasha.listLabel')">
           <div class="gmc-chips" role="tablist" :aria-label="t('gmConfig.common.filterStatus')">
             <button
               v-for="f in filters"
@@ -59,13 +71,13 @@
               {{ f.label }} <span class="gmc-chip__n m-num">{{ f.n }}</span>
             </button>
           </div>
+          <div class="gk__rows">
           <button
             v-for="row in rows"
             :key="row.g.id"
             type="button"
             class="gk__row"
-            :class="{ 'is-on': row.g.id === selectedId }"
-            :aria-pressed="row.g.id === selectedId"
+            :class="{ 'is-on': editOpen && row.g.id === selectedId }"
             @click="select(row.g.id)"
           >
             <GameImage v-if="row.g.bannerAssetId" :src="gakumas.gashaBanner(row.g.bannerAssetId)" class="gk__thumb" width="120" height="60" />
@@ -79,33 +91,38 @@
                 <span v-else-if="row.changed" class="gmc-tag gmc-tag--warn">{{ t('gmConfig.common.changed') }}</span>
                 <span v-if="row.bad" class="gmc-tag gmc-tag--bad">{{ t('gmConfig.gasha.needsCheck') }}</span>
               </span>
+              <span v-if="row.stat" class="gk__stat m-num">{{ row.stat }}</span>
             </span>
           </button>
+          </div>
           <EmptyState v-if="!rows.length" icon="HOutline:SparklesIcon" :title="t('gmConfig.gasha.emptyFilter')" />
-        </section>
-
-        <section ref="mainRef" class="gk__main">
-          <EmptyState v-if="!gasha" icon="HOutline:SparklesIcon" :title="t('gmConfig.gasha.pick')" />
-          <template v-else>
-            <div class="gk__editor">
-              <div class="gk__editor-menu">
-                <ActionMenu :items="menuItems" @select="onMenu" />
-              </div>
-              <GashaBasics />
-              <GashaUps />
-              <GashaRates />
-              <GashaButtons />
-              <GashaPoint />
-            </div>
-            <div class="gk__side">
-              <GashaSimulator class="gk__side-item" />
-              <GashaChecks class="gk__side-item" />
-            </div>
-          </template>
-          <ConfigDraftBar :state="state" :zone="clock.zone.value" :blockers="blockers" :group-label="groupLabel" :ref-label="refLabel" />
-        </section>
-      </div>
+      </section>
+      <ConfigDraftBar :state="state" :zone="clock.zone.value" :blockers="blockers" :group-label="groupLabel" :ref-label="refLabel" />
     </template>
+
+    <!-- 弹窗：编辑卡池（表单 + 模拟抽卡 + 发布前检查；改动自动存进草稿，「完成」关掉） -->
+    <FormDialog v-model="editOpen" :title="editTitle" :width="1180">
+      <div v-if="gasha" class="gk__dlg game-skin" :data-game="ctx.game.value || undefined">
+        <div class="gk__editor">
+          <div class="gk__editor-menu">
+            <ActionMenu :items="menuItems" @select="onMenu" />
+          </div>
+          <GashaBasics />
+          <GashaUps />
+          <GashaRates />
+          <GashaButtons />
+          <GashaPoint />
+        </div>
+        <div class="gk__side">
+          <GashaSimulator class="gk__side-item" />
+          <GashaChecks class="gk__side-item" />
+        </div>
+      </div>
+      <template #footer="{ close }">
+        <span class="gk__foot-hint">{{ state.dirty.value ? t('gmConfig.gasha.countDraft', { n: state.changes.value.length }) : t('gmConfig.gasha.editHint') }}</span>
+        <UButton class="gmc-btn" color="primary" @click="close">{{ t('gmConfig.gasha.done') }}</UButton>
+      </template>
+    </FormDialog>
 
     <FormDialog v-model="createOpen" :title="t('gmConfig.gasha.create')" :width="520" :show-footer="false">
       <div class="gk__dialog game-skin" :data-game="ctx.game.value || undefined">
@@ -127,11 +144,12 @@
     </FormDialog>
 
     <ConfigRevisionsDrawer v-model="revisionsOpen" :state="state" :zone="clock.zone.value" :group-label="groupLabel" :ref-label="refLabel" />
+    <TrendDialog v-model="trendOpen" field="draws" :report="dash" :color="chartColor" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onActivated, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { gakumas } from '@/games'
@@ -160,6 +178,9 @@ import {
 import { useCatalogLookup } from './shared/catalogLookup'
 import ConfigDraftBar from './shared/ConfigDraftBar.vue'
 import ConfigRevisionsDrawer from './shared/ConfigRevisionsDrawer.vue'
+import TrendDialog from '../../components/TrendDialog.vue'
+import { fetchDashboard, useGameChartColor } from '../../dashboard'
+import type { Dashboard } from '@/games/gakumas/types'
 import { deepEqual } from './shared/diff'
 import { useServerClock } from './shared/serverClock'
 import { formatDay } from './shared/time'
@@ -205,21 +226,40 @@ provideGashaEditor({
   cardStatus,
 })
 
+// 抽卡数据（dashboard，和工作台共用一份）：页头「今天抽卡 N 次」、每个卡池一行今天 / 累计 / SSR、「抽卡趋势」弹窗
+const dash = shallowRef<Dashboard>()
+const trendOpen = ref(false)
+const rootEl = ref<HTMLElement>()
+const chartColor = useGameChartColor(rootEl)
+const loadDash = () => {
+  const sid = ctx.serverId.value
+  if (!sid || unsupported.value) return
+  fetchDashboard(sid)
+    .then((r) => {
+      if (sid === ctx.serverId.value) dash.value = r
+    })
+    .catch(() => {
+      // 没有报表时只是不显示这些数字
+    })
+}
+
 onMounted(async () => {
   if (unsupported.value) return
+  loadDash()
   await state.load()
   applyRouteGasha()
 })
+onActivated(loadDash)
 
 // 卡池按显示顺序（order，相同时按 ID）
 const ordered = computed(() =>
   [...(cfg.value?.gashas || [])].sort((a, b) => (a.order || 0) - (b.order || 0) || a.id.localeCompare(b.id)),
 )
 
-// ?gasha=<id> 打开某个卡池（运营日历跳过来）
+// ?gasha=<id> 打开某个卡池的编辑弹窗（运营日历跳过来）
 const applyRouteGasha = () => {
   const wanted = route.query.gasha
-  if (typeof wanted === 'string' && cfg.value?.gashas.some((g) => g.id === wanted)) selectedId.value = wanted
+  if (typeof wanted === 'string' && cfg.value?.gashas.some((g) => g.id === wanted)) select(wanted)
 }
 watch(() => route.query.gasha, applyRouteGasha)
 // 选中的卡池不存在了（删除、重新加载）时选第一个
@@ -252,6 +292,13 @@ const periodOf = (g: GashaDef, zone: string) =>
     ? `${formatDay(g.startTime, zone)}–${formatDay(g.endTime, zone)}`
     : t('gmConfig.gasha.permanentFrom', { day: formatDay(g.startTime, zone) })
 
+const nf = new Intl.NumberFormat()
+const statOf = (id: string) => {
+  const s = dash.value?.gashas.find((x) => x.gashaId === id)
+  if (!s) return ''
+  return t('gmConfig.gasha.rowStat', { today: nf.format(s.today?.draws || 0), total: nf.format(s.total?.draws || 0), ssr: nf.format(s.total?.ssr || 0) })
+}
+
 const rows = computed(() => {
   const zone = clock.zone.value
   const published = state.published.value?.gashas || []
@@ -266,6 +313,7 @@ const rows = computed(() => {
         isNew: !before,
         changed: !!before && !deepEqual(before, g),
         bad: localBad(g),
+        stat: statOf(g.id),
       }
     })
 })
@@ -276,14 +324,17 @@ const countLine = computed(() => {
     t('gmConfig.gasha.count', { n: list.length }),
     t('gmConfig.gasha.countOpen', { n: list.filter((g) => { const s = statusOf(g); return s === 'open' || s === 'permanent' }).length }),
   ]
+  if (dash.value) parts.push(t('gmData.home.drawsTodayLine', { n: nf.format(dash.value.drawsToday?.draws || 0) }))
   if (state.dirty.value) parts.push(t('gmConfig.gasha.countDraft', { n: state.changes.value.length }))
   return parts.join(' · ')
 })
 
-const mainRef = ref<HTMLElement>()
+// 编辑弹窗：点列表里的卡池打开
+const editOpen = ref(false)
+const editTitle = computed(() => (gasha.value ? t('gmConfig.gasha.editTitle', { name: labels.gasha(gasha.value) }) : ''))
 const select = (id: string) => {
   selectedId.value = id
-  if (menuStore.isMobile) void nextTick(() => mainRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  editOpen.value = true
 }
 
 // 阻止发布的问题：所有卡池的本地规则检查（整份文件一起发布）
@@ -375,6 +426,7 @@ const onMenu = (key: string) => {
         if (!c) return
         const i = c.gashas.indexOf(g)
         if (i >= 0) c.gashas.splice(i, 1)
+        editOpen.value = false
         selectedId.value = ordered.value[0]?.id || ''
       },
     })
@@ -395,15 +447,7 @@ const onMenu = (key: string) => {
   text-align: center;
   color: var(--el-text-color-secondary);
 }
-.gk__body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  align-items: flex-start;
-}
 .gk__list {
-  flex: 1 1 340px;
-  max-width: 420px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -412,6 +456,12 @@ const onMenu = (key: string) => {
   border-radius: var(--app-radius-xl);
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
+}
+/* 卡池行：宽屏两列 */
+.gk__rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 4px 12px;
 }
 .gk__list > .gmc-chips {
   padding: 2px 2px 6px;
@@ -474,29 +524,31 @@ const onMenu = (key: string) => {
   gap: 4px;
   align-items: center;
 }
-.gk__period {
+.gk__period,
+.gk__stat {
   font-size: 12px;
   color: var(--el-text-color-secondary);
 }
-.gk__main {
-  flex: 2 1 620px;
-  min-width: 0;
+/* 编辑弹窗：表单在上，模拟抽卡与发布前检查在下；弹窗里不再给表单套框 */
+.gk__dlg {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 .gk__editor {
   position: relative;
-  padding: 20px 24px 4px;
-  border-radius: var(--app-radius-xl);
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-light);
   min-width: 0;
+}
+.gk__foot-hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 .gk__editor-menu {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 0;
+  right: 0;
   z-index: 1;
 }
 .gk__side {
@@ -520,11 +572,8 @@ const onMenu = (key: string) => {
   gap: 8px;
 }
 @media (max-width: 991px) {
-  .gk__list {
-    max-width: none;
-  }
-  .gk__editor {
-    padding: 16px 14px 4px;
+  .gk__rows {
+    grid-template-columns: minmax(0, 1fr);
   }
   .gk__row .gk__thumb {
     width: 96px;

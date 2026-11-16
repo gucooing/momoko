@@ -1,6 +1,8 @@
 <!-- GM 运营 · 公告（?tab=notices）：配置域 notice（data/Notice.json）的编辑。
      只编辑真实字段：ID、分类、类型、标题、横幅、详情页地址、开始 / 结束展示时间、最后更新时间，以及每页条数。
-     卡池公告由服务端按卡池自动生成（notice-<卡池 ID>），不在这个文件里。横幅从前端素材包选；右侧是游戏内列表预览。 -->
+     卡池公告由服务端按卡池自动生成（notice-<卡池 ID>），不在这个文件里。横幅从前端素材包选。
+     页面上只有公告列表（宽屏两列）；点一条公告打开编辑弹窗（左边表单、右边游戏内列表预览，设计见 design/game/GkNoticePC）。
+     整份配置一起发布，所以草稿条留在页面上。 -->
 <template>
   <div class="gn game-skin">
     <PageHeader :title="t('gmConfig.notice.title')" :back="false" :theme-toggle="false">
@@ -38,8 +40,7 @@
     </EmptyState>
     <div v-else-if="!cfg" class="gn__loading">{{ t('gmConfig.common.loading') }}</div>
     <template v-else>
-      <div class="gn__body">
-        <section class="gn__list" :aria-label="t('gmConfig.notice.listLabel')">
+      <section class="gn__list" :aria-label="t('gmConfig.notice.listLabel')">
           <div class="gn__filters">
             <div class="gmc-chips" role="tablist" :aria-label="t('gmConfig.notice.category')">
               <button
@@ -70,13 +71,13 @@
               </button>
             </div>
           </div>
+          <div class="gn__rows">
           <button
             v-for="row in rows"
             :key="row.index"
             type="button"
             class="gn__row"
-            :class="{ 'is-on': row.index === selectedIndex }"
-            :aria-pressed="row.index === selectedIndex"
+            :class="{ 'is-on': editOpen && row.index === selectedIndex }"
             @click="select(row.index)"
           >
             <GameImage v-if="row.image" :src="row.image" class="gn__thumb" width="112" height="52" />
@@ -94,6 +95,7 @@
               <span class="gn__row-span m-num">{{ row.span }}</span>
             </span>
           </button>
+          </div>
           <EmptyState
             v-if="!rows.length"
             icon="HOutline:MegaphoneIcon"
@@ -115,14 +117,15 @@
             </label>
             <p class="gmc-hint">{{ t('gmConfig.notice.gashaNoticeHint') }}</p>
           </div>
-        </section>
+      </section>
+      <ConfigDraftBar :state="state" :zone="clock.zone.value" :blockers="blockers" :group-label="groupLabel" :ref-label="refLabel" />
+    </template>
 
-        <section ref="mainRef" class="gn__main">
-          <EmptyState v-if="!notice" icon="HOutline:MegaphoneIcon" :title="t('gmConfig.notice.pick')" />
-          <div v-else class="gn__editor">
+    <!-- 弹窗：编辑公告（左边表单、右边游戏内列表预览；改动自动存进草稿，「完成」关掉） -->
+    <FormDialog v-model="editOpen" :title="editTitle" :width="1100">
+          <div v-if="notice && cfg" class="gn__editor game-skin" :data-game="ctx.game.value || undefined">
             <div class="gn__form">
               <div class="gn__form-head">
-                <span class="gn__form-title">{{ t('gmConfig.notice.edit') }}</span>
                 <StatusPill :variant="noticeStatusVariant(currentStatus)" :label="t(`gmConfig.notice.status.${currentStatus}`)" />
                 <ActionMenu :items="menuItems" @select="onMenu" />
               </div>
@@ -215,18 +218,16 @@
                 </li>
               </ul>
 
-              <div class="gn__actions">
-                <UButton class="gmc-btn" v-if="currentStatus === 'showing'" color="error" variant="soft" icon="i-lucide-power" @click="takeDown">{{ t('gmConfig.notice.takeDown') }}</UButton>
-                <span class="gn__hint-inline">{{ t('gmConfig.notice.autosaveHint') }}</span>
-              </div>
             </div>
 
             <NoticePreview class="gn__preview" :cfg="cfg" :current="notice" :now="clock.now.value" :zone="clock.zone.value" />
           </div>
-          <ConfigDraftBar :state="state" :zone="clock.zone.value" :blockers="blockers" :group-label="groupLabel" :ref-label="refLabel" />
-        </section>
-      </div>
-    </template>
+      <template #footer="{ close }">
+        <UButton class="gmc-btn" v-if="notice && currentStatus === 'showing'" color="error" variant="soft" icon="i-lucide-power" @click="takeDown">{{ t('gmConfig.notice.takeDown') }}</UButton>
+        <span class="gn__hint-inline">{{ state.dirty.value ? t('gmConfig.gasha.countDraft', { n: state.changes.value.length }) : t('gmConfig.notice.autosaveHint') }}</span>
+        <UButton class="gmc-btn" color="primary" @click="close">{{ t('gmConfig.gasha.done') }}</UButton>
+      </template>
+    </FormDialog>
 
     <FormDialog v-model="createOpen" :title="t('gmConfig.notice.create')" :width="480" :show-footer="false">
       <div class="gn__dialog game-skin" :data-game="ctx.game.value || undefined">
@@ -254,7 +255,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onActivated, onMounted, ref, watch } from 'vue'
+import { computed, onActivated, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import type { NoticeConfig, NoticeEntry } from '@/games/gakumas/types'
@@ -322,7 +323,7 @@ const applyQuery = () => {
   const wanted = route.query.notice
   if (typeof wanted === 'string') {
     const i = c.notices.findIndex((n) => n.id === wanted)
-    if (i >= 0) selectedIndex.value = i
+    if (i >= 0) select(i)
   }
   if (route.query.new === '1') {
     void router.replace({ query: { ...route.query, new: undefined } })
@@ -422,10 +423,14 @@ const refLabel = (collection: string, id: string) => {
   return n ? n.title || t('gmConfig.notice.untitled') : ''
 }
 
-const mainRef = ref<HTMLElement>()
+// 编辑弹窗：点列表里的公告打开
+const editOpen = ref(false)
+const editTitle = computed(() =>
+  notice.value ? t('gmConfig.notice.editTitle', { title: notice.value.title || t('gmConfig.notice.untitled') }) : t('gmConfig.notice.edit'),
+)
 const select = (index: number) => {
   selectedIndex.value = index
-  if (menuStore.isMobile) void nextTick(() => mainRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  editOpen.value = true
 }
 
 const setPageSize = (v: number) => {
@@ -525,6 +530,7 @@ const onMenu = (key: string) => {
         if (!c) return
         const i = c.notices.indexOf(n)
         if (i >= 0) c.notices.splice(i, 1)
+        editOpen.value = false
         selectedIndex.value = rows.value[0]?.index ?? -1
       },
     })
@@ -545,15 +551,7 @@ const onMenu = (key: string) => {
   text-align: center;
   color: var(--el-text-color-secondary);
 }
-.gn__body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-start;
-}
 .gn__list {
-  flex: 1 1 380px;
-  max-width: 480px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -642,21 +640,16 @@ const onMenu = (key: string) => {
 .gn__pagesize .gmc-input {
   width: 96px;
 }
-.gn__main {
-  flex: 2 1 640px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* 公告行：宽屏两列（列间不留缝，行之间的分隔线连成一条） */
+.gn__rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
 }
+/* 编辑弹窗：左边表单、右边预览；弹窗里不再给表单套框 */
 .gn__editor {
   display: flex;
   flex-wrap: wrap;
   gap: 24px;
-  padding: 20px 24px;
-  border-radius: var(--app-radius-xl);
-  background: var(--el-bg-color);
-  border: 1px solid var(--el-border-color-light);
 }
 .gn__form {
   flex: 1 1 300px;
@@ -668,12 +661,8 @@ const onMenu = (key: string) => {
 .gn__form-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-}
-.gn__form-title {
-  flex: 1;
-  font-size: 20px;
-  font-weight: 800;
 }
 .gn__preview {
   flex: 0 0 300px;
@@ -756,6 +745,8 @@ const onMenu = (key: string) => {
   gap: 10px;
 }
 .gn__hint-inline {
+  flex: 1;
+  min-width: 0;
   font-size: 12px;
   color: var(--el-text-color-secondary);
 }
@@ -770,11 +761,8 @@ const onMenu = (key: string) => {
   gap: 8px;
 }
 @media (max-width: 991px) {
-  .gn__list {
-    max-width: none;
-  }
-  .gn__editor {
-    padding: 16px 14px;
+  .gn__rows {
+    grid-template-columns: minmax(0, 1fr);
   }
   .gn__row .gn__thumb {
     width: 88px;

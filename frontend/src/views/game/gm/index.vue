@@ -20,7 +20,8 @@
         <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gm.shell.refresh')" :box="40" @click="ctx.refresh()" />
       </div>
 
-      <nav v-if="tabs.length" class="gm__tabs" :aria-label="t('gm.shell.tabsLabel')">
+      <!-- 子导航一行，放不下时横向滑动：不显示滚动条，滚轮在上面就是横滑；切换标签时当前标签滚到看得见的地方 -->
+      <nav v-if="tabs.length" ref="tabsEl" class="gm__tabs" :aria-label="t('gm.shell.tabsLabel')" @wheel="onTabsWheel">
         <RouterLink
           v-for="tab in tabs"
           :key="tab.key"
@@ -69,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import '@/games'
@@ -130,6 +131,23 @@ const current = computed(() => {
   return tabs.value.find((tab) => tab.key === wanted) || tabs.value[0]
 })
 const currentView = computed(() => (current.value ? gmTabView(current.value.key) : undefined))
+
+// 子导航：竖向滚轮换成横向滑动；当前标签自动滚进可见区域
+const tabsEl = ref<HTMLElement | null>(null)
+const onTabsWheel = (e: WheelEvent) => {
+  const el = tabsEl.value
+  if (!el || el.scrollWidth <= el.clientWidth || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
+  el.scrollLeft += e.deltaY
+  e.preventDefault()
+}
+watch(
+  () => [current.value?.key, tabs.value.length],
+  async () => {
+    await nextTick()
+    tabsEl.value?.querySelector<HTMLElement>('.is-on')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  },
+  { immediate: true },
+)
 
 const initial = computed(() => (ctx.server.value?.name || '?').slice(0, 1).toUpperCase())
 const subline = computed(() => {

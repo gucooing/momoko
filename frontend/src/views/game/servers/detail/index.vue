@@ -120,7 +120,7 @@ import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch 
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import '@/games'
-import { gameAsset } from '@/games'
+import { gameAsset, gameCover } from '@/games'
 import { controlGameServer, getGameServer, listGameAdapters, refreshGameServer, updateGameServerHosting } from '@/api/gameServer'
 import type { GameServerAction } from '@/api/gameServer'
 import { getRequestErrorMessage } from '@/utils/request'
@@ -181,7 +181,12 @@ const gameName = computed(() => {
   return info.value?.brief?.gameName || (te(key) ? t(key) : t('game.unnamed'))
 })
 const initial = computed(() => (gameName.value || '?').charAt(0).toUpperCase())
-const coverUrl = computed(() => (info.value?.brief?.cover ? gameAsset(info.value.brief.game, info.value.brief.cover) : ''))
+// 没设封面时用游戏的默认封面（和列表卡片一样按服务器 ID 挑）
+const coverUrl = computed(() => {
+  const b = info.value?.brief
+  if (!b) return ''
+  return b.cover ? gameAsset(b.game, b.cover) : gameCover(b.game, b.id)
+})
 const resource = computed(() => resourceText(statusOf(info.value)))
 const canGm = computed(() => accessible.value.has('/game/gm') && (info.value?.capabilities || []).includes('gm'))
 const mainProc = computed(() => info.value?.processes.find((p) => p.role === 'main'))

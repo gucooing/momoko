@@ -85,7 +85,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { gameAsset } from '@/games'
+import { gameAsset, gameCover } from '@/games'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import type { GameServerInfo } from '@/types/v1/game_server'
 import { resourceText, stateVariant, statusOf } from '../shared'
@@ -105,7 +105,12 @@ const gameName = computed(() => {
   return brief.value?.gameName || (te(key) ? t(key) : t('game.unnamed'))
 })
 const initial = computed(() => (gameName.value || name.value || '?').trim().charAt(0).toUpperCase())
-const coverUrl = computed(() => (brief.value?.cover ? gameAsset(brief.value.game, brief.value.cover) : ''))
+// 没设封面时用游戏的默认封面（按服务器 ID 稳定地挑一张）
+const coverUrl = computed(() => {
+  const b = brief.value
+  if (!b) return ''
+  return b.cover ? gameAsset(b.game, b.cover) : gameCover(b.game, b.id)
+})
 const st = computed(() => statusOf(props.server))
 
 const where = computed(() => {

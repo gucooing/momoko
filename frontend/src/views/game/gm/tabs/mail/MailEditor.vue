@@ -2,10 +2,10 @@
      草稿自动保存；定时邮件可以改内容、取消定时或立即发送；已发送、失败、已撤回的邮件只读，可复制一份再改。
      试运行与发送都经服务端 mail.broadcast 执行并写进 GM 记录。 -->
 <template>
-  <div class="me">
+  <div class="me" :class="{ 'me--dialog': inDialog }">
     <header class="me__head">
       <span class="me__head-text">
-        <span class="me__title">{{ headTitle }}</span>
+        <span v-if="!inDialog" class="me__title">{{ headTitle }}</span>
         <span class="me__meta">{{ headMeta }}</span>
       </span>
       <GmRiskPill v-if="giftOperation" :risk="giftOperation.risk" />
@@ -257,7 +257,11 @@ interface CondRow {
   value: string
 }
 
-const props = defineProps<{ mail?: GameMail }>()
+const props = defineProps<{
+  mail?: GameMail
+  /** 放在弹窗里：标题由弹窗显示，这里只留状态行；底部按钮贴着弹窗底边 */
+  inDialog?: boolean
+}>()
 const emit = defineEmits<{
   /** 服务端返回了新的邮件状态（保存、试运行、发送、取消、撤回） */
   changed: [mail: GameMail]
@@ -1047,6 +1051,15 @@ onBeforeUnmount(() => {
 }
 .me__foot-hint {
   flex: 1 1 260px;
+}
+/* 弹窗里：底部按钮贴着弹窗底边（弹窗正文有 20px 内边距，滚动时也一直看得见） */
+.me--dialog .me__foot {
+  position: sticky;
+  bottom: -20px;
+  z-index: 2;
+  margin: 0 -20px -20px;
+  padding: 14px 20px 16px;
+  background: var(--el-bg-color);
 }
 .me__dialog {
   display: flex;

@@ -33,6 +33,19 @@ export function idolCardImage(idOrAssetId: string, variant: CardVariant = 'sq'):
   return gameAsset(GAME, idolCardKey(idOrAssetId, variant))
 }
 
+// 默认封面：13 位偶像初始 SSR 卡（-3-000）的横图，2:1、不带文字
+const COVER_IDOLS = ['hski', 'ttmr', 'fktn', 'hmsz', 'kllj', 'kcna', 'ssmk', 'shro', 'hrnm', 'hume', 'jsna', 'atbm', 'amao']
+
+/**
+ * 默认封面 key（没有设置封面的地方用）：不传 seed 是花海咲季那张；传 seed（例如服务器 ID）时按它稳定地挑一张，
+ * 同一个 seed 每次都是同一张，不同的 seed 尽量分散。
+ */
+export function coverKey(seed = ''): string {
+  let h = 0
+  for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return idolCardKey(`${COVER_IDOLS[h % COVER_IDOLS.length]}-3-000`, 'land')
+}
+
 /** 支援卡 key：cards/support/2-0001-sq。接受 s_card-2-0001、csprt-2-0001、资源名或 2-0001。 */
 export function supportCardKey(idOrAssetId: string, variant: CardVariant = 'sq'): string {
   const m = SUPPORT_CARD_RE.exec(idOrAssetId)

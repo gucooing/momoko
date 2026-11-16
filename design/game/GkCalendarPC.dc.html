@@ -72,7 +72,8 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
       <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg></button>
     </div>
 
-    <nav aria-label="GM 运营" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
+    <!-- GM 子导航：一行，放不下时横向滑动；不显示滚动条，鼠标滚轮在上面就是横滑，当前页的标签自动滚到看得见的地方 -->
+    <nav aria-label="GM 运营" class="gtabs" onWheel="{{gtabsWheel}}" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
       <sc-for list="{{gtabs}}" as="t" hint-placeholder-count="10">
         <a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}</a>
       </sc-for>
@@ -199,6 +200,12 @@ function buildGtabs(active) {
     ['mail', '邮件补偿', IC.mail, 'GkMailPC.dc.html'], ['code', '兑换码', IC.ticket, 'GkCodesPC.dc.html'], ['notice', '公告', IC.megaphone, 'GkNoticePC.dc.html'], ['policy', '玩家自助', IC.idcard, 'GmPolicyPC.dc.html'], ['log', 'GM 记录', IC.history, 'GkLogPC.dc.html']
   ].map(([k, t, d, href]) => ({ t, d, href, cls: k === active ? 'gtab-on' : '' }));
 }
+// 子导航上的滚轮：竖向滚动换成横向滑动
+function gtabsWheel(e) {
+  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+  e.currentTarget.scrollLeft += e.deltaY;
+  e.preventDefault();
+}
 const LANES = [
   { k: 'gasha', t: '卡池', c: 'var(--g)', rows: [
     { t: '「ガラクタロード」vol.7 千奈', img: U.p1, s: 6, e: 16 },
@@ -250,7 +257,7 @@ class Component extends DCLogic {
       modeIcon: dark ? IC.sun : IC.moon,
       toggleDark: () => this.setState({ dark: !dark }),
       nav: buildNav('gm'),
-      gtabs: buildGtabs('cal'),
+      gtabs: buildGtabs('cal'), gtabsWheel,
       days,
       lanes,
       kinds: LANES.map((l) => ({ t: l.t, c: l.c, n: l.rows.length, on: !hidden[l.k], cls: hidden[l.k] ? '' : 'chip-on', toggle: () => this.setState({ hidden: { ...hidden, [l.k]: !hidden[l.k] } }) })),

@@ -530,7 +530,7 @@ func (h *GameHostingUsecase) setupHosted(ctx context.Context, s *gen.GameServer,
 	}
 	keyID, secret := "", ""
 	if spec.GenerateKey {
-		// 密钥由前端生成（与服务端 mgp keygen 同格式），这里只校验后写入配置。
+		// 密钥由前端生成（与服务端 mgp keygen 同格式）或手动填写，这里只校验后写入配置。
 		if keyID, secret, err = ValidateMGPKey(spec.KeyId, spec.Secret); err != nil {
 			return err
 		}

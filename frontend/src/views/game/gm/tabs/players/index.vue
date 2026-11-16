@@ -2,17 +2,24 @@
      → PC 表格（可多选；玩家 / 制作人等级 / 钻石 / 通行证 / 最后登录 / 状态 / 发礼物·强制下线·查看·「⋯」其他玩家指令）
      手机卡片 → 分页 → 深色批量条（manifest 里目标为 players 的指令）。导出 CSV 按当前筛选逐页读取（每页 200）。 -->
 <template>
-  <div class="gpl game-skin">
+  <div ref="rootEl" class="gpl game-skin">
     <PageHeader :back="false" :theme-toggle="false">
       <template #title>{{ t('gmData.players.title') }}</template>
       <template #description>
         <span class="m-num">{{ t('gmData.players.countAll', { n: num(summary.all ?? 0) }) }}</span>
         ·
         <span class="gpl__online m-num">{{ t('gmData.players.countOnline', { n: num(summary.online ?? 0) }) }}</span>
+        <template v-if="summary.activeToday != null">
+          ·
+          <span class="m-num">{{ t('gmData.players.countActive', { n: num(summary.activeToday) }) }}</span>
+        </template>
         ·
         <span class="m-num">{{ t('gmData.players.countLinked', { n: num(linkedCount) }) }}</span>
       </template>
       <template #actions>
+        <UButton v-if="ctx.game.value === 'gakumas'" color="neutral" variant="outline" icon="i-lucide-chart-line" @click="openTrend">
+          {{ t('gmData.home.activeTrend') }}
+        </UButton>
         <UButton color="neutral" variant="outline" icon="i-lucide-download" :loading="exporting" @click="exportCsv">
           {{ exporting ? t('gmData.players.exporting', { n: exported }) : t('gmData.players.export') }}
         </UButton>
@@ -183,13 +190,14 @@
 
     <GiftDialog v-model="giftOpen" :players="giftPlayers" @done="load" />
     <GmOperationDialog v-model="dialog.open" :operation="dialog.operation" :targets="dialog.targets" @done="load" />
+    <TrendDialog v-model="trendOpen" field="active" :report="dash" :loading="dashLoading" :color="chartColor" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, shallowRef } from 'vue'
+import { computed, reactive, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { listPlayers } from '@/api/gakumas'
 import { getRequestErrorMessage } from '@/utils/request'
@@ -197,7 +205,7 @@ import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import type { DataTableColumn } from '@/components/ui/DataTable.vue'
 import type { ToolbarChip } from '@/components/ui/ListToolbar.vue'
 import type { OperationDef } from '@/games/mgp'
-import type { Player } from '@/games/gakumas/types'
+import type { Dashboard, Player } from '@/games/gakumas/types'
 import type { GmPlayerLink } from '@/types/v1/game_gm'
 import { useGmContext } from '../../context'
 import GmOperationDialog from '../../components/GmOperationDialog.vue'
@@ -209,6 +217,8 @@ import PlayerAvatar from '../../player/shared/PlayerAvatar.vue'
 import { OPERATION_ICONS } from '../../player/shared/executions'
 import { catalogImage, isPermanentBan } from '../../player/shared/game'
 import { useGmFormat } from '../../player/shared/format'
+import TrendDialog from '../../components/TrendDialog.vue'
+import { fetchDashboard, useGameChartColor } from '../../dashboard'
 
 defineOptions({ name: 'GmPlayersTab' })
 
@@ -216,6 +226,7 @@ type Filter = 'all' | 'online' | 'activeToday' | 'unlinked' | 'banned'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const ctx = useGmContext()
 const menuStore = useMenuStore()
 const { num, when, date, duration } = useGmFormat()
@@ -265,7 +276,37 @@ const reload = () => {
   page.value = 1
   return load()
 }
+// 工作台「找玩家」带 ?q= 过来：用它当搜索词
+const queryQ = () => (typeof route.query.q === 'string' ? route.query.q : '')
+keyword.value = queryQ()
+watch(queryQ, (q) => {
+  if (!q || q === keyword.value) return
+  keyword.value = q
+  void reload()
+})
 void load()
+
+// 活跃趋势弹窗（dashboard 近 14 天，和工作台共用一份数据；点开时才读）
+const rootEl = ref<HTMLElement>()
+const chartColor = useGameChartColor(rootEl)
+const trendOpen = ref(false)
+const dash = shallowRef<Dashboard>()
+const dashLoading = ref(false)
+const openTrend = () => {
+  trendOpen.value = true
+  if (dash.value || dashLoading.value) return
+  dashLoading.value = true
+  fetchDashboard(ctx.serverId.value)
+    .then((r) => {
+      dash.value = r
+    })
+    .catch(() => {
+      // 读不到时弹窗里显示「还没有数据」
+    })
+    .finally(() => {
+      dashLoading.value = false
+    })
+}
 
 const chips = computed<ToolbarChip<Filter>[]>(() => {
   const s = summary.value

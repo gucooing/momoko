@@ -68,6 +68,7 @@
 .gtab{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:var(--ink2);text-decoration:none;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
 .gtab:hover{background:var(--gSoft);color:var(--gInk)}
 .gtab-on,.gtab-on:hover{background:var(--g);color:var(--gOn)}
+.gtabs{scrollbar-width:none}.gtabs::-webkit-scrollbar{display:none}
 .tg{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none;transition:background .15s}
 .tg::after{content:'';position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
 .tg:checked{background:var(--p)}

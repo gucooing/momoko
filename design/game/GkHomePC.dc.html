@@ -18,39 +18,23 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
 .bulk-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:var(--bg);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
 .bulk-btn:hover{background:color-mix(in srgb, var(--bg) 14%, transparent)}
 
-.kpi{flex:1 1 180px;min-width:0;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
-.kpi-v{font-size:30px;font-weight:800;line-height:1.1}
 .sec-h{display:flex;align-items:baseline;gap:12px}
 .sec-h h2{margin:0;font-size:18px;font-weight:800;flex:1}
 .more{font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap}
-.plot{position:relative;height:190px;margin:8px 0 0 40px}
-.gl{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--line)}
-.gl span{position:absolute;right:calc(100% + 8px);top:-8px;font-size:11px;color:var(--ink2);font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
-.xl{position:relative;height:16px;margin:8px 0 0 40px;font-size:11px;color:var(--ink2);font-family:'Outfit',sans-serif}
-.xl span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
-.hit{position:absolute;top:0;bottom:0;cursor:crosshair;z-index:2}
-.hit .xh,.hit .hd,.hit .tip{opacity:0;pointer-events:none;transition:opacity .08s}
-.hit:hover .xh,.hit:hover .hd,.hit:hover .tip{opacity:1}
-.xh{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--ink2)}
-.hd,.ld{position:absolute;left:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--gInk);box-shadow:0 0 0 2px var(--s)}
-.tip{position:absolute;top:-6px;padding:8px 10px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:12px;line-height:1.45;white-space:nowrap;z-index:3;display:flex;flex-direction:column}
-.tip b{font-size:15px;font-family:'Outfit',sans-serif}
-.bars{position:absolute;inset:0;display:flex;align-items:flex-end;gap:6px}
-.bcol{flex:1;height:100%;position:relative;display:flex;align-items:flex-end;cursor:crosshair}
-.bfill{width:100%;border-radius:4px 4px 0 0;background:var(--barC);transition:filter .1s}
-.bcol:hover .bfill{filter:brightness(1.12)}
-.bcol .tip{opacity:0;pointer-events:none}
-.bcol:hover .tip{opacity:1}
-.part{background:repeating-linear-gradient(135deg,var(--barC) 0 6px,color-mix(in srgb,var(--barC) 55%,var(--s)) 6px 10px)}
-.gb{display:block;border-radius:999px;overflow:hidden;background:var(--s2)}
-.al{display:flex;align-items:center;gap:12px;padding:12px 4px;border-top:1px solid var(--line);text-decoration:none;color:var(--ink)}
-.al:hover{background:var(--s2)}
-.al:first-of-type{border-top:0}
-.hm{display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:13px}
+.today{display:flex;flex-wrap:wrap;align-items:center;gap:6px 28px;padding:14px 22px}
+.today a{display:flex;align-items:baseline;gap:8px;text-decoration:none;color:var(--ink)}
+.today b{font-size:22px;font-weight:800}
+.todo{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.todo:first-of-type{border-top:0}
+.next{display:grid;grid-template-columns:96px minmax(0,1fr) auto;align-items:baseline;gap:12px;padding:9px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.next:first-of-type{border-top:0}
+.next:hover .next-t{color:var(--pInk)}
+.qa{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;border-radius:16px;background:var(--s2);text-decoration:none;color:var(--ink);font-size:14px;font-weight:700}
+.qa:hover{background:var(--pSoft);color:var(--pInk)}
 
 </style>
 </helmet>
-<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1640px; display: flex; flex-wrap: wrap; align-items: stretch">
+<div class="root th-{{palette}}-{{mode}} gk-{{mode}}" style="min-height: 1040px; display: flex; flex-wrap: wrap; align-items: stretch">
 
   <aside style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
     <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
@@ -103,124 +87,66 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
       <button class="ib" aria-label="通知"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><span class="dot"></span></button>
     </div>
 
-    <nav aria-label="GM 运营" class="hs" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
+    <!-- GM 子导航：一行，放不下时横向滑动；不显示滚动条，鼠标滚轮在上面就是横滑，当前页的标签自动滚到看得见的地方 -->
+    <nav aria-label="GM 运营" class="gtabs" onWheel="{{gtabsWheel}}" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px; border-radius: 999px; background: var(--s); border: 1px solid var(--line); align-self: flex-start; max-width: 100%">
       <sc-for list="{{gtabs}}" as="t" hint-placeholder-count="10">
         <a class="gtab {{t.cls}}" href="{{t.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{t.d}}"></path></svg>{{t.t}}</a>
       </sc-for>
     </nav>
 
-    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px">
-      <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 6px">
-        <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">工作台</h1>
-        <div style="font-size: 14px; color: var(--ink2)">学マス · 正式服 的运营数据与动态 · 截至 11-11 21:40 · 每 5 分钟刷新</div>
-      </div>
-      <div class="seg" role="radiogroup" aria-label="时间范围"><sc-for list="{{ranges}}" as="r" hint-placeholder-count="2"><button class="{{r.cls}}" role="radio" aria-checked="{{r.on}}" onClick="{{r.pick}}">{{r.t}}</button></sc-for></div>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">工作台</h1>
+      <div style="font-size: 14px; color: var(--ink2)">学マス · 正式服 · 截至 11-11 21:40</div>
     </div>
 
-    <section aria-label="今日关键数据" style="display: flex; flex-wrap: wrap; gap: 12px">
-      <sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
-        <a class="card kpi" href="{{k.href}}" style="text-decoration: none; color: var(--ink)">
-          <span style="display: flex; align-items: center; gap: 8px"><sc-if value="{{k.img}}" hint-placeholder-val="{{true}}"><img src="{{k.img}}" alt="" style="width: 24px; height: 24px"></sc-if><sc-if value="{{k.live}}" hint-placeholder-val="{{false}}"><span style="width: 10px; height: 10px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px var(--okSoft); margin: 0 7px"></span></sc-if><span style="font-size: 13px; font-weight: 700; color: var(--ink2)">{{k.t}}</span></span>
-          <span class="num kpi-v">{{k.v}}</span>
-          <span style="font-size: 12px; color: var(--ink2)"><span class="num" style="font-weight: 700; color: {{k.dc}}">{{k.d}}</span> {{k.ds}}</span>
-        </a>
+    <!-- 今天：只放数字，点进对应页面 -->
+    <section class="card today" aria-label="今天">
+      <span class="hint" style="font-weight: 700">今天</span>
+      <sc-for list="{{today}}" as="k" hint-placeholder-count="4">
+        <a href="{{k.href}}"><sc-if value="{{k.live}}" hint-placeholder-val="{{false}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px var(--okSoft); align-self: center"></span></sc-if><span class="hint">{{k.t}}</span><b class="num">{{k.v}}</b><span class="hint">{{k.s}}</span></a>
       </sc-for>
     </section>
 
-    <section style="display: flex; flex-wrap: wrap; gap: 16px">
-      <div class="card" style="flex: 1 1 480px; min-width: 0; padding: 18px 20px 16px">
-        <div class="sec-h"><h2>活跃玩家 · {{rangeT}}</h2><span class="hint">当天登录过游戏的账号数</span></div>
-        <div class="plot" role="img" aria-label="{{lineAria}}">
-          <sc-for list="{{lineGrid}}" as="g" hint-placeholder-count="4"><div class="gl" style="top: {{g.top}}"><span>{{g.t}}</span></div></sc-for>
-          <svg viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible">
-            <path d="{{lineArea}}" style="fill: var(--gSoft); opacity: .7"></path>
-            <path d="{{lineD}}" vector-effect="non-scaling-stroke" style="fill: none; stroke: var(--gInk); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round"></path>
-          </svg>
-          <span class="ld" style="left: {{lineLast.left}}; top: {{lineLast.top}}"></span>
-          <span class="num" style="position: absolute; left: {{lineLast.left}}; top: {{lineLast.top}}; transform: translate(-100%, -150%); font-size: 13px; font-weight: 800; padding-right: 2px">{{lineLast.v}}</span>
-          <sc-for list="{{linePts}}" as="p" hint-placeholder-count="14">
-            <div class="hit" style="left: {{p.hl}}; width: {{p.hw}}" aria-hidden="true">
-              <span class="xh"></span><span class="hd" style="top: {{p.top}}"></span>
-              <span class="tip" style="left: {{p.tl}}; right: {{p.tr}}"><span>{{p.lab}}</span><b>{{p.v}} 人</b><span>{{p.note}}</span></span>
+    <section style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+      <div style="flex: 3 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <!-- 待处理：要人去做的事，每条一个按钮直接去处理；没有时只显示一行「没有待处理的事」 -->
+        <div class="card" style="padding: 18px 20px 8px">
+          <div class="sec-h" style="margin-bottom: 4px"><h2>待处理 <span class="num" style="color: var(--pInk)">{{todoCount}}</span></h2></div>
+          <sc-for list="{{todos}}" as="a" hint-placeholder-count="3">
+            <div class="todo">
+              <span class="av {{a.av}}" style="width: 36px; height: 36px; border-radius: 12px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{a.d}}"></path></svg></span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">{{a.t}}</span><span class="hint">{{a.s}}</span></span>
+              <a class="btn btn-o btn-sm" href="{{a.href}}">{{a.btn}}</a>
             </div>
           </sc-for>
         </div>
-        <div class="xl" aria-hidden="true"><sc-for list="{{xLine}}" as="x" hint-placeholder-count="5"><span style="left: {{x.l}}">{{x.t}}</span></sc-for></div>
-      </div>
 
-      <div class="card" style="flex: 1 1 480px; min-width: 0; padding: 18px 20px 16px; --barC: color-mix(in srgb, var(--g) 75%, var(--gInk))">
-        <div class="sec-h"><h2>抽卡次数 · {{rangeT}}</h2><span class="hint">所有卡池合计，十连按 10 次</span></div>
-        <div class="plot" role="img" aria-label="{{barAria}}">
-          <sc-for list="{{barGrid}}" as="g" hint-placeholder-count="5"><div class="gl" style="top: {{g.top}}"><span>{{g.t}}</span></div></sc-for>
-          <div class="bars">
-            <sc-for list="{{barPts}}" as="b" hint-placeholder-count="14">
-              <div class="bcol">
-                <sc-if value="{{b.mark}}" hint-placeholder-val="{{false}}"><span style="position: absolute; left: 50%; bottom: calc({{b.h}} + 6px); transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--ink); white-space: nowrap">{{b.mark}}</span></sc-if>
-                <span class="bfill {{b.cls}}" style="height: {{b.h}}"></span>
-                <span class="tip" style="bottom: calc({{b.h}} + 8px); left: {{b.tl}}; right: {{b.tr}}; top: auto"><span>{{b.lab}}</span><b>{{b.v}} 次</b><span>{{b.note}}</span></span>
-              </div>
-            </sc-for>
-          </div>
-        </div>
-        <div class="xl" aria-hidden="true"><sc-for list="{{xBar}}" as="x" hint-placeholder-count="5"><span style="left: {{x.l}}">{{x.t}}</span></sc-for></div>
-      </div>
-    </section>
-
-    <section class="card" style="padding: 18px 20px 8px">
-      <div class="sec-h" style="margin-bottom: 6px"><h2>卡池表现 · 今天</h2><a class="more" href="GkGashaPC.dc.html">管理卡池 →</a></div>
-      <div style="overflow-x: auto"><div style="min-width: 900px">
-        <div class="row row-h" style="grid-template-columns: 176px minmax(0, 1.4fr) minmax(0, 1.3fr) 90px 80px 110px; padding: 0 4px">
-          <span>卡池</span><span></span><span>今日抽数（占全部）</span><span style="text-align: right">累计</span><span style="text-align: right">SSR</span><span>状态</span>
-        </div>
-        <sc-for list="{{pools}}" as="g" hint-placeholder-count="6">
-          <a class="row" href="GkGashaPC.dc.html" style="grid-template-columns: 176px minmax(0, 1.4fr) minmax(0, 1.3fr) 90px 80px 110px; padding: 0 4px; min-height: 76px; text-decoration: none; color: var(--ink)">
-            <img class="gb" src="{{g.img}}" alt="" style="width: 160px; height: 56px; object-fit: contain">
-            <span style="min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{g.n}}</span><span style="display: flex; gap: 6px; flex-wrap: wrap"><span class="hint">{{g.left}}</span><sc-if value="{{g.warn}}" hint-placeholder-val="{{false}}"><span class="pill warn" style="height: 22px">{{g.warn}}</span></sc-if></span></span>
-            <span style="display: flex; align-items: center; gap: 10px"><span style="flex: 1; height: 10px; border-radius: 999px; background: var(--s2); overflow: hidden"><span style="display: block; height: 100%; width: {{g.w}}; border-radius: 999px; background: color-mix(in srgb, var(--g) 75%, var(--gInk))"></span></span><span class="num" style="width: 92px; font-weight: 700">{{g.today}} <span class="hint">{{g.pct}}</span></span></span>
-            <span class="num" style="text-align: right; font-weight: 600">{{g.total}}</span>
-            <span class="num" style="text-align: right; font-weight: 600">{{g.ssr}}</span>
-            <span class="pill {{g.st}}" style="justify-self: start">{{g.stT}}</span>
-          </a>
-        </sc-for>
-      </div></div>
-    </section>
-
-    <section style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
-      <div class="card" style="flex: 3 1 520px; min-width: 0; padding: 18px 20px 10px">
-        <div class="sec-h" style="margin-bottom: 4px"><h2>需要留意</h2><span class="hint">点一条去对应页面处理</span></div>
-        <sc-for list="{{alerts}}" as="a" hint-placeholder-count="6">
-          <a class="al" href="{{a.href}}">
-            <span class="av {{a.av}}" style="width: 36px; height: 36px; border-radius: 12px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{a.d}}"></path></svg></span>
-            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 700">{{a.t}}</span><span class="hint">{{a.s}}</span></span>
-            <span class="tag">{{a.where}}</span>
-            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chevR}}"></path></svg>
-          </a>
-        </sc-for>
-      </div>
-
-      <div style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
-        <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
-          <div class="sec-h"><h2>玩法</h2><a class="more" href="GkModesPC.dc.html">查看 →</a></div>
-          <sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
-            <a href="GkModesPC.dc.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink)">
-              <span class="av av-g" style="width: 40px; height: 40px; border-radius: 13px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{m.d}}"></path></svg></span>
-              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 800">{{m.t}}</span><span class="hint">{{m.s}}</span></span>
-              <span style="display: flex; flex-direction: column; align-items: flex-end"><span class="num" style="font-size: 18px; font-weight: 800">{{m.v}}</span><span class="hint">{{m.vl}}</span></span>
+        <!-- 接下来：已经安排好、快到点的事，按时间排；点一条去对应页面 -->
+        <div class="card" style="padding: 18px 20px 8px">
+          <div class="sec-h" style="margin-bottom: 4px"><h2>接下来</h2><a class="more" href="GkCalendarPC.dc.html">运营日历 →</a></div>
+          <sc-for list="{{upcoming}}" as="u" hint-placeholder-count="4">
+            <a class="next" href="{{u.href}}">
+              <span class="num" style="font-size: 13px; font-weight: 700; color: var(--ink2)">{{u.when}}</span>
+              <span class="next-t" style="min-width: 0; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{u.t}}</span>
+              <span class="tag">{{u.where}}</span>
             </a>
           </sc-for>
         </div>
+      </div>
 
-        <a class="card" href="GameServerPC.dc.html" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; text-decoration: none; color: var(--ink)">
-          <div class="sec-h"><h2>服务器</h2><span class="pill ok">运行中</span></div>
-          <div class="hm">
-            <span class="hint">已运行</span><span class="num" style="font-weight: 700">3 天 4 小时</span>
-            <span class="hint">CPU</span><span style="display: flex; align-items: center; gap: 8px"><span class="bar" style="width: 120px"><span style="width: 18%; background: var(--ink2)"></span></span><span class="num" style="font-weight: 700; width: 36px; text-align: right">18%</span></span>
-            <span class="hint">内存</span><span style="display: flex; align-items: center; gap: 8px"><span class="bar" style="width: 120px"><span style="width: 30%; background: var(--ink2)"></span></span><span class="num" style="font-weight: 700; width: 36px; text-align: right">1.2G</span></span>
-            <span class="hint">MGP 延迟（p95）</span><span class="num" style="font-weight: 700">38 ms</span>
-            <span class="hint">服务端版本</span><span class="mono" style="font-size: 12px; font-weight: 700">gakumas 0.9.4</span>
+      <div style="flex: 2 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <!-- 常用操作：找玩家 + 常去的页面 -->
+        <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+          <div class="sec-h"><h2>常用操作</h2></div>
+          <label class="inp" style="min-height: 48px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.search}}"></path></svg><input type="text" placeholder="找玩家：昵称、PID、通行证账号" aria-label="找玩家"></label>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{quick}}" as="q" hint-placeholder-count="4">
+              <a class="qa" href="{{q.href}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{q.d}}"></path></svg>{{q.t}}</a>
+            </sc-for>
           </div>
-        </a>
+        </div>
 
+        <!-- 最近 GM 操作：最多 4 条；没有记录时整块不显示 -->
         <div class="card" style="padding: 18px 20px 8px">
           <div class="sec-h" style="margin-bottom: 4px"><h2>最近 GM 操作</h2><a class="more" href="GkLogPC.dc.html">全部记录 →</a></div>
           <sc-for list="{{logs}}" as="l" hint-placeholder-count="4">
@@ -237,7 +163,7 @@ a{color:var(--pInk)}a:hover{color:var(--ink)}
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1640}}'>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1040}}'>
 const IC = {
   home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
   activity: 'M3 12h4l3-8 4 16 3-8h4',
@@ -317,75 +243,39 @@ function buildGtabs(active) {
     ['mail', '邮件补偿', IC.mail, 'GkMailPC.dc.html'], ['code', '兑换码', IC.ticket, 'GkCodesPC.dc.html'], ['notice', '公告', IC.megaphone, 'GkNoticePC.dc.html'], ['policy', '玩家自助', IC.idcard, 'GmPolicyPC.dc.html'], ['log', 'GM 记录', IC.history, 'GkLogPC.dc.html']
   ].map(([k, t, d, href]) => ({ t, d, href, cls: k === active ? 'gtab-on' : '' }));
 }
+// 子导航上的滚轮：竖向滚动换成横向滑动
+function gtabsWheel(e) {
+  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+  e.currentTarget.scrollLeft += e.deltaY;
+  e.preventDefault();
+}
 
-const DAYS = ['10-29', '10-30', '10-31', '11-01', '11-02', '11-03', '11-04', '11-05', '11-06', '11-07', '11-08', '11-09', '11-10', '11-11'];
-const WD = ['四', '五', '六', '日', '一', '二', '三', '四', '五', '六', '日', '一', '二', '三'];
-const ACTIVE = [16, 15, 18, 21, 19, 17, 18, 19, 27, 25, 26, 28, 20, 24];
-const DRAWS = [420, 380, 510, 620, 450, 400, 430, 470, 3860, 2210, 1680, 1420, 947, 1240];
-const NOTE = { '11-06': '初星フェス vol.7 卡池上线', '11-11': '截至 21:40 · 21:00 临时维护 20 分钟' };
-const fmt = (v) => v.toLocaleString('en-US');
-function grid(max, step) { const out = []; for (let v = 0; v <= max; v += step) out.push({ top: (100 - v / max * 100) + '%', t: v >= 1000 ? (v / 1000) + 'k' : String(v) }); return out; }
 function pageVals(self, st) {
-  const range = st.range || 14;
-  const days = DAYS.slice(-range), wd = WD.slice(-range), act = ACTIVE.slice(-range), drw = DRAWS.slice(-range);
-  const n = days.length;
-  const lab = (ix) => days[ix] + '（' + wd[ix] + '）' + (ix === n - 1 ? ' · 今天' : '');
-  const LMAX = 30, BMAX = 4000;
-  const xp = (ix) => ix / (n - 1) * 100;
-  const yp = (v, m) => 100 - v / m * 100;
-  const lineD = act.map((v, ix) => (ix ? 'L' : 'M') + (xp(ix) * 10).toFixed(1) + ' ' + (yp(v, LMAX) * 2).toFixed(1)).join(' ');
-  const sw = 100 / (n - 1);
-  const linePts = act.map((v, ix) => ({
-    hl: (xp(ix) - sw / 2) + '%', hw: sw + '%', top: yp(v, LMAX) + '%', v: fmt(v), lab: lab(ix), note: NOTE[days[ix]] || ('较前一天 ' + (ix ? ((v - act[ix - 1] >= 0 ? '+' : '−') + Math.abs(v - act[ix - 1])) : '—')),
-    tl: ix > n / 2 ? 'auto' : 'calc(50% + 12px)', tr: ix > n / 2 ? 'calc(50% + 12px)' : 'auto'
-  }));
-  const barPts = drw.map((v, ix) => ({
-    h: (v / BMAX * 100) + '%', v: fmt(v), lab: lab(ix), note: NOTE[days[ix]] || '',
-    cls: ix === n - 1 ? 'part' : '', mark: days[ix] === '11-06' ? 'vol.7 上线' : '',
-    tl: ix > n / 2 ? 'auto' : '0', tr: ix > n / 2 ? '0' : 'auto'
-  }));
-  const step = n > 7 ? 3 : 1;
-  const ticks = days.map((d, ix) => ix).filter((ix) => (n - 1 - ix) % step === 0);
-  const tickT = (ix) => ix === n - 1 ? '今天' : days[ix];
-  const xLine = ticks.map((ix) => ({ l: xp(ix) + '%', t: tickT(ix) }));
-  const xBar = ticks.map((ix) => ({ l: ((ix + 0.5) / n * 100) + '%', t: tickT(ix) }));
-  const pk = act.indexOf(Math.max(...act));
+  const todos = [
+    { t: '1 条玩家申请等你审批', s: '清夏ちゃん 申请「全部偶像卡」· 20:36', av: 'av-p', d: IC.idcard, btn: '去审批', href: 'GkLogPC.dc.html' },
+    { t: '临时维护的致歉公告和全服补偿还是草稿', s: '「11/11 臨時メンテナンスのお詫び」· 补偿邮件预计发给 71 人', av: 'av-g', d: IC.megaphone, btn: '去发布', href: 'GkNoticePC.dc.html' },
+    { t: 'vol.7 美鈴卡池的横幅和配置疑似对调', s: 'gasha-01055-pickup-001 的名称与 pickup 是千奈，横幅却是美鈴', av: 'av-a', d: IC.alert, btn: '去卡池', href: 'GkGashaPC.dc.html' }
+  ];
   return {
-    ranges: [[7, '近 7 天'], [14, '近 14 天']].map(([k, t]) => ({ t, on: k === range, cls: k === range ? 'on' : '', pick: () => self.setState({ range: k }) })),
-    rangeT: range === 7 ? '近 7 天' : '近 14 天',
-    kpis: [
-      { t: '在线', v: '12', d: '峰值 31', ds: '· 今天 20:30', dc: 'var(--ink)', img: '', live: true, href: 'GkPlayersPC.dc.html' },
-      { t: '今日活跃', v: '24', d: '+4', ds: '较昨天', dc: 'var(--ok)', img: U.logo, live: false, href: 'GkPlayersPC.dc.html' },
-      { t: '新增账号', v: '3', d: '2', ds: '已绑定通行证', dc: 'var(--ink)', img: U.ap, live: false, href: 'GkPlayersPC.dc.html' },
-      { t: '抽卡次数', v: '1,240', d: '+31%', ds: '较昨天', dc: 'var(--ok)', img: U.ticket, live: false, href: 'GkGashaPC.dc.html' },
-      { t: '钻石消耗', v: '186,000', d: '34%', ds: '为付费钻石', dc: 'var(--ink)', img: U.jewel, live: false, href: 'GkGashaPC.dc.html' }
+    today: [
+      { t: '在线', v: '12', s: '峰值 31', live: true, href: 'GkPlayersPC.dc.html' },
+      { t: '活跃', v: '24', s: '较昨天 +4', live: false, href: 'GkPlayersPC.dc.html' },
+      { t: '新增账号', v: '3', s: '', live: false, href: 'GkPlayersPC.dc.html' },
+      { t: '抽卡', v: '1,240', s: '次', live: false, href: 'GkGashaPC.dc.html' }
     ],
-    lineGrid: grid(LMAX, 10), barGrid: grid(BMAX, 1000),
-    lineD, lineArea: lineD + ' L1000 200 L0 200 Z', linePts,
-    lineLast: { left: '100%', top: yp(act[n - 1], LMAX) + '%', v: String(act[n - 1]) },
-    lineAria: '活跃玩家折线图，' + days[0] + ' 至今天，最高 ' + act[pk] + ' 人（' + days[pk] + '），今天 ' + act[n - 1] + ' 人',
-    barPts, barAria: '抽卡次数柱状图，' + days[0] + ' 至今天，11-06 卡池上线当天最高 3,860 次，今天截至 21:40 为 1,240 次',
-    xLine, xBar,
-    pools: [
-      { n: '初星フェス「ガラクタロード」vol.7 美鈴', img: U.gb1, today: '380', total: '4,120', ssr: '41', st: 'ok', stT: '进行中', left: '至 11-16 09:59', warn: '横幅与配置疑似对调' },
-      { n: '初星フェス「ガラクタロード」vol.7 千奈', img: U.gb2, today: '290', total: '3,350', ssr: '33', st: 'ok', stT: '进行中', left: '至 11-16 09:59', warn: '' },
-      { n: '学マス水曜日ガシャ', img: U.gbWed, today: '210', total: '1,480', ssr: '15', st: 'ok', stT: '今天开放', left: '每周三', warn: '' },
-      { n: '標ファイナル公演記念 DAY1', img: U.gb3, today: '160', total: '1,900', ssr: '18', st: 'ok', stT: '进行中', left: '至 11-16 09:59', warn: '' },
-      { n: '標ファイナル公演記念 DAY2', img: U.gb4, today: '140', total: '1,640', ssr: '17', st: 'ok', stT: '进行中', left: '至 11-16 09:59', warn: '' },
-      { n: 'プラチナガシャ', img: U.gbStd, today: '60', total: '9,870', ssr: '96', st: 'info', stT: '常驻', left: '至 2026-12-26', warn: '' }
-    ].map((g) => ({ ...g, w: (parseInt(g.today.replace(',', ''), 10) / 380 * 100) + '%', pct: Math.round(parseInt(g.today.replace(',', ''), 10) / 1240 * 100) + '%' })),
-    alerts: [
-      { t: '1 条玩家申请等你审批', s: '清夏ちゃん 申请「全部偶像卡」· 20:36', av: 'av-p', d: IC.idcard, where: 'GM 记录', href: 'GkLogPC.dc.html' },
-      { t: 'vol.7 美鈴卡池的横幅和配置疑似对调', s: 'gasha-01055-pickup-001 的名称与 pickup 是千奈，横幅却是美鈴', av: 'av-a', d: IC.alert, where: '卡池', href: 'GkGashaPC.dc.html' },
-      { t: '定时邮件 11-16 10:00 发给全服 86 人', s: '「初星フェス 结束感谢」· 抽卡券 ×1、金币 ×10,000', av: 'av-g', d: IC.mail, where: '邮件补偿', href: 'GkMailPC.dc.html' },
-      { t: '兑换码 FES2026 已用 62%', s: '312 / 500 次 · 11-16 09:59 到期', av: 'av-a2', d: IC.ticket, where: '兑换码', href: 'GkCodesPC.dc.html' },
-      { t: '临时维护的致歉公告和全服补偿还是草稿', s: '「11/11 臨時メンテナンスのお詫び」· 补偿邮件预计发给 71 人', av: 'av-g', d: IC.megaphone, where: '公告', href: 'GkNoticePC.dc.html' },
-      { t: '研究活动 research-event-010 已结束', s: '今天 09:59 结束 · pointRewards 为空，没有排名奖励可发', av: 'av-ok', d: IC.trophy, where: '玩法', href: 'GkModesPC.dc.html' }
+    todos,
+    todoCount: String(todos.length),
+    upcoming: [
+      { when: '11-16 09:59', t: '初星フェス vol.7 两个卡池结束', where: '卡池', href: 'GkGashaPC.dc.html' },
+      { when: '11-16 09:59', t: '兑换码 FES2026 到期 · 已用 312 / 500', where: '兑换码', href: 'GkCodesPC.dc.html' },
+      { when: '11-16 10:00', t: '定时邮件「初星フェス 结束感谢」发给全服 86 人', where: '邮件补偿', href: 'GkMailPC.dc.html' },
+      { when: '11-18 03:59', t: 'コンテスト 本赛季结束', where: '玩法', href: 'GkModesPC.dc.html' }
     ],
-    modes: [
-      { t: 'コンテスト（PvP）', s: '本赛季 11-18 03:59 结束 · 第 1 名 星南会長', v: '41', vl: '人参赛', d: IC.trophy },
-      { t: '培育', s: '今天最高 SS+ · 星南会長', v: '19', vl: '次', d: IC.spark },
-      { t: '研修', s: '基礎研修 82% 玩家全通', v: '18', vl: '次通关', d: IC.calendar }
+    quick: [
+      { t: '发邮件补偿', d: IC.mail, href: 'GkMailPC.dc.html' },
+      { t: '生成兑换码', d: IC.ticket, href: 'GkCodesPC.dc.html' },
+      { t: '发公告', d: IC.megaphone, href: 'GkNoticePC.dc.html' },
+      { t: '执行 GM 操作', d: IC.wand, href: 'GmPolicyPC.dc.html' }
     ],
     logs: [
       { who1: '超', av: 'av-a', who: '超级管理员', cmd: '发送到礼物箱 · 临时维护补偿', r: '中', rc: 'risk-2', at: '21:18' },
@@ -408,7 +298,7 @@ class Component extends DCLogic {
       modeIcon: dark ? IC.sun : IC.moon,
       toggleDark: () => this.setState({ dark: !dark }),
       nav: buildNav('gm'),
-      gtabs: buildGtabs('home')
+      gtabs: buildGtabs('home'), gtabsWheel
     }, pageVals(this, st));
   }
 }
