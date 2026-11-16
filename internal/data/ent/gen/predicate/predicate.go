@@ -36,6 +36,9 @@ type GameAccountLink func(*sql.Selector)
 // GameAccountUnlink is the predicate function for gameaccountunlink builders.
 type GameAccountUnlink func(*sql.Selector)
 
+// GameClientLog is the predicate function for gameclientlog builders.
+type GameClientLog func(*sql.Selector)
+
 // GameConfigRevision is the predicate function for gameconfigrevision builders.
 type GameConfigRevision func(*sql.Selector)
 

@@ -208,6 +208,11 @@ func (g *Client) VerifyAccount(ctx context.Context, account, password string) (*
 	return out, nil
 }
 
+// CreateAccount 新建一个游戏账号（服务端生成用户名、没有密码，并像注册一样建好初始玩家），返回它的玩家条目。
+func (g *Client) CreateAccount(ctx context.Context, opt mgp.OperationOptions) (*gk.Player, error) {
+	return operate[gk.Player](ctx, g.c, http.MethodPost, "/accounts", map[string]any{}, opt)
+}
+
 // CredentialsInvalid 账号或密码错误的错误码。
 const CredentialsInvalid = "CREDENTIALS_INVALID"
 

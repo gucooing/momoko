@@ -128,7 +128,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	gameHostingUsecase := biz.NewGameHostingUsecase(gameServerUsecase, instanceUsecase, manager, userRepo, logger)
 	gameServerService := service.NewGameServerService(gameServerUsecase, gameHostingUsecase, systemUsecase)
 	gmRepo := data.NewGmRepo(dataData)
-	gmUsecase := biz.NewGmUsecase(gameServerUsecase, gmRepo, userRepo, logger)
+	gameClientLogRepo := data.NewGameClientLogRepo(dataData)
+	gmUsecase := biz.NewGmUsecase(gameServerUsecase, gmRepo, gameClientLogRepo, userRepo, logger)
 	gakumasUsecase := biz.NewGakumasUsecase(gmUsecase, logger)
 	gameGMService := service.NewGameGMService(gmUsecase, gakumasUsecase, systemUsecase)
 	gakumasGMService := service.NewGakumasGMService(gmUsecase, gakumasUsecase)
@@ -151,7 +152,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 		cleanup()
 		return nil, nil, err
 	}
-	passportUsecase := biz.NewPassportUsecase(gameServerUsecase, gmRepo, gameOpsRepo, passportRepo, configRepo, configUsecase, systemUsecase, logger)
+	passportUsecase := biz.NewPassportUsecase(gameServerUsecase, gmRepo, gameOpsRepo, gameClientLogRepo, passportRepo, configRepo, configUsecase, systemUsecase, logger)
 	gakumasPassportUsecase := biz.NewGakumasPassportUsecase(gameServerUsecase, passportUsecase, logger)
 	passportService := service.NewPassportService(passportUsecase, gakumasPassportUsecase, passport)
 	gakumasPassportService := service.NewGakumasPassportService(gakumasPassportUsecase)

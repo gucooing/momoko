@@ -87,10 +87,12 @@ type GameProbe struct {
 type GameServerRepo interface {
 	Get(ctx context.Context, id string) (*gen.GameServer, error)
 	List(ctx context.Context) ([]*gen.GameServer, error)
+	// ListByKeyID MGP key_id 为 keyID 的服务器。
+	ListByKeyID(ctx context.Context, keyID string) ([]*gen.GameServer, error)
 	Create(ctx context.Context, s *gen.GameServer) (*gen.GameServer, error)
 	// Update 写回可修改字段（名称、标签、封面、备注、接入方式、MGP 地址与密钥、托管信息、通行证可见性、时区）。
 	Update(ctx context.Context, s *gen.GameServer) (*gen.GameServer, error)
-	// Delete 删除服务器及 Momoko 侧的关联数据（绑定、自助设置、配置草稿、邮件、兑换码、最近查看）；GM 记录保留。
+	// Delete 删除服务器及 Momoko 侧的关联数据（绑定、自助设置、配置草稿、邮件、兑换码、最近查看、客户端日志）；GM 记录保留。
 	Delete(ctx context.Context, id string) error
 	SaveManifest(ctx context.Context, id, manifest string, at time.Time) error
 	SaveProbe(ctx context.Context, id string, p GameProbe) error
@@ -204,6 +206,22 @@ func (uc *GameServerUsecase) List(ctx context.Context) ([]*gen.GameServer, error
 		uc.syncHosted(ctx, s)
 	}
 	return list, nil
+}
+
+// ByKeyID MGP key_id 为 keyID 且接入了 MGP 的服务器（托管的按服务端配置文件刷新接入信息后再核对）。
+func (uc *GameServerUsecase) ByKeyID(ctx context.Context, keyID string) ([]*gen.GameServer, error) {
+	list, err := uc.repo.ListByKeyID(ctx, keyID)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	out := make([]*gen.GameServer, 0, len(list))
+	for _, s := range list {
+		uc.syncHosted(ctx, s)
+		if s.KeyID == keyID && MGPConfigured(s) {
+			out = append(out, s)
+		}
+	}
+	return out, nil
 }
 
 // Repo 暴露持久化（托管、更新与备份等同属游戏服务器管理的用例使用）。

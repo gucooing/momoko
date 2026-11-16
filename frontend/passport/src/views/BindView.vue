@@ -1,4 +1,5 @@
-<!-- 绑定游戏账号：选服务器（搜索 + 按游戏筛选 + 推荐，不列出全部）→ 证明这是你的账号（服务器声明支持的方式）。 -->
+<!-- 绑定游戏账号：选服务器（搜索 + 按游戏筛选 + 推荐，不列出全部）→ 证明这是你的账号（服务器声明支持的方式）。
+     ?server=<id> 预选这台服务器（授权页跳来，要对你可见且可以绑定）；?redirect=<站内路径> 绑定成功后回到那里。 -->
 <template>
   <div class="bind">
     <header v-if="ui.isMobile" class="mhead">
@@ -22,6 +23,29 @@
 
       <section class="step">
         <span class="step__title">{{ t('bind.step1') }}</span>
+        <template v-if="targetId">
+          <button
+            v-if="target"
+            type="button"
+            class="srv"
+            :class="{ 'is-on': selectedId === target.server?.id }"
+            :disabled="!target.bindable"
+            :aria-pressed="selectedId === target.server?.id"
+            :data-game="target.server?.game"
+            @click="select(target)"
+          >
+            <GameMark :game="target.server?.game || ''" :name="target.server?.gameName || target.server?.game" :size="40" />
+            <span class="srv__text">
+              <span class="srv__name">
+                {{ target.server?.gameName ? `${target.server.gameName} · ` : '' }}{{ target.server?.name }}
+                <span class="pp-tag pp-tag--p">{{ t('bind.target.tag') }}</span>
+              </span>
+              <span class="pp-hint">{{ srvLine(target) }}</span>
+            </span>
+            <CheckCircleIcon v-if="selectedId === target.server?.id" class="srv__check" aria-hidden="true" />
+          </button>
+          <p v-else-if="loaded" class="pp-note">{{ t('bind.target.missing') }}</p>
+        </template>
         <label class="search">
           <MagnifyingGlassIcon aria-hidden="true" />
           <input v-model="q" type="search" :placeholder="t('bind.searchHint')" :aria-label="t('bind.searchHint')" />
@@ -91,6 +115,7 @@
       </section>
 
       <p class="pp-note">{{ t('bind.rules', { days: session.config?.unbindCooldownDays ?? 7 }) }}</p>
+      <PButton v-if="redirect" variant="ghost" :icon="ArrowUturnLeftIcon" :to="redirect">{{ t('bind.target.back') }}</PButton>
     </div>
 
     <div class="cta">
@@ -111,10 +136,11 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
 import {
+  ArrowUturnLeftIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
   MagnifyingGlassIcon,
@@ -135,15 +161,22 @@ import { errorText, fmtDate, fmtNum } from '@passport/utils/format'
 import type { PassportBindGame, PassportBindServer } from '@/types/v1/passport'
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 const ui = useUiStore()
+
+/** 只接受站内路径（以 / 开头，不能是 // 或 /\ 开头的协议相对地址）。 */
+const safeRedirect = (v: unknown) => (typeof v === 'string' && /^\/(?![/\\])/.test(v) ? v : '')
+const targetId = typeof route.query.server === 'string' ? route.query.server.trim() : ''
+const redirect = safeRedirect(route.query.redirect)
 
 const q = ref('')
 const game = ref('')
 const items = ref<PassportBindServer[]>([])
 const recommended = ref<PassportBindServer[]>([])
 const games = ref<PassportBindGame[]>([])
+const target = ref<PassportBindServer | null>(null)
 const loaded = ref(false)
 const error = ref('')
 const selected = ref<PassportBindServer | null>(null)
@@ -154,18 +187,27 @@ const busy = ref(false)
 
 const selectedId = computed(() => selected.value?.server?.id || '')
 const linkCount = computed(() => session.me?.linkCount ?? 0)
-const list = computed(() => (q.value.trim() ? items.value : recommended.value))
+// 指定的服务器单独显示在最上面，下面的列表里不再重复
+const list = computed(() =>
+  (q.value.trim() ? items.value : recommended.value).filter((s) => !target.value || s.server?.id !== target.value.server?.id),
+)
 
 let seq = 0
+let preselected = false
 const load = async () => {
   const id = ++seq
   error.value = ''
   try {
-    const res = await api.searchBindServers(q.value.trim(), game.value)
+    const res = await api.searchBindServers(q.value.trim(), game.value, targetId)
     if (id !== seq) return
     items.value = res.items || []
     recommended.value = res.recommended || []
     games.value = res.games || []
+    if (targetId) {
+      target.value = res.target || null
+      if (!preselected && target.value?.bindable) select(target.value)
+      preselected = true
+    }
   } catch (e) {
     if (id === seq) error.value = errorText(e)
   } finally {
@@ -218,7 +260,8 @@ const submit = async () => {
     password.value = ''
     ui.toast(t('bind.done'), 'ok')
     void session.loadMe().catch(() => undefined)
-    await router.push(`/games/${encodeURIComponent(s.server.id)}`)
+    if (redirect) await router.replace(redirect)
+    else await router.push(`/games/${encodeURIComponent(s.server.id)}`)
   } catch (e) {
     ui.toast(errorText(e), 'bad')
   } finally {

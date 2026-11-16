@@ -1,10 +1,15 @@
 package service
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	khttp "github.com/go-kratos/kratos/v2/transport/http"
 
@@ -13,6 +18,7 @@ import (
 	"momoko/internal/conf"
 	"momoko/pkg/oidcserver"
 	"momoko/pkg/passporttoken"
+	"momoko/pkg/response"
 )
 
 // passportIssuer 通行证 OIDC 的 issuer：配置文件的 passport.public_url，空时按请求推断。
@@ -336,7 +342,7 @@ func (s *PassportService) SearchPassportBindServers(ctx context.Context, req *v1
 	if err != nil {
 		return nil, err
 	}
-	return s.uc.SearchBindServers(ctx, c.UserID, req.Q, req.Game)
+	return s.uc.SearchBindServers(ctx, c.UserID, req.Q, req.Game, strings.TrimSpace(req.ServerId))
 }
 
 func (s *PassportService) BindPassportAccount(ctx context.Context, req *v1.BindPassportAccountRequest) (*v1.PassportLink, error) {
@@ -497,6 +503,115 @@ func (s *PassportService) oidcUserinfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	oidcserver.WriteJSON(w, http.StatusOK, data)
+}
+
+// ---------------- 游戏客户端日志上传 ----------------
+
+// PassportClientLogPath 游戏客户端上传错误日志：原始 HTTP 路由，不用通行证令牌（鉴权过滤器放行），
+// 处理函数自己校验游戏服务端签发的上传票据（Authorization: Bearer <票据>）。
+const PassportClientLogPath = "/api/v1/game-client-logs"
+
+// clientLogStoreTimeout 读完请求体之后保存日志的时限（不受请求超时影响，慢速上传读完后仍能保存）。
+const clientLogStoreTimeout = 30 * time.Second
+
+// RegisterClientLogServer 注册客户端日志上传路由。
+func (s *PassportService) RegisterClientLogServer(srv *khttp.Server) {
+	srv.HandleFunc(PassportClientLogPath, s.uploadClientLog)
+}
+
+// clientLogRequest 上传的请求体（JSON；Content-Encoding: gzip 时为 gzip 压缩的 JSON）。
+type clientLogRequest struct {
+	Reason        string `json:"reason"`
+	Summary       string `json:"summary"`
+	Note          string `json:"note"`
+	Device        string `json:"device"`
+	ClientVersion string `json:"clientVersion"`
+	// OccurredAt Unix 毫秒
+	OccurredAt int64  `json:"occurredAt"`
+	Content    string `json:"content"`
+}
+
+// readClientLogBody 读取请求体：压缩后（或不压缩时）不超过 8 MiB，解压后不超过 32 MiB，超过时 413。
+func readClientLogBody(r *http.Request) ([]byte, error) {
+	if r.ContentLength > biz.ClientLogMaxBody {
+		return nil, biz.ErrClientLogTooLarge
+	}
+	raw, err := io.ReadAll(io.LimitReader(r.Body, biz.ClientLogMaxBody+1))
+	if err != nil {
+		return nil, biz.ErrClientLogInvalid
+	}
+	if len(raw) > biz.ClientLogMaxBody {
+		return nil, biz.ErrClientLogTooLarge
+	}
+	switch strings.ToLower(strings.TrimSpace(r.Header.Get("Content-Encoding"))) {
+	case "", "identity":
+		return raw, nil
+	case "gzip":
+		zr, err := gzip.NewReader(bytes.NewReader(raw))
+		if err != nil {
+			return nil, biz.ErrClientLogInvalid
+		}
+		defer zr.Close()
+		body, err := io.ReadAll(io.LimitReader(zr, biz.ClientLogMaxContent+1))
+		if err != nil {
+			return nil, biz.ErrClientLogInvalid
+		}
+		if len(body) > biz.ClientLogMaxContent {
+			return nil, biz.ErrClientLogTooLarge
+		}
+		return body, nil
+	default:
+		return nil, biz.ErrClientLogEncoding
+	}
+}
+
+// uploadClientLog POST /api/v1/game-client-logs：先校验票据再读请求体，保存后返回 201 {"id","createdAt"}。
+// 失败时为通行证的统一错误响应：401 票据无效、400 内容不合规、413 太大、415 不支持的压缩方式、429 上传太频繁。
+func (s *PassportService) uploadClientLog(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		response.WriteError(w, r, response.BadRequest(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED"))
+		return
+	}
+	parts := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+		response.WriteError(w, r, biz.ErrClientLogTicket)
+		return
+	}
+	owner, err := s.uc.ClientLogOwner(r.Context(), parts[1])
+	if err != nil {
+		response.WriteError(w, r, err)
+		return
+	}
+	body, err := readClientLogBody(r)
+	if err != nil {
+		response.WriteError(w, r, err)
+		return
+	}
+	var req clientLogRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		response.WriteError(w, r, biz.ErrClientLogInvalid)
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), clientLogStoreTimeout)
+	defer cancel()
+	saved, err := s.uc.UploadClientLog(ctx, owner, biz.ClientLogUpload{
+		Reason:        req.Reason,
+		Summary:       req.Summary,
+		Note:          req.Note,
+		Device:        req.Device,
+		ClientVersion: req.ClientVersion,
+		OccurredAt:    req.OccurredAt,
+		Content:       req.Content,
+	})
+	if err != nil {
+		response.WriteError(w, r, err)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	oidcserver.WriteJSON(w, http.StatusCreated, map[string]string{
+		"id":        saved.ID,
+		"createdAt": saved.CreatedAt.UTC().Format(time.RFC3339),
+	})
 }
 
 // ---------------- 后台（主 server，权限 game:passport） ----------------

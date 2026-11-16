@@ -1,4 +1,4 @@
-// 学マス 玩家详情的分页：每个分页调用对应的接口，Momoko 自己的「GM 记录」固定排在最后。
+// 学マス 玩家详情的分页：每个分页调用对应的接口；Momoko 自己的「客户端日志」与「GM 记录」固定排在最后。
 import { defineAsyncComponent, type Component } from 'vue'
 import type { GakumasMode } from '@/games/gakumas/modes'
 import type { PlayerDetail } from '@/games/gakumas/types'
@@ -59,4 +59,5 @@ export const PLAYER_VIEWS: PlayerViewDef[] = [
   { id: 'backups', titleKey: 'gmData.views.backups', component: defineAsyncComponent(() => import('./BackupsView.vue')) },
 ]
 
+export const clientLogView = defineAsyncComponent(() => import('./ClientLogsView.vue'))
 export const gmLogView = defineAsyncComponent(() => import('./GmLogView.vue'))

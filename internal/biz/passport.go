@@ -121,6 +121,7 @@ var (
 	ErrPassportOidcRequest        = passportErr(400, "PASSPORT_OIDC_INVALID_REQUEST")
 	ErrPassportOidcRedirect       = passportErr(400, "PASSPORT_OIDC_INVALID_REDIRECT")
 	ErrPassportOidcScope          = passportErr(400, "PASSPORT_OIDC_INVALID_SCOPE")
+	ErrPassportOidcGameAccount    = passportErr(409, "PASSPORT_OIDC_GAME_ACCOUNT_REQUIRED")
 	ErrPassportOidcClientNotFound = passportErr(404, "PASSPORT_OIDC_CLIENT_NOT_FOUND")
 	ErrPassportOidcClientName     = passportErr(400, "PASSPORT_OIDC_CLIENT_NAME_REQUIRED")
 	ErrPassportOidcRedirectURIs   = passportErr(400, "PASSPORT_OIDC_REDIRECT_URIS_INVALID")
@@ -258,14 +259,15 @@ type PassportRepo interface {
 // 后台管理（PassportAdminService）由 PassportAdminUsecase 负责，两边互不调用。
 // 自助操作与兑换码写进管理端也读写的表（GM 记录、玩家自助规则、兑换码），经 records / codes 访问。
 type PassportUsecase struct {
-	servers  *GameServerUsecase
-	records  GmRepo
-	codes    GameOpsRepo
-	repo     PassportRepo
-	config   ConfigRepo
-	configUc *ConfigUsecase
-	system   *SystemUsecase
-	log      *log.Helper
+	servers    *GameServerUsecase
+	records    GmRepo
+	codes      GameOpsRepo
+	clientLogs GameClientLogRepo
+	repo       PassportRepo
+	config     ConfigRepo
+	configUc   *ConfigUsecase
+	system     *SystemUsecase
+	log        *log.Helper
 
 	// 邮箱验证码：用途+邮箱 → 验证码；最近一次发送时间（重发节流）。
 	emailCodes    *cache.Cache[string, expiring[string]]
@@ -279,7 +281,11 @@ type PassportUsecase struct {
 	totpUsed      *cache.Cache[string, int64]
 	// OIDC 授权码。
 	oidcCodes *cache.Cache[string, expiring[oidcCode]]
+	// 客户端日志上传：游戏账号（服务器+pid）→ 最近一小时内各次上传的时间。
+	clientLogRate *cache.Cache[string, []time.Time]
+	clientLogMu   sync.Mutex
 
+	// bindLocks 串行化同一服务器上的绑定（键为服务器 id），以及同一用户在同一服务器上的新建游戏账号（键为用户 id + 服务器 id）。
 	bindLocks sync.Map
 	// selfServiceLocks 串行化同一玩家同一自助操作，避免并发绕过次数限制。
 	selfServiceLocks sync.Map
@@ -300,11 +306,12 @@ type failCount struct {
 	First time.Time
 }
 
-func NewPassportUsecase(servers *GameServerUsecase, records GmRepo, codes GameOpsRepo, repo PassportRepo, config ConfigRepo, configUc *ConfigUsecase, system *SystemUsecase, logger log.Logger) *PassportUsecase {
+func NewPassportUsecase(servers *GameServerUsecase, records GmRepo, codes GameOpsRepo, clientLogs GameClientLogRepo, repo PassportRepo, config ConfigRepo, configUc *ConfigUsecase, system *SystemUsecase, logger log.Logger) *PassportUsecase {
 	uc := &PassportUsecase{
 		servers:       servers,
 		records:       records,
 		codes:         codes,
+		clientLogs:    clientLogs,
 		repo:          repo,
 		config:        config,
 		configUc:      configUc,
@@ -318,6 +325,7 @@ func NewPassportUsecase(servers *GameServerUsecase, records GmRepo, codes GameOp
 		totpPending:   cache.New[string, expiring[string]](15 * time.Minute),
 		totpUsed:      cache.New[string, int64](5 * time.Minute),
 		oidcCodes:     cache.New[string, expiring[oidcCode]](10 * time.Minute),
+		clientLogRate: cache.New[string, []time.Time](clientLogRateWindow),
 	}
 	go uc.deletionLoop()
 	return uc

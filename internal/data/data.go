@@ -42,6 +42,7 @@ var ProviderSet = wire.NewSet(
 	NewGameServerRepo,
 	NewGmRepo,
 	NewGameOpsRepo,
+	NewGameClientLogRepo,
 	NewPassportRepo,
 )
 

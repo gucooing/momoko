@@ -16,6 +16,7 @@ import (
 	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/gameaccountlink"
 	"momoko/internal/data/ent/gen/gameaccountunlink"
+	"momoko/internal/data/ent/gen/gameclientlog"
 	"momoko/internal/data/ent/gen/gameconfigrevision"
 	"momoko/internal/data/ent/gen/gamemail"
 	"momoko/internal/data/ent/gen/gamerecentserver"
@@ -133,6 +134,7 @@ func checkColumn(t, c string) error {
 			frptunnelstat.Table:      frptunnelstat.ValidColumn,
 			gameaccountlink.Table:    gameaccountlink.ValidColumn,
 			gameaccountunlink.Table:  gameaccountunlink.ValidColumn,
+			gameclientlog.Table:      gameclientlog.ValidColumn,
 			gameconfigrevision.Table: gameconfigrevision.ValidColumn,
 			gamemail.Table:           gamemail.ValidColumn,
 			gamerecentserver.Table:   gamerecentserver.ValidColumn,

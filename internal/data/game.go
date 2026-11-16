@@ -11,6 +11,7 @@ import (
 	"momoko/internal/data/ent/gen"
 	entlink "momoko/internal/data/ent/gen/gameaccountlink"
 	entunlink "momoko/internal/data/ent/gen/gameaccountunlink"
+	entclientlog "momoko/internal/data/ent/gen/gameclientlog"
 	entrevision "momoko/internal/data/ent/gen/gameconfigrevision"
 	entmail "momoko/internal/data/ent/gen/gamemail"
 	entrecent "momoko/internal/data/ent/gen/gamerecentserver"
@@ -38,6 +39,10 @@ func (r *gameServerRepo) Get(ctx context.Context, id string) (*gen.GameServer, e
 
 func (r *gameServerRepo) List(ctx context.Context) ([]*gen.GameServer, error) {
 	return r.data.db.GameServer.Query().Order(entgameserver.ByCreateTime()).All(ctx)
+}
+
+func (r *gameServerRepo) ListByKeyID(ctx context.Context, keyID string) ([]*gen.GameServer, error) {
+	return r.data.db.GameServer.Query().Where(entgameserver.KeyID(keyID)).Order(entgameserver.ByCreateTime()).All(ctx)
 }
 
 func (r *gameServerRepo) Create(ctx context.Context, s *gen.GameServer) (*gen.GameServer, error) {
@@ -125,6 +130,9 @@ func (r *gameServerRepo) Delete(ctx context.Context, id string) error {
 			return err
 		}
 		if _, err := tx.GameServerBackup.Delete().Where(entbackup.ServerID(id)).Exec(ctx); err != nil {
+			return err
+		}
+		if _, err := tx.GameClientLog.Delete().Where(entclientlog.ServerID(id)).Exec(ctx); err != nil {
 			return err
 		}
 		return tx.GameServer.DeleteOneID(id).Exec(ctx)

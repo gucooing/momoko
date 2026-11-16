@@ -342,6 +342,34 @@ var (
 			},
 		},
 	}
+	// GameClientLogsColumns holds the columns for the "game_client_logs" table.
+	GameClientLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "server_id", Type: field.TypeString},
+		{Name: "player_id", Type: field.TypeString},
+		{Name: "reason", Type: field.TypeString, Default: ""},
+		{Name: "summary", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "note", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "device", Type: field.TypeString, Default: ""},
+		{Name: "client_version", Type: field.TypeString, Default: ""},
+		{Name: "size", Type: field.TypeInt, Default: 0},
+		{Name: "content", Type: field.TypeBytes, SchemaType: map[string]string{"mysql": "longblob"}},
+		{Name: "occurred_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// GameClientLogsTable holds the schema information for the "game_client_logs" table.
+	GameClientLogsTable = &schema.Table{
+		Name:       "game_client_logs",
+		Columns:    GameClientLogsColumns,
+		PrimaryKey: []*schema.Column{GameClientLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "gameclientlog_server_id_player_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{GameClientLogsColumns[1], GameClientLogsColumns[2], GameClientLogsColumns[11]},
+			},
+		},
+	}
 	// GameConfigRevisionsColumns holds the columns for the "game_config_revisions" table.
 	GameConfigRevisionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -1828,6 +1856,7 @@ var (
 		FrpTunnelStatsTable,
 		GameAccountLinksTable,
 		GameAccountUnlinksTable,
+		GameClientLogsTable,
 		GameConfigRevisionsTable,
 		GameMailsTable,
 		GameRecentServersTable,

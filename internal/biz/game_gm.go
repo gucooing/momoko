@@ -110,21 +110,24 @@ type GmRepo interface {
 	FindLinksByUser(ctx context.Context, serverID, q string, limit int) ([]*GmLink, error)
 }
 
-// GmUsecase GM 运营（管理端）的通用部分：操作执行与审计（GM 记录）、审批、玩家自助规则的设置、配置文档的草稿与版本。
-// 游戏特有的操作与配置文档由游戏的用例（学マス：GakumasUsecase）给出；玩家自助的执行在通行证一侧（PassportUsecase）。
+// GmUsecase GM 运营（管理端）的通用部分：操作执行与审计（GM 记录）、审批、玩家自助规则的设置、配置文档的草稿与版本、
+// 玩家上传的客户端日志（game_client_log.go）。
+// 游戏特有的操作与配置文档由游戏的用例（学マス：GakumasUsecase）给出；玩家自助的执行与客户端日志的上传在通行证一侧（PassportUsecase）。
 type GmUsecase struct {
-	servers *GameServerUsecase
-	repo    GmRepo
-	users   UserRepo
-	log     *log.Helper
+	servers    *GameServerUsecase
+	repo       GmRepo
+	clientLogs GameClientLogRepo
+	users      UserRepo
+	log        *log.Helper
 }
 
-func NewGmUsecase(servers *GameServerUsecase, repo GmRepo, users UserRepo, logger log.Logger) *GmUsecase {
+func NewGmUsecase(servers *GameServerUsecase, repo GmRepo, clientLogs GameClientLogRepo, users UserRepo, logger log.Logger) *GmUsecase {
 	return &GmUsecase{
-		servers: servers,
-		repo:    repo,
-		users:   users,
-		log:     log.NewHelper(log.With(logger, "module", "biz/game_gm")),
+		servers:    servers,
+		repo:       repo,
+		clientLogs: clientLogs,
+		users:      users,
+		log:        log.NewHelper(log.With(logger, "module", "biz/game_gm")),
 	}
 }
 

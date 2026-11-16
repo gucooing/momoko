@@ -79,8 +79,9 @@ export const listActivity = (limit = 10) => http.get<ListPassportActivityRespons
 export const listLinks = () => http.get<ListPassportLinksResponse>('/links')
 export const setPrimaryLink = (id: string) => http.post<unknown>(`/links/${seg(id)}/primary`)
 export const unbindLink = (id: string) => http.post<unknown>(`/links/${seg(id)}/unbind`)
-export const searchBindServers = (q: string, game = '') =>
-  http.get<SearchPassportBindServersResponse>('/bind/servers', { q, game })
+/** 绑定页选服务器；serverId 为授权页指定的服务器（对你可见时在 target 里返回）。 */
+export const searchBindServers = (q: string, game = '', serverId = '') =>
+  http.get<SearchPassportBindServersResponse>('/bind/servers', { q, game, serverId })
 export const bindAccount = (req: BindPassportAccountRequest) => http.post<PassportLink>('/bind', req)
 
 // ---------- 游戏空间 ----------

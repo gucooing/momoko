@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "v1/game_common.proto";
 
-// GM 运营的通用部分（权限 game:gm）：服务器上下文、GM 记录与审批、玩家自助设置。
+// GM 运营的通用部分（权限 game:gm）：服务器上下文、GM 记录与审批、玩家自助设置、玩家上传的客户端日志。
 // 各游戏特有的查询与操作（玩家数据、目录、配置文档、发奖等）由游戏模块的服务提供（学マス：GakumasGMService）。
 service GameGMService {
   // 搜索可运营的服务器（搜索 + 最近查看，最多 20 条）
@@ -62,6 +62,25 @@ service GameGMService {
     option (google.api.http) = {
       put: "/api/v1/game/gm/{server_id}/self-service/{command}"
       body: "*"
+    };
+  }
+
+  // 玩家的游戏客户端上传的错误日志（每个游戏账号保留最新 5 份，从新到旧，不含日志内容）
+  rpc ListGmClientLogs(ListGmClientLogsRequest) returns (ListGmClientLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/players/{pid}/client-logs"
+    };
+  }
+  // 一份客户端日志（含解压后的日志内容）
+  rpc GetGmClientLog(GmClientLogRequest) returns (GmClientLog) {
+    option (google.api.http) = {
+      get: "/api/v1/game/gm/{server_id}/players/{pid}/client-logs/{id}"
+    };
+  }
+  // 删除一份客户端日志
+  rpc DeleteGmClientLog(GmClientLogRequest) returns (DeleteGmClientLogResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/game/gm/{server_id}/players/{pid}/client-logs/{id}"
     };
   }
 }
@@ -333,3 +352,44 @@ message ListGmConfigRevisionsResponse {
   int32 total = 2;
 }
 
+// 游戏客户端上传的一份错误日志。
+message GmClientLog {
+  string id = 1;
+  // 上传原因：exception / error / crash / fatal / login / sdk / manual
+  string reason = 2;
+  // 摘要
+  string summary = 3;
+  // 玩家填写的说明
+  string note = 4;
+  // 设备
+  string device = 5;
+  // 客户端版本
+  string client_version = 6;
+  // 日志原文大小（字节，未压缩）
+  int32 size = 7;
+  // 客户端记录日志的时间
+  google.protobuf.Timestamp occurred_at = 8;
+  // 上传时间
+  google.protobuf.Timestamp created_at = 9;
+  // 日志原文（只在单份日志接口返回）
+  string content = 10;
+}
+
+message ListGmClientLogsRequest {
+  string server_id = 1;
+  // 玩家 pid
+  string pid = 2;
+}
+
+message ListGmClientLogsResponse {
+  // 从新到旧
+  repeated GmClientLog items = 1;
+}
+
+message GmClientLogRequest {
+  string server_id = 1;
+  string pid = 2;
+  string id = 3;
+}
+
+message DeleteGmClientLogResponse {}

@@ -39,7 +39,7 @@
 ### 2.1 用户通行证 server（新增）
 
 - 在 Momoko 进程里另起一个 Kratos HTTP server。配置：`passport.enabled`（默认 true）、`passport.addr`（默认 `0.0.0.0:22634`）、`passport.public_url`（OIDC issuer、邮件链接用）。
-- 只注册玩家能用的服务：`passport.v1`（注册、登录、找回密码、两步验证、登录设备、授权的应用、OIDC Provider（游戏 SDK「用户通行证登录」走这里）、绑定 / 解绑游戏账号、游戏空间的服务器与绑定、自助服务规则、我的申请、操作记录、兑换码、消息）和各游戏的通行证服务（学マス：`v1.gakumas.GakumasPassportService`，查看自己的游戏数据、目录、执行开放给玩家的操作）。注册到这个 server 的接口就是玩家能访问的全部接口：玩家不该用的接口不注册，不在处理函数里另加限制。
+- 只注册玩家能用的服务：`passport.v1`（注册、登录、找回密码、两步验证、登录设备、授权的应用、OIDC Provider（游戏 SDK「用户通行证登录」走这里；应用关联了游戏服务器时，玩家同意授权前要在那台服务器绑定已有游戏账号或在授权页新建一个，令牌与 userinfo 带 `game_server_id`、`game_player_id`）、绑定 / 解绑游戏账号、游戏空间的服务器与绑定、自助服务规则、我的申请、操作记录、兑换码、消息、游戏客户端错误日志的上传（不用通行证令牌，凭游戏服务端签发的上传票据））和各游戏的通行证服务（学マス：`v1.gakumas.GakumasPassportService`，查看自己的游戏数据、目录、执行开放给玩家的操作）。注册到这个 server 的接口就是玩家能访问的全部接口：玩家不该用的接口不注册，不在处理函数里另加限制。
 - 会话：独立 Cookie 名和 JWT `aud=passport`；主 server 拒绝 `aud=passport` 的令牌，passport server 拒绝后台令牌。CORS 各自配置。
 - 账号就是 Momoko 用户表里带「玩家」角色的用户（默认角色「玩家」没有任何后台菜单）。后台的「用户通行证」页管理这些用户。
 - 前端：独立的 Vite 入口（例如 `frontend/passport.html` + `frontend/src/passport/main.ts`，独立 router、独立 store），构建到 `dist/passport/`，passport server 只提供这一份静态产物（SPA 回退同主站）。和后台共享 `src/components/ui/*`、令牌和 `src/games/*`。
@@ -105,6 +105,8 @@
 
 另外运营功能需要的表（原型里有，SpecPC 的 GM 目录标了「需新增」）：邮件（`game_mail`：标题、正文、奖励、收件条件或名单、期限、定时、状态、领取统计）、兑换码（`gift_code_batch` / `gift_code` / `gift_code_redeem`）、公告（落在游戏服务端的 `data/Notice.json` 配置域，Momoko 只做编辑）。
 
+游戏客户端错误日志（`game_client_log`：server_id、player_id、reason、summary、note、device、client_version、size、content（日志原文的 gzip）、occurred_at、created_at）：游戏客户端凭游戏服务端用 MGP 密钥签发的上传票据传到通行证 server 的 `POST /api/v1/game-client-logs`，每个游戏账号每小时最多 30 份、只保留最新 5 份；管理端在玩家详情的「客户端日志」分页查看、下载与删除。
+
 ## 5. 页面、路由与要点
 
 管理端（主 server）。GM 运营按 IMPL_BRIEF 第 5 条「一个菜单 = 一个页面」：`/game/gm/:serverId?tab=…`，页头左侧是服务器切换（搜索型下拉），下面是子导航。
@@ -116,7 +118,7 @@
 | `GameServerPC` | `/game/servers/:id?tab=overview\|console\|settings\|update\|backup\|files\|logs` | 托管服务器复用应用实例的控制台、文件、日志；「专用设置」是适配器给的表单 |
 | `GkHomePC` | `?tab=home` | 只读：今日 KPI、活跃玩家与抽卡次数近 7/14 天（单系列图，无图例，悬停看数值）、卡池表现、需要留意、玩法与服务器概况、最近 GM 操作；每块只链接到对应页 |
 | `GkPlayersPC` | `?tab=players` | 玩家表、筛选、批量操作条（勾选后可直接发礼物、强制下线、封禁、解封，或带着勾选的玩家去 GM 操作页） |
-| `GkPlayerPC` | `/game/gm/:serverId/players/:pid?tab=…` | 玩家卡片的背景是玩家的资料名片（游戏里保存名片时上传的图片，`GetPlayerMeishiImage`；默认名片没有图片，这时右侧显示出借记忆的卡面）。分页：概览、偶像卡、支援卡、道具、礼物箱（GM 发出且未领取的可撤回）、抽卡记录、培育记录、记忆、竞赛（阵容 + 本赛季）、研修、登录会话（在线那条可强制下线）、存档备份、GM 记录；「发送礼物」是抽屉；「更多」里只有备份当前存档、回档到备份和去 GM 操作页的入口，其余操作都在 GM 操作页执行。偶像卡点开看详情（养成数值、持有的皮肤、这张卡保留的培育记录）；支援卡点开看详情并可「设为援助支援卡」；记忆与培育记录点开看记忆详情（培育 / 舞台 / 培育记录）并可「设为援助回忆」，两个设置都走操作对话框 |
+| `GkPlayerPC` | `/game/gm/:serverId/players/:pid?tab=…` | 玩家卡片的背景是玩家的资料名片（游戏里保存名片时上传的图片，`GetPlayerMeishiImage`；默认名片没有图片，这时右侧显示出借记忆的卡面）。分页：概览、偶像卡、支援卡、道具、礼物箱（GM 发出且未领取的可撤回）、抽卡记录、培育记录、记忆、竞赛（阵容 + 本赛季）、研修、登录会话（在线那条可强制下线）、存档备份、客户端日志（游戏客户端上传的错误日志：等宽查看器按关键字筛选行，下载为 .log，删除）、GM 记录；「发送礼物」是抽屉；「更多」里只有备份当前存档、回档到备份和去 GM 操作页的入口，其余操作都在 GM 操作页执行。偶像卡点开看详情（养成数值、持有的皮肤、这张卡保留的培育记录）；支援卡点开看详情并可「设为援助支援卡」；记忆与培育记录点开看记忆详情（培育 / 舞台 / 培育记录）并可「设为援助回忆」，两个设置都走操作对话框 |
 | `GkGashaPC` | `?tab=gasha` | 卡池列表 + 表单编辑（基本信息、UP 角色与卡牌、概率、抽卡按钮、交换点）、模拟抽卡、发布前检查；底部草稿条（查看改动 / 放弃 / 发布） |
 | `GkModesPC` | `?tab=modes` | 竞赛 PvP（排名 + 阵容）、培育（全体玩家列表）、研修、塔；tab 由 manifest 的 `modes`（已配置的玩法）决定 |
 | `GkCalendarPC` | `?tab=calendar` | 运营日历（卡池、活动、PvP 赛季泳道） |
@@ -133,7 +135,7 @@
 |---|---|---|
 | `PassportHomePC` / `PassportHomeMobile` | `/` | 先账号（资料、安全提醒），再「我的游戏」（按游戏分组，每个服务器一行），消息、最近活动 |
 | `PassportAccountPC` | `/account` | 个人资料、登录与安全、登录设备、授权的应用、游戏账号、注销 |
-| `PortalBindMobile` | `/bind` | 选服务器（搜索 + 按游戏筛选 + 推荐，不列出全部）→ 账号密码 / 绑定码 / 游戏内登录 |
+| `PortalBindMobile` | `/bind` | 选服务器（搜索 + 按游戏筛选 + 推荐，不列出全部）→ 账号密码 / 绑定码 / 游戏内登录；从授权页跳来时 `?server=` 预选那台服务器、`?redirect=`（站内路径）绑定后回到授权页 |
 | `GameHomePC` / `GameHomeMobile` | `/games/:serverId` | 游戏空间，用游戏皮肤；页头是服务器名和「切换服务器」，背景是我的资料名片（`GetMyMeishiImage`；默认名片没有图片时用头像偶像卡的卡面） |
 | `GameCardsPC` `GameGiftsPC` `GameRecordsPC` `GameSelfPC` | `/games/:serverId?tab=cards\|gifts\|records\|self` | 卡牌（稀有度、偶像与关键字筛选；偶像卡详情列出持有的皮肤与培育记录，支援卡详情可设为援助）、礼物箱、记录（抽卡 / コンテスト / 培育 / 研修；培育记录点开看记忆详情并可设为援助回忆）、自助服务（操作卡片带规则、兑换码、我的申请、操作记录） |
 

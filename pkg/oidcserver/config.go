@@ -26,6 +26,8 @@ type ProviderConfig struct {
 	AccessTokenTTLSeconds       int64
 	IDTokenTTLSeconds           int64
 	AuthorizationCodeTTLSeconds int64
+	// ExtraClaims 标准声明之外会签发的声明（写进 Discovery 的 claims_supported）
+	ExtraClaims []string
 }
 
 type Endpoints struct {
@@ -104,7 +106,7 @@ func Discovery(config ProviderConfig, endpoints Endpoints) map[string]any {
 		"token_endpoint_auth_methods_supported": []string{"client_secret_basic", "client_secret_post"},
 		"grant_types_supported":                 []string{"authorization_code"},
 		"scopes_supported":                      []string{"openid", "email", "profile"},
-		"claims_supported":                      []string{"sub", "name", "preferred_username", "email"},
+		"claims_supported":                      append([]string{"sub", "name", "preferred_username", "email"}, config.ExtraClaims...),
 		"code_challenge_methods_supported":      []string{"plain", "S256"},
 	}
 }

@@ -7,10 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/pkg/common"
+	"momoko/pkg/mgp"
+	"momoko/pkg/mgp/gakumas"
 	"momoko/pkg/oidcserver"
 )
 
@@ -18,6 +23,23 @@ import (
 // 这里只编排通行证用户、通行证自己的客户端（passport_oidc_clients）与授权记录（passport_oidc_grants）。
 // 签名密钥独立于管理后台的 OIDC。端点挂在通行证 server 上：/.well-known/openid-configuration、
 // /oidc/authorize（前端授权页）、/api/v1/oidc/token、/api/v1/oidc/userinfo、/api/v1/oidc/jwks。
+//
+// 应用关联了游戏服务器（passport_oidc_clients.server_id）时，由 Momoko 决定用户在那台服务器上玩哪个游戏账号：
+// 同意授权前用户要在那台服务器上有绑定的游戏账号（绑定已有账号，或授权时新建一个并以 oidc 方式绑定），
+// ID Token、Access Token 与 userinfo 带上 game_server_id 与 game_player_id（绑定的 MGP pid），游戏服务端据此登录。
+
+// 应用关联了游戏服务器、用户在那台服务器上有绑定时签发的声明。
+const (
+	OidcClaimGameServerID = "game_server_id"
+	OidcClaimGamePlayerID = "game_player_id"
+)
+
+// 授权页上不能新建游戏账号的原因（game_account_reason）。
+const (
+	oidcGameUnsupported = "unsupported"
+	oidcGameNotVisible  = "not_visible"
+	oidcGameCooldown    = "cooldown"
+)
 
 type oidcCode struct {
 	oidcserver.AuthorizationCode
@@ -125,7 +147,57 @@ func (uc *PassportUsecase) oidcClientFor(ctx context.Context, req *v1.PassportOi
 	return cl, nil
 }
 
-// OidcAuthorization 授权确认页的应用信息。
+// oidcServer 应用关联的游戏服务器（服务器已删除时为 nil）。
+func (uc *PassportUsecase) oidcServer(ctx context.Context, cl *gen.PassportOidcClient) (*gen.GameServer, error) {
+	s, err := uc.Servers().Get(ctx, cl.ServerID)
+	if errors.Is(err, ErrGameServerNotFound) {
+		return nil, nil
+	}
+	return s, err
+}
+
+// oidcGameLink 用户在服务器上有效的游戏账号绑定（没有时为 nil）。
+func (uc *PassportUsecase) oidcGameLink(ctx context.Context, userID, serverID string) (*gen.GameAccountLink, error) {
+	l, err := uc.repo.LinkOf(ctx, userID, serverID)
+	if gen.IsNotFound(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if l.PlayerID == "" {
+		return nil, nil
+	}
+	return l, nil
+}
+
+// oidcGameAccountBlock 为用户在服务器上新建游戏账号的限制，与绑定相同：学マス 且接入了 MGP、服务器对用户可见、
+// 不在解绑冷却中（冷却中只能绑回原来的账号）。返回空串表示可以新建；冷却中同时返回冷却结束时间。
+func (uc *PassportUsecase) oidcGameAccountBlock(ctx context.Context, u *gen.PassportUser, s *gen.GameServer) (string, *time.Time) {
+	if s == nil || s.Game != gakumas.ID || !MGPConfigured(s) {
+		return oidcGameUnsupported, nil
+	}
+	if visible, _ := passportVisible(s, "", uc.inviteServer(ctx, u)); !visible {
+		return oidcGameNotVisible, nil
+	}
+	if until, _ := uc.cooldownUntil(ctx, u.ID, s.ID); until != nil {
+		return oidcGameCooldown, until
+	}
+	return "", nil
+}
+
+func oidcGameAccountProto(l *gen.GameAccountLink) *v1.PassportOidcGameAccount {
+	return &v1.PassportOidcGameAccount{
+		PlayerId:    l.PlayerID,
+		DisplayId:   l.DisplayID,
+		Nickname:    l.Nickname,
+		Level:       int32(l.Level),
+		Account:     l.Account,
+		AvatarAsset: l.AvatarAsset,
+	}
+}
+
+// OidcAuthorization 授权确认页的应用信息；应用关联了游戏服务器时带上用户在那台服务器上的游戏账号状态。
 func (uc *PassportUsecase) OidcAuthorization(ctx context.Context, userID string, req *v1.PassportOidcAuthorizeRequest) (*v1.PassportOidcAuthorizationInfo, error) {
 	cl, err := uc.oidcClientFor(ctx, req)
 	if err != nil {
@@ -140,8 +212,31 @@ func (uc *PassportUsecase) OidcAuthorization(ctx context.Context, userID string,
 		Scopes:      scopes,
 	}
 	if cl.ServerID != "" {
-		if s, err := uc.Servers().Get(ctx, cl.ServerID); err == nil {
+		s, err := uc.oidcServer(ctx, cl)
+		if err != nil {
+			return nil, err
+		}
+		if s != nil {
 			out.Server = uc.Servers().Brief(ctx, s)
+		}
+		l, err := uc.oidcGameLink(ctx, userID, cl.ServerID)
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
+		if l != nil {
+			out.GameAccount = oidcGameAccountProto(l)
+		} else {
+			u, err := uc.user(ctx, userID)
+			if err != nil {
+				return nil, err
+			}
+			reason, until := uc.oidcGameAccountBlock(ctx, u, s)
+			out.GameAccountRequired = true
+			out.GameAccountCreatable = reason == ""
+			out.GameAccountReason = reason
+			if until != nil {
+				out.GameAccountCooldownUntil = timestamppb.New(*until)
+			}
 		}
 	}
 	if g, err := uc.repo.GetGrant(ctx, userID, cl.ID); err == nil && g != nil && covers(g.Scopes, scopes) {
@@ -151,6 +246,7 @@ func (uc *PassportUsecase) OidcAuthorization(ctx context.Context, userID string,
 }
 
 // OidcApprove 同意授权：记录授权并生成授权码，返回应用的回调地址。
+// 应用关联了游戏服务器时，用户在那台服务器上要有绑定的游戏账号；没有时 create_game_account 为 true 则先新建一个。
 func (uc *PassportUsecase) OidcApprove(ctx context.Context, userID, issuer string, req *v1.PassportOidcAuthorizeRequest) (string, error) {
 	cl, err := uc.oidcClientFor(ctx, req)
 	if err != nil {
@@ -158,6 +254,11 @@ func (uc *PassportUsecase) OidcApprove(ctx context.Context, userID, issuer strin
 	}
 	if _, err := OidcEndpoints(issuer); err != nil {
 		return "", ErrPassportOidcRequest
+	}
+	if cl.ServerID != "" {
+		if err := uc.oidcEnsureGameAccount(ctx, userID, cl, req.CreateGameAccount); err != nil {
+			return "", err
+		}
 	}
 	scopes := scopeSet(req.Scope)
 	if g, err := uc.repo.GetGrant(ctx, userID, cl.ID); err == nil && g != nil {
@@ -192,6 +293,66 @@ func (uc *PassportUsecase) OidcApprove(ctx context.Context, userID, issuer strin
 	return oidcserver.BuildAuthorizeRedirect(req.RedirectUri, code, req.State), nil
 }
 
+// oidcEnsureGameAccount 用户在应用关联的服务器上有绑定的游戏账号时直接通过；没有时 create 为 false 返回
+// ErrPassportOidcGameAccount，为 true 则按绑定的限制经 MGP 新建一个游戏账号（执行者为通行证显示名，新的幂等键）
+// 并以 oidc 方式绑定。同一用户在同一服务器上的新建串行执行，并发的两次同意只建一个账号。
+func (uc *PassportUsecase) oidcEnsureGameAccount(ctx context.Context, userID string, cl *gen.PassportOidcClient, create bool) error {
+	if l, err := uc.oidcGameLink(ctx, userID, cl.ServerID); err != nil {
+		return ErrSystem(err)
+	} else if l != nil {
+		return nil
+	}
+	if !create {
+		return ErrPassportOidcGameAccount
+	}
+	u, err := uc.user(ctx, userID)
+	if err != nil {
+		return err
+	}
+	s, err := uc.oidcServer(ctx, cl)
+	if err != nil {
+		return err
+	}
+	lock := uc.bindLock(userID + "\x00" + cl.ServerID)
+	lock.Lock()
+	defer lock.Unlock()
+	if l, err := uc.oidcGameLink(ctx, userID, cl.ServerID); err != nil {
+		return ErrSystem(err)
+	} else if l != nil {
+		return nil
+	}
+	switch reason, _ := uc.oidcGameAccountBlock(ctx, u, s); reason {
+	case oidcGameUnsupported:
+		return ErrPassportBindUnsupported
+	case oidcGameNotVisible:
+		return ErrPassportServerNotBindable
+	case oidcGameCooldown:
+		return ErrPassportBindCooldown
+	}
+	client, err := uc.Servers().Client(s)
+	if err != nil {
+		return ErrPassportBindUnsupported
+	}
+	p, err := gakumas.New(client).CreateAccount(ctx, mgp.OperationOptions{
+		Operator:       displayName(u),
+		IdempotencyKey: "passport-" + uuid.NewString(),
+	})
+	if err != nil {
+		if mgp.IsUnreachable(err) {
+			return ErrPassportGameUnavailable
+		}
+		return GameMGPError(err)
+	}
+	if p.GetPid() == "" {
+		return ErrPassportGameUnavailable
+	}
+	if _, err := uc.createLink(ctx, u, s, p, PassportBindOIDC); err != nil {
+		uc.log.Errorf("oidc: game account %s created on server %s but not linked to passport user %s: %v", p.GetPid(), s.ID, u.ID, err)
+		return err
+	}
+	return nil
+}
+
 func mergeScopes(a, b []string) []string {
 	seen := map[string]bool{}
 	var out []string
@@ -204,7 +365,8 @@ func mergeScopes(a, b []string) []string {
 	return out
 }
 
-func (uc *PassportUsecase) userClaims(u *gen.PassportUser, scope string) oidcserver.UserClaims {
+// userClaims 按授权范围生成用户声明；应用关联了游戏服务器且用户在那台服务器上有绑定时，加上 game_server_id 与 game_player_id。
+func (uc *PassportUsecase) userClaims(ctx context.Context, u *gen.PassportUser, cl *gen.PassportOidcClient, scope string) (oidcserver.UserClaims, error) {
 	scopes := strings.Fields(scope)
 	has := func(s string) bool {
 		for _, x := range scopes {
@@ -222,7 +384,19 @@ func (uc *PassportUsecase) userClaims(u *gen.PassportUser, scope string) oidcser
 		verified := u.EmailVerified
 		c.Email, c.EmailVerified = u.Email, &verified
 	}
-	return c
+	if cl.ServerID != "" {
+		l, err := uc.oidcGameLink(ctx, u.ID, cl.ServerID)
+		if err != nil {
+			return c, err
+		}
+		if l != nil {
+			c.Extra = map[string]any{
+				OidcClaimGameServerID: cl.ServerID,
+				OidcClaimGamePlayerID: l.PlayerID,
+			}
+		}
+	}
+	return c, nil
 }
 
 // OidcDiscovery OpenID Provider Metadata。
@@ -234,7 +408,11 @@ func (uc *PassportUsecase) OidcDiscovery(ctx context.Context, issuer string) (ma
 	if err != nil {
 		return nil, oidcFail(500, "server_error", err)
 	}
-	return oidcserver.Discovery(oidcserver.ProviderConfig{Enabled: true, IssuerURL: ep.IssuerURL}, ep), nil
+	return oidcserver.Discovery(oidcserver.ProviderConfig{
+		Enabled:     true,
+		IssuerURL:   ep.IssuerURL,
+		ExtraClaims: []string{OidcClaimGameServerID, OidcClaimGamePlayerID},
+	}, ep), nil
 }
 
 // OidcJWKS 公钥集合。
@@ -288,7 +466,10 @@ func (uc *PassportUsecase) OidcToken(ctx context.Context, req oidcserver.TokenRe
 		return nil, oidcFail(500, "server_error", err)
 	}
 	cfg := oidcserver.ProviderConfig{}
-	claims := uc.userClaims(u, held.V.Scope)
+	claims, err := uc.userClaims(ctx, u, cl, held.V.Scope)
+	if err != nil {
+		return nil, oidcFail(500, "server_error", err)
+	}
 	access, expires, err := oidcserver.SignAccessToken(key, ep.IssuerURL, cl.ClientID, held.V.Scope, claims, oidcserver.AccessTokenTTL(cfg))
 	if err != nil {
 		return nil, oidcFail(500, "server_error", err)
@@ -337,7 +518,10 @@ func (uc *PassportUsecase) OidcUserinfo(ctx context.Context, token, issuer strin
 	if err != nil || u.Status != passportuser.StatusActive {
 		return nil, oidcFail(401, "invalid_token", oidcserver.ErrTokenInvalid)
 	}
-	c := uc.userClaims(u, claims.Scope)
+	c, err := uc.userClaims(ctx, u, cl, claims.Scope)
+	if err != nil {
+		return nil, oidcFail(500, "server_error", err)
+	}
 	return &oidcserver.UserinfoResponse{
 		Subject:           c.Subject,
 		Name:              c.Name,
@@ -345,5 +529,6 @@ func (uc *PassportUsecase) OidcUserinfo(ctx context.Context, token, issuer strin
 		Email:             c.Email,
 		Picture:           c.Picture,
 		EmailVerified:     c.EmailVerified,
+		Extra:             c.Extra,
 	}, nil
 }

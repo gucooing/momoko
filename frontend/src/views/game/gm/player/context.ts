@@ -16,7 +16,7 @@ export interface PlayerPage {
   run: (operation: string, initialParams?: Record<string, unknown>, summary?: Record<string, string>) => void
   /** 打开「发送礼物」抽屉 */
   openGift: () => void
-  /** 切换到某个分页（分页 id 或 gmlog） */
+  /** 切换到某个分页（分页 id、clientlogs 或 gmlog） */
   goto: (tab: string) => void
   hasTab: (tab: string) => boolean
   /** 重新读取玩家摘要 */
@@ -36,5 +36,6 @@ export function usePlayerPage(): PlayerPage {
   return page
 }
 
-/** 玩家分页的固定标签：Momoko 自己的 GM 记录。 */
+/** 玩家分页的固定标签：Momoko 自己的客户端日志与 GM 记录。 */
+export const CLIENT_LOG_TAB = 'clientlogs'
 export const GM_LOG_TAB = 'gmlog'

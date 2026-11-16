@@ -114,6 +114,21 @@ func (s *GameGMService) UpdateGmSelfService(ctx context.Context, req *v1.UpdateG
 	return s.gakumas.UpdateSelfService(ctx, actor, req)
 }
 
+func (s *GameGMService) ListGmClientLogs(ctx context.Context, req *v1.ListGmClientLogsRequest) (*v1.ListGmClientLogsResponse, error) {
+	return s.gm.ListClientLogs(ctx, req.ServerId, req.Pid)
+}
+
+func (s *GameGMService) GetGmClientLog(ctx context.Context, req *v1.GmClientLogRequest) (*v1.GmClientLog, error) {
+	return s.gm.GetClientLog(ctx, req.ServerId, req.Pid, req.Id)
+}
+
+func (s *GameGMService) DeleteGmClientLog(ctx context.Context, req *v1.GmClientLogRequest) (*v1.DeleteGmClientLogResponse, error) {
+	if err := s.gm.DeleteClientLog(ctx, req.ServerId, req.Pid, req.Id); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteGmClientLogResponse{}, nil
+}
+
 // GmEventsPrefix GM 实时动态（SSE）：/api/v1/game/gm-events/{serverId}，转发游戏服务端 MGP /events。
 // 原始 HTTP 路由不经 operation 中间件，这里自行校验 game:gm 权限。
 const GmEventsPrefix = "/api/v1/game/gm-events/"

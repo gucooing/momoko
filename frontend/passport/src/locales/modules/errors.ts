@@ -54,6 +54,7 @@ export default {
       PASSPORT_OIDC_INVALID_REQUEST: '登录请求不完整',
       PASSPORT_OIDC_INVALID_REDIRECT: '应用的回调地址不正确',
       PASSPORT_OIDC_INVALID_SCOPE: '应用申请的权限不被允许',
+      PASSPORT_OIDC_GAME_ACCOUNT_REQUIRED: '请先绑定已有的游戏账号，或新建一个游戏账号',
     },
   },
   'zh-HK': {
@@ -110,6 +111,7 @@ export default {
       PASSPORT_OIDC_INVALID_REQUEST: '登入請求不完整',
       PASSPORT_OIDC_INVALID_REDIRECT: '應用程式的回調地址不正確',
       PASSPORT_OIDC_INVALID_SCOPE: '應用程式申請的權限不獲允許',
+      PASSPORT_OIDC_GAME_ACCOUNT_REQUIRED: '請先綁定現有的遊戲帳戶，或建立一個遊戲帳戶',
     },
   },
   'en-US': {
@@ -166,6 +168,7 @@ export default {
       PASSPORT_OIDC_INVALID_REQUEST: 'The sign-in request is incomplete',
       PASSPORT_OIDC_INVALID_REDIRECT: 'The app callback address is not valid',
       PASSPORT_OIDC_INVALID_SCOPE: 'The app asked for permissions that are not allowed',
+      PASSPORT_OIDC_GAME_ACCOUNT_REQUIRED: 'Bind an existing game account or create a new one first',
     },
   },
 }

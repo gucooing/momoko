@@ -13,6 +13,7 @@ import (
 	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/gameaccountlink"
 	"momoko/internal/data/ent/gen/gameaccountunlink"
+	"momoko/internal/data/ent/gen/gameclientlog"
 	"momoko/internal/data/ent/gen/gameconfigrevision"
 	"momoko/internal/data/ent/gen/gamemail"
 	"momoko/internal/data/ent/gen/gamerecentserver"
@@ -417,6 +418,48 @@ func init() {
 	gameaccountunlinkDescID := gameaccountunlinkFields[0].Descriptor()
 	// gameaccountunlink.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	gameaccountunlink.IDValidator = gameaccountunlinkDescID.Validators[0].(func(string) error)
+	gameclientlogFields := schema.GameClientLog{}.Fields()
+	_ = gameclientlogFields
+	// gameclientlogDescServerID is the schema descriptor for server_id field.
+	gameclientlogDescServerID := gameclientlogFields[1].Descriptor()
+	// gameclientlog.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
+	gameclientlog.ServerIDValidator = gameclientlogDescServerID.Validators[0].(func(string) error)
+	// gameclientlogDescPlayerID is the schema descriptor for player_id field.
+	gameclientlogDescPlayerID := gameclientlogFields[2].Descriptor()
+	// gameclientlog.PlayerIDValidator is a validator for the "player_id" field. It is called by the builders before save.
+	gameclientlog.PlayerIDValidator = gameclientlogDescPlayerID.Validators[0].(func(string) error)
+	// gameclientlogDescReason is the schema descriptor for reason field.
+	gameclientlogDescReason := gameclientlogFields[3].Descriptor()
+	// gameclientlog.DefaultReason holds the default value on creation for the reason field.
+	gameclientlog.DefaultReason = gameclientlogDescReason.Default.(string)
+	// gameclientlogDescSummary is the schema descriptor for summary field.
+	gameclientlogDescSummary := gameclientlogFields[4].Descriptor()
+	// gameclientlog.DefaultSummary holds the default value on creation for the summary field.
+	gameclientlog.DefaultSummary = gameclientlogDescSummary.Default.(string)
+	// gameclientlogDescNote is the schema descriptor for note field.
+	gameclientlogDescNote := gameclientlogFields[5].Descriptor()
+	// gameclientlog.DefaultNote holds the default value on creation for the note field.
+	gameclientlog.DefaultNote = gameclientlogDescNote.Default.(string)
+	// gameclientlogDescDevice is the schema descriptor for device field.
+	gameclientlogDescDevice := gameclientlogFields[6].Descriptor()
+	// gameclientlog.DefaultDevice holds the default value on creation for the device field.
+	gameclientlog.DefaultDevice = gameclientlogDescDevice.Default.(string)
+	// gameclientlogDescClientVersion is the schema descriptor for client_version field.
+	gameclientlogDescClientVersion := gameclientlogFields[7].Descriptor()
+	// gameclientlog.DefaultClientVersion holds the default value on creation for the client_version field.
+	gameclientlog.DefaultClientVersion = gameclientlogDescClientVersion.Default.(string)
+	// gameclientlogDescSize is the schema descriptor for size field.
+	gameclientlogDescSize := gameclientlogFields[8].Descriptor()
+	// gameclientlog.DefaultSize holds the default value on creation for the size field.
+	gameclientlog.DefaultSize = gameclientlogDescSize.Default.(int)
+	// gameclientlogDescCreatedAt is the schema descriptor for created_at field.
+	gameclientlogDescCreatedAt := gameclientlogFields[11].Descriptor()
+	// gameclientlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	gameclientlog.DefaultCreatedAt = gameclientlogDescCreatedAt.Default.(func() time.Time)
+	// gameclientlogDescID is the schema descriptor for id field.
+	gameclientlogDescID := gameclientlogFields[0].Descriptor()
+	// gameclientlog.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	gameclientlog.IDValidator = gameclientlogDescID.Validators[0].(func(string) error)
 	gameconfigrevisionMixin := schema.GameConfigRevision{}.Mixin()
 	gameconfigrevisionMixinFields0 := gameconfigrevisionMixin[0].Fields()
 	_ = gameconfigrevisionMixinFields0

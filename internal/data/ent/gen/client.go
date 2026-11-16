@@ -21,6 +21,7 @@ import (
 	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/gameaccountlink"
 	"momoko/internal/data/ent/gen/gameaccountunlink"
+	"momoko/internal/data/ent/gen/gameclientlog"
 	"momoko/internal/data/ent/gen/gameconfigrevision"
 	"momoko/internal/data/ent/gen/gamemail"
 	"momoko/internal/data/ent/gen/gamerecentserver"
@@ -96,6 +97,8 @@ type Client struct {
 	GameAccountLink *GameAccountLinkClient
 	// GameAccountUnlink is the client for interacting with the GameAccountUnlink builders.
 	GameAccountUnlink *GameAccountUnlinkClient
+	// GameClientLog is the client for interacting with the GameClientLog builders.
+	GameClientLog *GameClientLogClient
 	// GameConfigRevision is the client for interacting with the GameConfigRevision builders.
 	GameConfigRevision *GameConfigRevisionClient
 	// GameMail is the client for interacting with the GameMail builders.
@@ -199,6 +202,7 @@ func (c *Client) init() {
 	c.FrpTunnelStat = NewFrpTunnelStatClient(c.config)
 	c.GameAccountLink = NewGameAccountLinkClient(c.config)
 	c.GameAccountUnlink = NewGameAccountUnlinkClient(c.config)
+	c.GameClientLog = NewGameClientLogClient(c.config)
 	c.GameConfigRevision = NewGameConfigRevisionClient(c.config)
 	c.GameMail = NewGameMailClient(c.config)
 	c.GameRecentServer = NewGameRecentServerClient(c.config)
@@ -342,6 +346,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FrpTunnelStat:      NewFrpTunnelStatClient(cfg),
 		GameAccountLink:    NewGameAccountLinkClient(cfg),
 		GameAccountUnlink:  NewGameAccountUnlinkClient(cfg),
+		GameClientLog:      NewGameClientLogClient(cfg),
 		GameConfigRevision: NewGameConfigRevisionClient(cfg),
 		GameMail:           NewGameMailClient(cfg),
 		GameRecentServer:   NewGameRecentServerClient(cfg),
@@ -412,6 +417,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FrpTunnelStat:      NewFrpTunnelStatClient(cfg),
 		GameAccountLink:    NewGameAccountLinkClient(cfg),
 		GameAccountUnlink:  NewGameAccountUnlinkClient(cfg),
+		GameClientLog:      NewGameClientLogClient(cfg),
 		GameConfigRevision: NewGameConfigRevisionClient(cfg),
 		GameMail:           NewGameMailClient(cfg),
 		GameRecentServer:   NewGameRecentServerClient(cfg),
@@ -484,9 +490,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
-		c.GameAccountUnlink, c.GameConfigRevision, c.GameMail, c.GameRecentServer,
-		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
-		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
+		c.GameAccountUnlink, c.GameClientLog, c.GameConfigRevision, c.GameMail,
+		c.GameRecentServer, c.GameServer, c.GameServerBackup, c.GameServerHistory,
+		c.GiftCode, c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
 		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
 		c.Menu, c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog,
 		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportOidcClient,
@@ -505,9 +511,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
-		c.GameAccountUnlink, c.GameConfigRevision, c.GameMail, c.GameRecentServer,
-		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
-		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
+		c.GameAccountUnlink, c.GameClientLog, c.GameConfigRevision, c.GameMail,
+		c.GameRecentServer, c.GameServer, c.GameServerBackup, c.GameServerHistory,
+		c.GiftCode, c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
 		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
 		c.Menu, c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog,
 		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportOidcClient,
@@ -543,6 +549,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.GameAccountLink.mutate(ctx, m)
 	case *GameAccountUnlinkMutation:
 		return c.GameAccountUnlink.mutate(ctx, m)
+	case *GameClientLogMutation:
+		return c.GameClientLog.mutate(ctx, m)
 	case *GameConfigRevisionMutation:
 		return c.GameConfigRevision.mutate(ctx, m)
 	case *GameMailMutation:
@@ -2053,6 +2061,139 @@ func (c *GameAccountUnlinkClient) mutate(ctx context.Context, m *GameAccountUnli
 		return (&GameAccountUnlinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown GameAccountUnlink mutation op: %q", m.Op())
+	}
+}
+
+// GameClientLogClient is a client for the GameClientLog schema.
+type GameClientLogClient struct {
+	config
+}
+
+// NewGameClientLogClient returns a client for the GameClientLog from the given config.
+func NewGameClientLogClient(c config) *GameClientLogClient {
+	return &GameClientLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `gameclientlog.Hooks(f(g(h())))`.
+func (c *GameClientLogClient) Use(hooks ...Hook) {
+	c.hooks.GameClientLog = append(c.hooks.GameClientLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `gameclientlog.Intercept(f(g(h())))`.
+func (c *GameClientLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.GameClientLog = append(c.inters.GameClientLog, interceptors...)
+}
+
+// Create returns a builder for creating a GameClientLog entity.
+func (c *GameClientLogClient) Create() *GameClientLogCreate {
+	mutation := newGameClientLogMutation(c.config, OpCreate)
+	return &GameClientLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of GameClientLog entities.
+func (c *GameClientLogClient) CreateBulk(builders ...*GameClientLogCreate) *GameClientLogCreateBulk {
+	return &GameClientLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *GameClientLogClient) MapCreateBulk(slice any, setFunc func(*GameClientLogCreate, int)) *GameClientLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &GameClientLogCreateBulk{err: fmt.Errorf("calling to GameClientLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*GameClientLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &GameClientLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for GameClientLog.
+func (c *GameClientLogClient) Update() *GameClientLogUpdate {
+	mutation := newGameClientLogMutation(c.config, OpUpdate)
+	return &GameClientLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GameClientLogClient) UpdateOne(_m *GameClientLog) *GameClientLogUpdateOne {
+	mutation := newGameClientLogMutation(c.config, OpUpdateOne, withGameClientLog(_m))
+	return &GameClientLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GameClientLogClient) UpdateOneID(id string) *GameClientLogUpdateOne {
+	mutation := newGameClientLogMutation(c.config, OpUpdateOne, withGameClientLogID(id))
+	return &GameClientLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for GameClientLog.
+func (c *GameClientLogClient) Delete() *GameClientLogDelete {
+	mutation := newGameClientLogMutation(c.config, OpDelete)
+	return &GameClientLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GameClientLogClient) DeleteOne(_m *GameClientLog) *GameClientLogDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *GameClientLogClient) DeleteOneID(id string) *GameClientLogDeleteOne {
+	builder := c.Delete().Where(gameclientlog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GameClientLogDeleteOne{builder}
+}
+
+// Query returns a query builder for GameClientLog.
+func (c *GameClientLogClient) Query() *GameClientLogQuery {
+	return &GameClientLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeGameClientLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a GameClientLog entity by its id.
+func (c *GameClientLogClient) Get(ctx context.Context, id string) (*GameClientLog, error) {
+	return c.Query().Where(gameclientlog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GameClientLogClient) GetX(ctx context.Context, id string) *GameClientLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GameClientLogClient) Hooks() []Hook {
+	return c.hooks.GameClientLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *GameClientLogClient) Interceptors() []Interceptor {
+	return c.inters.GameClientLog
+}
+
+func (c *GameClientLogClient) mutate(ctx context.Context, m *GameClientLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&GameClientLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&GameClientLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&GameClientLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&GameClientLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown GameClientLog mutation op: %q", m.Op())
 	}
 }
 
@@ -7786,10 +7927,10 @@ type (
 	hooks struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
 		FileUploadChunk, FrpTunnel, FrpTunnelStat, GameAccountLink, GameAccountUnlink,
-		GameConfigRevision, GameMail, GameRecentServer, GameServer, GameServerBackup,
-		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
-		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
-		InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
+		GameClientLog, GameConfigRevision, GameMail, GameRecentServer, GameServer,
+		GameServerBackup, GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem,
+		GmExecution, GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite,
+		Instance, InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
 		PassportInvite, PassportLoginLog, PassportMessage, PassportOidcClient,
 		PassportOidcGrant, PassportSession, PassportUser, PortForward, PortForwardStat,
 		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, ThemeAsset, User,
@@ -7798,10 +7939,10 @@ type (
 	inters struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
 		FileUploadChunk, FrpTunnel, FrpTunnelStat, GameAccountLink, GameAccountUnlink,
-		GameConfigRevision, GameMail, GameRecentServer, GameServer, GameServerBackup,
-		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
-		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
-		InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
+		GameClientLog, GameConfigRevision, GameMail, GameRecentServer, GameServer,
+		GameServerBackup, GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem,
+		GmExecution, GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite,
+		Instance, InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
 		PassportInvite, PassportLoginLog, PassportMessage, PassportOidcClient,
 		PassportOidcGrant, PassportSession, PassportUser, PortForward, PortForwardStat,
 		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, ThemeAsset, User,

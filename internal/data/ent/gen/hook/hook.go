@@ -128,6 +128,18 @@ func (f GameAccountUnlinkFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameAccountUnlinkMutation", m)
 }
 
+// The GameClientLogFunc type is an adapter to allow the use of ordinary
+// function as GameClientLog mutator.
+type GameClientLogFunc func(context.Context, *gen.GameClientLogMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GameClientLogFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.GameClientLogMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameClientLogMutation", m)
+}
+
 // The GameConfigRevisionFunc type is an adapter to allow the use of ordinary
 // function as GameConfigRevision mutator.
 type GameConfigRevisionFunc func(context.Context, *gen.GameConfigRevisionMutation) (gen.Value, error)

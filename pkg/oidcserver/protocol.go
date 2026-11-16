@@ -2,6 +2,7 @@ package oidcserver
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -66,6 +67,27 @@ type UserinfoResponse struct {
 	Email             string `json:"email,omitempty"`
 	Picture           string `json:"picture,omitempty"`
 	EmailVerified     *bool  `json:"email_verified,omitempty"`
+	// Extra 额外的声明，与标准字段并列输出（不覆盖标准字段）
+	Extra map[string]any `json:"-"`
+}
+
+// MarshalJSON 输出标准字段，再并入额外声明。
+func (r UserinfoResponse) MarshalJSON() ([]byte, error) {
+	type plain UserinfoResponse
+	raw, err := json.Marshal(plain(r))
+	if err != nil || len(r.Extra) == 0 {
+		return raw, err
+	}
+	out := map[string]any{}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, err
+	}
+	for k, v := range r.Extra {
+		if _, taken := out[k]; !taken {
+			out[k] = v
+		}
+	}
+	return json.Marshal(out)
 }
 
 // NewAuthorizeRequest 从 query 参数中提取标准授权请求。

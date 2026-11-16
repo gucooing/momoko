@@ -25,6 +25,8 @@ import (
 const (
 	PassportBindPassword = "password"
 	PassportBindAdmin    = "admin"
+	// PassportBindOIDC 「用户通行证登录」授权时新建的游戏账号
+	PassportBindOIDC = "oidc"
 )
 
 // linkProto 绑定转为接口结构。
@@ -210,8 +212,9 @@ func gameNameOf(s *gen.GameServer) (name, icon string) {
 	return "", ""
 }
 
-// SearchBindServers 绑定页选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）。
-func (uc *PassportUsecase) SearchBindServers(ctx context.Context, userID, q, game string) (*v1.SearchPassportBindServersResponse, error) {
+// SearchBindServers 绑定页选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）
+// + serverID 指定的服务器（授权页跳来时预选；对用户可见时才返回）。
+func (uc *PassportUsecase) SearchBindServers(ctx context.Context, userID, q, game, serverID string) (*v1.SearchPassportBindServersResponse, error) {
 	u, err := uc.user(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -270,6 +273,9 @@ func (uc *PassportUsecase) SearchBindServers(ctx context.Context, userID, q, gam
 		visible, viaInvite := passportVisible(s, q, invServer)
 		if !visible {
 			continue
+		}
+		if serverID != "" && s.ID == serverID {
+			out.Target = toBind(s, viaInvite)
 		}
 		out.Total++
 		g := games[s.Game]

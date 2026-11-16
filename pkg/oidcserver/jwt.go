@@ -22,6 +22,8 @@ type UserClaims struct {
 	Picture string
 	// EmailVerified 邮箱是否已验证（nil 时不写入令牌）
 	EmailVerified *bool
+	// Extra 额外的声明（如应用关联的游戏账号），写进 ID Token 与 Access Token；不覆盖标准声明
+	Extra map[string]any
 }
 
 type TokenClaims struct {
@@ -115,9 +117,19 @@ func SignIDToken(key *rsa.PrivateKey, issuer, clientID, nonce string, user UserC
 	if user.EmailVerified != nil {
 		claims["email_verified"] = *user.EmailVerified
 	}
+	addExtraClaims(claims, user.Extra)
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token.Header["kid"] = KeyID(key)
 	return token.SignedString(key)
+}
+
+// addExtraClaims 写入额外声明（已有的标准声明不被覆盖）。
+func addExtraClaims(claims jwt.MapClaims, extra map[string]any) {
+	for k, v := range extra {
+		if _, taken := claims[k]; !taken {
+			claims[k] = v
+		}
+	}
 }
 
 // SignAccessToken 签发访问 userinfo 端点的 Bearer Token。
@@ -139,6 +151,7 @@ func SignAccessToken(key *rsa.PrivateKey, issuer, clientID, scope string, user U
 		"typ":   "access_token",
 		"scope": scope,
 	}
+	addExtraClaims(claims, user.Extra)
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	token.Header["kid"] = KeyID(key)
 	signed, err := token.SignedString(key)

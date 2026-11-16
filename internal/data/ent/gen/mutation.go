@@ -16,6 +16,7 @@ import (
 	"momoko/internal/data/ent/gen/frptunnelstat"
 	"momoko/internal/data/ent/gen/gameaccountlink"
 	"momoko/internal/data/ent/gen/gameaccountunlink"
+	"momoko/internal/data/ent/gen/gameclientlog"
 	"momoko/internal/data/ent/gen/gameconfigrevision"
 	"momoko/internal/data/ent/gen/gamemail"
 	"momoko/internal/data/ent/gen/gamerecentserver"
@@ -86,6 +87,7 @@ const (
 	TypeFrpTunnelStat      = "FrpTunnelStat"
 	TypeGameAccountLink    = "GameAccountLink"
 	TypeGameAccountUnlink  = "GameAccountUnlink"
+	TypeGameClientLog      = "GameClientLog"
 	TypeGameConfigRevision = "GameConfigRevision"
 	TypeGameMail           = "GameMail"
 	TypeGameRecentServer   = "GameRecentServer"
@@ -9324,6 +9326,914 @@ func (m *GameAccountUnlinkMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *GameAccountUnlinkMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown GameAccountUnlink edge %s", name)
+}
+
+// GameClientLogMutation represents an operation that mutates the GameClientLog nodes in the graph.
+type GameClientLogMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *string
+	server_id      *string
+	player_id      *string
+	reason         *string
+	summary        *string
+	note           *string
+	device         *string
+	client_version *string
+	size           *int
+	addsize        *int
+	content        *[]byte
+	occurred_at    *time.Time
+	created_at     *time.Time
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*GameClientLog, error)
+	predicates     []predicate.GameClientLog
+}
+
+var _ ent.Mutation = (*GameClientLogMutation)(nil)
+
+// gameclientlogOption allows management of the mutation configuration using functional options.
+type gameclientlogOption func(*GameClientLogMutation)
+
+// newGameClientLogMutation creates new mutation for the GameClientLog entity.
+func newGameClientLogMutation(c config, op Op, opts ...gameclientlogOption) *GameClientLogMutation {
+	m := &GameClientLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeGameClientLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withGameClientLogID sets the ID field of the mutation.
+func withGameClientLogID(id string) gameclientlogOption {
+	return func(m *GameClientLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *GameClientLog
+		)
+		m.oldValue = func(ctx context.Context) (*GameClientLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().GameClientLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withGameClientLog sets the old GameClientLog of the mutation.
+func withGameClientLog(node *GameClientLog) gameclientlogOption {
+	return func(m *GameClientLogMutation) {
+		m.oldValue = func(context.Context) (*GameClientLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m GameClientLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m GameClientLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of GameClientLog entities.
+func (m *GameClientLogMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *GameClientLogMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *GameClientLogMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().GameClientLog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetServerID sets the "server_id" field.
+func (m *GameClientLogMutation) SetServerID(s string) {
+	m.server_id = &s
+}
+
+// ServerID returns the value of the "server_id" field in the mutation.
+func (m *GameClientLogMutation) ServerID() (r string, exists bool) {
+	v := m.server_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldServerID returns the old "server_id" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldServerID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldServerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldServerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldServerID: %w", err)
+	}
+	return oldValue.ServerID, nil
+}
+
+// ResetServerID resets all changes to the "server_id" field.
+func (m *GameClientLogMutation) ResetServerID() {
+	m.server_id = nil
+}
+
+// SetPlayerID sets the "player_id" field.
+func (m *GameClientLogMutation) SetPlayerID(s string) {
+	m.player_id = &s
+}
+
+// PlayerID returns the value of the "player_id" field in the mutation.
+func (m *GameClientLogMutation) PlayerID() (r string, exists bool) {
+	v := m.player_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlayerID returns the old "player_id" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldPlayerID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlayerID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlayerID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlayerID: %w", err)
+	}
+	return oldValue.PlayerID, nil
+}
+
+// ResetPlayerID resets all changes to the "player_id" field.
+func (m *GameClientLogMutation) ResetPlayerID() {
+	m.player_id = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *GameClientLogMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *GameClientLogMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *GameClientLogMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetSummary sets the "summary" field.
+func (m *GameClientLogMutation) SetSummary(s string) {
+	m.summary = &s
+}
+
+// Summary returns the value of the "summary" field in the mutation.
+func (m *GameClientLogMutation) Summary() (r string, exists bool) {
+	v := m.summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSummary returns the old "summary" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSummary: %w", err)
+	}
+	return oldValue.Summary, nil
+}
+
+// ResetSummary resets all changes to the "summary" field.
+func (m *GameClientLogMutation) ResetSummary() {
+	m.summary = nil
+}
+
+// SetNote sets the "note" field.
+func (m *GameClientLogMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *GameClientLogMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *GameClientLogMutation) ResetNote() {
+	m.note = nil
+}
+
+// SetDevice sets the "device" field.
+func (m *GameClientLogMutation) SetDevice(s string) {
+	m.device = &s
+}
+
+// Device returns the value of the "device" field in the mutation.
+func (m *GameClientLogMutation) Device() (r string, exists bool) {
+	v := m.device
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDevice returns the old "device" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldDevice(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDevice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDevice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDevice: %w", err)
+	}
+	return oldValue.Device, nil
+}
+
+// ResetDevice resets all changes to the "device" field.
+func (m *GameClientLogMutation) ResetDevice() {
+	m.device = nil
+}
+
+// SetClientVersion sets the "client_version" field.
+func (m *GameClientLogMutation) SetClientVersion(s string) {
+	m.client_version = &s
+}
+
+// ClientVersion returns the value of the "client_version" field in the mutation.
+func (m *GameClientLogMutation) ClientVersion() (r string, exists bool) {
+	v := m.client_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientVersion returns the old "client_version" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldClientVersion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientVersion: %w", err)
+	}
+	return oldValue.ClientVersion, nil
+}
+
+// ResetClientVersion resets all changes to the "client_version" field.
+func (m *GameClientLogMutation) ResetClientVersion() {
+	m.client_version = nil
+}
+
+// SetSize sets the "size" field.
+func (m *GameClientLogMutation) SetSize(i int) {
+	m.size = &i
+	m.addsize = nil
+}
+
+// Size returns the value of the "size" field in the mutation.
+func (m *GameClientLogMutation) Size() (r int, exists bool) {
+	v := m.size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSize returns the old "size" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldSize(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSize: %w", err)
+	}
+	return oldValue.Size, nil
+}
+
+// AddSize adds i to the "size" field.
+func (m *GameClientLogMutation) AddSize(i int) {
+	if m.addsize != nil {
+		*m.addsize += i
+	} else {
+		m.addsize = &i
+	}
+}
+
+// AddedSize returns the value that was added to the "size" field in this mutation.
+func (m *GameClientLogMutation) AddedSize() (r int, exists bool) {
+	v := m.addsize
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSize resets all changes to the "size" field.
+func (m *GameClientLogMutation) ResetSize() {
+	m.size = nil
+	m.addsize = nil
+}
+
+// SetContent sets the "content" field.
+func (m *GameClientLogMutation) SetContent(b []byte) {
+	m.content = &b
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *GameClientLogMutation) Content() (r []byte, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldContent(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *GameClientLogMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetOccurredAt sets the "occurred_at" field.
+func (m *GameClientLogMutation) SetOccurredAt(t time.Time) {
+	m.occurred_at = &t
+}
+
+// OccurredAt returns the value of the "occurred_at" field in the mutation.
+func (m *GameClientLogMutation) OccurredAt() (r time.Time, exists bool) {
+	v := m.occurred_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOccurredAt returns the old "occurred_at" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldOccurredAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOccurredAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOccurredAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOccurredAt: %w", err)
+	}
+	return oldValue.OccurredAt, nil
+}
+
+// ResetOccurredAt resets all changes to the "occurred_at" field.
+func (m *GameClientLogMutation) ResetOccurredAt() {
+	m.occurred_at = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *GameClientLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *GameClientLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the GameClientLog entity.
+// If the GameClientLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameClientLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *GameClientLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the GameClientLogMutation builder.
+func (m *GameClientLogMutation) Where(ps ...predicate.GameClientLog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the GameClientLogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *GameClientLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.GameClientLog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *GameClientLogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *GameClientLogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (GameClientLog).
+func (m *GameClientLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *GameClientLogMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.server_id != nil {
+		fields = append(fields, gameclientlog.FieldServerID)
+	}
+	if m.player_id != nil {
+		fields = append(fields, gameclientlog.FieldPlayerID)
+	}
+	if m.reason != nil {
+		fields = append(fields, gameclientlog.FieldReason)
+	}
+	if m.summary != nil {
+		fields = append(fields, gameclientlog.FieldSummary)
+	}
+	if m.note != nil {
+		fields = append(fields, gameclientlog.FieldNote)
+	}
+	if m.device != nil {
+		fields = append(fields, gameclientlog.FieldDevice)
+	}
+	if m.client_version != nil {
+		fields = append(fields, gameclientlog.FieldClientVersion)
+	}
+	if m.size != nil {
+		fields = append(fields, gameclientlog.FieldSize)
+	}
+	if m.content != nil {
+		fields = append(fields, gameclientlog.FieldContent)
+	}
+	if m.occurred_at != nil {
+		fields = append(fields, gameclientlog.FieldOccurredAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, gameclientlog.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *GameClientLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case gameclientlog.FieldServerID:
+		return m.ServerID()
+	case gameclientlog.FieldPlayerID:
+		return m.PlayerID()
+	case gameclientlog.FieldReason:
+		return m.Reason()
+	case gameclientlog.FieldSummary:
+		return m.Summary()
+	case gameclientlog.FieldNote:
+		return m.Note()
+	case gameclientlog.FieldDevice:
+		return m.Device()
+	case gameclientlog.FieldClientVersion:
+		return m.ClientVersion()
+	case gameclientlog.FieldSize:
+		return m.Size()
+	case gameclientlog.FieldContent:
+		return m.Content()
+	case gameclientlog.FieldOccurredAt:
+		return m.OccurredAt()
+	case gameclientlog.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *GameClientLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case gameclientlog.FieldServerID:
+		return m.OldServerID(ctx)
+	case gameclientlog.FieldPlayerID:
+		return m.OldPlayerID(ctx)
+	case gameclientlog.FieldReason:
+		return m.OldReason(ctx)
+	case gameclientlog.FieldSummary:
+		return m.OldSummary(ctx)
+	case gameclientlog.FieldNote:
+		return m.OldNote(ctx)
+	case gameclientlog.FieldDevice:
+		return m.OldDevice(ctx)
+	case gameclientlog.FieldClientVersion:
+		return m.OldClientVersion(ctx)
+	case gameclientlog.FieldSize:
+		return m.OldSize(ctx)
+	case gameclientlog.FieldContent:
+		return m.OldContent(ctx)
+	case gameclientlog.FieldOccurredAt:
+		return m.OldOccurredAt(ctx)
+	case gameclientlog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown GameClientLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GameClientLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case gameclientlog.FieldServerID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetServerID(v)
+		return nil
+	case gameclientlog.FieldPlayerID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlayerID(v)
+		return nil
+	case gameclientlog.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case gameclientlog.FieldSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSummary(v)
+		return nil
+	case gameclientlog.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	case gameclientlog.FieldDevice:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDevice(v)
+		return nil
+	case gameclientlog.FieldClientVersion:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientVersion(v)
+		return nil
+	case gameclientlog.FieldSize:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSize(v)
+		return nil
+	case gameclientlog.FieldContent:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case gameclientlog.FieldOccurredAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOccurredAt(v)
+		return nil
+	case gameclientlog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown GameClientLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *GameClientLogMutation) AddedFields() []string {
+	var fields []string
+	if m.addsize != nil {
+		fields = append(fields, gameclientlog.FieldSize)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *GameClientLogMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case gameclientlog.FieldSize:
+		return m.AddedSize()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *GameClientLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case gameclientlog.FieldSize:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSize(v)
+		return nil
+	}
+	return fmt.Errorf("unknown GameClientLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *GameClientLogMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *GameClientLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *GameClientLogMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown GameClientLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *GameClientLogMutation) ResetField(name string) error {
+	switch name {
+	case gameclientlog.FieldServerID:
+		m.ResetServerID()
+		return nil
+	case gameclientlog.FieldPlayerID:
+		m.ResetPlayerID()
+		return nil
+	case gameclientlog.FieldReason:
+		m.ResetReason()
+		return nil
+	case gameclientlog.FieldSummary:
+		m.ResetSummary()
+		return nil
+	case gameclientlog.FieldNote:
+		m.ResetNote()
+		return nil
+	case gameclientlog.FieldDevice:
+		m.ResetDevice()
+		return nil
+	case gameclientlog.FieldClientVersion:
+		m.ResetClientVersion()
+		return nil
+	case gameclientlog.FieldSize:
+		m.ResetSize()
+		return nil
+	case gameclientlog.FieldContent:
+		m.ResetContent()
+		return nil
+	case gameclientlog.FieldOccurredAt:
+		m.ResetOccurredAt()
+		return nil
+	case gameclientlog.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown GameClientLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *GameClientLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *GameClientLogMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *GameClientLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *GameClientLogMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *GameClientLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *GameClientLogMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *GameClientLogMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown GameClientLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *GameClientLogMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown GameClientLog edge %s", name)
 }
 
 // GameConfigRevisionMutation represents an operation that mutates the GameConfigRevision nodes in the graph.

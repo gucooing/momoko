@@ -254,7 +254,7 @@ service PassportService {
       body: "*"
     };
   }
-  // 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）
+  // 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
   rpc SearchPassportBindServers(SearchPassportBindServersRequest) returns (SearchPassportBindServersResponse) {
     option (google.api.http) = {
       get: "/api/v1/bind/servers"
@@ -310,13 +310,14 @@ service PassportService {
 
   // ---------------- OIDC 授权确认页 ----------------
 
-  // 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）
+  // 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
   rpc GetPassportOidcAuthorization(PassportOidcAuthorizeRequest) returns (PassportOidcAuthorizationInfo) {
     option (google.api.http) = {
       get: "/api/v1/oidc/authorize"
     };
   }
-  // 同意授权：生成授权码，返回应用的回调地址
+  // 同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
+  // 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
   rpc ApprovePassportOidcAuthorization(PassportOidcAuthorizeRequest) returns (PassportOidcAuthorizeResponse) {
     option (google.api.http) = {
       post: "/api/v1/oidc/authorize"
@@ -673,6 +674,8 @@ message SearchPassportBindServersRequest {
   // 名称、标签、游戏，或管理员给的邀请码
   string q = 1;
   string game = 2;
+  // 指定的服务器 id（授权页跳来时预选；不影响搜索结果与推荐）
+  string server_id = 3;
 }
 
 message PassportBindServer {
@@ -708,6 +711,8 @@ message SearchPassportBindServersResponse {
   repeated PassportBindGame games = 3;
   // 可以搜到的服务器总数
   int32 total = 4;
+  // server_id 对应的服务器（对当前用户可见时；不可见或不存在时为空）
+  PassportBindServer target = 5;
 }
 
 message BindPassportAccountRequest {
@@ -824,6 +829,22 @@ message PassportOidcAuthorizeRequest {
   string nonce = 6;
   string code_challenge = 7;
   string code_challenge_method = 8;
+  // 同意时为还没有在应用关联的服务器上绑定游戏账号的用户新建一个游戏账号并绑定
+  bool create_game_account = 9;
+}
+
+// 授权确认页显示的游戏账号（令牌里的 game_player_id 就是 player_id）。
+message PassportOidcGameAccount {
+  // MGP pid
+  string player_id = 1;
+  // 游戏内显示的 ID
+  string display_id = 2;
+  string nickname = 3;
+  int32 level = 4;
+  // 登录账号
+  string account = 5;
+  // 头像资源 ID
+  string avatar_asset = 6;
 }
 
 message PassportOidcAuthorizationInfo {
@@ -837,6 +858,16 @@ message PassportOidcAuthorizationInfo {
   GameServerBrief server = 6;
   // 已经授权过且范围没有变化（可以直接继续）
   bool granted = 7;
+  // 应用关联了服务器而你在那台服务器上没有绑定游戏账号：同意前要绑定已有账号或新建一个
+  bool game_account_required = 8;
+  // 可以为你新建游戏账号（游戏支持且服务器接入了 MGP、服务器对你可见、不在解绑冷却中）
+  bool game_account_creatable = 9;
+  // 不能新建时的原因代码：unsupported 游戏或服务器不支持 / not_visible 服务器对你不可见 / cooldown 解绑冷却中
+  string game_account_reason = 10;
+  // 解绑冷却结束时间（game_account_reason=cooldown）
+  google.protobuf.Timestamp game_account_cooldown_until = 11;
+  // 你在关联服务器上绑定的游戏账号（已绑定时）
+  PassportOidcGameAccount game_account = 12;
 }
 
 message PassportOidcAuthorizeResponse {

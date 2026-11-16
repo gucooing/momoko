@@ -1,6 +1,6 @@
 <!-- 玩家详情：/game/gm/:serverId/players/:pid?tab=…（独立路由，自己提供 GM 上下文）。
      返回「玩家」→ GM 运营标签 → 玩家卡（担当、昵称、在线状态、ID、通行证、等级经验、钱包、常用指令）
-     → 分页（学マス 玩家数据的各分页 + Momoko 的 GM 记录）。数据来自学マス 接口与 Momoko。 -->
+     → 分页（学マス 玩家数据的各分页 + Momoko 的客户端日志与 GM 记录）。数据来自学マス 接口与 Momoko。 -->
 <template>
   <div class="gp game-skin" :data-game="ctx.game.value || undefined">
     <div class="gp__top">
@@ -182,13 +182,13 @@ import GmOperationDialog from '../components/GmOperationDialog.vue'
 import GmRiskPill from '../components/GmRiskPill.vue'
 import { PLAYER_PAGE_OPERATIONS } from '../operations'
 import type { GmTargetRef } from '../components/types'
-import { GM_LOG_TAB, providePlayerPage } from './context'
+import { CLIENT_LOG_TAB, GM_LOG_TAB, providePlayerPage } from './context'
 import GiftDialog from './GiftDialog.vue'
 import PlayerAvatar from './shared/PlayerAvatar.vue'
 import { catalogImage, charaBust, idolCardArt, isPermanentBan } from './shared/game'
 import { useGmFormat } from './shared/format'
 import { catalogLookupFor } from './shared/lookup'
-import { PLAYER_VIEWS, gmLogView } from './views'
+import { PLAYER_VIEWS, clientLogView, gmLogView } from './views'
 
 defineOptions({ name: 'GameGmPlayerView' })
 
@@ -378,6 +378,7 @@ const tabs = computed<PlayerTab[]>(() => {
     component: v.component,
     count: player.value ? v.count?.(player.value) : undefined,
   }))
+  list.push({ id: CLIENT_LOG_TAB, title: t('gmData.player.clientLogs'), component: clientLogView })
   list.push({ id: GM_LOG_TAB, title: t('gmData.player.gmLog'), component: gmLogView, count: gmCount.value })
   return list
 })

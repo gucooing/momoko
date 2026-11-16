@@ -34,6 +34,8 @@ type Tx struct {
 	GameAccountLink *GameAccountLinkClient
 	// GameAccountUnlink is the client for interacting with the GameAccountUnlink builders.
 	GameAccountUnlink *GameAccountUnlinkClient
+	// GameClientLog is the client for interacting with the GameClientLog builders.
+	GameClientLog *GameClientLogClient
 	// GameConfigRevision is the client for interacting with the GameConfigRevision builders.
 	GameConfigRevision *GameConfigRevisionClient
 	// GameMail is the client for interacting with the GameMail builders.
@@ -257,6 +259,7 @@ func (tx *Tx) init() {
 	tx.FrpTunnelStat = NewFrpTunnelStatClient(tx.config)
 	tx.GameAccountLink = NewGameAccountLinkClient(tx.config)
 	tx.GameAccountUnlink = NewGameAccountUnlinkClient(tx.config)
+	tx.GameClientLog = NewGameClientLogClient(tx.config)
 	tx.GameConfigRevision = NewGameConfigRevisionClient(tx.config)
 	tx.GameMail = NewGameMailClient(tx.config)
 	tx.GameRecentServer = NewGameRecentServerClient(tx.config)

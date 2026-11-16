@@ -35,6 +35,11 @@ export default {
       rules: '绑定后你能看到自己在这台服务器上的数据，以及管理员开放的自助功能。每台服务器只能绑定一个游戏账号，解绑后 {days} 天内不能绑定别的账号。',
       submit: '绑定',
       done: '绑定成功',
+      target: {
+        tag: '登录需要',
+        missing: '找不到登录要用的那台服务器，或它不对你开放。可以在下面搜索，或向管理员要邀请码。',
+        back: '返回登录授权',
+      },
     },
   },
   'zh-HK': {
@@ -72,6 +77,11 @@ export default {
       rules: '綁定後你可以看到自己在這部伺服器上的資料，以及管理員開放的自助功能。每部伺服器只能綁定一個遊戲帳戶，解除綁定後 {days} 日內不能綁定其他帳戶。',
       submit: '綁定',
       done: '綁定成功',
+      target: {
+        tag: '登入需要',
+        missing: '找不到登入要用的那部伺服器，或它不對你開放。可以在下面搜尋，或向管理員索取邀請碼。',
+        back: '返回登入授權',
+      },
     },
   },
   'en-US': {
@@ -109,6 +119,11 @@ export default {
       rules: 'After binding you can see your own data on this server and the self-service features its admins opened. One game account per server; after unbinding you cannot bind another account there for {days} days.',
       submit: 'Bind',
       done: 'Bound',
+      target: {
+        tag: 'Needed to sign in',
+        missing: 'The server needed to sign in was not found or is not open to you. Search below, or ask an admin for an invite code.',
+        back: 'Back to sign-in',
+      },
     },
   },
 }

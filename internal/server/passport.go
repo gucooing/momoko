@@ -38,6 +38,8 @@ var passportPublicRoutes = map[publicRoute]struct{}{
 	{method: nethttp.MethodGet, path: "/api/v1/oidc/userinfo"}:                   {},
 	{method: nethttp.MethodPost, path: "/api/v1/oidc/userinfo"}:                  {},
 	{method: nethttp.MethodGet, path: "/.well-known/openid-configuration"}:       {},
+	// 游戏客户端上传错误日志：处理函数自己校验游戏服务端签发的上传票据
+	{method: nethttp.MethodPost, path: service.PassportClientLogPath}: {},
 }
 
 // passportAuthFilter 通行证的鉴权：只认通行证访问令牌（管理后台的令牌签名域不同，在这里一律无效）。
@@ -131,5 +133,6 @@ func NewPassportServer(c *conf.Passport, passportApi *service.PassportService, g
 	v1.RegisterPassportServiceHTTPServer(srv, passportApi)
 	gakumasv1.RegisterGakumasPassportServiceHTTPServer(srv, gakumasApi)
 	passportApi.RegisterOIDCServer(srv)
+	passportApi.RegisterClientLogServer(srv)
 	return &PassportServer{Server: srv, enabled: true}
 }

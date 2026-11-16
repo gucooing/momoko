@@ -337,7 +337,7 @@ paths:
         get:
             tags:
                 - PassportService
-            description: 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）
+            description: 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
             operationId: PassportService_SearchPassportBindServers
             parameters:
                 - name: q
@@ -347,6 +347,11 @@ paths:
                     type: string
                 - name: game
                   in: query
+                  schema:
+                    type: string
+                - name: serverId
+                  in: query
+                  description: 指定的服务器 id（授权页跳来时预选；不影响搜索结果与推荐）
                   schema:
                     type: string
             responses:
@@ -6550,6 +6555,88 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GameMail'
+    /api/v1/game/gm/{serverId}/players/{pid}/client-logs:
+        get:
+            tags:
+                - GameGMService
+            description: 玩家的游戏客户端上传的错误日志（每个游戏账号保留最新 5 份，从新到旧，不含日志内容）
+            operationId: GameGMService_ListGmClientLogs
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  description: 玩家 pid
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListGmClientLogsResponse'
+    /api/v1/game/gm/{serverId}/players/{pid}/client-logs/{id}:
+        get:
+            tags:
+                - GameGMService
+            description: 一份客户端日志（含解压后的日志内容）
+            operationId: GameGMService_GetGmClientLog
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GmClientLog'
+        delete:
+            tags:
+                - GameGMService
+            description: 删除一份客户端日志
+            operationId: GameGMService_DeleteGmClientLog
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteGmClientLogResponse'
     /api/v1/game/gm/{serverId}/self-service:
         get:
             tags:
@@ -10280,7 +10367,7 @@ paths:
         get:
             tags:
                 - PassportService
-            description: 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）
+            description: 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
             operationId: PassportService_GetPassportOidcAuthorization
             parameters:
                 - name: responseType
@@ -10315,6 +10402,11 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: createGameAccount
+                  in: query
+                  description: 同意时为还没有在应用关联的服务器上绑定游戏账号的用户新建一个游戏账号并绑定
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -10325,7 +10417,9 @@ paths:
         post:
             tags:
                 - PassportService
-            description: 同意授权：生成授权码，返回应用的回调地址
+            description: |-
+                同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
+                 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
             operationId: PassportService_ApprovePassportOidcAuthorization
             requestBody:
                 content:
@@ -14008,6 +14102,9 @@ components:
             type: object
             properties: {}
         v1.DeleteGameServerResponse:
+            type: object
+            properties: {}
+        v1.DeleteGmClientLogResponse:
             type: object
             properties: {}
         v1.DeleteIQCheckPromptResponse:
@@ -18065,6 +18162,42 @@ components:
                     additionalProperties:
                         type: integer
                         format: int32
+        v1.GmClientLog:
+            type: object
+            properties:
+                id:
+                    type: string
+                reason:
+                    type: string
+                    description: 上传原因：exception / error / crash / fatal / login / sdk / manual
+                summary:
+                    type: string
+                    description: 摘要
+                note:
+                    type: string
+                    description: 玩家填写的说明
+                device:
+                    type: string
+                    description: 设备
+                clientVersion:
+                    type: string
+                    description: 客户端版本
+                size:
+                    type: integer
+                    description: 日志原文大小（字节，未压缩）
+                    format: int32
+                occurredAt:
+                    type: string
+                    description: 客户端记录日志的时间
+                    format: date-time
+                createdAt:
+                    type: string
+                    description: 上传时间
+                    format: date-time
+                content:
+                    type: string
+                    description: 日志原文（只在单份日志接口返回）
+            description: 游戏客户端上传的一份错误日志。
         v1.GmConfigDomain:
             type: object
             properties:
@@ -19184,6 +19317,14 @@ components:
                 total:
                     type: integer
                     format: int32
+        v1.ListGmClientLogsResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.GmClientLog'
+                    description: 从新到旧
         v1.ListGmConfigRevisionsResponse:
             type: object
             properties:
@@ -21162,6 +21303,23 @@ components:
                 granted:
                     type: boolean
                     description: 已经授权过且范围没有变化（可以直接继续）
+                gameAccountRequired:
+                    type: boolean
+                    description: 应用关联了服务器而你在那台服务器上没有绑定游戏账号：同意前要绑定已有账号或新建一个
+                gameAccountCreatable:
+                    type: boolean
+                    description: 可以为你新建游戏账号（游戏支持且服务器接入了 MGP、服务器对你可见、不在解绑冷却中）
+                gameAccountReason:
+                    type: string
+                    description: 不能新建时的原因代码：unsupported 游戏或服务器不支持 / not_visible 服务器对你不可见 / cooldown 解绑冷却中
+                gameAccountCooldownUntil:
+                    type: string
+                    description: 解绑冷却结束时间（game_account_reason=cooldown）
+                    format: date-time
+                gameAccount:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PassportOidcGameAccount'
+                    description: 你在关联服务器上绑定的游戏账号（已绑定时）
         v1.PassportOidcAuthorizeRequest:
             type: object
             properties:
@@ -21181,6 +21339,9 @@ components:
                     type: string
                 codeChallengeMethod:
                     type: string
+                createGameAccount:
+                    type: boolean
+                    description: 同意时为还没有在应用关联的服务器上绑定游戏账号的用户新建一个游戏账号并绑定
         v1.PassportOidcAuthorizeResponse:
             type: object
             properties:
@@ -21222,6 +21383,27 @@ components:
                     type: integer
                     description: 授权过的通行证数
                     format: int32
+        v1.PassportOidcGameAccount:
+            type: object
+            properties:
+                playerId:
+                    type: string
+                    description: MGP pid
+                displayId:
+                    type: string
+                    description: 游戏内显示的 ID
+                nickname:
+                    type: string
+                level:
+                    type: integer
+                    format: int32
+                account:
+                    type: string
+                    description: 登录账号
+                avatarAsset:
+                    type: string
+                    description: 头像资源 ID
+            description: 授权确认页显示的游戏账号（令牌里的 game_player_id 就是 player_id）。
         v1.PassportRecoveryCodes:
             type: object
             properties:
@@ -22553,6 +22735,10 @@ components:
                     type: integer
                     description: 可以搜到的服务器总数
                     format: int32
+                target:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PassportBindServer'
+                    description: server_id 对应的服务器（对当前用户可见时；不可见或不存在时为空）
         v1.SearchPassportGamePlayersResponse:
             type: object
             properties:
@@ -28338,7 +28524,7 @@ tags:
          自助操作按管理端设置的规则执行（开放、每日次数、间隔、审批）；高风险操作在开启两步验证时需要 totp_code。
     - name: GameGMService
       description: |-
-        GM 运营的通用部分（权限 game:gm）：服务器上下文、GM 记录与审批、玩家自助设置。
+        GM 运营的通用部分（权限 game:gm）：服务器上下文、GM 记录与审批、玩家自助设置、玩家上传的客户端日志。
          各游戏特有的查询与操作（玩家数据、目录、配置文档、发奖等）由游戏模块的服务提供（学マス：GakumasGMService）。
     - name: GameOpsService
       description: |-
