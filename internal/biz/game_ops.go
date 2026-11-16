@@ -22,6 +22,7 @@ import (
 	entmail "momoko/internal/data/ent/gen/gamemail"
 	entbatch "momoko/internal/data/ent/gen/giftcodebatch"
 	entschema "momoko/internal/data/ent/schema"
+	"momoko/pkg/mgp"
 	"momoko/pkg/mgp/gakumas"
 	"momoko/pkg/response"
 )
@@ -38,9 +39,12 @@ var (
 const (
 	// mailStatsTTL 已发送邮件的领取统计缓存多久后重新向 MGP 报表查询。
 	mailStatsTTL = 60 * time.Second
-	// mailDeliverTimeout 一次后台投递 / 撤回最长的执行时间。
+	// mailDeliverTimeout 一次后台撤回最长的执行时间。
 	mailDeliverTimeout = 5 * time.Minute
-	mailLoopEvery      = 15 * time.Second
+	// mailLoopEvery 按服务端的投递结果同步投递中与到点定时邮件的间隔。
+	mailLoopEvery = 5 * time.Second
+	// mailRegisterGrace 刚改为投递中的邮件在这段时间内服务端还没有它时不判为失败（登记还在进行）。
+	mailRegisterGrace = time.Minute
 
 	mailTitleMax   = 64
 	mailBodyMax    = 2000
@@ -146,10 +150,11 @@ type GameOpsRepo interface {
 	RedeemStats(ctx context.Context, serverID string, dayStart time.Time) (*GiftRedeemStats, error)
 }
 
-// GameOpsUsecase GM 运营里的邮件补偿与兑换码：
-// 邮件经 MGP mail.broadcast 投递、mail.revoke 撤回，定时邮件由后台循环到点发送；
-// GameOpsUsecase 运营（管理端）：邮件补偿的编写、投递与撤回，兑换码批次的管理与兑换记录。
-// 邮件的发送与撤回经 GmUsecase.Execute，写进 GM 记录（source = mail:<id>）；玩家兑换在通行证一侧（PassportUsecase.Redeem）。
+// GameOpsUsecase 运营（管理端）：邮件补偿的编写、登记与撤回，兑换码批次的管理与兑换记录。
+// 邮件只由游戏服务端投递：发送与定时都是经 MGP mail.send 把邮件登记到服务端（定时邮件带开始时间），
+// 服务端从开始时间起投递（全服邮件在领取期限内也投递给之后注册的账号）；取消定时为 mail.cancel，撤回为 mail.revoke。
+// Momoko 只按服务端保存的邮件（GET /mails/{id}）同步投递状态。操作经 GmUsecase.Execute 写进 GM 记录（source = mail:<id>）；
+// 玩家兑换在通行证一侧（PassportUsecase.Redeem）。
 type GameOpsUsecase struct {
 	gm   *GmUsecase
 	repo GameOpsRepo
@@ -383,8 +388,8 @@ func mailReady(m *gen.GameMail) error {
 	return nil
 }
 
-// mailOf 邮件在学マス 服务端的投递内容（邮件 id 即 mailId）。
-func gakumasMail(m *gen.GameMail) gakumas.Mail {
+// gakumasMail 邮件在学マス 服务端登记的内容（邮件 id 即 mailId）；start 为开始投递的时间（Unix 毫秒），0 为立即。
+func gakumasMail(m *gen.GameMail, start int64) gakumas.Mail {
 	mail := gakumas.Mail{
 		MailID:        m.ID,
 		Target:        string(m.Target),
@@ -392,6 +397,7 @@ func gakumasMail(m *gen.GameMail) gakumas.Mail {
 		Rewards:       make([]gakumas.Reward, 0, len(m.Rewards)),
 		Message:       m.Title,
 		ExpireDays:    int32(m.ExpireDays),
+		StartTime:     start,
 	}
 	for _, r := range m.Rewards {
 		mail.Rewards = append(mail.Rewards, gakumas.Reward{
@@ -464,6 +470,36 @@ func (uc *GameOpsUsecase) mailOperation(ctx context.Context, actor GmActor, serv
 		Summary: summary,
 		Source:  source,
 	}, nil, call)
+}
+
+// register 把邮件登记到服务端（mail.send），由服务端从 start 起投递（0 为立即）。
+// 服务端已有这封邮件（之前的登记其实成功了）时视为登记成功。
+func (uc *GameOpsUsecase) register(ctx context.Context, actor GmActor, m *gen.GameMail, start int64) error {
+	e, _, err := uc.mailOperation(ctx, actor, m.ServerID, gkMailSend, gakumasMail(m, start), false, mailSummary(m), "mail:"+m.ID)
+	if err != nil {
+		return err
+	}
+	m.ExecutionID = e.ID
+	if e.Status == "failed" && e.ErrorCode != gakumas.MailAlreadySent {
+		return executeError(e)
+	}
+	return nil
+}
+
+// unregister 取消服务端还没到开始时间的邮件（mail.cancel）；服务端没有这封邮件时视为已取消。
+// 返回 started 表示服务端已经开始投递，没有取消。
+func (uc *GameOpsUsecase) unregister(ctx context.Context, actor GmActor, m *gen.GameMail) (started bool, err error) {
+	e, _, err := uc.mailOperation(ctx, actor, m.ServerID, gkMailCancel, gkMailID{MailID: m.ID}, false, map[string]string{"mailId": m.ID, "title": m.Title}, "mail:"+m.ID)
+	if err != nil {
+		return false, err
+	}
+	switch {
+	case e.Status != "failed", e.ErrorCode == gakumas.MailNotFound:
+		return false, nil
+	case e.ErrorCode == gakumas.MailAlreadyStarted:
+		return true, nil
+	}
+	return false, executeError(e)
 }
 
 // mailStats 查询一封邮件的礼物领取统计。
@@ -619,12 +655,33 @@ func (uc *GameOpsUsecase) UpdateMail(ctx context.Context, actor GmActor, req *v1
 	} else if m.Status == entmail.StatusDraft {
 		m.ScheduledAt = nil
 	}
-	if m.Status == entmail.StatusScheduled {
+	scheduled := m.Status == entmail.StatusScheduled
+	if scheduled {
 		if err := mailReady(m); err != nil {
 			return nil, err
 		}
+		if err := validateRewards(m.Rewards, false, mailForbidden(s)...); err != nil {
+			return nil, err
+		}
+		// 服务端那一份先取消，改完按新的内容与时间重新登记。
+		started, err := uc.unregister(ctx, actor, m)
+		if err != nil {
+			return nil, err
+		}
+		if started {
+			return nil, ErrGameMailState
+		}
 	}
 	m.UpdatedByName = actor.Name
+	if scheduled {
+		if err := uc.register(ctx, actor, m, m.ScheduledAt.UnixMilli()); err != nil {
+			m.Status, m.Error = entmail.StatusFailed, errText(err)
+			if _, serr := uc.repo.SaveMail(context.WithoutCancel(ctx), m); serr != nil {
+				uc.log.Errorf("save mail %s: %v", m.ID, serr)
+			}
+			return nil, err
+		}
+	}
 	saved, err := uc.repo.SaveMail(ctx, m)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -685,7 +742,7 @@ func executeError(e *gen.GmExecution) error {
 	return response.BadRequest(400, msg)
 }
 
-// DryRunMail 试运行 mail.broadcast（记进 GM 记录）：返回按当前收件人匹配的人数并记在邮件上。
+// DryRunMail 试运行 mail.send（记进 GM 记录）：返回按当前收件人匹配的人数并记在邮件上。
 func (uc *GameOpsUsecase) DryRunMail(ctx context.Context, actor GmActor, serverID, id string) (*v1.DryRunGameMailResponse, error) {
 	m, err := uc.mailOf(ctx, serverID, id)
 	if err != nil {
@@ -694,7 +751,7 @@ func (uc *GameOpsUsecase) DryRunMail(ctx context.Context, actor GmActor, serverI
 	if err := mailReady(m); err != nil {
 		return nil, err
 	}
-	e, outcomes, err := uc.mailOperation(ctx, actor, serverID, gkMailSend, gakumasMail(m), true, mailSummary(m), "mail:"+m.ID)
+	e, outcomes, err := uc.mailOperation(ctx, actor, serverID, gkMailSend, gakumasMail(m, 0), true, mailSummary(m), "mail:"+m.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -721,7 +778,8 @@ func (uc *GameOpsUsecase) DryRunMail(ctx context.Context, actor GmActor, serverI
 	return out, nil
 }
 
-// SendMail 立即发送（后台投递，状态 sending → sent / failed），或按 scheduled_at 定时发送。
+// SendMail 把邮件登记到服务端：立即发送（状态 sending，服务端投递完后由 mailLoop 同步为 sent），
+// 或定时发送（scheduled，服务端到点投递）。定时邮件再次发送时先取消服务端的那一份；它已经开始投递时转为 sending。
 func (uc *GameOpsUsecase) SendMail(ctx context.Context, actor GmActor, req *v1.SendGameMailRequest) (*v1.GameMail, error) {
 	m, err := uc.mailOf(ctx, req.ServerId, req.Id)
 	if err != nil {
@@ -743,20 +801,9 @@ func (uc *GameOpsUsecase) SendMail(ctx context.Context, actor GmActor, req *v1.S
 	if err := validateRewards(m.Rewards, false, mailForbidden(s)...); err != nil {
 		return nil, err
 	}
-	m.SentBy, m.SentByName, m.Error = actor.UserID, actor.Name, ""
-	if at := timeOf(req.ScheduledAt); at != nil && at.After(time.Now().Add(30*time.Second)) {
-		if ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, []string{"draft", "scheduled", "failed"}, "scheduled"); err != nil {
-			return nil, ErrSystem(err)
-		} else if !ok {
-			return nil, ErrGameMailState
-		}
-		m.Status, m.ScheduledAt = entmail.StatusScheduled, at
-		saved, err := uc.repo.SaveMail(ctx, m)
-		if err != nil {
-			return nil, ErrSystem(err)
-		}
-		return GameMailProto(saved), nil
-	}
+	at := timeOf(req.ScheduledAt)
+	later := at != nil && at.After(time.Now().Add(30*time.Second))
+	prev := m.Status
 	ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, []string{"draft", "scheduled", "failed"}, "sending")
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -764,60 +811,61 @@ func (uc *GameOpsUsecase) SendMail(ctx context.Context, actor GmActor, req *v1.S
 	if !ok {
 		return nil, ErrGameMailState
 	}
-	m.Status = entmail.StatusSending
+	m.Status, m.SentBy, m.SentByName, m.Error = entmail.StatusSending, actor.UserID, actor.Name, ""
+	if prev == entmail.StatusScheduled {
+		started, err := uc.unregister(ctx, actor, m)
+		if err != nil {
+			m.Status = entmail.StatusScheduled
+			if _, serr := uc.repo.SaveMail(context.WithoutCancel(ctx), m); serr != nil {
+				uc.log.Errorf("save mail %s: %v", m.ID, serr)
+			}
+			return nil, err
+		}
+		if started {
+			// 服务端已经在投递这封定时邮件：等它投递完同步。
+			saved, err := uc.repo.SaveMail(ctx, m)
+			if err != nil {
+				return nil, ErrSystem(err)
+			}
+			return GameMailProto(saved), nil
+		}
+	}
+	var start int64
+	if later {
+		start = at.UnixMilli()
+	}
+	if err := uc.register(ctx, actor, m, start); err != nil {
+		m.Status, m.Error = entmail.StatusFailed, errText(err)
+		if _, serr := uc.repo.SaveMail(context.WithoutCancel(ctx), m); serr != nil {
+			uc.log.Errorf("save mail %s: %v", m.ID, serr)
+		}
+		return nil, err
+	}
+	if later {
+		m.Status, m.ScheduledAt = entmail.StatusScheduled, at
+	}
 	saved, err := uc.repo.SaveMail(ctx, m)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	go uc.deliver(context.WithoutCancel(ctx), actor, saved.ID)
 	return GameMailProto(saved), nil
 }
 
-// deliver 后台执行 mail.broadcast 并写回结果（同一封邮件只会有一个 deliver：状态已经是 sending）。
-func (uc *GameOpsUsecase) deliver(ctx context.Context, actor GmActor, id string) {
-	ctx, cancel := context.WithTimeout(ctx, mailDeliverTimeout)
-	defer cancel()
-	m, err := uc.repo.GetMail(ctx, id)
-	if err != nil {
-		uc.log.Errorf("deliver mail %s: %v", id, err)
-		return
-	}
-	e, outcomes, err := uc.mailOperation(ctx, actor, m.ServerID, gkMailSend, gakumasMail(m), false, mailSummary(m), "mail:"+m.ID)
-	now := time.Now()
-	switch {
-	case err != nil:
-		m.Status, m.Error = entmail.StatusFailed, errText(err)
-	case e.Status == "failed" && e.ErrorCode == gakumas.MailAlreadySent:
-		// 之前的投递（例如超时或中断的那次）其实已经送达：以服务端的礼物统计为准。
-		m.Status, m.Error, m.ExecutionID = entmail.StatusSent, "", e.ID
-		if m.SentAt == nil {
-			m.SentAt = &now
-		}
-		if st, err := uc.mailStats(ctx, m.ServerID, m.ID); err == nil {
-			m.RecipientCount, m.ClaimedCount, m.StatsAt = st.Players, st.ReceivedPlayers, &now
-		}
-	case e.Status == "failed":
-		m.Status, m.ExecutionID = entmail.StatusFailed, e.ID
-		m.Error = e.ErrorMessage
-		if e.ErrorCode != "" {
-			m.Error = e.ErrorCode + ": " + e.ErrorMessage
-		}
-	default:
-		sum := mailResultOf(outcomes)
-		m.Status, m.Error, m.ExecutionID = entmail.StatusSent, "", e.ID
-		m.RecipientCount, m.FailedCount, m.ClaimedCount = int(sum.Done), int(sum.Failed), 0
-		m.SentAt, m.StatsAt = &now, &now
-	}
-	if _, err := uc.repo.SaveMail(context.WithoutCancel(ctx), m); err != nil {
-		uc.log.Errorf("save delivered mail %s: %v", m.ID, err)
-	}
-}
-
-// CancelMail 取消定时，回到草稿。
+// CancelMail 取消定时：先取消服务端还没开始投递的那一份，再回到草稿；服务端已经开始投递时不能取消。
 func (uc *GameOpsUsecase) CancelMail(ctx context.Context, actor GmActor, serverID, id string) (*v1.GameMail, error) {
 	m, err := uc.mailOf(ctx, serverID, id)
 	if err != nil {
 		return nil, err
+	}
+	if m.Status != entmail.StatusScheduled {
+		return nil, ErrGameMailState
+	}
+	started, err := uc.unregister(ctx, actor, m)
+	if err != nil {
+		return nil, err
+	}
+	if started {
+		return nil, ErrGameMailState
 	}
 	ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, []string{"scheduled"}, "draft")
 	if err != nil {
@@ -892,54 +940,93 @@ func (uc *GameOpsUsecase) revoke(ctx context.Context, actor GmActor, id string) 
 	}
 }
 
-// mailLoop 启动时把中断的投递 / 撤回恢复成可重试的状态，之后每 15 秒发送到点的定时邮件。
+// mailLoop 启动时把中断的撤回恢复成已发送，之后每 mailLoopEvery 按服务端的投递结果同步邮件状态。
 func (uc *GameOpsUsecase) mailLoop() {
 	time.Sleep(5 * time.Second)
 	uc.recoverMails()
 	ticker := time.NewTicker(mailLoopEvery)
 	defer ticker.Stop()
 	for {
-		uc.sendDue()
+		uc.syncMails()
 		<-ticker.C
 	}
 }
 
-// recoverMails 进程重启前没有完成的投递标为失败（重新发送时 MGP 会用 MAIL_ALREADY_SENT 防止重复投递），
-// 没有完成的撤回回到已发送。
+// recoverMails 进程重启前没有完成的撤回回到已发送（可以再次撤回）。
 func (uc *GameOpsUsecase) recoverMails() {
 	ctx := context.Background()
-	list, err := uc.repo.MailsInStatus(ctx, []string{"sending", "revoking"})
+	list, err := uc.repo.MailsInStatus(ctx, []string{"revoking"})
 	if err != nil {
 		uc.log.Warnf("recover mails: %v", err)
 		return
 	}
 	for _, m := range list {
-		if m.Status == entmail.StatusSending {
-			m.Status, m.Error = entmail.StatusFailed, "INTERRUPTED"
-		} else {
-			m.Status, m.Error, m.RevokedByName = entmail.StatusSent, "INTERRUPTED", ""
-		}
+		m.Status, m.Error, m.RevokedByName = entmail.StatusSent, "INTERRUPTED", ""
 		if _, err := uc.repo.SaveMail(ctx, m); err != nil {
 			uc.log.Warnf("recover mail %s: %v", m.ID, err)
 		}
 	}
 }
 
-// sendDue 发送到点的定时邮件（以设置定时的管理员名义执行）。
-func (uc *GameOpsUsecase) sendDue() {
-	ctx := context.Background()
-	due, err := uc.repo.DueMails(ctx, time.Now(), 20)
+// syncMails 投递中与已到开始时间的定时邮件按服务端保存的邮件同步状态。
+func (uc *GameOpsUsecase) syncMails() {
+	ctx, cancel := context.WithTimeout(context.Background(), mailLoopEvery)
+	defer cancel()
+	now := time.Now()
+	sending, err := uc.repo.MailsInStatus(ctx, []string{"sending"})
+	if err != nil {
+		uc.log.Warnf("sending mails: %v", err)
+		return
+	}
+	due, err := uc.repo.DueMails(ctx, now, 50)
 	if err != nil {
 		uc.log.Warnf("due mails: %v", err)
 		return
 	}
-	for _, m := range due {
-		ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, []string{"scheduled"}, "sending")
-		if err != nil || !ok {
-			continue
+	for _, m := range append(sending, due...) {
+		uc.syncMail(ctx, m, now)
+	}
+}
+
+// syncMail 按服务端的投递结果更新一封邮件：投递完转为已发送并记下送达与失败人数，
+// 已到开始时间的定时邮件转为投递中，服务端没有这封邮件（登记没有成功）时转为发送失败。
+func (uc *GameOpsUsecase) syncMail(ctx context.Context, m *gen.GameMail, now time.Time) {
+	s, client, err := uc.gm.Servers().ClientOf(ctx, m.ServerID)
+	if err != nil || s.Game != gakumas.ID {
+		return
+	}
+	st, err := gakumas.New(client).GetMail(ctx, m.ID)
+	from := []string{string(m.Status)}
+	switch {
+	case mgp.CodeOf(err) == gakumas.MailNotFound:
+		if now.Sub(m.UpdateTime) < mailRegisterGrace {
+			return
 		}
-		actor := GmActor{UserID: m.SentBy, Name: m.SentByName, Kind: "admin", Channel: "admin"}
-		go uc.deliver(ctx, actor, m.ID)
+		if ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, from, "failed"); err != nil || !ok {
+			return
+		}
+		m.Status, m.Error = entmail.StatusFailed, gakumas.MailNotFound
+	case err != nil:
+		uc.log.Warnf("sync mail %s: %v", m.ID, err)
+		return
+	case st.DeliveredAt > 0:
+		if ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, from, "sent"); err != nil || !ok {
+			return
+		}
+		at := time.UnixMilli(st.DeliveredAt)
+		m.Status, m.Error = entmail.StatusSent, ""
+		m.SentAt, m.StatsAt = &at, &now
+		m.RecipientCount, m.FailedCount, m.ClaimedCount = st.Done, st.Failed, 0
+	case m.Status == entmail.StatusScheduled:
+		if ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, from, "sending"); err != nil || !ok {
+			return
+		}
+		m.Status = entmail.StatusSending
+	default:
+		return
+	}
+	if _, err := uc.repo.SaveMail(ctx, m); err != nil {
+		uc.log.Warnf("save synced mail %s: %v", m.ID, err)
 	}
 }
 

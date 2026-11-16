@@ -401,19 +401,54 @@ type Mail struct {
 	Rewards       []Reward       `json:"rewards"`
 	Message       string         `json:"message,omitempty"`
 	ExpireDays    int32          `json:"expireDays,omitempty"`
+	// StartTime 开始投递的时间（Unix 毫秒），0 为立即；领取期限 ExpireDays 从它算起。
+	StartTime int64 `json:"startTime,omitempty"`
 }
 
 func (g *Client) mailOperation(ctx context.Context, path string, body any, opt mgp.OperationOptions) (*gk.MailResult, error) {
 	return operate[gk.MailResult](ctx, g.c, http.MethodPost, path, body, opt)
 }
 
-// SendMail 投递邮件；同一 mailId 投递过返回错误码 MailAlreadySent。
+// SendMail 把邮件登记到服务端，由服务端从 StartTime 起投递（全服邮件在领取期限内也投递给之后注册的账号）；
+// 同一 mailId 登记过返回错误码 MailAlreadySent。
 func (g *Client) SendMail(ctx context.Context, mail Mail, opt mgp.OperationOptions) (*gk.MailResult, error) {
 	return g.mailOperation(ctx, "/mails", mail, opt)
 }
 
-// MailAlreadySent 投递过的邮件再次投递时的错误码。
-const MailAlreadySent = "MAIL_ALREADY_SENT"
+// 邮件的错误码：登记过的 mailId 再次登记、服务端没有这封邮件、已经开始投递（不能取消）。
+const (
+	MailAlreadySent    = "MAIL_ALREADY_SENT"
+	MailNotFound       = "MAIL_NOT_FOUND"
+	MailAlreadyStarted = "MAIL_ALREADY_STARTED"
+)
+
+// MailState 服务端保存的一封邮件（时间为 Unix 毫秒）：DeliveredAt 为 0 表示开始时匹配的玩家还没投递完，
+// 投递完后 Matched / Done / Failed 为匹配、送达与失败的人数；RevokedAt 不为 0 表示已撤回。
+type MailState struct {
+	MailID      string `json:"mailId"`
+	Target      string `json:"target"`
+	StartTime   int64  `json:"startTime"`
+	LimitTime   int64  `json:"limitTime"`
+	DeliveredAt int64  `json:"deliveredAt"`
+	Matched     int    `json:"matched"`
+	Done        int    `json:"done"`
+	Failed      int    `json:"failed"`
+	RevokedAt   int64  `json:"revokedAt"`
+}
+
+// GetMail 读取服务端保存的邮件；没有时返回错误码 MailNotFound。
+func (g *Client) GetMail(ctx context.Context, mailID string) (*MailState, error) {
+	out := &MailState{}
+	if err := g.c.GetInto(ctx, "/mails/"+url.PathEscape(mailID), nil, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CancelMail 删除还没到开始时间的邮件（取消定时）；已经开始投递时返回错误码 MailAlreadyStarted。
+func (g *Client) CancelMail(ctx context.Context, mailID string, opt mgp.OperationOptions) (*gk.MailResult, error) {
+	return g.mailOperation(ctx, "/mails/"+url.PathEscape(mailID)+"/cancel", nil, opt)
+}
 
 func (g *Client) RevokeMail(ctx context.Context, mailID string, opt mgp.OperationOptions) (*gk.MailResult, error) {
 	return g.mailOperation(ctx, "/mails/"+url.PathEscape(mailID)+"/revoke", nil, opt)

@@ -6,14 +6,14 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// GameReward 一项奖励（与 MGP gift.send / mail.broadcast 的 rewards 相同）。
+// GameReward 一项奖励（与 MGP gift.send / mail.send 的 rewards 相同）。
 type GameReward struct {
 	ResourceType int32  `json:"resourceType"`
 	ResourceID   string `json:"resourceId"`
 	Quantity     int64  `json:"quantity"`
 }
 
-// GameMailCondition 按条件发送的收件人条件（与 MGP mail.broadcast 的 condition 相同，Unix 毫秒，0 不限）。
+// GameMailCondition 按条件发送的收件人条件（与 MGP mail.send 的 condition 相同，Unix 毫秒，0 不限）。
 type GameMailCondition struct {
 	CreatedSince    int64 `json:"createdSince,omitempty"`
 	CreatedBefore   int64 `json:"createdBefore,omitempty"`
@@ -21,7 +21,7 @@ type GameMailCondition struct {
 	LastLoginBefore int64 `json:"lastLoginBefore,omitempty"`
 }
 
-// GameMail 邮件补偿：把奖励发进玩家礼物箱（指令 mail.broadcast；撤回 mail.revoke）。
+// GameMail 邮件补偿：登记到游戏服务端，由服务端按开始时间投递进玩家礼物箱（指令 mail.send；取消定时 mail.cancel；撤回 mail.revoke）。
 type GameMail struct {
 	ent.Schema
 }

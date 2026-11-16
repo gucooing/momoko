@@ -1427,6 +1427,69 @@
   "md5": "f9237918e85d8ef9675aa14a343992f0",
   "hash": "4625571d"
  },
+ "cards/idol/hkne-1-000-full": {
+  "w": 960,
+  "h": 1707,
+  "src": "img_general_cidol-hkne-1-000_1-full",
+  "md5": "ba8507e3914d56d692fe052553dd89a4",
+  "hash": "aa725ff2"
+ },
+ "cards/idol/hkne-1-000-land": {
+  "w": 960,
+  "h": 480,
+  "src": "img_general_cidol-hkne-1-000_1-thumb-landscape-large",
+  "md5": "2714415721efef5854ca5d5691617497",
+  "hash": "79ac8850"
+ },
+ "cards/idol/hkne-1-000-sq": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_cidol-hkne-1-000_1-thumb-square",
+  "md5": "8d5436b3f12961454d268927d0d47926",
+  "hash": "9b007734"
+ },
+ "cards/idol/hkne-2-000-full": {
+  "w": 960,
+  "h": 1707,
+  "src": "img_general_cidol-hkne-2-000_1-full",
+  "md5": "cbde56aec3275bd5d59718c3f6f79389",
+  "hash": "bd1c2a62"
+ },
+ "cards/idol/hkne-2-000-land": {
+  "w": 960,
+  "h": 480,
+  "src": "img_general_cidol-hkne-2-000_1-thumb-landscape-large",
+  "md5": "d0c79952777e988a9f6e64e2ead50b13",
+  "hash": "83f520e1"
+ },
+ "cards/idol/hkne-2-000-sq": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_cidol-hkne-2-000_1-thumb-square",
+  "md5": "317b60a71cc85afa49f1f46df44a341e",
+  "hash": "33cab147"
+ },
+ "cards/idol/hkne-3-000-full": {
+  "w": 960,
+  "h": 1707,
+  "src": "img_general_cidol-hkne-3-000_1-full",
+  "md5": "57642f1ef0ba37fa0438a92372c91e9f",
+  "hash": "ce5d91ef"
+ },
+ "cards/idol/hkne-3-000-land": {
+  "w": 960,
+  "h": 480,
+  "src": "img_general_cidol-hkne-3-000_1-thumb-landscape-large",
+  "md5": "0fc8927b7e4c3ccaf1b52773eb82b78f",
+  "hash": "4b37eff5"
+ },
+ "cards/idol/hkne-3-000-sq": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_cidol-hkne-3-000_1-thumb-square",
+  "md5": "febbee46f99e3371973c854d120d85cc",
+  "hash": "78205235"
+ },
  "cards/idol/hmsz-1-000-full": {
   "w": 960,
   "h": 1707,
@@ -6824,6 +6887,27 @@
   "md5": "b8a329c0296f5a6f0387a0c651504c82",
   "hash": "297d87b3"
  },
+ "cards/support/1-0013-full": {
+  "w": 1280,
+  "h": 720,
+  "src": "img_general_csprt-1-0013_full",
+  "md5": "32e08b916b0336257dd2885125e74793",
+  "hash": "83c08fb8"
+ },
+ "cards/support/1-0013-land": {
+  "w": 256,
+  "h": 128,
+  "src": "img_general_csprt-1-0013_thumb-landscape",
+  "md5": "44ab5324df4cb237378be12286d7f9f2",
+  "hash": "db9181c0"
+ },
+ "cards/support/1-0013-sq": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_csprt-1-0013_thumb-square",
+  "md5": "87e90636a955e9dfa274d6547b1550f8",
+  "hash": "2f605acf"
+ },
  "cards/support/2-0000-full": {
   "w": 1280,
   "h": 720,
@@ -8566,6 +8650,27 @@
   "src": "img_general_csprt-2-0082_thumb-square",
   "md5": "dd74d378e4bf987ac23a3444287a277e",
   "hash": "938d8c28"
+ },
+ "cards/support/2-0084-full": {
+  "w": 1280,
+  "h": 720,
+  "src": "img_general_csprt-2-0084_full",
+  "md5": "96fec3c1c18e7a9e46f76ec29a55f89e",
+  "hash": "65d1e871"
+ },
+ "cards/support/2-0084-land": {
+  "w": 256,
+  "h": 128,
+  "src": "img_general_csprt-2-0084_thumb-landscape",
+  "md5": "1460685d0e63d71b352b3a7dd9580b8e",
+  "hash": "51346bbb"
+ },
+ "cards/support/2-0084-sq": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_csprt-2-0084_thumb-square",
+  "md5": "d59c6330dcd1dbbf593db6749c47ebaf",
+  "hash": "5a7917f4"
  },
  "cards/support/3-0000-full": {
   "w": 1280,
@@ -10982,6 +11087,27 @@
   "md5": "479c9f0d01506cbd45feaeeeeaaf325b",
   "hash": "882d9d9d"
  },
+ "cards/support/3-0115-full": {
+  "w": 1280,
+  "h": 720,
+  "src": "img_general_csprt-3-0115_full",
+  "md5": "2e837039e3af4c32e502967e4e9c82cd",
+  "hash": "fcaa8e0a"
+ },
+ "cards/support/3-0115-land": {
+  "w": 256,
+  "h": 128,
+  "src": "img_general_csprt-3-0115_thumb-landscape",
+  "md5": "d0917ec2f44899549f785d3c1cfcbbb8",
+  "hash": "56d4bab3"
+ },
+ "cards/support/3-0115-sq": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_csprt-3-0115_thumb-square",
+  "md5": "88ee3c867841be10c90dab1a0c08aa95",
+  "hash": "a103633d"
+ },
  "cards/support/3-0122-full": {
   "w": 1280,
   "h": 720,
@@ -11051,6 +11177,13 @@
   "src": "img_chr_hkne_00-thumb-circle",
   "md5": "9501a4b0d91cc2afc0cea5ddd3a2d27a",
   "hash": "b52e33ed"
+ },
+ "chara/hkne-bust": {
+  "w": 512,
+  "h": 512,
+  "src": "img_chr_hkne_00-bustup",
+  "md5": "7e4a161f3db59110c12e410c5b9852eb",
+  "hash": "82575766"
  },
  "chara/hmsz": {
   "w": 128,
@@ -11884,6 +12017,13 @@
   "src": "img_general_event_panel_event-panel-mission-012-banner",
   "md5": "91736d42cead07d7eb8c784b0f150acf",
   "hash": "e4b08937"
+ },
+ "events/event-panel-mission-013-banner": {
+  "w": 1024,
+  "h": 256,
+  "src": "img_general_event_panel_event-panel-mission-013-banner",
+  "md5": "4c14c05e39cbc87fe9b74b91ebcb7160",
+  "hash": "8d786261"
  },
  "events/event-story-001-banner": {
   "w": 1024,
@@ -13635,6 +13775,27 @@
   "md5": "de2853169d8aa1d8a7bc9b68d17d0ab7",
   "hash": "4a178e67"
  },
+ "events/notice-gasha-01070-pickup-001": {
+  "w": 920,
+  "h": 320,
+  "src": "img_notice_gasha_gasha-01070-pickup-001-banner-01-large",
+  "md5": "fc08ec4eeaa5ba81fdbe4c20e06213aa",
+  "hash": "5510509f"
+ },
+ "events/notice-gasha-01070-ssr-idol-001": {
+  "w": 920,
+  "h": 320,
+  "src": "img_notice_gasha_gasha-01070-ssr-idol-001-banner-01-large",
+  "md5": "5b9ded45a68e311985726375848f80bf",
+  "hash": "3c1a9655"
+ },
+ "events/notice-gasha-01070-ssr-support-001": {
+  "w": 920,
+  "h": 320,
+  "src": "img_notice_gasha_gasha-01070-ssr-support-001-banner-01-large",
+  "md5": "5857162b82f59b873565627665e95072",
+  "hash": "731cae7b"
+ },
  "events/notice-gasha-200limit-select-pickup-001": {
   "w": 920,
   "h": 320,
@@ -13971,6 +14132,13 @@
   "md5": "c61bf672bee4910c3ed14793d9e466d1",
   "hash": "86c4ff3b"
  },
+ "gasha/bg-gasha_2nd-half-anniversary": {
+  "w": 1024,
+  "h": 2048,
+  "src": "img_general_gasha_bg_gasha_2nd-half-anniversary",
+  "md5": "d2a1a62f1dd16bb5f03ea52be23a9e20",
+  "hash": "b515e806"
+ },
  "gasha/bg-gasha_all-live-01": {
   "w": 1024,
   "h": 2048,
@@ -14153,12 +14321,40 @@
   "md5": "251876f9b0c46e7bbbd0f220891f6e74",
   "hash": "867c16f1"
  },
+ "gasha/bg-gasha_select-loginbonus-003": {
+  "w": 1024,
+  "h": 2048,
+  "src": "img_general_gasha_bg_gasha_select-loginbonus-003",
+  "md5": "94d8b43aca562505361b56f877876d06",
+  "hash": "56ef434c"
+ },
+ "gasha/bg-gasha_select-loginbonus-004": {
+  "w": 1024,
+  "h": 2048,
+  "src": "img_general_gasha_bg_gasha_select-loginbonus-004",
+  "md5": "26fb7fb6f6bc8821628f11003d210fd9",
+  "hash": "a374eeeb"
+ },
  "gasha/bg-gasha_ssr-idol-1-point-5-anniversary": {
   "w": 1024,
   "h": 2048,
   "src": "img_general_gasha_bg_gasha_ssr-idol-1-point-5-anniversary",
   "md5": "dd68b5306e930b3ab3b3bac926aaba74",
   "hash": "6da8e6e6"
+ },
+ "gasha/bg-gasha_ssr-idol-2-point-5-anniversary-001": {
+  "w": 1024,
+  "h": 2048,
+  "src": "img_general_gasha_bg_gasha_ssr-idol-2-point-5-anniversary-001",
+  "md5": "4718ecc7cc54a49cd9893d052928df0f",
+  "hash": "d4831615"
+ },
+ "gasha/bg-gasha_ssr-idol-2-point-5-anniversary-002": {
+  "w": 1024,
+  "h": 2048,
+  "src": "img_general_gasha_bg_gasha_ssr-idol-2-point-5-anniversary-002",
+  "md5": "761bf888d23fcdf35e887d0f60e46b4a",
+  "hash": "9a72cf9d"
  },
  "gasha/bg-gasha_ssr-idol-2nd-anniversary": {
   "w": 1024,
@@ -14187,6 +14383,20 @@
   "src": "img_general_gasha_bg_gasha_ssr-support-1-point-5-anniversary",
   "md5": "cf6d18a7a2081336fc45f3ba22a2a142",
   "hash": "5e2fb7aa"
+ },
+ "gasha/bg-gasha_ssr-support-2-point-5-anniversary-001": {
+  "w": 1024,
+  "h": 2048,
+  "src": "img_general_gasha_bg_gasha_ssr-support-2-point-5-anniversary-001",
+  "md5": "cfa8f6e9bf06357a1171575139101d8c",
+  "hash": "a2834b89"
+ },
+ "gasha/bg-gasha_ssr-support-2-point-5-anniversary-002": {
+  "w": 1024,
+  "h": 2048,
+  "src": "img_general_gasha_bg_gasha_ssr-support-2-point-5-anniversary-002",
+  "md5": "f263dd8758420b48290539d8bc981fa3",
+  "hash": "7432aae2"
  },
  "gasha/bg-gasha_ssr-support-season-only-01": {
   "w": 1024,
@@ -14320,6 +14530,13 @@
   "src": "img_general_gasha_bg_gasha_wednesday-013",
   "md5": "8a7bc94b7a1e00d0487edc1c3e8472d0",
   "hash": "66cf3640"
+ },
+ "gasha/bg-gasha_wednesday-014": {
+  "w": 1024,
+  "h": 2048,
+  "src": "img_general_gasha_bg_gasha_wednesday-014",
+  "md5": "68466119652c7bdd663a83873708bd12",
+  "hash": "0cc0d940"
  },
  "gasha/gasha-00000-standard-001": {
   "w": 512,
@@ -15973,6 +16190,69 @@
   "md5": "bdd210adaa1e1a81cfe896c35ab516d7",
   "hash": "52ba0f96"
  },
+ "gasha/gasha-01070-pickup-001": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-pickup-001-select-m",
+  "md5": "cd49349ef84fb71bdd83df0b14f88ee0",
+  "hash": "ec237529"
+ },
+ "gasha/gasha-01070-select-loginbonus-001": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-select-loginbonus-001-select-m",
+  "md5": "b9c6be3006e17967b493608af9c5b10d",
+  "hash": "dee0accc"
+ },
+ "gasha/gasha-01070-select-loginbonus-002": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-select-loginbonus-002-select-m",
+  "md5": "8b80ed2e749b4432d527a87769f47951",
+  "hash": "a8138aa5"
+ },
+ "gasha/gasha-01070-ssr-idol-001": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-ssr-idol-001-select-m",
+  "md5": "03d69fa53574218dcb1b3dab85b9f3a9",
+  "hash": "c00c8c37"
+ },
+ "gasha/gasha-01070-ssr-idol-002": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-ssr-idol-002-select-m",
+  "md5": "f8f126969e2d8d7956a09d75e763aeea",
+  "hash": "e12c0ab6"
+ },
+ "gasha/gasha-01070-ssr-support-001": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-ssr-support-001-select-m",
+  "md5": "14450d2c4c25fe0d0d5dd0e4bcb31211",
+  "hash": "77bf02ac"
+ },
+ "gasha/gasha-01070-ssr-support-002": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-ssr-support-002-select-m",
+  "md5": "9770034955dd62cb4ca69c3200acfaf2",
+  "hash": "419489c6"
+ },
+ "gasha/gasha-01070-ticket-001": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-ticket-001-select-m",
+  "md5": "a5f59e6f354b7a2a456d01baa11564eb",
+  "hash": "c877e751"
+ },
+ "gasha/gasha-01070-wednesday-001": {
+  "w": 512,
+  "h": 256,
+  "src": "img_gasha_banner_gasha-01070-wednesday-001-select-m",
+  "md5": "06c4adda4dd39b9c375bb1bb5f805595",
+  "hash": "28bc8e86"
+ },
  "gasha/gasha-200limit-select-pickup-001": {
   "w": 512,
   "h": 256,
@@ -16091,6 +16371,13 @@
   "src": "img_gasha_banner_gasha_ticket_ssr_support_2-select-m",
   "md5": "9a26bc43777e24b447fd277a2641b933",
   "hash": "3fc69b8d"
+ },
+ "items/2nd-half-anniv-exchange-campaign-01": {
+  "w": 96,
+  "h": 96,
+  "src": "img_general_item_2nd-half-anniv-exchange-campaign-01",
+  "md5": "e10bd3d49afa5b036d37bcca4adb12b9",
+  "hash": "b940d0e2"
  },
  "items/ap": {
   "w": 96,
@@ -16624,6 +16911,27 @@
   "md5": "3ac40c3a58bbda33990e9d9bb9608229",
   "hash": "be11b42e"
  },
+ "items/gacha-ticket-2nd-half-anniv-10-001": {
+  "w": 96,
+  "h": 96,
+  "src": "img_general_item_gacha-ticket-2nd-half-anniv-10-001",
+  "md5": "f253dbe22c7d5083680b8d1c19fd7caf",
+  "hash": "e657f8f0"
+ },
+ "items/gacha-ticket-2nd-half-anniv-ssr-idol": {
+  "w": 96,
+  "h": 96,
+  "src": "img_general_item_gacha-ticket-2nd-half-anniv-ssr-idol",
+  "md5": "b90d738ad0a2857c7a71c7d0eb962b3d",
+  "hash": "c914848b"
+ },
+ "items/gacha-ticket-2nd-half-anniv-ssr-support": {
+  "w": 96,
+  "h": 96,
+  "src": "img_general_item_gacha-ticket-2nd-half-anniv-ssr-support",
+  "md5": "0d407446c4a68cad938607290fd5b11d",
+  "hash": "bb9c3912"
+ },
  "items/gacha-ticket-3-2": {
   "w": 96,
   "h": 96,
@@ -16714,6 +17022,13 @@
   "src": "img_general_item_gacha-ticket-select-login-bonus-002",
   "md5": "d340f3a5d7a8c711ed1ae59bcb1bc333",
   "hash": "abbd00f2"
+ },
+ "items/gacha-ticket-select-login-bonus-003": {
+  "w": 96,
+  "h": 96,
+  "src": "img_general_item_gacha-ticket-select-login-bonus-003",
+  "md5": "3c955de652ddc43a08d8bbff2cdbdc2b",
+  "hash": "095864d4"
  },
  "items/gacha-ticket-ssr-1": {
   "w": 96,
@@ -18094,6 +18409,13 @@
   "md5": "a72b4ce7cef0bae993d95ed2cbdf2c0b",
   "hash": "94fe38e0"
  },
+ "pitems/1-100": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_pitem_1-100",
+  "md5": "96b62ee0a63b594a1fa4548f772b5394",
+  "hash": "933f4856"
+ },
  "pitems/2-001": {
   "w": 128,
   "h": 128,
@@ -19017,6 +19339,20 @@
   "src": "img_general_pitem_2-136",
   "md5": "c1b7f794ac3a63ec204e434883213fc4",
   "hash": "6d275369"
+ },
+ "pitems/2-137": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_pitem_2-137",
+  "md5": "c5f09bc0228af1bea3c707373cdca0bd",
+  "hash": "c12e0c9e"
+ },
+ "pitems/2-171": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_pitem_2-171",
+  "md5": "6dedd9f2a5fe392c6f6470a4aca46575",
+  "hash": "736468ad"
  },
  "pitems/3-001": {
   "w": 128,
@@ -21279,6 +21615,13 @@
   "md5": "4ddab93d10ba4dabfb6826e895f48f44",
   "hash": "80b447ea"
  },
+ "pitems/3-356": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_pitem_3-356",
+  "md5": "f86428f0badd9f0a95387b29b55cb61c",
+  "hash": "6b38f5f1"
+ },
  "pitems/3-357": {
   "w": 128,
   "h": 128,
@@ -21292,6 +21635,13 @@
   "src": "img_general_pitem_3-362",
   "md5": "af470a879637ba00d001f49d045590ee",
   "hash": "7ff620a7"
+ },
+ "pitems/3-393": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_pitem_3-393",
+  "md5": "fedf1610aa161f4799804048914e25d5",
+  "hash": "08d90710"
  },
  "skillcards/acc-0_002": {
   "w": 128,
@@ -21461,6 +21811,13 @@
   "md5": "7012d9492b486a9a3a40ba1bda20e948",
   "hash": "bc5b5e15"
  },
+ "skillcards/act-100_003-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-100_003-hkne",
+  "md5": "f90f0e738b83950f1c29b3a3fdf74caf",
+  "hash": "5811a627"
+ },
  "skillcards/act-100_003-hmsz": {
   "w": 128,
   "h": 128,
@@ -21550,6 +21907,13 @@
   "h": 128,
   "src": "img_general_skillcard_act-100_004-fktn",
   "md5": "0ab18971182b0ee84597c9e4441ac33a",
+  "hash": "8f1ed64f"
+ },
+ "skillcards/act-100_004-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-100_004-hkne",
+  "md5": "dce22c2bb7c0956ab85ce39ec6806b43",
   "hash": "8f1ed64f"
  },
  "skillcards/act-100_004-hmsz": {
@@ -21643,6 +22007,13 @@
   "md5": "2bc58400b7e6ad2235f9a69656135a5b",
   "hash": "43c7c4f6"
  },
+ "skillcards/act-100_006-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-100_006-hkne",
+  "md5": "60aec8a8971153af7864366c6d37e0c8",
+  "hash": "43c7c4f6"
+ },
  "skillcards/act-100_006-hmsz": {
   "w": 128,
   "h": 128,
@@ -21732,6 +22103,13 @@
   "h": 128,
   "src": "img_general_skillcard_act-100_009-fktn",
   "md5": "d97f4f45fae1271b76ec93aaaecf1698",
+  "hash": "2684475d"
+ },
+ "skillcards/act-100_009-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-100_009-hkne",
+  "md5": "83bf7b7e2591d5bd212ae979d2a317f5",
   "hash": "2684475d"
  },
  "skillcards/act-100_009-hmsz": {
@@ -21825,6 +22203,13 @@
   "md5": "619c998a5a139e995cc29057cb92b0ae",
   "hash": "346bef91"
  },
+ "skillcards/act-100_010-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-100_010-hkne",
+  "md5": "87988f519fa22a97da9c51a50a3e91db",
+  "hash": "346bef91"
+ },
  "skillcards/act-100_010-hmsz": {
   "w": 128,
   "h": 128,
@@ -21916,6 +22301,13 @@
   "md5": "942717935e18b0ca26eeeee9768a54c7",
   "hash": "dc0689b7"
  },
+ "skillcards/act-100_013-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-100_013-hkne",
+  "md5": "352795c3c0ae41e37e62483b427b9f5e",
+  "hash": "2da59c2b"
+ },
  "skillcards/act-100_013-hmsz": {
   "w": 128,
   "h": 128,
@@ -22006,6 +22398,13 @@
   "src": "img_general_skillcard_act-100_018-fktn",
   "md5": "8ec67bea576d071dafd0e5ac5adf4f41",
   "hash": "7adb9dc6"
+ },
+ "skillcards/act-100_018-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-100_018-hkne",
+  "md5": "23cd4469682946b719798e8b1755d302",
+  "hash": "f1682815"
  },
  "skillcards/act-100_018-hmsz": {
   "w": 128,
@@ -22146,6 +22545,13 @@
   "src": "img_general_skillcard_act-1_022-fktn",
   "md5": "99a75a55c9a8073bce4d18d11fedbcab",
   "hash": "be5a614b"
+ },
+ "skillcards/act-1_022-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-1_022-hkne",
+  "md5": "967636b716f0aa4d8f32c36df4ab6885",
+  "hash": "4f54c2c1"
  },
  "skillcards/act-1_022-hmsz": {
   "w": 128,
@@ -22378,6 +22784,13 @@
   "md5": "a7626f74c909188386f3f92f332413a8",
   "hash": "0060162f"
  },
+ "skillcards/act-1_074-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-1_074-hkne",
+  "md5": "5b031d4f6bac36d3071a1831d9b8301a",
+  "hash": "06099adc"
+ },
  "skillcards/act-1_074-hmsz": {
   "w": 128,
   "h": 128,
@@ -22475,6 +22888,13 @@
   "src": "img_general_skillcard_act-2_001-fktn",
   "md5": "e02b50d5a65070afdd1d42dd4b8b22c0",
   "hash": "8d5befe0"
+ },
+ "skillcards/act-2_001-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_001-hkne",
+  "md5": "5a1f5b7173550fd41ca912fb5e993b48",
+  "hash": "443cc3c9"
  },
  "skillcards/act-2_001-hmsz": {
   "w": 128,
@@ -22574,6 +22994,13 @@
   "md5": "ce4640d616c100a4bbe1d20fab169ca2",
   "hash": "bcfd3a4f"
  },
+ "skillcards/act-2_002-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_002-hkne",
+  "md5": "cb0104c9c1960f4e2e268ba289688bf2",
+  "hash": "e59e1217"
+ },
  "skillcards/act-2_002-hmsz": {
   "w": 128,
   "h": 128,
@@ -22671,6 +23098,13 @@
   "src": "img_general_skillcard_act-2_003-fktn",
   "md5": "b2de7afe5ba5f939ad983c70a8763a1a",
   "hash": "3fd8a1c4"
+ },
+ "skillcards/act-2_003-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_003-hkne",
+  "md5": "7e1463ea0d9f59e6c404fda8988cfd52",
+  "hash": "093ea7b4"
  },
  "skillcards/act-2_003-hmsz": {
   "w": 128,
@@ -22770,6 +23204,13 @@
   "md5": "0d9c69fef4e36774035bf52cf45ecfd7",
   "hash": "30d86e9a"
  },
+ "skillcards/act-2_009-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_009-hkne",
+  "md5": "e5a9c8004e46e7dfb62c3cb39398e58a",
+  "hash": "fd28bfd4"
+ },
  "skillcards/act-2_009-hmsz": {
   "w": 128,
   "h": 128,
@@ -22867,6 +23308,13 @@
   "src": "img_general_skillcard_act-2_030-fktn",
   "md5": "d600c45d4f1be950db52f76ade7ab0cb",
   "hash": "410f7f80"
+ },
+ "skillcards/act-2_030-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_030-hkne",
+  "md5": "15fdc123b35e48aed948d6862ce2eebd",
+  "hash": "d34ad1fd"
  },
  "skillcards/act-2_030-hmsz": {
   "w": 128,
@@ -22966,6 +23414,13 @@
   "md5": "a4a3c64d2f42c7a63980672534c4879b",
   "hash": "b8312430"
  },
+ "skillcards/act-2_031-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_031-hkne",
+  "md5": "51683999a45d197433af32e2835da67f",
+  "hash": "3ea82e4c"
+ },
  "skillcards/act-2_031-hmsz": {
   "w": 128,
   "h": 128,
@@ -23063,6 +23518,13 @@
   "src": "img_general_skillcard_act-2_032-fktn",
   "md5": "22e7c17ac6b01f8d3188a89ab83cb19a",
   "hash": "ef99e517"
+ },
+ "skillcards/act-2_032-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_032-hkne",
+  "md5": "18a71eac0bdc064d6f2da240445a689a",
+  "hash": "c0126964"
  },
  "skillcards/act-2_032-hmsz": {
   "w": 128,
@@ -23162,6 +23624,13 @@
   "md5": "77fc02b17fdb6bb2a805675b40799d5d",
   "hash": "04189cad"
  },
+ "skillcards/act-2_033-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_033-hkne",
+  "md5": "e7820f723441b944bac6d991691aa2f3",
+  "hash": "ab24be23"
+ },
  "skillcards/act-2_033-hmsz": {
   "w": 128,
   "h": 128,
@@ -23259,6 +23728,13 @@
   "src": "img_general_skillcard_act-2_042-fktn",
   "md5": "3ca3eb472496f3c63b2caba5832b4a96",
   "hash": "5a29d5bb"
+ },
+ "skillcards/act-2_042-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_042-hkne",
+  "md5": "5800c7d3df6df47f1fc529feae081138",
+  "hash": "9ff4725a"
  },
  "skillcards/act-2_042-hmsz": {
   "w": 128,
@@ -23358,6 +23834,13 @@
   "md5": "44a71bb92504be9e9a9fe9e0ae64547b",
   "hash": "b2c72071"
  },
+ "skillcards/act-2_044-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_044-hkne",
+  "md5": "f5a9d9ee9547a0e999a3b3b897f4faf4",
+  "hash": "d3033e5a"
+ },
  "skillcards/act-2_044-hmsz": {
   "w": 128,
   "h": 128,
@@ -23455,6 +23938,13 @@
   "src": "img_general_skillcard_act-2_045-fktn",
   "md5": "02008eab284d7326325a6885368dd591",
   "hash": "00556f36"
+ },
+ "skillcards/act-2_045-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_045-hkne",
+  "md5": "a4da03610a498f25725cfebaabc12dca",
+  "hash": "42eaef80"
  },
  "skillcards/act-2_045-hmsz": {
   "w": 128,
@@ -23554,6 +24044,13 @@
   "md5": "9a5933d5d3a16727a64fbab742d438ed",
   "hash": "567808ca"
  },
+ "skillcards/act-2_046-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_046-hkne",
+  "md5": "b55f6d6ecffefc27a58805080c620049",
+  "hash": "6cc05f4f"
+ },
  "skillcards/act-2_046-hmsz": {
   "w": 128,
   "h": 128,
@@ -23651,6 +24148,13 @@
   "src": "img_general_skillcard_act-2_047-fktn",
   "md5": "749f3221a383ce277fb7571f12f1cdfe",
   "hash": "cfc1bd9b"
+ },
+ "skillcards/act-2_047-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_047-hkne",
+  "md5": "49a4ff0c1f6488abe6bd54661de16ace",
+  "hash": "f499a37d"
  },
  "skillcards/act-2_047-hmsz": {
   "w": 128,
@@ -23750,6 +24254,13 @@
   "md5": "c6e30c9dbb83b062c0b03917e046de7e",
   "hash": "6d649ec7"
  },
+ "skillcards/act-2_048-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_048-hkne",
+  "md5": "f31e1ce04b02ff3960d321caa6290285",
+  "hash": "e4cc66c3"
+ },
  "skillcards/act-2_048-hmsz": {
   "w": 128,
   "h": 128,
@@ -23847,6 +24358,13 @@
   "src": "img_general_skillcard_act-2_049-fktn",
   "md5": "318308c9775b6b732b42c7b8b2f3aebb",
   "hash": "11330916"
+ },
+ "skillcards/act-2_049-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_049-hkne",
+  "md5": "3dff21bf9d4f53e3f99a76552b3f2657",
+  "hash": "2f57ba50"
  },
  "skillcards/act-2_049-hmsz": {
   "w": 128,
@@ -23946,6 +24464,13 @@
   "md5": "5fca31bff1f56e71022b765c6f5bedcf",
   "hash": "ebb678c9"
  },
+ "skillcards/act-2_059-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_059-hkne",
+  "md5": "676e0981acfd3e7bbe33cd54492f84df",
+  "hash": "7f4d0252"
+ },
  "skillcards/act-2_059-hmsz": {
   "w": 128,
   "h": 128,
@@ -24043,6 +24568,13 @@
   "src": "img_general_skillcard_act-2_061-fktn",
   "md5": "555c4de719f903cea40d82a59c79ba45",
   "hash": "4c5de104"
+ },
+ "skillcards/act-2_061-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_061-hkne",
+  "md5": "3049c4d8366ea2d3c25725123c39a649",
+  "hash": "c52c6a49"
  },
  "skillcards/act-2_061-hmsz": {
   "w": 128,
@@ -24142,6 +24674,13 @@
   "md5": "56c9c5416e96b5d881e46ed47cacbe49",
   "hash": "e8fea2f1"
  },
+ "skillcards/act-2_062-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_062-hkne",
+  "md5": "9b5951227d42929323e103064d9c4ddd",
+  "hash": "c54be389"
+ },
  "skillcards/act-2_062-hmsz": {
   "w": 128,
   "h": 128,
@@ -24239,6 +24778,13 @@
   "src": "img_general_skillcard_act-2_063-fktn",
   "md5": "41997cd85201aba841b18fcffd81ca78",
   "hash": "61846904"
+ },
+ "skillcards/act-2_063-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_063-hkne",
+  "md5": "53e2c02933ead78bd435e72145a43dee",
+  "hash": "a2a432be"
  },
  "skillcards/act-2_063-hmsz": {
   "w": 128,
@@ -24338,6 +24884,13 @@
   "md5": "54fb6d34ee6906a6cf5b30d2fcafd45f",
   "hash": "8210c60b"
  },
+ "skillcards/act-2_065-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_065-hkne",
+  "md5": "94ee485d2c7c0972e996c2401954bb06",
+  "hash": "a8a14bcd"
+ },
  "skillcards/act-2_065-hmsz": {
   "w": 128,
   "h": 128,
@@ -24435,6 +24988,13 @@
   "src": "img_general_skillcard_act-2_067-fktn",
   "md5": "286b6d95c73ff41d67d7988acd5ad33c",
   "hash": "d8c73ed0"
+ },
+ "skillcards/act-2_067-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_067-hkne",
+  "md5": "6fdae99d401bfe38edef4cc8064a9279",
+  "hash": "aefdcc2c"
  },
  "skillcards/act-2_067-hmsz": {
   "w": 128,
@@ -24534,6 +25094,13 @@
   "md5": "81e1b543e59287f7bcd251a376258a5e",
   "hash": "2cf1e6cc"
  },
+ "skillcards/act-2_068-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_068-hkne",
+  "md5": "4e87180e7a7e30917fb02261d3cdf870",
+  "hash": "4ec8d6d9"
+ },
  "skillcards/act-2_068-hmsz": {
   "w": 128,
   "h": 128,
@@ -24631,6 +25198,13 @@
   "src": "img_general_skillcard_act-2_069-fktn",
   "md5": "9c299689e7b332f8df9e1dec8a1f2a71",
   "hash": "ef0c7181"
+ },
+ "skillcards/act-2_069-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_069-hkne",
+  "md5": "ef626d2314833b74ac2157c40e1ee9d1",
+  "hash": "10368834"
  },
  "skillcards/act-2_069-hmsz": {
   "w": 128,
@@ -24730,6 +25304,13 @@
   "md5": "a3fb20322e1ceb7518cb3f91df6a087c",
   "hash": "c1bc6bf9"
  },
+ "skillcards/act-2_070-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_070-hkne",
+  "md5": "27deca805b59f0807e63fcfbb2cae9b8",
+  "hash": "2095c164"
+ },
  "skillcards/act-2_070-hmsz": {
   "w": 128,
   "h": 128,
@@ -24827,6 +25408,13 @@
   "src": "img_general_skillcard_act-2_071-fktn",
   "md5": "cdcfc43f80167607b12e91031ee41963",
   "hash": "0c2fc8b7"
+ },
+ "skillcards/act-2_071-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_071-hkne",
+  "md5": "5ba5df9d738f36a8b3665dc72527a647",
+  "hash": "032134d6"
  },
  "skillcards/act-2_071-hmsz": {
   "w": 128,
@@ -24926,6 +25514,13 @@
   "md5": "1f39f56f952c2ab9e6aad1c9e270c400",
   "hash": "8b4efe90"
  },
+ "skillcards/act-2_072-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_072-hkne",
+  "md5": "fd331e963badd75e0b53d58e3c4ac2fa",
+  "hash": "7d7ff0c7"
+ },
  "skillcards/act-2_072-hmsz": {
   "w": 128,
   "h": 128,
@@ -25023,6 +25618,13 @@
   "src": "img_general_skillcard_act-2_073-fktn",
   "md5": "36b9be183d48df1adfb10dca94333c29",
   "hash": "56cb71e6"
+ },
+ "skillcards/act-2_073-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_073-hkne",
+  "md5": "32011e2d0e52951d9cc43dddb29224f3",
+  "hash": "d4f281d4"
  },
  "skillcards/act-2_073-hmsz": {
   "w": 128,
@@ -25122,6 +25724,13 @@
   "md5": "42612048fc953dcb7cec0de5ea840a27",
   "hash": "687856d2"
  },
+ "skillcards/act-2_081-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_081-hkne",
+  "md5": "d649993d3485ff03aae3af4292b9bc4e",
+  "hash": "54caf74b"
+ },
  "skillcards/act-2_081-hmsz": {
   "w": 128,
   "h": 128,
@@ -25219,6 +25828,13 @@
   "src": "img_general_skillcard_act-2_082-fktn",
   "md5": "538ae6aa72e7c51100fb9f326270027b",
   "hash": "93ae76a9"
+ },
+ "skillcards/act-2_082-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_082-hkne",
+  "md5": "454800f1ec222420873b054d9588d6dc",
+  "hash": "c2b2b2e7"
  },
  "skillcards/act-2_082-hmsz": {
   "w": 128,
@@ -25318,6 +25934,13 @@
   "md5": "1b59ea35fdbbeb986cb96159552937c3",
   "hash": "ae772229"
  },
+ "skillcards/act-2_102-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_102-hkne",
+  "md5": "71fcf553beeb807a98f811bbca084446",
+  "hash": "b0113309"
+ },
  "skillcards/act-2_102-hmsz": {
   "w": 128,
   "h": 128,
@@ -25415,6 +26038,13 @@
   "src": "img_general_skillcard_act-2_106-fktn",
   "md5": "3faccde5ab580e2876035ed563806a59",
   "hash": "e5f0eca2"
+ },
+ "skillcards/act-2_106-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_106-hkne",
+  "md5": "f1f36a6741145eede80ab03c89c40455",
+  "hash": "c47062f1"
  },
  "skillcards/act-2_106-hmsz": {
   "w": 128,
@@ -25514,6 +26144,13 @@
   "md5": "69a40bc36ce1476efb61d212accea2ad",
   "hash": "f5f8c396"
  },
+ "skillcards/act-2_108-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_108-hkne",
+  "md5": "cb71207a8378a51e8ca8c7e3c5d8c83a",
+  "hash": "bddf2f69"
+ },
  "skillcards/act-2_108-hmsz": {
   "w": 128,
   "h": 128,
@@ -25604,6 +26241,13 @@
   "src": "img_general_skillcard_act-2_113-fktn",
   "md5": "08648a24f900dd471f125191a9fff344",
   "hash": "7d452c8c"
+ },
+ "skillcards/act-2_113-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_113-hkne",
+  "md5": "81086991c4d73987a29607bcd9cef4bf",
+  "hash": "a3967793"
  },
  "skillcards/act-2_113-hmsz": {
   "w": 128,
@@ -25696,6 +26340,13 @@
   "md5": "5528a1d8d9d3edbab41dac1092857854",
   "hash": "ac39c409"
  },
+ "skillcards/act-2_116-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_116-hkne",
+  "md5": "b6ae9f59e02ea1ba87f1debf376fddd5",
+  "hash": "1c2a3787"
+ },
  "skillcards/act-2_116-hmsz": {
   "w": 128,
   "h": 128,
@@ -25786,6 +26437,13 @@
   "src": "img_general_skillcard_act-2_118-fktn",
   "md5": "1d9a862912f5f7effba1562bc75f7203",
   "hash": "887a385b"
+ },
+ "skillcards/act-2_118-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_118-hkne",
+  "md5": "de8acc2f7751408c323da3c18bf23089",
+  "hash": "1e8f0bdb"
  },
  "skillcards/act-2_118-hmsz": {
   "w": 128,
@@ -25878,6 +26536,13 @@
   "md5": "9dd977d55d7025cd1cc0d43b8de236d2",
   "hash": "4f372e8c"
  },
+ "skillcards/act-2_120-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-2_120-hkne",
+  "md5": "b7fd430655c6cea5b838b6dd662bf345",
+  "hash": "ce646820"
+ },
  "skillcards/act-2_120-hmsz": {
   "w": 128,
   "h": 128,
@@ -25968,6 +26633,13 @@
   "src": "img_general_skillcard_act-3_001-fktn",
   "md5": "ee48b286bdba19bd2bcbf3af74986971",
   "hash": "51ddadd0"
+ },
+ "skillcards/act-3_001-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_001-hkne",
+  "md5": "c582bff0ee49c717d6b202dd4119e1d0",
+  "hash": "00d7815b"
  },
  "skillcards/act-3_001-hmsz": {
   "w": 128,
@@ -26067,6 +26739,13 @@
   "md5": "26d67eff6159b17c7677dfc9330739e7",
   "hash": "76ea5f22"
  },
+ "skillcards/act-3_010-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_010-hkne",
+  "md5": "12bc184f67d7331225680ce22f18ec69",
+  "hash": "2f2944ea"
+ },
  "skillcards/act-3_010-hmsz": {
   "w": 128,
   "h": 128,
@@ -26165,6 +26844,13 @@
   "md5": "d7c7d7f124d9ece56522cee4c799e0b8",
   "hash": "f8d81e36"
  },
+ "skillcards/act-3_029-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_029-hkne",
+  "md5": "094581b01a1351010963f415fec9c706",
+  "hash": "e5964726"
+ },
  "skillcards/act-3_029-hmsz": {
   "w": 128,
   "h": 128,
@@ -26261,6 +26947,13 @@
   "h": 128,
   "src": "img_general_skillcard_act-3_030-fktn",
   "md5": "f7206155b014a2a4705c4f8ea0f55667",
+  "hash": "4677d6b5"
+ },
+ "skillcards/act-3_030-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_030-hkne",
+  "md5": "f86526008508a6c1c76de8df0d7043c6",
   "hash": "4677d6b5"
  },
  "skillcards/act-3_030-hmsz": {
@@ -26361,6 +27054,13 @@
   "md5": "aaae416b4710be19cf90a7abf1212461",
   "hash": "13abf1f9"
  },
+ "skillcards/act-3_031-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_031-hkne",
+  "md5": "bd8bbbcd94138a9418385fa24ca15112",
+  "hash": "786a7438"
+ },
  "skillcards/act-3_031-hmsz": {
   "w": 128,
   "h": 128,
@@ -26458,6 +27158,13 @@
   "src": "img_general_skillcard_act-3_032-fktn",
   "md5": "58c3ed45ec23bbc3c5cf0f510cdfc0ea",
   "hash": "5ed7cc20"
+ },
+ "skillcards/act-3_032-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_032-hkne",
+  "md5": "dff3344fedcd582b938eec7ea46b4c10",
+  "hash": "a3098b7a"
  },
  "skillcards/act-3_032-hmsz": {
   "w": 128,
@@ -26557,6 +27264,13 @@
   "md5": "666cf391995aa878260b5e87dbad68ce",
   "hash": "cc46183c"
  },
+ "skillcards/act-3_038-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_038-hkne",
+  "md5": "628ab9d1bb819f063871624b83d2ed54",
+  "hash": "87c28192"
+ },
  "skillcards/act-3_038-hmsz": {
   "w": 128,
   "h": 128,
@@ -26654,6 +27368,13 @@
   "src": "img_general_skillcard_act-3_039-fktn",
   "md5": "456915474617cda70efbb9d4d96e3d95",
   "hash": "a5e6f14d"
+ },
+ "skillcards/act-3_039-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_039-hkne",
+  "md5": "b000a7d4354356b185cfc3340f54ead5",
+  "hash": "9ed65462"
  },
  "skillcards/act-3_039-hmsz": {
   "w": 128,
@@ -26753,6 +27474,13 @@
   "md5": "1c95b3efa241aba887de5c484be8f334",
   "hash": "5117df00"
  },
+ "skillcards/act-3_045-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_045-hkne",
+  "md5": "84e3730dcebc5a195fa3330748f64546",
+  "hash": "f870d29b"
+ },
  "skillcards/act-3_045-hmsz": {
   "w": 128,
   "h": 128,
@@ -26851,6 +27579,13 @@
   "md5": "180d9a9da12361a5f21e8983f4803ca7",
   "hash": "f16036a5"
  },
+ "skillcards/act-3_049-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_049-hkne",
+  "md5": "3cf91873758728ef6efa33e4ffc5b855",
+  "hash": "5065b5fb"
+ },
  "skillcards/act-3_049-hmsz": {
   "w": 128,
   "h": 128,
@@ -26948,6 +27683,13 @@
   "src": "img_general_skillcard_act-3_050-fktn",
   "md5": "c392b1b03372c48b718db3a25f447e12",
   "hash": "a1ca86a2"
+ },
+ "skillcards/act-3_050-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_050-hkne",
+  "md5": "8bc4416e2850f62da31a169ad1ddb872",
+  "hash": "678e57ba"
  },
  "skillcards/act-3_050-hmsz": {
   "w": 128,
@@ -27054,6 +27796,13 @@
   "md5": "33fe18da49da1e637fe61857821066b9",
   "hash": "74f18014"
  },
+ "skillcards/act-3_052-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_052-hkne",
+  "md5": "8505447c73754474f71310761509f593",
+  "hash": "bfa956da"
+ },
  "skillcards/act-3_052-hmsz": {
   "w": 128,
   "h": 128,
@@ -27152,6 +27901,13 @@
   "md5": "5ddf155e421ce65e0633b0d2549bee52",
   "hash": "57bdc62f"
  },
+ "skillcards/act-3_053-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_053-hkne",
+  "md5": "4d97339af05fce5f40ced4f97d2573c9",
+  "hash": "4e77bdd7"
+ },
  "skillcards/act-3_053-hmsz": {
   "w": 128,
   "h": 128,
@@ -27248,6 +28004,13 @@
   "h": 128,
   "src": "img_general_skillcard_act-3_054-fktn",
   "md5": "88b532f91372c2c17f069972312c5b75",
+  "hash": "8c625f2a"
+ },
+ "skillcards/act-3_054-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_054-hkne",
+  "md5": "88bfea19a12a517c85fd8d41e2de2240",
   "hash": "8c625f2a"
  },
  "skillcards/act-3_054-hmsz": {
@@ -27348,6 +28111,13 @@
   "md5": "02c88f7eeb6923bf5686abf5dbfa4afb",
   "hash": "0dbfc40f"
  },
+ "skillcards/act-3_055-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_055-hkne",
+  "md5": "f5374fe116f9ee4902c268772f5432bc",
+  "hash": "fad89634"
+ },
  "skillcards/act-3_055-hmsz": {
   "w": 128,
   "h": 128,
@@ -27446,6 +28216,13 @@
   "md5": "2b3305c5cd91f37be7290aa4a4f19d39",
   "hash": "905da635"
  },
+ "skillcards/act-3_056-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_056-hkne",
+  "md5": "3c47913290c54b47f5b02b8f40e2ea84",
+  "hash": "f8bf93f3"
+ },
  "skillcards/act-3_056-hmsz": {
   "w": 128,
   "h": 128,
@@ -27542,6 +28319,13 @@
   "h": 128,
   "src": "img_general_skillcard_act-3_057-fktn",
   "md5": "f342d887f21b125c7952cc8ad1ae586e",
+  "hash": "2ca676ef"
+ },
+ "skillcards/act-3_057-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_057-hkne",
+  "md5": "f99a5755ca25ca5638a435d2fb0c79cd",
   "hash": "2ca676ef"
  },
  "skillcards/act-3_057-hmsz": {
@@ -27642,6 +28426,13 @@
   "md5": "4f411698ffc6185392b6164fa3492e13",
   "hash": "b72f2ee6"
  },
+ "skillcards/act-3_065-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_065-hkne",
+  "md5": "36bf221508328a4c0c213b56a0bc3473",
+  "hash": "b72f2ee6"
+ },
  "skillcards/act-3_065-hmsz": {
   "w": 128,
   "h": 128,
@@ -27739,6 +28530,13 @@
   "src": "img_general_skillcard_act-3_184-fktn",
   "md5": "ebe0e34c7cb8906cc0fe66640ea26cfa",
   "hash": "9ebfe99b"
+ },
+ "skillcards/act-3_184-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_184-hkne",
+  "md5": "5499ef615408289202405815d6f1509a",
+  "hash": "df6b3de5"
  },
  "skillcards/act-3_184-hmsz": {
   "w": 128,
@@ -27838,6 +28636,13 @@
   "md5": "de391357476351ac18dbe4b689fa5be1",
   "hash": "d9adaf64"
  },
+ "skillcards/act-3_185-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_185-hkne",
+  "md5": "4ca1e9ced227a9fd8554d1d4cc40f594",
+  "hash": "e5a312d9"
+ },
  "skillcards/act-3_185-hmsz": {
   "w": 128,
   "h": 128,
@@ -27935,6 +28740,13 @@
   "src": "img_general_skillcard_act-3_186-fktn",
   "md5": "3df070edd9e71a62ab32ad7acfe76d6f",
   "hash": "acdb48d7"
+ },
+ "skillcards/act-3_186-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_186-hkne",
+  "md5": "35d6b83ec62b499feb23b145b8083e66",
+  "hash": "bd58b768"
  },
  "skillcards/act-3_186-hmsz": {
   "w": 128,
@@ -28034,6 +28846,13 @@
   "md5": "65a3a3744688daa80efef9528514a52d",
   "hash": "06efeb4f"
  },
+ "skillcards/act-3_187-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_187-hkne",
+  "md5": "e4c2b035ac52b1514f9d2515133e2892",
+  "hash": "3bb86ffa"
+ },
  "skillcards/act-3_187-hmsz": {
   "w": 128,
   "h": 128,
@@ -28130,6 +28949,13 @@
   "h": 128,
   "src": "img_general_skillcard_act-3_188-fktn",
   "md5": "3a801c75618b4949eb15ac253cb0ca28",
+  "hash": "3abf9288"
+ },
+ "skillcards/act-3_188-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_188-hkne",
+  "md5": "3c9c738789b54aefd81c5c29ddd80213",
   "hash": "3abf9288"
  },
  "skillcards/act-3_188-hmsz": {
@@ -28229,6 +29055,13 @@
   "src": "img_general_skillcard_act-3_189-fktn",
   "md5": "a979bedd8e7befa3e62510fe3bf50ef5",
   "hash": "69c6ffdd"
+ },
+ "skillcards/act-3_189-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_act-3_189-hkne",
+  "md5": "495baee4bcade8716219b02ecb543ef6",
+  "hash": "97adc7a3"
  },
  "skillcards/act-3_189-hmsz": {
   "w": 128,
@@ -28573,6 +29406,13 @@
   "md5": "276c267cbb1c870d11fd6514c71ea305",
   "hash": "4de2a4e1"
  },
+ "skillcards/ido-1_138": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_ido-1_138",
+  "md5": "cb110bb47b3acf1eca0a0e060fa15a4c",
+  "hash": "60748089"
+ },
  "skillcards/ido-2_016": {
   "w": 128,
   "h": 128,
@@ -28663,6 +29503,13 @@
   "src": "img_general_skillcard_ido-2_107",
   "md5": "8b04deb76cfe665b511e2167ff7da25a",
   "hash": "7f4552af"
+ },
+ "skillcards/ido-2_170": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_ido-2_170",
+  "md5": "b6ffed5a7e3c3708ac772940be4f408e",
+  "hash": "c89600e5"
  },
  "skillcards/ido-3_013": {
   "w": 128,
@@ -29644,6 +30491,13 @@
   "md5": "91a89c47314dc7efad64be7b0a228d9e",
   "hash": "0b1c031c"
  },
+ "skillcards/ido-3_292": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_ido-3_292",
+  "md5": "cc59089eec1f51f471cc6658e1b686f5",
+  "hash": "fc225483"
+ },
  "skillcards/men-0_003": {
   "w": 128,
   "h": 128,
@@ -29805,6 +30659,13 @@
   "md5": "7583628f9cf0f4405d1a4ec0156f2ec5",
   "hash": "5db57585"
  },
+ "skillcards/men-100_001-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-100_001-hkne",
+  "md5": "3960255f5f967fbbd194e6cbc51fcec6",
+  "hash": "5db57585"
+ },
  "skillcards/men-100_001-hmsz": {
   "w": 128,
   "h": 128,
@@ -29894,6 +30755,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-100_005-fktn",
   "md5": "84f9da8a38304bd3cdb79ed5ef5751d1",
+  "hash": "cbd39877"
+ },
+ "skillcards/men-100_005-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-100_005-hkne",
+  "md5": "9a135050ad3298f3c8d527d03036f2f8",
   "hash": "cbd39877"
  },
  "skillcards/men-100_005-hmsz": {
@@ -29987,6 +30855,13 @@
   "md5": "a6032c9bb0e02f67de478929e2f8a18a",
   "hash": "a91158fb"
  },
+ "skillcards/men-100_007-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-100_007-hkne",
+  "md5": "076be8e60804aa3559b9e761811cfa16",
+  "hash": "a91158fb"
+ },
  "skillcards/men-100_007-hmsz": {
   "w": 128,
   "h": 128,
@@ -30076,6 +30951,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-100_008-fktn",
   "md5": "d164f395c49b6de1325e35dd78a0d909",
+  "hash": "de9cbd84"
+ },
+ "skillcards/men-100_008-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-100_008-hkne",
+  "md5": "e3b7fe693366f7e47e87f32ad6e2a3a6",
   "hash": "de9cbd84"
  },
  "skillcards/men-100_008-hmsz": {
@@ -30169,6 +31051,13 @@
   "md5": "c0be3c38f4b84b8dd47721168488b8b9",
   "hash": "2825371b"
  },
+ "skillcards/men-100_011-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-100_011-hkne",
+  "md5": "e1bf40df41d674100d626795c93b40ba",
+  "hash": "2825371b"
+ },
  "skillcards/men-100_011-hmsz": {
   "w": 128,
   "h": 128,
@@ -30258,6 +31147,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-100_014-fktn",
   "md5": "37b03ef7eb10082bce52bd4bed657b9d",
+  "hash": "c8ed18b2"
+ },
+ "skillcards/men-100_014-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-100_014-hkne",
+  "md5": "6cc9fce0d0ca7cb70c96bb879f6e1a23",
   "hash": "c8ed18b2"
  },
  "skillcards/men-100_014-hmsz": {
@@ -30351,6 +31247,13 @@
   "md5": "a886a0d3d7e9dab9419f2d84bfd0e9de",
   "hash": "fedf2677"
  },
+ "skillcards/men-100_015-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-100_015-hkne",
+  "md5": "88501c79d2571201041087fd7c08bc34",
+  "hash": "fedf2677"
+ },
  "skillcards/men-100_015-hmsz": {
   "w": 128,
   "h": 128,
@@ -30442,6 +31345,13 @@
   "md5": "7285299b3bc697cdcca3da0fd1e34ec8",
   "hash": "5d8addac"
  },
+ "skillcards/men-100_016-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-100_016-hkne",
+  "md5": "971b0d2f60b6ce6df43b39390c162b04",
+  "hash": "ec2ccce6"
+ },
  "skillcards/men-100_016-hmsz": {
   "w": 128,
   "h": 128,
@@ -30532,6 +31442,13 @@
   "src": "img_general_skillcard_men-1_005-fktn",
   "md5": "e2ee71c113f7b2434203c85bb75187d5",
   "hash": "68ef74a6"
+ },
+ "skillcards/men-1_005-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-1_005-hkne",
+  "md5": "c78157f574cb09f7e7c966ccfe03fd32",
+  "hash": "ae881cd2"
  },
  "skillcards/men-1_005-hmsz": {
   "w": 128,
@@ -30785,6 +31702,13 @@
   "md5": "ad8d8a3355a485bbcacda40c96866e80",
   "hash": "346cbf38"
  },
+ "skillcards/men-2_004-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_004-hkne",
+  "md5": "34ddf88b83ecb7ee8b283c10dd5dbf94",
+  "hash": "cbcad296"
+ },
  "skillcards/men-2_004-hmsz": {
   "w": 128,
   "h": 128,
@@ -30882,6 +31806,13 @@
   "src": "img_general_skillcard_men-2_008-fktn",
   "md5": "e58824a83acc1d62248aeacfadafffa0",
   "hash": "539080b4"
+ },
+ "skillcards/men-2_008-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_008-hkne",
+  "md5": "3222eea1094e40c18a25301ce7a2d00b",
+  "hash": "9bcdc708"
  },
  "skillcards/men-2_008-hmsz": {
   "w": 128,
@@ -30981,6 +31912,13 @@
   "md5": "54826eb70c8580f4021cd00046ceb62a",
   "hash": "e7a54fb4"
  },
+ "skillcards/men-2_011-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_011-hkne",
+  "md5": "7dc9eac2b694595ec9fd3bb648ea55df",
+  "hash": "74e5bee1"
+ },
  "skillcards/men-2_011-hmsz": {
   "w": 128,
   "h": 128,
@@ -31078,6 +32016,13 @@
   "src": "img_general_skillcard_men-2_012-fktn",
   "md5": "f9afc0680eb61caf01e2fa1eeb5108b5",
   "hash": "92d0c3d0"
+ },
+ "skillcards/men-2_012-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_012-hkne",
+  "md5": "5e7ec1a03bc384f138a6113106ea7fc3",
+  "hash": "de8474cd"
  },
  "skillcards/men-2_012-hmsz": {
   "w": 128,
@@ -31177,6 +32122,13 @@
   "md5": "f54a87f4e658a491f36e29a6d1a84da5",
   "hash": "1835c106"
  },
+ "skillcards/men-2_014-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_014-hkne",
+  "md5": "d073505052c429842491356d41180e4b",
+  "hash": "3babe25b"
+ },
  "skillcards/men-2_014-hmsz": {
   "w": 128,
   "h": 128,
@@ -31274,6 +32226,13 @@
   "src": "img_general_skillcard_men-2_034-fktn",
   "md5": "0a0d74a2d6716d6d14881b33b0ec46f1",
   "hash": "9fc9e5f9"
+ },
+ "skillcards/men-2_034-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_034-hkne",
+  "md5": "165cc34175ac4d8676fb460acf6d4824",
+  "hash": "e5bf966c"
  },
  "skillcards/men-2_034-hmsz": {
   "w": 128,
@@ -31373,6 +32332,13 @@
   "md5": "877bcfa3ed13c7bca7400c7eed266049",
   "hash": "30470cee"
  },
+ "skillcards/men-2_035-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_035-hkne",
+  "md5": "003561b52a14a5d2100f6899825b0b04",
+  "hash": "4c887847"
+ },
  "skillcards/men-2_035-hmsz": {
   "w": 128,
   "h": 128,
@@ -31470,6 +32436,13 @@
   "src": "img_general_skillcard_men-2_036-fktn",
   "md5": "691932a6de096d7f10470877742e3014",
   "hash": "fe854591"
+ },
+ "skillcards/men-2_036-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_036-hkne",
+  "md5": "5f59e1acc112ecd7ca0f7f2162d331e8",
+  "hash": "8e667f64"
  },
  "skillcards/men-2_036-hmsz": {
   "w": 128,
@@ -31569,6 +32542,13 @@
   "md5": "3041d9fd074a08cb10254578e026c570",
   "hash": "041ee6f3"
  },
+ "skillcards/men-2_037-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_037-hkne",
+  "md5": "3aad825a48532579dfc8ef32fa261b7f",
+  "hash": "48eb7665"
+ },
  "skillcards/men-2_037-hmsz": {
   "w": 128,
   "h": 128,
@@ -31666,6 +32646,13 @@
   "src": "img_general_skillcard_men-2_038-fktn",
   "md5": "103e903fef0411db372ca9bf90b8f5d6",
   "hash": "07243ef8"
+ },
+ "skillcards/men-2_038-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_038-hkne",
+  "md5": "2274ce920f55d4e4af2ac4faea8e789d",
+  "hash": "e56d79e2"
  },
  "skillcards/men-2_038-hmsz": {
   "w": 128,
@@ -31765,6 +32752,13 @@
   "md5": "fc497cf35eb60b2e2e3b96517abc32e0",
   "hash": "5db8e599"
  },
+ "skillcards/men-2_039-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_039-hkne",
+  "md5": "9a437026b58840c49a7716745414c123",
+  "hash": "4f98bf51"
+ },
  "skillcards/men-2_039-hmsz": {
   "w": 128,
   "h": 128,
@@ -31862,6 +32856,13 @@
   "src": "img_general_skillcard_men-2_040-fktn",
   "md5": "90f82c2f34b25ba6e53cc12d243cd6c6",
   "hash": "756cb291"
+ },
+ "skillcards/men-2_040-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_040-hkne",
+  "md5": "9d2b7521bb5074423cfd536c8631c44e",
+  "hash": "b27cfdc4"
  },
  "skillcards/men-2_040-hmsz": {
   "w": 128,
@@ -31961,6 +32962,13 @@
   "md5": "3203073db1ebade96c488cab0c09b12e",
   "hash": "a8aebfbb"
  },
+ "skillcards/men-2_041-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_041-hkne",
+  "md5": "444ba752f797d2ca61a0851bf72c56ee",
+  "hash": "f8e4a390"
+ },
  "skillcards/men-2_041-hmsz": {
   "w": 128,
   "h": 128,
@@ -32058,6 +33066,13 @@
   "src": "img_general_skillcard_men-2_043-fktn",
   "md5": "cf4404bfbd3f82f5a453d3a49a413cc6",
   "hash": "fef3a0ff"
+ },
+ "skillcards/men-2_043-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_043-hkne",
+  "md5": "b89fea35b529bc50d3a2781f40e4aeaa",
+  "hash": "baea8b06"
  },
  "skillcards/men-2_043-hmsz": {
   "w": 128,
@@ -32157,6 +33172,13 @@
   "md5": "25a72acbef9d28fb9e1bdbf0cda2eb77",
   "hash": "9069d3e4"
  },
+ "skillcards/men-2_050-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_050-hkne",
+  "md5": "c8dcd1aec125336a2ab59c66a6b66c99",
+  "hash": "1c10c3e0"
+ },
  "skillcards/men-2_050-hmsz": {
   "w": 128,
   "h": 128,
@@ -32254,6 +33276,13 @@
   "src": "img_general_skillcard_men-2_051-fktn",
   "md5": "87c72bc96e4f30cf6f9c832592475686",
   "hash": "67602911"
+ },
+ "skillcards/men-2_051-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_051-hkne",
+  "md5": "ecc9c4bed4bbf2560de1af2856fb2c93",
+  "hash": "27b78aae"
  },
  "skillcards/men-2_051-hmsz": {
   "w": 128,
@@ -32353,6 +33382,13 @@
   "md5": "ed037c91ad5abf213d4f72d2c62d0358",
   "hash": "87693bb4"
  },
+ "skillcards/men-2_052-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_052-hkne",
+  "md5": "d01ed5ba3ca5f1ab0ffa0fa98e3ce87b",
+  "hash": "a5390f56"
+ },
  "skillcards/men-2_052-hmsz": {
   "w": 128,
   "h": 128,
@@ -32450,6 +33486,13 @@
   "src": "img_general_skillcard_men-2_053-fktn",
   "md5": "831ae0ac703d9ed3ff266b16b3363dc9",
   "hash": "e242688b"
+ },
+ "skillcards/men-2_053-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_053-hkne",
+  "md5": "67180311faeed7e77f05b8bf64150ddb",
+  "hash": "f4927f47"
  },
  "skillcards/men-2_053-hmsz": {
   "w": 128,
@@ -32549,6 +33592,13 @@
   "md5": "67d5de6f83b2482baabef1c26313fa09",
   "hash": "7022779d"
  },
+ "skillcards/men-2_054-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_054-hkne",
+  "md5": "fc738ae753ac1115ba63daab990f8f41",
+  "hash": "fd9ea78a"
+ },
  "skillcards/men-2_054-hmsz": {
   "w": 128,
   "h": 128,
@@ -32646,6 +33696,13 @@
   "src": "img_general_skillcard_men-2_055-fktn",
   "md5": "677b86a247b6fca580127e95f7c38837",
   "hash": "a35859b3"
+ },
+ "skillcards/men-2_055-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_055-hkne",
+  "md5": "37b57efa3f7078a4dcd5fe9bf13fc672",
+  "hash": "71e27af8"
  },
  "skillcards/men-2_055-hmsz": {
   "w": 128,
@@ -32745,6 +33802,13 @@
   "md5": "a50c92dfb97cd46b7912e2869668f65a",
   "hash": "a3b74575"
  },
+ "skillcards/men-2_056-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_056-hkne",
+  "md5": "35d87dcf22a69a9cb052fcad8bb21e43",
+  "hash": "93e390db"
+ },
  "skillcards/men-2_056-hmsz": {
   "w": 128,
   "h": 128,
@@ -32842,6 +33906,13 @@
   "src": "img_general_skillcard_men-2_057-fktn",
   "md5": "b8d9edcefab582c4dc9dc1402db8fea9",
   "hash": "3db101f4"
+ },
+ "skillcards/men-2_057-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_057-hkne",
+  "md5": "6720e5e2de9ac6bda6e1ae6590e7da44",
+  "hash": "9c334eab"
  },
  "skillcards/men-2_057-hmsz": {
   "w": 128,
@@ -32941,6 +34012,13 @@
   "md5": "8c509c3841d74ac4f30bc3725f6f2db0",
   "hash": "eaf29991"
  },
+ "skillcards/men-2_058-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_058-hkne",
+  "md5": "91e87c18a04d85a4a9ee5247093c2e60",
+  "hash": "79b1e97d"
+ },
  "skillcards/men-2_058-hmsz": {
   "w": 128,
   "h": 128,
@@ -33038,6 +34116,13 @@
   "src": "img_general_skillcard_men-2_060-fktn",
   "md5": "8151cbd34cbc3f540787a589e32b2865",
   "hash": "b69ebe93"
+ },
+ "skillcards/men-2_060-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_060-hkne",
+  "md5": "f63a569c87290f07185c0de1be397f60",
+  "hash": "0194493d"
  },
  "skillcards/men-2_060-hmsz": {
   "w": 128,
@@ -33137,6 +34222,13 @@
   "md5": "3e617e67a8c918ae73034213a96a0417",
   "hash": "bffd916c"
  },
+ "skillcards/men-2_064-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_064-hkne",
+  "md5": "92cd3906d540ecb86ef3f35d8bbe18e6",
+  "hash": "86e6d09a"
+ },
  "skillcards/men-2_064-hmsz": {
   "w": 128,
   "h": 128,
@@ -33234,6 +34326,13 @@
   "src": "img_general_skillcard_men-2_066-fktn",
   "md5": "288fcf85a551d89b34efaf7b7e3f70ca",
   "hash": "3f9479df"
+ },
+ "skillcards/men-2_066-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_066-hkne",
+  "md5": "1f1bc6f9e1da637ff372d7764bbfa886",
+  "hash": "0ed226f8"
  },
  "skillcards/men-2_066-hmsz": {
   "w": 128,
@@ -33333,6 +34432,13 @@
   "md5": "fc4c96abf0a4281f12f2722bddaead39",
   "hash": "7ba9316b"
  },
+ "skillcards/men-2_074-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_074-hkne",
+  "md5": "acee4a48789e993ca46d76d13f8a9ed4",
+  "hash": "5465abb1"
+ },
  "skillcards/men-2_074-hmsz": {
   "w": 128,
   "h": 128,
@@ -33430,6 +34536,13 @@
   "src": "img_general_skillcard_men-2_075-fktn",
   "md5": "db5e6dd2ef133798a463256b07251ee0",
   "hash": "ef13f36d"
+ },
+ "skillcards/men-2_075-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_075-hkne",
+  "md5": "46cd39659f2ef2bd74732ffc1bf72081",
+  "hash": "90e02b62"
  },
  "skillcards/men-2_075-hmsz": {
   "w": 128,
@@ -33529,6 +34642,13 @@
   "md5": "9efce97a0917e78fa1204973461cea03",
   "hash": "54b15d85"
  },
+ "skillcards/men-2_076-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_076-hkne",
+  "md5": "b2f7d392c15f85dda6895d30a258864f",
+  "hash": "8418a6bb"
+ },
  "skillcards/men-2_076-hmsz": {
   "w": 128,
   "h": 128,
@@ -33626,6 +34746,13 @@
   "src": "img_general_skillcard_men-2_077-fktn",
   "md5": "84958e0260d2829bbd8445e93f6de35d",
   "hash": "e3b90348"
+ },
+ "skillcards/men-2_077-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_077-hkne",
+  "md5": "77bbd6a86ea654edb911f7cff4af3f6a",
+  "hash": "fbf59b93"
  },
  "skillcards/men-2_077-hmsz": {
   "w": 128,
@@ -33725,6 +34852,13 @@
   "md5": "ded12849d8d8ba7ec9c719af4d7fa5f0",
   "hash": "46c5d74e"
  },
+ "skillcards/men-2_078-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_078-hkne",
+  "md5": "a13968bd61f96c1331ee0db4885939af",
+  "hash": "e80c6995"
+ },
  "skillcards/men-2_078-hmsz": {
   "w": 128,
   "h": 128,
@@ -33822,6 +34956,13 @@
   "src": "img_general_skillcard_men-2_079-fktn",
   "md5": "f34fd95f389c1fd0e166bb961daefc29",
   "hash": "2988d8e7"
+ },
+ "skillcards/men-2_079-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_079-hkne",
+  "md5": "ebbd3cf25ebccbd3899530cd852786f7",
+  "hash": "2bd6d0ea"
  },
  "skillcards/men-2_079-hmsz": {
   "w": 128,
@@ -33921,6 +35062,13 @@
   "md5": "6f9f2d4f3b6350882452685cd6d8c371",
   "hash": "682fc7b5"
  },
+ "skillcards/men-2_080-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_080-hkne",
+  "md5": "64c8b79316de5070c8b10514a27d50ed",
+  "hash": "a3c4d3e7"
+ },
  "skillcards/men-2_080-hmsz": {
   "w": 128,
   "h": 128,
@@ -34018,6 +35166,13 @@
   "src": "img_general_skillcard_men-2_098-fktn",
   "md5": "61fd2ca1342409d4740e6a4d12ce87b7",
   "hash": "c2da6b86"
+ },
+ "skillcards/men-2_098-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_098-hkne",
+  "md5": "8620584e5348468b263700a851a343f7",
+  "hash": "be192aeb"
  },
  "skillcards/men-2_098-hmsz": {
   "w": 128,
@@ -34117,6 +35272,13 @@
   "md5": "f2cc25872ad65e9f96930607bd64008a",
   "hash": "a3f59f4b"
  },
+ "skillcards/men-2_099-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_099-hkne",
+  "md5": "6af62917f86970510cfd24a0a7bd9b29",
+  "hash": "ffd04507"
+ },
  "skillcards/men-2_099-hmsz": {
   "w": 128,
   "h": 128,
@@ -34214,6 +35376,13 @@
   "src": "img_general_skillcard_men-2_100-fktn",
   "md5": "baaeb74f5cad264702d6834ddd3b8be8",
   "hash": "eacfe1e7"
+ },
+ "skillcards/men-2_100-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_100-hkne",
+  "md5": "c3bc98f827919bd0b9e7cf58fbd6f3e5",
+  "hash": "fbe0fbfe"
  },
  "skillcards/men-2_100-hmsz": {
   "w": 128,
@@ -34313,6 +35482,13 @@
   "md5": "65cd9c27d2dbbd28a25a06a78420daeb",
   "hash": "f558ed6c"
  },
+ "skillcards/men-2_101-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_101-hkne",
+  "md5": "ed1d6439a3c314e7cc5e8a03ca34d763",
+  "hash": "c40fd659"
+ },
  "skillcards/men-2_101-hmsz": {
   "w": 128,
   "h": 128,
@@ -34410,6 +35586,13 @@
   "src": "img_general_skillcard_men-2_103-fktn",
   "md5": "32672b35eee0ea0b723637a94e38c820",
   "hash": "5b5c7330"
+ },
+ "skillcards/men-2_103-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_103-hkne",
+  "md5": "9b25569dee98e383e12fa1c3cf25bdb3",
+  "hash": "8c303d44"
  },
  "skillcards/men-2_103-hmsz": {
   "w": 128,
@@ -34509,6 +35692,13 @@
   "md5": "94378db2251697c0a63681e9ded83b63",
   "hash": "4c812b23"
  },
+ "skillcards/men-2_104-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_104-hkne",
+  "md5": "eff6649421732e0398403cbf3d647fca",
+  "hash": "d0df9716"
+ },
  "skillcards/men-2_104-hmsz": {
   "w": 128,
   "h": 128,
@@ -34606,6 +35796,13 @@
   "src": "img_general_skillcard_men-2_110-fktn",
   "md5": "aaa4eb873c98464b18f6d6586bfee6c2",
   "hash": "32026cd4"
+ },
+ "skillcards/men-2_110-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_110-hkne",
+  "md5": "befdc602b201c93e1ac03e4f6c747625",
+  "hash": "c5c98228"
  },
  "skillcards/men-2_110-hmsz": {
   "w": 128,
@@ -34705,6 +35902,13 @@
   "md5": "1b18f165eebbe5cc105eaf7f9b07980d",
   "hash": "e78be448"
  },
+ "skillcards/men-2_111-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_111-hkne",
+  "md5": "b33da68212b51b7f1cc2c669ff867fac",
+  "hash": "9688b037"
+ },
  "skillcards/men-2_111-hmsz": {
   "w": 128,
   "h": 128,
@@ -34802,6 +36006,13 @@
   "src": "img_general_skillcard_men-2_112-fktn",
   "md5": "3cb865f0db842921a8b919c63fe4ba39",
   "hash": "25e1d596"
+ },
+ "skillcards/men-2_112-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-2_112-hkne",
+  "md5": "493f2de985257c368e77969aa90cc4f8",
+  "hash": "8372a6ad"
  },
  "skillcards/men-2_112-hmsz": {
   "w": 128,
@@ -34901,6 +36112,13 @@
   "md5": "9372eb2d236b0f1131e0d07f02a7c2f9",
   "hash": "0c066aa2"
  },
+ "skillcards/men-3_002-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_002-hkne",
+  "md5": "bcde42467ff3ec88718ac6265f6d79e0",
+  "hash": "102779be"
+ },
  "skillcards/men-3_002-hmsz": {
   "w": 128,
   "h": 128,
@@ -34999,6 +36217,13 @@
   "md5": "bdfb5a0aa9520aaa8ecf0e48ebe00424",
   "hash": "87023402"
  },
+ "skillcards/men-3_003-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_003-hkne",
+  "md5": "d55301963a12cc18c2e3c136c9844883",
+  "hash": "890132a3"
+ },
  "skillcards/men-3_003-hmsz": {
   "w": 128,
   "h": 128,
@@ -35095,6 +36320,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-3_004-fktn",
   "md5": "be050fa6785ed0e3677144e324e81039",
+  "hash": "1216ae9a"
+ },
+ "skillcards/men-3_004-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_004-hkne",
+  "md5": "52cf7c19a8145a6ba64f8758d260d7d3",
   "hash": "1216ae9a"
  },
  "skillcards/men-3_004-hmsz": {
@@ -35195,6 +36427,13 @@
   "md5": "f9b017e830e8bfd37b1d72d2067e4a1b",
   "hash": "df2ef9fb"
  },
+ "skillcards/men-3_005-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_005-hkne",
+  "md5": "eade7957143ab480625263278dd9c820",
+  "hash": "4b4e5888"
+ },
  "skillcards/men-3_005-hmsz": {
   "w": 128,
   "h": 128,
@@ -35292,6 +36531,13 @@
   "src": "img_general_skillcard_men-3_006-fktn",
   "md5": "df280cc5880ae36d1097124e99c1ed1e",
   "hash": "03b716a2"
+ },
+ "skillcards/men-3_006-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_006-hkne",
+  "md5": "2cc63972ed2b3f84db878b2b7273246c",
+  "hash": "8c3b3dce"
  },
  "skillcards/men-3_006-hmsz": {
   "w": 128,
@@ -35391,6 +36637,13 @@
   "md5": "ff5259742707efd977efe33de0c9b78e",
   "hash": "51ca1f37"
  },
+ "skillcards/men-3_011-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_011-hkne",
+  "md5": "d9c4a435e344a72c413fd0605eb19e2d",
+  "hash": "c5925a65"
+ },
  "skillcards/men-3_011-hmsz": {
   "w": 128,
   "h": 128,
@@ -35489,6 +36742,13 @@
   "md5": "8c39f06ef4a4fe733315a85054f8c293",
   "hash": "0c087845"
  },
+ "skillcards/men-3_012-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_012-hkne",
+  "md5": "06a19fe99dfc5cd706ccb667bb99e431",
+  "hash": "c691976c"
+ },
  "skillcards/men-3_012-hmsz": {
   "w": 128,
   "h": 128,
@@ -35585,6 +36845,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-3_033-fktn",
   "md5": "95cd7f455be0f6d387469f1edfaec0e8",
+  "hash": "dd0d05c1"
+ },
+ "skillcards/men-3_033-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_033-hkne",
+  "md5": "d1c8438d44adfa2e29159a6c3e17c14c",
   "hash": "dd0d05c1"
  },
  "skillcards/men-3_033-hmsz": {
@@ -35685,6 +36952,13 @@
   "md5": "13a4c80b494633f9a8e3321a6d07ba4b",
   "hash": "fbb626bd"
  },
+ "skillcards/men-3_034-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_034-hkne",
+  "md5": "4bf8540ee615fa4f351d67ff566b604a",
+  "hash": "cbd8902b"
+ },
  "skillcards/men-3_034-hmsz": {
   "w": 128,
   "h": 128,
@@ -35782,6 +37056,13 @@
   "src": "img_general_skillcard_men-3_035-fktn",
   "md5": "7f8162d0fa8c84f670d9b503849769d4",
   "hash": "401247ed"
+ },
+ "skillcards/men-3_035-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_035-hkne",
+  "md5": "4747ee32670f1c9d8fce34461f1f6348",
+  "hash": "bfdae910"
  },
  "skillcards/men-3_035-hmsz": {
   "w": 128,
@@ -35881,6 +37162,13 @@
   "md5": "9f60b0b039bf0f28687c6a7d72608a52",
   "hash": "2fdb6cad"
  },
+ "skillcards/men-3_036-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_036-hkne",
+  "md5": "1e340c6b06c66ad1c9b6c8238921f708",
+  "hash": "28203d1e"
+ },
  "skillcards/men-3_036-hmsz": {
   "w": 128,
   "h": 128,
@@ -35979,6 +37267,13 @@
   "md5": "c0fb84e179e1b023c42d7bf308646849",
   "hash": "43402c1e"
  },
+ "skillcards/men-3_040-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_040-hkne",
+  "md5": "9fc97454cdc75130be886276e7e5e49a",
+  "hash": "6b5999af"
+ },
  "skillcards/men-3_040-hmsz": {
   "w": 128,
   "h": 128,
@@ -36075,6 +37370,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-3_041-fktn",
   "md5": "ee5ad2d290331f50fa9ccccfc790a909",
+  "hash": "aa56372e"
+ },
+ "skillcards/men-3_041-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_041-hkne",
+  "md5": "ef1a3db5de4765ce83ccc8b30e77bed1",
   "hash": "aa56372e"
  },
  "skillcards/men-3_041-hmsz": {
@@ -36175,6 +37477,13 @@
   "md5": "de9670ae1d3501de1114dce33d652b9b",
   "hash": "0c491cb1"
  },
+ "skillcards/men-3_042-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_042-hkne",
+  "md5": "db7d03e392ad5697c9b680a53fc20bbe",
+  "hash": "0c491cb1"
+ },
  "skillcards/men-3_042-hmsz": {
   "w": 128,
   "h": 128,
@@ -36272,6 +37581,13 @@
   "src": "img_general_skillcard_men-3_043-fktn",
   "md5": "96bfd94dd07383abdcaa0b60b171fba0",
   "hash": "6522add0"
+ },
+ "skillcards/men-3_043-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_043-hkne",
+  "md5": "af61456c68552225ffdf0c62b33864d6",
+  "hash": "f1b52700"
  },
  "skillcards/men-3_043-hmsz": {
   "w": 128,
@@ -36371,6 +37687,13 @@
   "md5": "5c1ba1c2ff801a503315d3e63e7e88fc",
   "hash": "468de274"
  },
+ "skillcards/men-3_044-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_044-hkne",
+  "md5": "8224ad9ecf862e7a386ecc50c1971119",
+  "hash": "79bc5fbf"
+ },
  "skillcards/men-3_044-hmsz": {
   "w": 128,
   "h": 128,
@@ -36467,6 +37790,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-3_058-fktn",
   "md5": "fea347cf78ca3c1038e822eab68b9e3a",
+  "hash": "55d17d6a"
+ },
+ "skillcards/men-3_058-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_058-hkne",
+  "md5": "7e6a86ba5646f902634a0728511fb0ca",
   "hash": "55d17d6a"
  },
  "skillcards/men-3_058-hmsz": {
@@ -36567,6 +37897,13 @@
   "md5": "ee7de010a9d664c20111af20eb15c666",
   "hash": "638385a3"
  },
+ "skillcards/men-3_060-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_060-hkne",
+  "md5": "effca4a659b9bc02f4475be8c20b3026",
+  "hash": "638385a3"
+ },
  "skillcards/men-3_060-hmsz": {
   "w": 128,
   "h": 128,
@@ -36663,6 +38000,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-3_061-fktn",
   "md5": "3e2b6b30801640b462dc741c3968b138",
+  "hash": "e8933952"
+ },
+ "skillcards/men-3_061-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_061-hkne",
+  "md5": "cc5b2505e002cf136071af459bb713ce",
   "hash": "e8933952"
  },
  "skillcards/men-3_061-hmsz": {
@@ -36763,6 +38107,13 @@
   "md5": "0423a3f5590d4cd40fd63193058be386",
   "hash": "01ecee5c"
  },
+ "skillcards/men-3_062-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_062-hkne",
+  "md5": "c1e7f9d53740ef572ac7f7ca22713267",
+  "hash": "ae35564d"
+ },
  "skillcards/men-3_062-hmsz": {
   "w": 128,
   "h": 128,
@@ -36859,6 +38210,13 @@
   "h": 128,
   "src": "img_general_skillcard_men-3_063-fktn",
   "md5": "697aae8f871f26149448a25a88084608",
+  "hash": "ba0a6745"
+ },
+ "skillcards/men-3_063-hkne": {
+  "w": 128,
+  "h": 128,
+  "src": "img_general_skillcard_men-3_063-hkne",
+  "md5": "48c43b03dcaa761fe74eeb8f99b059db",
   "hash": "ba0a6745"
  },
  "skillcards/men-3_063-hmsz": {
@@ -37525,6 +38883,20 @@
   "src": "img_login_title_event2d-025",
   "md5": "6edfa29a52ece1bba1aad8e703deaa6b",
   "hash": "a9326214"
+ },
+ "ui/login-event2d-026": {
+  "w": 1024,
+  "h": 256,
+  "src": "img_login_title_event2d-026",
+  "md5": "b91d6379465616c41d1d698e94bb26e4",
+  "hash": "a86e3142"
+ },
+ "ui/login-event2d-027": {
+  "w": 1024,
+  "h": 256,
+  "src": "img_login_title_event2d-027",
+  "md5": "287d61372e7fc0f49e3579fccdafaaf0",
+  "hash": "3ace703d"
  },
  "ui/login-event3d-000": {
   "w": 1024,

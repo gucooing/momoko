@@ -55,6 +55,7 @@ const (
 	gkArchiveRestore   = "archive.restore"
 	gkMailSend         = "mail.send"
 	gkMailRevoke       = "mail.revoke"
+	gkMailCancel       = "mail.cancel"
 	gkMaintenance      = "maintenance.set"
 )
 
@@ -84,6 +85,7 @@ var GakumasOperations = []GmOperation{
 	{ID: gkArchiveRestore, Title: "回档到备份", Group: "存档", Risk: RiskDanger, Target: TargetPlayer},
 	{ID: gkMailSend, Title: "全服补偿 / 定向邮件", Group: "运营", Risk: RiskHigh, Target: TargetServer},
 	{ID: gkMailRevoke, Title: "撤回邮件", Group: "运营", Risk: RiskHigh, Target: TargetServer},
+	{ID: gkMailCancel, Title: "取消定时邮件", Group: "运营", Risk: RiskHigh, Target: TargetServer},
 	{ID: gkMaintenance, Title: "维护模式 / 登录白名单", Group: "运营", Risk: RiskHigh, Target: TargetServer},
 }
 
@@ -288,6 +290,14 @@ func gakumasCall(g *gakumas.Client, op string, params json.RawMessage) (GmCall, 
 		}
 		return func(ctx context.Context, _ string, opt mgp.OperationOptions) (proto.Message, error) {
 			return g.RevokeMail(ctx, p.MailID, opt)
+		}, err
+	case gkMailCancel:
+		p, err := decodeParams[gkMailID](params)
+		if err == nil && p.MailID == "" {
+			err = ErrGmParams
+		}
+		return func(ctx context.Context, _ string, opt mgp.OperationOptions) (proto.Message, error) {
+			return g.CancelMail(ctx, p.MailID, opt)
 		}, err
 	case gkMaintenance:
 		p, err := decodeParams[gkMaintenanceParams](params)
