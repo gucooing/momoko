@@ -55,7 +55,8 @@ type GameGMServiceClient interface {
 	ListGmSelfService(ctx context.Context, in *ListGmSelfServiceRequest, opts ...grpc.CallOption) (*ListGmSelfServiceResponse, error)
 	// 修改一个操作的玩家自助设置（立即生效）
 	UpdateGmSelfService(ctx context.Context, in *UpdateGmSelfServiceRequest, opts ...grpc.CallOption) (*GmSelfServicePolicy, error)
-	// 玩家的游戏客户端上传的错误日志（每个游戏账号保留最新 5 份，从新到旧，不含日志内容）
+	// 游戏客户端上传的错误日志（全部服务器，从新到旧，分页，不含日志内容）：按服务器、玩家、原因、上传时间筛选，
+	// 关键字搜摘要、说明与设备；每个游戏账号只保留最新 5 份。GM 玩家详情的「客户端日志」是按服务器与玩家筛选的同一个列表
 	ListGmClientLogs(ctx context.Context, in *ListGmClientLogsRequest, opts ...grpc.CallOption) (*ListGmClientLogsResponse, error)
 	// 一份客户端日志（含解压后的日志内容）
 	GetGmClientLog(ctx context.Context, in *GmClientLogRequest, opts ...grpc.CallOption) (*GmClientLog, error)
@@ -204,7 +205,8 @@ type GameGMServiceServer interface {
 	ListGmSelfService(context.Context, *ListGmSelfServiceRequest) (*ListGmSelfServiceResponse, error)
 	// 修改一个操作的玩家自助设置（立即生效）
 	UpdateGmSelfService(context.Context, *UpdateGmSelfServiceRequest) (*GmSelfServicePolicy, error)
-	// 玩家的游戏客户端上传的错误日志（每个游戏账号保留最新 5 份，从新到旧，不含日志内容）
+	// 游戏客户端上传的错误日志（全部服务器，从新到旧，分页，不含日志内容）：按服务器、玩家、原因、上传时间筛选，
+	// 关键字搜摘要、说明与设备；每个游戏账号只保留最新 5 份。GM 玩家详情的「客户端日志」是按服务器与玩家筛选的同一个列表
 	ListGmClientLogs(context.Context, *ListGmClientLogsRequest) (*ListGmClientLogsResponse, error)
 	// 一份客户端日志（含解压后的日志内容）
 	GetGmClientLog(context.Context, *GmClientLogRequest) (*GmClientLog, error)

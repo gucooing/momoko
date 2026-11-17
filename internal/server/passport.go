@@ -33,11 +33,6 @@ var passportPublicRoutes = map[publicRoute]struct{}{
 	{method: nethttp.MethodPost, path: "/api/v1/auth/refresh"}:                   {},
 	{method: nethttp.MethodPost, path: "/api/v1/auth/password/reset/email-code"}: {},
 	{method: nethttp.MethodPost, path: "/api/v1/auth/password/reset"}:            {},
-	{method: nethttp.MethodGet, path: "/api/v1/oidc/jwks"}:                       {},
-	{method: nethttp.MethodPost, path: "/api/v1/oidc/token"}:                     {},
-	{method: nethttp.MethodGet, path: "/api/v1/oidc/userinfo"}:                   {},
-	{method: nethttp.MethodPost, path: "/api/v1/oidc/userinfo"}:                  {},
-	{method: nethttp.MethodGet, path: "/.well-known/openid-configuration"}:       {},
 	// 游戏客户端上传错误日志：处理函数自己校验游戏服务端签发的上传票据
 	{method: nethttp.MethodPost, path: service.PassportClientLogPath}: {},
 }
@@ -132,7 +127,6 @@ func NewPassportServer(c *conf.Passport, passportApi *service.PassportService, g
 	srv := http.NewServer(opts...)
 	v1.RegisterPassportServiceHTTPServer(srv, passportApi)
 	gakumasv1.RegisterGakumasPassportServiceHTTPServer(srv, gakumasApi)
-	passportApi.RegisterOIDCServer(srv)
 	passportApi.RegisterClientLogServer(srv)
 	return &PassportServer{Server: srv, enabled: true}
 }

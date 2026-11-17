@@ -26,8 +26,6 @@ export interface GetPassportConfigResponse {
   registerEmailVerification: boolean;
   /** 是否配置了邮件（找回密码、更换邮箱需要） */
   emailEnabled: boolean;
-  /** 是否启用了「用户通行证登录」（OIDC） */
-  oidcEnabled: boolean;
   /** 解绑后不能在同一服务器绑定别的账号的天数 */
   unbindCooldownDays: number;
   /** 申请注销后可以撤销的天数 */
@@ -133,7 +131,6 @@ export interface PassportMe {
   /** 申请注销后计划删除的时间（空为没有申请） */
   deletionScheduledAt: Date | undefined;
   deviceCount: number;
-  appCount: number;
   linkCount: number;
   gameCount: number;
   unreadMessages: number;
@@ -224,10 +221,8 @@ export interface PassportDevice {
   lastIp: string;
   /** loopback / lan / public */
   ipScope: string;
-  /** password / email_code / register / oidc */
+  /** password / email_code / register */
   loginMethod: string;
-  /** 经 OIDC 登录的应用名称 */
-  appName: string;
   createTime: Date | undefined;
   lastActiveTime: Date | undefined;
   expireTime:
@@ -243,27 +238,6 @@ export interface ListPassportDevicesResponse {
 
 export interface RevokePassportDeviceRequest {
   sessionId: string;
-}
-
-export interface PassportApp {
-  /** 授权 id */
-  id: string;
-  name: string;
-  description: string;
-  /** 已同意的范围 */
-  scopes: string[];
-  /** 关联的游戏服务器（可空） */
-  server: GameServerBrief | undefined;
-  createTime: Date | undefined;
-  lastUsedAt: Date | undefined;
-}
-
-export interface ListPassportAppsResponse {
-  items: PassportApp[];
-}
-
-export interface RevokePassportAppRequest {
-  id: string;
 }
 
 export interface RequestPassportDeletionRequest {
@@ -354,7 +328,7 @@ export interface PassportLink {
   nickname: string;
   avatarAsset: string;
   level: number;
-  /** password 账号密码 / code 绑定码 / oidc 通行证登录 / admin 管理员 / request 申请 */
+  /** password 账号密码 / code 绑定码 / create 新建的游戏账号 / admin 管理员 / request 申请 */
   method: string;
   isPrimary: boolean;
   linkedAt: Date | undefined;
@@ -377,7 +351,7 @@ export interface SearchPassportBindServersRequest {
   /** 名称、标签、游戏，或管理员给的邀请码 */
   q: string;
   game: string;
-  /** 指定的服务器 id（授权页跳来时预选；不影响搜索结果与推荐） */
+  /** 指定的服务器 id（预选这台服务器；不影响搜索结果与推荐） */
   serverId: string;
 }
 
@@ -526,60 +500,60 @@ export interface RedeemPassportGiftCodeResponse {
   executionId: string;
 }
 
-export interface PassportOidcAuthorizeRequest {
-  responseType: string;
-  clientId: string;
-  redirectUri: string;
-  scope: string;
-  state: string;
-  nonce: string;
-  codeChallenge: string;
-  codeChallengeMethod: string;
-  /** 同意时为还没有在应用关联的服务器上绑定游戏账号的用户新建一个游戏账号并绑定 */
-  createGameAccount: boolean;
+/** 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。 */
+export interface PassportLaunchEndpoints {
+  /** 游戏服务端 SDK */
+  sdk: string;
+  /** 游戏服务端 */
+  game: string;
+  /** 资源服务器 */
+  resource: string;
 }
 
-/** 授权确认页显示的游戏账号（令牌里的 game_player_id 就是 player_id）。 */
-export interface PassportOidcGameAccount {
-  /** MGP pid */
-  playerId: string;
-  /** 游戏内显示的 ID */
-  displayId: string;
-  nickname: string;
-  level: number;
-  /** 登录账号 */
+/** 一个启动目标：客户端应用 ID 对应的服务器。 */
+export interface PassportLaunchApp {
+  /** 客户端应用 ID（app_ + 16 个小写 base32 字符） */
+  appId: string;
+  server: GameServerBrief | undefined;
+  endpoints:
+    | PassportLaunchEndpoints
+    | undefined;
+  /** 我在这台服务器上生效的绑定（还没有游戏账号时为空） */
+  link:
+    | PassportLink
+    | undefined;
+  /**
+   * 没有绑定时能否绑定已有账号或新建账号；不能时 block_reason 为原因代码：
+   * unsupported 服务器不支持 / not_visible 服务器未向我开放 / cooldown 解绑冷却中（只能重新绑定原账号）；可以绑定时为空
+   */
+  bindable: boolean;
+  blockReason: string;
+}
+
+export interface ListPassportLaunchAppsResponse {
+  apps: PassportLaunchApp[];
+}
+
+export interface PassportLaunchAppRequest {
+  appId: string;
+}
+
+export interface BindPassportLaunchAppRequest {
+  appId: string;
+  /** 游戏登录账号与密码（只用来校验一次，不保存） */
   account: string;
-  /** 头像资源 ID */
-  avatarAsset: string;
+  password: string;
 }
 
-export interface PassportOidcAuthorizationInfo {
-  clientName: string;
-  clientId: string;
-  description: string;
-  redirectUri: string;
-  /** 归一化后的范围 */
-  scopes: string[];
-  /** 关联的游戏服务器（可空） */
-  server:
-    | GameServerBrief
-    | undefined;
-  /** 已经授权过且范围没有变化（可以直接继续） */
-  granted: boolean;
-  /** 应用关联了服务器而你在那台服务器上没有绑定游戏账号：同意前要绑定已有账号或新建一个 */
-  gameAccountRequired: boolean;
-  /** 可以为你新建游戏账号（游戏支持且服务器接入了 MGP、服务器对你可见、不在解绑冷却中） */
-  gameAccountCreatable: boolean;
-  /** 不能新建时的原因代码：unsupported 游戏或服务器不支持 / not_visible 服务器对你不可见 / cooldown 解绑冷却中 */
-  gameAccountReason: string;
-  /** 解绑冷却结束时间（game_account_reason=cooldown） */
-  gameAccountCooldownUntil:
-    | Date
-    | undefined;
-  /** 你在关联服务器上绑定的游戏账号（已绑定时） */
-  gameAccount: PassportOidcGameAccount | undefined;
-}
-
-export interface PassportOidcAuthorizeResponse {
-  redirectUrl: string;
+/**
+ * 启动票据：lt1.<b64url(payload)>.<b64url(HMAC-SHA256(MGP 密钥, "momoko-launch-ticket.v1." + b64url(payload)))>，
+ * payload 为 {"kid","aid","sid","pid","uid","jti","iat","exp"}。
+ */
+export interface PassportLaunchTicket {
+  ticket: string;
+  /** 有效秒数（120） */
+  expiresIn: number;
+  /** 绑定的游戏账号：MGP pid 与游戏内显示的 ID */
+  playerId: string;
+  displayId: string;
 }

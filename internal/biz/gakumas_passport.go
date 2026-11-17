@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/uuid"
@@ -250,118 +251,11 @@ func (uc *GakumasPassportUsecase) OngoingGashas(ctx context.Context, userID, ser
 	if err != nil {
 		return nil, err
 	}
-	return result(g.Gashas(ctx, "", nil, true, "", 50))
-}
-
-// ---------------- 目录（当前用户绑定了这台服务器） ----------------
-
-func (uc *GakumasPassportUsecase) catalog(ctx context.Context, userID, serverID string) (*gakumas.Client, error) {
-	g, _, err := uc.mine(ctx, userID, serverID)
-	return g, err
-}
-
-func (uc *GakumasPassportUsecase) Currencies(ctx context.Context, userID string, req *gk.MyCatalogRequest) (*gk.CurrencyPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
+	items, err := g.OpenGashas(ctx, time.Now())
 	if err != nil {
-		return nil, err
+		return nil, GameMGPError(err)
 	}
-	return result(g.Currencies(ctx, req.Q, req.Ids, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) ItemCatalog(ctx context.Context, userID string, req *gk.MyItemCatalogRequest) (*gk.ItemEntryPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.ItemCatalog(ctx, req.Q, req.Ids, req.Type, req.CharacterId, req.Rarity, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) IdolCardSkins(ctx context.Context, userID string, req *gk.MyIdolCardSkinCatalogRequest) (*gk.IdolCardSkinPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.IdolCardSkins(ctx, req.Q, req.Ids, req.CharacterId, req.Rarity, req.PlanType, req.IdolCardIds, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) SupportCardCatalog(ctx context.Context, userID string, req *gk.MySupportCardCatalogRequest) (*gk.SupportCardEntryPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.SupportCardCatalog(ctx, req.Q, req.Ids, req.Rarity, req.Type, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) Characters(ctx context.Context, userID string, req *gk.MyCatalogRequest) (*gk.CharacterPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.Characters(ctx, req.Q, req.Ids, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) Costumes(ctx context.Context, userID string, req *gk.MyCostumeCatalogRequest) (*gk.CostumePage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.Costumes(ctx, req.Q, req.Ids, req.CharacterId, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) CostumeHeads(ctx context.Context, userID string, req *gk.MyCostumeCatalogRequest) (*gk.CostumePage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.CostumeHeads(ctx, req.Q, req.Ids, req.CharacterId, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) Music(ctx context.Context, userID string, req *gk.MyCatalogRequest) (*gk.MusicPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.Music(ctx, req.Q, req.Ids, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) ProduceCatalog(ctx context.Context, userID string, req *gk.MyProduceCatalogRequest) (*gk.ProduceEntryPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.ProduceCatalog(ctx, req.Q, req.Ids, req.ProduceGroupId, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) ProduceCards(ctx context.Context, userID string, req *gk.MyCatalogRequest) (*gk.ProduceCardEntryPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.ProduceCards(ctx, req.Q, req.Ids, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) ProduceItems(ctx context.Context, userID string, req *gk.MyCatalogRequest) (*gk.ProduceItemEntryPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.ProduceItems(ctx, req.Q, req.Ids, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) MemoryAbilities(ctx context.Context, userID string, req *gk.MyCatalogRequest) (*gk.MemoryAbilityPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.MemoryAbilities(ctx, req.Q, req.Ids, req.Cursor, req.Limit))
-}
-
-func (uc *GakumasPassportUsecase) Seminars(ctx context.Context, userID string, req *gk.MyCatalogRequest) (*gk.SeminarEntryPage, error) {
-	g, err := uc.catalog(ctx, userID, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	return result(g.Seminars(ctx, req.Q, req.Ids, req.Cursor, req.Limit))
+	return &gk.GashaEntryPage{Items: items, Total: int32(len(items))}, nil
 }
 
 // ---------------- 自助操作 ----------------

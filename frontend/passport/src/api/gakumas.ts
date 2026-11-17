@@ -4,29 +4,23 @@ import { http } from './request'
 import type {
   MyArchiveExportResponse,
   MyBanResponse,
-  MyCatalogRequest,
   MyChangesResponse,
-  MyCostumeCatalogRequest,
   MyGashaDrawsRequest,
   MyGiftRevokeResponse,
   MyGiftSendResponse,
   MyGiftsRequest,
   MyIdolCardGrantResponse,
-  MyIdolCardSkinCatalogRequest,
   MyIdolCardsRequest,
-  MyItemCatalogRequest,
   MyKickResponse,
   MyMemoriesRequest,
   MyMemoryPhotoRequest,
   MyMemoryRequest,
   MyPasswordResponse,
-  MyProduceCatalogRequest,
   MyRenameResponse,
   MyRentalMemoryRequest,
   MyRentalSupportCardRequest,
   MySeminarClearResponse,
   MySeminarResetResponse,
-  MySupportCardCatalogRequest,
   MySupportCardGrantResponse,
   MySupportCardsRequest,
   PlayerGame,
@@ -43,30 +37,18 @@ import type {
   SelfServiceRequest,
 } from '@/types/v1/gakumas/passport'
 import type {
-  CharacterPage,
-  CostumePage,
-  CurrencyPage,
   GashaDrawPage,
   GashaEntryPage,
   GiftPage,
   IdolCardPage,
-  IdolCardSkinPage,
-  ItemEntryPage,
-  MemoryAbilityPage,
   MemoryDetail,
   MemoryPage,
   MeishiImage,
   MemoryPhoto,
-  MusicPage,
   PlayerDetail,
   PlayerPvp,
   PlayerSeminar,
-  ProduceCardEntryPage,
-  ProduceEntryPage,
-  ProduceItemEntryPage,
   RentalChange,
-  SeminarEntryPage,
-  SupportCardEntryPage,
   SupportCardPage,
 } from '@/types/v1/gakumas/types'
 
@@ -103,22 +85,6 @@ export const getMyMeishiImage = (serverId: string) => http.get<MeishiImage>(`${b
 export const getMyPvp = (serverId: string) => http.get<PlayerPvp>(`${base(serverId)}/pvp`)
 export const getMySeminar = (serverId: string) => http.get<PlayerSeminar>(`${base(serverId)}/seminar`)
 export const listOngoingGashas = (serverId: string) => http.get<GashaEntryPage>(`${base(serverId)}/gashas/ongoing`)
-
-// ---------------- 目录 ----------------
-
-export const listCurrencies = (req: MyCatalogRequest) => get<CurrencyPage>(req, '/catalog/currencies')
-export const listItemCatalog = (req: MyItemCatalogRequest) => get<ItemEntryPage>(req, '/catalog/items')
-export const listIdolCardSkins = (req: MyIdolCardSkinCatalogRequest) => get<IdolCardSkinPage>(req, '/catalog/idol-card-skins')
-export const listSupportCardCatalog = (req: MySupportCardCatalogRequest) => get<SupportCardEntryPage>(req, '/catalog/support-cards')
-export const listCharacters = (req: MyCatalogRequest) => get<CharacterPage>(req, '/catalog/characters')
-export const listCostumes = (req: MyCostumeCatalogRequest) => get<CostumePage>(req, '/catalog/costumes')
-export const listCostumeHeads = (req: MyCostumeCatalogRequest) => get<CostumePage>(req, '/catalog/costume-heads')
-export const listMusic = (req: MyCatalogRequest) => get<MusicPage>(req, '/catalog/music')
-export const listProduceCatalog = (req: MyProduceCatalogRequest) => get<ProduceEntryPage>(req, '/catalog/produces')
-export const listSeminars = (req: MyCatalogRequest) => get<SeminarEntryPage>(req, '/catalog/seminars')
-export const listProduceCards = (req: MyCatalogRequest) => get<ProduceCardEntryPage>(req, '/catalog/produce-cards')
-export const listProduceItems = (req: MyCatalogRequest) => get<ProduceItemEntryPage>(req, '/catalog/produce-items')
-export const listMemoryAbilities = (req: MyCatalogRequest) => get<MemoryAbilityPage>(req, '/catalog/memory-abilities')
 
 // ---------------- 自助操作 ----------------
 

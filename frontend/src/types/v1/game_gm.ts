@@ -39,7 +39,7 @@ export interface GmPlayerLink {
   username: string;
   /** 通行证昵称 */
   name: string;
-  /** 绑定方式：password / code / oidc / admin / request */
+  /** 绑定方式：password / code / create / admin / request */
   method: string;
   /** 绑定时间 */
   linkedAt: Date | undefined;
@@ -296,7 +296,7 @@ export interface ListGmConfigRevisionsResponse {
 /** 游戏客户端上传的一份错误日志。 */
 export interface GmClientLog {
   id: string;
-  /** 上传原因：exception / error / crash / fatal / login / sdk / manual */
+  /** 上传原因：exception 异常 / crash 崩溃 / fatal 致命错误（客户端自动上传）/ manual 玩家手动上传 */
   reason: string;
   /** 摘要 */
   summary: string;
@@ -318,22 +318,41 @@ export interface GmClientLog {
     | undefined;
   /** 日志原文（只在单份日志接口返回） */
   content: string;
+  /** 服务器摘要（名称、游戏；服务器已删除时只有 id） */
+  server:
+    | GameServerBrief
+    | undefined;
+  /** 游戏账号（MGP pid） */
+  playerId: string;
+  /** 绑定这个游戏账号的通行证（没有生效的绑定时为空） */
+  link: GmPlayerLink | undefined;
 }
 
 export interface ListGmClientLogsRequest {
+  /** 服务器 id（空为全部服务器） */
   serverId: string;
-  /** 玩家 pid */
+  /** 玩家 pid（空为全部玩家） */
   pid: string;
+  /** 上传原因（空为全部） */
+  reason: string;
+  /** 上传时间范围 */
+  since: Date | undefined;
+  until:
+    | Date
+    | undefined;
+  /** 关键字：摘要、说明、设备 */
+  q: string;
+  page: number;
+  pageSize: number;
 }
 
 export interface ListGmClientLogsResponse {
   /** 从新到旧 */
   items: GmClientLog[];
+  total: number;
 }
 
 export interface GmClientLogRequest {
-  serverId: string;
-  pid: string;
   id: string;
 }
 

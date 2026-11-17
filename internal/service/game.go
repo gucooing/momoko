@@ -115,15 +115,15 @@ func (s *GameGMService) UpdateGmSelfService(ctx context.Context, req *v1.UpdateG
 }
 
 func (s *GameGMService) ListGmClientLogs(ctx context.Context, req *v1.ListGmClientLogsRequest) (*v1.ListGmClientLogsResponse, error) {
-	return s.gm.ListClientLogs(ctx, req.ServerId, req.Pid)
+	return s.gm.ListClientLogs(ctx, req)
 }
 
 func (s *GameGMService) GetGmClientLog(ctx context.Context, req *v1.GmClientLogRequest) (*v1.GmClientLog, error) {
-	return s.gm.GetClientLog(ctx, req.ServerId, req.Pid, req.Id)
+	return s.gm.GetClientLog(ctx, req.Id)
 }
 
 func (s *GameGMService) DeleteGmClientLog(ctx context.Context, req *v1.GmClientLogRequest) (*v1.DeleteGmClientLogResponse, error) {
-	if err := s.gm.DeleteClientLog(ctx, req.ServerId, req.Pid, req.Id); err != nil {
+	if err := s.gm.DeleteClientLog(ctx, req.Id); err != nil {
 		return nil, err
 	}
 	return &v1.DeleteGmClientLogResponse{}, nil

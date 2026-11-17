@@ -1,6 +1,9 @@
-<!-- 接入设置：页面上只放简要信息（一行一项：接入方式、MGP 接口、用户通行证、托管选项），
-     要改的点「修改」在弹窗里改：MGP 地址与密钥（可测试连接）、通行证可见性 / 邀请码 / 时区、托管选项；
-     切换接入方式也是弹窗。 -->
+<!-- 接入设置：页面上只放简要信息（一行一项：接入方式、MGP 接口、用户通行证、客户端应用凭据、客户端地址、托管选项），
+     要改的点「修改」在弹窗里改：MGP 地址与密钥（可测试连接）、通行证可见性 / 邀请码 / 时区、
+     客户端地址（SDK / 游戏服务端 / 资源服务器）、托管选项；切换接入方式也是弹窗。
+     客户端（游戏支持通行证启动客户端时才有）：应用凭据由 Momoko 生成，重置密钥与重新生成应用 ID 都要先确认；
+     应用密钥与 MGP 密钥一样只在生成时显示一次（可复制），之后只显示应用 ID。托管服务器同轮换 MGP 密钥：
+     Momoko 把凭据写进服务端配置（momoko.app_id / momoko.app_secret），运行中可选立即重启，所以第一次生成也先开确认弹窗。 -->
 <template>
   <div class="cn">
     <section class="cn__list">
@@ -40,6 +43,35 @@
           <span>{{ passportSummary }}</span>
         </span>
         <UButton size="sm" color="neutral" variant="soft" @click="openPassport">{{ t('gameServers.connection.modify') }}</UButton>
+      </div>
+
+      <!-- 客户端应用凭据（通行证启动） -->
+      <div v-if="clientLaunch" class="cn__row">
+        <span class="cn__ico m-sticker m-sticker--a"><UIcon name="i-lucide-badge-check" /></span>
+        <span class="cn__main">
+          <b>{{ t('gameServers.connection.clientApp') }}</b>
+          <span v-if="server.clientAppId" class="m-mono">{{ server.clientAppId }}</span>
+          <span v-else>{{ t('gameServers.connection.clientAppNone') }}</span>
+        </span>
+        <template v-if="server.clientAppId">
+          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopyId')" :box="36" @click="copy(server.clientAppId)" />
+          <UButton size="sm" color="neutral" variant="soft" :loading="appBusy" @click="askAppAction('secret')">{{ t('gameServers.connection.clientAppResetSecret') }}</UButton>
+          <UButton size="sm" color="neutral" variant="soft" :loading="appBusy" @click="askAppAction('id')">{{ t('gameServers.connection.clientAppRegenerate') }}</UButton>
+        </template>
+        <UButton v-else size="sm" color="primary" variant="soft" icon="i-lucide-key-round" :loading="appBusy" @click="generateApp">
+          {{ t('gameServers.connection.clientAppGenerate') }}
+        </UButton>
+      </div>
+
+      <!-- 客户端地址（通行证启动） -->
+      <div v-if="clientLaunch" class="cn__row">
+        <span class="cn__ico m-sticker m-sticker--warn"><UIcon name="i-lucide-monitor-smartphone" /></span>
+        <span class="cn__main">
+          <b>{{ t('gameServers.connection.client') }}</b>
+          <span :class="{ 'm-mono': clientSet }">{{ clientSummary }}</span>
+        </span>
+        <StatusPill v-if="clientPartial" variant="warning" :label="t('gameServers.connection.clientPartial')" :title="t('gameServers.connection.clientHint')" />
+        <UButton size="sm" color="neutral" variant="soft" @click="openClient">{{ t('gameServers.connection.modify') }}</UButton>
       </div>
 
       <!-- 托管选项 -->
@@ -119,6 +151,77 @@
           <small>{{ t('gameServers.connection.timezoneHint') }}</small>
         </label>
       </div>
+    </FormDialog>
+
+    <!-- 弹窗：客户端地址 -->
+    <FormDialog
+      v-model="clientOpen"
+      :title="t('gameServers.connection.client')"
+      :width="560"
+      :loading="savingClient"
+      :confirm-text="t('gameServers.connection.save')"
+      @confirm="saveClient"
+    >
+      <div class="cn__dialog">
+        <p>{{ t('gameServers.connection.clientHint') }}</p>
+        <label class="cn__field">
+          <span>{{ t('gameServers.connection.clientSdk') }}</span>
+          <UInput v-model="client.sdk" class="m-mono" placeholder="https://host:port" />
+        </label>
+        <label class="cn__field">
+          <span>{{ t('gameServers.connection.clientGame') }}</span>
+          <UInput v-model="client.game" class="m-mono" placeholder="https://host:port" />
+        </label>
+        <label class="cn__field">
+          <span>{{ t('gameServers.connection.clientResource') }}</span>
+          <UInput v-model="client.resource" class="m-mono" placeholder="https://host:port" />
+        </label>
+        <small>{{ t('gameServers.connection.clientFormat') }}</small>
+      </div>
+    </FormDialog>
+
+    <!-- 弹窗：确认生成（托管）/ 重置应用密钥 / 重新生成应用 ID -->
+    <FormDialog
+      :model-value="!!appAction"
+      :title="appActionText.title"
+      :width="520"
+      :loading="appBusy"
+      :confirm-text="appActionText.confirm"
+      @update:model-value="closeAppAction"
+      @confirm="runAppAction"
+    >
+      <div class="cn__dialog">
+        <p>{{ appActionText.desc }}</p>
+        <label v-if="hosted" class="cn__toggle">
+          <span>
+            <b>{{ t('gameServers.connection.clientAppRestart') }}</b>
+            <small>{{ t('gameServers.connection.clientAppRestartHint') }}</small>
+          </span>
+          <AppSwitch v-model="appRestart" :aria-label="t('gameServers.connection.clientAppRestart')" />
+        </label>
+      </div>
+    </FormDialog>
+
+    <!-- 弹窗：新的应用凭据（应用密钥只显示这一次） -->
+    <FormDialog v-model="credsOpen" :title="t('gameServers.connection.clientAppCredsTitle')" :width="600" :close-on-overlay="false">
+      <div v-if="creds" class="cn__dialog">
+        <p>{{ hosted ? t('gameServers.connection.clientAppCredsHostedDesc') : t('gameServers.connection.clientAppCredsDesc') }}</p>
+        <div class="cn__cred">
+          <span>{{ t('gameServers.connection.clientAppId') }}</span>
+          <UInput :model-value="creds.appId" class="m-mono" readonly :ui="{ root: 'cn__cred-input' }" :aria-label="t('gameServers.connection.clientAppId')" />
+          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopyId')" :box="36" @click="copy(creds.appId)" />
+        </div>
+        <div class="cn__cred">
+          <span>{{ t('gameServers.connection.clientAppSecret') }}</span>
+          <UInput :model-value="creds.appSecret" class="m-mono" readonly :ui="{ root: 'cn__cred-input' }" :aria-label="t('gameServers.connection.clientAppSecret')" />
+          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopySecret')" :box="36" @click="copy(creds.appSecret)" />
+        </div>
+        <small>{{ t('gameServers.connection.clientAppCredsHint') }}</small>
+      </div>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="ghost" icon="i-lucide-copy" @click="copyCreds">{{ t('gameServers.connection.clientAppCopyBoth') }}</UButton>
+        <UButton color="primary" @click="close">{{ t('gameServers.connection.clientAppSaved') }}</UButton>
+      </template>
     </FormDialog>
 
     <!-- 弹窗：托管选项 -->
@@ -210,9 +313,25 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { detectGameServerDir, switchGameServerMode, testGameServer, updateGameServer, updateGameServerHosting } from '@/api/gameServer'
+import {
+  detectGameServerDir,
+  generateGameServerClientApp,
+  resetGameServerClientAppSecret,
+  switchGameServerMode,
+  testGameServer,
+  updateGameServer,
+  updateGameServerHosting,
+} from '@/api/gameServer'
+import { copyTextToClipboard } from '@/utils/file'
 import { getRequestErrorMessage } from '@/utils/request'
-import type { DetectGameServerDirResponse, GameAdapter, GameServerCheck, GameServerInfo, UpdateGameServerRequest } from '@/types/v1/game_server'
+import type {
+  DetectGameServerDirResponse,
+  GameAdapter,
+  GameServerCheck,
+  GameServerClientAppResponse,
+  GameServerInfo,
+  UpdateGameServerRequest,
+} from '@/types/v1/game_server'
 import CheckList from '../../components/CheckList.vue'
 import HostedForm from '../../components/HostedForm.vue'
 import { applyDetection, detectListens, emptyHostedDraft, toHostedSpec } from '../../hosted'
@@ -233,6 +352,7 @@ const mode = computed(() => props.server.brief?.mode || 'remote')
 const hosted = computed(() => mode.value === 'hosted')
 const canHosted = computed(() => !!props.adapter?.modes.includes('hosted'))
 const canRemote = computed(() => !!props.adapter?.modes.includes('remote'))
+const clientLaunch = computed(() => !!props.adapter?.clientLaunch)
 const serverVisibility = computed<Visibility>(() =>
   (VISIBILITY as readonly string[]).includes(props.server.passportVisibility) ? (props.server.passportVisibility as Visibility) : 'public',
 )
@@ -250,6 +370,19 @@ const probeTitle = computed(() => (props.server.probeAt ? t('gameServers.connect
 const passportSummary = computed(() => {
   const tz = props.server.timezone ? t('gameServers.connection.tzValue', { tz: props.server.timezone }) : t('gameServers.connection.tzFollow')
   return `${t(`gameServers.connection.visibilityOpts.${serverVisibility.value}`)} · ${tz}`
+})
+const clientUrls = computed(() => [props.server.clientSdkUrl, props.server.clientGameUrl, props.server.clientResourceUrl])
+const clientSet = computed(() => clientUrls.value.some(Boolean))
+const clientPartial = computed(() => clientSet.value && !clientUrls.value.every(Boolean))
+const clientSummary = computed(() => {
+  if (!clientSet.value) return t('gameServers.connection.clientNone')
+  const [sdk, game, resource] = clientUrls.value
+  const none = t('gameServers.connection.clientUnset')
+  return [
+    `${t('gameServers.connection.clientSdkShort')} ${sdk || none}`,
+    `${t('gameServers.connection.clientGameShort')} ${game || none}`,
+    `${t('gameServers.connection.clientResourceShort')} ${resource || none}`,
+  ].join(' · ')
 })
 const hostingSummary = computed(() => {
   const h = props.server.hosting
@@ -277,6 +410,9 @@ const currentFields = (): UpdateGameServerRequest => {
     passportVisibility: serverVisibility.value,
     passportInviteCode: s.passportInviteCode,
     timezone: s.timezone,
+    clientSdkUrl: s.clientSdkUrl,
+    clientGameUrl: s.clientGameUrl,
+    clientResourceUrl: s.clientResourceUrl,
   }
 }
 
@@ -368,6 +504,110 @@ const savePassport = async () => {
     savingPassport,
   )
   if (ok) passportOpen.value = false
+}
+
+// ---- 弹窗：客户端地址 ----
+const clientOpen = ref(false)
+const client = reactive({ sdk: '', game: '', resource: '' })
+const savingClient = ref(false)
+
+const openClient = () => {
+  const s = props.server
+  Object.assign(client, { sdk: s.clientSdkUrl, game: s.clientGameUrl, resource: s.clientResourceUrl })
+  clientOpen.value = true
+}
+
+const saveClient = async () => {
+  const ok = await update(
+    {
+      ...currentFields(),
+      clientSdkUrl: client.sdk.trim(),
+      clientGameUrl: client.game.trim(),
+      clientResourceUrl: client.resource.trim(),
+    },
+    savingClient,
+  )
+  if (ok) clientOpen.value = false
+}
+
+// ---- 客户端应用凭据 ----
+const appBusy = ref(false)
+// 待确认的操作：new 托管服务器第一次生成 / secret 只换应用密钥 / id 应用 ID 与应用密钥一起换
+type AppAction = 'new' | 'secret' | 'id'
+const appAction = ref<AppAction | null>(null)
+// 托管：服务端运行中时立即重启使新凭据生效（同轮换 MGP 密钥，默认开）
+const appRestart = ref(true)
+// 刚生成的凭据（应用密钥只在这里显示一次）
+const creds = ref<GameServerClientAppResponse | null>(null)
+const credsOpen = ref(false)
+
+const copy = async (text: string) => {
+  if (!text) return
+  try {
+    await copyTextToClipboard(text)
+    fb.success(t('gameServers.key.copied'))
+  } catch {
+    fb.error(t('gameServers.key.copyFailed'))
+  }
+}
+
+const copyCreds = () => {
+  if (!creds.value) return
+  void copy(`app_id: ${creds.value.appId}\napp_secret: ${creds.value.appSecret}`)
+}
+
+const appActionText = computed(() => {
+  const c = 'gameServers.connection.'
+  switch (appAction.value) {
+    case 'secret':
+      return {
+        title: t(`${c}clientAppResetSecretTitle`),
+        confirm: t(`${c}clientAppResetSecret`),
+        desc: t(hosted.value ? `${c}clientAppResetSecretHostedDesc` : `${c}clientAppResetSecretDesc`),
+      }
+    case 'id':
+      return {
+        title: t(`${c}clientAppRegenerateTitle`),
+        confirm: t(`${c}clientAppRegenerate`),
+        desc: t(hosted.value ? `${c}clientAppRegenerateHostedDesc` : `${c}clientAppRegenerateDesc`),
+      }
+    default:
+      return { title: t(`${c}clientAppGenerateTitle`), confirm: t(`${c}clientAppGenerate`), desc: t(`${c}clientAppGenerateHostedDesc`) }
+  }
+})
+
+const issueApp = async (action: AppAction) => {
+  const restart = hosted.value && appRestart.value
+  appBusy.value = true
+  try {
+    const { data } =
+      action === 'secret' ? await resetGameServerClientAppSecret(id.value, restart) : await generateGameServerClientApp(id.value, restart)
+    creds.value = data
+    credsOpen.value = true
+    appAction.value = null
+    if (hosted.value) fb.success(t(data.restarted ? 'gameServers.connection.clientAppDoneRestart' : 'gameServers.connection.clientAppDone'))
+    emit('changed')
+  } catch (e) {
+    fb.error(getRequestErrorMessage(e, t('gameServers.common.failed')))
+  } finally {
+    appBusy.value = false
+  }
+}
+
+// 仅 GM 的第一次生成直接执行；托管服务器要选是否重启，先开确认弹窗
+const generateApp = () => (hosted.value ? askAppAction('new') : issueApp('new'))
+
+const askAppAction = (action: AppAction) => {
+  appRestart.value = true
+  appAction.value = action
+}
+
+const closeAppAction = (open: boolean) => {
+  if (!open) appAction.value = null
+}
+
+const runAppAction = async () => {
+  if (appAction.value) await issueApp(appAction.value)
 }
 
 // ---- 弹窗：托管选项 ----
@@ -536,6 +776,21 @@ const switchToHosted = async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.cn__cred {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.cn__cred > span {
+  flex: 0 0 96px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+:deep(.cn__cred-input) {
+  flex: 1;
+  min-width: 0;
 }
 .cn__aside {
   flex: none;

@@ -1,5 +1,5 @@
 <!-- 绑定游戏账号：选服务器（搜索 + 按游戏筛选 + 推荐，不列出全部）→ 证明这是你的账号（服务器声明支持的方式）。
-     ?server=<id> 预选这台服务器（授权页跳来，要对你可见且可以绑定）；?redirect=<站内路径> 绑定成功后回到那里。 -->
+     ?server=<id> 预选这台服务器（要对你可见且可以绑定）；?redirect=<站内路径> 绑定成功后回到那里。 -->
 <template>
   <div class="bind">
     <header v-if="ui.isMobile" class="mhead">

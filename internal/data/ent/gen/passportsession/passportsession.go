@@ -25,8 +25,6 @@ const (
 	FieldDevice = "device"
 	// FieldUserAgent holds the string denoting the user_agent field in the database.
 	FieldUserAgent = "user_agent"
-	// FieldClientID holds the string denoting the client_id field in the database.
-	FieldClientID = "client_id"
 	// FieldLoginMethod holds the string denoting the login_method field in the database.
 	FieldLoginMethod = "login_method"
 	// FieldIP holds the string denoting the ip field in the database.
@@ -56,7 +54,6 @@ var Columns = []string{
 	FieldDeviceID,
 	FieldDevice,
 	FieldUserAgent,
-	FieldClientID,
 	FieldLoginMethod,
 	FieldIP,
 	FieldLastIP,
@@ -92,8 +89,6 @@ var (
 	DefaultDevice string
 	// DefaultUserAgent holds the default value on creation for the "user_agent" field.
 	DefaultUserAgent string
-	// DefaultClientID holds the default value on creation for the "client_id" field.
-	DefaultClientID string
 	// DefaultLoginMethod holds the default value on creation for the "login_method" field.
 	DefaultLoginMethod string
 	// DefaultIP holds the default value on creation for the "ip" field.
@@ -146,11 +141,6 @@ func ByDevice(opts ...sql.OrderTermOption) OrderOption {
 // ByUserAgent orders the results by the user_agent field.
 func ByUserAgent(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserAgent, opts...).ToFunc()
-}
-
-// ByClientID orders the results by the client_id field.
-func ByClientID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldClientID, opts...).ToFunc()
 }
 
 // ByLoginMethod orders the results by the login_method field.

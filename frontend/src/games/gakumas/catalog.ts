@@ -1,56 +1,10 @@
-// 学マス 的目录（名称与素材 ID）：每类目录对应一个接口，结果整理成页面统一使用的 CatalogEntry。
-// 管理端与用户通行证各自传入自己的接口函数（src/api/gakumas.ts、passport/src/api/gakumas.ts）。
+// 学マス 的目录（选择器、搜索与筛选用的条目）：管理端与用户通行证共用。
+// 目录是游戏数据，和名称表、图片一样是前端静态资源：scripts/games/gakumas/export-names.py 导出到 ./catalogs/<kind>.json，
+// 名称取名称表（当前语言的译名 → 游戏原文名）；GM 编辑的数据（卡池）由调用方按服务器读取。
+// 关键字搜索、ID / 角色 / 稀有度筛选和分页都在浏览器里完成。
 import type { CatalogEntry, CatalogQuery, ListPage } from '../mgp'
-import type {
-  CharacterPage,
-  CostumePage,
-  CurrencyPage,
-  GashaEntryPage,
-  IdolCardSkinPage,
-  ItemEntryPage,
-  MemoryAbilityPage,
-  MusicPage,
-  ProduceCardEntryPage,
-  ProduceEntryPage,
-  ProduceGroupPage,
-  ProduceItemEntryPage,
-  SeminarEntryPage,
-  SupportCardEntryPage,
-  TowerEntryPage,
-} from '@/types/v1/gakumas/types'
-
-/** 目录查询的公共参数（两端的目录接口都接受这些字段；各自的请求类型在 gm.ts / passport.ts）。 */
-export interface CatalogParams {
-  serverId: string
-  q: string
-  ids: string[]
-  cursor: string
-  limit: number
-}
-export interface ItemCatalogParams extends CatalogParams {
-  type: number
-  characterId: string
-  rarity: number
-}
-export interface IdolCardSkinCatalogParams extends CatalogParams {
-  characterId: string
-  rarity: number
-  planType: number
-  idolCardIds: string[]
-}
-export interface SupportCardCatalogParams extends CatalogParams {
-  rarity: number
-  type: number
-}
-export interface CostumeCatalogParams extends CatalogParams {
-  characterId: string
-}
-export interface GashaCatalogParams extends CatalogParams {
-  open: boolean
-}
-export interface ProduceCatalogParams extends CatalogParams {
-  produceGroupId: string
-}
+import { ensureGameNames, localizeEntries, lookupGameName, searchGameNames } from '../names'
+import { fuzzyMatch } from '../search'
 
 /** 目录的种类（也是前端名称表与素材包的分类）。 */
 export type GakumasCatalogKind =
@@ -70,26 +24,6 @@ export type GakumasCatalogKind =
   | 'produceCard'
   | 'produceItem'
   | 'memoryAbility'
-
-/** 目录接口；没有提供的种类不可查询。 */
-export interface GakumasCatalogApi {
-  currencies?: (req: CatalogParams) => Promise<CurrencyPage>
-  items?: (req: ItemCatalogParams) => Promise<ItemEntryPage>
-  idolCardSkins?: (req: IdolCardSkinCatalogParams) => Promise<IdolCardSkinPage>
-  supportCards?: (req: SupportCardCatalogParams) => Promise<SupportCardEntryPage>
-  characters?: (req: CatalogParams) => Promise<CharacterPage>
-  costumes?: (req: CostumeCatalogParams) => Promise<CostumePage>
-  costumeHeads?: (req: CostumeCatalogParams) => Promise<CostumePage>
-  music?: (req: CatalogParams) => Promise<MusicPage>
-  gashas?: (req: GashaCatalogParams) => Promise<GashaEntryPage>
-  produceGroups?: (req: CatalogParams) => Promise<ProduceGroupPage>
-  produces?: (req: ProduceCatalogParams) => Promise<ProduceEntryPage>
-  seminars?: (req: CatalogParams) => Promise<SeminarEntryPage>
-  towers?: (req: CatalogParams) => Promise<TowerEntryPage>
-  produceCards?: (req: CatalogParams) => Promise<ProduceCardEntryPage>
-  produceItems?: (req: CatalogParams) => Promise<ProduceItemEntryPage>
-  memoryAbilities?: (req: CatalogParams) => Promise<MemoryAbilityPage>
-}
 
 /** 目录的显示名。 */
 export const catalogTitles: Record<GakumasCatalogKind, string> = {
@@ -142,109 +76,122 @@ export const resourceRef = (resourceType: number, resourceId: string): { kind: G
   return { kind: r.kind, id: resourceId }
 }
 
-const page = <T>(p: { items: T[]; nextCursor: string; total: number }, map: (x: T) => CatalogEntry[]): ListPage<CatalogEntry> => ({
-  items: p.items.flatMap(map),
-  nextCursor: p.nextCursor,
-  total: p.total,
-})
+/** 静态目录里的一条（export-names.py 导出；名称不在这里，取名称表）。 */
+interface StaticEntry {
+  id: string
+  resourceType?: number
+  rarity?: number
+  type?: number
+  characterId?: string
+  parentId?: string
+  assetId?: string
+  characterAsset?: boolean
+  levels?: number[]
+}
 
-const empty: ListPage<CatalogEntry> = { items: [], nextCursor: '', total: 0 }
+const staticLoaders = import.meta.glob<StaticEntry[]>('./catalogs/*.json', { import: 'default' })
 
-/** 查询一类目录（服务器 serverId，q / ids / characterId / rarity 由服务端筛选分页）。 */
-export async function queryCatalog(api: GakumasCatalogApi, serverId: string, kind: string, query: CatalogQuery = {}): Promise<ListPage<CatalogEntry>> {
-  const base = {
-    serverId,
-    q: query.q || '',
-    ids: query.ids || [],
-    cursor: query.cursor || '',
-    limit: query.limit || 0,
-  }
-  const rarity = Number(query.rarity) || 0
-  const characterId = query.characterId || ''
-  switch (kind) {
-    case 'currency':
-      if (!api.currencies) return empty
-      return page(await api.currencies(base), (e) => [{ id: e.id, name: e.name, resourceType: e.resourceType }])
-    case 'item':
-      if (!api.items) return empty
-      return page(await api.items({ ...base, type: 0, characterId, rarity }), (e) => [
-        { id: e.id, name: e.name, resourceType: e.resourceType, rarity: e.rarity, type: e.type, characterId: e.characterId, assetId: e.assetId },
-      ])
-    case 'idolCardSkin':
-      if (!api.idolCardSkins) return empty
-      return page(await api.idolCardSkins({ ...base, characterId, rarity, planType: 0, idolCardIds: [] }), (e) => [
-        {
-          id: e.id,
-          name: e.name,
-          resourceType: e.resourceType,
-          rarity: e.rarity,
-          type: e.planType,
-          characterId: e.characterId,
-          parentId: e.idolCardId,
-          assetId: e.assetId,
-        },
-      ])
-    case 'supportCard':
-      if (!api.supportCards) return empty
-      return page(await api.supportCards({ ...base, rarity, type: 0 }), (e) => [
-        { id: e.id, name: e.name, resourceType: e.resourceType, rarity: e.rarity, type: e.type, assetId: e.assetId },
-      ])
-    case 'character':
-      if (!api.characters) return empty
-      return page(await api.characters(base), (e) => [{ id: e.id, name: e.name, resourceType: 0 }])
-    case 'costume':
-    case 'costumeHead': {
-      const fn = kind === 'costume' ? api.costumes : api.costumeHeads
-      if (!fn) return empty
-      return page(await fn({ ...base, characterId }), (e) => [{ id: e.id, name: e.name, resourceType: e.resourceType, characterId: e.characterId }])
+/** 条目文字所在的名称表（默认与目录同名）：技能卡强化名 `<id>+1`、P 道具效果文字、记忆能力各等级的效果文字 `<id>@<等级>`。 */
+const TEXT_TABLES: Partial<Record<string, string[]>> = {
+  produceItem: ['produceItem', 'produceItemText'],
+  memoryAbility: ['memoryAbilityText'],
+}
+
+/** 游戏原文名的语言（names.ts 里没有译名表的语言取原文名）。 */
+const ORIGINAL = 'ja'
+
+/** 一类静态目录（名称换成当前语言的译名，原文名在 originalName）。 */
+async function staticCatalog(game: string, locale: string, kind: string): Promise<CatalogEntry[]> {
+  const load = staticLoaders[`./catalogs/${kind}.json`]
+  if (!load) return []
+  const tables = TEXT_TABLES[kind] ?? [kind]
+  const [list] = await Promise.all([load(), Promise.all(tables.map((t) => ensureGameNames(game, locale, t)))])
+  const text = (table: string, key: string) => lookupGameName(game, locale, table, key) || ''
+  return list.map((e) => {
+    const name = text(kind, e.id) || e.id
+    const original = lookupGameName(game, ORIGINAL, kind, e.id) || ''
+    const out: CatalogEntry = {
+      id: e.id,
+      name,
+      resourceType: e.resourceType || 0,
+      rarity: e.rarity,
+      type: e.type,
+      characterId: e.characterId,
+      parentId: e.parentId,
+      assetId: e.assetId,
+      characterAsset: e.characterAsset,
     }
-    case 'music':
-      if (!api.music) return empty
-      return page(await api.music(base), (e) => [{ id: e.id, name: e.name, resourceType: e.resourceType, assetId: e.jacketAssetId }])
-    case 'gasha':
-      if (!api.gashas) return empty
-      return page(await api.gashas({ ...base, open: false }), (e) => [
-        { id: e.id, name: e.name, resourceType: 0, type: e.type, assetId: e.bannerAssetId, startTime: e.startTime, endTime: e.endTime },
-      ])
-    case 'produceGroup':
-      if (!api.produceGroups) return empty
-      return page(await api.produceGroups(base), (e) => [{ id: e.id, name: e.name, resourceType: 0, type: e.type, assetId: e.assetId }])
-    case 'produce':
-      if (!api.produces) return empty
-      return page(await api.produces({ ...base, produceGroupId: '' }), (e) => [
-        { id: e.id, name: e.name, resourceType: 0, parentId: e.produceGroupId, assetId: e.assetId },
-      ])
-    case 'seminar':
-      if (!api.seminars) return empty
-      return page(await api.seminars(base), (g) => [
-        { id: g.id, name: g.name, resourceType: 0 },
-        ...g.exams.map((x) => ({ id: x.id, name: x.name, resourceType: 0, parentId: g.id })),
-      ])
-    case 'tower':
-      if (!api.towers) return empty
-      return page(await api.towers(base), (e) => [{ id: e.id, name: e.id, resourceType: 0, type: e.layers }])
-    case 'produceCard':
-      if (!api.produceCards) return empty
-      return page(await api.produceCards(base), (e) => [
-        {
-          id: e.id,
-          name: e.name,
-          upgradedName: e.upgradedName,
-          resourceType: 0,
-          rarity: e.rarity,
-          type: e.planType,
-          assetId: e.assetId,
-          characterAsset: e.characterAsset,
-        },
-      ])
-    case 'produceItem':
-      if (!api.produceItems) return empty
-      return page(await api.produceItems(base), (e) => [
-        { id: e.id, name: e.name, resourceType: 0, rarity: e.rarity, assetId: e.assetId, description: e.description },
-      ])
-    case 'memoryAbility':
-      if (!api.memoryAbilities) return empty
-      return page(await api.memoryAbilities(base), (e) => [{ id: e.id, name: e.id, resourceType: 0, rarity: e.rarity, levels: e.levels }])
+    if (original && original !== name) out.originalName = original
+    if (kind === 'produceCard') out.upgradedName = text(kind, `${e.id}+1`) || undefined
+    if (kind === 'produceItem') out.description = text('produceItemText', e.id) || undefined
+    if (kind === 'memoryAbility') {
+      out.levels = (e.levels || []).map((level) => ({ level, description: text('memoryAbilityText', `${e.id}@${level}`) }))
+    }
+    return out
+  })
+}
+
+/** 服务器上的目录：不是静态游戏数据的种类（GM 编辑的卡池），按服务器读取整份。 */
+export type ServerCatalogs = Partial<Record<string, (serverId: string) => Promise<CatalogEntry[]>>>
+
+/** 目录查询（管理端与用户通行证共用）。 */
+export interface CatalogStore {
+  /** 按查询筛选分页（cursor 为偏移量）。 */
+  query: (serverId: string, kind: string, query?: CatalogQuery) => Promise<ListPage<CatalogEntry>>
+  /** 重读一类服务器目录（GM 发布卡池配置后）。 */
+  refresh: (kind: string) => void
+}
+
+/**
+ * 目录查询：静态目录每类读一次（浏览器按静态文件缓存），服务器目录每台服务器每类读一次，之后都在内存里筛选分页。
+ * 关键字匹配：名称表（当前语言的译名与原文名，含技能卡强化名与记忆能力效果文字）、条目的名称与效果文字、ID 片段。
+ */
+export function createCatalogStore(game: () => string, locale: () => string, server: ServerCatalogs = {}): CatalogStore {
+  const lists = new Map<string, Promise<CatalogEntry[]>>()
+
+  const entries = (serverId: string, kind: string, lc: string): Promise<CatalogEntry[]> => {
+    const load = server[kind]
+    const key = load ? `${serverId}|${kind}|${lc}` : `|${kind}|${lc}`
+    let list = lists.get(key)
+    if (!list) {
+      const value = load ? load(serverId).then((items) => localizeEntries(game(), lc, kind, items)) : staticCatalog(game(), lc, kind)
+      lists.set(key, value)
+      value.catch(() => lists.get(key) === value && lists.delete(key))
+      list = value
+    }
+    return list
   }
-  return empty
+
+  const query = async (serverId: string, kind: string, q: CatalogQuery = {}): Promise<ListPage<CatalogEntry>> => {
+    const lc = locale()
+    const list = await entries(serverId, kind, lc)
+    const keyword = q.q?.trim() || ''
+    const hits = keyword ? await searchGameNames(game(), lc, kind, keyword) : undefined
+    const needle = keyword.toLowerCase()
+    const ids = q.ids?.length ? new Set(q.ids) : undefined
+    const rarity = Number(q.rarity) || 0
+    const matched = list.filter(
+      (e) =>
+        (!ids || ids.has(e.id)) &&
+        (!q.characterId || e.characterId === q.characterId) &&
+        (!rarity || e.rarity === rarity) &&
+        (!keyword ||
+          hits?.has(e.id) ||
+          e.id.toLowerCase().includes(needle) ||
+          fuzzyMatch(keyword, [e.name, e.originalName, e.upgradedName, e.description, ...(e.levels || []).map((l) => l.description)])),
+    )
+    const offset = Number(q.cursor) || 0
+    const limit = q.limit || 50
+    return {
+      items: matched.slice(offset, offset + limit),
+      nextCursor: offset + limit < matched.length ? String(offset + limit) : '',
+      total: matched.length,
+    }
+  }
+
+  const refresh = (kind: string) => {
+    for (const key of [...lists.keys()]) if (key.split('|')[1] === kind) lists.delete(key)
+  }
+
+  return { query, refresh }
 }

@@ -94,11 +94,6 @@ func UserAgent(v string) predicate.PassportSession {
 	return predicate.PassportSession(sql.FieldEQ(FieldUserAgent, v))
 }
 
-// ClientID applies equality check predicate on the "client_id" field. It's identical to ClientIDEQ.
-func ClientID(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldEQ(FieldClientID, v))
-}
-
 // LoginMethod applies equality check predicate on the "login_method" field. It's identical to LoginMethodEQ.
 func LoginMethod(v string) predicate.PassportSession {
 	return predicate.PassportSession(sql.FieldEQ(FieldLoginMethod, v))
@@ -477,71 +472,6 @@ func UserAgentEqualFold(v string) predicate.PassportSession {
 // UserAgentContainsFold applies the ContainsFold predicate on the "user_agent" field.
 func UserAgentContainsFold(v string) predicate.PassportSession {
 	return predicate.PassportSession(sql.FieldContainsFold(FieldUserAgent, v))
-}
-
-// ClientIDEQ applies the EQ predicate on the "client_id" field.
-func ClientIDEQ(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldEQ(FieldClientID, v))
-}
-
-// ClientIDNEQ applies the NEQ predicate on the "client_id" field.
-func ClientIDNEQ(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldNEQ(FieldClientID, v))
-}
-
-// ClientIDIn applies the In predicate on the "client_id" field.
-func ClientIDIn(vs ...string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldIn(FieldClientID, vs...))
-}
-
-// ClientIDNotIn applies the NotIn predicate on the "client_id" field.
-func ClientIDNotIn(vs ...string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldNotIn(FieldClientID, vs...))
-}
-
-// ClientIDGT applies the GT predicate on the "client_id" field.
-func ClientIDGT(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldGT(FieldClientID, v))
-}
-
-// ClientIDGTE applies the GTE predicate on the "client_id" field.
-func ClientIDGTE(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldGTE(FieldClientID, v))
-}
-
-// ClientIDLT applies the LT predicate on the "client_id" field.
-func ClientIDLT(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldLT(FieldClientID, v))
-}
-
-// ClientIDLTE applies the LTE predicate on the "client_id" field.
-func ClientIDLTE(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldLTE(FieldClientID, v))
-}
-
-// ClientIDContains applies the Contains predicate on the "client_id" field.
-func ClientIDContains(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldContains(FieldClientID, v))
-}
-
-// ClientIDHasPrefix applies the HasPrefix predicate on the "client_id" field.
-func ClientIDHasPrefix(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldHasPrefix(FieldClientID, v))
-}
-
-// ClientIDHasSuffix applies the HasSuffix predicate on the "client_id" field.
-func ClientIDHasSuffix(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldHasSuffix(FieldClientID, v))
-}
-
-// ClientIDEqualFold applies the EqualFold predicate on the "client_id" field.
-func ClientIDEqualFold(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldEqualFold(FieldClientID, v))
-}
-
-// ClientIDContainsFold applies the ContainsFold predicate on the "client_id" field.
-func ClientIDContainsFold(v string) predicate.PassportSession {
-	return predicate.PassportSession(sql.FieldContainsFold(FieldClientID, v))
 }
 
 // LoginMethodEQ applies the EQ predicate on the "login_method" field.

@@ -1,9 +1,8 @@
 // 游戏空间的共享上下文：服务器、绑定、玩法、我的玩家摘要，以及按需、带缓存的目录查询。
 // 游戏数据都只针对自己绑定的游戏账号（后端按绑定决定 pid）；学マス 的接口见 passport/src/api/gakumas.ts。
 import { inject, provide, reactive, type ComputedRef, type InjectionKey, type Ref } from 'vue'
-import * as api from '@passport/api/gakumas'
-import { gakumas, gameCatalogImage, localizeEntries, lookupGameName } from '@/games'
-import { queryCatalog, resourceRef as gakumasResourceRef, type GakumasCatalogApi } from '@/games/gakumas/catalog'
+import { gakumas, gameCatalogImage, lookupGameName } from '@/games'
+import { createCatalogStore, resourceRef as gakumasResourceRef } from '@/games/gakumas/catalog'
 import { gakumasModes, type GakumasMode } from '@/games/gakumas/modes'
 import { i18n } from '@passport/locales'
 import type { CatalogEntry, CatalogQuery, ListPage } from '@/games/mgp'
@@ -57,22 +56,6 @@ export function useGameContext(): GameContext {
 export const modeTitleOf = (id: GakumasMode) => gakumasModes.find((m) => m.id === id)?.title || id
 
 // 玩家端可查的目录（通行证上没有卡池、塔、培育组目录）
-const catalogApi: GakumasCatalogApi = {
-  currencies: api.listCurrencies,
-  items: api.listItemCatalog,
-  idolCardSkins: api.listIdolCardSkins,
-  supportCards: api.listSupportCardCatalog,
-  characters: api.listCharacters,
-  costumes: api.listCostumes,
-  costumeHeads: api.listCostumeHeads,
-  music: api.listMusic,
-  produces: api.listProduceCatalog,
-  seminars: api.listSeminars,
-  produceCards: api.listProduceCards,
-  produceItems: api.listProduceItems,
-  memoryAbilities: api.listMemoryAbilities,
-}
-
 const BATCH = 100
 
 /** 创建目录缓存与资源换算（GameSpace 调用一次）。 */
@@ -83,15 +66,11 @@ export function createCatalogs(serverId: ComputedRef<string>, game: ComputedRef<
   const wanted = new Map<string, Set<string>>()
   let scheduled = false
 
-  // 名称换成当前语言的译名（src/games/names.ts；没有译名的保留服务端原文）
+  // 目录：静态游戏数据（名称换成当前语言的译名），搜索、筛选、分页都在浏览器里做
   const locale = () => String(i18n.global.locale.value)
+  const catalogs = createCatalogStore(() => game.value, locale)
 
-  const fetch = async (kind: string, query: CatalogQuery, lc: string) => {
-    const page = await queryCatalog(catalogApi, serverId.value, kind, query)
-    return { ...page, items: await localizeEntries(game.value, lc, kind, page.items) }
-  }
-
-  // 同一轮里要查的 ID 按目录种类攒成批，每批一次 ids 查询
+  // 同一轮里要查的 ID 按目录种类攒成批，从整份目录里按 ID 取出
   const flush = () => {
     scheduled = false
     const lc = locale()
@@ -101,7 +80,8 @@ export function createCatalogs(serverId: ComputedRef<string>, game: ComputedRef<
       const all = [...set]
       for (let i = 0; i < all.length; i += BATCH) {
         const ids = all.slice(i, i + BATCH)
-        fetch(kind, { ids, limit: ids.length }, lc)
+        catalogs
+          .query(sid, kind, { ids, limit: ids.length })
           .then((page) => {
             const byId = new Map(page.items.map((e) => [e.id, e]))
             for (const id of ids) entries.set(`${sid}|${lc}|${kind}|${id}`, byId.get(id) ?? null)
@@ -140,7 +120,8 @@ export function createCatalogs(serverId: ComputedRef<string>, game: ComputedRef<
     if (lists.has(key)) return lists.get(key)
     if (!pending.has(key)) {
       pending.add(key)
-      fetch(kind, { limit: 50 }, lc)
+      catalogs
+        .query(serverId.value, kind, { limit: 50 })
         .then((page) => {
           lists.set(key, page.items)
           for (const it of page.items) entries.set(`${serverId.value}|${lc}|${kind}|${it.id}`, it)
@@ -150,7 +131,7 @@ export function createCatalogs(serverId: ComputedRef<string>, game: ComputedRef<
     return undefined
   }
 
-  const catalog = (kind: string, query: CatalogQuery) => fetch(kind, query, locale())
+  const catalog = (kind: string, query: CatalogQuery) => catalogs.query(serverId.value, kind, query)
 
   const nameOf = (kind: string, id: string): string => {
     if (!id || !kind) return ''

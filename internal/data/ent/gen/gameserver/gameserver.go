@@ -68,6 +68,16 @@ const (
 	FieldPassportVisibility = "passport_visibility"
 	// FieldPassportInviteCode holds the string denoting the passport_invite_code field in the database.
 	FieldPassportInviteCode = "passport_invite_code"
+	// FieldClientSdkURL holds the string denoting the client_sdk_url field in the database.
+	FieldClientSdkURL = "client_sdk_url"
+	// FieldClientGameURL holds the string denoting the client_game_url field in the database.
+	FieldClientGameURL = "client_game_url"
+	// FieldClientResourceURL holds the string denoting the client_resource_url field in the database.
+	FieldClientResourceURL = "client_resource_url"
+	// FieldClientAppID holds the string denoting the client_app_id field in the database.
+	FieldClientAppID = "client_app_id"
+	// FieldClientAppSecret holds the string denoting the client_app_secret field in the database.
+	FieldClientAppSecret = "client_app_secret"
 	// FieldRemark holds the string denoting the remark field in the database.
 	FieldRemark = "remark"
 	// Table holds the table name of the gameserver in the database.
@@ -104,6 +114,11 @@ var Columns = []string{
 	FieldTimezone,
 	FieldPassportVisibility,
 	FieldPassportInviteCode,
+	FieldClientSdkURL,
+	FieldClientGameURL,
+	FieldClientResourceURL,
+	FieldClientAppID,
+	FieldClientAppSecret,
 	FieldRemark,
 }
 
@@ -156,6 +171,14 @@ var (
 	DefaultTimezone string
 	// DefaultPassportInviteCode holds the default value on creation for the "passport_invite_code" field.
 	DefaultPassportInviteCode string
+	// DefaultClientSdkURL holds the default value on creation for the "client_sdk_url" field.
+	DefaultClientSdkURL string
+	// DefaultClientGameURL holds the default value on creation for the "client_game_url" field.
+	DefaultClientGameURL string
+	// DefaultClientResourceURL holds the default value on creation for the "client_resource_url" field.
+	DefaultClientResourceURL string
+	// DefaultClientAppSecret holds the default value on creation for the "client_app_secret" field.
+	DefaultClientAppSecret string
 	// DefaultRemark holds the default value on creation for the "remark" field.
 	DefaultRemark string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -343,6 +366,31 @@ func ByPassportVisibility(opts ...sql.OrderTermOption) OrderOption {
 // ByPassportInviteCode orders the results by the passport_invite_code field.
 func ByPassportInviteCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPassportInviteCode, opts...).ToFunc()
+}
+
+// ByClientSdkURL orders the results by the client_sdk_url field.
+func ByClientSdkURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientSdkURL, opts...).ToFunc()
+}
+
+// ByClientGameURL orders the results by the client_game_url field.
+func ByClientGameURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientGameURL, opts...).ToFunc()
+}
+
+// ByClientResourceURL orders the results by the client_resource_url field.
+func ByClientResourceURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientResourceURL, opts...).ToFunc()
+}
+
+// ByClientAppID orders the results by the client_app_id field.
+func ByClientAppID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientAppID, opts...).ToFunc()
+}
+
+// ByClientAppSecret orders the results by the client_app_secret field.
+func ByClientAppSecret(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientAppSecret, opts...).ToFunc()
 }
 
 // ByRemark orders the results by the remark field.

@@ -46,8 +46,6 @@ import (
 	"momoko/internal/data/ent/gen/passportinvite"
 	"momoko/internal/data/ent/gen/passportloginlog"
 	"momoko/internal/data/ent/gen/passportmessage"
-	"momoko/internal/data/ent/gen/passportoidcclient"
-	"momoko/internal/data/ent/gen/passportoidcgrant"
 	"momoko/internal/data/ent/gen/passportsession"
 	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/internal/data/ent/gen/portforward"
@@ -147,10 +145,6 @@ type Client struct {
 	PassportLoginLog *PassportLoginLogClient
 	// PassportMessage is the client for interacting with the PassportMessage builders.
 	PassportMessage *PassportMessageClient
-	// PassportOidcClient is the client for interacting with the PassportOidcClient builders.
-	PassportOidcClient *PassportOidcClientClient
-	// PassportOidcGrant is the client for interacting with the PassportOidcGrant builders.
-	PassportOidcGrant *PassportOidcGrantClient
 	// PassportSession is the client for interacting with the PassportSession builders.
 	PassportSession *PassportSessionClient
 	// PassportUser is the client for interacting with the PassportUser builders.
@@ -227,8 +221,6 @@ func (c *Client) init() {
 	c.PassportInvite = NewPassportInviteClient(c.config)
 	c.PassportLoginLog = NewPassportLoginLogClient(c.config)
 	c.PassportMessage = NewPassportMessageClient(c.config)
-	c.PassportOidcClient = NewPassportOidcClientClient(c.config)
-	c.PassportOidcGrant = NewPassportOidcGrantClient(c.config)
 	c.PassportSession = NewPassportSessionClient(c.config)
 	c.PassportUser = NewPassportUserClient(c.config)
 	c.PortForward = NewPortForwardClient(c.config)
@@ -371,8 +363,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PassportInvite:     NewPassportInviteClient(cfg),
 		PassportLoginLog:   NewPassportLoginLogClient(cfg),
 		PassportMessage:    NewPassportMessageClient(cfg),
-		PassportOidcClient: NewPassportOidcClientClient(cfg),
-		PassportOidcGrant:  NewPassportOidcGrantClient(cfg),
 		PassportSession:    NewPassportSessionClient(cfg),
 		PassportUser:       NewPassportUserClient(cfg),
 		PortForward:        NewPortForwardClient(cfg),
@@ -442,8 +432,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PassportInvite:     NewPassportInviteClient(cfg),
 		PassportLoginLog:   NewPassportLoginLogClient(cfg),
 		PassportMessage:    NewPassportMessageClient(cfg),
-		PassportOidcClient: NewPassportOidcClientClient(cfg),
-		PassportOidcGrant:  NewPassportOidcGrantClient(cfg),
 		PassportSession:    NewPassportSessionClient(cfg),
 		PassportUser:       NewPassportUserClient(cfg),
 		PortForward:        NewPortForwardClient(cfg),
@@ -495,11 +483,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.GiftCode, c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
 		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
 		c.Menu, c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog,
-		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportOidcClient,
-		c.PassportOidcGrant, c.PassportSession, c.PassportUser, c.PortForward,
-		c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.ThemeAsset, c.User, c.UserAPIKey, c.UserMessage,
-		c.UserTheme,
+		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportSession,
+		c.PassportUser, c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration,
+		c.SSHHost, c.Session, c.SystemConfig, c.Task, c.ThemeAsset, c.User,
+		c.UserAPIKey, c.UserMessage, c.UserTheme,
 	} {
 		n.Use(hooks...)
 	}
@@ -516,11 +503,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.GiftCode, c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
 		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
 		c.Menu, c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog,
-		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportOidcClient,
-		c.PassportOidcGrant, c.PassportSession, c.PassportUser, c.PortForward,
-		c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.ThemeAsset, c.User, c.UserAPIKey, c.UserMessage,
-		c.UserTheme,
+		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportSession,
+		c.PassportUser, c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration,
+		c.SSHHost, c.Session, c.SystemConfig, c.Task, c.ThemeAsset, c.User,
+		c.UserAPIKey, c.UserMessage, c.UserTheme,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -599,10 +585,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PassportLoginLog.mutate(ctx, m)
 	case *PassportMessageMutation:
 		return c.PassportMessage.mutate(ctx, m)
-	case *PassportOidcClientMutation:
-		return c.PassportOidcClient.mutate(ctx, m)
-	case *PassportOidcGrantMutation:
-		return c.PassportOidcGrant.mutate(ctx, m)
 	case *PassportSessionMutation:
 		return c.PassportSession.mutate(ctx, m)
 	case *PassportUserMutation:
@@ -5501,272 +5483,6 @@ func (c *PassportMessageClient) mutate(ctx context.Context, m *PassportMessageMu
 	}
 }
 
-// PassportOidcClientClient is a client for the PassportOidcClient schema.
-type PassportOidcClientClient struct {
-	config
-}
-
-// NewPassportOidcClientClient returns a client for the PassportOidcClient from the given config.
-func NewPassportOidcClientClient(c config) *PassportOidcClientClient {
-	return &PassportOidcClientClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `passportoidcclient.Hooks(f(g(h())))`.
-func (c *PassportOidcClientClient) Use(hooks ...Hook) {
-	c.hooks.PassportOidcClient = append(c.hooks.PassportOidcClient, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `passportoidcclient.Intercept(f(g(h())))`.
-func (c *PassportOidcClientClient) Intercept(interceptors ...Interceptor) {
-	c.inters.PassportOidcClient = append(c.inters.PassportOidcClient, interceptors...)
-}
-
-// Create returns a builder for creating a PassportOidcClient entity.
-func (c *PassportOidcClientClient) Create() *PassportOidcClientCreate {
-	mutation := newPassportOidcClientMutation(c.config, OpCreate)
-	return &PassportOidcClientCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of PassportOidcClient entities.
-func (c *PassportOidcClientClient) CreateBulk(builders ...*PassportOidcClientCreate) *PassportOidcClientCreateBulk {
-	return &PassportOidcClientCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *PassportOidcClientClient) MapCreateBulk(slice any, setFunc func(*PassportOidcClientCreate, int)) *PassportOidcClientCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &PassportOidcClientCreateBulk{err: fmt.Errorf("calling to PassportOidcClientClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*PassportOidcClientCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &PassportOidcClientCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for PassportOidcClient.
-func (c *PassportOidcClientClient) Update() *PassportOidcClientUpdate {
-	mutation := newPassportOidcClientMutation(c.config, OpUpdate)
-	return &PassportOidcClientUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PassportOidcClientClient) UpdateOne(_m *PassportOidcClient) *PassportOidcClientUpdateOne {
-	mutation := newPassportOidcClientMutation(c.config, OpUpdateOne, withPassportOidcClient(_m))
-	return &PassportOidcClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *PassportOidcClientClient) UpdateOneID(id string) *PassportOidcClientUpdateOne {
-	mutation := newPassportOidcClientMutation(c.config, OpUpdateOne, withPassportOidcClientID(id))
-	return &PassportOidcClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for PassportOidcClient.
-func (c *PassportOidcClientClient) Delete() *PassportOidcClientDelete {
-	mutation := newPassportOidcClientMutation(c.config, OpDelete)
-	return &PassportOidcClientDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *PassportOidcClientClient) DeleteOne(_m *PassportOidcClient) *PassportOidcClientDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *PassportOidcClientClient) DeleteOneID(id string) *PassportOidcClientDeleteOne {
-	builder := c.Delete().Where(passportoidcclient.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &PassportOidcClientDeleteOne{builder}
-}
-
-// Query returns a query builder for PassportOidcClient.
-func (c *PassportOidcClientClient) Query() *PassportOidcClientQuery {
-	return &PassportOidcClientQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypePassportOidcClient},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a PassportOidcClient entity by its id.
-func (c *PassportOidcClientClient) Get(ctx context.Context, id string) (*PassportOidcClient, error) {
-	return c.Query().Where(passportoidcclient.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *PassportOidcClientClient) GetX(ctx context.Context, id string) *PassportOidcClient {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *PassportOidcClientClient) Hooks() []Hook {
-	return c.hooks.PassportOidcClient
-}
-
-// Interceptors returns the client interceptors.
-func (c *PassportOidcClientClient) Interceptors() []Interceptor {
-	return c.inters.PassportOidcClient
-}
-
-func (c *PassportOidcClientClient) mutate(ctx context.Context, m *PassportOidcClientMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&PassportOidcClientCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&PassportOidcClientUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&PassportOidcClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&PassportOidcClientDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown PassportOidcClient mutation op: %q", m.Op())
-	}
-}
-
-// PassportOidcGrantClient is a client for the PassportOidcGrant schema.
-type PassportOidcGrantClient struct {
-	config
-}
-
-// NewPassportOidcGrantClient returns a client for the PassportOidcGrant from the given config.
-func NewPassportOidcGrantClient(c config) *PassportOidcGrantClient {
-	return &PassportOidcGrantClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `passportoidcgrant.Hooks(f(g(h())))`.
-func (c *PassportOidcGrantClient) Use(hooks ...Hook) {
-	c.hooks.PassportOidcGrant = append(c.hooks.PassportOidcGrant, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `passportoidcgrant.Intercept(f(g(h())))`.
-func (c *PassportOidcGrantClient) Intercept(interceptors ...Interceptor) {
-	c.inters.PassportOidcGrant = append(c.inters.PassportOidcGrant, interceptors...)
-}
-
-// Create returns a builder for creating a PassportOidcGrant entity.
-func (c *PassportOidcGrantClient) Create() *PassportOidcGrantCreate {
-	mutation := newPassportOidcGrantMutation(c.config, OpCreate)
-	return &PassportOidcGrantCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of PassportOidcGrant entities.
-func (c *PassportOidcGrantClient) CreateBulk(builders ...*PassportOidcGrantCreate) *PassportOidcGrantCreateBulk {
-	return &PassportOidcGrantCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *PassportOidcGrantClient) MapCreateBulk(slice any, setFunc func(*PassportOidcGrantCreate, int)) *PassportOidcGrantCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &PassportOidcGrantCreateBulk{err: fmt.Errorf("calling to PassportOidcGrantClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*PassportOidcGrantCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &PassportOidcGrantCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for PassportOidcGrant.
-func (c *PassportOidcGrantClient) Update() *PassportOidcGrantUpdate {
-	mutation := newPassportOidcGrantMutation(c.config, OpUpdate)
-	return &PassportOidcGrantUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PassportOidcGrantClient) UpdateOne(_m *PassportOidcGrant) *PassportOidcGrantUpdateOne {
-	mutation := newPassportOidcGrantMutation(c.config, OpUpdateOne, withPassportOidcGrant(_m))
-	return &PassportOidcGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *PassportOidcGrantClient) UpdateOneID(id string) *PassportOidcGrantUpdateOne {
-	mutation := newPassportOidcGrantMutation(c.config, OpUpdateOne, withPassportOidcGrantID(id))
-	return &PassportOidcGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for PassportOidcGrant.
-func (c *PassportOidcGrantClient) Delete() *PassportOidcGrantDelete {
-	mutation := newPassportOidcGrantMutation(c.config, OpDelete)
-	return &PassportOidcGrantDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *PassportOidcGrantClient) DeleteOne(_m *PassportOidcGrant) *PassportOidcGrantDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *PassportOidcGrantClient) DeleteOneID(id string) *PassportOidcGrantDeleteOne {
-	builder := c.Delete().Where(passportoidcgrant.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &PassportOidcGrantDeleteOne{builder}
-}
-
-// Query returns a query builder for PassportOidcGrant.
-func (c *PassportOidcGrantClient) Query() *PassportOidcGrantQuery {
-	return &PassportOidcGrantQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypePassportOidcGrant},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a PassportOidcGrant entity by its id.
-func (c *PassportOidcGrantClient) Get(ctx context.Context, id string) (*PassportOidcGrant, error) {
-	return c.Query().Where(passportoidcgrant.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *PassportOidcGrantClient) GetX(ctx context.Context, id string) *PassportOidcGrant {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *PassportOidcGrantClient) Hooks() []Hook {
-	return c.hooks.PassportOidcGrant
-}
-
-// Interceptors returns the client interceptors.
-func (c *PassportOidcGrantClient) Interceptors() []Interceptor {
-	return c.inters.PassportOidcGrant
-}
-
-func (c *PassportOidcGrantClient) mutate(ctx context.Context, m *PassportOidcGrantMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&PassportOidcGrantCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&PassportOidcGrantUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&PassportOidcGrantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&PassportOidcGrantDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown PassportOidcGrant mutation op: %q", m.Op())
-	}
-}
-
 // PassportSessionClient is a client for the PassportSession schema.
 type PassportSessionClient struct {
 	config
@@ -7931,10 +7647,10 @@ type (
 		GameServerBackup, GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem,
 		GmExecution, GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite,
 		Instance, InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
-		PassportInvite, PassportLoginLog, PassportMessage, PassportOidcClient,
-		PassportOidcGrant, PassportSession, PassportUser, PortForward, PortForwardStat,
-		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, ThemeAsset, User,
-		UserAPIKey, UserMessage, UserTheme []ent.Hook
+		PassportInvite, PassportLoginLog, PassportMessage, PassportSession,
+		PassportUser, PortForward, PortForwardStat, Role, SQLMigration, SSHHost,
+		Session, SystemConfig, Task, ThemeAsset, User, UserAPIKey, UserMessage,
+		UserTheme []ent.Hook
 	}
 	inters struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
@@ -7943,10 +7659,10 @@ type (
 		GameServerBackup, GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem,
 		GmExecution, GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite,
 		Instance, InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
-		PassportInvite, PassportLoginLog, PassportMessage, PassportOidcClient,
-		PassportOidcGrant, PassportSession, PassportUser, PortForward, PortForwardStat,
-		Role, SQLMigration, SSHHost, Session, SystemConfig, Task, ThemeAsset, User,
-		UserAPIKey, UserMessage, UserTheme []ent.Interceptor
+		PassportInvite, PassportLoginLog, PassportMessage, PassportSession,
+		PassportUser, PortForward, PortForwardStat, Role, SQLMigration, SSHHost,
+		Session, SystemConfig, Task, ThemeAsset, User, UserAPIKey, UserMessage,
+		UserTheme []ent.Interceptor
 	}
 )
 

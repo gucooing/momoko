@@ -2,8 +2,12 @@ package biz
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base32"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"net/url"
 	"sort"
 	"strings"
 	"sync"
@@ -30,6 +34,8 @@ var (
 	ErrGameServerInvalid    = response.BadRequest(400, "游戏服务器参数无效")
 	ErrGameAdapterNotFound  = response.BadRequest(400, "不支持的游戏")
 	ErrGameAdapterModeLimit = response.BadRequest(400, "这款游戏不支持该接入方式")
+	ErrGameClientLaunchOff  = response.BadRequest(400, "这款游戏不支持用通行证启动客户端")
+	ErrGameClientAppMissing = response.BadRequest(400, "还没有生成客户端应用凭据")
 )
 
 // GameMGPError 把 MGP 错误映射为接口错误：连接不上为 502，其余沿用 MGP 的 HTTP 状态。
@@ -89,8 +95,12 @@ type GameServerRepo interface {
 	List(ctx context.Context) ([]*gen.GameServer, error)
 	// ListByKeyID MGP key_id 为 keyID 的服务器。
 	ListByKeyID(ctx context.Context, keyID string) ([]*gen.GameServer, error)
+	// GetByClientAppID 客户端应用 ID 为 appID 的服务器。
+	GetByClientAppID(ctx context.Context, appID string) (*gen.GameServer, error)
+	// SetClientApp 写入服务器的客户端应用 ID 与加密后的应用密钥（应用 ID 与其他服务器重复时返回唯一约束错误）。
+	SetClientApp(ctx context.Context, id, appID, secret string) (*gen.GameServer, error)
 	Create(ctx context.Context, s *gen.GameServer) (*gen.GameServer, error)
-	// Update 写回可修改字段（名称、标签、封面、备注、接入方式、MGP 地址与密钥、托管信息、通行证可见性、时区）。
+	// Update 写回可修改字段（名称、标签、封面、备注、接入方式、MGP 地址与密钥、托管信息、通行证可见性、客户端地址、时区）。
 	Update(ctx context.Context, s *gen.GameServer) (*gen.GameServer, error)
 	// Delete 删除服务器及 Momoko 侧的关联数据（绑定、自助设置、配置草稿、邮件、兑换码、最近查看、客户端日志）；GM 记录保留。
 	Delete(ctx context.Context, id string) error
@@ -222,6 +232,106 @@ func (uc *GameServerUsecase) ByKeyID(ctx context.Context, keyID string) ([]*gen.
 		}
 	}
 	return out, nil
+}
+
+// ByClientAppID 读取客户端应用 ID 为 appID 的服务器（托管的按服务端配置文件刷新接入信息）。
+func (uc *GameServerUsecase) ByClientAppID(ctx context.Context, appID string) (*gen.GameServer, error) {
+	if appID == "" {
+		return nil, ErrGameServerNotFound
+	}
+	s, err := uc.repo.GetByClientAppID(ctx, appID)
+	if gen.IsNotFound(err) {
+		return nil, ErrGameServerNotFound
+	}
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	uc.syncHosted(ctx, s)
+	return s, nil
+}
+
+// newClientAppID 生成客户端应用 ID：app_ 加 10 字节随机数的 base32（RFC 4648 字母表转小写，无填充，16 个字符）。
+func newClientAppID() (string, error) {
+	buf := make([]byte, 10)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return "app_" + strings.ToLower(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(buf)), nil
+}
+
+// derefString 可空字符串的值（nil 为空串）。
+func derefString(v *string) string {
+	if v == nil {
+		return ""
+	}
+	return *v
+}
+
+// newClientAppSecret 生成客户端应用密钥：32 字节随机数的无填充 base64url（43 个字符）。
+func newClientAppSecret() (string, error) {
+	buf := make([]byte, 32)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+// clientAppServer 读取支持客户端启动的服务器。
+func (uc *GameServerUsecase) clientAppServer(ctx context.Context, id string) (*gen.GameServer, error) {
+	s, err := uc.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if a, ok := GameAdapterByID(s.Game); !ok || !a.ClientLaunch {
+		return nil, ErrGameClientLaunchOff
+	}
+	return s, nil
+}
+
+// prepareClientApp 生成新的客户端应用凭据：secretOnly 时沿用当前应用 ID（还没有生成时报错），
+// 否则换一个没被其他服务器占用的应用 ID。返回应用 ID 与应用密钥明文。
+func (uc *GameServerUsecase) prepareClientApp(ctx context.Context, s *gen.GameServer, secretOnly bool) (string, string, error) {
+	appID := ""
+	if secretOnly {
+		if appID = derefString(s.ClientAppID); appID == "" {
+			return "", "", ErrGameClientAppMissing
+		}
+	}
+	for attempt := 0; appID == ""; attempt++ {
+		if attempt == 3 {
+			return "", "", ErrSystem(errors.New("client app id collides with existing servers"))
+		}
+		next, err := newClientAppID()
+		if err != nil {
+			return "", "", ErrSystem(err)
+		}
+		if _, err := uc.repo.GetByClientAppID(ctx, next); gen.IsNotFound(err) {
+			appID = next
+		} else if err != nil {
+			return "", "", ErrSystem(err)
+		}
+	}
+	secret, err := newClientAppSecret()
+	if err != nil {
+		return "", "", ErrSystem(err)
+	}
+	return appID, secret, nil
+}
+
+// saveClientApp 保存客户端应用凭据：应用密钥与 MGP 密钥一样加密后落库；旧凭据随之失效。
+func (uc *GameServerUsecase) saveClientApp(ctx context.Context, s *gen.GameServer, appID, secret string) (*gen.GameServer, error) {
+	enc, err := EncryptGameSecret(secret)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	updated, err := uc.repo.SetClientApp(ctx, s.ID, appID, enc)
+	if gen.IsNotFound(err) {
+		return nil, ErrGameServerNotFound
+	}
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return updated, nil
 }
 
 // Repo 暴露持久化（托管、更新与备份等同属游戏服务器管理的用例使用）。
@@ -627,6 +737,10 @@ func (uc *GameServerUsecase) Info(ctx context.Context, s *gen.GameServer) *v1.Ga
 		InstallDir:         s.InstallDir,
 		PassportVisibility: string(s.PassportVisibility),
 		PassportInviteCode: s.PassportInviteCode,
+		ClientSdkUrl:       s.ClientSdkURL,
+		ClientGameUrl:      s.ClientGameURL,
+		ClientResourceUrl:  s.ClientResourceURL,
+		ClientAppId:        derefString(s.ClientAppID),
 		Timezone:           s.Timezone,
 		Remark:             s.Remark,
 		Status:             JSONValue(json.RawMessage(s.Status)),
@@ -898,6 +1012,15 @@ func (uc *GameServerUsecase) UpdateServer(ctx context.Context, req *v1.UpdateGam
 		}
 	}
 	s.Timezone = req.Timezone
+	if s.ClientSdkURL, err = clientOrigin("SDK", req.ClientSdkUrl); err != nil {
+		return nil, err
+	}
+	if s.ClientGameURL, err = clientOrigin("游戏服务端", req.ClientGameUrl); err != nil {
+		return nil, err
+	}
+	if s.ClientResourceURL, err = clientOrigin("资源服务器", req.ClientResourceUrl); err != nil {
+		return nil, err
+	}
 	updated, err := uc.repo.Update(ctx, s)
 	if err != nil {
 		return nil, ErrSystem(err)
@@ -908,6 +1031,33 @@ func (uc *GameServerUsecase) UpdateServer(ctx context.Context, req *v1.UpdateGam
 		_, _ = uc.probe(ctx, updated)
 	}
 	return updated, nil
+}
+
+// clientOrigin 校验并归一化游戏客户端连接用的地址：空串表示不填写；否则必须是 http(s) origin
+// （不带用户信息、路径、查询与片段），scheme 与主机名转为小写，结果为 scheme://host[:port]。
+func clientOrigin(label, raw string) (string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", nil
+	}
+	invalid := response.BadRequest(400, label+" 地址必须是不带路径的 http(s) 地址，例如 https://example.com:8443")
+	u, err := url.Parse(raw)
+	if err != nil || u.Opaque != "" || u.User != nil || u.Hostname() == "" ||
+		(u.Path != "" && u.Path != "/") || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
+		return "", invalid
+	}
+	scheme := strings.ToLower(u.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return "", invalid
+	}
+	host := strings.ToLower(u.Hostname())
+	if strings.Contains(host, ":") {
+		host = "[" + host + "]"
+	}
+	if port := u.Port(); port != "" {
+		host += ":" + port
+	}
+	return scheme + "://" + host, nil
 }
 
 // DeleteServer 删除服务器的接入记录与 Momoko 侧数据。

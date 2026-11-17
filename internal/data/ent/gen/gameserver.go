@@ -74,6 +74,16 @@ type GameServer struct {
 	PassportVisibility gameserver.PassportVisibility `json:"passport_visibility,omitempty"`
 	// 通行证绑定邀请码（visibility=invite 时）
 	PassportInviteCode string `json:"passport_invite_code,omitempty"`
+	// 游戏客户端连接的 SDK 地址（HTTP(S) origin，空为未填写）
+	ClientSdkURL string `json:"client_sdk_url,omitempty"`
+	// 游戏客户端连接的游戏服务端地址（HTTP(S) origin，空为未填写）
+	ClientGameURL string `json:"client_game_url,omitempty"`
+	// 游戏客户端连接的资源服务器地址（HTTP(S) origin，空为未填写）
+	ClientResourceURL string `json:"client_resource_url,omitempty"`
+	// 客户端应用 ID（app_ + 16 个小写 base32 字符，Momoko 生成；空为还没有生成）
+	ClientAppID *string `json:"client_app_id,omitempty"`
+	// 客户端应用密钥（32 字节随机数的 base64url，secretbox 加密；签发启动票据用）
+	ClientAppSecret string `json:"-"`
 	// 备注
 	Remark       string `json:"remark,omitempty"`
 	selectValues sql.SelectValues
@@ -90,7 +100,7 @@ func (*GameServer) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case gameserver.FieldProbeLatencyMs:
 			values[i] = new(sql.NullInt64)
-		case gameserver.FieldID, gameserver.FieldGame, gameserver.FieldName, gameserver.FieldMode, gameserver.FieldNodeID, gameserver.FieldInstallDir, gameserver.FieldOptions, gameserver.FieldCover, gameserver.FieldMgpEndpoint, gameserver.FieldKeyID, gameserver.FieldSecret, gameserver.FieldManifest, gameserver.FieldStatus, gameserver.FieldProbeError, gameserver.FieldTimezone, gameserver.FieldPassportVisibility, gameserver.FieldPassportInviteCode, gameserver.FieldRemark:
+		case gameserver.FieldID, gameserver.FieldGame, gameserver.FieldName, gameserver.FieldMode, gameserver.FieldNodeID, gameserver.FieldInstallDir, gameserver.FieldOptions, gameserver.FieldCover, gameserver.FieldMgpEndpoint, gameserver.FieldKeyID, gameserver.FieldSecret, gameserver.FieldManifest, gameserver.FieldStatus, gameserver.FieldProbeError, gameserver.FieldTimezone, gameserver.FieldPassportVisibility, gameserver.FieldPassportInviteCode, gameserver.FieldClientSdkURL, gameserver.FieldClientGameURL, gameserver.FieldClientResourceURL, gameserver.FieldClientAppID, gameserver.FieldClientAppSecret, gameserver.FieldRemark:
 			values[i] = new(sql.NullString)
 		case gameserver.FieldCreateTime, gameserver.FieldUpdateTime, gameserver.FieldKeyRotatedAt, gameserver.FieldManifestAt, gameserver.FieldStatusAt, gameserver.FieldProbeAt, gameserver.FieldLastOnlineAt:
 			values[i] = new(sql.NullTime)
@@ -286,6 +296,37 @@ func (_m *GameServer) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PassportInviteCode = value.String
 			}
+		case gameserver.FieldClientSdkURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_sdk_url", values[i])
+			} else if value.Valid {
+				_m.ClientSdkURL = value.String
+			}
+		case gameserver.FieldClientGameURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_game_url", values[i])
+			} else if value.Valid {
+				_m.ClientGameURL = value.String
+			}
+		case gameserver.FieldClientResourceURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_resource_url", values[i])
+			} else if value.Valid {
+				_m.ClientResourceURL = value.String
+			}
+		case gameserver.FieldClientAppID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_app_id", values[i])
+			} else if value.Valid {
+				_m.ClientAppID = new(string)
+				*_m.ClientAppID = value.String
+			}
+		case gameserver.FieldClientAppSecret:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_app_secret", values[i])
+			} else if value.Valid {
+				_m.ClientAppSecret = value.String
+			}
 		case gameserver.FieldRemark:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field remark", values[i])
@@ -417,6 +458,22 @@ func (_m *GameServer) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("passport_invite_code=")
 	builder.WriteString(_m.PassportInviteCode)
+	builder.WriteString(", ")
+	builder.WriteString("client_sdk_url=")
+	builder.WriteString(_m.ClientSdkURL)
+	builder.WriteString(", ")
+	builder.WriteString("client_game_url=")
+	builder.WriteString(_m.ClientGameURL)
+	builder.WriteString(", ")
+	builder.WriteString("client_resource_url=")
+	builder.WriteString(_m.ClientResourceURL)
+	builder.WriteString(", ")
+	if v := _m.ClientAppID; v != nil {
+		builder.WriteString("client_app_id=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("client_app_secret=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
 	builder.WriteString(_m.Remark)

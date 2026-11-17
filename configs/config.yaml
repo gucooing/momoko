@@ -10,7 +10,7 @@ passport:
   enabled: true
   addr: 0.0.0.0:22634
   timeout: 15s
-  # 对外地址：OIDC issuer 与邮件链接使用；留空按请求的 Host 推断
+  # 对外地址：玩家与游戏客户端访问通行证用的地址（如 https://passport.example.com），在后台的通行证设置里展示
   public_url: ""
 data:
   database:

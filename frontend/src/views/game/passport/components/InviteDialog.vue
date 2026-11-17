@@ -40,7 +40,7 @@
 
       <div class="pinv__created" v-if="justCreated">
         <span class="m-mono pinv__code">{{ justCreated }}</span>
-        <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('passportAdmin.oidc.copy')" :box="40" :size="18" @click="copy(justCreated)" />
+        <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('passportAdmin.common.copy')" :box="40" :size="18" @click="copy(justCreated)" />
       </div>
 
       <div class="pinv__list-head">
@@ -59,7 +59,7 @@
             <span class="pinv__item-sub">{{ inviteLine(inv) }}</span>
             <span v-if="inv.note" class="pinv__item-sub">{{ inv.note }}</span>
           </span>
-          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('passportAdmin.oidc.copy')" :box="40" :size="18" @click="copy(inv.code)" />
+          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('passportAdmin.common.copy')" :box="40" :size="18" @click="copy(inv.code)" />
           <AppIconButton
             v-if="inv.state === 'active'"
             icon="HOutline:NoSymbolIcon"
@@ -173,8 +173,8 @@ const revoke = (inv: PassportInvite) => {
 }
 
 const copy = async (text: string) => {
-  if (await copyText(text)) feedback.success(t('passportAdmin.oidc.copied'))
-  else feedback.error(t('passportAdmin.oidc.copyFailed'))
+  if (await copyText(text)) feedback.success(t('passportAdmin.common.copied'))
+  else feedback.error(t('passportAdmin.common.copyFailed'))
 }
 
 const stateVariant = (state: string) => {

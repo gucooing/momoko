@@ -7,9 +7,11 @@ falls back to the server's name otherwise. Run this offline after a game / trans
 commit the output.
 
 Sources:
-  --localization  the 学マス translation package (masterTrans/*.json + localization.json), Simplified Chinese
-  --master        the server's master data (server/res/Excel/*.json): English character names
-                  (alphabetFirstName / alphabetLastName) and IdolCardSkin -> IdolCard for unnamed skins
+  --localization  the 学マス translation package (masterTrans/*.json, localization.json and the generic
+                  text tables), Simplified Chinese
+  --master        the server's master data (server/res/Excel/*.json): original names, English character
+                  names (alphabetFirstName / alphabetLastName), IdolCardSkin -> IdolCard, catalog fields
+  --data          the server's hand-written data (server/data): seminar groups and exams, tower layers
 
 Output (one small file per kind and language, loaded lazily by src/games/names.ts):
   src/games/gakumas/names/<lang>/<kind>.json     {"<id>": "<name>"}; kinds match the MGP catalog kinds
@@ -25,14 +27,25 @@ Output (one small file per kind and language, loaded lazily by src/games/names.t
 Only real translations are written; there is no English source for items, cards, costumes or music,
 so in English those show the original names.
 
+Catalogs (src/games/gakumas/catalogs/<kind>.json, one array per catalog kind): the entries the pickers,
+search and filters list, with the fields they filter and show (resourceType, rarity, type, characterId,
+parentId, assetId, characterAsset, levels; empty fields omitted). Names are not repeated there: the
+frontend takes them from the name tables. The entries follow the game server's data: items, idol card
+skins (rarity, plan type and character of their idol card), support cards, playable characters,
+costumes, hairstyles, music, produce groups and produces, skill cards (not upgraded), P items, memory
+abilities (levels), seminar groups and exams (parentId = group, in group order), towers (type = layer
+count) and the four currencies. Gashas are GM-edited configuration and are not exported.
+
 Usage (Windows example):
   python frontend/scripts/games/gakumas/export-names.py ^
       --localization C:/Users/gucooing/Desktop/gakumas/localization ^
-      --master       C:/Users/gucooing/Desktop/gakumas/server/res/Excel
+      --master       C:/Users/gucooing/Desktop/gakumas/server/res/Excel ^
+      --data         C:/Users/gucooing/Desktop/gakumas/server/data
 """
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import re
 from pathlib import Path
@@ -99,11 +112,107 @@ def by_id(path: Path, field: str) -> dict[str, str]:
     return out
 
 
+def generic_texts(localization: Path) -> dict[str, str]:
+    """原文 -> 译文：generic.json 与 genericTrans/**/*.json（不含数字模板 .fmt.json 与分段条目），后读的覆盖先读的。"""
+    out: dict[str, str] = {}
+    files = [localization / "generic.json"] + sorted(
+        p for p in (localization / "genericTrans").rglob("*.json") if not p.name.endswith(".fmt.json")
+    )
+    for path in files:
+        if not path.is_file():
+            continue
+        d = json.loads(path.read_text(encoding="utf-8-sig"))
+        if isinstance(d, dict):
+            out.update({k: v for k, v in d.items() if isinstance(v, str) and v and not k.startswith("[__split__]")})
+    return out
+
+
+# 货币：MGP 的四种货币与其奖励资源类型（ResourceType）；原文名与游戏服务端相同
+CURRENCY_NAMES = {"jewelFree": "ジュエル（無償）", "jewelPaid": "ジュエル（有償）", "actionPoint": "AP", "exp": "プロデューサーEXP"}
+CURRENCY_TYPES = {"jewelFree": 1100, "jewelPaid": 1101, "actionPoint": 8, "exp": 9}
+# 可作为奖励的目录的资源类型（ResourceType）
+RESOURCE = {"item": 2, "supportCard": 4, "idolCardSkin": 5, "music": 12, "costumeHead": 13, "costume": 14}
+
+
+def entry(id: str, **fields) -> dict:
+    """目录条目：ID 加非空字段。"""
+    return {"id": id, **{k: v for k, v in fields.items() if v not in (None, "", 0, False, [])}}
+
+
+def by_id_list(entries: list[dict]) -> list[dict]:
+    seen: dict[str, dict] = {}
+    for e in entries:
+        seen.setdefault(e["id"], e)
+    return sorted(seen.values(), key=lambda e: e["id"])
+
+
+def write_catalogs(folder: Path, m: Path, seminar_groups: list[dict], tower_layers: list[dict]) -> None:
+    """目录条目（名称取名称表），每类一个文件。"""
+    cards = {r["id"]: r for r in rows(m / "IdolCard.json")}
+    card = lambda r: cards.get(r.get("idolCardId") or "", {})
+    groups = {pid: r["id"] for r in rows(m / "ProduceGroup.json") for pid in r.get("produceIds") or []}
+    abilities: dict[str, dict] = {}
+    for r in rows(m / "MemoryAbility.json"):
+        v = abilities.setdefault(r["id"], {"rarity": r.get("rarity") or 0, "levels": set()})
+        v["levels"].add(r.get("level") or 0)
+    layers = collections.Counter(l["towerId"] for l in tower_layers)
+    catalogs = {
+        "currency": [entry(k, resourceType=v) for k, v in CURRENCY_TYPES.items()],
+        "item": by_id_list([
+            entry(r["id"], resourceType=RESOURCE["item"], rarity=r.get("rarity"), type=r.get("type"),
+                  characterId=r.get("characterId"), assetId=r.get("assetId"))
+            for r in rows(m / "Item.json")
+        ]),
+        "idolCardSkin": by_id_list([
+            entry(r["id"], resourceType=RESOURCE["idolCardSkin"], rarity=card(r).get("rarity"), type=card(r).get("planType"),
+                  characterId=card(r).get("characterId"), parentId=r.get("idolCardId"), assetId=r.get("assetId"))
+            for r in rows(m / "IdolCardSkin.json")
+        ]),
+        "supportCard": by_id_list([
+            entry(r["id"], resourceType=RESOURCE["supportCard"], rarity=r.get("rarity"), type=r.get("type"), assetId=r.get("assetId"))
+            for r in rows(m / "SupportCard.json")
+        ]),
+        "character": by_id_list([entry(r["id"]) for r in rows(m / "Character.json") if r.get("isPlayable")]),
+        "costume": by_id_list([
+            entry(r["id"], resourceType=RESOURCE["costume"], characterId=r.get("characterId")) for r in rows(m / "Costume.json")
+        ]),
+        "costumeHead": by_id_list([
+            entry(r["id"], resourceType=RESOURCE["costumeHead"], characterId=r.get("characterId")) for r in rows(m / "CostumeHead.json")
+        ]),
+        "music": by_id_list([
+            entry(r["id"], resourceType=RESOURCE["music"], assetId=r.get("jacketAssetId")) for r in rows(m / "Music.json")
+        ]),
+        "produceGroup": by_id_list([entry(r["id"], type=r.get("type"), assetId=r.get("assetId")) for r in rows(m / "ProduceGroup.json")]),
+        "produce": by_id_list([entry(r["id"], parentId=groups.get(r["id"]), assetId=r.get("assetId")) for r in rows(m / "Produce.json")]),
+        "produceCard": by_id_list([
+            entry(r["id"], rarity=r.get("rarity"), type=r.get("planType"), assetId=r.get("assetId"), characterAsset=r.get("isCharacterAsset"))
+            for r in rows(m / "ProduceCard.json")
+            if not r.get("upgradeCount")
+        ]),
+        "produceItem": by_id_list([entry(r["id"], rarity=r.get("rarity"), assetId=r.get("assetId")) for r in rows(m / "ProduceItem.json")]),
+        "memoryAbility": [
+            entry(i, rarity=v["rarity"], levels=sorted(v["levels"])) for i, v in sorted(abilities.items())
+        ],
+        "seminar": [
+            e for g in seminar_groups for e in (entry(g["id"]), *(entry(x["id"], parentId=g["id"]) for x in g.get("exams", [])))
+        ],
+        "tower": [entry(t, type=n) for t, n in sorted(layers.items())],
+    }
+    folder.mkdir(parents=True, exist_ok=True)
+    for old in folder.glob("*.json"):
+        old.unlink()
+    for kind, entries in catalogs.items():
+        (folder / f"{kind}.json").write_text(json.dumps(entries, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print("catalogs", {k: len(v) for k, v in catalogs.items()})
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--localization", type=Path, required=True)
     ap.add_argument("--master", type=Path, required=True)
+    ap.add_argument("--data", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=FRONTEND / "src/games/gakumas/names")
+    ap.add_argument("--catalogs", type=Path, default=FRONTEND / "src/games/gakumas/catalogs")
     a = ap.parse_args()
 
     tr = a.localization / "masterTrans"
@@ -190,6 +299,19 @@ def main() -> int:
     ja["produceItem"] = by_id(m / "ProduceItem.json", "name")
     ja["produceItemText"] = item_texts(m / "ProduceItem.json")
     ja["memoryAbilityText"] = ability_texts(m / "MemoryAbility.json", m / "ProduceSkill.json")
+
+    # 研修：研修组与考试的名称在服务端手写数据里，译名取汉化包的 generic 文本
+    texts = generic_texts(a.localization)
+    groups = sorted(json.loads((a.data / "Seminar.json").read_text(encoding="utf-8"))["groups"], key=lambda g: g.get("order") or 0)
+    ja["seminar"], zh["seminar"] = {}, {}
+    for g in groups:
+        for v in (g, *g.get("exams", [])):
+            ja["seminar"][v["id"]] = v["name"]
+            if texts.get(v["name"]):
+                zh["seminar"][v["id"]] = texts[v["name"]]
+    ja["currency"] = dict(CURRENCY_NAMES)
+
+    write_catalogs(a.catalogs, m, groups, json.loads((a.data / "Tower.json").read_text(encoding="utf-8"))["layers"])
 
     for lang, kinds in (("zh", zh), ("en", en), ("ja", ja)):
         folder = a.out / lang

@@ -428,30 +428,6 @@ func (f PassportMessageFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportMessageMutation", m)
 }
 
-// The PassportOidcClientFunc type is an adapter to allow the use of ordinary
-// function as PassportOidcClient mutator.
-type PassportOidcClientFunc func(context.Context, *gen.PassportOidcClientMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f PassportOidcClientFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.PassportOidcClientMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportOidcClientMutation", m)
-}
-
-// The PassportOidcGrantFunc type is an adapter to allow the use of ordinary
-// function as PassportOidcGrant mutator.
-type PassportOidcGrantFunc func(context.Context, *gen.PassportOidcGrantMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f PassportOidcGrantFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.PassportOidcGrantMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PassportOidcGrantMutation", m)
-}
-
 // The PassportSessionFunc type is an adapter to allow the use of ordinary
 // function as PassportSession mutator.
 type PassportSessionFunc func(context.Context, *gen.PassportSessionMutation) (gen.Value, error)

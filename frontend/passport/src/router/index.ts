@@ -13,7 +13,7 @@ declare module 'vue-router' {
   }
 }
 
-// 通行证的页面：首页、账号与安全、绑定、消息、我的游戏与游戏空间、OIDC 授权确认；登录、注册与找回密码。
+// 通行证的页面：首页、账号与安全、绑定、消息、我的游戏与游戏空间；登录、注册与找回密码。
 export const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('@passport/views/auth/LoginView.vue'), meta: { public: true } },
   {
@@ -23,7 +23,6 @@ export const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   { path: '/forgot', name: 'forgot', component: () => import('@passport/views/auth/ForgotView.vue'), meta: { public: true } },
-  { path: '/oidc/authorize', name: 'oidc', component: () => import('@passport/views/auth/OidcView.vue') },
   {
     path: '/',
     component: () => import('@passport/layouts/PassportShell.vue'),

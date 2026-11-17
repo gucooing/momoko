@@ -84,10 +84,6 @@ type Tx struct {
 	PassportLoginLog *PassportLoginLogClient
 	// PassportMessage is the client for interacting with the PassportMessage builders.
 	PassportMessage *PassportMessageClient
-	// PassportOidcClient is the client for interacting with the PassportOidcClient builders.
-	PassportOidcClient *PassportOidcClientClient
-	// PassportOidcGrant is the client for interacting with the PassportOidcGrant builders.
-	PassportOidcGrant *PassportOidcGrantClient
 	// PassportSession is the client for interacting with the PassportSession builders.
 	PassportSession *PassportSessionClient
 	// PassportUser is the client for interacting with the PassportUser builders.
@@ -284,8 +280,6 @@ func (tx *Tx) init() {
 	tx.PassportInvite = NewPassportInviteClient(tx.config)
 	tx.PassportLoginLog = NewPassportLoginLogClient(tx.config)
 	tx.PassportMessage = NewPassportMessageClient(tx.config)
-	tx.PassportOidcClient = NewPassportOidcClientClient(tx.config)
-	tx.PassportOidcGrant = NewPassportOidcGrantClient(tx.config)
 	tx.PassportSession = NewPassportSessionClient(tx.config)
 	tx.PassportUser = NewPassportUserClient(tx.config)
 	tx.PortForward = NewPortForwardClient(tx.config)

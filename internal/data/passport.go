@@ -19,8 +19,6 @@ import (
 	entinvite "momoko/internal/data/ent/gen/passportinvite"
 	entlogin "momoko/internal/data/ent/gen/passportloginlog"
 	entmsg "momoko/internal/data/ent/gen/passportmessage"
-	entclient "momoko/internal/data/ent/gen/passportoidcclient"
-	entgrant "momoko/internal/data/ent/gen/passportoidcgrant"
 	entsession "momoko/internal/data/ent/gen/passportsession"
 	entuser "momoko/internal/data/ent/gen/passportuser"
 	"momoko/internal/data/ent/gen/predicate"
@@ -268,9 +266,6 @@ func (r *passportRepo) DeleteUserCascade(ctx context.Context, id string) error {
 		if _, err := tx.PassportSession.Delete().Where(entsession.UserID(id)).Exec(ctx); err != nil {
 			return err
 		}
-		if _, err := tx.PassportOidcGrant.Delete().Where(entgrant.UserID(id)).Exec(ctx); err != nil {
-			return err
-		}
 		if _, err := tx.PassportMessage.Delete().Where(entmsg.UserID(id)).Exec(ctx); err != nil {
 			return err
 		}
@@ -302,7 +297,6 @@ func (r *passportRepo) CreateSession(ctx context.Context, s *gen.PassportSession
 			SetDeviceID(s.DeviceID).
 			SetDevice(s.Device).
 			SetUserAgent(s.UserAgent).
-			SetClientID(s.ClientID).
 			SetLoginMethod(s.LoginMethod).
 			SetIP(s.IP).
 			SetLastIP(s.LastIP).
@@ -740,126 +734,4 @@ func (r *passportRepo) ListRedeems(ctx context.Context, userID, serverID string,
 	}
 	list, err := q.Order(entredeem.ByCreateTime(sql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)
 	return list, total, err
-}
-
-// ---------------- OIDC ----------------
-
-func (r *passportRepo) ListOidcClients(ctx context.Context) ([]*gen.PassportOidcClient, error) {
-	return r.data.db.PassportOidcClient.Query().Order(entclient.ByCreateTime()).All(ctx)
-}
-
-func (r *passportRepo) GetOidcClient(ctx context.Context, id string) (*gen.PassportOidcClient, error) {
-	return r.data.db.PassportOidcClient.Get(ctx, id)
-}
-
-func (r *passportRepo) GetOidcClientByClientID(ctx context.Context, clientID string) (*gen.PassportOidcClient, error) {
-	if clientID == "" {
-		return nil, &gen.NotFoundError{}
-	}
-	return r.data.db.PassportOidcClient.Query().Where(entclient.ClientID(clientID)).Only(ctx)
-}
-
-func (r *passportRepo) CreateOidcClient(ctx context.Context, c *gen.PassportOidcClient) (*gen.PassportOidcClient, error) {
-	return r.data.db.PassportOidcClient.Create().
-		SetID(c.ID).
-		SetName(c.Name).
-		SetClientID(c.ClientID).
-		SetClientSecret(c.ClientSecret).
-		SetRedirectUris(c.RedirectUris).
-		SetScopes(c.Scopes).
-		SetActive(c.Active).
-		SetDescription(c.Description).
-		SetServerID(c.ServerID).
-		SetCreatedByName(c.CreatedByName).
-		Save(ctx)
-}
-
-func (r *passportRepo) UpdateOidcClient(ctx context.Context, c *gen.PassportOidcClient) (*gen.PassportOidcClient, error) {
-	return r.data.db.PassportOidcClient.UpdateOneID(c.ID).
-		SetName(c.Name).
-		SetRedirectUris(c.RedirectUris).
-		SetScopes(c.Scopes).
-		SetActive(c.Active).
-		SetDescription(c.Description).
-		SetServerID(c.ServerID).
-		Save(ctx)
-}
-
-func (r *passportRepo) UpdateOidcClientSecret(ctx context.Context, id, secret string) (*gen.PassportOidcClient, error) {
-	return r.data.db.PassportOidcClient.UpdateOneID(id).SetClientSecret(secret).Save(ctx)
-}
-
-func (r *passportRepo) DeleteOidcClient(ctx context.Context, id string) error {
-	return WithTx(ctx, r.data.db, func(tx *gen.Tx) error {
-		if _, err := tx.PassportOidcGrant.Delete().Where(entgrant.ClientID(id)).Exec(ctx); err != nil {
-			return err
-		}
-		return tx.PassportOidcClient.DeleteOneID(id).Exec(ctx)
-	})
-}
-
-func (r *passportRepo) MarkOidcClientUsed(ctx context.Context, id string, at time.Time) error {
-	return r.data.db.PassportOidcClient.UpdateOneID(id).SetLastUsedAt(at).Exec(ctx)
-}
-
-func (r *passportRepo) GrantCounts(ctx context.Context) (map[string]int, error) {
-	var rows []struct {
-		ClientID string `json:"client_id"`
-		Count    int    `json:"count"`
-	}
-	if err := r.data.db.PassportOidcGrant.Query().
-		GroupBy(entgrant.FieldClientID).
-		Aggregate(gen.Count()).
-		Scan(ctx, &rows); err != nil {
-		return nil, err
-	}
-	out := make(map[string]int, len(rows))
-	for _, row := range rows {
-		out[row.ClientID] = row.Count
-	}
-	return out, nil
-}
-
-func (r *passportRepo) GetGrant(ctx context.Context, userID, clientID string) (*gen.PassportOidcGrant, error) {
-	return r.data.db.PassportOidcGrant.Query().Where(entgrant.UserID(userID), entgrant.ClientID(clientID)).Only(ctx)
-}
-
-func (r *passportRepo) SaveGrant(ctx context.Context, userID, clientID string, scopes []string) (*gen.PassportOidcGrant, error) {
-	existing, err := r.GetGrant(ctx, userID, clientID)
-	if err == nil {
-		return existing.Update().SetScopes(scopes).SetLastUsedAt(time.Now()).Save(ctx)
-	}
-	if !gen.IsNotFound(err) {
-		return nil, err
-	}
-	return r.data.db.PassportOidcGrant.Create().
-		SetID(uuid.NewString()).
-		SetUserID(userID).
-		SetClientID(clientID).
-		SetScopes(scopes).
-		SetLastUsedAt(time.Now()).
-		Save(ctx)
-}
-
-func (r *passportRepo) TouchGrant(ctx context.Context, id string, at time.Time) error {
-	return r.data.db.PassportOidcGrant.UpdateOneID(id).SetLastUsedAt(at).Exec(ctx)
-}
-
-func (r *passportRepo) ListGrants(ctx context.Context, userID string) ([]*gen.PassportOidcGrant, error) {
-	return r.data.db.PassportOidcGrant.Query().Where(entgrant.UserID(userID)).Order(entgrant.ByLastUsedAt(sql.OrderDesc())).All(ctx)
-}
-
-func (r *passportRepo) CountGrants(ctx context.Context, userID string) (int, error) {
-	return r.data.db.PassportOidcGrant.Query().Where(entgrant.UserID(userID)).Count(ctx)
-}
-
-func (r *passportRepo) DeleteGrant(ctx context.Context, userID, id string) error {
-	n, err := r.data.db.PassportOidcGrant.Delete().Where(entgrant.ID(id), entgrant.UserID(userID)).Exec(ctx)
-	if err != nil {
-		return err
-	}
-	if n == 0 {
-		return &gen.NotFoundError{}
-	}
-	return nil
 }

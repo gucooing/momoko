@@ -6,6 +6,7 @@ import type {
   DetectGameServerDirResponse,
   DownloadGameServerBackupResponse,
   GameServerBackupPolicy,
+  GameServerClientAppResponse,
   GameServerBuild,
   GameServerBuildInfo,
   GameServerInfo,
@@ -78,6 +79,14 @@ export const switchGameServerMode = (data: Partial<SwitchGameServerModeRequest> 
 
 export const rotateGameServerKey = (id: string, restart: boolean, key: { keyId: string; secret: string }) =>
   request.post<RotateGameServerKeyResponse>(`${base(id)}/rotate-key`, { id, restart, keyId: key.keyId, secret: key.secret })
+
+// 客户端应用凭据：生成（第一次，或重新生成应用 ID，凭据整组换新）与只重置应用密钥；应用密钥只在这两个接口的返回里出现一次。
+// 托管服务器由 Momoko 写进服务端配置，restart 为运行中时立即重启（同轮换 MGP 密钥）
+export const generateGameServerClientApp = (id: string, restart: boolean) =>
+  request.post<GameServerClientAppResponse>(`${base(id)}/client-app`, { id, restart })
+
+export const resetGameServerClientAppSecret = (id: string, restart: boolean) =>
+  request.post<GameServerClientAppResponse>(`${base(id)}/client-app/secret`, { id, restart })
 
 export type GameServerAction = 'start' | 'stop' | 'restart'
 

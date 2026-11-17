@@ -247,7 +247,7 @@ const MANIFEST = [
 ].join('\n');
 const TABLES = [
   { n: 'game_server', s: '接入的游戏服务器（一游戏可多服）', f: ['id', 'game（适配器 id）', 'name（只是名字）', 'tags', 'mode hosted|remote', 'node_id', 'instance_id?', 'mgp_endpoint', 'key_id', 'secret（加密）', 'manifest 缓存', 'status 缓存'] },
-  { n: 'game_account_link', s: '通行证 ↔ 游戏账号（统一用户中心）', f: ['user_id', 'server_id', 'player_id', 'display_id', 'nickname', 'avatar_asset', 'method 密码/绑定码/OIDC/管理员', 'is_primary', 'linked_at', 'last_seen_at'] },
+  { n: 'game_account_link', s: '通行证 ↔ 游戏账号（统一用户中心）', f: ['user_id', 'server_id', 'player_id', 'display_id', 'nickname', 'avatar_asset', 'method 密码/绑定码/新建/管理员', 'is_primary', 'linked_at', 'last_seen_at'] },
   { n: 'gm_self_service', s: '玩家自助开放（每台服务器每条指令一行）', f: ['server_id', 'command', 'enabled', 'daily_limit', 'cooldown_sec', 'need_approval', 'player_note'] },
   { n: 'gm_execution', s: 'GM 执行与审计（含玩家自助）', f: ['server_id', 'command', 'actor user_id', 'actor_kind admin|player', 'targets', 'params', 'reason', 'dry_run', 'status', 'changes', 'reviewed_by', 'request_id'] },
   { n: 'game_config_revision', s: '运营配置版本（可对比、回滚）', f: ['server_id', 'domain', 'revision', 'content', 'author', 'comment', 'state 草稿/已发布', 'published_at'] }

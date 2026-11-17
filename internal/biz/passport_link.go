@@ -25,8 +25,8 @@ import (
 const (
 	PassportBindPassword = "password"
 	PassportBindAdmin    = "admin"
-	// PassportBindOIDC 「用户通行证登录」授权时新建的游戏账号
-	PassportBindOIDC = "oidc"
+	// PassportBindCreate 经启动器在服务器上新建的游戏账号
+	PassportBindCreate = "create"
 )
 
 // linkProto 绑定转为接口结构。
@@ -213,7 +213,7 @@ func gameNameOf(s *gen.GameServer) (name, icon string) {
 }
 
 // SearchBindServers 绑定页选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）
-// + serverID 指定的服务器（授权页跳来时预选；对用户可见时才返回）。
+// + serverID 指定的服务器（预选这台服务器；对用户可见时才返回）。
 func (uc *PassportUsecase) SearchBindServers(ctx context.Context, userID, q, game, serverID string) (*v1.SearchPassportBindServersResponse, error) {
 	u, err := uc.user(ctx, userID)
 	if err != nil {
@@ -349,7 +349,7 @@ func (uc *PassportUsecase) bindLock(serverID string) *sync.Mutex {
 	return l.(*sync.Mutex)
 }
 
-// Bind 用游戏账号 + 密码绑定：游戏服务端校验，密码不保存。
+// Bind 通行证网页的绑定：服务器要对用户可见（公开、注册邀请码所属的服务器，或凭服务器的邀请码），再用游戏账号 + 密码绑定。
 func (uc *PassportUsecase) Bind(ctx context.Context, userID string, req *v1.BindPassportAccountRequest) (*v1.PassportLink, error) {
 	u, err := uc.user(ctx, userID)
 	if err != nil {
@@ -362,40 +362,51 @@ func (uc *PassportUsecase) Bind(ctx context.Context, userID string, req *v1.Bind
 	if visible, _ := passportVisible(s, req.InviteCode, uc.inviteServer(ctx, u)); !visible {
 		return nil, ErrPassportServerNotBindable
 	}
-	account := strings.TrimSpace(req.Account)
-	if account == "" || req.Password == "" {
+	return uc.bindAccount(ctx, u, s, req.Account, req.Password)
+}
+
+// bindAccount 用游戏账号 + 密码绑定（服务器的可见性由调用方确认）：游戏服务端经 MGP 校验，密码不保存；
+// 校验失败次数有上限；解绑冷却中只能绑回原来的账号。同一用户在同一服务器上的绑定与新建串行执行。
+func (uc *PassportUsecase) bindAccount(ctx context.Context, u *gen.PassportUser, s *gen.GameServer, account, password string) (*v1.PassportLink, error) {
+	account = strings.TrimSpace(account)
+	if account == "" || password == "" {
 		return nil, ErrPassportInvalidArgument
 	}
 	client, err := uc.Servers().Client(s)
 	if err != nil || s.Game != gakumas.ID {
 		return nil, ErrPassportBindUnsupported
 	}
-	if existing, err := uc.repo.LinkOf(ctx, userID, s.ID); err == nil && existing != nil {
+	key := u.ID + "\x00" + s.ID
+	lock := uc.bindLock(key)
+	lock.Lock()
+	defer lock.Unlock()
+	if existing, err := uc.repo.LinkOf(ctx, u.ID, s.ID); err == nil && existing != nil {
 		return nil, ErrPassportAlreadyLinked
 	} else if err != nil && !gen.IsNotFound(err) {
 		return nil, ErrSystem(err)
 	}
-	failKey := userID + "\x00" + s.ID
-	if f, ok := uc.bindFails.Get(failKey); ok && f.N >= passportBindAttempts && time.Since(f.First) < passportLockWindow {
+	if f, ok := uc.bindFails.Get(key); ok && f.N >= passportBindAttempts && time.Since(f.First) < passportLockWindow {
 		return nil, ErrPassportBindTooMany
 	}
-	p, err := gakumas.New(client).VerifyAccount(ctx, account, req.Password)
+	p, err := gakumas.New(client).VerifyAccount(ctx, account, password)
 	if err != nil {
 		switch {
 		case mgp.CodeOf(err) == gakumas.CredentialsInvalid:
-			bumpFail(uc.bindFails, failKey)
+			bumpFail(uc.bindFails, key)
 			return nil, ErrPassportGameCredentials
+		case mgp.CodeOf(err) == gakumas.PlayerNotFound:
+			return nil, ErrPassportPlayerNotFound
 		case mgp.IsUnreachable(err):
 			return nil, ErrPassportGameUnavailable
 		default:
 			return nil, GameMGPError(err)
 		}
 	}
-	uc.bindFails.Del(failKey)
+	uc.bindFails.Del(key)
 	if p.GetPid() == "" {
 		return nil, ErrPassportGameUnavailable
 	}
-	if until, lastPID := uc.cooldownUntil(ctx, userID, s.ID); until != nil && lastPID != p.GetPid() {
+	if until, lastPID := uc.cooldownUntil(ctx, u.ID, s.ID); until != nil && lastPID != p.GetPid() {
 		return nil, ErrPassportBindCooldown
 	}
 	l, err := uc.createLink(ctx, u, s, p, PassportBindPassword)

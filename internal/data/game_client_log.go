@@ -8,6 +8,7 @@ import (
 	"momoko/internal/biz"
 	"momoko/internal/data/ent/gen"
 	entclientlog "momoko/internal/data/ent/gen/gameclientlog"
+	"momoko/internal/data/ent/gen/predicate"
 )
 
 type gameClientLogRepo struct {
@@ -66,10 +67,41 @@ func (r *gameClientLogRepo) Create(ctx context.Context, l *gen.GameClientLog, ke
 	return saved, nil
 }
 
-func (r *gameClientLogRepo) List(ctx context.Context, serverID, pid string) ([]*gen.GameClientLog, error) {
-	return r.data.db.GameClientLog.Query().
-		Where(entclientlog.ServerID(serverID), entclientlog.PlayerID(pid)).
-		Order(newestFirst()...).
+func (r *gameClientLogRepo) List(ctx context.Context, f biz.ClientLogFilter) ([]*gen.GameClientLog, int, error) {
+	var where []predicate.GameClientLog
+	if f.ServerID != "" {
+		where = append(where, entclientlog.ServerID(f.ServerID))
+	}
+	if f.PID != "" {
+		where = append(where, entclientlog.PlayerID(f.PID))
+	}
+	if f.Reason != "" {
+		where = append(where, entclientlog.Reason(f.Reason))
+	}
+	if f.Since != nil {
+		where = append(where, entclientlog.CreatedAtGTE(*f.Since))
+	}
+	if f.Until != nil {
+		where = append(where, entclientlog.CreatedAtLT(*f.Until))
+	}
+	if f.Q != "" {
+		where = append(where, entclientlog.Or(
+			entclientlog.SummaryContainsFold(f.Q),
+			entclientlog.NoteContainsFold(f.Q),
+			entclientlog.DeviceContainsFold(f.Q),
+		))
+	}
+	total, err := r.data.db.GameClientLog.Query().Where(where...).Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	q := r.data.db.GameClientLog.Query().
+		Where(where...).
+		Order(newestFirst()...)
+	if f.Limit > 0 {
+		q = q.Offset(f.Offset).Limit(f.Limit)
+	}
+	list, err := q.
 		Select(
 			entclientlog.FieldID,
 			entclientlog.FieldServerID,
@@ -84,6 +116,7 @@ func (r *gameClientLogRepo) List(ctx context.Context, serverID, pid string) ([]*
 			entclientlog.FieldCreatedAt,
 		).
 		All(ctx)
+	return list, total, err
 }
 
 func (r *gameClientLogRepo) Get(ctx context.Context, id string) (*gen.GameClientLog, error) {

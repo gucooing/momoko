@@ -41,8 +41,6 @@ import (
 	"momoko/internal/data/ent/gen/passportinvite"
 	"momoko/internal/data/ent/gen/passportloginlog"
 	"momoko/internal/data/ent/gen/passportmessage"
-	"momoko/internal/data/ent/gen/passportoidcclient"
-	"momoko/internal/data/ent/gen/passportoidcgrant"
 	"momoko/internal/data/ent/gen/passportsession"
 	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/internal/data/ent/gen/portforward"
@@ -112,8 +110,6 @@ const (
 	TypePassportInvite     = "PassportInvite"
 	TypePassportLoginLog   = "PassportLoginLog"
 	TypePassportMessage    = "PassportMessage"
-	TypePassportOidcClient = "PassportOidcClient"
-	TypePassportOidcGrant  = "PassportOidcGrant"
 	TypePassportSession    = "PassportSession"
 	TypePassportUser       = "PassportUser"
 	TypePortForward        = "PortForward"
@@ -14194,6 +14190,11 @@ type GameServerMutation struct {
 	timezone             *string
 	passport_visibility  *gameserver.PassportVisibility
 	passport_invite_code *string
+	client_sdk_url       *string
+	client_game_url      *string
+	client_resource_url  *string
+	client_app_id        *string
+	client_app_secret    *string
 	remark               *string
 	clearedFields        map[string]struct{}
 	done                 bool
@@ -15420,6 +15421,199 @@ func (m *GameServerMutation) ResetPassportInviteCode() {
 	m.passport_invite_code = nil
 }
 
+// SetClientSdkURL sets the "client_sdk_url" field.
+func (m *GameServerMutation) SetClientSdkURL(s string) {
+	m.client_sdk_url = &s
+}
+
+// ClientSdkURL returns the value of the "client_sdk_url" field in the mutation.
+func (m *GameServerMutation) ClientSdkURL() (r string, exists bool) {
+	v := m.client_sdk_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientSdkURL returns the old "client_sdk_url" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldClientSdkURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientSdkURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientSdkURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientSdkURL: %w", err)
+	}
+	return oldValue.ClientSdkURL, nil
+}
+
+// ResetClientSdkURL resets all changes to the "client_sdk_url" field.
+func (m *GameServerMutation) ResetClientSdkURL() {
+	m.client_sdk_url = nil
+}
+
+// SetClientGameURL sets the "client_game_url" field.
+func (m *GameServerMutation) SetClientGameURL(s string) {
+	m.client_game_url = &s
+}
+
+// ClientGameURL returns the value of the "client_game_url" field in the mutation.
+func (m *GameServerMutation) ClientGameURL() (r string, exists bool) {
+	v := m.client_game_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientGameURL returns the old "client_game_url" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldClientGameURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientGameURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientGameURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientGameURL: %w", err)
+	}
+	return oldValue.ClientGameURL, nil
+}
+
+// ResetClientGameURL resets all changes to the "client_game_url" field.
+func (m *GameServerMutation) ResetClientGameURL() {
+	m.client_game_url = nil
+}
+
+// SetClientResourceURL sets the "client_resource_url" field.
+func (m *GameServerMutation) SetClientResourceURL(s string) {
+	m.client_resource_url = &s
+}
+
+// ClientResourceURL returns the value of the "client_resource_url" field in the mutation.
+func (m *GameServerMutation) ClientResourceURL() (r string, exists bool) {
+	v := m.client_resource_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientResourceURL returns the old "client_resource_url" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldClientResourceURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientResourceURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientResourceURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientResourceURL: %w", err)
+	}
+	return oldValue.ClientResourceURL, nil
+}
+
+// ResetClientResourceURL resets all changes to the "client_resource_url" field.
+func (m *GameServerMutation) ResetClientResourceURL() {
+	m.client_resource_url = nil
+}
+
+// SetClientAppID sets the "client_app_id" field.
+func (m *GameServerMutation) SetClientAppID(s string) {
+	m.client_app_id = &s
+}
+
+// ClientAppID returns the value of the "client_app_id" field in the mutation.
+func (m *GameServerMutation) ClientAppID() (r string, exists bool) {
+	v := m.client_app_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientAppID returns the old "client_app_id" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldClientAppID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientAppID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientAppID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientAppID: %w", err)
+	}
+	return oldValue.ClientAppID, nil
+}
+
+// ClearClientAppID clears the value of the "client_app_id" field.
+func (m *GameServerMutation) ClearClientAppID() {
+	m.client_app_id = nil
+	m.clearedFields[gameserver.FieldClientAppID] = struct{}{}
+}
+
+// ClientAppIDCleared returns if the "client_app_id" field was cleared in this mutation.
+func (m *GameServerMutation) ClientAppIDCleared() bool {
+	_, ok := m.clearedFields[gameserver.FieldClientAppID]
+	return ok
+}
+
+// ResetClientAppID resets all changes to the "client_app_id" field.
+func (m *GameServerMutation) ResetClientAppID() {
+	m.client_app_id = nil
+	delete(m.clearedFields, gameserver.FieldClientAppID)
+}
+
+// SetClientAppSecret sets the "client_app_secret" field.
+func (m *GameServerMutation) SetClientAppSecret(s string) {
+	m.client_app_secret = &s
+}
+
+// ClientAppSecret returns the value of the "client_app_secret" field in the mutation.
+func (m *GameServerMutation) ClientAppSecret() (r string, exists bool) {
+	v := m.client_app_secret
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientAppSecret returns the old "client_app_secret" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldClientAppSecret(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientAppSecret is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientAppSecret requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientAppSecret: %w", err)
+	}
+	return oldValue.ClientAppSecret, nil
+}
+
+// ResetClientAppSecret resets all changes to the "client_app_secret" field.
+func (m *GameServerMutation) ResetClientAppSecret() {
+	m.client_app_secret = nil
+}
+
 // SetRemark sets the "remark" field.
 func (m *GameServerMutation) SetRemark(s string) {
 	m.remark = &s
@@ -15490,7 +15684,7 @@ func (m *GameServerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GameServerMutation) Fields() []string {
-	fields := make([]string, 0, 28)
+	fields := make([]string, 0, 33)
 	if m.create_time != nil {
 		fields = append(fields, gameserver.FieldCreateTime)
 	}
@@ -15572,6 +15766,21 @@ func (m *GameServerMutation) Fields() []string {
 	if m.passport_invite_code != nil {
 		fields = append(fields, gameserver.FieldPassportInviteCode)
 	}
+	if m.client_sdk_url != nil {
+		fields = append(fields, gameserver.FieldClientSdkURL)
+	}
+	if m.client_game_url != nil {
+		fields = append(fields, gameserver.FieldClientGameURL)
+	}
+	if m.client_resource_url != nil {
+		fields = append(fields, gameserver.FieldClientResourceURL)
+	}
+	if m.client_app_id != nil {
+		fields = append(fields, gameserver.FieldClientAppID)
+	}
+	if m.client_app_secret != nil {
+		fields = append(fields, gameserver.FieldClientAppSecret)
+	}
 	if m.remark != nil {
 		fields = append(fields, gameserver.FieldRemark)
 	}
@@ -15637,6 +15846,16 @@ func (m *GameServerMutation) Field(name string) (ent.Value, bool) {
 		return m.PassportVisibility()
 	case gameserver.FieldPassportInviteCode:
 		return m.PassportInviteCode()
+	case gameserver.FieldClientSdkURL:
+		return m.ClientSdkURL()
+	case gameserver.FieldClientGameURL:
+		return m.ClientGameURL()
+	case gameserver.FieldClientResourceURL:
+		return m.ClientResourceURL()
+	case gameserver.FieldClientAppID:
+		return m.ClientAppID()
+	case gameserver.FieldClientAppSecret:
+		return m.ClientAppSecret()
 	case gameserver.FieldRemark:
 		return m.Remark()
 	}
@@ -15702,6 +15921,16 @@ func (m *GameServerMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldPassportVisibility(ctx)
 	case gameserver.FieldPassportInviteCode:
 		return m.OldPassportInviteCode(ctx)
+	case gameserver.FieldClientSdkURL:
+		return m.OldClientSdkURL(ctx)
+	case gameserver.FieldClientGameURL:
+		return m.OldClientGameURL(ctx)
+	case gameserver.FieldClientResourceURL:
+		return m.OldClientResourceURL(ctx)
+	case gameserver.FieldClientAppID:
+		return m.OldClientAppID(ctx)
+	case gameserver.FieldClientAppSecret:
+		return m.OldClientAppSecret(ctx)
 	case gameserver.FieldRemark:
 		return m.OldRemark(ctx)
 	}
@@ -15902,6 +16131,41 @@ func (m *GameServerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPassportInviteCode(v)
 		return nil
+	case gameserver.FieldClientSdkURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientSdkURL(v)
+		return nil
+	case gameserver.FieldClientGameURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientGameURL(v)
+		return nil
+	case gameserver.FieldClientResourceURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientResourceURL(v)
+		return nil
+	case gameserver.FieldClientAppID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientAppID(v)
+		return nil
+	case gameserver.FieldClientAppSecret:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientAppSecret(v)
+		return nil
 	case gameserver.FieldRemark:
 		v, ok := value.(string)
 		if !ok {
@@ -15975,6 +16239,9 @@ func (m *GameServerMutation) ClearedFields() []string {
 	if m.FieldCleared(gameserver.FieldLastOnlineAt) {
 		fields = append(fields, gameserver.FieldLastOnlineAt)
 	}
+	if m.FieldCleared(gameserver.FieldClientAppID) {
+		fields = append(fields, gameserver.FieldClientAppID)
+	}
 	return fields
 }
 
@@ -16009,6 +16276,9 @@ func (m *GameServerMutation) ClearField(name string) error {
 		return nil
 	case gameserver.FieldLastOnlineAt:
 		m.ClearLastOnlineAt()
+		return nil
+	case gameserver.FieldClientAppID:
+		m.ClearClientAppID()
 		return nil
 	}
 	return fmt.Errorf("unknown GameServer nullable field %s", name)
@@ -16098,6 +16368,21 @@ func (m *GameServerMutation) ResetField(name string) error {
 		return nil
 	case gameserver.FieldPassportInviteCode:
 		m.ResetPassportInviteCode()
+		return nil
+	case gameserver.FieldClientSdkURL:
+		m.ResetClientSdkURL()
+		return nil
+	case gameserver.FieldClientGameURL:
+		m.ResetClientGameURL()
+		return nil
+	case gameserver.FieldClientResourceURL:
+		m.ResetClientResourceURL()
+		return nil
+	case gameserver.FieldClientAppID:
+		m.ResetClientAppID()
+		return nil
+	case gameserver.FieldClientAppSecret:
+		m.ResetClientAppSecret()
 		return nil
 	case gameserver.FieldRemark:
 		m.ResetRemark()
@@ -37280,1627 +37565,6 @@ func (m *PassportMessageMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown PassportMessage edge %s", name)
 }
 
-// PassportOidcClientMutation represents an operation that mutates the PassportOidcClient nodes in the graph.
-type PassportOidcClientMutation struct {
-	config
-	op                  Op
-	typ                 string
-	id                  *string
-	create_time         *time.Time
-	update_time         *time.Time
-	name                *string
-	client_id           *string
-	client_secret       *string
-	redirect_uris       *[]string
-	appendredirect_uris []string
-	scopes              *[]string
-	appendscopes        []string
-	active              *bool
-	description         *string
-	server_id           *string
-	created_by_name     *string
-	last_used_at        *time.Time
-	clearedFields       map[string]struct{}
-	done                bool
-	oldValue            func(context.Context) (*PassportOidcClient, error)
-	predicates          []predicate.PassportOidcClient
-}
-
-var _ ent.Mutation = (*PassportOidcClientMutation)(nil)
-
-// passportoidcclientOption allows management of the mutation configuration using functional options.
-type passportoidcclientOption func(*PassportOidcClientMutation)
-
-// newPassportOidcClientMutation creates new mutation for the PassportOidcClient entity.
-func newPassportOidcClientMutation(c config, op Op, opts ...passportoidcclientOption) *PassportOidcClientMutation {
-	m := &PassportOidcClientMutation{
-		config:        c,
-		op:            op,
-		typ:           TypePassportOidcClient,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withPassportOidcClientID sets the ID field of the mutation.
-func withPassportOidcClientID(id string) passportoidcclientOption {
-	return func(m *PassportOidcClientMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *PassportOidcClient
-		)
-		m.oldValue = func(ctx context.Context) (*PassportOidcClient, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().PassportOidcClient.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withPassportOidcClient sets the old PassportOidcClient of the mutation.
-func withPassportOidcClient(node *PassportOidcClient) passportoidcclientOption {
-	return func(m *PassportOidcClientMutation) {
-		m.oldValue = func(context.Context) (*PassportOidcClient, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m PassportOidcClientMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m PassportOidcClientMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("gen: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of PassportOidcClient entities.
-func (m *PassportOidcClientMutation) SetID(id string) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *PassportOidcClientMutation) ID() (id string, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *PassportOidcClientMutation) IDs(ctx context.Context) ([]string, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []string{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().PassportOidcClient.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreateTime sets the "create_time" field.
-func (m *PassportOidcClientMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the value of the "create_time" field in the mutation.
-func (m *PassportOidcClientMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "create_time" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "create_time" field.
-func (m *PassportOidcClientMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (m *PassportOidcClientMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the value of the "update_time" field in the mutation.
-func (m *PassportOidcClientMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "update_time" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "update_time" field.
-func (m *PassportOidcClientMutation) ResetUpdateTime() {
-	m.update_time = nil
-}
-
-// SetName sets the "name" field.
-func (m *PassportOidcClientMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *PassportOidcClientMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *PassportOidcClientMutation) ResetName() {
-	m.name = nil
-}
-
-// SetClientID sets the "client_id" field.
-func (m *PassportOidcClientMutation) SetClientID(s string) {
-	m.client_id = &s
-}
-
-// ClientID returns the value of the "client_id" field in the mutation.
-func (m *PassportOidcClientMutation) ClientID() (r string, exists bool) {
-	v := m.client_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldClientID returns the old "client_id" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldClientID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClientID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClientID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClientID: %w", err)
-	}
-	return oldValue.ClientID, nil
-}
-
-// ResetClientID resets all changes to the "client_id" field.
-func (m *PassportOidcClientMutation) ResetClientID() {
-	m.client_id = nil
-}
-
-// SetClientSecret sets the "client_secret" field.
-func (m *PassportOidcClientMutation) SetClientSecret(s string) {
-	m.client_secret = &s
-}
-
-// ClientSecret returns the value of the "client_secret" field in the mutation.
-func (m *PassportOidcClientMutation) ClientSecret() (r string, exists bool) {
-	v := m.client_secret
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldClientSecret returns the old "client_secret" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldClientSecret(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClientSecret is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClientSecret requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClientSecret: %w", err)
-	}
-	return oldValue.ClientSecret, nil
-}
-
-// ResetClientSecret resets all changes to the "client_secret" field.
-func (m *PassportOidcClientMutation) ResetClientSecret() {
-	m.client_secret = nil
-}
-
-// SetRedirectUris sets the "redirect_uris" field.
-func (m *PassportOidcClientMutation) SetRedirectUris(s []string) {
-	m.redirect_uris = &s
-	m.appendredirect_uris = nil
-}
-
-// RedirectUris returns the value of the "redirect_uris" field in the mutation.
-func (m *PassportOidcClientMutation) RedirectUris() (r []string, exists bool) {
-	v := m.redirect_uris
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRedirectUris returns the old "redirect_uris" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldRedirectUris(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRedirectUris is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRedirectUris requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRedirectUris: %w", err)
-	}
-	return oldValue.RedirectUris, nil
-}
-
-// AppendRedirectUris adds s to the "redirect_uris" field.
-func (m *PassportOidcClientMutation) AppendRedirectUris(s []string) {
-	m.appendredirect_uris = append(m.appendredirect_uris, s...)
-}
-
-// AppendedRedirectUris returns the list of values that were appended to the "redirect_uris" field in this mutation.
-func (m *PassportOidcClientMutation) AppendedRedirectUris() ([]string, bool) {
-	if len(m.appendredirect_uris) == 0 {
-		return nil, false
-	}
-	return m.appendredirect_uris, true
-}
-
-// ResetRedirectUris resets all changes to the "redirect_uris" field.
-func (m *PassportOidcClientMutation) ResetRedirectUris() {
-	m.redirect_uris = nil
-	m.appendredirect_uris = nil
-}
-
-// SetScopes sets the "scopes" field.
-func (m *PassportOidcClientMutation) SetScopes(s []string) {
-	m.scopes = &s
-	m.appendscopes = nil
-}
-
-// Scopes returns the value of the "scopes" field in the mutation.
-func (m *PassportOidcClientMutation) Scopes() (r []string, exists bool) {
-	v := m.scopes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldScopes returns the old "scopes" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldScopes(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldScopes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldScopes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScopes: %w", err)
-	}
-	return oldValue.Scopes, nil
-}
-
-// AppendScopes adds s to the "scopes" field.
-func (m *PassportOidcClientMutation) AppendScopes(s []string) {
-	m.appendscopes = append(m.appendscopes, s...)
-}
-
-// AppendedScopes returns the list of values that were appended to the "scopes" field in this mutation.
-func (m *PassportOidcClientMutation) AppendedScopes() ([]string, bool) {
-	if len(m.appendscopes) == 0 {
-		return nil, false
-	}
-	return m.appendscopes, true
-}
-
-// ResetScopes resets all changes to the "scopes" field.
-func (m *PassportOidcClientMutation) ResetScopes() {
-	m.scopes = nil
-	m.appendscopes = nil
-}
-
-// SetActive sets the "active" field.
-func (m *PassportOidcClientMutation) SetActive(b bool) {
-	m.active = &b
-}
-
-// Active returns the value of the "active" field in the mutation.
-func (m *PassportOidcClientMutation) Active() (r bool, exists bool) {
-	v := m.active
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldActive returns the old "active" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldActive(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldActive is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldActive requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldActive: %w", err)
-	}
-	return oldValue.Active, nil
-}
-
-// ResetActive resets all changes to the "active" field.
-func (m *PassportOidcClientMutation) ResetActive() {
-	m.active = nil
-}
-
-// SetDescription sets the "description" field.
-func (m *PassportOidcClientMutation) SetDescription(s string) {
-	m.description = &s
-}
-
-// Description returns the value of the "description" field in the mutation.
-func (m *PassportOidcClientMutation) Description() (r string, exists bool) {
-	v := m.description
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDescription returns the old "description" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldDescription(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDescription requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
-	}
-	return oldValue.Description, nil
-}
-
-// ResetDescription resets all changes to the "description" field.
-func (m *PassportOidcClientMutation) ResetDescription() {
-	m.description = nil
-}
-
-// SetServerID sets the "server_id" field.
-func (m *PassportOidcClientMutation) SetServerID(s string) {
-	m.server_id = &s
-}
-
-// ServerID returns the value of the "server_id" field in the mutation.
-func (m *PassportOidcClientMutation) ServerID() (r string, exists bool) {
-	v := m.server_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldServerID returns the old "server_id" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldServerID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldServerID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldServerID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldServerID: %w", err)
-	}
-	return oldValue.ServerID, nil
-}
-
-// ResetServerID resets all changes to the "server_id" field.
-func (m *PassportOidcClientMutation) ResetServerID() {
-	m.server_id = nil
-}
-
-// SetCreatedByName sets the "created_by_name" field.
-func (m *PassportOidcClientMutation) SetCreatedByName(s string) {
-	m.created_by_name = &s
-}
-
-// CreatedByName returns the value of the "created_by_name" field in the mutation.
-func (m *PassportOidcClientMutation) CreatedByName() (r string, exists bool) {
-	v := m.created_by_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedByName returns the old "created_by_name" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldCreatedByName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedByName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedByName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedByName: %w", err)
-	}
-	return oldValue.CreatedByName, nil
-}
-
-// ResetCreatedByName resets all changes to the "created_by_name" field.
-func (m *PassportOidcClientMutation) ResetCreatedByName() {
-	m.created_by_name = nil
-}
-
-// SetLastUsedAt sets the "last_used_at" field.
-func (m *PassportOidcClientMutation) SetLastUsedAt(t time.Time) {
-	m.last_used_at = &t
-}
-
-// LastUsedAt returns the value of the "last_used_at" field in the mutation.
-func (m *PassportOidcClientMutation) LastUsedAt() (r time.Time, exists bool) {
-	v := m.last_used_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLastUsedAt returns the old "last_used_at" field's value of the PassportOidcClient entity.
-// If the PassportOidcClient object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcClientMutation) OldLastUsedAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastUsedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastUsedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastUsedAt: %w", err)
-	}
-	return oldValue.LastUsedAt, nil
-}
-
-// ClearLastUsedAt clears the value of the "last_used_at" field.
-func (m *PassportOidcClientMutation) ClearLastUsedAt() {
-	m.last_used_at = nil
-	m.clearedFields[passportoidcclient.FieldLastUsedAt] = struct{}{}
-}
-
-// LastUsedAtCleared returns if the "last_used_at" field was cleared in this mutation.
-func (m *PassportOidcClientMutation) LastUsedAtCleared() bool {
-	_, ok := m.clearedFields[passportoidcclient.FieldLastUsedAt]
-	return ok
-}
-
-// ResetLastUsedAt resets all changes to the "last_used_at" field.
-func (m *PassportOidcClientMutation) ResetLastUsedAt() {
-	m.last_used_at = nil
-	delete(m.clearedFields, passportoidcclient.FieldLastUsedAt)
-}
-
-// Where appends a list predicates to the PassportOidcClientMutation builder.
-func (m *PassportOidcClientMutation) Where(ps ...predicate.PassportOidcClient) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the PassportOidcClientMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *PassportOidcClientMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.PassportOidcClient, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *PassportOidcClientMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *PassportOidcClientMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (PassportOidcClient).
-func (m *PassportOidcClientMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *PassportOidcClientMutation) Fields() []string {
-	fields := make([]string, 0, 12)
-	if m.create_time != nil {
-		fields = append(fields, passportoidcclient.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, passportoidcclient.FieldUpdateTime)
-	}
-	if m.name != nil {
-		fields = append(fields, passportoidcclient.FieldName)
-	}
-	if m.client_id != nil {
-		fields = append(fields, passportoidcclient.FieldClientID)
-	}
-	if m.client_secret != nil {
-		fields = append(fields, passportoidcclient.FieldClientSecret)
-	}
-	if m.redirect_uris != nil {
-		fields = append(fields, passportoidcclient.FieldRedirectUris)
-	}
-	if m.scopes != nil {
-		fields = append(fields, passportoidcclient.FieldScopes)
-	}
-	if m.active != nil {
-		fields = append(fields, passportoidcclient.FieldActive)
-	}
-	if m.description != nil {
-		fields = append(fields, passportoidcclient.FieldDescription)
-	}
-	if m.server_id != nil {
-		fields = append(fields, passportoidcclient.FieldServerID)
-	}
-	if m.created_by_name != nil {
-		fields = append(fields, passportoidcclient.FieldCreatedByName)
-	}
-	if m.last_used_at != nil {
-		fields = append(fields, passportoidcclient.FieldLastUsedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *PassportOidcClientMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case passportoidcclient.FieldCreateTime:
-		return m.CreateTime()
-	case passportoidcclient.FieldUpdateTime:
-		return m.UpdateTime()
-	case passportoidcclient.FieldName:
-		return m.Name()
-	case passportoidcclient.FieldClientID:
-		return m.ClientID()
-	case passportoidcclient.FieldClientSecret:
-		return m.ClientSecret()
-	case passportoidcclient.FieldRedirectUris:
-		return m.RedirectUris()
-	case passportoidcclient.FieldScopes:
-		return m.Scopes()
-	case passportoidcclient.FieldActive:
-		return m.Active()
-	case passportoidcclient.FieldDescription:
-		return m.Description()
-	case passportoidcclient.FieldServerID:
-		return m.ServerID()
-	case passportoidcclient.FieldCreatedByName:
-		return m.CreatedByName()
-	case passportoidcclient.FieldLastUsedAt:
-		return m.LastUsedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *PassportOidcClientMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case passportoidcclient.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case passportoidcclient.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
-	case passportoidcclient.FieldName:
-		return m.OldName(ctx)
-	case passportoidcclient.FieldClientID:
-		return m.OldClientID(ctx)
-	case passportoidcclient.FieldClientSecret:
-		return m.OldClientSecret(ctx)
-	case passportoidcclient.FieldRedirectUris:
-		return m.OldRedirectUris(ctx)
-	case passportoidcclient.FieldScopes:
-		return m.OldScopes(ctx)
-	case passportoidcclient.FieldActive:
-		return m.OldActive(ctx)
-	case passportoidcclient.FieldDescription:
-		return m.OldDescription(ctx)
-	case passportoidcclient.FieldServerID:
-		return m.OldServerID(ctx)
-	case passportoidcclient.FieldCreatedByName:
-		return m.OldCreatedByName(ctx)
-	case passportoidcclient.FieldLastUsedAt:
-		return m.OldLastUsedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown PassportOidcClient field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PassportOidcClientMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case passportoidcclient.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case passportoidcclient.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
-		return nil
-	case passportoidcclient.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case passportoidcclient.FieldClientID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetClientID(v)
-		return nil
-	case passportoidcclient.FieldClientSecret:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetClientSecret(v)
-		return nil
-	case passportoidcclient.FieldRedirectUris:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRedirectUris(v)
-		return nil
-	case passportoidcclient.FieldScopes:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetScopes(v)
-		return nil
-	case passportoidcclient.FieldActive:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetActive(v)
-		return nil
-	case passportoidcclient.FieldDescription:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDescription(v)
-		return nil
-	case passportoidcclient.FieldServerID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetServerID(v)
-		return nil
-	case passportoidcclient.FieldCreatedByName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedByName(v)
-		return nil
-	case passportoidcclient.FieldLastUsedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLastUsedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown PassportOidcClient field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *PassportOidcClientMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *PassportOidcClientMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PassportOidcClientMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown PassportOidcClient numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *PassportOidcClientMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(passportoidcclient.FieldLastUsedAt) {
-		fields = append(fields, passportoidcclient.FieldLastUsedAt)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *PassportOidcClientMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *PassportOidcClientMutation) ClearField(name string) error {
-	switch name {
-	case passportoidcclient.FieldLastUsedAt:
-		m.ClearLastUsedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown PassportOidcClient nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *PassportOidcClientMutation) ResetField(name string) error {
-	switch name {
-	case passportoidcclient.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case passportoidcclient.FieldUpdateTime:
-		m.ResetUpdateTime()
-		return nil
-	case passportoidcclient.FieldName:
-		m.ResetName()
-		return nil
-	case passportoidcclient.FieldClientID:
-		m.ResetClientID()
-		return nil
-	case passportoidcclient.FieldClientSecret:
-		m.ResetClientSecret()
-		return nil
-	case passportoidcclient.FieldRedirectUris:
-		m.ResetRedirectUris()
-		return nil
-	case passportoidcclient.FieldScopes:
-		m.ResetScopes()
-		return nil
-	case passportoidcclient.FieldActive:
-		m.ResetActive()
-		return nil
-	case passportoidcclient.FieldDescription:
-		m.ResetDescription()
-		return nil
-	case passportoidcclient.FieldServerID:
-		m.ResetServerID()
-		return nil
-	case passportoidcclient.FieldCreatedByName:
-		m.ResetCreatedByName()
-		return nil
-	case passportoidcclient.FieldLastUsedAt:
-		m.ResetLastUsedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown PassportOidcClient field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *PassportOidcClientMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *PassportOidcClientMutation) AddedIDs(name string) []ent.Value {
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *PassportOidcClientMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *PassportOidcClientMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *PassportOidcClientMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *PassportOidcClientMutation) EdgeCleared(name string) bool {
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *PassportOidcClientMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown PassportOidcClient unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *PassportOidcClientMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown PassportOidcClient edge %s", name)
-}
-
-// PassportOidcGrantMutation represents an operation that mutates the PassportOidcGrant nodes in the graph.
-type PassportOidcGrantMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *string
-	create_time   *time.Time
-	update_time   *time.Time
-	user_id       *string
-	client_id     *string
-	scopes        *[]string
-	appendscopes  []string
-	last_used_at  *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*PassportOidcGrant, error)
-	predicates    []predicate.PassportOidcGrant
-}
-
-var _ ent.Mutation = (*PassportOidcGrantMutation)(nil)
-
-// passportoidcgrantOption allows management of the mutation configuration using functional options.
-type passportoidcgrantOption func(*PassportOidcGrantMutation)
-
-// newPassportOidcGrantMutation creates new mutation for the PassportOidcGrant entity.
-func newPassportOidcGrantMutation(c config, op Op, opts ...passportoidcgrantOption) *PassportOidcGrantMutation {
-	m := &PassportOidcGrantMutation{
-		config:        c,
-		op:            op,
-		typ:           TypePassportOidcGrant,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withPassportOidcGrantID sets the ID field of the mutation.
-func withPassportOidcGrantID(id string) passportoidcgrantOption {
-	return func(m *PassportOidcGrantMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *PassportOidcGrant
-		)
-		m.oldValue = func(ctx context.Context) (*PassportOidcGrant, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().PassportOidcGrant.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withPassportOidcGrant sets the old PassportOidcGrant of the mutation.
-func withPassportOidcGrant(node *PassportOidcGrant) passportoidcgrantOption {
-	return func(m *PassportOidcGrantMutation) {
-		m.oldValue = func(context.Context) (*PassportOidcGrant, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m PassportOidcGrantMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m PassportOidcGrantMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("gen: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of PassportOidcGrant entities.
-func (m *PassportOidcGrantMutation) SetID(id string) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *PassportOidcGrantMutation) ID() (id string, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *PassportOidcGrantMutation) IDs(ctx context.Context) ([]string, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []string{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().PassportOidcGrant.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreateTime sets the "create_time" field.
-func (m *PassportOidcGrantMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the value of the "create_time" field in the mutation.
-func (m *PassportOidcGrantMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "create_time" field's value of the PassportOidcGrant entity.
-// If the PassportOidcGrant object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcGrantMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "create_time" field.
-func (m *PassportOidcGrantMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (m *PassportOidcGrantMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the value of the "update_time" field in the mutation.
-func (m *PassportOidcGrantMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "update_time" field's value of the PassportOidcGrant entity.
-// If the PassportOidcGrant object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcGrantMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "update_time" field.
-func (m *PassportOidcGrantMutation) ResetUpdateTime() {
-	m.update_time = nil
-}
-
-// SetUserID sets the "user_id" field.
-func (m *PassportOidcGrantMutation) SetUserID(s string) {
-	m.user_id = &s
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *PassportOidcGrantMutation) UserID() (r string, exists bool) {
-	v := m.user_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the PassportOidcGrant entity.
-// If the PassportOidcGrant object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcGrantMutation) OldUserID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *PassportOidcGrantMutation) ResetUserID() {
-	m.user_id = nil
-}
-
-// SetClientID sets the "client_id" field.
-func (m *PassportOidcGrantMutation) SetClientID(s string) {
-	m.client_id = &s
-}
-
-// ClientID returns the value of the "client_id" field in the mutation.
-func (m *PassportOidcGrantMutation) ClientID() (r string, exists bool) {
-	v := m.client_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldClientID returns the old "client_id" field's value of the PassportOidcGrant entity.
-// If the PassportOidcGrant object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcGrantMutation) OldClientID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClientID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClientID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClientID: %w", err)
-	}
-	return oldValue.ClientID, nil
-}
-
-// ResetClientID resets all changes to the "client_id" field.
-func (m *PassportOidcGrantMutation) ResetClientID() {
-	m.client_id = nil
-}
-
-// SetScopes sets the "scopes" field.
-func (m *PassportOidcGrantMutation) SetScopes(s []string) {
-	m.scopes = &s
-	m.appendscopes = nil
-}
-
-// Scopes returns the value of the "scopes" field in the mutation.
-func (m *PassportOidcGrantMutation) Scopes() (r []string, exists bool) {
-	v := m.scopes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldScopes returns the old "scopes" field's value of the PassportOidcGrant entity.
-// If the PassportOidcGrant object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcGrantMutation) OldScopes(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldScopes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldScopes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScopes: %w", err)
-	}
-	return oldValue.Scopes, nil
-}
-
-// AppendScopes adds s to the "scopes" field.
-func (m *PassportOidcGrantMutation) AppendScopes(s []string) {
-	m.appendscopes = append(m.appendscopes, s...)
-}
-
-// AppendedScopes returns the list of values that were appended to the "scopes" field in this mutation.
-func (m *PassportOidcGrantMutation) AppendedScopes() ([]string, bool) {
-	if len(m.appendscopes) == 0 {
-		return nil, false
-	}
-	return m.appendscopes, true
-}
-
-// ClearScopes clears the value of the "scopes" field.
-func (m *PassportOidcGrantMutation) ClearScopes() {
-	m.scopes = nil
-	m.appendscopes = nil
-	m.clearedFields[passportoidcgrant.FieldScopes] = struct{}{}
-}
-
-// ScopesCleared returns if the "scopes" field was cleared in this mutation.
-func (m *PassportOidcGrantMutation) ScopesCleared() bool {
-	_, ok := m.clearedFields[passportoidcgrant.FieldScopes]
-	return ok
-}
-
-// ResetScopes resets all changes to the "scopes" field.
-func (m *PassportOidcGrantMutation) ResetScopes() {
-	m.scopes = nil
-	m.appendscopes = nil
-	delete(m.clearedFields, passportoidcgrant.FieldScopes)
-}
-
-// SetLastUsedAt sets the "last_used_at" field.
-func (m *PassportOidcGrantMutation) SetLastUsedAt(t time.Time) {
-	m.last_used_at = &t
-}
-
-// LastUsedAt returns the value of the "last_used_at" field in the mutation.
-func (m *PassportOidcGrantMutation) LastUsedAt() (r time.Time, exists bool) {
-	v := m.last_used_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldLastUsedAt returns the old "last_used_at" field's value of the PassportOidcGrant entity.
-// If the PassportOidcGrant object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportOidcGrantMutation) OldLastUsedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLastUsedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLastUsedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLastUsedAt: %w", err)
-	}
-	return oldValue.LastUsedAt, nil
-}
-
-// ResetLastUsedAt resets all changes to the "last_used_at" field.
-func (m *PassportOidcGrantMutation) ResetLastUsedAt() {
-	m.last_used_at = nil
-}
-
-// Where appends a list predicates to the PassportOidcGrantMutation builder.
-func (m *PassportOidcGrantMutation) Where(ps ...predicate.PassportOidcGrant) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the PassportOidcGrantMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *PassportOidcGrantMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.PassportOidcGrant, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *PassportOidcGrantMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *PassportOidcGrantMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (PassportOidcGrant).
-func (m *PassportOidcGrantMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *PassportOidcGrantMutation) Fields() []string {
-	fields := make([]string, 0, 6)
-	if m.create_time != nil {
-		fields = append(fields, passportoidcgrant.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, passportoidcgrant.FieldUpdateTime)
-	}
-	if m.user_id != nil {
-		fields = append(fields, passportoidcgrant.FieldUserID)
-	}
-	if m.client_id != nil {
-		fields = append(fields, passportoidcgrant.FieldClientID)
-	}
-	if m.scopes != nil {
-		fields = append(fields, passportoidcgrant.FieldScopes)
-	}
-	if m.last_used_at != nil {
-		fields = append(fields, passportoidcgrant.FieldLastUsedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *PassportOidcGrantMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case passportoidcgrant.FieldCreateTime:
-		return m.CreateTime()
-	case passportoidcgrant.FieldUpdateTime:
-		return m.UpdateTime()
-	case passportoidcgrant.FieldUserID:
-		return m.UserID()
-	case passportoidcgrant.FieldClientID:
-		return m.ClientID()
-	case passportoidcgrant.FieldScopes:
-		return m.Scopes()
-	case passportoidcgrant.FieldLastUsedAt:
-		return m.LastUsedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *PassportOidcGrantMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case passportoidcgrant.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case passportoidcgrant.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
-	case passportoidcgrant.FieldUserID:
-		return m.OldUserID(ctx)
-	case passportoidcgrant.FieldClientID:
-		return m.OldClientID(ctx)
-	case passportoidcgrant.FieldScopes:
-		return m.OldScopes(ctx)
-	case passportoidcgrant.FieldLastUsedAt:
-		return m.OldLastUsedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown PassportOidcGrant field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PassportOidcGrantMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case passportoidcgrant.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case passportoidcgrant.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
-		return nil
-	case passportoidcgrant.FieldUserID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case passportoidcgrant.FieldClientID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetClientID(v)
-		return nil
-	case passportoidcgrant.FieldScopes:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetScopes(v)
-		return nil
-	case passportoidcgrant.FieldLastUsedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetLastUsedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown PassportOidcGrant field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *PassportOidcGrantMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *PassportOidcGrantMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PassportOidcGrantMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown PassportOidcGrant numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *PassportOidcGrantMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(passportoidcgrant.FieldScopes) {
-		fields = append(fields, passportoidcgrant.FieldScopes)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *PassportOidcGrantMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *PassportOidcGrantMutation) ClearField(name string) error {
-	switch name {
-	case passportoidcgrant.FieldScopes:
-		m.ClearScopes()
-		return nil
-	}
-	return fmt.Errorf("unknown PassportOidcGrant nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *PassportOidcGrantMutation) ResetField(name string) error {
-	switch name {
-	case passportoidcgrant.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case passportoidcgrant.FieldUpdateTime:
-		m.ResetUpdateTime()
-		return nil
-	case passportoidcgrant.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case passportoidcgrant.FieldClientID:
-		m.ResetClientID()
-		return nil
-	case passportoidcgrant.FieldScopes:
-		m.ResetScopes()
-		return nil
-	case passportoidcgrant.FieldLastUsedAt:
-		m.ResetLastUsedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown PassportOidcGrant field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *PassportOidcGrantMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *PassportOidcGrantMutation) AddedIDs(name string) []ent.Value {
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *PassportOidcGrantMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *PassportOidcGrantMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *PassportOidcGrantMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *PassportOidcGrantMutation) EdgeCleared(name string) bool {
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *PassportOidcGrantMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown PassportOidcGrant unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *PassportOidcGrantMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown PassportOidcGrant edge %s", name)
-}
-
 // PassportSessionMutation represents an operation that mutates the PassportSession nodes in the graph.
 type PassportSessionMutation struct {
 	config
@@ -38913,7 +37577,6 @@ type PassportSessionMutation struct {
 	device_id      *string
 	device         *string
 	user_agent     *string
-	client_id      *string
 	login_method   *string
 	ip             *string
 	last_ip        *string
@@ -39246,42 +37909,6 @@ func (m *PassportSessionMutation) OldUserAgent(ctx context.Context) (v string, e
 // ResetUserAgent resets all changes to the "user_agent" field.
 func (m *PassportSessionMutation) ResetUserAgent() {
 	m.user_agent = nil
-}
-
-// SetClientID sets the "client_id" field.
-func (m *PassportSessionMutation) SetClientID(s string) {
-	m.client_id = &s
-}
-
-// ClientID returns the value of the "client_id" field in the mutation.
-func (m *PassportSessionMutation) ClientID() (r string, exists bool) {
-	v := m.client_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldClientID returns the old "client_id" field's value of the PassportSession entity.
-// If the PassportSession object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PassportSessionMutation) OldClientID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClientID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClientID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClientID: %w", err)
-	}
-	return oldValue.ClientID, nil
-}
-
-// ResetClientID resets all changes to the "client_id" field.
-func (m *PassportSessionMutation) ResetClientID() {
-	m.client_id = nil
 }
 
 // SetLoginMethod sets the "login_method" field.
@@ -39619,7 +38246,7 @@ func (m *PassportSessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PassportSessionMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 14)
 	if m.create_time != nil {
 		fields = append(fields, passportsession.FieldCreateTime)
 	}
@@ -39637,9 +38264,6 @@ func (m *PassportSessionMutation) Fields() []string {
 	}
 	if m.user_agent != nil {
 		fields = append(fields, passportsession.FieldUserAgent)
-	}
-	if m.client_id != nil {
-		fields = append(fields, passportsession.FieldClientID)
 	}
 	if m.login_method != nil {
 		fields = append(fields, passportsession.FieldLoginMethod)
@@ -39685,8 +38309,6 @@ func (m *PassportSessionMutation) Field(name string) (ent.Value, bool) {
 		return m.Device()
 	case passportsession.FieldUserAgent:
 		return m.UserAgent()
-	case passportsession.FieldClientID:
-		return m.ClientID()
 	case passportsession.FieldLoginMethod:
 		return m.LoginMethod()
 	case passportsession.FieldIP:
@@ -39724,8 +38346,6 @@ func (m *PassportSessionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldDevice(ctx)
 	case passportsession.FieldUserAgent:
 		return m.OldUserAgent(ctx)
-	case passportsession.FieldClientID:
-		return m.OldClientID(ctx)
 	case passportsession.FieldLoginMethod:
 		return m.OldLoginMethod(ctx)
 	case passportsession.FieldIP:
@@ -39792,13 +38412,6 @@ func (m *PassportSessionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUserAgent(v)
-		return nil
-	case passportsession.FieldClientID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetClientID(v)
 		return nil
 	case passportsession.FieldLoginMethod:
 		v, ok := value.(string)
@@ -39931,9 +38544,6 @@ func (m *PassportSessionMutation) ResetField(name string) error {
 		return nil
 	case passportsession.FieldUserAgent:
 		m.ResetUserAgent()
-		return nil
-	case passportsession.FieldClientID:
-		m.ResetClientID()
 		return nil
 	case passportsession.FieldLoginMethod:
 		m.ResetLoginMethod()

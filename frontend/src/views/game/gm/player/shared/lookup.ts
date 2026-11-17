@@ -1,7 +1,7 @@
 // 按 ID 查名称与素材 ID（道具、卡池、角色、培育……）：名称先查前端名称表（当前语言的译名 → 游戏原文名），
 // 没有时再查目录接口；界面上只显示名称，从不显示 ID。
-// 只查页面上真正显示出来的条目：同一类目录的 ID 攒成一批（ids 筛选，并发最多 4 个），结果在页面实例里缓存；
-// 不一次性拉整个目录。偶像卡皮肤可以按角色分组查（一个角色一次，见 group）。
+// 只查页面上真正显示出来的条目：同一类目录的 ID 攒成一批交给 ctx.catalog（整份目录每类只读一次，在浏览器里按 ID 取出），
+// 结果在页面实例里缓存。偶像卡皮肤可以按角色分组查（一个角色一次，见 group）。
 import { reactive } from 'vue'
 import type { CatalogEntry } from '@/games/mgp'
 import { resourceRef, type GakumasCatalogKind } from '@/games/gakumas/catalog'

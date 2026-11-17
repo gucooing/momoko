@@ -65,7 +65,7 @@ export async function nameIds(ctx: GmContext, kind: string, q: string): Promise<
   return [...(await searchGameNames(ctx.game.value, getCurrentLocale(), kind, q))]
 }
 
-/** 目录里命中查询的条目（关键字经名称表解析后由服务端筛选）。 */
+/** 目录里命中查询的条目（在浏览器里筛选整份目录）。 */
 export async function catalogEntries(ctx: GmContext, kind: string, query: CatalogQuery): Promise<CatalogEntry[]> {
   return (await ctx.catalog(kind, { limit: LIMIT, ...query })).items
 }

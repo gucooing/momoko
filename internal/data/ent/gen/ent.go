@@ -41,8 +41,6 @@ import (
 	"momoko/internal/data/ent/gen/passportinvite"
 	"momoko/internal/data/ent/gen/passportloginlog"
 	"momoko/internal/data/ent/gen/passportmessage"
-	"momoko/internal/data/ent/gen/passportoidcclient"
-	"momoko/internal/data/ent/gen/passportoidcgrant"
 	"momoko/internal/data/ent/gen/passportsession"
 	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/internal/data/ent/gen/portforward"
@@ -159,8 +157,6 @@ func checkColumn(t, c string) error {
 			passportinvite.Table:     passportinvite.ValidColumn,
 			passportloginlog.Table:   passportloginlog.ValidColumn,
 			passportmessage.Table:    passportmessage.ValidColumn,
-			passportoidcclient.Table: passportoidcclient.ValidColumn,
-			passportoidcgrant.Table:  passportoidcgrant.ValidColumn,
 			passportsession.Table:    passportsession.ValidColumn,
 			passportuser.Table:       passportuser.ValidColumn,
 			portforward.Table:        portforward.ValidColumn,

@@ -5,7 +5,6 @@ import type {
   ChangePassportEmailRequest,
   GetPassportConfigResponse,
   ListPassportActivityResponse,
-  ListPassportAppsResponse,
   ListPassportDevicesResponse,
   ListPassportGameRecordsResponse,
   ListPassportLinksResponse,
@@ -16,9 +15,6 @@ import type {
   PassportLoginRequest,
   PassportLoginResponse,
   PassportMe,
-  PassportOidcAuthorizationInfo,
-  PassportOidcAuthorizeRequest,
-  PassportOidcAuthorizeResponse,
   PassportRecoveryCodes,
   PassportRegisterRequest,
   PresignPassportAvatarResponse,
@@ -65,8 +61,6 @@ export const regenerateRecoveryCodes = (code: string) => http.post<PassportRecov
 export const listDevices = () => http.get<ListPassportDevicesResponse>('/me/devices')
 export const revokeDevice = (sessionId: string) => http.del<unknown>(`/me/devices/${seg(sessionId)}`)
 export const logoutOthers = () => http.post<unknown>('/me/devices/logout-others')
-export const listApps = () => http.get<ListPassportAppsResponse>('/me/apps')
-export const revokeApp = (id: string) => http.del<unknown>(`/me/apps/${seg(id)}`)
 export const requestDeletion = (password: string) => http.post<PassportMe>('/me/deletion', { password })
 export const cancelDeletion = () => http.del<PassportMe>('/me/deletion')
 export const listMessages = (page = 1, pageSize = 20, unreadOnly = false) =>
@@ -79,7 +73,7 @@ export const listActivity = (limit = 10) => http.get<ListPassportActivityRespons
 export const listLinks = () => http.get<ListPassportLinksResponse>('/links')
 export const setPrimaryLink = (id: string) => http.post<unknown>(`/links/${seg(id)}/primary`)
 export const unbindLink = (id: string) => http.post<unknown>(`/links/${seg(id)}/unbind`)
-/** 绑定页选服务器；serverId 为授权页指定的服务器（对你可见时在 target 里返回）。 */
+/** 绑定页选服务器；serverId 为预选的服务器（对你可见时在 target 里返回）。 */
 export const searchBindServers = (q: string, game = '', serverId = '') =>
   http.get<SearchPassportBindServersResponse>('/bind/servers', { q, game, serverId })
 export const bindAccount = (req: BindPassportAccountRequest) => http.post<PassportLink>('/bind', req)
@@ -99,9 +93,3 @@ export const listGameRecords = (serverId: string, page = 1, pageSize = 10) =>
   http.get<ListPassportGameRecordsResponse>(`${gbase(serverId)}/records`, { page, pageSize })
 export const redeemGiftCode = (serverId: string, code: string) =>
   http.post<RedeemPassportGiftCodeResponse>(`${gbase(serverId)}/redeem`, { code })
-
-// ---------- OIDC 授权确认 ----------
-export const getOidcAuthorization = (req: Partial<PassportOidcAuthorizeRequest>) =>
-  http.get<PassportOidcAuthorizationInfo>('/oidc/authorize', req as Record<string, unknown>)
-export const approveOidcAuthorization = (req: Partial<PassportOidcAuthorizeRequest>) =>
-  http.post<PassportOidcAuthorizeResponse>('/oidc/authorize', req)

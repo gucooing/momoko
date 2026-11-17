@@ -45,6 +45,14 @@ func (r *gameServerRepo) ListByKeyID(ctx context.Context, keyID string) ([]*gen.
 	return r.data.db.GameServer.Query().Where(entgameserver.KeyID(keyID)).Order(entgameserver.ByCreateTime()).All(ctx)
 }
 
+func (r *gameServerRepo) GetByClientAppID(ctx context.Context, appID string) (*gen.GameServer, error) {
+	return r.data.db.GameServer.Query().Where(entgameserver.ClientAppID(appID)).Only(ctx)
+}
+
+func (r *gameServerRepo) SetClientApp(ctx context.Context, id, appID, secret string) (*gen.GameServer, error) {
+	return r.data.db.GameServer.UpdateOneID(id).SetClientAppID(appID).SetClientAppSecret(secret).Save(ctx)
+}
+
 func (r *gameServerRepo) Create(ctx context.Context, s *gen.GameServer) (*gen.GameServer, error) {
 	if s.ID == "" {
 		s.ID = uuid.NewString()
@@ -86,6 +94,9 @@ func (r *gameServerRepo) Update(ctx context.Context, s *gen.GameServer) (*gen.Ga
 		SetSecret(s.Secret).
 		SetPassportVisibility(s.PassportVisibility).
 		SetPassportInviteCode(s.PassportInviteCode).
+		SetClientSdkURL(s.ClientSdkURL).
+		SetClientGameURL(s.ClientGameURL).
+		SetClientResourceURL(s.ClientResourceURL).
 		SetTimezone(s.Timezone).
 		SetRemark(s.Remark)
 	if s.KeyRotatedAt != nil {

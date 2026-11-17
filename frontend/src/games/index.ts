@@ -14,7 +14,16 @@ export {
   type GameAssetEntry,
 } from './core'
 export * as gakumas from './gakumas/assets'
-export { ensureGameNames, gameName, gameNameVariants, loadGameNames, localizeEntries, lookupGameName, nameLangOf, searchGameNames } from './names'
+export {
+  ensureGameNames,
+  gameName,
+  gameNameVariants,
+  loadGameNames,
+  localizeEntries,
+  lookupGameName,
+  nameLangOf,
+  searchGameNames,
+} from './names'
 export { fuzzyMatch, normalizeName } from './search'
 
 /**

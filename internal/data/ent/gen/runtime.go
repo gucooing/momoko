@@ -38,8 +38,6 @@ import (
 	"momoko/internal/data/ent/gen/passportinvite"
 	"momoko/internal/data/ent/gen/passportloginlog"
 	"momoko/internal/data/ent/gen/passportmessage"
-	"momoko/internal/data/ent/gen/passportoidcclient"
-	"momoko/internal/data/ent/gen/passportoidcgrant"
 	"momoko/internal/data/ent/gen/passportsession"
 	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/internal/data/ent/gen/portforward"
@@ -703,8 +701,24 @@ func init() {
 	gameserverDescPassportInviteCode := gameserverFields[25].Descriptor()
 	// gameserver.DefaultPassportInviteCode holds the default value on creation for the passport_invite_code field.
 	gameserver.DefaultPassportInviteCode = gameserverDescPassportInviteCode.Default.(string)
+	// gameserverDescClientSdkURL is the schema descriptor for client_sdk_url field.
+	gameserverDescClientSdkURL := gameserverFields[26].Descriptor()
+	// gameserver.DefaultClientSdkURL holds the default value on creation for the client_sdk_url field.
+	gameserver.DefaultClientSdkURL = gameserverDescClientSdkURL.Default.(string)
+	// gameserverDescClientGameURL is the schema descriptor for client_game_url field.
+	gameserverDescClientGameURL := gameserverFields[27].Descriptor()
+	// gameserver.DefaultClientGameURL holds the default value on creation for the client_game_url field.
+	gameserver.DefaultClientGameURL = gameserverDescClientGameURL.Default.(string)
+	// gameserverDescClientResourceURL is the schema descriptor for client_resource_url field.
+	gameserverDescClientResourceURL := gameserverFields[28].Descriptor()
+	// gameserver.DefaultClientResourceURL holds the default value on creation for the client_resource_url field.
+	gameserver.DefaultClientResourceURL = gameserverDescClientResourceURL.Default.(string)
+	// gameserverDescClientAppSecret is the schema descriptor for client_app_secret field.
+	gameserverDescClientAppSecret := gameserverFields[30].Descriptor()
+	// gameserver.DefaultClientAppSecret holds the default value on creation for the client_app_secret field.
+	gameserver.DefaultClientAppSecret = gameserverDescClientAppSecret.Default.(string)
 	// gameserverDescRemark is the schema descriptor for remark field.
-	gameserverDescRemark := gameserverFields[26].Descriptor()
+	gameserverDescRemark := gameserverFields[31].Descriptor()
 	// gameserver.DefaultRemark holds the default value on creation for the remark field.
 	gameserver.DefaultRemark = gameserverDescRemark.Default.(string)
 	// gameserverDescID is the schema descriptor for id field.
@@ -1691,84 +1705,6 @@ func init() {
 	passportmessageDescID := passportmessageFields[0].Descriptor()
 	// passportmessage.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	passportmessage.IDValidator = passportmessageDescID.Validators[0].(func(string) error)
-	passportoidcclientMixin := schema.PassportOidcClient{}.Mixin()
-	passportoidcclientMixinFields0 := passportoidcclientMixin[0].Fields()
-	_ = passportoidcclientMixinFields0
-	passportoidcclientFields := schema.PassportOidcClient{}.Fields()
-	_ = passportoidcclientFields
-	// passportoidcclientDescCreateTime is the schema descriptor for create_time field.
-	passportoidcclientDescCreateTime := passportoidcclientMixinFields0[0].Descriptor()
-	// passportoidcclient.DefaultCreateTime holds the default value on creation for the create_time field.
-	passportoidcclient.DefaultCreateTime = passportoidcclientDescCreateTime.Default.(func() time.Time)
-	// passportoidcclientDescUpdateTime is the schema descriptor for update_time field.
-	passportoidcclientDescUpdateTime := passportoidcclientMixinFields0[1].Descriptor()
-	// passportoidcclient.DefaultUpdateTime holds the default value on creation for the update_time field.
-	passportoidcclient.DefaultUpdateTime = passportoidcclientDescUpdateTime.Default.(func() time.Time)
-	// passportoidcclient.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	passportoidcclient.UpdateDefaultUpdateTime = passportoidcclientDescUpdateTime.UpdateDefault.(func() time.Time)
-	// passportoidcclientDescName is the schema descriptor for name field.
-	passportoidcclientDescName := passportoidcclientFields[1].Descriptor()
-	// passportoidcclient.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	passportoidcclient.NameValidator = passportoidcclientDescName.Validators[0].(func(string) error)
-	// passportoidcclientDescClientID is the schema descriptor for client_id field.
-	passportoidcclientDescClientID := passportoidcclientFields[2].Descriptor()
-	// passportoidcclient.ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
-	passportoidcclient.ClientIDValidator = passportoidcclientDescClientID.Validators[0].(func(string) error)
-	// passportoidcclientDescClientSecret is the schema descriptor for client_secret field.
-	passportoidcclientDescClientSecret := passportoidcclientFields[3].Descriptor()
-	// passportoidcclient.ClientSecretValidator is a validator for the "client_secret" field. It is called by the builders before save.
-	passportoidcclient.ClientSecretValidator = passportoidcclientDescClientSecret.Validators[0].(func(string) error)
-	// passportoidcclientDescActive is the schema descriptor for active field.
-	passportoidcclientDescActive := passportoidcclientFields[6].Descriptor()
-	// passportoidcclient.DefaultActive holds the default value on creation for the active field.
-	passportoidcclient.DefaultActive = passportoidcclientDescActive.Default.(bool)
-	// passportoidcclientDescDescription is the schema descriptor for description field.
-	passportoidcclientDescDescription := passportoidcclientFields[7].Descriptor()
-	// passportoidcclient.DefaultDescription holds the default value on creation for the description field.
-	passportoidcclient.DefaultDescription = passportoidcclientDescDescription.Default.(string)
-	// passportoidcclientDescServerID is the schema descriptor for server_id field.
-	passportoidcclientDescServerID := passportoidcclientFields[8].Descriptor()
-	// passportoidcclient.DefaultServerID holds the default value on creation for the server_id field.
-	passportoidcclient.DefaultServerID = passportoidcclientDescServerID.Default.(string)
-	// passportoidcclientDescCreatedByName is the schema descriptor for created_by_name field.
-	passportoidcclientDescCreatedByName := passportoidcclientFields[9].Descriptor()
-	// passportoidcclient.DefaultCreatedByName holds the default value on creation for the created_by_name field.
-	passportoidcclient.DefaultCreatedByName = passportoidcclientDescCreatedByName.Default.(string)
-	// passportoidcclientDescID is the schema descriptor for id field.
-	passportoidcclientDescID := passportoidcclientFields[0].Descriptor()
-	// passportoidcclient.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	passportoidcclient.IDValidator = passportoidcclientDescID.Validators[0].(func(string) error)
-	passportoidcgrantMixin := schema.PassportOidcGrant{}.Mixin()
-	passportoidcgrantMixinFields0 := passportoidcgrantMixin[0].Fields()
-	_ = passportoidcgrantMixinFields0
-	passportoidcgrantFields := schema.PassportOidcGrant{}.Fields()
-	_ = passportoidcgrantFields
-	// passportoidcgrantDescCreateTime is the schema descriptor for create_time field.
-	passportoidcgrantDescCreateTime := passportoidcgrantMixinFields0[0].Descriptor()
-	// passportoidcgrant.DefaultCreateTime holds the default value on creation for the create_time field.
-	passportoidcgrant.DefaultCreateTime = passportoidcgrantDescCreateTime.Default.(func() time.Time)
-	// passportoidcgrantDescUpdateTime is the schema descriptor for update_time field.
-	passportoidcgrantDescUpdateTime := passportoidcgrantMixinFields0[1].Descriptor()
-	// passportoidcgrant.DefaultUpdateTime holds the default value on creation for the update_time field.
-	passportoidcgrant.DefaultUpdateTime = passportoidcgrantDescUpdateTime.Default.(func() time.Time)
-	// passportoidcgrant.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	passportoidcgrant.UpdateDefaultUpdateTime = passportoidcgrantDescUpdateTime.UpdateDefault.(func() time.Time)
-	// passportoidcgrantDescUserID is the schema descriptor for user_id field.
-	passportoidcgrantDescUserID := passportoidcgrantFields[1].Descriptor()
-	// passportoidcgrant.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	passportoidcgrant.UserIDValidator = passportoidcgrantDescUserID.Validators[0].(func(string) error)
-	// passportoidcgrantDescClientID is the schema descriptor for client_id field.
-	passportoidcgrantDescClientID := passportoidcgrantFields[2].Descriptor()
-	// passportoidcgrant.ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
-	passportoidcgrant.ClientIDValidator = passportoidcgrantDescClientID.Validators[0].(func(string) error)
-	// passportoidcgrantDescLastUsedAt is the schema descriptor for last_used_at field.
-	passportoidcgrantDescLastUsedAt := passportoidcgrantFields[4].Descriptor()
-	// passportoidcgrant.DefaultLastUsedAt holds the default value on creation for the last_used_at field.
-	passportoidcgrant.DefaultLastUsedAt = passportoidcgrantDescLastUsedAt.Default.(func() time.Time)
-	// passportoidcgrantDescID is the schema descriptor for id field.
-	passportoidcgrantDescID := passportoidcgrantFields[0].Descriptor()
-	// passportoidcgrant.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	passportoidcgrant.IDValidator = passportoidcgrantDescID.Validators[0].(func(string) error)
 	passportsessionMixin := schema.PassportSession{}.Mixin()
 	passportsessionMixinFields0 := passportsessionMixin[0].Fields()
 	_ = passportsessionMixinFields0
@@ -1800,32 +1736,28 @@ func init() {
 	passportsessionDescUserAgent := passportsessionFields[4].Descriptor()
 	// passportsession.DefaultUserAgent holds the default value on creation for the user_agent field.
 	passportsession.DefaultUserAgent = passportsessionDescUserAgent.Default.(string)
-	// passportsessionDescClientID is the schema descriptor for client_id field.
-	passportsessionDescClientID := passportsessionFields[5].Descriptor()
-	// passportsession.DefaultClientID holds the default value on creation for the client_id field.
-	passportsession.DefaultClientID = passportsessionDescClientID.Default.(string)
 	// passportsessionDescLoginMethod is the schema descriptor for login_method field.
-	passportsessionDescLoginMethod := passportsessionFields[6].Descriptor()
+	passportsessionDescLoginMethod := passportsessionFields[5].Descriptor()
 	// passportsession.DefaultLoginMethod holds the default value on creation for the login_method field.
 	passportsession.DefaultLoginMethod = passportsessionDescLoginMethod.Default.(string)
 	// passportsessionDescIP is the schema descriptor for ip field.
-	passportsessionDescIP := passportsessionFields[7].Descriptor()
+	passportsessionDescIP := passportsessionFields[6].Descriptor()
 	// passportsession.DefaultIP holds the default value on creation for the ip field.
 	passportsession.DefaultIP = passportsessionDescIP.Default.(string)
 	// passportsessionDescLastIP is the schema descriptor for last_ip field.
-	passportsessionDescLastIP := passportsessionFields[8].Descriptor()
+	passportsessionDescLastIP := passportsessionFields[7].Descriptor()
 	// passportsession.DefaultLastIP holds the default value on creation for the last_ip field.
 	passportsession.DefaultLastIP = passportsessionDescLastIP.Default.(string)
 	// passportsessionDescAccessNoise is the schema descriptor for access_noise field.
-	passportsessionDescAccessNoise := passportsessionFields[10].Descriptor()
+	passportsessionDescAccessNoise := passportsessionFields[9].Descriptor()
 	// passportsession.AccessNoiseValidator is a validator for the "access_noise" field. It is called by the builders before save.
 	passportsession.AccessNoiseValidator = passportsessionDescAccessNoise.Validators[0].(func(string) error)
 	// passportsessionDescRefreshNoise is the schema descriptor for refresh_noise field.
-	passportsessionDescRefreshNoise := passportsessionFields[11].Descriptor()
+	passportsessionDescRefreshNoise := passportsessionFields[10].Descriptor()
 	// passportsession.RefreshNoiseValidator is a validator for the "refresh_noise" field. It is called by the builders before save.
 	passportsession.RefreshNoiseValidator = passportsessionDescRefreshNoise.Validators[0].(func(string) error)
 	// passportsessionDescPersistent is the schema descriptor for persistent field.
-	passportsessionDescPersistent := passportsessionFields[12].Descriptor()
+	passportsessionDescPersistent := passportsessionFields[11].Descriptor()
 	// passportsession.DefaultPersistent holds the default value on creation for the persistent field.
 	passportsession.DefaultPersistent = passportsessionDescPersistent.Default.(bool)
 	// passportsessionDescID is the schema descriptor for id field.

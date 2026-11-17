@@ -131,7 +131,7 @@ type Method string
 const (
 	MethodPassword Method = "password"
 	MethodCode     Method = "code"
-	MethodOidc     Method = "oidc"
+	MethodCreate   Method = "create"
 	MethodAdmin    Method = "admin"
 	MethodRequest  Method = "request"
 )
@@ -143,7 +143,7 @@ func (m Method) String() string {
 // MethodValidator is a validator for the "method" field enum values. It is called by the builders before save.
 func MethodValidator(m Method) error {
 	switch m {
-	case MethodPassword, MethodCode, MethodOidc, MethodAdmin, MethodRequest:
+	case MethodPassword, MethodCode, MethodCreate, MethodAdmin, MethodRequest:
 		return nil
 	default:
 		return fmt.Errorf("gameaccountlink: invalid enum value for method field: %q", m)

@@ -431,6 +431,82 @@ func (_u *GameServerUpdate) SetNillablePassportInviteCode(v *string) *GameServer
 	return _u
 }
 
+// SetClientSdkURL sets the "client_sdk_url" field.
+func (_u *GameServerUpdate) SetClientSdkURL(v string) *GameServerUpdate {
+	_u.mutation.SetClientSdkURL(v)
+	return _u
+}
+
+// SetNillableClientSdkURL sets the "client_sdk_url" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableClientSdkURL(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetClientSdkURL(*v)
+	}
+	return _u
+}
+
+// SetClientGameURL sets the "client_game_url" field.
+func (_u *GameServerUpdate) SetClientGameURL(v string) *GameServerUpdate {
+	_u.mutation.SetClientGameURL(v)
+	return _u
+}
+
+// SetNillableClientGameURL sets the "client_game_url" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableClientGameURL(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetClientGameURL(*v)
+	}
+	return _u
+}
+
+// SetClientResourceURL sets the "client_resource_url" field.
+func (_u *GameServerUpdate) SetClientResourceURL(v string) *GameServerUpdate {
+	_u.mutation.SetClientResourceURL(v)
+	return _u
+}
+
+// SetNillableClientResourceURL sets the "client_resource_url" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableClientResourceURL(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetClientResourceURL(*v)
+	}
+	return _u
+}
+
+// SetClientAppID sets the "client_app_id" field.
+func (_u *GameServerUpdate) SetClientAppID(v string) *GameServerUpdate {
+	_u.mutation.SetClientAppID(v)
+	return _u
+}
+
+// SetNillableClientAppID sets the "client_app_id" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableClientAppID(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetClientAppID(*v)
+	}
+	return _u
+}
+
+// ClearClientAppID clears the value of the "client_app_id" field.
+func (_u *GameServerUpdate) ClearClientAppID() *GameServerUpdate {
+	_u.mutation.ClearClientAppID()
+	return _u
+}
+
+// SetClientAppSecret sets the "client_app_secret" field.
+func (_u *GameServerUpdate) SetClientAppSecret(v string) *GameServerUpdate {
+	_u.mutation.SetClientAppSecret(v)
+	return _u
+}
+
+// SetNillableClientAppSecret sets the "client_app_secret" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableClientAppSecret(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetClientAppSecret(*v)
+	}
+	return _u
+}
+
 // SetRemark sets the "remark" field.
 func (_u *GameServerUpdate) SetRemark(v string) *GameServerUpdate {
 	_u.mutation.SetRemark(v)
@@ -634,6 +710,24 @@ func (_u *GameServerUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.PassportInviteCode(); ok {
 		_spec.SetField(gameserver.FieldPassportInviteCode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClientSdkURL(); ok {
+		_spec.SetField(gameserver.FieldClientSdkURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClientGameURL(); ok {
+		_spec.SetField(gameserver.FieldClientGameURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClientResourceURL(); ok {
+		_spec.SetField(gameserver.FieldClientResourceURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClientAppID(); ok {
+		_spec.SetField(gameserver.FieldClientAppID, field.TypeString, value)
+	}
+	if _u.mutation.ClientAppIDCleared() {
+		_spec.ClearField(gameserver.FieldClientAppID, field.TypeString)
+	}
+	if value, ok := _u.mutation.ClientAppSecret(); ok {
+		_spec.SetField(gameserver.FieldClientAppSecret, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(gameserver.FieldRemark, field.TypeString, value)
@@ -1059,6 +1153,82 @@ func (_u *GameServerUpdateOne) SetNillablePassportInviteCode(v *string) *GameSer
 	return _u
 }
 
+// SetClientSdkURL sets the "client_sdk_url" field.
+func (_u *GameServerUpdateOne) SetClientSdkURL(v string) *GameServerUpdateOne {
+	_u.mutation.SetClientSdkURL(v)
+	return _u
+}
+
+// SetNillableClientSdkURL sets the "client_sdk_url" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableClientSdkURL(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetClientSdkURL(*v)
+	}
+	return _u
+}
+
+// SetClientGameURL sets the "client_game_url" field.
+func (_u *GameServerUpdateOne) SetClientGameURL(v string) *GameServerUpdateOne {
+	_u.mutation.SetClientGameURL(v)
+	return _u
+}
+
+// SetNillableClientGameURL sets the "client_game_url" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableClientGameURL(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetClientGameURL(*v)
+	}
+	return _u
+}
+
+// SetClientResourceURL sets the "client_resource_url" field.
+func (_u *GameServerUpdateOne) SetClientResourceURL(v string) *GameServerUpdateOne {
+	_u.mutation.SetClientResourceURL(v)
+	return _u
+}
+
+// SetNillableClientResourceURL sets the "client_resource_url" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableClientResourceURL(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetClientResourceURL(*v)
+	}
+	return _u
+}
+
+// SetClientAppID sets the "client_app_id" field.
+func (_u *GameServerUpdateOne) SetClientAppID(v string) *GameServerUpdateOne {
+	_u.mutation.SetClientAppID(v)
+	return _u
+}
+
+// SetNillableClientAppID sets the "client_app_id" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableClientAppID(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetClientAppID(*v)
+	}
+	return _u
+}
+
+// ClearClientAppID clears the value of the "client_app_id" field.
+func (_u *GameServerUpdateOne) ClearClientAppID() *GameServerUpdateOne {
+	_u.mutation.ClearClientAppID()
+	return _u
+}
+
+// SetClientAppSecret sets the "client_app_secret" field.
+func (_u *GameServerUpdateOne) SetClientAppSecret(v string) *GameServerUpdateOne {
+	_u.mutation.SetClientAppSecret(v)
+	return _u
+}
+
+// SetNillableClientAppSecret sets the "client_app_secret" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableClientAppSecret(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetClientAppSecret(*v)
+	}
+	return _u
+}
+
 // SetRemark sets the "remark" field.
 func (_u *GameServerUpdateOne) SetRemark(v string) *GameServerUpdateOne {
 	_u.mutation.SetRemark(v)
@@ -1292,6 +1462,24 @@ func (_u *GameServerUpdateOne) sqlSave(ctx context.Context) (_node *GameServer, 
 	}
 	if value, ok := _u.mutation.PassportInviteCode(); ok {
 		_spec.SetField(gameserver.FieldPassportInviteCode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClientSdkURL(); ok {
+		_spec.SetField(gameserver.FieldClientSdkURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClientGameURL(); ok {
+		_spec.SetField(gameserver.FieldClientGameURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClientResourceURL(); ok {
+		_spec.SetField(gameserver.FieldClientResourceURL, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ClientAppID(); ok {
+		_spec.SetField(gameserver.FieldClientAppID, field.TypeString, value)
+	}
+	if _u.mutation.ClientAppIDCleared() {
+		_spec.ClearField(gameserver.FieldClientAppID, field.TypeString)
+	}
+	if value, ok := _u.mutation.ClientAppSecret(); ok {
+		_spec.SetField(gameserver.FieldClientAppSecret, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Remark(); ok {
 		_spec.SetField(gameserver.FieldRemark, field.TypeString, value)

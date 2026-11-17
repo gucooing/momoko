@@ -22,7 +22,8 @@ import (
 )
 
 // 游戏客户端错误日志：游戏客户端凭游戏服务端签发的上传票据，把日志传到通行证 server（POST /api/v1/game-client-logs），
-// 每个游戏账号（服务器 + pid）只保留最新 5 份；管理端在 GM 玩家详情的「客户端日志」里查看、下载与删除。
+// 每个游戏账号（服务器 + pid）只保留最新 5 份。管理端在「客户端日志」页查看全部服务器的日志（筛选、查看全文、下载与删除），
+// GM 玩家详情的「客户端日志」是同一个列表按服务器与玩家筛选。
 //
 // 上传票据由游戏服务端用这台服务器的 MGP 密钥签发（学マス：SDK POST /passport/log-ticket）：
 //
@@ -53,14 +54,11 @@ const (
 	clientLogMaxClientVersion = 64
 )
 
-// clientLogReasons 上传原因。
+// clientLogReasons 上传原因：exception 异常、crash 崩溃、fatal 致命错误由客户端自动上传，manual 是玩家手动上传。
 var clientLogReasons = map[string]bool{
 	"exception": true,
-	"error":     true,
 	"crash":     true,
 	"fatal":     true,
-	"login":     true,
-	"sdk":       true,
 	"manual":    true,
 }
 
@@ -73,12 +71,24 @@ var (
 	ErrGmClientLogNotFound  = response.BadRequest(404, "客户端日志不存在")
 )
 
+// ClientLogFilter 管理端客户端日志列表的筛选（空值表示不限）。
+type ClientLogFilter struct {
+	ServerID string
+	PID      string
+	Reason   string
+	// Q 关键字：摘要、说明、设备（不区分大小写）
+	Q            string
+	Since, Until *time.Time
+	Offset       int
+	Limit        int
+}
+
 // GameClientLogRepo 游戏客户端日志的持久化（通行证写入，管理端读取与删除）。
 type GameClientLogRepo interface {
 	// Create 写入一份日志，并只保留这个游戏账号最新的 keep 份（更早的在同一事务里删除）。
 	Create(ctx context.Context, l *gen.GameClientLog, keep int) (*gen.GameClientLog, error)
-	// List 一个游戏账号的日志（不读日志原文），从新到旧。
-	List(ctx context.Context, serverID, pid string) ([]*gen.GameClientLog, error)
+	// List 按筛选分页列出日志（不读日志原文），从新到旧；同时返回总数。
+	List(ctx context.Context, f ClientLogFilter) ([]*gen.GameClientLog, int, error)
 	Get(ctx context.Context, id string) (*gen.GameClientLog, error)
 	Delete(ctx context.Context, id string) error
 }
@@ -216,10 +226,30 @@ func clientLogContent(l *gen.GameClientLog) (string, error) {
 	return string(raw), nil
 }
 
-// ---------------- 管理端（GM 玩家详情） ----------------
+// ---------------- 管理端（客户端日志页与 GM 玩家详情） ----------------
 
-func clientLogProto(l *gen.GameClientLog) *v1.GmClientLog {
-	return &v1.GmClientLog{
+// clientLogLinks 日志所属游戏账号绑定的通行证：按服务器分组批量读取，键为服务器 id + pid。
+func (uc *GmUsecase) clientLogLinks(ctx context.Context, logs []*gen.GameClientLog) map[string]*GmLink {
+	pids := map[string][]string{}
+	for _, l := range logs {
+		pids[l.ServerID] = append(pids[l.ServerID], l.PlayerID)
+	}
+	out := map[string]*GmLink{}
+	for serverID, list := range pids {
+		links, err := uc.repo.LinksByPIDs(ctx, serverID, list)
+		if err != nil {
+			uc.log.Warnf("client log links of server %s: %v", serverID, err)
+			continue
+		}
+		for _, link := range links {
+			out[serverID+"\x00"+link.PID] = link
+		}
+	}
+	return out
+}
+
+func (uc *GmUsecase) clientLogProto(ctx context.Context, l *gen.GameClientLog, servers map[string]*gen.GameServer, links map[string]*GmLink) *v1.GmClientLog {
+	out := &v1.GmClientLog{
 		Id:            l.ID,
 		Reason:        l.Reason,
 		Summary:       l.Summary,
@@ -229,32 +259,55 @@ func clientLogProto(l *gen.GameClientLog) *v1.GmClientLog {
 		Size:          int32(l.Size),
 		OccurredAt:    timestamppb.New(l.OccurredAt),
 		CreatedAt:     timestamppb.New(l.CreatedAt),
+		PlayerId:      l.PlayerID,
 	}
+	if s, ok := servers[l.ServerID]; ok {
+		out.Server = uc.servers.Brief(ctx, s)
+	} else {
+		out.Server = &v1.GameServerBrief{Id: l.ServerID, Tags: []string{}, Online: -1, Registered: -1}
+	}
+	if link, ok := links[l.ServerID+"\x00"+l.PlayerID]; ok {
+		out.Link = gmLinkProto(link)
+	}
+	return out
 }
 
-// ListClientLogs 玩家的客户端日志（从新到旧，不含日志原文）。
-func (uc *GmUsecase) ListClientLogs(ctx context.Context, serverID, pid string) (*v1.ListGmClientLogsResponse, error) {
-	if _, err := uc.servers.Get(ctx, serverID); err != nil {
-		return nil, err
+// ListClientLogs 客户端日志（全部服务器，从新到旧，分页，不含日志原文）。
+func (uc *GmUsecase) ListClientLogs(ctx context.Context, req *v1.ListGmClientLogsRequest) (*v1.ListGmClientLogsResponse, error) {
+	page, size := pageOf(req.Page, req.PageSize, 20)
+	f := ClientLogFilter{
+		ServerID: strings.TrimSpace(req.ServerId),
+		PID:      strings.TrimSpace(req.Pid),
+		Reason:   strings.TrimSpace(req.Reason),
+		Q:        strings.TrimSpace(req.Q),
+		Offset:   (page - 1) * size,
+		Limit:    size,
 	}
-	if strings.TrimSpace(pid) == "" {
-		return nil, ErrGmTargets
+	if req.Since != nil {
+		t := req.Since.AsTime()
+		f.Since = &t
 	}
-	list, err := uc.clientLogs.List(ctx, serverID, pid)
+	if req.Until != nil {
+		t := req.Until.AsTime()
+		f.Until = &t
+	}
+	list, total, err := uc.clientLogs.List(ctx, f)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	out := &v1.ListGmClientLogsResponse{Items: make([]*v1.GmClientLog, 0, len(list))}
+	servers := passportServerMap(ctx, uc.servers)
+	links := uc.clientLogLinks(ctx, list)
+	out := &v1.ListGmClientLogsResponse{Items: make([]*v1.GmClientLog, 0, len(list)), Total: int32(total)}
 	for _, l := range list {
-		out.Items = append(out.Items, clientLogProto(l))
+		out.Items = append(out.Items, uc.clientLogProto(ctx, l, servers, links))
 	}
 	return out, nil
 }
 
-// clientLog 读取一份属于这个玩家的日志。
-func (uc *GmUsecase) clientLog(ctx context.Context, serverID, pid, id string) (*gen.GameClientLog, error) {
+// clientLog 读取一份日志。
+func (uc *GmUsecase) clientLog(ctx context.Context, id string) (*gen.GameClientLog, error) {
 	l, err := uc.clientLogs.Get(ctx, id)
-	if gen.IsNotFound(err) || (err == nil && (l.ServerID != serverID || l.PlayerID != pid)) {
+	if gen.IsNotFound(err) {
 		return nil, ErrGmClientLogNotFound
 	}
 	if err != nil {
@@ -263,9 +316,9 @@ func (uc *GmUsecase) clientLog(ctx context.Context, serverID, pid, id string) (*
 	return l, nil
 }
 
-// GetClientLog 一份客户端日志（含解压后的日志原文）。
-func (uc *GmUsecase) GetClientLog(ctx context.Context, serverID, pid, id string) (*v1.GmClientLog, error) {
-	l, err := uc.clientLog(ctx, serverID, pid, id)
+// GetClientLog 一份客户端日志（含解压后的日志原文、服务器与绑定的通行证）。
+func (uc *GmUsecase) GetClientLog(ctx context.Context, id string) (*v1.GmClientLog, error) {
+	l, err := uc.clientLog(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -273,14 +326,18 @@ func (uc *GmUsecase) GetClientLog(ctx context.Context, serverID, pid, id string)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	out := clientLogProto(l)
+	servers := map[string]*gen.GameServer{}
+	if s, err := uc.servers.Get(ctx, l.ServerID); err == nil {
+		servers[s.ID] = s
+	}
+	out := uc.clientLogProto(ctx, l, servers, uc.clientLogLinks(ctx, []*gen.GameClientLog{l}))
 	out.Content = content
 	return out, nil
 }
 
 // DeleteClientLog 删除一份客户端日志。
-func (uc *GmUsecase) DeleteClientLog(ctx context.Context, serverID, pid, id string) error {
-	l, err := uc.clientLog(ctx, serverID, pid, id)
+func (uc *GmUsecase) DeleteClientLog(ctx context.Context, id string) error {
+	l, err := uc.clientLog(ctx, id)
 	if err != nil {
 		return err
 	}

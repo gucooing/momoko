@@ -40,7 +40,7 @@ type GameAccountLink struct {
 	AvatarAsset string `json:"avatar_asset,omitempty"`
 	// 等级快照
 	Level int `json:"level,omitempty"`
-	// 绑定方式：密码 / 绑定码 / 通行证登录 / 管理员 / 申请
+	// 绑定方式：密码 / 绑定码 / 新建的游戏账号 / 管理员 / 申请
 	Method gameaccountlink.Method `json:"method,omitempty"`
 	// 状态
 	State gameaccountlink.State `json:"state,omitempty"`

@@ -179,6 +179,31 @@ func PassportInviteCode(v string) predicate.GameServer {
 	return predicate.GameServer(sql.FieldEQ(FieldPassportInviteCode, v))
 }
 
+// ClientSdkURL applies equality check predicate on the "client_sdk_url" field. It's identical to ClientSdkURLEQ.
+func ClientSdkURL(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientSdkURL, v))
+}
+
+// ClientGameURL applies equality check predicate on the "client_game_url" field. It's identical to ClientGameURLEQ.
+func ClientGameURL(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientGameURL, v))
+}
+
+// ClientResourceURL applies equality check predicate on the "client_resource_url" field. It's identical to ClientResourceURLEQ.
+func ClientResourceURL(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientResourceURL, v))
+}
+
+// ClientAppID applies equality check predicate on the "client_app_id" field. It's identical to ClientAppIDEQ.
+func ClientAppID(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientAppID, v))
+}
+
+// ClientAppSecret applies equality check predicate on the "client_app_secret" field. It's identical to ClientAppSecretEQ.
+func ClientAppSecret(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientAppSecret, v))
+}
+
 // Remark applies equality check predicate on the "remark" field. It's identical to RemarkEQ.
 func Remark(v string) predicate.GameServer {
 	return predicate.GameServer(sql.FieldEQ(FieldRemark, v))
@@ -1532,6 +1557,341 @@ func PassportInviteCodeEqualFold(v string) predicate.GameServer {
 // PassportInviteCodeContainsFold applies the ContainsFold predicate on the "passport_invite_code" field.
 func PassportInviteCodeContainsFold(v string) predicate.GameServer {
 	return predicate.GameServer(sql.FieldContainsFold(FieldPassportInviteCode, v))
+}
+
+// ClientSdkURLEQ applies the EQ predicate on the "client_sdk_url" field.
+func ClientSdkURLEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLNEQ applies the NEQ predicate on the "client_sdk_url" field.
+func ClientSdkURLNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLIn applies the In predicate on the "client_sdk_url" field.
+func ClientSdkURLIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldClientSdkURL, vs...))
+}
+
+// ClientSdkURLNotIn applies the NotIn predicate on the "client_sdk_url" field.
+func ClientSdkURLNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldClientSdkURL, vs...))
+}
+
+// ClientSdkURLGT applies the GT predicate on the "client_sdk_url" field.
+func ClientSdkURLGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLGTE applies the GTE predicate on the "client_sdk_url" field.
+func ClientSdkURLGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLLT applies the LT predicate on the "client_sdk_url" field.
+func ClientSdkURLLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLLTE applies the LTE predicate on the "client_sdk_url" field.
+func ClientSdkURLLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLContains applies the Contains predicate on the "client_sdk_url" field.
+func ClientSdkURLContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLHasPrefix applies the HasPrefix predicate on the "client_sdk_url" field.
+func ClientSdkURLHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLHasSuffix applies the HasSuffix predicate on the "client_sdk_url" field.
+func ClientSdkURLHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLEqualFold applies the EqualFold predicate on the "client_sdk_url" field.
+func ClientSdkURLEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldClientSdkURL, v))
+}
+
+// ClientSdkURLContainsFold applies the ContainsFold predicate on the "client_sdk_url" field.
+func ClientSdkURLContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldClientSdkURL, v))
+}
+
+// ClientGameURLEQ applies the EQ predicate on the "client_game_url" field.
+func ClientGameURLEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientGameURL, v))
+}
+
+// ClientGameURLNEQ applies the NEQ predicate on the "client_game_url" field.
+func ClientGameURLNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldClientGameURL, v))
+}
+
+// ClientGameURLIn applies the In predicate on the "client_game_url" field.
+func ClientGameURLIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldClientGameURL, vs...))
+}
+
+// ClientGameURLNotIn applies the NotIn predicate on the "client_game_url" field.
+func ClientGameURLNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldClientGameURL, vs...))
+}
+
+// ClientGameURLGT applies the GT predicate on the "client_game_url" field.
+func ClientGameURLGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldClientGameURL, v))
+}
+
+// ClientGameURLGTE applies the GTE predicate on the "client_game_url" field.
+func ClientGameURLGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldClientGameURL, v))
+}
+
+// ClientGameURLLT applies the LT predicate on the "client_game_url" field.
+func ClientGameURLLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldClientGameURL, v))
+}
+
+// ClientGameURLLTE applies the LTE predicate on the "client_game_url" field.
+func ClientGameURLLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldClientGameURL, v))
+}
+
+// ClientGameURLContains applies the Contains predicate on the "client_game_url" field.
+func ClientGameURLContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldClientGameURL, v))
+}
+
+// ClientGameURLHasPrefix applies the HasPrefix predicate on the "client_game_url" field.
+func ClientGameURLHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldClientGameURL, v))
+}
+
+// ClientGameURLHasSuffix applies the HasSuffix predicate on the "client_game_url" field.
+func ClientGameURLHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldClientGameURL, v))
+}
+
+// ClientGameURLEqualFold applies the EqualFold predicate on the "client_game_url" field.
+func ClientGameURLEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldClientGameURL, v))
+}
+
+// ClientGameURLContainsFold applies the ContainsFold predicate on the "client_game_url" field.
+func ClientGameURLContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldClientGameURL, v))
+}
+
+// ClientResourceURLEQ applies the EQ predicate on the "client_resource_url" field.
+func ClientResourceURLEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLNEQ applies the NEQ predicate on the "client_resource_url" field.
+func ClientResourceURLNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLIn applies the In predicate on the "client_resource_url" field.
+func ClientResourceURLIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldClientResourceURL, vs...))
+}
+
+// ClientResourceURLNotIn applies the NotIn predicate on the "client_resource_url" field.
+func ClientResourceURLNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldClientResourceURL, vs...))
+}
+
+// ClientResourceURLGT applies the GT predicate on the "client_resource_url" field.
+func ClientResourceURLGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLGTE applies the GTE predicate on the "client_resource_url" field.
+func ClientResourceURLGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLLT applies the LT predicate on the "client_resource_url" field.
+func ClientResourceURLLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLLTE applies the LTE predicate on the "client_resource_url" field.
+func ClientResourceURLLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLContains applies the Contains predicate on the "client_resource_url" field.
+func ClientResourceURLContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLHasPrefix applies the HasPrefix predicate on the "client_resource_url" field.
+func ClientResourceURLHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLHasSuffix applies the HasSuffix predicate on the "client_resource_url" field.
+func ClientResourceURLHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLEqualFold applies the EqualFold predicate on the "client_resource_url" field.
+func ClientResourceURLEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldClientResourceURL, v))
+}
+
+// ClientResourceURLContainsFold applies the ContainsFold predicate on the "client_resource_url" field.
+func ClientResourceURLContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldClientResourceURL, v))
+}
+
+// ClientAppIDEQ applies the EQ predicate on the "client_app_id" field.
+func ClientAppIDEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientAppID, v))
+}
+
+// ClientAppIDNEQ applies the NEQ predicate on the "client_app_id" field.
+func ClientAppIDNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldClientAppID, v))
+}
+
+// ClientAppIDIn applies the In predicate on the "client_app_id" field.
+func ClientAppIDIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldClientAppID, vs...))
+}
+
+// ClientAppIDNotIn applies the NotIn predicate on the "client_app_id" field.
+func ClientAppIDNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldClientAppID, vs...))
+}
+
+// ClientAppIDGT applies the GT predicate on the "client_app_id" field.
+func ClientAppIDGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldClientAppID, v))
+}
+
+// ClientAppIDGTE applies the GTE predicate on the "client_app_id" field.
+func ClientAppIDGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldClientAppID, v))
+}
+
+// ClientAppIDLT applies the LT predicate on the "client_app_id" field.
+func ClientAppIDLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldClientAppID, v))
+}
+
+// ClientAppIDLTE applies the LTE predicate on the "client_app_id" field.
+func ClientAppIDLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldClientAppID, v))
+}
+
+// ClientAppIDContains applies the Contains predicate on the "client_app_id" field.
+func ClientAppIDContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldClientAppID, v))
+}
+
+// ClientAppIDHasPrefix applies the HasPrefix predicate on the "client_app_id" field.
+func ClientAppIDHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldClientAppID, v))
+}
+
+// ClientAppIDHasSuffix applies the HasSuffix predicate on the "client_app_id" field.
+func ClientAppIDHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldClientAppID, v))
+}
+
+// ClientAppIDIsNil applies the IsNil predicate on the "client_app_id" field.
+func ClientAppIDIsNil() predicate.GameServer {
+	return predicate.GameServer(sql.FieldIsNull(FieldClientAppID))
+}
+
+// ClientAppIDNotNil applies the NotNil predicate on the "client_app_id" field.
+func ClientAppIDNotNil() predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotNull(FieldClientAppID))
+}
+
+// ClientAppIDEqualFold applies the EqualFold predicate on the "client_app_id" field.
+func ClientAppIDEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldClientAppID, v))
+}
+
+// ClientAppIDContainsFold applies the ContainsFold predicate on the "client_app_id" field.
+func ClientAppIDContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldClientAppID, v))
+}
+
+// ClientAppSecretEQ applies the EQ predicate on the "client_app_secret" field.
+func ClientAppSecretEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretNEQ applies the NEQ predicate on the "client_app_secret" field.
+func ClientAppSecretNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretIn applies the In predicate on the "client_app_secret" field.
+func ClientAppSecretIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldClientAppSecret, vs...))
+}
+
+// ClientAppSecretNotIn applies the NotIn predicate on the "client_app_secret" field.
+func ClientAppSecretNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldClientAppSecret, vs...))
+}
+
+// ClientAppSecretGT applies the GT predicate on the "client_app_secret" field.
+func ClientAppSecretGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretGTE applies the GTE predicate on the "client_app_secret" field.
+func ClientAppSecretGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretLT applies the LT predicate on the "client_app_secret" field.
+func ClientAppSecretLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretLTE applies the LTE predicate on the "client_app_secret" field.
+func ClientAppSecretLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretContains applies the Contains predicate on the "client_app_secret" field.
+func ClientAppSecretContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretHasPrefix applies the HasPrefix predicate on the "client_app_secret" field.
+func ClientAppSecretHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretHasSuffix applies the HasSuffix predicate on the "client_app_secret" field.
+func ClientAppSecretHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretEqualFold applies the EqualFold predicate on the "client_app_secret" field.
+func ClientAppSecretEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldClientAppSecret, v))
+}
+
+// ClientAppSecretContainsFold applies the ContainsFold predicate on the "client_app_secret" field.
+func ClientAppSecretContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldClientAppSecret, v))
 }
 
 // RemarkEQ applies the EQ predicate on the "remark" field.

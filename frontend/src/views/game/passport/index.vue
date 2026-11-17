@@ -1,5 +1,5 @@
 <!-- 用户通行证后台（权限 game:passport）：统计、通行证列表（状态 chips + 服务器搜索下拉 + 搜索）、右侧详情、
-     通行证设置（含 OIDC 应用）与邀请码。通行证账号是独立的玩家账号，与 Momoko 用户无关。 -->
+     通行证设置与邀请码。通行证账号是独立的玩家账号，与 Momoko 用户无关。 -->
 <template>
   <div class="ppa">
     <PageHeader :title="t('passportAdmin.title')">
@@ -231,11 +231,6 @@ const summaryRows = computed(() => {
     { key: 'register', label: t('passportAdmin.summary.register'), value: t(`passportAdmin.settings.modes.${s.registerMode}`) },
     { key: 'emailVerify', label: t('passportAdmin.summary.emailVerify'), value: onOff(s.registerEmailVerification) + emailNote },
     { key: 'emailLogin', label: t('passportAdmin.summary.emailLogin'), value: onOff(s.emailLoginEnabled) + emailNote },
-    {
-      key: 'oidc',
-      label: t('passportAdmin.summary.oidc'),
-      value: s.oidcEnabled ? t('passportAdmin.summary.oidcOn', { n: info.oidcClientCount }) : t('passportAdmin.summary.oidcOff'),
-    },
     { key: 'session', label: t('passportAdmin.summary.session'), value: t('passportAdmin.summary.sessionDays', { n: s.sessionDays }) },
   ]
 })

@@ -111,12 +111,6 @@ type PassportLoginLog func(*sql.Selector)
 // PassportMessage is the predicate function for passportmessage builders.
 type PassportMessage func(*sql.Selector)
 
-// PassportOidcClient is the predicate function for passportoidcclient builders.
-type PassportOidcClient func(*sql.Selector)
-
-// PassportOidcGrant is the predicate function for passportoidcgrant builders.
-type PassportOidcGrant func(*sql.Selector)
-
 // PassportSession is the predicate function for passportsession builders.
 type PassportSession func(*sql.Selector)
 

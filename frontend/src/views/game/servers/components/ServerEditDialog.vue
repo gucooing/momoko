@@ -112,6 +112,9 @@ const save = async () => {
       passportVisibility: s.passportVisibility,
       passportInviteCode: s.passportInviteCode,
       timezone: s.timezone,
+      clientSdkUrl: s.clientSdkUrl,
+      clientGameUrl: s.clientGameUrl,
+      clientResourceUrl: s.clientResourceUrl,
     })
     fb.success(t('gameServers.common.saved'))
     emit('saved', data)

@@ -24,7 +24,7 @@
         <li>{{ t('passportAdmin.detail.joined', { date: date(user.createTime) }) }}</li>
         <li>{{ user.lastLoginAt ? t('passportAdmin.detail.lastLogin', { time: dateTime(user.lastLoginAt) }) : t('passportAdmin.never') }}</li>
         <li v-if="detail.lastLoginIp || detail.lastLoginDevice" class="m-mono">{{ [detail.lastLoginDevice, detail.lastLoginIp].filter(Boolean).join(' · ') }}</li>
-        <li>{{ t('passportAdmin.detail.devices', { n: detail.deviceCount }) }} · {{ t('passportAdmin.detail.apps', { n: detail.appCount }) }}</li>
+        <li>{{ t('passportAdmin.detail.devices', { n: detail.deviceCount }) }}</li>
         <li v-if="user.totpEnabled">{{ t('passportAdmin.detail.totp') }}</li>
         <li v-if="detail.inviteCode" class="m-mono">{{ t('passportAdmin.detail.invite', { code: detail.inviteCode }) }}</li>
         <li v-if="user.deletionScheduledAt" class="pud__warn">{{ t('passportAdmin.detail.deletionAt', { time: dateTime(user.deletionScheduledAt) }) }}</li>

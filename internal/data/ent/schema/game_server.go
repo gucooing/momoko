@@ -49,6 +49,11 @@ func (GameServer) Fields() []ent.Field {
 		field.String("timezone").Default("").Comment("服务器时区（IANA，空为 Momoko 本机时区）：「今天」与每日次数按它的自然日计算"),
 		field.Enum("passport_visibility").Values("public", "invite", "hidden").Default("public").Comment("通行证绑定可见性：public 公开 / invite 凭邀请码 / hidden 不可绑定"),
 		field.String("passport_invite_code").Default("").Comment("通行证绑定邀请码（visibility=invite 时）"),
+		field.String("client_sdk_url").Default("").Comment("游戏客户端连接的 SDK 地址（HTTP(S) origin，空为未填写）"),
+		field.String("client_game_url").Default("").Comment("游戏客户端连接的游戏服务端地址（HTTP(S) origin，空为未填写）"),
+		field.String("client_resource_url").Default("").Comment("游戏客户端连接的资源服务器地址（HTTP(S) origin，空为未填写）"),
+		field.String("client_app_id").Optional().Nillable().Unique().Comment("客户端应用 ID（app_ + 16 个小写 base32 字符，Momoko 生成；空为还没有生成）"),
+		field.Text("client_app_secret").Default("").Sensitive().Comment("客户端应用密钥（32 字节随机数的 base64url，secretbox 加密；签发启动票据用）"),
 		field.String("remark").Default("").Comment("备注"),
 	}
 }

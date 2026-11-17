@@ -41,6 +41,9 @@ type GameAdapter struct {
 	GMDriver string
 	// Hosting 托管驱动（未实现时为 nil）。
 	Hosting GameHostingDriver
+	// ClientLaunch 游戏客户端可以用通行证启动：服务器可填写客户端地址，通行证新建游戏账号并签发启动票据，
+	// 游戏服务端的 SDK 凭票据开会话。
+	ClientLaunch bool
 }
 
 // Modes 支持的接入方式：有 MGP 驱动即可仅 GM 接入，有托管驱动即可托管。
@@ -94,10 +97,11 @@ func (a *GameAdapter) ServerCapabilities(s *gen.GameServer) []string {
 // ToProto 转为接口结构。
 func (a *GameAdapter) ToProto() *v1.GameAdapter {
 	out := &v1.GameAdapter{
-		Id:        a.ID,
-		Available: len(a.Modes()) > 0,
-		Modes:     a.Modes(),
-		GmDriver:  a.GMDriver,
+		Id:           a.ID,
+		Available:    len(a.Modes()) > 0,
+		Modes:        a.Modes(),
+		GmDriver:     a.GMDriver,
+		ClientLaunch: a.ClientLaunch,
 	}
 	for _, c := range a.Capabilities() {
 		out.Capabilities = append(out.Capabilities, &v1.GameAdapterCapability{Key: c, Enabled: true})
@@ -114,7 +118,7 @@ func (a *GameAdapter) ToProto() *v1.GameAdapter {
 
 // gameAdapters 随 Momoko 版本内置的适配器（顺序即展示顺序）。
 var gameAdapters = []*GameAdapter{
-	{ID: "gakumas", GMDriver: "mgp"},
+	{ID: "gakumas", GMDriver: "mgp", ClientLaunch: true},
 }
 
 // GameAdapters 返回全部内置适配器。

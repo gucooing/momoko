@@ -362,6 +362,76 @@ func (_c *GameServerCreate) SetNillablePassportInviteCode(v *string) *GameServer
 	return _c
 }
 
+// SetClientSdkURL sets the "client_sdk_url" field.
+func (_c *GameServerCreate) SetClientSdkURL(v string) *GameServerCreate {
+	_c.mutation.SetClientSdkURL(v)
+	return _c
+}
+
+// SetNillableClientSdkURL sets the "client_sdk_url" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableClientSdkURL(v *string) *GameServerCreate {
+	if v != nil {
+		_c.SetClientSdkURL(*v)
+	}
+	return _c
+}
+
+// SetClientGameURL sets the "client_game_url" field.
+func (_c *GameServerCreate) SetClientGameURL(v string) *GameServerCreate {
+	_c.mutation.SetClientGameURL(v)
+	return _c
+}
+
+// SetNillableClientGameURL sets the "client_game_url" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableClientGameURL(v *string) *GameServerCreate {
+	if v != nil {
+		_c.SetClientGameURL(*v)
+	}
+	return _c
+}
+
+// SetClientResourceURL sets the "client_resource_url" field.
+func (_c *GameServerCreate) SetClientResourceURL(v string) *GameServerCreate {
+	_c.mutation.SetClientResourceURL(v)
+	return _c
+}
+
+// SetNillableClientResourceURL sets the "client_resource_url" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableClientResourceURL(v *string) *GameServerCreate {
+	if v != nil {
+		_c.SetClientResourceURL(*v)
+	}
+	return _c
+}
+
+// SetClientAppID sets the "client_app_id" field.
+func (_c *GameServerCreate) SetClientAppID(v string) *GameServerCreate {
+	_c.mutation.SetClientAppID(v)
+	return _c
+}
+
+// SetNillableClientAppID sets the "client_app_id" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableClientAppID(v *string) *GameServerCreate {
+	if v != nil {
+		_c.SetClientAppID(*v)
+	}
+	return _c
+}
+
+// SetClientAppSecret sets the "client_app_secret" field.
+func (_c *GameServerCreate) SetClientAppSecret(v string) *GameServerCreate {
+	_c.mutation.SetClientAppSecret(v)
+	return _c
+}
+
+// SetNillableClientAppSecret sets the "client_app_secret" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableClientAppSecret(v *string) *GameServerCreate {
+	if v != nil {
+		_c.SetClientAppSecret(*v)
+	}
+	return _c
+}
+
 // SetRemark sets the "remark" field.
 func (_c *GameServerCreate) SetRemark(v string) *GameServerCreate {
 	_c.mutation.SetRemark(v)
@@ -485,6 +555,22 @@ func (_c *GameServerCreate) defaults() {
 		v := gameserver.DefaultPassportInviteCode
 		_c.mutation.SetPassportInviteCode(v)
 	}
+	if _, ok := _c.mutation.ClientSdkURL(); !ok {
+		v := gameserver.DefaultClientSdkURL
+		_c.mutation.SetClientSdkURL(v)
+	}
+	if _, ok := _c.mutation.ClientGameURL(); !ok {
+		v := gameserver.DefaultClientGameURL
+		_c.mutation.SetClientGameURL(v)
+	}
+	if _, ok := _c.mutation.ClientResourceURL(); !ok {
+		v := gameserver.DefaultClientResourceURL
+		_c.mutation.SetClientResourceURL(v)
+	}
+	if _, ok := _c.mutation.ClientAppSecret(); !ok {
+		v := gameserver.DefaultClientAppSecret
+		_c.mutation.SetClientAppSecret(v)
+	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		v := gameserver.DefaultRemark
 		_c.mutation.SetRemark(v)
@@ -572,6 +658,18 @@ func (_c *GameServerCreate) check() error {
 	}
 	if _, ok := _c.mutation.PassportInviteCode(); !ok {
 		return &ValidationError{Name: "passport_invite_code", err: errors.New(`gen: missing required field "GameServer.passport_invite_code"`)}
+	}
+	if _, ok := _c.mutation.ClientSdkURL(); !ok {
+		return &ValidationError{Name: "client_sdk_url", err: errors.New(`gen: missing required field "GameServer.client_sdk_url"`)}
+	}
+	if _, ok := _c.mutation.ClientGameURL(); !ok {
+		return &ValidationError{Name: "client_game_url", err: errors.New(`gen: missing required field "GameServer.client_game_url"`)}
+	}
+	if _, ok := _c.mutation.ClientResourceURL(); !ok {
+		return &ValidationError{Name: "client_resource_url", err: errors.New(`gen: missing required field "GameServer.client_resource_url"`)}
+	}
+	if _, ok := _c.mutation.ClientAppSecret(); !ok {
+		return &ValidationError{Name: "client_app_secret", err: errors.New(`gen: missing required field "GameServer.client_app_secret"`)}
 	}
 	if _, ok := _c.mutation.Remark(); !ok {
 		return &ValidationError{Name: "remark", err: errors.New(`gen: missing required field "GameServer.remark"`)}
@@ -724,6 +822,26 @@ func (_c *GameServerCreate) createSpec() (*GameServer, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.PassportInviteCode(); ok {
 		_spec.SetField(gameserver.FieldPassportInviteCode, field.TypeString, value)
 		_node.PassportInviteCode = value
+	}
+	if value, ok := _c.mutation.ClientSdkURL(); ok {
+		_spec.SetField(gameserver.FieldClientSdkURL, field.TypeString, value)
+		_node.ClientSdkURL = value
+	}
+	if value, ok := _c.mutation.ClientGameURL(); ok {
+		_spec.SetField(gameserver.FieldClientGameURL, field.TypeString, value)
+		_node.ClientGameURL = value
+	}
+	if value, ok := _c.mutation.ClientResourceURL(); ok {
+		_spec.SetField(gameserver.FieldClientResourceURL, field.TypeString, value)
+		_node.ClientResourceURL = value
+	}
+	if value, ok := _c.mutation.ClientAppID(); ok {
+		_spec.SetField(gameserver.FieldClientAppID, field.TypeString, value)
+		_node.ClientAppID = &value
+	}
+	if value, ok := _c.mutation.ClientAppSecret(); ok {
+		_spec.SetField(gameserver.FieldClientAppSecret, field.TypeString, value)
+		_node.ClientAppSecret = value
 	}
 	if value, ok := _c.mutation.Remark(); ok {
 		_spec.SetField(gameserver.FieldRemark, field.TypeString, value)
@@ -1138,6 +1256,72 @@ func (u *GameServerUpsert) SetPassportInviteCode(v string) *GameServerUpsert {
 // UpdatePassportInviteCode sets the "passport_invite_code" field to the value that was provided on create.
 func (u *GameServerUpsert) UpdatePassportInviteCode() *GameServerUpsert {
 	u.SetExcluded(gameserver.FieldPassportInviteCode)
+	return u
+}
+
+// SetClientSdkURL sets the "client_sdk_url" field.
+func (u *GameServerUpsert) SetClientSdkURL(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldClientSdkURL, v)
+	return u
+}
+
+// UpdateClientSdkURL sets the "client_sdk_url" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateClientSdkURL() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldClientSdkURL)
+	return u
+}
+
+// SetClientGameURL sets the "client_game_url" field.
+func (u *GameServerUpsert) SetClientGameURL(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldClientGameURL, v)
+	return u
+}
+
+// UpdateClientGameURL sets the "client_game_url" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateClientGameURL() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldClientGameURL)
+	return u
+}
+
+// SetClientResourceURL sets the "client_resource_url" field.
+func (u *GameServerUpsert) SetClientResourceURL(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldClientResourceURL, v)
+	return u
+}
+
+// UpdateClientResourceURL sets the "client_resource_url" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateClientResourceURL() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldClientResourceURL)
+	return u
+}
+
+// SetClientAppID sets the "client_app_id" field.
+func (u *GameServerUpsert) SetClientAppID(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldClientAppID, v)
+	return u
+}
+
+// UpdateClientAppID sets the "client_app_id" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateClientAppID() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldClientAppID)
+	return u
+}
+
+// ClearClientAppID clears the value of the "client_app_id" field.
+func (u *GameServerUpsert) ClearClientAppID() *GameServerUpsert {
+	u.SetNull(gameserver.FieldClientAppID)
+	return u
+}
+
+// SetClientAppSecret sets the "client_app_secret" field.
+func (u *GameServerUpsert) SetClientAppSecret(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldClientAppSecret, v)
+	return u
+}
+
+// UpdateClientAppSecret sets the "client_app_secret" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateClientAppSecret() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldClientAppSecret)
 	return u
 }
 
@@ -1621,6 +1805,83 @@ func (u *GameServerUpsertOne) SetPassportInviteCode(v string) *GameServerUpsertO
 func (u *GameServerUpsertOne) UpdatePassportInviteCode() *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
 		s.UpdatePassportInviteCode()
+	})
+}
+
+// SetClientSdkURL sets the "client_sdk_url" field.
+func (u *GameServerUpsertOne) SetClientSdkURL(v string) *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientSdkURL(v)
+	})
+}
+
+// UpdateClientSdkURL sets the "client_sdk_url" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateClientSdkURL() *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientSdkURL()
+	})
+}
+
+// SetClientGameURL sets the "client_game_url" field.
+func (u *GameServerUpsertOne) SetClientGameURL(v string) *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientGameURL(v)
+	})
+}
+
+// UpdateClientGameURL sets the "client_game_url" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateClientGameURL() *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientGameURL()
+	})
+}
+
+// SetClientResourceURL sets the "client_resource_url" field.
+func (u *GameServerUpsertOne) SetClientResourceURL(v string) *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientResourceURL(v)
+	})
+}
+
+// UpdateClientResourceURL sets the "client_resource_url" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateClientResourceURL() *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientResourceURL()
+	})
+}
+
+// SetClientAppID sets the "client_app_id" field.
+func (u *GameServerUpsertOne) SetClientAppID(v string) *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientAppID(v)
+	})
+}
+
+// UpdateClientAppID sets the "client_app_id" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateClientAppID() *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientAppID()
+	})
+}
+
+// ClearClientAppID clears the value of the "client_app_id" field.
+func (u *GameServerUpsertOne) ClearClientAppID() *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.ClearClientAppID()
+	})
+}
+
+// SetClientAppSecret sets the "client_app_secret" field.
+func (u *GameServerUpsertOne) SetClientAppSecret(v string) *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientAppSecret(v)
+	})
+}
+
+// UpdateClientAppSecret sets the "client_app_secret" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateClientAppSecret() *GameServerUpsertOne {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientAppSecret()
 	})
 }
 
@@ -2273,6 +2534,83 @@ func (u *GameServerUpsertBulk) SetPassportInviteCode(v string) *GameServerUpsert
 func (u *GameServerUpsertBulk) UpdatePassportInviteCode() *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
 		s.UpdatePassportInviteCode()
+	})
+}
+
+// SetClientSdkURL sets the "client_sdk_url" field.
+func (u *GameServerUpsertBulk) SetClientSdkURL(v string) *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientSdkURL(v)
+	})
+}
+
+// UpdateClientSdkURL sets the "client_sdk_url" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateClientSdkURL() *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientSdkURL()
+	})
+}
+
+// SetClientGameURL sets the "client_game_url" field.
+func (u *GameServerUpsertBulk) SetClientGameURL(v string) *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientGameURL(v)
+	})
+}
+
+// UpdateClientGameURL sets the "client_game_url" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateClientGameURL() *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientGameURL()
+	})
+}
+
+// SetClientResourceURL sets the "client_resource_url" field.
+func (u *GameServerUpsertBulk) SetClientResourceURL(v string) *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientResourceURL(v)
+	})
+}
+
+// UpdateClientResourceURL sets the "client_resource_url" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateClientResourceURL() *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientResourceURL()
+	})
+}
+
+// SetClientAppID sets the "client_app_id" field.
+func (u *GameServerUpsertBulk) SetClientAppID(v string) *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientAppID(v)
+	})
+}
+
+// UpdateClientAppID sets the "client_app_id" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateClientAppID() *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientAppID()
+	})
+}
+
+// ClearClientAppID clears the value of the "client_app_id" field.
+func (u *GameServerUpsertBulk) ClearClientAppID() *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.ClearClientAppID()
+	})
+}
+
+// SetClientAppSecret sets the "client_app_secret" field.
+func (u *GameServerUpsertBulk) SetClientAppSecret(v string) *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.SetClientAppSecret(v)
+	})
+}
+
+// UpdateClientAppSecret sets the "client_app_secret" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateClientAppSecret() *GameServerUpsertBulk {
+	return u.Update(func(s *GameServerUpsert) {
+		s.UpdateClientAppSecret()
 	})
 }
 

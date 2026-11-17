@@ -78,9 +78,6 @@ func (uc *PassportUsecase) meOf(ctx context.Context, u *gen.PassportUser) *v1.Pa
 	if n, err := uc.repo.CountSessions(ctx, u.ID); err == nil {
 		out.DeviceCount = int32(n)
 	}
-	if n, err := uc.repo.CountGrants(ctx, u.ID); err == nil {
-		out.AppCount = int32(n)
-	}
 	if links, err := uc.repo.ListLinks(ctx, u.ID); err == nil {
 		games := map[string]struct{}{}
 		for _, l := range links {
@@ -402,19 +399,13 @@ func (uc *PassportUsecase) RegenerateRecoveryCodes(ctx context.Context, userID, 
 	return &v1.PassportRecoveryCodes{Codes: codes}, nil
 }
 
-// ---------------- 设备与应用 ----------------
+// ---------------- 登录设备 ----------------
 
 // Devices 登录设备（最近活跃的在前）。
 func (uc *PassportUsecase) Devices(ctx context.Context, c *passporttoken.Claims) (*v1.ListPassportDevicesResponse, error) {
 	list, err := uc.repo.ListSessions(ctx, c.UserID)
 	if err != nil {
 		return nil, ErrSystem(err)
-	}
-	clients := map[string]string{}
-	if cs, err := uc.repo.ListOidcClients(ctx); err == nil {
-		for _, cl := range cs {
-			clients[cl.ClientID] = cl.Name
-		}
 	}
 	out := &v1.ListPassportDevicesResponse{}
 	for _, s := range list {
@@ -435,7 +426,6 @@ func (uc *PassportUsecase) Devices(ctx context.Context, c *passporttoken.Claims)
 			LastIp:         lastIP,
 			IpScope:        IPScope(lastIP),
 			LoginMethod:    s.LoginMethod,
-			AppName:        clients[s.ClientID],
 			CreateTime:     timestamppb.New(s.CreateTime),
 			LastActiveTime: timestamppb.New(last),
 			ExpireTime:     timestamppb.New(s.ExpiresAt),
@@ -466,48 +456,6 @@ func (uc *PassportUsecase) RevokeDevice(ctx context.Context, userID, sessionID s
 // LogoutOthers 退出其他所有设备。
 func (uc *PassportUsecase) LogoutOthers(ctx context.Context, c *passporttoken.Claims) error {
 	if err := uc.repo.DeleteSessions(ctx, c.UserID, c.SessionID); err != nil {
-		return ErrSystem(err)
-	}
-	return nil
-}
-
-// Apps 授权的应用。
-func (uc *PassportUsecase) Apps(ctx context.Context, userID string) (*v1.ListPassportAppsResponse, error) {
-	grants, err := uc.repo.ListGrants(ctx, userID)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	out := &v1.ListPassportAppsResponse{}
-	for _, g := range grants {
-		cl, err := uc.repo.GetOidcClient(ctx, g.ClientID)
-		if err != nil {
-			continue
-		}
-		app := &v1.PassportApp{
-			Id:          g.ID,
-			Name:        cl.Name,
-			Description: cl.Description,
-			Scopes:      g.Scopes,
-			CreateTime:  timestamppb.New(g.CreateTime),
-			LastUsedAt:  timestamppb.New(g.LastUsedAt),
-		}
-		if cl.ServerID != "" {
-			if s, err := uc.Servers().Get(ctx, cl.ServerID); err == nil {
-				app.Server = uc.Servers().Brief(ctx, s)
-			}
-		}
-		out.Items = append(out.Items, app)
-	}
-	return out, nil
-}
-
-// RevokeApp 撤销授权。
-func (uc *PassportUsecase) RevokeApp(ctx context.Context, userID, id string) error {
-	err := uc.repo.DeleteGrant(ctx, userID, id)
-	if gen.IsNotFound(err) {
-		return ErrPassportAppNotFound
-	}
-	if err != nil {
 		return ErrSystem(err)
 	}
 	return nil

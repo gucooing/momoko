@@ -187,18 +187,6 @@ service PassportService {
       body: "*"
     };
   }
-  // 授权的应用（用「用户通行证登录」登录过的游戏与应用）
-  rpc ListPassportApps(PassportEmpty) returns (ListPassportAppsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/me/apps"
-    };
-  }
-  // 撤销授权（已签发的访问令牌随之失效，下次需要重新确认）
-  rpc RevokePassportApp(RevokePassportAppRequest) returns (PassportEmpty) {
-    option (google.api.http) = {
-      delete: "/api/v1/me/apps/{id}"
-    };
-  }
   // 申请注销（7 天后删除，期间可撤销）
   rpc RequestPassportDeletion(RequestPassportDeletionRequest) returns (PassportMe) {
     option (google.api.http) = {
@@ -254,7 +242,7 @@ service PassportService {
       body: "*"
     };
   }
-  // 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
+  // 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（链接带 ?server= 时预选）
   rpc SearchPassportBindServers(SearchPassportBindServersRequest) returns (SearchPassportBindServersResponse) {
     option (google.api.http) = {
       get: "/api/v1/bind/servers"
@@ -308,19 +296,40 @@ service PassportService {
     };
   }
 
-  // ---------------- OIDC 授权确认页 ----------------
+  // ---------------- 启动器（客户端用通行证进入游戏，按客户端应用 ID 指明服务器） ----------------
 
-  // 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
-  rpc GetPassportOidcAuthorization(PassportOidcAuthorizeRequest) returns (PassportOidcAuthorizationInfo) {
+  // 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+  // 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
+  rpc ListPassportLaunchApps(PassportEmpty) returns (ListPassportLaunchAppsResponse) {
     option (google.api.http) = {
-      get: "/api/v1/oidc/authorize"
+      get: "/api/v1/launch/apps"
     };
   }
-  // 同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
-  // 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
-  rpc ApprovePassportOidcAuthorization(PassportOidcAuthorizeRequest) returns (PassportOidcAuthorizeResponse) {
+  // 一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；
+  // 应用 ID 不存在或服务器不可启动时 404 PASSPORT_APP_NOT_FOUND
+  rpc GetPassportLaunchApp(PassportLaunchAppRequest) returns (PassportLaunchApp) {
     option (google.api.http) = {
-      post: "/api/v1/oidc/authorize"
+      get: "/api/v1/launch/apps/{app_id}"
+    };
+  }
+  // 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
+  rpc BindPassportLaunchApp(BindPassportLaunchAppRequest) returns (PassportLink) {
+    option (google.api.http) = {
+      post: "/api/v1/launch/apps/{app_id}/bind"
+      body: "*"
+    };
+  }
+  // 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
+  rpc CreatePassportLaunchAccount(PassportLaunchAppRequest) returns (PassportLink) {
+    option (google.api.http) = {
+      post: "/api/v1/launch/apps/{app_id}/account"
+      body: "*"
+    };
+  }
+  // 签发启动票据（游戏服务端 SDK 用它开会话，有效 120 秒，只能用一次），并记录绑定的最近使用时间
+  rpc IssuePassportLaunchTicket(PassportLaunchAppRequest) returns (PassportLaunchTicket) {
+    option (google.api.http) = {
+      post: "/api/v1/launch/apps/{app_id}/ticket"
       body: "*"
     };
   }
@@ -343,8 +352,6 @@ message GetPassportConfigResponse {
   bool register_email_verification = 4;
   // 是否配置了邮件（找回密码、更换邮箱需要）
   bool email_enabled = 5;
-  // 是否启用了「用户通行证登录」（OIDC）
-  bool oidc_enabled = 6;
   // 解绑后不能在同一服务器绑定别的账号的天数
   int32 unbind_cooldown_days = 7;
   // 申请注销后可以撤销的天数
@@ -450,7 +457,6 @@ message PassportMe {
   // 申请注销后计划删除的时间（空为没有申请）
   google.protobuf.Timestamp deletion_scheduled_at = 20;
   int32 device_count = 21;
-  int32 app_count = 22;
   int32 link_count = 23;
   int32 game_count = 24;
   int32 unread_messages = 25;
@@ -541,10 +547,8 @@ message PassportDevice {
   string last_ip = 6;
   // loopback / lan / public
   string ip_scope = 7;
-  // password / email_code / register / oidc
+  // password / email_code / register
   string login_method = 8;
-  // 经 OIDC 登录的应用名称
-  string app_name = 9;
   google.protobuf.Timestamp create_time = 10;
   google.protobuf.Timestamp last_active_time = 11;
   google.protobuf.Timestamp expire_time = 12;
@@ -558,27 +562,6 @@ message ListPassportDevicesResponse {
 
 message RevokePassportDeviceRequest {
   string session_id = 1;
-}
-
-message PassportApp {
-  // 授权 id
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  // 已同意的范围
-  repeated string scopes = 4;
-  // 关联的游戏服务器（可空）
-  GameServerBrief server = 5;
-  google.protobuf.Timestamp create_time = 6;
-  google.protobuf.Timestamp last_used_at = 7;
-}
-
-message ListPassportAppsResponse {
-  repeated PassportApp items = 1;
-}
-
-message RevokePassportAppRequest {
-  string id = 1;
 }
 
 message RequestPassportDeletionRequest {
@@ -653,7 +636,7 @@ message PassportLink {
   string nickname = 7;
   string avatar_asset = 8;
   int32 level = 9;
-  // password 账号密码 / code 绑定码 / oidc 通行证登录 / admin 管理员 / request 申请
+  // password 账号密码 / code 绑定码 / create 新建的游戏账号 / admin 管理员 / request 申请
   string method = 10;
   bool is_primary = 11;
   google.protobuf.Timestamp linked_at = 12;
@@ -674,7 +657,7 @@ message SearchPassportBindServersRequest {
   // 名称、标签、游戏，或管理员给的邀请码
   string q = 1;
   string game = 2;
-  // 指定的服务器 id（授权页跳来时预选；不影响搜索结果与推荐）
+  // 指定的服务器 id（预选这台服务器；不影响搜索结果与推荐）
   string server_id = 3;
 }
 
@@ -818,58 +801,54 @@ message RedeemPassportGiftCodeResponse {
   string execution_id = 3;
 }
 
-// ---------------- OIDC ----------------
+// ---------------- 启动器 ----------------
 
-message PassportOidcAuthorizeRequest {
-  string response_type = 1;
-  string client_id = 2;
-  string redirect_uri = 3;
-  string scope = 4;
-  string state = 5;
-  string nonce = 6;
-  string code_challenge = 7;
-  string code_challenge_method = 8;
-  // 同意时为还没有在应用关联的服务器上绑定游戏账号的用户新建一个游戏账号并绑定
-  bool create_game_account = 9;
+// 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。
+message PassportLaunchEndpoints {
+  // 游戏服务端 SDK
+  string sdk = 1;
+  // 游戏服务端
+  string game = 2;
+  // 资源服务器
+  string resource = 3;
 }
 
-// 授权确认页显示的游戏账号（令牌里的 game_player_id 就是 player_id）。
-message PassportOidcGameAccount {
-  // MGP pid
-  string player_id = 1;
-  // 游戏内显示的 ID
-  string display_id = 2;
-  string nickname = 3;
-  int32 level = 4;
-  // 登录账号
-  string account = 5;
-  // 头像资源 ID
-  string avatar_asset = 6;
+// 一个启动目标：客户端应用 ID 对应的服务器。
+message PassportLaunchApp {
+  // 客户端应用 ID（app_ + 16 个小写 base32 字符）
+  string app_id = 1;
+  GameServerBrief server = 2;
+  PassportLaunchEndpoints endpoints = 3;
+  // 我在这台服务器上生效的绑定（还没有游戏账号时为空）
+  PassportLink link = 4;
+  // 没有绑定时能否绑定已有账号或新建账号；不能时 block_reason 为原因代码：
+  // unsupported 服务器不支持 / not_visible 服务器未向我开放 / cooldown 解绑冷却中（只能重新绑定原账号）；可以绑定时为空
+  bool bindable = 5;
+  string block_reason = 6;
 }
 
-message PassportOidcAuthorizationInfo {
-  string client_name = 1;
-  string client_id = 2;
-  string description = 3;
-  string redirect_uri = 4;
-  // 归一化后的范围
-  repeated string scopes = 5;
-  // 关联的游戏服务器（可空）
-  GameServerBrief server = 6;
-  // 已经授权过且范围没有变化（可以直接继续）
-  bool granted = 7;
-  // 应用关联了服务器而你在那台服务器上没有绑定游戏账号：同意前要绑定已有账号或新建一个
-  bool game_account_required = 8;
-  // 可以为你新建游戏账号（游戏支持且服务器接入了 MGP、服务器对你可见、不在解绑冷却中）
-  bool game_account_creatable = 9;
-  // 不能新建时的原因代码：unsupported 游戏或服务器不支持 / not_visible 服务器对你不可见 / cooldown 解绑冷却中
-  string game_account_reason = 10;
-  // 解绑冷却结束时间（game_account_reason=cooldown）
-  google.protobuf.Timestamp game_account_cooldown_until = 11;
-  // 你在关联服务器上绑定的游戏账号（已绑定时）
-  PassportOidcGameAccount game_account = 12;
+message ListPassportLaunchAppsResponse {
+  repeated PassportLaunchApp apps = 1;
 }
 
-message PassportOidcAuthorizeResponse {
-  string redirect_url = 1;
+message PassportLaunchAppRequest {
+  string app_id = 1;
+}
+
+message BindPassportLaunchAppRequest {
+  string app_id = 1;
+  // 游戏登录账号与密码（只用来校验一次，不保存）
+  string account = 2;
+  string password = 3;
+}
+
+// 启动票据：lt1.<b64url(payload)>.<b64url(HMAC-SHA256(MGP 密钥, "momoko-launch-ticket.v1." + b64url(payload)))>，
+// payload 为 {"kid","aid","sid","pid","uid","jti","iat","exp"}。
+message PassportLaunchTicket {
+  string ticket = 1;
+  // 有效秒数（120）
+  int64 expires_in = 2;
+  // 绑定的游戏账号：MGP pid 与游戏内显示的 ID
+  string player_id = 3;
+  string display_id = 4;
 }

@@ -24,7 +24,7 @@ type PassportLoginLog struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// 通行证用户 id
 	UserID string `json:"user_id,omitempty"`
-	// 登录方式：password / email_code / register / oidc
+	// 登录方式：password / email_code / register
 	Method string `json:"method,omitempty"`
 	// 是否成功
 	Success bool `json:"success,omitempty"`

@@ -1,4 +1,4 @@
-// 登录、注册、找回密码、两步验证与 OIDC 授权确认。
+// 登录、注册、找回密码与两步验证。
 export default {
   'zh-CN': {
     auth: {
@@ -57,35 +57,6 @@ export default {
         submit: '重设密码',
         sent: '如果这个邮箱绑定了通行证，验证码已经发出',
         done: '密码已重设，所有设备都已退出，请重新登录',
-      },
-      oidc: {
-        title: '用通行证登录',
-        desc: '「{app}」想用你的用户通行证登录。',
-        wants: '它将可以读取：',
-        as: '以 {name} 的身份继续',
-        redirectTo: '确认后会回到 {uri}',
-        allow: '同意并继续',
-        deny: '拒绝',
-        scopes: {
-          openid: '你的通行证标识',
-          profile: '昵称、用户名和头像',
-          email: '邮箱，以及是否已验证',
-        },
-        game: {
-          title: '登录的游戏账号',
-          linked: '已绑定',
-          noName: '未命名',
-          unknownServer: '应用关联的服务器',
-          required: '你在「{server}」上还没有绑定游戏账号。绑定一个已有的账号，或新建一个账号后继续。',
-          bind: '绑定已有游戏账号',
-          create: '创建新游戏账号并继续',
-          createHint: '新账号会绑定到你的通行证，以后用通行证登录这台服务器就是这个账号。',
-          blocked: {
-            unsupported: '这台服务器不支持新建游戏账号。',
-            not_visible: '这台服务器不对你开放，不能新建游戏账号。',
-            cooldown: '你刚在这台服务器解绑过账号，{date} 之后才能新建游戏账号。',
-          },
-        },
       },
     },
   },
@@ -147,35 +118,6 @@ export default {
         sent: '如果這個電郵已綁定通行證，驗證碼已經發出',
         done: '密碼已重設，所有裝置都已登出，請重新登入',
       },
-      oidc: {
-        title: '以通行證登入',
-        desc: '「{app}」想以你的用戶通行證登入。',
-        wants: '它將可以讀取：',
-        as: '以 {name} 的身分繼續',
-        redirectTo: '確認後會返回 {uri}',
-        allow: '同意並繼續',
-        deny: '拒絕',
-        scopes: {
-          openid: '你的通行證識別碼',
-          profile: '暱稱、用戶名和頭像',
-          email: '電郵，以及是否已驗證',
-        },
-        game: {
-          title: '登入的遊戲帳戶',
-          linked: '已綁定',
-          noName: '未命名',
-          unknownServer: '應用程式關聯的伺服器',
-          required: '你在「{server}」上尚未綁定遊戲帳戶。綁定一個現有帳戶，或建立新帳戶後繼續。',
-          bind: '綁定現有遊戲帳戶',
-          create: '建立新遊戲帳戶並繼續',
-          createHint: '新帳戶會綁定到你的通行證，之後以通行證登入這部伺服器就是這個帳戶。',
-          blocked: {
-            unsupported: '這部伺服器不支援建立遊戲帳戶。',
-            not_visible: '這部伺服器不對你開放，不能建立遊戲帳戶。',
-            cooldown: '你剛在這部伺服器解除綁定帳戶，{date} 之後才能建立遊戲帳戶。',
-          },
-        },
-      },
     },
   },
   'en-US': {
@@ -235,35 +177,6 @@ export default {
         submit: 'Reset password',
         sent: 'If this email belongs to a passport, a code has been sent',
         done: 'Password reset. All devices were signed out, please sign in again.',
-      },
-      oidc: {
-        title: 'Sign in with Passport',
-        desc: '"{app}" wants to sign you in with your passport.',
-        wants: 'It will be able to read:',
-        as: 'Continue as {name}',
-        redirectTo: 'You will be sent back to {uri}',
-        allow: 'Allow and continue',
-        deny: 'Deny',
-        scopes: {
-          openid: 'Your passport identifier',
-          profile: 'Nickname, username and avatar',
-          email: 'Email and whether it is verified',
-        },
-        game: {
-          title: 'Game account to sign in with',
-          linked: 'Bound',
-          noName: 'Unnamed',
-          unknownServer: 'the server of this app',
-          required: 'You have no game account bound on "{server}" yet. Bind an existing account, or create a new one and continue.',
-          bind: 'Bind an existing game account',
-          create: 'Create a new game account and continue',
-          createHint: 'The new account is bound to your passport, and signing in to this server with Passport will use it from now on.',
-          blocked: {
-            unsupported: 'This server does not support creating game accounts.',
-            not_visible: 'This server is not open to you, so a game account cannot be created.',
-            cooldown: 'You recently unbound an account on this server. You can create a game account after {date}.',
-          },
-        },
       },
     },
   },

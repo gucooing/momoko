@@ -90,20 +90,6 @@ func (_u *PassportSessionUpdate) SetNillableUserAgent(v *string) *PassportSessio
 	return _u
 }
 
-// SetClientID sets the "client_id" field.
-func (_u *PassportSessionUpdate) SetClientID(v string) *PassportSessionUpdate {
-	_u.mutation.SetClientID(v)
-	return _u
-}
-
-// SetNillableClientID sets the "client_id" field if the given value is not nil.
-func (_u *PassportSessionUpdate) SetNillableClientID(v *string) *PassportSessionUpdate {
-	if v != nil {
-		_u.SetClientID(*v)
-	}
-	return _u
-}
-
 // SetLoginMethod sets the "login_method" field.
 func (_u *PassportSessionUpdate) SetLoginMethod(v string) *PassportSessionUpdate {
 	_u.mutation.SetLoginMethod(v)
@@ -315,9 +301,6 @@ func (_u *PassportSessionUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(passportsession.FieldUserAgent, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.ClientID(); ok {
-		_spec.SetField(passportsession.FieldClientID, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.LoginMethod(); ok {
 		_spec.SetField(passportsession.FieldLoginMethod, field.TypeString, value)
 	}
@@ -423,20 +406,6 @@ func (_u *PassportSessionUpdateOne) SetUserAgent(v string) *PassportSessionUpdat
 func (_u *PassportSessionUpdateOne) SetNillableUserAgent(v *string) *PassportSessionUpdateOne {
 	if v != nil {
 		_u.SetUserAgent(*v)
-	}
-	return _u
-}
-
-// SetClientID sets the "client_id" field.
-func (_u *PassportSessionUpdateOne) SetClientID(v string) *PassportSessionUpdateOne {
-	_u.mutation.SetClientID(v)
-	return _u
-}
-
-// SetNillableClientID sets the "client_id" field if the given value is not nil.
-func (_u *PassportSessionUpdateOne) SetNillableClientID(v *string) *PassportSessionUpdateOne {
-	if v != nil {
-		_u.SetClientID(*v)
 	}
 	return _u
 }
@@ -681,9 +650,6 @@ func (_u *PassportSessionUpdateOne) sqlSave(ctx context.Context) (_node *Passpor
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(passportsession.FieldUserAgent, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.ClientID(); ok {
-		_spec.SetField(passportsession.FieldClientID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.LoginMethod(); ok {
 		_spec.SetField(passportsession.FieldLoginMethod, field.TypeString, value)

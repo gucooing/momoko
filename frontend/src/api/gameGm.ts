@@ -7,6 +7,7 @@ import type {
   GmClientLog,
   GmExecution,
   GmSelfServicePolicy,
+  ListGmClientLogsRequest,
   ListGmClientLogsResponse,
   ListGmExecutionsRequest,
   ListGmExecutionsResponse,
@@ -46,17 +47,14 @@ export const listGmSelfService = (serverId: string) =>
 export const updateGmSelfService = (data: UpdateGmSelfServiceRequest) =>
   request.put<GmSelfServicePolicy>(`${base(data.serverId)}/self-service/${seg(data.command)}`, data)
 
-const clientLogs = (serverId: string, pid: string) => `${base(serverId)}/players/${seg(pid)}/client-logs`
-
-/** 玩家的客户端日志（每个游戏账号保留最新 5 份，从新到旧，不含日志原文）。 */
-export const listGmClientLogs = (serverId: string, pid: string) => request.get<ListGmClientLogsResponse>(clientLogs(serverId, pid))
+/** 客户端日志（全部服务器，从新到旧，分页，不含日志原文）；GM 玩家详情按服务器与玩家筛选。 */
+export const listGmClientLogs = (params: Partial<ListGmClientLogsRequest>) =>
+  request.get<ListGmClientLogsResponse>('/game/client-logs', { params })
 
 /** 一份客户端日志（含日志原文）。 */
-export const getGmClientLog = (serverId: string, pid: string, id: string) =>
-  request.get<GmClientLog>(`${clientLogs(serverId, pid)}/${seg(id)}`)
+export const getGmClientLog = (id: string) => request.get<GmClientLog>(`/game/client-logs/${seg(id)}`)
 
-export const deleteGmClientLog = (serverId: string, pid: string, id: string) =>
-  request.delete<DeleteGmClientLogResponse>(`${clientLogs(serverId, pid)}/${seg(id)}`)
+export const deleteGmClientLog = (id: string) => request.delete<DeleteGmClientLogResponse>(`/game/client-logs/${seg(id)}`)
 
 /** GM 实时动态（SSE）地址：用 fetch 带 Authorization 头读取（EventSource 不能带头）。 */
 export const gmEventsPath = (serverId: string) => `/game/gm-events/${seg(serverId)}`

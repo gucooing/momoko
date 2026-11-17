@@ -9,13 +9,10 @@ import type {
   GetPassportStatsResponse,
   GetPassportUserResponse,
   ListPassportInvitesResponse,
-  ListPassportOidcClientsResponse,
   ListPassportUsersRequest,
   ListPassportUsersResponse,
   PassportInvite,
-  PassportOidcClient,
   PassportSettings,
-  SavePassportOidcClientRequest,
   SearchPassportGamePlayersResponse,
 } from '@/types/v1/passport_admin'
 
@@ -99,17 +96,3 @@ export const getPassportSettings = () => request.get<GetPassportSettingsResponse
 
 export const updatePassportSettings = (settings: PassportSettings) =>
   request.put<GetPassportSettingsResponse>(`${base}/settings`, settings, cfg())
-
-export const listPassportOidcClients = () =>
-  request.get<ListPassportOidcClientsResponse>(`${base}/oidc-clients`, cfg())
-
-export const createPassportOidcClient = (req: SavePassportOidcClientRequest) =>
-  request.post<PassportOidcClient>(`${base}/oidc-clients`, req, cfg())
-
-export const updatePassportOidcClient = (req: SavePassportOidcClientRequest) =>
-  request.put<PassportOidcClient>(`${base}/oidc-clients/${seg(req.id)}`, req, cfg())
-
-export const deletePassportOidcClient = (id: string) => request.delete(`${base}/oidc-clients/${seg(id)}`, cfg())
-
-export const refreshPassportOidcClientSecret = (id: string) =>
-  request.post<PassportOidcClient>(`${base}/oidc-clients/${seg(id)}/secret`, {}, cfg())

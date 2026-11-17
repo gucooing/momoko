@@ -1,4 +1,4 @@
-<!-- 账号与安全：个人资料、登录与安全、登录设备、授权的应用、游戏账号、注销（?tab= 切换）。 -->
+<!-- 账号与安全：个人资料、登录与安全、登录设备、游戏账号、注销（?tab= 切换）。 -->
 <template>
   <div class="acc">
     <nav class="acc__nav" :class="ui.isMobile ? 'pp-scroll-x' : 'pp-card'" :aria-label="t('nav.account')">
@@ -27,13 +27,12 @@
 import { computed, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ComputerDesktopIcon, KeyIcon, LinkIcon, LockClosedIcon, TrashIcon, UserIcon } from '@heroicons/vue/24/outline'
+import { ComputerDesktopIcon, LinkIcon, LockClosedIcon, TrashIcon, UserIcon } from '@heroicons/vue/24/outline'
 import { useSessionStore } from '@passport/stores/session'
 import { useUiStore } from '@passport/stores/ui'
 import ProfileSection from './ProfileSection.vue'
 import SecuritySection from './SecuritySection.vue'
 import DevicesSection from './DevicesSection.vue'
-import AppsSection from './AppsSection.vue'
 import GamesSection from './GamesSection.vue'
 import DeleteSection from './DeleteSection.vue'
 
@@ -47,7 +46,6 @@ const views: Record<string, Component> = {
   profile: ProfileSection,
   security: SecuritySection,
   devices: DevicesSection,
-  apps: AppsSection,
   games: GamesSection,
   delete: DeleteSection,
 }
@@ -64,7 +62,6 @@ const sections = computed(() => {
     { key: 'profile', label: t('account.nav.profile'), icon: UserIcon, n: 0 },
     { key: 'security', label: t('account.nav.security'), icon: LockClosedIcon, n: 0 },
     { key: 'devices', label: t('account.nav.devices'), icon: ComputerDesktopIcon, n: me?.deviceCount || 0 },
-    { key: 'apps', label: t('account.nav.apps'), icon: KeyIcon, n: me?.appCount || 0 },
     { key: 'games', label: t('account.nav.games'), icon: LinkIcon, n: me?.linkCount || 0 },
     { key: 'delete', label: t('account.nav.delete'), icon: TrashIcon, n: 0 },
   ]

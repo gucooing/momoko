@@ -160,7 +160,7 @@ type GmPlayerLink struct {
 	Username string `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
 	// 通行证昵称
 	Name string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	// 绑定方式：password / code / oidc / admin / request
+	// 绑定方式：password / code / create / admin / request
 	Method string `protobuf:"bytes,5,opt,name=method,proto3" json:"method,omitempty"`
 	// 绑定时间
 	LinkedAt      *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=linked_at,json=linkedAt,proto3" json:"linked_at,omitempty"`
@@ -1957,7 +1957,7 @@ func (x *ListGmConfigRevisionsResponse) GetTotal() int32 {
 type GmClientLog struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// 上传原因：exception / error / crash / fatal / login / sdk / manual
+	// 上传原因：exception 异常 / crash 崩溃 / fatal 致命错误（客户端自动上传）/ manual 玩家手动上传
 	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
 	// 摘要
 	Summary string `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
@@ -1974,7 +1974,13 @@ type GmClientLog struct {
 	// 上传时间
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 日志原文（只在单份日志接口返回）
-	Content       string `protobuf:"bytes,10,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,10,opt,name=content,proto3" json:"content,omitempty"`
+	// 服务器摘要（名称、游戏；服务器已删除时只有 id）
+	Server *GameServerBrief `protobuf:"bytes,11,opt,name=server,proto3" json:"server,omitempty"`
+	// 游戏账号（MGP pid）
+	PlayerId string `protobuf:"bytes,12,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	// 绑定这个游戏账号的通行证（没有生效的绑定时为空）
+	Link          *GmPlayerLink `protobuf:"bytes,13,opt,name=link,proto3" json:"link,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2079,11 +2085,42 @@ func (x *GmClientLog) GetContent() string {
 	return ""
 }
 
+func (x *GmClientLog) GetServer() *GameServerBrief {
+	if x != nil {
+		return x.Server
+	}
+	return nil
+}
+
+func (x *GmClientLog) GetPlayerId() string {
+	if x != nil {
+		return x.PlayerId
+	}
+	return ""
+}
+
+func (x *GmClientLog) GetLink() *GmPlayerLink {
+	if x != nil {
+		return x.Link
+	}
+	return nil
+}
+
 type ListGmClientLogsRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	// 玩家 pid
-	Pid           string `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 服务器 id（空为全部服务器）
+	ServerId string `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
+	// 玩家 pid（空为全部玩家）
+	Pid string `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
+	// 上传原因（空为全部）
+	Reason string `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	// 上传时间范围
+	Since *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=since,proto3" json:"since,omitempty"`
+	Until *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=until,proto3" json:"until,omitempty"`
+	// 关键字：摘要、说明、设备
+	Q             string `protobuf:"bytes,6,opt,name=q,proto3" json:"q,omitempty"`
+	Page          int32  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2132,10 +2169,53 @@ func (x *ListGmClientLogsRequest) GetPid() string {
 	return ""
 }
 
+func (x *ListGmClientLogsRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *ListGmClientLogsRequest) GetSince() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Since
+	}
+	return nil
+}
+
+func (x *ListGmClientLogsRequest) GetUntil() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Until
+	}
+	return nil
+}
+
+func (x *ListGmClientLogsRequest) GetQ() string {
+	if x != nil {
+		return x.Q
+	}
+	return ""
+}
+
+func (x *ListGmClientLogsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListGmClientLogsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
 type ListGmClientLogsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 从新到旧
 	Items         []*GmClientLog `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int32          `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2177,11 +2257,16 @@ func (x *ListGmClientLogsResponse) GetItems() []*GmClientLog {
 	return nil
 }
 
+func (x *ListGmClientLogsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
 type GmClientLogRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Pid           string                 `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
-	Id            string                 `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2214,20 +2299,6 @@ func (x *GmClientLogRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GmClientLogRequest.ProtoReflect.Descriptor instead.
 func (*GmClientLogRequest) Descriptor() ([]byte, []int) {
 	return file_v1_game_gm_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *GmClientLogRequest) GetServerId() string {
-	if x != nil {
-		return x.ServerId
-	}
-	return ""
-}
-
-func (x *GmClientLogRequest) GetPid() string {
-	if x != nil {
-		return x.Pid
-	}
-	return ""
 }
 
 func (x *GmClientLogRequest) GetId() string {
@@ -2466,7 +2537,7 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"\acontent\x18\f \x01(\tR\acontent\"a\n" +
 	"\x1dListGmConfigRevisionsResponse\x12*\n" +
 	"\x05items\x18\x01 \x03(\v2\x14.v1.GmConfigRevisionR\x05items\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x05R\x05total\"\xc8\x02\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"\xb8\x03\n" +
 	"\vGmClientLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x18\n" +
@@ -2480,17 +2551,26 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x18\n" +
 	"\acontent\x18\n" +
-	" \x01(\tR\acontent\"H\n" +
+	" \x01(\tR\acontent\x12+\n" +
+	"\x06server\x18\v \x01(\v2\x13.v1.GameServerBriefR\x06server\x12\x1b\n" +
+	"\tplayer_id\x18\f \x01(\tR\bplayerId\x12$\n" +
+	"\x04link\x18\r \x01(\v2\x10.v1.GmPlayerLinkR\x04link\"\x83\x02\n" +
 	"\x17ListGmClientLogsRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x10\n" +
-	"\x03pid\x18\x02 \x01(\tR\x03pid\"A\n" +
+	"\x03pid\x18\x02 \x01(\tR\x03pid\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x120\n" +
+	"\x05since\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x05since\x120\n" +
+	"\x05until\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\x05until\x12\f\n" +
+	"\x01q\x18\x06 \x01(\tR\x01q\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"W\n" +
 	"\x18ListGmClientLogsResponse\x12%\n" +
-	"\x05items\x18\x01 \x03(\v2\x0f.v1.GmClientLogR\x05items\"S\n" +
-	"\x12GmClientLogRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x10\n" +
-	"\x03pid\x18\x02 \x01(\tR\x03pid\x12\x0e\n" +
-	"\x02id\x18\x03 \x01(\tR\x02id\"\x1b\n" +
-	"\x19DeleteGmClientLogResponse2\xa1\v\n" +
+	"\x05items\x18\x01 \x03(\v2\x0f.v1.GmClientLogR\x05items\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"$\n" +
+	"\x12GmClientLogRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x1b\n" +
+	"\x19DeleteGmClientLogResponse2\xc8\n" +
+	"\n" +
 	"\rGameGMService\x12o\n" +
 	"\x0fSearchGmServers\x12\x1c.v1.SearchGameServersRequest\x1a\x1d.v1.SearchGameServersResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/game/gm/servers\x12n\n" +
 	"\fGetGmContext\x12\x17.v1.GetGmContextRequest\x1a\x18.v1.GetGmContextResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/v1/game/gm/{server_id}/context\x12}\n" +
@@ -2499,10 +2579,10 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"\x12ApproveGmExecution\x12\x1d.v1.ApproveGmExecutionRequest\x1a\x0f.v1.GmExecution\">\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/game/gm/{server_id}/executions/{id}/approve\x12\x81\x01\n" +
 	"\x11RejectGmExecution\x12\x1c.v1.RejectGmExecutionRequest\x1a\x0f.v1.GmExecution\"=\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/game/gm/{server_id}/executions/{id}/reject\x12\x82\x01\n" +
 	"\x11ListGmSelfService\x12\x1c.v1.ListGmSelfServiceRequest\x1a\x1d.v1.ListGmSelfServiceResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/v1/game/gm/{server_id}/self-service\x12\x8d\x01\n" +
-	"\x13UpdateGmSelfService\x12\x1e.v1.UpdateGmSelfServiceRequest\x1a\x17.v1.GmSelfServicePolicy\"=\x82\xd3\xe4\x93\x027:\x01*\x1a2/api/v1/game/gm/{server_id}/self-service/{command}\x12\x8c\x01\n" +
-	"\x10ListGmClientLogs\x12\x1b.v1.ListGmClientLogsRequest\x1a\x1c.v1.ListGmClientLogsResponse\"=\x82\xd3\xe4\x93\x027\x125/api/v1/game/gm/{server_id}/players/{pid}/client-logs\x12}\n" +
-	"\x0eGetGmClientLog\x12\x16.v1.GmClientLogRequest\x1a\x0f.v1.GmClientLog\"B\x82\xd3\xe4\x93\x02<\x12:/api/v1/game/gm/{server_id}/players/{pid}/client-logs/{id}\x12\x8e\x01\n" +
-	"\x11DeleteGmClientLog\x12\x16.v1.GmClientLogRequest\x1a\x1d.v1.DeleteGmClientLogResponse\"B\x82\xd3\xe4\x93\x02<*:/api/v1/game/gm/{server_id}/players/{pid}/client-logs/{id}B\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\x13UpdateGmSelfService\x12\x1e.v1.UpdateGmSelfServiceRequest\x1a\x17.v1.GmSelfServicePolicy\"=\x82\xd3\xe4\x93\x027:\x01*\x1a2/api/v1/game/gm/{server_id}/self-service/{command}\x12o\n" +
+	"\x10ListGmClientLogs\x12\x1b.v1.ListGmClientLogsRequest\x1a\x1c.v1.ListGmClientLogsResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/game/client-logs\x12`\n" +
+	"\x0eGetGmClientLog\x12\x16.v1.GmClientLogRequest\x1a\x0f.v1.GmClientLog\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/v1/game/client-logs/{id}\x12q\n" +
+	"\x11DeleteGmClientLog\x12\x16.v1.GmClientLogRequest\x1a\x1d.v1.DeleteGmClientLogResponse\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/api/v1/game/client-logs/{id}B\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_game_gm_proto_rawDescOnce sync.Once
@@ -2578,34 +2658,38 @@ var file_v1_game_gm_proto_depIdxs = []int32{
 	20, // 21: v1.ListGmConfigRevisionsResponse.items:type_name -> v1.GmConfigRevision
 	30, // 22: v1.GmClientLog.occurred_at:type_name -> google.protobuf.Timestamp
 	30, // 23: v1.GmClientLog.created_at:type_name -> google.protobuf.Timestamp
-	22, // 24: v1.ListGmClientLogsResponse.items:type_name -> v1.GmClientLog
-	32, // 25: v1.GameGMService.SearchGmServers:input_type -> v1.SearchGameServersRequest
-	0,  // 26: v1.GameGMService.GetGmContext:input_type -> v1.GetGmContextRequest
-	5,  // 27: v1.GameGMService.ListGmExecutions:input_type -> v1.ListGmExecutionsRequest
-	7,  // 28: v1.GameGMService.GetGmExecution:input_type -> v1.GetGmExecutionRequest
-	8,  // 29: v1.GameGMService.ApproveGmExecution:input_type -> v1.ApproveGmExecutionRequest
-	9,  // 30: v1.GameGMService.RejectGmExecution:input_type -> v1.RejectGmExecutionRequest
-	11, // 31: v1.GameGMService.ListGmSelfService:input_type -> v1.ListGmSelfServiceRequest
-	13, // 32: v1.GameGMService.UpdateGmSelfService:input_type -> v1.UpdateGmSelfServiceRequest
-	23, // 33: v1.GameGMService.ListGmClientLogs:input_type -> v1.ListGmClientLogsRequest
-	25, // 34: v1.GameGMService.GetGmClientLog:input_type -> v1.GmClientLogRequest
-	25, // 35: v1.GameGMService.DeleteGmClientLog:input_type -> v1.GmClientLogRequest
-	33, // 36: v1.GameGMService.SearchGmServers:output_type -> v1.SearchGameServersResponse
-	1,  // 37: v1.GameGMService.GetGmContext:output_type -> v1.GetGmContextResponse
-	6,  // 38: v1.GameGMService.ListGmExecutions:output_type -> v1.ListGmExecutionsResponse
-	4,  // 39: v1.GameGMService.GetGmExecution:output_type -> v1.GmExecution
-	4,  // 40: v1.GameGMService.ApproveGmExecution:output_type -> v1.GmExecution
-	4,  // 41: v1.GameGMService.RejectGmExecution:output_type -> v1.GmExecution
-	12, // 42: v1.GameGMService.ListGmSelfService:output_type -> v1.ListGmSelfServiceResponse
-	10, // 43: v1.GameGMService.UpdateGmSelfService:output_type -> v1.GmSelfServicePolicy
-	24, // 44: v1.GameGMService.ListGmClientLogs:output_type -> v1.ListGmClientLogsResponse
-	22, // 45: v1.GameGMService.GetGmClientLog:output_type -> v1.GmClientLog
-	26, // 46: v1.GameGMService.DeleteGmClientLog:output_type -> v1.DeleteGmClientLogResponse
-	36, // [36:47] is the sub-list for method output_type
-	25, // [25:36] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	29, // 24: v1.GmClientLog.server:type_name -> v1.GameServerBrief
+	2,  // 25: v1.GmClientLog.link:type_name -> v1.GmPlayerLink
+	30, // 26: v1.ListGmClientLogsRequest.since:type_name -> google.protobuf.Timestamp
+	30, // 27: v1.ListGmClientLogsRequest.until:type_name -> google.protobuf.Timestamp
+	22, // 28: v1.ListGmClientLogsResponse.items:type_name -> v1.GmClientLog
+	32, // 29: v1.GameGMService.SearchGmServers:input_type -> v1.SearchGameServersRequest
+	0,  // 30: v1.GameGMService.GetGmContext:input_type -> v1.GetGmContextRequest
+	5,  // 31: v1.GameGMService.ListGmExecutions:input_type -> v1.ListGmExecutionsRequest
+	7,  // 32: v1.GameGMService.GetGmExecution:input_type -> v1.GetGmExecutionRequest
+	8,  // 33: v1.GameGMService.ApproveGmExecution:input_type -> v1.ApproveGmExecutionRequest
+	9,  // 34: v1.GameGMService.RejectGmExecution:input_type -> v1.RejectGmExecutionRequest
+	11, // 35: v1.GameGMService.ListGmSelfService:input_type -> v1.ListGmSelfServiceRequest
+	13, // 36: v1.GameGMService.UpdateGmSelfService:input_type -> v1.UpdateGmSelfServiceRequest
+	23, // 37: v1.GameGMService.ListGmClientLogs:input_type -> v1.ListGmClientLogsRequest
+	25, // 38: v1.GameGMService.GetGmClientLog:input_type -> v1.GmClientLogRequest
+	25, // 39: v1.GameGMService.DeleteGmClientLog:input_type -> v1.GmClientLogRequest
+	33, // 40: v1.GameGMService.SearchGmServers:output_type -> v1.SearchGameServersResponse
+	1,  // 41: v1.GameGMService.GetGmContext:output_type -> v1.GetGmContextResponse
+	6,  // 42: v1.GameGMService.ListGmExecutions:output_type -> v1.ListGmExecutionsResponse
+	4,  // 43: v1.GameGMService.GetGmExecution:output_type -> v1.GmExecution
+	4,  // 44: v1.GameGMService.ApproveGmExecution:output_type -> v1.GmExecution
+	4,  // 45: v1.GameGMService.RejectGmExecution:output_type -> v1.GmExecution
+	12, // 46: v1.GameGMService.ListGmSelfService:output_type -> v1.ListGmSelfServiceResponse
+	10, // 47: v1.GameGMService.UpdateGmSelfService:output_type -> v1.GmSelfServicePolicy
+	24, // 48: v1.GameGMService.ListGmClientLogs:output_type -> v1.ListGmClientLogsResponse
+	22, // 49: v1.GameGMService.GetGmClientLog:output_type -> v1.GmClientLog
+	26, // 50: v1.GameGMService.DeleteGmClientLog:output_type -> v1.DeleteGmClientLogResponse
+	40, // [40:51] is the sub-list for method output_type
+	29, // [29:40] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_v1_game_gm_proto_init() }

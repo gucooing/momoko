@@ -19,51 +19,52 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PassportService_GetPassportConfig_FullMethodName                = "/v1.PassportService/GetPassportConfig"
-	PassportService_SendPassportRegisterCode_FullMethodName         = "/v1.PassportService/SendPassportRegisterCode"
-	PassportService_PassportRegister_FullMethodName                 = "/v1.PassportService/PassportRegister"
-	PassportService_SendPassportLoginCode_FullMethodName            = "/v1.PassportService/SendPassportLoginCode"
-	PassportService_PassportLogin_FullMethodName                    = "/v1.PassportService/PassportLogin"
-	PassportService_PassportLoginMfa_FullMethodName                 = "/v1.PassportService/PassportLoginMfa"
-	PassportService_PassportRefresh_FullMethodName                  = "/v1.PassportService/PassportRefresh"
-	PassportService_SendPassportResetCode_FullMethodName            = "/v1.PassportService/SendPassportResetCode"
-	PassportService_PassportResetPassword_FullMethodName            = "/v1.PassportService/PassportResetPassword"
-	PassportService_PassportLogout_FullMethodName                   = "/v1.PassportService/PassportLogout"
-	PassportService_GetPassportMe_FullMethodName                    = "/v1.PassportService/GetPassportMe"
-	PassportService_UpdatePassportProfile_FullMethodName            = "/v1.PassportService/UpdatePassportProfile"
-	PassportService_PresignPassportAvatar_FullMethodName            = "/v1.PassportService/PresignPassportAvatar"
-	PassportService_CompletePassportAvatar_FullMethodName           = "/v1.PassportService/CompletePassportAvatar"
-	PassportService_ChangePassportPassword_FullMethodName           = "/v1.PassportService/ChangePassportPassword"
-	PassportService_SendPassportEmailChangeCode_FullMethodName      = "/v1.PassportService/SendPassportEmailChangeCode"
-	PassportService_ChangePassportEmail_FullMethodName              = "/v1.PassportService/ChangePassportEmail"
-	PassportService_SetPassportEmailLogin_FullMethodName            = "/v1.PassportService/SetPassportEmailLogin"
-	PassportService_SetupPassportTotp_FullMethodName                = "/v1.PassportService/SetupPassportTotp"
-	PassportService_EnablePassportTotp_FullMethodName               = "/v1.PassportService/EnablePassportTotp"
-	PassportService_DisablePassportTotp_FullMethodName              = "/v1.PassportService/DisablePassportTotp"
-	PassportService_RegeneratePassportRecoveryCodes_FullMethodName  = "/v1.PassportService/RegeneratePassportRecoveryCodes"
-	PassportService_ListPassportDevices_FullMethodName              = "/v1.PassportService/ListPassportDevices"
-	PassportService_RevokePassportDevice_FullMethodName             = "/v1.PassportService/RevokePassportDevice"
-	PassportService_LogoutPassportOthers_FullMethodName             = "/v1.PassportService/LogoutPassportOthers"
-	PassportService_ListPassportApps_FullMethodName                 = "/v1.PassportService/ListPassportApps"
-	PassportService_RevokePassportApp_FullMethodName                = "/v1.PassportService/RevokePassportApp"
-	PassportService_RequestPassportDeletion_FullMethodName          = "/v1.PassportService/RequestPassportDeletion"
-	PassportService_CancelPassportDeletion_FullMethodName           = "/v1.PassportService/CancelPassportDeletion"
-	PassportService_ListPassportMessages_FullMethodName             = "/v1.PassportService/ListPassportMessages"
-	PassportService_ReadPassportMessages_FullMethodName             = "/v1.PassportService/ReadPassportMessages"
-	PassportService_ListPassportActivity_FullMethodName             = "/v1.PassportService/ListPassportActivity"
-	PassportService_ListPassportLinks_FullMethodName                = "/v1.PassportService/ListPassportLinks"
-	PassportService_SetPassportPrimaryLink_FullMethodName           = "/v1.PassportService/SetPassportPrimaryLink"
-	PassportService_UnbindPassportLink_FullMethodName               = "/v1.PassportService/UnbindPassportLink"
-	PassportService_SearchPassportBindServers_FullMethodName        = "/v1.PassportService/SearchPassportBindServers"
-	PassportService_BindPassportAccount_FullMethodName              = "/v1.PassportService/BindPassportAccount"
-	PassportService_GetPassportGame_FullMethodName                  = "/v1.PassportService/GetPassportGame"
-	PassportService_GetPassportGameBrief_FullMethodName             = "/v1.PassportService/GetPassportGameBrief"
-	PassportService_ListPassportSelfService_FullMethodName          = "/v1.PassportService/ListPassportSelfService"
-	PassportService_ListPassportGameRequests_FullMethodName         = "/v1.PassportService/ListPassportGameRequests"
-	PassportService_ListPassportGameRecords_FullMethodName          = "/v1.PassportService/ListPassportGameRecords"
-	PassportService_RedeemPassportGiftCode_FullMethodName           = "/v1.PassportService/RedeemPassportGiftCode"
-	PassportService_GetPassportOidcAuthorization_FullMethodName     = "/v1.PassportService/GetPassportOidcAuthorization"
-	PassportService_ApprovePassportOidcAuthorization_FullMethodName = "/v1.PassportService/ApprovePassportOidcAuthorization"
+	PassportService_GetPassportConfig_FullMethodName               = "/v1.PassportService/GetPassportConfig"
+	PassportService_SendPassportRegisterCode_FullMethodName        = "/v1.PassportService/SendPassportRegisterCode"
+	PassportService_PassportRegister_FullMethodName                = "/v1.PassportService/PassportRegister"
+	PassportService_SendPassportLoginCode_FullMethodName           = "/v1.PassportService/SendPassportLoginCode"
+	PassportService_PassportLogin_FullMethodName                   = "/v1.PassportService/PassportLogin"
+	PassportService_PassportLoginMfa_FullMethodName                = "/v1.PassportService/PassportLoginMfa"
+	PassportService_PassportRefresh_FullMethodName                 = "/v1.PassportService/PassportRefresh"
+	PassportService_SendPassportResetCode_FullMethodName           = "/v1.PassportService/SendPassportResetCode"
+	PassportService_PassportResetPassword_FullMethodName           = "/v1.PassportService/PassportResetPassword"
+	PassportService_PassportLogout_FullMethodName                  = "/v1.PassportService/PassportLogout"
+	PassportService_GetPassportMe_FullMethodName                   = "/v1.PassportService/GetPassportMe"
+	PassportService_UpdatePassportProfile_FullMethodName           = "/v1.PassportService/UpdatePassportProfile"
+	PassportService_PresignPassportAvatar_FullMethodName           = "/v1.PassportService/PresignPassportAvatar"
+	PassportService_CompletePassportAvatar_FullMethodName          = "/v1.PassportService/CompletePassportAvatar"
+	PassportService_ChangePassportPassword_FullMethodName          = "/v1.PassportService/ChangePassportPassword"
+	PassportService_SendPassportEmailChangeCode_FullMethodName     = "/v1.PassportService/SendPassportEmailChangeCode"
+	PassportService_ChangePassportEmail_FullMethodName             = "/v1.PassportService/ChangePassportEmail"
+	PassportService_SetPassportEmailLogin_FullMethodName           = "/v1.PassportService/SetPassportEmailLogin"
+	PassportService_SetupPassportTotp_FullMethodName               = "/v1.PassportService/SetupPassportTotp"
+	PassportService_EnablePassportTotp_FullMethodName              = "/v1.PassportService/EnablePassportTotp"
+	PassportService_DisablePassportTotp_FullMethodName             = "/v1.PassportService/DisablePassportTotp"
+	PassportService_RegeneratePassportRecoveryCodes_FullMethodName = "/v1.PassportService/RegeneratePassportRecoveryCodes"
+	PassportService_ListPassportDevices_FullMethodName             = "/v1.PassportService/ListPassportDevices"
+	PassportService_RevokePassportDevice_FullMethodName            = "/v1.PassportService/RevokePassportDevice"
+	PassportService_LogoutPassportOthers_FullMethodName            = "/v1.PassportService/LogoutPassportOthers"
+	PassportService_RequestPassportDeletion_FullMethodName         = "/v1.PassportService/RequestPassportDeletion"
+	PassportService_CancelPassportDeletion_FullMethodName          = "/v1.PassportService/CancelPassportDeletion"
+	PassportService_ListPassportMessages_FullMethodName            = "/v1.PassportService/ListPassportMessages"
+	PassportService_ReadPassportMessages_FullMethodName            = "/v1.PassportService/ReadPassportMessages"
+	PassportService_ListPassportActivity_FullMethodName            = "/v1.PassportService/ListPassportActivity"
+	PassportService_ListPassportLinks_FullMethodName               = "/v1.PassportService/ListPassportLinks"
+	PassportService_SetPassportPrimaryLink_FullMethodName          = "/v1.PassportService/SetPassportPrimaryLink"
+	PassportService_UnbindPassportLink_FullMethodName              = "/v1.PassportService/UnbindPassportLink"
+	PassportService_SearchPassportBindServers_FullMethodName       = "/v1.PassportService/SearchPassportBindServers"
+	PassportService_BindPassportAccount_FullMethodName             = "/v1.PassportService/BindPassportAccount"
+	PassportService_GetPassportGame_FullMethodName                 = "/v1.PassportService/GetPassportGame"
+	PassportService_GetPassportGameBrief_FullMethodName            = "/v1.PassportService/GetPassportGameBrief"
+	PassportService_ListPassportSelfService_FullMethodName         = "/v1.PassportService/ListPassportSelfService"
+	PassportService_ListPassportGameRequests_FullMethodName        = "/v1.PassportService/ListPassportGameRequests"
+	PassportService_ListPassportGameRecords_FullMethodName         = "/v1.PassportService/ListPassportGameRecords"
+	PassportService_RedeemPassportGiftCode_FullMethodName          = "/v1.PassportService/RedeemPassportGiftCode"
+	PassportService_ListPassportLaunchApps_FullMethodName          = "/v1.PassportService/ListPassportLaunchApps"
+	PassportService_GetPassportLaunchApp_FullMethodName            = "/v1.PassportService/GetPassportLaunchApp"
+	PassportService_BindPassportLaunchApp_FullMethodName           = "/v1.PassportService/BindPassportLaunchApp"
+	PassportService_CreatePassportLaunchAccount_FullMethodName     = "/v1.PassportService/CreatePassportLaunchAccount"
+	PassportService_IssuePassportLaunchTicket_FullMethodName       = "/v1.PassportService/IssuePassportLaunchTicket"
 )
 
 // PassportServiceClient is the client API for PassportService service.
@@ -123,10 +124,6 @@ type PassportServiceClient interface {
 	RevokePassportDevice(ctx context.Context, in *RevokePassportDeviceRequest, opts ...grpc.CallOption) (*PassportEmpty, error)
 	// 退出其他所有设备
 	LogoutPassportOthers(ctx context.Context, in *PassportEmpty, opts ...grpc.CallOption) (*PassportEmpty, error)
-	// 授权的应用（用「用户通行证登录」登录过的游戏与应用）
-	ListPassportApps(ctx context.Context, in *PassportEmpty, opts ...grpc.CallOption) (*ListPassportAppsResponse, error)
-	// 撤销授权（已签发的访问令牌随之失效，下次需要重新确认）
-	RevokePassportApp(ctx context.Context, in *RevokePassportAppRequest, opts ...grpc.CallOption) (*PassportEmpty, error)
 	// 申请注销（7 天后删除，期间可撤销）
 	RequestPassportDeletion(ctx context.Context, in *RequestPassportDeletionRequest, opts ...grpc.CallOption) (*PassportMe, error)
 	// 撤销注销申请
@@ -143,7 +140,7 @@ type PassportServiceClient interface {
 	SetPassportPrimaryLink(ctx context.Context, in *PassportLinkRequest, opts ...grpc.CallOption) (*PassportEmpty, error)
 	// 解绑（解绑后 7 天内不能在同一服务器绑定别的账号）
 	UnbindPassportLink(ctx context.Context, in *PassportLinkRequest, opts ...grpc.CallOption) (*PassportEmpty, error)
-	// 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
+	// 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（链接带 ?server= 时预选）
 	SearchPassportBindServers(ctx context.Context, in *SearchPassportBindServersRequest, opts ...grpc.CallOption) (*SearchPassportBindServersResponse, error)
 	// 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
 	BindPassportAccount(ctx context.Context, in *BindPassportAccountRequest, opts ...grpc.CallOption) (*PassportLink, error)
@@ -159,11 +156,18 @@ type PassportServiceClient interface {
 	ListPassportGameRecords(ctx context.Context, in *ListPassportGameRecordsRequest, opts ...grpc.CallOption) (*ListPassportGameRecordsResponse, error)
 	// 兑换码（奖励进礼物箱）
 	RedeemPassportGiftCode(ctx context.Context, in *RedeemPassportGiftCodeRequest, opts ...grpc.CallOption) (*RedeemPassportGiftCodeResponse, error)
-	// 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
-	GetPassportOidcAuthorization(ctx context.Context, in *PassportOidcAuthorizeRequest, opts ...grpc.CallOption) (*PassportOidcAuthorizationInfo, error)
-	// 同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
-	// 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
-	ApprovePassportOidcAuthorization(ctx context.Context, in *PassportOidcAuthorizeRequest, opts ...grpc.CallOption) (*PassportOidcAuthorizeResponse, error)
+	// 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+	// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
+	ListPassportLaunchApps(ctx context.Context, in *PassportEmpty, opts ...grpc.CallOption) (*ListPassportLaunchAppsResponse, error)
+	// 一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；
+	// 应用 ID 不存在或服务器不可启动时 404 PASSPORT_APP_NOT_FOUND
+	GetPassportLaunchApp(ctx context.Context, in *PassportLaunchAppRequest, opts ...grpc.CallOption) (*PassportLaunchApp, error)
+	// 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
+	BindPassportLaunchApp(ctx context.Context, in *BindPassportLaunchAppRequest, opts ...grpc.CallOption) (*PassportLink, error)
+	// 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
+	CreatePassportLaunchAccount(ctx context.Context, in *PassportLaunchAppRequest, opts ...grpc.CallOption) (*PassportLink, error)
+	// 签发启动票据（游戏服务端 SDK 用它开会话，有效 120 秒，只能用一次），并记录绑定的最近使用时间
+	IssuePassportLaunchTicket(ctx context.Context, in *PassportLaunchAppRequest, opts ...grpc.CallOption) (*PassportLaunchTicket, error)
 }
 
 type passportServiceClient struct {
@@ -424,26 +428,6 @@ func (c *passportServiceClient) LogoutPassportOthers(ctx context.Context, in *Pa
 	return out, nil
 }
 
-func (c *passportServiceClient) ListPassportApps(ctx context.Context, in *PassportEmpty, opts ...grpc.CallOption) (*ListPassportAppsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListPassportAppsResponse)
-	err := c.cc.Invoke(ctx, PassportService_ListPassportApps_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *passportServiceClient) RevokePassportApp(ctx context.Context, in *RevokePassportAppRequest, opts ...grpc.CallOption) (*PassportEmpty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PassportEmpty)
-	err := c.cc.Invoke(ctx, PassportService_RevokePassportApp_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *passportServiceClient) RequestPassportDeletion(ctx context.Context, in *RequestPassportDeletionRequest, opts ...grpc.CallOption) (*PassportMe, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PassportMe)
@@ -604,20 +588,50 @@ func (c *passportServiceClient) RedeemPassportGiftCode(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *passportServiceClient) GetPassportOidcAuthorization(ctx context.Context, in *PassportOidcAuthorizeRequest, opts ...grpc.CallOption) (*PassportOidcAuthorizationInfo, error) {
+func (c *passportServiceClient) ListPassportLaunchApps(ctx context.Context, in *PassportEmpty, opts ...grpc.CallOption) (*ListPassportLaunchAppsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PassportOidcAuthorizationInfo)
-	err := c.cc.Invoke(ctx, PassportService_GetPassportOidcAuthorization_FullMethodName, in, out, cOpts...)
+	out := new(ListPassportLaunchAppsResponse)
+	err := c.cc.Invoke(ctx, PassportService_ListPassportLaunchApps_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *passportServiceClient) ApprovePassportOidcAuthorization(ctx context.Context, in *PassportOidcAuthorizeRequest, opts ...grpc.CallOption) (*PassportOidcAuthorizeResponse, error) {
+func (c *passportServiceClient) GetPassportLaunchApp(ctx context.Context, in *PassportLaunchAppRequest, opts ...grpc.CallOption) (*PassportLaunchApp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PassportOidcAuthorizeResponse)
-	err := c.cc.Invoke(ctx, PassportService_ApprovePassportOidcAuthorization_FullMethodName, in, out, cOpts...)
+	out := new(PassportLaunchApp)
+	err := c.cc.Invoke(ctx, PassportService_GetPassportLaunchApp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passportServiceClient) BindPassportLaunchApp(ctx context.Context, in *BindPassportLaunchAppRequest, opts ...grpc.CallOption) (*PassportLink, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PassportLink)
+	err := c.cc.Invoke(ctx, PassportService_BindPassportLaunchApp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passportServiceClient) CreatePassportLaunchAccount(ctx context.Context, in *PassportLaunchAppRequest, opts ...grpc.CallOption) (*PassportLink, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PassportLink)
+	err := c.cc.Invoke(ctx, PassportService_CreatePassportLaunchAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passportServiceClient) IssuePassportLaunchTicket(ctx context.Context, in *PassportLaunchAppRequest, opts ...grpc.CallOption) (*PassportLaunchTicket, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PassportLaunchTicket)
+	err := c.cc.Invoke(ctx, PassportService_IssuePassportLaunchTicket_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -681,10 +695,6 @@ type PassportServiceServer interface {
 	RevokePassportDevice(context.Context, *RevokePassportDeviceRequest) (*PassportEmpty, error)
 	// 退出其他所有设备
 	LogoutPassportOthers(context.Context, *PassportEmpty) (*PassportEmpty, error)
-	// 授权的应用（用「用户通行证登录」登录过的游戏与应用）
-	ListPassportApps(context.Context, *PassportEmpty) (*ListPassportAppsResponse, error)
-	// 撤销授权（已签发的访问令牌随之失效，下次需要重新确认）
-	RevokePassportApp(context.Context, *RevokePassportAppRequest) (*PassportEmpty, error)
 	// 申请注销（7 天后删除，期间可撤销）
 	RequestPassportDeletion(context.Context, *RequestPassportDeletionRequest) (*PassportMe, error)
 	// 撤销注销申请
@@ -701,7 +711,7 @@ type PassportServiceServer interface {
 	SetPassportPrimaryLink(context.Context, *PassportLinkRequest) (*PassportEmpty, error)
 	// 解绑（解绑后 7 天内不能在同一服务器绑定别的账号）
 	UnbindPassportLink(context.Context, *PassportLinkRequest) (*PassportEmpty, error)
-	// 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
+	// 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（链接带 ?server= 时预选）
 	SearchPassportBindServers(context.Context, *SearchPassportBindServersRequest) (*SearchPassportBindServersResponse, error)
 	// 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
 	BindPassportAccount(context.Context, *BindPassportAccountRequest) (*PassportLink, error)
@@ -717,11 +727,18 @@ type PassportServiceServer interface {
 	ListPassportGameRecords(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
 	// 兑换码（奖励进礼物箱）
 	RedeemPassportGiftCode(context.Context, *RedeemPassportGiftCodeRequest) (*RedeemPassportGiftCodeResponse, error)
-	// 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
-	GetPassportOidcAuthorization(context.Context, *PassportOidcAuthorizeRequest) (*PassportOidcAuthorizationInfo, error)
-	// 同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
-	// 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
-	ApprovePassportOidcAuthorization(context.Context, *PassportOidcAuthorizeRequest) (*PassportOidcAuthorizeResponse, error)
+	// 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+	// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
+	ListPassportLaunchApps(context.Context, *PassportEmpty) (*ListPassportLaunchAppsResponse, error)
+	// 一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；
+	// 应用 ID 不存在或服务器不可启动时 404 PASSPORT_APP_NOT_FOUND
+	GetPassportLaunchApp(context.Context, *PassportLaunchAppRequest) (*PassportLaunchApp, error)
+	// 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
+	BindPassportLaunchApp(context.Context, *BindPassportLaunchAppRequest) (*PassportLink, error)
+	// 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
+	CreatePassportLaunchAccount(context.Context, *PassportLaunchAppRequest) (*PassportLink, error)
+	// 签发启动票据（游戏服务端 SDK 用它开会话，有效 120 秒，只能用一次），并记录绑定的最近使用时间
+	IssuePassportLaunchTicket(context.Context, *PassportLaunchAppRequest) (*PassportLaunchTicket, error)
 	mustEmbedUnimplementedPassportServiceServer()
 }
 
@@ -807,12 +824,6 @@ func (UnimplementedPassportServiceServer) RevokePassportDevice(context.Context, 
 func (UnimplementedPassportServiceServer) LogoutPassportOthers(context.Context, *PassportEmpty) (*PassportEmpty, error) {
 	return nil, status.Error(codes.Unimplemented, "method LogoutPassportOthers not implemented")
 }
-func (UnimplementedPassportServiceServer) ListPassportApps(context.Context, *PassportEmpty) (*ListPassportAppsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListPassportApps not implemented")
-}
-func (UnimplementedPassportServiceServer) RevokePassportApp(context.Context, *RevokePassportAppRequest) (*PassportEmpty, error) {
-	return nil, status.Error(codes.Unimplemented, "method RevokePassportApp not implemented")
-}
 func (UnimplementedPassportServiceServer) RequestPassportDeletion(context.Context, *RequestPassportDeletionRequest) (*PassportMe, error) {
 	return nil, status.Error(codes.Unimplemented, "method RequestPassportDeletion not implemented")
 }
@@ -861,11 +872,20 @@ func (UnimplementedPassportServiceServer) ListPassportGameRecords(context.Contex
 func (UnimplementedPassportServiceServer) RedeemPassportGiftCode(context.Context, *RedeemPassportGiftCodeRequest) (*RedeemPassportGiftCodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RedeemPassportGiftCode not implemented")
 }
-func (UnimplementedPassportServiceServer) GetPassportOidcAuthorization(context.Context, *PassportOidcAuthorizeRequest) (*PassportOidcAuthorizationInfo, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetPassportOidcAuthorization not implemented")
+func (UnimplementedPassportServiceServer) ListPassportLaunchApps(context.Context, *PassportEmpty) (*ListPassportLaunchAppsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPassportLaunchApps not implemented")
 }
-func (UnimplementedPassportServiceServer) ApprovePassportOidcAuthorization(context.Context, *PassportOidcAuthorizeRequest) (*PassportOidcAuthorizeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ApprovePassportOidcAuthorization not implemented")
+func (UnimplementedPassportServiceServer) GetPassportLaunchApp(context.Context, *PassportLaunchAppRequest) (*PassportLaunchApp, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPassportLaunchApp not implemented")
+}
+func (UnimplementedPassportServiceServer) BindPassportLaunchApp(context.Context, *BindPassportLaunchAppRequest) (*PassportLink, error) {
+	return nil, status.Error(codes.Unimplemented, "method BindPassportLaunchApp not implemented")
+}
+func (UnimplementedPassportServiceServer) CreatePassportLaunchAccount(context.Context, *PassportLaunchAppRequest) (*PassportLink, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePassportLaunchAccount not implemented")
+}
+func (UnimplementedPassportServiceServer) IssuePassportLaunchTicket(context.Context, *PassportLaunchAppRequest) (*PassportLaunchTicket, error) {
+	return nil, status.Error(codes.Unimplemented, "method IssuePassportLaunchTicket not implemented")
 }
 func (UnimplementedPassportServiceServer) mustEmbedUnimplementedPassportServiceServer() {}
 func (UnimplementedPassportServiceServer) testEmbeddedByValue()                         {}
@@ -1338,42 +1358,6 @@ func _PassportService_LogoutPassportOthers_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PassportService_ListPassportApps_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PassportEmpty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PassportServiceServer).ListPassportApps(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: PassportService_ListPassportApps_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PassportServiceServer).ListPassportApps(ctx, req.(*PassportEmpty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PassportService_RevokePassportApp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RevokePassportAppRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PassportServiceServer).RevokePassportApp(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: PassportService_RevokePassportApp_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PassportServiceServer).RevokePassportApp(ctx, req.(*RevokePassportAppRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _PassportService_RequestPassportDeletion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RequestPassportDeletionRequest)
 	if err := dec(in); err != nil {
@@ -1662,38 +1646,92 @@ func _PassportService_RedeemPassportGiftCode_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PassportService_GetPassportOidcAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PassportOidcAuthorizeRequest)
+func _PassportService_ListPassportLaunchApps_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PassportEmpty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PassportServiceServer).GetPassportOidcAuthorization(ctx, in)
+		return srv.(PassportServiceServer).ListPassportLaunchApps(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PassportService_GetPassportOidcAuthorization_FullMethodName,
+		FullMethod: PassportService_ListPassportLaunchApps_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PassportServiceServer).GetPassportOidcAuthorization(ctx, req.(*PassportOidcAuthorizeRequest))
+		return srv.(PassportServiceServer).ListPassportLaunchApps(ctx, req.(*PassportEmpty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PassportService_ApprovePassportOidcAuthorization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PassportOidcAuthorizeRequest)
+func _PassportService_GetPassportLaunchApp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PassportLaunchAppRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PassportServiceServer).ApprovePassportOidcAuthorization(ctx, in)
+		return srv.(PassportServiceServer).GetPassportLaunchApp(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PassportService_ApprovePassportOidcAuthorization_FullMethodName,
+		FullMethod: PassportService_GetPassportLaunchApp_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PassportServiceServer).ApprovePassportOidcAuthorization(ctx, req.(*PassportOidcAuthorizeRequest))
+		return srv.(PassportServiceServer).GetPassportLaunchApp(ctx, req.(*PassportLaunchAppRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassportService_BindPassportLaunchApp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BindPassportLaunchAppRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassportServiceServer).BindPassportLaunchApp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassportService_BindPassportLaunchApp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassportServiceServer).BindPassportLaunchApp(ctx, req.(*BindPassportLaunchAppRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassportService_CreatePassportLaunchAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PassportLaunchAppRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassportServiceServer).CreatePassportLaunchAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassportService_CreatePassportLaunchAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassportServiceServer).CreatePassportLaunchAccount(ctx, req.(*PassportLaunchAppRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassportService_IssuePassportLaunchTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PassportLaunchAppRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassportServiceServer).IssuePassportLaunchTicket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassportService_IssuePassportLaunchTicket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassportServiceServer).IssuePassportLaunchTicket(ctx, req.(*PassportLaunchAppRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1806,14 +1844,6 @@ var PassportService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PassportService_LogoutPassportOthers_Handler,
 		},
 		{
-			MethodName: "ListPassportApps",
-			Handler:    _PassportService_ListPassportApps_Handler,
-		},
-		{
-			MethodName: "RevokePassportApp",
-			Handler:    _PassportService_RevokePassportApp_Handler,
-		},
-		{
 			MethodName: "RequestPassportDeletion",
 			Handler:    _PassportService_RequestPassportDeletion_Handler,
 		},
@@ -1878,12 +1908,24 @@ var PassportService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PassportService_RedeemPassportGiftCode_Handler,
 		},
 		{
-			MethodName: "GetPassportOidcAuthorization",
-			Handler:    _PassportService_GetPassportOidcAuthorization_Handler,
+			MethodName: "ListPassportLaunchApps",
+			Handler:    _PassportService_ListPassportLaunchApps_Handler,
 		},
 		{
-			MethodName: "ApprovePassportOidcAuthorization",
-			Handler:    _PassportService_ApprovePassportOidcAuthorization_Handler,
+			MethodName: "GetPassportLaunchApp",
+			Handler:    _PassportService_GetPassportLaunchApp_Handler,
+		},
+		{
+			MethodName: "BindPassportLaunchApp",
+			Handler:    _PassportService_BindPassportLaunchApp_Handler,
+		},
+		{
+			MethodName: "CreatePassportLaunchAccount",
+			Handler:    _PassportService_CreatePassportLaunchAccount_Handler,
+		},
+		{
+			MethodName: "IssuePassportLaunchTicket",
+			Handler:    _PassportService_IssuePassportLaunchTicket_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

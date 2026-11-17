@@ -3,12 +3,16 @@
 package gakumas
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -611,84 +615,6 @@ func (g *Client) Restore(ctx context.Context, pid string, backupID int64, opt mg
 	return operate[gk.RestoreResult](ctx, g.c, http.MethodPost, playerPath(pid)+"/backups/"+strconv.FormatInt(backupID, 10)+"/restore", nil, opt)
 }
 
-// ---------------- 目录 ----------------
-// 全部目录接受 q（匹配 ID 或名称的一部分）与 ids（只保留这些 ID）。
-
-func catalog(q string, ids []string, cursor string, limit int32) Query {
-	return Query{}.Str("q", q).List("ids", ids).Page(cursor, limit)
-}
-
-func (g *Client) Currencies(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.CurrencyPage, error) {
-	return get[gk.CurrencyPage](ctx, g.c, "/catalog/currencies", catalog(q, ids, cursor, limit))
-}
-
-func (g *Client) ItemCatalog(ctx context.Context, q string, ids []string, kind int32, characterID string, rarity int32, cursor string, limit int32) (*gk.ItemEntryPage, error) {
-	query := catalog(q, ids, cursor, limit).Num("type", int64(kind)).Str("characterId", characterID).Num("rarity", int64(rarity))
-	return get[gk.ItemEntryPage](ctx, g.c, "/catalog/items", query)
-}
-
-func (g *Client) IdolCardSkins(ctx context.Context, q string, ids []string, characterID string, rarity, planType int32, idolCardIDs []string, cursor string, limit int32) (*gk.IdolCardSkinPage, error) {
-	query := catalog(q, ids, cursor, limit).Str("characterId", characterID).Num("rarity", int64(rarity)).Num("planType", int64(planType)).List("idolCardIds", idolCardIDs)
-	return get[gk.IdolCardSkinPage](ctx, g.c, "/catalog/idol-card-skins", query)
-}
-
-func (g *Client) SupportCardCatalog(ctx context.Context, q string, ids []string, rarity, kind int32, cursor string, limit int32) (*gk.SupportCardEntryPage, error) {
-	query := catalog(q, ids, cursor, limit).Num("rarity", int64(rarity)).Num("type", int64(kind))
-	return get[gk.SupportCardEntryPage](ctx, g.c, "/catalog/support-cards", query)
-}
-
-func (g *Client) Characters(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.CharacterPage, error) {
-	return get[gk.CharacterPage](ctx, g.c, "/catalog/characters", catalog(q, ids, cursor, limit))
-}
-
-func (g *Client) Costumes(ctx context.Context, q string, ids []string, characterID, cursor string, limit int32) (*gk.CostumePage, error) {
-	return get[gk.CostumePage](ctx, g.c, "/catalog/costumes", catalog(q, ids, cursor, limit).Str("characterId", characterID))
-}
-
-func (g *Client) CostumeHeads(ctx context.Context, q string, ids []string, characterID, cursor string, limit int32) (*gk.CostumePage, error) {
-	return get[gk.CostumePage](ctx, g.c, "/catalog/costume-heads", catalog(q, ids, cursor, limit).Str("characterId", characterID))
-}
-
-func (g *Client) Music(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.MusicPage, error) {
-	return get[gk.MusicPage](ctx, g.c, "/catalog/music", catalog(q, ids, cursor, limit))
-}
-
-// Gashas 卡池目录；open 只保留现在开放的。
-func (g *Client) Gashas(ctx context.Context, q string, ids []string, open bool, cursor string, limit int32) (*gk.GashaEntryPage, error) {
-	return get[gk.GashaEntryPage](ctx, g.c, "/catalog/gashas", catalog(q, ids, cursor, limit).Flag("open", open))
-}
-
-func (g *Client) ProduceGroups(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.ProduceGroupPage, error) {
-	return get[gk.ProduceGroupPage](ctx, g.c, "/catalog/produce-groups", catalog(q, ids, cursor, limit))
-}
-
-func (g *Client) ProduceCatalog(ctx context.Context, q string, ids []string, produceGroupID, cursor string, limit int32) (*gk.ProduceEntryPage, error) {
-	return get[gk.ProduceEntryPage](ctx, g.c, "/catalog/produces", catalog(q, ids, cursor, limit).Str("produceGroupId", produceGroupID))
-}
-
-func (g *Client) Seminars(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.SeminarEntryPage, error) {
-	return get[gk.SeminarEntryPage](ctx, g.c, "/catalog/seminars", catalog(q, ids, cursor, limit))
-}
-
-func (g *Client) Towers(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.TowerEntryPage, error) {
-	return get[gk.TowerEntryPage](ctx, g.c, "/catalog/towers", catalog(q, ids, cursor, limit))
-}
-
-// ProduceCards 技能卡（名称与强化后的名称）。
-func (g *Client) ProduceCards(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.ProduceCardEntryPage, error) {
-	return get[gk.ProduceCardEntryPage](ctx, g.c, "/catalog/produce-cards", catalog(q, ids, cursor, limit))
-}
-
-// ProduceItems P 道具（名称与效果文字）。
-func (g *Client) ProduceItems(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.ProduceItemEntryPage, error) {
-	return get[gk.ProduceItemEntryPage](ctx, g.c, "/catalog/produce-items", catalog(q, ids, cursor, limit))
-}
-
-// MemoryAbilities 记忆能力与各等级的效果文字。
-func (g *Client) MemoryAbilities(ctx context.Context, q string, ids []string, cursor string, limit int32) (*gk.MemoryAbilityPage, error) {
-	return get[gk.MemoryAbilityPage](ctx, g.c, "/catalog/memory-abilities", catalog(q, ids, cursor, limit))
-}
-
 // ---------------- 数据文件 ----------------
 
 // ConfigFile 数据文件的 MGP 路径。
@@ -715,6 +641,50 @@ func (g *Client) Config(ctx context.Context, file ConfigFile) (*ConfigDocument, 
 	out := &ConfigDocument{}
 	if err := g.c.GetInto(ctx, string(file), nil, out); err != nil {
 		return nil, err
+	}
+	return out, nil
+}
+
+// gashaDef 卡池数据文件里一个卡池用到的字段。
+type gashaDef struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Type          int32  `json:"type"`
+	BannerAssetID string `json:"bannerAssetId"`
+	StartTime     int64  `json:"startTime"`
+	EndTime       int64  `json:"endTime"`
+	Order         int32  `json:"order"`
+}
+
+// OpenGashas 现在开放的卡池：读卡池数据文件，按 order、ID 排列（与游戏服务端的卡池顺序相同），
+// 保留开始时间已到、还没结束（endTime 为 0 不结束）的卡池。
+func (g *Client) OpenGashas(ctx context.Context, now time.Time) ([]*gk.GashaEntry, error) {
+	doc, err := g.Config(ctx, ConfigGasha)
+	if err != nil {
+		return nil, err
+	}
+	var cfg struct {
+		Gashas []gashaDef `json:"gashas"`
+	}
+	if err := json.Unmarshal(doc.Content, &cfg); err != nil {
+		return nil, fmt.Errorf("gasha config: %w", err)
+	}
+	slices.SortStableFunc(cfg.Gashas, func(a, b gashaDef) int {
+		return cmp.Or(cmp.Compare(a.Order, b.Order), strings.Compare(a.ID, b.ID))
+	})
+	ms := now.UnixMilli()
+	out := []*gk.GashaEntry{}
+	for _, v := range cfg.Gashas {
+		if v.StartTime <= ms && (v.EndTime == 0 || ms < v.EndTime) {
+			out = append(out, &gk.GashaEntry{
+				Id:            v.ID,
+				Name:          v.Name,
+				Type:          v.Type,
+				BannerAssetId: v.BannerAssetID,
+				StartTime:     float64(v.StartTime),
+				EndTime:       float64(v.EndTime),
+			})
+		}
 	}
 	return out, nil
 }

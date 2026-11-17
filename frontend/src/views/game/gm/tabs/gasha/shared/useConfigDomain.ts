@@ -212,6 +212,8 @@ export function useConfigDomain<T>(domain: string, api: EditableConfigApi): Conf
     if (working.value === undefined) throw new Error('nothing to publish')
     try {
       const data = await api.publish(serverId, pretty(working.value), baseRevision.value, comment)
+      // 同名的服务器目录（卡池）按新发布的内容重读
+      ctx.refreshCatalog(domain)
       await load()
       return data.seq
     } catch (e) {

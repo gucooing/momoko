@@ -67,46 +67,6 @@ service GakumasPassportService {
     option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/gashas/ongoing"};
   }
 
-  // 目录（名称与素材 ID）
-  rpc ListCurrencies(MyCatalogRequest) returns (CurrencyPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/currencies"};
-  }
-  rpc ListItemCatalog(MyItemCatalogRequest) returns (ItemEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/items"};
-  }
-  rpc ListIdolCardSkins(MyIdolCardSkinCatalogRequest) returns (IdolCardSkinPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/idol-card-skins"};
-  }
-  rpc ListSupportCardCatalog(MySupportCardCatalogRequest) returns (SupportCardEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/support-cards"};
-  }
-  rpc ListCharacters(MyCatalogRequest) returns (CharacterPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/characters"};
-  }
-  rpc ListCostumes(MyCostumeCatalogRequest) returns (CostumePage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/costumes"};
-  }
-  rpc ListCostumeHeads(MyCostumeCatalogRequest) returns (CostumePage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/costume-heads"};
-  }
-  rpc ListMusic(MyCatalogRequest) returns (MusicPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/music"};
-  }
-  rpc ListProduceCatalog(MyProduceCatalogRequest) returns (ProduceEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/produces"};
-  }
-  rpc ListSeminars(MyCatalogRequest) returns (SeminarEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/seminars"};
-  }
-  rpc ListProduceCards(MyCatalogRequest) returns (ProduceCardEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/produce-cards"};
-  }
-  rpc ListProduceItems(MyCatalogRequest) returns (ProduceItemEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/produce-items"};
-  }
-  rpc ListMemoryAbilities(MyCatalogRequest) returns (MemoryAbilityPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/games/{server_id}/catalog/memory-abilities"};
-  }
 
   // 自助操作（目标为我绑定的游戏账号）
   rpc RefillMyActionPoint(SelfServiceRequest) returns (MyChangesResponse) {
@@ -249,67 +209,6 @@ message MyGashaDrawsRequest {
   int32 limit = 5;
 }
 
-// 目录：q 匹配 ID 或名称的一部分，ids 只保留这些 ID。
-message MyCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  string cursor = 4;
-  // 默认 50，最大 1000
-  int32 limit = 5;
-}
-
-message MyItemCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  int32 type = 4;
-  string character_id = 5;
-  int32 rarity = 6;
-  string cursor = 7;
-  int32 limit = 8;
-}
-
-message MyIdolCardSkinCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  string character_id = 4;
-  int32 rarity = 5;
-  int32 plan_type = 6;
-  repeated string idol_card_ids = 7;
-  string cursor = 8;
-  int32 limit = 9;
-}
-
-message MySupportCardCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  int32 rarity = 4;
-  int32 type = 5;
-  string cursor = 6;
-  int32 limit = 7;
-}
-
-message MyCostumeCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  string character_id = 4;
-  string cursor = 5;
-  int32 limit = 6;
-}
-
-message MyProduceCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  string produce_group_id = 4;
-  string cursor = 5;
-  int32 limit = 6;
-}
-
 // 自助操作：reason 为给管理员看的说明（需要审批时），totp_code 为两步验证码。
 message SelfServiceRequest {
   string server_id = 1;
@@ -334,7 +233,7 @@ message SelfServiceRenameRequest {
 
 message SelfServiceGiftRequest {
   string server_id = 1;
-  // 1–20 项（来自游戏目录）
+  // 1–20 项
   repeated v1.GameReward rewards = 2;
   // 礼物箱文案（最多 64 字）
   string message = 3;

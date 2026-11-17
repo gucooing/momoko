@@ -96,57 +96,6 @@ service GakumasGMService {
     option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/towers/{tower_id}/ranking"};
   }
 
-  // ---------------- 目录 ----------------
-
-  rpc ListCurrencies(CatalogRequest) returns (CurrencyPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/currencies"};
-  }
-  rpc ListItemCatalog(ItemCatalogRequest) returns (ItemEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/items"};
-  }
-  rpc ListIdolCardSkins(IdolCardSkinCatalogRequest) returns (IdolCardSkinPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/idol-card-skins"};
-  }
-  rpc ListSupportCardCatalog(SupportCardCatalogRequest) returns (SupportCardEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/support-cards"};
-  }
-  rpc ListCharacters(CatalogRequest) returns (CharacterPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/characters"};
-  }
-  rpc ListCostumes(CostumeCatalogRequest) returns (CostumePage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/costumes"};
-  }
-  rpc ListCostumeHeads(CostumeCatalogRequest) returns (CostumePage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/costume-heads"};
-  }
-  rpc ListMusic(CatalogRequest) returns (MusicPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/music"};
-  }
-  rpc ListGashas(GashaCatalogRequest) returns (GashaEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/gashas"};
-  }
-  rpc ListProduceGroups(CatalogRequest) returns (ProduceGroupPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/produce-groups"};
-  }
-  rpc ListProduceCatalog(ProduceCatalogRequest) returns (ProduceEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/produces"};
-  }
-  rpc ListSeminars(CatalogRequest) returns (SeminarEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/seminars"};
-  }
-  rpc ListTowers(CatalogRequest) returns (TowerEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/towers"};
-  }
-  rpc ListProduceCards(CatalogRequest) returns (ProduceCardEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/produce-cards"};
-  }
-  rpc ListProduceItems(CatalogRequest) returns (ProduceItemEntryPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/produce-items"};
-  }
-  rpc ListMemoryAbilities(CatalogRequest) returns (MemoryAbilityPage) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/catalog/memory-abilities"};
-  }
-
   // ---------------- 操作 ----------------
 
   // 发送到礼物箱（1–200 名玩家，逐个执行）
@@ -448,77 +397,6 @@ message TowerRankingRequest {
   string q = 3;
   string cursor = 4;
   int32 limit = 5;
-}
-
-// 目录：q 匹配 ID 或名称的一部分，ids 只保留这些 ID。
-message CatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  string cursor = 4;
-  // 默认 50，最大 1000
-  int32 limit = 5;
-}
-
-message ItemCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  int32 type = 4;
-  string character_id = 5;
-  int32 rarity = 6;
-  string cursor = 7;
-  int32 limit = 8;
-}
-
-message IdolCardSkinCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  string character_id = 4;
-  int32 rarity = 5;
-  int32 plan_type = 6;
-  repeated string idol_card_ids = 7;
-  string cursor = 8;
-  int32 limit = 9;
-}
-
-message SupportCardCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  int32 rarity = 4;
-  int32 type = 5;
-  string cursor = 6;
-  int32 limit = 7;
-}
-
-message CostumeCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  string character_id = 4;
-  string cursor = 5;
-  int32 limit = 6;
-}
-
-message GashaCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  // 只保留现在开放的卡池
-  bool open = 4;
-  string cursor = 5;
-  int32 limit = 6;
-}
-
-message ProduceCatalogRequest {
-  string server_id = 1;
-  string q = 2;
-  repeated string ids = 3;
-  string produce_group_id = 4;
-  string cursor = 5;
-  int32 limit = 6;
 }
 
 

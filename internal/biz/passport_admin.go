@@ -20,11 +20,10 @@ import (
 	"momoko/pkg/common"
 	"momoko/pkg/mgp"
 	"momoko/pkg/mgp/gakumas"
-	"momoko/pkg/oidcserver"
 )
 
 // PassportAdminUsecase 用户通行证的后台管理（主 server 上的 PassportAdminService，权限 game:passport）：
-// 通行证用户、替玩家绑定 / 解绑、邀请码、OIDC 应用与设置。与玩家端的 PassportUsecase 互不调用；
+// 通行证用户、替玩家绑定 / 解绑、邀请码与设置。与玩家端的 PassportUsecase 互不调用；
 // 两边读写同一组通行证表，绑定、解绑与消息按同样的规则（passportCreateLink、passportUnlink、passportNotify）。
 type PassportAdminUsecase struct {
 	servers  *GameServerUsecase
@@ -205,9 +204,6 @@ func (uc *PassportAdminUsecase) AdminGetUser(ctx context.Context, id string) (*v
 	}
 	if n, err := uc.repo.CountSessions(ctx, id); err == nil {
 		out.DeviceCount = int32(n)
-	}
-	if n, err := uc.repo.CountGrants(ctx, id); err == nil {
-		out.AppCount = int32(n)
 	}
 	for _, l := range links {
 		p := passportLinkProto(ctx, uc.servers, l, servers, ss)
@@ -500,8 +496,6 @@ type PassportServerInfo struct {
 	Enabled   bool
 	Addr      string
 	PublicURL string
-	// Issuer OIDC issuer（public_url 为空时按请求推断）
-	Issuer string
 }
 
 // AdminSettings 通行证设置与只读的运行信息。
@@ -513,12 +507,6 @@ func (uc *PassportAdminUsecase) AdminSettings(ctx context.Context, info Passport
 		ListenAddr:          info.Addr,
 		PublicUrl:           info.PublicURL,
 		AvatarUploadEnabled: uc.configUc.AvatarUploadEnabled(ctx),
-	}
-	if ep, err := OidcEndpoints(info.Issuer); err == nil && info.Issuer != "" {
-		out.OidcIssuer, out.OidcDiscoveryUrl = ep.IssuerURL, ep.DiscoveryURL
-	}
-	if list, err := uc.repo.ListOidcClients(ctx); err == nil {
-		out.OidcClientCount = int32(len(list))
 	}
 	return out, nil
 }
@@ -554,129 +542,4 @@ func (uc *PassportAdminUsecase) SaveSettings(ctx context.Context, s *v1.Passport
 		return nil, ErrSystem(err)
 	}
 	return s, nil
-}
-
-// ---------------- 后台：OIDC 应用 ----------------
-
-func (uc *PassportAdminUsecase) oidcClientProto(ctx context.Context, c *gen.PassportOidcClient, withSecret bool, grants map[string]int) *v1.PassportOidcClient {
-	out := &v1.PassportOidcClient{
-		Id:           c.ID,
-		Name:         c.Name,
-		ClientId:     c.ClientID,
-		ClientSecret: oidcserver.MaskSecret(c.ClientSecret),
-		RedirectUris: c.RedirectUris,
-		Scopes:       c.Scopes,
-		Active:       c.Active,
-		Description:  c.Description,
-		LastUsedAt:   tsOrNil(c.LastUsedAt),
-		CreateTime:   timestamppb.New(c.CreateTime),
-		GrantCount:   int32(grants[c.ID]),
-	}
-	if withSecret {
-		out.ClientSecret = c.ClientSecret
-	}
-	if c.ServerID != "" {
-		if s, err := uc.servers.Get(ctx, c.ServerID); err == nil {
-			out.Server = uc.servers.Brief(ctx, s)
-		}
-	}
-	return out
-}
-
-// ListOidcClients OIDC 应用列表。
-func (uc *PassportAdminUsecase) ListOidcClients(ctx context.Context) (*v1.ListPassportOidcClientsResponse, error) {
-	list, err := uc.repo.ListOidcClients(ctx)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	grants, _ := uc.repo.GrantCounts(ctx)
-	out := &v1.ListPassportOidcClientsResponse{}
-	for _, c := range list {
-		out.Items = append(out.Items, uc.oidcClientProto(ctx, c, false, grants))
-	}
-	return out, nil
-}
-
-func validateOidcClient(req *v1.SavePassportOidcClientRequest) error {
-	if strings.TrimSpace(req.Name) == "" || len([]rune(strings.TrimSpace(req.Name))) > 60 {
-		return ErrPassportOidcClientName
-	}
-	if !oidcserver.ValidRedirectURIs(normalizeURIList(req.RedirectUris)) {
-		return ErrPassportOidcRedirectURIs
-	}
-	return nil
-}
-
-// SaveOidcClient 创建（id 为空）或修改 OIDC 应用；创建时返回完整的 Client Secret。
-func (uc *PassportAdminUsecase) SaveOidcClient(ctx context.Context, adminName string, req *v1.SavePassportOidcClientRequest) (*v1.PassportOidcClient, error) {
-	if err := validateOidcClient(req); err != nil {
-		return nil, err
-	}
-	if req.ServerId != "" {
-		if _, err := uc.servers.Get(ctx, req.ServerId); err != nil {
-			return nil, err
-		}
-	}
-	row := &gen.PassportOidcClient{
-		ID:           req.Id,
-		Name:         strings.TrimSpace(req.Name),
-		RedirectUris: normalizeURIList(req.RedirectUris),
-		Scopes:       normalizeScopeList(req.Scopes),
-		Active:       req.Active,
-		Description:  strings.TrimSpace(req.Description),
-		ServerID:     req.ServerId,
-	}
-	if req.Id == "" {
-		clientID, err := oidcserver.GenerateClientID()
-		if err != nil {
-			return nil, ErrSystem(err)
-		}
-		secret, err := oidcserver.GenerateClientSecret()
-		if err != nil {
-			return nil, ErrSystem(err)
-		}
-		row.ID, row.ClientID, row.ClientSecret, row.CreatedByName = uuid.NewString(), "passport_"+strings.TrimPrefix(clientID, "momoko_"), secret, adminName
-		created, err := uc.repo.CreateOidcClient(ctx, row)
-		if err != nil {
-			return nil, ErrSystem(err)
-		}
-		return uc.oidcClientProto(ctx, created, true, nil), nil
-	}
-	updated, err := uc.repo.UpdateOidcClient(ctx, row)
-	if gen.IsNotFound(err) {
-		return nil, ErrPassportOidcClientNotFound
-	}
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	grants, _ := uc.repo.GrantCounts(ctx)
-	return uc.oidcClientProto(ctx, updated, false, grants), nil
-}
-
-// DeleteOidcClient 删除 OIDC 应用（玩家的授权一并删除）。
-func (uc *PassportAdminUsecase) DeleteOidcClient(ctx context.Context, id string) error {
-	if err := uc.repo.DeleteOidcClient(ctx, id); err != nil {
-		if gen.IsNotFound(err) {
-			return ErrPassportOidcClientNotFound
-		}
-		return ErrSystem(err)
-	}
-	return nil
-}
-
-// RefreshOidcClientSecret 重新生成 Client Secret。
-func (uc *PassportAdminUsecase) RefreshOidcClientSecret(ctx context.Context, id string) (*v1.PassportOidcClient, error) {
-	secret, err := oidcserver.GenerateClientSecret()
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	c, err := uc.repo.UpdateOidcClientSecret(ctx, id, secret)
-	if gen.IsNotFound(err) {
-		return nil, ErrPassportOidcClientNotFound
-	}
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	grants, _ := uc.repo.GrantCounts(ctx)
-	return uc.oidcClientProto(ctx, c, true, grants), nil
 }

@@ -133,18 +133,33 @@ export async function localizeEntries<T extends { id: string; name?: string }>(
   })
 }
 
-/** 在名称表（当前语言的译名与游戏原文名）里模糊搜索关键字（search.ts 的 fuzzyMatch）；没有名称表时返回空。 */
+/**
+ * 名称表的键不是目录 ID 的种类（export-names.py 的约定）：搜索时查哪张表、表里的键怎样换回目录 ID。
+ * 学マス：技能卡表另有强化后的「<id>+<n>」；记忆能力只有每级效果文字的「<id>@<level>」表。
+ */
+type SearchTable = { table: string; id: (key: string) => string }
+
+const SEARCH_TABLES: Record<string, Record<string, SearchTable>> = {
+  gakumas: {
+    produceCard: { table: 'produceCard', id: (key) => key.replace(/\+\d+$/, '') },
+    memoryAbility: { table: 'memoryAbilityText', id: (key) => key.replace(/@\d+$/, '') },
+  },
+}
+
+/** 在名称表（当前语言的译名与游戏原文名）里模糊搜索关键字（search.ts 的 fuzzyMatch），返回目录 ID；没有名称表时返回空。 */
 export async function searchGameNames(game: string, locale: string, kind: string, q: string): Promise<Set<string>> {
+  const search = SEARCH_TABLES[game]?.[kind]
+  const table = search?.table ?? kind
   const lang = nameLangOf(locale)
   const tables = await Promise.all([
-    lang && lang !== ORIGINAL ? loadTable(game, lang, kind) : undefined,
-    loadTable(game, ORIGINAL, kind),
+    lang && lang !== ORIGINAL ? loadTable(game, lang, table) : undefined,
+    loadTable(game, ORIGINAL, table),
   ])
   const out = new Set<string>()
   if (!q.trim()) return out
-  for (const table of tables) {
-    for (const [id, name] of Object.entries(table ?? {})) {
-      if (fuzzyMatch(q, [name])) out.add(id)
+  for (const names of tables) {
+    for (const [key, name] of Object.entries(names ?? {})) {
+      if (fuzzyMatch(q, [name])) out.add(search ? search.id(key) : key)
     }
   }
   return out

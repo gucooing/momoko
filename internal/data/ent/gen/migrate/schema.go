@@ -288,7 +288,7 @@ var (
 		{Name: "nickname", Type: field.TypeString, Default: ""},
 		{Name: "avatar_asset", Type: field.TypeString, Default: ""},
 		{Name: "level", Type: field.TypeInt, Default: 0},
-		{Name: "method", Type: field.TypeEnum, Enums: []string{"password", "code", "oidc", "admin", "request"}},
+		{Name: "method", Type: field.TypeEnum, Enums: []string{"password", "code", "create", "admin", "request"}},
 		{Name: "state", Type: field.TypeEnum, Enums: []string{"active", "pending", "rejected"}, Default: "active"},
 		{Name: "review_note", Type: field.TypeString, Default: ""},
 		{Name: "reviewed_by", Type: field.TypeString, Default: ""},
@@ -367,6 +367,21 @@ var (
 				Name:    "gameclientlog_server_id_player_id_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{GameClientLogsColumns[1], GameClientLogsColumns[2], GameClientLogsColumns[11]},
+			},
+			{
+				Name:    "gameclientlog_server_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{GameClientLogsColumns[1], GameClientLogsColumns[11]},
+			},
+			{
+				Name:    "gameclientlog_reason_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{GameClientLogsColumns[3], GameClientLogsColumns[11]},
+			},
+			{
+				Name:    "gameclientlog_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{GameClientLogsColumns[11]},
 			},
 		},
 	}
@@ -520,6 +535,11 @@ var (
 		{Name: "timezone", Type: field.TypeString, Default: ""},
 		{Name: "passport_visibility", Type: field.TypeEnum, Enums: []string{"public", "invite", "hidden"}, Default: "public"},
 		{Name: "passport_invite_code", Type: field.TypeString, Default: ""},
+		{Name: "client_sdk_url", Type: field.TypeString, Default: ""},
+		{Name: "client_game_url", Type: field.TypeString, Default: ""},
+		{Name: "client_resource_url", Type: field.TypeString, Default: ""},
+		{Name: "client_app_id", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "client_app_secret", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "remark", Type: field.TypeString, Default: ""},
 	}
 	// GameServersTable holds the schema information for the "game_servers" table.
@@ -1202,56 +1222,6 @@ var (
 			},
 		},
 	}
-	// PassportOidcClientsColumns holds the columns for the "passport_oidc_clients" table.
-	PassportOidcClientsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
-		{Name: "client_id", Type: field.TypeString, Unique: true},
-		{Name: "client_secret", Type: field.TypeString},
-		{Name: "redirect_uris", Type: field.TypeJSON},
-		{Name: "scopes", Type: field.TypeJSON},
-		{Name: "active", Type: field.TypeBool, Default: true},
-		{Name: "description", Type: field.TypeString, Default: ""},
-		{Name: "server_id", Type: field.TypeString, Default: ""},
-		{Name: "created_by_name", Type: field.TypeString, Default: ""},
-		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
-	}
-	// PassportOidcClientsTable holds the schema information for the "passport_oidc_clients" table.
-	PassportOidcClientsTable = &schema.Table{
-		Name:       "passport_oidc_clients",
-		Columns:    PassportOidcClientsColumns,
-		PrimaryKey: []*schema.Column{PassportOidcClientsColumns[0]},
-	}
-	// PassportOidcGrantsColumns holds the columns for the "passport_oidc_grants" table.
-	PassportOidcGrantsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "user_id", Type: field.TypeString},
-		{Name: "client_id", Type: field.TypeString},
-		{Name: "scopes", Type: field.TypeJSON, Nullable: true},
-		{Name: "last_used_at", Type: field.TypeTime},
-	}
-	// PassportOidcGrantsTable holds the schema information for the "passport_oidc_grants" table.
-	PassportOidcGrantsTable = &schema.Table{
-		Name:       "passport_oidc_grants",
-		Columns:    PassportOidcGrantsColumns,
-		PrimaryKey: []*schema.Column{PassportOidcGrantsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "passportoidcgrant_user_id_client_id",
-				Unique:  true,
-				Columns: []*schema.Column{PassportOidcGrantsColumns[3], PassportOidcGrantsColumns[4]},
-			},
-			{
-				Name:    "passportoidcgrant_client_id",
-				Unique:  false,
-				Columns: []*schema.Column{PassportOidcGrantsColumns[4]},
-			},
-		},
-	}
 	// PassportSessionsColumns holds the columns for the "passport_sessions" table.
 	PassportSessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -1261,7 +1231,6 @@ var (
 		{Name: "device_id", Type: field.TypeString},
 		{Name: "device", Type: field.TypeString, Default: ""},
 		{Name: "user_agent", Type: field.TypeString, Default: ""},
-		{Name: "client_id", Type: field.TypeString, Default: ""},
 		{Name: "login_method", Type: field.TypeString, Default: ""},
 		{Name: "ip", Type: field.TypeString, Default: ""},
 		{Name: "last_ip", Type: field.TypeString, Default: ""},
@@ -1285,7 +1254,7 @@ var (
 			{
 				Name:    "passportsession_expires_at",
 				Unique:  false,
-				Columns: []*schema.Column{PassportSessionsColumns[15]},
+				Columns: []*schema.Column{PassportSessionsColumns[14]},
 			},
 			{
 				Name:    "passportsession_device_id_user_id",
@@ -1881,8 +1850,6 @@ var (
 		PassportInvitesTable,
 		PassportLoginLogsTable,
 		PassportMessagesTable,
-		PassportOidcClientsTable,
-		PassportOidcGrantsTable,
 		PassportSessionsTable,
 		PassportUsersTable,
 		PortForwardsTable,

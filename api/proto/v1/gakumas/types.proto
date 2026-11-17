@@ -541,65 +541,7 @@ message Dashboard {
   int32 save_waiting = 24;
 }
 
-// ---------------- 目录 ----------------
-// resource_type 为条目作为奖励时的资源类型。
-
-message CurrencyEntry {
-  // jewelFree / jewelPaid / actionPoint / exp（作为奖励时 resourceId 为空串）
-  string id = 1;
-  string name = 2;
-  int32 resource_type = 3;
-}
-
-message ItemEntry {
-  string id = 1;
-  string name = 2;
-  int32 resource_type = 3;
-  int32 rarity = 4;
-  int32 type = 5;
-  string character_id = 6;
-  string asset_id = 7;
-}
-
-message IdolCardSkinEntry {
-  string id = 1;
-  string name = 2;
-  int32 resource_type = 3;
-  string idol_card_id = 4;
-  string character_id = 5;
-  int32 rarity = 6;
-  int32 plan_type = 7;
-  string asset_id = 8;
-}
-
-message SupportCardEntry {
-  string id = 1;
-  string name = 2;
-  int32 resource_type = 3;
-  int32 rarity = 4;
-  int32 type = 5;
-  string asset_id = 6;
-}
-
-message CharacterEntry {
-  string id = 1;
-  string name = 2;
-}
-
-message CostumeEntry {
-  string id = 1;
-  string name = 2;
-  int32 resource_type = 3;
-  string character_id = 4;
-}
-
-message MusicEntry {
-  string id = 1;
-  string name = 2;
-  int32 resource_type = 3;
-  string jacket_asset_id = 4;
-}
-
+// 卡池（现在开放的卡池列表的条目）。
 message GashaEntry {
   string id = 1;
   string name = 2;
@@ -607,38 +549,6 @@ message GashaEntry {
   string banner_asset_id = 4;
   double start_time = 5;
   double end_time = 6;
-}
-
-message ProduceGroupEntry {
-  string id = 1;
-  string name = 2;
-  int32 type = 3;
-  string asset_id = 4;
-  repeated string produce_ids = 5;
-}
-
-message ProduceEntry {
-  string id = 1;
-  string name = 2;
-  string produce_group_id = 3;
-  string asset_id = 4;
-}
-
-message SeminarExamEntry {
-  string id = 1;
-  string name = 2;
-}
-
-message SeminarEntry {
-  string id = 1;
-  string name = 2;
-  int32 order = 3;
-  repeated SeminarExamEntry exams = 4;
-}
-
-message TowerEntry {
-  string id = 1;
-  int32 layers = 2;
 }
 
 // 一条记忆的详情：记忆字段，培育中可获得的技能卡与获得时机、能力（按顺序）、舞台上的技能卡与 P 道具，
@@ -748,41 +658,6 @@ message RecordCard {
   string card_id = 1;
   int32 upgrade_count = 2;
   bool from_memory = 3;
-}
-
-// 技能卡。
-message ProduceCardEntry {
-  string id = 1;
-  string name = 2;
-  // 强化后的名称
-  string upgraded_name = 3;
-  int32 rarity = 4;
-  int32 plan_type = 5;
-  int32 category = 6;
-  string asset_id = 7;
-  // 按偶像区分图片：图片为 asset_id 加「-」和角色 ID
-  bool character_asset = 8;
-}
-
-// P 道具。
-message ProduceItemEntry {
-  string id = 1;
-  string name = 2;
-  int32 rarity = 3;
-  string asset_id = 4;
-  string description = 5;
-}
-
-// 记忆能力与各等级的效果文字。
-message MemoryAbilityEntry {
-  string id = 1;
-  int32 rarity = 2;
-  repeated MemoryAbilityLevel levels = 3;
-}
-
-message MemoryAbilityLevel {
-  int32 level = 1;
-  string description = 2;
 }
 
 // ---------------- 操作结果 ----------------
@@ -1001,94 +876,8 @@ message TowerRankingPage {
   double season_start = 5;
 }
 
-// ---------------- 目录的分页结果 ----------------
-
-message CurrencyPage {
-  repeated CurrencyEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message ItemEntryPage {
-  repeated ItemEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message IdolCardSkinPage {
-  repeated IdolCardSkinEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message SupportCardEntryPage {
-  repeated SupportCardEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message CharacterPage {
-  repeated CharacterEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message CostumePage {
-  repeated CostumeEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message MusicPage {
-  repeated MusicEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
 message GashaEntryPage {
   repeated GashaEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message ProduceGroupPage {
-  repeated ProduceGroupEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message ProduceEntryPage {
-  repeated ProduceEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message SeminarEntryPage {
-  repeated SeminarEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message TowerEntryPage {
-  repeated TowerEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message ProduceCardEntryPage {
-  repeated ProduceCardEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message ProduceItemEntryPage {
-  repeated ProduceItemEntry items = 1;
-  string next_cursor = 2;
-  int32 total = 3;
-}
-
-message MemoryAbilityPage {
-  repeated MemoryAbilityEntry items = 1;
   string next_cursor = 2;
   int32 total = 3;
 }

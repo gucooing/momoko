@@ -52,10 +52,8 @@ const others = computed(() => items.value.filter((d) => !d.current).length)
 const iconOf = (type: string) =>
   type === 'mobile' ? DevicePhoneMobileIcon : type === 'tablet' ? DeviceTabletIcon : type === 'cli' ? CommandLineIcon : ComputerDesktopIcon
 
-const deviceTitle = (d: PassportDevice) => {
-  const base = d.device || (te(`common.device.${d.deviceType}`) ? t(`common.device.${d.deviceType}`) : t('common.unknown'))
-  return d.appName ? `${base} · ${d.appName}` : base
-}
+const deviceTitle = (d: PassportDevice) =>
+  d.device || (te(`common.device.${d.deviceType}`) ? t(`common.device.${d.deviceType}`) : t('common.unknown'))
 
 const deviceLine = (d: PassportDevice) => {
   const method = te(`common.method.${d.loginMethod}`) ? t(`common.method.${d.loginMethod}`) : ''

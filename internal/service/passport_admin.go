@@ -103,7 +103,6 @@ func (s *PassportAdminService) serverInfo(ctx context.Context) biz.PassportServe
 		}
 		info.PublicURL = strings.TrimRight(strings.TrimSpace(s.conf.PublicUrl), "/")
 	}
-	info.Issuer = info.PublicURL
 	return info
 }
 
@@ -121,35 +120,4 @@ func (s *PassportAdminService) UpdatePassportSettings(ctx context.Context, req *
 		return nil, err
 	}
 	return s.uc.AdminSettings(ctx, s.serverInfo(ctx))
-}
-
-func (s *PassportAdminService) ListPassportOidcClients(ctx context.Context, _ *v1.ListPassportOidcClientsRequest) (*v1.ListPassportOidcClientsResponse, error) {
-	return s.uc.ListOidcClients(ctx)
-}
-
-func (s *PassportAdminService) CreatePassportOidcClient(ctx context.Context, req *v1.SavePassportOidcClientRequest) (*v1.PassportOidcClient, error) {
-	_, name, err := s.admin(ctx)
-	if err != nil {
-		return nil, err
-	}
-	req.Id = ""
-	return s.uc.SaveOidcClient(ctx, name, req)
-}
-
-func (s *PassportAdminService) UpdatePassportOidcClient(ctx context.Context, req *v1.SavePassportOidcClientRequest) (*v1.PassportOidcClient, error) {
-	if req.Id == "" {
-		return nil, biz.ErrPassportOidcClientNotFound
-	}
-	return s.uc.SaveOidcClient(ctx, "", req)
-}
-
-func (s *PassportAdminService) DeletePassportOidcClient(ctx context.Context, req *v1.DeletePassportOidcClientRequest) (*v1.DeletePassportOidcClientResponse, error) {
-	if err := s.uc.DeleteOidcClient(ctx, req.Id); err != nil {
-		return nil, err
-	}
-	return &v1.DeletePassportOidcClientResponse{}, nil
-}
-
-func (s *PassportAdminService) RefreshPassportOidcClientSecret(ctx context.Context, req *v1.DeletePassportOidcClientRequest) (*v1.PassportOidcClient, error) {
-	return s.uc.RefreshOidcClientSecret(ctx, req.Id)
 }

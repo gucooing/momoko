@@ -22,7 +22,7 @@ type GameClientLog struct {
 	ServerID string `json:"server_id,omitempty"`
 	// 游戏内玩家 id（MGP pid）
 	PlayerID string `json:"player_id,omitempty"`
-	// 上传原因：exception / error / crash / fatal / login / sdk / manual
+	// 上传原因：exception 异常 / crash 崩溃 / fatal 致命错误（客户端自动上传）/ manual 玩家手动上传
 	Reason string `json:"reason,omitempty"`
 	// 摘要（最多 512 字）
 	Summary string `json:"summary,omitempty"`

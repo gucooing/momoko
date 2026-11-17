@@ -107,8 +107,6 @@ type GetPassportConfigResponse struct {
 	RegisterEmailVerification bool `protobuf:"varint,4,opt,name=register_email_verification,json=registerEmailVerification,proto3" json:"register_email_verification,omitempty"`
 	// 是否配置了邮件（找回密码、更换邮箱需要）
 	EmailEnabled bool `protobuf:"varint,5,opt,name=email_enabled,json=emailEnabled,proto3" json:"email_enabled,omitempty"`
-	// 是否启用了「用户通行证登录」（OIDC）
-	OidcEnabled bool `protobuf:"varint,6,opt,name=oidc_enabled,json=oidcEnabled,proto3" json:"oidc_enabled,omitempty"`
 	// 解绑后不能在同一服务器绑定别的账号的天数
 	UnbindCooldownDays int32 `protobuf:"varint,7,opt,name=unbind_cooldown_days,json=unbindCooldownDays,proto3" json:"unbind_cooldown_days,omitempty"`
 	// 申请注销后可以撤销的天数
@@ -180,13 +178,6 @@ func (x *GetPassportConfigResponse) GetRegisterEmailVerification() bool {
 func (x *GetPassportConfigResponse) GetEmailEnabled() bool {
 	if x != nil {
 		return x.EmailEnabled
-	}
-	return false
-}
-
-func (x *GetPassportConfigResponse) GetOidcEnabled() bool {
-	if x != nil {
-		return x.OidcEnabled
 	}
 	return false
 }
@@ -782,7 +773,6 @@ type PassportMe struct {
 	// 申请注销后计划删除的时间（空为没有申请）
 	DeletionScheduledAt *timestamppb.Timestamp `protobuf:"bytes,20,opt,name=deletion_scheduled_at,json=deletionScheduledAt,proto3" json:"deletion_scheduled_at,omitempty"`
 	DeviceCount         int32                  `protobuf:"varint,21,opt,name=device_count,json=deviceCount,proto3" json:"device_count,omitempty"`
-	AppCount            int32                  `protobuf:"varint,22,opt,name=app_count,json=appCount,proto3" json:"app_count,omitempty"`
 	LinkCount           int32                  `protobuf:"varint,23,opt,name=link_count,json=linkCount,proto3" json:"link_count,omitempty"`
 	GameCount           int32                  `protobuf:"varint,24,opt,name=game_count,json=gameCount,proto3" json:"game_count,omitempty"`
 	UnreadMessages      int32                  `protobuf:"varint,25,opt,name=unread_messages,json=unreadMessages,proto3" json:"unread_messages,omitempty"`
@@ -969,13 +959,6 @@ func (x *PassportMe) GetDeletionScheduledAt() *timestamppb.Timestamp {
 func (x *PassportMe) GetDeviceCount() int32 {
 	if x != nil {
 		return x.DeviceCount
-	}
-	return 0
-}
-
-func (x *PassportMe) GetAppCount() int32 {
-	if x != nil {
-		return x.AppCount
 	}
 	return 0
 }
@@ -1673,10 +1656,8 @@ type PassportDevice struct {
 	LastIp     string `protobuf:"bytes,6,opt,name=last_ip,json=lastIp,proto3" json:"last_ip,omitempty"`
 	// loopback / lan / public
 	IpScope string `protobuf:"bytes,7,opt,name=ip_scope,json=ipScope,proto3" json:"ip_scope,omitempty"`
-	// password / email_code / register / oidc
-	LoginMethod string `protobuf:"bytes,8,opt,name=login_method,json=loginMethod,proto3" json:"login_method,omitempty"`
-	// 经 OIDC 登录的应用名称
-	AppName        string                 `protobuf:"bytes,9,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+	// password / email_code / register
+	LoginMethod    string                 `protobuf:"bytes,8,opt,name=login_method,json=loginMethod,proto3" json:"login_method,omitempty"`
 	CreateTime     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	LastActiveTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=last_active_time,json=lastActiveTime,proto3" json:"last_active_time,omitempty"`
 	ExpireTime     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
@@ -1768,13 +1749,6 @@ func (x *PassportDevice) GetIpScope() string {
 func (x *PassportDevice) GetLoginMethod() string {
 	if x != nil {
 		return x.LoginMethod
-	}
-	return ""
-}
-
-func (x *PassportDevice) GetAppName() string {
-	if x != nil {
-		return x.AppName
 	}
 	return ""
 }
@@ -1895,189 +1869,6 @@ func (x *RevokePassportDeviceRequest) GetSessionId() string {
 	return ""
 }
 
-type PassportApp struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 授权 id
-	Id          string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name        string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	// 已同意的范围
-	Scopes []string `protobuf:"bytes,4,rep,name=scopes,proto3" json:"scopes,omitempty"`
-	// 关联的游戏服务器（可空）
-	Server        *GameServerBrief       `protobuf:"bytes,5,opt,name=server,proto3" json:"server,omitempty"`
-	CreateTime    *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
-	LastUsedAt    *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=last_used_at,json=lastUsedAt,proto3" json:"last_used_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PassportApp) Reset() {
-	*x = PassportApp{}
-	mi := &file_v1_passport_proto_msgTypes[27]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PassportApp) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PassportApp) ProtoMessage() {}
-
-func (x *PassportApp) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[27]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PassportApp.ProtoReflect.Descriptor instead.
-func (*PassportApp) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{27}
-}
-
-func (x *PassportApp) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *PassportApp) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *PassportApp) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *PassportApp) GetScopes() []string {
-	if x != nil {
-		return x.Scopes
-	}
-	return nil
-}
-
-func (x *PassportApp) GetServer() *GameServerBrief {
-	if x != nil {
-		return x.Server
-	}
-	return nil
-}
-
-func (x *PassportApp) GetCreateTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreateTime
-	}
-	return nil
-}
-
-func (x *PassportApp) GetLastUsedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.LastUsedAt
-	}
-	return nil
-}
-
-type ListPassportAppsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*PassportApp         `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListPassportAppsResponse) Reset() {
-	*x = ListPassportAppsResponse{}
-	mi := &file_v1_passport_proto_msgTypes[28]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListPassportAppsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListPassportAppsResponse) ProtoMessage() {}
-
-func (x *ListPassportAppsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[28]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListPassportAppsResponse.ProtoReflect.Descriptor instead.
-func (*ListPassportAppsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{28}
-}
-
-func (x *ListPassportAppsResponse) GetItems() []*PassportApp {
-	if x != nil {
-		return x.Items
-	}
-	return nil
-}
-
-type RevokePassportAppRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RevokePassportAppRequest) Reset() {
-	*x = RevokePassportAppRequest{}
-	mi := &file_v1_passport_proto_msgTypes[29]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RevokePassportAppRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RevokePassportAppRequest) ProtoMessage() {}
-
-func (x *RevokePassportAppRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[29]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RevokePassportAppRequest.ProtoReflect.Descriptor instead.
-func (*RevokePassportAppRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{29}
-}
-
-func (x *RevokePassportAppRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
 type RequestPassportDeletionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Password      string                 `protobuf:"bytes,1,opt,name=password,proto3" json:"password,omitempty"`
@@ -2087,7 +1878,7 @@ type RequestPassportDeletionRequest struct {
 
 func (x *RequestPassportDeletionRequest) Reset() {
 	*x = RequestPassportDeletionRequest{}
-	mi := &file_v1_passport_proto_msgTypes[30]
+	mi := &file_v1_passport_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2099,7 +1890,7 @@ func (x *RequestPassportDeletionRequest) String() string {
 func (*RequestPassportDeletionRequest) ProtoMessage() {}
 
 func (x *RequestPassportDeletionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[30]
+	mi := &file_v1_passport_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2112,7 +1903,7 @@ func (x *RequestPassportDeletionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestPassportDeletionRequest.ProtoReflect.Descriptor instead.
 func (*RequestPassportDeletionRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{30}
+	return file_v1_passport_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *RequestPassportDeletionRequest) GetPassword() string {
@@ -2139,7 +1930,7 @@ type PassportMessage struct {
 
 func (x *PassportMessage) Reset() {
 	*x = PassportMessage{}
-	mi := &file_v1_passport_proto_msgTypes[31]
+	mi := &file_v1_passport_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2151,7 +1942,7 @@ func (x *PassportMessage) String() string {
 func (*PassportMessage) ProtoMessage() {}
 
 func (x *PassportMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[31]
+	mi := &file_v1_passport_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2164,7 +1955,7 @@ func (x *PassportMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportMessage.ProtoReflect.Descriptor instead.
 func (*PassportMessage) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{31}
+	return file_v1_passport_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *PassportMessage) GetId() string {
@@ -2220,7 +2011,7 @@ type ListPassportMessagesRequest struct {
 
 func (x *ListPassportMessagesRequest) Reset() {
 	*x = ListPassportMessagesRequest{}
-	mi := &file_v1_passport_proto_msgTypes[32]
+	mi := &file_v1_passport_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2232,7 +2023,7 @@ func (x *ListPassportMessagesRequest) String() string {
 func (*ListPassportMessagesRequest) ProtoMessage() {}
 
 func (x *ListPassportMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[32]
+	mi := &file_v1_passport_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2245,7 +2036,7 @@ func (x *ListPassportMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPassportMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListPassportMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{32}
+	return file_v1_passport_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListPassportMessagesRequest) GetPage() int32 {
@@ -2280,7 +2071,7 @@ type ListPassportMessagesResponse struct {
 
 func (x *ListPassportMessagesResponse) Reset() {
 	*x = ListPassportMessagesResponse{}
-	mi := &file_v1_passport_proto_msgTypes[33]
+	mi := &file_v1_passport_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2292,7 +2083,7 @@ func (x *ListPassportMessagesResponse) String() string {
 func (*ListPassportMessagesResponse) ProtoMessage() {}
 
 func (x *ListPassportMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[33]
+	mi := &file_v1_passport_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2305,7 +2096,7 @@ func (x *ListPassportMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPassportMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListPassportMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{33}
+	return file_v1_passport_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListPassportMessagesResponse) GetItems() []*PassportMessage {
@@ -2339,7 +2130,7 @@ type ReadPassportMessagesRequest struct {
 
 func (x *ReadPassportMessagesRequest) Reset() {
 	*x = ReadPassportMessagesRequest{}
-	mi := &file_v1_passport_proto_msgTypes[34]
+	mi := &file_v1_passport_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2351,7 +2142,7 @@ func (x *ReadPassportMessagesRequest) String() string {
 func (*ReadPassportMessagesRequest) ProtoMessage() {}
 
 func (x *ReadPassportMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[34]
+	mi := &file_v1_passport_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2364,7 +2155,7 @@ func (x *ReadPassportMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadPassportMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ReadPassportMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{34}
+	return file_v1_passport_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ReadPassportMessagesRequest) GetIds() []string {
@@ -2390,7 +2181,7 @@ type ReadPassportMessagesResponse struct {
 
 func (x *ReadPassportMessagesResponse) Reset() {
 	*x = ReadPassportMessagesResponse{}
-	mi := &file_v1_passport_proto_msgTypes[35]
+	mi := &file_v1_passport_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2402,7 +2193,7 @@ func (x *ReadPassportMessagesResponse) String() string {
 func (*ReadPassportMessagesResponse) ProtoMessage() {}
 
 func (x *ReadPassportMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[35]
+	mi := &file_v1_passport_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2415,7 +2206,7 @@ func (x *ReadPassportMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadPassportMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ReadPassportMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{35}
+	return file_v1_passport_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ReadPassportMessagesResponse) GetUnread() int32 {
@@ -2441,7 +2232,7 @@ type PassportActivity struct {
 
 func (x *PassportActivity) Reset() {
 	*x = PassportActivity{}
-	mi := &file_v1_passport_proto_msgTypes[36]
+	mi := &file_v1_passport_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2453,7 +2244,7 @@ func (x *PassportActivity) String() string {
 func (*PassportActivity) ProtoMessage() {}
 
 func (x *PassportActivity) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[36]
+	mi := &file_v1_passport_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2466,7 +2257,7 @@ func (x *PassportActivity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportActivity.ProtoReflect.Descriptor instead.
 func (*PassportActivity) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{36}
+	return file_v1_passport_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *PassportActivity) GetKind() string {
@@ -2506,7 +2297,7 @@ type ListPassportActivityRequest struct {
 
 func (x *ListPassportActivityRequest) Reset() {
 	*x = ListPassportActivityRequest{}
-	mi := &file_v1_passport_proto_msgTypes[37]
+	mi := &file_v1_passport_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2518,7 +2309,7 @@ func (x *ListPassportActivityRequest) String() string {
 func (*ListPassportActivityRequest) ProtoMessage() {}
 
 func (x *ListPassportActivityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[37]
+	mi := &file_v1_passport_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2531,7 +2322,7 @@ func (x *ListPassportActivityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPassportActivityRequest.ProtoReflect.Descriptor instead.
 func (*ListPassportActivityRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{37}
+	return file_v1_passport_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListPassportActivityRequest) GetLimit() int32 {
@@ -2550,7 +2341,7 @@ type ListPassportActivityResponse struct {
 
 func (x *ListPassportActivityResponse) Reset() {
 	*x = ListPassportActivityResponse{}
-	mi := &file_v1_passport_proto_msgTypes[38]
+	mi := &file_v1_passport_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2562,7 +2353,7 @@ func (x *ListPassportActivityResponse) String() string {
 func (*ListPassportActivityResponse) ProtoMessage() {}
 
 func (x *ListPassportActivityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[38]
+	mi := &file_v1_passport_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2575,7 +2366,7 @@ func (x *ListPassportActivityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPassportActivityResponse.ProtoReflect.Descriptor instead.
 func (*ListPassportActivityResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{38}
+	return file_v1_passport_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListPassportActivityResponse) GetItems() []*PassportActivity {
@@ -2600,7 +2391,7 @@ type PassportLink struct {
 	Nickname    string `protobuf:"bytes,7,opt,name=nickname,proto3" json:"nickname,omitempty"`
 	AvatarAsset string `protobuf:"bytes,8,opt,name=avatar_asset,json=avatarAsset,proto3" json:"avatar_asset,omitempty"`
 	Level       int32  `protobuf:"varint,9,opt,name=level,proto3" json:"level,omitempty"`
-	// password 账号密码 / code 绑定码 / oidc 通行证登录 / admin 管理员 / request 申请
+	// password 账号密码 / code 绑定码 / create 新建的游戏账号 / admin 管理员 / request 申请
 	Method     string                 `protobuf:"bytes,10,opt,name=method,proto3" json:"method,omitempty"`
 	IsPrimary  bool                   `protobuf:"varint,11,opt,name=is_primary,json=isPrimary,proto3" json:"is_primary,omitempty"`
 	LinkedAt   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=linked_at,json=linkedAt,proto3" json:"linked_at,omitempty"`
@@ -2613,7 +2404,7 @@ type PassportLink struct {
 
 func (x *PassportLink) Reset() {
 	*x = PassportLink{}
-	mi := &file_v1_passport_proto_msgTypes[39]
+	mi := &file_v1_passport_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2625,7 +2416,7 @@ func (x *PassportLink) String() string {
 func (*PassportLink) ProtoMessage() {}
 
 func (x *PassportLink) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[39]
+	mi := &file_v1_passport_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2638,7 +2429,7 @@ func (x *PassportLink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportLink.ProtoReflect.Descriptor instead.
 func (*PassportLink) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{39}
+	return file_v1_passport_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *PassportLink) GetId() string {
@@ -2748,7 +2539,7 @@ type ListPassportLinksResponse struct {
 
 func (x *ListPassportLinksResponse) Reset() {
 	*x = ListPassportLinksResponse{}
-	mi := &file_v1_passport_proto_msgTypes[40]
+	mi := &file_v1_passport_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2760,7 +2551,7 @@ func (x *ListPassportLinksResponse) String() string {
 func (*ListPassportLinksResponse) ProtoMessage() {}
 
 func (x *ListPassportLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[40]
+	mi := &file_v1_passport_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2773,7 +2564,7 @@ func (x *ListPassportLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPassportLinksResponse.ProtoReflect.Descriptor instead.
 func (*ListPassportLinksResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{40}
+	return file_v1_passport_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListPassportLinksResponse) GetItems() []*PassportLink {
@@ -2792,7 +2583,7 @@ type PassportLinkRequest struct {
 
 func (x *PassportLinkRequest) Reset() {
 	*x = PassportLinkRequest{}
-	mi := &file_v1_passport_proto_msgTypes[41]
+	mi := &file_v1_passport_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2804,7 +2595,7 @@ func (x *PassportLinkRequest) String() string {
 func (*PassportLinkRequest) ProtoMessage() {}
 
 func (x *PassportLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[41]
+	mi := &file_v1_passport_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2817,7 +2608,7 @@ func (x *PassportLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportLinkRequest.ProtoReflect.Descriptor instead.
 func (*PassportLinkRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{41}
+	return file_v1_passport_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *PassportLinkRequest) GetId() string {
@@ -2832,7 +2623,7 @@ type SearchPassportBindServersRequest struct {
 	// 名称、标签、游戏，或管理员给的邀请码
 	Q    string `protobuf:"bytes,1,opt,name=q,proto3" json:"q,omitempty"`
 	Game string `protobuf:"bytes,2,opt,name=game,proto3" json:"game,omitempty"`
-	// 指定的服务器 id（授权页跳来时预选；不影响搜索结果与推荐）
+	// 指定的服务器 id（预选这台服务器；不影响搜索结果与推荐）
 	ServerId      string `protobuf:"bytes,3,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2840,7 +2631,7 @@ type SearchPassportBindServersRequest struct {
 
 func (x *SearchPassportBindServersRequest) Reset() {
 	*x = SearchPassportBindServersRequest{}
-	mi := &file_v1_passport_proto_msgTypes[42]
+	mi := &file_v1_passport_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2852,7 +2643,7 @@ func (x *SearchPassportBindServersRequest) String() string {
 func (*SearchPassportBindServersRequest) ProtoMessage() {}
 
 func (x *SearchPassportBindServersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[42]
+	mi := &file_v1_passport_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2865,7 +2656,7 @@ func (x *SearchPassportBindServersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchPassportBindServersRequest.ProtoReflect.Descriptor instead.
 func (*SearchPassportBindServersRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{42}
+	return file_v1_passport_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SearchPassportBindServersRequest) GetQ() string {
@@ -2911,7 +2702,7 @@ type PassportBindServer struct {
 
 func (x *PassportBindServer) Reset() {
 	*x = PassportBindServer{}
-	mi := &file_v1_passport_proto_msgTypes[43]
+	mi := &file_v1_passport_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2923,7 +2714,7 @@ func (x *PassportBindServer) String() string {
 func (*PassportBindServer) ProtoMessage() {}
 
 func (x *PassportBindServer) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[43]
+	mi := &file_v1_passport_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2936,7 +2727,7 @@ func (x *PassportBindServer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportBindServer.ProtoReflect.Descriptor instead.
 func (*PassportBindServer) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{43}
+	return file_v1_passport_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *PassportBindServer) GetServer() *GameServerBrief {
@@ -3007,7 +2798,7 @@ type PassportBindGame struct {
 
 func (x *PassportBindGame) Reset() {
 	*x = PassportBindGame{}
-	mi := &file_v1_passport_proto_msgTypes[44]
+	mi := &file_v1_passport_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3019,7 +2810,7 @@ func (x *PassportBindGame) String() string {
 func (*PassportBindGame) ProtoMessage() {}
 
 func (x *PassportBindGame) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[44]
+	mi := &file_v1_passport_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3032,7 +2823,7 @@ func (x *PassportBindGame) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportBindGame.ProtoReflect.Descriptor instead.
 func (*PassportBindGame) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{44}
+	return file_v1_passport_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *PassportBindGame) GetId() string {
@@ -3081,7 +2872,7 @@ type SearchPassportBindServersResponse struct {
 
 func (x *SearchPassportBindServersResponse) Reset() {
 	*x = SearchPassportBindServersResponse{}
-	mi := &file_v1_passport_proto_msgTypes[45]
+	mi := &file_v1_passport_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3093,7 +2884,7 @@ func (x *SearchPassportBindServersResponse) String() string {
 func (*SearchPassportBindServersResponse) ProtoMessage() {}
 
 func (x *SearchPassportBindServersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[45]
+	mi := &file_v1_passport_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3106,7 +2897,7 @@ func (x *SearchPassportBindServersResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use SearchPassportBindServersResponse.ProtoReflect.Descriptor instead.
 func (*SearchPassportBindServersResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{45}
+	return file_v1_passport_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *SearchPassportBindServersResponse) GetItems() []*PassportBindServer {
@@ -3158,7 +2949,7 @@ type BindPassportAccountRequest struct {
 
 func (x *BindPassportAccountRequest) Reset() {
 	*x = BindPassportAccountRequest{}
-	mi := &file_v1_passport_proto_msgTypes[46]
+	mi := &file_v1_passport_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3170,7 +2961,7 @@ func (x *BindPassportAccountRequest) String() string {
 func (*BindPassportAccountRequest) ProtoMessage() {}
 
 func (x *BindPassportAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[46]
+	mi := &file_v1_passport_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3183,7 +2974,7 @@ func (x *BindPassportAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindPassportAccountRequest.ProtoReflect.Descriptor instead.
 func (*BindPassportAccountRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{46}
+	return file_v1_passport_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *BindPassportAccountRequest) GetServerId() string {
@@ -3223,7 +3014,7 @@ type PassportGameRequest struct {
 
 func (x *PassportGameRequest) Reset() {
 	*x = PassportGameRequest{}
-	mi := &file_v1_passport_proto_msgTypes[47]
+	mi := &file_v1_passport_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3235,7 +3026,7 @@ func (x *PassportGameRequest) String() string {
 func (*PassportGameRequest) ProtoMessage() {}
 
 func (x *PassportGameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[47]
+	mi := &file_v1_passport_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3248,7 +3039,7 @@ func (x *PassportGameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportGameRequest.ProtoReflect.Descriptor instead.
 func (*PassportGameRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{47}
+	return file_v1_passport_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *PassportGameRequest) GetServerId() string {
@@ -3274,7 +3065,7 @@ type PassportGameResponse struct {
 
 func (x *PassportGameResponse) Reset() {
 	*x = PassportGameResponse{}
-	mi := &file_v1_passport_proto_msgTypes[48]
+	mi := &file_v1_passport_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3286,7 +3077,7 @@ func (x *PassportGameResponse) String() string {
 func (*PassportGameResponse) ProtoMessage() {}
 
 func (x *PassportGameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[48]
+	mi := &file_v1_passport_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3299,7 +3090,7 @@ func (x *PassportGameResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportGameResponse.ProtoReflect.Descriptor instead.
 func (*PassportGameResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{48}
+	return file_v1_passport_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *PassportGameResponse) GetServer() *GameServerBrief {
@@ -3368,7 +3159,7 @@ type PassportSelfService struct {
 
 func (x *PassportSelfService) Reset() {
 	*x = PassportSelfService{}
-	mi := &file_v1_passport_proto_msgTypes[49]
+	mi := &file_v1_passport_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3380,7 +3171,7 @@ func (x *PassportSelfService) String() string {
 func (*PassportSelfService) ProtoMessage() {}
 
 func (x *PassportSelfService) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[49]
+	mi := &file_v1_passport_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3393,7 +3184,7 @@ func (x *PassportSelfService) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportSelfService.ProtoReflect.Descriptor instead.
 func (*PassportSelfService) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{49}
+	return file_v1_passport_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *PassportSelfService) GetCommand() string {
@@ -3517,7 +3308,7 @@ type ListPassportSelfServiceResponse struct {
 
 func (x *ListPassportSelfServiceResponse) Reset() {
 	*x = ListPassportSelfServiceResponse{}
-	mi := &file_v1_passport_proto_msgTypes[50]
+	mi := &file_v1_passport_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3529,7 +3320,7 @@ func (x *ListPassportSelfServiceResponse) String() string {
 func (*ListPassportSelfServiceResponse) ProtoMessage() {}
 
 func (x *ListPassportSelfServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[50]
+	mi := &file_v1_passport_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3542,7 +3333,7 @@ func (x *ListPassportSelfServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPassportSelfServiceResponse.ProtoReflect.Descriptor instead.
 func (*ListPassportSelfServiceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{50}
+	return file_v1_passport_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ListPassportSelfServiceResponse) GetItems() []*PassportSelfService {
@@ -3563,7 +3354,7 @@ type ListPassportGameRecordsRequest struct {
 
 func (x *ListPassportGameRecordsRequest) Reset() {
 	*x = ListPassportGameRecordsRequest{}
-	mi := &file_v1_passport_proto_msgTypes[51]
+	mi := &file_v1_passport_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3575,7 +3366,7 @@ func (x *ListPassportGameRecordsRequest) String() string {
 func (*ListPassportGameRecordsRequest) ProtoMessage() {}
 
 func (x *ListPassportGameRecordsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[51]
+	mi := &file_v1_passport_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3588,7 +3379,7 @@ func (x *ListPassportGameRecordsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPassportGameRecordsRequest.ProtoReflect.Descriptor instead.
 func (*ListPassportGameRecordsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{51}
+	return file_v1_passport_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListPassportGameRecordsRequest) GetServerId() string {
@@ -3640,7 +3431,7 @@ type PassportGameRecord struct {
 
 func (x *PassportGameRecord) Reset() {
 	*x = PassportGameRecord{}
-	mi := &file_v1_passport_proto_msgTypes[52]
+	mi := &file_v1_passport_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3652,7 +3443,7 @@ func (x *PassportGameRecord) String() string {
 func (*PassportGameRecord) ProtoMessage() {}
 
 func (x *PassportGameRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[52]
+	mi := &file_v1_passport_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3665,7 +3456,7 @@ func (x *PassportGameRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassportGameRecord.ProtoReflect.Descriptor instead.
 func (*PassportGameRecord) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{52}
+	return file_v1_passport_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *PassportGameRecord) GetId() string {
@@ -3776,7 +3567,7 @@ type ListPassportGameRecordsResponse struct {
 
 func (x *ListPassportGameRecordsResponse) Reset() {
 	*x = ListPassportGameRecordsResponse{}
-	mi := &file_v1_passport_proto_msgTypes[53]
+	mi := &file_v1_passport_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3788,7 +3579,7 @@ func (x *ListPassportGameRecordsResponse) String() string {
 func (*ListPassportGameRecordsResponse) ProtoMessage() {}
 
 func (x *ListPassportGameRecordsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[53]
+	mi := &file_v1_passport_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3801,7 +3592,7 @@ func (x *ListPassportGameRecordsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPassportGameRecordsResponse.ProtoReflect.Descriptor instead.
 func (*ListPassportGameRecordsResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{53}
+	return file_v1_passport_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ListPassportGameRecordsResponse) GetItems() []*PassportGameRecord {
@@ -3828,7 +3619,7 @@ type RedeemPassportGiftCodeRequest struct {
 
 func (x *RedeemPassportGiftCodeRequest) Reset() {
 	*x = RedeemPassportGiftCodeRequest{}
-	mi := &file_v1_passport_proto_msgTypes[54]
+	mi := &file_v1_passport_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3840,7 +3631,7 @@ func (x *RedeemPassportGiftCodeRequest) String() string {
 func (*RedeemPassportGiftCodeRequest) ProtoMessage() {}
 
 func (x *RedeemPassportGiftCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[54]
+	mi := &file_v1_passport_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3853,7 +3644,7 @@ func (x *RedeemPassportGiftCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RedeemPassportGiftCodeRequest.ProtoReflect.Descriptor instead.
 func (*RedeemPassportGiftCodeRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{54}
+	return file_v1_passport_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *RedeemPassportGiftCodeRequest) GetServerId() string {
@@ -3882,7 +3673,7 @@ type RedeemPassportGiftCodeResponse struct {
 
 func (x *RedeemPassportGiftCodeResponse) Reset() {
 	*x = RedeemPassportGiftCodeResponse{}
-	mi := &file_v1_passport_proto_msgTypes[55]
+	mi := &file_v1_passport_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3894,7 +3685,7 @@ func (x *RedeemPassportGiftCodeResponse) String() string {
 func (*RedeemPassportGiftCodeResponse) ProtoMessage() {}
 
 func (x *RedeemPassportGiftCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[55]
+	mi := &file_v1_passport_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3907,7 +3698,7 @@ func (x *RedeemPassportGiftCodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RedeemPassportGiftCodeResponse.ProtoReflect.Descriptor instead.
 func (*RedeemPassportGiftCodeResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{55}
+	return file_v1_passport_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *RedeemPassportGiftCodeResponse) GetResult() string {
@@ -3931,147 +3722,34 @@ func (x *RedeemPassportGiftCodeResponse) GetExecutionId() string {
 	return ""
 }
 
-type PassportOidcAuthorizeRequest struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	ResponseType        string                 `protobuf:"bytes,1,opt,name=response_type,json=responseType,proto3" json:"response_type,omitempty"`
-	ClientId            string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	RedirectUri         string                 `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
-	Scope               string                 `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
-	State               string                 `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
-	Nonce               string                 `protobuf:"bytes,6,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	CodeChallenge       string                 `protobuf:"bytes,7,opt,name=code_challenge,json=codeChallenge,proto3" json:"code_challenge,omitempty"`
-	CodeChallengeMethod string                 `protobuf:"bytes,8,opt,name=code_challenge_method,json=codeChallengeMethod,proto3" json:"code_challenge_method,omitempty"`
-	// 同意时为还没有在应用关联的服务器上绑定游戏账号的用户新建一个游戏账号并绑定
-	CreateGameAccount bool `protobuf:"varint,9,opt,name=create_game_account,json=createGameAccount,proto3" json:"create_game_account,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
-}
-
-func (x *PassportOidcAuthorizeRequest) Reset() {
-	*x = PassportOidcAuthorizeRequest{}
-	mi := &file_v1_passport_proto_msgTypes[56]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PassportOidcAuthorizeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PassportOidcAuthorizeRequest) ProtoMessage() {}
-
-func (x *PassportOidcAuthorizeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[56]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PassportOidcAuthorizeRequest.ProtoReflect.Descriptor instead.
-func (*PassportOidcAuthorizeRequest) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{56}
-}
-
-func (x *PassportOidcAuthorizeRequest) GetResponseType() string {
-	if x != nil {
-		return x.ResponseType
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizeRequest) GetClientId() string {
-	if x != nil {
-		return x.ClientId
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizeRequest) GetRedirectUri() string {
-	if x != nil {
-		return x.RedirectUri
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizeRequest) GetScope() string {
-	if x != nil {
-		return x.Scope
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizeRequest) GetState() string {
-	if x != nil {
-		return x.State
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizeRequest) GetNonce() string {
-	if x != nil {
-		return x.Nonce
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizeRequest) GetCodeChallenge() string {
-	if x != nil {
-		return x.CodeChallenge
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizeRequest) GetCodeChallengeMethod() string {
-	if x != nil {
-		return x.CodeChallengeMethod
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizeRequest) GetCreateGameAccount() bool {
-	if x != nil {
-		return x.CreateGameAccount
-	}
-	return false
-}
-
-// 授权确认页显示的游戏账号（令牌里的 game_player_id 就是 player_id）。
-type PassportOidcGameAccount struct {
+// 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。
+type PassportLaunchEndpoints struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// MGP pid
-	PlayerId string `protobuf:"bytes,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
-	// 游戏内显示的 ID
-	DisplayId string `protobuf:"bytes,2,opt,name=display_id,json=displayId,proto3" json:"display_id,omitempty"`
-	Nickname  string `protobuf:"bytes,3,opt,name=nickname,proto3" json:"nickname,omitempty"`
-	Level     int32  `protobuf:"varint,4,opt,name=level,proto3" json:"level,omitempty"`
-	// 登录账号
-	Account string `protobuf:"bytes,5,opt,name=account,proto3" json:"account,omitempty"`
-	// 头像资源 ID
-	AvatarAsset   string `protobuf:"bytes,6,opt,name=avatar_asset,json=avatarAsset,proto3" json:"avatar_asset,omitempty"`
+	// 游戏服务端 SDK
+	Sdk string `protobuf:"bytes,1,opt,name=sdk,proto3" json:"sdk,omitempty"`
+	// 游戏服务端
+	Game string `protobuf:"bytes,2,opt,name=game,proto3" json:"game,omitempty"`
+	// 资源服务器
+	Resource      string `protobuf:"bytes,3,opt,name=resource,proto3" json:"resource,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PassportOidcGameAccount) Reset() {
-	*x = PassportOidcGameAccount{}
-	mi := &file_v1_passport_proto_msgTypes[57]
+func (x *PassportLaunchEndpoints) Reset() {
+	*x = PassportLaunchEndpoints{}
+	mi := &file_v1_passport_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PassportOidcGameAccount) String() string {
+func (x *PassportLaunchEndpoints) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PassportOidcGameAccount) ProtoMessage() {}
+func (*PassportLaunchEndpoints) ProtoMessage() {}
 
-func (x *PassportOidcGameAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[57]
+func (x *PassportLaunchEndpoints) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_passport_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4082,94 +3760,64 @@ func (x *PassportOidcGameAccount) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PassportOidcGameAccount.ProtoReflect.Descriptor instead.
-func (*PassportOidcGameAccount) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{57}
+// Deprecated: Use PassportLaunchEndpoints.ProtoReflect.Descriptor instead.
+func (*PassportLaunchEndpoints) Descriptor() ([]byte, []int) {
+	return file_v1_passport_proto_rawDescGZIP(), []int{53}
 }
 
-func (x *PassportOidcGameAccount) GetPlayerId() string {
+func (x *PassportLaunchEndpoints) GetSdk() string {
 	if x != nil {
-		return x.PlayerId
+		return x.Sdk
 	}
 	return ""
 }
 
-func (x *PassportOidcGameAccount) GetDisplayId() string {
+func (x *PassportLaunchEndpoints) GetGame() string {
 	if x != nil {
-		return x.DisplayId
+		return x.Game
 	}
 	return ""
 }
 
-func (x *PassportOidcGameAccount) GetNickname() string {
+func (x *PassportLaunchEndpoints) GetResource() string {
 	if x != nil {
-		return x.Nickname
+		return x.Resource
 	}
 	return ""
 }
 
-func (x *PassportOidcGameAccount) GetLevel() int32 {
-	if x != nil {
-		return x.Level
-	}
-	return 0
-}
-
-func (x *PassportOidcGameAccount) GetAccount() string {
-	if x != nil {
-		return x.Account
-	}
-	return ""
-}
-
-func (x *PassportOidcGameAccount) GetAvatarAsset() string {
-	if x != nil {
-		return x.AvatarAsset
-	}
-	return ""
-}
-
-type PassportOidcAuthorizationInfo struct {
-	state       protoimpl.MessageState `protogen:"open.v1"`
-	ClientName  string                 `protobuf:"bytes,1,opt,name=client_name,json=clientName,proto3" json:"client_name,omitempty"`
-	ClientId    string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	RedirectUri string                 `protobuf:"bytes,4,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
-	// 归一化后的范围
-	Scopes []string `protobuf:"bytes,5,rep,name=scopes,proto3" json:"scopes,omitempty"`
-	// 关联的游戏服务器（可空）
-	Server *GameServerBrief `protobuf:"bytes,6,opt,name=server,proto3" json:"server,omitempty"`
-	// 已经授权过且范围没有变化（可以直接继续）
-	Granted bool `protobuf:"varint,7,opt,name=granted,proto3" json:"granted,omitempty"`
-	// 应用关联了服务器而你在那台服务器上没有绑定游戏账号：同意前要绑定已有账号或新建一个
-	GameAccountRequired bool `protobuf:"varint,8,opt,name=game_account_required,json=gameAccountRequired,proto3" json:"game_account_required,omitempty"`
-	// 可以为你新建游戏账号（游戏支持且服务器接入了 MGP、服务器对你可见、不在解绑冷却中）
-	GameAccountCreatable bool `protobuf:"varint,9,opt,name=game_account_creatable,json=gameAccountCreatable,proto3" json:"game_account_creatable,omitempty"`
-	// 不能新建时的原因代码：unsupported 游戏或服务器不支持 / not_visible 服务器对你不可见 / cooldown 解绑冷却中
-	GameAccountReason string `protobuf:"bytes,10,opt,name=game_account_reason,json=gameAccountReason,proto3" json:"game_account_reason,omitempty"`
-	// 解绑冷却结束时间（game_account_reason=cooldown）
-	GameAccountCooldownUntil *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=game_account_cooldown_until,json=gameAccountCooldownUntil,proto3" json:"game_account_cooldown_until,omitempty"`
-	// 你在关联服务器上绑定的游戏账号（已绑定时）
-	GameAccount   *PassportOidcGameAccount `protobuf:"bytes,12,opt,name=game_account,json=gameAccount,proto3" json:"game_account,omitempty"`
+// 一个启动目标：客户端应用 ID 对应的服务器。
+type PassportLaunchApp struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 客户端应用 ID（app_ + 16 个小写 base32 字符）
+	AppId     string                   `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	Server    *GameServerBrief         `protobuf:"bytes,2,opt,name=server,proto3" json:"server,omitempty"`
+	Endpoints *PassportLaunchEndpoints `protobuf:"bytes,3,opt,name=endpoints,proto3" json:"endpoints,omitempty"`
+	// 我在这台服务器上生效的绑定（还没有游戏账号时为空）
+	Link *PassportLink `protobuf:"bytes,4,opt,name=link,proto3" json:"link,omitempty"`
+	// 没有绑定时能否绑定已有账号或新建账号；不能时 block_reason 为原因代码：
+	// unsupported 服务器不支持 / not_visible 服务器未向我开放 / cooldown 解绑冷却中（只能重新绑定原账号）；可以绑定时为空
+	Bindable      bool   `protobuf:"varint,5,opt,name=bindable,proto3" json:"bindable,omitempty"`
+	BlockReason   string `protobuf:"bytes,6,opt,name=block_reason,json=blockReason,proto3" json:"block_reason,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PassportOidcAuthorizationInfo) Reset() {
-	*x = PassportOidcAuthorizationInfo{}
-	mi := &file_v1_passport_proto_msgTypes[58]
+func (x *PassportLaunchApp) Reset() {
+	*x = PassportLaunchApp{}
+	mi := &file_v1_passport_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PassportOidcAuthorizationInfo) String() string {
+func (x *PassportLaunchApp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PassportOidcAuthorizationInfo) ProtoMessage() {}
+func (*PassportLaunchApp) ProtoMessage() {}
 
-func (x *PassportOidcAuthorizationInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[58]
+func (x *PassportLaunchApp) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_passport_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4180,117 +3828,75 @@ func (x *PassportOidcAuthorizationInfo) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PassportOidcAuthorizationInfo.ProtoReflect.Descriptor instead.
-func (*PassportOidcAuthorizationInfo) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{58}
+// Deprecated: Use PassportLaunchApp.ProtoReflect.Descriptor instead.
+func (*PassportLaunchApp) Descriptor() ([]byte, []int) {
+	return file_v1_passport_proto_rawDescGZIP(), []int{54}
 }
 
-func (x *PassportOidcAuthorizationInfo) GetClientName() string {
+func (x *PassportLaunchApp) GetAppId() string {
 	if x != nil {
-		return x.ClientName
+		return x.AppId
 	}
 	return ""
 }
 
-func (x *PassportOidcAuthorizationInfo) GetClientId() string {
-	if x != nil {
-		return x.ClientId
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizationInfo) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizationInfo) GetRedirectUri() string {
-	if x != nil {
-		return x.RedirectUri
-	}
-	return ""
-}
-
-func (x *PassportOidcAuthorizationInfo) GetScopes() []string {
-	if x != nil {
-		return x.Scopes
-	}
-	return nil
-}
-
-func (x *PassportOidcAuthorizationInfo) GetServer() *GameServerBrief {
+func (x *PassportLaunchApp) GetServer() *GameServerBrief {
 	if x != nil {
 		return x.Server
 	}
 	return nil
 }
 
-func (x *PassportOidcAuthorizationInfo) GetGranted() bool {
+func (x *PassportLaunchApp) GetEndpoints() *PassportLaunchEndpoints {
 	if x != nil {
-		return x.Granted
+		return x.Endpoints
+	}
+	return nil
+}
+
+func (x *PassportLaunchApp) GetLink() *PassportLink {
+	if x != nil {
+		return x.Link
+	}
+	return nil
+}
+
+func (x *PassportLaunchApp) GetBindable() bool {
+	if x != nil {
+		return x.Bindable
 	}
 	return false
 }
 
-func (x *PassportOidcAuthorizationInfo) GetGameAccountRequired() bool {
+func (x *PassportLaunchApp) GetBlockReason() string {
 	if x != nil {
-		return x.GameAccountRequired
-	}
-	return false
-}
-
-func (x *PassportOidcAuthorizationInfo) GetGameAccountCreatable() bool {
-	if x != nil {
-		return x.GameAccountCreatable
-	}
-	return false
-}
-
-func (x *PassportOidcAuthorizationInfo) GetGameAccountReason() string {
-	if x != nil {
-		return x.GameAccountReason
+		return x.BlockReason
 	}
 	return ""
 }
 
-func (x *PassportOidcAuthorizationInfo) GetGameAccountCooldownUntil() *timestamppb.Timestamp {
-	if x != nil {
-		return x.GameAccountCooldownUntil
-	}
-	return nil
-}
-
-func (x *PassportOidcAuthorizationInfo) GetGameAccount() *PassportOidcGameAccount {
-	if x != nil {
-		return x.GameAccount
-	}
-	return nil
-}
-
-type PassportOidcAuthorizeResponse struct {
+type ListPassportLaunchAppsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	RedirectUrl   string                 `protobuf:"bytes,1,opt,name=redirect_url,json=redirectUrl,proto3" json:"redirect_url,omitempty"`
+	Apps          []*PassportLaunchApp   `protobuf:"bytes,1,rep,name=apps,proto3" json:"apps,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PassportOidcAuthorizeResponse) Reset() {
-	*x = PassportOidcAuthorizeResponse{}
-	mi := &file_v1_passport_proto_msgTypes[59]
+func (x *ListPassportLaunchAppsResponse) Reset() {
+	*x = ListPassportLaunchAppsResponse{}
+	mi := &file_v1_passport_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PassportOidcAuthorizeResponse) String() string {
+func (x *ListPassportLaunchAppsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PassportOidcAuthorizeResponse) ProtoMessage() {}
+func (*ListPassportLaunchAppsResponse) ProtoMessage() {}
 
-func (x *PassportOidcAuthorizeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_passport_proto_msgTypes[59]
+func (x *ListPassportLaunchAppsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_passport_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4301,14 +3907,191 @@ func (x *PassportOidcAuthorizeResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PassportOidcAuthorizeResponse.ProtoReflect.Descriptor instead.
-func (*PassportOidcAuthorizeResponse) Descriptor() ([]byte, []int) {
-	return file_v1_passport_proto_rawDescGZIP(), []int{59}
+// Deprecated: Use ListPassportLaunchAppsResponse.ProtoReflect.Descriptor instead.
+func (*ListPassportLaunchAppsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_passport_proto_rawDescGZIP(), []int{55}
 }
 
-func (x *PassportOidcAuthorizeResponse) GetRedirectUrl() string {
+func (x *ListPassportLaunchAppsResponse) GetApps() []*PassportLaunchApp {
 	if x != nil {
-		return x.RedirectUrl
+		return x.Apps
+	}
+	return nil
+}
+
+type PassportLaunchAppRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AppId         string                 `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PassportLaunchAppRequest) Reset() {
+	*x = PassportLaunchAppRequest{}
+	mi := &file_v1_passport_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PassportLaunchAppRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PassportLaunchAppRequest) ProtoMessage() {}
+
+func (x *PassportLaunchAppRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_passport_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PassportLaunchAppRequest.ProtoReflect.Descriptor instead.
+func (*PassportLaunchAppRequest) Descriptor() ([]byte, []int) {
+	return file_v1_passport_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *PassportLaunchAppRequest) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
+}
+
+type BindPassportLaunchAppRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	AppId string                 `protobuf:"bytes,1,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	// 游戏登录账号与密码（只用来校验一次，不保存）
+	Account       string `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	Password      string `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BindPassportLaunchAppRequest) Reset() {
+	*x = BindPassportLaunchAppRequest{}
+	mi := &file_v1_passport_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BindPassportLaunchAppRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BindPassportLaunchAppRequest) ProtoMessage() {}
+
+func (x *BindPassportLaunchAppRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_passport_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BindPassportLaunchAppRequest.ProtoReflect.Descriptor instead.
+func (*BindPassportLaunchAppRequest) Descriptor() ([]byte, []int) {
+	return file_v1_passport_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *BindPassportLaunchAppRequest) GetAppId() string {
+	if x != nil {
+		return x.AppId
+	}
+	return ""
+}
+
+func (x *BindPassportLaunchAppRequest) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
+func (x *BindPassportLaunchAppRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+// 启动票据：lt1.<b64url(payload)>.<b64url(HMAC-SHA256(MGP 密钥, "momoko-launch-ticket.v1." + b64url(payload)))>，
+// payload 为 {"kid","aid","sid","pid","uid","jti","iat","exp"}。
+type PassportLaunchTicket struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Ticket string                 `protobuf:"bytes,1,opt,name=ticket,proto3" json:"ticket,omitempty"`
+	// 有效秒数（120）
+	ExpiresIn int64 `protobuf:"varint,2,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"`
+	// 绑定的游戏账号：MGP pid 与游戏内显示的 ID
+	PlayerId      string `protobuf:"bytes,3,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	DisplayId     string `protobuf:"bytes,4,opt,name=display_id,json=displayId,proto3" json:"display_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PassportLaunchTicket) Reset() {
+	*x = PassportLaunchTicket{}
+	mi := &file_v1_passport_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PassportLaunchTicket) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PassportLaunchTicket) ProtoMessage() {}
+
+func (x *PassportLaunchTicket) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_passport_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PassportLaunchTicket.ProtoReflect.Descriptor instead.
+func (*PassportLaunchTicket) Descriptor() ([]byte, []int) {
+	return file_v1_passport_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *PassportLaunchTicket) GetTicket() string {
+	if x != nil {
+		return x.Ticket
+	}
+	return ""
+}
+
+func (x *PassportLaunchTicket) GetExpiresIn() int64 {
+	if x != nil {
+		return x.ExpiresIn
+	}
+	return 0
+}
+
+func (x *PassportLaunchTicket) GetPlayerId() string {
+	if x != nil {
+		return x.PlayerId
+	}
+	return ""
+}
+
+func (x *PassportLaunchTicket) GetDisplayId() string {
+	if x != nil {
+		return x.DisplayId
 	}
 	return ""
 }
@@ -4319,14 +4102,13 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\n" +
 	"\x11v1/passport.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14v1/game_common.proto\"\x0f\n" +
 	"\rPassportEmpty\"\x1a\n" +
-	"\x18GetPassportConfigRequest\"\xa7\x03\n" +
+	"\x18GetPassportConfigRequest\"\x84\x03\n" +
 	"\x19GetPassportConfigResponse\x12\x1b\n" +
 	"\tsite_name\x18\x01 \x01(\tR\bsiteName\x12#\n" +
 	"\rregister_mode\x18\x02 \x01(\tR\fregisterMode\x12.\n" +
 	"\x13email_login_enabled\x18\x03 \x01(\bR\x11emailLoginEnabled\x12>\n" +
 	"\x1bregister_email_verification\x18\x04 \x01(\bR\x19registerEmailVerification\x12#\n" +
-	"\remail_enabled\x18\x05 \x01(\bR\femailEnabled\x12!\n" +
-	"\foidc_enabled\x18\x06 \x01(\bR\voidcEnabled\x120\n" +
+	"\remail_enabled\x18\x05 \x01(\bR\femailEnabled\x120\n" +
 	"\x14unbind_cooldown_days\x18\a \x01(\x05R\x12unbindCooldownDays\x12.\n" +
 	"\x13deletion_grace_days\x18\b \x01(\x05R\x11deletionGraceDays\x12.\n" +
 	"\x13min_password_length\x18\t \x01(\x05R\x11minPasswordLength\"4\n" +
@@ -4369,7 +4151,7 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\x1cPassportResetPasswordRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\"\xe7\b\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\"\xca\b\n" +
 	"\n" +
 	"PassportMe\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
@@ -4394,8 +4176,7 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\rlast_login_ip\x18\x12 \x01(\tR\vlastLoginIp\x12*\n" +
 	"\x11last_login_device\x18\x13 \x01(\tR\x0flastLoginDevice\x12N\n" +
 	"\x15deletion_scheduled_at\x18\x14 \x01(\v2\x1a.google.protobuf.TimestampR\x13deletionScheduledAt\x12!\n" +
-	"\fdevice_count\x18\x15 \x01(\x05R\vdeviceCount\x12\x1b\n" +
-	"\tapp_count\x18\x16 \x01(\x05R\bappCount\x12\x1d\n" +
+	"\fdevice_count\x18\x15 \x01(\x05R\vdeviceCount\x12\x1d\n" +
 	"\n" +
 	"link_count\x18\x17 \x01(\x05R\tlinkCount\x12\x1d\n" +
 	"\n" +
@@ -4441,7 +4222,7 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\x17PassportTotpCodeRequest\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\"-\n" +
 	"\x15PassportRecoveryCodes\x12\x14\n" +
-	"\x05codes\x18\x01 \x03(\tR\x05codes\"\xe3\x03\n" +
+	"\x05codes\x18\x01 \x03(\tR\x05codes\"\xc8\x03\n" +
 	"\x0ePassportDevice\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x16\n" +
@@ -4453,8 +4234,7 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\x02ip\x18\x05 \x01(\tR\x02ip\x12\x17\n" +
 	"\alast_ip\x18\x06 \x01(\tR\x06lastIp\x12\x19\n" +
 	"\bip_scope\x18\a \x01(\tR\aipScope\x12!\n" +
-	"\flogin_method\x18\b \x01(\tR\vloginMethod\x12\x19\n" +
-	"\bapp_name\x18\t \x01(\tR\aappName\x12;\n" +
+	"\flogin_method\x18\b \x01(\tR\vloginMethod\x12;\n" +
 	"\vcreate_time\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12D\n" +
@@ -4466,21 +4246,7 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x12.v1.PassportDeviceR\x05items\"<\n" +
 	"\x1bRevokePassportDeviceRequest\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\"\x93\x02\n" +
-	"\vPassportApp\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x16\n" +
-	"\x06scopes\x18\x04 \x03(\tR\x06scopes\x12+\n" +
-	"\x06server\x18\x05 \x01(\v2\x13.v1.GameServerBriefR\x06server\x12;\n" +
-	"\vcreate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"createTime\x12<\n" +
-	"\flast_used_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"lastUsedAt\"A\n" +
-	"\x18ListPassportAppsResponse\x12%\n" +
-	"\x05items\x18\x01 \x03(\v2\x0f.v1.PassportAppR\x05items\"*\n" +
-	"\x18RevokePassportAppRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\"<\n" +
 	"\x1eRequestPassportDeletionRequest\x12\x1a\n" +
 	"\bpassword\x18\x01 \x01(\tR\bpassword\"\xa7\x02\n" +
 	"\x0fPassportMessage\x12\x0e\n" +
@@ -4641,42 +4407,33 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\x1eRedeemPassportGiftCodeResponse\x12\x16\n" +
 	"\x06result\x18\x01 \x01(\tR\x06result\x12(\n" +
 	"\arewards\x18\x02 \x03(\v2\x0e.v1.GameRewardR\arewards\x12!\n" +
-	"\fexecution_id\x18\x03 \x01(\tR\vexecutionId\"\xd0\x02\n" +
-	"\x1cPassportOidcAuthorizeRequest\x12#\n" +
-	"\rresponse_type\x18\x01 \x01(\tR\fresponseType\x12\x1b\n" +
-	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12!\n" +
-	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12\x14\n" +
-	"\x05scope\x18\x04 \x01(\tR\x05scope\x12\x14\n" +
-	"\x05state\x18\x05 \x01(\tR\x05state\x12\x14\n" +
-	"\x05nonce\x18\x06 \x01(\tR\x05nonce\x12%\n" +
-	"\x0ecode_challenge\x18\a \x01(\tR\rcodeChallenge\x122\n" +
-	"\x15code_challenge_method\x18\b \x01(\tR\x13codeChallengeMethod\x12.\n" +
-	"\x13create_game_account\x18\t \x01(\bR\x11createGameAccount\"\xc4\x01\n" +
-	"\x17PassportOidcGameAccount\x12\x1b\n" +
-	"\tplayer_id\x18\x01 \x01(\tR\bplayerId\x12\x1d\n" +
+	"\fexecution_id\x18\x03 \x01(\tR\vexecutionId\"[\n" +
+	"\x17PassportLaunchEndpoints\x12\x10\n" +
+	"\x03sdk\x18\x01 \x01(\tR\x03sdk\x12\x12\n" +
+	"\x04game\x18\x02 \x01(\tR\x04game\x12\x1a\n" +
+	"\bresource\x18\x03 \x01(\tR\bresource\"\xf7\x01\n" +
+	"\x11PassportLaunchApp\x12\x15\n" +
+	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12+\n" +
+	"\x06server\x18\x02 \x01(\v2\x13.v1.GameServerBriefR\x06server\x129\n" +
+	"\tendpoints\x18\x03 \x01(\v2\x1b.v1.PassportLaunchEndpointsR\tendpoints\x12$\n" +
+	"\x04link\x18\x04 \x01(\v2\x10.v1.PassportLinkR\x04link\x12\x1a\n" +
+	"\bbindable\x18\x05 \x01(\bR\bbindable\x12!\n" +
+	"\fblock_reason\x18\x06 \x01(\tR\vblockReason\"K\n" +
+	"\x1eListPassportLaunchAppsResponse\x12)\n" +
+	"\x04apps\x18\x01 \x03(\v2\x15.v1.PassportLaunchAppR\x04apps\"1\n" +
+	"\x18PassportLaunchAppRequest\x12\x15\n" +
+	"\x06app_id\x18\x01 \x01(\tR\x05appId\"k\n" +
+	"\x1cBindPassportLaunchAppRequest\x12\x15\n" +
+	"\x06app_id\x18\x01 \x01(\tR\x05appId\x12\x18\n" +
+	"\aaccount\x18\x02 \x01(\tR\aaccount\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\"\x89\x01\n" +
+	"\x14PassportLaunchTicket\x12\x16\n" +
+	"\x06ticket\x18\x01 \x01(\tR\x06ticket\x12\x1d\n" +
 	"\n" +
-	"display_id\x18\x02 \x01(\tR\tdisplayId\x12\x1a\n" +
-	"\bnickname\x18\x03 \x01(\tR\bnickname\x12\x14\n" +
-	"\x05level\x18\x04 \x01(\x05R\x05level\x12\x18\n" +
-	"\aaccount\x18\x05 \x01(\tR\aaccount\x12!\n" +
-	"\favatar_asset\x18\x06 \x01(\tR\vavatarAsset\"\xb6\x04\n" +
-	"\x1dPassportOidcAuthorizationInfo\x12\x1f\n" +
-	"\vclient_name\x18\x01 \x01(\tR\n" +
-	"clientName\x12\x1b\n" +
-	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12!\n" +
-	"\fredirect_uri\x18\x04 \x01(\tR\vredirectUri\x12\x16\n" +
-	"\x06scopes\x18\x05 \x03(\tR\x06scopes\x12+\n" +
-	"\x06server\x18\x06 \x01(\v2\x13.v1.GameServerBriefR\x06server\x12\x18\n" +
-	"\agranted\x18\a \x01(\bR\agranted\x122\n" +
-	"\x15game_account_required\x18\b \x01(\bR\x13gameAccountRequired\x124\n" +
-	"\x16game_account_creatable\x18\t \x01(\bR\x14gameAccountCreatable\x12.\n" +
-	"\x13game_account_reason\x18\n" +
-	" \x01(\tR\x11gameAccountReason\x12Y\n" +
-	"\x1bgame_account_cooldown_until\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\x18gameAccountCooldownUntil\x12>\n" +
-	"\fgame_account\x18\f \x01(\v2\x1b.v1.PassportOidcGameAccountR\vgameAccount\"B\n" +
-	"\x1dPassportOidcAuthorizeResponse\x12!\n" +
-	"\fredirect_url\x18\x01 \x01(\tR\vredirectUrl2\xed(\n" +
+	"expires_in\x18\x02 \x01(\x03R\texpiresIn\x12\x1b\n" +
+	"\tplayer_id\x18\x03 \x01(\tR\bplayerId\x12\x1d\n" +
+	"\n" +
+	"display_id\x18\x04 \x01(\tR\tdisplayId2\xfa)\n" +
 	"\x0fPassportService\x12h\n" +
 	"\x11GetPassportConfig\x12\x1c.v1.GetPassportConfigRequest\x1a\x1d.v1.GetPassportConfigResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/config\x12\x8c\x01\n" +
 	"\x18SendPassportRegisterCode\x12 .v1.SendPassportEmailCodeRequest\x1a!.v1.SendPassportEmailCodeResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/auth/register/email-code\x12l\n" +
@@ -4703,9 +4460,7 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\x1fRegeneratePassportRecoveryCodes\x12\x1b.v1.PassportTotpCodeRequest\x1a\x19.v1.PassportRecoveryCodes\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/me/totp/recovery-codes\x12e\n" +
 	"\x13ListPassportDevices\x12\x11.v1.PassportEmpty\x1a\x1f.v1.ListPassportDevicesResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/me/devices\x12s\n" +
 	"\x14RevokePassportDevice\x12\x1f.v1.RevokePassportDeviceRequest\x1a\x11.v1.PassportEmpty\"'\x82\xd3\xe4\x93\x02!*\x1f/api/v1/me/devices/{session_id}\x12i\n" +
-	"\x14LogoutPassportOthers\x12\x11.v1.PassportEmpty\x1a\x11.v1.PassportEmpty\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/me/devices/logout-others\x12\\\n" +
-	"\x10ListPassportApps\x12\x11.v1.PassportEmpty\x1a\x1c.v1.ListPassportAppsResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/v1/me/apps\x12b\n" +
-	"\x11RevokePassportApp\x12\x1c.v1.RevokePassportAppRequest\x1a\x11.v1.PassportEmpty\"\x1c\x82\xd3\xe4\x93\x02\x16*\x14/api/v1/me/apps/{id}\x12m\n" +
+	"\x14LogoutPassportOthers\x12\x11.v1.PassportEmpty\x1a\x11.v1.PassportEmpty\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/me/devices/logout-others\x12m\n" +
 	"\x17RequestPassportDeletion\x12\".v1.RequestPassportDeletionRequest\x1a\x0e.v1.PassportMe\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/me/deletion\x12X\n" +
 	"\x16CancelPassportDeletion\x12\x11.v1.PassportEmpty\x1a\x0e.v1.PassportMe\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/api/v1/me/deletion\x12v\n" +
 	"\x14ListPassportMessages\x12\x1f.v1.ListPassportMessagesRequest\x1a .v1.ListPassportMessagesResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/me/messages\x12~\n" +
@@ -4721,9 +4476,12 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\x17ListPassportSelfService\x12\x17.v1.PassportGameRequest\x1a#.v1.ListPassportSelfServiceResponse\".\x82\xd3\xe4\x93\x02(\x12&/api/v1/games/{server_id}/self-service\x12\x8f\x01\n" +
 	"\x18ListPassportGameRequests\x12\".v1.ListPassportGameRecordsRequest\x1a#.v1.ListPassportGameRecordsResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/v1/games/{server_id}/requests\x12\x8d\x01\n" +
 	"\x17ListPassportGameRecords\x12\".v1.ListPassportGameRecordsRequest\x1a#.v1.ListPassportGameRecordsResponse\")\x82\xd3\xe4\x93\x02#\x12!/api/v1/games/{server_id}/records\x12\x8c\x01\n" +
-	"\x16RedeemPassportGiftCode\x12!.v1.RedeemPassportGiftCodeRequest\x1a\".v1.RedeemPassportGiftCodeResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/games/{server_id}/redeem\x12\x83\x01\n" +
-	"\x1cGetPassportOidcAuthorization\x12 .v1.PassportOidcAuthorizeRequest\x1a!.v1.PassportOidcAuthorizationInfo\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/oidc/authorize\x12\x8a\x01\n" +
-	" ApprovePassportOidcAuthorization\x12 .v1.PassportOidcAuthorizeRequest\x1a!.v1.PassportOidcAuthorizeResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/v1/oidc/authorizeB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
+	"\x16RedeemPassportGiftCode\x12!.v1.RedeemPassportGiftCodeRequest\x1a\".v1.RedeemPassportGiftCodeResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/games/{server_id}/redeem\x12l\n" +
+	"\x16ListPassportLaunchApps\x12\x11.v1.PassportEmpty\x1a\".v1.ListPassportLaunchAppsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/launch/apps\x12q\n" +
+	"\x14GetPassportLaunchApp\x12\x1c.v1.PassportLaunchAppRequest\x1a\x15.v1.PassportLaunchApp\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/launch/apps/{app_id}\x12y\n" +
+	"\x15BindPassportLaunchApp\x12 .v1.BindPassportLaunchAppRequest\x1a\x10.v1.PassportLink\",\x82\xd3\xe4\x93\x02&:\x01*\"!/api/v1/launch/apps/{app_id}/bind\x12~\n" +
+	"\x1bCreatePassportLaunchAccount\x12\x1c.v1.PassportLaunchAppRequest\x1a\x10.v1.PassportLink\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/launch/apps/{app_id}/account\x12\x83\x01\n" +
+	"\x19IssuePassportLaunchTicket\x12\x1c.v1.PassportLaunchAppRequest\x1a\x18.v1.PassportLaunchTicket\".\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/launch/apps/{app_id}/ticketB\x16Z\x14momoko/api/gen/v1;v1b\x06proto3"
 
 var (
 	file_v1_passport_proto_rawDescOnce sync.Once
@@ -4737,7 +4495,7 @@ func file_v1_passport_proto_rawDescGZIP() []byte {
 	return file_v1_passport_proto_rawDescData
 }
 
-var file_v1_passport_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
+var file_v1_passport_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
 var file_v1_passport_proto_goTypes = []any{
 	(*PassportEmpty)(nil),                     // 0: v1.PassportEmpty
 	(*GetPassportConfigRequest)(nil),          // 1: v1.GetPassportConfigRequest
@@ -4766,187 +4524,185 @@ var file_v1_passport_proto_goTypes = []any{
 	(*PassportDevice)(nil),                    // 24: v1.PassportDevice
 	(*ListPassportDevicesResponse)(nil),       // 25: v1.ListPassportDevicesResponse
 	(*RevokePassportDeviceRequest)(nil),       // 26: v1.RevokePassportDeviceRequest
-	(*PassportApp)(nil),                       // 27: v1.PassportApp
-	(*ListPassportAppsResponse)(nil),          // 28: v1.ListPassportAppsResponse
-	(*RevokePassportAppRequest)(nil),          // 29: v1.RevokePassportAppRequest
-	(*RequestPassportDeletionRequest)(nil),    // 30: v1.RequestPassportDeletionRequest
-	(*PassportMessage)(nil),                   // 31: v1.PassportMessage
-	(*ListPassportMessagesRequest)(nil),       // 32: v1.ListPassportMessagesRequest
-	(*ListPassportMessagesResponse)(nil),      // 33: v1.ListPassportMessagesResponse
-	(*ReadPassportMessagesRequest)(nil),       // 34: v1.ReadPassportMessagesRequest
-	(*ReadPassportMessagesResponse)(nil),      // 35: v1.ReadPassportMessagesResponse
-	(*PassportActivity)(nil),                  // 36: v1.PassportActivity
-	(*ListPassportActivityRequest)(nil),       // 37: v1.ListPassportActivityRequest
-	(*ListPassportActivityResponse)(nil),      // 38: v1.ListPassportActivityResponse
-	(*PassportLink)(nil),                      // 39: v1.PassportLink
-	(*ListPassportLinksResponse)(nil),         // 40: v1.ListPassportLinksResponse
-	(*PassportLinkRequest)(nil),               // 41: v1.PassportLinkRequest
-	(*SearchPassportBindServersRequest)(nil),  // 42: v1.SearchPassportBindServersRequest
-	(*PassportBindServer)(nil),                // 43: v1.PassportBindServer
-	(*PassportBindGame)(nil),                  // 44: v1.PassportBindGame
-	(*SearchPassportBindServersResponse)(nil), // 45: v1.SearchPassportBindServersResponse
-	(*BindPassportAccountRequest)(nil),        // 46: v1.BindPassportAccountRequest
-	(*PassportGameRequest)(nil),               // 47: v1.PassportGameRequest
-	(*PassportGameResponse)(nil),              // 48: v1.PassportGameResponse
-	(*PassportSelfService)(nil),               // 49: v1.PassportSelfService
-	(*ListPassportSelfServiceResponse)(nil),   // 50: v1.ListPassportSelfServiceResponse
-	(*ListPassportGameRecordsRequest)(nil),    // 51: v1.ListPassportGameRecordsRequest
-	(*PassportGameRecord)(nil),                // 52: v1.PassportGameRecord
-	(*ListPassportGameRecordsResponse)(nil),   // 53: v1.ListPassportGameRecordsResponse
-	(*RedeemPassportGiftCodeRequest)(nil),     // 54: v1.RedeemPassportGiftCodeRequest
-	(*RedeemPassportGiftCodeResponse)(nil),    // 55: v1.RedeemPassportGiftCodeResponse
-	(*PassportOidcAuthorizeRequest)(nil),      // 56: v1.PassportOidcAuthorizeRequest
-	(*PassportOidcGameAccount)(nil),           // 57: v1.PassportOidcGameAccount
-	(*PassportOidcAuthorizationInfo)(nil),     // 58: v1.PassportOidcAuthorizationInfo
-	(*PassportOidcAuthorizeResponse)(nil),     // 59: v1.PassportOidcAuthorizeResponse
-	nil,                                       // 60: v1.PassportMessage.ParamsEntry
-	nil,                                       // 61: v1.PassportActivity.ParamsEntry
-	(*timestamppb.Timestamp)(nil),             // 62: google.protobuf.Timestamp
-	(*GameServerBrief)(nil),                   // 63: v1.GameServerBrief
-	(*GameReward)(nil),                        // 64: v1.GameReward
+	(*RequestPassportDeletionRequest)(nil),    // 27: v1.RequestPassportDeletionRequest
+	(*PassportMessage)(nil),                   // 28: v1.PassportMessage
+	(*ListPassportMessagesRequest)(nil),       // 29: v1.ListPassportMessagesRequest
+	(*ListPassportMessagesResponse)(nil),      // 30: v1.ListPassportMessagesResponse
+	(*ReadPassportMessagesRequest)(nil),       // 31: v1.ReadPassportMessagesRequest
+	(*ReadPassportMessagesResponse)(nil),      // 32: v1.ReadPassportMessagesResponse
+	(*PassportActivity)(nil),                  // 33: v1.PassportActivity
+	(*ListPassportActivityRequest)(nil),       // 34: v1.ListPassportActivityRequest
+	(*ListPassportActivityResponse)(nil),      // 35: v1.ListPassportActivityResponse
+	(*PassportLink)(nil),                      // 36: v1.PassportLink
+	(*ListPassportLinksResponse)(nil),         // 37: v1.ListPassportLinksResponse
+	(*PassportLinkRequest)(nil),               // 38: v1.PassportLinkRequest
+	(*SearchPassportBindServersRequest)(nil),  // 39: v1.SearchPassportBindServersRequest
+	(*PassportBindServer)(nil),                // 40: v1.PassportBindServer
+	(*PassportBindGame)(nil),                  // 41: v1.PassportBindGame
+	(*SearchPassportBindServersResponse)(nil), // 42: v1.SearchPassportBindServersResponse
+	(*BindPassportAccountRequest)(nil),        // 43: v1.BindPassportAccountRequest
+	(*PassportGameRequest)(nil),               // 44: v1.PassportGameRequest
+	(*PassportGameResponse)(nil),              // 45: v1.PassportGameResponse
+	(*PassportSelfService)(nil),               // 46: v1.PassportSelfService
+	(*ListPassportSelfServiceResponse)(nil),   // 47: v1.ListPassportSelfServiceResponse
+	(*ListPassportGameRecordsRequest)(nil),    // 48: v1.ListPassportGameRecordsRequest
+	(*PassportGameRecord)(nil),                // 49: v1.PassportGameRecord
+	(*ListPassportGameRecordsResponse)(nil),   // 50: v1.ListPassportGameRecordsResponse
+	(*RedeemPassportGiftCodeRequest)(nil),     // 51: v1.RedeemPassportGiftCodeRequest
+	(*RedeemPassportGiftCodeResponse)(nil),    // 52: v1.RedeemPassportGiftCodeResponse
+	(*PassportLaunchEndpoints)(nil),           // 53: v1.PassportLaunchEndpoints
+	(*PassportLaunchApp)(nil),                 // 54: v1.PassportLaunchApp
+	(*ListPassportLaunchAppsResponse)(nil),    // 55: v1.ListPassportLaunchAppsResponse
+	(*PassportLaunchAppRequest)(nil),          // 56: v1.PassportLaunchAppRequest
+	(*BindPassportLaunchAppRequest)(nil),      // 57: v1.BindPassportLaunchAppRequest
+	(*PassportLaunchTicket)(nil),              // 58: v1.PassportLaunchTicket
+	nil,                                       // 59: v1.PassportMessage.ParamsEntry
+	nil,                                       // 60: v1.PassportActivity.ParamsEntry
+	(*timestamppb.Timestamp)(nil),             // 61: google.protobuf.Timestamp
+	(*GameServerBrief)(nil),                   // 62: v1.GameServerBrief
+	(*GameReward)(nil),                        // 63: v1.GameReward
 }
 var file_v1_passport_proto_depIdxs = []int32{
-	62, // 0: v1.PassportMe.totp_enabled_at:type_name -> google.protobuf.Timestamp
-	62, // 1: v1.PassportMe.password_updated_at:type_name -> google.protobuf.Timestamp
-	62, // 2: v1.PassportMe.create_time:type_name -> google.protobuf.Timestamp
-	62, // 3: v1.PassportMe.last_login_at:type_name -> google.protobuf.Timestamp
-	62, // 4: v1.PassportMe.deletion_scheduled_at:type_name -> google.protobuf.Timestamp
-	62, // 5: v1.PassportDevice.create_time:type_name -> google.protobuf.Timestamp
-	62, // 6: v1.PassportDevice.last_active_time:type_name -> google.protobuf.Timestamp
-	62, // 7: v1.PassportDevice.expire_time:type_name -> google.protobuf.Timestamp
+	61, // 0: v1.PassportMe.totp_enabled_at:type_name -> google.protobuf.Timestamp
+	61, // 1: v1.PassportMe.password_updated_at:type_name -> google.protobuf.Timestamp
+	61, // 2: v1.PassportMe.create_time:type_name -> google.protobuf.Timestamp
+	61, // 3: v1.PassportMe.last_login_at:type_name -> google.protobuf.Timestamp
+	61, // 4: v1.PassportMe.deletion_scheduled_at:type_name -> google.protobuf.Timestamp
+	61, // 5: v1.PassportDevice.create_time:type_name -> google.protobuf.Timestamp
+	61, // 6: v1.PassportDevice.last_active_time:type_name -> google.protobuf.Timestamp
+	61, // 7: v1.PassportDevice.expire_time:type_name -> google.protobuf.Timestamp
 	24, // 8: v1.ListPassportDevicesResponse.items:type_name -> v1.PassportDevice
-	63, // 9: v1.PassportApp.server:type_name -> v1.GameServerBrief
-	62, // 10: v1.PassportApp.create_time:type_name -> google.protobuf.Timestamp
-	62, // 11: v1.PassportApp.last_used_at:type_name -> google.protobuf.Timestamp
-	27, // 12: v1.ListPassportAppsResponse.items:type_name -> v1.PassportApp
-	60, // 13: v1.PassportMessage.params:type_name -> v1.PassportMessage.ParamsEntry
-	63, // 14: v1.PassportMessage.server:type_name -> v1.GameServerBrief
-	62, // 15: v1.PassportMessage.create_time:type_name -> google.protobuf.Timestamp
-	31, // 16: v1.ListPassportMessagesResponse.items:type_name -> v1.PassportMessage
-	62, // 17: v1.PassportActivity.time:type_name -> google.protobuf.Timestamp
-	63, // 18: v1.PassportActivity.server:type_name -> v1.GameServerBrief
-	61, // 19: v1.PassportActivity.params:type_name -> v1.PassportActivity.ParamsEntry
-	36, // 20: v1.ListPassportActivityResponse.items:type_name -> v1.PassportActivity
-	63, // 21: v1.PassportLink.server:type_name -> v1.GameServerBrief
-	62, // 22: v1.PassportLink.linked_at:type_name -> google.protobuf.Timestamp
-	62, // 23: v1.PassportLink.last_seen_at:type_name -> google.protobuf.Timestamp
-	39, // 24: v1.ListPassportLinksResponse.items:type_name -> v1.PassportLink
-	63, // 25: v1.PassportBindServer.server:type_name -> v1.GameServerBrief
-	62, // 26: v1.PassportBindServer.cooldown_until:type_name -> google.protobuf.Timestamp
-	43, // 27: v1.SearchPassportBindServersResponse.items:type_name -> v1.PassportBindServer
-	43, // 28: v1.SearchPassportBindServersResponse.recommended:type_name -> v1.PassportBindServer
-	44, // 29: v1.SearchPassportBindServersResponse.games:type_name -> v1.PassportBindGame
-	43, // 30: v1.SearchPassportBindServersResponse.target:type_name -> v1.PassportBindServer
-	63, // 31: v1.PassportGameResponse.server:type_name -> v1.GameServerBrief
-	39, // 32: v1.PassportGameResponse.link:type_name -> v1.PassportLink
-	39, // 33: v1.PassportGameResponse.others:type_name -> v1.PassportLink
-	62, // 34: v1.PassportSelfService.resets_at:type_name -> google.protobuf.Timestamp
-	62, // 35: v1.PassportSelfService.last_used_at:type_name -> google.protobuf.Timestamp
-	49, // 36: v1.ListPassportSelfServiceResponse.items:type_name -> v1.PassportSelfService
-	62, // 37: v1.PassportGameRecord.reviewed_at:type_name -> google.protobuf.Timestamp
-	62, // 38: v1.PassportGameRecord.create_time:type_name -> google.protobuf.Timestamp
-	62, // 39: v1.PassportGameRecord.finished_at:type_name -> google.protobuf.Timestamp
-	64, // 40: v1.PassportGameRecord.rewards:type_name -> v1.GameReward
-	52, // 41: v1.ListPassportGameRecordsResponse.items:type_name -> v1.PassportGameRecord
-	64, // 42: v1.RedeemPassportGiftCodeResponse.rewards:type_name -> v1.GameReward
-	63, // 43: v1.PassportOidcAuthorizationInfo.server:type_name -> v1.GameServerBrief
-	62, // 44: v1.PassportOidcAuthorizationInfo.game_account_cooldown_until:type_name -> google.protobuf.Timestamp
-	57, // 45: v1.PassportOidcAuthorizationInfo.game_account:type_name -> v1.PassportOidcGameAccount
-	1,  // 46: v1.PassportService.GetPassportConfig:input_type -> v1.GetPassportConfigRequest
-	3,  // 47: v1.PassportService.SendPassportRegisterCode:input_type -> v1.SendPassportEmailCodeRequest
-	5,  // 48: v1.PassportService.PassportRegister:input_type -> v1.PassportRegisterRequest
-	3,  // 49: v1.PassportService.SendPassportLoginCode:input_type -> v1.SendPassportEmailCodeRequest
-	6,  // 50: v1.PassportService.PassportLogin:input_type -> v1.PassportLoginRequest
-	7,  // 51: v1.PassportService.PassportLoginMfa:input_type -> v1.PassportLoginMfaRequest
-	8,  // 52: v1.PassportService.PassportRefresh:input_type -> v1.PassportRefreshRequest
-	3,  // 53: v1.PassportService.SendPassportResetCode:input_type -> v1.SendPassportEmailCodeRequest
-	10, // 54: v1.PassportService.PassportResetPassword:input_type -> v1.PassportResetPasswordRequest
-	0,  // 55: v1.PassportService.PassportLogout:input_type -> v1.PassportEmpty
-	0,  // 56: v1.PassportService.GetPassportMe:input_type -> v1.PassportEmpty
-	12, // 57: v1.PassportService.UpdatePassportProfile:input_type -> v1.UpdatePassportProfileRequest
-	13, // 58: v1.PassportService.PresignPassportAvatar:input_type -> v1.PresignPassportAvatarRequest
-	15, // 59: v1.PassportService.CompletePassportAvatar:input_type -> v1.CompletePassportAvatarRequest
-	16, // 60: v1.PassportService.ChangePassportPassword:input_type -> v1.ChangePassportPasswordRequest
-	3,  // 61: v1.PassportService.SendPassportEmailChangeCode:input_type -> v1.SendPassportEmailCodeRequest
-	17, // 62: v1.PassportService.ChangePassportEmail:input_type -> v1.ChangePassportEmailRequest
-	18, // 63: v1.PassportService.SetPassportEmailLogin:input_type -> v1.SetPassportEmailLoginRequest
-	0,  // 64: v1.PassportService.SetupPassportTotp:input_type -> v1.PassportEmpty
-	20, // 65: v1.PassportService.EnablePassportTotp:input_type -> v1.EnablePassportTotpRequest
-	21, // 66: v1.PassportService.DisablePassportTotp:input_type -> v1.DisablePassportTotpRequest
-	22, // 67: v1.PassportService.RegeneratePassportRecoveryCodes:input_type -> v1.PassportTotpCodeRequest
-	0,  // 68: v1.PassportService.ListPassportDevices:input_type -> v1.PassportEmpty
-	26, // 69: v1.PassportService.RevokePassportDevice:input_type -> v1.RevokePassportDeviceRequest
-	0,  // 70: v1.PassportService.LogoutPassportOthers:input_type -> v1.PassportEmpty
-	0,  // 71: v1.PassportService.ListPassportApps:input_type -> v1.PassportEmpty
-	29, // 72: v1.PassportService.RevokePassportApp:input_type -> v1.RevokePassportAppRequest
-	30, // 73: v1.PassportService.RequestPassportDeletion:input_type -> v1.RequestPassportDeletionRequest
-	0,  // 74: v1.PassportService.CancelPassportDeletion:input_type -> v1.PassportEmpty
-	32, // 75: v1.PassportService.ListPassportMessages:input_type -> v1.ListPassportMessagesRequest
-	34, // 76: v1.PassportService.ReadPassportMessages:input_type -> v1.ReadPassportMessagesRequest
-	37, // 77: v1.PassportService.ListPassportActivity:input_type -> v1.ListPassportActivityRequest
-	0,  // 78: v1.PassportService.ListPassportLinks:input_type -> v1.PassportEmpty
-	41, // 79: v1.PassportService.SetPassportPrimaryLink:input_type -> v1.PassportLinkRequest
-	41, // 80: v1.PassportService.UnbindPassportLink:input_type -> v1.PassportLinkRequest
-	42, // 81: v1.PassportService.SearchPassportBindServers:input_type -> v1.SearchPassportBindServersRequest
-	46, // 82: v1.PassportService.BindPassportAccount:input_type -> v1.BindPassportAccountRequest
-	47, // 83: v1.PassportService.GetPassportGame:input_type -> v1.PassportGameRequest
-	47, // 84: v1.PassportService.GetPassportGameBrief:input_type -> v1.PassportGameRequest
-	47, // 85: v1.PassportService.ListPassportSelfService:input_type -> v1.PassportGameRequest
-	51, // 86: v1.PassportService.ListPassportGameRequests:input_type -> v1.ListPassportGameRecordsRequest
-	51, // 87: v1.PassportService.ListPassportGameRecords:input_type -> v1.ListPassportGameRecordsRequest
-	54, // 88: v1.PassportService.RedeemPassportGiftCode:input_type -> v1.RedeemPassportGiftCodeRequest
-	56, // 89: v1.PassportService.GetPassportOidcAuthorization:input_type -> v1.PassportOidcAuthorizeRequest
-	56, // 90: v1.PassportService.ApprovePassportOidcAuthorization:input_type -> v1.PassportOidcAuthorizeRequest
-	2,  // 91: v1.PassportService.GetPassportConfig:output_type -> v1.GetPassportConfigResponse
-	4,  // 92: v1.PassportService.SendPassportRegisterCode:output_type -> v1.SendPassportEmailCodeResponse
-	9,  // 93: v1.PassportService.PassportRegister:output_type -> v1.PassportLoginResponse
-	4,  // 94: v1.PassportService.SendPassportLoginCode:output_type -> v1.SendPassportEmailCodeResponse
-	9,  // 95: v1.PassportService.PassportLogin:output_type -> v1.PassportLoginResponse
-	9,  // 96: v1.PassportService.PassportLoginMfa:output_type -> v1.PassportLoginResponse
-	9,  // 97: v1.PassportService.PassportRefresh:output_type -> v1.PassportLoginResponse
-	4,  // 98: v1.PassportService.SendPassportResetCode:output_type -> v1.SendPassportEmailCodeResponse
-	0,  // 99: v1.PassportService.PassportResetPassword:output_type -> v1.PassportEmpty
-	0,  // 100: v1.PassportService.PassportLogout:output_type -> v1.PassportEmpty
-	11, // 101: v1.PassportService.GetPassportMe:output_type -> v1.PassportMe
-	11, // 102: v1.PassportService.UpdatePassportProfile:output_type -> v1.PassportMe
-	14, // 103: v1.PassportService.PresignPassportAvatar:output_type -> v1.PresignPassportAvatarResponse
-	11, // 104: v1.PassportService.CompletePassportAvatar:output_type -> v1.PassportMe
-	0,  // 105: v1.PassportService.ChangePassportPassword:output_type -> v1.PassportEmpty
-	4,  // 106: v1.PassportService.SendPassportEmailChangeCode:output_type -> v1.SendPassportEmailCodeResponse
-	11, // 107: v1.PassportService.ChangePassportEmail:output_type -> v1.PassportMe
-	11, // 108: v1.PassportService.SetPassportEmailLogin:output_type -> v1.PassportMe
-	19, // 109: v1.PassportService.SetupPassportTotp:output_type -> v1.SetupPassportTotpResponse
-	23, // 110: v1.PassportService.EnablePassportTotp:output_type -> v1.PassportRecoveryCodes
-	11, // 111: v1.PassportService.DisablePassportTotp:output_type -> v1.PassportMe
-	23, // 112: v1.PassportService.RegeneratePassportRecoveryCodes:output_type -> v1.PassportRecoveryCodes
-	25, // 113: v1.PassportService.ListPassportDevices:output_type -> v1.ListPassportDevicesResponse
-	0,  // 114: v1.PassportService.RevokePassportDevice:output_type -> v1.PassportEmpty
-	0,  // 115: v1.PassportService.LogoutPassportOthers:output_type -> v1.PassportEmpty
-	28, // 116: v1.PassportService.ListPassportApps:output_type -> v1.ListPassportAppsResponse
-	0,  // 117: v1.PassportService.RevokePassportApp:output_type -> v1.PassportEmpty
-	11, // 118: v1.PassportService.RequestPassportDeletion:output_type -> v1.PassportMe
-	11, // 119: v1.PassportService.CancelPassportDeletion:output_type -> v1.PassportMe
-	33, // 120: v1.PassportService.ListPassportMessages:output_type -> v1.ListPassportMessagesResponse
-	35, // 121: v1.PassportService.ReadPassportMessages:output_type -> v1.ReadPassportMessagesResponse
-	38, // 122: v1.PassportService.ListPassportActivity:output_type -> v1.ListPassportActivityResponse
-	40, // 123: v1.PassportService.ListPassportLinks:output_type -> v1.ListPassportLinksResponse
-	0,  // 124: v1.PassportService.SetPassportPrimaryLink:output_type -> v1.PassportEmpty
-	0,  // 125: v1.PassportService.UnbindPassportLink:output_type -> v1.PassportEmpty
-	45, // 126: v1.PassportService.SearchPassportBindServers:output_type -> v1.SearchPassportBindServersResponse
-	39, // 127: v1.PassportService.BindPassportAccount:output_type -> v1.PassportLink
-	48, // 128: v1.PassportService.GetPassportGame:output_type -> v1.PassportGameResponse
-	48, // 129: v1.PassportService.GetPassportGameBrief:output_type -> v1.PassportGameResponse
-	50, // 130: v1.PassportService.ListPassportSelfService:output_type -> v1.ListPassportSelfServiceResponse
-	53, // 131: v1.PassportService.ListPassportGameRequests:output_type -> v1.ListPassportGameRecordsResponse
-	53, // 132: v1.PassportService.ListPassportGameRecords:output_type -> v1.ListPassportGameRecordsResponse
-	55, // 133: v1.PassportService.RedeemPassportGiftCode:output_type -> v1.RedeemPassportGiftCodeResponse
-	58, // 134: v1.PassportService.GetPassportOidcAuthorization:output_type -> v1.PassportOidcAuthorizationInfo
-	59, // 135: v1.PassportService.ApprovePassportOidcAuthorization:output_type -> v1.PassportOidcAuthorizeResponse
-	91, // [91:136] is the sub-list for method output_type
-	46, // [46:91] is the sub-list for method input_type
-	46, // [46:46] is the sub-list for extension type_name
-	46, // [46:46] is the sub-list for extension extendee
-	0,  // [0:46] is the sub-list for field type_name
+	59, // 9: v1.PassportMessage.params:type_name -> v1.PassportMessage.ParamsEntry
+	62, // 10: v1.PassportMessage.server:type_name -> v1.GameServerBrief
+	61, // 11: v1.PassportMessage.create_time:type_name -> google.protobuf.Timestamp
+	28, // 12: v1.ListPassportMessagesResponse.items:type_name -> v1.PassportMessage
+	61, // 13: v1.PassportActivity.time:type_name -> google.protobuf.Timestamp
+	62, // 14: v1.PassportActivity.server:type_name -> v1.GameServerBrief
+	60, // 15: v1.PassportActivity.params:type_name -> v1.PassportActivity.ParamsEntry
+	33, // 16: v1.ListPassportActivityResponse.items:type_name -> v1.PassportActivity
+	62, // 17: v1.PassportLink.server:type_name -> v1.GameServerBrief
+	61, // 18: v1.PassportLink.linked_at:type_name -> google.protobuf.Timestamp
+	61, // 19: v1.PassportLink.last_seen_at:type_name -> google.protobuf.Timestamp
+	36, // 20: v1.ListPassportLinksResponse.items:type_name -> v1.PassportLink
+	62, // 21: v1.PassportBindServer.server:type_name -> v1.GameServerBrief
+	61, // 22: v1.PassportBindServer.cooldown_until:type_name -> google.protobuf.Timestamp
+	40, // 23: v1.SearchPassportBindServersResponse.items:type_name -> v1.PassportBindServer
+	40, // 24: v1.SearchPassportBindServersResponse.recommended:type_name -> v1.PassportBindServer
+	41, // 25: v1.SearchPassportBindServersResponse.games:type_name -> v1.PassportBindGame
+	40, // 26: v1.SearchPassportBindServersResponse.target:type_name -> v1.PassportBindServer
+	62, // 27: v1.PassportGameResponse.server:type_name -> v1.GameServerBrief
+	36, // 28: v1.PassportGameResponse.link:type_name -> v1.PassportLink
+	36, // 29: v1.PassportGameResponse.others:type_name -> v1.PassportLink
+	61, // 30: v1.PassportSelfService.resets_at:type_name -> google.protobuf.Timestamp
+	61, // 31: v1.PassportSelfService.last_used_at:type_name -> google.protobuf.Timestamp
+	46, // 32: v1.ListPassportSelfServiceResponse.items:type_name -> v1.PassportSelfService
+	61, // 33: v1.PassportGameRecord.reviewed_at:type_name -> google.protobuf.Timestamp
+	61, // 34: v1.PassportGameRecord.create_time:type_name -> google.protobuf.Timestamp
+	61, // 35: v1.PassportGameRecord.finished_at:type_name -> google.protobuf.Timestamp
+	63, // 36: v1.PassportGameRecord.rewards:type_name -> v1.GameReward
+	49, // 37: v1.ListPassportGameRecordsResponse.items:type_name -> v1.PassportGameRecord
+	63, // 38: v1.RedeemPassportGiftCodeResponse.rewards:type_name -> v1.GameReward
+	62, // 39: v1.PassportLaunchApp.server:type_name -> v1.GameServerBrief
+	53, // 40: v1.PassportLaunchApp.endpoints:type_name -> v1.PassportLaunchEndpoints
+	36, // 41: v1.PassportLaunchApp.link:type_name -> v1.PassportLink
+	54, // 42: v1.ListPassportLaunchAppsResponse.apps:type_name -> v1.PassportLaunchApp
+	1,  // 43: v1.PassportService.GetPassportConfig:input_type -> v1.GetPassportConfigRequest
+	3,  // 44: v1.PassportService.SendPassportRegisterCode:input_type -> v1.SendPassportEmailCodeRequest
+	5,  // 45: v1.PassportService.PassportRegister:input_type -> v1.PassportRegisterRequest
+	3,  // 46: v1.PassportService.SendPassportLoginCode:input_type -> v1.SendPassportEmailCodeRequest
+	6,  // 47: v1.PassportService.PassportLogin:input_type -> v1.PassportLoginRequest
+	7,  // 48: v1.PassportService.PassportLoginMfa:input_type -> v1.PassportLoginMfaRequest
+	8,  // 49: v1.PassportService.PassportRefresh:input_type -> v1.PassportRefreshRequest
+	3,  // 50: v1.PassportService.SendPassportResetCode:input_type -> v1.SendPassportEmailCodeRequest
+	10, // 51: v1.PassportService.PassportResetPassword:input_type -> v1.PassportResetPasswordRequest
+	0,  // 52: v1.PassportService.PassportLogout:input_type -> v1.PassportEmpty
+	0,  // 53: v1.PassportService.GetPassportMe:input_type -> v1.PassportEmpty
+	12, // 54: v1.PassportService.UpdatePassportProfile:input_type -> v1.UpdatePassportProfileRequest
+	13, // 55: v1.PassportService.PresignPassportAvatar:input_type -> v1.PresignPassportAvatarRequest
+	15, // 56: v1.PassportService.CompletePassportAvatar:input_type -> v1.CompletePassportAvatarRequest
+	16, // 57: v1.PassportService.ChangePassportPassword:input_type -> v1.ChangePassportPasswordRequest
+	3,  // 58: v1.PassportService.SendPassportEmailChangeCode:input_type -> v1.SendPassportEmailCodeRequest
+	17, // 59: v1.PassportService.ChangePassportEmail:input_type -> v1.ChangePassportEmailRequest
+	18, // 60: v1.PassportService.SetPassportEmailLogin:input_type -> v1.SetPassportEmailLoginRequest
+	0,  // 61: v1.PassportService.SetupPassportTotp:input_type -> v1.PassportEmpty
+	20, // 62: v1.PassportService.EnablePassportTotp:input_type -> v1.EnablePassportTotpRequest
+	21, // 63: v1.PassportService.DisablePassportTotp:input_type -> v1.DisablePassportTotpRequest
+	22, // 64: v1.PassportService.RegeneratePassportRecoveryCodes:input_type -> v1.PassportTotpCodeRequest
+	0,  // 65: v1.PassportService.ListPassportDevices:input_type -> v1.PassportEmpty
+	26, // 66: v1.PassportService.RevokePassportDevice:input_type -> v1.RevokePassportDeviceRequest
+	0,  // 67: v1.PassportService.LogoutPassportOthers:input_type -> v1.PassportEmpty
+	27, // 68: v1.PassportService.RequestPassportDeletion:input_type -> v1.RequestPassportDeletionRequest
+	0,  // 69: v1.PassportService.CancelPassportDeletion:input_type -> v1.PassportEmpty
+	29, // 70: v1.PassportService.ListPassportMessages:input_type -> v1.ListPassportMessagesRequest
+	31, // 71: v1.PassportService.ReadPassportMessages:input_type -> v1.ReadPassportMessagesRequest
+	34, // 72: v1.PassportService.ListPassportActivity:input_type -> v1.ListPassportActivityRequest
+	0,  // 73: v1.PassportService.ListPassportLinks:input_type -> v1.PassportEmpty
+	38, // 74: v1.PassportService.SetPassportPrimaryLink:input_type -> v1.PassportLinkRequest
+	38, // 75: v1.PassportService.UnbindPassportLink:input_type -> v1.PassportLinkRequest
+	39, // 76: v1.PassportService.SearchPassportBindServers:input_type -> v1.SearchPassportBindServersRequest
+	43, // 77: v1.PassportService.BindPassportAccount:input_type -> v1.BindPassportAccountRequest
+	44, // 78: v1.PassportService.GetPassportGame:input_type -> v1.PassportGameRequest
+	44, // 79: v1.PassportService.GetPassportGameBrief:input_type -> v1.PassportGameRequest
+	44, // 80: v1.PassportService.ListPassportSelfService:input_type -> v1.PassportGameRequest
+	48, // 81: v1.PassportService.ListPassportGameRequests:input_type -> v1.ListPassportGameRecordsRequest
+	48, // 82: v1.PassportService.ListPassportGameRecords:input_type -> v1.ListPassportGameRecordsRequest
+	51, // 83: v1.PassportService.RedeemPassportGiftCode:input_type -> v1.RedeemPassportGiftCodeRequest
+	0,  // 84: v1.PassportService.ListPassportLaunchApps:input_type -> v1.PassportEmpty
+	56, // 85: v1.PassportService.GetPassportLaunchApp:input_type -> v1.PassportLaunchAppRequest
+	57, // 86: v1.PassportService.BindPassportLaunchApp:input_type -> v1.BindPassportLaunchAppRequest
+	56, // 87: v1.PassportService.CreatePassportLaunchAccount:input_type -> v1.PassportLaunchAppRequest
+	56, // 88: v1.PassportService.IssuePassportLaunchTicket:input_type -> v1.PassportLaunchAppRequest
+	2,  // 89: v1.PassportService.GetPassportConfig:output_type -> v1.GetPassportConfigResponse
+	4,  // 90: v1.PassportService.SendPassportRegisterCode:output_type -> v1.SendPassportEmailCodeResponse
+	9,  // 91: v1.PassportService.PassportRegister:output_type -> v1.PassportLoginResponse
+	4,  // 92: v1.PassportService.SendPassportLoginCode:output_type -> v1.SendPassportEmailCodeResponse
+	9,  // 93: v1.PassportService.PassportLogin:output_type -> v1.PassportLoginResponse
+	9,  // 94: v1.PassportService.PassportLoginMfa:output_type -> v1.PassportLoginResponse
+	9,  // 95: v1.PassportService.PassportRefresh:output_type -> v1.PassportLoginResponse
+	4,  // 96: v1.PassportService.SendPassportResetCode:output_type -> v1.SendPassportEmailCodeResponse
+	0,  // 97: v1.PassportService.PassportResetPassword:output_type -> v1.PassportEmpty
+	0,  // 98: v1.PassportService.PassportLogout:output_type -> v1.PassportEmpty
+	11, // 99: v1.PassportService.GetPassportMe:output_type -> v1.PassportMe
+	11, // 100: v1.PassportService.UpdatePassportProfile:output_type -> v1.PassportMe
+	14, // 101: v1.PassportService.PresignPassportAvatar:output_type -> v1.PresignPassportAvatarResponse
+	11, // 102: v1.PassportService.CompletePassportAvatar:output_type -> v1.PassportMe
+	0,  // 103: v1.PassportService.ChangePassportPassword:output_type -> v1.PassportEmpty
+	4,  // 104: v1.PassportService.SendPassportEmailChangeCode:output_type -> v1.SendPassportEmailCodeResponse
+	11, // 105: v1.PassportService.ChangePassportEmail:output_type -> v1.PassportMe
+	11, // 106: v1.PassportService.SetPassportEmailLogin:output_type -> v1.PassportMe
+	19, // 107: v1.PassportService.SetupPassportTotp:output_type -> v1.SetupPassportTotpResponse
+	23, // 108: v1.PassportService.EnablePassportTotp:output_type -> v1.PassportRecoveryCodes
+	11, // 109: v1.PassportService.DisablePassportTotp:output_type -> v1.PassportMe
+	23, // 110: v1.PassportService.RegeneratePassportRecoveryCodes:output_type -> v1.PassportRecoveryCodes
+	25, // 111: v1.PassportService.ListPassportDevices:output_type -> v1.ListPassportDevicesResponse
+	0,  // 112: v1.PassportService.RevokePassportDevice:output_type -> v1.PassportEmpty
+	0,  // 113: v1.PassportService.LogoutPassportOthers:output_type -> v1.PassportEmpty
+	11, // 114: v1.PassportService.RequestPassportDeletion:output_type -> v1.PassportMe
+	11, // 115: v1.PassportService.CancelPassportDeletion:output_type -> v1.PassportMe
+	30, // 116: v1.PassportService.ListPassportMessages:output_type -> v1.ListPassportMessagesResponse
+	32, // 117: v1.PassportService.ReadPassportMessages:output_type -> v1.ReadPassportMessagesResponse
+	35, // 118: v1.PassportService.ListPassportActivity:output_type -> v1.ListPassportActivityResponse
+	37, // 119: v1.PassportService.ListPassportLinks:output_type -> v1.ListPassportLinksResponse
+	0,  // 120: v1.PassportService.SetPassportPrimaryLink:output_type -> v1.PassportEmpty
+	0,  // 121: v1.PassportService.UnbindPassportLink:output_type -> v1.PassportEmpty
+	42, // 122: v1.PassportService.SearchPassportBindServers:output_type -> v1.SearchPassportBindServersResponse
+	36, // 123: v1.PassportService.BindPassportAccount:output_type -> v1.PassportLink
+	45, // 124: v1.PassportService.GetPassportGame:output_type -> v1.PassportGameResponse
+	45, // 125: v1.PassportService.GetPassportGameBrief:output_type -> v1.PassportGameResponse
+	47, // 126: v1.PassportService.ListPassportSelfService:output_type -> v1.ListPassportSelfServiceResponse
+	50, // 127: v1.PassportService.ListPassportGameRequests:output_type -> v1.ListPassportGameRecordsResponse
+	50, // 128: v1.PassportService.ListPassportGameRecords:output_type -> v1.ListPassportGameRecordsResponse
+	52, // 129: v1.PassportService.RedeemPassportGiftCode:output_type -> v1.RedeemPassportGiftCodeResponse
+	55, // 130: v1.PassportService.ListPassportLaunchApps:output_type -> v1.ListPassportLaunchAppsResponse
+	54, // 131: v1.PassportService.GetPassportLaunchApp:output_type -> v1.PassportLaunchApp
+	36, // 132: v1.PassportService.BindPassportLaunchApp:output_type -> v1.PassportLink
+	36, // 133: v1.PassportService.CreatePassportLaunchAccount:output_type -> v1.PassportLink
+	58, // 134: v1.PassportService.IssuePassportLaunchTicket:output_type -> v1.PassportLaunchTicket
+	89, // [89:135] is the sub-list for method output_type
+	43, // [43:89] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_v1_passport_proto_init() }
@@ -4961,7 +4717,7 @@ func file_v1_passport_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_passport_proto_rawDesc), len(file_v1_passport_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   62,
+			NumMessages:   61,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

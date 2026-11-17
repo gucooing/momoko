@@ -337,7 +337,7 @@ paths:
         get:
             tags:
                 - PassportService
-            description: 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
+            description: 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（链接带 ?server= 时预选）
             operationId: PassportService_SearchPassportBindServers
             parameters:
                 - name: q
@@ -351,7 +351,7 @@ paths:
                     type: string
                 - name: serverId
                   in: query
-                  description: 指定的服务器 id（授权页跳来时预选；不影响搜索结果与推荐）
+                  description: 指定的服务器 id（预选这台服务器；不影响搜索结果与推荐）
                   schema:
                     type: string
             responses:
@@ -1951,551 +1951,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetFileUploadStatusResponse'
-    /api/v1/gakumas/games/{serverId}/catalog/characters:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListCharacters
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.CharacterPage'
-    /api/v1/gakumas/games/{serverId}/catalog/costume-heads:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListCostumeHeads
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: characterId
-                  in: query
-                  schema:
-                    type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.CostumePage'
-    /api/v1/gakumas/games/{serverId}/catalog/costumes:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListCostumes
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: characterId
-                  in: query
-                  schema:
-                    type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.CostumePage'
-    /api/v1/gakumas/games/{serverId}/catalog/currencies:
-        get:
-            tags:
-                - GakumasPassportService
-            description: 目录（名称与素材 ID）
-            operationId: GakumasPassportService_ListCurrencies
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.CurrencyPage'
-    /api/v1/gakumas/games/{serverId}/catalog/idol-card-skins:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListIdolCardSkins
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: characterId
-                  in: query
-                  schema:
-                    type: string
-                - name: rarity
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: planType
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: idolCardIds
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.IdolCardSkinPage'
-    /api/v1/gakumas/games/{serverId}/catalog/items:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListItemCatalog
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: type
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: characterId
-                  in: query
-                  schema:
-                    type: string
-                - name: rarity
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ItemEntryPage'
-    /api/v1/gakumas/games/{serverId}/catalog/memory-abilities:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListMemoryAbilities
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.MemoryAbilityPage'
-    /api/v1/gakumas/games/{serverId}/catalog/music:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListMusic
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.MusicPage'
-    /api/v1/gakumas/games/{serverId}/catalog/produce-cards:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListProduceCards
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ProduceCardEntryPage'
-    /api/v1/gakumas/games/{serverId}/catalog/produce-items:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListProduceItems
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ProduceItemEntryPage'
-    /api/v1/gakumas/games/{serverId}/catalog/produces:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListProduceCatalog
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: produceGroupId
-                  in: query
-                  schema:
-                    type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ProduceEntryPage'
-    /api/v1/gakumas/games/{serverId}/catalog/seminars:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListSeminars
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.SeminarEntryPage'
-    /api/v1/gakumas/games/{serverId}/catalog/support-cards:
-        get:
-            tags:
-                - GakumasPassportService
-            operationId: GakumasPassportService_ListSupportCardCatalog
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: rarity
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: type
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.SupportCardEntryPage'
     /api/v1/gakumas/games/{serverId}/game:
         get:
             tags:
@@ -3369,668 +2824,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.gakumas.SupportCardPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/characters:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListCharacters
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.CharacterPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/costume-heads:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListCostumeHeads
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: characterId
-                  in: query
-                  schema:
-                    type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.CostumePage'
-    /api/v1/gakumas/gm/{serverId}/catalog/costumes:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListCostumes
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: characterId
-                  in: query
-                  schema:
-                    type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.CostumePage'
-    /api/v1/gakumas/gm/{serverId}/catalog/currencies:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListCurrencies
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.CurrencyPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/gashas:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListGashas
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: open
-                  in: query
-                  description: 只保留现在开放的卡池
-                  schema:
-                    type: boolean
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.GashaEntryPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/idol-card-skins:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListIdolCardSkins
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: characterId
-                  in: query
-                  schema:
-                    type: string
-                - name: rarity
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: planType
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: idolCardIds
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.IdolCardSkinPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/items:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListItemCatalog
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: type
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: characterId
-                  in: query
-                  schema:
-                    type: string
-                - name: rarity
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ItemEntryPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/memory-abilities:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListMemoryAbilities
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.MemoryAbilityPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/music:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListMusic
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.MusicPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/produce-cards:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListProduceCards
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ProduceCardEntryPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/produce-groups:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListProduceGroups
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ProduceGroupPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/produce-items:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListProduceItems
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ProduceItemEntryPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/produces:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListProduceCatalog
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: produceGroupId
-                  in: query
-                  schema:
-                    type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.ProduceEntryPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/seminars:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListSeminars
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.SeminarEntryPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/support-cards:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListSupportCardCatalog
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: rarity
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: type
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.SupportCardEntryPage'
-    /api/v1/gakumas/gm/{serverId}/catalog/towers:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListTowers
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: q
-                  in: query
-                  schema:
-                    type: string
-                - name: ids
-                  in: query
-                  schema:
-                    type: array
-                    items:
-                        type: string
-                - name: cursor
-                  in: query
-                  schema:
-                    type: string
-                - name: limit
-                  in: query
-                  description: 默认 50，最大 1000
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.gakumas.TowerEntryPage'
     /api/v1/gakumas/gm/{serverId}/config/gasha:
         get:
             tags:
@@ -5828,6 +4621,100 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListGameAdaptersResponse'
+    /api/v1/game/client-logs:
+        get:
+            tags:
+                - GameGMService
+            description: |-
+                游戏客户端上传的错误日志（全部服务器，从新到旧，分页，不含日志内容）：按服务器、玩家、原因、上传时间筛选，
+                 关键字搜摘要、说明与设备；每个游戏账号只保留最新 5 份。GM 玩家详情的「客户端日志」是按服务器与玩家筛选的同一个列表
+            operationId: GameGMService_ListGmClientLogs
+            parameters:
+                - name: serverId
+                  in: query
+                  description: 服务器 id（空为全部服务器）
+                  schema:
+                    type: string
+                - name: pid
+                  in: query
+                  description: 玩家 pid（空为全部玩家）
+                  schema:
+                    type: string
+                - name: reason
+                  in: query
+                  description: 上传原因（空为全部）
+                  schema:
+                    type: string
+                - name: since
+                  in: query
+                  description: 上传时间范围
+                  schema:
+                    type: string
+                    format: date-time
+                - name: until
+                  in: query
+                  schema:
+                    type: string
+                    format: date-time
+                - name: q
+                  in: query
+                  description: 关键字：摘要、说明、设备
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListGmClientLogsResponse'
+    /api/v1/game/client-logs/{id}:
+        get:
+            tags:
+                - GameGMService
+            description: 一份客户端日志（含解压后的日志内容）
+            operationId: GameGMService_GetGmClientLog
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GmClientLog'
+        delete:
+            tags:
+                - GameGMService
+            description: 删除一份客户端日志
+            operationId: GameGMService_DeleteGmClientLog
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteGmClientLogResponse'
     /api/v1/game/gm/servers:
         get:
             tags:
@@ -6555,88 +5442,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GameMail'
-    /api/v1/game/gm/{serverId}/players/{pid}/client-logs:
-        get:
-            tags:
-                - GameGMService
-            description: 玩家的游戏客户端上传的错误日志（每个游戏账号保留最新 5 份，从新到旧，不含日志内容）
-            operationId: GameGMService_ListGmClientLogs
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: pid
-                  in: path
-                  description: 玩家 pid
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ListGmClientLogsResponse'
-    /api/v1/game/gm/{serverId}/players/{pid}/client-logs/{id}:
-        get:
-            tags:
-                - GameGMService
-            description: 一份客户端日志（含解压后的日志内容）
-            operationId: GameGMService_GetGmClientLog
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: pid
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GmClientLog'
-        delete:
-            tags:
-                - GameGMService
-            description: 删除一份客户端日志
-            operationId: GameGMService_DeleteGmClientLog
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: pid
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.DeleteGmClientLogResponse'
     /api/v1/game/gm/{serverId}/self-service:
         get:
             tags:
@@ -6751,102 +5556,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.PassportInvite'
-    /api/v1/game/passport/oidc-clients:
-        get:
-            tags:
-                - PassportAdminService
-            description: 「用户通行证登录」的 OIDC 应用（游戏 SDK 等）
-            operationId: PassportAdminService_ListPassportOidcClients
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ListPassportOidcClientsResponse'
-        post:
-            tags:
-                - PassportAdminService
-            operationId: PassportAdminService_CreatePassportOidcClient
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.SavePassportOidcClientRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PassportOidcClient'
-    /api/v1/game/passport/oidc-clients/{id}:
-        put:
-            tags:
-                - PassportAdminService
-            operationId: PassportAdminService_UpdatePassportOidcClient
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.SavePassportOidcClientRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PassportOidcClient'
-        delete:
-            tags:
-                - PassportAdminService
-            operationId: PassportAdminService_DeletePassportOidcClient
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.DeletePassportOidcClientResponse'
-    /api/v1/game/passport/oidc-clients/{id}/secret:
-        post:
-            tags:
-                - PassportAdminService
-            description: 重新生成 Client Secret（只在本次返回完整值）
-            operationId: PassportAdminService_RefreshPassportOidcClientSecret
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.DeletePassportOidcClientRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PassportOidcClient'
     /api/v1/game/passport/servers:
         get:
             tags:
@@ -7469,6 +6178,60 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GameServerTaskResponse'
+    /api/v1/game/servers/{id}/client-app:
+        post:
+            tags:
+                - GameServerService
+            description: |-
+                生成客户端应用凭据：第一次生成，或重新生成应用 ID（应用 ID 与应用密钥一起换，旧凭据立即失效，
+                 游戏服务端配置与已发布的单服务器客户端都要换成新的）。托管：写入服务端配置，运行中按需重启。应用密钥只在这次返回
+            operationId: GameServerService_GenerateGameServerClientApp
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.GenerateGameServerClientAppRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GameServerClientAppResponse'
+    /api/v1/game/servers/{id}/client-app/secret:
+        post:
+            tags:
+                - GameServerService
+            description: |-
+                重置客户端应用密钥（应用 ID 不变，旧密钥立即失效，游戏服务端配置要换成新密钥）。托管：写入服务端配置，运行中按需重启。
+                 应用密钥只在这次返回
+            operationId: GameServerService_ResetGameServerClientAppSecret
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ResetGameServerClientAppSecretRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GameServerClientAppResponse'
     /api/v1/game/servers/{id}/console/clear:
         post:
             tags:
@@ -9319,6 +8082,117 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.TriggerIQCheckResponse'
+    /api/v1/launch/apps:
+        get:
+            tags:
+                - PassportService
+            description: |-
+                可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+                 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
+            operationId: PassportService_ListPassportLaunchApps
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListPassportLaunchAppsResponse'
+    /api/v1/launch/apps/{appId}:
+        get:
+            tags:
+                - PassportService
+            description: |-
+                一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；
+                 应用 ID 不存在或服务器不可启动时 404 PASSPORT_APP_NOT_FOUND
+            operationId: PassportService_GetPassportLaunchApp
+            parameters:
+                - name: appId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PassportLaunchApp'
+    /api/v1/launch/apps/{appId}/account:
+        post:
+            tags:
+                - PassportService
+            description: 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
+            operationId: PassportService_CreatePassportLaunchAccount
+            parameters:
+                - name: appId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PassportLaunchAppRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PassportLink'
+    /api/v1/launch/apps/{appId}/bind:
+        post:
+            tags:
+                - PassportService
+            description: 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
+            operationId: PassportService_BindPassportLaunchApp
+            parameters:
+                - name: appId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.BindPassportLaunchAppRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PassportLink'
+    /api/v1/launch/apps/{appId}/ticket:
+        post:
+            tags:
+                - PassportService
+            description: 签发启动票据（游戏服务端 SDK 用它开会话，有效 120 秒，只能用一次），并记录绑定的最近使用时间
+            operationId: PassportService_IssuePassportLaunchTicket
+            parameters:
+                - name: appId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PassportLaunchAppRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PassportLaunchTicket'
     /api/v1/links:
         get:
             tags:
@@ -9414,38 +8288,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListPassportActivityResponse'
-    /api/v1/me/apps:
-        get:
-            tags:
-                - PassportService
-            description: 授权的应用（用「用户通行证登录」登录过的游戏与应用）
-            operationId: PassportService_ListPassportApps
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ListPassportAppsResponse'
-    /api/v1/me/apps/{id}:
-        delete:
-            tags:
-                - PassportService
-            description: 撤销授权（已签发的访问令牌随之失效，下次需要重新确认）
-            operationId: PassportService_RevokePassportApp
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PassportEmpty'
     /api/v1/me/avatar/complete:
         post:
             tags:
@@ -10363,77 +9205,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetNodeContextResponse'
-    /api/v1/oidc/authorize:
-        get:
-            tags:
-                - PassportService
-            description: 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
-            operationId: PassportService_GetPassportOidcAuthorization
-            parameters:
-                - name: responseType
-                  in: query
-                  schema:
-                    type: string
-                - name: clientId
-                  in: query
-                  schema:
-                    type: string
-                - name: redirectUri
-                  in: query
-                  schema:
-                    type: string
-                - name: scope
-                  in: query
-                  schema:
-                    type: string
-                - name: state
-                  in: query
-                  schema:
-                    type: string
-                - name: nonce
-                  in: query
-                  schema:
-                    type: string
-                - name: codeChallenge
-                  in: query
-                  schema:
-                    type: string
-                - name: codeChallengeMethod
-                  in: query
-                  schema:
-                    type: string
-                - name: createGameAccount
-                  in: query
-                  description: 同意时为还没有在应用关联的服务器上绑定游戏账号的用户新建一个游戏账号并绑定
-                  schema:
-                    type: boolean
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PassportOidcAuthorizationInfo'
-        post:
-            tags:
-                - PassportService
-            description: |-
-                同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
-                 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
-            operationId: PassportService_ApprovePassportOidcAuthorization
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.PassportOidcAuthorizeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PassportOidcAuthorizeResponse'
     /api/v1/oidc/authorize-code:
         post:
             tags:
@@ -12966,6 +11737,16 @@ components:
                     description: 游戏登录账号与密码（只用来校验一次，不保存）
                 password:
                     type: string
+        v1.BindPassportLaunchAppRequest:
+            type: object
+            properties:
+                appId:
+                    type: string
+                account:
+                    type: string
+                    description: 游戏登录账号与密码（只用来校验一次，不保存）
+                password:
+                    type: string
         v1.CancelDockerTaskRequest:
             type: object
             properties:
@@ -14141,14 +12922,6 @@ components:
             type: object
             properties: {}
             description: 删除 OIDC 客户端响应
-        v1.DeletePassportOidcClientRequest:
-            type: object
-            properties:
-                id:
-                    type: string
-        v1.DeletePassportOidcClientResponse:
-            type: object
-            properties: {}
         v1.DeletePortForwardResponse:
             type: object
             properties: {}
@@ -16464,6 +15237,9 @@ components:
                     items:
                         type: string
                     description: 托管：备份范围（相对服务端目录）
+                clientLaunch:
+                    type: boolean
+                    description: 游戏客户端可以用通行证启动（服务器可填写客户端地址，通行证签发启动票据）
             description: 游戏适配器（随 Momoko 版本内置）。
         v1.GameAdapterCapability:
             type: object
@@ -16803,6 +15579,25 @@ components:
                 errorMessage:
                     type: string
             description: 一项检查结果。
+        v1.GameServerClientAppResponse:
+            type: object
+            properties:
+                info:
+                    $ref: '#/components/schemas/v1.GameServerInfo'
+                appId:
+                    type: string
+                appSecret:
+                    type: string
+                    description: 应用密钥（32 字节随机数的无填充 base64url，43 个字符）：只在这次返回
+                restarted:
+                    type: boolean
+                    description: 托管：已重启
+                pendingRestart:
+                    type: boolean
+                    description: 托管：服务端运行中且未重启，新凭据要等下次启动才生效
+            description: |-
+                生成或重置后的客户端应用凭据：游戏服务端配置里的 momoko.app_id、momoko.app_secret（学マス）——托管服务器由 Momoko 写入，
+                 仅 GM 由管理员写入；应用 ID 同时打包进单服务器客户端，应用密钥不进入任何客户端。
         v1.GameServerHistoryEntry:
             type: object
             properties:
@@ -16970,6 +15765,18 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.GameServerTask'
                     description: 进行中的托管任务（更新 / 资源 / 备份 / 回档）
+                clientSdkUrl:
+                    type: string
+                    description: 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器
+                clientGameUrl:
+                    type: string
+                clientResourceUrl:
+                    type: string
+                clientAppId:
+                    type: string
+                    description: |-
+                        客户端应用 ID（app_ + 16 个小写 base32 字符；空为还没有生成应用凭据）：客户端用它指明这台服务器。
+                         应用密钥加密保存，只在生成与重置时返回一次
             description: 游戏服务器。
         v1.GameServerLogEntry:
             type: object
@@ -17332,6 +16139,14 @@ components:
                     type: string
                     description: 游戏内显示的 ID
             description: 指令目标快照。
+        v1.GenerateGameServerClientAppRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                restart:
+                    type: boolean
+                    description: 托管：运行中时重启服务端使新凭据生效
         v1.GetDockerConfigResponse:
             type: object
             properties:
@@ -17729,9 +16544,6 @@ components:
                 emailEnabled:
                     type: boolean
                     description: 是否配置了邮件（找回密码、更换邮箱需要）
-                oidcEnabled:
-                    type: boolean
-                    description: 是否启用了「用户通行证登录」（OIDC）
                 unbindCooldownDays:
                     type: integer
                     description: 解绑后不能在同一服务器绑定别的账号的天数
@@ -17759,14 +16571,6 @@ components:
                     type: string
                 publicUrl:
                     type: string
-                oidcIssuer:
-                    type: string
-                    description: OIDC issuer 与 Discovery 地址（public_url 为空时按请求推断，无法推断时为空）
-                oidcDiscoveryUrl:
-                    type: string
-                oidcClientCount:
-                    type: integer
-                    format: int32
                 avatarUploadEnabled:
                     type: boolean
                     description: 管理员在系统设置里开启了头像储存（通行证头像上传依赖它）
@@ -17831,9 +16635,6 @@ components:
                     type: string
                     description: 注册用的邀请码
                 deviceCount:
-                    type: integer
-                    format: int32
-                appCount:
                     type: integer
                     format: int32
                 links:
@@ -18169,7 +16970,7 @@ components:
                     type: string
                 reason:
                     type: string
-                    description: 上传原因：exception / error / crash / fatal / login / sdk / manual
+                    description: 上传原因：exception 异常 / crash 崩溃 / fatal 致命错误（客户端自动上传）/ manual 玩家手动上传
                 summary:
                     type: string
                     description: 摘要
@@ -18197,6 +16998,17 @@ components:
                 content:
                     type: string
                     description: 日志原文（只在单份日志接口返回）
+                server:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.GameServerBrief'
+                    description: 服务器摘要（名称、游戏；服务器已删除时只有 id）
+                playerId:
+                    type: string
+                    description: 游戏账号（MGP pid）
+                link:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.GmPlayerLink'
+                    description: 绑定这个游戏账号的通行证（没有生效的绑定时为空）
             description: 游戏客户端上传的一份错误日志。
         v1.GmConfigDomain:
             type: object
@@ -18411,7 +17223,7 @@ components:
                     description: 通行证昵称
                 method:
                     type: string
-                    description: 绑定方式：password / code / oidc / admin / request
+                    description: 绑定方式：password / code / create / admin / request
                 linkedAt:
                     type: string
                     description: 绑定时间
@@ -19325,6 +18137,9 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.GmClientLog'
                     description: 从新到旧
+                total:
+                    type: integer
+                    format: int32
         v1.ListGmConfigRevisionsResponse:
             type: object
             properties:
@@ -19504,13 +18319,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.PassportActivity'
-        v1.ListPassportAppsResponse:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.PassportApp'
         v1.ListPassportDevicesResponse:
             type: object
             properties:
@@ -19538,6 +18346,13 @@ components:
                 total:
                     type: integer
                     format: int32
+        v1.ListPassportLaunchAppsResponse:
+            type: object
+            properties:
+                apps:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.PassportLaunchApp'
         v1.ListPassportLinksResponse:
             type: object
             properties:
@@ -19558,13 +18373,6 @@ components:
                 unread:
                     type: integer
                     format: int32
-        v1.ListPassportOidcClientsResponse:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.PassportOidcClient'
         v1.ListPassportSelfServiceResponse:
             type: object
             properties:
@@ -20785,7 +19593,7 @@ components:
                     format: int32
                 method:
                     type: string
-                    description: password / code / oidc / admin / request
+                    description: password / code / create / admin / request
                 isPrimary:
                     type: boolean
                 linkedAt:
@@ -20863,31 +19671,6 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.PassportAdminLinkBrief'
                     description: 只有一个绑定时的那条
-        v1.PassportApp:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: 授权 id
-                name:
-                    type: string
-                description:
-                    type: string
-                scopes:
-                    type: array
-                    items:
-                        type: string
-                    description: 已同意的范围
-                server:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.GameServerBrief'
-                    description: 关联的游戏服务器（可空）
-                createTime:
-                    type: string
-                    format: date-time
-                lastUsedAt:
-                    type: string
-                    format: date-time
         v1.PassportBindGame:
             type: object
             properties:
@@ -20951,10 +19734,7 @@ components:
                     description: loopback / lan / public
                 loginMethod:
                     type: string
-                    description: password / email_code / register / oidc
-                appName:
-                    type: string
-                    description: 经 OIDC 登录的应用名称
+                    description: password / email_code / register
                 createTime:
                     type: string
                     format: date-time
@@ -21086,6 +19866,62 @@ components:
                 state:
                     type: string
                     description: active 可用 / used_up 已用完 / expired 已过期 / revoked 已作废
+        v1.PassportLaunchApp:
+            type: object
+            properties:
+                appId:
+                    type: string
+                    description: 客户端应用 ID（app_ + 16 个小写 base32 字符）
+                server:
+                    $ref: '#/components/schemas/v1.GameServerBrief'
+                endpoints:
+                    $ref: '#/components/schemas/v1.PassportLaunchEndpoints'
+                link:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.PassportLink'
+                    description: 我在这台服务器上生效的绑定（还没有游戏账号时为空）
+                bindable:
+                    type: boolean
+                    description: |-
+                        没有绑定时能否绑定已有账号或新建账号；不能时 block_reason 为原因代码：
+                         unsupported 服务器不支持 / not_visible 服务器未向我开放 / cooldown 解绑冷却中（只能重新绑定原账号）；可以绑定时为空
+                blockReason:
+                    type: string
+            description: 一个启动目标：客户端应用 ID 对应的服务器。
+        v1.PassportLaunchAppRequest:
+            type: object
+            properties:
+                appId:
+                    type: string
+        v1.PassportLaunchEndpoints:
+            type: object
+            properties:
+                sdk:
+                    type: string
+                    description: 游戏服务端 SDK
+                game:
+                    type: string
+                    description: 游戏服务端
+                resource:
+                    type: string
+                    description: 资源服务器
+            description: 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。
+        v1.PassportLaunchTicket:
+            type: object
+            properties:
+                ticket:
+                    type: string
+                expiresIn:
+                    type: string
+                    description: 有效秒数（120）
+                playerId:
+                    type: string
+                    description: 绑定的游戏账号：MGP pid 与游戏内显示的 ID
+                displayId:
+                    type: string
+            description: |-
+                启动票据：lt1.<b64url(payload)>.<b64url(HMAC-SHA256(MGP 密钥, "momoko-launch-ticket.v1." + b64url(payload)))>，
+                 payload 为 {"kid","aid","sid","pid","uid","jti","iat","exp"}。
         v1.PassportLink:
             type: object
             properties:
@@ -21114,7 +19950,7 @@ components:
                     format: int32
                 method:
                     type: string
-                    description: password 账号密码 / code 绑定码 / oidc 通行证登录 / admin 管理员 / request 申请
+                    description: password 账号密码 / code 绑定码 / create 新建的游戏账号 / admin 管理员 / request 申请
                 isPrimary:
                     type: boolean
                 linkedAt:
@@ -21236,9 +20072,6 @@ components:
                 deviceCount:
                     type: integer
                     format: int32
-                appCount:
-                    type: integer
-                    format: int32
                 linkCount:
                     type: integer
                     format: int32
@@ -21280,130 +20113,6 @@ components:
                 createTime:
                     type: string
                     format: date-time
-        v1.PassportOidcAuthorizationInfo:
-            type: object
-            properties:
-                clientName:
-                    type: string
-                clientId:
-                    type: string
-                description:
-                    type: string
-                redirectUri:
-                    type: string
-                scopes:
-                    type: array
-                    items:
-                        type: string
-                    description: 归一化后的范围
-                server:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.GameServerBrief'
-                    description: 关联的游戏服务器（可空）
-                granted:
-                    type: boolean
-                    description: 已经授权过且范围没有变化（可以直接继续）
-                gameAccountRequired:
-                    type: boolean
-                    description: 应用关联了服务器而你在那台服务器上没有绑定游戏账号：同意前要绑定已有账号或新建一个
-                gameAccountCreatable:
-                    type: boolean
-                    description: 可以为你新建游戏账号（游戏支持且服务器接入了 MGP、服务器对你可见、不在解绑冷却中）
-                gameAccountReason:
-                    type: string
-                    description: 不能新建时的原因代码：unsupported 游戏或服务器不支持 / not_visible 服务器对你不可见 / cooldown 解绑冷却中
-                gameAccountCooldownUntil:
-                    type: string
-                    description: 解绑冷却结束时间（game_account_reason=cooldown）
-                    format: date-time
-                gameAccount:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.PassportOidcGameAccount'
-                    description: 你在关联服务器上绑定的游戏账号（已绑定时）
-        v1.PassportOidcAuthorizeRequest:
-            type: object
-            properties:
-                responseType:
-                    type: string
-                clientId:
-                    type: string
-                redirectUri:
-                    type: string
-                scope:
-                    type: string
-                state:
-                    type: string
-                nonce:
-                    type: string
-                codeChallenge:
-                    type: string
-                codeChallengeMethod:
-                    type: string
-                createGameAccount:
-                    type: boolean
-                    description: 同意时为还没有在应用关联的服务器上绑定游戏账号的用户新建一个游戏账号并绑定
-        v1.PassportOidcAuthorizeResponse:
-            type: object
-            properties:
-                redirectUrl:
-                    type: string
-        v1.PassportOidcClient:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                clientId:
-                    type: string
-                clientSecret:
-                    type: string
-                    description: 创建与重新生成时返回完整值，其余时候脱敏
-                redirectUris:
-                    type: array
-                    items:
-                        type: string
-                scopes:
-                    type: array
-                    items:
-                        type: string
-                active:
-                    type: boolean
-                description:
-                    type: string
-                server:
-                    $ref: '#/components/schemas/v1.GameServerBrief'
-                lastUsedAt:
-                    type: string
-                    format: date-time
-                createTime:
-                    type: string
-                    format: date-time
-                grantCount:
-                    type: integer
-                    description: 授权过的通行证数
-                    format: int32
-        v1.PassportOidcGameAccount:
-            type: object
-            properties:
-                playerId:
-                    type: string
-                    description: MGP pid
-                displayId:
-                    type: string
-                    description: 游戏内显示的 ID
-                nickname:
-                    type: string
-                level:
-                    type: integer
-                    format: int32
-                account:
-                    type: string
-                    description: 登录账号
-                avatarAsset:
-                    type: string
-                    description: 头像资源 ID
-            description: 授权确认页显示的游戏账号（令牌里的 game_player_id 就是 player_id）。
         v1.PassportRecoveryCodes:
             type: object
             properties:
@@ -21515,9 +20224,6 @@ components:
                     type: integer
                     description: 保持登录的会话天数（1–365）
                     format: int32
-                oidcEnabled:
-                    type: boolean
-                    description: 启用「用户通行证登录」（OIDC Provider）
         v1.PassportTotpCodeRequest:
             type: object
             properties:
@@ -22224,6 +20930,14 @@ components:
             properties:
                 password:
                     type: string
+        v1.ResetGameServerClientAppSecretRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                restart:
+                    type: boolean
+                    description: 托管：运行中时重启服务端使新密钥生效
         v1.ResetPasswordRequest:
             type: object
             properties:
@@ -22666,27 +21380,6 @@ components:
                 pendingRestart:
                     type: boolean
                     description: 运行中且未重启：修改等下次启动生效
-        v1.SavePassportOidcClientRequest:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                redirectUris:
-                    type: array
-                    items:
-                        type: string
-                scopes:
-                    type: array
-                    items:
-                        type: string
-                active:
-                    type: boolean
-                description:
-                    type: string
-                serverId:
-                    type: string
         v1.SearchDockerImagesResponse:
             type: object
             properties:
@@ -24640,6 +23333,13 @@ components:
                     type: string
                 timezone:
                     type: string
+                clientSdkUrl:
+                    type: string
+                    description: 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；三个都填写且生成了客户端应用凭据后，服务器才能用通行证启动
+                clientGameUrl:
+                    type: string
+                clientResourceUrl:
+                    type: string
         v1.UpdateGiftCodeBatchRequest:
             type: object
             properties:
@@ -25804,72 +24504,6 @@ components:
                 data:
                     $ref: '#/components/schemas/v1.gakumas.ChangeList'
             description: 操作的响应：GM 记录与逐个目标的结果（目标失败时没有 data）。
-        v1.gakumas.CharacterEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-        v1.gakumas.CharacterPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.CharacterEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
-        v1.gakumas.CostumeEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                resourceType:
-                    type: integer
-                    format: int32
-                characterId:
-                    type: string
-        v1.gakumas.CostumePage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.CostumeEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
-        v1.gakumas.CurrencyEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: jewelFree / jewelPaid / actionPoint / exp（作为奖励时 resourceId 为空串）
-                name:
-                    type: string
-                resourceType:
-                    type: integer
-                    format: int32
-        v1.gakumas.CurrencyPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.CurrencyEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
         v1.gakumas.Dashboard:
             type: object
             properties:
@@ -26093,6 +24727,7 @@ components:
                 endTime:
                     type: number
                     format: double
+            description: 卡池（现在开放的卡池列表的条目）。
         v1.gakumas.GashaEntryPage:
             type: object
             properties:
@@ -26410,40 +25045,6 @@ components:
                     format: int32
                 summary:
                     $ref: '#/components/schemas/v1.gakumas.IdolCardCounts'
-        v1.gakumas.IdolCardSkinEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                resourceType:
-                    type: integer
-                    format: int32
-                idolCardId:
-                    type: string
-                characterId:
-                    type: string
-                rarity:
-                    type: integer
-                    format: int32
-                planType:
-                    type: integer
-                    format: int32
-                assetId:
-                    type: string
-        v1.gakumas.IdolCardSkinPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.IdolCardSkinEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
         v1.gakumas.Item:
             type: object
             properties:
@@ -26460,38 +25061,6 @@ components:
                     description: 期限（没有为 0）
                     format: double
             description: 道具栈（未过期且数量大于 0）。
-        v1.gakumas.ItemEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                resourceType:
-                    type: integer
-                    format: int32
-                rarity:
-                    type: integer
-                    format: int32
-                type:
-                    type: integer
-                    format: int32
-                characterId:
-                    type: string
-                assetId:
-                    type: string
-        v1.gakumas.ItemEntryPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.ItemEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
         v1.gakumas.ItemPage:
             type: object
             properties:
@@ -26676,39 +25245,6 @@ components:
                 assetId:
                     type: string
             description: 记忆（培育结果、记忆礼物或研究记忆）。
-        v1.gakumas.MemoryAbilityEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                rarity:
-                    type: integer
-                    format: int32
-                levels:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.MemoryAbilityLevel'
-            description: 记忆能力与各等级的效果文字。
-        v1.gakumas.MemoryAbilityLevel:
-            type: object
-            properties:
-                level:
-                    type: integer
-                    format: int32
-                description:
-                    type: string
-        v1.gakumas.MemoryAbilityPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.MemoryAbilityEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
         v1.gakumas.MemoryAbilityRef:
             type: object
             properties:
@@ -26863,30 +25399,6 @@ components:
                 tower:
                     type: boolean
             description: 已配置的玩法：produce 总是 true；pvp 有赛季；seminar 有研修组；tower 塔排行季已开始且配置了塔。
-        v1.gakumas.MusicEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                resourceType:
-                    type: integer
-                    format: int32
-                jacketAssetId:
-                    type: string
-        v1.gakumas.MusicPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.MusicEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
         v1.gakumas.MyArchiveExportResponse:
             type: object
             properties:
@@ -27267,43 +25779,6 @@ components:
                 dryRun:
                     type: boolean
             description: 1–200 名玩家、没有参数的操作。
-        v1.gakumas.ProduceCardEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                upgradedName:
-                    type: string
-                    description: 强化后的名称
-                rarity:
-                    type: integer
-                    format: int32
-                planType:
-                    type: integer
-                    format: int32
-                category:
-                    type: integer
-                    format: int32
-                assetId:
-                    type: string
-                characterAsset:
-                    type: boolean
-                    description: 按偶像区分图片：图片为 asset_id 加「-」和角色 ID
-            description: 技能卡。
-        v1.gakumas.ProduceCardEntryPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.ProduceCardEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
         v1.gakumas.ProduceCounts:
             type: object
             properties:
@@ -27313,84 +25788,6 @@ components:
                 total:
                     type: number
                     format: double
-        v1.gakumas.ProduceEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                produceGroupId:
-                    type: string
-                assetId:
-                    type: string
-        v1.gakumas.ProduceEntryPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.ProduceEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
-        v1.gakumas.ProduceGroupEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                type:
-                    type: integer
-                    format: int32
-                assetId:
-                    type: string
-                produceIds:
-                    type: array
-                    items:
-                        type: string
-        v1.gakumas.ProduceGroupPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.ProduceGroupEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
-        v1.gakumas.ProduceItemEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                rarity:
-                    type: integer
-                    format: int32
-                assetId:
-                    type: string
-                description:
-                    type: string
-            description: P 道具。
-        v1.gakumas.ProduceItemEntryPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.ProduceItemEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
         v1.gakumas.ProducePage:
             type: object
             properties:
@@ -27941,7 +26338,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.GameReward'
-                    description: 1–20 项（来自游戏目录）
+                    description: 1–20 项
                 message:
                     type: string
                     description: 礼物箱文案（最多 64 字）
@@ -28095,39 +26492,6 @@ components:
                     $ref: '#/components/schemas/v1.gakumas.OperationTarget'
                 data:
                     $ref: '#/components/schemas/v1.gakumas.SeminarClearResult'
-        v1.gakumas.SeminarEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                order:
-                    type: integer
-                    format: int32
-                exams:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.SeminarExamEntry'
-        v1.gakumas.SeminarEntryPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.SeminarEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
-        v1.gakumas.SeminarExamEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
         v1.gakumas.SeminarGroupStat:
             type: object
             properties:
@@ -28372,36 +26736,6 @@ components:
                     type: number
                     format: double
             description: 支援卡。
-        v1.gakumas.SupportCardEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                resourceType:
-                    type: integer
-                    format: int32
-                rarity:
-                    type: integer
-                    format: int32
-                type:
-                    type: integer
-                    format: int32
-                assetId:
-                    type: string
-        v1.gakumas.SupportCardEntryPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.SupportCardEntry'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
         v1.gakumas.SupportCardGrant:
             type: object
             properties:
@@ -28435,26 +26769,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.gakumas.SupportCard'
-                nextCursor:
-                    type: string
-                total:
-                    type: integer
-                    format: int32
-        v1.gakumas.TowerEntry:
-            type: object
-            properties:
-                id:
-                    type: string
-                layers:
-                    type: integer
-                    format: int32
-        v1.gakumas.TowerEntryPage:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.gakumas.TowerEntry'
                 nextCursor:
                     type: string
                 total:

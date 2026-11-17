@@ -18,18 +18,13 @@ import type {
   BackupResponse,
   BanPlayersRequest,
   BanResponse,
-  CatalogRequest,
   ChangesResponse,
-  CostumeCatalogRequest,
-  GashaCatalogRequest,
   GetDashboardRequest,
   GetPlayerResponse,
   GiftRevokeResponse,
   GiftSendResponse,
   GrantAllRequest,
   IdolCardGrantResponse,
-  IdolCardSkinCatalogRequest,
-  ItemCatalogRequest,
   KickResponse,
   ListGashaDrawsRequest,
   ListGiftsRequest,
@@ -46,7 +41,6 @@ import type {
   MemoryPhotoRequest,
   PlayerMemoryRequest,
   PlayersOperationRequest,
-  ProduceCatalogRequest,
   RankingRequest,
   RenamePlayerRequest,
   RenameResponse,
@@ -62,46 +56,30 @@ import type {
   SetPvpRateRequest,
   SetRentalMemoryRequest,
   SetRentalSupportCardRequest,
-  SupportCardCatalogRequest,
   SupportCardGrantResponse,
   TowerRankingRequest,
 } from '@/types/v1/gakumas/gm'
 import type {
   BackupList,
-  CharacterPage,
-  CostumePage,
-  CurrencyPage,
   Dashboard,
   GashaDrawPage,
-  GashaEntryPage,
   GashaStatList,
   GiftPage,
   IdolCardPage,
-  IdolCardSkinPage,
-  ItemEntryPage,
   ItemPage,
   Manifest,
-  MemoryAbilityPage,
   MemoryDetail,
   MemoryPage,
   MeishiImage,
   MemoryPhoto,
-  MusicPage,
   PlayerPvp,
   PlayerSeminar,
-  ProduceCardEntryPage,
-  ProduceEntryPage,
-  ProduceGroupPage,
-  ProduceItemEntryPage,
   ProducePage,
   PvpRankingPage,
-  SeminarEntryPage,
   SeminarStatList,
   SessionPage,
   Status,
-  SupportCardEntryPage,
   SupportCardPage,
-  TowerEntryPage,
   TowerRankingPage,
 } from '@/types/v1/gakumas/types'
 
@@ -162,33 +140,6 @@ export const getPvpRanking = (req: RankingRequest) => get<PvpRankingPage>(`${bas
 export const getSeminarStats = (serverId: string) => get<SeminarStatList>(`${base(serverId)}/seminar/stats`)
 export const getTowerRanking = (req: TowerRankingRequest) =>
   get<TowerRankingPage>(`${base(req.serverId)}/towers/${seg(req.towerId)}/ranking`, query(req, 'serverId', 'towerId'))
-
-// ---------------- 目录 ----------------
-
-export const listCurrencies = (req: CatalogRequest) => get<CurrencyPage>(`${base(req.serverId)}/catalog/currencies`, query(req, 'serverId'))
-export const listItemCatalog = (req: ItemCatalogRequest) => get<ItemEntryPage>(`${base(req.serverId)}/catalog/items`, query(req, 'serverId'))
-export const listIdolCardSkins = (req: IdolCardSkinCatalogRequest) =>
-  get<IdolCardSkinPage>(`${base(req.serverId)}/catalog/idol-card-skins`, query(req, 'serverId'))
-export const listSupportCardCatalog = (req: SupportCardCatalogRequest) =>
-  get<SupportCardEntryPage>(`${base(req.serverId)}/catalog/support-cards`, query(req, 'serverId'))
-export const listCharacters = (req: CatalogRequest) => get<CharacterPage>(`${base(req.serverId)}/catalog/characters`, query(req, 'serverId'))
-export const listCostumes = (req: CostumeCatalogRequest) => get<CostumePage>(`${base(req.serverId)}/catalog/costumes`, query(req, 'serverId'))
-export const listCostumeHeads = (req: CostumeCatalogRequest) =>
-  get<CostumePage>(`${base(req.serverId)}/catalog/costume-heads`, query(req, 'serverId'))
-export const listMusic = (req: CatalogRequest) => get<MusicPage>(`${base(req.serverId)}/catalog/music`, query(req, 'serverId'))
-export const listGashas = (req: GashaCatalogRequest) => get<GashaEntryPage>(`${base(req.serverId)}/catalog/gashas`, query(req, 'serverId'))
-export const listProduceGroups = (req: CatalogRequest) =>
-  get<ProduceGroupPage>(`${base(req.serverId)}/catalog/produce-groups`, query(req, 'serverId'))
-export const listProduceCatalog = (req: ProduceCatalogRequest) =>
-  get<ProduceEntryPage>(`${base(req.serverId)}/catalog/produces`, query(req, 'serverId'))
-export const listSeminars = (req: CatalogRequest) => get<SeminarEntryPage>(`${base(req.serverId)}/catalog/seminars`, query(req, 'serverId'))
-export const listTowers = (req: CatalogRequest) => get<TowerEntryPage>(`${base(req.serverId)}/catalog/towers`, query(req, 'serverId'))
-export const listProduceCards = (req: CatalogRequest) =>
-  get<ProduceCardEntryPage>(`${base(req.serverId)}/catalog/produce-cards`, query(req, 'serverId'))
-export const listProduceItems = (req: CatalogRequest) =>
-  get<ProduceItemEntryPage>(`${base(req.serverId)}/catalog/produce-items`, query(req, 'serverId'))
-export const listMemoryAbilities = (req: CatalogRequest) =>
-  get<MemoryAbilityPage>(`${base(req.serverId)}/catalog/memory-abilities`, query(req, 'serverId'))
 
 // ---------------- 操作 ----------------
 

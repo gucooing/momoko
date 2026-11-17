@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
+	"momoko/internal/conf"
 	"momoko/internal/data/ent/gen"
 	entgameserver "momoko/internal/data/ent/gen/gameserver"
 	entschema "momoko/internal/data/ent/schema"
@@ -112,6 +113,8 @@ type GameHostingUsecase struct {
 	tasks     *task.Manager
 	users     UserRepo
 	log       *log.Helper
+	// passportURL 通行证对外地址（passport.public_url），写进托管服务端配置的 momoko.url。
+	passportURL string
 
 	mu      sync.Mutex
 	busy    map[string]string // 服务器 → 进行中的独占任务（更新 / 回档 / 备份）
@@ -128,17 +131,18 @@ const (
 	gameTaskRestore  = "game.server.restore"
 )
 
-func NewGameHostingUsecase(servers *GameServerUsecase, instances *InstanceUsecase, tasks *task.Manager, users UserRepo, logger log.Logger) *GameHostingUsecase {
+func NewGameHostingUsecase(servers *GameServerUsecase, instances *InstanceUsecase, tasks *task.Manager, users UserRepo, passport *conf.Passport, logger log.Logger) *GameHostingUsecase {
 	h := &GameHostingUsecase{
-		servers:   servers,
-		instances: instances,
-		tasks:     tasks,
-		users:     users,
-		log:       log.NewHelper(log.With(logger, "module", "biz/game-hosting")),
-		busy:      map[string]string{},
-		resBusy:   map[string]string{},
-		pending:   map[string]string{},
-		layouts:   map[string]*cachedLayout{},
+		servers:     servers,
+		instances:   instances,
+		tasks:       tasks,
+		users:       users,
+		log:         log.NewHelper(log.With(logger, "module", "biz/game-hosting")),
+		passportURL: passport.GetPublicUrl(),
+		busy:        map[string]string{},
+		resBusy:     map[string]string{},
+		pending:     map[string]string{},
+		layouts:     map[string]*cachedLayout{},
 	}
 	// 学マス 的托管驱动注册到适配器上，适配器的接入方式与能力随之变为可托管。
 	if a, ok := GameAdapterByID("gakumas"); ok {
@@ -801,6 +805,83 @@ func (h *GameHostingUsecase) RotateKey(ctx context.Context, req *v1.RotateGameSe
 		}
 	}
 	h.history(ctx, s.ID, "key", "rotate", map[string]string{"keyId": keyID, "restarted": boolStr(out.Restarted)}, "success", "")
+	return out, updated, nil
+}
+
+// IssueClientApp 生成客户端应用凭据：secretOnly 只换应用密钥，否则应用 ID 与应用密钥一起换（第一次生成也是这样）；
+// 旧凭据立即失效，应用密钥明文只在这次返回。与轮换 MGP 密钥相同：托管服务器先把凭据和通行证对外地址写进服务端配置
+// （momoko.url、momoko.app_id、momoko.app_secret；通行证对外地址未配置或不是 http(s) origin、配置写不了都失败，
+// Momoko 不保存），Momoko 再同步保存，运行中按需重启使其生效，并写一条变更记录；仅 GM 的服务器只保存到 Momoko，
+// 由管理员写进服务端配置。
+func (h *GameHostingUsecase) IssueClientApp(ctx context.Context, id string, secretOnly, restart bool) (*v1.GameServerClientAppResponse, *gen.GameServer, error) {
+	s, err := h.servers.clientAppServer(ctx, id)
+	if err != nil {
+		return nil, nil, err
+	}
+	if s.Mode != entgameserver.ModeHosted {
+		appID, secret, err := h.servers.prepareClientApp(ctx, s, secretOnly)
+		if err != nil {
+			return nil, nil, err
+		}
+		updated, err := h.servers.saveClientApp(ctx, s, appID, secret)
+		if err != nil {
+			return nil, nil, err
+		}
+		return &v1.GameServerClientAppResponse{AppId: appID, AppSecret: secret}, updated, nil
+	}
+	s, ha, _, opts, err := h.hosted(ctx, id)
+	if err != nil {
+		return nil, nil, err
+	}
+	if h.isBusy(s.ID) {
+		return nil, nil, ErrGameHostingBusy
+	}
+	momokoURL, err := clientOrigin("通行证（passport.public_url）", h.passportURL)
+	if err != nil {
+		return nil, nil, err
+	}
+	if momokoURL == "" {
+		return nil, nil, response.BadRequest(400, "通行证对外地址（passport.public_url）未配置，无法写入游戏服务端配置")
+	}
+	appID, secret, err := h.servers.prepareClientApp(ctx, s, secretOnly)
+	if err != nil {
+		return nil, nil, err
+	}
+	l, err := ha.loadLayout(s.InstallDir, opts.ConfigFile)
+	if err != nil {
+		return nil, nil, response.BadRequest(400, "读取服务端配置失败："+err.Error())
+	}
+	if err := l.Doc.Assign("momoko.url", momokoURL); err != nil {
+		return nil, nil, ErrSystem(err)
+	}
+	if err := l.Doc.Assign("momoko.app_id", appID); err != nil {
+		return nil, nil, ErrSystem(err)
+	}
+	if err := l.Doc.Assign("momoko.app_secret", secret); err != nil {
+		return nil, nil, ErrSystem(err)
+	}
+	if err := writeConfigDoc(s.InstallDir, l.ConfigPath, l.Doc); err != nil {
+		return nil, nil, ErrSystem(err)
+	}
+	updated, err := h.servers.saveClientApp(ctx, s, appID, secret)
+	if err != nil {
+		return nil, nil, err
+	}
+	h.forgetLayout(s.ID)
+	out := &v1.GameServerClientAppResponse{AppId: appID, AppSecret: secret}
+	if h.processState(updated, "main") == GameStateRunning {
+		if restart {
+			h.restartAsync(ctx, updated, "main")
+			out.Restarted = true
+		} else {
+			out.PendingRestart = true
+		}
+	}
+	action := "clientApp"
+	if secretOnly {
+		action = "clientAppSecret"
+	}
+	h.history(ctx, s.ID, "key", action, map[string]string{"appId": appID, "restarted": boolStr(out.Restarted)}, "success", "")
 	return out, updated, nil
 }
 

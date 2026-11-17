@@ -42,7 +42,8 @@ type GameGMServiceHTTPServer interface {
 	GetGmContext(context.Context, *GetGmContextRequest) (*GetGmContextResponse, error)
 	// GetGmExecution GM 记录详情（逐个对象的结果，不含请求参数）
 	GetGmExecution(context.Context, *GetGmExecutionRequest) (*GmExecution, error)
-	// ListGmClientLogs 玩家的游戏客户端上传的错误日志（每个游戏账号保留最新 5 份，从新到旧，不含日志内容）
+	// ListGmClientLogs 游戏客户端上传的错误日志（全部服务器，从新到旧，分页，不含日志内容）：按服务器、玩家、原因、上传时间筛选，
+	// 关键字搜摘要、说明与设备；每个游戏账号只保留最新 5 份。GM 玩家详情的「客户端日志」是按服务器与玩家筛选的同一个列表
 	ListGmClientLogs(context.Context, *ListGmClientLogsRequest) (*ListGmClientLogsResponse, error)
 	// ListGmExecutions GM 记录（管理端与玩家自助）
 	ListGmExecutions(context.Context, *ListGmExecutionsRequest) (*ListGmExecutionsResponse, error)
@@ -66,9 +67,9 @@ func RegisterGameGMServiceHTTPServer(s *http.Server, srv GameGMServiceHTTPServer
 	r.POST("/api/v1/game/gm/{server_id}/executions/{id}/reject", _GameGMService_RejectGmExecution0_HTTP_Handler(srv))
 	r.GET("/api/v1/game/gm/{server_id}/self-service", _GameGMService_ListGmSelfService0_HTTP_Handler(srv))
 	r.PUT("/api/v1/game/gm/{server_id}/self-service/{command}", _GameGMService_UpdateGmSelfService0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/players/{pid}/client-logs", _GameGMService_ListGmClientLogs0_HTTP_Handler(srv))
-	r.GET("/api/v1/game/gm/{server_id}/players/{pid}/client-logs/{id}", _GameGMService_GetGmClientLog0_HTTP_Handler(srv))
-	r.DELETE("/api/v1/game/gm/{server_id}/players/{pid}/client-logs/{id}", _GameGMService_DeleteGmClientLog0_HTTP_Handler(srv))
+	r.GET("/api/v1/game/client-logs", _GameGMService_ListGmClientLogs0_HTTP_Handler(srv))
+	r.GET("/api/v1/game/client-logs/{id}", _GameGMService_GetGmClientLog0_HTTP_Handler(srv))
+	r.DELETE("/api/v1/game/client-logs/{id}", _GameGMService_DeleteGmClientLog0_HTTP_Handler(srv))
 }
 
 func _GameGMService_SearchGmServers0_HTTP_Handler(srv GameGMServiceHTTPServer) func(ctx http.Context) error {
@@ -259,9 +260,6 @@ func _GameGMService_ListGmClientLogs0_HTTP_Handler(srv GameGMServiceHTTPServer) 
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
 		http.SetOperation(ctx, OperationGameGMServiceListGmClientLogs)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.ListGmClientLogs(ctx, req.(*ListGmClientLogsRequest))
@@ -330,7 +328,8 @@ type GameGMServiceHTTPClient interface {
 	GetGmContext(ctx context.Context, req *GetGmContextRequest, opts ...http.CallOption) (rsp *GetGmContextResponse, err error)
 	// GetGmExecution GM 记录详情（逐个对象的结果，不含请求参数）
 	GetGmExecution(ctx context.Context, req *GetGmExecutionRequest, opts ...http.CallOption) (rsp *GmExecution, err error)
-	// ListGmClientLogs 玩家的游戏客户端上传的错误日志（每个游戏账号保留最新 5 份，从新到旧，不含日志内容）
+	// ListGmClientLogs 游戏客户端上传的错误日志（全部服务器，从新到旧，分页，不含日志内容）：按服务器、玩家、原因、上传时间筛选，
+	// 关键字搜摘要、说明与设备；每个游戏账号只保留最新 5 份。GM 玩家详情的「客户端日志」是按服务器与玩家筛选的同一个列表
 	ListGmClientLogs(ctx context.Context, req *ListGmClientLogsRequest, opts ...http.CallOption) (rsp *ListGmClientLogsResponse, err error)
 	// ListGmExecutions GM 记录（管理端与玩家自助）
 	ListGmExecutions(ctx context.Context, req *ListGmExecutionsRequest, opts ...http.CallOption) (rsp *ListGmExecutionsResponse, err error)
@@ -369,7 +368,7 @@ func (c *GameGMServiceHTTPClientImpl) ApproveGmExecution(ctx context.Context, in
 // DeleteGmClientLog 删除一份客户端日志
 func (c *GameGMServiceHTTPClientImpl) DeleteGmClientLog(ctx context.Context, in *GmClientLogRequest, opts ...http.CallOption) (*DeleteGmClientLogResponse, error) {
 	var out DeleteGmClientLogResponse
-	pattern := "/api/v1/game/gm/{server_id}/players/{pid}/client-logs/{id}"
+	pattern := "/api/v1/game/client-logs/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationGameGMServiceDeleteGmClientLog))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -383,7 +382,7 @@ func (c *GameGMServiceHTTPClientImpl) DeleteGmClientLog(ctx context.Context, in 
 // GetGmClientLog 一份客户端日志（含解压后的日志内容）
 func (c *GameGMServiceHTTPClientImpl) GetGmClientLog(ctx context.Context, in *GmClientLogRequest, opts ...http.CallOption) (*GmClientLog, error) {
 	var out GmClientLog
-	pattern := "/api/v1/game/gm/{server_id}/players/{pid}/client-logs/{id}"
+	pattern := "/api/v1/game/client-logs/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationGameGMServiceGetGmClientLog))
 	opts = append(opts, http.PathTemplate(pattern))
@@ -422,10 +421,11 @@ func (c *GameGMServiceHTTPClientImpl) GetGmExecution(ctx context.Context, in *Ge
 	return &out, nil
 }
 
-// ListGmClientLogs 玩家的游戏客户端上传的错误日志（每个游戏账号保留最新 5 份，从新到旧，不含日志内容）
+// ListGmClientLogs 游戏客户端上传的错误日志（全部服务器，从新到旧，分页，不含日志内容）：按服务器、玩家、原因、上传时间筛选，
+// 关键字搜摘要、说明与设备；每个游戏账号只保留最新 5 份。GM 玩家详情的「客户端日志」是按服务器与玩家筛选的同一个列表
 func (c *GameGMServiceHTTPClientImpl) ListGmClientLogs(ctx context.Context, in *ListGmClientLogsRequest, opts ...http.CallOption) (*ListGmClientLogsResponse, error) {
 	var out ListGmClientLogsResponse
-	pattern := "/api/v1/game/gm/{server_id}/players/{pid}/client-logs"
+	pattern := "/api/v1/game/client-logs"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationGameGMServiceListGmClientLogs))
 	opts = append(opts, http.PathTemplate(pattern))

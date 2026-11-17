@@ -30,9 +30,7 @@ type PassportSession struct {
 	Device string `json:"device,omitempty"`
 	// 登录时的 User-Agent
 	UserAgent string `json:"user_agent,omitempty"`
-	// 经 OIDC 登录时的应用 Client ID
-	ClientID string `json:"client_id,omitempty"`
-	// 登录方式：password / email_code / oidc
+	// 登录方式：password / email_code / register
 	LoginMethod string `json:"login_method,omitempty"`
 	// 登录 IP
 	IP string `json:"ip,omitempty"`
@@ -58,7 +56,7 @@ func (*PassportSession) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case passportsession.FieldPersistent:
 			values[i] = new(sql.NullBool)
-		case passportsession.FieldID, passportsession.FieldUserID, passportsession.FieldDeviceID, passportsession.FieldDevice, passportsession.FieldUserAgent, passportsession.FieldClientID, passportsession.FieldLoginMethod, passportsession.FieldIP, passportsession.FieldLastIP, passportsession.FieldAccessNoise, passportsession.FieldRefreshNoise:
+		case passportsession.FieldID, passportsession.FieldUserID, passportsession.FieldDeviceID, passportsession.FieldDevice, passportsession.FieldUserAgent, passportsession.FieldLoginMethod, passportsession.FieldIP, passportsession.FieldLastIP, passportsession.FieldAccessNoise, passportsession.FieldRefreshNoise:
 			values[i] = new(sql.NullString)
 		case passportsession.FieldCreateTime, passportsession.FieldUpdateTime, passportsession.FieldLastActiveAt, passportsession.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
@@ -118,12 +116,6 @@ func (_m *PassportSession) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field user_agent", values[i])
 			} else if value.Valid {
 				_m.UserAgent = value.String
-			}
-		case passportsession.FieldClientID:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field client_id", values[i])
-			} else if value.Valid {
-				_m.ClientID = value.String
 			}
 		case passportsession.FieldLoginMethod:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -227,9 +219,6 @@ func (_m *PassportSession) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_agent=")
 	builder.WriteString(_m.UserAgent)
-	builder.WriteString(", ")
-	builder.WriteString("client_id=")
-	builder.WriteString(_m.ClientID)
 	builder.WriteString(", ")
 	builder.WriteString("login_method=")
 	builder.WriteString(_m.LoginMethod)

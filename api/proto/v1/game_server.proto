@@ -83,6 +83,22 @@ service GameServerService {
       body: "*"
     };
   }
+  // 生成客户端应用凭据：第一次生成，或重新生成应用 ID（应用 ID 与应用密钥一起换，旧凭据立即失效，
+  // 游戏服务端配置与已发布的单服务器客户端都要换成新的）。托管：写入服务端配置，运行中按需重启。应用密钥只在这次返回
+  rpc GenerateGameServerClientApp(GenerateGameServerClientAppRequest) returns (GameServerClientAppResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/client-app"
+      body: "*"
+    };
+  }
+  // 重置客户端应用密钥（应用 ID 不变，旧密钥立即失效，游戏服务端配置要换成新密钥）。托管：写入服务端配置，运行中按需重启。
+  // 应用密钥只在这次返回
+  rpc ResetGameServerClientAppSecret(ResetGameServerClientAppSecretRequest) returns (GameServerClientAppResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/client-app/secret"
+      body: "*"
+    };
+  }
   // 轮换 MGP 密钥（托管：写回服务端配置，运行中按需重启）
   rpc RotateGameServerKey(RotateGameServerKeyRequest) returns (RotateGameServerKeyResponse) {
     option (google.api.http) = {
@@ -354,6 +370,8 @@ message GameAdapter {
   repeated string log_modules = 9;
   // 托管：备份范围（相对服务端目录）
   repeated string backup_scope = 10;
+  // 游戏客户端可以用通行证启动（服务器可填写客户端地址，通行证签发启动票据）
+  bool client_launch = 11;
 }
 
 message ListGameAdaptersRequest {}
@@ -415,6 +433,13 @@ message GameServerInfo {
   repeated string capabilities = 25;
   // 进行中的托管任务（更新 / 资源 / 备份 / 回档）
   repeated GameServerTask running_tasks = 26;
+  // 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器
+  string client_sdk_url = 27;
+  string client_game_url = 28;
+  string client_resource_url = 29;
+  // 客户端应用 ID（app_ + 16 个小写 base32 字符；空为还没有生成应用凭据）：客户端用它指明这台服务器。
+  // 应用密钥加密保存，只在生成与重置时返回一次
+  string client_app_id = 30;
 }
 
 // 托管服务器的一个进程。
@@ -533,6 +558,10 @@ message UpdateGameServerRequest {
   string passport_visibility = 9;
   string passport_invite_code = 10;
   string timezone = 11;
+  // 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；三个都填写且生成了客户端应用凭据后，服务器才能用通行证启动
+  string client_sdk_url = 12;
+  string client_game_url = 13;
+  string client_resource_url = 14;
 }
 
 message DeleteGameServerRequest {
@@ -617,6 +646,31 @@ message SwitchGameServerModeRequest {
   string mgp_endpoint = 4;
   string key_id = 5;
   string secret = 6;
+}
+
+message GenerateGameServerClientAppRequest {
+  string id = 1;
+  // 托管：运行中时重启服务端使新凭据生效
+  bool restart = 2;
+}
+
+message ResetGameServerClientAppSecretRequest {
+  string id = 1;
+  // 托管：运行中时重启服务端使新密钥生效
+  bool restart = 2;
+}
+
+// 生成或重置后的客户端应用凭据：游戏服务端配置里的 momoko.app_id、momoko.app_secret（学マス）——托管服务器由 Momoko 写入，
+// 仅 GM 由管理员写入；应用 ID 同时打包进单服务器客户端，应用密钥不进入任何客户端。
+message GameServerClientAppResponse {
+  GameServerInfo info = 1;
+  string app_id = 2;
+  // 应用密钥（32 字节随机数的无填充 base64url，43 个字符）：只在这次返回
+  string app_secret = 3;
+  // 托管：已重启
+  bool restarted = 4;
+  // 托管：服务端运行中且未重启，新凭据要等下次启动才生效
+  bool pending_restart = 5;
 }
 
 message RotateGameServerKeyRequest {

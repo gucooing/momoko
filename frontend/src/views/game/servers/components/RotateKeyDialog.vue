@@ -82,6 +82,9 @@ const run = async () => {
         passportVisibility: s.passportVisibility,
         passportInviteCode: s.passportInviteCode,
         timezone: s.timezone,
+        clientSdkUrl: s.clientSdkUrl,
+        clientGameUrl: s.clientGameUrl,
+        clientResourceUrl: s.clientResourceUrl,
       })
       fb.success(t('gameServers.rotate.done', { keyId: key.value.keyId }))
       emit('done', data)

@@ -91,20 +91,6 @@ func (_c *PassportSessionCreate) SetNillableUserAgent(v *string) *PassportSessio
 	return _c
 }
 
-// SetClientID sets the "client_id" field.
-func (_c *PassportSessionCreate) SetClientID(v string) *PassportSessionCreate {
-	_c.mutation.SetClientID(v)
-	return _c
-}
-
-// SetNillableClientID sets the "client_id" field if the given value is not nil.
-func (_c *PassportSessionCreate) SetNillableClientID(v *string) *PassportSessionCreate {
-	if v != nil {
-		_c.SetClientID(*v)
-	}
-	return _c
-}
-
 // SetLoginMethod sets the "login_method" field.
 func (_c *PassportSessionCreate) SetLoginMethod(v string) *PassportSessionCreate {
 	_c.mutation.SetLoginMethod(v)
@@ -250,10 +236,6 @@ func (_c *PassportSessionCreate) defaults() {
 		v := passportsession.DefaultUserAgent
 		_c.mutation.SetUserAgent(v)
 	}
-	if _, ok := _c.mutation.ClientID(); !ok {
-		v := passportsession.DefaultClientID
-		_c.mutation.SetClientID(v)
-	}
 	if _, ok := _c.mutation.LoginMethod(); !ok {
 		v := passportsession.DefaultLoginMethod
 		_c.mutation.SetLoginMethod(v)
@@ -301,9 +283,6 @@ func (_c *PassportSessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.UserAgent(); !ok {
 		return &ValidationError{Name: "user_agent", err: errors.New(`gen: missing required field "PassportSession.user_agent"`)}
-	}
-	if _, ok := _c.mutation.ClientID(); !ok {
-		return &ValidationError{Name: "client_id", err: errors.New(`gen: missing required field "PassportSession.client_id"`)}
 	}
 	if _, ok := _c.mutation.LoginMethod(); !ok {
 		return &ValidationError{Name: "login_method", err: errors.New(`gen: missing required field "PassportSession.login_method"`)}
@@ -400,10 +379,6 @@ func (_c *PassportSessionCreate) createSpec() (*PassportSession, *sqlgraph.Creat
 	if value, ok := _c.mutation.UserAgent(); ok {
 		_spec.SetField(passportsession.FieldUserAgent, field.TypeString, value)
 		_node.UserAgent = value
-	}
-	if value, ok := _c.mutation.ClientID(); ok {
-		_spec.SetField(passportsession.FieldClientID, field.TypeString, value)
-		_node.ClientID = value
 	}
 	if value, ok := _c.mutation.LoginMethod(); ok {
 		_spec.SetField(passportsession.FieldLoginMethod, field.TypeString, value)
@@ -546,18 +521,6 @@ func (u *PassportSessionUpsert) SetUserAgent(v string) *PassportSessionUpsert {
 // UpdateUserAgent sets the "user_agent" field to the value that was provided on create.
 func (u *PassportSessionUpsert) UpdateUserAgent() *PassportSessionUpsert {
 	u.SetExcluded(passportsession.FieldUserAgent)
-	return u
-}
-
-// SetClientID sets the "client_id" field.
-func (u *PassportSessionUpsert) SetClientID(v string) *PassportSessionUpsert {
-	u.Set(passportsession.FieldClientID, v)
-	return u
-}
-
-// UpdateClientID sets the "client_id" field to the value that was provided on create.
-func (u *PassportSessionUpsert) UpdateClientID() *PassportSessionUpsert {
-	u.SetExcluded(passportsession.FieldClientID)
 	return u
 }
 
@@ -781,20 +744,6 @@ func (u *PassportSessionUpsertOne) SetUserAgent(v string) *PassportSessionUpsert
 func (u *PassportSessionUpsertOne) UpdateUserAgent() *PassportSessionUpsertOne {
 	return u.Update(func(s *PassportSessionUpsert) {
 		s.UpdateUserAgent()
-	})
-}
-
-// SetClientID sets the "client_id" field.
-func (u *PassportSessionUpsertOne) SetClientID(v string) *PassportSessionUpsertOne {
-	return u.Update(func(s *PassportSessionUpsert) {
-		s.SetClientID(v)
-	})
-}
-
-// UpdateClientID sets the "client_id" field to the value that was provided on create.
-func (u *PassportSessionUpsertOne) UpdateClientID() *PassportSessionUpsertOne {
-	return u.Update(func(s *PassportSessionUpsert) {
-		s.UpdateClientID()
 	})
 }
 
@@ -1202,20 +1151,6 @@ func (u *PassportSessionUpsertBulk) SetUserAgent(v string) *PassportSessionUpser
 func (u *PassportSessionUpsertBulk) UpdateUserAgent() *PassportSessionUpsertBulk {
 	return u.Update(func(s *PassportSessionUpsert) {
 		s.UpdateUserAgent()
-	})
-}
-
-// SetClientID sets the "client_id" field.
-func (u *PassportSessionUpsertBulk) SetClientID(v string) *PassportSessionUpsertBulk {
-	return u.Update(func(s *PassportSessionUpsert) {
-		s.SetClientID(v)
-	})
-}
-
-// UpdateClientID sets the "client_id" field to the value that was provided on create.
-func (u *PassportSessionUpsertBulk) UpdateClientID() *PassportSessionUpsertBulk {
-	return u.Update(func(s *PassportSessionUpsert) {
-		s.UpdateClientID()
 	})
 }
 

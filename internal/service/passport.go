@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -15,19 +14,10 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
-	"momoko/internal/conf"
 	"momoko/pkg/oidcserver"
 	"momoko/pkg/passporttoken"
 	"momoko/pkg/response"
 )
-
-// passportIssuer 通行证 OIDC 的 issuer：配置文件的 passport.public_url，空时按请求推断。
-func passportIssuer(c *conf.Passport, r *http.Request) string {
-	if c != nil && strings.TrimSpace(c.PublicUrl) != "" {
-		return strings.TrimRight(strings.TrimSpace(c.PublicUrl), "/")
-	}
-	return oidcserver.RequestOrigin(r)
-}
 
 // PassportService 用户通行证玩家端（只注册在 passport server 上）。
 type PassportService struct {
@@ -35,14 +25,12 @@ type PassportService struct {
 
 	uc      *biz.PassportUsecase
 	gakumas *biz.GakumasPassportUsecase
-	conf    *conf.Passport
 }
 
-func NewPassportService(uc *biz.PassportUsecase, gakumas *biz.GakumasPassportUsecase, c *conf.Passport) *PassportService {
+func NewPassportService(uc *biz.PassportUsecase, gakumas *biz.GakumasPassportUsecase) *PassportService {
 	return &PassportService{
 		uc:      uc,
 		gakumas: gakumas,
-		conf:    c,
 	}
 }
 
@@ -56,11 +44,6 @@ func me(ctx context.Context) (*passporttoken.Claims, error) {
 		return nil, biz.ErrPassportUnauthorized
 	}
 	return c, nil
-}
-
-func (s *PassportService) issuer(ctx context.Context) string {
-	r, _ := khttp.RequestFromServerContext(ctx)
-	return passportIssuer(s.conf, r)
 }
 
 // ---------------- 公开 ----------------
@@ -246,25 +229,6 @@ func (s *PassportService) LogoutPassportOthers(ctx context.Context, _ *v1.Passpo
 	return &v1.PassportEmpty{}, nil
 }
 
-func (s *PassportService) ListPassportApps(ctx context.Context, _ *v1.PassportEmpty) (*v1.ListPassportAppsResponse, error) {
-	c, err := me(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return s.uc.Apps(ctx, c.UserID)
-}
-
-func (s *PassportService) RevokePassportApp(ctx context.Context, req *v1.RevokePassportAppRequest) (*v1.PassportEmpty, error) {
-	c, err := me(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := s.uc.RevokeApp(ctx, c.UserID, req.Id); err != nil {
-		return nil, err
-	}
-	return &v1.PassportEmpty{}, nil
-}
-
 func (s *PassportService) RequestPassportDeletion(ctx context.Context, req *v1.RequestPassportDeletionRequest) (*v1.PassportMe, error) {
 	c, err := me(ctx)
 	if err != nil {
@@ -403,106 +367,46 @@ func (s *PassportService) RedeemPassportGiftCode(ctx context.Context, req *v1.Re
 	return s.uc.Redeem(ctx, c.UserID, req.ServerId, req.Code)
 }
 
-// ---------------- OIDC ----------------
+// ---------------- 启动器 ----------------
 
-func (s *PassportService) GetPassportOidcAuthorization(ctx context.Context, req *v1.PassportOidcAuthorizeRequest) (*v1.PassportOidcAuthorizationInfo, error) {
+func (s *PassportService) ListPassportLaunchApps(ctx context.Context, _ *v1.PassportEmpty) (*v1.ListPassportLaunchAppsResponse, error) {
 	c, err := me(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return s.uc.OidcAuthorization(ctx, c.UserID, req)
+	return s.uc.LaunchApps(ctx, c.UserID)
 }
 
-func (s *PassportService) ApprovePassportOidcAuthorization(ctx context.Context, req *v1.PassportOidcAuthorizeRequest) (*v1.PassportOidcAuthorizeResponse, error) {
+func (s *PassportService) GetPassportLaunchApp(ctx context.Context, req *v1.PassportLaunchAppRequest) (*v1.PassportLaunchApp, error) {
 	c, err := me(ctx)
 	if err != nil {
 		return nil, err
 	}
-	redirect, err := s.uc.OidcApprove(ctx, c.UserID, s.issuer(ctx), req)
+	return s.uc.LaunchApp(ctx, c.UserID, req.AppId)
+}
+
+func (s *PassportService) BindPassportLaunchApp(ctx context.Context, req *v1.BindPassportLaunchAppRequest) (*v1.PassportLink, error) {
+	c, err := me(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.PassportOidcAuthorizeResponse{RedirectUrl: redirect}, nil
+	return s.uc.BindLaunchApp(ctx, c.UserID, req)
 }
 
-// RegisterOIDCServer 注册通行证 OIDC 的标准端点（返回协议原始 JSON，不走统一响应信封）。
-func (s *PassportService) RegisterOIDCServer(srv *khttp.Server) {
-	srv.HandleFunc("/.well-known/openid-configuration", s.oidcDiscovery)
-	srv.HandleFunc("/api/v1/oidc/jwks", s.oidcJWKS)
-	srv.HandleFunc("/api/v1/oidc/token", s.oidcToken)
-	srv.HandleFunc("/api/v1/oidc/userinfo", s.oidcUserinfo)
-}
-
-func writeOidcError(w http.ResponseWriter, err error) {
-	var oe *biz.OidcError
-	if errors.As(err, &oe) {
-		oidcserver.WriteError(w, oe.Status, oe.Code, oe.Err)
-		return
-	}
-	oidcserver.WriteError(w, http.StatusInternalServerError, "server_error", err)
-}
-
-func (s *PassportService) oidcDiscovery(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	data, err := s.uc.OidcDiscovery(r.Context(), passportIssuer(s.conf, r))
+func (s *PassportService) CreatePassportLaunchAccount(ctx context.Context, req *v1.PassportLaunchAppRequest) (*v1.PassportLink, error) {
+	c, err := me(ctx)
 	if err != nil {
-		writeOidcError(w, err)
-		return
+		return nil, err
 	}
-	oidcserver.WriteJSON(w, http.StatusOK, data)
+	return s.uc.CreateLaunchAccount(ctx, c.UserID, req.AppId)
 }
 
-func (s *PassportService) oidcJWKS(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	data, err := s.uc.OidcJWKS(r.Context())
+func (s *PassportService) IssuePassportLaunchTicket(ctx context.Context, req *v1.PassportLaunchAppRequest) (*v1.PassportLaunchTicket, error) {
+	c, err := me(ctx)
 	if err != nil {
-		writeOidcError(w, err)
-		return
+		return nil, err
 	}
-	oidcserver.WriteJSON(w, http.StatusOK, data)
-}
-
-func (s *PassportService) oidcToken(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	req, err := oidcserver.NewTokenRequest(r)
-	if err != nil {
-		oidcserver.WriteError(w, http.StatusBadRequest, "invalid_request", err)
-		return
-	}
-	data, err := s.uc.OidcToken(r.Context(), req, passportIssuer(s.conf, r))
-	if err != nil {
-		writeOidcError(w, err)
-		return
-	}
-	w.Header().Set("Cache-Control", "no-store")
-	oidcserver.WriteJSON(w, http.StatusOK, data)
-}
-
-func (s *PassportService) oidcUserinfo(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet && r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	token := oidcserver.BearerToken(r)
-	if token == "" {
-		oidcserver.WriteError(w, http.StatusUnauthorized, "invalid_token", oidcserver.ErrTokenInvalid)
-		return
-	}
-	data, err := s.uc.OidcUserinfo(r.Context(), token, passportIssuer(s.conf, r))
-	if err != nil {
-		writeOidcError(w, err)
-		return
-	}
-	oidcserver.WriteJSON(w, http.StatusOK, data)
+	return s.uc.IssueLaunchTicket(ctx, c.UserID, req.AppId)
 }
 
 // ---------------- 游戏客户端日志上传 ----------------

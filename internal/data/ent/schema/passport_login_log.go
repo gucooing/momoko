@@ -15,7 +15,7 @@ func (PassportLoginLog) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").NotEmpty().Unique().Comment("记录 id"),
 		field.String("user_id").NotEmpty().Comment("通行证用户 id"),
-		field.String("method").Default("").Comment("登录方式：password / email_code / register / oidc"),
+		field.String("method").Default("").Comment("登录方式：password / email_code / register"),
 		field.Bool("success").Default(true).Comment("是否成功"),
 		field.String("error_code").Default("").Comment("失败原因代码"),
 		field.String("ip").Default("").Comment("IP"),

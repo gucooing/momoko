@@ -19,24 +19,26 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationPassportServiceApprovePassportOidcAuthorization = "/v1.PassportService/ApprovePassportOidcAuthorization"
 const OperationPassportServiceBindPassportAccount = "/v1.PassportService/BindPassportAccount"
+const OperationPassportServiceBindPassportLaunchApp = "/v1.PassportService/BindPassportLaunchApp"
 const OperationPassportServiceCancelPassportDeletion = "/v1.PassportService/CancelPassportDeletion"
 const OperationPassportServiceChangePassportEmail = "/v1.PassportService/ChangePassportEmail"
 const OperationPassportServiceChangePassportPassword = "/v1.PassportService/ChangePassportPassword"
 const OperationPassportServiceCompletePassportAvatar = "/v1.PassportService/CompletePassportAvatar"
+const OperationPassportServiceCreatePassportLaunchAccount = "/v1.PassportService/CreatePassportLaunchAccount"
 const OperationPassportServiceDisablePassportTotp = "/v1.PassportService/DisablePassportTotp"
 const OperationPassportServiceEnablePassportTotp = "/v1.PassportService/EnablePassportTotp"
 const OperationPassportServiceGetPassportConfig = "/v1.PassportService/GetPassportConfig"
 const OperationPassportServiceGetPassportGame = "/v1.PassportService/GetPassportGame"
 const OperationPassportServiceGetPassportGameBrief = "/v1.PassportService/GetPassportGameBrief"
+const OperationPassportServiceGetPassportLaunchApp = "/v1.PassportService/GetPassportLaunchApp"
 const OperationPassportServiceGetPassportMe = "/v1.PassportService/GetPassportMe"
-const OperationPassportServiceGetPassportOidcAuthorization = "/v1.PassportService/GetPassportOidcAuthorization"
+const OperationPassportServiceIssuePassportLaunchTicket = "/v1.PassportService/IssuePassportLaunchTicket"
 const OperationPassportServiceListPassportActivity = "/v1.PassportService/ListPassportActivity"
-const OperationPassportServiceListPassportApps = "/v1.PassportService/ListPassportApps"
 const OperationPassportServiceListPassportDevices = "/v1.PassportService/ListPassportDevices"
 const OperationPassportServiceListPassportGameRecords = "/v1.PassportService/ListPassportGameRecords"
 const OperationPassportServiceListPassportGameRequests = "/v1.PassportService/ListPassportGameRequests"
+const OperationPassportServiceListPassportLaunchApps = "/v1.PassportService/ListPassportLaunchApps"
 const OperationPassportServiceListPassportLinks = "/v1.PassportService/ListPassportLinks"
 const OperationPassportServiceListPassportMessages = "/v1.PassportService/ListPassportMessages"
 const OperationPassportServiceListPassportSelfService = "/v1.PassportService/ListPassportSelfService"
@@ -52,7 +54,6 @@ const OperationPassportServiceReadPassportMessages = "/v1.PassportService/ReadPa
 const OperationPassportServiceRedeemPassportGiftCode = "/v1.PassportService/RedeemPassportGiftCode"
 const OperationPassportServiceRegeneratePassportRecoveryCodes = "/v1.PassportService/RegeneratePassportRecoveryCodes"
 const OperationPassportServiceRequestPassportDeletion = "/v1.PassportService/RequestPassportDeletion"
-const OperationPassportServiceRevokePassportApp = "/v1.PassportService/RevokePassportApp"
 const OperationPassportServiceRevokePassportDevice = "/v1.PassportService/RevokePassportDevice"
 const OperationPassportServiceSearchPassportBindServers = "/v1.PassportService/SearchPassportBindServers"
 const OperationPassportServiceSendPassportEmailChangeCode = "/v1.PassportService/SendPassportEmailChangeCode"
@@ -66,11 +67,10 @@ const OperationPassportServiceUnbindPassportLink = "/v1.PassportService/UnbindPa
 const OperationPassportServiceUpdatePassportProfile = "/v1.PassportService/UpdatePassportProfile"
 
 type PassportServiceHTTPServer interface {
-	// ApprovePassportOidcAuthorization 同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
-	// 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
-	ApprovePassportOidcAuthorization(context.Context, *PassportOidcAuthorizeRequest) (*PassportOidcAuthorizeResponse, error)
 	// BindPassportAccount 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
 	BindPassportAccount(context.Context, *BindPassportAccountRequest) (*PassportLink, error)
+	// BindPassportLaunchApp 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
+	BindPassportLaunchApp(context.Context, *BindPassportLaunchAppRequest) (*PassportLink, error)
 	// CancelPassportDeletion 撤销注销申请
 	CancelPassportDeletion(context.Context, *PassportEmpty) (*PassportMe, error)
 	// ChangePassportEmail 更换 / 绑定邮箱
@@ -79,6 +79,8 @@ type PassportServiceHTTPServer interface {
 	ChangePassportPassword(context.Context, *ChangePassportPasswordRequest) (*PassportEmpty, error)
 	// CompletePassportAvatar 直传完成后确认头像
 	CompletePassportAvatar(context.Context, *CompletePassportAvatarRequest) (*PassportMe, error)
+	// CreatePassportLaunchAccount 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
+	CreatePassportLaunchAccount(context.Context, *PassportLaunchAppRequest) (*PassportLink, error)
 	// DisablePassportTotp 关闭两步验证（需要密码与验证码）
 	DisablePassportTotp(context.Context, *DisablePassportTotpRequest) (*PassportMe, error)
 	// EnablePassportTotp 输入身份验证器的验证码确认开启，返回恢复码（只显示这一次）
@@ -89,20 +91,24 @@ type PassportServiceHTTPServer interface {
 	GetPassportGame(context.Context, *PassportGameRequest) (*PassportGameResponse, error)
 	// GetPassportGameBrief 首页卡片用的摘要（刷新绑定快照；不记录 last_seen_at）
 	GetPassportGameBrief(context.Context, *PassportGameRequest) (*PassportGameResponse, error)
+	// GetPassportLaunchApp 一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；
+	// 应用 ID 不存在或服务器不可启动时 404 PASSPORT_APP_NOT_FOUND
+	GetPassportLaunchApp(context.Context, *PassportLaunchAppRequest) (*PassportLaunchApp, error)
 	// GetPassportMe 当前账号：资料、安全状态与计数
 	GetPassportMe(context.Context, *PassportEmpty) (*PassportMe, error)
-	// GetPassportOidcAuthorization 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
-	GetPassportOidcAuthorization(context.Context, *PassportOidcAuthorizeRequest) (*PassportOidcAuthorizationInfo, error)
+	// IssuePassportLaunchTicket 签发启动票据（游戏服务端 SDK 用它开会话，有效 120 秒，只能用一次），并记录绑定的最近使用时间
+	IssuePassportLaunchTicket(context.Context, *PassportLaunchAppRequest) (*PassportLaunchTicket, error)
 	// ListPassportActivity 最近活动：登录、绑定与解绑、自助操作、兑换码（都来自真实记录）
 	ListPassportActivity(context.Context, *ListPassportActivityRequest) (*ListPassportActivityResponse, error)
-	// ListPassportApps 授权的应用（用「用户通行证登录」登录过的游戏与应用）
-	ListPassportApps(context.Context, *PassportEmpty) (*ListPassportAppsResponse, error)
 	// ListPassportDevices 登录设备
 	ListPassportDevices(context.Context, *PassportEmpty) (*ListPassportDevicesResponse, error)
 	// ListPassportGameRecords 操作记录（我在这台服务器上的自助操作与兑换码）
 	ListPassportGameRecords(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
 	// ListPassportGameRequests 我的申请（需要审批的自助操作）
 	ListPassportGameRequests(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
+	// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+	// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
+	ListPassportLaunchApps(context.Context, *PassportEmpty) (*ListPassportLaunchAppsResponse, error)
 	// ListPassportLinks 我绑定的游戏账号（按游戏分组展示）
 	ListPassportLinks(context.Context, *PassportEmpty) (*ListPassportLinksResponse, error)
 	// ListPassportMessages 消息
@@ -133,11 +139,9 @@ type PassportServiceHTTPServer interface {
 	RegeneratePassportRecoveryCodes(context.Context, *PassportTotpCodeRequest) (*PassportRecoveryCodes, error)
 	// RequestPassportDeletion 申请注销（7 天后删除，期间可撤销）
 	RequestPassportDeletion(context.Context, *RequestPassportDeletionRequest) (*PassportMe, error)
-	// RevokePassportApp 撤销授权（已签发的访问令牌随之失效，下次需要重新确认）
-	RevokePassportApp(context.Context, *RevokePassportAppRequest) (*PassportEmpty, error)
 	// RevokePassportDevice 让某台设备下线
 	RevokePassportDevice(context.Context, *RevokePassportDeviceRequest) (*PassportEmpty, error)
-	// SearchPassportBindServers 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
+	// SearchPassportBindServers 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（链接带 ?server= 时预选）
 	SearchPassportBindServers(context.Context, *SearchPassportBindServersRequest) (*SearchPassportBindServersResponse, error)
 	// SendPassportEmailChangeCode 发送更换邮箱的验证码（发到新邮箱）
 	SendPassportEmailChangeCode(context.Context, *SendPassportEmailCodeRequest) (*SendPassportEmailCodeResponse, error)
@@ -186,8 +190,6 @@ func RegisterPassportServiceHTTPServer(s *http.Server, srv PassportServiceHTTPSe
 	r.GET("/api/v1/me/devices", _PassportService_ListPassportDevices0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/me/devices/{session_id}", _PassportService_RevokePassportDevice0_HTTP_Handler(srv))
 	r.POST("/api/v1/me/devices/logout-others", _PassportService_LogoutPassportOthers0_HTTP_Handler(srv))
-	r.GET("/api/v1/me/apps", _PassportService_ListPassportApps0_HTTP_Handler(srv))
-	r.DELETE("/api/v1/me/apps/{id}", _PassportService_RevokePassportApp0_HTTP_Handler(srv))
 	r.POST("/api/v1/me/deletion", _PassportService_RequestPassportDeletion0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/me/deletion", _PassportService_CancelPassportDeletion0_HTTP_Handler(srv))
 	r.GET("/api/v1/me/messages", _PassportService_ListPassportMessages0_HTTP_Handler(srv))
@@ -204,8 +206,11 @@ func RegisterPassportServiceHTTPServer(s *http.Server, srv PassportServiceHTTPSe
 	r.GET("/api/v1/games/{server_id}/requests", _PassportService_ListPassportGameRequests0_HTTP_Handler(srv))
 	r.GET("/api/v1/games/{server_id}/records", _PassportService_ListPassportGameRecords0_HTTP_Handler(srv))
 	r.POST("/api/v1/games/{server_id}/redeem", _PassportService_RedeemPassportGiftCode0_HTTP_Handler(srv))
-	r.GET("/api/v1/oidc/authorize", _PassportService_GetPassportOidcAuthorization0_HTTP_Handler(srv))
-	r.POST("/api/v1/oidc/authorize", _PassportService_ApprovePassportOidcAuthorization0_HTTP_Handler(srv))
+	r.GET("/api/v1/launch/apps", _PassportService_ListPassportLaunchApps0_HTTP_Handler(srv))
+	r.GET("/api/v1/launch/apps/{app_id}", _PassportService_GetPassportLaunchApp0_HTTP_Handler(srv))
+	r.POST("/api/v1/launch/apps/{app_id}/bind", _PassportService_BindPassportLaunchApp0_HTTP_Handler(srv))
+	r.POST("/api/v1/launch/apps/{app_id}/account", _PassportService_CreatePassportLaunchAccount0_HTTP_Handler(srv))
+	r.POST("/api/v1/launch/apps/{app_id}/ticket", _PassportService_IssuePassportLaunchTicket0_HTTP_Handler(srv))
 }
 
 func _PassportService_GetPassportConfig0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
@@ -749,47 +754,6 @@ func _PassportService_LogoutPassportOthers0_HTTP_Handler(srv PassportServiceHTTP
 	}
 }
 
-func _PassportService_ListPassportApps0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PassportEmpty
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationPassportServiceListPassportApps)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListPassportApps(ctx, req.(*PassportEmpty))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListPassportAppsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _PassportService_RevokePassportApp0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in RevokePassportAppRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationPassportServiceRevokePassportApp)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RevokePassportApp(ctx, req.(*RevokePassportAppRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*PassportEmpty)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _PassportService_RequestPassportDeletion0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in RequestPassportDeletionRequest
@@ -1136,53 +1100,127 @@ func _PassportService_RedeemPassportGiftCode0_HTTP_Handler(srv PassportServiceHT
 	}
 }
 
-func _PassportService_GetPassportOidcAuthorization0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+func _PassportService_ListPassportLaunchApps0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in PassportOidcAuthorizeRequest
+		var in PassportEmpty
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationPassportServiceGetPassportOidcAuthorization)
+		http.SetOperation(ctx, OperationPassportServiceListPassportLaunchApps)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetPassportOidcAuthorization(ctx, req.(*PassportOidcAuthorizeRequest))
+			return srv.ListPassportLaunchApps(ctx, req.(*PassportEmpty))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*PassportOidcAuthorizationInfo)
+		reply := out.(*ListPassportLaunchAppsResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _PassportService_ApprovePassportOidcAuthorization0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+func _PassportService_GetPassportLaunchApp0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in PassportOidcAuthorizeRequest
+		var in PassportLaunchAppRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceGetPassportLaunchApp)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetPassportLaunchApp(ctx, req.(*PassportLaunchAppRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PassportLaunchApp)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PassportService_BindPassportLaunchApp0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in BindPassportLaunchAppRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationPassportServiceApprovePassportOidcAuthorization)
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceBindPassportLaunchApp)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ApprovePassportOidcAuthorization(ctx, req.(*PassportOidcAuthorizeRequest))
+			return srv.BindPassportLaunchApp(ctx, req.(*BindPassportLaunchAppRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*PassportOidcAuthorizeResponse)
+		reply := out.(*PassportLink)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PassportService_CreatePassportLaunchAccount0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PassportLaunchAppRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceCreatePassportLaunchAccount)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreatePassportLaunchAccount(ctx, req.(*PassportLaunchAppRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PassportLink)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PassportService_IssuePassportLaunchTicket0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PassportLaunchAppRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceIssuePassportLaunchTicket)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.IssuePassportLaunchTicket(ctx, req.(*PassportLaunchAppRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PassportLaunchTicket)
 		return ctx.Result(200, reply)
 	}
 }
 
 type PassportServiceHTTPClient interface {
-	// ApprovePassportOidcAuthorization 同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
-	// 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
-	ApprovePassportOidcAuthorization(ctx context.Context, req *PassportOidcAuthorizeRequest, opts ...http.CallOption) (rsp *PassportOidcAuthorizeResponse, err error)
 	// BindPassportAccount 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
 	BindPassportAccount(ctx context.Context, req *BindPassportAccountRequest, opts ...http.CallOption) (rsp *PassportLink, err error)
+	// BindPassportLaunchApp 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
+	BindPassportLaunchApp(ctx context.Context, req *BindPassportLaunchAppRequest, opts ...http.CallOption) (rsp *PassportLink, err error)
 	// CancelPassportDeletion 撤销注销申请
 	CancelPassportDeletion(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *PassportMe, err error)
 	// ChangePassportEmail 更换 / 绑定邮箱
@@ -1191,6 +1229,8 @@ type PassportServiceHTTPClient interface {
 	ChangePassportPassword(ctx context.Context, req *ChangePassportPasswordRequest, opts ...http.CallOption) (rsp *PassportEmpty, err error)
 	// CompletePassportAvatar 直传完成后确认头像
 	CompletePassportAvatar(ctx context.Context, req *CompletePassportAvatarRequest, opts ...http.CallOption) (rsp *PassportMe, err error)
+	// CreatePassportLaunchAccount 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
+	CreatePassportLaunchAccount(ctx context.Context, req *PassportLaunchAppRequest, opts ...http.CallOption) (rsp *PassportLink, err error)
 	// DisablePassportTotp 关闭两步验证（需要密码与验证码）
 	DisablePassportTotp(ctx context.Context, req *DisablePassportTotpRequest, opts ...http.CallOption) (rsp *PassportMe, err error)
 	// EnablePassportTotp 输入身份验证器的验证码确认开启，返回恢复码（只显示这一次）
@@ -1201,20 +1241,24 @@ type PassportServiceHTTPClient interface {
 	GetPassportGame(ctx context.Context, req *PassportGameRequest, opts ...http.CallOption) (rsp *PassportGameResponse, err error)
 	// GetPassportGameBrief 首页卡片用的摘要（刷新绑定快照；不记录 last_seen_at）
 	GetPassportGameBrief(ctx context.Context, req *PassportGameRequest, opts ...http.CallOption) (rsp *PassportGameResponse, err error)
+	// GetPassportLaunchApp 一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；
+	// 应用 ID 不存在或服务器不可启动时 404 PASSPORT_APP_NOT_FOUND
+	GetPassportLaunchApp(ctx context.Context, req *PassportLaunchAppRequest, opts ...http.CallOption) (rsp *PassportLaunchApp, err error)
 	// GetPassportMe 当前账号：资料、安全状态与计数
 	GetPassportMe(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *PassportMe, err error)
-	// GetPassportOidcAuthorization 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
-	GetPassportOidcAuthorization(ctx context.Context, req *PassportOidcAuthorizeRequest, opts ...http.CallOption) (rsp *PassportOidcAuthorizationInfo, err error)
+	// IssuePassportLaunchTicket 签发启动票据（游戏服务端 SDK 用它开会话，有效 120 秒，只能用一次），并记录绑定的最近使用时间
+	IssuePassportLaunchTicket(ctx context.Context, req *PassportLaunchAppRequest, opts ...http.CallOption) (rsp *PassportLaunchTicket, err error)
 	// ListPassportActivity 最近活动：登录、绑定与解绑、自助操作、兑换码（都来自真实记录）
 	ListPassportActivity(ctx context.Context, req *ListPassportActivityRequest, opts ...http.CallOption) (rsp *ListPassportActivityResponse, err error)
-	// ListPassportApps 授权的应用（用「用户通行证登录」登录过的游戏与应用）
-	ListPassportApps(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *ListPassportAppsResponse, err error)
 	// ListPassportDevices 登录设备
 	ListPassportDevices(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *ListPassportDevicesResponse, err error)
 	// ListPassportGameRecords 操作记录（我在这台服务器上的自助操作与兑换码）
 	ListPassportGameRecords(ctx context.Context, req *ListPassportGameRecordsRequest, opts ...http.CallOption) (rsp *ListPassportGameRecordsResponse, err error)
 	// ListPassportGameRequests 我的申请（需要审批的自助操作）
 	ListPassportGameRequests(ctx context.Context, req *ListPassportGameRecordsRequest, opts ...http.CallOption) (rsp *ListPassportGameRecordsResponse, err error)
+	// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+	// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
+	ListPassportLaunchApps(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *ListPassportLaunchAppsResponse, err error)
 	// ListPassportLinks 我绑定的游戏账号（按游戏分组展示）
 	ListPassportLinks(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *ListPassportLinksResponse, err error)
 	// ListPassportMessages 消息
@@ -1245,11 +1289,9 @@ type PassportServiceHTTPClient interface {
 	RegeneratePassportRecoveryCodes(ctx context.Context, req *PassportTotpCodeRequest, opts ...http.CallOption) (rsp *PassportRecoveryCodes, err error)
 	// RequestPassportDeletion 申请注销（7 天后删除，期间可撤销）
 	RequestPassportDeletion(ctx context.Context, req *RequestPassportDeletionRequest, opts ...http.CallOption) (rsp *PassportMe, err error)
-	// RevokePassportApp 撤销授权（已签发的访问令牌随之失效，下次需要重新确认）
-	RevokePassportApp(ctx context.Context, req *RevokePassportAppRequest, opts ...http.CallOption) (rsp *PassportEmpty, err error)
 	// RevokePassportDevice 让某台设备下线
 	RevokePassportDevice(ctx context.Context, req *RevokePassportDeviceRequest, opts ...http.CallOption) (rsp *PassportEmpty, err error)
-	// SearchPassportBindServers 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
+	// SearchPassportBindServers 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（链接带 ?server= 时预选）
 	SearchPassportBindServers(ctx context.Context, req *SearchPassportBindServersRequest, opts ...http.CallOption) (rsp *SearchPassportBindServersResponse, err error)
 	// SendPassportEmailChangeCode 发送更换邮箱的验证码（发到新邮箱）
 	SendPassportEmailChangeCode(ctx context.Context, req *SendPassportEmailCodeRequest, opts ...http.CallOption) (rsp *SendPassportEmailCodeResponse, err error)
@@ -1279,13 +1321,12 @@ func NewPassportServiceHTTPClient(client *http.Client) PassportServiceHTTPClient
 	return &PassportServiceHTTPClientImpl{client}
 }
 
-// ApprovePassportOidcAuthorization 同意授权：生成授权码，返回应用的回调地址。应用关联了游戏服务器时要求已在那台服务器绑定游戏账号，
-// 或 create_game_account=true：经 MGP 新建一个游戏账号并以 oidc 方式绑定后再继续
-func (c *PassportServiceHTTPClientImpl) ApprovePassportOidcAuthorization(ctx context.Context, in *PassportOidcAuthorizeRequest, opts ...http.CallOption) (*PassportOidcAuthorizeResponse, error) {
-	var out PassportOidcAuthorizeResponse
-	pattern := "/api/v1/oidc/authorize"
+// BindPassportAccount 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
+func (c *PassportServiceHTTPClientImpl) BindPassportAccount(ctx context.Context, in *BindPassportAccountRequest, opts ...http.CallOption) (*PassportLink, error) {
+	var out PassportLink
+	pattern := "/api/v1/bind"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationPassportServiceApprovePassportOidcAuthorization))
+	opts = append(opts, http.Operation(OperationPassportServiceBindPassportAccount))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1294,12 +1335,12 @@ func (c *PassportServiceHTTPClientImpl) ApprovePassportOidcAuthorization(ctx con
 	return &out, nil
 }
 
-// BindPassportAccount 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
-func (c *PassportServiceHTTPClientImpl) BindPassportAccount(ctx context.Context, in *BindPassportAccountRequest, opts ...http.CallOption) (*PassportLink, error) {
+// BindPassportLaunchApp 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
+func (c *PassportServiceHTTPClientImpl) BindPassportLaunchApp(ctx context.Context, in *BindPassportLaunchAppRequest, opts ...http.CallOption) (*PassportLink, error) {
 	var out PassportLink
-	pattern := "/api/v1/bind"
+	pattern := "/api/v1/launch/apps/{app_id}/bind"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationPassportServiceBindPassportAccount))
+	opts = append(opts, http.Operation(OperationPassportServiceBindPassportLaunchApp))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1356,6 +1397,20 @@ func (c *PassportServiceHTTPClientImpl) CompletePassportAvatar(ctx context.Conte
 	pattern := "/api/v1/me/avatar/complete"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationPassportServiceCompletePassportAvatar))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CreatePassportLaunchAccount 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
+func (c *PassportServiceHTTPClientImpl) CreatePassportLaunchAccount(ctx context.Context, in *PassportLaunchAppRequest, opts ...http.CallOption) (*PassportLink, error) {
+	var out PassportLink
+	pattern := "/api/v1/launch/apps/{app_id}/account"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPassportServiceCreatePassportLaunchAccount))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1434,6 +1489,21 @@ func (c *PassportServiceHTTPClientImpl) GetPassportGameBrief(ctx context.Context
 	return &out, nil
 }
 
+// GetPassportLaunchApp 一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；
+// 应用 ID 不存在或服务器不可启动时 404 PASSPORT_APP_NOT_FOUND
+func (c *PassportServiceHTTPClientImpl) GetPassportLaunchApp(ctx context.Context, in *PassportLaunchAppRequest, opts ...http.CallOption) (*PassportLaunchApp, error) {
+	var out PassportLaunchApp
+	pattern := "/api/v1/launch/apps/{app_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationPassportServiceGetPassportLaunchApp))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetPassportMe 当前账号：资料、安全状态与计数
 func (c *PassportServiceHTTPClientImpl) GetPassportMe(ctx context.Context, in *PassportEmpty, opts ...http.CallOption) (*PassportMe, error) {
 	var out PassportMe
@@ -1448,14 +1518,14 @@ func (c *PassportServiceHTTPClientImpl) GetPassportMe(ctx context.Context, in *P
 	return &out, nil
 }
 
-// GetPassportOidcAuthorization 授权确认页：校验请求并返回应用信息（已授权过且范围不变时 granted=true）与关联服务器上的游戏账号状态
-func (c *PassportServiceHTTPClientImpl) GetPassportOidcAuthorization(ctx context.Context, in *PassportOidcAuthorizeRequest, opts ...http.CallOption) (*PassportOidcAuthorizationInfo, error) {
-	var out PassportOidcAuthorizationInfo
-	pattern := "/api/v1/oidc/authorize"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationPassportServiceGetPassportOidcAuthorization))
+// IssuePassportLaunchTicket 签发启动票据（游戏服务端 SDK 用它开会话，有效 120 秒，只能用一次），并记录绑定的最近使用时间
+func (c *PassportServiceHTTPClientImpl) IssuePassportLaunchTicket(ctx context.Context, in *PassportLaunchAppRequest, opts ...http.CallOption) (*PassportLaunchTicket, error) {
+	var out PassportLaunchTicket
+	pattern := "/api/v1/launch/apps/{app_id}/ticket"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPassportServiceIssuePassportLaunchTicket))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1468,20 +1538,6 @@ func (c *PassportServiceHTTPClientImpl) ListPassportActivity(ctx context.Context
 	pattern := "/api/v1/me/activity"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationPassportServiceListPassportActivity))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ListPassportApps 授权的应用（用「用户通行证登录」登录过的游戏与应用）
-func (c *PassportServiceHTTPClientImpl) ListPassportApps(ctx context.Context, in *PassportEmpty, opts ...http.CallOption) (*ListPassportAppsResponse, error) {
-	var out ListPassportAppsResponse
-	pattern := "/api/v1/me/apps"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationPassportServiceListPassportApps))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -1524,6 +1580,21 @@ func (c *PassportServiceHTTPClientImpl) ListPassportGameRequests(ctx context.Con
 	pattern := "/api/v1/games/{server_id}/requests"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationPassportServiceListPassportGameRequests))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
+func (c *PassportServiceHTTPClientImpl) ListPassportLaunchApps(ctx context.Context, in *PassportEmpty, opts ...http.CallOption) (*ListPassportLaunchAppsResponse, error) {
+	var out ListPassportLaunchAppsResponse
+	pattern := "/api/v1/launch/apps"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationPassportServiceListPassportLaunchApps))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -1742,20 +1813,6 @@ func (c *PassportServiceHTTPClientImpl) RequestPassportDeletion(ctx context.Cont
 	return &out, nil
 }
 
-// RevokePassportApp 撤销授权（已签发的访问令牌随之失效，下次需要重新确认）
-func (c *PassportServiceHTTPClientImpl) RevokePassportApp(ctx context.Context, in *RevokePassportAppRequest, opts ...http.CallOption) (*PassportEmpty, error) {
-	var out PassportEmpty
-	pattern := "/api/v1/me/apps/{id}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationPassportServiceRevokePassportApp))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // RevokePassportDevice 让某台设备下线
 func (c *PassportServiceHTTPClientImpl) RevokePassportDevice(ctx context.Context, in *RevokePassportDeviceRequest, opts ...http.CallOption) (*PassportEmpty, error) {
 	var out PassportEmpty
@@ -1770,7 +1827,7 @@ func (c *PassportServiceHTTPClientImpl) RevokePassportDevice(ctx context.Context
 	return &out, nil
 }
 
-// SearchPassportBindServers 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（授权页跳来时预选）
+// SearchPassportBindServers 绑定时选服务器：搜索（名称或邀请码，最多 20 条）+ 推荐（最多 5 个公开服务器）+ 指定的服务器（链接带 ?server= 时预选）
 func (c *PassportServiceHTTPClientImpl) SearchPassportBindServers(ctx context.Context, in *SearchPassportBindServersRequest, opts ...http.CallOption) (*SearchPassportBindServersResponse, error) {
 	var out SearchPassportBindServersResponse
 	pattern := "/api/v1/bind/servers"

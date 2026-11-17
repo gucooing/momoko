@@ -72,63 +72,55 @@ const (
 func passportErr(status int, code string) error { return response.BadRequest(status, code) }
 
 var (
-	ErrPassportUnauthorized       = passportErr(401, "PASSPORT_UNAUTHORIZED")
-	ErrPassportInvalidArgument    = passportErr(400, "PASSPORT_INVALID_ARGUMENT")
-	ErrPassportRegisterClosed     = passportErr(403, "PASSPORT_REGISTER_CLOSED")
-	ErrPassportInviteRequired     = passportErr(400, "PASSPORT_INVITE_REQUIRED")
-	ErrPassportInviteInvalid      = passportErr(400, "PASSPORT_INVITE_INVALID")
-	ErrPassportUsernameInvalid    = passportErr(400, "PASSPORT_USERNAME_INVALID")
-	ErrPassportUsernameTaken      = passportErr(409, "PASSPORT_USERNAME_TAKEN")
-	ErrPassportEmailRequired      = passportErr(400, "PASSPORT_EMAIL_REQUIRED")
-	ErrPassportEmailInvalid       = passportErr(400, "PASSPORT_EMAIL_INVALID")
-	ErrPassportEmailTaken         = passportErr(409, "PASSPORT_EMAIL_TAKEN")
-	ErrPassportEmailUnavailable   = passportErr(400, "PASSPORT_EMAIL_UNAVAILABLE")
-	ErrPassportEmailLoginOff      = passportErr(403, "PASSPORT_EMAIL_LOGIN_DISABLED")
-	ErrPassportPasswordTooShort   = passportErr(400, "PASSPORT_PASSWORD_TOO_SHORT")
-	ErrPassportPasswordInvalid    = passportErr(400, "PASSPORT_PASSWORD_INVALID")
-	ErrPassportCodeInvalid        = passportErr(400, "PASSPORT_CODE_INVALID")
-	ErrPassportCodeTooFrequent    = passportErr(429, "PASSPORT_CODE_TOO_FREQUENT")
-	ErrPassportCredentials        = passportErr(400, "PASSPORT_CREDENTIALS_INVALID")
-	ErrPassportLocked             = passportErr(429, "PASSPORT_LOCKED")
-	ErrPassportDisabled           = passportErr(403, "PASSPORT_ACCOUNT_DISABLED")
-	ErrPassportMfaInvalid         = passportErr(400, "PASSPORT_MFA_INVALID")
-	ErrPassportMfaExpired         = passportErr(400, "PASSPORT_MFA_EXPIRED")
-	ErrPassportTotpNotSetup       = passportErr(400, "PASSPORT_TOTP_NOT_SETUP")
-	ErrPassportTotpEnabled        = passportErr(400, "PASSPORT_TOTP_ALREADY_ENABLED")
-	ErrPassportTotpDisabled       = passportErr(400, "PASSPORT_TOTP_NOT_ENABLED")
-	ErrPassportTotpRequired       = passportErr(400, "PASSPORT_TOTP_REQUIRED")
-	ErrPassportUserNotFound       = passportErr(404, "PASSPORT_USER_NOT_FOUND")
-	ErrPassportSessionNotFound    = passportErr(404, "PASSPORT_SESSION_NOT_FOUND")
-	ErrPassportAppNotFound        = passportErr(404, "PASSPORT_APP_NOT_FOUND")
-	ErrPassportLinkNotFound       = passportErr(404, "PASSPORT_LINK_NOT_FOUND")
-	ErrPassportServerNotBindable  = passportErr(403, "PASSPORT_SERVER_NOT_BINDABLE")
-	ErrPassportBindUnsupported    = passportErr(400, "PASSPORT_BIND_UNSUPPORTED")
-	ErrPassportAlreadyLinked      = passportErr(409, "PASSPORT_ALREADY_LINKED")
-	ErrPassportAccountTaken       = passportErr(409, "PASSPORT_GAME_ACCOUNT_TAKEN")
-	ErrPassportBindCooldown       = passportErr(409, "PASSPORT_BIND_COOLDOWN")
-	ErrPassportGameCredentials    = passportErr(400, "PASSPORT_GAME_CREDENTIALS_INVALID")
-	ErrPassportBindTooMany        = passportErr(429, "PASSPORT_BIND_TOO_MANY_ATTEMPTS")
-	ErrPassportSelfServiceClosed  = passportErr(403, "PASSPORT_SELF_SERVICE_CLOSED")
-	ErrPassportSelfServiceLimit   = passportErr(429, "PASSPORT_SELF_SERVICE_LIMIT")
-	ErrPassportSelfServicePending = passportErr(409, "PASSPORT_SELF_SERVICE_PENDING")
-	ErrPassportGameUnavailable    = passportErr(502, "PASSPORT_GAME_UNAVAILABLE")
-	ErrPassportAvatarAsset        = passportErr(400, "PASSPORT_AVATAR_ASSET_INVALID")
-	ErrPassportNameTooLong        = passportErr(400, "PASSPORT_NAME_TOO_LONG")
-	ErrPassportBioTooLong         = passportErr(400, "PASSPORT_BIO_TOO_LONG")
-	ErrPassportTimezoneInvalid    = passportErr(400, "PASSPORT_TIMEZONE_INVALID")
-	ErrPassportOidcDisabled       = passportErr(403, "PASSPORT_OIDC_DISABLED")
-	ErrPassportOidcClient         = passportErr(400, "PASSPORT_OIDC_INVALID_CLIENT")
-	ErrPassportOidcRequest        = passportErr(400, "PASSPORT_OIDC_INVALID_REQUEST")
-	ErrPassportOidcRedirect       = passportErr(400, "PASSPORT_OIDC_INVALID_REDIRECT")
-	ErrPassportOidcScope          = passportErr(400, "PASSPORT_OIDC_INVALID_SCOPE")
-	ErrPassportOidcGameAccount    = passportErr(409, "PASSPORT_OIDC_GAME_ACCOUNT_REQUIRED")
-	ErrPassportOidcClientNotFound = passportErr(404, "PASSPORT_OIDC_CLIENT_NOT_FOUND")
-	ErrPassportOidcClientName     = passportErr(400, "PASSPORT_OIDC_CLIENT_NAME_REQUIRED")
-	ErrPassportOidcRedirectURIs   = passportErr(400, "PASSPORT_OIDC_REDIRECT_URIS_INVALID")
-	ErrPassportInviteNotFound     = passportErr(404, "PASSPORT_INVITE_NOT_FOUND")
-	ErrPassportInviteCodeTaken    = passportErr(409, "PASSPORT_INVITE_CODE_TAKEN")
-	ErrPassportSettingsInvalid    = passportErr(400, "PASSPORT_SETTINGS_INVALID")
-	ErrPassportPlayerNotFound     = passportErr(404, "PASSPORT_GAME_PLAYER_NOT_FOUND")
+	ErrPassportUnauthorized        = passportErr(401, "PASSPORT_UNAUTHORIZED")
+	ErrPassportInvalidArgument     = passportErr(400, "PASSPORT_INVALID_ARGUMENT")
+	ErrPassportRegisterClosed      = passportErr(403, "PASSPORT_REGISTER_CLOSED")
+	ErrPassportInviteRequired      = passportErr(400, "PASSPORT_INVITE_REQUIRED")
+	ErrPassportInviteInvalid       = passportErr(400, "PASSPORT_INVITE_INVALID")
+	ErrPassportUsernameInvalid     = passportErr(400, "PASSPORT_USERNAME_INVALID")
+	ErrPassportUsernameTaken       = passportErr(409, "PASSPORT_USERNAME_TAKEN")
+	ErrPassportEmailRequired       = passportErr(400, "PASSPORT_EMAIL_REQUIRED")
+	ErrPassportEmailInvalid        = passportErr(400, "PASSPORT_EMAIL_INVALID")
+	ErrPassportEmailTaken          = passportErr(409, "PASSPORT_EMAIL_TAKEN")
+	ErrPassportEmailUnavailable    = passportErr(400, "PASSPORT_EMAIL_UNAVAILABLE")
+	ErrPassportEmailLoginOff       = passportErr(403, "PASSPORT_EMAIL_LOGIN_DISABLED")
+	ErrPassportPasswordTooShort    = passportErr(400, "PASSPORT_PASSWORD_TOO_SHORT")
+	ErrPassportPasswordInvalid     = passportErr(400, "PASSPORT_PASSWORD_INVALID")
+	ErrPassportCodeInvalid         = passportErr(400, "PASSPORT_CODE_INVALID")
+	ErrPassportCodeTooFrequent     = passportErr(429, "PASSPORT_CODE_TOO_FREQUENT")
+	ErrPassportCredentials         = passportErr(400, "PASSPORT_CREDENTIALS_INVALID")
+	ErrPassportLocked              = passportErr(429, "PASSPORT_LOCKED")
+	ErrPassportDisabled            = passportErr(403, "PASSPORT_ACCOUNT_DISABLED")
+	ErrPassportMfaInvalid          = passportErr(400, "PASSPORT_MFA_INVALID")
+	ErrPassportMfaExpired          = passportErr(400, "PASSPORT_MFA_EXPIRED")
+	ErrPassportTotpNotSetup        = passportErr(400, "PASSPORT_TOTP_NOT_SETUP")
+	ErrPassportTotpEnabled         = passportErr(400, "PASSPORT_TOTP_ALREADY_ENABLED")
+	ErrPassportTotpDisabled        = passportErr(400, "PASSPORT_TOTP_NOT_ENABLED")
+	ErrPassportTotpRequired        = passportErr(400, "PASSPORT_TOTP_REQUIRED")
+	ErrPassportUserNotFound        = passportErr(404, "PASSPORT_USER_NOT_FOUND")
+	ErrPassportSessionNotFound     = passportErr(404, "PASSPORT_SESSION_NOT_FOUND")
+	ErrPassportLinkNotFound        = passportErr(404, "PASSPORT_LINK_NOT_FOUND")
+	ErrPassportAppNotFound         = passportErr(404, "PASSPORT_APP_NOT_FOUND")
+	ErrPassportServerNotBindable   = passportErr(403, "PASSPORT_SERVER_NOT_BINDABLE")
+	ErrPassportBindUnsupported     = passportErr(400, "PASSPORT_BIND_UNSUPPORTED")
+	ErrPassportAlreadyLinked       = passportErr(409, "PASSPORT_ALREADY_LINKED")
+	ErrPassportAccountTaken        = passportErr(409, "PASSPORT_GAME_ACCOUNT_TAKEN")
+	ErrPassportBindCooldown        = passportErr(409, "PASSPORT_BIND_COOLDOWN")
+	ErrPassportGameCredentials     = passportErr(400, "PASSPORT_GAME_CREDENTIALS_INVALID")
+	ErrPassportBindTooMany         = passportErr(429, "PASSPORT_BIND_TOO_MANY_ATTEMPTS")
+	ErrPassportGameAccountRequired = passportErr(409, "PASSPORT_GAME_ACCOUNT_REQUIRED")
+	ErrPassportSelfServiceClosed   = passportErr(403, "PASSPORT_SELF_SERVICE_CLOSED")
+	ErrPassportSelfServiceLimit    = passportErr(429, "PASSPORT_SELF_SERVICE_LIMIT")
+	ErrPassportSelfServicePending  = passportErr(409, "PASSPORT_SELF_SERVICE_PENDING")
+	ErrPassportGameUnavailable     = passportErr(502, "PASSPORT_GAME_UNAVAILABLE")
+	ErrPassportAvatarAsset         = passportErr(400, "PASSPORT_AVATAR_ASSET_INVALID")
+	ErrPassportNameTooLong         = passportErr(400, "PASSPORT_NAME_TOO_LONG")
+	ErrPassportBioTooLong          = passportErr(400, "PASSPORT_BIO_TOO_LONG")
+	ErrPassportTimezoneInvalid     = passportErr(400, "PASSPORT_TIMEZONE_INVALID")
+	ErrPassportInviteNotFound      = passportErr(404, "PASSPORT_INVITE_NOT_FOUND")
+	ErrPassportInviteCodeTaken     = passportErr(409, "PASSPORT_INVITE_CODE_TAKEN")
+	ErrPassportSettingsInvalid     = passportErr(400, "PASSPORT_SETTINGS_INVALID")
+	ErrPassportPlayerNotFound      = passportErr(404, "PASSPORT_GAME_PLAYER_NOT_FOUND")
 )
 
 // PassportUserFilter 后台通行证列表的筛选。
@@ -157,7 +149,7 @@ type PassportExecFilter struct {
 	Limit      int
 }
 
-// PassportRepo 用户通行证的持久化：passport_users / sessions / login_logs / messages / invites / oidc，
+// PassportRepo 用户通行证的持久化：passport_users / sessions / login_logs / messages / invites，
 // 以及通行证用户在 game_account_link、game_account_unlink、gm_execution、gift_code_redeem 里的记录。
 type PassportRepo interface {
 	// ---- 用户 ----
@@ -171,7 +163,7 @@ type PassportRepo interface {
 	// UserCounts 各状态 chip 的数量（忽略 f.Status）。
 	UserCounts(ctx context.Context, f PassportUserFilter) (map[string]int32, error)
 	Stats(ctx context.Context, since time.Time) (*PassportStats, error)
-	// DeleteUserCascade 删除用户与其会话、授权、消息、登录记录、绑定（为每个绑定写一条 by=self 的解绑记录）。
+	// DeleteUserCascade 删除用户与其会话、消息、登录记录、绑定（为每个绑定写一条 by=self 的解绑记录）。
 	DeleteUserCascade(ctx context.Context, id string) error
 	DueDeletions(ctx context.Context, now time.Time) ([]*gen.PassportUser, error)
 
@@ -235,27 +227,10 @@ type PassportRepo interface {
 	// ReviewedSince 被审批（批准或驳回）时间晚于 since 的玩家申请。
 	ReviewedSince(ctx context.Context, userID string, since time.Time) ([]*gen.GmExecution, error)
 	ListRedeems(ctx context.Context, userID, serverID string, offset, limit int) ([]*gen.GiftCodeRedeem, int, error)
-
-	// ---- OIDC ----
-	ListOidcClients(ctx context.Context) ([]*gen.PassportOidcClient, error)
-	GetOidcClient(ctx context.Context, id string) (*gen.PassportOidcClient, error)
-	GetOidcClientByClientID(ctx context.Context, clientID string) (*gen.PassportOidcClient, error)
-	CreateOidcClient(ctx context.Context, c *gen.PassportOidcClient) (*gen.PassportOidcClient, error)
-	UpdateOidcClient(ctx context.Context, c *gen.PassportOidcClient) (*gen.PassportOidcClient, error)
-	UpdateOidcClientSecret(ctx context.Context, id, secret string) (*gen.PassportOidcClient, error)
-	DeleteOidcClient(ctx context.Context, id string) error
-	MarkOidcClientUsed(ctx context.Context, id string, at time.Time) error
-	GrantCounts(ctx context.Context) (map[string]int, error)
-	GetGrant(ctx context.Context, userID, clientID string) (*gen.PassportOidcGrant, error)
-	SaveGrant(ctx context.Context, userID, clientID string, scopes []string) (*gen.PassportOidcGrant, error)
-	TouchGrant(ctx context.Context, id string, at time.Time) error
-	ListGrants(ctx context.Context, userID string) ([]*gen.PassportOidcGrant, error)
-	CountGrants(ctx context.Context, userID string) (int, error)
-	DeleteGrant(ctx context.Context, userID, id string) error
 }
 
 // PassportUsecase 用户通行证（玩家端）：独立于 Momoko 管理后台用户的玩家账号体系（自己的账号、会话与令牌），
-// 绑定游戏账号、游戏空间、玩家自助操作与兑换码。只服务注册在独立 passport server 上的玩家接口；
+// 绑定游戏账号、游戏空间、玩家自助操作与兑换码，以及游戏客户端的启动（按客户端应用 ID 查询启动目标、绑定或新建游戏账号、启动票据）。只服务注册在独立 passport server 上的玩家接口；
 // 后台管理（PassportAdminService）由 PassportAdminUsecase 负责，两边互不调用。
 // 自助操作与兑换码写进管理端也读写的表（GM 记录、玩家自助规则、兑换码），经 records / codes 访问。
 type PassportUsecase struct {
@@ -279,13 +254,11 @@ type PassportUsecase struct {
 	mfaChallenges *cache.Cache[string, expiring[mfaChallenge]]
 	totpPending   *cache.Cache[string, expiring[string]]
 	totpUsed      *cache.Cache[string, int64]
-	// OIDC 授权码。
-	oidcCodes *cache.Cache[string, expiring[oidcCode]]
 	// 客户端日志上传：游戏账号（服务器+pid）→ 最近一小时内各次上传的时间。
 	clientLogRate *cache.Cache[string, []time.Time]
 	clientLogMu   sync.Mutex
 
-	// bindLocks 串行化同一服务器上的绑定（键为服务器 id），以及同一用户在同一服务器上的新建游戏账号（键为用户 id + 服务器 id）。
+	// bindLocks 串行化同一服务器上的绑定写入（键为服务器 id），以及同一用户在同一服务器上的绑定与新建游戏账号（键为用户 id + 服务器 id）。
 	bindLocks sync.Map
 	// selfServiceLocks 串行化同一玩家同一自助操作，避免并发绕过次数限制。
 	selfServiceLocks sync.Map
@@ -324,7 +297,6 @@ func NewPassportUsecase(servers *GameServerUsecase, records GmRepo, codes GameOp
 		mfaChallenges: cache.New[string, expiring[mfaChallenge]](passportMfaTTL),
 		totpPending:   cache.New[string, expiring[string]](15 * time.Minute),
 		totpUsed:      cache.New[string, int64](5 * time.Minute),
-		oidcCodes:     cache.New[string, expiring[oidcCode]](10 * time.Minute),
 		clientLogRate: cache.New[string, []time.Time](clientLogRateWindow),
 	}
 	go uc.deletionLoop()
@@ -342,7 +314,6 @@ func defaultPassportSettings() *v1.PassportSettings {
 		RegisterEmailVerification: false,
 		EmailLoginEnabled:         true,
 		SessionDays:               30,
-		OidcEnabled:               false,
 	}
 }
 
@@ -413,7 +384,6 @@ func (uc *PassportUsecase) PublicConfig(ctx context.Context) *v1.GetPassportConf
 		EmailLoginEnabled:         email && s.EmailLoginEnabled,
 		RegisterEmailVerification: email && s.RegisterEmailVerification,
 		EmailEnabled:              email,
-		OidcEnabled:               s.OidcEnabled,
 		UnbindCooldownDays:        int32(PassportUnbindCooldown / (24 * time.Hour)),
 		DeletionGraceDays:         int32(PassportDeletionGrace / (24 * time.Hour)),
 		MinPasswordLength:         MinPasswordLength,

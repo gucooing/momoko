@@ -91,36 +91,6 @@ service PassportAdminService {
       body: "*"
     };
   }
-  // 「用户通行证登录」的 OIDC 应用（游戏 SDK 等）
-  rpc ListPassportOidcClients(ListPassportOidcClientsRequest) returns (ListPassportOidcClientsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/game/passport/oidc-clients"
-    };
-  }
-  rpc CreatePassportOidcClient(SavePassportOidcClientRequest) returns (PassportOidcClient) {
-    option (google.api.http) = {
-      post: "/api/v1/game/passport/oidc-clients"
-      body: "*"
-    };
-  }
-  rpc UpdatePassportOidcClient(SavePassportOidcClientRequest) returns (PassportOidcClient) {
-    option (google.api.http) = {
-      put: "/api/v1/game/passport/oidc-clients/{id}"
-      body: "*"
-    };
-  }
-  rpc DeletePassportOidcClient(DeletePassportOidcClientRequest) returns (DeletePassportOidcClientResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1/game/passport/oidc-clients/{id}"
-    };
-  }
-  // 重新生成 Client Secret（只在本次返回完整值）
-  rpc RefreshPassportOidcClientSecret(DeletePassportOidcClientRequest) returns (PassportOidcClient) {
-    option (google.api.http) = {
-      post: "/api/v1/game/passport/oidc-clients/{id}/secret"
-      body: "*"
-    };
-  }
 }
 
 message GetPassportStatsRequest {}
@@ -217,7 +187,7 @@ message PassportAdminLink {
   string nickname = 6;
   string avatar_asset = 7;
   int32 level = 8;
-  // password / code / oidc / admin / request
+  // password / code / create / admin / request
   string method = 9;
   bool is_primary = 10;
   google.protobuf.Timestamp linked_at = 11;
@@ -237,7 +207,6 @@ message GetPassportUserResponse {
   // 注册用的邀请码
   string invite_code = 8;
   int32 device_count = 9;
-  int32 app_count = 10;
   // 全部绑定，按最近使用排序（没用过的按绑定时间）
   repeated PassportAdminLink links = 11;
   google.protobuf.Timestamp disabled_at = 12;
@@ -340,8 +309,6 @@ message PassportSettings {
   bool email_login_enabled = 4;
   // 保持登录的会话天数（1–365）
   int32 session_days = 5;
-  // 启用「用户通行证登录」（OIDC Provider）
-  bool oidc_enabled = 6;
 }
 
 message GetPassportSettingsResponse {
@@ -352,49 +319,6 @@ message GetPassportSettingsResponse {
   bool server_enabled = 3;
   string listen_addr = 4;
   string public_url = 5;
-  // OIDC issuer 与 Discovery 地址（public_url 为空时按请求推断，无法推断时为空）
-  string oidc_issuer = 6;
-  string oidc_discovery_url = 7;
-  int32 oidc_client_count = 8;
   // 管理员在系统设置里开启了头像储存（通行证头像上传依赖它）
   bool avatar_upload_enabled = 9;
 }
-
-message ListPassportOidcClientsRequest {}
-
-message PassportOidcClient {
-  string id = 1;
-  string name = 2;
-  string client_id = 3;
-  // 创建与重新生成时返回完整值，其余时候脱敏
-  string client_secret = 4;
-  repeated string redirect_uris = 5;
-  repeated string scopes = 6;
-  bool active = 7;
-  string description = 8;
-  GameServerBrief server = 9;
-  google.protobuf.Timestamp last_used_at = 10;
-  google.protobuf.Timestamp create_time = 11;
-  // 授权过的通行证数
-  int32 grant_count = 12;
-}
-
-message ListPassportOidcClientsResponse {
-  repeated PassportOidcClient items = 1;
-}
-
-message SavePassportOidcClientRequest {
-  string id = 1;
-  string name = 2;
-  repeated string redirect_uris = 3;
-  repeated string scopes = 4;
-  bool active = 5;
-  string description = 6;
-  string server_id = 7;
-}
-
-message DeletePassportOidcClientRequest {
-  string id = 1;
-}
-
-message DeletePassportOidcClientResponse {}

@@ -26,7 +26,7 @@ func (GameAccountLink) Fields() []ent.Field {
 		field.String("nickname").Default("").Comment("昵称快照"),
 		field.String("avatar_asset").Default("").Comment("头像资源 ID（偶像卡 / 角色）"),
 		field.Int("level").Default(0).Comment("等级快照"),
-		field.Enum("method").Values("password", "code", "oidc", "admin", "request").Comment("绑定方式：密码 / 绑定码 / 通行证登录 / 管理员 / 申请"),
+		field.Enum("method").Values("password", "code", "create", "admin", "request").Comment("绑定方式：密码 / 绑定码 / 新建的游戏账号 / 管理员 / 申请"),
 		field.Enum("state").Values("active", "pending", "rejected").Default("active").Comment("状态"),
 		field.String("review_note").Default("").Comment("申请被驳回的原因"),
 		field.String("reviewed_by").Default("").Comment("审批的管理员（Momoko 用户）id"),

@@ -113,6 +113,24 @@ func (s *GameServerService) SwitchGameServerMode(ctx context.Context, req *v1.Sw
 	return s.uc.Info(ctx, srv), nil
 }
 
+func (s *GameServerService) GenerateGameServerClientApp(ctx context.Context, req *v1.GenerateGameServerClientAppRequest) (*v1.GameServerClientAppResponse, error) {
+	out, srv, err := s.hosting.IssueClientApp(ctx, req.Id, false, req.Restart)
+	if err != nil {
+		return nil, err
+	}
+	out.Info = s.uc.Info(ctx, srv)
+	return out, nil
+}
+
+func (s *GameServerService) ResetGameServerClientAppSecret(ctx context.Context, req *v1.ResetGameServerClientAppSecretRequest) (*v1.GameServerClientAppResponse, error) {
+	out, srv, err := s.hosting.IssueClientApp(ctx, req.Id, true, req.Restart)
+	if err != nil {
+		return nil, err
+	}
+	out.Info = s.uc.Info(ctx, srv)
+	return out, nil
+}
+
 func (s *GameServerService) RotateGameServerKey(ctx context.Context, req *v1.RotateGameServerKeyRequest) (*v1.RotateGameServerKeyResponse, error) {
 	out, srv, err := s.hosting.RotateKey(ctx, req)
 	if err != nil {
