@@ -132,13 +132,11 @@ var (
 		newDefaultMenu("menu_12_6", entmenu.TypeMenu, "/system/logs", "任务与日志", "HOutline:ClockIcon", new("menu_12"), 2, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_6_button_0", entmenu.TypeButton, "", "后台任务", "", new("menu_12_6"), 0, constant.TaskManage, entmenu.StatusActive),
 		newDefaultMenu("menu_12_4", entmenu.TypeButton, "", "查看操作记录", "", new("menu_12_6"), 1, constant.SystemConfigView, entmenu.StatusActive),
-		// 系统设置：标签 常规 · 登录 · 邮件 / OIDC 身份提供方
+		// 系统设置：常规 · 登录 · 邮件 · 储存 · 版本更新
 		newDefaultMenu("menu_12_5", entmenu.TypeMenu, "/system/settings", "系统设置", "HOutline:AdjustmentsHorizontalIcon", new("menu_12"), 3, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_5_button_0", entmenu.TypeButton, "", "查看系统配置", "", new("menu_12_5"), 0, constant.SystemConfigView, entmenu.StatusActive),
 		newDefaultMenu("menu_12_5_button_1", entmenu.TypeButton, "", "编辑系统配置", "", new("menu_12_5"), 1, constant.SystemConfigEdit, entmenu.StatusActive),
 		newDefaultMenu("menu_12_5_button_2", entmenu.TypeButton, "", "更新检查", "", new("menu_12_5"), 2, constant.SystemUpdate, entmenu.StatusActive),
-		newDefaultMenu("menu_12_7", entmenu.TypeButton, "", "查看 OIDC", "", new("menu_12_5"), 3, constant.OIDCView, entmenu.StatusActive),
-		newDefaultMenu("menu_12_7_button_1", entmenu.TypeButton, "", "编辑 OIDC", "", new("menu_12_5"), 4, constant.OIDCEdit, entmenu.StatusActive),
 	}
 
 	// 旧版菜单（每个子页一个菜单）合并成单页后，把原先拥有子页菜单的自定义角色迁移到新结构：
@@ -162,7 +160,6 @@ var (
 		{Target: "menu_12_6_button_0", Source: "menu_12_6", LegacyPath: "/system/task"},
 		{Target: "menu_12_6", Source: "menu_12_4", LegacyPath: "/system/operation"},
 		{Target: "menu_12_5_button_0", Source: "menu_12_5", LegacyPath: "/system/settings", LegacyPermission: string(constant.SystemConfigView)},
-		{Target: "menu_12_5", Source: "menu_12_7", LegacyPath: "/system/oidc"},
 	}
 	builtinDefaultRoles = []defaultRole{
 		{

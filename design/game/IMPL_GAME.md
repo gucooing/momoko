@@ -41,7 +41,7 @@
 ### 2.1 用户通行证 server（新增）
 
 - 在 Momoko 进程里另起一个 Kratos HTTP server。配置：`passport.enabled`（默认 true）、`passport.addr`（默认 `0.0.0.0:22634`）、`passport.public_url`（玩家与游戏客户端访问通行证用的对外地址，在后台的通行证设置里展示）。
-- 只注册玩家能用的服务：`passport.v1`（注册、登录、找回密码、两步验证、登录设备、绑定 / 解绑游戏账号、游戏空间的服务器与绑定、自助服务规则、我的申请、操作记录、兑换码、消息、游戏客户端启动（见 2.1.1）、游戏客户端错误日志的上传（不用通行证令牌，凭游戏服务端签发的上传票据））和各游戏的通行证服务（学マス：`v1.gakumas.GakumasPassportService`，查看自己的游戏数据、目录、执行开放给玩家的操作）。注册到这个 server 的接口就是玩家能访问的全部接口：玩家不该用的接口不注册，不在处理函数里另加限制。
+- 只注册玩家能用的服务：`passport.v1`（注册、登录、找回密码、两步验证、登录设备、绑定 / 解绑游戏账号、游戏空间的服务器与绑定、自助服务规则、我的申请、操作记录、兑换码、消息、客户端浏览器授权与游戏客户端启动（见 2.1.1）、游戏客户端错误日志的上传（不用通行证令牌，凭游戏服务端签发的上传票据））和各游戏的通行证服务（学マス：`v1.gakumas.GakumasPassportService`，查看自己的游戏数据、目录、执行开放给玩家的操作）。注册到这个 server 的接口就是玩家能访问的全部接口：玩家不该用的接口不注册，不在处理函数里另加限制。
 - 会话：独立 Cookie 名和 JWT `aud=passport`；主 server 拒绝 `aud=passport` 的令牌，passport server 拒绝后台令牌。CORS 各自配置。
 - 账号就是 Momoko 用户表里带「玩家」角色的用户（默认角色「玩家」没有任何后台菜单）。后台的「用户通行证」页管理这些用户。
 - 前端：独立的 Vite 入口（例如 `frontend/passport.html` + `frontend/src/passport/main.ts`，独立 router、独立 store），构建到 `dist/passport/`，passport server 只提供这一份静态产物（SPA 回退同主站）。和后台共享 `src/components/ui/*`、令牌和 `src/games/*`。
@@ -51,7 +51,12 @@
 
 所有游戏客户端（PC 启动器、Android APK）用同一套流程进入游戏，完整协议见启动器仓库的 `docs/login-protocol.md`。Momoko 不提供面向玩家的 OIDC 授权页，游戏服务端也不是 OIDC 客户端。
 
-- 客户端用通行证自己的接口登录（`/api/v1/auth/login`、`/auth/login/mfa`、`/auth/refresh`、`/auth/logout`），注册、找回密码与账号管理在通行证网页完成。
+- 客户端登录（浏览器授权，`internal/biz/passport_client_auth.go`）：客户端不接触通行证的账号、密码或任何登录方式；通行证网页自己的登录接口只供网页使用。
+  - `POST /api/v1/auth/client`（不用登录）：`{client, deviceId, device}`，client 为 `launcher`（Momoko 启动器）或 `android`（学马仕 Android），其他值 400 `PASSPORT_INVALID_ARGUMENT`；返回 `{deviceCode（32 字节随机数的 base64url）, userCode（字母表 BCDFGHJKLMNPQRSTVWXZ 的 8 个字符，显示为 XXXX-XXXX）, verificationUrl（{passport.public_url}/authorize?code=…）, interval: 2, expiresIn: 600}`。同一 IP 10 分钟内最多发起 30 次，超过 429 `PASSPORT_TOO_MANY_REQUESTS`；没配置 `passport.public_url` 时 503 `PASSPORT_PUBLIC_URL_UNSET`。
+  - 授权页 `/authorize`（通行证网页，要登录，没登录时先登录再回来）：`GET /api/v1/auth/client/pending?userCode=` 读出客户端名称、设备名、代码与发起时间，`POST /api/v1/auth/client/approve` / `deny {userCode}` 授权或拒绝（网页会话的 Bearer）。代码不区分大小写、可不带横线；不存在、过期或已处理 404 `PASSPORT_AUTH_NOT_FOUND`；同一用户 15 分钟内输错 10 次后 429 `PASSPORT_TOO_MANY_REQUESTS`；停用的账号（`PASSPORT_ACCOUNT_DISABLED`）与登录失败锁定中的账号（`PASSPORT_LOCKED`）不能授权。
+  - `POST /api/v1/auth/client/token {deviceCode}`（不用登录）：授权后为授权的用户建立这台设备的会话，与登录相同（同一设备只保留一个会话、令牌有效期、新设备提醒、登录记录的方式记为 `client`），返回 `{accessToken, refreshToken, expiresIn}`，`deviceCode` 随即作废；还没授权 400 `PASSPORT_AUTH_PENDING`，距上次领取不到当前间隔 400 `PASSPORT_AUTH_SLOW_DOWN`（间隔加 2 秒），被拒绝 400 `PASSPORT_AUTH_DENIED`，过期、已领取或不存在 400 `PASSPORT_AUTH_EXPIRED`。
+  - 授权请求与登录挑战、邮箱验证码一样只放在进程内存里，600 秒后失效（重启后失效），`deviceCode` 只存 SHA-256。
+  - 会话续期与退出照常用 `/api/v1/auth/refresh`、`/auth/logout`；注册、找回密码与账号管理在通行证网页完成。
 - 客户端应用凭据：每台支持客户端启动的服务器有一组由 Momoko 生成的凭据。
   - 应用 ID：`game_server.client_app_id`，格式为 `app_` 加 10 字节随机数的小写 base32（16 个字符），全局唯一；公开标识，客户端用它指明服务器，也打包进单服务器客户端（APK 的 `Bootstrap.APP_ID`）。
   - 应用密钥：32 字节随机数的无填充 base64url（43 个字符），与 MGP 密钥一样 secretbox 加密保存在 `game_server.client_app_secret`，明文只在生成与重置时返回一次；只配置在游戏服务端，不进入任何客户端。
@@ -157,6 +162,7 @@
 |---|---|---|
 | `PassportHomePC` / `PassportHomeMobile` | `/` | 先账号（资料、安全提醒），再「我的游戏」（按游戏分组，每个服务器一行），消息、最近活动 |
 | `PassportAccountPC` | `/account` | 个人资料、登录与安全、登录设备、游戏账号、注销（原型里的「授权的应用」不实现） |
+| —（无原型） | `/authorize` | 客户端浏览器授权页：要登录（没登录时先登录再回来，`?code=` 保留）；显示客户端名称、设备名、大字的代码（与客户端核对）与发起时间，「授权」「拒绝」；结果为已授权（可以回到游戏）/ 已拒绝 / 已过期或不存在；没带代码时可以输入 |
 | `PortalBindMobile` | `/bind` | 选服务器（搜索 + 按游戏筛选 + 推荐，不列出全部）→ 账号密码绑定（原型里的绑定码、游戏内登录不实现）；`?server=` 预选那台服务器、`?redirect=`（站内路径）绑定后回到那里 |
 | `GameHomePC` / `GameHomeMobile` | `/games/:serverId` | 游戏空间，用游戏皮肤；页头是服务器名和「切换服务器」，背景是我的资料名片（`GetMyMeishiImage`；默认名片没有图片时用头像偶像卡的卡面） |
 | `GameCardsPC` `GameGiftsPC` `GameRecordsPC` `GameSelfPC` | `/games/:serverId?tab=cards\|gifts\|records\|self` | 卡牌（稀有度、偶像与关键字筛选；偶像卡详情列出持有的皮肤与培育记录，支援卡详情可设为援助）、礼物箱、记录（抽卡 / コンテスト / 培育 / 研修；培育记录点开看记忆详情并可设为援助回忆）、自助服务（操作卡片带规则、兑换码、我的申请、操作记录） |

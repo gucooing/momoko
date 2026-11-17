@@ -101,6 +101,59 @@ export interface PassportResetPasswordRequest {
   password: string;
 }
 
+export interface StartPassportClientAuthRequest {
+  /** 客户端：launcher（Momoko 启动器）/ android（学马仕 Android） */
+  client: string;
+  /** 客户端首次运行生成并持久保存的随机 ID（同一设备只保留一个会话） */
+  deviceId: string;
+  /** 设备名 */
+  device: string;
+}
+
+export interface StartPassportClientAuthResponse {
+  /** 32 字节随机数的无填充 base64url：只给客户端，领取会话用 */
+  deviceCode: string;
+  /** 8 个字符（BCDFGHJKLMNPQRSTVWXZ），显示为 XXXX-XXXX，玩家在授权页核对 */
+  userCode: string;
+  /** 授权页：{passport.public_url}/authorize?code=XXXX-XXXX */
+  verificationUrl: string;
+  /** 轮询间隔（秒） */
+  interval: number;
+  /** 有效秒数 */
+  expiresIn: number;
+}
+
+export interface ClaimPassportClientAuthRequest {
+  deviceCode: string;
+}
+
+/** 客户端领取到的会话令牌（与登录相同：访问令牌有效 expires_in 秒，刷新令牌按通行证设置的会话天数）。 */
+export interface PassportClientToken {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+export interface PassportClientAuthCodeRequest {
+  /** XXXX-XXXX（不区分大小写，可以不带横线） */
+  userCode: string;
+}
+
+/** 待授权的客户端请求（授权页显示）。 */
+export interface PassportClientAuth {
+  /** launcher / android */
+  client: string;
+  /** 客户端显示名（Momoko 启动器 / 学马仕 Android） */
+  clientName: string;
+  /** 设备名 */
+  device: string;
+  /** XXXX-XXXX */
+  userCode: string;
+  /** 发起时间与过期时间 */
+  createTime: Date | undefined;
+  expireTime: Date | undefined;
+}
+
 export interface PassportMe {
   id: string;
   username: string;
@@ -221,7 +274,7 @@ export interface PassportDevice {
   lastIp: string;
   /** loopback / lan / public */
   ipScope: string;
-  /** password / email_code / register */
+  /** password / email_code / register / client（客户端浏览器授权） */
   loginMethod: string;
   createTime: Date | undefined;
   lastActiveTime: Date | undefined;

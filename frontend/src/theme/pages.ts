@@ -6,7 +6,7 @@
 //   title / titleKey  页面名（菜单页面来自菜单标题；titleKey 为 i18n 键，优先）
 //   theme: false      不出现在主题编辑器里（错误页、编辑器自己、初始化向导…）
 //   siteTheme: true   访客看到的页面，套用全站默认主题（登录页）
-//   public / authOnly 公开页 / 只需登录的独立页（归到「其它页面」）
+//   public: true      公开页（归到「其它页面」）
 import { computed } from 'vue'
 import { useRouter, type RouteRecordNormalized, type Router } from 'vue-router'
 import type { MenuInfo } from '@/types/v1/system'
@@ -56,7 +56,7 @@ export const listThemePages = (router: Router, menus: MenuInfo[]): ThemePageDef[
     const key = pageKeyOf(r.path)
     if (seen.has(key)) continue
     seen.add(key)
-    const isPublic = !!(r.meta?.public || r.meta?.authOnly || r.meta?.siteTheme)
+    const isPublic = !!(r.meta?.public || r.meta?.siteTheme)
     const inMenu = menuOrder.has(key)
     out.push({
       key,

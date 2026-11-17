@@ -114,9 +114,6 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	iqCheckRepo := data.NewIQCheckRepo(dataData)
 	iqCheckUsecase := biz.NewIQCheckUsecase(iqCheckRepo, manager)
 	iqCheckService := service.NewIQCheckService(iqCheckUsecase)
-	oidcRepo := data.NewOIDCRepo(dataData)
-	oidcUsecase := biz.NewOIDCUsecase(oidcRepo, configRepo, userRepo)
-	oidcService := service.NewOIDCService(oidcUsecase)
 	taskUsecase := biz.NewTaskUsecase(manager, userRepo)
 	taskService := service.NewTaskService(taskUsecase)
 	monitorRepo := data.NewMonitorRepo(dataData)
@@ -139,7 +136,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	passportRepo := data.NewPassportRepo(dataData)
 	passportAdminUsecase := biz.NewPassportAdminUsecase(gameServerUsecase, passportRepo, userRepo, configRepo, configUsecase, logger)
 	passportAdminService := service.NewPassportAdminService(passportAdminUsecase, passport)
-	httpServer := server.NewHTTPServer(confServer, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService, monitorService, themeassetManager, themeService, gameServerService, gameGMService, gakumasGMService, gameOpsService, passportAdminService)
+	httpServer := server.NewHTTPServer(confServer, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, taskService, monitorService, themeassetManager, themeService, gameServerService, gameGMService, gakumasGMService, gameOpsService, passportAdminService)
 	nodeAgentService := service.NewNodeAgentService(nodeAgentUsecase)
 	grpcServer, err := server.NewGRPCServer(confServer, authorization, operationLogMiddleware, httpServer, nodeAgentUsecase, nodeAgentService, systemService, fileService, instanceService, dockerService, networkService, tunnelService, taskService, openSSHService, monitorService)
 	if err != nil {
@@ -154,7 +151,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	}
 	passportUsecase := biz.NewPassportUsecase(gameServerUsecase, gmRepo, gameOpsRepo, gameClientLogRepo, passportRepo, configRepo, configUsecase, systemUsecase, logger)
 	gakumasPassportUsecase := biz.NewGakumasPassportUsecase(gameServerUsecase, passportUsecase, logger)
-	passportService := service.NewPassportService(passportUsecase, gakumasPassportUsecase)
+	passportService := service.NewPassportService(passportUsecase, gakumasPassportUsecase, passport)
 	gakumasPassportService := service.NewGakumasPassportService(gakumasPassportUsecase)
 	passportServer := server.NewPassportServer(passport, passportService, gakumasPassportService)
 	app := newApp(logger, grpcServer, httpServer, passportServer)

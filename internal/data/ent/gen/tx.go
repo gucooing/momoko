@@ -74,8 +74,6 @@ type Tx struct {
 	MonitorSample *MonitorSampleClient
 	// Node is the client for interacting with the Node builders.
 	Node *NodeClient
-	// OIDCClient is the client for interacting with the OIDCClient builders.
-	OIDCClient *OIDCClientClient
 	// OperationLog is the client for interacting with the OperationLog builders.
 	OperationLog *OperationLogClient
 	// PassportInvite is the client for interacting with the PassportInvite builders.
@@ -275,7 +273,6 @@ func (tx *Tx) init() {
 	tx.Menu = NewMenuClient(tx.config)
 	tx.MonitorSample = NewMonitorSampleClient(tx.config)
 	tx.Node = NewNodeClient(tx.config)
-	tx.OIDCClient = NewOIDCClientClient(tx.config)
 	tx.OperationLog = NewOperationLogClient(tx.config)
 	tx.PassportInvite = NewPassportInviteClient(tx.config)
 	tx.PassportLoginLog = NewPassportLoginLogClient(tx.config)

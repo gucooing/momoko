@@ -11,6 +11,7 @@ import type {
   ListPassportMessagesResponse,
   ListPassportSelfServiceResponse,
   PassportGameResponse,
+  PassportClientAuth,
   PassportLink,
   PassportLoginRequest,
   PassportLoginResponse,
@@ -27,6 +28,11 @@ import type {
 } from '@/types/v1/passport'
 
 const seg = encodeURIComponent
+
+// ---------- 客户端浏览器授权（授权页） ----------
+export const getClientAuth = (userCode: string) => http.get<PassportClientAuth>('/auth/client/pending', { userCode })
+export const approveClientAuth = (userCode: string) => http.post<unknown>('/auth/client/approve', { userCode })
+export const denyClientAuth = (userCode: string) => http.post<unknown>('/auth/client/deny', { userCode })
 
 // ---------- 公开 ----------
 export const getConfig = () => http.get<GetPassportConfigResponse>('/config')

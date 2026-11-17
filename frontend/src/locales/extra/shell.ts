@@ -18,7 +18,6 @@ export default {
         mine: '我的',
         profileHint: '资料 · 安全 · 设备',
         settings: '系统设置',
-        oidc: 'OIDC',
         nodesConnected: '已连接 {n} 个节点',
       },
       cmd: {
@@ -156,7 +155,6 @@ export default {
         mine: '我的',
         profileHint: '資料 · 安全 · 裝置',
         settings: '系統設定',
-        oidc: 'OIDC',
         nodesConnected: '已連接 {n} 個節點',
       },
       cmd: {
@@ -294,7 +292,6 @@ export default {
         mine: 'Me',
         profileHint: 'Profile · Security · Devices',
         settings: 'Settings',
-        oidc: 'OIDC',
         nodesConnected: '{n} nodes connected',
       },
       cmd: {

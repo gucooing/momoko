@@ -10,7 +10,8 @@ passport:
   enabled: true
   addr: 0.0.0.0:22634
   timeout: 15s
-  # 对外地址：玩家与游戏客户端访问通行证用的地址（如 https://passport.example.com），在后台的通行证设置里展示
+  # 对外地址：玩家与游戏客户端访问通行证用的地址（如 https://passport.example.com），在后台的通行证设置里展示；
+  # 客户端（启动器、APK）浏览器授权的授权页地址由它拼出，不填时客户端无法发起授权
   public_url: ""
 data:
   database:

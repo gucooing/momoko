@@ -66,6 +66,7 @@ export default {
         password: '密码',
         email_code: '邮箱验证码',
         register: '注册',
+        client: '客户端授权',
       },
       bindMethod: {
         password: '游戏账号密码校验',
@@ -142,6 +143,7 @@ export default {
         password: '密碼',
         email_code: '電郵驗證碼',
         register: '註冊',
+        client: '客戶端授權',
       },
       bindMethod: {
         password: '遊戲帳戶密碼驗證',
@@ -218,6 +220,7 @@ export default {
         password: 'Password',
         email_code: 'Email code',
         register: 'Sign-up',
+        client: 'Client authorization',
       },
       bindMethod: {
         password: 'Game account password check',

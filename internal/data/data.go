@@ -35,7 +35,6 @@ var ProviderSet = wire.NewSet(
 	NewOperationLogRepo,
 	NewInitializeRepo,
 	NewIQCheckRepo,
-	NewOIDCRepo,
 	NewNodeRepo,
 	NewMonitorRepo,
 	NewThemeRepo,

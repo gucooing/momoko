@@ -1051,33 +1051,6 @@ var (
 		Columns:    NodesColumns,
 		PrimaryKey: []*schema.Column{NodesColumns[0]},
 	}
-	// OidcClientsColumns holds the columns for the "oidc_clients" table.
-	OidcClientsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "create_time", Type: field.TypeTime},
-		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
-		{Name: "client_id", Type: field.TypeString, Unique: true},
-		{Name: "client_secret", Type: field.TypeString},
-		{Name: "redirect_uris", Type: field.TypeJSON},
-		{Name: "scopes", Type: field.TypeJSON},
-		{Name: "active", Type: field.TypeBool, Default: true},
-		{Name: "description", Type: field.TypeString, Default: ""},
-		{Name: "last_used_time", Type: field.TypeTime, Nullable: true},
-	}
-	// OidcClientsTable holds the schema information for the "oidc_clients" table.
-	OidcClientsTable = &schema.Table{
-		Name:       "oidc_clients",
-		Columns:    OidcClientsColumns,
-		PrimaryKey: []*schema.Column{OidcClientsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "oidcclient_client_id",
-				Unique:  false,
-				Columns: []*schema.Column{OidcClientsColumns[4]},
-			},
-		},
-	}
 	// OperationLogsColumns holds the columns for the "operation_logs" table.
 	OperationLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1845,7 +1818,6 @@ var (
 		MenusTable,
 		MonitorSamplesTable,
 		NodesTable,
-		OidcClientsTable,
 		OperationLogsTable,
 		PassportInvitesTable,
 		PassportLoginLogsTable,

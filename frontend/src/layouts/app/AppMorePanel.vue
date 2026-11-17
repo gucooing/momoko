@@ -220,11 +220,9 @@ const TAB_ICONS: Record<string, string> = {
   'logs.task': 'HOutline:ClockIcon',
   'logs.operation': 'HOutline:DocumentTextIcon',
   'settings.general': 'HOutline:Cog6ToothIcon',
-  'settings.oidc': 'HOutline:IdentificationIcon',
 }
 const TAB_LABELS: Record<string, string> = {
   'settings.general': 'shell.more.settings',
-  'settings.oidc': 'shell.more.oidc',
 }
 
 const visibleTabs = (key: PageGroupKey) => {

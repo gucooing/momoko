@@ -38,12 +38,6 @@ export const staticRoutes = [
     meta: { keepAlive: false, public: true, titleKey: 'theme.routes.publicIqcheck' },
   },
   {
-    path: '/oidc/authorize',
-    name: 'OIDCAuthorize',
-    component: () => import('@/views/public/oidc/authorize/index.vue'),
-    meta: { keepAlive: false, authOnly: true, titleKey: 'theme.routes.oidcAuthorize' },
-  },
-  {
     // 在线主题编辑器：独立全屏页（无外壳），id 为「我的主题」id 或 new（从当前外观新建）
     path: '/profile/theme/editor/:id',
     name: 'ThemeEditor',

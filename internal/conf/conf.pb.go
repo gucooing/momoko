@@ -237,7 +237,8 @@ type Passport struct {
 	Enabled *bool `protobuf:"varint,1,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
 	// 监听地址，默认 0.0.0.0:22634
 	Addr string `protobuf:"bytes,2,opt,name=addr,proto3" json:"addr,omitempty"`
-	// 对外地址：玩家与游戏客户端访问通行证用的地址（例如 https://passport.example.com），在后台的通行证设置里展示
+	// 对外地址：玩家与游戏客户端访问通行证用的地址（例如 https://passport.example.com），在后台的通行证设置里展示；
+	// 客户端浏览器授权的授权页地址由它拼出，不填时客户端无法发起授权（503 PASSPORT_PUBLIC_URL_UNSET）
 	PublicUrl     string               `protobuf:"bytes,3,opt,name=public_url,json=publicUrl,proto3" json:"public_url,omitempty"`
 	Timeout       *durationpb.Duration `protobuf:"bytes,4,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	unknownFields protoimpl.UnknownFields

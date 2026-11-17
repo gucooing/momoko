@@ -19,15 +19,19 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationPassportServiceApprovePassportClientAuth = "/v1.PassportService/ApprovePassportClientAuth"
 const OperationPassportServiceBindPassportAccount = "/v1.PassportService/BindPassportAccount"
 const OperationPassportServiceBindPassportLaunchApp = "/v1.PassportService/BindPassportLaunchApp"
 const OperationPassportServiceCancelPassportDeletion = "/v1.PassportService/CancelPassportDeletion"
 const OperationPassportServiceChangePassportEmail = "/v1.PassportService/ChangePassportEmail"
 const OperationPassportServiceChangePassportPassword = "/v1.PassportService/ChangePassportPassword"
+const OperationPassportServiceClaimPassportClientAuth = "/v1.PassportService/ClaimPassportClientAuth"
 const OperationPassportServiceCompletePassportAvatar = "/v1.PassportService/CompletePassportAvatar"
 const OperationPassportServiceCreatePassportLaunchAccount = "/v1.PassportService/CreatePassportLaunchAccount"
+const OperationPassportServiceDenyPassportClientAuth = "/v1.PassportService/DenyPassportClientAuth"
 const OperationPassportServiceDisablePassportTotp = "/v1.PassportService/DisablePassportTotp"
 const OperationPassportServiceEnablePassportTotp = "/v1.PassportService/EnablePassportTotp"
+const OperationPassportServiceGetPassportClientAuth = "/v1.PassportService/GetPassportClientAuth"
 const OperationPassportServiceGetPassportConfig = "/v1.PassportService/GetPassportConfig"
 const OperationPassportServiceGetPassportGame = "/v1.PassportService/GetPassportGame"
 const OperationPassportServiceGetPassportGameBrief = "/v1.PassportService/GetPassportGameBrief"
@@ -63,10 +67,13 @@ const OperationPassportServiceSendPassportResetCode = "/v1.PassportService/SendP
 const OperationPassportServiceSetPassportEmailLogin = "/v1.PassportService/SetPassportEmailLogin"
 const OperationPassportServiceSetPassportPrimaryLink = "/v1.PassportService/SetPassportPrimaryLink"
 const OperationPassportServiceSetupPassportTotp = "/v1.PassportService/SetupPassportTotp"
+const OperationPassportServiceStartPassportClientAuth = "/v1.PassportService/StartPassportClientAuth"
 const OperationPassportServiceUnbindPassportLink = "/v1.PassportService/UnbindPassportLink"
 const OperationPassportServiceUpdatePassportProfile = "/v1.PassportService/UpdatePassportProfile"
 
 type PassportServiceHTTPServer interface {
+	// ApprovePassportClientAuth 授权页：把当前登录的通行证授权给这个客户端
+	ApprovePassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportEmpty, error)
 	// BindPassportAccount 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
 	BindPassportAccount(context.Context, *BindPassportAccountRequest) (*PassportLink, error)
 	// BindPassportLaunchApp 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
@@ -77,14 +84,21 @@ type PassportServiceHTTPServer interface {
 	ChangePassportEmail(context.Context, *ChangePassportEmailRequest) (*PassportMe, error)
 	// ChangePassportPassword 修改密码（需要当前密码；其他设备随之下线）
 	ChangePassportPassword(context.Context, *ChangePassportPasswordRequest) (*PassportEmpty, error)
+	// ClaimPassportClientAuth 客户端每 interval 秒领取一次会话：授权后为授权的通行证用户建立这台设备的会话（device_code 随即作废）；
+	// 还没授权 / 轮询过快 / 被拒绝 / 已过期或已领取分别为 400 PASSPORT_AUTH_PENDING / SLOW_DOWN / DENIED / EXPIRED
+	ClaimPassportClientAuth(context.Context, *ClaimPassportClientAuthRequest) (*PassportClientToken, error)
 	// CompletePassportAvatar 直传完成后确认头像
 	CompletePassportAvatar(context.Context, *CompletePassportAvatarRequest) (*PassportMe, error)
 	// CreatePassportLaunchAccount 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
 	CreatePassportLaunchAccount(context.Context, *PassportLaunchAppRequest) (*PassportLink, error)
+	// DenyPassportClientAuth 授权页：拒绝这个客户端
+	DenyPassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportEmpty, error)
 	// DisablePassportTotp 关闭两步验证（需要密码与验证码）
 	DisablePassportTotp(context.Context, *DisablePassportTotpRequest) (*PassportMe, error)
 	// EnablePassportTotp 输入身份验证器的验证码确认开启，返回恢复码（只显示这一次）
 	EnablePassportTotp(context.Context, *EnablePassportTotpRequest) (*PassportRecoveryCodes, error)
+	// GetPassportClientAuth 授权页：读取一个待授权的客户端请求（客户端名称、设备名、user_code、发起时间）；不存在、已过期或已处理时 404 PASSPORT_AUTH_NOT_FOUND
+	GetPassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportClientAuth, error)
 	// GetPassportConfig 公开配置：注册方式、登录方式、站点名称
 	GetPassportConfig(context.Context, *GetPassportConfigRequest) (*GetPassportConfigResponse, error)
 	// GetPassportGame 游戏空间：服务器、绑定与时区；同时记录 last_seen_at。游戏数据由游戏模块的通行证服务提供（学マス：GakumasPassportService）
@@ -157,6 +171,9 @@ type PassportServiceHTTPServer interface {
 	SetPassportPrimaryLink(context.Context, *PassportLinkRequest) (*PassportEmpty, error)
 	// SetupPassportTotp 开始设置两步验证：生成密钥与二维码（确认前不生效）
 	SetupPassportTotp(context.Context, *PassportEmpty) (*SetupPassportTotpResponse, error)
+	// StartPassportClientAuth 客户端（PC 启动器、Android APK）发起浏览器授权：返回领取会话用的 device_code、玩家在网页上核对的 user_code 与授权页地址。
+	// 客户端不接触通行证的账号、密码或任何登录方式；同一 IP 发起过于频繁时 429 PASSPORT_TOO_MANY_REQUESTS
+	StartPassportClientAuth(context.Context, *StartPassportClientAuthRequest) (*StartPassportClientAuthResponse, error)
 	// UnbindPassportLink 解绑（解绑后 7 天内不能在同一服务器绑定别的账号）
 	UnbindPassportLink(context.Context, *PassportLinkRequest) (*PassportEmpty, error)
 	// UpdatePassportProfile 修改资料（昵称、简介、语言、时区、游戏素材头像）
@@ -174,6 +191,11 @@ func RegisterPassportServiceHTTPServer(s *http.Server, srv PassportServiceHTTPSe
 	r.POST("/api/v1/auth/refresh", _PassportService_PassportRefresh0_HTTP_Handler(srv))
 	r.POST("/api/v1/auth/password/reset/email-code", _PassportService_SendPassportResetCode0_HTTP_Handler(srv))
 	r.POST("/api/v1/auth/password/reset", _PassportService_PassportResetPassword0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/client", _PassportService_StartPassportClientAuth0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/client/token", _PassportService_ClaimPassportClientAuth0_HTTP_Handler(srv))
+	r.GET("/api/v1/auth/client/pending", _PassportService_GetPassportClientAuth0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/client/approve", _PassportService_ApprovePassportClientAuth0_HTTP_Handler(srv))
+	r.POST("/api/v1/auth/client/deny", _PassportService_DenyPassportClientAuth0_HTTP_Handler(srv))
 	r.POST("/api/v1/auth/logout", _PassportService_PassportLogout0_HTTP_Handler(srv))
 	r.GET("/api/v1/me", _PassportService_GetPassportMe0_HTTP_Handler(srv))
 	r.PUT("/api/v1/me/profile", _PassportService_UpdatePassportProfile0_HTTP_Handler(srv))
@@ -398,6 +420,113 @@ func _PassportService_PassportResetPassword0_HTTP_Handler(srv PassportServiceHTT
 		http.SetOperation(ctx, OperationPassportServicePassportResetPassword)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.PassportResetPassword(ctx, req.(*PassportResetPasswordRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PassportEmpty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PassportService_StartPassportClientAuth0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in StartPassportClientAuthRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceStartPassportClientAuth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.StartPassportClientAuth(ctx, req.(*StartPassportClientAuthRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StartPassportClientAuthResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PassportService_ClaimPassportClientAuth0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ClaimPassportClientAuthRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceClaimPassportClientAuth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ClaimPassportClientAuth(ctx, req.(*ClaimPassportClientAuthRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PassportClientToken)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PassportService_GetPassportClientAuth0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PassportClientAuthCodeRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceGetPassportClientAuth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetPassportClientAuth(ctx, req.(*PassportClientAuthCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PassportClientAuth)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PassportService_ApprovePassportClientAuth0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PassportClientAuthCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceApprovePassportClientAuth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ApprovePassportClientAuth(ctx, req.(*PassportClientAuthCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PassportEmpty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PassportService_DenyPassportClientAuth0_HTTP_Handler(srv PassportServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PassportClientAuthCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPassportServiceDenyPassportClientAuth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DenyPassportClientAuth(ctx, req.(*PassportClientAuthCodeRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1217,6 +1346,8 @@ func _PassportService_IssuePassportLaunchTicket0_HTTP_Handler(srv PassportServic
 }
 
 type PassportServiceHTTPClient interface {
+	// ApprovePassportClientAuth 授权页：把当前登录的通行证授权给这个客户端
+	ApprovePassportClientAuth(ctx context.Context, req *PassportClientAuthCodeRequest, opts ...http.CallOption) (rsp *PassportEmpty, err error)
 	// BindPassportAccount 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
 	BindPassportAccount(ctx context.Context, req *BindPassportAccountRequest, opts ...http.CallOption) (rsp *PassportLink, err error)
 	// BindPassportLaunchApp 用游戏账号 + 密码把这台服务器上已有的游戏账号绑定到当前通行证（规则同 BindPassportAccount，MGP 校验，密码不保存）
@@ -1227,14 +1358,21 @@ type PassportServiceHTTPClient interface {
 	ChangePassportEmail(ctx context.Context, req *ChangePassportEmailRequest, opts ...http.CallOption) (rsp *PassportMe, err error)
 	// ChangePassportPassword 修改密码（需要当前密码；其他设备随之下线）
 	ChangePassportPassword(ctx context.Context, req *ChangePassportPasswordRequest, opts ...http.CallOption) (rsp *PassportEmpty, err error)
+	// ClaimPassportClientAuth 客户端每 interval 秒领取一次会话：授权后为授权的通行证用户建立这台设备的会话（device_code 随即作废）；
+	// 还没授权 / 轮询过快 / 被拒绝 / 已过期或已领取分别为 400 PASSPORT_AUTH_PENDING / SLOW_DOWN / DENIED / EXPIRED
+	ClaimPassportClientAuth(ctx context.Context, req *ClaimPassportClientAuthRequest, opts ...http.CallOption) (rsp *PassportClientToken, err error)
 	// CompletePassportAvatar 直传完成后确认头像
 	CompletePassportAvatar(ctx context.Context, req *CompletePassportAvatarRequest, opts ...http.CallOption) (rsp *PassportMe, err error)
 	// CreatePassportLaunchAccount 经 MGP account.create 新建游戏账号并以 create 方式绑定；限制与绑定相同，同一用户与服务器串行处理
 	CreatePassportLaunchAccount(ctx context.Context, req *PassportLaunchAppRequest, opts ...http.CallOption) (rsp *PassportLink, err error)
+	// DenyPassportClientAuth 授权页：拒绝这个客户端
+	DenyPassportClientAuth(ctx context.Context, req *PassportClientAuthCodeRequest, opts ...http.CallOption) (rsp *PassportEmpty, err error)
 	// DisablePassportTotp 关闭两步验证（需要密码与验证码）
 	DisablePassportTotp(ctx context.Context, req *DisablePassportTotpRequest, opts ...http.CallOption) (rsp *PassportMe, err error)
 	// EnablePassportTotp 输入身份验证器的验证码确认开启，返回恢复码（只显示这一次）
 	EnablePassportTotp(ctx context.Context, req *EnablePassportTotpRequest, opts ...http.CallOption) (rsp *PassportRecoveryCodes, err error)
+	// GetPassportClientAuth 授权页：读取一个待授权的客户端请求（客户端名称、设备名、user_code、发起时间）；不存在、已过期或已处理时 404 PASSPORT_AUTH_NOT_FOUND
+	GetPassportClientAuth(ctx context.Context, req *PassportClientAuthCodeRequest, opts ...http.CallOption) (rsp *PassportClientAuth, err error)
 	// GetPassportConfig 公开配置：注册方式、登录方式、站点名称
 	GetPassportConfig(ctx context.Context, req *GetPassportConfigRequest, opts ...http.CallOption) (rsp *GetPassportConfigResponse, err error)
 	// GetPassportGame 游戏空间：服务器、绑定与时区；同时记录 last_seen_at。游戏数据由游戏模块的通行证服务提供（学マス：GakumasPassportService）
@@ -1307,6 +1445,9 @@ type PassportServiceHTTPClient interface {
 	SetPassportPrimaryLink(ctx context.Context, req *PassportLinkRequest, opts ...http.CallOption) (rsp *PassportEmpty, err error)
 	// SetupPassportTotp 开始设置两步验证：生成密钥与二维码（确认前不生效）
 	SetupPassportTotp(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *SetupPassportTotpResponse, err error)
+	// StartPassportClientAuth 客户端（PC 启动器、Android APK）发起浏览器授权：返回领取会话用的 device_code、玩家在网页上核对的 user_code 与授权页地址。
+	// 客户端不接触通行证的账号、密码或任何登录方式；同一 IP 发起过于频繁时 429 PASSPORT_TOO_MANY_REQUESTS
+	StartPassportClientAuth(ctx context.Context, req *StartPassportClientAuthRequest, opts ...http.CallOption) (rsp *StartPassportClientAuthResponse, err error)
 	// UnbindPassportLink 解绑（解绑后 7 天内不能在同一服务器绑定别的账号）
 	UnbindPassportLink(ctx context.Context, req *PassportLinkRequest, opts ...http.CallOption) (rsp *PassportEmpty, err error)
 	// UpdatePassportProfile 修改资料（昵称、简介、语言、时区、游戏素材头像）
@@ -1319,6 +1460,20 @@ type PassportServiceHTTPClientImpl struct {
 
 func NewPassportServiceHTTPClient(client *http.Client) PassportServiceHTTPClient {
 	return &PassportServiceHTTPClientImpl{client}
+}
+
+// ApprovePassportClientAuth 授权页：把当前登录的通行证授权给这个客户端
+func (c *PassportServiceHTTPClientImpl) ApprovePassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...http.CallOption) (*PassportEmpty, error) {
+	var out PassportEmpty
+	pattern := "/api/v1/auth/client/approve"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPassportServiceApprovePassportClientAuth))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // BindPassportAccount 用游戏账号 + 密码绑定（游戏服务端 MGP /accounts/verify 校验，密码不保存）
@@ -1391,6 +1546,21 @@ func (c *PassportServiceHTTPClientImpl) ChangePassportPassword(ctx context.Conte
 	return &out, nil
 }
 
+// ClaimPassportClientAuth 客户端每 interval 秒领取一次会话：授权后为授权的通行证用户建立这台设备的会话（device_code 随即作废）；
+// 还没授权 / 轮询过快 / 被拒绝 / 已过期或已领取分别为 400 PASSPORT_AUTH_PENDING / SLOW_DOWN / DENIED / EXPIRED
+func (c *PassportServiceHTTPClientImpl) ClaimPassportClientAuth(ctx context.Context, in *ClaimPassportClientAuthRequest, opts ...http.CallOption) (*PassportClientToken, error) {
+	var out PassportClientToken
+	pattern := "/api/v1/auth/client/token"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPassportServiceClaimPassportClientAuth))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CompletePassportAvatar 直传完成后确认头像
 func (c *PassportServiceHTTPClientImpl) CompletePassportAvatar(ctx context.Context, in *CompletePassportAvatarRequest, opts ...http.CallOption) (*PassportMe, error) {
 	var out PassportMe
@@ -1411,6 +1581,20 @@ func (c *PassportServiceHTTPClientImpl) CreatePassportLaunchAccount(ctx context.
 	pattern := "/api/v1/launch/apps/{app_id}/account"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationPassportServiceCreatePassportLaunchAccount))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DenyPassportClientAuth 授权页：拒绝这个客户端
+func (c *PassportServiceHTTPClientImpl) DenyPassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...http.CallOption) (*PassportEmpty, error) {
+	var out PassportEmpty
+	pattern := "/api/v1/auth/client/deny"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPassportServiceDenyPassportClientAuth))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1441,6 +1625,20 @@ func (c *PassportServiceHTTPClientImpl) EnablePassportTotp(ctx context.Context, 
 	opts = append(opts, http.Operation(OperationPassportServiceEnablePassportTotp))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetPassportClientAuth 授权页：读取一个待授权的客户端请求（客户端名称、设备名、user_code、发起时间）；不存在、已过期或已处理时 404 PASSPORT_AUTH_NOT_FOUND
+func (c *PassportServiceHTTPClientImpl) GetPassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...http.CallOption) (*PassportClientAuth, error) {
+	var out PassportClientAuth
+	pattern := "/api/v1/auth/client/pending"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationPassportServiceGetPassportClientAuth))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1931,6 +2129,21 @@ func (c *PassportServiceHTTPClientImpl) SetupPassportTotp(ctx context.Context, i
 	pattern := "/api/v1/me/totp/setup"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationPassportServiceSetupPassportTotp))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// StartPassportClientAuth 客户端（PC 启动器、Android APK）发起浏览器授权：返回领取会话用的 device_code、玩家在网页上核对的 user_code 与授权页地址。
+// 客户端不接触通行证的账号、密码或任何登录方式；同一 IP 发起过于频繁时 429 PASSPORT_TOO_MANY_REQUESTS
+func (c *PassportServiceHTTPClientImpl) StartPassportClientAuth(ctx context.Context, in *StartPassportClientAuthRequest, opts ...http.CallOption) (*StartPassportClientAuthResponse, error) {
+	var out StartPassportClientAuthResponse
+	pattern := "/api/v1/auth/client"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationPassportServiceStartPassportClientAuth))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

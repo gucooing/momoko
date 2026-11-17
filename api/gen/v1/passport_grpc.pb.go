@@ -28,6 +28,11 @@ const (
 	PassportService_PassportRefresh_FullMethodName                 = "/v1.PassportService/PassportRefresh"
 	PassportService_SendPassportResetCode_FullMethodName           = "/v1.PassportService/SendPassportResetCode"
 	PassportService_PassportResetPassword_FullMethodName           = "/v1.PassportService/PassportResetPassword"
+	PassportService_StartPassportClientAuth_FullMethodName         = "/v1.PassportService/StartPassportClientAuth"
+	PassportService_ClaimPassportClientAuth_FullMethodName         = "/v1.PassportService/ClaimPassportClientAuth"
+	PassportService_GetPassportClientAuth_FullMethodName           = "/v1.PassportService/GetPassportClientAuth"
+	PassportService_ApprovePassportClientAuth_FullMethodName       = "/v1.PassportService/ApprovePassportClientAuth"
+	PassportService_DenyPassportClientAuth_FullMethodName          = "/v1.PassportService/DenyPassportClientAuth"
 	PassportService_PassportLogout_FullMethodName                  = "/v1.PassportService/PassportLogout"
 	PassportService_GetPassportMe_FullMethodName                   = "/v1.PassportService/GetPassportMe"
 	PassportService_UpdatePassportProfile_FullMethodName           = "/v1.PassportService/UpdatePassportProfile"
@@ -92,6 +97,18 @@ type PassportServiceClient interface {
 	SendPassportResetCode(ctx context.Context, in *SendPassportEmailCodeRequest, opts ...grpc.CallOption) (*SendPassportEmailCodeResponse, error)
 	// 用邮箱验证码重设密码（全部设备随之下线）
 	PassportResetPassword(ctx context.Context, in *PassportResetPasswordRequest, opts ...grpc.CallOption) (*PassportEmpty, error)
+	// 客户端（PC 启动器、Android APK）发起浏览器授权：返回领取会话用的 device_code、玩家在网页上核对的 user_code 与授权页地址。
+	// 客户端不接触通行证的账号、密码或任何登录方式；同一 IP 发起过于频繁时 429 PASSPORT_TOO_MANY_REQUESTS
+	StartPassportClientAuth(ctx context.Context, in *StartPassportClientAuthRequest, opts ...grpc.CallOption) (*StartPassportClientAuthResponse, error)
+	// 客户端每 interval 秒领取一次会话：授权后为授权的通行证用户建立这台设备的会话（device_code 随即作废）；
+	// 还没授权 / 轮询过快 / 被拒绝 / 已过期或已领取分别为 400 PASSPORT_AUTH_PENDING / SLOW_DOWN / DENIED / EXPIRED
+	ClaimPassportClientAuth(ctx context.Context, in *ClaimPassportClientAuthRequest, opts ...grpc.CallOption) (*PassportClientToken, error)
+	// 授权页：读取一个待授权的客户端请求（客户端名称、设备名、user_code、发起时间）；不存在、已过期或已处理时 404 PASSPORT_AUTH_NOT_FOUND
+	GetPassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...grpc.CallOption) (*PassportClientAuth, error)
+	// 授权页：把当前登录的通行证授权给这个客户端
+	ApprovePassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...grpc.CallOption) (*PassportEmpty, error)
+	// 授权页：拒绝这个客户端
+	DenyPassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...grpc.CallOption) (*PassportEmpty, error)
 	// 退出当前设备
 	PassportLogout(ctx context.Context, in *PassportEmpty, opts ...grpc.CallOption) (*PassportEmpty, error)
 	// 当前账号：资料、安全状态与计数
@@ -262,6 +279,56 @@ func (c *passportServiceClient) PassportResetPassword(ctx context.Context, in *P
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PassportEmpty)
 	err := c.cc.Invoke(ctx, PassportService_PassportResetPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passportServiceClient) StartPassportClientAuth(ctx context.Context, in *StartPassportClientAuthRequest, opts ...grpc.CallOption) (*StartPassportClientAuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartPassportClientAuthResponse)
+	err := c.cc.Invoke(ctx, PassportService_StartPassportClientAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passportServiceClient) ClaimPassportClientAuth(ctx context.Context, in *ClaimPassportClientAuthRequest, opts ...grpc.CallOption) (*PassportClientToken, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PassportClientToken)
+	err := c.cc.Invoke(ctx, PassportService_ClaimPassportClientAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passportServiceClient) GetPassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...grpc.CallOption) (*PassportClientAuth, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PassportClientAuth)
+	err := c.cc.Invoke(ctx, PassportService_GetPassportClientAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passportServiceClient) ApprovePassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...grpc.CallOption) (*PassportEmpty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PassportEmpty)
+	err := c.cc.Invoke(ctx, PassportService_ApprovePassportClientAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passportServiceClient) DenyPassportClientAuth(ctx context.Context, in *PassportClientAuthCodeRequest, opts ...grpc.CallOption) (*PassportEmpty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PassportEmpty)
+	err := c.cc.Invoke(ctx, PassportService_DenyPassportClientAuth_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -663,6 +730,18 @@ type PassportServiceServer interface {
 	SendPassportResetCode(context.Context, *SendPassportEmailCodeRequest) (*SendPassportEmailCodeResponse, error)
 	// 用邮箱验证码重设密码（全部设备随之下线）
 	PassportResetPassword(context.Context, *PassportResetPasswordRequest) (*PassportEmpty, error)
+	// 客户端（PC 启动器、Android APK）发起浏览器授权：返回领取会话用的 device_code、玩家在网页上核对的 user_code 与授权页地址。
+	// 客户端不接触通行证的账号、密码或任何登录方式；同一 IP 发起过于频繁时 429 PASSPORT_TOO_MANY_REQUESTS
+	StartPassportClientAuth(context.Context, *StartPassportClientAuthRequest) (*StartPassportClientAuthResponse, error)
+	// 客户端每 interval 秒领取一次会话：授权后为授权的通行证用户建立这台设备的会话（device_code 随即作废）；
+	// 还没授权 / 轮询过快 / 被拒绝 / 已过期或已领取分别为 400 PASSPORT_AUTH_PENDING / SLOW_DOWN / DENIED / EXPIRED
+	ClaimPassportClientAuth(context.Context, *ClaimPassportClientAuthRequest) (*PassportClientToken, error)
+	// 授权页：读取一个待授权的客户端请求（客户端名称、设备名、user_code、发起时间）；不存在、已过期或已处理时 404 PASSPORT_AUTH_NOT_FOUND
+	GetPassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportClientAuth, error)
+	// 授权页：把当前登录的通行证授权给这个客户端
+	ApprovePassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportEmpty, error)
+	// 授权页：拒绝这个客户端
+	DenyPassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportEmpty, error)
 	// 退出当前设备
 	PassportLogout(context.Context, *PassportEmpty) (*PassportEmpty, error)
 	// 当前账号：资料、安全状态与计数
@@ -775,6 +854,21 @@ func (UnimplementedPassportServiceServer) SendPassportResetCode(context.Context,
 }
 func (UnimplementedPassportServiceServer) PassportResetPassword(context.Context, *PassportResetPasswordRequest) (*PassportEmpty, error) {
 	return nil, status.Error(codes.Unimplemented, "method PassportResetPassword not implemented")
+}
+func (UnimplementedPassportServiceServer) StartPassportClientAuth(context.Context, *StartPassportClientAuthRequest) (*StartPassportClientAuthResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartPassportClientAuth not implemented")
+}
+func (UnimplementedPassportServiceServer) ClaimPassportClientAuth(context.Context, *ClaimPassportClientAuthRequest) (*PassportClientToken, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClaimPassportClientAuth not implemented")
+}
+func (UnimplementedPassportServiceServer) GetPassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportClientAuth, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPassportClientAuth not implemented")
+}
+func (UnimplementedPassportServiceServer) ApprovePassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportEmpty, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApprovePassportClientAuth not implemented")
+}
+func (UnimplementedPassportServiceServer) DenyPassportClientAuth(context.Context, *PassportClientAuthCodeRequest) (*PassportEmpty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DenyPassportClientAuth not implemented")
 }
 func (UnimplementedPassportServiceServer) PassportLogout(context.Context, *PassportEmpty) (*PassportEmpty, error) {
 	return nil, status.Error(codes.Unimplemented, "method PassportLogout not implemented")
@@ -1066,6 +1160,96 @@ func _PassportService_PassportResetPassword_Handler(srv interface{}, ctx context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PassportServiceServer).PassportResetPassword(ctx, req.(*PassportResetPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassportService_StartPassportClientAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartPassportClientAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassportServiceServer).StartPassportClientAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassportService_StartPassportClientAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassportServiceServer).StartPassportClientAuth(ctx, req.(*StartPassportClientAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassportService_ClaimPassportClientAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClaimPassportClientAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassportServiceServer).ClaimPassportClientAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassportService_ClaimPassportClientAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassportServiceServer).ClaimPassportClientAuth(ctx, req.(*ClaimPassportClientAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassportService_GetPassportClientAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PassportClientAuthCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassportServiceServer).GetPassportClientAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassportService_GetPassportClientAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassportServiceServer).GetPassportClientAuth(ctx, req.(*PassportClientAuthCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassportService_ApprovePassportClientAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PassportClientAuthCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassportServiceServer).ApprovePassportClientAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassportService_ApprovePassportClientAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassportServiceServer).ApprovePassportClientAuth(ctx, req.(*PassportClientAuthCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassportService_DenyPassportClientAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PassportClientAuthCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassportServiceServer).DenyPassportClientAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassportService_DenyPassportClientAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassportServiceServer).DenyPassportClientAuth(ctx, req.(*PassportClientAuthCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1778,6 +1962,26 @@ var PassportService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PassportResetPassword",
 			Handler:    _PassportService_PassportResetPassword_Handler,
+		},
+		{
+			MethodName: "StartPassportClientAuth",
+			Handler:    _PassportService_StartPassportClientAuth_Handler,
+		},
+		{
+			MethodName: "ClaimPassportClientAuth",
+			Handler:    _PassportService_ClaimPassportClientAuth_Handler,
+		},
+		{
+			MethodName: "GetPassportClientAuth",
+			Handler:    _PassportService_GetPassportClientAuth_Handler,
+		},
+		{
+			MethodName: "ApprovePassportClientAuth",
+			Handler:    _PassportService_ApprovePassportClientAuth_Handler,
+		},
+		{
+			MethodName: "DenyPassportClientAuth",
+			Handler:    _PassportService_DenyPassportClientAuth_Handler,
 		},
 		{
 			MethodName: "PassportLogout",

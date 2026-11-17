@@ -21,7 +21,6 @@ var ProviderSet = wire.NewSet(
 	NewInitializeUsecase,
 	NewDockerUsecase,
 	NewIQCheckUsecase,
-	NewOIDCUsecase,
 	NewMonitorUsecase,
 	NewThemeUsecase,
 	NewGameServerUsecase,

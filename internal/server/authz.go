@@ -119,16 +119,6 @@ var operationWritePermissions = map[string]constant.Permissions{
 	// —— 站内消息：发布通知（推送给全部用户）——
 	v1.OperationAuthServicePublishMessage: constant.SystemConfigEdit,
 
-	// —— OIDC 服务端 ——
-	v1.OperationOIDCServiceOIDCConfig:              constant.OIDCView,
-	v1.OperationOIDCServiceListOIDCClients:         constant.OIDCView,
-	v1.OperationOIDCServiceUpdateOIDCConfig:        constant.OIDCEdit,
-	v1.OperationOIDCServiceCreateOIDCClient:        constant.OIDCEdit,
-	v1.OperationOIDCServiceUpdateOIDCClient:        constant.OIDCEdit,
-	v1.OperationOIDCServiceDeleteOIDCClient:        constant.OIDCEdit,
-	v1.OperationOIDCServiceRefreshOIDCClientSecret: constant.OIDCEdit,
-	v1.OperationOIDCServiceRotateOIDCSigningKey:    constant.OIDCEdit,
-
 	// —— 性能监控（修改设置 / 清空历史；查看与导出回退到 MonitorManager 默认的 monitor:view）——
 	v1.OperationMonitorManagerUpdateMonitorSettings: constant.MonitorEdit,
 	v1.OperationMonitorManagerClearMonitorHistory:   constant.MonitorEdit,

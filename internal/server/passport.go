@@ -33,6 +33,9 @@ var passportPublicRoutes = map[publicRoute]struct{}{
 	{method: nethttp.MethodPost, path: "/api/v1/auth/refresh"}:                   {},
 	{method: nethttp.MethodPost, path: "/api/v1/auth/password/reset/email-code"}: {},
 	{method: nethttp.MethodPost, path: "/api/v1/auth/password/reset"}:            {},
+	// 客户端浏览器授权：发起与领取不用登录（授权与拒绝要网页会话）
+	{method: nethttp.MethodPost, path: "/api/v1/auth/client"}:       {},
+	{method: nethttp.MethodPost, path: "/api/v1/auth/client/token"}: {},
 	// 游戏客户端上传错误日志：处理函数自己校验游戏服务端签发的上传票据
 	{method: nethttp.MethodPost, path: service.PassportClientLogPath}: {},
 }

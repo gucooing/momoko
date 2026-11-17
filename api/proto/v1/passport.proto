@@ -75,8 +75,45 @@ service PassportService {
       body: "*"
     };
   }
+  // 客户端（PC 启动器、Android APK）发起浏览器授权：返回领取会话用的 device_code、玩家在网页上核对的 user_code 与授权页地址。
+  // 客户端不接触通行证的账号、密码或任何登录方式；同一 IP 发起过于频繁时 429 PASSPORT_TOO_MANY_REQUESTS
+  rpc StartPassportClientAuth(StartPassportClientAuthRequest) returns (StartPassportClientAuthResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/client"
+      body: "*"
+    };
+  }
+  // 客户端每 interval 秒领取一次会话：授权后为授权的通行证用户建立这台设备的会话（device_code 随即作废）；
+  // 还没授权 / 轮询过快 / 被拒绝 / 已过期或已领取分别为 400 PASSPORT_AUTH_PENDING / SLOW_DOWN / DENIED / EXPIRED
+  rpc ClaimPassportClientAuth(ClaimPassportClientAuthRequest) returns (PassportClientToken) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/client/token"
+      body: "*"
+    };
+  }
 
   // ---------------- 登录后 ----------------
+
+  // 授权页：读取一个待授权的客户端请求（客户端名称、设备名、user_code、发起时间）；不存在、已过期或已处理时 404 PASSPORT_AUTH_NOT_FOUND
+  rpc GetPassportClientAuth(PassportClientAuthCodeRequest) returns (PassportClientAuth) {
+    option (google.api.http) = {
+      get: "/api/v1/auth/client/pending"
+    };
+  }
+  // 授权页：把当前登录的通行证授权给这个客户端
+  rpc ApprovePassportClientAuth(PassportClientAuthCodeRequest) returns (PassportEmpty) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/client/approve"
+      body: "*"
+    };
+  }
+  // 授权页：拒绝这个客户端
+  rpc DenyPassportClientAuth(PassportClientAuthCodeRequest) returns (PassportEmpty) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/client/deny"
+      body: "*"
+    };
+  }
 
   // 退出当前设备
   rpc PassportLogout(PassportEmpty) returns (PassportEmpty) {
@@ -427,6 +464,61 @@ message PassportResetPasswordRequest {
   string password = 3;
 }
 
+// ---------------- 客户端浏览器授权 ----------------
+
+message StartPassportClientAuthRequest {
+  // 客户端：launcher（Momoko 启动器）/ android（学马仕 Android）
+  string client = 1;
+  // 客户端首次运行生成并持久保存的随机 ID（同一设备只保留一个会话）
+  string device_id = 2;
+  // 设备名
+  string device = 3;
+}
+
+message StartPassportClientAuthResponse {
+  // 32 字节随机数的无填充 base64url：只给客户端，领取会话用
+  string device_code = 1;
+  // 8 个字符（BCDFGHJKLMNPQRSTVWXZ），显示为 XXXX-XXXX，玩家在授权页核对
+  string user_code = 2;
+  // 授权页：{passport.public_url}/authorize?code=XXXX-XXXX
+  string verification_url = 3;
+  // 轮询间隔（秒）
+  int32 interval = 4;
+  // 有效秒数
+  int32 expires_in = 5;
+}
+
+message ClaimPassportClientAuthRequest {
+  string device_code = 1;
+}
+
+// 客户端领取到的会话令牌（与登录相同：访问令牌有效 expires_in 秒，刷新令牌按通行证设置的会话天数）。
+message PassportClientToken {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+}
+
+message PassportClientAuthCodeRequest {
+  // XXXX-XXXX（不区分大小写，可以不带横线）
+  string user_code = 1;
+}
+
+// 待授权的客户端请求（授权页显示）。
+message PassportClientAuth {
+  // launcher / android
+  string client = 1;
+  // 客户端显示名（Momoko 启动器 / 学马仕 Android）
+  string client_name = 2;
+  // 设备名
+  string device = 3;
+  // XXXX-XXXX
+  string user_code = 4;
+  // 发起时间与过期时间
+  google.protobuf.Timestamp create_time = 5;
+  google.protobuf.Timestamp expire_time = 6;
+}
+
 // ---------------- 账号 ----------------
 
 message PassportMe {
@@ -547,7 +639,7 @@ message PassportDevice {
   string last_ip = 6;
   // loopback / lan / public
   string ip_scope = 7;
-  // password / email_code / register
+  // password / email_code / register / client（客户端浏览器授权）
   string login_method = 8;
   google.protobuf.Timestamp create_time = 10;
   google.protobuf.Timestamp last_active_time = 11;

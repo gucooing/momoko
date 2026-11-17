@@ -23,7 +23,7 @@ func (uc *PassportUsecase) UploadClientLog(ctx context.Context, owner ClientLogO
 	if err != nil {
 		return nil, err
 	}
-	if !uc.clientLogAllow(owner.ServerID+"\x00"+owner.PID, now) {
+	if !uc.clientLogRate.allow(owner.ServerID+"\x00"+owner.PID, now) {
 		return nil, ErrClientLogRateLimited
 	}
 	saved, err := uc.clientLogs.Create(ctx, row, ClientLogKeep)
@@ -31,23 +31,4 @@ func (uc *PassportUsecase) UploadClientLog(ctx context.Context, owner ClientLogO
 		return nil, ErrSystem(err)
 	}
 	return saved, nil
-}
-
-// clientLogAllow 记一次上传；最近一小时内已有 30 次时拒绝（被拒的不计数）。
-func (uc *PassportUsecase) clientLogAllow(key string, now time.Time) bool {
-	uc.clientLogMu.Lock()
-	defer uc.clientLogMu.Unlock()
-	recent, _ := uc.clientLogRate.Get(key)
-	kept := make([]time.Time, 0, len(recent)+1)
-	for _, at := range recent {
-		if now.Sub(at) < clientLogRateWindow {
-			kept = append(kept, at)
-		}
-	}
-	if len(kept) >= clientLogRateLimit {
-		uc.clientLogRate.Set(key, kept)
-		return false
-	}
-	uc.clientLogRate.Set(key, append(kept, now))
-	return true
 }

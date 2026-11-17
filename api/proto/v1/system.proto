@@ -1364,18 +1364,6 @@ enum OperationType {
   OperationTypeDockerVolumeRestore = 95;
   // Docker 配置测试
   OperationTypeDockerConfigTest = 96;
-  // OIDC 配置更新
-  OperationTypeOIDCConfigUpdate = 97;
-  // OIDC 客户端创建
-  OperationTypeOIDCClientCreate = 98;
-  // OIDC 客户端更新
-  OperationTypeOIDCClientUpdate = 99;
-  // OIDC 客户端删除
-  OperationTypeOIDCClientDelete = 100;
-  // OIDC Client Secret 刷新
-  OperationTypeOIDCClientSecretRefresh = 101;
-  // OIDC 授权码创建
-  OperationTypeOIDCAuthorizationCodeCreate = 102;
   // API Key 删除
   OperationTypeNodeAPIKeyDelete = 103;
   // 节点创建
@@ -1386,8 +1374,6 @@ enum OperationType {
   OperationTypeNodeDelete = 106;
   // 节点连接测试
   OperationTypeNodeTest = 107;
-  // OIDC 签名密钥轮换
-  OperationTypeOIDCSigningKeyRotate = 108;
   // 任务取消
   OperationTypeTaskCancel = 109;
   // 任务重试
@@ -1425,7 +1411,7 @@ message ListOperationLogsRequest {
   google.protobuf.Timestamp end_time = 8;
   // 关键字：匹配请求路径、IP、详情
   optional string keywords = 9;
-  // 模块：操作类型前缀（Auth/User/System/File/Instance/SSHHost/Node/Docker/OIDC/Task）
+  // 模块：操作类型前缀（Auth/User/System/File/Instance/SSHHost/Node/Docker/Task）
   optional string module = 10;
 }
 

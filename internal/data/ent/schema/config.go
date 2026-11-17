@@ -14,7 +14,7 @@ type SystemConfig struct {
 func (SystemConfig) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("key").Unique().NotEmpty().Comment("配置键"),
-		field.Text("value").Default("").Comment("配置值，支持 OIDC 私钥、邮件模板等长文本"),
+		field.Text("value").Default("").Comment("配置值，支持 TLS 证书私钥、邮件模板等长文本"),
 	}
 }
 

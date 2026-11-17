@@ -14,7 +14,7 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
-	"momoko/pkg/oidcserver"
+	"momoko/internal/conf"
 	"momoko/pkg/passporttoken"
 	"momoko/pkg/response"
 )
@@ -25,13 +25,23 @@ type PassportService struct {
 
 	uc      *biz.PassportUsecase
 	gakumas *biz.GakumasPassportUsecase
+	conf    *conf.Passport
 }
 
-func NewPassportService(uc *biz.PassportUsecase, gakumas *biz.GakumasPassportUsecase) *PassportService {
+func NewPassportService(uc *biz.PassportUsecase, gakumas *biz.GakumasPassportUsecase, c *conf.Passport) *PassportService {
 	return &PassportService{
 		uc:      uc,
 		gakumas: gakumas,
+		conf:    c,
 	}
+}
+
+// publicURL 通行证的对外地址（配置文件 passport.public_url，去掉末尾的 /；没填时为空）。
+func (s *PassportService) publicURL() string {
+	if s.conf == nil {
+		return ""
+	}
+	return strings.TrimRight(strings.TrimSpace(s.conf.PublicUrl), "/")
 }
 
 // Usecase 通行证用例（passport server 的鉴权过滤器用）。
@@ -82,6 +92,46 @@ func (s *PassportService) SendPassportResetCode(ctx context.Context, req *v1.Sen
 
 func (s *PassportService) PassportResetPassword(ctx context.Context, req *v1.PassportResetPasswordRequest) (*v1.PassportEmpty, error) {
 	if err := s.uc.ResetPassword(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.PassportEmpty{}, nil
+}
+
+// ---------------- 客户端浏览器授权 ----------------
+
+func (s *PassportService) StartPassportClientAuth(ctx context.Context, req *v1.StartPassportClientAuthRequest) (*v1.StartPassportClientAuthResponse, error) {
+	return s.uc.StartClientAuth(ctx, req, s.publicURL())
+}
+
+func (s *PassportService) ClaimPassportClientAuth(ctx context.Context, req *v1.ClaimPassportClientAuthRequest) (*v1.PassportClientToken, error) {
+	return s.uc.ClaimClientAuth(ctx, req.DeviceCode)
+}
+
+func (s *PassportService) GetPassportClientAuth(ctx context.Context, req *v1.PassportClientAuthCodeRequest) (*v1.PassportClientAuth, error) {
+	c, err := me(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return s.uc.GetClientAuth(ctx, c.UserID, req.UserCode)
+}
+
+func (s *PassportService) ApprovePassportClientAuth(ctx context.Context, req *v1.PassportClientAuthCodeRequest) (*v1.PassportEmpty, error) {
+	c, err := me(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.uc.ApproveClientAuth(ctx, c.UserID, req.UserCode); err != nil {
+		return nil, err
+	}
+	return &v1.PassportEmpty{}, nil
+}
+
+func (s *PassportService) DenyPassportClientAuth(ctx context.Context, req *v1.PassportClientAuthCodeRequest) (*v1.PassportEmpty, error) {
+	c, err := me(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.uc.DenyClientAuth(ctx, c.UserID, req.UserCode); err != nil {
 		return nil, err
 	}
 	return &v1.PassportEmpty{}, nil
@@ -512,7 +562,9 @@ func (s *PassportService) uploadClientLog(w http.ResponseWriter, r *http.Request
 		return
 	}
 	w.Header().Set("Cache-Control", "no-store")
-	oidcserver.WriteJSON(w, http.StatusCreated, map[string]string{
+	w.Header().Set("Content-Type", "application/json;charset=utf-8")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"id":        saved.ID,
 		"createdAt": saved.CreatedAt.UTC().Format(time.RFC3339),
 	})

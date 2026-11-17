@@ -146,11 +146,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
       <div style="font-size: 14px; color: var(--ink2)">对所有用户生效 · 上次修改：今天 10:12，超级管理员</div>
     </div>
 
-    <nav aria-label="系统设置分类" style="display: flex; gap: 28px; border-bottom: 1px solid var(--line); margin-top: -6px">
-      <a class="utab utab-on" href="SettingsPC.dc.html" aria-current="page">常规 · 登录 · 邮件</a>
-      <a class="utab" href="OIDCPC.dc.html">OIDC 身份提供方</a>
-    </nav>
-
     <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
 
       <nav aria-label="本页目录" style="flex: 0 0 200px; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 4px; padding-top: 4px">
@@ -180,10 +175,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
             <div class="fr-c"><input id="f-name" class="fld" type="text" value="Momoko" onChange="{{markGeneral}}"></div>
           </div>
           <div class="fr">
-            <div class="fr-l"><label class="fr-t" for="f-url">对外地址</label><span class="fr-d">分享链接、邮件里的跳转和 OIDC 回调都用这个地址</span></div>
+            <div class="fr-l"><label class="fr-t" for="f-url">对外地址</label><span class="fr-d">分享链接和邮件里的跳转都用这个地址</span></div>
             <div class="fr-c" style="flex-direction: column; align-items: stretch; gap: 6px">
               <input id="f-url" class="fld mono" type="url" value="https://[你的域名]" onChange="{{markGeneral}}">
-              <span style="font-size: 12px; color: var(--ink2)">回调地址：<span class="mono" style="color: var(--ink)">https://[你的域名]/api/auth/oidc/callback</span></span>
             </div>
           </div>
           <div class="fr">

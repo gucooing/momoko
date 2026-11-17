@@ -1,4 +1,4 @@
-<!-- 系统设置（第二期）：标题(作用范围 · 上次修改) → 子导航(系统设置 / OIDC) → 左侧本页目录（手机为横向 chips）+
+<!-- 系统设置（第二期）：标题(作用范围 · 上次修改) → 左侧本页目录（手机为横向 chips）+
      右侧分组卡片：常规 / 登录 / 邮件（含测试与模板列表）/ 储存（头像 S3）/ 版本更新 → 底部吸附保存条（按分组记录修改，一次保存）。
      模板编辑、模板测试发送、预览用 FormDialog。权限：PERM.SYSTEM_CONFIG_EDIT 控制编辑，system:update 控制检查更新。 -->
 <template>
@@ -9,8 +9,6 @@
         <template v-if="lastModifiedText"> · {{ lastModifiedText }}</template>
       </template>
     </PageHeader>
-
-    <SettingsSubNav />
 
     <div class="st-layout">
       <!-- 本页目录 -->
@@ -695,7 +693,6 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import SettingsSubNav from '@/views/system/components/SettingsSubNav.vue'
 import { getLoginConfig, updateLoginConfig } from '@/api/login'
 import {
   getEmailConfig,

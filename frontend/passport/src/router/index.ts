@@ -13,7 +13,8 @@ declare module 'vue-router' {
   }
 }
 
-// 通行证的页面：首页、账号与安全、绑定、消息、我的游戏与游戏空间；登录、注册与找回密码。
+// 通行证的页面：首页、账号与安全、绑定、消息、我的游戏与游戏空间；登录、注册与找回密码；
+// 客户端（启动器、APK）的浏览器授权页（要登录，没登录时先登录再回来，?code= 保留）。
 export const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('@passport/views/auth/LoginView.vue'), meta: { public: true } },
   {
@@ -23,6 +24,7 @@ export const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   { path: '/forgot', name: 'forgot', component: () => import('@passport/views/auth/ForgotView.vue'), meta: { public: true } },
+  { path: '/authorize', name: 'authorize', component: () => import('@passport/views/auth/AuthorizeView.vue') },
   {
     path: '/',
     component: () => import('@passport/layouts/PassportShell.vue'),

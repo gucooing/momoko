@@ -49,6 +49,8 @@ const (
 	PassportLoginPassword  = "password"
 	PassportLoginEmailCode = "email_code"
 	PassportLoginRegister  = "register"
+	// PassportLoginClient 客户端（启动器、APK）经浏览器授权取得的会话
+	PassportLoginClient = "client"
 )
 
 // 消息种类（前端本地化）。
@@ -121,6 +123,13 @@ var (
 	ErrPassportInviteCodeTaken     = passportErr(409, "PASSPORT_INVITE_CODE_TAKEN")
 	ErrPassportSettingsInvalid     = passportErr(400, "PASSPORT_SETTINGS_INVALID")
 	ErrPassportPlayerNotFound      = passportErr(404, "PASSPORT_GAME_PLAYER_NOT_FOUND")
+	ErrPassportTooManyRequests     = passportErr(429, "PASSPORT_TOO_MANY_REQUESTS")
+	ErrPassportPublicURLUnset      = passportErr(503, "PASSPORT_PUBLIC_URL_UNSET")
+	ErrPassportAuthNotFound        = passportErr(404, "PASSPORT_AUTH_NOT_FOUND")
+	ErrPassportAuthPending         = passportErr(400, "PASSPORT_AUTH_PENDING")
+	ErrPassportAuthSlowDown        = passportErr(400, "PASSPORT_AUTH_SLOW_DOWN")
+	ErrPassportAuthDenied          = passportErr(400, "PASSPORT_AUTH_DENIED")
+	ErrPassportAuthExpired         = passportErr(400, "PASSPORT_AUTH_EXPIRED")
 )
 
 // PassportUserFilter 后台通行证列表的筛选。
@@ -254,9 +263,15 @@ type PassportUsecase struct {
 	mfaChallenges *cache.Cache[string, expiring[mfaChallenge]]
 	totpPending   *cache.Cache[string, expiring[string]]
 	totpUsed      *cache.Cache[string, int64]
-	// 客户端日志上传：游戏账号（服务器+pid）→ 最近一小时内各次上传的时间。
-	clientLogRate *cache.Cache[string, []time.Time]
-	clientLogMu   sync.Mutex
+	// 客户端日志上传：每个游戏账号（服务器+pid）每小时的上传次数。
+	clientLogRate *slidingLimit
+	// 客户端浏览器授权：待授权的请求（键为 device_code 的 SHA-256）、user_code → 请求、发起的限流（按 IP）、
+	// 授权页输错 user_code 的次数（按用户）；状态变化都在 clientAuthMu 下进行。
+	clientAuths      *cache.Cache[string, *clientAuth]
+	clientAuthCodes  *cache.Cache[string, string]
+	clientAuthRate   *slidingLimit
+	clientAuthMisses *cache.Cache[string, failCount]
+	clientAuthMu     sync.Mutex
 
 	// bindLocks 串行化同一服务器上的绑定写入（键为服务器 id），以及同一用户在同一服务器上的绑定与新建游戏账号（键为用户 id + 服务器 id）。
 	bindLocks sync.Map
@@ -279,6 +294,37 @@ type failCount struct {
 	First time.Time
 }
 
+// slidingLimit 按键限流：滑动窗口内最多 limit 次，被拒的不计数。
+type slidingLimit struct {
+	mu     sync.Mutex
+	hits   *cache.Cache[string, []time.Time]
+	limit  int
+	window time.Duration
+}
+
+func newSlidingLimit(limit int, window time.Duration) *slidingLimit {
+	return &slidingLimit{hits: cache.New[string, []time.Time](window), limit: limit, window: window}
+}
+
+// allow 记一次；窗口内已满时拒绝。
+func (l *slidingLimit) allow(key string, now time.Time) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	recent, _ := l.hits.Get(key)
+	kept := make([]time.Time, 0, len(recent)+1)
+	for _, at := range recent {
+		if now.Sub(at) < l.window {
+			kept = append(kept, at)
+		}
+	}
+	if len(kept) >= l.limit {
+		l.hits.Set(key, kept)
+		return false
+	}
+	l.hits.Set(key, append(kept, now))
+	return true
+}
+
 func NewPassportUsecase(servers *GameServerUsecase, records GmRepo, codes GameOpsRepo, clientLogs GameClientLogRepo, repo PassportRepo, config ConfigRepo, configUc *ConfigUsecase, system *SystemUsecase, logger log.Logger) *PassportUsecase {
 	uc := &PassportUsecase{
 		servers:       servers,
@@ -297,7 +343,12 @@ func NewPassportUsecase(servers *GameServerUsecase, records GmRepo, codes GameOp
 		mfaChallenges: cache.New[string, expiring[mfaChallenge]](passportMfaTTL),
 		totpPending:   cache.New[string, expiring[string]](15 * time.Minute),
 		totpUsed:      cache.New[string, int64](5 * time.Minute),
-		clientLogRate: cache.New[string, []time.Time](clientLogRateWindow),
+		clientLogRate: newSlidingLimit(clientLogRateLimit, clientLogRateWindow),
+
+		clientAuths:      cache.New[string, *clientAuth](clientAuthTTL),
+		clientAuthCodes:  cache.New[string, string](clientAuthTTL),
+		clientAuthRate:   newSlidingLimit(clientAuthRateLimit, clientAuthRateWindow),
+		clientAuthMisses: cache.New[string, failCount](passportLockWindow),
 	}
 	go uc.deletionLoop()
 	return uc
