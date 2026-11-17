@@ -76,8 +76,6 @@ const (
 
 	// ConfigPassportSettings 用户通行证设置：v1.PassportSettings 的 protojson，空表示用默认值。
 	ConfigPassportSettings ConfigKey = "passport.settings"
-	// ConfigPassportLauncher PC 启动器设置：v1.LauncherSettings 的 protojson，空表示没有设置过。
-	ConfigPassportLauncher ConfigKey = "passport.launcher"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -148,7 +146,6 @@ var configDefaults = map[ConfigKey]string{
 	ConfigStorageAvatar: "",
 
 	ConfigPassportSettings: "",
-	ConfigPassportLauncher: "",
 }
 
 func (k ConfigKey) String() string {

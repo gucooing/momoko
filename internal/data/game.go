@@ -89,6 +89,10 @@ func (r *gameServerRepo) Update(ctx context.Context, s *gen.GameServer) (*gen.Ga
 		SetProcesses(s.Processes).
 		SetOptions(s.Options).
 		SetCover(s.Cover).
+		SetLauncherIcon(s.LauncherIcon).
+		SetLauncherIconKey(s.LauncherIconKey).
+		SetLauncherBackground(s.LauncherBackground).
+		SetLauncherBackgroundKey(s.LauncherBackgroundKey).
 		SetMgpEndpoint(s.MgpEndpoint).
 		SetKeyID(s.KeyID).
 		SetSecret(s.Secret).

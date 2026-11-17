@@ -91,18 +91,6 @@ service PassportAdminService {
       body: "*"
     };
   }
-  // 启动器设置（存在系统配置里），通行证 GET /api/v1/launcher 公开下发给 PC 启动器
-  rpc GetLauncherSettings(GetLauncherSettingsRequest) returns (GetLauncherSettingsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/game/passport/launcher"
-    };
-  }
-  rpc UpdateLauncherSettings(LauncherSettings) returns (GetLauncherSettingsResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/game/passport/launcher"
-      body: "*"
-    };
-  }
 }
 
 message GetPassportStatsRequest {}
@@ -321,36 +309,6 @@ message PassportSettings {
   bool email_login_enabled = 4;
   // 保持登录的会话天数（1–365）
   int32 session_days = 5;
-}
-
-message GetLauncherSettingsRequest {}
-
-// 启动器设置。服务器图标跟随服务器封面，不在这里设置。
-message LauncherSettings {
-  // 启动器公告（最多 500 字），空为不显示
-  string notice = 1;
-  // 各游戏的展示，每个游戏 id 最多一条；游戏必须支持客户端启动
-  repeated LauncherGame games = 2;
-}
-
-// 一款游戏在启动器里的展示
-message LauncherGame {
-  // 游戏 id（适配器 id，例如 gakumas）
-  string game = 1;
-  // 显示名称（必填，最多 40 字）
-  string name = 2;
-  // 标题上方的字标（最多 40 字），空为不显示
-  string wordmark = 3;
-  // 游戏页背景：游戏素材 key（<分组>/<名称>，例如 ui/login-event2d-000），最多 3 张，按顺序显示
-  repeated string backgrounds = 4;
-}
-
-message GetLauncherSettingsResponse {
-  LauncherSettings settings = 1;
-  // 可以设置的游戏：支持客户端启动的游戏 id
-  repeated string games = 2;
-  // 通行证对外地址（图片按它补全；为空时启动器拿不到图片）
-  string public_url = 3;
 }
 
 message GetPassportSettingsResponse {

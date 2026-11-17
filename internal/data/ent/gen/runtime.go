@@ -660,64 +660,80 @@ func init() {
 	gameserverDescCover := gameserverFields[9].Descriptor()
 	// gameserver.DefaultCover holds the default value on creation for the cover field.
 	gameserver.DefaultCover = gameserverDescCover.Default.(string)
+	// gameserverDescLauncherIcon is the schema descriptor for launcher_icon field.
+	gameserverDescLauncherIcon := gameserverFields[10].Descriptor()
+	// gameserver.DefaultLauncherIcon holds the default value on creation for the launcher_icon field.
+	gameserver.DefaultLauncherIcon = gameserverDescLauncherIcon.Default.(string)
+	// gameserverDescLauncherIconKey is the schema descriptor for launcher_icon_key field.
+	gameserverDescLauncherIconKey := gameserverFields[11].Descriptor()
+	// gameserver.DefaultLauncherIconKey holds the default value on creation for the launcher_icon_key field.
+	gameserver.DefaultLauncherIconKey = gameserverDescLauncherIconKey.Default.(string)
+	// gameserverDescLauncherBackground is the schema descriptor for launcher_background field.
+	gameserverDescLauncherBackground := gameserverFields[12].Descriptor()
+	// gameserver.DefaultLauncherBackground holds the default value on creation for the launcher_background field.
+	gameserver.DefaultLauncherBackground = gameserverDescLauncherBackground.Default.(string)
+	// gameserverDescLauncherBackgroundKey is the schema descriptor for launcher_background_key field.
+	gameserverDescLauncherBackgroundKey := gameserverFields[13].Descriptor()
+	// gameserver.DefaultLauncherBackgroundKey holds the default value on creation for the launcher_background_key field.
+	gameserver.DefaultLauncherBackgroundKey = gameserverDescLauncherBackgroundKey.Default.(string)
 	// gameserverDescMgpEndpoint is the schema descriptor for mgp_endpoint field.
-	gameserverDescMgpEndpoint := gameserverFields[10].Descriptor()
+	gameserverDescMgpEndpoint := gameserverFields[14].Descriptor()
 	// gameserver.DefaultMgpEndpoint holds the default value on creation for the mgp_endpoint field.
 	gameserver.DefaultMgpEndpoint = gameserverDescMgpEndpoint.Default.(string)
 	// gameserverDescKeyID is the schema descriptor for key_id field.
-	gameserverDescKeyID := gameserverFields[11].Descriptor()
+	gameserverDescKeyID := gameserverFields[15].Descriptor()
 	// gameserver.DefaultKeyID holds the default value on creation for the key_id field.
 	gameserver.DefaultKeyID = gameserverDescKeyID.Default.(string)
 	// gameserverDescSecret is the schema descriptor for secret field.
-	gameserverDescSecret := gameserverFields[12].Descriptor()
+	gameserverDescSecret := gameserverFields[16].Descriptor()
 	// gameserver.DefaultSecret holds the default value on creation for the secret field.
 	gameserver.DefaultSecret = gameserverDescSecret.Default.(string)
 	// gameserverDescManifest is the schema descriptor for manifest field.
-	gameserverDescManifest := gameserverFields[14].Descriptor()
+	gameserverDescManifest := gameserverFields[18].Descriptor()
 	// gameserver.DefaultManifest holds the default value on creation for the manifest field.
 	gameserver.DefaultManifest = gameserverDescManifest.Default.(string)
 	// gameserverDescStatus is the schema descriptor for status field.
-	gameserverDescStatus := gameserverFields[16].Descriptor()
+	gameserverDescStatus := gameserverFields[20].Descriptor()
 	// gameserver.DefaultStatus holds the default value on creation for the status field.
 	gameserver.DefaultStatus = gameserverDescStatus.Default.(string)
 	// gameserverDescProbeOk is the schema descriptor for probe_ok field.
-	gameserverDescProbeOk := gameserverFields[18].Descriptor()
+	gameserverDescProbeOk := gameserverFields[22].Descriptor()
 	// gameserver.DefaultProbeOk holds the default value on creation for the probe_ok field.
 	gameserver.DefaultProbeOk = gameserverDescProbeOk.Default.(bool)
 	// gameserverDescProbeLatencyMs is the schema descriptor for probe_latency_ms field.
-	gameserverDescProbeLatencyMs := gameserverFields[19].Descriptor()
+	gameserverDescProbeLatencyMs := gameserverFields[23].Descriptor()
 	// gameserver.DefaultProbeLatencyMs holds the default value on creation for the probe_latency_ms field.
 	gameserver.DefaultProbeLatencyMs = gameserverDescProbeLatencyMs.Default.(int)
 	// gameserverDescProbeError is the schema descriptor for probe_error field.
-	gameserverDescProbeError := gameserverFields[20].Descriptor()
+	gameserverDescProbeError := gameserverFields[24].Descriptor()
 	// gameserver.DefaultProbeError holds the default value on creation for the probe_error field.
 	gameserver.DefaultProbeError = gameserverDescProbeError.Default.(string)
 	// gameserverDescTimezone is the schema descriptor for timezone field.
-	gameserverDescTimezone := gameserverFields[23].Descriptor()
+	gameserverDescTimezone := gameserverFields[27].Descriptor()
 	// gameserver.DefaultTimezone holds the default value on creation for the timezone field.
 	gameserver.DefaultTimezone = gameserverDescTimezone.Default.(string)
 	// gameserverDescPassportInviteCode is the schema descriptor for passport_invite_code field.
-	gameserverDescPassportInviteCode := gameserverFields[25].Descriptor()
+	gameserverDescPassportInviteCode := gameserverFields[29].Descriptor()
 	// gameserver.DefaultPassportInviteCode holds the default value on creation for the passport_invite_code field.
 	gameserver.DefaultPassportInviteCode = gameserverDescPassportInviteCode.Default.(string)
 	// gameserverDescClientSdkURL is the schema descriptor for client_sdk_url field.
-	gameserverDescClientSdkURL := gameserverFields[26].Descriptor()
+	gameserverDescClientSdkURL := gameserverFields[30].Descriptor()
 	// gameserver.DefaultClientSdkURL holds the default value on creation for the client_sdk_url field.
 	gameserver.DefaultClientSdkURL = gameserverDescClientSdkURL.Default.(string)
 	// gameserverDescClientGameURL is the schema descriptor for client_game_url field.
-	gameserverDescClientGameURL := gameserverFields[27].Descriptor()
+	gameserverDescClientGameURL := gameserverFields[31].Descriptor()
 	// gameserver.DefaultClientGameURL holds the default value on creation for the client_game_url field.
 	gameserver.DefaultClientGameURL = gameserverDescClientGameURL.Default.(string)
 	// gameserverDescClientResourceURL is the schema descriptor for client_resource_url field.
-	gameserverDescClientResourceURL := gameserverFields[28].Descriptor()
+	gameserverDescClientResourceURL := gameserverFields[32].Descriptor()
 	// gameserver.DefaultClientResourceURL holds the default value on creation for the client_resource_url field.
 	gameserver.DefaultClientResourceURL = gameserverDescClientResourceURL.Default.(string)
 	// gameserverDescClientAppSecret is the schema descriptor for client_app_secret field.
-	gameserverDescClientAppSecret := gameserverFields[30].Descriptor()
+	gameserverDescClientAppSecret := gameserverFields[34].Descriptor()
 	// gameserver.DefaultClientAppSecret holds the default value on creation for the client_app_secret field.
 	gameserver.DefaultClientAppSecret = gameserverDescClientAppSecret.Default.(string)
 	// gameserverDescRemark is the schema descriptor for remark field.
-	gameserverDescRemark := gameserverFields[31].Descriptor()
+	gameserverDescRemark := gameserverFields[35].Descriptor()
 	// gameserver.DefaultRemark holds the default value on creation for the remark field.
 	gameserver.DefaultRemark = gameserverDescRemark.Default.(string)
 	// gameserverDescID is the schema descriptor for id field.

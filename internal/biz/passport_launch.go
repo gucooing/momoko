@@ -104,8 +104,8 @@ func (uc *PassportUsecase) gameAccountBlock(ctx context.Context, userID string, 
 	return ""
 }
 
-// launchApp 一个启动目标：有绑定时带上绑定，没有时带上能否绑定或新建；图标为服务器卡片那张卡的方图（publicURL 为通行证对外地址）。
-func (uc *PassportUsecase) launchApp(ctx context.Context, userID string, s *gen.GameServer, l *gen.GameAccountLink, inviteServer string, servers map[string]*gen.GameServer, selfService map[string]int, publicURL string) *v1.PassportLaunchApp {
+// launchApp 一个启动目标：有绑定时带上绑定，没有时带上能否绑定或新建。
+func (uc *PassportUsecase) launchApp(ctx context.Context, userID string, s *gen.GameServer, l *gen.GameAccountLink, inviteServer string, servers map[string]*gen.GameServer, selfService map[string]int) *v1.PassportLaunchApp {
 	out := &v1.PassportLaunchApp{
 		AppId:  derefString(s.ClientAppID),
 		Server: uc.Servers().Brief(ctx, s),
@@ -114,9 +114,8 @@ func (uc *PassportUsecase) launchApp(ctx context.Context, userID string, s *gen.
 			Game:     s.ClientGameURL,
 			Resource: s.ClientResourceURL,
 		},
-	}
-	if p := serverIconPath(s); p != "" && publicURL != "" {
-		out.Icon = publicURL + p
+		Icon:       s.LauncherIcon,
+		Background: s.LauncherBackground,
 	}
 	if l != nil {
 		out.Link = uc.linkProto(ctx, l, servers, selfService)
@@ -129,7 +128,7 @@ func (uc *PassportUsecase) launchApp(ctx context.Context, userID string, s *gen.
 
 // LaunchApps 可启动、并且用户在上面有绑定或服务器对用户可见的启动目标（PC 启动器）。
 // 有绑定的在前（按最近使用倒序），其余按服务器名称。
-func (uc *PassportUsecase) LaunchApps(ctx context.Context, userID, publicURL string) (*v1.ListPassportLaunchAppsResponse, error) {
+func (uc *PassportUsecase) LaunchApps(ctx context.Context, userID string) (*v1.ListPassportLaunchAppsResponse, error) {
 	u, err := uc.user(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -171,16 +170,16 @@ func (uc *PassportUsecase) LaunchApps(ctx context.Context, userID, publicURL str
 	ss := uc.selfServiceCounts(ctx)
 	out := &v1.ListPassportLaunchAppsResponse{Apps: []*v1.PassportLaunchApp{}}
 	for _, l := range linked {
-		out.Apps = append(out.Apps, uc.launchApp(ctx, userID, servers[l.ServerID], l, invServer, servers, ss, publicURL))
+		out.Apps = append(out.Apps, uc.launchApp(ctx, userID, servers[l.ServerID], l, invServer, servers, ss))
 	}
 	for _, s := range others {
-		out.Apps = append(out.Apps, uc.launchApp(ctx, userID, s, nil, invServer, servers, ss, publicURL))
+		out.Apps = append(out.Apps, uc.launchApp(ctx, userID, s, nil, invServer, servers, ss))
 	}
 	return out, nil
 }
 
 // LaunchApp 一个启动目标（单服务器客户端）：服务器对用户不可见、也没有绑定时照常返回，bindable=false、block_reason=not_visible。
-func (uc *PassportUsecase) LaunchApp(ctx context.Context, userID, appID, publicURL string) (*v1.PassportLaunchApp, error) {
+func (uc *PassportUsecase) LaunchApp(ctx context.Context, userID, appID string) (*v1.PassportLaunchApp, error) {
 	u, err := uc.user(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -196,7 +195,7 @@ func (uc *PassportUsecase) LaunchApp(ctx context.Context, userID, appID, publicU
 		return nil, err
 	}
 	servers := map[string]*gen.GameServer{s.ID: s}
-	return uc.launchApp(ctx, userID, s, l, uc.inviteServer(ctx, u), servers, uc.selfServiceCounts(ctx), publicURL), nil
+	return uc.launchApp(ctx, userID, s, l, uc.inviteServer(ctx, u), servers, uc.selfServiceCounts(ctx)), nil
 }
 
 // BindLaunchApp 用游戏账号 + 密码把应用对应服务器上已有的游戏账号绑定到通行证（规则与通行证网页的绑定相同）。

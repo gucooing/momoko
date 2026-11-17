@@ -121,14 +121,3 @@ func (s *PassportAdminService) UpdatePassportSettings(ctx context.Context, req *
 	}
 	return s.uc.AdminSettings(ctx, s.serverInfo(ctx))
 }
-
-func (s *PassportAdminService) GetLauncherSettings(ctx context.Context, _ *v1.GetLauncherSettingsRequest) (*v1.GetLauncherSettingsResponse, error) {
-	return s.uc.AdminLauncherSettings(ctx, s.serverInfo(ctx)), nil
-}
-
-func (s *PassportAdminService) UpdateLauncherSettings(ctx context.Context, req *v1.LauncherSettings) (*v1.GetLauncherSettingsResponse, error) {
-	if err := s.uc.SaveLauncherSettings(ctx, req); err != nil {
-		return nil, err
-	}
-	return s.uc.AdminLauncherSettings(ctx, s.serverInfo(ctx)), nil
-}

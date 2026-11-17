@@ -19,53 +19,56 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GameServerService_ListGameAdapters_FullMethodName               = "/v1.GameServerService/ListGameAdapters"
-	GameServerService_ListGameServers_FullMethodName                = "/v1.GameServerService/ListGameServers"
-	GameServerService_GetGameServer_FullMethodName                  = "/v1.GameServerService/GetGameServer"
-	GameServerService_CreateGameServer_FullMethodName               = "/v1.GameServerService/CreateGameServer"
-	GameServerService_UpdateGameServer_FullMethodName               = "/v1.GameServerService/UpdateGameServer"
-	GameServerService_DeleteGameServer_FullMethodName               = "/v1.GameServerService/DeleteGameServer"
-	GameServerService_TestGameServer_FullMethodName                 = "/v1.GameServerService/TestGameServer"
-	GameServerService_RefreshGameServer_FullMethodName              = "/v1.GameServerService/RefreshGameServer"
-	GameServerService_DetectGameServerDir_FullMethodName            = "/v1.GameServerService/DetectGameServerDir"
-	GameServerService_SwitchGameServerMode_FullMethodName           = "/v1.GameServerService/SwitchGameServerMode"
-	GameServerService_GenerateGameServerClientApp_FullMethodName    = "/v1.GameServerService/GenerateGameServerClientApp"
-	GameServerService_ResetGameServerClientAppSecret_FullMethodName = "/v1.GameServerService/ResetGameServerClientAppSecret"
-	GameServerService_RotateGameServerKey_FullMethodName            = "/v1.GameServerService/RotateGameServerKey"
-	GameServerService_ControlGameServer_FullMethodName              = "/v1.GameServerService/ControlGameServer"
-	GameServerService_ClearGameServerConsole_FullMethodName         = "/v1.GameServerService/ClearGameServerConsole"
-	GameServerService_UpdateGameServerHosting_FullMethodName        = "/v1.GameServerService/UpdateGameServerHosting"
-	GameServerService_GetGameServerOverview_FullMethodName          = "/v1.GameServerService/GetGameServerOverview"
-	GameServerService_GetGameServerSettings_FullMethodName          = "/v1.GameServerService/GetGameServerSettings"
-	GameServerService_SaveGameServerSettings_FullMethodName         = "/v1.GameServerService/SaveGameServerSettings"
-	GameServerService_GetGameServerBuild_FullMethodName             = "/v1.GameServerService/GetGameServerBuild"
-	GameServerService_CheckGameServerBuild_FullMethodName           = "/v1.GameServerService/CheckGameServerBuild"
-	GameServerService_UpdateGameServerBuild_FullMethodName          = "/v1.GameServerService/UpdateGameServerBuild"
-	GameServerService_GetGameServerResource_FullMethodName          = "/v1.GameServerService/GetGameServerResource"
-	GameServerService_RunGameServerResourceTask_FullMethodName      = "/v1.GameServerService/RunGameServerResourceTask"
-	GameServerService_GetGameServerTask_FullMethodName              = "/v1.GameServerService/GetGameServerTask"
-	GameServerService_CancelGameServerTask_FullMethodName           = "/v1.GameServerService/CancelGameServerTask"
-	GameServerService_ListGameServerHistory_FullMethodName          = "/v1.GameServerService/ListGameServerHistory"
-	GameServerService_ListGameServerBackups_FullMethodName          = "/v1.GameServerService/ListGameServerBackups"
-	GameServerService_CreateGameServerBackup_FullMethodName         = "/v1.GameServerService/CreateGameServerBackup"
-	GameServerService_DeleteGameServerBackup_FullMethodName         = "/v1.GameServerService/DeleteGameServerBackup"
-	GameServerService_RestoreGameServerBackup_FullMethodName        = "/v1.GameServerService/RestoreGameServerBackup"
-	GameServerService_DownloadGameServerBackup_FullMethodName       = "/v1.GameServerService/DownloadGameServerBackup"
-	GameServerService_UpdateGameServerBackupPolicy_FullMethodName   = "/v1.GameServerService/UpdateGameServerBackupPolicy"
-	GameServerService_ListGameServerLogs_FullMethodName             = "/v1.GameServerService/ListGameServerLogs"
-	GameServerService_TailGameServerLog_FullMethodName              = "/v1.GameServerService/TailGameServerLog"
-	GameServerService_GetGameServerFileList_FullMethodName          = "/v1.GameServerService/GetGameServerFileList"
-	GameServerService_GetGameServerFileTree_FullMethodName          = "/v1.GameServerService/GetGameServerFileTree"
-	GameServerService_CreateGameServerFile_FullMethodName           = "/v1.GameServerService/CreateGameServerFile"
-	GameServerService_RenameGameServerFile_FullMethodName           = "/v1.GameServerService/RenameGameServerFile"
-	GameServerService_CopyGameServerFile_FullMethodName             = "/v1.GameServerService/CopyGameServerFile"
-	GameServerService_CutGameServerFile_FullMethodName              = "/v1.GameServerService/CutGameServerFile"
-	GameServerService_DeleteGameServerFiles_FullMethodName          = "/v1.GameServerService/DeleteGameServerFiles"
-	GameServerService_CompressGameServerFiles_FullMethodName        = "/v1.GameServerService/CompressGameServerFiles"
-	GameServerService_UnzipGameServerFile_FullMethodName            = "/v1.GameServerService/UnzipGameServerFile"
-	GameServerService_EditGameServerFile_FullMethodName             = "/v1.GameServerService/EditGameServerFile"
-	GameServerService_GameServerFilePreSign_FullMethodName          = "/v1.GameServerService/GameServerFilePreSign"
-	GameServerService_GameServerFilePreSignUpload_FullMethodName    = "/v1.GameServerService/GameServerFilePreSignUpload"
+	GameServerService_ListGameAdapters_FullMethodName                = "/v1.GameServerService/ListGameAdapters"
+	GameServerService_ListGameServers_FullMethodName                 = "/v1.GameServerService/ListGameServers"
+	GameServerService_GetGameServer_FullMethodName                   = "/v1.GameServerService/GetGameServer"
+	GameServerService_CreateGameServer_FullMethodName                = "/v1.GameServerService/CreateGameServer"
+	GameServerService_UpdateGameServer_FullMethodName                = "/v1.GameServerService/UpdateGameServer"
+	GameServerService_DeleteGameServer_FullMethodName                = "/v1.GameServerService/DeleteGameServer"
+	GameServerService_TestGameServer_FullMethodName                  = "/v1.GameServerService/TestGameServer"
+	GameServerService_RefreshGameServer_FullMethodName               = "/v1.GameServerService/RefreshGameServer"
+	GameServerService_DetectGameServerDir_FullMethodName             = "/v1.GameServerService/DetectGameServerDir"
+	GameServerService_SwitchGameServerMode_FullMethodName            = "/v1.GameServerService/SwitchGameServerMode"
+	GameServerService_GenerateGameServerClientApp_FullMethodName     = "/v1.GameServerService/GenerateGameServerClientApp"
+	GameServerService_ResetGameServerClientAppSecret_FullMethodName  = "/v1.GameServerService/ResetGameServerClientAppSecret"
+	GameServerService_PresignGameServerLauncherMedia_FullMethodName  = "/v1.GameServerService/PresignGameServerLauncherMedia"
+	GameServerService_CompleteGameServerLauncherMedia_FullMethodName = "/v1.GameServerService/CompleteGameServerLauncherMedia"
+	GameServerService_DeleteGameServerLauncherMedia_FullMethodName   = "/v1.GameServerService/DeleteGameServerLauncherMedia"
+	GameServerService_RotateGameServerKey_FullMethodName             = "/v1.GameServerService/RotateGameServerKey"
+	GameServerService_ControlGameServer_FullMethodName               = "/v1.GameServerService/ControlGameServer"
+	GameServerService_ClearGameServerConsole_FullMethodName          = "/v1.GameServerService/ClearGameServerConsole"
+	GameServerService_UpdateGameServerHosting_FullMethodName         = "/v1.GameServerService/UpdateGameServerHosting"
+	GameServerService_GetGameServerOverview_FullMethodName           = "/v1.GameServerService/GetGameServerOverview"
+	GameServerService_GetGameServerSettings_FullMethodName           = "/v1.GameServerService/GetGameServerSettings"
+	GameServerService_SaveGameServerSettings_FullMethodName          = "/v1.GameServerService/SaveGameServerSettings"
+	GameServerService_GetGameServerBuild_FullMethodName              = "/v1.GameServerService/GetGameServerBuild"
+	GameServerService_CheckGameServerBuild_FullMethodName            = "/v1.GameServerService/CheckGameServerBuild"
+	GameServerService_UpdateGameServerBuild_FullMethodName           = "/v1.GameServerService/UpdateGameServerBuild"
+	GameServerService_GetGameServerResource_FullMethodName           = "/v1.GameServerService/GetGameServerResource"
+	GameServerService_RunGameServerResourceTask_FullMethodName       = "/v1.GameServerService/RunGameServerResourceTask"
+	GameServerService_GetGameServerTask_FullMethodName               = "/v1.GameServerService/GetGameServerTask"
+	GameServerService_CancelGameServerTask_FullMethodName            = "/v1.GameServerService/CancelGameServerTask"
+	GameServerService_ListGameServerHistory_FullMethodName           = "/v1.GameServerService/ListGameServerHistory"
+	GameServerService_ListGameServerBackups_FullMethodName           = "/v1.GameServerService/ListGameServerBackups"
+	GameServerService_CreateGameServerBackup_FullMethodName          = "/v1.GameServerService/CreateGameServerBackup"
+	GameServerService_DeleteGameServerBackup_FullMethodName          = "/v1.GameServerService/DeleteGameServerBackup"
+	GameServerService_RestoreGameServerBackup_FullMethodName         = "/v1.GameServerService/RestoreGameServerBackup"
+	GameServerService_DownloadGameServerBackup_FullMethodName        = "/v1.GameServerService/DownloadGameServerBackup"
+	GameServerService_UpdateGameServerBackupPolicy_FullMethodName    = "/v1.GameServerService/UpdateGameServerBackupPolicy"
+	GameServerService_ListGameServerLogs_FullMethodName              = "/v1.GameServerService/ListGameServerLogs"
+	GameServerService_TailGameServerLog_FullMethodName               = "/v1.GameServerService/TailGameServerLog"
+	GameServerService_GetGameServerFileList_FullMethodName           = "/v1.GameServerService/GetGameServerFileList"
+	GameServerService_GetGameServerFileTree_FullMethodName           = "/v1.GameServerService/GetGameServerFileTree"
+	GameServerService_CreateGameServerFile_FullMethodName            = "/v1.GameServerService/CreateGameServerFile"
+	GameServerService_RenameGameServerFile_FullMethodName            = "/v1.GameServerService/RenameGameServerFile"
+	GameServerService_CopyGameServerFile_FullMethodName              = "/v1.GameServerService/CopyGameServerFile"
+	GameServerService_CutGameServerFile_FullMethodName               = "/v1.GameServerService/CutGameServerFile"
+	GameServerService_DeleteGameServerFiles_FullMethodName           = "/v1.GameServerService/DeleteGameServerFiles"
+	GameServerService_CompressGameServerFiles_FullMethodName         = "/v1.GameServerService/CompressGameServerFiles"
+	GameServerService_UnzipGameServerFile_FullMethodName             = "/v1.GameServerService/UnzipGameServerFile"
+	GameServerService_EditGameServerFile_FullMethodName              = "/v1.GameServerService/EditGameServerFile"
+	GameServerService_GameServerFilePreSign_FullMethodName           = "/v1.GameServerService/GameServerFilePreSign"
+	GameServerService_GameServerFilePreSignUpload_FullMethodName     = "/v1.GameServerService/GameServerFilePreSignUpload"
 )
 
 // GameServerServiceClient is the client API for GameServerService service.
@@ -102,6 +105,11 @@ type GameServerServiceClient interface {
 	// 重置客户端应用密钥（应用 ID 不变，旧密钥立即失效，游戏服务端配置要换成新密钥）。托管：写入服务端配置，运行中按需重启。
 	// 应用密钥只在这次返回
 	ResetGameServerClientAppSecret(ctx context.Context, in *ResetGameServerClientAppSecretRequest, opts ...grpc.CallOption) (*GameServerClientAppResponse, error)
+	// 启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+	// 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
+	PresignGameServerLauncherMedia(ctx context.Context, in *PresignGameServerLauncherMediaRequest, opts ...grpc.CallOption) (*PresignGameServerLauncherMediaResponse, error)
+	CompleteGameServerLauncherMedia(ctx context.Context, in *CompleteGameServerLauncherMediaRequest, opts ...grpc.CallOption) (*GameServerInfo, error)
+	DeleteGameServerLauncherMedia(ctx context.Context, in *DeleteGameServerLauncherMediaRequest, opts ...grpc.CallOption) (*GameServerInfo, error)
 	// 轮换 MGP 密钥（托管：写回服务端配置，运行中按需重启）
 	RotateGameServerKey(ctx context.Context, in *RotateGameServerKeyRequest, opts ...grpc.CallOption) (*RotateGameServerKeyResponse, error)
 	// 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
@@ -282,6 +290,36 @@ func (c *gameServerServiceClient) ResetGameServerClientAppSecret(ctx context.Con
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GameServerClientAppResponse)
 	err := c.cc.Invoke(ctx, GameServerService_ResetGameServerClientAppSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gameServerServiceClient) PresignGameServerLauncherMedia(ctx context.Context, in *PresignGameServerLauncherMediaRequest, opts ...grpc.CallOption) (*PresignGameServerLauncherMediaResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PresignGameServerLauncherMediaResponse)
+	err := c.cc.Invoke(ctx, GameServerService_PresignGameServerLauncherMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gameServerServiceClient) CompleteGameServerLauncherMedia(ctx context.Context, in *CompleteGameServerLauncherMediaRequest, opts ...grpc.CallOption) (*GameServerInfo, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GameServerInfo)
+	err := c.cc.Invoke(ctx, GameServerService_CompleteGameServerLauncherMedia_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gameServerServiceClient) DeleteGameServerLauncherMedia(ctx context.Context, in *DeleteGameServerLauncherMediaRequest, opts ...grpc.CallOption) (*GameServerInfo, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GameServerInfo)
+	err := c.cc.Invoke(ctx, GameServerService_DeleteGameServerLauncherMedia_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -672,6 +710,11 @@ type GameServerServiceServer interface {
 	// 重置客户端应用密钥（应用 ID 不变，旧密钥立即失效，游戏服务端配置要换成新密钥）。托管：写入服务端配置，运行中按需重启。
 	// 应用密钥只在这次返回
 	ResetGameServerClientAppSecret(context.Context, *ResetGameServerClientAppSecretRequest) (*GameServerClientAppResponse, error)
+	// 启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+	// 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
+	PresignGameServerLauncherMedia(context.Context, *PresignGameServerLauncherMediaRequest) (*PresignGameServerLauncherMediaResponse, error)
+	CompleteGameServerLauncherMedia(context.Context, *CompleteGameServerLauncherMediaRequest) (*GameServerInfo, error)
+	DeleteGameServerLauncherMedia(context.Context, *DeleteGameServerLauncherMediaRequest) (*GameServerInfo, error)
 	// 轮换 MGP 密钥（托管：写回服务端配置，运行中按需重启）
 	RotateGameServerKey(context.Context, *RotateGameServerKeyRequest) (*RotateGameServerKeyResponse, error)
 	// 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
@@ -773,6 +816,15 @@ func (UnimplementedGameServerServiceServer) GenerateGameServerClientApp(context.
 }
 func (UnimplementedGameServerServiceServer) ResetGameServerClientAppSecret(context.Context, *ResetGameServerClientAppSecretRequest) (*GameServerClientAppResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResetGameServerClientAppSecret not implemented")
+}
+func (UnimplementedGameServerServiceServer) PresignGameServerLauncherMedia(context.Context, *PresignGameServerLauncherMediaRequest) (*PresignGameServerLauncherMediaResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PresignGameServerLauncherMedia not implemented")
+}
+func (UnimplementedGameServerServiceServer) CompleteGameServerLauncherMedia(context.Context, *CompleteGameServerLauncherMediaRequest) (*GameServerInfo, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteGameServerLauncherMedia not implemented")
+}
+func (UnimplementedGameServerServiceServer) DeleteGameServerLauncherMedia(context.Context, *DeleteGameServerLauncherMediaRequest) (*GameServerInfo, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteGameServerLauncherMedia not implemented")
 }
 func (UnimplementedGameServerServiceServer) RotateGameServerKey(context.Context, *RotateGameServerKeyRequest) (*RotateGameServerKeyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RotateGameServerKey not implemented")
@@ -1112,6 +1164,60 @@ func _GameServerService_ResetGameServerClientAppSecret_Handler(srv interface{}, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GameServerServiceServer).ResetGameServerClientAppSecret(ctx, req.(*ResetGameServerClientAppSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GameServerService_PresignGameServerLauncherMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PresignGameServerLauncherMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServerServiceServer).PresignGameServerLauncherMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameServerService_PresignGameServerLauncherMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServerServiceServer).PresignGameServerLauncherMedia(ctx, req.(*PresignGameServerLauncherMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GameServerService_CompleteGameServerLauncherMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteGameServerLauncherMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServerServiceServer).CompleteGameServerLauncherMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameServerService_CompleteGameServerLauncherMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServerServiceServer).CompleteGameServerLauncherMedia(ctx, req.(*CompleteGameServerLauncherMediaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GameServerService_DeleteGameServerLauncherMedia_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGameServerLauncherMediaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServerServiceServer).DeleteGameServerLauncherMedia(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameServerService_DeleteGameServerLauncherMedia_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServerServiceServer).DeleteGameServerLauncherMedia(ctx, req.(*DeleteGameServerLauncherMediaRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1800,6 +1906,18 @@ var GameServerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResetGameServerClientAppSecret",
 			Handler:    _GameServerService_ResetGameServerClientAppSecret_Handler,
+		},
+		{
+			MethodName: "PresignGameServerLauncherMedia",
+			Handler:    _GameServerService_PresignGameServerLauncherMedia_Handler,
+		},
+		{
+			MethodName: "CompleteGameServerLauncherMedia",
+			Handler:    _GameServerService_CompleteGameServerLauncherMedia_Handler,
+		},
+		{
+			MethodName: "DeleteGameServerLauncherMedia",
+			Handler:    _GameServerService_DeleteGameServerLauncherMedia_Handler,
 		},
 		{
 			MethodName: "RotateGameServerKey",

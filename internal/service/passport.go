@@ -62,10 +62,6 @@ func (s *PassportService) GetPassportConfig(ctx context.Context, _ *v1.GetPasspo
 	return s.uc.PublicConfig(ctx), nil
 }
 
-func (s *PassportService) GetPassportLauncherConfig(ctx context.Context, _ *v1.GetPassportLauncherConfigRequest) (*v1.PassportLauncherConfig, error) {
-	return s.uc.LauncherConfig(ctx, s.publicURL()), nil
-}
-
 func (s *PassportService) SendPassportRegisterCode(ctx context.Context, req *v1.SendPassportEmailCodeRequest) (*v1.SendPassportEmailCodeResponse, error) {
 	return s.uc.SendRegisterCode(ctx, req.Email)
 }
@@ -428,7 +424,7 @@ func (s *PassportService) ListPassportLaunchApps(ctx context.Context, _ *v1.Pass
 	if err != nil {
 		return nil, err
 	}
-	return s.uc.LaunchApps(ctx, c.UserID, s.publicURL())
+	return s.uc.LaunchApps(ctx, c.UserID)
 }
 
 func (s *PassportService) GetPassportLaunchApp(ctx context.Context, req *v1.PassportLaunchAppRequest) (*v1.PassportLaunchApp, error) {
@@ -436,7 +432,7 @@ func (s *PassportService) GetPassportLaunchApp(ctx context.Context, req *v1.Pass
 	if err != nil {
 		return nil, err
 	}
-	return s.uc.LaunchApp(ctx, c.UserID, req.AppId, s.publicURL())
+	return s.uc.LaunchApp(ctx, c.UserID, req.AppId)
 }
 
 func (s *PassportService) BindPassportLaunchApp(ctx context.Context, req *v1.BindPassportLaunchAppRequest) (*v1.PassportLink, error) {

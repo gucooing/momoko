@@ -42,6 +42,14 @@ type GameServer struct {
 	Options string `json:"options,omitempty"`
 	// 封面素材 key（空为适配器默认）
 	Cover string `json:"cover,omitempty"`
+	// 启动器的游戏图标：对象存储里的公开链接（空为没有上传）
+	LauncherIcon string `json:"launcher_icon,omitempty"`
+	// 启动器游戏图标的对象 key（换图或删除时删掉旧文件）
+	LauncherIconKey string `json:"launcher_icon_key,omitempty"`
+	// 启动器的游戏页背景（图片或视频）：对象存储里的公开链接（空为没有上传）
+	LauncherBackground string `json:"launcher_background,omitempty"`
+	// 启动器游戏页背景的对象 key（换图或删除时删掉旧文件）
+	LauncherBackgroundKey string `json:"launcher_background_key,omitempty"`
 	// MGP 地址（不含 /mgp/v1）；空表示未接入 MGP
 	MgpEndpoint string `json:"mgp_endpoint,omitempty"`
 	// MGP Key ID
@@ -100,7 +108,7 @@ func (*GameServer) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case gameserver.FieldProbeLatencyMs:
 			values[i] = new(sql.NullInt64)
-		case gameserver.FieldID, gameserver.FieldGame, gameserver.FieldName, gameserver.FieldMode, gameserver.FieldNodeID, gameserver.FieldInstallDir, gameserver.FieldOptions, gameserver.FieldCover, gameserver.FieldMgpEndpoint, gameserver.FieldKeyID, gameserver.FieldSecret, gameserver.FieldManifest, gameserver.FieldStatus, gameserver.FieldProbeError, gameserver.FieldTimezone, gameserver.FieldPassportVisibility, gameserver.FieldPassportInviteCode, gameserver.FieldClientSdkURL, gameserver.FieldClientGameURL, gameserver.FieldClientResourceURL, gameserver.FieldClientAppID, gameserver.FieldClientAppSecret, gameserver.FieldRemark:
+		case gameserver.FieldID, gameserver.FieldGame, gameserver.FieldName, gameserver.FieldMode, gameserver.FieldNodeID, gameserver.FieldInstallDir, gameserver.FieldOptions, gameserver.FieldCover, gameserver.FieldLauncherIcon, gameserver.FieldLauncherIconKey, gameserver.FieldLauncherBackground, gameserver.FieldLauncherBackgroundKey, gameserver.FieldMgpEndpoint, gameserver.FieldKeyID, gameserver.FieldSecret, gameserver.FieldManifest, gameserver.FieldStatus, gameserver.FieldProbeError, gameserver.FieldTimezone, gameserver.FieldPassportVisibility, gameserver.FieldPassportInviteCode, gameserver.FieldClientSdkURL, gameserver.FieldClientGameURL, gameserver.FieldClientResourceURL, gameserver.FieldClientAppID, gameserver.FieldClientAppSecret, gameserver.FieldRemark:
 			values[i] = new(sql.NullString)
 		case gameserver.FieldCreateTime, gameserver.FieldUpdateTime, gameserver.FieldKeyRotatedAt, gameserver.FieldManifestAt, gameserver.FieldStatusAt, gameserver.FieldProbeAt, gameserver.FieldLastOnlineAt:
 			values[i] = new(sql.NullTime)
@@ -194,6 +202,30 @@ func (_m *GameServer) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field cover", values[i])
 			} else if value.Valid {
 				_m.Cover = value.String
+			}
+		case gameserver.FieldLauncherIcon:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field launcher_icon", values[i])
+			} else if value.Valid {
+				_m.LauncherIcon = value.String
+			}
+		case gameserver.FieldLauncherIconKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field launcher_icon_key", values[i])
+			} else if value.Valid {
+				_m.LauncherIconKey = value.String
+			}
+		case gameserver.FieldLauncherBackground:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field launcher_background", values[i])
+			} else if value.Valid {
+				_m.LauncherBackground = value.String
+			}
+		case gameserver.FieldLauncherBackgroundKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field launcher_background_key", values[i])
+			} else if value.Valid {
+				_m.LauncherBackgroundKey = value.String
 			}
 		case gameserver.FieldMgpEndpoint:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -401,6 +433,18 @@ func (_m *GameServer) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("cover=")
 	builder.WriteString(_m.Cover)
+	builder.WriteString(", ")
+	builder.WriteString("launcher_icon=")
+	builder.WriteString(_m.LauncherIcon)
+	builder.WriteString(", ")
+	builder.WriteString("launcher_icon_key=")
+	builder.WriteString(_m.LauncherIconKey)
+	builder.WriteString(", ")
+	builder.WriteString("launcher_background=")
+	builder.WriteString(_m.LauncherBackground)
+	builder.WriteString(", ")
+	builder.WriteString("launcher_background_key=")
+	builder.WriteString(_m.LauncherBackgroundKey)
 	builder.WriteString(", ")
 	builder.WriteString("mgp_endpoint=")
 	builder.WriteString(_m.MgpEndpoint)

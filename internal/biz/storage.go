@@ -106,7 +106,13 @@ func (c *ConfigUsecase) AvatarUploadEnabled(ctx context.Context) bool {
 
 // avatarStore 按当前头像储存设置构造对象存储客户端；未开启返回 nil。
 func (c *ConfigUsecase) avatarStore(ctx context.Context) (*objectstore.Store, error) {
-	cfg, err := c.config.AvatarStorage(ctx)
+	return objectStoreOf(ctx, c.config)
+}
+
+// objectStoreOf 按储存设置（系统设置 · 储存，S3 兼容对象存储）构造客户端；未开启返回 nil。
+// 头像与启动器的游戏图标 / 背景共用这一份存储。
+func objectStoreOf(ctx context.Context, config ConfigRepo) (*objectstore.Store, error) {
+	cfg, err := config.AvatarStorage(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}

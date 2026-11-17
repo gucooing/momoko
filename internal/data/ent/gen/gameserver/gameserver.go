@@ -36,6 +36,14 @@ const (
 	FieldOptions = "options"
 	// FieldCover holds the string denoting the cover field in the database.
 	FieldCover = "cover"
+	// FieldLauncherIcon holds the string denoting the launcher_icon field in the database.
+	FieldLauncherIcon = "launcher_icon"
+	// FieldLauncherIconKey holds the string denoting the launcher_icon_key field in the database.
+	FieldLauncherIconKey = "launcher_icon_key"
+	// FieldLauncherBackground holds the string denoting the launcher_background field in the database.
+	FieldLauncherBackground = "launcher_background"
+	// FieldLauncherBackgroundKey holds the string denoting the launcher_background_key field in the database.
+	FieldLauncherBackgroundKey = "launcher_background_key"
 	// FieldMgpEndpoint holds the string denoting the mgp_endpoint field in the database.
 	FieldMgpEndpoint = "mgp_endpoint"
 	// FieldKeyID holds the string denoting the key_id field in the database.
@@ -98,6 +106,10 @@ var Columns = []string{
 	FieldProcesses,
 	FieldOptions,
 	FieldCover,
+	FieldLauncherIcon,
+	FieldLauncherIconKey,
+	FieldLauncherBackground,
+	FieldLauncherBackgroundKey,
 	FieldMgpEndpoint,
 	FieldKeyID,
 	FieldSecret,
@@ -151,6 +163,14 @@ var (
 	DefaultOptions string
 	// DefaultCover holds the default value on creation for the "cover" field.
 	DefaultCover string
+	// DefaultLauncherIcon holds the default value on creation for the "launcher_icon" field.
+	DefaultLauncherIcon string
+	// DefaultLauncherIconKey holds the default value on creation for the "launcher_icon_key" field.
+	DefaultLauncherIconKey string
+	// DefaultLauncherBackground holds the default value on creation for the "launcher_background" field.
+	DefaultLauncherBackground string
+	// DefaultLauncherBackgroundKey holds the default value on creation for the "launcher_background_key" field.
+	DefaultLauncherBackgroundKey string
 	// DefaultMgpEndpoint holds the default value on creation for the "mgp_endpoint" field.
 	DefaultMgpEndpoint string
 	// DefaultKeyID holds the default value on creation for the "key_id" field.
@@ -286,6 +306,26 @@ func ByOptions(opts ...sql.OrderTermOption) OrderOption {
 // ByCover orders the results by the cover field.
 func ByCover(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCover, opts...).ToFunc()
+}
+
+// ByLauncherIcon orders the results by the launcher_icon field.
+func ByLauncherIcon(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLauncherIcon, opts...).ToFunc()
+}
+
+// ByLauncherIconKey orders the results by the launcher_icon_key field.
+func ByLauncherIconKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLauncherIconKey, opts...).ToFunc()
+}
+
+// ByLauncherBackground orders the results by the launcher_background field.
+func ByLauncherBackground(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLauncherBackground, opts...).ToFunc()
+}
+
+// ByLauncherBackgroundKey orders the results by the launcher_background_key field.
+func ByLauncherBackgroundKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLauncherBackgroundKey, opts...).ToFunc()
 }
 
 // ByMgpEndpoint orders the results by the mgp_endpoint field.

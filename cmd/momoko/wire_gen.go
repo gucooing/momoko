@@ -121,7 +121,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	monitorService := service.NewMonitorService(monitorUsecase)
 	themeService := service.NewThemeService(themeUsecase)
 	gameServerRepo := data.NewGameServerRepo(dataData)
-	gameServerUsecase := biz.NewGameServerUsecase(gameServerRepo, logger)
+	gameServerUsecase := biz.NewGameServerUsecase(gameServerRepo, configRepo, logger)
 	gameHostingUsecase := biz.NewGameHostingUsecase(gameServerUsecase, instanceUsecase, manager, userRepo, passport, logger)
 	gameServerService := service.NewGameServerService(gameServerUsecase, gameHostingUsecase, systemUsecase)
 	gmRepo := data.NewGmRepo(dataData)

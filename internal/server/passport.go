@@ -25,7 +25,6 @@ const PassportAPIPrefix = "/api/v1/"
 // passportPublicRoutes 通行证上不需要登录的接口；其余 /api/v1/ 接口都要通行证访问令牌。
 var passportPublicRoutes = map[publicRoute]struct{}{
 	{method: nethttp.MethodGet, path: "/api/v1/config"}:                          {},
-	{method: nethttp.MethodGet, path: "/api/v1/launcher"}:                        {},
 	{method: nethttp.MethodPost, path: "/api/v1/auth/register/email-code"}:       {},
 	{method: nethttp.MethodPost, path: "/api/v1/auth/register"}:                  {},
 	{method: nethttp.MethodPost, path: "/api/v1/auth/login/email-code"}:          {},

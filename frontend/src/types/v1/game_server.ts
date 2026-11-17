@@ -134,6 +134,9 @@ export interface GameServerInfo {
    * 应用密钥加密保存，只在生成与重置时返回一次
    */
   clientAppId: string;
+  /** 启动器的游戏图标与游戏页背景（图片或视频）：上传到对象存储（系统设置 · 储存）后的公开链接，空为没有上传 */
+  launcherIcon: string;
+  launcherBackground: string;
 }
 
 /** 托管服务器的一个进程。 */
@@ -383,6 +386,31 @@ export interface GenerateGameServerClientAppRequest {
   id: string;
   /** 托管：运行中时重启服务端使新凭据生效 */
   restart: boolean;
+}
+
+/** kind：icon 游戏图标（jpg / png / webp / gif，≤ 20 MB）/ background 游戏页背景（图片同上，或 mp4 / webm 视频，≤ 200 MB） */
+export interface PresignGameServerLauncherMediaRequest {
+  id: string;
+  kind: string;
+  contentType: string;
+  size: number;
+}
+
+export interface PresignGameServerLauncherMediaResponse {
+  /** 浏览器用 PUT 把文件直接传到这个地址（Content-Type 与申请时相同） */
+  uploadUrl: string;
+  /** 上传凭证：上传完成后原样交回 */
+  token: string;
+}
+
+export interface CompleteGameServerLauncherMediaRequest {
+  id: string;
+  token: string;
+}
+
+export interface DeleteGameServerLauncherMediaRequest {
+  id: string;
+  kind: string;
 }
 
 export interface ResetGameServerClientAppSecretRequest {

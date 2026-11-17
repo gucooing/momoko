@@ -122,7 +122,6 @@ var (
 	ErrPassportInviteNotFound      = passportErr(404, "PASSPORT_INVITE_NOT_FOUND")
 	ErrPassportInviteCodeTaken     = passportErr(409, "PASSPORT_INVITE_CODE_TAKEN")
 	ErrPassportSettingsInvalid     = passportErr(400, "PASSPORT_SETTINGS_INVALID")
-	ErrPassportLauncherInvalid     = passportErr(400, "PASSPORT_LAUNCHER_SETTINGS_INVALID")
 	ErrPassportPlayerNotFound      = passportErr(404, "PASSPORT_GAME_PLAYER_NOT_FOUND")
 	ErrPassportTooManyRequests     = passportErr(429, "PASSPORT_TOO_MANY_REQUESTS")
 	ErrPassportPublicURLUnset      = passportErr(503, "PASSPORT_PUBLIC_URL_UNSET")

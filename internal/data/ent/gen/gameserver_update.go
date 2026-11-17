@@ -170,6 +170,62 @@ func (_u *GameServerUpdate) SetNillableCover(v *string) *GameServerUpdate {
 	return _u
 }
 
+// SetLauncherIcon sets the "launcher_icon" field.
+func (_u *GameServerUpdate) SetLauncherIcon(v string) *GameServerUpdate {
+	_u.mutation.SetLauncherIcon(v)
+	return _u
+}
+
+// SetNillableLauncherIcon sets the "launcher_icon" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableLauncherIcon(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetLauncherIcon(*v)
+	}
+	return _u
+}
+
+// SetLauncherIconKey sets the "launcher_icon_key" field.
+func (_u *GameServerUpdate) SetLauncherIconKey(v string) *GameServerUpdate {
+	_u.mutation.SetLauncherIconKey(v)
+	return _u
+}
+
+// SetNillableLauncherIconKey sets the "launcher_icon_key" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableLauncherIconKey(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetLauncherIconKey(*v)
+	}
+	return _u
+}
+
+// SetLauncherBackground sets the "launcher_background" field.
+func (_u *GameServerUpdate) SetLauncherBackground(v string) *GameServerUpdate {
+	_u.mutation.SetLauncherBackground(v)
+	return _u
+}
+
+// SetNillableLauncherBackground sets the "launcher_background" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableLauncherBackground(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetLauncherBackground(*v)
+	}
+	return _u
+}
+
+// SetLauncherBackgroundKey sets the "launcher_background_key" field.
+func (_u *GameServerUpdate) SetLauncherBackgroundKey(v string) *GameServerUpdate {
+	_u.mutation.SetLauncherBackgroundKey(v)
+	return _u
+}
+
+// SetNillableLauncherBackgroundKey sets the "launcher_background_key" field if the given value is not nil.
+func (_u *GameServerUpdate) SetNillableLauncherBackgroundKey(v *string) *GameServerUpdate {
+	if v != nil {
+		_u.SetLauncherBackgroundKey(*v)
+	}
+	return _u
+}
+
 // SetMgpEndpoint sets the "mgp_endpoint" field.
 func (_u *GameServerUpdate) SetMgpEndpoint(v string) *GameServerUpdate {
 	_u.mutation.SetMgpEndpoint(v)
@@ -645,6 +701,18 @@ func (_u *GameServerUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.Cover(); ok {
 		_spec.SetField(gameserver.FieldCover, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.LauncherIcon(); ok {
+		_spec.SetField(gameserver.FieldLauncherIcon, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LauncherIconKey(); ok {
+		_spec.SetField(gameserver.FieldLauncherIconKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LauncherBackground(); ok {
+		_spec.SetField(gameserver.FieldLauncherBackground, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LauncherBackgroundKey(); ok {
+		_spec.SetField(gameserver.FieldLauncherBackgroundKey, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.MgpEndpoint(); ok {
 		_spec.SetField(gameserver.FieldMgpEndpoint, field.TypeString, value)
 	}
@@ -888,6 +956,62 @@ func (_u *GameServerUpdateOne) SetCover(v string) *GameServerUpdateOne {
 func (_u *GameServerUpdateOne) SetNillableCover(v *string) *GameServerUpdateOne {
 	if v != nil {
 		_u.SetCover(*v)
+	}
+	return _u
+}
+
+// SetLauncherIcon sets the "launcher_icon" field.
+func (_u *GameServerUpdateOne) SetLauncherIcon(v string) *GameServerUpdateOne {
+	_u.mutation.SetLauncherIcon(v)
+	return _u
+}
+
+// SetNillableLauncherIcon sets the "launcher_icon" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableLauncherIcon(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetLauncherIcon(*v)
+	}
+	return _u
+}
+
+// SetLauncherIconKey sets the "launcher_icon_key" field.
+func (_u *GameServerUpdateOne) SetLauncherIconKey(v string) *GameServerUpdateOne {
+	_u.mutation.SetLauncherIconKey(v)
+	return _u
+}
+
+// SetNillableLauncherIconKey sets the "launcher_icon_key" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableLauncherIconKey(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetLauncherIconKey(*v)
+	}
+	return _u
+}
+
+// SetLauncherBackground sets the "launcher_background" field.
+func (_u *GameServerUpdateOne) SetLauncherBackground(v string) *GameServerUpdateOne {
+	_u.mutation.SetLauncherBackground(v)
+	return _u
+}
+
+// SetNillableLauncherBackground sets the "launcher_background" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableLauncherBackground(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetLauncherBackground(*v)
+	}
+	return _u
+}
+
+// SetLauncherBackgroundKey sets the "launcher_background_key" field.
+func (_u *GameServerUpdateOne) SetLauncherBackgroundKey(v string) *GameServerUpdateOne {
+	_u.mutation.SetLauncherBackgroundKey(v)
+	return _u
+}
+
+// SetNillableLauncherBackgroundKey sets the "launcher_background_key" field if the given value is not nil.
+func (_u *GameServerUpdateOne) SetNillableLauncherBackgroundKey(v *string) *GameServerUpdateOne {
+	if v != nil {
+		_u.SetLauncherBackgroundKey(*v)
 	}
 	return _u
 }
@@ -1396,6 +1520,18 @@ func (_u *GameServerUpdateOne) sqlSave(ctx context.Context) (_node *GameServer, 
 	}
 	if value, ok := _u.mutation.Cover(); ok {
 		_spec.SetField(gameserver.FieldCover, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LauncherIcon(); ok {
+		_spec.SetField(gameserver.FieldLauncherIcon, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LauncherIconKey(); ok {
+		_spec.SetField(gameserver.FieldLauncherIconKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LauncherBackground(); ok {
+		_spec.SetField(gameserver.FieldLauncherBackground, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LauncherBackgroundKey(); ok {
+		_spec.SetField(gameserver.FieldLauncherBackgroundKey, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.MgpEndpoint(); ok {
 		_spec.SetField(gameserver.FieldMgpEndpoint, field.TypeString, value)

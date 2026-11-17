@@ -5,14 +5,12 @@ import type { SearchGameServersRequest, SearchGameServersResponse } from '@/type
 import type {
   AdminBindPassportLinkRequest,
   CreatePassportInviteRequest,
-  GetLauncherSettingsResponse,
   GetPassportSettingsResponse,
   GetPassportStatsResponse,
   GetPassportUserResponse,
   ListPassportInvitesResponse,
   ListPassportUsersRequest,
   ListPassportUsersResponse,
-  LauncherSettings,
   PassportInvite,
   PassportSettings,
   SearchPassportGamePlayersResponse,
@@ -98,9 +96,3 @@ export const getPassportSettings = () => request.get<GetPassportSettingsResponse
 
 export const updatePassportSettings = (settings: PassportSettings) =>
   request.put<GetPassportSettingsResponse>(`${base}/settings`, settings, cfg())
-
-// PC 启动器设置：通行证 GET /api/v1/launcher 公开下发。
-export const getLauncherSettings = () => request.get<GetLauncherSettingsResponse>(`${base}/launcher`, cfg())
-
-export const updateLauncherSettings = (settings: LauncherSettings) =>
-  request.put<GetLauncherSettingsResponse>(`${base}/launcher`, settings, cfg())

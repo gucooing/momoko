@@ -14155,49 +14155,53 @@ func (m *GameRecentServerMutation) ResetEdge(name string) error {
 // GameServerMutation represents an operation that mutates the GameServer nodes in the graph.
 type GameServerMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *string
-	create_time          *time.Time
-	update_time          *time.Time
-	game                 *string
-	name                 *string
-	tags                 *[]string
-	appendtags           []string
-	mode                 *gameserver.Mode
-	node_id              *string
-	install_dir          *string
-	processes            *[]schema.GameServerProcess
-	appendprocesses      []schema.GameServerProcess
-	options              *string
-	cover                *string
-	mgp_endpoint         *string
-	key_id               *string
-	secret               *string
-	key_rotated_at       *time.Time
-	manifest             *string
-	manifest_at          *time.Time
-	status               *string
-	status_at            *time.Time
-	probe_ok             *bool
-	probe_latency_ms     *int
-	addprobe_latency_ms  *int
-	probe_error          *string
-	probe_at             *time.Time
-	last_online_at       *time.Time
-	timezone             *string
-	passport_visibility  *gameserver.PassportVisibility
-	passport_invite_code *string
-	client_sdk_url       *string
-	client_game_url      *string
-	client_resource_url  *string
-	client_app_id        *string
-	client_app_secret    *string
-	remark               *string
-	clearedFields        map[string]struct{}
-	done                 bool
-	oldValue             func(context.Context) (*GameServer, error)
-	predicates           []predicate.GameServer
+	op                      Op
+	typ                     string
+	id                      *string
+	create_time             *time.Time
+	update_time             *time.Time
+	game                    *string
+	name                    *string
+	tags                    *[]string
+	appendtags              []string
+	mode                    *gameserver.Mode
+	node_id                 *string
+	install_dir             *string
+	processes               *[]schema.GameServerProcess
+	appendprocesses         []schema.GameServerProcess
+	options                 *string
+	cover                   *string
+	launcher_icon           *string
+	launcher_icon_key       *string
+	launcher_background     *string
+	launcher_background_key *string
+	mgp_endpoint            *string
+	key_id                  *string
+	secret                  *string
+	key_rotated_at          *time.Time
+	manifest                *string
+	manifest_at             *time.Time
+	status                  *string
+	status_at               *time.Time
+	probe_ok                *bool
+	probe_latency_ms        *int
+	addprobe_latency_ms     *int
+	probe_error             *string
+	probe_at                *time.Time
+	last_online_at          *time.Time
+	timezone                *string
+	passport_visibility     *gameserver.PassportVisibility
+	passport_invite_code    *string
+	client_sdk_url          *string
+	client_game_url         *string
+	client_resource_url     *string
+	client_app_id           *string
+	client_app_secret       *string
+	remark                  *string
+	clearedFields           map[string]struct{}
+	done                    bool
+	oldValue                func(context.Context) (*GameServer, error)
+	predicates              []predicate.GameServer
 }
 
 var _ ent.Mutation = (*GameServerMutation)(nil)
@@ -14756,6 +14760,150 @@ func (m *GameServerMutation) OldCover(ctx context.Context) (v string, err error)
 // ResetCover resets all changes to the "cover" field.
 func (m *GameServerMutation) ResetCover() {
 	m.cover = nil
+}
+
+// SetLauncherIcon sets the "launcher_icon" field.
+func (m *GameServerMutation) SetLauncherIcon(s string) {
+	m.launcher_icon = &s
+}
+
+// LauncherIcon returns the value of the "launcher_icon" field in the mutation.
+func (m *GameServerMutation) LauncherIcon() (r string, exists bool) {
+	v := m.launcher_icon
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLauncherIcon returns the old "launcher_icon" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldLauncherIcon(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLauncherIcon is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLauncherIcon requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLauncherIcon: %w", err)
+	}
+	return oldValue.LauncherIcon, nil
+}
+
+// ResetLauncherIcon resets all changes to the "launcher_icon" field.
+func (m *GameServerMutation) ResetLauncherIcon() {
+	m.launcher_icon = nil
+}
+
+// SetLauncherIconKey sets the "launcher_icon_key" field.
+func (m *GameServerMutation) SetLauncherIconKey(s string) {
+	m.launcher_icon_key = &s
+}
+
+// LauncherIconKey returns the value of the "launcher_icon_key" field in the mutation.
+func (m *GameServerMutation) LauncherIconKey() (r string, exists bool) {
+	v := m.launcher_icon_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLauncherIconKey returns the old "launcher_icon_key" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldLauncherIconKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLauncherIconKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLauncherIconKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLauncherIconKey: %w", err)
+	}
+	return oldValue.LauncherIconKey, nil
+}
+
+// ResetLauncherIconKey resets all changes to the "launcher_icon_key" field.
+func (m *GameServerMutation) ResetLauncherIconKey() {
+	m.launcher_icon_key = nil
+}
+
+// SetLauncherBackground sets the "launcher_background" field.
+func (m *GameServerMutation) SetLauncherBackground(s string) {
+	m.launcher_background = &s
+}
+
+// LauncherBackground returns the value of the "launcher_background" field in the mutation.
+func (m *GameServerMutation) LauncherBackground() (r string, exists bool) {
+	v := m.launcher_background
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLauncherBackground returns the old "launcher_background" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldLauncherBackground(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLauncherBackground is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLauncherBackground requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLauncherBackground: %w", err)
+	}
+	return oldValue.LauncherBackground, nil
+}
+
+// ResetLauncherBackground resets all changes to the "launcher_background" field.
+func (m *GameServerMutation) ResetLauncherBackground() {
+	m.launcher_background = nil
+}
+
+// SetLauncherBackgroundKey sets the "launcher_background_key" field.
+func (m *GameServerMutation) SetLauncherBackgroundKey(s string) {
+	m.launcher_background_key = &s
+}
+
+// LauncherBackgroundKey returns the value of the "launcher_background_key" field in the mutation.
+func (m *GameServerMutation) LauncherBackgroundKey() (r string, exists bool) {
+	v := m.launcher_background_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLauncherBackgroundKey returns the old "launcher_background_key" field's value of the GameServer entity.
+// If the GameServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GameServerMutation) OldLauncherBackgroundKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLauncherBackgroundKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLauncherBackgroundKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLauncherBackgroundKey: %w", err)
+	}
+	return oldValue.LauncherBackgroundKey, nil
+}
+
+// ResetLauncherBackgroundKey resets all changes to the "launcher_background_key" field.
+func (m *GameServerMutation) ResetLauncherBackgroundKey() {
+	m.launcher_background_key = nil
 }
 
 // SetMgpEndpoint sets the "mgp_endpoint" field.
@@ -15682,7 +15830,7 @@ func (m *GameServerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GameServerMutation) Fields() []string {
-	fields := make([]string, 0, 33)
+	fields := make([]string, 0, 37)
 	if m.create_time != nil {
 		fields = append(fields, gameserver.FieldCreateTime)
 	}
@@ -15715,6 +15863,18 @@ func (m *GameServerMutation) Fields() []string {
 	}
 	if m.cover != nil {
 		fields = append(fields, gameserver.FieldCover)
+	}
+	if m.launcher_icon != nil {
+		fields = append(fields, gameserver.FieldLauncherIcon)
+	}
+	if m.launcher_icon_key != nil {
+		fields = append(fields, gameserver.FieldLauncherIconKey)
+	}
+	if m.launcher_background != nil {
+		fields = append(fields, gameserver.FieldLauncherBackground)
+	}
+	if m.launcher_background_key != nil {
+		fields = append(fields, gameserver.FieldLauncherBackgroundKey)
 	}
 	if m.mgp_endpoint != nil {
 		fields = append(fields, gameserver.FieldMgpEndpoint)
@@ -15812,6 +15972,14 @@ func (m *GameServerMutation) Field(name string) (ent.Value, bool) {
 		return m.Options()
 	case gameserver.FieldCover:
 		return m.Cover()
+	case gameserver.FieldLauncherIcon:
+		return m.LauncherIcon()
+	case gameserver.FieldLauncherIconKey:
+		return m.LauncherIconKey()
+	case gameserver.FieldLauncherBackground:
+		return m.LauncherBackground()
+	case gameserver.FieldLauncherBackgroundKey:
+		return m.LauncherBackgroundKey()
 	case gameserver.FieldMgpEndpoint:
 		return m.MgpEndpoint()
 	case gameserver.FieldKeyID:
@@ -15887,6 +16055,14 @@ func (m *GameServerMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldOptions(ctx)
 	case gameserver.FieldCover:
 		return m.OldCover(ctx)
+	case gameserver.FieldLauncherIcon:
+		return m.OldLauncherIcon(ctx)
+	case gameserver.FieldLauncherIconKey:
+		return m.OldLauncherIconKey(ctx)
+	case gameserver.FieldLauncherBackground:
+		return m.OldLauncherBackground(ctx)
+	case gameserver.FieldLauncherBackgroundKey:
+		return m.OldLauncherBackgroundKey(ctx)
 	case gameserver.FieldMgpEndpoint:
 		return m.OldMgpEndpoint(ctx)
 	case gameserver.FieldKeyID:
@@ -16016,6 +16192,34 @@ func (m *GameServerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCover(v)
+		return nil
+	case gameserver.FieldLauncherIcon:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLauncherIcon(v)
+		return nil
+	case gameserver.FieldLauncherIconKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLauncherIconKey(v)
+		return nil
+	case gameserver.FieldLauncherBackground:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLauncherBackground(v)
+		return nil
+	case gameserver.FieldLauncherBackgroundKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLauncherBackgroundKey(v)
 		return nil
 	case gameserver.FieldMgpEndpoint:
 		v, ok := value.(string)
@@ -16318,6 +16522,18 @@ func (m *GameServerMutation) ResetField(name string) error {
 		return nil
 	case gameserver.FieldCover:
 		m.ResetCover()
+		return nil
+	case gameserver.FieldLauncherIcon:
+		m.ResetLauncherIcon()
+		return nil
+	case gameserver.FieldLauncherIconKey:
+		m.ResetLauncherIconKey()
+		return nil
+	case gameserver.FieldLauncherBackground:
+		m.ResetLauncherBackground()
+		return nil
+	case gameserver.FieldLauncherBackgroundKey:
+		m.ResetLauncherBackgroundKey()
 		return nil
 	case gameserver.FieldMgpEndpoint:
 		m.ResetMgpEndpoint()

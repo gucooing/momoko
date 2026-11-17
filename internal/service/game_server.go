@@ -131,6 +131,26 @@ func (s *GameServerService) ResetGameServerClientAppSecret(ctx context.Context, 
 	return out, nil
 }
 
+func (s *GameServerService) PresignGameServerLauncherMedia(ctx context.Context, req *v1.PresignGameServerLauncherMediaRequest) (*v1.PresignGameServerLauncherMediaResponse, error) {
+	return s.uc.PresignLauncherMedia(ctx, req)
+}
+
+func (s *GameServerService) CompleteGameServerLauncherMedia(ctx context.Context, req *v1.CompleteGameServerLauncherMediaRequest) (*v1.GameServerInfo, error) {
+	srv, err := s.uc.CompleteLauncherMedia(ctx, req.Id, req.Token)
+	if err != nil {
+		return nil, err
+	}
+	return s.uc.Info(ctx, srv), nil
+}
+
+func (s *GameServerService) DeleteGameServerLauncherMedia(ctx context.Context, req *v1.DeleteGameServerLauncherMediaRequest) (*v1.GameServerInfo, error) {
+	srv, err := s.uc.DeleteLauncherMedia(ctx, req.Id, req.Kind)
+	if err != nil {
+		return nil, err
+	}
+	return s.uc.Info(ctx, srv), nil
+}
+
 func (s *GameServerService) RotateGameServerKey(ctx context.Context, req *v1.RotateGameServerKeyRequest) (*v1.RotateGameServerKeyResponse, error) {
 	out, srv, err := s.hosting.RotateKey(ctx, req)
 	if err != nil {

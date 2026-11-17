@@ -7,6 +7,7 @@ import type {
   DownloadGameServerBackupResponse,
   GameServerBackupPolicy,
   GameServerClientAppResponse,
+  PresignGameServerLauncherMediaResponse,
   GameServerBuild,
   GameServerBuildInfo,
   GameServerInfo,
@@ -87,6 +88,24 @@ export const generateGameServerClientApp = (id: string, restart: boolean) =>
 
 export const resetGameServerClientAppSecret = (id: string, restart: boolean) =>
   request.post<GameServerClientAppResponse>(`${base(id)}/client-app/secret`, { id, restart })
+
+// 启动器的游戏图标 / 游戏页背景：签发对象存储直传地址 → 浏览器 PUT 上传 → 确认保存（删掉旧文件）
+export type LauncherMediaKind = 'icon' | 'background'
+
+export const uploadGameServerLauncherMedia = async (id: string, kind: LauncherMediaKind, file: File) => {
+  const { data } = await request.post<PresignGameServerLauncherMediaResponse>(`${base(id)}/launcher-media/presign`, {
+    id,
+    kind,
+    contentType: file.type,
+    size: file.size,
+  })
+  const res = await fetch(data.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return request.post<GameServerInfo>(`${base(id)}/launcher-media/complete`, { id, token: data.token })
+}
+
+export const deleteGameServerLauncherMedia = (id: string, kind: LauncherMediaKind) =>
+  request.delete<GameServerInfo>(`${base(id)}/launcher-media/${kind}`)
 
 export type GameServerAction = 'start' | 'stop' | 'restart'
 

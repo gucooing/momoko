@@ -99,6 +99,25 @@ service GameServerService {
       body: "*"
     };
   }
+  // 启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+  // 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
+  rpc PresignGameServerLauncherMedia(PresignGameServerLauncherMediaRequest) returns (PresignGameServerLauncherMediaResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/launcher-media/presign"
+      body: "*"
+    };
+  }
+  rpc CompleteGameServerLauncherMedia(CompleteGameServerLauncherMediaRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      post: "/api/v1/game/servers/{id}/launcher-media/complete"
+      body: "*"
+    };
+  }
+  rpc DeleteGameServerLauncherMedia(DeleteGameServerLauncherMediaRequest) returns (GameServerInfo) {
+    option (google.api.http) = {
+      delete: "/api/v1/game/servers/{id}/launcher-media/{kind}"
+    };
+  }
   // 轮换 MGP 密钥（托管：写回服务端配置，运行中按需重启）
   rpc RotateGameServerKey(RotateGameServerKeyRequest) returns (RotateGameServerKeyResponse) {
     option (google.api.http) = {
@@ -440,6 +459,9 @@ message GameServerInfo {
   // 客户端应用 ID（app_ + 16 个小写 base32 字符；空为还没有生成应用凭据）：客户端用它指明这台服务器。
   // 应用密钥加密保存，只在生成与重置时返回一次
   string client_app_id = 30;
+  // 启动器的游戏图标与游戏页背景（图片或视频）：上传到对象存储（系统设置 · 储存）后的公开链接，空为没有上传
+  string launcher_icon = 31;
+  string launcher_background = 32;
 }
 
 // 托管服务器的一个进程。
@@ -652,6 +674,31 @@ message GenerateGameServerClientAppRequest {
   string id = 1;
   // 托管：运行中时重启服务端使新凭据生效
   bool restart = 2;
+}
+
+// kind：icon 游戏图标（jpg / png / webp / gif，≤ 20 MB）/ background 游戏页背景（图片同上，或 mp4 / webm 视频，≤ 200 MB）
+message PresignGameServerLauncherMediaRequest {
+  string id = 1;
+  string kind = 2;
+  string content_type = 3;
+  int64 size = 4;
+}
+
+message PresignGameServerLauncherMediaResponse {
+  // 浏览器用 PUT 把文件直接传到这个地址（Content-Type 与申请时相同）
+  string upload_url = 1;
+  // 上传凭证：上传完成后原样交回
+  string token = 2;
+}
+
+message CompleteGameServerLauncherMediaRequest {
+  string id = 1;
+  string token = 2;
+}
+
+message DeleteGameServerLauncherMediaRequest {
+  string id = 1;
+  string kind = 2;
 }
 
 message ResetGameServerClientAppSecretRequest {

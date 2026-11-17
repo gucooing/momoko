@@ -5655,36 +5655,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.PassportInvite'
-    /api/v1/game/passport/launcher:
-        get:
-            tags:
-                - PassportAdminService
-            description: 启动器设置（存在系统配置里），通行证 GET /api/v1/launcher 公开下发给 PC 启动器
-            operationId: PassportAdminService_GetLauncherSettings
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetLauncherSettingsResponse'
-        put:
-            tags:
-                - PassportAdminService
-            operationId: PassportAdminService_UpdateLauncherSettings
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.LauncherSettings'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetLauncherSettingsResponse'
     /api/v1/game/passport/servers:
         get:
             tags:
@@ -6810,6 +6780,80 @@ paths:
                         schema:
                             $ref: '#/components/schemas/v1.UpdateGameServerHostingRequest'
                 required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GameServerInfo'
+    /api/v1/game/servers/{id}/launcher-media/complete:
+        post:
+            tags:
+                - GameServerService
+            operationId: GameServerService_CompleteGameServerLauncherMedia
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CompleteGameServerLauncherMediaRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GameServerInfo'
+    /api/v1/game/servers/{id}/launcher-media/presign:
+        post:
+            tags:
+                - GameServerService
+            description: |-
+                启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+                 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
+            operationId: GameServerService_PresignGameServerLauncherMedia
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PresignGameServerLauncherMediaRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PresignGameServerLauncherMediaResponse'
+    /api/v1/game/servers/{id}/launcher-media/{kind}:
+        delete:
+            tags:
+                - GameServerService
+            operationId: GameServerService_DeleteGameServerLauncherMedia
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: kind
+                  in: path
+                  required: true
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -8322,19 +8366,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.PassportLaunchTicket'
-    /api/v1/launcher:
-        get:
-            tags:
-                - PassportService
-            description: 启动器配置：PC 启动器的公告，以及各游戏的名称、图标、背景（通行证后台「启动器」设置）
-            operationId: PassportService_GetPassportLauncherConfig
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PassportLauncherConfig'
     /api/v1/links:
         get:
             tags:
@@ -11841,6 +11872,13 @@ components:
                         - $ref: '#/components/schemas/v1.FileTaskInfo'
                     description: 远端长收尾（FTP/WebDAV）异步任务；本地/OSS 瞬时收尾时为空。前端据此决定是否轮询任务。
             description: 上传完成合并分片响应
+        v1.CompleteGameServerLauncherMediaRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                token:
+                    type: string
         v1.CompleteMyAvatarUploadRequest:
             type: object
             properties:
@@ -15643,6 +15681,11 @@ components:
                     description: |-
                         客户端应用 ID（app_ + 16 个小写 base32 字符；空为还没有生成应用凭据）：客户端用它指明这台服务器。
                          应用密钥加密保存，只在生成与重置时返回一次
+                launcherIcon:
+                    type: string
+                    description: 启动器的游戏图标与游戏页背景（图片或视频）：上传到对象存储（系统设置 · 储存）后的公开链接，空为没有上传
+                launcherBackground:
+                    type: string
             description: 游戏服务器。
         v1.GameServerLogEntry:
             type: object
@@ -16305,19 +16348,6 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceStatusCount'
                     description: 各状态数量(按关键字/类型筛选，不按状态筛选)
             description: 获取实例列表响应
-        v1.GetLauncherSettingsResponse:
-            type: object
-            properties:
-                settings:
-                    $ref: '#/components/schemas/v1.LauncherSettings'
-                games:
-                    type: array
-                    items:
-                        type: string
-                    description: 可以设置的游戏：支持客户端启动的游戏 id
-                publicUrl:
-                    type: string
-                    description: 通行证对外地址（图片按它补全；为空时启动器拿不到图片）
         v1.GetMonitorDataResponse:
             type: object
             properties:
@@ -17753,36 +17783,6 @@ components:
             type: object
             properties: {}
             description: 强制停止容器响应
-        v1.LauncherGame:
-            type: object
-            properties:
-                game:
-                    type: string
-                    description: 游戏 id（适配器 id，例如 gakumas）
-                name:
-                    type: string
-                    description: 显示名称（必填，最多 40 字）
-                wordmark:
-                    type: string
-                    description: 标题上方的字标（最多 40 字），空为不显示
-                backgrounds:
-                    type: array
-                    items:
-                        type: string
-                    description: 游戏页背景：游戏素材 key（<分组>/<名称>，例如 ui/login-event2d-000），最多 3 张，按顺序显示
-            description: 一款游戏在启动器里的展示
-        v1.LauncherSettings:
-            type: object
-            properties:
-                notice:
-                    type: string
-                    description: 启动器公告（最多 500 字），空为不显示
-                games:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.LauncherGame'
-                    description: 各游戏的展示，每个游戏 id 最多一条；游戏必须支持客户端启动
-            description: 启动器设置。服务器图标跟随服务器封面，不在这里设置。
         v1.ListAPIKeysResponse:
             type: object
             properties:
@@ -19634,9 +19634,10 @@ components:
                     type: string
                 icon:
                     type: string
-                    description: |-
-                        服务器图标：Momoko 服务器卡片上那张卡的方图（服务器封面，没设封面时为默认封面）；
-                         绝对地址（通行证对外地址 + /games/...），素材不可用或对外地址没配置时为空
+                    description: 启动器里的游戏图标：服务器「接入设置 → 客户端」里上传到对象存储的图片链接；空为没有上传
+                background:
+                    type: string
+                    description: 启动器游戏页背景：上传到对象存储的图片或视频链接；空为没有上传
             description: 一个启动目标：客户端应用 ID 对应的服务器。
         v1.PassportLaunchAppRequest:
             type: object
@@ -19672,36 +19673,6 @@ components:
             description: |-
                 启动票据：lt1.<b64url(payload)>.<b64url(HMAC-SHA256(MGP 密钥, "momoko-launch-ticket.v1." + b64url(payload)))>，
                  payload 为 {"kid","aid","sid","pid","uid","jti","iat","exp"}。
-        v1.PassportLauncherConfig:
-            type: object
-            properties:
-                notice:
-                    type: string
-                    description: 启动器公告，空为不显示
-                games:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.PassportLauncherGame'
-                    description: 设置过的游戏，按设置里的顺序；启动器只使用自己支持的游戏
-            description: PC 启动器的展示配置（通行证后台「启动器」设置）。服务器图标不在这里，见 PassportLaunchApp.icon。
-        v1.PassportLauncherGame:
-            type: object
-            properties:
-                game:
-                    type: string
-                    description: 游戏 id（适配器 id，例如 gakumas）
-                name:
-                    type: string
-                    description: 显示名称，例如 学园偶像大师
-                wordmark:
-                    type: string
-                    description: 标题上方的字标，例如 GAKUMAS；空为不显示
-                backgrounds:
-                    type: array
-                    items:
-                        type: string
-                    description: 游戏页背景（0–3 张）：1 张铺满，2–3 张并排；绝对地址（通行证对外地址 + /games/...），素材不可用的不返回
-            description: 一款游戏在启动器里的展示
         v1.PassportLink:
             type: object
             properties:
@@ -20256,6 +20227,27 @@ components:
                     type: string
                     description: 累计出站流量(字节)
             description: 端口转发时间序列采样点
+        v1.PresignGameServerLauncherMediaRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                kind:
+                    type: string
+                contentType:
+                    type: string
+                size:
+                    type: string
+            description: kind：icon 游戏图标（jpg / png / webp / gif，≤ 20 MB）/ background 游戏页背景（图片同上，或 mp4 / webm 视频，≤ 200 MB）
+        v1.PresignGameServerLauncherMediaResponse:
+            type: object
+            properties:
+                uploadUrl:
+                    type: string
+                    description: 浏览器用 PUT 把文件直接传到这个地址（Content-Type 与申请时相同）
+                token:
+                    type: string
+                    description: 上传凭证：上传完成后原样交回
         v1.PresignMyAvatarUploadRequest:
             type: object
             properties:

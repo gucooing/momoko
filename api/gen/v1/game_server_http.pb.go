@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationGameServerServiceCancelGameServerTask = "/v1.GameServerService/CancelGameServerTask"
 const OperationGameServerServiceCheckGameServerBuild = "/v1.GameServerService/CheckGameServerBuild"
 const OperationGameServerServiceClearGameServerConsole = "/v1.GameServerService/ClearGameServerConsole"
+const OperationGameServerServiceCompleteGameServerLauncherMedia = "/v1.GameServerService/CompleteGameServerLauncherMedia"
 const OperationGameServerServiceCompressGameServerFiles = "/v1.GameServerService/CompressGameServerFiles"
 const OperationGameServerServiceControlGameServer = "/v1.GameServerService/ControlGameServer"
 const OperationGameServerServiceCopyGameServerFile = "/v1.GameServerService/CopyGameServerFile"
@@ -32,6 +33,7 @@ const OperationGameServerServiceCutGameServerFile = "/v1.GameServerService/CutGa
 const OperationGameServerServiceDeleteGameServer = "/v1.GameServerService/DeleteGameServer"
 const OperationGameServerServiceDeleteGameServerBackup = "/v1.GameServerService/DeleteGameServerBackup"
 const OperationGameServerServiceDeleteGameServerFiles = "/v1.GameServerService/DeleteGameServerFiles"
+const OperationGameServerServiceDeleteGameServerLauncherMedia = "/v1.GameServerService/DeleteGameServerLauncherMedia"
 const OperationGameServerServiceDetectGameServerDir = "/v1.GameServerService/DetectGameServerDir"
 const OperationGameServerServiceDownloadGameServerBackup = "/v1.GameServerService/DownloadGameServerBackup"
 const OperationGameServerServiceEditGameServerFile = "/v1.GameServerService/EditGameServerFile"
@@ -51,6 +53,7 @@ const OperationGameServerServiceListGameServerBackups = "/v1.GameServerService/L
 const OperationGameServerServiceListGameServerHistory = "/v1.GameServerService/ListGameServerHistory"
 const OperationGameServerServiceListGameServerLogs = "/v1.GameServerService/ListGameServerLogs"
 const OperationGameServerServiceListGameServers = "/v1.GameServerService/ListGameServers"
+const OperationGameServerServicePresignGameServerLauncherMedia = "/v1.GameServerService/PresignGameServerLauncherMedia"
 const OperationGameServerServiceRefreshGameServer = "/v1.GameServerService/RefreshGameServer"
 const OperationGameServerServiceRenameGameServerFile = "/v1.GameServerService/RenameGameServerFile"
 const OperationGameServerServiceResetGameServerClientAppSecret = "/v1.GameServerService/ResetGameServerClientAppSecret"
@@ -74,6 +77,7 @@ type GameServerServiceHTTPServer interface {
 	CheckGameServerBuild(context.Context, *CheckGameServerBuildRequest) (*GameServerBuildInfo, error)
 	// ClearGameServerConsole 清空托管进程控制台的输出记录（重新连接时不再回放）
 	ClearGameServerConsole(context.Context, *ClearGameServerConsoleRequest) (*ClearGameServerConsoleResponse, error)
+	CompleteGameServerLauncherMedia(context.Context, *CompleteGameServerLauncherMediaRequest) (*GameServerInfo, error)
 	CompressGameServerFiles(context.Context, *BatchCompressInstanceFileRequest) (*BatchCompressInstanceFileResponse, error)
 	// ControlGameServer 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
 	ControlGameServer(context.Context, *ControlGameServerRequest) (*GameServerInfo, error)
@@ -88,6 +92,7 @@ type GameServerServiceHTTPServer interface {
 	DeleteGameServer(context.Context, *DeleteGameServerRequest) (*DeleteGameServerResponse, error)
 	DeleteGameServerBackup(context.Context, *DeleteGameServerBackupRequest) (*DeleteGameServerBackupResponse, error)
 	DeleteGameServerFiles(context.Context, *BatchDeleteInstanceFileRequest) (*BatchDeleteInstanceFileResponse, error)
+	DeleteGameServerLauncherMedia(context.Context, *DeleteGameServerLauncherMediaRequest) (*GameServerInfo, error)
 	// DetectGameServerDir 识别服务端目录（托管接入前的预检）：可执行文件、配置、端口、数据库、资源与端口占用
 	DetectGameServerDir(context.Context, *DetectGameServerDirRequest) (*DetectGameServerDirResponse, error)
 	// DownloadGameServerBackup 下载备份（预签名下载地址）
@@ -121,6 +126,9 @@ type GameServerServiceHTTPServer interface {
 	ListGameServerLogs(context.Context, *ListGameServerLogsRequest) (*ListGameServerLogsResponse, error)
 	// ListGameServers 服务器列表（按游戏、接入方式、状态、标签筛选；搜索；分页）
 	ListGameServers(context.Context, *ListGameServersRequest) (*ListGameServersResponse, error)
+	// PresignGameServerLauncherMedia 启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+	// 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
+	PresignGameServerLauncherMedia(context.Context, *PresignGameServerLauncherMediaRequest) (*PresignGameServerLauncherMediaResponse, error)
 	// RefreshGameServer 重新拉取 manifest 与 status
 	RefreshGameServer(context.Context, *RefreshGameServerRequest) (*GameServerInfo, error)
 	RenameGameServerFile(context.Context, *RenameInstanceFileRequest) (*RenameInstanceFileResponse, error)
@@ -166,6 +174,9 @@ func RegisterGameServerServiceHTTPServer(s *http.Server, srv GameServerServiceHT
 	r.POST("/api/v1/game/servers/{id}/mode", _GameServerService_SwitchGameServerMode0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/servers/{id}/client-app", _GameServerService_GenerateGameServerClientApp0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/servers/{id}/client-app/secret", _GameServerService_ResetGameServerClientAppSecret0_HTTP_Handler(srv))
+	r.POST("/api/v1/game/servers/{id}/launcher-media/presign", _GameServerService_PresignGameServerLauncherMedia0_HTTP_Handler(srv))
+	r.POST("/api/v1/game/servers/{id}/launcher-media/complete", _GameServerService_CompleteGameServerLauncherMedia0_HTTP_Handler(srv))
+	r.DELETE("/api/v1/game/servers/{id}/launcher-media/{kind}", _GameServerService_DeleteGameServerLauncherMedia0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/servers/{id}/rotate-key", _GameServerService_RotateGameServerKey0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/servers/{id}/control", _GameServerService_ControlGameServer0_HTTP_Handler(srv))
 	r.POST("/api/v1/game/servers/{id}/console/clear", _GameServerService_ClearGameServerConsole0_HTTP_Handler(srv))
@@ -472,6 +483,78 @@ func _GameServerService_ResetGameServerClientAppSecret0_HTTP_Handler(srv GameSer
 			return err
 		}
 		reply := out.(*GameServerClientAppResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _GameServerService_PresignGameServerLauncherMedia0_HTTP_Handler(srv GameServerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PresignGameServerLauncherMediaRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationGameServerServicePresignGameServerLauncherMedia)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PresignGameServerLauncherMedia(ctx, req.(*PresignGameServerLauncherMediaRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PresignGameServerLauncherMediaResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _GameServerService_CompleteGameServerLauncherMedia0_HTTP_Handler(srv GameServerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CompleteGameServerLauncherMediaRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationGameServerServiceCompleteGameServerLauncherMedia)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CompleteGameServerLauncherMedia(ctx, req.(*CompleteGameServerLauncherMediaRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GameServerInfo)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _GameServerService_DeleteGameServerLauncherMedia0_HTTP_Handler(srv GameServerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteGameServerLauncherMediaRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationGameServerServiceDeleteGameServerLauncherMedia)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteGameServerLauncherMedia(ctx, req.(*DeleteGameServerLauncherMediaRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GameServerInfo)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1313,6 +1396,7 @@ type GameServerServiceHTTPClient interface {
 	CheckGameServerBuild(ctx context.Context, req *CheckGameServerBuildRequest, opts ...http.CallOption) (rsp *GameServerBuildInfo, err error)
 	// ClearGameServerConsole 清空托管进程控制台的输出记录（重新连接时不再回放）
 	ClearGameServerConsole(ctx context.Context, req *ClearGameServerConsoleRequest, opts ...http.CallOption) (rsp *ClearGameServerConsoleResponse, err error)
+	CompleteGameServerLauncherMedia(ctx context.Context, req *CompleteGameServerLauncherMediaRequest, opts ...http.CallOption) (rsp *GameServerInfo, err error)
 	CompressGameServerFiles(ctx context.Context, req *BatchCompressInstanceFileRequest, opts ...http.CallOption) (rsp *BatchCompressInstanceFileResponse, err error)
 	// ControlGameServer 启动 / 停止 / 重启托管进程（role 为空表示全部进程）
 	ControlGameServer(ctx context.Context, req *ControlGameServerRequest, opts ...http.CallOption) (rsp *GameServerInfo, err error)
@@ -1327,6 +1411,7 @@ type GameServerServiceHTTPClient interface {
 	DeleteGameServer(ctx context.Context, req *DeleteGameServerRequest, opts ...http.CallOption) (rsp *DeleteGameServerResponse, err error)
 	DeleteGameServerBackup(ctx context.Context, req *DeleteGameServerBackupRequest, opts ...http.CallOption) (rsp *DeleteGameServerBackupResponse, err error)
 	DeleteGameServerFiles(ctx context.Context, req *BatchDeleteInstanceFileRequest, opts ...http.CallOption) (rsp *BatchDeleteInstanceFileResponse, err error)
+	DeleteGameServerLauncherMedia(ctx context.Context, req *DeleteGameServerLauncherMediaRequest, opts ...http.CallOption) (rsp *GameServerInfo, err error)
 	// DetectGameServerDir 识别服务端目录（托管接入前的预检）：可执行文件、配置、端口、数据库、资源与端口占用
 	DetectGameServerDir(ctx context.Context, req *DetectGameServerDirRequest, opts ...http.CallOption) (rsp *DetectGameServerDirResponse, err error)
 	// DownloadGameServerBackup 下载备份（预签名下载地址）
@@ -1360,6 +1445,9 @@ type GameServerServiceHTTPClient interface {
 	ListGameServerLogs(ctx context.Context, req *ListGameServerLogsRequest, opts ...http.CallOption) (rsp *ListGameServerLogsResponse, err error)
 	// ListGameServers 服务器列表（按游戏、接入方式、状态、标签筛选；搜索；分页）
 	ListGameServers(ctx context.Context, req *ListGameServersRequest, opts ...http.CallOption) (rsp *ListGameServersResponse, err error)
+	// PresignGameServerLauncherMedia 启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+	// 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
+	PresignGameServerLauncherMedia(ctx context.Context, req *PresignGameServerLauncherMediaRequest, opts ...http.CallOption) (rsp *PresignGameServerLauncherMediaResponse, err error)
 	// RefreshGameServer 重新拉取 manifest 与 status
 	RefreshGameServer(ctx context.Context, req *RefreshGameServerRequest, opts ...http.CallOption) (rsp *GameServerInfo, err error)
 	RenameGameServerFile(ctx context.Context, req *RenameInstanceFileRequest, opts ...http.CallOption) (rsp *RenameInstanceFileResponse, err error)
@@ -1433,6 +1521,19 @@ func (c *GameServerServiceHTTPClientImpl) ClearGameServerConsole(ctx context.Con
 	pattern := "/api/v1/game/servers/{id}/console/clear"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationGameServerServiceClearGameServerConsole))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *GameServerServiceHTTPClientImpl) CompleteGameServerLauncherMedia(ctx context.Context, in *CompleteGameServerLauncherMediaRequest, opts ...http.CallOption) (*GameServerInfo, error) {
+	var out GameServerInfo
+	pattern := "/api/v1/game/servers/{id}/launcher-media/complete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationGameServerServiceCompleteGameServerLauncherMedia))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -1569,6 +1670,19 @@ func (c *GameServerServiceHTTPClientImpl) DeleteGameServerFiles(ctx context.Cont
 	opts = append(opts, http.Operation(OperationGameServerServiceDeleteGameServerFiles))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *GameServerServiceHTTPClientImpl) DeleteGameServerLauncherMedia(ctx context.Context, in *DeleteGameServerLauncherMediaRequest, opts ...http.CallOption) (*GameServerInfo, error) {
+	var out GameServerInfo
+	pattern := "/api/v1/game/servers/{id}/launcher-media/{kind}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationGameServerServiceDeleteGameServerLauncherMedia))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1830,6 +1944,21 @@ func (c *GameServerServiceHTTPClientImpl) ListGameServers(ctx context.Context, i
 	opts = append(opts, http.Operation(OperationGameServerServiceListGameServers))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PresignGameServerLauncherMedia 启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+// 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
+func (c *GameServerServiceHTTPClientImpl) PresignGameServerLauncherMedia(ctx context.Context, in *PresignGameServerLauncherMediaRequest, opts ...http.CallOption) (*PresignGameServerLauncherMediaResponse, error) {
+	var out PresignGameServerLauncherMediaResponse
+	pattern := "/api/v1/game/servers/{id}/launcher-media/presign"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationGameServerServicePresignGameServerLauncherMedia))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

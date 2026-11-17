@@ -19,12 +19,6 @@ service PassportService {
       get: "/api/v1/config"
     };
   }
-  // 启动器配置：PC 启动器的公告，以及各游戏的名称、图标、背景（通行证后台「启动器」设置）
-  rpc GetPassportLauncherConfig(GetPassportLauncherConfigRequest) returns (PassportLauncherConfig) {
-    option (google.api.http) = {
-      get: "/api/v1/launcher"
-    };
-  }
   // 发送注册验证码
   rpc SendPassportRegisterCode(SendPassportEmailCodeRequest) returns (SendPassportEmailCodeResponse) {
     option (google.api.http) = {
@@ -381,28 +375,6 @@ service PassportService {
 message PassportEmpty {}
 
 // ---------------- 配置与登录 ----------------
-
-message GetPassportLauncherConfigRequest {}
-
-// PC 启动器的展示配置（通行证后台「启动器」设置）。服务器图标不在这里，见 PassportLaunchApp.icon。
-message PassportLauncherConfig {
-  // 启动器公告，空为不显示
-  string notice = 1;
-  // 设置过的游戏，按设置里的顺序；启动器只使用自己支持的游戏
-  repeated PassportLauncherGame games = 2;
-}
-
-// 一款游戏在启动器里的展示
-message PassportLauncherGame {
-  // 游戏 id（适配器 id，例如 gakumas）
-  string game = 1;
-  // 显示名称，例如 学园偶像大师
-  string name = 2;
-  // 标题上方的字标，例如 GAKUMAS；空为不显示
-  string wordmark = 3;
-  // 游戏页背景（0–3 张）：1 张铺满，2–3 张并排；绝对地址（通行证对外地址 + /games/...），素材不可用的不返回
-  repeated string backgrounds = 4;
-}
 
 message GetPassportConfigRequest {}
 
@@ -945,9 +917,10 @@ message PassportLaunchApp {
   // unsupported 服务器不支持 / not_visible 服务器未向我开放 / cooldown 解绑冷却中（只能重新绑定原账号）；可以绑定时为空
   bool bindable = 5;
   string block_reason = 6;
-  // 服务器图标：Momoko 服务器卡片上那张卡的方图（服务器封面，没设封面时为默认封面）；
-  // 绝对地址（通行证对外地址 + /games/...），素材不可用或对外地址没配置时为空
+  // 启动器里的游戏图标：服务器「接入设置 → 客户端」里上传到对象存储的图片链接；空为没有上传
   string icon = 7;
+  // 启动器游戏页背景：上传到对象存储的图片或视频链接；空为没有上传
+  string background = 8;
 }
 
 message ListPassportLaunchAppsResponse {
