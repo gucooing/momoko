@@ -433,7 +433,7 @@ message GameServerInfo {
   repeated string capabilities = 25;
   // 进行中的托管任务（更新 / 资源 / 备份 / 回档）
   repeated GameServerTask running_tasks = 26;
-  // 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器
+  // 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器（空为使用官方资源）
   string client_sdk_url = 27;
   string client_game_url = 28;
   string client_resource_url = 29;
@@ -558,7 +558,7 @@ message UpdateGameServerRequest {
   string passport_visibility = 9;
   string passport_invite_code = 10;
   string timezone = 11;
-  // 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；三个都填写且生成了客户端应用凭据后，服务器才能用通行证启动
+  // 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；SDK 与游戏服务端地址填写且生成了客户端应用凭据后，服务器才能用通行证启动；资源服务器地址不填时客户端使用官方资源
   string client_sdk_url = 12;
   string client_game_url = 13;
   string client_resource_url = 14;

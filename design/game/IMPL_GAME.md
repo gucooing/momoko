@@ -61,7 +61,7 @@
   - 应用 ID：`game_server.client_app_id`，格式为 `app_` 加 10 字节随机数的小写 base32（16 个字符），全局唯一；公开标识，客户端用它指明服务器，也打包进单服务器客户端（APK 的 `Bootstrap.APP_ID`）。
   - 应用密钥：32 字节随机数的无填充 base64url（43 个字符），与 MGP 密钥一样 secretbox 加密保存在 `game_server.client_app_secret`，明文只在生成与重置时返回一次；只配置在游戏服务端，不进入任何客户端。
   - 管理端在服务器详情「接入设置」里操作（`GameServerService`）：生成（`POST /api/v1/game/servers/{id}/client-app`，第一次生成或重新生成应用 ID，应用 ID 与应用密钥一起换）、重置密钥（`POST /api/v1/game/servers/{id}/client-app/secret`，应用 ID 不变）。两种重置在页面上都要先确认；旧凭据立即失效。凭据要在游戏服务端配置里（学マス：`momoko.app_id`、`momoko.app_secret`）：托管服务器与轮换 MGP 密钥相同，Momoko 先把凭据和通行证对外地址 `momoko.url`（取 `passport.public_url`，规范成不带路径的 http(s) origin；未配置或不合规则失败）写进服务端配置（写不了就失败，不保存）再同步保存，运行中可选立即重启，并写一条变更记录（密钥 · 生成客户端应用凭据 / 重置客户端应用密钥）；仅 GM 的服务器由管理员把返回的凭据写进服务端配置。
-- 可启动：游戏适配器支持客户端启动（`GameAdapter.ClientLaunch`，当前为学マス）、接入了 MGP、生成了客户端应用凭据、三个客户端地址（`client_sdk_url`、`client_game_url`、`client_resource_url`）都已填写。不可启动的服务器对客户端来说不存在。
+- 可启动：游戏适配器支持客户端启动（`GameAdapter.ClientLaunch`，当前为学マス）、接入了 MGP、生成了客户端应用凭据、填写了 `client_sdk_url` 与 `client_game_url`。`client_resource_url` 可以不填，客户端这时使用官方资源。不可启动的服务器对客户端来说不存在。
 - 启动目标 `PassportLaunchApp`：`{appId, server, endpoints {sdk, game, resource}, link（没有游戏账号时为 null）, bindable, blockReason}`；没有绑定时 `blockReason` 为 `unsupported`、`not_visible`（服务器未向玩家开放）或 `cooldown`（解绑冷却中，只能绑回原账号），可以绑定时为空。
   - `GET /api/v1/launch/apps`（PC 启动器）：可启动、并且用户在上面有生效的绑定、或服务器对他可见（公开，或是注册邀请码所属的服务器）的启动目标；有绑定的在前，按最近使用倒序，其余按服务器名称。
   - `GET /api/v1/launch/apps/{appId}`（单服务器客户端）：服务器对用户不可见、也没有绑定时照常返回，`bindable=false`、`blockReason=not_visible`；应用 ID 不存在或服务器不可启动时 404 `PASSPORT_APP_NOT_FOUND`。
@@ -123,7 +123,7 @@
 见 `SpecPC.dc.html` 第 3 节，按原样建表：
 
 - `game_server`：id、game（适配器 id）、name（只是名字）、tags、mode（hosted | remote）、node_id、instance_id（托管时关联应用实例）、mgp_endpoint、key_id、secret（加密存储）、manifest 缓存、status 缓存。
-- `game_server` 另有游戏客户端启动用的字段：client_app_id（客户端应用 ID，唯一，未生成时为空）、client_app_secret（应用密钥，加密）、client_sdk_url、client_game_url、client_resource_url（HTTP(S) origin，空为未填写）。
+- `game_server` 另有游戏客户端启动用的字段：client_app_id（客户端应用 ID，唯一，未生成时为空）、client_app_secret（应用密钥，加密）、client_sdk_url、client_game_url、client_resource_url（HTTP(S) origin，空为未填写；资源服务器地址为空时客户端使用官方资源）。
 - `game_account_link`：user_id、server_id、player_id、display_id、nickname、avatar_asset、method（password 密码 / code 绑定码 / create 经通行证新建 / admin 管理员 / request 申请）、is_primary、linked_at、last_seen_at（进入游戏空间或签发启动票据时更新）。每个用户在每台服务器只能绑一个游戏账号；解绑后 7 天内不能绑别的账号。
 - `gm_self_service`：server_id、command、enabled、use_limit、period_days（0 永久不刷新）、need_approval、player_note。
 - `gm_execution`：server_id、command、actor user_id、actor_kind（admin | player）、targets、params、reason、dry_run、status（success | failed | pending | rejected）、changes、reviewed_by、request_id。params 只存不展示。

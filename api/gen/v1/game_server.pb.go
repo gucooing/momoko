@@ -493,7 +493,7 @@ type GameServerInfo struct {
 	Capabilities []string `protobuf:"bytes,25,rep,name=capabilities,proto3" json:"capabilities,omitempty"`
 	// 进行中的托管任务（更新 / 资源 / 备份 / 回档）
 	RunningTasks []*GameServerTask `protobuf:"bytes,26,rep,name=running_tasks,json=runningTasks,proto3" json:"running_tasks,omitempty"`
-	// 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器
+	// 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器（空为使用官方资源）
 	ClientSdkUrl      string `protobuf:"bytes,27,opt,name=client_sdk_url,json=clientSdkUrl,proto3" json:"client_sdk_url,omitempty"`
 	ClientGameUrl     string `protobuf:"bytes,28,opt,name=client_game_url,json=clientGameUrl,proto3" json:"client_game_url,omitempty"`
 	ClientResourceUrl string `protobuf:"bytes,29,opt,name=client_resource_url,json=clientResourceUrl,proto3" json:"client_resource_url,omitempty"`
@@ -1496,7 +1496,7 @@ type UpdateGameServerRequest struct {
 	PassportVisibility string `protobuf:"bytes,9,opt,name=passport_visibility,json=passportVisibility,proto3" json:"passport_visibility,omitempty"`
 	PassportInviteCode string `protobuf:"bytes,10,opt,name=passport_invite_code,json=passportInviteCode,proto3" json:"passport_invite_code,omitempty"`
 	Timezone           string `protobuf:"bytes,11,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	// 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；三个都填写且生成了客户端应用凭据后，服务器才能用通行证启动
+	// 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；SDK 与游戏服务端地址填写且生成了客户端应用凭据后，服务器才能用通行证启动；资源服务器地址不填时客户端使用官方资源
 	ClientSdkUrl      string `protobuf:"bytes,12,opt,name=client_sdk_url,json=clientSdkUrl,proto3" json:"client_sdk_url,omitempty"`
 	ClientGameUrl     string `protobuf:"bytes,13,opt,name=client_game_url,json=clientGameUrl,proto3" json:"client_game_url,omitempty"`
 	ClientResourceUrl string `protobuf:"bytes,14,opt,name=client_resource_url,json=clientResourceUrl,proto3" json:"client_resource_url,omitempty"`

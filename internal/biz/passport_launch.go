@@ -67,11 +67,11 @@ func clientLaunchSupported(s *gen.GameServer) bool {
 	return ok && a.ClientLaunch && MGPConfigured(s)
 }
 
-// launchable 服务器可以用通行证启动：游戏支持客户端启动、接入了 MGP、生成了客户端应用凭据、三个客户端地址都已填写。
-// 不满足的服务器对客户端来说不存在。
+// launchable 服务器可以用通行证启动：游戏支持客户端启动、接入了 MGP、生成了客户端应用凭据、填写了 SDK 与游戏服务端地址。
+// 资源服务器地址可以不填，客户端这时使用官方资源。不满足的服务器对客户端来说不存在。
 func launchable(s *gen.GameServer) bool {
 	return clientLaunchSupported(s) && derefString(s.ClientAppID) != "" && s.ClientAppSecret != "" &&
-		s.ClientSdkURL != "" && s.ClientGameURL != "" && s.ClientResourceURL != ""
+		s.ClientSdkURL != "" && s.ClientGameURL != ""
 }
 
 // launchServer 客户端应用 ID 对应的可启动服务器；ID 不存在或服务器不可启动时为 ErrPassportAppNotFound。

@@ -125,7 +125,7 @@ export interface GameServerInfo {
   capabilities: string[];
   /** 进行中的托管任务（更新 / 资源 / 备份 / 回档） */
   runningTasks: GameServerTask[];
-  /** 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器 */
+  /** 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器（空为使用官方资源） */
   clientSdkUrl: string;
   clientGameUrl: string;
   clientResourceUrl: string;
@@ -269,7 +269,7 @@ export interface UpdateGameServerRequest {
   passportVisibility: string;
   passportInviteCode: string;
   timezone: string;
-  /** 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；三个都填写且生成了客户端应用凭据后，服务器才能用通行证启动 */
+  /** 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；SDK 与游戏服务端地址填写且生成了客户端应用凭据后，服务器才能用通行证启动；资源服务器地址不填时客户端使用官方资源 */
   clientSdkUrl: string;
   clientGameUrl: string;
   clientResourceUrl: string;

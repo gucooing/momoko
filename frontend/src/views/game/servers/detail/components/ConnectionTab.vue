@@ -373,7 +373,8 @@ const passportSummary = computed(() => {
 })
 const clientUrls = computed(() => [props.server.clientSdkUrl, props.server.clientGameUrl, props.server.clientResourceUrl])
 const clientSet = computed(() => clientUrls.value.some(Boolean))
-const clientPartial = computed(() => clientSet.value && !clientUrls.value.every(Boolean))
+// SDK 与游戏服务端地址必填；资源服务器地址不填时客户端使用官方资源
+const clientPartial = computed(() => clientSet.value && !(props.server.clientSdkUrl && props.server.clientGameUrl))
 const clientSummary = computed(() => {
   if (!clientSet.value) return t('gameServers.connection.clientNone')
   const [sdk, game, resource] = clientUrls.value
@@ -381,7 +382,7 @@ const clientSummary = computed(() => {
   return [
     `${t('gameServers.connection.clientSdkShort')} ${sdk || none}`,
     `${t('gameServers.connection.clientGameShort')} ${game || none}`,
-    `${t('gameServers.connection.clientResourceShort')} ${resource || none}`,
+    `${t('gameServers.connection.clientResourceShort')} ${resource || t('gameServers.connection.clientOfficial')}`,
   ].join(' · ')
 })
 const hostingSummary = computed(() => {
