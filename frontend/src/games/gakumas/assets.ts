@@ -33,7 +33,8 @@ export function idolCardImage(idOrAssetId: string, variant: CardVariant = 'sq'):
   return gameAsset(GAME, idolCardKey(idOrAssetId, variant))
 }
 
-// 默认封面：13 位偶像初始 SSR 卡（-3-000）的横图，2:1、不带文字
+// 默认封面：13 位偶像初始 SSR 卡（-3-000）的横图，2:1、不带文字。
+// 后端给启动器算服务器图标时用同一规则（internal/biz/game_asset.go 的 gakumasCoverIdols、serverCoverKey），两边要一起改。
 const COVER_IDOLS = ['hski', 'ttmr', 'fktn', 'hmsz', 'kllj', 'kcna', 'ssmk', 'shro', 'hrnm', 'hume', 'jsna', 'atbm', 'amao']
 
 /**

@@ -12,6 +12,29 @@ export const protobufPackage = "v1";
 export interface PassportEmpty {
 }
 
+export interface GetPassportLauncherConfigRequest {
+}
+
+/** PC 启动器的展示配置（通行证后台「启动器」设置）。服务器图标不在这里，见 PassportLaunchApp.icon。 */
+export interface PassportLauncherConfig {
+  /** 启动器公告，空为不显示 */
+  notice: string;
+  /** 设置过的游戏，按设置里的顺序；启动器只使用自己支持的游戏 */
+  games: PassportLauncherGame[];
+}
+
+/** 一款游戏在启动器里的展示 */
+export interface PassportLauncherGame {
+  /** 游戏 id（适配器 id，例如 gakumas） */
+  game: string;
+  /** 显示名称，例如 学园偶像大师 */
+  name: string;
+  /** 标题上方的字标，例如 GAKUMAS；空为不显示 */
+  wordmark: string;
+  /** 游戏页背景（0–3 张）：1 张铺满，2–3 张并排；绝对地址（通行证对外地址 + /games/...），素材不可用的不返回 */
+  backgrounds: string[];
+}
+
 export interface GetPassportConfigRequest {
 }
 
@@ -581,6 +604,11 @@ export interface PassportLaunchApp {
    */
   bindable: boolean;
   blockReason: string;
+  /**
+   * 服务器图标：Momoko 服务器卡片上那张卡的方图（服务器封面，没设封面时为默认封面）；
+   * 绝对地址（通行证对外地址 + /games/...），素材不可用或对外地址没配置时为空
+   */
+  icon: string;
 }
 
 export interface ListPassportLaunchAppsResponse {

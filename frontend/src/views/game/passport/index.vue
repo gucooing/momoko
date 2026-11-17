@@ -5,6 +5,7 @@
     <PageHeader :title="t('passportAdmin.title')">
       <template #description>{{ t('passportAdmin.count', { n: counts.all ?? 0 }) }} · {{ t('passportAdmin.description') }}</template>
       <template #actions>
+        <UButton color="neutral" variant="outline" icon="i-lucide-monitor-play" @click="launcherOpen = true">{{ t('passportAdmin.actions.launcher') }}</UButton>
         <UButton color="neutral" variant="outline" icon="i-lucide-settings" @click="settingsOpen = true">{{ t('passportAdmin.actions.settings') }}</UButton>
         <UButton icon="i-lucide-mail-plus" @click="inviteOpen = true">{{ t('passportAdmin.actions.invite') }}</UButton>
       </template>
@@ -118,6 +119,7 @@
     </div>
 
     <SettingsDialog v-model="settingsOpen" @saved="onSettingsSaved" />
+    <LauncherDialog v-model="launcherOpen" />
     <InviteDialog v-model="inviteOpen" :register-mode="settings?.settings?.registerMode" />
   </div>
 </template>
@@ -133,6 +135,7 @@ import PassportAvatar from './components/PassportAvatar.vue'
 import GameBadge from './components/GameBadge.vue'
 import UserDetail from './components/UserDetail.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
+import LauncherDialog from './components/LauncherDialog.vue'
 import InviteDialog from './components/InviteDialog.vue'
 import { notifyError, usePassportTime } from './shared'
 import { usePassportStatus } from './status'
@@ -164,6 +167,7 @@ const loading = ref(false)
 const selectedId = ref('')
 const sideRef = ref<HTMLElement>()
 const settingsOpen = ref(false)
+const launcherOpen = ref(false)
 const inviteOpen = ref(false)
 let seq = 0
 

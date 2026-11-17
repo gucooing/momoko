@@ -238,6 +238,39 @@ export interface PassportSettings {
   sessionDays: number;
 }
 
+export interface GetLauncherSettingsRequest {
+}
+
+/** 启动器设置。服务器图标跟随服务器封面，不在这里设置。 */
+export interface LauncherSettings {
+  /** 启动器公告（最多 500 字），空为不显示 */
+  notice: string;
+  /** 各游戏的展示，每个游戏 id 最多一条；游戏必须支持客户端启动 */
+  games: LauncherGame[];
+}
+
+/** 一款游戏在启动器里的展示 */
+export interface LauncherGame {
+  /** 游戏 id（适配器 id，例如 gakumas） */
+  game: string;
+  /** 显示名称（必填，最多 40 字） */
+  name: string;
+  /** 标题上方的字标（最多 40 字），空为不显示 */
+  wordmark: string;
+  /** 游戏页背景：游戏素材 key（<分组>/<名称>，例如 ui/login-event2d-000），最多 3 张，按顺序显示 */
+  backgrounds: string[];
+}
+
+export interface GetLauncherSettingsResponse {
+  settings:
+    | LauncherSettings
+    | undefined;
+  /** 可以设置的游戏：支持客户端启动的游戏 id */
+  games: string[];
+  /** 通行证对外地址（图片按它补全；为空时启动器拿不到图片） */
+  publicUrl: string;
+}
+
 export interface GetPassportSettingsResponse {
   settings:
     | PassportSettings
