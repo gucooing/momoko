@@ -150,7 +150,7 @@ service System {
       body: "*"
     };
   }
-  // 获取储存设置（头像储存等）
+  // 获取储存设置（头像与应用图片存放的文件来源）
   rpc StorageConfig(StorageConfigRequest) returns (StorageConfigResponse) {
     option (google.api.http) = {
       get: "/api/v1/system/storage-config"
@@ -783,37 +783,20 @@ message TestEmailConfigRequest {
 // 测试邮件配置响应
 message TestEmailConfigResponse {}
 
-// 储存设置
+// 储存设置：头像、应用图标与应用背景存放到哪个文件来源（文件管理 · 文件源里的对象存储来源）。
+// 各自放在来源下的固定目录：头像 avatars/，应用图标与背景 app/；以公开链接对外，这些目录需允许公开读取。
 message StorageConfig {
-  // 头像储存
-  AvatarStorageConfig avatar = 1;
+  // 存放用的文件来源 id；空表示未设置（不能上传头像、应用图标与背景）
+  string source_id = 1;
+  // 可选的来源：启用中的对象存储来源（只读）
+  repeated StorageSource sources = 2;
 }
 
-// 头像储存设置：S3 兼容对象存储，开启后允许用户上传头像（单张不超过 20MB）。
-// 头像以公开链接存进用户资料，存储桶（或前缀）需允许公开读取。
-message AvatarStorageConfig {
-  // 是否开启头像上传
-  bool enabled = 1;
-  // 服务地址（如 s3.amazonaws.com、minio.example.com:9000，不含协议）
-  string endpoint = 2;
-  // 区域（如 us-east-1，可留空）
-  string region = 3;
-  // 存储桶
-  string bucket = 4;
-  // Access Key
-  string access_key = 5;
-  // Secret Key：读取时恒为空；更新时留空表示保留原值
-  string secret_key = 6;
-  // 是否已保存过 Secret Key（只读）
-  bool secret_key_set = 7;
-  // 使用 HTTPS
-  bool use_ssl = 8;
-  // 路径风格访问（MinIO 等自建服务一般需要开启）
-  bool path_style = 9;
-  // 对象 key 前缀（如 avatars），可留空
-  string prefix = 10;
-  // 公开访问地址（自定义域名 / CDN，如 https://cdn.example.com）；留空则按服务地址与存储桶拼接
-  string public_url = 11;
+// 可选的对象存储来源
+message StorageSource {
+  string id = 1;
+  // 来源名称
+  string name = 2;
 }
 
 // 获取储存设置请求
@@ -826,8 +809,8 @@ message StorageConfigResponse {
 
 // 更新储存设置请求
 message UpdateStorageConfigRequest {
-  // 头像储存
-  AvatarStorageConfig avatar = 1;
+  // 存放用的文件来源 id（须为启用中的对象存储来源）；空表示不存放
+  string source_id = 1;
 }
 
 // 更新储存设置响应

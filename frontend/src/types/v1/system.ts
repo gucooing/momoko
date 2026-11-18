@@ -864,39 +864,22 @@ export interface TestEmailConfigRequest_DataEntry {
 export interface TestEmailConfigResponse {
 }
 
-/** 储存设置 */
+/**
+ * 储存设置：头像、应用图标与应用背景存放到哪个文件来源（文件管理 · 文件源里的对象存储来源）。
+ * 各自放在来源下的固定目录：头像 avatars/，应用图标与背景 app/；以公开链接对外，这些目录需允许公开读取。
+ */
 export interface StorageConfig {
-  /** 头像储存 */
-  avatar: AvatarStorageConfig | undefined;
+  /** 存放用的文件来源 id；空表示未设置（不能上传头像、应用图标与背景） */
+  sourceId: string;
+  /** 可选的来源：启用中的对象存储来源（只读） */
+  sources: StorageSource[];
 }
 
-/**
- * 头像储存设置：S3 兼容对象存储，开启后允许用户上传头像（单张不超过 20MB）。
- * 头像以公开链接存进用户资料，存储桶（或前缀）需允许公开读取。
- */
-export interface AvatarStorageConfig {
-  /** 是否开启头像上传 */
-  enabled: boolean;
-  /** 服务地址（如 s3.amazonaws.com、minio.example.com:9000，不含协议） */
-  endpoint: string;
-  /** 区域（如 us-east-1，可留空） */
-  region: string;
-  /** 存储桶 */
-  bucket: string;
-  /** Access Key */
-  accessKey: string;
-  /** Secret Key：读取时恒为空；更新时留空表示保留原值 */
-  secretKey: string;
-  /** 是否已保存过 Secret Key（只读） */
-  secretKeySet: boolean;
-  /** 使用 HTTPS */
-  useSsl: boolean;
-  /** 路径风格访问（MinIO 等自建服务一般需要开启） */
-  pathStyle: boolean;
-  /** 对象 key 前缀（如 avatars），可留空 */
-  prefix: string;
-  /** 公开访问地址（自定义域名 / CDN，如 https://cdn.example.com）；留空则按服务地址与存储桶拼接 */
-  publicUrl: string;
+/** 可选的对象存储来源 */
+export interface StorageSource {
+  id: string;
+  /** 来源名称 */
+  name: string;
 }
 
 /** 获取储存设置请求 */
@@ -910,8 +893,8 @@ export interface StorageConfigResponse {
 
 /** 更新储存设置请求 */
 export interface UpdateStorageConfigRequest {
-  /** 头像储存 */
-  avatar: AvatarStorageConfig | undefined;
+  /** 存放用的文件来源 id（须为启用中的对象存储来源）；空表示不存放 */
+  sourceId: string;
 }
 
 /** 更新储存设置响应 */

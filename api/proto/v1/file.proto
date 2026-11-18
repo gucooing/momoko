@@ -246,6 +246,8 @@ message ShareInfo {
   google.protobuf.Timestamp create_time = 10;
   // 更新时间
   google.protobuf.Timestamp update_time = 11;
+  // 公开访问链接：按系统设置 · 对外地址拼出；没设置对外地址时为空（本机由前端按当前站点拼）
+  string link = 12;
 }
 
 // 创建分享请求
@@ -353,7 +355,7 @@ message DeleteShareResponse {}
 message GetShareQRCodeRequest {
   // 分享 id
   string id = 1;
-  // 访问面板所用的站点源（如 https://momoko.example.com），用于拼出公开链接
+  // 访问面板所用的站点源（如 https://momoko.example.com）：没设置对外地址时用它拼出公开链接
   string origin = 2;
 }
 

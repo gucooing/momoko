@@ -1540,7 +1540,7 @@ paths:
                     type: string
                 - name: origin
                   in: query
-                  description: 访问面板所用的站点源（如 https://momoko.example.com），用于拼出公开链接
+                  description: 访问面板所用的站点源（如 https://momoko.example.com）：没设置对外地址时用它拼出公开链接
                   schema:
                     type: string
             responses:
@@ -10061,7 +10061,7 @@ paths:
         get:
             tags:
                 - System
-            description: 获取储存设置（头像储存等）
+            description: 获取储存设置（头像与应用图片存放的文件来源）
             operationId: System_StorageConfig
             responses:
                 "200":
@@ -11288,45 +11288,6 @@ components:
                 note:
                     type: string
                     description: 审批意见
-        v1.AvatarStorageConfig:
-            type: object
-            properties:
-                enabled:
-                    type: boolean
-                    description: 是否开启头像上传
-                endpoint:
-                    type: string
-                    description: 服务地址（如 s3.amazonaws.com、minio.example.com:9000，不含协议）
-                region:
-                    type: string
-                    description: 区域（如 us-east-1，可留空）
-                bucket:
-                    type: string
-                    description: 存储桶
-                accessKey:
-                    type: string
-                    description: Access Key
-                secretKey:
-                    type: string
-                    description: Secret Key：读取时恒为空；更新时留空表示保留原值
-                secretKeySet:
-                    type: boolean
-                    description: 是否已保存过 Secret Key（只读）
-                useSsl:
-                    type: boolean
-                    description: 使用 HTTPS
-                pathStyle:
-                    type: boolean
-                    description: 路径风格访问（MinIO 等自建服务一般需要开启）
-                prefix:
-                    type: string
-                    description: 对象 key 前缀（如 avatars），可留空
-                publicUrl:
-                    type: string
-                    description: 公开访问地址（自定义域名 / CDN，如 https://cdn.example.com）；留空则按服务地址与存储桶拼接
-            description: |-
-                头像储存设置：S3 兼容对象存储，开启后允许用户上传头像（单张不超过 20MB）。
-                 头像以公开链接存进用户资料，存储桶（或前缀）需允许公开读取。
         v1.BatchCompressFileSystemRequest:
             type: object
             properties:
@@ -21113,6 +21074,9 @@ components:
                     type: string
                     description: 更新时间
                     format: date-time
+                link:
+                    type: string
+                    description: 公开访问链接：按系统设置 · 对外地址拼出；没设置对外地址时为空（本机由前端按当前站点拼）
             description: 分享信息（仅创建者可见的管理视图，含提取码）
         v1.ShareItem:
             type: object
@@ -21323,17 +21287,32 @@ components:
         v1.StorageConfig:
             type: object
             properties:
-                avatar:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.AvatarStorageConfig'
-                    description: 头像储存
-            description: 储存设置
+                sourceId:
+                    type: string
+                    description: 存放用的文件来源 id；空表示未设置（不能上传头像、应用图标与背景）
+                sources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.StorageSource'
+                    description: 可选的来源：启用中的对象存储来源（只读）
+            description: |-
+                储存设置：头像、应用图标与应用背景存放到哪个文件来源（文件管理 · 文件源里的对象存储来源）。
+                 各自放在来源下的固定目录：头像 avatars/，应用图标与背景 app/；以公开链接对外，这些目录需允许公开读取。
         v1.StorageConfigResponse:
             type: object
             properties:
                 config:
                     $ref: '#/components/schemas/v1.StorageConfig'
             description: 获取储存设置响应
+        v1.StorageSource:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                    description: 来源名称
+            description: 可选的对象存储来源
         v1.SwitchGameServerModeRequest:
             type: object
             properties:
@@ -23419,10 +23398,9 @@ components:
         v1.UpdateStorageConfigRequest:
             type: object
             properties:
-                avatar:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.AvatarStorageConfig'
-                    description: 头像储存
+                sourceId:
+                    type: string
+                    description: 存放用的文件来源 id（须为启用中的对象存储来源）；空表示不存放
             description: 更新储存设置请求
         v1.UpdateStorageConfigResponse:
             type: object

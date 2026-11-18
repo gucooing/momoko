@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
-
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
 	"momoko/pkg/auth"
@@ -16,9 +14,9 @@ import (
 	"momoko/pkg/secretbox"
 )
 
-// 应用图标与应用背景：管理员在服务器「接入设置」里上传，服务器详情页头与启动器同步使用。文件由浏览器直传到对象存储
-// （系统设置 · 储存，与头像共用），Momoko 只保存公开链接与对象 key（换文件或删除时删掉旧对象）。
-// 通行证的启动目标原样下发链接（PassportLaunchApp.icon / background），启动器按链接缓存。
+// 应用图标与应用背景：管理员在服务器「接入设置」里上传，服务器详情页头与启动器同步使用。文件由浏览器直传到储存
+// （系统设置 · 储存选用的对象存储来源，放在 app/ 下，与头像共用来源），Momoko 只保存公开链接与文件路径
+// （换文件或删除时删掉旧文件）。通行证的启动目标原样下发链接（PassportLaunchApp.icon / background），启动器按链接缓存。
 
 const (
 	AppMediaIcon       = "icon"
@@ -28,11 +26,11 @@ const (
 )
 
 var (
-	ErrAppMediaStorage = response.BadRequest("还没有开启对象存储（系统设置 · 储存）")
+	ErrAppMediaStorage = response.BadRequest("还没有设置储存（系统设置 · 储存）")
 	ErrAppMediaKind    = response.BadRequest("只能上传应用图标或应用背景")
 	ErrAppMediaSize    = response.BadRequest("文件是空的")
 	ErrAppMediaTicket  = response.BadRequest("上传凭证无效或已过期，请重新上传")
-	ErrAppMediaMissing = response.BadRequest("文件还没有上传到对象存储，请重新上传")
+	ErrAppMediaMissing = response.BadRequest("文件还没有上传到储存，请重新上传")
 )
 
 // appMediaTicket 一次直传的上传凭证（加密后交给前端，完成上传时原样带回）。
@@ -58,7 +56,7 @@ func appMediaExt(fileName string) string {
 	return ext
 }
 
-// PresignAppMedia 签发一次图标 / 背景的直传地址与上传凭证。不限文件类型与大小；对象名为
+// PresignAppMedia 签发一次图标 / 背景的直传地址与上传凭证。不限文件类型与大小；文件路径为
 // app/<uuid>.<原扩展名>，Content-Type 用浏览器给出的类型（没有时为 application/octet-stream）。
 func (uc *GameServerUsecase) PresignAppMedia(ctx context.Context, req *v1.PresignGameServerAppMediaRequest) (*v1.PresignGameServerAppMediaResponse, error) {
 	if _, err := uc.Get(ctx, req.Id); err != nil {
@@ -75,16 +73,16 @@ func (uc *GameServerUsecase) PresignAppMedia(ctx context.Context, req *v1.Presig
 		contentType = "application/octet-stream"
 	}
 	ext := appMediaExt(req.FileName)
-	store, err := objectStoreOf(ctx, uc.config)
+	store, err := uc.configUc.mediaStore(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if store == nil {
 		return nil, ErrAppMediaStorage
 	}
-	uploadURL, key, err := store.PresignPut(ctx, "app/"+uuid.NewString()+"."+ext, contentType, req.Size, appMediaPresignTTL)
+	uploadURL, key, err := presignMedia(ctx, store, AppMediaDir, ext, contentType, req.Size, appMediaPresignTTL)
 	if err != nil {
-		return nil, response.BadRequest("签发上传地址失败: " + err.Error())
+		return nil, err
 	}
 	raw, err := json.Marshal(appMediaTicket{Server: req.Id, Kind: req.Kind, Key: key, Size: req.Size,
 		Exp: time.Now().Add(appMediaPresignTTL).Unix()})
@@ -98,8 +96,8 @@ func (uc *GameServerUsecase) PresignAppMedia(ctx context.Context, req *v1.Presig
 	return &v1.PresignGameServerAppMediaResponse{UploadUrl: uploadURL, Token: token}, nil
 }
 
-// CompleteAppMedia 校验上传凭证（这台服务器、未过期）与对象（已上传、大小一致），保存公开链接与对象 key，
-// 再删掉被替换的旧对象。
+// CompleteAppMedia 校验上传凭证（这台服务器、未过期）与文件（已上传、大小一致），保存公开链接与文件路径，
+// 再删掉被替换的旧文件。
 func (uc *GameServerUsecase) CompleteAppMedia(ctx context.Context, id, token string) (*gen.GameServer, error) {
 	plain, err := secretbox.New(auth.AuthSecretKey).Decrypt(strings.TrimSpace(token))
 	if err != nil {
@@ -114,21 +112,21 @@ func (uc *GameServerUsecase) CompleteAppMedia(ctx context.Context, id, token str
 	if time.Now().Unix() > ticket.Exp+int64(appMediaPresignTTL/time.Second) {
 		return nil, ErrAppMediaTicket
 	}
-	store, err := objectStoreOf(ctx, uc.config)
+	store, err := uc.configUc.mediaStore(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if store == nil {
 		return nil, ErrAppMediaStorage
 	}
-	if size, err := store.Size(ctx, ticket.Key); err != nil || size != ticket.Size {
+	if !uploaded(ctx, store, ticket.Key, ticket.Size) {
 		return nil, ErrAppMediaMissing
 	}
 	s, err := uc.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	link := store.URL(ticket.Key)
+	link := store.PublicURL(ticket.Key)
 	var old string
 	if ticket.Kind == AppMediaIcon {
 		old = s.AppIconKey
@@ -139,17 +137,17 @@ func (uc *GameServerUsecase) CompleteAppMedia(ctx context.Context, id, token str
 	}
 	updated, err := uc.repo.Update(ctx, s)
 	if err != nil {
-		uc.deleteAppMediaObjects(ctx, ticket.Key)
+		uc.configUc.deleteMedia(ctx, ticket.Key)
 		return nil, ErrSystem(err)
 	}
 	uc.forget(id)
 	if old != ticket.Key {
-		uc.deleteAppMediaObjects(ctx, old)
+		uc.configUc.deleteMedia(ctx, old)
 	}
 	return updated, nil
 }
 
-// DeleteAppMedia 清除图标或背景，并删除对象存储里的文件。
+// DeleteAppMedia 清除图标或背景，并删除储存里的文件。
 func (uc *GameServerUsecase) DeleteAppMedia(ctx context.Context, id, kind string) (*gen.GameServer, error) {
 	s, err := uc.Get(ctx, id)
 	if err != nil {
@@ -171,31 +169,6 @@ func (uc *GameServerUsecase) DeleteAppMedia(ctx context.Context, id, kind string
 		return nil, ErrSystem(err)
 	}
 	uc.forget(id)
-	uc.deleteAppMediaObjects(ctx, old)
+	uc.configUc.deleteMedia(ctx, old)
 	return updated, nil
-}
-
-// deleteAppMediaObjects 尽力删除对象存储里的旧文件（key 为空或存储未开启时跳过，失败只记日志）。
-func (uc *GameServerUsecase) deleteAppMediaObjects(ctx context.Context, keys ...string) {
-	var todo []string
-	for _, key := range keys {
-		if key != "" {
-			todo = append(todo, key)
-		}
-	}
-	if len(todo) == 0 {
-		return
-	}
-	store, err := objectStoreOf(ctx, uc.config)
-	if err != nil || store == nil {
-		uc.log.Warnf("删除启动器文件 %v 失败：对象存储不可用", todo)
-		return
-	}
-	for _, key := range todo {
-		delCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
-		if err := store.Delete(delCtx, key); err != nil {
-			uc.log.Warnf("删除启动器文件 %s 失败: %v", key, err)
-		}
-		cancel()
-	}
 }

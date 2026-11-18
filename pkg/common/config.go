@@ -71,8 +71,8 @@ const (
 	ConfigFrpsServerAddr         ConfigKey = "frps.server_addr"
 	ConfigFrpsTLSForce           ConfigKey = "frps.tls_force"
 
-	// ConfigStorageAvatar 头像储存（S3 兼容）设置：v1.AvatarStorageConfig 的 protojson（Secret Key 加密存放），空表示没配置过。
-	ConfigStorageAvatar ConfigKey = "storage.avatar"
+	// ConfigStorageSource 储存：存放头像与应用图片的文件来源 id（对象存储来源），空表示没设置。
+	ConfigStorageSource ConfigKey = "storage.source"
 
 	// ConfigPassportSettings 用户通行证设置：v1.PassportSettings 的 protojson，空表示用默认值。
 	ConfigPassportSettings ConfigKey = "passport.settings"
@@ -143,7 +143,7 @@ var configDefaults = map[ConfigKey]string{
 	ConfigFrpsServerAddr:         "",
 	ConfigFrpsTLSForce:           "false",
 
-	ConfigStorageAvatar: "",
+	ConfigStorageSource: "",
 
 	ConfigPassportSettings: "",
 }

@@ -120,12 +120,12 @@ func (u *UserUsecase) CompleteMyAvatarUpload(ctx context.Context, userId, token 
 		return nil, ErrSystem(err)
 	}
 	if current.AvatarKey != key {
-		u.config.deleteAvatarObject(ctx, current.AvatarKey)
+		u.config.deleteMedia(ctx, current.AvatarKey)
 	}
 	return u.toUserInfo(info), nil
 }
 
-// AvatarUploadEnabled 是否允许更换头像（系统设置开启了头像储存）。
+// AvatarUploadEnabled 是否允许更换头像（系统设置 · 储存选好了来源）。
 func (u *UserUsecase) AvatarUploadEnabled(ctx context.Context) bool {
 	return u.config.AvatarUploadEnabled(ctx)
 }
@@ -227,7 +227,7 @@ func (u *UserUsecase) DeleteUser(ctx context.Context, userIds []string) error {
 		return ErrSystem(err)
 	}
 	for _, key := range avatarKeys {
-		u.config.deleteAvatarObject(ctx, key)
+		u.config.deleteMedia(ctx, key)
 	}
 	return nil
 }

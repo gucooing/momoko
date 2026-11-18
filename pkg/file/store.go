@@ -99,6 +99,13 @@ type (
 	Presigner interface {
 		Presign(ctx context.Context, path string, inline bool, ttl time.Duration) (string, error)
 	}
+	// Publisher 能让浏览器把单个文件直传进来源、并给出文件的公开链接（头像、应用图标这类公开图片用，目前仅对象存储支持）。
+	Publisher interface {
+		// PresignPut 签发单个文件的直传 PUT 地址；Content-Type 与大小签进签名，上传时不符会被来源拒绝。
+		PresignPut(ctx context.Context, path, contentType string, size int64, ttl time.Duration) (string, error)
+		// PublicURL 返回文件的公开链接（来源需允许公开读取）。
+		PublicURL(path string) string
+	}
 	// Copier 支持把若干文件/目录复制进目标目录。
 	Copier interface {
 		CopyToDir(ctx context.Context, paths []string, targetDir string) []*v1.FileOperationResult

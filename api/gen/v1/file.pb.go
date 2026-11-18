@@ -257,7 +257,9 @@ type ShareInfo struct {
 	// 创建时间
 	CreateTime *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// 更新时间
-	UpdateTime    *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	UpdateTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// 公开访问链接：按系统设置 · 对外地址拼出；没设置对外地址时为空（本机由前端按当前站点拼）
+	Link          string `protobuf:"bytes,12,opt,name=link,proto3" json:"link,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -367,6 +369,13 @@ func (x *ShareInfo) GetUpdateTime() *timestamppb.Timestamp {
 		return x.UpdateTime
 	}
 	return nil
+}
+
+func (x *ShareInfo) GetLink() string {
+	if x != nil {
+		return x.Link
+	}
+	return ""
 }
 
 // 创建分享请求
@@ -1004,7 +1013,7 @@ type GetShareQRCodeRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 分享 id
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// 访问面板所用的站点源（如 https://momoko.example.com），用于拼出公开链接
+	// 访问面板所用的站点源（如 https://momoko.example.com）：没设置对外地址时用它拼出公开链接
 	Origin        string `protobuf:"bytes,2,opt,name=origin,proto3" json:"origin,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -5309,7 +5318,7 @@ const file_v1_file_proto_rawDesc = "" +
 	"\x06is_dir\x18\x04 \x01(\bR\x05isDir\x12\x12\n" +
 	"\x04size\x18\x05 \x01(\x04R\x04size\x12\x1d\n" +
 	"\n" +
-	"file_count\x18\x06 \x01(\x03R\tfileCount\"\x99\x03\n" +
+	"file_count\x18\x06 \x01(\x03R\tfileCount\"\xad\x03\n" +
 	"\tShareInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
@@ -5325,7 +5334,8 @@ const file_v1_file_proto_rawDesc = "" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"createTime\x12;\n" +
 	"\vupdate_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"\xdb\x01\n" +
+	"updateTime\x12\x12\n" +
+	"\x04link\x18\f \x01(\tR\x04link\"\xdb\x01\n" +
 	"\x12CreateShareRequest\x12#\n" +
 	"\x05items\x18\x01 \x03(\v2\r.v1.ShareItemR\x05items\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +

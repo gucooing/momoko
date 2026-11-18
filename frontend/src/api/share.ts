@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import { isRemoteNode } from '@/utils/nodeContext'
 import type {
   CreateShareRequest,
   CreateShareResponse,
@@ -32,9 +33,10 @@ export const updateShareRequest = (data: UpdateShareRequest) =>
 export const deleteShareRequest = (id: string) =>
   request.post<DeleteShareResponse>('/file/share/delete', { id })
 
-// 分享链接二维码：后端按当前站点源拼出公开链接并编码为 PNG（JSON 里 bytes 为 base64），返回可直接用作 <img src> 的 data URL。
+// 分享链接二维码：后端按对外地址（没设置时按本机当前站点）拼出公开链接并编码为 PNG（JSON 里 bytes 为 base64），
+// 返回可直接用作 <img src> 的 data URL。远程节点不带当前站点：主控的地址不是节点的分享地址。
 export const getShareQRCodeRequest = async (id: string): Promise<{ src: string; link: string }> => {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const origin = typeof window !== 'undefined' && !isRemoteNode() ? window.location.origin : ''
   const { data } = await request.get<GetShareQRCodeResponse>('/file/share/qrcode', { params: { id, origin } })
   const png = data.png as unknown as string | Uint8Array
   const b64 = typeof png === 'string' ? png : btoa(String.fromCharCode(...png))
@@ -53,10 +55,12 @@ export const createShareSessionRequest = (token: string, code = '') =>
 export const listShareDirRequest = (data: ListShareDirRequest) =>
   request.post<ListShareDirResponse>('/public/share/list', data)
 
-// 由 token 生成公开访问链接。
-export const buildShareLink = (token: string): string => {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  return `${origin}/public/share/${token}`
+// 分享的公开访问链接：后端按「对外地址」拼好的 link 优先；本机没设置时按当前站点拼。
+// 远程节点没设置对外地址时返回空（主控的地址不是节点的分享地址）。
+export const shareLinkOf = (share: { token: string; link?: string }): string => {
+  if (share.link) return share.link
+  if (typeof window === 'undefined' || isRemoteNode()) return ''
+  return `${window.location.origin}/public/share/${share.token}`
 }
 
 // 公开下载/预览链接：分享 token + 会话签名 + 相对子路径。

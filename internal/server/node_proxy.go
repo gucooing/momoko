@@ -185,7 +185,7 @@ func (p *NodeProxy) Filter() khttp.FilterFunc {
 				next.ServeHTTP(w, r)
 				return
 			}
-			if _, ok := nodeTunnelPaths[r.URL.Path]; !ok {
+			if _, ok := nodeTunnelPermission(r.URL.Path); !ok {
 				next.ServeHTTP(w, r)
 				return
 			}

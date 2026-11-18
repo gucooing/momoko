@@ -12,12 +12,17 @@ type nodePermissionSpec struct {
 	rbac bool
 }
 
-// nodePermissionSpecs 可授予 API Key 的节点权限，顺序即展示与存储顺序。
+// nodePermissionSpecs 可授予 API Key 的节点权限，顺序即展示与存储顺序（与前端 config/nodePermission.ts 一致）。
 var nodePermissionSpecs = []nodePermissionSpec{
 	{code: constant.SystemStatus, rbac: false},
+	{code: constant.MonitorView, rbac: true},
 	{code: constant.MonitorEdit, rbac: true},
 	{code: constant.Instance, rbac: true},
+	{code: constant.GameServer, rbac: true},
+	{code: constant.GameGM, rbac: true},
+	{code: constant.GamePassport, rbac: true},
 	{code: constant.Terminal, rbac: true},
+	{code: constant.FileShare, rbac: true},
 	{code: constant.FileSource, rbac: true},
 	{code: constant.DockerView, rbac: true},
 	{code: constant.DockerContainerManage, rbac: true},
@@ -27,7 +32,12 @@ var nodePermissionSpecs = []nodePermissionSpec{
 	{code: constant.Network, rbac: true},
 	{code: constant.Tunnel, rbac: true},
 	{code: constant.SSHManage, rbac: false},
+	{code: constant.IQCheckView, rbac: true},
+	{code: constant.IQCheckEdit, rbac: true},
 	{code: constant.TaskManage, rbac: true},
+	{code: constant.SystemConfigView, rbac: true},
+	{code: constant.SystemConfigEdit, rbac: true},
+	{code: constant.SystemUpdate, rbac: true},
 }
 
 var nodePermissionIndex = func() map[constant.Permissions]nodePermissionSpec {
@@ -37,6 +47,12 @@ var nodePermissionIndex = func() map[constant.Permissions]nodePermissionSpec {
 	}
 	return index
 }()
+
+// IsNodePermission 判断是否为可授予 API Key 的节点权限。
+func IsNodePermission(perm constant.Permissions) bool {
+	_, ok := nodePermissionIndex[perm]
+	return ok
+}
 
 // IsRBACNodePermission 判断节点权限在本地是否走 RBAC 校验。
 func IsRBACNodePermission(perm constant.Permissions) bool {

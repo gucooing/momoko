@@ -353,10 +353,13 @@ func (f *fileRepo) CreateFileSource(ctx context.Context, userID, name, typ, conf
 }
 
 // ListFileSources 返回全部文件来源（全局可见），可按名称过滤、仅取启用项；带出创建者。
-func (f *fileRepo) ListFileSources(ctx context.Context, keywords string, enabledOnly bool) ([]*gen.FileSource, error) {
+func (f *fileRepo) ListFileSources(ctx context.Context, keywords, typ string, enabledOnly bool) ([]*gen.FileSource, error) {
 	query := f.data.db.FileSource.Query()
 	if keywords != "" {
 		query = query.Where(filesource.NameContainsFold(keywords))
+	}
+	if typ != "" {
+		query = query.Where(filesource.TypeEQ(filesource.Type(typ)))
 	}
 	if enabledOnly {
 		query = query.Where(filesource.EnabledEQ(true))

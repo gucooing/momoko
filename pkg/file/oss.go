@@ -16,6 +16,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/minio/minio-go/v7/pkg/s3utils"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
@@ -27,9 +28,10 @@ const UploadPresignTTL = 2 * time.Hour
 // ossStore 基于 S3 兼容协议（minio-go），覆盖 AWS S3 / MinIO / 阿里云OSS(S3端点) / 腾讯COS / R2 等。
 // 逻辑路径以 root(前缀) 为根；目录用「key 以 / 结尾」表示。
 type ossStore struct {
-	client *minio.Client
-	bucket string
-	root   string // 规整后的前缀（无首尾斜杠），"" 表示桶根
+	client     *minio.Client
+	bucket     string
+	root       string // 规整后的前缀（无首尾斜杠），"" 表示桶根
+	publicBase string // 公开链接前缀（无尾斜杠）：对象链接 = publicBase + "/" + 转义后的 key
 }
 
 func newOSSStore(cfg Config) (Store, error) {
@@ -48,10 +50,17 @@ func newOSSStore(cfg Config) (Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 公开链接与 minio 的寻址方式一致：虚拟主机风格（bucket.host）或路径风格（host/bucket）。
+	ep := *client.EndpointURL()
+	publicBase := ep.Scheme + "://" + ep.Host + "/" + url.PathEscape(cfg.Bucket)
+	if !cfg.PathStyle && s3utils.IsVirtualHostSupported(ep, cfg.Bucket) {
+		publicBase = ep.Scheme + "://" + cfg.Bucket + "." + ep.Host
+	}
 	return &ossStore{
-		client: client,
-		bucket: cfg.Bucket,
-		root:   strings.Trim(strings.ReplaceAll(cfg.Prefix, "\\", "/"), "/"),
+		client:     client,
+		bucket:     cfg.Bucket,
+		root:       strings.Trim(strings.ReplaceAll(cfg.Prefix, "\\", "/"), "/"),
+		publicBase: publicBase,
 	}, nil
 }
 
@@ -335,6 +344,25 @@ func (s *ossStore) Presign(ctx context.Context, p string, inline bool, ttl time.
 		return "", err
 	}
 	return u.String(), nil
+}
+
+func (s *ossStore) PresignPut(ctx context.Context, p, contentType string, size int64, ttl time.Duration) (string, error) {
+	headers := http.Header{}
+	headers.Set("Content-Type", contentType)
+	headers.Set("Content-Length", strconv.FormatInt(size, 10))
+	u, err := s.client.PresignHeader(ctx, http.MethodPut, s.bucket, s.key(p), ttl, nil, headers)
+	if err != nil {
+		return "", err
+	}
+	return u.String(), nil
+}
+
+func (s *ossStore) PublicURL(p string) string {
+	parts := strings.Split(s.key(p), "/")
+	for i, part := range parts {
+		parts[i] = url.PathEscape(part)
+	}
+	return s.publicBase + "/" + strings.Join(parts, "/")
 }
 
 func (s *ossStore) Caps() Caps {

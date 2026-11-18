@@ -4303,11 +4303,14 @@ func (*TestEmailConfigResponse) Descriptor() ([]byte, []int) {
 	return file_v1_system_proto_rawDescGZIP(), []int{53}
 }
 
-// 储存设置
+// 储存设置：头像、应用图标与应用背景存放到哪个文件来源（文件管理 · 文件源里的对象存储来源）。
+// 各自放在来源下的固定目录：头像 avatars/，应用图标与背景 app/；以公开链接对外，这些目录需允许公开读取。
 type StorageConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 头像储存
-	Avatar        *AvatarStorageConfig `protobuf:"bytes,1,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	// 存放用的文件来源 id；空表示未设置（不能上传头像、应用图标与背景）
+	SourceId string `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	// 可选的来源：启用中的对象存储来源（只读）
+	Sources       []*StorageSource `protobuf:"bytes,2,rep,name=sources,proto3" json:"sources,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4342,57 +4345,44 @@ func (*StorageConfig) Descriptor() ([]byte, []int) {
 	return file_v1_system_proto_rawDescGZIP(), []int{54}
 }
 
-func (x *StorageConfig) GetAvatar() *AvatarStorageConfig {
+func (x *StorageConfig) GetSourceId() string {
 	if x != nil {
-		return x.Avatar
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *StorageConfig) GetSources() []*StorageSource {
+	if x != nil {
+		return x.Sources
 	}
 	return nil
 }
 
-// 头像储存设置：S3 兼容对象存储，开启后允许用户上传头像（单张不超过 20MB）。
-// 头像以公开链接存进用户资料，存储桶（或前缀）需允许公开读取。
-type AvatarStorageConfig struct {
+// 可选的对象存储来源
+type StorageSource struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 是否开启头像上传
-	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	// 服务地址（如 s3.amazonaws.com、minio.example.com:9000，不含协议）
-	Endpoint string `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
-	// 区域（如 us-east-1，可留空）
-	Region string `protobuf:"bytes,3,opt,name=region,proto3" json:"region,omitempty"`
-	// 存储桶
-	Bucket string `protobuf:"bytes,4,opt,name=bucket,proto3" json:"bucket,omitempty"`
-	// Access Key
-	AccessKey string `protobuf:"bytes,5,opt,name=access_key,json=accessKey,proto3" json:"access_key,omitempty"`
-	// Secret Key：读取时恒为空；更新时留空表示保留原值
-	SecretKey string `protobuf:"bytes,6,opt,name=secret_key,json=secretKey,proto3" json:"secret_key,omitempty"`
-	// 是否已保存过 Secret Key（只读）
-	SecretKeySet bool `protobuf:"varint,7,opt,name=secret_key_set,json=secretKeySet,proto3" json:"secret_key_set,omitempty"`
-	// 使用 HTTPS
-	UseSsl bool `protobuf:"varint,8,opt,name=use_ssl,json=useSsl,proto3" json:"use_ssl,omitempty"`
-	// 路径风格访问（MinIO 等自建服务一般需要开启）
-	PathStyle bool `protobuf:"varint,9,opt,name=path_style,json=pathStyle,proto3" json:"path_style,omitempty"`
-	// 对象 key 前缀（如 avatars），可留空
-	Prefix string `protobuf:"bytes,10,opt,name=prefix,proto3" json:"prefix,omitempty"`
-	// 公开访问地址（自定义域名 / CDN，如 https://cdn.example.com）；留空则按服务地址与存储桶拼接
-	PublicUrl     string `protobuf:"bytes,11,opt,name=public_url,json=publicUrl,proto3" json:"public_url,omitempty"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 来源名称
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AvatarStorageConfig) Reset() {
-	*x = AvatarStorageConfig{}
+func (x *StorageSource) Reset() {
+	*x = StorageSource{}
 	mi := &file_v1_system_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AvatarStorageConfig) String() string {
+func (x *StorageSource) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AvatarStorageConfig) ProtoMessage() {}
+func (*StorageSource) ProtoMessage() {}
 
-func (x *AvatarStorageConfig) ProtoReflect() protoreflect.Message {
+func (x *StorageSource) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_system_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4404,84 +4394,21 @@ func (x *AvatarStorageConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AvatarStorageConfig.ProtoReflect.Descriptor instead.
-func (*AvatarStorageConfig) Descriptor() ([]byte, []int) {
+// Deprecated: Use StorageSource.ProtoReflect.Descriptor instead.
+func (*StorageSource) Descriptor() ([]byte, []int) {
 	return file_v1_system_proto_rawDescGZIP(), []int{55}
 }
 
-func (x *AvatarStorageConfig) GetEnabled() bool {
+func (x *StorageSource) GetId() string {
 	if x != nil {
-		return x.Enabled
-	}
-	return false
-}
-
-func (x *AvatarStorageConfig) GetEndpoint() string {
-	if x != nil {
-		return x.Endpoint
+		return x.Id
 	}
 	return ""
 }
 
-func (x *AvatarStorageConfig) GetRegion() string {
+func (x *StorageSource) GetName() string {
 	if x != nil {
-		return x.Region
-	}
-	return ""
-}
-
-func (x *AvatarStorageConfig) GetBucket() string {
-	if x != nil {
-		return x.Bucket
-	}
-	return ""
-}
-
-func (x *AvatarStorageConfig) GetAccessKey() string {
-	if x != nil {
-		return x.AccessKey
-	}
-	return ""
-}
-
-func (x *AvatarStorageConfig) GetSecretKey() string {
-	if x != nil {
-		return x.SecretKey
-	}
-	return ""
-}
-
-func (x *AvatarStorageConfig) GetSecretKeySet() bool {
-	if x != nil {
-		return x.SecretKeySet
-	}
-	return false
-}
-
-func (x *AvatarStorageConfig) GetUseSsl() bool {
-	if x != nil {
-		return x.UseSsl
-	}
-	return false
-}
-
-func (x *AvatarStorageConfig) GetPathStyle() bool {
-	if x != nil {
-		return x.PathStyle
-	}
-	return false
-}
-
-func (x *AvatarStorageConfig) GetPrefix() string {
-	if x != nil {
-		return x.Prefix
-	}
-	return ""
-}
-
-func (x *AvatarStorageConfig) GetPublicUrl() string {
-	if x != nil {
-		return x.PublicUrl
+		return x.Name
 	}
 	return ""
 }
@@ -4571,8 +4498,8 @@ func (x *StorageConfigResponse) GetConfig() *StorageConfig {
 // 更新储存设置请求
 type UpdateStorageConfigRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 头像储存
-	Avatar        *AvatarStorageConfig `protobuf:"bytes,1,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	// 存放用的文件来源 id（须为启用中的对象存储来源）；空表示不存放
+	SourceId      string `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4607,11 +4534,11 @@ func (*UpdateStorageConfigRequest) Descriptor() ([]byte, []int) {
 	return file_v1_system_proto_rawDescGZIP(), []int{58}
 }
 
-func (x *UpdateStorageConfigRequest) GetAvatar() *AvatarStorageConfig {
+func (x *UpdateStorageConfigRequest) GetSourceId() string {
 	if x != nil {
-		return x.Avatar
+		return x.SourceId
 	}
-	return nil
+	return ""
 }
 
 // 更新储存设置响应
@@ -7510,31 +7437,18 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\v\n" +
 	"\t_messages\"\x19\n" +
-	"\x17TestEmailConfigResponse\"@\n" +
-	"\rStorageConfig\x12/\n" +
-	"\x06avatar\x18\x01 \x01(\v2\x17.v1.AvatarStorageConfigR\x06avatar\"\xce\x02\n" +
-	"\x13AvatarStorageConfig\x12\x18\n" +
-	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1a\n" +
-	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12\x16\n" +
-	"\x06region\x18\x03 \x01(\tR\x06region\x12\x16\n" +
-	"\x06bucket\x18\x04 \x01(\tR\x06bucket\x12\x1d\n" +
-	"\n" +
-	"access_key\x18\x05 \x01(\tR\taccessKey\x12\x1d\n" +
-	"\n" +
-	"secret_key\x18\x06 \x01(\tR\tsecretKey\x12$\n" +
-	"\x0esecret_key_set\x18\a \x01(\bR\fsecretKeySet\x12\x17\n" +
-	"\ause_ssl\x18\b \x01(\bR\x06useSsl\x12\x1d\n" +
-	"\n" +
-	"path_style\x18\t \x01(\bR\tpathStyle\x12\x16\n" +
-	"\x06prefix\x18\n" +
-	" \x01(\tR\x06prefix\x12\x1d\n" +
-	"\n" +
-	"public_url\x18\v \x01(\tR\tpublicUrl\"\x16\n" +
+	"\x17TestEmailConfigResponse\"Y\n" +
+	"\rStorageConfig\x12\x1b\n" +
+	"\tsource_id\x18\x01 \x01(\tR\bsourceId\x12+\n" +
+	"\asources\x18\x02 \x03(\v2\x11.v1.StorageSourceR\asources\"3\n" +
+	"\rStorageSource\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\x16\n" +
 	"\x14StorageConfigRequest\"B\n" +
 	"\x15StorageConfigResponse\x12)\n" +
-	"\x06config\x18\x01 \x01(\v2\x11.v1.StorageConfigR\x06config\"M\n" +
-	"\x1aUpdateStorageConfigRequest\x12/\n" +
-	"\x06avatar\x18\x01 \x01(\v2\x17.v1.AvatarStorageConfigR\x06avatar\"H\n" +
+	"\x06config\x18\x01 \x01(\v2\x11.v1.StorageConfigR\x06config\"9\n" +
+	"\x1aUpdateStorageConfigRequest\x12\x1b\n" +
+	"\tsource_id\x18\x01 \x01(\tR\bsourceId\"H\n" +
 	"\x1bUpdateStorageConfigResponse\x12)\n" +
 	"\x06config\x18\x01 \x01(\v2\x11.v1.StorageConfigR\x06config\"\x17\n" +
 	"\x15SystemOverviewRequest\"\xf5\x03\n" +
@@ -8037,7 +7951,7 @@ var file_v1_system_proto_goTypes = []any{
 	(*TestEmailConfigRequest)(nil),              // 59: v1.TestEmailConfigRequest
 	(*TestEmailConfigResponse)(nil),             // 60: v1.TestEmailConfigResponse
 	(*StorageConfig)(nil),                       // 61: v1.StorageConfig
-	(*AvatarStorageConfig)(nil),                 // 62: v1.AvatarStorageConfig
+	(*StorageSource)(nil),                       // 62: v1.StorageSource
 	(*StorageConfigRequest)(nil),                // 63: v1.StorageConfigRequest
 	(*StorageConfigResponse)(nil),               // 64: v1.StorageConfigResponse
 	(*UpdateStorageConfigRequest)(nil),          // 65: v1.UpdateStorageConfigRequest
@@ -8128,109 +8042,108 @@ var file_v1_system_proto_depIdxs = []int32{
 	46,  // 48: v1.TestEmailConfigRequest.config:type_name -> v1.EmailConfig
 	48,  // 49: v1.TestEmailConfigRequest.messages:type_name -> v1.EmailTemplate
 	97,  // 50: v1.TestEmailConfigRequest.Data:type_name -> v1.TestEmailConfigRequest.DataEntry
-	62,  // 51: v1.StorageConfig.avatar:type_name -> v1.AvatarStorageConfig
+	62,  // 51: v1.StorageConfig.sources:type_name -> v1.StorageSource
 	61,  // 52: v1.StorageConfigResponse.config:type_name -> v1.StorageConfig
-	62,  // 53: v1.UpdateStorageConfigRequest.avatar:type_name -> v1.AvatarStorageConfig
-	61,  // 54: v1.UpdateStorageConfigResponse.config:type_name -> v1.StorageConfig
-	71,  // 55: v1.SystemOverviewResponse.version:type_name -> v1.SystemVersionInfo
-	99,  // 56: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
-	72,  // 57: v1.SystemOverviewResponse.cpu:type_name -> v1.CpuOverview
-	75,  // 58: v1.SystemOverviewResponse.memory:type_name -> v1.MemoryOverview
-	81,  // 59: v1.SystemOverviewResponse.network_interfaces:type_name -> v1.NetworkInterfaceOverview
-	85,  // 60: v1.SystemOverviewResponse.disk_partitions:type_name -> v1.DiskPartitionOverview
-	86,  // 61: v1.SystemOverviewResponse.disk_ios:type_name -> v1.DiskIOOverview
-	99,  // 62: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
-	73,  // 63: v1.SystemStatusResponse.cpu:type_name -> v1.CpuStatus
-	76,  // 64: v1.SystemStatusResponse.memory:type_name -> v1.MemoryStatus
-	82,  // 65: v1.SystemStatusResponse.network:type_name -> v1.NetworkStatus
-	87,  // 66: v1.SystemStatusResponse.disk:type_name -> v1.DiskStatus
-	99,  // 67: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
-	74,  // 68: v1.CpuStatus.cores:type_name -> v1.CpuCoreStatus
-	77,  // 69: v1.MemoryOverview.physical_memory:type_name -> v1.PhysicalMemoryOverview
-	79,  // 70: v1.MemoryOverview.virtual_memory:type_name -> v1.VirtualMemoryOverview
-	78,  // 71: v1.MemoryStatus.physical_memory:type_name -> v1.PhysicalMemoryStatus
-	80,  // 72: v1.MemoryStatus.virtual_memory:type_name -> v1.VirtualMemoryStatus
-	83,  // 73: v1.NetworkStatus.total:type_name -> v1.NetworkInterfaceStatus
-	83,  // 74: v1.NetworkStatus.interfaces:type_name -> v1.NetworkInterfaceStatus
-	83,  // 75: v1.NetworkStatus.selected_interface:type_name -> v1.NetworkInterfaceStatus
-	84,  // 76: v1.NetworkStatus.connections:type_name -> v1.NetworkConnectionStatus
-	98,  // 77: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
-	88,  // 78: v1.DiskStatus.total:type_name -> v1.DiskPartitionStatus
-	88,  // 79: v1.DiskStatus.partitions:type_name -> v1.DiskPartitionStatus
-	88,  // 80: v1.DiskStatus.selected_partition:type_name -> v1.DiskPartitionStatus
-	89,  // 81: v1.DiskStatus.total_io:type_name -> v1.DiskIOStatus
-	89,  // 82: v1.DiskStatus.ios:type_name -> v1.DiskIOStatus
-	89,  // 83: v1.DiskStatus.selected_io:type_name -> v1.DiskIOStatus
-	6,   // 84: v1.ListOperationLogsRequest.operation_type:type_name -> v1.OperationType
-	99,  // 85: v1.ListOperationLogsRequest.start_time:type_name -> google.protobuf.Timestamp
-	99,  // 86: v1.ListOperationLogsRequest.end_time:type_name -> google.protobuf.Timestamp
-	96,  // 87: v1.ListOperationLogsResponse.logs:type_name -> v1.OperationLogInfo
-	99,  // 88: v1.OperationLogStatsResponse.earliest_time:type_name -> google.protobuf.Timestamp
-	6,   // 89: v1.OperationLogInfo.operation_type:type_name -> v1.OperationType
-	99,  // 90: v1.OperationLogInfo.operation_time:type_name -> google.protobuf.Timestamp
-	7,   // 91: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
-	9,   // 92: v1.System.CheckUpdate:input_type -> v1.CheckUpdateRequest
-	12,  // 93: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
-	14,  // 94: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
-	16,  // 95: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
-	18,  // 96: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
-	20,  // 97: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
-	22,  // 98: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
-	26,  // 99: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
-	28,  // 100: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
-	30,  // 101: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
-	32,  // 102: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
-	35,  // 103: v1.System.LoginConfig:input_type -> v1.LoginConfigRequest
-	37,  // 104: v1.System.UpdateLoginConfig:input_type -> v1.UpdateLoginConfigRequest
-	42,  // 105: v1.System.SiteConfig:input_type -> v1.SiteConfigRequest
-	44,  // 106: v1.System.UpdateSiteConfig:input_type -> v1.UpdateSiteConfigRequest
-	51,  // 107: v1.System.EmailConfig:input_type -> v1.EmailConfigRequest
-	53,  // 108: v1.System.UpdateEmailConfig:input_type -> v1.UpdateEmailConfigRequest
-	55,  // 109: v1.System.UpdateEmailTemplate:input_type -> v1.UpdateEmailTemplateRequest
-	57,  // 110: v1.System.EmailTemplate:input_type -> v1.EmailTemplateRequest
-	49,  // 111: v1.System.ListEmailTemplates:input_type -> v1.ListEmailTemplatesRequest
-	59,  // 112: v1.System.TestEmailConfig:input_type -> v1.TestEmailConfigRequest
-	63,  // 113: v1.System.StorageConfig:input_type -> v1.StorageConfigRequest
-	65,  // 114: v1.System.UpdateStorageConfig:input_type -> v1.UpdateStorageConfigRequest
-	67,  // 115: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
-	69,  // 116: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
-	90,  // 117: v1.System.ListOperationLogs:input_type -> v1.ListOperationLogsRequest
-	92,  // 118: v1.System.OperationLogStats:input_type -> v1.OperationLogStatsRequest
-	94,  // 119: v1.System.UpdateOperationLogRetention:input_type -> v1.UpdateOperationLogRetentionRequest
-	8,   // 120: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
-	10,  // 121: v1.System.CheckUpdate:output_type -> v1.CheckUpdateResponse
-	13,  // 122: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
-	15,  // 123: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
-	17,  // 124: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
-	19,  // 125: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
-	21,  // 126: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
-	23,  // 127: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
-	27,  // 128: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
-	29,  // 129: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
-	31,  // 130: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
-	33,  // 131: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
-	36,  // 132: v1.System.LoginConfig:output_type -> v1.LoginConfigResponse
-	38,  // 133: v1.System.UpdateLoginConfig:output_type -> v1.UpdateLoginConfigResponse
-	43,  // 134: v1.System.SiteConfig:output_type -> v1.SiteConfigResponse
-	45,  // 135: v1.System.UpdateSiteConfig:output_type -> v1.UpdateSiteConfigResponse
-	52,  // 136: v1.System.EmailConfig:output_type -> v1.EmailConfigResponse
-	54,  // 137: v1.System.UpdateEmailConfig:output_type -> v1.UpdateEmailConfigResponse
-	56,  // 138: v1.System.UpdateEmailTemplate:output_type -> v1.UpdateEmailTemplateResponse
-	58,  // 139: v1.System.EmailTemplate:output_type -> v1.EmailTemplateResponse
-	50,  // 140: v1.System.ListEmailTemplates:output_type -> v1.ListEmailTemplatesResponse
-	60,  // 141: v1.System.TestEmailConfig:output_type -> v1.TestEmailConfigResponse
-	64,  // 142: v1.System.StorageConfig:output_type -> v1.StorageConfigResponse
-	66,  // 143: v1.System.UpdateStorageConfig:output_type -> v1.UpdateStorageConfigResponse
-	68,  // 144: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
-	70,  // 145: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
-	91,  // 146: v1.System.ListOperationLogs:output_type -> v1.ListOperationLogsResponse
-	93,  // 147: v1.System.OperationLogStats:output_type -> v1.OperationLogStatsResponse
-	95,  // 148: v1.System.UpdateOperationLogRetention:output_type -> v1.UpdateOperationLogRetentionResponse
-	120, // [120:149] is the sub-list for method output_type
-	91,  // [91:120] is the sub-list for method input_type
-	91,  // [91:91] is the sub-list for extension type_name
-	91,  // [91:91] is the sub-list for extension extendee
-	0,   // [0:91] is the sub-list for field type_name
+	61,  // 53: v1.UpdateStorageConfigResponse.config:type_name -> v1.StorageConfig
+	71,  // 54: v1.SystemOverviewResponse.version:type_name -> v1.SystemVersionInfo
+	99,  // 55: v1.SystemOverviewResponse.boot_time:type_name -> google.protobuf.Timestamp
+	72,  // 56: v1.SystemOverviewResponse.cpu:type_name -> v1.CpuOverview
+	75,  // 57: v1.SystemOverviewResponse.memory:type_name -> v1.MemoryOverview
+	81,  // 58: v1.SystemOverviewResponse.network_interfaces:type_name -> v1.NetworkInterfaceOverview
+	85,  // 59: v1.SystemOverviewResponse.disk_partitions:type_name -> v1.DiskPartitionOverview
+	86,  // 60: v1.SystemOverviewResponse.disk_ios:type_name -> v1.DiskIOOverview
+	99,  // 61: v1.SystemOverviewResponse.sample_time:type_name -> google.protobuf.Timestamp
+	73,  // 62: v1.SystemStatusResponse.cpu:type_name -> v1.CpuStatus
+	76,  // 63: v1.SystemStatusResponse.memory:type_name -> v1.MemoryStatus
+	82,  // 64: v1.SystemStatusResponse.network:type_name -> v1.NetworkStatus
+	87,  // 65: v1.SystemStatusResponse.disk:type_name -> v1.DiskStatus
+	99,  // 66: v1.SystemStatusResponse.sample_time:type_name -> google.protobuf.Timestamp
+	74,  // 67: v1.CpuStatus.cores:type_name -> v1.CpuCoreStatus
+	77,  // 68: v1.MemoryOverview.physical_memory:type_name -> v1.PhysicalMemoryOverview
+	79,  // 69: v1.MemoryOverview.virtual_memory:type_name -> v1.VirtualMemoryOverview
+	78,  // 70: v1.MemoryStatus.physical_memory:type_name -> v1.PhysicalMemoryStatus
+	80,  // 71: v1.MemoryStatus.virtual_memory:type_name -> v1.VirtualMemoryStatus
+	83,  // 72: v1.NetworkStatus.total:type_name -> v1.NetworkInterfaceStatus
+	83,  // 73: v1.NetworkStatus.interfaces:type_name -> v1.NetworkInterfaceStatus
+	83,  // 74: v1.NetworkStatus.selected_interface:type_name -> v1.NetworkInterfaceStatus
+	84,  // 75: v1.NetworkStatus.connections:type_name -> v1.NetworkConnectionStatus
+	98,  // 76: v1.NetworkConnectionStatus.tcp_statuses:type_name -> v1.NetworkConnectionStatus.TcpStatusesEntry
+	88,  // 77: v1.DiskStatus.total:type_name -> v1.DiskPartitionStatus
+	88,  // 78: v1.DiskStatus.partitions:type_name -> v1.DiskPartitionStatus
+	88,  // 79: v1.DiskStatus.selected_partition:type_name -> v1.DiskPartitionStatus
+	89,  // 80: v1.DiskStatus.total_io:type_name -> v1.DiskIOStatus
+	89,  // 81: v1.DiskStatus.ios:type_name -> v1.DiskIOStatus
+	89,  // 82: v1.DiskStatus.selected_io:type_name -> v1.DiskIOStatus
+	6,   // 83: v1.ListOperationLogsRequest.operation_type:type_name -> v1.OperationType
+	99,  // 84: v1.ListOperationLogsRequest.start_time:type_name -> google.protobuf.Timestamp
+	99,  // 85: v1.ListOperationLogsRequest.end_time:type_name -> google.protobuf.Timestamp
+	96,  // 86: v1.ListOperationLogsResponse.logs:type_name -> v1.OperationLogInfo
+	99,  // 87: v1.OperationLogStatsResponse.earliest_time:type_name -> google.protobuf.Timestamp
+	6,   // 88: v1.OperationLogInfo.operation_type:type_name -> v1.OperationType
+	99,  // 89: v1.OperationLogInfo.operation_time:type_name -> google.protobuf.Timestamp
+	7,   // 90: v1.System.MePermissions:input_type -> v1.MePermissionsRequest
+	9,   // 91: v1.System.CheckUpdate:input_type -> v1.CheckUpdateRequest
+	12,  // 92: v1.System.AdminPermissions:input_type -> v1.AdminPermissionsRequest
+	14,  // 93: v1.System.AdminPermissionsInfo:input_type -> v1.AdminPermissionsInfoRequest
+	16,  // 94: v1.System.AdminAddPermissions:input_type -> v1.AdminAddPermissionsRequest
+	18,  // 95: v1.System.AdminEditPermissions:input_type -> v1.AdminEditPermissionsRequest
+	20,  // 96: v1.System.AdminDeletePermissions:input_type -> v1.AdminDeletePermissionsRequest
+	22,  // 97: v1.System.AdminRoles:input_type -> v1.AdminRolesRequest
+	26,  // 98: v1.System.AdminRole:input_type -> v1.AdminRoleRequest
+	28,  // 99: v1.System.AdminAddRole:input_type -> v1.AdminAddRoleRequest
+	30,  // 100: v1.System.AdminEditRole:input_type -> v1.AdminEditRoleRequest
+	32,  // 101: v1.System.AdminDeleteRole:input_type -> v1.AdminDeleteRoleRequest
+	35,  // 102: v1.System.LoginConfig:input_type -> v1.LoginConfigRequest
+	37,  // 103: v1.System.UpdateLoginConfig:input_type -> v1.UpdateLoginConfigRequest
+	42,  // 104: v1.System.SiteConfig:input_type -> v1.SiteConfigRequest
+	44,  // 105: v1.System.UpdateSiteConfig:input_type -> v1.UpdateSiteConfigRequest
+	51,  // 106: v1.System.EmailConfig:input_type -> v1.EmailConfigRequest
+	53,  // 107: v1.System.UpdateEmailConfig:input_type -> v1.UpdateEmailConfigRequest
+	55,  // 108: v1.System.UpdateEmailTemplate:input_type -> v1.UpdateEmailTemplateRequest
+	57,  // 109: v1.System.EmailTemplate:input_type -> v1.EmailTemplateRequest
+	49,  // 110: v1.System.ListEmailTemplates:input_type -> v1.ListEmailTemplatesRequest
+	59,  // 111: v1.System.TestEmailConfig:input_type -> v1.TestEmailConfigRequest
+	63,  // 112: v1.System.StorageConfig:input_type -> v1.StorageConfigRequest
+	65,  // 113: v1.System.UpdateStorageConfig:input_type -> v1.UpdateStorageConfigRequest
+	67,  // 114: v1.System.SystemOverview:input_type -> v1.SystemOverviewRequest
+	69,  // 115: v1.System.SystemStatus:input_type -> v1.SystemStatusRequest
+	90,  // 116: v1.System.ListOperationLogs:input_type -> v1.ListOperationLogsRequest
+	92,  // 117: v1.System.OperationLogStats:input_type -> v1.OperationLogStatsRequest
+	94,  // 118: v1.System.UpdateOperationLogRetention:input_type -> v1.UpdateOperationLogRetentionRequest
+	8,   // 119: v1.System.MePermissions:output_type -> v1.MePermissionsResponse
+	10,  // 120: v1.System.CheckUpdate:output_type -> v1.CheckUpdateResponse
+	13,  // 121: v1.System.AdminPermissions:output_type -> v1.AdminPermissionsResponse
+	15,  // 122: v1.System.AdminPermissionsInfo:output_type -> v1.AdminPermissionsInfoResponse
+	17,  // 123: v1.System.AdminAddPermissions:output_type -> v1.AdminAddPermissionsResponse
+	19,  // 124: v1.System.AdminEditPermissions:output_type -> v1.AdminEditPermissionsResponse
+	21,  // 125: v1.System.AdminDeletePermissions:output_type -> v1.AdminDeletePermissionsResponse
+	23,  // 126: v1.System.AdminRoles:output_type -> v1.AdminRolesResponse
+	27,  // 127: v1.System.AdminRole:output_type -> v1.AdminRoleResponse
+	29,  // 128: v1.System.AdminAddRole:output_type -> v1.AdminAddRoleResponse
+	31,  // 129: v1.System.AdminEditRole:output_type -> v1.AdminEditRoleResponse
+	33,  // 130: v1.System.AdminDeleteRole:output_type -> v1.AdminDeleteRoleResponse
+	36,  // 131: v1.System.LoginConfig:output_type -> v1.LoginConfigResponse
+	38,  // 132: v1.System.UpdateLoginConfig:output_type -> v1.UpdateLoginConfigResponse
+	43,  // 133: v1.System.SiteConfig:output_type -> v1.SiteConfigResponse
+	45,  // 134: v1.System.UpdateSiteConfig:output_type -> v1.UpdateSiteConfigResponse
+	52,  // 135: v1.System.EmailConfig:output_type -> v1.EmailConfigResponse
+	54,  // 136: v1.System.UpdateEmailConfig:output_type -> v1.UpdateEmailConfigResponse
+	56,  // 137: v1.System.UpdateEmailTemplate:output_type -> v1.UpdateEmailTemplateResponse
+	58,  // 138: v1.System.EmailTemplate:output_type -> v1.EmailTemplateResponse
+	50,  // 139: v1.System.ListEmailTemplates:output_type -> v1.ListEmailTemplatesResponse
+	60,  // 140: v1.System.TestEmailConfig:output_type -> v1.TestEmailConfigResponse
+	64,  // 141: v1.System.StorageConfig:output_type -> v1.StorageConfigResponse
+	66,  // 142: v1.System.UpdateStorageConfig:output_type -> v1.UpdateStorageConfigResponse
+	68,  // 143: v1.System.SystemOverview:output_type -> v1.SystemOverviewResponse
+	70,  // 144: v1.System.SystemStatus:output_type -> v1.SystemStatusResponse
+	91,  // 145: v1.System.ListOperationLogs:output_type -> v1.ListOperationLogsResponse
+	93,  // 146: v1.System.OperationLogStats:output_type -> v1.OperationLogStatsResponse
+	95,  // 147: v1.System.UpdateOperationLogRetention:output_type -> v1.UpdateOperationLogRetentionResponse
+	119, // [119:148] is the sub-list for method output_type
+	90,  // [90:119] is the sub-list for method input_type
+	90,  // [90:90] is the sub-list for extension type_name
+	90,  // [90:90] is the sub-list for extension extendee
+	0,   // [0:90] is the sub-list for field type_name
 }
 
 func init() { file_v1_system_proto_init() }

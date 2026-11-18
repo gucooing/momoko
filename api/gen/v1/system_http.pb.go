@@ -88,7 +88,7 @@ type SystemHTTPServer interface {
 	OperationLogStats(context.Context, *OperationLogStatsRequest) (*OperationLogStatsResponse, error)
 	// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
 	SiteConfig(context.Context, *SiteConfigRequest) (*SiteConfigResponse, error)
-	// StorageConfig 获取储存设置（头像储存等）
+	// StorageConfig 获取储存设置（头像与应用图片存放的文件来源）
 	StorageConfig(context.Context, *StorageConfigRequest) (*StorageConfigResponse, error)
 	// SystemOverview 获取系统信息概览
 	SystemOverview(context.Context, *SystemOverviewRequest) (*SystemOverviewResponse, error)
@@ -781,7 +781,7 @@ type SystemHTTPClient interface {
 	OperationLogStats(ctx context.Context, req *OperationLogStatsRequest, opts ...http.CallOption) (rsp *OperationLogStatsResponse, err error)
 	// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
 	SiteConfig(ctx context.Context, req *SiteConfigRequest, opts ...http.CallOption) (rsp *SiteConfigResponse, err error)
-	// StorageConfig 获取储存设置（头像储存等）
+	// StorageConfig 获取储存设置（头像与应用图片存放的文件来源）
 	StorageConfig(ctx context.Context, req *StorageConfigRequest, opts ...http.CallOption) (rsp *StorageConfigResponse, err error)
 	// SystemOverview 获取系统信息概览
 	SystemOverview(ctx context.Context, req *SystemOverviewRequest, opts ...http.CallOption) (rsp *SystemOverviewResponse, err error)
@@ -1077,7 +1077,7 @@ func (c *SystemHTTPClientImpl) SiteConfig(ctx context.Context, in *SiteConfigReq
 	return &out, nil
 }
 
-// StorageConfig 获取储存设置（头像储存等）
+// StorageConfig 获取储存设置（头像与应用图片存放的文件来源）
 func (c *SystemHTTPClientImpl) StorageConfig(ctx context.Context, in *StorageConfigRequest, opts ...http.CallOption) (*StorageConfigResponse, error) {
 	var out StorageConfigResponse
 	pattern := "/api/v1/system/storage-config"

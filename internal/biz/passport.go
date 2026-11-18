@@ -490,7 +490,7 @@ func (uc *PassportUsecase) purgeDeleted() {
 			uc.log.Errorf("delete passport user %s: %v", u.ID, err)
 			continue
 		}
-		uc.configUc.deleteAvatarObject(ctx, u.AvatarKey)
+		uc.configUc.deleteMedia(ctx, u.AvatarKey)
 		uc.log.Infof("passport user %s deleted after the grace period", u.ID)
 	}
 }

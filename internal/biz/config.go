@@ -32,9 +32,6 @@ type ConfigRepo interface {
 	// SiteTheme 全站默认外观主题（没设置过为 nil）；SaveSiteTheme 传 nil 表示取消。
 	SiteTheme(ctx context.Context) (*v1.SiteTheme, error)
 	SaveSiteTheme(ctx context.Context, theme *v1.SiteTheme) error
-	// AvatarStorage 头像储存设置（Secret Key 为加密态，没配置过为空配置）。
-	AvatarStorage(ctx context.Context) (*v1.AvatarStorageConfig, error)
-	SaveAvatarStorage(ctx context.Context, cfg *v1.AvatarStorageConfig) error
 	DockerConfig(ctx context.Context) (*v1.DockerConfigInfo, error)
 	UpdateDockerConfig(ctx context.Context, req *v1.DockerConfigInfo) (*v1.DockerConfigInfo, error)
 	FrpsConfig(ctx context.Context) (*v1.FrpsConfig, error)
@@ -45,11 +42,13 @@ type ConfigRepo interface {
 
 type ConfigUsecase struct {
 	config ConfigRepo
+	files  *FileUsecase // 储存（头像与应用图片）用文件来源
 }
 
-func NewConfigUsecase(config ConfigRepo) *ConfigUsecase {
+func NewConfigUsecase(config ConfigRepo, files *FileUsecase) *ConfigUsecase {
 	uc := &ConfigUsecase{
 		config: config,
+		files:  files,
 	}
 	// 启动时按已保存的登录设置应用令牌有效期
 	if cfg, err := config.LoginConfig(context.Background()); err == nil {

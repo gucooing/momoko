@@ -1,5 +1,5 @@
 <!-- 系统设置（第二期）：标题(作用范围 · 上次修改) → 左侧本页目录（手机为横向 chips）+
-     右侧分组卡片：常规 / 登录 / 邮件（含测试与模板列表）/ 储存（头像 S3）/ 版本更新 → 底部吸附保存条（按分组记录修改，一次保存）。
+     右侧分组卡片：常规 / 登录 / 邮件（含测试与模板列表）/ 储存（头像与应用图片放到哪个对象存储来源）/ 版本更新 → 底部吸附保存条（按分组记录修改，一次保存）。
      模板编辑、模板测试发送、预览用 FormDialog。权限：PERM.SYSTEM_CONFIG_EDIT 控制编辑，system:update 控制检查更新。 -->
 <template>
   <div class="st-page">
@@ -396,129 +396,34 @@
             </div>
             <StatusPill
               class="st-card__pill"
-              :variant="storageForm.enabled ? 'success' : 'neutral'"
-              :label="storageForm.enabled ? t('system.settings.storage.on') : t('system.settings.storage.off')"
+              :variant="storageForm.sourceId ? 'success' : 'neutral'"
+              :label="storageForm.sourceId ? t('system.settings.storage.on') : t('system.settings.storage.off')"
             />
           </header>
 
-          <div class="st-sub">
-            <h3>{{ t('system.settings.storage.avatar') }}</h3>
-            <span>{{ t('system.settings.storage.avatarHint') }}</span>
-          </div>
-
-          <div class="st-row st-row--switch">
-            <div class="st-row__l">
-              <span class="st-row__t">{{ t('system.settings.storage.enable') }}</span>
-              <span class="st-row__d">{{ t('system.settings.storage.enableDesc') }}</span>
-            </div>
-            <AppSwitch v-model="storageForm.enabled" :disabled="!canEdit" :aria-label="t('system.settings.storage.enable')" />
-          </div>
-
           <div class="st-row">
             <div class="st-row__l">
-              <label class="st-row__t" for="st-s3-endpoint">{{ t('system.settings.storage.endpoint') }}</label>
-              <span class="st-row__d">{{ t('system.settings.storage.endpointDesc') }}</span>
-            </div>
-            <div class="st-row__c">
-              <input id="st-s3-endpoint" v-model.trim="storageForm.endpoint" class="app-input st-input m-mono" placeholder="s3.amazonaws.com" autocomplete="off" :disabled="!canEdit" />
-            </div>
-          </div>
-
-          <div class="st-row">
-            <div class="st-row__l">
-              <label class="st-row__t" for="st-s3-bucket">{{ t('system.settings.storage.bucket') }}</label>
-              <span class="st-row__d">{{ t('system.settings.storage.bucketDesc') }}</span>
-            </div>
-            <div class="st-row__c">
-              <input id="st-s3-bucket" v-model.trim="storageForm.bucket" class="app-input st-input m-mono" placeholder="momoko-avatars" autocomplete="off" :disabled="!canEdit" />
-            </div>
-          </div>
-
-          <div class="st-row">
-            <div class="st-row__l">
-              <label class="st-row__t" for="st-s3-region">{{ t('system.settings.storage.region') }}</label>
-              <span class="st-row__d">{{ t('system.settings.storage.regionDesc') }}</span>
-            </div>
-            <div class="st-row__c">
-              <input id="st-s3-region" v-model.trim="storageForm.region" class="app-input st-input m-mono" placeholder="us-east-1" autocomplete="off" :disabled="!canEdit" />
-            </div>
-          </div>
-
-          <div class="st-row">
-            <div class="st-row__l">
-              <label class="st-row__t" for="st-s3-ak">{{ t('system.settings.storage.accessKey') }}</label>
-              <span class="st-row__d">{{ t('system.settings.storage.accessKeyDesc') }}</span>
-            </div>
-            <div class="st-row__c">
-              <input id="st-s3-ak" v-model.trim="storageForm.accessKey" class="app-input st-input m-mono" autocomplete="off" :disabled="!canEdit" />
-            </div>
-          </div>
-
-          <div class="st-row">
-            <div class="st-row__l">
-              <label class="st-row__t" for="st-s3-sk">{{ t('system.settings.storage.secretKey') }}</label>
-              <span class="st-row__d">{{ t('system.settings.storage.secretKeyDesc') }}</span>
-            </div>
-            <div class="st-row__c">
-              <span class="st-pwd">
-                <input
-                  id="st-s3-sk"
-                  v-model="storageForm.secretKey"
-                  :type="showSecret ? 'text' : 'password'"
-                  class="m-mono"
-                  autocomplete="new-password"
-                  :placeholder="storageForm.secretKeySet ? t('system.settings.storage.secretKeep') : t('system.settings.storage.secretKeyPlaceholder')"
-                  :disabled="!canEdit"
-                />
-                <AppIconButton :label="showSecret ? t('system.settings.hidePwd') : t('system.settings.showPwd')" :box="40" @click="showSecret = !showSecret">
-                  <UIcon :name="showSecret ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="st-pwd__ico" />
-                </AppIconButton>
-              </span>
-            </div>
-          </div>
-
-          <div class="st-row st-row--switch">
-            <div class="st-row__l">
-              <span class="st-row__t">{{ t('system.settings.storage.useSsl') }}</span>
-              <span class="st-row__d">{{ t('system.settings.storage.useSslDesc') }}</span>
-            </div>
-            <AppSwitch v-model="storageForm.useSsl" :disabled="!canEdit" :aria-label="t('system.settings.storage.useSsl')" />
-          </div>
-
-          <div class="st-row st-row--switch">
-            <div class="st-row__l">
-              <span class="st-row__t">{{ t('system.settings.storage.pathStyle') }}</span>
-              <span class="st-row__d">{{ t('system.settings.storage.pathStyleDesc') }}</span>
-            </div>
-            <AppSwitch v-model="storageForm.pathStyle" :disabled="!canEdit" :aria-label="t('system.settings.storage.pathStyle')" />
-          </div>
-
-          <div class="st-row">
-            <div class="st-row__l">
-              <label class="st-row__t" for="st-s3-prefix">{{ t('system.settings.storage.prefix') }}</label>
-              <span class="st-row__d">{{ t('system.settings.storage.prefixDesc') }}</span>
-            </div>
-            <div class="st-row__c">
-              <input id="st-s3-prefix" v-model.trim="storageForm.prefix" class="app-input st-input m-mono" placeholder="avatars" autocomplete="off" :disabled="!canEdit" />
-            </div>
-          </div>
-
-          <div class="st-row">
-            <div class="st-row__l">
-              <label class="st-row__t" for="st-s3-public">{{ t('system.settings.storage.publicUrl') }}</label>
-              <span class="st-row__d">{{ t('system.settings.storage.publicUrlDesc') }}</span>
+              <span class="st-row__t">{{ t('system.settings.storage.source') }}</span>
+              <span class="st-row__d">{{ t('system.settings.storage.sourceDesc') }}</span>
             </div>
             <div class="st-row__c st-row__c--col">
-              <input
-                id="st-s3-public"
-                v-model.trim="storageForm.publicUrl"
-                type="url"
-                class="app-input st-input m-mono"
-                placeholder="https://cdn.example.com"
-                autocomplete="off"
-                :disabled="!canEdit"
-              />
-              <span class="st-hint">{{ t('system.settings.storage.corsHint') }}</span>
+              <div class="st-seg st-seg--wrap" role="group" :aria-label="t('system.settings.storage.source')">
+                <button
+                  v-for="o in storageOptions"
+                  :key="o.id"
+                  type="button"
+                  :class="{ 'is-on': storageForm.sourceId === o.id }"
+                  :aria-pressed="storageForm.sourceId === o.id"
+                  :disabled="!canEdit"
+                  @click="storageForm.sourceId = o.id"
+                >
+                  {{ o.name }}
+                </button>
+              </div>
+              <span class="st-hint">
+                {{ storageSources.length ? t('system.settings.storage.hint') : t('system.settings.storage.empty') }}
+                <RouterLink :to="pageTabTo('file', 'source')">{{ t('system.settings.storage.manage') }}</RouterLink>
+              </span>
             </div>
           </div>
         </section>
@@ -706,7 +611,8 @@ import {
   updateStorageConfig,
 } from '@/api/system'
 import { EmailEncryption, EmailTemplateType, UpdateChannel } from '@/types/v1/system'
-import type { AvatarStorageConfig, EmailConfig, EmailTemplate, EmailTestResult, SiteConfig } from '@/types/v1/system'
+import type { EmailConfig, EmailTemplate, EmailTestResult, SiteConfig, StorageConfig, StorageSource } from '@/types/v1/system'
+import { pageTabTo } from '@/config/pageGroups'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { checkForUpdate } from '@/utils/updateCheck'
@@ -792,21 +698,10 @@ const emailForm = reactive<EmailForm>({
 const lastTest = ref<EmailTestResult | null>(null)
 const showPwd = ref(false)
 
-// 头像储存（S3 兼容）：Secret Key 不回显，留空表示保持不变
-const storageForm = reactive<AvatarStorageConfig>({
-  enabled: false,
-  endpoint: '',
-  region: '',
-  bucket: '',
-  accessKey: '',
-  secretKey: '',
-  secretKeySet: false,
-  useSsl: true,
-  pathStyle: false,
-  prefix: '',
-  publicUrl: '',
-})
-const showSecret = ref(false)
+// 储存：头像、应用图标与背景存放到哪个对象存储来源（来源在文件管理 · 文件源里配置）
+const storageForm = reactive({ sourceId: '' })
+const storageSources = ref<StorageSource[]>([])
+const storageOptions = computed(() => [{ id: '', name: t('system.settings.storage.none') }, ...storageSources.value])
 
 /* ───────── 分组修改记录 ───────── */
 type SecKey = 'general' | 'login' | 'mail' | 'storage' | 'update'
@@ -1035,15 +930,16 @@ const loadEmailConfig = async () => {
   }
 }
 
-const applyStorage = (c?: AvatarStorageConfig) => {
+const applyStorage = (c?: StorageConfig) => {
   if (!c) return
-  Object.assign(storageForm, { ...c, secretKey: '' })
+  storageSources.value = c.sources || []
+  storageForm.sourceId = c.sourceId || ''
   markClean('storage')
 }
 const loadStorageConfig = async () => {
   try {
     const { data } = await getStorageConfig()
-    applyStorage(data?.config?.avatar)
+    applyStorage(data?.config)
   } catch {
     feedback.error(t('system.settings.storage.getFailed'))
   }
@@ -1086,8 +982,8 @@ const saveAll = async () => {
     }
     if (dirty.value.storage) {
       try {
-        const { data } = await updateStorageConfig({ avatar: { ...storageForm } })
-        if (data?.config?.avatar) applyStorage(data.config.avatar)
+        const { data } = await updateStorageConfig({ sourceId: storageForm.sourceId })
+        if (data?.config) applyStorage(data.config)
         else markClean('storage')
       } catch (e) {
         ok = false
@@ -1550,6 +1446,14 @@ onBeforeUnmount(() => {
 .st-hint {
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
+}
+.st-hint a {
+  color: var(--m-p);
+  font-weight: 600;
+  text-decoration: none;
+}
+.st-hint a:hover {
+  text-decoration: underline;
 }
 
 .st-flag {

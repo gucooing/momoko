@@ -100,7 +100,7 @@ type SystemClient interface {
 	ListEmailTemplates(ctx context.Context, in *ListEmailTemplatesRequest, opts ...grpc.CallOption) (*ListEmailTemplatesResponse, error)
 	// 测试邮件配置
 	TestEmailConfig(ctx context.Context, in *TestEmailConfigRequest, opts ...grpc.CallOption) (*TestEmailConfigResponse, error)
-	// 获取储存设置（头像储存等）
+	// 获取储存设置（头像与应用图片存放的文件来源）
 	StorageConfig(ctx context.Context, in *StorageConfigRequest, opts ...grpc.CallOption) (*StorageConfigResponse, error)
 	// 更新储存设置
 	UpdateStorageConfig(ctx context.Context, in *UpdateStorageConfigRequest, opts ...grpc.CallOption) (*UpdateStorageConfigResponse, error)
@@ -464,7 +464,7 @@ type SystemServer interface {
 	ListEmailTemplates(context.Context, *ListEmailTemplatesRequest) (*ListEmailTemplatesResponse, error)
 	// 测试邮件配置
 	TestEmailConfig(context.Context, *TestEmailConfigRequest) (*TestEmailConfigResponse, error)
-	// 获取储存设置（头像储存等）
+	// 获取储存设置（头像与应用图片存放的文件来源）
 	StorageConfig(context.Context, *StorageConfigRequest) (*StorageConfigResponse, error)
 	// 更新储存设置
 	UpdateStorageConfig(context.Context, *UpdateStorageConfigRequest) (*UpdateStorageConfigResponse, error)

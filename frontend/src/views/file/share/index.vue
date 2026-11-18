@@ -292,7 +292,7 @@ import {
   listSharesRequest,
   deleteShareRequest,
   updateShareRequest,
-  buildShareLink,
+  shareLinkOf,
   getShareQRCodeRequest,
 } from '@/api/share'
 import { listFileSourcesRequest } from '@/api/fileSource'
@@ -391,7 +391,7 @@ const visual = (row: ShareInfo): { icon: string; tone: string } => {
   if (/\.(zip|tar|gz|tgz|rar|7z)$/i.test(first.path)) return { icon: 'i-lucide-file-archive', tone: 'warn' }
   return { icon: 'i-lucide-file-text', tone: 'a2' }
 }
-const shortLink = (row: ShareInfo) => buildShareLink(row.token).replace(/^https?:\/\//, '')
+const shortLink = (row: ShareInfo) => shareLinkOf(row).replace(/^https?:\/\//, '') || t('file.share.noSite')
 // 手机卡片底部类型标签：「文件夹 · 14 个文件 · 1.36 GB」/「压缩包 · 1.21 GB」/「3 项 · …」
 const KIND_KEY: Record<string, string> = {
   'i-lucide-folder': 'file.share.kindFolder',
@@ -551,9 +551,17 @@ const toggleEnabled = async (row: ShareInfo) => {
 
 const copiedId = ref('')
 let copiedTimer: ReturnType<typeof setTimeout> | undefined
+// 远程节点没设置对外地址时拼不出链接：提示去节点的系统设置里填写。
+const linkOrWarn = (row: ShareInfo) => {
+  const link = shareLinkOf(row)
+  if (!link) feedback.error(t('file.share.noSite'))
+  return link
+}
 const copyLink = async (row: ShareInfo) => {
+  const link = linkOrWarn(row)
+  if (!link) return
   try {
-    await copyTextToClipboard(buildShareLink(row.token))
+    await copyTextToClipboard(link)
     feedback.success(t('file.share.copied'))
     copiedId.value = row.id
     clearTimeout(copiedTimer)
@@ -562,7 +570,10 @@ const copyLink = async (row: ShareInfo) => {
     feedback.error(t('file.share.copyFailed'))
   }
 }
-const openLink = (row: ShareInfo) => window.open(buildShareLink(row.token), '_blank', 'noopener')
+const openLink = (row: ShareInfo) => {
+  const link = linkOrWarn(row)
+  if (link) window.open(link, '_blank', 'noopener')
+}
 
 const remove = (row: ShareInfo) => {
   Dialog.confirm({
@@ -671,8 +682,13 @@ const onBulk = async (key: string) => {
   const rows = selectedRows.value
   if (!rows.length) return
   if (key === 'copy') {
+    const links = rows.map(shareLinkOf)
+    if (links.some((l) => !l)) {
+      feedback.error(t('file.share.noSite'))
+      return
+    }
     try {
-      await copyTextToClipboard(rows.map((r) => buildShareLink(r.token)).join('\n'))
+      await copyTextToClipboard(links.join('\n'))
       feedback.success(t('file.share.linksCopied', { count: rows.length }))
     } catch {
       feedback.error(t('file.share.copyFailed'))

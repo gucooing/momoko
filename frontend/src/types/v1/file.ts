@@ -82,7 +82,11 @@ export interface ShareInfo {
     | Date
     | undefined;
   /** 更新时间 */
-  updateTime: Date | undefined;
+  updateTime:
+    | Date
+    | undefined;
+  /** 公开访问链接：按系统设置 · 对外地址拼出；没设置对外地址时为空（本机由前端按当前站点拼） */
+  link: string;
 }
 
 /** 创建分享请求 */
@@ -197,7 +201,7 @@ export interface DeleteShareResponse {
 export interface GetShareQRCodeRequest {
   /** 分享 id */
   id: string;
-  /** 访问面板所用的站点源（如 https://momoko.example.com），用于拼出公开链接 */
+  /** 访问面板所用的站点源（如 https://momoko.example.com）：没设置对外地址时用它拼出公开链接 */
   origin: string;
 }
 

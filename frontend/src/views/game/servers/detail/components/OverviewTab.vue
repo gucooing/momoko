@@ -81,6 +81,7 @@ import { useI18n } from 'vue-i18n'
 import { gakumas } from '@/games'
 import { gameServerEventsPath, getGameServerOverview } from '@/api/gameServer'
 import { normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
+import { withNodeQuery } from '@/utils/nodeContext'
 import type { GameAdapter, GameServerInfo, GameServerOverview, GameServerProbe } from '@/types/v1/game_server'
 import { checkVariant, fmtAgo, fmtBytes, fmtDuration, stateVariant, toMs, type PillVariant, type StatusDoc } from '../../shared'
 
@@ -194,7 +195,7 @@ const connect = async () => {
   const base = String(import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '')
   const token = normalizeAuthToken(localStorage.getItem('accessToken') || '')
   try {
-    const res = await fetch(`${base}${gameServerEventsPath(id.value)}`, {
+    const res = await fetch(withNodeQuery(`${base}${gameServerEventsPath(id.value)}`), {
       headers: { Authorization: toBearerAuthHeader(token), Accept: 'text/event-stream' },
       signal: abort.signal,
     })

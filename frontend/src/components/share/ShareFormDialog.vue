@@ -147,7 +147,7 @@ import { useI18n } from 'vue-i18n'
 import FilePicker from '@/components/file/FilePicker.vue'
 import { getBaseName } from '@/utils/file'
 import type { PickedFile } from '@/components/file/types'
-import { buildShareLink, createShareRequest, updateShareRequest } from '@/api/share'
+import { createShareRequest, shareLinkOf, updateShareRequest } from '@/api/share'
 import type { ShareInfo } from '@/types/v1/file'
 
 const props = defineProps<{
@@ -180,7 +180,7 @@ const dialogTitle = computed(() => {
 const saving = ref(false)
 const pathError = ref(false)
 const created = ref<ShareInfo | null>(null)
-const link = computed(() => (created.value ? buildShareLink(created.value.token) : ''))
+const link = computed(() => (created.value ? shareLinkOf(created.value) : ''))
 
 // Date → datetime-local 字符串（YYYY-MM-DDTHH:mm，本地时区）
 const toLocalInput = (value: Date | string): string => {

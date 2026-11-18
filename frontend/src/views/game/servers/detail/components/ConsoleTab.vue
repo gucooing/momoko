@@ -59,6 +59,7 @@ import type { TerminalAction } from '@/components/terminal/TerminalShell.vue'
 import type { ConsoleSocketStatus } from '@/stores/instance/types'
 import { clearGameServerConsole, gameServerConsolePath } from '@/api/gameServer'
 import { getRequestErrorMessage, normalizeAuthToken, toBearerAuthHeader } from '@/utils/request'
+import { applyNodeQuery } from '@/utils/nodeContext'
 import type { GameAdapter, GameServerInfo } from '@/types/v1/game_server'
 import { stateVariant } from '../../shared'
 
@@ -85,7 +86,7 @@ const actions = computed<TerminalAction[]>(() => [
   { key: 'reconnect', icon: 'i-lucide-plug-zap', label: t('gameServers.console.reconnect'), hidden: status.value === 'connected' || status.value === 'connecting' },
 ])
 
-// 浏览器 WebSocket 不能带请求头：token 走查询参数（与应用控制台一致）。不附加节点参数：托管进程在主控本机。
+// 浏览器 WebSocket 不能带请求头：token 与节点标识走查询参数（与应用控制台一致）。
 const socketUrl = () => {
   const api = new URL(import.meta.env.VITE_API_BASE_URL || window.location.origin, window.location.origin)
   const url = new URL(gameServerConsolePath, `${api.protocol === 'https:' ? 'wss:' : 'ws:'}//${api.host}`)
@@ -93,6 +94,7 @@ const socketUrl = () => {
   url.searchParams.set('role', role.value)
   const token = normalizeAuthToken(localStorage.getItem('accessToken') || '')
   if (token) url.searchParams.set('accessToken', toBearerAuthHeader(token))
+  applyNodeQuery(url)
   return url.toString()
 }
 

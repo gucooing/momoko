@@ -43,7 +43,7 @@ func nodeTunnelGate(next http.Handler, agent *biz.NodeAgentUsecase) http.Handler
 			response.WriteError(w, r, biz.ErrNodeAuthFailed)
 			return
 		}
-		perm, allowed := nodeTunnelPaths[r.URL.Path]
+		perm, allowed := nodeTunnelPermission(r.URL.Path)
 		if !allowed {
 			response.WriteError(w, r, biz.ErrNodeOperationForbidden)
 			return

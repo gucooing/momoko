@@ -133,7 +133,7 @@ func (uc *PassportUsecase) UpdateProfile(ctx context.Context, userID string, req
 	if u, err = uc.repo.SaveUser(ctx, u); err != nil {
 		return nil, ErrSystem(err)
 	}
-	uc.configUc.deleteAvatarObject(ctx, oldKey)
+	uc.configUc.deleteMedia(ctx, oldKey)
 	return uc.meOf(ctx, u), nil
 }
 
@@ -168,7 +168,7 @@ func (uc *PassportUsecase) CompleteAvatar(ctx context.Context, userID, token str
 		return nil, ErrSystem(err)
 	}
 	if oldKey != key {
-		uc.configUc.deleteAvatarObject(ctx, oldKey)
+		uc.configUc.deleteMedia(ctx, oldKey)
 	}
 	return uc.meOf(ctx, u), nil
 }

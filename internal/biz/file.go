@@ -24,8 +24,10 @@ import (
 	"momoko/internal/data/ent/schema/sharetype"
 	"momoko/pkg/auth"
 	"momoko/pkg/cache"
+	"momoko/pkg/common"
 	"momoko/pkg/file"
 	"momoko/pkg/pre"
+	"momoko/pkg/response"
 	"momoko/pkg/secretbox"
 	"momoko/pkg/share"
 	"momoko/pkg/task"
@@ -75,7 +77,8 @@ type FileRepo interface {
 	DeleteSharesExpiredBefore(ctx context.Context, before time.Time) (int, error)
 
 	CreateFileSource(ctx context.Context, userID, name, typ, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error)
-	ListFileSources(ctx context.Context, keywords string, enabledOnly bool) ([]*gen.FileSource, error)
+	// ListFileSources 列出文件来源：keywords 按名称模糊匹配，typ 为空表示不限类型，enabledOnly 只要启用的。
+	ListFileSources(ctx context.Context, keywords, typ string, enabledOnly bool) ([]*gen.FileSource, error)
 	GetFileSource(ctx context.Context, id string) (*gen.FileSource, error)
 	UpdateFileSource(ctx context.Context, id, name, configJSON string, enabled, redirect302 bool) (*gen.FileSource, error)
 	DeleteFileSource(ctx context.Context, id string) error
@@ -83,22 +86,24 @@ type FileRepo interface {
 }
 
 type FileUsecase struct {
-	repo  FileRepo
-	box   *secretbox.Box
-	tasks *task.Manager
+	repo   FileRepo
+	config ConfigRepo // 分享链接用的对外地址
+	box    *secretbox.Box
+	tasks  *task.Manager
 }
 
 // NewFileUsecase 创建文件操作用例。
-func NewFileUsecase(repo FileRepo, tasks *task.Manager) *FileUsecase {
+func NewFileUsecase(repo FileRepo, config ConfigRepo, tasks *task.Manager) *FileUsecase {
 	if _, err := os.Stat(file.ServersPath); os.IsNotExist(err) {
 		os.MkdirAll(file.ServersPath, 0o777)
 	}
 	// 远端来源上传的本地分片缓冲目录。
 	os.MkdirAll(file.UploadBufferDir, 0o777)
 	uc := &FileUsecase{
-		repo:  repo,
-		box:   secretbox.New(auth.AuthSecretKey),
-		tasks: tasks,
+		repo:   repo,
+		config: config,
+		box:    secretbox.New(auth.AuthSecretKey),
+		tasks:  tasks,
 	}
 	// 注册文件传输/收尾任务工厂（开机/重试时按 payload 重建对应来源的 Copier/Mover/收尾会话）。
 	uc.registerTaskFactories()
@@ -194,6 +199,28 @@ func (f *FileUsecase) storeFor(ctx context.Context, sourceID string) (file.Store
 		return nil, rec, ErrSystem(err)
 	}
 	return s, rec, nil
+}
+
+// publicStore 是能让浏览器直传、并给出公开链接的来源（对象存储来源），存放头像与应用图片用。
+type publicStore interface {
+	file.Store
+	file.Publisher
+}
+
+// publicStoreFor 按来源 id 构造存放公开图片用的来源：须为启用中的对象存储来源。
+func (f *FileUsecase) publicStoreFor(ctx context.Context, sourceID string) (publicStore, error) {
+	if sourceID == "" || sourceID == "local" {
+		return nil, ErrStorageSourceType
+	}
+	store, _, err := f.storeFor(ctx, sourceID)
+	if err != nil {
+		return nil, err
+	}
+	public, ok := store.(publicStore)
+	if !ok {
+		return nil, ErrStorageSourceType
+	}
+	return public, nil
 }
 
 // GetFileSystemList 获取文件列表（按来源）。
@@ -952,7 +979,7 @@ func lastTestOf(rec *gen.FileSource) *v1.FileSourceTestResult {
 }
 
 func (f *FileUsecase) ListFileSources(ctx context.Context, req *v1.ListFileSourcesRequest) (*v1.ListFileSourcesResponse, error) {
-	items, err := f.repo.ListFileSources(ctx, req.GetKeywords(), req.GetEnabledOnly())
+	items, err := f.repo.ListFileSources(ctx, req.GetKeywords(), "", req.GetEnabledOnly())
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -1102,7 +1129,22 @@ func (f *FileUsecase) CreateShare(ctx context.Context, userID string, req *v1.Cr
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	return share.ToInfo(rec), nil
+	return f.shareInfo(rec, f.shareSite(ctx)), nil
+}
+
+// shareSite 分享链接用的站点：系统设置 · 对外地址（只用来拼链接，不限制从哪个地址访问面板），没设置时为空。
+func (f *FileUsecase) shareSite(ctx context.Context) string {
+	site, _ := f.config.Get(ctx, common.ConfigSiteExternalURL)
+	return site
+}
+
+// shareInfo 映射分享信息，并按站点拼出公开链接（站点为空时链接留空）。
+func (f *FileUsecase) shareInfo(rec *gen.FileShare, site string) *v1.ShareInfo {
+	info := share.ToInfo(rec)
+	if site != "" {
+		info.Link, _ = share.PublicLink(site, rec.Token)
+	}
+	return info
 }
 
 // ListShares 返回某用户的分享列表。
@@ -1122,9 +1164,10 @@ func (f *FileUsecase) ListShares(ctx context.Context, userID string, req *v1.Lis
 		Stats:    stats,
 		Items:    make([]*v1.ShareInfo, 0, len(items)),
 	}
+	site := f.shareSite(ctx)
 	for _, it := range items {
 		f.ensureShareCounted(ctx, it)
-		resp.Items = append(resp.Items, share.ToInfo(it))
+		resp.Items = append(resp.Items, f.shareInfo(it, site))
 	}
 	return resp, nil
 }
@@ -1161,10 +1204,10 @@ func (f *FileUsecase) UpdateShare(ctx context.Context, userID string, req *v1.Up
 		}
 		return nil, ErrSystem(err)
 	}
-	return share.ToInfo(rec), nil
+	return f.shareInfo(rec, f.shareSite(ctx)), nil
 }
 
-// GetShareQRCode 生成分享公开链接的二维码（PNG）。origin 为访问面板所用的站点源，仅接受 http(s)。
+// GetShareQRCode 生成分享公开链接的二维码（PNG）：站点用对外地址，没设置时用 origin（访问面板所用的站点源，仅接受 http(s)）。
 func (f *FileUsecase) GetShareQRCode(ctx context.Context, userID string, req *v1.GetShareQRCodeRequest) (*v1.GetShareQRCodeResponse, error) {
 	rec, err := f.repo.GetShare(ctx, userID, req.Id)
 	if err != nil {
@@ -1173,9 +1216,16 @@ func (f *FileUsecase) GetShareQRCode(ctx context.Context, userID string, req *v1
 		}
 		return nil, ErrSystem(err)
 	}
-	link, png, err := share.QRCode(req.Origin, rec.Token)
+	site := f.shareSite(ctx)
+	if site == "" {
+		site = req.Origin
+	}
+	if site == "" {
+		return nil, ErrShareNoSite
+	}
+	link, png, err := share.QRCode(site, rec.Token)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, response.BadRequest(err.Error())
 	}
 	return &v1.GetShareQRCodeResponse{Png: png, Link: link}, nil
 }

@@ -23,6 +23,7 @@ export const NODE_PERMISSION_GROUPS: NodePermissionGroup[] = [
     labelKey: 'node.permission.groups.status',
     items: [
       { code: 'system:status', labelKey: 'node.permission.items.systemStatus', loginOnly: true },
+      { code: 'monitor:view', labelKey: 'node.permission.items.monitorView' },
       { code: 'monitor:edit', labelKey: 'node.permission.items.monitorEdit' },
     ],
   },
@@ -32,10 +33,20 @@ export const NODE_PERMISSION_GROUPS: NodePermissionGroup[] = [
     items: [{ code: 'instance:manage', labelKey: 'node.permission.items.instance' }],
   },
   {
+    key: 'game',
+    labelKey: 'node.permission.groups.game',
+    items: [
+      { code: 'game:server', labelKey: 'node.permission.items.gameServer' },
+      { code: 'game:gm', labelKey: 'node.permission.items.gameGm' },
+      { code: 'game:passport', labelKey: 'node.permission.items.gamePassport' },
+    ],
+  },
+  {
     key: 'file',
     labelKey: 'node.permission.groups.file',
     items: [
       { code: 'terminal', labelKey: 'node.permission.items.file' },
+      { code: 'file:share', labelKey: 'node.permission.items.fileShare' },
       { code: 'file:source', labelKey: 'node.permission.items.fileSource' },
     ],
   },
@@ -57,12 +68,23 @@ export const NODE_PERMISSION_GROUPS: NodePermissionGroup[] = [
       { code: 'network:manage', labelKey: 'node.permission.items.portForward' },
       { code: 'tunnel:manage', labelKey: 'node.permission.items.tunnel' },
       { code: 'ssh:manage', labelKey: 'node.permission.items.ssh', loginOnly: true },
+      { code: 'iqcheck:view', labelKey: 'node.permission.items.iqcheckView' },
+      { code: 'iqcheck:edit', labelKey: 'node.permission.items.iqcheckEdit' },
     ],
   },
   {
     key: 'task',
     labelKey: 'node.permission.groups.task',
     items: [{ code: 'task:manage', labelKey: 'node.permission.items.task' }],
+  },
+  {
+    key: 'system',
+    labelKey: 'node.permission.groups.system',
+    items: [
+      { code: 'system_config:view', labelKey: 'node.permission.items.systemConfigView' },
+      { code: 'system_config:edit', labelKey: 'node.permission.items.systemConfigEdit' },
+      { code: 'system:update', labelKey: 'node.permission.items.systemUpdate' },
+    ],
   },
 ]
 
@@ -80,23 +102,29 @@ export const nodePermissionLabelKey = (code: string) =>
 /**
  * 按节点区分的页面（路径前缀） → 远程节点上所需权限：
  * - ''   页面始终可见，内容在页面内按权限分块显示（工作台）；
- * - null 页面依赖主控本机上下文，远程节点上不可用（分享链接是主控域名下的公开地址）。
- * 不在表中的页面是全局页面（系统、用户、节点管理等），始终操作主控本机。
+ * - null 页面依赖主控本机上下文，远程节点上不可用。
+ * 不在表中的页面是全局页面（用户与权限、节点与 API Key 等），始终操作主控本机。
  */
 const NODE_ROUTE_PERMISSIONS: Array<[string, string | null]> = [
   ['/dashboard/home', ''],
-  ['/monitor', 'system:status'],
+  ['/monitor', 'monitor:view'],
   ['/instance/list', 'instance:manage'],
   ['/instance/type', 'instance:manage'],
   ['/instance/app', 'instance:manage'],
+  ['/game/servers', 'game:server'],
+  ['/game/gm', 'game:gm'],
+  ['/game/passport', 'game:passport'],
   ['/file/index', 'terminal'],
   ['/file/source', 'file:source'],
-  ['/file/share', null],
+  ['/file/share', 'file:share'],
   ['/docker', 'docker:view'],
   ['/tools/port-forward', 'network:manage'],
   ['/tools/tunnel', 'tunnel:manage'],
   ['/openssh', 'ssh:manage'],
+  ['/iqcheck', 'iqcheck:view'],
   ['/system/logs/task', 'task:manage'],
+  ['/system/logs/operation', 'system_config:view'],
+  ['/system/settings', 'system_config:view'],
 ]
 
 /** 返回页面在远程节点上所需权限；undefined 表示全局页面。 */

@@ -123,9 +123,9 @@ type GameServerRepo interface {
 // GameServerUsecase 游戏服务器：接入信息、MGP 客户端、manifest / status 缓存与定时探测。
 // GM 运营、通行证、邮件与兑换码都经它拿到服务器与 MGP 客户端。
 type GameServerUsecase struct {
-	repo   GameServerRepo
-	config ConfigRepo
-	log    *log.Helper
+	repo     GameServerRepo
+	configUc *ConfigUsecase // 储存（应用图标与背景）
+	log      *log.Helper
 	// hostedSync 托管服务器按服务端配置刷新接入信息（GameHostingUsecase 注册）
 	hostedSync func(ctx context.Context, s *gen.GameServer)
 
@@ -157,10 +157,10 @@ const (
 	gameProbeEvery  = 30 * time.Second
 )
 
-func NewGameServerUsecase(repo GameServerRepo, config ConfigRepo, logger log.Logger) *GameServerUsecase {
+func NewGameServerUsecase(repo GameServerRepo, configUc *ConfigUsecase, logger log.Logger) *GameServerUsecase {
 	uc := &GameServerUsecase{
 		repo:      repo,
-		config:    config,
+		configUc:  configUc,
 		log:       log.NewHelper(log.With(logger, "module", "biz/game")),
 		clients:   map[string]*gameClient{},
 		manifests: map[string]*cachedManifest{},
@@ -1067,7 +1067,7 @@ func (uc *GameServerUsecase) DeleteServer(ctx context.Context, id string) error 
 		return ErrSystem(err)
 	}
 	uc.forget(id)
-	uc.deleteAppMediaObjects(ctx, s.AppIconKey, s.AppBackgroundKey)
+	uc.configUc.deleteMedia(ctx, s.AppIconKey, s.AppBackgroundKey)
 	return nil
 }
 
