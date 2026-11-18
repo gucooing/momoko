@@ -66,6 +66,10 @@ func NewData(c *conf.Data) (*Data, func(), error) {
 	if err = dropLegacyAuthTable(context.Background(), db); err != nil {
 		return nil, nil, err
 	}
+	// 应用图标 / 应用背景：自动迁移会删除旧列 game_servers.launcher_*，先改名为 app_*。
+	if err = renameAppMediaColumns(context.Background(), db); err != nil {
+		return nil, nil, err
+	}
 	// 用户角色改为多对多：自动迁移会删除旧列 users.user_role，先读出旧对应关系，建表后写回。
 	legacyUserRoles := captureLegacyUserRoles(context.Background(), db)
 	// 玩家自助的每天次数改为每 N 天次数：自动迁移会删除旧列 daily_limit，先读出来，建表后写回。
