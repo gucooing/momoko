@@ -1,16 +1,8 @@
-<!-- 文件源 新增/编辑表单（原型：PC 为列表右侧的表单卡，手机为弹窗）：存储类型 2×2 贴纸单选卡（本地磁盘 / OSS-S3 / FTP / WebDAV）+
+<!-- 文件源 新增/编辑弹窗：存储类型 2×2 贴纸单选卡（本地磁盘 / OSS-S3 / FTP / WebDAV）+
      按类型动态字段 + 302 直链 / 保存后立即启用 开关 + 测试结果内联提示 + 测试连接 / 保存。
-     ref 契约：showDialog(row?) 打开（新增/编辑）；@refresh('create'|'update') 保存成功后通知列表刷新。inline=true 渲染为表单卡。 -->
+     ref 契约：showDialog(row?) 打开（新增/编辑）；@refresh('create'|'update') 保存成功后通知列表刷新。 -->
 <template>
-  <component
-    :is="inline ? InlineShell : FormDialog"
-    v-if="!inline || open"
-    v-model="open"
-    :title="title"
-    :width="560"
-    :show-footer="false"
-    @close="close"
-  >
+  <FormDialog v-model="open" :title="title" :width="560" :show-footer="false" @close="close">
     <form class="sf" @submit.prevent="confirm">
       <div class="sf-group">
         <span class="sf-lbl">{{ t('fileSource.storageType') }}</span>
@@ -195,14 +187,12 @@
         </UButton>
       </div>
     </form>
-  </component>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
-import { defineComponent, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FormDialog from '@/components/ui/FormDialog.vue'
-import AppIconButton from '@/components/ui/AppIconButton.vue'
 import { formatFileSize } from '@/utils/file'
 import {
   createFileSourceRequest,
@@ -213,31 +203,8 @@ import type { FileSourceInfo, FileSourceConfig, FileSourceTestResult } from '@/t
 
 defineOptions({ name: 'FileSourceCreate' })
 
-withDefaults(defineProps<{ inline?: boolean }>(), { inline: false })
 const emits = defineEmits<{ refresh: [type: 'create' | 'update'] }>()
 const { t } = useI18n()
-
-// PC 内联表单卡外壳：标题 + 关闭 + 内容（与 FormDialog 同一组 props/emits，便于 <component :is> 切换）。
-const InlineShell = defineComponent({
-  name: 'SourceFormCard',
-  inheritAttrs: false,
-  props: { modelValue: Boolean, title: String },
-  emits: ['update:modelValue', 'close'],
-  setup(props, { slots, emit }) {
-    const onClose = () => {
-      emit('update:modelValue', false)
-      emit('close')
-    }
-    return () =>
-      h('aside', { class: 'sf-card', 'aria-label': props.title }, [
-        h('div', { class: 'sf-card__head' }, [
-          h('h2', { class: 'sf-card__title' }, props.title),
-          h(AppIconButton, { icon: 'HOutline:XMarkIcon', label: t('system.common.close'), box: 36, size: 16, onClick: onClose }),
-        ]),
-        slots.default?.(),
-      ])
-  },
-})
 
 const ROTS = ['-4deg', '3deg', '-2deg', '4deg']
 const open = ref(false)
@@ -410,7 +377,7 @@ const showDialog = (record?: FileSourceInfo) => {
   open.value = true
 }
 
-defineExpose({ showDialog, isOpen: () => open.value })
+defineExpose({ showDialog })
 </script>
 
 <style scoped lang="scss">
@@ -662,33 +629,3 @@ defineExpose({ showDialog, isOpen: () => open.value })
 }
 </style>
 
-<!-- PC 表单卡外壳由脚本内的渲染函数组件生成（不带 scoped 标记），样式放非 scoped 块；类名以 sf-card 前缀隔离。 -->
-<style lang="scss">
-/* PC 表单卡（文件源列表右侧，吸顶） */
-.sf-card {
-  position: sticky;
-  top: 0;
-  flex: 0 1 380px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  min-width: 0;
-  padding: calc(var(--cmp-card-unit) * 22);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: var(--app-radius-lg);
-  background: var(--el-bg-color);
-  box-shadow: var(--app-shadow-lg);
-}
-.sf-card__head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.sf-card__title {
-  flex: 1;
-  margin: 0;
-  font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
-}
-</style>

@@ -1,6 +1,6 @@
 <!-- 文件源：页头(总数/启用数 + 全部测试/新增) + 类型胶囊(带数量)/搜索 +
      来源卡片网格（贴纸 · 名称/类型 · 启用开关 · 地址/根目录信息块 · 能力标签 · 最近测试结果 + 测试/浏览/编辑/⋯），
-     PC 右侧为新增/编辑表单卡，手机为弹窗 + 右下悬浮「新增文件源」。
+     新增/编辑都用弹窗，手机右下悬浮「新增文件源」。
      整机本地磁盘为内置默认来源（只读展示，带磁盘用量）；本机目录（local）/ OSS / FTP / WebDAV 可新增。
      最近一次测试结果（含容量）由后端持久化（FileSourceInfo.lastTest）。 -->
 <template>
@@ -46,194 +46,192 @@
       @search="search"
     />
 
-    <div class="src-layout">
-      <div v-if="loading && !items.length" class="src-grid">
-        <div v-for="i in 3" :key="i" class="src-skeleton" />
-      </div>
-
-      <div v-else class="src-grid">
-        <!-- 内置：整机本地磁盘 -->
-        <article v-if="showLocal" class="src-card">
-          <header class="src-card__head">
-            <span class="src-card__sticker m-sticker m-sticker--a" style="transform: rotate(-4deg)">
-              <UIcon name="i-lucide-hard-drive" />
-            </span>
-            <span class="src-card__title">
-              <span class="src-card__name">{{ t('fileSource.localDisk') }}</span>
-              <span class="src-card__sub">{{ t('fileSource.localDesc') }}</span>
-            </span>
-            <StatusPill variant="primary" :label="t('fileSource.builtin')" :dot="false" />
-          </header>
-          <dl v-if="isMobile" class="src-dl">
-            <div class="is-wide">
-              <dt>{{ t('fileSource.address') }}</dt>
-              <dd class="m-mono">{{ t('fileManager.localTag') }}</dd>
-            </div>
-            <div class="is-wide">
-              <dt>{{ t('fileSource.rootDir') }}</dt>
-              <dd class="m-mono">/</dd>
-            </div>
-            <div>
-              <dt>{{ t('fileSource.usedSpace') }}</dt>
-              <dd class="m-num">{{ localUsage || '—' }}</dd>
-            </div>
-            <div>
-              <dt>{{ t('fileSource.lastTest') }}</dt>
-              <dd>{{ t('fileSource.alwaysOn') }}</dd>
-            </div>
-          </dl>
-          <div v-else class="src-card__info">
-            <div class="src-card__line m-mono">
-              <UIcon name="i-lucide-server" />
-              <span>{{ t('fileManager.localTag') }}<template v-if="localUsage"> · {{ localUsage }}</template></span>
-            </div>
-            <div class="src-card__line src-card__line--dim m-mono">
-              <UIcon name="i-lucide-folder" />
-              <span>/</span>
-            </div>
-          </div>
-          <div class="src-caps">
-            <span class="src-cap"><UIcon name="i-lucide-minus" />{{ t('fileSource.no302') }}</span>
-            <span v-for="cap in capsOf(localCaps)" :key="cap.key" class="src-cap" :class="{ 'is-on': cap.on }">
-              <UIcon :name="cap.on ? cap.icon : 'i-lucide-minus'" />{{ cap.label }}
-            </span>
-          </div>
-          <footer class="src-card__foot">
-            <span class="src-res">
-              <span class="src-res__icon is-ok"><UIcon name="i-lucide-check" /></span>
-              <span class="src-res__text">
-                <span class="src-res__title is-ok">{{ t('fileSource.alwaysOn') }}</span>
-                <span v-if="!isMobile" class="src-res__sub">{{ t('fileSource.localHint') }}</span>
-              </span>
-            </span>
-            <template v-if="canBrowse">
-              <UButton v-if="!isMobile" color="neutral" variant="soft" size="sm" icon="i-lucide-folder-open" :to="pageTabTo('file', 'index')">
-                {{ t('fileSource.browse') }}
-              </UButton>
-              <AppIconButton v-else icon="HOutline:FolderOpenIcon" :label="t('fileSource.browseOf', { name: t('fileSource.localDisk') })" :box="44" @click="browse()" />
-            </template>
-          </footer>
-        </article>
-
-        <article
-          v-for="(row, i) in filtered"
-          :key="row.id"
-          class="src-card"
-          :class="{ 'is-off': !row.enabled, 'is-editing': editingId === row.id }"
-        >
-          <header class="src-card__head">
-            <span class="src-card__sticker m-sticker" :class="`m-sticker--${visual(row.type).tone}`" :style="{ transform: `rotate(${ROTS[(i + 1) % ROTS.length]})` }">
-              <UIcon :name="visual(row.type).icon" />
-            </span>
-            <span class="src-card__title">
-              <span class="src-card__name">{{ row.name }}</span>
-              <span class="src-card__sub">{{ subLine(row) }}</span>
-            </span>
-            <AppSwitch
-              :model-value="!!row.enabled"
-              :aria-label="t('fileSource.enableOf', { name: row.name })"
-              @update:model-value="(v: boolean) => toggleEnabled(row, v)"
-            />
-          </header>
-          <dl v-if="isMobile" class="src-dl">
-            <div class="is-wide">
-              <dt>{{ t('fileSource.address') }}</dt>
-              <dd class="m-mono" :title="addressOf(row)">{{ addressOf(row) || '—' }}</dd>
-            </div>
-            <div class="is-wide">
-              <dt>{{ row.type === 'oss' ? t('fileSource.bucket') : t('fileSource.rootDir') }}</dt>
-              <dd class="m-mono" :title="rootOf(row)">{{ rootOf(row) }}</dd>
-            </div>
-            <div>
-              <dt>{{ t('fileSource.usedSpace') }}</dt>
-              <dd class="m-num">{{ usageOf(row) || '—' }}</dd>
-            </div>
-            <div>
-              <dt>{{ t('fileSource.lastTest') }}</dt>
-              <dd class="m-num">{{ row.lastTest ? relTime(row.lastTest.testedAt) : t('fileSource.notTested') }}</dd>
-            </div>
-          </dl>
-          <div v-else class="src-card__info">
-            <div class="src-card__line m-mono" :title="addressOf(row)">
-              <UIcon name="i-lucide-link-2" />
-              <span>{{ addressOf(row) || '—' }}</span>
-            </div>
-            <div class="src-card__line src-card__line--dim m-mono" :title="rootOf(row)">
-              <UIcon name="i-lucide-folder" />
-              <span>{{ row.type === 'oss' ? `bucket: ${rootOf(row)}` : rootOf(row) }}</span>
-            </div>
-          </div>
-          <div class="src-caps">
-            <span class="src-cap" :class="{ 'is-302': hasRedirect(row) }">
-              <UIcon :name="hasRedirect(row) ? 'i-lucide-zap' : 'i-lucide-minus'" />{{ hasRedirect(row) ? t('fileSource.redirect302') : t('fileSource.no302') }}
-            </span>
-            <span v-for="cap in capsOf(row.caps)" :key="cap.key" class="src-cap" :class="{ 'is-on': cap.on }">
-              <UIcon :name="cap.on ? cap.icon : 'i-lucide-minus'" />{{ cap.label }}
-            </span>
-          </div>
-          <footer class="src-card__foot">
-            <span class="src-res">
-              <span v-if="!isMobile" class="src-res__icon" :class="`is-${result(row).tone}`">
-                <UIcon :name="result(row).icon" :class="{ 'is-spin': testingIds.has(row.id) }" />
-              </span>
-              <UIcon v-else :name="result(row).icon" class="src-res__mico" :class="[`is-${result(row).tone}`, { 'is-spin': testingIds.has(row.id) }]" />
-              <span class="src-res__text">
-                <span class="src-res__title m-num" :class="`is-${result(row).tone}`" :title="result(row).sub">
-                  {{ isMobile ? result(row).short : result(row).title }}
-                </span>
-                <span v-if="!isMobile" class="src-res__sub m-num" :title="result(row).sub">{{ result(row).sub }}</span>
-              </span>
-            </span>
-            <UButton
-              v-if="!isMobile"
-              color="neutral"
-              variant="soft"
-              size="sm"
-              icon="i-lucide-zap"
-              :loading="testingIds.has(row.id)"
-              @click="testOne(row)"
-            >
-              {{ t('fileSource.test') }}
-            </UButton>
-            <template v-else>
-              <AppIconButton
-                class="src-test-btn"
-                icon="HOutline:BoltIcon"
-                :label="t('fileSource.testOf', { name: row.name })"
-                :box="44"
-                @click="testOne(row)"
-              />
-              <AppIconButton
-                v-if="canBrowse && row.enabled"
-                icon="HOutline:FolderOpenIcon"
-                :label="t('fileSource.browseOf', { name: row.name })"
-                :box="44"
-                @click="browse(row)"
-              />
-            </template>
-            <AppIconButton
-              icon="HOutline:PencilSquareIcon"
-              :label="t('fileSource.editOf', { name: row.name })"
-              :box="isMobile ? 44 : 36"
-              :size="isMobile ? 20 : 18"
-              @click="openEdit(row)"
-            />
-            <ActionMenu :items="rowMenu(row)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
-          </footer>
-        </article>
-
-        <div v-if="!loading && !filtered.length && (keywords || (typeFilter && typeFilter !== 'local'))" class="src-card src-card--empty">
-          <EmptyState icon="HOutline:CircleStackIcon" :title="t('system.common.noData')" />
-        </div>
-        <button v-else-if="!loading && !items.length && !formOpen" type="button" class="src-card src-card--add" @click="openCreate">
-          <span class="src-card__sticker m-sticker m-sticker--p"><UIcon name="i-lucide-plus" /></span>
-          <span class="src-card__name">{{ t('fileSource.add') }}</span>
-          <span class="src-card__sub">{{ t('fileSource.emptyDesc') }}</span>
-        </button>
-      </div>
-
-      <SourceCreate ref="createRef" :inline="!isMobile" @refresh="getList" />
+    <div v-if="loading && !items.length" class="src-grid">
+      <div v-for="i in 3" :key="i" class="src-skeleton" />
     </div>
+
+    <div v-else class="src-grid">
+      <!-- 内置：整机本地磁盘 -->
+      <article v-if="showLocal" class="src-card">
+        <header class="src-card__head">
+          <span class="src-card__sticker m-sticker m-sticker--a" style="transform: rotate(-4deg)">
+            <UIcon name="i-lucide-hard-drive" />
+          </span>
+          <span class="src-card__title">
+            <span class="src-card__name">{{ t('fileSource.localDisk') }}</span>
+            <span class="src-card__sub">{{ t('fileSource.localDesc') }}</span>
+          </span>
+          <StatusPill variant="primary" :label="t('fileSource.builtin')" :dot="false" />
+        </header>
+        <dl v-if="isMobile" class="src-dl">
+          <div class="is-wide">
+            <dt>{{ t('fileSource.address') }}</dt>
+            <dd class="m-mono">{{ t('fileManager.localTag') }}</dd>
+          </div>
+          <div class="is-wide">
+            <dt>{{ t('fileSource.rootDir') }}</dt>
+            <dd class="m-mono">/</dd>
+          </div>
+          <div>
+            <dt>{{ t('fileSource.usedSpace') }}</dt>
+            <dd class="m-num">{{ localUsage || '—' }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('fileSource.lastTest') }}</dt>
+            <dd>{{ t('fileSource.alwaysOn') }}</dd>
+          </div>
+        </dl>
+        <div v-else class="src-card__info">
+          <div class="src-card__line m-mono">
+            <UIcon name="i-lucide-server" />
+            <span>{{ t('fileManager.localTag') }}<template v-if="localUsage"> · {{ localUsage }}</template></span>
+          </div>
+          <div class="src-card__line src-card__line--dim m-mono">
+            <UIcon name="i-lucide-folder" />
+            <span>/</span>
+          </div>
+        </div>
+        <div class="src-caps">
+          <span class="src-cap"><UIcon name="i-lucide-minus" />{{ t('fileSource.no302') }}</span>
+          <span v-for="cap in capsOf(localCaps)" :key="cap.key" class="src-cap" :class="{ 'is-on': cap.on }">
+            <UIcon :name="cap.on ? cap.icon : 'i-lucide-minus'" />{{ cap.label }}
+          </span>
+        </div>
+        <footer class="src-card__foot">
+          <span class="src-res">
+            <span class="src-res__icon is-ok"><UIcon name="i-lucide-check" /></span>
+            <span class="src-res__text">
+              <span class="src-res__title is-ok">{{ t('fileSource.alwaysOn') }}</span>
+              <span v-if="!isMobile" class="src-res__sub">{{ t('fileSource.localHint') }}</span>
+            </span>
+          </span>
+          <template v-if="canBrowse">
+            <UButton v-if="!isMobile" color="neutral" variant="soft" size="sm" icon="i-lucide-folder-open" :to="pageTabTo('file', 'index')">
+              {{ t('fileSource.browse') }}
+            </UButton>
+            <AppIconButton v-else icon="HOutline:FolderOpenIcon" :label="t('fileSource.browseOf', { name: t('fileSource.localDisk') })" :box="44" @click="browse()" />
+          </template>
+        </footer>
+      </article>
+
+      <article
+        v-for="(row, i) in filtered"
+        :key="row.id"
+        class="src-card"
+        :class="{ 'is-off': !row.enabled }"
+      >
+        <header class="src-card__head">
+          <span class="src-card__sticker m-sticker" :class="`m-sticker--${visual(row.type).tone}`" :style="{ transform: `rotate(${ROTS[(i + 1) % ROTS.length]})` }">
+            <UIcon :name="visual(row.type).icon" />
+          </span>
+          <span class="src-card__title">
+            <span class="src-card__name">{{ row.name }}</span>
+            <span class="src-card__sub">{{ subLine(row) }}</span>
+          </span>
+          <AppSwitch
+            :model-value="!!row.enabled"
+            :aria-label="t('fileSource.enableOf', { name: row.name })"
+            @update:model-value="(v: boolean) => toggleEnabled(row, v)"
+          />
+        </header>
+        <dl v-if="isMobile" class="src-dl">
+          <div class="is-wide">
+            <dt>{{ t('fileSource.address') }}</dt>
+            <dd class="m-mono" :title="addressOf(row)">{{ addressOf(row) || '—' }}</dd>
+          </div>
+          <div class="is-wide">
+            <dt>{{ row.type === 'oss' ? t('fileSource.bucket') : t('fileSource.rootDir') }}</dt>
+            <dd class="m-mono" :title="rootOf(row)">{{ rootOf(row) }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('fileSource.usedSpace') }}</dt>
+            <dd class="m-num">{{ usageOf(row) || '—' }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('fileSource.lastTest') }}</dt>
+            <dd class="m-num">{{ row.lastTest ? relTime(row.lastTest.testedAt) : t('fileSource.notTested') }}</dd>
+          </div>
+        </dl>
+        <div v-else class="src-card__info">
+          <div class="src-card__line m-mono" :title="addressOf(row)">
+            <UIcon name="i-lucide-link-2" />
+            <span>{{ addressOf(row) || '—' }}</span>
+          </div>
+          <div class="src-card__line src-card__line--dim m-mono" :title="rootOf(row)">
+            <UIcon name="i-lucide-folder" />
+            <span>{{ row.type === 'oss' ? `bucket: ${rootOf(row)}` : rootOf(row) }}</span>
+          </div>
+        </div>
+        <div class="src-caps">
+          <span class="src-cap" :class="{ 'is-302': hasRedirect(row) }">
+            <UIcon :name="hasRedirect(row) ? 'i-lucide-zap' : 'i-lucide-minus'" />{{ hasRedirect(row) ? t('fileSource.redirect302') : t('fileSource.no302') }}
+          </span>
+          <span v-for="cap in capsOf(row.caps)" :key="cap.key" class="src-cap" :class="{ 'is-on': cap.on }">
+            <UIcon :name="cap.on ? cap.icon : 'i-lucide-minus'" />{{ cap.label }}
+          </span>
+        </div>
+        <footer class="src-card__foot">
+          <span class="src-res">
+            <span v-if="!isMobile" class="src-res__icon" :class="`is-${result(row).tone}`">
+              <UIcon :name="result(row).icon" :class="{ 'is-spin': testingIds.has(row.id) }" />
+            </span>
+            <UIcon v-else :name="result(row).icon" class="src-res__mico" :class="[`is-${result(row).tone}`, { 'is-spin': testingIds.has(row.id) }]" />
+            <span class="src-res__text">
+              <span class="src-res__title m-num" :class="`is-${result(row).tone}`" :title="result(row).sub">
+                {{ isMobile ? result(row).short : result(row).title }}
+              </span>
+              <span v-if="!isMobile" class="src-res__sub m-num" :title="result(row).sub">{{ result(row).sub }}</span>
+            </span>
+          </span>
+          <UButton
+            v-if="!isMobile"
+            color="neutral"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-zap"
+            :loading="testingIds.has(row.id)"
+            @click="testOne(row)"
+          >
+            {{ t('fileSource.test') }}
+          </UButton>
+          <template v-else>
+            <AppIconButton
+              class="src-test-btn"
+              icon="HOutline:BoltIcon"
+              :label="t('fileSource.testOf', { name: row.name })"
+              :box="44"
+              @click="testOne(row)"
+            />
+            <AppIconButton
+              v-if="canBrowse && row.enabled"
+              icon="HOutline:FolderOpenIcon"
+              :label="t('fileSource.browseOf', { name: row.name })"
+              :box="44"
+              @click="browse(row)"
+            />
+          </template>
+          <AppIconButton
+            icon="HOutline:PencilSquareIcon"
+            :label="t('fileSource.editOf', { name: row.name })"
+            :box="isMobile ? 44 : 36"
+            :size="isMobile ? 20 : 18"
+            @click="openEdit(row)"
+          />
+          <ActionMenu :items="rowMenu(row)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
+        </footer>
+      </article>
+
+      <div v-if="!loading && !filtered.length && (keywords || (typeFilter && typeFilter !== 'local'))" class="src-card src-card--empty">
+        <EmptyState icon="HOutline:CircleStackIcon" :title="t('system.common.noData')" />
+      </div>
+      <button v-else-if="!loading && !items.length" type="button" class="src-card src-card--add" @click="openCreate">
+        <span class="src-card__sticker m-sticker m-sticker--p"><UIcon name="i-lucide-plus" /></span>
+        <span class="src-card__name">{{ t('fileSource.add') }}</span>
+        <span class="src-card__sub">{{ t('fileSource.emptyDesc') }}</span>
+      </button>
+    </div>
+
+    <SourceCreate ref="createRef" @refresh="getList" />
 
     <!-- 手机：悬浮新增 -->
     <button v-if="isMobile" type="button" class="src-fab" @click="openCreate">
@@ -292,8 +290,6 @@ const showLocal = computed(() => !keywords.value.trim() && (!typeFilter.value ||
 const filtered = computed(() => items.value.filter((i) => !typeFilter.value || i.type === typeFilter.value))
 
 // 表单卡是否打开 / 正在编辑哪一张（PC 高亮对应卡片）
-const formOpen = ref(false)
-const editingId = ref('')
 
 // ---- 展示 ----
 const VISUAL: Record<string, { icon: string; tone: string }> = {
@@ -428,20 +424,8 @@ const getList = async () => {
 }
 const search = () => getList()
 
-const syncFormState = () => {
-  formOpen.value = !!createRef.value?.isOpen()
-  if (!formOpen.value) editingId.value = ''
-}
-const openCreate = () => {
-  editingId.value = ''
-  createRef.value?.showDialog()
-  syncFormState()
-}
-const openEdit = (row: FileSourceInfo) => {
-  createRef.value?.showDialog(row)
-  syncFormState()
-  editingId.value = row.id
-}
+const openCreate = () => createRef.value?.showDialog()
+const openEdit = (row: FileSourceInfo) => createRef.value?.showDialog(row)
 
 // ---- 测试：单个 / 全部（结果由后端回写为最近一次测试，这里就地更新卡片）----
 const testingIds = ref<Set<string>>(new Set())
@@ -509,11 +493,6 @@ const confirmDelete = (row: FileSourceInfo) => {
   })
 }
 
-// 表单打开 / 关闭（保存、取消）后同步卡片高亮
-watch(
-  () => createRef.value?.isOpen(),
-  () => syncFormState(),
-)
 onMounted(getList)
 </script>
 
@@ -535,14 +514,7 @@ onMounted(getList)
   min-height: 44px;
   padding: 0;
 }
-.src-layout {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 20px;
-}
 .src-grid {
-  flex: 1 1 520px;
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
@@ -558,10 +530,6 @@ onMounted(getList)
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
   transition: border-color 0.15s, box-shadow 0.15s;
-}
-.src-card.is-editing {
-  border-color: var(--m-p);
-  box-shadow: 0 0 0 3px var(--m-pSoft);
 }
 .src-card.is-off .src-card__name {
   color: var(--el-text-color-secondary);
@@ -859,7 +827,6 @@ onMounted(getList)
     padding-bottom: 72px;
   }
   .src-grid {
-    flex-basis: 100%;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
