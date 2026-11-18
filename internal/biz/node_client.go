@@ -257,34 +257,34 @@ func (c *nodeStatusCache) remove(id string) {
 	delete(c.lastRemote, id)
 }
 
-// NodeCallError 把节点调用错误转换为主控返回给浏览器的业务错误：
-// 节点业务错误保留原始业务码与提示；节点鉴权失败（401）改写为 500，避免浏览器误判主控登录失效。
+// NodeCallError 把节点调用错误转换为主控返回给浏览器的业务错误（400）：
+// 节点业务错误保留原始提示；节点鉴权失败（401）也是 400，避免浏览器误判主控登录失效。
 func NodeCallError(nodeName string, err error) error {
 	if err == nil {
 		return nil
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
-		return nodeError(500, "节点 %s 响应超时", nodeName)
+		return nodeError("节点 %s 响应超时", nodeName)
 	}
 	st, ok := status.FromError(err)
 	if !ok {
-		return nodeError(500, "节点 %s 调用失败：%v", nodeName, err)
+		return nodeError("节点 %s 调用失败：%v", nodeName, err)
 	}
 	switch st.Code() {
 	case codes.Unavailable:
-		return nodeError(500, "节点 %s 不可用：%s", nodeName, st.Message())
+		return nodeError("节点 %s 不可用：%s", nodeName, st.Message())
 	case codes.DeadlineExceeded:
-		return nodeError(500, "节点 %s 响应超时", nodeName)
+		return nodeError("节点 %s 响应超时", nodeName)
 	case codes.Canceled:
-		return nodeError(500, "节点 %s 请求已取消", nodeName)
+		return nodeError("节点 %s 请求已取消", nodeName)
 	case codes.Unimplemented:
-		return nodeError(500, "节点 %s 不支持该接口（请升级节点 momoko 版本）", nodeName)
+		return nodeError("节点 %s 不支持该接口（请升级节点 momoko 版本）", nodeName)
 	}
 	code, message := nodeErrorCode(err)
 	if code == 401 {
-		return nodeError(500, "节点 %s 鉴权失败：%s", nodeName, message)
+		return nodeError("节点 %s 鉴权失败：%s", nodeName, message)
 	}
-	return nodeError(code, "%s", message)
+	return nodeError("%s", message)
 }
 
 // nodeErrorCode 还原节点返回的业务码与提示。

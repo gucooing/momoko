@@ -29,32 +29,23 @@ import (
 )
 
 var (
-	ErrGameServerNotFound   = response.BadRequest(404, "游戏服务器不存在")
-	ErrGameServerNoMGP      = response.BadRequest(400, "这台服务器没有接入 MGP")
-	ErrGameServerInvalid    = response.BadRequest(400, "游戏服务器参数无效")
-	ErrGameAdapterNotFound  = response.BadRequest(400, "不支持的游戏")
-	ErrGameAdapterModeLimit = response.BadRequest(400, "这款游戏不支持该接入方式")
-	ErrGameClientLaunchOff  = response.BadRequest(400, "这款游戏不支持用通行证启动客户端")
-	ErrGameClientAppMissing = response.BadRequest(400, "还没有生成客户端应用凭据")
+	ErrGameServerNotFound   = response.BadRequest("游戏服务器不存在")
+	ErrGameServerNoMGP      = response.BadRequest("这台服务器没有接入 MGP")
+	ErrGameServerInvalid    = response.BadRequest("游戏服务器参数无效")
+	ErrGameAdapterNotFound  = response.BadRequest("不支持的游戏")
+	ErrGameAdapterModeLimit = response.BadRequest("这款游戏不支持该接入方式")
+	ErrGameClientLaunchOff  = response.BadRequest("这款游戏不支持用通行证启动客户端")
+	ErrGameClientAppMissing = response.BadRequest("还没有生成客户端应用凭据")
 )
 
-// GameMGPError 把 MGP 错误映射为接口错误：连接不上为 502，其余沿用 MGP 的 HTTP 状态。
+// GameMGPError 把 MGP 错误映射为业务错误（400，信息为「错误码: 信息」）；MGP 签名失败也是 400，
+// 不能让前端当成 Momoko 登录失效。
 func GameMGPError(err error) error {
 	var e *mgp.Error
 	if !errors.As(err, &e) {
 		return ErrSystem(err)
 	}
-	status := e.Status
-	switch {
-	case status == 0:
-		status = 502
-	case status == 401:
-		// MGP 签名失败不能让前端当成 Momoko 登录失效。
-		status = 502
-	case status < 400:
-		status = 502
-	}
-	return response.BadRequest(status, e.Code+": "+e.Message)
+	return response.BadRequest(e.Code + ": " + e.Message)
 }
 
 // result 返回游戏服务端接口的内容；游戏服务端的错误转为接口错误。
@@ -357,11 +348,11 @@ func (uc *GameServerUsecase) Client(s *gen.GameServer) (*mgp.Client, error) {
 	}
 	secret, err := gameBox().Decrypt(s.Secret)
 	if err != nil {
-		return nil, response.BadRequest(400, "MGP 密钥无法解密（主密钥变更或数据损坏），请重新填写密钥")
+		return nil, response.BadRequest("MGP 密钥无法解密（主密钥变更或数据损坏），请重新填写密钥")
 	}
 	client, err := mgp.NewClient(mgp.Credentials{Endpoint: s.MgpEndpoint, KeyID: s.KeyID, Secret: secret})
 	if err != nil {
-		return nil, response.BadRequest(400, err.Error())
+		return nil, response.BadRequest(err.Error())
 	}
 	uc.clients[s.ID] = &gameClient{fingerprint: fp, client: client}
 	return client, nil
@@ -421,7 +412,7 @@ func (uc *GameServerUsecase) FetchManifest(ctx context.Context, s *gen.GameServe
 		if errors.As(err, &me) {
 			return nil, GameMGPError(err)
 		}
-		return nil, response.BadRequest(502, "manifest 无法解析："+err.Error())
+		return nil, response.BadRequest("manifest 无法解析：" + err.Error())
 	}
 	raw := m.Raw
 	now := time.Now()
@@ -922,7 +913,7 @@ func (uc *GameServerUsecase) CreateServer(ctx context.Context, req *v1.CreateGam
 	}
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
-		return nil, response.BadRequest(400, "名称不能为空")
+		return nil, response.BadRequest("名称不能为空")
 	}
 	s := &gen.GameServer{
 		ID:     uuid.NewString(),
@@ -938,7 +929,7 @@ func (uc *GameServerUsecase) CreateServer(ctx context.Context, req *v1.CreateGam
 			return nil, err
 		}
 	} else if mode == "remote" {
-		return nil, response.BadRequest(400, "请填写 MGP 地址、Key ID 与密钥")
+		return nil, response.BadRequest("请填写 MGP 地址、Key ID 与密钥")
 	}
 	created, err := uc.repo.Create(ctx, s)
 	if err != nil {
@@ -958,11 +949,11 @@ func (uc *GameServerUsecase) applyMGP(s *gen.GameServer, endpoint, keyID, secret
 	}
 	normalized, err := mgp.NormalizeEndpoint(endpoint)
 	if err != nil {
-		return response.BadRequest(400, err.Error())
+		return response.BadRequest(err.Error())
 	}
 	keyID = strings.TrimSpace(keyID)
 	if keyID == "" {
-		return response.BadRequest(400, "Key ID 不能为空")
+		return response.BadRequest("Key ID 不能为空")
 	}
 	if secret != "" {
 		// 新密钥（前端生成或手动填写）：校验格式后加密保存。
@@ -979,7 +970,7 @@ func (uc *GameServerUsecase) applyMGP(s *gen.GameServer, endpoint, keyID, secret
 		s.Secret = enc
 	}
 	if s.Secret == "" {
-		return response.BadRequest(400, "密钥不能为空")
+		return response.BadRequest("密钥不能为空")
 	}
 	return nil
 }
@@ -1014,7 +1005,7 @@ func (uc *GameServerUsecase) UpdateServer(ctx context.Context, req *v1.UpdateGam
 	}
 	if req.Timezone != "" {
 		if _, err := time.LoadLocation(req.Timezone); err != nil {
-			return nil, response.BadRequest(400, "时区无效")
+			return nil, response.BadRequest("时区无效")
 		}
 	}
 	s.Timezone = req.Timezone
@@ -1046,7 +1037,7 @@ func clientOrigin(label, raw string) (string, error) {
 	if raw == "" {
 		return "", nil
 	}
-	invalid := response.BadRequest(400, label+" 地址必须是不带路径的 http(s) 地址，例如 https://example.com:8443")
+	invalid := response.BadRequest(label + " 地址必须是不带路径的 http(s) 地址，例如 https://example.com:8443")
 	u, err := url.Parse(raw)
 	if err != nil || u.Opaque != "" || u.User != nil || u.Hostname() == "" ||
 		(u.Path != "" && u.Path != "/") || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
@@ -1193,7 +1184,7 @@ func (uc *GameServerUsecase) RefreshServer(ctx context.Context, id string) (*gen
 func ValidateMGPKey(keyID, secret string) (string, string, error) {
 	keyID, secret = strings.TrimSpace(keyID), strings.TrimSpace(secret)
 	if err := mgpauth.ValidateKey(keyID, secret); err != nil {
-		return "", "", response.BadRequest(400, err.Error())
+		return "", "", response.BadRequest(err.Error())
 	}
 	return keyID, secret, nil
 }

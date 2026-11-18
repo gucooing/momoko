@@ -301,105 +301,45 @@ func (s *GakumasGMService) SetMaintenance(ctx context.Context, req *gk.SetMainte
 
 // 配置文档。
 
-func (s *GakumasGMService) config(ctx context.Context, serverID, id string) (*v1.GetGmConfigResponse, error) {
-	return s.gakumas.Config(ctx, serverID, id)
+func (s *GakumasGMService) GetConfig(ctx context.Context, req *gk.ConfigRequest) (*v1.GetGmConfigResponse, error) {
+	return s.gakumas.Config(ctx, req.ServerId, req.Domain)
 }
 
-func (s *GakumasGMService) saveDraft(ctx context.Context, id string, req *gk.SaveConfigDraftRequest) (*v1.GmConfigDraft, error) {
+func (s *GakumasGMService) SaveConfigDraft(ctx context.Context, req *gk.SaveConfigDraftRequest) (*v1.GmConfigDraft, error) {
 	actor, err := gmAdmin(ctx, s.gm)
 	if err != nil {
 		return nil, err
 	}
-	return s.gakumas.SaveConfigDraft(ctx, actor, req.ServerId, id, req.Content, req.BaseRevision, req.Comment)
+	return s.gakumas.SaveConfigDraft(ctx, actor, req.ServerId, req.Domain, req.Content, req.BaseRevision, req.Comment)
 }
 
-func (s *GakumasGMService) discardDraft(ctx context.Context, serverID, id string) (*v1.DiscardGmConfigDraftResponse, error) {
-	if err := s.gakumas.DiscardConfigDraft(ctx, serverID, id); err != nil {
+func (s *GakumasGMService) DiscardConfigDraft(ctx context.Context, req *gk.ConfigRequest) (*v1.DiscardGmConfigDraftResponse, error) {
+	if err := s.gakumas.DiscardConfigDraft(ctx, req.ServerId, req.Domain); err != nil {
 		return nil, err
 	}
 	return &v1.DiscardGmConfigDraftResponse{}, nil
 }
 
-func (s *GakumasGMService) publish(ctx context.Context, id string, req *gk.PublishConfigRequest) (*v1.PublishGmConfigResponse, error) {
+func (s *GakumasGMService) ValidateConfig(ctx context.Context, req *gk.ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error) {
+	return s.gakumas.ValidateConfig(ctx, req.ServerId, req.Domain, req.Content)
+}
+
+func (s *GakumasGMService) PublishConfig(ctx context.Context, req *gk.PublishConfigRequest) (*v1.PublishGmConfigResponse, error) {
 	actor, err := gmAdmin(ctx, s.gm)
 	if err != nil {
 		return nil, err
 	}
-	return s.gakumas.PublishConfig(ctx, actor, req.ServerId, id, req.Content, req.BaseRevision, req.Comment)
+	return s.gakumas.PublishConfig(ctx, actor, req.ServerId, req.Domain, req.Content, req.BaseRevision, req.Comment)
 }
 
-func (s *GakumasGMService) GetGashaConfig(ctx context.Context, req *gk.ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return s.config(ctx, req.ServerId, biz.GakumasConfigGasha)
+func (s *GakumasGMService) ListConfigRevisions(ctx context.Context, req *gk.ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error) {
+	return s.gakumas.ConfigRevisions(ctx, req.ServerId, req.Domain, req.Page, req.PageSize)
 }
 
-func (s *GakumasGMService) SaveGashaConfigDraft(ctx context.Context, req *gk.SaveConfigDraftRequest) (*v1.GmConfigDraft, error) {
-	return s.saveDraft(ctx, biz.GakumasConfigGasha, req)
+func (s *GakumasGMService) ListConfigDrafts(ctx context.Context, req *gk.ServerRequest) (*gk.ListConfigDraftsResponse, error) {
+	return s.gakumas.ConfigDrafts(ctx, req.ServerId)
 }
 
-func (s *GakumasGMService) DiscardGashaConfigDraft(ctx context.Context, req *gk.ServerRequest) (*v1.DiscardGmConfigDraftResponse, error) {
-	return s.discardDraft(ctx, req.ServerId, biz.GakumasConfigGasha)
-}
-
-func (s *GakumasGMService) ValidateGashaConfig(ctx context.Context, req *gk.ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error) {
-	return s.gakumas.ValidateConfig(ctx, req.ServerId, biz.GakumasConfigGasha, req.Content)
-}
-
-func (s *GakumasGMService) PublishGashaConfig(ctx context.Context, req *gk.PublishConfigRequest) (*v1.PublishGmConfigResponse, error) {
-	return s.publish(ctx, biz.GakumasConfigGasha, req)
-}
-
-func (s *GakumasGMService) ListGashaConfigRevisions(ctx context.Context, req *gk.ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error) {
-	return s.gakumas.ConfigRevisions(ctx, req.ServerId, biz.GakumasConfigGasha, req.Page, req.PageSize)
-}
-
-func (s *GakumasGMService) GetGashaConfigRevision(ctx context.Context, req *gk.ConfigRevisionRequest) (*v1.GmConfigRevision, error) {
-	return s.gakumas.ConfigRevision(ctx, req.ServerId, biz.GakumasConfigGasha, req.Id)
-}
-
-func (s *GakumasGMService) GetNoticeConfig(ctx context.Context, req *gk.ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return s.config(ctx, req.ServerId, biz.GakumasConfigNotice)
-}
-
-func (s *GakumasGMService) SaveNoticeConfigDraft(ctx context.Context, req *gk.SaveConfigDraftRequest) (*v1.GmConfigDraft, error) {
-	return s.saveDraft(ctx, biz.GakumasConfigNotice, req)
-}
-
-func (s *GakumasGMService) DiscardNoticeConfigDraft(ctx context.Context, req *gk.ServerRequest) (*v1.DiscardGmConfigDraftResponse, error) {
-	return s.discardDraft(ctx, req.ServerId, biz.GakumasConfigNotice)
-}
-
-func (s *GakumasGMService) ValidateNoticeConfig(ctx context.Context, req *gk.ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error) {
-	return s.gakumas.ValidateConfig(ctx, req.ServerId, biz.GakumasConfigNotice, req.Content)
-}
-
-func (s *GakumasGMService) PublishNoticeConfig(ctx context.Context, req *gk.PublishConfigRequest) (*v1.PublishGmConfigResponse, error) {
-	return s.publish(ctx, biz.GakumasConfigNotice, req)
-}
-
-func (s *GakumasGMService) ListNoticeConfigRevisions(ctx context.Context, req *gk.ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error) {
-	return s.gakumas.ConfigRevisions(ctx, req.ServerId, biz.GakumasConfigNotice, req.Page, req.PageSize)
-}
-
-func (s *GakumasGMService) GetNoticeConfigRevision(ctx context.Context, req *gk.ConfigRevisionRequest) (*v1.GmConfigRevision, error) {
-	return s.gakumas.ConfigRevision(ctx, req.ServerId, biz.GakumasConfigNotice, req.Id)
-}
-
-func (s *GakumasGMService) GetPvpRateConfig(ctx context.Context, req *gk.ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return s.config(ctx, req.ServerId, biz.GakumasConfigPvpRate)
-}
-
-func (s *GakumasGMService) GetHomeConfig(ctx context.Context, req *gk.ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return s.config(ctx, req.ServerId, biz.GakumasConfigHome)
-}
-
-func (s *GakumasGMService) GetResearchConfig(ctx context.Context, req *gk.ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return s.config(ctx, req.ServerId, biz.GakumasConfigResearch)
-}
-
-func (s *GakumasGMService) GetStoryEventConfig(ctx context.Context, req *gk.ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return s.config(ctx, req.ServerId, biz.GakumasConfigStoryEvent)
-}
-
-func (s *GakumasGMService) GetLoginBonusConfig(ctx context.Context, req *gk.ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return s.config(ctx, req.ServerId, biz.GakumasConfigLoginBonus)
+func (s *GakumasGMService) GetConfigRevision(ctx context.Context, req *gk.ConfigRevisionRequest) (*v1.GmConfigRevision, error) {
+	return s.gakumas.ConfigRevision(ctx, req.ServerId, req.Domain, req.Id)
 }

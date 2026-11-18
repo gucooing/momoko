@@ -21,7 +21,7 @@ export const giftSourceName = (kind: number) => GIFT_SOURCE_NAMES[kind]
 export const isPermanentBan = (until: number) => until >= Number.MAX_SAFE_INTEGER
 
 /** MGP 目录条目的图片（没有图片的游戏 / 目录返回空串）。 */
-export const catalogImage = (game: string, kind: string, entry: { id: string; assetId?: string }) =>
+export const catalogImage = (game: string, kind: string, entry: { id: string; assetId?: string; characterId?: string }) =>
   entry.id ? gameCatalogImage(game, kind, entry) : ''
 
 /** 偶像卡横图（名片、阵容大图）；只有学マス 有。 */

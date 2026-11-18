@@ -193,65 +193,32 @@ service GakumasGMService {
 
   // ---------------- 配置文档 ----------------
 
-  // 卡池（Gasha.json）
-  rpc GetGashaConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/gasha"};
+  // 数据文件（domain）：gasha 卡池、notice 公告、pvpRate 竞赛、home 主页活动、research 研究活动、
+  // storyEvent 剧情活动、loginBonus 登录奖励。草稿与版本由 Momoko 保存，发布写回服务端并热重载。
+  rpc GetConfig(ConfigRequest) returns (v1.GetGmConfigResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/{domain}"};
   }
-  rpc SaveGashaConfigDraft(SaveConfigDraftRequest) returns (v1.GmConfigDraft) {
-    option (google.api.http) = {put: "/api/v1/gakumas/gm/{server_id}/config/gasha/draft", body: "*"};
+  rpc SaveConfigDraft(SaveConfigDraftRequest) returns (v1.GmConfigDraft) {
+    option (google.api.http) = {put: "/api/v1/gakumas/gm/{server_id}/config/{domain}/draft", body: "*"};
   }
-  rpc DiscardGashaConfigDraft(ServerRequest) returns (v1.DiscardGmConfigDraftResponse) {
-    option (google.api.http) = {delete: "/api/v1/gakumas/gm/{server_id}/config/gasha/draft"};
+  rpc DiscardConfigDraft(ConfigRequest) returns (v1.DiscardGmConfigDraftResponse) {
+    option (google.api.http) = {delete: "/api/v1/gakumas/gm/{server_id}/config/{domain}/draft"};
   }
-  rpc ValidateGashaConfig(ValidateConfigRequest) returns (v1.ValidateGmConfigResponse) {
-    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/gasha/validate", body: "*"};
+  rpc ValidateConfig(ValidateConfigRequest) returns (v1.ValidateGmConfigResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/{domain}/validate", body: "*"};
   }
-  rpc PublishGashaConfig(PublishConfigRequest) returns (v1.PublishGmConfigResponse) {
-    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/gasha/publish", body: "*"};
+  rpc PublishConfig(PublishConfigRequest) returns (v1.PublishGmConfigResponse) {
+    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/{domain}/publish", body: "*"};
   }
-  rpc ListGashaConfigRevisions(ConfigRevisionsRequest) returns (v1.ListGmConfigRevisionsResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/gasha/revisions"};
+  rpc ListConfigRevisions(ConfigRevisionsRequest) returns (v1.ListGmConfigRevisionsResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/{domain}/revisions"};
   }
-  rpc GetGashaConfigRevision(ConfigRevisionRequest) returns (v1.GmConfigRevision) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/gasha/revisions/{id}"};
+  rpc GetConfigRevision(ConfigRevisionRequest) returns (v1.GmConfigRevision) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/{domain}/revisions/{id}"};
   }
-  // 公告（Notice.json）
-  rpc GetNoticeConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/notice"};
-  }
-  rpc SaveNoticeConfigDraft(SaveConfigDraftRequest) returns (v1.GmConfigDraft) {
-    option (google.api.http) = {put: "/api/v1/gakumas/gm/{server_id}/config/notice/draft", body: "*"};
-  }
-  rpc DiscardNoticeConfigDraft(ServerRequest) returns (v1.DiscardGmConfigDraftResponse) {
-    option (google.api.http) = {delete: "/api/v1/gakumas/gm/{server_id}/config/notice/draft"};
-  }
-  rpc ValidateNoticeConfig(ValidateConfigRequest) returns (v1.ValidateGmConfigResponse) {
-    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/notice/validate", body: "*"};
-  }
-  rpc PublishNoticeConfig(PublishConfigRequest) returns (v1.PublishGmConfigResponse) {
-    option (google.api.http) = {post: "/api/v1/gakumas/gm/{server_id}/config/notice/publish", body: "*"};
-  }
-  rpc ListNoticeConfigRevisions(ConfigRevisionsRequest) returns (v1.ListGmConfigRevisionsResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/notice/revisions"};
-  }
-  rpc GetNoticeConfigRevision(ConfigRevisionRequest) returns (v1.GmConfigRevision) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/notice/revisions/{id}"};
-  }
-  // 运营日历读取的配置（只读）
-  rpc GetPvpRateConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/pvp-rate"};
-  }
-  rpc GetHomeConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/home"};
-  }
-  rpc GetResearchConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/research"};
-  }
-  rpc GetStoryEventConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/story-event"};
-  }
-  rpc GetLoginBonusConfig(ServerRequest) returns (v1.GetGmConfigResponse) {
-    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config/login-bonus"};
+  // 未发布的草稿：只读 Momoko 保存的草稿（不读服务端，不含内容）
+  rpc ListConfigDrafts(ServerRequest) returns (ListConfigDraftsResponse) {
+    option (google.api.http) = {get: "/api/v1/gakumas/gm/{server_id}/config-drafts"};
   }
 }
 
@@ -551,40 +518,56 @@ message SetMaintenanceRequest {
   bool dry_run = 4;
 }
 
+message ConfigRequest {
+  string server_id = 1;
+  // 数据文件（见 GetConfig）
+  string domain = 2;
+}
+
 message SaveConfigDraftRequest {
   string server_id = 1;
+  string domain = 2;
   // 文档内容（JSON）
-  string content = 2;
+  string content = 3;
   // 编辑所基于的服务端 revision
-  string base_revision = 3;
-  string comment = 4;
+  string base_revision = 4;
+  string comment = 5;
 }
 
 message ValidateConfigRequest {
   string server_id = 1;
-  string content = 2;
+  string domain = 2;
+  string content = 3;
 }
 
 message PublishConfigRequest {
   string server_id = 1;
+  string domain = 2;
   // 为空时发布草稿
-  string content = 2;
-  string base_revision = 3;
-  string comment = 4;
+  string content = 3;
+  string base_revision = 4;
+  string comment = 5;
 }
 
 message ConfigRevisionsRequest {
   string server_id = 1;
-  int32 page = 2;
-  int32 page_size = 3;
+  string domain = 2;
+  int32 page = 3;
+  int32 page_size = 4;
 }
 
 message ConfigRevisionRequest {
   string server_id = 1;
-  string id = 2;
+  string domain = 2;
+  string id = 3;
 }
 
 // ---------------- 响应 ----------------
+
+message ListConfigDraftsResponse {
+  // 有草稿的配置文档：id、title 与草稿（草稿不含内容），最近修改的在前
+  repeated v1.GmConfigDomain items = 1;
+}
 
 // 操作对一个目标的状态。
 message OperationTarget {

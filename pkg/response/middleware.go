@@ -3,6 +3,7 @@ package response
 import (
 	"context"
 	stdjson "encoding/json"
+	"errors"
 	stdhttp "net/http"
 
 	kerrors "github.com/go-kratos/kratos/v2/errors"
@@ -48,6 +49,8 @@ func Middleware() middleware.Middleware {
 	}
 }
 
+// Error 接口错误。状态码只有两种：业务错误一律 400，凭证失效（token 无效或过期、签名不对）为 401；
+// 404、405 等留给框架（路由不存在等），不和业务错误混用。
 type Error struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -57,8 +60,14 @@ func (e Error) Error() string {
 	return e.Message
 }
 
-func BadRequest(code int, message string) error {
-	return Error{code, message}
+// BadRequest 业务错误（HTTP 400）。
+func BadRequest(message string) error {
+	return Error{stdhttp.StatusBadRequest, message}
+}
+
+// Unauthorized 凭证失效（HTTP 401）：前端据此刷新登录或重新登录。
+func Unauthorized(message string) error {
+	return Error{stdhttp.StatusUnauthorized, message}
 }
 
 // ResponseEncoder encodes successful responses as unified JSON.
@@ -80,9 +89,16 @@ func ResponseEncoder(w stdhttp.ResponseWriter, r *stdhttp.Request, v any) error 
 	return err
 }
 
-// ErrorEncoder encodes errors as unified JSON.
+// ErrorEncoder encodes errors as unified JSON. 业务代码返回的普通 error 按业务错误（400）处理；
+// 框架自己的错误（路由不存在 404、参数校验 400、panic 恢复 500 等）保留原状态码。
 func ErrorEncoder(w stdhttp.ResponseWriter, r *stdhttp.Request, err error) {
 	reply, ok := unwrapEnvelope(err)
+	if !ok {
+		var ke *kerrors.Error
+		if !errors.As(err, &ke) {
+			reply, ok = unwrapEnvelope(BadRequest(err.Error()))
+		}
+	}
 	if !ok {
 		se := kerrors.FromError(err)
 		message := se.Message

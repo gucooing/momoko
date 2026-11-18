@@ -66,18 +66,13 @@ func CodeOf(err error) string {
 	return ""
 }
 
-// ResponseError 把 MGP 错误映射为 Momoko 接口错误：连接不上与签名失败为 502（不能让前端当成 Momoko 登录失效），
-// 其余沿用 MGP 的 HTTP 状态，信息为「错误码: 信息」；不是 MGP 错误时原样返回。
+// ResponseError 把 MGP 错误映射为 Momoko 接口错误：一律为业务错误（400，MGP 签名失败也不当成 Momoko 登录失效），信息为「错误码: 信息」；不是 MGP 错误时原样返回。
 func ResponseError(err error) error {
 	var e *Error
 	if !errors.As(err, &e) {
 		return err
 	}
-	status := e.Status
-	if status == 0 || status == http.StatusUnauthorized || status < 400 {
-		status = http.StatusBadGateway
-	}
-	return response.BadRequest(status, e.Code+": "+e.Message)
+	return response.BadRequest(e.Code + ": " + e.Message)
 }
 
 // IsUnreachable 判断错误是否为连接不上游戏服务端（网络错误、超时）。

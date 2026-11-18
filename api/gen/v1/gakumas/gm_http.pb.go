@@ -26,36 +26,28 @@ const OperationGakumasGMServiceAdjustJewel = "/v1.gakumas.GakumasGMService/Adjus
 const OperationGakumasGMServiceBackupArchive = "/v1.gakumas.GakumasGMService/BackupArchive"
 const OperationGakumasGMServiceBanPlayers = "/v1.gakumas.GakumasGMService/BanPlayers"
 const OperationGakumasGMServiceClearSeminar = "/v1.gakumas.GakumasGMService/ClearSeminar"
-const OperationGakumasGMServiceDiscardGashaConfigDraft = "/v1.gakumas.GakumasGMService/DiscardGashaConfigDraft"
-const OperationGakumasGMServiceDiscardNoticeConfigDraft = "/v1.gakumas.GakumasGMService/DiscardNoticeConfigDraft"
+const OperationGakumasGMServiceDiscardConfigDraft = "/v1.gakumas.GakumasGMService/DiscardConfigDraft"
 const OperationGakumasGMServiceExportArchive = "/v1.gakumas.GakumasGMService/ExportArchive"
+const OperationGakumasGMServiceGetConfig = "/v1.gakumas.GakumasGMService/GetConfig"
+const OperationGakumasGMServiceGetConfigRevision = "/v1.gakumas.GakumasGMService/GetConfigRevision"
 const OperationGakumasGMServiceGetDashboard = "/v1.gakumas.GakumasGMService/GetDashboard"
-const OperationGakumasGMServiceGetGashaConfig = "/v1.gakumas.GakumasGMService/GetGashaConfig"
-const OperationGakumasGMServiceGetGashaConfigRevision = "/v1.gakumas.GakumasGMService/GetGashaConfigRevision"
 const OperationGakumasGMServiceGetGashaStats = "/v1.gakumas.GakumasGMService/GetGashaStats"
-const OperationGakumasGMServiceGetHomeConfig = "/v1.gakumas.GakumasGMService/GetHomeConfig"
-const OperationGakumasGMServiceGetLoginBonusConfig = "/v1.gakumas.GakumasGMService/GetLoginBonusConfig"
 const OperationGakumasGMServiceGetManifest = "/v1.gakumas.GakumasGMService/GetManifest"
 const OperationGakumasGMServiceGetMemoryPhoto = "/v1.gakumas.GakumasGMService/GetMemoryPhoto"
-const OperationGakumasGMServiceGetNoticeConfig = "/v1.gakumas.GakumasGMService/GetNoticeConfig"
-const OperationGakumasGMServiceGetNoticeConfigRevision = "/v1.gakumas.GakumasGMService/GetNoticeConfigRevision"
 const OperationGakumasGMServiceGetPlayer = "/v1.gakumas.GakumasGMService/GetPlayer"
 const OperationGakumasGMServiceGetPlayerMeishiImage = "/v1.gakumas.GakumasGMService/GetPlayerMeishiImage"
 const OperationGakumasGMServiceGetPlayerMemory = "/v1.gakumas.GakumasGMService/GetPlayerMemory"
 const OperationGakumasGMServiceGetPlayerPvp = "/v1.gakumas.GakumasGMService/GetPlayerPvp"
 const OperationGakumasGMServiceGetPlayerSeminar = "/v1.gakumas.GakumasGMService/GetPlayerSeminar"
 const OperationGakumasGMServiceGetPvpRanking = "/v1.gakumas.GakumasGMService/GetPvpRanking"
-const OperationGakumasGMServiceGetPvpRateConfig = "/v1.gakumas.GakumasGMService/GetPvpRateConfig"
-const OperationGakumasGMServiceGetResearchConfig = "/v1.gakumas.GakumasGMService/GetResearchConfig"
 const OperationGakumasGMServiceGetSeminarStats = "/v1.gakumas.GakumasGMService/GetSeminarStats"
 const OperationGakumasGMServiceGetStatus = "/v1.gakumas.GakumasGMService/GetStatus"
-const OperationGakumasGMServiceGetStoryEventConfig = "/v1.gakumas.GakumasGMService/GetStoryEventConfig"
 const OperationGakumasGMServiceGetTowerRanking = "/v1.gakumas.GakumasGMService/GetTowerRanking"
 const OperationGakumasGMServiceGrantAllIdolCards = "/v1.gakumas.GakumasGMService/GrantAllIdolCards"
 const OperationGakumasGMServiceGrantAllSupportCards = "/v1.gakumas.GakumasGMService/GrantAllSupportCards"
 const OperationGakumasGMServiceKickPlayers = "/v1.gakumas.GakumasGMService/KickPlayers"
-const OperationGakumasGMServiceListGashaConfigRevisions = "/v1.gakumas.GakumasGMService/ListGashaConfigRevisions"
-const OperationGakumasGMServiceListNoticeConfigRevisions = "/v1.gakumas.GakumasGMService/ListNoticeConfigRevisions"
+const OperationGakumasGMServiceListConfigDrafts = "/v1.gakumas.GakumasGMService/ListConfigDrafts"
+const OperationGakumasGMServiceListConfigRevisions = "/v1.gakumas.GakumasGMService/ListConfigRevisions"
 const OperationGakumasGMServiceListPlayerBackups = "/v1.gakumas.GakumasGMService/ListPlayerBackups"
 const OperationGakumasGMServiceListPlayerGashaDraws = "/v1.gakumas.GakumasGMService/ListPlayerGashaDraws"
 const OperationGakumasGMServiceListPlayerGifts = "/v1.gakumas.GakumasGMService/ListPlayerGifts"
@@ -66,8 +58,7 @@ const OperationGakumasGMServiceListPlayerSessions = "/v1.gakumas.GakumasGMServic
 const OperationGakumasGMServiceListPlayerSupportCards = "/v1.gakumas.GakumasGMService/ListPlayerSupportCards"
 const OperationGakumasGMServiceListPlayers = "/v1.gakumas.GakumasGMService/ListPlayers"
 const OperationGakumasGMServiceListProduces = "/v1.gakumas.GakumasGMService/ListProduces"
-const OperationGakumasGMServicePublishGashaConfig = "/v1.gakumas.GakumasGMService/PublishGashaConfig"
-const OperationGakumasGMServicePublishNoticeConfig = "/v1.gakumas.GakumasGMService/PublishNoticeConfig"
+const OperationGakumasGMServicePublishConfig = "/v1.gakumas.GakumasGMService/PublishConfig"
 const OperationGakumasGMServiceRefillActionPoint = "/v1.gakumas.GakumasGMService/RefillActionPoint"
 const OperationGakumasGMServiceRenamePlayer = "/v1.gakumas.GakumasGMService/RenamePlayer"
 const OperationGakumasGMServiceResetPassword = "/v1.gakumas.GakumasGMService/ResetPassword"
@@ -75,16 +66,14 @@ const OperationGakumasGMServiceResetPvpDaily = "/v1.gakumas.GakumasGMService/Res
 const OperationGakumasGMServiceResetSeminar = "/v1.gakumas.GakumasGMService/ResetSeminar"
 const OperationGakumasGMServiceRestoreArchive = "/v1.gakumas.GakumasGMService/RestoreArchive"
 const OperationGakumasGMServiceRevokeGifts = "/v1.gakumas.GakumasGMService/RevokeGifts"
-const OperationGakumasGMServiceSaveGashaConfigDraft = "/v1.gakumas.GakumasGMService/SaveGashaConfigDraft"
-const OperationGakumasGMServiceSaveNoticeConfigDraft = "/v1.gakumas.GakumasGMService/SaveNoticeConfigDraft"
+const OperationGakumasGMServiceSaveConfigDraft = "/v1.gakumas.GakumasGMService/SaveConfigDraft"
 const OperationGakumasGMServiceSendGift = "/v1.gakumas.GakumasGMService/SendGift"
 const OperationGakumasGMServiceSetMaintenance = "/v1.gakumas.GakumasGMService/SetMaintenance"
 const OperationGakumasGMServiceSetPvpRate = "/v1.gakumas.GakumasGMService/SetPvpRate"
 const OperationGakumasGMServiceSetRentalMemory = "/v1.gakumas.GakumasGMService/SetRentalMemory"
 const OperationGakumasGMServiceSetRentalSupportCard = "/v1.gakumas.GakumasGMService/SetRentalSupportCard"
 const OperationGakumasGMServiceUnbanPlayers = "/v1.gakumas.GakumasGMService/UnbanPlayers"
-const OperationGakumasGMServiceValidateGashaConfig = "/v1.gakumas.GakumasGMService/ValidateGashaConfig"
-const OperationGakumasGMServiceValidateNoticeConfig = "/v1.gakumas.GakumasGMService/ValidateNoticeConfig"
+const OperationGakumasGMServiceValidateConfig = "/v1.gakumas.GakumasGMService/ValidateConfig"
 
 type GakumasGMServiceHTTPServer interface {
 	// AddExp 增加制作人经验
@@ -99,25 +88,20 @@ type GakumasGMServiceHTTPServer interface {
 	BanPlayers(context.Context, *BanPlayersRequest) (*BanResponse, error)
 	// ClearSeminar 研修：通关全部并发放奖励
 	ClearSeminar(context.Context, *PlayersOperationRequest) (*SeminarClearResponse, error)
-	DiscardGashaConfigDraft(context.Context, *ServerRequest) (*v1.DiscardGmConfigDraftResponse, error)
-	DiscardNoticeConfigDraft(context.Context, *ServerRequest) (*v1.DiscardGmConfigDraftResponse, error)
+	DiscardConfigDraft(context.Context, *ConfigRequest) (*v1.DiscardGmConfigDraftResponse, error)
 	// ExportArchive 导出完整存档 JSON（不含礼物箱）
 	ExportArchive(context.Context, *PlayersOperationRequest) (*ArchiveExportResponse, error)
+	// GetConfig 数据文件（domain）：gasha 卡池、notice 公告、pvpRate 竞赛、home 主页活动、research 研究活动、
+	// storyEvent 剧情活动、loginBonus 登录奖励。草稿与版本由 Momoko 保存，发布写回服务端并热重载。
+	GetConfig(context.Context, *ConfigRequest) (*v1.GetGmConfigResponse, error)
+	GetConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error)
 	// GetDashboard 工作台
 	GetDashboard(context.Context, *GetDashboardRequest) (*Dashboard, error)
-	// GetGashaConfig 卡池（Gasha.json）
-	GetGashaConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	GetGashaConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error)
 	GetGashaStats(context.Context, *ServerRequest) (*GashaStatList, error)
-	GetHomeConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	GetLoginBonusConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
 	// GetManifest manifest：游戏、服务端版本与已配置的玩法
 	GetManifest(context.Context, *ServerRequest) (*Manifest, error)
 	// GetMemoryPhoto 记忆照片（记忆或培育记录编成记忆的 image_path）
 	GetMemoryPhoto(context.Context, *MemoryPhotoRequest) (*MemoryPhoto, error)
-	// GetNoticeConfig 公告（Notice.json）
-	GetNoticeConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	GetNoticeConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error)
 	// GetPlayer 玩家条目、概览、登录次数、通行证绑定与 GM 记录数
 	GetPlayer(context.Context, *PlayerRequest) (*GetPlayerResponse, error)
 	// GetPlayerMeishiImage 资料名片的图片（没有图片时 404 MEISHI_IMAGE_NOT_FOUND）
@@ -127,13 +111,9 @@ type GakumasGMServiceHTTPServer interface {
 	GetPlayerPvp(context.Context, *PlayerRequest) (*PlayerPvp, error)
 	GetPlayerSeminar(context.Context, *PlayerRequest) (*PlayerSeminar, error)
 	GetPvpRanking(context.Context, *RankingRequest) (*PvpRankingPage, error)
-	// GetPvpRateConfig 运营日历读取的配置（只读）
-	GetPvpRateConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	GetResearchConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
 	GetSeminarStats(context.Context, *ServerRequest) (*SeminarStatList, error)
 	// GetStatus 实时运行状态
 	GetStatus(context.Context, *ServerRequest) (*Status, error)
-	GetStoryEventConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
 	GetTowerRanking(context.Context, *TowerRankingRequest) (*TowerRankingPage, error)
 	// GrantAllIdolCards 全部偶像卡（含满潜能碎片）
 	GrantAllIdolCards(context.Context, *GrantAllRequest) (*IdolCardGrantResponse, error)
@@ -141,8 +121,9 @@ type GakumasGMServiceHTTPServer interface {
 	GrantAllSupportCards(context.Context, *GrantAllRequest) (*SupportCardGrantResponse, error)
 	// KickPlayers 强制下线（1–200 名玩家）
 	KickPlayers(context.Context, *PlayersOperationRequest) (*KickResponse, error)
-	ListGashaConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error)
-	ListNoticeConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error)
+	// ListConfigDrafts 未发布的草稿：只读 Momoko 保存的草稿（不读服务端，不含内容）
+	ListConfigDrafts(context.Context, *ServerRequest) (*ListConfigDraftsResponse, error)
+	ListConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error)
 	ListPlayerBackups(context.Context, *PlayerRequest) (*BackupList, error)
 	ListPlayerGashaDraws(context.Context, *ListGashaDrawsRequest) (*GashaDrawPage, error)
 	ListPlayerGifts(context.Context, *ListGiftsRequest) (*GiftPage, error)
@@ -154,8 +135,7 @@ type GakumasGMServiceHTTPServer interface {
 	// ListPlayers 玩家列表（含通行证绑定；filter=unlinked 为未绑定通行证）
 	ListPlayers(context.Context, *ListPlayersRequest) (*ListPlayersResponse, error)
 	ListProduces(context.Context, *ListProducesRequest) (*ProducePage, error)
-	PublishGashaConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error)
-	PublishNoticeConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error)
+	PublishConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error)
 	// RefillActionPoint 回满体力
 	RefillActionPoint(context.Context, *PlayersOperationRequest) (*ChangesResponse, error)
 	// RenamePlayer 改昵称
@@ -170,8 +150,7 @@ type GakumasGMServiceHTTPServer interface {
 	RestoreArchive(context.Context, *RestoreArchiveRequest) (*RestoreResponse, error)
 	// RevokeGifts 撤回未领取的礼物
 	RevokeGifts(context.Context, *RevokeGiftsRequest) (*GiftRevokeResponse, error)
-	SaveGashaConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error)
-	SaveNoticeConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error)
+	SaveConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error)
 	// SendGift 发送到礼物箱（1–200 名玩家，逐个执行）
 	SendGift(context.Context, *SendGiftRequest) (*GiftSendResponse, error)
 	// SetMaintenance 维护模式与登录白名单
@@ -184,8 +163,7 @@ type GakumasGMServiceHTTPServer interface {
 	SetRentalSupportCard(context.Context, *SetRentalSupportCardRequest) (*RentalResponse, error)
 	// UnbanPlayers 解封（1–200 名玩家）
 	UnbanPlayers(context.Context, *PlayersOperationRequest) (*BanResponse, error)
-	ValidateGashaConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error)
-	ValidateNoticeConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error)
+	ValidateConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error)
 }
 
 func RegisterGakumasGMServiceHTTPServer(s *http.Server, srv GakumasGMServiceHTTPServer) {
@@ -236,25 +214,14 @@ func RegisterGakumasGMServiceHTTPServer(s *http.Server, srv GakumasGMServiceHTTP
 	r.POST("/api/v1/gakumas/gm/{server_id}/players/archive/export", _GakumasGMService_ExportArchive0_HTTP_Handler(srv))
 	r.POST("/api/v1/gakumas/gm/{server_id}/players/{pid}/backups/{backup_id}/restore", _GakumasGMService_RestoreArchive0_HTTP_Handler(srv))
 	r.PUT("/api/v1/gakumas/gm/{server_id}/maintenance", _GakumasGMService_SetMaintenance0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/gasha", _GakumasGMService_GetGashaConfig0_HTTP_Handler(srv))
-	r.PUT("/api/v1/gakumas/gm/{server_id}/config/gasha/draft", _GakumasGMService_SaveGashaConfigDraft0_HTTP_Handler(srv))
-	r.DELETE("/api/v1/gakumas/gm/{server_id}/config/gasha/draft", _GakumasGMService_DiscardGashaConfigDraft0_HTTP_Handler(srv))
-	r.POST("/api/v1/gakumas/gm/{server_id}/config/gasha/validate", _GakumasGMService_ValidateGashaConfig0_HTTP_Handler(srv))
-	r.POST("/api/v1/gakumas/gm/{server_id}/config/gasha/publish", _GakumasGMService_PublishGashaConfig0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/gasha/revisions", _GakumasGMService_ListGashaConfigRevisions0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/gasha/revisions/{id}", _GakumasGMService_GetGashaConfigRevision0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/notice", _GakumasGMService_GetNoticeConfig0_HTTP_Handler(srv))
-	r.PUT("/api/v1/gakumas/gm/{server_id}/config/notice/draft", _GakumasGMService_SaveNoticeConfigDraft0_HTTP_Handler(srv))
-	r.DELETE("/api/v1/gakumas/gm/{server_id}/config/notice/draft", _GakumasGMService_DiscardNoticeConfigDraft0_HTTP_Handler(srv))
-	r.POST("/api/v1/gakumas/gm/{server_id}/config/notice/validate", _GakumasGMService_ValidateNoticeConfig0_HTTP_Handler(srv))
-	r.POST("/api/v1/gakumas/gm/{server_id}/config/notice/publish", _GakumasGMService_PublishNoticeConfig0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/notice/revisions", _GakumasGMService_ListNoticeConfigRevisions0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/notice/revisions/{id}", _GakumasGMService_GetNoticeConfigRevision0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/pvp-rate", _GakumasGMService_GetPvpRateConfig0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/home", _GakumasGMService_GetHomeConfig0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/research", _GakumasGMService_GetResearchConfig0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/story-event", _GakumasGMService_GetStoryEventConfig0_HTTP_Handler(srv))
-	r.GET("/api/v1/gakumas/gm/{server_id}/config/login-bonus", _GakumasGMService_GetLoginBonusConfig0_HTTP_Handler(srv))
+	r.GET("/api/v1/gakumas/gm/{server_id}/config/{domain}", _GakumasGMService_GetConfig0_HTTP_Handler(srv))
+	r.PUT("/api/v1/gakumas/gm/{server_id}/config/{domain}/draft", _GakumasGMService_SaveConfigDraft0_HTTP_Handler(srv))
+	r.DELETE("/api/v1/gakumas/gm/{server_id}/config/{domain}/draft", _GakumasGMService_DiscardConfigDraft0_HTTP_Handler(srv))
+	r.POST("/api/v1/gakumas/gm/{server_id}/config/{domain}/validate", _GakumasGMService_ValidateConfig0_HTTP_Handler(srv))
+	r.POST("/api/v1/gakumas/gm/{server_id}/config/{domain}/publish", _GakumasGMService_PublishConfig0_HTTP_Handler(srv))
+	r.GET("/api/v1/gakumas/gm/{server_id}/config/{domain}/revisions", _GakumasGMService_ListConfigRevisions0_HTTP_Handler(srv))
+	r.GET("/api/v1/gakumas/gm/{server_id}/config/{domain}/revisions/{id}", _GakumasGMService_GetConfigRevision0_HTTP_Handler(srv))
+	r.GET("/api/v1/gakumas/gm/{server_id}/config-drafts", _GakumasGMService_ListConfigDrafts0_HTTP_Handler(srv))
 }
 
 func _GakumasGMService_GetManifest0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
@@ -1338,18 +1305,18 @@ func _GakumasGMService_SetMaintenance0_HTTP_Handler(srv GakumasGMServiceHTTPServ
 	}
 }
 
-func _GakumasGMService_GetGashaConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
+func _GakumasGMService_GetConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ServerRequest
+		var in ConfigRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetGashaConfig)
+		http.SetOperation(ctx, OperationGakumasGMServiceGetConfig)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetGashaConfig(ctx, req.(*ServerRequest))
+			return srv.GetConfig(ctx, req.(*ConfigRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1360,7 +1327,7 @@ func _GakumasGMService_GetGashaConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServ
 	}
 }
 
-func _GakumasGMService_SaveGashaConfigDraft0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
+func _GakumasGMService_SaveConfigDraft0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in SaveConfigDraftRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -1372,9 +1339,9 @@ func _GakumasGMService_SaveGashaConfigDraft0_HTTP_Handler(srv GakumasGMServiceHT
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationGakumasGMServiceSaveGashaConfigDraft)
+		http.SetOperation(ctx, OperationGakumasGMServiceSaveConfigDraft)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.SaveGashaConfigDraft(ctx, req.(*SaveConfigDraftRequest))
+			return srv.SaveConfigDraft(ctx, req.(*SaveConfigDraftRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1385,18 +1352,18 @@ func _GakumasGMService_SaveGashaConfigDraft0_HTTP_Handler(srv GakumasGMServiceHT
 	}
 }
 
-func _GakumasGMService_DiscardGashaConfigDraft0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
+func _GakumasGMService_DiscardConfigDraft0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ServerRequest
+		var in ConfigRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationGakumasGMServiceDiscardGashaConfigDraft)
+		http.SetOperation(ctx, OperationGakumasGMServiceDiscardConfigDraft)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DiscardGashaConfigDraft(ctx, req.(*ServerRequest))
+			return srv.DiscardConfigDraft(ctx, req.(*ConfigRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1407,7 +1374,7 @@ func _GakumasGMService_DiscardGashaConfigDraft0_HTTP_Handler(srv GakumasGMServic
 	}
 }
 
-func _GakumasGMService_ValidateGashaConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
+func _GakumasGMService_ValidateConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ValidateConfigRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -1419,9 +1386,9 @@ func _GakumasGMService_ValidateGashaConfig0_HTTP_Handler(srv GakumasGMServiceHTT
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationGakumasGMServiceValidateGashaConfig)
+		http.SetOperation(ctx, OperationGakumasGMServiceValidateConfig)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ValidateGashaConfig(ctx, req.(*ValidateConfigRequest))
+			return srv.ValidateConfig(ctx, req.(*ValidateConfigRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1432,7 +1399,7 @@ func _GakumasGMService_ValidateGashaConfig0_HTTP_Handler(srv GakumasGMServiceHTT
 	}
 }
 
-func _GakumasGMService_PublishGashaConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
+func _GakumasGMService_PublishConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in PublishConfigRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -1444,9 +1411,9 @@ func _GakumasGMService_PublishGashaConfig0_HTTP_Handler(srv GakumasGMServiceHTTP
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationGakumasGMServicePublishGashaConfig)
+		http.SetOperation(ctx, OperationGakumasGMServicePublishConfig)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.PublishGashaConfig(ctx, req.(*PublishConfigRequest))
+			return srv.PublishConfig(ctx, req.(*PublishConfigRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1457,7 +1424,7 @@ func _GakumasGMService_PublishGashaConfig0_HTTP_Handler(srv GakumasGMServiceHTTP
 	}
 }
 
-func _GakumasGMService_ListGashaConfigRevisions0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
+func _GakumasGMService_ListConfigRevisions0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ConfigRevisionsRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -1466,9 +1433,9 @@ func _GakumasGMService_ListGashaConfigRevisions0_HTTP_Handler(srv GakumasGMServi
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationGakumasGMServiceListGashaConfigRevisions)
+		http.SetOperation(ctx, OperationGakumasGMServiceListConfigRevisions)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListGashaConfigRevisions(ctx, req.(*ConfigRevisionsRequest))
+			return srv.ListConfigRevisions(ctx, req.(*ConfigRevisionsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1479,7 +1446,7 @@ func _GakumasGMService_ListGashaConfigRevisions0_HTTP_Handler(srv GakumasGMServi
 	}
 }
 
-func _GakumasGMService_GetGashaConfigRevision0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
+func _GakumasGMService_GetConfigRevision0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ConfigRevisionRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -1488,9 +1455,9 @@ func _GakumasGMService_GetGashaConfigRevision0_HTTP_Handler(srv GakumasGMService
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetGashaConfigRevision)
+		http.SetOperation(ctx, OperationGakumasGMServiceGetConfigRevision)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetGashaConfigRevision(ctx, req.(*ConfigRevisionRequest))
+			return srv.GetConfigRevision(ctx, req.(*ConfigRevisionRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -1501,7 +1468,7 @@ func _GakumasGMService_GetGashaConfigRevision0_HTTP_Handler(srv GakumasGMService
 	}
 }
 
-func _GakumasGMService_GetNoticeConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
+func _GakumasGMService_ListConfigDrafts0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ServerRequest
 		if err := ctx.BindQuery(&in); err != nil {
@@ -1510,266 +1477,15 @@ func _GakumasGMService_GetNoticeConfig0_HTTP_Handler(srv GakumasGMServiceHTTPSer
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetNoticeConfig)
+		http.SetOperation(ctx, OperationGakumasGMServiceListConfigDrafts)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetNoticeConfig(ctx, req.(*ServerRequest))
+			return srv.ListConfigDrafts(ctx, req.(*ServerRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*v1.GetGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_SaveNoticeConfigDraft0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in SaveConfigDraftRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceSaveNoticeConfigDraft)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.SaveNoticeConfigDraft(ctx, req.(*SaveConfigDraftRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.GmConfigDraft)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_DiscardNoticeConfigDraft0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ServerRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceDiscardNoticeConfigDraft)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DiscardNoticeConfigDraft(ctx, req.(*ServerRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.DiscardGmConfigDraftResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_ValidateNoticeConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ValidateConfigRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceValidateNoticeConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ValidateNoticeConfig(ctx, req.(*ValidateConfigRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.ValidateGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_PublishNoticeConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in PublishConfigRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServicePublishNoticeConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.PublishNoticeConfig(ctx, req.(*PublishConfigRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.PublishGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_ListNoticeConfigRevisions0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ConfigRevisionsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceListNoticeConfigRevisions)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListNoticeConfigRevisions(ctx, req.(*ConfigRevisionsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.ListGmConfigRevisionsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_GetNoticeConfigRevision0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ConfigRevisionRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetNoticeConfigRevision)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetNoticeConfigRevision(ctx, req.(*ConfigRevisionRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.GmConfigRevision)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_GetPvpRateConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ServerRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetPvpRateConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetPvpRateConfig(ctx, req.(*ServerRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.GetGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_GetHomeConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ServerRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetHomeConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetHomeConfig(ctx, req.(*ServerRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.GetGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_GetResearchConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ServerRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetResearchConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetResearchConfig(ctx, req.(*ServerRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.GetGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_GetStoryEventConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ServerRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetStoryEventConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetStoryEventConfig(ctx, req.(*ServerRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.GetGmConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _GakumasGMService_GetLoginBonusConfig0_HTTP_Handler(srv GakumasGMServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ServerRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationGakumasGMServiceGetLoginBonusConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetLoginBonusConfig(ctx, req.(*ServerRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*v1.GetGmConfigResponse)
+		reply := out.(*ListConfigDraftsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1787,25 +1503,20 @@ type GakumasGMServiceHTTPClient interface {
 	BanPlayers(ctx context.Context, req *BanPlayersRequest, opts ...http.CallOption) (rsp *BanResponse, err error)
 	// ClearSeminar 研修：通关全部并发放奖励
 	ClearSeminar(ctx context.Context, req *PlayersOperationRequest, opts ...http.CallOption) (rsp *SeminarClearResponse, err error)
-	DiscardGashaConfigDraft(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.DiscardGmConfigDraftResponse, err error)
-	DiscardNoticeConfigDraft(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.DiscardGmConfigDraftResponse, err error)
+	DiscardConfigDraft(ctx context.Context, req *ConfigRequest, opts ...http.CallOption) (rsp *v1.DiscardGmConfigDraftResponse, err error)
 	// ExportArchive 导出完整存档 JSON（不含礼物箱）
 	ExportArchive(ctx context.Context, req *PlayersOperationRequest, opts ...http.CallOption) (rsp *ArchiveExportResponse, err error)
+	// GetConfig 数据文件（domain）：gasha 卡池、notice 公告、pvpRate 竞赛、home 主页活动、research 研究活动、
+	// storyEvent 剧情活动、loginBonus 登录奖励。草稿与版本由 Momoko 保存，发布写回服务端并热重载。
+	GetConfig(ctx context.Context, req *ConfigRequest, opts ...http.CallOption) (rsp *v1.GetGmConfigResponse, err error)
+	GetConfigRevision(ctx context.Context, req *ConfigRevisionRequest, opts ...http.CallOption) (rsp *v1.GmConfigRevision, err error)
 	// GetDashboard 工作台
 	GetDashboard(ctx context.Context, req *GetDashboardRequest, opts ...http.CallOption) (rsp *Dashboard, err error)
-	// GetGashaConfig 卡池（Gasha.json）
-	GetGashaConfig(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.GetGmConfigResponse, err error)
-	GetGashaConfigRevision(ctx context.Context, req *ConfigRevisionRequest, opts ...http.CallOption) (rsp *v1.GmConfigRevision, err error)
 	GetGashaStats(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *GashaStatList, err error)
-	GetHomeConfig(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.GetGmConfigResponse, err error)
-	GetLoginBonusConfig(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.GetGmConfigResponse, err error)
 	// GetManifest manifest：游戏、服务端版本与已配置的玩法
 	GetManifest(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *Manifest, err error)
 	// GetMemoryPhoto 记忆照片（记忆或培育记录编成记忆的 image_path）
 	GetMemoryPhoto(ctx context.Context, req *MemoryPhotoRequest, opts ...http.CallOption) (rsp *MemoryPhoto, err error)
-	// GetNoticeConfig 公告（Notice.json）
-	GetNoticeConfig(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.GetGmConfigResponse, err error)
-	GetNoticeConfigRevision(ctx context.Context, req *ConfigRevisionRequest, opts ...http.CallOption) (rsp *v1.GmConfigRevision, err error)
 	// GetPlayer 玩家条目、概览、登录次数、通行证绑定与 GM 记录数
 	GetPlayer(ctx context.Context, req *PlayerRequest, opts ...http.CallOption) (rsp *GetPlayerResponse, err error)
 	// GetPlayerMeishiImage 资料名片的图片（没有图片时 404 MEISHI_IMAGE_NOT_FOUND）
@@ -1815,13 +1526,9 @@ type GakumasGMServiceHTTPClient interface {
 	GetPlayerPvp(ctx context.Context, req *PlayerRequest, opts ...http.CallOption) (rsp *PlayerPvp, err error)
 	GetPlayerSeminar(ctx context.Context, req *PlayerRequest, opts ...http.CallOption) (rsp *PlayerSeminar, err error)
 	GetPvpRanking(ctx context.Context, req *RankingRequest, opts ...http.CallOption) (rsp *PvpRankingPage, err error)
-	// GetPvpRateConfig 运营日历读取的配置（只读）
-	GetPvpRateConfig(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.GetGmConfigResponse, err error)
-	GetResearchConfig(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.GetGmConfigResponse, err error)
 	GetSeminarStats(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *SeminarStatList, err error)
 	// GetStatus 实时运行状态
 	GetStatus(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *Status, err error)
-	GetStoryEventConfig(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *v1.GetGmConfigResponse, err error)
 	GetTowerRanking(ctx context.Context, req *TowerRankingRequest, opts ...http.CallOption) (rsp *TowerRankingPage, err error)
 	// GrantAllIdolCards 全部偶像卡（含满潜能碎片）
 	GrantAllIdolCards(ctx context.Context, req *GrantAllRequest, opts ...http.CallOption) (rsp *IdolCardGrantResponse, err error)
@@ -1829,8 +1536,9 @@ type GakumasGMServiceHTTPClient interface {
 	GrantAllSupportCards(ctx context.Context, req *GrantAllRequest, opts ...http.CallOption) (rsp *SupportCardGrantResponse, err error)
 	// KickPlayers 强制下线（1–200 名玩家）
 	KickPlayers(ctx context.Context, req *PlayersOperationRequest, opts ...http.CallOption) (rsp *KickResponse, err error)
-	ListGashaConfigRevisions(ctx context.Context, req *ConfigRevisionsRequest, opts ...http.CallOption) (rsp *v1.ListGmConfigRevisionsResponse, err error)
-	ListNoticeConfigRevisions(ctx context.Context, req *ConfigRevisionsRequest, opts ...http.CallOption) (rsp *v1.ListGmConfigRevisionsResponse, err error)
+	// ListConfigDrafts 未发布的草稿：只读 Momoko 保存的草稿（不读服务端，不含内容）
+	ListConfigDrafts(ctx context.Context, req *ServerRequest, opts ...http.CallOption) (rsp *ListConfigDraftsResponse, err error)
+	ListConfigRevisions(ctx context.Context, req *ConfigRevisionsRequest, opts ...http.CallOption) (rsp *v1.ListGmConfigRevisionsResponse, err error)
 	ListPlayerBackups(ctx context.Context, req *PlayerRequest, opts ...http.CallOption) (rsp *BackupList, err error)
 	ListPlayerGashaDraws(ctx context.Context, req *ListGashaDrawsRequest, opts ...http.CallOption) (rsp *GashaDrawPage, err error)
 	ListPlayerGifts(ctx context.Context, req *ListGiftsRequest, opts ...http.CallOption) (rsp *GiftPage, err error)
@@ -1842,8 +1550,7 @@ type GakumasGMServiceHTTPClient interface {
 	// ListPlayers 玩家列表（含通行证绑定；filter=unlinked 为未绑定通行证）
 	ListPlayers(ctx context.Context, req *ListPlayersRequest, opts ...http.CallOption) (rsp *ListPlayersResponse, err error)
 	ListProduces(ctx context.Context, req *ListProducesRequest, opts ...http.CallOption) (rsp *ProducePage, err error)
-	PublishGashaConfig(ctx context.Context, req *PublishConfigRequest, opts ...http.CallOption) (rsp *v1.PublishGmConfigResponse, err error)
-	PublishNoticeConfig(ctx context.Context, req *PublishConfigRequest, opts ...http.CallOption) (rsp *v1.PublishGmConfigResponse, err error)
+	PublishConfig(ctx context.Context, req *PublishConfigRequest, opts ...http.CallOption) (rsp *v1.PublishGmConfigResponse, err error)
 	// RefillActionPoint 回满体力
 	RefillActionPoint(ctx context.Context, req *PlayersOperationRequest, opts ...http.CallOption) (rsp *ChangesResponse, err error)
 	// RenamePlayer 改昵称
@@ -1858,8 +1565,7 @@ type GakumasGMServiceHTTPClient interface {
 	RestoreArchive(ctx context.Context, req *RestoreArchiveRequest, opts ...http.CallOption) (rsp *RestoreResponse, err error)
 	// RevokeGifts 撤回未领取的礼物
 	RevokeGifts(ctx context.Context, req *RevokeGiftsRequest, opts ...http.CallOption) (rsp *GiftRevokeResponse, err error)
-	SaveGashaConfigDraft(ctx context.Context, req *SaveConfigDraftRequest, opts ...http.CallOption) (rsp *v1.GmConfigDraft, err error)
-	SaveNoticeConfigDraft(ctx context.Context, req *SaveConfigDraftRequest, opts ...http.CallOption) (rsp *v1.GmConfigDraft, err error)
+	SaveConfigDraft(ctx context.Context, req *SaveConfigDraftRequest, opts ...http.CallOption) (rsp *v1.GmConfigDraft, err error)
 	// SendGift 发送到礼物箱（1–200 名玩家，逐个执行）
 	SendGift(ctx context.Context, req *SendGiftRequest, opts ...http.CallOption) (rsp *GiftSendResponse, err error)
 	// SetMaintenance 维护模式与登录白名单
@@ -1872,8 +1578,7 @@ type GakumasGMServiceHTTPClient interface {
 	SetRentalSupportCard(ctx context.Context, req *SetRentalSupportCardRequest, opts ...http.CallOption) (rsp *RentalResponse, err error)
 	// UnbanPlayers 解封（1–200 名玩家）
 	UnbanPlayers(ctx context.Context, req *PlayersOperationRequest, opts ...http.CallOption) (rsp *BanResponse, err error)
-	ValidateGashaConfig(ctx context.Context, req *ValidateConfigRequest, opts ...http.CallOption) (rsp *v1.ValidateGmConfigResponse, err error)
-	ValidateNoticeConfig(ctx context.Context, req *ValidateConfigRequest, opts ...http.CallOption) (rsp *v1.ValidateGmConfigResponse, err error)
+	ValidateConfig(ctx context.Context, req *ValidateConfigRequest, opts ...http.CallOption) (rsp *v1.ValidateGmConfigResponse, err error)
 }
 
 type GakumasGMServiceHTTPClientImpl struct {
@@ -1968,24 +1673,11 @@ func (c *GakumasGMServiceHTTPClientImpl) ClearSeminar(ctx context.Context, in *P
 	return &out, nil
 }
 
-func (c *GakumasGMServiceHTTPClientImpl) DiscardGashaConfigDraft(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.DiscardGmConfigDraftResponse, error) {
+func (c *GakumasGMServiceHTTPClientImpl) DiscardConfigDraft(ctx context.Context, in *ConfigRequest, opts ...http.CallOption) (*v1.DiscardGmConfigDraftResponse, error) {
 	var out v1.DiscardGmConfigDraftResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/gasha/draft"
+	pattern := "/api/v1/gakumas/gm/{server_id}/config/{domain}/draft"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceDiscardGashaConfigDraft))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) DiscardNoticeConfigDraft(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.DiscardGmConfigDraftResponse, error) {
-	var out v1.DiscardGmConfigDraftResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/notice/draft"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceDiscardNoticeConfigDraft))
+	opts = append(opts, http.Operation(OperationGakumasGMServiceDiscardConfigDraft))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -2008,6 +1700,34 @@ func (c *GakumasGMServiceHTTPClientImpl) ExportArchive(ctx context.Context, in *
 	return &out, nil
 }
 
+// GetConfig 数据文件（domain）：gasha 卡池、notice 公告、pvpRate 竞赛、home 主页活动、research 研究活动、
+// storyEvent 剧情活动、loginBonus 登录奖励。草稿与版本由 Momoko 保存，发布写回服务端并热重载。
+func (c *GakumasGMServiceHTTPClientImpl) GetConfig(ctx context.Context, in *ConfigRequest, opts ...http.CallOption) (*v1.GetGmConfigResponse, error) {
+	var out v1.GetGmConfigResponse
+	pattern := "/api/v1/gakumas/gm/{server_id}/config/{domain}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationGakumasGMServiceGetConfig))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *GakumasGMServiceHTTPClientImpl) GetConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...http.CallOption) (*v1.GmConfigRevision, error) {
+	var out v1.GmConfigRevision
+	pattern := "/api/v1/gakumas/gm/{server_id}/config/{domain}/revisions/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationGakumasGMServiceGetConfigRevision))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetDashboard 工作台
 func (c *GakumasGMServiceHTTPClientImpl) GetDashboard(ctx context.Context, in *GetDashboardRequest, opts ...http.CallOption) (*Dashboard, error) {
 	var out Dashboard
@@ -2022,64 +1742,11 @@ func (c *GakumasGMServiceHTTPClientImpl) GetDashboard(ctx context.Context, in *G
 	return &out, nil
 }
 
-// GetGashaConfig 卡池（Gasha.json）
-func (c *GakumasGMServiceHTTPClientImpl) GetGashaConfig(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.GetGmConfigResponse, error) {
-	var out v1.GetGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/gasha"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetGashaConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) GetGashaConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...http.CallOption) (*v1.GmConfigRevision, error) {
-	var out v1.GmConfigRevision
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/gasha/revisions/{id}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetGashaConfigRevision))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 func (c *GakumasGMServiceHTTPClientImpl) GetGashaStats(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*GashaStatList, error) {
 	var out GashaStatList
 	pattern := "/api/v1/gakumas/gm/{server_id}/gashas/stats"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationGakumasGMServiceGetGashaStats))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) GetHomeConfig(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.GetGmConfigResponse, error) {
-	var out v1.GetGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/home"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetHomeConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) GetLoginBonusConfig(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.GetGmConfigResponse, error) {
-	var out v1.GetGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/login-bonus"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetLoginBonusConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -2108,33 +1775,6 @@ func (c *GakumasGMServiceHTTPClientImpl) GetMemoryPhoto(ctx context.Context, in 
 	pattern := "/api/v1/gakumas/gm/{server_id}/memory-photo"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationGakumasGMServiceGetMemoryPhoto))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetNoticeConfig 公告（Notice.json）
-func (c *GakumasGMServiceHTTPClientImpl) GetNoticeConfig(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.GetGmConfigResponse, error) {
-	var out v1.GetGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/notice"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetNoticeConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) GetNoticeConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...http.CallOption) (*v1.GmConfigRevision, error) {
-	var out v1.GmConfigRevision
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/notice/revisions/{id}"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetNoticeConfigRevision))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -2224,33 +1864,6 @@ func (c *GakumasGMServiceHTTPClientImpl) GetPvpRanking(ctx context.Context, in *
 	return &out, nil
 }
 
-// GetPvpRateConfig 运营日历读取的配置（只读）
-func (c *GakumasGMServiceHTTPClientImpl) GetPvpRateConfig(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.GetGmConfigResponse, error) {
-	var out v1.GetGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/pvp-rate"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetPvpRateConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) GetResearchConfig(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.GetGmConfigResponse, error) {
-	var out v1.GetGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/research"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetResearchConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 func (c *GakumasGMServiceHTTPClientImpl) GetSeminarStats(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*SeminarStatList, error) {
 	var out SeminarStatList
 	pattern := "/api/v1/gakumas/gm/{server_id}/seminar/stats"
@@ -2270,19 +1883,6 @@ func (c *GakumasGMServiceHTTPClientImpl) GetStatus(ctx context.Context, in *Serv
 	pattern := "/api/v1/gakumas/gm/{server_id}/status"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationGakumasGMServiceGetStatus))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) GetStoryEventConfig(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*v1.GetGmConfigResponse, error) {
-	var out v1.GetGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/story-event"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceGetStoryEventConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -2346,11 +1946,12 @@ func (c *GakumasGMServiceHTTPClientImpl) KickPlayers(ctx context.Context, in *Pl
 	return &out, nil
 }
 
-func (c *GakumasGMServiceHTTPClientImpl) ListGashaConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...http.CallOption) (*v1.ListGmConfigRevisionsResponse, error) {
-	var out v1.ListGmConfigRevisionsResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/gasha/revisions"
+// ListConfigDrafts 未发布的草稿：只读 Momoko 保存的草稿（不读服务端，不含内容）
+func (c *GakumasGMServiceHTTPClientImpl) ListConfigDrafts(ctx context.Context, in *ServerRequest, opts ...http.CallOption) (*ListConfigDraftsResponse, error) {
+	var out ListConfigDraftsResponse
+	pattern := "/api/v1/gakumas/gm/{server_id}/config-drafts"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceListGashaConfigRevisions))
+	opts = append(opts, http.Operation(OperationGakumasGMServiceListConfigDrafts))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -2359,11 +1960,11 @@ func (c *GakumasGMServiceHTTPClientImpl) ListGashaConfigRevisions(ctx context.Co
 	return &out, nil
 }
 
-func (c *GakumasGMServiceHTTPClientImpl) ListNoticeConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...http.CallOption) (*v1.ListGmConfigRevisionsResponse, error) {
+func (c *GakumasGMServiceHTTPClientImpl) ListConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...http.CallOption) (*v1.ListGmConfigRevisionsResponse, error) {
 	var out v1.ListGmConfigRevisionsResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/notice/revisions"
+	pattern := "/api/v1/gakumas/gm/{server_id}/config/{domain}/revisions"
 	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceListNoticeConfigRevisions))
+	opts = append(opts, http.Operation(OperationGakumasGMServiceListConfigRevisions))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -2503,24 +2104,11 @@ func (c *GakumasGMServiceHTTPClientImpl) ListProduces(ctx context.Context, in *L
 	return &out, nil
 }
 
-func (c *GakumasGMServiceHTTPClientImpl) PublishGashaConfig(ctx context.Context, in *PublishConfigRequest, opts ...http.CallOption) (*v1.PublishGmConfigResponse, error) {
+func (c *GakumasGMServiceHTTPClientImpl) PublishConfig(ctx context.Context, in *PublishConfigRequest, opts ...http.CallOption) (*v1.PublishGmConfigResponse, error) {
 	var out v1.PublishGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/gasha/publish"
+	pattern := "/api/v1/gakumas/gm/{server_id}/config/{domain}/publish"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGakumasGMServicePublishGashaConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) PublishNoticeConfig(ctx context.Context, in *PublishConfigRequest, opts ...http.CallOption) (*v1.PublishGmConfigResponse, error) {
-	var out v1.PublishGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/notice/publish"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGakumasGMServicePublishNoticeConfig))
+	opts = append(opts, http.Operation(OperationGakumasGMServicePublishConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -2627,24 +2215,11 @@ func (c *GakumasGMServiceHTTPClientImpl) RevokeGifts(ctx context.Context, in *Re
 	return &out, nil
 }
 
-func (c *GakumasGMServiceHTTPClientImpl) SaveGashaConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...http.CallOption) (*v1.GmConfigDraft, error) {
+func (c *GakumasGMServiceHTTPClientImpl) SaveConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...http.CallOption) (*v1.GmConfigDraft, error) {
 	var out v1.GmConfigDraft
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/gasha/draft"
+	pattern := "/api/v1/gakumas/gm/{server_id}/config/{domain}/draft"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceSaveGashaConfigDraft))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) SaveNoticeConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...http.CallOption) (*v1.GmConfigDraft, error) {
-	var out v1.GmConfigDraft
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/notice/draft"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceSaveNoticeConfigDraft))
+	opts = append(opts, http.Operation(OperationGakumasGMServiceSaveConfigDraft))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
 	if err != nil {
@@ -2737,24 +2312,11 @@ func (c *GakumasGMServiceHTTPClientImpl) UnbanPlayers(ctx context.Context, in *P
 	return &out, nil
 }
 
-func (c *GakumasGMServiceHTTPClientImpl) ValidateGashaConfig(ctx context.Context, in *ValidateConfigRequest, opts ...http.CallOption) (*v1.ValidateGmConfigResponse, error) {
+func (c *GakumasGMServiceHTTPClientImpl) ValidateConfig(ctx context.Context, in *ValidateConfigRequest, opts ...http.CallOption) (*v1.ValidateGmConfigResponse, error) {
 	var out v1.ValidateGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/gasha/validate"
+	pattern := "/api/v1/gakumas/gm/{server_id}/config/{domain}/validate"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceValidateGashaConfig))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *GakumasGMServiceHTTPClientImpl) ValidateNoticeConfig(ctx context.Context, in *ValidateConfigRequest, opts ...http.CallOption) (*v1.ValidateGmConfigResponse, error) {
-	var out v1.ValidateGmConfigResponse
-	pattern := "/api/v1/gakumas/gm/{server_id}/config/notice/validate"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationGakumasGMServiceValidateNoticeConfig))
+	opts = append(opts, http.Operation(OperationGakumasGMServiceValidateConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

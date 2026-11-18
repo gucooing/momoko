@@ -68,7 +68,7 @@ func (u *OperationLogUsecase) RetentionDays(ctx context.Context) int32 {
 // UpdateRetention 修改保留天数并立即清理一次超期记录。
 func (u *OperationLogUsecase) UpdateRetention(ctx context.Context, days int32) (*v1.UpdateOperationLogRetentionResponse, error) {
 	if days != 0 && (days < 7 || days > 3650) {
-		return nil, response.BadRequest(400, "保留天数需为 0（永久保留）或 7 到 3650 天")
+		return nil, response.BadRequest("保留天数需为 0（永久保留）或 7 到 3650 天")
 	}
 	if err := u.config.BatchUpdate(ctx, map[common.ConfigKey]string{
 		common.ConfigAuditRetentionDays: strconv.Itoa(int(days)),

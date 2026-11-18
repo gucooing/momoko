@@ -11,12 +11,13 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
+	gk "momoko/api/gen/v1/gakumas"
 	"momoko/internal/data/ent/gen"
 	"momoko/pkg/mgp"
 	"momoko/pkg/mgp/gakumas"
 )
 
-// 学マス 的配置文档：Momoko 按 id 保存草稿与版本，卡池与公告可以发布，其余只读（运营日历）。
+// 学マス 的配置文档（游戏服务端的数据文件）：Momoko 按 id 保存草稿与版本，发布时写回服务端并热重载。
 const (
 	GakumasConfigGasha      = "gasha"
 	GakumasConfigNotice     = "notice"
@@ -28,26 +29,25 @@ const (
 )
 
 type gakumasConfig struct {
-	title    string
-	file     gakumas.ConfigFile
-	editable bool
+	title string
+	file  gakumas.ConfigFile
 }
 
 var gakumasConfigs = map[string]gakumasConfig{
-	GakumasConfigGasha:      {title: "卡池", file: gakumas.ConfigGasha, editable: true},
-	GakumasConfigNotice:     {title: "公告", file: gakumas.ConfigNotice, editable: true},
+	GakumasConfigGasha:      {title: "卡池", file: gakumas.ConfigGasha},
+	GakumasConfigNotice:     {title: "公告", file: gakumas.ConfigNotice},
 	GakumasConfigPvpRate:    {title: "竞赛", file: gakumas.ConfigPvpRate},
-	GakumasConfigHome:       {title: "主页", file: gakumas.ConfigHome},
+	GakumasConfigHome:       {title: "活动日程", file: gakumas.ConfigHome},
 	GakumasConfigResearch:   {title: "研究活动", file: gakumas.ConfigResearch},
-	GakumasConfigStoryEvent: {title: "活动", file: gakumas.ConfigStoryEvent},
+	GakumasConfigStoryEvent: {title: "剧情活动", file: gakumas.ConfigStoryEvent},
 	GakumasConfigLoginBonus: {title: "登录奖励", file: gakumas.ConfigLoginBonus},
 }
 
-// editable 可发布的配置文档。
-func editableConfig(id string) (gakumasConfig, error) {
-	cfg := gakumasConfigs[id]
-	if !cfg.editable {
-		return cfg, ErrGmConfigReadOnly
+// configOf 配置文档的定义。
+func configOf(id string) (gakumasConfig, error) {
+	cfg, ok := gakumasConfigs[id]
+	if !ok {
+		return cfg, ErrGmConfigUnknown
 	}
 	return cfg, nil
 }
@@ -58,7 +58,10 @@ func (uc *GakumasUsecase) Config(ctx context.Context, serverID, id string) (*v1.
 	if err != nil {
 		return nil, err
 	}
-	cfg := gakumasConfigs[id]
+	cfg, err := configOf(id)
+	if err != nil {
+		return nil, err
+	}
 	doc, err := g.Config(ctx, cfg.file)
 	if err != nil {
 		return nil, GameMGPError(err)
@@ -92,7 +95,7 @@ func (uc *GakumasUsecase) SaveConfigDraft(ctx context.Context, actor GmActor, se
 	if _, err := uc.client(ctx, serverID); err != nil {
 		return nil, err
 	}
-	if _, err := editableConfig(id); err != nil {
+	if _, err := configOf(id); err != nil {
 		return nil, err
 	}
 	if !validJSON(content) {
@@ -118,6 +121,9 @@ func (uc *GakumasUsecase) DiscardConfigDraft(ctx context.Context, serverID, id s
 	if _, err := uc.client(ctx, serverID); err != nil {
 		return err
 	}
+	if _, err := configOf(id); err != nil {
+		return err
+	}
 	if err := uc.gm.Repo().DeleteConfigDraft(ctx, serverID, id); err != nil {
 		return ErrSystem(err)
 	}
@@ -130,7 +136,7 @@ func (uc *GakumasUsecase) ValidateConfig(ctx context.Context, serverID, id, cont
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := editableConfig(id)
+	cfg, err := configOf(id)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +164,7 @@ func (uc *GakumasUsecase) PublishConfig(ctx context.Context, actor GmActor, serv
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := editableConfig(id)
+	cfg, err := configOf(id)
 	if err != nil {
 		return nil, err
 	}
@@ -256,9 +262,36 @@ func (uc *GakumasUsecase) PublishConfig(ctx context.Context, actor GmActor, serv
 	}, nil
 }
 
+// ConfigDrafts 未发布的草稿（只读数据库，不读服务端；草稿不含内容）。
+func (uc *GakumasUsecase) ConfigDrafts(ctx context.Context, serverID string) (*gk.ListConfigDraftsResponse, error) {
+	if _, err := uc.client(ctx, serverID); err != nil {
+		return nil, err
+	}
+	items, err := uc.gm.Repo().ListConfigDrafts(ctx, serverID)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	out := &gk.ListConfigDraftsResponse{}
+	for _, d := range items {
+		cfg, ok := gakumasConfigs[d.Domain]
+		if !ok {
+			continue
+		}
+		out.Items = append(out.Items, &v1.GmConfigDomain{
+			Id:    d.Domain,
+			Title: cfg.title,
+			Draft: configDraftProto(d),
+		})
+	}
+	return out, nil
+}
+
 // ConfigRevisions 版本记录。
 func (uc *GakumasUsecase) ConfigRevisions(ctx context.Context, serverID, id string, page, size int32) (*v1.ListGmConfigRevisionsResponse, error) {
 	if _, err := uc.client(ctx, serverID); err != nil {
+		return nil, err
+	}
+	if _, err := configOf(id); err != nil {
 		return nil, err
 	}
 	items, total, err := uc.gm.Repo().ListConfigRevisions(ctx, serverID, id, int(page), int(size))
@@ -277,6 +310,9 @@ func (uc *GakumasUsecase) ConfigRevisions(ctx context.Context, serverID, id stri
 // ConfigRevision 某个版本的内容。
 func (uc *GakumasUsecase) ConfigRevision(ctx context.Context, serverID, domain, id string) (*v1.GmConfigRevision, error) {
 	if _, err := uc.client(ctx, serverID); err != nil {
+		return nil, err
+	}
+	if _, err := configOf(domain); err != nil {
 		return nil, err
 	}
 	r, err := uc.gm.Repo().GetConfigRevision(ctx, id)

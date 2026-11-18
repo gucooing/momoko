@@ -27,13 +27,13 @@ import (
 )
 
 var (
-	ErrGameMailNotFound   = response.BadRequest(404, "邮件不存在")
-	ErrGameMailState      = response.BadRequest(409, "邮件当前的状态不能这样操作，请刷新后再试")
-	ErrGameMailID         = response.BadRequest(400, "邮件 id 无效")
-	ErrGameMailIncomplete = response.BadRequest(400, "邮件还没写完：需要标题、至少一项奖励和收件人")
-	ErrGiftBatchNotFound  = response.BadRequest(404, "兑换码批次不存在")
-	ErrGiftCodeTaken      = response.BadRequest(409, "这台服务器上已经有这个兑换码")
-	ErrGiftBatchInvalid   = response.BadRequest(400, "兑换码批次参数无效")
+	ErrGameMailNotFound   = response.BadRequest("邮件不存在")
+	ErrGameMailState      = response.BadRequest("邮件当前的状态不能这样操作，请刷新后再试")
+	ErrGameMailID         = response.BadRequest("邮件 id 无效")
+	ErrGameMailIncomplete = response.BadRequest("邮件还没写完：需要标题、至少一项奖励和收件人")
+	ErrGiftBatchNotFound  = response.BadRequest("兑换码批次不存在")
+	ErrGiftCodeTaken      = response.BadRequest("这台服务器上已经有这个兑换码")
+	ErrGiftBatchInvalid   = response.BadRequest("兑换码批次参数无效")
 )
 
 const (
@@ -194,17 +194,17 @@ func validText(s string, max int, multiline bool) bool {
 // validateRewards 校验奖励：1–20 项、数量为正；forbidden 为不允许的资源类型。
 func validateRewards(rewards []entschema.GameReward, allowEmpty bool, forbidden ...int32) error {
 	if len(rewards) == 0 && !allowEmpty {
-		return response.BadRequest(400, "至少需要一项奖励")
+		return response.BadRequest("至少需要一项奖励")
 	}
 	if len(rewards) > rewardsMax {
-		return response.BadRequest(400, "奖励最多 20 项")
+		return response.BadRequest("奖励最多 20 项")
 	}
 	for _, r := range rewards {
 		if r.Quantity <= 0 {
-			return response.BadRequest(400, "奖励数量必须大于 0")
+			return response.BadRequest("奖励数量必须大于 0")
 		}
 		if slices.Contains(forbidden, r.ResourceType) {
-			return response.BadRequest(400, "付费钻石不能通过礼物发放")
+			return response.BadRequest("付费钻石不能通过礼物发放")
 		}
 	}
 	return nil
@@ -328,7 +328,7 @@ func mailExecutionError(e *gen.GmExecution) error {
 	if e.ErrorCode != "" {
 		msg = e.ErrorCode + ": " + msg
 	}
-	return mailCodeError(e.ErrorCode, response.BadRequest(400, msg))
+	return mailCodeError(e.ErrorCode, response.BadRequest(msg))
 }
 
 // mailCodeError 服务端的邮件错误码对应的接口错误；其他错误码返回 other。
@@ -644,14 +644,14 @@ func validChannels(in []string) ([]string, error) {
 	for _, c := range in {
 		c = strings.TrimSpace(c)
 		if c != GiftChannelPassport && c != GiftChannelGame {
-			return nil, response.BadRequest(400, "兑换入口无效")
+			return nil, response.BadRequest("兑换入口无效")
 		}
 		if !slices.Contains(out, c) {
 			out = append(out, c)
 		}
 	}
 	if len(out) == 0 {
-		return nil, response.BadRequest(400, "至少选择一个兑换入口")
+		return nil, response.BadRequest("至少选择一个兑换入口")
 	}
 	return out, nil
 }
@@ -763,7 +763,7 @@ func (uc *GameOpsUsecase) generateCodes(ctx context.Context, serverID, prefix st
 		}
 	}
 	if len(set) < n {
-		return nil, response.BadRequest(500, "生成兑换码失败，请重试")
+		return nil, response.BadRequest("生成兑换码失败，请重试")
 	}
 	out := make([]string, 0, n)
 	for c := range set {
@@ -781,11 +781,11 @@ func (uc *GameOpsUsecase) CreateBatch(ctx context.Context, actor GmActor, req *v
 	}
 	name := strings.TrimSpace(req.Name)
 	if name == "" || !validText(name, giftNameMax, false) {
-		return nil, response.BadRequest(400, "批次名称为 1–64 字")
+		return nil, response.BadRequest("批次名称为 1–64 字")
 	}
 	message := strings.TrimSpace(req.Message)
 	if !validText(message, giftMessageMax, false) {
-		return nil, response.BadRequest(400, "礼物箱文案最多 64 字")
+		return nil, response.BadRequest("礼物箱文案最多 64 字")
 	}
 	rewards := rewardsOf(req.Rewards)
 	if err := validateRewards(rewards, false); err != nil {
@@ -796,14 +796,14 @@ func (uc *GameOpsUsecase) CreateBatch(ctx context.Context, actor GmActor, req *v
 		return nil, err
 	}
 	if req.PerPlayerLimit < 1 || req.PerPlayerLimit > giftPerPlayerMax || req.TotalLimit < 0 || req.TotalLimit > giftLimitMax {
-		return nil, response.BadRequest(400, "次数上限超出范围")
+		return nil, response.BadRequest("次数上限超出范围")
 	}
 	startAt, endAt := timeOf(req.StartAt), timeOf(req.EndAt)
 	if startAt != nil && endAt != nil && !endAt.After(*startAt) {
-		return nil, response.BadRequest(400, "结束时间必须晚于开始时间")
+		return nil, response.BadRequest("结束时间必须晚于开始时间")
 	}
 	if endAt != nil && !endAt.After(time.Now()) {
-		return nil, response.BadRequest(400, "结束时间必须晚于现在")
+		return nil, response.BadRequest("结束时间必须晚于现在")
 	}
 	eligibility := req.Eligibility
 	if eligibility == "" {
@@ -814,7 +814,7 @@ func (uc *GameOpsUsecase) CreateBatch(ctx context.Context, actor GmActor, req *v
 		req.RegisteredWithinDays = 0
 	case "condition":
 		if req.RegisteredWithinDays < 1 || req.RegisteredWithinDays > giftEligibleMax {
-			return nil, response.BadRequest(400, "注册天数为 1–3650 天")
+			return nil, response.BadRequest("注册天数为 1–3650 天")
 		}
 	default:
 		return nil, ErrGiftBatchInvalid
@@ -857,11 +857,11 @@ func (uc *GameOpsUsecase) CreateBatch(ctx context.Context, actor GmActor, req *v
 				}
 			}
 			if code == "" {
-				return nil, response.BadRequest(500, "生成兑换码失败，请重试")
+				return nil, response.BadRequest("生成兑换码失败，请重试")
 			}
 		} else {
 			if !universalCodeRe.MatchString(code) {
-				return nil, response.BadRequest(400, "兑换码为 4–16 位字母和数字")
+				return nil, response.BadRequest("兑换码为 4–16 位字母和数字")
 			}
 			taken, err := uc.repo.CodesTaken(ctx, s.ID, []string{code})
 			if err != nil {
@@ -875,10 +875,10 @@ func (uc *GameOpsUsecase) CreateBatch(ctx context.Context, actor GmActor, req *v
 	case "unique":
 		prefix := NormalizeGiftCode(req.Prefix)
 		if prefix != "" && !codePrefixRe.MatchString(prefix) {
-			return nil, response.BadRequest(400, "前缀为 1–12 位字母和数字")
+			return nil, response.BadRequest("前缀为 1–12 位字母和数字")
 		}
 		if req.Quantity < 1 || req.Quantity > giftQuantityMax {
-			return nil, response.BadRequest(400, "生成数量为 1–10000")
+			return nil, response.BadRequest("生成数量为 1–10000")
 		}
 		codes, err = uc.generateCodes(ctx, s.ID, prefix, int(req.Quantity))
 		if err != nil {
@@ -908,26 +908,26 @@ func (uc *GameOpsUsecase) UpdateBatch(ctx context.Context, req *v1.UpdateGiftCod
 	}
 	name := strings.TrimSpace(req.Name)
 	if name == "" || !validText(name, giftNameMax, false) {
-		return nil, response.BadRequest(400, "批次名称为 1–64 字")
+		return nil, response.BadRequest("批次名称为 1–64 字")
 	}
 	message := strings.TrimSpace(req.Message)
 	if !validText(message, giftMessageMax, false) {
-		return nil, response.BadRequest(400, "礼物箱文案最多 64 字")
+		return nil, response.BadRequest("礼物箱文案最多 64 字")
 	}
 	channels, err := validChannels(req.Channels)
 	if err != nil {
 		return nil, err
 	}
 	if req.PerPlayerLimit < 1 || req.PerPlayerLimit > giftPerPlayerMax {
-		return nil, response.BadRequest(400, "次数上限超出范围")
+		return nil, response.BadRequest("次数上限超出范围")
 	}
 	endAt := timeOf(req.EndAt)
 	if endAt != nil && b.StartAt != nil && !endAt.After(*b.StartAt) {
-		return nil, response.BadRequest(400, "结束时间必须晚于开始时间")
+		return nil, response.BadRequest("结束时间必须晚于开始时间")
 	}
 	if b.Kind == entbatch.KindUniversal {
 		if req.TotalLimit < 0 || req.TotalLimit > giftLimitMax || (req.TotalLimit > 0 && int(req.TotalLimit) < b.UsedCount) {
-			return nil, response.BadRequest(400, "总次数上限不能小于已用次数")
+			return nil, response.BadRequest("总次数上限不能小于已用次数")
 		}
 		b.TotalLimit = int(req.TotalLimit)
 	}

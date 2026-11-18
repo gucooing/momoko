@@ -217,7 +217,7 @@ func (h *GameHostingUsecase) backupPathAllowed(s *gen.GameServer, path string) b
 // SQLite 的 -wal / -shm 先删除，避免旧日志被重放到恢复的数据库上。
 func (h *GameHostingUsecase) extractBackup(ctx context.Context, s *gen.GameServer, l *gameHostLayout, b *gen.GameServerBackup) error {
 	if b.State != entbackup.StateReady || !h.backupPathAllowed(s, b.Path) {
-		return response.BadRequest(400, "备份不可用")
+		return response.BadRequest("备份不可用")
 	}
 	if _, err := backupzip.Entries(b.Path); err != nil {
 		return fmt.Errorf("backup archive: %w", err)
@@ -354,7 +354,7 @@ func (h *GameHostingUsecase) DeleteBackup(ctx context.Context, req *v1.DeleteGam
 	}
 	b, err := h.servers.repo.GetBackup(ctx, req.BackupId)
 	if err != nil || b.ServerID != s.ID {
-		return response.BadRequest(404, "备份不存在")
+		return response.BadRequest("备份不存在")
 	}
 	if b.State == entbackup.StateRunning {
 		return ErrGameHostingBusy
@@ -372,10 +372,10 @@ func (h *GameHostingUsecase) RestoreBackup(ctx context.Context, req *v1.RestoreG
 	}
 	b, err := h.servers.repo.GetBackup(ctx, req.BackupId)
 	if err != nil || b.ServerID != s.ID {
-		return "", response.BadRequest(404, "备份不存在")
+		return "", response.BadRequest("备份不存在")
 	}
 	if b.State != entbackup.StateReady {
-		return "", response.BadRequest(400, "备份不可用")
+		return "", response.BadRequest("备份不可用")
 	}
 	hist := h.history(ctx, s.ID, "backup", "restore", map[string]string{"backupId": b.ID, "file": filepath.Base(b.Path)}, "running", "")
 	return h.submitTask(ctx, s, gameTaskRestore, "回档", []string{"stop", "backup", "extract", "start"}, false, 0, func(ctx context.Context, r task.Reporter) error {
@@ -428,7 +428,7 @@ func (h *GameHostingUsecase) DownloadBackup(ctx context.Context, req *v1.Downloa
 	}
 	b, err := h.servers.repo.GetBackup(ctx, req.BackupId)
 	if err != nil || b.ServerID != s.ID || !h.backupPathAllowed(s, b.Path) {
-		return "", response.BadRequest(404, "备份不存在")
+		return "", response.BadRequest("备份不存在")
 	}
 	if st, err := os.Stat(b.Path); err != nil || st.IsDir() {
 		return "", ErrFileNotExist

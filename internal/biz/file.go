@@ -1350,7 +1350,8 @@ func (f *FileUsecase) ShareDownload(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	rec, err := f.repo.GetShareByToken(ctx, q.Get("token"))
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("分享不存在或已失效"))
 		return
 	}
 	if err := f.verifyShareSign(q.Get("sign"), rec); err != nil {

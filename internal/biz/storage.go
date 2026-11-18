@@ -31,12 +31,12 @@ var avatarImageTypes = map[string]string{
 }
 
 var (
-	ErrAvatarUploadDisabled = response.BadRequest(400, "管理员未开启头像上传")
-	ErrAvatarInvalidImage   = response.BadRequest(400, "头像仅支持 jpg、png、webp、gif 格式")
-	ErrAvatarEmpty          = response.BadRequest(400, "头像文件是空的")
-	ErrAvatarTooLarge       = response.BadRequest(400, "头像大小不能超过 20MB")
-	ErrAvatarTicketInvalid  = response.BadRequest(400, "头像上传凭证无效或已过期，请重新上传")
-	ErrAvatarNotUploaded    = response.BadRequest(400, "头像还没有上传到对象存储，请重新上传")
+	ErrAvatarUploadDisabled = response.BadRequest("管理员未开启头像上传")
+	ErrAvatarInvalidImage   = response.BadRequest("头像仅支持 jpg、png、webp、gif 格式")
+	ErrAvatarEmpty          = response.BadRequest("头像文件是空的")
+	ErrAvatarTooLarge       = response.BadRequest("头像大小不能超过 20MB")
+	ErrAvatarTicketInvalid  = response.BadRequest("头像上传凭证无效或已过期，请重新上传")
+	ErrAvatarNotUploaded    = response.BadRequest("头像还没有上传到对象存储，请重新上传")
 )
 
 // ---- 储存设置 ----
@@ -82,13 +82,13 @@ func (c *ConfigUsecase) UpdateStorageConfig(ctx context.Context, req *v1.UpdateS
 
 	if cfg.Enabled {
 		if cfg.Endpoint == "" || cfg.Bucket == "" || cfg.AccessKey == "" || cfg.SecretKey == "" {
-			return nil, response.BadRequest(400, "开启头像储存需要填写服务地址、存储桶、Access Key 和 Secret Key")
+			return nil, response.BadRequest("开启头像储存需要填写服务地址、存储桶、Access Key 和 Secret Key")
 		}
 	}
 	// 填了就校验格式（未开启也校验，避免存进一份打不开的配置）。
 	if cfg.Endpoint != "" || cfg.Bucket != "" {
 		if _, err := objectstore.New(toObjectStoreConfig(cfg, "")); err != nil {
-			return nil, response.BadRequest(400, err.Error())
+			return nil, response.BadRequest(err.Error())
 		}
 	}
 
@@ -191,7 +191,7 @@ func (c *ConfigUsecase) presignAvatar(ctx context.Context, userID, contentType s
 	}
 	uploadURL, key, err := store.PresignPut(ctx, uuid.NewString()+"."+ext, contentType, size, avatarPresignTTL)
 	if err != nil {
-		return "", "", response.BadRequest(400, "签发头像上传地址失败: "+err.Error())
+		return "", "", response.BadRequest("签发头像上传地址失败: " + err.Error())
 	}
 	raw, err := json.Marshal(avatarTicket{User: userID, Key: key, Size: size, Exp: time.Now().Add(avatarPresignTTL).Unix()})
 	if err != nil {

@@ -63,12 +63,12 @@ var clientLogReasons = map[string]bool{
 }
 
 var (
-	ErrClientLogTicket      = passportErr(401, "PASSPORT_CLIENT_LOG_TICKET_INVALID")
-	ErrClientLogInvalid     = passportErr(400, "PASSPORT_CLIENT_LOG_INVALID")
-	ErrClientLogTooLarge    = passportErr(413, "PASSPORT_CLIENT_LOG_TOO_LARGE")
-	ErrClientLogEncoding    = passportErr(415, "PASSPORT_CLIENT_LOG_ENCODING_UNSUPPORTED")
-	ErrClientLogRateLimited = passportErr(429, "PASSPORT_CLIENT_LOG_RATE_LIMITED")
-	ErrGmClientLogNotFound  = response.BadRequest(404, "客户端日志不存在")
+	ErrClientLogTicket      = passportUnauthorized("PASSPORT_CLIENT_LOG_TICKET_INVALID")
+	ErrClientLogInvalid     = passportErr("PASSPORT_CLIENT_LOG_INVALID")
+	ErrClientLogTooLarge    = passportErr("PASSPORT_CLIENT_LOG_TOO_LARGE")
+	ErrClientLogEncoding    = passportErr("PASSPORT_CLIENT_LOG_ENCODING_UNSUPPORTED")
+	ErrClientLogRateLimited = passportErr("PASSPORT_CLIENT_LOG_RATE_LIMITED")
+	ErrGmClientLogNotFound  = response.BadRequest("客户端日志不存在")
 )
 
 // ClientLogFilter 管理端客户端日志列表的筛选（空值表示不限）。

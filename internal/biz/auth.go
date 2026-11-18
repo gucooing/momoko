@@ -42,9 +42,9 @@ const NonPersistentSessionTTL = 24 * time.Hour
 var registerUsernamePattern = regexp.MustCompile(`^[A-Za-z0-9_]{3,20}$`)
 
 var (
-	ErrUsernameInvalid      = response.BadRequest(500, "用户名需为 3–20 位字母、数字或下划线")
+	ErrUsernameInvalid      = response.BadRequest("用户名需为 3–20 位字母、数字或下划线")
 	ErrEmailCodeTooFrequent = func(wait time.Duration) error {
-		return response.BadRequest(500, fmt.Sprintf("验证码发送太频繁，请 %d 秒后再试", int(wait.Seconds()+0.999)))
+		return response.BadRequest(fmt.Sprintf("验证码发送太频繁，请 %d 秒后再试", int(wait.Seconds()+0.999)))
 	}
 )
 

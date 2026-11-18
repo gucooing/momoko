@@ -9,8 +9,11 @@ export type MgpRisk = 'low' | 'medium' | 'high' | 'danger'
 /** 操作目标：单个玩家、1–200 个玩家，或无目标的服务器操作。 */
 export type MgpTarget = 'player' | 'players' | 'server'
 
-/** 参数表单的选择器提示：奖励列表、道具、玩家存档备份。 */
-export type MgpPicker = 'reward' | 'item' | 'backup'
+/**
+ * 表单的选择器提示：reward 奖励（数组为奖励列表，对象为一项奖励）、backup 玩家存档备份、image 图片（来源见 x-images），
+ * 其余是目录种类（item、character、missionGroup……）：按名称从这类游戏数据里选，表单里不出现 ID。
+ */
+export type MgpPicker = 'reward' | 'backup' | 'image' | (string & {})
 
 /** 操作参数表单使用的 JSON Schema 子集。 */
 export interface JSONSchema {
@@ -27,11 +30,23 @@ export interface JSONSchema {
   minItems?: number
   maxItems?: number
   maxLength?: number
-  /** 字符串格式，例如 password。 */
+  /** 格式：password；unix-ms（Unix 毫秒，按服务器时区输入）；color（RRGGBB）；textarea（多行文字）。 */
   format?: string
   default?: unknown
+  /** 只显示，不能改 */
+  readOnly?: boolean
   /** 选择器提示：表单用对应的选择器代替原始输入。 */
   'x-picker'?: MgpPicker
+  /** 枚举值的显示文字 */
+  'x-enum-labels'?: Record<string, string>
+  /** 数值单位：permil 千分率（按百分比输入） */
+  'x-unit'?: 'permil'
+  /** x-picker 为 image 时的图片来源（表单的 imageSources 里的键） */
+  'x-images'?: string
+  /** 数组每一项的标题，{n} 为第几项 */
+  'x-item-title'?: string
+  /** 分组标题：和上一个字段不同时在前面显示 */
+  'x-group'?: string
 }
 
 /** 列表的一页：nextCursor 为空串表示没有下一页。 */

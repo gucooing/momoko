@@ -2923,12 +2923,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.gakumas.SupportCardPage'
-    /api/v1/gakumas/gm/{serverId}/config/gasha:
+    /api/v1/gakumas/gm/{serverId}/config-drafts:
         get:
             tags:
                 - GakumasGMService
-            description: 卡池（Gasha.json）
-            operationId: GakumasGMService_GetGashaConfig
+            description: 未发布的草稿：只读 Momoko 保存的草稿（不读服务端，不含内容）
+            operationId: GakumasGMService_ListConfigDrafts
             parameters:
                 - name: serverId
                   in: path
@@ -2941,14 +2941,46 @@ paths:
                     content:
                         application/json:
                             schema:
+                                $ref: '#/components/schemas/v1.gakumas.ListConfigDraftsResponse'
+    /api/v1/gakumas/gm/{serverId}/config/{domain}:
+        get:
+            tags:
+                - GakumasGMService
+            description: |-
+                数据文件（domain）：gasha 卡池、notice 公告、pvpRate 竞赛、home 主页活动、research 研究活动、
+                 storyEvent 剧情活动、loginBonus 登录奖励。草稿与版本由 Momoko 保存，发布写回服务端并热重载。
+            operationId: GakumasGMService_GetConfig
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: domain
+                  in: path
+                  description: 数据文件（见 GetConfig）
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
                                 $ref: '#/components/schemas/v1.GetGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/gasha/draft:
+    /api/v1/gakumas/gm/{serverId}/config/{domain}/draft:
         put:
             tags:
                 - GakumasGMService
-            operationId: GakumasGMService_SaveGashaConfigDraft
+            operationId: GakumasGMService_SaveConfigDraft
             parameters:
                 - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: domain
                   in: path
                   required: true
                   schema:
@@ -2969,10 +3001,16 @@ paths:
         delete:
             tags:
                 - GakumasGMService
-            operationId: GakumasGMService_DiscardGashaConfigDraft
+            operationId: GakumasGMService_DiscardConfigDraft
             parameters:
                 - name: serverId
                   in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: domain
+                  in: path
+                  description: 数据文件（见 GetConfig）
                   required: true
                   schema:
                     type: string
@@ -2983,13 +3021,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DiscardGmConfigDraftResponse'
-    /api/v1/gakumas/gm/{serverId}/config/gasha/publish:
+    /api/v1/gakumas/gm/{serverId}/config/{domain}/publish:
         post:
             tags:
                 - GakumasGMService
-            operationId: GakumasGMService_PublishGashaConfig
+            operationId: GakumasGMService_PublishConfig
             parameters:
                 - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: domain
                   in: path
                   required: true
                   schema:
@@ -3007,13 +3050,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.PublishGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/gasha/revisions:
+    /api/v1/gakumas/gm/{serverId}/config/{domain}/revisions:
         get:
             tags:
                 - GakumasGMService
-            operationId: GakumasGMService_ListGashaConfigRevisions
+            operationId: GakumasGMService_ListConfigRevisions
             parameters:
                 - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: domain
                   in: path
                   required: true
                   schema:
@@ -3035,13 +3083,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListGmConfigRevisionsResponse'
-    /api/v1/gakumas/gm/{serverId}/config/gasha/revisions/{id}:
+    /api/v1/gakumas/gm/{serverId}/config/{domain}/revisions/{id}:
         get:
             tags:
                 - GakumasGMService
-            operationId: GakumasGMService_GetGashaConfigRevision
+            operationId: GakumasGMService_GetConfigRevision
             parameters:
                 - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: domain
                   in: path
                   required: true
                   schema:
@@ -3058,13 +3111,18 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GmConfigRevision'
-    /api/v1/gakumas/gm/{serverId}/config/gasha/validate:
+    /api/v1/gakumas/gm/{serverId}/config/{domain}/validate:
         post:
             tags:
                 - GakumasGMService
-            operationId: GakumasGMService_ValidateGashaConfig
+            operationId: GakumasGMService_ValidateConfig
             parameters:
                 - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: domain
                   in: path
                   required: true
                   schema:
@@ -3082,256 +3140,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ValidateGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/home:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_GetHomeConfig
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/login-bonus:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_GetLoginBonusConfig
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/notice:
-        get:
-            tags:
-                - GakumasGMService
-            description: 公告（Notice.json）
-            operationId: GakumasGMService_GetNoticeConfig
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/notice/draft:
-        put:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_SaveNoticeConfigDraft
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.gakumas.SaveConfigDraftRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GmConfigDraft'
-        delete:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_DiscardNoticeConfigDraft
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.DiscardGmConfigDraftResponse'
-    /api/v1/gakumas/gm/{serverId}/config/notice/publish:
-        post:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_PublishNoticeConfig
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.gakumas.PublishConfigRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PublishGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/notice/revisions:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ListNoticeConfigRevisions
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: pageSize
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ListGmConfigRevisionsResponse'
-    /api/v1/gakumas/gm/{serverId}/config/notice/revisions/{id}:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_GetNoticeConfigRevision
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GmConfigRevision'
-    /api/v1/gakumas/gm/{serverId}/config/notice/validate:
-        post:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_ValidateNoticeConfig
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.gakumas.ValidateConfigRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.ValidateGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/pvp-rate:
-        get:
-            tags:
-                - GakumasGMService
-            description: 运营日历读取的配置（只读）
-            operationId: GakumasGMService_GetPvpRateConfig
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/research:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_GetResearchConfig
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetGmConfigResponse'
-    /api/v1/gakumas/gm/{serverId}/config/story-event:
-        get:
-            tags:
-                - GakumasGMService
-            operationId: GakumasGMService_GetStoryEventConfig
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetGmConfigResponse'
     /api/v1/gakumas/gm/{serverId}/dashboard:
         get:
             tags:
@@ -24751,6 +24559,14 @@ components:
                     $ref: '#/components/schemas/v1.gakumas.OperationTarget'
                 data:
                     $ref: '#/components/schemas/v1.gakumas.KickResult'
+        v1.gakumas.ListConfigDraftsResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.GmConfigDomain'
+                    description: 有草稿的配置文档：id、title 与草稿（草稿不含内容），最近修改的在前
         v1.gakumas.ListPlayersResponse:
             type: object
             properties:
@@ -25618,6 +25434,8 @@ components:
             properties:
                 serverId:
                     type: string
+                domain:
+                    type: string
                 content:
                     type: string
                     description: 为空时发布草稿
@@ -25936,6 +25754,8 @@ components:
             type: object
             properties:
                 serverId:
+                    type: string
+                domain:
                     type: string
                 content:
                     type: string
@@ -26471,6 +26291,8 @@ components:
             type: object
             properties:
                 serverId:
+                    type: string
+                domain:
                     type: string
                 content:
                     type: string

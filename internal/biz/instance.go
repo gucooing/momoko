@@ -35,7 +35,7 @@ const (
 )
 
 var (
-	ErrInstanceMaintenance = response.BadRequest(500, "应用正在维护，结束维护后才能启动")
+	ErrInstanceMaintenance = response.BadRequest("应用正在维护，结束维护后才能启动")
 )
 
 // maxRuntimeEvents 每个实例在内存里保留的进程事件(退出/自动重启)条数。

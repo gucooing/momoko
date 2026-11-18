@@ -2436,21 +2436,75 @@ func (x *SetMaintenanceRequest) GetDryRun() bool {
 	return false
 }
 
+type ConfigRequest struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
+	// 数据文件（见 GetConfig）
+	Domain        string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfigRequest) Reset() {
+	*x = ConfigRequest{}
+	mi := &file_v1_gakumas_gm_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfigRequest) ProtoMessage() {}
+
+func (x *ConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_gakumas_gm_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfigRequest.ProtoReflect.Descriptor instead.
+func (*ConfigRequest) Descriptor() ([]byte, []int) {
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ConfigRequest) GetServerId() string {
+	if x != nil {
+		return x.ServerId
+	}
+	return ""
+}
+
+func (x *ConfigRequest) GetDomain() string {
+	if x != nil {
+		return x.Domain
+	}
+	return ""
+}
+
 type SaveConfigDraftRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
+	Domain   string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
 	// 文档内容（JSON）
-	Content string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Content string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	// 编辑所基于的服务端 revision
-	BaseRevision  string `protobuf:"bytes,3,opt,name=base_revision,json=baseRevision,proto3" json:"base_revision,omitempty"`
-	Comment       string `protobuf:"bytes,4,opt,name=comment,proto3" json:"comment,omitempty"`
+	BaseRevision  string `protobuf:"bytes,4,opt,name=base_revision,json=baseRevision,proto3" json:"base_revision,omitempty"`
+	Comment       string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SaveConfigDraftRequest) Reset() {
 	*x = SaveConfigDraftRequest{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[32]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2462,7 +2516,7 @@ func (x *SaveConfigDraftRequest) String() string {
 func (*SaveConfigDraftRequest) ProtoMessage() {}
 
 func (x *SaveConfigDraftRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[32]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2475,12 +2529,19 @@ func (x *SaveConfigDraftRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveConfigDraftRequest.ProtoReflect.Descriptor instead.
 func (*SaveConfigDraftRequest) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{32}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *SaveConfigDraftRequest) GetServerId() string {
 	if x != nil {
 		return x.ServerId
+	}
+	return ""
+}
+
+func (x *SaveConfigDraftRequest) GetDomain() string {
+	if x != nil {
+		return x.Domain
 	}
 	return ""
 }
@@ -2509,14 +2570,15 @@ func (x *SaveConfigDraftRequest) GetComment() string {
 type ValidateConfigRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	Domain        string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ValidateConfigRequest) Reset() {
 	*x = ValidateConfigRequest{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[33]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2528,7 +2590,7 @@ func (x *ValidateConfigRequest) String() string {
 func (*ValidateConfigRequest) ProtoMessage() {}
 
 func (x *ValidateConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[33]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2541,12 +2603,19 @@ func (x *ValidateConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateConfigRequest.ProtoReflect.Descriptor instead.
 func (*ValidateConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{33}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ValidateConfigRequest) GetServerId() string {
 	if x != nil {
 		return x.ServerId
+	}
+	return ""
+}
+
+func (x *ValidateConfigRequest) GetDomain() string {
+	if x != nil {
+		return x.Domain
 	}
 	return ""
 }
@@ -2561,17 +2630,18 @@ func (x *ValidateConfigRequest) GetContent() string {
 type PublishConfigRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
+	Domain   string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
 	// 为空时发布草稿
-	Content       string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	BaseRevision  string `protobuf:"bytes,3,opt,name=base_revision,json=baseRevision,proto3" json:"base_revision,omitempty"`
-	Comment       string `protobuf:"bytes,4,opt,name=comment,proto3" json:"comment,omitempty"`
+	Content       string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	BaseRevision  string `protobuf:"bytes,4,opt,name=base_revision,json=baseRevision,proto3" json:"base_revision,omitempty"`
+	Comment       string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PublishConfigRequest) Reset() {
 	*x = PublishConfigRequest{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[34]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2583,7 +2653,7 @@ func (x *PublishConfigRequest) String() string {
 func (*PublishConfigRequest) ProtoMessage() {}
 
 func (x *PublishConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[34]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2596,12 +2666,19 @@ func (x *PublishConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublishConfigRequest.ProtoReflect.Descriptor instead.
 func (*PublishConfigRequest) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{34}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *PublishConfigRequest) GetServerId() string {
 	if x != nil {
 		return x.ServerId
+	}
+	return ""
+}
+
+func (x *PublishConfigRequest) GetDomain() string {
+	if x != nil {
+		return x.Domain
 	}
 	return ""
 }
@@ -2630,15 +2707,16 @@ func (x *PublishConfigRequest) GetComment() string {
 type ConfigRevisionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Domain        string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	Page          int32                  `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,4,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConfigRevisionsRequest) Reset() {
 	*x = ConfigRevisionsRequest{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[35]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2650,7 +2728,7 @@ func (x *ConfigRevisionsRequest) String() string {
 func (*ConfigRevisionsRequest) ProtoMessage() {}
 
 func (x *ConfigRevisionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[35]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2663,12 +2741,19 @@ func (x *ConfigRevisionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigRevisionsRequest.ProtoReflect.Descriptor instead.
 func (*ConfigRevisionsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{35}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ConfigRevisionsRequest) GetServerId() string {
 	if x != nil {
 		return x.ServerId
+	}
+	return ""
+}
+
+func (x *ConfigRevisionsRequest) GetDomain() string {
+	if x != nil {
+		return x.Domain
 	}
 	return ""
 }
@@ -2690,14 +2775,15 @@ func (x *ConfigRevisionsRequest) GetPageSize() int32 {
 type ConfigRevisionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Domain        string                 `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	Id            string                 `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConfigRevisionRequest) Reset() {
 	*x = ConfigRevisionRequest{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[36]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2709,7 +2795,7 @@ func (x *ConfigRevisionRequest) String() string {
 func (*ConfigRevisionRequest) ProtoMessage() {}
 
 func (x *ConfigRevisionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[36]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2722,7 +2808,7 @@ func (x *ConfigRevisionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigRevisionRequest.ProtoReflect.Descriptor instead.
 func (*ConfigRevisionRequest) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{36}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ConfigRevisionRequest) GetServerId() string {
@@ -2732,11 +2818,63 @@ func (x *ConfigRevisionRequest) GetServerId() string {
 	return ""
 }
 
+func (x *ConfigRevisionRequest) GetDomain() string {
+	if x != nil {
+		return x.Domain
+	}
+	return ""
+}
+
 func (x *ConfigRevisionRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
+}
+
+type ListConfigDraftsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 有草稿的配置文档：id、title 与草稿（草稿不含内容），最近修改的在前
+	Items         []*v1.GmConfigDomain `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListConfigDraftsResponse) Reset() {
+	*x = ListConfigDraftsResponse{}
+	mi := &file_v1_gakumas_gm_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListConfigDraftsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListConfigDraftsResponse) ProtoMessage() {}
+
+func (x *ListConfigDraftsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_gakumas_gm_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListConfigDraftsResponse.ProtoReflect.Descriptor instead.
+func (*ListConfigDraftsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ListConfigDraftsResponse) GetItems() []*v1.GmConfigDomain {
+	if x != nil {
+		return x.Items
+	}
+	return nil
 }
 
 // 操作对一个目标的状态。
@@ -2754,7 +2892,7 @@ type OperationTarget struct {
 
 func (x *OperationTarget) Reset() {
 	*x = OperationTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[37]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2766,7 +2904,7 @@ func (x *OperationTarget) String() string {
 func (*OperationTarget) ProtoMessage() {}
 
 func (x *OperationTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[37]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2779,7 +2917,7 @@ func (x *OperationTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OperationTarget.ProtoReflect.Descriptor instead.
 func (*OperationTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{37}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *OperationTarget) GetPid() string {
@@ -2835,7 +2973,7 @@ type ListPlayersResponse struct {
 
 func (x *ListPlayersResponse) Reset() {
 	*x = ListPlayersResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[38]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2847,7 +2985,7 @@ func (x *ListPlayersResponse) String() string {
 func (*ListPlayersResponse) ProtoMessage() {}
 
 func (x *ListPlayersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[38]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2860,7 +2998,7 @@ func (x *ListPlayersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlayersResponse.ProtoReflect.Descriptor instead.
 func (*ListPlayersResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{38}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListPlayersResponse) GetItems() []*Player {
@@ -2927,7 +3065,7 @@ type GetPlayerResponse struct {
 
 func (x *GetPlayerResponse) Reset() {
 	*x = GetPlayerResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[39]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2939,7 +3077,7 @@ func (x *GetPlayerResponse) String() string {
 func (*GetPlayerResponse) ProtoMessage() {}
 
 func (x *GetPlayerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[39]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2952,7 +3090,7 @@ func (x *GetPlayerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPlayerResponse.ProtoReflect.Descriptor instead.
 func (*GetPlayerResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{39}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetPlayerResponse) GetPlayer() *Player {
@@ -3001,7 +3139,7 @@ type ChangesTarget struct {
 
 func (x *ChangesTarget) Reset() {
 	*x = ChangesTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[40]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3013,7 +3151,7 @@ func (x *ChangesTarget) String() string {
 func (*ChangesTarget) ProtoMessage() {}
 
 func (x *ChangesTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[40]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3026,7 +3164,7 @@ func (x *ChangesTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangesTarget.ProtoReflect.Descriptor instead.
 func (*ChangesTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{40}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ChangesTarget) GetTarget() *OperationTarget {
@@ -3053,7 +3191,7 @@ type ChangesResponse struct {
 
 func (x *ChangesResponse) Reset() {
 	*x = ChangesResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[41]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3065,7 +3203,7 @@ func (x *ChangesResponse) String() string {
 func (*ChangesResponse) ProtoMessage() {}
 
 func (x *ChangesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[41]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3078,7 +3216,7 @@ func (x *ChangesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangesResponse.ProtoReflect.Descriptor instead.
 func (*ChangesResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{41}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ChangesResponse) GetExecution() *v1.GmExecution {
@@ -3105,7 +3243,7 @@ type GiftSendTarget struct {
 
 func (x *GiftSendTarget) Reset() {
 	*x = GiftSendTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[42]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3117,7 +3255,7 @@ func (x *GiftSendTarget) String() string {
 func (*GiftSendTarget) ProtoMessage() {}
 
 func (x *GiftSendTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[42]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3130,7 +3268,7 @@ func (x *GiftSendTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiftSendTarget.ProtoReflect.Descriptor instead.
 func (*GiftSendTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{42}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GiftSendTarget) GetTarget() *OperationTarget {
@@ -3157,7 +3295,7 @@ type GiftSendResponse struct {
 
 func (x *GiftSendResponse) Reset() {
 	*x = GiftSendResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[43]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3169,7 +3307,7 @@ func (x *GiftSendResponse) String() string {
 func (*GiftSendResponse) ProtoMessage() {}
 
 func (x *GiftSendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[43]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3182,7 +3320,7 @@ func (x *GiftSendResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiftSendResponse.ProtoReflect.Descriptor instead.
 func (*GiftSendResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{43}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GiftSendResponse) GetExecution() *v1.GmExecution {
@@ -3209,7 +3347,7 @@ type GiftRevokeTarget struct {
 
 func (x *GiftRevokeTarget) Reset() {
 	*x = GiftRevokeTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[44]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3221,7 +3359,7 @@ func (x *GiftRevokeTarget) String() string {
 func (*GiftRevokeTarget) ProtoMessage() {}
 
 func (x *GiftRevokeTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[44]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3234,7 +3372,7 @@ func (x *GiftRevokeTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiftRevokeTarget.ProtoReflect.Descriptor instead.
 func (*GiftRevokeTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{44}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *GiftRevokeTarget) GetTarget() *OperationTarget {
@@ -3261,7 +3399,7 @@ type GiftRevokeResponse struct {
 
 func (x *GiftRevokeResponse) Reset() {
 	*x = GiftRevokeResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[45]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3273,7 +3411,7 @@ func (x *GiftRevokeResponse) String() string {
 func (*GiftRevokeResponse) ProtoMessage() {}
 
 func (x *GiftRevokeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[45]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3286,7 +3424,7 @@ func (x *GiftRevokeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GiftRevokeResponse.ProtoReflect.Descriptor instead.
 func (*GiftRevokeResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{45}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GiftRevokeResponse) GetExecution() *v1.GmExecution {
@@ -3313,7 +3451,7 @@ type IdolCardGrantTarget struct {
 
 func (x *IdolCardGrantTarget) Reset() {
 	*x = IdolCardGrantTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[46]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3325,7 +3463,7 @@ func (x *IdolCardGrantTarget) String() string {
 func (*IdolCardGrantTarget) ProtoMessage() {}
 
 func (x *IdolCardGrantTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[46]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3338,7 +3476,7 @@ func (x *IdolCardGrantTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IdolCardGrantTarget.ProtoReflect.Descriptor instead.
 func (*IdolCardGrantTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{46}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *IdolCardGrantTarget) GetTarget() *OperationTarget {
@@ -3365,7 +3503,7 @@ type IdolCardGrantResponse struct {
 
 func (x *IdolCardGrantResponse) Reset() {
 	*x = IdolCardGrantResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[47]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3377,7 +3515,7 @@ func (x *IdolCardGrantResponse) String() string {
 func (*IdolCardGrantResponse) ProtoMessage() {}
 
 func (x *IdolCardGrantResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[47]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3390,7 +3528,7 @@ func (x *IdolCardGrantResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IdolCardGrantResponse.ProtoReflect.Descriptor instead.
 func (*IdolCardGrantResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{47}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *IdolCardGrantResponse) GetExecution() *v1.GmExecution {
@@ -3417,7 +3555,7 @@ type SupportCardGrantTarget struct {
 
 func (x *SupportCardGrantTarget) Reset() {
 	*x = SupportCardGrantTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[48]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3429,7 +3567,7 @@ func (x *SupportCardGrantTarget) String() string {
 func (*SupportCardGrantTarget) ProtoMessage() {}
 
 func (x *SupportCardGrantTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[48]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3442,7 +3580,7 @@ func (x *SupportCardGrantTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SupportCardGrantTarget.ProtoReflect.Descriptor instead.
 func (*SupportCardGrantTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{48}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *SupportCardGrantTarget) GetTarget() *OperationTarget {
@@ -3469,7 +3607,7 @@ type SupportCardGrantResponse struct {
 
 func (x *SupportCardGrantResponse) Reset() {
 	*x = SupportCardGrantResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[49]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3481,7 +3619,7 @@ func (x *SupportCardGrantResponse) String() string {
 func (*SupportCardGrantResponse) ProtoMessage() {}
 
 func (x *SupportCardGrantResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[49]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3494,7 +3632,7 @@ func (x *SupportCardGrantResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SupportCardGrantResponse.ProtoReflect.Descriptor instead.
 func (*SupportCardGrantResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{49}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *SupportCardGrantResponse) GetExecution() *v1.GmExecution {
@@ -3521,7 +3659,7 @@ type KickTarget struct {
 
 func (x *KickTarget) Reset() {
 	*x = KickTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[50]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3533,7 +3671,7 @@ func (x *KickTarget) String() string {
 func (*KickTarget) ProtoMessage() {}
 
 func (x *KickTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[50]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3546,7 +3684,7 @@ func (x *KickTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KickTarget.ProtoReflect.Descriptor instead.
 func (*KickTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{50}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *KickTarget) GetTarget() *OperationTarget {
@@ -3573,7 +3711,7 @@ type KickResponse struct {
 
 func (x *KickResponse) Reset() {
 	*x = KickResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[51]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3585,7 +3723,7 @@ func (x *KickResponse) String() string {
 func (*KickResponse) ProtoMessage() {}
 
 func (x *KickResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[51]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3598,7 +3736,7 @@ func (x *KickResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KickResponse.ProtoReflect.Descriptor instead.
 func (*KickResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{51}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *KickResponse) GetExecution() *v1.GmExecution {
@@ -3625,7 +3763,7 @@ type BanTarget struct {
 
 func (x *BanTarget) Reset() {
 	*x = BanTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[52]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3637,7 +3775,7 @@ func (x *BanTarget) String() string {
 func (*BanTarget) ProtoMessage() {}
 
 func (x *BanTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[52]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3650,7 +3788,7 @@ func (x *BanTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanTarget.ProtoReflect.Descriptor instead.
 func (*BanTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{52}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *BanTarget) GetTarget() *OperationTarget {
@@ -3677,7 +3815,7 @@ type BanResponse struct {
 
 func (x *BanResponse) Reset() {
 	*x = BanResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[53]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3689,7 +3827,7 @@ func (x *BanResponse) String() string {
 func (*BanResponse) ProtoMessage() {}
 
 func (x *BanResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[53]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3702,7 +3840,7 @@ func (x *BanResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanResponse.ProtoReflect.Descriptor instead.
 func (*BanResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{53}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *BanResponse) GetExecution() *v1.GmExecution {
@@ -3729,7 +3867,7 @@ type PasswordTarget struct {
 
 func (x *PasswordTarget) Reset() {
 	*x = PasswordTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[54]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3741,7 +3879,7 @@ func (x *PasswordTarget) String() string {
 func (*PasswordTarget) ProtoMessage() {}
 
 func (x *PasswordTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[54]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3754,7 +3892,7 @@ func (x *PasswordTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PasswordTarget.ProtoReflect.Descriptor instead.
 func (*PasswordTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{54}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *PasswordTarget) GetTarget() *OperationTarget {
@@ -3781,7 +3919,7 @@ type PasswordResponse struct {
 
 func (x *PasswordResponse) Reset() {
 	*x = PasswordResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[55]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3793,7 +3931,7 @@ func (x *PasswordResponse) String() string {
 func (*PasswordResponse) ProtoMessage() {}
 
 func (x *PasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[55]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3806,7 +3944,7 @@ func (x *PasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PasswordResponse.ProtoReflect.Descriptor instead.
 func (*PasswordResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{55}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *PasswordResponse) GetExecution() *v1.GmExecution {
@@ -3833,7 +3971,7 @@ type RenameTarget struct {
 
 func (x *RenameTarget) Reset() {
 	*x = RenameTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[56]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3845,7 +3983,7 @@ func (x *RenameTarget) String() string {
 func (*RenameTarget) ProtoMessage() {}
 
 func (x *RenameTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[56]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3858,7 +3996,7 @@ func (x *RenameTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenameTarget.ProtoReflect.Descriptor instead.
 func (*RenameTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{56}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *RenameTarget) GetTarget() *OperationTarget {
@@ -3885,7 +4023,7 @@ type RenameResponse struct {
 
 func (x *RenameResponse) Reset() {
 	*x = RenameResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[57]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3897,7 +4035,7 @@ func (x *RenameResponse) String() string {
 func (*RenameResponse) ProtoMessage() {}
 
 func (x *RenameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[57]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3910,7 +4048,7 @@ func (x *RenameResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenameResponse.ProtoReflect.Descriptor instead.
 func (*RenameResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{57}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *RenameResponse) GetExecution() *v1.GmExecution {
@@ -3937,7 +4075,7 @@ type RentalTarget struct {
 
 func (x *RentalTarget) Reset() {
 	*x = RentalTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[58]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3949,7 +4087,7 @@ func (x *RentalTarget) String() string {
 func (*RentalTarget) ProtoMessage() {}
 
 func (x *RentalTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[58]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3962,7 +4100,7 @@ func (x *RentalTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RentalTarget.ProtoReflect.Descriptor instead.
 func (*RentalTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{58}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *RentalTarget) GetTarget() *OperationTarget {
@@ -3989,7 +4127,7 @@ type RentalResponse struct {
 
 func (x *RentalResponse) Reset() {
 	*x = RentalResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[59]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4001,7 +4139,7 @@ func (x *RentalResponse) String() string {
 func (*RentalResponse) ProtoMessage() {}
 
 func (x *RentalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[59]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4014,7 +4152,7 @@ func (x *RentalResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RentalResponse.ProtoReflect.Descriptor instead.
 func (*RentalResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{59}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *RentalResponse) GetExecution() *v1.GmExecution {
@@ -4041,7 +4179,7 @@ type SeminarClearTarget struct {
 
 func (x *SeminarClearTarget) Reset() {
 	*x = SeminarClearTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[60]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4053,7 +4191,7 @@ func (x *SeminarClearTarget) String() string {
 func (*SeminarClearTarget) ProtoMessage() {}
 
 func (x *SeminarClearTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[60]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4066,7 +4204,7 @@ func (x *SeminarClearTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeminarClearTarget.ProtoReflect.Descriptor instead.
 func (*SeminarClearTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{60}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *SeminarClearTarget) GetTarget() *OperationTarget {
@@ -4093,7 +4231,7 @@ type SeminarClearResponse struct {
 
 func (x *SeminarClearResponse) Reset() {
 	*x = SeminarClearResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[61]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4105,7 +4243,7 @@ func (x *SeminarClearResponse) String() string {
 func (*SeminarClearResponse) ProtoMessage() {}
 
 func (x *SeminarClearResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[61]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4118,7 +4256,7 @@ func (x *SeminarClearResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeminarClearResponse.ProtoReflect.Descriptor instead.
 func (*SeminarClearResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{61}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *SeminarClearResponse) GetExecution() *v1.GmExecution {
@@ -4145,7 +4283,7 @@ type SeminarResetTarget struct {
 
 func (x *SeminarResetTarget) Reset() {
 	*x = SeminarResetTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[62]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4157,7 +4295,7 @@ func (x *SeminarResetTarget) String() string {
 func (*SeminarResetTarget) ProtoMessage() {}
 
 func (x *SeminarResetTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[62]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4170,7 +4308,7 @@ func (x *SeminarResetTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeminarResetTarget.ProtoReflect.Descriptor instead.
 func (*SeminarResetTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{62}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *SeminarResetTarget) GetTarget() *OperationTarget {
@@ -4197,7 +4335,7 @@ type SeminarResetResponse struct {
 
 func (x *SeminarResetResponse) Reset() {
 	*x = SeminarResetResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[63]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4209,7 +4347,7 @@ func (x *SeminarResetResponse) String() string {
 func (*SeminarResetResponse) ProtoMessage() {}
 
 func (x *SeminarResetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[63]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4222,7 +4360,7 @@ func (x *SeminarResetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeminarResetResponse.ProtoReflect.Descriptor instead.
 func (*SeminarResetResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{63}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *SeminarResetResponse) GetExecution() *v1.GmExecution {
@@ -4249,7 +4387,7 @@ type BackupTarget struct {
 
 func (x *BackupTarget) Reset() {
 	*x = BackupTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[64]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4261,7 +4399,7 @@ func (x *BackupTarget) String() string {
 func (*BackupTarget) ProtoMessage() {}
 
 func (x *BackupTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[64]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4274,7 +4412,7 @@ func (x *BackupTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BackupTarget.ProtoReflect.Descriptor instead.
 func (*BackupTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{64}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *BackupTarget) GetTarget() *OperationTarget {
@@ -4301,7 +4439,7 @@ type BackupResponse struct {
 
 func (x *BackupResponse) Reset() {
 	*x = BackupResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[65]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4313,7 +4451,7 @@ func (x *BackupResponse) String() string {
 func (*BackupResponse) ProtoMessage() {}
 
 func (x *BackupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[65]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4326,7 +4464,7 @@ func (x *BackupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BackupResponse.ProtoReflect.Descriptor instead.
 func (*BackupResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{65}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *BackupResponse) GetExecution() *v1.GmExecution {
@@ -4353,7 +4491,7 @@ type RestoreTarget struct {
 
 func (x *RestoreTarget) Reset() {
 	*x = RestoreTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[66]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4365,7 +4503,7 @@ func (x *RestoreTarget) String() string {
 func (*RestoreTarget) ProtoMessage() {}
 
 func (x *RestoreTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[66]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4378,7 +4516,7 @@ func (x *RestoreTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestoreTarget.ProtoReflect.Descriptor instead.
 func (*RestoreTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{66}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *RestoreTarget) GetTarget() *OperationTarget {
@@ -4405,7 +4543,7 @@ type RestoreResponse struct {
 
 func (x *RestoreResponse) Reset() {
 	*x = RestoreResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[67]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4417,7 +4555,7 @@ func (x *RestoreResponse) String() string {
 func (*RestoreResponse) ProtoMessage() {}
 
 func (x *RestoreResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[67]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4430,7 +4568,7 @@ func (x *RestoreResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestoreResponse.ProtoReflect.Descriptor instead.
 func (*RestoreResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{67}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *RestoreResponse) GetExecution() *v1.GmExecution {
@@ -4457,7 +4595,7 @@ type ArchiveExportTarget struct {
 
 func (x *ArchiveExportTarget) Reset() {
 	*x = ArchiveExportTarget{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[68]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4469,7 +4607,7 @@ func (x *ArchiveExportTarget) String() string {
 func (*ArchiveExportTarget) ProtoMessage() {}
 
 func (x *ArchiveExportTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[68]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4482,7 +4620,7 @@ func (x *ArchiveExportTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArchiveExportTarget.ProtoReflect.Descriptor instead.
 func (*ArchiveExportTarget) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{68}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ArchiveExportTarget) GetTarget() *OperationTarget {
@@ -4509,7 +4647,7 @@ type ArchiveExportResponse struct {
 
 func (x *ArchiveExportResponse) Reset() {
 	*x = ArchiveExportResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[69]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4521,7 +4659,7 @@ func (x *ArchiveExportResponse) String() string {
 func (*ArchiveExportResponse) ProtoMessage() {}
 
 func (x *ArchiveExportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[69]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4534,7 +4672,7 @@ func (x *ArchiveExportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ArchiveExportResponse.ProtoReflect.Descriptor instead.
 func (*ArchiveExportResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{69}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *ArchiveExportResponse) GetExecution() *v1.GmExecution {
@@ -4562,7 +4700,7 @@ type MaintenanceResponse struct {
 
 func (x *MaintenanceResponse) Reset() {
 	*x = MaintenanceResponse{}
-	mi := &file_v1_gakumas_gm_proto_msgTypes[70]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4574,7 +4712,7 @@ func (x *MaintenanceResponse) String() string {
 func (*MaintenanceResponse) ProtoMessage() {}
 
 func (x *MaintenanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_gakumas_gm_proto_msgTypes[70]
+	mi := &file_v1_gakumas_gm_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4587,7 +4725,7 @@ func (x *MaintenanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MaintenanceResponse.ProtoReflect.Descriptor instead.
 func (*MaintenanceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{70}
+	return file_v1_gakumas_gm_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *MaintenanceResponse) GetExecution() *v1.GmExecution {
@@ -4800,27 +4938,37 @@ const file_v1_gakumas_gm_proto_rawDesc = "" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x18\n" +
 	"\aenabled\x18\x02 \x01(\bR\aenabled\x12\x1c\n" +
 	"\twhitelist\x18\x03 \x03(\tR\twhitelist\x12\x17\n" +
-	"\adry_run\x18\x04 \x01(\bR\x06dryRun\"\x8e\x01\n" +
+	"\adry_run\x18\x04 \x01(\bR\x06dryRun\"D\n" +
+	"\rConfigRequest\x12\x1b\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
+	"\x06domain\x18\x02 \x01(\tR\x06domain\"\xa6\x01\n" +
 	"\x16SaveConfigDraftRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\x12#\n" +
-	"\rbase_revision\x18\x03 \x01(\tR\fbaseRevision\x12\x18\n" +
-	"\acomment\x18\x04 \x01(\tR\acomment\"N\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
+	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\x12#\n" +
+	"\rbase_revision\x18\x04 \x01(\tR\fbaseRevision\x12\x18\n" +
+	"\acomment\x18\x05 \x01(\tR\acomment\"f\n" +
 	"\x15ValidateConfigRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"\x8c\x01\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
+	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\"\xa4\x01\n" +
 	"\x14PublishConfigRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\x12#\n" +
-	"\rbase_revision\x18\x03 \x01(\tR\fbaseRevision\x12\x18\n" +
-	"\acomment\x18\x04 \x01(\tR\acomment\"f\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
+	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\x12#\n" +
+	"\rbase_revision\x18\x04 \x01(\tR\fbaseRevision\x12\x18\n" +
+	"\acomment\x18\x05 \x01(\tR\acomment\"~\n" +
 	"\x16ConfigRevisionsRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x12\n" +
-	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"D\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
+	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x12\n" +
+	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\\\n" +
 	"\x15ConfigRevisionRequest\x12\x1b\n" +
-	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id\"}\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
+	"\x06domain\x18\x02 \x01(\tR\x06domain\x12\x0e\n" +
+	"\x02id\x18\x03 \x01(\tR\x02id\"D\n" +
+	"\x18ListConfigDraftsResponse\x12(\n" +
+	"\x05items\x18\x01 \x03(\v2\x12.v1.GmConfigDomainR\x05items\"}\n" +
 	"\x0fOperationTarget\x12\x10\n" +
 	"\x03pid\x18\x01 \x01(\tR\x03pid\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
@@ -4935,7 +5083,7 @@ const file_v1_gakumas_gm_proto_rawDesc = "" +
 	"\aresults\x18\x02 \x03(\v2\x1f.v1.gakumas.ArchiveExportTargetR\aresults\"q\n" +
 	"\x13MaintenanceResponse\x12-\n" +
 	"\texecution\x18\x01 \x01(\v2\x0f.v1.GmExecutionR\texecution\x12+\n" +
-	"\x04data\x18\x02 \x01(\v2\x17.v1.gakumas.MaintenanceR\x04data2\xd4G\n" +
+	"\x04data\x18\x02 \x01(\v2\x17.v1.gakumas.MaintenanceR\x04data2\xb4;\n" +
 	"\x10GakumasGMService\x12o\n" +
 	"\vGetManifest\x12\x19.v1.gakumas.ServerRequest\x1a\x14.v1.gakumas.Manifest\"/\x82\xd3\xe4\x93\x02)\x12'/api/v1/gakumas/gm/{server_id}/manifest\x12i\n" +
 	"\tGetStatus\x12\x19.v1.gakumas.ServerRequest\x1a\x12.v1.gakumas.Status\"-\x82\xd3\xe4\x93\x02'\x12%/api/v1/gakumas/gm/{server_id}/status\x12x\n" +
@@ -4985,26 +5133,15 @@ const file_v1_gakumas_gm_proto_rawDesc = "" +
 	"\rBackupArchive\x12 .v1.gakumas.BackupArchiveRequest\x1a\x1a.v1.gakumas.BackupResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/gakumas/gm/{server_id}/players/{pid}/backups\x12\x99\x01\n" +
 	"\rExportArchive\x12#.v1.gakumas.PlayersOperationRequest\x1a!.v1.gakumas.ArchiveExportResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/gakumas/gm/{server_id}/players/archive/export\x12\xa5\x01\n" +
 	"\x0eRestoreArchive\x12!.v1.gakumas.RestoreArchiveRequest\x1a\x1b.v1.gakumas.RestoreResponse\"S\x82\xd3\xe4\x93\x02M:\x01*\"H/api/v1/gakumas/gm/{server_id}/players/{pid}/backups/{backup_id}/restore\x12\x8b\x01\n" +
-	"\x0eSetMaintenance\x12!.v1.gakumas.SetMaintenanceRequest\x1a\x1f.v1.gakumas.MaintenanceResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\x1a*/api/v1/gakumas/gm/{server_id}/maintenance\x12y\n" +
-	"\x0eGetGashaConfig\x12\x19.v1.gakumas.ServerRequest\x1a\x17.v1.GetGmConfigResponse\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/gakumas/gm/{server_id}/config/gasha\x12\x8b\x01\n" +
-	"\x14SaveGashaConfigDraft\x12\".v1.gakumas.SaveConfigDraftRequest\x1a\x11.v1.GmConfigDraft\"<\x82\xd3\xe4\x93\x026:\x01*\x1a1/api/v1/gakumas/gm/{server_id}/config/gasha/draft\x12\x91\x01\n" +
-	"\x17DiscardGashaConfigDraft\x12\x19.v1.gakumas.ServerRequest\x1a .v1.DiscardGmConfigDraftResponse\"9\x82\xd3\xe4\x93\x023*1/api/v1/gakumas/gm/{server_id}/config/gasha/draft\x12\x97\x01\n" +
-	"\x13ValidateGashaConfig\x12!.v1.gakumas.ValidateConfigRequest\x1a\x1c.v1.ValidateGmConfigResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/gakumas/gm/{server_id}/config/gasha/validate\x12\x93\x01\n" +
-	"\x12PublishGashaConfig\x12 .v1.gakumas.PublishConfigRequest\x1a\x1b.v1.PublishGmConfigResponse\">\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/gakumas/gm/{server_id}/config/gasha/publish\x12\xa0\x01\n" +
-	"\x18ListGashaConfigRevisions\x12\".v1.gakumas.ConfigRevisionsRequest\x1a!.v1.ListGmConfigRevisionsResponse\"=\x82\xd3\xe4\x93\x027\x125/api/v1/gakumas/gm/{server_id}/config/gasha/revisions\x12\x95\x01\n" +
-	"\x16GetGashaConfigRevision\x12!.v1.gakumas.ConfigRevisionRequest\x1a\x14.v1.GmConfigRevision\"B\x82\xd3\xe4\x93\x02<\x12:/api/v1/gakumas/gm/{server_id}/config/gasha/revisions/{id}\x12{\n" +
-	"\x0fGetNoticeConfig\x12\x19.v1.gakumas.ServerRequest\x1a\x17.v1.GetGmConfigResponse\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/gakumas/gm/{server_id}/config/notice\x12\x8d\x01\n" +
-	"\x15SaveNoticeConfigDraft\x12\".v1.gakumas.SaveConfigDraftRequest\x1a\x11.v1.GmConfigDraft\"=\x82\xd3\xe4\x93\x027:\x01*\x1a2/api/v1/gakumas/gm/{server_id}/config/notice/draft\x12\x93\x01\n" +
-	"\x18DiscardNoticeConfigDraft\x12\x19.v1.gakumas.ServerRequest\x1a .v1.DiscardGmConfigDraftResponse\":\x82\xd3\xe4\x93\x024*2/api/v1/gakumas/gm/{server_id}/config/notice/draft\x12\x99\x01\n" +
-	"\x14ValidateNoticeConfig\x12!.v1.gakumas.ValidateConfigRequest\x1a\x1c.v1.ValidateGmConfigResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/api/v1/gakumas/gm/{server_id}/config/notice/validate\x12\x95\x01\n" +
-	"\x13PublishNoticeConfig\x12 .v1.gakumas.PublishConfigRequest\x1a\x1b.v1.PublishGmConfigResponse\"?\x82\xd3\xe4\x93\x029:\x01*\"4/api/v1/gakumas/gm/{server_id}/config/notice/publish\x12\xa2\x01\n" +
-	"\x19ListNoticeConfigRevisions\x12\".v1.gakumas.ConfigRevisionsRequest\x1a!.v1.ListGmConfigRevisionsResponse\">\x82\xd3\xe4\x93\x028\x126/api/v1/gakumas/gm/{server_id}/config/notice/revisions\x12\x97\x01\n" +
-	"\x17GetNoticeConfigRevision\x12!.v1.gakumas.ConfigRevisionRequest\x1a\x14.v1.GmConfigRevision\"C\x82\xd3\xe4\x93\x02=\x12;/api/v1/gakumas/gm/{server_id}/config/notice/revisions/{id}\x12~\n" +
-	"\x10GetPvpRateConfig\x12\x19.v1.gakumas.ServerRequest\x1a\x17.v1.GetGmConfigResponse\"6\x82\xd3\xe4\x93\x020\x12./api/v1/gakumas/gm/{server_id}/config/pvp-rate\x12w\n" +
-	"\rGetHomeConfig\x12\x19.v1.gakumas.ServerRequest\x1a\x17.v1.GetGmConfigResponse\"2\x82\xd3\xe4\x93\x02,\x12*/api/v1/gakumas/gm/{server_id}/config/home\x12\x7f\n" +
-	"\x11GetResearchConfig\x12\x19.v1.gakumas.ServerRequest\x1a\x17.v1.GetGmConfigResponse\"6\x82\xd3\xe4\x93\x020\x12./api/v1/gakumas/gm/{server_id}/config/research\x12\x84\x01\n" +
-	"\x13GetStoryEventConfig\x12\x19.v1.gakumas.ServerRequest\x1a\x17.v1.GetGmConfigResponse\"9\x82\xd3\xe4\x93\x023\x121/api/v1/gakumas/gm/{server_id}/config/story-event\x12\x84\x01\n" +
-	"\x13GetLoginBonusConfig\x12\x19.v1.gakumas.ServerRequest\x1a\x17.v1.GetGmConfigResponse\"9\x82\xd3\xe4\x93\x023\x121/api/v1/gakumas/gm/{server_id}/config/login-bonusB%Z#momoko/api/gen/v1/gakumas;gakumasv1b\x06proto3"
+	"\x0eSetMaintenance\x12!.v1.gakumas.SetMaintenanceRequest\x1a\x1f.v1.gakumas.MaintenanceResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\x1a*/api/v1/gakumas/gm/{server_id}/maintenance\x12w\n" +
+	"\tGetConfig\x12\x19.v1.gakumas.ConfigRequest\x1a\x17.v1.GetGmConfigResponse\"6\x82\xd3\xe4\x93\x020\x12./api/v1/gakumas/gm/{server_id}/config/{domain}\x12\x89\x01\n" +
+	"\x0fSaveConfigDraft\x12\".v1.gakumas.SaveConfigDraftRequest\x1a\x11.v1.GmConfigDraft\"?\x82\xd3\xe4\x93\x029:\x01*\x1a4/api/v1/gakumas/gm/{server_id}/config/{domain}/draft\x12\x8f\x01\n" +
+	"\x12DiscardConfigDraft\x12\x19.v1.gakumas.ConfigRequest\x1a .v1.DiscardGmConfigDraftResponse\"<\x82\xd3\xe4\x93\x026*4/api/v1/gakumas/gm/{server_id}/config/{domain}/draft\x12\x95\x01\n" +
+	"\x0eValidateConfig\x12!.v1.gakumas.ValidateConfigRequest\x1a\x1c.v1.ValidateGmConfigResponse\"B\x82\xd3\xe4\x93\x02<:\x01*\"7/api/v1/gakumas/gm/{server_id}/config/{domain}/validate\x12\x91\x01\n" +
+	"\rPublishConfig\x12 .v1.gakumas.PublishConfigRequest\x1a\x1b.v1.PublishGmConfigResponse\"A\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/gakumas/gm/{server_id}/config/{domain}/publish\x12\x9e\x01\n" +
+	"\x13ListConfigRevisions\x12\".v1.gakumas.ConfigRevisionsRequest\x1a!.v1.ListGmConfigRevisionsResponse\"@\x82\xd3\xe4\x93\x02:\x128/api/v1/gakumas/gm/{server_id}/config/{domain}/revisions\x12\x93\x01\n" +
+	"\x11GetConfigRevision\x12!.v1.gakumas.ConfigRevisionRequest\x1a\x14.v1.GmConfigRevision\"E\x82\xd3\xe4\x93\x02?\x12=/api/v1/gakumas/gm/{server_id}/config/{domain}/revisions/{id}\x12\x89\x01\n" +
+	"\x10ListConfigDrafts\x12\x19.v1.gakumas.ServerRequest\x1a$.v1.gakumas.ListConfigDraftsResponse\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/gakumas/gm/{server_id}/config-draftsB%Z#momoko/api/gen/v1/gakumas;gakumasv1b\x06proto3"
 
 var (
 	file_v1_gakumas_gm_proto_rawDescOnce sync.Once
@@ -5018,7 +5155,7 @@ func file_v1_gakumas_gm_proto_rawDescGZIP() []byte {
 	return file_v1_gakumas_gm_proto_rawDescData
 }
 
-var file_v1_gakumas_gm_proto_msgTypes = make([]protoimpl.MessageInfo, 72)
+var file_v1_gakumas_gm_proto_msgTypes = make([]protoimpl.MessageInfo, 74)
 var file_v1_gakumas_gm_proto_goTypes = []any{
 	(*ServerRequest)(nil),                    // 0: v1.gakumas.ServerRequest
 	(*PlayerRequest)(nil),                    // 1: v1.gakumas.PlayerRequest
@@ -5052,305 +5189,287 @@ var file_v1_gakumas_gm_proto_goTypes = []any{
 	(*BackupArchiveRequest)(nil),             // 29: v1.gakumas.BackupArchiveRequest
 	(*RestoreArchiveRequest)(nil),            // 30: v1.gakumas.RestoreArchiveRequest
 	(*SetMaintenanceRequest)(nil),            // 31: v1.gakumas.SetMaintenanceRequest
-	(*SaveConfigDraftRequest)(nil),           // 32: v1.gakumas.SaveConfigDraftRequest
-	(*ValidateConfigRequest)(nil),            // 33: v1.gakumas.ValidateConfigRequest
-	(*PublishConfigRequest)(nil),             // 34: v1.gakumas.PublishConfigRequest
-	(*ConfigRevisionsRequest)(nil),           // 35: v1.gakumas.ConfigRevisionsRequest
-	(*ConfigRevisionRequest)(nil),            // 36: v1.gakumas.ConfigRevisionRequest
-	(*OperationTarget)(nil),                  // 37: v1.gakumas.OperationTarget
-	(*ListPlayersResponse)(nil),              // 38: v1.gakumas.ListPlayersResponse
-	(*GetPlayerResponse)(nil),                // 39: v1.gakumas.GetPlayerResponse
-	(*ChangesTarget)(nil),                    // 40: v1.gakumas.ChangesTarget
-	(*ChangesResponse)(nil),                  // 41: v1.gakumas.ChangesResponse
-	(*GiftSendTarget)(nil),                   // 42: v1.gakumas.GiftSendTarget
-	(*GiftSendResponse)(nil),                 // 43: v1.gakumas.GiftSendResponse
-	(*GiftRevokeTarget)(nil),                 // 44: v1.gakumas.GiftRevokeTarget
-	(*GiftRevokeResponse)(nil),               // 45: v1.gakumas.GiftRevokeResponse
-	(*IdolCardGrantTarget)(nil),              // 46: v1.gakumas.IdolCardGrantTarget
-	(*IdolCardGrantResponse)(nil),            // 47: v1.gakumas.IdolCardGrantResponse
-	(*SupportCardGrantTarget)(nil),           // 48: v1.gakumas.SupportCardGrantTarget
-	(*SupportCardGrantResponse)(nil),         // 49: v1.gakumas.SupportCardGrantResponse
-	(*KickTarget)(nil),                       // 50: v1.gakumas.KickTarget
-	(*KickResponse)(nil),                     // 51: v1.gakumas.KickResponse
-	(*BanTarget)(nil),                        // 52: v1.gakumas.BanTarget
-	(*BanResponse)(nil),                      // 53: v1.gakumas.BanResponse
-	(*PasswordTarget)(nil),                   // 54: v1.gakumas.PasswordTarget
-	(*PasswordResponse)(nil),                 // 55: v1.gakumas.PasswordResponse
-	(*RenameTarget)(nil),                     // 56: v1.gakumas.RenameTarget
-	(*RenameResponse)(nil),                   // 57: v1.gakumas.RenameResponse
-	(*RentalTarget)(nil),                     // 58: v1.gakumas.RentalTarget
-	(*RentalResponse)(nil),                   // 59: v1.gakumas.RentalResponse
-	(*SeminarClearTarget)(nil),               // 60: v1.gakumas.SeminarClearTarget
-	(*SeminarClearResponse)(nil),             // 61: v1.gakumas.SeminarClearResponse
-	(*SeminarResetTarget)(nil),               // 62: v1.gakumas.SeminarResetTarget
-	(*SeminarResetResponse)(nil),             // 63: v1.gakumas.SeminarResetResponse
-	(*BackupTarget)(nil),                     // 64: v1.gakumas.BackupTarget
-	(*BackupResponse)(nil),                   // 65: v1.gakumas.BackupResponse
-	(*RestoreTarget)(nil),                    // 66: v1.gakumas.RestoreTarget
-	(*RestoreResponse)(nil),                  // 67: v1.gakumas.RestoreResponse
-	(*ArchiveExportTarget)(nil),              // 68: v1.gakumas.ArchiveExportTarget
-	(*ArchiveExportResponse)(nil),            // 69: v1.gakumas.ArchiveExportResponse
-	(*MaintenanceResponse)(nil),              // 70: v1.gakumas.MaintenanceResponse
-	nil,                                      // 71: v1.gakumas.SendGiftRequest.SummaryEntry
-	(*v1.GameReward)(nil),                    // 72: v1.GameReward
-	(*Player)(nil),                           // 73: v1.gakumas.Player
-	(*PlayerCounts)(nil),                     // 74: v1.gakumas.PlayerCounts
-	(*v1.GmPlayerLink)(nil),                  // 75: v1.GmPlayerLink
-	(*Overview)(nil),                         // 76: v1.gakumas.Overview
-	(*LoginCounts)(nil),                      // 77: v1.gakumas.LoginCounts
-	(*ChangeList)(nil),                       // 78: v1.gakumas.ChangeList
-	(*v1.GmExecution)(nil),                   // 79: v1.GmExecution
-	(*GiftSendResult)(nil),                   // 80: v1.gakumas.GiftSendResult
-	(*GiftRevokeResult)(nil),                 // 81: v1.gakumas.GiftRevokeResult
-	(*IdolCardGrant)(nil),                    // 82: v1.gakumas.IdolCardGrant
-	(*SupportCardGrant)(nil),                 // 83: v1.gakumas.SupportCardGrant
-	(*KickResult)(nil),                       // 84: v1.gakumas.KickResult
-	(*BanResult)(nil),                        // 85: v1.gakumas.BanResult
-	(*PasswordResult)(nil),                   // 86: v1.gakumas.PasswordResult
-	(*RenameResult)(nil),                     // 87: v1.gakumas.RenameResult
-	(*RentalChange)(nil),                     // 88: v1.gakumas.RentalChange
-	(*SeminarClearResult)(nil),               // 89: v1.gakumas.SeminarClearResult
-	(*SeminarResetResult)(nil),               // 90: v1.gakumas.SeminarResetResult
-	(*Backup)(nil),                           // 91: v1.gakumas.Backup
-	(*RestoreResult)(nil),                    // 92: v1.gakumas.RestoreResult
-	(*ArchiveExport)(nil),                    // 93: v1.gakumas.ArchiveExport
-	(*Maintenance)(nil),                      // 94: v1.gakumas.Maintenance
-	(*Manifest)(nil),                         // 95: v1.gakumas.Manifest
-	(*Status)(nil),                           // 96: v1.gakumas.Status
-	(*Dashboard)(nil),                        // 97: v1.gakumas.Dashboard
-	(*SessionPage)(nil),                      // 98: v1.gakumas.SessionPage
-	(*IdolCardPage)(nil),                     // 99: v1.gakumas.IdolCardPage
-	(*SupportCardPage)(nil),                  // 100: v1.gakumas.SupportCardPage
-	(*ItemPage)(nil),                         // 101: v1.gakumas.ItemPage
-	(*GiftPage)(nil),                         // 102: v1.gakumas.GiftPage
-	(*GashaDrawPage)(nil),                    // 103: v1.gakumas.GashaDrawPage
-	(*MemoryPage)(nil),                       // 104: v1.gakumas.MemoryPage
-	(*MemoryDetail)(nil),                     // 105: v1.gakumas.MemoryDetail
-	(*MemoryPhoto)(nil),                      // 106: v1.gakumas.MemoryPhoto
-	(*MeishiImage)(nil),                      // 107: v1.gakumas.MeishiImage
-	(*PlayerPvp)(nil),                        // 108: v1.gakumas.PlayerPvp
-	(*PlayerSeminar)(nil),                    // 109: v1.gakumas.PlayerSeminar
-	(*BackupList)(nil),                       // 110: v1.gakumas.BackupList
-	(*GashaStatList)(nil),                    // 111: v1.gakumas.GashaStatList
-	(*ProducePage)(nil),                      // 112: v1.gakumas.ProducePage
-	(*PvpRankingPage)(nil),                   // 113: v1.gakumas.PvpRankingPage
-	(*SeminarStatList)(nil),                  // 114: v1.gakumas.SeminarStatList
-	(*TowerRankingPage)(nil),                 // 115: v1.gakumas.TowerRankingPage
-	(*v1.GetGmConfigResponse)(nil),           // 116: v1.GetGmConfigResponse
-	(*v1.GmConfigDraft)(nil),                 // 117: v1.GmConfigDraft
-	(*v1.DiscardGmConfigDraftResponse)(nil),  // 118: v1.DiscardGmConfigDraftResponse
-	(*v1.ValidateGmConfigResponse)(nil),      // 119: v1.ValidateGmConfigResponse
-	(*v1.PublishGmConfigResponse)(nil),       // 120: v1.PublishGmConfigResponse
-	(*v1.ListGmConfigRevisionsResponse)(nil), // 121: v1.ListGmConfigRevisionsResponse
-	(*v1.GmConfigRevision)(nil),              // 122: v1.GmConfigRevision
+	(*ConfigRequest)(nil),                    // 32: v1.gakumas.ConfigRequest
+	(*SaveConfigDraftRequest)(nil),           // 33: v1.gakumas.SaveConfigDraftRequest
+	(*ValidateConfigRequest)(nil),            // 34: v1.gakumas.ValidateConfigRequest
+	(*PublishConfigRequest)(nil),             // 35: v1.gakumas.PublishConfigRequest
+	(*ConfigRevisionsRequest)(nil),           // 36: v1.gakumas.ConfigRevisionsRequest
+	(*ConfigRevisionRequest)(nil),            // 37: v1.gakumas.ConfigRevisionRequest
+	(*ListConfigDraftsResponse)(nil),         // 38: v1.gakumas.ListConfigDraftsResponse
+	(*OperationTarget)(nil),                  // 39: v1.gakumas.OperationTarget
+	(*ListPlayersResponse)(nil),              // 40: v1.gakumas.ListPlayersResponse
+	(*GetPlayerResponse)(nil),                // 41: v1.gakumas.GetPlayerResponse
+	(*ChangesTarget)(nil),                    // 42: v1.gakumas.ChangesTarget
+	(*ChangesResponse)(nil),                  // 43: v1.gakumas.ChangesResponse
+	(*GiftSendTarget)(nil),                   // 44: v1.gakumas.GiftSendTarget
+	(*GiftSendResponse)(nil),                 // 45: v1.gakumas.GiftSendResponse
+	(*GiftRevokeTarget)(nil),                 // 46: v1.gakumas.GiftRevokeTarget
+	(*GiftRevokeResponse)(nil),               // 47: v1.gakumas.GiftRevokeResponse
+	(*IdolCardGrantTarget)(nil),              // 48: v1.gakumas.IdolCardGrantTarget
+	(*IdolCardGrantResponse)(nil),            // 49: v1.gakumas.IdolCardGrantResponse
+	(*SupportCardGrantTarget)(nil),           // 50: v1.gakumas.SupportCardGrantTarget
+	(*SupportCardGrantResponse)(nil),         // 51: v1.gakumas.SupportCardGrantResponse
+	(*KickTarget)(nil),                       // 52: v1.gakumas.KickTarget
+	(*KickResponse)(nil),                     // 53: v1.gakumas.KickResponse
+	(*BanTarget)(nil),                        // 54: v1.gakumas.BanTarget
+	(*BanResponse)(nil),                      // 55: v1.gakumas.BanResponse
+	(*PasswordTarget)(nil),                   // 56: v1.gakumas.PasswordTarget
+	(*PasswordResponse)(nil),                 // 57: v1.gakumas.PasswordResponse
+	(*RenameTarget)(nil),                     // 58: v1.gakumas.RenameTarget
+	(*RenameResponse)(nil),                   // 59: v1.gakumas.RenameResponse
+	(*RentalTarget)(nil),                     // 60: v1.gakumas.RentalTarget
+	(*RentalResponse)(nil),                   // 61: v1.gakumas.RentalResponse
+	(*SeminarClearTarget)(nil),               // 62: v1.gakumas.SeminarClearTarget
+	(*SeminarClearResponse)(nil),             // 63: v1.gakumas.SeminarClearResponse
+	(*SeminarResetTarget)(nil),               // 64: v1.gakumas.SeminarResetTarget
+	(*SeminarResetResponse)(nil),             // 65: v1.gakumas.SeminarResetResponse
+	(*BackupTarget)(nil),                     // 66: v1.gakumas.BackupTarget
+	(*BackupResponse)(nil),                   // 67: v1.gakumas.BackupResponse
+	(*RestoreTarget)(nil),                    // 68: v1.gakumas.RestoreTarget
+	(*RestoreResponse)(nil),                  // 69: v1.gakumas.RestoreResponse
+	(*ArchiveExportTarget)(nil),              // 70: v1.gakumas.ArchiveExportTarget
+	(*ArchiveExportResponse)(nil),            // 71: v1.gakumas.ArchiveExportResponse
+	(*MaintenanceResponse)(nil),              // 72: v1.gakumas.MaintenanceResponse
+	nil,                                      // 73: v1.gakumas.SendGiftRequest.SummaryEntry
+	(*v1.GameReward)(nil),                    // 74: v1.GameReward
+	(*v1.GmConfigDomain)(nil),                // 75: v1.GmConfigDomain
+	(*Player)(nil),                           // 76: v1.gakumas.Player
+	(*PlayerCounts)(nil),                     // 77: v1.gakumas.PlayerCounts
+	(*v1.GmPlayerLink)(nil),                  // 78: v1.GmPlayerLink
+	(*Overview)(nil),                         // 79: v1.gakumas.Overview
+	(*LoginCounts)(nil),                      // 80: v1.gakumas.LoginCounts
+	(*ChangeList)(nil),                       // 81: v1.gakumas.ChangeList
+	(*v1.GmExecution)(nil),                   // 82: v1.GmExecution
+	(*GiftSendResult)(nil),                   // 83: v1.gakumas.GiftSendResult
+	(*GiftRevokeResult)(nil),                 // 84: v1.gakumas.GiftRevokeResult
+	(*IdolCardGrant)(nil),                    // 85: v1.gakumas.IdolCardGrant
+	(*SupportCardGrant)(nil),                 // 86: v1.gakumas.SupportCardGrant
+	(*KickResult)(nil),                       // 87: v1.gakumas.KickResult
+	(*BanResult)(nil),                        // 88: v1.gakumas.BanResult
+	(*PasswordResult)(nil),                   // 89: v1.gakumas.PasswordResult
+	(*RenameResult)(nil),                     // 90: v1.gakumas.RenameResult
+	(*RentalChange)(nil),                     // 91: v1.gakumas.RentalChange
+	(*SeminarClearResult)(nil),               // 92: v1.gakumas.SeminarClearResult
+	(*SeminarResetResult)(nil),               // 93: v1.gakumas.SeminarResetResult
+	(*Backup)(nil),                           // 94: v1.gakumas.Backup
+	(*RestoreResult)(nil),                    // 95: v1.gakumas.RestoreResult
+	(*ArchiveExport)(nil),                    // 96: v1.gakumas.ArchiveExport
+	(*Maintenance)(nil),                      // 97: v1.gakumas.Maintenance
+	(*Manifest)(nil),                         // 98: v1.gakumas.Manifest
+	(*Status)(nil),                           // 99: v1.gakumas.Status
+	(*Dashboard)(nil),                        // 100: v1.gakumas.Dashboard
+	(*SessionPage)(nil),                      // 101: v1.gakumas.SessionPage
+	(*IdolCardPage)(nil),                     // 102: v1.gakumas.IdolCardPage
+	(*SupportCardPage)(nil),                  // 103: v1.gakumas.SupportCardPage
+	(*ItemPage)(nil),                         // 104: v1.gakumas.ItemPage
+	(*GiftPage)(nil),                         // 105: v1.gakumas.GiftPage
+	(*GashaDrawPage)(nil),                    // 106: v1.gakumas.GashaDrawPage
+	(*MemoryPage)(nil),                       // 107: v1.gakumas.MemoryPage
+	(*MemoryDetail)(nil),                     // 108: v1.gakumas.MemoryDetail
+	(*MemoryPhoto)(nil),                      // 109: v1.gakumas.MemoryPhoto
+	(*MeishiImage)(nil),                      // 110: v1.gakumas.MeishiImage
+	(*PlayerPvp)(nil),                        // 111: v1.gakumas.PlayerPvp
+	(*PlayerSeminar)(nil),                    // 112: v1.gakumas.PlayerSeminar
+	(*BackupList)(nil),                       // 113: v1.gakumas.BackupList
+	(*GashaStatList)(nil),                    // 114: v1.gakumas.GashaStatList
+	(*ProducePage)(nil),                      // 115: v1.gakumas.ProducePage
+	(*PvpRankingPage)(nil),                   // 116: v1.gakumas.PvpRankingPage
+	(*SeminarStatList)(nil),                  // 117: v1.gakumas.SeminarStatList
+	(*TowerRankingPage)(nil),                 // 118: v1.gakumas.TowerRankingPage
+	(*v1.GetGmConfigResponse)(nil),           // 119: v1.GetGmConfigResponse
+	(*v1.GmConfigDraft)(nil),                 // 120: v1.GmConfigDraft
+	(*v1.DiscardGmConfigDraftResponse)(nil),  // 121: v1.DiscardGmConfigDraftResponse
+	(*v1.ValidateGmConfigResponse)(nil),      // 122: v1.ValidateGmConfigResponse
+	(*v1.PublishGmConfigResponse)(nil),       // 123: v1.PublishGmConfigResponse
+	(*v1.ListGmConfigRevisionsResponse)(nil), // 124: v1.ListGmConfigRevisionsResponse
+	(*v1.GmConfigRevision)(nil),              // 125: v1.GmConfigRevision
 }
 var file_v1_gakumas_gm_proto_depIdxs = []int32{
-	72,  // 0: v1.gakumas.SendGiftRequest.rewards:type_name -> v1.GameReward
-	71,  // 1: v1.gakumas.SendGiftRequest.summary:type_name -> v1.gakumas.SendGiftRequest.SummaryEntry
-	73,  // 2: v1.gakumas.ListPlayersResponse.items:type_name -> v1.gakumas.Player
-	74,  // 3: v1.gakumas.ListPlayersResponse.summary:type_name -> v1.gakumas.PlayerCounts
-	75,  // 4: v1.gakumas.ListPlayersResponse.links:type_name -> v1.GmPlayerLink
-	73,  // 5: v1.gakumas.GetPlayerResponse.player:type_name -> v1.gakumas.Player
-	76,  // 6: v1.gakumas.GetPlayerResponse.overview:type_name -> v1.gakumas.Overview
-	77,  // 7: v1.gakumas.GetPlayerResponse.logins:type_name -> v1.gakumas.LoginCounts
-	75,  // 8: v1.gakumas.GetPlayerResponse.link:type_name -> v1.GmPlayerLink
-	37,  // 9: v1.gakumas.ChangesTarget.target:type_name -> v1.gakumas.OperationTarget
-	78,  // 10: v1.gakumas.ChangesTarget.data:type_name -> v1.gakumas.ChangeList
-	79,  // 11: v1.gakumas.ChangesResponse.execution:type_name -> v1.GmExecution
-	40,  // 12: v1.gakumas.ChangesResponse.results:type_name -> v1.gakumas.ChangesTarget
-	37,  // 13: v1.gakumas.GiftSendTarget.target:type_name -> v1.gakumas.OperationTarget
-	80,  // 14: v1.gakumas.GiftSendTarget.data:type_name -> v1.gakumas.GiftSendResult
-	79,  // 15: v1.gakumas.GiftSendResponse.execution:type_name -> v1.GmExecution
-	42,  // 16: v1.gakumas.GiftSendResponse.results:type_name -> v1.gakumas.GiftSendTarget
-	37,  // 17: v1.gakumas.GiftRevokeTarget.target:type_name -> v1.gakumas.OperationTarget
-	81,  // 18: v1.gakumas.GiftRevokeTarget.data:type_name -> v1.gakumas.GiftRevokeResult
-	79,  // 19: v1.gakumas.GiftRevokeResponse.execution:type_name -> v1.GmExecution
-	44,  // 20: v1.gakumas.GiftRevokeResponse.results:type_name -> v1.gakumas.GiftRevokeTarget
-	37,  // 21: v1.gakumas.IdolCardGrantTarget.target:type_name -> v1.gakumas.OperationTarget
-	82,  // 22: v1.gakumas.IdolCardGrantTarget.data:type_name -> v1.gakumas.IdolCardGrant
-	79,  // 23: v1.gakumas.IdolCardGrantResponse.execution:type_name -> v1.GmExecution
-	46,  // 24: v1.gakumas.IdolCardGrantResponse.results:type_name -> v1.gakumas.IdolCardGrantTarget
-	37,  // 25: v1.gakumas.SupportCardGrantTarget.target:type_name -> v1.gakumas.OperationTarget
-	83,  // 26: v1.gakumas.SupportCardGrantTarget.data:type_name -> v1.gakumas.SupportCardGrant
-	79,  // 27: v1.gakumas.SupportCardGrantResponse.execution:type_name -> v1.GmExecution
-	48,  // 28: v1.gakumas.SupportCardGrantResponse.results:type_name -> v1.gakumas.SupportCardGrantTarget
-	37,  // 29: v1.gakumas.KickTarget.target:type_name -> v1.gakumas.OperationTarget
-	84,  // 30: v1.gakumas.KickTarget.data:type_name -> v1.gakumas.KickResult
-	79,  // 31: v1.gakumas.KickResponse.execution:type_name -> v1.GmExecution
-	50,  // 32: v1.gakumas.KickResponse.results:type_name -> v1.gakumas.KickTarget
-	37,  // 33: v1.gakumas.BanTarget.target:type_name -> v1.gakumas.OperationTarget
-	85,  // 34: v1.gakumas.BanTarget.data:type_name -> v1.gakumas.BanResult
-	79,  // 35: v1.gakumas.BanResponse.execution:type_name -> v1.GmExecution
-	52,  // 36: v1.gakumas.BanResponse.results:type_name -> v1.gakumas.BanTarget
-	37,  // 37: v1.gakumas.PasswordTarget.target:type_name -> v1.gakumas.OperationTarget
-	86,  // 38: v1.gakumas.PasswordTarget.data:type_name -> v1.gakumas.PasswordResult
-	79,  // 39: v1.gakumas.PasswordResponse.execution:type_name -> v1.GmExecution
-	54,  // 40: v1.gakumas.PasswordResponse.results:type_name -> v1.gakumas.PasswordTarget
-	37,  // 41: v1.gakumas.RenameTarget.target:type_name -> v1.gakumas.OperationTarget
-	87,  // 42: v1.gakumas.RenameTarget.data:type_name -> v1.gakumas.RenameResult
-	79,  // 43: v1.gakumas.RenameResponse.execution:type_name -> v1.GmExecution
-	56,  // 44: v1.gakumas.RenameResponse.results:type_name -> v1.gakumas.RenameTarget
-	37,  // 45: v1.gakumas.RentalTarget.target:type_name -> v1.gakumas.OperationTarget
-	88,  // 46: v1.gakumas.RentalTarget.data:type_name -> v1.gakumas.RentalChange
-	79,  // 47: v1.gakumas.RentalResponse.execution:type_name -> v1.GmExecution
-	58,  // 48: v1.gakumas.RentalResponse.results:type_name -> v1.gakumas.RentalTarget
-	37,  // 49: v1.gakumas.SeminarClearTarget.target:type_name -> v1.gakumas.OperationTarget
-	89,  // 50: v1.gakumas.SeminarClearTarget.data:type_name -> v1.gakumas.SeminarClearResult
-	79,  // 51: v1.gakumas.SeminarClearResponse.execution:type_name -> v1.GmExecution
-	60,  // 52: v1.gakumas.SeminarClearResponse.results:type_name -> v1.gakumas.SeminarClearTarget
-	37,  // 53: v1.gakumas.SeminarResetTarget.target:type_name -> v1.gakumas.OperationTarget
-	90,  // 54: v1.gakumas.SeminarResetTarget.data:type_name -> v1.gakumas.SeminarResetResult
-	79,  // 55: v1.gakumas.SeminarResetResponse.execution:type_name -> v1.GmExecution
-	62,  // 56: v1.gakumas.SeminarResetResponse.results:type_name -> v1.gakumas.SeminarResetTarget
-	37,  // 57: v1.gakumas.BackupTarget.target:type_name -> v1.gakumas.OperationTarget
-	91,  // 58: v1.gakumas.BackupTarget.data:type_name -> v1.gakumas.Backup
-	79,  // 59: v1.gakumas.BackupResponse.execution:type_name -> v1.GmExecution
-	64,  // 60: v1.gakumas.BackupResponse.results:type_name -> v1.gakumas.BackupTarget
-	37,  // 61: v1.gakumas.RestoreTarget.target:type_name -> v1.gakumas.OperationTarget
-	92,  // 62: v1.gakumas.RestoreTarget.data:type_name -> v1.gakumas.RestoreResult
-	79,  // 63: v1.gakumas.RestoreResponse.execution:type_name -> v1.GmExecution
-	66,  // 64: v1.gakumas.RestoreResponse.results:type_name -> v1.gakumas.RestoreTarget
-	37,  // 65: v1.gakumas.ArchiveExportTarget.target:type_name -> v1.gakumas.OperationTarget
-	93,  // 66: v1.gakumas.ArchiveExportTarget.data:type_name -> v1.gakumas.ArchiveExport
-	79,  // 67: v1.gakumas.ArchiveExportResponse.execution:type_name -> v1.GmExecution
-	68,  // 68: v1.gakumas.ArchiveExportResponse.results:type_name -> v1.gakumas.ArchiveExportTarget
-	79,  // 69: v1.gakumas.MaintenanceResponse.execution:type_name -> v1.GmExecution
-	94,  // 70: v1.gakumas.MaintenanceResponse.data:type_name -> v1.gakumas.Maintenance
-	0,   // 71: v1.gakumas.GakumasGMService.GetManifest:input_type -> v1.gakumas.ServerRequest
-	0,   // 72: v1.gakumas.GakumasGMService.GetStatus:input_type -> v1.gakumas.ServerRequest
-	3,   // 73: v1.gakumas.GakumasGMService.GetDashboard:input_type -> v1.gakumas.GetDashboardRequest
-	4,   // 74: v1.gakumas.GakumasGMService.ListPlayers:input_type -> v1.gakumas.ListPlayersRequest
-	1,   // 75: v1.gakumas.GakumasGMService.GetPlayer:input_type -> v1.gakumas.PlayerRequest
-	2,   // 76: v1.gakumas.GakumasGMService.ListPlayerSessions:input_type -> v1.gakumas.PageRequest
-	5,   // 77: v1.gakumas.GakumasGMService.ListPlayerIdolCards:input_type -> v1.gakumas.ListIdolCardsRequest
-	6,   // 78: v1.gakumas.GakumasGMService.ListPlayerSupportCards:input_type -> v1.gakumas.ListSupportCardsRequest
-	7,   // 79: v1.gakumas.GakumasGMService.ListPlayerItems:input_type -> v1.gakumas.ListItemsRequest
-	8,   // 80: v1.gakumas.GakumasGMService.ListPlayerGifts:input_type -> v1.gakumas.ListGiftsRequest
-	9,   // 81: v1.gakumas.GakumasGMService.ListPlayerGashaDraws:input_type -> v1.gakumas.ListGashaDrawsRequest
-	10,  // 82: v1.gakumas.GakumasGMService.ListPlayerMemories:input_type -> v1.gakumas.ListMemoriesRequest
-	23,  // 83: v1.gakumas.GakumasGMService.GetPlayerMemory:input_type -> v1.gakumas.PlayerMemoryRequest
-	24,  // 84: v1.gakumas.GakumasGMService.GetMemoryPhoto:input_type -> v1.gakumas.MemoryPhotoRequest
-	1,   // 85: v1.gakumas.GakumasGMService.GetPlayerMeishiImage:input_type -> v1.gakumas.PlayerRequest
-	1,   // 86: v1.gakumas.GakumasGMService.GetPlayerPvp:input_type -> v1.gakumas.PlayerRequest
-	1,   // 87: v1.gakumas.GakumasGMService.GetPlayerSeminar:input_type -> v1.gakumas.PlayerRequest
-	1,   // 88: v1.gakumas.GakumasGMService.ListPlayerBackups:input_type -> v1.gakumas.PlayerRequest
-	0,   // 89: v1.gakumas.GakumasGMService.GetGashaStats:input_type -> v1.gakumas.ServerRequest
-	11,  // 90: v1.gakumas.GakumasGMService.ListProduces:input_type -> v1.gakumas.ListProducesRequest
-	12,  // 91: v1.gakumas.GakumasGMService.GetPvpRanking:input_type -> v1.gakumas.RankingRequest
-	0,   // 92: v1.gakumas.GakumasGMService.GetSeminarStats:input_type -> v1.gakumas.ServerRequest
-	13,  // 93: v1.gakumas.GakumasGMService.GetTowerRanking:input_type -> v1.gakumas.TowerRankingRequest
-	15,  // 94: v1.gakumas.GakumasGMService.SendGift:input_type -> v1.gakumas.SendGiftRequest
-	16,  // 95: v1.gakumas.GakumasGMService.RevokeGifts:input_type -> v1.gakumas.RevokeGiftsRequest
-	17,  // 96: v1.gakumas.GakumasGMService.GrantAllIdolCards:input_type -> v1.gakumas.GrantAllRequest
-	17,  // 97: v1.gakumas.GakumasGMService.GrantAllSupportCards:input_type -> v1.gakumas.GrantAllRequest
-	18,  // 98: v1.gakumas.GakumasGMService.AdjustItem:input_type -> v1.gakumas.AdjustItemRequest
-	19,  // 99: v1.gakumas.GakumasGMService.AdjustJewel:input_type -> v1.gakumas.AdjustJewelRequest
-	14,  // 100: v1.gakumas.GakumasGMService.RefillActionPoint:input_type -> v1.gakumas.PlayersOperationRequest
-	20,  // 101: v1.gakumas.GakumasGMService.AddExp:input_type -> v1.gakumas.AddExpRequest
-	14,  // 102: v1.gakumas.GakumasGMService.KickPlayers:input_type -> v1.gakumas.PlayersOperationRequest
-	21,  // 103: v1.gakumas.GakumasGMService.BanPlayers:input_type -> v1.gakumas.BanPlayersRequest
-	14,  // 104: v1.gakumas.GakumasGMService.UnbanPlayers:input_type -> v1.gakumas.PlayersOperationRequest
-	22,  // 105: v1.gakumas.GakumasGMService.ResetPassword:input_type -> v1.gakumas.ResetPasswordRequest
-	27,  // 106: v1.gakumas.GakumasGMService.RenamePlayer:input_type -> v1.gakumas.RenamePlayerRequest
-	25,  // 107: v1.gakumas.GakumasGMService.SetRentalMemory:input_type -> v1.gakumas.SetRentalMemoryRequest
-	26,  // 108: v1.gakumas.GakumasGMService.SetRentalSupportCard:input_type -> v1.gakumas.SetRentalSupportCardRequest
-	28,  // 109: v1.gakumas.GakumasGMService.SetPvpRate:input_type -> v1.gakumas.SetPvpRateRequest
-	14,  // 110: v1.gakumas.GakumasGMService.ResetPvpDaily:input_type -> v1.gakumas.PlayersOperationRequest
-	14,  // 111: v1.gakumas.GakumasGMService.ClearSeminar:input_type -> v1.gakumas.PlayersOperationRequest
-	14,  // 112: v1.gakumas.GakumasGMService.ResetSeminar:input_type -> v1.gakumas.PlayersOperationRequest
-	29,  // 113: v1.gakumas.GakumasGMService.BackupArchive:input_type -> v1.gakumas.BackupArchiveRequest
-	14,  // 114: v1.gakumas.GakumasGMService.ExportArchive:input_type -> v1.gakumas.PlayersOperationRequest
-	30,  // 115: v1.gakumas.GakumasGMService.RestoreArchive:input_type -> v1.gakumas.RestoreArchiveRequest
-	31,  // 116: v1.gakumas.GakumasGMService.SetMaintenance:input_type -> v1.gakumas.SetMaintenanceRequest
-	0,   // 117: v1.gakumas.GakumasGMService.GetGashaConfig:input_type -> v1.gakumas.ServerRequest
-	32,  // 118: v1.gakumas.GakumasGMService.SaveGashaConfigDraft:input_type -> v1.gakumas.SaveConfigDraftRequest
-	0,   // 119: v1.gakumas.GakumasGMService.DiscardGashaConfigDraft:input_type -> v1.gakumas.ServerRequest
-	33,  // 120: v1.gakumas.GakumasGMService.ValidateGashaConfig:input_type -> v1.gakumas.ValidateConfigRequest
-	34,  // 121: v1.gakumas.GakumasGMService.PublishGashaConfig:input_type -> v1.gakumas.PublishConfigRequest
-	35,  // 122: v1.gakumas.GakumasGMService.ListGashaConfigRevisions:input_type -> v1.gakumas.ConfigRevisionsRequest
-	36,  // 123: v1.gakumas.GakumasGMService.GetGashaConfigRevision:input_type -> v1.gakumas.ConfigRevisionRequest
-	0,   // 124: v1.gakumas.GakumasGMService.GetNoticeConfig:input_type -> v1.gakumas.ServerRequest
-	32,  // 125: v1.gakumas.GakumasGMService.SaveNoticeConfigDraft:input_type -> v1.gakumas.SaveConfigDraftRequest
-	0,   // 126: v1.gakumas.GakumasGMService.DiscardNoticeConfigDraft:input_type -> v1.gakumas.ServerRequest
-	33,  // 127: v1.gakumas.GakumasGMService.ValidateNoticeConfig:input_type -> v1.gakumas.ValidateConfigRequest
-	34,  // 128: v1.gakumas.GakumasGMService.PublishNoticeConfig:input_type -> v1.gakumas.PublishConfigRequest
-	35,  // 129: v1.gakumas.GakumasGMService.ListNoticeConfigRevisions:input_type -> v1.gakumas.ConfigRevisionsRequest
-	36,  // 130: v1.gakumas.GakumasGMService.GetNoticeConfigRevision:input_type -> v1.gakumas.ConfigRevisionRequest
-	0,   // 131: v1.gakumas.GakumasGMService.GetPvpRateConfig:input_type -> v1.gakumas.ServerRequest
-	0,   // 132: v1.gakumas.GakumasGMService.GetHomeConfig:input_type -> v1.gakumas.ServerRequest
-	0,   // 133: v1.gakumas.GakumasGMService.GetResearchConfig:input_type -> v1.gakumas.ServerRequest
-	0,   // 134: v1.gakumas.GakumasGMService.GetStoryEventConfig:input_type -> v1.gakumas.ServerRequest
-	0,   // 135: v1.gakumas.GakumasGMService.GetLoginBonusConfig:input_type -> v1.gakumas.ServerRequest
-	95,  // 136: v1.gakumas.GakumasGMService.GetManifest:output_type -> v1.gakumas.Manifest
-	96,  // 137: v1.gakumas.GakumasGMService.GetStatus:output_type -> v1.gakumas.Status
-	97,  // 138: v1.gakumas.GakumasGMService.GetDashboard:output_type -> v1.gakumas.Dashboard
-	38,  // 139: v1.gakumas.GakumasGMService.ListPlayers:output_type -> v1.gakumas.ListPlayersResponse
-	39,  // 140: v1.gakumas.GakumasGMService.GetPlayer:output_type -> v1.gakumas.GetPlayerResponse
-	98,  // 141: v1.gakumas.GakumasGMService.ListPlayerSessions:output_type -> v1.gakumas.SessionPage
-	99,  // 142: v1.gakumas.GakumasGMService.ListPlayerIdolCards:output_type -> v1.gakumas.IdolCardPage
-	100, // 143: v1.gakumas.GakumasGMService.ListPlayerSupportCards:output_type -> v1.gakumas.SupportCardPage
-	101, // 144: v1.gakumas.GakumasGMService.ListPlayerItems:output_type -> v1.gakumas.ItemPage
-	102, // 145: v1.gakumas.GakumasGMService.ListPlayerGifts:output_type -> v1.gakumas.GiftPage
-	103, // 146: v1.gakumas.GakumasGMService.ListPlayerGashaDraws:output_type -> v1.gakumas.GashaDrawPage
-	104, // 147: v1.gakumas.GakumasGMService.ListPlayerMemories:output_type -> v1.gakumas.MemoryPage
-	105, // 148: v1.gakumas.GakumasGMService.GetPlayerMemory:output_type -> v1.gakumas.MemoryDetail
-	106, // 149: v1.gakumas.GakumasGMService.GetMemoryPhoto:output_type -> v1.gakumas.MemoryPhoto
-	107, // 150: v1.gakumas.GakumasGMService.GetPlayerMeishiImage:output_type -> v1.gakumas.MeishiImage
-	108, // 151: v1.gakumas.GakumasGMService.GetPlayerPvp:output_type -> v1.gakumas.PlayerPvp
-	109, // 152: v1.gakumas.GakumasGMService.GetPlayerSeminar:output_type -> v1.gakumas.PlayerSeminar
-	110, // 153: v1.gakumas.GakumasGMService.ListPlayerBackups:output_type -> v1.gakumas.BackupList
-	111, // 154: v1.gakumas.GakumasGMService.GetGashaStats:output_type -> v1.gakumas.GashaStatList
-	112, // 155: v1.gakumas.GakumasGMService.ListProduces:output_type -> v1.gakumas.ProducePage
-	113, // 156: v1.gakumas.GakumasGMService.GetPvpRanking:output_type -> v1.gakumas.PvpRankingPage
-	114, // 157: v1.gakumas.GakumasGMService.GetSeminarStats:output_type -> v1.gakumas.SeminarStatList
-	115, // 158: v1.gakumas.GakumasGMService.GetTowerRanking:output_type -> v1.gakumas.TowerRankingPage
-	43,  // 159: v1.gakumas.GakumasGMService.SendGift:output_type -> v1.gakumas.GiftSendResponse
-	45,  // 160: v1.gakumas.GakumasGMService.RevokeGifts:output_type -> v1.gakumas.GiftRevokeResponse
-	47,  // 161: v1.gakumas.GakumasGMService.GrantAllIdolCards:output_type -> v1.gakumas.IdolCardGrantResponse
-	49,  // 162: v1.gakumas.GakumasGMService.GrantAllSupportCards:output_type -> v1.gakumas.SupportCardGrantResponse
-	41,  // 163: v1.gakumas.GakumasGMService.AdjustItem:output_type -> v1.gakumas.ChangesResponse
-	41,  // 164: v1.gakumas.GakumasGMService.AdjustJewel:output_type -> v1.gakumas.ChangesResponse
-	41,  // 165: v1.gakumas.GakumasGMService.RefillActionPoint:output_type -> v1.gakumas.ChangesResponse
-	41,  // 166: v1.gakumas.GakumasGMService.AddExp:output_type -> v1.gakumas.ChangesResponse
-	51,  // 167: v1.gakumas.GakumasGMService.KickPlayers:output_type -> v1.gakumas.KickResponse
-	53,  // 168: v1.gakumas.GakumasGMService.BanPlayers:output_type -> v1.gakumas.BanResponse
-	53,  // 169: v1.gakumas.GakumasGMService.UnbanPlayers:output_type -> v1.gakumas.BanResponse
-	55,  // 170: v1.gakumas.GakumasGMService.ResetPassword:output_type -> v1.gakumas.PasswordResponse
-	57,  // 171: v1.gakumas.GakumasGMService.RenamePlayer:output_type -> v1.gakumas.RenameResponse
-	59,  // 172: v1.gakumas.GakumasGMService.SetRentalMemory:output_type -> v1.gakumas.RentalResponse
-	59,  // 173: v1.gakumas.GakumasGMService.SetRentalSupportCard:output_type -> v1.gakumas.RentalResponse
-	41,  // 174: v1.gakumas.GakumasGMService.SetPvpRate:output_type -> v1.gakumas.ChangesResponse
-	41,  // 175: v1.gakumas.GakumasGMService.ResetPvpDaily:output_type -> v1.gakumas.ChangesResponse
-	61,  // 176: v1.gakumas.GakumasGMService.ClearSeminar:output_type -> v1.gakumas.SeminarClearResponse
-	63,  // 177: v1.gakumas.GakumasGMService.ResetSeminar:output_type -> v1.gakumas.SeminarResetResponse
-	65,  // 178: v1.gakumas.GakumasGMService.BackupArchive:output_type -> v1.gakumas.BackupResponse
-	69,  // 179: v1.gakumas.GakumasGMService.ExportArchive:output_type -> v1.gakumas.ArchiveExportResponse
-	67,  // 180: v1.gakumas.GakumasGMService.RestoreArchive:output_type -> v1.gakumas.RestoreResponse
-	70,  // 181: v1.gakumas.GakumasGMService.SetMaintenance:output_type -> v1.gakumas.MaintenanceResponse
-	116, // 182: v1.gakumas.GakumasGMService.GetGashaConfig:output_type -> v1.GetGmConfigResponse
-	117, // 183: v1.gakumas.GakumasGMService.SaveGashaConfigDraft:output_type -> v1.GmConfigDraft
-	118, // 184: v1.gakumas.GakumasGMService.DiscardGashaConfigDraft:output_type -> v1.DiscardGmConfigDraftResponse
-	119, // 185: v1.gakumas.GakumasGMService.ValidateGashaConfig:output_type -> v1.ValidateGmConfigResponse
-	120, // 186: v1.gakumas.GakumasGMService.PublishGashaConfig:output_type -> v1.PublishGmConfigResponse
-	121, // 187: v1.gakumas.GakumasGMService.ListGashaConfigRevisions:output_type -> v1.ListGmConfigRevisionsResponse
-	122, // 188: v1.gakumas.GakumasGMService.GetGashaConfigRevision:output_type -> v1.GmConfigRevision
-	116, // 189: v1.gakumas.GakumasGMService.GetNoticeConfig:output_type -> v1.GetGmConfigResponse
-	117, // 190: v1.gakumas.GakumasGMService.SaveNoticeConfigDraft:output_type -> v1.GmConfigDraft
-	118, // 191: v1.gakumas.GakumasGMService.DiscardNoticeConfigDraft:output_type -> v1.DiscardGmConfigDraftResponse
-	119, // 192: v1.gakumas.GakumasGMService.ValidateNoticeConfig:output_type -> v1.ValidateGmConfigResponse
-	120, // 193: v1.gakumas.GakumasGMService.PublishNoticeConfig:output_type -> v1.PublishGmConfigResponse
-	121, // 194: v1.gakumas.GakumasGMService.ListNoticeConfigRevisions:output_type -> v1.ListGmConfigRevisionsResponse
-	122, // 195: v1.gakumas.GakumasGMService.GetNoticeConfigRevision:output_type -> v1.GmConfigRevision
-	116, // 196: v1.gakumas.GakumasGMService.GetPvpRateConfig:output_type -> v1.GetGmConfigResponse
-	116, // 197: v1.gakumas.GakumasGMService.GetHomeConfig:output_type -> v1.GetGmConfigResponse
-	116, // 198: v1.gakumas.GakumasGMService.GetResearchConfig:output_type -> v1.GetGmConfigResponse
-	116, // 199: v1.gakumas.GakumasGMService.GetStoryEventConfig:output_type -> v1.GetGmConfigResponse
-	116, // 200: v1.gakumas.GakumasGMService.GetLoginBonusConfig:output_type -> v1.GetGmConfigResponse
-	136, // [136:201] is the sub-list for method output_type
-	71,  // [71:136] is the sub-list for method input_type
-	71,  // [71:71] is the sub-list for extension type_name
-	71,  // [71:71] is the sub-list for extension extendee
-	0,   // [0:71] is the sub-list for field type_name
+	74,  // 0: v1.gakumas.SendGiftRequest.rewards:type_name -> v1.GameReward
+	73,  // 1: v1.gakumas.SendGiftRequest.summary:type_name -> v1.gakumas.SendGiftRequest.SummaryEntry
+	75,  // 2: v1.gakumas.ListConfigDraftsResponse.items:type_name -> v1.GmConfigDomain
+	76,  // 3: v1.gakumas.ListPlayersResponse.items:type_name -> v1.gakumas.Player
+	77,  // 4: v1.gakumas.ListPlayersResponse.summary:type_name -> v1.gakumas.PlayerCounts
+	78,  // 5: v1.gakumas.ListPlayersResponse.links:type_name -> v1.GmPlayerLink
+	76,  // 6: v1.gakumas.GetPlayerResponse.player:type_name -> v1.gakumas.Player
+	79,  // 7: v1.gakumas.GetPlayerResponse.overview:type_name -> v1.gakumas.Overview
+	80,  // 8: v1.gakumas.GetPlayerResponse.logins:type_name -> v1.gakumas.LoginCounts
+	78,  // 9: v1.gakumas.GetPlayerResponse.link:type_name -> v1.GmPlayerLink
+	39,  // 10: v1.gakumas.ChangesTarget.target:type_name -> v1.gakumas.OperationTarget
+	81,  // 11: v1.gakumas.ChangesTarget.data:type_name -> v1.gakumas.ChangeList
+	82,  // 12: v1.gakumas.ChangesResponse.execution:type_name -> v1.GmExecution
+	42,  // 13: v1.gakumas.ChangesResponse.results:type_name -> v1.gakumas.ChangesTarget
+	39,  // 14: v1.gakumas.GiftSendTarget.target:type_name -> v1.gakumas.OperationTarget
+	83,  // 15: v1.gakumas.GiftSendTarget.data:type_name -> v1.gakumas.GiftSendResult
+	82,  // 16: v1.gakumas.GiftSendResponse.execution:type_name -> v1.GmExecution
+	44,  // 17: v1.gakumas.GiftSendResponse.results:type_name -> v1.gakumas.GiftSendTarget
+	39,  // 18: v1.gakumas.GiftRevokeTarget.target:type_name -> v1.gakumas.OperationTarget
+	84,  // 19: v1.gakumas.GiftRevokeTarget.data:type_name -> v1.gakumas.GiftRevokeResult
+	82,  // 20: v1.gakumas.GiftRevokeResponse.execution:type_name -> v1.GmExecution
+	46,  // 21: v1.gakumas.GiftRevokeResponse.results:type_name -> v1.gakumas.GiftRevokeTarget
+	39,  // 22: v1.gakumas.IdolCardGrantTarget.target:type_name -> v1.gakumas.OperationTarget
+	85,  // 23: v1.gakumas.IdolCardGrantTarget.data:type_name -> v1.gakumas.IdolCardGrant
+	82,  // 24: v1.gakumas.IdolCardGrantResponse.execution:type_name -> v1.GmExecution
+	48,  // 25: v1.gakumas.IdolCardGrantResponse.results:type_name -> v1.gakumas.IdolCardGrantTarget
+	39,  // 26: v1.gakumas.SupportCardGrantTarget.target:type_name -> v1.gakumas.OperationTarget
+	86,  // 27: v1.gakumas.SupportCardGrantTarget.data:type_name -> v1.gakumas.SupportCardGrant
+	82,  // 28: v1.gakumas.SupportCardGrantResponse.execution:type_name -> v1.GmExecution
+	50,  // 29: v1.gakumas.SupportCardGrantResponse.results:type_name -> v1.gakumas.SupportCardGrantTarget
+	39,  // 30: v1.gakumas.KickTarget.target:type_name -> v1.gakumas.OperationTarget
+	87,  // 31: v1.gakumas.KickTarget.data:type_name -> v1.gakumas.KickResult
+	82,  // 32: v1.gakumas.KickResponse.execution:type_name -> v1.GmExecution
+	52,  // 33: v1.gakumas.KickResponse.results:type_name -> v1.gakumas.KickTarget
+	39,  // 34: v1.gakumas.BanTarget.target:type_name -> v1.gakumas.OperationTarget
+	88,  // 35: v1.gakumas.BanTarget.data:type_name -> v1.gakumas.BanResult
+	82,  // 36: v1.gakumas.BanResponse.execution:type_name -> v1.GmExecution
+	54,  // 37: v1.gakumas.BanResponse.results:type_name -> v1.gakumas.BanTarget
+	39,  // 38: v1.gakumas.PasswordTarget.target:type_name -> v1.gakumas.OperationTarget
+	89,  // 39: v1.gakumas.PasswordTarget.data:type_name -> v1.gakumas.PasswordResult
+	82,  // 40: v1.gakumas.PasswordResponse.execution:type_name -> v1.GmExecution
+	56,  // 41: v1.gakumas.PasswordResponse.results:type_name -> v1.gakumas.PasswordTarget
+	39,  // 42: v1.gakumas.RenameTarget.target:type_name -> v1.gakumas.OperationTarget
+	90,  // 43: v1.gakumas.RenameTarget.data:type_name -> v1.gakumas.RenameResult
+	82,  // 44: v1.gakumas.RenameResponse.execution:type_name -> v1.GmExecution
+	58,  // 45: v1.gakumas.RenameResponse.results:type_name -> v1.gakumas.RenameTarget
+	39,  // 46: v1.gakumas.RentalTarget.target:type_name -> v1.gakumas.OperationTarget
+	91,  // 47: v1.gakumas.RentalTarget.data:type_name -> v1.gakumas.RentalChange
+	82,  // 48: v1.gakumas.RentalResponse.execution:type_name -> v1.GmExecution
+	60,  // 49: v1.gakumas.RentalResponse.results:type_name -> v1.gakumas.RentalTarget
+	39,  // 50: v1.gakumas.SeminarClearTarget.target:type_name -> v1.gakumas.OperationTarget
+	92,  // 51: v1.gakumas.SeminarClearTarget.data:type_name -> v1.gakumas.SeminarClearResult
+	82,  // 52: v1.gakumas.SeminarClearResponse.execution:type_name -> v1.GmExecution
+	62,  // 53: v1.gakumas.SeminarClearResponse.results:type_name -> v1.gakumas.SeminarClearTarget
+	39,  // 54: v1.gakumas.SeminarResetTarget.target:type_name -> v1.gakumas.OperationTarget
+	93,  // 55: v1.gakumas.SeminarResetTarget.data:type_name -> v1.gakumas.SeminarResetResult
+	82,  // 56: v1.gakumas.SeminarResetResponse.execution:type_name -> v1.GmExecution
+	64,  // 57: v1.gakumas.SeminarResetResponse.results:type_name -> v1.gakumas.SeminarResetTarget
+	39,  // 58: v1.gakumas.BackupTarget.target:type_name -> v1.gakumas.OperationTarget
+	94,  // 59: v1.gakumas.BackupTarget.data:type_name -> v1.gakumas.Backup
+	82,  // 60: v1.gakumas.BackupResponse.execution:type_name -> v1.GmExecution
+	66,  // 61: v1.gakumas.BackupResponse.results:type_name -> v1.gakumas.BackupTarget
+	39,  // 62: v1.gakumas.RestoreTarget.target:type_name -> v1.gakumas.OperationTarget
+	95,  // 63: v1.gakumas.RestoreTarget.data:type_name -> v1.gakumas.RestoreResult
+	82,  // 64: v1.gakumas.RestoreResponse.execution:type_name -> v1.GmExecution
+	68,  // 65: v1.gakumas.RestoreResponse.results:type_name -> v1.gakumas.RestoreTarget
+	39,  // 66: v1.gakumas.ArchiveExportTarget.target:type_name -> v1.gakumas.OperationTarget
+	96,  // 67: v1.gakumas.ArchiveExportTarget.data:type_name -> v1.gakumas.ArchiveExport
+	82,  // 68: v1.gakumas.ArchiveExportResponse.execution:type_name -> v1.GmExecution
+	70,  // 69: v1.gakumas.ArchiveExportResponse.results:type_name -> v1.gakumas.ArchiveExportTarget
+	82,  // 70: v1.gakumas.MaintenanceResponse.execution:type_name -> v1.GmExecution
+	97,  // 71: v1.gakumas.MaintenanceResponse.data:type_name -> v1.gakumas.Maintenance
+	0,   // 72: v1.gakumas.GakumasGMService.GetManifest:input_type -> v1.gakumas.ServerRequest
+	0,   // 73: v1.gakumas.GakumasGMService.GetStatus:input_type -> v1.gakumas.ServerRequest
+	3,   // 74: v1.gakumas.GakumasGMService.GetDashboard:input_type -> v1.gakumas.GetDashboardRequest
+	4,   // 75: v1.gakumas.GakumasGMService.ListPlayers:input_type -> v1.gakumas.ListPlayersRequest
+	1,   // 76: v1.gakumas.GakumasGMService.GetPlayer:input_type -> v1.gakumas.PlayerRequest
+	2,   // 77: v1.gakumas.GakumasGMService.ListPlayerSessions:input_type -> v1.gakumas.PageRequest
+	5,   // 78: v1.gakumas.GakumasGMService.ListPlayerIdolCards:input_type -> v1.gakumas.ListIdolCardsRequest
+	6,   // 79: v1.gakumas.GakumasGMService.ListPlayerSupportCards:input_type -> v1.gakumas.ListSupportCardsRequest
+	7,   // 80: v1.gakumas.GakumasGMService.ListPlayerItems:input_type -> v1.gakumas.ListItemsRequest
+	8,   // 81: v1.gakumas.GakumasGMService.ListPlayerGifts:input_type -> v1.gakumas.ListGiftsRequest
+	9,   // 82: v1.gakumas.GakumasGMService.ListPlayerGashaDraws:input_type -> v1.gakumas.ListGashaDrawsRequest
+	10,  // 83: v1.gakumas.GakumasGMService.ListPlayerMemories:input_type -> v1.gakumas.ListMemoriesRequest
+	23,  // 84: v1.gakumas.GakumasGMService.GetPlayerMemory:input_type -> v1.gakumas.PlayerMemoryRequest
+	24,  // 85: v1.gakumas.GakumasGMService.GetMemoryPhoto:input_type -> v1.gakumas.MemoryPhotoRequest
+	1,   // 86: v1.gakumas.GakumasGMService.GetPlayerMeishiImage:input_type -> v1.gakumas.PlayerRequest
+	1,   // 87: v1.gakumas.GakumasGMService.GetPlayerPvp:input_type -> v1.gakumas.PlayerRequest
+	1,   // 88: v1.gakumas.GakumasGMService.GetPlayerSeminar:input_type -> v1.gakumas.PlayerRequest
+	1,   // 89: v1.gakumas.GakumasGMService.ListPlayerBackups:input_type -> v1.gakumas.PlayerRequest
+	0,   // 90: v1.gakumas.GakumasGMService.GetGashaStats:input_type -> v1.gakumas.ServerRequest
+	11,  // 91: v1.gakumas.GakumasGMService.ListProduces:input_type -> v1.gakumas.ListProducesRequest
+	12,  // 92: v1.gakumas.GakumasGMService.GetPvpRanking:input_type -> v1.gakumas.RankingRequest
+	0,   // 93: v1.gakumas.GakumasGMService.GetSeminarStats:input_type -> v1.gakumas.ServerRequest
+	13,  // 94: v1.gakumas.GakumasGMService.GetTowerRanking:input_type -> v1.gakumas.TowerRankingRequest
+	15,  // 95: v1.gakumas.GakumasGMService.SendGift:input_type -> v1.gakumas.SendGiftRequest
+	16,  // 96: v1.gakumas.GakumasGMService.RevokeGifts:input_type -> v1.gakumas.RevokeGiftsRequest
+	17,  // 97: v1.gakumas.GakumasGMService.GrantAllIdolCards:input_type -> v1.gakumas.GrantAllRequest
+	17,  // 98: v1.gakumas.GakumasGMService.GrantAllSupportCards:input_type -> v1.gakumas.GrantAllRequest
+	18,  // 99: v1.gakumas.GakumasGMService.AdjustItem:input_type -> v1.gakumas.AdjustItemRequest
+	19,  // 100: v1.gakumas.GakumasGMService.AdjustJewel:input_type -> v1.gakumas.AdjustJewelRequest
+	14,  // 101: v1.gakumas.GakumasGMService.RefillActionPoint:input_type -> v1.gakumas.PlayersOperationRequest
+	20,  // 102: v1.gakumas.GakumasGMService.AddExp:input_type -> v1.gakumas.AddExpRequest
+	14,  // 103: v1.gakumas.GakumasGMService.KickPlayers:input_type -> v1.gakumas.PlayersOperationRequest
+	21,  // 104: v1.gakumas.GakumasGMService.BanPlayers:input_type -> v1.gakumas.BanPlayersRequest
+	14,  // 105: v1.gakumas.GakumasGMService.UnbanPlayers:input_type -> v1.gakumas.PlayersOperationRequest
+	22,  // 106: v1.gakumas.GakumasGMService.ResetPassword:input_type -> v1.gakumas.ResetPasswordRequest
+	27,  // 107: v1.gakumas.GakumasGMService.RenamePlayer:input_type -> v1.gakumas.RenamePlayerRequest
+	25,  // 108: v1.gakumas.GakumasGMService.SetRentalMemory:input_type -> v1.gakumas.SetRentalMemoryRequest
+	26,  // 109: v1.gakumas.GakumasGMService.SetRentalSupportCard:input_type -> v1.gakumas.SetRentalSupportCardRequest
+	28,  // 110: v1.gakumas.GakumasGMService.SetPvpRate:input_type -> v1.gakumas.SetPvpRateRequest
+	14,  // 111: v1.gakumas.GakumasGMService.ResetPvpDaily:input_type -> v1.gakumas.PlayersOperationRequest
+	14,  // 112: v1.gakumas.GakumasGMService.ClearSeminar:input_type -> v1.gakumas.PlayersOperationRequest
+	14,  // 113: v1.gakumas.GakumasGMService.ResetSeminar:input_type -> v1.gakumas.PlayersOperationRequest
+	29,  // 114: v1.gakumas.GakumasGMService.BackupArchive:input_type -> v1.gakumas.BackupArchiveRequest
+	14,  // 115: v1.gakumas.GakumasGMService.ExportArchive:input_type -> v1.gakumas.PlayersOperationRequest
+	30,  // 116: v1.gakumas.GakumasGMService.RestoreArchive:input_type -> v1.gakumas.RestoreArchiveRequest
+	31,  // 117: v1.gakumas.GakumasGMService.SetMaintenance:input_type -> v1.gakumas.SetMaintenanceRequest
+	32,  // 118: v1.gakumas.GakumasGMService.GetConfig:input_type -> v1.gakumas.ConfigRequest
+	33,  // 119: v1.gakumas.GakumasGMService.SaveConfigDraft:input_type -> v1.gakumas.SaveConfigDraftRequest
+	32,  // 120: v1.gakumas.GakumasGMService.DiscardConfigDraft:input_type -> v1.gakumas.ConfigRequest
+	34,  // 121: v1.gakumas.GakumasGMService.ValidateConfig:input_type -> v1.gakumas.ValidateConfigRequest
+	35,  // 122: v1.gakumas.GakumasGMService.PublishConfig:input_type -> v1.gakumas.PublishConfigRequest
+	36,  // 123: v1.gakumas.GakumasGMService.ListConfigRevisions:input_type -> v1.gakumas.ConfigRevisionsRequest
+	37,  // 124: v1.gakumas.GakumasGMService.GetConfigRevision:input_type -> v1.gakumas.ConfigRevisionRequest
+	0,   // 125: v1.gakumas.GakumasGMService.ListConfigDrafts:input_type -> v1.gakumas.ServerRequest
+	98,  // 126: v1.gakumas.GakumasGMService.GetManifest:output_type -> v1.gakumas.Manifest
+	99,  // 127: v1.gakumas.GakumasGMService.GetStatus:output_type -> v1.gakumas.Status
+	100, // 128: v1.gakumas.GakumasGMService.GetDashboard:output_type -> v1.gakumas.Dashboard
+	40,  // 129: v1.gakumas.GakumasGMService.ListPlayers:output_type -> v1.gakumas.ListPlayersResponse
+	41,  // 130: v1.gakumas.GakumasGMService.GetPlayer:output_type -> v1.gakumas.GetPlayerResponse
+	101, // 131: v1.gakumas.GakumasGMService.ListPlayerSessions:output_type -> v1.gakumas.SessionPage
+	102, // 132: v1.gakumas.GakumasGMService.ListPlayerIdolCards:output_type -> v1.gakumas.IdolCardPage
+	103, // 133: v1.gakumas.GakumasGMService.ListPlayerSupportCards:output_type -> v1.gakumas.SupportCardPage
+	104, // 134: v1.gakumas.GakumasGMService.ListPlayerItems:output_type -> v1.gakumas.ItemPage
+	105, // 135: v1.gakumas.GakumasGMService.ListPlayerGifts:output_type -> v1.gakumas.GiftPage
+	106, // 136: v1.gakumas.GakumasGMService.ListPlayerGashaDraws:output_type -> v1.gakumas.GashaDrawPage
+	107, // 137: v1.gakumas.GakumasGMService.ListPlayerMemories:output_type -> v1.gakumas.MemoryPage
+	108, // 138: v1.gakumas.GakumasGMService.GetPlayerMemory:output_type -> v1.gakumas.MemoryDetail
+	109, // 139: v1.gakumas.GakumasGMService.GetMemoryPhoto:output_type -> v1.gakumas.MemoryPhoto
+	110, // 140: v1.gakumas.GakumasGMService.GetPlayerMeishiImage:output_type -> v1.gakumas.MeishiImage
+	111, // 141: v1.gakumas.GakumasGMService.GetPlayerPvp:output_type -> v1.gakumas.PlayerPvp
+	112, // 142: v1.gakumas.GakumasGMService.GetPlayerSeminar:output_type -> v1.gakumas.PlayerSeminar
+	113, // 143: v1.gakumas.GakumasGMService.ListPlayerBackups:output_type -> v1.gakumas.BackupList
+	114, // 144: v1.gakumas.GakumasGMService.GetGashaStats:output_type -> v1.gakumas.GashaStatList
+	115, // 145: v1.gakumas.GakumasGMService.ListProduces:output_type -> v1.gakumas.ProducePage
+	116, // 146: v1.gakumas.GakumasGMService.GetPvpRanking:output_type -> v1.gakumas.PvpRankingPage
+	117, // 147: v1.gakumas.GakumasGMService.GetSeminarStats:output_type -> v1.gakumas.SeminarStatList
+	118, // 148: v1.gakumas.GakumasGMService.GetTowerRanking:output_type -> v1.gakumas.TowerRankingPage
+	45,  // 149: v1.gakumas.GakumasGMService.SendGift:output_type -> v1.gakumas.GiftSendResponse
+	47,  // 150: v1.gakumas.GakumasGMService.RevokeGifts:output_type -> v1.gakumas.GiftRevokeResponse
+	49,  // 151: v1.gakumas.GakumasGMService.GrantAllIdolCards:output_type -> v1.gakumas.IdolCardGrantResponse
+	51,  // 152: v1.gakumas.GakumasGMService.GrantAllSupportCards:output_type -> v1.gakumas.SupportCardGrantResponse
+	43,  // 153: v1.gakumas.GakumasGMService.AdjustItem:output_type -> v1.gakumas.ChangesResponse
+	43,  // 154: v1.gakumas.GakumasGMService.AdjustJewel:output_type -> v1.gakumas.ChangesResponse
+	43,  // 155: v1.gakumas.GakumasGMService.RefillActionPoint:output_type -> v1.gakumas.ChangesResponse
+	43,  // 156: v1.gakumas.GakumasGMService.AddExp:output_type -> v1.gakumas.ChangesResponse
+	53,  // 157: v1.gakumas.GakumasGMService.KickPlayers:output_type -> v1.gakumas.KickResponse
+	55,  // 158: v1.gakumas.GakumasGMService.BanPlayers:output_type -> v1.gakumas.BanResponse
+	55,  // 159: v1.gakumas.GakumasGMService.UnbanPlayers:output_type -> v1.gakumas.BanResponse
+	57,  // 160: v1.gakumas.GakumasGMService.ResetPassword:output_type -> v1.gakumas.PasswordResponse
+	59,  // 161: v1.gakumas.GakumasGMService.RenamePlayer:output_type -> v1.gakumas.RenameResponse
+	61,  // 162: v1.gakumas.GakumasGMService.SetRentalMemory:output_type -> v1.gakumas.RentalResponse
+	61,  // 163: v1.gakumas.GakumasGMService.SetRentalSupportCard:output_type -> v1.gakumas.RentalResponse
+	43,  // 164: v1.gakumas.GakumasGMService.SetPvpRate:output_type -> v1.gakumas.ChangesResponse
+	43,  // 165: v1.gakumas.GakumasGMService.ResetPvpDaily:output_type -> v1.gakumas.ChangesResponse
+	63,  // 166: v1.gakumas.GakumasGMService.ClearSeminar:output_type -> v1.gakumas.SeminarClearResponse
+	65,  // 167: v1.gakumas.GakumasGMService.ResetSeminar:output_type -> v1.gakumas.SeminarResetResponse
+	67,  // 168: v1.gakumas.GakumasGMService.BackupArchive:output_type -> v1.gakumas.BackupResponse
+	71,  // 169: v1.gakumas.GakumasGMService.ExportArchive:output_type -> v1.gakumas.ArchiveExportResponse
+	69,  // 170: v1.gakumas.GakumasGMService.RestoreArchive:output_type -> v1.gakumas.RestoreResponse
+	72,  // 171: v1.gakumas.GakumasGMService.SetMaintenance:output_type -> v1.gakumas.MaintenanceResponse
+	119, // 172: v1.gakumas.GakumasGMService.GetConfig:output_type -> v1.GetGmConfigResponse
+	120, // 173: v1.gakumas.GakumasGMService.SaveConfigDraft:output_type -> v1.GmConfigDraft
+	121, // 174: v1.gakumas.GakumasGMService.DiscardConfigDraft:output_type -> v1.DiscardGmConfigDraftResponse
+	122, // 175: v1.gakumas.GakumasGMService.ValidateConfig:output_type -> v1.ValidateGmConfigResponse
+	123, // 176: v1.gakumas.GakumasGMService.PublishConfig:output_type -> v1.PublishGmConfigResponse
+	124, // 177: v1.gakumas.GakumasGMService.ListConfigRevisions:output_type -> v1.ListGmConfigRevisionsResponse
+	125, // 178: v1.gakumas.GakumasGMService.GetConfigRevision:output_type -> v1.GmConfigRevision
+	38,  // 179: v1.gakumas.GakumasGMService.ListConfigDrafts:output_type -> v1.gakumas.ListConfigDraftsResponse
+	126, // [126:180] is the sub-list for method output_type
+	72,  // [72:126] is the sub-list for method input_type
+	72,  // [72:72] is the sub-list for extension type_name
+	72,  // [72:72] is the sub-list for extension extendee
+	0,   // [0:72] is the sub-list for field type_name
 }
 
 func init() { file_v1_gakumas_gm_proto_init() }
@@ -5365,7 +5484,7 @@ func file_v1_gakumas_gm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_gakumas_gm_proto_rawDesc), len(file_v1_gakumas_gm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   72,
+			NumMessages:   74,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

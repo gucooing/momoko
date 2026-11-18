@@ -70,7 +70,7 @@ func monitorRange(startUnix, endUnix int64, now time.Time) (time.Time, time.Time
 		start = time.Unix(startUnix, 0)
 	}
 	if !start.Before(end) {
-		return time.Time{}, time.Time{}, response.BadRequest(400, "开始时间需早于结束时间")
+		return time.Time{}, time.Time{}, response.BadRequest("开始时间需早于结束时间")
 	}
 	if end.Sub(start) < 5*time.Minute {
 		start = end.Add(-5 * time.Minute)

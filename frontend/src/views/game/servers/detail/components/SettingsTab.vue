@@ -420,8 +420,11 @@ const save = async (restart: boolean) => {
   } catch (e) {
     const msg = getRequestErrorMessage(e, t('gameServers.common.failed'))
     fb.error(msg)
-    // 版本冲突：重新读取
-    if ((e as { response?: { status?: number } })?.response?.status === 409) {
+    // 版本冲突（保存期间别人改过配置）：服务端的 revision 变了就提示并重新读取
+    const latest = await getGameServerSettings(props.server.brief?.id || '')
+      .then((r) => r.data.revision)
+      .catch(() => '')
+    if (latest && latest !== s.revision) {
       fb.warning(t('gameServers.settings.conflict'))
       await load()
     }

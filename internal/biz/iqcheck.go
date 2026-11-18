@@ -23,7 +23,7 @@ import (
 )
 
 // ErrIQCheckPromptGrading 评分方式说明过长。
-var ErrIQCheckPromptGrading = response.BadRequest(500, "评分方式最多 64 个字符")
+var ErrIQCheckPromptGrading = response.BadRequest("评分方式最多 64 个字符")
 
 // IQCheckRepo 智商检测数据访问：提示词、站点与检测结果。
 type IQCheckRepo interface {

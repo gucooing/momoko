@@ -22,17 +22,17 @@ import (
 )
 
 var (
-	ErrGmCommandNotFound        = response.BadRequest(404, "这款游戏没有这个操作")
-	ErrGmTargets                = response.BadRequest(400, "操作目标不正确")
-	ErrGmExecutionNotFound      = response.BadRequest(404, "GM 记录不存在")
-	ErrGmNotPending             = response.BadRequest(400, "这条申请已经处理过了")
-	ErrGmConfigConflict         = response.BadRequest(409, "服务端的配置已被修改，请刷新后再发布")
-	ErrGmConfigInvalidJSON      = response.BadRequest(400, "配置内容不是有效的 JSON")
-	ErrGmConfigNoDraft          = response.BadRequest(400, "没有可发布的草稿")
-	ErrGmConfigReadOnly         = response.BadRequest(400, "这份配置只读")
-	ErrGmConfigRevisionNotFound = response.BadRequest(404, "版本不存在")
-	ErrGmParams                 = response.BadRequest(400, "操作参数无效")
-	ErrGmGameUnsupported        = response.BadRequest(400, "这台服务器的游戏不支持这项功能")
+	ErrGmCommandNotFound        = response.BadRequest("这款游戏没有这个操作")
+	ErrGmTargets                = response.BadRequest("操作目标不正确")
+	ErrGmExecutionNotFound      = response.BadRequest("GM 记录不存在")
+	ErrGmNotPending             = response.BadRequest("这条申请已经处理过了")
+	ErrGmConfigConflict         = response.BadRequest("服务端的配置已被修改，请刷新后再发布")
+	ErrGmConfigInvalidJSON      = response.BadRequest("配置内容不是有效的 JSON")
+	ErrGmConfigNoDraft          = response.BadRequest("没有可发布的草稿")
+	ErrGmConfigUnknown          = response.BadRequest("没有这份配置")
+	ErrGmConfigRevisionNotFound = response.BadRequest("版本不存在")
+	ErrGmParams                 = response.BadRequest("操作参数无效")
+	ErrGmGameUnsupported        = response.BadRequest("这台服务器的游戏不支持这项功能")
 )
 
 // GmActor 执行操作的人。
@@ -98,6 +98,8 @@ type GmRepo interface {
 	GetConfigDraft(ctx context.Context, serverID, domain string) (*gen.GameConfigRevision, error)
 	SaveConfigDraft(ctx context.Context, r *gen.GameConfigRevision) (*gen.GameConfigRevision, error)
 	DeleteConfigDraft(ctx context.Context, serverID, domain string) error
+	// ListConfigDrafts 一台服务器的所有草稿（不含内容），最近修改的在前
+	ListConfigDrafts(ctx context.Context, serverID string) ([]*gen.GameConfigRevision, error)
 	// PublishConfig 写入一条已发布版本（seq 递增）并删除草稿。
 	PublishConfig(ctx context.Context, r *gen.GameConfigRevision) (*gen.GameConfigRevision, error)
 	ListConfigRevisions(ctx context.Context, serverID, domain string, page, size int) ([]*gen.GameConfigRevision, int, error)
@@ -641,7 +643,7 @@ func (uc *GmUsecase) Reject(ctx context.Context, reviewer GmActor, serverID, id,
 	}
 	note = strings.TrimSpace(note)
 	if note == "" {
-		return nil, response.BadRequest(400, "请填写驳回原因")
+		return nil, response.BadRequest("请填写驳回原因")
 	}
 	now := time.Now()
 	e.ReviewedBy, e.ReviewerName, e.ReviewedAt, e.ReviewNote = reviewer.UserID, reviewer.Name, &now, note
@@ -701,14 +703,14 @@ func (uc *GmUsecase) UpdateSelfService(ctx context.Context, actor GmActor, req *
 		}
 	}
 	if target == nil {
-		return nil, response.BadRequest(400, "这个操作不允许开放给玩家")
+		return nil, response.BadRequest("这个操作不允许开放给玩家")
 	}
 	if req.Limit < 0 || req.Limit > 1000 || req.PeriodDays < 0 || req.PeriodDays > 365 {
-		return nil, response.BadRequest(400, "次数或刷新天数超出范围")
+		return nil, response.BadRequest("次数或刷新天数超出范围")
 	}
 	note := strings.TrimSpace(req.PlayerNote)
 	if len([]rune(note)) > 200 {
-		return nil, response.BadRequest(400, "说明最多 200 字")
+		return nil, response.BadRequest("说明最多 200 字")
 	}
 	row := &gen.GmSelfService{
 		ServerID:      req.ServerId,

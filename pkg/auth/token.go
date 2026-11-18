@@ -33,7 +33,7 @@ const (
 
 var (
 	AuthSecretKey   = "123456"
-	ErrTokenInvalid = response.BadRequest(401, "token invalid")
+	ErrTokenInvalid = response.Unauthorized("token invalid")
 
 	accessTTL  atomic.Int64
 	refreshTTL atomic.Int64

@@ -84,7 +84,7 @@ func (h *GameHostingUsecase) GetSettings(ctx context.Context, id string) (*v1.Ga
 	}
 	doc, err := jsondoc.Parse(raw)
 	if err != nil {
-		return nil, response.BadRequest(400, "服务端配置不是有效的 JSON："+err.Error())
+		return nil, response.BadRequest("服务端配置不是有效的 JSON：" + err.Error())
 	}
 	out := &v1.GameServerSettings{
 		Sections:   ha.settingsSchema(),
@@ -345,7 +345,7 @@ func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameS
 	}
 	old, err := jsondoc.Parse(raw)
 	if err != nil {
-		return nil, response.BadRequest(400, "服务端配置不是有效的 JSON："+err.Error())
+		return nil, response.BadRequest("服务端配置不是有效的 JSON：" + err.Error())
 	}
 	schema := ha.settingsSchema()
 	var next *jsondoc.Object
@@ -354,7 +354,7 @@ func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameS
 	if rawMode {
 		next, err = jsondoc.Parse([]byte(req.Raw))
 		if err != nil {
-			return nil, response.BadRequest(400, "JSON 无效："+err.Error())
+			return nil, response.BadRequest("JSON 无效：" + err.Error())
 		}
 		out = []byte(req.Raw)
 		if !bytes.HasSuffix(out, []byte("\n")) {
@@ -372,7 +372,7 @@ func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameS
 			for _, k := range paths {
 				v := values[k]
 				if !validConfigPath(k) {
-					return nil, response.BadRequest(400, "配置项路径无效："+k)
+					return nil, response.BadRequest("配置项路径无效：" + k)
 				}
 				if v == nil {
 					deleteConfigPath(next, k)
@@ -381,11 +381,11 @@ func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameS
 				val := configValue(v)
 				if f := findField(schema, k); f != nil {
 					if val, err = coerceSetting(f, v); err != nil {
-						return nil, response.BadRequest(400, "配置项 "+k+" 无效："+err.Error())
+						return nil, response.BadRequest("配置项 " + k + " 无效：" + err.Error())
 					}
 				}
 				if err := next.Assign(k, val); err != nil {
-					return nil, response.BadRequest(400, "配置项 "+k+" 无效："+err.Error())
+					return nil, response.BadRequest("配置项 " + k + " 无效：" + err.Error())
 				}
 			}
 		}
@@ -398,7 +398,7 @@ func (h *GameHostingUsecase) SaveSettings(ctx context.Context, req *v1.SaveGameS
 		for _, f := range sec.Fields {
 			nv, nok := next.Lookup(f.Key)
 			if err := validateSetting(f, nv, nok); err != nil {
-				return nil, response.BadRequest(400, "配置项 "+f.Key+" 无效："+err.Error())
+				return nil, response.BadRequest("配置项 " + f.Key + " 无效：" + err.Error())
 			}
 		}
 	}

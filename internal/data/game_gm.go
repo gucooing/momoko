@@ -345,6 +345,17 @@ func (r *gmRepo) DeleteConfigDraft(ctx context.Context, serverID, domain string)
 	return err
 }
 
+func (r *gmRepo) ListConfigDrafts(ctx context.Context, serverID string) ([]*gen.GameConfigRevision, error) {
+	return r.data.db.GameConfigRevision.Query().
+		Where(entrevision.ServerID(serverID), entrevision.StateEQ(entrevision.StateDraft)).
+		Select(
+			entrevision.FieldID, entrevision.FieldDomain, entrevision.FieldBaseRevision,
+			entrevision.FieldAuthorName, entrevision.FieldComment, entrevision.FieldUpdateTime,
+		).
+		Order(entrevision.ByUpdateTime(sql.OrderDesc())).
+		All(ctx)
+}
+
 func (r *gmRepo) PublishConfig(ctx context.Context, rev *gen.GameConfigRevision) (*gen.GameConfigRevision, error) {
 	var out *gen.GameConfigRevision
 	err := WithTx(ctx, r.data.db, func(tx *gen.Tx) error {

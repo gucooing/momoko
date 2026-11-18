@@ -40,11 +40,11 @@ const (
 )
 
 var (
-	ErrGameNotHosted       = response.BadRequest(400, "这台服务器不是托管模式")
-	ErrGameProcessMissing  = response.BadRequest(400, "托管进程（应用实例）已被删除，请在托管选项里重新创建")
-	ErrGameHostingBusy     = response.BadRequest(409, "这台服务器正在执行其他托管任务")
-	ErrGameSettingsChanged = response.BadRequest(409, "配置已被其他人修改，请刷新后重试")
-	ErrGameHostedDirFailed = response.BadRequest(400, "服务端目录未通过预检")
+	ErrGameNotHosted       = response.BadRequest("这台服务器不是托管模式")
+	ErrGameProcessMissing  = response.BadRequest("托管进程（应用实例）已被删除，请在托管选项里重新创建")
+	ErrGameHostingBusy     = response.BadRequest("这台服务器正在执行其他托管任务")
+	ErrGameSettingsChanged = response.BadRequest("配置已被其他人修改，请刷新后重试")
+	ErrGameHostedDirFailed = response.BadRequest("服务端目录未通过预检")
 )
 
 // gameHostingOptions 托管选项（存于 game_server.options）。
@@ -225,7 +225,7 @@ func (h *GameHostingUsecase) hosted(ctx context.Context, id string) (*gen.GameSe
 	opts := hostingOptionsOf(s)
 	l, err := h.layoutOf(s, ha, opts)
 	if err != nil {
-		return nil, nil, nil, nil, response.BadRequest(400, "读取服务端配置失败："+err.Error())
+		return nil, nil, nil, nil, response.BadRequest("读取服务端配置失败：" + err.Error())
 	}
 	return s, ha, l, opts, nil
 }
@@ -510,13 +510,13 @@ func (h *GameHostingUsecase) setupHosted(ctx context.Context, s *gen.GameServer,
 	if !det.Ok {
 		for _, c := range det.Checks {
 			if c.State == "fail" {
-				return response.BadRequest(400, "服务端目录未通过预检："+c.Key)
+				return response.BadRequest("服务端目录未通过预检：" + c.Key)
 			}
 		}
 		return ErrGameHostedDirFailed
 	}
 	if spec.ResourceServer && !det.HasResourceServer {
-		return response.BadRequest(400, "服务端目录里没有资源服务器可执行文件")
+		return response.BadRequest("服务端目录里没有资源服务器可执行文件")
 	}
 	opts := hostingOptionsOf(s)
 	opts.ConfigFile = det.ConfigFile
@@ -526,10 +526,10 @@ func (h *GameHostingUsecase) setupHosted(ctx context.Context, s *gen.GameServer,
 		opts.ResourceListen = firstNonEmpty(spec.ResourceListen, det.Listens["resource"])
 		opts.ResourceRoot = firstNonEmpty(spec.ResourceRoot, det.ResourceRoot)
 		if !validListen(opts.ResourceListen) {
-			return response.BadRequest(400, "资源服务器监听地址无效")
+			return response.BadRequest("资源服务器监听地址无效")
 		}
 		if opts.ResourceRoot != "" && !filepath.IsAbs(opts.ResourceRoot) {
-			return response.BadRequest(400, "资源数据目录必须是绝对路径")
+			return response.BadRequest("资源数据目录必须是绝对路径")
 		}
 	}
 	keyID, secret := "", ""
@@ -542,7 +542,7 @@ func (h *GameHostingUsecase) setupHosted(ctx context.Context, s *gen.GameServer,
 	// 资源服务器的对外地址写进服务端配置的 resource_server_url（以配置为准，Momoko 不另存）
 	origin := strings.TrimRight(firstNonEmpty(spec.ResourceOrigin, det.ResourceOrigin), "/")
 	if opts.ResourceServer && origin != "" && !validOrigin(origin) {
-		return response.BadRequest(400, "资源服务器 origin 无效")
+		return response.BadRequest("资源服务器 origin 无效")
 	}
 	cfg := &v1.GameServerHostedSpec{
 		ConfigFile:     det.ConfigFile,
@@ -553,7 +553,7 @@ func (h *GameHostingUsecase) setupHosted(ctx context.Context, s *gen.GameServer,
 	}
 	l, err := ha.configure(det.InstallDir, cfg, keyID, secret)
 	if err != nil {
-		return response.BadRequest(400, "写入服务端配置失败："+err.Error())
+		return response.BadRequest("写入服务端配置失败：" + err.Error())
 	}
 	s.Mode = entgameserver.ModeHosted
 	s.InstallDir = det.InstallDir
@@ -654,7 +654,7 @@ func (h *GameHostingUsecase) CreateHosted(ctx context.Context, req *v1.CreateGam
 	ha, _ := hostAdapterOf(req.Game)
 	name := strings.TrimSpace(req.Name)
 	if name == "" {
-		return nil, response.BadRequest(400, "名称不能为空")
+		return nil, response.BadRequest("名称不能为空")
 	}
 	ownerID, _ := h.actor(ctx)
 	if ownerID == "" {
@@ -713,7 +713,7 @@ func (h *GameHostingUsecase) SwitchMode(ctx context.Context, req *v1.SwitchGameS
 			}
 		}
 		if !MGPConfigured(s) {
-			return nil, response.BadRequest(400, "仅 GM 需要 MGP 地址与密钥")
+			return nil, response.BadRequest("仅 GM 需要 MGP 地址与密钥")
 		}
 		// 托管进程属于这台服务器：切走时一并停止并删除（包括以前遗留在应用列表里的同目录托管进程）
 		h.removeHostedInstances(ctx, s)
@@ -774,7 +774,7 @@ func (h *GameHostingUsecase) RotateKey(ctx context.Context, req *v1.RotateGameSe
 	}
 	l, err := ha.loadLayout(s.InstallDir, opts.ConfigFile)
 	if err != nil {
-		return nil, nil, response.BadRequest(400, "读取服务端配置失败："+err.Error())
+		return nil, nil, response.BadRequest("读取服务端配置失败：" + err.Error())
 	}
 	if err := l.Doc.Assign("mgp.key_id", keyID); err != nil {
 		return nil, nil, ErrSystem(err)
@@ -841,7 +841,7 @@ func (h *GameHostingUsecase) IssueClientApp(ctx context.Context, id string, secr
 		return nil, nil, err
 	}
 	if momokoURL == "" {
-		return nil, nil, response.BadRequest(400, "通行证对外地址（passport.public_url）未配置，无法写入游戏服务端配置")
+		return nil, nil, response.BadRequest("通行证对外地址（passport.public_url）未配置，无法写入游戏服务端配置")
 	}
 	appID, secret, err := h.servers.prepareClientApp(ctx, s, secretOnly)
 	if err != nil {
@@ -849,7 +849,7 @@ func (h *GameHostingUsecase) IssueClientApp(ctx context.Context, id string, secr
 	}
 	l, err := ha.loadLayout(s.InstallDir, opts.ConfigFile)
 	if err != nil {
-		return nil, nil, response.BadRequest(400, "读取服务端配置失败："+err.Error())
+		return nil, nil, response.BadRequest("读取服务端配置失败：" + err.Error())
 	}
 	if err := l.Doc.Assign("momoko.url", momokoURL); err != nil {
 		return nil, nil, ErrSystem(err)
@@ -917,7 +917,7 @@ func (h *GameHostingUsecase) startRoles(ctx context.Context, s *gen.GameServer, 
 			return ErrSystem(err)
 		}
 		if err := core.Start(); err != nil {
-			return response.BadRequest(500, err.Error())
+			return response.BadRequest(err.Error())
 		}
 	}
 	return nil
@@ -950,7 +950,7 @@ func (h *GameHostingUsecase) stopRoles(ctx context.Context, s *gen.GameServer, r
 			err = core.Stop()
 		}
 		if err != nil {
-			return response.BadRequest(500, err.Error())
+			return response.BadRequest(err.Error())
 		}
 	}
 	return nil
@@ -1060,7 +1060,7 @@ func (h *GameHostingUsecase) UpdateHosting(ctx context.Context, req *v1.UpdateGa
 	opts.ResourceServer = req.ResourceServer
 	if opts.ResourceServer {
 		if _, err := os.Stat(l.ResExe); err != nil {
-			return nil, response.BadRequest(400, "服务端目录里没有资源服务器可执行文件")
+			return nil, response.BadRequest("服务端目录里没有资源服务器可执行文件")
 		}
 		opts.ResourceListen = firstNonEmpty(req.ResourceListen, opts.ResourceListen, gakumasDefaultResourceListen)
 		opts.ResourceRoot = firstNonEmpty(req.ResourceRoot, opts.ResourceRoot, gakumasResourceRoot(s.InstallDir))
@@ -1068,16 +1068,16 @@ func (h *GameHostingUsecase) UpdateHosting(ctx context.Context, req *v1.UpdateGa
 			return nil, ErrGameServerInvalid
 		}
 		if opts.ResourceRoot != "" && !filepath.IsAbs(opts.ResourceRoot) {
-			return nil, response.BadRequest(400, "资源数据目录必须是绝对路径")
+			return nil, response.BadRequest("资源数据目录必须是绝对路径")
 		}
 		// 对外地址在服务端配置里（resource_server_url）：改了就写回配置
 		if origin := strings.TrimRight(strings.TrimSpace(req.ResourceOrigin), "/"); origin != "" && origin != l.ResOrigin {
 			if !validOrigin(origin) {
-				return nil, response.BadRequest(400, "资源服务器 origin 无效")
+				return nil, response.BadRequest("资源服务器 origin 无效")
 			}
 			nl, err := ha.loadLayout(s.InstallDir, opts.ConfigFile)
 			if err != nil {
-				return nil, response.BadRequest(400, "读取服务端配置失败："+err.Error())
+				return nil, response.BadRequest("读取服务端配置失败：" + err.Error())
 			}
 			if err := nl.Doc.Assign("resource_server_url", origin); err != nil {
 				return nil, ErrSystem(err)

@@ -115,8 +115,10 @@ onClickOutside(
   { ignore: [triggerRef] },
 )
 
-const onViewportChange = () => {
-  if (isOpen.value) close()
+// 页面滚动 / 缩放时收起（位置会跑掉）；浮层里自己的列表滚动不算
+const onViewportChange = (e: Event) => {
+  if (!isOpen.value || (e.target instanceof Node && panelRef.value?.contains(e.target))) return
+  close()
 }
 onMounted(() => {
   window.addEventListener('resize', onViewportChange)

@@ -52,8 +52,8 @@
 所有游戏客户端（PC 启动器、Android APK）用同一套流程进入游戏，完整协议见启动器仓库的 `docs/login-protocol.md`。Momoko 不提供面向玩家的 OIDC 授权页，游戏服务端也不是 OIDC 客户端。
 
 - 客户端登录（浏览器授权，`internal/biz/passport_client_auth.go`）：客户端不接触通行证的账号、密码或任何登录方式；通行证网页自己的登录接口只供网页使用。
-  - `POST /api/v1/auth/client`（不用登录）：`{client, deviceId, device}`，client 为 `launcher`（Momoko 启动器）或 `android`（学马仕 Android），其他值 400 `PASSPORT_INVALID_ARGUMENT`；返回 `{deviceCode（32 字节随机数的 base64url）, userCode（字母表 BCDFGHJKLMNPQRSTVWXZ 的 8 个字符，显示为 XXXX-XXXX）, verificationUrl（{passport.public_url}/authorize?code=…）, interval: 2, expiresIn: 600}`。同一 IP 10 分钟内最多发起 30 次，超过 429 `PASSPORT_TOO_MANY_REQUESTS`；没配置 `passport.public_url` 时 503 `PASSPORT_PUBLIC_URL_UNSET`。
-  - 授权页 `/authorize`（通行证网页，要登录，没登录时先登录再回来）：`GET /api/v1/auth/client/pending?userCode=` 读出客户端名称、设备名、代码与发起时间，`POST /api/v1/auth/client/approve` / `deny {userCode}` 授权或拒绝（网页会话的 Bearer）。代码不区分大小写、可不带横线；不存在、过期或已处理 404 `PASSPORT_AUTH_NOT_FOUND`；同一用户 15 分钟内输错 10 次后 429 `PASSPORT_TOO_MANY_REQUESTS`；停用的账号（`PASSPORT_ACCOUNT_DISABLED`）与登录失败锁定中的账号（`PASSPORT_LOCKED`）不能授权。
+  - `POST /api/v1/auth/client`（不用登录）：`{client, deviceId, device}`，client 为 `launcher`（Momoko 启动器）或 `android`（学马仕 Android），其他值 400 `PASSPORT_INVALID_ARGUMENT`；返回 `{deviceCode（32 字节随机数的 base64url）, userCode（字母表 BCDFGHJKLMNPQRSTVWXZ 的 8 个字符，显示为 XXXX-XXXX）, verificationUrl（{passport.public_url}/authorize?code=…）, interval: 2, expiresIn: 600}`。同一 IP 10 分钟内最多发起 30 次，超过 400 `PASSPORT_TOO_MANY_REQUESTS`；没配置 `passport.public_url` 时 400 `PASSPORT_PUBLIC_URL_UNSET`。
+  - 授权页 `/authorize`（通行证网页，要登录，没登录时先登录再回来）：`GET /api/v1/auth/client/pending?userCode=` 读出客户端名称、设备名、代码与发起时间，`POST /api/v1/auth/client/approve` / `deny {userCode}` 授权或拒绝（网页会话的 Bearer）。代码不区分大小写、可不带横线；不存在、过期或已处理 400 `PASSPORT_AUTH_NOT_FOUND`；同一用户 15 分钟内输错 10 次后 400 `PASSPORT_TOO_MANY_REQUESTS`；停用的账号（`PASSPORT_ACCOUNT_DISABLED`）与登录失败锁定中的账号（`PASSPORT_LOCKED`）不能授权。
   - `POST /api/v1/auth/client/token {deviceCode}`（不用登录）：授权后为授权的用户建立这台设备的会话，与登录相同（同一设备只保留一个会话、令牌有效期、新设备提醒、登录记录的方式记为 `client`），返回 `{accessToken, refreshToken, expiresIn}`，`deviceCode` 随即作废；还没授权 400 `PASSPORT_AUTH_PENDING`，距上次领取不到当前间隔 400 `PASSPORT_AUTH_SLOW_DOWN`（间隔加 2 秒），被拒绝 400 `PASSPORT_AUTH_DENIED`，过期、已领取或不存在 400 `PASSPORT_AUTH_EXPIRED`。
   - 授权请求与登录挑战、邮箱验证码一样只放在进程内存里，600 秒后失效（重启后失效），`deviceCode` 只存 SHA-256。
   - 会话续期与退出照常用 `/api/v1/auth/refresh`、`/auth/logout`；注册、找回密码与账号管理在通行证网页完成。
@@ -64,9 +64,9 @@
 - 可启动：游戏适配器支持客户端启动（`GameAdapter.ClientLaunch`，当前为学マス）、接入了 MGP、生成了客户端应用凭据、填写了 `client_sdk_url` 与 `client_game_url`。`client_resource_url` 可以不填，客户端这时使用官方资源。不可启动的服务器对客户端来说不存在。
 - 启动目标 `PassportLaunchApp`：`{appId, server, endpoints {sdk, game, resource}, link（没有游戏账号时为 null）, bindable, blockReason, icon, background}`；没有绑定时 `blockReason` 为 `unsupported`、`not_visible`（服务器未向玩家开放）或 `cooldown`（解绑冷却中，只能绑回原账号），可以绑定时为空。
   - `GET /api/v1/launch/apps`（PC 启动器）：可启动、并且用户在上面有生效的绑定、或服务器对他可见（公开，或是注册邀请码所属的服务器）的启动目标；有绑定的在前，按最近使用倒序，其余按服务器名称。
-  - `GET /api/v1/launch/apps/{appId}`（单服务器客户端）：服务器对用户不可见、也没有绑定时照常返回，`bindable=false`、`blockReason=not_visible`；应用 ID 不存在或服务器不可启动时 404 `PASSPORT_APP_NOT_FOUND`。
+  - `GET /api/v1/launch/apps/{appId}`（单服务器客户端）：服务器对用户不可见、也没有绑定时照常返回，`bindable=false`、`blockReason=not_visible`；应用 ID 不存在或服务器不可启动时 400 `PASSPORT_APP_NOT_FOUND`。
 - 游戏账号：`POST /api/v1/launch/apps/{appId}/bind`（`{account, password}`，规则与通行证网页的 `POST /api/v1/bind` 相同，经 MGP 校验游戏账号密码）与 `POST /api/v1/launch/apps/{appId}/account`（经 MGP `CreateAccount` 新建并以 `create` 方式绑定），都返回 `PassportLink`。前提是服务器可见、游戏支持、还没有绑定；新建还要求不在解绑冷却中，绑定在冷却中只能绑回原账号。同一用户与服务器的绑定与新建串行处理。
-- `POST /api/v1/launch/apps/{appId}/ticket`：签发启动票据并记录绑定的最近使用时间，返回 `{ticket, expiresIn: 120, playerId, displayId}`；应用 ID 不存在或服务器不可启动 404 `PASSPORT_APP_NOT_FOUND`，没有生效绑定 409 `PASSPORT_GAME_ACCOUNT_REQUIRED`，应用密钥不可用 502 `PASSPORT_GAME_UNAVAILABLE`。票据为 `"lt1." + b64url(payload) + "." + b64url(HMAC-SHA256(应用密钥, "momoko-launch-ticket.v1." + b64url(payload)))`，密钥为应用密钥字符串的 UTF-8 字节；payload 为紧凑 JSON，字段依次为 `aid, sid, pid, uid, jti, iat, exp`（前五项是字符串，jti 为 16 字节随机数的 b64url，exp = iat + 120）。MGP 密钥只用于 MGP 与客户端日志上传票据。游戏服务端的 SDK 校验 aid、签名、时间并保证 jti 只用一次后开会话。
+- `POST /api/v1/launch/apps/{appId}/ticket`：签发启动票据并记录绑定的最近使用时间，返回 `{ticket, expiresIn: 120, playerId, displayId}`；应用 ID 不存在或服务器不可启动 400 `PASSPORT_APP_NOT_FOUND`，没有生效绑定 400 `PASSPORT_GAME_ACCOUNT_REQUIRED`，应用密钥不可用 400 `PASSPORT_GAME_UNAVAILABLE`。票据为 `"lt1." + b64url(payload) + "." + b64url(HMAC-SHA256(应用密钥, "momoko-launch-ticket.v1." + b64url(payload)))`，密钥为应用密钥字符串的 UTF-8 字节；payload 为紧凑 JSON，字段依次为 `aid, sid, pid, uid, jti, iat, exp`（前五项是字符串，jti 为 16 字节随机数的 b64url，exp = iat + 120）。MGP 密钥只用于 MGP 与客户端日志上传票据。游戏服务端的 SDK 校验 aid、签名、时间并保证 jti 只用一次后开会话。
 - 客户端地址在管理端服务器详情的「接入设置 → 客户端地址」里填写（`UpdateGameServer` 校验并归一化为 `scheme://host[:port]`）。
 - 应用图标与应用背景（`internal/biz/game_server_media.go`）：管理端服务器详情「接入设置」里上传（不限接入方式；图标为图片，背景为图片或视频，不限格式与大小；对象沿用原文件扩展名）。文件由浏览器直传到对象存储（系统设置 · 储存，与头像共用）：`POST /api/v1/game/servers/{id}/app-media/presign` 签发直传地址与加密的上传凭证（对象名 `app/<uuid>.<扩展名>`），上传后 `POST …/app-media/complete` 校验凭证与对象大小，保存公开链接与对象 key（`game_server.app_icon(_key)`、`app_background(_key)`）并删除被替换的旧对象；`DELETE …/app-media/{kind}` 清除并删除对象；删除服务器时一并删除。对象存储没开启时 400。`PassportLaunchApp.icon` / `background` 原样下发链接，启动器按链接缓存（链接不变用缓存，变了重新下载并删除旧文件）。`GameServerBrief.appIcon` / `appBackground` 也带上这两个链接，管理端（服务器卡片、详情页头、GM 运营的服务器切换与服务器选择器）和通行证（游戏标记、游戏空间头图）都优先用它们，没有时退回游戏名首字与封面；背景是视频时大图静音循环播放，列表卡片鼠标移上去才播放（`ServerBackground.vue`）。
 
@@ -146,12 +146,12 @@
 | `GkHomePC` | `?tab=home` | 一行今天的数字（在线、活跃、新增账号、抽卡，点进对应页）；待处理（玩家申请待审批、未发布的公告和补偿草稿、配置疑似有误、今天失败的 GM 操作、维护与依赖异常…每条一个「去审批」「去发布」之类的按钮）；接下来（卡池结束、兑换码到期、定时邮件、赛季结束，按时间排，点一条去对应页）；常用操作（找玩家输入框 + 邮件补偿 / 兑换码 / 公告 / GM 操作入口）；最近 GM 操作 4 条。没有趋势图和卡池表现 |
 | `GkPlayersPC` | `?tab=players` | 玩家表、筛选、批量操作条（勾选后可直接发礼物、强制下线、封禁、解封，或带着勾选的玩家去 GM 操作页）；页头一行写「今天活跃 N 人」，「活跃趋势」按钮打开弹窗看近 14 天折线（当天登录过的账号数，今天截至现在） |
 | `GkPlayerPC` | `/game/gm/:serverId/players/:pid?tab=…` | 玩家卡片的背景是玩家的资料名片（游戏里保存名片时上传的图片，`GetPlayerMeishiImage`；默认名片没有图片，这时右侧显示出借记忆的卡面）。分页：概览、偶像卡、支援卡、道具、礼物箱（GM 发出且未领取的可撤回）、抽卡记录、培育记录、记忆、竞赛（阵容 + 本赛季）、研修、登录会话（在线那条可强制下线）、存档备份、客户端日志（游戏客户端上传的错误日志，与 GM 操作的「客户端日志」共用列表与查看器：点开读全文、查找、复制全部、下载 .log，行内复制摘要、删除）、GM 记录；「发送礼物」是抽屉；「更多」里只有备份当前存档、回档到备份和去 GM 操作页的入口，其余操作都在 GM 操作页执行。偶像卡点开看详情（养成数值、持有的皮肤、这张卡保留的培育记录）；支援卡点开看详情并可「设为援助支援卡」；记忆与培育记录点开看记忆详情（培育 / 舞台 / 培育记录）并可「设为援助回忆」，两个设置都走操作对话框 |
-| `GkGashaPC` | `?tab=gasha` | 页面上只有卡池列表（宽屏两列）；点一个卡池或「新建卡池」打开编辑弹窗：表单（基本信息、UP 角色与卡牌、概率、抽卡按钮、交换点）、模拟抽卡、发布前检查，改动自动存进草稿，弹窗底部「完成」关掉；整份配置一起发布，所以草稿条（查看改动 / 放弃 / 发布）留在页面底部。列表里每个卡池一行「今天 N 抽 · 累计 · SSR」；页头一行写「今天抽卡 N 次」，「抽卡趋势」按钮打开弹窗看近 14 天柱状图（所有卡池合计，十连按 10 次；今天用斜纹，标明截至几点） |
+| — | `?tab=ops` | 运营管理：一张运营日历，卡池、活动、竞赛赛季、登录奖励、公告各一条泳道（点泳道名收起 / 展开，记在本机）。点条目在右侧抽屉里先看详情（图、名称、时间、奖励图标），「编辑」再改：只有名称、时间、图片（从图里选）和奖励；卡池与公告的「编辑」打开各自的编辑器。新建（卡池、限时 / 自选登录、竞赛赛季、公告）在页头，活动用「复刻」复制；竞赛规则与段位奖励、抽卡趋势、各份配置的版本记录在页头的「更多」里。改动直接进草稿，日历按草稿显示（虚线标出新增 / 已改，删除线标出已删除）；页面底部的发布条只在有改动时出现，一起查看改动、放弃或发布（每份配置先由服务端校验）。`?item=<种类>:<ID>` 打开某一项，`?new=notice` 新建公告。配置文档接口统一为 `/api/v1/gakumas/gm/{server_id}/config/{domain}`（domain：gasha、notice、pvpRate、home、research、storyEvent、loginBonus），未发布的草稿列表 `GET …/config-drafts`（不读服务端） |
+| `GkGashaPC` | `?tab=ops&item=gasha:<ID>` | 卡池详情抽屉的「编辑」打开卡池编辑器：表单（基本信息、UP 角色与卡牌、概率、抽卡按钮、交换点）、模拟抽卡、发布前检查，改动自动存进草稿；「新建卡池」填名称并选一个卡池作模板 |
 | `GkModesPC` | `?tab=modes` | 竞赛 PvP（排名 + 阵容）、培育（全体玩家列表）、研修、塔；tab 由 manifest 的 `modes`（已配置的玩法）决定 |
-| `GkCalendarPC` | `?tab=calendar` | 运营日历（卡池、活动、PvP 赛季泳道） |
 | `GkMailPC` | `?tab=mail` | 页面上只有邮件列表（状态筛选 + 搜索，一封一行）；「写邮件」和点草稿打开编写弹窗（指定玩家 / 按条件 / 全服、奖励、内容、期限、立即或定时、礼物箱预览；弹窗底部 存为草稿 / 试运行 / 发送），点已发送、定时的邮件在同一个弹窗里只读查看（可复制一份再改）。邮件（含草稿）保存在游戏服务端：列表的筛选、搜索、分页与各组数量由服务端 SQL 查询（`GET /mails`），保存 / 删除草稿为 `PUT` / `DELETE /mails/{id}`（新邮件的 id 由前端生成），发送、取消定时、撤回为 `mail.send` / `mail.cancel` / `mail.revoke`（写 GM 记录）；试运行匹配的人数只在编辑器里显示，不保存 |
 | `GkCodesPC` | `?tab=codes` | 批次列表、批次详情与兑换记录、新建批次抽屉（通用码 / 一次性码、次数、有效期、适用玩家、兑换入口） |
-| `GkNoticePC` | `?tab=notices` | 页面上只有公告列表（分类筛选，一条一行）；「新建公告」或点一条公告打开编辑弹窗：左边表单、右边游戏内预览，改动自动存进草稿，弹窗底部 下线 / 完成；整份配置一起发布，草稿条（查看改动 / 放弃 / 发布）留在页面底部（同卡池）；横幅「从游戏素材选」读前端素材包 |
+| `GkNoticePC` | `?tab=ops&item=notice:<ID>` | 公告详情抽屉的「编辑」打开公告编辑器：左边表单、右边游戏内预览，改动自动存进草稿，可「立即下线」；横幅「更换」从前端素材包选 |
 | `GmPolicyPC` | `?tab=operations` | GM 操作：「执行操作」左边是玩家列表（状态筛选、搜索、页码分页、勾选，翻页后勾选保留；从玩家详情、玩家列表进来时带 `?pid=a,b` 预先勾选），右边选择操作并执行，每个操作都对勾选的全部玩家执行（援助设置与存档备份、回档不在这里）；「玩家权限」（`?view=permissions`）管理玩家在通行证自助服务里能执行哪些操作（开放 / 每 X 天 N 次，0 点刷新或永久不刷新 / 需要审批 / 说明），列出的操作与「执行操作」相同；「GM 记录」（`?view=logs`，原型 `GkLogPC`）是待审批卡片（批准 / 驳回）、筛选、记录表、详情（不含请求参数），有待审批时 GM 操作标签与这一页都带数字；「客户端日志」（`?view=clientLogs`）是这台服务器的游戏客户端错误日志，原因 chips + 玩家 ID + 上传日期 + 关键字筛选，从新到旧分页，点一行在查看器里读全文（查找并跳转匹配、复制全部、下载），行内复制摘要、打开玩家 GM 详情、下载、删除。服务端没有可对玩家执行的操作时只有后两页 |
 | `PassportPC` | `/game/passport` | 用户通行证后台管理：统计、状态筛选 + 服务器搜索下拉、用户表、用户详情（绑定按最近使用，超过 5 个折叠） |
 
@@ -192,7 +192,7 @@
 ## 8. 分期建议
 
 1. 后端基础：数据表、`internal/game/mgp` 客户端与签名、游戏服务器的增删改查和状态轮询、托管模式复用应用实例；前端「游戏服务器」三页。
-2. GM 运营（学マス 适配）：工作台、玩家、玩家详情、卡池、玩法、运营日历、邮件补偿、兑换码、公告、GM 操作（含 GM 记录与客户端日志）。
+2. GM 运营（学マス 适配）：工作台、玩家、玩家详情、运营管理（运营日历上查看与编辑卡池、活动、竞赛、登录奖励、公告）、玩法、邮件补偿、兑换码、GM 操作（含 GM 记录与客户端日志）。
 3. 用户通行证 server 与玩家端全部页面、绑定流程、游戏客户端启动（启动票据）。
 4. 素材导出与 `src/games/gakumas`。
 5. 学マス 服务端实现 MGP（gakumas 仓库，另开任务）。在它完成前，Momoko 侧可以先写一个按 SpecPC 返回示例数据的 MGP mock，供前端联调。

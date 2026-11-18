@@ -20,71 +20,60 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GakumasGMService_GetManifest_FullMethodName               = "/v1.gakumas.GakumasGMService/GetManifest"
-	GakumasGMService_GetStatus_FullMethodName                 = "/v1.gakumas.GakumasGMService/GetStatus"
-	GakumasGMService_GetDashboard_FullMethodName              = "/v1.gakumas.GakumasGMService/GetDashboard"
-	GakumasGMService_ListPlayers_FullMethodName               = "/v1.gakumas.GakumasGMService/ListPlayers"
-	GakumasGMService_GetPlayer_FullMethodName                 = "/v1.gakumas.GakumasGMService/GetPlayer"
-	GakumasGMService_ListPlayerSessions_FullMethodName        = "/v1.gakumas.GakumasGMService/ListPlayerSessions"
-	GakumasGMService_ListPlayerIdolCards_FullMethodName       = "/v1.gakumas.GakumasGMService/ListPlayerIdolCards"
-	GakumasGMService_ListPlayerSupportCards_FullMethodName    = "/v1.gakumas.GakumasGMService/ListPlayerSupportCards"
-	GakumasGMService_ListPlayerItems_FullMethodName           = "/v1.gakumas.GakumasGMService/ListPlayerItems"
-	GakumasGMService_ListPlayerGifts_FullMethodName           = "/v1.gakumas.GakumasGMService/ListPlayerGifts"
-	GakumasGMService_ListPlayerGashaDraws_FullMethodName      = "/v1.gakumas.GakumasGMService/ListPlayerGashaDraws"
-	GakumasGMService_ListPlayerMemories_FullMethodName        = "/v1.gakumas.GakumasGMService/ListPlayerMemories"
-	GakumasGMService_GetPlayerMemory_FullMethodName           = "/v1.gakumas.GakumasGMService/GetPlayerMemory"
-	GakumasGMService_GetMemoryPhoto_FullMethodName            = "/v1.gakumas.GakumasGMService/GetMemoryPhoto"
-	GakumasGMService_GetPlayerMeishiImage_FullMethodName      = "/v1.gakumas.GakumasGMService/GetPlayerMeishiImage"
-	GakumasGMService_GetPlayerPvp_FullMethodName              = "/v1.gakumas.GakumasGMService/GetPlayerPvp"
-	GakumasGMService_GetPlayerSeminar_FullMethodName          = "/v1.gakumas.GakumasGMService/GetPlayerSeminar"
-	GakumasGMService_ListPlayerBackups_FullMethodName         = "/v1.gakumas.GakumasGMService/ListPlayerBackups"
-	GakumasGMService_GetGashaStats_FullMethodName             = "/v1.gakumas.GakumasGMService/GetGashaStats"
-	GakumasGMService_ListProduces_FullMethodName              = "/v1.gakumas.GakumasGMService/ListProduces"
-	GakumasGMService_GetPvpRanking_FullMethodName             = "/v1.gakumas.GakumasGMService/GetPvpRanking"
-	GakumasGMService_GetSeminarStats_FullMethodName           = "/v1.gakumas.GakumasGMService/GetSeminarStats"
-	GakumasGMService_GetTowerRanking_FullMethodName           = "/v1.gakumas.GakumasGMService/GetTowerRanking"
-	GakumasGMService_SendGift_FullMethodName                  = "/v1.gakumas.GakumasGMService/SendGift"
-	GakumasGMService_RevokeGifts_FullMethodName               = "/v1.gakumas.GakumasGMService/RevokeGifts"
-	GakumasGMService_GrantAllIdolCards_FullMethodName         = "/v1.gakumas.GakumasGMService/GrantAllIdolCards"
-	GakumasGMService_GrantAllSupportCards_FullMethodName      = "/v1.gakumas.GakumasGMService/GrantAllSupportCards"
-	GakumasGMService_AdjustItem_FullMethodName                = "/v1.gakumas.GakumasGMService/AdjustItem"
-	GakumasGMService_AdjustJewel_FullMethodName               = "/v1.gakumas.GakumasGMService/AdjustJewel"
-	GakumasGMService_RefillActionPoint_FullMethodName         = "/v1.gakumas.GakumasGMService/RefillActionPoint"
-	GakumasGMService_AddExp_FullMethodName                    = "/v1.gakumas.GakumasGMService/AddExp"
-	GakumasGMService_KickPlayers_FullMethodName               = "/v1.gakumas.GakumasGMService/KickPlayers"
-	GakumasGMService_BanPlayers_FullMethodName                = "/v1.gakumas.GakumasGMService/BanPlayers"
-	GakumasGMService_UnbanPlayers_FullMethodName              = "/v1.gakumas.GakumasGMService/UnbanPlayers"
-	GakumasGMService_ResetPassword_FullMethodName             = "/v1.gakumas.GakumasGMService/ResetPassword"
-	GakumasGMService_RenamePlayer_FullMethodName              = "/v1.gakumas.GakumasGMService/RenamePlayer"
-	GakumasGMService_SetRentalMemory_FullMethodName           = "/v1.gakumas.GakumasGMService/SetRentalMemory"
-	GakumasGMService_SetRentalSupportCard_FullMethodName      = "/v1.gakumas.GakumasGMService/SetRentalSupportCard"
-	GakumasGMService_SetPvpRate_FullMethodName                = "/v1.gakumas.GakumasGMService/SetPvpRate"
-	GakumasGMService_ResetPvpDaily_FullMethodName             = "/v1.gakumas.GakumasGMService/ResetPvpDaily"
-	GakumasGMService_ClearSeminar_FullMethodName              = "/v1.gakumas.GakumasGMService/ClearSeminar"
-	GakumasGMService_ResetSeminar_FullMethodName              = "/v1.gakumas.GakumasGMService/ResetSeminar"
-	GakumasGMService_BackupArchive_FullMethodName             = "/v1.gakumas.GakumasGMService/BackupArchive"
-	GakumasGMService_ExportArchive_FullMethodName             = "/v1.gakumas.GakumasGMService/ExportArchive"
-	GakumasGMService_RestoreArchive_FullMethodName            = "/v1.gakumas.GakumasGMService/RestoreArchive"
-	GakumasGMService_SetMaintenance_FullMethodName            = "/v1.gakumas.GakumasGMService/SetMaintenance"
-	GakumasGMService_GetGashaConfig_FullMethodName            = "/v1.gakumas.GakumasGMService/GetGashaConfig"
-	GakumasGMService_SaveGashaConfigDraft_FullMethodName      = "/v1.gakumas.GakumasGMService/SaveGashaConfigDraft"
-	GakumasGMService_DiscardGashaConfigDraft_FullMethodName   = "/v1.gakumas.GakumasGMService/DiscardGashaConfigDraft"
-	GakumasGMService_ValidateGashaConfig_FullMethodName       = "/v1.gakumas.GakumasGMService/ValidateGashaConfig"
-	GakumasGMService_PublishGashaConfig_FullMethodName        = "/v1.gakumas.GakumasGMService/PublishGashaConfig"
-	GakumasGMService_ListGashaConfigRevisions_FullMethodName  = "/v1.gakumas.GakumasGMService/ListGashaConfigRevisions"
-	GakumasGMService_GetGashaConfigRevision_FullMethodName    = "/v1.gakumas.GakumasGMService/GetGashaConfigRevision"
-	GakumasGMService_GetNoticeConfig_FullMethodName           = "/v1.gakumas.GakumasGMService/GetNoticeConfig"
-	GakumasGMService_SaveNoticeConfigDraft_FullMethodName     = "/v1.gakumas.GakumasGMService/SaveNoticeConfigDraft"
-	GakumasGMService_DiscardNoticeConfigDraft_FullMethodName  = "/v1.gakumas.GakumasGMService/DiscardNoticeConfigDraft"
-	GakumasGMService_ValidateNoticeConfig_FullMethodName      = "/v1.gakumas.GakumasGMService/ValidateNoticeConfig"
-	GakumasGMService_PublishNoticeConfig_FullMethodName       = "/v1.gakumas.GakumasGMService/PublishNoticeConfig"
-	GakumasGMService_ListNoticeConfigRevisions_FullMethodName = "/v1.gakumas.GakumasGMService/ListNoticeConfigRevisions"
-	GakumasGMService_GetNoticeConfigRevision_FullMethodName   = "/v1.gakumas.GakumasGMService/GetNoticeConfigRevision"
-	GakumasGMService_GetPvpRateConfig_FullMethodName          = "/v1.gakumas.GakumasGMService/GetPvpRateConfig"
-	GakumasGMService_GetHomeConfig_FullMethodName             = "/v1.gakumas.GakumasGMService/GetHomeConfig"
-	GakumasGMService_GetResearchConfig_FullMethodName         = "/v1.gakumas.GakumasGMService/GetResearchConfig"
-	GakumasGMService_GetStoryEventConfig_FullMethodName       = "/v1.gakumas.GakumasGMService/GetStoryEventConfig"
-	GakumasGMService_GetLoginBonusConfig_FullMethodName       = "/v1.gakumas.GakumasGMService/GetLoginBonusConfig"
+	GakumasGMService_GetManifest_FullMethodName            = "/v1.gakumas.GakumasGMService/GetManifest"
+	GakumasGMService_GetStatus_FullMethodName              = "/v1.gakumas.GakumasGMService/GetStatus"
+	GakumasGMService_GetDashboard_FullMethodName           = "/v1.gakumas.GakumasGMService/GetDashboard"
+	GakumasGMService_ListPlayers_FullMethodName            = "/v1.gakumas.GakumasGMService/ListPlayers"
+	GakumasGMService_GetPlayer_FullMethodName              = "/v1.gakumas.GakumasGMService/GetPlayer"
+	GakumasGMService_ListPlayerSessions_FullMethodName     = "/v1.gakumas.GakumasGMService/ListPlayerSessions"
+	GakumasGMService_ListPlayerIdolCards_FullMethodName    = "/v1.gakumas.GakumasGMService/ListPlayerIdolCards"
+	GakumasGMService_ListPlayerSupportCards_FullMethodName = "/v1.gakumas.GakumasGMService/ListPlayerSupportCards"
+	GakumasGMService_ListPlayerItems_FullMethodName        = "/v1.gakumas.GakumasGMService/ListPlayerItems"
+	GakumasGMService_ListPlayerGifts_FullMethodName        = "/v1.gakumas.GakumasGMService/ListPlayerGifts"
+	GakumasGMService_ListPlayerGashaDraws_FullMethodName   = "/v1.gakumas.GakumasGMService/ListPlayerGashaDraws"
+	GakumasGMService_ListPlayerMemories_FullMethodName     = "/v1.gakumas.GakumasGMService/ListPlayerMemories"
+	GakumasGMService_GetPlayerMemory_FullMethodName        = "/v1.gakumas.GakumasGMService/GetPlayerMemory"
+	GakumasGMService_GetMemoryPhoto_FullMethodName         = "/v1.gakumas.GakumasGMService/GetMemoryPhoto"
+	GakumasGMService_GetPlayerMeishiImage_FullMethodName   = "/v1.gakumas.GakumasGMService/GetPlayerMeishiImage"
+	GakumasGMService_GetPlayerPvp_FullMethodName           = "/v1.gakumas.GakumasGMService/GetPlayerPvp"
+	GakumasGMService_GetPlayerSeminar_FullMethodName       = "/v1.gakumas.GakumasGMService/GetPlayerSeminar"
+	GakumasGMService_ListPlayerBackups_FullMethodName      = "/v1.gakumas.GakumasGMService/ListPlayerBackups"
+	GakumasGMService_GetGashaStats_FullMethodName          = "/v1.gakumas.GakumasGMService/GetGashaStats"
+	GakumasGMService_ListProduces_FullMethodName           = "/v1.gakumas.GakumasGMService/ListProduces"
+	GakumasGMService_GetPvpRanking_FullMethodName          = "/v1.gakumas.GakumasGMService/GetPvpRanking"
+	GakumasGMService_GetSeminarStats_FullMethodName        = "/v1.gakumas.GakumasGMService/GetSeminarStats"
+	GakumasGMService_GetTowerRanking_FullMethodName        = "/v1.gakumas.GakumasGMService/GetTowerRanking"
+	GakumasGMService_SendGift_FullMethodName               = "/v1.gakumas.GakumasGMService/SendGift"
+	GakumasGMService_RevokeGifts_FullMethodName            = "/v1.gakumas.GakumasGMService/RevokeGifts"
+	GakumasGMService_GrantAllIdolCards_FullMethodName      = "/v1.gakumas.GakumasGMService/GrantAllIdolCards"
+	GakumasGMService_GrantAllSupportCards_FullMethodName   = "/v1.gakumas.GakumasGMService/GrantAllSupportCards"
+	GakumasGMService_AdjustItem_FullMethodName             = "/v1.gakumas.GakumasGMService/AdjustItem"
+	GakumasGMService_AdjustJewel_FullMethodName            = "/v1.gakumas.GakumasGMService/AdjustJewel"
+	GakumasGMService_RefillActionPoint_FullMethodName      = "/v1.gakumas.GakumasGMService/RefillActionPoint"
+	GakumasGMService_AddExp_FullMethodName                 = "/v1.gakumas.GakumasGMService/AddExp"
+	GakumasGMService_KickPlayers_FullMethodName            = "/v1.gakumas.GakumasGMService/KickPlayers"
+	GakumasGMService_BanPlayers_FullMethodName             = "/v1.gakumas.GakumasGMService/BanPlayers"
+	GakumasGMService_UnbanPlayers_FullMethodName           = "/v1.gakumas.GakumasGMService/UnbanPlayers"
+	GakumasGMService_ResetPassword_FullMethodName          = "/v1.gakumas.GakumasGMService/ResetPassword"
+	GakumasGMService_RenamePlayer_FullMethodName           = "/v1.gakumas.GakumasGMService/RenamePlayer"
+	GakumasGMService_SetRentalMemory_FullMethodName        = "/v1.gakumas.GakumasGMService/SetRentalMemory"
+	GakumasGMService_SetRentalSupportCard_FullMethodName   = "/v1.gakumas.GakumasGMService/SetRentalSupportCard"
+	GakumasGMService_SetPvpRate_FullMethodName             = "/v1.gakumas.GakumasGMService/SetPvpRate"
+	GakumasGMService_ResetPvpDaily_FullMethodName          = "/v1.gakumas.GakumasGMService/ResetPvpDaily"
+	GakumasGMService_ClearSeminar_FullMethodName           = "/v1.gakumas.GakumasGMService/ClearSeminar"
+	GakumasGMService_ResetSeminar_FullMethodName           = "/v1.gakumas.GakumasGMService/ResetSeminar"
+	GakumasGMService_BackupArchive_FullMethodName          = "/v1.gakumas.GakumasGMService/BackupArchive"
+	GakumasGMService_ExportArchive_FullMethodName          = "/v1.gakumas.GakumasGMService/ExportArchive"
+	GakumasGMService_RestoreArchive_FullMethodName         = "/v1.gakumas.GakumasGMService/RestoreArchive"
+	GakumasGMService_SetMaintenance_FullMethodName         = "/v1.gakumas.GakumasGMService/SetMaintenance"
+	GakumasGMService_GetConfig_FullMethodName              = "/v1.gakumas.GakumasGMService/GetConfig"
+	GakumasGMService_SaveConfigDraft_FullMethodName        = "/v1.gakumas.GakumasGMService/SaveConfigDraft"
+	GakumasGMService_DiscardConfigDraft_FullMethodName     = "/v1.gakumas.GakumasGMService/DiscardConfigDraft"
+	GakumasGMService_ValidateConfig_FullMethodName         = "/v1.gakumas.GakumasGMService/ValidateConfig"
+	GakumasGMService_PublishConfig_FullMethodName          = "/v1.gakumas.GakumasGMService/PublishConfig"
+	GakumasGMService_ListConfigRevisions_FullMethodName    = "/v1.gakumas.GakumasGMService/ListConfigRevisions"
+	GakumasGMService_GetConfigRevision_FullMethodName      = "/v1.gakumas.GakumasGMService/GetConfigRevision"
+	GakumasGMService_ListConfigDrafts_FullMethodName       = "/v1.gakumas.GakumasGMService/ListConfigDrafts"
 )
 
 // GakumasGMServiceClient is the client API for GakumasGMService service.
@@ -171,28 +160,17 @@ type GakumasGMServiceClient interface {
 	RestoreArchive(ctx context.Context, in *RestoreArchiveRequest, opts ...grpc.CallOption) (*RestoreResponse, error)
 	// 维护模式与登录白名单
 	SetMaintenance(ctx context.Context, in *SetMaintenanceRequest, opts ...grpc.CallOption) (*MaintenanceResponse, error)
-	// 卡池（Gasha.json）
-	GetGashaConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error)
-	SaveGashaConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...grpc.CallOption) (*v1.GmConfigDraft, error)
-	DiscardGashaConfigDraft(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.DiscardGmConfigDraftResponse, error)
-	ValidateGashaConfig(ctx context.Context, in *ValidateConfigRequest, opts ...grpc.CallOption) (*v1.ValidateGmConfigResponse, error)
-	PublishGashaConfig(ctx context.Context, in *PublishConfigRequest, opts ...grpc.CallOption) (*v1.PublishGmConfigResponse, error)
-	ListGashaConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...grpc.CallOption) (*v1.ListGmConfigRevisionsResponse, error)
-	GetGashaConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...grpc.CallOption) (*v1.GmConfigRevision, error)
-	// 公告（Notice.json）
-	GetNoticeConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error)
-	SaveNoticeConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...grpc.CallOption) (*v1.GmConfigDraft, error)
-	DiscardNoticeConfigDraft(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.DiscardGmConfigDraftResponse, error)
-	ValidateNoticeConfig(ctx context.Context, in *ValidateConfigRequest, opts ...grpc.CallOption) (*v1.ValidateGmConfigResponse, error)
-	PublishNoticeConfig(ctx context.Context, in *PublishConfigRequest, opts ...grpc.CallOption) (*v1.PublishGmConfigResponse, error)
-	ListNoticeConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...grpc.CallOption) (*v1.ListGmConfigRevisionsResponse, error)
-	GetNoticeConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...grpc.CallOption) (*v1.GmConfigRevision, error)
-	// 运营日历读取的配置（只读）
-	GetPvpRateConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error)
-	GetHomeConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error)
-	GetResearchConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error)
-	GetStoryEventConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error)
-	GetLoginBonusConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error)
+	// 数据文件（domain）：gasha 卡池、notice 公告、pvpRate 竞赛、home 主页活动、research 研究活动、
+	// storyEvent 剧情活动、loginBonus 登录奖励。草稿与版本由 Momoko 保存，发布写回服务端并热重载。
+	GetConfig(ctx context.Context, in *ConfigRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error)
+	SaveConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...grpc.CallOption) (*v1.GmConfigDraft, error)
+	DiscardConfigDraft(ctx context.Context, in *ConfigRequest, opts ...grpc.CallOption) (*v1.DiscardGmConfigDraftResponse, error)
+	ValidateConfig(ctx context.Context, in *ValidateConfigRequest, opts ...grpc.CallOption) (*v1.ValidateGmConfigResponse, error)
+	PublishConfig(ctx context.Context, in *PublishConfigRequest, opts ...grpc.CallOption) (*v1.PublishGmConfigResponse, error)
+	ListConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...grpc.CallOption) (*v1.ListGmConfigRevisionsResponse, error)
+	GetConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...grpc.CallOption) (*v1.GmConfigRevision, error)
+	// 未发布的草稿：只读 Momoko 保存的草稿（不读服务端，不含内容）
+	ListConfigDrafts(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*ListConfigDraftsResponse, error)
 }
 
 type gakumasGMServiceClient struct {
@@ -663,190 +641,80 @@ func (c *gakumasGMServiceClient) SetMaintenance(ctx context.Context, in *SetMain
 	return out, nil
 }
 
-func (c *gakumasGMServiceClient) GetGashaConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error) {
+func (c *gakumasGMServiceClient) GetConfig(ctx context.Context, in *ConfigRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.GetGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetGashaConfig_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, GakumasGMService_GetConfig_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gakumasGMServiceClient) SaveGashaConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...grpc.CallOption) (*v1.GmConfigDraft, error) {
+func (c *gakumasGMServiceClient) SaveConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...grpc.CallOption) (*v1.GmConfigDraft, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.GmConfigDraft)
-	err := c.cc.Invoke(ctx, GakumasGMService_SaveGashaConfigDraft_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, GakumasGMService_SaveConfigDraft_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gakumasGMServiceClient) DiscardGashaConfigDraft(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.DiscardGmConfigDraftResponse, error) {
+func (c *gakumasGMServiceClient) DiscardConfigDraft(ctx context.Context, in *ConfigRequest, opts ...grpc.CallOption) (*v1.DiscardGmConfigDraftResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.DiscardGmConfigDraftResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_DiscardGashaConfigDraft_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, GakumasGMService_DiscardConfigDraft_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gakumasGMServiceClient) ValidateGashaConfig(ctx context.Context, in *ValidateConfigRequest, opts ...grpc.CallOption) (*v1.ValidateGmConfigResponse, error) {
+func (c *gakumasGMServiceClient) ValidateConfig(ctx context.Context, in *ValidateConfigRequest, opts ...grpc.CallOption) (*v1.ValidateGmConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.ValidateGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_ValidateGashaConfig_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, GakumasGMService_ValidateConfig_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gakumasGMServiceClient) PublishGashaConfig(ctx context.Context, in *PublishConfigRequest, opts ...grpc.CallOption) (*v1.PublishGmConfigResponse, error) {
+func (c *gakumasGMServiceClient) PublishConfig(ctx context.Context, in *PublishConfigRequest, opts ...grpc.CallOption) (*v1.PublishGmConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.PublishGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_PublishGashaConfig_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, GakumasGMService_PublishConfig_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gakumasGMServiceClient) ListGashaConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...grpc.CallOption) (*v1.ListGmConfigRevisionsResponse, error) {
+func (c *gakumasGMServiceClient) ListConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...grpc.CallOption) (*v1.ListGmConfigRevisionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.ListGmConfigRevisionsResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_ListGashaConfigRevisions_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, GakumasGMService_ListConfigRevisions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gakumasGMServiceClient) GetGashaConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...grpc.CallOption) (*v1.GmConfigRevision, error) {
+func (c *gakumasGMServiceClient) GetConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...grpc.CallOption) (*v1.GmConfigRevision, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.GmConfigRevision)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetGashaConfigRevision_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, GakumasGMService_GetConfigRevision_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gakumasGMServiceClient) GetNoticeConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error) {
+func (c *gakumasGMServiceClient) ListConfigDrafts(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*ListConfigDraftsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.GetGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetNoticeConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) SaveNoticeConfigDraft(ctx context.Context, in *SaveConfigDraftRequest, opts ...grpc.CallOption) (*v1.GmConfigDraft, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.GmConfigDraft)
-	err := c.cc.Invoke(ctx, GakumasGMService_SaveNoticeConfigDraft_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) DiscardNoticeConfigDraft(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.DiscardGmConfigDraftResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.DiscardGmConfigDraftResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_DiscardNoticeConfigDraft_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) ValidateNoticeConfig(ctx context.Context, in *ValidateConfigRequest, opts ...grpc.CallOption) (*v1.ValidateGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.ValidateGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_ValidateNoticeConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) PublishNoticeConfig(ctx context.Context, in *PublishConfigRequest, opts ...grpc.CallOption) (*v1.PublishGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.PublishGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_PublishNoticeConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) ListNoticeConfigRevisions(ctx context.Context, in *ConfigRevisionsRequest, opts ...grpc.CallOption) (*v1.ListGmConfigRevisionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.ListGmConfigRevisionsResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_ListNoticeConfigRevisions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) GetNoticeConfigRevision(ctx context.Context, in *ConfigRevisionRequest, opts ...grpc.CallOption) (*v1.GmConfigRevision, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.GmConfigRevision)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetNoticeConfigRevision_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) GetPvpRateConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.GetGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetPvpRateConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) GetHomeConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.GetGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetHomeConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) GetResearchConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.GetGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetResearchConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) GetStoryEventConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.GetGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetStoryEventConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gakumasGMServiceClient) GetLoginBonusConfig(ctx context.Context, in *ServerRequest, opts ...grpc.CallOption) (*v1.GetGmConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(v1.GetGmConfigResponse)
-	err := c.cc.Invoke(ctx, GakumasGMService_GetLoginBonusConfig_FullMethodName, in, out, cOpts...)
+	out := new(ListConfigDraftsResponse)
+	err := c.cc.Invoke(ctx, GakumasGMService_ListConfigDrafts_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -937,28 +805,17 @@ type GakumasGMServiceServer interface {
 	RestoreArchive(context.Context, *RestoreArchiveRequest) (*RestoreResponse, error)
 	// 维护模式与登录白名单
 	SetMaintenance(context.Context, *SetMaintenanceRequest) (*MaintenanceResponse, error)
-	// 卡池（Gasha.json）
-	GetGashaConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	SaveGashaConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error)
-	DiscardGashaConfigDraft(context.Context, *ServerRequest) (*v1.DiscardGmConfigDraftResponse, error)
-	ValidateGashaConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error)
-	PublishGashaConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error)
-	ListGashaConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error)
-	GetGashaConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error)
-	// 公告（Notice.json）
-	GetNoticeConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	SaveNoticeConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error)
-	DiscardNoticeConfigDraft(context.Context, *ServerRequest) (*v1.DiscardGmConfigDraftResponse, error)
-	ValidateNoticeConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error)
-	PublishNoticeConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error)
-	ListNoticeConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error)
-	GetNoticeConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error)
-	// 运营日历读取的配置（只读）
-	GetPvpRateConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	GetHomeConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	GetResearchConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	GetStoryEventConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
-	GetLoginBonusConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error)
+	// 数据文件（domain）：gasha 卡池、notice 公告、pvpRate 竞赛、home 主页活动、research 研究活动、
+	// storyEvent 剧情活动、loginBonus 登录奖励。草稿与版本由 Momoko 保存，发布写回服务端并热重载。
+	GetConfig(context.Context, *ConfigRequest) (*v1.GetGmConfigResponse, error)
+	SaveConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error)
+	DiscardConfigDraft(context.Context, *ConfigRequest) (*v1.DiscardGmConfigDraftResponse, error)
+	ValidateConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error)
+	PublishConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error)
+	ListConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error)
+	GetConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error)
+	// 未发布的草稿：只读 Momoko 保存的草稿（不读服务端，不含内容）
+	ListConfigDrafts(context.Context, *ServerRequest) (*ListConfigDraftsResponse, error)
 	mustEmbedUnimplementedGakumasGMServiceServer()
 }
 
@@ -1107,62 +964,29 @@ func (UnimplementedGakumasGMServiceServer) RestoreArchive(context.Context, *Rest
 func (UnimplementedGakumasGMServiceServer) SetMaintenance(context.Context, *SetMaintenanceRequest) (*MaintenanceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetMaintenance not implemented")
 }
-func (UnimplementedGakumasGMServiceServer) GetGashaConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetGashaConfig not implemented")
+func (UnimplementedGakumasGMServiceServer) GetConfig(context.Context, *ConfigRequest) (*v1.GetGmConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetConfig not implemented")
 }
-func (UnimplementedGakumasGMServiceServer) SaveGashaConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error) {
-	return nil, status.Error(codes.Unimplemented, "method SaveGashaConfigDraft not implemented")
+func (UnimplementedGakumasGMServiceServer) SaveConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveConfigDraft not implemented")
 }
-func (UnimplementedGakumasGMServiceServer) DiscardGashaConfigDraft(context.Context, *ServerRequest) (*v1.DiscardGmConfigDraftResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DiscardGashaConfigDraft not implemented")
+func (UnimplementedGakumasGMServiceServer) DiscardConfigDraft(context.Context, *ConfigRequest) (*v1.DiscardGmConfigDraftResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DiscardConfigDraft not implemented")
 }
-func (UnimplementedGakumasGMServiceServer) ValidateGashaConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ValidateGashaConfig not implemented")
+func (UnimplementedGakumasGMServiceServer) ValidateConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ValidateConfig not implemented")
 }
-func (UnimplementedGakumasGMServiceServer) PublishGashaConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PublishGashaConfig not implemented")
+func (UnimplementedGakumasGMServiceServer) PublishConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PublishConfig not implemented")
 }
-func (UnimplementedGakumasGMServiceServer) ListGashaConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListGashaConfigRevisions not implemented")
+func (UnimplementedGakumasGMServiceServer) ListConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListConfigRevisions not implemented")
 }
-func (UnimplementedGakumasGMServiceServer) GetGashaConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetGashaConfigRevision not implemented")
+func (UnimplementedGakumasGMServiceServer) GetConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetConfigRevision not implemented")
 }
-func (UnimplementedGakumasGMServiceServer) GetNoticeConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetNoticeConfig not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) SaveNoticeConfigDraft(context.Context, *SaveConfigDraftRequest) (*v1.GmConfigDraft, error) {
-	return nil, status.Error(codes.Unimplemented, "method SaveNoticeConfigDraft not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) DiscardNoticeConfigDraft(context.Context, *ServerRequest) (*v1.DiscardGmConfigDraftResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DiscardNoticeConfigDraft not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) ValidateNoticeConfig(context.Context, *ValidateConfigRequest) (*v1.ValidateGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ValidateNoticeConfig not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) PublishNoticeConfig(context.Context, *PublishConfigRequest) (*v1.PublishGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PublishNoticeConfig not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) ListNoticeConfigRevisions(context.Context, *ConfigRevisionsRequest) (*v1.ListGmConfigRevisionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListNoticeConfigRevisions not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) GetNoticeConfigRevision(context.Context, *ConfigRevisionRequest) (*v1.GmConfigRevision, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetNoticeConfigRevision not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) GetPvpRateConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetPvpRateConfig not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) GetHomeConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetHomeConfig not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) GetResearchConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetResearchConfig not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) GetStoryEventConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetStoryEventConfig not implemented")
-}
-func (UnimplementedGakumasGMServiceServer) GetLoginBonusConfig(context.Context, *ServerRequest) (*v1.GetGmConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetLoginBonusConfig not implemented")
+func (UnimplementedGakumasGMServiceServer) ListConfigDrafts(context.Context, *ServerRequest) (*ListConfigDraftsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListConfigDrafts not implemented")
 }
 func (UnimplementedGakumasGMServiceServer) mustEmbedUnimplementedGakumasGMServiceServer() {}
 func (UnimplementedGakumasGMServiceServer) testEmbeddedByValue()                          {}
@@ -2013,344 +1837,146 @@ func _GakumasGMService_SetMaintenance_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GakumasGMService_GetGashaConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServerRequest)
+func _GakumasGMService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetGashaConfig(ctx, in)
+		return srv.(GakumasGMServiceServer).GetConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GakumasGMService_GetGashaConfig_FullMethodName,
+		FullMethod: GakumasGMService_GetConfig_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetGashaConfig(ctx, req.(*ServerRequest))
+		return srv.(GakumasGMServiceServer).GetConfig(ctx, req.(*ConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GakumasGMService_SaveGashaConfigDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GakumasGMService_SaveConfigDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SaveConfigDraftRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).SaveGashaConfigDraft(ctx, in)
+		return srv.(GakumasGMServiceServer).SaveConfigDraft(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GakumasGMService_SaveGashaConfigDraft_FullMethodName,
+		FullMethod: GakumasGMService_SaveConfigDraft_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).SaveGashaConfigDraft(ctx, req.(*SaveConfigDraftRequest))
+		return srv.(GakumasGMServiceServer).SaveConfigDraft(ctx, req.(*SaveConfigDraftRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GakumasGMService_DiscardGashaConfigDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServerRequest)
+func _GakumasGMService_DiscardConfigDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).DiscardGashaConfigDraft(ctx, in)
+		return srv.(GakumasGMServiceServer).DiscardConfigDraft(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GakumasGMService_DiscardGashaConfigDraft_FullMethodName,
+		FullMethod: GakumasGMService_DiscardConfigDraft_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).DiscardGashaConfigDraft(ctx, req.(*ServerRequest))
+		return srv.(GakumasGMServiceServer).DiscardConfigDraft(ctx, req.(*ConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GakumasGMService_ValidateGashaConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GakumasGMService_ValidateConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ValidateConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).ValidateGashaConfig(ctx, in)
+		return srv.(GakumasGMServiceServer).ValidateConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GakumasGMService_ValidateGashaConfig_FullMethodName,
+		FullMethod: GakumasGMService_ValidateConfig_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).ValidateGashaConfig(ctx, req.(*ValidateConfigRequest))
+		return srv.(GakumasGMServiceServer).ValidateConfig(ctx, req.(*ValidateConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GakumasGMService_PublishGashaConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GakumasGMService_PublishConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PublishConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).PublishGashaConfig(ctx, in)
+		return srv.(GakumasGMServiceServer).PublishConfig(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GakumasGMService_PublishGashaConfig_FullMethodName,
+		FullMethod: GakumasGMService_PublishConfig_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).PublishGashaConfig(ctx, req.(*PublishConfigRequest))
+		return srv.(GakumasGMServiceServer).PublishConfig(ctx, req.(*PublishConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GakumasGMService_ListGashaConfigRevisions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GakumasGMService_ListConfigRevisions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConfigRevisionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).ListGashaConfigRevisions(ctx, in)
+		return srv.(GakumasGMServiceServer).ListConfigRevisions(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GakumasGMService_ListGashaConfigRevisions_FullMethodName,
+		FullMethod: GakumasGMService_ListConfigRevisions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).ListGashaConfigRevisions(ctx, req.(*ConfigRevisionsRequest))
+		return srv.(GakumasGMServiceServer).ListConfigRevisions(ctx, req.(*ConfigRevisionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GakumasGMService_GetGashaConfigRevision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GakumasGMService_GetConfigRevision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ConfigRevisionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetGashaConfigRevision(ctx, in)
+		return srv.(GakumasGMServiceServer).GetConfigRevision(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GakumasGMService_GetGashaConfigRevision_FullMethodName,
+		FullMethod: GakumasGMService_GetConfigRevision_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetGashaConfigRevision(ctx, req.(*ConfigRevisionRequest))
+		return srv.(GakumasGMServiceServer).GetConfigRevision(ctx, req.(*ConfigRevisionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GakumasGMService_GetNoticeConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GakumasGMService_ListConfigDrafts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ServerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetNoticeConfig(ctx, in)
+		return srv.(GakumasGMServiceServer).ListConfigDrafts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GakumasGMService_GetNoticeConfig_FullMethodName,
+		FullMethod: GakumasGMService_ListConfigDrafts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetNoticeConfig(ctx, req.(*ServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_SaveNoticeConfigDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SaveConfigDraftRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).SaveNoticeConfigDraft(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_SaveNoticeConfigDraft_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).SaveNoticeConfigDraft(ctx, req.(*SaveConfigDraftRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_DiscardNoticeConfigDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).DiscardNoticeConfigDraft(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_DiscardNoticeConfigDraft_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).DiscardNoticeConfigDraft(ctx, req.(*ServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_ValidateNoticeConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ValidateConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).ValidateNoticeConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_ValidateNoticeConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).ValidateNoticeConfig(ctx, req.(*ValidateConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_PublishNoticeConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PublishConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).PublishNoticeConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_PublishNoticeConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).PublishNoticeConfig(ctx, req.(*PublishConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_ListNoticeConfigRevisions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigRevisionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).ListNoticeConfigRevisions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_ListNoticeConfigRevisions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).ListNoticeConfigRevisions(ctx, req.(*ConfigRevisionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_GetNoticeConfigRevision_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigRevisionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetNoticeConfigRevision(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_GetNoticeConfigRevision_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetNoticeConfigRevision(ctx, req.(*ConfigRevisionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_GetPvpRateConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetPvpRateConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_GetPvpRateConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetPvpRateConfig(ctx, req.(*ServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_GetHomeConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetHomeConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_GetHomeConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetHomeConfig(ctx, req.(*ServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_GetResearchConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetResearchConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_GetResearchConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetResearchConfig(ctx, req.(*ServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_GetStoryEventConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetStoryEventConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_GetStoryEventConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetStoryEventConfig(ctx, req.(*ServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GakumasGMService_GetLoginBonusConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GakumasGMServiceServer).GetLoginBonusConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GakumasGMService_GetLoginBonusConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GakumasGMServiceServer).GetLoginBonusConfig(ctx, req.(*ServerRequest))
+		return srv.(GakumasGMServiceServer).ListConfigDrafts(ctx, req.(*ServerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2547,80 +2173,36 @@ var GakumasGMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GakumasGMService_SetMaintenance_Handler,
 		},
 		{
-			MethodName: "GetGashaConfig",
-			Handler:    _GakumasGMService_GetGashaConfig_Handler,
+			MethodName: "GetConfig",
+			Handler:    _GakumasGMService_GetConfig_Handler,
 		},
 		{
-			MethodName: "SaveGashaConfigDraft",
-			Handler:    _GakumasGMService_SaveGashaConfigDraft_Handler,
+			MethodName: "SaveConfigDraft",
+			Handler:    _GakumasGMService_SaveConfigDraft_Handler,
 		},
 		{
-			MethodName: "DiscardGashaConfigDraft",
-			Handler:    _GakumasGMService_DiscardGashaConfigDraft_Handler,
+			MethodName: "DiscardConfigDraft",
+			Handler:    _GakumasGMService_DiscardConfigDraft_Handler,
 		},
 		{
-			MethodName: "ValidateGashaConfig",
-			Handler:    _GakumasGMService_ValidateGashaConfig_Handler,
+			MethodName: "ValidateConfig",
+			Handler:    _GakumasGMService_ValidateConfig_Handler,
 		},
 		{
-			MethodName: "PublishGashaConfig",
-			Handler:    _GakumasGMService_PublishGashaConfig_Handler,
+			MethodName: "PublishConfig",
+			Handler:    _GakumasGMService_PublishConfig_Handler,
 		},
 		{
-			MethodName: "ListGashaConfigRevisions",
-			Handler:    _GakumasGMService_ListGashaConfigRevisions_Handler,
+			MethodName: "ListConfigRevisions",
+			Handler:    _GakumasGMService_ListConfigRevisions_Handler,
 		},
 		{
-			MethodName: "GetGashaConfigRevision",
-			Handler:    _GakumasGMService_GetGashaConfigRevision_Handler,
+			MethodName: "GetConfigRevision",
+			Handler:    _GakumasGMService_GetConfigRevision_Handler,
 		},
 		{
-			MethodName: "GetNoticeConfig",
-			Handler:    _GakumasGMService_GetNoticeConfig_Handler,
-		},
-		{
-			MethodName: "SaveNoticeConfigDraft",
-			Handler:    _GakumasGMService_SaveNoticeConfigDraft_Handler,
-		},
-		{
-			MethodName: "DiscardNoticeConfigDraft",
-			Handler:    _GakumasGMService_DiscardNoticeConfigDraft_Handler,
-		},
-		{
-			MethodName: "ValidateNoticeConfig",
-			Handler:    _GakumasGMService_ValidateNoticeConfig_Handler,
-		},
-		{
-			MethodName: "PublishNoticeConfig",
-			Handler:    _GakumasGMService_PublishNoticeConfig_Handler,
-		},
-		{
-			MethodName: "ListNoticeConfigRevisions",
-			Handler:    _GakumasGMService_ListNoticeConfigRevisions_Handler,
-		},
-		{
-			MethodName: "GetNoticeConfigRevision",
-			Handler:    _GakumasGMService_GetNoticeConfigRevision_Handler,
-		},
-		{
-			MethodName: "GetPvpRateConfig",
-			Handler:    _GakumasGMService_GetPvpRateConfig_Handler,
-		},
-		{
-			MethodName: "GetHomeConfig",
-			Handler:    _GakumasGMService_GetHomeConfig_Handler,
-		},
-		{
-			MethodName: "GetResearchConfig",
-			Handler:    _GakumasGMService_GetResearchConfig_Handler,
-		},
-		{
-			MethodName: "GetStoryEventConfig",
-			Handler:    _GakumasGMService_GetStoryEventConfig_Handler,
-		},
-		{
-			MethodName: "GetLoginBonusConfig",
-			Handler:    _GakumasGMService_GetLoginBonusConfig_Handler,
+			MethodName: "ListConfigDrafts",
+			Handler:    _GakumasGMService_ListConfigDrafts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

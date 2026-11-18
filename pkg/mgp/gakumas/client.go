@@ -780,7 +780,7 @@ type ConfigPublish struct {
 	Published   bool   `json:"published"`
 }
 
-// PublishConfig 发布数据文件（卡池与公告）；试运行只校验。revision 为编辑所基于的版本。
+// PublishConfig 发布数据文件；试运行只校验。revision 为编辑所基于的版本。
 func (g *Client) PublishConfig(ctx context.Context, file ConfigFile, content json.RawMessage, revision, comment string, opt mgp.OperationOptions) (*ConfigPublish, error) {
 	body := map[string]any{
 		"content": content,

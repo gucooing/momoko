@@ -1,5 +1,5 @@
-<!-- 奖励选择：从可发放的目录（games/<游戏>/catalog.ts 的 rewardCatalogs）里挑条目，设数量。
-     货币在 currency 目录里（作为奖励时 resourceId 为空串）。 -->
+<!-- 奖励选择：选上的奖励一行一个（图、名称、数量）；「添加奖励」弹出分类与搜索，从可发放的目录
+     （games/<游戏>/catalog.ts 的 rewardCatalogs）里挑条目。货币在 currency 目录里（作为奖励时 resourceId 为空串）。 -->
 <template>
   <div class="grp">
     <div v-if="modelValue.length" class="grp__chosen">
@@ -21,26 +21,32 @@
         <AppIconButton icon="HOutline:XMarkIcon" :label="t('gm.reward.remove')" :box="36" :disabled="disabled" @click="remove(i)" />
       </div>
     </div>
-    <div v-else class="grp__empty">{{ t('gm.reward.none') }}</div>
+    <div v-else-if="disabled" class="grp__empty">{{ t('gm.reward.none') }}</div>
 
-    <template v-if="!disabled && modelValue.length < max">
-      <div v-if="kinds.length > 1" class="grp__kinds" role="tablist" :aria-label="t('gm.reward.kinds')">
-        <button
-          v-for="k in kinds"
-          :key="k.id"
-          type="button"
-          role="tab"
-          class="grp__kind"
-          :class="{ 'is-on': k.id === kind }"
-          :aria-selected="k.id === kind"
-          @click="kind = k.id"
-        >
-          {{ k.title }}
-        </button>
+    <!-- 选满 max 项后按钮和弹出的搜索一起消失 -->
+    <AppDropdown v-if="!disabled && modelValue.length < max" align="start" :width="480">
+      <template #trigger>
+        <button type="button" class="grp__add"><UIcon name="i-lucide-plus" />{{ t('gm.reward.add') }}</button>
+      </template>
+      <div class="grp__pop">
+        <div v-if="kinds.length > 1" class="grp__kinds" role="tablist" :aria-label="t('gm.reward.kinds')">
+          <button
+            v-for="k in kinds"
+            :key="k.id"
+            type="button"
+            role="tab"
+            class="grp__kind"
+            :class="{ 'is-on': k.id === kind }"
+            :aria-selected="k.id === kind"
+            @click="kind = k.id"
+          >
+            {{ k.title }}
+          </button>
+        </div>
+        <GmCatalogSearch v-if="kind" :key="kind" autofocus :kind="kind" grantable-only :exclude-ids="pickedIds" @pick="add" />
+        <div class="grp__hint">{{ t('gm.reward.hint', { max }) }}</div>
       </div>
-      <GmCatalogSearch v-if="kind" :kind="kind" grantable-only :exclude-ids="pickedIds" @pick="add" />
-      <div class="grp__hint">{{ t('gm.reward.hint', { max }) }}</div>
-    </template>
+    </AppDropdown>
   </div>
 </template>
 
@@ -191,6 +197,32 @@ const remove = (i: number) => {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font: inherit;
+}
+.grp__add {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px dashed var(--el-border-color);
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.grp__add:hover {
+  color: var(--m-pInk);
+  border-color: var(--m-p);
+}
+.grp__pop {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
 }
 .grp__empty,
 .grp__hint {

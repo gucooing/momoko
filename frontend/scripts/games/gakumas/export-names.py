@@ -27,6 +27,11 @@ Output (one small file per kind and language, loaded lazily by src/games/names.t
 Only real translations are written; there is no English source for items, cards, costumes or music,
 so in English those show the original names.
 
+Operations configs (events, research, story events, login bonuses, contests) reference more game data; their pickers
+use the kinds idolCard, missionGroup, missionDailyReleaseGroup, missionPanelSheetGroup, storyGroup, pvpRateConfig,
+loginBonusMotion (names generated from the motion ID), conditionSet (its description), bgm (keyed by BGM asset ID),
+examEffectType (keyed by ProduceExamEffectType) and exchange (server data).
+
 Catalogs (src/games/gakumas/catalogs/<kind>.json, one array per catalog kind): the entries the pickers,
 search and filters list, with the fields they filter and show (resourceType, rarity, type, characterId,
 parentId, assetId, characterAsset, levels; empty fields omitted). Names are not repeated there: the
@@ -146,7 +151,53 @@ def by_id_list(entries: list[dict]) -> list[dict]:
     return sorted(seen.values(), key=lambda e: e["id"])
 
 
-def write_catalogs(folder: Path, m: Path, seminar_groups: list[dict], tower_layers: list[dict]) -> None:
+def by_order(master: Path, trans: Path, key: str, field: str) -> tuple[dict[str, str], dict[str, str]]:
+    """没有 id 的表（BGM、考试效果类型）：主数据按 key 取原文，译文表与主数据行序相同、按位置对上。"""
+    m_rows, t_rows = rows(master), rows(trans) if trans.exists() else []
+    ja = {str(r[key]): (r.get(field) or "").strip() for r in m_rows if r.get(key) not in (None, "") and (r.get(field) or "").strip()}
+    zh = {}
+    if len(m_rows) == len(t_rows):
+        for r, t in zip(m_rows, t_rows):
+            if r.get(key) not in (None, "") and (t.get(field) or "").strip():
+                zh[str(r[key])] = t[field].strip()
+    return ja, zh
+
+
+def condition_names(path: Path) -> dict[str, str]:
+    """条件组：取它的说明（多行时第一条非空的）。"""
+    out: dict[str, str] = {}
+    for r in rows(path):
+        v = (r.get("description") or "").strip()
+        if r.get("id") and v and r["id"] not in out:
+            out[r["id"]] = v
+    return out
+
+
+# 登录奖励演出（LoginBonusMotion）：主数据没有名称，按 ID（<种类>_login_bonus_motion_<start|end>_<n>）与句数生成
+MOTION_KIND = {
+    "nomal": {"zh": "每日登录", "en": "Daily login", "ja": "通常ログボ"},
+    "total": {"zh": "累计登录", "en": "Cumulative login", "ja": "累計ログボ"},
+    "event3d": {"zh": "限时登录 3D", "en": "Limited login 3D", "ja": "イベントログボ 3D"},
+    "event2d": {"zh": "限时登录 2D", "en": "Limited login 2D", "ja": "イベントログボ 2D"},
+}
+MOTION_PHASE = {"start": {"zh": "开场", "en": "opening", "ja": "開始"}, "end": {"zh": "结尾", "en": "closing", "ja": "終了"}}
+
+
+def motion_names(path: Path) -> dict[str, dict[str, str]]:
+    clips = collections.Counter(r["id"] for r in rows(path))
+    out: dict[str, dict[str, str]] = {"zh": {}, "en": {}, "ja": {}}
+    for mid, n in clips.items():
+        m = re.fullmatch(r"(\w+?)_login_bonus_motion_(start|end)_(\d+)", mid)
+        if not m or m.group(1) not in MOTION_KIND:
+            continue
+        kind, phase, num = MOTION_KIND[m.group(1)], MOTION_PHASE[m.group(2)], m.group(3)
+        out["zh"][mid] = f"{kind['zh']} · {phase['zh']}演出 {num}（{n} 段）"
+        out["en"][mid] = f"{kind['en']} · {phase['en']} motion {num} ({n} clips)"
+        out["ja"][mid] = f"{kind['ja']} {phase['ja']}モーション{num}（{n}）"
+    return out
+
+
+def write_catalogs(folder: Path, m: Path, data: Path, seminar_groups: list[dict], tower_layers: list[dict]) -> None:
     """目录条目（名称取名称表），每类一个文件。"""
     cards = {r["id"]: r for r in rows(m / "IdolCard.json")}
     card = lambda r: cards.get(r.get("idolCardId") or "", {})
@@ -197,6 +248,29 @@ def write_catalogs(folder: Path, m: Path, seminar_groups: list[dict], tower_laye
             e for g in seminar_groups for e in (entry(g["id"]), *(entry(x["id"], parentId=g["id"]) for x in g.get("exams", [])))
         ],
         "tower": [entry(t, type=n) for t, n in sorted(layers.items())],
+        # 运营配置里引用的游戏数据（活动、研究活动、剧情活动、登录奖励、竞赛）：选择器按名称挑，不显示 ID
+        "idolCard": by_id_list([
+            entry(r["id"], rarity=r.get("rarity"), type=r.get("planType"), characterId=r.get("characterId"), assetId=r.get("assetId"))
+            for r in rows(m / "IdolCard.json")
+        ]),
+        "missionGroup": by_id_list([entry(r["id"]) for r in rows(m / "MissionGroup.json")]),
+        "missionDailyReleaseGroup": by_id_list([entry(r["id"], assetId=r.get("bannerAssetId")) for r in rows(m / "MissionDailyReleaseGroup.json")]),
+        "missionPanelSheetGroup": by_id_list([
+            entry(r["id"], characterId=r.get("dearnessCharacterId"), assetId=r.get("bannerAssetId")) for r in rows(m / "MissionPanelSheetGroup.json")
+        ]),
+        "storyGroup": by_id_list([
+            entry(r["id"], type=r.get("storyType"), characterId=r.get("characterId"), assetId=r.get("storyThumbnailAssetId") or r.get("headerAssetId"))
+            for r in rows(m / "StoryGroup.json")
+        ]),
+        "pvpRateConfig": by_id_list([entry(r["id"]) for r in rows(m / "PvpRateConfig.json")]),
+        "loginBonusMotion": by_id_list([entry(r["id"]) for r in rows(m / "LoginBonusMotion.json")]),
+        "conditionSet": by_id_list([entry(r["id"]) for r in rows(m / "ConditionSet.json")]),
+        "bgm": by_id_list([entry(r["bgmAssetId"]) for r in rows(m / "Bgm.json") if r.get("bgmAssetId")]),
+        "examEffectType": [entry(str(r["type"])) for r in rows(m / "ProduceDescriptionExamEffect.json") if r.get("type")],
+        "exchange": by_id_list([
+            entry(x["id"], type=x.get("exchangeType"))
+            for x in json.loads((data / "Exchange.json").read_text(encoding="utf-8"))["exchanges"]
+        ]),
     }
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.glob("*.json"):
@@ -311,7 +385,33 @@ def main() -> int:
                 zh["seminar"][v["id"]] = texts[v["name"]]
     ja["currency"] = dict(CURRENCY_NAMES)
 
-    write_catalogs(a.catalogs, m, groups, json.loads((a.data / "Tower.json").read_text(encoding="utf-8"))["layers"])
+    # 运营配置里引用的游戏数据：任务组、剧情组、竞赛配置、条件组的名称（译名取汉化包，原文取主数据）
+    for kind, table, field in (
+        ("missionGroup", "MissionGroup", "name"),
+        ("missionDailyReleaseGroup", "MissionDailyReleaseGroup", "name"),
+        ("missionPanelSheetGroup", "MissionPanelSheetGroup", "name"),
+        ("storyGroup", "StoryGroup", "title"),
+        ("pvpRateConfig", "PvpRateConfig", "description"),
+    ):
+        ja[kind] = by_id(m / f"{table}.json", field)
+        zh[kind] = by_id(tr / f"{table}.json", field)
+    ja["conditionSet"] = condition_names(m / "ConditionSet.json")
+    zh["conditionSet"] = condition_names(tr / "ConditionSet.json")
+    ja["bgm"], zh["bgm"] = by_order(m / "Bgm.json", tr / "Bgm.json", "bgmAssetId", "name")
+    # 考试效果类型：主数据按枚举值，译文表按枚举名（ProduceExamEffectType_*），用服务端协议里的枚举对上
+    ja["examEffectType"] = {str(r["type"]): r["name"].strip() for r in rows(m / "ProduceDescriptionExamEffect.json") if r.get("type") and (r.get("name") or "").strip()}
+    enum_file = m.parents[1] / "protocol/proto/client/enums/produce_exam_effect_type_gen.proto"
+    enum = dict(re.findall(r"(ProduceExamEffectType_\w+)\s*=\s*(\d+);", enum_file.read_text(encoding="utf-8"))) if enum_file.exists() else {}
+    zh["examEffectType"] = {enum[r["type"]]: r["name"].strip() for r in rows(tr / "ProduceDescriptionExamEffect.json") if r.get("type") in enum and (r.get("name") or "").strip()}
+    motions = motion_names(m / "LoginBonusMotion.json")
+    for lang, table in (("zh", zh), ("en", en), ("ja", ja)):
+        table["loginBonusMotion"] = motions[lang]
+    # 交换所：名称在服务端手写数据里，译名取汉化包的 generic 文本
+    exchanges = json.loads((a.data / "Exchange.json").read_text(encoding="utf-8"))["exchanges"]
+    ja["exchange"] = {x["id"]: x["name"] for x in exchanges if x.get("name")}
+    zh["exchange"] = {x["id"]: texts[x["name"]] for x in exchanges if texts.get(x.get("name") or "")}
+
+    write_catalogs(a.catalogs, m, a.data, groups, json.loads((a.data / "Tower.json").read_text(encoding="utf-8"))["layers"])
 
     for lang, kinds in (("zh", zh), ("en", en), ("ja", ja)):
         folder = a.out / lang

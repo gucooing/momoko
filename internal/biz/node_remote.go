@@ -34,8 +34,8 @@ type NodeRepo interface {
 	TouchNodeOnline(ctx context.Context, id string, at time.Time) error
 }
 
-func nodeError(code int, format string, args ...any) error {
-	return response.BadRequest(code, fmt.Sprintf(format, args...))
+func nodeError(format string, args ...any) error {
+	return response.BadRequest(fmt.Sprintf(format, args...))
 }
 
 // validateNodeAddress 要求 host:port，端口合法。

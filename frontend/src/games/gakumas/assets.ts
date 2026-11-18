@@ -221,10 +221,11 @@ export function loginTitle(id: string): string {
 // ---------- 目录条目 ----------
 
 /** MGP 目录条目的图片（GET /catalogs/{kind} 的条目）；这一类没有图片时返回空串。 */
-export function catalogEntryImage(kind: string, entry: { id: string; assetId?: string }): string {
+export function catalogEntryImage(kind: string, entry: { id: string; assetId?: string; characterId?: string }): string {
   const ref = entry.assetId || entry.id
   switch (kind) {
     case 'idolCardSkin':
+    case 'idolCard':
       return idolCardImage(ref)
     case 'supportCard':
       return supportCardImage(entry.id)
@@ -240,6 +241,12 @@ export function catalogEntryImage(kind: string, entry: { id: string; assetId?: s
       return skillCardImage(entry.assetId || '')
     case 'produceItem':
       return produceItemImage(entry.assetId || '')
+    case 'missionPanelSheetGroup':
+      // 各角色的亲爱度任务面板共用一张活动图：显示角色，分得清是谁的
+      if (entry.characterId) return charaImage(entry.characterId)
+      return entry.assetId?.startsWith('img_general_event_') ? eventImage(entry.assetId) : ''
+    case 'storyGroup':
+      return entry.assetId?.startsWith('img_general_event_') ? eventImage(entry.assetId) : ''
     default:
       return ''
   }

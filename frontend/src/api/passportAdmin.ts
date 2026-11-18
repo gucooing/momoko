@@ -48,8 +48,8 @@ const transforms: AxiosResponseTransformer[] = [
 
 const cfg = (extra?: AxiosRequestConfig): AxiosRequestConfig => ({
   ...extra,
-  // 4xx 也交给统一信封处理（code / message），由上面的转换先本地化错误代码。
-  validateStatus: (status) => status < 500 || status === 502,
+  // 业务错误（400）与凭证失效（401）也交给统一信封处理（code / message），由上面的转换先本地化错误代码。
+  validateStatus: (status) => status < 500,
   transformResponse: transforms,
 })
 

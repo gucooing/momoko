@@ -186,7 +186,7 @@ func (h *GameHostingUsecase) latestTask(ctx context.Context, serverID, typePrefi
 func (h *GameHostingUsecase) GetTask(ctx context.Context, serverID, taskID string) (*v1.GameServerTask, error) {
 	info, ok := h.tasks.Get(taskID)
 	if !ok || info.Target != serverID || !strings.HasPrefix(info.Type, "game.server.") {
-		return nil, response.BadRequest(404, "任务不存在")
+		return nil, response.BadRequest("任务不存在")
 	}
 	return h.taskInfo(taskID), nil
 }
@@ -368,10 +368,10 @@ func (h *GameHostingUsecase) UpdateBuild(ctx context.Context, req *v1.UpdateGame
 	candidate := ha.resolveBuildPath(s.InstallDir, req.Path)
 	next := ha.checkBuild(candidate)
 	if !next.Valid {
-		return "", response.BadRequest(400, "新构建无效："+next.Error)
+		return "", response.BadRequest("新构建无效：" + next.Error)
 	}
 	if abs, _ := filepath.Abs(candidate); strings.EqualFold(abs, l.Executable) {
-		return "", response.BadRequest(400, "新构建就是当前的服务端程序")
+		return "", response.BadRequest("新构建就是当前的服务端程序")
 	}
 	cur := ha.checkBuild(l.Executable)
 	timeout := time.Duration(req.HealthTimeoutSeconds) * time.Second
@@ -605,11 +605,11 @@ func (h *GameHostingUsecase) RunResourceTask(ctx context.Context, req *v1.RunGam
 		return "", err
 	}
 	if _, err := os.Stat(l.ResExe); err != nil {
-		return "", response.BadRequest(400, "服务端目录里没有资源服务器可执行文件")
+		return "", response.BadRequest("服务端目录里没有资源服务器可执行文件")
 	}
 	root := firstNonEmpty(opts.ResourceRoot, gakumasResourceRoot(s.InstallDir))
 	if root == "" {
-		return "", response.BadRequest(400, "没有资源数据目录")
+		return "", response.BadRequest("没有资源数据目录")
 	}
 	args := []string{}
 	typ, title := "", ""
@@ -621,10 +621,10 @@ func (h *GameHostingUsecase) RunResourceTask(ctx context.Context, req *v1.RunGam
 		args = append(args, "update", "-root", root)
 		if p := strings.TrimSpace(req.MasterMetadata); p != "" {
 			if !filepath.IsAbs(p) {
-				return "", response.BadRequest(400, "主数据元信息文件必须是绝对路径")
+				return "", response.BadRequest("主数据元信息文件必须是绝对路径")
 			}
 			if _, err := os.Stat(p); err != nil {
-				return "", response.BadRequest(400, "主数据元信息文件不存在")
+				return "", response.BadRequest("主数据元信息文件不存在")
 			}
 			args = append(args, "-master-metadata", p)
 		}

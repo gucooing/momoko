@@ -24,6 +24,17 @@ export type GakumasCatalogKind =
   | 'produceCard'
   | 'produceItem'
   | 'memoryAbility'
+  | 'idolCard'
+  | 'missionGroup'
+  | 'missionDailyReleaseGroup'
+  | 'missionPanelSheetGroup'
+  | 'storyGroup'
+  | 'pvpRateConfig'
+  | 'loginBonusMotion'
+  | 'conditionSet'
+  | 'bgm'
+  | 'examEffectType'
+  | 'exchange'
 
 /** 目录的显示名。 */
 export const catalogTitles: Record<GakumasCatalogKind, string> = {
@@ -43,6 +54,17 @@ export const catalogTitles: Record<GakumasCatalogKind, string> = {
   produceCard: '技能卡',
   produceItem: 'P 道具',
   memoryAbility: '记忆能力',
+  idolCard: 'P 偶像',
+  missionGroup: '任务组',
+  missionDailyReleaseGroup: '每日开放任务',
+  missionPanelSheetGroup: '任务面板',
+  storyGroup: '剧情',
+  pvpRateConfig: '竞赛配置',
+  loginBonusMotion: '登录演出',
+  conditionSet: '条件',
+  bgm: 'BGM',
+  examEffectType: '考试效果',
+  exchange: '交换所',
 }
 
 /** 可作为奖励发放的目录（按奖励选择器里的顺序）。 */

@@ -527,7 +527,7 @@ func (c *ConfigRepo) saveRegistryAuth(auths []*v1.DockerRegistryAuth) (string, e
 func (c *ConfigRepo) GetWithDefault(ctx context.Context, key common.ConfigKey) (string, error) {
 	defaultValue, ok := common.ConfigDefault(key)
 	if !ok {
-		return "", response.BadRequest(500, "配置不存在")
+		return "", response.BadRequest("配置不存在")
 	}
 
 	err := c.data.db.SystemConfig.Create().
@@ -554,7 +554,7 @@ func (c *ConfigRepo) Update(ctx context.Context, key common.ConfigKey, value str
 		return err
 	}
 	if n == 0 {
-		return response.BadRequest(500, "更新配置失败")
+		return response.BadRequest("更新配置失败")
 	}
 	c.cache[key] = value
 

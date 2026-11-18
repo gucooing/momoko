@@ -76,19 +76,19 @@ func (c *ConfigUsecase) LoginConfig(ctx context.Context) (*v1.LoginConfig, error
 
 func (c *ConfigUsecase) UpdateLoginConfig(ctx context.Context, req *v1.UpdateLoginConfigRequest) (*v1.LoginConfig, error) {
 	if req.AccessTokenTtlMinutes < 5 || req.AccessTokenTtlMinutes > 24*60 {
-		return nil, response.BadRequest(400, "访问令牌有效期需在 5 到 1440 分钟之间")
+		return nil, response.BadRequest("访问令牌有效期需在 5 到 1440 分钟之间")
 	}
 	if req.RefreshTokenTtlDays < 1 || req.RefreshTokenTtlDays > 365 {
-		return nil, response.BadRequest(400, "刷新令牌有效期需在 1 到 365 天之间")
+		return nil, response.BadRequest("刷新令牌有效期需在 1 到 365 天之间")
 	}
 	if req.RefreshTokenTtlDays*24*60 < req.AccessTokenTtlMinutes {
-		return nil, response.BadRequest(400, "刷新令牌有效期不能短于访问令牌有效期")
+		return nil, response.BadRequest("刷新令牌有效期不能短于访问令牌有效期")
 	}
 	if req.LockoutThreshold < 0 || req.LockoutThreshold > 100 {
-		return nil, response.BadRequest(400, "登录失败锁定次数需在 0 到 100 之间")
+		return nil, response.BadRequest("登录失败锁定次数需在 0 到 100 之间")
 	}
 	if req.LockoutThreshold > 0 && (req.LockoutMinutes < 1 || req.LockoutMinutes > 24*60) {
-		return nil, response.BadRequest(400, "锁定时长需在 1 到 1440 分钟之间")
+		return nil, response.BadRequest("锁定时长需在 1 到 1440 分钟之间")
 	}
 	if req.LockoutMinutes <= 0 {
 		req.LockoutMinutes = 15
@@ -116,15 +116,15 @@ func (c *ConfigUsecase) UpdateSiteConfig(ctx context.Context, req *v1.UpdateSite
 	req.SiteName = strings.TrimSpace(req.SiteName)
 	req.ExternalUrl = strings.TrimRight(strings.TrimSpace(req.ExternalUrl), "/")
 	if req.SiteName == "" {
-		return nil, response.BadRequest(400, "站点名称不能为空")
+		return nil, response.BadRequest("站点名称不能为空")
 	}
 	if len([]rune(req.SiteName)) > 40 {
-		return nil, response.BadRequest(400, "站点名称不能超过 40 个字")
+		return nil, response.BadRequest("站点名称不能超过 40 个字")
 	}
 	if req.ExternalUrl != "" {
 		u, err := url.Parse(req.ExternalUrl)
 		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-			return nil, response.BadRequest(400, "对外地址需是 http:// 或 https:// 开头的完整地址")
+			return nil, response.BadRequest("对外地址需是 http:// 或 https:// 开头的完整地址")
 		}
 	}
 	if _, ok := siteLanguages[req.DefaultLanguage]; !ok {
@@ -218,13 +218,13 @@ func validateEmailConfig(req *v1.UpdateEmailConfigRequest) error {
 	}
 	if req.Enabled {
 		if req.Host == "" {
-			return response.BadRequest(400, "邮件服务地址不能为空")
+			return response.BadRequest("邮件服务地址不能为空")
 		}
 		if req.From == "" {
-			return response.BadRequest(400, "发件邮箱不能为空")
+			return response.BadRequest("发件邮箱不能为空")
 		}
 		if _, err := mail.ParseAddress(req.From); err != nil {
-			return response.BadRequest(400, "发件邮箱格式不正确")
+			return response.BadRequest("发件邮箱格式不正确")
 		}
 	}
 	return nil

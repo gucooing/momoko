@@ -98,5 +98,5 @@ func loginLockedError(left time.Duration) error {
 	if minutes < 1 {
 		minutes = 1
 	}
-	return response.BadRequest(429, fmt.Sprintf("登录失败次数过多，请 %d 分钟后再试", minutes))
+	return response.BadRequest(fmt.Sprintf("登录失败次数过多，请 %d 分钟后再试", minutes))
 }

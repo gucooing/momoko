@@ -3,7 +3,7 @@
      → 待处理（要人去做的事：待审批、今天失败的 GM 操作、未发布的配置草稿、维护与依赖异常、存档队列快满，每条一个去处理的按钮；
      没有时只一行）+ 接下来（7 天内到点的定时邮件、卡池结束、兑换码到期、赛季结束，按时间排）
      → 常用操作（找玩家 + 邮件补偿 / 兑换码 / 公告 / GM 操作入口，只跳转）+ 最近 GM 操作（没有时不显示）。
-     趋势图和卡池表现不在这里：抽卡在「卡池」页、活跃在「玩家」页的趋势弹窗里。每 5 分钟自动刷新（标签可见时）。 -->
+     趋势图和卡池表现不在这里：抽卡在「运营管理」的「抽卡趋势」、活跃在「玩家」页的趋势弹窗里。每 5 分钟自动刷新（标签可见时）。 -->
 <template>
   <div class="gh game-skin">
     <PageHeader :back="false" :theme-toggle="false">
@@ -66,8 +66,8 @@
 
           <!-- 接下来 -->
           <AppPanel v-if="upcoming.length" :title="t('gmData.home.upcoming')">
-            <template v-if="tabLink('calendar')" #actions>
-              <RouterLink class="gh__more" :to="tabLink('calendar')!">{{ t('gm.tabs.calendar') }} →</RouterLink>
+            <template v-if="opsLink()" #actions>
+              <RouterLink class="gh__more" :to="opsLink()!">{{ t('gm.tabs.ops') }} →</RouterLink>
             </template>
             <component :is="u.to ? RouterLink : 'div'" v-for="u in upcoming" :key="u.key" :to="u.to" class="gh__next">
               <span class="gh__next-at m-num">{{ when(u.at) }}</span>
@@ -133,7 +133,7 @@ import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, 
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
-import { gashaConfig, noticeConfig } from '@/api/gakumas'
+import { listConfigDrafts } from '@/api/gakumas'
 import { listGmExecutions } from '@/api/gameGm'
 import { listGameMails, listGiftCodeBatches } from '@/api/gameOps'
 import { getRequestErrorMessage } from '@/utils/request'
@@ -204,8 +204,8 @@ const load = async (force = false) => {
     listGiftCodeBatches({ serverId: sid, status: 'active', q: '', page: 1, pageSize: 50 }).then(({ data }) => {
       if (id === seq) codeBatches.value = data.items || []
     }),
-    Promise.all([gashaConfig.get(sid), noticeConfig.get(sid)]).then((docs) => {
-      if (id === seq) drafts.value = docs.map((d) => d.domain).filter((d): d is GmConfigDomain => !!d?.draft)
+    listConfigDrafts(sid).then((data) => {
+      if (id === seq) drafts.value = data.items || []
     }),
   ]
   await Promise.allSettled(jobs)
@@ -235,10 +235,14 @@ onBeforeUnmount(stopTimer)
 
 // ---------- 链接 ----------
 const gmPath = computed(() => `/game/gm/${encodeURIComponent(ctx.serverId.value)}`)
-const tabLink = (key: string, view?: string) => {
+type Link = { path: string; query: Record<string, string> }
+const tabLink = (key: string, view?: string): Link | undefined => {
   const tab = GM_TABS.find((x) => x.key === key)
   return tab && tab.visible(ctx) ? { path: gmPath.value, query: view ? { tab: key, view } : { tab: key } } : undefined
 }
+/** 运营管理里的一页 */
+/** 运营管理（extra：打开某一项的详情 item=<种类>:<ID>，或新建 new=notice） */
+const opsLink = (extra: Record<string, string> = {}): Link | undefined => (tabLink('ops') ? { path: gmPath.value, query: { tab: 'ops', ...extra } } : undefined)
 /** GM 记录：GM 操作里的一页 */
 const logsLink = computed(() => tabLink('operations', 'logs'))
 const serverLink = computed(() => `/game/servers/${encodeURIComponent(ctx.serverId.value)}`)
@@ -289,8 +293,8 @@ const today = computed(() => {
       to: players,
     },
     { key: 'new', title: t('gmData.home.kpiNew'), value: num(r.newAccountsToday), sub: '', tone: '', live: false, to: players },
-    // 今天还没过完，不和昨天整天比；趋势在「卡池」页的弹窗里看
-    { key: 'draws', title: t('gmData.home.kpiDraws'), value: num(drawsToday), sub: '', tone: '', live: false, to: tabLink('gasha') },
+    // 今天还没过完，不和昨天整天比；趋势在「运营管理」的「抽卡趋势」里看
+    { key: 'draws', title: t('gmData.home.kpiDraws'), value: num(drawsToday), sub: '', tone: '', live: false, to: opsLink() },
   ]
 })
 
@@ -304,7 +308,6 @@ interface Todo {
   btn: string
   to?: ReturnType<typeof tabLink> | string
 }
-const configTab = (domain: string) => (domain === 'gasha' ? 'gasha' : domain === 'notice' ? 'notices' : 'calendar')
 
 const todos = computed<Todo[]>(() => {
   const out: Todo[] = []
@@ -324,7 +327,6 @@ const todos = computed<Todo[]>(() => {
     })
   }
   for (const d of drafts.value) {
-    const tab = configTab(d.id)
     out.push({
       key: `draft-${d.id}`,
       title: t('gmData.home.alertDraft', { name: d.title || t('game.unnamed') }),
@@ -332,7 +334,7 @@ const todos = computed<Todo[]>(() => {
       icon: 'HOutline:PencilSquareIcon',
       tone: 'a',
       btn: t('gmData.home.goPublish'),
-      to: tabLink(tab),
+      to: opsLink(),
     })
   }
   if (failedToday.value > 0) {
@@ -406,7 +408,7 @@ const upcoming = computed<Upcoming[]>(() => {
   }
   for (const g of report.value?.gashas || []) {
     if (g.open && g.endTime && soon(g.endTime)) {
-      out.push({ key: `gasha-${g.gashaId}`, at: g.endTime, title: t('gmData.home.upGashaEnd', { name: g.name || ctx.label('gasha', g.gashaId) }), where: t('gm.tabs.gasha'), to: tabLink('gasha') })
+      out.push({ key: `gasha-${g.gashaId}`, at: g.endTime, title: t('gmData.home.upGashaEnd', { name: g.name || ctx.label('gasha', g.gashaId) }), where: t('gmConfig.ops.views.gasha'), to: opsLink({ item: `gasha:${g.gashaId}` }) })
     }
   }
   for (const b of codeBatches.value) {
@@ -416,7 +418,7 @@ const upcoming = computed<Upcoming[]>(() => {
     out.push({ key: `code-${b.id}`, at, title: t('gmData.home.upCodeEnd', { name: b.name || b.code || b.prefix, used }), where: t('gm.tabs.codes'), to: tabLink('codes') })
   }
   const pvp = report.value?.pvp
-  if (pvp && soon(pvp.endTime)) out.push({ key: 'pvp', at: pvp.endTime, title: t('gmData.home.upPvpEnd'), where: t('gm.tabs.modes'), to: tabLink('modes') })
+  if (pvp && soon(pvp.endTime)) out.push({ key: 'pvp', at: pvp.endTime, title: t('gmData.home.upPvpEnd'), where: t('gmConfig.ops.views.pvp'), to: opsLink() })
   return out.sort((a, b) => a.at - b.at).slice(0, UPCOMING_MAX)
 })
 
@@ -428,14 +430,14 @@ const findPlayer = () => {
 }
 const quick = computed(() =>
   [
-    { key: 'mail', title: t('gmData.home.quickMail'), icon: 'HOutline:EnvelopeIcon' },
+    { key: 'mail', title: t('gmData.home.quickMail'), icon: 'HOutline:EnvelopeIcon', ops: undefined as Record<string, string> | undefined },
     { key: 'codes', title: t('gmData.home.quickCodes'), icon: 'HOutline:TicketIcon' },
-    { key: 'notices', title: t('gmData.home.quickNotice'), icon: 'HOutline:MegaphoneIcon' },
+    { key: 'notices', title: t('gmData.home.quickNotice'), icon: 'HOutline:MegaphoneIcon', ops: { new: 'notice' } },
     { key: 'operations', title: t('gmData.home.quickOps'), icon: 'HOutline:CommandLineIcon' },
   ].flatMap((q) => {
     // 没有可对玩家执行的操作时，GM 操作里只有记录与日志，不作为「常用操作」
     if (q.key === 'operations' && !hasPlayerOperations(ctx)) return []
-    const to = tabLink(q.key)
+    const to = 'ops' in q && q.ops ? opsLink(q.ops) : tabLink(q.key)
     return to ? [{ ...q, to }] : []
   }),
 )

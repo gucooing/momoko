@@ -245,7 +245,7 @@ func (t *TunnelUsecase) CreateTunnel(ctx context.Context, userID string, req *v1
 	info, err := t.repo.CreateTunnel(ctx, userID, req, genCredential())
 	if err != nil {
 		if gen.IsConstraintError(err) {
-			return nil, response.BadRequest(400, "隧道名称已存在")
+			return nil, response.BadRequest("隧道名称已存在")
 		}
 		return nil, ErrSystem(err)
 	}
@@ -256,7 +256,7 @@ func (t *TunnelUsecase) GetTunnel(ctx context.Context, userID, id string) (*v1.T
 	info, err := t.repo.GetTunnel(ctx, &userID, id)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, response.BadRequest(404, "隧道不存在")
+			return nil, response.BadRequest("隧道不存在")
 		}
 		return nil, ErrSystem(err)
 	}
@@ -267,7 +267,7 @@ func (t *TunnelUsecase) UpdateTunnel(ctx context.Context, userID string, req *v1
 	info, err := t.repo.UpdateTunnel(ctx, &userID, req)
 	if err != nil {
 		if gen.IsConstraintError(err) {
-			return nil, response.BadRequest(400, "隧道名称已存在")
+			return nil, response.BadRequest("隧道名称已存在")
 		}
 		return nil, ErrSystem(err)
 	}
@@ -279,7 +279,7 @@ func (t *TunnelUsecase) ResetTunnelCredential(ctx context.Context, userID, id st
 	info, err := t.repo.ResetTunnelCredential(ctx, &userID, id, genCredential())
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, response.BadRequest(404, "隧道不存在")
+			return nil, response.BadRequest("隧道不存在")
 		}
 		return nil, ErrSystem(err)
 	}
@@ -303,7 +303,7 @@ func (t *TunnelUsecase) RestartFrps(ctx context.Context) (*v1.FrpsStatus, error)
 		return nil, ErrSystem(err)
 	}
 	if err := t.manager.Apply(toFrpsOptions(cfg)); err != nil {
-		return nil, response.BadRequest(500, "重启 frps 失败："+err.Error())
+		return nil, response.BadRequest("重启 frps 失败：" + err.Error())
 	}
 	return t.FrpsStatus(), nil
 }
@@ -334,7 +334,7 @@ func (t *TunnelUsecase) GetTunnelStats(ctx context.Context, userID, id string, s
 	tunnel, err := t.repo.GetTunnel(ctx, &userID, id)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, response.BadRequest(404, "隧道不存在")
+			return nil, response.BadRequest("隧道不存在")
 		}
 		return nil, ErrSystem(err)
 	}
@@ -401,7 +401,7 @@ func (t *TunnelUsecase) UpdateFrpsConfig(ctx context.Context, req *v1.FrpsConfig
 	t.applyStatConfig(cfg)
 	// 配置有效性由 pkg 兜底：frps 装配失败（端口非法/占用等）时 Apply 返回错误。
 	if err := t.manager.Apply(toFrpsOptions(cfg)); err != nil {
-		return nil, response.BadRequest(500, "应用 frps 配置失败："+err.Error())
+		return nil, response.BadRequest("应用 frps 配置失败：" + err.Error())
 	}
 	return cfg, nil
 }

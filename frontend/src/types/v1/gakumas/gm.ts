@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import type { GameReward } from "../game_common";
-import type { GmExecution, GmPlayerLink } from "../game_gm";
+import type { GmConfigDomain, GmExecution, GmPlayerLink } from "../game_gm";
 import type {
   ArchiveExport,
   Backup,
@@ -330,8 +330,15 @@ export interface SetMaintenanceRequest {
   dryRun: boolean;
 }
 
+export interface ConfigRequest {
+  serverId: string;
+  /** 数据文件（见 GetConfig） */
+  domain: string;
+}
+
 export interface SaveConfigDraftRequest {
   serverId: string;
+  domain: string;
   /** 文档内容（JSON） */
   content: string;
   /** 编辑所基于的服务端 revision */
@@ -341,11 +348,13 @@ export interface SaveConfigDraftRequest {
 
 export interface ValidateConfigRequest {
   serverId: string;
+  domain: string;
   content: string;
 }
 
 export interface PublishConfigRequest {
   serverId: string;
+  domain: string;
   /** 为空时发布草稿 */
   content: string;
   baseRevision: string;
@@ -354,13 +363,20 @@ export interface PublishConfigRequest {
 
 export interface ConfigRevisionsRequest {
   serverId: string;
+  domain: string;
   page: number;
   pageSize: number;
 }
 
 export interface ConfigRevisionRequest {
   serverId: string;
+  domain: string;
   id: string;
+}
+
+export interface ListConfigDraftsResponse {
+  /** 有草稿的配置文档：id、title 与草稿（草稿不含内容），最近修改的在前 */
+  items: GmConfigDomain[];
 }
 
 /** 操作对一个目标的状态。 */

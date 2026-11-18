@@ -31,6 +31,7 @@ import type {
   ListIdolCardsRequest,
   ListItemsRequest,
   ListMemoriesRequest,
+  ListConfigDraftsResponse,
   ListPlayersRequest,
   ListPlayersResponse,
   ListProducesRequest,
@@ -174,44 +175,36 @@ export const restoreArchive = (req: RestoreArchiveRequest) =>
 
 // ---------------- 配置文档 ----------------
 
-/** 一份配置文档的接口（卡池、公告可编辑发布；其余只读）。 */
-export interface GakumasConfigApi {
+/**
+ * 配置文档（游戏服务端的数据文件）：gasha 卡池、notice 公告、pvpRate 竞赛、home 活动日程、research 研究活动、
+ * storyEvent 剧情活动、loginBonus 登录奖励。草稿与版本由 Momoko 保存，发布写回服务端并热重载。
+ */
+export type GakumasConfigDomain = 'gasha' | 'notice' | 'pvpRate' | 'home' | 'research' | 'storyEvent' | 'loginBonus'
+
+/** 一份配置文档的接口。 */
+export interface ConfigApi {
   get: (serverId: string) => Promise<GetGmConfigResponse>
-  saveDraft?: (serverId: string, content: string, baseRevision: string, comment?: string) => Promise<GmConfigDraft>
-  discardDraft?: (serverId: string) => Promise<DiscardGmConfigDraftResponse>
-  validate?: (serverId: string, content: string) => Promise<ValidateGmConfigResponse>
-  publish?: (serverId: string, content: string, baseRevision: string, comment?: string) => Promise<PublishGmConfigResponse>
-  revisions?: (serverId: string, page: number, pageSize: number) => Promise<ListGmConfigRevisionsResponse>
-  revision?: (serverId: string, id: string) => Promise<GmConfigRevision>
+  saveDraft: (serverId: string, content: string, baseRevision: string, comment?: string) => Promise<GmConfigDraft>
+  discardDraft: (serverId: string) => Promise<DiscardGmConfigDraftResponse>
+  validate: (serverId: string, content: string) => Promise<ValidateGmConfigResponse>
+  publish: (serverId: string, content: string, baseRevision: string, comment?: string) => Promise<PublishGmConfigResponse>
+  revisions: (serverId: string, page: number, pageSize: number) => Promise<ListGmConfigRevisionsResponse>
+  revision: (serverId: string, id: string) => Promise<GmConfigRevision>
 }
 
-/** 可编辑发布的配置文档的接口。 */
-export type EditableConfigApi = Required<GakumasConfigApi>
+/** 未发布的草稿（不含内容，最近修改的在前）。 */
+export const listConfigDrafts = (serverId: string) => get<ListConfigDraftsResponse>(`${base(serverId)}/config-drafts`)
 
-const editableConfig = (path: string): EditableConfigApi => ({
-  get: (serverId) => get<GetGmConfigResponse>(`${base(serverId)}/config/${path}`),
-  saveDraft: (serverId, content, baseRevision, comment) =>
-    put<GmConfigDraft>(`${base(serverId)}/config/${path}/draft`, { serverId, content, baseRevision, comment }),
-  discardDraft: async (serverId) => (await request.delete<DiscardGmConfigDraftResponse>(`${base(serverId)}/config/${path}/draft`)).data,
-  validate: (serverId, content) => post<ValidateGmConfigResponse>(`${base(serverId)}/config/${path}/validate`, { serverId, content }),
-  publish: (serverId, content, baseRevision, comment) =>
-    post<PublishGmConfigResponse>(`${base(serverId)}/config/${path}/publish`, { serverId, content, baseRevision, comment }),
-  revisions: (serverId, page, pageSize) =>
-    get<ListGmConfigRevisionsResponse>(`${base(serverId)}/config/${path}/revisions`, { page, pageSize }),
-  revision: (serverId, id) => get<GmConfigRevision>(`${base(serverId)}/config/${path}/revisions/${seg(id)}`),
-})
-
-const readonlyConfig = (path: string): GakumasConfigApi => ({
-  get: (serverId) => get<GetGmConfigResponse>(`${base(serverId)}/config/${path}`),
-})
-
-/** 卡池（Gasha.json）。 */
-export const gashaConfig = editableConfig('gasha')
-/** 公告（Notice.json）。 */
-export const noticeConfig = editableConfig('notice')
-/** 运营日历读取的配置。 */
-export const pvpRateConfig = readonlyConfig('pvp-rate')
-export const homeConfig = readonlyConfig('home')
-export const researchConfig = readonlyConfig('research')
-export const storyEventConfig = readonlyConfig('story-event')
-export const loginBonusConfig = readonlyConfig('login-bonus')
+export const configApi = (domain: GakumasConfigDomain): ConfigApi => {
+  const path = (serverId: string) => `${base(serverId)}/config/${domain}`
+  return {
+    get: (serverId) => get<GetGmConfigResponse>(path(serverId)),
+    saveDraft: (serverId, content, baseRevision, comment) => put<GmConfigDraft>(`${path(serverId)}/draft`, { serverId, domain, content, baseRevision, comment }),
+    discardDraft: async (serverId) => (await request.delete<DiscardGmConfigDraftResponse>(`${path(serverId)}/draft`)).data,
+    validate: (serverId, content) => post<ValidateGmConfigResponse>(`${path(serverId)}/validate`, { serverId, domain, content }),
+    publish: (serverId, content, baseRevision, comment) =>
+      post<PublishGmConfigResponse>(`${path(serverId)}/publish`, { serverId, domain, content, baseRevision, comment }),
+    revisions: (serverId, page, pageSize) => get<ListGmConfigRevisionsResponse>(`${path(serverId)}/revisions`, { page, pageSize }),
+    revision: (serverId, id) => get<GmConfigRevision>(`${path(serverId)}/revisions/${seg(id)}`),
+  }
+}

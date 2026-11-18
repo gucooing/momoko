@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	kerrors "github.com/go-kratos/kratos/v2/errors"
 	khttp "github.com/go-kratos/kratos/v2/transport/http"
 
 	v1 "momoko/api/gen/v1"
@@ -485,7 +486,7 @@ type clientLogRequest struct {
 	Content    string `json:"content"`
 }
 
-// readClientLogBody 读取请求体：压缩后（或不压缩时）不超过 8 MiB，解压后不超过 32 MiB，超过时 413。
+// readClientLogBody 读取请求体：压缩后（或不压缩时）不超过 8 MiB，解压后不超过 32 MiB，超过时 PASSPORT_CLIENT_LOG_TOO_LARGE。
 func readClientLogBody(r *http.Request) ([]byte, error) {
 	if r.ContentLength > biz.ClientLogMaxBody {
 		return nil, biz.ErrClientLogTooLarge
@@ -520,10 +521,10 @@ func readClientLogBody(r *http.Request) ([]byte, error) {
 }
 
 // uploadClientLog POST /api/v1/game-client-logs：先校验票据再读请求体，保存后返回 201 {"id","createdAt"}。
-// 失败时为通行证的统一错误响应：401 票据无效、400 内容不合规、413 太大、415 不支持的压缩方式、429 上传太频繁。
+// 失败时为通行证的统一错误响应：票据无效 401，其余（内容不合规、太大、不支持的压缩方式、上传太频繁）400，按错误代码区分。
 func (s *PassportService) uploadClientLog(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		response.WriteError(w, r, response.BadRequest(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED"))
+		response.WriteError(w, r, kerrors.New(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "Method Not Allowed"))
 		return
 	}
 	parts := strings.SplitN(r.Header.Get("Authorization"), " ", 2)

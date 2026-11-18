@@ -276,6 +276,10 @@ service.interceptors.response.use(
           errorMessage = t('utils.request.unauthorizedRelogin')
           break
         }
+        // 后端的业务错误一律是 400，信息就是给用户看的提示
+        case 400:
+          errorMessage = responseData?.message || t('utils.request.failed')
+          break
         case 403:
           errorMessage = t('utils.request.forbidden')
           break

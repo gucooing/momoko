@@ -41,7 +41,7 @@ export function gameCover(game: string, seed = ''): string {
 }
 
 /** 游戏目录条目（MGP /catalogs/{kind}）的图片；这款游戏或这一类没有图片时返回空串。 */
-export function gameCatalogImage(game: string, kind: string, entry: { id: string; assetId?: string }): string {
+export function gameCatalogImage(game: string, kind: string, entry: { id: string; assetId?: string; characterId?: string }): string {
   switch (game) {
     case 'gakumas':
       return gakumasCatalogImage(kind, entry)

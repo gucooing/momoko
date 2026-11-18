@@ -535,13 +535,13 @@ const monitorRowOverhead = 64
 func (m *MonitorUsecase) UpdateSettings(ctx context.Context, req *v1.UpdateMonitorSettingsRequest) (*v1.UpdateMonitorSettingsResponse, error) {
 	s := req.GetSettings()
 	if s == nil {
-		return nil, response.BadRequest(400, "缺少监控设置")
+		return nil, response.BadRequest("缺少监控设置")
 	}
 	if !monitorIntervals[s.IntervalSeconds] {
-		return nil, response.BadRequest(400, "采样间隔只能是 5、10、30 或 60 秒")
+		return nil, response.BadRequest("采样间隔只能是 5、10、30 或 60 秒")
 	}
 	if s.RetentionDays < monitorMinRetentionDays || s.RetentionDays > monitorMaxRetentionDays {
-		return nil, response.BadRequest(400, fmt.Sprintf("历史保留时长需为 %d 到 %d 天", monitorMinRetentionDays, monitorMaxRetentionDays))
+		return nil, response.BadRequest(fmt.Sprintf("历史保留时长需为 %d 到 %d 天", monitorMinRetentionDays, monitorMaxRetentionDays))
 	}
 	b := strconv.FormatBool
 	if err := m.config.BatchUpdate(ctx, map[common.ConfigKey]string{

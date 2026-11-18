@@ -328,3 +328,209 @@ export interface NoticeConfig {
   pageSize: number
   notices: NoticeEntry[]
 }
+
+// ---------------------------------------------------------------------------
+// 配置域：data/PvpRate.json（gdconf.PvpRateData）
+// ---------------------------------------------------------------------------
+
+/** 竞赛赛季：客户端主数据 PvpRateConfig 的 ID 与准备、开赛、结束时间（赛季之间不重叠）。 */
+export interface PvpRateSeason {
+  pvpRateConfigId: string
+  prepareStartTime: number
+  startTime: number
+  endTime: number
+}
+
+/** 对手类型：1 格上、2 同格、3 格下。 */
+export type PvpRateRivalType = 1 | 2 | 3
+
+/** 胜利得分：分数不低于 minRate 时，赢一种对手得 rate 加领先分的十分之一，最多 maxRate。 */
+export interface PvpRateWinRate {
+  rivalType: PvpRateRivalType | number
+  minRate: number
+  rate: number
+  maxRate: number
+}
+
+/** 失败扣分：分数不低于 minRate 时输一场扣 rate。 */
+export interface PvpRateLoseRate {
+  minRate: number
+  rate: number
+}
+
+export interface PvpRateRateReward {
+  rate: number
+  reward: ConfigReward | null
+}
+
+/** 排名奖励：upperRank–lowerRank 名（lowerRank 为 0 表示之后所有名次，只能是最后一档）。 */
+export interface PvpRateRankReward {
+  upperRank: number
+  lowerRank: number
+  rewards: ConfigReward[]
+}
+
+/** 段位：赛季结束时升段（0 不升）/ 保段的分数、每场奖励与粉丝数、分数奖励与排名奖励。 */
+export interface PvpRateGrade {
+  grade: number
+  gradeUpRate: number
+  gradeKeepRate: number
+  playReward: ConfigReward | null
+  winFanCount: number
+  loseFanCount: number
+  rateRewards: PvpRateRateReward[]
+  rankRewards: PvpRateRankReward[]
+}
+
+/** pvpRate 配置域内容（data/PvpRate.json）。 */
+export interface PvpRateConfig {
+  seasons: PvpRateSeason[]
+  maxDailyPlayCount: number
+  historyLimit: number
+  winRates: PvpRateWinRate[]
+  loseRates: PvpRateLoseRate[]
+  grades: PvpRateGrade[]
+}
+
+// ---------------------------------------------------------------------------
+// 配置域：data/LoginBonus.json（gdconf.LoginBonusData）
+// ---------------------------------------------------------------------------
+
+/** 每日登录奖励：7 天循环，第 n 天领 rewards[(n-1) % 7]。 */
+export interface LoginBonusNormal {
+  name: string
+  description: string
+  titleAssetId: string
+  backgroundAssetId: string
+  startLoginBonusMotionId: string
+  endLoginBonusMotionId: string
+  rewards: ConfigReward[]
+}
+
+export interface LoginBonusTotalReward {
+  days: number
+  reward: ConfigReward | null
+}
+
+/** 累计登录奖励：列出的天数，之后从 repeatFromDays 起每 repeatIntervalDays 天领 repeatReward。 */
+export interface LoginBonusTotal {
+  name: string
+  startLoginBonusMotionId: string
+  endLoginBonusMotionId: string
+  rewards: LoginBonusTotalReward[]
+  repeatFromDays: number
+  repeatIntervalDays: number
+  repeatReward: ConfigReward | null
+}
+
+/** 登录活动的演出：2 3D、3 2D。 */
+export type LoginBonusEventType = 2 | 3
+
+/** 限时登录奖励：期间内每登录一天领下一天的奖励（rewards[天数-1]），领完为止。 */
+export interface LoginBonusEvent {
+  id: string
+  type: LoginBonusEventType | number
+  name: string
+  description: string
+  titleAssetId: string
+  backgroundAssetId: string
+  startLoginBonusMotionId: string
+  endLoginBonusMotionId: string
+  openConditionSetId: string
+  startTime: number
+  endTime: number
+  rewards: ConfigReward[]
+}
+
+export interface LoginBonusSelectSlot {
+  number: number
+  rewards: ConfigReward[]
+}
+
+export interface LoginBonusSelectDay {
+  slots: LoginBonusSelectSlot[]
+}
+
+/** 自选登录奖励：期间内每登录一天，从这一天的几个候选里选一个。 */
+export interface LoginBonusSelect {
+  id: string
+  name: string
+  titleAssetId: string
+  backgroundAssetId: string
+  startTime: number
+  endTime: number
+  days: LoginBonusSelectDay[]
+}
+
+/** loginBonus 配置域内容（data/LoginBonus.json）。 */
+export interface LoginBonusConfig {
+  normal: LoginBonusNormal
+  total: LoginBonusTotal
+  events: LoginBonusEvent[]
+  selects: LoginBonusSelect[]
+}
+
+// ---------------------------------------------------------------------------
+// 配置域：data/Home.json、data/Research.json、data/StoryEvent.json（活动）
+// ---------------------------------------------------------------------------
+
+/** 主页的活动（common.Event）：活动类型与各类型自己的引用（任务组、剧情组、道具……）原样保留。 */
+export interface HomeEvent {
+  eventType: number
+  eventId: string
+  eventName: string
+  bannerAssetId?: string
+  homeIconAssetId?: string
+  startTime: number
+  endTime: number
+  fixRankTime?: number
+  closeTime?: number
+  priority?: number
+  [key: string]: unknown
+}
+
+/** home 配置域内容（data/Home.json）：编辑活动日程，横幅、导航、维护与通知原样保留。 */
+export interface HomeConfig {
+  events: HomeEvent[]
+  [key: string]: unknown
+}
+
+/** 积分奖励（研究活动、剧情活动）：达到 point 领 reward；repeat 时之后每 repeatPoint 再领一次。 */
+export interface EventPointReward {
+  point: number
+  reward: ConfigReward | null
+  feature?: boolean
+  repeat?: boolean
+  repeatPoint?: number
+  /** 只有剧情活动有 */
+  displayTop?: boolean
+}
+
+/** 研究活动（data/Research.json）：期间、关闭时间与积分奖励；其余字段（任务组、道具、加成……）原样保留。 */
+export interface ResearchEvent {
+  id: string
+  titleAssetId?: string
+  startTime: number
+  endTime: number
+  closeTime: number
+  pointRewards: EventPointReward[]
+  [key: string]: unknown
+}
+
+export interface ResearchConfig {
+  researches: ResearchEvent[]
+  [key: string]: unknown
+}
+
+/** 剧情活动的内容（data/StoryEvent.json）；期间在 Home.json 里同 ID 的活动上。 */
+export interface StoryEvent {
+  storyEventId: string
+  pointRewardBannerAssetId?: string
+  pointRewards: EventPointReward[]
+  [key: string]: unknown
+}
+
+export interface StoryEventConfig {
+  storyEvents: StoryEvent[]
+  [key: string]: unknown
+}

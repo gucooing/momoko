@@ -41,9 +41,9 @@ type UserRepo interface {
 const BuiltinAdminUserID = "admin_1"
 
 var (
-	ErrBuiltinUserProtected = response.BadRequest(500, "内置超级管理员不能删除、停用或修改角色")
-	ErrUserIdsEmpty         = response.BadRequest(500, "请选择用户")
-	ErrBatchUpdateEmpty     = response.BadRequest(500, "没有需要修改的内容")
+	ErrBuiltinUserProtected = response.BadRequest("内置超级管理员不能删除、停用或修改角色")
+	ErrUserIdsEmpty         = response.BadRequest("请选择用户")
+	ErrBatchUpdateEmpty     = response.BadRequest("没有需要修改的内容")
 )
 
 // UserListFilter 用户列表筛选条件。

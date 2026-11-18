@@ -54,8 +54,8 @@ const (
 )
 
 var (
-	ErrMessageContentEmpty = response.BadRequest(500, "消息内容不能为空")
-	ErrMessageTooLong      = response.BadRequest(500, "消息内容过长")
+	ErrMessageContentEmpty = response.BadRequest("消息内容不能为空")
+	ErrMessageTooLong      = response.BadRequest("消息内容过长")
 )
 
 // UserMessage 写入站内消息时的输入。

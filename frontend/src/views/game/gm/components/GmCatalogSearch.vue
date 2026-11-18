@@ -3,7 +3,7 @@
   <div class="gcs">
     <label class="gcs__search">
       <component :is="menuStore.iconComponents['HOutline:MagnifyingGlassIcon']" class="gcs__icon" />
-      <input v-model="q" type="search" :placeholder="placeholder || t('gm.catalog.search')" :aria-label="placeholder || t('gm.catalog.search')" />
+      <input ref="input" v-model="q" type="search" :placeholder="placeholder || t('gm.catalog.search')" :aria-label="placeholder || t('gm.catalog.search')" />
     </label>
     <div class="gcs__list" role="listbox">
       <button
@@ -19,7 +19,7 @@
         <GameImage v-if="image(entry)" :src="image(entry)" class="gcs__img" width="36" height="36" />
         <span class="gcs__text">
           <span class="gcs__name">{{ entry.name || t('game.unnamed') }}</span>
-          <span v-if="entry.originalName" class="gcs__sub">{{ entry.originalName }}</span>
+          <span v-if="subOf(entry)" class="gcs__sub">{{ subOf(entry) }}</span>
         </span>
       </button>
       <div v-if="loading" class="gcs__hint">{{ t('gm.catalog.loading') }}</div>
@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
 import { gameCatalogImage } from '@/games'
@@ -48,6 +48,8 @@ const props = defineProps<{
   grantableOnly?: boolean
   /** 不列出的条目（已经选上的，避免在下面重复出现） */
   excludeIds?: string[]
+  /** 出现时把光标放进搜索框（在下拉里打开时） */
+  autofocus?: boolean
 }>()
 const emit = defineEmits<{ pick: [entry: CatalogEntry] }>()
 
@@ -69,6 +71,14 @@ const visible = computed(() => {
 })
 
 const image = (entry: CatalogEntry) => gameCatalogImage(ctx.game.value, props.kind, entry)
+// 第二行：属于哪个角色（各角色的同名条目靠它分清）与游戏原文名
+const subOf = (entry: CatalogEntry) =>
+  [props.kind !== 'character' && entry.characterId ? ctx.name('character', entry.characterId) : '', entry.originalName].filter(Boolean).join(' · ')
+
+const input = ref<HTMLInputElement>()
+onMounted(() => {
+  if (props.autofocus) input.value?.focus()
+})
 
 const load = async (more = false) => {
   const id = ++seq

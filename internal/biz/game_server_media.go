@@ -28,11 +28,11 @@ const (
 )
 
 var (
-	ErrAppMediaStorage = response.BadRequest(400, "还没有开启对象存储（系统设置 · 储存）")
-	ErrAppMediaKind    = response.BadRequest(400, "只能上传应用图标或应用背景")
-	ErrAppMediaSize    = response.BadRequest(400, "文件是空的")
-	ErrAppMediaTicket  = response.BadRequest(400, "上传凭证无效或已过期，请重新上传")
-	ErrAppMediaMissing = response.BadRequest(400, "文件还没有上传到对象存储，请重新上传")
+	ErrAppMediaStorage = response.BadRequest("还没有开启对象存储（系统设置 · 储存）")
+	ErrAppMediaKind    = response.BadRequest("只能上传应用图标或应用背景")
+	ErrAppMediaSize    = response.BadRequest("文件是空的")
+	ErrAppMediaTicket  = response.BadRequest("上传凭证无效或已过期，请重新上传")
+	ErrAppMediaMissing = response.BadRequest("文件还没有上传到对象存储，请重新上传")
 )
 
 // appMediaTicket 一次直传的上传凭证（加密后交给前端，完成上传时原样带回）。
@@ -84,7 +84,7 @@ func (uc *GameServerUsecase) PresignAppMedia(ctx context.Context, req *v1.Presig
 	}
 	uploadURL, key, err := store.PresignPut(ctx, "app/"+uuid.NewString()+"."+ext, contentType, req.Size, appMediaPresignTTL)
 	if err != nil {
-		return nil, response.BadRequest(400, "签发上传地址失败: "+err.Error())
+		return nil, response.BadRequest("签发上传地址失败: " + err.Error())
 	}
 	raw, err := json.Marshal(appMediaTicket{Server: req.Id, Kind: req.Kind, Key: key, Size: req.Size,
 		Exp: time.Now().Add(appMediaPresignTTL).Unix()})

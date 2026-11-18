@@ -60,7 +60,7 @@ const GM_CONTEXT: InjectionKey<GmContext> = Symbol('gm-context')
 // 卡池是 GM 编辑的数据文件（Gasha.json）：从已发布的卡池配置整理，按 order、ID 排列（与游戏服务端的卡池顺序相同）
 const serverCatalogs: ServerCatalogs = {
   gasha: async (serverId) => {
-    const { content } = await gakumasApi.gashaConfig.get(serverId)
+    const { content } = await gakumasApi.configApi('gasha').get(serverId)
     const gashas = ((content ? JSON.parse(content) : {}) as Partial<GashaConfig>).gashas || []
     return [...gashas]
       .sort((a, b) => (a.order || 0) - (b.order || 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))

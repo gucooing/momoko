@@ -72,7 +72,7 @@ var (
 		{method: http.MethodGet, path: biz.PreFileDownload}:                        {},
 		{method: http.MethodPut, path: biz.PreFileUpload}:                          {},
 	}
-	ErrTokenInvalid = response.BadRequest(401, "token invalid")
+	ErrTokenInvalid = response.Unauthorized("token invalid")
 )
 
 // Middleware is an authentication middleware for HTTP servers.
