@@ -7,7 +7,10 @@
         <GameServerPicker :model-value="serverId" :selected="ctx.server.value" :search="searchServers" @select="switchServer">
           <template #trigger="{ open }">
             <button type="button" class="gm__switch" :aria-expanded="open" :aria-label="t('gm.shell.switchServer')">
-              <span class="gm__switch-avatar" aria-hidden="true">{{ initial }}</span>
+              <span class="gm__switch-avatar" :class="{ 'has-img': ctx.server.value?.appIcon }" aria-hidden="true">
+                <img v-if="ctx.server.value?.appIcon" :src="ctx.server.value.appIcon" alt="" class="gm__switch-img" />
+                <template v-else>{{ initial }}</template>
+              </span>
               <span class="gm__switch-text">
                 <span class="gm__switch-name">{{ ctx.server.value?.name || '…' }}</span>
                 <span class="gm__switch-sub">{{ subline }}</span>
@@ -33,7 +36,7 @@
         >
           <component :is="menuStore.iconComponents[tab.icon]" class="gm__tab-icon" />
           {{ t(tab.labelKey) }}
-          <span v-if="tab.key === 'logs' && ctx.pendingApprovals.value" class="gm__tab-badge m-num">{{ ctx.pendingApprovals.value }}</span>
+          <span v-if="tab.key === 'operations' && ctx.pendingApprovals.value" class="gm__tab-badge m-num">{{ ctx.pendingApprovals.value }}</span>
         </RouterLink>
       </nav>
 
@@ -203,6 +206,15 @@ const subline = computed(() => {
   font-family: var(--app-font-display);
   font-weight: 800;
   font-size: 18px;
+}
+.gm__switch-avatar.has-img {
+  overflow: hidden;
+  background: var(--el-bg-color);
+}
+.gm__switch-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .gm__switch-text {
   display: flex;

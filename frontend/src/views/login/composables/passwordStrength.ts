@@ -1,7 +1,4 @@
-/** 新密码最少位数（与后端 biz.MinPasswordLength 一致）。 */
-export const MIN_PASSWORD_LENGTH = 8
-
-/** 密码强度打分：0–4，与原型规则一致（长度 ≥8、大小写、数字、符号；不足 6 位最多 1 分）。 */
+/** 密码强度打分：0–4，仅作提示，不限制长度和字符（长度 ≥8、大小写、数字、符号；不足 6 位最多 1 分）。 */
 export const scorePassword = (pw: string) => {
   const rules = {
     length: pw.length >= 8,

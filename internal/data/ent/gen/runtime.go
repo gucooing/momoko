@@ -15,7 +15,6 @@ import (
 	"momoko/internal/data/ent/gen/gameaccountunlink"
 	"momoko/internal/data/ent/gen/gameclientlog"
 	"momoko/internal/data/ent/gen/gameconfigrevision"
-	"momoko/internal/data/ent/gen/gamemail"
 	"momoko/internal/data/ent/gen/gamerecentserver"
 	"momoko/internal/data/ent/gen/gameserver"
 	"momoko/internal/data/ent/gen/gameserverbackup"
@@ -512,101 +511,6 @@ func init() {
 	gameconfigrevisionDescID := gameconfigrevisionFields[0].Descriptor()
 	// gameconfigrevision.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	gameconfigrevision.IDValidator = gameconfigrevisionDescID.Validators[0].(func(string) error)
-	gamemailMixin := schema.GameMail{}.Mixin()
-	gamemailMixinFields0 := gamemailMixin[0].Fields()
-	_ = gamemailMixinFields0
-	gamemailFields := schema.GameMail{}.Fields()
-	_ = gamemailFields
-	// gamemailDescCreateTime is the schema descriptor for create_time field.
-	gamemailDescCreateTime := gamemailMixinFields0[0].Descriptor()
-	// gamemail.DefaultCreateTime holds the default value on creation for the create_time field.
-	gamemail.DefaultCreateTime = gamemailDescCreateTime.Default.(func() time.Time)
-	// gamemailDescUpdateTime is the schema descriptor for update_time field.
-	gamemailDescUpdateTime := gamemailMixinFields0[1].Descriptor()
-	// gamemail.DefaultUpdateTime holds the default value on creation for the update_time field.
-	gamemail.DefaultUpdateTime = gamemailDescUpdateTime.Default.(func() time.Time)
-	// gamemail.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	gamemail.UpdateDefaultUpdateTime = gamemailDescUpdateTime.UpdateDefault.(func() time.Time)
-	// gamemailDescServerID is the schema descriptor for server_id field.
-	gamemailDescServerID := gamemailFields[1].Descriptor()
-	// gamemail.ServerIDValidator is a validator for the "server_id" field. It is called by the builders before save.
-	gamemail.ServerIDValidator = gamemailDescServerID.Validators[0].(func(string) error)
-	// gamemailDescTitle is the schema descriptor for title field.
-	gamemailDescTitle := gamemailFields[2].Descriptor()
-	// gamemail.DefaultTitle holds the default value on creation for the title field.
-	gamemail.DefaultTitle = gamemailDescTitle.Default.(string)
-	// gamemailDescBody is the schema descriptor for body field.
-	gamemailDescBody := gamemailFields[3].Descriptor()
-	// gamemail.DefaultBody holds the default value on creation for the body field.
-	gamemail.DefaultBody = gamemailDescBody.Default.(string)
-	// gamemailDescExcludeBanned is the schema descriptor for exclude_banned field.
-	gamemailDescExcludeBanned := gamemailFields[8].Descriptor()
-	// gamemail.DefaultExcludeBanned holds the default value on creation for the exclude_banned field.
-	gamemail.DefaultExcludeBanned = gamemailDescExcludeBanned.Default.(bool)
-	// gamemailDescExpireDays is the schema descriptor for expire_days field.
-	gamemailDescExpireDays := gamemailFields[9].Descriptor()
-	// gamemail.DefaultExpireDays holds the default value on creation for the expire_days field.
-	gamemail.DefaultExpireDays = gamemailDescExpireDays.Default.(int)
-	// gamemailDescMatchedCount is the schema descriptor for matched_count field.
-	gamemailDescMatchedCount := gamemailFields[12].Descriptor()
-	// gamemail.DefaultMatchedCount holds the default value on creation for the matched_count field.
-	gamemail.DefaultMatchedCount = gamemailDescMatchedCount.Default.(int)
-	// gamemailDescRecipientCount is the schema descriptor for recipient_count field.
-	gamemailDescRecipientCount := gamemailFields[14].Descriptor()
-	// gamemail.DefaultRecipientCount holds the default value on creation for the recipient_count field.
-	gamemail.DefaultRecipientCount = gamemailDescRecipientCount.Default.(int)
-	// gamemailDescFailedCount is the schema descriptor for failed_count field.
-	gamemailDescFailedCount := gamemailFields[15].Descriptor()
-	// gamemail.DefaultFailedCount holds the default value on creation for the failed_count field.
-	gamemail.DefaultFailedCount = gamemailDescFailedCount.Default.(int)
-	// gamemailDescClaimedCount is the schema descriptor for claimed_count field.
-	gamemailDescClaimedCount := gamemailFields[16].Descriptor()
-	// gamemail.DefaultClaimedCount holds the default value on creation for the claimed_count field.
-	gamemail.DefaultClaimedCount = gamemailDescClaimedCount.Default.(int)
-	// gamemailDescError is the schema descriptor for error field.
-	gamemailDescError := gamemailFields[18].Descriptor()
-	// gamemail.DefaultError holds the default value on creation for the error field.
-	gamemail.DefaultError = gamemailDescError.Default.(string)
-	// gamemailDescExecutionID is the schema descriptor for execution_id field.
-	gamemailDescExecutionID := gamemailFields[19].Descriptor()
-	// gamemail.DefaultExecutionID holds the default value on creation for the execution_id field.
-	gamemail.DefaultExecutionID = gamemailDescExecutionID.Default.(string)
-	// gamemailDescCreatedBy is the schema descriptor for created_by field.
-	gamemailDescCreatedBy := gamemailFields[20].Descriptor()
-	// gamemail.DefaultCreatedBy holds the default value on creation for the created_by field.
-	gamemail.DefaultCreatedBy = gamemailDescCreatedBy.Default.(string)
-	// gamemailDescCreatedByName is the schema descriptor for created_by_name field.
-	gamemailDescCreatedByName := gamemailFields[21].Descriptor()
-	// gamemail.DefaultCreatedByName holds the default value on creation for the created_by_name field.
-	gamemail.DefaultCreatedByName = gamemailDescCreatedByName.Default.(string)
-	// gamemailDescUpdatedByName is the schema descriptor for updated_by_name field.
-	gamemailDescUpdatedByName := gamemailFields[22].Descriptor()
-	// gamemail.DefaultUpdatedByName holds the default value on creation for the updated_by_name field.
-	gamemail.DefaultUpdatedByName = gamemailDescUpdatedByName.Default.(string)
-	// gamemailDescSentBy is the schema descriptor for sent_by field.
-	gamemailDescSentBy := gamemailFields[23].Descriptor()
-	// gamemail.DefaultSentBy holds the default value on creation for the sent_by field.
-	gamemail.DefaultSentBy = gamemailDescSentBy.Default.(string)
-	// gamemailDescSentByName is the schema descriptor for sent_by_name field.
-	gamemailDescSentByName := gamemailFields[24].Descriptor()
-	// gamemail.DefaultSentByName holds the default value on creation for the sent_by_name field.
-	gamemail.DefaultSentByName = gamemailDescSentByName.Default.(string)
-	// gamemailDescRevokedByName is the schema descriptor for revoked_by_name field.
-	gamemailDescRevokedByName := gamemailFields[26].Descriptor()
-	// gamemail.DefaultRevokedByName holds the default value on creation for the revoked_by_name field.
-	gamemail.DefaultRevokedByName = gamemailDescRevokedByName.Default.(string)
-	// gamemailDescRevokedCount is the schema descriptor for revoked_count field.
-	gamemailDescRevokedCount := gamemailFields[28].Descriptor()
-	// gamemail.DefaultRevokedCount holds the default value on creation for the revoked_count field.
-	gamemail.DefaultRevokedCount = gamemailDescRevokedCount.Default.(int)
-	// gamemailDescRevokeExecutionID is the schema descriptor for revoke_execution_id field.
-	gamemailDescRevokeExecutionID := gamemailFields[29].Descriptor()
-	// gamemail.DefaultRevokeExecutionID holds the default value on creation for the revoke_execution_id field.
-	gamemail.DefaultRevokeExecutionID = gamemailDescRevokeExecutionID.Default.(string)
-	// gamemailDescID is the schema descriptor for id field.
-	gamemailDescID := gamemailFields[0].Descriptor()
-	// gamemail.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	gamemail.IDValidator = gamemailDescID.Validators[0].(func(string) error)
 	gamerecentserverFields := schema.GameRecentServer{}.Fields()
 	_ = gamerecentserverFields
 	// gamerecentserverDescUserID is the schema descriptor for user_id field.
@@ -660,22 +564,22 @@ func init() {
 	gameserverDescCover := gameserverFields[9].Descriptor()
 	// gameserver.DefaultCover holds the default value on creation for the cover field.
 	gameserver.DefaultCover = gameserverDescCover.Default.(string)
-	// gameserverDescLauncherIcon is the schema descriptor for launcher_icon field.
-	gameserverDescLauncherIcon := gameserverFields[10].Descriptor()
-	// gameserver.DefaultLauncherIcon holds the default value on creation for the launcher_icon field.
-	gameserver.DefaultLauncherIcon = gameserverDescLauncherIcon.Default.(string)
-	// gameserverDescLauncherIconKey is the schema descriptor for launcher_icon_key field.
-	gameserverDescLauncherIconKey := gameserverFields[11].Descriptor()
-	// gameserver.DefaultLauncherIconKey holds the default value on creation for the launcher_icon_key field.
-	gameserver.DefaultLauncherIconKey = gameserverDescLauncherIconKey.Default.(string)
-	// gameserverDescLauncherBackground is the schema descriptor for launcher_background field.
-	gameserverDescLauncherBackground := gameserverFields[12].Descriptor()
-	// gameserver.DefaultLauncherBackground holds the default value on creation for the launcher_background field.
-	gameserver.DefaultLauncherBackground = gameserverDescLauncherBackground.Default.(string)
-	// gameserverDescLauncherBackgroundKey is the schema descriptor for launcher_background_key field.
-	gameserverDescLauncherBackgroundKey := gameserverFields[13].Descriptor()
-	// gameserver.DefaultLauncherBackgroundKey holds the default value on creation for the launcher_background_key field.
-	gameserver.DefaultLauncherBackgroundKey = gameserverDescLauncherBackgroundKey.Default.(string)
+	// gameserverDescAppIcon is the schema descriptor for app_icon field.
+	gameserverDescAppIcon := gameserverFields[10].Descriptor()
+	// gameserver.DefaultAppIcon holds the default value on creation for the app_icon field.
+	gameserver.DefaultAppIcon = gameserverDescAppIcon.Default.(string)
+	// gameserverDescAppIconKey is the schema descriptor for app_icon_key field.
+	gameserverDescAppIconKey := gameserverFields[11].Descriptor()
+	// gameserver.DefaultAppIconKey holds the default value on creation for the app_icon_key field.
+	gameserver.DefaultAppIconKey = gameserverDescAppIconKey.Default.(string)
+	// gameserverDescAppBackground is the schema descriptor for app_background field.
+	gameserverDescAppBackground := gameserverFields[12].Descriptor()
+	// gameserver.DefaultAppBackground holds the default value on creation for the app_background field.
+	gameserver.DefaultAppBackground = gameserverDescAppBackground.Default.(string)
+	// gameserverDescAppBackgroundKey is the schema descriptor for app_background_key field.
+	gameserverDescAppBackgroundKey := gameserverFields[13].Descriptor()
+	// gameserver.DefaultAppBackgroundKey holds the default value on creation for the app_background_key field.
+	gameserver.DefaultAppBackgroundKey = gameserverDescAppBackgroundKey.Default.(string)
 	// gameserverDescMgpEndpoint is the schema descriptor for mgp_endpoint field.
 	gameserverDescMgpEndpoint := gameserverFields[14].Descriptor()
 	// gameserver.DefaultMgpEndpoint holds the default value on creation for the mgp_endpoint field.

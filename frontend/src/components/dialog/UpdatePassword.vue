@@ -128,15 +128,12 @@ const validate = () => {
     ok = false
   }
   const next = passwordForm.value.newPassword
-  if (!next.trim()) {
+  if (!next) {
     errors.newPassword = t('password.newPasswordRequired')
-    ok = false
-  } else if (next.length < 6) {
-    errors.newPassword = t('password.newPasswordMin')
     ok = false
   }
   const confirm = passwordForm.value.confirmPassword
-  if (!confirm.trim()) {
+  if (!confirm) {
     errors.confirmPassword = t('password.confirmPasswordRequired')
     ok = false
   } else if (confirm !== next) {

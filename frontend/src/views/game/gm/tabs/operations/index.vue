@@ -1,5 +1,7 @@
-<!-- GM 运营 · GM 操作：「执行操作」先选玩家再执行（RunPanel），「玩家权限」管理玩家在通行证自助服务里能执行哪些操作
-     （PermissionsPanel）；当前页面记在 ?view=（run / permissions）。 -->
+<!-- GM 运营 · 操作与日志：「执行操作」先选玩家再执行（RunPanel），「玩家权限」管理玩家在通行证自助服务里能执行哪些操作
+     （PermissionsPanel），「GM 记录」是这台服务器的操作记录与待审批（LogsPanel），「客户端日志」是这台服务器的玩家上传的
+     客户端错误日志（ClientLogsPanel）；当前页面记在 ?view=（run / permissions / logs / clientLogs）。服务端没有可对玩家执行的
+     操作时不显示前两个，默认进入 GM 记录。切换页面时各页保留状态。 -->
 <template>
   <div class="gop game-skin">
     <div class="gop__head">
@@ -16,35 +18,53 @@
           @click="setView(v.key)"
         >
           {{ v.label }}
+          <span v-if="v.badge" class="gop__seg-badge m-num">{{ v.badge }}</span>
         </button>
       </nav>
     </div>
-    <RunPanel v-if="view === 'run'" />
-    <PermissionsPanel v-else />
+    <KeepAlive>
+      <component :is="panel" :key="view" />
+    </KeepAlive>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { useGmContext } from '../../context'
+import { hasPlayerOperations } from '../../tabs'
+import ClientLogsPanel from './ClientLogsPanel.vue'
+import LogsPanel from './LogsPanel.vue'
 import PermissionsPanel from './PermissionsPanel.vue'
 import RunPanel from './RunPanel.vue'
 
 defineOptions({ name: 'GmOperationsTab' })
 
-type View = 'run' | 'permissions'
+type View = 'run' | 'permissions' | 'logs' | 'clientLogs'
+
+const PANELS: Record<View, Component> = { run: RunPanel, permissions: PermissionsPanel, logs: LogsPanel, clientLogs: ClientLogsPanel }
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const ctx = useGmContext()
 
-const views = computed<{ key: View; label: string }[]>(() => [
-  { key: 'run', label: t('gmOps.run.runView') },
-  { key: 'permissions', label: t('gmOps.run.permissionsView') },
+const views = computed<{ key: View; label: string; badge?: number }[]>(() => [
+  ...(hasPlayerOperations(ctx)
+    ? [
+        { key: 'run' as const, label: t('gmOps.run.runView') },
+        { key: 'permissions' as const, label: t('gmOps.run.permissionsView') },
+      ]
+    : []),
+  { key: 'logs', label: t('gm.tabs.logs'), badge: ctx.pendingApprovals.value || undefined },
+  { key: 'clientLogs', label: t('clientLogs.title') },
 ])
-const view = computed<View>(() => (route.query.view === 'permissions' ? 'permissions' : 'run'))
-const setView = (key: View) => void router.replace({ query: { ...route.query, view: key === 'run' ? undefined : key } })
+/** 默认页（地址里不写 ?view=）：有可对玩家执行的操作时是「执行操作」，否则是「GM 记录」 */
+const first = computed<View>(() => views.value[0]?.key ?? 'logs')
+const view = computed<View>(() => views.value.find((v) => v.key === route.query.view)?.key || first.value)
+const panel = computed(() => PANELS[view.value])
+const setView = (key: View) => void router.replace({ query: { ...route.query, view: key === first.value ? undefined : key } })
 </script>
 
 <style scoped>
@@ -89,6 +109,20 @@ const setView = (key: View) => void router.replace({ query: { ...route.query, vi
 .gop__seg-btn.is-on {
   background: var(--m-ink);
   color: var(--m-bg);
+}
+.gop__seg-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--m-bad);
+  color: var(--m-s);
+  font-size: 11px;
+  font-weight: 800;
 }
 @media (width < 768px) {
   .gop__h {

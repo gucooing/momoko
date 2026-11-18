@@ -98,11 +98,6 @@ export default {
         iopsPeak: 'IOPS 峰值',
         latency: '平均延迟',
       },
-      off: {
-        title: '没有采集{name}',
-        desc: '在「监控设置」里打开这一项后开始记录。',
-        action: '打开监控设置',
-      },
       noData: {
         title: '这段时间没有数据',
         desc: '可能是 Momoko 当时没有运行或暂停了记录；刚开始采集时稍等片刻曲线就会出现。',
@@ -131,7 +126,6 @@ export default {
         sortCpu: 'CPU',
         sortMem: '内存',
         empty: '这段时间没有运行中的应用',
-        offDesc: '「按应用统计」已关闭，在监控设置里打开后开始记录。',
         stopped: '已停止',
       },
       panel: {
@@ -286,11 +280,6 @@ export default {
         iopsPeak: 'IOPS 峰值',
         latency: '平均延遲',
       },
-      off: {
-        title: '沒有採集{name}',
-        desc: '在「監控設定」裏開啟這一項後開始記錄。',
-        action: '開啟監控設定',
-      },
       noData: {
         title: '這段時間沒有資料',
         desc: '可能是 Momoko 當時沒有運行或暫停了記錄；剛開始採集時稍等片刻曲線就會出現。',
@@ -319,7 +308,6 @@ export default {
         sortCpu: 'CPU',
         sortMem: '記憶體',
         empty: '這段時間沒有運行中的應用',
-        offDesc: '「按應用統計」已關閉，在監控設定裏開啟後開始記錄。',
         stopped: '已停止',
       },
       panel: {
@@ -474,11 +462,6 @@ export default {
         iopsPeak: 'Peak IOPS',
         latency: 'Avg latency',
       },
-      off: {
-        title: '{name} is not being collected',
-        desc: 'Turn it on in Settings to start recording.',
-        action: 'Open settings',
-      },
       noData: {
         title: 'No data for this period',
         desc: 'Momoko may not have been running or recording was paused. Right after collection starts, curves show up shortly.',
@@ -507,7 +490,6 @@ export default {
         sortCpu: 'CPU',
         sortMem: 'Memory',
         empty: 'No apps were running in this period',
-        offDesc: 'Per-app stats are off. Turn them on in Settings to start recording.',
         stopped: 'Stopped',
       },
       panel: {

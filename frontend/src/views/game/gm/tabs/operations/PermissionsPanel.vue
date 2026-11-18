@@ -1,4 +1,4 @@
-<!-- GM 操作 · 玩家权限：玩家在通行证「自助服务」里能执行哪些 GM 操作；只列出允许玩家自助的操作。
+<!-- 操作与日志 · 玩家权限：玩家在通行证「自助服务」里能执行哪些 GM 操作；只列出允许玩家自助的操作。
      每条的设置：开放给玩家 / 每 X 天 N 次机会（服务器时区 0 点刷新，或永久不刷新）/ 需要审批 / 玩家看到的说明；
      改动自动保存、立即生效。玩家的审批申请在「GM 记录」里处理。 -->
 <template>
@@ -135,7 +135,7 @@
       <UIcon name="i-lucide-info" class="gss__info-icon" />
       <i18n-t keypath="gmOps.self.info" tag="span" scope="global">
         <template #logs>
-          <RouterLink :to="{ path: route.path, query: { tab: 'logs' } }">{{ t('gm.tabs.logs') }}</RouterLink>
+          <RouterLink :to="{ path: route.path, query: { tab: 'operations', view: 'logs' } }">{{ t('gm.tabs.logs') }}</RouterLink>
         </template>
       </i18n-t>
     </div>

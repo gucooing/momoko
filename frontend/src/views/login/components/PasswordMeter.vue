@@ -1,4 +1,4 @@
-<!-- 密码强度：四段条 + 「强度：x」+ 说明；仅作提示，最少位数由表单校验（与后端 MinPasswordLength 一致）。 -->
+<!-- 密码强度：四段条 + 「强度：x」+ 说明；仅作提示，不限制长度和字符。 -->
 <template>
   <div class="pm">
     <div class="pm__row" aria-live="polite">

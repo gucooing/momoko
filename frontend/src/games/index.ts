@@ -25,6 +25,7 @@ export {
   searchGameNames,
 } from './names'
 export { fuzzyMatch, normalizeName } from './search'
+export { isVideoLink } from './serverMedia'
 
 /**
  * 游戏的默认封面图 URL（游戏卡片、没设封面的服务器卡片用）：横图 2:1；

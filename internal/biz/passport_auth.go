@@ -164,9 +164,10 @@ func (uc *PassportUsecase) SendResetCode(ctx context.Context, email string) (*v1
 
 // ---------------- 注册 ----------------
 
+// validPassportPassword 只要求非空，不限制长度和字符组成。
 func validPassportPassword(p string) error {
-	if len([]rune(p)) < MinPasswordLength {
-		return ErrPassportPasswordTooShort
+	if p == "" {
+		return ErrPassportPasswordEmpty
 	}
 	return nil
 }

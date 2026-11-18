@@ -34,16 +34,12 @@ export const listGameMails = (params: ListGameMailsRequest) => {
 
 export const getGameMail = (serverId: string, id: string) => request.get<GameMail>(`${base(serverId)}/mails/${seg(id)}`)
 
-export const createGameMail = (data: SaveGameMailRequest) => request.post<GameMail>(`${base(data.serverId)}/mails`, data)
-
-export const updateGameMail = (data: SaveGameMailRequest) =>
+// 保存草稿（新邮件的 id 由前端生成），或修改还没开始投递的定时邮件
+export const saveGameMail = (data: SaveGameMailRequest) =>
   request.put<GameMail>(`${base(data.serverId)}/mails/${seg(data.id)}`, data)
 
 export const deleteGameMail = (serverId: string, id: string) =>
   request.delete<DeleteGameMailResponse>(`${base(serverId)}/mails/${seg(id)}`)
-
-export const duplicateGameMail = (serverId: string, id: string) =>
-  request.post<GameMail>(`${base(serverId)}/mails/${seg(id)}/duplicate`, { serverId, id })
 
 export const dryRunGameMail = (serverId: string, id: string) =>
   request.post<DryRunGameMailResponse>(`${base(serverId)}/mails/${seg(id)}/dry-run`, { serverId, id })

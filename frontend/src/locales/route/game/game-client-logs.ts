@@ -1,18 +1,16 @@
-// 游戏客户端错误日志的文案（clientLogs.*）：「客户端日志」页（/game/client-logs，全部服务器）与 GM 玩家详情的「客户端日志」共用，
+// 游戏客户端错误日志的文案（clientLogs.*）：「操作与日志」的「客户端日志」（一台服务器）与 GM 玩家详情的「客户端日志」共用，
 // 包括列表、筛选、日志查看器（全文、查找、复制全部、下载）与删除。
 export default {
   'zh-CN': {
     clientLogs: {
       title: '客户端日志',
-      description: '游戏客户端出错时上传的日志，来自全部服务器；每个游戏账号保留最新 {n} 份',
+      description: '这台服务器的玩家的游戏客户端出错时上传的日志；每个游戏账号保留最新 {n} 份',
       count: '共 {n} 份',
       playerHint: '玩家的游戏客户端出错时上传的日志，每个游戏账号保留最新 {n} 份',
       filter: {
         search: '搜索摘要、说明或设备',
         reasons: '上传原因',
         reasonAll: '全部',
-        serverAll: '全部服务器',
-        server: '服务器：{name}',
         pid: '玩家 ID',
         since: '上传时间从',
         until: '到',
@@ -25,7 +23,6 @@ export default {
       emptyPlayer: '这个玩家还没有上传过客户端日志',
       col: {
         time: '时间',
-        server: '服务器',
         player: '玩家',
         reason: '原因',
         summary: '摘要',
@@ -83,15 +80,13 @@ export default {
   'zh-HK': {
     clientLogs: {
       title: '客戶端日誌',
-      description: '遊戲客戶端出錯時上傳的日誌，來自全部伺服器；每個遊戲帳戶保留最新 {n} 份',
+      description: '這台伺服器的玩家的遊戲客戶端出錯時上傳的日誌；每個遊戲帳戶保留最新 {n} 份',
       count: '共 {n} 份',
       playerHint: '玩家的遊戲客戶端出錯時上傳的日誌，每個遊戲帳戶保留最新 {n} 份',
       filter: {
         search: '搜尋摘要、說明或裝置',
         reasons: '上傳原因',
         reasonAll: '全部',
-        serverAll: '全部伺服器',
-        server: '伺服器：{name}',
         pid: '玩家 ID',
         since: '上傳時間由',
         until: '至',
@@ -104,7 +99,6 @@ export default {
       emptyPlayer: '這個玩家尚未上傳過客戶端日誌',
       col: {
         time: '時間',
-        server: '伺服器',
         player: '玩家',
         reason: '原因',
         summary: '摘要',
@@ -162,15 +156,13 @@ export default {
   'en-US': {
     clientLogs: {
       title: 'Client logs',
-      description: 'Logs uploaded by game clients when something goes wrong, from all servers. The latest {n} are kept per game account',
+      description: 'Logs uploaded by game clients on this server when something goes wrong. The latest {n} are kept per game account',
       count: '{n} logs',
       playerHint: 'Logs uploaded by this player game client when something goes wrong. The latest {n} are kept per game account',
       filter: {
         search: 'Search summary, note or device',
         reasons: 'Upload reason',
         reasonAll: 'All',
-        serverAll: 'All servers',
-        server: 'Server: {name}',
         pid: 'Player ID',
         since: 'Uploaded from',
         until: 'to',
@@ -183,7 +175,6 @@ export default {
       emptyPlayer: 'This player has not uploaded any client logs',
       col: {
         time: 'Time',
-        server: 'Server',
         player: 'Player',
         reason: 'Reason',
         summary: 'Summary',

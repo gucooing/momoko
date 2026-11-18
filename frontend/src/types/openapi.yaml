@@ -5255,7 +5255,7 @@ paths:
         get:
             tags:
                 - GameOpsService
-            description: 邮件列表（含各状态数量与本月已发数）
+            description: 邮件列表（含各组数量与本月投递完的邮件数）
             operationId: GameOpsService_ListGameMails
             parameters:
                 - name: serverId
@@ -5265,12 +5265,12 @@ paths:
                     type: string
                 - name: status
                   in: query
-                  description: 状态：draft / scheduled / sent（含 sending、failed、revoked）；空为全部
+                  description: draft / scheduled / sent（sending、sent、revoking、revoked）；空为全部
                   schema:
                     type: string
                 - name: q
                   in: query
-                  description: 关键字：标题、收件人、道具 ID
+                  description: 关键字：文案、备注、道具 ID 或邮件 ID
                   schema:
                     type: string
                 - name: page
@@ -5290,35 +5290,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.ListGameMailsResponse'
-        post:
-            tags:
-                - GameOpsService
-            description: 新建草稿
-            operationId: GameOpsService_CreateGameMail
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.SaveGameMailRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GameMail'
     /api/v1/game/gm/{serverId}/mails/{id}:
         get:
             tags:
                 - GameOpsService
-            description: 邮件详情（已发送的会刷新领取统计）
+            description: 邮件详情
             operationId: GameOpsService_GetGameMail
             parameters:
                 - name: serverId
@@ -5341,8 +5317,8 @@ paths:
         put:
             tags:
                 - GameOpsService
-            description: 修改草稿 / 定时邮件
-            operationId: GameOpsService_UpdateGameMail
+            description: 保存草稿（id 由前端生成，没有这封邮件时新建），或修改还没开始投递的定时邮件
+            operationId: GameOpsService_SaveGameMail
             parameters:
                 - name: serverId
                   in: path
@@ -5351,7 +5327,7 @@ paths:
                     type: string
                 - name: id
                   in: path
-                  description: 修改时必填
+                  description: 邮件 id（新邮件由前端生成 UUID）
                   required: true
                   schema:
                     type: string
@@ -5425,7 +5401,7 @@ paths:
         post:
             tags:
                 - GameOpsService
-            description: 试运行：返回按当前条件匹配的人数（不投递）
+            description: 试运行发送：返回现在匹配的人数（不投递，写进 GM 记录）
             operationId: GameOpsService_DryRunGameMail
             parameters:
                 - name: serverId
@@ -5451,41 +5427,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DryRunGameMailResponse'
-    /api/v1/game/gm/{serverId}/mails/{id}/duplicate:
-        post:
-            tags:
-                - GameOpsService
-            description: 复制一封邮件为新草稿
-            operationId: GameOpsService_DuplicateGameMail
-            parameters:
-                - name: serverId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.DuplicateGameMailRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GameMail'
     /api/v1/game/gm/{serverId}/mails/{id}/revoke:
         post:
             tags:
                 - GameOpsService
-            description: 撤回已发送邮件里尚未领取的礼物（高风险，必须填原因）
+            description: 撤回：之后不再投递，并撤回尚未领取的礼物（在后台执行）
             operationId: GameOpsService_RevokeGameMail
             parameters:
                 - name: serverId
@@ -5515,7 +5461,7 @@ paths:
         post:
             tags:
                 - GameOpsService
-            description: 立即发送，或按 scheduled_at 定时发送（高风险，必须填原因）
+            description: 发送草稿：立即，或从 start_time 起定时投递
             operationId: GameOpsService_SendGameMail
             parameters:
                 - name: serverId
@@ -6054,6 +6000,80 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DeleteGameServerResponse'
+    /api/v1/game/servers/{id}/app-media/complete:
+        post:
+            tags:
+                - GameServerService
+            operationId: GameServerService_CompleteGameServerAppMedia
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CompleteGameServerAppMediaRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GameServerInfo'
+    /api/v1/game/servers/{id}/app-media/presign:
+        post:
+            tags:
+                - GameServerService
+            description: |-
+                应用图标 / 应用背景（服务器页与启动器同步使用）：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+                 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
+            operationId: GameServerService_PresignGameServerAppMedia
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PresignGameServerAppMediaRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PresignGameServerAppMediaResponse'
+    /api/v1/game/servers/{id}/app-media/{kind}:
+        delete:
+            tags:
+                - GameServerService
+            operationId: GameServerService_DeleteGameServerAppMedia
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: kind
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GameServerInfo'
     /api/v1/game/servers/{id}/backup-policy:
         put:
             tags:
@@ -6780,80 +6800,6 @@ paths:
                         schema:
                             $ref: '#/components/schemas/v1.UpdateGameServerHostingRequest'
                 required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GameServerInfo'
-    /api/v1/game/servers/{id}/launcher-media/complete:
-        post:
-            tags:
-                - GameServerService
-            operationId: GameServerService_CompleteGameServerLauncherMedia
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.CompleteGameServerLauncherMediaRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GameServerInfo'
-    /api/v1/game/servers/{id}/launcher-media/presign:
-        post:
-            tags:
-                - GameServerService
-            description: |-
-                启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
-                 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
-            operationId: GameServerService_PresignGameServerLauncherMedia
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/v1.PresignGameServerLauncherMediaRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.PresignGameServerLauncherMediaResponse'
-    /api/v1/game/servers/{id}/launcher-media/{kind}:
-        delete:
-            tags:
-                - GameServerService
-            operationId: GameServerService_DeleteGameServerLauncherMedia
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: kind
-                  in: path
-                  required: true
-                  schema:
-                    type: string
             responses:
                 "200":
                     description: OK
@@ -11872,7 +11818,7 @@ components:
                         - $ref: '#/components/schemas/v1.FileTaskInfo'
                     description: 远端长收尾（FTP/WebDAV）异步任务；本地/OSS 瞬时收尾时为空。前端据此决定是否轮询任务。
             description: 上传完成合并分片响应
-        v1.CompleteGameServerLauncherMediaRequest:
+        v1.CompleteGameServerAppMediaRequest:
             type: object
             properties:
                 id:
@@ -14435,29 +14381,15 @@ components:
             properties:
                 matched:
                     type: integer
-                    description: 按当前条件匹配的人数
+                    description: 现在匹配的人数
                     format: int32
                 registered:
                     type: integer
                     description: 服务端注册总数
                     format: int32
-                summary:
-                    type: string
-                    description: MGP 返回的 summary 原样（JSON 字符串）
-                mail:
-                    allOf:
-                        - $ref: '#/components/schemas/v1.GameMail'
-                    description: 记下了匹配人数的邮件
                 executionId:
                     type: string
                     description: 这次试运行的 GM 记录 id
-        v1.DuplicateGameMailRequest:
-            type: object
-            properties:
-                serverId:
-                    type: string
-                id:
-                    type: string
         v1.DuplicateThemeRequest:
             type: object
             properties:
@@ -15174,18 +15106,10 @@ components:
             properties:
                 id:
                     type: string
-                serverId:
+                    description: 邮件 id（MGP mailId）
+                status:
                     type: string
-                title:
-                    type: string
-                    description: 标题（玩家可见，作为礼物箱文案）
-                body:
-                    type: string
-                    description: 正文
-                rewards:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.GameReward'
+                    description: draft 草稿 / scheduled 定时 / sending 投递中 / sent 已投递 / revoking 撤回中 / revoked 已撤回
                 target:
                     type: string
                     description: 收件人：players 指定玩家 / condition 按条件 / all 全服
@@ -15198,70 +15122,73 @@ components:
                 excludeBanned:
                     type: boolean
                     description: 跳过封禁玩家
+                message:
+                    type: string
+                    description: 礼物箱文案（玩家可见）
+                note:
+                    type: string
+                    description: 备注（只给管理员看）
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.GameReward'
                 expireDays:
                     type: integer
-                    description: 领取期限（天，0 不过期）
+                    description: 领取期限（天，0 不过期），从开始投递时算起
                     format: int32
-                scheduledAt:
+                startTime:
                     type: string
-                    description: 定时发送时间
+                    description: 开始投递的时间；草稿里为计划的定时时间
                     format: date-time
-                status:
+                limitTime:
                     type: string
-                    description: draft / scheduled / sending（后台投递中）/ sent / failed / revoking（后台撤回中）/ revoked
-                recipientCount:
+                    description: 礼物领取截止时间
+                    format: date-time
+                deliveredAt:
+                    type: string
+                    description: 开始时匹配的玩家投递完的时间，之后 matched / done / failed 为匹配、送达与失败的人数
+                    format: date-time
+                matched:
                     type: integer
-                    description: 投递人数（发送后）
                     format: int32
-                claimedCount:
+                done:
                     type: integer
-                    description: 已领取人数（MGP gifts 报表 receivedPlayers，60 秒内的缓存）
                     format: int32
-                statsAt:
-                    type: string
-                    format: date-time
-                error:
-                    type: string
-                executionId:
-                    type: string
-                createdByName:
-                    type: string
-                updatedByName:
-                    type: string
-                sentByName:
-                    type: string
-                sentAt:
-                    type: string
-                    format: date-time
-                revokedByName:
-                    type: string
+                failed:
+                    type: integer
+                    format: int32
                 revokedAt:
                     type: string
+                    description: 撤回时间、撤回完成时间与被撤回未领取礼物的玩家数
                     format: date-time
+                revokeDoneAt:
+                    type: string
+                    format: date-time
+                revoked:
+                    type: integer
+                    format: int32
+                recipients:
+                    type: integer
+                    description: 持有与已领取这封邮件礼物的玩家数
+                    format: int32
+                received:
+                    type: integer
+                    format: int32
+                createdBy:
+                    type: string
+                updatedBy:
+                    type: string
+                sentBy:
+                    type: string
+                revokedBy:
+                    type: string
                 createTime:
                     type: string
                     format: date-time
                 updateTime:
                     type: string
                     format: date-time
-                matchedCount:
-                    type: integer
-                    description: 最近一次试运行匹配的人数与时间（收件人改动后清零）
-                    format: int32
-                matchedAt:
-                    type: string
-                    format: date-time
-                failedCount:
-                    type: integer
-                    description: 投递失败人数
-                    format: int32
-                revokedCount:
-                    type: integer
-                    description: 撤回了未领取礼物的玩家数
-                    format: int32
-                revokeExecutionId:
-                    type: string
-            description: 邮件补偿。
+            description: 一封邮件（游戏服务端 GET /mails/{mailId} 的内容）。
         v1.GameMailCondition:
             type: object
             properties:
@@ -15400,6 +15327,13 @@ components:
                     type: string
                     description: 最近查看时间（「最近查看」列表里有值）
                     format: date-time
+                appIcon:
+                    type: string
+                    description: |-
+                        应用图标与应用背景（背景可以是图片或视频）：服务器「接入设置」里上传到对象存储的公开链接，空为没有上传。
+                         管理端、通行证与启动器同步使用；没有时各处退回游戏名首字与封面
+                appBackground:
+                    type: string
             description: 游戏服务器摘要：服务器搜索下拉、GM 运营页头、通行证等处共用。
         v1.GameServerBuild:
             type: object
@@ -15681,10 +15615,12 @@ components:
                     description: |-
                         客户端应用 ID（app_ + 16 个小写 base32 字符；空为还没有生成应用凭据）：客户端用它指明这台服务器。
                          应用密钥加密保存，只在生成与重置时返回一次
-                launcherIcon:
+                appIcon:
                     type: string
-                    description: 启动器的游戏图标与游戏页背景（图片或视频）：上传到对象存储（系统设置 · 储存）后的公开链接，空为没有上传
-                launcherBackground:
+                    description: |-
+                        应用图标与应用背景（背景可以是图片或视频）：上传到对象存储（系统设置 · 储存）后的公开链接，空为没有上传。
+                         服务器详情页头与启动器（PassportLaunchApp.icon / background）同步使用
+                appBackground:
                     type: string
             description: 游戏服务器。
         v1.GameServerLogEntry:
@@ -16460,10 +16396,6 @@ components:
                 deletionGraceDays:
                     type: integer
                     description: 申请注销后可以撤销的天数
-                    format: int32
-                minPasswordLength:
-                    type: integer
-                    description: 密码最少位数
                     format: int32
         v1.GetPassportSettingsResponse:
             type: object
@@ -17925,10 +17857,10 @@ components:
                     additionalProperties:
                         type: integer
                         format: int32
-                    description: all / sent / scheduled / draft
+                    description: all / draft / scheduled / sent（不受筛选影响）
                 sentThisMonth:
                     type: integer
-                    description: 本月已发送
+                    description: 本月（服务器时区）投递完的邮件数
                     format: int32
         v1.ListGameServerBackupsResponse:
             type: object
@@ -19634,10 +19566,10 @@ components:
                     type: string
                 icon:
                     type: string
-                    description: 启动器里的游戏图标：服务器「接入设置 → 客户端」里上传到对象存储的图片链接；空为没有上传
+                    description: 应用图标：服务器「接入设置」里上传到对象存储的图片链接，与服务器页同步；空为没有上传
                 background:
                     type: string
-                    description: 启动器游戏页背景：上传到对象存储的图片或视频链接；空为没有上传
+                    description: 应用背景：上传到对象存储的图片或视频链接，与服务器页同步；空为没有上传
             description: 一个启动目标：客户端应用 ID 对应的服务器。
         v1.PassportLaunchAppRequest:
             type: object
@@ -20227,7 +20159,7 @@ components:
                     type: string
                     description: 累计出站流量(字节)
             description: 端口转发时间序列采样点
-        v1.PresignGameServerLauncherMediaRequest:
+        v1.PresignGameServerAppMediaRequest:
             type: object
             properties:
                 id:
@@ -20238,8 +20170,12 @@ components:
                     type: string
                 size:
                     type: string
-            description: kind：icon 游戏图标（jpg / png / webp / gif，≤ 20 MB）/ background 游戏页背景（图片同上，或 mp4 / webm 视频，≤ 200 MB）
-        v1.PresignGameServerLauncherMediaResponse:
+                fileName:
+                    type: string
+            description: |-
+                kind：icon 应用图标 / background 应用背景（图片或视频）。不限文件类型与大小；
+                 对象沿用原文件的扩展名，Content-Type 为浏览器给出的类型（空为 application/octet-stream）
+        v1.PresignGameServerAppMediaResponse:
             type: object
             properties:
                 uploadUrl:
@@ -21068,30 +21004,32 @@ components:
                     type: string
                 id:
                     type: string
-                    description: 修改时必填
-                title:
-                    type: string
-                body:
-                    type: string
-                rewards:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/v1.GameReward'
+                    description: 邮件 id（新邮件由前端生成 UUID）
                 target:
                     type: string
                 players:
                     type: array
                     items:
-                        $ref: '#/components/schemas/v1.GameTarget'
+                        type: string
+                    description: 指定玩家的 pid
                 condition:
                     $ref: '#/components/schemas/v1.GameMailCondition'
                 excludeBanned:
                     type: boolean
+                message:
+                    type: string
+                note:
+                    type: string
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.GameReward'
                 expireDays:
                     type: integer
                     format: int32
-                scheduledAt:
+                startTime:
                     type: string
+                    description: 定时时间（草稿里为计划；定时邮件必须晚于现在）；为空表示不定时
                     format: date-time
         v1.SaveGameServerSettingsRequest:
             type: object
@@ -21191,9 +21129,9 @@ components:
                     type: string
                 id:
                     type: string
-                scheduledAt:
+                startTime:
                     type: string
-                    description: 定时发送；为空立即发送
+                    description: 定时投递的时间；为空立即投递
                     format: date-time
         v1.SendLoginEmailCodeRequest:
             type: object
@@ -26559,7 +26497,8 @@ tags:
     - name: GameOpsService
       description: |-
         GM 运营里的邮件补偿与兑换码（权限 game:gm）。
-         邮件经 MGP mail.broadcast 投递到礼物箱、mail.revoke 撤回；领取统计来自 MGP gifts 报表。
+         邮件（含草稿）全部保存在游戏服务端：列表、详情、保存与删除草稿直接调 MGP 邮件接口，
+         发送（mail.send）、取消定时（mail.cancel）与撤回（mail.revoke）经 GM 操作执行并写进 GM 记录；Momoko 不保存邮件。
          兑换码在 Momoko 校验，兑换成功用 gift.send（sourceKind=code）发放；玩家在通行证「自助服务」里兑换。
     - name: GameServerService
       description: |-

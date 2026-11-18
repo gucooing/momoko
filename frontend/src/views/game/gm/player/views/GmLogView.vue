@@ -139,7 +139,7 @@ const x = (row: Record<string, unknown>) => row as unknown as GmExecution
 const actorKind = (e: GmExecution) => (e.actorKind === 'player' ? t('gmData.gmLog.kindPlayer') : t('gmData.gmLog.kindAdmin'))
 const statusLabel = (status: string) => t(`gmData.exec.${status || 'unknown'}`)
 
-const logsLink = computed(() => ({ path: `/game/gm/${encodeURIComponent(ctx.serverId.value)}`, query: { tab: 'logs' } }))
+const logsLink = computed(() => ({ path: `/game/gm/${encodeURIComponent(ctx.serverId.value)}`, query: { tab: 'operations', view: 'logs' } }))
 
 // ---------- 详情 ----------
 const detailOpen = ref(false)

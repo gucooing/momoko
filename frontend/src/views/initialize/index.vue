@@ -609,7 +609,7 @@ import type { TestInitializeDatabaseRequest, ConfirmInitializeRequest } from '@/
 import { useFeedback } from '@/utils/feedback'
 import ThemeConfig from '@/components/ThemeConfig.vue'
 import AuthLangMenu from '@/views/login/components/AuthLangMenu.vue'
-import { MIN_PASSWORD_LENGTH, scorePassword } from '@/views/login/composables/passwordStrength'
+import { scorePassword } from '@/views/login/composables/passwordStrength'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'InitializeView' })
@@ -757,7 +757,7 @@ const testSummary = computed(() => {
   return parts.join(' · ')
 })
 
-// 密码强度：仅提示；最少位数（MIN_PASSWORD_LENGTH）由校验与后端保证
+// 密码强度：仅提示，不限制长度和字符
 const strength = computed(() => {
   const { score, rules } = scorePassword(adminForm.password)
   const checks = [
@@ -876,8 +876,6 @@ function validateAdminForm(): boolean {
   if (!adminForm.username.trim()) next.username = t('initialize.adminUsernameRequired')
   if (!adminForm.password) {
     next.password = t('initialize.adminPasswordRequired')
-  } else if (adminForm.password.length < MIN_PASSWORD_LENGTH) {
-    next.password = t('authPage.strength.tooShort')
   }
   if (!adminForm.confirmPassword) {
     next.confirmPassword = t('initialize.adminConfirmPasswordRequired')

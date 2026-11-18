@@ -23,7 +23,6 @@ import (
 	"momoko/internal/data/ent/gen/gameaccountunlink"
 	"momoko/internal/data/ent/gen/gameclientlog"
 	"momoko/internal/data/ent/gen/gameconfigrevision"
-	"momoko/internal/data/ent/gen/gamemail"
 	"momoko/internal/data/ent/gen/gamerecentserver"
 	"momoko/internal/data/ent/gen/gameserver"
 	"momoko/internal/data/ent/gen/gameserverbackup"
@@ -98,8 +97,6 @@ type Client struct {
 	GameClientLog *GameClientLogClient
 	// GameConfigRevision is the client for interacting with the GameConfigRevision builders.
 	GameConfigRevision *GameConfigRevisionClient
-	// GameMail is the client for interacting with the GameMail builders.
-	GameMail *GameMailClient
 	// GameRecentServer is the client for interacting with the GameRecentServer builders.
 	GameRecentServer *GameRecentServerClient
 	// GameServer is the client for interacting with the GameServer builders.
@@ -195,7 +192,6 @@ func (c *Client) init() {
 	c.GameAccountUnlink = NewGameAccountUnlinkClient(c.config)
 	c.GameClientLog = NewGameClientLogClient(c.config)
 	c.GameConfigRevision = NewGameConfigRevisionClient(c.config)
-	c.GameMail = NewGameMailClient(c.config)
 	c.GameRecentServer = NewGameRecentServerClient(c.config)
 	c.GameServer = NewGameServerClient(c.config)
 	c.GameServerBackup = NewGameServerBackupClient(c.config)
@@ -336,7 +332,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		GameAccountUnlink:  NewGameAccountUnlinkClient(cfg),
 		GameClientLog:      NewGameClientLogClient(cfg),
 		GameConfigRevision: NewGameConfigRevisionClient(cfg),
-		GameMail:           NewGameMailClient(cfg),
 		GameRecentServer:   NewGameRecentServerClient(cfg),
 		GameServer:         NewGameServerClient(cfg),
 		GameServerBackup:   NewGameServerBackupClient(cfg),
@@ -404,7 +399,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		GameAccountUnlink:  NewGameAccountUnlinkClient(cfg),
 		GameClientLog:      NewGameClientLogClient(cfg),
 		GameConfigRevision: NewGameConfigRevisionClient(cfg),
-		GameMail:           NewGameMailClient(cfg),
 		GameRecentServer:   NewGameRecentServerClient(cfg),
 		GameServer:         NewGameServerClient(cfg),
 		GameServerBackup:   NewGameServerBackupClient(cfg),
@@ -472,9 +466,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
-		c.GameAccountUnlink, c.GameClientLog, c.GameConfigRevision, c.GameMail,
-		c.GameRecentServer, c.GameServer, c.GameServerBackup, c.GameServerHistory,
-		c.GiftCode, c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
+		c.GameAccountUnlink, c.GameClientLog, c.GameConfigRevision, c.GameRecentServer,
+		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
+		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
 		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
 		c.Menu, c.MonitorSample, c.Node, c.OperationLog, c.PassportInvite,
 		c.PassportLoginLog, c.PassportMessage, c.PassportSession, c.PassportUser,
@@ -492,9 +486,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
-		c.GameAccountUnlink, c.GameClientLog, c.GameConfigRevision, c.GameMail,
-		c.GameRecentServer, c.GameServer, c.GameServerBackup, c.GameServerHistory,
-		c.GiftCode, c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
+		c.GameAccountUnlink, c.GameClientLog, c.GameConfigRevision, c.GameRecentServer,
+		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
+		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
 		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
 		c.Menu, c.MonitorSample, c.Node, c.OperationLog, c.PassportInvite,
 		c.PassportLoginLog, c.PassportMessage, c.PassportSession, c.PassportUser,
@@ -533,8 +527,6 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.GameClientLog.mutate(ctx, m)
 	case *GameConfigRevisionMutation:
 		return c.GameConfigRevision.mutate(ctx, m)
-	case *GameMailMutation:
-		return c.GameMail.mutate(ctx, m)
 	case *GameRecentServerMutation:
 		return c.GameRecentServer.mutate(ctx, m)
 	case *GameServerMutation:
@@ -2301,139 +2293,6 @@ func (c *GameConfigRevisionClient) mutate(ctx context.Context, m *GameConfigRevi
 		return (&GameConfigRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown GameConfigRevision mutation op: %q", m.Op())
-	}
-}
-
-// GameMailClient is a client for the GameMail schema.
-type GameMailClient struct {
-	config
-}
-
-// NewGameMailClient returns a client for the GameMail from the given config.
-func NewGameMailClient(c config) *GameMailClient {
-	return &GameMailClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `gamemail.Hooks(f(g(h())))`.
-func (c *GameMailClient) Use(hooks ...Hook) {
-	c.hooks.GameMail = append(c.hooks.GameMail, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `gamemail.Intercept(f(g(h())))`.
-func (c *GameMailClient) Intercept(interceptors ...Interceptor) {
-	c.inters.GameMail = append(c.inters.GameMail, interceptors...)
-}
-
-// Create returns a builder for creating a GameMail entity.
-func (c *GameMailClient) Create() *GameMailCreate {
-	mutation := newGameMailMutation(c.config, OpCreate)
-	return &GameMailCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of GameMail entities.
-func (c *GameMailClient) CreateBulk(builders ...*GameMailCreate) *GameMailCreateBulk {
-	return &GameMailCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *GameMailClient) MapCreateBulk(slice any, setFunc func(*GameMailCreate, int)) *GameMailCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &GameMailCreateBulk{err: fmt.Errorf("calling to GameMailClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*GameMailCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &GameMailCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for GameMail.
-func (c *GameMailClient) Update() *GameMailUpdate {
-	mutation := newGameMailMutation(c.config, OpUpdate)
-	return &GameMailUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *GameMailClient) UpdateOne(_m *GameMail) *GameMailUpdateOne {
-	mutation := newGameMailMutation(c.config, OpUpdateOne, withGameMail(_m))
-	return &GameMailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *GameMailClient) UpdateOneID(id string) *GameMailUpdateOne {
-	mutation := newGameMailMutation(c.config, OpUpdateOne, withGameMailID(id))
-	return &GameMailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for GameMail.
-func (c *GameMailClient) Delete() *GameMailDelete {
-	mutation := newGameMailMutation(c.config, OpDelete)
-	return &GameMailDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *GameMailClient) DeleteOne(_m *GameMail) *GameMailDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *GameMailClient) DeleteOneID(id string) *GameMailDeleteOne {
-	builder := c.Delete().Where(gamemail.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &GameMailDeleteOne{builder}
-}
-
-// Query returns a query builder for GameMail.
-func (c *GameMailClient) Query() *GameMailQuery {
-	return &GameMailQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeGameMail},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a GameMail entity by its id.
-func (c *GameMailClient) Get(ctx context.Context, id string) (*GameMail, error) {
-	return c.Query().Where(gamemail.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *GameMailClient) GetX(ctx context.Context, id string) *GameMail {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *GameMailClient) Hooks() []Hook {
-	return c.hooks.GameMail
-}
-
-// Interceptors returns the client interceptors.
-func (c *GameMailClient) Interceptors() []Interceptor {
-	return c.inters.GameMail
-}
-
-func (c *GameMailClient) mutate(ctx context.Context, m *GameMailMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&GameMailCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&GameMailUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&GameMailUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&GameMailDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown GameMail mutation op: %q", m.Op())
 	}
 }
 
@@ -7502,7 +7361,7 @@ type (
 	hooks struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
 		FileUploadChunk, FrpTunnel, FrpTunnelStat, GameAccountLink, GameAccountUnlink,
-		GameClientLog, GameConfigRevision, GameMail, GameRecentServer, GameServer,
+		GameClientLog, GameConfigRevision, GameRecentServer, GameServer,
 		GameServerBackup, GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem,
 		GmExecution, GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite,
 		Instance, InstanceType, Menu, MonitorSample, Node, OperationLog,
@@ -7514,7 +7373,7 @@ type (
 	inters struct {
 		EmailTemplate, FileShare, FileShareDownload, FileSource, FileUpload,
 		FileUploadChunk, FrpTunnel, FrpTunnelStat, GameAccountLink, GameAccountUnlink,
-		GameClientLog, GameConfigRevision, GameMail, GameRecentServer, GameServer,
+		GameClientLog, GameConfigRevision, GameRecentServer, GameServer,
 		GameServerBackup, GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem,
 		GmExecution, GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite,
 		Instance, InstanceType, Menu, MonitorSample, Node, OperationLog,

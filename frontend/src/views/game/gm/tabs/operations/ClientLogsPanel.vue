@@ -1,14 +1,12 @@
-<!-- 客户端日志（权限 game:gm）：全部服务器的游戏客户端错误日志，从新到旧分页。按原因（chips）、服务器（搜索 + 最近查看的下拉）、
-     玩家 ID、上传时间筛选，关键字搜摘要、说明与设备。列表与查看器和 GM 玩家详情的「客户端日志」共用：点一行读全文、
-     在日志里查找、复制全部；行内复制摘要、下载、删除，并可打开那个玩家的 GM 详情。 -->
+<!-- GM 运营 · 操作与日志 · 客户端日志（?view=clientLogs）：这台服务器的玩家上传的游戏客户端错误日志，从新到旧分页。
+     按原因（chips）、玩家 ID、上传时间筛选，关键字搜摘要、说明与设备。列表与查看器和 GM 玩家详情的「客户端日志」共用：
+     点一行读全文、在日志里查找、复制全部；行内复制摘要、下载、删除，并可打开那个玩家的 GM 详情。 -->
 <template>
   <div class="gcl">
-    <PageHeader :title="t('clientLogs.title')">
-      <template #description>{{ t('clientLogs.count', { n: total }) }} · {{ t('clientLogs.description', { n: CLIENT_LOG_KEEP }) }}</template>
-      <template #actions>
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gmData.common.refresh')" @click="load" />
-      </template>
-    </PageHeader>
+    <div class="gcl__head">
+      <p class="gcl__sub">{{ t('clientLogs.count', { n: total }) }} · {{ t('clientLogs.description', { n: CLIENT_LOG_KEEP }) }}</p>
+      <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gmData.common.refresh')" @click="load" />
+    </div>
 
     <ListToolbar
       v-model:status="reason"
@@ -17,17 +15,7 @@
       :chips-label="t('clientLogs.filter.reasons')"
       :placeholder="t('clientLogs.filter.search')"
       @search="reload"
-    >
-      <GameServerPicker v-model="serverId" :selected="server" :search="searchServers" allow-all @select="onServer">
-        <template #trigger="{ open, current }">
-          <button type="button" class="gcl__server" :class="{ 'is-on': !!serverId }" :aria-expanded="open">
-            <component :is="menuStore.iconComponents['HOutline:ServerStackIcon']" class="gcl__server-icon" />
-            <span class="gcl__server-text">{{ current?.name ? t('clientLogs.filter.server', { name: current.name }) : t('clientLogs.filter.serverAll') }}</span>
-            <component :is="menuStore.iconComponents['HOutline:ChevronUpDownIcon']" class="gcl__server-icon" />
-          </button>
-        </template>
-      </GameServerPicker>
-    </ListToolbar>
+    />
 
     <div class="gcl__filters">
       <UInput v-model="pid" class="m-mono gcl__pid" icon="i-lucide-user" :placeholder="t('clientLogs.filter.pid')" :aria-label="t('clientLogs.filter.pid')" />
@@ -47,7 +35,7 @@
       :items="items"
       :loading="loading"
       :empty-text="filtered ? t('clientLogs.emptyFiltered') : t('clientLogs.empty')"
-      show-owner
+      show-player
       @changed="load"
     />
     <Pagination v-if="total > pageSize" v-model:page="page" v-model:page-size="pageSize" :total="total" class="gcl__pager" @change="load" />
@@ -55,28 +43,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, onActivated, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { listGmClientLogs, searchGmServers } from '@/api/gameGm'
-import type { GameServerBrief } from '@/types/v1/game_common'
+import { listGmClientLogs } from '@/api/gameGm'
 import type { GmClientLog } from '@/types/v1/game_gm'
 import { getRequestErrorMessage } from '@/utils/request'
 import { CLIENT_LOG_KEEP, CLIENT_LOG_REASONS } from '@/views/game/clientLogs'
 import ClientLogTable from '@/views/game/components/ClientLogTable.vue'
-import GameServerPicker from '@/views/game/components/GameServerPicker.vue'
+import { useGmContext } from '../../context'
 
-defineOptions({ name: 'GameClientLogsView' })
+defineOptions({ name: 'GmClientLogsPanel' })
 
 const { t } = useI18n()
-const menuStore = useMenuStore()
+const ctx = useGmContext()
 
 // ---------- 筛选 ----------
 const reason = ref('')
 const keyword = ref('')
-const serverId = ref<string>()
-const server = ref<GameServerBrief>()
 const pid = ref('')
 const since = ref('')
 const until = ref('')
@@ -86,20 +71,11 @@ const chips = computed(() => [
   ...CLIENT_LOG_REASONS.map((r) => ({ value: r as string, label: t(`clientLogs.reasons.${r}`) })),
 ])
 
-const filtered = computed(() => !!(reason.value || keyword.value.trim() || serverId.value || pid.value.trim() || since.value || until.value))
-
-const searchServers = async (q: string) => (await searchGmServers({ q, limit: 20 })).data
-
-const onServer = (s: GameServerBrief | undefined) => {
-  server.value = s
-  reload()
-}
+const filtered = computed(() => !!(reason.value || keyword.value.trim() || pid.value.trim() || since.value || until.value))
 
 const clearFilters = () => {
   reason.value = ''
   keyword.value = ''
-  serverId.value = undefined
-  server.value = undefined
   pid.value = ''
   since.value = ''
   until.value = ''
@@ -129,7 +105,7 @@ const load = async () => {
   error.value = ''
   try {
     const { data } = await listGmClientLogs({
-      serverId: serverId.value || '',
+      serverId: ctx.serverId.value,
       pid: pid.value.trim(),
       reason: reason.value,
       q: keyword.value.trim(),
@@ -160,7 +136,12 @@ const debouncedReload = useDebounceFn(reload, 350)
 watch(pid, () => void debouncedReload())
 watch([since, until], reload)
 
-void load()
+let activatedOnce = false
+onMounted(() => void load())
+onActivated(() => {
+  if (activatedOnce) void load()
+  activatedOnce = true
+})
 </script>
 
 <style scoped lang="scss">
@@ -170,36 +151,17 @@ void load()
   gap: 16px;
   min-width: 0;
 }
-.gcl__server {
-  display: inline-flex;
+.gcl__head {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  max-width: 280px;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1.5px solid var(--el-border-color-light);
-  background: var(--el-bg-color);
+  gap: 12px 16px;
+}
+.gcl__sub {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
   color: var(--el-text-color-secondary);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.gcl__server.is-on {
-  border-color: var(--m-p);
-  background: var(--m-pSoft);
-  color: var(--m-pInk);
-}
-.gcl__server-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.gcl__server-icon {
-  flex: none;
-  width: 16px;
-  height: 16px;
 }
 .gcl__filters {
   display: flex;

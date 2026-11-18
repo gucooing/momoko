@@ -607,19 +607,21 @@ func (uc *GameServerUsecase) StateOf(s *gen.GameServer) string {
 // Brief 生成服务器摘要。
 func (uc *GameServerUsecase) Brief(ctx context.Context, s *gen.GameServer) *v1.GameServerBrief {
 	b := &v1.GameServerBrief{
-		Id:            s.ID,
-		Game:          s.Game,
-		Name:          s.Name,
-		Mode:          string(s.Mode),
-		Tags:          s.Tags,
-		State:         uc.StateOf(s),
-		Online:        -1,
-		Registered:    -1,
-		MgpOk:         s.ProbeOk && gameProbeFresh(s),
-		MgpLatencyMs:  int32(s.ProbeLatencyMs),
-		MgpConfigured: MGPConfigured(s),
-		Cover:         s.Cover,
-		NodeId:        s.NodeID,
+		Id:                 s.ID,
+		Game:               s.Game,
+		Name:               s.Name,
+		Mode:               string(s.Mode),
+		Tags:               s.Tags,
+		State:              uc.StateOf(s),
+		Online:             -1,
+		Registered:         -1,
+		MgpOk:              s.ProbeOk && gameProbeFresh(s),
+		MgpLatencyMs:       int32(s.ProbeLatencyMs),
+		MgpConfigured:      MGPConfigured(s),
+		Cover:              s.Cover,
+		NodeId:             s.NodeID,
+		AppIcon:       s.AppIcon,
+		AppBackground: s.AppBackground,
 	}
 	if b.Tags == nil {
 		b.Tags = []string{}
@@ -742,8 +744,8 @@ func (uc *GameServerUsecase) Info(ctx context.Context, s *gen.GameServer) *v1.Ga
 		ClientSdkUrl:       s.ClientSdkURL,
 		ClientGameUrl:      s.ClientGameURL,
 		ClientResourceUrl:  s.ClientResourceURL,
-		LauncherIcon:       s.LauncherIcon,
-		LauncherBackground: s.LauncherBackground,
+		AppIcon:       s.AppIcon,
+		AppBackground: s.AppBackground,
 		ClientAppId:        derefString(s.ClientAppID),
 		Timezone:           s.Timezone,
 		Remark:             s.Remark,
@@ -1074,7 +1076,7 @@ func (uc *GameServerUsecase) DeleteServer(ctx context.Context, id string) error 
 		return ErrSystem(err)
 	}
 	uc.forget(id)
-	uc.deleteLauncherObjects(ctx, s.LauncherIconKey, s.LauncherBackgroundKey)
+	uc.deleteAppMediaObjects(ctx, s.AppIconKey, s.AppBackgroundKey)
 	return nil
 }
 

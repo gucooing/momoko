@@ -34,7 +34,7 @@
             :data-game="target.server?.game"
             @click="select(target)"
           >
-            <GameMark :game="target.server?.game || ''" :name="target.server?.gameName || target.server?.game" :size="40" />
+            <GameMark :game="target.server?.game || ''" :name="target.server?.gameName || target.server?.game" :src="target.server?.appIcon" :size="40" />
             <span class="srv__text">
               <span class="srv__name">
                 {{ target.server?.gameName ? `${target.server.gameName} · ` : '' }}{{ target.server?.name }}
@@ -81,7 +81,7 @@
           :data-game="s.server?.game"
           @click="select(s)"
         >
-          <GameMark :game="s.server?.game || ''" :name="s.server?.gameName || s.server?.game" :size="40" />
+          <GameMark :game="s.server?.game || ''" :name="s.server?.gameName || s.server?.game" :src="s.server?.appIcon" :size="40" />
           <span class="srv__text">
             <span class="srv__name">
               {{ s.server?.gameName ? `${s.server.gameName} · ` : '' }}{{ s.server?.name }}

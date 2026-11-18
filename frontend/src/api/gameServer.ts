@@ -7,7 +7,7 @@ import type {
   DownloadGameServerBackupResponse,
   GameServerBackupPolicy,
   GameServerClientAppResponse,
-  PresignGameServerLauncherMediaResponse,
+  PresignGameServerAppMediaResponse,
   GameServerBuild,
   GameServerBuildInfo,
   GameServerInfo,
@@ -89,23 +89,25 @@ export const generateGameServerClientApp = (id: string, restart: boolean) =>
 export const resetGameServerClientAppSecret = (id: string, restart: boolean) =>
   request.post<GameServerClientAppResponse>(`${base(id)}/client-app/secret`, { id, restart })
 
-// 启动器的游戏图标 / 游戏页背景：签发对象存储直传地址 → 浏览器 PUT 上传 → 确认保存（删掉旧文件）
-export type LauncherMediaKind = 'icon' | 'background'
+// 应用图标 / 应用背景（服务器页与启动器同步使用）：签发对象存储直传地址 → 浏览器 PUT 上传 → 确认保存（删掉旧文件）
+export type AppMediaKind = 'icon' | 'background'
 
-export const uploadGameServerLauncherMedia = async (id: string, kind: LauncherMediaKind, file: File) => {
-  const { data } = await request.post<PresignGameServerLauncherMediaResponse>(`${base(id)}/launcher-media/presign`, {
+export const uploadGameServerAppMedia = async (id: string, kind: AppMediaKind, file: File) => {
+  const contentType = file.type || 'application/octet-stream'
+  const { data } = await request.post<PresignGameServerAppMediaResponse>(`${base(id)}/app-media/presign`, {
     id,
     kind,
-    contentType: file.type,
+    contentType,
     size: file.size,
+    fileName: file.name,
   })
-  const res = await fetch(data.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
+  const res = await fetch(data.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': contentType } })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return request.post<GameServerInfo>(`${base(id)}/launcher-media/complete`, { id, token: data.token })
+  return request.post<GameServerInfo>(`${base(id)}/app-media/complete`, { id, token: data.token })
 }
 
-export const deleteGameServerLauncherMedia = (id: string, kind: LauncherMediaKind) =>
-  request.delete<GameServerInfo>(`${base(id)}/launcher-media/${kind}`)
+export const deleteGameServerAppMedia = (id: string, kind: AppMediaKind) =>
+  request.delete<GameServerInfo>(`${base(id)}/app-media/${kind}`)
 
 export type GameServerAction = 'start' | 'stop' | 'restart'
 

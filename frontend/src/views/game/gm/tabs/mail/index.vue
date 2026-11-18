@@ -1,6 +1,7 @@
 <!-- GM 运营 · 邮件补偿：页面上只有邮件列表（状态 chips、搜索、领取进度，一封一行）；
      「写邮件」和点一封邮件打开弹窗编写 / 查看（设计见 design/game/GkMailPC）。
-     邮件经服务端 mail.broadcast 投递到礼物箱；投递与撤回在后台执行，期间每 3 秒刷新一次。 -->
+     邮件（含草稿）全部保存在游戏服务端，筛选、搜索、分页与各组数量都由服务端查询；
+     服务端投递与撤回期间每 3 秒刷新一次。 -->
 <template>
   <div class="gmm game-skin">
     <div class="gmm__head">
@@ -41,7 +42,7 @@
           <span class="gmm__icon m-sticker" :class="stickerOf(m)" aria-hidden="true"><UIcon :name="iconOf(m)" /></span>
           <span class="gmm__item-text">
             <span class="gmm__item-top">
-              <span class="gmm__item-title">{{ m.title || t('gmOps.mail.untitled') }}</span>
+              <span class="gmm__item-title">{{ m.message || t('gmOps.mail.untitled') }}</span>
               <StatusPill :variant="pillOf(m.status)" :label="t(`gmOps.mail.status.${m.status}`)" />
             </span>
             <span class="gmm__hint">{{ toLine(m) }} · {{ atLine(m) }}</span>
@@ -53,7 +54,7 @@
             </span>
             <span v-if="m.status === 'sent' || m.status === 'revoked' || m.status === 'revoking'" class="gmm__claim">
               <span class="gmm__bar"><span :style="{ width: `${claimPct(m)}%` }" /></span>
-              <span class="gmm__hint m-num">{{ t('gmOps.mail.claimedShort', { n: m.claimedCount, total: m.recipientCount }) }}</span>
+              <span class="gmm__hint m-num">{{ t('gmOps.mail.claimedShort', { n: m.received, total: m.recipients }) }}</span>
             </span>
           </span>
         </button>
@@ -112,8 +113,8 @@ const editorOpen = ref(false)
 const dialogTitle = computed(() => {
   const m = current.value
   if (!m) return t('gmOps.mail.newTitle')
-  if (m.status === 'draft') return t('gmOps.mail.editDraft', { title: m.title || t('gmOps.mail.untitled') })
-  return m.title || t('gmOps.mail.untitled')
+  if (m.status === 'draft') return t('gmOps.mail.editDraft', { title: m.message || t('gmOps.mail.untitled') })
+  return m.message || t('gmOps.mail.untitled')
 })
 
 const chips = computed<ToolbarChip<string>[]>(() => [
@@ -154,7 +155,7 @@ const reload = async (toPage?: number) => {
     const cur = current.value
     if (cur) {
       const fresh = items.value.find((m) => m.id === cur.id)
-      if (fresh && (fresh.status !== cur.status || fresh.claimedCount !== cur.claimedCount || fresh.statsAt !== cur.statsAt)) current.value = fresh
+      if (fresh && (fresh.status !== cur.status || fresh.received !== cur.received || fresh.recipients !== cur.recipients)) current.value = fresh
     }
   } catch {
     // 错误已由请求层提示
@@ -220,8 +221,6 @@ const pillOf = (s: string): Pill => {
     case 'sending':
     case 'revoking':
       return 'primary'
-    case 'failed':
-      return 'error'
     default:
       return 'neutral'
   }
@@ -232,8 +231,6 @@ const stickerOf = (m: GameMail) => {
       return 'm-sticker--ok'
     case 'scheduled':
       return 'm-sticker--a2'
-    case 'failed':
-      return 'm-sticker--bad'
     default:
       return 'm-sticker--p'
   }
@@ -246,8 +243,6 @@ const iconOf = (m: GameMail) => {
       return 'i-lucide-clock'
     case 'revoked':
       return 'i-lucide-undo-2'
-    case 'failed':
-      return 'i-lucide-triangle-alert'
     default:
       return 'i-lucide-mail'
   }
@@ -255,8 +250,7 @@ const iconOf = (m: GameMail) => {
 const toLine = (m: GameMail) => {
   const target = t(`gmOps.mail.target.${m.target}`)
   if (m.target === 'players') return `${target} · ${t('gmOps.mail.people', { n: m.players?.length || 0 })}`
-  if (m.recipientCount && m.status !== 'draft' && m.status !== 'scheduled') return `${target} · ${t('gmOps.mail.people', { n: m.recipientCount })}`
-  if (m.matchedAt) return `${target} · ${t('gmOps.mail.people', { n: m.matchedCount })}`
+  if (m.recipients && m.status !== 'draft' && m.status !== 'scheduled') return `${target} · ${t('gmOps.mail.people', { n: m.recipients })}`
   return target
 }
 const today = computed(() => t('gmOps.common.today'))
@@ -265,19 +259,17 @@ const atLine = (m: GameMail) => {
     case 'draft':
       return t('gmOps.mail.editedShort', { time: fmtShort(m.updateTime, today.value) })
     case 'scheduled':
-      return t('gmOps.mail.scheduledShort', { time: fmtDateTime(m.scheduledAt) })
+      return t('gmOps.mail.scheduledShort', { time: fmtDateTime(m.startTime) })
     case 'revoked':
       return t('gmOps.mail.revokedShort', { time: fmtShort(m.revokedAt, today.value) })
-    case 'failed':
-      return t('gmOps.mail.failedShort', { time: fmtShort(m.updateTime, today.value) })
     case 'sending':
     case 'revoking':
       return t(`gmOps.mail.status.${m.status}`)
     default:
-      return `${fmtShort(m.sentAt, today.value)} · ${m.sentByName || '—'}`
+      return `${fmtShort(m.deliveredAt, today.value)} · ${m.sentBy || '—'}`
   }
 }
-const claimPct = (m: GameMail) => (m.recipientCount ? Math.min(100, Math.round((m.claimedCount / m.recipientCount) * 100)) : 0)
+const claimPct = (m: GameMail) => (m.recipients ? Math.min(100, Math.round((m.received / m.recipients) * 100)) : 0)
 
 // ---- 后台投递 / 撤回中：轮询 ----
 let timer: ReturnType<typeof setInterval> | undefined

@@ -9,30 +9,24 @@ import "google/protobuf/timestamp.proto";
 import "v1/game_common.proto";
 
 // GM 运营里的邮件补偿与兑换码（权限 game:gm）。
-// 邮件经 MGP mail.broadcast 投递到礼物箱、mail.revoke 撤回；领取统计来自 MGP gifts 报表。
+// 邮件（含草稿）全部保存在游戏服务端：列表、详情、保存与删除草稿直接调 MGP 邮件接口，
+// 发送（mail.send）、取消定时（mail.cancel）与撤回（mail.revoke）经 GM 操作执行并写进 GM 记录；Momoko 不保存邮件。
 // 兑换码在 Momoko 校验，兑换成功用 gift.send（sourceKind=code）发放；玩家在通行证「自助服务」里兑换。
 service GameOpsService {
-  // 邮件列表（含各状态数量与本月已发数）
+  // 邮件列表（含各组数量与本月投递完的邮件数）
   rpc ListGameMails(ListGameMailsRequest) returns (ListGameMailsResponse) {
     option (google.api.http) = {
       get: "/api/v1/game/gm/{server_id}/mails"
     };
   }
-  // 邮件详情（已发送的会刷新领取统计）
+  // 邮件详情
   rpc GetGameMail(GetGameMailRequest) returns (GameMail) {
     option (google.api.http) = {
       get: "/api/v1/game/gm/{server_id}/mails/{id}"
     };
   }
-  // 新建草稿
-  rpc CreateGameMail(SaveGameMailRequest) returns (GameMail) {
-    option (google.api.http) = {
-      post: "/api/v1/game/gm/{server_id}/mails"
-      body: "*"
-    };
-  }
-  // 修改草稿 / 定时邮件
-  rpc UpdateGameMail(SaveGameMailRequest) returns (GameMail) {
+  // 保存草稿（id 由前端生成，没有这封邮件时新建），或修改还没开始投递的定时邮件
+  rpc SaveGameMail(SaveGameMailRequest) returns (GameMail) {
     option (google.api.http) = {
       put: "/api/v1/game/gm/{server_id}/mails/{id}"
       body: "*"
@@ -44,21 +38,14 @@ service GameOpsService {
       delete: "/api/v1/game/gm/{server_id}/mails/{id}"
     };
   }
-  // 复制一封邮件为新草稿
-  rpc DuplicateGameMail(DuplicateGameMailRequest) returns (GameMail) {
-    option (google.api.http) = {
-      post: "/api/v1/game/gm/{server_id}/mails/{id}/duplicate"
-      body: "*"
-    };
-  }
-  // 试运行：返回按当前条件匹配的人数（不投递）
+  // 试运行发送：返回现在匹配的人数（不投递，写进 GM 记录）
   rpc DryRunGameMail(DryRunGameMailRequest) returns (DryRunGameMailResponse) {
     option (google.api.http) = {
       post: "/api/v1/game/gm/{server_id}/mails/{id}/dry-run"
       body: "*"
     };
   }
-  // 立即发送，或按 scheduled_at 定时发送（高风险，必须填原因）
+  // 发送草稿：立即，或从 start_time 起定时投递
   rpc SendGameMail(SendGameMailRequest) returns (GameMail) {
     option (google.api.http) = {
       post: "/api/v1/game/gm/{server_id}/mails/{id}/send"
@@ -72,14 +59,13 @@ service GameOpsService {
       body: "*"
     };
   }
-  // 撤回已发送邮件里尚未领取的礼物（高风险，必须填原因）
+  // 撤回：之后不再投递，并撤回尚未领取的礼物（在后台执行）
   rpc RevokeGameMail(RevokeGameMailRequest) returns (GameMail) {
     option (google.api.http) = {
       post: "/api/v1/game/gm/{server_id}/mails/{id}/revoke"
       body: "*"
     };
   }
-
   // 兑换码批次列表（含统计卡片的数据）
   rpc ListGiftCodeBatches(ListGiftCodeBatchesRequest) returns (ListGiftCodeBatchesResponse) {
     option (google.api.http) = {
@@ -135,57 +121,54 @@ message GameMailCondition {
   int64 last_login_before = 4;
 }
 
-// 邮件补偿。
+// 一封邮件（游戏服务端 GET /mails/{mailId} 的内容）。
 message GameMail {
+  // 邮件 id（MGP mailId）
   string id = 1;
-  string server_id = 2;
-  // 标题（玩家可见，作为礼物箱文案）
-  string title = 3;
-  // 正文
-  string body = 4;
-  repeated GameReward rewards = 5;
+  // draft 草稿 / scheduled 定时 / sending 投递中 / sent 已投递 / revoking 撤回中 / revoked 已撤回
+  string status = 2;
   // 收件人：players 指定玩家 / condition 按条件 / all 全服
-  string target = 6;
-  repeated GameTarget players = 7;
-  GameMailCondition condition = 8;
+  string target = 3;
+  repeated GameTarget players = 4;
+  GameMailCondition condition = 5;
   // 跳过封禁玩家
-  bool exclude_banned = 9;
-  // 领取期限（天，0 不过期）
+  bool exclude_banned = 6;
+  // 礼物箱文案（玩家可见）
+  string message = 7;
+  // 备注（只给管理员看）
+  string note = 8;
+  repeated GameReward rewards = 9;
+  // 领取期限（天，0 不过期），从开始投递时算起
   int32 expire_days = 10;
-  // 定时发送时间
-  google.protobuf.Timestamp scheduled_at = 11;
-  // draft / scheduled / sending（后台投递中）/ sent / failed / revoking（后台撤回中）/ revoked
-  string status = 13;
-  // 投递人数（发送后）
-  int32 recipient_count = 14;
-  // 已领取人数（MGP gifts 报表 receivedPlayers，60 秒内的缓存）
-  int32 claimed_count = 15;
-  google.protobuf.Timestamp stats_at = 16;
-  string error = 17;
-  string execution_id = 18;
-  string created_by_name = 19;
-  string updated_by_name = 20;
-  string sent_by_name = 21;
-  google.protobuf.Timestamp sent_at = 22;
-  string revoked_by_name = 23;
-  google.protobuf.Timestamp revoked_at = 24;
-  google.protobuf.Timestamp create_time = 25;
-  google.protobuf.Timestamp update_time = 26;
-  // 最近一次试运行匹配的人数与时间（收件人改动后清零）
-  int32 matched_count = 27;
-  google.protobuf.Timestamp matched_at = 28;
-  // 投递失败人数
-  int32 failed_count = 29;
-  // 撤回了未领取礼物的玩家数
-  int32 revoked_count = 30;
-  string revoke_execution_id = 31;
+  // 开始投递的时间；草稿里为计划的定时时间
+  google.protobuf.Timestamp start_time = 11;
+  // 礼物领取截止时间
+  google.protobuf.Timestamp limit_time = 12;
+  // 开始时匹配的玩家投递完的时间，之后 matched / done / failed 为匹配、送达与失败的人数
+  google.protobuf.Timestamp delivered_at = 13;
+  int32 matched = 14;
+  int32 done = 15;
+  int32 failed = 16;
+  // 撤回时间、撤回完成时间与被撤回未领取礼物的玩家数
+  google.protobuf.Timestamp revoked_at = 17;
+  google.protobuf.Timestamp revoke_done_at = 18;
+  int32 revoked = 19;
+  // 持有与已领取这封邮件礼物的玩家数
+  int32 recipients = 20;
+  int32 received = 21;
+  string created_by = 22;
+  string updated_by = 23;
+  string sent_by = 24;
+  string revoked_by = 25;
+  google.protobuf.Timestamp create_time = 26;
+  google.protobuf.Timestamp update_time = 27;
 }
 
 message ListGameMailsRequest {
   string server_id = 1;
-  // 状态：draft / scheduled / sent（含 sending、failed、revoked）；空为全部
+  // draft / scheduled / sent（sending、sent、revoking、revoked）；空为全部
   string status = 2;
-  // 关键字：标题、收件人、道具 ID
+  // 关键字：文案、备注、道具 ID 或邮件 ID
   string q = 3;
   int32 page = 4;
   int32 page_size = 5;
@@ -194,9 +177,9 @@ message ListGameMailsRequest {
 message ListGameMailsResponse {
   repeated GameMail items = 1;
   int32 total = 2;
-  // all / sent / scheduled / draft
+  // all / draft / scheduled / sent（不受筛选影响）
   map<string, int32> counts = 3;
-  // 本月已发送
+  // 本月（服务器时区）投递完的邮件数
   int32 sent_this_month = 4;
 }
 
@@ -207,17 +190,19 @@ message GetGameMailRequest {
 
 message SaveGameMailRequest {
   string server_id = 1;
-  // 修改时必填
+  // 邮件 id（新邮件由前端生成 UUID）
   string id = 2;
-  string title = 3;
-  string body = 4;
-  repeated GameReward rewards = 5;
-  string target = 6;
-  repeated GameTarget players = 7;
-  GameMailCondition condition = 8;
-  bool exclude_banned = 9;
+  string target = 3;
+  // 指定玩家的 pid
+  repeated string players = 4;
+  GameMailCondition condition = 5;
+  bool exclude_banned = 6;
+  string message = 7;
+  string note = 8;
+  repeated GameReward rewards = 9;
   int32 expire_days = 10;
-  google.protobuf.Timestamp scheduled_at = 11;
+  // 定时时间（草稿里为计划；定时邮件必须晚于现在）；为空表示不定时
+  google.protobuf.Timestamp start_time = 11;
 }
 
 message DeleteGameMailRequest {
@@ -227,34 +212,25 @@ message DeleteGameMailRequest {
 
 message DeleteGameMailResponse {}
 
-message DuplicateGameMailRequest {
-  string server_id = 1;
-  string id = 2;
-}
-
 message DryRunGameMailRequest {
   string server_id = 1;
   string id = 2;
 }
 
 message DryRunGameMailResponse {
-  // 按当前条件匹配的人数
+  // 现在匹配的人数
   int32 matched = 1;
   // 服务端注册总数
   int32 registered = 2;
-  // MGP 返回的 summary 原样（JSON 字符串）
-  string summary = 3;
-  // 记下了匹配人数的邮件
-  GameMail mail = 4;
   // 这次试运行的 GM 记录 id
-  string execution_id = 5;
+  string execution_id = 3;
 }
 
 message SendGameMailRequest {
   string server_id = 1;
   string id = 2;
-  // 定时发送；为空立即发送
-  google.protobuf.Timestamp scheduled_at = 4;
+  // 定时投递的时间；为空立即投递
+  google.protobuf.Timestamp start_time = 3;
 }
 
 message CancelGameMailRequest {

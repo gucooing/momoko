@@ -6,6 +6,13 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
+// GameReward 一项奖励（与 MGP gift.send 的 rewards 相同）。
+type GameReward struct {
+	ResourceType int32  `json:"resourceType"`
+	ResourceID   string `json:"resourceId"`
+	Quantity     int64  `json:"quantity"`
+}
+
 // GiftCodeBatch 兑换码批次：通用码（一个码多人用）或一次性码（生成 N 个码，每个只能用一次）。
 // 兑换成功时以 gift.send（sourceKind=code、sourceId=批次 id）把奖励发进礼物箱。
 type GiftCodeBatch struct {

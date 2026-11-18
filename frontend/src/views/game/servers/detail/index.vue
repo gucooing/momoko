@@ -11,7 +11,10 @@
       <section class="gsd__hero">
         <div class="gsd__hero-main">
           <div class="gsd__id">
-            <span class="gsd__logo" aria-hidden="true">{{ initial }}</span>
+            <span class="gsd__logo" :class="{ 'has-img': appIcon }" aria-hidden="true">
+              <img v-if="appIcon" :src="appIcon" alt="" class="gsd__logo-img" />
+              <template v-else>{{ initial }}</template>
+            </span>
             <div class="gsd__id-text">
               <div class="gsd__title-row">
                 <h1>{{ info.brief?.name }}</h1>
@@ -76,7 +79,8 @@
           </p>
         </div>
         <div class="gsd__cover">
-          <GameImage v-if="coverUrl" :src="coverUrl" :alt="info.brief?.name || ''" eager class="gsd__cover-img" />
+          <ServerBackground v-if="appBackground" :src="appBackground" :alt="info.brief?.name || ''" eager class="gsd__cover-img" />
+          <GameImage v-else-if="coverUrl" :src="coverUrl" :alt="info.brief?.name || ''" eager class="gsd__cover-img" />
           <div class="gsd__cover-tags">
             <span v-if="(info.brief?.online ?? -1) >= 0" class="gsd__cover-tag">{{ t('gameServers.detail.online') }} <b class="m-num">{{ info.brief?.online }}</b></span>
             <span v-if="resource !== '—'" class="gsd__cover-tag">{{ t('gameServers.detail.resource') }} <b class="m-num">{{ resource }}</b></span>
@@ -130,6 +134,7 @@ import type { GameAdapter, GameServerInfo, GameServerProcessInfo, GameServerTask
 import ServerEditDialog from '../components/ServerEditDialog.vue'
 import ServerDeleteDialog from '../components/ServerDeleteDialog.vue'
 import RotateKeyDialog from '../components/RotateKeyDialog.vue'
+import ServerBackground from '@/components/game/ServerBackground.vue'
 import { fmtDuration, fmtTime, resourceText, stateVariant, statusOf, toMs } from '../shared'
 
 const OverviewTab = defineAsyncComponent(() => import('./components/OverviewTab.vue'))
@@ -181,7 +186,10 @@ const gameName = computed(() => {
   return info.value?.brief?.gameName || (te(key) ? t(key) : t('game.unnamed'))
 })
 const initial = computed(() => (gameName.value || '?').charAt(0).toUpperCase())
-// 没设封面时用游戏的默认封面（和列表卡片一样按服务器 ID 挑）
+// 应用图标与应用背景（接入设置里上传，与启动器同步使用）优先；没有背景时用封面，没设封面时用游戏的默认封面
+// （和列表卡片一样按服务器 ID 挑）
+const appIcon = computed(() => info.value?.appIcon || '')
+const appBackground = computed(() => info.value?.appBackground || '')
 const coverUrl = computed(() => {
   const b = info.value?.brief
   if (!b) return ''
@@ -396,6 +404,14 @@ watch(id, () => {
   font-weight: 800;
   transform: rotate(-5deg);
   box-shadow: 4px 4px 0 var(--m-g, var(--m-p));
+}
+.gsd__logo.has-img {
+  overflow: hidden;
+}
+.gsd__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .gsd__id-text {
   flex: 1 1 260px;

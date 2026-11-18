@@ -17,15 +17,12 @@ export interface GameMailCondition {
   lastLoginBefore: number;
 }
 
-/** 邮件补偿。 */
+/** 一封邮件（游戏服务端 GET /mails/{mailId} 的内容）。 */
 export interface GameMail {
+  /** 邮件 id（MGP mailId） */
   id: string;
-  serverId: string;
-  /** 标题（玩家可见，作为礼物箱文案） */
-  title: string;
-  /** 正文 */
-  body: string;
-  rewards: GameReward[];
+  /** draft 草稿 / scheduled 定时 / sending 投递中 / sent 已投递 / revoking 撤回中 / revoked 已撤回 */
+  status: string;
   /** 收件人：players 指定玩家 / condition 按条件 / all 全服 */
   target: string;
   players: GameTarget[];
@@ -34,48 +31,46 @@ export interface GameMail {
     | undefined;
   /** 跳过封禁玩家 */
   excludeBanned: boolean;
-  /** 领取期限（天，0 不过期） */
+  /** 礼物箱文案（玩家可见） */
+  message: string;
+  /** 备注（只给管理员看） */
+  note: string;
+  rewards: GameReward[];
+  /** 领取期限（天，0 不过期），从开始投递时算起 */
   expireDays: number;
-  /** 定时发送时间 */
-  scheduledAt:
+  /** 开始投递的时间；草稿里为计划的定时时间 */
+  startTime:
     | Date
     | undefined;
-  /** draft / scheduled / sending（后台投递中）/ sent / failed / revoking（后台撤回中）/ revoked */
-  status: string;
-  /** 投递人数（发送后） */
-  recipientCount: number;
-  /** 已领取人数（MGP gifts 报表 receivedPlayers，60 秒内的缓存） */
-  claimedCount: number;
-  statsAt: Date | undefined;
-  error: string;
-  executionId: string;
-  createdByName: string;
-  updatedByName: string;
-  sentByName: string;
-  sentAt: Date | undefined;
-  revokedByName: string;
+  /** 礼物领取截止时间 */
+  limitTime:
+    | Date
+    | undefined;
+  /** 开始时匹配的玩家投递完的时间，之后 matched / done / failed 为匹配、送达与失败的人数 */
+  deliveredAt: Date | undefined;
+  matched: number;
+  done: number;
+  failed: number;
+  /** 撤回时间、撤回完成时间与被撤回未领取礼物的玩家数 */
   revokedAt: Date | undefined;
+  revokeDoneAt: Date | undefined;
+  revoked: number;
+  /** 持有与已领取这封邮件礼物的玩家数 */
+  recipients: number;
+  received: number;
+  createdBy: string;
+  updatedBy: string;
+  sentBy: string;
+  revokedBy: string;
   createTime: Date | undefined;
-  updateTime:
-    | Date
-    | undefined;
-  /** 最近一次试运行匹配的人数与时间（收件人改动后清零） */
-  matchedCount: number;
-  matchedAt:
-    | Date
-    | undefined;
-  /** 投递失败人数 */
-  failedCount: number;
-  /** 撤回了未领取礼物的玩家数 */
-  revokedCount: number;
-  revokeExecutionId: string;
+  updateTime: Date | undefined;
 }
 
 export interface ListGameMailsRequest {
   serverId: string;
-  /** 状态：draft / scheduled / sent（含 sending、failed、revoked）；空为全部 */
+  /** draft / scheduled / sent（sending、sent、revoking、revoked）；空为全部 */
   status: string;
-  /** 关键字：标题、收件人、道具 ID */
+  /** 关键字：文案、备注、道具 ID 或邮件 ID */
   q: string;
   page: number;
   pageSize: number;
@@ -84,9 +79,9 @@ export interface ListGameMailsRequest {
 export interface ListGameMailsResponse {
   items: GameMail[];
   total: number;
-  /** all / sent / scheduled / draft */
+  /** all / draft / scheduled / sent（不受筛选影响） */
   counts: { [key: string]: number };
-  /** 本月已发送 */
+  /** 本月（服务器时区）投递完的邮件数 */
   sentThisMonth: number;
 }
 
@@ -102,17 +97,19 @@ export interface GetGameMailRequest {
 
 export interface SaveGameMailRequest {
   serverId: string;
-  /** 修改时必填 */
+  /** 邮件 id（新邮件由前端生成 UUID） */
   id: string;
-  title: string;
-  body: string;
-  rewards: GameReward[];
   target: string;
-  players: GameTarget[];
+  /** 指定玩家的 pid */
+  players: string[];
   condition: GameMailCondition | undefined;
   excludeBanned: boolean;
+  message: string;
+  note: string;
+  rewards: GameReward[];
   expireDays: number;
-  scheduledAt: Date | undefined;
+  /** 定时时间（草稿里为计划；定时邮件必须晚于现在）；为空表示不定时 */
+  startTime: Date | undefined;
 }
 
 export interface DeleteGameMailRequest {
@@ -123,27 +120,16 @@ export interface DeleteGameMailRequest {
 export interface DeleteGameMailResponse {
 }
 
-export interface DuplicateGameMailRequest {
-  serverId: string;
-  id: string;
-}
-
 export interface DryRunGameMailRequest {
   serverId: string;
   id: string;
 }
 
 export interface DryRunGameMailResponse {
-  /** 按当前条件匹配的人数 */
+  /** 现在匹配的人数 */
   matched: number;
   /** 服务端注册总数 */
   registered: number;
-  /** MGP 返回的 summary 原样（JSON 字符串） */
-  summary: string;
-  /** 记下了匹配人数的邮件 */
-  mail:
-    | GameMail
-    | undefined;
   /** 这次试运行的 GM 记录 id */
   executionId: string;
 }
@@ -151,8 +137,8 @@ export interface DryRunGameMailResponse {
 export interface SendGameMailRequest {
   serverId: string;
   id: string;
-  /** 定时发送；为空立即发送 */
-  scheduledAt: Date | undefined;
+  /** 定时投递的时间；为空立即投递 */
+  startTime: Date | undefined;
 }
 
 export interface CancelGameMailRequest {

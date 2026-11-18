@@ -152,18 +152,6 @@ func (f GameConfigRevisionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameConfigRevisionMutation", m)
 }
 
-// The GameMailFunc type is an adapter to allow the use of ordinary
-// function as GameMail mutator.
-type GameMailFunc func(context.Context, *gen.GameMailMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f GameMailFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.GameMailMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.GameMailMutation", m)
-}
-
 // The GameRecentServerFunc type is an adapter to allow the use of ordinary
 // function as GameRecentServer mutator.
 type GameRecentServerFunc func(context.Context, *gen.GameRecentServerMutation) (gen.Value, error)

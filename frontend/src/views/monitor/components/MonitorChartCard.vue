@@ -43,9 +43,6 @@
       <span class="mcard__empty-stk m-sticker m-sticker--a2"><MonitorGlyph :name="empty.glyph || glyph" /></span>
       <span class="mcard__empty-t">{{ empty.title }}</span>
       <span class="mcard__empty-d">{{ empty.desc }}</span>
-      <UButton v-if="empty.action" size="sm" color="neutral" variant="outline" class="mcard__empty-btn" @click="emit('action')">
-        {{ empty.action }}
-      </UButton>
     </div>
 
     <template v-else>
@@ -112,7 +109,6 @@ export interface CardFact {
 export interface CardEmpty {
   title: string
   desc: string
-  action?: string
   glyph?: MonitorGlyphName
 }
 
@@ -145,7 +141,6 @@ const emit = defineEmits<{
   toggle: [key: string]
   pick: [value: string]
   zoom: [start: number, end: number]
-  action: []
 }>()
 
 const { t } = useI18n()
@@ -341,10 +336,6 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--el-text-color-secondary);
-}
-.mcard__empty-btn {
-  margin-top: 4px;
-  border-radius: 999px;
 }
 
 /* 手机：图例逐行（当前值靠左、平均 / 峰值靠右），信息格两列 */

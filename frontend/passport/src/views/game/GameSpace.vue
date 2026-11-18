@@ -7,7 +7,7 @@
       <RouterLink to="/games" class="gs__ib" :aria-label="t('game.hero.back')">
         <ChevronLeftIcon aria-hidden="true" />
       </RouterLink>
-      <GameMark v-if="server" :game="server.game" :name="server.gameName" :size="34" />
+      <GameMark v-if="server" :game="server.game" :name="server.gameName" :src="server.appIcon" :size="34" />
       <span class="gs__mtitle">
         <span class="gs__mname">{{ server?.name || '…' }}</span>
         <span class="pp-hint gs__mgame">{{ server?.gameName }}</span>
@@ -23,11 +23,12 @@
     <div class="gs__wrap">
       <!-- 电脑：横幅 -->
       <section v-if="!ui.isMobile && server" class="gs__hero">
-        <img v-if="meishiImage" :src="meishiImage" alt="" class="gs__hero-img gs__hero-img--meishi" />
+        <ServerBackground v-if="server.appBackground" :src="server.appBackground" eager class="gs__hero-img" />
+        <img v-else-if="meishiImage" :src="meishiImage" alt="" class="gs__hero-img gs__hero-img--meishi" />
         <GameImage v-else-if="heroArt" :src="heroArt" eager class="gs__hero-img" />
         <div class="gs__hero-row">
           <div class="gs__hero-card">
-            <GameMark :game="server.game" :name="server.gameName" :size="56" />
+            <GameMark :game="server.game" :name="server.gameName" :src="server.appIcon" :size="56" />
             <span class="gs__hero-text">
               <span class="pp-hint">
                 <RouterLink to="/games" class="gs__crumb">{{ t('game.hero.myGames') }}</RouterLink>
@@ -118,7 +119,7 @@
           class="gs__other"
           @click="switchOpen = false"
         >
-          <GameMark :game="o.game" :name="o.server?.gameName" :size="40" />
+          <GameMark :game="o.game" :name="o.server?.gameName" :src="o.server?.appIcon" :size="40" />
           <span class="gs__other-text">
             <span class="gs__other-name">{{ o.server?.name || t('game.unnamed') }}</span>
             <span class="pp-hint">{{ o.nickname || t('game.noName') }} · {{ t('game.hero.level', { n: o.level }) }}</span>
@@ -155,6 +156,7 @@ import {
   SunIcon,
 } from '@heroicons/vue/24/outline'
 import GameImage from '@/components/game/GameImage.vue'
+import ServerBackground from '@/components/game/ServerBackground.vue'
 import GameMark from '@passport/components/GameMark.vue'
 import PButton from '@passport/components/PButton.vue'
 import PDialog from '@passport/components/PDialog.vue'
@@ -209,7 +211,8 @@ const ready = computed(() => !!data.value && !!player.value && !loadError.value)
 const avatarCard = computed(() => player.value?.avatarIdolCardId || link.value?.avatarAsset || '')
 const heroArt = computed(() => idolCardArt(game.value, avatarCard.value, 'land'))
 
-// 头图与概览名片的背景是资料名片（游戏里保存名片时上传的图片）；默认名片没有图片，这时用头像偶像卡的卡面
+// 头图优先用服务器的应用背景（接入设置里上传，与管理端、启动器同步）；没有时和概览名片一样用资料名片
+// （游戏里保存名片时上传的图片）；默认名片没有图片，这时用头像偶像卡的卡面
 const meishiImage = ref('')
 const meishiPath = computed(() => overview.value?.meishiImagePath || '')
 watch(

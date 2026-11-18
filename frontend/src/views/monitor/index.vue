@@ -1,6 +1,7 @@
 <!-- 性能监控（MonitorPC / MonitorMobile）：页头（节点 · 采样间隔 · 保留时长 · 已记录天数 + 实时开关 + 监控设置）
      → 时间范围（1 小时 / 6 小时 / 24 小时 / 7 天 / 30 天 / 自定义，图表上拖动框选也会变成自定义时段）
-     → 五个概览块（CPU、GPU、内存、磁盘读写、网络：当前值 + 迷你走势 + 时段平均 / 峰值）
+     → 概览块（CPU、GPU、内存、磁盘读写、网络：当前值 + 迷你走势 + 时段平均 / 峰值）
+     监控设置里关掉的项（GPU / 磁盘 / 网络 / 按应用统计）不占位：对应的概览块、曲线卡与底部面板直接隐藏。
      → 曲线卡（PC 全部铺开；手机点概览块切换下面的一张）→ 磁盘容量与写满预测 → 占用最高的应用。
      数据来自后端分级降采样的历史（查询时按时段自动选精度），服务停止的空档画成斜纹「无数据」。 -->
 <template>
@@ -135,16 +136,16 @@
     </div>
 
     <!-- 概览 -->
-    <div class="mon-tiles">
+    <div class="mon-tiles" :style="tilesStyle">
       <component
         :is="compact ? 'button' : 'a'"
         v-for="k in tiles"
         :key="k.id"
         class="mon-tile"
-        :class="{ 'is-on': compact && sel === k.id }"
+        :class="{ 'is-on': compact && selId === k.id }"
         :href="compact ? undefined : `#mon-${k.id}`"
         :type="compact ? 'button' : undefined"
-        :aria-pressed="compact ? sel === k.id : undefined"
+        :aria-pressed="compact ? selId === k.id : undefined"
         @click="onTile($event, k.id)"
       >
         <span class="mon-tile__h">
@@ -171,16 +172,15 @@
     <!-- 曲线 -->
     <div v-if="!compact" class="mon-charts">
       <MonitorChartCard
-        v-for="c in cards"
+        v-for="(c, i) in cards"
         :key="c.id"
         :card-id="`mon-${c.id}`"
-        :class="{ 'mon-charts__wide': c.id === 'disk' }"
+        :class="{ 'mon-charts__wide': i === cards.length - 1 && i % 2 === 0 }"
         v-bind="cardProps(c)"
         :zoomable="true"
         @toggle="toggleLine"
         @pick="(v) => onPick(c.id, v)"
         @zoom="onZoom"
-        @action="settingsOpen = true"
       />
     </div>
     <MonitorChartCard
@@ -190,20 +190,16 @@
       compact
       @toggle="toggleLine"
       @pick="(v) => onPick(selectedCard!.id, v)"
-      @action="settingsOpen = true"
     />
 
-    <div class="mon-bottom">
+    <div v-if="!off.disk || !off.apps" class="mon-bottom">
       <!-- 磁盘容量与趋势 -->
-      <section class="mon-panel" :aria-label="t('monitor.disks.title')">
+      <section v-if="!off.disk" class="mon-panel" :aria-label="t('monitor.disks.title')">
         <div class="mon-panel__h">
           <span class="mon-panel__t">{{ t('monitor.disks.title') }}</span>
           <span v-if="!compact" class="mon-panel__hint">{{ t('monitor.disks.hint') }}</span>
         </div>
-        <template v-if="settings && !settings.collectDisk">
-          <EmptyState icon="HOutline:CircleStackIcon" :title="t('monitor.off.title', { name: t('monitor.panel.disk') })" :description="t('monitor.off.desc')" />
-        </template>
-        <EmptyState v-else-if="!disks.length" icon="HOutline:CircleStackIcon" :title="t('monitor.disks.empty')" />
+        <EmptyState v-if="!disks.length" icon="HOutline:CircleStackIcon" :title="t('monitor.disks.empty')" />
         <div v-for="d in disks" v-else :key="d.mountpoint" class="mon-disk">
           <div class="mon-disk__h">
             <span class="mon-disk__m m-mono">{{ d.mountpoint }}</span>
@@ -222,7 +218,7 @@
       </section>
 
       <!-- 占用最高的应用 -->
-      <section class="mon-panel mon-panel--apps" :aria-label="t('monitor.apps.title')">
+      <section v-if="!off.apps" class="mon-panel mon-panel--apps" :aria-label="t('monitor.apps.title')">
         <div class="mon-panel__h">
           <span class="mon-panel__t">{{ t('monitor.apps.title') }}</span>
           <div class="mon-seg mon-seg--sm" role="radiogroup" :aria-label="t('monitor.apps.sortLabel')">
@@ -240,13 +236,7 @@
           </div>
         </div>
         <span v-if="!compact" class="mon-panel__hint mon-panel__hint--row">{{ t('monitor.apps.hint') }}</span>
-        <EmptyState
-          v-if="settings && !settings.collectApps"
-          icon="HOutline:Squares2X2Icon"
-          :title="t('monitor.off.title', { name: t('monitor.panel.app') })"
-          :description="t('monitor.apps.offDesc')"
-        />
-        <EmptyState v-else-if="!apps.length" icon="HOutline:Squares2X2Icon" :title="t('monitor.apps.empty')" />
+        <EmptyState v-if="!apps.length" icon="HOutline:Squares2X2Icon" :title="t('monitor.apps.empty')" />
         <RouterLink
           v-for="a in apps"
           v-else
@@ -450,6 +440,12 @@ const exportRange = computed(() => {
 
 // —— 数据整理 ——
 const settings = computed<MonitorSettingsInfo | undefined>(() => resp.value?.settings)
+// 监控设置里关掉的项：对应的概览块、曲线卡与底部面板都不显示（设置还没加载到时按默认全开）
+const off = computed(() => {
+  const st = settings.value
+  return { gpu: !!st && !st.collectGpu, disk: !!st && !st.collectDisk, net: !!st && !st.collectNetwork, apps: !!st && !st.collectApps }
+})
+const shown = (id: TileId) => id === 'cpu' || id === 'mem' || !off.value[id]
 const host = computed(() => resp.value?.host)
 const hostName = computed(() => host.value?.hostname || '')
 const buckets = computed(() => num(resp.value?.buckets))
@@ -599,18 +595,11 @@ interface CardDef {
   empty: CardEmpty | null
 }
 
-const offEmpty = (name: string, glyph: MonitorGlyphName): CardEmpty => ({
-  title: t('monitor.off.title', { name }),
-  desc: t('monitor.off.desc'),
-  action: canEdit.value ? t('monitor.off.action') : undefined,
-  glyph,
-})
 const noDataEmpty = (glyph: MonitorGlyphName): CardEmpty => ({ title: t('monitor.noData.title'), desc: t('monitor.noData.desc'), glyph })
 
 const cards = computed<CardDef[]>(() => {
   const c = pc.value
   const h = host.value
-  const st = settings.value
 
   // CPU
   const cpuLines = [pctLine('cpu', t('monitor.cpu.usage'), c.p, 0.14, 'cpu')]
@@ -666,9 +655,7 @@ const cards = computed<CardDef[]>(() => {
     title: t('monitor.gpu.title'),
     sub: g
       ? [g.name, num(g.memoryTotal) ? fmtSize(num(g.memoryTotal)) : '', g.driver ? t('monitor.gpu.driver', { v: g.driver }) : ''].filter(Boolean).join(' · ')
-      : st && !st.collectGpu
-        ? ''
-        : t('monitor.noGpuShort'),
+      : t('monitor.noGpuShort'),
     glyph: 'gpu',
     tone: 'a2',
     rot: '3deg',
@@ -685,8 +672,7 @@ const cards = computed<CardDef[]>(() => {
     ],
     empty: null,
   }
-  if (st && !st.collectGpu) gpuCard.empty = offEmpty(t('monitor.panel.gpu'), 'gpu')
-  else if (!g) gpuCard.empty = { title: t('monitor.gpu.emptyTitle'), desc: compact.value ? t('monitor.gpu.emptyShort') : t('monitor.gpu.emptyDesc'), glyph: 'gpu' }
+  if (!g) gpuCard.empty = { title: t('monitor.gpu.emptyTitle'), desc: compact.value ? t('monitor.gpu.emptyShort') : t('monitor.gpu.emptyDesc'), glyph: 'gpu' }
   else if (!hasData(gpuLines)) gpuCard.empty = noDataEmpty('gpu')
 
   // 内存
@@ -743,8 +729,7 @@ const cards = computed<CardDef[]>(() => {
     ],
     empty: null,
   }
-  if (st && !st.collectNetwork) net.empty = offEmpty(t('monitor.panel.net'), 'net')
-  else if (!hasData(netLines)) net.empty = noDataEmpty('net')
+  if (!hasData(netLines)) net.empty = noDataEmpty('net')
 
   // 磁盘读写
   const ds = suffix(dev.value)
@@ -771,12 +756,13 @@ const cards = computed<CardDef[]>(() => {
     ],
     empty: null,
   }
-  if (st && !st.collectDisk) disk.empty = offEmpty(t('monitor.panel.disk'), 'disk')
-  else if (!hasData(diskLines)) disk.empty = noDataEmpty('disk')
+  if (!hasData(diskLines)) disk.empty = noDataEmpty('disk')
 
-  return [cpu, gpuCard, mem, net, disk]
+  return [cpu, gpuCard, mem, net, disk].filter((x) => shown(x.id))
 })
-const selectedCard = computed(() => cards.value.find((c) => c.id === sel.value))
+// 手机上选中的那块被关掉时回到 CPU
+const selId = computed<TileId>(() => (cards.value.some((c) => c.id === sel.value) ? sel.value : 'cpu'))
+const selectedCard = computed(() => cards.value.find((c) => c.id === selId.value))
 const cardProps = (c: CardDef) => ({
   title: c.title,
   sub: c.sub,
@@ -832,7 +818,6 @@ const fullestMount = computed(() => {
 const tiles = computed<Tile[]>(() => {
   const c = pc.value
   const h = host.value
-  const st = settings.value
   const cpuS = ser('cpu')
   const g = gpu.value
   const gi = g ? String(g.index) : '0'
@@ -858,8 +843,7 @@ const tiles = computed<Tile[]>(() => {
   const gpuName = (g?.name || '').replace(/^(NVIDIA|AMD|Intel\(R\)|Intel)\s+/i, '').replace(/^GeForce\s+/i, '')
   const fm = fullestMount.value
   const tcp = cur('tcp')
-  const gpuOff = !!st && !st.collectGpu
-  return [
+  const list: Tile[] = [
     {
       id: 'cpu',
       title: t('monitor.tiles.cpu'),
@@ -882,13 +866,13 @@ const tiles = computed<Tile[]>(() => {
       glyph: 'gpu',
       tone: 'a2',
       rot: '3deg',
-      value: g && !gpuOff ? fmt1(nowOf(`gpu:${gi}`)) : '—',
-      unit: g && !gpuOff ? '%' : '',
-      sub: gpuOff ? t('monitor.off.title', { name: 'GPU' }) : g ? [gpuName, gtemp != null ? `${Math.round(gtemp)} °C` : ''].filter(Boolean).join(' · ') : t('monitor.noGpuShort'),
+      value: g ? fmt1(nowOf(`gpu:${gi}`)) : '—',
+      unit: g ? '%' : '',
+      sub: g ? [gpuName, gtemp != null ? `${Math.round(gtemp)} °C` : ''].filter(Boolean).join(' · ') : t('monitor.noGpuShort'),
       color: g ? c.a2 : c.ink2,
-      spark: g && !gpuOff ? sparkPaths(gS?.values || [], 100) : { line: '', area: '' },
-      avg: g && !gpuOff ? fmtPct(gS?.mean) : '—',
-      peak: g && !gpuOff ? fmtPct(gS?.peak) : '—',
+      spark: g ? sparkPaths(gS?.values || [], 100) : { line: '', area: '' },
+      avg: g ? fmtPct(gS?.mean) : '—',
+      peak: g ? fmtPct(gS?.peak) : '—',
     },
     {
       id: 'mem',
@@ -910,9 +894,9 @@ const tiles = computed<Tile[]>(() => {
       glyph: 'disk',
       tone: 'p',
       rot: '2deg',
-      value: st && !st.collectDisk ? '—' : ioV,
-      unit: st && !st.collectDisk ? '' : ioU,
-      sub: st && !st.collectDisk ? t('monitor.off.title', { name: t('monitor.panel.disk') }) : fm ? t('monitor.mountUsed', { mount: fm.m, pct: `${Math.round(fm.pct)}%` }) : '—',
+      value: ioV,
+      unit: ioU,
+      sub: fm ? t('monitor.mountUsed', { mount: fm.m, pct: `${Math.round(fm.pct)}%` }) : '—',
       color: c.a,
       spark: sparkPaths(ioSum),
       avg: fmtRate((rd?.mean ?? 0) + (wr?.mean ?? 0)),
@@ -924,18 +908,21 @@ const tiles = computed<Tile[]>(() => {
       glyph: 'net',
       tone: 'a',
       rot: '4deg',
-      value: st && !st.collectNetwork ? '—' : netV,
-      unit: st && !st.collectNetwork ? '' : netU,
-      sub:
-        st && !st.collectNetwork
-          ? t('monitor.off.title', { name: t('monitor.panel.net') })
-          : `↓ ${fmtRate(nowOf('rx'))} · ↑ ${fmtRate(nowOf('tx'))}${compact.value && tcp != null ? ` · ${t('monitor.net.connections', { n: fmtCount(tcp) })}` : ''}`,
+      value: netV,
+      unit: netU,
+      sub: `↓ ${fmtRate(nowOf('rx'))} · ↑ ${fmtRate(nowOf('tx'))}${compact.value && tcp != null ? ` · ${t('monitor.net.connections', { n: fmtCount(tcp) })}` : ''}`,
       color: c.ok,
       spark: sparkPaths(netSum),
       avg: fmtRate((rx?.mean ?? 0) + (tx?.mean ?? 0)),
       peak: fmtRate(peakOf(netSum)),
     },
   ]
+  return list.filter((k) => shown(k.id))
+})
+// 概览块按显示的块数排一行；窄一些时 4 块排成 2 × 2，5 块排成 3 + 2
+const tilesStyle = computed(() => {
+  const n = tiles.value.length
+  return { '--mon-tiles': n, '--mon-tiles-md': n === 4 ? 2 : Math.min(n, 3) }
 })
 const onTile = (e: Event, id: TileId) => {
   if (compact.value) {
@@ -1228,7 +1215,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
 /* 概览块 */
 .mon-tiles {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--mon-tiles, 5), minmax(0, 1fr));
   gap: 14px;
 }
 .mon-tile {
@@ -1321,6 +1308,9 @@ const onSaved = (s: MonitorSettingsInfo) => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+}
+.mon-bottom > :only-child {
+  grid-column: 1 / -1;
 }
 .mon-panel {
   display: flex;
@@ -1504,7 +1494,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
 
 @media (width <= 1280px) {
   .mon-tiles {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--mon-tiles-md, 3), minmax(0, 1fr));
   }
 }
 @media (width <= 1100px) {

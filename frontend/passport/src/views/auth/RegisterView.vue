@@ -16,7 +16,7 @@
           </PButton>
         </span>
       </PField>
-      <PField :label="t('auth.register.password')" :hint="t('auth.register.passwordHint', { n: minLength })">
+      <PField :label="t('auth.register.password')">
         <input v-model="form.password" type="password" autocomplete="new-password" required />
       </PField>
       <PField :label="t('auth.register.confirm')" :error="mismatch ? t('auth.register.mismatch') : ''">
@@ -63,7 +63,6 @@ const closed = computed(() => session.config?.registerMode === 'closed')
 const inviteOnly = computed(() => session.config?.registerMode === 'invite_only')
 const needCode = computed(() => !!session.config?.registerEmailVerification)
 const needEmail = computed(() => needCode.value)
-const minLength = computed(() => session.config?.minPasswordLength || 8)
 const mismatch = computed(() => !!confirm.value && confirm.value !== form.password)
 
 onMounted(() => {

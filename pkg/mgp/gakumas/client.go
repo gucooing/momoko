@@ -395,84 +395,165 @@ type MailCondition struct {
 	LastLoginBefore int64 `json:"lastLoginBefore,omitempty"`
 }
 
-// Mail 一封邮件：Target 为 all、condition 或 players；奖励不能是付费钻石。
-type Mail struct {
-	MailID        string         `json:"mailId"`
+// MailContent 保存（mail.save）的邮件内容：Target 为 all、condition 或 players（Players 为 pid）；
+// Message 是礼物箱文案（玩家可见），Note 是只给管理员看的备注；奖励不能是付费钻石。
+// StartTime（Unix 毫秒）在草稿里是计划的定时时间（0 不定时），在定时邮件里是开始投递的时间；
+// 领取期限 ExpireDays 从开始投递时算起。
+type MailContent struct {
 	Target        string         `json:"target"`
 	Players       []string       `json:"players,omitempty"`
 	Condition     *MailCondition `json:"condition,omitempty"`
-	ExcludeBanned bool           `json:"excludeBanned,omitempty"`
+	ExcludeBanned bool           `json:"excludeBanned"`
 	Rewards       []Reward       `json:"rewards"`
 	Message       string         `json:"message,omitempty"`
-	ExpireDays    int32          `json:"expireDays,omitempty"`
-	// StartTime 开始投递的时间（Unix 毫秒），0 为立即；领取期限 ExpireDays 从它算起。
-	StartTime int64 `json:"startTime,omitempty"`
+	Note          string         `json:"note,omitempty"`
+	ExpireDays    int32          `json:"expireDays"`
+	StartTime     int64          `json:"startTime,omitempty"`
 }
 
 func (g *Client) mailOperation(ctx context.Context, path string, body any, opt mgp.OperationOptions) (*gk.MailResult, error) {
 	return operate[gk.MailResult](ctx, g.c, http.MethodPost, path, body, opt)
 }
 
-// SendMail 把邮件登记到服务端，由服务端从 StartTime 起投递（全服邮件在领取期限内也投递给之后注册的账号）；
-// 同一 mailId 登记过返回错误码 MailAlreadySent。
-func (g *Client) SendMail(ctx context.Context, mail Mail, opt mgp.OperationOptions) (*gk.MailResult, error) {
-	return g.mailOperation(ctx, "/mails", mail, opt)
+// SendMail 发送服务端保存的草稿：从 startTime（Unix 毫秒，0 或不晚于现在为立即）起投递
+// （全服邮件在领取期限内也投递给之后注册的账号）。试运行时结果的 matched 为现在匹配的人数。
+func (g *Client) SendMail(ctx context.Context, mailID string, startTime int64, opt mgp.OperationOptions) (*gk.MailResult, error) {
+	return g.mailOperation(ctx, "/mails/"+url.PathEscape(mailID)+"/send", map[string]int64{"startTime": startTime}, opt)
 }
 
-// 邮件的错误码：登记过的 mailId 再次登记、服务端没有这封邮件、已经开始投递（不能取消）。
+// 邮件的错误码：已经发送（不是草稿）、服务端没有这封邮件、已经开始投递（不能修改）、不是草稿（不能删除）、
+// 不是定时邮件（不能取消定时）、草稿还没写完（不能发送）。
 const (
 	MailAlreadySent    = "MAIL_ALREADY_SENT"
 	MailNotFound       = "MAIL_NOT_FOUND"
 	MailAlreadyStarted = "MAIL_ALREADY_STARTED"
+	MailNotDraft       = "MAIL_NOT_DRAFT"
+	MailNotScheduled   = "MAIL_NOT_SCHEDULED"
+	MailIncomplete     = "MAIL_INCOMPLETE"
 )
 
-// MailState 服务端保存的一封邮件（时间为 Unix 毫秒）：DeliveredAt 为 0 表示开始时匹配的玩家还没投递完，
-// 投递完后 Matched / Done / Failed 为匹配、送达与失败的人数；RevokedAt 不为 0 表示已撤回。
-type MailState struct {
-	MailID      string `json:"mailId"`
-	Target      string `json:"target"`
-	StartTime   int64  `json:"startTime"`
-	LimitTime   int64  `json:"limitTime"`
-	DeliveredAt int64  `json:"deliveredAt"`
-	Matched     int    `json:"matched"`
-	Done        int    `json:"done"`
-	Failed      int    `json:"failed"`
-	RevokedAt   int64  `json:"revokedAt"`
+// 邮件状态（服务端按草稿标记、开始时间、投递与撤回时间得出）。
+const (
+	MailDraft     = "draft"
+	MailScheduled = "scheduled"
+	MailSending   = "sending"
+	MailSent      = "sent"
+	MailRevoking  = "revoking"
+	MailRevoked   = "revoked"
+)
+
+// MailPlayer 指定玩家邮件的一名收件人。
+type MailPlayer struct {
+	PID       string `json:"pid"`
+	Name      string `json:"name"`
+	DisplayID string `json:"displayId"`
+}
+
+// MailView 服务端保存的一封邮件（时间为 Unix 毫秒）：DeliveredAt 为 0 表示开始时匹配的玩家还没投递完，
+// 之后 Matched / Done / Failed 为匹配、送达与失败的人数；Recipients / Received 为持有与领取了这封邮件礼物的玩家数；
+// RevokedAt 不为 0 表示已撤回，RevokeDoneAt 为撤回完成的时间，Revoked 为被撤回未领取礼物的玩家数。
+// *By 为执行者（X-MGP-Operator）。
+type MailView struct {
+	MailID        string        `json:"mailId"`
+	Status        string        `json:"status"`
+	Target        string        `json:"target"`
+	Players       []MailPlayer  `json:"players"`
+	Condition     MailCondition `json:"condition"`
+	ExcludeBanned bool          `json:"excludeBanned"`
+	Message       string        `json:"message"`
+	Note          string        `json:"note"`
+	Rewards       []Reward      `json:"rewards"`
+	ExpireDays    int32         `json:"expireDays"`
+	StartTime     int64         `json:"startTime"`
+	LimitTime     int64         `json:"limitTime"`
+	DeliveredAt   int64         `json:"deliveredAt"`
+	Matched       int32         `json:"matched"`
+	Done          int32         `json:"done"`
+	Failed        int32         `json:"failed"`
+	RevokedAt     int64         `json:"revokedAt"`
+	Revoked       int32         `json:"revoked"`
+	RevokeDoneAt  int64         `json:"revokeDoneAt"`
+	Recipients    int32         `json:"recipients"`
+	Received      int32         `json:"received"`
+	CreatedBy     string        `json:"createdBy"`
+	UpdatedBy     string        `json:"updatedBy"`
+	SentBy        string        `json:"sentBy"`
+	RevokedBy     string        `json:"revokedBy"`
+	CreatedAt     int64         `json:"createdAt"`
+	UpdatedAt     int64         `json:"updatedAt"`
+}
+
+// MailFilter 邮件列表的筛选：Status 为 draft、scheduled、sent（投递中、已发送、撤回中、已撤回）或空（全部）；
+// Q 匹配文案、备注、奖励或邮件 ID；SentSince 不为 0 时一并统计这之后投递完的邮件数。
+type MailFilter struct {
+	Status    string
+	Q         string
+	Cursor    string
+	Limit     int32
+	SentSince int64
+}
+
+// MailPage 邮件列表的一页：Counts 为 all / draft / scheduled / sent 各组的数量（不受筛选影响），
+// SentSince 为 MailFilter.SentSince 之后投递完的邮件数。
+type MailPage struct {
+	Items      []MailView       `json:"items"`
+	NextCursor string           `json:"nextCursor"`
+	Total      int32            `json:"total"`
+	Counts     map[string]int32 `json:"counts"`
+	SentSince  int32            `json:"sentSince"`
+}
+
+// ListMails 服务端保存的邮件（含草稿），按最后修改时间从新到旧。
+func (g *Client) ListMails(ctx context.Context, f MailFilter) (*MailPage, error) {
+	q := Query{}.Str("status", f.Status).Str("q", f.Q).Page(f.Cursor, f.Limit).Num("sentSince", f.SentSince)
+	out := &MailPage{}
+	if err := g.c.GetInto(ctx, "/mails", url.Values(q), out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // GetMail 读取服务端保存的邮件；没有时返回错误码 MailNotFound。
-func (g *Client) GetMail(ctx context.Context, mailID string) (*MailState, error) {
-	out := &MailState{}
+func (g *Client) GetMail(ctx context.Context, mailID string) (*MailView, error) {
+	out := &MailView{}
 	if err := g.c.GetInto(ctx, "/mails/"+url.PathEscape(mailID), nil, out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CancelMail 删除还没到开始时间的邮件（取消定时）；已经开始投递时返回错误码 MailAlreadyStarted。
+// operateMail 执行一个返回邮件的操作。
+func (g *Client) operateMail(ctx context.Context, method, path string, body any, opt mgp.OperationOptions) (*MailView, error) {
+	r, err := g.c.Operate(ctx, method, path, body, opt)
+	if err != nil {
+		return nil, err
+	}
+	out := &MailView{}
+	if err := json.Unmarshal(r.Data, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// SaveMail 保存草稿（没有这封邮件时新建），或修改还没开始投递的定时邮件（内容须完整、开始时间晚于现在）；
+// 已经开始投递时返回错误码 MailAlreadyStarted。
+func (g *Client) SaveMail(ctx context.Context, mailID string, content MailContent, opt mgp.OperationOptions) (*MailView, error) {
+	return g.operateMail(ctx, http.MethodPut, "/mails/"+url.PathEscape(mailID), content, opt)
+}
+
+// DeleteMail 删除草稿；不是草稿时返回错误码 MailNotDraft。
+func (g *Client) DeleteMail(ctx context.Context, mailID string, opt mgp.OperationOptions) (*MailView, error) {
+	return g.operateMail(ctx, http.MethodDelete, "/mails/"+url.PathEscape(mailID), nil, opt)
+}
+
+// CancelMail 取消定时：还没到开始时间的邮件回到草稿；已经开始投递时返回错误码 MailAlreadyStarted。
 func (g *Client) CancelMail(ctx context.Context, mailID string, opt mgp.OperationOptions) (*gk.MailResult, error) {
 	return g.mailOperation(ctx, "/mails/"+url.PathEscape(mailID)+"/cancel", nil, opt)
 }
 
+// RevokeMail 撤回邮件：之后不再投递给任何人，并撤回它所有尚未领取的礼物。
 func (g *Client) RevokeMail(ctx context.Context, mailID string, opt mgp.OperationOptions) (*gk.MailResult, error) {
 	return g.mailOperation(ctx, "/mails/"+url.PathEscape(mailID)+"/revoke", nil, opt)
-}
-
-// GiftSourceStats 一个来源的礼物发放与领取统计。
-type GiftSourceStats struct {
-	Gifts           int `json:"gifts"`
-	ReceivedGifts   int `json:"receivedGifts"`
-	Players         int `json:"players"`
-	ReceivedPlayers int `json:"receivedPlayers"`
-}
-
-// MailStats 一封邮件的礼物领取统计。
-func (g *Client) MailStats(ctx context.Context, mailID string) (*GiftSourceStats, error) {
-	out := &GiftSourceStats{}
-	if err := g.c.GetInto(ctx, "/gift-sources/mail/"+url.PathEscape(mailID), nil, out); err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 // ---------------- 抽卡 ----------------

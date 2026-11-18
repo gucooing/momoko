@@ -42,9 +42,6 @@ type GameClientLog func(*sql.Selector)
 // GameConfigRevision is the predicate function for gameconfigrevision builders.
 type GameConfigRevision func(*sql.Selector)
 
-// GameMail is the predicate function for gamemail builders.
-type GameMail func(*sql.Selector)
-
 // GameRecentServer is the predicate function for gamerecentserver builders.
 type GameRecentServer func(*sql.Selector)
 

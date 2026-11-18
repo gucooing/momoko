@@ -1,15 +1,19 @@
-<!-- 游戏服务器卡片：封面（游戏素材）+ 状态、游戏徽章与名称、接入方式 / 位置 / 标签、信息格（在线、版本、资源、MGP）、
+<!-- 游戏服务器卡片：封面（应用背景优先，视频鼠标移上去才播放；没有时用封面素材）+ 状态、游戏徽章与名称、接入方式 / 位置 / 标签、信息格（在线、版本、资源、MGP）、
      底部能力徽章 + 小图标操作（GM 运营 / 控制台 / 设置 / 启停 / ⋯）。 -->
 <template>
   <article class="gs-card" :data-game="server.brief?.game || undefined">
     <RouterLink :to="detailTo('overview')" class="gs-card__cover" :aria-label="name">
-      <GameImage v-if="coverUrl" :src="coverUrl" :alt="name" class="gs-card__img" />
+      <ServerBackground v-if="brief?.appBackground" :src="brief.appBackground" :alt="name" hover-play class="gs-card__img" />
+      <GameImage v-else-if="coverUrl" :src="coverUrl" :alt="name" class="gs-card__img" />
       <span v-else class="gs-card__band" aria-hidden="true">{{ gameName }}</span>
       <StatusPill class="gs-card__pill" :variant="stateVariant(state)" :label="t(`gameServers.state.${state}`)" />
     </RouterLink>
     <div class="gs-card__body">
       <div class="gs-card__head">
-        <span class="gs-card__logo" aria-hidden="true">{{ initial }}</span>
+        <span class="gs-card__logo" :class="{ 'has-img': brief?.appIcon }" aria-hidden="true">
+          <img v-if="brief?.appIcon" :src="brief.appIcon" alt="" loading="lazy" class="gs-card__logo-img" />
+          <template v-else>{{ initial }}</template>
+        </span>
         <span class="gs-card__title">
           <RouterLink :to="detailTo('overview')" class="gs-card__name" :title="name">{{ name }}</RouterLink>
           <span class="gs-card__game">{{ gameName }}</span>
@@ -86,6 +90,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { gameAsset, gameCover } from '@/games'
+import ServerBackground from '@/components/game/ServerBackground.vue'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import type { GameServerInfo } from '@/types/v1/game_server'
 import { resourceText, stateVariant, statusOf } from '../shared'
@@ -209,6 +214,14 @@ const menu = computed<ActionMenuItem[]>(() => [
   gap: 14px;
   margin-top: -26px;
   position: relative;
+}
+.gs-card__logo.has-img {
+  overflow: hidden;
+}
+.gs-card__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .gs-card__logo {
   flex: none;

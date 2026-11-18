@@ -1,22 +1,26 @@
-<!-- 游戏标记：素材包里没有游戏图标，用游戏名首字在游戏皮肤色上做一个贴纸（data-game 让 --m-g* 生效）。 -->
+<!-- 游戏标记：服务器上传了应用图标（src，GameServerBrief.appIcon）就显示图标；没有时用游戏名首字在游戏皮肤色上
+     做一个贴纸（data-game 让 --m-g* 生效）。 -->
 <template>
   <span
     class="gm"
+    :class="{ 'gm--img': src }"
     :data-game="game"
     :style="{ width: `${size}px`, height: `${size}px`, fontSize: `${Math.round(size * 0.4)}px` }"
     :title="name || game"
     role="img"
     :aria-label="name || game"
   >
-    {{ letter }}
+    <img v-if="src" :src="src" alt="" loading="lazy" class="gm__img" />
+    <template v-else>{{ letter }}</template>
   </span>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = withDefaults(defineProps<{ game: string; name?: string; size?: number; tilt?: boolean }>(), {
+const props = withDefaults(defineProps<{ game: string; name?: string; size?: number; tilt?: boolean; src?: string }>(), {
   name: '',
+  src: '',
   size: 40,
 })
 
@@ -36,5 +40,14 @@ const letter = computed(() => (props.name || props.game || '?').trim().slice(0, 
   font-family: var(--app-font-display);
   font-weight: 800;
   line-height: 1;
+}
+.gm--img {
+  overflow: hidden;
+  background: var(--m-s);
+}
+.gm__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

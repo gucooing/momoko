@@ -18,7 +18,6 @@ import (
 	"momoko/internal/data/ent/gen/gameaccountunlink"
 	"momoko/internal/data/ent/gen/gameclientlog"
 	"momoko/internal/data/ent/gen/gameconfigrevision"
-	"momoko/internal/data/ent/gen/gamemail"
 	"momoko/internal/data/ent/gen/gamerecentserver"
 	"momoko/internal/data/ent/gen/gameserver"
 	"momoko/internal/data/ent/gen/gameserverbackup"
@@ -133,7 +132,6 @@ func checkColumn(t, c string) error {
 			gameaccountunlink.Table:  gameaccountunlink.ValidColumn,
 			gameclientlog.Table:      gameclientlog.ValidColumn,
 			gameconfigrevision.Table: gameconfigrevision.ValidColumn,
-			gamemail.Table:           gamemail.ValidColumn,
 			gamerecentserver.Table:   gamerecentserver.ValidColumn,
 			gameserver.Table:         gameserver.ValidColumn,
 			gameserverbackup.Table:   gameserverbackup.ValidColumn,

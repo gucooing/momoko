@@ -161,6 +161,12 @@ type gkMailID struct {
 	MailID string `json:"mailId"`
 }
 
+// gkMailSendParams 发送服务端保存的草稿：StartTime 为开始投递的时间（Unix 毫秒），0 为立即。
+type gkMailSendParams struct {
+	MailID    string `json:"mailId"`
+	StartTime int64  `json:"startTime"`
+}
+
 func decodeParams[T any](params json.RawMessage) (T, error) {
 	var p T
 	if len(params) > 0 && json.Unmarshal(params, &p) != nil {
@@ -279,9 +285,12 @@ func gakumasCall(g *gakumas.Client, op string, params json.RawMessage) (GmCall, 
 			return g.Restore(ctx, pid, p.BackupID, opt)
 		}, err
 	case gkMailSend:
-		p, err := decodeParams[gakumas.Mail](params)
+		p, err := decodeParams[gkMailSendParams](params)
+		if err == nil && (p.MailID == "" || p.StartTime < 0) {
+			err = ErrGmParams
+		}
 		return func(ctx context.Context, _ string, opt mgp.OperationOptions) (proto.Message, error) {
-			return g.SendMail(ctx, p, opt)
+			return g.SendMail(ctx, p.MailID, p.StartTime, opt)
 		}, err
 	case gkMailRevoke:
 		p, err := decodeParams[gkMailID](params)

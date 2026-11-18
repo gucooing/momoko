@@ -104,24 +104,24 @@ func Cover(v string) predicate.GameServer {
 	return predicate.GameServer(sql.FieldEQ(FieldCover, v))
 }
 
-// LauncherIcon applies equality check predicate on the "launcher_icon" field. It's identical to LauncherIconEQ.
-func LauncherIcon(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEQ(FieldLauncherIcon, v))
+// AppIcon applies equality check predicate on the "app_icon" field. It's identical to AppIconEQ.
+func AppIcon(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldAppIcon, v))
 }
 
-// LauncherIconKey applies equality check predicate on the "launcher_icon_key" field. It's identical to LauncherIconKeyEQ.
-func LauncherIconKey(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEQ(FieldLauncherIconKey, v))
+// AppIconKey applies equality check predicate on the "app_icon_key" field. It's identical to AppIconKeyEQ.
+func AppIconKey(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldAppIconKey, v))
 }
 
-// LauncherBackground applies equality check predicate on the "launcher_background" field. It's identical to LauncherBackgroundEQ.
-func LauncherBackground(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEQ(FieldLauncherBackground, v))
+// AppBackground applies equality check predicate on the "app_background" field. It's identical to AppBackgroundEQ.
+func AppBackground(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldAppBackground, v))
 }
 
-// LauncherBackgroundKey applies equality check predicate on the "launcher_background_key" field. It's identical to LauncherBackgroundKeyEQ.
-func LauncherBackgroundKey(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEQ(FieldLauncherBackgroundKey, v))
+// AppBackgroundKey applies equality check predicate on the "app_background_key" field. It's identical to AppBackgroundKeyEQ.
+func AppBackgroundKey(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldAppBackgroundKey, v))
 }
 
 // MgpEndpoint applies equality check predicate on the "mgp_endpoint" field. It's identical to MgpEndpointEQ.
@@ -739,264 +739,264 @@ func CoverContainsFold(v string) predicate.GameServer {
 	return predicate.GameServer(sql.FieldContainsFold(FieldCover, v))
 }
 
-// LauncherIconEQ applies the EQ predicate on the "launcher_icon" field.
-func LauncherIconEQ(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEQ(FieldLauncherIcon, v))
+// AppIconEQ applies the EQ predicate on the "app_icon" field.
+func AppIconEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldAppIcon, v))
 }
 
-// LauncherIconNEQ applies the NEQ predicate on the "launcher_icon" field.
-func LauncherIconNEQ(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldNEQ(FieldLauncherIcon, v))
+// AppIconNEQ applies the NEQ predicate on the "app_icon" field.
+func AppIconNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldAppIcon, v))
 }
 
-// LauncherIconIn applies the In predicate on the "launcher_icon" field.
-func LauncherIconIn(vs ...string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldIn(FieldLauncherIcon, vs...))
+// AppIconIn applies the In predicate on the "app_icon" field.
+func AppIconIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldAppIcon, vs...))
 }
 
-// LauncherIconNotIn applies the NotIn predicate on the "launcher_icon" field.
-func LauncherIconNotIn(vs ...string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldNotIn(FieldLauncherIcon, vs...))
+// AppIconNotIn applies the NotIn predicate on the "app_icon" field.
+func AppIconNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldAppIcon, vs...))
 }
 
-// LauncherIconGT applies the GT predicate on the "launcher_icon" field.
-func LauncherIconGT(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldGT(FieldLauncherIcon, v))
+// AppIconGT applies the GT predicate on the "app_icon" field.
+func AppIconGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldAppIcon, v))
 }
 
-// LauncherIconGTE applies the GTE predicate on the "launcher_icon" field.
-func LauncherIconGTE(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldGTE(FieldLauncherIcon, v))
+// AppIconGTE applies the GTE predicate on the "app_icon" field.
+func AppIconGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldAppIcon, v))
 }
 
-// LauncherIconLT applies the LT predicate on the "launcher_icon" field.
-func LauncherIconLT(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldLT(FieldLauncherIcon, v))
+// AppIconLT applies the LT predicate on the "app_icon" field.
+func AppIconLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldAppIcon, v))
 }
 
-// LauncherIconLTE applies the LTE predicate on the "launcher_icon" field.
-func LauncherIconLTE(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldLTE(FieldLauncherIcon, v))
+// AppIconLTE applies the LTE predicate on the "app_icon" field.
+func AppIconLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldAppIcon, v))
 }
 
-// LauncherIconContains applies the Contains predicate on the "launcher_icon" field.
-func LauncherIconContains(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldContains(FieldLauncherIcon, v))
+// AppIconContains applies the Contains predicate on the "app_icon" field.
+func AppIconContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldAppIcon, v))
 }
 
-// LauncherIconHasPrefix applies the HasPrefix predicate on the "launcher_icon" field.
-func LauncherIconHasPrefix(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldHasPrefix(FieldLauncherIcon, v))
+// AppIconHasPrefix applies the HasPrefix predicate on the "app_icon" field.
+func AppIconHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldAppIcon, v))
 }
 
-// LauncherIconHasSuffix applies the HasSuffix predicate on the "launcher_icon" field.
-func LauncherIconHasSuffix(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldHasSuffix(FieldLauncherIcon, v))
+// AppIconHasSuffix applies the HasSuffix predicate on the "app_icon" field.
+func AppIconHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldAppIcon, v))
 }
 
-// LauncherIconEqualFold applies the EqualFold predicate on the "launcher_icon" field.
-func LauncherIconEqualFold(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEqualFold(FieldLauncherIcon, v))
+// AppIconEqualFold applies the EqualFold predicate on the "app_icon" field.
+func AppIconEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldAppIcon, v))
 }
 
-// LauncherIconContainsFold applies the ContainsFold predicate on the "launcher_icon" field.
-func LauncherIconContainsFold(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldContainsFold(FieldLauncherIcon, v))
+// AppIconContainsFold applies the ContainsFold predicate on the "app_icon" field.
+func AppIconContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldAppIcon, v))
 }
 
-// LauncherIconKeyEQ applies the EQ predicate on the "launcher_icon_key" field.
-func LauncherIconKeyEQ(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEQ(FieldLauncherIconKey, v))
+// AppIconKeyEQ applies the EQ predicate on the "app_icon_key" field.
+func AppIconKeyEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyNEQ applies the NEQ predicate on the "launcher_icon_key" field.
-func LauncherIconKeyNEQ(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldNEQ(FieldLauncherIconKey, v))
+// AppIconKeyNEQ applies the NEQ predicate on the "app_icon_key" field.
+func AppIconKeyNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyIn applies the In predicate on the "launcher_icon_key" field.
-func LauncherIconKeyIn(vs ...string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldIn(FieldLauncherIconKey, vs...))
+// AppIconKeyIn applies the In predicate on the "app_icon_key" field.
+func AppIconKeyIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldAppIconKey, vs...))
 }
 
-// LauncherIconKeyNotIn applies the NotIn predicate on the "launcher_icon_key" field.
-func LauncherIconKeyNotIn(vs ...string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldNotIn(FieldLauncherIconKey, vs...))
+// AppIconKeyNotIn applies the NotIn predicate on the "app_icon_key" field.
+func AppIconKeyNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldAppIconKey, vs...))
 }
 
-// LauncherIconKeyGT applies the GT predicate on the "launcher_icon_key" field.
-func LauncherIconKeyGT(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldGT(FieldLauncherIconKey, v))
+// AppIconKeyGT applies the GT predicate on the "app_icon_key" field.
+func AppIconKeyGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyGTE applies the GTE predicate on the "launcher_icon_key" field.
-func LauncherIconKeyGTE(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldGTE(FieldLauncherIconKey, v))
+// AppIconKeyGTE applies the GTE predicate on the "app_icon_key" field.
+func AppIconKeyGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyLT applies the LT predicate on the "launcher_icon_key" field.
-func LauncherIconKeyLT(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldLT(FieldLauncherIconKey, v))
+// AppIconKeyLT applies the LT predicate on the "app_icon_key" field.
+func AppIconKeyLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyLTE applies the LTE predicate on the "launcher_icon_key" field.
-func LauncherIconKeyLTE(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldLTE(FieldLauncherIconKey, v))
+// AppIconKeyLTE applies the LTE predicate on the "app_icon_key" field.
+func AppIconKeyLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyContains applies the Contains predicate on the "launcher_icon_key" field.
-func LauncherIconKeyContains(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldContains(FieldLauncherIconKey, v))
+// AppIconKeyContains applies the Contains predicate on the "app_icon_key" field.
+func AppIconKeyContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyHasPrefix applies the HasPrefix predicate on the "launcher_icon_key" field.
-func LauncherIconKeyHasPrefix(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldHasPrefix(FieldLauncherIconKey, v))
+// AppIconKeyHasPrefix applies the HasPrefix predicate on the "app_icon_key" field.
+func AppIconKeyHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyHasSuffix applies the HasSuffix predicate on the "launcher_icon_key" field.
-func LauncherIconKeyHasSuffix(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldHasSuffix(FieldLauncherIconKey, v))
+// AppIconKeyHasSuffix applies the HasSuffix predicate on the "app_icon_key" field.
+func AppIconKeyHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyEqualFold applies the EqualFold predicate on the "launcher_icon_key" field.
-func LauncherIconKeyEqualFold(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEqualFold(FieldLauncherIconKey, v))
+// AppIconKeyEqualFold applies the EqualFold predicate on the "app_icon_key" field.
+func AppIconKeyEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldAppIconKey, v))
 }
 
-// LauncherIconKeyContainsFold applies the ContainsFold predicate on the "launcher_icon_key" field.
-func LauncherIconKeyContainsFold(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldContainsFold(FieldLauncherIconKey, v))
+// AppIconKeyContainsFold applies the ContainsFold predicate on the "app_icon_key" field.
+func AppIconKeyContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldAppIconKey, v))
 }
 
-// LauncherBackgroundEQ applies the EQ predicate on the "launcher_background" field.
-func LauncherBackgroundEQ(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEQ(FieldLauncherBackground, v))
+// AppBackgroundEQ applies the EQ predicate on the "app_background" field.
+func AppBackgroundEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldAppBackground, v))
 }
 
-// LauncherBackgroundNEQ applies the NEQ predicate on the "launcher_background" field.
-func LauncherBackgroundNEQ(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldNEQ(FieldLauncherBackground, v))
+// AppBackgroundNEQ applies the NEQ predicate on the "app_background" field.
+func AppBackgroundNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldAppBackground, v))
 }
 
-// LauncherBackgroundIn applies the In predicate on the "launcher_background" field.
-func LauncherBackgroundIn(vs ...string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldIn(FieldLauncherBackground, vs...))
+// AppBackgroundIn applies the In predicate on the "app_background" field.
+func AppBackgroundIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldAppBackground, vs...))
 }
 
-// LauncherBackgroundNotIn applies the NotIn predicate on the "launcher_background" field.
-func LauncherBackgroundNotIn(vs ...string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldNotIn(FieldLauncherBackground, vs...))
+// AppBackgroundNotIn applies the NotIn predicate on the "app_background" field.
+func AppBackgroundNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldAppBackground, vs...))
 }
 
-// LauncherBackgroundGT applies the GT predicate on the "launcher_background" field.
-func LauncherBackgroundGT(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldGT(FieldLauncherBackground, v))
+// AppBackgroundGT applies the GT predicate on the "app_background" field.
+func AppBackgroundGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldAppBackground, v))
 }
 
-// LauncherBackgroundGTE applies the GTE predicate on the "launcher_background" field.
-func LauncherBackgroundGTE(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldGTE(FieldLauncherBackground, v))
+// AppBackgroundGTE applies the GTE predicate on the "app_background" field.
+func AppBackgroundGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldAppBackground, v))
 }
 
-// LauncherBackgroundLT applies the LT predicate on the "launcher_background" field.
-func LauncherBackgroundLT(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldLT(FieldLauncherBackground, v))
+// AppBackgroundLT applies the LT predicate on the "app_background" field.
+func AppBackgroundLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldAppBackground, v))
 }
 
-// LauncherBackgroundLTE applies the LTE predicate on the "launcher_background" field.
-func LauncherBackgroundLTE(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldLTE(FieldLauncherBackground, v))
+// AppBackgroundLTE applies the LTE predicate on the "app_background" field.
+func AppBackgroundLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldAppBackground, v))
 }
 
-// LauncherBackgroundContains applies the Contains predicate on the "launcher_background" field.
-func LauncherBackgroundContains(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldContains(FieldLauncherBackground, v))
+// AppBackgroundContains applies the Contains predicate on the "app_background" field.
+func AppBackgroundContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldAppBackground, v))
 }
 
-// LauncherBackgroundHasPrefix applies the HasPrefix predicate on the "launcher_background" field.
-func LauncherBackgroundHasPrefix(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldHasPrefix(FieldLauncherBackground, v))
+// AppBackgroundHasPrefix applies the HasPrefix predicate on the "app_background" field.
+func AppBackgroundHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldAppBackground, v))
 }
 
-// LauncherBackgroundHasSuffix applies the HasSuffix predicate on the "launcher_background" field.
-func LauncherBackgroundHasSuffix(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldHasSuffix(FieldLauncherBackground, v))
+// AppBackgroundHasSuffix applies the HasSuffix predicate on the "app_background" field.
+func AppBackgroundHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldAppBackground, v))
 }
 
-// LauncherBackgroundEqualFold applies the EqualFold predicate on the "launcher_background" field.
-func LauncherBackgroundEqualFold(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEqualFold(FieldLauncherBackground, v))
+// AppBackgroundEqualFold applies the EqualFold predicate on the "app_background" field.
+func AppBackgroundEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldAppBackground, v))
 }
 
-// LauncherBackgroundContainsFold applies the ContainsFold predicate on the "launcher_background" field.
-func LauncherBackgroundContainsFold(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldContainsFold(FieldLauncherBackground, v))
+// AppBackgroundContainsFold applies the ContainsFold predicate on the "app_background" field.
+func AppBackgroundContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldAppBackground, v))
 }
 
-// LauncherBackgroundKeyEQ applies the EQ predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyEQ(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEQ(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyEQ applies the EQ predicate on the "app_background_key" field.
+func AppBackgroundKeyEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEQ(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyNEQ applies the NEQ predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyNEQ(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldNEQ(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyNEQ applies the NEQ predicate on the "app_background_key" field.
+func AppBackgroundKeyNEQ(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNEQ(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyIn applies the In predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyIn(vs ...string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldIn(FieldLauncherBackgroundKey, vs...))
+// AppBackgroundKeyIn applies the In predicate on the "app_background_key" field.
+func AppBackgroundKeyIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldIn(FieldAppBackgroundKey, vs...))
 }
 
-// LauncherBackgroundKeyNotIn applies the NotIn predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyNotIn(vs ...string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldNotIn(FieldLauncherBackgroundKey, vs...))
+// AppBackgroundKeyNotIn applies the NotIn predicate on the "app_background_key" field.
+func AppBackgroundKeyNotIn(vs ...string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldNotIn(FieldAppBackgroundKey, vs...))
 }
 
-// LauncherBackgroundKeyGT applies the GT predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyGT(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldGT(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyGT applies the GT predicate on the "app_background_key" field.
+func AppBackgroundKeyGT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGT(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyGTE applies the GTE predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyGTE(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldGTE(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyGTE applies the GTE predicate on the "app_background_key" field.
+func AppBackgroundKeyGTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldGTE(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyLT applies the LT predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyLT(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldLT(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyLT applies the LT predicate on the "app_background_key" field.
+func AppBackgroundKeyLT(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLT(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyLTE applies the LTE predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyLTE(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldLTE(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyLTE applies the LTE predicate on the "app_background_key" field.
+func AppBackgroundKeyLTE(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldLTE(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyContains applies the Contains predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyContains(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldContains(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyContains applies the Contains predicate on the "app_background_key" field.
+func AppBackgroundKeyContains(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContains(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyHasPrefix applies the HasPrefix predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyHasPrefix(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldHasPrefix(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyHasPrefix applies the HasPrefix predicate on the "app_background_key" field.
+func AppBackgroundKeyHasPrefix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasPrefix(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyHasSuffix applies the HasSuffix predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyHasSuffix(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldHasSuffix(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyHasSuffix applies the HasSuffix predicate on the "app_background_key" field.
+func AppBackgroundKeyHasSuffix(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldHasSuffix(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyEqualFold applies the EqualFold predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyEqualFold(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldEqualFold(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyEqualFold applies the EqualFold predicate on the "app_background_key" field.
+func AppBackgroundKeyEqualFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldEqualFold(FieldAppBackgroundKey, v))
 }
 
-// LauncherBackgroundKeyContainsFold applies the ContainsFold predicate on the "launcher_background_key" field.
-func LauncherBackgroundKeyContainsFold(v string) predicate.GameServer {
-	return predicate.GameServer(sql.FieldContainsFold(FieldLauncherBackgroundKey, v))
+// AppBackgroundKeyContainsFold applies the ContainsFold predicate on the "app_background_key" field.
+func AppBackgroundKeyContainsFold(v string) predicate.GameServer {
+	return predicate.GameServer(sql.FieldContainsFold(FieldAppBackgroundKey, v))
 }
 
 // MgpEndpointEQ applies the EQ predicate on the "mgp_endpoint" field.

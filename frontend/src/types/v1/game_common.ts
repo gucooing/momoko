@@ -43,7 +43,15 @@ export interface GameServerBrief {
   /** 托管所在节点 id（空为本机） */
   nodeId: string;
   /** 最近查看时间（「最近查看」列表里有值） */
-  viewedAt: Date | undefined;
+  viewedAt:
+    | Date
+    | undefined;
+  /**
+   * 应用图标与应用背景（背景可以是图片或视频）：服务器「接入设置」里上传到对象存储的公开链接，空为没有上传。
+   * 管理端、通行证与启动器同步使用；没有时各处退回游戏名首字与封面
+   */
+  appIcon: string;
+  appBackground: string;
 }
 
 /** 一项奖励（与 MGP gift.send 的 rewards 相同）。 */

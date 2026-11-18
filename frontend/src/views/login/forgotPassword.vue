@@ -134,7 +134,6 @@ import { useFeedback } from '@/utils/feedback'
 import AuthField from '@/views/login/components/AuthField.vue'
 import PasswordMeter from '@/views/login/components/PasswordMeter.vue'
 import SendCodeButton from '@/views/login/components/SendCodeButton.vue'
-import { MIN_PASSWORD_LENGTH } from '@/views/login/composables/passwordStrength'
 import { useEmailCode } from '@/views/login/composables/useEmailCode'
 import { useI18n } from 'vue-i18n'
 
@@ -187,7 +186,6 @@ const validate = (): boolean => {
   if (!code) next.code = t('register.emailCodeRequired')
   else if (!/^\d{6}$/.test(code)) next.code = t('authPage.code.invalid')
   if (!form.value.password) next.password = t('register.passwordRequired')
-  else if (form.value.password.length < MIN_PASSWORD_LENGTH) next.password = t('authPage.strength.tooShort')
   if (!form.value.confirmPassword) next.confirmPassword = t('register.confirmPasswordRequired')
   else if (form.value.confirmPassword !== form.value.password) {
     next.confirmPassword = t('register.confirmPasswordMismatch')

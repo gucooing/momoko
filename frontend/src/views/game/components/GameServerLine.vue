@@ -1,7 +1,11 @@
-<!-- 一台游戏服务器的单行摘要：名称、游戏、在线人数与 MGP 状态（选择器与列表共用）。 -->
+<!-- 一台游戏服务器的单行摘要：应用图标（上传了才有，状态点叠在角上）、名称、游戏、在线人数与 MGP 状态（选择器与列表共用）。 -->
 <template>
   <span class="gsl">
-    <span class="gsl__dot" :class="`is-${server.state}`" aria-hidden="true" />
+    <span v-if="server.appIcon" class="gsl__icon" aria-hidden="true">
+      <img :src="server.appIcon" alt="" loading="lazy" />
+      <span class="gsl__dot" :class="`is-${server.state}`" />
+    </span>
+    <span v-else class="gsl__dot" :class="`is-${server.state}`" aria-hidden="true" />
     <span class="gsl__main">
       <span class="gsl__name">{{ server.name }}</span>
       <span class="gsl__sub">
@@ -35,6 +39,24 @@ const { t, te } = useI18n()
   height: 8px;
   border-radius: 50%;
   background: var(--el-text-color-secondary);
+}
+.gsl__icon {
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+.gsl__icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.gsl__icon .gsl__dot {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  box-shadow: 0 0 0 2px var(--el-bg-color);
 }
 .gsl__dot.is-running {
   background: var(--m-ok);

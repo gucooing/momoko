@@ -92,10 +92,10 @@
 
           <!-- 最近 GM 操作 -->
           <AppPanel v-if="recent.length" :title="t('gmData.home.recent')">
-            <template v-if="tabLink('logs')" #actions>
-              <RouterLink class="gh__more" :to="tabLink('logs')!">{{ t('gmData.home.recentMore') }}</RouterLink>
+            <template v-if="logsLink" #actions>
+              <RouterLink class="gh__more" :to="logsLink">{{ t('gmData.home.recentMore') }}</RouterLink>
             </template>
-            <component :is="tabLink('logs') ? RouterLink : 'div'" v-for="e in recent.slice(0, 4)" :key="e.id" :to="tabLink('logs')" class="gh__log">
+            <component :is="logsLink ? RouterLink : 'div'" v-for="e in recent.slice(0, 4)" :key="e.id" :to="logsLink" class="gh__log">
               <span class="gh__log-av" :class="{ 'is-player': e.actorKind === 'player' }">{{ (e.actorName || '?').slice(0, 1) }}</span>
               <span class="gh__log-text">
                 <span class="gh__strong gh__ellipsis">{{ logTitle(e) }}</span>
@@ -142,7 +142,7 @@ import type { GmConfigDomain, GmExecution } from '@/types/v1/game_gm'
 import type { GameMail, GiftCodeBatch } from '@/types/v1/game_ops'
 import { useGmContext } from '../../context'
 import { fetchDashboard } from '../../dashboard'
-import { GM_TABS } from '../../tabs'
+import { GM_TABS, hasPlayerOperations } from '../../tabs'
 import GmRiskPill from '../../components/GmRiskPill.vue'
 import { gmExecutionsQuery } from '../../player/shared/executions'
 import { toMs, useGmFormat, zonedDayStart } from '../../player/shared/format'
@@ -235,10 +235,12 @@ onBeforeUnmount(stopTimer)
 
 // ---------- 链接 ----------
 const gmPath = computed(() => `/game/gm/${encodeURIComponent(ctx.serverId.value)}`)
-const tabLink = (key: string) => {
+const tabLink = (key: string, view?: string) => {
   const tab = GM_TABS.find((x) => x.key === key)
-  return tab && tab.visible(ctx) ? { path: gmPath.value, query: { tab: key } } : undefined
+  return tab && tab.visible(ctx) ? { path: gmPath.value, query: view ? { tab: key, view } : { tab: key } } : undefined
 }
+/** GM 记录：GM 操作里的一页 */
+const logsLink = computed(() => tabLink('operations', 'logs'))
 const serverLink = computed(() => `/game/servers/${encodeURIComponent(ctx.serverId.value)}`)
 
 const clock = (ms: number) => (ms ? dayjs(ms).format('HH:mm') : '—')
@@ -318,7 +320,7 @@ const todos = computed<Todo[]>(() => {
       icon: 'HOutline:IdentificationIcon',
       tone: 'p',
       btn: t('gmData.home.goApprove'),
-      to: tabLink('logs'),
+      to: logsLink.value,
     })
   }
   for (const d of drafts.value) {
@@ -342,7 +344,7 @@ const todos = computed<Todo[]>(() => {
       icon: 'HOutline:ExclamationTriangleIcon',
       tone: 'bad',
       btn: view,
-      to: tabLink('logs'),
+      to: logsLink.value,
     })
   }
   if (r?.maintenanceEnabled) {
@@ -399,8 +401,8 @@ const upcoming = computed<Upcoming[]>(() => {
   const soon = (at: number) => at > now && at - now <= UPCOMING_WINDOW
   const out: Upcoming[] = []
   for (const m of scheduledMails.value) {
-    const at = toMs(m.scheduledAt)
-    if (soon(at)) out.push({ key: `mail-${m.id}`, at, title: t('gmData.home.upMail', { title: m.title, target: mailTarget(m) }), where: t('gm.tabs.mail'), to: tabLink('mail') })
+    const at = toMs(m.startTime)
+    if (soon(at)) out.push({ key: `mail-${m.id}`, at, title: t('gmData.home.upMail', { title: m.message, target: mailTarget(m) }), where: t('gm.tabs.mail'), to: tabLink('mail') })
   }
   for (const g of report.value?.gashas || []) {
     if (g.open && g.endTime && soon(g.endTime)) {
@@ -431,6 +433,8 @@ const quick = computed(() =>
     { key: 'notices', title: t('gmData.home.quickNotice'), icon: 'HOutline:MegaphoneIcon' },
     { key: 'operations', title: t('gmData.home.quickOps'), icon: 'HOutline:CommandLineIcon' },
   ].flatMap((q) => {
+    // 没有可对玩家执行的操作时，GM 操作里只有记录与日志，不作为「常用操作」
+    if (q.key === 'operations' && !hasPlayerOperations(ctx)) return []
     const to = tabLink(q.key)
     return to ? [{ ...q, to }] : []
   }),

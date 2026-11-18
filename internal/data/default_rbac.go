@@ -73,13 +73,12 @@ var (
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:Squares2X2Icon", new("menu_2"), 0, constant.Instance, entmenu.StatusActive),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "HOutline:RectangleStackIcon", new("menu_2"), 1, "", entmenu.StatusActive),
 
-		// 游戏：游戏服务器（托管 / 仅 GM）、GM 运营（服务器切换 + 页内标签）、用户通行证（玩家账号独立于 Momoko 用户）、
-		// 客户端日志（全部服务器的游戏客户端错误日志，权限同 GM 运营）
+		// 游戏：游戏服务器（托管 / 仅 GM）、GM 运营（服务器切换 + 页内标签；游戏客户端错误日志按服务器放在 GM 操作里）、
+		// 用户通行证（玩家账号独立于 Momoko 用户）
 		newDefaultMenu("menu_13", entmenu.TypeDirectory, "", "游戏", "HOutline:PuzzlePieceIcon", nil, 2, "", entmenu.StatusActive),
 		newDefaultMenu("menu_13_1", entmenu.TypeMenu, "/game/servers", "游戏服务器", "HOutline:ServerStackIcon", new("menu_13"), 0, constant.GameServer, entmenu.StatusActive),
 		newDefaultMenu("menu_13_2", entmenu.TypeMenu, "/game/gm", "GM 运营", "HOutline:SparklesIcon", new("menu_13"), 1, constant.GameGM, entmenu.StatusActive),
 		newDefaultMenu("menu_13_3", entmenu.TypeMenu, "/game/passport", "用户通行证", "HOutline:IdentificationIcon", new("menu_13"), 2, constant.GamePassport, entmenu.StatusActive),
-		newDefaultMenu("menu_13_4", entmenu.TypeMenu, "/game/client-logs", "客户端日志", "HOutline:BugAntIcon", new("menu_13"), 3, constant.GameGM, entmenu.StatusActive),
 
 		// 文件：一个页面，标签 文件管理 / 分享 / 文件源（PC 侧边栏把标签展开成三个入口）
 		newDefaultMenu("menu_3", entmenu.TypeDirectory, "", "文件", "HOutline:InboxStackIcon", nil, 3, "", entmenu.StatusActive),

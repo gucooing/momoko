@@ -99,23 +99,23 @@ service GameServerService {
       body: "*"
     };
   }
-  // 启动器的游戏图标 / 背景：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
+  // 应用图标 / 应用背景（服务器页与启动器同步使用）：先签发对象存储直传地址（浏览器直接 PUT 上传，文件不经过 Momoko），
   // 上传完成后确认，保存公开链接并删除旧文件；删除时同时删除对象存储里的文件
-  rpc PresignGameServerLauncherMedia(PresignGameServerLauncherMediaRequest) returns (PresignGameServerLauncherMediaResponse) {
+  rpc PresignGameServerAppMedia(PresignGameServerAppMediaRequest) returns (PresignGameServerAppMediaResponse) {
     option (google.api.http) = {
-      post: "/api/v1/game/servers/{id}/launcher-media/presign"
+      post: "/api/v1/game/servers/{id}/app-media/presign"
       body: "*"
     };
   }
-  rpc CompleteGameServerLauncherMedia(CompleteGameServerLauncherMediaRequest) returns (GameServerInfo) {
+  rpc CompleteGameServerAppMedia(CompleteGameServerAppMediaRequest) returns (GameServerInfo) {
     option (google.api.http) = {
-      post: "/api/v1/game/servers/{id}/launcher-media/complete"
+      post: "/api/v1/game/servers/{id}/app-media/complete"
       body: "*"
     };
   }
-  rpc DeleteGameServerLauncherMedia(DeleteGameServerLauncherMediaRequest) returns (GameServerInfo) {
+  rpc DeleteGameServerAppMedia(DeleteGameServerAppMediaRequest) returns (GameServerInfo) {
     option (google.api.http) = {
-      delete: "/api/v1/game/servers/{id}/launcher-media/{kind}"
+      delete: "/api/v1/game/servers/{id}/app-media/{kind}"
     };
   }
   // 轮换 MGP 密钥（托管：写回服务端配置，运行中按需重启）
@@ -459,9 +459,10 @@ message GameServerInfo {
   // 客户端应用 ID（app_ + 16 个小写 base32 字符；空为还没有生成应用凭据）：客户端用它指明这台服务器。
   // 应用密钥加密保存，只在生成与重置时返回一次
   string client_app_id = 30;
-  // 启动器的游戏图标与游戏页背景（图片或视频）：上传到对象存储（系统设置 · 储存）后的公开链接，空为没有上传
-  string launcher_icon = 31;
-  string launcher_background = 32;
+  // 应用图标与应用背景（背景可以是图片或视频）：上传到对象存储（系统设置 · 储存）后的公开链接，空为没有上传。
+  // 服务器详情页头与启动器（PassportLaunchApp.icon / background）同步使用
+  string app_icon = 31;
+  string app_background = 32;
 }
 
 // 托管服务器的一个进程。
@@ -676,27 +677,29 @@ message GenerateGameServerClientAppRequest {
   bool restart = 2;
 }
 
-// kind：icon 游戏图标（jpg / png / webp / gif，≤ 20 MB）/ background 游戏页背景（图片同上，或 mp4 / webm 视频，≤ 200 MB）
-message PresignGameServerLauncherMediaRequest {
+// kind：icon 应用图标 / background 应用背景（图片或视频）。不限文件类型与大小；
+// 对象沿用原文件的扩展名，Content-Type 为浏览器给出的类型（空为 application/octet-stream）
+message PresignGameServerAppMediaRequest {
   string id = 1;
   string kind = 2;
   string content_type = 3;
   int64 size = 4;
+  string file_name = 5;
 }
 
-message PresignGameServerLauncherMediaResponse {
+message PresignGameServerAppMediaResponse {
   // 浏览器用 PUT 把文件直接传到这个地址（Content-Type 与申请时相同）
   string upload_url = 1;
   // 上传凭证：上传完成后原样交回
   string token = 2;
 }
 
-message CompleteGameServerLauncherMediaRequest {
+message CompleteGameServerAppMediaRequest {
   string id = 1;
   string token = 2;
 }
 
-message DeleteGameServerLauncherMediaRequest {
+message DeleteGameServerAppMediaRequest {
   string id = 1;
   string kind = 2;
 }

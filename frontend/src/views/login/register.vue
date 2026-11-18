@@ -126,7 +126,6 @@ import { useFeedback } from '@/utils/feedback'
 import AuthField from '@/views/login/components/AuthField.vue'
 import PasswordMeter from '@/views/login/components/PasswordMeter.vue'
 import SendCodeButton from '@/views/login/components/SendCodeButton.vue'
-import { MIN_PASSWORD_LENGTH } from '@/views/login/composables/passwordStrength'
 import { useEmailCode } from '@/views/login/composables/useEmailCode'
 import { useI18n } from 'vue-i18n'
 
@@ -203,7 +202,6 @@ const validate = (): boolean => {
   }
 
   if (!password) next.password = t('register.passwordRequired')
-  else if (password.length < MIN_PASSWORD_LENGTH) next.password = t('authPage.strength.tooShort')
 
   if (!confirmPassword) next.confirmPassword = t('register.confirmPasswordRequired')
   else if (confirmPassword !== password) next.confirmPassword = t('register.confirmPasswordMismatch')

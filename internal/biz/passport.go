@@ -86,7 +86,7 @@ var (
 	ErrPassportEmailTaken          = passportErr(409, "PASSPORT_EMAIL_TAKEN")
 	ErrPassportEmailUnavailable    = passportErr(400, "PASSPORT_EMAIL_UNAVAILABLE")
 	ErrPassportEmailLoginOff       = passportErr(403, "PASSPORT_EMAIL_LOGIN_DISABLED")
-	ErrPassportPasswordTooShort    = passportErr(400, "PASSPORT_PASSWORD_TOO_SHORT")
+	ErrPassportPasswordEmpty       = passportErr(400, "PASSPORT_PASSWORD_EMPTY")
 	ErrPassportPasswordInvalid     = passportErr(400, "PASSPORT_PASSWORD_INVALID")
 	ErrPassportCodeInvalid         = passportErr(400, "PASSPORT_CODE_INVALID")
 	ErrPassportCodeTooFrequent     = passportErr(429, "PASSPORT_CODE_TOO_FREQUENT")
@@ -437,7 +437,6 @@ func (uc *PassportUsecase) PublicConfig(ctx context.Context) *v1.GetPassportConf
 		EmailEnabled:              email,
 		UnbindCooldownDays:        int32(PassportUnbindCooldown / (24 * time.Hour)),
 		DeletionGraceDays:         int32(PassportDeletionGrace / (24 * time.Hour)),
-		MinPasswordLength:         MinPasswordLength,
 	}
 }
 

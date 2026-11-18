@@ -16,7 +16,7 @@
 - **服务器可能有几百个**：任何需要选服务器的地方都用「搜索 + 最近查看」的下拉（结果最多 20 条），不要把所有服务器铺成 chips、tab 或列表项；用户列表里的绑定只显示「N 个服务器 · M 款游戏」和游戏图标。
 - **管理端不做按操作的权限**：能进 GM 运营的管理员就能执行这台服务器的全部操作。风险等级只用于展示与玩家自助的两步验证；执行前不做任何二次确认（不输入昵称、不弹确认框），「危险」操作由服务端先备份存档。没有第二位管理员复核。
 - **对玩家的操作都能同时作用于多名玩家**：除了针对具体一张卡或一条回忆的援助设置、玩家详情里的存档备份与回档，GM 操作的接口都收 `pids`（1–200 名），逐个玩家执行，单个失败不影响其他玩家。
-- **「GM 操作」页的「玩家权限」只管玩家能执行的 GM**：列出的操作与「执行操作」里的完全一致，每项只有 开放 / 每 X 天 N 次机会（服务器时区 0 点刷新；可设为永久不刷新；N 为 0 不限） / 需要审批 / 玩家看到的说明。不掺角色、统计、记录等其他东西。玩家的审批申请在「GM 记录」页处理，批准即按申请时的参数执行。
+- **「GM 操作」页的「玩家权限」只管玩家能执行的 GM**：列出的操作与「执行操作」里的完全一致，每项只有 开放 / 每 X 天 N 次机会（服务器时区 0 点刷新；可设为永久不刷新；N 为 0 不限） / 需要审批 / 玩家看到的说明。不掺角色、统计、记录等其他东西。玩家的审批申请在 GM 操作的「GM 记录」里处理，批准即按申请时的参数执行。
 - **工作台是开始干活的地方**：一行今天的数字；「待处理」（要人去做的事，每条带一个去处理的按钮）；「接下来」（已经安排、快到点的事，按时间排）；「常用操作」（找玩家 + 邮件补偿、兑换码、公告、GM 操作的入口，只跳转，不在工作台里执行）；最近 GM 操作。不放趋势图、卡池表现这类统计：抽卡趋势与各卡池数据在「卡池」页，活跃趋势在「玩家」页。
 - **页面只放简要信息，细节点开看**：列表和概况里一项一行、只放当前值；编辑、选项、完整数据和趋势图放在弹窗里（点「修改」「详情」「趋势」打开）。不把能编辑的表单、所有选项和说明一次铺在页面上，不在卡片里再套框。
 - **空的块不显示**：没有待处理、没有记录时整块不出现（「待处理」只留一行「没有待处理的事」），不放大块的空状态插图。
@@ -68,21 +68,21 @@
 - 游戏账号：`POST /api/v1/launch/apps/{appId}/bind`（`{account, password}`，规则与通行证网页的 `POST /api/v1/bind` 相同，经 MGP 校验游戏账号密码）与 `POST /api/v1/launch/apps/{appId}/account`（经 MGP `CreateAccount` 新建并以 `create` 方式绑定），都返回 `PassportLink`。前提是服务器可见、游戏支持、还没有绑定；新建还要求不在解绑冷却中，绑定在冷却中只能绑回原账号。同一用户与服务器的绑定与新建串行处理。
 - `POST /api/v1/launch/apps/{appId}/ticket`：签发启动票据并记录绑定的最近使用时间，返回 `{ticket, expiresIn: 120, playerId, displayId}`；应用 ID 不存在或服务器不可启动 404 `PASSPORT_APP_NOT_FOUND`，没有生效绑定 409 `PASSPORT_GAME_ACCOUNT_REQUIRED`，应用密钥不可用 502 `PASSPORT_GAME_UNAVAILABLE`。票据为 `"lt1." + b64url(payload) + "." + b64url(HMAC-SHA256(应用密钥, "momoko-launch-ticket.v1." + b64url(payload)))`，密钥为应用密钥字符串的 UTF-8 字节；payload 为紧凑 JSON，字段依次为 `aid, sid, pid, uid, jti, iat, exp`（前五项是字符串，jti 为 16 字节随机数的 b64url，exp = iat + 120）。MGP 密钥只用于 MGP 与客户端日志上传票据。游戏服务端的 SDK 校验 aid、签名、时间并保证 jti 只用一次后开会话。
 - 客户端地址在管理端服务器详情的「接入设置 → 客户端地址」里填写（`UpdateGameServer` 校验并归一化为 `scheme://host[:port]`）。
-- 启动器的游戏图标与游戏页背景（`internal/biz/game_server_launcher.go`）：管理端服务器详情「接入设置 → 客户端」里上传（图标 jpg / png / webp / gif ≤ 20 MB；背景同样的图片或 mp4 / webm 视频 ≤ 200 MB）。文件由浏览器直传到对象存储（系统设置 · 储存，与头像共用）：`POST /api/v1/game/servers/{id}/launcher-media/presign` 签发直传地址与加密的上传凭证（对象名 `launcher/<uuid>.<扩展名>`），上传后 `POST …/launcher-media/complete` 校验凭证与对象大小，保存公开链接与对象 key（`game_server.launcher_icon(_key)`、`launcher_background(_key)`）并删除被替换的旧对象；`DELETE …/launcher-media/{kind}` 清除并删除对象；删除服务器时一并删除。对象存储没开启时 400。`PassportLaunchApp.icon` / `background` 原样下发链接，启动器按链接缓存（链接不变用缓存，变了重新下载并删除旧文件）。
+- 应用图标与应用背景（`internal/biz/game_server_media.go`）：管理端服务器详情「接入设置」里上传（不限接入方式；图标为图片，背景为图片或视频，不限格式与大小；对象沿用原文件扩展名）。文件由浏览器直传到对象存储（系统设置 · 储存，与头像共用）：`POST /api/v1/game/servers/{id}/app-media/presign` 签发直传地址与加密的上传凭证（对象名 `app/<uuid>.<扩展名>`），上传后 `POST …/app-media/complete` 校验凭证与对象大小，保存公开链接与对象 key（`game_server.app_icon(_key)`、`app_background(_key)`）并删除被替换的旧对象；`DELETE …/app-media/{kind}` 清除并删除对象；删除服务器时一并删除。对象存储没开启时 400。`PassportLaunchApp.icon` / `background` 原样下发链接，启动器按链接缓存（链接不变用缓存，变了重新下载并删除旧文件）。`GameServerBrief.appIcon` / `appBackground` 也带上这两个链接，管理端（服务器卡片、详情页头、GM 运营的服务器切换与服务器选择器）和通行证（游戏标记、游戏空间头图）都优先用它们，没有时退回游戏名首字与封面；背景是视频时大图静音循环播放，列表卡片鼠标移上去才播放（`ServerBackground.vue`）。
 
 ### 2.2 玩家执行 GM 的规则（passport server 内强制）
 
 - 只允许 `gm_self_service.enabled = true` 的操作；玩家能执行的操作就是管理端操作表里标了允许自助的（`internal/biz/gakumas.go` 的 `GakumasOperations`，「执行操作」里的操作都允许），通行证用例由它生成 `GakumasSelfService`（`internal/biz/gakumas_passport.go`），每项操作在通行证上有自己的接口（`/self-service/<操作>`），参数与管理端相同：发礼物从游戏目录选奖励，撤回礼物从自己礼物箱里管理端发出且未领取的礼物中勾选（一次一种来源），调整道具从道具目录选，封禁的原因字段为 `ban_reason`（`reason` 是给审批管理员的申请理由）。
 - 目标强制为「当前用户在这台服务器绑定的 player_id」，忽略请求里的 targets。
 - 次数在服务端计数：周期从 2024-01-01（周一）起按 X 天切分，服务器时区 0 点刷新（X 为 7 时每周一刷新）；永久不刷新时统计全部。
-- `need_approval` 的操作只写一条待审批的 `gm_execution`（status = pending，params 为游戏服务端接口的 body），管理员在「GM 记录」页批准后由管理端按 params 调用 MGP。
+- `need_approval` 的操作只写一条待审批的 `gm_execution`（status = pending，params 为游戏服务端接口的 body），管理员在 GM 操作的「GM 记录」里批准后由管理端按 params 调用 MGP。
 - 每次执行都写 `gm_execution`（actor_kind = player，结果格式为 `internal/data/ent/schema` 的 `GmOutcome`，与管理端执行的记录相同）。
 - 自助操作与兑换码的执行在通行证一侧（`PassportUsecase.RunSelfService`、`PassportUsecase.Redeem`），经数据层直接读写 GM 记录、自助规则与兑换码的表，不调用管理端的用例。
 - 资料设置（学マス 的援助支援卡、援助回忆）与游戏里的资料设置相同，是玩家对自己数据的设置，不是 GM 操作：通行证直接调用 MGP（`X-MGP-Operator` 为通行证显示名，每次一个新的幂等键），不经自助规则，也不写 GM 记录。管理端设置同样的内容走 GM 操作（`supportCard.setRental`、`memory.setRental`），照常试运行、确认并写 GM 记录。
 
 ### 2.3 管理端
 
-- 新增菜单组「游戏」：游戏服务器、GM 运营、用户通行证、客户端日志（`internal/data/default_rbac.go`）。
+- 新增菜单组「游戏」：游戏服务器、GM 运营、用户通行证（`internal/data/default_rbac.go`）。客户端日志不单独成菜单，按服务器放在 GM 操作的「客户端日志」里。
 - 权限点只加两个：`game:server`（服务器管理）、`game:gm`（GM 运营的全部页面与全部操作，含 `v1.gakumas.GakumasGMService`）。「用户通行证」页沿用用户管理的权限。
 - 主 server 调 MGP 时：支持试运行的操作先 `?dryRun=true`（邮件、发礼物、卡池发布都有「试运行 / 预览」）；执行结果逐个对象写进 `gm_execution` 的结果（对象、状态、错误码与游戏服务端返回的 JSON）。
 
@@ -130,7 +130,7 @@
 - `gm_execution`：server_id、command、actor user_id、actor_kind（admin | player）、targets、params、reason、dry_run、status（success | failed | pending | rejected）、changes、reviewed_by、request_id。params 只存不展示。
 - `game_config_revision`：server_id、domain、revision、content、author、comment、state（草稿 / 已发布）、published_at。
 
-另外运营功能需要的表（原型里有，SpecPC 的 GM 目录标了「需新增」）：邮件（`game_mail`：标题、正文、奖励、收件条件或名单、期限、定时、状态、领取统计）、兑换码（`gift_code_batch` / `gift_code` / `gift_code_redeem`）、公告（落在游戏服务端的 `data/Notice.json` 配置域，Momoko 只做编辑）。
+另外运营功能需要的表（原型里有，SpecPC 的 GM 目录标了「需新增」）：兑换码（`gift_code_batch` / `gift_code` / `gift_code_redeem`）。邮件（含草稿、定时、投递与领取统计）全部保存在游戏服务端（学マス 的 `mails` 表，接口见服务端 `docs/mgp.md`），Momoko 不保存邮件；公告落在游戏服务端的 `data/Notice.json` 配置域，Momoko 只做编辑。
 
 游戏客户端错误日志（`game_client_log`：server_id、player_id、reason、summary、note、device、client_version、size、content（日志原文的 gzip）、occurred_at、created_at；索引 (server_id, player_id, created_at)、(server_id, created_at)、(reason, created_at)、(created_at)）：游戏客户端凭游戏服务端用 MGP 密钥签发的上传票据传到通行证 server 的 `POST /api/v1/game-client-logs`，reason 只接受 `exception`、`crash`、`fatal`（客户端自动上传）与 `manual`（玩家手动上传）；每个游戏账号每小时最多 30 份、只保留最新 5 份。管理端接口（`GameGMService`，权限 game:gm）：`GET /api/v1/game/client-logs`（全部服务器，从新到旧分页；筛选 server_id、pid、reason、since / until（上传时间）、q（摘要、说明、设备）；每行带服务器摘要、pid 与绑定的通行证）、`GET /api/v1/game/client-logs/{id}`（含日志原文）、`DELETE /api/v1/game/client-logs/{id}`。「游戏 → 客户端日志」页（`/game/client-logs`）与玩家详情的「客户端日志」分页（同一个列表按服务器与玩家筛选）共用列表组件与查看器（`frontend/src/views/game/components/ClientLog*.vue`）。
 
@@ -145,17 +145,15 @@
 | `GameServerPC` | `/game/servers/:id?tab=overview\|console\|settings\|update\|backup\|files\|logs` | 托管服务器复用应用实例的控制台、文件、日志；「专用设置」是适配器给的表单 |
 | `GkHomePC` | `?tab=home` | 一行今天的数字（在线、活跃、新增账号、抽卡，点进对应页）；待处理（玩家申请待审批、未发布的公告和补偿草稿、配置疑似有误、今天失败的 GM 操作、维护与依赖异常…每条一个「去审批」「去发布」之类的按钮）；接下来（卡池结束、兑换码到期、定时邮件、赛季结束，按时间排，点一条去对应页）；常用操作（找玩家输入框 + 邮件补偿 / 兑换码 / 公告 / GM 操作入口）；最近 GM 操作 4 条。没有趋势图和卡池表现 |
 | `GkPlayersPC` | `?tab=players` | 玩家表、筛选、批量操作条（勾选后可直接发礼物、强制下线、封禁、解封，或带着勾选的玩家去 GM 操作页）；页头一行写「今天活跃 N 人」，「活跃趋势」按钮打开弹窗看近 14 天折线（当天登录过的账号数，今天截至现在） |
-| `GkPlayerPC` | `/game/gm/:serverId/players/:pid?tab=…` | 玩家卡片的背景是玩家的资料名片（游戏里保存名片时上传的图片，`GetPlayerMeishiImage`；默认名片没有图片，这时右侧显示出借记忆的卡面）。分页：概览、偶像卡、支援卡、道具、礼物箱（GM 发出且未领取的可撤回）、抽卡记录、培育记录、记忆、竞赛（阵容 + 本赛季）、研修、登录会话（在线那条可强制下线）、存档备份、客户端日志（游戏客户端上传的错误日志，与「客户端日志」页共用列表与查看器：点开读全文、查找、复制全部、下载 .log，行内复制摘要、删除）、GM 记录；「发送礼物」是抽屉；「更多」里只有备份当前存档、回档到备份和去 GM 操作页的入口，其余操作都在 GM 操作页执行。偶像卡点开看详情（养成数值、持有的皮肤、这张卡保留的培育记录）；支援卡点开看详情并可「设为援助支援卡」；记忆与培育记录点开看记忆详情（培育 / 舞台 / 培育记录）并可「设为援助回忆」，两个设置都走操作对话框 |
+| `GkPlayerPC` | `/game/gm/:serverId/players/:pid?tab=…` | 玩家卡片的背景是玩家的资料名片（游戏里保存名片时上传的图片，`GetPlayerMeishiImage`；默认名片没有图片，这时右侧显示出借记忆的卡面）。分页：概览、偶像卡、支援卡、道具、礼物箱（GM 发出且未领取的可撤回）、抽卡记录、培育记录、记忆、竞赛（阵容 + 本赛季）、研修、登录会话（在线那条可强制下线）、存档备份、客户端日志（游戏客户端上传的错误日志，与 GM 操作的「客户端日志」共用列表与查看器：点开读全文、查找、复制全部、下载 .log，行内复制摘要、删除）、GM 记录；「发送礼物」是抽屉；「更多」里只有备份当前存档、回档到备份和去 GM 操作页的入口，其余操作都在 GM 操作页执行。偶像卡点开看详情（养成数值、持有的皮肤、这张卡保留的培育记录）；支援卡点开看详情并可「设为援助支援卡」；记忆与培育记录点开看记忆详情（培育 / 舞台 / 培育记录）并可「设为援助回忆」，两个设置都走操作对话框 |
 | `GkGashaPC` | `?tab=gasha` | 页面上只有卡池列表（宽屏两列）；点一个卡池或「新建卡池」打开编辑弹窗：表单（基本信息、UP 角色与卡牌、概率、抽卡按钮、交换点）、模拟抽卡、发布前检查，改动自动存进草稿，弹窗底部「完成」关掉；整份配置一起发布，所以草稿条（查看改动 / 放弃 / 发布）留在页面底部。列表里每个卡池一行「今天 N 抽 · 累计 · SSR」；页头一行写「今天抽卡 N 次」，「抽卡趋势」按钮打开弹窗看近 14 天柱状图（所有卡池合计，十连按 10 次；今天用斜纹，标明截至几点） |
 | `GkModesPC` | `?tab=modes` | 竞赛 PvP（排名 + 阵容）、培育（全体玩家列表）、研修、塔；tab 由 manifest 的 `modes`（已配置的玩法）决定 |
 | `GkCalendarPC` | `?tab=calendar` | 运营日历（卡池、活动、PvP 赛季泳道） |
-| `GkMailPC` | `?tab=mail` | 页面上只有邮件列表（状态筛选 + 搜索，一封一行）；「写邮件」和点草稿打开编写弹窗（指定玩家 / 按条件 / 全服、奖励、内容、期限、立即或定时、礼物箱预览；弹窗底部 存为草稿 / 试运行 / 发送），点已发送、定时的邮件在同一个弹窗里只读查看（可复制一份再改）；由 Momoko 调游戏服务端的邮件接口投递 |
+| `GkMailPC` | `?tab=mail` | 页面上只有邮件列表（状态筛选 + 搜索，一封一行）；「写邮件」和点草稿打开编写弹窗（指定玩家 / 按条件 / 全服、奖励、内容、期限、立即或定时、礼物箱预览；弹窗底部 存为草稿 / 试运行 / 发送），点已发送、定时的邮件在同一个弹窗里只读查看（可复制一份再改）。邮件（含草稿）保存在游戏服务端：列表的筛选、搜索、分页与各组数量由服务端 SQL 查询（`GET /mails`），保存 / 删除草稿为 `PUT` / `DELETE /mails/{id}`（新邮件的 id 由前端生成），发送、取消定时、撤回为 `mail.send` / `mail.cancel` / `mail.revoke`（写 GM 记录）；试运行匹配的人数只在编辑器里显示，不保存 |
 | `GkCodesPC` | `?tab=codes` | 批次列表、批次详情与兑换记录、新建批次抽屉（通用码 / 一次性码、次数、有效期、适用玩家、兑换入口） |
 | `GkNoticePC` | `?tab=notices` | 页面上只有公告列表（分类筛选，一条一行）；「新建公告」或点一条公告打开编辑弹窗：左边表单、右边游戏内预览，改动自动存进草稿，弹窗底部 下线 / 完成；整份配置一起发布，草稿条（查看改动 / 放弃 / 发布）留在页面底部（同卡池）；横幅「从游戏素材选」读前端素材包 |
-| `GmPolicyPC` | `?tab=operations` | GM 操作：「执行操作」左边是玩家列表（状态筛选、搜索、页码分页、勾选，翻页后勾选保留；从玩家详情、玩家列表进来时带 `?pid=a,b` 预先勾选），右边选择操作并执行，每个操作都对勾选的全部玩家执行（援助设置与存档备份、回档不在这里）；「玩家权限」（`?view=permissions`）管理玩家在通行证自助服务里能执行哪些操作（开放 / 每 X 天 N 次，0 点刷新或永久不刷新 / 需要审批 / 说明），列出的操作与「执行操作」相同 |
-| `GkLogPC` | `?tab=logs` | 待审批卡片（批准 / 驳回）、筛选、记录表、详情（不含请求参数） |
+| `GmPolicyPC` | `?tab=operations` | GM 操作：「执行操作」左边是玩家列表（状态筛选、搜索、页码分页、勾选，翻页后勾选保留；从玩家详情、玩家列表进来时带 `?pid=a,b` 预先勾选），右边选择操作并执行，每个操作都对勾选的全部玩家执行（援助设置与存档备份、回档不在这里）；「玩家权限」（`?view=permissions`）管理玩家在通行证自助服务里能执行哪些操作（开放 / 每 X 天 N 次，0 点刷新或永久不刷新 / 需要审批 / 说明），列出的操作与「执行操作」相同；「GM 记录」（`?view=logs`，原型 `GkLogPC`）是待审批卡片（批准 / 驳回）、筛选、记录表、详情（不含请求参数），有待审批时 GM 操作标签与这一页都带数字；「客户端日志」（`?view=clientLogs`）是这台服务器的游戏客户端错误日志，原因 chips + 玩家 ID + 上传日期 + 关键字筛选，从新到旧分页，点一行在查看器里读全文（查找并跳转匹配、复制全部、下载），行内复制摘要、打开玩家 GM 详情、下载、删除。服务端没有可对玩家执行的操作时只有后两页 |
 | `PassportPC` | `/game/passport` | 用户通行证后台管理：统计、状态筛选 + 服务器搜索下拉、用户表、用户详情（绑定按最近使用，超过 5 个折叠） |
-| —（无原型） | `/game/client-logs` | 客户端日志：全部服务器的游戏客户端错误日志，原因 chips + 服务器搜索下拉 + 玩家 ID + 上传日期 + 关键字筛选，从新到旧分页；点一行在查看器里读全文（头部是服务器、玩家、通行证、原因、设备、版本、时间、大小，查找并跳转匹配、复制全部、下载），行内复制摘要、打开玩家 GM 详情、下载、删除；权限同 GM 运营 |
 
 玩家端（用户通行证 server，独立前端入口）：
 
@@ -194,7 +192,7 @@
 ## 8. 分期建议
 
 1. 后端基础：数据表、`internal/game/mgp` 客户端与签名、游戏服务器的增删改查和状态轮询、托管模式复用应用实例；前端「游戏服务器」三页。
-2. GM 运营（学マス 适配）：工作台、玩家、玩家详情、卡池、玩法、运营日历、邮件补偿、兑换码、公告、GM 操作、GM 记录。
+2. GM 运营（学マス 适配）：工作台、玩家、玩家详情、卡池、玩法、运营日历、邮件补偿、兑换码、公告、GM 操作（含 GM 记录与客户端日志）。
 3. 用户通行证 server 与玩家端全部页面、绑定流程、游戏客户端启动（启动票据）。
 4. 素材导出与 `src/games/gakumas`。
 5. 学マス 服务端实现 MGP（gakumas 仓库，另开任务）。在它完成前，Momoko 侧可以先写一个按 SpecPC 返回示例数据的 MGP mock，供前端联调。

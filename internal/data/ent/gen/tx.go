@@ -38,8 +38,6 @@ type Tx struct {
 	GameClientLog *GameClientLogClient
 	// GameConfigRevision is the client for interacting with the GameConfigRevision builders.
 	GameConfigRevision *GameConfigRevisionClient
-	// GameMail is the client for interacting with the GameMail builders.
-	GameMail *GameMailClient
 	// GameRecentServer is the client for interacting with the GameRecentServer builders.
 	GameRecentServer *GameRecentServerClient
 	// GameServer is the client for interacting with the GameServer builders.
@@ -255,7 +253,6 @@ func (tx *Tx) init() {
 	tx.GameAccountUnlink = NewGameAccountUnlinkClient(tx.config)
 	tx.GameClientLog = NewGameClientLogClient(tx.config)
 	tx.GameConfigRevision = NewGameConfigRevisionClient(tx.config)
-	tx.GameMail = NewGameMailClient(tx.config)
 	tx.GameRecentServer = NewGameRecentServerClient(tx.config)
 	tx.GameServer = NewGameServerClient(tx.config)
 	tx.GameServerBackup = NewGameServerBackupClient(tx.config)

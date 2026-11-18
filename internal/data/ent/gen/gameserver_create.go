@@ -138,58 +138,58 @@ func (_c *GameServerCreate) SetNillableCover(v *string) *GameServerCreate {
 	return _c
 }
 
-// SetLauncherIcon sets the "launcher_icon" field.
-func (_c *GameServerCreate) SetLauncherIcon(v string) *GameServerCreate {
-	_c.mutation.SetLauncherIcon(v)
+// SetAppIcon sets the "app_icon" field.
+func (_c *GameServerCreate) SetAppIcon(v string) *GameServerCreate {
+	_c.mutation.SetAppIcon(v)
 	return _c
 }
 
-// SetNillableLauncherIcon sets the "launcher_icon" field if the given value is not nil.
-func (_c *GameServerCreate) SetNillableLauncherIcon(v *string) *GameServerCreate {
+// SetNillableAppIcon sets the "app_icon" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableAppIcon(v *string) *GameServerCreate {
 	if v != nil {
-		_c.SetLauncherIcon(*v)
+		_c.SetAppIcon(*v)
 	}
 	return _c
 }
 
-// SetLauncherIconKey sets the "launcher_icon_key" field.
-func (_c *GameServerCreate) SetLauncherIconKey(v string) *GameServerCreate {
-	_c.mutation.SetLauncherIconKey(v)
+// SetAppIconKey sets the "app_icon_key" field.
+func (_c *GameServerCreate) SetAppIconKey(v string) *GameServerCreate {
+	_c.mutation.SetAppIconKey(v)
 	return _c
 }
 
-// SetNillableLauncherIconKey sets the "launcher_icon_key" field if the given value is not nil.
-func (_c *GameServerCreate) SetNillableLauncherIconKey(v *string) *GameServerCreate {
+// SetNillableAppIconKey sets the "app_icon_key" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableAppIconKey(v *string) *GameServerCreate {
 	if v != nil {
-		_c.SetLauncherIconKey(*v)
+		_c.SetAppIconKey(*v)
 	}
 	return _c
 }
 
-// SetLauncherBackground sets the "launcher_background" field.
-func (_c *GameServerCreate) SetLauncherBackground(v string) *GameServerCreate {
-	_c.mutation.SetLauncherBackground(v)
+// SetAppBackground sets the "app_background" field.
+func (_c *GameServerCreate) SetAppBackground(v string) *GameServerCreate {
+	_c.mutation.SetAppBackground(v)
 	return _c
 }
 
-// SetNillableLauncherBackground sets the "launcher_background" field if the given value is not nil.
-func (_c *GameServerCreate) SetNillableLauncherBackground(v *string) *GameServerCreate {
+// SetNillableAppBackground sets the "app_background" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableAppBackground(v *string) *GameServerCreate {
 	if v != nil {
-		_c.SetLauncherBackground(*v)
+		_c.SetAppBackground(*v)
 	}
 	return _c
 }
 
-// SetLauncherBackgroundKey sets the "launcher_background_key" field.
-func (_c *GameServerCreate) SetLauncherBackgroundKey(v string) *GameServerCreate {
-	_c.mutation.SetLauncherBackgroundKey(v)
+// SetAppBackgroundKey sets the "app_background_key" field.
+func (_c *GameServerCreate) SetAppBackgroundKey(v string) *GameServerCreate {
+	_c.mutation.SetAppBackgroundKey(v)
 	return _c
 }
 
-// SetNillableLauncherBackgroundKey sets the "launcher_background_key" field if the given value is not nil.
-func (_c *GameServerCreate) SetNillableLauncherBackgroundKey(v *string) *GameServerCreate {
+// SetNillableAppBackgroundKey sets the "app_background_key" field if the given value is not nil.
+func (_c *GameServerCreate) SetNillableAppBackgroundKey(v *string) *GameServerCreate {
 	if v != nil {
-		_c.SetLauncherBackgroundKey(*v)
+		_c.SetAppBackgroundKey(*v)
 	}
 	return _c
 }
@@ -567,21 +567,21 @@ func (_c *GameServerCreate) defaults() {
 		v := gameserver.DefaultCover
 		_c.mutation.SetCover(v)
 	}
-	if _, ok := _c.mutation.LauncherIcon(); !ok {
-		v := gameserver.DefaultLauncherIcon
-		_c.mutation.SetLauncherIcon(v)
+	if _, ok := _c.mutation.AppIcon(); !ok {
+		v := gameserver.DefaultAppIcon
+		_c.mutation.SetAppIcon(v)
 	}
-	if _, ok := _c.mutation.LauncherIconKey(); !ok {
-		v := gameserver.DefaultLauncherIconKey
-		_c.mutation.SetLauncherIconKey(v)
+	if _, ok := _c.mutation.AppIconKey(); !ok {
+		v := gameserver.DefaultAppIconKey
+		_c.mutation.SetAppIconKey(v)
 	}
-	if _, ok := _c.mutation.LauncherBackground(); !ok {
-		v := gameserver.DefaultLauncherBackground
-		_c.mutation.SetLauncherBackground(v)
+	if _, ok := _c.mutation.AppBackground(); !ok {
+		v := gameserver.DefaultAppBackground
+		_c.mutation.SetAppBackground(v)
 	}
-	if _, ok := _c.mutation.LauncherBackgroundKey(); !ok {
-		v := gameserver.DefaultLauncherBackgroundKey
-		_c.mutation.SetLauncherBackgroundKey(v)
+	if _, ok := _c.mutation.AppBackgroundKey(); !ok {
+		v := gameserver.DefaultAppBackgroundKey
+		_c.mutation.SetAppBackgroundKey(v)
 	}
 	if _, ok := _c.mutation.MgpEndpoint(); !ok {
 		v := gameserver.DefaultMgpEndpoint
@@ -693,17 +693,17 @@ func (_c *GameServerCreate) check() error {
 	if _, ok := _c.mutation.Cover(); !ok {
 		return &ValidationError{Name: "cover", err: errors.New(`gen: missing required field "GameServer.cover"`)}
 	}
-	if _, ok := _c.mutation.LauncherIcon(); !ok {
-		return &ValidationError{Name: "launcher_icon", err: errors.New(`gen: missing required field "GameServer.launcher_icon"`)}
+	if _, ok := _c.mutation.AppIcon(); !ok {
+		return &ValidationError{Name: "app_icon", err: errors.New(`gen: missing required field "GameServer.app_icon"`)}
 	}
-	if _, ok := _c.mutation.LauncherIconKey(); !ok {
-		return &ValidationError{Name: "launcher_icon_key", err: errors.New(`gen: missing required field "GameServer.launcher_icon_key"`)}
+	if _, ok := _c.mutation.AppIconKey(); !ok {
+		return &ValidationError{Name: "app_icon_key", err: errors.New(`gen: missing required field "GameServer.app_icon_key"`)}
 	}
-	if _, ok := _c.mutation.LauncherBackground(); !ok {
-		return &ValidationError{Name: "launcher_background", err: errors.New(`gen: missing required field "GameServer.launcher_background"`)}
+	if _, ok := _c.mutation.AppBackground(); !ok {
+		return &ValidationError{Name: "app_background", err: errors.New(`gen: missing required field "GameServer.app_background"`)}
 	}
-	if _, ok := _c.mutation.LauncherBackgroundKey(); !ok {
-		return &ValidationError{Name: "launcher_background_key", err: errors.New(`gen: missing required field "GameServer.launcher_background_key"`)}
+	if _, ok := _c.mutation.AppBackgroundKey(); !ok {
+		return &ValidationError{Name: "app_background_key", err: errors.New(`gen: missing required field "GameServer.app_background_key"`)}
 	}
 	if _, ok := _c.mutation.MgpEndpoint(); !ok {
 		return &ValidationError{Name: "mgp_endpoint", err: errors.New(`gen: missing required field "GameServer.mgp_endpoint"`)}
@@ -843,21 +843,21 @@ func (_c *GameServerCreate) createSpec() (*GameServer, *sqlgraph.CreateSpec) {
 		_spec.SetField(gameserver.FieldCover, field.TypeString, value)
 		_node.Cover = value
 	}
-	if value, ok := _c.mutation.LauncherIcon(); ok {
-		_spec.SetField(gameserver.FieldLauncherIcon, field.TypeString, value)
-		_node.LauncherIcon = value
+	if value, ok := _c.mutation.AppIcon(); ok {
+		_spec.SetField(gameserver.FieldAppIcon, field.TypeString, value)
+		_node.AppIcon = value
 	}
-	if value, ok := _c.mutation.LauncherIconKey(); ok {
-		_spec.SetField(gameserver.FieldLauncherIconKey, field.TypeString, value)
-		_node.LauncherIconKey = value
+	if value, ok := _c.mutation.AppIconKey(); ok {
+		_spec.SetField(gameserver.FieldAppIconKey, field.TypeString, value)
+		_node.AppIconKey = value
 	}
-	if value, ok := _c.mutation.LauncherBackground(); ok {
-		_spec.SetField(gameserver.FieldLauncherBackground, field.TypeString, value)
-		_node.LauncherBackground = value
+	if value, ok := _c.mutation.AppBackground(); ok {
+		_spec.SetField(gameserver.FieldAppBackground, field.TypeString, value)
+		_node.AppBackground = value
 	}
-	if value, ok := _c.mutation.LauncherBackgroundKey(); ok {
-		_spec.SetField(gameserver.FieldLauncherBackgroundKey, field.TypeString, value)
-		_node.LauncherBackgroundKey = value
+	if value, ok := _c.mutation.AppBackgroundKey(); ok {
+		_spec.SetField(gameserver.FieldAppBackgroundKey, field.TypeString, value)
+		_node.AppBackgroundKey = value
 	}
 	if value, ok := _c.mutation.MgpEndpoint(); ok {
 		_spec.SetField(gameserver.FieldMgpEndpoint, field.TypeString, value)
@@ -1131,51 +1131,51 @@ func (u *GameServerUpsert) UpdateCover() *GameServerUpsert {
 	return u
 }
 
-// SetLauncherIcon sets the "launcher_icon" field.
-func (u *GameServerUpsert) SetLauncherIcon(v string) *GameServerUpsert {
-	u.Set(gameserver.FieldLauncherIcon, v)
+// SetAppIcon sets the "app_icon" field.
+func (u *GameServerUpsert) SetAppIcon(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldAppIcon, v)
 	return u
 }
 
-// UpdateLauncherIcon sets the "launcher_icon" field to the value that was provided on create.
-func (u *GameServerUpsert) UpdateLauncherIcon() *GameServerUpsert {
-	u.SetExcluded(gameserver.FieldLauncherIcon)
+// UpdateAppIcon sets the "app_icon" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateAppIcon() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldAppIcon)
 	return u
 }
 
-// SetLauncherIconKey sets the "launcher_icon_key" field.
-func (u *GameServerUpsert) SetLauncherIconKey(v string) *GameServerUpsert {
-	u.Set(gameserver.FieldLauncherIconKey, v)
+// SetAppIconKey sets the "app_icon_key" field.
+func (u *GameServerUpsert) SetAppIconKey(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldAppIconKey, v)
 	return u
 }
 
-// UpdateLauncherIconKey sets the "launcher_icon_key" field to the value that was provided on create.
-func (u *GameServerUpsert) UpdateLauncherIconKey() *GameServerUpsert {
-	u.SetExcluded(gameserver.FieldLauncherIconKey)
+// UpdateAppIconKey sets the "app_icon_key" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateAppIconKey() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldAppIconKey)
 	return u
 }
 
-// SetLauncherBackground sets the "launcher_background" field.
-func (u *GameServerUpsert) SetLauncherBackground(v string) *GameServerUpsert {
-	u.Set(gameserver.FieldLauncherBackground, v)
+// SetAppBackground sets the "app_background" field.
+func (u *GameServerUpsert) SetAppBackground(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldAppBackground, v)
 	return u
 }
 
-// UpdateLauncherBackground sets the "launcher_background" field to the value that was provided on create.
-func (u *GameServerUpsert) UpdateLauncherBackground() *GameServerUpsert {
-	u.SetExcluded(gameserver.FieldLauncherBackground)
+// UpdateAppBackground sets the "app_background" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateAppBackground() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldAppBackground)
 	return u
 }
 
-// SetLauncherBackgroundKey sets the "launcher_background_key" field.
-func (u *GameServerUpsert) SetLauncherBackgroundKey(v string) *GameServerUpsert {
-	u.Set(gameserver.FieldLauncherBackgroundKey, v)
+// SetAppBackgroundKey sets the "app_background_key" field.
+func (u *GameServerUpsert) SetAppBackgroundKey(v string) *GameServerUpsert {
+	u.Set(gameserver.FieldAppBackgroundKey, v)
 	return u
 }
 
-// UpdateLauncherBackgroundKey sets the "launcher_background_key" field to the value that was provided on create.
-func (u *GameServerUpsert) UpdateLauncherBackgroundKey() *GameServerUpsert {
-	u.SetExcluded(gameserver.FieldLauncherBackgroundKey)
+// UpdateAppBackgroundKey sets the "app_background_key" field to the value that was provided on create.
+func (u *GameServerUpsert) UpdateAppBackgroundKey() *GameServerUpsert {
+	u.SetExcluded(gameserver.FieldAppBackgroundKey)
 	return u
 }
 
@@ -1690,59 +1690,59 @@ func (u *GameServerUpsertOne) UpdateCover() *GameServerUpsertOne {
 	})
 }
 
-// SetLauncherIcon sets the "launcher_icon" field.
-func (u *GameServerUpsertOne) SetLauncherIcon(v string) *GameServerUpsertOne {
+// SetAppIcon sets the "app_icon" field.
+func (u *GameServerUpsertOne) SetAppIcon(v string) *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
-		s.SetLauncherIcon(v)
+		s.SetAppIcon(v)
 	})
 }
 
-// UpdateLauncherIcon sets the "launcher_icon" field to the value that was provided on create.
-func (u *GameServerUpsertOne) UpdateLauncherIcon() *GameServerUpsertOne {
+// UpdateAppIcon sets the "app_icon" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateAppIcon() *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
-		s.UpdateLauncherIcon()
+		s.UpdateAppIcon()
 	})
 }
 
-// SetLauncherIconKey sets the "launcher_icon_key" field.
-func (u *GameServerUpsertOne) SetLauncherIconKey(v string) *GameServerUpsertOne {
+// SetAppIconKey sets the "app_icon_key" field.
+func (u *GameServerUpsertOne) SetAppIconKey(v string) *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
-		s.SetLauncherIconKey(v)
+		s.SetAppIconKey(v)
 	})
 }
 
-// UpdateLauncherIconKey sets the "launcher_icon_key" field to the value that was provided on create.
-func (u *GameServerUpsertOne) UpdateLauncherIconKey() *GameServerUpsertOne {
+// UpdateAppIconKey sets the "app_icon_key" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateAppIconKey() *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
-		s.UpdateLauncherIconKey()
+		s.UpdateAppIconKey()
 	})
 }
 
-// SetLauncherBackground sets the "launcher_background" field.
-func (u *GameServerUpsertOne) SetLauncherBackground(v string) *GameServerUpsertOne {
+// SetAppBackground sets the "app_background" field.
+func (u *GameServerUpsertOne) SetAppBackground(v string) *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
-		s.SetLauncherBackground(v)
+		s.SetAppBackground(v)
 	})
 }
 
-// UpdateLauncherBackground sets the "launcher_background" field to the value that was provided on create.
-func (u *GameServerUpsertOne) UpdateLauncherBackground() *GameServerUpsertOne {
+// UpdateAppBackground sets the "app_background" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateAppBackground() *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
-		s.UpdateLauncherBackground()
+		s.UpdateAppBackground()
 	})
 }
 
-// SetLauncherBackgroundKey sets the "launcher_background_key" field.
-func (u *GameServerUpsertOne) SetLauncherBackgroundKey(v string) *GameServerUpsertOne {
+// SetAppBackgroundKey sets the "app_background_key" field.
+func (u *GameServerUpsertOne) SetAppBackgroundKey(v string) *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
-		s.SetLauncherBackgroundKey(v)
+		s.SetAppBackgroundKey(v)
 	})
 }
 
-// UpdateLauncherBackgroundKey sets the "launcher_background_key" field to the value that was provided on create.
-func (u *GameServerUpsertOne) UpdateLauncherBackgroundKey() *GameServerUpsertOne {
+// UpdateAppBackgroundKey sets the "app_background_key" field to the value that was provided on create.
+func (u *GameServerUpsertOne) UpdateAppBackgroundKey() *GameServerUpsertOne {
 	return u.Update(func(s *GameServerUpsert) {
-		s.UpdateLauncherBackgroundKey()
+		s.UpdateAppBackgroundKey()
 	})
 }
 
@@ -2475,59 +2475,59 @@ func (u *GameServerUpsertBulk) UpdateCover() *GameServerUpsertBulk {
 	})
 }
 
-// SetLauncherIcon sets the "launcher_icon" field.
-func (u *GameServerUpsertBulk) SetLauncherIcon(v string) *GameServerUpsertBulk {
+// SetAppIcon sets the "app_icon" field.
+func (u *GameServerUpsertBulk) SetAppIcon(v string) *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
-		s.SetLauncherIcon(v)
+		s.SetAppIcon(v)
 	})
 }
 
-// UpdateLauncherIcon sets the "launcher_icon" field to the value that was provided on create.
-func (u *GameServerUpsertBulk) UpdateLauncherIcon() *GameServerUpsertBulk {
+// UpdateAppIcon sets the "app_icon" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateAppIcon() *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
-		s.UpdateLauncherIcon()
+		s.UpdateAppIcon()
 	})
 }
 
-// SetLauncherIconKey sets the "launcher_icon_key" field.
-func (u *GameServerUpsertBulk) SetLauncherIconKey(v string) *GameServerUpsertBulk {
+// SetAppIconKey sets the "app_icon_key" field.
+func (u *GameServerUpsertBulk) SetAppIconKey(v string) *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
-		s.SetLauncherIconKey(v)
+		s.SetAppIconKey(v)
 	})
 }
 
-// UpdateLauncherIconKey sets the "launcher_icon_key" field to the value that was provided on create.
-func (u *GameServerUpsertBulk) UpdateLauncherIconKey() *GameServerUpsertBulk {
+// UpdateAppIconKey sets the "app_icon_key" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateAppIconKey() *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
-		s.UpdateLauncherIconKey()
+		s.UpdateAppIconKey()
 	})
 }
 
-// SetLauncherBackground sets the "launcher_background" field.
-func (u *GameServerUpsertBulk) SetLauncherBackground(v string) *GameServerUpsertBulk {
+// SetAppBackground sets the "app_background" field.
+func (u *GameServerUpsertBulk) SetAppBackground(v string) *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
-		s.SetLauncherBackground(v)
+		s.SetAppBackground(v)
 	})
 }
 
-// UpdateLauncherBackground sets the "launcher_background" field to the value that was provided on create.
-func (u *GameServerUpsertBulk) UpdateLauncherBackground() *GameServerUpsertBulk {
+// UpdateAppBackground sets the "app_background" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateAppBackground() *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
-		s.UpdateLauncherBackground()
+		s.UpdateAppBackground()
 	})
 }
 
-// SetLauncherBackgroundKey sets the "launcher_background_key" field.
-func (u *GameServerUpsertBulk) SetLauncherBackgroundKey(v string) *GameServerUpsertBulk {
+// SetAppBackgroundKey sets the "app_background_key" field.
+func (u *GameServerUpsertBulk) SetAppBackgroundKey(v string) *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
-		s.SetLauncherBackgroundKey(v)
+		s.SetAppBackgroundKey(v)
 	})
 }
 
-// UpdateLauncherBackgroundKey sets the "launcher_background_key" field to the value that was provided on create.
-func (u *GameServerUpsertBulk) UpdateLauncherBackgroundKey() *GameServerUpsertBulk {
+// UpdateAppBackgroundKey sets the "app_background_key" field to the value that was provided on create.
+func (u *GameServerUpsertBulk) UpdateAppBackgroundKey() *GameServerUpsertBulk {
 	return u.Update(func(s *GameServerUpsert) {
-		s.UpdateLauncherBackgroundKey()
+		s.UpdateAppBackgroundKey()
 	})
 }
 

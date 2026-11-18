@@ -248,7 +248,6 @@ message GmSelfServicePolicy {
   bool enabled = 6;
   int32 limit = 7;
   int32 period_days = 13;
-  reserved 8;
   bool need_approval = 9;
   string player_note = 10;
   string updated_by_name = 11;
@@ -273,7 +272,6 @@ message UpdateGmSelfServiceRequest {
   int32 limit = 4;
   // 刷新周期天数（服务器时区 0 点刷新；0 永久不刷新，最多 365）
   int32 period_days = 8;
-  reserved 5;
   bool need_approval = 6;
   string player_note = 7;
 }

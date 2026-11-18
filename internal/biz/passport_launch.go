@@ -114,8 +114,8 @@ func (uc *PassportUsecase) launchApp(ctx context.Context, userID string, s *gen.
 			Game:     s.ClientGameURL,
 			Resource: s.ClientResourceURL,
 		},
-		Icon:       s.LauncherIcon,
-		Background: s.LauncherBackground,
+		Icon:       s.AppIcon,
+		Background: s.AppBackground,
 	}
 	if l != nil {
 		out.Link = uc.linkProto(ctx, l, servers, selfService)

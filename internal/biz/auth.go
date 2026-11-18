@@ -35,9 +35,6 @@ const EmailCodeTTL = 5 * time.Minute
 // EmailCodeResendInterval 同一邮箱同一用途的验证码最短重发间隔。
 const EmailCodeResendInterval = 60 * time.Second
 
-// MinPasswordLength 新密码（注册 / 找回密码 / 初始化超级管理员）最少位数。
-const MinPasswordLength = 8
-
 // NonPersistentSessionTTL 登录时未勾选「保持登录」的会话有效期：超过该时长不活动即需重新登录。
 const NonPersistentSessionTTL = 24 * time.Hour
 
@@ -46,19 +43,15 @@ var registerUsernamePattern = regexp.MustCompile(`^[A-Za-z0-9_]{3,20}$`)
 
 var (
 	ErrUsernameInvalid      = response.BadRequest(500, "用户名需为 3–20 位字母、数字或下划线")
-	ErrPasswordTooShort     = response.BadRequest(500, fmt.Sprintf("密码至少 %d 位", MinPasswordLength))
 	ErrEmailCodeTooFrequent = func(wait time.Duration) error {
 		return response.BadRequest(500, fmt.Sprintf("验证码发送太频繁，请 %d 秒后再试", int(wait.Seconds()+0.999)))
 	}
 )
 
-// ValidateNewPassword 校验新设置的密码。
+// ValidateNewPassword 校验新设置的密码：只要求非空，不限制长度和字符组成。
 func ValidateNewPassword(password string) error {
 	if password == "" {
 		return ErrPasswordEmpty
-	}
-	if len([]rune(password)) < MinPasswordLength {
-		return ErrPasswordTooShort
 	}
 	return nil
 }

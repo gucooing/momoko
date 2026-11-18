@@ -393,8 +393,6 @@ message GetPassportConfigResponse {
   int32 unbind_cooldown_days = 7;
   // 申请注销后可以撤销的天数
   int32 deletion_grace_days = 8;
-  // 密码最少位数
-  int32 min_password_length = 9;
 }
 
 message SendPassportEmailCodeRequest {
@@ -827,7 +825,6 @@ message PassportSelfService {
   // 规则：每 period_days 天 limit 次（limit 0 不限；服务器时区 0 点刷新，period_days 0 永久不刷新）
   int32 limit = 6;
   int32 period_days = 17;
-  reserved 7, 12;
   bool need_approval = 8;
   // 管理员写给玩家的说明
   string player_note = 9;
@@ -917,9 +914,9 @@ message PassportLaunchApp {
   // unsupported 服务器不支持 / not_visible 服务器未向我开放 / cooldown 解绑冷却中（只能重新绑定原账号）；可以绑定时为空
   bool bindable = 5;
   string block_reason = 6;
-  // 启动器里的游戏图标：服务器「接入设置 → 客户端」里上传到对象存储的图片链接；空为没有上传
+  // 应用图标：服务器「接入设置」里上传到对象存储的图片链接，与服务器页同步；空为没有上传
   string icon = 7;
-  // 启动器游戏页背景：上传到对象存储的图片或视频链接；空为没有上传
+  // 应用背景：上传到对象存储的图片或视频链接，与服务器页同步；空为没有上传
   string background = 8;
 }
 

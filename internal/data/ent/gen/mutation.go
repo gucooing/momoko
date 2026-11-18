@@ -18,7 +18,6 @@ import (
 	"momoko/internal/data/ent/gen/gameaccountunlink"
 	"momoko/internal/data/ent/gen/gameclientlog"
 	"momoko/internal/data/ent/gen/gameconfigrevision"
-	"momoko/internal/data/ent/gen/gamemail"
 	"momoko/internal/data/ent/gen/gamerecentserver"
 	"momoko/internal/data/ent/gen/gameserver"
 	"momoko/internal/data/ent/gen/gameserverbackup"
@@ -86,7 +85,6 @@ const (
 	TypeGameAccountUnlink  = "GameAccountUnlink"
 	TypeGameClientLog      = "GameClientLog"
 	TypeGameConfigRevision = "GameConfigRevision"
-	TypeGameMail           = "GameMail"
 	TypeGameRecentServer   = "GameRecentServer"
 	TypeGameServer         = "GameServer"
 	TypeGameServerBackup   = "GameServerBackup"
@@ -11322,2348 +11320,6 @@ func (m *GameConfigRevisionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown GameConfigRevision edge %s", name)
 }
 
-// GameMailMutation represents an operation that mutates the GameMail nodes in the graph.
-type GameMailMutation struct {
-	config
-	op                  Op
-	typ                 string
-	id                  *string
-	create_time         *time.Time
-	update_time         *time.Time
-	server_id           *string
-	title               *string
-	body                *string
-	rewards             *[]schema.GameReward
-	appendrewards       []schema.GameReward
-	target              *gamemail.Target
-	players             *[]schema.GmTarget
-	appendplayers       []schema.GmTarget
-	condition           *schema.GameMailCondition
-	exclude_banned      *bool
-	expire_days         *int
-	addexpire_days      *int
-	scheduled_at        *time.Time
-	status              *gamemail.Status
-	matched_count       *int
-	addmatched_count    *int
-	matched_at          *time.Time
-	recipient_count     *int
-	addrecipient_count  *int
-	failed_count        *int
-	addfailed_count     *int
-	claimed_count       *int
-	addclaimed_count    *int
-	stats_at            *time.Time
-	error               *string
-	execution_id        *string
-	created_by          *string
-	created_by_name     *string
-	updated_by_name     *string
-	sent_by             *string
-	sent_by_name        *string
-	sent_at             *time.Time
-	revoked_by_name     *string
-	revoked_at          *time.Time
-	revoked_count       *int
-	addrevoked_count    *int
-	revoke_execution_id *string
-	clearedFields       map[string]struct{}
-	done                bool
-	oldValue            func(context.Context) (*GameMail, error)
-	predicates          []predicate.GameMail
-}
-
-var _ ent.Mutation = (*GameMailMutation)(nil)
-
-// gamemailOption allows management of the mutation configuration using functional options.
-type gamemailOption func(*GameMailMutation)
-
-// newGameMailMutation creates new mutation for the GameMail entity.
-func newGameMailMutation(c config, op Op, opts ...gamemailOption) *GameMailMutation {
-	m := &GameMailMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeGameMail,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withGameMailID sets the ID field of the mutation.
-func withGameMailID(id string) gamemailOption {
-	return func(m *GameMailMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *GameMail
-		)
-		m.oldValue = func(ctx context.Context) (*GameMail, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().GameMail.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withGameMail sets the old GameMail of the mutation.
-func withGameMail(node *GameMail) gamemailOption {
-	return func(m *GameMailMutation) {
-		m.oldValue = func(context.Context) (*GameMail, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m GameMailMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m GameMailMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("gen: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of GameMail entities.
-func (m *GameMailMutation) SetID(id string) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *GameMailMutation) ID() (id string, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *GameMailMutation) IDs(ctx context.Context) ([]string, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []string{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().GameMail.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreateTime sets the "create_time" field.
-func (m *GameMailMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the value of the "create_time" field in the mutation.
-func (m *GameMailMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old "create_time" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime resets all changes to the "create_time" field.
-func (m *GameMailMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the "update_time" field.
-func (m *GameMailMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the value of the "update_time" field in the mutation.
-func (m *GameMailMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old "update_time" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime resets all changes to the "update_time" field.
-func (m *GameMailMutation) ResetUpdateTime() {
-	m.update_time = nil
-}
-
-// SetServerID sets the "server_id" field.
-func (m *GameMailMutation) SetServerID(s string) {
-	m.server_id = &s
-}
-
-// ServerID returns the value of the "server_id" field in the mutation.
-func (m *GameMailMutation) ServerID() (r string, exists bool) {
-	v := m.server_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldServerID returns the old "server_id" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldServerID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldServerID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldServerID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldServerID: %w", err)
-	}
-	return oldValue.ServerID, nil
-}
-
-// ResetServerID resets all changes to the "server_id" field.
-func (m *GameMailMutation) ResetServerID() {
-	m.server_id = nil
-}
-
-// SetTitle sets the "title" field.
-func (m *GameMailMutation) SetTitle(s string) {
-	m.title = &s
-}
-
-// Title returns the value of the "title" field in the mutation.
-func (m *GameMailMutation) Title() (r string, exists bool) {
-	v := m.title
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTitle returns the old "title" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldTitle(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTitle requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
-	}
-	return oldValue.Title, nil
-}
-
-// ResetTitle resets all changes to the "title" field.
-func (m *GameMailMutation) ResetTitle() {
-	m.title = nil
-}
-
-// SetBody sets the "body" field.
-func (m *GameMailMutation) SetBody(s string) {
-	m.body = &s
-}
-
-// Body returns the value of the "body" field in the mutation.
-func (m *GameMailMutation) Body() (r string, exists bool) {
-	v := m.body
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBody returns the old "body" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldBody(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBody is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBody requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBody: %w", err)
-	}
-	return oldValue.Body, nil
-}
-
-// ResetBody resets all changes to the "body" field.
-func (m *GameMailMutation) ResetBody() {
-	m.body = nil
-}
-
-// SetRewards sets the "rewards" field.
-func (m *GameMailMutation) SetRewards(sr []schema.GameReward) {
-	m.rewards = &sr
-	m.appendrewards = nil
-}
-
-// Rewards returns the value of the "rewards" field in the mutation.
-func (m *GameMailMutation) Rewards() (r []schema.GameReward, exists bool) {
-	v := m.rewards
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRewards returns the old "rewards" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldRewards(ctx context.Context) (v []schema.GameReward, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRewards is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRewards requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRewards: %w", err)
-	}
-	return oldValue.Rewards, nil
-}
-
-// AppendRewards adds sr to the "rewards" field.
-func (m *GameMailMutation) AppendRewards(sr []schema.GameReward) {
-	m.appendrewards = append(m.appendrewards, sr...)
-}
-
-// AppendedRewards returns the list of values that were appended to the "rewards" field in this mutation.
-func (m *GameMailMutation) AppendedRewards() ([]schema.GameReward, bool) {
-	if len(m.appendrewards) == 0 {
-		return nil, false
-	}
-	return m.appendrewards, true
-}
-
-// ClearRewards clears the value of the "rewards" field.
-func (m *GameMailMutation) ClearRewards() {
-	m.rewards = nil
-	m.appendrewards = nil
-	m.clearedFields[gamemail.FieldRewards] = struct{}{}
-}
-
-// RewardsCleared returns if the "rewards" field was cleared in this mutation.
-func (m *GameMailMutation) RewardsCleared() bool {
-	_, ok := m.clearedFields[gamemail.FieldRewards]
-	return ok
-}
-
-// ResetRewards resets all changes to the "rewards" field.
-func (m *GameMailMutation) ResetRewards() {
-	m.rewards = nil
-	m.appendrewards = nil
-	delete(m.clearedFields, gamemail.FieldRewards)
-}
-
-// SetTarget sets the "target" field.
-func (m *GameMailMutation) SetTarget(ga gamemail.Target) {
-	m.target = &ga
-}
-
-// Target returns the value of the "target" field in the mutation.
-func (m *GameMailMutation) Target() (r gamemail.Target, exists bool) {
-	v := m.target
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTarget returns the old "target" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldTarget(ctx context.Context) (v gamemail.Target, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTarget is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTarget requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTarget: %w", err)
-	}
-	return oldValue.Target, nil
-}
-
-// ResetTarget resets all changes to the "target" field.
-func (m *GameMailMutation) ResetTarget() {
-	m.target = nil
-}
-
-// SetPlayers sets the "players" field.
-func (m *GameMailMutation) SetPlayers(st []schema.GmTarget) {
-	m.players = &st
-	m.appendplayers = nil
-}
-
-// Players returns the value of the "players" field in the mutation.
-func (m *GameMailMutation) Players() (r []schema.GmTarget, exists bool) {
-	v := m.players
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPlayers returns the old "players" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldPlayers(ctx context.Context) (v []schema.GmTarget, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPlayers is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPlayers requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPlayers: %w", err)
-	}
-	return oldValue.Players, nil
-}
-
-// AppendPlayers adds st to the "players" field.
-func (m *GameMailMutation) AppendPlayers(st []schema.GmTarget) {
-	m.appendplayers = append(m.appendplayers, st...)
-}
-
-// AppendedPlayers returns the list of values that were appended to the "players" field in this mutation.
-func (m *GameMailMutation) AppendedPlayers() ([]schema.GmTarget, bool) {
-	if len(m.appendplayers) == 0 {
-		return nil, false
-	}
-	return m.appendplayers, true
-}
-
-// ClearPlayers clears the value of the "players" field.
-func (m *GameMailMutation) ClearPlayers() {
-	m.players = nil
-	m.appendplayers = nil
-	m.clearedFields[gamemail.FieldPlayers] = struct{}{}
-}
-
-// PlayersCleared returns if the "players" field was cleared in this mutation.
-func (m *GameMailMutation) PlayersCleared() bool {
-	_, ok := m.clearedFields[gamemail.FieldPlayers]
-	return ok
-}
-
-// ResetPlayers resets all changes to the "players" field.
-func (m *GameMailMutation) ResetPlayers() {
-	m.players = nil
-	m.appendplayers = nil
-	delete(m.clearedFields, gamemail.FieldPlayers)
-}
-
-// SetCondition sets the "condition" field.
-func (m *GameMailMutation) SetCondition(smc schema.GameMailCondition) {
-	m.condition = &smc
-}
-
-// Condition returns the value of the "condition" field in the mutation.
-func (m *GameMailMutation) Condition() (r schema.GameMailCondition, exists bool) {
-	v := m.condition
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCondition returns the old "condition" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldCondition(ctx context.Context) (v schema.GameMailCondition, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCondition is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCondition requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCondition: %w", err)
-	}
-	return oldValue.Condition, nil
-}
-
-// ClearCondition clears the value of the "condition" field.
-func (m *GameMailMutation) ClearCondition() {
-	m.condition = nil
-	m.clearedFields[gamemail.FieldCondition] = struct{}{}
-}
-
-// ConditionCleared returns if the "condition" field was cleared in this mutation.
-func (m *GameMailMutation) ConditionCleared() bool {
-	_, ok := m.clearedFields[gamemail.FieldCondition]
-	return ok
-}
-
-// ResetCondition resets all changes to the "condition" field.
-func (m *GameMailMutation) ResetCondition() {
-	m.condition = nil
-	delete(m.clearedFields, gamemail.FieldCondition)
-}
-
-// SetExcludeBanned sets the "exclude_banned" field.
-func (m *GameMailMutation) SetExcludeBanned(b bool) {
-	m.exclude_banned = &b
-}
-
-// ExcludeBanned returns the value of the "exclude_banned" field in the mutation.
-func (m *GameMailMutation) ExcludeBanned() (r bool, exists bool) {
-	v := m.exclude_banned
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExcludeBanned returns the old "exclude_banned" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldExcludeBanned(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExcludeBanned is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExcludeBanned requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExcludeBanned: %w", err)
-	}
-	return oldValue.ExcludeBanned, nil
-}
-
-// ResetExcludeBanned resets all changes to the "exclude_banned" field.
-func (m *GameMailMutation) ResetExcludeBanned() {
-	m.exclude_banned = nil
-}
-
-// SetExpireDays sets the "expire_days" field.
-func (m *GameMailMutation) SetExpireDays(i int) {
-	m.expire_days = &i
-	m.addexpire_days = nil
-}
-
-// ExpireDays returns the value of the "expire_days" field in the mutation.
-func (m *GameMailMutation) ExpireDays() (r int, exists bool) {
-	v := m.expire_days
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExpireDays returns the old "expire_days" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldExpireDays(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExpireDays is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExpireDays requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExpireDays: %w", err)
-	}
-	return oldValue.ExpireDays, nil
-}
-
-// AddExpireDays adds i to the "expire_days" field.
-func (m *GameMailMutation) AddExpireDays(i int) {
-	if m.addexpire_days != nil {
-		*m.addexpire_days += i
-	} else {
-		m.addexpire_days = &i
-	}
-}
-
-// AddedExpireDays returns the value that was added to the "expire_days" field in this mutation.
-func (m *GameMailMutation) AddedExpireDays() (r int, exists bool) {
-	v := m.addexpire_days
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetExpireDays resets all changes to the "expire_days" field.
-func (m *GameMailMutation) ResetExpireDays() {
-	m.expire_days = nil
-	m.addexpire_days = nil
-}
-
-// SetScheduledAt sets the "scheduled_at" field.
-func (m *GameMailMutation) SetScheduledAt(t time.Time) {
-	m.scheduled_at = &t
-}
-
-// ScheduledAt returns the value of the "scheduled_at" field in the mutation.
-func (m *GameMailMutation) ScheduledAt() (r time.Time, exists bool) {
-	v := m.scheduled_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldScheduledAt returns the old "scheduled_at" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldScheduledAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldScheduledAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldScheduledAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScheduledAt: %w", err)
-	}
-	return oldValue.ScheduledAt, nil
-}
-
-// ClearScheduledAt clears the value of the "scheduled_at" field.
-func (m *GameMailMutation) ClearScheduledAt() {
-	m.scheduled_at = nil
-	m.clearedFields[gamemail.FieldScheduledAt] = struct{}{}
-}
-
-// ScheduledAtCleared returns if the "scheduled_at" field was cleared in this mutation.
-func (m *GameMailMutation) ScheduledAtCleared() bool {
-	_, ok := m.clearedFields[gamemail.FieldScheduledAt]
-	return ok
-}
-
-// ResetScheduledAt resets all changes to the "scheduled_at" field.
-func (m *GameMailMutation) ResetScheduledAt() {
-	m.scheduled_at = nil
-	delete(m.clearedFields, gamemail.FieldScheduledAt)
-}
-
-// SetStatus sets the "status" field.
-func (m *GameMailMutation) SetStatus(ga gamemail.Status) {
-	m.status = &ga
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *GameMailMutation) Status() (r gamemail.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldStatus(ctx context.Context) (v gamemail.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *GameMailMutation) ResetStatus() {
-	m.status = nil
-}
-
-// SetMatchedCount sets the "matched_count" field.
-func (m *GameMailMutation) SetMatchedCount(i int) {
-	m.matched_count = &i
-	m.addmatched_count = nil
-}
-
-// MatchedCount returns the value of the "matched_count" field in the mutation.
-func (m *GameMailMutation) MatchedCount() (r int, exists bool) {
-	v := m.matched_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMatchedCount returns the old "matched_count" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldMatchedCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMatchedCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMatchedCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMatchedCount: %w", err)
-	}
-	return oldValue.MatchedCount, nil
-}
-
-// AddMatchedCount adds i to the "matched_count" field.
-func (m *GameMailMutation) AddMatchedCount(i int) {
-	if m.addmatched_count != nil {
-		*m.addmatched_count += i
-	} else {
-		m.addmatched_count = &i
-	}
-}
-
-// AddedMatchedCount returns the value that was added to the "matched_count" field in this mutation.
-func (m *GameMailMutation) AddedMatchedCount() (r int, exists bool) {
-	v := m.addmatched_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetMatchedCount resets all changes to the "matched_count" field.
-func (m *GameMailMutation) ResetMatchedCount() {
-	m.matched_count = nil
-	m.addmatched_count = nil
-}
-
-// SetMatchedAt sets the "matched_at" field.
-func (m *GameMailMutation) SetMatchedAt(t time.Time) {
-	m.matched_at = &t
-}
-
-// MatchedAt returns the value of the "matched_at" field in the mutation.
-func (m *GameMailMutation) MatchedAt() (r time.Time, exists bool) {
-	v := m.matched_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMatchedAt returns the old "matched_at" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldMatchedAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMatchedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMatchedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMatchedAt: %w", err)
-	}
-	return oldValue.MatchedAt, nil
-}
-
-// ClearMatchedAt clears the value of the "matched_at" field.
-func (m *GameMailMutation) ClearMatchedAt() {
-	m.matched_at = nil
-	m.clearedFields[gamemail.FieldMatchedAt] = struct{}{}
-}
-
-// MatchedAtCleared returns if the "matched_at" field was cleared in this mutation.
-func (m *GameMailMutation) MatchedAtCleared() bool {
-	_, ok := m.clearedFields[gamemail.FieldMatchedAt]
-	return ok
-}
-
-// ResetMatchedAt resets all changes to the "matched_at" field.
-func (m *GameMailMutation) ResetMatchedAt() {
-	m.matched_at = nil
-	delete(m.clearedFields, gamemail.FieldMatchedAt)
-}
-
-// SetRecipientCount sets the "recipient_count" field.
-func (m *GameMailMutation) SetRecipientCount(i int) {
-	m.recipient_count = &i
-	m.addrecipient_count = nil
-}
-
-// RecipientCount returns the value of the "recipient_count" field in the mutation.
-func (m *GameMailMutation) RecipientCount() (r int, exists bool) {
-	v := m.recipient_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRecipientCount returns the old "recipient_count" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldRecipientCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRecipientCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRecipientCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRecipientCount: %w", err)
-	}
-	return oldValue.RecipientCount, nil
-}
-
-// AddRecipientCount adds i to the "recipient_count" field.
-func (m *GameMailMutation) AddRecipientCount(i int) {
-	if m.addrecipient_count != nil {
-		*m.addrecipient_count += i
-	} else {
-		m.addrecipient_count = &i
-	}
-}
-
-// AddedRecipientCount returns the value that was added to the "recipient_count" field in this mutation.
-func (m *GameMailMutation) AddedRecipientCount() (r int, exists bool) {
-	v := m.addrecipient_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRecipientCount resets all changes to the "recipient_count" field.
-func (m *GameMailMutation) ResetRecipientCount() {
-	m.recipient_count = nil
-	m.addrecipient_count = nil
-}
-
-// SetFailedCount sets the "failed_count" field.
-func (m *GameMailMutation) SetFailedCount(i int) {
-	m.failed_count = &i
-	m.addfailed_count = nil
-}
-
-// FailedCount returns the value of the "failed_count" field in the mutation.
-func (m *GameMailMutation) FailedCount() (r int, exists bool) {
-	v := m.failed_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFailedCount returns the old "failed_count" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldFailedCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFailedCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFailedCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFailedCount: %w", err)
-	}
-	return oldValue.FailedCount, nil
-}
-
-// AddFailedCount adds i to the "failed_count" field.
-func (m *GameMailMutation) AddFailedCount(i int) {
-	if m.addfailed_count != nil {
-		*m.addfailed_count += i
-	} else {
-		m.addfailed_count = &i
-	}
-}
-
-// AddedFailedCount returns the value that was added to the "failed_count" field in this mutation.
-func (m *GameMailMutation) AddedFailedCount() (r int, exists bool) {
-	v := m.addfailed_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetFailedCount resets all changes to the "failed_count" field.
-func (m *GameMailMutation) ResetFailedCount() {
-	m.failed_count = nil
-	m.addfailed_count = nil
-}
-
-// SetClaimedCount sets the "claimed_count" field.
-func (m *GameMailMutation) SetClaimedCount(i int) {
-	m.claimed_count = &i
-	m.addclaimed_count = nil
-}
-
-// ClaimedCount returns the value of the "claimed_count" field in the mutation.
-func (m *GameMailMutation) ClaimedCount() (r int, exists bool) {
-	v := m.claimed_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldClaimedCount returns the old "claimed_count" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldClaimedCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldClaimedCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldClaimedCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldClaimedCount: %w", err)
-	}
-	return oldValue.ClaimedCount, nil
-}
-
-// AddClaimedCount adds i to the "claimed_count" field.
-func (m *GameMailMutation) AddClaimedCount(i int) {
-	if m.addclaimed_count != nil {
-		*m.addclaimed_count += i
-	} else {
-		m.addclaimed_count = &i
-	}
-}
-
-// AddedClaimedCount returns the value that was added to the "claimed_count" field in this mutation.
-func (m *GameMailMutation) AddedClaimedCount() (r int, exists bool) {
-	v := m.addclaimed_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetClaimedCount resets all changes to the "claimed_count" field.
-func (m *GameMailMutation) ResetClaimedCount() {
-	m.claimed_count = nil
-	m.addclaimed_count = nil
-}
-
-// SetStatsAt sets the "stats_at" field.
-func (m *GameMailMutation) SetStatsAt(t time.Time) {
-	m.stats_at = &t
-}
-
-// StatsAt returns the value of the "stats_at" field in the mutation.
-func (m *GameMailMutation) StatsAt() (r time.Time, exists bool) {
-	v := m.stats_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatsAt returns the old "stats_at" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldStatsAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatsAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatsAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatsAt: %w", err)
-	}
-	return oldValue.StatsAt, nil
-}
-
-// ClearStatsAt clears the value of the "stats_at" field.
-func (m *GameMailMutation) ClearStatsAt() {
-	m.stats_at = nil
-	m.clearedFields[gamemail.FieldStatsAt] = struct{}{}
-}
-
-// StatsAtCleared returns if the "stats_at" field was cleared in this mutation.
-func (m *GameMailMutation) StatsAtCleared() bool {
-	_, ok := m.clearedFields[gamemail.FieldStatsAt]
-	return ok
-}
-
-// ResetStatsAt resets all changes to the "stats_at" field.
-func (m *GameMailMutation) ResetStatsAt() {
-	m.stats_at = nil
-	delete(m.clearedFields, gamemail.FieldStatsAt)
-}
-
-// SetError sets the "error" field.
-func (m *GameMailMutation) SetError(s string) {
-	m.error = &s
-}
-
-// Error returns the value of the "error" field in the mutation.
-func (m *GameMailMutation) Error() (r string, exists bool) {
-	v := m.error
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldError returns the old "error" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldError(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldError is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldError requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldError: %w", err)
-	}
-	return oldValue.Error, nil
-}
-
-// ResetError resets all changes to the "error" field.
-func (m *GameMailMutation) ResetError() {
-	m.error = nil
-}
-
-// SetExecutionID sets the "execution_id" field.
-func (m *GameMailMutation) SetExecutionID(s string) {
-	m.execution_id = &s
-}
-
-// ExecutionID returns the value of the "execution_id" field in the mutation.
-func (m *GameMailMutation) ExecutionID() (r string, exists bool) {
-	v := m.execution_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExecutionID returns the old "execution_id" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldExecutionID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExecutionID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExecutionID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExecutionID: %w", err)
-	}
-	return oldValue.ExecutionID, nil
-}
-
-// ResetExecutionID resets all changes to the "execution_id" field.
-func (m *GameMailMutation) ResetExecutionID() {
-	m.execution_id = nil
-}
-
-// SetCreatedBy sets the "created_by" field.
-func (m *GameMailMutation) SetCreatedBy(s string) {
-	m.created_by = &s
-}
-
-// CreatedBy returns the value of the "created_by" field in the mutation.
-func (m *GameMailMutation) CreatedBy() (r string, exists bool) {
-	v := m.created_by
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedBy returns the old "created_by" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
-	}
-	return oldValue.CreatedBy, nil
-}
-
-// ResetCreatedBy resets all changes to the "created_by" field.
-func (m *GameMailMutation) ResetCreatedBy() {
-	m.created_by = nil
-}
-
-// SetCreatedByName sets the "created_by_name" field.
-func (m *GameMailMutation) SetCreatedByName(s string) {
-	m.created_by_name = &s
-}
-
-// CreatedByName returns the value of the "created_by_name" field in the mutation.
-func (m *GameMailMutation) CreatedByName() (r string, exists bool) {
-	v := m.created_by_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedByName returns the old "created_by_name" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldCreatedByName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedByName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedByName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedByName: %w", err)
-	}
-	return oldValue.CreatedByName, nil
-}
-
-// ResetCreatedByName resets all changes to the "created_by_name" field.
-func (m *GameMailMutation) ResetCreatedByName() {
-	m.created_by_name = nil
-}
-
-// SetUpdatedByName sets the "updated_by_name" field.
-func (m *GameMailMutation) SetUpdatedByName(s string) {
-	m.updated_by_name = &s
-}
-
-// UpdatedByName returns the value of the "updated_by_name" field in the mutation.
-func (m *GameMailMutation) UpdatedByName() (r string, exists bool) {
-	v := m.updated_by_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedByName returns the old "updated_by_name" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldUpdatedByName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedByName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedByName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedByName: %w", err)
-	}
-	return oldValue.UpdatedByName, nil
-}
-
-// ResetUpdatedByName resets all changes to the "updated_by_name" field.
-func (m *GameMailMutation) ResetUpdatedByName() {
-	m.updated_by_name = nil
-}
-
-// SetSentBy sets the "sent_by" field.
-func (m *GameMailMutation) SetSentBy(s string) {
-	m.sent_by = &s
-}
-
-// SentBy returns the value of the "sent_by" field in the mutation.
-func (m *GameMailMutation) SentBy() (r string, exists bool) {
-	v := m.sent_by
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSentBy returns the old "sent_by" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldSentBy(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSentBy is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSentBy requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSentBy: %w", err)
-	}
-	return oldValue.SentBy, nil
-}
-
-// ResetSentBy resets all changes to the "sent_by" field.
-func (m *GameMailMutation) ResetSentBy() {
-	m.sent_by = nil
-}
-
-// SetSentByName sets the "sent_by_name" field.
-func (m *GameMailMutation) SetSentByName(s string) {
-	m.sent_by_name = &s
-}
-
-// SentByName returns the value of the "sent_by_name" field in the mutation.
-func (m *GameMailMutation) SentByName() (r string, exists bool) {
-	v := m.sent_by_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSentByName returns the old "sent_by_name" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldSentByName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSentByName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSentByName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSentByName: %w", err)
-	}
-	return oldValue.SentByName, nil
-}
-
-// ResetSentByName resets all changes to the "sent_by_name" field.
-func (m *GameMailMutation) ResetSentByName() {
-	m.sent_by_name = nil
-}
-
-// SetSentAt sets the "sent_at" field.
-func (m *GameMailMutation) SetSentAt(t time.Time) {
-	m.sent_at = &t
-}
-
-// SentAt returns the value of the "sent_at" field in the mutation.
-func (m *GameMailMutation) SentAt() (r time.Time, exists bool) {
-	v := m.sent_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSentAt returns the old "sent_at" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldSentAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSentAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSentAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSentAt: %w", err)
-	}
-	return oldValue.SentAt, nil
-}
-
-// ClearSentAt clears the value of the "sent_at" field.
-func (m *GameMailMutation) ClearSentAt() {
-	m.sent_at = nil
-	m.clearedFields[gamemail.FieldSentAt] = struct{}{}
-}
-
-// SentAtCleared returns if the "sent_at" field was cleared in this mutation.
-func (m *GameMailMutation) SentAtCleared() bool {
-	_, ok := m.clearedFields[gamemail.FieldSentAt]
-	return ok
-}
-
-// ResetSentAt resets all changes to the "sent_at" field.
-func (m *GameMailMutation) ResetSentAt() {
-	m.sent_at = nil
-	delete(m.clearedFields, gamemail.FieldSentAt)
-}
-
-// SetRevokedByName sets the "revoked_by_name" field.
-func (m *GameMailMutation) SetRevokedByName(s string) {
-	m.revoked_by_name = &s
-}
-
-// RevokedByName returns the value of the "revoked_by_name" field in the mutation.
-func (m *GameMailMutation) RevokedByName() (r string, exists bool) {
-	v := m.revoked_by_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRevokedByName returns the old "revoked_by_name" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldRevokedByName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRevokedByName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRevokedByName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRevokedByName: %w", err)
-	}
-	return oldValue.RevokedByName, nil
-}
-
-// ResetRevokedByName resets all changes to the "revoked_by_name" field.
-func (m *GameMailMutation) ResetRevokedByName() {
-	m.revoked_by_name = nil
-}
-
-// SetRevokedAt sets the "revoked_at" field.
-func (m *GameMailMutation) SetRevokedAt(t time.Time) {
-	m.revoked_at = &t
-}
-
-// RevokedAt returns the value of the "revoked_at" field in the mutation.
-func (m *GameMailMutation) RevokedAt() (r time.Time, exists bool) {
-	v := m.revoked_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRevokedAt returns the old "revoked_at" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldRevokedAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRevokedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRevokedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRevokedAt: %w", err)
-	}
-	return oldValue.RevokedAt, nil
-}
-
-// ClearRevokedAt clears the value of the "revoked_at" field.
-func (m *GameMailMutation) ClearRevokedAt() {
-	m.revoked_at = nil
-	m.clearedFields[gamemail.FieldRevokedAt] = struct{}{}
-}
-
-// RevokedAtCleared returns if the "revoked_at" field was cleared in this mutation.
-func (m *GameMailMutation) RevokedAtCleared() bool {
-	_, ok := m.clearedFields[gamemail.FieldRevokedAt]
-	return ok
-}
-
-// ResetRevokedAt resets all changes to the "revoked_at" field.
-func (m *GameMailMutation) ResetRevokedAt() {
-	m.revoked_at = nil
-	delete(m.clearedFields, gamemail.FieldRevokedAt)
-}
-
-// SetRevokedCount sets the "revoked_count" field.
-func (m *GameMailMutation) SetRevokedCount(i int) {
-	m.revoked_count = &i
-	m.addrevoked_count = nil
-}
-
-// RevokedCount returns the value of the "revoked_count" field in the mutation.
-func (m *GameMailMutation) RevokedCount() (r int, exists bool) {
-	v := m.revoked_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRevokedCount returns the old "revoked_count" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldRevokedCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRevokedCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRevokedCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRevokedCount: %w", err)
-	}
-	return oldValue.RevokedCount, nil
-}
-
-// AddRevokedCount adds i to the "revoked_count" field.
-func (m *GameMailMutation) AddRevokedCount(i int) {
-	if m.addrevoked_count != nil {
-		*m.addrevoked_count += i
-	} else {
-		m.addrevoked_count = &i
-	}
-}
-
-// AddedRevokedCount returns the value that was added to the "revoked_count" field in this mutation.
-func (m *GameMailMutation) AddedRevokedCount() (r int, exists bool) {
-	v := m.addrevoked_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRevokedCount resets all changes to the "revoked_count" field.
-func (m *GameMailMutation) ResetRevokedCount() {
-	m.revoked_count = nil
-	m.addrevoked_count = nil
-}
-
-// SetRevokeExecutionID sets the "revoke_execution_id" field.
-func (m *GameMailMutation) SetRevokeExecutionID(s string) {
-	m.revoke_execution_id = &s
-}
-
-// RevokeExecutionID returns the value of the "revoke_execution_id" field in the mutation.
-func (m *GameMailMutation) RevokeExecutionID() (r string, exists bool) {
-	v := m.revoke_execution_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRevokeExecutionID returns the old "revoke_execution_id" field's value of the GameMail entity.
-// If the GameMail object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameMailMutation) OldRevokeExecutionID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRevokeExecutionID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRevokeExecutionID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRevokeExecutionID: %w", err)
-	}
-	return oldValue.RevokeExecutionID, nil
-}
-
-// ResetRevokeExecutionID resets all changes to the "revoke_execution_id" field.
-func (m *GameMailMutation) ResetRevokeExecutionID() {
-	m.revoke_execution_id = nil
-}
-
-// Where appends a list predicates to the GameMailMutation builder.
-func (m *GameMailMutation) Where(ps ...predicate.GameMail) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the GameMailMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *GameMailMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.GameMail, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *GameMailMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *GameMailMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (GameMail).
-func (m *GameMailMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *GameMailMutation) Fields() []string {
-	fields := make([]string, 0, 31)
-	if m.create_time != nil {
-		fields = append(fields, gamemail.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, gamemail.FieldUpdateTime)
-	}
-	if m.server_id != nil {
-		fields = append(fields, gamemail.FieldServerID)
-	}
-	if m.title != nil {
-		fields = append(fields, gamemail.FieldTitle)
-	}
-	if m.body != nil {
-		fields = append(fields, gamemail.FieldBody)
-	}
-	if m.rewards != nil {
-		fields = append(fields, gamemail.FieldRewards)
-	}
-	if m.target != nil {
-		fields = append(fields, gamemail.FieldTarget)
-	}
-	if m.players != nil {
-		fields = append(fields, gamemail.FieldPlayers)
-	}
-	if m.condition != nil {
-		fields = append(fields, gamemail.FieldCondition)
-	}
-	if m.exclude_banned != nil {
-		fields = append(fields, gamemail.FieldExcludeBanned)
-	}
-	if m.expire_days != nil {
-		fields = append(fields, gamemail.FieldExpireDays)
-	}
-	if m.scheduled_at != nil {
-		fields = append(fields, gamemail.FieldScheduledAt)
-	}
-	if m.status != nil {
-		fields = append(fields, gamemail.FieldStatus)
-	}
-	if m.matched_count != nil {
-		fields = append(fields, gamemail.FieldMatchedCount)
-	}
-	if m.matched_at != nil {
-		fields = append(fields, gamemail.FieldMatchedAt)
-	}
-	if m.recipient_count != nil {
-		fields = append(fields, gamemail.FieldRecipientCount)
-	}
-	if m.failed_count != nil {
-		fields = append(fields, gamemail.FieldFailedCount)
-	}
-	if m.claimed_count != nil {
-		fields = append(fields, gamemail.FieldClaimedCount)
-	}
-	if m.stats_at != nil {
-		fields = append(fields, gamemail.FieldStatsAt)
-	}
-	if m.error != nil {
-		fields = append(fields, gamemail.FieldError)
-	}
-	if m.execution_id != nil {
-		fields = append(fields, gamemail.FieldExecutionID)
-	}
-	if m.created_by != nil {
-		fields = append(fields, gamemail.FieldCreatedBy)
-	}
-	if m.created_by_name != nil {
-		fields = append(fields, gamemail.FieldCreatedByName)
-	}
-	if m.updated_by_name != nil {
-		fields = append(fields, gamemail.FieldUpdatedByName)
-	}
-	if m.sent_by != nil {
-		fields = append(fields, gamemail.FieldSentBy)
-	}
-	if m.sent_by_name != nil {
-		fields = append(fields, gamemail.FieldSentByName)
-	}
-	if m.sent_at != nil {
-		fields = append(fields, gamemail.FieldSentAt)
-	}
-	if m.revoked_by_name != nil {
-		fields = append(fields, gamemail.FieldRevokedByName)
-	}
-	if m.revoked_at != nil {
-		fields = append(fields, gamemail.FieldRevokedAt)
-	}
-	if m.revoked_count != nil {
-		fields = append(fields, gamemail.FieldRevokedCount)
-	}
-	if m.revoke_execution_id != nil {
-		fields = append(fields, gamemail.FieldRevokeExecutionID)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *GameMailMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case gamemail.FieldCreateTime:
-		return m.CreateTime()
-	case gamemail.FieldUpdateTime:
-		return m.UpdateTime()
-	case gamemail.FieldServerID:
-		return m.ServerID()
-	case gamemail.FieldTitle:
-		return m.Title()
-	case gamemail.FieldBody:
-		return m.Body()
-	case gamemail.FieldRewards:
-		return m.Rewards()
-	case gamemail.FieldTarget:
-		return m.Target()
-	case gamemail.FieldPlayers:
-		return m.Players()
-	case gamemail.FieldCondition:
-		return m.Condition()
-	case gamemail.FieldExcludeBanned:
-		return m.ExcludeBanned()
-	case gamemail.FieldExpireDays:
-		return m.ExpireDays()
-	case gamemail.FieldScheduledAt:
-		return m.ScheduledAt()
-	case gamemail.FieldStatus:
-		return m.Status()
-	case gamemail.FieldMatchedCount:
-		return m.MatchedCount()
-	case gamemail.FieldMatchedAt:
-		return m.MatchedAt()
-	case gamemail.FieldRecipientCount:
-		return m.RecipientCount()
-	case gamemail.FieldFailedCount:
-		return m.FailedCount()
-	case gamemail.FieldClaimedCount:
-		return m.ClaimedCount()
-	case gamemail.FieldStatsAt:
-		return m.StatsAt()
-	case gamemail.FieldError:
-		return m.Error()
-	case gamemail.FieldExecutionID:
-		return m.ExecutionID()
-	case gamemail.FieldCreatedBy:
-		return m.CreatedBy()
-	case gamemail.FieldCreatedByName:
-		return m.CreatedByName()
-	case gamemail.FieldUpdatedByName:
-		return m.UpdatedByName()
-	case gamemail.FieldSentBy:
-		return m.SentBy()
-	case gamemail.FieldSentByName:
-		return m.SentByName()
-	case gamemail.FieldSentAt:
-		return m.SentAt()
-	case gamemail.FieldRevokedByName:
-		return m.RevokedByName()
-	case gamemail.FieldRevokedAt:
-		return m.RevokedAt()
-	case gamemail.FieldRevokedCount:
-		return m.RevokedCount()
-	case gamemail.FieldRevokeExecutionID:
-		return m.RevokeExecutionID()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *GameMailMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case gamemail.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case gamemail.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
-	case gamemail.FieldServerID:
-		return m.OldServerID(ctx)
-	case gamemail.FieldTitle:
-		return m.OldTitle(ctx)
-	case gamemail.FieldBody:
-		return m.OldBody(ctx)
-	case gamemail.FieldRewards:
-		return m.OldRewards(ctx)
-	case gamemail.FieldTarget:
-		return m.OldTarget(ctx)
-	case gamemail.FieldPlayers:
-		return m.OldPlayers(ctx)
-	case gamemail.FieldCondition:
-		return m.OldCondition(ctx)
-	case gamemail.FieldExcludeBanned:
-		return m.OldExcludeBanned(ctx)
-	case gamemail.FieldExpireDays:
-		return m.OldExpireDays(ctx)
-	case gamemail.FieldScheduledAt:
-		return m.OldScheduledAt(ctx)
-	case gamemail.FieldStatus:
-		return m.OldStatus(ctx)
-	case gamemail.FieldMatchedCount:
-		return m.OldMatchedCount(ctx)
-	case gamemail.FieldMatchedAt:
-		return m.OldMatchedAt(ctx)
-	case gamemail.FieldRecipientCount:
-		return m.OldRecipientCount(ctx)
-	case gamemail.FieldFailedCount:
-		return m.OldFailedCount(ctx)
-	case gamemail.FieldClaimedCount:
-		return m.OldClaimedCount(ctx)
-	case gamemail.FieldStatsAt:
-		return m.OldStatsAt(ctx)
-	case gamemail.FieldError:
-		return m.OldError(ctx)
-	case gamemail.FieldExecutionID:
-		return m.OldExecutionID(ctx)
-	case gamemail.FieldCreatedBy:
-		return m.OldCreatedBy(ctx)
-	case gamemail.FieldCreatedByName:
-		return m.OldCreatedByName(ctx)
-	case gamemail.FieldUpdatedByName:
-		return m.OldUpdatedByName(ctx)
-	case gamemail.FieldSentBy:
-		return m.OldSentBy(ctx)
-	case gamemail.FieldSentByName:
-		return m.OldSentByName(ctx)
-	case gamemail.FieldSentAt:
-		return m.OldSentAt(ctx)
-	case gamemail.FieldRevokedByName:
-		return m.OldRevokedByName(ctx)
-	case gamemail.FieldRevokedAt:
-		return m.OldRevokedAt(ctx)
-	case gamemail.FieldRevokedCount:
-		return m.OldRevokedCount(ctx)
-	case gamemail.FieldRevokeExecutionID:
-		return m.OldRevokeExecutionID(ctx)
-	}
-	return nil, fmt.Errorf("unknown GameMail field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GameMailMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case gamemail.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case gamemail.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
-		return nil
-	case gamemail.FieldServerID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetServerID(v)
-		return nil
-	case gamemail.FieldTitle:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTitle(v)
-		return nil
-	case gamemail.FieldBody:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBody(v)
-		return nil
-	case gamemail.FieldRewards:
-		v, ok := value.([]schema.GameReward)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRewards(v)
-		return nil
-	case gamemail.FieldTarget:
-		v, ok := value.(gamemail.Target)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTarget(v)
-		return nil
-	case gamemail.FieldPlayers:
-		v, ok := value.([]schema.GmTarget)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPlayers(v)
-		return nil
-	case gamemail.FieldCondition:
-		v, ok := value.(schema.GameMailCondition)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCondition(v)
-		return nil
-	case gamemail.FieldExcludeBanned:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExcludeBanned(v)
-		return nil
-	case gamemail.FieldExpireDays:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExpireDays(v)
-		return nil
-	case gamemail.FieldScheduledAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetScheduledAt(v)
-		return nil
-	case gamemail.FieldStatus:
-		v, ok := value.(gamemail.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
-		return nil
-	case gamemail.FieldMatchedCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMatchedCount(v)
-		return nil
-	case gamemail.FieldMatchedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMatchedAt(v)
-		return nil
-	case gamemail.FieldRecipientCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRecipientCount(v)
-		return nil
-	case gamemail.FieldFailedCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFailedCount(v)
-		return nil
-	case gamemail.FieldClaimedCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetClaimedCount(v)
-		return nil
-	case gamemail.FieldStatsAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatsAt(v)
-		return nil
-	case gamemail.FieldError:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetError(v)
-		return nil
-	case gamemail.FieldExecutionID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExecutionID(v)
-		return nil
-	case gamemail.FieldCreatedBy:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedBy(v)
-		return nil
-	case gamemail.FieldCreatedByName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedByName(v)
-		return nil
-	case gamemail.FieldUpdatedByName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedByName(v)
-		return nil
-	case gamemail.FieldSentBy:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSentBy(v)
-		return nil
-	case gamemail.FieldSentByName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSentByName(v)
-		return nil
-	case gamemail.FieldSentAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSentAt(v)
-		return nil
-	case gamemail.FieldRevokedByName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRevokedByName(v)
-		return nil
-	case gamemail.FieldRevokedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRevokedAt(v)
-		return nil
-	case gamemail.FieldRevokedCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRevokedCount(v)
-		return nil
-	case gamemail.FieldRevokeExecutionID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRevokeExecutionID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown GameMail field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *GameMailMutation) AddedFields() []string {
-	var fields []string
-	if m.addexpire_days != nil {
-		fields = append(fields, gamemail.FieldExpireDays)
-	}
-	if m.addmatched_count != nil {
-		fields = append(fields, gamemail.FieldMatchedCount)
-	}
-	if m.addrecipient_count != nil {
-		fields = append(fields, gamemail.FieldRecipientCount)
-	}
-	if m.addfailed_count != nil {
-		fields = append(fields, gamemail.FieldFailedCount)
-	}
-	if m.addclaimed_count != nil {
-		fields = append(fields, gamemail.FieldClaimedCount)
-	}
-	if m.addrevoked_count != nil {
-		fields = append(fields, gamemail.FieldRevokedCount)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *GameMailMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case gamemail.FieldExpireDays:
-		return m.AddedExpireDays()
-	case gamemail.FieldMatchedCount:
-		return m.AddedMatchedCount()
-	case gamemail.FieldRecipientCount:
-		return m.AddedRecipientCount()
-	case gamemail.FieldFailedCount:
-		return m.AddedFailedCount()
-	case gamemail.FieldClaimedCount:
-		return m.AddedClaimedCount()
-	case gamemail.FieldRevokedCount:
-		return m.AddedRevokedCount()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *GameMailMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case gamemail.FieldExpireDays:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddExpireDays(v)
-		return nil
-	case gamemail.FieldMatchedCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddMatchedCount(v)
-		return nil
-	case gamemail.FieldRecipientCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRecipientCount(v)
-		return nil
-	case gamemail.FieldFailedCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddFailedCount(v)
-		return nil
-	case gamemail.FieldClaimedCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddClaimedCount(v)
-		return nil
-	case gamemail.FieldRevokedCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddRevokedCount(v)
-		return nil
-	}
-	return fmt.Errorf("unknown GameMail numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *GameMailMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(gamemail.FieldRewards) {
-		fields = append(fields, gamemail.FieldRewards)
-	}
-	if m.FieldCleared(gamemail.FieldPlayers) {
-		fields = append(fields, gamemail.FieldPlayers)
-	}
-	if m.FieldCleared(gamemail.FieldCondition) {
-		fields = append(fields, gamemail.FieldCondition)
-	}
-	if m.FieldCleared(gamemail.FieldScheduledAt) {
-		fields = append(fields, gamemail.FieldScheduledAt)
-	}
-	if m.FieldCleared(gamemail.FieldMatchedAt) {
-		fields = append(fields, gamemail.FieldMatchedAt)
-	}
-	if m.FieldCleared(gamemail.FieldStatsAt) {
-		fields = append(fields, gamemail.FieldStatsAt)
-	}
-	if m.FieldCleared(gamemail.FieldSentAt) {
-		fields = append(fields, gamemail.FieldSentAt)
-	}
-	if m.FieldCleared(gamemail.FieldRevokedAt) {
-		fields = append(fields, gamemail.FieldRevokedAt)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *GameMailMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *GameMailMutation) ClearField(name string) error {
-	switch name {
-	case gamemail.FieldRewards:
-		m.ClearRewards()
-		return nil
-	case gamemail.FieldPlayers:
-		m.ClearPlayers()
-		return nil
-	case gamemail.FieldCondition:
-		m.ClearCondition()
-		return nil
-	case gamemail.FieldScheduledAt:
-		m.ClearScheduledAt()
-		return nil
-	case gamemail.FieldMatchedAt:
-		m.ClearMatchedAt()
-		return nil
-	case gamemail.FieldStatsAt:
-		m.ClearStatsAt()
-		return nil
-	case gamemail.FieldSentAt:
-		m.ClearSentAt()
-		return nil
-	case gamemail.FieldRevokedAt:
-		m.ClearRevokedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown GameMail nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *GameMailMutation) ResetField(name string) error {
-	switch name {
-	case gamemail.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case gamemail.FieldUpdateTime:
-		m.ResetUpdateTime()
-		return nil
-	case gamemail.FieldServerID:
-		m.ResetServerID()
-		return nil
-	case gamemail.FieldTitle:
-		m.ResetTitle()
-		return nil
-	case gamemail.FieldBody:
-		m.ResetBody()
-		return nil
-	case gamemail.FieldRewards:
-		m.ResetRewards()
-		return nil
-	case gamemail.FieldTarget:
-		m.ResetTarget()
-		return nil
-	case gamemail.FieldPlayers:
-		m.ResetPlayers()
-		return nil
-	case gamemail.FieldCondition:
-		m.ResetCondition()
-		return nil
-	case gamemail.FieldExcludeBanned:
-		m.ResetExcludeBanned()
-		return nil
-	case gamemail.FieldExpireDays:
-		m.ResetExpireDays()
-		return nil
-	case gamemail.FieldScheduledAt:
-		m.ResetScheduledAt()
-		return nil
-	case gamemail.FieldStatus:
-		m.ResetStatus()
-		return nil
-	case gamemail.FieldMatchedCount:
-		m.ResetMatchedCount()
-		return nil
-	case gamemail.FieldMatchedAt:
-		m.ResetMatchedAt()
-		return nil
-	case gamemail.FieldRecipientCount:
-		m.ResetRecipientCount()
-		return nil
-	case gamemail.FieldFailedCount:
-		m.ResetFailedCount()
-		return nil
-	case gamemail.FieldClaimedCount:
-		m.ResetClaimedCount()
-		return nil
-	case gamemail.FieldStatsAt:
-		m.ResetStatsAt()
-		return nil
-	case gamemail.FieldError:
-		m.ResetError()
-		return nil
-	case gamemail.FieldExecutionID:
-		m.ResetExecutionID()
-		return nil
-	case gamemail.FieldCreatedBy:
-		m.ResetCreatedBy()
-		return nil
-	case gamemail.FieldCreatedByName:
-		m.ResetCreatedByName()
-		return nil
-	case gamemail.FieldUpdatedByName:
-		m.ResetUpdatedByName()
-		return nil
-	case gamemail.FieldSentBy:
-		m.ResetSentBy()
-		return nil
-	case gamemail.FieldSentByName:
-		m.ResetSentByName()
-		return nil
-	case gamemail.FieldSentAt:
-		m.ResetSentAt()
-		return nil
-	case gamemail.FieldRevokedByName:
-		m.ResetRevokedByName()
-		return nil
-	case gamemail.FieldRevokedAt:
-		m.ResetRevokedAt()
-		return nil
-	case gamemail.FieldRevokedCount:
-		m.ResetRevokedCount()
-		return nil
-	case gamemail.FieldRevokeExecutionID:
-		m.ResetRevokeExecutionID()
-		return nil
-	}
-	return fmt.Errorf("unknown GameMail field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *GameMailMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *GameMailMutation) AddedIDs(name string) []ent.Value {
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *GameMailMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *GameMailMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *GameMailMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *GameMailMutation) EdgeCleared(name string) bool {
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *GameMailMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown GameMail unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *GameMailMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown GameMail edge %s", name)
-}
-
 // GameRecentServerMutation represents an operation that mutates the GameRecentServer nodes in the graph.
 type GameRecentServerMutation struct {
 	config
@@ -14155,53 +11811,53 @@ func (m *GameRecentServerMutation) ResetEdge(name string) error {
 // GameServerMutation represents an operation that mutates the GameServer nodes in the graph.
 type GameServerMutation struct {
 	config
-	op                      Op
-	typ                     string
-	id                      *string
-	create_time             *time.Time
-	update_time             *time.Time
-	game                    *string
-	name                    *string
-	tags                    *[]string
-	appendtags              []string
-	mode                    *gameserver.Mode
-	node_id                 *string
-	install_dir             *string
-	processes               *[]schema.GameServerProcess
-	appendprocesses         []schema.GameServerProcess
-	options                 *string
-	cover                   *string
-	launcher_icon           *string
-	launcher_icon_key       *string
-	launcher_background     *string
-	launcher_background_key *string
-	mgp_endpoint            *string
-	key_id                  *string
-	secret                  *string
-	key_rotated_at          *time.Time
-	manifest                *string
-	manifest_at             *time.Time
-	status                  *string
-	status_at               *time.Time
-	probe_ok                *bool
-	probe_latency_ms        *int
-	addprobe_latency_ms     *int
-	probe_error             *string
-	probe_at                *time.Time
-	last_online_at          *time.Time
-	timezone                *string
-	passport_visibility     *gameserver.PassportVisibility
-	passport_invite_code    *string
-	client_sdk_url          *string
-	client_game_url         *string
-	client_resource_url     *string
-	client_app_id           *string
-	client_app_secret       *string
-	remark                  *string
-	clearedFields           map[string]struct{}
-	done                    bool
-	oldValue                func(context.Context) (*GameServer, error)
-	predicates              []predicate.GameServer
+	op                   Op
+	typ                  string
+	id                   *string
+	create_time          *time.Time
+	update_time          *time.Time
+	game                 *string
+	name                 *string
+	tags                 *[]string
+	appendtags           []string
+	mode                 *gameserver.Mode
+	node_id              *string
+	install_dir          *string
+	processes            *[]schema.GameServerProcess
+	appendprocesses      []schema.GameServerProcess
+	options              *string
+	cover                *string
+	app_icon             *string
+	app_icon_key         *string
+	app_background       *string
+	app_background_key   *string
+	mgp_endpoint         *string
+	key_id               *string
+	secret               *string
+	key_rotated_at       *time.Time
+	manifest             *string
+	manifest_at          *time.Time
+	status               *string
+	status_at            *time.Time
+	probe_ok             *bool
+	probe_latency_ms     *int
+	addprobe_latency_ms  *int
+	probe_error          *string
+	probe_at             *time.Time
+	last_online_at       *time.Time
+	timezone             *string
+	passport_visibility  *gameserver.PassportVisibility
+	passport_invite_code *string
+	client_sdk_url       *string
+	client_game_url      *string
+	client_resource_url  *string
+	client_app_id        *string
+	client_app_secret    *string
+	remark               *string
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*GameServer, error)
+	predicates           []predicate.GameServer
 }
 
 var _ ent.Mutation = (*GameServerMutation)(nil)
@@ -14762,148 +12418,148 @@ func (m *GameServerMutation) ResetCover() {
 	m.cover = nil
 }
 
-// SetLauncherIcon sets the "launcher_icon" field.
-func (m *GameServerMutation) SetLauncherIcon(s string) {
-	m.launcher_icon = &s
+// SetAppIcon sets the "app_icon" field.
+func (m *GameServerMutation) SetAppIcon(s string) {
+	m.app_icon = &s
 }
 
-// LauncherIcon returns the value of the "launcher_icon" field in the mutation.
-func (m *GameServerMutation) LauncherIcon() (r string, exists bool) {
-	v := m.launcher_icon
+// AppIcon returns the value of the "app_icon" field in the mutation.
+func (m *GameServerMutation) AppIcon() (r string, exists bool) {
+	v := m.app_icon
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLauncherIcon returns the old "launcher_icon" field's value of the GameServer entity.
+// OldAppIcon returns the old "app_icon" field's value of the GameServer entity.
 // If the GameServer object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameServerMutation) OldLauncherIcon(ctx context.Context) (v string, err error) {
+func (m *GameServerMutation) OldAppIcon(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLauncherIcon is only allowed on UpdateOne operations")
+		return v, errors.New("OldAppIcon is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLauncherIcon requires an ID field in the mutation")
+		return v, errors.New("OldAppIcon requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLauncherIcon: %w", err)
+		return v, fmt.Errorf("querying old value for OldAppIcon: %w", err)
 	}
-	return oldValue.LauncherIcon, nil
+	return oldValue.AppIcon, nil
 }
 
-// ResetLauncherIcon resets all changes to the "launcher_icon" field.
-func (m *GameServerMutation) ResetLauncherIcon() {
-	m.launcher_icon = nil
+// ResetAppIcon resets all changes to the "app_icon" field.
+func (m *GameServerMutation) ResetAppIcon() {
+	m.app_icon = nil
 }
 
-// SetLauncherIconKey sets the "launcher_icon_key" field.
-func (m *GameServerMutation) SetLauncherIconKey(s string) {
-	m.launcher_icon_key = &s
+// SetAppIconKey sets the "app_icon_key" field.
+func (m *GameServerMutation) SetAppIconKey(s string) {
+	m.app_icon_key = &s
 }
 
-// LauncherIconKey returns the value of the "launcher_icon_key" field in the mutation.
-func (m *GameServerMutation) LauncherIconKey() (r string, exists bool) {
-	v := m.launcher_icon_key
+// AppIconKey returns the value of the "app_icon_key" field in the mutation.
+func (m *GameServerMutation) AppIconKey() (r string, exists bool) {
+	v := m.app_icon_key
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLauncherIconKey returns the old "launcher_icon_key" field's value of the GameServer entity.
+// OldAppIconKey returns the old "app_icon_key" field's value of the GameServer entity.
 // If the GameServer object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameServerMutation) OldLauncherIconKey(ctx context.Context) (v string, err error) {
+func (m *GameServerMutation) OldAppIconKey(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLauncherIconKey is only allowed on UpdateOne operations")
+		return v, errors.New("OldAppIconKey is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLauncherIconKey requires an ID field in the mutation")
+		return v, errors.New("OldAppIconKey requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLauncherIconKey: %w", err)
+		return v, fmt.Errorf("querying old value for OldAppIconKey: %w", err)
 	}
-	return oldValue.LauncherIconKey, nil
+	return oldValue.AppIconKey, nil
 }
 
-// ResetLauncherIconKey resets all changes to the "launcher_icon_key" field.
-func (m *GameServerMutation) ResetLauncherIconKey() {
-	m.launcher_icon_key = nil
+// ResetAppIconKey resets all changes to the "app_icon_key" field.
+func (m *GameServerMutation) ResetAppIconKey() {
+	m.app_icon_key = nil
 }
 
-// SetLauncherBackground sets the "launcher_background" field.
-func (m *GameServerMutation) SetLauncherBackground(s string) {
-	m.launcher_background = &s
+// SetAppBackground sets the "app_background" field.
+func (m *GameServerMutation) SetAppBackground(s string) {
+	m.app_background = &s
 }
 
-// LauncherBackground returns the value of the "launcher_background" field in the mutation.
-func (m *GameServerMutation) LauncherBackground() (r string, exists bool) {
-	v := m.launcher_background
+// AppBackground returns the value of the "app_background" field in the mutation.
+func (m *GameServerMutation) AppBackground() (r string, exists bool) {
+	v := m.app_background
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLauncherBackground returns the old "launcher_background" field's value of the GameServer entity.
+// OldAppBackground returns the old "app_background" field's value of the GameServer entity.
 // If the GameServer object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameServerMutation) OldLauncherBackground(ctx context.Context) (v string, err error) {
+func (m *GameServerMutation) OldAppBackground(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLauncherBackground is only allowed on UpdateOne operations")
+		return v, errors.New("OldAppBackground is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLauncherBackground requires an ID field in the mutation")
+		return v, errors.New("OldAppBackground requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLauncherBackground: %w", err)
+		return v, fmt.Errorf("querying old value for OldAppBackground: %w", err)
 	}
-	return oldValue.LauncherBackground, nil
+	return oldValue.AppBackground, nil
 }
 
-// ResetLauncherBackground resets all changes to the "launcher_background" field.
-func (m *GameServerMutation) ResetLauncherBackground() {
-	m.launcher_background = nil
+// ResetAppBackground resets all changes to the "app_background" field.
+func (m *GameServerMutation) ResetAppBackground() {
+	m.app_background = nil
 }
 
-// SetLauncherBackgroundKey sets the "launcher_background_key" field.
-func (m *GameServerMutation) SetLauncherBackgroundKey(s string) {
-	m.launcher_background_key = &s
+// SetAppBackgroundKey sets the "app_background_key" field.
+func (m *GameServerMutation) SetAppBackgroundKey(s string) {
+	m.app_background_key = &s
 }
 
-// LauncherBackgroundKey returns the value of the "launcher_background_key" field in the mutation.
-func (m *GameServerMutation) LauncherBackgroundKey() (r string, exists bool) {
-	v := m.launcher_background_key
+// AppBackgroundKey returns the value of the "app_background_key" field in the mutation.
+func (m *GameServerMutation) AppBackgroundKey() (r string, exists bool) {
+	v := m.app_background_key
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLauncherBackgroundKey returns the old "launcher_background_key" field's value of the GameServer entity.
+// OldAppBackgroundKey returns the old "app_background_key" field's value of the GameServer entity.
 // If the GameServer object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GameServerMutation) OldLauncherBackgroundKey(ctx context.Context) (v string, err error) {
+func (m *GameServerMutation) OldAppBackgroundKey(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLauncherBackgroundKey is only allowed on UpdateOne operations")
+		return v, errors.New("OldAppBackgroundKey is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLauncherBackgroundKey requires an ID field in the mutation")
+		return v, errors.New("OldAppBackgroundKey requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLauncherBackgroundKey: %w", err)
+		return v, fmt.Errorf("querying old value for OldAppBackgroundKey: %w", err)
 	}
-	return oldValue.LauncherBackgroundKey, nil
+	return oldValue.AppBackgroundKey, nil
 }
 
-// ResetLauncherBackgroundKey resets all changes to the "launcher_background_key" field.
-func (m *GameServerMutation) ResetLauncherBackgroundKey() {
-	m.launcher_background_key = nil
+// ResetAppBackgroundKey resets all changes to the "app_background_key" field.
+func (m *GameServerMutation) ResetAppBackgroundKey() {
+	m.app_background_key = nil
 }
 
 // SetMgpEndpoint sets the "mgp_endpoint" field.
@@ -15864,17 +13520,17 @@ func (m *GameServerMutation) Fields() []string {
 	if m.cover != nil {
 		fields = append(fields, gameserver.FieldCover)
 	}
-	if m.launcher_icon != nil {
-		fields = append(fields, gameserver.FieldLauncherIcon)
+	if m.app_icon != nil {
+		fields = append(fields, gameserver.FieldAppIcon)
 	}
-	if m.launcher_icon_key != nil {
-		fields = append(fields, gameserver.FieldLauncherIconKey)
+	if m.app_icon_key != nil {
+		fields = append(fields, gameserver.FieldAppIconKey)
 	}
-	if m.launcher_background != nil {
-		fields = append(fields, gameserver.FieldLauncherBackground)
+	if m.app_background != nil {
+		fields = append(fields, gameserver.FieldAppBackground)
 	}
-	if m.launcher_background_key != nil {
-		fields = append(fields, gameserver.FieldLauncherBackgroundKey)
+	if m.app_background_key != nil {
+		fields = append(fields, gameserver.FieldAppBackgroundKey)
 	}
 	if m.mgp_endpoint != nil {
 		fields = append(fields, gameserver.FieldMgpEndpoint)
@@ -15972,14 +13628,14 @@ func (m *GameServerMutation) Field(name string) (ent.Value, bool) {
 		return m.Options()
 	case gameserver.FieldCover:
 		return m.Cover()
-	case gameserver.FieldLauncherIcon:
-		return m.LauncherIcon()
-	case gameserver.FieldLauncherIconKey:
-		return m.LauncherIconKey()
-	case gameserver.FieldLauncherBackground:
-		return m.LauncherBackground()
-	case gameserver.FieldLauncherBackgroundKey:
-		return m.LauncherBackgroundKey()
+	case gameserver.FieldAppIcon:
+		return m.AppIcon()
+	case gameserver.FieldAppIconKey:
+		return m.AppIconKey()
+	case gameserver.FieldAppBackground:
+		return m.AppBackground()
+	case gameserver.FieldAppBackgroundKey:
+		return m.AppBackgroundKey()
 	case gameserver.FieldMgpEndpoint:
 		return m.MgpEndpoint()
 	case gameserver.FieldKeyID:
@@ -16055,14 +13711,14 @@ func (m *GameServerMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldOptions(ctx)
 	case gameserver.FieldCover:
 		return m.OldCover(ctx)
-	case gameserver.FieldLauncherIcon:
-		return m.OldLauncherIcon(ctx)
-	case gameserver.FieldLauncherIconKey:
-		return m.OldLauncherIconKey(ctx)
-	case gameserver.FieldLauncherBackground:
-		return m.OldLauncherBackground(ctx)
-	case gameserver.FieldLauncherBackgroundKey:
-		return m.OldLauncherBackgroundKey(ctx)
+	case gameserver.FieldAppIcon:
+		return m.OldAppIcon(ctx)
+	case gameserver.FieldAppIconKey:
+		return m.OldAppIconKey(ctx)
+	case gameserver.FieldAppBackground:
+		return m.OldAppBackground(ctx)
+	case gameserver.FieldAppBackgroundKey:
+		return m.OldAppBackgroundKey(ctx)
 	case gameserver.FieldMgpEndpoint:
 		return m.OldMgpEndpoint(ctx)
 	case gameserver.FieldKeyID:
@@ -16193,33 +13849,33 @@ func (m *GameServerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCover(v)
 		return nil
-	case gameserver.FieldLauncherIcon:
+	case gameserver.FieldAppIcon:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLauncherIcon(v)
+		m.SetAppIcon(v)
 		return nil
-	case gameserver.FieldLauncherIconKey:
+	case gameserver.FieldAppIconKey:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLauncherIconKey(v)
+		m.SetAppIconKey(v)
 		return nil
-	case gameserver.FieldLauncherBackground:
+	case gameserver.FieldAppBackground:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLauncherBackground(v)
+		m.SetAppBackground(v)
 		return nil
-	case gameserver.FieldLauncherBackgroundKey:
+	case gameserver.FieldAppBackgroundKey:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLauncherBackgroundKey(v)
+		m.SetAppBackgroundKey(v)
 		return nil
 	case gameserver.FieldMgpEndpoint:
 		v, ok := value.(string)
@@ -16523,17 +14179,17 @@ func (m *GameServerMutation) ResetField(name string) error {
 	case gameserver.FieldCover:
 		m.ResetCover()
 		return nil
-	case gameserver.FieldLauncherIcon:
-		m.ResetLauncherIcon()
+	case gameserver.FieldAppIcon:
+		m.ResetAppIcon()
 		return nil
-	case gameserver.FieldLauncherIconKey:
-		m.ResetLauncherIconKey()
+	case gameserver.FieldAppIconKey:
+		m.ResetAppIconKey()
 		return nil
-	case gameserver.FieldLauncherBackground:
-		m.ResetLauncherBackground()
+	case gameserver.FieldAppBackground:
+		m.ResetAppBackground()
 		return nil
-	case gameserver.FieldLauncherBackgroundKey:
-		m.ResetLauncherBackgroundKey()
+	case gameserver.FieldAppBackgroundKey:
+		m.ResetAppBackgroundKey()
 		return nil
 	case gameserver.FieldMgpEndpoint:
 		m.ResetMgpEndpoint()

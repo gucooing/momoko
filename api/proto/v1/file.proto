@@ -1038,8 +1038,6 @@ message CancelFileUploadResponse {}
 
 // 上传信息
 message UploadInfo {
-  reserved 2; // 原 upload_part_url_path_template（模板式上传地址），已被 part_urls 取代
-  reserved "upload_part_url_path_template";
   // 上传会话 id
   string upload_id = 1;
   // 实际分片大小（字节）

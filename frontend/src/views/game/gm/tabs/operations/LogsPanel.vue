@@ -1,12 +1,9 @@
-<!-- GM 运营 · GM 记录：待审批卡片（批准 / 驳回）、筛选（执行者类型、待审批、失败）、时间范围、风险、搜索、
-     分页表格、详情抽屉（不含请求参数）与按当前筛选导出 CSV。 -->
+<!-- GM 运营 · 操作与日志 · GM 记录（?view=logs）：待审批卡片（批准 / 驳回）、筛选（执行者类型、待审批、失败）、时间范围、
+     风险、搜索、分页表格、详情抽屉（不含请求参数）与按当前筛选导出 CSV。 -->
 <template>
   <div class="gml game-skin">
     <div class="gml__head">
-      <div class="gml__head-text">
-        <h2 class="gml__h">{{ t('gmOps.logs.title') }}</h2>
-        <p class="gml__sub">{{ t('gmOps.logs.subline') }}</p>
-      </div>
+      <p class="gml__sub">{{ t('gmOps.logs.subline') }}</p>
       <UButton color="neutral" variant="outline" icon="i-lucide-download" :loading="exporting" :disabled="exporting || !total" @click="exportCsv">
         {{ exporting && progress ? progress : t('gmOps.logs.export') }}
       </UButton>
@@ -201,7 +198,7 @@ import { downloadCsv, fetchAllPages, fmtDateTime, fmtShort } from '../mail/share
 import LogDetail from './LogDetail.vue'
 import { useExecText } from './useExecText'
 
-defineOptions({ name: 'GmLogsTab' })
+defineOptions({ name: 'GmLogsPanel' })
 
 type Filter = 'all' | 'admin' | 'player' | 'pending' | 'failed'
 type Range = 'today' | '7d' | '30d' | 'custom'
@@ -475,24 +472,12 @@ onActivated(() => {
 .gml__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px 16px;
 }
-.gml__head-text {
+.gml__sub {
   flex: 1 1 320px;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.gml__h {
-  margin: 0;
-  font-family: var(--app-font-display);
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-.gml__sub {
   margin: 0;
   font-size: 14px;
   color: var(--el-text-color-secondary);
@@ -805,9 +790,6 @@ onActivated(() => {
   line-height: 1.6;
 }
 @media (width < 768px) {
-  .gml__h {
-    font-size: 24px;
-  }
   .gml__spacer {
     display: none;
   }

@@ -29,35 +29,23 @@ func (s *GameOpsService) GetGameMail(ctx context.Context, req *v1.GetGameMailReq
 	return s.uc.GetMail(ctx, req.ServerId, req.Id)
 }
 
-func (s *GameOpsService) CreateGameMail(ctx context.Context, req *v1.SaveGameMailRequest) (*v1.GameMail, error) {
+func (s *GameOpsService) SaveGameMail(ctx context.Context, req *v1.SaveGameMailRequest) (*v1.GameMail, error) {
 	actor, err := gmAdmin(ctx, s.gm)
 	if err != nil {
 		return nil, err
 	}
-	return s.uc.CreateMail(ctx, actor, req)
-}
-
-func (s *GameOpsService) UpdateGameMail(ctx context.Context, req *v1.SaveGameMailRequest) (*v1.GameMail, error) {
-	actor, err := gmAdmin(ctx, s.gm)
-	if err != nil {
-		return nil, err
-	}
-	return s.uc.UpdateMail(ctx, actor, req)
+	return s.uc.SaveMail(ctx, actor, req)
 }
 
 func (s *GameOpsService) DeleteGameMail(ctx context.Context, req *v1.DeleteGameMailRequest) (*v1.DeleteGameMailResponse, error) {
-	if err := s.uc.DeleteMail(ctx, req.ServerId, req.Id); err != nil {
-		return nil, err
-	}
-	return &v1.DeleteGameMailResponse{}, nil
-}
-
-func (s *GameOpsService) DuplicateGameMail(ctx context.Context, req *v1.DuplicateGameMailRequest) (*v1.GameMail, error) {
 	actor, err := gmAdmin(ctx, s.gm)
 	if err != nil {
 		return nil, err
 	}
-	return s.uc.DuplicateMail(ctx, actor, req.ServerId, req.Id)
+	if err := s.uc.DeleteMail(ctx, actor, req.ServerId, req.Id); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteGameMailResponse{}, nil
 }
 
 func (s *GameOpsService) DryRunGameMail(ctx context.Context, req *v1.DryRunGameMailRequest) (*v1.DryRunGameMailResponse, error) {

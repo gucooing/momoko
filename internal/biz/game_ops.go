@@ -19,7 +19,6 @@ import (
 	v1 "momoko/api/gen/v1"
 	gk "momoko/api/gen/v1/gakumas"
 	"momoko/internal/data/ent/gen"
-	entmail "momoko/internal/data/ent/gen/gamemail"
 	entbatch "momoko/internal/data/ent/gen/giftcodebatch"
 	entschema "momoko/internal/data/ent/schema"
 	"momoko/pkg/mgp"
@@ -30,6 +29,7 @@ import (
 var (
 	ErrGameMailNotFound   = response.BadRequest(404, "邮件不存在")
 	ErrGameMailState      = response.BadRequest(409, "邮件当前的状态不能这样操作，请刷新后再试")
+	ErrGameMailID         = response.BadRequest(400, "邮件 id 无效")
 	ErrGameMailIncomplete = response.BadRequest(400, "邮件还没写完：需要标题、至少一项奖励和收件人")
 	ErrGiftBatchNotFound  = response.BadRequest(404, "兑换码批次不存在")
 	ErrGiftCodeTaken      = response.BadRequest(409, "这台服务器上已经有这个兑换码")
@@ -37,19 +37,12 @@ var (
 )
 
 const (
-	// mailStatsTTL 已发送邮件的领取统计缓存多久后重新向 MGP 报表查询。
-	mailStatsTTL = 60 * time.Second
-	// mailDeliverTimeout 一次后台撤回最长的执行时间。
-	mailDeliverTimeout = 5 * time.Minute
-	// mailLoopEvery 按服务端的投递结果同步投递中与到点定时邮件的间隔。
-	mailLoopEvery = 5 * time.Second
-	// mailRegisterGrace 刚改为投递中的邮件在这段时间内服务端还没有它时不判为失败（登记还在进行）。
-	mailRegisterGrace = time.Minute
+	// mailRevokeTimeout 一次后台撤回最长的执行时间。
+	mailRevokeTimeout = 10 * time.Minute
+	// mailScheduleLead 定时投递的时间至少要晚于现在这么久，否则按立即投递。
+	mailScheduleLead = 30 * time.Second
 
-	mailTitleMax   = 64
-	mailBodyMax    = 2000
-	mailPlayersMax = 1000
-	rewardsMax     = 20
+	rewardsMax = 20
 
 	giftNameMax       = 64
 	giftMessageMax    = 64
@@ -59,14 +52,6 @@ const (
 	giftEligibleMax   = 3650
 	giftRecentRedeems = 20
 )
-
-// GameMailFilter 邮件列表筛选。
-type GameMailFilter struct {
-	ServerID   string
-	Statuses   []string
-	Q          string
-	Page, Size int
-}
 
 // GiftBatchFilter 兑换码批次筛选。
 type GiftBatchFilter struct {
@@ -96,29 +81,8 @@ type GiftRedeemStats struct {
 	TodayFailures map[string]int
 }
 
-// GameOpsRepo 邮件补偿与兑换码的持久化（game_mail、gift_code_batch、gift_code、gift_code_redeem）。
+// GameOpsRepo 兑换码的持久化（gift_code_batch、gift_code、gift_code_redeem）。
 type GameOpsRepo interface {
-	CreateMail(ctx context.Context, m *gen.GameMail) (*gen.GameMail, error)
-	// SaveMail 写回邮件的全部可修改字段。
-	SaveMail(ctx context.Context, m *gen.GameMail) (*gen.GameMail, error)
-	GetMail(ctx context.Context, id string) (*gen.GameMail, error)
-	DeleteMail(ctx context.Context, id string) error
-	ListMails(ctx context.Context, f GameMailFilter) ([]*gen.GameMail, int, error)
-	// CountMails 各分组的数量：all / draft / scheduled / sent（含 sending、failed、revoking、revoked）。
-	CountMails(ctx context.Context, serverID string) (map[string]int32, error)
-	// CountMailsSentSince 在 since 之后发送成功（含之后撤回）的邮件数。
-	CountMailsSentSince(ctx context.Context, serverID string, since time.Time) (int, error)
-	// SwitchMailStatus 仅当邮件处于 from 中的某个状态时改为 to；返回是否改成功（并发安全的状态转换）。
-	SwitchMailStatus(ctx context.Context, id string, from []string, to string) (bool, error)
-	// DueMails 到点的定时邮件。
-	DueMails(ctx context.Context, now time.Time, limit int) ([]*gen.GameMail, error)
-	// MailsInStatus 处于某些状态的全部邮件（启动时恢复中断的投递）。
-	MailsInStatus(ctx context.Context, statuses []string) ([]*gen.GameMail, error)
-	// SaveMailMatched 只写回试运行匹配的人数与时间。
-	SaveMailMatched(ctx context.Context, id string, matched int, at time.Time) (*gen.GameMail, error)
-	// SaveMailStats 写回领取统计缓存。
-	SaveMailStats(ctx context.Context, id string, recipients, claimed int, at time.Time) error
-
 	// CreateBatch 创建批次与一次性码（同一事务）。
 	CreateBatch(ctx context.Context, b *gen.GiftCodeBatch, codes []string) (*gen.GiftCodeBatch, error)
 	SaveBatch(ctx context.Context, b *gen.GiftCodeBatch) (*gen.GiftCodeBatch, error)
@@ -150,11 +114,10 @@ type GameOpsRepo interface {
 	RedeemStats(ctx context.Context, serverID string, dayStart time.Time) (*GiftRedeemStats, error)
 }
 
-// GameOpsUsecase 运营（管理端）：邮件补偿的编写、登记与撤回，兑换码批次的管理与兑换记录。
-// 邮件只由游戏服务端投递：发送与定时都是经 MGP mail.send 把邮件登记到服务端（定时邮件带开始时间），
-// 服务端从开始时间起投递（全服邮件在领取期限内也投递给之后注册的账号）；取消定时为 mail.cancel，撤回为 mail.revoke。
-// Momoko 只按服务端保存的邮件（GET /mails/{id}）同步投递状态。操作经 GmUsecase.Execute 写进 GM 记录（source = mail:<id>）；
-// 玩家兑换在通行证一侧（PassportUsecase.Redeem）。
+// GameOpsUsecase 运营（管理端）：邮件补偿与兑换码批次的管理与兑换记录。
+// 邮件（含草稿）全部保存在游戏服务端，Momoko 不保存：列表、详情、保存与删除草稿直接调 MGP 邮件接口；
+// 发送（mail.send）、取消定时（mail.cancel）与撤回（mail.revoke）经 GmUsecase.Execute 执行并写进 GM 记录
+// （source = mail:<id>）。玩家兑换在通行证一侧（PassportUsecase.Redeem）。
 type GameOpsUsecase struct {
 	gm   *GmUsecase
 	repo GameOpsRepo
@@ -165,13 +128,11 @@ type GameOpsUsecase struct {
 }
 
 func NewGameOpsUsecase(gm *GmUsecase, repo GameOpsRepo, logger log.Logger) *GameOpsUsecase {
-	uc := &GameOpsUsecase{
+	return &GameOpsUsecase{
 		gm:   gm,
 		repo: repo,
 		log:  log.NewHelper(log.With(logger, "module", "biz/game_ops")),
 	}
-	go uc.mailLoop()
-	return uc
 }
 
 func (uc *GameOpsUsecase) lock(key string) func() {
@@ -243,7 +204,7 @@ func validateRewards(rewards []entschema.GameReward, allowEmpty bool, forbidden 
 			return response.BadRequest(400, "奖励数量必须大于 0")
 		}
 		if slices.Contains(forbidden, r.ResourceType) {
-			return response.BadRequest(400, "付费钻石不能通过邮件发放")
+			return response.BadRequest(400, "付费钻石不能通过礼物发放")
 		}
 	}
 	return nil
@@ -251,49 +212,60 @@ func validateRewards(rewards []entschema.GameReward, allowEmpty bool, forbidden 
 
 // ---------------- 邮件补偿 ----------------
 
-// mailOf 读取邮件并确认属于这台服务器。
-func (uc *GameOpsUsecase) mailOf(ctx context.Context, serverID, id string) (*gen.GameMail, error) {
-	m, err := uc.repo.GetMail(ctx, id)
-	if gen.IsNotFound(err) || (err == nil && m.ServerID != serverID) {
-		return nil, ErrGameMailNotFound
-	}
+// mailClient 邮件所在的学マス 服务器与它的 MGP 客户端。
+func (uc *GameOpsUsecase) mailClient(ctx context.Context, serverID string) (*gen.GameServer, *gakumas.Client, error) {
+	s, client, err := uc.gm.Servers().ClientOf(ctx, serverID)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, nil, err
 	}
-	return m, nil
+	if s.Game != gakumas.ID {
+		return nil, nil, ErrGmGameUnsupported
+	}
+	return s, gakumas.New(client), nil
 }
 
-// GameMailProto 转为接口结构。
-func GameMailProto(m *gen.GameMail) *v1.GameMail {
+// mailError 把服务端的邮件错误转为接口错误。
+func mailError(err error) error {
+	return mailCodeError(mgp.CodeOf(err), GameMGPError(err))
+}
+
+// msOf Unix 毫秒转为时间戳（0 为空）。
+func msOf(ms int64) *timestamppb.Timestamp {
+	if ms <= 0 {
+		return nil
+	}
+	return timestamppb.New(time.UnixMilli(ms))
+}
+
+// GameMailProto 服务端的邮件转为接口结构。
+func GameMailProto(m *gakumas.MailView) *v1.GameMail {
 	out := &v1.GameMail{
-		Id:                m.ID,
-		ServerId:          m.ServerID,
-		Title:             m.Title,
-		Body:              m.Body,
-		Rewards:           rewardsProto(m.Rewards),
-		Target:            string(m.Target),
-		ExcludeBanned:     m.ExcludeBanned,
-		ExpireDays:        int32(m.ExpireDays),
-		ScheduledAt:       tsOf(m.ScheduledAt),
-		Status:            string(m.Status),
-		RecipientCount:    int32(m.RecipientCount),
-		ClaimedCount:      int32(m.ClaimedCount),
-		StatsAt:           tsOf(m.StatsAt),
-		Error:             m.Error,
-		ExecutionId:       m.ExecutionID,
-		CreatedByName:     m.CreatedByName,
-		UpdatedByName:     m.UpdatedByName,
-		SentByName:        m.SentByName,
-		SentAt:            tsOf(m.SentAt),
-		RevokedByName:     m.RevokedByName,
-		RevokedAt:         tsOf(m.RevokedAt),
-		CreateTime:        timestamppb.New(m.CreateTime),
-		UpdateTime:        timestamppb.New(m.UpdateTime),
-		MatchedCount:      int32(m.MatchedCount),
-		MatchedAt:         tsOf(m.MatchedAt),
-		FailedCount:       int32(m.FailedCount),
-		RevokedCount:      int32(m.RevokedCount),
-		RevokeExecutionId: m.RevokeExecutionID,
+		Id:            m.MailID,
+		Status:        m.Status,
+		Target:        m.Target,
+		Players:       make([]*v1.GameTarget, 0, len(m.Players)),
+		ExcludeBanned: m.ExcludeBanned,
+		Message:       m.Message,
+		Note:          m.Note,
+		Rewards:       make([]*v1.GameReward, 0, len(m.Rewards)),
+		ExpireDays:    m.ExpireDays,
+		StartTime:     msOf(m.StartTime),
+		LimitTime:     msOf(m.LimitTime),
+		DeliveredAt:   msOf(m.DeliveredAt),
+		Matched:       m.Matched,
+		Done:          m.Done,
+		Failed:        m.Failed,
+		RevokedAt:     msOf(m.RevokedAt),
+		RevokeDoneAt:  msOf(m.RevokeDoneAt),
+		Revoked:       m.Revoked,
+		Recipients:    m.Recipients,
+		Received:      m.Received,
+		CreatedBy:     m.CreatedBy,
+		UpdatedBy:     m.UpdatedBy,
+		SentBy:        m.SentBy,
+		RevokedBy:     m.RevokedBy,
+		CreateTime:    msOf(m.CreatedAt),
+		UpdateTime:    msOf(m.UpdatedAt),
 		Condition: &v1.GameMailCondition{
 			CreatedSince:    m.Condition.CreatedSince,
 			CreatedBefore:   m.Condition.CreatedBefore,
@@ -304,730 +276,270 @@ func GameMailProto(m *gen.GameMail) *v1.GameMail {
 	for _, p := range m.Players {
 		out.Players = append(out.Players, &v1.GameTarget{Pid: p.PID, Name: p.Name, DisplayId: p.DisplayID})
 	}
-	return out
-}
-
-// mailForbidden 服务器所运行游戏的邮件不能发放的资源类型。
-func mailForbidden(s *gen.GameServer) []int32 {
-	if s.Game == gakumas.ID {
-		return []int32{gakumas.ResourceJewelPaid}
-	}
-	return nil
-}
-
-// applyMailInput 把编辑内容写进邮件（草稿可以不完整，发送时再检查）。
-func (uc *GameOpsUsecase) applyMailInput(ctx context.Context, s *gen.GameServer, m *gen.GameMail, req *v1.SaveGameMailRequest) error {
-	title := strings.TrimSpace(req.Title)
-	if !validText(title, mailTitleMax, false) {
-		return response.BadRequest(400, "标题最多 64 字，且不能包含控制字符")
-	}
-	body := strings.TrimSpace(req.Body)
-	if !validText(body, mailBodyMax, true) {
-		return response.BadRequest(400, "正文最多 2000 字")
-	}
-	rewards := rewardsOf(req.Rewards)
-	if err := validateRewards(rewards, true, mailForbidden(s)...); err != nil {
-		return err
-	}
-	target := req.Target
-	if target == "" {
-		target = "all"
-	}
-	if target != "all" && target != "condition" && target != "players" {
-		return response.BadRequest(400, "收件人范围无效")
-	}
-	players := make([]entschema.GmTarget, 0, len(req.Players))
-	seen := map[string]struct{}{}
-	for _, p := range req.Players {
-		if p == nil || strings.TrimSpace(p.Pid) == "" {
-			continue
-		}
-		pid := strings.TrimSpace(p.Pid)
-		if _, ok := seen[pid]; ok {
-			continue
-		}
-		seen[pid] = struct{}{}
-		players = append(players, entschema.GmTarget{PID: pid, Name: p.Name, DisplayID: p.DisplayId})
-	}
-	if len(players) > mailPlayersMax {
-		return response.BadRequest(400, "指定玩家最多 1000 名")
-	}
-	var cond entschema.GameMailCondition
-	if c := req.Condition; c != nil {
-		cond = entschema.GameMailCondition{CreatedSince: c.CreatedSince, CreatedBefore: c.CreatedBefore, LastLoginSince: c.LastLoginSince, LastLoginBefore: c.LastLoginBefore}
-	}
-	if cond.CreatedSince < 0 || cond.CreatedBefore < 0 || cond.LastLoginSince < 0 || cond.LastLoginBefore < 0 ||
-		(cond.CreatedSince > 0 && cond.CreatedBefore > 0 && cond.CreatedSince >= cond.CreatedBefore) ||
-		(cond.LastLoginSince > 0 && cond.LastLoginBefore > 0 && cond.LastLoginSince >= cond.LastLoginBefore) {
-		return response.BadRequest(400, "收件条件的时间范围无效")
-	}
-	if req.ExpireDays < 0 || req.ExpireDays > 365 {
-		return response.BadRequest(400, "领取期限为 0–365 天")
-	}
-	if target != "players" {
-		players = players[:0]
-	}
-	if target != "condition" {
-		cond = entschema.GameMailCondition{}
-	}
-	recipientsChanged := string(m.Target) != target || m.ExcludeBanned != req.ExcludeBanned || m.Condition != cond || !slices.EqualFunc(m.Players, players, func(a, b entschema.GmTarget) bool { return a.PID == b.PID })
-	m.Title, m.Body, m.Rewards = title, body, rewards
-	m.Target, m.Players, m.Condition = entmail.Target(target), players, cond
-	m.ExcludeBanned, m.ExpireDays = req.ExcludeBanned, int(req.ExpireDays)
-	if recipientsChanged {
-		m.MatchedCount, m.MatchedAt = 0, nil
-	}
-	return nil
-}
-
-// mailReady 检查邮件能不能试运行或发送。
-func mailReady(m *gen.GameMail) error {
-	if m.Title == "" || len(m.Rewards) == 0 || (m.Target == entmail.TargetPlayers && len(m.Players) == 0) {
-		return ErrGameMailIncomplete
-	}
-	return nil
-}
-
-// gakumasMail 邮件在学マス 服务端登记的内容（邮件 id 即 mailId）；start 为开始投递的时间（Unix 毫秒），0 为立即。
-func gakumasMail(m *gen.GameMail, start int64) gakumas.Mail {
-	mail := gakumas.Mail{
-		MailID:        m.ID,
-		Target:        string(m.Target),
-		ExcludeBanned: m.ExcludeBanned,
-		Rewards:       make([]gakumas.Reward, 0, len(m.Rewards)),
-		Message:       m.Title,
-		ExpireDays:    int32(m.ExpireDays),
-		StartTime:     start,
-	}
 	for _, r := range m.Rewards {
-		mail.Rewards = append(mail.Rewards, gakumas.Reward{
-			ResourceType: r.ResourceType,
-			ResourceID:   r.ResourceID,
-			Quantity:     r.Quantity,
-		})
-	}
-	switch m.Target {
-	case entmail.TargetPlayers:
-		for _, p := range m.Players {
-			mail.Players = append(mail.Players, p.PID)
-		}
-	case entmail.TargetCondition:
-		mail.Condition = &gakumas.MailCondition{
-			CreatedSince:    m.Condition.CreatedSince,
-			CreatedBefore:   m.Condition.CreatedBefore,
-			LastLoginSince:  m.Condition.LastLoginSince,
-			LastLoginBefore: m.Condition.LastLoginBefore,
-		}
-	}
-	return mail
-}
-
-// mailSummary GM 记录里可展示的摘要（不含参数原文）。
-func mailSummary(m *gen.GameMail) map[string]string {
-	out := map[string]string{
-		"mailId":  m.ID,
-		"title":   m.Title,
-		"target":  string(m.Target),
-		"rewards": itoa(len(m.Rewards)),
-	}
-	if m.Target == entmail.TargetPlayers {
-		out["players"] = itoa(len(m.Players))
+		out.Rewards = append(out.Rewards, &v1.GameReward{ResourceType: r.ResourceType, ResourceId: r.ResourceID, Quantity: r.Quantity})
 	}
 	return out
 }
 
-// mailResultOf 投递或撤回操作的结果。
-func mailResultOf(outcomes []GmTargetOutcome) *gk.MailResult {
-	for _, o := range outcomes {
-		if r, ok := o.Result.(*gk.MailResult); ok {
-			return r
-		}
-	}
-	return &gk.MailResult{}
+// mailOptions 不写 GM 记录的邮件操作（保存、删除草稿）的执行选项。
+func mailOptions(actor GmActor) mgp.OperationOptions {
+	return mgp.OperationOptions{Operator: actor.Name, IdempotencyKey: "mail-" + uuid.NewString()}
 }
 
-// mailOperation 以执行者对邮件所在的学マス 服务器执行邮件操作（写 GM 记录）。
-func (uc *GameOpsUsecase) mailOperation(ctx context.Context, actor GmActor, serverID, opID string, params any, dryRun bool, summary map[string]string, source string) (*gen.GmExecution, []GmTargetOutcome, error) {
-	s, client, err := uc.gm.Servers().ClientOf(ctx, serverID)
+// mailOperation 以执行者对邮件所在的学マス 服务器执行邮件操作（写 GM 记录，source = mail:<id>）。
+func (uc *GameOpsUsecase) mailOperation(ctx context.Context, actor GmActor, serverID, opID, mailID string, params any, dryRun bool, summary map[string]string) (*gen.GmExecution, *gk.MailResult, error) {
+	s, client, err := uc.mailClient(ctx, serverID)
 	if err != nil {
 		return nil, nil, err
-	}
-	if s.Game != gakumas.ID {
-		return nil, nil, ErrGmGameUnsupported
 	}
 	op, _ := gakumasOperation(opID)
 	raw, err := json.Marshal(params)
 	if err != nil {
 		return nil, nil, ErrGmParams
 	}
-	call, err := gakumasCall(gakumas.New(client), opID, raw)
+	call, err := gakumasCall(client, opID, raw)
 	if err != nil {
 		return nil, nil, err
 	}
-	return uc.gm.Execute(ctx, actor, s, op, GmExecutionInput{
+	e, outcomes, err := uc.gm.Execute(ctx, actor, s, op, GmExecutionInput{
 		Params:  raw,
 		DryRun:  dryRun,
 		Summary: summary,
-		Source:  source,
+		Source:  "mail:" + mailID,
 	}, nil, call)
-}
-
-// register 把邮件登记到服务端（mail.send），由服务端从 start 起投递（0 为立即）。
-// 服务端已有这封邮件（之前的登记其实成功了）时视为登记成功。
-func (uc *GameOpsUsecase) register(ctx context.Context, actor GmActor, m *gen.GameMail, start int64) error {
-	e, _, err := uc.mailOperation(ctx, actor, m.ServerID, gkMailSend, gakumasMail(m, start), false, mailSummary(m), "mail:"+m.ID)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	m.ExecutionID = e.ID
-	if e.Status == "failed" && e.ErrorCode != gakumas.MailAlreadySent {
-		return executeError(e)
+	if e.Status == "failed" {
+		return e, nil, mailExecutionError(e)
 	}
-	return nil
-}
-
-// unregister 取消服务端还没到开始时间的邮件（mail.cancel）；服务端没有这封邮件时视为已取消。
-// 返回 started 表示服务端已经开始投递，没有取消。
-func (uc *GameOpsUsecase) unregister(ctx context.Context, actor GmActor, m *gen.GameMail) (started bool, err error) {
-	e, _, err := uc.mailOperation(ctx, actor, m.ServerID, gkMailCancel, gkMailID{MailID: m.ID}, false, map[string]string{"mailId": m.ID, "title": m.Title}, "mail:"+m.ID)
-	if err != nil {
-		return false, err
-	}
-	switch {
-	case e.Status != "failed", e.ErrorCode == gakumas.MailNotFound:
-		return false, nil
-	case e.ErrorCode == gakumas.MailAlreadyStarted:
-		return true, nil
-	}
-	return false, executeError(e)
-}
-
-// mailStats 查询一封邮件的礼物领取统计。
-func (uc *GameOpsUsecase) mailStats(ctx context.Context, serverID, mailID string) (*gakumas.GiftSourceStats, error) {
-	s, client, err := uc.gm.Servers().ClientOf(ctx, serverID)
-	if err != nil {
-		return nil, err
-	}
-	if s.Game != gakumas.ID {
-		return nil, ErrGmGameUnsupported
-	}
-	return gakumas.New(client).MailStats(ctx, mailID)
-}
-
-// refreshMailStats 已发送（含已撤回）的邮件领取统计超过 60 秒就重新查询（并发、整体 5 秒超时；失败时保留缓存）。
-func (uc *GameOpsUsecase) refreshMailStats(ctx context.Context, serverID string, mails []*gen.GameMail) {
-	now := time.Now()
-	var stale []*gen.GameMail
-	for _, m := range mails {
-		if (m.Status == entmail.StatusSent || m.Status == entmail.StatusRevoked) && (m.StatsAt == nil || now.Sub(*m.StatsAt) > mailStatsTTL) {
-			stale = append(stale, m)
+	for _, o := range outcomes {
+		if r, ok := o.Result.(*gk.MailResult); ok {
+			return e, r, nil
 		}
 	}
-	if len(stale) == 0 {
-		return
-	}
-	if s, err := uc.gm.Servers().Get(ctx, serverID); err != nil || s.Game != gakumas.ID {
-		return
-	}
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	var wg sync.WaitGroup
-	sem := make(chan struct{}, 6)
-	for _, m := range stale {
-		wg.Add(1)
-		sem <- struct{}{}
-		go func(m *gen.GameMail) {
-			defer wg.Done()
-			defer func() { <-sem }()
-			st, err := uc.mailStats(ctx, serverID, m.ID)
-			if err != nil {
-				return
-			}
-			at := time.Now()
-			if m.RecipientCount == 0 && m.Status == entmail.StatusSent {
-				m.RecipientCount = st.Players
-			}
-			m.ClaimedCount, m.StatsAt = st.ReceivedPlayers, &at
-			if err := uc.repo.SaveMailStats(context.WithoutCancel(ctx), m.ID, m.RecipientCount, m.ClaimedCount, at); err != nil {
-				uc.log.Warnf("save mail stats %s: %v", m.ID, err)
-			}
-		}(m)
-	}
-	wg.Wait()
+	return e, &gk.MailResult{}, nil
 }
 
-// ListMails 邮件列表（含各分组数量与本月已发数）；当前页已发送的邮件刷新领取统计。
-func (uc *GameOpsUsecase) ListMails(ctx context.Context, req *v1.ListGameMailsRequest) (*v1.ListGameMailsResponse, error) {
-	s, err := uc.gm.Servers().Get(ctx, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	f := GameMailFilter{ServerID: s.ID, Q: strings.TrimSpace(req.Q), Page: int(req.Page), Size: int(req.PageSize)}
-	switch req.Status {
-	case "draft":
-		f.Statuses = []string{"draft"}
-	case "scheduled":
-		f.Statuses = []string{"scheduled"}
-	case "sent":
-		f.Statuses = []string{"sending", "sent", "failed", "revoking", "revoked"}
-	case "":
-	default:
-		f.Statuses = []string{req.Status}
-	}
-	items, total, err := uc.repo.ListMails(ctx, f)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	uc.refreshMailStats(ctx, s.ID, items)
-	counts, err := uc.repo.CountMails(ctx, s.ID)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	now := time.Now().In(uc.gm.Servers().Location(s))
-	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-	sent, err := uc.repo.CountMailsSentSince(ctx, s.ID, monthStart)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	out := &v1.ListGameMailsResponse{Total: int32(total), Counts: counts, SentThisMonth: int32(sent)}
-	for _, m := range items {
-		out.Items = append(out.Items, GameMailProto(m))
-	}
-	return out, nil
-}
-
-// GetMail 邮件详情（已发送的刷新领取统计）。
-func (uc *GameOpsUsecase) GetMail(ctx context.Context, serverID, id string) (*v1.GameMail, error) {
-	m, err := uc.mailOf(ctx, serverID, id)
-	if err != nil {
-		return nil, err
-	}
-	uc.refreshMailStats(ctx, serverID, []*gen.GameMail{m})
-	return GameMailProto(m), nil
-}
-
-// CreateMail 新建草稿。
-func (uc *GameOpsUsecase) CreateMail(ctx context.Context, actor GmActor, req *v1.SaveGameMailRequest) (*v1.GameMail, error) {
-	s, err := uc.gm.Servers().Get(ctx, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	m := &gen.GameMail{
-		ID:            uuid.NewString(),
-		ServerID:      s.ID,
-		Status:        entmail.StatusDraft,
-		CreatedBy:     actor.UserID,
-		CreatedByName: actor.Name,
-		UpdatedByName: actor.Name,
-	}
-	if err := uc.applyMailInput(ctx, s, m, req); err != nil {
-		return nil, err
-	}
-	m.ScheduledAt = timeOf(req.ScheduledAt)
-	saved, err := uc.repo.CreateMail(ctx, m)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return GameMailProto(saved), nil
-}
-
-// UpdateMail 修改草稿或定时邮件。
-func (uc *GameOpsUsecase) UpdateMail(ctx context.Context, actor GmActor, req *v1.SaveGameMailRequest) (*v1.GameMail, error) {
-	s, err := uc.gm.Servers().Get(ctx, req.ServerId)
-	if err != nil {
-		return nil, err
-	}
-	m, err := uc.mailOf(ctx, s.ID, req.Id)
-	if err != nil {
-		return nil, err
-	}
-	if m.Status != entmail.StatusDraft && m.Status != entmail.StatusScheduled {
-		return nil, ErrGameMailState
-	}
-	if err := uc.applyMailInput(ctx, s, m, req); err != nil {
-		return nil, err
-	}
-	if at := timeOf(req.ScheduledAt); at != nil {
-		if m.Status == entmail.StatusScheduled && !at.After(time.Now()) {
-			return nil, response.BadRequest(400, "定时发送的时间必须晚于现在")
-		}
-		m.ScheduledAt = at
-	} else if m.Status == entmail.StatusDraft {
-		m.ScheduledAt = nil
-	}
-	scheduled := m.Status == entmail.StatusScheduled
-	if scheduled {
-		if err := mailReady(m); err != nil {
-			return nil, err
-		}
-		if err := validateRewards(m.Rewards, false, mailForbidden(s)...); err != nil {
-			return nil, err
-		}
-		// 服务端那一份先取消，改完按新的内容与时间重新登记。
-		started, err := uc.unregister(ctx, actor, m)
-		if err != nil {
-			return nil, err
-		}
-		if started {
-			return nil, ErrGameMailState
-		}
-	}
-	m.UpdatedByName = actor.Name
-	if scheduled {
-		if err := uc.register(ctx, actor, m, m.ScheduledAt.UnixMilli()); err != nil {
-			m.Status, m.Error = entmail.StatusFailed, errText(err)
-			if _, serr := uc.repo.SaveMail(context.WithoutCancel(ctx), m); serr != nil {
-				uc.log.Errorf("save mail %s: %v", m.ID, serr)
-			}
-			return nil, err
-		}
-	}
-	saved, err := uc.repo.SaveMail(ctx, m)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return GameMailProto(saved), nil
-}
-
-// DeleteMail 删除草稿。
-func (uc *GameOpsUsecase) DeleteMail(ctx context.Context, serverID, id string) error {
-	m, err := uc.mailOf(ctx, serverID, id)
-	if err != nil {
-		return err
-	}
-	if m.Status != entmail.StatusDraft {
-		return ErrGameMailState
-	}
-	if err := uc.repo.DeleteMail(ctx, m.ID); err != nil {
-		return ErrSystem(err)
-	}
-	return nil
-}
-
-// DuplicateMail 复制一封邮件为新草稿（内容与收件人相同，统计与原因清空）。
-func (uc *GameOpsUsecase) DuplicateMail(ctx context.Context, actor GmActor, serverID, id string) (*v1.GameMail, error) {
-	src, err := uc.mailOf(ctx, serverID, id)
-	if err != nil {
-		return nil, err
-	}
-	m := &gen.GameMail{
-		ID:            uuid.NewString(),
-		ServerID:      src.ServerID,
-		Title:         src.Title,
-		Body:          src.Body,
-		Rewards:       src.Rewards,
-		Target:        src.Target,
-		Players:       src.Players,
-		Condition:     src.Condition,
-		ExcludeBanned: src.ExcludeBanned,
-		ExpireDays:    src.ExpireDays,
-		Status:        entmail.StatusDraft,
-		CreatedBy:     actor.UserID,
-		CreatedByName: actor.Name,
-		UpdatedByName: actor.Name,
-	}
-	saved, err := uc.repo.CreateMail(ctx, m)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return GameMailProto(saved), nil
-}
-
-// executeError 把一条失败的 GM 记录转成接口错误。
-func executeError(e *gen.GmExecution) error {
+// mailExecutionError 把一条失败的邮件操作 GM 记录转成接口错误。
+func mailExecutionError(e *gen.GmExecution) error {
 	msg := e.ErrorMessage
 	if e.ErrorCode != "" {
 		msg = e.ErrorCode + ": " + msg
 	}
-	return response.BadRequest(400, msg)
+	return mailCodeError(e.ErrorCode, response.BadRequest(400, msg))
 }
 
-// DryRunMail 试运行 mail.send（记进 GM 记录）：返回按当前收件人匹配的人数并记在邮件上。
-func (uc *GameOpsUsecase) DryRunMail(ctx context.Context, actor GmActor, serverID, id string) (*v1.DryRunGameMailResponse, error) {
-	m, err := uc.mailOf(ctx, serverID, id)
+// mailCodeError 服务端的邮件错误码对应的接口错误；其他错误码返回 other。
+func mailCodeError(code string, other error) error {
+	switch code {
+	case gakumas.MailNotFound:
+		return ErrGameMailNotFound
+	case gakumas.MailAlreadyStarted, gakumas.MailAlreadySent, gakumas.MailNotDraft, gakumas.MailNotScheduled:
+		return ErrGameMailState
+	case gakumas.MailIncomplete:
+		return ErrGameMailIncomplete
+	}
+	return other
+}
+
+// mailSummary GM 记录里可展示的摘要。
+func mailSummary(m *gakumas.MailView) map[string]string {
+	out := map[string]string{
+		"mailId":  m.MailID,
+		"title":   m.Message,
+		"target":  m.Target,
+		"rewards": itoa(len(m.Rewards)),
+	}
+	if m.Target == "players" {
+		out["players"] = itoa(len(m.Players))
+	}
+	return out
+}
+
+// ListMails 邮件列表：筛选、搜索、分页与各组数量都由服务端查询；本月按服务器时区算。
+func (uc *GameOpsUsecase) ListMails(ctx context.Context, req *v1.ListGameMailsRequest) (*v1.ListGameMailsResponse, error) {
+	s, g, err := uc.mailClient(ctx, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	if err := mailReady(m); err != nil {
-		return nil, err
+	size := req.PageSize
+	if size <= 0 || size > 100 {
+		size = 20
 	}
-	e, outcomes, err := uc.mailOperation(ctx, actor, serverID, gkMailSend, gakumasMail(m, 0), true, mailSummary(m), "mail:"+m.ID)
+	page := max(req.Page, 1)
+	now := time.Now().In(uc.gm.Servers().Location(s))
+	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	list, err := g.ListMails(ctx, gakumas.MailFilter{
+		Status:    req.Status,
+		Q:         strings.TrimSpace(req.Q),
+		Cursor:    itoa(int((page - 1) * size)),
+		Limit:     size,
+		SentSince: monthStart.UnixMilli(),
+	})
 	if err != nil {
-		return nil, err
+		return nil, mailError(err)
 	}
-	if e.Status == "failed" {
-		return nil, executeError(e)
+	out := &v1.ListGameMailsResponse{
+		Items:         make([]*v1.GameMail, 0, len(list.Items)),
+		Total:         list.Total,
+		Counts:        list.Counts,
+		SentThisMonth: list.SentSince,
 	}
-	sum := mailResultOf(outcomes)
-	now := time.Now()
-	// 只写回试运行结果，不覆盖期间的其他修改。
-	latest, err := uc.repo.SaveMailMatched(ctx, m.ID, int(sum.Matched), now)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	out := &v1.DryRunGameMailResponse{
-		Matched:     sum.Matched,
-		Mail:        GameMailProto(latest),
-		ExecutionId: e.ID,
-	}
-	if s, err := uc.gm.Servers().Get(ctx, serverID); err == nil {
-		if st, err := uc.gm.Servers().Status(ctx, s); err == nil {
-			out.Registered = int32(st.Registered)
-		}
+	for i := range list.Items {
+		out.Items = append(out.Items, GameMailProto(&list.Items[i]))
 	}
 	return out, nil
 }
 
-// SendMail 把邮件登记到服务端：立即发送（状态 sending，服务端投递完后由 mailLoop 同步为 sent），
-// 或定时发送（scheduled，服务端到点投递）。定时邮件再次发送时先取消服务端的那一份；它已经开始投递时转为 sending。
+// GetMail 邮件详情。
+func (uc *GameOpsUsecase) GetMail(ctx context.Context, serverID, id string) (*v1.GameMail, error) {
+	_, g, err := uc.mailClient(ctx, serverID)
+	if err != nil {
+		return nil, err
+	}
+	m, err := g.GetMail(ctx, id)
+	if err != nil {
+		return nil, mailError(err)
+	}
+	return GameMailProto(m), nil
+}
+
+// SaveMail 保存草稿（没有这封邮件时新建），或修改还没开始投递的定时邮件；内容由服务端校验。
+func (uc *GameOpsUsecase) SaveMail(ctx context.Context, actor GmActor, req *v1.SaveGameMailRequest) (*v1.GameMail, error) {
+	if _, err := uuid.Parse(req.Id); err != nil {
+		return nil, ErrGameMailID
+	}
+	_, g, err := uc.mailClient(ctx, req.ServerId)
+	if err != nil {
+		return nil, err
+	}
+	content := gakumas.MailContent{
+		Target:        req.Target,
+		Players:       req.Players,
+		ExcludeBanned: req.ExcludeBanned,
+		Rewards:       make([]gakumas.Reward, 0, len(req.Rewards)),
+		Message:       strings.TrimSpace(req.Message),
+		Note:          strings.TrimSpace(req.Note),
+		ExpireDays:    req.ExpireDays,
+	}
+	if c := req.Condition; c != nil && req.Target == "condition" {
+		content.Condition = &gakumas.MailCondition{
+			CreatedSince:    c.CreatedSince,
+			CreatedBefore:   c.CreatedBefore,
+			LastLoginSince:  c.LastLoginSince,
+			LastLoginBefore: c.LastLoginBefore,
+		}
+	}
+	for _, r := range req.Rewards {
+		if r != nil {
+			content.Rewards = append(content.Rewards, gakumas.Reward{ResourceType: r.ResourceType, ResourceID: strings.TrimSpace(r.ResourceId), Quantity: r.Quantity})
+		}
+	}
+	if at := timeOf(req.StartTime); at != nil {
+		content.StartTime = at.UnixMilli()
+	}
+	m, err := g.SaveMail(ctx, req.Id, content, mailOptions(actor))
+	if err != nil {
+		return nil, mailError(err)
+	}
+	return GameMailProto(m), nil
+}
+
+// DeleteMail 删除草稿。
+func (uc *GameOpsUsecase) DeleteMail(ctx context.Context, actor GmActor, serverID, id string) error {
+	_, g, err := uc.mailClient(ctx, serverID)
+	if err != nil {
+		return err
+	}
+	if _, err := g.DeleteMail(ctx, id, mailOptions(actor)); err != nil {
+		return mailError(err)
+	}
+	return nil
+}
+
+// DryRunMail 试运行发送（写进 GM 记录）：返回现在匹配的人数与服务端注册总数。
+func (uc *GameOpsUsecase) DryRunMail(ctx context.Context, actor GmActor, serverID, id string) (*v1.DryRunGameMailResponse, error) {
+	s, g, err := uc.mailClient(ctx, serverID)
+	if err != nil {
+		return nil, err
+	}
+	m, err := g.GetMail(ctx, id)
+	if err != nil {
+		return nil, mailError(err)
+	}
+	e, r, err := uc.mailOperation(ctx, actor, serverID, gkMailSend, id, gkMailSendParams{MailID: id}, true, mailSummary(m))
+	if err != nil {
+		return nil, err
+	}
+	out := &v1.DryRunGameMailResponse{Matched: r.Matched, ExecutionId: e.ID}
+	if st, err := uc.gm.Servers().Status(ctx, s); err == nil {
+		out.Registered = int32(st.Registered)
+	}
+	return out, nil
+}
+
+// SendMail 发送草稿：start_time 晚于现在至少 30 秒时从那时起定时投递，否则立即投递。
 func (uc *GameOpsUsecase) SendMail(ctx context.Context, actor GmActor, req *v1.SendGameMailRequest) (*v1.GameMail, error) {
-	m, err := uc.mailOf(ctx, req.ServerId, req.Id)
+	_, g, err := uc.mailClient(ctx, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	if m.Status != entmail.StatusDraft && m.Status != entmail.StatusScheduled && m.Status != entmail.StatusFailed {
-		return nil, ErrGameMailState
-	}
-	if err := mailReady(m); err != nil {
-		return nil, err
-	}
-	s, err := uc.gm.Servers().Get(ctx, m.ServerID)
+	m, err := g.GetMail(ctx, req.Id)
 	if err != nil {
-		return nil, err
-	}
-	if s.Game != gakumas.ID {
-		return nil, ErrGmGameUnsupported
-	}
-	if err := validateRewards(m.Rewards, false, mailForbidden(s)...); err != nil {
-		return nil, err
-	}
-	at := timeOf(req.ScheduledAt)
-	later := at != nil && at.After(time.Now().Add(30*time.Second))
-	prev := m.Status
-	ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, []string{"draft", "scheduled", "failed"}, "sending")
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if !ok {
-		return nil, ErrGameMailState
-	}
-	m.Status, m.SentBy, m.SentByName, m.Error = entmail.StatusSending, actor.UserID, actor.Name, ""
-	if prev == entmail.StatusScheduled {
-		started, err := uc.unregister(ctx, actor, m)
-		if err != nil {
-			m.Status = entmail.StatusScheduled
-			if _, serr := uc.repo.SaveMail(context.WithoutCancel(ctx), m); serr != nil {
-				uc.log.Errorf("save mail %s: %v", m.ID, serr)
-			}
-			return nil, err
-		}
-		if started {
-			// 服务端已经在投递这封定时邮件：等它投递完同步。
-			saved, err := uc.repo.SaveMail(ctx, m)
-			if err != nil {
-				return nil, ErrSystem(err)
-			}
-			return GameMailProto(saved), nil
-		}
+		return nil, mailError(err)
 	}
 	var start int64
-	if later {
+	if at := timeOf(req.StartTime); at != nil && at.After(time.Now().Add(mailScheduleLead)) {
 		start = at.UnixMilli()
 	}
-	if err := uc.register(ctx, actor, m, start); err != nil {
-		m.Status, m.Error = entmail.StatusFailed, errText(err)
-		if _, serr := uc.repo.SaveMail(context.WithoutCancel(ctx), m); serr != nil {
-			uc.log.Errorf("save mail %s: %v", m.ID, serr)
-		}
+	if _, _, err := uc.mailOperation(ctx, actor, req.ServerId, gkMailSend, req.Id, gkMailSendParams{MailID: req.Id, StartTime: start}, false, mailSummary(m)); err != nil {
 		return nil, err
 	}
-	if later {
-		m.Status, m.ScheduledAt = entmail.StatusScheduled, at
-	}
-	saved, err := uc.repo.SaveMail(ctx, m)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return GameMailProto(saved), nil
+	return uc.GetMail(ctx, req.ServerId, req.Id)
 }
 
-// CancelMail 取消定时：先取消服务端还没开始投递的那一份，再回到草稿；服务端已经开始投递时不能取消。
+// CancelMail 取消定时：还没开始投递的定时邮件回到草稿。
 func (uc *GameOpsUsecase) CancelMail(ctx context.Context, actor GmActor, serverID, id string) (*v1.GameMail, error) {
-	m, err := uc.mailOf(ctx, serverID, id)
+	_, g, err := uc.mailClient(ctx, serverID)
 	if err != nil {
 		return nil, err
 	}
-	if m.Status != entmail.StatusScheduled {
-		return nil, ErrGameMailState
-	}
-	started, err := uc.unregister(ctx, actor, m)
+	m, err := g.GetMail(ctx, id)
 	if err != nil {
+		return nil, mailError(err)
+	}
+	if _, _, err := uc.mailOperation(ctx, actor, serverID, gkMailCancel, id, gkMailID{MailID: id}, false, mailSummary(m)); err != nil {
 		return nil, err
 	}
-	if started {
-		return nil, ErrGameMailState
-	}
-	ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, []string{"scheduled"}, "draft")
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if !ok {
-		return nil, ErrGameMailState
-	}
-	m.Status, m.UpdatedByName, m.SentBy, m.SentByName = entmail.StatusDraft, actor.Name, "", ""
-	saved, err := uc.repo.SaveMail(ctx, m)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	return GameMailProto(saved), nil
+	return uc.GetMail(ctx, serverID, id)
 }
 
-// RevokeMail 撤回已发送邮件里尚未领取的礼物（后台执行 mail.revoke，状态 revoking → revoked；失败回到 sent 并记下错误）。
+// RevokeMail 撤回已投递（或投递中）的邮件：服务端先标记撤回、不再投递，再撤回所有尚未领取的礼物。
+// 撤回可能要处理很多礼物箱，在后台执行；返回的邮件为撤回中，之后以服务端的状态为准。
 func (uc *GameOpsUsecase) RevokeMail(ctx context.Context, actor GmActor, req *v1.RevokeGameMailRequest) (*v1.GameMail, error) {
-	m, err := uc.mailOf(ctx, req.ServerId, req.Id)
+	_, g, err := uc.mailClient(ctx, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	s, err := uc.gm.Servers().Get(ctx, m.ServerID)
+	m, err := g.GetMail(ctx, req.Id)
 	if err != nil {
-		return nil, err
+		return nil, mailError(err)
 	}
-	if s.Game != gakumas.ID {
-		return nil, ErrGmGameUnsupported
-	}
-	ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, []string{"sent"}, "revoking")
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	if !ok {
+	if m.Status != gakumas.MailSent && m.Status != gakumas.MailSending {
 		return nil, ErrGameMailState
 	}
-	m.Status, m.Error, m.RevokedByName = entmail.StatusRevoking, "", actor.Name
-	saved, err := uc.repo.SaveMail(ctx, m)
-	if err != nil {
-		return nil, ErrSystem(err)
-	}
-	go uc.revoke(context.WithoutCancel(ctx), actor, saved.ID)
-	return GameMailProto(saved), nil
-}
-
-func (uc *GameOpsUsecase) revoke(ctx context.Context, actor GmActor, id string) {
-	ctx, cancel := context.WithTimeout(ctx, mailDeliverTimeout)
-	defer cancel()
-	m, err := uc.repo.GetMail(ctx, id)
-	if err != nil {
-		uc.log.Errorf("revoke mail %s: %v", id, err)
-		return
-	}
-	e, outcomes, err := uc.mailOperation(ctx, actor, m.ServerID, gkMailRevoke, gkMailID{MailID: m.ID}, false, map[string]string{"mailId": m.ID, "title": m.Title}, "mail:"+m.ID)
-	now := time.Now()
-	switch {
-	case err != nil:
-		m.Status, m.Error, m.RevokedByName = entmail.StatusSent, errText(err), ""
-	case e.Status == "failed":
-		m.Status, m.RevokeExecutionID, m.RevokedByName = entmail.StatusSent, e.ID, ""
-		m.Error = e.ErrorMessage
-		if e.ErrorCode != "" {
-			m.Error = e.ErrorCode + ": " + e.ErrorMessage
+	go func(ctx context.Context) {
+		ctx, cancel := context.WithTimeout(ctx, mailRevokeTimeout)
+		defer cancel()
+		if _, _, err := uc.mailOperation(ctx, actor, req.ServerId, gkMailRevoke, req.Id, gkMailID{MailID: req.Id}, false, mailSummary(m)); err != nil {
+			uc.log.Errorf("revoke mail %s: %v", req.Id, err)
 		}
-	default:
-		sum := mailResultOf(outcomes)
-		m.Status, m.Error, m.RevokeExecutionID = entmail.StatusRevoked, "", e.ID
-		m.RevokedCount, m.RevokedAt, m.StatsAt = int(sum.Done), &now, nil
-	}
-	if _, err := uc.repo.SaveMail(context.WithoutCancel(ctx), m); err != nil {
-		uc.log.Errorf("save revoked mail %s: %v", m.ID, err)
-	}
-}
-
-// mailLoop 启动时把中断的撤回恢复成已发送，之后每 mailLoopEvery 按服务端的投递结果同步邮件状态。
-func (uc *GameOpsUsecase) mailLoop() {
-	time.Sleep(5 * time.Second)
-	uc.recoverMails()
-	ticker := time.NewTicker(mailLoopEvery)
-	defer ticker.Stop()
-	for {
-		uc.syncMails()
-		<-ticker.C
-	}
-}
-
-// recoverMails 进程重启前没有完成的撤回回到已发送（可以再次撤回）。
-func (uc *GameOpsUsecase) recoverMails() {
-	ctx := context.Background()
-	list, err := uc.repo.MailsInStatus(ctx, []string{"revoking"})
-	if err != nil {
-		uc.log.Warnf("recover mails: %v", err)
-		return
-	}
-	for _, m := range list {
-		m.Status, m.Error, m.RevokedByName = entmail.StatusSent, "INTERRUPTED", ""
-		if _, err := uc.repo.SaveMail(ctx, m); err != nil {
-			uc.log.Warnf("recover mail %s: %v", m.ID, err)
-		}
-	}
-}
-
-// syncMails 投递中与已到开始时间的定时邮件按服务端保存的邮件同步状态。
-func (uc *GameOpsUsecase) syncMails() {
-	ctx, cancel := context.WithTimeout(context.Background(), mailLoopEvery)
-	defer cancel()
-	now := time.Now()
-	sending, err := uc.repo.MailsInStatus(ctx, []string{"sending"})
-	if err != nil {
-		uc.log.Warnf("sending mails: %v", err)
-		return
-	}
-	due, err := uc.repo.DueMails(ctx, now, 50)
-	if err != nil {
-		uc.log.Warnf("due mails: %v", err)
-		return
-	}
-	for _, m := range append(sending, due...) {
-		uc.syncMail(ctx, m, now)
-	}
-}
-
-// syncMail 按服务端的投递结果更新一封邮件：投递完转为已发送并记下送达与失败人数，
-// 已到开始时间的定时邮件转为投递中，服务端没有这封邮件（登记没有成功）时转为发送失败。
-func (uc *GameOpsUsecase) syncMail(ctx context.Context, m *gen.GameMail, now time.Time) {
-	s, client, err := uc.gm.Servers().ClientOf(ctx, m.ServerID)
-	if err != nil || s.Game != gakumas.ID {
-		return
-	}
-	st, err := gakumas.New(client).GetMail(ctx, m.ID)
-	from := []string{string(m.Status)}
-	switch {
-	case mgp.CodeOf(err) == gakumas.MailNotFound:
-		if now.Sub(m.UpdateTime) < mailRegisterGrace {
-			return
-		}
-		if ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, from, "failed"); err != nil || !ok {
-			return
-		}
-		m.Status, m.Error = entmail.StatusFailed, gakumas.MailNotFound
-	case err != nil:
-		uc.log.Warnf("sync mail %s: %v", m.ID, err)
-		return
-	case st.DeliveredAt > 0:
-		if ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, from, "sent"); err != nil || !ok {
-			return
-		}
-		at := time.UnixMilli(st.DeliveredAt)
-		m.Status, m.Error = entmail.StatusSent, ""
-		m.SentAt, m.StatsAt = &at, &now
-		m.RecipientCount, m.FailedCount, m.ClaimedCount = st.Done, st.Failed, 0
-	case m.Status == entmail.StatusScheduled:
-		if ok, err := uc.repo.SwitchMailStatus(ctx, m.ID, from, "sending"); err != nil || !ok {
-			return
-		}
-		m.Status = entmail.StatusSending
-	default:
-		return
-	}
-	if _, err := uc.repo.SaveMail(ctx, m); err != nil {
-		uc.log.Warnf("save synced mail %s: %v", m.ID, err)
-	}
+	}(context.WithoutCancel(ctx))
+	out := GameMailProto(m)
+	out.Status = gakumas.MailRevoking
+	return out, nil
 }
 
 // ---------------- 兑换码 ----------------

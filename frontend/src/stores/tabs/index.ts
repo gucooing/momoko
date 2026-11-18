@@ -17,12 +17,14 @@ export const useTabsStore = defineStore('tabs', () => {
   const activePath = ref<string>('')
   const routeRefreshKeys = ref<Record<string, number>>({})
 
-  // 页内标签参数 ?tab= 不算换页：同一页面切换标签共用一个页面实例（见 config/pageGroups.ts）
+  // 页内标签参数 ?tab= 与标签里的子页参数 ?view=（如 GM 运营「操作与日志」的执行操作 / GM 记录 / 客户端日志）不算换页：
+  // 同一页面切换标签共用一个页面实例，不重建整页、不重新拉数据（见 config/pageGroups.ts）
   const pageKeyOf = (fullPath: string) => {
     const [pathAndQuery = '', hash = ''] = fullPath.split('#')
     const [path = '', query = ''] = pathAndQuery.split('?')
     const params = new URLSearchParams(query)
     params.delete('tab')
+    params.delete('view')
     const rest = params.toString()
     return `${path}${rest ? `?${rest}` : ''}${hash ? `#${hash}` : ''}`
   }

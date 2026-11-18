@@ -13,7 +13,6 @@ import (
 	entunlink "momoko/internal/data/ent/gen/gameaccountunlink"
 	entclientlog "momoko/internal/data/ent/gen/gameclientlog"
 	entrevision "momoko/internal/data/ent/gen/gameconfigrevision"
-	entmail "momoko/internal/data/ent/gen/gamemail"
 	entrecent "momoko/internal/data/ent/gen/gamerecentserver"
 	entgameserver "momoko/internal/data/ent/gen/gameserver"
 	entbackup "momoko/internal/data/ent/gen/gameserverbackup"
@@ -89,10 +88,10 @@ func (r *gameServerRepo) Update(ctx context.Context, s *gen.GameServer) (*gen.Ga
 		SetProcesses(s.Processes).
 		SetOptions(s.Options).
 		SetCover(s.Cover).
-		SetLauncherIcon(s.LauncherIcon).
-		SetLauncherIconKey(s.LauncherIconKey).
-		SetLauncherBackground(s.LauncherBackground).
-		SetLauncherBackgroundKey(s.LauncherBackgroundKey).
+		SetAppIcon(s.AppIcon).
+		SetAppIconKey(s.AppIconKey).
+		SetAppBackground(s.AppBackground).
+		SetAppBackgroundKey(s.AppBackgroundKey).
 		SetMgpEndpoint(s.MgpEndpoint).
 		SetKeyID(s.KeyID).
 		SetSecret(s.Secret).
@@ -124,9 +123,6 @@ func (r *gameServerRepo) Delete(ctx context.Context, id string) error {
 			return err
 		}
 		if _, err := tx.GameConfigRevision.Delete().Where(entrevision.ServerID(id)).Exec(ctx); err != nil {
-			return err
-		}
-		if _, err := tx.GameMail.Delete().Where(entmail.ServerID(id)).Exec(ctx); err != nil {
 			return err
 		}
 		if _, err := tx.GiftCodeRedeem.Delete().Where(entredeem.ServerID(id)).Exec(ctx); err != nil {

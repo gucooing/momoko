@@ -103,7 +103,7 @@ const copy = async () => {
 
 const validate = () => {
   const e: Record<string, string> = {}
-  if (form.value.password.length < 8) e.password = t('accessAdmin.reset.tooShort')
+  if (!form.value.password) e.password = t('accessAdmin.reset.required')
   if (form.value.confirm !== form.value.password) e.confirm = t('accessAdmin.reset.mismatch')
   errors.value = e
   return !Object.keys(e).length

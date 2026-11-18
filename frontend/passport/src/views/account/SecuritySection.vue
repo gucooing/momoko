@@ -55,7 +55,7 @@
         <PField :label="t('account.security.oldPassword')">
           <input v-model="pw.old" type="password" autocomplete="current-password" required />
         </PField>
-        <PField :label="t('auth.forgot.password')" :hint="t('auth.register.passwordHint', { n: session.config?.minPasswordLength || 8 })">
+        <PField :label="t('auth.forgot.password')">
           <input v-model="pw.next" type="password" autocomplete="new-password" required />
         </PField>
         <PField :label="t('auth.register.confirm')" :error="pw.confirm && pw.confirm !== pw.next ? t('auth.register.mismatch') : ''">

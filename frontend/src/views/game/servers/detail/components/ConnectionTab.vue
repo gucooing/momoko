@@ -74,27 +74,25 @@
         <UButton size="sm" color="neutral" variant="soft" @click="openClient">{{ t('gameServers.connection.modify') }}</UButton>
       </div>
 
-      <!-- 启动器的游戏图标与游戏页背景（上传到对象存储） -->
-      <template v-if="clientLaunch">
-      <div v-for="m in LAUNCHER_MEDIA" :key="m.kind" class="cn__row">
+      <!-- 应用图标与应用背景（上传到对象存储）：服务器页页头与启动器同步使用 -->
+      <div v-for="m in APP_MEDIA" :key="m.kind" class="cn__row">
         <span class="cn__ico m-sticker m-sticker--a2"><UIcon :name="m.icon" /></span>
         <span class="cn__main">
-          <b>{{ t(`gameServers.connection.launcher.${m.kind}`) }}</b>
-          <span v-if="!mediaLink(m.kind)">{{ t('gameServers.connection.launcher.none') }}</span>
+          <b>{{ t(`gameServers.connection.media.${m.kind}`) }}</b>
+          <span>{{ mediaLink(m.kind) ? t('gameServers.connection.media.hint') : `${t('gameServers.connection.media.none')} · ${t('gameServers.connection.media.hint')}` }}</span>
         </span>
         <template v-if="mediaLink(m.kind)">
-          <video v-if="isVideo(mediaLink(m.kind))" class="cn__media" :src="mediaLink(m.kind)" muted loop autoplay playsinline />
+          <video v-if="isVideoLink(mediaLink(m.kind))" class="cn__media" :src="mediaLink(m.kind)" muted loop autoplay playsinline />
           <img v-else class="cn__media" :class="{ 'cn__media--icon': m.kind === 'icon' }" :src="mediaLink(m.kind)" alt="" />
         </template>
         <UButton size="sm" color="neutral" variant="soft" :loading="mediaBusy === m.kind" @click="pickMedia(m.kind)">
-          {{ t(mediaLink(m.kind) ? 'gameServers.connection.launcher.replace' : 'gameServers.connection.launcher.upload') }}
+          {{ t(mediaLink(m.kind) ? 'gameServers.connection.media.replace' : 'gameServers.connection.media.upload') }}
         </UButton>
         <UButton v-if="mediaLink(m.kind)" size="sm" color="error" variant="soft" :disabled="mediaBusy !== ''" @click="removeMedia(m.kind)">
-          {{ t('gameServers.connection.launcher.remove') }}
+          {{ t('gameServers.connection.media.remove') }}
         </UButton>
       </div>
       <input ref="mediaInput" type="file" hidden :accept="mediaAccept" @change="uploadMedia" />
-      </template>
 
       <!-- 托管选项 -->
       <div v-if="hosted && server.hosting" class="cn__row">
@@ -336,17 +334,18 @@
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  deleteGameServerLauncherMedia,
+  deleteGameServerAppMedia,
   detectGameServerDir,
   generateGameServerClientApp,
-  type LauncherMediaKind,
-  uploadGameServerLauncherMedia,
+  type AppMediaKind,
+  uploadGameServerAppMedia,
   resetGameServerClientAppSecret,
   switchGameServerMode,
   testGameServer,
   updateGameServer,
   updateGameServerHosting,
 } from '@/api/gameServer'
+import { isVideoLink } from '@/games/serverMedia'
 import { copyTextToClipboard } from '@/utils/file'
 import { getRequestErrorMessage } from '@/utils/request'
 import type {
@@ -559,20 +558,18 @@ const saveClient = async () => {
 // ---- 客户端应用凭据 ----
 const appBusy = ref(false)
 
-// ---- 启动器的游戏图标与游戏页背景：选文件后直传对象存储并保存链接，换文件或删除时服务端删掉旧文件 ----
-const LAUNCHER_MEDIA: { kind: LauncherMediaKind; icon: string }[] = [
+// ---- 应用图标与应用背景：选文件后直传对象存储并保存链接，换文件或删除时服务端删掉旧文件 ----
+const APP_MEDIA: { kind: AppMediaKind; icon: string }[] = [
   { kind: 'icon', icon: 'i-lucide-image' },
   { kind: 'background', icon: 'i-lucide-panels-top-left' },
 ]
-const IMAGE_TYPES = 'image/jpeg,image/png,image/webp,image/gif'
 const mediaInput = ref<HTMLInputElement>()
-const mediaKind = ref<LauncherMediaKind>('icon')
-const mediaBusy = ref<LauncherMediaKind | ''>('')
-const mediaAccept = computed(() => (mediaKind.value === 'icon' ? IMAGE_TYPES : `${IMAGE_TYPES},video/mp4,video/webm`))
-const mediaLink = (kind: LauncherMediaKind) => (kind === 'icon' ? props.server.launcherIcon : props.server.launcherBackground)
-const isVideo = (link: string) => /\.(mp4|webm)(\?|#|$)/i.test(link)
+const mediaKind = ref<AppMediaKind>('icon')
+const mediaBusy = ref<AppMediaKind | ''>('')
+const mediaAccept = computed(() => (mediaKind.value === 'icon' ? 'image/*' : 'image/*,video/*'))
+const mediaLink = (kind: AppMediaKind) => (kind === 'icon' ? props.server.appIcon : props.server.appBackground)
 
-const pickMedia = (kind: LauncherMediaKind) => {
+const pickMedia = (kind: AppMediaKind) => {
   mediaKind.value = kind
   // accept 跟着种类变，等它更新后再打开文件选择
   requestAnimationFrame(() => mediaInput.value?.click())
@@ -586,20 +583,20 @@ const uploadMedia = async (event: Event) => {
   const kind = mediaKind.value
   mediaBusy.value = kind
   try {
-    await uploadGameServerLauncherMedia(id.value, kind, file)
+    await uploadGameServerAppMedia(id.value, kind, file)
     fb.success(t('gameServers.common.saved'))
     emit('changed')
   } catch (e) {
-    fb.error(getRequestErrorMessage(e, t('gameServers.connection.launcher.uploadFailed')))
+    fb.error(getRequestErrorMessage(e, t('gameServers.connection.media.uploadFailed')))
   } finally {
     mediaBusy.value = ''
   }
 }
 
-const removeMedia = async (kind: LauncherMediaKind) => {
+const removeMedia = async (kind: AppMediaKind) => {
   mediaBusy.value = kind
   try {
-    await deleteGameServerLauncherMedia(id.value, kind)
+    await deleteGameServerAppMedia(id.value, kind)
     fb.success(t('gameServers.common.saved'))
     emit('changed')
   } catch (e) {

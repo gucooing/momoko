@@ -13,7 +13,7 @@
           </PButton>
         </span>
       </PField>
-      <PField :label="t('auth.forgot.password')" :hint="t('auth.register.passwordHint', { n: session.config?.minPasswordLength || 8 })">
+      <PField :label="t('auth.forgot.password')">
         <input v-model="password" type="password" autocomplete="new-password" required />
       </PField>
       <p v-if="error" class="pp-error" role="alert">{{ error }}</p>

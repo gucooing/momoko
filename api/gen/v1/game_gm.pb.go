@@ -2457,7 +2457,7 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"\x18RejectGmExecutionRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x12\n" +
-	"\x04note\x18\x03 \x01(\tR\x04note\"\x89\x03\n" +
+	"\x04note\x18\x03 \x01(\tR\x04note\"\x83\x03\n" +
 	"\x13GmSelfServicePolicy\x12\x18\n" +
 	"\acommand\x18\x01 \x01(\tR\acommand\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
@@ -2474,12 +2474,12 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"playerNote\x12&\n" +
 	"\x0fupdated_by_name\x18\v \x01(\tR\rupdatedByName\x12;\n" +
 	"\vupdate_time\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTimeJ\x04\b\b\x10\t\"7\n" +
+	"updateTime\"7\n" +
 	"\x18ListGmSelfServiceRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\"d\n" +
 	"\x19ListGmSelfServiceResponse\x12-\n" +
 	"\x05items\x18\x01 \x03(\v2\x17.v1.GmSelfServicePolicyR\x05items\x12\x18\n" +
-	"\aenabled\x18\x02 \x01(\x05R\aenabled\"\xf0\x01\n" +
+	"\aenabled\x18\x02 \x01(\x05R\aenabled\"\xea\x01\n" +
 	"\x1aUpdateGmSelfServiceRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x18\n" +
 	"\acommand\x18\x02 \x01(\tR\acommand\x12\x18\n" +
@@ -2489,7 +2489,7 @@ const file_v1_game_gm_proto_rawDesc = "" +
 	"periodDays\x12#\n" +
 	"\rneed_approval\x18\x06 \x01(\bR\fneedApproval\x12\x1f\n" +
 	"\vplayer_note\x18\a \x01(\tR\n" +
-	"playerNoteJ\x04\b\x05\x10\x06\"\xd6\x01\n" +
+	"playerNote\"\xd6\x01\n" +
 	"\rGmConfigDraft\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12#\n" +

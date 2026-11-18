@@ -1,6 +1,7 @@
 <!-- 邮件编辑 / 详情：收件人 → 奖励 → 内容（含游戏内礼物箱预览）→ 发送。
-     草稿自动保存；定时邮件可以改内容、取消定时或立即发送；已发送、失败、已撤回的邮件只读，可复制一份再改。
-     试运行与发送都经服务端 mail.broadcast 执行并写进 GM 记录。 -->
+     邮件（含草稿）保存在游戏服务端：草稿自动保存（新邮件的 id 在这里生成）；定时邮件可以改内容、取消定时或立即发送；
+     已投递、已撤回的邮件只读，可复制一份再改。试运行与发送都经服务端 mail.send 执行并写进 GM 记录；
+     试运行匹配的人数只在收件人没改动时显示，不保存。 -->
 <template>
   <div class="me" :class="{ 'me--dialog': inDialog }">
     <header class="me__head">
@@ -16,24 +17,18 @@
       <UIcon name="i-lucide-loader-circle" class="me__spin" />
       {{ mail.status === 'sending' ? t('gmOps.mail.sendingHint') : t('gmOps.mail.revokingHint') }}
     </div>
-    <div v-if="mail?.error" class="me__banner me__banner--bad">
-      <UIcon name="i-lucide-triangle-alert" />
-      <span>{{ errorText(mail.error) }}</span>
-    </div>
 
     <!-- 已发送：领取进度 -->
     <section v-if="mail && isDelivered" class="me__claim">
       <div class="me__claim-row">
         <span class="me__claim-label">{{ t('gmOps.mail.claimed') }}</span>
-        <span class="me__claim-num m-num">{{ mail.claimedCount }} / {{ mail.recipientCount }}</span>
-        <span class="me__spacer" />
-        <span v-if="mail.statsAt" class="me__hint">{{ t('gmOps.mail.statsAt', { time: fmtDateTime(mail.statsAt) }) }}</span>
+        <span class="me__claim-num m-num">{{ mail.received }} / {{ mail.recipients }}</span>
       </div>
       <div class="me__bar"><span :style="{ width: `${claimPercent}%` }" /></div>
       <div class="me__claim-facts">
-        <span>{{ t('gmOps.mail.delivered', { n: mail.recipientCount }) }}</span>
-        <span v-if="mail.failedCount" class="me__warn">{{ t('gmOps.mail.deliverFailed', { n: mail.failedCount }) }}</span>
-        <span v-if="mail.status === 'revoked'">{{ t('gmOps.mail.revokedFacts', { n: mail.revokedCount, time: fmtDateTime(mail.revokedAt), name: mail.revokedByName || '—' }) }}</span>
+        <span>{{ t('gmOps.mail.delivered', { n: mail.recipients }) }}</span>
+        <span v-if="mail.failed" class="me__warn">{{ t('gmOps.mail.deliverFailed', { n: mail.failed }) }}</span>
+        <span v-if="mail.status === 'revoked'">{{ t('gmOps.mail.revokedFacts', { n: mail.revoked, time: fmtDateTime(mail.revokedAt), name: mail.revokedBy || '—' }) }}</span>
       </div>
     </section>
 
@@ -87,7 +82,7 @@
         <span class="me__spacer" />
         <template v-if="matchedKnown">
           <span class="me__hint">{{ t('gmOps.mail.matchedLabel') }}</span>
-          <span class="me__matched m-num">{{ mail?.matchedCount }}</span>
+          <span class="me__matched m-num">{{ matchedCount }}</span>
           <span v-if="registered >= 0" class="me__hint">{{ t('gmOps.mail.matchedOf', { n: registered }) }}</span>
         </template>
         <span v-else-if="editable" class="me__hint">{{ t('gmOps.mail.matchedUnknown') }}</span>
@@ -110,12 +105,12 @@
         <div class="me__step-head"><span class="me__sn">3</span>{{ t('gmOps.mail.content') }}</div>
         <label class="me__field">
           <span class="me__label">{{ t('gmOps.mail.titleLabel') }}</span>
-          <input v-model="form.title" type="text" maxlength="64" class="me__input" :placeholder="t('gmOps.mail.titlePlaceholder')" :disabled="!editable" />
-          <span class="me__hint">{{ t('gmOps.mail.titleHint', { n: form.title.length }) }}</span>
+          <input v-model="form.message" type="text" maxlength="64" class="me__input" :placeholder="t('gmOps.mail.titlePlaceholder')" :disabled="!editable" />
+          <span class="me__hint">{{ t('gmOps.mail.titleHint', { n: form.message.length }) }}</span>
         </label>
         <label class="me__field">
           <span class="me__label">{{ t('gmOps.mail.body') }}</span>
-          <textarea v-model="form.body" rows="4" maxlength="2000" class="me__input me__textarea" :placeholder="t('gmOps.mail.bodyPlaceholder')" :disabled="!editable" />
+          <textarea v-model="form.note" rows="4" maxlength="2000" class="me__input me__textarea" :placeholder="t('gmOps.mail.bodyPlaceholder')" :disabled="!editable" />
           <span class="me__hint">{{ t('gmOps.mail.bodyHint') }}</span>
         </label>
         <div class="me__field">
@@ -144,7 +139,7 @@
             <GameImage v-if="firstImage" :src="firstImage" class="me__gift-img" width="48" height="48" />
             <span v-else class="me__gift-img me__gift-img--empty"><UIcon name="i-lucide-gift" /></span>
             <span class="me__gift-text">
-              <span class="me__gift-title">{{ form.title || t('gmOps.mail.titlePlaceholder') }}</span>
+              <span class="me__gift-title">{{ form.message || t('gmOps.mail.titlePlaceholder') }}</span>
               <span class="me__gift-sum">{{ rewardSummary || t('gmOps.mail.noRewards') }}</span>
               <span class="me__hint">{{ form.expireDays ? t('gmOps.mail.expireLeft', { n: form.expireDays }) : t('gmOps.mail.noExpireHint') }}</span>
             </span>
@@ -168,7 +163,7 @@
             </button>
           </div>
           <template v-if="form.when === 'later'">
-            <input v-model="form.scheduledAt" type="datetime-local" class="me__input" :min="minSchedule" :aria-label="t('gmOps.mail.scheduleAt')" />
+            <input v-model="form.startTime" type="datetime-local" class="me__input" :min="minSchedule" :aria-label="t('gmOps.mail.scheduleAt')" />
             <span class="me__hint">{{ t('gmOps.mail.timezone', { zone: zone }) }}</span>
           </template>
         </div>
@@ -214,7 +209,7 @@
       @confirm="revoke"
     >
       <div class="me__dialog">
-        <p class="me__dialog-text">{{ t('gmOps.mail.revokeDesc', { n: Math.max((mail?.recipientCount || 0) - (mail?.claimedCount || 0), 0) }) }}</p>
+        <p class="me__dialog-text">{{ t('gmOps.mail.revokeDesc', { n: Math.max((mail?.recipients || 0) - (mail?.received || 0), 0) }) }}</p>
       </div>
     </FormDialog>
   </div>
@@ -225,20 +220,12 @@ import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
 import dayjs from 'dayjs'
-import {
-  cancelGameMail,
-  createGameMail,
-  deleteGameMail,
-  dryRunGameMail,
-  duplicateGameMail,
-  revokeGameMail,
-  sendGameMail,
-  updateGameMail,
-} from '@/api/gameOps'
+import { cancelGameMail, deleteGameMail, dryRunGameMail, revokeGameMail, saveGameMail, sendGameMail } from '@/api/gameOps'
 import { listPlayers } from '@/api/gakumas'
 import { RESOURCE_JEWEL_PAID } from '@/games/gakumas/catalog'
 import type { GameReward, GameTarget } from '@/types/v1/game_common'
 import type { GameMail, SaveGameMailRequest } from '@/types/v1/game_ops'
+import { generateUUID } from '@/utils/deviceId'
 import { Dialog } from '@/utils/dialog'
 import { feedback } from '@/utils/feedback'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
@@ -263,7 +250,7 @@ const props = defineProps<{
   inDialog?: boolean
 }>()
 const emit = defineEmits<{
-  /** 服务端返回了新的邮件状态（保存、试运行、发送、取消、撤回） */
+  /** 服务端返回了新的邮件状态（保存、发送、取消、撤回） */
   changed: [mail: GameMail]
   deleted: [id: string]
   /** 复制出了新草稿 */
@@ -280,8 +267,8 @@ const giftOperation = computed(() => ctx.operation('gift.send'))
 const rewardMax = computed(() => giftOperation.value?.params?.properties?.rewards?.maxItems || 20)
 
 const blank = () => ({
-  title: '',
-  body: '',
+  message: '',
+  note: '',
   rewards: [] as GameReward[],
   target: 'all' as Target,
   players: [] as GameTarget[],
@@ -289,7 +276,7 @@ const blank = () => ({
   excludeBanned: true,
   expireDays: 14,
   when: 'now' as 'now' | 'later',
-  scheduledAt: '',
+  startTime: '',
 })
 const form = reactive(blank())
 
@@ -310,29 +297,30 @@ const condRowsOf = (m: GameMail): CondRow[] => {
 const fill = (m?: GameMail) => {
   const next = blank()
   if (m) {
-    next.title = m.title
-    next.body = m.body
+    next.message = m.message
+    next.note = m.note
     next.rewards = (m.rewards || []).map((r) => ({ resourceType: r.resourceType, resourceId: r.resourceId, quantity: Number(r.quantity) }))
     next.target = (['players', 'condition', 'all'].includes(m.target) ? m.target : 'all') as Target
     next.players = (m.players || []).map((p) => ({ ...p }))
     next.conds = condRowsOf(m)
     next.excludeBanned = m.excludeBanned
     next.expireDays = m.expireDays
-    const at = toDate(m.scheduledAt)
-    next.when = m.status === 'scheduled' && at ? 'later' : 'now'
-    next.scheduledAt = at ? toLocalInput(at) : ''
+    // 草稿里的开始时间是计划的定时时间，定时邮件里是开始投递的时间
+    const at = m.status === 'draft' || m.status === 'scheduled' ? toDate(m.startTime) : undefined
+    next.when = at ? 'later' : 'now'
+    next.startTime = at ? toLocalInput(at) : ''
   }
   Object.assign(form, next)
   lastSaved = JSON.stringify(payloadBody())
 }
 
 const editable = computed(() => !props.mail || props.mail.status === 'draft' || props.mail.status === 'scheduled')
-const canSend = computed(() => !props.mail || ['draft', 'scheduled', 'failed'].includes(props.mail.status))
+const canSend = computed(() => !props.mail || props.mail.status === 'draft' || props.mail.status === 'scheduled')
 const isDelivered = computed(() => ['sent', 'revoking', 'revoked'].includes(props.mail?.status || ''))
 const claimPercent = computed(() => {
   const m = props.mail
-  if (!m || !m.recipientCount) return 0
-  return Math.min(100, Math.round((m.claimedCount / m.recipientCount) * 100))
+  if (!m || !m.recipients) return 0
+  return Math.min(100, Math.round((m.received / m.recipients) * 100))
 })
 
 // ---- 收件人 ----
@@ -398,20 +386,13 @@ const allHint = computed(() => {
   return parts.join(' ')
 })
 
-// 收件人与已保存的一致时，邮件上记的试运行人数才有效。
+// 试运行匹配的人数：只在收件人和试运行时一样时有效（不保存，收件人改动后失效）。
 const recipientKey = (target: string, players: GameTarget[], cond: ReturnType<typeof conditionOf>, excludeBanned: boolean) =>
   JSON.stringify([target, target === 'players' ? players.map((p) => p.pid) : [], target === 'condition' ? cond : null, excludeBanned])
-const matchedKnown = computed(() => {
-  const m = props.mail
-  if (!m || !m.matchedAt) return false
-  const saved = recipientKey(m.target, m.players || [], {
-    createdSince: Number(m.condition?.createdSince || 0),
-    createdBefore: Number(m.condition?.createdBefore || 0),
-    lastLoginSince: Number(m.condition?.lastLoginSince || 0),
-    lastLoginBefore: Number(m.condition?.lastLoginBefore || 0),
-  }, m.excludeBanned)
-  return saved === recipientKey(form.target, form.players, conditionOf(), form.excludeBanned)
-})
+const currentRecipients = computed(() => recipientKey(form.target, form.players, conditionOf(), form.excludeBanned))
+const dryMatched = ref<{ key: string; n: number }>()
+const matchedKnown = computed(() => !!dryMatched.value && dryMatched.value.key === currentRecipients.value)
+const matchedCount = computed(() => dryMatched.value?.n ?? 0)
 
 // ---- 奖励、内容 ----
 const rewardSummary = computed(() => summary(form.rewards))
@@ -423,18 +404,18 @@ const expireOptions = computed(() => {
 })
 
 const ready = computed(
-  () => !!form.title.trim() && form.rewards.length > 0 && (form.target !== 'players' || form.players.length > 0),
+  () => !!form.message.trim() && form.rewards.length > 0 && (form.target !== 'players' || form.players.length > 0),
 )
 
 // ---- 发送 ----
 const minSchedule = computed(() => toLocalInput(new Date()))
 const scheduleValid = computed(() => {
-  const d = fromLocalInput(form.scheduledAt)
+  const d = fromLocalInput(form.startTime)
   return !!d && d.getTime() > Date.now() + 30_000
 })
 const cta = computed(() => {
   if (form.when === 'later') return t('gmOps.mail.ctaLater')
-  if (matchedKnown.value && props.mail) return t('gmOps.mail.ctaN', { n: props.mail.matchedCount })
+  if (matchedKnown.value) return t('gmOps.mail.ctaN', { n: matchedCount.value })
   if (form.target === 'players' && form.players.length) return t('gmOps.mail.ctaN', { n: form.players.length })
   return t('gmOps.mail.ctaNow')
 })
@@ -443,8 +424,8 @@ const cta = computed(() => {
 const headTitle = computed(() => {
   const m = props.mail
   if (!m) return t('gmOps.mail.newTitle')
-  if (m.status === 'draft') return t('gmOps.mail.editDraft', { title: m.title || t('gmOps.mail.untitled') })
-  return m.title || t('gmOps.mail.untitled')
+  if (m.status === 'draft') return t('gmOps.mail.editDraft', { title: m.message || t('gmOps.mail.untitled') })
+  return m.message || t('gmOps.mail.untitled')
 })
 const today = computed(() => t('gmOps.common.today'))
 const headMeta = computed(() => {
@@ -453,15 +434,13 @@ const headMeta = computed(() => {
   const status = t(`gmOps.mail.status.${m.status}`)
   switch (m.status) {
     case 'draft':
-      return `${status} · ${t('gmOps.mail.editedBy', { name: m.updatedByName || m.createdByName || '—', time: fmtShort(m.updateTime, today.value) })}`
+      return `${status} · ${t('gmOps.mail.editedBy', { name: m.updatedBy || m.createdBy || '—', time: fmtShort(m.updateTime, today.value) })}`
     case 'scheduled':
-      return `${status} · ${t('gmOps.mail.scheduledFor', { time: fmtDateTime(m.scheduledAt) })} · ${m.sentByName || '—'}`
+      return `${status} · ${t('gmOps.mail.scheduledFor', { time: fmtDateTime(m.startTime) })} · ${m.sentBy || '—'}`
     default:
-      return `${status} · ${fmtDateTime(m.sentAt || m.updateTime)} · ${m.sentByName || '—'}${editable.value ? '' : ` · ${t('gmOps.mail.readonly')}`}`
+      return `${status} · ${fmtDateTime(m.deliveredAt || m.startTime)} · ${m.sentBy || '—'}${editable.value ? '' : ` · ${t('gmOps.mail.readonly')}`}`
   }
 })
-
-const errorText = (code: string) => (code === 'INTERRUPTED' ? t('gmOps.mail.interrupted') : code)
 
 const menuItems = computed<ActionMenuItem[]>(() => {
   const m = props.mail
@@ -478,17 +457,19 @@ const savedAt = ref('')
 let lastSaved = ''
 // 自己新建出来的邮件：父组件换成它时不要重置表单（期间可能还在输入）。
 let adoptId = ''
+// 新邮件的 id：第一次保存前生成，之后的保存都用它（服务端按 id 新建或更新草稿）。
+let newId = ''
 
 const payloadBody = () => ({
-  title: form.title.trim(),
-  body: form.body.trim(),
+  message: form.message.trim(),
+  note: form.note.trim(),
   rewards: form.rewards,
   target: form.target,
-  players: form.target === 'players' ? form.players : [],
+  players: form.target === 'players' ? form.players.map((p) => p.pid) : [],
   condition: conditionOf(),
   excludeBanned: form.excludeBanned,
   expireDays: form.expireDays,
-  scheduledAt: form.when === 'later' ? fromLocalInput(form.scheduledAt) : undefined,
+  startTime: form.when === 'later' ? fromLocalInput(form.startTime) : undefined,
 })
 
 // 组件卸载后（换了一封邮件）收尾保存时不再通知父组件，免得把当前选中的邮件换回来。
@@ -496,12 +477,13 @@ let unmounted = false
 
 const save = async (manual: boolean): Promise<GameMail | undefined> => {
   const body = payloadBody()
-  const req: SaveGameMailRequest = { serverId: ctx.serverId.value, id: props.mail?.id || '', ...body }
+  const id = props.mail?.id || (newId ||= generateUUID())
+  const req: SaveGameMailRequest = { serverId: ctx.serverId.value, id, ...body }
   // 草稿里定时时间只是计划，过去的时间不发给服务端。
-  if (req.scheduledAt && req.scheduledAt.getTime() <= Date.now()) req.scheduledAt = undefined
+  if (req.startTime && req.startTime.getTime() <= Date.now()) req.startTime = undefined
   if (manual) busy.value = 'save'
   try {
-    const { data } = props.mail ? await updateGameMail(req) : await createGameMail(req)
+    const { data } = await saveGameMail(req)
     lastSaved = JSON.stringify(body)
     savedAt.value = dayjs().format('HH:mm')
     if (!props.mail) adoptId = data.id
@@ -535,8 +517,9 @@ const dryRun = async () => {
   try {
     const m = await ensureSaved()
     if (!m) return
+    const key = currentRecipients.value
     const { data } = await dryRunGameMail(ctx.serverId.value, m.id)
-    if (data.mail) emit('changed', data.mail)
+    dryMatched.value = { key, n: data.matched }
     feedback.info(
       data.registered
         ? t('gmOps.mail.dryRunResultOf', { n: data.matched, total: data.registered })
@@ -554,12 +537,19 @@ const send = async () => {
   const run = async () => {
     busy.value = 'send'
     try {
-      const m = props.mail?.status === 'failed' ? props.mail : await ensureSaved()
+      // 只有草稿能发送：定时邮件改成立即发送或换时间时，先取消定时回到草稿，再按编辑器的内容保存
+      let m: GameMail | undefined
+      if (props.mail?.status === 'scheduled') {
+        await cancelGameMail(ctx.serverId.value, props.mail.id)
+        m = await save(false)
+      } else {
+        m = await ensureSaved()
+      }
       if (!m) return
       const { data } = await sendGameMail({
         serverId: ctx.serverId.value,
         id: m.id,
-        scheduledAt: later ? fromLocalInput(form.scheduledAt) : undefined,
+        startTime: later ? fromLocalInput(form.startTime) : undefined,
       })
       emit('changed', data)
       feedback.success(later ? t('gmOps.mail.scheduledOk') : t('gmOps.mail.sendStarted'))
@@ -575,7 +565,7 @@ const send = async () => {
   }
   Dialog.confirm({
     title: t('gmOps.mail.confirmSendTitle'),
-    content: t('gmOps.mail.confirmSendDesc', { title: form.title.trim(), who: recipientsText.value }),
+    content: t('gmOps.mail.confirmSendDesc', { title: form.message.trim(), who: recipientsText.value }),
     confirmText: cta.value,
     cancelText: t('gmOps.common.cancel'),
     onConfirm: run,
@@ -583,7 +573,7 @@ const send = async () => {
 }
 
 const recipientsText = computed(() => {
-  if (matchedKnown.value && props.mail) return t('gmOps.mail.toN', { n: props.mail.matchedCount })
+  if (matchedKnown.value) return t('gmOps.mail.toN', { n: matchedCount.value })
   if (form.target === 'players') return t('gmOps.mail.toN', { n: form.players.length })
   return t(`gmOps.mail.target.${form.target}`)
 })
@@ -628,7 +618,20 @@ const duplicate = async () => {
   if (!m) return
   busy.value = 'dup'
   try {
-    const { data } = await duplicateGameMail(ctx.serverId.value, m.id)
+    // 复制为新草稿：内容与收件人相同，定时时间不带过去
+    const { data } = await saveGameMail({
+      serverId: ctx.serverId.value,
+      id: generateUUID(),
+      target: m.target,
+      players: (m.players || []).map((p) => p.pid),
+      condition: m.condition,
+      excludeBanned: m.excludeBanned,
+      message: m.message,
+      note: m.note,
+      rewards: m.rewards,
+      expireDays: m.expireDays,
+      startTime: undefined,
+    })
     emit('duplicated', data)
     feedback.success(t('gmOps.mail.duplicated'))
   } catch {
@@ -643,7 +646,7 @@ const remove = () => {
   if (!m) return
   Dialog.confirm({
     title: t('gmOps.mail.deleteDraft'),
-    content: t('gmOps.mail.deleteDesc', { title: m.title || t('gmOps.mail.untitled') }),
+    content: t('gmOps.mail.deleteDesc', { title: m.message || t('gmOps.mail.untitled') }),
     cancelText: t('gmOps.common.cancel'),
     onConfirm: async () => {
       try {

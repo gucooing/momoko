@@ -1,7 +1,7 @@
 <!-- 一条消息：游戏相关的用游戏标记，通行证自己的用盾牌图标。 -->
 <template>
   <div class="mr" :class="{ 'is-unread': !message.read }">
-    <GameMark v-if="message.server" :game="message.server.game" :name="message.server.gameName || message.server.name" :size="36" />
+    <GameMark v-if="message.server" :game="message.server.game" :name="message.server.gameName || message.server.name" :src="message.server.appIcon" :size="36" />
     <span v-else class="mr__ico pp-sticker"><ShieldCheckIcon aria-hidden="true" /></span>
     <span class="mr__body">
       <span class="mr__text">{{ messageText(message) }}</span>
