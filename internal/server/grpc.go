@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	v1 "momoko/api/gen/v1"
+	gakumasv1 "momoko/api/gen/v1/gakumas"
 	"momoko/internal/biz"
 	"momoko/internal/conf"
 	"momoko/internal/service"
@@ -33,6 +34,13 @@ func NewGRPCServer(c *conf.Server,
 	taskApi *service.TaskService,
 	openSSHApi *service.OpenSSHService,
 	monitorApi *service.MonitorService,
+	iqCheckApi *service.IQCheckService,
+	gameServerApi *service.GameServerService,
+	gameGMApi *service.GameGMService,
+	gakumasGMApi *service.GakumasGMService,
+	gameOpsApi *service.GameOpsService,
+	passportAdminApi *service.PassportAdminService,
+	agentApi *service.AgentService,
 ) (*grpc.Server, error) {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
@@ -84,6 +92,13 @@ func NewGRPCServer(c *conf.Server,
 	v1.RegisterTaskManagerServer(srv, taskApi)
 	v1.RegisterOpenSSHManagerServer(srv, openSSHApi)
 	v1.RegisterMonitorManagerServer(srv, monitorApi)
+	v1.RegisterIQCheckManagerServer(srv, iqCheckApi)
+	v1.RegisterGameServerServiceServer(srv, gameServerApi)
+	v1.RegisterGameGMServiceServer(srv, gameGMApi)
+	gakumasv1.RegisterGakumasGMServiceServer(srv, gakumasGMApi)
+	v1.RegisterGameOpsServiceServer(srv, gameOpsApi)
+	v1.RegisterPassportAdminServiceServer(srv, passportAdminApi)
+	v1.RegisterAgentServiceServer(srv, agentApi)
 
 	startNodeTunnelServer(hs, nodeAgentApi, nodeAgent)
 	return srv, nil

@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "v1/node.proto";
+
+// Momoko MCP 的管理页。MCP 服务本身不在这里：它是原始路由 /api/v1/mcp，凭证用 API Key。
+service McpService {
+  // 管理页要的数据：服务路径、工具和各自要的权限、当前用户能当凭证的 API Key
+  rpc GetMcpOverview(GetMcpOverviewRequest) returns (GetMcpOverviewResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mcp/overview"
+    };
+  }
+}
+
+message GetMcpOverviewRequest {}
+
+message McpTool {
+  // 工具名
+  string name = 1;
+  // 调用它要的权限码：API Key 要授予它，所属用户也要有它
+  string permission = 2;
+}
+
+// 一把能当 MCP 凭证的 API Key（授予了至少一个工具要的权限）
+message McpCredential {
+  // API Key id
+  string id = 1;
+  // 名称
+  string name = 2;
+  // 公开密钥标识
+  string key_id = 3;
+  // 有效状态
+  APIKeyStatus status = 4;
+  // 过期时间；空表示永久有效
+  google.protobuf.Timestamp expires_at = 5;
+  // 最近一次被调用的时间；空表示从未使用
+  google.protobuf.Timestamp last_used_time = 6;
+  // 最近一次调用来源 IP
+  string last_used_ip = 7;
+  // 现在能调用的工具名（API Key 授予了、所属用户也有对应权限、没有过期）
+  repeated string tools = 8;
+}
+
+message GetMcpOverviewResponse {
+  // MCP 服务的路径，页面拼上当前访问的地址
+  string path = 1;
+  // 全部工具，按 tools/list 的顺序
+  repeated McpTool tools = 2;
+  // 当前用户的 API Key 里授予了任一工具权限的，按创建时间排
+  repeated McpCredential credentials = 3;
+}

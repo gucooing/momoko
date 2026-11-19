@@ -1,0 +1,1998 @@
+// Code 页的布局和对话样式（在 agent.scss 的紧凑样式之上）。类名都以 agc- 开头，颜色只用 --m-* 令牌。
+
+.agc {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+}
+.agc-flex {
+  flex: 1;
+  min-width: 0;
+}
+.agc-rel {
+  position: relative;
+}
+.agc-small {
+  font-size: 12px;
+}
+.agc-ok {
+  color: var(--m-ok);
+}
+.agc-bad {
+  color: var(--m-bad);
+}
+.agc-warn {
+  color: var(--m-warn);
+}
+.agc-on {
+  color: var(--m-pInk);
+}
+.agc-dir {
+  color: var(--m-pInk);
+}
+.agc-plus {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--m-ok);
+}
+.agc-minus {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--m-bad);
+}
+.agc-pulse {
+  animation: agc-pulse 1.4s ease-in-out infinite;
+}
+@keyframes agc-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agc-pulse {
+    animation: none;
+  }
+}
+
+.agc-card {
+  background: var(--m-s);
+  border: 1px solid var(--m-line);
+  border-radius: 16px;
+  min-height: 0;
+}
+
+// 状态点
+.agc-sd {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--m-line);
+}
+.agc-sd--run,
+.agc-sd--ok {
+  background: var(--m-ok);
+}
+.agc-sd--wait {
+  background: var(--m-warn);
+}
+.agc-sd--bad {
+  background: var(--m-bad);
+}
+
+// 行内小按钮
+.agc-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--m-ink2);
+  cursor: pointer;
+  flex: none;
+}
+.agc-sm:hover,
+.agc-sm.is-on {
+  background: var(--m-s);
+  color: var(--m-ink);
+}
+.agc-sm svg,
+.agc-sm .iconify {
+  width: 15px;
+  height: 15px;
+}
+.agc-cl {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  max-width: 260px;
+  padding: 0 8px;
+  border-radius: 9px;
+  border: 0;
+  background: transparent;
+  color: var(--m-ink2);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.agc-cl:hover {
+  background: var(--m-s);
+  color: var(--m-ink);
+}
+.agc-cl svg,
+.agc-cl .iconify {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.agc-cl__model {
+  font-size: 12px;
+  color: var(--m-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agc-cl--count {
+  background: var(--m-s2);
+  color: var(--m-ink);
+}
+
+// —— 会话栏 ——
+.agc-side {
+  flex: none;
+  width: 264px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.agc-side__new {
+  min-height: 30px;
+}
+.agc-side__search {
+  min-height: 30px;
+}
+.agc-side__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 2px;
+}
+.agc-side__empty {
+  padding: 12px 8px;
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agc-side__all {
+  justify-content: center;
+  text-decoration: none;
+}
+.agc-grp {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agc-wr,
+.agc-sr {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 3px;
+  border-radius: 10px;
+}
+.agc-wr:hover,
+.agc-sr:hover {
+  background: var(--m-s2);
+}
+.agc-sr.is-on,
+.agc-sr.is-on:hover {
+  background: var(--m-pSoft);
+}
+.agc-wb {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 4px 0 6px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--m-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-wb svg,
+.agc-wb .iconify {
+  width: 15px;
+  height: 15px;
+  color: var(--m-ink2);
+  flex: none;
+}
+.agc-wb__t {
+  flex: 0 1 auto;
+}
+.agc-wb__br {
+  flex: 1;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--m-ink2);
+}
+.agc-wb .agc-wb__chev {
+  width: 13px;
+  height: 13px;
+}
+.agc-ss {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 4px 0 28px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--m-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-ss__t {
+  flex: 1;
+  font-weight: 500;
+}
+.agc-ss__fork,
+.agc-ss__wt {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--m-ink2);
+}
+.agc-ss__wt {
+  color: var(--m-pInk);
+}
+.agc-sx {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 4px 0 28px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--m-ink2);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-sx:hover {
+  background: var(--m-s2);
+  color: var(--m-ink);
+}
+.agc-smenu {
+  position: absolute;
+  top: calc(100% - 6px);
+  right: 4px;
+  z-index: 6;
+  width: 212px;
+}
+.agc-wpop {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 6px;
+  right: 3px;
+  z-index: 7;
+  gap: 8px;
+  padding: 12px;
+}
+.agc-wpop__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  min-width: 0;
+}
+.agc-wpop__row svg,
+.agc-wpop__row .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-wpop__name {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.agc-check .ag-cb {
+  margin-top: 2px;
+}
+
+// —— 中间 ——
+.agc-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.agc-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 8px;
+  border-bottom: 1px solid var(--m-line);
+}
+.agc-tabs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+}
+.agc-tt {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 30px;
+  padding: 0 3px 0 10px;
+  border-radius: 9px;
+  color: var(--m-ink2);
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.agc-tt:hover {
+  background: var(--m-s2);
+}
+.agc-tt.is-on,
+.agc-tt.is-on:hover {
+  background: var(--m-ink);
+  color: var(--m-bg);
+  font-weight: 600;
+}
+div.agc-tt.is-on:not(:has(button)) {
+  padding-right: 12px;
+  gap: 8px;
+}
+.agc-tt > svg,
+.agc-tt > .iconify {
+  width: 15px;
+  height: 15px;
+}
+.agc-tt__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  max-width: 320px;
+  padding: 0 6px 0 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.agc-tt__btn svg,
+.agc-tt__btn .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-tt__title {
+  max-width: 200px;
+}
+.agc-tt__file {
+  font-size: 12px;
+}
+.agc-tt__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.agc-tt__x:hover {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+.agc-tt__x svg,
+.agc-tt__x .iconify {
+  width: 14px;
+  height: 14px;
+}
+.agc-tabsmenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 7;
+  width: 300px;
+}
+.agc-tabsmenu__row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.agc-gone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--m-ink2);
+}
+
+// —— 对话 ——
+.agc-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+}
+// 内容包一层：量它的高度变化来跟着到底
+.agc-log__in {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+// 不在底部时，浮在对话区底部正中的「回到最新」
+.agc-log__jump {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  height: 0;
+  display: flex;
+  justify-content: center;
+}
+.agc-jump {
+  position: relative;
+  top: -46px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--m-line);
+  background: var(--m-s);
+  color: var(--m-ink);
+  box-shadow: 0 6px 18px -6px rgba(20, 10, 30, 0.35);
+  cursor: pointer;
+}
+.agc-jump:hover {
+  background: var(--m-s2);
+}
+.agc-jump svg,
+.agc-jump .iconify {
+  width: 16px;
+  height: 16px;
+}
+.agc-log__empty {
+  margin: auto;
+  font-size: 13px;
+  color: var(--m-ink2);
+}
+.agc-log__more {
+  align-self: center;
+  font-size: 12px;
+}
+// 长对话里看不见的消息块不参与排版：侧边栏展开收起、窗口改变大小时不用每一帧都把整段对话重排一遍
+.agc-user,
+.agc-agent {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
+}
+.agc-user {
+  align-self: flex-end;
+  max-width: 86%;
+  padding: 9px 13px;
+  border-radius: 14px 14px 4px 14px;
+  background: var(--m-pSoft);
+  font-size: 13px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agc-user--sub {
+  background: var(--m-s2);
+}
+// 一条用户消息：气泡，下面一行是时间和复制
+.agc-umsg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+// 消息下面的时间和复制（用户消息靠右，Agent 一段结束后靠左）
+.agc-meta {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11.5px;
+  color: var(--m-ink2);
+}
+.agc-meta--agent {
+  margin-left: -5px;
+}
+.agc-meta__time {
+  padding: 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+.agc-user__label {
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agc-user__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.agc-user__atts,
+.agc-box__atts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.agc-att {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  max-width: 100%;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: var(--m-s);
+  border: 1px solid var(--m-line);
+  font-size: 12px;
+  color: var(--m-ink);
+}
+.agc-box .agc-att {
+  padding-right: 2px;
+}
+.agc-att svg,
+.agc-att .iconify {
+  width: 14px;
+  height: 14px;
+  color: var(--m-ink2);
+  flex: none;
+}
+.agc-att__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--m-ink2);
+  cursor: pointer;
+}
+.agc-att__x:hover {
+  background: var(--m-s2);
+}
+.agc-att__x svg,
+.agc-att__x .iconify {
+  width: 12px;
+  height: 12px;
+}
+// 图片附件：缩略图，点开看大图
+.agc-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 120px;
+  height: 120px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--m-line);
+  border-radius: 12px;
+  background: var(--m-s2);
+  color: var(--m-ink2);
+  cursor: zoom-in;
+}
+.agc-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.15s ease;
+}
+.agc-thumb:hover img {
+  filter: brightness(1.06);
+}
+.agc-thumb.is-empty {
+  cursor: default;
+}
+.agc-thumb svg,
+.agc-thumb .iconify {
+  width: 20px;
+  height: 20px;
+}
+.agc-thumbwrap {
+  position: relative;
+  display: inline-flex;
+}
+.agc-thumbwrap__x {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+}
+.agc-thumbwrap__x:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+.agc-thumbwrap__x svg,
+.agc-thumbwrap__x .iconify {
+  width: 13px;
+  height: 13px;
+}
+.agc-agent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.agc-agent__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agc-think {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agc-think__btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 8px;
+  margin-left: -8px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--m-ink2);
+  cursor: pointer;
+}
+.agc-think__btn:hover {
+  background: var(--m-s2);
+}
+.agc-think__btn svg,
+.agc-think__btn .iconify {
+  width: 14px;
+  height: 14px;
+}
+.agc-think__body {
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: var(--m-s2);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--m-ink2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+// Agent 的回答（Markdown）
+.agc-md {
+  font-size: 13px;
+  line-height: 1.65;
+  word-break: break-word;
+  min-width: 0;
+}
+.agc-md > :first-child {
+  margin-top: 0;
+}
+.agc-md > :last-child {
+  margin-bottom: 0;
+}
+.agc-md p,
+.agc-md ul,
+.agc-md ol,
+.agc-md blockquote,
+.agc-md table,
+.agc-md pre {
+  margin: 0 0 8px;
+}
+.agc-md ul,
+.agc-md ol {
+  padding-left: 20px;
+}
+.agc-md ul {
+  list-style: disc;
+}
+.agc-md ol {
+  list-style: decimal;
+}
+.agc-md h1,
+.agc-md h2,
+.agc-md h3,
+.agc-md h4 {
+  margin: 12px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.agc-md code {
+  font-family: var(--ag-mono);
+  font-size: 12.5px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--m-s2);
+}
+.agc-md pre {
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: var(--m-s2);
+  overflow-x: auto;
+}
+.agc-md pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.agc-md blockquote {
+  padding-left: 10px;
+  border-left: 3px solid var(--m-line);
+  color: var(--m-ink2);
+}
+.agc-md table {
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.agc-md th,
+.agc-md td {
+  padding: 4px 8px;
+  border: 1px solid var(--m-line);
+}
+.agc-md a {
+  color: var(--m-pInk);
+}
+// 回答里的图片只放缩略图，点开看大图
+.agc-md img {
+  display: inline-block;
+  vertical-align: top;
+  max-width: min(260px, 100%);
+  max-height: 160px;
+  margin: 2px 6px 2px 0;
+  border: 1px solid var(--m-line);
+  border-radius: 10px;
+  background: var(--m-s2);
+  cursor: zoom-in;
+  transition: filter 0.15s ease;
+}
+.agc-md img:hover {
+  filter: brightness(1.06);
+}
+
+// 工具调用
+.agc-toolwrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.agc-tool {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 0;
+  background: var(--m-s2);
+  font: inherit;
+  font-size: 13px;
+  color: var(--m-ink);
+  text-align: left;
+  cursor: default;
+}
+.agc-tool.is-click {
+  cursor: pointer;
+}
+.agc-tool.is-click:hover {
+  background: color-mix(in srgb, var(--m-s2) 70%, var(--m-line));
+}
+.agc-toolwrap .agc-tool:has(+ .agc-term) {
+  border-radius: 9px 9px 0 0;
+}
+.agc-tool svg,
+.agc-tool .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-tool__verb {
+  font-weight: 500;
+  flex: none;
+}
+.agc-tool__arg {
+  flex: 1;
+  font-size: 12px;
+}
+.agc-tool__meta {
+  font-size: 12px;
+  flex: none;
+}
+.agc-term {
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 8px 11px;
+  border-radius: 0 0 9px 9px;
+  background: #0f0b14;
+  color: #e8e3ee;
+  font-family: var(--ag-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+}
+.agc-term--flat {
+  border-radius: 0;
+}
+.agc-diffcard {
+  border: 1px solid var(--m-line);
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 0;
+}
+.agc-diffcard__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding: 0 6px 0 12px;
+  background: var(--m-s2);
+  font-size: 13px;
+}
+.agc-diffcard__head svg,
+.agc-diffcard__head .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-diffcard__btn {
+  background: var(--m-s);
+}
+// 内联 diff：Monaco 的 diff 编辑器，高度按改动的行数定（有上限）
+.agc-diffcard__body {
+  border-top: 1px solid var(--m-line);
+}
+
+// diff 的逐行显示
+.agc-patch {
+  overflow-x: auto;
+  padding: 6px 0;
+}
+.agc-patch--flat {
+  padding: 6px 0;
+}
+.agc-dl {
+  display: flex;
+  min-height: 20px;
+  line-height: 20px;
+  font-size: 12px;
+  white-space: pre;
+}
+.agc-dl__n {
+  flex: none;
+  width: 42px;
+  padding-right: 8px;
+  text-align: right;
+  color: var(--m-ink2);
+  user-select: none;
+}
+.agc-dl__s {
+  flex: none;
+  width: 14px;
+  color: var(--m-ink2);
+}
+.agc-dl__t {
+  padding-right: 12px;
+}
+.agc-dl.is-add {
+  background: var(--m-okSoft);
+}
+.agc-dl.is-add .agc-dl__s {
+  color: var(--m-ok);
+}
+.agc-dl.is-del {
+  background: var(--m-badSoft);
+}
+.agc-dl.is-del .agc-dl__s {
+  color: var(--m-bad);
+}
+.agc-dl.is-gap {
+  color: var(--m-ink2);
+}
+.agc-patch__empty {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+
+// 批准卡片
+.agc-perm {
+  border: 1.5px solid var(--m-warn);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--m-s);
+}
+.agc-perm__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--m-warn);
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-perm__head svg,
+.agc-perm__head .iconify {
+  width: 17px;
+  height: 17px;
+}
+.agc-perm__who {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--m-ink2);
+}
+.agc-perm__cmd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--m-s2);
+  font-size: 13px;
+  min-width: 0;
+}
+.agc-perm__cmd .ag-ellipsis {
+  flex: 1;
+}
+.agc-perm__cwd {
+  font-size: 12px;
+  flex: none;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agc-perm__title {
+  margin-top: -4px;
+  font-size: 12px;
+}
+.agc-perm__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+// 提示、一轮结束、进行中
+.agc-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+.agc-notice svg,
+.agc-notice .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 1px;
+}
+.agc-notice--info {
+  align-items: center;
+  background: var(--m-s2);
+  color: var(--m-ink2);
+}
+.agc-notice--warning {
+  background: var(--m-warnSoft);
+  color: var(--m-warn);
+}
+.agc-notice--error {
+  background: var(--m-badSoft);
+  color: var(--m-bad);
+}
+.agc-turn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agc-turn svg,
+.agc-turn .iconify {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.agc-turn__tok {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 22px;
+  padding: 0 6px;
+  margin-left: -6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.agc-turn__tok:hover {
+  background: var(--m-s2);
+}
+.agc-turn__usage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--m-s2);
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agc-working {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+
+// —— 输入区 ——
+.agc-foot {
+  position: relative;
+  padding: 8px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--m-line);
+}
+.agc-composer {
+  position: relative;
+}
+.agc-box {
+  border: 1.5px solid var(--m-line);
+  border-radius: 16px;
+  background: var(--m-bg);
+  padding: 9px 8px 6px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agc-box:focus-within {
+  border-color: var(--m-p);
+}
+.agc-box.is-drop {
+  border-style: dashed;
+  border-color: var(--m-p);
+  background: var(--m-pSoft);
+}
+.agc-ta {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  resize: none;
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--m-ink);
+  outline: none;
+  padding: 0;
+}
+.agc-ta::placeholder {
+  color: var(--m-ink2);
+}
+.agc-box__bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: -8px;
+  min-width: 0;
+}
+.agc-cl--model {
+  min-width: 0;
+}
+// 输入框窄的时候上下文用量只画成小圆环，点开是圆环上方的小气泡
+.agc-ctxwrap {
+  position: relative;
+  display: inline-flex;
+}
+.agc-ring {
+  width: 16px;
+  height: 16px;
+  transform: rotate(-90deg);
+}
+.agc-ring circle {
+  fill: none;
+  stroke: var(--m-line);
+  stroke-width: 2.2;
+}
+.agc-ring .agc-ring__on {
+  stroke: var(--m-ink2);
+  stroke-linecap: round;
+}
+.agc-ctxtip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: -4px;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 11px;
+  border: 1px solid var(--m-line);
+  border-radius: 12px;
+  background: var(--m-s);
+  box-shadow: 0 12px 30px -14px rgba(20, 10, 30, 0.5);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--m-ink);
+  white-space: nowrap;
+}
+.agc-ctxtip__t {
+  color: var(--m-ink2);
+}
+.agc-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--m-p);
+  color: var(--m-pOn);
+  cursor: pointer;
+  flex: none;
+  margin-left: 2px;
+}
+.agc-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.agc-send.is-stop {
+  background: var(--m-badSoft);
+  color: var(--m-bad);
+}
+.agc-send svg,
+.agc-send .iconify {
+  width: 18px;
+  height: 18px;
+}
+
+// 输入区的弹层
+.agc-pop {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  z-index: 8;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.agc-pop--l1 {
+  left: 4px;
+  width: 220px;
+}
+.agc-pop--l2 {
+  left: 40px;
+}
+.agc-pop--l3 {
+  left: 76px;
+}
+.agc-pop--r1 {
+  right: 4px;
+}
+.agc-pop--r2 {
+  right: 180px;
+}
+.agc-pop--r3 {
+  right: 290px;
+}
+.agc-pop--sub {
+  right: 262px;
+}
+// 挂在某一行旁边：位置由脚本量好放进 --agc-pop-x / --agc-pop-y
+.agc-pop--at {
+  left: var(--agc-pop-x, 0);
+  top: var(--agc-pop-y, 0);
+  bottom: auto;
+}
+.agc-pop--w140 {
+  width: 140px;
+}
+.agc-pop--w216 {
+  width: 216px;
+}
+.agc-pop--w236 {
+  width: 236px;
+}
+.agc-pop--w252 {
+  width: 252px;
+}
+.agc-pop--w330 {
+  width: 330px;
+}
+.agc-pop--w380 {
+  width: 380px;
+}
+.agc-pop__search {
+  min-height: 30px;
+  margin: 2px 2px 6px;
+}
+.agc-pop__list {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agc-pop__note {
+  padding: 8px 10px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--m-ink2);
+}
+.agc-pop__group {
+  padding: 5px 10px 1px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--m-ink2);
+}
+.agc-pop__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 3px 9px;
+  font-size: 13px;
+}
+.agc-cmd__n {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--m-pInk);
+  white-space: nowrap;
+}
+.agc-cmd .ag-muted {
+  font-size: 12px;
+}
+.agc-mode {
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.agc-mode__t {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agc-mode__n {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-mode__d {
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 400;
+}
+.agc-ctx {
+  width: 300px;
+  padding: 12px;
+  gap: 8px;
+}
+.agc-ctx__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.agc-ctx__big {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.agc-ctx__big .ag-muted {
+  font-size: 13px;
+  font-weight: 500;
+}
+.agc-ctx__sub {
+  font-size: 12px;
+}
+.agc-ctx__btn {
+  align-self: flex-start;
+}
+
+// 计划
+.agc-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.agc-plan__list {
+  margin: 0;
+  padding: 6px 8px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 10px;
+  background: var(--m-s2);
+}
+.agc-plan__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+  padding: 0 6px;
+  font-size: 13px;
+}
+.agc-plan__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 12px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--m-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-plan__bar:hover {
+  background: var(--m-s2);
+}
+.agc-plan__bar svg,
+.agc-plan__bar .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-plan__count {
+  font-weight: 600;
+  flex: none;
+}
+.agc-plan__segs {
+  display: flex;
+  gap: 3px;
+  flex: none;
+}
+.agc-plan__segs > span {
+  width: 18px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--m-line);
+}
+.agc-plan__segs > .agc-sd--ok {
+  background: var(--m-ok);
+}
+.agc-plan__segs > .agc-sd--wait {
+  background: var(--m-warn);
+}
+
+// 子 Agent、文件标签页
+.agc-subview,
+.agc-file {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.agc-subview__head,
+.agc-file__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 10px 0 16px;
+  border-bottom: 1px solid var(--m-line);
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agc-subview__head svg,
+.agc-subview__head .iconify {
+  width: 15px;
+  height: 15px;
+}
+.agc-file__editor {
+  flex: 1;
+  min-height: 0;
+}
+.agc-file__note {
+  margin: auto;
+  font-size: 13px;
+  color: var(--m-ink2);
+}
+
+// —— 右侧 ——
+.agc-right {
+  flex: none;
+  width: 400px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.agc-right--new {
+  overflow-y: auto;
+  padding: 12px;
+  gap: 12px;
+}
+.agc-right__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.agc-right__scroll {
+  overflow-y: auto;
+}
+.agc-right__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 0 8px;
+}
+.agc-right__files {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 40%;
+  overflow-y: auto;
+}
+.agc-right__note {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agc-right__patch {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--m-line);
+  border-radius: 10px;
+  background: var(--m-bg);
+}
+.agc-right__acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agc-right__tree {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.agc-fr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--m-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-fr:hover {
+  background: var(--m-s2);
+}
+.agc-fr.is-on,
+.agc-fr.is-on:hover {
+  background: var(--m-s2);
+  box-shadow: inset 0 0 0 1.5px var(--m-line);
+}
+.agc-fr svg,
+.agc-fr .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-fr__k {
+  width: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  flex: none;
+}
+.agc-taskgrp {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agc-taskgrp__t {
+  padding: 0 8px;
+}
+.agc-task {
+  border: 1px solid var(--m-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.agc-task__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--m-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-task__head:hover {
+  background: var(--m-s2);
+}
+.agc-task__head svg,
+.agc-task__head .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-task__t {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agc-task__n {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-task__n.ag-mono {
+  font-size: 12.5px;
+}
+.agc-info__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+}
+.agc-infocard {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--m-line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.agc-infocard__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.agc-infocard__t {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-infocard__v {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-infocard__v .ag-muted {
+  font-weight: 500;
+}
+.agc-infocard__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.agc-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--m-line);
+  overflow: hidden;
+}
+.agc-bar > span {
+  height: 10px;
+}
+.agc-usage {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.agc-usage__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.agc-usage__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  flex: none;
+}
+.agc-usage__pct {
+  width: 44px;
+  text-align: right;
+}
+.agc-usage__hit {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--m-line);
+  font-size: 12px;
+}
+.agc-usage__hitv {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-usage__last {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.agc-kv {
+  margin: 0;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--m-s2);
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 10px 12px;
+  font-size: 13px;
+}
+.agc-kv dt {
+  color: var(--m-ink2);
+}
+.agc-kv dd {
+  margin: 0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agc-kv dd.ag-mono {
+  font-size: 12px;
+}
+.agc-info__sec {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agc-info__lbl {
+  padding: 0 8px;
+}
+.agc-info__mcp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--m-line);
+  font-size: 13px;
+  font-weight: 500;
+}
+.agc-info__mcp svg,
+.agc-info__mcp .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-info__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+// —— 新会话 ——
+.agc-hero {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
+  text-align: center;
+}
+.agc-hero__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+  transform: rotate(-6deg);
+}
+.agc-hero__mark svg,
+.agc-hero__mark .iconify {
+  width: 20px;
+  height: 20px;
+}
+.agc-hero__t {
+  margin: 6px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.agc-hero__sub {
+  max-width: 460px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--m-ink2);
+}
+.agc-hero__sub b {
+  font-weight: 600;
+  color: var(--m-ink);
+}
+.agc-hero__sub a {
+  color: var(--m-pInk);
+}
+.agc-main .agc-hero + .agc-foot {
+  border-top: 0;
+}
+.agc-new__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 4px;
+}
+.agc-new__t {
+  margin: 0;
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.agc-new__sec {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.agc-new__sec > .ag-lbl {
+  padding: 0 4px;
+}
+.agc-new__none a {
+  color: var(--m-pInk);
+}
+.agc-wsopt {
+  width: 100%;
+}
+.agc-wsopt__ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 11px;
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+  flex: none;
+}
+.agc-wsopt__ic svg,
+.agc-wsopt__ic .iconify {
+  width: 15px;
+  height: 15px;
+}
+.agc-wsopt__t {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: left;
+}
+.agc-wsopt__n {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-drop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 8;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.agc-drop__item {
+  min-height: 36px;
+}
+.agc-xdir {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 2px 0 10px;
+  border-radius: 10px;
+  background: var(--m-s2);
+  font-size: 12px;
+}
+.agc-xdir svg,
+.agc-xdir .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-xdpop {
+  padding: 8px;
+  gap: 6px;
+}
+.agc-xdpop__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.agc-xdpop__list {
+  max-height: 180px;
+}
+.agc-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--m-line);
+  cursor: pointer;
+}
+.agc-toggle__t {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agc-toggle__n {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agc-mcprow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--m-line);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.agc-mcprow svg,
+.agc-mcprow .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+// —— 手机：会话栏和右侧面板浮在上面，输入区的弹层贴着屏幕底部 ——
+.agc-scrim {
+  display: none;
+}
+.agc--mobile {
+  padding: 0;
+  gap: 0;
+}
+.agc--mobile .agc-main {
+  border-radius: 0;
+  border: 0;
+}
+.agc--mobile .agc-scrim {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(20, 10, 30, 0.45);
+}
+.agc--mobile .agc-side {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 21;
+  width: min(86vw, 320px);
+  border-radius: 0 16px 16px 0;
+}
+.agc--mobile .agc-right {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 21;
+  width: auto;
+  height: 82%;
+  border-radius: 16px 16px 0 0;
+}
+// 手机上弹层从输入框上方展开、和输入框一样宽（贴在屏幕底部会被底部导航挡住）
+.agc--mobile .agc-pop {
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  bottom: calc(100% + 8px);
+  width: auto !important;
+  max-height: min(60vh, 420px);
+  z-index: 30;
+  border-radius: 16px;
+  padding: 8px;
+}
+.agc--mobile .agc-log {
+  padding: 12px;
+}
+.agc--mobile .agc-user {
+  max-width: 92%;
+}

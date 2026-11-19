@@ -94,6 +94,20 @@ export const PAGE_GROUPS = {
       { key: 'prompt', labelKey: 'pageGroup.iqcheck.prompt', component: lazy(() => import('@/views/iqcheck/prompt/index.vue')) },
     ],
   },
+  // Agent 管理：会话 / 工作区 / 模型供应商 / MCP / 技能 / 运行时 / 通知
+  agent: {
+    path: '/agent/manage',
+    labelKey: 'pageGroup.agent.label',
+    tabs: [
+      { key: 'sessions', labelKey: 'pageGroup.agent.sessions', icon: 'HOutline:ChatBubbleLeftRightIcon', component: lazy(() => import('@/views/agent/manage/sessions/index.vue')) },
+      { key: 'workspaces', labelKey: 'pageGroup.agent.workspaces', icon: 'HOutline:FolderIcon', component: lazy(() => import('@/views/agent/manage/workspaces/index.vue')) },
+      { key: 'providers', labelKey: 'pageGroup.agent.providers', icon: 'HOutline:KeyIcon', component: lazy(() => import('@/views/agent/manage/providers/index.vue')) },
+      { key: 'mcp', labelKey: 'pageGroup.agent.mcp', icon: 'HOutline:PuzzlePieceIcon', component: lazy(() => import('@/views/agent/manage/mcp/index.vue')) },
+      { key: 'skills', labelKey: 'pageGroup.agent.skills', icon: 'HOutline:BookOpenIcon', component: lazy(() => import('@/views/agent/manage/skills/index.vue')) },
+      { key: 'runtimes', labelKey: 'pageGroup.agent.runtimes', icon: 'HOutline:CpuChipIcon', component: lazy(() => import('@/views/agent/manage/runtimes/index.vue')) },
+      { key: 'notify', labelKey: 'pageGroup.agent.notify', icon: 'HOutline:BellIcon', component: lazy(() => import('@/views/agent/manage/notify/index.vue')) },
+    ],
+  },
   // 个人中心：个人资料 / 外观（任何登录用户都可见）
   profile: {
     path: '/profile',

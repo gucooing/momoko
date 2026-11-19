@@ -6523,6 +6523,7 @@ export const knownTextMessages: Record<AppLocale, Record<string, string>> = {
     性能监控: 'Monitoring',
     修改监控设置: 'Edit monitoring settings',
     智商检测: 'IQ check',
+    'Agent 管理': 'Agent management',
     提示词配置: 'Prompts',
     检测配置: 'Check Config',
     编辑提示词: 'Edit prompts',

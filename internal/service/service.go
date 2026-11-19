@@ -28,4 +28,6 @@ var ProviderSet = wire.NewSet(
 	NewGameOpsService,
 	NewPassportService,
 	NewPassportAdminService,
+	NewAgentService,
+	NewMcpService,
 )

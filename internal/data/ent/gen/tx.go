@@ -14,6 +14,20 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AgentEvent is the client for interacting with the AgentEvent builders.
+	AgentEvent *AgentEventClient
+	// AgentMcpServer is the client for interacting with the AgentMcpServer builders.
+	AgentMcpServer *AgentMcpServerClient
+	// AgentProvider is the client for interacting with the AgentProvider builders.
+	AgentProvider *AgentProviderClient
+	// AgentRuntime is the client for interacting with the AgentRuntime builders.
+	AgentRuntime *AgentRuntimeClient
+	// AgentSession is the client for interacting with the AgentSession builders.
+	AgentSession *AgentSessionClient
+	// AgentSkill is the client for interacting with the AgentSkill builders.
+	AgentSkill *AgentSkillClient
+	// AgentWorkspace is the client for interacting with the AgentWorkspace builders.
+	AgentWorkspace *AgentWorkspaceClient
 	// EmailTemplate is the client for interacting with the EmailTemplate builders.
 	EmailTemplate *EmailTemplateClient
 	// FileShare is the client for interacting with the FileShare builders.
@@ -241,6 +255,13 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AgentEvent = NewAgentEventClient(tx.config)
+	tx.AgentMcpServer = NewAgentMcpServerClient(tx.config)
+	tx.AgentProvider = NewAgentProviderClient(tx.config)
+	tx.AgentRuntime = NewAgentRuntimeClient(tx.config)
+	tx.AgentSession = NewAgentSessionClient(tx.config)
+	tx.AgentSkill = NewAgentSkillClient(tx.config)
+	tx.AgentWorkspace = NewAgentWorkspaceClient(tx.config)
 	tx.EmailTemplate = NewEmailTemplateClient(tx.config)
 	tx.FileShare = NewFileShareClient(tx.config)
 	tx.FileShareDownload = NewFileShareDownloadClient(tx.config)
@@ -298,7 +319,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: EmailTemplate.QueryXXX(), the query will be executed
+// applies a query, for example: AgentEvent.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

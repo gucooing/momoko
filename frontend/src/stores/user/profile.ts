@@ -50,7 +50,16 @@ const createMenuTabs = (): ProfileTabsMenuItem[] => [
   { key: 'logs', labelKey: 'user.tabs.logs', icon: 'HOutline:ClockIcon' },
 ]
 
-const MESSAGE_KINDS = ['login_new_device', 'login_failed', 'password_changed', 'password_reset']
+const MESSAGE_KINDS = [
+  'login_new_device',
+  'login_failed',
+  'password_changed',
+  'password_reset',
+  // Agent 会话：等待批准、一轮结束、出错（参数 sessionId / title / detail）
+  'agent_ask',
+  'agent_done',
+  'agent_error',
+]
 const MESSAGE_POLL_MS = 60_000
 const MESSAGE_PAGE_SIZE = 50
 
@@ -74,6 +83,8 @@ const resolveMessage = (msg: UserMessage): UserMessageItem => {
     ip: params.ip || '—',
     scope: ipScopeLabel(params.ip_scope),
     method: params.method === 'email_code' ? translate('profile.method.emailCode') : translate('profile.method.password'),
+    // Agent 会话还没有标题时用「新会话」
+    title: params.title || translate('agent.common.newSession'),
   }
   const known = MESSAGE_KINDS.includes(msg.kind)
   const isNotice = msg.kind === 'notice'

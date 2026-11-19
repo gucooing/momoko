@@ -37,6 +37,10 @@ export const PERM = {
 	// ---- 智商检测 ----
 	IQCHECK_VIEW: 'iqcheck:view',
 	IQCHECK_EDIT: 'iqcheck:edit',
+
+	// ---- Agent ----
+	AGENT_USE: 'agent:use',
+	AGENT_MANAGE: 'agent:manage',
 } as const
 
 export type PermissionKey = (typeof PERM)[keyof typeof PERM]

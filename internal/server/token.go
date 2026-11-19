@@ -13,6 +13,7 @@ import (
 
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
+	"momoko/pkg/mcp"
 	"momoko/pkg/response"
 	"momoko/pkg/utils"
 )
@@ -40,13 +41,15 @@ type Authorization struct {
 	ar     biz.AuthRepo
 	system *biz.SystemUsecase
 	agent  *biz.NodeAgentUsecase
+	mcpUc  *biz.McpUsecase
 }
 
-func NewAuthorization(ar biz.AuthRepo, system *biz.SystemUsecase, agent *biz.NodeAgentUsecase) *Authorization {
+func NewAuthorization(ar biz.AuthRepo, system *biz.SystemUsecase, agent *biz.NodeAgentUsecase, mcpUc *biz.McpUsecase) *Authorization {
 	return &Authorization{
 		ar:     ar,
 		system: system,
 		agent:  agent,
+		mcpUc:  mcpUc,
 	}
 }
 
@@ -97,6 +100,11 @@ func (a *Authorization) Middleware() httpm.FilterFunc {
 					return
 				}
 				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+			// Momoko MCP 的凭证是 API Key，不认登录 token（见 authz.go 的 serveMcp）。
+			if r.URL.Path == mcp.Path {
+				a.serveMcp(w, r, next)
 				return
 			}
 			authorization := r.Header.Get("Authorization")

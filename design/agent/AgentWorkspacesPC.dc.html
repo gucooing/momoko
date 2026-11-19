@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Agent 管理 · 工作区 · PC</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;transition:transform .15s,filter .15s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}.btn-p:hover{filter:brightness(1.08);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}.btn-s:hover{background:var(--pSoft);color:var(--pInk)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ib-sm{width:36px;height:36px;border-radius:12px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:var(--s2);color:var(--ink2);font-size:12px;font-weight:600;white-space:nowrap}
+.tag-warn{background:var(--warnSoft);color:var(--warn)}
+.nav{display:flex;align-items:center;gap:12px;min-height:42px;padding:0 12px;border-radius:14px;color:var(--ink2);text-decoration:none;font-size:14px;font-weight:500}
+.nav:hover{background:var(--s2);color:var(--ink)}
+.nav-on,.nav-on:hover{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.kbd{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;background:var(--s2);color:var(--ink2)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}.av-ok{background:var(--okSoft);color:var(--ok)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.dot{position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--p);border:2px solid var(--s)}
+.tg{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:none;transition:background .15s}
+.tg::after{content:'';position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.tg:checked{background:var(--p)}
+.tg:checked::after{transform:translateX(20px)}
+.utab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border-bottom:3px solid transparent;color:var(--ink2);text-decoration:none;font-size:15px;font-weight:700;white-space:nowrap}
+.utab:hover{color:var(--ink)}
+.utab-on,.utab-on:hover{color:var(--ink);border-bottom-color:var(--p)}
+.utab .n{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--s2);color:var(--ink2)}
+.ag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:7px;font-size:11px;font-weight:800;white-space:nowrap}
+.ag-cc{background:var(--aSoft);color:var(--aOn)}.ag-cx{background:var(--a2Soft);color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);color:var(--ink2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip-on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.fl{font-size:13px;font-weight:700}
+.fh{font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.fld{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 14px;border-radius:14px;background:var(--s2);border:1.5px solid transparent;color:var(--ink2);font:inherit;text-align:left;width:100%}
+.fld:focus-within{border-color:var(--p);background:var(--s)}
+.fld input{flex:1;min-width:0;height:44px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:500;color:var(--ink);outline:none}
+.fld input.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-size:13px}
+.seg{display:flex;padding:4px;border-radius:999px;background:var(--s2);gap:2px}
+.seg button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 12px;border-radius:999px;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.seg .on{background:var(--s);color:var(--ink);box-shadow:0 1px 3px rgba(20,10,30,.12)}
+.dd{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:6;display:flex;flex-direction:column;gap:2px;max-height:230px;overflow-y:auto;padding:6px;border-radius:14px;background:var(--s);border:1px solid var(--line);box-shadow:0 18px 44px -14px rgba(20,10,30,.4)}
+.mi{display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:5px 10px;border-radius:10px;border:0;background:transparent;font:inherit;font-size:13px;color:var(--ink);text-align:left;cursor:pointer;flex:none}
+.mi:hover{background:var(--s2)}
+.mi-on,.mi-on:hover{background:var(--pSoft)}
+.optx{display:flex;flex-direction:column;gap:3px;min-height:58px;padding:10px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--s);font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.optx:hover{border-color:var(--p)}
+.optx-on,.optx-on:hover{border-color:var(--p);background:var(--pSoft)}
+.fld input::placeholder{color:var(--ink2)}
+.sh{margin:0;font-size:15px;font-weight:800}
+.grp{background:var(--s);border:1px solid var(--line);border-radius:18px;padding:0 18px}
+.rw{display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 0;margin-top:-1px;border-top:1px solid var(--line)}
+.rm{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.rt{display:flex;align-items:center;gap:8px;min-width:0;font-size:14.5px;font-weight:700;white-space:nowrap}
+.rs{font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rs.mono,.rs .mono{font-size:12.5px}
+.rc{display:flex;align-items:center;gap:4px;flex:none}
+.sb{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 10px 0 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--s);font:inherit;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap}
+.sb:hover{border-color:var(--p)}
+.mn{position:absolute;right:0;top:calc(100% + 6px);z-index:6;display:flex;flex-direction:column;gap:2px;min-width:170px;padding:6px;border-radius:16px;background:var(--s);border:1px solid var(--line);box-shadow:0 18px 44px -14px rgba(20,10,30,.4)}
+.mo{display:flex;align-items:center;gap:8px;width:100%;min-height:34px;padding:0 10px;border-radius:10px;border:0;background:transparent;font:inherit;font-size:13px;color:var(--ink);text-align:left;cursor:pointer;white-space:nowrap}
+.mo:hover{background:var(--s2)}
+.mo-on,.mo-on:hover{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.card{border-radius:16px}
+.btn{min-height:30px;padding:0 12px;gap:6px;font-size:13px}
+.btn .ic{width:16px;height:16px}
+.btn-sm{min-height:26px;padding:0 10px;font-size:12.5px}
+.ib{width:30px;height:30px;border-radius:9px}
+.ib .ic{width:17px;height:17px}
+.ib-sm{width:26px;height:26px;border-radius:8px}
+.ib-sm .ic{width:15px;height:15px}
+.inp{min-height:32px;padding:0 12px;gap:8px}
+.inp input{font-size:13px}
+.chip{min-height:26px;padding:0 10px;font-size:12.5px;border-width:1px}
+.pill{height:20px;padding:0 8px;font-size:11.5px}
+.pill::before{width:6px;height:6px}
+.tag{height:20px;padding:0 7px;border-radius:6px;font-size:11.5px}
+.ag{height:18px;padding:0 6px;border-radius:6px;font-size:10.5px}
+.cb{width:15px;height:15px}
+.tg{width:34px;height:20px}
+.tg::after{top:2px;left:2px;width:16px;height:16px}
+.tg:checked::after{transform:translateX(14px)}
+.seg{padding:3px}
+.seg button{min-height:26px;padding:0 10px;font-size:12.5px}
+.fl{font-size:12.5px;font-weight:600}
+.fh{font-size:12px}
+.fld{min-height:32px;padding:0 10px;border-radius:10px;gap:8px}
+.fld input{height:28px;font-size:13px}
+.fld input.mono{font-size:12.5px}
+.dd,.mn,.smenu,.pop{padding:4px;border-radius:12px}
+.mi{min-height:30px;padding:5px 9px;border-radius:8px}
+.mi2,.mo{min-height:30px;padding:3px 9px;border-radius:8px;font-size:13px}
+.opt{min-height:0;padding:8px 10px;border-radius:10px;gap:10px}
+.optx{min-height:0;padding:7px 10px;border-radius:10px}
+.mt{min-height:24px;padding:0 2px 0 9px}
+.mt button{width:20px;height:20px}
+.lvin{height:26px}
+.kv{min-height:30px;border-radius:10px}
+.mrow{min-height:30px;border-radius:8px}
+.fr{min-height:28px;border-radius:8px}
+.bulk-btn{min-height:28px;padding:0 10px;font-size:12.5px}
+.sb{min-height:28px;padding:0 8px 0 11px;border-width:1px;font-size:12.5px}
+.grp{border-radius:14px;padding:0 14px}
+.rw{min-height:50px;padding:7px 0;gap:10px}
+.rm{gap:2px}
+.rt{font-size:13.5px;font-weight:600}
+.rs{font-size:12.5px}
+.sh{font-size:13.5px;font-weight:700}
+.tt{height:30px;border-radius:9px;padding:0 3px 0 10px}
+.tt-btn{height:30px;font-size:13px;font-weight:600}
+.tt-x{width:22px;height:22px;border-radius:7px}
+.tk{min-height:40px;padding:6px 6px 6px 10px}
+.tool{min-height:30px;border-radius:9px;padding:0 10px}
+.ta{font-size:13.5px}
+.shell .ib{width:44px;height:44px;border-radius:14px}
+.shell .ib .ic{width:20px;height:20px}
+.shell .ib-sm{width:36px;height:36px;border-radius:12px}
+.shell .inp{min-height:44px;padding:0 14px;gap:10px}
+.shell .inp input{font-size:14px}
+.root{font-family:'Segoe UI','Microsoft YaHei UI','Microsoft YaHei','PingFang SC','Noto Sans SC',system-ui,sans-serif}
+.shell{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif}
+.num{font-family:inherit}
+.btn{font-weight:500}
+.chip{font-weight:500}
+.pill{font-weight:500}
+.tag{font-weight:500}
+.ag{font-weight:600}
+.av{font-weight:700}
+.lbl{font-size:11.5px;font-weight:600;letter-spacing:.02em}
+.fl{font-weight:500}
+.seg button{font-weight:500}
+.seg .on{font-weight:600}
+.fld input{font-weight:400}
+.utab{min-height:36px;font-size:13.5px;font-weight:500;border-bottom-width:2px}
+.utab-on,.utab-on:hover{font-weight:600}
+.utab .n{font-size:11.5px;padding:0 7px}
+.rt{font-size:13px;font-weight:600}
+.rs{font-size:12px}
+.rs.mono,.rs .mono{font-size:12px}
+.sh{font-size:13px;font-weight:600}
+.sb{font-weight:500}
+.mo-on,.mo-on:hover{font-weight:600}
+.tt-btn{font-size:12.5px;font-weight:500}
+.tt-on .tt-btn{font-weight:600}
+.wb{font-size:13px;font-weight:600}
+.ss{font-size:13px}
+.am{font-weight:700}
+.bulk-btn{font-weight:500}
+.kbd{font-weight:600}
+.shell .lbl{font-size:12px;font-weight:700;letter-spacing:.08em}
+.shell .av{font-weight:800}
+.shell .kbd{font-weight:700}
+.shell .num{font-family:'Outfit',sans-serif}
+.shm{position:absolute;z-index:8;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:16px;background:var(--s);border:1px solid var(--line);box-shadow:0 18px 44px -14px rgba(20,10,30,.4)}
+.shi{display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:0 10px;border-radius:10px;border:0;background:transparent;font:inherit;font-size:13.5px;color:var(--ink);text-align:left;cursor:pointer}
+.shi:hover{background:var(--s2)}
+.shi-on,.shi-on:hover{background:var(--pSoft);color:var(--pInk);font-weight:700}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="min-height: 1440px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+  <aside class="shell" style="flex: 1 1 248px; max-width: 100%; background: var(--s); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 4px 8px">
+      <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg)">M</div>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Momoko</span>
+    </div>
+    <div style="position: relative">
+    <button aria-haspopup="menu" aria-expanded="{{nodeOn}}" onClick="{{toggleNode}}" style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 16px; border: 1.5px dashed var(--line); background: var(--bg); font: inherit; color: var(--ink); cursor: pointer; text-align: left">
+      <span class="av av-a2" style="width: 36px; height: 36px; border-radius: 11px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 11px; font-weight: 700; color: var(--ok)">{{nodeS}}</span>
+        <span style="font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{nodeN}}</span>
+      </span>
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.updown}}"></path></svg>
+    </button>
+      <sc-if value="{{nodeOn}}" hint-placeholder-val="{{false}}">
+        <div class="shm" role="menu" aria-label="切换节点" style="left: 0; right: 0; top: calc(100% + 6px)">
+          <sc-for list="{{nodes}}" as="o" hint-placeholder-count="3">
+            <button class="shi {{o.cls}}" role="menuitemradio" aria-checked="{{o.on}}" onClick="{{o.pick}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{o.c}}; flex: none"></span><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{o.n}}</span><span style="font-size: 12px; font-weight: 500; color: var(--ink2)">{{o.s}}</span></button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <nav aria-label="主导航" style="display: flex; flex-direction: column; gap: 14px; flex: 1">
+      <sc-for list="{{nav}}" as="g" hint-placeholder-count="8">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-if value="{{g.title}}" hint-placeholder-val="{{true}}">
+            <div class="lbl" style="padding: 0 12px 4px">{{g.title}}</div>
+          </sc-if>
+          <sc-for list="{{g.items}}" as="n" hint-placeholder-count="3">
+            <a class="nav {{n.cls}}" href="{{n.href}}">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg>
+              <span>{{n.t}}</span>
+            </a>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="position: relative; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; background: var(--bg)">
+      <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <span style="font-size: 14px; font-weight: 700">超级管理员</span>
+        <span style="font-size: 12px; color: var(--ink2)">设置 · 语言 · 退出</span>
+      </span>
+      <button class="ib ib-sm" aria-label="账号菜单" aria-haspopup="menu" aria-expanded="{{acctOn}}" onClick="{{toggleAcct}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+      <sc-if value="{{acctOn}}" hint-placeholder-val="{{false}}">
+        <div class="shm" role="menu" aria-label="账号菜单" style="left: 0; right: 0; bottom: calc(100% + 6px)">
+          <button class="shi" role="menuitem" onClick="{{toggleDark}}"><span style="flex: 1">切换深浅色</span></button>
+          <button class="shi" role="menuitem" onClick="{{toggleLang}}"><span style="flex: 1">语言</span><span style="font-size: 12px; color: var(--ink2)">{{langT}}</span></button>
+          <button class="shi" role="menuitem" onClick="{{logout}}" style="color: var(--bad)">退出登录</button>
+        </div>
+      </sc-if>
+    </div>
+  </aside>
+
+  <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 14px; position: relative">
+    <div class="shell" style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+      <label class="inp" style="flex: 1 1 320px; max-width: 520px">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="搜索页面、应用、容器、文件…" aria-label="全局搜索">
+        <span class="kbd">Ctrl K</span>
+      </label>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <span style="position: relative; display: inline-flex"><button class="ib" aria-label="通知" aria-haspopup="menu" aria-expanded="{{bellOn}}" onClick="{{toggleBell}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><sc-if value="{{hasUnread}}" hint-placeholder-val="{{true}}"><span class="dot"></span></sc-if></button><sc-if value="{{bellOn}}" hint-placeholder-val="{{false}}"><div class="shm" role="menu" aria-label="通知" style="right: 0; top: calc(100% + 6px); width: 330px"><sc-for list="{{notes}}" as="o" hint-placeholder-count="3"><a class="shi" role="menuitem" href="{{o.href}}" style="padding: 8px 10px; text-decoration: none"><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 13.5px; font-weight: {{o.w}}">{{o.t}}</span><span style="font-size: 12px; color: var(--ink2)">{{o.s}}</span></span></a></sc-for><button class="shi" role="menuitem" onClick="{{readAll}}" style="justify-content: center; color: var(--ink2)">全部标为已读</button></div></sc-if></span>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+      <div style="flex: 1 1 320px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px">
+        <h1 style="margin: 0; font-size: 20px; font-weight: 600">Agent 管理</h1>
+        <div style="font-size: 12px; color: var(--ink2)">共 {{wsCount}} 个工作区</div>
+      </div>
+      <button class="btn btn-p" onClick="{{openDlg}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新建工作区</button>
+    </div>
+
+    <div class="hs" style="display: flex; gap: 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+        <a class="utab {{t.cls}}" href="{{t.href}}">{{t.t}} <span class="n num">{{t.n}}</span></a>
+      </sc-for>
+    </div>
+
+    <div class="dz" style="display: flex; flex-direction: column; gap: 12px">
+      <div class="grp">
+        <sc-for list="{{spaces}}" as="w" hint-placeholder-count="4">
+          <div class="rw">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="flex: none; color: var(--ink2)"><path d="{{i.folder}}"></path></svg>
+            <div class="rm">
+              <div class="rt"><span>{{w.n}}</span><sc-for list="{{w.tags}}" as="tg" hint-placeholder-count="1"><span class="tag {{tg.cls}}">{{tg.t}}</span></sc-for></div>
+              <div class="rs"><span class="mono">{{w.path}}</span> · {{w.meta}}</div>
+            </div>
+            <div class="rc">
+              <a class="btn btn-s btn-sm" href="AgentNewPC.dc.html" style="margin-right: 4px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新会话</a>
+              <button class="ib ib-sm" aria-label="查看 {{w.n}} 里的文件" title="查看文件" aria-haspopup="dialog" onClick="{{w.openFiles}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg></button>
+              <button class="ib ib-sm" aria-label="编辑 {{w.n}}" title="编辑" onClick="{{w.edit}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.edit}}"></path></svg></button>
+              <span style="position: relative; display: inline-flex"><button class="ib ib-sm" aria-label="{{w.n}} 更多操作" title="更多" aria-haspopup="menu" aria-expanded="{{w.menuOn}}" onClick="{{w.menu}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button><sc-if value="{{w.menuOn}}" hint-placeholder-val="{{false}}"><span class="mn" role="menu"><button class="mo" role="menuitem" onClick="{{w.edit}}">编辑</button><button class="mo" role="menuitem" onClick="{{w.remove}}" style="color: var(--bad)">移除工作区</button></span></sc-if></span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </main>
+  <sc-if value="{{dlgOn}}" hint-placeholder-val="{{false}}">
+  <div class="dz" style="position: fixed; inset: 0; z-index: 30; display: flex; overflow-y: auto; padding: 16px; background: rgba(20, 10, 30, 0.45)">
+  <div style="width: 560px; max-width: 100%; margin: auto">
+  <div role="dialog" aria-label="{{wd.title}}" style="width: 100%; background: var(--s); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 30px 70px -30px rgba(20,10,30,.45); display: flex; flex-direction: column">
+    <div style="display: flex; align-items: center; gap: 8px; padding: 12px 12px 2px 18px">
+      <h1 style="margin: 0; flex: 1; font-size: 15px; font-weight: 600">{{wd.title}}</h1>
+      <button class="ib" aria-label="关闭" onClick="{{closeDlg}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button>
+    </div>
+    <div style="padding: 8px 18px 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span class="fl">目录从哪来</span>
+        <div class="seg" role="radiogroup" aria-label="目录从哪来">
+          <sc-for list="{{wd.srcs}}" as="s" hint-placeholder-count="3">
+            <button class="{{s.cls}}" role="radio" aria-checked="{{s.on}}" onClick="{{s.pick}}">{{s.t}}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{wd.isDir}}" hint-placeholder-val="{{true}}">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px">
+          <label style="display: flex; flex-direction: column; gap: 6px"><span class="fl">名称</span><span class="fld"><input type="text" value="{{wd.name}}" onChange="{{wd.setName}}" placeholder="例如 blog-api"></span></label>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <label class="fl" for="ws-dir">目录</label>
+            <span class="fld" style="padding-right: 6px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg><input id="ws-dir" class="mono" type="text" value="{{wd.dir}}" onChange="{{wd.setDir}}" placeholder="/srv/…"><button class="btn btn-s btn-sm" aria-expanded="{{wd.browseOpen}}" onClick="{{wd.toggleBrowse}}" style="background: var(--s)">浏览</button></span>
+          </div>
+        </div>
+        <sc-if value="{{wd.browseOpen}}" hint-placeholder-val="{{false}}">
+          <div class="hs" role="listbox" aria-label="选择服务器上的目录" style="display: flex; flex-direction: column; gap: 1px; max-height: 216px; overflow-y: auto; padding: 6px; border-radius: 10px; border: 1px solid var(--line)">
+            <sc-for list="{{wd.dirs}}" as="d" hint-placeholder-count="6">
+              <button class="mi {{d.cls}}" role="option" aria-selected="{{d.on}}" onClick="{{d.pick}}" style="padding-left: {{d.pad}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.folder}}"></path></svg><span class="mono" style="flex: 1; font-size: 12px">{{d.t}}</span></button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{wd.isGit}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 6px"><label class="fl" for="ws-git">仓库地址</label><span class="fld"><input id="ws-git" class="mono" type="text" value="{{wd.gitUrl}}" onChange="{{wd.setGit}}" placeholder="https://…/….git"></span></div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr); gap: 8px">
+          <label style="display: flex; flex-direction: column; gap: 6px"><span class="fl">名称</span><span class="fld"><input type="text" value="{{wd.name}}" onChange="{{wd.setName}}" placeholder="例如 new-site"></span></label>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span class="fl">分支</span><span class="fld"><input class="mono" type="text" value="{{wd.gitBranch}}" onChange="{{wd.setBranch}}" placeholder="默认分支"></span></label>
+          <label style="display: flex; flex-direction: column; gap: 6px"><span class="fl">克隆到</span><span class="fld"><input class="mono" type="text" value="{{wd.dir}}" onChange="{{wd.setDir}}" placeholder="{{wd.clonePh}}"></span></label>
+        </div>
+        <span class="fh">保存后在后台克隆，完成之前这个工作区显示为「正在克隆」。私有仓库用服务器上已经配好的 Git 凭证。</span>
+      </sc-if>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 0.8fr) minmax(0, 1fr); gap: 8px">
+        <div style="position: relative; display: flex; flex-direction: column; gap: 6px">
+          <span class="fl" style="display: flex; align-items: baseline; gap: 8px">默认模型<span style="font-weight: 400; color: var(--ink2)">由 {{wd.agentT}} 运行</span></span>
+          <button class="fld" aria-label="默认模型" aria-haspopup="listbox" aria-expanded="{{wd.model.open}}" onClick="{{wd.model.toggle}}"><span class="{{wd.model.cls}}" style="flex: 1; min-width: 0; font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{wd.model.v}}</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+          <sc-if value="{{wd.model.open}}" hint-placeholder-val="{{false}}">
+            <div class="dd hs" role="listbox" aria-label="默认模型">
+              <sc-for list="{{wd.model.opts}}" as="o" hint-placeholder-count="3">
+                <button class="mi {{o.cls}}" role="option" aria-selected="{{o.on}}" onClick="{{o.pick}}"><span class="{{wd.model.cls}}" style="flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{o.t}}</span><sc-if value="{{o.on}}" hint-placeholder-val="{{false}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk)"><path d="{{i.check}}"></path></svg></sc-if></button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="position: relative; display: flex; flex-direction: column; gap: 6px">
+          <span class="fl">默认推理强度</span>
+          <button class="fld" aria-label="默认推理强度" aria-haspopup="listbox" aria-expanded="{{wd.eff.open}}" onClick="{{wd.eff.toggle}}"><span class="{{wd.eff.cls}}" style="flex: 1; min-width: 0; font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{wd.eff.v}}</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+          <sc-if value="{{wd.eff.open}}" hint-placeholder-val="{{false}}">
+            <div class="dd hs" role="listbox" aria-label="默认推理强度">
+              <sc-for list="{{wd.eff.opts}}" as="o" hint-placeholder-count="3">
+                <button class="mi {{o.cls}}" role="option" aria-selected="{{o.on}}" onClick="{{o.pick}}"><span class="{{wd.eff.cls}}" style="flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{o.t}}</span><sc-if value="{{o.on}}" hint-placeholder-val="{{false}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk)"><path d="{{i.check}}"></path></svg></sc-if></button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="position: relative; display: flex; flex-direction: column; gap: 6px">
+          <span class="fl">默认权限模式</span>
+          <button class="fld" aria-label="默认权限模式" aria-haspopup="listbox" aria-expanded="{{wd.perm.open}}" onClick="{{wd.perm.toggle}}"><span class="{{wd.perm.cls}}" style="flex: 1; min-width: 0; font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{wd.perm.v}}</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+          <sc-if value="{{wd.perm.open}}" hint-placeholder-val="{{false}}">
+            <div class="dd hs" role="listbox" aria-label="默认权限模式">
+              <sc-for list="{{wd.perm.opts}}" as="o" hint-placeholder-count="3">
+                <button class="mi {{o.cls}}" role="option" aria-selected="{{o.on}}" onClick="{{o.pick}}"><span class="{{wd.perm.cls}}" style="flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{o.t}}</span><sc-if value="{{o.on}}" hint-placeholder-val="{{false}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk)"><path d="{{i.check}}"></path></svg></sc-if></button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span class="fl">新会话默认开启的 MCP 服务器</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <sc-for list="{{wd.mcp}}" as="m" hint-placeholder-count="5">
+            <button class="chip {{m.cls}}" aria-pressed="{{m.on}}" onClick="{{m.toggle}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plug}}"></path></svg>{{m.n}}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span class="fl">项目指令</span>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{wd.docs}}" as="d" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 8px 0 14px; border-radius: 10px; border: 1px solid var(--line)">
+              <span class="mono" style="flex: 1; font-size: 13px; font-weight: 600">{{d.n}}</span>
+              <span class="pill {{d.st}}">{{d.stT}}</span>
+              <button class="btn btn-s btn-sm" onClick="{{d.act}}">{{d.btn}}</button>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{wd.editing}}" hint-placeholder-val="{{false}}">
+          <div style="border: 1px solid var(--line); border-radius: 10px; overflow: hidden">
+            <div style="display: flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 4px 0 10px; background: var(--s2)"><span class="mono" style="flex: 1; font-size: 12px; font-weight: 600">{{wd.editName}}</span><button class="btn btn-s btn-sm" onClick="{{wd.closeEdit}}" style="min-height: 32px; background: var(--s)">收起</button></div>
+            <textarea class="mono" rows="6" value="{{wd.editText}}" onChange="{{wd.setEditText}}" aria-label="{{wd.editName}} 的内容" style="display: block; width: 100%; border: 0; outline: none; resize: vertical; padding: 6px 10px; background: var(--bg); color: var(--ink); font-size: 12px; line-height: 1.6"></textarea>
+          </div>
+        </sc-if>
+        <span class="fh">Agent 每次会话都会先读这些文件，适合写项目约定。Codex 读 AGENTS.md，Claude Code 读 CLAUDE.md；点「创建」会生成一份直接引用 AGENTS.md 的 CLAUDE.md。</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 10px 18px 14px; border-top: 1px solid var(--line)">
+      <button class="btn btn-s" onClick="{{closeDlg}}">取消</button>
+      <button class="btn btn-p" onClick="{{wd.save}}">保存</button>
+    </div>
+  </div>
+  </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{fb.on}}" hint-placeholder-val="{{false}}">
+  <div class="dz" style="position: fixed; inset: 0; z-index: 30; display: flex; overflow-y: auto; padding: 16px; background: rgba(20, 10, 30, 0.45)">
+    <div role="dialog" aria-label="{{fb.title}} 里的文件" style="width: 520px; max-width: 100%; margin: auto; border-radius: 16px; background: var(--s); border: 1px solid var(--line); box-shadow: 0 30px 70px -30px rgba(20,10,30,.45); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; gap: 8px; padding: 12px 12px 6px 18px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.folder}}"></path></svg><div style="flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{fb.title}}</div><button class="ib ib-sm" aria-label="关闭" onClick="{{fb.close}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.x}}"></path></svg></button></div>
+      <div class="mono hs" aria-label="当前位置" style="display: flex; align-items: center; gap: 2px; margin: 0 14px; padding: 0 4px; min-height: 30px; border-radius: 8px; background: var(--s2); font-size: 12px; overflow-x: auto; white-space: nowrap">
+        <sc-for list="{{fb.crumbs}}" as="c" hint-placeholder-count="2">
+          <button onClick="{{c.go}}" style="min-height: 24px; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; font: inherit; color: {{c.c}}; cursor: pointer">{{c.t}}</button><span aria-hidden="true" style="color: var(--ink2)">/</span>
+        </sc-for>
+      </div>
+      <div class="hs" style="height: 320px; overflow-y: auto; padding: 6px 10px 12px; display: flex; flex-direction: column; gap: 1px">
+        <sc-if value="{{fb.canUp}}" hint-placeholder-val="{{false}}">
+          <button class="mi" onClick="{{fb.up}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.folder}}"></path></svg><span class="mono" style="font-size: 12.5px">..</span></button>
+        </sc-if>
+        <sc-for list="{{fb.dirs}}" as="d" hint-placeholder-count="2">
+          <button class="mi" onClick="{{d.go}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk)"><path d="{{i.folder}}"></path></svg><span class="mono" style="flex: 1; min-width: 0; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{d.t}}</span></button>
+        </sc-for>
+        <sc-for list="{{fb.files}}" as="x" hint-placeholder-count="4">
+          <div style="display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px; padding: 0 9px; border-radius: 8px; font-size: 13px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.file}}"></path></svg><span class="mono" style="flex: 1; min-width: 0; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{x.t}}</span><span class="num" style="width: 64px; text-align: right; font-size: 12px; color: var(--ink2)">{{x.size}}</span><span style="width: 84px; text-align: right; font-size: 12px; color: var(--ink2); white-space: nowrap">{{x.at}}</span></div>
+        </sc-for>
+        <sc-if value="{{fb.empty}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; align-items: center; gap: 8px; width: 100%; min-height: 30px; padding: 0 9px; border-radius: 8px; font-size: 13px; color: var(--ink2)">这个文件夹是空的</div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 31; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px 0 14px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500; white-space: nowrap; box-shadow: 0 16px 40px -12px rgba(20,10,30,.45)">
+      <span>{{toast}}</span>
+      <button aria-label="关闭提示" onClick="{{closeToast}}" style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 0; background: transparent; color: inherit; cursor: pointer"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="{{i.x}}"></path></svg></button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1440}}'>
+const IC = {
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+  chat: 'M4 5h16v11H9l-5 4z',
+  key: 'M14 7a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM10.5 13.5 3 21M6 18l2 2',
+  cpu: 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4',
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  code: 'M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16',
+  bot: 'M5 8h14v11H5zM12 8V4M9 13h.01M15 13h.01M9.5 16h5M2 12v4M22 12v4',
+  gamepad: 'M7 8h10a5 5 0 0 1 5 5v1a4 4 0 0 1-7 2.5H9A4 4 0 0 1 2 14v-1a5 5 0 0 1 5-5zM7 11.5v3M5.5 13h3M16 12h.01M18 14h.01',
+  wand: 'M4 20 15 9M14 4v3M19 9h3M17.5 5.5l2-2M18 13l2 2',
+  idcard: 'M3 5h18v14H3zM6.5 15a2.5 2.5 0 0 1 5 0M9 9.5v.01M15 10h3M15 14h3',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  x: 'M6 6l12 12M18 6 6 18',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  chevD: 'M6 9l6 6 6-6',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4',
+  book: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11'
+};
+const NAV = [
+  ['', [['工作台', 'home'], ['性能监控', 'activity']]],
+  ['应用', [['应用列表', 'apps'], ['应用类型', 'layers']]],
+  ['Agent', [['Code', 'code', 'Main.dc.html'], ['Agent 管理', 'bot', 'AgentSessionsPC.dc.html', 1]]],
+  ['游戏', [['游戏服务器', 'gamepad'], ['GM 运营', 'wand'], ['用户通行证', 'idcard']]],
+  ['文件', [['文件管理', 'folder'], ['分享', 'share'], ['文件源', 'db']]],
+  ['Docker', [['容器 · 镜像 · 网络', 'box']]],
+  ['工具', [['端口转发', 'forward'], ['内网穿透', 'tunnel'], ['SSH 终端', 'terminal'], ['智商检测', 'spark']]],
+  ['管理', [['节点与 API Key', 'server'], ['用户与权限', 'users'], ['任务与日志', 'clock'], ['系统设置', 'settings']]]
+];
+const RAIL = [
+  ['工作台', 'home', 0], ['性能监控', 'activity', 0],
+  ['应用列表', 'apps', 1], ['应用类型', 'layers', 0],
+  ['Code', 'code', 1, 'Main.dc.html'], ['Agent 管理', 'bot', 0, 'AgentSessionsPC.dc.html'],
+  ['游戏服务器', 'gamepad', 1], ['GM 运营', 'wand', 0], ['用户通行证', 'idcard', 0],
+  ['文件管理', 'folder', 1], ['分享', 'share', 0], ['文件源', 'db', 0],
+  ['容器 · 镜像 · 网络', 'box', 1],
+  ['端口转发', 'forward', 1], ['内网穿透', 'tunnel', 0], ['SSH 终端', 'terminal', 0], ['智商检测', 'spark', 0],
+  ['节点与 API Key', 'server', 1], ['用户与权限', 'users', 0], ['任务与日志', 'clock', 0], ['系统设置', 'settings', 0]
+];
+const SIDE = ['chat', 'folder', 'key', 'plug', 'book', 'cpu', 'bell'];
+const TABS = [['会话', 'AgentSessionsPC.dc.html', '9'], ['工作区', 'AgentWorkspacesPC.dc.html', '4'], ['模型供应商', 'AgentProvidersPC.dc.html', '6'], ['MCP', 'AgentMcpPC.dc.html', '5'], ['技能', 'AgentSkillsPC.dc.html', '6'], ['运行时', 'AgentRuntimesPC.dc.html', '2'], ['通知', 'AgentNotifyPC.dc.html', '4']];
+const SPACES = [
+  { n: 'blog-api', l: 'B', path: '/srv/blog-api', tags: [['分支 main']], ag: 'Claude Code', pm: 'DeepSeek · deepseek-chat', perm: '每次询问', eff: 'high', mcpL: ['postgres-dev', 'context7'], skL: ['sql-review', 'api-test', 'commit-style'], meta: '6 个会话 · 最近活动 刚刚' },
+  { n: 'qq-bot', l: 'Q', path: '/srv/qq-bot', tags: [['分支 dev']], ag: 'Codex', pm: 'OpenAI · 主账号 · gpt-5-codex', perm: '工作区内自动', eff: 'medium', mcpL: ['context7'], skL: ['commit-style', 'go-style'], meta: '2 个会话 · 最近活动 昨天 21:40' },
+  { n: 'rsshub', l: 'R', path: '/srv/rsshub', tags: [['分支 master']], ag: 'Claude Code', pm: 'Anthropic · 主账号 · claude-sonnet-5-5', perm: '每次询问', eff: 'medium', mcpL: ['context7'], skL: ['commit-style'], meta: '1 个会话 · 最近活动 昨天 16:05' },
+  { n: 'ops-scripts', l: 'O', path: '/opt/ops-scripts', tags: [['不是 Git 仓库', 'tag-warn']], ag: 'Claude Code', pm: '自建网关 · [模型名]', perm: '每次询问', eff: 'medium', mcpL: [], skL: [], meta: '还没有会话' }
+];
+const AVS = ['av-p', 'av-a2', 'av-a', 'av-ok'];
+const ROTS = ['-4deg', '3deg', '-2deg', '4deg'];
+const W_DIRS = [[0, '/srv'], [1, '/srv/blog-api'], [1, '/srv/new-site'], [1, '/srv/qq-bot'], [1, '/srv/rsshub'], [0, '/opt'], [1, '/opt/ops-scripts'], [0, 'D:/apps'], [1, 'D:/apps/mc-survival']];
+const W_PERM = { cc: ['每次询问', '自动接受编辑', '只做计划', '自动', '跳过全部确认'], cx: ['只读', '工作区内自动', '完全访问'] };
+const W_PROV = {
+  cc: [['Anthropic · 主账号', ['claude-sonnet-5-5', 'claude-opus-5-5']], ['Anthropic · 备用账号', ['claude-sonnet-5-5', 'claude-opus-5-5']], ['DeepSeek', ['deepseek-chat', 'deepseek-reasoner']], ['自建网关', ['[模型名]']]],
+  cx: [['OpenAI · 主账号', ['gpt-5-codex']], ['自建网关（OpenAI）', ['[模型名 1]', '[模型名 2]']]]
+};
+const ALLM = [];
+['cc', 'cx'].forEach((a) => W_PROV[a].forEach(([p, ms]) => ms.forEach((m) => ALLM.push([a, p, p + ' · ' + m, m]))));
+const W_EFF = { 'claude-sonnet-5-5': ['low', 'medium', 'high'], 'claude-opus-5-5': ['low', 'medium', 'high', 'xhigh', 'max'], 'deepseek-chat': ['off', 'high', 'max'], 'deepseek-reasoner': ['high', 'max'], 'gpt-5-codex': ['minimal', 'low', 'medium', 'high'], '[模型名]': ['low', 'medium', 'high'], '[模型名 1]': ['low', 'medium', 'high'] };
+const W_MCP = ['postgres-dev', 'context7', 'playwright', 'github', 'docs-search'];
+const W_SK = ['sql-review', 'api-test', 'commit-style', 'release-notes', 'frontend-check', 'go-style'];
+const W_BLANK = { idx: -1, src: 'dir', name: '', dir: '', gitUrl: '', gitBranch: '', agent: 'cc', perm: '每次询问', prov: 'DeepSeek', model: 'deepseek-chat', eff: 'high', mcp: ['context7'], sk: ['commit-style'], hasAgents: false, hasClaude: false, editing: '', docText: {} };
+const NODES = [['DESKTOP-K5K9BBC', '本机', 1], ['hk-relay-01', '远程', 1], ['home-nas', '远程', 0]];
+const NOTES = [['「文章列表加分页和标签筛选」在等你批准', 'Claude Code 想运行 pnpm test · 刚刚', 'Main.dc.html'], ['「升级依赖并修掉 lint 报错」还在运行', 'Codex · 已经 12 分钟', 'AgentSessionsPC.dc.html'], ['OpenAI · 主账号 登录已过期', '重新登录后才能继续用它开会话 · 今天 09:40', 'AgentProvidersPC.dc.html']];
+const FS = {
+  '': [['d', 'src'], ['d', 'test'], ['f', 'AGENTS.md', '1.2 KB', '今天 10:12'], ['f', 'README.md', '3.4 KB', '11 月 12 日'], ['f', 'package.json', '1.1 KB', '周一'], ['f', 'tsconfig.json', '0.4 KB', '10 月 30 日']],
+  'src': [['d', 'repo'], ['d', 'routes'], ['f', 'index.ts', '0.9 KB', '周一']],
+  'src/repo': [['f', 'db.ts', '1.6 KB', '周一'], ['f', 'posts.ts', '2.3 KB', '刚刚']],
+  'src/routes': [['f', 'posts.ts', '1.4 KB', '刚刚'], ['f', 'upload.ts', '2.0 KB', '今天 10:24']],
+  'test': [['f', 'helpers.ts', '0.8 KB', '周一'], ['f', 'posts.page.test.ts', '1.9 KB', '刚刚'], ['f', 'posts.test.ts', '2.6 KB', '周一']]
+};
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const shellPop = st.shellPop || '';
+    const nodeI = st.node || 0;
+    const unread = st.unread != null ? st.unread : true;
+    const say = (m) => this.setState({ toast: m });
+    const rail = RAIL.map(([t, d, sep, href]) => ({ t, d: IC[d], sep: !!sep, href: href || '#', cls: d === 'bot' ? 'rl-on' : '' }));
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const nav = NAV.map(([title, items]) => ({ title, items: items.map(([t, d, href, on]) => ({ t, d: IC[d], href: href || '#', cls: on ? 'nav-on' : '' })) }));
+    const list = st.ws || SPACES;
+    const dr = st.wd || null;
+    const w = dr || W_BLANK;
+    const dd = st.dd || '';
+    const cm = st.cm != null ? st.cm : -1;
+    const setWd = (patch) => this.setState({ wd: { ...w, ...patch }, dd: '' });
+    const openNew = () => this.setState({ wd: { ...W_BLANK }, dd: '', cm: -1 });
+    const openEdit = (idx) => () => {
+      const x = list[idx];
+      const parts = x.pm.split(' · ');
+      this.setState({ cm: -1, dd: '', wd: { ...W_BLANK, idx, name: x.n, dir: x.path, agent: x.ag === 'Codex' ? 'cx' : 'cc', perm: x.perm, prov: parts.slice(0, -1).join(' · '), model: parts[parts.length - 1], eff: x.eff, mcp: x.mcpL, sk: x.skL, hasAgents: true } });
+    };
+    const ak = w.agent;
+    const provs = W_PROV[ak];
+    const provCur = provs.find((p) => p[0] === w.prov) || provs[0];
+    const modelCur = provCur[1].includes(w.model) ? w.model : provCur[1][0];
+    const effs = W_EFF[modelCur] || [];
+    const effCur = effs.includes(w.eff) ? w.eff : (effs.length ? effs[Math.min(1, effs.length - 1)] : '不可调');
+    const permCur = W_PERM[ak].includes(w.perm) ? w.perm : W_PERM[ak][0];
+    const sel = (key, value, opts, pick, cls) => ({
+      open: dd === key, v: value, cls: cls || '',
+      toggle: () => this.setState({ dd: dd === key ? '' : key }),
+      opts: opts.map((t) => ({ t, on: t === value, cls: t === value ? 'mi-on' : '', pick: () => pick(t) }))
+    });
+    const docDefault = (n) => (n === 'CLAUDE.md' ? '@AGENTS.md' : '# ' + (w.name || '项目名') + '\n\n- 运行测试：pnpm test\n- 查询、筛选、计数都写在 SQL 里，不要查出来再在内存里处理\n- 提交信息用中文，一句话说清楚改了什么');
+    const docText = (n) => (w.docText[n] != null ? w.docText[n] : docDefault(n));
+    const doc = (n, has, flag) => ({
+      n, st: has ? 'ok' : 'off', stT: has ? '已存在' : '没有', btn: has ? (w.editing === n ? '收起' : '编辑') : '创建',
+      act: () => setWd(has ? { editing: w.editing === n ? '' : n } : { [flag]: true, editing: n })
+    });
+    const disp = (l) => (l.length ? l.join('、') : '未开启');
+    const dispSk = (l) => (l.length > 1 ? l[0] + ' 等 ' + l.length + ' 个' : (l[0] || '未开启'));
+    const save = () => {
+      const name = (w.name || '').trim() || '未命名工作区';
+      const path = (w.dir || '').trim() || '/srv/' + name;
+      const item = { n: name, l: name.slice(0, 1).toUpperCase(), path, ag: ak === 'cx' ? 'Codex' : 'Claude Code', pm: provCur[0] + ' · ' + modelCur, perm: permCur, eff: effs.length ? effCur : '', mcpL: w.mcp, skL: w.sk };
+      const fresh = { ...item, tags: w.src === 'git' ? [['正在克隆', 'tag-warn']] : [['分支 main']], meta: '还没有会话' };
+      const next = w.idx >= 0 ? list.map((x, j) => (j === w.idx ? { ...x, ...item } : x)) : list.concat([fresh]);
+      this.setState({ ws: next, wd: null, dd: '', toast: (w.idx >= 0 ? '已保存工作区 ' : '已新建工作区 ') + name });
+    };
+    return {
+      palette,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      nodeOn: shellPop === 'node',
+      toggleNode: () => this.setState({ shellPop: shellPop === 'node' ? '' : 'node' }),
+      nodeN: NODES[nodeI][0],
+      nodeS: '● ' + NODES[nodeI][1] + ' · 在线',
+      nodeTip: NODES[nodeI][1] + ' · ' + NODES[nodeI][0],
+      nodes: NODES.map(([n, s, ok], idx) => ({ n, s: ok ? s : '离线', c: ok ? 'var(--ok)' : 'var(--line)', on: idx === nodeI, cls: idx === nodeI ? 'shi-on' : '', pick: () => this.setState(ok ? { node: idx, shellPop: '', toast: '已切换到 ' + n } : { shellPop: '', toast: n + ' 现在离线，连不上' }) })),
+      bellOn: shellPop === 'bell',
+      toggleBell: () => this.setState({ shellPop: shellPop === 'bell' ? '' : 'bell' }),
+      hasUnread: unread,
+      readAll: () => this.setState({ unread: false, shellPop: '' }),
+      notes: NOTES.map(([t, s, href]) => ({ t, s, href, w: unread ? '700' : '500' })),
+      acctOn: shellPop === 'acct',
+      toggleAcct: () => this.setState({ shellPop: shellPop === 'acct' ? '' : 'acct' }),
+      langT: st.lang === 'en' ? 'English' : '简体中文',
+      toggleLang: () => this.setState({ lang: st.lang === 'en' ? 'zh' : 'en' }),
+      logout: () => this.setState({ shellPop: '', toast: '已退出登录' }),
+      rail,
+      t: true,
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      nav,
+      tabs: TABS.map(([t, href, n], idx) => ({ t, href, n, d: IC[SIDE[idx]], cls: idx === 1 ? 'utab-on' : '' })),
+      wsCount: list.length,
+      spaces: list.map((x, idx) => ({
+        openFiles: () => this.setState({ cm: -1, fb: { n: x.n, path: x.path, sub: '' } }),
+        ...x, av: AVS[idx % 4], rot: ROTS[idx % 4], agCls: x.ag === 'Codex' ? 'ag-cx' : 'ag-cc',
+        tags: x.tags.map(([t, cls]) => ({ t, cls: cls || '' })),
+        mcp: disp(x.mcpL), sk: dispSk(x.skL),
+        edit: openEdit(idx),
+        menuOn: cm === idx,
+        menu: () => this.setState({ cm: cm === idx ? -1 : idx }),
+        remove: () => this.setState({ ws: list.filter((y, j) => j !== idx), cm: -1, toast: '已移除工作区 ' + x.n + '，目录里的文件没有删除' })
+      })),
+      dlgOn: !!dr,
+      openDlg: openNew,
+      closeDlg: () => this.setState({ wd: null, dd: '' }),
+      fb: (() => {
+        const B = st.fb || null;
+        if (!B) { return { on: false, title: '', crumbs: [], dirs: [], files: [], canUp: false, empty: false }; }
+        const go = (sub) => () => this.setState({ fb: { ...B, sub } });
+        const parts = B.sub ? B.sub.split('/') : [];
+        const items = FS[B.sub] || [];
+        const dirs = items.filter((x) => x[0] === 'd').map((x) => ({ t: x[1], go: go(B.sub ? B.sub + '/' + x[1] : x[1]) }));
+        const files = items.filter((x) => x[0] === 'f').map((x) => ({ t: x[1], size: x[2], at: x[3] }));
+        return {
+          on: true, title: B.n,
+          close: () => this.setState({ fb: null }),
+          crumbs: [{ t: B.path, go: go(''), c: parts.length ? 'var(--ink2)' : 'var(--ink)' }].concat(parts.map((t, q) => ({ t, go: go(parts.slice(0, q + 1).join('/')), c: q === parts.length - 1 ? 'var(--ink)' : 'var(--ink2)' }))),
+          canUp: parts.length > 0, up: go(parts.slice(0, -1).join('/')),
+          dirs, files, empty: items.length === 0
+        };
+      })(),
+      hasToast: !!st.toast,
+      toast: st.toast || '',
+      closeToast: () => this.setState({ toast: '' }),
+      wd: {
+        title: w.idx >= 0 ? '编辑工作区' : '新建工作区',
+        srcs: [['dir', '服务器上已有的目录'], ['git', '从 Git 克隆']].map(([k, t]) => ({ t, on: k === w.src, cls: k === w.src ? 'on' : '', pick: () => setWd({ src: k }) })),
+        isDir: w.src === 'dir', isGit: w.src === 'git',
+        name: w.name, dir: w.dir, gitUrl: w.gitUrl, gitBranch: w.gitBranch,
+        clonePh: '/srv/' + (w.name || '仓库名'),
+        setName: (e) => setWd({ name: e.target.value }),
+        setDir: (e) => setWd({ dir: e.target.value }),
+        setGit: (e) => setWd({ gitUrl: e.target.value }),
+        setBranch: (e) => setWd({ gitBranch: e.target.value }),
+        browseOpen: dd === 'browse',
+        toggleBrowse: () => this.setState({ dd: dd === 'browse' ? '' : 'browse' }),
+        dirs: W_DIRS.map(([lv, p]) => ({ t: p, pad: (10 + lv * 18) + 'px', on: p === w.dir, cls: p === w.dir ? 'mi-on' : '', pick: () => setWd({ dir: p, name: w.name || p.split('/').pop() }) })),
+        agentT: ak === 'cx' ? 'Codex' : 'Claude Code',
+        perm: sel('perm', permCur, W_PERM[ak], (v) => setWd({ perm: v })),
+        model: sel('model', provCur[0] + ' · ' + modelCur, ALLM.map((m) => m[2]), (v) => { const m = ALLM.find((x) => x[2] === v); setWd({ agent: m[0], prov: m[1], model: m[3], eff: '', perm: m[0] === ak ? w.perm : '' }); }),
+        eff: sel('eff', effCur, effs, (v) => setWd({ eff: v })),
+        mcp: W_MCP.map((n) => { const on = w.mcp.includes(n); return { n, on, cls: on ? 'chip-on' : '', toggle: () => setWd({ mcp: on ? w.mcp.filter((y) => y !== n) : w.mcp.concat([n]) }) }; }),
+        skills: W_SK.map((n) => { const on = w.sk.includes(n); return { n, on, cls: on ? 'chip-on' : '', toggle: () => setWd({ sk: on ? w.sk.filter((y) => y !== n) : w.sk.concat([n]) }) }; }),
+        docs: [doc('AGENTS.md', w.hasAgents, 'hasAgents'), doc('CLAUDE.md', w.hasClaude, 'hasClaude')],
+        editing: !!w.editing,
+        editName: w.editing,
+        editText: w.editing ? docText(w.editing) : '',
+        setEditText: (e) => setWd({ docText: { ...w.docText, [w.editing]: e.target.value } }),
+        closeEdit: () => setWd({ editing: '' }),
+        save
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -42,6 +42,8 @@ func NewHTTPServer(c *conf.Server,
 	gakumasGMApi *service.GakumasGMService,
 	gameOpsApi *service.GameOpsService,
 	passportAdminApi *service.PassportAdminService,
+	agentApi *service.AgentService,
+	mcpApi *service.McpService,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Filter(
@@ -98,12 +100,17 @@ func NewHTTPServer(c *conf.Server,
 	gakumasv1.RegisterGakumasGMServiceHTTPServer(srv, gakumasGMApi)
 	v1.RegisterGameOpsServiceHTTPServer(srv, gameOpsApi)
 	v1.RegisterPassportAdminServiceHTTPServer(srv, passportAdminApi)
+	v1.RegisterAgentServiceHTTPServer(srv, agentApi)
+	v1.RegisterAgentPublicHTTPServer(srv, agentApi)
+	v1.RegisterMcpServiceHTTPServer(srv, mcpApi)
 	gameGMApi.RegisterEventsServer(srv)
 	gameServerApi.RegisterRawRoutes(srv)
 	instanceApi.RegisterWsServer(srv)
 	openSSHApi.RegisterWsServer(srv)
 	fileApi.RegisterDownloadServer(srv)
 	dockerApi.RegisterWsServer(srv)
+	agentApi.RegisterRawRoutes(srv)
+	mcpApi.RegisterRawRoutes(srv)
 
 	return srv
 }

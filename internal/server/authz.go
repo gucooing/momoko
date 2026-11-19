@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"net/http"
 	"strings"
 
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -11,6 +12,8 @@ import (
 	"momoko/internal/biz"
 	"momoko/pkg/auth"
 	"momoko/pkg/constant"
+	"momoko/pkg/response"
+	"momoko/pkg/utils"
 )
 
 // operationWritePermissions 登记“写/管理类”操作所需的更高权限。
@@ -130,6 +133,36 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationNodeServiceUpdateNode:     constant.NodeManage,
 	v1.OperationNodeServiceDeleteNode:     constant.NodeManage,
 	v1.OperationNodeServiceTestNode:       constant.NodeManage,
+
+	// —— Agent：改配置（工作区、供应商、MCP、技能、运行时、通知）要管理权限，用 Code 只需要 agent:use ——
+	v1.OperationAgentServiceUpdateAgentWorkspace:         constant.AgentManage,
+	v1.OperationAgentServiceDeleteAgentWorkspace:         constant.AgentManage,
+	v1.OperationAgentServiceCreateAgentProvider:          constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentProvider:          constant.AgentManage,
+	v1.OperationAgentServiceDeleteAgentProvider:          constant.AgentManage,
+	v1.OperationAgentServiceTestAgentProvider:            constant.AgentManage,
+	v1.OperationAgentServiceFetchAgentProviderModels:     constant.AgentManage,
+	v1.OperationAgentServiceCreateAgentMcpServer:         constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentMcpServer:         constant.AgentManage,
+	v1.OperationAgentServiceDeleteAgentMcpServer:         constant.AgentManage,
+	v1.OperationAgentServiceSetAgentMcpDefault:           constant.AgentManage,
+	v1.OperationAgentServiceTestAgentMcpServer:           constant.AgentManage,
+	v1.OperationAgentServiceImportAgentMcpServers:        constant.AgentManage,
+	v1.OperationAgentServiceCreateAgentSkill:             constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentSkill:             constant.AgentManage,
+	v1.OperationAgentServiceDeleteAgentSkill:             constant.AgentManage,
+	v1.OperationAgentServiceSetAgentSkillEnabled:         constant.AgentManage,
+	v1.OperationAgentServiceImportAgentSkill:             constant.AgentManage,
+	v1.OperationAgentServiceSetAgentRuntimeMode:          constant.AgentManage,
+	v1.OperationAgentServiceDetectAgentRuntime:           constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentRuntime:           constant.AgentManage,
+	v1.OperationAgentServiceCreateAgentRuntime:           constant.AgentManage,
+	v1.OperationAgentServiceDeleteAgentRuntime:           constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentRunSettings:       constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentNotifyEvents:      constant.AgentManage,
+	v1.OperationAgentServiceSaveAgentNotifyChannel:       constant.AgentManage,
+	v1.OperationAgentServiceSetAgentNotifyChannelEnabled: constant.AgentManage,
+	v1.OperationAgentServiceTestAgentNotifyChannel:       constant.AgentManage,
 }
 
 // servicePrefixPermissions 为高危服务设定默认（最低）权限，按操作名前缀匹配。
@@ -151,6 +184,7 @@ var servicePrefixPermissions = []struct {
 	{"/v1.gakumas.GakumasGMService/", constant.GameGM},
 	{"/v1.GameOpsService/", constant.GameGM},
 	{"/v1.PassportAdminService/", constant.GamePassport},
+	{"/v1.AgentService/", constant.AgentUse},
 }
 
 // requiredPermission 返回某操作所需的权限；ok=false 表示该操作无需特定权限（仅需登录的自助类操作）。
@@ -178,6 +212,8 @@ var wsRoutePermissions = map[string]constant.Permissions{
 	// 镜像导出 / 导入（原始 HTTP 流，不走 operation 中间件）
 	biz.DockerImageExportPath: constant.DockerImageManage,
 	biz.DockerImageImportPath: constant.DockerImageManage,
+	// Agent 会话事件
+	biz.AgentWsPath: constant.AgentUse,
 }
 
 // PermissionMiddleware 对已认证请求按操作所需权限做集中式鉴权（功能级越权防护）。
@@ -210,4 +246,16 @@ func (a *Authorization) checkWSPermission(ctx context.Context, path string) erro
 		return a.system.Check(ctx, perm)
 	}
 	return nil
+}
+
+// serveMcp Momoko MCP（mcp.Path）的凭证是 API Key：请求头 Authorization: Bearer <API Key>，不收登录 token。
+// 凭证不存在、过期或所属用户停用时 401；每个工具要的权限在调用时由 McpUsecase.Authorize 检查，不够时 400。
+func (a *Authorization) serveMcp(w http.ResponseWriter, r *http.Request, next http.Handler) {
+	token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer "))
+	ctx, err := a.mcpUc.Authenticate(r.Context(), token, utils.ClientIP(r))
+	if err != nil {
+		response.WriteError(w, r, err)
+		return
+	}
+	next.ServeHTTP(w, r.WithContext(ctx))
 }

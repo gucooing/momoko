@@ -8,6 +8,90 @@ import (
 	"momoko/internal/data/ent/gen"
 )
 
+// The AgentEventFunc type is an adapter to allow the use of ordinary
+// function as AgentEvent mutator.
+type AgentEventFunc func(context.Context, *gen.AgentEventMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentEventFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentEventMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentEventMutation", m)
+}
+
+// The AgentMcpServerFunc type is an adapter to allow the use of ordinary
+// function as AgentMcpServer mutator.
+type AgentMcpServerFunc func(context.Context, *gen.AgentMcpServerMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentMcpServerFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentMcpServerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentMcpServerMutation", m)
+}
+
+// The AgentProviderFunc type is an adapter to allow the use of ordinary
+// function as AgentProvider mutator.
+type AgentProviderFunc func(context.Context, *gen.AgentProviderMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentProviderFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentProviderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentProviderMutation", m)
+}
+
+// The AgentRuntimeFunc type is an adapter to allow the use of ordinary
+// function as AgentRuntime mutator.
+type AgentRuntimeFunc func(context.Context, *gen.AgentRuntimeMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentRuntimeFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentRuntimeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentRuntimeMutation", m)
+}
+
+// The AgentSessionFunc type is an adapter to allow the use of ordinary
+// function as AgentSession mutator.
+type AgentSessionFunc func(context.Context, *gen.AgentSessionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentSessionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentSessionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentSessionMutation", m)
+}
+
+// The AgentSkillFunc type is an adapter to allow the use of ordinary
+// function as AgentSkill mutator.
+type AgentSkillFunc func(context.Context, *gen.AgentSkillMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentSkillFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentSkillMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentSkillMutation", m)
+}
+
+// The AgentWorkspaceFunc type is an adapter to allow the use of ordinary
+// function as AgentWorkspace mutator.
+type AgentWorkspaceFunc func(context.Context, *gen.AgentWorkspaceMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentWorkspaceFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentWorkspaceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentWorkspaceMutation", m)
+}
+
 // The EmailTemplateFunc type is an adapter to allow the use of ordinary
 // function as EmailTemplate mutator.
 type EmailTemplateFunc func(context.Context, *gen.EmailTemplateMutation) (gen.Value, error)

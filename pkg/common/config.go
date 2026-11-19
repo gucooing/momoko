@@ -76,6 +76,13 @@ const (
 
 	// ConfigPassportSettings 用户通行证设置：v1.PassportSettings 的 protojson，空表示用默认值。
 	ConfigPassportSettings ConfigKey = "passport.settings"
+
+	// ConfigAgentMaxProcesses 同时运行的 Agent 进程上限。
+	ConfigAgentMaxProcesses ConfigKey = "agent.max_processes"
+	// ConfigAgentIdleMinutes Agent 进程空闲多少分钟后结束，0 = 不自动结束。
+	ConfigAgentIdleMinutes ConfigKey = "agent.idle_minutes"
+	// ConfigAgentNotify Agent 通知设置（三个时机开关 + 各渠道配置，JSON，密钥已加密）。
+	ConfigAgentNotify ConfigKey = "agent.notify"
 )
 
 var configDefaults = map[ConfigKey]string{
@@ -146,6 +153,10 @@ var configDefaults = map[ConfigKey]string{
 	ConfigStorageSource: "",
 
 	ConfigPassportSettings: "",
+
+	ConfigAgentMaxProcesses: "4",
+	ConfigAgentIdleMinutes:  "5",
+	ConfigAgentNotify:       `{"ask":true,"done":true,"error":true,"channels":{}}`,
 }
 
 func (k ConfigKey) String() string {

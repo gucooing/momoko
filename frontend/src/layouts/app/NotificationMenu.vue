@@ -35,7 +35,7 @@
             :key="message.id"
             type="button"
             class="notif__item"
-            @click="userProfileStore.markAsRead(message.id)"
+            @click="openMessage(message, close)"
           >
             <AppAvatar :src="message.avatar" :size="34" :name="message.title" />
             <div class="notif__content">
@@ -66,6 +66,16 @@ const { unreadCount, userMessages } = storeToRefs(userProfileStore)
 const { t } = useI18n()
 
 const unreadMessageList = computed(() => userMessages.value.filter((msg) => !msg.read))
+
+// Agent 会话的消息点开直接进到那个会话
+const openMessage = (message: (typeof unreadMessageList.value)[number], close: () => void) => {
+  void userProfileStore.markAsRead(message.id)
+  const sessionId = message.kind.startsWith('agent_') ? message.params?.sessionId : ''
+  if (sessionId) {
+    router.push({ path: '/agent/code', query: { session: sessionId } })
+    close()
+  }
+}
 
 const goToProfile = (close: () => void) => {
   userProfileStore.currentTab = 'messages'

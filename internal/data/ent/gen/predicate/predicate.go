@@ -6,6 +6,27 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AgentEvent is the predicate function for agentevent builders.
+type AgentEvent func(*sql.Selector)
+
+// AgentMcpServer is the predicate function for agentmcpserver builders.
+type AgentMcpServer func(*sql.Selector)
+
+// AgentProvider is the predicate function for agentprovider builders.
+type AgentProvider func(*sql.Selector)
+
+// AgentRuntime is the predicate function for agentruntime builders.
+type AgentRuntime func(*sql.Selector)
+
+// AgentSession is the predicate function for agentsession builders.
+type AgentSession func(*sql.Selector)
+
+// AgentSkill is the predicate function for agentskill builders.
+type AgentSkill func(*sql.Selector)
+
+// AgentWorkspace is the predicate function for agentworkspace builders.
+type AgentWorkspace func(*sql.Selector)
+
 // EmailTemplate is the predicate function for emailtemplate builders.
 type EmailTemplate func(*sql.Selector)
 

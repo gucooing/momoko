@@ -1,10 +1,7 @@
 <template>
   <FileDialog v-model="visible" :title="name" :width="1080" @close="onClose">
     <div class="fv-body">
-      <img v-if="kind === 'image'" :src="previewUrl" :alt="name" class="fv-media" />
-      <video v-else-if="kind === 'video'" :src="previewUrl" class="fv-media" controls autoplay />
-      <audio v-else-if="kind === 'audio'" :src="previewUrl" class="fv-audio" controls autoplay />
-      <div v-else-if="loading" class="fv-state">{{ t('file.share.loading') }}</div>
+      <div v-if="loading" class="fv-state">{{ t('file.share.loading') }}</div>
       <div v-else-if="unpreviewable" class="fv-state">
         <IconWarning class="fv-state-icon" />
         <p>{{ t('fileManager.cannotEditBinary') }}</p>
@@ -28,12 +25,12 @@
 import { useI18n } from 'vue-i18n'
 import { useThemeStore } from '@/stores/theme'
 import { isBinaryBytes } from '@/utils/fileEncoding'
-import { detectMonacoLanguage, resolveFilePreviewKind } from '@/utils/file'
+import { detectMonacoLanguage } from '@/utils/file'
 import { monaco } from './monaco'
 import FileDialog from './FileDialog.vue'
 import { IconDownload, IconWarning } from './icons'
 
-// 只读文件查看器：与编辑器“打开文件”一致（文本走 Monaco 高亮、媒体内联预览），
+// 只读文本查看器：与编辑器“打开文件”一致（Monaco 高亮；图片、视频、音频由 FileMediaDialog 查看），
 // 但仅查看 + 下载，不能编辑。用于公开分享页等只读场景。
 const MAX_PREVIEW_SIZE = 5 * 1024 * 1024 // 超过则不在线预览，仅下载
 
@@ -55,13 +52,11 @@ const visible = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
-const kind = computed(() => resolveFilePreviewKind(props.name))
 const loading = ref(false)
 const unpreviewable = ref(false)
 const language = ref('plaintext')
 
 const statusText = computed(() => {
-  if (kind.value) return ''
   if (unpreviewable.value || loading.value) return ''
   return language.value === 'plaintext' ? t('fileManager.plainText') : language.value.toUpperCase()
 })
@@ -98,9 +93,6 @@ const loadPreview = async () => {
   unpreviewable.value = false
   loading.value = false
   language.value = 'plaintext'
-
-  // 媒体由 <img>/<video>/<audio> 直接内联，无需拉取
-  if (kind.value) return
 
   if (props.size !== undefined && props.size > MAX_PREVIEW_SIZE) {
     unpreviewable.value = true
@@ -150,14 +142,6 @@ onBeforeUnmount(disposeEditor)
   background: var(--fm-subtle);
   border-radius: var(--fm-radius-sm);
   overflow: hidden;
-}
-.fv-media {
-  max-width: 100%;
-  max-height: 70vh;
-  object-fit: contain;
-}
-.fv-audio {
-  width: 70%;
 }
 .fv-monaco {
   width: 100%;

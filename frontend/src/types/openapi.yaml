@@ -6,6 +6,1276 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /api/v1/agent/dirs:
+        get:
+            tags:
+                - AgentService
+            description: 「浏览」：列出服务器上某个目录下的子目录
+            operationId: AgentService_ListAgentDirs
+            parameters:
+                - name: path
+                  in: query
+                  description: 空 = 根（Windows 上是盘符列表）
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentDirsResponse'
+    /api/v1/agent/docs:
+        get:
+            tags:
+                - AgentService
+            description: 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
+            operationId: AgentService_GetAgentDocs
+            parameters:
+                - name: path
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentDocsResponse'
+    /api/v1/agent/files/search:
+        get:
+            tags:
+                - AgentService
+            description: '@ 引用文件：按文件名搜索会话目录（新会话还没有会话时按工作区搜）'
+            operationId: AgentService_SearchAgentFiles
+            parameters:
+                - name: sessionId
+                  in: query
+                  schema:
+                    type: string
+                - name: workspaceId
+                  in: query
+                  schema:
+                    type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SearchAgentFilesResponse'
+    /api/v1/agent/mcp:
+        get:
+            tags:
+                - AgentService
+            description: —— MCP ——
+            operationId: AgentService_ListAgentMcpServers
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentMcpServersResponse'
+        post:
+            tags:
+                - AgentService
+            operationId: AgentService_CreateAgentMcpServer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateAgentMcpServerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateAgentMcpServerResponse'
+    /api/v1/agent/mcp/import:
+        post:
+            tags:
+                - AgentService
+            description: 粘贴 mcpServers JSON 导入
+            operationId: AgentService_ImportAgentMcpServers
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ImportAgentMcpServersRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ImportAgentMcpServersResponse'
+    /api/v1/agent/mcp/test:
+        post:
+            tags:
+                - AgentService
+            description: 测试连接：由 Momoko 自己连一次，读它的工具列表
+            operationId: AgentService_TestAgentMcpServer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestAgentMcpServerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestAgentMcpServerResponse'
+    /api/v1/agent/mcp/{id}:
+        put:
+            tags:
+                - AgentService
+            operationId: AgentService_UpdateAgentMcpServer
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAgentMcpServerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAgentMcpServerResponse'
+        delete:
+            tags:
+                - AgentService
+            operationId: AgentService_DeleteAgentMcpServer
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAgentMcpServerResponse'
+    /api/v1/agent/mcp/{id}/default:
+        post:
+            tags:
+                - AgentService
+            description: 新会话默认开启的开关
+            operationId: AgentService_SetAgentMcpDefault
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SetAgentMcpDefaultRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SetAgentMcpDefaultResponse'
+    /api/v1/agent/notify:
+        get:
+            tags:
+                - AgentService
+            description: —— 通知 ——
+            operationId: AgentService_GetAgentNotify
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentNotifyResponse'
+    /api/v1/agent/notify/channel:
+        post:
+            tags:
+                - AgentService
+            description: 保存某种通知方式的配置，保存后自动启用
+            operationId: AgentService_SaveAgentNotifyChannel
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SaveAgentNotifyChannelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SaveAgentNotifyChannelResponse'
+    /api/v1/agent/notify/channel/enabled:
+        post:
+            tags:
+                - AgentService
+            operationId: AgentService_SetAgentNotifyChannelEnabled
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SetAgentNotifyChannelEnabledRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SetAgentNotifyChannelEnabledResponse'
+    /api/v1/agent/notify/channel/test:
+        post:
+            tags:
+                - AgentService
+            description: 发一条测试；fields 为空时用已保存的配置
+            operationId: AgentService_TestAgentNotifyChannel
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestAgentNotifyChannelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestAgentNotifyChannelResponse'
+    /api/v1/agent/notify/events:
+        post:
+            tags:
+                - AgentService
+            description: 三个时机开关
+            operationId: AgentService_UpdateAgentNotifyEvents
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAgentNotifyEventsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAgentNotifyEventsResponse'
+    /api/v1/agent/options:
+        get:
+            tags:
+                - AgentService
+            description: |-
+                —— 选择器 ——
+                 新会话 / 会话里 / 工作区默认值用的选项：每个 Agent 的供应商、模型、推理强度和权限模式
+            operationId: AgentService_GetAgentOptions
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentOptionsResponse'
+    /api/v1/agent/overview:
+        get:
+            tags:
+                - AgentService
+            description: 各管理标签的数量
+            operationId: AgentService_GetAgentOverview
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentOverviewResponse'
+    /api/v1/agent/providers:
+        get:
+            tags:
+                - AgentService
+            description: —— 模型供应商 ——
+            operationId: AgentService_ListAgentProviders
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentProvidersResponse'
+        post:
+            tags:
+                - AgentService
+            description: 第三方接口
+            operationId: AgentService_CreateAgentProvider
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateAgentProviderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateAgentProviderResponse'
+    /api/v1/agent/providers/models:
+        post:
+            tags:
+                - AgentService
+            description: 获取可用模型
+            operationId: AgentService_FetchAgentProviderModels
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.FetchAgentProviderModelsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.FetchAgentProviderModelsResponse'
+    /api/v1/agent/providers/test:
+        post:
+            tags:
+                - AgentService
+            description: 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+            operationId: AgentService_TestAgentProvider
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestAgentProviderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestAgentProviderResponse'
+    /api/v1/agent/providers/{id}:
+        put:
+            tags:
+                - AgentService
+            operationId: AgentService_UpdateAgentProvider
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAgentProviderRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAgentProviderResponse'
+        delete:
+            tags:
+                - AgentService
+            operationId: AgentService_DeleteAgentProvider
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAgentProviderResponse'
+    /api/v1/agent/runtimes:
+        get:
+            tags:
+                - AgentService
+            description: —— 运行时 ——
+            operationId: AgentService_ListAgentRuntimes
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentRuntimesResponse'
+        post:
+            tags:
+                - AgentService
+            description: 添加其它 ACP Agent
+            operationId: AgentService_CreateAgentRuntime
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateAgentRuntimeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateAgentRuntimeResponse'
+    /api/v1/agent/runtimes/settings:
+        post:
+            tags:
+                - AgentService
+            description: 同时运行的进程上限、空闲后结束进程
+            operationId: AgentService_UpdateAgentRunSettings
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAgentRunSettingsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAgentRunSettingsResponse'
+    /api/v1/agent/runtimes/{id}:
+        delete:
+            tags:
+                - AgentService
+            operationId: AgentService_DeleteAgentRuntime
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAgentRuntimeResponse'
+    /api/v1/agent/runtimes/{id}/detect:
+        post:
+            tags:
+                - AgentService
+            description: 重新检测
+            operationId: AgentService_DetectAgentRuntime
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.DetectAgentRuntimeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DetectAgentRuntimeResponse'
+    /api/v1/agent/runtimes/{id}/mode:
+        post:
+            tags:
+                - AgentService
+            description: 安装方式：Momoko 下载并更新 / 用服务器上已有的命令
+            operationId: AgentService_SetAgentRuntimeMode
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SetAgentRuntimeModeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SetAgentRuntimeModeResponse'
+    /api/v1/agent/runtimes/{id}/update:
+        post:
+            tags:
+                - AgentService
+            description: 检查更新；由 Momoko 下载的会直接更新到最新版本
+            operationId: AgentService_UpdateAgentRuntime
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAgentRuntimeRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAgentRuntimeResponse'
+    /api/v1/agent/sessions:
+        get:
+            tags:
+                - AgentService
+            description: 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成
+            operationId: AgentService_ListAgentSessions
+            parameters:
+                - name: status
+                  in: query
+                  description: all（默认）| running | waiting | idle | error | archived
+                  schema:
+                    type: string
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentSessionsResponse'
+        post:
+            tags:
+                - AgentService
+            description: 新建会话并发出第一条消息
+            operationId: AgentService_CreateAgentSession
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateAgentSessionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateAgentSessionResponse'
+    /api/v1/agent/sessions/archive:
+        post:
+            tags:
+                - AgentService
+            description: 归档 / 取消归档（还在运行或等待批准的不能归档）
+            operationId: AgentService_ArchiveAgentSessions
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ArchiveAgentSessionsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ArchiveAgentSessionsResponse'
+    /api/v1/agent/sessions/delete:
+        post:
+            tags:
+                - AgentService
+            operationId: AgentService_DeleteAgentSessions
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.DeleteAgentSessionsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAgentSessionsResponse'
+    /api/v1/agent/sessions/export:
+        post:
+            tags:
+                - AgentService
+            description: 导出记录：返回会话的全部事件，由页面排版成 Markdown 下载
+            operationId: AgentService_ExportAgentSessions
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ExportAgentSessionsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ExportAgentSessionsResponse'
+    /api/v1/agent/sessions/purge:
+        post:
+            tags:
+                - AgentService
+            description: 删除全部归档会话
+            operationId: AgentService_PurgeAgentSessions
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PurgeAgentSessionsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PurgeAgentSessionsResponse'
+    /api/v1/agent/sessions/{id}:
+        get:
+            tags:
+                - AgentService
+            operationId: AgentService_GetAgentSession
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentSessionResponse'
+    /api/v1/agent/sessions/{id}/cancel:
+        post:
+            tags:
+                - AgentService
+            description: 停止当前这一轮
+            operationId: AgentService_CancelAgentSession
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CancelAgentSessionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CancelAgentSessionResponse'
+    /api/v1/agent/sessions/{id}/changes:
+        get:
+            tags:
+                - AgentService
+            description: 右侧「改动」：会话目录相对当前分支的未提交改动
+            operationId: AgentService_GetAgentSessionChanges
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentSessionChangesResponse'
+    /api/v1/agent/sessions/{id}/detach:
+        post:
+            tags:
+                - AgentService
+            description: 把复刻出来的会话移到外层
+            operationId: AgentService_DetachAgentSession
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.DetachAgentSessionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DetachAgentSessionResponse'
+    /api/v1/agent/sessions/{id}/file:
+        get:
+            tags:
+                - AgentService
+            description: 打开文件（只读）
+            operationId: AgentService_ReadAgentSessionFile
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: path
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ReadAgentSessionFileResponse'
+    /api/v1/agent/sessions/{id}/files:
+        get:
+            tags:
+                - AgentService
+            description: 右侧「文件」：按目录懒加载
+            operationId: AgentService_ListAgentSessionFiles
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: dir
+                  in: query
+                  description: 相对会话目录，空 = 根
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentSessionFilesResponse'
+    /api/v1/agent/sessions/{id}/fork:
+        post:
+            tags:
+                - AgentService
+            description: 复刻对话；worktree 为 true 时放到自动命名的新工作树里
+            operationId: AgentService_ForkAgentSession
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ForkAgentSessionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ForkAgentSessionResponse'
+    /api/v1/agent/sessions/{id}/option:
+        post:
+            tags:
+                - AgentService
+            description: 切换权限模式 / 模型 / 推理强度
+            operationId: AgentService_SetAgentSessionOption
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SetAgentSessionOptionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SetAgentSessionOptionResponse'
+    /api/v1/agent/sessions/{id}/permission:
+        post:
+            tags:
+                - AgentService
+            description: 回答批准卡片
+            operationId: AgentService_ResolveAgentPermission
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ResolveAgentPermissionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ResolveAgentPermissionResponse'
+    /api/v1/agent/sessions/{id}/process:
+        get:
+            tags:
+                - AgentService
+            description: 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
+            operationId: AgentService_GetAgentSessionProcess
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentSessionProcessResponse'
+    /api/v1/agent/sessions/{id}/prompt:
+        post:
+            tags:
+                - AgentService
+            description: 发一条消息，开始新的一轮；立刻返回，后续靠 WebSocket
+            operationId: AgentService_PromptAgentSession
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PromptAgentSessionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PromptAgentSessionResponse'
+    /api/v1/agent/sessions/{id}/rename:
+        post:
+            tags:
+                - AgentService
+            operationId: AgentService_RenameAgentSession
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RenameAgentSessionRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RenameAgentSessionResponse'
+    /api/v1/agent/sessions/{id}/revert:
+        post:
+            tags:
+                - AgentService
+            description: 撤销某个文件的改动
+            operationId: AgentService_RevertAgentSessionFile
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.RevertAgentSessionFileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.RevertAgentSessionFileResponse'
+    /api/v1/agent/sessions/{id}/upload:
+        get:
+            tags:
+                - AgentService
+            description: 取回消息里上传过的附件（显示图片）
+            operationId: AgentService_GetAgentSessionUpload
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: file
+                  in: query
+                  description: 消息附件里记的 file
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentSessionUploadResponse'
+    /api/v1/agent/sidebar:
+        get:
+            tags:
+                - AgentService
+            description: |-
+                —— 会话 ——
+                 会话栏：我的未归档会话，按工作区分层
+            operationId: AgentService_GetAgentSidebar
+            parameters:
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentSidebarResponse'
+    /api/v1/agent/skills:
+        get:
+            tags:
+                - AgentService
+            description: —— 技能 ——
+            operationId: AgentService_ListAgentSkills
+            parameters:
+                - name: enabled
+                  in: query
+                  description: 只要启用着的
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentSkillsResponse'
+        post:
+            tags:
+                - AgentService
+            operationId: AgentService_CreateAgentSkill
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateAgentSkillRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateAgentSkillResponse'
+    /api/v1/agent/skills/import:
+        post:
+            tags:
+                - AgentService
+            description: 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+            operationId: AgentService_ImportAgentSkill
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ImportAgentSkillRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ImportAgentSkillResponse'
+    /api/v1/agent/skills/{id}:
+        get:
+            tags:
+                - AgentService
+            operationId: AgentService_GetAgentSkill
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentSkillResponse'
+        put:
+            tags:
+                - AgentService
+            operationId: AgentService_UpdateAgentSkill
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAgentSkillRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAgentSkillResponse'
+        delete:
+            tags:
+                - AgentService
+            operationId: AgentService_DeleteAgentSkill
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAgentSkillResponse'
+    /api/v1/agent/skills/{id}/enabled:
+        post:
+            tags:
+                - AgentService
+            operationId: AgentService_SetAgentSkillEnabled
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SetAgentSkillEnabledRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SetAgentSkillEnabledResponse'
+    /api/v1/agent/workspaces:
+        get:
+            tags:
+                - AgentService
+            description: —— 工作区 ——
+            operationId: AgentService_ListAgentWorkspaces
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentWorkspacesResponse'
+        post:
+            tags:
+                - AgentService
+            operationId: AgentService_CreateAgentWorkspace
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.CreateAgentWorkspaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.CreateAgentWorkspaceResponse'
+    /api/v1/agent/workspaces/{id}:
+        put:
+            tags:
+                - AgentService
+            operationId: AgentService_UpdateAgentWorkspace
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAgentWorkspaceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAgentWorkspaceResponse'
+        delete:
+            tags:
+                - AgentService
+            description: 移除工作区：只删记录，目录里的文件不动
+            operationId: AgentService_DeleteAgentWorkspace
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAgentWorkspaceResponse'
+    /api/v1/agent/workspaces/{id}/browse:
+        get:
+            tags:
+                - AgentService
+            description: 「查看文件」：只读地列出工作区里的目录和文件
+            operationId: AgentService_BrowseAgentWorkspace
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: dir
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.BrowseAgentWorkspaceResponse'
     /api/v1/auth/client:
         post:
             tags:
@@ -8183,6 +9453,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.PassportEmpty'
+    /api/v1/mcp/overview:
+        get:
+            tags:
+                - McpService
+            description: 管理页要的数据：服务路径、工具和各自要的权限、当前用户能当凭证的 API Key
+            operationId: McpService_GetMcpOverview
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetMcpOverviewResponse'
     /api/v1/me:
         get:
             tags:
@@ -9433,6 +10716,47 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.MePermissionsResponse'
+    /api/v1/public/agent/approval/{token}:
+        get:
+            tags:
+                - AgentPublic
+            operationId: AgentPublic_PublicAgentApproval
+            parameters:
+                - name: token
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PublicAgentApprovalResponse'
+        post:
+            tags:
+                - AgentPublic
+            operationId: AgentPublic_PublicResolveAgentApproval
+            parameters:
+                - name: token
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PublicResolveAgentApprovalRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PublicResolveAgentApprovalResponse'
     /api/v1/public/iqcheck/{slug}:
         get:
             tags:
@@ -11278,6 +12602,647 @@ components:
                     type: string
                 linkId:
                     type: string
+        v1.AgentAttachment:
+            type: object
+            properties:
+                kind:
+                    type: string
+                    description: image | file | ref
+                name:
+                    type: string
+                mime:
+                    type: string
+                data:
+                    type: string
+                    description: image / file 的内容
+                    format: bytes
+                path:
+                    type: string
+                    description: ref：相对会话目录的路径
+            description: 附件：图片和文件随消息上传，工作区里的文件用路径引用
+        v1.AgentCapabilities:
+            type: object
+            properties:
+                resume:
+                    type: boolean
+                fork:
+                    type: boolean
+                additionalDirs:
+                    type: boolean
+                image:
+                    type: boolean
+                embeddedContext:
+                    type: boolean
+                mcpHttp:
+                    type: boolean
+                mcpSse:
+                    type: boolean
+                close:
+                    type: boolean
+                subagents:
+                    type: boolean
+            description: Agent 在初始化时声明的能力；没声明的，对应的界面元素不出现
+        v1.AgentChangedFile:
+            type: object
+            properties:
+                path:
+                    type: string
+                kind:
+                    type: string
+                    description: M | A | D | R
+                added:
+                    type: integer
+                    format: int32
+                deleted:
+                    type: integer
+                    format: int32
+                patch:
+                    type: string
+                    description: 统一 diff（不含文件头）
+        v1.AgentChoice:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                kind:
+                    type: string
+                    description: 批准选项的种类：allow_once | allow_always | reject_once | reject_always
+        v1.AgentDir:
+            type: object
+            properties:
+                name:
+                    type: string
+                path:
+                    type: string
+                isGit:
+                    type: boolean
+                branch:
+                    type: string
+        v1.AgentDoc:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: AGENTS.md | CLAUDE.md
+                exists:
+                    type: boolean
+                content:
+                    type: string
+        v1.AgentFileEntry:
+            type: object
+            properties:
+                name:
+                    type: string
+                path:
+                    type: string
+                isDir:
+                    type: boolean
+                size:
+                    type: string
+                modTime:
+                    type: string
+                    format: date-time
+                change:
+                    type: string
+                    description: 未提交改动的标记：M | A，没有为空
+        v1.AgentKV:
+            type: object
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
+        v1.AgentMcpServer:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                transport:
+                    type: string
+                    description: stdio | http
+                command:
+                    type: string
+                args:
+                    type: array
+                    items:
+                        type: string
+                env:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSecretKV'
+                url:
+                    type: string
+                headers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSecretKV'
+                defaultOn:
+                    type: boolean
+                status:
+                    type: string
+                    description: ok | fail | untested
+                statusText:
+                    type: string
+                toolCount:
+                    type: integer
+                    format: int32
+                testedAt:
+                    type: string
+                    format: date-time
+        v1.AgentModel:
+            type: object
+            properties:
+                id:
+                    type: string
+                levels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentModelLevel'
+                contextWindow:
+                    type: string
+                    description: 最长上下文和最长输出（token 数），启动 Agent 时交给它；新模型默认 1000000 和 128000
+                maxOutput:
+                    type: string
+        v1.AgentModelLevel:
+            type: object
+            properties:
+                name:
+                    type: string
+                value:
+                    type: string
+            description: 推理等级：name 是会话里能选的等级，value 是选中它时实际发给接口的值（空 = 不带这个参数）
+        v1.AgentModelOption:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                efforts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentChoice'
+                    description: 这个模型能选的推理强度；为空表示不可调
+                defaultEffort:
+                    type: string
+        v1.AgentNotifyChannel:
+            type: object
+            properties:
+                kind:
+                    type: string
+                    description: discord | telegram | feishu | qq
+                configured:
+                    type: boolean
+                enabled:
+                    type: boolean
+                fields:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: 配置项；密钥类只返回脱敏值，保存时留空表示保留原值
+        v1.AgentNotifyEvents:
+            type: object
+            properties:
+                ask:
+                    type: boolean
+                    description: 等待批准时
+                done:
+                    type: boolean
+                    description: 一轮结束时
+                error:
+                    type: boolean
+                    description: 出错时
+        v1.AgentProcess:
+            type: object
+            properties:
+                command:
+                    type: string
+                pid:
+                    type: integer
+                    format: int32
+                memoryBytes:
+                    type: string
+                startedAt:
+                    type: string
+                    format: date-time
+                args:
+                    type: array
+                    items:
+                        type: string
+            description: Agent 进程的实时状态，不落库；只在有人要看时读（内存要遍历进程树）
+        v1.AgentProvider:
+            type: object
+            properties:
+                id:
+                    type: string
+                vendor:
+                    type: string
+                    description: 接口协议：anthropic（给 Claude 系）| openai（给 Codex 系）
+                name:
+                    type: string
+                status:
+                    type: string
+                    description: ok | bad | untested
+                statusText:
+                    type: string
+                baseUrl:
+                    type: string
+                apiKey:
+                    type: string
+                    description: 只写；更新时留空表示保留原值
+                apiKeyTail:
+                    type: string
+                    description: 脱敏后的后四位
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentModel'
+                mainModel:
+                    type: string
+                fastModel:
+                    type: string
+                env:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentKV'
+                testLatencyMs:
+                    type: string
+                testedAt:
+                    type: string
+                    format: date-time
+            description: 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）
+        v1.AgentProviderOptions:
+            type: object
+            properties:
+                providerId:
+                    type: string
+                    description: 空字符串表示用服务器上已有的登录（用户自己在服务器上登录命令行）
+                name:
+                    type: string
+                    description: api：用户起的名称；system：服务器上登录的账号（检查时 Agent 报的，可能为空）
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentModelOption'
+                defaultModel:
+                    type: string
+                kind:
+                    type: string
+                    description: api | system
+                status:
+                    type: string
+                    description: api：ok | bad | untested
+                vendor:
+                    type: string
+                    description: api：接口协议 anthropic | openai
+        v1.AgentRunSettings:
+            type: object
+            properties:
+                maxProcesses:
+                    type: integer
+                    format: int32
+                idleMinutes:
+                    type: integer
+                    description: 0 = 不自动结束
+                    format: int32
+        v1.AgentRuntime:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                kind:
+                    type: string
+                    description: 检测出的系别：claude | codex | custom（按 Agent 自报的名字，不看是哪一条）
+                managed:
+                    type: boolean
+                    description: Momoko 下载并更新
+                command:
+                    type: string
+                ready:
+                    type: boolean
+                agentName:
+                    type: string
+                    description: Agent 自报的名字和版本（agentInfo）
+                error:
+                    type: string
+                detectedAt:
+                    type: string
+                    format: date-time
+                activeSessions:
+                    type: integer
+                    description: 有进程在跑的会话数
+                    format: int32
+                installing:
+                    type: boolean
+                    description: 正在下载或更新
+                caps:
+                    $ref: '#/components/schemas/v1.AgentCapabilities'
+                authLabel:
+                    type: string
+                    description: 服务器上已有的登录（没有为空）：账号名称和说明
+                builtin:
+                    type: boolean
+                    description: 内置的两条（Claude Code、Codex）：不能移除，命令固定
+                canInstall:
+                    type: boolean
+                    description: 能「Momoko 下载并更新」：只有带单文件发行包的（Claude Code）
+                agentVersion:
+                    type: string
+                authDetail:
+                    type: string
+                loggedIn:
+                    type: boolean
+                    description: 最近一次检查时服务器上已经登录（能开会话）；没登录时选择器里没有「服务器上的登录」
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentModelOption'
+                    description: 检查时 Agent 给的模型和每个模型的推理强度
+                args:
+                    type: array
+                    items:
+                        type: string
+                    description: 启动参数（command 是可执行文件）
+        v1.AgentRuntimeOptions:
+            type: object
+            properties:
+                runtimeId:
+                    type: string
+                runtimeName:
+                    type: string
+                kind:
+                    type: string
+                    description: claude | codex | custom
+                ready:
+                    type: boolean
+                providers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentProviderOptions'
+                modes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentChoice'
+                    description: 权限模式由 Agent 提供
+                defaultMode:
+                    type: string
+                caps:
+                    $ref: '#/components/schemas/v1.AgentCapabilities'
+        v1.AgentSecretKV:
+            type: object
+            properties:
+                key:
+                    type: string
+                value:
+                    type: string
+                    description: 提交时的明文；留空表示保留已保存的值
+                tail:
+                    type: string
+                    description: 已保存的值的后四位（返回时只给这个）
+            description: 带密文的键值（MCP 的环境变量和请求头）：value 只写，留空表示保留原值；masked 是脱敏后的后几位
+        v1.AgentSession:
+            type: object
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+                runtimeId:
+                    type: string
+                runtimeName:
+                    type: string
+                runtimeKind:
+                    type: string
+                    description: claude | codex | custom
+                workspaceId:
+                    type: string
+                workspaceName:
+                    type: string
+                cwd:
+                    type: string
+                    description: 实际运行目录：工作区目录、工作树目录或临时目录
+                extraDirs:
+                    type: array
+                    items:
+                        type: string
+                worktree:
+                    type: string
+                    description: 工作树名；不在工作树里为空
+                providerId:
+                    type: string
+                providerName:
+                    type: string
+                    description: 供应商的名称（原样）；怎么显示由页面按 provider_kind / provider_vendor 决定
+                model:
+                    type: string
+                effort:
+                    type: string
+                mode:
+                    type: string
+                modeName:
+                    type: string
+                status:
+                    type: string
+                    description: running | waiting | idle | error | archived
+                error:
+                    type: string
+                parentId:
+                    type: string
+                    description: 复刻来源；detached 表示已移到外层
+                detached:
+                    type: boolean
+                userId:
+                    type: string
+                activeAt:
+                    type: string
+                    format: date-time
+                createTime:
+                    type: string
+                    format: date-time
+                acpSessionId:
+                    type: string
+                    description: Agent 侧的会话 ID
+                usage:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentUsage'
+                    description: 累计用量；Agent 没给过为空
+                turns:
+                    type: integer
+                    format: int32
+                lastUsage:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentUsage'
+                    description: 最近一轮
+                contextUsed:
+                    type: string
+                contextSize:
+                    type: string
+                providerKind:
+                    type: string
+                    description: api | system
+                providerVendor:
+                    type: string
+        v1.AgentSessionDetail:
+            type: object
+            properties:
+                branch:
+                    type: string
+                    description: 当前分支（工作目录是 Git 仓库时）
+                mcpNames:
+                    type: array
+                    items:
+                        type: string
+                skillNames:
+                    type: array
+                    items:
+                        type: string
+                parentTitle:
+                    type: string
+                agentName:
+                    type: string
+                    description: Agent 自报的名字和版本
+                agentVersion:
+                    type: string
+            description: 打开一个会话时才给的信息：每次状态变化都推整份会话，这些不跟着推
+        v1.AgentSessionExport:
+            type: object
+            properties:
+                session:
+                    $ref: '#/components/schemas/v1.AgentSession'
+                events:
+                    type: string
+                    description: 这个会话的全部事件（JSON 数组，和 WebSocket 里的事件同一个格式）
+        v1.AgentSidebarWorkspace:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                path:
+                    type: string
+                isGit:
+                    type: boolean
+                branch:
+                    type: string
+                sessionCount:
+                    type: integer
+                    format: int32
+        v1.AgentSkill:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                source:
+                    type: string
+                    description: local（在这里写的）| git | zip | dir
+                enabled:
+                    type: boolean
+                fileCount:
+                    type: integer
+                    format: int32
+        v1.AgentSkillFile:
+            type: object
+            properties:
+                path:
+                    type: string
+                content:
+                    type: string
+                binary:
+                    type: boolean
+                    description: 不是文本，只保留不编辑
+        v1.AgentUsage:
+            type: object
+            properties:
+                total:
+                    type: string
+                input:
+                    type: string
+                    description: 不含缓存命中和缓存写入
+                output:
+                    type: string
+                cacheRead:
+                    type: string
+                cacheWrite:
+                    type: string
+                thought:
+                    type: string
+        v1.AgentUser:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                username:
+                    type: string
+        v1.AgentWorkspace:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                path:
+                    type: string
+                isGit:
+                    type: boolean
+                branch:
+                    type: string
+                cloneStatus:
+                    type: string
+                    description: 空 | cloning | failed
+                cloneError:
+                    type: string
+                runtimeId:
+                    type: string
+                    description: 默认模型连带确定供应商和 Agent
+                runtimeName:
+                    type: string
+                providerId:
+                    type: string
+                providerName:
+                    type: string
+                model:
+                    type: string
+                effort:
+                    type: string
+                mode:
+                    type: string
+                modeName:
+                    type: string
+                mcpIds:
+                    type: array
+                    items:
+                        type: string
+                sessionCount:
+                    type: integer
+                    format: int32
+                activeAt:
+                    type: string
+                    format: date-time
+                missing:
+                    type: boolean
+                    description: 目录已经不存在
+                providerKind:
+                    type: string
+                    description: api | system
+                providerVendor:
+                    type: string
         v1.ApproveGmExecutionRequest:
             type: object
             properties:
@@ -11288,6 +13253,25 @@ components:
                 note:
                     type: string
                     description: 审批意见
+        v1.ArchiveAgentSessionsRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+                archived:
+                    type: boolean
+        v1.ArchiveAgentSessionsResponse:
+            type: object
+            properties:
+                changed:
+                    type: integer
+                    format: int32
+                skipped:
+                    type: integer
+                    description: 还在运行、没有归档的数量
+                    format: int32
         v1.BatchCompressFileSystemRequest:
             type: object
             properties:
@@ -11424,6 +13408,21 @@ components:
                     description: 游戏登录账号与密码（只用来校验一次，不保存）
                 password:
                     type: string
+        v1.BrowseAgentWorkspaceResponse:
+            type: object
+            properties:
+                entries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentFileEntry'
+        v1.CancelAgentSessionRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        v1.CancelAgentSessionResponse:
+            type: object
+            properties: {}
         v1.CancelDockerTaskRequest:
             type: object
             properties:
@@ -11806,6 +13805,133 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.APIKeyInfo'
                     description: API Key 信息
+        v1.CreateAgentMcpServerRequest:
+            type: object
+            properties:
+                server:
+                    $ref: '#/components/schemas/v1.AgentMcpServer'
+        v1.CreateAgentMcpServerResponse:
+            type: object
+            properties:
+                server:
+                    $ref: '#/components/schemas/v1.AgentMcpServer'
+        v1.CreateAgentProviderRequest:
+            type: object
+            properties:
+                provider:
+                    $ref: '#/components/schemas/v1.AgentProvider'
+        v1.CreateAgentProviderResponse:
+            type: object
+            properties:
+                provider:
+                    $ref: '#/components/schemas/v1.AgentProvider'
+        v1.CreateAgentRuntimeRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                command:
+                    type: string
+        v1.CreateAgentRuntimeResponse:
+            type: object
+            properties:
+                runtime:
+                    $ref: '#/components/schemas/v1.AgentRuntime'
+        v1.CreateAgentSessionRequest:
+            type: object
+            properties:
+                workspaceId:
+                    type: string
+                    description: 空 = 不用工作区，在临时目录里运行
+                extraDirs:
+                    type: array
+                    items:
+                        type: string
+                worktree:
+                    type: boolean
+                    description: 在独立工作树里运行
+                runtimeId:
+                    type: string
+                providerId:
+                    type: string
+                model:
+                    type: string
+                effort:
+                    type: string
+                mode:
+                    type: string
+                mcpIds:
+                    type: array
+                    items:
+                        type: string
+                text:
+                    type: string
+                attachments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentAttachment'
+        v1.CreateAgentSessionResponse:
+            type: object
+            properties:
+                session:
+                    $ref: '#/components/schemas/v1.AgentSession'
+        v1.CreateAgentSkillRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    type: string
+                enabled:
+                    type: boolean
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSkillFile'
+        v1.CreateAgentSkillResponse:
+            type: object
+            properties:
+                skill:
+                    $ref: '#/components/schemas/v1.AgentSkill'
+        v1.CreateAgentWorkspaceRequest:
+            type: object
+            properties:
+                source:
+                    type: string
+                    description: dir | git
+                name:
+                    type: string
+                path:
+                    type: string
+                    description: dir：已有目录；git：克隆到哪（空 = 默认位置）
+                gitUrl:
+                    type: string
+                gitBranch:
+                    type: string
+                runtimeId:
+                    type: string
+                providerId:
+                    type: string
+                model:
+                    type: string
+                effort:
+                    type: string
+                mode:
+                    type: string
+                mcpIds:
+                    type: array
+                    items:
+                        type: string
+                docs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentDoc'
+                    description: 要写入的项目指令文件
+        v1.CreateAgentWorkspaceResponse:
+            type: object
+            properties:
+                workspace:
+                    $ref: '#/components/schemas/v1.AgentWorkspace'
         v1.CreateDockerContainerRequest:
             type: object
             properties:
@@ -12476,6 +14602,37 @@ components:
         v1.DeleteAPIKeyResponse:
             type: object
             properties: {}
+        v1.DeleteAgentMcpServerResponse:
+            type: object
+            properties: {}
+        v1.DeleteAgentProviderResponse:
+            type: object
+            properties: {}
+        v1.DeleteAgentRuntimeResponse:
+            type: object
+            properties: {}
+        v1.DeleteAgentSessionsRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+                withForks:
+                    type: boolean
+                    description: 连同复刻出来的会话一起删；否则把它们移到外层保留
+        v1.DeleteAgentSessionsResponse:
+            type: object
+            properties:
+                deleted:
+                    type: integer
+                    format: int32
+        v1.DeleteAgentSkillResponse:
+            type: object
+            properties: {}
+        v1.DeleteAgentWorkspaceResponse:
+            type: object
+            properties: {}
         v1.DeleteDockerContainerResponse:
             type: object
             properties: {}
@@ -12568,6 +14725,24 @@ components:
             type: object
             properties: {}
             description: 删除用户响应
+        v1.DetachAgentSessionRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        v1.DetachAgentSessionResponse:
+            type: object
+            properties: {}
+        v1.DetectAgentRuntimeRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        v1.DetectAgentRuntimeResponse:
+            type: object
+            properties:
+                runtime:
+                    $ref: '#/components/schemas/v1.AgentRuntime'
         v1.DetectGameServerDirRequest:
             type: object
             properties:
@@ -14343,6 +16518,20 @@ components:
             properties:
                 code:
                     type: string
+        v1.ExportAgentSessionsRequest:
+            type: object
+            properties:
+                ids:
+                    type: array
+                    items:
+                        type: string
+        v1.ExportAgentSessionsResponse:
+            type: object
+            properties:
+                sessions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSessionExport'
         v1.ExportMonitorDataResponse:
             type: object
             properties:
@@ -14394,6 +16583,25 @@ components:
                     description: zip 内容（base64）
                 size:
                     type: string
+        v1.FetchAgentProviderModelsRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                vendor:
+                    type: string
+                    description: anthropic | openai
+                baseUrl:
+                    type: string
+                apiKey:
+                    type: string
+        v1.FetchAgentProviderModelsResponse:
+            type: object
+            properties:
+                models:
+                    type: array
+                    items:
+                        type: string
         v1.FetchIQCheckModelsRequest:
             type: object
             properties:
@@ -14725,6 +16933,18 @@ components:
                     type: boolean
                     description: 是否目录
             description: 目录树节点(懒加载，仅含直接子项的轻量信息；instance.proto 已 import 本文件可复用)
+        v1.ForkAgentSessionRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                worktree:
+                    type: boolean
+        v1.ForkAgentSessionResponse:
+            type: object
+            properties:
+                session:
+                    $ref: '#/components/schemas/v1.AgentSession'
         v1.FrpsConfig:
             type: object
             properties:
@@ -15761,6 +17981,124 @@ components:
                 restart:
                     type: boolean
                     description: 托管：运行中时重启服务端使新凭据生效
+        v1.GetAgentDocsResponse:
+            type: object
+            properties:
+                docs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentDoc'
+        v1.GetAgentNotifyResponse:
+            type: object
+            properties:
+                events:
+                    $ref: '#/components/schemas/v1.AgentNotifyEvents'
+                channels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentNotifyChannel'
+        v1.GetAgentOptionsResponse:
+            type: object
+            properties:
+                runtimes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentRuntimeOptions'
+        v1.GetAgentOverviewResponse:
+            type: object
+            properties:
+                sessions:
+                    type: integer
+                    format: int32
+                sessionsRunning:
+                    type: integer
+                    format: int32
+                sessionsWaiting:
+                    type: integer
+                    format: int32
+                workspaces:
+                    type: integer
+                    format: int32
+                providers:
+                    type: integer
+                    format: int32
+                mcpServers:
+                    type: integer
+                    format: int32
+                mcpOk:
+                    type: integer
+                    format: int32
+                skills:
+                    type: integer
+                    format: int32
+                skillsEnabled:
+                    type: integer
+                    format: int32
+                runtimes:
+                    type: integer
+                    format: int32
+                runtimesReady:
+                    type: integer
+                    format: int32
+                notifyChannels:
+                    type: integer
+                    format: int32
+                notifyEnabled:
+                    type: integer
+                    format: int32
+        v1.GetAgentSessionChangesResponse:
+            type: object
+            properties:
+                isGit:
+                    type: boolean
+                branch:
+                    type: string
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentChangedFile'
+        v1.GetAgentSessionProcessResponse:
+            type: object
+            properties:
+                process:
+                    $ref: '#/components/schemas/v1.AgentProcess'
+            description: 会话没有进程在跑时 process 为空
+        v1.GetAgentSessionResponse:
+            type: object
+            properties:
+                session:
+                    $ref: '#/components/schemas/v1.AgentSession'
+                detail:
+                    $ref: '#/components/schemas/v1.AgentSessionDetail'
+        v1.GetAgentSessionUploadResponse:
+            type: object
+            properties:
+                mime:
+                    type: string
+                data:
+                    type: string
+                    format: bytes
+        v1.GetAgentSidebarResponse:
+            type: object
+            properties:
+                workspaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSidebarWorkspace'
+                sessions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSession'
+                    description: 未归档的会话，按最近活动倒序；workspace_id 为空的归在「无工作区」
+        v1.GetAgentSkillResponse:
+            type: object
+            properties:
+                skill:
+                    $ref: '#/components/schemas/v1.AgentSkill'
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSkillFile'
         v1.GetDockerConfigResponse:
             type: object
             properties:
@@ -16053,6 +18391,22 @@ components:
                         - $ref: '#/components/schemas/v1.InstanceStatusCount'
                     description: 各状态数量(按关键字/类型筛选，不按状态筛选)
             description: 获取实例列表响应
+        v1.GetMcpOverviewResponse:
+            type: object
+            properties:
+                path:
+                    type: string
+                    description: MCP 服务的路径，页面拼上当前访问的地址
+                tools:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.McpTool'
+                    description: 全部工具，按 tools/list 的顺序
+                credentials:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.McpCredential'
+                    description: 当前用户的 API Key 里授予了任一工具权限的，按创建时间排
         v1.GetMonitorDataResponse:
             type: object
             properties:
@@ -17135,6 +19489,38 @@ components:
                         $ref: '#/components/schemas/v1.DockerImageHistoryItem'
                     description: 历史记录
             description: 获取镜像历史响应
+        v1.ImportAgentMcpServersRequest:
+            type: object
+            properties:
+                json:
+                    type: string
+        v1.ImportAgentMcpServersResponse:
+            type: object
+            properties:
+                servers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentMcpServer'
+        v1.ImportAgentSkillRequest:
+            type: object
+            properties:
+                source:
+                    type: string
+                    description: zip（上传的压缩包）| url（压缩包下载链接）| git | dir
+                data:
+                    type: string
+                    description: zip 内容
+                    format: bytes
+                location:
+                    type: string
+                    description: 下载链接、git 地址或服务器上的目录
+        v1.ImportAgentSkillResponse:
+            type: object
+            properties:
+                skills:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSkill'
         v1.ImportThemePackageRequest:
             type: object
             properties:
@@ -17515,6 +19901,98 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.APIKeyOwnerStat'
                     description: 所属用户及其密钥数（仅 all_users 时返回，用于「所属用户」筛选）
+        v1.ListAgentDirsResponse:
+            type: object
+            properties:
+                path:
+                    type: string
+                parent:
+                    type: string
+                    description: 上一级；已经在根为空
+                dirs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentDir'
+                cloneBase:
+                    type: string
+                    description: 克隆仓库的默认上级目录
+        v1.ListAgentMcpServersResponse:
+            type: object
+            properties:
+                servers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentMcpServer'
+        v1.ListAgentProvidersResponse:
+            type: object
+            properties:
+                providers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentProvider'
+        v1.ListAgentRuntimesResponse:
+            type: object
+            properties:
+                runtimes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentRuntime'
+                settings:
+                    $ref: '#/components/schemas/v1.AgentRunSettings'
+        v1.ListAgentSessionFilesResponse:
+            type: object
+            properties:
+                entries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentFileEntry'
+        v1.ListAgentSessionsResponse:
+            type: object
+            properties:
+                sessions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSession'
+                total:
+                    type: string
+                countAll:
+                    type: string
+                    description: 各状态的数量（不受 status 筛选影响，受 keyword 影响）
+                countRunning:
+                    type: string
+                countWaiting:
+                    type: string
+                countIdle:
+                    type: string
+                countError:
+                    type: string
+                countArchived:
+                    type: string
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentUser'
+                    description: 这一页会话的主人
+                forkCounts:
+                    type: object
+                    additionalProperties:
+                        type: integer
+                        format: int32
+                    description: 这一页每个会话复刻出来（没移到外层）的会话数
+        v1.ListAgentSkillsResponse:
+            type: object
+            properties:
+                skills:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSkill'
+        v1.ListAgentWorkspacesResponse:
+            type: object
+            properties:
+                workspaces:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentWorkspace'
         v1.ListDockerContainerUsageResponse:
             type: object
             properties:
@@ -18320,6 +20798,48 @@ components:
             type: object
             properties: {}
             description: 退出登录响应
+        v1.McpCredential:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: API Key id
+                name:
+                    type: string
+                    description: 名称
+                keyId:
+                    type: string
+                    description: 公开密钥标识
+                status:
+                    type: integer
+                    description: 有效状态
+                    format: enum
+                expiresAt:
+                    type: string
+                    description: 过期时间；空表示永久有效
+                    format: date-time
+                lastUsedTime:
+                    type: string
+                    description: 最近一次被调用的时间；空表示从未使用
+                    format: date-time
+                lastUsedIp:
+                    type: string
+                    description: 最近一次调用来源 IP
+                tools:
+                    type: array
+                    items:
+                        type: string
+                    description: 现在能调用的工具名（API Key 授予了、所属用户也有对应权限、没有过期）
+            description: 一把能当 MCP 凭证的 API Key（授予了至少一个工具要的权限）
+        v1.McpTool:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 工具名
+                permission:
+                    type: string
+                    description: 调用它要的权限码：API Key 要授予它，所属用户也要有它
         v1.MeInfoResponse:
             type: object
             properties:
@@ -19989,6 +22509,20 @@ components:
                 token:
                     type: string
                     description: 上传凭证（完成时原样带回）
+        v1.PromptAgentSessionRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                text:
+                    type: string
+                attachments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentAttachment'
+        v1.PromptAgentSessionResponse:
+            type: object
+            properties: {}
         v1.PruneDockerImagesRequest:
             type: object
             properties:
@@ -20019,6 +22553,30 @@ components:
                         type: string
                     description: 删除的网络名称
             description: 清理网络响应
+        v1.PublicAgentApprovalResponse:
+            type: object
+            properties:
+                sessionTitle:
+                    type: string
+                runtimeName:
+                    type: string
+                workspaceName:
+                    type: string
+                title:
+                    type: string
+                    description: 要批准的事：工具标题和命令
+                detail:
+                    type: string
+                options:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentChoice'
+                state:
+                    type: string
+                    description: pending | resolved | expired
+                outcome:
+                    type: string
+                    description: 已回答时选中的选项名
         v1.PublicIQCheckModelCount:
             type: object
             properties:
@@ -20110,6 +22668,16 @@ components:
                         $ref: '#/components/schemas/v1.PublicIQCheckModelCount'
                     description: 按模型统计的结果条数
             description: 公开页检测统计
+        v1.PublicResolveAgentApprovalRequest:
+            type: object
+            properties:
+                token:
+                    type: string
+                optionId:
+                    type: string
+        v1.PublicResolveAgentApprovalResponse:
+            type: object
+            properties: {}
         v1.PublishGmConfigResponse:
             type: object
             properties:
@@ -20161,6 +22729,29 @@ components:
                         - $ref: '#/components/schemas/v1.DockerTaskInfo'
                     description: 任务
             description: 拉取镜像响应
+        v1.PurgeAgentSessionsRequest:
+            type: object
+            properties: {}
+        v1.PurgeAgentSessionsResponse:
+            type: object
+            properties:
+                deleted:
+                    type: integer
+                    format: int32
+        v1.ReadAgentSessionFileResponse:
+            type: object
+            properties:
+                path:
+                    type: string
+                content:
+                    type: string
+                binary:
+                    type: boolean
+                    description: 不是文本或太大时为 true，content 为空
+                tooLarge:
+                    type: boolean
+                size:
+                    type: string
         v1.ReadMessagesRequest:
             type: object
             properties:
@@ -20333,6 +22924,16 @@ components:
                 note:
                     type: string
                     description: 驳回原因（玩家可见）
+        v1.RenameAgentSessionRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+        v1.RenameAgentSessionResponse:
+            type: object
+            properties: {}
         v1.RenameDockerContainerRequest:
             type: object
             properties:
@@ -20457,6 +23058,19 @@ components:
             type: object
             properties: {}
             description: 重置用户密码响应
+        v1.ResolveAgentPermissionRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                requestId:
+                    type: string
+                optionId:
+                    type: string
+                    description: Agent 给的选项之一
+        v1.ResolveAgentPermissionResponse:
+            type: object
+            properties: {}
         v1.RestartDockerContainerRequest:
             type: object
             properties:
@@ -20503,6 +23117,16 @@ components:
                     type: string
                 backupId:
                     type: string
+        v1.RevertAgentSessionFileRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                path:
+                    type: string
+        v1.RevertAgentSessionFileResponse:
+            type: object
+            properties: {}
         v1.RevokeGameMailRequest:
             type: object
             properties:
@@ -20766,6 +23390,20 @@ components:
                     items:
                         type: string
             description: 终端快捷命令列表（用于区分「不修改」与「清空」）
+        v1.SaveAgentNotifyChannelRequest:
+            type: object
+            properties:
+                kind:
+                    type: string
+                fields:
+                    type: object
+                    additionalProperties:
+                        type: string
+        v1.SaveAgentNotifyChannelResponse:
+            type: object
+            properties:
+                channel:
+                    $ref: '#/components/schemas/v1.AgentNotifyChannel'
         v1.SaveGameMailRequest:
             type: object
             properties:
@@ -20832,6 +23470,13 @@ components:
                 pendingRestart:
                     type: boolean
                     description: 运行中且未重启：修改等下次启动生效
+        v1.SearchAgentFilesResponse:
+            type: object
+            properties:
+                paths:
+                    type: array
+                    items:
+                        type: string
         v1.SearchDockerImagesResponse:
             type: object
             properties:
@@ -20958,6 +23603,66 @@ components:
                     type: string
                     description: 验证码有效期（秒）
             description: 发送重置密码邮件验证码响应
+        v1.SetAgentMcpDefaultRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                defaultOn:
+                    type: boolean
+        v1.SetAgentMcpDefaultResponse:
+            type: object
+            properties: {}
+        v1.SetAgentNotifyChannelEnabledRequest:
+            type: object
+            properties:
+                kind:
+                    type: string
+                enabled:
+                    type: boolean
+        v1.SetAgentNotifyChannelEnabledResponse:
+            type: object
+            properties: {}
+        v1.SetAgentRuntimeModeRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                managed:
+                    type: boolean
+        v1.SetAgentRuntimeModeResponse:
+            type: object
+            properties:
+                runtime:
+                    $ref: '#/components/schemas/v1.AgentRuntime'
+        v1.SetAgentSessionOptionRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                kind:
+                    type: string
+                    description: mode | model | effort
+                value:
+                    type: string
+                providerId:
+                    type: string
+                    description: kind = model 时：模型所属的供应商
+        v1.SetAgentSessionOptionResponse:
+            type: object
+            properties:
+                session:
+                    $ref: '#/components/schemas/v1.AgentSession'
+        v1.SetAgentSkillEnabledRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                enabled:
+                    type: boolean
+        v1.SetAgentSkillEnabledResponse:
+            type: object
+            properties: {}
         v1.SetPassportEmailLoginRequest:
             type: object
             properties:
@@ -21642,6 +24347,56 @@ components:
                     type: string
                     description: 数量
             description: 任务类型及其数量
+        v1.TestAgentMcpServerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/v1.AgentMcpServer'
+        v1.TestAgentMcpServerResponse:
+            type: object
+            properties:
+                ok:
+                    type: boolean
+                message:
+                    type: string
+                tools:
+                    type: array
+                    items:
+                        type: string
+        v1.TestAgentNotifyChannelRequest:
+            type: object
+            properties:
+                kind:
+                    type: string
+                fields:
+                    type: object
+                    additionalProperties:
+                        type: string
+        v1.TestAgentNotifyChannelResponse:
+            type: object
+            properties: {}
+        v1.TestAgentProviderRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                draft:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentProvider'
+                    description: 表单草稿；有它就测草稿
+        v1.TestAgentProviderResponse:
+            type: object
+            properties:
+                ok:
+                    type: boolean
+                message:
+                    type: string
+                latencyMs:
+                    type: string
+                model:
+                    type: string
         v1.TestDockerConfigRequest:
             type: object
             properties:
@@ -22502,6 +25257,117 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.APIKeyInfo'
                     description: API Key 信息
+        v1.UpdateAgentMcpServerRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                server:
+                    $ref: '#/components/schemas/v1.AgentMcpServer'
+        v1.UpdateAgentMcpServerResponse:
+            type: object
+            properties:
+                server:
+                    $ref: '#/components/schemas/v1.AgentMcpServer'
+        v1.UpdateAgentNotifyEventsRequest:
+            type: object
+            properties:
+                events:
+                    $ref: '#/components/schemas/v1.AgentNotifyEvents'
+        v1.UpdateAgentNotifyEventsResponse:
+            type: object
+            properties: {}
+        v1.UpdateAgentProviderRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                provider:
+                    $ref: '#/components/schemas/v1.AgentProvider'
+        v1.UpdateAgentProviderResponse:
+            type: object
+            properties:
+                provider:
+                    $ref: '#/components/schemas/v1.AgentProvider'
+        v1.UpdateAgentRunSettingsRequest:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/v1.AgentRunSettings'
+        v1.UpdateAgentRunSettingsResponse:
+            type: object
+            properties:
+                settings:
+                    $ref: '#/components/schemas/v1.AgentRunSettings'
+        v1.UpdateAgentRuntimeRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        v1.UpdateAgentRuntimeResponse:
+            type: object
+            properties:
+                runtime:
+                    $ref: '#/components/schemas/v1.AgentRuntime'
+                current:
+                    type: string
+                    description: 已安装的版本和最新版本；读不到为空
+                latest:
+                    type: string
+                updated:
+                    type: boolean
+        v1.UpdateAgentSkillRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                enabled:
+                    type: boolean
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentSkillFile'
+        v1.UpdateAgentSkillResponse:
+            type: object
+            properties:
+                skill:
+                    $ref: '#/components/schemas/v1.AgentSkill'
+        v1.UpdateAgentWorkspaceRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                path:
+                    type: string
+                runtimeId:
+                    type: string
+                providerId:
+                    type: string
+                model:
+                    type: string
+                effort:
+                    type: string
+                mode:
+                    type: string
+                mcpIds:
+                    type: array
+                    items:
+                        type: string
+                docs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentDoc'
+        v1.UpdateAgentWorkspaceResponse:
+            type: object
+            properties:
+                workspace:
+                    $ref: '#/components/schemas/v1.AgentWorkspace'
         v1.UpdateCheckResult:
             type: object
             properties:
@@ -26275,6 +29141,12 @@ components:
                 content:
                     type: string
 tags:
+    - name: AgentPublic
+      description: 通知消息里的批准链接打开的公开页：凭一次性令牌查看和回答，不需要登录
+    - name: AgentService
+      description: |-
+        Agent：Momoko 作为 ACP（Agent Client Protocol）客户端，在服务器上启动并控制 Claude Code、Codex 等 Agent。
+         会话里的对话事件走 WebSocket（/api/v1/agent/ws），这里只有一元接口；发起一轮的接口立刻返回。
     - name: AuthService
       description: 认证服务
     - name: DockerManager
@@ -26313,6 +29185,8 @@ tags:
       description: 系统初始化
     - name: InstanceManager
       description: 应用管理
+    - name: McpService
+      description: Momoko MCP 的管理页。MCP 服务本身不在这里：它是原始路由 /api/v1/mcp，凭证用 API Key。
     - name: MonitorManager
       description: |-
         持久性能监控：常驻采集协程按间隔采样写库，分级降采样（原始 → 1 分钟 → 10 分钟 → 1 小时），

@@ -105,6 +105,13 @@ const (
 )
 
 const (
+	// AgentUse 允许使用 Code：在服务器上启动 Agent、开会话写代码（等同于能在服务器上执行命令）。
+	AgentUse Permissions = "agent:use"
+	// AgentManage 允许管理 Agent：模型供应商、MCP、技能、运行时、通知，以及查看和清理所有人的会话。
+	AgentManage Permissions = "agent:manage"
+)
+
+const (
 	// IQCheckView 允许查看智商检测的提示词与站点配置。
 	IQCheckView Permissions = "iqcheck:view"
 	// IQCheckEdit 允许编辑智商检测的提示词、站点配置与设置，并手动触发检测。

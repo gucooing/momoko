@@ -2,6 +2,9 @@
 export default {
   'zh-CN': {
     fileManager: {
+      mediaZoom: '缩放',
+      mediaFit: '适应窗口',
+      mediaOpen: '在新标签页打开',
       noSubfolders: '没有子文件夹',
       treeCollapsed: '目录树（已收起）',
       expandTree: '展开目录树',
@@ -224,6 +227,9 @@ export default {
   },
   'zh-HK': {
     fileManager: {
+      mediaZoom: '縮放',
+      mediaFit: '適應視窗',
+      mediaOpen: '在新分頁開啟',
       noSubfolders: '沒有子資料夾',
       treeCollapsed: '目錄樹（已收起）',
       expandTree: '展開目錄樹',
@@ -446,6 +452,9 @@ export default {
   },
   'en-US': {
     fileManager: {
+      mediaZoom: 'Zoom',
+      mediaFit: 'Fit to window',
+      mediaOpen: 'Open in new tab',
       noSubfolders: 'No subfolders',
       treeCollapsed: 'Folder tree (collapsed)',
       expandTree: 'Expand folder tree',

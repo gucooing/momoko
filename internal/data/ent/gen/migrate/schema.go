@@ -9,6 +9,219 @@ import (
 )
 
 var (
+	// AgentEventsColumns holds the columns for the "agent_events" table.
+	AgentEventsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "session_id", Type: field.TypeString},
+		{Name: "seq", Type: field.TypeInt64},
+		{Name: "rev", Type: field.TypeInt64},
+		{Name: "type", Type: field.TypeString},
+		{Name: "sub", Type: field.TypeString, Default: ""},
+		{Name: "payload", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "create_time", Type: field.TypeTime},
+	}
+	// AgentEventsTable holds the schema information for the "agent_events" table.
+	AgentEventsTable = &schema.Table{
+		Name:       "agent_events",
+		Columns:    AgentEventsColumns,
+		PrimaryKey: []*schema.Column{AgentEventsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentevent_session_id_seq",
+				Unique:  true,
+				Columns: []*schema.Column{AgentEventsColumns[1], AgentEventsColumns[2]},
+			},
+			{
+				Name:    "agentevent_session_id_rev",
+				Unique:  false,
+				Columns: []*schema.Column{AgentEventsColumns[1], AgentEventsColumns[3]},
+			},
+		},
+	}
+	// AgentMcpServersColumns holds the columns for the "agent_mcp_servers" table.
+	AgentMcpServersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "transport", Type: field.TypeEnum, Enums: []string{"stdio", "http"}, Default: "stdio"},
+		{Name: "command", Type: field.TypeString, Default: ""},
+		{Name: "args", Type: field.TypeJSON, Nullable: true},
+		{Name: "env", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "url", Type: field.TypeString, Default: ""},
+		{Name: "headers", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "default_on", Type: field.TypeBool, Default: false},
+		{Name: "status", Type: field.TypeString, Default: "untested"},
+		{Name: "status_text", Type: field.TypeString, Default: ""},
+		{Name: "tool_count", Type: field.TypeInt, Default: 0},
+		{Name: "tested_at", Type: field.TypeTime, Nullable: true},
+	}
+	// AgentMcpServersTable holds the schema information for the "agent_mcp_servers" table.
+	AgentMcpServersTable = &schema.Table{
+		Name:       "agent_mcp_servers",
+		Columns:    AgentMcpServersColumns,
+		PrimaryKey: []*schema.Column{AgentMcpServersColumns[0]},
+	}
+	// AgentProvidersColumns holds the columns for the "agent_providers" table.
+	AgentProvidersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "vendor", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "status", Type: field.TypeString, Default: "untested"},
+		{Name: "status_text", Type: field.TypeString, Default: ""},
+		{Name: "base_url", Type: field.TypeString, Default: ""},
+		{Name: "api_key", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "models", Type: field.TypeJSON, Nullable: true},
+		{Name: "main_model", Type: field.TypeString, Default: ""},
+		{Name: "fast_model", Type: field.TypeString, Default: ""},
+		{Name: "env", Type: field.TypeJSON, Nullable: true},
+		{Name: "test_latency_ms", Type: field.TypeInt64, Default: 0},
+		{Name: "tested_at", Type: field.TypeTime, Nullable: true},
+	}
+	// AgentProvidersTable holds the schema information for the "agent_providers" table.
+	AgentProvidersTable = &schema.Table{
+		Name:       "agent_providers",
+		Columns:    AgentProvidersColumns,
+		PrimaryKey: []*schema.Column{AgentProvidersColumns[0]},
+	}
+	// AgentRuntimesColumns holds the columns for the "agent_runtimes" table.
+	AgentRuntimesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"claude", "codex", "custom"}, Default: "custom"},
+		{Name: "managed", Type: field.TypeBool, Default: false},
+		{Name: "command", Type: field.TypeString, Default: ""},
+		{Name: "version", Type: field.TypeString, Default: ""},
+		{Name: "ready", Type: field.TypeBool, Default: false},
+		{Name: "agent_name", Type: field.TypeString, Default: ""},
+		{Name: "agent_version", Type: field.TypeString, Default: ""},
+		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "detected_at", Type: field.TypeTime, Nullable: true},
+		{Name: "caps", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "auth_label", Type: field.TypeString, Default: ""},
+		{Name: "auth_detail", Type: field.TypeString, Default: ""},
+		{Name: "logged_in", Type: field.TypeBool, Default: false},
+		{Name: "catalog", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
+	}
+	// AgentRuntimesTable holds the schema information for the "agent_runtimes" table.
+	AgentRuntimesTable = &schema.Table{
+		Name:       "agent_runtimes",
+		Columns:    AgentRuntimesColumns,
+		PrimaryKey: []*schema.Column{AgentRuntimesColumns[0]},
+	}
+	// AgentSessionsColumns holds the columns for the "agent_sessions" table.
+	AgentSessionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "title_custom", Type: field.TypeBool, Default: false},
+		{Name: "runtime_id", Type: field.TypeString},
+		{Name: "workspace_id", Type: field.TypeString, Default: ""},
+		{Name: "cwd", Type: field.TypeString, Default: ""},
+		{Name: "extra_dirs", Type: field.TypeJSON, Nullable: true},
+		{Name: "worktree", Type: field.TypeString, Default: ""},
+		{Name: "provider_id", Type: field.TypeString, Default: ""},
+		{Name: "model", Type: field.TypeString, Default: ""},
+		{Name: "effort", Type: field.TypeString, Default: ""},
+		{Name: "mode", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"running", "waiting", "idle", "error", "archived"}, Default: "idle"},
+		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "acp_session_id", Type: field.TypeString, Default: ""},
+		{Name: "parent_id", Type: field.TypeString, Default: ""},
+		{Name: "detached", Type: field.TypeBool, Default: false},
+		{Name: "active_at", Type: field.TypeTime},
+		{Name: "turns", Type: field.TypeInt, Default: 0},
+		{Name: "usage_total", Type: field.TypeInt64, Default: 0},
+		{Name: "usage_input", Type: field.TypeInt64, Default: 0},
+		{Name: "usage_output", Type: field.TypeInt64, Default: 0},
+		{Name: "usage_cache_read", Type: field.TypeInt64, Default: 0},
+		{Name: "usage_cache_write", Type: field.TypeInt64, Default: 0},
+		{Name: "usage_thought", Type: field.TypeInt64, Default: 0},
+		{Name: "last_usage", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "context_used", Type: field.TypeInt64, Default: 0},
+		{Name: "context_size", Type: field.TypeInt64, Default: 0},
+		{Name: "mcp_ids", Type: field.TypeJSON, Nullable: true},
+		{Name: "state", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "origin", Type: field.TypeString, Default: ""},
+	}
+	// AgentSessionsTable holds the schema information for the "agent_sessions" table.
+	AgentSessionsTable = &schema.Table{
+		Name:       "agent_sessions",
+		Columns:    AgentSessionsColumns,
+		PrimaryKey: []*schema.Column{AgentSessionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentsession_user_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{AgentSessionsColumns[3], AgentSessionsColumns[15]},
+			},
+			{
+				Name:    "agentsession_workspace_id",
+				Unique:  false,
+				Columns: []*schema.Column{AgentSessionsColumns[7]},
+			},
+			{
+				Name:    "agentsession_parent_id",
+				Unique:  false,
+				Columns: []*schema.Column{AgentSessionsColumns[18]},
+			},
+			{
+				Name:    "agentsession_active_at",
+				Unique:  false,
+				Columns: []*schema.Column{AgentSessionsColumns[20]},
+			},
+		},
+	}
+	// AgentSkillsColumns holds the columns for the "agent_skills" table.
+	AgentSkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "source", Type: field.TypeEnum, Enums: []string{"local", "git", "zip", "dir"}, Default: "local"},
+		{Name: "location", Type: field.TypeString, Default: ""},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "file_count", Type: field.TypeInt, Default: 0},
+	}
+	// AgentSkillsTable holds the schema information for the "agent_skills" table.
+	AgentSkillsTable = &schema.Table{
+		Name:       "agent_skills",
+		Columns:    AgentSkillsColumns,
+		PrimaryKey: []*schema.Column{AgentSkillsColumns[0]},
+	}
+	// AgentWorkspacesColumns holds the columns for the "agent_workspaces" table.
+	AgentWorkspacesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString, Unique: true},
+		{Name: "git_url", Type: field.TypeString, Default: ""},
+		{Name: "clone_status", Type: field.TypeString, Default: ""},
+		{Name: "clone_error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "runtime_id", Type: field.TypeString, Default: ""},
+		{Name: "provider_id", Type: field.TypeString, Default: ""},
+		{Name: "model", Type: field.TypeString, Default: ""},
+		{Name: "effort", Type: field.TypeString, Default: ""},
+		{Name: "mode", Type: field.TypeString, Default: ""},
+		{Name: "mcp_ids", Type: field.TypeJSON, Nullable: true},
+	}
+	// AgentWorkspacesTable holds the schema information for the "agent_workspaces" table.
+	AgentWorkspacesTable = &schema.Table{
+		Name:       "agent_workspaces",
+		Columns:    AgentWorkspacesColumns,
+		PrimaryKey: []*schema.Column{AgentWorkspacesColumns[0]},
+	}
 	// EmailTemplatesColumns holds the columns for the "email_templates" table.
 	EmailTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1734,6 +1947,13 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AgentEventsTable,
+		AgentMcpServersTable,
+		AgentProvidersTable,
+		AgentRuntimesTable,
+		AgentSessionsTable,
+		AgentSkillsTable,
+		AgentWorkspacesTable,
 		EmailTemplatesTable,
 		FileSharesTable,
 		FileShareDownloadsTable,
@@ -1789,6 +2009,27 @@ var (
 )
 
 func init() {
+	AgentEventsTable.Annotation = &entsql.Annotation{
+		Table: "agent_events",
+	}
+	AgentMcpServersTable.Annotation = &entsql.Annotation{
+		Table: "agent_mcp_servers",
+	}
+	AgentProvidersTable.Annotation = &entsql.Annotation{
+		Table: "agent_providers",
+	}
+	AgentRuntimesTable.Annotation = &entsql.Annotation{
+		Table: "agent_runtimes",
+	}
+	AgentSessionsTable.Annotation = &entsql.Annotation{
+		Table: "agent_sessions",
+	}
+	AgentSkillsTable.Annotation = &entsql.Annotation{
+		Table: "agent_skills",
+	}
+	AgentWorkspacesTable.Annotation = &entsql.Annotation{
+		Table: "agent_workspaces",
+	}
 	EmailTemplatesTable.Annotation = &entsql.Annotation{
 		Table: "email_templates",
 	}

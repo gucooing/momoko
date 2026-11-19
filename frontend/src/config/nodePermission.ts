@@ -33,6 +33,14 @@ export const NODE_PERMISSION_GROUPS: NodePermissionGroup[] = [
     items: [{ code: 'instance:manage', labelKey: 'node.permission.items.instance' }],
   },
   {
+    key: 'agent',
+    labelKey: 'node.permission.groups.agent',
+    items: [
+      { code: 'agent:use', labelKey: 'node.permission.items.agentUse' },
+      { code: 'agent:manage', labelKey: 'node.permission.items.agentManage' },
+    ],
+  },
+  {
     key: 'game',
     labelKey: 'node.permission.groups.game',
     items: [
@@ -111,6 +119,8 @@ const NODE_ROUTE_PERMISSIONS: Array<[string, string | null]> = [
   ['/instance/list', 'instance:manage'],
   ['/instance/type', 'instance:manage'],
   ['/instance/app', 'instance:manage'],
+  ['/agent/code', 'agent:use'],
+  ['/agent/manage', 'agent:manage'],
   ['/game/servers', 'game:server'],
   ['/game/gm', 'game:gm'],
   ['/game/passport', 'game:passport'],

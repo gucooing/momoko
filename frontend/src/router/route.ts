@@ -38,6 +38,13 @@ export const staticRoutes = [
     meta: { keepAlive: false, public: true, titleKey: 'theme.routes.publicIqcheck' },
   },
   {
+    // Agent 通知消息里的批准链接：凭一次性令牌回答，不需要登录
+    path: '/public/agent/approval/:token',
+    name: 'PublicAgentApproval',
+    component: () => import('@/views/public/agent-approval/index.vue'),
+    meta: { keepAlive: false, public: true, titleKey: 'theme.routes.publicAgentApproval' },
+  },
+  {
     // 在线主题编辑器：独立全屏页（无外壳），id 为「我的主题」id 或 new（从当前外观新建）
     path: '/profile/theme/editor/:id',
     name: 'ThemeEditor',

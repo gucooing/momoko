@@ -18,6 +18,8 @@ var nodePermissionSpecs = []nodePermissionSpec{
 	{code: constant.MonitorView, rbac: true},
 	{code: constant.MonitorEdit, rbac: true},
 	{code: constant.Instance, rbac: true},
+	{code: constant.AgentUse, rbac: true},
+	{code: constant.AgentManage, rbac: true},
 	{code: constant.GameServer, rbac: true},
 	{code: constant.GameGM, rbac: true},
 	{code: constant.GamePassport, rbac: true},

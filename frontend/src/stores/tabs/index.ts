@@ -12,19 +12,22 @@ export interface TabItem {
   name?: string | symbol
 }
 
+/** 不算换页的地址参数 */
+const IN_PAGE_PARAMS = ['tab', 'view', 'session', 'workspace']
+
 export const useTabsStore = defineStore('tabs', () => {
   const tabs = ref<TabItem[]>([])
   const activePath = ref<string>('')
   const routeRefreshKeys = ref<Record<string, number>>({})
 
   // 页内标签参数 ?tab= 与标签里的子页参数 ?view=（如 GM 运营「操作与日志」的执行操作 / GM 记录 / 客户端日志）不算换页：
-  // 同一页面切换标签共用一个页面实例，不重建整页、不重新拉数据（见 config/pageGroups.ts）
+  // 同一页面切换标签共用一个页面实例，不重建整页、不重新拉数据（见 config/pageGroups.ts）。
+  // Code 页的 ?session=（当前会话）和 ?workspace=（新会话预选的工作区）同理：换会话是页面自己的事。
   const pageKeyOf = (fullPath: string) => {
     const [pathAndQuery = '', hash = ''] = fullPath.split('#')
     const [path = '', query = ''] = pathAndQuery.split('?')
     const params = new URLSearchParams(query)
-    params.delete('tab')
-    params.delete('view')
+    for (const key of IN_PAGE_PARAMS) params.delete(key)
     const rest = params.toString()
     return `${path}${rest ? `?${rest}` : ''}${hash ? `#${hash}` : ''}`
   }

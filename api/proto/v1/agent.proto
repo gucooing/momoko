@@ -1,0 +1,1218 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "momoko/api/gen/v1;v1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// Agent：Momoko 作为 ACP（Agent Client Protocol）客户端，在服务器上启动并控制 Claude Code、Codex 等 Agent。
+// 会话里的对话事件走 WebSocket（/api/v1/agent/ws），这里只有一元接口；发起一轮的接口立刻返回。
+service AgentService {
+  // —— 选择器 ——
+  // 新会话 / 会话里 / 工作区默认值用的选项：每个 Agent 的供应商、模型、推理强度和权限模式
+  rpc GetAgentOptions(GetAgentOptionsRequest) returns (GetAgentOptionsResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/options" };
+  }
+  // 各管理标签的数量
+  rpc GetAgentOverview(GetAgentOverviewRequest) returns (GetAgentOverviewResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/overview" };
+  }
+
+  // —— 会话 ——
+  // 会话栏：我的未归档会话，按工作区分层
+  rpc GetAgentSidebar(GetAgentSidebarRequest) returns (GetAgentSidebarResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sidebar" };
+  }
+  // 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成
+  rpc ListAgentSessions(ListAgentSessionsRequest) returns (ListAgentSessionsResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions" };
+  }
+  // 新建会话并发出第一条消息
+  rpc CreateAgentSession(CreateAgentSessionRequest) returns (CreateAgentSessionResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions" body: "*" };
+  }
+  rpc GetAgentSession(GetAgentSessionRequest) returns (GetAgentSessionResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}" };
+  }
+  // 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
+  rpc GetAgentSessionProcess(GetAgentSessionProcessRequest) returns (GetAgentSessionProcessResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/process" };
+  }
+  // 发一条消息，开始新的一轮；立刻返回，后续靠 WebSocket
+  rpc PromptAgentSession(PromptAgentSessionRequest) returns (PromptAgentSessionResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/prompt" body: "*" };
+  }
+  // 停止当前这一轮
+  rpc CancelAgentSession(CancelAgentSessionRequest) returns (CancelAgentSessionResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/cancel" body: "*" };
+  }
+  // 回答批准卡片
+  rpc ResolveAgentPermission(ResolveAgentPermissionRequest) returns (ResolveAgentPermissionResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/permission" body: "*" };
+  }
+  // 切换权限模式 / 模型 / 推理强度
+  rpc SetAgentSessionOption(SetAgentSessionOptionRequest) returns (SetAgentSessionOptionResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/option" body: "*" };
+  }
+  rpc RenameAgentSession(RenameAgentSessionRequest) returns (RenameAgentSessionResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/rename" body: "*" };
+  }
+  // 复刻对话；worktree 为 true 时放到自动命名的新工作树里
+  rpc ForkAgentSession(ForkAgentSessionRequest) returns (ForkAgentSessionResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/fork" body: "*" };
+  }
+  // 把复刻出来的会话移到外层
+  rpc DetachAgentSession(DetachAgentSessionRequest) returns (DetachAgentSessionResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/detach" body: "*" };
+  }
+  // 归档 / 取消归档（还在运行或等待批准的不能归档）
+  rpc ArchiveAgentSessions(ArchiveAgentSessionsRequest) returns (ArchiveAgentSessionsResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/archive" body: "*" };
+  }
+  rpc DeleteAgentSessions(DeleteAgentSessionsRequest) returns (DeleteAgentSessionsResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/delete" body: "*" };
+  }
+  // 删除全部归档会话
+  rpc PurgeAgentSessions(PurgeAgentSessionsRequest) returns (PurgeAgentSessionsResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/purge" body: "*" };
+  }
+  // 导出记录：返回会话的全部事件，由页面排版成 Markdown 下载
+  rpc ExportAgentSessions(ExportAgentSessionsRequest) returns (ExportAgentSessionsResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/export" body: "*" };
+  }
+  // 右侧「改动」：会话目录相对当前分支的未提交改动
+  rpc GetAgentSessionChanges(GetAgentSessionChangesRequest) returns (GetAgentSessionChangesResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/changes" };
+  }
+  // 撤销某个文件的改动
+  rpc RevertAgentSessionFile(RevertAgentSessionFileRequest) returns (RevertAgentSessionFileResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/revert" body: "*" };
+  }
+  // 右侧「文件」：按目录懒加载
+  rpc ListAgentSessionFiles(ListAgentSessionFilesRequest) returns (ListAgentSessionFilesResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/files" };
+  }
+  // 打开文件（只读）
+  rpc ReadAgentSessionFile(ReadAgentSessionFileRequest) returns (ReadAgentSessionFileResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/file" };
+  }
+  // 取回消息里上传过的附件（显示图片）
+  rpc GetAgentSessionUpload(GetAgentSessionUploadRequest) returns (GetAgentSessionUploadResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/upload" };
+  }
+  // @ 引用文件：按文件名搜索会话目录（新会话还没有会话时按工作区搜）
+  rpc SearchAgentFiles(SearchAgentFilesRequest) returns (SearchAgentFilesResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/files/search" };
+  }
+
+  // —— 工作区 ——
+  rpc ListAgentWorkspaces(ListAgentWorkspacesRequest) returns (ListAgentWorkspacesResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/workspaces" };
+  }
+  rpc CreateAgentWorkspace(CreateAgentWorkspaceRequest) returns (CreateAgentWorkspaceResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/workspaces" body: "*" };
+  }
+  rpc UpdateAgentWorkspace(UpdateAgentWorkspaceRequest) returns (UpdateAgentWorkspaceResponse) {
+    option (google.api.http) = { put: "/api/v1/agent/workspaces/{id}" body: "*" };
+  }
+  // 移除工作区：只删记录，目录里的文件不动
+  rpc DeleteAgentWorkspace(DeleteAgentWorkspaceRequest) returns (DeleteAgentWorkspaceResponse) {
+    option (google.api.http) = { delete: "/api/v1/agent/workspaces/{id}" };
+  }
+  // 「浏览」：列出服务器上某个目录下的子目录
+  rpc ListAgentDirs(ListAgentDirsRequest) returns (ListAgentDirsResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/dirs" };
+  }
+  // 「查看文件」：只读地列出工作区里的目录和文件
+  rpc BrowseAgentWorkspace(BrowseAgentWorkspaceRequest) returns (BrowseAgentWorkspaceResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/workspaces/{id}/browse" };
+  }
+  // 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
+  rpc GetAgentDocs(GetAgentDocsRequest) returns (GetAgentDocsResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/docs" };
+  }
+
+  // —— 模型供应商 ——
+  rpc ListAgentProviders(ListAgentProvidersRequest) returns (ListAgentProvidersResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/providers" };
+  }
+  // 第三方接口
+  rpc CreateAgentProvider(CreateAgentProviderRequest) returns (CreateAgentProviderResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/providers" body: "*" };
+  }
+  rpc UpdateAgentProvider(UpdateAgentProviderRequest) returns (UpdateAgentProviderResponse) {
+    option (google.api.http) = { put: "/api/v1/agent/providers/{id}" body: "*" };
+  }
+  rpc DeleteAgentProvider(DeleteAgentProviderRequest) returns (DeleteAgentProviderResponse) {
+    option (google.api.http) = { delete: "/api/v1/agent/providers/{id}" };
+  }
+  // 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+  rpc TestAgentProvider(TestAgentProviderRequest) returns (TestAgentProviderResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/providers/test" body: "*" };
+  }
+  // 获取可用模型
+  rpc FetchAgentProviderModels(FetchAgentProviderModelsRequest) returns (FetchAgentProviderModelsResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/providers/models" body: "*" };
+  }
+
+  // —— MCP ——
+  rpc ListAgentMcpServers(ListAgentMcpServersRequest) returns (ListAgentMcpServersResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/mcp" };
+  }
+  rpc CreateAgentMcpServer(CreateAgentMcpServerRequest) returns (CreateAgentMcpServerResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/mcp" body: "*" };
+  }
+  rpc UpdateAgentMcpServer(UpdateAgentMcpServerRequest) returns (UpdateAgentMcpServerResponse) {
+    option (google.api.http) = { put: "/api/v1/agent/mcp/{id}" body: "*" };
+  }
+  rpc DeleteAgentMcpServer(DeleteAgentMcpServerRequest) returns (DeleteAgentMcpServerResponse) {
+    option (google.api.http) = { delete: "/api/v1/agent/mcp/{id}" };
+  }
+  // 新会话默认开启的开关
+  rpc SetAgentMcpDefault(SetAgentMcpDefaultRequest) returns (SetAgentMcpDefaultResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/mcp/{id}/default" body: "*" };
+  }
+  // 测试连接：由 Momoko 自己连一次，读它的工具列表
+  rpc TestAgentMcpServer(TestAgentMcpServerRequest) returns (TestAgentMcpServerResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/mcp/test" body: "*" };
+  }
+  // 粘贴 mcpServers JSON 导入
+  rpc ImportAgentMcpServers(ImportAgentMcpServersRequest) returns (ImportAgentMcpServersResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/mcp/import" body: "*" };
+  }
+
+  // —— 技能 ——
+  rpc ListAgentSkills(ListAgentSkillsRequest) returns (ListAgentSkillsResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/skills" };
+  }
+  rpc GetAgentSkill(GetAgentSkillRequest) returns (GetAgentSkillResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/skills/{id}" };
+  }
+  rpc CreateAgentSkill(CreateAgentSkillRequest) returns (CreateAgentSkillResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/skills" body: "*" };
+  }
+  rpc UpdateAgentSkill(UpdateAgentSkillRequest) returns (UpdateAgentSkillResponse) {
+    option (google.api.http) = { put: "/api/v1/agent/skills/{id}" body: "*" };
+  }
+  rpc DeleteAgentSkill(DeleteAgentSkillRequest) returns (DeleteAgentSkillResponse) {
+    option (google.api.http) = { delete: "/api/v1/agent/skills/{id}" };
+  }
+  rpc SetAgentSkillEnabled(SetAgentSkillEnabledRequest) returns (SetAgentSkillEnabledResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/skills/{id}/enabled" body: "*" };
+  }
+  // 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+  rpc ImportAgentSkill(ImportAgentSkillRequest) returns (ImportAgentSkillResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/skills/import" body: "*" };
+  }
+
+  // —— 运行时 ——
+  rpc ListAgentRuntimes(ListAgentRuntimesRequest) returns (ListAgentRuntimesResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/runtimes" };
+  }
+  // 安装方式：Momoko 下载并更新 / 用服务器上已有的命令
+  rpc SetAgentRuntimeMode(SetAgentRuntimeModeRequest) returns (SetAgentRuntimeModeResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/mode" body: "*" };
+  }
+  // 重新检测
+  rpc DetectAgentRuntime(DetectAgentRuntimeRequest) returns (DetectAgentRuntimeResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/detect" body: "*" };
+  }
+  // 检查更新；由 Momoko 下载的会直接更新到最新版本
+  rpc UpdateAgentRuntime(UpdateAgentRuntimeRequest) returns (UpdateAgentRuntimeResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/update" body: "*" };
+  }
+  // 添加其它 ACP Agent
+  rpc CreateAgentRuntime(CreateAgentRuntimeRequest) returns (CreateAgentRuntimeResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/runtimes" body: "*" };
+  }
+  rpc DeleteAgentRuntime(DeleteAgentRuntimeRequest) returns (DeleteAgentRuntimeResponse) {
+    option (google.api.http) = { delete: "/api/v1/agent/runtimes/{id}" };
+  }
+  // 同时运行的进程上限、空闲后结束进程
+  rpc UpdateAgentRunSettings(UpdateAgentRunSettingsRequest) returns (UpdateAgentRunSettingsResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/runtimes/settings" body: "*" };
+  }
+
+  // —— 通知 ——
+  rpc GetAgentNotify(GetAgentNotifyRequest) returns (GetAgentNotifyResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/notify" };
+  }
+  // 三个时机开关
+  rpc UpdateAgentNotifyEvents(UpdateAgentNotifyEventsRequest) returns (UpdateAgentNotifyEventsResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/notify/events" body: "*" };
+  }
+  // 保存某种通知方式的配置，保存后自动启用
+  rpc SaveAgentNotifyChannel(SaveAgentNotifyChannelRequest) returns (SaveAgentNotifyChannelResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/notify/channel" body: "*" };
+  }
+  rpc SetAgentNotifyChannelEnabled(SetAgentNotifyChannelEnabledRequest) returns (SetAgentNotifyChannelEnabledResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/notify/channel/enabled" body: "*" };
+  }
+  // 发一条测试；fields 为空时用已保存的配置
+  rpc TestAgentNotifyChannel(TestAgentNotifyChannelRequest) returns (TestAgentNotifyChannelResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/notify/channel/test" body: "*" };
+  }
+}
+
+// 通知消息里的批准链接打开的公开页：凭一次性令牌查看和回答，不需要登录
+service AgentPublic {
+  rpc PublicAgentApproval(PublicAgentApprovalRequest) returns (PublicAgentApprovalResponse) {
+    option (google.api.http) = { get: "/api/v1/public/agent/approval/{token}" };
+  }
+  rpc PublicResolveAgentApproval(PublicResolveAgentApprovalRequest) returns (PublicResolveAgentApprovalResponse) {
+    option (google.api.http) = { post: "/api/v1/public/agent/approval/{token}" body: "*" };
+  }
+}
+
+// ———————————————————————————— 通用 ————————————————————————————
+
+message AgentKV {
+  string key = 1;
+  string value = 2;
+}
+
+// 带密文的键值（MCP 的环境变量和请求头）：value 只写，留空表示保留原值；masked 是脱敏后的后几位
+message AgentSecretKV {
+  string key = 1;
+  // 提交时的明文；留空表示保留已保存的值
+  string value = 2;
+  // 已保存的值的后四位（返回时只给这个）
+  string tail = 3;
+}
+
+// ———————————————————————————— 选择器 ————————————————————————————
+
+message GetAgentOptionsRequest {}
+message GetAgentOptionsResponse {
+  repeated AgentRuntimeOptions runtimes = 1;
+}
+
+message AgentRuntimeOptions {
+  string runtime_id = 1;
+  string runtime_name = 2;
+  // claude | codex | custom
+  string kind = 3;
+  bool ready = 4;
+  repeated AgentProviderOptions providers = 5;
+  // 权限模式由 Agent 提供
+  repeated AgentChoice modes = 6;
+  string default_mode = 7;
+  AgentCapabilities caps = 8;
+}
+
+message AgentProviderOptions {
+  // 空字符串表示用服务器上已有的登录（用户自己在服务器上登录命令行）
+  string provider_id = 1;
+  // api：用户起的名称；system：服务器上登录的账号（检查时 Agent 报的，可能为空）
+  string name = 2;
+  repeated AgentModelOption models = 3;
+  string default_model = 4;
+  // api | system
+  string kind = 5;
+  // api：ok | bad | untested
+  string status = 6;
+  // api：接口协议 anthropic | openai
+  string vendor = 7;
+}
+
+message AgentModelOption {
+  string id = 1;
+  string name = 2;
+  // 这个模型能选的推理强度；为空表示不可调
+  repeated AgentChoice efforts = 3;
+  string default_effort = 4;
+}
+
+message AgentChoice {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // 批准选项的种类：allow_once | allow_always | reject_once | reject_always
+  string kind = 4;
+}
+
+// Agent 在初始化时声明的能力；没声明的，对应的界面元素不出现
+message AgentCapabilities {
+  bool resume = 2;
+  bool fork = 3;
+  bool additional_dirs = 4;
+  bool image = 5;
+  bool embedded_context = 6;
+  bool mcp_http = 7;
+  bool mcp_sse = 8;
+  bool close = 9;
+  bool subagents = 10;
+}
+
+message GetAgentOverviewRequest {}
+message GetAgentOverviewResponse {
+  int32 sessions = 1;
+  int32 sessions_running = 2;
+  int32 sessions_waiting = 3;
+  int32 workspaces = 4;
+  int32 providers = 5;
+  int32 mcp_servers = 8;
+  int32 mcp_ok = 9;
+  int32 skills = 10;
+  int32 skills_enabled = 11;
+  int32 runtimes = 12;
+  int32 runtimes_ready = 13;
+  int32 notify_channels = 14;
+  int32 notify_enabled = 15;
+}
+
+// ———————————————————————————— 会话 ————————————————————————————
+
+message AgentUsage {
+  int64 total = 1;
+  // 不含缓存命中和缓存写入
+  int64 input = 2;
+  int64 output = 3;
+  int64 cache_read = 4;
+  int64 cache_write = 5;
+  int64 thought = 6;
+}
+
+// Agent 进程的实时状态，不落库；只在有人要看时读（内存要遍历进程树）
+message AgentProcess {
+  string command = 1;
+  int32 pid = 2;
+  int64 memory_bytes = 3;
+  google.protobuf.Timestamp started_at = 4;
+  repeated string args = 5;
+}
+
+message AgentSession {
+  string id = 1;
+  string title = 2;
+  string runtime_id = 3;
+  string runtime_name = 4;
+  // claude | codex | custom
+  string runtime_kind = 5;
+  string workspace_id = 6;
+  string workspace_name = 7;
+  // 实际运行目录：工作区目录、工作树目录或临时目录
+  string cwd = 8;
+  repeated string extra_dirs = 9;
+  // 工作树名；不在工作树里为空
+  string worktree = 10;
+  string provider_id = 11;
+  // 供应商的名称（原样）；怎么显示由页面按 provider_kind / provider_vendor 决定
+  string provider_name = 12;
+  string model = 13;
+  string effort = 14;
+  string mode = 15;
+  string mode_name = 16;
+  // running | waiting | idle | error | archived
+  string status = 17;
+  string error = 18;
+  // 复刻来源；detached 表示已移到外层
+  string parent_id = 19;
+  bool detached = 21;
+  string user_id = 22;
+  google.protobuf.Timestamp active_at = 24;
+  google.protobuf.Timestamp create_time = 25;
+  // Agent 侧的会话 ID
+  string acp_session_id = 28;
+  // 累计用量；Agent 没给过为空
+  AgentUsage usage = 30;
+  int32 turns = 31;
+  // 最近一轮
+  AgentUsage last_usage = 32;
+  int64 context_used = 33;
+  int64 context_size = 34;
+  // api | system
+  string provider_kind = 39;
+  string provider_vendor = 40;
+}
+
+// 打开一个会话时才给的信息：每次状态变化都推整份会话，这些不跟着推
+message AgentSessionDetail {
+  // 当前分支（工作目录是 Git 仓库时）
+  string branch = 1;
+  repeated string mcp_names = 2;
+  repeated string skill_names = 3;
+  string parent_title = 4;
+  // Agent 自报的名字和版本
+  string agent_name = 5;
+  string agent_version = 6;
+}
+
+message AgentUser {
+  string id = 1;
+  string name = 2;
+  string username = 3;
+}
+
+message AgentSidebarWorkspace {
+  string id = 1;
+  string name = 2;
+  string path = 3;
+  bool is_git = 4;
+  string branch = 5;
+  int32 session_count = 6;
+}
+
+message GetAgentSidebarRequest {
+  string keyword = 1;
+}
+message GetAgentSidebarResponse {
+  repeated AgentSidebarWorkspace workspaces = 1;
+  // 未归档的会话，按最近活动倒序；workspace_id 为空的归在「无工作区」
+  repeated AgentSession sessions = 2;
+}
+
+message ListAgentSessionsRequest {
+  // all（默认）| running | waiting | idle | error | archived
+  string status = 1;
+  string keyword = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+message ListAgentSessionsResponse {
+  repeated AgentSession sessions = 1;
+  int64 total = 2;
+  // 各状态的数量（不受 status 筛选影响，受 keyword 影响）
+  int64 count_all = 3;
+  int64 count_running = 4;
+  int64 count_waiting = 5;
+  int64 count_idle = 6;
+  int64 count_error = 7;
+  int64 count_archived = 8;
+  // 这一页会话的主人
+  repeated AgentUser users = 9;
+  // 这一页每个会话复刻出来（没移到外层）的会话数
+  map<string, int32> fork_counts = 10;
+}
+
+// 附件：图片和文件随消息上传，工作区里的文件用路径引用
+message AgentAttachment {
+  // image | file | ref
+  string kind = 1;
+  string name = 2;
+  string mime = 3;
+  // image / file 的内容
+  bytes data = 4;
+  // ref：相对会话目录的路径
+  string path = 5;
+}
+
+message CreateAgentSessionRequest {
+  // 空 = 不用工作区，在临时目录里运行
+  string workspace_id = 1;
+  repeated string extra_dirs = 2;
+  // 在独立工作树里运行
+  bool worktree = 3;
+  string runtime_id = 4;
+  string provider_id = 5;
+  string model = 6;
+  string effort = 7;
+  string mode = 8;
+  repeated string mcp_ids = 9;
+  string text = 10;
+  repeated AgentAttachment attachments = 11;
+}
+message CreateAgentSessionResponse {
+  AgentSession session = 1;
+}
+
+message GetAgentSessionRequest {
+  string id = 1;
+}
+message GetAgentSessionResponse {
+  AgentSession session = 1;
+  AgentSessionDetail detail = 2;
+}
+
+message GetAgentSessionProcessRequest {
+  string id = 1;
+}
+// 会话没有进程在跑时 process 为空
+message GetAgentSessionProcessResponse {
+  AgentProcess process = 1;
+}
+
+message PromptAgentSessionRequest {
+  string id = 1;
+  string text = 2;
+  repeated AgentAttachment attachments = 3;
+}
+message PromptAgentSessionResponse {}
+
+message CancelAgentSessionRequest {
+  string id = 1;
+}
+message CancelAgentSessionResponse {}
+
+message ResolveAgentPermissionRequest {
+  string id = 1;
+  string request_id = 2;
+  // Agent 给的选项之一
+  string option_id = 3;
+}
+message ResolveAgentPermissionResponse {}
+
+message SetAgentSessionOptionRequest {
+  string id = 1;
+  // mode | model | effort
+  string kind = 2;
+  string value = 3;
+  // kind = model 时：模型所属的供应商
+  string provider_id = 4;
+}
+message SetAgentSessionOptionResponse {
+  AgentSession session = 1;
+}
+
+message RenameAgentSessionRequest {
+  string id = 1;
+  string title = 2;
+}
+message RenameAgentSessionResponse {}
+
+message ForkAgentSessionRequest {
+  string id = 1;
+  bool worktree = 2;
+}
+message ForkAgentSessionResponse {
+  AgentSession session = 1;
+}
+
+message DetachAgentSessionRequest {
+  string id = 1;
+}
+message DetachAgentSessionResponse {}
+
+message ArchiveAgentSessionsRequest {
+  repeated string ids = 1;
+  bool archived = 2;
+}
+message ArchiveAgentSessionsResponse {
+  int32 changed = 1;
+  // 还在运行、没有归档的数量
+  int32 skipped = 2;
+}
+
+message DeleteAgentSessionsRequest {
+  repeated string ids = 1;
+  // 连同复刻出来的会话一起删；否则把它们移到外层保留
+  bool with_forks = 2;
+}
+message DeleteAgentSessionsResponse {
+  int32 deleted = 1;
+}
+
+message PurgeAgentSessionsRequest {}
+message PurgeAgentSessionsResponse {
+  int32 deleted = 1;
+}
+
+message ExportAgentSessionsRequest {
+  repeated string ids = 1;
+}
+message ExportAgentSessionsResponse {
+  repeated AgentSessionExport sessions = 1;
+}
+
+message AgentSessionExport {
+  AgentSession session = 1;
+  // 这个会话的全部事件（JSON 数组，和 WebSocket 里的事件同一个格式）
+  string events = 2;
+}
+
+message AgentChangedFile {
+  string path = 1;
+  // M | A | D | R
+  string kind = 2;
+  int32 added = 3;
+  int32 deleted = 4;
+  // 统一 diff（不含文件头）
+  string patch = 5;
+}
+message GetAgentSessionChangesRequest {
+  string id = 1;
+}
+message GetAgentSessionChangesResponse {
+  bool is_git = 1;
+  string branch = 2;
+  repeated AgentChangedFile files = 3;
+}
+
+message RevertAgentSessionFileRequest {
+  string id = 1;
+  string path = 2;
+}
+message RevertAgentSessionFileResponse {}
+
+message AgentFileEntry {
+  string name = 1;
+  string path = 2;
+  bool is_dir = 3;
+  int64 size = 4;
+  google.protobuf.Timestamp mod_time = 5;
+  // 未提交改动的标记：M | A，没有为空
+  string change = 6;
+}
+message ListAgentSessionFilesRequest {
+  string id = 1;
+  // 相对会话目录，空 = 根
+  string dir = 2;
+}
+message ListAgentSessionFilesResponse {
+  repeated AgentFileEntry entries = 1;
+}
+
+message ReadAgentSessionFileRequest {
+  string id = 1;
+  string path = 2;
+}
+message ReadAgentSessionFileResponse {
+  string path = 1;
+  string content = 2;
+  // 不是文本或太大时为 true，content 为空
+  bool binary = 3;
+  bool too_large = 4;
+  int64 size = 5;
+}
+
+message GetAgentSessionUploadRequest {
+  string id = 1;
+  // 消息附件里记的 file
+  string file = 2;
+}
+message GetAgentSessionUploadResponse {
+  string mime = 1;
+  bytes data = 2;
+}
+
+message SearchAgentFilesRequest {
+  string session_id = 1;
+  string workspace_id = 2;
+  string keyword = 3;
+}
+message SearchAgentFilesResponse {
+  repeated string paths = 1;
+}
+
+// ———————————————————————————— 工作区 ————————————————————————————
+
+message AgentWorkspace {
+  string id = 1;
+  string name = 2;
+  string path = 3;
+  bool is_git = 4;
+  string branch = 5;
+  // 空 | cloning | failed
+  string clone_status = 6;
+  string clone_error = 7;
+  // 默认模型连带确定供应商和 Agent
+  string runtime_id = 8;
+  string runtime_name = 9;
+  string provider_id = 10;
+  string provider_name = 11;
+  string model = 12;
+  string effort = 13;
+  string mode = 14;
+  string mode_name = 15;
+  repeated string mcp_ids = 16;
+  int32 session_count = 17;
+  google.protobuf.Timestamp active_at = 18;
+  // 目录已经不存在
+  bool missing = 19;
+  // api | system
+  string provider_kind = 20;
+  string provider_vendor = 21;
+}
+
+message AgentDoc {
+  // AGENTS.md | CLAUDE.md
+  string name = 1;
+  bool exists = 2;
+  string content = 3;
+}
+
+message ListAgentWorkspacesRequest {}
+message ListAgentWorkspacesResponse {
+  repeated AgentWorkspace workspaces = 1;
+}
+
+message CreateAgentWorkspaceRequest {
+  // dir | git
+  string source = 1;
+  string name = 2;
+  // dir：已有目录；git：克隆到哪（空 = 默认位置）
+  string path = 3;
+  string git_url = 4;
+  string git_branch = 5;
+  string runtime_id = 6;
+  string provider_id = 7;
+  string model = 8;
+  string effort = 9;
+  string mode = 10;
+  repeated string mcp_ids = 11;
+  // 要写入的项目指令文件
+  repeated AgentDoc docs = 12;
+}
+message CreateAgentWorkspaceResponse {
+  AgentWorkspace workspace = 1;
+}
+
+message UpdateAgentWorkspaceRequest {
+  string id = 1;
+  string name = 2;
+  string path = 3;
+  string runtime_id = 6;
+  string provider_id = 7;
+  string model = 8;
+  string effort = 9;
+  string mode = 10;
+  repeated string mcp_ids = 11;
+  repeated AgentDoc docs = 12;
+}
+message UpdateAgentWorkspaceResponse {
+  AgentWorkspace workspace = 1;
+}
+
+message DeleteAgentWorkspaceRequest {
+  string id = 1;
+}
+message DeleteAgentWorkspaceResponse {}
+
+message AgentDir {
+  string name = 1;
+  string path = 2;
+  bool is_git = 3;
+  string branch = 4;
+}
+message ListAgentDirsRequest {
+  // 空 = 根（Windows 上是盘符列表）
+  string path = 1;
+}
+message ListAgentDirsResponse {
+  string path = 1;
+  // 上一级；已经在根为空
+  string parent = 2;
+  repeated AgentDir dirs = 3;
+  // 克隆仓库的默认上级目录
+  string clone_base = 4;
+}
+
+message BrowseAgentWorkspaceRequest {
+  string id = 1;
+  string dir = 2;
+}
+message BrowseAgentWorkspaceResponse {
+  repeated AgentFileEntry entries = 1;
+}
+
+message GetAgentDocsRequest {
+  string path = 1;
+}
+message GetAgentDocsResponse {
+  repeated AgentDoc docs = 1;
+}
+
+// ———————————————————————————— 模型供应商 ————————————————————————————
+
+// 推理等级：name 是会话里能选的等级，value 是选中它时实际发给接口的值（空 = 不带这个参数）
+message AgentModelLevel {
+  string name = 1;
+  string value = 2;
+}
+message AgentModel {
+  string id = 1;
+  repeated AgentModelLevel levels = 2;
+  // 最长上下文和最长输出（token 数），启动 Agent 时交给它；新模型默认 1000000 和 128000
+  int64 context_window = 3;
+  int64 max_output = 4;
+}
+
+// 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）
+message AgentProvider {
+  string id = 1;
+  // 接口协议：anthropic（给 Claude 系）| openai（给 Codex 系）
+  string vendor = 3;
+  string name = 4;
+  // ok | bad | untested
+  string status = 10;
+  string status_text = 11;
+  string base_url = 13;
+  // 只写；更新时留空表示保留原值
+  string api_key = 14;
+  // 脱敏后的后四位
+  string api_key_tail = 15;
+  repeated AgentModel models = 16;
+  string main_model = 17;
+  string fast_model = 18;
+  repeated AgentKV env = 19;
+  int64 test_latency_ms = 20;
+  google.protobuf.Timestamp tested_at = 21;
+}
+
+message ListAgentProvidersRequest {}
+message ListAgentProvidersResponse {
+  repeated AgentProvider providers = 1;
+}
+
+message CreateAgentProviderRequest {
+  AgentProvider provider = 1;
+}
+message CreateAgentProviderResponse {
+  AgentProvider provider = 1;
+}
+
+message UpdateAgentProviderRequest {
+  string id = 1;
+  AgentProvider provider = 2;
+}
+message UpdateAgentProviderResponse {
+  AgentProvider provider = 1;
+}
+
+message DeleteAgentProviderRequest {
+  string id = 1;
+}
+message DeleteAgentProviderResponse {}
+
+message TestAgentProviderRequest {
+  string id = 1;
+  // 表单草稿；有它就测草稿
+  AgentProvider draft = 2;
+}
+message TestAgentProviderResponse {
+  bool ok = 1;
+  string message = 2;
+  int64 latency_ms = 3;
+  string model = 4;
+}
+
+message FetchAgentProviderModelsRequest {
+  string id = 1;
+  // anthropic | openai
+  string vendor = 2;
+  string base_url = 3;
+  string api_key = 4;
+}
+message FetchAgentProviderModelsResponse {
+  repeated string models = 1;
+}
+
+// ———————————————————————————— MCP ————————————————————————————
+
+message AgentMcpServer {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // stdio | http
+  string transport = 4;
+  string command = 5;
+  repeated string args = 6;
+  repeated AgentSecretKV env = 7;
+  string url = 8;
+  repeated AgentSecretKV headers = 9;
+  bool default_on = 10;
+  // ok | fail | untested
+  string status = 11;
+  string status_text = 12;
+  int32 tool_count = 13;
+  google.protobuf.Timestamp tested_at = 14;
+}
+
+message ListAgentMcpServersRequest {}
+message ListAgentMcpServersResponse {
+  repeated AgentMcpServer servers = 1;
+}
+
+message CreateAgentMcpServerRequest {
+  AgentMcpServer server = 1;
+}
+message CreateAgentMcpServerResponse {
+  AgentMcpServer server = 1;
+}
+
+message UpdateAgentMcpServerRequest {
+  string id = 1;
+  AgentMcpServer server = 2;
+}
+message UpdateAgentMcpServerResponse {
+  AgentMcpServer server = 1;
+}
+
+message DeleteAgentMcpServerRequest {
+  string id = 1;
+}
+message DeleteAgentMcpServerResponse {}
+
+message SetAgentMcpDefaultRequest {
+  string id = 1;
+  bool default_on = 2;
+}
+message SetAgentMcpDefaultResponse {}
+
+message TestAgentMcpServerRequest {
+  string id = 1;
+  AgentMcpServer draft = 2;
+}
+message TestAgentMcpServerResponse {
+  bool ok = 1;
+  string message = 2;
+  repeated string tools = 3;
+}
+
+message ImportAgentMcpServersRequest {
+  string json = 1;
+}
+message ImportAgentMcpServersResponse {
+  repeated AgentMcpServer servers = 1;
+}
+
+// ———————————————————————————— 技能 ————————————————————————————
+
+message AgentSkill {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  // local（在这里写的）| git | zip | dir
+  string source = 4;
+  bool enabled = 5;
+  int32 file_count = 6;
+}
+
+message AgentSkillFile {
+  string path = 1;
+  string content = 2;
+  // 不是文本，只保留不编辑
+  bool binary = 3;
+}
+
+message ListAgentSkillsRequest {
+  // 只要启用着的
+  bool enabled = 1;
+}
+message ListAgentSkillsResponse {
+  repeated AgentSkill skills = 1;
+}
+
+message GetAgentSkillRequest {
+  string id = 1;
+}
+message GetAgentSkillResponse {
+  AgentSkill skill = 1;
+  repeated AgentSkillFile files = 2;
+}
+
+message CreateAgentSkillRequest {
+  string name = 1;
+  string description = 2;
+  bool enabled = 3;
+  repeated AgentSkillFile files = 4;
+}
+message CreateAgentSkillResponse {
+  AgentSkill skill = 1;
+}
+
+message UpdateAgentSkillRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+  repeated AgentSkillFile files = 5;
+}
+message UpdateAgentSkillResponse {
+  AgentSkill skill = 1;
+}
+
+message DeleteAgentSkillRequest {
+  string id = 1;
+}
+message DeleteAgentSkillResponse {}
+
+message SetAgentSkillEnabledRequest {
+  string id = 1;
+  bool enabled = 2;
+}
+message SetAgentSkillEnabledResponse {}
+
+message ImportAgentSkillRequest {
+  // zip（上传的压缩包）| url（压缩包下载链接）| git | dir
+  string source = 1;
+  // zip 内容
+  bytes data = 2;
+  // 下载链接、git 地址或服务器上的目录
+  string location = 3;
+}
+message ImportAgentSkillResponse {
+  repeated AgentSkill skills = 1;
+}
+
+// ———————————————————————————— 运行时 ————————————————————————————
+
+message AgentRuntime {
+  string id = 1;
+  string name = 2;
+  // 检测出的系别：claude | codex | custom（按 Agent 自报的名字，不看是哪一条）
+  string kind = 3;
+  // Momoko 下载并更新
+  bool managed = 4;
+  string command = 5;
+  bool ready = 6;
+  // Agent 自报的名字和版本（agentInfo）
+  string agent_name = 7;
+  string error = 8;
+  google.protobuf.Timestamp detected_at = 9;
+  // 有进程在跑的会话数
+  int32 active_sessions = 10;
+  // 正在下载或更新
+  bool installing = 11;
+  AgentCapabilities caps = 12;
+  // 服务器上已有的登录（没有为空）：账号名称和说明
+  string auth_label = 13;
+  // 内置的两条（Claude Code、Codex）：不能移除，命令固定
+  bool builtin = 14;
+  // 能「Momoko 下载并更新」：只有带单文件发行包的（Claude Code）
+  bool can_install = 15;
+  string agent_version = 16;
+  string auth_detail = 17;
+  // 最近一次检查时服务器上已经登录（能开会话）；没登录时选择器里没有「服务器上的登录」
+  bool logged_in = 19;
+  // 检查时 Agent 给的模型和每个模型的推理强度
+  repeated AgentModelOption models = 20;
+  // 启动参数（command 是可执行文件）
+  repeated string args = 18;
+}
+
+message AgentRunSettings {
+  int32 max_processes = 1;
+  // 0 = 不自动结束
+  int32 idle_minutes = 2;
+}
+
+message ListAgentRuntimesRequest {}
+message ListAgentRuntimesResponse {
+  repeated AgentRuntime runtimes = 1;
+  AgentRunSettings settings = 2;
+}
+
+message SetAgentRuntimeModeRequest {
+  string id = 1;
+  bool managed = 2;
+}
+message SetAgentRuntimeModeResponse {
+  AgentRuntime runtime = 1;
+}
+
+message DetectAgentRuntimeRequest {
+  string id = 1;
+}
+message DetectAgentRuntimeResponse {
+  AgentRuntime runtime = 1;
+}
+
+message UpdateAgentRuntimeRequest {
+  string id = 1;
+}
+message UpdateAgentRuntimeResponse {
+  AgentRuntime runtime = 1;
+  // 已安装的版本和最新版本；读不到为空
+  string current = 2;
+  string latest = 3;
+  bool updated = 4;
+}
+
+message CreateAgentRuntimeRequest {
+  string name = 1;
+  string command = 2;
+}
+message CreateAgentRuntimeResponse {
+  AgentRuntime runtime = 1;
+}
+
+message DeleteAgentRuntimeRequest {
+  string id = 1;
+}
+message DeleteAgentRuntimeResponse {}
+
+message UpdateAgentRunSettingsRequest {
+  AgentRunSettings settings = 1;
+}
+message UpdateAgentRunSettingsResponse {
+  AgentRunSettings settings = 1;
+}
+
+// ———————————————————————————— 通知 ————————————————————————————
+
+message AgentNotifyChannel {
+  // discord | telegram | feishu | qq
+  string kind = 1;
+  bool configured = 2;
+  bool enabled = 3;
+  // 配置项；密钥类只返回脱敏值，保存时留空表示保留原值
+  map<string, string> fields = 4;
+}
+
+message AgentNotifyEvents {
+  // 等待批准时
+  bool ask = 1;
+  // 一轮结束时
+  bool done = 2;
+  // 出错时
+  bool error = 3;
+}
+
+message GetAgentNotifyRequest {}
+message GetAgentNotifyResponse {
+  AgentNotifyEvents events = 1;
+  repeated AgentNotifyChannel channels = 2;
+}
+
+message UpdateAgentNotifyEventsRequest {
+  AgentNotifyEvents events = 1;
+}
+message UpdateAgentNotifyEventsResponse {}
+
+message SaveAgentNotifyChannelRequest {
+  string kind = 1;
+  map<string, string> fields = 2;
+}
+message SaveAgentNotifyChannelResponse {
+  AgentNotifyChannel channel = 1;
+}
+
+message SetAgentNotifyChannelEnabledRequest {
+  string kind = 1;
+  bool enabled = 2;
+}
+message SetAgentNotifyChannelEnabledResponse {}
+
+message TestAgentNotifyChannelRequest {
+  string kind = 1;
+  map<string, string> fields = 2;
+}
+message TestAgentNotifyChannelResponse {}
+
+// ———————————————————————————— 公开批准页 ————————————————————————————
+
+message PublicAgentApprovalRequest {
+  string token = 1;
+}
+message PublicAgentApprovalResponse {
+  string session_title = 1;
+  string runtime_name = 2;
+  string workspace_name = 3;
+  // 要批准的事：工具标题和命令
+  string title = 4;
+  string detail = 5;
+  repeated AgentChoice options = 6;
+  // pending | resolved | expired
+  string state = 7;
+  // 已回答时选中的选项名
+  string outcome = 8;
+}
+
+message PublicResolveAgentApprovalRequest {
+  string token = 1;
+  string option_id = 2;
+}
+message PublicResolveAgentApprovalResponse {}

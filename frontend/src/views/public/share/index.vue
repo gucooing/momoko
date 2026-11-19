@@ -355,6 +355,14 @@
       :download-url="viewer.downloadUrl"
       :size="viewer.size"
     />
+    <FileMediaDialog
+      v-if="media.kind"
+      v-model="media.open"
+      :name="media.name"
+      :kind="media.kind"
+      :url="media.url"
+      :download-url="media.downloadUrl"
+    />
   </div>
 </template>
 
@@ -366,7 +374,7 @@ import dayjs from 'dayjs'
 import { showRequestError } from '@/utils/request'
 import { useThemeStore } from '@/stores/theme'
 import { APP_CONFIG } from '@/config/app.config'
-import { formatFileSize, splitPathSegments } from '@/utils/file'
+import { formatFileSize, resolveFilePreviewKind, splitPathSegments, type FilePreviewKind } from '@/utils/file'
 import { resolveAvatarUrl } from '@/utils/assets'
 import defaultAvatarSvg from '@/assets/defaultAvatar.svg'
 import {
@@ -375,6 +383,7 @@ import {
   listShareDirRequest,
   buildShareDownloadUrl,
 } from '@/api/share'
+import FileMediaDialog from '@/components/file/FileMediaDialog.vue'
 import FileViewerDialog from '@/components/file/FileViewerDialog.vue'
 import type { GetShareMetaResponse, ShareEntry } from '@/types/v1/file'
 
@@ -407,9 +416,25 @@ const selected = reactive<Record<string, boolean>>({})
 
 const toggleTheme = () => themeStore.toggleThemeMode(themeStore.isDarkTheme ? 'light' : 'dark')
 
-// 分享页内只读预览（与文件管理“打开文件”一致：文本高亮 / 媒体内联），仅查看 + 下载，不可编辑。
+// 分享页内只读预览：图片、视频、音频走媒体查看层，其余按文本高亮查看；都只能看和下载。
 const viewer = reactive({ open: false, name: '', previewUrl: '', downloadUrl: '', size: 0 })
+const media = reactive<{ open: boolean; name: string; kind: FilePreviewKind | null; url: string; downloadUrl: string }>({
+  open: false,
+  name: '',
+  kind: null,
+  url: '',
+  downloadUrl: '',
+})
 const previewFile = (relPath: string, name: string, size = 0) => {
+  const kind = resolveFilePreviewKind(name)
+  if (kind) {
+    media.name = name
+    media.kind = kind
+    media.url = buildShareDownloadUrl(token, sign.value, { path: relPath, inline: true })
+    media.downloadUrl = buildShareDownloadUrl(token, sign.value, { path: relPath })
+    media.open = true
+    return
+  }
   viewer.name = name
   viewer.previewUrl = buildShareDownloadUrl(token, sign.value, { path: relPath, inline: true })
   viewer.downloadUrl = buildShareDownloadUrl(token, sign.value, { path: relPath })

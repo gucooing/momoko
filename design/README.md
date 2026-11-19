@@ -11,3 +11,7 @@
 ## 游戏服务端管理与 GM（新功能）
 
 - `game/`：这个功能的全部原型、规格（`game/SpecPC.dc.html`）、学マス 素材导出脚本和实现规范 `game/IMPL_GAME.md`。导出于 2026-11-11。
+
+## Agent：Code 与 Agent 管理（新功能）
+
+- `agent/`：通过 ACP 在网页里控制服务器上的 Claude Code、Codex 等 Agent 写代码的全部原型（Code 页、新会话、手机端，以及会话、工作区、模型供应商、MCP、技能、运行时、通知七个管理页），文件清单见 `agent/README.md`，实现规范见 `agent/IMPL_AGENT.md`。导出于 2026-11-19。

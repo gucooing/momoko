@@ -6,6 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"momoko/internal/data/ent/gen/agentevent"
+	"momoko/internal/data/ent/gen/agentmcpserver"
+	"momoko/internal/data/ent/gen/agentprovider"
+	"momoko/internal/data/ent/gen/agentruntime"
+	"momoko/internal/data/ent/gen/agentsession"
+	"momoko/internal/data/ent/gen/agentskill"
+	"momoko/internal/data/ent/gen/agentworkspace"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/filesharedownload"
@@ -120,6 +127,13 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			agentevent.Table:         agentevent.ValidColumn,
+			agentmcpserver.Table:     agentmcpserver.ValidColumn,
+			agentprovider.Table:      agentprovider.ValidColumn,
+			agentruntime.Table:       agentruntime.ValidColumn,
+			agentsession.Table:       agentsession.ValidColumn,
+			agentskill.Table:         agentskill.ValidColumn,
+			agentworkspace.Table:     agentworkspace.ValidColumn,
 			emailtemplate.Table:      emailtemplate.ValidColumn,
 			fileshare.Table:          fileshare.ValidColumn,
 			filesharedownload.Table:  filesharedownload.ValidColumn,

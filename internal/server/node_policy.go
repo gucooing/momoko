@@ -30,6 +30,7 @@ var nodeServicePrefixes = []struct {
 	{"/v1.gakumas.GakumasGMService/", ""},
 	{"/v1.GameOpsService/", ""},
 	{"/v1.PassportAdminService/", ""},
+	{"/v1.AgentService/", ""},
 }
 
 // nodeOperations 是上述服务之外单独开放给远程节点的操作，值为本机仅需登录的操作的远程所需权限；
@@ -116,6 +117,7 @@ var nodeTunnelPaths = map[string]constant.Permissions{
 	biz.OpenSSHWSPath:             constant.SSHManage,
 	biz.PreFileDownload:           "",
 	biz.PreFileUpload:             "",
+	biz.AgentWsPath:               constant.AgentUse,
 }
 
 // nodeTunnelPrefixes 是允许经隧道访问的原始 HTTP 路径前缀（游戏实时动态 SSE，路径里带服务器 id）。

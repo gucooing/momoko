@@ -43,6 +43,8 @@ var ProviderSet = wire.NewSet(
 	NewGameOpsRepo,
 	NewGameClientLogRepo,
 	NewPassportRepo,
+	NewAgentRepo,
+	NewMcpRepo,
 )
 
 // Data is a struct that contains the database client.

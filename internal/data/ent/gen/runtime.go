@@ -3,6 +3,13 @@
 package gen
 
 import (
+	"momoko/internal/data/ent/gen/agentevent"
+	"momoko/internal/data/ent/gen/agentmcpserver"
+	"momoko/internal/data/ent/gen/agentprovider"
+	"momoko/internal/data/ent/gen/agentruntime"
+	"momoko/internal/data/ent/gen/agentsession"
+	"momoko/internal/data/ent/gen/agentskill"
+	"momoko/internal/data/ent/gen/agentworkspace"
 	"momoko/internal/data/ent/gen/emailtemplate"
 	"momoko/internal/data/ent/gen/fileshare"
 	"momoko/internal/data/ent/gen/filesharedownload"
@@ -59,6 +66,450 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	agenteventFields := schema.AgentEvent{}.Fields()
+	_ = agenteventFields
+	// agenteventDescSessionID is the schema descriptor for session_id field.
+	agenteventDescSessionID := agenteventFields[0].Descriptor()
+	// agentevent.SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
+	agentevent.SessionIDValidator = agenteventDescSessionID.Validators[0].(func(string) error)
+	// agenteventDescType is the schema descriptor for type field.
+	agenteventDescType := agenteventFields[3].Descriptor()
+	// agentevent.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	agentevent.TypeValidator = agenteventDescType.Validators[0].(func(string) error)
+	// agenteventDescSub is the schema descriptor for sub field.
+	agenteventDescSub := agenteventFields[4].Descriptor()
+	// agentevent.DefaultSub holds the default value on creation for the sub field.
+	agentevent.DefaultSub = agenteventDescSub.Default.(string)
+	// agenteventDescPayload is the schema descriptor for payload field.
+	agenteventDescPayload := agenteventFields[5].Descriptor()
+	// agentevent.DefaultPayload holds the default value on creation for the payload field.
+	agentevent.DefaultPayload = agenteventDescPayload.Default.(string)
+	// agenteventDescCreateTime is the schema descriptor for create_time field.
+	agenteventDescCreateTime := agenteventFields[6].Descriptor()
+	// agentevent.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentevent.DefaultCreateTime = agenteventDescCreateTime.Default.(func() time.Time)
+	agentmcpserverMixin := schema.AgentMcpServer{}.Mixin()
+	agentmcpserverMixinFields0 := agentmcpserverMixin[0].Fields()
+	_ = agentmcpserverMixinFields0
+	agentmcpserverFields := schema.AgentMcpServer{}.Fields()
+	_ = agentmcpserverFields
+	// agentmcpserverDescCreateTime is the schema descriptor for create_time field.
+	agentmcpserverDescCreateTime := agentmcpserverMixinFields0[0].Descriptor()
+	// agentmcpserver.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentmcpserver.DefaultCreateTime = agentmcpserverDescCreateTime.Default.(func() time.Time)
+	// agentmcpserverDescUpdateTime is the schema descriptor for update_time field.
+	agentmcpserverDescUpdateTime := agentmcpserverMixinFields0[1].Descriptor()
+	// agentmcpserver.DefaultUpdateTime holds the default value on creation for the update_time field.
+	agentmcpserver.DefaultUpdateTime = agentmcpserverDescUpdateTime.Default.(func() time.Time)
+	// agentmcpserver.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	agentmcpserver.UpdateDefaultUpdateTime = agentmcpserverDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentmcpserverDescName is the schema descriptor for name field.
+	agentmcpserverDescName := agentmcpserverFields[1].Descriptor()
+	// agentmcpserver.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	agentmcpserver.NameValidator = agentmcpserverDescName.Validators[0].(func(string) error)
+	// agentmcpserverDescDescription is the schema descriptor for description field.
+	agentmcpserverDescDescription := agentmcpserverFields[2].Descriptor()
+	// agentmcpserver.DefaultDescription holds the default value on creation for the description field.
+	agentmcpserver.DefaultDescription = agentmcpserverDescDescription.Default.(string)
+	// agentmcpserverDescCommand is the schema descriptor for command field.
+	agentmcpserverDescCommand := agentmcpserverFields[4].Descriptor()
+	// agentmcpserver.DefaultCommand holds the default value on creation for the command field.
+	agentmcpserver.DefaultCommand = agentmcpserverDescCommand.Default.(string)
+	// agentmcpserverDescEnv is the schema descriptor for env field.
+	agentmcpserverDescEnv := agentmcpserverFields[6].Descriptor()
+	// agentmcpserver.DefaultEnv holds the default value on creation for the env field.
+	agentmcpserver.DefaultEnv = agentmcpserverDescEnv.Default.(string)
+	// agentmcpserverDescURL is the schema descriptor for url field.
+	agentmcpserverDescURL := agentmcpserverFields[7].Descriptor()
+	// agentmcpserver.DefaultURL holds the default value on creation for the url field.
+	agentmcpserver.DefaultURL = agentmcpserverDescURL.Default.(string)
+	// agentmcpserverDescHeaders is the schema descriptor for headers field.
+	agentmcpserverDescHeaders := agentmcpserverFields[8].Descriptor()
+	// agentmcpserver.DefaultHeaders holds the default value on creation for the headers field.
+	agentmcpserver.DefaultHeaders = agentmcpserverDescHeaders.Default.(string)
+	// agentmcpserverDescDefaultOn is the schema descriptor for default_on field.
+	agentmcpserverDescDefaultOn := agentmcpserverFields[9].Descriptor()
+	// agentmcpserver.DefaultDefaultOn holds the default value on creation for the default_on field.
+	agentmcpserver.DefaultDefaultOn = agentmcpserverDescDefaultOn.Default.(bool)
+	// agentmcpserverDescStatus is the schema descriptor for status field.
+	agentmcpserverDescStatus := agentmcpserverFields[10].Descriptor()
+	// agentmcpserver.DefaultStatus holds the default value on creation for the status field.
+	agentmcpserver.DefaultStatus = agentmcpserverDescStatus.Default.(string)
+	// agentmcpserverDescStatusText is the schema descriptor for status_text field.
+	agentmcpserverDescStatusText := agentmcpserverFields[11].Descriptor()
+	// agentmcpserver.DefaultStatusText holds the default value on creation for the status_text field.
+	agentmcpserver.DefaultStatusText = agentmcpserverDescStatusText.Default.(string)
+	// agentmcpserverDescToolCount is the schema descriptor for tool_count field.
+	agentmcpserverDescToolCount := agentmcpserverFields[12].Descriptor()
+	// agentmcpserver.DefaultToolCount holds the default value on creation for the tool_count field.
+	agentmcpserver.DefaultToolCount = agentmcpserverDescToolCount.Default.(int)
+	// agentmcpserverDescID is the schema descriptor for id field.
+	agentmcpserverDescID := agentmcpserverFields[0].Descriptor()
+	// agentmcpserver.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	agentmcpserver.IDValidator = agentmcpserverDescID.Validators[0].(func(string) error)
+	agentproviderMixin := schema.AgentProvider{}.Mixin()
+	agentproviderMixinFields0 := agentproviderMixin[0].Fields()
+	_ = agentproviderMixinFields0
+	agentproviderFields := schema.AgentProvider{}.Fields()
+	_ = agentproviderFields
+	// agentproviderDescCreateTime is the schema descriptor for create_time field.
+	agentproviderDescCreateTime := agentproviderMixinFields0[0].Descriptor()
+	// agentprovider.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentprovider.DefaultCreateTime = agentproviderDescCreateTime.Default.(func() time.Time)
+	// agentproviderDescUpdateTime is the schema descriptor for update_time field.
+	agentproviderDescUpdateTime := agentproviderMixinFields0[1].Descriptor()
+	// agentprovider.DefaultUpdateTime holds the default value on creation for the update_time field.
+	agentprovider.DefaultUpdateTime = agentproviderDescUpdateTime.Default.(func() time.Time)
+	// agentprovider.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	agentprovider.UpdateDefaultUpdateTime = agentproviderDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentproviderDescVendor is the schema descriptor for vendor field.
+	agentproviderDescVendor := agentproviderFields[1].Descriptor()
+	// agentprovider.VendorValidator is a validator for the "vendor" field. It is called by the builders before save.
+	agentprovider.VendorValidator = agentproviderDescVendor.Validators[0].(func(string) error)
+	// agentproviderDescName is the schema descriptor for name field.
+	agentproviderDescName := agentproviderFields[2].Descriptor()
+	// agentprovider.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	agentprovider.NameValidator = agentproviderDescName.Validators[0].(func(string) error)
+	// agentproviderDescStatus is the schema descriptor for status field.
+	agentproviderDescStatus := agentproviderFields[3].Descriptor()
+	// agentprovider.DefaultStatus holds the default value on creation for the status field.
+	agentprovider.DefaultStatus = agentproviderDescStatus.Default.(string)
+	// agentproviderDescStatusText is the schema descriptor for status_text field.
+	agentproviderDescStatusText := agentproviderFields[4].Descriptor()
+	// agentprovider.DefaultStatusText holds the default value on creation for the status_text field.
+	agentprovider.DefaultStatusText = agentproviderDescStatusText.Default.(string)
+	// agentproviderDescBaseURL is the schema descriptor for base_url field.
+	agentproviderDescBaseURL := agentproviderFields[5].Descriptor()
+	// agentprovider.DefaultBaseURL holds the default value on creation for the base_url field.
+	agentprovider.DefaultBaseURL = agentproviderDescBaseURL.Default.(string)
+	// agentproviderDescAPIKey is the schema descriptor for api_key field.
+	agentproviderDescAPIKey := agentproviderFields[6].Descriptor()
+	// agentprovider.DefaultAPIKey holds the default value on creation for the api_key field.
+	agentprovider.DefaultAPIKey = agentproviderDescAPIKey.Default.(string)
+	// agentproviderDescMainModel is the schema descriptor for main_model field.
+	agentproviderDescMainModel := agentproviderFields[8].Descriptor()
+	// agentprovider.DefaultMainModel holds the default value on creation for the main_model field.
+	agentprovider.DefaultMainModel = agentproviderDescMainModel.Default.(string)
+	// agentproviderDescFastModel is the schema descriptor for fast_model field.
+	agentproviderDescFastModel := agentproviderFields[9].Descriptor()
+	// agentprovider.DefaultFastModel holds the default value on creation for the fast_model field.
+	agentprovider.DefaultFastModel = agentproviderDescFastModel.Default.(string)
+	// agentproviderDescTestLatencyMs is the schema descriptor for test_latency_ms field.
+	agentproviderDescTestLatencyMs := agentproviderFields[11].Descriptor()
+	// agentprovider.DefaultTestLatencyMs holds the default value on creation for the test_latency_ms field.
+	agentprovider.DefaultTestLatencyMs = agentproviderDescTestLatencyMs.Default.(int64)
+	// agentproviderDescID is the schema descriptor for id field.
+	agentproviderDescID := agentproviderFields[0].Descriptor()
+	// agentprovider.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	agentprovider.IDValidator = agentproviderDescID.Validators[0].(func(string) error)
+	agentruntimeMixin := schema.AgentRuntime{}.Mixin()
+	agentruntimeMixinFields0 := agentruntimeMixin[0].Fields()
+	_ = agentruntimeMixinFields0
+	agentruntimeFields := schema.AgentRuntime{}.Fields()
+	_ = agentruntimeFields
+	// agentruntimeDescCreateTime is the schema descriptor for create_time field.
+	agentruntimeDescCreateTime := agentruntimeMixinFields0[0].Descriptor()
+	// agentruntime.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentruntime.DefaultCreateTime = agentruntimeDescCreateTime.Default.(func() time.Time)
+	// agentruntimeDescUpdateTime is the schema descriptor for update_time field.
+	agentruntimeDescUpdateTime := agentruntimeMixinFields0[1].Descriptor()
+	// agentruntime.DefaultUpdateTime holds the default value on creation for the update_time field.
+	agentruntime.DefaultUpdateTime = agentruntimeDescUpdateTime.Default.(func() time.Time)
+	// agentruntime.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	agentruntime.UpdateDefaultUpdateTime = agentruntimeDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentruntimeDescName is the schema descriptor for name field.
+	agentruntimeDescName := agentruntimeFields[1].Descriptor()
+	// agentruntime.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	agentruntime.NameValidator = agentruntimeDescName.Validators[0].(func(string) error)
+	// agentruntimeDescManaged is the schema descriptor for managed field.
+	agentruntimeDescManaged := agentruntimeFields[3].Descriptor()
+	// agentruntime.DefaultManaged holds the default value on creation for the managed field.
+	agentruntime.DefaultManaged = agentruntimeDescManaged.Default.(bool)
+	// agentruntimeDescCommand is the schema descriptor for command field.
+	agentruntimeDescCommand := agentruntimeFields[4].Descriptor()
+	// agentruntime.DefaultCommand holds the default value on creation for the command field.
+	agentruntime.DefaultCommand = agentruntimeDescCommand.Default.(string)
+	// agentruntimeDescVersion is the schema descriptor for version field.
+	agentruntimeDescVersion := agentruntimeFields[5].Descriptor()
+	// agentruntime.DefaultVersion holds the default value on creation for the version field.
+	agentruntime.DefaultVersion = agentruntimeDescVersion.Default.(string)
+	// agentruntimeDescReady is the schema descriptor for ready field.
+	agentruntimeDescReady := agentruntimeFields[6].Descriptor()
+	// agentruntime.DefaultReady holds the default value on creation for the ready field.
+	agentruntime.DefaultReady = agentruntimeDescReady.Default.(bool)
+	// agentruntimeDescAgentName is the schema descriptor for agent_name field.
+	agentruntimeDescAgentName := agentruntimeFields[7].Descriptor()
+	// agentruntime.DefaultAgentName holds the default value on creation for the agent_name field.
+	agentruntime.DefaultAgentName = agentruntimeDescAgentName.Default.(string)
+	// agentruntimeDescAgentVersion is the schema descriptor for agent_version field.
+	agentruntimeDescAgentVersion := agentruntimeFields[8].Descriptor()
+	// agentruntime.DefaultAgentVersion holds the default value on creation for the agent_version field.
+	agentruntime.DefaultAgentVersion = agentruntimeDescAgentVersion.Default.(string)
+	// agentruntimeDescError is the schema descriptor for error field.
+	agentruntimeDescError := agentruntimeFields[9].Descriptor()
+	// agentruntime.DefaultError holds the default value on creation for the error field.
+	agentruntime.DefaultError = agentruntimeDescError.Default.(string)
+	// agentruntimeDescCaps is the schema descriptor for caps field.
+	agentruntimeDescCaps := agentruntimeFields[11].Descriptor()
+	// agentruntime.DefaultCaps holds the default value on creation for the caps field.
+	agentruntime.DefaultCaps = agentruntimeDescCaps.Default.(string)
+	// agentruntimeDescAuthLabel is the schema descriptor for auth_label field.
+	agentruntimeDescAuthLabel := agentruntimeFields[12].Descriptor()
+	// agentruntime.DefaultAuthLabel holds the default value on creation for the auth_label field.
+	agentruntime.DefaultAuthLabel = agentruntimeDescAuthLabel.Default.(string)
+	// agentruntimeDescAuthDetail is the schema descriptor for auth_detail field.
+	agentruntimeDescAuthDetail := agentruntimeFields[13].Descriptor()
+	// agentruntime.DefaultAuthDetail holds the default value on creation for the auth_detail field.
+	agentruntime.DefaultAuthDetail = agentruntimeDescAuthDetail.Default.(string)
+	// agentruntimeDescLoggedIn is the schema descriptor for logged_in field.
+	agentruntimeDescLoggedIn := agentruntimeFields[14].Descriptor()
+	// agentruntime.DefaultLoggedIn holds the default value on creation for the logged_in field.
+	agentruntime.DefaultLoggedIn = agentruntimeDescLoggedIn.Default.(bool)
+	// agentruntimeDescCatalog is the schema descriptor for catalog field.
+	agentruntimeDescCatalog := agentruntimeFields[15].Descriptor()
+	// agentruntime.DefaultCatalog holds the default value on creation for the catalog field.
+	agentruntime.DefaultCatalog = agentruntimeDescCatalog.Default.(string)
+	// agentruntimeDescSort is the schema descriptor for sort field.
+	agentruntimeDescSort := agentruntimeFields[16].Descriptor()
+	// agentruntime.DefaultSort holds the default value on creation for the sort field.
+	agentruntime.DefaultSort = agentruntimeDescSort.Default.(int)
+	// agentruntimeDescID is the schema descriptor for id field.
+	agentruntimeDescID := agentruntimeFields[0].Descriptor()
+	// agentruntime.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	agentruntime.IDValidator = agentruntimeDescID.Validators[0].(func(string) error)
+	agentsessionMixin := schema.AgentSession{}.Mixin()
+	agentsessionMixinFields0 := agentsessionMixin[0].Fields()
+	_ = agentsessionMixinFields0
+	agentsessionFields := schema.AgentSession{}.Fields()
+	_ = agentsessionFields
+	// agentsessionDescCreateTime is the schema descriptor for create_time field.
+	agentsessionDescCreateTime := agentsessionMixinFields0[0].Descriptor()
+	// agentsession.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentsession.DefaultCreateTime = agentsessionDescCreateTime.Default.(func() time.Time)
+	// agentsessionDescUpdateTime is the schema descriptor for update_time field.
+	agentsessionDescUpdateTime := agentsessionMixinFields0[1].Descriptor()
+	// agentsession.DefaultUpdateTime holds the default value on creation for the update_time field.
+	agentsession.DefaultUpdateTime = agentsessionDescUpdateTime.Default.(func() time.Time)
+	// agentsession.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	agentsession.UpdateDefaultUpdateTime = agentsessionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentsessionDescUserID is the schema descriptor for user_id field.
+	agentsessionDescUserID := agentsessionFields[1].Descriptor()
+	// agentsession.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	agentsession.UserIDValidator = agentsessionDescUserID.Validators[0].(func(string) error)
+	// agentsessionDescTitle is the schema descriptor for title field.
+	agentsessionDescTitle := agentsessionFields[2].Descriptor()
+	// agentsession.DefaultTitle holds the default value on creation for the title field.
+	agentsession.DefaultTitle = agentsessionDescTitle.Default.(string)
+	// agentsessionDescTitleCustom is the schema descriptor for title_custom field.
+	agentsessionDescTitleCustom := agentsessionFields[3].Descriptor()
+	// agentsession.DefaultTitleCustom holds the default value on creation for the title_custom field.
+	agentsession.DefaultTitleCustom = agentsessionDescTitleCustom.Default.(bool)
+	// agentsessionDescRuntimeID is the schema descriptor for runtime_id field.
+	agentsessionDescRuntimeID := agentsessionFields[4].Descriptor()
+	// agentsession.RuntimeIDValidator is a validator for the "runtime_id" field. It is called by the builders before save.
+	agentsession.RuntimeIDValidator = agentsessionDescRuntimeID.Validators[0].(func(string) error)
+	// agentsessionDescWorkspaceID is the schema descriptor for workspace_id field.
+	agentsessionDescWorkspaceID := agentsessionFields[5].Descriptor()
+	// agentsession.DefaultWorkspaceID holds the default value on creation for the workspace_id field.
+	agentsession.DefaultWorkspaceID = agentsessionDescWorkspaceID.Default.(string)
+	// agentsessionDescCwd is the schema descriptor for cwd field.
+	agentsessionDescCwd := agentsessionFields[6].Descriptor()
+	// agentsession.DefaultCwd holds the default value on creation for the cwd field.
+	agentsession.DefaultCwd = agentsessionDescCwd.Default.(string)
+	// agentsessionDescWorktree is the schema descriptor for worktree field.
+	agentsessionDescWorktree := agentsessionFields[8].Descriptor()
+	// agentsession.DefaultWorktree holds the default value on creation for the worktree field.
+	agentsession.DefaultWorktree = agentsessionDescWorktree.Default.(string)
+	// agentsessionDescProviderID is the schema descriptor for provider_id field.
+	agentsessionDescProviderID := agentsessionFields[9].Descriptor()
+	// agentsession.DefaultProviderID holds the default value on creation for the provider_id field.
+	agentsession.DefaultProviderID = agentsessionDescProviderID.Default.(string)
+	// agentsessionDescModel is the schema descriptor for model field.
+	agentsessionDescModel := agentsessionFields[10].Descriptor()
+	// agentsession.DefaultModel holds the default value on creation for the model field.
+	agentsession.DefaultModel = agentsessionDescModel.Default.(string)
+	// agentsessionDescEffort is the schema descriptor for effort field.
+	agentsessionDescEffort := agentsessionFields[11].Descriptor()
+	// agentsession.DefaultEffort holds the default value on creation for the effort field.
+	agentsession.DefaultEffort = agentsessionDescEffort.Default.(string)
+	// agentsessionDescMode is the schema descriptor for mode field.
+	agentsessionDescMode := agentsessionFields[12].Descriptor()
+	// agentsession.DefaultMode holds the default value on creation for the mode field.
+	agentsession.DefaultMode = agentsessionDescMode.Default.(string)
+	// agentsessionDescError is the schema descriptor for error field.
+	agentsessionDescError := agentsessionFields[14].Descriptor()
+	// agentsession.DefaultError holds the default value on creation for the error field.
+	agentsession.DefaultError = agentsessionDescError.Default.(string)
+	// agentsessionDescAcpSessionID is the schema descriptor for acp_session_id field.
+	agentsessionDescAcpSessionID := agentsessionFields[15].Descriptor()
+	// agentsession.DefaultAcpSessionID holds the default value on creation for the acp_session_id field.
+	agentsession.DefaultAcpSessionID = agentsessionDescAcpSessionID.Default.(string)
+	// agentsessionDescParentID is the schema descriptor for parent_id field.
+	agentsessionDescParentID := agentsessionFields[16].Descriptor()
+	// agentsession.DefaultParentID holds the default value on creation for the parent_id field.
+	agentsession.DefaultParentID = agentsessionDescParentID.Default.(string)
+	// agentsessionDescDetached is the schema descriptor for detached field.
+	agentsessionDescDetached := agentsessionFields[17].Descriptor()
+	// agentsession.DefaultDetached holds the default value on creation for the detached field.
+	agentsession.DefaultDetached = agentsessionDescDetached.Default.(bool)
+	// agentsessionDescActiveAt is the schema descriptor for active_at field.
+	agentsessionDescActiveAt := agentsessionFields[18].Descriptor()
+	// agentsession.DefaultActiveAt holds the default value on creation for the active_at field.
+	agentsession.DefaultActiveAt = agentsessionDescActiveAt.Default.(func() time.Time)
+	// agentsessionDescTurns is the schema descriptor for turns field.
+	agentsessionDescTurns := agentsessionFields[19].Descriptor()
+	// agentsession.DefaultTurns holds the default value on creation for the turns field.
+	agentsession.DefaultTurns = agentsessionDescTurns.Default.(int)
+	// agentsessionDescUsageTotal is the schema descriptor for usage_total field.
+	agentsessionDescUsageTotal := agentsessionFields[20].Descriptor()
+	// agentsession.DefaultUsageTotal holds the default value on creation for the usage_total field.
+	agentsession.DefaultUsageTotal = agentsessionDescUsageTotal.Default.(int64)
+	// agentsessionDescUsageInput is the schema descriptor for usage_input field.
+	agentsessionDescUsageInput := agentsessionFields[21].Descriptor()
+	// agentsession.DefaultUsageInput holds the default value on creation for the usage_input field.
+	agentsession.DefaultUsageInput = agentsessionDescUsageInput.Default.(int64)
+	// agentsessionDescUsageOutput is the schema descriptor for usage_output field.
+	agentsessionDescUsageOutput := agentsessionFields[22].Descriptor()
+	// agentsession.DefaultUsageOutput holds the default value on creation for the usage_output field.
+	agentsession.DefaultUsageOutput = agentsessionDescUsageOutput.Default.(int64)
+	// agentsessionDescUsageCacheRead is the schema descriptor for usage_cache_read field.
+	agentsessionDescUsageCacheRead := agentsessionFields[23].Descriptor()
+	// agentsession.DefaultUsageCacheRead holds the default value on creation for the usage_cache_read field.
+	agentsession.DefaultUsageCacheRead = agentsessionDescUsageCacheRead.Default.(int64)
+	// agentsessionDescUsageCacheWrite is the schema descriptor for usage_cache_write field.
+	agentsessionDescUsageCacheWrite := agentsessionFields[24].Descriptor()
+	// agentsession.DefaultUsageCacheWrite holds the default value on creation for the usage_cache_write field.
+	agentsession.DefaultUsageCacheWrite = agentsessionDescUsageCacheWrite.Default.(int64)
+	// agentsessionDescUsageThought is the schema descriptor for usage_thought field.
+	agentsessionDescUsageThought := agentsessionFields[25].Descriptor()
+	// agentsession.DefaultUsageThought holds the default value on creation for the usage_thought field.
+	agentsession.DefaultUsageThought = agentsessionDescUsageThought.Default.(int64)
+	// agentsessionDescLastUsage is the schema descriptor for last_usage field.
+	agentsessionDescLastUsage := agentsessionFields[26].Descriptor()
+	// agentsession.DefaultLastUsage holds the default value on creation for the last_usage field.
+	agentsession.DefaultLastUsage = agentsessionDescLastUsage.Default.(string)
+	// agentsessionDescContextUsed is the schema descriptor for context_used field.
+	agentsessionDescContextUsed := agentsessionFields[27].Descriptor()
+	// agentsession.DefaultContextUsed holds the default value on creation for the context_used field.
+	agentsession.DefaultContextUsed = agentsessionDescContextUsed.Default.(int64)
+	// agentsessionDescContextSize is the schema descriptor for context_size field.
+	agentsessionDescContextSize := agentsessionFields[28].Descriptor()
+	// agentsession.DefaultContextSize holds the default value on creation for the context_size field.
+	agentsession.DefaultContextSize = agentsessionDescContextSize.Default.(int64)
+	// agentsessionDescState is the schema descriptor for state field.
+	agentsessionDescState := agentsessionFields[30].Descriptor()
+	// agentsession.DefaultState holds the default value on creation for the state field.
+	agentsession.DefaultState = agentsessionDescState.Default.(string)
+	// agentsessionDescOrigin is the schema descriptor for origin field.
+	agentsessionDescOrigin := agentsessionFields[31].Descriptor()
+	// agentsession.DefaultOrigin holds the default value on creation for the origin field.
+	agentsession.DefaultOrigin = agentsessionDescOrigin.Default.(string)
+	// agentsessionDescID is the schema descriptor for id field.
+	agentsessionDescID := agentsessionFields[0].Descriptor()
+	// agentsession.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	agentsession.IDValidator = agentsessionDescID.Validators[0].(func(string) error)
+	agentskillMixin := schema.AgentSkill{}.Mixin()
+	agentskillMixinFields0 := agentskillMixin[0].Fields()
+	_ = agentskillMixinFields0
+	agentskillFields := schema.AgentSkill{}.Fields()
+	_ = agentskillFields
+	// agentskillDescCreateTime is the schema descriptor for create_time field.
+	agentskillDescCreateTime := agentskillMixinFields0[0].Descriptor()
+	// agentskill.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentskill.DefaultCreateTime = agentskillDescCreateTime.Default.(func() time.Time)
+	// agentskillDescUpdateTime is the schema descriptor for update_time field.
+	agentskillDescUpdateTime := agentskillMixinFields0[1].Descriptor()
+	// agentskill.DefaultUpdateTime holds the default value on creation for the update_time field.
+	agentskill.DefaultUpdateTime = agentskillDescUpdateTime.Default.(func() time.Time)
+	// agentskill.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	agentskill.UpdateDefaultUpdateTime = agentskillDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentskillDescName is the schema descriptor for name field.
+	agentskillDescName := agentskillFields[1].Descriptor()
+	// agentskill.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	agentskill.NameValidator = agentskillDescName.Validators[0].(func(string) error)
+	// agentskillDescDescription is the schema descriptor for description field.
+	agentskillDescDescription := agentskillFields[2].Descriptor()
+	// agentskill.DefaultDescription holds the default value on creation for the description field.
+	agentskill.DefaultDescription = agentskillDescDescription.Default.(string)
+	// agentskillDescLocation is the schema descriptor for location field.
+	agentskillDescLocation := agentskillFields[4].Descriptor()
+	// agentskill.DefaultLocation holds the default value on creation for the location field.
+	agentskill.DefaultLocation = agentskillDescLocation.Default.(string)
+	// agentskillDescEnabled is the schema descriptor for enabled field.
+	agentskillDescEnabled := agentskillFields[5].Descriptor()
+	// agentskill.DefaultEnabled holds the default value on creation for the enabled field.
+	agentskill.DefaultEnabled = agentskillDescEnabled.Default.(bool)
+	// agentskillDescFileCount is the schema descriptor for file_count field.
+	agentskillDescFileCount := agentskillFields[6].Descriptor()
+	// agentskill.DefaultFileCount holds the default value on creation for the file_count field.
+	agentskill.DefaultFileCount = agentskillDescFileCount.Default.(int)
+	// agentskillDescID is the schema descriptor for id field.
+	agentskillDescID := agentskillFields[0].Descriptor()
+	// agentskill.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	agentskill.IDValidator = agentskillDescID.Validators[0].(func(string) error)
+	agentworkspaceMixin := schema.AgentWorkspace{}.Mixin()
+	agentworkspaceMixinFields0 := agentworkspaceMixin[0].Fields()
+	_ = agentworkspaceMixinFields0
+	agentworkspaceFields := schema.AgentWorkspace{}.Fields()
+	_ = agentworkspaceFields
+	// agentworkspaceDescCreateTime is the schema descriptor for create_time field.
+	agentworkspaceDescCreateTime := agentworkspaceMixinFields0[0].Descriptor()
+	// agentworkspace.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentworkspace.DefaultCreateTime = agentworkspaceDescCreateTime.Default.(func() time.Time)
+	// agentworkspaceDescUpdateTime is the schema descriptor for update_time field.
+	agentworkspaceDescUpdateTime := agentworkspaceMixinFields0[1].Descriptor()
+	// agentworkspace.DefaultUpdateTime holds the default value on creation for the update_time field.
+	agentworkspace.DefaultUpdateTime = agentworkspaceDescUpdateTime.Default.(func() time.Time)
+	// agentworkspace.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	agentworkspace.UpdateDefaultUpdateTime = agentworkspaceDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentworkspaceDescUserID is the schema descriptor for user_id field.
+	agentworkspaceDescUserID := agentworkspaceFields[1].Descriptor()
+	// agentworkspace.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	agentworkspace.UserIDValidator = agentworkspaceDescUserID.Validators[0].(func(string) error)
+	// agentworkspaceDescName is the schema descriptor for name field.
+	agentworkspaceDescName := agentworkspaceFields[2].Descriptor()
+	// agentworkspace.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	agentworkspace.NameValidator = agentworkspaceDescName.Validators[0].(func(string) error)
+	// agentworkspaceDescPath is the schema descriptor for path field.
+	agentworkspaceDescPath := agentworkspaceFields[3].Descriptor()
+	// agentworkspace.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	agentworkspace.PathValidator = agentworkspaceDescPath.Validators[0].(func(string) error)
+	// agentworkspaceDescGitURL is the schema descriptor for git_url field.
+	agentworkspaceDescGitURL := agentworkspaceFields[4].Descriptor()
+	// agentworkspace.DefaultGitURL holds the default value on creation for the git_url field.
+	agentworkspace.DefaultGitURL = agentworkspaceDescGitURL.Default.(string)
+	// agentworkspaceDescCloneStatus is the schema descriptor for clone_status field.
+	agentworkspaceDescCloneStatus := agentworkspaceFields[5].Descriptor()
+	// agentworkspace.DefaultCloneStatus holds the default value on creation for the clone_status field.
+	agentworkspace.DefaultCloneStatus = agentworkspaceDescCloneStatus.Default.(string)
+	// agentworkspaceDescCloneError is the schema descriptor for clone_error field.
+	agentworkspaceDescCloneError := agentworkspaceFields[6].Descriptor()
+	// agentworkspace.DefaultCloneError holds the default value on creation for the clone_error field.
+	agentworkspace.DefaultCloneError = agentworkspaceDescCloneError.Default.(string)
+	// agentworkspaceDescRuntimeID is the schema descriptor for runtime_id field.
+	agentworkspaceDescRuntimeID := agentworkspaceFields[7].Descriptor()
+	// agentworkspace.DefaultRuntimeID holds the default value on creation for the runtime_id field.
+	agentworkspace.DefaultRuntimeID = agentworkspaceDescRuntimeID.Default.(string)
+	// agentworkspaceDescProviderID is the schema descriptor for provider_id field.
+	agentworkspaceDescProviderID := agentworkspaceFields[8].Descriptor()
+	// agentworkspace.DefaultProviderID holds the default value on creation for the provider_id field.
+	agentworkspace.DefaultProviderID = agentworkspaceDescProviderID.Default.(string)
+	// agentworkspaceDescModel is the schema descriptor for model field.
+	agentworkspaceDescModel := agentworkspaceFields[9].Descriptor()
+	// agentworkspace.DefaultModel holds the default value on creation for the model field.
+	agentworkspace.DefaultModel = agentworkspaceDescModel.Default.(string)
+	// agentworkspaceDescEffort is the schema descriptor for effort field.
+	agentworkspaceDescEffort := agentworkspaceFields[10].Descriptor()
+	// agentworkspace.DefaultEffort holds the default value on creation for the effort field.
+	agentworkspace.DefaultEffort = agentworkspaceDescEffort.Default.(string)
+	// agentworkspaceDescMode is the schema descriptor for mode field.
+	agentworkspaceDescMode := agentworkspaceFields[11].Descriptor()
+	// agentworkspace.DefaultMode holds the default value on creation for the mode field.
+	agentworkspace.DefaultMode = agentworkspaceDescMode.Default.(string)
+	// agentworkspaceDescID is the schema descriptor for id field.
+	agentworkspaceDescID := agentworkspaceFields[0].Descriptor()
+	// agentworkspace.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	agentworkspace.IDValidator = agentworkspaceDescID.Validators[0].(func(string) error)
 	emailtemplateMixin := schema.EmailTemplate{}.Mixin()
 	emailtemplateMixinFields0 := emailtemplateMixin[0].Fields()
 	_ = emailtemplateMixinFields0

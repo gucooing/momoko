@@ -1,0 +1,1525 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Code · 会话进行中 · PC</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:var(--pInk)}a:hover{color:var(--ink)}
+.th-sakura-light{--p:#D6245F;--pOn:#FFFFFF;--pInk:#C8195A;--pSoft:#FFE3EE;--a:#FFC93C;--aOn:#2A1630;--aSoft:#FFF3CC;--a2:#7B5CFF;--a2Soft:#ECE6FF;--bg:#FFF6F9;--s:#FFFFFF;--s2:#FFF0F5;--line:#F6DCE6;--ink:#2A1630;--ink2:#6E5A72;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B25E00;--warnSoft:#FFF0D9;--bad:#D21F3C;--badSoft:#FFE2E6}
+.th-sakura-dark{--p:#FF4F8B;--pOn:#1A0B14;--pInk:#FF85AE;--pSoft:#3A1A2C;--a:#FFD25A;--aOn:#1A0B14;--aSoft:#3A3016;--a2:#A08BFF;--a2Soft:#2A2245;--bg:#140E17;--s:#1E1622;--s2:#271D2C;--line:#33263A;--ink:#F8EEF4;--ink2:#B9A6BE;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-mint-light{--p:#00805F;--pOn:#FFFFFF;--pInk:#007A5A;--pSoft:#D9F7EC;--a:#FFE14D;--aOn:#0F2A21;--aSoft:#FFF8CC;--a2:#2E9BFF;--a2Soft:#E0F0FF;--bg:#F3FBF7;--s:#FFFFFF;--s2:#EAF7F1;--line:#D3EDE2;--ink:#0F2A21;--ink2:#4F6B61;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-mint-dark{--p:#1FD3A0;--pOn:#0C1512;--pInk:#4BE3B6;--pSoft:#0F3329;--a:#FFE14D;--aOn:#0C1512;--aSoft:#33300F;--a2:#5BB4FF;--a2Soft:#12283A;--bg:#0C1512;--s:#13201B;--s2:#192A23;--line:#22362E;--ink:#EAF7F2;--ink2:#9DB8AE;--ok:#4BE3B6;--okSoft:#0F3329;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-volt-light{--p:#3450FF;--pOn:#FFFFFF;--pInk:#2A44E6;--pSoft:#E3E8FF;--a:#FF7A1A;--aOn:#11163A;--aSoft:#FFE9D9;--a2:#00B8A9;--a2Soft:#D9F6F3;--bg:#F4F6FF;--s:#FFFFFF;--s2:#EDF0FF;--line:#DDE2F7;--ink:#11163A;--ink2:#555C80;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#B4530A;--warnSoft:#FFEBD9;--bad:#D32448;--badSoft:#FFE2E8}
+.th-volt-dark{--p:#5B74FF;--pOn:#0D1024;--pInk:#8C9DFF;--pSoft:#1C2350;--a:#FF8A33;--aOn:#0D1024;--aSoft:#3A2312;--a2:#2FD9C8;--a2Soft:#10302F;--bg:#0D1024;--s:#161A35;--s2:#1D2242;--line:#272D52;--ink:#EEF0FF;--ink2:#A3A9CC;--ok:#3EDC9A;--okSoft:#113024;--warn:#FFAA55;--warnSoft:#3A2812;--bad:#FF6B86;--badSoft:#3A1626}
+.th-grape-light{--p:#7C3AED;--pOn:#FFFFFF;--pInk:#6D28D9;--pSoft:#EFE6FF;--a:#FFD23F;--aOn:#1F1436;--aSoft:#FFF6CC;--a2:#E8457A;--a2Soft:#FFE3EC;--bg:#F8F5FF;--s:#FFFFFF;--s2:#F2ECFF;--line:#E4DAFA;--ink:#1F1436;--ink2:#625878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-grape-dark{--p:#A78BFA;--pOn:#120C1F;--pInk:#C4B1FF;--pSoft:#2A1F4A;--a:#FFD23F;--aOn:#120C1F;--aSoft:#37300F;--a2:#FF7BA6;--a2Soft:#3A1A2A;--bg:#120C1F;--s:#1B1430;--s2:#241B3D;--line:#30264D;--ink:#F2EEFF;--ink2:#B2A8CC;--ok:#3DDC97;--okSoft:#123326;--warn:#FFB547;--warnSoft:#3A2A12;--bad:#FF6B81;--badSoft:#3A1720}
+.th-sunset-light{--p:#C2410C;--pOn:#FFFFFF;--pInk:#B23A0A;--pSoft:#FFE6D6;--a:#FFC93C;--aOn:#2B1708;--aSoft:#FFF3CC;--a2:#2F6FED;--a2Soft:#E1EBFF;--bg:#FFF7F0;--s:#FFFFFF;--s2:#FFF0E5;--line:#F7DFCC;--ink:#2B1708;--ink2:#735A4B;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#9A5A00;--warnSoft:#FFF2D6;--bad:#C81E3A;--badSoft:#FFE3E6}
+.th-sunset-dark{--p:#FF7A3D;--pOn:#1A0F08;--pInk:#FFA06E;--pSoft:#3A2114;--a:#FFD25A;--aOn:#1A0F08;--aSoft:#3A3016;--a2:#6EA0FF;--a2Soft:#172440;--bg:#150E09;--s:#22160E;--s2:#2C1D13;--line:#3A281B;--ink:#FFF1E8;--ink2:#C7AE9E;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.th-classic-light{--p:#0F7F72;--pOn:#FFFFFF;--pInk:#0B7266;--pSoft:#DDF3EF;--a:#FFB020;--aOn:#1B2333;--aSoft:#FFF1D6;--a2:#5B6CFF;--a2Soft:#E6E9FF;--bg:#F3F5F9;--s:#FFFFFF;--s2:#EEF1F6;--line:#E2E7EE;--ink:#1B2333;--ink2:#5F6878;--ok:#0B7F57;--okSoft:#DDF5EA;--warn:#A35B00;--warnSoft:#FFF2D6;--bad:#D2263B;--badSoft:#FFE3E6}
+.th-classic-dark{--p:#2CC4AE;--pOn:#0E1116;--pInk:#5ED8C5;--pSoft:#12302C;--a:#FFB020;--aOn:#0E1116;--aSoft:#3A2E12;--a2:#8C98FF;--a2Soft:#1E2348;--bg:#0E1116;--s:#171B22;--s2:#1C212B;--line:#2B323D;--ink:#E8EBF1;--ink2:#9AA2B1;--ok:#3DDC97;--okSoft:#123326;--warn:#FFC14D;--warnSoft:#3A2E12;--bad:#FF6B7D;--badSoft:#3A1820}
+.root{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.root *{box-sizing:border-box}
+.card{background:var(--s);border:1px solid var(--line);border-radius:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;transition:transform .15s,filter .15s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--p);color:var(--pOn)}.btn-p:hover{filter:brightness(1.08);color:var(--pOn)}
+.btn-s{background:var(--s2);color:var(--ink)}.btn-s:hover{background:var(--pSoft);color:var(--pInk)}
+.btn-o{background:var(--s);color:var(--ink);border:1.5px solid var(--line)}.btn-o:hover{border-color:var(--p);color:var(--pInk)}
+.btn-stop{background:var(--badSoft);color:var(--bad)}.btn-stop:hover{filter:brightness(.97)}
+.btn-sm{min-height:36px;padding:0 14px;font-size:13px}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;border:0;background:transparent;color:var(--ink2);cursor:pointer;position:relative;flex:none;text-decoration:none}
+.ib:hover{background:var(--s2);color:var(--ink)}
+.ib-sm{width:36px;height:36px;border-radius:12px}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-sm{width:16px;height:16px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.ok{background:var(--okSoft);color:var(--ok)}.off{background:var(--s2);color:var(--ink2)}.warn{background:var(--warnSoft);color:var(--warn)}.bad{background:var(--badSoft);color:var(--bad)}
+.tag{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:8px;background:var(--s2);color:var(--ink2);font-size:12px;font-weight:600;white-space:nowrap}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.inp{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--s);border:1.5px solid var(--line);color:var(--ink2)}
+.inp:focus-within{border-color:var(--p)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);outline:none}
+.inp input::placeholder{color:var(--ink2)}
+.kbd{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;background:var(--s2);color:var(--ink2)}
+.seg{display:flex;padding:4px;border-radius:999px;background:var(--s2);gap:2px}
+.seg button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:0 10px;border-radius:999px;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.seg .on{background:var(--s);color:var(--ink);box-shadow:0 1px 3px rgba(20,10,30,.12)}
+.av{display:flex;align-items:center;justify-content:center;flex:none;font-weight:800}
+.av-p{background:var(--pSoft);color:var(--pInk)}.av-a{background:var(--aSoft);color:var(--aOn)}.av-a2{background:var(--a2Soft);color:var(--ink)}
+.mono{font-family:'JetBrains Mono',ui-monospace,Consolas,monospace}
+.num{font-family:'Outfit',sans-serif;font-variant-numeric:tabular-nums}
+.dot{position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--p);border:2px solid var(--s)}
+.rl{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;color:var(--ink2);flex:none}
+.rl:hover{background:var(--s2);color:var(--ink)}
+.rl-on,.rl-on:hover{background:var(--pSoft);color:var(--pInk)}
+.ag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:7px;font-size:11px;font-weight:800;white-space:nowrap}
+.ag-cc{background:var(--aSoft);color:var(--aOn)}.ag-cx{background:var(--a2Soft);color:var(--ink)}
+.ss{display:flex;align-items:center;gap:8px;flex:1;min-width:0;min-height:34px;padding:0 4px 0 28px;border-radius:10px;border:0;background:transparent;font:inherit;font-size:13.5px;color:var(--ink);text-align:left;text-decoration:none;cursor:pointer}
+.sr{position:relative;display:flex;align-items:center;gap:2px;padding-right:3px;border-radius:10px}
+.sr:hover{background:var(--s2)}
+.sr-on,.sr-on:hover{background:var(--pSoft)}
+.sm{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;border:0;background:transparent;color:var(--ink2);text-decoration:none;cursor:pointer;flex:none}
+.sm:hover{background:var(--s);color:var(--ink)}
+.sr .sm,.wr .sm{opacity:0}
+.sr:hover .sm,.wr:hover .sm,.sr-on .sm,.sm.sm-on,.sm:focus-visible{opacity:1}
+.wr{position:relative;display:flex;align-items:center;gap:2px;padding-right:3px;border-radius:10px}
+.wr:hover{background:var(--s2)}
+.wb{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:34px;padding:0 4px 0 6px;border:0;background:transparent;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink);text-align:left;cursor:pointer}
+.wb .ic{color:var(--ink2)}
+.wpop{position:absolute;top:calc(100% + 2px);left:6px;right:3px;z-index:7;display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;background:var(--s);border:1px solid var(--line);box-shadow:0 18px 44px -14px rgba(20,10,30,.4)}
+.wl{display:flex;align-items:center;gap:8px;min-height:34px;padding:0 8px;margin:0 -4px -4px;border-radius:10px;font-size:13px;color:var(--ink);text-decoration:none}
+.wl:hover{background:var(--s2)}
+.am{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:6px;font-size:10px;font-weight:800;flex:none}
+.sx{display:flex;align-items:center;min-height:30px;padding:0 4px 0 28px;border:0;border-radius:10px;background:transparent;font:inherit;font-size:12.5px;color:var(--ink2);text-align:left;cursor:pointer}
+.sx:hover{background:var(--s2);color:var(--ink)}
+.smenu{position:absolute;top:calc(100% - 6px);right:4px;z-index:6;width:212px;padding:6px;border-radius:16px;background:var(--s);border:1px solid var(--line);box-shadow:0 18px 44px -14px rgba(20,10,30,.4);display:flex;flex-direction:column;gap:2px;font-size:13px}
+.sd{width:8px;height:8px;border-radius:50%;flex:none}
+.tool{display:flex;align-items:center;gap:10px;min-height:38px;padding:0 12px;border-radius:12px;background:var(--s2);font-size:13px;color:var(--ink)}
+.cl{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 8px;border-radius:10px;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.cl:hover{background:var(--s);color:var(--ink)}
+.tt{display:inline-flex;align-items:center;gap:2px;height:40px;padding:0 4px 0 12px;border-radius:14px;color:var(--ink2);flex:none}
+.tt:hover{background:var(--s2)}
+.tt-on,.tt-on:hover{background:var(--ink);color:var(--bg)}
+.tt-btn{display:inline-flex;align-items:center;gap:8px;height:40px;max-width:320px;border:0;background:transparent;color:inherit;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;padding:0 6px 0 0}
+.tt-x{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:10px;border:0;background:transparent;color:inherit;cursor:pointer}
+.tt-x:hover{background:color-mix(in srgb, currentColor 16%, transparent)}
+.tk{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 6px 8px 12px;border:0;background:transparent;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.cx{display:flex;align-items:center;gap:10px;min-height:28px;font-size:13px}
+.pop{position:absolute;z-index:5;padding:8px;border-radius:18px;background:var(--s);border:1px solid var(--line);box-shadow:0 18px 44px -14px rgba(20,10,30,.4);display:flex;flex-direction:column;gap:2px}
+.mi{display:flex;align-items:flex-start;gap:10px;width:100%;padding:10px 12px;border-radius:12px;border:0;background:transparent;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.mi:hover{background:var(--s2)}
+.mi2{display:flex;align-items:center;gap:8px;width:100%;min-height:36px;padding:5px 10px;border-radius:10px;border:0;background:transparent;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.mi2:hover{background:var(--s2)}
+.mi2-on,.mi2-on:hover{background:var(--pSoft)}
+.mi2-hl{background:var(--s2)}
+.fl{font-size:13px;font-weight:700}
+.fh{font-size:12.5px;line-height:1.55;color:var(--ink2)}
+.fld{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 14px;border-radius:14px;background:var(--s2);border:1.5px solid transparent;color:var(--ink2)}
+.fld:focus-within{border-color:var(--p);background:var(--s)}
+.fld input{flex:1;min-width:0;height:42px;border:0;background:transparent;font:inherit;font-size:14px;font-weight:500;color:var(--ink);outline:none}
+.fld input::placeholder{color:var(--ink2)}
+.dl{display:flex;white-space:pre;min-height:20px;line-height:20px;font-size:12px}
+.dl .g{flex:none;width:34px;padding-right:8px;text-align:right;color:var(--ink2);user-select:none}
+.dl .sg{flex:none;width:14px;color:var(--ink2)}
+.dl-a{background:var(--okSoft)}.dl-a .sg{color:var(--ok)}
+.dl-d{background:var(--badSoft)}.dl-d .sg{color:var(--bad)}
+.fr{display:flex;align-items:center;gap:8px;width:100%;min-height:38px;padding:0 10px;border-radius:12px;border:0;background:transparent;font:inherit;font-size:13px;color:var(--ink);text-align:left;cursor:pointer}
+.fr:hover{background:var(--s2)}
+.fr-on,.fr-on:hover{background:var(--s2);box-shadow:inset 0 0 0 1.5px var(--line)}
+.term{background:#0F0B14;color:#E8E3EE;border-radius:14px;font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-size:12px;line-height:1.6}
+.ln{white-space:pre;min-height:1.6em}
+.ta{width:100%;border:0;background:transparent;resize:none;font:inherit;font-size:14.5px;line-height:1.55;color:var(--ink);outline:none;padding:0}
+.ta::placeholder{color:var(--ink2)}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion: reduce){.pulse{animation:none}}
+.card{border-radius:16px}
+.btn{min-height:30px;padding:0 12px;gap:6px;font-size:13px}
+.btn .ic{width:16px;height:16px}
+.btn-sm{min-height:26px;padding:0 10px;font-size:12.5px}
+.ib{width:30px;height:30px;border-radius:9px}
+.ib .ic{width:17px;height:17px}
+.ib-sm{width:26px;height:26px;border-radius:8px}
+.ib-sm .ic{width:15px;height:15px}
+.inp{min-height:32px;padding:0 12px;gap:8px}
+.inp input{font-size:13px}
+.chip{min-height:26px;padding:0 10px;font-size:12.5px;border-width:1px}
+.pill{height:20px;padding:0 8px;font-size:11.5px}
+.pill::before{width:6px;height:6px}
+.tag{height:20px;padding:0 7px;border-radius:6px;font-size:11.5px}
+.ag{height:18px;padding:0 6px;border-radius:6px;font-size:10.5px}
+.cb{width:15px;height:15px}
+.tg{width:34px;height:20px}
+.tg::after{top:2px;left:2px;width:16px;height:16px}
+.tg:checked::after{transform:translateX(14px)}
+.seg{padding:3px}
+.seg button{min-height:26px;padding:0 10px;font-size:12.5px}
+.fl{font-size:12.5px;font-weight:600}
+.fh{font-size:12px}
+.fld{min-height:32px;padding:0 10px;border-radius:10px;gap:8px}
+.fld input{height:28px;font-size:13px}
+.fld input.mono{font-size:12.5px}
+.dd,.mn,.smenu,.pop{padding:4px;border-radius:12px}
+.mi{min-height:30px;padding:5px 9px;border-radius:8px}
+.mi2,.mo{min-height:30px;padding:3px 9px;border-radius:8px;font-size:13px}
+.opt{min-height:0;padding:8px 10px;border-radius:10px;gap:10px}
+.optx{min-height:0;padding:7px 10px;border-radius:10px}
+.mt{min-height:24px;padding:0 2px 0 9px}
+.mt button{width:20px;height:20px}
+.lvin{height:26px}
+.kv{min-height:30px;border-radius:10px}
+.mrow{min-height:30px;border-radius:8px}
+.fr{min-height:28px;border-radius:8px}
+.bulk-btn{min-height:28px;padding:0 10px;font-size:12.5px}
+.sb{min-height:28px;padding:0 8px 0 11px;border-width:1px;font-size:12.5px}
+.grp{border-radius:14px;padding:0 14px}
+.rw{min-height:50px;padding:7px 0;gap:10px}
+.rm{gap:2px}
+.rt{font-size:13.5px;font-weight:600}
+.rs{font-size:12.5px}
+.sh{font-size:13.5px;font-weight:700}
+.tt{height:30px;border-radius:9px;padding:0 3px 0 10px}
+.tt-btn{height:30px;font-size:13px;font-weight:600}
+.tt-x{width:22px;height:22px;border-radius:7px}
+.tk{min-height:40px;padding:6px 6px 6px 10px}
+.tool{min-height:30px;border-radius:9px;padding:0 10px}
+.ta{font-size:13.5px}
+.shell .ib{width:44px;height:44px;border-radius:14px}
+.shell .ib .ic{width:20px;height:20px}
+.shell .ib-sm{width:36px;height:36px;border-radius:12px}
+.shell .inp{min-height:44px;padding:0 14px;gap:10px}
+.shell .inp input{font-size:14px}
+.root{font-family:'Segoe UI','Microsoft YaHei UI','Microsoft YaHei','PingFang SC','Noto Sans SC',system-ui,sans-serif}
+.shell{font-family:'Outfit','HarmonyOS Sans SC','PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif}
+.num{font-family:inherit}
+.btn{font-weight:500}
+.chip{font-weight:500}
+.pill{font-weight:500}
+.tag{font-weight:500}
+.ag{font-weight:600}
+.av{font-weight:700}
+.lbl{font-size:11.5px;font-weight:600;letter-spacing:.02em}
+.fl{font-weight:500}
+.seg button{font-weight:500}
+.seg .on{font-weight:600}
+.fld input{font-weight:400}
+.utab{min-height:36px;font-size:13.5px;font-weight:500;border-bottom-width:2px}
+.utab-on,.utab-on:hover{font-weight:600}
+.utab .n{font-size:11.5px;padding:0 7px}
+.rt{font-size:13px;font-weight:600}
+.rs{font-size:12px}
+.rs.mono,.rs .mono{font-size:12px}
+.sh{font-size:13px;font-weight:600}
+.sb{font-weight:500}
+.mo-on,.mo-on:hover{font-weight:600}
+.tt-btn{font-size:12.5px;font-weight:500}
+.tt-on .tt-btn{font-weight:600}
+.wb{font-size:13px;font-weight:600}
+.ss{font-size:13px}
+.am{font-weight:700}
+.bulk-btn{font-weight:500}
+.kbd{font-weight:600}
+.shell .lbl{font-size:12px;font-weight:700;letter-spacing:.08em}
+.shell .av{font-weight:800}
+.shell .kbd{font-weight:700}
+.shell .num{font-family:'Outfit',sans-serif}
+.shm{position:absolute;z-index:8;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:16px;background:var(--s);border:1px solid var(--line);box-shadow:0 18px 44px -14px rgba(20,10,30,.4)}
+.shi{display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:0 10px;border-radius:10px;border:0;background:transparent;font:inherit;font-size:13.5px;color:var(--ink);text-align:left;cursor:pointer}
+.shi:hover{background:var(--s2)}
+.shi-on,.shi-on:hover{background:var(--pSoft);color:var(--pInk);font-weight:700}
+.rlt{display:none}
+.rail-open .rlt{display:block;flex:1;min-width:0;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rail-open nav{align-items:stretch !important;padding:0 12px}
+.rail-open .rl{width:auto;justify-content:flex-start;gap:12px;padding:0 12px}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--a2);outline-offset:2px}
+.hs{scrollbar-width:none;-ms-overflow-style:none}.hs::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div class="root th-{{palette}}-{{mode}}" style="position: relative; height: 100vh; min-height: 820px; display: flex; align-items: stretch">
+
+  <aside class="shell {{railCls}}" style="flex: none; width: {{railW}}; background: var(--s); border-right: 1px solid var(--line); padding: 16px 0; display: flex; flex-direction: column; align-items: center; gap: 10px">
+    <div style="width: 40px; height: 40px; border-radius: 13px; background: var(--p); color: var(--pOn); display: flex; align-items: center; justify-content: center; font-size: 21px; font-weight: 800; transform: rotate(-6deg); flex: none">M</div>
+    <span style="position: relative; display: inline-flex"><button class="ib" aria-label="切换节点，当前：{{nodeTip}}" title="{{nodeTip}}" aria-haspopup="menu" aria-expanded="{{nodeOn}}" onClick="{{toggleNode}}" style="border: 1.5px dashed var(--line); background: var(--bg)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.server}}"></path></svg></button><sc-if value="{{nodeOn}}" hint-placeholder-val="{{false}}"><div class="shm" role="menu" aria-label="切换节点" style="left: calc(100% + 10px); top: 0; width: 250px"><sc-for list="{{nodes}}" as="o" hint-placeholder-count="3"><button class="shi {{o.cls}}" role="menuitemradio" aria-checked="{{o.on}}" onClick="{{o.pick}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{o.c}}; flex: none"></span><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{o.n}}</span><span style="font-size: 12px; font-weight: 500; color: var(--ink2)">{{o.s}}</span></button></sc-for></div></sc-if></span>
+    <nav class="hs" aria-label="主导航" style="flex: 1; min-height: 0; overflow-y: auto; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px">
+      <sc-for list="{{rail}}" as="n" hint-placeholder-count="12">
+        <sc-if value="{{n.sep}}" hint-placeholder-val="{{false}}">
+          <span style="width: 28px; height: 1px; background: var(--line); margin: 6px 0; flex: none"></span>
+        </sc-if>
+        <a class="rl {{n.cls}}" href="{{n.href}}" aria-label="{{n.t}}" title="{{n.t}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{n.d}}"></path></svg><span class="rlt">{{n.t}}</span></a>
+      </sc-for>
+    </nav>
+    <button class="ib" aria-label="{{railT}}" title="{{railT}}" aria-pressed="{{railOpen}}" onClick="{{toggleRail}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.panel}}"></path></svg></button>
+    <span class="av av-a" style="width: 40px; height: 40px; border-radius: 50%; font-size: 16px">超</span>
+  </aside>
+
+  <main style="flex: 1; min-width: 0; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px">
+    <div class="shell" style="display: flex; align-items: center; gap: 12px">
+      <label class="inp" style="flex: 1 1 320px; max-width: 460px">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+        <input type="search" placeholder="搜索页面、应用、容器、文件…" aria-label="全局搜索">
+        <span class="kbd">Ctrl K</span>
+      </label>
+      <span style="flex: 1"></span>
+      <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
+      <span style="position: relative; display: inline-flex"><button class="ib" aria-label="通知" aria-haspopup="menu" aria-expanded="{{bellOn}}" onClick="{{toggleBell}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bell}}"></path></svg><sc-if value="{{hasUnread}}" hint-placeholder-val="{{true}}"><span class="dot"></span></sc-if></button><sc-if value="{{bellOn}}" hint-placeholder-val="{{false}}"><div class="shm" role="menu" aria-label="通知" style="right: 0; top: calc(100% + 6px); width: 330px"><sc-for list="{{notes}}" as="o" hint-placeholder-count="3"><a class="shi" role="menuitem" href="{{o.href}}" style="padding: 8px 10px; text-decoration: none"><span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 13.5px; font-weight: {{o.w}}">{{o.t}}</span><span style="font-size: 12px; color: var(--ink2)">{{o.s}}</span></span></a></sc-for><button class="shi" role="menuitem" onClick="{{readAll}}" style="justify-content: center; color: var(--ink2)">全部标为已读</button></div></sc-if></span>
+    </div>
+
+    <div style="flex: 1; min-height: 0; display: flex; gap: 10px">
+
+      <sc-if value="{{leftOn}}" hint-placeholder-val="{{true}}">
+      <section class="card" aria-label="会话列表" style="flex: none; width: 264px; padding: 10px; display: flex; flex-direction: column; gap: 10px">
+        <a class="btn btn-p" style="min-height: 30px" href="AgentNewPC.dc.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg>新会话</a>
+        <label class="inp" style="min-height: 30px">
+          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg>
+          <input type="search" value="{{sq}}" onChange="{{setSq}}" placeholder="搜索会话" aria-label="搜索会话">
+        </label>
+        <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-top: 2px">
+          <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <div class="wr">
+                <button class="wb" aria-expanded="{{g.open}}" onClick="{{g.toggle}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{g.icon}}"></path></svg><span style="flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{g.t}}</span><span class="mono" style="flex: 1; min-width: 0; font-size: 11.5px; font-weight: 400; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{g.br}}</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{g.chev}}"></path></svg></button>
+                <sc-if value="{{g.isWs}}" hint-placeholder-val="{{true}}">
+                  <button class="sm {{g.infoCls}}" aria-label="{{g.t}} 的信息" title="工作区信息" aria-haspopup="dialog" aria-expanded="{{g.infoOn}}" onClick="{{g.info}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+                </sc-if>
+                <a class="sm" href="AgentNewPC.dc.html" aria-label="在 {{g.t}} 里新建会话" title="新会话"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.plus}}"></path></svg></a>
+                <sc-if value="{{g.infoOn}}" hint-placeholder-val="{{false}}">
+                  <div class="wpop" role="dialog" aria-label="{{g.t}}">
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{g.t}}</span><span class="tag">{{g.br}}</span></div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chat}}"></path></svg><span>{{g.n}} 个会话</span></div>
+                    <div class="mono" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{g.path}}</span></div>
+                    <span aria-hidden="true" style="height: 1px; background: var(--line)"></span>
+                    <a class="wl" href="AgentWorkspacesPC.dc.html"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.settings}}"></path></svg>编辑工作区</a>
+                  </div>
+                </sc-if>
+              </div>
+              <sc-if value="{{g.open}}" hint-placeholder-val="{{true}}">
+              <sc-for list="{{g.items}}" as="s" hint-placeholder-count="2">
+                <div class="sr {{s.cls}}">
+                  <button class="ss" aria-current="{{s.cur}}" title="{{s.tip}}" onClick="{{s.open}}" style="padding-left: {{s.pad}}">
+                    <sc-if value="{{s.isFork}}" hint-placeholder-val="{{false}}"><span title="复刻出来的会话" style="display: inline-flex; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{i.branch}}"></path></svg></span></sc-if><span class="sd {{s.dotCls}}" style="background: {{s.dot}}"></span>
+                    <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500">{{s.t}}</span>
+                    <sc-if value="{{s.hasWt}}" hint-placeholder-val="{{false}}"><span title="独立工作树 {{s.wtName}}" style="display: inline-flex; color: var(--pInk)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{i.layers}}"></path></svg></span></sc-if>
+                    <span class="am {{s.agCls}}" aria-label="{{s.ag}}">{{s.agL}}</span>
+                  </button>
+                  <button class="sm {{s.smCls}}" aria-label="{{s.t}} 的操作" aria-haspopup="menu" aria-expanded="{{s.menuOn}}" onClick="{{s.menu}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 3"><path d="{{i.more}}"></path></svg></button>
+                  <sc-if value="{{s.menuOn}}" hint-placeholder-val="{{false}}">
+                    <div class="smenu" role="menu" aria-label="{{s.t}} 的操作">
+                      <sc-for list="{{sessActs}}" as="a" hint-placeholder-count="7">
+                        <sc-if value="{{a.sep}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" style="height: 1px; margin: 3px 6px; background: var(--line)"></span></sc-if>
+                        <button class="mi2" role="menuitem" onClick="{{a.run}}" style="color: {{a.c}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{a.d}}"></path></svg><span style="flex: 1">{{a.t}}</span><span class="mono" style="font-size: 12px; color: var(--ink2)">{{a.x}}</span></button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <sc-if value="{{g.hasMore}}" hint-placeholder-val="{{false}}">
+                <button class="sx" onClick="{{g.showMore}}">展开显示（还有 {{g.rest}} 个）</button>
+              </sc-if>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <a class="btn btn-s btn-sm" href="AgentSessionsPC.dc.html">全部会话</a>
+      </section>
+
+      </sc-if>
+
+      <section class="card" aria-label="对话" style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <header style="position: relative; display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 8px; border-bottom: 1px solid var(--line)">
+          <button class="ib ib-sm" aria-label="{{leftT}}" title="{{leftT}}" aria-pressed="{{leftOn}}" onClick="{{toggleLeft}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.panelL}}"></path></svg></button>
+          <div class="hs" ref="{{tabsRef}}" role="tablist" aria-label="已打开的标签" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; overflow-x: auto">
+            <div class="tt {{chatTabCls}}" style="padding-right: 12px">
+              <button class="tt-btn" role="tab" aria-selected="{{chatOn}}" onClick="{{pickChat}}" style="padding: 0"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chat}}"></path></svg><span style="max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{curTitle}}</span><span class="sd" title="{{stT}}" style="background: {{stDot}}"></span></button>
+            </div>
+            <sc-if value="{{subTabOn}}" hint-placeholder-val="{{false}}">
+              <div class="tt {{subTabCls}}">
+                <button class="tt-btn" role="tab" aria-selected="{{subOn}}" onClick="{{pickSub}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bot}}"></path></svg><span style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">子 Agent · {{sub.t}}</span></button>
+                <button class="tt-x" aria-label="关闭子 Agent 的会话" onClick="{{closeSub}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="{{i.x}}"></path></svg></button>
+              </div>
+            </sc-if>
+            <sc-for list="{{fileTabs}}" as="t" hint-placeholder-count="1">
+              <div class="tt {{t.cls}}">
+                <button class="tt-btn" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.file}}"></path></svg><span class="mono" style="font-size: 12px">{{t.name}}</span></button>
+                <button class="tt-x" aria-label="关闭 {{t.path}}" onClick="{{t.close}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="{{i.x}}"></path></svg></button>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{manyTabs}}" hint-placeholder-val="{{true}}">
+            <button class="cl" aria-label="全部标签，共 {{tabCount}} 个" title="全部标签" aria-haspopup="menu" aria-expanded="{{tabsOpen}}" onClick="{{toggleTabs}}" style="flex: none; background: var(--s2); color: var(--ink)"><span class="num">{{tabCount}}</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+          </sc-if>
+          <sc-if value="{{tabsOpen}}" hint-placeholder-val="{{false}}">
+            <div class="pop" role="menu" aria-label="全部标签" style="top: 52px; right: 48px; width: 300px; padding: 6px; border-radius: 12px; z-index: 7">
+              <button class="mi2 {{chatMiCls}}" role="menuitemradio" aria-checked="{{chatOn}}" onClick="{{pickChatMenu}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chat}}"></path></svg><span style="flex: 1; min-width: 0; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{curTitle}}</span></button>
+              <sc-if value="{{subTabOn}}" hint-placeholder-val="{{false}}">
+                <button class="mi2 {{subMiCls}}" role="menuitemradio" aria-checked="{{subOn}}" onClick="{{pickSubMenu}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.bot}}"></path></svg><span style="flex: 1; min-width: 0; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">子 Agent · {{sub.t}}</span></button>
+              </sc-if>
+              <span aria-hidden="true" style="height: 1px; margin: 3px 6px; background: var(--line)"></span>
+              <sc-for list="{{fileTabs}}" as="t" hint-placeholder-count="6">
+                <div style="display: flex; align-items: center; gap: 2px">
+                  <button class="mi2 {{t.miCls}}" role="menuitemradio" aria-checked="{{t.on}}" onClick="{{t.pickMenu}}" style="flex: 1; min-width: 0"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.file}}"></path></svg><span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{t.path}}</span></button>
+                  <button class="sm" aria-label="关闭 {{t.path}}" onClick="{{t.close}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="{{i.x}}"></path></svg></button>
+                </div>
+              </sc-for>
+              <span aria-hidden="true" style="height: 1px; margin: 3px 6px; background: var(--line)"></span>
+              <button class="mi2" role="menuitem" onClick="{{closeOthers}}" style="font-size: 13px; color: var(--ink2)">关闭其它文件</button>
+            </div>
+          </sc-if>
+          <button class="ib ib-sm" aria-label="{{rightT}}" title="{{rightT}}" aria-pressed="{{rightOn}}" onClick="{{toggleRight}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.panelR}}"></path></svg></button>
+        </header>
+
+        <sc-if value="{{chatOn}}" hint-placeholder-val="{{true}}">
+        <div class="hs" ref="{{logRef}}" role="log" aria-label="对话内容" style="flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+          <sc-if value="{{isDemo}}" hint-placeholder-val="{{true}}">
+          <div style="align-self: flex-end; max-width: 86%; padding: 9px 13px; border-radius: 14px 14px 4px 14px; background: var(--pSoft); font-size: 13px; line-height: 1.6">给 GET /api/posts 加上分页（page、size）和按 tag 筛选。筛选、分页和计数都放到 SQL 里做，不要查出来再在内存里处理，顺便补上测试。</div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span class="ag ag-cc">Claude Code</span>
+              <button onClick="{{toggleThink}}" aria-expanded="{{thinkOpen}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 8px; border-radius: 8px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500; color: var(--ink2); cursor: pointer"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bulb}}"></path></svg>思考了 6 秒<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{thinkChev}}"></path></svg></button>
+            </div>
+            <sc-if value="{{thinkOpen}}" hint-placeholder-val="{{false}}">
+              <div style="padding: 9px 11px; border-radius: 10px; background: var(--s2); font-size: 13px; line-height: 1.7; color: var(--ink2)">要求是分页加标签筛选，而且明确说了要在 SQL 里做。先确认 findPosts 有几个调用方，再看标签是单独一张表还是文章表里的字段，这决定 WHERE 怎么写。计数也要走同一个条件，不然总数和列表会对不上。</div>
+            </sc-if>
+            <div style="font-size: 13px; line-height: 1.65">我先看一下路由和数据层现在是怎么查文章的。</div>
+            <div class="tool"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.file}}"></path></svg><span style="font-weight: 500">读取</span><span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">src/routes/posts.ts</span><span class="num" style="font-size: 12px; color: var(--ink2)">86 行</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.check}}"></path></svg></div>
+            <div class="tool"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.search}}"></path></svg><span style="font-weight: 500">搜索</span><span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">findPosts</span><span class="num" style="font-size: 12px; color: var(--ink2)">3 处</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.check}}"></path></svg></div>
+            <div style="font-size: 13px; line-height: 1.65">现在的 <span class="mono" style="font-size: 13px">findPosts</span> 会把整张表读出来，再在内存里筛选。我把筛选、分页和计数都改成 SQL 的 WHERE、LIMIT / OFFSET 和 COUNT(*)。</div>
+
+            <div style="border: 1px solid var(--line); border-radius: 12px; overflow: hidden">
+              <div style="display: flex; align-items: center; gap: 10px; min-height: 32px; padding: 0 6px 0 12px; background: var(--s2); font-size: 13px">
+                <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.edit}}"></path></svg>
+                <span style="font-weight: 500">编辑</span>
+                <span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">src/repo/posts.ts</span>
+                <span class="num" style="font-size: 12px; font-weight: 600; color: var(--ok)">+9</span>
+                <span class="num" style="font-size: 12px; font-weight: 600; color: var(--bad)">−2</span>
+                <button class="btn btn-s btn-sm" onClick="{{showDiff}}" style="min-height: 30px; padding: 0 12px; background: var(--s)">完整改动</button>
+              </div>
+              <div class="mono hs" style="overflow-x: auto; padding: 6px 0">
+                <sc-for list="{{inlineDiff}}" as="l" hint-placeholder-count="7">
+                  <div class="dl {{l.cls}}"><span class="g">{{l.n}}</span><span class="sg">{{l.s}}</span><span style="padding-right: 12px">{{l.t}}</span></div>
+                </sc-for>
+              </div>
+            </div>
+            <div class="tool"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.edit}}"></path></svg><span style="font-weight: 500">编辑</span><span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">src/routes/posts.ts</span><span class="num" style="font-size: 12px; font-weight: 600; color: var(--ok)">+4</span><span class="num" style="font-size: 12px; font-weight: 600; color: var(--bad)">−1</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.check}}"></path></svg></div>
+            <div class="tool"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.file}}"></path></svg><span style="font-weight: 500">新建</span><span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">test/posts.page.test.ts</span><span class="num" style="font-size: 12px; font-weight: 600; color: var(--ok)">+48</span><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.check}}"></path></svg></div>
+
+            <sc-if value="{{isAsk}}" hint-placeholder-val="{{true}}">
+              <div role="group" aria-label="需要你的批准" style="border: 1.5px solid var(--warn); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; background: var(--s)">
+                <div style="display: flex; align-items: center; gap: 8px; color: var(--warn); font-size: 13px; font-weight: 600"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.shield}}"></path></svg>需要你的批准<span style="flex: 1"></span><span style="font-size: 12px; font-weight: 500; color: var(--ink2)">Claude Code 想执行命令</span></div>
+                <div class="mono" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--s2); font-size: 13px"><span style="color: var(--ink2)">$</span><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">pnpm test posts</span><span style="font-size: 12px; color: var(--ink2)">/srv/blog-api</span></div>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+                  <button class="btn btn-p btn-sm" onClick="{{allow}}">允许这一次</button>
+                  <button class="btn btn-s btn-sm" onClick="{{allow}}">本会话都允许 <span class="mono" style="font-size: 12px">pnpm test</span></button>
+                  <span style="flex: 1"></span>
+                  <button class="btn btn-o btn-sm" onClick="{{deny}}">拒绝</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{isAllow}}" hint-placeholder-val="{{false}}">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <div style="border: 1px solid var(--line); border-radius: 12px; overflow: hidden">
+                  <div style="display: flex; align-items: center; gap: 10px; min-height: 32px; padding: 0 12px; background: var(--s2); font-size: 13px">
+                    <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.terminal}}"></path></svg>
+                    <span style="font-weight: 500">执行</span>
+                    <span class="mono" style="flex: 1; min-width: 0; font-size: 12px">pnpm test posts</span>
+                    <span class="num" style="font-size: 12px; color: var(--ink2)">退出码 0 · 1.8 秒</span>
+                    <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.check}}"></path></svg>
+                  </div>
+                  <div class="term hs" style="border-radius: 0; padding: 8px 11px; overflow-x: auto">
+                    <sc-for list="{{testOut}}" as="ln" hint-placeholder-count="5">
+                      <div class="ln" style="color: {{ln.c}}">{{ln.t}}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="font-size: 13px; line-height: 1.65">做完了，12 个测试全部通过。接口现在支持 <span class="mono" style="font-size: 13px">?page=2&amp;size=20&amp;tag=go</span>，返回里多了 <span class="mono" style="font-size: 13px">total</span>，筛选、分页和计数都在 SQL 里完成。</div>
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.check}}"></path></svg><span>本轮结束 · 用时 1 分 52 秒 · 改动 3 个文件 ·</span><button aria-expanded="{{tokOpen}}" onClick="{{toggleTok}}" style="display: inline-flex; align-items: center; gap: 3px; min-height: 22px; padding: 0 6px; margin-left: -6px; border: 0; border-radius: 7px; background: transparent; font: inherit; color: inherit; cursor: pointer"><span class="num">18.4k</span> token<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{tokChev}}"></path></svg></button></div>
+                <sc-if value="{{tokOpen}}" hint-placeholder-val="{{false}}">
+                  <div class="num" style="display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 6px 10px; border-radius: 10px; background: var(--s2); font-size: 12px; color: var(--ink2)"><span>输入 15.2k</span><span>其中缓存命中 11.0k</span><span>输出 3.2k</span><span>其中思考 1.1k</span></div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{isDeny}}" hint-placeholder-val="{{false}}">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <div class="tool"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--bad)"><path d="{{i.x}}"></path></svg><span style="font-weight: 500">已拒绝</span><span class="mono" style="flex: 1; min-width: 0; font-size: 12px">pnpm test posts</span></div>
+                <div style="font-size: 13px; line-height: 1.65">好的，我不运行测试。代码和测试文件已经写好，你可以稍后自己执行 <span class="mono" style="font-size: 13px">pnpm test posts</span> 验证。</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{isStop}}" hint-placeholder-val="{{false}}">
+              <div class="tool"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--bad)"><path d="{{i.stop}}"></path></svg><span style="font-weight: 500">已停止</span><span style="flex: 1; min-width: 0; color: var(--ink2)">这一轮被你停止，等待批准的命令没有执行</span></div>
+            </sc-if>
+          </div>
+        </sc-if>
+          <sc-if value="{{isOther}}" hint-placeholder-val="{{false}}">
+            <div style="align-self: flex-end; max-width: 86%; padding: 9px 13px; border-radius: 14px 14px 4px 14px; background: var(--pSoft); font-size: 13px; line-height: 1.6">{{curTitle}}</div>
+            <div style="font-size: 13px; line-height: 1.7">好的，我来处理。</div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.check}}"></path></svg>{{otherMeta}}</div>
+          </sc-if>
+        </div>
+
+        <div style="padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); position: relative">
+          <sc-if value="{{planOpen}}" hint-placeholder-val="{{false}}">
+            <ol aria-label="计划步骤" style="margin: 0; padding: 6px 8px; list-style: none; display: flex; flex-direction: column; gap: 2px; border-radius: 10px; background: var(--s2)">
+              <sc-for list="{{plan}}" as="p" hint-placeholder-count="5">
+                <li style="display: flex; align-items: center; gap: 10px; min-height: 30px; padding: 0 6px; font-size: 13px; color: {{p.fg}}"><span class="sd" style="background: {{p.c}}"></span><span style="flex: 1">{{p.t}}</span><span style="font-size: 12px; font-weight: 500">{{p.st}}</span></li>
+              </sc-for>
+            </ol>
+          </sc-if>
+          <button onClick="{{togglePlan}}" aria-expanded="{{planOpen}}" style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 30px; padding: 0 10px; border-radius: 12px; border: 0; background: transparent; font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; text-align: left">
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.listcheck}}"></path></svg>
+            <span style="font-weight: 600">计划 <span class="num">{{planDone}}</span> / 5</span>
+            <span aria-hidden="true" style="display: flex; gap: 3px">
+              <sc-for list="{{plan}}" as="p" hint-placeholder-count="5">
+                <span style="width: 18px; height: 5px; border-radius: 3px; background: {{p.c}}"></span>
+              </sc-for>
+            </span>
+            <span style="flex: 1; min-width: 0; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{planNow}}</span>
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{planChev}}"></path></svg>
+          </button>
+
+          <div style="border: 1.5px solid var(--line); border-radius: 16px; background: var(--bg); padding: 9px 8px 6px 12px; display: flex; flex-direction: column; gap: 6px">
+            <sc-if value="{{hasAtt}}" hint-placeholder-val="{{false}}">
+              <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                <sc-for list="{{atts}}" as="a" hint-placeholder-count="2">
+                  <span style="display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 2px 0 10px; border-radius: 10px; background: var(--s); border: 1px solid var(--line); font-size: 12px; color: var(--ink)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{a.d}}"></path></svg><span class="{{a.cls}}">{{a.n}}</span><button class="tt-x" aria-label="移除 {{a.n}}" onClick="{{a.drop}}" style="width: 20px; height: 20px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 12px; height: 12px"><path d="{{i.x}}"></path></svg></button></span>
+                </sc-for>
+              </div>
+            </sc-if>
+            <textarea class="ta" onKeyDown="{{draftKey}}" rows="2" value="{{draft}}" onChange="{{setDraft}}" aria-label="给 Agent 发消息" placeholder="继续说点什么…  输入 / 调用命令，@ 引用文件"></textarea>
+            <div style="display: flex; align-items: center; gap: 4px; margin-left: -8px">
+              <button class="ib ib-sm" aria-label="添加图片或文件" aria-haspopup="menu" aria-expanded="{{clipOpen}}" onClick="{{toggleClip}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.clip}}"></path></svg></button>
+              <button class="ib ib-sm" aria-label="引用工作区里的文件" aria-haspopup="dialog" aria-expanded="{{atOpen}}" onClick="{{toggleAt}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.at}}"></path></svg></button>
+              <button class="ib ib-sm" aria-label="斜杠命令" aria-haspopup="menu" aria-expanded="{{slashOpen}}" onClick="{{toggleSlash}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.slash}}"></path></svg></button>
+              <span style="flex: 1"></span>
+              <button class="cl num" onClick="{{toggleCtx}}" aria-expanded="{{ctxOpen}}" aria-haspopup="dialog">上下文 {{ctx.pct}}</button>
+              <button class="cl" onClick="{{toggleModes}}" aria-expanded="{{modesOpen}}" aria-haspopup="menu">{{modeName}}<svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+              <button class="cl" onClick="{{toggleModel}}" aria-expanded="{{modelOpen}}" aria-haspopup="dialog" aria-label="选择模型和推理强度"><span class="mono" style="font-size: 12px; color: var(--ink)">{{modelName}}</span><sc-if value="{{hasEffort}}" hint-placeholder-val="{{true}}"><span>· {{effortName}}</span></sc-if><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.chevD}}"></path></svg></button>
+              <button aria-label="{{sendT}}" title="{{sendT}}" onClick="{{sendAct}}" style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: 0; background: {{sendBg}}; color: {{sendFg}}; cursor: pointer; flex: none; margin-left: 2px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width: 2.4"><path d="{{sendD}}"></path></svg></button>
+            </div>
+          </div>
+
+          <sc-if value="{{clipOpen}}" hint-placeholder-val="{{false}}">
+            <div class="pop" role="menu" aria-label="添加图片或文件" style="left: 16px; bottom: 76px; width: 220px; padding: 6px; border-radius: 12px">
+              <sc-for list="{{clipActs}}" as="a" hint-placeholder-count="3">
+                <button class="mi2" role="menuitem" onClick="{{a.run}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{a.d}}"></path></svg><span style="flex: 1; font-size: 13px">{{a.t}}</span></button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{atOpen}}" hint-placeholder-val="{{false}}">
+            <div class="pop" role="dialog" aria-label="引用工作区里的文件" style="left: 52px; bottom: 76px; width: 330px; padding: 6px; border-radius: 12px">
+              <label class="inp" style="min-height: 30px; margin: 2px 2px 6px; border-radius: 12px"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.search}}"></path></svg><input type="search" value="{{aq}}" onChange="{{setAq}}" placeholder="搜索文件名" aria-label="搜索文件名"></label>
+              <sc-for list="{{atFiles}}" as="f" hint-placeholder-count="6">
+                <button class="mi2" onClick="{{f.pick}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.file}}"></path></svg><span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.p}}</span></button>
+              </sc-for>
+              <sc-if value="{{atEmpty}}" hint-placeholder-val="{{false}}">
+                <div style="padding: 8px 10px 10px; font-size: 12px; line-height: 1.5; color: var(--ink2)">这次会话没有工作区，没有可以引用的文件。</div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{slashOpen}}" hint-placeholder-val="{{false}}">
+            <div class="pop hs" role="menu" aria-label="斜杠命令" style="left: 88px; bottom: 76px; width: 380px; max-height: 320px; overflow-y: auto; padding: 6px; border-radius: 12px">
+              <sc-for list="{{cmdGroups}}" as="g" hint-placeholder-count="3">
+                <div class="lbl" style="padding: 6px 10px 4px">{{g.t}}</div>
+                <sc-for list="{{g.items}}" as="c" hint-placeholder-count="2">
+                  <button class="mi2 {{c.cls}}" role="menuitem" onClick="{{c.pick}}"><span class="mono" style="font-size: 13px; font-weight: 600; color: var(--pInk); white-space: nowrap">{{c.n}}</span><span style="flex: 1; min-width: 0; font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.d}}</span></button>
+                </sc-for>
+              </sc-for>
+              <sc-if value="{{cmdEmpty}}" hint-placeholder-val="{{false}}">
+                <div style="padding: 8px 10px; font-size: 12px; color: var(--ink2)">没有匹配的命令</div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{modesOpen}}" hint-placeholder-val="{{false}}">
+            <div class="pop" role="menu" aria-label="权限模式" style="right: 190px; bottom: 76px; width: 330px">
+              <div class="lbl" style="padding: 6px 12px 4px">权限模式 · 由 Claude Code 提供</div>
+              <sc-for list="{{modes}}" as="m" hint-placeholder-count="4">
+                <button class="mi" role="menuitemradio" aria-checked="{{m.on}}" onClick="{{m.pick}}">
+                  <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+                    <span style="font-size: 13px; font-weight: 600">{{m.t}}</span>
+                    <span style="font-size: 12px; color: var(--ink2); line-height: 1.45">{{m.d}}</span>
+                  </span>
+                  <sc-if value="{{m.on}}" hint-placeholder-val="{{false}}">
+                    <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk); margin-top: 3px"><path d="{{i.check}}"></path></svg>
+                  </sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{modelOpen}}" hint-placeholder-val="{{false}}">
+            <div class="pop" role="menu" aria-label="模型和推理强度" style="right: 16px; bottom: 76px; width: 252px; padding: 6px; border-radius: 12px">
+              <div style="padding: 5px 10px 1px; font-size: 11.5px; font-weight: 500; color: var(--ink2)">{{curProv}}</div>
+              <sc-for list="{{provModels}}" as="m" hint-placeholder-count="2">
+                <button class="mi2 {{m.cls}}" role="menuitemradio" aria-checked="{{m.on}}" onClick="{{m.pick}}">
+                  <span class="mono" style="flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{m.t}}</span>
+                  <sc-if value="{{m.on}}" hint-placeholder-val="{{false}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk)"><path d="{{i.check}}"></path></svg></sc-if>
+                </button>
+              </sc-for>
+              <button class="mi2 {{rowMoreCls}}" role="menuitem" aria-haspopup="menu" aria-expanded="{{subMore}}" onClick="{{toggleSubMore}}">
+                <span style="flex: 1; font-size: 13px">更多模型</span>
+                <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chevR}}"></path></svg>
+              </button>
+              <span aria-hidden="true" style="height: 1px; margin: 3px 6px; background: var(--line)"></span>
+              <sc-if value="{{hasEffort}}" hint-placeholder-val="{{true}}">
+              <button class="mi2 {{rowEffortCls}}" role="menuitem" aria-haspopup="menu" aria-expanded="{{subEffort}}" onClick="{{toggleSubEffort}}">
+                <span style="flex: 1; font-size: 13px">推理强度</span>
+                <span style="font-size: 13px; color: var(--ink2)">{{effortName}}</span>
+                <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.chevR}}"></path></svg>
+              </button>
+              </sc-if>
+              <sc-if value="{{noEffort}}" hint-placeholder-val="{{false}}">
+                <div style="display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 5px 10px; font-size: 13px; color: var(--ink2)"><span style="flex: 1">推理强度</span><span>这个模型不可调</span></div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{subMore}}" hint-placeholder-val="{{false}}">
+            <div class="pop" role="menu" aria-label="更多模型" style="right: 274px; bottom: 118px; width: 236px; padding: 6px; border-radius: 12px">
+              <sc-for list="{{moreGroups}}" as="g" hint-placeholder-count="2">
+                <div style="padding: 5px 10px 1px; font-size: 11.5px; font-weight: 500; color: var(--ink2)">{{g.n}}</div>
+                <sc-for list="{{g.items}}" as="m" hint-placeholder-count="2">
+                  <button class="mi2 {{m.cls}}" role="menuitemradio" aria-checked="{{m.on}}" onClick="{{m.pick}}">
+                    <span class="mono" style="flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{m.t}}</span>
+                  </button>
+                </sc-for>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{subEffort}}" hint-placeholder-val="{{false}}">
+            <div class="pop" role="menu" aria-label="推理强度" style="right: 274px; bottom: 76px; width: 140px; padding: 6px; border-radius: 12px">
+              <sc-for list="{{efforts}}" as="e" hint-placeholder-count="4">
+                <button class="mi2 {{e.cls}}" role="menuitemradio" aria-checked="{{e.on}}" onClick="{{e.pick}}">
+                  <span style="flex: 1; font-size: 13px">{{e.t}}</span>
+                  <sc-if value="{{e.on}}" hint-placeholder-val="{{false}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk)"><path d="{{i.check}}"></path></svg></sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ctxOpen}}" hint-placeholder-val="{{false}}">
+            <div class="pop" role="dialog" aria-label="上下文用量" style="right: 300px; bottom: 76px; width: 300px; padding: 12px; gap: 10px">
+              <div style="display: flex; align-items: baseline; gap: 8px"><span class="lbl" style="flex: 1">上下文</span><span class="num" style="font-size: 13px; font-weight: 600; color: var(--ink2)">已用 {{ctx.pct}}</span></div>
+              <div class="num" style="font-size: 20px; font-weight: 600; line-height: 1.1">{{ctx.used}} <span style="font-size: 13px; font-weight: 500; color: var(--ink2)">/ 200k</span></div>
+              <div aria-hidden="true" style="height: 8px; border-radius: 4px; background: var(--line); overflow: hidden"><div style="width: {{ctx.pct}}; height: 8px; border-radius: 4px; background: var(--p)"></div></div>
+              <div class="num" style="font-size: 12px; color: var(--ink2)">已用 {{ctx.used}}，最大 200k，还剩 {{ctx.left}}</div>
+              <button class="btn btn-s btn-sm" onClick="{{showInfo}}" style="align-self: flex-start">查看会话信息</button>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{subOn}}" hint-placeholder-val="{{false}}">
+          <div style="flex: 1; min-height: 0; display: flex; flex-direction: column">
+            <div style="display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 10px 0 16px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--ink2)">
+              <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.bot}}"></path></svg>
+              <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">子 Agent · 由主会话派出 · {{sub.meta}}</span>
+              <span class="ag ag-cc">Claude Code</span>
+              <button class="btn btn-s btn-sm" onClick="{{pickChat}}">回到主会话</button>
+            </div>
+            <div class="hs" role="log" aria-label="子 Agent 的对话内容" style="flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+              <div style="align-self: flex-end; max-width: 86%; padding: 9px 13px; border-radius: 14px 14px 4px 14px; background: var(--s2); font-size: 13px; line-height: 1.6"><div style="margin-bottom: 2px; font-size: 12px; color: var(--ink2)">主会话交给它的任务</div>{{sub.prompt}}</div>
+              <sc-for list="{{sub.steps}}" as="x" hint-placeholder-count="4">
+                <div class="tool"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{x.d}}"></path></svg><span style="font-weight: 500">{{x.t}}</span><span class="mono" style="flex: 1; min-width: 0; font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{x.x}}</span></div>
+              </sc-for>
+              <div style="font-size: 13px; line-height: 1.7">{{sub.lead}}</div>
+              <div class="mono" style="padding: 9px 11px; border-radius: 10px; background: var(--s2); font-size: 12px; line-height: 1.7">
+                <sc-for list="{{sub.out}}" as="l" hint-placeholder-count="3">
+                  <div>{{l}}</div>
+                </sc-for>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ok)"><path d="{{i.check}}"></path></svg>子 Agent 已结束，结果已经交回主会话</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{fileOn}}" hint-placeholder-val="{{false}}">
+          <div style="flex: 1; min-height: 0; display: flex; flex-direction: column">
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 12px 0 20px; border-bottom: 1px solid var(--line)">
+              <span class="mono" style="flex: 1; min-width: 0; font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">/srv/blog-api/{{cur.path}}</span>
+              <sc-if value="{{cur.changed}}" hint-placeholder-val="{{true}}">
+                <span class="num" style="font-size: 12px; font-weight: 600; color: var(--ok)">+{{cur.a}}</span>
+                <span class="num" style="font-size: 12px; font-weight: 600; color: var(--bad)">−{{cur.d}}</span>
+                <button class="btn btn-s btn-sm" onClick="{{cur.showDiff}}">查看改动</button>
+              </sc-if>
+              <span class="tag">{{cur.lang}}</span>
+            </div>
+            <div class="mono hs" aria-label="{{cur.path}} 的内容" style="flex: 1; min-height: 0; overflow: auto; padding: 12px 0; background: var(--bg); border-radius: 0 0 15px 15px">
+              <sc-for list="{{cur.lines}}" as="l" hint-placeholder-count="20">
+                <div class="dl {{l.cls}}" style="font-size: 12px; line-height: 21px; min-height: 21px"><span class="g" style="width: 48px; padding-right: 14px">{{l.n}}</span><span style="padding-right: 16px">{{l.t}}</span></div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+
+      <sc-if value="{{rightOn}}" hint-placeholder-val="{{true}}">
+      <section class="card" aria-label="工作区面板" style="flex: none; width: 400px; padding: 10px; display: flex; flex-direction: column; gap: 10px">
+        <div class="seg" role="tablist" aria-label="工作区面板">
+          <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+            <button class="{{t.cls}}" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}">{{t.t}}</button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{tabDiff}}" hint-placeholder-val="{{true}}">
+          <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 0 4px 0 8px">
+              <span style="flex: 1; font-size: 13px; color: var(--ink2)">相对 <span class="mono" style="font-size: 12px">{{branchName}}</span> 的未提交改动 · <span class="num" style="font-weight: 600; color: var(--ok)">+{{diffAdd}}</span> <span class="num" style="font-weight: 600; color: var(--bad)">−{{diffDel}}</span></span>
+              <button class="ib ib-sm" aria-label="复制补丁" title="复制补丁" onClick="{{copyPatch}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.copy}}"></path></svg></button>
+              <button class="ib ib-sm" aria-label="刷新改动" title="刷新" onClick="{{refreshDiff}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.restart}}"></path></svg></button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <sc-for list="{{files}}" as="f" hint-placeholder-count="3">
+                <button class="fr {{f.cls}}" onClick="{{f.pick}}">
+                  <span class="mono" style="width: 14px; font-size: 12px; font-weight: 600; color: {{f.kc}}">{{f.k}}</span>
+                  <span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.p}}</span>
+                  <span class="num" style="font-size: 12px; font-weight: 600; color: var(--ok)">+{{f.a}}</span>
+                  <span class="num" style="font-size: 12px; font-weight: 600; color: var(--bad)">−{{f.d}}</span>
+                </button>
+              </sc-for>
+            </div>
+            <sc-if value="{{noDiff}}" hint-placeholder-val="{{false}}">
+              <div style="padding: 4px 10px; font-size: 12px; color: var(--ink2)">没有未提交的改动</div>
+            </sc-if>
+            <div class="mono hs" aria-label="{{curFile}} 的改动" style="flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 8px 0">
+              <sc-for list="{{diff}}" as="l" hint-placeholder-count="14">
+                <div class="dl {{l.cls}}"><span class="g">{{l.n}}</span><span class="sg">{{l.s}}</span><span style="padding-right: 12px">{{l.t}}</span></div>
+              </sc-for>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <button class="btn btn-s btn-sm" onClick="{{openCur}}" style="flex: 1"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.file}}"></path></svg>在标签页里打开</button>
+              <button class="btn btn-o btn-sm" onClick="{{undoCur}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.undo}}"></path></svg>撤销此文件</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{tabFiles}}" hint-placeholder-val="{{false}}">
+          <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px">
+            <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 1px">
+              <sc-for list="{{tree}}" as="n" hint-placeholder-count="12">
+                <button class="fr" onClick="{{n.open}}" style="padding-left: {{n.pad}}">
+                  <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: {{n.ic}}"><path d="{{n.d}}"></path></svg>
+                  <span class="mono" style="flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{n.t}}</span>
+                  <span class="mono" style="font-size: 12px; font-weight: 600; color: {{n.kc}}">{{n.k}}</span>
+                </button>
+              </sc-for>
+            </div>
+            <button class="btn btn-s btn-sm" onClick="{{openWsFiles}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.folder}}"></path></svg>在文件管理中打开工作区</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{tabTask}}" hint-placeholder-val="{{false}}">
+          <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px">
+            <sc-for list="{{taskGroups}}" as="g" hint-placeholder-count="2">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <div class="lbl" style="padding: 0 8px">{{g.t}} <span class="num">{{g.n}}</span></div>
+                <sc-for list="{{g.items}}" as="k" hint-placeholder-count="2">
+                  <div style="border: 1px solid var(--line); border-radius: 10px; overflow: hidden">
+                    <div style="display: flex; align-items: center; gap: 2px; padding-right: 6px">
+                      <button class="tk" aria-expanded="{{k.open}}" title="{{k.tip}}" onClick="{{k.toggle}}">
+                        <sc-if value="{{k.isDot}}" hint-placeholder-val="{{true}}">
+                          <span class="sd {{k.dotCls}}" style="background: {{k.dot}}; margin: 0 4px"></span>
+                        </sc-if>
+                        <sc-if value="{{k.isIcon}}" hint-placeholder-val="{{false}}">
+                          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: {{k.icC}}"><path d="{{k.icD}}"></path></svg>
+                        </sc-if>
+                        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                          <span class="{{k.tCls}}" style="font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{k.t}}</span>
+                          <span style="font-size: 12px; color: var(--ink2)">{{k.meta}}</span>
+                        </span>
+                        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{k.chev}}"></path></svg>
+                      </button>
+                      <sc-if value="{{k.canStop}}" hint-placeholder-val="{{false}}">
+                        <button class="ib ib-sm" aria-label="停止 {{k.t}}" title="停止" onClick="{{k.stop}}" style="color: var(--bad)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.stop}}"></path></svg></button>
+                      </sc-if>
+                    </div>
+                    <sc-if value="{{k.open}}" hint-placeholder-val="{{false}}">
+                      <div class="term hs" style="border-radius: 0; padding: 8px 11px; overflow-x: auto">
+                        <sc-for list="{{k.out}}" as="ln" hint-placeholder-count="4">
+                          <div class="ln" style="color: {{ln.c}}">{{ln.t}}</div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{tabInfo}}" hint-placeholder-val="{{false}}">
+          <div class="hs" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 4px">
+              <span class="pill {{stCls}}">{{stT}}</span>
+              <span class="ag ag-cc">Claude Code</span>
+              <sc-if value="{{hasBranch}}" hint-placeholder-val="{{true}}"><span class="tag mono"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{i.branch}}"></path></svg>{{curBranch}}</span></sc-if>
+            </div>
+            <div style="padding: 10px; border-radius: 12px; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; align-items: baseline; gap: 8px">
+                <span style="flex: 1; font-size: 13px; font-weight: 600">上下文</span>
+                <span class="num" style="font-size: 13px; font-weight: 600">{{ctx.used}} <span style="font-size: 13px; font-weight: 500; color: var(--ink2)">/ 200k · {{ctx.pct}}</span></span>
+              </div>
+              <div aria-hidden="true" style="display: flex; height: 10px; border-radius: 5px; background: var(--line); overflow: hidden">
+                <sc-for list="{{ctxRows}}" as="c" hint-placeholder-count="6">
+                  <div style="width: {{c.w}}; height: 10px; background: {{c.c}}"></div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ctxDetail}}" hint-placeholder-val="{{true}}">
+                <div style="display: flex; flex-direction: column; gap: 5px">
+                  <sc-for list="{{ctxRows}}" as="c" hint-placeholder-count="6">
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{c.c}}; flex: none"></span><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.t}}</span><span class="num" style="color: var(--ink2)">{{c.v}}</span><span class="num" style="width: 40px; text-align: right; color: var(--ink2)">{{c.p}}</span></div>
+                  </sc-for>
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><span style="width: 8px; height: 8px; border-radius: 3px; background: var(--line); flex: none"></span><span style="flex: 1">剩余</span><span class="num">{{ctx.left}}</span><span class="num" style="width: 40px; text-align: right">{{ctx.free}}</span></div>
+                </div>
+              </sc-if>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px">
+                <button class="btn btn-s btn-sm" aria-expanded="{{ctxDetail}}" onClick="{{toggleCtxDetail}}">{{ctxDetailT}}</button>
+                <button class="btn btn-s btn-sm" onClick="{{compactCtx}}">压缩上下文</button>
+              </div>
+            </div>
+            <div style="padding: 10px; border-radius: 12px; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; align-items: baseline; gap: 8px">
+                <span style="flex: 1; font-size: 13px; font-weight: 600">Token 用量</span>
+                <span class="num" style="font-size: 13px; font-weight: 600">203.9k <span style="font-size: 13px; font-weight: 500; color: var(--ink2)">· 6 轮</span></span>
+              </div>
+              <div aria-hidden="true" style="display: flex; height: 10px; border-radius: 5px; background: var(--line); overflow: hidden">
+                <sc-for list="{{tokBar}}" as="c" hint-placeholder-count="3">
+                  <div style="width: {{c.w}}; height: 10px; background: {{c.c}}"></div>
+                </sc-for>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <sc-for list="{{tokRows}}" as="c" hint-placeholder-count="6">
+                  <div style="display: flex; align-items: center; gap: 8px; font-size: 12px"><span style="width: 8px; height: 8px; border-radius: 3px; background: {{c.c}}; flex: none"></span><span style="flex: 1; min-width: 0; color: {{c.fg}}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{c.t}}</span><span class="num" style="color: var(--ink2)">{{c.v}}</span><span class="num" style="width: 40px; text-align: right; color: var(--ink2)">{{c.p}}</span></div>
+                </sc-for>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12px"><span style="flex: 1">缓存命中率</span><span style="color: var(--ink2)">输入里有多少走了缓存</span><span class="num" style="font-size: 13px; font-weight: 600; color: var(--ok)">76.6%</span></div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink2)"><span style="flex: 1">最近一轮</span><span class="num">18.4k · 缓存命中率 72.4%</span></div>
+            </div>
+            <dl style="margin: 0; padding: 10px; border-radius: 12px; background: var(--s2); display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 10px 12px; font-size: 13px">
+              <sc-for list="{{info}}" as="r" hint-placeholder-count="7">
+                <dt style="color: var(--ink2)">{{r.k}}</dt>
+                <dd class="{{r.cls}}" style="margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.v}}</dd>
+              </sc-for>
+            </dl>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div class="lbl" style="padding: 0 8px">本会话的 MCP 服务器</div>
+              <sc-for list="{{mcp}}" as="m" hint-placeholder-count="2">
+                <div style="display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line)">
+                  <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.plug}}"></path></svg>
+                  <span class="mono" style="flex: 1; min-width: 0; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{m.n}}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div class="lbl" style="padding: 0 8px">本会话可用的技能</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 0 4px">
+                <span class="tag"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{i.book}}"></path></svg>sql-review</span>
+                <span class="tag"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{i.book}}"></path></svg>api-test</span>
+                <span class="tag"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px"><path d="{{i.book}}"></path></svg>commit-style</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+      </sc-if>
+
+    </div>
+  </main>
+  <sc-if value="{{dlgOn}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 10, 30, 0.45)">
+      <div role="dialog" aria-modal="true" aria-label="会话操作" style="width: 500px; max-width: 100%; background: var(--s); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 30px 70px -30px rgba(20,10,30,.5); padding: 16px 18px 16px; display: flex; flex-direction: column; gap: 10px">
+        <sc-if value="{{dlgRename}}" hint-placeholder-val="{{false}}">
+          <h2 style="margin: 0; font-size: 15px; font-weight: 600">重命名会话</h2>
+          <label style="display: flex; flex-direction: column; gap: 8px"><span class="fl">会话标题</span><span class="fld"><input type="text" value="{{dv}}" onChange="{{setDv}}"></span></label>
+        </sc-if>
+        <sc-if value="{{dlgBranch}}" hint-placeholder-val="{{false}}">
+          <h2 style="margin: 0; font-size: 15px; font-weight: 600">切换或新建分支</h2>
+          <div class="fh">工作区 <span class="mono" style="color: var(--ink)">{{dlgWs}}</span> 现在在 <span class="mono" style="color: var(--ink)">{{branchName}}</span> 分支。</div>
+          <div role="radiogroup" aria-label="已有分支" style="display: flex; flex-direction: column; gap: 2px; padding: 6px; border-radius: 10px; border: 1px solid var(--line)">
+            <sc-for list="{{branches}}" as="b" hint-placeholder-count="3">
+              <button class="mi2 {{b.cls}}" role="radio" aria-checked="{{b.on}}" onClick="{{b.pick}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.branch}}"></path></svg><span class="mono" style="flex: 1; font-size: 13px">{{b.t}}</span><sc-if value="{{b.cur}}" hint-placeholder-val="{{false}}"><span class="tag">当前</span></sc-if><sc-if value="{{b.on}}" hint-placeholder-val="{{false}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pInk)"><path d="{{i.check}}"></path></svg></sc-if></button>
+            </sc-for>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 8px"><span class="fl">或者新建一个分支</span><span class="fld"><input class="mono" type="text" value="{{dv2}}" onChange="{{setDv2}}" placeholder="例如 feat/posts-paging"></span></label>
+          <div style="padding: 9px 11px; border-radius: 10px; background: var(--warnSoft); color: var(--warn); font-size: 12px; font-weight: 500; line-height: 1.55">同一个工作区里的其它会话共用这个目录，会跟着一起换分支。想互不影响，新建会话时打开「在独立工作树里运行」。</div>
+        </sc-if>
+        <sc-if value="{{dlgTree}}" hint-placeholder-val="{{false}}">
+          <h2 style="margin: 0; font-size: 15px; font-weight: 600">放进独立工作树</h2>
+          <div class="fh">给这个会话单独一份代码目录和分支，和同一个工作区里的其它会话互不影响。</div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <label style="display: flex; flex-direction: column; gap: 8px"><span class="fl">工作树名称</span><span class="fld"><input class="mono" type="text" value="{{dv}}" onChange="{{setDv}}"></span></label>
+            <label style="display: flex; flex-direction: column; gap: 8px"><span class="fl">新分支名</span><span class="fld"><input class="mono" type="text" value="{{dv2}}" onChange="{{setDv2}}"></span></label>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px"><span class="fl">基于</span><div class="fld" style="color: var(--ink)"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--ink2)"><path d="{{i.branch}}"></path></svg><span class="mono" style="font-size: 13px">{{branchName}}</span><span style="flex: 1"></span><span class="fh">当前分支的最新提交</span></div></div>
+          <div style="display: flex; flex-direction: column; gap: 8px"><span class="fl">目录</span><div class="mono" style="padding: 9px 11px; border-radius: 10px; background: var(--s2); font-size: 12px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{treePath}}</div></div>
+          <div class="fh">之后这个会话的改动都落在这个目录里，要不要合并回主目录由你决定。</div>
+        </sc-if>
+        <sc-if value="{{dlgDelete}}" hint-placeholder-val="{{false}}">
+          <h2 style="margin: 0; font-size: 15px; font-weight: 600">删除这个会话？</h2>
+          <div style="font-size: 13px; line-height: 1.65">「{{dlgTitle}}」的对话记录会被永久删除，不能恢复。工作区里已经改动的文件不受影响。</div>
+          <sc-if value="{{hasKids}}" hint-placeholder-val="{{false}}">
+            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; cursor: pointer"><input type="checkbox" checked="{{delKids}}" onChange="{{toggleDelKids}}" style="width: 15px; height: 15px; margin: 2px 0 0; accent-color: var(--p); flex: none"><span>连同它复刻出来的 {{kidN}} 个会话一起删除。不勾的话，它们会移到外层保留。</span></label>
+          </sc-if>
+        </sc-if>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px">
+          <button class="btn btn-s" onClick="{{dlgCancel}}">取消</button>
+          <button class="btn {{dlgBtnCls}}" onClick="{{dlgOk}}">{{dlgBtn}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div role="status" style="position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 21; display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 0 8px 0 18px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500; white-space: nowrap; box-shadow: 0 16px 40px -12px rgba(20,10,30,.45)">
+      <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="{{i.check}}"></path></svg>
+      <span>{{toast}}</span>
+      <button class="tt-x" aria-label="关闭提示" onClick="{{closeToast}}"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px"><path d="{{i.x}}"></path></svg></button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"palette":{"editor":"enum","options":["sakura","mint","volt","grape","sunset","classic"],"default":"sakura"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1100}}'>
+const IC = {
+  outdent: 'M19 12H5M11 6l-6 6 6 6',
+  home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  apps: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  layers: 'M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 17.5l10 5 10-5',
+  code: 'M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16',
+  bot: 'M5 8h14v11H5zM12 8V4M9 13h.01M15 13h.01M9.5 16h5M2 12v4M22 12v4',
+  gamepad: 'M7 8h10a5 5 0 0 1 5 5v1a4 4 0 0 1-7 2.5H9A4 4 0 0 1 2 14v-1a5 5 0 0 1 5-5zM7 11.5v3M5.5 13h3M16 12h.01M18 14h.01',
+  wand: 'M4 20 15 9M14 4v3M19 9h3M17.5 5.5l2-2M18 13l2 2',
+  idcard: 'M3 5h18v14H3zM6.5 15a2.5 2.5 0 0 1 5 0M9 9.5v.01M15 10h3M15 14h3',
+  folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  share: 'M18 2.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM6 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM18 15.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8.6 13.5l6.8 3.9M15.4 6.6l-6.8 3.9',
+  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  box: 'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',
+  forward: 'M4 6v12M8 12h12M15 7l5 5-5 5',
+  tunnel: 'M3 20v-8a9 9 0 0 1 18 0v8M8 20v-7a4 4 0 0 1 8 0v7',
+  terminal: 'M4 4h16v16H4zM8 9l3 3-3 3M13 15h3',
+  spark: 'M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 20.5l-2.2-6.3L3.5 12l6.3-2.7z',
+  server: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01',
+  users: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7.5M22 21a7 7 0 0 0-5-6.7',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3 2',
+  settings: 'M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  search: 'M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14zM20 20l-4-4',
+  bell: 'M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  sun: 'M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  plus: 'M12 5v14M5 12h14',
+  stop: 'M7 7h10v10H7z',
+  restart: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+  x: 'M6 6l12 12M18 6 6 18',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  chevD: 'M6 9l6 6 6-6',
+  chevU: 'M6 15l6-6 6 6',
+  chevR: 'M9 6l6 6-6 6',
+  updown: 'M8 9l4-4 4 4M8 15l4 4 4-4',
+  panel: 'M4 4h16v16H4zM9 4v16M13 10l2 2-2 2',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  file: 'M6 3h8l4 4v14H6zM14 3v4h4',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  send: 'M12 19V5M5 12l7-7 7 7',
+  at: 'M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1',
+  slash: 'M15 4 9 20',
+  clip: 'M20 11.5l-8.2 8.2a5 5 0 0 1-7-7l8.5-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8',
+  branch: 'M6 4v10M6 14a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM18 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM18 10c0 3-3 4-6 4H9',
+  shield: 'M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z',
+  plug: 'M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4',
+  book: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11',
+  bulb: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z',
+  listcheck: 'M10 6h11M10 12h11M10 18h11M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17',
+  copy: 'M9 9h11v11H9zM5 15V4h11',
+  chat: 'M4 5h16v11H9l-5 4z',
+  image: 'M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M15.5 9.5h.01',
+  panelL: 'M4 4h16v16H4zM9 4v16',
+  panelR: 'M4 4h16v16H4zM15 4v16',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  undo: 'M4 9h10a5 5 0 0 1 0 10H9M4 9l4-4M4 9l4 4'
+};
+const RAIL = [
+  ['工作台', 'home', 0], ['性能监控', 'activity', 0],
+  ['应用列表', 'apps', 1], ['应用类型', 'layers', 0],
+  ['Code', 'code', 1, 'Main.dc.html'], ['Agent 管理', 'bot', 0, 'AgentSessionsPC.dc.html'],
+  ['游戏服务器', 'gamepad', 1], ['GM 运营', 'wand', 0], ['用户通行证', 'idcard', 0],
+  ['文件管理', 'folder', 1], ['分享', 'share', 0], ['文件源', 'db', 0],
+  ['容器 · 镜像 · 网络', 'box', 1],
+  ['端口转发', 'forward', 1], ['内网穿透', 'tunnel', 0], ['SSH 终端', 'terminal', 0], ['智商检测', 'spark', 0],
+  ['节点与 API Key', 'server', 1], ['用户与权限', 'users', 0], ['任务与日志', 'clock', 0], ['系统设置', 'settings', 0]
+];
+const WSI = { 'blog-api': ['/srv/blog-api', 'main'], 'qq-bot': ['/srv/qq-bot', 'dev'], 'rsshub': ['/srv/rsshub', 'master'] };
+const SESS = [
+  { g: 'blog-api', items: [
+    { t: '文章列表加分页和标签筛选', ag: 'Claude Code', k: 'cur' },
+    { t: '升级依赖并修掉 lint 报错', ag: 'Codex', k: 'run', meta: '运行中 · 12 分钟' },
+    { t: '排查 /api/upload 偶发 502', ag: 'Claude Code', k: 'idle', meta: '10:24' },
+    { t: '给评论接口写单元测试', ag: 'Codex', k: 'idle', meta: '09:02' },
+    { t: '配置读取改成环境变量优先', ag: 'Claude Code', k: 'idle', meta: '周一' }
+  ] },
+  { g: 'qq-bot', items: [
+    { t: '消息撤回后清理缓存', ag: 'Claude Code', k: 'idle', meta: '昨天 21:40' },
+    { t: '修复定时任务重复触发', ag: 'Codex', k: 'idle', meta: '周一' }
+  ] },
+  { g: 'rsshub', items: [
+    { t: '给路由加 Redis 缓存', ag: 'Claude Code', k: 'idle', meta: '昨天 16:05' }
+  ] },
+  { g: '无工作区', items: [
+    { t: '讲讲 Go 的 context 取消是怎么传下去的', ag: 'Claude Code', k: 'idle', meta: '周二' }
+  ] }
+];
+const D1 = [
+  [11, ' ', ''],
+  [12, ' ', 'export async function findPosts(q: PostQuery) {'],
+  [13, '-', '  const rows = await db.all(SQL_ALL);'],
+  [14, '-', '  return q.tag ? rows.filter(hasTag(q.tag)) : rows;'],
+  [13, '+', "  const where = q.tag ? TAG_WHERE : '';"],
+  [14, '+', '  const args = q.tag ? [q.tag] : [];'],
+  [15, '+', '  const { n } = await db.get('],
+  [16, '+', '    `SELECT COUNT(*) AS n FROM posts p ${where}`, args);'],
+  [17, '+', '  const rows = await db.all('],
+  [18, '+', '    `SELECT p.* FROM posts p ${where}'],
+  [19, '+', '     ORDER BY p.created_at DESC LIMIT ? OFFSET ?`,'],
+  [20, '+', '    [...args, q.size, (q.page - 1) * q.size]);'],
+  [21, '+', '  return { total: n, rows };'],
+  [22, ' ', '}']
+];
+const D2 = [
+  [8, ' ', "router.get('/api/posts', async (req, res) => {"],
+  [9, '-', '  res.json(await findPosts(req.query.tag));'],
+  [9, '+', '  const page = clampInt(req.query.page, 1, 1, 9999);'],
+  [10, '+', '  const size = clampInt(req.query.size, 20, 1, 100);'],
+  [11, '+', '  const tag = str(req.query.tag) || undefined;'],
+  [12, '+', '  res.json(await findPosts({ page, size, tag }));'],
+  [13, ' ', '});']
+];
+const D3 = [
+  [1, '+', "import { describe, it, expect } from 'vitest';"],
+  [2, '+', "import { api, seedPosts } from './helpers';"],
+  [3, '+', ''],
+  [4, '+', "describe('GET /api/posts', () => {"],
+  [5, '+', "  it('按 page / size 分页', async () => {"],
+  [6, '+', '    await seedPosts(45);'],
+  [7, '+', "    const r = await api.get('/api/posts?page=2&size=20');"],
+  [8, '+', '    expect(r.body.rows).toHaveLength(20);'],
+  [9, '+', '    expect(r.body.total).toBe(45);'],
+  [10, '+', '  });'],
+  [11, '+', ''],
+  [12, '+', "  it('按 tag 筛选后再计数', async () => {"]
+];
+const FILES = [
+  { k: 'M', p: 'src/repo/posts.ts', a: 9, d: 2, lines: D1 },
+  { k: 'M', p: 'src/routes/posts.ts', a: 4, d: 1, lines: D2 },
+  { k: 'A', p: 'test/posts.page.test.ts', a: 48, d: 0, lines: D3 }
+];
+const TREE = [
+  [0, 'dir', 'src'], [1, 'dir', 'repo'], [2, 'file', 'db.ts', '', 'src/repo/db.ts'], [2, 'file', 'posts.ts', 'M', 'src/repo/posts.ts'],
+  [1, 'dir', 'routes'], [2, 'file', 'comments.ts', '', 'src/routes/comments.ts'], [2, 'file', 'posts.ts', 'M', 'src/routes/posts.ts'], [2, 'file', 'upload.ts', '', 'src/routes/upload.ts'],
+  [0, 'dir', 'test'], [1, 'file', 'helpers.ts', '', 'test/helpers.ts'], [1, 'file', 'posts.page.test.ts', 'A', 'test/posts.page.test.ts'], [1, 'file', 'posts.test.ts', '', 'test/posts.test.ts'],
+  [0, 'file', 'AGENTS.md', '', 'AGENTS.md'], [0, 'file', 'package.json', '', 'package.json'], [0, 'file', 'tsconfig.json', '', 'tsconfig.json']
+];
+const TEST_OUT = [
+  ['#B8B0C2', ' RUN  /srv/blog-api'],
+  ['#7EE787', ' ✓ test/posts.page.test.ts (5)'],
+  ['#7EE787', ' ✓ test/posts.test.ts (7)'],
+  ['#E8E3EE', ' Test Files  2 passed (2)'],
+  ['#E8E3EE', '      Tests  12 passed (12)']
+];
+const MODES = [
+  ['ask', '每次询问', '改文件、执行命令之前都先问你'],
+  ['edits', '自动接受编辑', '改文件不再询问，执行命令仍然会问'],
+  ['plan', '只做计划', '只读代码并给出方案，不改动任何东西'],
+  ['auto', '自动', '由 Agent 自己判断：稳妥的直接做，有风险的才停下来问你'],
+  ['bypass', '跳过全部确认', '不再询问，建议只在容器或沙箱里使用']
+];
+const PLAN = ['阅读路由和数据层的现有实现', '把筛选、分页、计数改到 SQL', '路由读取并校验 page / size / tag', '补充分页与筛选的测试', '运行测试'];
+const SRC = {
+  'src/repo/posts.ts': { lang: 'TypeScript', a: 9, d: 2, add: [13, 21], lines: [
+    "import { db } from './db';",
+    "import type { Post, PostQuery } from '../types';",
+    '',
+    'const TAG_WHERE = `WHERE EXISTS (',
+    '  SELECT 1 FROM post_tags t',
+    '  WHERE t.post_id = p.id AND t.tag = ?)`;',
+    '',
+    'export async function findPost(id: number) {',
+    "  return db.get('SELECT * FROM posts WHERE id = ?', [id]);",
+    '}',
+    '',
+    'export async function findPosts(q: PostQuery) {',
+    "  const where = q.tag ? TAG_WHERE : '';",
+    '  const args = q.tag ? [q.tag] : [];',
+    '  const { n } = await db.get(',
+    '    `SELECT COUNT(*) AS n FROM posts p ${where}`, args);',
+    '  const rows = await db.all(',
+    '    `SELECT p.* FROM posts p ${where}',
+    '     ORDER BY p.created_at DESC LIMIT ? OFFSET ?`,',
+    '    [...args, q.size, (q.page - 1) * q.size]);',
+    '  return { total: n, rows };',
+    '}'
+  ] },
+  'src/routes/posts.ts': { lang: 'TypeScript', a: 4, d: 1, add: [9, 12], lines: [
+    "import { Router } from 'express';",
+    "import { findPost, findPosts } from '../repo/posts';",
+    "import { clampInt, str } from '../util/params';",
+    '',
+    'export const router = Router();',
+    '',
+    '// 文章列表：分页 + 按标签筛选',
+    "router.get('/api/posts', async (req, res) => {",
+    '  const page = clampInt(req.query.page, 1, 1, 9999);',
+    '  const size = clampInt(req.query.size, 20, 1, 100);',
+    '  const tag = str(req.query.tag) || undefined;',
+    '  res.json(await findPosts({ page, size, tag }));',
+    '});'
+  ] },
+  'test/posts.page.test.ts': { lang: 'TypeScript', a: 48, d: 0, add: [1, 12], lines: D3.map((r) => r[2]) },
+  'AGENTS.md': { lang: 'Markdown', lines: [
+    '# blog-api',
+    '',
+    '- 运行测试：pnpm test',
+    '- 查询、筛选、计数都写在 SQL 里，不要查出来再在内存里处理',
+    '- 提交信息用中文，一句话说清楚改了什么'
+  ] }
+};
+const MODELS = [
+  { n: 'Anthropic · 主账号', items: ['claude-sonnet-5-5', 'claude-opus-5-5'] },
+  { n: 'DeepSeek', items: ['deepseek-chat', 'deepseek-reasoner'] },
+  { n: '自建网关', items: ['[模型名]'] }
+];
+const EFF = {
+  'claude-sonnet-5-5': ['low', 'medium', 'high'],
+  'claude-opus-5-5': ['low', 'medium', 'high', 'xhigh', 'max'],
+  'deepseek-chat': ['off', 'high', 'max'],
+  'deepseek-reasoner': ['high', 'max'],
+  'gpt-5-codex': ['minimal', 'low', 'medium', 'high'],
+  '[模型名]': ['low', 'medium', 'high'],
+  '[模型名 1]': ['low', 'medium', 'high'],
+  '[模型名 2]': []
+};
+const EFF_DEF = { 'claude-sonnet-5-5': 'medium', 'claude-opus-5-5': 'high', 'deepseek-chat': 'high', 'deepseek-reasoner': 'high', 'gpt-5-codex': 'medium', '[模型名]': 'medium', '[模型名 1]': 'medium' };
+const CTX = [
+  ['对话消息', '49.6k', '24.8%', 'var(--p)'],
+  ['内置工具', '14.8k', '7.4%', 'var(--a2)'],
+  ['MCP 工具', '6.1k', '3.1%', 'var(--warn)'],
+  ['系统提示', '3.2k', '1.6%', 'var(--ink2)'],
+  ['项目指令', '1.4k', '0.7%', 'var(--ok)'],
+  ['技能', '0.9k', '0.5%', 'var(--a)']
+];
+const SESS_ACTS = [
+  ['重命名', 'edit', 0, '', 'rename'],
+  ['复刻对话', 'branch', 1, '', 'fork'],
+  ['在新工作树里复刻', 'layers', 0, '', 'forkwt'],
+  ['移到外层', 'outdent', 0, '', 'promote'],
+  ['导出记录', 'download', 1, '', 'export'],
+  ['归档', 'box', 0, '', 'archive'],
+  ['删除', 'trash', 0, 'var(--bad)', 'del']
+];
+const TASKS = [
+  { id: 'dev', kind: 'cmd', t: 'pnpm dev', run: true, meta: '后台运行 · 4 分 12 秒', out: [['#B8B0C2', '> tsx watch src/index.ts'], ['#7EE787', 'ready on http://localhost:3000'], ['#E8E3EE', 'GET /api/posts?page=2&size=20 200 12ms']] },
+  { id: 'test', kind: 'cmd', t: 'pnpm test posts' },
+  { id: 'sub', kind: 'agent', t: '梳理 findPosts 的调用关系', meta: '子 Agent · 完成 · 用时 21 秒', out: [['#E8E3EE', 'findPosts 有 3 处调用：'], ['#E8E3EE', '  src/routes/posts.ts:9'], ['#E8E3EE', '  test/posts.test.ts:6'], ['#E8E3EE', '  test/helpers.ts:18']] },
+  { id: 'git', kind: 'cmd', t: 'git status --short', meta: '退出码 0 · 0.1 秒', out: [['#E8E3EE', ' M src/repo/posts.ts'], ['#E8E3EE', ' M src/routes/posts.ts'], ['#E8E3EE', '?? test/posts.page.test.ts']] }
+];
+const AT_FILES = ['src/routes/posts.ts', 'src/repo/posts.ts', 'src/routes/upload.ts', 'test/posts.test.ts', 'AGENTS.md', 'package.json'];
+const CMDS = [['/compact', '压缩上下文，腾出空间'], ['/review', '审查当前的改动'], ['/init', '生成或更新项目指令文件'], ['/sql-review', '技能 · 检查查询是不是都在 SQL 里完成'], ['/api-test', '技能 · 给接口补测试']];
+const mapDiff = (rows) => rows.map(([n, s, t]) => ({ n, s: s === ' ' ? '' : (s === '-' ? '−' : '+'), t, cls: s === '+' ? 'dl-a' : (s === '-' ? 'dl-d' : '') }));
+const NODES = [['DESKTOP-K5K9BBC', '本机', 1], ['hk-relay-01', '远程', 1], ['home-nas', '远程', 0]];
+const NOTES = [['「文章列表加分页和标签筛选」在等你批准', 'Claude Code 想运行 pnpm test · 刚刚', 'Main.dc.html'], ['「升级依赖并修掉 lint 报错」还在运行', 'Codex · 已经 12 分钟', 'AgentSessionsPC.dc.html'], ['OpenAI · 主账号 登录已过期', '重新登录后才能继续用它开会话 · 今天 09:40', 'AgentProvidersPC.dc.html']];
+const BUILTIN = [['/install-skill', '把一个技能装到 Momoko，后面跟 Git 地址或压缩包链接'], ['/install-mcp', '把一个 MCP 服务器装到 Momoko，后面跟它的地址或安装说明']];
+class Component extends DCLogic {
+  componentDidMount() { this._key = 'ask|chat'; this.toBottom(); }
+  componentDidUpdate() {
+    const st = this.state || {};
+    const key = (st.perm || 'ask') + '|' + (st.ctab || 'chat');
+    if (key !== this._key) { this._key = key; this.toBottom(); this.showTab(); }
+  }
+  toBottom() { const el = this._log; if (el) { el.scrollTop = el.scrollHeight; } }
+  showTab() {
+    const el = this._tabs;
+    const on = el ? el.querySelector('[aria-selected="true"]') : null;
+    if (on && on.scrollIntoView) { on.scrollIntoView({ inline: 'nearest', block: 'nearest' }); }
+  }
+  renderVals() {
+    const st = this.state || {};
+    const shellPop = st.shellPop || '';
+    const nodeI = st.node || 0;
+    const unread = st.unread != null ? st.unread : true;
+    const palette = this.props.palette ?? 'sakura';
+    const dark = st.dark != null ? st.dark : (this.props.dark ?? false);
+    const perm = st.perm || 'ask';
+    const tab = st.tab || 'diff';
+    const fileIdx = st.file || 0;
+    const modeKey = st.modeKey || 'ask';
+    const planOpen = !!st.planOpen;
+    const pop = st.pop || '';
+    const modesOpen = pop === 'mode';
+    const thinkOpen = !!st.thinkOpen;
+    const model = st.model || 'deepseek-chat';
+    const eff = st.eff || {};
+    const effOpts = EFF[model] || [];
+    const effort = effOpts.length ? (eff[model] || EFF_DEF[model] || effOpts[0]) : '';
+    const open = st.open || ['src/repo/posts.ts', 'src/routes/posts.ts', 'test/posts.page.test.ts', 'AGENTS.md', 'src/repo/db.ts', 'src/routes/upload.ts'];
+    const ctab = st.ctab || 'chat';
+    const isSub = ctab === 'sub';
+    const modeName = MODES.find((m) => m[0] === modeKey)[1];
+    const effortName = effort || '不可调';
+    const provName = MODELS.find((g) => g.items.includes(model)).n;
+    const togglePop = (k) => () => this.setState({ pop: pop === k ? '' : k, sub: '' });
+    const sub = pop === 'model' ? (st.sub || '') : '';
+    const toggleSub = (k) => () => this.setState({ sub: sub === k ? '' : k });
+    const curProv = MODELS.find((g) => g.items.includes(model));
+    const modelItem = (m) => ({ t: m, on: m === model, cls: m === model ? 'mi2-on' : '', pick: () => this.setState({ model: m, sub: '' }) });
+    const openFile = (p) => this.setState({ open: open.includes(p) ? open : open.concat([p]), ctab: p });
+    const src = SRC[ctab] || { lang: '文本', lines: ['[这里显示 ' + ctab + ' 的内容]'] };
+    const addRange = src.add || [0, -1];
+    if (!this._setLog) { this._setLog = (el) => { this._log = el; }; }
+    if (!this._setTabs) { this._setTabs = (el) => { this._tabs = el; }; }
+    const rail = RAIL.map(([t, d, sep, href]) => ({ t, d: IC[d], sep: !!sep, href: href || '#', cls: d === 'code' ? 'rl-on' : '' }));
+    const stMap = { ask: ['warn', '等待批准'], allow: ['off', '空闲'], deny: ['off', '空闲'], stop: ['off', '空闲'] };
+    const draft = st.draft || '';
+    const showStop = perm === 'ask' && !draft.trim();
+    const att = st.att || [];
+    const addAtt = (a) => this.setState({ att: att.concat([a]), pop: '' });
+    const smenu = st.smenu != null ? st.smenu : 'blog-api/0';
+    const leftOn = !st.leftOff;
+    const rightOn = !st.rightOff;
+    const sx = st.sx || {};
+    const renamed = sx.renamed || {};
+    const gone = sx.gone || {};
+    const wt = sx.wt || {};
+    const copies = sx.copies || [];
+    const branchName = sx.branch || 'main';
+    const rows = [];
+    SESS.forEach((g) => g.items.forEach((s, si) => rows.push({ ...s, g: g.g, key: g.g + '/' + si })));
+    copies.forEach((c, ci) => rows.push({ ...c, k: 'idle', meta: '刚刚', key: 'copy/' + ci }));
+    const forks = sx.forks || [];
+    forks.forEach((x) => rows.push({ t: x.t, ag: x.ag, k: 'idle', meta: '刚刚', g: x.g, key: x.key, parent: x.parent, out: !!x.out }));
+    const titleOf = (r) => renamed[r.key] || r.t;
+    const curKey = st.curKey || 'blog-api/0';
+    const sq = (st.sq || '').trim();
+    const aq = (st.aq || '').trim();
+    const col = st.col || {};
+    const more = st.more || {};
+    const winfo = st.winfo || '';
+    const nest = (list) => {
+      const res = [];
+      const add = (r, depth) => { res.push({ ...r, depth }); list.filter((c) => c.parent === r.key && !c.out).forEach((c) => add(c, depth + 1)); };
+      list.filter((r) => !r.parent || r.out || !list.some((p) => p.key === r.parent)).forEach((r) => add(r, 0));
+      return res;
+    };
+    const groupOf = (name, all) => {
+      const open = !col[name];
+      const full = !!more[name] || all.length <= 4;
+      const wsi = WSI[name];
+      return {
+        t: name, n: all.length, items: full ? all : all.slice(0, 4),
+        hasMore: !full, rest: all.length - 4, showMore: () => this.setState({ more: { ...more, [name]: true } }),
+        open, chev: open ? IC.chevD : IC.chevR, toggle: () => this.setState({ col: { ...col, [name]: open } }),
+        isWs: !!wsi, icon: wsi ? IC.folder : IC.chat, path: wsi ? wsi[0] : '', br: wsi ? (name === 'blog-api' && (st.sx || {}).branch ? st.sx.branch : wsi[1]) : '',
+        infoOn: winfo === name, infoCls: winfo === name ? 'sm-on' : '', info: () => this.setState({ winfo: winfo === name ? '' : name, smenu: '' })
+      };
+    };
+    const groups = SESS.map((g) => groupOf(g.g, nest(rows.filter((r) => r.g === g.g && !gone[r.key] && (!sq || titleOf(r).includes(sq)))).map((r) => {
+      const demo = r.k === 'cur';
+      const cur = r.key === curKey;
+      const k = demo ? (perm === 'ask' ? 'wait' : 'idle') : r.k;
+      const dot = k === 'wait' ? 'var(--warn)' : (k === 'run' ? 'var(--ok)' : 'var(--line)');
+      return {
+        t: titleOf(r), ag: r.ag, agCls: r.ag === 'Codex' ? 'ag-cx' : 'ag-cc',
+        meta: demo ? (perm === 'ask' ? '等待批准' : '刚刚') : r.meta,
+        open: () => this.setState({ curKey: r.key, ctab: 'chat', smenu: '', winfo: '' }),
+        cls: cur ? 'sr-on' : '', cur: cur ? 'true' : 'false', dot, dotCls: k === 'run' ? 'pulse' : '',
+        hasWt: !!wt[r.key], wtName: wt[r.key] || '',
+        pad: (28 + r.depth * 14) + 'px', isFork: !!r.parent,
+        agL: r.ag === 'Codex' ? 'X' : 'C', tip: r.ag + ' · ' + (demo ? (perm === 'ask' ? '等待批准' : '刚刚') : (r.meta || '')), smCls: smenu === r.key ? 'sm-on' : '',
+        menuOn: smenu === r.key, menu: () => this.setState({ smenu: smenu === r.key ? '' : r.key })
+      };
+    })));
+    const actRow = rows.find((r) => r.key === smenu) || rows[0];
+    const curRow = rows.find((r) => r.key === curKey) || rows[0];
+    const isDemo = curRow.k === 'cur';
+    const dlg = st.dlg || null;
+    const dlgRow = dlg ? (rows.find((r) => r.key === dlg.key) || rows[0]) : rows[0];
+    const dv = st.dv != null ? st.dv : '';
+    const dv2 = st.dv2 != null ? st.dv2 : '';
+    const slug = 'posts-paging';
+    const setSx = (patch, toast) => this.setState({ sx: { ...sx, ...patch }, dlg: null, smenu: '', toast });
+    const acts = {
+      rename: () => this.setState({ dlg: { kind: 'rename', key: actRow.key }, dv: titleOf(actRow), smenu: '' }),
+      copy: () => setSx({ copies: copies.concat([{ g: actRow.g, t: titleOf(actRow) + ' 的副本', ag: actRow.ag }]) }, '已复制成新会话'),
+      fork: () => { const key = 'fork/' + forks.length; setSx({ forks: forks.concat([{ key, parent: actRow.key, g: actRow.g, t: titleOf(actRow) + '（复刻）', ag: actRow.ag }]) }, '已复刻对话，新会话排在原会话下面'); },
+      forkwt: () => { const key = 'fork/' + forks.length; const name = actRow.g + '-wt' + (Object.keys(wt).length + 1); setSx({ forks: forks.concat([{ key, parent: actRow.key, g: actRow.g, t: titleOf(actRow) + '（复刻）', ag: actRow.ag }]), wt: { ...wt, [key]: name } }, '已在新工作树 ' + name + ' 里复刻对话'); },
+      promote: () => setSx({ forks: forks.map((x) => (x.key === actRow.key ? { ...x, out: true } : x)) }, '已移到外层，会话信息里仍然记着它复刻自哪个会话'),
+      export: () => this.setState({ smenu: '', toast: '已导出对话记录：' + titleOf(actRow) + '.md' }),
+      archive: () => setSx({ gone: { ...gone, [actRow.key]: true } }, '已归档，可以在「全部会话」里找回'),
+      del: () => this.setState({ dlg: { kind: 'delete', key: actRow.key }, smenu: '' })
+    };
+    const kidsOf = (key) => { const acc = []; const walk = (k) => rows.filter((r) => r.parent === k && !r.out && !gone[r.key]).forEach((r) => { acc.push(r.key); walk(r.key); }); walk(key); return acc; };
+    const kidN = kidsOf(dlgRow.key).length;
+    const delKids = st.delKids !== false;
+    const goneWith = (key) => { const g2 = { ...gone, [key]: true }; if (delKids) { kidsOf(key).forEach((k) => { g2[k] = true; }); } return g2; };
+    const pickedBranch = dv2.trim() || dv;
+    const treeName = dv.trim() || slug;
+    const dlgKind = dlg ? dlg.kind : '';
+    const dlgOk = {
+      rename: () => setSx({ renamed: { ...renamed, [dlgRow.key]: dv.trim() || titleOf(dlgRow) } }, '已重命名'),
+      branch: () => setSx({ branch: pickedBranch }, '已切换到分支 ' + pickedBranch),
+      tree: () => setSx({ wt: { ...wt, [dlgRow.key]: treeName } }, '已放进独立工作树 ' + treeName),
+      delete: () => setSx({ gone: goneWith(dlgRow.key) }, delKids && kidN ? '已删除会话和它的 ' + kidN + ' 个复刻' : '已删除会话')
+    }[dlgKind] || null;
+    const planState = PLAN.map((t, idx) => {
+      const last = idx === PLAN.length - 1;
+      const k = !last ? 'done' : (perm === 'ask' ? 'prog' : (perm === 'allow' ? 'done' : 'skip'));
+      return {
+        t,
+        c: k === 'done' ? 'var(--ok)' : (k === 'prog' ? 'var(--warn)' : 'var(--line)'),
+        fg: k === 'skip' ? 'var(--ink2)' : 'var(--ink)',
+        st: k === 'done' ? '完成' : (k === 'prog' ? '等待批准' : '已跳过')
+      };
+    });
+    const undone = st.undone || {};
+    const liveIdx = undone[FILES[fileIdx].p] ? FILES.findIndex((x) => !undone[x.p]) : fileIdx;
+    const curF = liveIdx < 0 ? { p: '', lines: [] } : FILES[liveIdx];
+    const files = FILES.map((f, idx) => ({
+      k: f.k, p: f.p, a: f.a, d: f.d,
+      kc: f.k === 'A' ? 'var(--ok)' : 'var(--warn)',
+      cls: idx === liveIdx ? 'fr-on' : '',
+      pick: () => this.setState({ file: idx })
+    })).filter((x) => !undone[x.p]);
+    const tree = TREE.map(([lv, kind, t, k, path]) => ({
+      t, k: k || '', pad: (10 + lv * 18) + 'px',
+      open: path ? () => openFile(path) : null,
+      d: kind === 'dir' ? IC.folder : IC.file,
+      ic: kind === 'dir' ? 'var(--pInk)' : 'var(--ink2)',
+      kc: k === 'A' ? 'var(--ok)' : 'var(--warn)'
+    }));
+    const taskOpen = st.taskOpen || { dev: true };
+    const stopped = st.stopped || {};
+    const testTask = perm === 'ask'
+      ? { run: true, wait: true, meta: '等待批准', out: [['#FFB547', '批准之后才会执行']] }
+      : (perm === 'allow' ? { meta: '退出码 0 · 1.8 秒', out: TEST_OUT } : { skip: true, meta: perm === 'stop' ? '已停止，没有执行' : '已拒绝，没有执行', out: [] });
+    const tasks = TASKS.map((k) => (k.id === 'test' ? { ...k, ...testTask } : k)).map((k) => (stopped[k.id] ? { ...k, run: false, wait: false, skip: true, meta: '已手动停止' } : k)).map((k) => {
+      const on = !!taskOpen[k.id];
+      return {
+        t: k.t, meta: k.meta, run: !!k.run, tCls: k.kind === 'cmd' ? 'mono' : '',
+        isDot: !!k.run, dot: k.wait ? 'var(--warn)' : 'var(--ok)', dotCls: k.wait ? '' : 'pulse',
+        isIcon: !k.run, icD: k.skip ? IC.x : (k.kind === 'agent' ? IC.bot : IC.check), icC: k.skip ? 'var(--ink2)' : 'var(--ok)',
+        tip: k.kind === 'agent' ? '打开子 Agent 的会话' : '展开或收起输出',
+        canStop: !!k.run && !k.wait,
+        open: k.kind !== 'agent' && on && k.out.length > 0, chev: k.kind !== 'agent' && on ? IC.chevD : IC.chevR,
+        toggle: k.kind === 'agent' ? () => this.setState({ subOpen: true, ctab: 'sub' }) : () => this.setState({ taskOpen: { ...taskOpen, [k.id]: !on } }),
+        stop: () => this.setState({ stopped: { ...stopped, [k.id]: true }, toast: '已停止 ' + k.t }),
+        out: k.out.map(([c, t]) => ({ c, t }))
+      };
+    });
+    const taskGroups = [{ t: '进行中', items: tasks.filter((k) => k.run) }, { t: '已完成', items: tasks.filter((k) => !k.run) }].map((g) => ({ ...g, n: g.items.length }));
+    const wsNow = WSI[curRow.g] || null;
+    const curBranch = wsNow ? (curRow.g === 'blog-api' ? branchName : wsNow[1]) : '';
+    const typing = /^\/\S*$/.test(draft) && !st.slashHide;
+    const cq = typing ? draft.slice(1).toLowerCase() : '';
+    const cmdSrc = CMDS;
+    const cmdGroups = [['Momoko 内置', BUILTIN], ['Claude Code' + ' 的命令', cmdSrc.filter((c) => c[1].indexOf('技能 · ') !== 0)], ['技能', cmdSrc.filter((c) => c[1].indexOf('技能 · ') === 0).map((c) => [c[0], c[1].slice(5)])]]
+      .map(([t, items]) => ({ t, items: items.filter((c) => !cq || c[0].slice(1).toLowerCase().indexOf(cq) === 0 || c[1].toLowerCase().includes(cq)).map(([n, d]) => ({ n, d, cls: '', pick: () => this.setState({ draft: n + ' ', pop: '', slashHide: false }) })) }))
+      .filter((g) => g.items.length > 0);
+    const firstCmd = cmdGroups.length ? cmdGroups[0].items[0] : null;
+    if (firstCmd && typing) { firstCmd.cls = 'mi2-hl'; }
+    return {
+      palette,
+      cmdGroups,
+      cmdEmpty: cmdGroups.length === 0,
+      draftKey: (e) => { if (typing) { if (e.key === 'Enter' && firstCmd) { e.preventDefault(); firstCmd.pick(); } else if (e.key === 'Escape') { this.setState({ slashHide: true }); } } },
+      hasBranch: !!wsNow,
+      curBranch,
+      mode: dark ? 'dark' : 'light',
+      i: IC,
+      nodeOn: shellPop === 'node',
+      toggleNode: () => this.setState({ shellPop: shellPop === 'node' ? '' : 'node' }),
+      nodeTip: NODES[nodeI][1] + ' · ' + NODES[nodeI][0],
+      nodes: NODES.map(([n, s, ok], idx) => ({ n, s: ok ? s : '离线', c: ok ? 'var(--ok)' : 'var(--line)', on: idx === nodeI, cls: idx === nodeI ? 'shi-on' : '', pick: () => this.setState(ok ? { node: idx, shellPop: '', toast: '已切换到 ' + n } : { shellPop: '', toast: n + ' 现在离线，连不上' }) })),
+      bellOn: shellPop === 'bell',
+      toggleBell: () => this.setState({ shellPop: shellPop === 'bell' ? '' : 'bell' }),
+      hasUnread: unread,
+      readAll: () => this.setState({ unread: false, shellPop: '' }),
+      notes: NOTES.map(([t, s, href]) => ({ t, s, href, w: unread ? '700' : '500' })),
+      railOpen: !!st.rail,
+      railCls: st.rail ? 'rail-open' : '',
+      railW: st.rail ? '232px' : '76px',
+      railT: st.rail ? '收起侧边栏' : '展开侧边栏',
+      toggleRail: () => this.setState({ rail: !st.rail }),
+      sq: st.sq || '',
+      setSq: (e) => this.setState({ sq: e.target.value }),
+      aq: st.aq || '',
+      setAq: (e) => this.setState({ aq: e.target.value }),
+      modeIcon: dark ? IC.sun : IC.moon,
+      toggleDark: () => this.setState({ dark: !dark }),
+      rail,
+      groups,
+      curTitle: titleOf(curRow),
+      isDemo,
+      isOther: !isDemo,
+      otherMeta: curRow.ag + ' · ' + (curRow.meta || ''),
+      copyPatch: () => this.setState({ toast: '已复制补丁' }),
+      refreshDiff: () => this.setState({ toast: '改动已经是最新的' }),
+      diffAdd: files.reduce((n, x) => n + x.a, 0),
+      diffDel: files.reduce((n, x) => n + x.d, 0),
+      noDiff: files.length === 0,
+      undoCur: () => { if (curF.p) { this.setState({ undone: { ...undone, [curF.p]: true }, toast: '已撤销 ' + curF.p + ' 的改动' }); } },
+      openWsFiles: () => this.setState({ toast: '已在文件管理中打开 /srv/blog-api' }),
+      ctx: st.compact ? { pct: '16%', used: '31.6k', left: '168.4k', free: '84%' } : { pct: '38%', used: '76.0k', left: '124.0k', free: '62%' },
+      compactCtx: () => this.setState(st.compact ? { toast: '刚压缩过，暂时没有可以再压缩的内容' } : { compact: true, toast: '上下文已压缩：76.0k → 31.6k' }),
+      ctxRows: [['系统提示词', 3.1, 'var(--ink2)'], ['内置工具', 14.8, 'var(--a2)'], ['MCP 工具', 6.4, 'var(--a)'], ['项目指令 AGENTS.md', 1.9, 'var(--ok)'], ['技能', 1.2, 'var(--warn)'], ['对话消息', st.compact ? 4.2 : 48.6, 'var(--p)']].map(([t, n, c]) => ({ t, c, v: n.toFixed(1) + 'k', p: (n / 2).toFixed(1) + '%', w: (n / 2) + '%' })),
+      tokBar: [['68.5%', 'var(--ok)'], ['20.9%', 'var(--p)'], ['10.6%', 'var(--a2)']].map(([w, c]) => ({ w, c })),
+      tokRows: [['输入 · 缓存命中', '139.7k', '68.5%', 'var(--ok)'], ['输入 · 未命中缓存', '42.6k', '20.9%', 'var(--p)'], ['输出', '21.6k', '10.6%', 'var(--a2)'], ['其中思考', '6.4k', '', ''], ['缓存写入', '12.8k', '', '']].map(([t, v, p, c]) => ({ t, v, p, c: c || 'transparent', fg: c ? 'var(--ink)' : 'var(--ink2)' })),
+      ctxDetail: st.ctxDetail !== false,
+      ctxDetailT: st.ctxDetail !== false ? '收起明细' : '查看明细',
+      toggleCtxDetail: () => this.setState({ ctxDetail: st.ctxDetail === false }),
+      leftOn, rightOn,
+      leftT: leftOn ? '收起会话栏' : '展开会话栏',
+      rightT: rightOn ? '收起右侧面板' : '展开右侧面板',
+      toggleLeft: () => this.setState({ leftOff: leftOn }),
+      toggleRight: () => this.setState({ rightOff: rightOn }),
+      sessActs: SESS_ACTS.filter((a) => (a[4] !== 'forkwt' || !!WSI[actRow.g]) && (a[4] !== 'promote' || (!!actRow.parent && !actRow.out))).map(([t, d, sep, c, id]) => ({ t, d: IC[d], x: '', sep: !!sep, c: c || 'var(--ink)', run: acts[id] })),
+      kidN, hasKids: kidN > 0, delKids,
+      toggleDelKids: () => this.setState({ delKids: !delKids }),
+      branchName,
+      dlgOn: !!dlg,
+      dlgRename: dlgKind === 'rename', dlgBranch: dlgKind === 'branch', dlgTree: dlgKind === 'tree', dlgDelete: dlgKind === 'delete',
+      dlgTitle: titleOf(dlgRow),
+      dlgWs: dlgRow.g,
+      dlgBtn: { rename: '保存', branch: '切换', tree: '创建并切换', delete: '删除' }[dlgKind] || '确定',
+      dlgBtnCls: dlgKind === 'delete' ? 'btn-stop' : 'btn-p',
+      dv, dv2,
+      setDv: (e) => this.setState({ dv: e.target.value }),
+      setDv2: (e) => this.setState({ dv2: e.target.value }),
+      dlgOk,
+      dlgCancel: () => this.setState({ dlg: null }),
+      branches: ['main', 'dev', 'feat/comments-test'].map((b) => ({ t: b, on: b === pickedBranch, cls: b === pickedBranch ? 'mi2-on' : '', cur: b === branchName, pick: () => this.setState({ dv: b, dv2: '' }) })),
+      treePath: '/srv/' + dlgRow.g + '.worktrees/' + treeName,
+      toast: st.toast || '',
+      hasToast: !!st.toast,
+      closeToast: () => this.setState({ toast: '' }),
+      logRef: this._setLog,
+      stCls: stMap[perm][0], stT: stMap[perm][1],
+      busy: perm === 'ask',
+      isAsk: perm === 'ask', isAllow: perm === 'allow', isDeny: perm === 'deny', isStop: perm === 'stop',
+      clipOpen: pop === 'clip', toggleClip: togglePop('clip'),
+      atOpen: pop === 'at', toggleAt: togglePop('at'),
+      slashOpen: pop === 'slash' || typing, toggleSlash: togglePop('slash'),
+      clipActs: [
+        { t: '上传图片', d: IC.image, run: () => addAtt({ kind: 'img', n: '报错截图.png' }) },
+        { t: '上传文件', d: IC.file, run: () => addAtt({ kind: 'file', n: '需求说明.md' }) },
+        { t: '从工作区选文件', d: IC.folder, run: () => this.setState({ pop: 'at' }) }
+      ],
+      hasAtt: att.length > 0,
+      atts: att.map((a, idx) => ({ n: a.n, d: a.kind === 'img' ? IC.image : IC.file, cls: a.kind === 'ref' ? 'mono' : '', drop: () => this.setState({ att: att.filter((x, j) => j !== idx) }) })),
+      atFiles: AT_FILES.filter((p) => !aq || p.includes(aq)).map((p) => ({ p, pick: () => addAtt({ kind: 'ref', n: p }) })),
+      atEmpty: false,
+      agentName: 'Claude Code',
+      cmds: CMDS.map(([n, d]) => ({ n, d, pick: () => this.setState({ draft: n + ' ', pop: '' }) })),
+      draft,
+      setDraft: (e) => this.setState({ draft: e.target.value, slashHide: false }),
+      sendT: showStop ? '停止' : '发送',
+      sendD: showStop ? IC.stop : IC.send,
+      sendBg: showStop ? 'var(--badSoft)' : 'var(--p)',
+      sendFg: showStop ? 'var(--bad)' : 'var(--pOn)',
+      sendAct: showStop ? () => this.setState({ perm: 'stop' }) : () => this.setState({ draft: '', toast: draft.indexOf('/install-mcp') === 0 ? '已交给 Claude Code 安装 MCP 服务器，装好后出现在「Agent 管理」的 MCP 页' : (draft.indexOf('/install-skill') === 0 ? '已交给 Claude Code 安装技能，装好后出现在「Agent 管理」的技能页' : '') }),
+      allow: () => this.setState({ perm: 'allow', tab: 'task', rightOff: false, taskOpen: { ...taskOpen, test: true } }),
+      deny: () => this.setState({ perm: 'deny' }),
+      inlineDiff: mapDiff(D1.slice(1, 8)),
+      showDiff: () => this.setState({ tab: 'diff', file: 0, rightOff: false }),
+      testOut: TEST_OUT.map(([c, t]) => ({ c, t })),
+      plan: planState,
+      planDone: perm === 'allow' ? 5 : 4,
+      planNow: perm === 'ask' ? '正在：运行测试（等待批准）' : (perm === 'allow' ? '全部完成' : '已跳过：运行测试'),
+      planOpen,
+      planChev: planOpen ? IC.chevD : IC.chevU,
+      togglePlan: () => this.setState({ planOpen: !planOpen }),
+      modesOpen,
+      toggleModes: togglePop('mode'),
+      modeName,
+      modes: MODES.map(([k, t, d]) => ({ t, d, on: k === modeKey, pick: () => this.setState({ modeKey: k, pop: '' }) })),
+      chatOn: ctab === 'chat',
+      fileOn: ctab !== 'chat' && !isSub,
+      subOn: isSub,
+      subTabOn: !!st.subOpen,
+      subTabCls: isSub ? 'tt-on' : '',
+      subMiCls: isSub ? 'mi2-on' : '',
+      pickSub: () => this.setState({ ctab: 'sub' }),
+      pickSubMenu: () => this.setState({ ctab: 'sub', pop: '' }),
+      closeSub: () => this.setState({ subOpen: false, ctab: isSub ? 'chat' : ctab }),
+      sub: {
+        t: '梳理 findPosts 的调用关系',
+        meta: '完成 · 用时 21 秒',
+        prompt: '梳理 findPosts 的调用关系：找出所有调用它的地方，说明各自传了什么参数。',
+        steps: [['search', '搜索', 'findPosts('], ['file', '读取', 'src/routes/posts.ts'], ['file', '读取', 'test/posts.test.ts'], ['file', '读取', 'test/helpers.ts']].map(([d, t, x]) => ({ d: IC[d], t, x })),
+        lead: 'findPosts 一共有 3 处调用，都只传了 tag 这一个参数：',
+        out: ['src/routes/posts.ts:9', 'test/posts.test.ts:6', 'test/helpers.ts:18']
+      },
+      chatTabCls: ctab === 'chat' ? 'tt-on' : '',
+      pickChat: () => this.setState({ ctab: 'chat' }),
+      tabsRef: this._setTabs,
+      tabsOpen: pop === 'tabs',
+      toggleTabs: togglePop('tabs'),
+      tabCount: open.length + 1 + (st.subOpen ? 1 : 0),
+      manyTabs: open.length >= 2,
+      chatMiCls: ctab === 'chat' ? 'mi2-on' : '',
+      pickChatMenu: () => this.setState({ ctab: 'chat', pop: '' }),
+      closeOthers: () => this.setState({ open: open.filter((p) => p === ctab), pop: '' }),
+      stDot: perm === 'ask' ? 'var(--warn)' : 'var(--line)',
+      fileTabs: open.map((p) => ({
+        path: p, name: p.split('/').slice(-2).join('/'), on: p === ctab, cls: p === ctab ? 'tt-on' : '',
+        pick: () => this.setState({ ctab: p }),
+        miCls: p === ctab ? 'mi2-on' : '', pickMenu: () => this.setState({ ctab: p, pop: '' }),
+        close: () => this.setState({ open: open.filter((x) => x !== p), ctab: p === ctab ? 'chat' : ctab })
+      })),
+      cur: {
+        path: ctab, lang: src.lang, changed: !!src.add, a: src.a, d: src.d,
+        showDiff: () => this.setState({ tab: 'diff', rightOff: false, file: Math.max(0, FILES.findIndex((f) => f.p === ctab)) }),
+        lines: src.lines.map((t, idx) => ({ n: idx + 1, t, cls: idx + 1 >= addRange[0] && idx + 1 <= addRange[1] ? 'dl-a' : '' }))
+      },
+      openCur: () => { if (curF.p) { openFile(curF.p); } },
+      thinkOpen,
+      tokOpen: !!st.tokOpen,
+      tokChev: st.tokOpen ? IC.chevD : IC.chevR,
+      toggleTok: () => this.setState({ tokOpen: !st.tokOpen }),
+      thinkChev: thinkOpen ? IC.chevD : IC.chevR,
+      toggleThink: () => this.setState({ thinkOpen: !thinkOpen }),
+      ctxOpen: pop === 'ctx',
+      toggleCtx: togglePop('ctx'),
+      showInfo: () => this.setState({ tab: 'info', pop: '', rightOff: false }),
+      modelOpen: pop === 'model',
+      toggleModel: togglePop('model'),
+      modelName: model,
+      effortName,
+      hasEffort: effOpts.length > 0,
+      noEffort: effOpts.length === 0,
+      curProv: curProv.n,
+      provModels: curProv.items.map(modelItem),
+      moreGroups: MODELS.filter((g) => g !== curProv).map((g) => ({ n: g.n, items: g.items.map(modelItem) })),
+      subMore: sub === 'more', subEffort: sub === 'effort',
+      rowMoreCls: sub === 'more' ? 'mi2-hl' : '', rowEffortCls: sub === 'effort' ? 'mi2-hl' : '',
+      toggleSubMore: toggleSub('more'), toggleSubEffort: toggleSub('effort'),
+      efforts: effOpts.map((t) => ({ t, on: t === effort, cls: t === effort ? 'mi2-on' : '', pick: () => this.setState({ eff: { ...eff, [model]: t }, sub: '' }) })),
+      tabs: [['diff', '改动 ' + files.length], ['files', '文件'], ['task', '任务 ' + taskGroups[0].n], ['info', '会话']].map(([k, t]) => ({ t, on: k === tab, cls: k === tab ? 'on' : '', pick: () => this.setState({ tab: k }) })),
+      tabDiff: tab === 'diff', tabFiles: tab === 'files', tabTask: tab === 'task', tabInfo: tab === 'info',
+      files,
+      curFile: curF.p,
+      diff: mapDiff(curF.lines),
+      tree,
+      taskGroups,
+      info: [
+        { k: '标题', v: titleOf(curRow) },
+        curRow.parent ? { k: '复刻自', v: titleOf(rows.find((r) => r.key === curRow.parent) || curRow) } : null,
+        { k: '模型', v: provName + ' · ' + model },
+        { k: '推理强度', v: effortName },
+        { k: '权限模式', v: modeName },
+        { k: '工作区', v: wsNow ? wsNow[0] : '无工作区', cls: wsNow ? 'mono' : '' },
+        wsNow ? { k: '分支', v: curBranch, cls: 'mono' } : null,
+        wt[curRow.key] ? { k: '工作树', v: wt[curRow.key], cls: 'mono' } : null,
+        { k: '接入方式', v: 'ACP · claude-agent-acp [版本号]' },
+        { k: '进程', v: 'PID 48213 · 已运行 6 分钟' },
+        { k: '会话 ID', v: '0199c2e4-7b1a-7f3e', cls: 'mono' }
+      ].filter(Boolean),
+      mcp: [
+        { n: 'postgres-dev', d: 'stdio · 6 个工具' },
+        { n: 'context7', d: 'HTTP · 2 个工具' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

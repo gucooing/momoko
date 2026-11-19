@@ -564,7 +564,7 @@
       @confirm="onPromptConfirm"
     />
 
-    <FileMediaDialog v-model="media.open" :name="media.name" :kind="media.kind" :url="media.url" />
+    <FileMediaDialog v-model="media.open" :name="media.name" :kind="media.kind" :url="media.url" :download-url="media.url" />
 
     <FileMoveDialog
       v-model="transfer.open"
