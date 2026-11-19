@@ -547,6 +547,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SetAgentRuntimeModeResponse'
+    /api/v1/agent/runtimes/{id}/models:
+        post:
+            tags:
+                - AgentService
+            description: 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+            operationId: AgentService_SetAgentRuntimeModels
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SetAgentRuntimeModelsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SetAgentRuntimeModelsResponse'
     /api/v1/agent/runtimes/{id}/update:
         post:
             tags:
@@ -12779,6 +12804,16 @@ components:
                 value:
                     type: string
             description: 推理等级：name 是会话里能选的等级，value 是选中它时实际发给接口的值（空 = 不带这个参数）
+        v1.AgentModelLimit:
+            type: object
+            properties:
+                model:
+                    type: string
+                contextWindow:
+                    type: string
+                    description: token 数，0 = 用 Agent 自己的
+                maxOutput:
+                    type: string
         v1.AgentModelOption:
             type: object
             properties:
@@ -12792,6 +12827,11 @@ components:
                         $ref: '#/components/schemas/v1.AgentChoice'
                     description: 这个模型能选的推理强度；为空表示不可调
                 defaultEffort:
+                    type: string
+                contextWindow:
+                    type: string
+                    description: 服务器上的登录：管理页给这个模型设的最长上下文和最长输出（token 数），0 = 用 Agent 自己的
+                maxOutput:
                     type: string
         v1.AgentNotifyChannel:
             type: object
@@ -23631,6 +23671,20 @@ components:
                 managed:
                     type: boolean
         v1.SetAgentRuntimeModeResponse:
+            type: object
+            properties:
+                runtime:
+                    $ref: '#/components/schemas/v1.AgentRuntime'
+        v1.SetAgentRuntimeModelsRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentModelLimit'
+        v1.SetAgentRuntimeModelsResponse:
             type: object
             properties:
                 runtime:

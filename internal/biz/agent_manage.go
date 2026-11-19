@@ -715,6 +715,47 @@ func (uc *AgentUsecase) providerEnv(d agentdriver.Driver, p *gen.AgentProvider, 
 	return d.APIEnv(api), true, nil
 }
 
+// loginLimits 服务器上的登录里用户给这个模型设的最长上下文和最长输出（没设为 0）；model 为空时看 Agent 默认的模型。
+func loginLimits(rt *gen.AgentRuntime, model string) (contextWindow, maxOutput int64) {
+	catalog := agentParse[agentrun.Catalog](rt.Catalog)
+	if model == "" {
+		model = catalog.DefaultModel
+	}
+	for _, m := range catalog.Models {
+		if m.ID == model {
+			return m.ContextWindow, m.MaxOutput
+		}
+	}
+	return 0, 0
+}
+
+// SetRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出（0 = 用 Agent 自己的），下次起进程时交给 Agent。
+func (uc *AgentUsecase) SetRuntimeModels(ctx context.Context, id string, in []*v1.AgentModelLimit) (*v1.AgentRuntime, error) {
+	rt, err := uc.getRuntime(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	limits := make(map[string]*v1.AgentModelLimit, len(in))
+	for _, m := range in {
+		if m.GetContextWindow() < 0 || m.GetMaxOutput() < 0 {
+			return nil, response.BadRequest("最长上下文和最长输出不能是负数")
+		}
+		limits[m.GetModel()] = m
+	}
+	catalog := agentParse[agentrun.Catalog](rt.Catalog)
+	for i := range catalog.Models {
+		if l := limits[catalog.Models[i].ID]; l != nil {
+			catalog.Models[i].ContextWindow, catalog.Models[i].MaxOutput = l.GetContextWindow(), l.GetMaxOutput()
+		}
+	}
+	rt.Catalog = agentJSON(catalog)
+	if err := uc.repo.SaveAgentRuntime(ctx, rt); err != nil {
+		return nil, ErrSystem(err)
+	}
+	uc.configChanged()
+	return uc.runtimePB(rt, uc.activeByRuntime()), nil
+}
+
 // markLoggedOut 会话里发现服务器上的登录失效了：记下来，选择器里就不再给「服务器上的登录」，等用户登录后再检查。
 func (uc *AgentUsecase) markLoggedOut(ctx context.Context, runtimeID string) {
 	rt, err := uc.repo.GetAgentRuntime(ctx, runtimeID)

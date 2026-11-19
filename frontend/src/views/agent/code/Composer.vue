@@ -1,7 +1,7 @@
 <!-- 输入区：附件、@ 引用工作区文件、/ 命令（Momoko 内置、Agent 自己的、技能）、上下文用量、权限模式、
      模型和推理强度（新会话还能换 Agent）。一轮进行中且输入为空时，发送按钮变成停止。 -->
 <template>
-  <div ref="root" class="agc-composer">
+  <div ref="root" class="agc-composer" :style="{ '--agc-btn-x': `${popAt.x}px`, '--agc-btn-y': `${popAt.y}px` }">
     <div ref="box" class="agc-box" :class="{ 'is-drop': dropping, 'is-narrow': narrow }">
       <div v-if="atts.length" class="agc-box__atts">
         <template v-for="(a, i) in atts" :key="i">
@@ -46,6 +46,7 @@
         <span class="agc-flex" />
         <span v-if="ctxSize > 0" class="agc-ctxwrap">
           <button
+            ref="ctxBtn"
             type="button"
             class="agc-cl ag-num"
             aria-haspopup="dialog"
@@ -65,10 +66,10 @@
             <span>{{ t('agent.code.ctx.tipTokens', { used: fmtTokens(ctxUsed), size: fmtTokens(ctxSize) }) }}</span>
           </span>
         </span>
-        <button v-if="modes.length" type="button" class="agc-cl" aria-haspopup="menu" :aria-expanded="pop === 'mode'" @click="toggle('mode')">
+        <button v-if="modes.length" ref="modeBtn" type="button" class="agc-cl" aria-haspopup="menu" :aria-expanded="pop === 'mode'" @click="toggle('mode')">
           {{ currentMode }}<UIcon name="i-lucide-chevron-down" />
         </button>
-        <button type="button" class="agc-cl agc-cl--model" aria-haspopup="menu" :aria-expanded="pop === 'model'" :aria-label="t('agent.code.composer.pickModel')" @click="toggle('model')">
+        <button ref="modelBtn" type="button" class="agc-cl agc-cl--model" aria-haspopup="menu" :aria-expanded="pop === 'model'" :aria-label="t('agent.code.composer.pickModel')" @click="toggle('model')">
           <AgAgentTag v-if="agentSwitch && runtime" :kind="agentKindOf(runtime.kind)" :name="runtime.runtimeName" />
           <span class="ag-mono agc-cl__model">{{ modelName || t('agent.code.composer.noModel') }}</span>
           <span v-if="efforts.length && effortName">· {{ effortName }}</span>
@@ -136,7 +137,7 @@
     </div>
 
     <!-- 上下文 -->
-    <div v-if="pop === 'ctx'" class="ag-menu agc-pop agc-pop--r3 agc-ctx" role="dialog" :aria-label="t('agent.code.ctx.title')">
+    <div v-if="pop === 'ctx'" class="ag-menu agc-pop agc-pop--btn agc-ctx" role="dialog" :aria-label="t('agent.code.ctx.title')">
       <div class="agc-ctx__row"><span class="ag-lbl agc-flex">{{ t('agent.code.ctx.title') }}</span><span class="ag-num ag-muted">{{ t('agent.code.ctx.usedPct', { pct: ctxPct }) }}</span></div>
       <div class="agc-ctx__big ag-num">{{ fmtTokens(ctxUsed) }} <span class="ag-muted">/ {{ fmtTokens(ctxSize) }}</span></div>
       <div class="ag-meter"><span :style="{ width: ctxPct }" /></div>
@@ -145,7 +146,7 @@
     </div>
 
     <!-- 权限模式 -->
-    <div v-if="pop === 'mode'" class="ag-menu agc-pop agc-pop--r2 agc-pop--w330" role="menu" :aria-label="t('agent.code.mode.title')">
+    <div v-if="pop === 'mode'" class="ag-menu agc-pop agc-pop--btn agc-pop--w330" role="menu" :aria-label="t('agent.code.mode.title')">
       <div class="ag-mi-label">{{ t('agent.code.mode.by', { agent: runtime?.runtimeName || '' }) }}</div>
       <button v-for="m in modes" :key="m.id" type="button" class="ag-mi agc-mode" role="menuitemradio" :aria-checked="m.id === mode" @click="choose({ mode: m.id })">
         <span class="agc-mode__t">
@@ -157,7 +158,7 @@
     </div>
 
     <!-- 模型和推理强度：点模型在旁边弹出它的推理强度；选了也不关，点外面才关 -->
-    <div v-if="pop === 'model'" ref="modelMenu" class="ag-menu agc-pop agc-pop--r1 agc-pop--w252" role="menu" :aria-label="t('agent.code.model.title')" @scroll="placeEffort">
+    <div v-if="pop === 'model'" ref="modelMenu" class="ag-menu agc-pop agc-pop--btn agc-pop--w252" role="menu" :aria-label="t('agent.code.model.title')" @scroll="placeEffort">
       <template v-if="agentSwitch">
         <button type="button" class="ag-mi" :class="{ 'is-hl': sub === 'agent' }" role="menuitem" aria-haspopup="menu" :aria-expanded="sub === 'agent'" @click="toggleSub('agent')">
           <AgAgentTag v-if="runtime" :kind="agentKindOf(runtime.kind)" :name="runtime.runtimeName" />
@@ -337,6 +338,25 @@ const toggle = (k: Pop) => {
   pop.value = pop.value === k ? '' : k
   sub.value = ''
   if (pop.value === 'at') void openAt()
+  void placePop()
+}
+
+// 上下文、权限模式、模型的弹层挂在自己的按钮上：从按钮正上方弹出（压在输入框上），左边和按钮对齐，
+// 右边到浏览器边上放不下就往左挪
+const ctxBtn = ref<HTMLElement | null>(null)
+const modeBtn = ref<HTMLElement | null>(null)
+const modelBtn = ref<HTMLElement | null>(null)
+const popAt = ref({ x: 0, y: 0 })
+const placePop = async () => {
+  await nextTick()
+  const btn = pop.value === 'ctx' ? ctxBtn.value : pop.value === 'mode' ? modeBtn.value : pop.value === 'model' ? modelBtn.value : null
+  const menu = root.value?.querySelector<HTMLElement>('.agc-pop--btn')
+  if (!root.value || !btn || !menu) return
+  const r = root.value.getBoundingClientRect()
+  const b = btn.getBoundingClientRect()
+  const x = Math.min(b.left, document.documentElement.clientWidth - 8 - menu.offsetWidth)
+  popAt.value = { x: x - r.left, y: r.bottom - b.top + 6 }
+  if (pop.value === 'model') void placeEffort()
 }
 const toggleSub = (k: 'agent' | 'more') => {
   sub.value = sub.value === k ? '' : k
@@ -400,7 +420,7 @@ const placeEffort = async () => {
   effortPos.value = { x: x - b.left, y: y - b.top }
 }
 watch(effortModel, () => void placeEffort())
-useEventListener(window, 'resize', () => void placeEffort())
+useEventListener(window, 'resize', () => void placePop())
 
 const pickModel = (p: AgentProviderOptions, m: AgentModelOption) => {
   effortModelId.value = m.id

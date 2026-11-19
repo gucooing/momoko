@@ -3,6 +3,15 @@ export default {
   'zh-CN': {
     agent: {
       providers: {
+        loginModels: {
+          edit: '编辑模型',
+          title: '{name} 的模型',
+          model: '模型',
+          agentDefault: 'Agent 默认',
+          hint: '单位是 token，留空用 Agent 自己的。下次启动 Agent 进程时生效。',
+          hintCodex: '单位是 token，留空用 Codex 自己的；Codex 没有设定最长输出的配置。下次启动 Agent 进程时生效。',
+          saved: '已保存 {name} 的模型',
+        },
         subtitle: '共 {n} 个第三方接口',
         serverLogin: '服务器上的登录',
         serverLoginSub: '{account} · {n} 个模型',
@@ -106,6 +115,15 @@ export default {
   'zh-HK': {
     agent: {
       providers: {
+        loginModels: {
+          edit: '編輯模型',
+          title: '{name} 的模型',
+          model: '模型',
+          agentDefault: 'Agent 預設',
+          hint: '單位是 token，留空用 Agent 自己的。下次啟動 Agent 程序時生效。',
+          hintCodex: '單位是 token，留空用 Codex 自己的；Codex 沒有設定最長輸出的設定。下次啟動 Agent 程序時生效。',
+          saved: '已儲存 {name} 的模型',
+        },
         subtitle: '共 {n} 個第三方介面',
         serverLogin: '伺服器上的登入',
         serverLoginSub: '{account} · {n} 個模型',
@@ -209,6 +227,15 @@ export default {
   'en-US': {
     agent: {
       providers: {
+        loginModels: {
+          edit: 'Edit models',
+          title: 'Models of {name}',
+          model: 'Model',
+          agentDefault: 'Agent default',
+          hint: 'In tokens. Leave empty to use what the agent sets. Applies the next time the agent process starts.',
+          hintCodex: 'In tokens. Leave empty to use what Codex sets; Codex has no setting for the max output. Applies the next time the agent process starts.',
+          saved: 'Saved the models of {name}',
+        },
         subtitle: '{n} third-party APIs',
         serverLogin: 'Server sign-in',
         serverLoginSub: '{account} · {n} models',

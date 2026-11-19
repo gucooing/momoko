@@ -73,6 +73,7 @@ const (
 	AgentService_ListAgentRuntimes_FullMethodName            = "/v1.AgentService/ListAgentRuntimes"
 	AgentService_SetAgentRuntimeMode_FullMethodName          = "/v1.AgentService/SetAgentRuntimeMode"
 	AgentService_DetectAgentRuntime_FullMethodName           = "/v1.AgentService/DetectAgentRuntime"
+	AgentService_SetAgentRuntimeModels_FullMethodName        = "/v1.AgentService/SetAgentRuntimeModels"
 	AgentService_UpdateAgentRuntime_FullMethodName           = "/v1.AgentService/UpdateAgentRuntime"
 	AgentService_CreateAgentRuntime_FullMethodName           = "/v1.AgentService/CreateAgentRuntime"
 	AgentService_DeleteAgentRuntime_FullMethodName           = "/v1.AgentService/DeleteAgentRuntime"
@@ -186,6 +187,8 @@ type AgentServiceClient interface {
 	SetAgentRuntimeMode(ctx context.Context, in *SetAgentRuntimeModeRequest, opts ...grpc.CallOption) (*SetAgentRuntimeModeResponse, error)
 	// 重新检测
 	DetectAgentRuntime(ctx context.Context, in *DetectAgentRuntimeRequest, opts ...grpc.CallOption) (*DetectAgentRuntimeResponse, error)
+	// 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+	SetAgentRuntimeModels(ctx context.Context, in *SetAgentRuntimeModelsRequest, opts ...grpc.CallOption) (*SetAgentRuntimeModelsResponse, error)
 	// 检查更新；由 Momoko 下载的会直接更新到最新版本
 	UpdateAgentRuntime(ctx context.Context, in *UpdateAgentRuntimeRequest, opts ...grpc.CallOption) (*UpdateAgentRuntimeResponse, error)
 	// 添加其它 ACP Agent
@@ -752,6 +755,16 @@ func (c *agentServiceClient) DetectAgentRuntime(ctx context.Context, in *DetectA
 	return out, nil
 }
 
+func (c *agentServiceClient) SetAgentRuntimeModels(ctx context.Context, in *SetAgentRuntimeModelsRequest, opts ...grpc.CallOption) (*SetAgentRuntimeModelsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetAgentRuntimeModelsResponse)
+	err := c.cc.Invoke(ctx, AgentService_SetAgentRuntimeModels_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) UpdateAgentRuntime(ctx context.Context, in *UpdateAgentRuntimeRequest, opts ...grpc.CallOption) (*UpdateAgentRuntimeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateAgentRuntimeResponse)
@@ -944,6 +957,8 @@ type AgentServiceServer interface {
 	SetAgentRuntimeMode(context.Context, *SetAgentRuntimeModeRequest) (*SetAgentRuntimeModeResponse, error)
 	// 重新检测
 	DetectAgentRuntime(context.Context, *DetectAgentRuntimeRequest) (*DetectAgentRuntimeResponse, error)
+	// 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+	SetAgentRuntimeModels(context.Context, *SetAgentRuntimeModelsRequest) (*SetAgentRuntimeModelsResponse, error)
 	// 检查更新；由 Momoko 下载的会直接更新到最新版本
 	UpdateAgentRuntime(context.Context, *UpdateAgentRuntimeRequest) (*UpdateAgentRuntimeResponse, error)
 	// 添加其它 ACP Agent
@@ -1131,6 +1146,9 @@ func (UnimplementedAgentServiceServer) SetAgentRuntimeMode(context.Context, *Set
 }
 func (UnimplementedAgentServiceServer) DetectAgentRuntime(context.Context, *DetectAgentRuntimeRequest) (*DetectAgentRuntimeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DetectAgentRuntime not implemented")
+}
+func (UnimplementedAgentServiceServer) SetAgentRuntimeModels(context.Context, *SetAgentRuntimeModelsRequest) (*SetAgentRuntimeModelsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetAgentRuntimeModels not implemented")
 }
 func (UnimplementedAgentServiceServer) UpdateAgentRuntime(context.Context, *UpdateAgentRuntimeRequest) (*UpdateAgentRuntimeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateAgentRuntime not implemented")
@@ -2152,6 +2170,24 @@ func _AgentService_DetectAgentRuntime_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_SetAgentRuntimeModels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAgentRuntimeModelsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).SetAgentRuntimeModels(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_SetAgentRuntimeModels_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).SetAgentRuntimeModels(ctx, req.(*SetAgentRuntimeModelsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_UpdateAgentRuntime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateAgentRuntimeRequest)
 	if err := dec(in); err != nil {
@@ -2536,6 +2572,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DetectAgentRuntime",
 			Handler:    _AgentService_DetectAgentRuntime_Handler,
+		},
+		{
+			MethodName: "SetAgentRuntimeModels",
+			Handler:    _AgentService_SetAgentRuntimeModels_Handler,
 		},
 		{
 			MethodName: "UpdateAgentRuntime",

@@ -534,7 +534,8 @@ func restartFor(l *agentLive) error {
 
 // SetSessionOption 切换权限模式、模型或推理强度。
 //   - 权限模式，和服务器上的登录里换模型、换推理强度：进程在就直接告诉 Agent；
-//   - 换供应商，或者第三方接口里换模型、换推理等级：这些是启动进程时定下来的，要换一个进程。
+//   - 换供应商，第三方接口里换模型、换推理等级，或者服务器上的登录里换到上下文、输出设得不一样的模型：
+//     这些是启动进程时定下来的，要换一个进程。
 func (uc *AgentUsecase) SetSessionOption(ctx context.Context, req *v1.SetAgentSessionOptionRequest) (*v1.AgentSession, error) {
 	s, err := uc.getSession(ctx, req.GetId())
 	if err != nil {
@@ -578,7 +579,10 @@ func (uc *AgentUsecase) SetSessionOption(ctx context.Context, req *v1.SetAgentSe
 			}
 		}
 		providerID, model, effort = req.GetProviderId(), value, effortFor(rt, p, value, s.Effort)
-		if byEnv || providerID != s.ProviderID {
+		// 服务器上的登录里两个模型设的上下文、输出不一样：这是启动时交给 Agent 的，也要换一个进程
+		ctxFrom, outFrom := loginLimits(rt, s.Model)
+		ctxTo, outTo := loginLimits(rt, value)
+		if byEnv || providerID != s.ProviderID || ctxFrom != ctxTo || outFrom != outTo {
 			if err := restartFor(l); err != nil {
 				return nil, err
 			}
@@ -990,7 +994,7 @@ func (uc *AgentUsecase) ReadFile(ctx context.Context, id, path string) (*v1.Read
 	return &v1.ReadAgentSessionFileResponse{Path: path, Content: text.Content, Binary: text.Binary, TooLarge: text.TooLarge, Size: text.Size}, nil
 }
 
-// ReadUpload 取回消息里上传过的一个附件（file 是事件里记的那个），页面拿来显示图片。
+// ReadUpload 取回会话附件目录里的一个文件（file 是事件里记的那个：消息的附件，或工具调用产出的图片），页面拿来显示图片。
 func (uc *AgentUsecase) ReadUpload(ctx context.Context, id, file string) (*v1.GetAgentSessionUploadResponse, error) {
 	if _, err := uc.getSession(ctx, id); err != nil {
 		return nil, err

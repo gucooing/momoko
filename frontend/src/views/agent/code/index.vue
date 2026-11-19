@@ -165,6 +165,7 @@
           </div>
           <ChatLog
             :items="subItems"
+            :session-id="session?.id || ''"
             :agent-kind="agentKindOf(session?.runtimeKind)"
             :agent-name="session?.runtimeName || ''"
             :cwd="session?.cwd || ''"

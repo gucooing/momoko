@@ -85,11 +85,9 @@ func (Driver) APIEnv(api agentdriver.API) map[string]string {
 		"ANTHROPIC_SMALL_FAST_MODEL":               fast,
 		"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
 	}
-	if api.ContextWindow > 0 {
-		env["CLAUDE_CODE_MAX_CONTEXT_TOKENS"] = strconv.FormatInt(api.ContextWindow, 10)
-	}
-	if api.MaxOutput > 0 {
-		env["CLAUDE_CODE_MAX_OUTPUT_TOKENS"] = strconv.FormatInt(api.MaxOutput, 10)
+	limits, _ := Driver{}.LoginLimits(api.ContextWindow, api.MaxOutput)
+	for k, v := range limits {
+		env[k] = v
 	}
 	if api.HasLevel {
 		if api.Level == "" {
@@ -104,6 +102,18 @@ func (Driver) APIEnv(api agentdriver.API) map[string]string {
 		}
 	}
 	return env
+}
+
+// LoginLimits 最长上下文和最长输出都靠环境变量：CLAUDE_CODE_MAX_CONTEXT_TOKENS、CLAUDE_CODE_MAX_OUTPUT_TOKENS。
+func (Driver) LoginLimits(contextWindow, maxOutput int64) (map[string]string, []string) {
+	env := map[string]string{}
+	if contextWindow > 0 {
+		env["CLAUDE_CODE_MAX_CONTEXT_TOKENS"] = strconv.FormatInt(contextWindow, 10)
+	}
+	if maxOutput > 0 {
+		env["CLAUDE_CODE_MAX_OUTPUT_TOKENS"] = strconv.FormatInt(maxOutput, 10)
+	}
+	return env, nil
 }
 
 // projectDirMax Claude CLI 给项目目录名的长度上限：超过的截断后再接一段它自己算的散列。

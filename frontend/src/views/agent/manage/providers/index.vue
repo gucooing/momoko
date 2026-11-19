@@ -28,6 +28,16 @@
                 :class="{ 'ag-spin': checking.has(r.id) }"
               />{{ t('agent.providers.check') }}
             </button>
+            <button
+              v-if="r.loggedIn && r.models?.length && agentKindOf(r.kind) !== 'custom'"
+              type="button"
+              class="ag-ib ag-ib--sm"
+              :aria-label="`${t('agent.providers.loginModels.edit')} ${r.name}`"
+              :title="t('agent.providers.loginModels.edit')"
+              @click="openModels(r)"
+            >
+              <UIcon name="i-lucide-pencil" />
+            </button>
           </div>
         </div>
         <div v-if="!runtimes.length" class="ag-empty">{{ t('agent.common.loading') }}</div>
@@ -94,6 +104,7 @@
     </div>
 
     <ProviderDialog v-model="formOpen" :provider="formTarget" @saved="reload" />
+    <LoginModelsDialog v-model="modelsOpen" :runtime="modelsTarget" @saved="reload" />
     <AgConfirm
       v-model="deleteOpen"
       danger
@@ -114,6 +125,7 @@ import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { agentKindOf } from '@/views/agent/utils/format'
+import LoginModelsDialog from './LoginModelsDialog.vue'
 import ProviderDialog from './ProviderDialog.vue'
 
 defineOptions({ name: 'AgentManageProvidersView' })
@@ -181,6 +193,14 @@ const check = async (r: AgentRuntime) => {
     checking.value = next
     await reload()
   }
+}
+
+// 编辑模型：给检查时读到的模型设最长上下文和最长输出
+const modelsOpen = ref(false)
+const modelsTarget = ref<AgentRuntime | null>(null)
+const openModels = (r: AgentRuntime) => {
+  modelsTarget.value = r
+  modelsOpen.value = true
 }
 
 // —— 第三方接口 ——

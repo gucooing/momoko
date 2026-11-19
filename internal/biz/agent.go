@@ -258,7 +258,7 @@ func (uc *AgentUsecase) dir(parts ...string) string {
 //
 //	work/      没选工作区时的工作目录
 //	worktree/  在独立工作树里运行时的工作树
-//	uploads/   对话里上传的附件
+//	uploads/   对话里的附件和图片：上传的附件，以及 Agent 工具调用产出的图片
 //	tmp/       Agent 进程的临时目录
 func (uc *AgentUsecase) sessionDir(id string, sub ...string) string {
 	return filepath.Join(append([]string{uc.root, "sessions", id}, sub...)...)
@@ -459,7 +459,10 @@ func agentChoicesPB(in []agentrun.Choice) []*v1.AgentChoice {
 func agentModelsPB(in []agentrun.CatalogModel) []*v1.AgentModelOption {
 	out := make([]*v1.AgentModelOption, 0, len(in))
 	for _, m := range in {
-		out = append(out, &v1.AgentModelOption{Id: m.ID, Name: m.Name, Efforts: agentChoicesPB(m.Efforts), DefaultEffort: m.DefaultEffort})
+		out = append(out, &v1.AgentModelOption{
+			Id: m.ID, Name: m.Name, Efforts: agentChoicesPB(m.Efforts), DefaultEffort: m.DefaultEffort,
+			ContextWindow: m.ContextWindow, MaxOutput: m.MaxOutput,
+		})
 	}
 	return out
 }

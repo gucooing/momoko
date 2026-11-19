@@ -3,6 +3,7 @@ import request from '@/utils/request'
 import type {
   AgentAttachment,
   AgentMcpServer,
+  AgentModelLimit,
   AgentNotifyEvents,
   AgentProvider,
   AgentRunSettings,
@@ -51,6 +52,7 @@ import type {
   SaveAgentNotifyChannelResponse,
   SearchAgentFilesResponse,
   SetAgentRuntimeModeResponse,
+  SetAgentRuntimeModelsResponse,
   SetAgentSessionOptionResponse,
   TestAgentMcpServerResponse,
   TestAgentProviderResponse,
@@ -183,6 +185,8 @@ export const importAgentSkill = (data: Omit<Partial<ImportAgentSkillRequest>, 'd
 export const listAgentRuntimes = () => request.get<ListAgentRuntimesResponse>('/agent/runtimes')
 export const setAgentRuntimeMode = (id: string, managed: boolean) =>
   request.post<SetAgentRuntimeModeResponse>(`/agent/runtimes/${id}/mode`, { managed }, { timeout: 600000 })
+export const setAgentRuntimeModels = (id: string, models: AgentModelLimit[]) =>
+  request.post<SetAgentRuntimeModelsResponse>(`/agent/runtimes/${id}/models`, { models })
 export const detectAgentRuntime = (id: string) =>
   request.post<DetectAgentRuntimeResponse>(`/agent/runtimes/${id}/detect`, {}, SLOW)
 export const updateAgentRuntime = (id: string) =>

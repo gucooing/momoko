@@ -155,6 +155,7 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationAgentServiceImportAgentSkill:             constant.AgentManage,
 	v1.OperationAgentServiceSetAgentRuntimeMode:          constant.AgentManage,
 	v1.OperationAgentServiceDetectAgentRuntime:           constant.AgentManage,
+	v1.OperationAgentServiceSetAgentRuntimeModels:        constant.AgentManage,
 	v1.OperationAgentServiceUpdateAgentRuntime:           constant.AgentManage,
 	v1.OperationAgentServiceCreateAgentRuntime:           constant.AgentManage,
 	v1.OperationAgentServiceDeleteAgentRuntime:           constant.AgentManage,

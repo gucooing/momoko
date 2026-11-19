@@ -219,6 +219,10 @@ service AgentService {
   rpc DetectAgentRuntime(DetectAgentRuntimeRequest) returns (DetectAgentRuntimeResponse) {
     option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/detect" body: "*" };
   }
+  // 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+  rpc SetAgentRuntimeModels(SetAgentRuntimeModelsRequest) returns (SetAgentRuntimeModelsResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/models" body: "*" };
+  }
   // 检查更新；由 Momoko 下载的会直接更新到最新版本
   rpc UpdateAgentRuntime(UpdateAgentRuntimeRequest) returns (UpdateAgentRuntimeResponse) {
     option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/update" body: "*" };
@@ -323,6 +327,9 @@ message AgentModelOption {
   // 这个模型能选的推理强度；为空表示不可调
   repeated AgentChoice efforts = 3;
   string default_effort = 4;
+  // 服务器上的登录：管理页给这个模型设的最长上下文和最长输出（token 数），0 = 用 Agent 自己的
+  int64 context_window = 5;
+  int64 max_output = 6;
 }
 
 message AgentChoice {
@@ -1107,6 +1114,20 @@ message DetectAgentRuntimeRequest {
   string id = 1;
 }
 message DetectAgentRuntimeResponse {
+  AgentRuntime runtime = 1;
+}
+
+message AgentModelLimit {
+  string model = 1;
+  // token 数，0 = 用 Agent 自己的
+  int64 context_window = 2;
+  int64 max_output = 3;
+}
+message SetAgentRuntimeModelsRequest {
+  string id = 1;
+  repeated AgentModelLimit models = 2;
+}
+message SetAgentRuntimeModelsResponse {
   AgentRuntime runtime = 1;
 }
 

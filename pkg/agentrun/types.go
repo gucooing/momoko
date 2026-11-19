@@ -115,6 +115,8 @@ type Tool struct {
 	Locations []Location `json:"locations,omitempty"`
 	Diffs     []Diff     `json:"diffs,omitempty"`
 	Output    string     `json:"output,omitempty"`
+	// Images 工具调用产出的图片（生图、截图等），存在会话的附件目录里，页面凭它取回，同附件的 File。
+	Images []string `json:"images,omitempty"`
 	// Child 这次调用派出的子 Agent 的会话 id。
 	Child string `json:"child,omitempty"`
 }

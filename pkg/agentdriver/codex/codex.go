@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"momoko/pkg/agentdriver"
@@ -79,12 +80,29 @@ func (Driver) APIEnv(api agentdriver.API) map[string]string {
 	return env
 }
 
-// RemoveTranscript 会话记录按日期分目录放在 sessions 下（归档的在 archived_sessions 下），文件名以会话 id 结尾。
+// LoginLimits 最长上下文用启动参数 -c model_context_window=<n> 覆盖配置（codex-acp 认 -c 覆盖项）；
+// Codex 没有设定最长输出的配置，maxOutput 不用。
+func (Driver) LoginLimits(contextWindow, _ int64) (map[string]string, []string) {
+	if contextWindow <= 0 {
+		return nil, nil
+	}
+	return nil, []string{"-c", "model_context_window=" + strconv.FormatInt(contextWindow, 10)}
+}
+
+// RemoveTranscript 会话记录按日期分目录放在 sessions 下（归档的在 archived_sessions 下），文件名以会话 id 结尾；
+// 生成的图片在 generated_images/<会话 id>/ 下（id 里字母数字和 - _ 以外的字符换成 _），一起删掉。
 func (d Driver) RemoveTranscript(_, sessionID string) {
 	// 空的 id 会匹配到所有记录
 	if sessionID == "" {
 		return
 	}
+	imageDir := strings.Map(func(r rune) rune {
+		if r == '-' || r == '_' || ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z') || ('0' <= r && r <= '9') {
+			return r
+		}
+		return '_'
+	}, sessionID)
+	_ = os.RemoveAll(filepath.Join(d.Home(), "generated_images", imageDir))
 	suffix := "-" + sessionID + ".jsonl"
 	for _, sub := range []string{"sessions", "archived_sessions"} {
 		_ = filepath.WalkDir(filepath.Join(d.Home(), sub), func(path string, e fs.DirEntry, err error) error {

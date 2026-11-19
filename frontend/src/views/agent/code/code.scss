@@ -866,6 +866,25 @@ div.agc-tt.is-on:not(:has(button)) {
   font-size: 12px;
   flex: none;
 }
+// 工具调用产出的图片（生图、截图）：按原比例显示，限个最大尺寸，点开看大图
+.agc-toolimgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.agc-toolimgs .agc-thumb:not(.is-empty) {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+}
+.agc-toolimgs .agc-thumb img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+}
 .agc-term {
   margin: 0;
   max-height: 320px;
@@ -1244,17 +1263,15 @@ div.agc-tt.is-on:not(:has(button)) {
 .agc-pop--l3 {
   left: 76px;
 }
-.agc-pop--r1 {
-  right: 4px;
+// 挂在按钮上：从按钮正上方弹出、左边对齐按钮，位置由脚本量好放进 --agc-btn-x / --agc-btn-y
+.agc-pop--btn {
+  left: var(--agc-btn-x, 0px);
+  bottom: var(--agc-btn-y, calc(100% + 8px));
 }
-.agc-pop--r2 {
-  right: 180px;
-}
-.agc-pop--r3 {
-  right: 290px;
-}
+// 模型菜单的二级菜单（换 Agent、更多模型）放在模型菜单左边，底边和它对齐
 .agc-pop--sub {
-  right: 262px;
+  right: calc(100% - var(--agc-btn-x, 0px) + 6px);
+  bottom: var(--agc-btn-y, calc(100% + 8px));
 }
 // 挂在某一行旁边：位置由脚本量好放进 --agc-pop-x / --agc-pop-y
 .agc-pop--at {

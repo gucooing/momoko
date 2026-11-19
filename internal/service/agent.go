@@ -495,6 +495,14 @@ func (s *AgentService) DetectAgentRuntime(ctx context.Context, req *v1.DetectAge
 	return &v1.DetectAgentRuntimeResponse{Runtime: runtime}, nil
 }
 
+func (s *AgentService) SetAgentRuntimeModels(ctx context.Context, req *v1.SetAgentRuntimeModelsRequest) (*v1.SetAgentRuntimeModelsResponse, error) {
+	runtime, err := s.uc.SetRuntimeModels(ctx, req.GetId(), req.GetModels())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SetAgentRuntimeModelsResponse{Runtime: runtime}, nil
+}
+
 func (s *AgentService) UpdateAgentRuntime(ctx context.Context, req *v1.UpdateAgentRuntimeRequest) (*v1.UpdateAgentRuntimeResponse, error) {
 	return s.uc.UpdateRuntime(ctx, req.GetId())
 }

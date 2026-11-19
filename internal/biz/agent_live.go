@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -396,6 +397,12 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 	if err != nil {
 		return nil, err
 	}
+	// 服务器上的登录：用户给这个模型设的最长上下文、最长输出，启动时交给 Agent
+	if provider == nil {
+		var args []string
+		env, args = driver.LoginLimits(loginLimits(rt, s.Model))
+		launch.Args = append(slices.Clone(launch.Args), args...)
+	}
 	if home := driver.Home(); home != "" {
 		agentskill.Sync(home, uc.enabledSkills(bg))
 	}
@@ -416,6 +423,7 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 		Cwd:         s.Cwd,
 		ExtraDirs:   uc.agentDirs(s.ID, s.ExtraDirs),
 		TempDir:     uc.sessionDir(s.ID, "tmp"),
+		MediaDir:    uc.sessionDir(s.ID, "uploads"),
 		McpServers:  servers,
 		ResumeID:    s.AcpSessionID,
 		Mode:        s.Mode,

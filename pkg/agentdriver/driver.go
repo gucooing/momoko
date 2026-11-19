@@ -52,8 +52,11 @@ type Driver interface {
 
 	// Home Agent 默认的配置目录：服务器上的登录和它自己的会话记录都在这里。所有会话都用它，不另外指定。
 	Home() string
-	// APIEnv 用第三方接口启动时的环境：接口地址、密钥、模型都靠环境变量传进去。用服务器上的登录时什么都不传。
+	// APIEnv 用第三方接口启动时的环境：接口地址、密钥、模型都靠环境变量传进去。
 	APIEnv(api API) map[string]string
+	// LoginLimits 用服务器上的登录启动时，怎么把用户给模型设的最长上下文和最长输出（token 数，0 = 不设）交给 Agent：
+	// 环境变量和追加的启动参数。登录和模型都还是 Agent 自己的。
+	LoginLimits(contextWindow, maxOutput int64) (env map[string]string, args []string)
 	// RemoveTranscript 删掉 Agent 侧这个会话的记录（在默认配置目录里按会话 id 找）。cwd 是会话的工作目录。
 	RemoveTranscript(cwd, sessionID string)
 
@@ -64,12 +67,13 @@ type Driver interface {
 // Generic 认不出是哪一系的 ACP Agent：用它自己的登录和配置，只按协议正文办事。
 type Generic struct{}
 
-func (Generic) Kind() string                          { return "custom" }
-func (Generic) Vendor() string                        { return "" }
-func (Generic) Adapter() string                       { return "" }
-func (Generic) Detect(string) bool                    { return false }
-func (Generic) Release() (agentinstall.Release, bool) { return agentinstall.Release{}, false }
-func (Generic) Home() string                          { return "" }
-func (Generic) APIEnv(API) map[string]string          { return nil }
-func (Generic) RemoveTranscript(_, _ string)          {}
-func (Generic) Command(json.RawMessage) string        { return "" }
+func (Generic) Kind() string                                           { return "custom" }
+func (Generic) Vendor() string                                         { return "" }
+func (Generic) Adapter() string                                        { return "" }
+func (Generic) Detect(string) bool                                     { return false }
+func (Generic) Release() (agentinstall.Release, bool)                  { return agentinstall.Release{}, false }
+func (Generic) Home() string                                           { return "" }
+func (Generic) APIEnv(API) map[string]string                           { return nil }
+func (Generic) LoginLimits(int64, int64) (map[string]string, []string) { return nil, nil }
+func (Generic) RemoveTranscript(_, _ string)                           {}
+func (Generic) Command(json.RawMessage) string                         { return "" }

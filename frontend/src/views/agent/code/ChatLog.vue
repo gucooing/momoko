@@ -117,6 +117,15 @@
                   class="agc-term ag-noscroll"
                   >{{ item.tool.output }}</pre
                 >
+                <div v-if="item.tool.images?.length && sessionId" class="agc-toolimgs">
+                  <AttImage
+                    v-for="f in item.tool.images"
+                    :key="f"
+                    :name="f.slice(f.lastIndexOf('/') + 1)"
+                    :session-id="sessionId"
+                    :file="f"
+                  />
+                </div>
               </div>
             </template>
 

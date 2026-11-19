@@ -2,6 +2,7 @@ package agentrun
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"os"
 	"strings"
@@ -75,7 +76,9 @@ type Config struct {
 	Cwd       string
 	ExtraDirs []string
 	// TempDir 进程的临时目录（TMPDIR / TEMP / TMP 指到这里），不存在就建出来。
-	TempDir    string
+	TempDir string
+	// MediaDir Agent 工具调用产出的图片存到这里，事件里只记相对它的文件名；空则不留图片。
+	MediaDir   string
 	McpServers []McpServer
 	// ResumeID 不为空时接回 Agent 侧已有的会话，否则新建。
 	ResumeID string
@@ -118,6 +121,7 @@ type Session struct {
 	sink       Sink
 	driver     agentdriver.Driver
 	cwd        string
+	mediaDir   string
 	modelByEnv bool
 	proc       *agentproc.Process
 	client     *acp.Client
@@ -173,6 +177,7 @@ func Start(ctx context.Context, cfg Config) (*Session, *Started, error) {
 		sink:        cfg.Sink,
 		driver:      cfg.Driver,
 		cwd:         cfg.Cwd,
+		mediaDir:    cfg.MediaDir,
 		modelByEnv:  cfg.ModelByEnv,
 		proc:        proc,
 		seq:         cfg.Seq,
@@ -616,18 +621,27 @@ func (s *Session) onTool(sub string, u *acp.SessionUpdate) {
 	s.emit(item, true)
 }
 
-// applyToolContent 工具调用的内容原样记下：文字输出（只留末尾）、文件改动（ACP 给的新旧文本）、派出的子 Agent。
+// applyToolContent 工具调用的内容原样记下：文字输出（只留末尾）、产出的图片（存成文件）、文件改动（ACP 给的新旧文本）、派出的子 Agent。
 func (s *Session) applyToolContent(tool *Tool, content []acp.ToolCallContent) {
 	var output strings.Builder
 	var diffs []Diff
+	var images []string
 	for _, c := range content {
 		switch c.Type {
 		case "content":
-			if c.Content != nil && c.Content.Type == "text" {
+			if c.Content == nil {
+				continue
+			}
+			switch c.Content.Type {
+			case "text":
 				if output.Len() > 0 {
 					output.WriteString("\n")
 				}
 				output.WriteString(c.Content.Text)
+			case "image":
+				if file := s.saveImage(c.Content); file != "" {
+					images = append(images, file)
+				}
 			}
 		case "diff":
 			diffs = append(diffs, Diff{Path: agentfs.Rel(s.cwd, c.Path), OldText: c.OldText, NewText: c.NewText})
@@ -638,12 +652,43 @@ func (s *Session) applyToolContent(tool *Tool, content []acp.ToolCallContent) {
 	if diffs != nil {
 		tool.Diffs = diffs
 	}
+	if images != nil {
+		tool.Images = images
+	}
 	if text := output.String(); text != "" {
 		if len(text) > outputKeep {
 			text = "…\n" + text[len(text)-outputKeep:]
 		}
 		tool.Output = text
 	}
+}
+
+// saveImage 工具输出里的一张图片（base64）存进 mediaDir，返回相对它的文件名；存不了为空。
+func (s *Session) saveImage(b *acp.ContentBlock) string {
+	if s.mediaDir == "" || b.Data == "" {
+		return ""
+	}
+	data, err := base64.StdEncoding.DecodeString(b.Data)
+	if err != nil {
+		return ""
+	}
+	path, err := agentfs.Save(s.mediaDir, imageName(b), data)
+	if err != nil {
+		return ""
+	}
+	return agentfs.Rel(s.mediaDir, path)
+}
+
+// imageName 图片的文件名：Agent 说了它存在哪就沿用那个名字，否则按类型起一个。
+func imageName(b *acp.ContentBlock) string {
+	if name := b.URI[strings.LastIndexAny(b.URI, `/\`)+1:]; name != "" {
+		return name
+	}
+	ext, _, _ := strings.Cut(strings.TrimPrefix(b.MimeType, "image/"), "+")
+	if ext == "" {
+		ext = "png"
+	}
+	return "image." + ext
 }
 
 // onSubagent 子 Agent 的出现和状态变化。

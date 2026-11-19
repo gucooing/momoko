@@ -63,6 +63,9 @@ export interface AgentModelOption {
   /** 这个模型能选的推理强度；为空表示不可调 */
   efforts: AgentChoice[];
   defaultEffort: string;
+  /** 服务器上的登录：管理页给这个模型设的最长上下文和最长输出（token 数），0 = 用 Agent 自己的 */
+  contextWindow: number;
+  maxOutput: number;
 }
 
 export interface AgentChoice {
@@ -927,6 +930,22 @@ export interface DetectAgentRuntimeRequest {
 }
 
 export interface DetectAgentRuntimeResponse {
+  runtime: AgentRuntime | undefined;
+}
+
+export interface AgentModelLimit {
+  model: string;
+  /** token 数，0 = 用 Agent 自己的 */
+  contextWindow: number;
+  maxOutput: number;
+}
+
+export interface SetAgentRuntimeModelsRequest {
+  id: string;
+  models: AgentModelLimit[];
+}
+
+export interface SetAgentRuntimeModelsResponse {
   runtime: AgentRuntime | undefined;
 }
 

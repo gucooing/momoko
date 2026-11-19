@@ -26,6 +26,8 @@ export interface AgentTool {
   locations?: { path: string; line?: number }[]
   diffs?: AgentDiff[]
   output?: string
+  /** 工具调用产出的图片，凭它向会话的附件接口取回 */
+  images?: string[]
   child?: string
 }
 

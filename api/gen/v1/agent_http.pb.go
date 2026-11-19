@@ -70,6 +70,7 @@ const OperationAgentServiceSearchAgentFiles = "/v1.AgentService/SearchAgentFiles
 const OperationAgentServiceSetAgentMcpDefault = "/v1.AgentService/SetAgentMcpDefault"
 const OperationAgentServiceSetAgentNotifyChannelEnabled = "/v1.AgentService/SetAgentNotifyChannelEnabled"
 const OperationAgentServiceSetAgentRuntimeMode = "/v1.AgentService/SetAgentRuntimeMode"
+const OperationAgentServiceSetAgentRuntimeModels = "/v1.AgentService/SetAgentRuntimeModels"
 const OperationAgentServiceSetAgentSessionOption = "/v1.AgentService/SetAgentSessionOption"
 const OperationAgentServiceSetAgentSkillEnabled = "/v1.AgentService/SetAgentSkillEnabled"
 const OperationAgentServiceTestAgentMcpServer = "/v1.AgentService/TestAgentMcpServer"
@@ -176,6 +177,8 @@ type AgentServiceHTTPServer interface {
 	SetAgentNotifyChannelEnabled(context.Context, *SetAgentNotifyChannelEnabledRequest) (*SetAgentNotifyChannelEnabledResponse, error)
 	// SetAgentRuntimeMode 安装方式：Momoko 下载并更新 / 用服务器上已有的命令
 	SetAgentRuntimeMode(context.Context, *SetAgentRuntimeModeRequest) (*SetAgentRuntimeModeResponse, error)
+	// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+	SetAgentRuntimeModels(context.Context, *SetAgentRuntimeModelsRequest) (*SetAgentRuntimeModelsResponse, error)
 	// SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 	SetAgentSessionOption(context.Context, *SetAgentSessionOptionRequest) (*SetAgentSessionOptionResponse, error)
 	SetAgentSkillEnabled(context.Context, *SetAgentSkillEnabledRequest) (*SetAgentSkillEnabledResponse, error)
@@ -253,6 +256,7 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.GET("/api/v1/agent/runtimes", _AgentService_ListAgentRuntimes0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/mode", _AgentService_SetAgentRuntimeMode0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/detect", _AgentService_DetectAgentRuntime0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/runtimes/{id}/models", _AgentService_SetAgentRuntimeModels0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/update", _AgentService_UpdateAgentRuntime0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes", _AgentService_CreateAgentRuntime0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/agent/runtimes/{id}", _AgentService_DeleteAgentRuntime0_HTTP_Handler(srv))
@@ -1464,6 +1468,31 @@ func _AgentService_DetectAgentRuntime0_HTTP_Handler(srv AgentServiceHTTPServer) 
 	}
 }
 
+func _AgentService_SetAgentRuntimeModels0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetAgentRuntimeModelsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceSetAgentRuntimeModels)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetAgentRuntimeModels(ctx, req.(*SetAgentRuntimeModelsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SetAgentRuntimeModelsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_UpdateAgentRuntime0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in UpdateAgentRuntimeRequest
@@ -1755,6 +1784,8 @@ type AgentServiceHTTPClient interface {
 	SetAgentNotifyChannelEnabled(ctx context.Context, req *SetAgentNotifyChannelEnabledRequest, opts ...http.CallOption) (rsp *SetAgentNotifyChannelEnabledResponse, err error)
 	// SetAgentRuntimeMode 安装方式：Momoko 下载并更新 / 用服务器上已有的命令
 	SetAgentRuntimeMode(ctx context.Context, req *SetAgentRuntimeModeRequest, opts ...http.CallOption) (rsp *SetAgentRuntimeModeResponse, err error)
+	// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+	SetAgentRuntimeModels(ctx context.Context, req *SetAgentRuntimeModelsRequest, opts ...http.CallOption) (rsp *SetAgentRuntimeModelsResponse, err error)
 	// SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 	SetAgentSessionOption(ctx context.Context, req *SetAgentSessionOptionRequest, opts ...http.CallOption) (rsp *SetAgentSessionOptionResponse, err error)
 	SetAgentSkillEnabled(ctx context.Context, req *SetAgentSkillEnabledRequest, opts ...http.CallOption) (rsp *SetAgentSkillEnabledResponse, err error)
@@ -2480,6 +2511,20 @@ func (c *AgentServiceHTTPClientImpl) SetAgentRuntimeMode(ctx context.Context, in
 	pattern := "/api/v1/agent/runtimes/{id}/mode"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAgentServiceSetAgentRuntimeMode))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+func (c *AgentServiceHTTPClientImpl) SetAgentRuntimeModels(ctx context.Context, in *SetAgentRuntimeModelsRequest, opts ...http.CallOption) (*SetAgentRuntimeModelsResponse, error) {
+	var out SetAgentRuntimeModelsResponse
+	pattern := "/api/v1/agent/runtimes/{id}/models"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceSetAgentRuntimeModels))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
