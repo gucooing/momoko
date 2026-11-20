@@ -105,6 +105,8 @@ var (
 		newDefaultMenu("menu_6_1", entmenu.TypeMenu, "/tools/port-forward", "端口转发", "HOutline:PaperAirplaneIcon", new("menu_6"), 0, constant.Network, entmenu.StatusActive),
 		newDefaultMenu("menu_6_2", entmenu.TypeMenu, "/tools/tunnel", "内网穿透", "HOutline:GlobeAltIcon", new("menu_6"), 1, constant.Tunnel, entmenu.StatusActive),
 		newDefaultMenu("menu_6_3", entmenu.TypeMenu, "/openssh/management", "SSH 终端", "HOutline:CommandLineIcon", new("menu_6"), 2, "", entmenu.StatusActive),
+		// 本机终端：顶栏「终端」悬浮窗里在 Momoko 所在机器上开 shell
+		newDefaultMenu("menu_6_3_button_0", entmenu.TypeButton, "", "本机终端", "", new("menu_6_3"), 0, constant.Shell, entmenu.StatusActive),
 		// 智商检测：一个页面，标签 检测站点 / 提示词
 		newDefaultMenu("menu_8_1", entmenu.TypeMenu, "/iqcheck", "智商检测", "HOutline:SparklesIcon", new("menu_6"), 3, constant.IQCheckView, entmenu.StatusActive),
 		newDefaultMenu("menu_8_2_button_0", entmenu.TypeButton, "", "编辑检测配置", "", new("menu_8_1"), 0, constant.IQCheckEdit, entmenu.StatusActive),

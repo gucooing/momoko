@@ -30,6 +30,7 @@ const OperationAgentServiceCreateAgentSkill = "/v1.AgentService/CreateAgentSkill
 const OperationAgentServiceCreateAgentWorkspace = "/v1.AgentService/CreateAgentWorkspace"
 const OperationAgentServiceDeleteAgentMcpServer = "/v1.AgentService/DeleteAgentMcpServer"
 const OperationAgentServiceDeleteAgentProvider = "/v1.AgentService/DeleteAgentProvider"
+const OperationAgentServiceDeleteAgentQueuedPrompt = "/v1.AgentService/DeleteAgentQueuedPrompt"
 const OperationAgentServiceDeleteAgentRuntime = "/v1.AgentService/DeleteAgentRuntime"
 const OperationAgentServiceDeleteAgentSessions = "/v1.AgentService/DeleteAgentSessions"
 const OperationAgentServiceDeleteAgentSkill = "/v1.AgentService/DeleteAgentSkill"
@@ -74,6 +75,7 @@ const OperationAgentServiceSetAgentRuntimeMode = "/v1.AgentService/SetAgentRunti
 const OperationAgentServiceSetAgentRuntimeModels = "/v1.AgentService/SetAgentRuntimeModels"
 const OperationAgentServiceSetAgentSessionOption = "/v1.AgentService/SetAgentSessionOption"
 const OperationAgentServiceSetAgentSkillEnabled = "/v1.AgentService/SetAgentSkillEnabled"
+const OperationAgentServiceStopAgentSessionItem = "/v1.AgentService/StopAgentSessionItem"
 const OperationAgentServiceTestAgentMcpServer = "/v1.AgentService/TestAgentMcpServer"
 const OperationAgentServiceTestAgentNotifyChannel = "/v1.AgentService/TestAgentNotifyChannel"
 const OperationAgentServiceTestAgentProvider = "/v1.AgentService/TestAgentProvider"
@@ -103,6 +105,8 @@ type AgentServiceHTTPServer interface {
 	CreateAgentWorkspace(context.Context, *CreateAgentWorkspaceRequest) (*CreateAgentWorkspaceResponse, error)
 	DeleteAgentMcpServer(context.Context, *DeleteAgentMcpServerRequest) (*DeleteAgentMcpServerResponse, error)
 	DeleteAgentProvider(context.Context, *DeleteAgentProviderRequest) (*DeleteAgentProviderResponse, error)
+	// DeleteAgentQueuedPrompt 撤回一条排着队的消息（还没发出去的）
+	DeleteAgentQueuedPrompt(context.Context, *DeleteAgentQueuedPromptRequest) (*DeleteAgentQueuedPromptResponse, error)
 	DeleteAgentRuntime(context.Context, *DeleteAgentRuntimeRequest) (*DeleteAgentRuntimeResponse, error)
 	DeleteAgentSessions(context.Context, *DeleteAgentSessionsRequest) (*DeleteAgentSessionsResponse, error)
 	DeleteAgentSkill(context.Context, *DeleteAgentSkillRequest) (*DeleteAgentSkillResponse, error)
@@ -185,6 +189,8 @@ type AgentServiceHTTPServer interface {
 	// SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 	SetAgentSessionOption(context.Context, *SetAgentSessionOptionRequest) (*SetAgentSessionOptionResponse, error)
 	SetAgentSkillEnabled(context.Context, *SetAgentSkillEnabledRequest) (*SetAgentSkillEnabledResponse, error)
+	// StopAgentSessionItem 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
+	StopAgentSessionItem(context.Context, *StopAgentSessionItemRequest) (*StopAgentSessionItemResponse, error)
 	// TestAgentMcpServer 测试连接：由 Momoko 自己连一次，读它的工具列表
 	TestAgentMcpServer(context.Context, *TestAgentMcpServerRequest) (*TestAgentMcpServerResponse, error)
 	// TestAgentNotifyChannel 发一条测试；fields 为空时用已保存的配置
@@ -214,6 +220,8 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.GET("/api/v1/agent/sessions/{id}/process", _AgentService_GetAgentSessionProcess0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/sessions/{id}/prompt", _AgentService_PromptAgentSession0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/sessions/{id}/cancel", _AgentService_CancelAgentSession0_HTTP_Handler(srv))
+	r.DELETE("/api/v1/agent/sessions/{id}/queue/{queue_id}", _AgentService_DeleteAgentQueuedPrompt0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/stop-item", _AgentService_StopAgentSessionItem0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/sessions/{id}/permission", _AgentService_ResolveAgentPermission0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/sessions/{id}/option", _AgentService_SetAgentSessionOption0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/sessions/{id}/rename", _AgentService_RenameAgentSession0_HTTP_Handler(srv))
@@ -460,6 +468,53 @@ func _AgentService_CancelAgentSession0_HTTP_Handler(srv AgentServiceHTTPServer) 
 			return err
 		}
 		reply := out.(*CancelAgentSessionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_DeleteAgentQueuedPrompt0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteAgentQueuedPromptRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceDeleteAgentQueuedPrompt)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteAgentQueuedPrompt(ctx, req.(*DeleteAgentQueuedPromptRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteAgentQueuedPromptResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_StopAgentSessionItem0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in StopAgentSessionItemRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceStopAgentSessionItem)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.StopAgentSessionItem(ctx, req.(*StopAgentSessionItemRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StopAgentSessionItemResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1735,6 +1790,8 @@ type AgentServiceHTTPClient interface {
 	CreateAgentWorkspace(ctx context.Context, req *CreateAgentWorkspaceRequest, opts ...http.CallOption) (rsp *CreateAgentWorkspaceResponse, err error)
 	DeleteAgentMcpServer(ctx context.Context, req *DeleteAgentMcpServerRequest, opts ...http.CallOption) (rsp *DeleteAgentMcpServerResponse, err error)
 	DeleteAgentProvider(ctx context.Context, req *DeleteAgentProviderRequest, opts ...http.CallOption) (rsp *DeleteAgentProviderResponse, err error)
+	// DeleteAgentQueuedPrompt 撤回一条排着队的消息（还没发出去的）
+	DeleteAgentQueuedPrompt(ctx context.Context, req *DeleteAgentQueuedPromptRequest, opts ...http.CallOption) (rsp *DeleteAgentQueuedPromptResponse, err error)
 	DeleteAgentRuntime(ctx context.Context, req *DeleteAgentRuntimeRequest, opts ...http.CallOption) (rsp *DeleteAgentRuntimeResponse, err error)
 	DeleteAgentSessions(ctx context.Context, req *DeleteAgentSessionsRequest, opts ...http.CallOption) (rsp *DeleteAgentSessionsResponse, err error)
 	DeleteAgentSkill(ctx context.Context, req *DeleteAgentSkillRequest, opts ...http.CallOption) (rsp *DeleteAgentSkillResponse, err error)
@@ -1817,6 +1874,8 @@ type AgentServiceHTTPClient interface {
 	// SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 	SetAgentSessionOption(ctx context.Context, req *SetAgentSessionOptionRequest, opts ...http.CallOption) (rsp *SetAgentSessionOptionResponse, err error)
 	SetAgentSkillEnabled(ctx context.Context, req *SetAgentSkillEnabledRequest, opts ...http.CallOption) (rsp *SetAgentSkillEnabledResponse, err error)
+	// StopAgentSessionItem 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
+	StopAgentSessionItem(ctx context.Context, req *StopAgentSessionItemRequest, opts ...http.CallOption) (rsp *StopAgentSessionItemResponse, err error)
 	// TestAgentMcpServer 测试连接：由 Momoko 自己连一次，读它的工具列表
 	TestAgentMcpServer(ctx context.Context, req *TestAgentMcpServerRequest, opts ...http.CallOption) (rsp *TestAgentMcpServerResponse, err error)
 	// TestAgentNotifyChannel 发一条测试；fields 为空时用已保存的配置
@@ -1984,6 +2043,20 @@ func (c *AgentServiceHTTPClientImpl) DeleteAgentProvider(ctx context.Context, in
 	pattern := "/api/v1/agent/providers/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAgentServiceDeleteAgentProvider))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteAgentQueuedPrompt 撤回一条排着队的消息（还没发出去的）
+func (c *AgentServiceHTTPClientImpl) DeleteAgentQueuedPrompt(ctx context.Context, in *DeleteAgentQueuedPromptRequest, opts ...http.CallOption) (*DeleteAgentQueuedPromptResponse, error) {
+	var out DeleteAgentQueuedPromptResponse
+	pattern := "/api/v1/agent/sessions/{id}/queue/{queue_id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceDeleteAgentQueuedPrompt))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
@@ -2594,6 +2667,20 @@ func (c *AgentServiceHTTPClientImpl) SetAgentSkillEnabled(ctx context.Context, i
 	pattern := "/api/v1/agent/skills/{id}/enabled"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAgentServiceSetAgentSkillEnabled))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// StopAgentSessionItem 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
+func (c *AgentServiceHTTPClientImpl) StopAgentSessionItem(ctx context.Context, in *StopAgentSessionItemRequest, opts ...http.CallOption) (*StopAgentSessionItemResponse, error) {
+	var out StopAgentSessionItemResponse
+	pattern := "/api/v1/agent/sessions/{id}/stop-item"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceStopAgentSessionItem))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

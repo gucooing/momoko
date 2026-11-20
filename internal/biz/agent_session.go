@@ -85,6 +85,7 @@ func (uc *AgentUsecase) sessionPB(s *gen.AgentSession, names *agentNames) *v1.Ag
 		Turns:        int32(s.Turns),
 		ContextUsed:  s.ContextUsed,
 		ContextSize:  s.ContextSize,
+		Live:         uc.live(s.ID) != nil,
 	}
 	out.RuntimeName, out.RuntimeKind = names.runtime(s.RuntimeID)
 	out.ProviderName, out.ProviderKind, out.ProviderVendor = names.provider(s.RuntimeID, s.ProviderID)
@@ -144,7 +145,7 @@ func (uc *AgentUsecase) GetSession(ctx context.Context, id string) (*v1.GetAgent
 	return &v1.GetAgentSessionResponse{Session: uc.sessionPB(s, uc.loadNames(ctx)), Detail: uc.sessionDetail(ctx, s)}, nil
 }
 
-// GetSessionProcess 会话的 Agent 进程：命令、进程号、内存、启动时间。内存要遍历进程树，只在有人要看时读。
+// GetSessionProcess 会话的 Agent 进程：命令、进程号、内存、启动时间，和它派出过的子 Agent。内存要遍历进程树，只在有人要看时读。
 func (uc *AgentUsecase) GetSessionProcess(ctx context.Context, id string) (*v1.AgentProcess, error) {
 	if _, err := uc.getSession(ctx, id); err != nil {
 		return nil, err
@@ -154,13 +155,17 @@ func (uc *AgentUsecase) GetSessionProcess(ctx context.Context, id string) (*v1.A
 		return nil, nil
 	}
 	proc := l.session.Process()
-	return &v1.AgentProcess{
+	out := &v1.AgentProcess{
 		Command:     l.launch.Command,
 		Args:        l.launch.Args,
 		Pid:         int32(proc.PID()),
 		MemoryBytes: proc.MemoryBytes(),
 		StartedAt:   timestamppb.New(proc.StartedAt()),
-	}, nil
+	}
+	for _, sa := range l.session.Subagents() {
+		out.Subagents = append(out.Subagents, &v1.AgentProcessSubagent{Id: sa.ID, Title: sa.Title, State: sa.State})
+	}
+	return out, nil
 }
 
 // GetSidebar 会话栏：我的未归档会话，和所有工作区。
@@ -324,7 +329,7 @@ func (uc *AgentUsecase) startTurn(s *gen.AgentSession, text string, uploads []ag
 	ctx := context.Background()
 	l, err := uc.ensureLive(ctx, s)
 	if err == nil {
-		err = l.session.Prompt(text, uploads)
+		err = l.session.Prompt(text, uploads, agentrun.PromptQueue)
 	}
 	if err == nil {
 		return
@@ -447,7 +452,23 @@ func (uc *AgentUsecase) PromptSession(ctx context.Context, req *v1.PromptAgentSe
 	if err := checkAttachments(s.Cwd, text, req.GetAttachments()); err != nil {
 		return err
 	}
-	// 只有空闲和出错的会话能开始新的一轮：条件写在更新里，两个请求同时来时只有一个成功。
+	// 一轮还没结束时不拒绝：插进正在做的事里（ACP v2），或者排队等这一轮结束；这一轮接着算，状态不动。
+	if s.Status == agentsession.StatusRunning || s.Status == agentsession.StatusWaiting {
+		mode := req.GetMode()
+		if mode != agentrun.PromptQueue {
+			mode = agentrun.PromptSteer
+		}
+		l, err := uc.ensureLive(context.WithoutCancel(ctx), s)
+		if err != nil {
+			return err
+		}
+		uploads, err := uc.saveUploads(s.ID, s.Cwd, l.session.Caps(), req.GetAttachments())
+		if err != nil {
+			return err
+		}
+		return agentErr(l.session.Prompt(text, uploads, mode))
+	}
+	// 其它时候只有空闲和出错的会话能开始新的一轮：条件写在更新里，两个请求同时来时只有一个成功。
 	untitled := s.Title == "" && !s.TitleCustom
 	started, err := uc.updateSession(ctx, s.ID, func(u *gen.AgentSessionUpdateOne) {
 		u.Where(agentsession.StatusIn(agentsession.StatusIdle, agentsession.StatusError)).
@@ -484,6 +505,36 @@ func (uc *AgentUsecase) CancelSession(ctx context.Context, id string) error {
 	}
 	if l := uc.live(id); l != nil {
 		l.session.Cancel()
+	}
+	return nil
+}
+
+// UnqueuePrompt 撤回一条排着队、还没发出去的消息。
+func (uc *AgentUsecase) UnqueuePrompt(ctx context.Context, id, queueID string) error {
+	if _, err := uc.getSession(ctx, id); err != nil {
+		return err
+	}
+	l := uc.live(id)
+	if l == nil {
+		return response.BadRequest("这条消息已经发出去了")
+	}
+	return agentErr(l.session.Unqueue(queueID))
+}
+
+// StopSessionItem 只停一项（ACP v2）：toolID 不为空停这个工具调用（sub 是它所在的子 Agent，主会话为空），否则停 sub 这个子 Agent。
+func (uc *AgentUsecase) StopSessionItem(ctx context.Context, id, sub, toolID string) error {
+	if _, err := uc.getSession(ctx, id); err != nil {
+		return err
+	}
+	if toolID == "" && sub == "" {
+		return response.BadRequest("要停哪一项")
+	}
+	l := uc.live(id)
+	if l == nil {
+		return response.BadRequest("这个会话的 Agent 进程已经结束了")
+	}
+	if err := l.session.StopItem(ctx, sub, toolID); err != nil {
+		return response.BadRequest(err.Error())
 	}
 	return nil
 }

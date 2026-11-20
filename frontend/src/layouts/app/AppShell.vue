@@ -1,4 +1,5 @@
-<!-- 外壳组装：侧栏 + 主列（顶栏 + 标签 + 内容）。手机端(<992)不显示侧栏，底部固定导航，「更多」整页面板。 -->
+<!-- 外壳组装：侧栏 + 主列（顶栏 + 标签 + 内容）。手机端(<992)不显示侧栏，底部固定导航，「更多」整页面板。
+     悬浮终端（TermDock）挂在这里：切换页面不卸载，连接不断。 -->
 <template>
   <div class="app-shell">
     <AppSidebar v-if="!menuStore.isMobile" :collapsed="menuStore.isCollapse" />
@@ -13,6 +14,8 @@
       <AppMorePanel />
       <AppTabbar v-if="!route.meta.hideTabbar" />
     </template>
+
+    <TermDock v-if="dock.open" />
   </div>
 </template>
 
@@ -23,6 +26,8 @@ import AppTabs from './AppTabs.vue'
 import AppContent from './AppContent.vue'
 import AppTabbar from './AppTabbar.vue'
 import AppMorePanel from './AppMorePanel.vue'
+import TermDock from './termDock/TermDock.vue'
+import { dock } from './termDock/state'
 
 defineOptions({ name: 'AppShell' })
 

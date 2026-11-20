@@ -153,6 +153,20 @@ func (s *AgentService) CancelAgentSession(ctx context.Context, req *v1.CancelAge
 	return &v1.CancelAgentSessionResponse{}, nil
 }
 
+func (s *AgentService) DeleteAgentQueuedPrompt(ctx context.Context, req *v1.DeleteAgentQueuedPromptRequest) (*v1.DeleteAgentQueuedPromptResponse, error) {
+	if err := s.uc.UnqueuePrompt(ctx, req.GetId(), req.GetQueueId()); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteAgentQueuedPromptResponse{}, nil
+}
+
+func (s *AgentService) StopAgentSessionItem(ctx context.Context, req *v1.StopAgentSessionItemRequest) (*v1.StopAgentSessionItemResponse, error) {
+	if err := s.uc.StopSessionItem(ctx, req.GetId(), req.GetSub(), req.GetToolId()); err != nil {
+		return nil, err
+	}
+	return &v1.StopAgentSessionItemResponse{}, nil
+}
+
 func (s *AgentService) ResolveAgentPermission(ctx context.Context, req *v1.ResolveAgentPermissionRequest) (*v1.ResolveAgentPermissionResponse, error) {
 	if err := s.uc.ResolvePermission(ctx, req.GetId(), req.GetRequestId(), req.GetOptionId()); err != nil {
 		return nil, err

@@ -216,6 +216,8 @@ var wsRoutePermissions = map[string]constant.Permissions{
 	biz.DockerImageImportPath: constant.DockerImageManage,
 	// Agent 会话事件
 	biz.AgentWsPath: constant.AgentUse,
+	// 本机终端
+	biz.ShellWSPath: constant.Shell,
 }
 
 // PermissionMiddleware 对已认证请求按操作所需权限做集中式鉴权（功能级越权防护）。

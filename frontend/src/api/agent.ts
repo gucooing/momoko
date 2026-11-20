@@ -98,6 +98,12 @@ export const promptAgentSession = (
 ) =>
   request.post(`/agent/sessions/${id}/prompt`, data, SLOW)
 export const cancelAgentSession = (id: string) => request.post(`/agent/sessions/${id}/cancel`, {})
+/** 只停一项（ACP v2）：toolId 不为空停这个工具调用（sub 是它所在的子 Agent，主会话为空），否则停 sub 这个子 Agent */
+export const stopAgentSessionItem = (id: string, sub: string, toolId: string) =>
+  request.post(`/agent/sessions/${id}/stop-item`, { sub, toolId })
+/** 撤回一条排着队、还没发出去的消息 */
+export const deleteAgentQueuedPrompt = (id: string, queueId: string) =>
+  request.delete(`/agent/sessions/${id}/queue/${queueId}`)
 export const resolveAgentPermission = (id: string, requestId: string, optionId: string) =>
   request.post(`/agent/sessions/${id}/permission`, { requestId, optionId })
 export const setAgentSessionOption = (

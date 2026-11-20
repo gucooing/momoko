@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	nethttp "net/http"
 	"strings"
 
@@ -71,23 +70,6 @@ func passportAuthFilter(uc *biz.PassportUsecase) http.FilterFunc {
 // 管理接口在这个端口上根本不存在。
 type PassportServer struct {
 	*http.Server
-	enabled bool
-}
-
-// Start 未启用时什么也不做。
-func (p *PassportServer) Start(ctx context.Context) error {
-	if !p.enabled {
-		return nil
-	}
-	return p.Server.Start(ctx)
-}
-
-// Stop 未启用时什么也不做。
-func (p *PassportServer) Stop(ctx context.Context) error {
-	if !p.enabled {
-		return nil
-	}
-	return p.Server.Stop(ctx)
 }
 
 // PassportEnabled 用户通行证是否启用（不写时默认启用）。
@@ -95,10 +77,10 @@ func PassportEnabled(c *conf.Passport) bool {
 	return c == nil || c.Enabled == nil || *c.Enabled
 }
 
-// NewPassportServer 创建用户通行证 server（默认 0.0.0.0:22634）。
+// NewPassportServer 创建用户通行证 server（默认 0.0.0.0:22634）；没启用时为 nil，不加进应用。
 func NewPassportServer(c *conf.Passport, passportApi *service.PassportService, gakumasApi *service.GakumasPassportService) *PassportServer {
 	if !PassportEnabled(c) {
-		return &PassportServer{enabled: false}
+		return nil
 	}
 	addr := "0.0.0.0:22634"
 	if c != nil && c.Addr != "" {
@@ -131,5 +113,5 @@ func NewPassportServer(c *conf.Passport, passportApi *service.PassportService, g
 	v1.RegisterPassportServiceHTTPServer(srv, passportApi)
 	gakumasv1.RegisterGakumasPassportServiceHTTPServer(srv, gakumasApi)
 	passportApi.RegisterClientLogServer(srv)
-	return &PassportServer{Server: srv, enabled: true}
+	return &PassportServer{Server: srv}
 }

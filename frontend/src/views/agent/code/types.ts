@@ -1,6 +1,6 @@
 // 会话事件：和后端 pkg/agentrun 里 Item 的 JSON 一一对应（WebSocket 推来的、导出的都是这个格式）。
 
-export type ItemType = 'user' | 'assistant' | 'thought' | 'tool' | 'permission' | 'turn' | 'notice' | 'subagent'
+export type ItemType = 'user' | 'assistant' | 'thought' | 'tool' | 'permission' | 'turn' | 'notice' | 'subagent' | 'relay'
 
 export interface AgentAttachmentRef {
   kind: 'image' | 'file' | 'ref'
@@ -9,20 +9,32 @@ export interface AgentAttachmentRef {
   file?: string
 }
 
-/** 一次工具调用对一个文件的改动，原样来自 ACP：oldText 为 null 表示新建文件。比对和显示都在页面上做。 */
+/**
+ * 一次工具调用对一个文件的改动，原样来自 ACP。比对和显示都在页面上做。
+ *   - ACP v1：oldText / newText，oldText 没有表示新建文件；
+ *   - ACP v2：op 是 add / delete / modify / move / copy（move、copy 还有 oldPath），patch 是这个文件的 git patch 片段，
+ *     二进制文件之类没有 patch。
+ */
 export interface AgentDiff {
   path: string
-  oldText: string | null
-  newText: string
+  oldText?: string | null
+  newText?: string
+  op?: string
+  oldPath?: string
+  patch?: string
 }
 
 export interface AgentTool {
   id: string
   title: string
   kind?: string
-  /** pending / in_progress / completed / failed / cancelled */
+  /** pending / in_progress / paused / completed / failed / cancelled */
   status?: string
   command?: string
+  /** 命令的退出码（ACP v2 的终端报了才有） */
+  exitCode?: number
+  /** 现在能单独停这一个（ACP v2） */
+  cancel?: boolean
   locations?: { path: string; line?: number }[]
   diffs?: AgentDiff[]
   output?: string
@@ -43,6 +55,8 @@ export interface AgentPermission {
   title: string
   kind?: string
   command?: string
+  /** 给人看的说明（ACP v2 的批准自带） */
+  description?: string
   options: AgentPermOption[]
   /** 空 = 还在等；selected / cancelled */
   outcome?: string
@@ -76,6 +90,10 @@ export interface AgentSubagent {
   /** running / idle / requires_action */
   state?: string
   endAt?: number
+  /** 它的工作目录（ACP v2 报了才有） */
+  cwd?: string
+  /** 现在能单独停它（ACP v2） */
+  cancel?: boolean
 }
 
 export interface AgentItem {
@@ -89,6 +107,11 @@ export interface AgentItem {
   open?: boolean
   ms?: number
   attachments?: AgentAttachmentRef[]
+  /** 用户的话是在一轮还没结束时插进去的 */
+  steer?: boolean
+  /** 会话之间的消息（relay）从哪来、到哪去：main 是主会话，其它是子 Agent 的会话 id */
+  from?: string
+  to?: string
   /** 提示：level 是 info / warning / error；Agent 给的提示 title 是标题、text 是说明；code 是引擎自己的提示（resume_failed 等） */
   level?: string
   title?: string
@@ -111,7 +134,29 @@ export interface AgentPlanEntry {
   status: string
 }
 
+/** 后台还在跑的一项（ACP v2）：type 是 terminal / tool_call / subagent，id 是工具调用 id 或子 Agent 的会话 id */
+export interface AgentBackground {
+  type: string
+  id: string
+  title?: string
+}
+/** 一个子 Agent 自己的计划和上下文用量 */
+export interface AgentSubState {
+  plan?: AgentPlanEntry[]
+  contextUsed?: number
+  contextSize?: number
+}
 export interface AgentState {
   commands?: AgentCommand[]
   plan?: AgentPlanEntry[]
+  background?: AgentBackground[]
+  /** 子 Agent 的会话 id → 它自己的计划、上下文用量 */
+  subs?: Record<string, AgentSubState>
+  /** 排着队的消息：这一轮结束后按顺序作为下一轮发出 */
+  queue?: AgentQueued[]
+}
+export interface AgentQueued {
+  id: string
+  text: string
+  attachments?: AgentAttachmentRef[]
 }

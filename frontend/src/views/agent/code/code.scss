@@ -845,8 +845,38 @@ div.agc-tt.is-on:not(:has(button)) {
 .agc-tool.is-click:hover {
   background: color-mix(in srgb, var(--m-s2) 70%, var(--m-line));
 }
-.agc-toolwrap .agc-tool:has(+ .agc-term) {
+.agc-toolwrap .agc-toolrow:has(+ .agc-term) .agc-tool {
   border-radius: 9px 9px 0 0;
+}
+// 工具调用 / 子 Agent 一行，右边可能有单独停止的按钮
+.agc-toolrow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.agc-toolrow > .agc-tool {
+  flex: 1;
+  min-width: 0;
+}
+// 会话之间的消息：主会话交给子 Agent 的话、子 Agent 交回的结果
+.agc-relay {
+  padding: 8px 12px;
+  border-left: 3px solid var(--m-line);
+  border-radius: 0 9px 9px 0;
+  background: var(--m-s2);
+}
+.agc-relay__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+.agc-relay__head svg,
+.agc-relay__head .iconify {
+  width: 13px;
+  height: 13px;
 }
 .agc-tool svg,
 .agc-tool .iconify {
@@ -1386,6 +1416,29 @@ div.agc-tt.is-on:not(:has(button)) {
 }
 
 // 计划
+// 排着队的消息
+.agc-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.agc-queue__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 4px 0 10px;
+  border-radius: 9px;
+  background: var(--m-s2);
+  font-size: 13px;
+}
+.agc-queue__item > svg,
+.agc-queue__item > .iconify {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
 .agc-plan {
   display: flex;
   flex-direction: column;

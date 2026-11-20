@@ -103,11 +103,22 @@
             :busy="busy"
             :empty="socket.loaded.value ? '' : t('agent.common.loading')"
             @resolve="resolve"
+            @stop="stopItem"
             @show-diff="showDiff"
             @open-sub="openSub"
             @more="socket.loadMore"
           />
           <div class="agc-foot">
+            <div v-if="queue.length" class="agc-queue" :aria-label="t('agent.code.queue.label')">
+              <div v-for="q in queue" :key="q.id" class="agc-queue__item">
+                <UIcon name="i-lucide-clock" class="ag-muted" />
+                <span class="ag-ellipsis agc-flex">{{ q.text || q.attachments?.map((a) => a.name).join('、') }}</span>
+                <span class="ag-muted agc-small">{{ t('agent.code.queue.waiting') }}</span>
+                <button type="button" class="agc-sm" :aria-label="t('agent.code.queue.remove')" :title="t('agent.code.queue.remove')" @click="unqueue(q.id)">
+                  <UIcon name="i-lucide-x" />
+                </button>
+              </div>
+            </div>
             <div v-if="plan.length" class="agc-plan">
               <ol v-if="planOpen" class="agc-plan__list" :aria-label="t('agent.code.plan.steps')">
                 <li v-for="(p, i) in plan" :key="i" class="agc-plan__item" :class="{ 'ag-muted': p.status === 'pending' }">
@@ -173,6 +184,7 @@
             sub
             :empty="t('agent.code.sub.empty')"
             @resolve="resolve"
+            @stop="stopItem"
             @show-diff="showDiff"
             @open-sub="openSub"
           />
@@ -202,6 +214,7 @@
         :context-size="socket.contextSize.value"
         :busy="busy"
         :tick="turnTick"
+        :sub="ctab === 'sub' ? subId : ''"
         @open-file="openFile"
         @open-sub="openSub"
         @command="runCommand"
@@ -221,6 +234,8 @@ import {
   getAgentSidebar,
   promptAgentSession,
   resolveAgentPermission,
+  stopAgentSessionItem,
+  deleteAgentQueuedPrompt,
   setAgentSessionOption,
 } from '@/api/agent'
 import { useFullBleed } from '@/composables/useAppLayout'
@@ -230,7 +245,7 @@ import { useLastCodeSession } from '@/views/agent/composables/useLastCodeSession
 import { agentKindOf, fmtDuration } from '@/views/agent/utils/format'
 import { sessionTitle } from '@/views/agent/utils/labels'
 import ChatLog from './ChatLog.vue'
-import Composer, { type DraftAttachment, type Selection } from './Composer.vue'
+import Composer, { type DraftAttachment, type Selection, type SendMode } from './Composer.vue'
 import FileTab from './FileTab.vue'
 import NewSession from './NewSession.vue'
 import RightPanel, { type RightTab } from './RightPanel.vue'
@@ -520,18 +535,31 @@ const planDot = (status: string) => (status === 'completed' ? 'agc-sd--ok' : sta
 
 // —— 动作 ——
 const composer = ref<InstanceType<typeof Composer> | null>(null)
-const send = async (text: string, attachments: DraftAttachment[]): Promise<boolean> => {
+const send = async (text: string, attachments: DraftAttachment[], mode?: SendMode): Promise<boolean> => {
   const s = session.value
   if (!s) return false
   try {
-    await promptAgentSession(s.id, { text, attachments })
+    await promptAgentSession(s.id, { text, attachments, mode })
     return true
   } catch {
     return false
   }
 }
+// 排着队的消息：这一轮结束后按顺序发出，没发出去之前可以撤回
+const queue = computed(() => socket.state.value.queue ?? [])
+const unqueue = async (queueId: string) => {
+  if (!session.value) return
+  try {
+    await deleteAgentQueuedPrompt(session.value.id, queueId)
+  } catch {
+    /* shown */
+  }
+}
 const stop = async () => {
   if (!session.value) return
+  // 停下来时排着的也不发了：文字放回输入框
+  const queued = queue.value.map((q) => q.text).filter(Boolean)
+  if (queued.length) composer.value?.restore(queued.join('\n\n'))
   try {
     await cancelAgentSession(session.value.id)
   } catch {
@@ -542,6 +570,15 @@ const resolve = async (requestId: string, optionId: string) => {
   if (!session.value) return
   try {
     await resolveAgentPermission(session.value.id, requestId, optionId)
+  } catch {
+    /* shown */
+  }
+}
+// 只停一项（ACP v2）：一个工具调用，或者一个子 Agent
+const stopItem = async (sub: string, toolId: string) => {
+  if (!session.value) return
+  try {
+    await stopAgentSessionItem(session.value.id, sub, toolId)
   } catch {
     /* shown */
   }

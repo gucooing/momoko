@@ -136,8 +136,9 @@ func marshalParams(params any) (json.RawMessage, error) {
 // 需要等人回答的请求先返回，之后再调用 reply。
 type Handler interface {
 	Notification(method string, params json.RawMessage)
-	// Request 的 reply 只能调用一次；err 不为空时回复错误。
-	Request(method string, params json.RawMessage, reply func(result any, err *Error))
+	// Request 的 reply 只能调用一次；err 不为空时回复错误。id 是这个请求的 id（去掉引号），
+	// 对端用 $/cancel_request 撤回它时凭这个认。
+	Request(id, method string, params json.RawMessage, reply func(result any, err *Error))
 }
 
 // Conn 一条跑在读写流上的连接，一行一条消息。
@@ -284,7 +285,7 @@ func (c *Conn) dispatch(msg *Message) {
 			reply(nil, NewError(CodeMethodNotFound, "method not found: "+msg.Method))
 			return
 		}
-		c.handler.Request(msg.Method, msg.Params, reply)
+		c.handler.Request(msg.IDKey(), msg.Method, msg.Params, reply)
 	case msg.Method != "":
 		if c.handler != nil {
 			c.handler.Notification(msg.Method, msg.Params)

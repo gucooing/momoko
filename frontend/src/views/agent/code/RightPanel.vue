@@ -9,7 +9,21 @@
 
     <!-- 改动 -->
     <div v-if="tab === 'diff'" class="agc-right__body">
-      <template v-if="changes && !changes.isGit">
+      <!-- 子 Agent：它自己的工具调用改过的文件 -->
+      <template v-if="sub">
+        <div class="agc-right__files">
+          <button v-for="d in subDiffs" :key="d.path" type="button" class="agc-fr" :class="{ 'is-on': d.path === subDiff?.path }" @click="subPicked = d.path">
+            <span class="ag-mono agc-fr__k" :class="opCls(d)">{{ opLetter(d) }}</span>
+            <span class="ag-mono ag-ellipsis agc-flex">{{ d.path }}</span>
+          </button>
+          <div v-if="!subDiffs.length" class="agc-right__note">{{ t('agent.code.sub.noChanges') }}</div>
+        </div>
+        <div v-if="subDiff" class="agc-right__patch ag-noscroll">
+          <PatchView v-if="subDiff.op" :patch="patchBody(subDiff.patch)" :empty="t('agent.code.diff.noPatch')" />
+          <DiffCard v-else :diff="subDiff" :path="subDiff.path" @show-diff="emit('openFile', $event)" />
+        </div>
+      </template>
+      <template v-else-if="changes && !changes.isGit">
         <div class="agc-right__note">{{ t('agent.code.diff.noGit') }}</div>
       </template>
       <template v-else>
@@ -73,6 +87,19 @@
 
     <!-- 任务 -->
     <div v-else-if="tab === 'task'" class="agc-right__body agc-right__scroll ag-noscroll">
+      <div v-if="subPlan.length" class="agc-taskgrp">
+        <div class="ag-lbl agc-taskgrp__t">{{ t('agent.code.sub.plan') }} <span class="ag-num">{{ subPlan.length }}</span></div>
+        <div v-for="(p, i) in subPlan" :key="i" class="agc-task">
+          <div class="agc-task__head">
+            <span v-if="p.status === 'in_progress'" class="agc-sd agc-sd--run agc-pulse" />
+            <UIcon v-else :name="p.status === 'completed' ? 'i-lucide-check' : 'i-lucide-circle'" :class="p.status === 'completed' ? 'agc-ok' : 'ag-muted'" />
+            <span class="agc-task__t">
+              <span class="ag-ellipsis agc-task__n">{{ p.content }}</span>
+              <span class="ag-muted agc-small">{{ planStatus(p.status) }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
       <template v-for="g in taskGroups" :key="g.key">
         <div v-if="g.items.length" class="agc-taskgrp">
           <div class="ag-lbl agc-taskgrp__t">{{ g.title }} <span class="ag-num">{{ g.items.length }}</span></div>
@@ -95,6 +122,26 @@
 
     <!-- 会话 -->
     <div v-else class="agc-right__body agc-right__scroll ag-noscroll">
+      <template v-if="sub">
+        <div class="agc-info__tags">
+          <span class="ag-pill" :class="subPillCls">{{ subStateText }}</span>
+          <AgAgentTag :kind="agentKindOf(session.runtimeKind)" :name="session.runtimeName" />
+        </div>
+        <div v-if="subCtxSize > 0" class="agc-infocard">
+          <div class="agc-infocard__row">
+            <span class="agc-flex agc-infocard__t">{{ t('agent.code.ctx.title') }}</span>
+            <span class="ag-num agc-infocard__v">{{ fmtTokens(subCtxUsed) }} <span class="ag-muted">/ {{ fmtTokens(subCtxSize) }} · {{ subCtxPct }}</span></span>
+          </div>
+          <div class="ag-meter"><span :style="{ width: subCtxPct }" /></div>
+        </div>
+        <dl class="agc-kv">
+          <template v-for="r in subRows" :key="r.k">
+            <dt>{{ r.k }}</dt>
+            <dd :class="{ 'ag-mono': r.mono }" :title="r.v">{{ r.v }}</dd>
+          </template>
+        </dl>
+      </template>
+      <template v-else>
       <div class="agc-info__tags">
         <span class="ag-pill" :class="pillCls">{{ t(`agent.status.${session.status}`) }}</span>
         <AgAgentTag :kind="agentKindOf(session.runtimeKind)" :name="session.runtimeName" />
@@ -161,6 +208,7 @@
           <span v-for="s in detail.skillNames" :key="s" class="ag-tag"><UIcon name="i-lucide-book-open" />{{ s }}</span>
         </div>
       </div>
+      </template>
     </div>
 
     <AgConfirm
@@ -188,10 +236,11 @@ import type {
 } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
-import { agentKindOf, fmtDuration, fmtTokens, sinceTime } from '@/views/agent/utils/format'
+import { agentKindOf, clockTime, fmtDuration, fmtTokens, sinceTime } from '@/views/agent/utils/format'
 import { modeName, providerLabel, sessionTitle } from '@/views/agent/utils/labels'
+import DiffCard from './DiffCard.vue'
 import PatchView from './PatchView.vue'
-import type { AgentItem, AgentState } from './types'
+import type { AgentDiff, AgentItem, AgentState } from './types'
 
 export type RightTab = 'diff' | 'files' | 'task' | 'info'
 
@@ -206,6 +255,8 @@ const props = defineProps<{
   busy: boolean
   /** 每一轮结束加一：改动和文件跟着刷新 */
   tick: number
+  /** 正在看的子 Agent 的会话 id：改动、任务、会话三个标签换成它自己的 */
+  sub?: string
 }>()
 const emit = defineEmits<{ openFile: [path: string]; openSub: [id: string]; command: [text: string]; changes: [files: AgentChangedFile[]] }>()
 const tab = defineModel<RightTab>('tab', { default: 'diff' })
@@ -334,7 +385,7 @@ const taskOpen = reactive(new Set<string>())
 const tasks = computed<Task[]>(() => {
   const out: Task[] = []
   for (const item of props.items) {
-    if (item.sub) continue
+    if ((item.sub || '') !== (props.sub || '')) continue
     if (item.type === 'tool' && item.tool?.kind === 'execute') {
       const tool = item.tool
       const running = tool.status === 'pending' || tool.status === 'in_progress'
@@ -442,11 +493,81 @@ const infoRows = computed(() => {
 })
 
 const tabs = computed(() => [
-  { key: 'diff' as const, label: changes.value ? t('agent.code.right.diffN', { n: files.value.length }) : t('agent.code.right.diff') },
+  {
+    key: 'diff' as const,
+    label: props.sub
+      ? t('agent.code.right.diffN', { n: subDiffs.value.length })
+      : changes.value
+        ? t('agent.code.right.diffN', { n: files.value.length })
+        : t('agent.code.right.diff'),
+  },
   { key: 'files' as const, label: t('agent.code.right.files') },
   { key: 'task' as const, label: t('agent.code.right.taskN', { n: taskGroups.value[0]?.items.length ?? 0 }) },
   { key: 'info' as const, label: t('agent.code.right.info') },
 ])
+
+// —— 子 Agent ——
+const subItem = computed(() =>
+  props.sub ? props.items.find((i) => i.type === 'subagent' && i.subagent?.id === props.sub) : undefined,
+)
+/** 它自己的工具调用改过的文件，同一个文件留最后一次 */
+const subDiffs = computed<AgentDiff[]>(() => {
+  if (!props.sub) return []
+  const byPath = new Map<string, AgentDiff>()
+  for (const item of props.items) {
+    if (item.sub !== props.sub) continue
+    for (const d of item.tool?.diffs ?? []) byPath.set(d.path, d)
+  }
+  return [...byPath.values()]
+})
+const subPicked = ref('')
+const subDiff = computed(() => subDiffs.value.find((d) => d.path === subPicked.value) ?? subDiffs.value[0])
+const OP_LETTER: Record<string, string> = { add: 'A', delete: 'D', modify: 'M', move: 'R', copy: 'C' }
+const opLetter = (d: AgentDiff) => (d.op ? OP_LETTER[d.op] || 'M' : d.oldText == null ? 'A' : 'M')
+const opCls = (d: AgentDiff) => {
+  const l = opLetter(d)
+  return l === 'A' ? 'agc-ok' : l === 'D' ? 'agc-bad' : 'agc-warn'
+}
+/** git patch 从第一个 @@ 段开始的部分 */
+const patchBody = (patch?: string) => {
+  const p = patch || ''
+  if (p.startsWith('@@')) return p
+  const at = p.indexOf('\n@@')
+  return at >= 0 ? p.slice(at + 1) : ''
+}
+const PLAN_STATUS = ['pending', 'in_progress', 'completed']
+const planStatus = (status: string) => (PLAN_STATUS.includes(status) ? t(`agent.code.plan.${status}`) : status)
+const subPlan = computed(() => (props.sub ? (props.state.subs?.[props.sub]?.plan ?? []) : []))
+const subCtxUsed = computed(() => Number(props.sub ? props.state.subs?.[props.sub]?.contextUsed || 0 : 0))
+const subCtxSize = computed(() => Number(props.sub ? props.state.subs?.[props.sub]?.contextSize || 0 : 0))
+const subCtxPct = computed(() =>
+  subCtxSize.value > 0 ? `${Math.min(100, Math.round((subCtxUsed.value / subCtxSize.value) * 100))}%` : '',
+)
+const subStateText = computed(() => {
+  const state = subItem.value?.subagent?.state
+  if (state === 'running') return t('agent.code.sub.running')
+  if (state === 'requires_action') return t('agent.code.sub.waiting')
+  return t('agent.code.sub.done')
+})
+const subPillCls = computed(
+  () => ({ running: 'ag-pill--ok', requires_action: 'ag-pill--warn' })[subItem.value?.subagent?.state || ''] ?? '',
+)
+const subRows = computed(() => {
+  const item = subItem.value
+  const sa = item?.subagent
+  if (!item || !sa) return []
+  const rows: { k: string; v: string; mono?: boolean }[] = [
+    { k: t('agent.code.info.title'), v: sa.title || sa.description || sa.id },
+  ]
+  if (sa.title && sa.description) rows.push({ k: t('agent.code.sub.description'), v: sa.description })
+  rows.push({ k: t('agent.code.info.cwd'), v: sa.cwd || props.session.cwd, mono: true })
+  rows.push({ k: t('agent.code.sub.started'), v: clockTime(item.at) })
+  if (sa.endAt) rows.push({ k: t('agent.code.sub.took'), v: fmtDuration(sa.endAt - item.at) })
+  const tools = props.items.filter((i) => i.sub === props.sub && i.type === 'tool').length
+  rows.push({ k: t('agent.code.sub.tools'), v: String(tools) })
+  rows.push({ k: t('agent.code.info.sessionId'), v: sa.id, mono: true })
+  return rows
+})
 
 // —— 进程 ——
 // 进程号和已运行时间只在「会话」标签里显示：切到这个标签、或者会话状态变了时读一次（读内存要遍历进程树）。

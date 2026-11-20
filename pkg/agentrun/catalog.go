@@ -23,20 +23,26 @@ type Caps struct {
 	McpSSE          bool `json:"mcpSse,omitempty"`
 	Close           bool `json:"close,omitempty"`
 	Subagents       bool `json:"subagents,omitempty"`
+	// Protocol 协商好的 ACP 版本。v2 里一个工具调用、一个子 Agent 也能单独停。
+	Protocol int `json:"protocol,omitempty"`
+	// Steer 一轮还没结束时能把消息插进去（v2）；不能的只能排队。
+	Steer bool `json:"steer,omitempty"`
 }
 
 func capsOf(init *acp.InitializeResponse) Caps {
-	c := init.AgentCapabilities
+	f := init.Features()
 	return Caps{
-		Resume:          c.SessionCapabilities.Resume != nil,
-		Fork:            c.SessionCapabilities.Fork != nil,
-		AdditionalDirs:  c.SessionCapabilities.AdditionalDirectories != nil,
-		Image:           c.PromptCapabilities.Image,
-		EmbeddedContext: c.PromptCapabilities.EmbeddedContext,
-		McpHTTP:         c.McpCapabilities.HTTP,
-		McpSSE:          c.McpCapabilities.SSE,
-		Close:           c.SessionCapabilities.Close != nil,
-		Subagents:       c.SessionCapabilities.Subagents != nil,
+		Resume:          f.Resume,
+		Fork:            f.Fork,
+		AdditionalDirs:  f.AdditionalDirs,
+		Image:           f.Image,
+		EmbeddedContext: f.EmbeddedContext,
+		McpHTTP:         f.McpHTTP,
+		McpSSE:          f.McpSSE,
+		Close:           f.Close,
+		Subagents:       f.Subagents,
+		Protocol:        init.ProtocolVersion,
+		Steer:           init.ProtocolVersion >= acp.ProtocolV2,
 	}
 }
 
@@ -124,8 +130,8 @@ type ProbeResult struct {
 	AgentName    string
 	AgentVersion string
 	Caps         Caps
-	// Auth 这个环境下已有的登录；没登录时 ok 为 false。
-	Auth   acp.AuthAccount
+	// Auth 这个环境下已有的登录；Agent 没报或报的是没登录时 AuthOK 为 false。
+	Auth   acp.AuthStatus
 	AuthOK bool
 	// Catalog 能开会话时读到的可选项。
 	Catalog Catalog
@@ -136,22 +142,23 @@ type ProbeResult struct {
 // probeEvents 检测用的事件接收器：只关心登录状态。
 type probeEvents struct {
 	mu   sync.Mutex
-	auth acp.AuthState
+	auth acp.AuthStatus
 }
 
 func (e *probeEvents) SessionUpdate(*acp.SessionNotification) {}
-func (e *probeEvents) RequestPermission(_ *acp.RequestPermissionRequest, reply func(*acp.RequestPermissionResponse)) {
+func (e *probeEvents) RequestPermission(_ string, _ *acp.RequestPermissionRequest, reply func(*acp.RequestPermissionResponse)) {
 	reply(acp.PermissionCancelled())
 }
-func (e *probeEvents) AuthStatus(state acp.AuthState) {
+func (e *probeEvents) RequestCancelled(string) {}
+func (e *probeEvents) AuthStatus(status acp.AuthStatus) {
 	e.mu.Lock()
-	e.auth = state
+	e.auth = status
 	e.mu.Unlock()
 }
-func (e *probeEvents) account() (acp.AuthAccount, bool) {
+func (e *probeEvents) account() (acp.AuthStatus, bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	return e.auth.Account()
+	return e.auth, e.auth.LoggedIn()
 }
 
 // exitReason 进程没撑住时给人看的原因。
@@ -194,8 +201,9 @@ func Probe(ctx context.Context, launch agentdriver.Launch, cwd string) (*ProbeRe
 		return nil, exitReason(proc, err)
 	}
 	result := &ProbeResult{Caps: capsOf(init)}
-	if init.AgentInfo != nil {
-		result.AgentName, result.AgentVersion = init.AgentInfo.Name, init.AgentInfo.Version
+	// v1 在 agentInfo、v2 在 info：按协商好的版本取
+	if agent := init.Agent(); agent != nil {
+		result.AgentName, result.AgentVersion = agent.Name, agent.Version
 	}
 
 	state, err := client.NewSession(initCtx, acp.SessionSetup{Cwd: cwd})
@@ -209,8 +217,8 @@ func Probe(ctx context.Context, launch agentdriver.Launch, cwd string) (*ProbeRe
 	}
 	result.Catalog = catalogOf(state.ConfigOptions)
 
-	// 推理强度跟着模型变：逐个切过去读一遍。
-	if model := configOf(state.ConfigOptions, acp.CategoryModel); model != nil && len(result.Catalog.Models) <= 12 {
+	// 推理强度跟着模型变（Agent 只给当前模型的）：逐个切过去读一遍。切换只改配置，不发消息。
+	if model := configOf(state.ConfigOptions, acp.CategoryModel); model != nil {
 		for i := range result.Catalog.Models {
 			m := &result.Catalog.Models[i]
 			if m.ID == model.Current() {

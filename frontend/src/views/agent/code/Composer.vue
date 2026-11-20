@@ -76,11 +76,22 @@
           <UIcon name="i-lucide-chevron-down" />
         </button>
         <button
+          v-if="busy && canSend && canSteer"
+          type="button"
+          class="agc-sm"
+          :aria-label="t('agent.code.composer.queue')"
+          :title="t('agent.code.composer.queue')"
+          :disabled="sending"
+          @click="submit('queue')"
+        >
+          <UIcon name="i-lucide-list-plus" />
+        </button>
+        <button
           type="button"
           class="agc-send"
           :class="{ 'is-stop': showStop }"
-          :aria-label="showStop ? t('agent.code.composer.stop') : t('agent.code.composer.send')"
-          :title="showStop ? t('agent.code.composer.stop') : t('agent.code.composer.send')"
+          :aria-label="sendLabel"
+          :title="sendLabel"
           :disabled="sending || (!showStop && !canSend)"
           @click="showStop ? emit('stop') : submit()"
         >
@@ -267,6 +278,8 @@ export interface Selection {
 
 /** 待发送的附件：图片和文件带内容（base64），引用的只带路径 */
 export type DraftAttachment = AgentAttachmentInput & { kind: 'image' | 'file' | 'ref'; name: string }
+/** 一轮还没结束时怎么发：steer 插进正在做的事里（ACP v2），queue 排队、等这一轮结束再发 */
+export type SendMode = 'steer' | 'queue'
 
 defineOptions({ name: 'AgentComposer' })
 
@@ -292,8 +305,8 @@ const props = withDefaults(
     label: string
     placeholder: string
     infoButton?: boolean
-    /** 发出去；返回 false 表示没发成功，输入框保留 */
-    onSend: (text: string, attachments: DraftAttachment[]) => Promise<boolean>
+    /** 发出去；返回 false 表示没发成功，输入框保留。一轮还没结束时 mode 是 steer（插进去）或 queue（排队） */
+    onSend: (text: string, attachments: DraftAttachment[], mode?: SendMode) => Promise<boolean>
   }>(),
   {
     agentSwitch: false,
@@ -456,7 +469,13 @@ const typing = computed(() => /^\/\S*$/.test(draft.value) && !slashHidden.value)
 const slashOpen = computed(() => pop.value === 'slash' || typing.value)
 const cmdGroups = computed(() => {
   const q = typing.value ? draft.value.slice(1).toLowerCase() : ''
-  const match = (name: string, desc = '') => !q || name.toLowerCase().startsWith(q) || desc.toLowerCase().includes(q)
+  // 只按命令名筛：开头（或插件前缀 xx: 之后）对上的排前面，名字里含有的排后面
+  const rank = (name: string) => {
+    if (!q) return 0
+    const n = name.toLowerCase()
+    if (n.startsWith(q) || n.slice(n.indexOf(':') + 1).startsWith(q)) return 0
+    return n.includes(q) ? 1 : -1
+  }
   const skills = new Set(props.skills)
   const groups: { key: string; title: string; items: { name: string; description: string }[] }[] = []
   if (runtime.value?.caps?.mcpHttp) {
@@ -472,9 +491,17 @@ const cmdGroups = computed(() => {
     title: t('agent.code.cmd.skills'),
     items: [...skills].map((name) => ({ name, description: props.commands.find((c) => c.name === name)?.description || '' })),
   })
+  // 有开头对上的组排到前面，回车选的、高亮的就是最贴近的那条
   return groups
-    .map((g) => ({ ...g, items: g.items.filter((c) => match(c.name, c.description)) }))
+    .map((g) => {
+      const hits = g.items
+        .map((c) => ({ c, r: rank(c.name) }))
+        .filter((x) => x.r >= 0)
+        .sort((a, b) => a.r - b.r)
+      return { ...g, best: hits[0]?.r ?? 2, items: hits.map((x) => x.c) }
+    })
     .filter((g) => g.items.length > 0)
+    .sort((a, b) => a.best - b.best)
 })
 const pickCmd = (name: string) => {
   draft.value = `/${name} `
@@ -590,8 +617,15 @@ const addRef = (path: string) => {
 // —— 发送 ——
 const canSend = computed(() => !!draft.value.trim() || atts.value.length > 0)
 const showStop = computed(() => props.busy && !draft.value.trim() && !atts.value.length)
+/** 一轮还没结束时能插进去（ACP v2）；不能的只能排队，等这一轮结束再发 */
+const canSteer = computed(() => !!runtime.value?.caps?.steer)
+const sendLabel = computed(() => {
+  if (showStop.value) return t('agent.code.composer.stop')
+  if (!props.busy) return t('agent.code.composer.send')
+  return canSteer.value ? t('agent.code.composer.steer') : t('agent.code.composer.queue')
+})
 
-const submit = async () => {
+const submit = async (mode?: SendMode) => {
   if (sending.value || !canSend.value) return
   let text = draft.value.trim()
   let toast = ''
@@ -603,7 +637,11 @@ const submit = async () => {
   }
   sending.value = true
   try {
-    const ok = await props.onSend(text, atts.value)
+    const ok = await props.onSend(
+      text,
+      atts.value,
+      props.busy ? (mode ?? (canSteer.value ? 'steer' : 'queue')) : undefined,
+    )
     if (ok) {
       draft.value = ''
       atts.value = []
@@ -635,5 +673,11 @@ const onKey = (e: KeyboardEvent) => {
   }
 }
 
-defineExpose({ focus: () => input.value?.focus() })
+defineExpose({
+  focus: () => input.value?.focus(),
+  /** 把文字放回输入框最前面（停下时还没发出去的排队消息） */
+  restore: (text: string) => {
+    draft.value = draft.value ? `${text}\n\n${draft.value}` : text
+  },
+})
 </script>

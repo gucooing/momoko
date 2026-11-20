@@ -62,6 +62,8 @@ type Driver interface {
 
 	// Command 从工具调用的原始输入里取要执行的命令；不是命令类工具为空。
 	Command(rawInput json.RawMessage) string
+	// ToolOutput 这一系放在 content 以外的工具结果：从工具调用的 rawOutput 里取给人看的文字，替换已有输出；没有为空。
+	ToolOutput(rawOutput json.RawMessage) string
 }
 
 // Generic 认不出是哪一系的 ACP Agent：用它自己的登录和配置，只按协议正文办事。
@@ -77,3 +79,4 @@ func (Generic) APIEnv(API) map[string]string               { return nil }
 func (Generic) LoginLimits(int64, int64) map[string]string { return nil }
 func (Generic) RemoveTranscript(_, _ string)               {}
 func (Generic) Command(json.RawMessage) string             { return "" }
+func (Generic) ToolOutput(json.RawMessage) string          { return "" }

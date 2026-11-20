@@ -23,6 +23,7 @@ func NewOpenSSHService(uc *biz.OpenSSHUsecase) *OpenSSHService {
 
 func (o *OpenSSHService) RegisterWsServer(srv *http.Server) {
 	srv.Handle(biz.OpenSSHWSPath, websocket.Handler(o.RunSSHWsConn))
+	srv.Handle(biz.ShellWSPath, websocket.Handler(o.RunShellWsConn))
 }
 
 func (o *OpenSSHService) GetSSHHosts(ctx context.Context, req *v1.GetSSHHostsRequest) (*v1.GetSSHHostsResponse, error) {
@@ -140,4 +141,14 @@ func (o *OpenSSHService) RunSSHWsConn(conn *websocket.Conn) {
 		return
 	}
 	_ = o.uc.StartSSHWebSocket(ctx, conn, authCtx.UserID, hostID)
+}
+
+// RunShellWsConn 本机终端：权限由 HTTP 过滤器按路径校验（shell:use）。
+func (o *OpenSSHService) RunShellWsConn(conn *websocket.Conn) {
+	defer conn.Close()
+	if _, ok := auth.FromContext(conn.Request().Context()); !ok {
+		_ = websocket.Message.Send(conn, "缺少参数")
+		return
+	}
+	_ = o.uc.StartShellWebSocket(conn)
 }

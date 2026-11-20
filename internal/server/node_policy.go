@@ -115,6 +115,7 @@ var nodeTunnelPaths = map[string]constant.Permissions{
 	biz.DockerImageExportPath:     constant.DockerImageManage,
 	biz.DockerImageImportPath:     constant.DockerImageManage,
 	biz.OpenSSHWSPath:             constant.SSHManage,
+	biz.ShellWSPath:               constant.Shell,
 	biz.PreFileDownload:           "",
 	biz.PreFileUpload:             "",
 	biz.AgentWsPath:               constant.AgentUse,

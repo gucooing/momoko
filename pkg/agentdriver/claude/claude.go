@@ -171,3 +171,6 @@ func (Driver) Command(raw json.RawMessage) string {
 	}
 	return input.Command
 }
+
+// ToolOutput Claude 的工具输出都在 content 里，rawOutput 里没有要另外显示的。
+func (Driver) ToolOutput(json.RawMessage) string { return "" }

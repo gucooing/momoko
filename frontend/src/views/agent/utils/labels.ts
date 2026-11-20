@@ -82,12 +82,15 @@ const itemMarkdown = (item: AgentItem): string => {
       if (!tool) return ''
       const lines = [`- ${tool.title || tool.kind || ''}${tool.status === 'failed' ? ` (${tr('failed')})` : ''}`]
       if (tool.command) lines.push('', fence(tool.command, 'sh'))
-      // 改动原样来自 ACP：新建的给全文，修改的给改前、改后两段
+      // 改动原样来自 ACP：v2 给 patch；v1 新建的给全文，修改的给改前、改后两段
       for (const d of tool.diffs ?? []) {
-        if (d.oldText == null) {
-          lines.push('', `\`${d.path}\` ${tr('created')}`, '', fence(d.newText))
+        if (d.op) {
+          lines.push('', `\`${d.oldPath ? `${d.oldPath} → ` : ''}${d.path}\``)
+          if (d.patch) lines.push('', fence(d.patch, 'diff'))
+        } else if (d.oldText == null) {
+          lines.push('', `\`${d.path}\` ${tr('created')}`, '', fence(d.newText ?? ''))
         } else {
-          lines.push('', `\`${d.path}\``, '', tr('before'), '', fence(d.oldText), '', tr('after'), '', fence(d.newText))
+          lines.push('', `\`${d.path}\``, '', tr('before'), '', fence(d.oldText), '', tr('after'), '', fence(d.newText ?? ''))
         }
       }
       if (tool.output) lines.push('', fence(tool.output))

@@ -521,7 +521,7 @@ func agentCapsPB(c agentrun.Caps) *v1.AgentCapabilities {
 	return &v1.AgentCapabilities{
 		Resume: c.Resume, Fork: c.Fork, AdditionalDirs: c.AdditionalDirs,
 		Image: c.Image, EmbeddedContext: c.EmbeddedContext, McpHttp: c.McpHTTP, McpSse: c.McpSSE, Close: c.Close,
-		Subagents: c.Subagents,
+		Subagents: c.Subagents, Steer: c.Steer,
 	}
 }
 

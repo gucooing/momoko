@@ -96,6 +96,11 @@ const (
 )
 
 const (
+	// Shell 允许打开本机终端：在 Momoko 所在机器上以 Momoko 进程的身份执行任意命令。
+	Shell Permissions = "shell:use"
+)
+
+const (
 	// GameServer 允许管理游戏服务器（接入、托管、专用设置、更新与备份）。
 	GameServer Permissions = "game:server"
 	// GameGM 允许进入 GM 运营：能进的管理员可以对任何服务器执行全部 GM 指令，并处理玩家自助申请。

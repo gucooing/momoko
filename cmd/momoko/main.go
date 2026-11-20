@@ -17,6 +17,7 @@ import (
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
+	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
@@ -40,17 +41,18 @@ func init() {
 }
 
 func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server, ps *server.PassportServer) *kratos.App {
+	servers := []transport.Server{gs, hs}
+	// 用户通行证没启用时没有这个 server：空指针放进去，启动时取它的地址会崩
+	if ps != nil {
+		servers = append(servers, ps)
+	}
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
 		kratos.Version(Version),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
-		kratos.Server(
-			gs,
-			hs,
-			ps,
-		),
+		kratos.Server(servers...),
 	)
 }
 

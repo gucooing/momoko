@@ -13,10 +13,11 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/websocket"
+
+	"momoko/pkg/termws"
 )
 
 const (
@@ -45,12 +46,6 @@ type Config struct {
 
 type TestResult struct {
 	Fingerprint string
-}
-
-type wsControl struct {
-	Type string `json:"type"`
-	Cols int    `json:"cols"`
-	Rows int    `json:"rows"`
 }
 
 // ServerControl 是服务端发往浏览器的控制帧（以 WebSocket 二进制帧发送，终端输出始终是文本帧）。
@@ -204,7 +199,7 @@ func ServeWebSocket(conn *websocket.Conn, cfg Config) error {
 			n += pending
 			if n > 0 {
 				// 文本帧必须是合法 UTF-8：被缓冲区截断的多字节字符留到下一次一起发送
-				cut := utf8Boundary(buf[:n])
+				cut := termws.UTF8Boundary(buf[:n])
 				if err != nil {
 					cut = n
 				}
@@ -262,7 +257,7 @@ func ServeWebSocket(conn *websocket.Conn, cfg Config) error {
 			closeDone()
 			return nil
 		}
-		if resize, ok := parseResize(input); ok {
+		if resize, ok := termws.ParseResize(input); ok {
 			_ = session.WindowChange(resize.Rows, resize.Cols)
 			continue
 		}
@@ -373,36 +368,4 @@ func hostKeyCallback(expected string, capture func(string)) ssh.HostKeyCallback 
 		}
 		return fmt.Errorf("ssh host fingerprint mismatch")
 	}
-}
-
-// utf8Boundary 返回 b 中最后一个完整 UTF-8 字符之后的位置（末尾最多 3 个字节可能是被截断的字符）。
-func utf8Boundary(b []byte) int {
-	n := len(b)
-	for i := 1; i <= utf8.UTFMax-1 && i <= n; i++ {
-		c := b[n-i]
-		if c < 0x80 {
-			return n // ASCII：此前都完整
-		}
-		if utf8.RuneStart(c) {
-			if utf8.FullRune(b[n-i:]) {
-				return n
-			}
-			return n - i
-		}
-	}
-	return n
-}
-
-func parseResize(input string) (wsControl, bool) {
-	if !strings.HasPrefix(strings.TrimSpace(input), "{") {
-		return wsControl{}, false
-	}
-	var control wsControl
-	if err := json.Unmarshal([]byte(input), &control); err != nil {
-		return wsControl{}, false
-	}
-	if control.Type != "resize" || control.Cols <= 0 || control.Rows <= 0 {
-		return wsControl{}, false
-	}
-	return control, true
 }

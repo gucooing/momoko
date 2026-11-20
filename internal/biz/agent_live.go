@@ -132,11 +132,27 @@ func (l *agentLive) Answered(id, kind string, waiting bool) {
 		l.uc.settleApproval(l.id, id, "")
 	}
 	if !waiting {
-		// 只把「等待批准」改回「运行中」：这一轮要是刚好结束了，状态以结束时写的为准。
+		// 只改「等待批准」：还有一轮在跑就回到「运行中」，没有（v2 后台的工作要的批准）就是「空闲」；
+		// 这一轮要是刚好结束了，状态以结束时写的为准。
+		next := agentsession.StatusIdle
+		if l.session.Running() {
+			next = agentsession.StatusRunning
+		}
 		l.w.update(func(u *gen.AgentSessionUpdateOne) {
-			u.Where(agentsession.StatusEQ(agentsession.StatusWaiting)).SetStatus(agentsession.StatusRunning)
+			u.Where(agentsession.StatusEQ(agentsession.StatusWaiting)).SetStatus(next)
 		})
 	}
+}
+
+// TurnStarted v2：Agent 自己开始了一轮（后台的工作做完了接着处理之类）。空闲或出错的会话改成运行中。
+func (l *agentLive) TurnStarted() {
+	if l.dead.Load() {
+		return
+	}
+	l.w.update(func(u *gen.AgentSessionUpdateOne) {
+		u.Where(agentsession.StatusIn(agentsession.StatusIdle, agentsession.StatusError)).
+			SetStatus(agentsession.StatusRunning).SetError("").SetActiveAt(time.Now())
+	})
 }
 
 func (l *agentLive) TurnEnded(end agentrun.TurnEnd) {
@@ -177,8 +193,20 @@ func (l *agentLive) Exited() {
 	uc.approvals.dropSession(l.id)
 	uc.telegram.idle(uc)
 	// 进程没了还显示「运行中 / 等待批准」的收成空闲；一轮里出错的在结束时已经记成出错。
-	l.w.update(func(u *gen.AgentSessionUpdateOne) {
-		u.Where(agentsession.StatusIn(agentsession.StatusRunning, agentsession.StatusWaiting)).SetStatus(agentsession.StatusIdle)
+	// 状态没变也推一次：页面上「有进程在跑」要跟着变。
+	l.w.do(func(ctx context.Context) {
+		if l.dead.Load() {
+			return
+		}
+		s, err := uc.repo.UpdateAgentSession(ctx, l.id, func(u *gen.AgentSessionUpdateOne) {
+			u.Where(agentsession.StatusIn(agentsession.StatusRunning, agentsession.StatusWaiting)).SetStatus(agentsession.StatusIdle)
+		})
+		if gen.IsNotFound(err) {
+			s, err = uc.repo.GetAgentSession(ctx, l.id)
+		}
+		if err == nil {
+			uc.pushSession(ctx, s)
+		}
 	})
 	l.w.close()
 }

@@ -14,10 +14,14 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/sshhost"
+	"momoko/pkg/shellcore"
 	"momoko/pkg/sshcore"
 )
 
 const OpenSSHWSPath = "/api/v1/openssh/ws"
+
+// ShellWSPath 本机终端（在 Momoko 所在机器上开一个 shell），权限 shell:use。
+const ShellWSPath = "/api/v1/shell/ws"
 
 type OpenSSHRepo interface {
 	GetSSHHosts(ctx context.Context, page, pageSize int64, userID string, filter SSHHostListFilter) ([]*gen.SSHHost, int64, error)
@@ -368,6 +372,11 @@ func (o *OpenSSHUsecase) StartSSHWebSocket(ctx context.Context, conn *websocket.
 	}
 	_ = o.repo.TouchSSHHostConnect(ctx, hostID, time.Now())
 	return sshcore.ServeWebSocket(conn, cfg)
+}
+
+// StartShellWebSocket 在本机开一个 shell 接到 conn 上，连接断开即结束。
+func (o *OpenSSHUsecase) StartShellWebSocket(conn *websocket.Conn) error {
+	return shellcore.ServeWebSocket(conn)
 }
 
 func validateCreateSSHHost(req *v1.CreateSSHHostRequest) error {

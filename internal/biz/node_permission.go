@@ -34,6 +34,7 @@ var nodePermissionSpecs = []nodePermissionSpec{
 	{code: constant.Network, rbac: true},
 	{code: constant.Tunnel, rbac: true},
 	{code: constant.SSHManage, rbac: false},
+	{code: constant.Shell, rbac: true},
 	{code: constant.IQCheckView, rbac: true},
 	{code: constant.IQCheckEdit, rbac: true},
 	{code: constant.TaskManage, rbac: true},

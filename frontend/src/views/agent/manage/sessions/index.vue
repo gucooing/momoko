@@ -1,5 +1,6 @@
 <!-- Agent 管理 · 会话：状态筛选（带数量）、按标题搜索、每行归档 / 取消归档和删除、勾选后批量归档 / 导出 / 删除，
-     「已归档」筛选下可以删除全部归档会话。运行中或等待批准的会话可以展开看 Agent 进程（只读）。
+     「已归档」筛选下可以删除全部归档会话。有 Agent 进程在跑的会话（一轮结束后进程还留着，空闲的也可能有）
+     行上有「进程」标记，点开看进程和它派出的子 Agent（只读）。
      这一页不能停止会话、不能结束进程；还在运行的会话不能归档。筛选、搜索、分页都在服务端做。 -->
 <template>
   <div class="ag ag-page">
@@ -80,12 +81,14 @@
               <button
                 v-if="isLive(s)"
                 type="button"
-                class="ag-ib ag-ib--sm"
+                class="ag-tag ag-ses-procbtn"
+                :class="{ 'is-open': opened.has(s.id) }"
                 :aria-label="t('agent.sessions.processOf', { title: titleOf(s) })"
                 :title="t('agent.sessions.process')"
                 :aria-expanded="opened.has(s.id)"
                 @click="toggleProcess(s.id)"
               >
+                <UIcon name="i-lucide-cpu" />{{ t('agent.sessions.processTag') }}
                 <UIcon name="i-lucide-chevron-down" class="ag-ses-chev" :class="{ 'is-open': opened.has(s.id) }" />
               </button>
               <button
@@ -124,6 +127,13 @@
               <span v-if="procs.get(s.id)!.startedAt">
                 {{ t('agent.sessions.uptime', { time: sinceTime(procs.get(s.id)!.startedAt) }) }}
               </span>
+              <div v-if="procs.get(s.id)!.subagents?.length" class="ag-ses-subs">
+                <span class="ag-ses-subs__label">{{ t('agent.sessions.subagents') }}</span>
+                <span v-for="sa in procs.get(s.id)!.subagents" :key="sa.id" class="ag-ses-sub">
+                  <span class="ag-ses-sub__title">{{ sa.title || sa.id }}</span>
+                  <span class="ag-pill" :class="SUB_PILL[sa.state]">{{ subState(sa.state) }}</span>
+                </span>
+              </div>
             </template>
             <span v-else class="ag-muted">{{ t(procs.has(s.id) ? 'agent.sessions.noProcess' : 'agent.common.loading') }}</span>
           </div>
@@ -218,6 +228,11 @@ const PILL: Record<string, string> = {
   error: 'ag-pill--bad',
 }
 const STATUSES = ['running', 'waiting', 'idle', 'error', 'archived']
+// 子 Agent 的状态，和对话里一样：running 运行中，requires_action 等待批准，其它（idle）做完了
+const SUB_PILL: Record<string, string> = {
+  running: 'ag-pill--ok',
+  requires_action: 'ag-pill--warn',
+}
 
 const { t } = useI18n()
 const router = useRouter()
@@ -245,7 +260,14 @@ const allArchived = computed(
   () => selectedRows.value.length > 0 && selectedRows.value.every((s) => s.status === 'archived'),
 )
 
-const isLive = (s: AgentSession) => s.status === 'running' || s.status === 'waiting'
+// 有 Agent 进程在跑：一轮结束后进程还留在池子里，空闲超时才结束，所以看服务端给的，不看状态
+const isLive = (s: AgentSession) => s.live
+const subState = (state: string) =>
+  state === 'running'
+    ? t('agent.code.sub.running')
+    : state === 'requires_action'
+      ? t('agent.code.sub.waiting')
+      : t('agent.code.sub.done')
 const titleOf = (s: AgentSession) => s.title || t('agent.sessions.untitled')
 const statusText = (value: string) => (STATUSES.includes(value) ? t(`agent.status.${value}`) : value)
 const userOf = (s: AgentSession) => {
@@ -283,7 +305,9 @@ const load = async (): Promise<void> => {
     data.value = res
     const ids = new Set((res.sessions ?? []).map((s) => s.id))
     for (const sid of [...selected]) if (!ids.has(sid)) selected.delete(sid)
-    for (const sid of [...opened]) if (!ids.has(sid)) opened.delete(sid)
+    // 进程已经结束的收起来
+    const live = new Set((res.sessions ?? []).filter((s) => s.live).map((s) => s.id))
+    for (const sid of [...opened]) if (!live.has(sid)) opened.delete(sid)
   } catch {
     // 请求层已经提示过
   } finally {
@@ -379,6 +403,7 @@ const onPush = (msg: AgentServerMessage) => {
   const i = list.findIndex((x) => x.id === s.id)
   if (i >= 0 && list[i]!.status === s.status) {
     list[i] = s
+    if (!s.live) opened.delete(s.id)
     return
   }
   void reloadSoon()
@@ -600,6 +625,16 @@ const askPurge = async () => {
 .ag-ses-pill {
   margin-right: 4px;
 }
+.ag-ses-procbtn {
+  margin-right: 4px;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ag-ses-procbtn:hover,
+.ag-ses-procbtn.is-open {
+  color: var(--m-ink);
+}
 .ag-ses-chev {
   transition: transform 0.15s;
 }
@@ -621,6 +656,29 @@ const askPurge = async () => {
 .ag-ses-proc__cmd {
   font-weight: 600;
   color: var(--m-ink);
+}
+.ag-ses-subs {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+.ag-ses-subs__label {
+  font-weight: 600;
+  color: var(--m-ink);
+}
+.ag-ses-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ag-ses-sub__title {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ag-ses-bulk {
   max-width: 100%;

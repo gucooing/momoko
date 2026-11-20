@@ -20,6 +20,8 @@ const (
 	ItemTurn       = "turn"
 	ItemNotice     = "notice"
 	ItemSubagent   = "subagent"
+	// ItemRelay 会话之间的消息（v2：主会话交给子 Agent 的话、子 Agent 交回的结果），不是用户说的，也不是回答用户的。
+	ItemRelay = "relay"
 )
 
 // outputKeep 工具输出最多留多少字节（留末尾）。
@@ -42,6 +44,13 @@ type Item struct {
 	// Ms 思考或工具调用用了多久。
 	Ms          int64        `json:"ms,omitempty"`
 	Attachments []Attachment `json:"attachments,omitempty"`
+	// Steer 用户的话是在一轮还没结束时插进去的。
+	Steer bool `json:"steer,omitempty"`
+	// From / To 会话之间的消息从哪个会话来、到哪个会话去：main 是主会话，其它是子 Agent 的会话 id。
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
+	// msgID Agent 给这条消息的 id（v2 必有）：同一条消息的块接在一起，整条更新按它替换。
+	msgID string
 	// 提示：Level 是 info / warning / error。Agent 给的提示 Title 是标题、Text 是说明；
 	// Code 不为空时是引擎自己的提示（resume_failed 等），页面按它显示文案，Text 只放原因。
 	Level string `json:"level,omitempty"`
@@ -75,15 +84,26 @@ func Decode(seq, rev int64, typ, sub, payload string) *Item {
 // 库里留着的「还在写」「还在等」都是上次中断留下的。
 func (i *Item) Settle() {
 	i.Open = false
-	if i.Tool != nil && (i.Tool.Status == "pending" || i.Tool.Status == "in_progress") {
-		i.Tool.Status = "failed"
+	if i.Tool != nil {
+		if unfinished(i.Tool.Status) {
+			i.Tool.Status = "failed"
+		}
+		i.Tool.Cancel = false
 	}
 	if i.Permission != nil && i.Permission.Outcome == "" {
 		i.Permission.Outcome = "cancelled"
 	}
-	if i.Subagent != nil && i.Subagent.State != "idle" {
-		i.Subagent.State = "idle"
+	if i.Subagent != nil {
+		if i.Subagent.State != "idle" {
+			i.Subagent.State = "idle"
+		}
+		i.Subagent.Cancel = false
 	}
+}
+
+// unfinished 工具调用还没有结果：等着、在跑、暂停（v2）。
+func unfinished(status string) bool {
+	return status == "pending" || status == "in_progress" || status == "paused"
 }
 
 // Attachment 用户消息里带的附件。上传的附件有 File，页面凭它取回内容（图片显示缩略图）。
@@ -99,11 +119,17 @@ type Location struct {
 	Line int    `json:"line,omitempty"`
 }
 
-// Diff 一次工具调用对一个文件的改动，原样来自 ACP：OldText 为 nil 表示新建文件。怎么比对、怎么显示是页面的事。
+// Diff 一次工具调用对一个文件的改动，原样来自 ACP。怎么比对、怎么显示是页面的事。
+//   - v1：OldText / NewText，OldText 为 nil 表示新建文件；
+//   - v2：Op 是 add / delete / modify / move / copy（move、copy 还有 OldPath），Patch 是这个文件的 git patch 片段，
+//     二进制文件、符号链接之类没有 Patch。
 type Diff struct {
 	Path    string  `json:"path"`
-	OldText *string `json:"oldText"`
-	NewText string  `json:"newText"`
+	OldText *string `json:"oldText,omitempty"`
+	NewText string  `json:"newText,omitempty"`
+	Op      string  `json:"op,omitempty"`
+	OldPath string  `json:"oldPath,omitempty"`
+	Patch   string  `json:"patch,omitempty"`
 }
 
 type Tool struct {
@@ -119,6 +145,15 @@ type Tool struct {
 	Images []string `json:"images,omitempty"`
 	// Child 这次调用派出的子 Agent 的会话 id。
 	Child string `json:"child,omitempty"`
+	// ExitCode 命令的退出码（v2 的终端报了才有）。
+	ExitCode *int64 `json:"exitCode,omitempty"`
+	// Cancel 现在能单独停这一个（v2：工具调用或它的终端声明了 capabilities.cancel）。
+	Cancel bool `json:"cancel,omitempty"`
+
+	// terminal 显示它输出的终端 id；toolCancel / termCancel 工具调用、终端各自能不能单独停。
+	terminal   string
+	toolCancel bool
+	termCancel bool
 }
 
 type PermissionOption struct {
@@ -129,12 +164,14 @@ type PermissionOption struct {
 
 // Permission 一张批准卡片。
 type Permission struct {
-	ID      string             `json:"id"`
-	ToolID  string             `json:"toolId,omitempty"`
-	Title   string             `json:"title"`
-	Kind    string             `json:"kind,omitempty"`
-	Command string             `json:"command,omitempty"`
-	Options []PermissionOption `json:"options"`
+	ID      string `json:"id"`
+	ToolID  string `json:"toolId,omitempty"`
+	Title   string `json:"title"`
+	Kind    string `json:"kind,omitempty"`
+	Command string `json:"command,omitempty"`
+	// Description 给人看的说明（v2 的批准自带）。
+	Description string             `json:"description,omitempty"`
+	Options     []PermissionOption `json:"options"`
 	// Outcome 空 = 还在等；selected = 选了某个选项；cancelled = 这一轮被停止。
 	Outcome    string `json:"outcome,omitempty"`
 	OptionID   string `json:"optionId,omitempty"`
@@ -186,6 +223,10 @@ type Subagent struct {
 	// State：running / idle / requires_action。
 	State string `json:"state,omitempty"`
 	EndAt int64  `json:"endAt,omitempty"`
+	// Cwd 它的工作目录（v2 报了才有）。
+	Cwd string `json:"cwd,omitempty"`
+	// Cancel 现在能单独停它（v2：它声明了 capabilities.cancel）。
+	Cancel bool `json:"cancel,omitempty"`
 }
 
 // Command Agent 自己的一个斜杠命令。
@@ -200,10 +241,38 @@ type PlanEntry struct {
 	Status  string `json:"status"`
 }
 
-// State 会话状态快照：Agent 给的命令和计划。
+// State 会话状态快照：Agent 给的命令和计划，后台还在跑的，和每个子 Agent 自己的计划、上下文用量。
 type State struct {
 	Commands []Command   `json:"commands,omitempty"`
 	Plan     []PlanEntry `json:"plan,omitempty"`
+	// Background v2：一轮结束后还在后台跑的终端、工具调用、子 Agent。
+	Background []Background `json:"background,omitempty"`
+	// Subs 子 Agent 的会话 id → 它自己的计划、上下文用量。
+	Subs map[string]*SubState `json:"subs,omitempty"`
+	// Queue 排着队的消息：这一轮结束后按顺序作为下一轮发出。只在进程活着时有意义。
+	Queue []Queued `json:"queue,omitempty"`
+}
+
+// Queued 一条排着队的消息。
+type Queued struct {
+	ID          string       `json:"id"`
+	Text        string       `json:"text"`
+	Attachments []Attachment `json:"attachments,omitempty"`
+}
+
+// Background 后台还在跑的一项。Type：terminal / tool_call / subagent；ID 是工具调用 id 或子 Agent 的会话 id
+// （终端算在显示它的那个工具调用上）；Title 给人看。
+type Background struct {
+	Type  string `json:"type"`
+	ID    string `json:"id"`
+	Title string `json:"title,omitempty"`
+}
+
+// SubState 一个子 Agent 自己的计划和上下文用量。
+type SubState struct {
+	Plan        []PlanEntry `json:"plan,omitempty"`
+	ContextUsed int64       `json:"contextUsed,omitempty"`
+	ContextSize int64       `json:"contextSize,omitempty"`
 }
 
 // Summary 取一段回答的开头，通知里当结束说明用。

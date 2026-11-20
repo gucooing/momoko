@@ -87,6 +87,8 @@ export interface AgentCapabilities {
   mcpSse: boolean;
   close: boolean;
   subagents: boolean;
+  /** 一轮还没结束时能把消息插进去（ACP v2）；不能的只能排队 */
+  steer: boolean;
 }
 
 export interface GetAgentOverviewRequest {
@@ -125,6 +127,16 @@ export interface AgentProcess {
   memoryBytes: number;
   startedAt: Date | undefined;
   args: string[];
+  /** 这个进程里派出过的子 Agent，按派出的先后 */
+  subagents: AgentProcessSubagent[];
+}
+
+/** Agent 进程里的一个子 Agent */
+export interface AgentProcessSubagent {
+  id: string;
+  title: string;
+  /** running | requires_action | idle（做完了） */
+  state: string;
 }
 
 export interface AgentSession {
@@ -171,6 +183,8 @@ export interface AgentSession {
   /** api | system */
   providerKind: string;
   providerVendor: string;
+  /** 有 Agent 进程在跑；一轮结束后进程还留着，空闲超时才结束，所以空闲的会话也可能有 */
+  live: boolean;
 }
 
 /** 打开一个会话时才给的信息：每次状态变化都推整份会话，这些不跟着推 */
@@ -293,6 +307,8 @@ export interface PromptAgentSessionRequest {
   id: string;
   text: string;
   attachments: AgentAttachment[];
+  /** 一轮还没结束时：steer 插进正在做的事里（ACP v2，capabilities.steer），queue 排队、等这一轮结束再发；空同 steer */
+  mode: string;
 }
 
 export interface PromptAgentSessionResponse {
@@ -303,6 +319,25 @@ export interface CancelAgentSessionRequest {
 }
 
 export interface CancelAgentSessionResponse {
+}
+
+export interface StopAgentSessionItemRequest {
+  id: string;
+  /** 工具调用所在的子 Agent 会话 id，主会话为空；只停子 Agent 时是它的会话 id */
+  sub: string;
+  /** 要停的工具调用 id；为空表示停 sub 这个子 Agent */
+  toolId: string;
+}
+
+export interface StopAgentSessionItemResponse {
+}
+
+export interface DeleteAgentQueuedPromptRequest {
+  id: string;
+  queueId: string;
+}
+
+export interface DeleteAgentQueuedPromptResponse {
 }
 
 export interface ResolveAgentPermissionRequest {

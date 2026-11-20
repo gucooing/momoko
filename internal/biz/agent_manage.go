@@ -136,7 +136,7 @@ func (uc *AgentUsecase) detectRuntime(ctx context.Context, rt *gen.AgentRuntime)
 			rt.LoggedIn = !result.NeedAuth
 			rt.AuthLabel, rt.AuthDetail = "", ""
 			if result.AuthOK {
-				rt.AuthLabel, rt.AuthDetail = result.Auth.Label, result.Auth.Description
+				rt.AuthLabel, rt.AuthDetail = result.Auth.Label, result.Auth.Description()
 			}
 			// 检查登录就是一次同步：权限模式和默认模型记在运行时上，模型写进模型表
 			if !result.NeedAuth {

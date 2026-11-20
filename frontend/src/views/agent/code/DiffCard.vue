@@ -49,7 +49,7 @@ const build = () => {
   if (editor || !host.value) return
   const language = detectMonacoLanguage(props.path)
   const original = monaco.editor.createModel(props.diff.oldText ?? '', language)
-  const modified = monaco.editor.createModel(props.diff.newText, language)
+  const modified = monaco.editor.createModel(props.diff.newText ?? '', language)
   models = [original, modified]
   editor = monaco.editor.createDiffEditor(host.value, {
     readOnly: true,
@@ -95,7 +95,7 @@ watch(
   (diff) => {
     if (!editor || models.length < 2) return
     models[0]!.setValue(diff.oldText ?? '')
-    models[1]!.setValue(diff.newText)
+    models[1]!.setValue(diff.newText ?? '')
   },
 )
 watch(() => themeStore.isDarkTheme, (dark) => monaco.editor.setTheme(dark ? 'vs-dark' : 'vs'))

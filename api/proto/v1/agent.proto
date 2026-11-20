@@ -48,6 +48,14 @@ service AgentService {
   rpc CancelAgentSession(CancelAgentSessionRequest) returns (CancelAgentSessionResponse) {
     option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/cancel" body: "*" };
   }
+  // 撤回一条排着队的消息（还没发出去的）
+  rpc DeleteAgentQueuedPrompt(DeleteAgentQueuedPromptRequest) returns (DeleteAgentQueuedPromptResponse) {
+    option (google.api.http) = { delete: "/api/v1/agent/sessions/{id}/queue/{queue_id}" };
+  }
+  // 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
+  rpc StopAgentSessionItem(StopAgentSessionItemRequest) returns (StopAgentSessionItemResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/stop-item" body: "*" };
+  }
   // 回答批准卡片
   rpc ResolveAgentPermission(ResolveAgentPermissionRequest) returns (ResolveAgentPermissionResponse) {
     option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/permission" body: "*" };
@@ -355,6 +363,8 @@ message AgentCapabilities {
   bool mcp_sse = 8;
   bool close = 9;
   bool subagents = 10;
+  // 一轮还没结束时能把消息插进去（ACP v2）；不能的只能排队
+  bool steer = 11;
 }
 
 message GetAgentOverviewRequest {}
@@ -393,6 +403,16 @@ message AgentProcess {
   int64 memory_bytes = 3;
   google.protobuf.Timestamp started_at = 4;
   repeated string args = 5;
+  // 这个进程里派出过的子 Agent，按派出的先后
+  repeated AgentProcessSubagent subagents = 6;
+}
+
+// Agent 进程里的一个子 Agent
+message AgentProcessSubagent {
+  string id = 1;
+  string title = 2;
+  // running | requires_action | idle（做完了）
+  string state = 3;
 }
 
 message AgentSession {
@@ -437,6 +457,8 @@ message AgentSession {
   // api | system
   string provider_kind = 39;
   string provider_vendor = 40;
+  // 有 Agent 进程在跑；一轮结束后进程还留着，空闲超时才结束，所以空闲的会话也可能有
+  bool live = 41;
 }
 
 // 打开一个会话时才给的信息：每次状态变化都推整份会话，这些不跟着推
@@ -549,6 +571,8 @@ message PromptAgentSessionRequest {
   string id = 1;
   string text = 2;
   repeated AgentAttachment attachments = 3;
+  // 一轮还没结束时：steer 插进正在做的事里（ACP v2，capabilities.steer），queue 排队、等这一轮结束再发；空同 steer
+  string mode = 4;
 }
 message PromptAgentSessionResponse {}
 
@@ -556,6 +580,21 @@ message CancelAgentSessionRequest {
   string id = 1;
 }
 message CancelAgentSessionResponse {}
+
+message StopAgentSessionItemRequest {
+  string id = 1;
+  // 工具调用所在的子 Agent 会话 id，主会话为空；只停子 Agent 时是它的会话 id
+  string sub = 2;
+  // 要停的工具调用 id；为空表示停 sub 这个子 Agent
+  string tool_id = 3;
+}
+message StopAgentSessionItemResponse {}
+
+message DeleteAgentQueuedPromptRequest {
+  string id = 1;
+  string queue_id = 2;
+}
+message DeleteAgentQueuedPromptResponse {}
 
 message ResolveAgentPermissionRequest {
   string id = 1;

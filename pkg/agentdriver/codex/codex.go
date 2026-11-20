@@ -4,6 +4,7 @@
 package codex
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/fs"
 	"os"
@@ -136,4 +137,57 @@ func (Driver) Command(raw json.RawMessage) string {
 		parts = parts[2:]
 	}
 	return strings.Join(parts, " ")
+}
+
+// ToolOutput codex-acp 的 MCP 工具结果只在 rawOutput 的 {result, error} 里（v1 v2 都是）：取 result.content 里的文字，
+// 没有文字时用 result 的 JSON，出错时用 error.message；有的工具的 rawOutput 直接是一段文字。
+// 命令输出走 v2 的终端更新，不在这里；非终端命令结束时的 rawOutput {exit_code} 不是输出，不要。
+func (Driver) ToolOutput(rawOutput json.RawMessage) string { return rawOutputText(rawOutput) }
+
+// rawOutputText rawOutput 里给人看的文字：一段文字原样用；MCP 的 {result, error} 见 ToolOutput；别的为空。
+func rawOutputText(raw json.RawMessage) string {
+	if len(raw) == 0 {
+		return ""
+	}
+	var text string
+	if json.Unmarshal(raw, &text) == nil {
+		return text
+	}
+	var mcp struct {
+		Result json.RawMessage `json:"result"`
+		Error  *struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if json.Unmarshal(raw, &mcp) != nil {
+		return ""
+	}
+	if mcp.Error != nil && mcp.Error.Message != "" {
+		return mcp.Error.Message
+	}
+	if len(mcp.Result) == 0 || string(mcp.Result) == "null" {
+		return ""
+	}
+	var result struct {
+		Content []struct {
+			Type string `json:"type"`
+			Text string `json:"text"`
+		} `json:"content"`
+	}
+	if json.Unmarshal(mcp.Result, &result) == nil {
+		var texts []string
+		for _, c := range result.Content {
+			if c.Type == "text" && c.Text != "" {
+				texts = append(texts, c.Text)
+			}
+		}
+		if len(texts) > 0 {
+			return strings.Join(texts, "\n")
+		}
+	}
+	var pretty bytes.Buffer
+	if json.Indent(&pretty, mcp.Result, "", "  ") != nil {
+		return string(mcp.Result)
+	}
+	return pretty.String()
 }

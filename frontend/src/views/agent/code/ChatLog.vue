@@ -30,6 +30,7 @@
           </div>
           </div>
           <div class="agc-meta">
+            <span v-if="block.user.steer" class="ag-muted agc-small">{{ t('agent.code.composer.steered') }}</span>
             <span class="agc-meta__time" :title="fullTime(block.user.at)">{{ clockTime(block.user.at) }}</span>
             <button
               v-if="block.user.text"
@@ -80,38 +81,60 @@
 
             <!-- 工具调用 -->
             <template v-else-if="item.type === 'tool' && item.tool">
-              <DiffCard
-                v-for="d in item.tool.diffs ?? []"
-                :key="`${item.seq}-${d.path}`"
-                :diff="d"
-                :path="rel(d.path)"
-                @show-diff="emit('showDiff', $event)"
-              />
+              <template v-for="d in item.tool.diffs ?? []" :key="`${item.seq}-${d.path}`">
+                <PatchCard
+                  v-if="d.op"
+                  :diff="d"
+                  :path="rel(d.path)"
+                  :old-path="d.oldPath ? rel(d.oldPath) : ''"
+                  @show-diff="emit('showDiff', $event)"
+                />
+                <DiffCard v-else :diff="d" :path="rel(d.path)" @show-diff="emit('showDiff', $event)" />
+              </template>
               <div v-if="!item.tool.diffs?.length" class="agc-toolwrap">
-                <button
-                  type="button"
-                  class="agc-tool"
-                  :class="{ 'is-click': !!item.tool.output || !!item.tool.child }"
-                  :aria-expanded="
-                    item.tool.output ? outputOpen.has(item.seq) || running(item.tool) : undefined
-                  "
-                  @click="onTool(item)"
-                >
-                  <UIcon :name="toolIcon(item.tool.kind)" class="ag-muted" />
-                  <span v-if="verb(item.tool.kind)" class="agc-tool__verb">{{
-                    verb(item.tool.kind)
-                  }}</span>
-                  <span
-                    class="ag-ellipsis agc-tool__arg"
-                    :class="{ 'ag-mono': !!toolArg(item.tool).mono }"
-                    >{{ toolArg(item.tool).text }}</span
+                <div class="agc-toolrow">
+                  <button
+                    type="button"
+                    class="agc-tool"
+                    :class="{ 'is-click': !!item.tool.output || !!item.tool.child }"
+                    :aria-expanded="
+                      item.tool.output ? outputOpen.has(item.seq) || running(item.tool) : undefined
+                    "
+                    @click="onTool(item)"
                   >
-                  <UIcon v-if="item.tool.child" name="i-lucide-bot" class="ag-muted" />
-                  <UIcon
-                    :name="statusIcon(item.tool.status)"
-                    :class="statusCls(item.tool.status)"
-                  />
-                </button>
+                    <UIcon :name="toolIcon(item.tool.kind)" class="ag-muted" />
+                    <span v-if="verb(item.tool.kind)" class="agc-tool__verb">{{
+                      verb(item.tool.kind)
+                    }}</span>
+                    <span
+                      class="ag-ellipsis agc-tool__arg"
+                      :class="{ 'ag-mono': !!toolArg(item.tool).mono }"
+                      >{{ toolArg(item.tool).text }}</span
+                    >
+                    <UIcon v-if="item.tool.child" name="i-lucide-bot" class="ag-muted" />
+                    <span v-if="item.tool.exitCode" class="agc-tool__meta agc-bad ag-num">{{
+                      t('agent.code.tool.exit', { code: item.tool.exitCode })
+                    }}</span>
+                    <span v-if="item.tool.status === 'paused'" class="agc-tool__meta ag-muted">{{
+                      t('agent.code.tool.paused')
+                    }}</span>
+                    <UIcon
+                      :name="statusIcon(item.tool.status)"
+                      :class="statusCls(item.tool.status)"
+                    />
+                  </button>
+                  <button
+                    v-if="item.tool.cancel"
+                    type="button"
+                    class="agc-sm"
+                    :aria-label="t('agent.code.tool.stop')"
+                    :title="t('agent.code.tool.stop')"
+                    :disabled="stopping.has(`${item.sub || ''}:${item.tool.id}`)"
+                    @click="stop(item.sub || '', item.tool.id)"
+                  >
+                    <UIcon name="i-lucide-square" />
+                  </button>
+                </div>
                 <pre
                   v-if="item.tool.output && (outputOpen.has(item.seq) || running(item.tool))"
                   class="agc-term ag-noscroll"
@@ -155,6 +178,9 @@
                 >
                   {{ item.permission.title }}
                 </div>
+                <div v-if="item.permission.description" class="agc-perm__title ag-muted">
+                  {{ item.permission.description }}
+                </div>
                 <div class="agc-perm__acts">
                   <button
                     v-for="(o, i) in allowOptions(item.permission.options)"
@@ -197,21 +223,38 @@
             </template>
 
             <!-- 子 Agent -->
-            <button
-              v-else-if="item.type === 'subagent' && item.subagent"
-              type="button"
-              class="agc-tool is-click"
-              @click="emit('openSub', item.subagent.id)"
-            >
-              <span v-if="item.subagent.state === 'running'" class="agc-sd agc-sd--run agc-pulse" />
-              <UIcon v-else name="i-lucide-bot" class="ag-muted" />
-              <span class="agc-tool__verb">{{ t('agent.code.sub.name') }}</span>
-              <span class="ag-ellipsis agc-tool__arg">{{
-                item.subagent.title || item.subagent.description
-              }}</span>
-              <span class="ag-muted agc-tool__meta">{{ subState(item.subagent.state) }}</span>
-              <UIcon name="i-lucide-chevron-right" class="ag-muted" />
-            </button>
+            <div v-else-if="item.type === 'subagent' && item.subagent" class="agc-toolrow">
+              <button type="button" class="agc-tool is-click" @click="emit('openSub', item.subagent.id)">
+                <span v-if="item.subagent.state === 'running'" class="agc-sd agc-sd--run agc-pulse" />
+                <UIcon v-else name="i-lucide-bot" class="ag-muted" />
+                <span class="agc-tool__verb">{{ t('agent.code.sub.name') }}</span>
+                <span class="ag-ellipsis agc-tool__arg">{{
+                  item.subagent.title || item.subagent.description || item.subagent.id
+                }}</span>
+                <span class="ag-muted agc-tool__meta">{{ subState(item.subagent.state) }}</span>
+                <UIcon name="i-lucide-chevron-right" class="ag-muted" />
+              </button>
+              <button
+                v-if="item.subagent.cancel && item.subagent.state !== 'idle'"
+                type="button"
+                class="agc-sm"
+                :aria-label="t('agent.code.sub.stop')"
+                :title="t('agent.code.sub.stop')"
+                :disabled="stopping.has(`${item.subagent.id}:`)"
+                @click="stop(item.subagent.id, '')"
+              >
+                <UIcon name="i-lucide-square" />
+              </button>
+            </div>
+
+            <!-- 会话之间的消息 -->
+            <div v-else-if="item.type === 'relay'" class="agc-relay">
+              <div class="agc-relay__head ag-muted">
+                <UIcon name="i-lucide-arrow-left-right" />
+                <span>{{ relayLabel(item) }}</span>
+              </div>
+              <MdBlock :text="item.text || ''" />
+            </div>
 
             <!-- 提示 -->
             <div
@@ -326,6 +369,7 @@ import { isRejectOption, permOptionLabel } from '@/views/agent/utils/labels'
 import AttImage from './AttImage.vue'
 import DiffCard from './DiffCard.vue'
 import MdBlock from './MdBlock.vue'
+import PatchCard from './PatchCard.vue'
 import type {
   AgentItem,
   AgentPermission,
@@ -367,6 +411,8 @@ const props = withDefaults(
 )
 const emit = defineEmits<{
   resolve: [requestId: string, optionId: string]
+  /** 只停一项（ACP v2）：toolId 不为空停这个工具调用（sub 是它所在的子 Agent），否则停 sub 这个子 Agent */
+  stop: [sub: string, toolId: string]
   showDiff: [path: string]
   openSub: [id: string]
   more: []
@@ -451,6 +497,35 @@ const resolve = (requestId: string, optionId: string) => {
   setTimeout(() => resolving.delete(requestId), 3000)
 }
 
+// —— 只停一项（ACP v2）——
+const stopping = reactive(new Set<string>())
+const stop = (sub: string, toolId: string) => {
+  const key = `${sub}:${toolId}`
+  stopping.add(key)
+  emit('stop', sub, toolId)
+  setTimeout(() => stopping.delete(key), 3000)
+}
+
+// —— 会话之间的消息（ACP v2）——
+/** 子 Agent 的会话 id → 标题 */
+const subTitles = computed(() => {
+  const out = new Map<string, string>()
+  for (const item of props.items) {
+    if (item.subagent) out.set(item.subagent.id, item.subagent.title || item.subagent.description || '')
+  }
+  return out
+})
+const peerName = (id?: string) =>
+  !id ? '' : id === 'main' ? t('agent.code.relay.main') : subTitles.value.get(id) || t('agent.code.sub.name')
+const relayLabel = (item: AgentItem) => {
+  const from = peerName(item.from)
+  const to = peerName(item.to)
+  if (from && to) return t('agent.code.relay.fromTo', { from, to })
+  if (from) return t('agent.code.relay.from', { from })
+  if (to) return t('agent.code.relay.to', { to })
+  return t('agent.code.relay.message')
+}
+
 // —— 工具 ——
 const KIND_ICON: Record<string, string> = {
   read: 'i-lucide-file-text',
@@ -490,11 +565,13 @@ const statusIcon = (status?: string) => {
   if (status === 'completed') return 'i-lucide-check'
   if (status === 'failed') return 'i-lucide-x'
   if (status === 'cancelled') return 'i-lucide-square'
+  if (status === 'paused') return 'i-lucide-pause'
   return 'i-lucide-loader-circle'
 }
 const statusCls = (status?: string) => {
   if (status === 'completed') return 'agc-ok'
   if (status === 'failed' || status === 'cancelled') return 'agc-bad'
+  if (status === 'paused') return 'ag-muted'
   return 'ag-spin ag-muted'
 }
 

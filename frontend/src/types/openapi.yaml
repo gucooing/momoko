@@ -995,6 +995,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.PromptAgentSessionResponse'
+    /api/v1/agent/sessions/{id}/queue/{queueId}:
+        delete:
+            tags:
+                - AgentService
+            description: 撤回一条排着队的消息（还没发出去的）
+            operationId: AgentService_DeleteAgentQueuedPrompt
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: queueId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAgentQueuedPromptResponse'
     /api/v1/agent/sessions/{id}/rename:
         post:
             tags:
@@ -1044,6 +1068,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.RevertAgentSessionFileResponse'
+    /api/v1/agent/sessions/{id}/stop-item:
+        post:
+            tags:
+                - AgentService
+            description: 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
+            operationId: AgentService_StopAgentSessionItem
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.StopAgentSessionItemRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.StopAgentSessionItemResponse'
     /api/v1/agent/sessions/{id}/upload:
         get:
             tags:
@@ -12699,6 +12748,9 @@ components:
                     type: boolean
                 subagents:
                     type: boolean
+                steer:
+                    type: boolean
+                    description: 一轮还没结束时能把消息插进去（ACP v2）；不能的只能排队
             description: Agent 在初始化时声明的能力；没声明的，对应的界面元素不出现
         v1.AgentChangedFile:
             type: object
@@ -12910,7 +12962,23 @@ components:
                     type: array
                     items:
                         type: string
+                subagents:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentProcessSubagent'
+                    description: 这个进程里派出过的子 Agent，按派出的先后
             description: Agent 进程的实时状态，不落库；只在有人要看时读（内存要遍历进程树）
+        v1.AgentProcessSubagent:
+            type: object
+            properties:
+                id:
+                    type: string
+                title:
+                    type: string
+                state:
+                    type: string
+                    description: running | requires_action | idle（做完了）
+            description: Agent 进程里的一个子 Agent
         v1.AgentProvider:
             type: object
             properties:
@@ -13187,6 +13255,9 @@ components:
                     description: api | system
                 providerVendor:
                     type: string
+                live:
+                    type: boolean
+                    description: 有 Agent 进程在跑；一轮结束后进程还留着，空闲超时才结束，所以空闲的会话也可能有
         v1.AgentSessionDetail:
             type: object
             properties:
@@ -14719,6 +14790,9 @@ components:
             type: object
             properties: {}
         v1.DeleteAgentProviderResponse:
+            type: object
+            properties: {}
+        v1.DeleteAgentQueuedPromptResponse:
             type: object
             properties: {}
         v1.DeleteAgentRuntimeResponse:
@@ -22652,6 +22726,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.AgentAttachment'
+                mode:
+                    type: string
+                    description: 一轮还没结束时：steer 插进正在做的事里（ACP v2，capabilities.steer），queue 排队、等这一轮结束再发；空同 steer
         v1.PromptAgentSessionResponse:
             type: object
             properties: {}
@@ -24106,6 +24183,20 @@ components:
                     type: integer
                     description: 有效秒数
                     format: int32
+        v1.StopAgentSessionItemRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                sub:
+                    type: string
+                    description: 工具调用所在的子 Agent 会话 id，主会话为空；只停子 Agent 时是它的会话 id
+                toolId:
+                    type: string
+                    description: 要停的工具调用 id；为空表示停 sub 这个子 Agent
+        v1.StopAgentSessionItemResponse:
+            type: object
+            properties: {}
         v1.StopDockerContainerRequest:
             type: object
             properties:

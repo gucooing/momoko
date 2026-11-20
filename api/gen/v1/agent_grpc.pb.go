@@ -28,6 +28,8 @@ const (
 	AgentService_GetAgentSessionProcess_FullMethodName       = "/v1.AgentService/GetAgentSessionProcess"
 	AgentService_PromptAgentSession_FullMethodName           = "/v1.AgentService/PromptAgentSession"
 	AgentService_CancelAgentSession_FullMethodName           = "/v1.AgentService/CancelAgentSession"
+	AgentService_DeleteAgentQueuedPrompt_FullMethodName      = "/v1.AgentService/DeleteAgentQueuedPrompt"
+	AgentService_StopAgentSessionItem_FullMethodName         = "/v1.AgentService/StopAgentSessionItem"
 	AgentService_ResolveAgentPermission_FullMethodName       = "/v1.AgentService/ResolveAgentPermission"
 	AgentService_SetAgentSessionOption_FullMethodName        = "/v1.AgentService/SetAgentSessionOption"
 	AgentService_RenameAgentSession_FullMethodName           = "/v1.AgentService/RenameAgentSession"
@@ -112,6 +114,10 @@ type AgentServiceClient interface {
 	PromptAgentSession(ctx context.Context, in *PromptAgentSessionRequest, opts ...grpc.CallOption) (*PromptAgentSessionResponse, error)
 	// 停止当前这一轮
 	CancelAgentSession(ctx context.Context, in *CancelAgentSessionRequest, opts ...grpc.CallOption) (*CancelAgentSessionResponse, error)
+	// 撤回一条排着队的消息（还没发出去的）
+	DeleteAgentQueuedPrompt(ctx context.Context, in *DeleteAgentQueuedPromptRequest, opts ...grpc.CallOption) (*DeleteAgentQueuedPromptResponse, error)
+	// 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
+	StopAgentSessionItem(ctx context.Context, in *StopAgentSessionItemRequest, opts ...grpc.CallOption) (*StopAgentSessionItemResponse, error)
 	// 回答批准卡片
 	ResolveAgentPermission(ctx context.Context, in *ResolveAgentPermissionRequest, opts ...grpc.CallOption) (*ResolveAgentPermissionResponse, error)
 	// 切换权限模式 / 模型 / 推理强度
@@ -302,6 +308,26 @@ func (c *agentServiceClient) CancelAgentSession(ctx context.Context, in *CancelA
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CancelAgentSessionResponse)
 	err := c.cc.Invoke(ctx, AgentService_CancelAgentSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) DeleteAgentQueuedPrompt(ctx context.Context, in *DeleteAgentQueuedPromptRequest, opts ...grpc.CallOption) (*DeleteAgentQueuedPromptResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAgentQueuedPromptResponse)
+	err := c.cc.Invoke(ctx, AgentService_DeleteAgentQueuedPrompt_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) StopAgentSessionItem(ctx context.Context, in *StopAgentSessionItemRequest, opts ...grpc.CallOption) (*StopAgentSessionItemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StopAgentSessionItemResponse)
+	err := c.cc.Invoke(ctx, AgentService_StopAgentSessionItem_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -894,6 +920,10 @@ type AgentServiceServer interface {
 	PromptAgentSession(context.Context, *PromptAgentSessionRequest) (*PromptAgentSessionResponse, error)
 	// 停止当前这一轮
 	CancelAgentSession(context.Context, *CancelAgentSessionRequest) (*CancelAgentSessionResponse, error)
+	// 撤回一条排着队的消息（还没发出去的）
+	DeleteAgentQueuedPrompt(context.Context, *DeleteAgentQueuedPromptRequest) (*DeleteAgentQueuedPromptResponse, error)
+	// 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
+	StopAgentSessionItem(context.Context, *StopAgentSessionItemRequest) (*StopAgentSessionItemResponse, error)
 	// 回答批准卡片
 	ResolveAgentPermission(context.Context, *ResolveAgentPermissionRequest) (*ResolveAgentPermissionResponse, error)
 	// 切换权限模式 / 模型 / 推理强度
@@ -1026,6 +1056,12 @@ func (UnimplementedAgentServiceServer) PromptAgentSession(context.Context, *Prom
 }
 func (UnimplementedAgentServiceServer) CancelAgentSession(context.Context, *CancelAgentSessionRequest) (*CancelAgentSessionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelAgentSession not implemented")
+}
+func (UnimplementedAgentServiceServer) DeleteAgentQueuedPrompt(context.Context, *DeleteAgentQueuedPromptRequest) (*DeleteAgentQueuedPromptResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteAgentQueuedPrompt not implemented")
+}
+func (UnimplementedAgentServiceServer) StopAgentSessionItem(context.Context, *StopAgentSessionItemRequest) (*StopAgentSessionItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StopAgentSessionItem not implemented")
 }
 func (UnimplementedAgentServiceServer) ResolveAgentPermission(context.Context, *ResolveAgentPermissionRequest) (*ResolveAgentPermissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResolveAgentPermission not implemented")
@@ -1374,6 +1410,42 @@ func _AgentService_CancelAgentSession_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AgentServiceServer).CancelAgentSession(ctx, req.(*CancelAgentSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_DeleteAgentQueuedPrompt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAgentQueuedPromptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).DeleteAgentQueuedPrompt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_DeleteAgentQueuedPrompt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).DeleteAgentQueuedPrompt(ctx, req.(*DeleteAgentQueuedPromptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_StopAgentSessionItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StopAgentSessionItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).StopAgentSessionItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_StopAgentSessionItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).StopAgentSessionItem(ctx, req.(*StopAgentSessionItemRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2428,6 +2500,14 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelAgentSession",
 			Handler:    _AgentService_CancelAgentSession_Handler,
+		},
+		{
+			MethodName: "DeleteAgentQueuedPrompt",
+			Handler:    _AgentService_DeleteAgentQueuedPrompt_Handler,
+		},
+		{
+			MethodName: "StopAgentSessionItem",
+			Handler:    _AgentService_StopAgentSessionItem_Handler,
 		},
 		{
 			MethodName: "ResolveAgentPermission",

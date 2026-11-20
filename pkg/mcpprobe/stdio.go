@@ -47,7 +47,7 @@ type pingHandler struct{}
 
 func (pingHandler) Notification(string, json.RawMessage) {}
 
-func (pingHandler) Request(method string, _ json.RawMessage, reply func(any, *jsonrpc.Error)) {
+func (pingHandler) Request(_, method string, _ json.RawMessage, reply func(any, *jsonrpc.Error)) {
 	if method == "ping" {
 		reply(struct{}{}, nil)
 		return

@@ -76,6 +76,7 @@ export const NODE_PERMISSION_GROUPS: NodePermissionGroup[] = [
       { code: 'network:manage', labelKey: 'node.permission.items.portForward' },
       { code: 'tunnel:manage', labelKey: 'node.permission.items.tunnel' },
       { code: 'ssh:manage', labelKey: 'node.permission.items.ssh', loginOnly: true },
+      { code: 'shell:use', labelKey: 'node.permission.items.shell' },
       { code: 'iqcheck:view', labelKey: 'node.permission.items.iqcheckView' },
       { code: 'iqcheck:edit', labelKey: 'node.permission.items.iqcheckEdit' },
     ],
