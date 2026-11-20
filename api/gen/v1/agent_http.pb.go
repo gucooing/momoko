@@ -43,6 +43,7 @@ const OperationAgentServiceGetAgentDocs = "/v1.AgentService/GetAgentDocs"
 const OperationAgentServiceGetAgentNotify = "/v1.AgentService/GetAgentNotify"
 const OperationAgentServiceGetAgentOptions = "/v1.AgentService/GetAgentOptions"
 const OperationAgentServiceGetAgentOverview = "/v1.AgentService/GetAgentOverview"
+const OperationAgentServiceGetAgentProviderBalance = "/v1.AgentService/GetAgentProviderBalance"
 const OperationAgentServiceGetAgentSession = "/v1.AgentService/GetAgentSession"
 const OperationAgentServiceGetAgentSessionChanges = "/v1.AgentService/GetAgentSessionChanges"
 const OperationAgentServiceGetAgentSessionProcess = "/v1.AgentService/GetAgentSessionProcess"
@@ -126,6 +127,8 @@ type AgentServiceHTTPServer interface {
 	GetAgentOptions(context.Context, *GetAgentOptionsRequest) (*GetAgentOptionsResponse, error)
 	// GetAgentOverview 各管理标签的数量
 	GetAgentOverview(context.Context, *GetAgentOverviewRequest) (*GetAgentOverviewResponse, error)
+	// GetAgentProviderBalance 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
+	GetAgentProviderBalance(context.Context, *GetAgentProviderBalanceRequest) (*GetAgentProviderBalanceResponse, error)
 	GetAgentSession(context.Context, *GetAgentSessionRequest) (*GetAgentSessionResponse, error)
 	// GetAgentSessionChanges 右侧「改动」：会话目录相对当前分支的未提交改动
 	GetAgentSessionChanges(context.Context, *GetAgentSessionChangesRequest) (*GetAgentSessionChangesResponse, error)
@@ -186,7 +189,7 @@ type AgentServiceHTTPServer interface {
 	TestAgentMcpServer(context.Context, *TestAgentMcpServerRequest) (*TestAgentMcpServerResponse, error)
 	// TestAgentNotifyChannel 发一条测试；fields 为空时用已保存的配置
 	TestAgentNotifyChannel(context.Context, *TestAgentNotifyChannelRequest) (*TestAgentNotifyChannelResponse, error)
-	// TestAgentProvider 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+	// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(context.Context, *TestAgentProviderRequest) (*TestAgentProviderResponse, error)
 	UpdateAgentMcpServer(context.Context, *UpdateAgentMcpServerRequest) (*UpdateAgentMcpServerResponse, error)
 	// UpdateAgentNotifyEvents 三个时机开关
@@ -239,6 +242,7 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.DELETE("/api/v1/agent/providers/{id}", _AgentService_DeleteAgentProvider0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/providers/test", _AgentService_TestAgentProvider0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/providers/models", _AgentService_FetchAgentProviderModels0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/providers/{id}/balance", _AgentService_GetAgentProviderBalance0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/mcp", _AgentService_ListAgentMcpServers0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/mcp", _AgentService_CreateAgentMcpServer0_HTTP_Handler(srv))
 	r.PUT("/api/v1/agent/mcp/{id}", _AgentService_UpdateAgentMcpServer0_HTTP_Handler(srv))
@@ -1085,6 +1089,28 @@ func _AgentService_FetchAgentProviderModels0_HTTP_Handler(srv AgentServiceHTTPSe
 	}
 }
 
+func _AgentService_GetAgentProviderBalance0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAgentProviderBalanceRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceGetAgentProviderBalance)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAgentProviderBalance(ctx, req.(*GetAgentProviderBalanceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAgentProviderBalanceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_ListAgentMcpServers0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListAgentMcpServersRequest
@@ -1733,6 +1759,8 @@ type AgentServiceHTTPClient interface {
 	GetAgentOptions(ctx context.Context, req *GetAgentOptionsRequest, opts ...http.CallOption) (rsp *GetAgentOptionsResponse, err error)
 	// GetAgentOverview 各管理标签的数量
 	GetAgentOverview(ctx context.Context, req *GetAgentOverviewRequest, opts ...http.CallOption) (rsp *GetAgentOverviewResponse, err error)
+	// GetAgentProviderBalance 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
+	GetAgentProviderBalance(ctx context.Context, req *GetAgentProviderBalanceRequest, opts ...http.CallOption) (rsp *GetAgentProviderBalanceResponse, err error)
 	GetAgentSession(ctx context.Context, req *GetAgentSessionRequest, opts ...http.CallOption) (rsp *GetAgentSessionResponse, err error)
 	// GetAgentSessionChanges 右侧「改动」：会话目录相对当前分支的未提交改动
 	GetAgentSessionChanges(ctx context.Context, req *GetAgentSessionChangesRequest, opts ...http.CallOption) (rsp *GetAgentSessionChangesResponse, err error)
@@ -1793,7 +1821,7 @@ type AgentServiceHTTPClient interface {
 	TestAgentMcpServer(ctx context.Context, req *TestAgentMcpServerRequest, opts ...http.CallOption) (rsp *TestAgentMcpServerResponse, err error)
 	// TestAgentNotifyChannel 发一条测试；fields 为空时用已保存的配置
 	TestAgentNotifyChannel(ctx context.Context, req *TestAgentNotifyChannelRequest, opts ...http.CallOption) (rsp *TestAgentNotifyChannelResponse, err error)
-	// TestAgentProvider 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+	// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(ctx context.Context, req *TestAgentProviderRequest, opts ...http.CallOption) (rsp *TestAgentProviderResponse, err error)
 	UpdateAgentMcpServer(ctx context.Context, req *UpdateAgentMcpServerRequest, opts ...http.CallOption) (rsp *UpdateAgentMcpServerResponse, err error)
 	// UpdateAgentNotifyEvents 三个时机开关
@@ -2136,6 +2164,20 @@ func (c *AgentServiceHTTPClientImpl) GetAgentOverview(ctx context.Context, in *G
 	pattern := "/api/v1/agent/overview"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAgentServiceGetAgentOverview))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAgentProviderBalance 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
+func (c *AgentServiceHTTPClientImpl) GetAgentProviderBalance(ctx context.Context, in *GetAgentProviderBalanceRequest, opts ...http.CallOption) (*GetAgentProviderBalanceResponse, error) {
+	var out GetAgentProviderBalanceResponse
+	pattern := "/api/v1/agent/providers/{id}/balance"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceGetAgentProviderBalance))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -2588,7 +2630,7 @@ func (c *AgentServiceHTTPClientImpl) TestAgentNotifyChannel(ctx context.Context,
 	return &out, nil
 }
 
-// TestAgentProvider 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 func (c *AgentServiceHTTPClientImpl) TestAgentProvider(ctx context.Context, in *TestAgentProviderRequest, opts ...http.CallOption) (*TestAgentProviderResponse, error) {
 	var out TestAgentProviderResponse
 	pattern := "/api/v1/agent/providers/test"

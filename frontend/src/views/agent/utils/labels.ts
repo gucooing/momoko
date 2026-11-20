@@ -18,6 +18,12 @@ export const providerLabel = (p?: ProviderLike | null): string => {
   return p.name || ''
 }
 
+/** 供应商类型的名字；认不出的类型显示 id。 */
+export const vendorName = (id?: string) => (id && known(`agent.providers.vendors.${id}.name`)) || id || ''
+
+/** 供应商类型的一句说明；认不出的为空。 */
+export const vendorDesc = (id?: string) => (id && known(`agent.providers.vendors.${id}.desc`)) || ''
+
 // 权限模式由 Agent 提供：认得的 id 按当前语言显示，认不出的用 Agent 给的原文。
 // id 里的「-」换成「_」当文案的键（Codex 的 read-only 等）。
 const modeKey = (id?: string) => `agent.modes.${(id || '').replace(/-/g, '_')}`

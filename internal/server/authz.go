@@ -142,6 +142,7 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationAgentServiceDeleteAgentProvider:          constant.AgentManage,
 	v1.OperationAgentServiceTestAgentProvider:            constant.AgentManage,
 	v1.OperationAgentServiceFetchAgentProviderModels:     constant.AgentManage,
+	v1.OperationAgentServiceGetAgentProviderBalance:      constant.AgentManage,
 	v1.OperationAgentServiceCreateAgentMcpServer:         constant.AgentManage,
 	v1.OperationAgentServiceUpdateAgentMcpServer:         constant.AgentManage,
 	v1.OperationAgentServiceDeleteAgentMcpServer:         constant.AgentManage,

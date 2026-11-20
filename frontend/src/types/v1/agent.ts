@@ -53,7 +53,7 @@ export interface AgentProviderOptions {
   kind: string;
   /** api：ok | bad | untested */
   status: string;
-  /** api：接口协议 anthropic | openai */
+  /** api：供应商类型（AgentVendor.id） */
   vendor: string;
 }
 
@@ -623,15 +623,28 @@ export interface AgentModel {
   maxOutput: number;
 }
 
+/** 一种供应商类型：通用的兼容接口，或对某一家的专门适配 */
+export interface AgentVendor {
+  /** anthropic（Anthropic 兼容）| openai（OpenAI Responses 兼容）| deepseek（DeepSeek 官方）… */
+  id: string;
+  /** 能给哪些协议的 Agent 用：anthropic（Claude 系）| openai（Codex 系） */
+  protocols: string[];
+  /** 官方接口地址；不为空表示地址固定，不用填 */
+  baseUrl: string;
+  /** 能查账户余额 */
+  balance: boolean;
+}
+
 /** 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查） */
 export interface AgentProvider {
   id: string;
-  /** 接口协议：anthropic（给 Claude 系）| openai（给 Codex 系） */
+  /** 供应商类型（AgentVendor.id），创建后不能改 */
   vendor: string;
   name: string;
   /** ok | bad | untested */
   status: string;
   statusText: string;
+  /** 用户填的接口地址；地址固定的类型为空 */
   baseUrl: string;
   /** 只写；更新时留空表示保留原值 */
   apiKey: string;
@@ -650,6 +663,8 @@ export interface ListAgentProvidersRequest {
 
 export interface ListAgentProvidersResponse {
   providers: AgentProvider[];
+  /** 能添加的供应商类型 */
+  vendors: AgentVendor[];
 }
 
 export interface CreateAgentProviderRequest {
@@ -679,26 +694,67 @@ export interface DeleteAgentProviderResponse {
 export interface TestAgentProviderRequest {
   id: string;
   /** 表单草稿；有它就测草稿 */
-  draft: AgentProvider | undefined;
+  draft:
+    | AgentProvider
+    | undefined;
+  /** 发给模型的消息；空 = hello */
+  message: string;
+}
+
+/** 一种协议的测试结果 */
+export interface AgentProviderTestResult {
+  /** anthropic | openai */
+  protocol: string;
+  ok: boolean;
+  /** 失败的原因 */
+  error: string;
+  latencyMs: number;
+  /** 模型回的文字（不含思考过程） */
+  reply: string;
+  inputTokens: number;
+  outputTokens: number;
 }
 
 export interface TestAgentProviderResponse {
-  ok: boolean;
-  message: string;
-  latencyMs: number;
+  /** 用的哪个模型 */
   model: string;
+  /** 供应商给的每种协议一条 */
+  results: AgentProviderTestResult[];
 }
 
 export interface FetchAgentProviderModelsRequest {
   id: string;
-  /** anthropic | openai */
+  /** 供应商类型（AgentVendor.id） */
   vendor: string;
   baseUrl: string;
   apiKey: string;
 }
 
 export interface FetchAgentProviderModelsResponse {
-  models: string[];
+  /** 接口给了才有推理等级、最长上下文和最长输出（没给的为空或 0） */
+  models: AgentModel[];
+}
+
+/** 一种币种的余额；金额是接口给的十进制字符串 */
+export interface AgentBalance {
+  currency: string;
+  total: string;
+  /** 赠送的 */
+  granted: string;
+  /** 充值的 */
+  toppedUp: string;
+}
+
+export interface GetAgentProviderBalanceRequest {
+  id: string;
+}
+
+export interface GetAgentProviderBalanceResponse {
+  /** 查询失败的原因；不为空时其余字段无意义 */
+  error: string;
+  /** 余额够不够继续调用 */
+  available: boolean;
+  balances: AgentBalance[];
 }
 
 export interface AgentMcpServer {

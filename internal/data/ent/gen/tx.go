@@ -22,6 +22,8 @@ type Tx struct {
 	AgentProvider *AgentProviderClient
 	// AgentRuntime is the client for interacting with the AgentRuntime builders.
 	AgentRuntime *AgentRuntimeClient
+	// AgentRuntimeModel is the client for interacting with the AgentRuntimeModel builders.
+	AgentRuntimeModel *AgentRuntimeModelClient
 	// AgentSession is the client for interacting with the AgentSession builders.
 	AgentSession *AgentSessionClient
 	// AgentSkill is the client for interacting with the AgentSkill builders.
@@ -259,6 +261,7 @@ func (tx *Tx) init() {
 	tx.AgentMcpServer = NewAgentMcpServerClient(tx.config)
 	tx.AgentProvider = NewAgentProviderClient(tx.config)
 	tx.AgentRuntime = NewAgentRuntimeClient(tx.config)
+	tx.AgentRuntimeModel = NewAgentRuntimeModelClient(tx.config)
 	tx.AgentSession = NewAgentSessionClient(tx.config)
 	tx.AgentSkill = NewAgentSkillClient(tx.config)
 	tx.AgentWorkspace = NewAgentWorkspaceClient(tx.config)

@@ -56,6 +56,18 @@ func (f AgentRuntimeFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentRuntimeMutation", m)
 }
 
+// The AgentRuntimeModelFunc type is an adapter to allow the use of ordinary
+// function as AgentRuntimeModel mutator.
+type AgentRuntimeModelFunc func(context.Context, *gen.AgentRuntimeModelMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentRuntimeModelFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentRuntimeModelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentRuntimeModelMutation", m)
+}
+
 // The AgentSessionFunc type is an adapter to allow the use of ordinary
 // function as AgentSession mutator.
 type AgentSessionFunc func(context.Context, *gen.AgentSessionMutation) (gen.Value, error)

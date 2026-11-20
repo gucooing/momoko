@@ -10,6 +10,7 @@ import (
 	"momoko/internal/data/ent/gen/agentmcpserver"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
+	"momoko/internal/data/ent/gen/agentruntimemodel"
 	"momoko/internal/data/ent/gen/agentsession"
 	"momoko/internal/data/ent/gen/agentskill"
 	"momoko/internal/data/ent/gen/agentworkspace"
@@ -131,6 +132,7 @@ func checkColumn(t, c string) error {
 			agentmcpserver.Table:     agentmcpserver.ValidColumn,
 			agentprovider.Table:      agentprovider.ValidColumn,
 			agentruntime.Table:       agentruntime.ValidColumn,
+			agentruntimemodel.Table:  agentruntimemodel.ValidColumn,
 			agentsession.Table:       agentsession.ValidColumn,
 			agentskill.Table:         agentskill.ValidColumn,
 			agentworkspace.Table:     agentworkspace.ValidColumn,

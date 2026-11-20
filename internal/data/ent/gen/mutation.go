@@ -10,6 +10,7 @@ import (
 	"momoko/internal/data/ent/gen/agentmcpserver"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
+	"momoko/internal/data/ent/gen/agentruntimemodel"
 	"momoko/internal/data/ent/gen/agentsession"
 	"momoko/internal/data/ent/gen/agentskill"
 	"momoko/internal/data/ent/gen/agentworkspace"
@@ -84,6 +85,7 @@ const (
 	TypeAgentMcpServer     = "AgentMcpServer"
 	TypeAgentProvider      = "AgentProvider"
 	TypeAgentRuntime       = "AgentRuntime"
+	TypeAgentRuntimeModel  = "AgentRuntimeModel"
 	TypeAgentSession       = "AgentSession"
 	TypeAgentSkill         = "AgentSkill"
 	TypeAgentWorkspace     = "AgentWorkspace"
@@ -4508,6 +4510,959 @@ func (m *AgentRuntimeMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AgentRuntimeMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AgentRuntime edge %s", name)
+}
+
+// AgentRuntimeModelMutation represents an operation that mutates the AgentRuntimeModel nodes in the graph.
+type AgentRuntimeModelMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	create_time       *time.Time
+	update_time       *time.Time
+	runtime_id        *string
+	model             *string
+	name              *string
+	efforts           *[]schema.AgentChoice
+	appendefforts     []schema.AgentChoice
+	default_effort    *string
+	context_window    *int64
+	addcontext_window *int64
+	max_output        *int64
+	addmax_output     *int64
+	sort              *int
+	addsort           *int
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*AgentRuntimeModel, error)
+	predicates        []predicate.AgentRuntimeModel
+}
+
+var _ ent.Mutation = (*AgentRuntimeModelMutation)(nil)
+
+// agentruntimemodelOption allows management of the mutation configuration using functional options.
+type agentruntimemodelOption func(*AgentRuntimeModelMutation)
+
+// newAgentRuntimeModelMutation creates new mutation for the AgentRuntimeModel entity.
+func newAgentRuntimeModelMutation(c config, op Op, opts ...agentruntimemodelOption) *AgentRuntimeModelMutation {
+	m := &AgentRuntimeModelMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAgentRuntimeModel,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAgentRuntimeModelID sets the ID field of the mutation.
+func withAgentRuntimeModelID(id int) agentruntimemodelOption {
+	return func(m *AgentRuntimeModelMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AgentRuntimeModel
+		)
+		m.oldValue = func(ctx context.Context) (*AgentRuntimeModel, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AgentRuntimeModel.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAgentRuntimeModel sets the old AgentRuntimeModel of the mutation.
+func withAgentRuntimeModel(node *AgentRuntimeModel) agentruntimemodelOption {
+	return func(m *AgentRuntimeModelMutation) {
+		m.oldValue = func(context.Context) (*AgentRuntimeModel, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AgentRuntimeModelMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AgentRuntimeModelMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AgentRuntimeModelMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AgentRuntimeModelMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AgentRuntimeModel.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *AgentRuntimeModelMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *AgentRuntimeModelMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *AgentRuntimeModelMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *AgentRuntimeModelMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *AgentRuntimeModelMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *AgentRuntimeModelMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetRuntimeID sets the "runtime_id" field.
+func (m *AgentRuntimeModelMutation) SetRuntimeID(s string) {
+	m.runtime_id = &s
+}
+
+// RuntimeID returns the value of the "runtime_id" field in the mutation.
+func (m *AgentRuntimeModelMutation) RuntimeID() (r string, exists bool) {
+	v := m.runtime_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRuntimeID returns the old "runtime_id" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldRuntimeID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRuntimeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRuntimeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRuntimeID: %w", err)
+	}
+	return oldValue.RuntimeID, nil
+}
+
+// ResetRuntimeID resets all changes to the "runtime_id" field.
+func (m *AgentRuntimeModelMutation) ResetRuntimeID() {
+	m.runtime_id = nil
+}
+
+// SetModel sets the "model" field.
+func (m *AgentRuntimeModelMutation) SetModel(s string) {
+	m.model = &s
+}
+
+// Model returns the value of the "model" field in the mutation.
+func (m *AgentRuntimeModelMutation) Model() (r string, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModel returns the old "model" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldModel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModel: %w", err)
+	}
+	return oldValue.Model, nil
+}
+
+// ResetModel resets all changes to the "model" field.
+func (m *AgentRuntimeModelMutation) ResetModel() {
+	m.model = nil
+}
+
+// SetName sets the "name" field.
+func (m *AgentRuntimeModelMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AgentRuntimeModelMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AgentRuntimeModelMutation) ResetName() {
+	m.name = nil
+}
+
+// SetEfforts sets the "efforts" field.
+func (m *AgentRuntimeModelMutation) SetEfforts(sc []schema.AgentChoice) {
+	m.efforts = &sc
+	m.appendefforts = nil
+}
+
+// Efforts returns the value of the "efforts" field in the mutation.
+func (m *AgentRuntimeModelMutation) Efforts() (r []schema.AgentChoice, exists bool) {
+	v := m.efforts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEfforts returns the old "efforts" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldEfforts(ctx context.Context) (v []schema.AgentChoice, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEfforts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEfforts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEfforts: %w", err)
+	}
+	return oldValue.Efforts, nil
+}
+
+// AppendEfforts adds sc to the "efforts" field.
+func (m *AgentRuntimeModelMutation) AppendEfforts(sc []schema.AgentChoice) {
+	m.appendefforts = append(m.appendefforts, sc...)
+}
+
+// AppendedEfforts returns the list of values that were appended to the "efforts" field in this mutation.
+func (m *AgentRuntimeModelMutation) AppendedEfforts() ([]schema.AgentChoice, bool) {
+	if len(m.appendefforts) == 0 {
+		return nil, false
+	}
+	return m.appendefforts, true
+}
+
+// ClearEfforts clears the value of the "efforts" field.
+func (m *AgentRuntimeModelMutation) ClearEfforts() {
+	m.efforts = nil
+	m.appendefforts = nil
+	m.clearedFields[agentruntimemodel.FieldEfforts] = struct{}{}
+}
+
+// EffortsCleared returns if the "efforts" field was cleared in this mutation.
+func (m *AgentRuntimeModelMutation) EffortsCleared() bool {
+	_, ok := m.clearedFields[agentruntimemodel.FieldEfforts]
+	return ok
+}
+
+// ResetEfforts resets all changes to the "efforts" field.
+func (m *AgentRuntimeModelMutation) ResetEfforts() {
+	m.efforts = nil
+	m.appendefforts = nil
+	delete(m.clearedFields, agentruntimemodel.FieldEfforts)
+}
+
+// SetDefaultEffort sets the "default_effort" field.
+func (m *AgentRuntimeModelMutation) SetDefaultEffort(s string) {
+	m.default_effort = &s
+}
+
+// DefaultEffort returns the value of the "default_effort" field in the mutation.
+func (m *AgentRuntimeModelMutation) DefaultEffort() (r string, exists bool) {
+	v := m.default_effort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultEffort returns the old "default_effort" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldDefaultEffort(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultEffort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultEffort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultEffort: %w", err)
+	}
+	return oldValue.DefaultEffort, nil
+}
+
+// ResetDefaultEffort resets all changes to the "default_effort" field.
+func (m *AgentRuntimeModelMutation) ResetDefaultEffort() {
+	m.default_effort = nil
+}
+
+// SetContextWindow sets the "context_window" field.
+func (m *AgentRuntimeModelMutation) SetContextWindow(i int64) {
+	m.context_window = &i
+	m.addcontext_window = nil
+}
+
+// ContextWindow returns the value of the "context_window" field in the mutation.
+func (m *AgentRuntimeModelMutation) ContextWindow() (r int64, exists bool) {
+	v := m.context_window
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContextWindow returns the old "context_window" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldContextWindow(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContextWindow is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContextWindow requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContextWindow: %w", err)
+	}
+	return oldValue.ContextWindow, nil
+}
+
+// AddContextWindow adds i to the "context_window" field.
+func (m *AgentRuntimeModelMutation) AddContextWindow(i int64) {
+	if m.addcontext_window != nil {
+		*m.addcontext_window += i
+	} else {
+		m.addcontext_window = &i
+	}
+}
+
+// AddedContextWindow returns the value that was added to the "context_window" field in this mutation.
+func (m *AgentRuntimeModelMutation) AddedContextWindow() (r int64, exists bool) {
+	v := m.addcontext_window
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetContextWindow resets all changes to the "context_window" field.
+func (m *AgentRuntimeModelMutation) ResetContextWindow() {
+	m.context_window = nil
+	m.addcontext_window = nil
+}
+
+// SetMaxOutput sets the "max_output" field.
+func (m *AgentRuntimeModelMutation) SetMaxOutput(i int64) {
+	m.max_output = &i
+	m.addmax_output = nil
+}
+
+// MaxOutput returns the value of the "max_output" field in the mutation.
+func (m *AgentRuntimeModelMutation) MaxOutput() (r int64, exists bool) {
+	v := m.max_output
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxOutput returns the old "max_output" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldMaxOutput(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxOutput is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxOutput requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxOutput: %w", err)
+	}
+	return oldValue.MaxOutput, nil
+}
+
+// AddMaxOutput adds i to the "max_output" field.
+func (m *AgentRuntimeModelMutation) AddMaxOutput(i int64) {
+	if m.addmax_output != nil {
+		*m.addmax_output += i
+	} else {
+		m.addmax_output = &i
+	}
+}
+
+// AddedMaxOutput returns the value that was added to the "max_output" field in this mutation.
+func (m *AgentRuntimeModelMutation) AddedMaxOutput() (r int64, exists bool) {
+	v := m.addmax_output
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxOutput resets all changes to the "max_output" field.
+func (m *AgentRuntimeModelMutation) ResetMaxOutput() {
+	m.max_output = nil
+	m.addmax_output = nil
+}
+
+// SetSort sets the "sort" field.
+func (m *AgentRuntimeModelMutation) SetSort(i int) {
+	m.sort = &i
+	m.addsort = nil
+}
+
+// Sort returns the value of the "sort" field in the mutation.
+func (m *AgentRuntimeModelMutation) Sort() (r int, exists bool) {
+	v := m.sort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSort returns the old "sort" field's value of the AgentRuntimeModel entity.
+// If the AgentRuntimeModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeModelMutation) OldSort(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSort is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSort requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSort: %w", err)
+	}
+	return oldValue.Sort, nil
+}
+
+// AddSort adds i to the "sort" field.
+func (m *AgentRuntimeModelMutation) AddSort(i int) {
+	if m.addsort != nil {
+		*m.addsort += i
+	} else {
+		m.addsort = &i
+	}
+}
+
+// AddedSort returns the value that was added to the "sort" field in this mutation.
+func (m *AgentRuntimeModelMutation) AddedSort() (r int, exists bool) {
+	v := m.addsort
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSort resets all changes to the "sort" field.
+func (m *AgentRuntimeModelMutation) ResetSort() {
+	m.sort = nil
+	m.addsort = nil
+}
+
+// Where appends a list predicates to the AgentRuntimeModelMutation builder.
+func (m *AgentRuntimeModelMutation) Where(ps ...predicate.AgentRuntimeModel) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AgentRuntimeModelMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AgentRuntimeModelMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AgentRuntimeModel, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AgentRuntimeModelMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AgentRuntimeModelMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AgentRuntimeModel).
+func (m *AgentRuntimeModelMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AgentRuntimeModelMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.create_time != nil {
+		fields = append(fields, agentruntimemodel.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, agentruntimemodel.FieldUpdateTime)
+	}
+	if m.runtime_id != nil {
+		fields = append(fields, agentruntimemodel.FieldRuntimeID)
+	}
+	if m.model != nil {
+		fields = append(fields, agentruntimemodel.FieldModel)
+	}
+	if m.name != nil {
+		fields = append(fields, agentruntimemodel.FieldName)
+	}
+	if m.efforts != nil {
+		fields = append(fields, agentruntimemodel.FieldEfforts)
+	}
+	if m.default_effort != nil {
+		fields = append(fields, agentruntimemodel.FieldDefaultEffort)
+	}
+	if m.context_window != nil {
+		fields = append(fields, agentruntimemodel.FieldContextWindow)
+	}
+	if m.max_output != nil {
+		fields = append(fields, agentruntimemodel.FieldMaxOutput)
+	}
+	if m.sort != nil {
+		fields = append(fields, agentruntimemodel.FieldSort)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AgentRuntimeModelMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case agentruntimemodel.FieldCreateTime:
+		return m.CreateTime()
+	case agentruntimemodel.FieldUpdateTime:
+		return m.UpdateTime()
+	case agentruntimemodel.FieldRuntimeID:
+		return m.RuntimeID()
+	case agentruntimemodel.FieldModel:
+		return m.Model()
+	case agentruntimemodel.FieldName:
+		return m.Name()
+	case agentruntimemodel.FieldEfforts:
+		return m.Efforts()
+	case agentruntimemodel.FieldDefaultEffort:
+		return m.DefaultEffort()
+	case agentruntimemodel.FieldContextWindow:
+		return m.ContextWindow()
+	case agentruntimemodel.FieldMaxOutput:
+		return m.MaxOutput()
+	case agentruntimemodel.FieldSort:
+		return m.Sort()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AgentRuntimeModelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case agentruntimemodel.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case agentruntimemodel.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case agentruntimemodel.FieldRuntimeID:
+		return m.OldRuntimeID(ctx)
+	case agentruntimemodel.FieldModel:
+		return m.OldModel(ctx)
+	case agentruntimemodel.FieldName:
+		return m.OldName(ctx)
+	case agentruntimemodel.FieldEfforts:
+		return m.OldEfforts(ctx)
+	case agentruntimemodel.FieldDefaultEffort:
+		return m.OldDefaultEffort(ctx)
+	case agentruntimemodel.FieldContextWindow:
+		return m.OldContextWindow(ctx)
+	case agentruntimemodel.FieldMaxOutput:
+		return m.OldMaxOutput(ctx)
+	case agentruntimemodel.FieldSort:
+		return m.OldSort(ctx)
+	}
+	return nil, fmt.Errorf("unknown AgentRuntimeModel field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentRuntimeModelMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case agentruntimemodel.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case agentruntimemodel.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case agentruntimemodel.FieldRuntimeID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRuntimeID(v)
+		return nil
+	case agentruntimemodel.FieldModel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModel(v)
+		return nil
+	case agentruntimemodel.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case agentruntimemodel.FieldEfforts:
+		v, ok := value.([]schema.AgentChoice)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEfforts(v)
+		return nil
+	case agentruntimemodel.FieldDefaultEffort:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultEffort(v)
+		return nil
+	case agentruntimemodel.FieldContextWindow:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContextWindow(v)
+		return nil
+	case agentruntimemodel.FieldMaxOutput:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxOutput(v)
+		return nil
+	case agentruntimemodel.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSort(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AgentRuntimeModel field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AgentRuntimeModelMutation) AddedFields() []string {
+	var fields []string
+	if m.addcontext_window != nil {
+		fields = append(fields, agentruntimemodel.FieldContextWindow)
+	}
+	if m.addmax_output != nil {
+		fields = append(fields, agentruntimemodel.FieldMaxOutput)
+	}
+	if m.addsort != nil {
+		fields = append(fields, agentruntimemodel.FieldSort)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AgentRuntimeModelMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case agentruntimemodel.FieldContextWindow:
+		return m.AddedContextWindow()
+	case agentruntimemodel.FieldMaxOutput:
+		return m.AddedMaxOutput()
+	case agentruntimemodel.FieldSort:
+		return m.AddedSort()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentRuntimeModelMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case agentruntimemodel.FieldContextWindow:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddContextWindow(v)
+		return nil
+	case agentruntimemodel.FieldMaxOutput:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxOutput(v)
+		return nil
+	case agentruntimemodel.FieldSort:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSort(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AgentRuntimeModel numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AgentRuntimeModelMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(agentruntimemodel.FieldEfforts) {
+		fields = append(fields, agentruntimemodel.FieldEfforts)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AgentRuntimeModelMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AgentRuntimeModelMutation) ClearField(name string) error {
+	switch name {
+	case agentruntimemodel.FieldEfforts:
+		m.ClearEfforts()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentRuntimeModel nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AgentRuntimeModelMutation) ResetField(name string) error {
+	switch name {
+	case agentruntimemodel.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case agentruntimemodel.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case agentruntimemodel.FieldRuntimeID:
+		m.ResetRuntimeID()
+		return nil
+	case agentruntimemodel.FieldModel:
+		m.ResetModel()
+		return nil
+	case agentruntimemodel.FieldName:
+		m.ResetName()
+		return nil
+	case agentruntimemodel.FieldEfforts:
+		m.ResetEfforts()
+		return nil
+	case agentruntimemodel.FieldDefaultEffort:
+		m.ResetDefaultEffort()
+		return nil
+	case agentruntimemodel.FieldContextWindow:
+		m.ResetContextWindow()
+		return nil
+	case agentruntimemodel.FieldMaxOutput:
+		m.ResetMaxOutput()
+		return nil
+	case agentruntimemodel.FieldSort:
+		m.ResetSort()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentRuntimeModel field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AgentRuntimeModelMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AgentRuntimeModelMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AgentRuntimeModelMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AgentRuntimeModelMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AgentRuntimeModelMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AgentRuntimeModelMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AgentRuntimeModelMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AgentRuntimeModel unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AgentRuntimeModelMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AgentRuntimeModel edge %s", name)
 }
 
 // AgentSessionMutation represents an operation that mutates the AgentSession nodes in the graph.

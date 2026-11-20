@@ -148,13 +148,17 @@ service AgentService {
   rpc DeleteAgentProvider(DeleteAgentProviderRequest) returns (DeleteAgentProviderResponse) {
     option (google.api.http) = { delete: "/api/v1/agent/providers/{id}" };
   }
-  // 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+  // 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
   rpc TestAgentProvider(TestAgentProviderRequest) returns (TestAgentProviderResponse) {
     option (google.api.http) = { post: "/api/v1/agent/providers/test" body: "*" };
   }
   // 获取可用模型
   rpc FetchAgentProviderModels(FetchAgentProviderModelsRequest) returns (FetchAgentProviderModelsResponse) {
     option (google.api.http) = { post: "/api/v1/agent/providers/models" body: "*" };
+  }
+  // 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
+  rpc GetAgentProviderBalance(GetAgentProviderBalanceRequest) returns (GetAgentProviderBalanceResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/providers/{id}/balance" };
   }
 
   // —— MCP ——
@@ -317,7 +321,7 @@ message AgentProviderOptions {
   string kind = 5;
   // api：ok | bad | untested
   string status = 6;
-  // api：接口协议 anthropic | openai
+  // api：供应商类型（AgentVendor.id）
   string vendor = 7;
 }
 
@@ -836,15 +840,28 @@ message AgentModel {
   int64 max_output = 4;
 }
 
+// 一种供应商类型：通用的兼容接口，或对某一家的专门适配
+message AgentVendor {
+  // anthropic（Anthropic 兼容）| openai（OpenAI Responses 兼容）| deepseek（DeepSeek 官方）…
+  string id = 1;
+  // 能给哪些协议的 Agent 用：anthropic（Claude 系）| openai（Codex 系）
+  repeated string protocols = 2;
+  // 官方接口地址；不为空表示地址固定，不用填
+  string base_url = 3;
+  // 能查账户余额
+  bool balance = 4;
+}
+
 // 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）
 message AgentProvider {
   string id = 1;
-  // 接口协议：anthropic（给 Claude 系）| openai（给 Codex 系）
+  // 供应商类型（AgentVendor.id），创建后不能改
   string vendor = 3;
   string name = 4;
   // ok | bad | untested
   string status = 10;
   string status_text = 11;
+  // 用户填的接口地址；地址固定的类型为空
   string base_url = 13;
   // 只写；更新时留空表示保留原值
   string api_key = 14;
@@ -861,6 +878,8 @@ message AgentProvider {
 message ListAgentProvidersRequest {}
 message ListAgentProvidersResponse {
   repeated AgentProvider providers = 1;
+  // 能添加的供应商类型
+  repeated AgentVendor vendors = 2;
 }
 
 message CreateAgentProviderRequest {
@@ -887,23 +906,59 @@ message TestAgentProviderRequest {
   string id = 1;
   // 表单草稿；有它就测草稿
   AgentProvider draft = 2;
+  // 发给模型的消息；空 = hello
+  string message = 3;
+}
+// 一种协议的测试结果
+message AgentProviderTestResult {
+  // anthropic | openai
+  string protocol = 1;
+  bool ok = 2;
+  // 失败的原因
+  string error = 3;
+  int64 latency_ms = 4;
+  // 模型回的文字（不含思考过程）
+  string reply = 5;
+  int64 input_tokens = 6;
+  int64 output_tokens = 7;
 }
 message TestAgentProviderResponse {
-  bool ok = 1;
-  string message = 2;
-  int64 latency_ms = 3;
-  string model = 4;
+  // 用的哪个模型
+  string model = 1;
+  // 供应商给的每种协议一条
+  repeated AgentProviderTestResult results = 2;
 }
 
 message FetchAgentProviderModelsRequest {
   string id = 1;
-  // anthropic | openai
+  // 供应商类型（AgentVendor.id）
   string vendor = 2;
   string base_url = 3;
   string api_key = 4;
 }
 message FetchAgentProviderModelsResponse {
-  repeated string models = 1;
+  // 接口给了才有推理等级、最长上下文和最长输出（没给的为空或 0）
+  repeated AgentModel models = 1;
+}
+
+// 一种币种的余额；金额是接口给的十进制字符串
+message AgentBalance {
+  string currency = 1;
+  string total = 2;
+  // 赠送的
+  string granted = 3;
+  // 充值的
+  string topped_up = 4;
+}
+message GetAgentProviderBalanceRequest {
+  string id = 1;
+}
+message GetAgentProviderBalanceResponse {
+  // 查询失败的原因；不为空时其余字段无意义
+  string error = 1;
+  // 余额够不够继续调用
+  bool available = 2;
+  repeated AgentBalance balances = 3;
 }
 
 // ———————————————————————————— MCP ————————————————————————————

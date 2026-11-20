@@ -29,7 +29,7 @@ func (AgentRuntime) Fields() []ent.Field {
 		field.String("auth_label").Default("").Comment("服务器上已有的登录：账号名称"),
 		field.String("auth_detail").Default("").Comment("服务器上已有的登录：说明"),
 		field.Bool("logged_in").Default(false).Comment("最近一次检查时服务器上已经登录（能开会话）"),
-		field.Text("catalog").Default("").Comment("检测时 Agent 给出的权限模式、模型、推理强度（JSON）"),
+		field.Text("catalog").Default("").Comment("Agent 给出的权限模式和默认模型（JSON）；模型清单在 agent_runtime_models"),
 		field.Int("sort").Default(0).Comment("排序"),
 	}
 }

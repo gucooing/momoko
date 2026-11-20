@@ -24,9 +24,9 @@ type Driver struct{}
 
 var _ agentdriver.Driver = Driver{}
 
-func (Driver) Kind() string    { return Kind }
-func (Driver) Vendor() string  { return "anthropic" }
-func (Driver) Adapter() string { return "claude-agent-acp" }
+func (Driver) Kind() string     { return Kind }
+func (Driver) Protocol() string { return "anthropic" }
+func (Driver) Adapter() string  { return "claude-agent-acp" }
 
 func (Driver) Detect(agentName string) bool {
 	return strings.Contains(strings.ToLower(agentName), "claude")
@@ -85,8 +85,7 @@ func (Driver) APIEnv(api agentdriver.API) map[string]string {
 		"ANTHROPIC_SMALL_FAST_MODEL":               fast,
 		"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
 	}
-	limits, _ := Driver{}.LoginLimits(api.ContextWindow, api.MaxOutput)
-	for k, v := range limits {
+	for k, v := range (Driver{}).LoginLimits(api.ContextWindow, api.MaxOutput) {
 		env[k] = v
 	}
 	if api.HasLevel {
@@ -105,7 +104,7 @@ func (Driver) APIEnv(api agentdriver.API) map[string]string {
 }
 
 // LoginLimits 最长上下文和最长输出都靠环境变量：CLAUDE_CODE_MAX_CONTEXT_TOKENS、CLAUDE_CODE_MAX_OUTPUT_TOKENS。
-func (Driver) LoginLimits(contextWindow, maxOutput int64) (map[string]string, []string) {
+func (Driver) LoginLimits(contextWindow, maxOutput int64) map[string]string {
 	env := map[string]string{}
 	if contextWindow > 0 {
 		env["CLAUDE_CODE_MAX_CONTEXT_TOKENS"] = strconv.FormatInt(contextWindow, 10)
@@ -113,7 +112,7 @@ func (Driver) LoginLimits(contextWindow, maxOutput int64) (map[string]string, []
 	if maxOutput > 0 {
 		env["CLAUDE_CODE_MAX_OUTPUT_TOKENS"] = strconv.FormatInt(maxOutput, 10)
 	}
-	return env, nil
+	return env
 }
 
 // projectDirMax Claude CLI 给项目目录名的长度上限：超过的截断后再接一段它自己算的散列。

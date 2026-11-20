@@ -15,6 +15,7 @@ import (
 	"momoko/internal/data/ent/gen/agentmcpserver"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
+	"momoko/internal/data/ent/gen/agentruntimemodel"
 	"momoko/internal/data/ent/gen/agentsession"
 	"momoko/internal/data/ent/gen/agentskill"
 	"momoko/internal/data/ent/gen/agentworkspace"
@@ -88,6 +89,8 @@ type Client struct {
 	AgentProvider *AgentProviderClient
 	// AgentRuntime is the client for interacting with the AgentRuntime builders.
 	AgentRuntime *AgentRuntimeClient
+	// AgentRuntimeModel is the client for interacting with the AgentRuntimeModel builders.
+	AgentRuntimeModel *AgentRuntimeModelClient
 	// AgentSession is the client for interacting with the AgentSession builders.
 	AgentSession *AgentSessionClient
 	// AgentSkill is the client for interacting with the AgentSkill builders.
@@ -205,6 +208,7 @@ func (c *Client) init() {
 	c.AgentMcpServer = NewAgentMcpServerClient(c.config)
 	c.AgentProvider = NewAgentProviderClient(c.config)
 	c.AgentRuntime = NewAgentRuntimeClient(c.config)
+	c.AgentRuntimeModel = NewAgentRuntimeModelClient(c.config)
 	c.AgentSession = NewAgentSessionClient(c.config)
 	c.AgentSkill = NewAgentSkillClient(c.config)
 	c.AgentWorkspace = NewAgentWorkspaceClient(c.config)
@@ -352,6 +356,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AgentMcpServer:     NewAgentMcpServerClient(cfg),
 		AgentProvider:      NewAgentProviderClient(cfg),
 		AgentRuntime:       NewAgentRuntimeClient(cfg),
+		AgentRuntimeModel:  NewAgentRuntimeModelClient(cfg),
 		AgentSession:       NewAgentSessionClient(cfg),
 		AgentSkill:         NewAgentSkillClient(cfg),
 		AgentWorkspace:     NewAgentWorkspaceClient(cfg),
@@ -426,6 +431,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AgentMcpServer:     NewAgentMcpServerClient(cfg),
 		AgentProvider:      NewAgentProviderClient(cfg),
 		AgentRuntime:       NewAgentRuntimeClient(cfg),
+		AgentRuntimeModel:  NewAgentRuntimeModelClient(cfg),
 		AgentSession:       NewAgentSessionClient(cfg),
 		AgentSkill:         NewAgentSkillClient(cfg),
 		AgentWorkspace:     NewAgentWorkspaceClient(cfg),
@@ -506,17 +512,17 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AgentEvent, c.AgentMcpServer, c.AgentProvider, c.AgentRuntime, c.AgentSession,
-		c.AgentSkill, c.AgentWorkspace, c.EmailTemplate, c.FileShare,
-		c.FileShareDownload, c.FileSource, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink, c.GameAccountUnlink,
-		c.GameClientLog, c.GameConfigRevision, c.GameRecentServer, c.GameServer,
-		c.GameServerBackup, c.GameServerHistory, c.GiftCode, c.GiftCodeBatch,
-		c.GiftCodeRedeem, c.GmExecution, c.GmSelfService, c.IQCheckPrompt,
-		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu,
-		c.MonitorSample, c.Node, c.OperationLog, c.PassportInvite, c.PassportLoginLog,
-		c.PassportMessage, c.PassportSession, c.PassportUser, c.PortForward,
-		c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
+		c.AgentEvent, c.AgentMcpServer, c.AgentProvider, c.AgentRuntime,
+		c.AgentRuntimeModel, c.AgentSession, c.AgentSkill, c.AgentWorkspace,
+		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
+		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
+		c.GameAccountUnlink, c.GameClientLog, c.GameConfigRevision, c.GameRecentServer,
+		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
+		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
+		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
+		c.Menu, c.MonitorSample, c.Node, c.OperationLog, c.PassportInvite,
+		c.PassportLoginLog, c.PassportMessage, c.PassportSession, c.PassportUser,
+		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
 		c.SystemConfig, c.Task, c.ThemeAsset, c.User, c.UserAPIKey, c.UserMessage,
 		c.UserTheme,
 	} {
@@ -528,17 +534,17 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AgentEvent, c.AgentMcpServer, c.AgentProvider, c.AgentRuntime, c.AgentSession,
-		c.AgentSkill, c.AgentWorkspace, c.EmailTemplate, c.FileShare,
-		c.FileShareDownload, c.FileSource, c.FileUpload, c.FileUploadChunk,
-		c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink, c.GameAccountUnlink,
-		c.GameClientLog, c.GameConfigRevision, c.GameRecentServer, c.GameServer,
-		c.GameServerBackup, c.GameServerHistory, c.GiftCode, c.GiftCodeBatch,
-		c.GiftCodeRedeem, c.GmExecution, c.GmSelfService, c.IQCheckPrompt,
-		c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType, c.Menu,
-		c.MonitorSample, c.Node, c.OperationLog, c.PassportInvite, c.PassportLoginLog,
-		c.PassportMessage, c.PassportSession, c.PassportUser, c.PortForward,
-		c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
+		c.AgentEvent, c.AgentMcpServer, c.AgentProvider, c.AgentRuntime,
+		c.AgentRuntimeModel, c.AgentSession, c.AgentSkill, c.AgentWorkspace,
+		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
+		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
+		c.GameAccountUnlink, c.GameClientLog, c.GameConfigRevision, c.GameRecentServer,
+		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
+		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
+		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
+		c.Menu, c.MonitorSample, c.Node, c.OperationLog, c.PassportInvite,
+		c.PassportLoginLog, c.PassportMessage, c.PassportSession, c.PassportUser,
+		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
 		c.SystemConfig, c.Task, c.ThemeAsset, c.User, c.UserAPIKey, c.UserMessage,
 		c.UserTheme,
 	} {
@@ -557,6 +563,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AgentProvider.mutate(ctx, m)
 	case *AgentRuntimeMutation:
 		return c.AgentRuntime.mutate(ctx, m)
+	case *AgentRuntimeModelMutation:
+		return c.AgentRuntimeModel.mutate(ctx, m)
 	case *AgentSessionMutation:
 		return c.AgentSession.mutate(ctx, m)
 	case *AgentSkillMutation:
@@ -1193,6 +1201,139 @@ func (c *AgentRuntimeClient) mutate(ctx context.Context, m *AgentRuntimeMutation
 		return (&AgentRuntimeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown AgentRuntime mutation op: %q", m.Op())
+	}
+}
+
+// AgentRuntimeModelClient is a client for the AgentRuntimeModel schema.
+type AgentRuntimeModelClient struct {
+	config
+}
+
+// NewAgentRuntimeModelClient returns a client for the AgentRuntimeModel from the given config.
+func NewAgentRuntimeModelClient(c config) *AgentRuntimeModelClient {
+	return &AgentRuntimeModelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `agentruntimemodel.Hooks(f(g(h())))`.
+func (c *AgentRuntimeModelClient) Use(hooks ...Hook) {
+	c.hooks.AgentRuntimeModel = append(c.hooks.AgentRuntimeModel, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `agentruntimemodel.Intercept(f(g(h())))`.
+func (c *AgentRuntimeModelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AgentRuntimeModel = append(c.inters.AgentRuntimeModel, interceptors...)
+}
+
+// Create returns a builder for creating a AgentRuntimeModel entity.
+func (c *AgentRuntimeModelClient) Create() *AgentRuntimeModelCreate {
+	mutation := newAgentRuntimeModelMutation(c.config, OpCreate)
+	return &AgentRuntimeModelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AgentRuntimeModel entities.
+func (c *AgentRuntimeModelClient) CreateBulk(builders ...*AgentRuntimeModelCreate) *AgentRuntimeModelCreateBulk {
+	return &AgentRuntimeModelCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AgentRuntimeModelClient) MapCreateBulk(slice any, setFunc func(*AgentRuntimeModelCreate, int)) *AgentRuntimeModelCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AgentRuntimeModelCreateBulk{err: fmt.Errorf("calling to AgentRuntimeModelClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AgentRuntimeModelCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AgentRuntimeModelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AgentRuntimeModel.
+func (c *AgentRuntimeModelClient) Update() *AgentRuntimeModelUpdate {
+	mutation := newAgentRuntimeModelMutation(c.config, OpUpdate)
+	return &AgentRuntimeModelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AgentRuntimeModelClient) UpdateOne(_m *AgentRuntimeModel) *AgentRuntimeModelUpdateOne {
+	mutation := newAgentRuntimeModelMutation(c.config, OpUpdateOne, withAgentRuntimeModel(_m))
+	return &AgentRuntimeModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AgentRuntimeModelClient) UpdateOneID(id int) *AgentRuntimeModelUpdateOne {
+	mutation := newAgentRuntimeModelMutation(c.config, OpUpdateOne, withAgentRuntimeModelID(id))
+	return &AgentRuntimeModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AgentRuntimeModel.
+func (c *AgentRuntimeModelClient) Delete() *AgentRuntimeModelDelete {
+	mutation := newAgentRuntimeModelMutation(c.config, OpDelete)
+	return &AgentRuntimeModelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AgentRuntimeModelClient) DeleteOne(_m *AgentRuntimeModel) *AgentRuntimeModelDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AgentRuntimeModelClient) DeleteOneID(id int) *AgentRuntimeModelDeleteOne {
+	builder := c.Delete().Where(agentruntimemodel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AgentRuntimeModelDeleteOne{builder}
+}
+
+// Query returns a query builder for AgentRuntimeModel.
+func (c *AgentRuntimeModelClient) Query() *AgentRuntimeModelQuery {
+	return &AgentRuntimeModelQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAgentRuntimeModel},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AgentRuntimeModel entity by its id.
+func (c *AgentRuntimeModelClient) Get(ctx context.Context, id int) (*AgentRuntimeModel, error) {
+	return c.Query().Where(agentruntimemodel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AgentRuntimeModelClient) GetX(ctx context.Context, id int) *AgentRuntimeModel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AgentRuntimeModelClient) Hooks() []Hook {
+	return c.hooks.AgentRuntimeModel
+}
+
+// Interceptors returns the client interceptors.
+func (c *AgentRuntimeModelClient) Interceptors() []Interceptor {
+	return c.inters.AgentRuntimeModel
+}
+
+func (c *AgentRuntimeModelClient) mutate(ctx context.Context, m *AgentRuntimeModelMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AgentRuntimeModelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AgentRuntimeModelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AgentRuntimeModelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AgentRuntimeModelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown AgentRuntimeModel mutation op: %q", m.Op())
 	}
 }
 
@@ -8350,30 +8491,30 @@ func (c *UserThemeClient) mutate(ctx context.Context, m *UserThemeMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AgentEvent, AgentMcpServer, AgentProvider, AgentRuntime, AgentSession,
-		AgentSkill, AgentWorkspace, EmailTemplate, FileShare, FileShareDownload,
-		FileSource, FileUpload, FileUploadChunk, FrpTunnel, FrpTunnelStat,
-		GameAccountLink, GameAccountUnlink, GameClientLog, GameConfigRevision,
-		GameRecentServer, GameServer, GameServerBackup, GameServerHistory, GiftCode,
-		GiftCodeBatch, GiftCodeRedeem, GmExecution, GmSelfService, IQCheckPrompt,
-		IQCheckResult, IQCheckSite, Instance, InstanceType, Menu, MonitorSample, Node,
-		OperationLog, PassportInvite, PassportLoginLog, PassportMessage,
-		PassportSession, PassportUser, PortForward, PortForwardStat, Role,
-		SQLMigration, SSHHost, Session, SystemConfig, Task, ThemeAsset, User,
-		UserAPIKey, UserMessage, UserTheme []ent.Hook
+		AgentEvent, AgentMcpServer, AgentProvider, AgentRuntime, AgentRuntimeModel,
+		AgentSession, AgentSkill, AgentWorkspace, EmailTemplate, FileShare,
+		FileShareDownload, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
+		FrpTunnelStat, GameAccountLink, GameAccountUnlink, GameClientLog,
+		GameConfigRevision, GameRecentServer, GameServer, GameServerBackup,
+		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
+		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
+		InstanceType, Menu, MonitorSample, Node, OperationLog, PassportInvite,
+		PassportLoginLog, PassportMessage, PassportSession, PassportUser, PortForward,
+		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
+		ThemeAsset, User, UserAPIKey, UserMessage, UserTheme []ent.Hook
 	}
 	inters struct {
-		AgentEvent, AgentMcpServer, AgentProvider, AgentRuntime, AgentSession,
-		AgentSkill, AgentWorkspace, EmailTemplate, FileShare, FileShareDownload,
-		FileSource, FileUpload, FileUploadChunk, FrpTunnel, FrpTunnelStat,
-		GameAccountLink, GameAccountUnlink, GameClientLog, GameConfigRevision,
-		GameRecentServer, GameServer, GameServerBackup, GameServerHistory, GiftCode,
-		GiftCodeBatch, GiftCodeRedeem, GmExecution, GmSelfService, IQCheckPrompt,
-		IQCheckResult, IQCheckSite, Instance, InstanceType, Menu, MonitorSample, Node,
-		OperationLog, PassportInvite, PassportLoginLog, PassportMessage,
-		PassportSession, PassportUser, PortForward, PortForwardStat, Role,
-		SQLMigration, SSHHost, Session, SystemConfig, Task, ThemeAsset, User,
-		UserAPIKey, UserMessage, UserTheme []ent.Interceptor
+		AgentEvent, AgentMcpServer, AgentProvider, AgentRuntime, AgentRuntimeModel,
+		AgentSession, AgentSkill, AgentWorkspace, EmailTemplate, FileShare,
+		FileShareDownload, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
+		FrpTunnelStat, GameAccountLink, GameAccountUnlink, GameClientLog,
+		GameConfigRevision, GameRecentServer, GameServer, GameServerBackup,
+		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
+		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
+		InstanceType, Menu, MonitorSample, Node, OperationLog, PassportInvite,
+		PassportLoginLog, PassportMessage, PassportSession, PassportUser, PortForward,
+		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
+		ThemeAsset, User, UserAPIKey, UserMessage, UserTheme []ent.Interceptor
 	}
 )
 

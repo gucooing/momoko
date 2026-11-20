@@ -1,23 +1,25 @@
 server:
-  http:
-    addr: 0.0.0.0:22633
-    timeout: 15s
-  grpc:
-    addr: 0.0.0.0:22733
-    timeout: 15s
+    http:
+        addr: 0.0.0.0:22633
+        timeout: 15s
+    grpc:
+        addr: 0.0.0.0:22733
+        timeout: 15s
 passport:
-  # 用户通行证（玩家端）独立端口；后台接口在这个端口上不存在
-  enabled: true
-  addr: 0.0.0.0:22634
-  timeout: 15s
-  # 对外地址：玩家与游戏客户端访问通行证用的地址（如 https://passport.example.com），在后台的通行证设置里展示；
-  # 客户端（启动器、APK）浏览器授权的授权页地址由它拼出，不填时客户端无法发起授权
-  public_url: ""
+    # 用户通行证（玩家端）独立端口；后台接口在这个端口上不存在
+    enabled: true
+    addr: 0.0.0.0:22634
+    timeout: 15s
+    # 对外地址：玩家与游戏客户端访问通行证用的地址（如 https://passport.example.com），在后台的通行证设置里展示；
+
+    # 客户端（启动器、APK）浏览器授权的授权页地址由它拼出，不填时客户端无法发起授权
+    public_url: ""
 data:
-  database:
-    driver: sqlite3
-    source: file:./data/momoko.db?_pragma=foreign_keys(1)
+    database:
+        driver: sqlite3
+        source: file:./data/momoko.db?_pragma=foreign_keys(1)
 auth:
-  # JWT 签名与敏感数据加密的主密钥，必须为高强度随机字符串（建议 ≥32 字符）。
-  # 留空或使用弱/默认密钥将导致服务拒绝启动；全新部署时初始化向导会自动生成。
-  secret: "momoko:jwt:hs256:v1"
+    # JWT 签名与敏感数据加密的主密钥，必须为高强度随机字符串（建议 ≥32 字符）。
+
+    # 留空或使用弱/默认密钥将导致服务拒绝启动；全新部署时初始化向导会自动生成。
+    secret: iXTSsVGXCfE6bG-2S32srRq6HXBgtPng

@@ -24,7 +24,7 @@ type AgentProvider struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// 更新时间
 	UpdateTime time.Time `json:"update_time,omitempty"`
-	// 接口协议：anthropic / openai
+	// 供应商类型：anthropic / openai / deepseek …（见 pkg/agentapi）
 	Vendor string `json:"vendor,omitempty"`
 	// 名称
 	Name string `json:"name,omitempty"`
@@ -32,7 +32,7 @@ type AgentProvider struct {
 	Status string `json:"status,omitempty"`
 	// 测试失败的原因
 	StatusText string `json:"status_text,omitempty"`
-	// 接口地址
+	// 用户填的接口地址；地址固定的类型为空
 	BaseURL string `json:"base_url,omitempty"`
 	// API Key（secretbox 加密）
 	APIKey string `json:"-"`

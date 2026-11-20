@@ -7,6 +7,7 @@ import (
 	"momoko/internal/data/ent/gen/agentmcpserver"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
+	"momoko/internal/data/ent/gen/agentruntimemodel"
 	"momoko/internal/data/ent/gen/agentsession"
 	"momoko/internal/data/ent/gen/agentskill"
 	"momoko/internal/data/ent/gen/agentworkspace"
@@ -277,6 +278,49 @@ func init() {
 	agentruntimeDescID := agentruntimeFields[0].Descriptor()
 	// agentruntime.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	agentruntime.IDValidator = agentruntimeDescID.Validators[0].(func(string) error)
+	agentruntimemodelMixin := schema.AgentRuntimeModel{}.Mixin()
+	agentruntimemodelMixinFields0 := agentruntimemodelMixin[0].Fields()
+	_ = agentruntimemodelMixinFields0
+	agentruntimemodelFields := schema.AgentRuntimeModel{}.Fields()
+	_ = agentruntimemodelFields
+	// agentruntimemodelDescCreateTime is the schema descriptor for create_time field.
+	agentruntimemodelDescCreateTime := agentruntimemodelMixinFields0[0].Descriptor()
+	// agentruntimemodel.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentruntimemodel.DefaultCreateTime = agentruntimemodelDescCreateTime.Default.(func() time.Time)
+	// agentruntimemodelDescUpdateTime is the schema descriptor for update_time field.
+	agentruntimemodelDescUpdateTime := agentruntimemodelMixinFields0[1].Descriptor()
+	// agentruntimemodel.DefaultUpdateTime holds the default value on creation for the update_time field.
+	agentruntimemodel.DefaultUpdateTime = agentruntimemodelDescUpdateTime.Default.(func() time.Time)
+	// agentruntimemodel.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	agentruntimemodel.UpdateDefaultUpdateTime = agentruntimemodelDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentruntimemodelDescRuntimeID is the schema descriptor for runtime_id field.
+	agentruntimemodelDescRuntimeID := agentruntimemodelFields[0].Descriptor()
+	// agentruntimemodel.RuntimeIDValidator is a validator for the "runtime_id" field. It is called by the builders before save.
+	agentruntimemodel.RuntimeIDValidator = agentruntimemodelDescRuntimeID.Validators[0].(func(string) error)
+	// agentruntimemodelDescModel is the schema descriptor for model field.
+	agentruntimemodelDescModel := agentruntimemodelFields[1].Descriptor()
+	// agentruntimemodel.ModelValidator is a validator for the "model" field. It is called by the builders before save.
+	agentruntimemodel.ModelValidator = agentruntimemodelDescModel.Validators[0].(func(string) error)
+	// agentruntimemodelDescName is the schema descriptor for name field.
+	agentruntimemodelDescName := agentruntimemodelFields[2].Descriptor()
+	// agentruntimemodel.DefaultName holds the default value on creation for the name field.
+	agentruntimemodel.DefaultName = agentruntimemodelDescName.Default.(string)
+	// agentruntimemodelDescDefaultEffort is the schema descriptor for default_effort field.
+	agentruntimemodelDescDefaultEffort := agentruntimemodelFields[4].Descriptor()
+	// agentruntimemodel.DefaultDefaultEffort holds the default value on creation for the default_effort field.
+	agentruntimemodel.DefaultDefaultEffort = agentruntimemodelDescDefaultEffort.Default.(string)
+	// agentruntimemodelDescContextWindow is the schema descriptor for context_window field.
+	agentruntimemodelDescContextWindow := agentruntimemodelFields[5].Descriptor()
+	// agentruntimemodel.DefaultContextWindow holds the default value on creation for the context_window field.
+	agentruntimemodel.DefaultContextWindow = agentruntimemodelDescContextWindow.Default.(int64)
+	// agentruntimemodelDescMaxOutput is the schema descriptor for max_output field.
+	agentruntimemodelDescMaxOutput := agentruntimemodelFields[6].Descriptor()
+	// agentruntimemodel.DefaultMaxOutput holds the default value on creation for the max_output field.
+	agentruntimemodel.DefaultMaxOutput = agentruntimemodelDescMaxOutput.Default.(int64)
+	// agentruntimemodelDescSort is the schema descriptor for sort field.
+	agentruntimemodelDescSort := agentruntimemodelFields[7].Descriptor()
+	// agentruntimemodel.DefaultSort holds the default value on creation for the sort field.
+	agentruntimemodel.DefaultSort = agentruntimemodelDescSort.Default.(int)
 	agentsessionMixin := schema.AgentSession{}.Mixin()
 	agentsessionMixinFields0 := agentsessionMixin[0].Fields()
 	_ = agentsessionMixinFields0

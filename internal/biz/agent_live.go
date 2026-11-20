@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -397,11 +396,13 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 	if err != nil {
 		return nil, err
 	}
-	// 服务器上的登录：用户给这个模型设的最长上下文、最长输出，启动时交给 Agent
+	// 服务器上的登录：用户在模型表里给这个模型设的最长上下文、最长输出，启动时交给 Agent
 	if provider == nil {
-		var args []string
-		env, args = driver.LoginLimits(loginLimits(rt, s.Model))
-		launch.Args = append(slices.Clone(launch.Args), args...)
+		m, err := uc.loginModel(bg, rt, s.Model)
+		if err != nil {
+			return nil, err
+		}
+		env = driver.LoginLimits(loginLimits(m))
 	}
 	if home := driver.Home(); home != "" {
 		agentskill.Sync(home, uc.enabledSkills(bg))
@@ -463,25 +464,22 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 			u.SetModel(started.Model).SetEffort(started.Effort)
 		}
 	})
-	uc.refreshCatalog(bg, rt, provider != nil, session.Catalog())
+	uc.refreshModes(bg, rt, session.Catalog())
 	return l, nil
 }
 
-// refreshCatalog 权限模式和模型的清单是 Agent 说了算：每次起进程顺手记下它这次给的，选择器里的选项就跟着 Agent 的版本走。
-// 用第三方接口时只记权限模式：那时的模型是模型目录里声明的，不是服务器上登录的账号能用的。
-func (uc *AgentUsecase) refreshCatalog(ctx context.Context, rt *gen.AgentRuntime, byAPI bool, fresh agentrun.Catalog) {
-	old := agentParse[agentrun.Catalog](rt.Catalog)
-	next := agentrun.MergeCatalog(old, fresh, true)
-	if byAPI {
-		next = old
-		if len(fresh.Modes) > 0 {
-			next.Modes = fresh.Modes
-			if next.DefaultMode == "" {
-				next.DefaultMode = fresh.DefaultMode
-			}
-		}
+// refreshModes 权限模式的清单是 Agent 说了算：起进程时记下它这次给的。只用第三方接口、服务器上没登录时，
+// 检查开不了会话，权限模式只能这样拿到。模型不在这里记：服务器上的登录的模型只在检查时同步进模型表。
+func (uc *AgentUsecase) refreshModes(ctx context.Context, rt *gen.AgentRuntime, fresh agentrun.Catalog) {
+	if len(fresh.Modes) == 0 {
+		return
 	}
-	if raw := agentJSON(next); raw != rt.Catalog {
+	catalog := agentParse[agentRuntimeCatalog](rt.Catalog)
+	catalog.Modes = fresh.Modes
+	if catalog.DefaultMode == "" {
+		catalog.DefaultMode = fresh.DefaultMode
+	}
+	if raw := agentJSON(catalog); raw != rt.Catalog {
 		rt.Catalog = raw
 		_ = uc.repo.SaveAgentRuntime(ctx, rt)
 		uc.configChanged()

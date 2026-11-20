@@ -115,6 +115,33 @@ var (
 		Columns:    AgentRuntimesColumns,
 		PrimaryKey: []*schema.Column{AgentRuntimesColumns[0]},
 	}
+	// AgentRuntimeModelsColumns holds the columns for the "agent_runtime_models" table.
+	AgentRuntimeModelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "runtime_id", Type: field.TypeString},
+		{Name: "model", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Default: ""},
+		{Name: "efforts", Type: field.TypeJSON, Nullable: true},
+		{Name: "default_effort", Type: field.TypeString, Default: ""},
+		{Name: "context_window", Type: field.TypeInt64, Default: 0},
+		{Name: "max_output", Type: field.TypeInt64, Default: 0},
+		{Name: "sort", Type: field.TypeInt, Default: 0},
+	}
+	// AgentRuntimeModelsTable holds the schema information for the "agent_runtime_models" table.
+	AgentRuntimeModelsTable = &schema.Table{
+		Name:       "agent_runtime_models",
+		Columns:    AgentRuntimeModelsColumns,
+		PrimaryKey: []*schema.Column{AgentRuntimeModelsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentruntimemodel_runtime_id_model",
+				Unique:  true,
+				Columns: []*schema.Column{AgentRuntimeModelsColumns[3], AgentRuntimeModelsColumns[4]},
+			},
+		},
+	}
 	// AgentSessionsColumns holds the columns for the "agent_sessions" table.
 	AgentSessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -1951,6 +1978,7 @@ var (
 		AgentMcpServersTable,
 		AgentProvidersTable,
 		AgentRuntimesTable,
+		AgentRuntimeModelsTable,
 		AgentSessionsTable,
 		AgentSkillsTable,
 		AgentWorkspacesTable,
@@ -2020,6 +2048,9 @@ func init() {
 	}
 	AgentRuntimesTable.Annotation = &entsql.Annotation{
 		Table: "agent_runtimes",
+	}
+	AgentRuntimeModelsTable.Annotation = &entsql.Annotation{
+		Table: "agent_runtime_models",
 	}
 	AgentSessionsTable.Annotation = &entsql.Annotation{
 		Table: "agent_sessions",

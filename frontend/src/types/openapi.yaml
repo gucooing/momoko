@@ -373,7 +373,7 @@ paths:
         post:
             tags:
                 - AgentService
-            description: 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+            description: 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
             operationId: AgentService_TestAgentProvider
             requestBody:
                 content:
@@ -429,6 +429,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DeleteAgentProviderResponse'
+    /api/v1/agent/providers/{id}/balance:
+        get:
+            tags:
+                - AgentService
+            description: 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
+            operationId: AgentService_GetAgentProviderBalance
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentProviderBalanceResponse'
     /api/v1/agent/runtimes:
         get:
             tags:
@@ -12645,6 +12664,20 @@ components:
                     type: string
                     description: ref：相对会话目录的路径
             description: 附件：图片和文件随消息上传，工作区里的文件用路径引用
+        v1.AgentBalance:
+            type: object
+            properties:
+                currency:
+                    type: string
+                total:
+                    type: string
+                granted:
+                    type: string
+                    description: 赠送的
+                toppedUp:
+                    type: string
+                    description: 充值的
+            description: 一种币种的余额；金额是接口给的十进制字符串
         v1.AgentCapabilities:
             type: object
             properties:
@@ -12885,7 +12918,7 @@ components:
                     type: string
                 vendor:
                     type: string
-                    description: 接口协议：anthropic（给 Claude 系）| openai（给 Codex 系）
+                    description: 供应商类型（AgentVendor.id），创建后不能改
                 name:
                     type: string
                 status:
@@ -12895,6 +12928,7 @@ components:
                     type: string
                 baseUrl:
                     type: string
+                    description: 用户填的接口地址；地址固定的类型为空
                 apiKey:
                     type: string
                     description: 只写；更新时留空表示保留原值
@@ -12942,7 +12976,28 @@ components:
                     description: api：ok | bad | untested
                 vendor:
                     type: string
-                    description: api：接口协议 anthropic | openai
+                    description: api：供应商类型（AgentVendor.id）
+        v1.AgentProviderTestResult:
+            type: object
+            properties:
+                protocol:
+                    type: string
+                    description: anthropic | openai
+                ok:
+                    type: boolean
+                error:
+                    type: string
+                    description: 失败的原因
+                latencyMs:
+                    type: string
+                reply:
+                    type: string
+                    description: 模型回的文字（不含思考过程）
+                inputTokens:
+                    type: string
+                outputTokens:
+                    type: string
+            description: 一种协议的测试结果
         v1.AgentRunSettings:
             type: object
             properties:
@@ -13230,6 +13285,24 @@ components:
                     type: string
                 username:
                     type: string
+        v1.AgentVendor:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: anthropic（Anthropic 兼容）| openai（OpenAI Responses 兼容）| deepseek（DeepSeek 官方）…
+                protocols:
+                    type: array
+                    items:
+                        type: string
+                    description: 能给哪些协议的 Agent 用：anthropic（Claude 系）| openai（Codex 系）
+                baseUrl:
+                    type: string
+                    description: 官方接口地址；不为空表示地址固定，不用填
+                balance:
+                    type: boolean
+                    description: 能查账户余额
+            description: 一种供应商类型：通用的兼容接口，或对某一家的专门适配
         v1.AgentWorkspace:
             type: object
             properties:
@@ -16630,7 +16703,7 @@ components:
                     type: string
                 vendor:
                     type: string
-                    description: anthropic | openai
+                    description: 供应商类型（AgentVendor.id）
                 baseUrl:
                     type: string
                 apiKey:
@@ -16641,7 +16714,8 @@ components:
                 models:
                     type: array
                     items:
-                        type: string
+                        $ref: '#/components/schemas/v1.AgentModel'
+                    description: 接口给了才有推理等级、最长上下文和最长输出（没给的为空或 0）
         v1.FetchIQCheckModelsRequest:
             type: object
             properties:
@@ -18086,6 +18160,19 @@ components:
                 notifyEnabled:
                     type: integer
                     format: int32
+        v1.GetAgentProviderBalanceResponse:
+            type: object
+            properties:
+                error:
+                    type: string
+                    description: 查询失败的原因；不为空时其余字段无意义
+                available:
+                    type: boolean
+                    description: 余额够不够继续调用
+                balances:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentBalance'
         v1.GetAgentSessionChangesResponse:
             type: object
             properties:
@@ -19970,6 +20057,11 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.AgentProvider'
+                vendors:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentVendor'
+                    description: 能添加的供应商类型
         v1.ListAgentRuntimesResponse:
             type: object
             properties:
@@ -24440,17 +24532,20 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/v1.AgentProvider'
                     description: 表单草稿；有它就测草稿
+                message:
+                    type: string
+                    description: 发给模型的消息；空 = hello
         v1.TestAgentProviderResponse:
             type: object
             properties:
-                ok:
-                    type: boolean
-                message:
-                    type: string
-                latencyMs:
-                    type: string
                 model:
                     type: string
+                    description: 用的哪个模型
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentProviderTestResult'
+                    description: 供应商给的每种协议一条
         v1.TestDockerConfigRequest:
             type: object
             properties:

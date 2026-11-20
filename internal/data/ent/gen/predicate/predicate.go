@@ -18,6 +18,9 @@ type AgentProvider func(*sql.Selector)
 // AgentRuntime is the predicate function for agentruntime builders.
 type AgentRuntime func(*sql.Selector)
 
+// AgentRuntimeModel is the predicate function for agentruntimemodel builders.
+type AgentRuntimeModel func(*sql.Selector)
+
 // AgentSession is the predicate function for agentsession builders.
 type AgentSession func(*sql.Selector)
 

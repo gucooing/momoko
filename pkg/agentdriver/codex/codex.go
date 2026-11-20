@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"momoko/pkg/agentdriver"
@@ -23,9 +22,9 @@ type Driver struct{}
 
 var _ agentdriver.Driver = Driver{}
 
-func (Driver) Kind() string    { return Kind }
-func (Driver) Vendor() string  { return "openai" }
-func (Driver) Adapter() string { return "codex-acp" }
+func (Driver) Kind() string     { return Kind }
+func (Driver) Protocol() string { return "openai" }
+func (Driver) Adapter() string  { return "codex-acp" }
 
 func (Driver) Detect(agentName string) bool {
 	return strings.Contains(strings.ToLower(agentName), "codex")
@@ -43,8 +42,17 @@ func (Driver) Home() string {
 	return filepath.Join(home, ".codex")
 }
 
+// contextLimits 最长上下文写进 Codex 配置：model_context_window，Codex 会把它夹到服务端给这个模型的上限（max_context_window）；
+// 自动压缩阈值 model_auto_compact_token_limit 一起设成它的 90%（Codex 允许的最大值），不然还会按服务端给这个模型的阈值提前压缩。
+func contextLimits(cfg map[string]any, contextWindow int64) {
+	if contextWindow > 0 {
+		cfg["model_context_window"] = contextWindow
+		cfg["model_auto_compact_token_limit"] = contextWindow * 9 / 10
+	}
+}
+
 // APIEnv 通过 CODEX_CONFIG 声明一个叫 momoko 的 model provider，密钥放在它指定的环境变量里；推理等级是 model_reasoning_effort，
-// 最长上下文是 model_context_window。Codex 没有设定最长输出的配置，模型目录里的这一项不交给它。
+// 最长上下文见 contextLimits。Codex 没有设定最长输出的配置，模型目录里的这一项不交给它。
 func (Driver) APIEnv(api agentdriver.API) map[string]string {
 	cfg := map[string]any{
 		"model":          api.Model,
@@ -61,9 +69,7 @@ func (Driver) APIEnv(api agentdriver.API) map[string]string {
 	if api.HasLevel && api.Level != "" {
 		cfg["model_reasoning_effort"] = api.Level
 	}
-	if api.ContextWindow > 0 {
-		cfg["model_context_window"] = api.ContextWindow
-	}
+	contextLimits(cfg, api.ContextWindow)
 	raw, _ := json.Marshal(cfg)
 	env := map[string]string{
 		"CODEX_CONFIG":            string(raw),
@@ -80,13 +86,16 @@ func (Driver) APIEnv(api agentdriver.API) map[string]string {
 	return env
 }
 
-// LoginLimits 最长上下文用启动参数 -c model_context_window=<n> 覆盖配置（codex-acp 认 -c 覆盖项）；
-// Codex 没有设定最长输出的配置，maxOutput 不用。
-func (Driver) LoginLimits(contextWindow, _ int64) (map[string]string, []string) {
+// LoginLimits codex-acp 不读自己的启动参数（-c 覆盖项到不了 Codex），配置只认 CODEX_CONFIG：一段 JSON，
+// 作为每个会话的配置覆盖交给 Codex。最长上下文见 contextLimits；Codex 没有设定最长输出的配置，maxOutput 不用。
+func (Driver) LoginLimits(contextWindow, _ int64) map[string]string {
 	if contextWindow <= 0 {
-		return nil, nil
+		return nil
 	}
-	return nil, []string{"-c", "model_context_window=" + strconv.FormatInt(contextWindow, 10)}
+	cfg := map[string]any{}
+	contextLimits(cfg, contextWindow)
+	raw, _ := json.Marshal(cfg)
+	return map[string]string{"CODEX_CONFIG": string(raw)}
 }
 
 // RemoveTranscript 会话记录按日期分目录放在 sessions 下（归档的在 archived_sessions 下），文件名以会话 id 结尾；

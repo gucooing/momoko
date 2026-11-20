@@ -77,8 +77,8 @@ export default {
       },
       // 第三方接口协议
       protocol: {
-        anthropic: 'Anthropic 兼容',
-        openai: 'OpenAI 兼容',
+        anthropic: 'Anthropic Messages 接口',
+        openai: 'OpenAI Responses 接口',
       },
       vendor: {
         anthropic: 'Anthropic',
@@ -177,8 +177,8 @@ export default {
         archived: '已封存',
       },
       protocol: {
-        anthropic: 'Anthropic 兼容',
-        openai: 'OpenAI 兼容',
+        anthropic: 'Anthropic Messages 介面',
+        openai: 'OpenAI Responses 介面',
       },
       vendor: {
         anthropic: 'Anthropic',
@@ -275,8 +275,8 @@ export default {
         archived: 'Archived',
       },
       protocol: {
-        anthropic: 'Anthropic compatible',
-        openai: 'OpenAI compatible',
+        anthropic: 'Anthropic Messages API',
+        openai: 'OpenAI Responses API',
       },
       vendor: {
         anthropic: 'Anthropic',

@@ -15,6 +15,10 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	"momoko/pkg/agentapi"
+	"momoko/pkg/agentapi/anthropic"
+	"momoko/pkg/agentapi/deepseek"
+	"momoko/pkg/agentapi/openai"
 	"momoko/pkg/agentdriver"
 	"momoko/pkg/agentdriver/claude"
 	"momoko/pkg/agentdriver/codex"
@@ -92,12 +96,31 @@ type AgentUser struct {
 	ID, Name, Username string
 }
 
+// AgentModelLimit 用户给服务器上的登录里一个模型设的最长上下文和最长输出（token 数，0 = 用 Agent 自己的）。
+type AgentModelLimit struct {
+	Model         string
+	ContextWindow int64
+	MaxOutput     int64
+}
+
+// agentRuntimeCatalog 运行时上记的 Agent 可选项：权限模式、默认权限模式、默认模型。模型在 agent_runtime_models 表里。
+type agentRuntimeCatalog struct {
+	Modes        []agentrun.Choice `json:"modes,omitempty"`
+	DefaultMode  string            `json:"defaultMode,omitempty"`
+	DefaultModel string            `json:"defaultModel,omitempty"`
+}
+
 type AgentRepo interface {
 	ListAgentRuntimes(ctx context.Context) ([]*gen.AgentRuntime, error)
 	GetAgentRuntime(ctx context.Context, id string) (*gen.AgentRuntime, error)
 	CountAgentRuntimes(ctx context.Context) (int, error)
 	SaveAgentRuntime(ctx context.Context, rt *gen.AgentRuntime) error
 	DeleteAgentRuntime(ctx context.Context, id string) error
+
+	SyncAgentRuntimeModels(ctx context.Context, runtimeID string, models []*gen.AgentRuntimeModel) error
+	ListAgentRuntimeModels(ctx context.Context, runtimeIDs ...string) ([]*gen.AgentRuntimeModel, error)
+	GetAgentRuntimeModel(ctx context.Context, runtimeID, model string) (*gen.AgentRuntimeModel, error)
+	SetAgentRuntimeModelLimits(ctx context.Context, runtimeID string, limits []AgentModelLimit) error
 
 	ListAgentProviders(ctx context.Context) ([]*gen.AgentProvider, error)
 	GetAgentProvider(ctx context.Context, id string) (*gen.AgentProvider, error)
@@ -166,6 +189,8 @@ type AgentUsecase struct {
 	root string
 	// drivers 认得出的各系 Agent；认不出的用 agentdriver.Generic。
 	drivers []agentdriver.Driver
+	// vendors 能添加的供应商类型，按添加时列出的顺序。
+	vendors []agentapi.Vendor
 
 	hub   *agenthub.Hub
 	pool  *agentrun.Pool[*agentLive]
@@ -195,6 +220,7 @@ func NewAgentUsecase(repo AgentRepo, config ConfigRepo, authRepo AuthRepo, syste
 		log:        log.NewHelper(log.With(logger, "module", "agent")),
 		root:       root,
 		drivers:    []agentdriver.Driver{claude.Driver{}, codex.Driver{}},
+		vendors:    []agentapi.Vendor{anthropic.Vendor{}, openai.Vendor{}, deepseek.Vendor{}},
 		hub:        agenthub.New(),
 		installing: make(map[string]bool),
 		approvals:  newAgentApprovals(),
@@ -279,14 +305,20 @@ func (uc *AgentUsecase) driverOf(kind string) agentdriver.Driver {
 	return agentdriver.Generic{}
 }
 
-// driverForVendor 能接某种接口协议（anthropic / openai）的那一系。
-func (uc *AgentUsecase) driverForVendor(vendor string) (agentdriver.Driver, bool) {
-	for _, d := range uc.drivers {
-		if d.Vendor() == vendor {
-			return d, true
+// vendorOf 某种供应商类型；认不出的 ok 为 false。
+func (uc *AgentUsecase) vendorOf(id string) (agentapi.Vendor, bool) {
+	for _, v := range uc.vendors {
+		if v.ID() == id {
+			return v, true
 		}
 	}
 	return nil, false
+}
+
+// serves 这个供应商能不能给这一系 Agent 用：它的类型给不给这一系的协议。
+func (uc *AgentUsecase) serves(p *gen.AgentProvider, d agentdriver.Driver) bool {
+	v, ok := uc.vendorOf(p.Vendor)
+	return ok && agentapi.Serves(v, d.Protocol())
 }
 
 // agentErr 把 pkg 返回的错误变成给用户看的业务错误。
@@ -394,7 +426,7 @@ func (uc *AgentUsecase) loadNames(ctx context.Context) *agentNames {
 	for _, rt := range rts {
 		names.runtimes[rt.ID] = rt
 		modes := map[string]string{}
-		for _, m := range agentParse[agentrun.Catalog](rt.Catalog).Modes {
+		for _, m := range agentParse[agentRuntimeCatalog](rt.Catalog).Modes {
 			modes[m.ID] = m.Name
 		}
 		names.modes[rt.ID] = modes
@@ -428,7 +460,7 @@ func (n *agentNames) runtime(id string) (name, kind string) {
 	return "", "custom"
 }
 
-// provider 供应商的名称、种类（api / system）和接口协议；没有供应商（服务器上的登录）时名称是检查时 Agent 报的账号。
+// provider 供应商的名称、种类（api / system）和供应商类型；没有供应商（服务器上的登录）时名称是检查时 Agent 报的账号。
 func (n *agentNames) provider(runtimeID, providerID string) (name, kind, vendor string) {
 	if p := n.providers[providerID]; p != nil {
 		return p.Name, "api", p.Vendor
@@ -456,15 +488,33 @@ func agentChoicesPB(in []agentrun.Choice) []*v1.AgentChoice {
 	return out
 }
 
-func agentModelsPB(in []agentrun.CatalogModel) []*v1.AgentModelOption {
+// agentModelsPB 服务器上的登录能用的模型。
+func agentModelsPB(in []*gen.AgentRuntimeModel) []*v1.AgentModelOption {
 	out := make([]*v1.AgentModelOption, 0, len(in))
 	for _, m := range in {
-		out = append(out, &v1.AgentModelOption{
-			Id: m.ID, Name: m.Name, Efforts: agentChoicesPB(m.Efforts), DefaultEffort: m.DefaultEffort,
+		opt := &v1.AgentModelOption{
+			Id: m.Model, Name: m.Name, DefaultEffort: m.DefaultEffort,
 			ContextWindow: m.ContextWindow, MaxOutput: m.MaxOutput,
-		})
+		}
+		for _, e := range m.Efforts {
+			opt.Efforts = append(opt.Efforts, &v1.AgentChoice{Id: e.ID, Name: e.Name, Description: e.Description})
+		}
+		out = append(out, opt)
 	}
 	return out
+}
+
+// agentModelsByRuntime 这些运行时的模型，按运行时分好。
+func (uc *AgentUsecase) agentModelsByRuntime(ctx context.Context, runtimeIDs ...string) (map[string][]*gen.AgentRuntimeModel, error) {
+	rows, err := uc.repo.ListAgentRuntimeModels(ctx, runtimeIDs...)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	out := make(map[string][]*gen.AgentRuntimeModel, len(runtimeIDs))
+	for _, m := range rows {
+		out[m.RuntimeID] = append(out[m.RuntimeID], m)
+	}
+	return out, nil
 }
 
 func agentCapsPB(c agentrun.Caps) *v1.AgentCapabilities {
@@ -477,7 +527,7 @@ func agentCapsPB(c agentrun.Caps) *v1.AgentCapabilities {
 
 // GetOptions 每个 Agent 下能选的供应商、模型、推理强度和权限模式：
 //   - 服务器上的登录：用户自己在服务器上登录命令行，最近一次检查时登录着才有；模型和推理强度是检查时 Agent 给的；
-//   - 第三方接口：接口协议对得上这个 Agent 的，模型和推理等级是模型目录里声明的。
+//   - 第三方接口：供应商类型给这一系协议的，模型和推理等级是模型目录里声明的。
 func (uc *AgentUsecase) GetOptions(ctx context.Context) (*v1.GetAgentOptionsResponse, error) {
 	if _, err := agentUserID(ctx); err != nil {
 		return nil, err
@@ -490,9 +540,17 @@ func (uc *AgentUsecase) GetOptions(ctx context.Context) (*v1.GetAgentOptionsResp
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
+	ids := make([]string, 0, len(runtimes))
+	for _, rt := range runtimes {
+		ids = append(ids, rt.ID)
+	}
+	models, err := uc.agentModelsByRuntime(ctx, ids...)
+	if err != nil {
+		return nil, err
+	}
 	resp := &v1.GetAgentOptionsResponse{}
 	for _, rt := range runtimes {
-		catalog := agentParse[agentrun.Catalog](rt.Catalog)
+		catalog := agentParse[agentRuntimeCatalog](rt.Catalog)
 		item := &v1.AgentRuntimeOptions{
 			RuntimeId:   rt.ID,
 			RuntimeName: rt.Name,
@@ -506,15 +564,14 @@ func (uc *AgentUsecase) GetOptions(ctx context.Context) (*v1.GetAgentOptionsResp
 			item.Providers = append(item.Providers, &v1.AgentProviderOptions{
 				Name:         rt.AuthLabel,
 				Kind:         "system",
-				Models:       agentModelsPB(catalog.Models),
+				Models:       agentModelsPB(models[rt.ID]),
 				DefaultModel: catalog.DefaultModel,
 			})
 		}
-		if vendor := uc.driverOf(string(rt.Kind)).Vendor(); vendor != "" {
-			for _, p := range providers {
-				if p.Vendor == vendor {
-					item.Providers = append(item.Providers, agentProviderOptions(p))
-				}
+		d := uc.driverOf(string(rt.Kind))
+		for _, p := range providers {
+			if uc.serves(p, d) {
+				item.Providers = append(item.Providers, agentProviderOptions(p))
 			}
 		}
 		resp.Runtimes = append(resp.Runtimes, item)

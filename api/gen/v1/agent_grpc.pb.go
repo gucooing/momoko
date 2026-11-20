@@ -56,6 +56,7 @@ const (
 	AgentService_DeleteAgentProvider_FullMethodName          = "/v1.AgentService/DeleteAgentProvider"
 	AgentService_TestAgentProvider_FullMethodName            = "/v1.AgentService/TestAgentProvider"
 	AgentService_FetchAgentProviderModels_FullMethodName     = "/v1.AgentService/FetchAgentProviderModels"
+	AgentService_GetAgentProviderBalance_FullMethodName      = "/v1.AgentService/GetAgentProviderBalance"
 	AgentService_ListAgentMcpServers_FullMethodName          = "/v1.AgentService/ListAgentMcpServers"
 	AgentService_CreateAgentMcpServer_FullMethodName         = "/v1.AgentService/CreateAgentMcpServer"
 	AgentService_UpdateAgentMcpServer_FullMethodName         = "/v1.AgentService/UpdateAgentMcpServer"
@@ -157,10 +158,12 @@ type AgentServiceClient interface {
 	CreateAgentProvider(ctx context.Context, in *CreateAgentProviderRequest, opts ...grpc.CallOption) (*CreateAgentProviderResponse, error)
 	UpdateAgentProvider(ctx context.Context, in *UpdateAgentProviderRequest, opts ...grpc.CallOption) (*UpdateAgentProviderResponse, error)
 	DeleteAgentProvider(ctx context.Context, in *DeleteAgentProviderRequest, opts ...grpc.CallOption) (*DeleteAgentProviderResponse, error)
-	// 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+	// 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(ctx context.Context, in *TestAgentProviderRequest, opts ...grpc.CallOption) (*TestAgentProviderResponse, error)
 	// 获取可用模型
 	FetchAgentProviderModels(ctx context.Context, in *FetchAgentProviderModelsRequest, opts ...grpc.CallOption) (*FetchAgentProviderModelsResponse, error)
+	// 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
+	GetAgentProviderBalance(ctx context.Context, in *GetAgentProviderBalanceRequest, opts ...grpc.CallOption) (*GetAgentProviderBalanceResponse, error)
 	// —— MCP ——
 	ListAgentMcpServers(ctx context.Context, in *ListAgentMcpServersRequest, opts ...grpc.CallOption) (*ListAgentMcpServersResponse, error)
 	CreateAgentMcpServer(ctx context.Context, in *CreateAgentMcpServerRequest, opts ...grpc.CallOption) (*CreateAgentMcpServerResponse, error)
@@ -585,6 +588,16 @@ func (c *agentServiceClient) FetchAgentProviderModels(ctx context.Context, in *F
 	return out, nil
 }
 
+func (c *agentServiceClient) GetAgentProviderBalance(ctx context.Context, in *GetAgentProviderBalanceRequest, opts ...grpc.CallOption) (*GetAgentProviderBalanceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentProviderBalanceResponse)
+	err := c.cc.Invoke(ctx, AgentService_GetAgentProviderBalance_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) ListAgentMcpServers(ctx context.Context, in *ListAgentMcpServersRequest, opts ...grpc.CallOption) (*ListAgentMcpServersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListAgentMcpServersResponse)
@@ -927,10 +940,12 @@ type AgentServiceServer interface {
 	CreateAgentProvider(context.Context, *CreateAgentProviderRequest) (*CreateAgentProviderResponse, error)
 	UpdateAgentProvider(context.Context, *UpdateAgentProviderRequest) (*UpdateAgentProviderResponse, error)
 	DeleteAgentProvider(context.Context, *DeleteAgentProviderRequest) (*DeleteAgentProviderResponse, error)
-	// 测试连接：id 不为空时测已保存的，否则测表单里的草稿（api_key 为空且有 id 时用已保存的）
+	// 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(context.Context, *TestAgentProviderRequest) (*TestAgentProviderResponse, error)
 	// 获取可用模型
 	FetchAgentProviderModels(context.Context, *FetchAgentProviderModelsRequest) (*FetchAgentProviderModelsResponse, error)
+	// 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
+	GetAgentProviderBalance(context.Context, *GetAgentProviderBalanceRequest) (*GetAgentProviderBalanceResponse, error)
 	// —— MCP ——
 	ListAgentMcpServers(context.Context, *ListAgentMcpServersRequest) (*ListAgentMcpServersResponse, error)
 	CreateAgentMcpServer(context.Context, *CreateAgentMcpServerRequest) (*CreateAgentMcpServerResponse, error)
@@ -1095,6 +1110,9 @@ func (UnimplementedAgentServiceServer) TestAgentProvider(context.Context, *TestA
 }
 func (UnimplementedAgentServiceServer) FetchAgentProviderModels(context.Context, *FetchAgentProviderModelsRequest) (*FetchAgentProviderModelsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FetchAgentProviderModels not implemented")
+}
+func (UnimplementedAgentServiceServer) GetAgentProviderBalance(context.Context, *GetAgentProviderBalanceRequest) (*GetAgentProviderBalanceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentProviderBalance not implemented")
 }
 func (UnimplementedAgentServiceServer) ListAgentMcpServers(context.Context, *ListAgentMcpServersRequest) (*ListAgentMcpServersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAgentMcpServers not implemented")
@@ -1864,6 +1882,24 @@ func _AgentService_FetchAgentProviderModels_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_GetAgentProviderBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentProviderBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).GetAgentProviderBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_GetAgentProviderBalance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).GetAgentProviderBalance(ctx, req.(*GetAgentProviderBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_ListAgentMcpServers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAgentMcpServersRequest)
 	if err := dec(in); err != nil {
@@ -2504,6 +2540,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FetchAgentProviderModels",
 			Handler:    _AgentService_FetchAgentProviderModels_Handler,
+		},
+		{
+			MethodName: "GetAgentProviderBalance",
+			Handler:    _AgentService_GetAgentProviderBalance_Handler,
 		},
 		{
 			MethodName: "ListAgentMcpServers",

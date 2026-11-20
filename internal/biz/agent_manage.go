@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -113,6 +114,8 @@ func (uc *AgentUsecase) detectRuntime(ctx context.Context, rt *gen.AgentRuntime)
 	now := time.Now()
 	rt.DetectedAt = &now
 	launch, err := uc.runtimeLaunch(rt)
+	var models []*gen.AgentRuntimeModel
+	synced := false
 	if err == nil {
 		tmp := filepath.Join(uc.root, "tmp", "probe-"+uuid.NewString()[:8])
 		var result *agentrun.ProbeResult
@@ -135,8 +138,12 @@ func (uc *AgentUsecase) detectRuntime(ctx context.Context, rt *gen.AgentRuntime)
 			if result.AuthOK {
 				rt.AuthLabel, rt.AuthDetail = result.Auth.Label, result.Auth.Description
 			}
+			// 检查登录就是一次同步：权限模式和默认模型记在运行时上，模型写进模型表
 			if !result.NeedAuth {
-				rt.Catalog = agentJSON(agentrun.MergeCatalog(agentParse[agentrun.Catalog](rt.Catalog), result.Catalog, false))
+				rt.Catalog = agentJSON(agentRuntimeCatalog{
+					Modes: result.Catalog.Modes, DefaultMode: result.Catalog.DefaultMode, DefaultModel: result.Catalog.DefaultModel,
+				})
+				models, synced = runtimeModels(result.Catalog.Models), true
 			}
 		}
 	}
@@ -146,8 +153,26 @@ func (uc *AgentUsecase) detectRuntime(ctx context.Context, rt *gen.AgentRuntime)
 	if err := uc.repo.SaveAgentRuntime(bg, rt); err != nil {
 		return nil, ErrSystem(err)
 	}
+	if synced {
+		if err := uc.repo.SyncAgentRuntimeModels(bg, rt.ID, models); err != nil {
+			return nil, ErrSystem(err)
+		}
+	}
 	uc.configChanged()
 	return rt, nil
+}
+
+// runtimeModels 检查时 Agent 给的模型，按它列出的顺序。
+func runtimeModels(in []agentrun.CatalogModel) []*gen.AgentRuntimeModel {
+	out := make([]*gen.AgentRuntimeModel, 0, len(in))
+	for i, m := range in {
+		efforts := make([]schema.AgentChoice, 0, len(m.Efforts))
+		for _, e := range m.Efforts {
+			efforts = append(efforts, schema.AgentChoice{ID: e.ID, Name: e.Name, Description: e.Description})
+		}
+		out = append(out, &gen.AgentRuntimeModel{Model: m.ID, Name: m.Name, Efforts: efforts, DefaultEffort: m.DefaultEffort, Sort: i})
+	}
+	return out
 }
 
 // activeByRuntime 每个运行时现在有多少个会话的进程在跑。
@@ -159,7 +184,16 @@ func (uc *AgentUsecase) activeByRuntime() map[string]int {
 	return out
 }
 
-func (uc *AgentUsecase) runtimePB(rt *gen.AgentRuntime, active map[string]int) *v1.AgentRuntime {
+// runtimeOut 一个运行时连同它的模型。
+func (uc *AgentUsecase) runtimeOut(ctx context.Context, rt *gen.AgentRuntime, active map[string]int) (*v1.AgentRuntime, error) {
+	models, err := uc.agentModelsByRuntime(ctx, rt.ID)
+	if err != nil {
+		return nil, err
+	}
+	return uc.runtimePB(rt, models[rt.ID], active), nil
+}
+
+func (uc *AgentUsecase) runtimePB(rt *gen.AgentRuntime, models []*gen.AgentRuntimeModel, active map[string]int) *v1.AgentRuntime {
 	_, builtin := uc.builtinDriver(rt.ID)
 	_, canInstall := uc.release(rt.ID)
 	out := &v1.AgentRuntime{
@@ -178,7 +212,7 @@ func (uc *AgentUsecase) runtimePB(rt *gen.AgentRuntime, active map[string]int) *
 		AuthLabel:      rt.AuthLabel,
 		AuthDetail:     rt.AuthDetail,
 		LoggedIn:       rt.LoggedIn,
-		Models:         agentModelsPB(agentParse[agentrun.Catalog](rt.Catalog).Models),
+		Models:         agentModelsPB(models),
 	}
 	if launch, err := uc.runtimeLaunch(rt); err == nil {
 		out.Command, out.Args = launch.Command, launch.Args
@@ -202,10 +236,18 @@ func (uc *AgentUsecase) ListRuntimes(ctx context.Context) (*v1.ListAgentRuntimes
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
+	ids := make([]string, 0, len(rts))
+	for _, rt := range rts {
+		ids = append(ids, rt.ID)
+	}
+	models, err := uc.agentModelsByRuntime(ctx, ids...)
+	if err != nil {
+		return nil, err
+	}
 	active := uc.activeByRuntime()
 	resp := &v1.ListAgentRuntimesResponse{Settings: uc.runSettings(ctx)}
 	for _, rt := range rts {
-		resp.Runtimes = append(resp.Runtimes, uc.runtimePB(rt, active))
+		resp.Runtimes = append(resp.Runtimes, uc.runtimePB(rt, models[rt.ID], active))
 	}
 	return resp, nil
 }
@@ -229,7 +271,7 @@ func (uc *AgentUsecase) DetectRuntime(ctx context.Context, id string) (*v1.Agent
 	if rt, err = uc.detectRuntime(ctx, rt); err != nil {
 		return nil, err
 	}
-	return uc.runtimePB(rt, uc.activeByRuntime()), nil
+	return uc.runtimeOut(ctx, rt, uc.activeByRuntime())
 }
 
 // install 下载最新的适配器；同一个运行时同时只装一次，有会话在用时不换。
@@ -275,7 +317,7 @@ func (uc *AgentUsecase) SetRuntimeMode(ctx context.Context, id string, managed b
 	if rt, err = uc.detectRuntime(ctx, rt); err != nil {
 		return nil, err
 	}
-	return uc.runtimePB(rt, uc.activeByRuntime()), nil
+	return uc.runtimeOut(ctx, rt, uc.activeByRuntime())
 }
 
 // UpdateRuntime 检查更新（只有能由 Momoko 下载的才有）。由 Momoko 下载的直接更新到最新版本；
@@ -312,7 +354,9 @@ func (uc *AgentUsecase) UpdateRuntime(ctx context.Context, id string) (*v1.Updat
 			}
 		}
 	}
-	resp.Runtime = uc.runtimePB(rt, uc.activeByRuntime())
+	if resp.Runtime, err = uc.runtimeOut(ctx, rt, uc.activeByRuntime()); err != nil {
+		return nil, err
+	}
 	return resp, nil
 }
 
@@ -333,7 +377,7 @@ func (uc *AgentUsecase) CreateRuntime(ctx context.Context, name, command string)
 	if rt, err = uc.detectRuntime(ctx, rt); err != nil {
 		return nil, err
 	}
-	return uc.runtimePB(rt, nil), nil
+	return uc.runtimeOut(ctx, rt, nil)
 }
 
 func (uc *AgentUsecase) DeleteRuntime(ctx context.Context, id string) error {
@@ -447,16 +491,29 @@ func (uc *AgentUsecase) providerPB(p *gen.AgentProvider) *v1.AgentProvider {
 	return out
 }
 
-func (uc *AgentUsecase) ListProviders(ctx context.Context) ([]*v1.AgentProvider, error) {
+// vendorPB 一种供应商类型：给哪些协议、地址固不固定、能不能查余额。
+func vendorPB(v agentapi.Vendor) *v1.AgentVendor {
+	_, balance := v.(agentapi.Balancer)
+	return &v1.AgentVendor{Id: v.ID(), Protocols: v.Protocols(), BaseUrl: v.BaseURL(), Balance: balance}
+}
+
+// ListProviders 已添加的供应商，和能添加的供应商类型。
+func (uc *AgentUsecase) ListProviders(ctx context.Context) (*v1.ListAgentProvidersResponse, error) {
 	rows, err := uc.repo.ListAgentProviders(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	out := make([]*v1.AgentProvider, 0, len(rows))
-	for _, p := range rows {
-		out = append(out, uc.providerPB(p))
+	resp := &v1.ListAgentProvidersResponse{
+		Providers: make([]*v1.AgentProvider, 0, len(rows)),
+		Vendors:   make([]*v1.AgentVendor, 0, len(uc.vendors)),
 	}
-	return out, nil
+	for _, p := range rows {
+		resp.Providers = append(resp.Providers, uc.providerPB(p))
+	}
+	for _, v := range uc.vendors {
+		resp.Vendors = append(resp.Vendors, vendorPB(v))
+	}
+	return resp, nil
 }
 
 func (uc *AgentUsecase) getProvider(ctx context.Context, id string) (*gen.AgentProvider, error) {
@@ -502,21 +559,28 @@ func agentModel(in *v1.AgentModel) schema.AgentModel {
 	return model
 }
 
-// applyAPIProvider 把表单里的第三方接口配置写到记录上；API Key 留空表示保留原值。
+// errUnknownVendor 不认识的供应商类型。
+var errUnknownVendor = response.BadRequest("不认识这种供应商类型")
+
+// applyAPIProvider 把表单里的配置写到记录上：类型只在创建时定，地址固定的类型不记地址，API Key 留空表示保留原值。
 func (uc *AgentUsecase) applyAPIProvider(p *gen.AgentProvider, in *v1.AgentProvider, creating bool) error {
 	name := strings.TrimSpace(in.GetName())
 	if name == "" {
 		return response.BadRequest("先填一个名称")
 	}
-	baseURL := strings.TrimRight(strings.TrimSpace(in.GetBaseUrl()), "/")
-	if u, err := url.Parse(baseURL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		return response.BadRequest("接口地址要以 http:// 或 https:// 开头")
-	}
 	if creating {
-		if _, ok := uc.driverForVendor(in.Vendor); !ok {
-			return response.BadRequest("接口协议只能是 Anthropic 兼容或 OpenAI 兼容")
+		p.Vendor = in.GetVendor()
+	}
+	v, ok := uc.vendorOf(p.Vendor)
+	if !ok {
+		return errUnknownVendor
+	}
+	baseURL := ""
+	if v.BaseURL() == "" {
+		baseURL = strings.TrimRight(strings.TrimSpace(in.GetBaseUrl()), "/")
+		if u, err := url.Parse(baseURL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			return response.BadRequest("接口地址要以 http:// 或 https:// 开头")
 		}
-		p.Vendor = in.Vendor
 	}
 	if key := strings.TrimSpace(in.GetApiKey()); key != "" {
 		p.APIKey = uc.encrypt(key)
@@ -542,8 +606,9 @@ func (uc *AgentUsecase) applyAPIProvider(p *gen.AgentProvider, in *v1.AgentProvi
 		}
 		return ""
 	}
+	// 快速模型（起标题、做摘要）只有 Claude 系用
 	p.MainModel, p.FastModel = pick(in.MainModel), ""
-	if p.Vendor == agentapi.Anthropic {
+	if agentapi.Serves(v, agentapi.ProtocolAnthropic) {
 		p.FastModel = p.MainModel
 		if strings.TrimSpace(in.FastModel) != "" {
 			p.FastModel = pick(in.FastModel)
@@ -604,21 +669,19 @@ func (uc *AgentUsecase) DeleteProvider(ctx context.Context, id string) error {
 	return nil
 }
 
-// draftProvider 「测试连接」「获取可用模型」用的配置：表单里的草稿，留空的地址和密钥用已保存的。
-func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, apiKey string) (string, string, string, *gen.AgentProvider, error) {
+// draftProvider 测试、获取可用模型用的配置：表单里的草稿，留空的地址和密钥用已保存的；已保存的类型不能改。
+func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, apiKey string) (agentapi.Vendor, agentapi.Conn, *gen.AgentProvider, error) {
 	var stored *gen.AgentProvider
 	if id != "" {
 		p, err := uc.getProvider(ctx, id)
 		if err != nil {
-			return "", "", "", nil, err
+			return nil, agentapi.Conn{}, nil, err
 		}
 		stored = p
 	}
 	baseURL, apiKey = strings.TrimRight(strings.TrimSpace(baseURL), "/"), strings.TrimSpace(apiKey)
 	if stored != nil {
-		if vendor == "" {
-			vendor = stored.Vendor
-		}
+		vendor = stored.Vendor
 		if baseURL == "" {
 			baseURL = stored.BaseURL
 		}
@@ -626,22 +689,26 @@ func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, 
 			apiKey = uc.decrypt(stored.APIKey)
 		}
 	}
-	if baseURL == "" {
-		return "", "", "", nil, response.BadRequest("先填接口地址")
+	v, ok := uc.vendorOf(vendor)
+	if !ok {
+		return nil, agentapi.Conn{}, nil, errUnknownVendor
+	}
+	if v.BaseURL() != "" {
+		baseURL = ""
+	} else if baseURL == "" {
+		return nil, agentapi.Conn{}, nil, response.BadRequest("先填接口地址")
 	}
 	if apiKey == "" {
-		return "", "", "", nil, response.BadRequest("先填 API Key")
+		return nil, agentapi.Conn{}, nil, response.BadRequest("先填 API Key")
 	}
-	if _, ok := uc.driverForVendor(vendor); !ok {
-		return "", "", "", nil, response.BadRequest("接口协议只能是 Anthropic 兼容或 OpenAI 兼容")
-	}
-	return vendor, baseURL, apiKey, stored, nil
+	return v, agentapi.Conn{BaseURL: baseURL, APIKey: apiKey}, stored, nil
 }
 
-// TestProvider 测试连接。测的是已保存的那一份时，把结果记到记录上。
+// TestProvider 用主模型发一条消息（空 = hello），供应商给的每种协议同时各发一次。
+// 测的是已保存的那一份时，把结果记到记录上：都通才算正常，耗时记最慢的一种。
 func (uc *AgentUsecase) TestProvider(ctx context.Context, req *v1.TestAgentProviderRequest) (*v1.TestAgentProviderResponse, error) {
 	draft := req.GetDraft()
-	vendor, baseURL, apiKey, stored, err := uc.draftProvider(ctx, req.GetId(), draft.GetVendor(), draft.GetBaseUrl(), draft.GetApiKey())
+	v, conn, stored, err := uc.draftProvider(ctx, req.GetId(), draft.GetVendor(), draft.GetBaseUrl(), draft.GetApiKey())
 	if err != nil {
 		return nil, err
 	}
@@ -655,34 +722,93 @@ func (uc *AgentUsecase) TestProvider(ctx context.Context, req *v1.TestAgentProvi
 	if model == "" {
 		return nil, response.BadRequest("模型目录里还没有模型，先添加一个")
 	}
-	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 45*time.Second)
-	defer cancel()
-	latency, testErr := agentapi.Test(bg, vendor, baseURL, apiKey, model)
-	resp := &v1.TestAgentProviderResponse{Model: model, LatencyMs: latency.Milliseconds(), Ok: testErr == nil}
-	if testErr != nil {
-		resp.Message = testErr.Error()
+	message := strings.TrimSpace(req.GetMessage())
+	if message == "" {
+		message = "hello"
 	}
-	if stored != nil && baseURL == stored.BaseURL && apiKey == uc.decrypt(stored.APIKey) {
+	// 页面上的请求两分钟超时，这里要先结束
+	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 110*time.Second)
+	defer cancel()
+	protocols := v.Protocols()
+	results := make([]*v1.AgentProviderTestResult, len(protocols))
+	var wg sync.WaitGroup
+	for i, protocol := range protocols {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			started := time.Now()
+			reply, err := v.Test(bg, protocol, conn, model, message)
+			r := &v1.AgentProviderTestResult{
+				Protocol: protocol, Ok: err == nil, LatencyMs: time.Since(started).Milliseconds(),
+				Reply: reply.Text, InputTokens: reply.InputTokens, OutputTokens: reply.OutputTokens,
+			}
+			if err != nil {
+				r.Error = err.Error()
+			}
+			results[i] = r
+		}()
+	}
+	wg.Wait()
+	if stored != nil && conn.BaseURL == stored.BaseURL && conn.APIKey == uc.decrypt(stored.APIKey) {
 		now := time.Now()
-		stored.TestedAt, stored.TestLatencyMs = &now, resp.LatencyMs
+		stored.TestedAt, stored.TestLatencyMs = &now, 0
 		stored.Status, stored.StatusText = "ok", ""
-		if !resp.Ok {
-			stored.Status, stored.StatusText = "bad", resp.Message
+		for _, r := range results {
+			stored.TestLatencyMs = max(stored.TestLatencyMs, r.LatencyMs)
+			if !r.Ok && stored.Status == "ok" {
+				stored.Status, stored.StatusText = "bad", r.Error
+			}
 		}
 		_ = uc.saveProvider(context.WithoutCancel(ctx), stored)
 	}
-	return resp, nil
+	return &v1.TestAgentProviderResponse{Model: model, Results: results}, nil
 }
 
-func (uc *AgentUsecase) FetchProviderModels(ctx context.Context, req *v1.FetchAgentProviderModelsRequest) ([]string, error) {
-	vendor, baseURL, apiKey, _, err := uc.draftProvider(ctx, req.GetId(), req.GetVendor(), req.GetBaseUrl(), req.GetApiKey())
+// FetchProviderModels 从接口拉可用模型；接口给了推理强度、最长上下文和最长输出的一并带上（推理等级的参数值就是等级名）。
+func (uc *AgentUsecase) FetchProviderModels(ctx context.Context, req *v1.FetchAgentProviderModelsRequest) ([]*v1.AgentModel, error) {
+	v, conn, _, err := uc.draftProvider(ctx, req.GetId(), req.GetVendor(), req.GetBaseUrl(), req.GetApiKey())
 	if err != nil {
 		return nil, err
 	}
 	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	defer cancel()
-	models, err := agentapi.Models(bg, vendor, baseURL, apiKey)
-	return models, agentErr(err)
+	models, err := v.Models(bg, conn)
+	if err != nil {
+		return nil, agentErr(err)
+	}
+	out := make([]*v1.AgentModel, 0, len(models))
+	for _, m := range models {
+		pm := &v1.AgentModel{Id: m.ID, ContextWindow: m.ContextWindow, MaxOutput: m.MaxOutput}
+		for _, lv := range m.Levels {
+			pm.Levels = append(pm.Levels, &v1.AgentModelLevel{Name: lv, Value: lv})
+		}
+		out = append(out, pm)
+	}
+	return out, nil
+}
+
+// ProviderBalance 账户余额。查不到是接口那边的状况，原因放在 error 里返回，不算请求出错。
+func (uc *AgentUsecase) ProviderBalance(ctx context.Context, id string) (*v1.GetAgentProviderBalanceResponse, error) {
+	p, err := uc.getProvider(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	v, _ := uc.vendorOf(p.Vendor)
+	b, ok := v.(agentapi.Balancer)
+	if !ok {
+		return nil, response.BadRequest("这种供应商查不了余额")
+	}
+	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 20*time.Second)
+	defer cancel()
+	bal, err := b.Balance(bg, agentapi.Conn{BaseURL: p.BaseURL, APIKey: uc.decrypt(p.APIKey)})
+	if err != nil {
+		return &v1.GetAgentProviderBalanceResponse{Error: err.Error()}, nil
+	}
+	resp := &v1.GetAgentProviderBalanceResponse{Available: bal.Available}
+	for _, it := range bal.Items {
+		resp.Balances = append(resp.Balances, &v1.AgentBalance{Currency: it.Currency, Total: it.Total, Granted: it.Granted, ToppedUp: it.ToppedUp})
+	}
+	return resp, nil
 }
 
 // providerEnv 用某个供应商启动 Agent 进程时的环境变量。配置目录一直是 Agent 默认的，换供应商只是换这一组参数：
@@ -692,7 +818,7 @@ func (uc *AgentUsecase) providerEnv(d agentdriver.Driver, p *gen.AgentProvider, 
 	if p == nil {
 		return nil, false, nil
 	}
-	if p.Vendor != d.Vendor() {
+	if !uc.serves(p, d) {
 		return nil, false, response.BadRequest("这个供应商的接口和这个 Agent 不兼容")
 	}
 	key := uc.decrypt(p.APIKey)
@@ -702,7 +828,10 @@ func (uc *AgentUsecase) providerEnv(d agentdriver.Driver, p *gen.AgentProvider, 
 	if model == "" {
 		model = p.MainModel
 	}
-	api := agentdriver.API{Name: p.Name, BaseURL: p.BaseURL, Key: key, Model: model, FastModel: p.FastModel, Extra: map[string]string{}}
+	// 同一个供应商给不同协议的地址可以不同（DeepSeek 的 Anthropic 兼容在 /anthropic 下）；serves 已经确认认得这个类型
+	v, _ := uc.vendorOf(p.Vendor)
+	baseURL := v.Endpoint(d.Protocol(), agentapi.Conn{BaseURL: p.BaseURL})
+	api := agentdriver.API{Name: p.Name, BaseURL: baseURL, Key: key, Model: model, FastModel: p.FastModel, Extra: map[string]string{}}
 	api.Level, api.HasLevel = agentLevelValue(p, model, effort)
 	for _, m := range p.Models {
 		if m.ID == model {
@@ -715,45 +844,47 @@ func (uc *AgentUsecase) providerEnv(d agentdriver.Driver, p *gen.AgentProvider, 
 	return d.APIEnv(api), true, nil
 }
 
-// loginLimits 服务器上的登录里用户给这个模型设的最长上下文和最长输出（没设为 0）；model 为空时看 Agent 默认的模型。
-func loginLimits(rt *gen.AgentRuntime, model string) (contextWindow, maxOutput int64) {
-	catalog := agentParse[agentrun.Catalog](rt.Catalog)
+// loginModel 服务器上的登录里这个模型在模型表里的那一行；model 为空时看 Agent 默认的模型。模型表里没有时为 nil。
+func (uc *AgentUsecase) loginModel(ctx context.Context, rt *gen.AgentRuntime, model string) (*gen.AgentRuntimeModel, error) {
 	if model == "" {
-		model = catalog.DefaultModel
+		model = agentParse[agentRuntimeCatalog](rt.Catalog).DefaultModel
 	}
-	for _, m := range catalog.Models {
-		if m.ID == model {
-			return m.ContextWindow, m.MaxOutput
-		}
+	m, err := uc.repo.GetAgentRuntimeModel(ctx, rt.ID, model)
+	if gen.IsNotFound(err) {
+		return nil, nil
 	}
-	return 0, 0
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return m, nil
 }
 
-// SetRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出（0 = 用 Agent 自己的），下次起进程时交给 Agent。
+// loginLimits 用户给这个模型设的最长上下文和最长输出（没设、模型表里没有为 0）。
+func loginLimits(m *gen.AgentRuntimeModel) (contextWindow, maxOutput int64) {
+	if m == nil {
+		return 0, 0
+	}
+	return m.ContextWindow, m.MaxOutput
+}
+
+// SetRuntimeModels 服务器上的登录：给检查时同步进来的模型设最长上下文和最长输出（0 = 用 Agent 自己的），直接写模型表，下次起进程时交给 Agent。
 func (uc *AgentUsecase) SetRuntimeModels(ctx context.Context, id string, in []*v1.AgentModelLimit) (*v1.AgentRuntime, error) {
 	rt, err := uc.getRuntime(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	limits := make(map[string]*v1.AgentModelLimit, len(in))
+	limits := make([]AgentModelLimit, 0, len(in))
 	for _, m := range in {
 		if m.GetContextWindow() < 0 || m.GetMaxOutput() < 0 {
 			return nil, response.BadRequest("最长上下文和最长输出不能是负数")
 		}
-		limits[m.GetModel()] = m
+		limits = append(limits, AgentModelLimit{Model: m.GetModel(), ContextWindow: m.GetContextWindow(), MaxOutput: m.GetMaxOutput()})
 	}
-	catalog := agentParse[agentrun.Catalog](rt.Catalog)
-	for i := range catalog.Models {
-		if l := limits[catalog.Models[i].ID]; l != nil {
-			catalog.Models[i].ContextWindow, catalog.Models[i].MaxOutput = l.GetContextWindow(), l.GetMaxOutput()
-		}
-	}
-	rt.Catalog = agentJSON(catalog)
-	if err := uc.repo.SaveAgentRuntime(ctx, rt); err != nil {
+	if err := uc.repo.SetAgentRuntimeModelLimits(ctx, rt.ID, limits); err != nil {
 		return nil, ErrSystem(err)
 	}
 	uc.configChanged()
-	return uc.runtimePB(rt, uc.activeByRuntime()), nil
+	return uc.runtimeOut(ctx, rt, uc.activeByRuntime())
 }
 
 // markLoggedOut 会话里发现服务器上的登录失效了：记下来，选择器里就不再给「服务器上的登录」，等用户登录后再检查。
@@ -877,7 +1008,7 @@ func (uc *AgentUsecase) checkDefaults(ctx context.Context, runtimeID, providerID
 	if err != nil {
 		return err
 	}
-	if p.Vendor != uc.driverOf(string(rt.Kind)).Vendor() {
+	if !uc.serves(p, uc.driverOf(string(rt.Kind))) {
 		return response.BadRequest("这个供应商的接口和这个 Agent 不兼容")
 	}
 	return nil

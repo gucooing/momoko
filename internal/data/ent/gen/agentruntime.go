@@ -50,7 +50,7 @@ type AgentRuntime struct {
 	AuthDetail string `json:"auth_detail,omitempty"`
 	// 最近一次检查时服务器上已经登录（能开会话）
 	LoggedIn bool `json:"logged_in,omitempty"`
-	// 检测时 Agent 给出的权限模式、模型、推理强度（JSON）
+	// Agent 给出的权限模式和默认模型（JSON）；模型清单在 agent_runtime_models
 	Catalog string `json:"catalog,omitempty"`
 	// 排序
 	Sort         int `json:"sort,omitempty"`

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/agentsession"
+	"momoko/internal/data/ent/schema"
 	"momoko/pkg/acp"
 	"momoko/pkg/agentdriver"
 	"momoko/pkg/agentfs"
@@ -259,7 +261,7 @@ func (uc *AgentUsecase) checkProvider(ctx context.Context, rt *gen.AgentRuntime,
 	if err != nil {
 		return nil, err
 	}
-	if p.Vendor != uc.driverOf(string(rt.Kind)).Vendor() {
+	if !uc.serves(p, uc.driverOf(string(rt.Kind))) {
 		return nil, response.BadRequest("这个供应商的接口和 " + rt.Name + " 不兼容")
 	}
 	return p, nil
@@ -496,28 +498,22 @@ func (uc *AgentUsecase) ResolvePermission(ctx context.Context, id, requestID, op
 // ———————————————————————————— 会话里的选项 ————————————————————————————
 
 // effortFor 换了模型之后推理强度用哪个：原来的这个模型也有就沿用，没有就用这个模型默认的。
-func effortFor(rt *gen.AgentRuntime, p *gen.AgentProvider, model, current string) string {
-	var ids []string
-	def := ""
+// 第三方接口看模型目录里声明的等级；服务器上的登录看模型表里这个模型的那一行（loginTo）。
+func effortFor(p *gen.AgentProvider, loginTo *gen.AgentRuntimeModel, model, current string) string {
 	if p != nil {
-		ids, def = agentLevels(p, model)
-	} else {
-		for _, m := range agentParse[agentrun.Catalog](rt.Catalog).Models {
-			if m.ID != model {
-				continue
-			}
-			def = m.DefaultEffort
-			for _, e := range m.Efforts {
-				ids = append(ids, e.ID)
-			}
-		}
-	}
-	for _, id := range ids {
-		if id == current {
+		ids, def := agentLevels(p, model)
+		if slices.Contains(ids, current) {
 			return current
 		}
+		return def
 	}
-	return def
+	if loginTo == nil {
+		return ""
+	}
+	if slices.ContainsFunc(loginTo.Efforts, func(e schema.AgentChoice) bool { return e.ID == current }) {
+		return current
+	}
+	return loginTo.DefaultEffort
 }
 
 // restartFor 这次改动要换一个进程才生效：正在跑的一轮不能打断，空闲的进程直接结束，下次发消息时按新的配置起。
@@ -578,11 +574,25 @@ func (uc *AgentUsecase) SetSessionOption(ctx context.Context, req *v1.SetAgentSe
 				return nil, response.BadRequest("这个供应商的模型目录里没有 " + value)
 			}
 		}
-		providerID, model, effort = req.GetProviderId(), value, effortFor(rt, p, value, s.Effort)
+		var loginTo *gen.AgentRuntimeModel
+		if !byEnv {
+			if loginTo, err = uc.loginModel(ctx, rt, value); err != nil {
+				return nil, err
+			}
+		}
+		restart := byEnv || req.GetProviderId() != s.ProviderID
 		// 服务器上的登录里两个模型设的上下文、输出不一样：这是启动时交给 Agent 的，也要换一个进程
-		ctxFrom, outFrom := loginLimits(rt, s.Model)
-		ctxTo, outTo := loginLimits(rt, value)
-		if byEnv || providerID != s.ProviderID || ctxFrom != ctxTo || outFrom != outTo {
+		if !restart {
+			loginFrom, err := uc.loginModel(ctx, rt, s.Model)
+			if err != nil {
+				return nil, err
+			}
+			ctxFrom, outFrom := loginLimits(loginFrom)
+			ctxTo, outTo := loginLimits(loginTo)
+			restart = ctxFrom != ctxTo || outFrom != outTo
+		}
+		providerID, model, effort = req.GetProviderId(), value, effortFor(p, loginTo, value, s.Effort)
+		if restart {
 			if err := restartFor(l); err != nil {
 				return nil, err
 			}

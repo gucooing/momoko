@@ -28,6 +28,7 @@ import type {
   GetAgentNotifyResponse,
   GetAgentOptionsResponse,
   GetAgentOverviewResponse,
+  GetAgentProviderBalanceResponse,
   GetAgentSessionChangesResponse,
   GetAgentSessionProcessResponse,
   GetAgentSessionResponse,
@@ -148,10 +149,12 @@ export const createAgentProvider = (provider: Partial<AgentProvider>) =>
 export const updateAgentProvider = (id: string, provider: Partial<AgentProvider>) =>
   request.put<UpdateAgentProviderResponse>(`/agent/providers/${id}`, { provider })
 export const deleteAgentProvider = (id: string) => request.delete(`/agent/providers/${id}`)
-export const testAgentProvider = (data: { id?: string; draft?: Partial<AgentProvider> }) =>
+export const testAgentProvider = (data: { id?: string; draft?: Partial<AgentProvider>; message?: string }) =>
   request.post<TestAgentProviderResponse>('/agent/providers/test', data, SLOW)
 export const fetchAgentProviderModels = (data: Partial<FetchAgentProviderModelsRequest>) =>
   request.post<FetchAgentProviderModelsResponse>('/agent/providers/models', data, SLOW)
+export const getAgentProviderBalance = (id: string) =>
+  request.get<GetAgentProviderBalanceResponse>(`/agent/providers/${id}/balance`)
 
 // —— MCP ——
 export const listAgentMcpServers = () => request.get<ListAgentMcpServersResponse>('/agent/mcp')

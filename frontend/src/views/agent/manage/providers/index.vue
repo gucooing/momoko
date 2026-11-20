@@ -54,15 +54,28 @@
           <div class="ag-rm">
             <div class="ag-rt">
               <span>{{ p.name }}</span>
-              <AgAgentTag :kind="agentKind(p)" :name="agentName(p)" />
-              <span class="ag-tag">{{ protocolTag(p) }}</span>
+              <AgAgentTag
+                v-for="pr in vendorOf(p)?.protocols || []"
+                :key="pr"
+                :kind="protocolAgent(pr)"
+                :name="t(`agent.family.${protocolAgent(pr)}`)"
+              />
+              <span class="ag-tag">{{ vendorName(p.vendor) }}</span>
             </div>
             <div class="ag-rs ag-pv-sub">
-              <span class="ag-mono">{{ p.baseUrl }}</span> · {{ modelsSummary(p) }}
+              <span class="ag-mono">{{ p.baseUrl || vendorOf(p)?.baseUrl }}</span> · {{ modelsSummary(p) }}
               <template v-if="p.apiKeyTail"> · <span class="ag-mono">sk-••••{{ p.apiKeyTail }}</span></template>
             </div>
           </div>
           <div class="ag-rc">
+            <span
+              v-if="balanceOf(p)"
+              class="ag-tag ag-pv-bal"
+              :class="{ 'ag-tag--warn': balanceOf(p)?.warn }"
+              :title="balanceOf(p)?.title"
+            >
+              <UIcon name="i-lucide-wallet" />{{ balanceOf(p)?.text }}
+            </span>
             <span class="ag-pill ag-pv-pill" :class="apiPill(p).cls">{{ apiPill(p).text }}</span>
             <button
               type="button"
@@ -103,7 +116,7 @@
       </div>
     </div>
 
-    <ProviderDialog v-model="formOpen" :provider="formTarget" @saved="reload" />
+    <ProviderDialog v-model="formOpen" :provider="formTarget" :vendors="vendors" @saved="reload" />
     <LoginModelsDialog v-model="modelsOpen" :runtime="modelsTarget" @saved="reload" />
     <AgConfirm
       v-model="deleteOpen"
@@ -118,23 +131,32 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { deleteAgentProvider, detectAgentRuntime, listAgentProviders, listAgentRuntimes, testAgentProvider } from '@/api/agent'
-import type { AgentProvider, AgentRuntime } from '@/types/v1/agent'
+import {
+  deleteAgentProvider,
+  detectAgentRuntime,
+  getAgentProviderBalance,
+  listAgentProviders,
+  listAgentRuntimes,
+  testAgentProvider,
+} from '@/api/agent'
+import type { AgentProvider, AgentRuntime, AgentVendor, GetAgentProviderBalanceResponse } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
-import { agentKindOf } from '@/views/agent/utils/format'
+import { agentKindOf, protocolAgent } from '@/views/agent/utils/format'
+import { vendorName } from '@/views/agent/utils/labels'
 import LoginModelsDialog from './LoginModelsDialog.vue'
 import ProviderDialog from './ProviderDialog.vue'
 
 defineOptions({ name: 'AgentManageProvidersView' })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { overview, refresh } = useAgentOverview()
 
 const runtimes = ref<AgentRuntime[]>([])
 const providers = ref<AgentProvider[]>([])
+const vendors = ref<AgentVendor[]>([])
 const loaded = ref(false)
 
 const subtitle = computed(() => {
@@ -147,6 +169,8 @@ const load = async () => {
     const [rts, ps] = await Promise.all([listAgentRuntimes(), listAgentProviders()])
     runtimes.value = rts.data.runtimes || []
     providers.value = ps.data.providers || []
+    vendors.value = ps.data.vendors || []
+    loadBalances()
   } catch {
     /* shown */
   } finally {
@@ -204,9 +228,8 @@ const openModels = (r: AgentRuntime) => {
 }
 
 // —— 第三方接口 ——
-// 供应商不绑哪一条 Agent：按接口协议给哪一系用（自己添加的 Agent 检测出是哪一系也能用）
-const agentKind = (p: AgentProvider) => (p.vendor === 'openai' ? 'codex' : 'claude')
-const agentName = (p: AgentProvider) => t(`agent.family.${agentKind(p)}`)
+// 供应商不绑哪一条 Agent：按它的类型给的协议给哪几系用（自己添加的 Agent 检测出是哪一系也能用）
+const vendorOf = (p: AgentProvider) => vendors.value.find((v) => v.id === p.vendor)
 const apiPill = (p: AgentProvider) => {
   if (p.status === 'ok') {
     const ms = Number(p.testLatencyMs) || 0
@@ -215,8 +238,6 @@ const apiPill = (p: AgentProvider) => {
   if (p.status === 'bad') return { cls: 'ag-pill--bad', text: p.statusText || t('agent.providers.status.failed') }
   return { cls: '', text: t('agent.common.notTested') }
 }
-const protocolTag = (p: AgentProvider) =>
-  t(p.vendor === 'openai' ? 'agent.providers.protocolTag.openai' : 'agent.providers.protocolTag.anthropic')
 const modelsSummary = (p: AgentProvider) => {
   const ids = (p.models || []).map((m) => m.id)
   if (!ids.length) return t('agent.providers.noModels')
@@ -230,8 +251,9 @@ const runTest = async (p: AgentProvider) => {
   testing.value = new Set(testing.value).add(p.id)
   try {
     const { data } = await testAgentProvider({ id: p.id })
-    if (data.ok) feedback.success(t('agent.providers.testOk', { name: p.name }))
-    else feedback.error(t('agent.providers.withMessage', { name: p.name, message: data.message || t('agent.providers.status.failed') }))
+    const failed = (data.results || []).find((r) => !r.ok)
+    if (!failed) feedback.success(t('agent.providers.testOk', { name: p.name }))
+    else feedback.error(t('agent.providers.withMessage', { name: p.name, message: failed.error || t('agent.providers.status.failed') }))
   } catch {
     /* shown */
   } finally {
@@ -239,6 +261,50 @@ const runTest = async (p: AgentProvider) => {
     next.delete(p.id)
     testing.value = next
     await load()
+  }
+}
+
+// —— 余额：能查余额的类型才查，列表每次刷新时一起重新查 ——
+const balances = ref<Record<string, GetAgentProviderBalanceResponse>>({})
+const loadBalances = () => {
+  for (const p of providers.value) {
+    if (!vendorOf(p)?.balance) continue
+    getAgentProviderBalance(p.id)
+      .then(({ data }) => {
+        balances.value = { ...balances.value, [p.id]: data }
+      })
+      .catch(() => {
+        /* shown */
+      })
+  }
+}
+// 金额按当前语言和币种显示（¥110.00、US$5.00）；币种认不出时原样拼上
+const money = (amount: string, currency: string) => {
+  try {
+    return new Intl.NumberFormat(locale.value, { style: 'currency', currency }).format(Number(amount))
+  } catch {
+    return `${amount} ${currency}`
+  }
+}
+const balanceOf = (p: AgentProvider) => {
+  const b = balances.value[p.id]
+  if (!b) return null
+  if (b.error) return { text: t('agent.providers.balance.failed'), title: b.error, warn: true }
+  const items = b.balances || []
+  const amount = items.map((x) => money(x.total, x.currency)).join(' · ') || money('0', 'CNY')
+  const title = items
+    .map((x) =>
+      t('agent.providers.balance.detail', {
+        total: money(x.total, x.currency),
+        granted: money(x.granted, x.currency),
+        toppedUp: money(x.toppedUp, x.currency),
+      }),
+    )
+    .join('\n')
+  return {
+    text: t(b.available ? 'agent.providers.balance.text' : 'agent.providers.balance.low', { amount }),
+    title,
+    warn: !b.available,
   }
 }
 
@@ -276,7 +342,10 @@ onActivated(() => {
 .ag-pv-pill {
   margin-right: 4px;
 }
-// 供应商弹窗里：两列的格子、单选卡片里的「标题 + 一行给哪个 Agent 用」
+.ag-pv-bal {
+  font-variant-numeric: tabular-nums;
+}
+// 供应商弹窗里：两列的格子、单选卡片里的「标题 + 说明 + 给哪几系 Agent 用」
 .ag-pv-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

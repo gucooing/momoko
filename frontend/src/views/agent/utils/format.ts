@@ -95,3 +95,7 @@ export const fileToBase64 = (file: Blob): Promise<string> =>
 
 /** Agent 标记用的种类：claude / codex / custom */
 export const agentKindOf = (kind?: string) => (kind === 'claude' || kind === 'codex' ? kind : 'custom')
+
+/** 第三方接口的协议给哪一系 Agent 用：anthropic → claude，openai → codex */
+export const protocolAgent = (protocol?: string) =>
+  protocol === 'anthropic' ? 'claude' : protocol === 'openai' ? 'codex' : 'custom'

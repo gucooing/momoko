@@ -27,7 +27,7 @@ type AgentEnv struct {
 	Value string `json:"value"`
 }
 
-// AgentProvider 模型供应商：一个第三方接口（Anthropic 兼容给 Claude 系，OpenAI 兼容给 Codex 系）。
+// AgentProvider 模型供应商：一个第三方接口。按类型（pkg/agentapi 的 Vendor）决定给哪几系 Agent 用、地址填不填。
 // 官方账号不在这里：用户自己在服务器上登录命令行，Momoko 只检查（见运行时的检测）。
 type AgentProvider struct {
 	ent.Schema
@@ -36,11 +36,11 @@ type AgentProvider struct {
 func (AgentProvider) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").NotEmpty().Unique().Comment("供应商 id"),
-		field.String("vendor").NotEmpty().Comment("接口协议：anthropic / openai"),
+		field.String("vendor").NotEmpty().Comment("供应商类型：anthropic / openai / deepseek …（见 pkg/agentapi）"),
 		field.String("name").NotEmpty().Comment("名称"),
 		field.String("status").Default("untested").Comment("ok / bad / untested"),
 		field.String("status_text").Default("").Comment("测试失败的原因"),
-		field.String("base_url").Default("").Comment("接口地址"),
+		field.String("base_url").Default("").Comment("用户填的接口地址；地址固定的类型为空"),
 		field.Text("api_key").Default("").Sensitive().Comment("API Key（secretbox 加密）"),
 		field.JSON("models", []AgentModel{}).Optional().Comment("模型目录"),
 		field.String("main_model").Default("").Comment("主模型 / 默认模型"),

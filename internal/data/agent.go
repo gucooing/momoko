@@ -11,11 +11,13 @@ import (
 	"momoko/internal/data/ent/gen/agentmcpserver"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
+	"momoko/internal/data/ent/gen/agentruntimemodel"
 	"momoko/internal/data/ent/gen/agentsession"
 	"momoko/internal/data/ent/gen/agentskill"
 	"momoko/internal/data/ent/gen/agentworkspace"
 	"momoko/internal/data/ent/gen/predicate"
 	"momoko/internal/data/ent/gen/user"
+	"momoko/pkg/utils"
 )
 
 type agentRepo struct {
@@ -66,8 +68,79 @@ func (r *agentRepo) SaveAgentRuntime(ctx context.Context, rt *gen.AgentRuntime) 
 		Exec(ctx)
 }
 
+// DeleteAgentRuntime 连同它的模型一起删。
 func (r *agentRepo) DeleteAgentRuntime(ctx context.Context, id string) error {
-	return r.data.db.AgentRuntime.DeleteOneID(id).Exec(ctx)
+	return utils.WithTx(ctx, r.data.db, func(tx *gen.Tx) error {
+		if _, err := tx.AgentRuntimeModel.Delete().Where(agentruntimemodel.RuntimeID(id)).Exec(ctx); err != nil {
+			return err
+		}
+		return tx.AgentRuntime.DeleteOneID(id).Exec(ctx)
+	})
+}
+
+// —— 服务器上的登录能用的模型 ——
+
+// SyncAgentRuntimeModels 检查登录时把 Agent 给的模型同步进来：按（运行时，模型）写入或更新名称、推理强度和顺序，
+// 用户设的最长上下文和最长输出不动；这次 Agent 没给的模型删掉。
+func (r *agentRepo) SyncAgentRuntimeModels(ctx context.Context, runtimeID string, models []*gen.AgentRuntimeModel) error {
+	return utils.WithTx(ctx, r.data.db, func(tx *gen.Tx) error {
+		ids := make([]string, 0, len(models))
+		builders := make([]*gen.AgentRuntimeModelCreate, 0, len(models))
+		for _, m := range models {
+			ids = append(ids, m.Model)
+			builders = append(builders, tx.AgentRuntimeModel.Create().
+				SetRuntimeID(runtimeID).SetModel(m.Model).SetName(m.Name).
+				SetEfforts(m.Efforts).SetDefaultEffort(m.DefaultEffort).SetSort(m.Sort))
+		}
+		if _, err := tx.AgentRuntimeModel.Delete().
+			Where(agentruntimemodel.RuntimeID(runtimeID), agentruntimemodel.ModelNotIn(ids...)).
+			Exec(ctx); err != nil {
+			return err
+		}
+		if len(builders) == 0 {
+			return nil
+		}
+		return tx.AgentRuntimeModel.CreateBulk(builders...).
+			OnConflictColumns(agentruntimemodel.FieldRuntimeID, agentruntimemodel.FieldModel).
+			Update(func(u *gen.AgentRuntimeModelUpsert) {
+				u.UpdateName()
+				u.UpdateEfforts()
+				u.UpdateDefaultEffort()
+				u.UpdateSort()
+				u.UpdateUpdateTime()
+			}).
+			Exec(ctx)
+	})
+}
+
+// ListAgentRuntimeModels 这些运行时的模型，按 Agent 列出的顺序。
+func (r *agentRepo) ListAgentRuntimeModels(ctx context.Context, runtimeIDs ...string) ([]*gen.AgentRuntimeModel, error) {
+	return r.data.db.AgentRuntimeModel.Query().
+		Where(agentruntimemodel.RuntimeIDIn(runtimeIDs...)).
+		Order(gen.Asc(agentruntimemodel.FieldSort)).
+		All(ctx)
+}
+
+func (r *agentRepo) GetAgentRuntimeModel(ctx context.Context, runtimeID, model string) (*gen.AgentRuntimeModel, error) {
+	return r.data.db.AgentRuntimeModel.Query().
+		Where(agentruntimemodel.RuntimeID(runtimeID), agentruntimemodel.Model(model)).
+		Only(ctx)
+}
+
+// SetAgentRuntimeModelLimits 写用户给模型设的最长上下文和最长输出。
+func (r *agentRepo) SetAgentRuntimeModelLimits(ctx context.Context, runtimeID string, limits []biz.AgentModelLimit) error {
+	return utils.WithTx(ctx, r.data.db, func(tx *gen.Tx) error {
+		for _, l := range limits {
+			if err := tx.AgentRuntimeModel.Update().
+				Where(agentruntimemodel.RuntimeID(runtimeID), agentruntimemodel.Model(l.Model)).
+				SetContextWindow(l.ContextWindow).
+				SetMaxOutput(l.MaxOutput).
+				Exec(ctx); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 // —— 模型供应商 ——

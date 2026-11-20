@@ -62,10 +62,6 @@ type CatalogModel struct {
 	Name          string   `json:"name"`
 	Efforts       []Choice `json:"efforts,omitempty"`
 	DefaultEffort string   `json:"defaultEffort,omitempty"`
-	// ContextWindow / MaxOutput 用户在管理页给这个模型设的最长上下文和最长输出（token 数），0 = 用 Agent 自己的。
-	// 不是 Agent 给的，刷新清单时按模型 id 沿用。
-	ContextWindow int64 `json:"contextWindow,omitempty"`
-	MaxOutput     int64 `json:"maxOutput,omitempty"`
 }
 
 // Catalog Agent 自己给出的可选项：权限模式、模型、每个模型的推理强度。客户端只能在它列出的值里选。
@@ -120,43 +116,6 @@ func catalogOf(options []acp.ConfigOption) Catalog {
 		catalog.DefaultModel = opt.Current()
 	}
 	return catalog
-}
-
-// MergeCatalog 用新看到的可选项刷新旧的：这次只读到当前模型的推理强度，其它模型的沿用之前读到的；
-// 用户给模型设的最长上下文和最长输出按模型 id 沿用。
-// keepDefaults 为 true 时默认模型和默认权限模式沿用旧的（会话里用户切过去的值不算默认）。
-func MergeCatalog(old, fresh Catalog, keepDefaults bool) Catalog {
-	if len(fresh.Modes) == 0 {
-		fresh.Modes, fresh.DefaultMode = old.Modes, old.DefaultMode
-	}
-	if len(fresh.Models) == 0 {
-		fresh.Models, fresh.DefaultModel = old.Models, old.DefaultModel
-	} else {
-		known := map[string]CatalogModel{}
-		for _, m := range old.Models {
-			known[m.ID] = m
-		}
-		for i := range fresh.Models {
-			m := &fresh.Models[i]
-			prev, ok := known[m.ID]
-			if !ok {
-				continue
-			}
-			if len(m.Efforts) == 0 {
-				m.Efforts, m.DefaultEffort = prev.Efforts, prev.DefaultEffort
-			}
-			m.ContextWindow, m.MaxOutput = prev.ContextWindow, prev.MaxOutput
-		}
-	}
-	if keepDefaults {
-		if old.DefaultModel != "" {
-			fresh.DefaultModel = old.DefaultModel
-		}
-		if old.DefaultMode != "" {
-			fresh.DefaultMode = old.DefaultMode
-		}
-	}
-	return fresh
 }
 
 // ProbeResult 检测一次 Agent 得到的东西。

@@ -313,11 +313,7 @@ func (s *AgentService) GetAgentDocs(ctx context.Context, req *v1.GetAgentDocsReq
 // —— 模型供应商 ——
 
 func (s *AgentService) ListAgentProviders(ctx context.Context, _ *v1.ListAgentProvidersRequest) (*v1.ListAgentProvidersResponse, error) {
-	providers, err := s.uc.ListProviders(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return &v1.ListAgentProvidersResponse{Providers: providers}, nil
+	return s.uc.ListProviders(ctx)
 }
 
 func providerOf(p *v1.AgentProvider) *v1.AgentProvider {
@@ -360,6 +356,10 @@ func (s *AgentService) FetchAgentProviderModels(ctx context.Context, req *v1.Fet
 		return nil, err
 	}
 	return &v1.FetchAgentProviderModelsResponse{Models: models}, nil
+}
+
+func (s *AgentService) GetAgentProviderBalance(ctx context.Context, req *v1.GetAgentProviderBalanceRequest) (*v1.GetAgentProviderBalanceResponse, error) {
+	return s.uc.ProviderBalance(ctx, req.GetId())
 }
 
 // —— MCP ——
