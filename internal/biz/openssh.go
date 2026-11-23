@@ -375,8 +375,9 @@ func (o *OpenSSHUsecase) StartSSHWebSocket(ctx context.Context, conn *websocket.
 }
 
 // StartShellWebSocket 在本机开一个 shell 接到 conn 上，连接断开即结束。
-func (o *OpenSSHUsecase) StartShellWebSocket(conn *websocket.Conn) error {
-	return shellcore.ServeWebSocket(conn)
+// dir 是起始目录（绝对路径，空的用主目录）；能开终端就能 cd 到任何地方，这里只校验它是个存在的目录。
+func (o *OpenSSHUsecase) StartShellWebSocket(conn *websocket.Conn, dir string) error {
+	return shellcore.ServeWebSocket(conn, dir)
 }
 
 func validateCreateSSHHost(req *v1.CreateSSHHostRequest) error {

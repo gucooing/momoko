@@ -3,9 +3,12 @@
 package shellcore
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -25,7 +28,14 @@ const (
 )
 
 // ServeWebSocket 在本机启动一个 shell 并把它接到 conn 上，直到任一端结束。
-func ServeWebSocket(conn *websocket.Conn) error {
+// dir 是起始目录：空的用主目录；给了就必须是存在的目录的绝对路径，否则在终端里说明原因、不启动 shell。
+func ServeWebSocket(conn *websocket.Conn, dir string) error {
+	cwd, err := resolveDir(dir)
+	if err != nil {
+		_ = websocket.Message.Send(conn, fmt.Sprintf("[system] %v\r\n", err))
+		return err
+	}
+
 	ptmx, err := pty.New()
 	if err != nil {
 		_ = websocket.Message.Send(conn, fmt.Sprintf("[system] 创建伪终端失败: %v\r\n", err))
@@ -34,7 +44,7 @@ func ServeWebSocket(conn *websocket.Conn) error {
 
 	name, args, env := shellCommand()
 	cmd := ptmx.Command(name, args...)
-	cmd.Dir = workDir()
+	cmd.Dir = cwd
 	// 用注册表现在的环境变量（Momoko 启动后装的工具也找得到），不是 Momoko 启动那一刻的
 	cmd.Env = append(sysenv.Environ(), env...)
 	configureCmd(cmd)
@@ -145,7 +155,28 @@ func ServeWebSocket(conn *websocket.Conn) error {
 	}
 }
 
-// workDir shell 的起始目录：运行 Momoko 的用户的主目录，取不到就用当前目录。
+// resolveDir 指定的起始目录：要绝对路径、要存在、要是目录；不满足就报错，不悄悄换成主目录。没指定就用 workDir。
+func resolveDir(dir string) (string, error) {
+	if dir == "" {
+		return workDir(), nil
+	}
+	if !filepath.IsAbs(dir) {
+		return "", fmt.Errorf("打不开目录 %s：不是绝对路径", dir)
+	}
+	dir = filepath.Clean(dir)
+	info, err := os.Stat(dir)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return "", fmt.Errorf("打不开目录 %s：目录不存在", dir)
+	case err != nil:
+		return "", fmt.Errorf("打不开目录 %s：%v", dir, err)
+	case !info.IsDir():
+		return "", fmt.Errorf("打不开目录 %s：不是目录", dir)
+	}
+	return dir, nil
+}
+
+// workDir shell 的默认起始目录：运行 Momoko 的用户的主目录，取不到就用当前目录。
 func workDir() string {
 	if home, err := os.UserHomeDir(); err == nil {
 		if info, err := os.Stat(home); err == nil && info.IsDir() {

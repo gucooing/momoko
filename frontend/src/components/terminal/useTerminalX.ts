@@ -93,8 +93,8 @@ export const terminalThemeFor = (mode: TerminalThemeMode, custom?: Partial<Recor
   return out
 }
 
-const FONT_SIZE_MIN = 10
-const FONT_SIZE_MAX = 22
+export const FONT_SIZE_MIN = 10
+export const FONT_SIZE_MAX = 22
 const FONT_SIZE_DEFAULT = 13
 const FONT_SIZE_STORAGE_KEY = 'momoko.terminalFontSize'
 
@@ -114,6 +114,9 @@ const readStoredFontSize = (): number => {
 // 模块级共享：两处终端页字号一致
 const sharedFontSize = ref(readStoredFontSize())
 
+/** 终端页共用的字号（悬浮终端还没设过自己的字号时从它开始） */
+export const sharedTerminalFontSize = () => sharedFontSize.value
+
 interface UseTerminalXOptions {
   /** 手动主题 ref（来自 useTerminalTheme） */
   theme: Readonly<Ref<TerminalThemeMode>>
@@ -125,13 +128,15 @@ interface UseTerminalXOptions {
   onResize?: (size: { cols: number; rows: number }) => void
   /** 覆盖默认字号；缺省读 localStorage 共享值 */
   fontSize?: number
+  /** 自己的字号（顶栏悬浮终端）：不和其他终端页共享，改它就生效；缺省用共享字号 */
+  fontSizeRef?: Ref<number>
 }
 
 export function useTerminalX(options: UseTerminalXOptions) {
   const containerRef = ref<HTMLElement>()
   const cols = ref(0)
   const rows = ref(0)
-  const fontSize = sharedFontSize
+  const fontSize = options.fontSizeRef ?? sharedFontSize
   // 当前主题（含页面单独设置）的终端专用色；没设置时为 null，用默认终端配色
   const themeStore = useThemeStore()
   const themeTerm = computed(() => (themeStore.hasTerminalTokens ? themeStore.tokens : null))
@@ -156,10 +161,12 @@ export function useTerminalX(options: UseTerminalXOptions) {
   const applyFontSize = (size: number) => {
     const next = clampFontSize(size)
     fontSize.value = next
-    try {
-      localStorage.setItem(FONT_SIZE_STORAGE_KEY, String(next))
-    } catch {
-      /* ignore quota/private-mode */
+    if (!options.fontSizeRef) {
+      try {
+        localStorage.setItem(FONT_SIZE_STORAGE_KEY, String(next))
+      } catch {
+        /* ignore quota/private-mode */
+      }
     }
     if (terminal) {
       terminal.options.fontSize = next

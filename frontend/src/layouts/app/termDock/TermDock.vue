@@ -1,12 +1,13 @@
 <!-- 顶栏「终端」悬浮窗：可拖动（按住标签栏空白处）、四边四角调大小，位置大小记在本机。
-     一行标签栏：终端标签（状态点 + 名称 + 关闭）、「+」新建（本机终端 / SSH 主机），最右最小化、关闭。
+     一行标签栏：终端标签（状态点 + 名称 + 关闭）、「+」新建（本机终端 / 在某个目录打开 / SSH 主机），最右外观、最小化、关闭。
      挂在外壳上，切换页面不断开；最小化只是藏起来，连接保留；关闭等同刷新，全部断开。
+     外观（不透明度、模糊、字号）记在本机：半透明只透背景，文字不变淡。
      样式按 Agent 页的紧凑样式（agent.scss）：小字、30px 行高、圆角菜单。 -->
 <template>
   <div
     v-show="!dock.minimized"
     class="ag td"
-    :class="{ 'is-moving': moving }"
+    :class="{ 'is-moving': moving, 'is-clear': clear, 'is-blur': clear && dock.look.blur }"
     :style="rectStyle"
     role="dialog"
     :aria-label="t('termDock.title')"
@@ -20,7 +21,7 @@
             role="tab"
             class="td-tab__btn"
             :aria-selected="tab.key === dock.active"
-            :title="`${labelOf(tab)} · ${statusText(tab.status)}`"
+            :title="[labelOf(tab), tab.cwd, statusText(tab.status)].filter(Boolean).join(' · ')"
             @click="activate(tab.key)"
           >
             <span class="td-dot" :class="`is-${toneOf(tab.status)}`" />
@@ -50,7 +51,7 @@
           :aria-label="t('termDock.new')"
           :title="t('termDock.new')"
           :aria-expanded="menuOpen"
-          @click="menuOpen = !menuOpen"
+          @click="toggleMenu"
         >
           <UIcon name="i-lucide-plus" />
         </button>
@@ -60,6 +61,22 @@
       </div>
 
       <span class="td-grow" />
+      <div ref="lookRef" class="td-add">
+        <button
+          type="button"
+          class="td-btn"
+          :class="{ 'is-on': lookOpen }"
+          :aria-label="t('termDock.look')"
+          :title="t('termDock.look')"
+          :aria-expanded="lookOpen"
+          @click="toggleLook"
+        >
+          <UIcon name="i-lucide-sliders-horizontal" />
+        </button>
+        <div v-if="lookOpen" class="ag-menu td-menu td-menu--end td-pop" role="group" :aria-label="t('termDock.look')">
+          <DockLook />
+        </div>
+      </div>
       <button type="button" class="td-btn" :aria-label="t('termDock.minimize')" :title="t('termDock.minimize')" @click="minimizeDock">
         <UIcon name="i-lucide-minus" />
       </button>
@@ -101,12 +118,14 @@ import { onClickOutside } from '@vueuse/core'
 import type { ConsoleSocketStatus } from '@/stores/instance/types'
 import DockSession from './DockSession.vue'
 import DockPicker from './DockPicker.vue'
+import DockLook from './DockLook.vue'
 import {
   DOCK_MIN_H,
   DOCK_MIN_W,
   closeDock,
   dock,
   fitRect,
+  folderName,
   minimizeDock,
   removeTab,
   saveRect,
@@ -118,20 +137,40 @@ defineOptions({ name: 'TermDock' })
 
 type Dir = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 const HANDLES: Dir[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
+// 标签栏上按住这些不算拖窗口、双击不算铺满
+const NO_DRAG = 'button, a, input, label, [role="menu"], .td-pop'
 
 const { t } = useI18n()
 
+// 「+」菜单和外观面板，同时只开一个
 const menuOpen = ref(false)
+const lookOpen = ref(false)
 const addRef = useTemplateRef<HTMLElement>('addRef')
+const lookRef = useTemplateRef<HTMLElement>('lookRef')
 onClickOutside(addRef, () => {
   menuOpen.value = false
 })
+onClickOutside(lookRef, () => {
+  lookOpen.value = false
+})
+const toggleMenu = () => {
+  menuOpen.value = !menuOpen.value
+  lookOpen.value = false
+}
+const toggleLook = () => {
+  lookOpen.value = !lookOpen.value
+  menuOpen.value = false
+}
+
+const clear = computed(() => dock.look.opacity < 1)
 
 const rectStyle = computed(() => ({
   left: `${dock.rect.x}px`,
   top: `${dock.rect.y}px`,
   width: `${dock.rect.w}px`,
   height: `${dock.rect.h}px`,
+  // 背景的不透明度：窗口、标签栏、终端底色都按它画（DockSession 也读这个变量）
+  '--td-alpha': `${Math.round(dock.look.opacity * 100)}%`,
 }))
 
 type SessionRef = InstanceType<typeof DockSession>
@@ -158,17 +197,18 @@ watch(() => dock.active, () => void refreshActive())
 watch(
   () => dock.minimized,
   (min) => {
-    if (min) menuOpen.value = false
-    else void refreshActive()
+    if (min) {
+      menuOpen.value = false
+      lookOpen.value = false
+    } else void refreshActive()
   },
 )
 
-const labelOf = (tab: DockTab) =>
-  tab.kind === 'local'
-    ? tab.seq > 1
-      ? t('termDock.localN', { n: tab.seq })
-      : t('termDock.local')
-    : tab.label || '…'
+const labelOf = (tab: DockTab) => {
+  if (tab.kind !== 'local') return tab.label || '…'
+  if (tab.cwd) return t('termDock.localAt', { name: folderName(tab.cwd) })
+  return tab.seq > 1 ? t('termDock.localN', { n: tab.seq }) : t('termDock.local')
+}
 
 const toneOf = (st: ConsoleSocketStatus) =>
   st === 'connected' ? 'ok' : st === 'connecting' ? 'warn' : st === 'error' ? 'bad' : 'off'
@@ -193,6 +233,7 @@ let stopTracking: (() => void) | null = null
 const track = (onMove: (e: PointerEvent) => void) => {
   moving.value = true
   menuOpen.value = false
+  lookOpen.value = false
   const up = () => {
     window.removeEventListener('pointermove', onMove)
     window.removeEventListener('pointerup', up)
@@ -208,7 +249,7 @@ const track = (onMove: (e: PointerEvent) => void) => {
 }
 
 const startMove = (e: PointerEvent) => {
-  if (e.button !== 0 || (e.target as HTMLElement).closest('button, a, [role="menu"]')) return
+  if (e.button !== 0 || (e.target as HTMLElement).closest(NO_DRAG)) return
   e.preventDefault()
   const sx = e.clientX
   const sy = e.clientY
@@ -244,8 +285,8 @@ const startResize = (e: PointerEvent, dir: Dir) => {
 // 双击标签栏空白处：在「铺满窗口」和上一次的位置大小之间切换
 let restoreRect: DockRect | null = null
 const onHeadDblClick = (e: MouseEvent) => {
-  if ((e.target as HTMLElement).closest('button, a, [role="menu"]')) return
-  const full = { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight }
+  if ((e.target as HTMLElement).closest(NO_DRAG)) return
+  const full ={ x: 0, y: 0, w: window.innerWidth, h: window.innerHeight }
   const isFull = dock.rect.x === 0 && dock.rect.y === 0 && dock.rect.w === full.w && dock.rect.h === full.h
   if (isFull && restoreRect) {
     dock.rect = fitRect(restoreRect)
@@ -287,6 +328,21 @@ onBeforeUnmount(() => {
   border: 1px solid var(--m-line);
   border-radius: 14px;
   box-shadow: 0 24px 60px -18px rgba(20, 10, 30, 0.45);
+}
+// 半透明：窗口本身不画底，标签栏、终端（DockSession）、空窗口各自按 --td-alpha 画，叠起来才不会变深变浅
+.td.is-clear {
+  background: transparent;
+}
+.td.is-clear .td-head {
+  background: color-mix(in srgb, var(--m-s) var(--td-alpha), transparent);
+  border-radius: 13px 13px 0 0;
+}
+.td.is-clear .td-empty {
+  background: color-mix(in srgb, var(--m-bg) var(--td-alpha), transparent);
+}
+.td.is-blur {
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
 }
 .td.is-moving {
   user-select: none;
@@ -455,6 +511,12 @@ onBeforeUnmount(() => {
   z-index: 5;
   width: 280px;
   cursor: default;
+}
+// 外观面板靠右（按钮在窗口右上角）
+.td-menu--end {
+  left: auto;
+  right: 0;
+  width: 240px;
 }
 
 // —— 终端区 ——

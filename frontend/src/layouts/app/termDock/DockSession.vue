@@ -1,8 +1,9 @@
-<!-- 悬浮终端里的一个标签：xterm + 传输层。本机终端连 /api/v1/shell/ws；SSH 先取主机详情拿 wsPath 再连（?hostID=）。
+<!-- 悬浮终端里的一个标签：xterm + 传输层。本机终端连 /api/v1/shell/ws（指定了目录带 ?cwd=）；SSH 先取主机详情拿 wsPath 再连（?hostID=）。
      协议同 SSH 终端：输入原样发文本帧，尺寸发 {"type":"resize"}，服务端文本帧写进终端。
-     卸载即断开（关标签、关窗口）；连接断了在屏幕上盖一层「重新连接」。 -->
+     卸载即断开（关标签、关窗口）；连接断了在屏幕上盖一层「重新连接」。
+     外观跟着窗口设置：字号用悬浮终端自己的；背景半透明时 xterm 不画底色，由这一层按不透明度画。 -->
 <template>
-  <div class="tds" :style="{ background: screenBg }">
+  <div class="tds" :class="{ 'is-clear': dock.look.opacity < 1 }" :style="{ '--tds-bg': screenBg }">
     <div ref="containerRef" class="tds__screen" />
     <div v-if="showOverlay" class="tds__over">
       <span class="tds__over-t">{{ tab.status === 'error' ? t('termDock.failed') : t('termDock.closed') }}</span>
@@ -14,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getSshHostInfo } from '@/api/openssh'
 import { SHELL_WS_PATH } from '@/api/shell'
@@ -22,7 +23,7 @@ import { buildBackendWebSocketUrl } from '@/utils/websocket'
 import { terminalThemeFor, useTerminalX } from '@/components/terminal/useTerminalX'
 import { useTerminalTheme } from '@/components/terminal/useTerminalTheme'
 import type { ConsoleSocketStatus } from '@/stores/instance/types'
-import { updateTab, type DockTab } from './state'
+import { dock, updateTab, type DockTab } from './state'
 
 defineOptions({ name: 'DockSession' })
 
@@ -46,6 +47,7 @@ const { containerRef, mount, write, writeln, focus, fit, cols, rows } = useTermi
   onData: send,
   onBinary: send,
   onResize: (size) => send(JSON.stringify({ type: 'resize', ...size })),
+  fontSizeRef: toRef(dock.look, 'fontSize'),
 })
 
 // 屏幕留白和终端同色
@@ -58,7 +60,12 @@ const showOverlay = computed(
 )
 
 const resolveUrl = async () => {
-  if (props.tab.kind === 'local') return buildBackendWebSocketUrl(SHELL_WS_PATH)
+  if (props.tab.kind === 'local') {
+    const cwd = props.tab.cwd
+    return buildBackendWebSocketUrl(SHELL_WS_PATH, (url) => {
+      if (cwd) url.searchParams.set('cwd', cwd)
+    })
+  }
   const { data } = await getSshHostInfo({ id: props.tab.hostId })
   const info = data?.info
   if (!info?.wsPath) return ''
@@ -131,6 +138,14 @@ defineExpose({ fit, focus })
   position: absolute;
   inset: 0;
   padding: 6px 4px 4px 10px;
+  // --td-alpha 由窗口给（不透明度设置），文字不受影响
+  background: color-mix(in srgb, var(--tds-bg) var(--td-alpha, 100%), transparent);
+}
+// 半透明：xterm 自己的底色（滚动层上的行内样式）去掉，露出上面那层
+.tds.is-clear :deep(.xterm),
+.tds.is-clear :deep(.xterm-viewport),
+.tds.is-clear :deep(.xterm-scrollable-element) {
+  background-color: transparent !important;
 }
 .tds__screen {
   width: 100%;

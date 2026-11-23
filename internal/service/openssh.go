@@ -144,11 +144,13 @@ func (o *OpenSSHService) RunSSHWsConn(conn *websocket.Conn) {
 }
 
 // RunShellWsConn 本机终端：权限由 HTTP 过滤器按路径校验（shell:use）。
+// ?cwd= 指定起始目录（如 Agent 会话的工作目录），不带就是主目录。
 func (o *OpenSSHService) RunShellWsConn(conn *websocket.Conn) {
 	defer conn.Close()
-	if _, ok := auth.FromContext(conn.Request().Context()); !ok {
+	req := conn.Request()
+	if _, ok := auth.FromContext(req.Context()); !ok {
 		_ = websocket.Message.Send(conn, "缺少参数")
 		return
 	}
-	_ = o.uc.StartShellWebSocket(conn)
+	_ = o.uc.StartShellWebSocket(conn, req.URL.Query().Get("cwd"))
 }
