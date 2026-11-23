@@ -180,7 +180,7 @@
           :data-model="m.id"
           @click="pickModel(provider, m)"
         >
-          <span class="ag-ellipsis agc-flex" :class="{ 'ag-mono': !m.name || m.name === m.id }">{{ m.name || m.id }}</span>
+          <span class="ag-ellipsis agc-flex" :class="{ 'ag-mono': !m.name || m.name === m.id }">{{ modelLabel(m) }}</span>
           <span v-if="agentSwitch && m.id === provider.defaultModel" class="ag-tag">{{ t('agent.code.model.default') }}</span>
           <span v-if="m.id === model && efforts.length" class="ag-muted agc-small">{{ effortName }}</span>
           <UIcon v-if="m.id === model" name="i-lucide-check" class="agc-on" />
@@ -201,19 +201,19 @@
         </span>
         <UIcon v-if="r.runtimeId === runtimeId" name="i-lucide-check" class="agc-on" />
       </button>
-      <RouterLink v-if="canShared" class="ag-mi ag-muted" to="/agent/manage?tab=runtimes">{{ t('agent.code.model.addAgent') }}</RouterLink>
+      <RouterLink v-if="canRuntimes" class="ag-mi ag-muted" to="/agent/admin?tab=runtimes">{{ t('agent.code.model.addAgent') }}</RouterLink>
     </div>
 
     <div v-if="pop === 'model' && sub === 'more'" class="ag-menu agc-pop agc-pop--sub agc-pop--w236 ag-noscroll" role="menu" :aria-label="t('agent.code.model.more')">
       <template v-for="p in otherProviders" :key="p.providerId || 'system'">
         <div class="agc-pop__group">{{ providerLabel(p) }}</div>
         <button v-for="m in p.models" :key="m.id" type="button" class="ag-mi" role="menuitemradio" :aria-checked="false" @click="pickModel(p, m)">
-          <span class="ag-ellipsis agc-flex" :class="{ 'ag-mono': !m.name || m.name === m.id }">{{ m.name || m.id }}</span>
+          <span class="ag-ellipsis agc-flex" :class="{ 'ag-mono': !m.name || m.name === m.id }">{{ modelLabel(m) }}</span>
           <span v-if="agentSwitch && m.id === p.defaultModel" class="ag-tag">{{ t('agent.code.model.default') }}</span>
         </button>
         <div v-if="!p.models.length" class="agc-pop__note">{{ t('agent.code.model.none') }}</div>
       </template>
-      <template v-if="agentSwitch && canShared">
+      <template v-if="agentSwitch && canProviders">
         <div v-if="otherProviders.length" class="ag-mi-sep" />
         <RouterLink class="ag-mi ag-muted" to="/agent/manage?tab=providers">{{ t('agent.code.model.manageProviders') }}</RouterLink>
       </template>
@@ -252,6 +252,7 @@ import type { AgentModelOption, AgentProviderOptions, AgentRuntimeOptions } from
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AttImage from './AttImage.vue'
 import { AGENT_PATH_MIME, agentKindOf, bytesToBase64, fileToBase64, fmtTokens } from '@/views/agent/utils/format'
+import { modelLabel } from '@/views/agent/composables/useAgentModels'
 import { modeDesc, modeName, providerLabel } from '@/views/agent/utils/labels'
 import { composerDrafts } from './drafts'
 import type { AgentCommand } from './types'
@@ -324,8 +325,9 @@ const props = withDefaults(
 const emit = defineEmits<{ select: [patch: Partial<Selection>]; stop: [] }>()
 const { t } = useI18n()
 const menuStore = useMenuStore()
-// 能管大家共用的运行时、供应商（Agent 管理页里的这几个标签要 agent:manage）
-const canShared = computed(() => menuStore.hasMenuPath('/agent/manage') && menuStore.hasButtonPermission('agent:manage'))
+// 能管大家共用的运行时（Agent 管理页里，要 agent:manage）；自己的模型供应商在 Agent 设置页里
+const canRuntimes = computed(() => menuStore.hasMenuPath('/agent/admin') && menuStore.hasButtonPermission('agent:manage'))
+const canProviders = computed(() => menuStore.hasMenuPath('/agent/manage'))
 
 const UPLOAD_MAX = 20 * 1024 * 1024
 
@@ -432,7 +434,7 @@ const readyRuntimes = computed(() => props.runtimes.filter((r) => r.ready))
 const provider = computed(() => runtime.value?.providers.find((p) => p.providerId === props.providerId))
 const otherProviders = computed(() => (runtime.value?.providers ?? []).filter((p) => p !== provider.value))
 const modelOption = computed(() => provider.value?.models.find((m) => m.id === props.model))
-const modelName = computed(() => modelOption.value?.name || props.model)
+const modelName = computed(() => modelLabel(modelOption.value, props.model))
 const efforts = computed(() => modelOption.value?.efforts ?? [])
 const effortName = computed(() => efforts.value.find((e) => e.id === props.effort)?.name || props.effort)
 const modes = computed(() => runtime.value?.modes ?? [])
@@ -443,7 +445,8 @@ const currentMode = computed(() => {
 
 const runtimeSub = (r: AgentRuntimeOptions) => {
   const p = r.providers.find((x) => x.models.some((m) => m.id === x.defaultModel)) ?? r.providers[0]
-  return [p ? providerLabel(p) : '', p?.defaultModel].filter(Boolean).join(' · ')
+  const m = p?.models.find((x) => x.id === p.defaultModel)
+  return [p ? providerLabel(p) : '', modelLabel(m, p?.defaultModel)].filter(Boolean).join(' · ')
 }
 
 const choose = (patch: Partial<Selection>) => {

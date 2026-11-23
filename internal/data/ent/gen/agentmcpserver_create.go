@@ -231,6 +231,26 @@ func (_c *AgentMcpServerCreate) SetNillableTestedAt(v *time.Time) *AgentMcpServe
 	return _c
 }
 
+// SetShare sets the "share" field.
+func (_c *AgentMcpServerCreate) SetShare(v string) *AgentMcpServerCreate {
+	_c.mutation.SetShare(v)
+	return _c
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_c *AgentMcpServerCreate) SetNillableShare(v *string) *AgentMcpServerCreate {
+	if v != nil {
+		_c.SetShare(*v)
+	}
+	return _c
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_c *AgentMcpServerCreate) SetShareUsers(v []string) *AgentMcpServerCreate {
+	_c.mutation.SetShareUsers(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AgentMcpServerCreate) SetID(v string) *AgentMcpServerCreate {
 	_c.mutation.SetID(v)
@@ -324,6 +344,10 @@ func (_c *AgentMcpServerCreate) defaults() {
 		v := agentmcpserver.DefaultToolCount
 		_c.mutation.SetToolCount(v)
 	}
+	if _, ok := _c.mutation.Share(); !ok {
+		v := agentmcpserver.DefaultShare
+		_c.mutation.SetShare(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -379,6 +403,9 @@ func (_c *AgentMcpServerCreate) check() error {
 	}
 	if _, ok := _c.mutation.ToolCount(); !ok {
 		return &ValidationError{Name: "tool_count", err: errors.New(`gen: missing required field "AgentMcpServer.tool_count"`)}
+	}
+	if _, ok := _c.mutation.Share(); !ok {
+		return &ValidationError{Name: "share", err: errors.New(`gen: missing required field "AgentMcpServer.share"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := agentmcpserver.IDValidator(v); err != nil {
@@ -484,6 +511,14 @@ func (_c *AgentMcpServerCreate) createSpec() (*AgentMcpServer, *sqlgraph.CreateS
 	if value, ok := _c.mutation.TestedAt(); ok {
 		_spec.SetField(agentmcpserver.FieldTestedAt, field.TypeTime, value)
 		_node.TestedAt = &value
+	}
+	if value, ok := _c.mutation.Share(); ok {
+		_spec.SetField(agentmcpserver.FieldShare, field.TypeString, value)
+		_node.Share = value
+	}
+	if value, ok := _c.mutation.ShareUsers(); ok {
+		_spec.SetField(agentmcpserver.FieldShareUsers, field.TypeJSON, value)
+		_node.ShareUsers = value
 	}
 	return _node, _spec
 }
@@ -732,6 +767,36 @@ func (u *AgentMcpServerUpsert) UpdateTestedAt() *AgentMcpServerUpsert {
 // ClearTestedAt clears the value of the "tested_at" field.
 func (u *AgentMcpServerUpsert) ClearTestedAt() *AgentMcpServerUpsert {
 	u.SetNull(agentmcpserver.FieldTestedAt)
+	return u
+}
+
+// SetShare sets the "share" field.
+func (u *AgentMcpServerUpsert) SetShare(v string) *AgentMcpServerUpsert {
+	u.Set(agentmcpserver.FieldShare, v)
+	return u
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentMcpServerUpsert) UpdateShare() *AgentMcpServerUpsert {
+	u.SetExcluded(agentmcpserver.FieldShare)
+	return u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentMcpServerUpsert) SetShareUsers(v []string) *AgentMcpServerUpsert {
+	u.Set(agentmcpserver.FieldShareUsers, v)
+	return u
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentMcpServerUpsert) UpdateShareUsers() *AgentMcpServerUpsert {
+	u.SetExcluded(agentmcpserver.FieldShareUsers)
+	return u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentMcpServerUpsert) ClearShareUsers() *AgentMcpServerUpsert {
+	u.SetNull(agentmcpserver.FieldShareUsers)
 	return u
 }
 
@@ -1014,6 +1079,41 @@ func (u *AgentMcpServerUpsertOne) UpdateTestedAt() *AgentMcpServerUpsertOne {
 func (u *AgentMcpServerUpsertOne) ClearTestedAt() *AgentMcpServerUpsertOne {
 	return u.Update(func(s *AgentMcpServerUpsert) {
 		s.ClearTestedAt()
+	})
+}
+
+// SetShare sets the "share" field.
+func (u *AgentMcpServerUpsertOne) SetShare(v string) *AgentMcpServerUpsertOne {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.SetShare(v)
+	})
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentMcpServerUpsertOne) UpdateShare() *AgentMcpServerUpsertOne {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.UpdateShare()
+	})
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentMcpServerUpsertOne) SetShareUsers(v []string) *AgentMcpServerUpsertOne {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.SetShareUsers(v)
+	})
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentMcpServerUpsertOne) UpdateShareUsers() *AgentMcpServerUpsertOne {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.UpdateShareUsers()
+	})
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentMcpServerUpsertOne) ClearShareUsers() *AgentMcpServerUpsertOne {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.ClearShareUsers()
 	})
 }
 
@@ -1463,6 +1563,41 @@ func (u *AgentMcpServerUpsertBulk) UpdateTestedAt() *AgentMcpServerUpsertBulk {
 func (u *AgentMcpServerUpsertBulk) ClearTestedAt() *AgentMcpServerUpsertBulk {
 	return u.Update(func(s *AgentMcpServerUpsert) {
 		s.ClearTestedAt()
+	})
+}
+
+// SetShare sets the "share" field.
+func (u *AgentMcpServerUpsertBulk) SetShare(v string) *AgentMcpServerUpsertBulk {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.SetShare(v)
+	})
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentMcpServerUpsertBulk) UpdateShare() *AgentMcpServerUpsertBulk {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.UpdateShare()
+	})
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentMcpServerUpsertBulk) SetShareUsers(v []string) *AgentMcpServerUpsertBulk {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.SetShareUsers(v)
+	})
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentMcpServerUpsertBulk) UpdateShareUsers() *AgentMcpServerUpsertBulk {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.UpdateShareUsers()
+	})
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentMcpServerUpsertBulk) ClearShareUsers() *AgentMcpServerUpsertBulk {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.ClearShareUsers()
 	})
 }
 

@@ -8,7 +8,8 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// AgentMcpServer MCP 服务器配置，属于创建它的用户。新建会话时把选中的放进 mcpServers 交给 Agent。
+// AgentMcpServer MCP 服务器配置，属于创建它的用户；管理员在全员 Agent 页加的是共享的（主人 @shared），
+// 共享给所有人或指定的人。新建会话时把选中的放进 mcpServers 交给 Agent。
 type AgentMcpServer struct {
 	ent.Schema
 }
@@ -30,6 +31,8 @@ func (AgentMcpServer) Fields() []ent.Field {
 		field.String("status_text").Default("").Comment("测试结果说明"),
 		field.Int("tool_count").Default(0).Comment("测试时读到的工具数"),
 		field.Time("tested_at").Optional().Nillable().Comment("最近一次测试时间"),
+		field.String("share").Default("").Comment("共享范围：空 = 只有主人自己用；all = 所有人；users = share_users 里的人。共享的主人是 @shared，在全员 Agent 页里管"),
+		field.Strings("share_users").Optional().Comment("share 为 users 时能用的用户 id"),
 	}
 }
 

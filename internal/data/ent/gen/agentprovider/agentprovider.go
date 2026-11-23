@@ -17,6 +17,8 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
 	FieldUpdateTime = "update_time"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
 	// FieldVendor holds the string denoting the vendor field in the database.
 	FieldVendor = "vendor"
 	// FieldName holds the string denoting the name field in the database.
@@ -41,6 +43,10 @@ const (
 	FieldTestLatencyMs = "test_latency_ms"
 	// FieldTestedAt holds the string denoting the tested_at field in the database.
 	FieldTestedAt = "tested_at"
+	// FieldShare holds the string denoting the share field in the database.
+	FieldShare = "share"
+	// FieldShareUsers holds the string denoting the share_users field in the database.
+	FieldShareUsers = "share_users"
 	// Table holds the table name of the agentprovider in the database.
 	Table = "agent_providers"
 )
@@ -50,6 +56,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
+	FieldUserID,
 	FieldVendor,
 	FieldName,
 	FieldStatus,
@@ -62,6 +69,8 @@ var Columns = []string{
 	FieldEnv,
 	FieldTestLatencyMs,
 	FieldTestedAt,
+	FieldShare,
+	FieldShareUsers,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -81,6 +90,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// DefaultUserID holds the default value on creation for the "user_id" field.
+	DefaultUserID string
 	// VendorValidator is a validator for the "vendor" field. It is called by the builders before save.
 	VendorValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
@@ -99,6 +110,8 @@ var (
 	DefaultFastModel string
 	// DefaultTestLatencyMs holds the default value on creation for the "test_latency_ms" field.
 	DefaultTestLatencyMs int64
+	// DefaultShare holds the default value on creation for the "share" field.
+	DefaultShare string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -119,6 +132,11 @@ func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdateTime orders the results by the update_time field.
 func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
 }
 
 // ByVendor orders the results by the vendor field.
@@ -169,4 +187,9 @@ func ByTestLatencyMs(opts ...sql.OrderTermOption) OrderOption {
 // ByTestedAt orders the results by the tested_at field.
 func ByTestedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTestedAt, opts...).ToFunc()
+}
+
+// ByShare orders the results by the share field.
+func ByShare(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShare, opts...).ToFunc()
 }

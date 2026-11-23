@@ -13,6 +13,7 @@ import (
 
 	"momoko/internal/data/ent/gen/agentevent"
 	"momoko/internal/data/ent/gen/agentmcpserver"
+	"momoko/internal/data/ent/gen/agentnotify"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
 	"momoko/internal/data/ent/gen/agentruntimemodel"
@@ -85,6 +86,8 @@ type Client struct {
 	AgentEvent *AgentEventClient
 	// AgentMcpServer is the client for interacting with the AgentMcpServer builders.
 	AgentMcpServer *AgentMcpServerClient
+	// AgentNotify is the client for interacting with the AgentNotify builders.
+	AgentNotify *AgentNotifyClient
 	// AgentProvider is the client for interacting with the AgentProvider builders.
 	AgentProvider *AgentProviderClient
 	// AgentRuntime is the client for interacting with the AgentRuntime builders.
@@ -206,6 +209,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AgentEvent = NewAgentEventClient(c.config)
 	c.AgentMcpServer = NewAgentMcpServerClient(c.config)
+	c.AgentNotify = NewAgentNotifyClient(c.config)
 	c.AgentProvider = NewAgentProviderClient(c.config)
 	c.AgentRuntime = NewAgentRuntimeClient(c.config)
 	c.AgentRuntimeModel = NewAgentRuntimeModelClient(c.config)
@@ -354,6 +358,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:             cfg,
 		AgentEvent:         NewAgentEventClient(cfg),
 		AgentMcpServer:     NewAgentMcpServerClient(cfg),
+		AgentNotify:        NewAgentNotifyClient(cfg),
 		AgentProvider:      NewAgentProviderClient(cfg),
 		AgentRuntime:       NewAgentRuntimeClient(cfg),
 		AgentRuntimeModel:  NewAgentRuntimeModelClient(cfg),
@@ -429,6 +434,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:             cfg,
 		AgentEvent:         NewAgentEventClient(cfg),
 		AgentMcpServer:     NewAgentMcpServerClient(cfg),
+		AgentNotify:        NewAgentNotifyClient(cfg),
 		AgentProvider:      NewAgentProviderClient(cfg),
 		AgentRuntime:       NewAgentRuntimeClient(cfg),
 		AgentRuntimeModel:  NewAgentRuntimeModelClient(cfg),
@@ -512,7 +518,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AgentEvent, c.AgentMcpServer, c.AgentProvider, c.AgentRuntime,
+		c.AgentEvent, c.AgentMcpServer, c.AgentNotify, c.AgentProvider, c.AgentRuntime,
 		c.AgentRuntimeModel, c.AgentSession, c.AgentSkill, c.AgentWorkspace,
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
@@ -534,7 +540,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AgentEvent, c.AgentMcpServer, c.AgentProvider, c.AgentRuntime,
+		c.AgentEvent, c.AgentMcpServer, c.AgentNotify, c.AgentProvider, c.AgentRuntime,
 		c.AgentRuntimeModel, c.AgentSession, c.AgentSkill, c.AgentWorkspace,
 		c.EmailTemplate, c.FileShare, c.FileShareDownload, c.FileSource, c.FileUpload,
 		c.FileUploadChunk, c.FrpTunnel, c.FrpTunnelStat, c.GameAccountLink,
@@ -559,6 +565,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AgentEvent.mutate(ctx, m)
 	case *AgentMcpServerMutation:
 		return c.AgentMcpServer.mutate(ctx, m)
+	case *AgentNotifyMutation:
+		return c.AgentNotify.mutate(ctx, m)
 	case *AgentProviderMutation:
 		return c.AgentProvider.mutate(ctx, m)
 	case *AgentRuntimeMutation:
@@ -935,6 +943,139 @@ func (c *AgentMcpServerClient) mutate(ctx context.Context, m *AgentMcpServerMuta
 		return (&AgentMcpServerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown AgentMcpServer mutation op: %q", m.Op())
+	}
+}
+
+// AgentNotifyClient is a client for the AgentNotify schema.
+type AgentNotifyClient struct {
+	config
+}
+
+// NewAgentNotifyClient returns a client for the AgentNotify from the given config.
+func NewAgentNotifyClient(c config) *AgentNotifyClient {
+	return &AgentNotifyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `agentnotify.Hooks(f(g(h())))`.
+func (c *AgentNotifyClient) Use(hooks ...Hook) {
+	c.hooks.AgentNotify = append(c.hooks.AgentNotify, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `agentnotify.Intercept(f(g(h())))`.
+func (c *AgentNotifyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AgentNotify = append(c.inters.AgentNotify, interceptors...)
+}
+
+// Create returns a builder for creating a AgentNotify entity.
+func (c *AgentNotifyClient) Create() *AgentNotifyCreate {
+	mutation := newAgentNotifyMutation(c.config, OpCreate)
+	return &AgentNotifyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AgentNotify entities.
+func (c *AgentNotifyClient) CreateBulk(builders ...*AgentNotifyCreate) *AgentNotifyCreateBulk {
+	return &AgentNotifyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AgentNotifyClient) MapCreateBulk(slice any, setFunc func(*AgentNotifyCreate, int)) *AgentNotifyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AgentNotifyCreateBulk{err: fmt.Errorf("calling to AgentNotifyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AgentNotifyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AgentNotifyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AgentNotify.
+func (c *AgentNotifyClient) Update() *AgentNotifyUpdate {
+	mutation := newAgentNotifyMutation(c.config, OpUpdate)
+	return &AgentNotifyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AgentNotifyClient) UpdateOne(_m *AgentNotify) *AgentNotifyUpdateOne {
+	mutation := newAgentNotifyMutation(c.config, OpUpdateOne, withAgentNotify(_m))
+	return &AgentNotifyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AgentNotifyClient) UpdateOneID(id string) *AgentNotifyUpdateOne {
+	mutation := newAgentNotifyMutation(c.config, OpUpdateOne, withAgentNotifyID(id))
+	return &AgentNotifyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AgentNotify.
+func (c *AgentNotifyClient) Delete() *AgentNotifyDelete {
+	mutation := newAgentNotifyMutation(c.config, OpDelete)
+	return &AgentNotifyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AgentNotifyClient) DeleteOne(_m *AgentNotify) *AgentNotifyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AgentNotifyClient) DeleteOneID(id string) *AgentNotifyDeleteOne {
+	builder := c.Delete().Where(agentnotify.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AgentNotifyDeleteOne{builder}
+}
+
+// Query returns a query builder for AgentNotify.
+func (c *AgentNotifyClient) Query() *AgentNotifyQuery {
+	return &AgentNotifyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAgentNotify},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AgentNotify entity by its id.
+func (c *AgentNotifyClient) Get(ctx context.Context, id string) (*AgentNotify, error) {
+	return c.Query().Where(agentnotify.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AgentNotifyClient) GetX(ctx context.Context, id string) *AgentNotify {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AgentNotifyClient) Hooks() []Hook {
+	return c.hooks.AgentNotify
+}
+
+// Interceptors returns the client interceptors.
+func (c *AgentNotifyClient) Interceptors() []Interceptor {
+	return c.inters.AgentNotify
+}
+
+func (c *AgentNotifyClient) mutate(ctx context.Context, m *AgentNotifyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AgentNotifyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AgentNotifyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AgentNotifyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AgentNotifyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown AgentNotify mutation op: %q", m.Op())
 	}
 }
 
@@ -8491,10 +8632,10 @@ func (c *UserThemeClient) mutate(ctx context.Context, m *UserThemeMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AgentEvent, AgentMcpServer, AgentProvider, AgentRuntime, AgentRuntimeModel,
-		AgentSession, AgentSkill, AgentWorkspace, EmailTemplate, FileShare,
-		FileShareDownload, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, GameAccountLink, GameAccountUnlink, GameClientLog,
+		AgentEvent, AgentMcpServer, AgentNotify, AgentProvider, AgentRuntime,
+		AgentRuntimeModel, AgentSession, AgentSkill, AgentWorkspace, EmailTemplate,
+		FileShare, FileShareDownload, FileSource, FileUpload, FileUploadChunk,
+		FrpTunnel, FrpTunnelStat, GameAccountLink, GameAccountUnlink, GameClientLog,
 		GameConfigRevision, GameRecentServer, GameServer, GameServerBackup,
 		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
 		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
@@ -8504,10 +8645,10 @@ type (
 		ThemeAsset, User, UserAPIKey, UserMessage, UserTheme []ent.Hook
 	}
 	inters struct {
-		AgentEvent, AgentMcpServer, AgentProvider, AgentRuntime, AgentRuntimeModel,
-		AgentSession, AgentSkill, AgentWorkspace, EmailTemplate, FileShare,
-		FileShareDownload, FileSource, FileUpload, FileUploadChunk, FrpTunnel,
-		FrpTunnelStat, GameAccountLink, GameAccountUnlink, GameClientLog,
+		AgentEvent, AgentMcpServer, AgentNotify, AgentProvider, AgentRuntime,
+		AgentRuntimeModel, AgentSession, AgentSkill, AgentWorkspace, EmailTemplate,
+		FileShare, FileShareDownload, FileSource, FileUpload, FileUploadChunk,
+		FrpTunnel, FrpTunnelStat, GameAccountLink, GameAccountUnlink, GameClientLog,
 		GameConfigRevision, GameRecentServer, GameServer, GameServerBackup,
 		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
 		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,

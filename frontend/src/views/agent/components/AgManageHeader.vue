@@ -1,5 +1,5 @@
-<!-- Agent 管理七个标签页共用的页头：项目现有的 PageHeader + 页内标签（带数量）。
-     副标题只放数量（默认插槽），右上的按钮放 #actions。在全员 Agent 页里（useAgentAll）换成那一页的标题和标签。 -->
+<!-- Agent 设置和 Agent 管理各标签页共用的页头：项目现有的 PageHeader + 页内标签（带数量）。
+     副标题只放数量（默认插槽），右上的按钮放 #actions。在 Agent 管理页里（useAgentAll）换成那一页的标题和标签。 -->
 <template>
   <PageHeader :title="all ? t('agent.admin.title') : t('agent.manage.title')">
     <template #description><slot /></template>

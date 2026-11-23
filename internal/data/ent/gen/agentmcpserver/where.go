@@ -134,6 +134,11 @@ func TestedAt(v time.Time) predicate.AgentMcpServer {
 	return predicate.AgentMcpServer(sql.FieldEQ(FieldTestedAt, v))
 }
 
+// Share applies equality check predicate on the "share" field. It's identical to ShareEQ.
+func Share(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldEQ(FieldShare, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.AgentMcpServer {
 	return predicate.AgentMcpServer(sql.FieldEQ(FieldCreateTime, v))
@@ -927,6 +932,81 @@ func TestedAtIsNil() predicate.AgentMcpServer {
 // TestedAtNotNil applies the NotNil predicate on the "tested_at" field.
 func TestedAtNotNil() predicate.AgentMcpServer {
 	return predicate.AgentMcpServer(sql.FieldNotNull(FieldTestedAt))
+}
+
+// ShareEQ applies the EQ predicate on the "share" field.
+func ShareEQ(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldEQ(FieldShare, v))
+}
+
+// ShareNEQ applies the NEQ predicate on the "share" field.
+func ShareNEQ(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldNEQ(FieldShare, v))
+}
+
+// ShareIn applies the In predicate on the "share" field.
+func ShareIn(vs ...string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldIn(FieldShare, vs...))
+}
+
+// ShareNotIn applies the NotIn predicate on the "share" field.
+func ShareNotIn(vs ...string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldNotIn(FieldShare, vs...))
+}
+
+// ShareGT applies the GT predicate on the "share" field.
+func ShareGT(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldGT(FieldShare, v))
+}
+
+// ShareGTE applies the GTE predicate on the "share" field.
+func ShareGTE(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldGTE(FieldShare, v))
+}
+
+// ShareLT applies the LT predicate on the "share" field.
+func ShareLT(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldLT(FieldShare, v))
+}
+
+// ShareLTE applies the LTE predicate on the "share" field.
+func ShareLTE(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldLTE(FieldShare, v))
+}
+
+// ShareContains applies the Contains predicate on the "share" field.
+func ShareContains(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldContains(FieldShare, v))
+}
+
+// ShareHasPrefix applies the HasPrefix predicate on the "share" field.
+func ShareHasPrefix(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldHasPrefix(FieldShare, v))
+}
+
+// ShareHasSuffix applies the HasSuffix predicate on the "share" field.
+func ShareHasSuffix(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldHasSuffix(FieldShare, v))
+}
+
+// ShareEqualFold applies the EqualFold predicate on the "share" field.
+func ShareEqualFold(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldEqualFold(FieldShare, v))
+}
+
+// ShareContainsFold applies the ContainsFold predicate on the "share" field.
+func ShareContainsFold(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldContainsFold(FieldShare, v))
+}
+
+// ShareUsersIsNil applies the IsNil predicate on the "share_users" field.
+func ShareUsersIsNil() predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldIsNull(FieldShareUsers))
+}
+
+// ShareUsersNotNil applies the NotNil predicate on the "share_users" field.
+func ShareUsersNotNil() predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldNotNull(FieldShareUsers))
 }
 
 // And groups predicates with the AND operator between them.

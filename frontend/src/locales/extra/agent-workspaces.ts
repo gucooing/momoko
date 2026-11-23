@@ -1,4 +1,4 @@
-// Agent 管理 · 工作区标签页、目录选择（AgDirList）和工作区弹窗（AgWorkspaceDialog）的文案。
+// Agent 设置 · 工作区标签页、目录选择（AgDirList）和工作区弹窗（AgWorkspaceDialog）的文案。
 // 共用的词（保存 / 取消 / 编辑 / 浏览 / 名称…）在 agent.ts。
 export default {
   'zh-CN': {

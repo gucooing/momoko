@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/gen/agentevent"
 	"momoko/internal/data/ent/gen/agentmcpserver"
+	"momoko/internal/data/ent/gen/agentnotify"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
 	"momoko/internal/data/ent/gen/agentruntimemodel"
@@ -83,6 +84,7 @@ const (
 	// Node types.
 	TypeAgentEvent         = "AgentEvent"
 	TypeAgentMcpServer     = "AgentMcpServer"
+	TypeAgentNotify        = "AgentNotify"
 	TypeAgentProvider      = "AgentProvider"
 	TypeAgentRuntime       = "AgentRuntime"
 	TypeAgentRuntimeModel  = "AgentRuntimeModel"
@@ -861,31 +863,34 @@ func (m *AgentEventMutation) ResetEdge(name string) error {
 // AgentMcpServerMutation represents an operation that mutates the AgentMcpServer nodes in the graph.
 type AgentMcpServerMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *string
-	create_time   *time.Time
-	update_time   *time.Time
-	user_id       *string
-	name          *string
-	description   *string
-	transport     *agentmcpserver.Transport
-	command       *string
-	args          *[]string
-	appendargs    []string
-	env           *string
-	url           *string
-	headers       *string
-	default_on    *bool
-	status        *string
-	status_text   *string
-	tool_count    *int
-	addtool_count *int
-	tested_at     *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*AgentMcpServer, error)
-	predicates    []predicate.AgentMcpServer
+	op                Op
+	typ               string
+	id                *string
+	create_time       *time.Time
+	update_time       *time.Time
+	user_id           *string
+	name              *string
+	description       *string
+	transport         *agentmcpserver.Transport
+	command           *string
+	args              *[]string
+	appendargs        []string
+	env               *string
+	url               *string
+	headers           *string
+	default_on        *bool
+	status            *string
+	status_text       *string
+	tool_count        *int
+	addtool_count     *int
+	tested_at         *time.Time
+	share             *string
+	share_users       *[]string
+	appendshare_users []string
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*AgentMcpServer, error)
+	predicates        []predicate.AgentMcpServer
 }
 
 var _ ent.Mutation = (*AgentMcpServerMutation)(nil)
@@ -1630,6 +1635,107 @@ func (m *AgentMcpServerMutation) ResetTestedAt() {
 	delete(m.clearedFields, agentmcpserver.FieldTestedAt)
 }
 
+// SetShare sets the "share" field.
+func (m *AgentMcpServerMutation) SetShare(s string) {
+	m.share = &s
+}
+
+// Share returns the value of the "share" field in the mutation.
+func (m *AgentMcpServerMutation) Share() (r string, exists bool) {
+	v := m.share
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShare returns the old "share" field's value of the AgentMcpServer entity.
+// If the AgentMcpServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentMcpServerMutation) OldShare(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShare is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShare requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShare: %w", err)
+	}
+	return oldValue.Share, nil
+}
+
+// ResetShare resets all changes to the "share" field.
+func (m *AgentMcpServerMutation) ResetShare() {
+	m.share = nil
+}
+
+// SetShareUsers sets the "share_users" field.
+func (m *AgentMcpServerMutation) SetShareUsers(s []string) {
+	m.share_users = &s
+	m.appendshare_users = nil
+}
+
+// ShareUsers returns the value of the "share_users" field in the mutation.
+func (m *AgentMcpServerMutation) ShareUsers() (r []string, exists bool) {
+	v := m.share_users
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareUsers returns the old "share_users" field's value of the AgentMcpServer entity.
+// If the AgentMcpServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentMcpServerMutation) OldShareUsers(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareUsers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareUsers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareUsers: %w", err)
+	}
+	return oldValue.ShareUsers, nil
+}
+
+// AppendShareUsers adds s to the "share_users" field.
+func (m *AgentMcpServerMutation) AppendShareUsers(s []string) {
+	m.appendshare_users = append(m.appendshare_users, s...)
+}
+
+// AppendedShareUsers returns the list of values that were appended to the "share_users" field in this mutation.
+func (m *AgentMcpServerMutation) AppendedShareUsers() ([]string, bool) {
+	if len(m.appendshare_users) == 0 {
+		return nil, false
+	}
+	return m.appendshare_users, true
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (m *AgentMcpServerMutation) ClearShareUsers() {
+	m.share_users = nil
+	m.appendshare_users = nil
+	m.clearedFields[agentmcpserver.FieldShareUsers] = struct{}{}
+}
+
+// ShareUsersCleared returns if the "share_users" field was cleared in this mutation.
+func (m *AgentMcpServerMutation) ShareUsersCleared() bool {
+	_, ok := m.clearedFields[agentmcpserver.FieldShareUsers]
+	return ok
+}
+
+// ResetShareUsers resets all changes to the "share_users" field.
+func (m *AgentMcpServerMutation) ResetShareUsers() {
+	m.share_users = nil
+	m.appendshare_users = nil
+	delete(m.clearedFields, agentmcpserver.FieldShareUsers)
+}
+
 // Where appends a list predicates to the AgentMcpServerMutation builder.
 func (m *AgentMcpServerMutation) Where(ps ...predicate.AgentMcpServer) {
 	m.predicates = append(m.predicates, ps...)
@@ -1664,7 +1770,7 @@ func (m *AgentMcpServerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentMcpServerMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 18)
 	if m.create_time != nil {
 		fields = append(fields, agentmcpserver.FieldCreateTime)
 	}
@@ -1713,6 +1819,12 @@ func (m *AgentMcpServerMutation) Fields() []string {
 	if m.tested_at != nil {
 		fields = append(fields, agentmcpserver.FieldTestedAt)
 	}
+	if m.share != nil {
+		fields = append(fields, agentmcpserver.FieldShare)
+	}
+	if m.share_users != nil {
+		fields = append(fields, agentmcpserver.FieldShareUsers)
+	}
 	return fields
 }
 
@@ -1753,6 +1865,10 @@ func (m *AgentMcpServerMutation) Field(name string) (ent.Value, bool) {
 		return m.ToolCount()
 	case agentmcpserver.FieldTestedAt:
 		return m.TestedAt()
+	case agentmcpserver.FieldShare:
+		return m.Share()
+	case agentmcpserver.FieldShareUsers:
+		return m.ShareUsers()
 	}
 	return nil, false
 }
@@ -1794,6 +1910,10 @@ func (m *AgentMcpServerMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldToolCount(ctx)
 	case agentmcpserver.FieldTestedAt:
 		return m.OldTestedAt(ctx)
+	case agentmcpserver.FieldShare:
+		return m.OldShare(ctx)
+	case agentmcpserver.FieldShareUsers:
+		return m.OldShareUsers(ctx)
 	}
 	return nil, fmt.Errorf("unknown AgentMcpServer field %s", name)
 }
@@ -1915,6 +2035,20 @@ func (m *AgentMcpServerMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTestedAt(v)
 		return nil
+	case agentmcpserver.FieldShare:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShare(v)
+		return nil
+	case agentmcpserver.FieldShareUsers:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareUsers(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AgentMcpServer field %s", name)
 }
@@ -1966,6 +2100,9 @@ func (m *AgentMcpServerMutation) ClearedFields() []string {
 	if m.FieldCleared(agentmcpserver.FieldTestedAt) {
 		fields = append(fields, agentmcpserver.FieldTestedAt)
 	}
+	if m.FieldCleared(agentmcpserver.FieldShareUsers) {
+		fields = append(fields, agentmcpserver.FieldShareUsers)
+	}
 	return fields
 }
 
@@ -1985,6 +2122,9 @@ func (m *AgentMcpServerMutation) ClearField(name string) error {
 		return nil
 	case agentmcpserver.FieldTestedAt:
 		m.ClearTestedAt()
+		return nil
+	case agentmcpserver.FieldShareUsers:
+		m.ClearShareUsers()
 		return nil
 	}
 	return fmt.Errorf("unknown AgentMcpServer nullable field %s", name)
@@ -2042,6 +2182,12 @@ func (m *AgentMcpServerMutation) ResetField(name string) error {
 	case agentmcpserver.FieldTestedAt:
 		m.ResetTestedAt()
 		return nil
+	case agentmcpserver.FieldShare:
+		m.ResetShare()
+		return nil
+	case agentmcpserver.FieldShareUsers:
+		m.ResetShareUsers()
+		return nil
 	}
 	return fmt.Errorf("unknown AgentMcpServer field %s", name)
 }
@@ -2094,6 +2240,630 @@ func (m *AgentMcpServerMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AgentMcpServer edge %s", name)
 }
 
+// AgentNotifyMutation represents an operation that mutates the AgentNotify nodes in the graph.
+type AgentNotifyMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *string
+	create_time   *time.Time
+	update_time   *time.Time
+	on_ask        *bool
+	on_done       *bool
+	on_error      *bool
+	channels      *map[string]schema.AgentNotifyChannel
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*AgentNotify, error)
+	predicates    []predicate.AgentNotify
+}
+
+var _ ent.Mutation = (*AgentNotifyMutation)(nil)
+
+// agentnotifyOption allows management of the mutation configuration using functional options.
+type agentnotifyOption func(*AgentNotifyMutation)
+
+// newAgentNotifyMutation creates new mutation for the AgentNotify entity.
+func newAgentNotifyMutation(c config, op Op, opts ...agentnotifyOption) *AgentNotifyMutation {
+	m := &AgentNotifyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAgentNotify,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAgentNotifyID sets the ID field of the mutation.
+func withAgentNotifyID(id string) agentnotifyOption {
+	return func(m *AgentNotifyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AgentNotify
+		)
+		m.oldValue = func(ctx context.Context) (*AgentNotify, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AgentNotify.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAgentNotify sets the old AgentNotify of the mutation.
+func withAgentNotify(node *AgentNotify) agentnotifyOption {
+	return func(m *AgentNotifyMutation) {
+		m.oldValue = func(context.Context) (*AgentNotify, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AgentNotifyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AgentNotifyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AgentNotify entities.
+func (m *AgentNotifyMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AgentNotifyMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AgentNotifyMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AgentNotify.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *AgentNotifyMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *AgentNotifyMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the AgentNotify entity.
+// If the AgentNotify object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentNotifyMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *AgentNotifyMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (m *AgentNotifyMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the value of the "update_time" field in the mutation.
+func (m *AgentNotifyMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdateTime returns the old "update_time" field's value of the AgentNotify entity.
+// If the AgentNotify object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentNotifyMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
+	}
+	return oldValue.UpdateTime, nil
+}
+
+// ResetUpdateTime resets all changes to the "update_time" field.
+func (m *AgentNotifyMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetOnAsk sets the "on_ask" field.
+func (m *AgentNotifyMutation) SetOnAsk(b bool) {
+	m.on_ask = &b
+}
+
+// OnAsk returns the value of the "on_ask" field in the mutation.
+func (m *AgentNotifyMutation) OnAsk() (r bool, exists bool) {
+	v := m.on_ask
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnAsk returns the old "on_ask" field's value of the AgentNotify entity.
+// If the AgentNotify object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentNotifyMutation) OldOnAsk(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnAsk is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnAsk requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnAsk: %w", err)
+	}
+	return oldValue.OnAsk, nil
+}
+
+// ResetOnAsk resets all changes to the "on_ask" field.
+func (m *AgentNotifyMutation) ResetOnAsk() {
+	m.on_ask = nil
+}
+
+// SetOnDone sets the "on_done" field.
+func (m *AgentNotifyMutation) SetOnDone(b bool) {
+	m.on_done = &b
+}
+
+// OnDone returns the value of the "on_done" field in the mutation.
+func (m *AgentNotifyMutation) OnDone() (r bool, exists bool) {
+	v := m.on_done
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnDone returns the old "on_done" field's value of the AgentNotify entity.
+// If the AgentNotify object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentNotifyMutation) OldOnDone(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnDone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnDone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnDone: %w", err)
+	}
+	return oldValue.OnDone, nil
+}
+
+// ResetOnDone resets all changes to the "on_done" field.
+func (m *AgentNotifyMutation) ResetOnDone() {
+	m.on_done = nil
+}
+
+// SetOnError sets the "on_error" field.
+func (m *AgentNotifyMutation) SetOnError(b bool) {
+	m.on_error = &b
+}
+
+// OnError returns the value of the "on_error" field in the mutation.
+func (m *AgentNotifyMutation) OnError() (r bool, exists bool) {
+	v := m.on_error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOnError returns the old "on_error" field's value of the AgentNotify entity.
+// If the AgentNotify object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentNotifyMutation) OldOnError(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOnError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOnError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOnError: %w", err)
+	}
+	return oldValue.OnError, nil
+}
+
+// ResetOnError resets all changes to the "on_error" field.
+func (m *AgentNotifyMutation) ResetOnError() {
+	m.on_error = nil
+}
+
+// SetChannels sets the "channels" field.
+func (m *AgentNotifyMutation) SetChannels(mnc map[string]schema.AgentNotifyChannel) {
+	m.channels = &mnc
+}
+
+// Channels returns the value of the "channels" field in the mutation.
+func (m *AgentNotifyMutation) Channels() (r map[string]schema.AgentNotifyChannel, exists bool) {
+	v := m.channels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChannels returns the old "channels" field's value of the AgentNotify entity.
+// If the AgentNotify object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentNotifyMutation) OldChannels(ctx context.Context) (v map[string]schema.AgentNotifyChannel, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChannels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChannels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChannels: %w", err)
+	}
+	return oldValue.Channels, nil
+}
+
+// ClearChannels clears the value of the "channels" field.
+func (m *AgentNotifyMutation) ClearChannels() {
+	m.channels = nil
+	m.clearedFields[agentnotify.FieldChannels] = struct{}{}
+}
+
+// ChannelsCleared returns if the "channels" field was cleared in this mutation.
+func (m *AgentNotifyMutation) ChannelsCleared() bool {
+	_, ok := m.clearedFields[agentnotify.FieldChannels]
+	return ok
+}
+
+// ResetChannels resets all changes to the "channels" field.
+func (m *AgentNotifyMutation) ResetChannels() {
+	m.channels = nil
+	delete(m.clearedFields, agentnotify.FieldChannels)
+}
+
+// Where appends a list predicates to the AgentNotifyMutation builder.
+func (m *AgentNotifyMutation) Where(ps ...predicate.AgentNotify) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AgentNotifyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AgentNotifyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AgentNotify, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AgentNotifyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AgentNotifyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AgentNotify).
+func (m *AgentNotifyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AgentNotifyMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.create_time != nil {
+		fields = append(fields, agentnotify.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, agentnotify.FieldUpdateTime)
+	}
+	if m.on_ask != nil {
+		fields = append(fields, agentnotify.FieldOnAsk)
+	}
+	if m.on_done != nil {
+		fields = append(fields, agentnotify.FieldOnDone)
+	}
+	if m.on_error != nil {
+		fields = append(fields, agentnotify.FieldOnError)
+	}
+	if m.channels != nil {
+		fields = append(fields, agentnotify.FieldChannels)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AgentNotifyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case agentnotify.FieldCreateTime:
+		return m.CreateTime()
+	case agentnotify.FieldUpdateTime:
+		return m.UpdateTime()
+	case agentnotify.FieldOnAsk:
+		return m.OnAsk()
+	case agentnotify.FieldOnDone:
+		return m.OnDone()
+	case agentnotify.FieldOnError:
+		return m.OnError()
+	case agentnotify.FieldChannels:
+		return m.Channels()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AgentNotifyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case agentnotify.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case agentnotify.FieldUpdateTime:
+		return m.OldUpdateTime(ctx)
+	case agentnotify.FieldOnAsk:
+		return m.OldOnAsk(ctx)
+	case agentnotify.FieldOnDone:
+		return m.OldOnDone(ctx)
+	case agentnotify.FieldOnError:
+		return m.OldOnError(ctx)
+	case agentnotify.FieldChannels:
+		return m.OldChannels(ctx)
+	}
+	return nil, fmt.Errorf("unknown AgentNotify field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentNotifyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case agentnotify.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case agentnotify.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case agentnotify.FieldOnAsk:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnAsk(v)
+		return nil
+	case agentnotify.FieldOnDone:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnDone(v)
+		return nil
+	case agentnotify.FieldOnError:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOnError(v)
+		return nil
+	case agentnotify.FieldChannels:
+		v, ok := value.(map[string]schema.AgentNotifyChannel)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChannels(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AgentNotify field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AgentNotifyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AgentNotifyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentNotifyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AgentNotify numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AgentNotifyMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(agentnotify.FieldChannels) {
+		fields = append(fields, agentnotify.FieldChannels)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AgentNotifyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AgentNotifyMutation) ClearField(name string) error {
+	switch name {
+	case agentnotify.FieldChannels:
+		m.ClearChannels()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentNotify nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AgentNotifyMutation) ResetField(name string) error {
+	switch name {
+	case agentnotify.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case agentnotify.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case agentnotify.FieldOnAsk:
+		m.ResetOnAsk()
+		return nil
+	case agentnotify.FieldOnDone:
+		m.ResetOnDone()
+		return nil
+	case agentnotify.FieldOnError:
+		m.ResetOnError()
+		return nil
+	case agentnotify.FieldChannels:
+		m.ResetChannels()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentNotify field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AgentNotifyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AgentNotifyMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AgentNotifyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AgentNotifyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AgentNotifyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AgentNotifyMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AgentNotifyMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AgentNotify unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AgentNotifyMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AgentNotify edge %s", name)
+}
+
 // AgentProviderMutation represents an operation that mutates the AgentProvider nodes in the graph.
 type AgentProviderMutation struct {
 	config
@@ -2102,6 +2872,7 @@ type AgentProviderMutation struct {
 	id                 *string
 	create_time        *time.Time
 	update_time        *time.Time
+	user_id            *string
 	vendor             *string
 	name               *string
 	status             *string
@@ -2117,6 +2888,9 @@ type AgentProviderMutation struct {
 	test_latency_ms    *int64
 	addtest_latency_ms *int64
 	tested_at          *time.Time
+	share              *string
+	share_users        *[]string
+	appendshare_users  []string
 	clearedFields      map[string]struct{}
 	done               bool
 	oldValue           func(context.Context) (*AgentProvider, error)
@@ -2297,6 +3071,42 @@ func (m *AgentProviderMutation) OldUpdateTime(ctx context.Context) (v time.Time,
 // ResetUpdateTime resets all changes to the "update_time" field.
 func (m *AgentProviderMutation) ResetUpdateTime() {
 	m.update_time = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *AgentProviderMutation) SetUserID(s string) {
+	m.user_id = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *AgentProviderMutation) UserID() (r string, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the AgentProvider entity.
+// If the AgentProvider object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentProviderMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *AgentProviderMutation) ResetUserID() {
+	m.user_id = nil
 }
 
 // SetVendor sets the "vendor" field.
@@ -2822,6 +3632,107 @@ func (m *AgentProviderMutation) ResetTestedAt() {
 	delete(m.clearedFields, agentprovider.FieldTestedAt)
 }
 
+// SetShare sets the "share" field.
+func (m *AgentProviderMutation) SetShare(s string) {
+	m.share = &s
+}
+
+// Share returns the value of the "share" field in the mutation.
+func (m *AgentProviderMutation) Share() (r string, exists bool) {
+	v := m.share
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShare returns the old "share" field's value of the AgentProvider entity.
+// If the AgentProvider object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentProviderMutation) OldShare(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShare is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShare requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShare: %w", err)
+	}
+	return oldValue.Share, nil
+}
+
+// ResetShare resets all changes to the "share" field.
+func (m *AgentProviderMutation) ResetShare() {
+	m.share = nil
+}
+
+// SetShareUsers sets the "share_users" field.
+func (m *AgentProviderMutation) SetShareUsers(s []string) {
+	m.share_users = &s
+	m.appendshare_users = nil
+}
+
+// ShareUsers returns the value of the "share_users" field in the mutation.
+func (m *AgentProviderMutation) ShareUsers() (r []string, exists bool) {
+	v := m.share_users
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareUsers returns the old "share_users" field's value of the AgentProvider entity.
+// If the AgentProvider object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentProviderMutation) OldShareUsers(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareUsers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareUsers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareUsers: %w", err)
+	}
+	return oldValue.ShareUsers, nil
+}
+
+// AppendShareUsers adds s to the "share_users" field.
+func (m *AgentProviderMutation) AppendShareUsers(s []string) {
+	m.appendshare_users = append(m.appendshare_users, s...)
+}
+
+// AppendedShareUsers returns the list of values that were appended to the "share_users" field in this mutation.
+func (m *AgentProviderMutation) AppendedShareUsers() ([]string, bool) {
+	if len(m.appendshare_users) == 0 {
+		return nil, false
+	}
+	return m.appendshare_users, true
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (m *AgentProviderMutation) ClearShareUsers() {
+	m.share_users = nil
+	m.appendshare_users = nil
+	m.clearedFields[agentprovider.FieldShareUsers] = struct{}{}
+}
+
+// ShareUsersCleared returns if the "share_users" field was cleared in this mutation.
+func (m *AgentProviderMutation) ShareUsersCleared() bool {
+	_, ok := m.clearedFields[agentprovider.FieldShareUsers]
+	return ok
+}
+
+// ResetShareUsers resets all changes to the "share_users" field.
+func (m *AgentProviderMutation) ResetShareUsers() {
+	m.share_users = nil
+	m.appendshare_users = nil
+	delete(m.clearedFields, agentprovider.FieldShareUsers)
+}
+
 // Where appends a list predicates to the AgentProviderMutation builder.
 func (m *AgentProviderMutation) Where(ps ...predicate.AgentProvider) {
 	m.predicates = append(m.predicates, ps...)
@@ -2856,12 +3767,15 @@ func (m *AgentProviderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentProviderMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 17)
 	if m.create_time != nil {
 		fields = append(fields, agentprovider.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, agentprovider.FieldUpdateTime)
+	}
+	if m.user_id != nil {
+		fields = append(fields, agentprovider.FieldUserID)
 	}
 	if m.vendor != nil {
 		fields = append(fields, agentprovider.FieldVendor)
@@ -2899,6 +3813,12 @@ func (m *AgentProviderMutation) Fields() []string {
 	if m.tested_at != nil {
 		fields = append(fields, agentprovider.FieldTestedAt)
 	}
+	if m.share != nil {
+		fields = append(fields, agentprovider.FieldShare)
+	}
+	if m.share_users != nil {
+		fields = append(fields, agentprovider.FieldShareUsers)
+	}
 	return fields
 }
 
@@ -2911,6 +3831,8 @@ func (m *AgentProviderMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case agentprovider.FieldUpdateTime:
 		return m.UpdateTime()
+	case agentprovider.FieldUserID:
+		return m.UserID()
 	case agentprovider.FieldVendor:
 		return m.Vendor()
 	case agentprovider.FieldName:
@@ -2935,6 +3857,10 @@ func (m *AgentProviderMutation) Field(name string) (ent.Value, bool) {
 		return m.TestLatencyMs()
 	case agentprovider.FieldTestedAt:
 		return m.TestedAt()
+	case agentprovider.FieldShare:
+		return m.Share()
+	case agentprovider.FieldShareUsers:
+		return m.ShareUsers()
 	}
 	return nil, false
 }
@@ -2948,6 +3874,8 @@ func (m *AgentProviderMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldCreateTime(ctx)
 	case agentprovider.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case agentprovider.FieldUserID:
+		return m.OldUserID(ctx)
 	case agentprovider.FieldVendor:
 		return m.OldVendor(ctx)
 	case agentprovider.FieldName:
@@ -2972,6 +3900,10 @@ func (m *AgentProviderMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldTestLatencyMs(ctx)
 	case agentprovider.FieldTestedAt:
 		return m.OldTestedAt(ctx)
+	case agentprovider.FieldShare:
+		return m.OldShare(ctx)
+	case agentprovider.FieldShareUsers:
+		return m.OldShareUsers(ctx)
 	}
 	return nil, fmt.Errorf("unknown AgentProvider field %s", name)
 }
@@ -2994,6 +3926,13 @@ func (m *AgentProviderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case agentprovider.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
 		return nil
 	case agentprovider.FieldVendor:
 		v, ok := value.(string)
@@ -3079,6 +4018,20 @@ func (m *AgentProviderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTestedAt(v)
 		return nil
+	case agentprovider.FieldShare:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShare(v)
+		return nil
+	case agentprovider.FieldShareUsers:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareUsers(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AgentProvider field %s", name)
 }
@@ -3133,6 +4086,9 @@ func (m *AgentProviderMutation) ClearedFields() []string {
 	if m.FieldCleared(agentprovider.FieldTestedAt) {
 		fields = append(fields, agentprovider.FieldTestedAt)
 	}
+	if m.FieldCleared(agentprovider.FieldShareUsers) {
+		fields = append(fields, agentprovider.FieldShareUsers)
+	}
 	return fields
 }
 
@@ -3156,6 +4112,9 @@ func (m *AgentProviderMutation) ClearField(name string) error {
 	case agentprovider.FieldTestedAt:
 		m.ClearTestedAt()
 		return nil
+	case agentprovider.FieldShareUsers:
+		m.ClearShareUsers()
+		return nil
 	}
 	return fmt.Errorf("unknown AgentProvider nullable field %s", name)
 }
@@ -3169,6 +4128,9 @@ func (m *AgentProviderMutation) ResetField(name string) error {
 		return nil
 	case agentprovider.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case agentprovider.FieldUserID:
+		m.ResetUserID()
 		return nil
 	case agentprovider.FieldVendor:
 		m.ResetVendor()
@@ -3205,6 +4167,12 @@ func (m *AgentProviderMutation) ResetField(name string) error {
 		return nil
 	case agentprovider.FieldTestedAt:
 		m.ResetTestedAt()
+		return nil
+	case agentprovider.FieldShare:
+		m.ResetShare()
+		return nil
+	case agentprovider.FieldShareUsers:
+		m.ResetShareUsers()
 		return nil
 	}
 	return fmt.Errorf("unknown AgentProvider field %s", name)
@@ -7957,23 +8925,26 @@ func (m *AgentSessionMutation) ResetEdge(name string) error {
 // AgentSkillMutation represents an operation that mutates the AgentSkill nodes in the graph.
 type AgentSkillMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *string
-	create_time   *time.Time
-	update_time   *time.Time
-	user_id       *string
-	name          *string
-	description   *string
-	source        *agentskill.Source
-	location      *string
-	enabled       *bool
-	file_count    *int
-	addfile_count *int
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*AgentSkill, error)
-	predicates    []predicate.AgentSkill
+	op                Op
+	typ               string
+	id                *string
+	create_time       *time.Time
+	update_time       *time.Time
+	user_id           *string
+	name              *string
+	description       *string
+	source            *agentskill.Source
+	location          *string
+	enabled           *bool
+	file_count        *int
+	addfile_count     *int
+	share             *string
+	share_users       *[]string
+	appendshare_users []string
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*AgentSkill, error)
+	predicates        []predicate.AgentSkill
 }
 
 var _ ent.Mutation = (*AgentSkillMutation)(nil)
@@ -8424,6 +9395,107 @@ func (m *AgentSkillMutation) ResetFileCount() {
 	m.addfile_count = nil
 }
 
+// SetShare sets the "share" field.
+func (m *AgentSkillMutation) SetShare(s string) {
+	m.share = &s
+}
+
+// Share returns the value of the "share" field in the mutation.
+func (m *AgentSkillMutation) Share() (r string, exists bool) {
+	v := m.share
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShare returns the old "share" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldShare(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShare is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShare requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShare: %w", err)
+	}
+	return oldValue.Share, nil
+}
+
+// ResetShare resets all changes to the "share" field.
+func (m *AgentSkillMutation) ResetShare() {
+	m.share = nil
+}
+
+// SetShareUsers sets the "share_users" field.
+func (m *AgentSkillMutation) SetShareUsers(s []string) {
+	m.share_users = &s
+	m.appendshare_users = nil
+}
+
+// ShareUsers returns the value of the "share_users" field in the mutation.
+func (m *AgentSkillMutation) ShareUsers() (r []string, exists bool) {
+	v := m.share_users
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShareUsers returns the old "share_users" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldShareUsers(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShareUsers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShareUsers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShareUsers: %w", err)
+	}
+	return oldValue.ShareUsers, nil
+}
+
+// AppendShareUsers adds s to the "share_users" field.
+func (m *AgentSkillMutation) AppendShareUsers(s []string) {
+	m.appendshare_users = append(m.appendshare_users, s...)
+}
+
+// AppendedShareUsers returns the list of values that were appended to the "share_users" field in this mutation.
+func (m *AgentSkillMutation) AppendedShareUsers() ([]string, bool) {
+	if len(m.appendshare_users) == 0 {
+		return nil, false
+	}
+	return m.appendshare_users, true
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (m *AgentSkillMutation) ClearShareUsers() {
+	m.share_users = nil
+	m.appendshare_users = nil
+	m.clearedFields[agentskill.FieldShareUsers] = struct{}{}
+}
+
+// ShareUsersCleared returns if the "share_users" field was cleared in this mutation.
+func (m *AgentSkillMutation) ShareUsersCleared() bool {
+	_, ok := m.clearedFields[agentskill.FieldShareUsers]
+	return ok
+}
+
+// ResetShareUsers resets all changes to the "share_users" field.
+func (m *AgentSkillMutation) ResetShareUsers() {
+	m.share_users = nil
+	m.appendshare_users = nil
+	delete(m.clearedFields, agentskill.FieldShareUsers)
+}
+
 // Where appends a list predicates to the AgentSkillMutation builder.
 func (m *AgentSkillMutation) Where(ps ...predicate.AgentSkill) {
 	m.predicates = append(m.predicates, ps...)
@@ -8458,7 +9530,7 @@ func (m *AgentSkillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentSkillMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 11)
 	if m.create_time != nil {
 		fields = append(fields, agentskill.FieldCreateTime)
 	}
@@ -8486,6 +9558,12 @@ func (m *AgentSkillMutation) Fields() []string {
 	if m.file_count != nil {
 		fields = append(fields, agentskill.FieldFileCount)
 	}
+	if m.share != nil {
+		fields = append(fields, agentskill.FieldShare)
+	}
+	if m.share_users != nil {
+		fields = append(fields, agentskill.FieldShareUsers)
+	}
 	return fields
 }
 
@@ -8512,6 +9590,10 @@ func (m *AgentSkillMutation) Field(name string) (ent.Value, bool) {
 		return m.Enabled()
 	case agentskill.FieldFileCount:
 		return m.FileCount()
+	case agentskill.FieldShare:
+		return m.Share()
+	case agentskill.FieldShareUsers:
+		return m.ShareUsers()
 	}
 	return nil, false
 }
@@ -8539,6 +9621,10 @@ func (m *AgentSkillMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldEnabled(ctx)
 	case agentskill.FieldFileCount:
 		return m.OldFileCount(ctx)
+	case agentskill.FieldShare:
+		return m.OldShare(ctx)
+	case agentskill.FieldShareUsers:
+		return m.OldShareUsers(ctx)
 	}
 	return nil, fmt.Errorf("unknown AgentSkill field %s", name)
 }
@@ -8611,6 +9697,20 @@ func (m *AgentSkillMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFileCount(v)
 		return nil
+	case agentskill.FieldShare:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShare(v)
+		return nil
+	case agentskill.FieldShareUsers:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShareUsers(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AgentSkill field %s", name)
 }
@@ -8655,7 +9755,11 @@ func (m *AgentSkillMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *AgentSkillMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(agentskill.FieldShareUsers) {
+		fields = append(fields, agentskill.FieldShareUsers)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -8668,6 +9772,11 @@ func (m *AgentSkillMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *AgentSkillMutation) ClearField(name string) error {
+	switch name {
+	case agentskill.FieldShareUsers:
+		m.ClearShareUsers()
+		return nil
+	}
 	return fmt.Errorf("unknown AgentSkill nullable field %s", name)
 }
 
@@ -8701,6 +9810,12 @@ func (m *AgentSkillMutation) ResetField(name string) error {
 		return nil
 	case agentskill.FieldFileCount:
 		m.ResetFileCount()
+		return nil
+	case agentskill.FieldShare:
+		m.ResetShare()
+		return nil
+	case agentskill.FieldShareUsers:
+		m.ResetShareUsers()
 		return nil
 	}
 	return fmt.Errorf("unknown AgentSkill field %s", name)

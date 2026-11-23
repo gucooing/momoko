@@ -139,25 +139,15 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationNodeServiceDeleteNode:     constant.NodeManage,
 	v1.OperationNodeServiceTestNode:       constant.NodeManage,
 
-	// —— Agent：改大家共用的配置（供应商、运行时、通知）要 agent:manage；会话、工作区、MCP、技能每个人管自己的，
-	// 只要 agent:use（AgentService 的默认权限），能不能动别人的在接口里按 agent:admin 判断 ——
-	v1.OperationAgentServiceCreateAgentProvider:          constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentProvider:          constant.AgentManage,
-	v1.OperationAgentServiceDeleteAgentProvider:          constant.AgentManage,
-	v1.OperationAgentServiceTestAgentProvider:            constant.AgentManage,
-	v1.OperationAgentServiceFetchAgentProviderModels:     constant.AgentManage,
-	v1.OperationAgentServiceGetAgentProviderBalance:      constant.AgentManage,
-	v1.OperationAgentServiceSetAgentRuntimeMode:          constant.AgentManage,
-	v1.OperationAgentServiceDetectAgentRuntime:           constant.AgentManage,
-	v1.OperationAgentServiceSetAgentRuntimeModels:        constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentRuntime:           constant.AgentManage,
-	v1.OperationAgentServiceCreateAgentRuntime:           constant.AgentManage,
-	v1.OperationAgentServiceDeleteAgentRuntime:           constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentRunSettings:       constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentNotifyEvents:      constant.AgentManage,
-	v1.OperationAgentServiceSaveAgentNotifyChannel:       constant.AgentManage,
-	v1.OperationAgentServiceSetAgentNotifyChannelEnabled: constant.AgentManage,
-	v1.OperationAgentServiceTestAgentNotifyChannel:       constant.AgentManage,
+	// —— Agent：改大家共用的运行时和官方账户（服务器上的登录）要 agent:manage；会话、工作区、第三方接口、MCP、技能、
+	// 通知每个人管自己的，只要 agent:use（AgentService 的默认权限），能不能动别人的、共享的在接口里按 agent:admin 判断 ——
+	v1.OperationAgentServiceSetAgentRuntimeMode:    constant.AgentManage,
+	v1.OperationAgentServiceDetectAgentRuntime:     constant.AgentManage,
+	v1.OperationAgentServiceSetAgentRuntimeModels:  constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentRuntime:     constant.AgentManage,
+	v1.OperationAgentServiceCreateAgentRuntime:     constant.AgentManage,
+	v1.OperationAgentServiceDeleteAgentRuntime:     constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentRunSettings: constant.AgentManage,
 }
 
 // servicePrefixPermissions 为高危服务设定默认（最低）权限，按操作名前缀匹配。

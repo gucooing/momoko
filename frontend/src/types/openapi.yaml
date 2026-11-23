@@ -204,7 +204,7 @@ paths:
             parameters:
                 - name: all
                   in: query
-                  description: 所有人的 MCP 服务器（全员 Agent 页，要有 agent:admin）；默认只有自己的
+                  description: 所有人的 MCP 服务器（Agent 管理页，要有 agent:admin）；默认是自己的，加上共享给自己的
                   schema:
                     type: boolean
             responses:
@@ -339,7 +339,7 @@ paths:
         get:
             tags:
                 - AgentService
-            description: —— 通知 ——
+            description: —— 通知：每个人自己的 ——
             operationId: AgentService_GetAgentNotify
             responses:
                 "200":
@@ -348,6 +348,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetAgentNotifyResponse'
+    /api/v1/agent/notify/all:
+        get:
+            tags:
+                - AgentService
+            description: 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
+            operationId: AgentService_ListAgentNotify
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentNotifyResponse'
     /api/v1/agent/notify/channel:
         post:
             tags:
@@ -367,6 +380,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SaveAgentNotifyChannelResponse'
+    /api/v1/agent/notify/channel/delete:
+        post:
+            tags:
+                - AgentService
+            description: 移除某种通知方式的配置
+            operationId: AgentService_DeleteAgentNotifyChannel
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.DeleteAgentNotifyChannelRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.DeleteAgentNotifyChannelResponse'
     /api/v1/agent/notify/channel/enabled:
         post:
             tags:
@@ -447,7 +479,7 @@ paths:
             parameters:
                 - name: all
                   in: query
-                  description: 全员 Agent 页：会话、工作区、MCP、技能数所有人的（要有 agent:admin，且是直接登录的）
+                  description: Agent 管理页：会话、工作区、MCP、技能数所有人的（要有 agent:admin，且是直接登录的）
                   schema:
                     type: boolean
             responses:
@@ -461,8 +493,14 @@ paths:
         get:
             tags:
                 - AgentService
-            description: —— 模型供应商 ——
+            description: —— 模型供应商（第三方接口）：每个人自己的，加上管理员共享给他的 ——
             operationId: AgentService_ListAgentProviders
+            parameters:
+                - name: all
+                  in: query
+                  description: 所有人的第三方接口（Agent 管理页，要有 agent:admin）；默认是自己的，加上共享给自己的
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -758,7 +796,7 @@ paths:
         get:
             tags:
                 - AgentService
-            description: 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（全员 Agent 页）
+            description: 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（Agent 管理页）
             operationId: AgentService_ListAgentSessions
             parameters:
                 - name: status
@@ -782,7 +820,7 @@ paths:
                     format: int32
                 - name: all
                   in: query
-                  description: 所有人的会话（全员 Agent 页，要有 agent:admin）；默认只有自己的
+                  description: 所有人的会话（Agent 管理页，要有 agent:admin）；默认只有自己的
                   schema:
                     type: boolean
             responses:
@@ -1324,7 +1362,7 @@ paths:
                     type: boolean
                 - name: all
                   in: query
-                  description: 所有人的技能（全员 Agent 页，要有 agent:admin）；默认只有自己的
+                  description: 所有人的技能（Agent 管理页，要有 agent:admin）；默认是自己的，加上共享给自己的
                   schema:
                     type: boolean
             responses:
@@ -1452,6 +1490,19 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SetAgentSkillEnabledResponse'
+    /api/v1/agent/users:
+        get:
+            tags:
+                - AgentService
+            description: Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
+            operationId: AgentService_ListAgentUsers
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListAgentUsersResponse'
     /api/v1/agent/workspaces:
         get:
             tags:
@@ -1461,7 +1512,7 @@ paths:
             parameters:
                 - name: all
                   in: query
-                  description: 所有人的工作区（全员 Agent 页，要有 agent:admin）；默认只有自己的
+                  description: 所有人的工作区（Agent 管理页，要有 agent:admin）；默认只有自己的
                   schema:
                     type: boolean
             responses:
@@ -13104,7 +13155,7 @@ components:
             properties:
                 kind:
                     type: string
-                    description: image | file | ref | snippet（打开的文件里选中的一段）
+                    description: image | file | paste（粘贴的一大段文字，存成会话临时目录里的文本文件）| ref | snippet（打开的文件里选中的一段）
                 name:
                     type: string
                     description: snippet 是「路径:起止行」
@@ -13112,7 +13163,7 @@ components:
                     type: string
                 data:
                     type: string
-                    description: image / file 的内容；snippet 是选中的文字
+                    description: image / file / paste 的内容；snippet 是选中的文字
                     format: bytes
                 path:
                     type: string
@@ -13286,7 +13337,16 @@ components:
                     format: date-time
                 userId:
                     type: string
-                    description: 所属用户
+                    description: 所属用户；共享的是 @shared
+                share:
+                    type: string
+                    description: |-
+                        共享范围：空 = 只有主人自己用；all = 所有人；users = share_user_ids 里的人。
+                         共享的只能在Agent 管理页里（要有 agent:admin）新建和修改，别人那里只能用
+                shareUserIds:
+                    type: array
+                    items:
+                        type: string
         v1.AgentModel:
             type: object
             properties:
@@ -13365,6 +13425,19 @@ components:
                 error:
                     type: boolean
                     description: 出错时
+        v1.AgentNotifyOwner:
+            type: object
+            properties:
+                userId:
+                    type: string
+                events:
+                    $ref: '#/components/schemas/v1.AgentNotifyEvents'
+                channels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentNotifyChannel'
+                    description: 只有设置过的通知方式
+            description: 一个人的通知设置（Agent 管理页）
         v1.AgentProcess:
             type: object
             properties:
@@ -13440,7 +13513,21 @@ components:
                 testedAt:
                     type: string
                     format: date-time
-            description: 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）
+                userId:
+                    type: string
+                    description: 所属用户；共享的是 @shared
+                share:
+                    type: string
+                    description: |-
+                        共享范围：空 = 只有主人自己用；all = 所有人；users = share_user_ids 里的人。
+                         共享的只能在 Agent 管理页里（要有 agent:admin）新建和修改，别人那里只能用
+                shareUserIds:
+                    type: array
+                    items:
+                        type: string
+            description: |-
+                第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）。属于添加它的人，只有他自己用得上；
+                 管理员在 Agent 管理页加的是共享的，共享给所有人或指定的人，被共享到的人只能用、看不到密钥和环境变量
         v1.AgentProviderOptions:
             type: object
             properties:
@@ -13743,7 +13830,16 @@ components:
                     format: int32
                 userId:
                     type: string
-                    description: 所属用户
+                    description: 所属用户；共享的是 @shared
+                share:
+                    type: string
+                    description: |-
+                        共享范围：空 = 只有主人自己用；all = 所有人；users = share_user_ids 里的人。
+                         共享的只能在Agent 管理页里（要有 agent:admin）新建和修改，别人那里只能用
+                shareUserIds:
+                    type: array
+                    items:
+                        type: string
         v1.AgentSkillFile:
             type: object
             properties:
@@ -14545,6 +14641,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.AgentSkillFile'
+                share:
+                    type: string
+                    description: 新建成共享的（Agent 管理页，要有 agent:admin）：all | users；空是自己的
+                shareUserIds:
+                    type: array
+                    items:
+                        type: string
         v1.CreateAgentSkillResponse:
             type: object
             properties:
@@ -15274,6 +15377,17 @@ components:
             type: object
             properties: {}
         v1.DeleteAgentMcpServerResponse:
+            type: object
+            properties: {}
+        v1.DeleteAgentNotifyChannelRequest:
+            type: object
+            properties:
+                kind:
+                    type: string
+                userId:
+                    type: string
+                    description: 别人的（Agent 管理页，要有 agent:admin）；空是自己的
+        v1.DeleteAgentNotifyChannelResponse:
             type: object
             properties: {}
         v1.DeleteAgentProviderResponse:
@@ -20259,6 +20373,13 @@ components:
             properties:
                 json:
                     type: string
+                share:
+                    type: string
+                    description: 导入成共享的（Agent 管理页，要有 agent:admin）：all | users；空是导入成自己的
+                shareUserIds:
+                    type: array
+                    items:
+                        type: string
         v1.ImportAgentMcpServersResponse:
             type: object
             properties:
@@ -20279,6 +20400,13 @@ components:
                 location:
                     type: string
                     description: 下载链接、git 地址或服务器上的目录
+                share:
+                    type: string
+                    description: 导入成共享的（Agent 管理页，要有 agent:admin）：all | users；空是导入成自己的
+                shareUserIds:
+                    type: array
+                    items:
+                        type: string
         v1.ImportAgentSkillResponse:
             type: object
             properties:
@@ -20692,7 +20820,18 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.AgentUser'
-                    description: all 时这些服务器的主人
+                    description: all 时这些服务器的主人和共享给的人
+        v1.ListAgentNotifyResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentNotifyOwner'
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentUser'
         v1.ListAgentProvidersResponse:
             type: object
             properties:
@@ -20705,6 +20844,11 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.AgentVendor'
                     description: 能添加的供应商类型
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentUser'
+                    description: all 时这些接口的主人和共享给的人
         v1.ListAgentRuntimesResponse:
             type: object
             properties:
@@ -20765,7 +20909,14 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.AgentUser'
-                    description: all 时这些技能的主人
+                    description: all 时这些技能的主人和共享给的人
+        v1.ListAgentUsersResponse:
+            type: object
+            properties:
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentUser'
         v1.ListAgentWorkspacesResponse:
             type: object
             properties:
@@ -24481,6 +24632,9 @@ components:
                     type: string
                 enabled:
                     type: boolean
+                userId:
+                    type: string
+                    description: 别人的（Agent 管理页，要有 agent:admin）；空是自己的
         v1.SetAgentNotifyChannelEnabledResponse:
             type: object
             properties: {}
@@ -26236,6 +26390,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.AgentSkillFile'
+                share:
+                    type: string
+                    description: 共享的技能才看：改共享范围（all | users）
+                shareUserIds:
+                    type: array
+                    items:
+                        type: string
         v1.UpdateAgentSkillResponse:
             type: object
             properties:

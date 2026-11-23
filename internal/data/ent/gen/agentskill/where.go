@@ -104,6 +104,11 @@ func FileCount(v int) predicate.AgentSkill {
 	return predicate.AgentSkill(sql.FieldEQ(FieldFileCount, v))
 }
 
+// Share applies equality check predicate on the "share" field. It's identical to ShareEQ.
+func Share(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldEQ(FieldShare, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.AgentSkill {
 	return predicate.AgentSkill(sql.FieldEQ(FieldCreateTime, v))
@@ -512,6 +517,81 @@ func FileCountLT(v int) predicate.AgentSkill {
 // FileCountLTE applies the LTE predicate on the "file_count" field.
 func FileCountLTE(v int) predicate.AgentSkill {
 	return predicate.AgentSkill(sql.FieldLTE(FieldFileCount, v))
+}
+
+// ShareEQ applies the EQ predicate on the "share" field.
+func ShareEQ(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldEQ(FieldShare, v))
+}
+
+// ShareNEQ applies the NEQ predicate on the "share" field.
+func ShareNEQ(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldNEQ(FieldShare, v))
+}
+
+// ShareIn applies the In predicate on the "share" field.
+func ShareIn(vs ...string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldIn(FieldShare, vs...))
+}
+
+// ShareNotIn applies the NotIn predicate on the "share" field.
+func ShareNotIn(vs ...string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldNotIn(FieldShare, vs...))
+}
+
+// ShareGT applies the GT predicate on the "share" field.
+func ShareGT(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldGT(FieldShare, v))
+}
+
+// ShareGTE applies the GTE predicate on the "share" field.
+func ShareGTE(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldGTE(FieldShare, v))
+}
+
+// ShareLT applies the LT predicate on the "share" field.
+func ShareLT(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldLT(FieldShare, v))
+}
+
+// ShareLTE applies the LTE predicate on the "share" field.
+func ShareLTE(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldLTE(FieldShare, v))
+}
+
+// ShareContains applies the Contains predicate on the "share" field.
+func ShareContains(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldContains(FieldShare, v))
+}
+
+// ShareHasPrefix applies the HasPrefix predicate on the "share" field.
+func ShareHasPrefix(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldHasPrefix(FieldShare, v))
+}
+
+// ShareHasSuffix applies the HasSuffix predicate on the "share" field.
+func ShareHasSuffix(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldHasSuffix(FieldShare, v))
+}
+
+// ShareEqualFold applies the EqualFold predicate on the "share" field.
+func ShareEqualFold(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldEqualFold(FieldShare, v))
+}
+
+// ShareContainsFold applies the ContainsFold predicate on the "share" field.
+func ShareContainsFold(v string) predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldContainsFold(FieldShare, v))
+}
+
+// ShareUsersIsNil applies the IsNil predicate on the "share_users" field.
+func ShareUsersIsNil() predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldIsNull(FieldShareUsers))
+}
+
+// ShareUsersNotNil applies the NotNil predicate on the "share_users" field.
+func ShareUsersNotNil() predicate.AgentSkill {
+	return predicate.AgentSkill(sql.FieldNotNull(FieldShareUsers))
 }
 
 // And groups predicates with the AND operator between them.

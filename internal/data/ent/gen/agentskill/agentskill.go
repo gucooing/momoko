@@ -32,6 +32,10 @@ const (
 	FieldEnabled = "enabled"
 	// FieldFileCount holds the string denoting the file_count field in the database.
 	FieldFileCount = "file_count"
+	// FieldShare holds the string denoting the share field in the database.
+	FieldShare = "share"
+	// FieldShareUsers holds the string denoting the share_users field in the database.
+	FieldShareUsers = "share_users"
 	// Table holds the table name of the agentskill in the database.
 	Table = "agent_skills"
 )
@@ -48,6 +52,8 @@ var Columns = []string{
 	FieldLocation,
 	FieldEnabled,
 	FieldFileCount,
+	FieldShare,
+	FieldShareUsers,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -79,6 +85,8 @@ var (
 	DefaultEnabled bool
 	// DefaultFileCount holds the default value on creation for the "file_count" field.
 	DefaultFileCount int
+	// DefaultShare holds the default value on creation for the "share" field.
+	DefaultShare string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -162,4 +170,9 @@ func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 // ByFileCount orders the results by the file_count field.
 func ByFileCount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFileCount, opts...).ToFunc()
+}
+
+// ByShare orders the results by the share field.
+func ByShare(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShare, opts...).ToFunc()
 }

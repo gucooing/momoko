@@ -474,6 +474,9 @@ func (uc *AgentUsecase) providerPB(p *gen.AgentProvider) *v1.AgentProvider {
 		MainModel:     p.MainModel,
 		FastModel:     p.FastModel,
 		TestLatencyMs: p.TestLatencyMs,
+		UserId:        p.UserID,
+		Share:         p.Share,
+		ShareUserIds:  p.ShareUsers,
 	}
 	for _, m := range p.Models {
 		pm := &v1.AgentModel{Id: m.ID, ContextWindow: m.ContextWindow, MaxOutput: m.MaxOutput}
@@ -497,25 +500,83 @@ func vendorPB(v agentapi.Vendor) *v1.AgentVendor {
 	return &v1.AgentVendor{Id: v.ID(), Protocols: v.Protocols(), BaseUrl: v.BaseURL(), Balance: balance}
 }
 
-// ListProviders 已添加的供应商，和能添加的供应商类型。
-func (uc *AgentUsecase) ListProviders(ctx context.Context) (*v1.ListAgentProvidersResponse, error) {
-	rows, err := uc.repo.ListAgentProviders(ctx)
+// providerViewPB 改不了的那一份只给看名称、类型、地址和模型：密钥后几位、环境变量（可能也是密钥）、共享给谁都不给。
+// 被共享到的人看共享的、管理员看别人自己的，都是这样。
+func (uc *AgentUsecase) providerViewPB(p *gen.AgentProvider) *v1.AgentProvider {
+	out := uc.providerPB(p)
+	out.ApiKeyTail, out.Env, out.ShareUserIds = "", nil, nil
+	return out
+}
+
+// sharedProvidersFor 共享给 userID 的第三方接口。
+func (uc *AgentUsecase) sharedProvidersFor(ctx context.Context, userID string) ([]*gen.AgentProvider, error) {
+	rows, err := uc.repo.ListAgentProviders(ctx, agentSharedOwner)
+	if err != nil {
+		return nil, err
+	}
+	out := rows[:0]
+	for _, p := range rows {
+		if sharedTo(p.UserID, p.Share, p.ShareUsers, userID) {
+			out = append(out, p)
+		}
+	}
+	return out, nil
+}
+
+// usableProviders userID 用得上的第三方接口：自己的，后面跟着共享给他的。
+func (uc *AgentUsecase) usableProviders(ctx context.Context, userID string) ([]*gen.AgentProvider, error) {
+	own, err := uc.repo.ListAgentProviders(ctx, userID)
 	if err != nil {
 		return nil, ErrSystem(err)
+	}
+	shared, err := uc.sharedProvidersFor(ctx, userID)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return append(own, shared...), nil
+}
+
+// ListProviders 自己的第三方接口，后面跟着共享给自己的（只能用）；all 时（Agent 管理页）是所有人的和共享的，
+// 连同它们的主人和共享给的人。另外带上能添加的供应商类型。
+func (uc *AgentUsecase) ListProviders(ctx context.Context, all bool) (*v1.ListAgentProvidersResponse, error) {
+	userID, err := uc.listScope(ctx, all)
+	if err != nil {
+		return nil, err
+	}
+	var rows []*gen.AgentProvider
+	if all {
+		if rows, err = uc.repo.ListAgentProviders(ctx, ""); err != nil {
+			return nil, ErrSystem(err)
+		}
+	} else if rows, err = uc.usableProviders(ctx, userID); err != nil {
+		return nil, err
 	}
 	resp := &v1.ListAgentProvidersResponse{
 		Providers: make([]*v1.AgentProvider, 0, len(rows)),
 		Vendors:   make([]*v1.AgentVendor, 0, len(uc.vendors)),
 	}
+	people := make([]string, 0, len(rows))
 	for _, p := range rows {
-		resp.Providers = append(resp.Providers, uc.providerPB(p))
+		// 能改的才给全：自己的；Agent 管理页里共享的
+		if (!all && p.UserID == userID) || (all && p.UserID == agentSharedOwner) {
+			resp.Providers = append(resp.Providers, uc.providerPB(p))
+		} else {
+			resp.Providers = append(resp.Providers, uc.providerViewPB(p))
+		}
+		people = append(append(people, p.UserID), p.ShareUsers...)
 	}
 	for _, v := range uc.vendors {
 		resp.Vendors = append(resp.Vendors, vendorPB(v))
 	}
+	if all {
+		if resp.Users, err = uc.agentUsersPB(ctx, people); err != nil {
+			return nil, err
+		}
+	}
 	return resp, nil
 }
 
+// getProvider 取一个第三方接口，不管是谁的：能不能用、能不能改由调用的地方判断。
 func (uc *AgentUsecase) getProvider(ctx context.Context, id string) (*gen.AgentProvider, error) {
 	p, err := uc.repo.GetAgentProvider(ctx, id)
 	if err != nil {
@@ -523,6 +584,53 @@ func (uc *AgentUsecase) getProvider(ctx context.Context, id string) (*gen.AgentP
 			return nil, ErrAgentProviderNotFound
 		}
 		return nil, ErrSystem(err)
+	}
+	return p, nil
+}
+
+// providerIn 取一个属于 scope 的第三方接口（scope 为空是谁的都行）；不属于时当作不存在。
+func (uc *AgentUsecase) providerIn(ctx context.Context, scope, id string) (*gen.AgentProvider, error) {
+	p, err := uc.getProvider(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if !ownedBy(scope, p.UserID) {
+		return nil, ErrAgentProviderNotFound
+	}
+	return p, nil
+}
+
+// editableProvider 取一个能改的第三方接口：自己的；共享的要管理员。别人的当作不存在。
+// 测试、拉模型、查余额也走这里：要用到密钥，被共享到的人不行。
+func (uc *AgentUsecase) editableProvider(ctx context.Context, id string) (*gen.AgentProvider, error) {
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	p, err := uc.getProvider(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if p.UserID == agentSharedOwner {
+		if err := uc.requireAdmin(ctx); err != nil {
+			return nil, err
+		}
+		return p, nil
+	}
+	if p.UserID != userID {
+		return nil, ErrAgentProviderNotFound
+	}
+	return p, nil
+}
+
+// usableProvider 取一个 userID 用得上的第三方接口（自己的，或者共享给他的）；用不上时当作不存在。
+func (uc *AgentUsecase) usableProvider(ctx context.Context, userID, id string) (*gen.AgentProvider, error) {
+	p, err := uc.getProvider(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if !usableBy(p.UserID, p.Share, p.ShareUsers, userID) {
+		return nil, ErrAgentProviderNotFound
 	}
 	return p, nil
 }
@@ -623,8 +731,22 @@ func (uc *AgentUsecase) applyAPIProvider(p *gen.AgentProvider, in *v1.AgentProvi
 	return nil
 }
 
+// CreateProvider 添加一个自己的第三方接口；带共享范围时（Agent 管理页，要管理员）添加成共享的。
 func (uc *AgentUsecase) CreateProvider(ctx context.Context, in *v1.AgentProvider) (*v1.AgentProvider, error) {
-	p := &gen.AgentProvider{ID: "prov_" + uuid.NewString(), Status: "untested"}
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	p := &gen.AgentProvider{ID: "prov_" + uuid.NewString(), UserID: userID, Status: "untested"}
+	if in.GetShare() != "" {
+		if err := uc.requireAdmin(ctx); err != nil {
+			return nil, err
+		}
+		p.UserID = agentSharedOwner
+		if p.Share, p.ShareUsers, err = uc.shareOf(ctx, in.GetShare(), in.GetShareUserIds()); err != nil {
+			return nil, err
+		}
+	}
 	if err := uc.applyAPIProvider(p, in, true); err != nil {
 		return nil, err
 	}
@@ -634,10 +756,16 @@ func (uc *AgentUsecase) CreateProvider(ctx context.Context, in *v1.AgentProvider
 	return uc.providerPB(p), nil
 }
 
+// UpdateProvider 改自己的第三方接口；共享的要管理员，带了共享范围就一起改。
 func (uc *AgentUsecase) UpdateProvider(ctx context.Context, id string, in *v1.AgentProvider) (*v1.AgentProvider, error) {
-	p, err := uc.getProvider(ctx, id)
+	p, err := uc.editableProvider(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if p.UserID == agentSharedOwner && in.GetShare() != "" {
+		if p.Share, p.ShareUsers, err = uc.shareOf(ctx, in.GetShare(), in.GetShareUserIds()); err != nil {
+			return nil, err
+		}
 	}
 	before := p.BaseURL + "\x00" + p.APIKey
 	if err := uc.applyAPIProvider(p, in, false); err != nil {
@@ -653,8 +781,13 @@ func (uc *AgentUsecase) UpdateProvider(ctx context.Context, id string, in *v1.Ag
 	return uc.providerPB(p), nil
 }
 
+// DeleteProvider 删除第三方接口；有 agent:admin 时也能删别人的和共享的（Agent 管理页）。
 func (uc *AgentUsecase) DeleteProvider(ctx context.Context, id string) error {
-	if _, err := uc.getProvider(ctx, id); err != nil {
+	scope, err := uc.cleanScope(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := uc.providerIn(ctx, scope, id); err != nil {
 		return err
 	}
 	for _, l := range uc.pool.Snapshot() {
@@ -669,11 +802,11 @@ func (uc *AgentUsecase) DeleteProvider(ctx context.Context, id string) error {
 	return nil
 }
 
-// draftProvider 测试、获取可用模型用的配置：表单里的草稿，留空的地址和密钥用已保存的；已保存的类型不能改。
+// draftProvider 测试、获取可用模型用的配置：表单里的草稿，留空的地址和密钥用已保存的（要是自己能改的）；已保存的类型不能改。
 func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, apiKey string) (agentapi.Vendor, agentapi.Conn, *gen.AgentProvider, error) {
 	var stored *gen.AgentProvider
 	if id != "" {
-		p, err := uc.getProvider(ctx, id)
+		p, err := uc.editableProvider(ctx, id)
 		if err != nil {
 			return nil, agentapi.Conn{}, nil, err
 		}
@@ -789,7 +922,7 @@ func (uc *AgentUsecase) FetchProviderModels(ctx context.Context, req *v1.FetchAg
 
 // ProviderBalance 账户余额。查不到是接口那边的状况，原因放在 error 里返回，不算请求出错。
 func (uc *AgentUsecase) ProviderBalance(ctx context.Context, id string) (*v1.GetAgentProviderBalanceResponse, error) {
-	p, err := uc.getProvider(ctx, id)
+	p, err := uc.editableProvider(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -953,7 +1086,7 @@ func (uc *AgentUsecase) workspacePB(w *gen.AgentWorkspace, names *agentNames, st
 	return out
 }
 
-// ListWorkspaces 自己的工作区；all 时（全员 Agent 页）是所有人的，连同它们的主人。
+// ListWorkspaces 自己的工作区；all 时（Agent 管理页）是所有人的，连同它们的主人。
 func (uc *AgentUsecase) ListWorkspaces(ctx context.Context, all bool) ([]*v1.AgentWorkspace, []*v1.AgentUser, error) {
 	userID, err := uc.listScope(ctx, all)
 	if err != nil {
@@ -1020,8 +1153,8 @@ func (uc *AgentUsecase) saveWorkspace(ctx context.Context, w *gen.AgentWorkspace
 	return nil
 }
 
-// checkDefaults 校验工作区的默认模型：模型定了，Agent 和供应商也就定了，两者要对得上。
-func (uc *AgentUsecase) checkDefaults(ctx context.Context, runtimeID, providerID string) error {
+// checkDefaults 校验工作区的默认模型：模型定了，Agent 和供应商也就定了，两者要对得上；供应商要是 userID 用得上的。
+func (uc *AgentUsecase) checkDefaults(ctx context.Context, userID, runtimeID, providerID string) error {
 	if runtimeID == "" {
 		if providerID != "" {
 			return response.BadRequest("默认模型缺少对应的 Agent")
@@ -1032,7 +1165,7 @@ func (uc *AgentUsecase) checkDefaults(ctx context.Context, runtimeID, providerID
 	if err != nil || providerID == "" {
 		return err
 	}
-	p, err := uc.getProvider(ctx, providerID)
+	p, err := uc.usableProvider(ctx, userID, providerID)
 	if err != nil {
 		return err
 	}
@@ -1085,7 +1218,7 @@ func (uc *AgentUsecase) CreateWorkspace(ctx context.Context, req *v1.CreateAgent
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.checkDefaults(ctx, req.RuntimeId, req.ProviderId); err != nil {
+	if err := uc.checkDefaults(ctx, userID, req.RuntimeId, req.ProviderId); err != nil {
 		return nil, err
 	}
 	if err := checkAgentDocs(req.Docs); err != nil {
@@ -1178,7 +1311,7 @@ func (uc *AgentUsecase) UpdateWorkspace(ctx context.Context, req *v1.UpdateAgent
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.checkDefaults(ctx, req.RuntimeId, req.ProviderId); err != nil {
+	if err := uc.checkDefaults(ctx, w.UserID, req.RuntimeId, req.ProviderId); err != nil {
 		return nil, err
 	}
 	if err := checkAgentDocs(req.Docs); err != nil {
@@ -1224,7 +1357,7 @@ func (uc *AgentUsecase) UpdateWorkspace(ctx context.Context, req *v1.UpdateAgent
 }
 
 // DeleteWorkspace 移除工作区：只删记录，目录里的文件不动；它的会话归到「无工作区」。
-// 有 agent:admin 时也能移除别人的（全员 Agent 页）。
+// 有 agent:admin 时也能移除别人的（Agent 管理页）。
 func (uc *AgentUsecase) DeleteWorkspace(ctx context.Context, id string) error {
 	scope, err := uc.cleanScope(ctx)
 	if err != nil {
@@ -1353,7 +1486,7 @@ func (uc *AgentUsecase) mcpPB(m *gen.AgentMcpServer) *v1.AgentMcpServer {
 		Command: m.Command, Args: m.Args, Url: m.URL, DefaultOn: m.DefaultOn,
 		Status: m.Status, StatusText: m.StatusText, ToolCount: int32(m.ToolCount),
 		Env: uc.secretKVsPB(m.Env), Headers: uc.secretKVsPB(m.Headers),
-		UserId: m.UserID,
+		UserId: m.UserID, Share: m.Share, ShareUserIds: m.ShareUsers,
 	}
 	if m.TestedAt != nil {
 		out.TestedAt = timestamppb.New(*m.TestedAt)
@@ -1361,7 +1494,23 @@ func (uc *AgentUsecase) mcpPB(m *gen.AgentMcpServer) *v1.AgentMcpServer {
 	return out
 }
 
-// ListMcpServers 自己的 MCP 服务器；all 时（全员 Agent 页）是所有人的，连同它们的主人。
+// sharedMcpFor 共享给 userID 的 MCP 服务器。
+func (uc *AgentUsecase) sharedMcpFor(ctx context.Context, userID string) ([]*gen.AgentMcpServer, error) {
+	rows, err := uc.repo.ListAgentMcpServers(ctx, agentSharedOwner)
+	if err != nil {
+		return nil, err
+	}
+	out := rows[:0]
+	for _, m := range rows {
+		if sharedTo(m.UserID, m.Share, m.ShareUsers, userID) {
+			out = append(out, m)
+		}
+	}
+	return out, nil
+}
+
+// ListMcpServers 自己的 MCP 服务器，后面跟着共享给自己的；all 时（Agent 管理页）是所有人的和共享的，
+// 连同它们的主人和共享给的人。
 func (uc *AgentUsecase) ListMcpServers(ctx context.Context, all bool) ([]*v1.AgentMcpServer, []*v1.AgentUser, error) {
 	userID, err := uc.listScope(ctx, all)
 	if err != nil {
@@ -1371,29 +1520,49 @@ func (uc *AgentUsecase) ListMcpServers(ctx context.Context, all bool) ([]*v1.Age
 	if err != nil {
 		return nil, nil, ErrSystem(err)
 	}
+	if !all {
+		shared, err := uc.sharedMcpFor(ctx, userID)
+		if err != nil {
+			return nil, nil, ErrSystem(err)
+		}
+		rows = append(rows, shared...)
+	}
 	out := make([]*v1.AgentMcpServer, 0, len(rows))
-	owners := make([]string, 0, len(rows))
+	people := make([]string, 0, len(rows))
 	for _, m := range rows {
 		out = append(out, uc.mcpPB(m))
-		owners = append(owners, m.UserID)
+		people = append(append(people, m.UserID), m.ShareUsers...)
 	}
 	if !all {
 		return out, nil, nil
 	}
-	users, err := uc.agentUsersPB(ctx, owners)
+	users, err := uc.agentUsersPB(ctx, people)
 	if err != nil {
 		return nil, nil, err
 	}
 	return out, users, nil
 }
 
-// getMcp 取当前用户自己的一个 MCP 服务器。
-func (uc *AgentUsecase) getMcp(ctx context.Context, id string) (*gen.AgentMcpServer, error) {
+// editableMcp 取一个能改的 MCP 服务器：自己的；共享的要管理员。别人的当作不存在。
+func (uc *AgentUsecase) editableMcp(ctx context.Context, id string) (*gen.AgentMcpServer, error) {
 	userID, err := agentUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return uc.mcpIn(ctx, userID, id)
+	m, err := uc.mcpIn(ctx, "", id)
+	if err != nil {
+		return nil, err
+	}
+	if m.UserID == agentSharedOwner {
+		if err := uc.requireAdmin(ctx); err != nil {
+			return nil, err
+		}
+		return m, nil
+	}
+	if m.UserID != userID {
+		return nil, ErrAgentMcpNotFound
+	}
+	return m, nil
 }
 
 // mcpIn 取一个属于 scope 的 MCP 服务器（scope 为空是谁的都行）；不属于时当作不存在。
@@ -1411,18 +1580,20 @@ func (uc *AgentUsecase) mcpIn(ctx context.Context, scope, id string) (*gen.Agent
 	return m, nil
 }
 
-// ownMcpIDs 只留下属于 userID 的 MCP 服务器 id（会话、工作区只能开自己的），顺序不变。
+// ownMcpIDs 只留下 userID 用得上的 MCP 服务器 id（会话、工作区只能开自己的和共享给自己的），顺序不变。
 func (uc *AgentUsecase) ownMcpIDs(ctx context.Context, userID string, ids []string) ([]string, error) {
 	if len(ids) == 0 {
 		return ids, nil
 	}
-	rows, err := uc.repo.ListAgentMcpServersByIDs(ctx, userID, ids)
+	rows, err := uc.repo.ListAgentMcpServersByIDs(ctx, ids)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
 	owned := make(map[string]bool, len(rows))
 	for _, m := range rows {
-		owned[m.ID] = true
+		if usableBy(m.UserID, m.Share, m.ShareUsers, userID) {
+			owned[m.ID] = true
+		}
 	}
 	out := make([]string, 0, len(ids))
 	for _, id := range ids {
@@ -1468,12 +1639,22 @@ func (uc *AgentUsecase) applyMcp(ctx context.Context, m *gen.AgentMcpServer, in 
 	return nil
 }
 
+// CreateMcpServer 新建一个自己的 MCP 服务器；带共享范围时（Agent 管理页，要管理员）新建成共享的。
 func (uc *AgentUsecase) CreateMcpServer(ctx context.Context, in *v1.AgentMcpServer) (*v1.AgentMcpServer, error) {
 	userID, err := agentUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
 	m := &gen.AgentMcpServer{ID: "mcp_" + uuid.NewString(), UserID: userID, Status: "untested"}
+	if in.GetShare() != "" {
+		if err := uc.requireAdmin(ctx); err != nil {
+			return nil, err
+		}
+		m.UserID = agentSharedOwner
+		if m.Share, m.ShareUsers, err = uc.shareOf(ctx, in.GetShare(), in.GetShareUserIds()); err != nil {
+			return nil, err
+		}
+	}
 	if err := uc.applyMcp(ctx, m, in); err != nil {
 		return nil, err
 	}
@@ -1484,11 +1665,17 @@ func (uc *AgentUsecase) CreateMcpServer(ctx context.Context, in *v1.AgentMcpServ
 	return uc.mcpPB(m), nil
 }
 
+// UpdateMcpServer 改自己的 MCP 服务器；共享的要管理员，带了共享范围就一起改。
 func (uc *AgentUsecase) UpdateMcpServer(ctx context.Context, id string, in *v1.AgentMcpServer) (*v1.AgentMcpServer, error) {
-	m, err := uc.getMcp(ctx, id)
+	m, err := uc.editableMcp(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	if m.UserID == agentSharedOwner && in.GetShare() != "" {
+		if m.Share, m.ShareUsers, err = uc.shareOf(ctx, in.GetShare(), in.GetShareUserIds()); err != nil {
+			return nil, err
+		}
+	}
 	if err := uc.applyMcp(ctx, m, in); err != nil {
 		return nil, err
 	}
@@ -1499,7 +1686,7 @@ func (uc *AgentUsecase) UpdateMcpServer(ctx context.Context, id string, in *v1.A
 	return uc.mcpPB(m), nil
 }
 
-// DeleteMcpServer 删除 MCP 服务器；有 agent:admin 时也能删别人的（全员 Agent 页）。
+// DeleteMcpServer 删除 MCP 服务器；有 agent:admin 时也能删别人的（Agent 管理页）。
 func (uc *AgentUsecase) DeleteMcpServer(ctx context.Context, id string) error {
 	scope, err := uc.cleanScope(ctx)
 	if err != nil {
@@ -1515,8 +1702,9 @@ func (uc *AgentUsecase) DeleteMcpServer(ctx context.Context, id string) error {
 	return nil
 }
 
+// SetMcpDefault 新会话默认开不开；共享的是管理员替被共享到的人定。
 func (uc *AgentUsecase) SetMcpDefault(ctx context.Context, id string, on bool) error {
-	m, err := uc.getMcp(ctx, id)
+	m, err := uc.editableMcp(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -1532,7 +1720,7 @@ func (uc *AgentUsecase) SetMcpDefault(ctx context.Context, id string, on bool) e
 func (uc *AgentUsecase) TestMcpServer(ctx context.Context, req *v1.TestAgentMcpServerRequest) (*v1.TestAgentMcpServerResponse, error) {
 	var stored *gen.AgentMcpServer
 	if req.GetId() != "" {
-		m, err := uc.getMcp(ctx, req.GetId())
+		m, err := uc.editableMcp(ctx, req.GetId())
 		if err != nil {
 			return nil, err
 		}
@@ -1589,17 +1777,27 @@ func (uc *AgentUsecase) TestMcpServer(ctx context.Context, req *v1.TestAgentMcpS
 	return resp, nil
 }
 
-// ImportMcpServers 粘贴 {"mcpServers": {...}} 导入。重名的自动加序号。
-func (uc *AgentUsecase) ImportMcpServers(ctx context.Context, raw string) ([]*v1.AgentMcpServer, error) {
-	userID, err := agentUserID(ctx)
+// ImportMcpServers 粘贴 {"mcpServers": {...}} 导入。重名的自动加序号。带共享范围时（Agent 管理页，要管理员）导入成共享的。
+func (uc *AgentUsecase) ImportMcpServers(ctx context.Context, req *v1.ImportAgentMcpServersRequest) ([]*v1.AgentMcpServer, error) {
+	owner, err := agentUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	names, servers, err := mcpprobe.ParseConfig(raw)
+	share, shareUsers := req.GetShare(), req.GetShareUserIds()
+	if share != "" {
+		if err := uc.requireAdmin(ctx); err != nil {
+			return nil, err
+		}
+		if share, shareUsers, err = uc.shareOf(ctx, share, shareUsers); err != nil {
+			return nil, err
+		}
+		owner = agentSharedOwner
+	}
+	names, servers, err := mcpprobe.ParseConfig(req.GetJson())
 	if err != nil {
 		return nil, agentErr(err)
 	}
-	existing, err := uc.repo.AgentMcpServerNames(ctx, userID)
+	existing, err := uc.repo.AgentMcpServerNames(ctx, owner)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -1626,7 +1824,10 @@ func (uc *AgentUsecase) ImportMcpServers(ctx context.Context, raw string) ([]*v1
 		}
 		taken[unique] = true
 		s := servers[name]
-		in := &v1.AgentMcpServer{Name: unique, Transport: s.Transport, Command: s.Command, Args: s.Args, Env: kvs(s.Env), Url: s.URL, Headers: kvs(s.Headers)}
+		in := &v1.AgentMcpServer{
+			Name: unique, Transport: s.Transport, Command: s.Command, Args: s.Args, Env: kvs(s.Env), Url: s.URL, Headers: kvs(s.Headers),
+			Share: share, ShareUserIds: shareUsers,
+		}
 		created, err := uc.CreateMcpServer(ctx, in)
 		if err != nil {
 			return nil, err
@@ -1639,14 +1840,24 @@ func (uc *AgentUsecase) ImportMcpServers(ctx context.Context, raw string) ([]*v1
 	return out, nil
 }
 
-// sessionMcpServers 会话开启的 MCP 服务器，交给引擎（Agent 不支持的传输方式由引擎去掉）。只用得上会话主人自己的。
+// sessionMcpServers 会话开启的 MCP 服务器，交给引擎（Agent 不支持的传输方式由引擎去掉）。只用得上会话主人自己的
+// 和共享给他的；名字撞了用他自己的（Agent 按名字区分 MCP 服务器）。
 func (uc *AgentUsecase) sessionMcpServers(ctx context.Context, userID string, ids []string) ([]agentrun.McpServer, error) {
-	rows, err := uc.repo.ListAgentMcpServersByIDs(ctx, userID, ids)
+	rows, err := uc.repo.ListAgentMcpServersByIDs(ctx, ids)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
+	own := map[string]bool{}
+	for _, m := range rows {
+		if m.UserID == userID {
+			own[m.Name] = true
+		}
+	}
 	servers := make([]agentrun.McpServer, 0, len(rows))
 	for _, m := range rows {
+		if !usableBy(m.UserID, m.Share, m.ShareUsers, userID) || (m.UserID != userID && own[m.Name]) {
+			continue
+		}
 		if m.Transport == agentmcpserver.TransportHTTP {
 			servers = append(servers, agentrun.McpServer{Name: m.Name, HTTP: true, URL: m.URL, Headers: uc.secrets(m.Headers)})
 			continue
@@ -1658,16 +1869,38 @@ func (uc *AgentUsecase) sessionMcpServers(ctx context.Context, userID string, id
 
 // ———————————————————————————— 技能 ————————————————————————————
 
-// skillStore 一个用户的技能库：每个人的技能各放各的，不同的人可以有同名的技能。
+// skillStore 一个用户的技能库：每个人的技能各放各的，不同的人可以有同名的技能。共享的单独放一处。
 func (uc *AgentUsecase) skillStore(userID string) agentskillpkg.Store {
+	if userID == agentSharedOwner {
+		return agentskillpkg.Store{Root: uc.dir("shared", "skills")}
+	}
 	return agentskillpkg.Store{Root: uc.userDir(userID, "skills")}
 }
 
 func skillPB(s *gen.AgentSkill) *v1.AgentSkill {
-	return &v1.AgentSkill{Id: s.ID, Name: s.Name, Description: s.Description, Source: string(s.Source), Enabled: s.Enabled, FileCount: int32(s.FileCount), UserId: s.UserID}
+	return &v1.AgentSkill{
+		Id: s.ID, Name: s.Name, Description: s.Description, Source: string(s.Source), Enabled: s.Enabled,
+		FileCount: int32(s.FileCount), UserId: s.UserID, Share: s.Share, ShareUserIds: s.ShareUsers,
+	}
 }
 
-// ListSkills 自己的技能，enabledOnly 为 true 时只要启用着的（筛选在 SQL 里）；all 时（全员 Agent 页）是所有人的，连同它们的主人。
+// sharedSkillsFor 共享给 userID 的技能；enabledOnly 时只要启用着的。
+func (uc *AgentUsecase) sharedSkillsFor(ctx context.Context, userID string, enabledOnly bool) ([]*gen.AgentSkill, error) {
+	rows, err := uc.repo.ListAgentSkills(ctx, agentSharedOwner)
+	if err != nil {
+		return nil, err
+	}
+	out := rows[:0]
+	for _, s := range rows {
+		if (!enabledOnly || s.Enabled) && sharedTo(s.UserID, s.Share, s.ShareUsers, userID) {
+			out = append(out, s)
+		}
+	}
+	return out, nil
+}
+
+// ListSkills 自己的技能，后面跟着共享给自己的；enabledOnly 为 true 时只要启用着的。
+// all 时（Agent 管理页）是所有人的和共享的，连同它们的主人和共享给的人。
 func (uc *AgentUsecase) ListSkills(ctx context.Context, enabledOnly, all bool) ([]*v1.AgentSkill, []*v1.AgentUser, error) {
 	userID, err := uc.listScope(ctx, all)
 	if err != nil {
@@ -1682,32 +1915,52 @@ func (uc *AgentUsecase) ListSkills(ctx context.Context, enabledOnly, all bool) (
 	if err != nil {
 		return nil, nil, ErrSystem(err)
 	}
+	if !all {
+		shared, err := uc.sharedSkillsFor(ctx, userID, enabledOnly)
+		if err != nil {
+			return nil, nil, ErrSystem(err)
+		}
+		rows = append(rows, shared...)
+	}
 	out := make([]*v1.AgentSkill, 0, len(rows))
-	owners := make([]string, 0, len(rows))
+	people := make([]string, 0, len(rows))
 	for _, s := range rows {
 		if enabledOnly && !s.Enabled {
 			continue
 		}
 		out = append(out, skillPB(s))
-		owners = append(owners, s.UserID)
+		people = append(append(people, s.UserID), s.ShareUsers...)
 	}
 	if !all {
 		return out, nil, nil
 	}
-	users, err := uc.agentUsersPB(ctx, owners)
+	users, err := uc.agentUsersPB(ctx, people)
 	if err != nil {
 		return nil, nil, err
 	}
 	return out, users, nil
 }
 
-// getSkill 取当前用户自己的一个技能。
-func (uc *AgentUsecase) getSkill(ctx context.Context, id string) (*gen.AgentSkill, error) {
+// editableSkill 取一个能改的技能：自己的；共享的要管理员。别人的当作不存在。
+func (uc *AgentUsecase) editableSkill(ctx context.Context, id string) (*gen.AgentSkill, error) {
 	userID, err := agentUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return uc.skillIn(ctx, userID, id)
+	s, err := uc.skillIn(ctx, "", id)
+	if err != nil {
+		return nil, err
+	}
+	if s.UserID == agentSharedOwner {
+		if err := uc.requireAdmin(ctx); err != nil {
+			return nil, err
+		}
+		return s, nil
+	}
+	if s.UserID != userID {
+		return nil, ErrAgentSkillNotFound
+	}
+	return s, nil
 }
 
 // skillIn 取一个属于 scope 的技能（scope 为空是谁的都行）；不属于时当作不存在。
@@ -1725,10 +1978,18 @@ func (uc *AgentUsecase) skillIn(ctx context.Context, scope, id string) (*gen.Age
 	return s, nil
 }
 
+// GetSkill 看一个技能的内容：自己的；共享的被共享到的人能看（改不了），管理员都能看。
 func (uc *AgentUsecase) GetSkill(ctx context.Context, id string) (*v1.GetAgentSkillResponse, error) {
-	s, err := uc.getSkill(ctx, id)
+	userID, err := agentUserID(ctx)
 	if err != nil {
 		return nil, err
+	}
+	s, err := uc.skillIn(ctx, "", id)
+	if err != nil {
+		return nil, err
+	}
+	if !usableBy(s.UserID, s.Share, s.ShareUsers, userID) && (s.UserID != agentSharedOwner || !uc.isAdmin(ctx)) {
+		return nil, ErrAgentSkillNotFound
 	}
 	resp := &v1.GetAgentSkillResponse{Skill: skillPB(s)}
 	for _, f := range uc.skillStore(s.UserID).Read(s.Name) {
@@ -1766,24 +2027,40 @@ func (uc *AgentUsecase) saveSkill(ctx context.Context, s *gen.AgentSkill, name, 
 	return skillPB(s), nil
 }
 
+// CreateSkill 新建一个自己的技能；带共享范围时（Agent 管理页，要管理员）新建成共享的。
 func (uc *AgentUsecase) CreateSkill(ctx context.Context, req *v1.CreateAgentSkillRequest) (*v1.AgentSkill, error) {
 	userID, err := agentUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
 	s := &gen.AgentSkill{ID: "skill_" + uuid.NewString(), UserID: userID, Source: agentskill.SourceLocal}
-	return uc.saveSkill(ctx, s, req.Name, req.Description, req.Enabled, req.Files)
-}
-
-func (uc *AgentUsecase) UpdateSkill(ctx context.Context, req *v1.UpdateAgentSkillRequest) (*v1.AgentSkill, error) {
-	s, err := uc.getSkill(ctx, req.Id)
-	if err != nil {
-		return nil, err
+	if req.GetShare() != "" {
+		if err := uc.requireAdmin(ctx); err != nil {
+			return nil, err
+		}
+		s.UserID = agentSharedOwner
+		if s.Share, s.ShareUsers, err = uc.shareOf(ctx, req.GetShare(), req.GetShareUserIds()); err != nil {
+			return nil, err
+		}
 	}
 	return uc.saveSkill(ctx, s, req.Name, req.Description, req.Enabled, req.Files)
 }
 
-// DeleteSkill 删除技能和它的文件；有 agent:admin 时也能删别人的（全员 Agent 页）。
+// UpdateSkill 改自己的技能；共享的要管理员，带了共享范围就一起改。
+func (uc *AgentUsecase) UpdateSkill(ctx context.Context, req *v1.UpdateAgentSkillRequest) (*v1.AgentSkill, error) {
+	s, err := uc.editableSkill(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	if s.UserID == agentSharedOwner && req.GetShare() != "" {
+		if s.Share, s.ShareUsers, err = uc.shareOf(ctx, req.GetShare(), req.GetShareUserIds()); err != nil {
+			return nil, err
+		}
+	}
+	return uc.saveSkill(ctx, s, req.Name, req.Description, req.Enabled, req.Files)
+}
+
+// DeleteSkill 删除技能和它的文件；有 agent:admin 时也能删别人的（Agent 管理页）。
 func (uc *AgentUsecase) DeleteSkill(ctx context.Context, id string) error {
 	scope, err := uc.cleanScope(ctx)
 	if err != nil {
@@ -1801,8 +2078,9 @@ func (uc *AgentUsecase) DeleteSkill(ctx context.Context, id string) error {
 	return nil
 }
 
+// SetSkillEnabled 启用、停用；共享的是管理员替被共享到的人定。
 func (uc *AgentUsecase) SetSkillEnabled(ctx context.Context, id string, enabled bool) error {
-	s, err := uc.getSkill(ctx, id)
+	s, err := uc.editableSkill(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -1815,10 +2093,21 @@ func (uc *AgentUsecase) SetSkillEnabled(ctx context.Context, id string, enabled 
 }
 
 // ImportSkill 从上传的压缩包、压缩包链接、Git 地址或服务器目录导入技能。一个来源里可以有多个技能，同名的覆盖。
+// 带共享范围时（Agent 管理页，要管理员）导入成共享的，覆盖的同名共享技能也改成这个范围。
 func (uc *AgentUsecase) ImportSkill(ctx context.Context, req *v1.ImportAgentSkillRequest) ([]*v1.AgentSkill, error) {
 	userID, err := agentUserID(ctx)
 	if err != nil {
 		return nil, err
+	}
+	share, shareUsers := req.GetShare(), req.GetShareUserIds()
+	if share != "" {
+		if err := uc.requireAdmin(ctx); err != nil {
+			return nil, err
+		}
+		if share, shareUsers, err = uc.shareOf(ctx, share, shareUsers); err != nil {
+			return nil, err
+		}
+		userID = agentSharedOwner
 	}
 	bg := context.WithoutCancel(ctx)
 	var source agentskill.Source
@@ -1882,6 +2171,9 @@ func (uc *AgentUsecase) ImportSkill(ctx context.Context, req *v1.ImportAgentSkil
 			s = &gen.AgentSkill{ID: "skill_" + uuid.NewString(), UserID: userID, Name: found.Name, Enabled: true}
 		}
 		s.Description, s.Source, s.Location, s.FileCount = found.Description, source, location, count
+		if share != "" {
+			s.Share, s.ShareUsers = share, shareUsers
+		}
 		if err := uc.repo.SaveAgentSkill(bg, s); err != nil {
 			return nil, ErrSystem(err)
 		}
@@ -1894,9 +2186,16 @@ func (uc *AgentUsecase) ImportSkill(ctx context.Context, req *v1.ImportAgentSkil
 	return out, nil
 }
 
-// enabledSkills 这个人现在启用着的技能：名称 → 它在他的技能库里的目录和版本（保存时间，内容变了它就变）。
+// enabledSkills 这个人现在启用着的技能，包括共享给他的：名称 → 它在技能库里的目录和版本（保存时间，内容变了它就变）。
+// 名字撞了用他自己的。
 func (uc *AgentUsecase) enabledSkills(ctx context.Context, userID string) map[string]agentskillpkg.Enabled {
 	out := map[string]agentskillpkg.Enabled{}
+	if shared, err := uc.sharedSkillsFor(ctx, userID, true); err == nil {
+		store := uc.skillStore(agentSharedOwner)
+		for _, s := range shared {
+			out[s.Name] = agentskillpkg.Enabled{Dir: store.Dir(s.Name), Version: strconv.FormatInt(s.UpdateTime.UnixNano(), 10)}
+		}
+	}
 	rows, err := uc.repo.ListEnabledAgentSkills(ctx, userID)
 	if err != nil {
 		return out

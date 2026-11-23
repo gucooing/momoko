@@ -81,6 +81,7 @@ const (
 	AgentService_DeleteAgentSkill_FullMethodName             = "/v1.AgentService/DeleteAgentSkill"
 	AgentService_SetAgentSkillEnabled_FullMethodName         = "/v1.AgentService/SetAgentSkillEnabled"
 	AgentService_ImportAgentSkill_FullMethodName             = "/v1.AgentService/ImportAgentSkill"
+	AgentService_ListAgentUsers_FullMethodName               = "/v1.AgentService/ListAgentUsers"
 	AgentService_ListAgentRuntimes_FullMethodName            = "/v1.AgentService/ListAgentRuntimes"
 	AgentService_SetAgentRuntimeMode_FullMethodName          = "/v1.AgentService/SetAgentRuntimeMode"
 	AgentService_DetectAgentRuntime_FullMethodName           = "/v1.AgentService/DetectAgentRuntime"
@@ -93,6 +94,8 @@ const (
 	AgentService_UpdateAgentNotifyEvents_FullMethodName      = "/v1.AgentService/UpdateAgentNotifyEvents"
 	AgentService_SaveAgentNotifyChannel_FullMethodName       = "/v1.AgentService/SaveAgentNotifyChannel"
 	AgentService_SetAgentNotifyChannelEnabled_FullMethodName = "/v1.AgentService/SetAgentNotifyChannelEnabled"
+	AgentService_DeleteAgentNotifyChannel_FullMethodName     = "/v1.AgentService/DeleteAgentNotifyChannel"
+	AgentService_ListAgentNotify_FullMethodName              = "/v1.AgentService/ListAgentNotify"
 	AgentService_TestAgentNotifyChannel_FullMethodName       = "/v1.AgentService/TestAgentNotifyChannel"
 )
 
@@ -111,7 +114,7 @@ type AgentServiceClient interface {
 	// —— 会话 ——
 	// 会话栏：我的未归档会话，按工作区分层
 	GetAgentSidebar(ctx context.Context, in *GetAgentSidebarRequest, opts ...grpc.CallOption) (*GetAgentSidebarResponse, error)
-	// 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（全员 Agent 页）
+	// 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（Agent 管理页）
 	ListAgentSessions(ctx context.Context, in *ListAgentSessionsRequest, opts ...grpc.CallOption) (*ListAgentSessionsResponse, error)
 	// 新建会话并发出第一条消息
 	CreateAgentSession(ctx context.Context, in *CreateAgentSessionRequest, opts ...grpc.CallOption) (*CreateAgentSessionResponse, error)
@@ -183,7 +186,7 @@ type AgentServiceClient interface {
 	ReadAgentWorkspaceFile(ctx context.Context, in *ReadAgentWorkspaceFileRequest, opts ...grpc.CallOption) (*ReadAgentSessionFileResponse, error)
 	// 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
 	GetAgentDocs(ctx context.Context, in *GetAgentDocsRequest, opts ...grpc.CallOption) (*GetAgentDocsResponse, error)
-	// —— 模型供应商 ——
+	// —— 模型供应商（第三方接口）：每个人自己的，加上管理员共享给他的 ——
 	ListAgentProviders(ctx context.Context, in *ListAgentProvidersRequest, opts ...grpc.CallOption) (*ListAgentProvidersResponse, error)
 	// 第三方接口
 	CreateAgentProvider(ctx context.Context, in *CreateAgentProviderRequest, opts ...grpc.CallOption) (*CreateAgentProviderResponse, error)
@@ -215,6 +218,8 @@ type AgentServiceClient interface {
 	SetAgentSkillEnabled(ctx context.Context, in *SetAgentSkillEnabledRequest, opts ...grpc.CallOption) (*SetAgentSkillEnabledResponse, error)
 	// 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
 	ImportAgentSkill(ctx context.Context, in *ImportAgentSkillRequest, opts ...grpc.CallOption) (*ImportAgentSkillResponse, error)
+	// Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
+	ListAgentUsers(ctx context.Context, in *ListAgentUsersRequest, opts ...grpc.CallOption) (*ListAgentUsersResponse, error)
 	// —— 运行时 ——
 	ListAgentRuntimes(ctx context.Context, in *ListAgentRuntimesRequest, opts ...grpc.CallOption) (*ListAgentRuntimesResponse, error)
 	// 安装方式：Momoko 下载并更新 / 用服务器上已有的命令
@@ -230,13 +235,17 @@ type AgentServiceClient interface {
 	DeleteAgentRuntime(ctx context.Context, in *DeleteAgentRuntimeRequest, opts ...grpc.CallOption) (*DeleteAgentRuntimeResponse, error)
 	// 同时运行的进程上限、空闲后结束进程
 	UpdateAgentRunSettings(ctx context.Context, in *UpdateAgentRunSettingsRequest, opts ...grpc.CallOption) (*UpdateAgentRunSettingsResponse, error)
-	// —— 通知 ——
+	// —— 通知：每个人自己的 ——
 	GetAgentNotify(ctx context.Context, in *GetAgentNotifyRequest, opts ...grpc.CallOption) (*GetAgentNotifyResponse, error)
 	// 三个时机开关
 	UpdateAgentNotifyEvents(ctx context.Context, in *UpdateAgentNotifyEventsRequest, opts ...grpc.CallOption) (*UpdateAgentNotifyEventsResponse, error)
 	// 保存某种通知方式的配置，保存后自动启用
 	SaveAgentNotifyChannel(ctx context.Context, in *SaveAgentNotifyChannelRequest, opts ...grpc.CallOption) (*SaveAgentNotifyChannelResponse, error)
 	SetAgentNotifyChannelEnabled(ctx context.Context, in *SetAgentNotifyChannelEnabledRequest, opts ...grpc.CallOption) (*SetAgentNotifyChannelEnabledResponse, error)
+	// 移除某种通知方式的配置
+	DeleteAgentNotifyChannel(ctx context.Context, in *DeleteAgentNotifyChannelRequest, opts ...grpc.CallOption) (*DeleteAgentNotifyChannelResponse, error)
+	// 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
+	ListAgentNotify(ctx context.Context, in *ListAgentNotifyRequest, opts ...grpc.CallOption) (*ListAgentNotifyResponse, error)
 	// 发一条测试；fields 为空时用已保存的配置
 	TestAgentNotifyChannel(ctx context.Context, in *TestAgentNotifyChannelRequest, opts ...grpc.CallOption) (*TestAgentNotifyChannelResponse, error)
 }
@@ -869,6 +878,16 @@ func (c *agentServiceClient) ImportAgentSkill(ctx context.Context, in *ImportAge
 	return out, nil
 }
 
+func (c *agentServiceClient) ListAgentUsers(ctx context.Context, in *ListAgentUsersRequest, opts ...grpc.CallOption) (*ListAgentUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentUsersResponse)
+	err := c.cc.Invoke(ctx, AgentService_ListAgentUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) ListAgentRuntimes(ctx context.Context, in *ListAgentRuntimesRequest, opts ...grpc.CallOption) (*ListAgentRuntimesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListAgentRuntimesResponse)
@@ -989,6 +1008,26 @@ func (c *agentServiceClient) SetAgentNotifyChannelEnabled(ctx context.Context, i
 	return out, nil
 }
 
+func (c *agentServiceClient) DeleteAgentNotifyChannel(ctx context.Context, in *DeleteAgentNotifyChannelRequest, opts ...grpc.CallOption) (*DeleteAgentNotifyChannelResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAgentNotifyChannelResponse)
+	err := c.cc.Invoke(ctx, AgentService_DeleteAgentNotifyChannel_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) ListAgentNotify(ctx context.Context, in *ListAgentNotifyRequest, opts ...grpc.CallOption) (*ListAgentNotifyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentNotifyResponse)
+	err := c.cc.Invoke(ctx, AgentService_ListAgentNotify_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) TestAgentNotifyChannel(ctx context.Context, in *TestAgentNotifyChannelRequest, opts ...grpc.CallOption) (*TestAgentNotifyChannelResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TestAgentNotifyChannelResponse)
@@ -1014,7 +1053,7 @@ type AgentServiceServer interface {
 	// —— 会话 ——
 	// 会话栏：我的未归档会话，按工作区分层
 	GetAgentSidebar(context.Context, *GetAgentSidebarRequest) (*GetAgentSidebarResponse, error)
-	// 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（全员 Agent 页）
+	// 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（Agent 管理页）
 	ListAgentSessions(context.Context, *ListAgentSessionsRequest) (*ListAgentSessionsResponse, error)
 	// 新建会话并发出第一条消息
 	CreateAgentSession(context.Context, *CreateAgentSessionRequest) (*CreateAgentSessionResponse, error)
@@ -1086,7 +1125,7 @@ type AgentServiceServer interface {
 	ReadAgentWorkspaceFile(context.Context, *ReadAgentWorkspaceFileRequest) (*ReadAgentSessionFileResponse, error)
 	// 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
 	GetAgentDocs(context.Context, *GetAgentDocsRequest) (*GetAgentDocsResponse, error)
-	// —— 模型供应商 ——
+	// —— 模型供应商（第三方接口）：每个人自己的，加上管理员共享给他的 ——
 	ListAgentProviders(context.Context, *ListAgentProvidersRequest) (*ListAgentProvidersResponse, error)
 	// 第三方接口
 	CreateAgentProvider(context.Context, *CreateAgentProviderRequest) (*CreateAgentProviderResponse, error)
@@ -1118,6 +1157,8 @@ type AgentServiceServer interface {
 	SetAgentSkillEnabled(context.Context, *SetAgentSkillEnabledRequest) (*SetAgentSkillEnabledResponse, error)
 	// 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
 	ImportAgentSkill(context.Context, *ImportAgentSkillRequest) (*ImportAgentSkillResponse, error)
+	// Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
+	ListAgentUsers(context.Context, *ListAgentUsersRequest) (*ListAgentUsersResponse, error)
 	// —— 运行时 ——
 	ListAgentRuntimes(context.Context, *ListAgentRuntimesRequest) (*ListAgentRuntimesResponse, error)
 	// 安装方式：Momoko 下载并更新 / 用服务器上已有的命令
@@ -1133,13 +1174,17 @@ type AgentServiceServer interface {
 	DeleteAgentRuntime(context.Context, *DeleteAgentRuntimeRequest) (*DeleteAgentRuntimeResponse, error)
 	// 同时运行的进程上限、空闲后结束进程
 	UpdateAgentRunSettings(context.Context, *UpdateAgentRunSettingsRequest) (*UpdateAgentRunSettingsResponse, error)
-	// —— 通知 ——
+	// —— 通知：每个人自己的 ——
 	GetAgentNotify(context.Context, *GetAgentNotifyRequest) (*GetAgentNotifyResponse, error)
 	// 三个时机开关
 	UpdateAgentNotifyEvents(context.Context, *UpdateAgentNotifyEventsRequest) (*UpdateAgentNotifyEventsResponse, error)
 	// 保存某种通知方式的配置，保存后自动启用
 	SaveAgentNotifyChannel(context.Context, *SaveAgentNotifyChannelRequest) (*SaveAgentNotifyChannelResponse, error)
 	SetAgentNotifyChannelEnabled(context.Context, *SetAgentNotifyChannelEnabledRequest) (*SetAgentNotifyChannelEnabledResponse, error)
+	// 移除某种通知方式的配置
+	DeleteAgentNotifyChannel(context.Context, *DeleteAgentNotifyChannelRequest) (*DeleteAgentNotifyChannelResponse, error)
+	// 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
+	ListAgentNotify(context.Context, *ListAgentNotifyRequest) (*ListAgentNotifyResponse, error)
 	// 发一条测试；fields 为空时用已保存的配置
 	TestAgentNotifyChannel(context.Context, *TestAgentNotifyChannelRequest) (*TestAgentNotifyChannelResponse, error)
 	mustEmbedUnimplementedAgentServiceServer()
@@ -1338,6 +1383,9 @@ func (UnimplementedAgentServiceServer) SetAgentSkillEnabled(context.Context, *Se
 func (UnimplementedAgentServiceServer) ImportAgentSkill(context.Context, *ImportAgentSkillRequest) (*ImportAgentSkillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ImportAgentSkill not implemented")
 }
+func (UnimplementedAgentServiceServer) ListAgentUsers(context.Context, *ListAgentUsersRequest) (*ListAgentUsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgentUsers not implemented")
+}
 func (UnimplementedAgentServiceServer) ListAgentRuntimes(context.Context, *ListAgentRuntimesRequest) (*ListAgentRuntimesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAgentRuntimes not implemented")
 }
@@ -1373,6 +1421,12 @@ func (UnimplementedAgentServiceServer) SaveAgentNotifyChannel(context.Context, *
 }
 func (UnimplementedAgentServiceServer) SetAgentNotifyChannelEnabled(context.Context, *SetAgentNotifyChannelEnabledRequest) (*SetAgentNotifyChannelEnabledResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetAgentNotifyChannelEnabled not implemented")
+}
+func (UnimplementedAgentServiceServer) DeleteAgentNotifyChannel(context.Context, *DeleteAgentNotifyChannelRequest) (*DeleteAgentNotifyChannelResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteAgentNotifyChannel not implemented")
+}
+func (UnimplementedAgentServiceServer) ListAgentNotify(context.Context, *ListAgentNotifyRequest) (*ListAgentNotifyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgentNotify not implemented")
 }
 func (UnimplementedAgentServiceServer) TestAgentNotifyChannel(context.Context, *TestAgentNotifyChannelRequest) (*TestAgentNotifyChannelResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TestAgentNotifyChannel not implemented")
@@ -2514,6 +2568,24 @@ func _AgentService_ImportAgentSkill_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_ListAgentUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ListAgentUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ListAgentUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ListAgentUsers(ctx, req.(*ListAgentUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_ListAgentRuntimes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAgentRuntimesRequest)
 	if err := dec(in); err != nil {
@@ -2726,6 +2798,42 @@ func _AgentService_SetAgentNotifyChannelEnabled_Handler(srv interface{}, ctx con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AgentServiceServer).SetAgentNotifyChannelEnabled(ctx, req.(*SetAgentNotifyChannelEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_DeleteAgentNotifyChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAgentNotifyChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).DeleteAgentNotifyChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_DeleteAgentNotifyChannel_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).DeleteAgentNotifyChannel(ctx, req.(*DeleteAgentNotifyChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_ListAgentNotify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentNotifyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ListAgentNotify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ListAgentNotify_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ListAgentNotify(ctx, req.(*ListAgentNotifyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3004,6 +3112,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AgentService_ImportAgentSkill_Handler,
 		},
 		{
+			MethodName: "ListAgentUsers",
+			Handler:    _AgentService_ListAgentUsers_Handler,
+		},
+		{
 			MethodName: "ListAgentRuntimes",
 			Handler:    _AgentService_ListAgentRuntimes_Handler,
 		},
@@ -3050,6 +3162,14 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetAgentNotifyChannelEnabled",
 			Handler:    _AgentService_SetAgentNotifyChannelEnabled_Handler,
+		},
+		{
+			MethodName: "DeleteAgentNotifyChannel",
+			Handler:    _AgentService_DeleteAgentNotifyChannel_Handler,
+		},
+		{
+			MethodName: "ListAgentNotify",
+			Handler:    _AgentService_ListAgentNotify_Handler,
 		},
 		{
 			MethodName: "TestAgentNotifyChannel",

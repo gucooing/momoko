@@ -1,4 +1,5 @@
-// Agent 管理 · 通知：三个时机开关和四种方式（Discord、Telegram、飞书、QQBot）。
+// Agent 设置 · 通知（每个人自己的）：三个时机开关和四种方式（Discord、Telegram、飞书、QQBot）；
+// Agent 管理 · 通知：所有人设置的通知方式（agent.notify.all）。
 export default {
   'zh-CN': {
     agent: {
@@ -25,6 +26,22 @@ export default {
         keepSaved: '已保存 {masked}，留空表示不修改',
         missing: '还有必填项没填',
         saved: '已保存并启用 {name} 通知',
+        remove: '移除',
+        removeOf: '移除 {name}',
+        removeTitle: '移除 {name} 通知？',
+        removeMsg: '这份配置会删掉，之后不再通过它通知你。要用时重新配置就行。',
+        removed: '已移除 {name} 通知',
+        enableOf: '启用 {user} 的 {name}',
+        all: {
+          subtitle: '{people} 个人设置了 {total} 种通知方式 · {on} 种启用着',
+          events: '通知时机：{events}',
+          noEvents: '三个时机都关了',
+          empty: '还没有人设置通知方式',
+          removeOf: '移除 {user} 的 {name}',
+          removeTitle: '移除 {user} 的 {name} 通知？',
+          removeMsg: '他的这份配置会删掉，之后不再通过它通知他；他可以自己重新配置。',
+          removed: '已移除 {user} 的 {name} 通知',
+        },
         sub: {
           chat: 'Chat ID {chat}',
           qq: 'AppID {appid} · 发给 {to}',
@@ -90,6 +107,22 @@ export default {
         keepSaved: '已儲存 {masked}，留空表示不修改',
         missing: '還有必填項目未填',
         saved: '已儲存並啟用 {name} 通知',
+        remove: '移除',
+        removeOf: '移除 {name}',
+        removeTitle: '移除 {name} 通知？',
+        removeMsg: '這份配置會刪掉，之後不再透過它通知你。要用時重新配置就行。',
+        removed: '已移除 {name} 通知',
+        enableOf: '啟用 {user} 的 {name}',
+        all: {
+          subtitle: '{people} 個人設定了 {total} 種通知方式 · {on} 種啟用中',
+          events: '通知時機：{events}',
+          noEvents: '三個時機都關了',
+          empty: '還沒有人設定通知方式',
+          removeOf: '移除 {user} 的 {name}',
+          removeTitle: '移除 {user} 的 {name} 通知？',
+          removeMsg: '他的這份配置會刪掉，之後不再透過它通知他；他可以自己重新配置。',
+          removed: '已移除 {user} 的 {name} 通知',
+        },
         sub: {
           chat: 'Chat ID {chat}',
           qq: 'AppID {appid} · 發給 {to}',
@@ -155,6 +188,22 @@ export default {
         keepSaved: 'Saved {masked}, leave empty to keep it',
         missing: 'Some required fields are still empty',
         saved: 'Saved and enabled {name} notifications',
+        remove: 'Remove',
+        removeOf: 'Remove {name}',
+        removeTitle: 'Remove {name} notifications?',
+        removeMsg: 'This configuration will be deleted and you won\'t be notified through it anymore. You can set it up again any time.',
+        removed: 'Removed {name} notifications',
+        enableOf: 'Enable {name} for {user}',
+        all: {
+          subtitle: '{people} people set up {total} channels · {on} enabled',
+          events: 'Notifies on: {events}',
+          noEvents: 'All three events are off',
+          empty: 'Nobody has set up notifications yet',
+          removeOf: 'Remove {name} of {user}',
+          removeTitle: 'Remove {name} notifications of {user}?',
+          removeMsg: 'Their configuration will be deleted and they won\'t be notified through it anymore; they can set it up again themselves.',
+          removed: 'Removed {name} notifications of {user}',
+        },
         sub: {
           chat: 'Chat ID {chat}',
           qq: 'AppID {appid} · sent to {to}',

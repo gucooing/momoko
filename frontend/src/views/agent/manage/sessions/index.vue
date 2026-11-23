@@ -1,8 +1,8 @@
-<!-- Agent 管理 · 会话：状态筛选（带数量）、按标题搜索、每行归档 / 取消归档和删除、勾选后批量归档 / 导出 / 删除，
+<!-- Agent 设置 · 会话：状态筛选（带数量）、按标题搜索、每行归档 / 取消归档和删除、勾选后批量归档 / 导出 / 删除，
      「已归档」筛选下可以删除全部归档会话。有 Agent 进程在跑的会话（一轮结束后进程还留着，空闲的也可能有）
      行上有「进程」标记，点开看进程和它派出的子 Agent（只读）。
      这一页不能停止会话、不能结束进程；还在运行的会话不能归档。筛选、搜索、分页都在服务端做。
-     只有自己的会话；在全员 Agent 页里（useAgentAll）是所有人的，行上带主人，标题不能点开（别人的会话打不开），没有新会话和删除全部归档。 -->
+     只有自己的会话；在 Agent 管理页里（useAgentAll）是所有人的，行上带主人，标题不能点开（别人的会话打不开），没有新会话和删除全部归档。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>
@@ -218,6 +218,7 @@ import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { useLastCodeSession } from '@/views/agent/composables/useLastCodeSession'
 import { agentKindOf, fmtBytes, relTime, sinceTime } from '@/views/agent/utils/format'
+import { modelName, useAgentModels } from '@/views/agent/composables/useAgentModels'
 import { downloadText, exportMarkdown, providerLabel, safeFileName, sessionTitle } from '@/views/agent/utils/labels'
 
 defineOptions({ name: 'AgentManageSessionsView' })
@@ -239,9 +240,11 @@ const SUB_PILL: Record<string, string> = {
 
 const { t } = useI18n()
 const router = useRouter()
-/** 在全员 Agent 页里：所有人的会话 */
+/** 在 Agent 管理页里：所有人的会话 */
 const all = useAgentAll()
 const { overview, refresh: refreshOverview } = useAgentOverview()
+// 模型显示名从模型供应商同步、配置的那份清单里取
+const { refresh: refreshModels } = useAgentModels()
 const { remember: rememberCodeSession } = useLastCodeSession()
 const newSession = () => {
   rememberCodeSession('')
@@ -275,7 +278,7 @@ const subState = (state: string) =>
       : t('agent.code.sub.done')
 const titleOf = (s: AgentSession) => s.title || t('agent.sessions.untitled')
 const statusText = (value: string) => (STATUSES.includes(value) ? t(`agent.status.${value}`) : value)
-// 主人只在全员 Agent 页里显示（自己的列表里都是自己）
+// 主人只在 Agent 管理页里显示（自己的列表里都是自己）
 const userOf = (s: AgentSession) => {
   if (!all) return ''
   const u = data.value?.users?.find((x) => x.id === s.userId)
@@ -285,7 +288,7 @@ const forksOf = (s: AgentSession) => Number(data.value?.forkCounts?.[s.id] ?? 0)
 const subOf = (s: AgentSession) => {
   const tail = s.status === 'error' && s.error ? s.error : ''
   const provider = providerLabel({ kind: s.providerKind, vendor: s.providerVendor, name: s.providerName })
-  return [s.workspaceName || t('agent.common.noWorkspace'), provider, s.model, userOf(s), tail]
+  return [s.workspaceName || t('agent.common.noWorkspace'), provider, modelName(s.runtimeId, s.providerId, s.model), userOf(s), tail]
     .filter(Boolean)
     .join(' · ')
 }
@@ -397,10 +400,15 @@ const head = computed(() => {
   }
 })
 
-// 会话状态的变化由长连接推来（自己的会话总会推来；全员 Agent 页另外关注所有人的）：
+// 会话状态的变化由长连接推来（自己的会话总会推来；Agent 管理页另外关注所有人的）：
 // 这一页上的行直接换成新的；状态变了、或者有会话没了，过一会儿把列表和数量重新读一次。
 const reloadSoon = useDebounceFn(() => void reload(), 800)
 const onPush = (msg: AgentServerMessage) => {
+  // 模型供应商里重新检查、改了配置：模型的显示名跟着换
+  if (msg.t === 'config') {
+    void refreshModels()
+    return
+  }
   if (msg.t === 'gone') {
     void reloadSoon()
     return
@@ -427,7 +435,10 @@ onMounted(() => {
 // 标签页是 keep-alive 的：切走就不再收推送，切回来悄悄刷新一次
 onActivated(() => {
   conn.start()
-  if (loaded.value) void reload()
+  if (loaded.value) {
+    void reload()
+    void refreshModels()
+  }
 })
 onDeactivated(() => {
   if (all) agentSend({ op: 'watch', on: false })

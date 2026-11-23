@@ -157,7 +157,7 @@ const emit = defineEmits<{
 const keyword = defineModel<string>('keyword', { default: '' })
 const { t } = useI18n()
 const menuStore = useMenuStore()
-// 能进 Agent 管理页（自己的工作区、全部会话在那里管）
+// 能进 Agent 设置页（自己的工作区、全部会话在那里管）
 const canManage = computed(() => menuStore.hasMenuPath('/agent/manage'))
 
 const FIRST = 4

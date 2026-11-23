@@ -12,6 +12,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -139,6 +140,38 @@ func (_u *AgentSkillUpdate) AddFileCount(v int) *AgentSkillUpdate {
 	return _u
 }
 
+// SetShare sets the "share" field.
+func (_u *AgentSkillUpdate) SetShare(v string) *AgentSkillUpdate {
+	_u.mutation.SetShare(v)
+	return _u
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_u *AgentSkillUpdate) SetNillableShare(v *string) *AgentSkillUpdate {
+	if v != nil {
+		_u.SetShare(*v)
+	}
+	return _u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_u *AgentSkillUpdate) SetShareUsers(v []string) *AgentSkillUpdate {
+	_u.mutation.SetShareUsers(v)
+	return _u
+}
+
+// AppendShareUsers appends value to the "share_users" field.
+func (_u *AgentSkillUpdate) AppendShareUsers(v []string) *AgentSkillUpdate {
+	_u.mutation.AppendShareUsers(v)
+	return _u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (_u *AgentSkillUpdate) ClearShareUsers() *AgentSkillUpdate {
+	_u.mutation.ClearShareUsers()
+	return _u
+}
+
 // Mutation returns the AgentSkillMutation object of the builder.
 func (_u *AgentSkillUpdate) Mutation() *AgentSkillMutation {
 	return _u.mutation
@@ -233,6 +266,20 @@ func (_u *AgentSkillUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.AddedFileCount(); ok {
 		_spec.AddField(agentskill.FieldFileCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Share(); ok {
+		_spec.SetField(agentskill.FieldShare, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ShareUsers(); ok {
+		_spec.SetField(agentskill.FieldShareUsers, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedShareUsers(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, agentskill.FieldShareUsers, value)
+		})
+	}
+	if _u.mutation.ShareUsersCleared() {
+		_spec.ClearField(agentskill.FieldShareUsers, field.TypeJSON)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -365,6 +412,38 @@ func (_u *AgentSkillUpdateOne) AddFileCount(v int) *AgentSkillUpdateOne {
 	return _u
 }
 
+// SetShare sets the "share" field.
+func (_u *AgentSkillUpdateOne) SetShare(v string) *AgentSkillUpdateOne {
+	_u.mutation.SetShare(v)
+	return _u
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_u *AgentSkillUpdateOne) SetNillableShare(v *string) *AgentSkillUpdateOne {
+	if v != nil {
+		_u.SetShare(*v)
+	}
+	return _u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_u *AgentSkillUpdateOne) SetShareUsers(v []string) *AgentSkillUpdateOne {
+	_u.mutation.SetShareUsers(v)
+	return _u
+}
+
+// AppendShareUsers appends value to the "share_users" field.
+func (_u *AgentSkillUpdateOne) AppendShareUsers(v []string) *AgentSkillUpdateOne {
+	_u.mutation.AppendShareUsers(v)
+	return _u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (_u *AgentSkillUpdateOne) ClearShareUsers() *AgentSkillUpdateOne {
+	_u.mutation.ClearShareUsers()
+	return _u
+}
+
 // Mutation returns the AgentSkillMutation object of the builder.
 func (_u *AgentSkillUpdateOne) Mutation() *AgentSkillMutation {
 	return _u.mutation
@@ -489,6 +568,20 @@ func (_u *AgentSkillUpdateOne) sqlSave(ctx context.Context) (_node *AgentSkill, 
 	}
 	if value, ok := _u.mutation.AddedFileCount(); ok {
 		_spec.AddField(agentskill.FieldFileCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Share(); ok {
+		_spec.SetField(agentskill.FieldShare, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ShareUsers(); ok {
+		_spec.SetField(agentskill.FieldShareUsers, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedShareUsers(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, agentskill.FieldShareUsers, value)
+		})
+	}
+	if _u.mutation.ShareUsersCleared() {
+		_spec.ClearField(agentskill.FieldShareUsers, field.TypeJSON)
 	}
 	_node = &AgentSkill{config: _u.config}
 	_spec.Assign = _node.assignValues

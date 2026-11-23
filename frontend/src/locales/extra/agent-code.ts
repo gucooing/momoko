@@ -250,8 +250,8 @@ export default {
           'install-mcp': '把一个 MCP 服务器装到 Momoko，后面跟它的地址或安装说明',
           'install-skillNeed': '在 /install-skill 后面跟上 Git 地址或压缩包链接',
           'install-mcpNeed': '在 /install-mcp 后面跟上它的地址或安装说明',
-          skillHanded: '已交给 {agent} 安装技能，装好后出现在「Agent 管理」的技能页',
-          mcpHanded: '已交给 {agent} 安装 MCP 服务器，装好后出现在「Agent 管理」的 MCP 页',
+          skillHanded: '已交给 {agent} 安装技能，装好后出现在「Agent 设置」的技能页',
+          mcpHanded: '已交给 {agent} 安装 MCP 服务器，装好后出现在「Agent 设置」的 MCP 页',
         },
         file: {
           showDiff: '查看改动',
@@ -708,8 +708,8 @@ export default {
           'install-mcp': '把一個 MCP 伺服器裝到 Momoko，後面跟它的地址或安裝說明',
           'install-skillNeed': '在 /install-skill 後面跟上 Git 地址或壓縮包連結',
           'install-mcpNeed': '在 /install-mcp 後面跟上它的地址或安裝說明',
-          skillHanded: '已交給 {agent} 安裝技能，裝好後出現在「Agent 管理」的技能頁',
-          mcpHanded: '已交給 {agent} 安裝 MCP 伺服器，裝好後出現在「Agent 管理」的 MCP 頁',
+          skillHanded: '已交給 {agent} 安裝技能，裝好後出現在「Agent 設定」的技能頁',
+          mcpHanded: '已交給 {agent} 安裝 MCP 伺服器，裝好後出現在「Agent 設定」的 MCP 頁',
         },
         file: {
           showDiff: '查看改動',
@@ -1166,8 +1166,8 @@ export default {
           'install-mcp': 'Install an MCP server into Momoko; follow with its URL or install notes',
           'install-skillNeed': 'Add a Git URL or archive link after /install-skill',
           'install-mcpNeed': 'Add its URL or install notes after /install-mcp',
-          skillHanded: '{agent} is installing the skill; it will show up on the Skills tab of Agent management',
-          mcpHanded: '{agent} is installing the MCP server; it will show up on the MCP tab of Agent management',
+          skillHanded: '{agent} is installing the skill; it will show up on the Skills tab of Agent settings',
+          mcpHanded: '{agent} is installing the MCP server; it will show up on the MCP tab of Agent settings',
         },
         file: {
           showDiff: 'View changes',

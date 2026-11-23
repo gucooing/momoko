@@ -57,6 +57,8 @@ var (
 		{Name: "status_text", Type: field.TypeString, Default: ""},
 		{Name: "tool_count", Type: field.TypeInt, Default: 0},
 		{Name: "tested_at", Type: field.TypeTime, Nullable: true},
+		{Name: "share", Type: field.TypeString, Default: ""},
+		{Name: "share_users", Type: field.TypeJSON, Nullable: true},
 	}
 	// AgentMcpServersTable holds the schema information for the "agent_mcp_servers" table.
 	AgentMcpServersTable = &schema.Table{
@@ -71,11 +73,28 @@ var (
 			},
 		},
 	}
+	// AgentNotifyColumns holds the columns for the "agent_notify" table.
+	AgentNotifyColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "on_ask", Type: field.TypeBool, Default: true},
+		{Name: "on_done", Type: field.TypeBool, Default: true},
+		{Name: "on_error", Type: field.TypeBool, Default: true},
+		{Name: "channels", Type: field.TypeJSON, Nullable: true},
+	}
+	// AgentNotifyTable holds the schema information for the "agent_notify" table.
+	AgentNotifyTable = &schema.Table{
+		Name:       "agent_notify",
+		Columns:    AgentNotifyColumns,
+		PrimaryKey: []*schema.Column{AgentNotifyColumns[0]},
+	}
 	// AgentProvidersColumns holds the columns for the "agent_providers" table.
 	AgentProvidersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeString, Default: ""},
 		{Name: "vendor", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "status", Type: field.TypeString, Default: "untested"},
@@ -88,12 +107,21 @@ var (
 		{Name: "env", Type: field.TypeJSON, Nullable: true},
 		{Name: "test_latency_ms", Type: field.TypeInt64, Default: 0},
 		{Name: "tested_at", Type: field.TypeTime, Nullable: true},
+		{Name: "share", Type: field.TypeString, Default: ""},
+		{Name: "share_users", Type: field.TypeJSON, Nullable: true},
 	}
 	// AgentProvidersTable holds the schema information for the "agent_providers" table.
 	AgentProvidersTable = &schema.Table{
 		Name:       "agent_providers",
 		Columns:    AgentProvidersColumns,
 		PrimaryKey: []*schema.Column{AgentProvidersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentprovider_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{AgentProvidersColumns[3]},
+			},
+		},
 	}
 	// AgentRuntimesColumns holds the columns for the "agent_runtimes" table.
 	AgentRuntimesColumns = []*schema.Column{
@@ -227,6 +255,8 @@ var (
 		{Name: "location", Type: field.TypeString, Default: ""},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "file_count", Type: field.TypeInt, Default: 0},
+		{Name: "share", Type: field.TypeString, Default: ""},
+		{Name: "share_users", Type: field.TypeJSON, Nullable: true},
 	}
 	// AgentSkillsTable holds the schema information for the "agent_skills" table.
 	AgentSkillsTable = &schema.Table{
@@ -1999,6 +2029,7 @@ var (
 	Tables = []*schema.Table{
 		AgentEventsTable,
 		AgentMcpServersTable,
+		AgentNotifyTable,
 		AgentProvidersTable,
 		AgentRuntimesTable,
 		AgentRuntimeModelsTable,
@@ -2065,6 +2096,9 @@ func init() {
 	}
 	AgentMcpServersTable.Annotation = &entsql.Annotation{
 		Table: "agent_mcp_servers",
+	}
+	AgentNotifyTable.Annotation = &entsql.Annotation{
+		Table: "agent_notify",
 	}
 	AgentProvidersTable.Annotation = &entsql.Annotation{
 		Table: "agent_providers",

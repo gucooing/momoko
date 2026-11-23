@@ -117,7 +117,7 @@
           <span class="ag-fl ag-ws-form__fl">
             {{ t('agent.workspaces.dialog.model') }}
             <span v-if="runtimeName" class="ag-ws-form__by">
-              {{ t('agent.workspaces.dialog.runBy', { name: runtimeName }) }}
+              {{ [t('agent.workspaces.dialog.runBy', { name: runtimeName }), providerName].filter(Boolean).join(' · ') }}
             </span>
           </span>
           <AgSelect
@@ -224,13 +224,13 @@
 </template>
 
 <script setup lang="ts">
+import { modelLabel, useAgentModels } from '@/views/agent/composables/useAgentModels'
 import { modeName, providerLabel } from '@/views/agent/utils/labels'
 import { useDebounceFn } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import {
   createAgentWorkspace,
   getAgentDocs,
-  getAgentOptions,
   listAgentDirs,
   listAgentMcpServers,
   updateAgentWorkspace,
@@ -298,7 +298,8 @@ const editing = ref('')
 const browseOpen = ref(false)
 const saving = ref(false)
 
-const runtimes = ref<AgentRuntimeOptions[]>([])
+// 模型清单和别的页面共用一份（模型供应商页同步、配置的），每次打开弹窗重读一次
+const { runtimes, refresh: refreshModels } = useAgentModels()
 const optionsLoaded = ref(false)
 const servers = ref<AgentMcpServer[]>([])
 const serversState = ref<'loading' | 'ok' | 'failed'>('loading')
@@ -341,24 +342,22 @@ const currentChoice = computed(() => choices.value.find((c) => c.key === current
 // 之前选的模型现在选不到了（供应商被删、运行时没就绪）：照原样显示，不替用户改掉
 const stale = computed(() => optionsLoaded.value && !!currentKey.value && !currentChoice.value)
 
+// 选项就是模型供应商里那份清单：按 Agent · 供应商分组，每一项只是模型名，和「编辑模型」里列的一样
+const savedProvider = computed(() => {
+  const w = props.workspace
+  return w ? providerLabel({ kind: w.providerKind, vendor: w.providerVendor, name: w.providerName }) : ''
+})
 const modelOptions = computed(() => {
   const list: { value: string; label: string; group?: string }[] = choices.value.map((c) => ({
     value: c.key,
-    label: `${providerLabel(c.provider)} · ${c.model.id}`,
-    group: c.runtime.runtimeName,
+    label: modelLabel(c.model),
+    group: `${c.runtime.runtimeName} · ${providerLabel(c.provider)}`,
   }))
   if (stale.value) {
     list.unshift({
       value: currentKey.value,
-      label: [
-        props.workspace
-          ? providerLabel({ kind: props.workspace.providerKind, vendor: props.workspace.providerVendor, name: props.workspace.providerName })
-          : '',
-        form.model,
-      ]
-        .filter(Boolean)
-        .join(' · '),
-      group: props.workspace?.runtimeName || undefined,
+      label: form.model,
+      group: [props.workspace?.runtimeName, savedProvider.value].filter(Boolean).join(' · ') || undefined,
     })
   }
   return list
@@ -372,6 +371,9 @@ const modeOptions = computed(() =>
 
 const runtimeName = computed(
   () => currentChoice.value?.runtime.runtimeName || (stale.value ? props.workspace?.runtimeName : '') || '',
+)
+const providerName = computed(() =>
+  currentChoice.value ? providerLabel(currentChoice.value.provider) : stale.value ? savedProvider.value : '',
 )
 const modelPlaceholder = computed(() => {
   if (!optionsLoaded.value) return t('agent.common.loading')
@@ -548,17 +550,12 @@ const loadAll = () => {
   const id = ++openSeq
   optionsLoaded.value = false
   serversState.value = 'loading'
-  getAgentOptions()
-    .then(({ data }) => {
-      if (id !== openSeq) return
-      runtimes.value = data.runtimes ?? []
-      optionsLoaded.value = true
-      applyDefaultModel()
-    })
-    .catch(() => {
-      // 请求层已经提示过；选择器按「没有可选项」显示，照样可以保存
-      if (id === openSeq) optionsLoaded.value = true
-    })
+  // 读不到时请求层已经提示过；选择器按「没有可选项」显示，照样可以保存
+  void refreshModels().then(() => {
+    if (id !== openSeq) return
+    optionsLoaded.value = true
+    applyDefaultModel()
+  })
   listAgentMcpServers()
     .then(({ data }) => {
       if (id !== openSeq) return

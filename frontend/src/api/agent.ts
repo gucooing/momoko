@@ -1,4 +1,4 @@
-// Agent（Code 与 Agent 管理）接口。会话里的对话事件走 WebSocket，见 views/agent/code/useAgentSocket.ts。
+// Agent（Code 与 Agent 设置）接口。会话里的对话事件走 WebSocket，见 views/agent/code/useAgentSocket.ts。
 import request from '@/utils/request'
 import type {
   AgentAttachment,
@@ -30,6 +30,7 @@ import type {
   GetAgentOverviewResponse,
   GetAgentPreviewTokenResponse,
   GetAgentProviderBalanceResponse,
+  ListAgentNotifyResponse,
   GetAgentSessionChangesResponse,
   GetAgentSessionProcessResponse,
   GetAgentSessionResponse,
@@ -45,6 +46,7 @@ import type {
   ListAgentSessionFilesResponse,
   ListAgentSessionsResponse,
   ListAgentSkillsResponse,
+  ListAgentUsersResponse,
   ListAgentWorkspacesResponse,
   PromptAgentSessionRequest,
   PublicAgentApprovalResponse,
@@ -80,7 +82,7 @@ export type AgentAttachmentInput = Omit<Partial<AgentAttachment>, 'data'> & { da
 
 // —— 选择器 / 概览 ——
 export const getAgentOptions = () => request.get<GetAgentOptionsResponse>('/agent/options')
-/** all：全员 Agent 页，会话、工作区、MCP、技能数所有人的 */
+/** all：Agent 管理页，会话、工作区、MCP、技能数所有人的 */
 export const getAgentOverview = (all = false) =>
   request.get<GetAgentOverviewResponse>('/agent/overview', { params: all ? { all } : undefined })
 
@@ -92,7 +94,7 @@ export const listAgentSessions = (params: {
   keyword?: string
   page?: number
   pageSize?: number
-  /** 所有人的（全员 Agent 页） */
+  /** 所有人的（Agent 管理页） */
   all?: boolean
 }) =>
   request.get<ListAgentSessionsResponse>('/agent/sessions', { params })
@@ -178,7 +180,7 @@ export const readAgentFile = (scope: AgentFileScope, path: string) =>
   scope.sessionId ? readAgentSessionFile(scope.sessionId, path) : readAgentWorkspaceFile(scope.workspaceId || '', path)
 
 // —— 工作区 ——
-/** all：所有人的（全员 Agent 页） */
+/** all：所有人的（Agent 管理页） */
 export const listAgentWorkspaces = (all = false) =>
   request.get<ListAgentWorkspacesResponse>('/agent/workspaces', { params: all ? { all } : undefined })
 export const createAgentWorkspace = (data: Partial<CreateAgentWorkspaceRequest>) =>
@@ -194,8 +196,10 @@ export const readAgentWorkspaceFile = (id: string, path: string) =>
   request.get<ReadAgentSessionFileResponse>(`/agent/workspaces/${id}/file`, { params: { path } })
 export const getAgentDocs = (path: string) => request.get<GetAgentDocsResponse>('/agent/docs', { params: { path } })
 
-// —— 模型供应商 ——
-export const listAgentProviders = () => request.get<ListAgentProvidersResponse>('/agent/providers')
+// —— 模型供应商（第三方接口）——
+/** all：所有人的（Agent 管理页）；默认是自己的，加上共享给自己的 */
+export const listAgentProviders = (all = false) =>
+  request.get<ListAgentProvidersResponse>('/agent/providers', { params: all ? { all } : undefined })
 export const createAgentProvider = (provider: Partial<AgentProvider>) =>
   request.post<CreateAgentProviderResponse>('/agent/providers', { provider })
 export const updateAgentProvider = (id: string, provider: Partial<AgentProvider>) =>
@@ -209,7 +213,7 @@ export const getAgentProviderBalance = (id: string) =>
   request.get<GetAgentProviderBalanceResponse>(`/agent/providers/${id}/balance`)
 
 // —— MCP ——
-/** all：所有人的（全员 Agent 页） */
+/** all：所有人的（Agent 管理页） */
 export const listAgentMcpServers = (all = false) =>
   request.get<ListAgentMcpServersResponse>('/agent/mcp', { params: all ? { all } : undefined })
 export const createAgentMcpServer = (server: Partial<AgentMcpServer>) =>
@@ -221,8 +225,9 @@ export const setAgentMcpDefault = (id: string, defaultOn: boolean) =>
   request.post(`/agent/mcp/${id}/default`, { defaultOn })
 export const testAgentMcpServer = (data: { id?: string; draft?: Partial<AgentMcpServer> }) =>
   request.post<TestAgentMcpServerResponse>('/agent/mcp/test', data, SLOW)
-export const importAgentMcpServers = (json: string) =>
-  request.post<ImportAgentMcpServersResponse>('/agent/mcp/import', { json })
+/** share：导入成共享的（Agent 管理页）；不给是导入成自己的 */
+export const importAgentMcpServers = (json: string, share?: AgentShare) =>
+  request.post<ImportAgentMcpServersResponse>('/agent/mcp/import', { json, ...share })
 
 // —— 技能 ——
 export const listAgentSkills = (params?: { enabled?: boolean; all?: boolean }) =>
@@ -238,6 +243,16 @@ export const setAgentSkillEnabled = (id: string, enabled: boolean) =>
 /** data 是 zip 的 base64（protobuf bytes 在 JSON 里的写法）。 */
 export const importAgentSkill = (data: Omit<Partial<ImportAgentSkillRequest>, 'data'> & { data?: string }) =>
   request.post<ImportAgentSkillResponse>('/agent/skills/import', data, SLOW)
+
+/** 共享的第三方接口、MCP 服务器、技能的主人（不属于哪个人）；和后端 agentSharedOwner 一致 */
+export const AGENT_SHARED_OWNER = '@shared'
+/** 共享的第三方接口、MCP 服务器、技能给谁用：all 所有人；users 指定的人 */
+export interface AgentShare {
+  share: 'all' | 'users'
+  shareUserIds: string[]
+}
+/** Agent 管理页给共享的第三方接口、MCP、技能选人：所有用户（要有 agent:admin） */
+export const listAgentUsers = () => request.get<ListAgentUsersResponse>('/agent/users')
 
 // —— 运行时 ——
 export const listAgentRuntimes = () => request.get<ListAgentRuntimesResponse>('/agent/runtimes')
@@ -255,14 +270,20 @@ export const deleteAgentRuntime = (id: string) => request.delete(`/agent/runtime
 export const updateAgentRunSettings = (settings: AgentRunSettings) =>
   request.post<UpdateAgentRunSettingsResponse>('/agent/runtimes/settings', { settings })
 
-// —— 通知 ——
+// —— 通知：每个人自己的 ——
 export const getAgentNotify = () => request.get<GetAgentNotifyResponse>('/agent/notify')
 export const updateAgentNotifyEvents = (events: AgentNotifyEvents) =>
   request.post('/agent/notify/events', { events })
 export const saveAgentNotifyChannel = (kind: string, fields: Record<string, string>) =>
   request.post<SaveAgentNotifyChannelResponse>('/agent/notify/channel', { kind, fields })
-export const setAgentNotifyChannelEnabled = (kind: string, enabled: boolean) =>
-  request.post('/agent/notify/channel/enabled', { kind, enabled })
+/** userId：别人的（Agent 管理页）；不给是自己的 */
+export const setAgentNotifyChannelEnabled = (kind: string, enabled: boolean, userId?: string) =>
+  request.post('/agent/notify/channel/enabled', { kind, enabled, userId })
+/** 移除一种通知方式；userId：别人的（Agent 管理页），不给是自己的 */
+export const deleteAgentNotifyChannel = (kind: string, userId?: string) =>
+  request.post('/agent/notify/channel/delete', { kind, userId })
+/** 所有人的通知设置（Agent 管理页，要有 agent:admin）：只有设置过通知方式的人 */
+export const listAgentNotify = () => request.get<ListAgentNotifyResponse>('/agent/notify/all')
 export const testAgentNotifyChannel = (kind: string, fields?: Record<string, string>) =>
   request.post('/agent/notify/channel/test', { kind, fields: fields || {} }, SLOW)
 

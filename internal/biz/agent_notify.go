@@ -12,6 +12,7 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/schema"
 	"momoko/pkg/agentnotify"
 	"momoko/pkg/agentrun"
 	"momoko/pkg/common"
@@ -53,7 +54,8 @@ type agentNotifyChannel struct {
 	Fields map[string]string `json:"fields"`
 }
 
-// agentNotifyConfig 通知设置，整个存在 configs 表的 agent.notify 里（默认值在 common 的配置默认表里）。
+// agentNotifyConfig 一个人的通知设置。每人一行存在 agent_notify 表里，没有那一行时三个时机都开、没有通知方式。
+// 以前整个系统只有一份，存在 configs 表的 agent.notify 里（JSON 格式一样），升级时归给内置超级管理员（见 claimLegacyNotify）。
 type agentNotifyConfig struct {
 	Ask      bool                           `json:"ask"`
 	Done     bool                           `json:"done"`
@@ -61,22 +63,93 @@ type agentNotifyConfig struct {
 	Channels map[string]*agentNotifyChannel `json:"channels"`
 }
 
-func (uc *AgentUsecase) loadNotify(ctx context.Context) *agentNotifyConfig {
-	raw, _ := uc.config.Get(ctx, common.ConfigAgentNotify)
-	cfg := agentParse[agentNotifyConfig](raw)
-	if cfg.Channels == nil {
-		cfg.Channels = map[string]*agentNotifyChannel{}
-	}
-	return &cfg
+// configured 这种方式设置过（必填项填完才能保存，所以有配置项就是设置过）。
+func (ch *agentNotifyChannel) configured() bool {
+	return ch != nil && len(ch.Fields) > 0
 }
 
-func (uc *AgentUsecase) saveNotify(ctx context.Context, cfg *agentNotifyConfig) error {
-	if err := uc.config.BatchUpdate(ctx, map[common.ConfigKey]string{common.ConfigAgentNotify: agentJSON(cfg)}); err != nil {
+func defaultNotify() *agentNotifyConfig {
+	return &agentNotifyConfig{Ask: true, Done: true, Error: true, Channels: map[string]*agentNotifyChannel{}}
+}
+
+func notifyOf(n *gen.AgentNotify) *agentNotifyConfig {
+	cfg := &agentNotifyConfig{Ask: n.OnAsk, Done: n.OnDone, Error: n.OnError, Channels: map[string]*agentNotifyChannel{}}
+	for kind, ch := range n.Channels {
+		cfg.Channels[kind] = &agentNotifyChannel{Enabled: ch.Enabled, Fields: ch.Fields}
+	}
+	return cfg
+}
+
+// loadNotify userID 的通知设置；没设置过是默认的。
+func (uc *AgentUsecase) loadNotify(ctx context.Context, userID string) (*agentNotifyConfig, error) {
+	n, err := uc.repo.GetAgentNotify(ctx, userID)
+	if gen.IsNotFound(err) {
+		return defaultNotify(), nil
+	}
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	return notifyOf(n), nil
+}
+
+func (uc *AgentUsecase) saveNotifyRow(ctx context.Context, userID string, cfg *agentNotifyConfig) error {
+	n := &gen.AgentNotify{ID: userID, OnAsk: cfg.Ask, OnDone: cfg.Done, OnError: cfg.Error, Channels: map[string]schema.AgentNotifyChannel{}}
+	for kind, ch := range cfg.Channels {
+		if ch != nil {
+			n.Channels[kind] = schema.AgentNotifyChannel{Enabled: ch.Enabled, Fields: ch.Fields}
+		}
+	}
+	return uc.repo.SaveAgentNotify(ctx, n)
+}
+
+// saveNotify 保存 userID 的通知设置。他原来的 Telegram 要是正在轮询，用的是旧配置，停掉，下次要发批准时按新配置起。
+func (uc *AgentUsecase) saveNotify(ctx context.Context, userID string, cfg *agentNotifyConfig) error {
+	if old, err := uc.loadNotify(ctx, userID); err == nil {
+		if ch := old.Channels["telegram"]; ch.configured() {
+			fields := uc.notifyFields("telegram", ch)
+			uc.telegram.stopKey(telegramKey(fields["token"], fields["chat"]))
+		}
+	}
+	if err := uc.saveNotifyRow(ctx, userID, cfg); err != nil {
 		return ErrSystem(err)
 	}
-	// 配置变了：正在跑的 Telegram 轮询用的是旧配置，停掉，下次要发批准时按新配置起。
-	uc.telegram.stop()
 	return nil
+}
+
+// notifyTarget 要改谁的通知设置：没给或者是自己，就是自己的；别人的要管理员（Agent 管理页）。
+func (uc *AgentUsecase) notifyTarget(ctx context.Context, userID string) (string, error) {
+	self, err := agentUserID(ctx)
+	if err != nil {
+		return "", err
+	}
+	if userID == "" || userID == self {
+		return self, nil
+	}
+	if err := uc.requireAdmin(ctx); err != nil {
+		return "", err
+	}
+	return userID, nil
+}
+
+// claimLegacyNotify 以前通知设置只有一份、谁的会话都按它发：配过通知方式的话归给内置超级管理员（他还没有自己的设置时），
+// 然后把那一份清回默认，下次启动就不再归了。
+func (uc *AgentUsecase) claimLegacyNotify(ctx context.Context) {
+	raw, _ := uc.config.Get(ctx, common.ConfigAgentNotify)
+	legacy := agentParse[agentNotifyConfig](raw)
+	if len(legacy.Channels) == 0 {
+		return
+	}
+	_, err := uc.repo.GetAgentNotify(ctx, BuiltinAdminUserID)
+	if gen.IsNotFound(err) {
+		err = uc.saveNotifyRow(ctx, BuiltinAdminUserID, &legacy)
+	}
+	if err != nil {
+		uc.log.Errorf("把以前共用的通知设置归给内置超级管理员失败：%v", err)
+		return
+	}
+	if err := uc.config.BatchUpdate(ctx, map[common.ConfigKey]string{common.ConfigAgentNotify: agentJSON(defaultNotify())}); err != nil {
+		uc.log.Warnf("清掉以前共用的通知设置失败：%v", err)
+	}
 }
 
 // notifyFields 一种方式的明文配置，发送时用。
@@ -110,8 +183,16 @@ func (uc *AgentUsecase) notifyChannelPB(kind string, ch *agentNotifyChannel) *v1
 	return out
 }
 
+// GetNotify 自己的通知设置。
 func (uc *AgentUsecase) GetNotify(ctx context.Context) (*v1.GetAgentNotifyResponse, error) {
-	cfg := uc.loadNotify(ctx)
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := uc.loadNotify(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	resp := &v1.GetAgentNotifyResponse{Events: &v1.AgentNotifyEvents{Ask: cfg.Ask, Done: cfg.Done, Error: cfg.Error}}
 	for _, kind := range agentNotifyKinds {
 		resp.Channels = append(resp.Channels, uc.notifyChannelPB(kind, cfg.Channels[kind]))
@@ -120,9 +201,16 @@ func (uc *AgentUsecase) GetNotify(ctx context.Context) (*v1.GetAgentNotifyRespon
 }
 
 func (uc *AgentUsecase) UpdateNotifyEvents(ctx context.Context, ev *v1.AgentNotifyEvents) error {
-	cfg := uc.loadNotify(ctx)
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return err
+	}
+	cfg, err := uc.loadNotify(ctx, userID)
+	if err != nil {
+		return err
+	}
 	cfg.Ask, cfg.Done, cfg.Error = ev.GetAsk(), ev.GetDone(), ev.GetError()
-	return uc.saveNotify(ctx, cfg)
+	return uc.saveNotify(ctx, userID, cfg)
 }
 
 // mergeNotifyFields 表单里的配置和已保存的合起来（明文）：密钥类留空表示保留原值。
@@ -143,9 +231,16 @@ func (uc *AgentUsecase) mergeNotifyFields(kind string, stored *agentNotifyChanne
 	return out, nil
 }
 
-// SaveNotifyChannel 保存一种通知方式的配置。必填项填完才能保存，保存后自动启用。
+// SaveNotifyChannel 保存自己的一种通知方式。必填项填完才能保存，保存后自动启用。
 func (uc *AgentUsecase) SaveNotifyChannel(ctx context.Context, kind string, fields map[string]string) (*v1.AgentNotifyChannel, error) {
-	cfg := uc.loadNotify(ctx)
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := uc.loadNotify(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	plain, err := uc.mergeNotifyFields(kind, cfg.Channels[kind], fields)
 	if err != nil {
 		return nil, err
@@ -161,25 +256,119 @@ func (uc *AgentUsecase) SaveNotifyChannel(ctx context.Context, kind string, fiel
 		ch.Fields[key] = value
 	}
 	cfg.Channels[kind] = ch
-	if err := uc.saveNotify(ctx, cfg); err != nil {
+	if err := uc.saveNotify(ctx, userID, cfg); err != nil {
 		return nil, err
 	}
 	return uc.notifyChannelPB(kind, ch), nil
 }
 
-func (uc *AgentUsecase) SetNotifyChannelEnabled(ctx context.Context, kind string, enabled bool) error {
-	cfg := uc.loadNotify(ctx)
+// SetNotifyChannelEnabled 启用或停用一种通知方式：自己的；userID 是别人时要管理员（Agent 管理页）。
+func (uc *AgentUsecase) SetNotifyChannelEnabled(ctx context.Context, userID, kind string, enabled bool) error {
+	userID, err := uc.notifyTarget(ctx, userID)
+	if err != nil {
+		return err
+	}
+	cfg, err := uc.loadNotify(ctx, userID)
+	if err != nil {
+		return err
+	}
 	ch := cfg.Channels[kind]
-	if ch == nil || len(ch.Fields) == 0 {
+	if !ch.configured() {
 		return response.BadRequest("这种通知方式还没配置")
 	}
 	ch.Enabled = enabled
-	return uc.saveNotify(ctx, cfg)
+	return uc.saveNotify(ctx, userID, cfg)
 }
 
-// TestNotifyChannel 发一条测试：用表单里的配置，留空的密钥用已保存的。
+// DeleteNotifyChannel 移除一种通知方式的配置：自己的；userID 是别人时要管理员（Agent 管理页）。
+func (uc *AgentUsecase) DeleteNotifyChannel(ctx context.Context, userID, kind string) error {
+	userID, err := uc.notifyTarget(ctx, userID)
+	if err != nil {
+		return err
+	}
+	cfg, err := uc.loadNotify(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !cfg.Channels[kind].configured() {
+		return response.BadRequest("这种通知方式还没配置")
+	}
+	delete(cfg.Channels, kind)
+	return uc.saveNotify(ctx, userID, cfg)
+}
+
+// ListNotify Agent 管理页：所有人的通知设置，只列设置过通知方式的人；密钥只给脱敏值。
+func (uc *AgentUsecase) ListNotify(ctx context.Context) (*v1.ListAgentNotifyResponse, error) {
+	if err := uc.requireAdmin(ctx); err != nil {
+		return nil, err
+	}
+	rows, err := uc.repo.ListAgentNotify(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	resp := &v1.ListAgentNotifyResponse{}
+	ids := make([]string, 0, len(rows))
+	for _, n := range rows {
+		cfg := notifyOf(n)
+		item := &v1.AgentNotifyOwner{UserId: n.ID, Events: &v1.AgentNotifyEvents{Ask: cfg.Ask, Done: cfg.Done, Error: cfg.Error}}
+		for _, kind := range agentNotifyKinds {
+			if ch := cfg.Channels[kind]; ch.configured() {
+				item.Channels = append(item.Channels, uc.notifyChannelPB(kind, ch))
+			}
+		}
+		if len(item.Channels) > 0 {
+			resp.Items = append(resp.Items, item)
+			ids = append(ids, n.ID)
+		}
+	}
+	if resp.Users, err = uc.agentUsersPB(ctx, ids); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// notifyCounts 通知标签上的数量：自己的是四种方式、启用了几种；all 时是所有人设置过的通知方式、其中启用着的。
+func (uc *AgentUsecase) notifyCounts(ctx context.Context, userID string, all bool) (total, enabled int, err error) {
+	if !all {
+		cfg, err := uc.loadNotify(ctx, userID)
+		if err != nil {
+			return 0, 0, err
+		}
+		for _, kind := range agentNotifyKinds {
+			if ch := cfg.Channels[kind]; ch.configured() && ch.Enabled {
+				enabled++
+			}
+		}
+		return len(agentNotifyKinds), enabled, nil
+	}
+	rows, err := uc.repo.ListAgentNotify(ctx)
+	if err != nil {
+		return 0, 0, ErrSystem(err)
+	}
+	for _, n := range rows {
+		for _, ch := range n.Channels {
+			if len(ch.Fields) > 0 {
+				total++
+				if ch.Enabled {
+					enabled++
+				}
+			}
+		}
+	}
+	return total, enabled, nil
+}
+
+// TestNotifyChannel 发一条测试：用表单里的配置，留空的密钥用自己已保存的。
 func (uc *AgentUsecase) TestNotifyChannel(ctx context.Context, kind string, fields map[string]string) error {
-	plain, err := uc.mergeNotifyFields(kind, uc.loadNotify(ctx).Channels[kind], fields)
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return err
+	}
+	cfg, err := uc.loadNotify(ctx, userID)
+	if err != nil {
+		return err
+	}
+	plain, err := uc.mergeNotifyFields(kind, cfg.Channels[kind], fields)
 	if err != nil {
 		return err
 	}
@@ -198,7 +387,7 @@ func (uc *AgentUsecase) TestNotifyChannel(ctx context.Context, kind string, fiel
 // ———————————————————————————— 发通知 ————————————————————————————
 
 // notify 一个会话到了该通知人的时机（event：ask / question / done / error）：站内消息照常发，
-// 外部渠道按时机开关和各自的启用状态发（提问和批准共用「等待批准」那个开关）。
+// 外部渠道按会话主人自己的时机开关和各自的启用状态发（提问和批准共用「等待批准」那个开关）。
 // detail 是要批准的命令、问的问题、结束说明或出错原因。
 func (uc *AgentUsecase) notify(sessionID, event, detail string, approval *agentApproval) {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
@@ -217,14 +406,17 @@ func (uc *AgentUsecase) notify(sessionID, event, detail string, approval *agentA
 		Params:   map[string]string{"sessionId": s.ID, "title": s.Title, "detail": detail},
 	}})
 
-	cfg := uc.loadNotify(ctx)
+	cfg, err := uc.loadNotify(ctx, s.UserID)
+	if err != nil {
+		return
+	}
 	if on := map[string]bool{"ask": cfg.Ask, "question": cfg.Ask, "done": cfg.Done, "error": cfg.Error}[event]; !on {
 		return
 	}
 	var msg *agentnotify.Message
 	for _, channel := range agentNotifyKinds {
 		ch := cfg.Channels[channel]
-		if ch == nil || !ch.Enabled {
+		if !ch.configured() || !ch.Enabled {
 			continue
 		}
 		fields := uc.notifyFields(channel, ch)
@@ -446,27 +638,40 @@ func (uc *AgentUsecase) PublicResolveApproval(_ context.Context, token, optionID
 // ———————————————————————————— Telegram 按钮 ————————————————————————————
 
 // agentTelegram Telegram 消息里的批准按钮点了之后要靠长轮询收回来。只在发出过带按钮的批准、
-// 而且还有没回答的批准时轮询；都回答完了就停。
+// 而且还有没回答的批准时轮询；都回答完了就停。每个人的通知设置各是各的，一份配置（机器人 + 聊天）一个轮询。
 type agentTelegram struct {
-	mu     sync.Mutex
-	key    string
-	cancel context.CancelFunc
+	mu      sync.Mutex
+	polling map[string]context.CancelFunc
+}
+
+func telegramKey(token, chat string) string {
+	return token + "\x00" + chat
 }
 
 // ensure 按这份配置轮询；已经在按同一份配置轮询就不动。
 func (t *agentTelegram) ensure(uc *AgentUsecase, token, chat string) {
-	key := token + "\x00" + chat
+	key := telegramKey(token, chat)
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	if t.cancel != nil && t.key == key {
+	if _, ok := t.polling[key]; ok {
 		return
 	}
-	if t.cancel != nil {
-		t.cancel()
+	if t.polling == nil {
+		t.polling = map[string]context.CancelFunc{}
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	t.key, t.cancel = key, cancel
+	t.polling[key] = cancel
 	go agentnotify.PollTelegram(ctx, token, chat, uc.onTelegram)
+}
+
+// stopKey 停掉按这份配置的轮询（有人改了通知设置，旧配置不再用了）。
+func (t *agentTelegram) stopKey(key string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if cancel, ok := t.polling[key]; ok {
+		cancel()
+		delete(t.polling, key)
+	}
 }
 
 // idle 没有等着回答的批准了就停止轮询。
@@ -479,9 +684,9 @@ func (t *agentTelegram) idle(uc *AgentUsecase) {
 func (t *agentTelegram) stop() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	if t.cancel != nil {
-		t.cancel()
-		t.cancel, t.key = nil, ""
+	for key, cancel := range t.polling {
+		cancel()
+		delete(t.polling, key)
 	}
 }
 

@@ -1,7 +1,10 @@
-// Agent 管理 · 模型供应商：服务器上的登录（用户自己登录，Momoko 只检查）和第三方接口。
+// Agent 设置 · 模型供应商（只读的官方账户 + 自己的第三方接口）、Agent 管理 · 模型供应商（所有人的和共享的第三方接口），
+// 和 Agent 管理 · 官方账户（服务器上的登录：用户自己登录，Momoko 只检查）。
+// 官方账户页用的也是 agent.providers 里登录那几条，自己只有页头的数量（agent.accounts）；只读时的说明在 agent.providers.view。
 export default {
   'zh-CN': {
     agent: {
+      accounts: { subtitle: '共 {n} 个 Agent · {logins} 个已登录' },
       providers: {
         loginModels: {
           edit: '编辑模型',
@@ -12,8 +15,17 @@ export default {
           hintCodex: '单位是 token，留空用 Codex 自己的；Codex 没有设定最长输出的配置。下次启动 Agent 进程时生效。',
           saved: '已保存 {name} 的模型',
         },
-        subtitle: '共 {n} 个第三方接口',
-        serverLogin: '服务器上的登录',
+        subtitle: '共 {n} 个供应商 · {logins} 个官方账户 · {apis} 个第三方接口',
+        subtitleAll: '共 {n} 个第三方接口',
+        serverLogin: '官方账户',
+        view: {
+          notReady: '还没就绪',
+          unchecked: '管理员还没检查过',
+          notLoggedIn: '服务器上还没有登录',
+          none: '没有 Agent',
+          hint: '官方账户是 Claude Code、Codex 在服务器上登录的账户，大家共用，由管理员检查和设置。',
+          goManage: '去 Agent 管理里检查',
+        },
         serverLoginSub: '{account} · {n} 个模型',
         serverLoginSubAnon: '{n} 个模型',
         notLoggedInSub: '在服务器上登录{agent}的命令行，再点「检查」',
@@ -127,6 +139,7 @@ export default {
   },
   'zh-HK': {
     agent: {
+      accounts: { subtitle: '共 {n} 個 Agent · {logins} 個已登入' },
       providers: {
         loginModels: {
           edit: '編輯模型',
@@ -137,8 +150,17 @@ export default {
           hintCodex: '單位是 token，留空用 Codex 自己的；Codex 沒有設定最長輸出的設定。下次啟動 Agent 程序時生效。',
           saved: '已儲存 {name} 的模型',
         },
-        subtitle: '共 {n} 個第三方介面',
-        serverLogin: '伺服器上的登入',
+        subtitle: '共 {n} 個供應商 · {logins} 個官方帳戶 · {apis} 個第三方介面',
+        subtitleAll: '共 {n} 個第三方介面',
+        serverLogin: '官方帳戶',
+        view: {
+          notReady: '還沒就緒',
+          unchecked: '管理員還沒檢查過',
+          notLoggedIn: '伺服器上還沒有登入',
+          none: '沒有 Agent',
+          hint: '官方帳戶是 Claude Code、Codex 在伺服器上登入的帳戶，大家共用，由管理員檢查和設定。',
+          goManage: '到 Agent 管理裡檢查',
+        },
         serverLoginSub: '{account} · {n} 個模型',
         serverLoginSubAnon: '{n} 個模型',
         notLoggedInSub: '在伺服器上登入{agent}的命令列，再點「檢查」',
@@ -252,6 +274,7 @@ export default {
   },
   'en-US': {
     agent: {
+      accounts: { subtitle: '{logins} of {n} agents signed in' },
       providers: {
         loginModels: {
           edit: 'Edit models',
@@ -262,8 +285,17 @@ export default {
           hintCodex: 'In tokens. Leave empty to use what Codex sets; Codex has no setting for the max output. Applies the next time the agent process starts.',
           saved: 'Saved the models of {name}',
         },
-        subtitle: '{n} third-party APIs',
-        serverLogin: 'Server sign-in',
+        subtitle: '{n} providers · {logins} official accounts · {apis} third-party APIs',
+        subtitleAll: '{n} third-party APIs',
+        serverLogin: 'Official accounts',
+        view: {
+          notReady: 'Not ready yet',
+          unchecked: 'Not checked by an admin yet',
+          notLoggedIn: 'Not signed in on the server',
+          none: 'No agents',
+          hint: 'Official accounts are the Claude Code and Codex sign-ins on the server. Everyone shares them; admins check and configure them.',
+          goManage: 'Check in Agent management',
+        },
         serverLoginSub: '{account} · {n} models',
         serverLoginSubAnon: '{n} models',
         notLoggedInSub: 'Sign in to the {agent} CLI on the server, then click Check',

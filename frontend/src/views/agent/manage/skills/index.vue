@@ -1,6 +1,8 @@
-<!-- Agent 管理 · 技能：一行一个技能（名称、来源和文件数、说明），行尾是启用开关、编辑、删除；
+<!-- Agent 设置 · 技能：一行一个技能（名称、来源和文件数、说明），行尾是启用开关、编辑、删除；
      右上可以新建，或者从压缩包、Git 地址、服务器上已有的目录导入。
-     只有自己的技能；在全员 Agent 页里（useAgentAll）是所有人的，行上带主人和启用状态，只能删除。 -->
+     自己的技能，后面是管理员共享给自己的（只能看，不能改、不能停用）。
+     在 Agent 管理页里（useAgentAll）分两组：共享的（管理员在这里新建、导入、改、删，选共享给所有人还是指定的人），
+     和各人自己的（行上带主人和启用状态，只能删除）。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>
@@ -11,7 +13,7 @@
         </template>
         <template v-else>{{ t('agent.common.loading') }}</template>
       </template>
-      <template v-if="!all" #actions>
+      <template #actions>
         <AppDropdown panel-class="ag ag-menu">
           <template #trigger="{ open }">
             <button type="button" class="ag-btn" aria-haspopup="menu" :aria-expanded="open" :disabled="importing">
@@ -28,27 +30,45 @@
           </template>
         </AppDropdown>
         <button type="button" class="ag-btn ag-btn--p" @click="openCreate">
-          <UIcon name="i-lucide-plus" />{{ t('agent.skills.create') }}
+          <UIcon name="i-lucide-plus" />{{ all ? t('agent.share.addShared') : t('agent.skills.create') }}
         </button>
       </template>
     </AgManageHeader>
 
     <div class="ag-body">
-      <div class="ag-grp">
-        <div v-for="s in skills" :key="s.id" class="ag-rw">
+      <template v-for="g in groups" :key="g.key">
+        <h2 v-if="all" class="ag-sh" :class="{ 'ag-gap': g.key === 'personal' }">{{ g.title }}</h2>
+        <div class="ag-grp">
+        <div v-for="s in g.skills" :key="s.id" class="ag-rw">
           <div class="ag-rm">
             <div class="ag-rt">
               <span class="ag-mono">{{ s.name }}</span>
               <span class="ag-sk-meta">{{ t('agent.skills.meta', { source: sourceText(s.source), n: s.fileCount }) }}</span>
-              <span v-if="all" class="ag-pill" :class="{ 'ag-pill--ok': s.enabled }">
+              <span v-if="isShared(s)" class="ag-tag ag-tag--p" :title="scopeOf(s)">{{ shareTag(s) }}</span>
+              <span v-if="all || isShared(s)" class="ag-pill" :class="{ 'ag-pill--ok': s.enabled }">
                 {{ t(s.enabled ? 'agent.admin.enabled' : 'agent.admin.disabled') }}
               </span>
             </div>
             <div class="ag-rs">
-              <template v-if="all">{{ ownerOf(s) }} · </template>{{ s.description || t('agent.skills.noDesc') }}
+              <template v-if="all && !isShared(s)">{{ ownerOf(s) }} · </template>
+              <template v-if="all && isShared(s) && scopeOf(s)">{{ scopeOf(s) }} · </template>
+              {{ s.description || t('agent.skills.noDesc') }}
             </div>
           </div>
-          <div v-if="all" class="ag-rc">
+          <div v-if="!all && isShared(s)" class="ag-rc">
+            <button
+              type="button"
+              class="ag-ib ag-ib--sm"
+              :aria-label="t('agent.skills.viewOf', { name: s.name })"
+              :title="t('agent.share.sharedReadonly')"
+              :disabled="opening === s.id"
+              @click="openEdit(s)"
+            >
+              <UIcon v-if="opening === s.id" name="i-lucide-loader-circle" class="ag-spin" />
+              <UIcon v-else name="i-lucide-eye" />
+            </button>
+          </div>
+          <div v-else-if="all && !isShared(s)" class="ag-rc">
             <button
               type="button"
               class="ag-ib ag-ib--sm"
@@ -89,13 +109,31 @@
           </div>
         </div>
         <div v-if="!loaded" class="ag-empty">{{ t('agent.common.loading') }}</div>
-        <div v-else-if="!skills.length" class="ag-empty">{{ t('agent.skills.empty') }}</div>
-      </div>
+        <div v-else-if="!g.skills.length" class="ag-empty">{{ g.empty }}</div>
+        </div>
+      </template>
     </div>
 
     <input ref="zipInput" type="file" accept=".zip" hidden @change="onZipPicked" />
 
-    <SkillEditorDialog v-model="editorOpen" :detail="editorDetail" @saved="reloadAll" />
+    <SkillEditorDialog
+      v-model="editorOpen"
+      :detail="editorDetail"
+      :shared="editorShared"
+      :readonly="editorShared && !all"
+      @saved="reloadAll"
+    />
+
+    <!-- Agent 管理页里导入压缩包：先选共享给谁，再选文件 -->
+    <AgDialog v-model="zipOpen" :title="t('agent.skills.importMenu.zip')" :width="420">
+      <AgShareField v-model="importShare" />
+      <div class="ag-sk-acts">
+        <button type="button" class="ag-btn" @click="zipOpen = false">{{ t('agent.common.cancel') }}</button>
+        <button type="button" class="ag-btn ag-btn--p" :disabled="importing" @click="chooseZip">
+          <UIcon v-if="importing" name="i-lucide-loader-circle" class="ag-spin" />{{ t('agent.skills.chooseZip') }}
+        </button>
+      </div>
+    </AgDialog>
 
     <AgDialog v-model="gitOpen" :title="t('agent.skills.importGit.title')" :width="420">
       <span class="ag-fld">
@@ -110,6 +148,7 @@
           @keydown.enter="onEnter($event, importGit)"
         />
       </span>
+      <AgShareField v-if="all" v-model="importShare" />
       <div class="ag-sk-acts">
         <button type="button" class="ag-btn" @click="gitOpen = false">{{ t('agent.common.cancel') }}</button>
         <button type="button" class="ag-btn ag-btn--p" :disabled="importing" @click="importGit">
@@ -132,6 +171,7 @@
         />
       </span>
       <AgDirList v-model="dirPath" />
+      <AgShareField v-if="all" v-model="importShare" />
       <div class="ag-sk-acts">
         <button type="button" class="ag-btn" @click="dirOpen = false">{{ t('agent.common.cancel') }}</button>
         <button type="button" class="ag-btn ag-btn--p" :disabled="importing" @click="importDir">
@@ -154,6 +194,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import {
+  AGENT_SHARED_OWNER,
+  type AgentShare,
   deleteAgentSkill,
   getAgentSkill,
   importAgentSkill,
@@ -165,6 +207,7 @@ import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
 import AgDirList from '@/views/agent/components/AgDirList.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
+import AgShareField from '@/views/agent/components/AgShareField.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
 import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
@@ -174,7 +217,7 @@ import SkillEditorDialog from './SkillEditorDialog.vue'
 defineOptions({ name: 'AgentManageSkillsView' })
 
 const { t, te } = useI18n()
-/** 在全员 Agent 页里：所有人的技能 */
+/** 在 Agent 管理页里：所有人的技能 */
 const all = useAgentAll()
 const { overview, refresh } = useAgentOverview()
 
@@ -202,10 +245,36 @@ onActivated(() => {
 })
 
 const enabledCount = computed(() => Number(overview.value?.skillsEnabled ?? 0))
-const ownerOf = (s: AgentSkill) => {
-  const u = users.value.find((x) => x.id === s.userId)
+const userName = (id: string) => {
+  const u = users.value.find((x) => x.id === id)
   return u ? u.name || u.username : t('agent.admin.goneUser')
 }
+const ownerOf = (s: AgentSkill) => userName(s.userId)
+
+// —— 共享的 ——
+const isShared = (s: AgentSkill) => s.userId === AGENT_SHARED_OWNER
+/** 共享的技能上的标记：Agent 管理页里写共享给谁，自己的列表里写「管理员共享」 */
+const shareTag = (s: AgentSkill) => {
+  if (!all) return t('agent.share.tagSharedToMe')
+  return s.share === 'users' ? t('agent.share.tagUsers', { n: (s.shareUserIds || []).length }) : t('agent.share.tagAll')
+}
+const scopeOf = (s: AgentSkill) => {
+  if (!all) return t('agent.share.sharedReadonly')
+  return s.share === 'users' ? (s.shareUserIds || []).map(userName).join(t('agent.share.sep')) : ''
+}
+// Agent 管理页里分两组：共享的在前；自己的列表不分组
+const groups = computed(() => {
+  if (!all) return [{ key: 'mine', title: '', skills: skills.value, empty: t('agent.skills.empty') }]
+  return [
+    { key: 'shared', title: t('agent.share.sharedTitle'), skills: skills.value.filter(isShared), empty: t('agent.share.noShared') },
+    {
+      key: 'personal',
+      title: t('agent.share.personalTitle'),
+      skills: skills.value.filter((s) => !isShared(s)),
+      empty: t('agent.skills.empty'),
+    },
+  ]
+})
 const sourceText = (source: string) => {
   const key = `agent.skills.source.${source}`
   return te(key) ? t(key) : source
@@ -222,12 +291,14 @@ const setEnabled = async (s: AgentSkill, on: boolean) => {
   }
 }
 
-// —— 新建 / 编辑 ——
+// —— 新建 / 编辑：Agent 管理页里新建的是共享的；自己的列表里共享的只能看 ——
 const editorOpen = ref(false)
 const editorDetail = ref<{ skill: AgentSkill; files: AgentSkillFile[] } | null>(null)
+const editorShared = ref(false)
 const opening = ref('')
 const openCreate = () => {
   editorDetail.value = null
+  editorShared.value = all
   editorOpen.value = true
 }
 const openEdit = async (s: AgentSkill) => {
@@ -236,6 +307,7 @@ const openEdit = async (s: AgentSkill) => {
   try {
     const { data } = await getAgentSkill(s.id)
     editorDetail.value = { skill: data.skill ?? s, files: data.files || [] }
+    editorShared.value = isShared(s)
     editorOpen.value = true
   } catch {
     // 请求层已经提示过
@@ -251,15 +323,28 @@ const ZIP_MAX_BYTES = 20 * 1024 * 1024
 
 const importing = ref(false)
 const zipInput = useTemplateRef<HTMLInputElement>('zipInput')
+const zipOpen = ref(false)
 const gitOpen = ref(false)
 const gitUrl = ref('')
 const dirOpen = ref(false)
 const dirPath = ref('')
+// Agent 管理页里导入成共享的：共享给谁
+const importShare = ref<AgentShare>({ share: 'all', shareUserIds: [] })
+const shareReady = () => {
+  if (!all || importShare.value.share === 'all' || importShare.value.shareUserIds.length) return true
+  feedback.warning(t('agent.share.needUsers'))
+  return false
+}
+const chooseZip = () => {
+  if (shareReady()) zipInput.value?.click()
+}
 
 const pickImport = (kind: ImportKind, close: () => void) => {
   close()
+  importShare.value = { share: 'all', shareUserIds: [] }
   if (kind === 'zip') {
-    zipInput.value?.click()
+    if (all) zipOpen.value = true
+    else zipInput.value?.click()
   } else if (kind === 'git') {
     gitUrl.value = ''
     gitOpen.value = true
@@ -271,10 +356,10 @@ const pickImport = (kind: ImportKind, close: () => void) => {
 
 /** 一个仓库或压缩包里可能有好几个技能；成功返回 true */
 const runImport = async (req: Parameters<typeof importAgentSkill>[0]) => {
-  if (importing.value) return false
+  if (importing.value || !shareReady()) return false
   importing.value = true
   try {
-    const { data } = await importAgentSkill(req)
+    const { data } = await importAgentSkill({ ...req, ...(all ? importShare.value : {}) })
     const names = (data.skills || []).map((s) => s.name)
     if (names.length) feedback.success(t('agent.skills.toast.imported', { names: names.join(t('agent.skills.sep')) }))
     else feedback.warning(t('agent.skills.toast.importedNone'))
@@ -305,7 +390,7 @@ const onZipPicked = async (e: Event) => {
     feedback.error(t('agent.skills.toast.zipUnreadable'))
     return
   }
-  await runImport({ source: 'zip', data })
+  if (await runImport({ source: 'zip', data })) zipOpen.value = false
 }
 
 const importGit = async () => {

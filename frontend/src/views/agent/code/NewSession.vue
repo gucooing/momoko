@@ -51,7 +51,7 @@
       <h1 class="agc-hero__t">{{ t('agent.code.new.title') }}</h1>
       <div v-if="!readyRuntimes.length && optionsLoaded" class="agc-hero__sub">
         {{ t('agent.code.new.noAgent') }}
-        <RouterLink v-if="canShared" to="/agent/manage?tab=runtimes">{{ t('agent.code.new.goRuntimes') }}</RouterLink>
+        <RouterLink v-if="canRuntimes" to="/agent/admin?tab=runtimes">{{ t('agent.code.new.goRuntimes') }}</RouterLink>
       </div>
       <div v-else-if="summary" class="agc-hero__sub">
         <i18n-t scope="global" keypath="agent.code.new.defaults" tag="span">
@@ -216,6 +216,7 @@ import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDirList from '@/views/agent/components/AgDirList.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
 import AgWorkspaceDialog from '@/views/agent/components/AgWorkspaceDialog.vue'
+import { modelLabel } from '@/views/agent/composables/useAgentModels'
 import { providerLabel } from '@/views/agent/utils/labels'
 import Composer, { type DraftAttachment, type DraftSnippet, type Selection } from './Composer.vue'
 import FileTab from './FileTab.vue'
@@ -236,10 +237,10 @@ const props = defineProps<{
 const emit = defineEmits<{ created: [session: AgentSession]; toggleLeft: []; toggleRight: []; workspacesChanged: [] }>()
 const { t } = useI18n()
 const menuStore = useMenuStore()
-// 能进 Agent 管理页（自己的 MCP 在那里添加）
+// 能进 Agent 设置页（自己的 MCP 在那里添加）
 const canManage = computed(() => menuStore.hasMenuPath('/agent/manage'))
-// 能管大家共用的运行时、供应商（Agent 管理页里的这几个标签要 agent:manage）
-const canShared = computed(() => canManage.value && menuStore.hasButtonPermission('agent:manage'))
+// 能管大家共用的运行时（Agent 管理页里的这个标签要 agent:manage）
+const canRuntimes = computed(() => menuStore.hasMenuPath('/agent/admin') && menuStore.hasButtonPermission('agent:manage'))
 
 const LAST_KEY = 'agent.code.last'
 interface Last extends Selection {
@@ -315,7 +316,7 @@ const summary = computed(() => {
   const p = runtime.value.providers.find((x) => x.providerId === sel.providerId)
   const m = p?.models.find((x) => x.id === sel.model)
   const effort = m?.efforts.find((e) => e.id === sel.effort)
-  return [runtime.value.runtimeName, providerLabel(p), m?.name || sel.model, effort?.name || ''].filter(Boolean).join(' · ')
+  return [runtime.value.runtimeName, providerLabel(p), modelLabel(m, sel.model), effort?.name || ''].filter(Boolean).join(' · ')
 })
 const whereLine = computed(() => {
   const w = workspace.value

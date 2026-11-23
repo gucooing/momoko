@@ -1,7 +1,9 @@
-<!-- Agent 管理 · MCP：一行一个服务器（名称、传输方式、连接状态、说明和命令 / 地址），
+<!-- Agent 设置 · MCP：一行一个服务器（名称、传输方式、连接状态、说明和命令 / 地址），
      行尾是「新会话默认开启」、测试连接、编辑、删除；右上可以粘贴 mcpServers JSON 导入。
      哪些工作区能用、某个会话里连没连上都不在这里显示。
-     只有自己的服务器；在全员 Agent 页里（useAgentAll）是所有人的，行上带主人，只能删除。 -->
+     自己的服务器，后面是管理员共享给自己的（只能用，没有操作按钮）。
+     在 Agent 管理页里（useAgentAll）分两组：共享的（管理员在这里加、改、删，选共享给所有人还是指定的人），
+     和各人自己的（行上带主人，只能删除）。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>
@@ -12,32 +14,36 @@
         </template>
         <template v-else>{{ t('agent.common.loading') }}</template>
       </template>
-      <template v-if="!all" #actions>
-        <button type="button" class="ag-btn" @click="pasteOpen = true">
+      <template #actions>
+        <button type="button" class="ag-btn" @click="openPaste">
           <UIcon name="i-lucide-code-xml" />{{ t('agent.mcp.pasteImport') }}
         </button>
         <button type="button" class="ag-btn ag-btn--p" @click="openForm(null)">
-          <UIcon name="i-lucide-plus" />{{ t('agent.mcp.add') }}
+          <UIcon name="i-lucide-plus" />{{ all ? t('agent.share.addShared') : t('agent.mcp.add') }}
         </button>
       </template>
     </AgManageHeader>
 
     <div class="ag-body">
-      <div class="ag-grp">
-        <div v-for="r in rows" :key="r.s.id" class="ag-rw">
+      <template v-for="g in groups" :key="g.key">
+        <h2 v-if="all" class="ag-sh" :class="{ 'ag-gap': g.key === 'personal' }">{{ g.title }}</h2>
+        <div class="ag-grp">
+        <div v-for="r in g.rows" :key="r.s.id" class="ag-rw">
           <div class="ag-rm">
             <div class="ag-rt">
               <span class="ag-mono">{{ r.s.name }}</span>
               <span class="ag-tag">{{ r.tag }}</span>
+              <span v-if="r.shareTag" class="ag-tag ag-tag--p" :title="r.scope">{{ r.shareTag }}</span>
               <span class="ag-pill" :class="r.pill.cls">{{ r.pill.text }}</span>
               <span v-if="r.note" class="ag-mcp-note" :title="r.note">{{ r.note }}</span>
             </div>
             <div class="ag-rs">
-              <template v-if="all">{{ r.owner }} · </template>
+              <template v-if="all && !r.shared">{{ r.owner }} · </template>
+              <template v-if="all && r.shared && r.scope">{{ r.scope }} · </template>
               {{ r.s.description || t('agent.mcp.noDesc') }} · <span class="ag-mono ag-mcp-cmd" :title="r.cmd">{{ r.cmd }}</span>
             </div>
           </div>
-          <div v-if="all" class="ag-rc">
+          <div v-if="all && !r.shared" class="ag-rc">
             <button
               type="button"
               class="ag-ib ag-ib--sm"
@@ -47,6 +53,11 @@
             >
               <UIcon name="i-lucide-trash-2" />
             </button>
+          </div>
+          <div v-else-if="!all && r.shared" class="ag-rc">
+            <span class="ag-mcp-lock" :title="t('agent.share.sharedReadonly')">
+              <UIcon name="i-lucide-lock" />{{ r.s.defaultOn ? t('agent.mcp.defaultOn') : '' }}
+            </span>
           </div>
           <div v-else class="ag-rc">
             <label class="ag-mcp-def">
@@ -89,11 +100,12 @@
           </div>
         </div>
         <div v-if="!loaded" class="ag-empty">{{ t('agent.common.loading') }}</div>
-        <div v-else-if="!servers.length" class="ag-empty">{{ t('agent.mcp.empty') }}</div>
-      </div>
+        <div v-else-if="!g.rows.length" class="ag-empty">{{ g.empty }}</div>
+        </div>
+      </template>
     </div>
 
-    <McpFormDialog v-model="formOpen" :server="formServer" @saved="onSaved" />
+    <McpFormDialog v-model="formOpen" :server="formServer" :shared="formShared" @saved="onSaved" />
 
     <AgDialog v-model="pasteOpen" :title="t('agent.mcp.pasteImport')" :width="480">
       <textarea
@@ -104,6 +116,7 @@
         :aria-label="t('agent.mcp.paste.label')"
         :placeholder="pastePlaceholder"
       />
+      <AgShareField v-if="all" v-model="pasteShare" />
       <div class="ag-mcp-acts">
         <button type="button" class="ag-btn" @click="pasteOpen = false">{{ t('agent.common.cancel') }}</button>
         <button type="button" class="ag-btn ag-btn--p" :disabled="pasting" @click="doPaste">
@@ -126,6 +139,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import {
+  AGENT_SHARED_OWNER,
+  type AgentShare,
   deleteAgentMcpServer,
   importAgentMcpServers,
   listAgentMcpServers,
@@ -136,6 +151,7 @@ import type { AgentMcpServer, AgentUser } from '@/types/v1/agent'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
+import AgShareField from '@/views/agent/components/AgShareField.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
 import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
@@ -145,7 +161,7 @@ import McpFormDialog from './McpFormDialog.vue'
 defineOptions({ name: 'AgentManageMcpView' })
 
 const { t } = useI18n()
-/** 在全员 Agent 页里：所有人的服务器 */
+/** 在 Agent 管理页里：所有人的服务器 */
 const all = useAgentAll()
 const { overview, refresh } = useAgentOverview()
 
@@ -194,9 +210,32 @@ const rows = computed(() =>
     }
     const u = all ? users.value.find((x) => x.id === s.userId) : undefined
     const owner = u ? u.name || u.username : t('agent.admin.goneUser')
-    return { s, tag: http ? 'HTTP' : 'stdio', pill, note, cmd, owner }
+    const shared = s.userId === AGENT_SHARED_OWNER
+    return { s, tag: http ? 'HTTP' : 'stdio', pill, note, cmd, owner, shared, ...shareLabels(s, shared) }
   }),
 )
+
+// —— 共享的 ——
+const userName = (id: string) => {
+  const u = users.value.find((x) => x.id === id)
+  return u ? u.name || u.username : t('agent.admin.goneUser')
+}
+/** 共享的服务器行上的标记：Agent 管理页里写共享给谁，自己的列表里写「管理员共享」 */
+const shareLabels = (s: AgentMcpServer, shared: boolean) => {
+  if (!shared) return { shareTag: '', scope: '' }
+  if (!all) return { shareTag: t('agent.share.tagSharedToMe'), scope: t('agent.share.sharedReadonly') }
+  const ids = s.shareUserIds || []
+  if (s.share !== 'users') return { shareTag: t('agent.share.tagAll'), scope: '' }
+  return { shareTag: t('agent.share.tagUsers', { n: ids.length }), scope: ids.map(userName).join(t('agent.share.sep')) }
+}
+// Agent 管理页里分两组：共享的在前；自己的列表不分组
+const groups = computed(() => {
+  if (!all) return [{ key: 'mine', title: '', rows: rows.value, empty: t('agent.mcp.empty') }]
+  return [
+    { key: 'shared', title: t('agent.share.sharedTitle'), rows: rows.value.filter((r) => r.shared), empty: t('agent.share.noShared') },
+    { key: 'personal', title: t('agent.share.personalTitle'), rows: rows.value.filter((r) => !r.shared), empty: t('agent.mcp.empty') },
+  ]
+})
 
 // —— 新会话默认开启 ——
 const setDefault = async (s: AgentMcpServer, on: boolean) => {
@@ -225,21 +264,28 @@ const testRow = async (s: Pick<AgentMcpServer, 'id' | 'name'>) => {
   }
 }
 
-// —— 添加 / 编辑 ——
+// —— 添加 / 编辑：Agent 管理页里加的是共享的 ——
 const formOpen = ref(false)
 const formServer = ref<AgentMcpServer | null>(null)
+const formShared = ref(false)
 const openForm = (s: AgentMcpServer | null) => {
   formServer.value = s
+  formShared.value = s ? s.userId === AGENT_SHARED_OWNER : all
   formOpen.value = true
 }
 const onSaved = async () => {
   await reloadAll()
 }
 
-// —— 粘贴 JSON 导入 ——
+// —— 粘贴 JSON 导入：Agent 管理页里导入成共享的 ——
 const pasteOpen = ref(false)
 const pasteText = ref('')
 const pasting = ref(false)
+const pasteShare = ref<AgentShare>({ share: 'all', shareUserIds: [] })
+const openPaste = () => {
+  pasteShare.value = { share: 'all', shareUserIds: [] }
+  pasteOpen.value = true
+}
 const pastePlaceholder = computed(
   () =>
     `{ "mcpServers": { "${t('agent.mcp.paste.phName')}": { "command": "npx", "args": ["-y", "${t('agent.mcp.paste.phPackage')}"] } } }`,
@@ -250,9 +296,13 @@ const doPaste = async () => {
     feedback.warning(t('agent.mcp.toast.needJson'))
     return
   }
+  if (all && pasteShare.value.share === 'users' && !pasteShare.value.shareUserIds.length) {
+    feedback.warning(t('agent.share.needUsers'))
+    return
+  }
   pasting.value = true
   try {
-    const { data } = await importAgentMcpServers(pasteText.value)
+    const { data } = await importAgentMcpServers(pasteText.value, all ? pasteShare.value : undefined)
     feedback.success(t('agent.mcp.toast.imported', { n: (data.servers || []).length }))
     pasteOpen.value = false
     pasteText.value = ''
@@ -308,6 +358,15 @@ const doDelete = async () => {
   display: flex;
   justify-content: flex-end;
   gap: 6px;
+}
+// 管理员共享给自己的：只能用，行尾只有一把锁（默认开启的写在旁边）
+.ag-mcp-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--m-ink2);
+  white-space: nowrap;
 }
 @media (width < 992px) {
   .ag-mcp-note {

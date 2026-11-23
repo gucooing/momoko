@@ -9,6 +9,7 @@ import (
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/agentevent"
 	"momoko/internal/data/ent/gen/agentmcpserver"
+	"momoko/internal/data/ent/gen/agentnotify"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
 	"momoko/internal/data/ent/gen/agentruntimemodel"
@@ -145,8 +146,13 @@ func (r *agentRepo) SetAgentRuntimeModelLimits(ctx context.Context, runtimeID st
 
 // —— 模型供应商 ——
 
-func (r *agentRepo) ListAgentProviders(ctx context.Context) ([]*gen.AgentProvider, error) {
-	return r.data.db.AgentProvider.Query().Order(gen.Asc(agentprovider.FieldCreateTime)).All(ctx)
+// ListAgentProviders userID 不为空时只要这个人的。
+func (r *agentRepo) ListAgentProviders(ctx context.Context, userID string) ([]*gen.AgentProvider, error) {
+	query := r.data.db.AgentProvider.Query()
+	if userID != "" {
+		query = query.Where(agentprovider.UserIDEQ(userID))
+	}
+	return query.Order(gen.Asc(agentprovider.FieldCreateTime)).All(ctx)
 }
 
 func (r *agentRepo) GetAgentProvider(ctx context.Context, id string) (*gen.AgentProvider, error) {
@@ -156,6 +162,7 @@ func (r *agentRepo) GetAgentProvider(ctx context.Context, id string) (*gen.Agent
 func (r *agentRepo) SaveAgentProvider(ctx context.Context, p *gen.AgentProvider) error {
 	return r.data.db.AgentProvider.Create().
 		SetID(p.ID).
+		SetUserID(p.UserID).
 		SetVendor(p.Vendor).
 		SetName(p.Name).
 		SetStatus(p.Status).
@@ -168,6 +175,8 @@ func (r *agentRepo) SaveAgentProvider(ctx context.Context, p *gen.AgentProvider)
 		SetEnv(p.Env).
 		SetTestLatencyMs(p.TestLatencyMs).
 		SetNillableTestedAt(p.TestedAt).
+		SetShare(p.Share).
+		SetShareUsers(nonNilStrings(p.ShareUsers)).
 		OnConflictColumns(agentprovider.FieldID).
 		UpdateNewValues().
 		Exec(ctx)
@@ -175,6 +184,34 @@ func (r *agentRepo) SaveAgentProvider(ctx context.Context, p *gen.AgentProvider)
 
 func (r *agentRepo) DeleteAgentProvider(ctx context.Context, id string) error {
 	return r.data.db.AgentProvider.DeleteOneID(id).Exec(ctx)
+}
+
+// ShareLegacyAgentProviders 以前第三方接口是大家共用的、没记主人：改成 owner 的、共享给所有人，原来用着的人照样能用。
+func (r *agentRepo) ShareLegacyAgentProviders(ctx context.Context, owner string) error {
+	_, err := r.data.db.AgentProvider.Update().Where(agentprovider.UserIDEQ("")).SetUserID(owner).SetShare("all").Save(ctx)
+	return err
+}
+
+// —— 通知 ——
+
+func (r *agentRepo) GetAgentNotify(ctx context.Context, userID string) (*gen.AgentNotify, error) {
+	return r.data.db.AgentNotify.Get(ctx, userID)
+}
+
+func (r *agentRepo) ListAgentNotify(ctx context.Context) ([]*gen.AgentNotify, error) {
+	return r.data.db.AgentNotify.Query().Order(gen.Asc(agentnotify.FieldCreateTime)).All(ctx)
+}
+
+func (r *agentRepo) SaveAgentNotify(ctx context.Context, n *gen.AgentNotify) error {
+	return r.data.db.AgentNotify.Create().
+		SetID(n.ID).
+		SetOnAsk(n.OnAsk).
+		SetOnDone(n.OnDone).
+		SetOnError(n.OnError).
+		SetChannels(n.Channels).
+		OnConflictColumns(agentnotify.FieldID).
+		UpdateNewValues().
+		Exec(ctx)
 }
 
 // —— 工作区 ——
@@ -268,13 +305,13 @@ func (r *agentRepo) ListAgentMcpServers(ctx context.Context, userID string) ([]*
 	return query.Order(gen.Asc(agentmcpserver.FieldCreateTime)).All(ctx)
 }
 
-// ListAgentMcpServersByIDs 这些 id 里属于 userID 的：会话只用得上它主人自己的。
-func (r *agentRepo) ListAgentMcpServersByIDs(ctx context.Context, userID string, ids []string) ([]*gen.AgentMcpServer, error) {
+// ListAgentMcpServersByIDs 这些 id 的 MCP 服务器，谁的都有：能不能用（自己的、共享给自己的）由调用的地方判断。
+func (r *agentRepo) ListAgentMcpServersByIDs(ctx context.Context, ids []string) ([]*gen.AgentMcpServer, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
 	return r.data.db.AgentMcpServer.Query().
-		Where(agentmcpserver.UserIDEQ(userID), agentmcpserver.IDIn(ids...)).
+		Where(agentmcpserver.IDIn(ids...)).
 		Order(gen.Asc(agentmcpserver.FieldCreateTime)).
 		All(ctx)
 }
@@ -308,6 +345,8 @@ func (r *agentRepo) SaveAgentMcpServer(ctx context.Context, m *gen.AgentMcpServe
 		SetStatusText(m.StatusText).
 		SetToolCount(m.ToolCount).
 		SetNillableTestedAt(m.TestedAt).
+		SetShare(m.Share).
+		SetShareUsers(nonNilStrings(m.ShareUsers)).
 		OnConflictColumns(agentmcpserver.FieldID).
 		UpdateNewValues().
 		Exec(ctx)
@@ -354,6 +393,8 @@ func (r *agentRepo) SaveAgentSkill(ctx context.Context, s *gen.AgentSkill) error
 		SetLocation(s.Location).
 		SetEnabled(s.Enabled).
 		SetFileCount(s.FileCount).
+		SetShare(s.Share).
+		SetShareUsers(nonNilStrings(s.ShareUsers)).
 		OnConflictColumns(agentskill.FieldID).
 		UpdateNewValues().
 		Exec(ctx)
@@ -716,8 +757,8 @@ func (r *agentRepo) MaxAgentEvent(ctx context.Context, sessionID string) (int64,
 
 // —— 统计与用户 ——
 
-// AgentCounts 管理页各标签上的数量：每张表一条分组查询。会话、工作区、MCP、技能 userID 不为空时只数这个人的，
-// 供应商和运行时是大家共用的。
+// AgentCounts 管理页各标签上的数量：每张表一条分组查询。会话、工作区、第三方接口、MCP、技能 userID 不为空时只数这个人的，
+// 运行时和服务器上的登录是大家共用的（Logins 是就绪且登录着的服务器上的登录）。
 func (r *agentRepo) AgentCounts(ctx context.Context, userID string) (*biz.AgentCounts, error) {
 	db := r.data.db
 	out := &biz.AgentCounts{}
@@ -726,8 +767,9 @@ func (r *agentRepo) AgentCounts(ctx context.Context, userID string) (*biz.AgentC
 		Count  int                 `json:"count"`
 	}
 	sessionQuery, workspaceQuery := db.AgentSession.Query(), db.AgentWorkspace.Query()
-	mcpQuery, skillQuery := db.AgentMcpServer.Query(), db.AgentSkill.Query()
+	mcpQuery, skillQuery, providerQuery := db.AgentMcpServer.Query(), db.AgentSkill.Query(), db.AgentProvider.Query()
 	if userID != "" {
+		providerQuery = providerQuery.Where(agentprovider.UserIDEQ(userID))
 		sessionQuery = sessionQuery.Where(agentsession.UserIDEQ(userID))
 		workspaceQuery = workspaceQuery.Where(agentworkspace.UserIDEQ(userID))
 		mcpQuery = mcpQuery.Where(agentmcpserver.UserIDEQ(userID))
@@ -749,7 +791,7 @@ func (r *agentRepo) AgentCounts(ctx context.Context, userID string) (*biz.AgentC
 	if out.Workspaces, err = workspaceQuery.Count(ctx); err != nil {
 		return nil, err
 	}
-	if out.Providers, err = db.AgentProvider.Query().Count(ctx); err != nil {
+	if out.Providers, err = providerQuery.Count(ctx); err != nil {
 		return nil, err
 	}
 	var mcps []struct {
@@ -779,16 +821,23 @@ func (r *agentRepo) AgentCounts(ctx context.Context, userID string) (*biz.AgentC
 		}
 	}
 	var runtimes []struct {
-		Ready bool `json:"ready"`
-		Count int  `json:"count"`
+		Ready    bool `json:"ready"`
+		LoggedIn bool `json:"logged_in"`
+		Count    int  `json:"count"`
 	}
-	if err := db.AgentRuntime.Query().GroupBy(agentruntime.FieldReady).Aggregate(gen.Count()).Scan(ctx, &runtimes); err != nil {
+	if err := db.AgentRuntime.Query().
+		GroupBy(agentruntime.FieldReady, agentruntime.FieldLoggedIn).
+		Aggregate(gen.Count()).
+		Scan(ctx, &runtimes); err != nil {
 		return nil, err
 	}
 	for _, g := range runtimes {
 		out.Runtimes += g.Count
 		if g.Ready {
-			out.RuntimesReady = g.Count
+			out.RuntimesReady += g.Count
+			if g.LoggedIn {
+				out.Logins += g.Count
+			}
 		}
 	}
 	return out, nil
@@ -801,6 +850,22 @@ func (r *agentRepo) AgentUsers(ctx context.Context, ids []string) ([]biz.AgentUs
 	}
 	rows, err := r.data.db.User.Query().
 		Where(user.IDIn(ids...)).
+		Select(user.FieldID, user.FieldName, user.FieldUsername).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]biz.AgentUser, 0, len(rows))
+	for _, u := range rows {
+		out = append(out, biz.AgentUser{ID: u.ID, Name: u.Name, Username: u.Username})
+	}
+	return out, nil
+}
+
+// AllAgentUsers 所有用户的名称和用户名，按用户名排（Agent 管理页给共享的 MCP、技能选人）。
+func (r *agentRepo) AllAgentUsers(ctx context.Context) ([]biz.AgentUser, error) {
+	rows, err := r.data.db.User.Query().
+		Order(gen.Asc(user.FieldUsername)).
 		Select(user.FieldID, user.FieldName, user.FieldUsername).
 		All(ctx)
 	if err != nil {

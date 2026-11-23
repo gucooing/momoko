@@ -1,5 +1,6 @@
-// Agent 管理各标签上的数量：七个标签页共用一份，谁改了数据谁调用 refresh()。
-// 全员 Agent 页（useAgentAll）另有一份：会话、工作区、MCP、技能数的是所有人的。
+// Agent 设置各标签上的数量：各标签页共用一份，谁改了数据谁调用 refresh()。
+// Agent 管理页（useAgentAll）另有一份：会话、工作区、MCP、技能数的是所有人的；
+// 从远程节点过去时那边只有运行时和官方账户、也不给数所有人的，就数自己的（运行时的数量是共用的，一样）。
 import { getAgentOverview } from '@/api/agent'
 import type { GetAgentOverviewResponse } from '@/types/v1/agent'
 import { useAgentAll } from './useAgentAll'
@@ -14,13 +15,14 @@ const stores: Record<'mine' | 'all', OverviewStore> = {
   all: { overview: ref(null), loading: null },
 }
 
-/** 要在组件的 setup 里调用：在不在全员 Agent 页里决定用哪一份 */
+/** 要在组件的 setup 里调用：在不在 Agent 管理页里决定用哪一份 */
 export const useAgentOverview = () => {
   const all = useAgentAll()
+  const nodeStore = useNodeStore()
   const store = all ? stores.all : stores.mine
   const refresh = () => {
     if (!store.loading) {
-      store.loading = getAgentOverview(all)
+      store.loading = getAgentOverview(all && !nodeStore.isRemote)
         .then(({ data }) => {
           store.overview.value = data
         })

@@ -5,6 +5,7 @@ package gen
 import (
 	"momoko/internal/data/ent/gen/agentevent"
 	"momoko/internal/data/ent/gen/agentmcpserver"
+	"momoko/internal/data/ent/gen/agentnotify"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
 	"momoko/internal/data/ent/gen/agentruntimemodel"
@@ -148,10 +149,45 @@ func init() {
 	agentmcpserverDescToolCount := agentmcpserverFields[13].Descriptor()
 	// agentmcpserver.DefaultToolCount holds the default value on creation for the tool_count field.
 	agentmcpserver.DefaultToolCount = agentmcpserverDescToolCount.Default.(int)
+	// agentmcpserverDescShare is the schema descriptor for share field.
+	agentmcpserverDescShare := agentmcpserverFields[15].Descriptor()
+	// agentmcpserver.DefaultShare holds the default value on creation for the share field.
+	agentmcpserver.DefaultShare = agentmcpserverDescShare.Default.(string)
 	// agentmcpserverDescID is the schema descriptor for id field.
 	agentmcpserverDescID := agentmcpserverFields[0].Descriptor()
 	// agentmcpserver.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	agentmcpserver.IDValidator = agentmcpserverDescID.Validators[0].(func(string) error)
+	agentnotifyMixin := schema.AgentNotify{}.Mixin()
+	agentnotifyMixinFields0 := agentnotifyMixin[0].Fields()
+	_ = agentnotifyMixinFields0
+	agentnotifyFields := schema.AgentNotify{}.Fields()
+	_ = agentnotifyFields
+	// agentnotifyDescCreateTime is the schema descriptor for create_time field.
+	agentnotifyDescCreateTime := agentnotifyMixinFields0[0].Descriptor()
+	// agentnotify.DefaultCreateTime holds the default value on creation for the create_time field.
+	agentnotify.DefaultCreateTime = agentnotifyDescCreateTime.Default.(func() time.Time)
+	// agentnotifyDescUpdateTime is the schema descriptor for update_time field.
+	agentnotifyDescUpdateTime := agentnotifyMixinFields0[1].Descriptor()
+	// agentnotify.DefaultUpdateTime holds the default value on creation for the update_time field.
+	agentnotify.DefaultUpdateTime = agentnotifyDescUpdateTime.Default.(func() time.Time)
+	// agentnotify.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	agentnotify.UpdateDefaultUpdateTime = agentnotifyDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentnotifyDescOnAsk is the schema descriptor for on_ask field.
+	agentnotifyDescOnAsk := agentnotifyFields[1].Descriptor()
+	// agentnotify.DefaultOnAsk holds the default value on creation for the on_ask field.
+	agentnotify.DefaultOnAsk = agentnotifyDescOnAsk.Default.(bool)
+	// agentnotifyDescOnDone is the schema descriptor for on_done field.
+	agentnotifyDescOnDone := agentnotifyFields[2].Descriptor()
+	// agentnotify.DefaultOnDone holds the default value on creation for the on_done field.
+	agentnotify.DefaultOnDone = agentnotifyDescOnDone.Default.(bool)
+	// agentnotifyDescOnError is the schema descriptor for on_error field.
+	agentnotifyDescOnError := agentnotifyFields[3].Descriptor()
+	// agentnotify.DefaultOnError holds the default value on creation for the on_error field.
+	agentnotify.DefaultOnError = agentnotifyDescOnError.Default.(bool)
+	// agentnotifyDescID is the schema descriptor for id field.
+	agentnotifyDescID := agentnotifyFields[0].Descriptor()
+	// agentnotify.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	agentnotify.IDValidator = agentnotifyDescID.Validators[0].(func(string) error)
 	agentproviderMixin := schema.AgentProvider{}.Mixin()
 	agentproviderMixinFields0 := agentproviderMixin[0].Fields()
 	_ = agentproviderMixinFields0
@@ -167,42 +203,50 @@ func init() {
 	agentprovider.DefaultUpdateTime = agentproviderDescUpdateTime.Default.(func() time.Time)
 	// agentprovider.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	agentprovider.UpdateDefaultUpdateTime = agentproviderDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentproviderDescUserID is the schema descriptor for user_id field.
+	agentproviderDescUserID := agentproviderFields[1].Descriptor()
+	// agentprovider.DefaultUserID holds the default value on creation for the user_id field.
+	agentprovider.DefaultUserID = agentproviderDescUserID.Default.(string)
 	// agentproviderDescVendor is the schema descriptor for vendor field.
-	agentproviderDescVendor := agentproviderFields[1].Descriptor()
+	agentproviderDescVendor := agentproviderFields[2].Descriptor()
 	// agentprovider.VendorValidator is a validator for the "vendor" field. It is called by the builders before save.
 	agentprovider.VendorValidator = agentproviderDescVendor.Validators[0].(func(string) error)
 	// agentproviderDescName is the schema descriptor for name field.
-	agentproviderDescName := agentproviderFields[2].Descriptor()
+	agentproviderDescName := agentproviderFields[3].Descriptor()
 	// agentprovider.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	agentprovider.NameValidator = agentproviderDescName.Validators[0].(func(string) error)
 	// agentproviderDescStatus is the schema descriptor for status field.
-	agentproviderDescStatus := agentproviderFields[3].Descriptor()
+	agentproviderDescStatus := agentproviderFields[4].Descriptor()
 	// agentprovider.DefaultStatus holds the default value on creation for the status field.
 	agentprovider.DefaultStatus = agentproviderDescStatus.Default.(string)
 	// agentproviderDescStatusText is the schema descriptor for status_text field.
-	agentproviderDescStatusText := agentproviderFields[4].Descriptor()
+	agentproviderDescStatusText := agentproviderFields[5].Descriptor()
 	// agentprovider.DefaultStatusText holds the default value on creation for the status_text field.
 	agentprovider.DefaultStatusText = agentproviderDescStatusText.Default.(string)
 	// agentproviderDescBaseURL is the schema descriptor for base_url field.
-	agentproviderDescBaseURL := agentproviderFields[5].Descriptor()
+	agentproviderDescBaseURL := agentproviderFields[6].Descriptor()
 	// agentprovider.DefaultBaseURL holds the default value on creation for the base_url field.
 	agentprovider.DefaultBaseURL = agentproviderDescBaseURL.Default.(string)
 	// agentproviderDescAPIKey is the schema descriptor for api_key field.
-	agentproviderDescAPIKey := agentproviderFields[6].Descriptor()
+	agentproviderDescAPIKey := agentproviderFields[7].Descriptor()
 	// agentprovider.DefaultAPIKey holds the default value on creation for the api_key field.
 	agentprovider.DefaultAPIKey = agentproviderDescAPIKey.Default.(string)
 	// agentproviderDescMainModel is the schema descriptor for main_model field.
-	agentproviderDescMainModel := agentproviderFields[8].Descriptor()
+	agentproviderDescMainModel := agentproviderFields[9].Descriptor()
 	// agentprovider.DefaultMainModel holds the default value on creation for the main_model field.
 	agentprovider.DefaultMainModel = agentproviderDescMainModel.Default.(string)
 	// agentproviderDescFastModel is the schema descriptor for fast_model field.
-	agentproviderDescFastModel := agentproviderFields[9].Descriptor()
+	agentproviderDescFastModel := agentproviderFields[10].Descriptor()
 	// agentprovider.DefaultFastModel holds the default value on creation for the fast_model field.
 	agentprovider.DefaultFastModel = agentproviderDescFastModel.Default.(string)
 	// agentproviderDescTestLatencyMs is the schema descriptor for test_latency_ms field.
-	agentproviderDescTestLatencyMs := agentproviderFields[11].Descriptor()
+	agentproviderDescTestLatencyMs := agentproviderFields[12].Descriptor()
 	// agentprovider.DefaultTestLatencyMs holds the default value on creation for the test_latency_ms field.
 	agentprovider.DefaultTestLatencyMs = agentproviderDescTestLatencyMs.Default.(int64)
+	// agentproviderDescShare is the schema descriptor for share field.
+	agentproviderDescShare := agentproviderFields[14].Descriptor()
+	// agentprovider.DefaultShare holds the default value on creation for the share field.
+	agentprovider.DefaultShare = agentproviderDescShare.Default.(string)
 	// agentproviderDescID is the schema descriptor for id field.
 	agentproviderDescID := agentproviderFields[0].Descriptor()
 	// agentprovider.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -495,6 +539,10 @@ func init() {
 	agentskillDescFileCount := agentskillFields[7].Descriptor()
 	// agentskill.DefaultFileCount holds the default value on creation for the file_count field.
 	agentskill.DefaultFileCount = agentskillDescFileCount.Default.(int)
+	// agentskillDescShare is the schema descriptor for share field.
+	agentskillDescShare := agentskillFields[8].Descriptor()
+	// agentskill.DefaultShare holds the default value on creation for the share field.
+	agentskill.DefaultShare = agentskillDescShare.Default.(string)
 	// agentskillDescID is the schema descriptor for id field.
 	agentskillDescID := agentskillFields[0].Descriptor()
 	// agentskill.IDValidator is a validator for the "id" field. It is called by the builders before save.

@@ -1,23 +1,25 @@
 <!-- 技能编辑器：名称、说明；左边是技能里的文件（按目录分组），右边是当前文件的路径和内容；可以增删文件、改路径。
-     不是文本的文件只保留、不编辑（保存时不带内容，后端沿用原来的字节），所以它的路径也不能改。 -->
+     不是文本的文件只保留、不编辑（保存时不带内容，后端沿用原来的字节），所以它的路径也不能改。
+     共享的（Agent 管理页里）多一项「共享给」；readonly 是被共享到的人查看管理员共享的技能，只能看。 -->
 <template>
   <AgDialog
     :model-value="modelValue"
-    :title="form.id ? t('agent.skills.editTitle') : t('agent.skills.create')"
+    :title="readonly ? form.name : form.id ? t('agent.skills.editTitle') : t('agent.skills.create')"
     :width="800"
     @update:model-value="emit('update:modelValue', $event)"
   >
+    <div v-if="readonly" class="ag-fh ag-sk-ro"><UIcon name="i-lucide-lock" />{{ t('agent.share.sharedReadonly') }}</div>
     <div class="ag-sk-cols ag-grid-2">
       <label class="ag-field">
         <span class="ag-fl">{{ t('agent.common.name') }}</span>
         <span class="ag-fld">
-          <input v-model="form.name" class="ag-mono" type="text" autocomplete="off" spellcheck="false" :placeholder="t('agent.skills.editor.namePh')" :aria-label="t('agent.common.name')" />
+          <input v-model="form.name" class="ag-mono" type="text" autocomplete="off" spellcheck="false" :readonly="readonly" :placeholder="t('agent.skills.editor.namePh')" :aria-label="t('agent.common.name')" />
         </span>
       </label>
       <label class="ag-field">
         <span class="ag-fl">{{ t('agent.common.description') }}</span>
         <span class="ag-fld">
-          <input v-model="form.description" type="text" autocomplete="off" :placeholder="t('agent.skills.editor.descPh')" :aria-label="t('agent.common.description')" />
+          <input v-model="form.description" type="text" autocomplete="off" :readonly="readonly" :placeholder="t('agent.skills.editor.descPh')" :aria-label="t('agent.common.description')" />
         </span>
       </label>
     </div>
@@ -42,7 +44,7 @@
             </button>
           </template>
         </div>
-        <button type="button" class="ag-btn ag-btn--sm" @click="addFile">
+        <button v-if="!readonly" type="button" class="ag-btn ag-btn--sm" @click="addFile">
           <UIcon name="i-lucide-plus" />{{ t('agent.skills.editor.addFile') }}
         </button>
       </div>
@@ -55,11 +57,11 @@
             type="text"
             autocomplete="off"
             spellcheck="false"
-            :readonly="cur.binary"
+            :readonly="cur.binary || readonly"
             :aria-label="t('agent.skills.editor.path')"
           />
           <button
-            v-if="form.files.length > 1"
+            v-if="form.files.length > 1 && !readonly"
             type="button"
             class="ag-ib ag-ib--sm"
             :aria-label="t('agent.skills.editor.deleteFile')"
@@ -76,19 +78,24 @@
           v-model="cur.content"
           class="ag-sk-text ag-noscroll"
           spellcheck="false"
+          :readonly="readonly"
           :aria-label="t('agent.skills.editor.content')"
         />
       </div>
     </div>
 
-    <label class="ag-sk-on">
+    <AgShareField v-if="shared && !readonly" v-model="share" />
+
+    <label v-if="!readonly" class="ag-sk-on">
       <span>{{ t('agent.skills.editor.enabled') }}</span>
       <AgSwitch v-model="form.enabled" :label="t('agent.skills.editor.enabled')" />
     </label>
 
     <template #footer>
-      <button type="button" class="ag-btn" @click="emit('update:modelValue', false)">{{ t('agent.common.cancel') }}</button>
-      <button type="button" class="ag-btn ag-btn--p" :disabled="saving" @click="save">
+      <button type="button" class="ag-btn" @click="emit('update:modelValue', false)">
+        {{ readonly ? t('agent.common.close') : t('agent.common.cancel') }}
+      </button>
+      <button v-if="!readonly" type="button" class="ag-btn ag-btn--p" :disabled="saving" @click="save">
         <UIcon v-if="saving" name="i-lucide-loader-circle" class="ag-spin" />{{ t('agent.common.save') }}
       </button>
     </template>
@@ -97,9 +104,10 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { createAgentSkill, updateAgentSkill } from '@/api/agent'
+import { type AgentShare, createAgentSkill, updateAgentSkill } from '@/api/agent'
 import type { AgentSkill, AgentSkillFile } from '@/types/v1/agent'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
+import AgShareField from '@/views/agent/components/AgShareField.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
 
 defineOptions({ name: 'AgentSkillEditorDialog' })
@@ -108,6 +116,10 @@ const props = defineProps<{
   modelValue: boolean
   /** 要编辑的技能和它的文件；null 表示新建 */
   detail: { skill: AgentSkill; files: AgentSkillFile[] } | null
+  /** 共享的（Agent 管理页里加、改）：多一项「共享给」 */
+  shared?: boolean
+  /** 只看不改：管理员共享给自己的技能 */
+  readonly?: boolean
 }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; saved: [] }>()
 const { t } = useI18n()
@@ -133,6 +145,8 @@ const form = reactive({
 })
 const saving = ref(false)
 const cur = computed(() => form.files[form.cur])
+// 共享范围，只有 shared 时用
+const share = ref<AgentShare>({ share: 'all', shareUserIds: [] })
 
 /** 新技能的 SKILL.md */
 const skillDoc = (name: string, description: string) =>
@@ -164,6 +178,10 @@ watch(
       // 先打开 SKILL.md
       cur: Math.max(0, files.findIndex((f) => f.path === ROOT_DOC)),
     })
+    share.value = {
+      share: d?.skill.share === 'users' ? 'users' : 'all',
+      shareUserIds: [...(d?.skill.shareUserIds ?? [])],
+    }
     saving.value = false
   },
 )
@@ -243,9 +261,19 @@ const save = async () => {
     feedback.warning(t('agent.skills.toast.needSkillMd'))
     return
   }
+  if (props.shared && share.value.share === 'users' && !share.value.shareUserIds.length) {
+    feedback.warning(t('agent.share.needUsers'))
+    return
+  }
   saving.value = true
   try {
-    const body = { name, description: form.description.trim(), enabled: form.enabled, files }
+    const body = {
+      name,
+      description: form.description.trim(),
+      enabled: form.enabled,
+      files,
+      ...(props.shared ? share.value : {}),
+    }
     if (form.id) await updateAgentSkill(form.id, body)
     else await createAgentSkill(body)
     feedback.success(t(form.id ? 'agent.skills.toast.saved' : 'agent.skills.toast.created', { name }))
@@ -260,6 +288,11 @@ const save = async () => {
 </script>
 
 <style lang="scss">
+.ag-sk-ro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .ag-sk-cols {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr);

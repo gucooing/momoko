@@ -125,16 +125,13 @@ func (uc *AgentUsecase) sessionsPB(ctx context.Context, rows []*gen.AgentSession
 func (uc *AgentUsecase) sessionDetail(ctx context.Context, s *gen.AgentSession) *v1.AgentSessionDetail {
 	out := &v1.AgentSessionDetail{}
 	_, out.Branch = agentgit.Info(s.Cwd)
-	if servers, err := uc.repo.ListAgentMcpServersByIDs(ctx, s.UserID, s.McpIds); err == nil {
+	// 和起进程时交给 Agent 的一样：自己的加上共享给自己的
+	if servers, err := uc.sessionMcpServers(ctx, s.UserID, s.McpIds); err == nil {
 		for _, m := range servers {
 			out.McpNames = append(out.McpNames, m.Name)
 		}
 	}
-	if skills, err := uc.repo.ListEnabledAgentSkills(ctx, s.UserID); err == nil {
-		for _, sk := range skills {
-			out.SkillNames = append(out.SkillNames, sk.Name)
-		}
-	}
+	out.SkillNames = sortedKeys(uc.enabledSkills(ctx, s.UserID))
 	if s.ParentID != "" {
 		if parent, err := uc.repo.GetAgentSession(ctx, s.ParentID); err == nil {
 			out.ParentTitle = parent.Title
@@ -155,7 +152,7 @@ func (uc *AgentUsecase) GetSession(ctx context.Context, id string) (*v1.GetAgent
 }
 
 // GetSessionProcess 会话的 Agent 进程：命令、进程号、内存、启动时间，和它派出过的子 Agent。内存要遍历进程树，只在有人要看时读。
-// 全员 Agent 页也用它，有 agent:admin 时能看别人的。
+// Agent 管理页也用它，有 agent:admin 时能看别人的。
 func (uc *AgentUsecase) GetSessionProcess(ctx context.Context, id string) (*v1.AgentProcess, error) {
 	scope, err := uc.cleanScope(ctx)
 	if err != nil {
@@ -209,7 +206,7 @@ func (uc *AgentUsecase) GetSidebar(ctx context.Context, keyword string) (*v1.Get
 	return resp, nil
 }
 
-// ListSessions 管理页的会话列表：自己的；all 时（全员 Agent 页）是所有人的。
+// ListSessions 管理页的会话列表：自己的；all 时（Agent 管理页）是所有人的。
 func (uc *AgentUsecase) ListSessions(ctx context.Context, req *v1.ListAgentSessionsRequest) (*v1.ListAgentSessionsResponse, error) {
 	userID, err := uc.listScope(ctx, req.GetAll())
 	if err != nil {
@@ -268,15 +265,16 @@ func agentTitle(text string) string {
 	return line
 }
 
-// checkProvider 会话能不能用这个供应商：接口协议要对得上这个 Agent。空表示服务器上的登录，最近一次检查时要登录着。
-func (uc *AgentUsecase) checkProvider(ctx context.Context, rt *gen.AgentRuntime, providerID string) (*gen.AgentProvider, error) {
+// checkProvider 会话能不能用这个供应商：要是会话主人 userID 用得上的（自己的、共享给他的），接口协议要对得上这个 Agent。
+// 空表示服务器上的登录，最近一次检查时要登录着。
+func (uc *AgentUsecase) checkProvider(ctx context.Context, rt *gen.AgentRuntime, userID, providerID string) (*gen.AgentProvider, error) {
 	if providerID == "" {
 		if !rt.LoggedIn {
-			return nil, response.BadRequest(rt.Name + " 在服务器上还没有登录：在服务器上登录后，到「模型供应商」里点「检查」")
+			return nil, response.BadRequest(rt.Name + " 在服务器上还没有登录：在服务器上登录后，到 Agent 管理的「官方账户」里点「检查」")
 		}
 		return nil, nil
 	}
-	p, err := uc.getProvider(ctx, providerID)
+	p, err := uc.usableProvider(ctx, userID, providerID)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +398,7 @@ func (uc *AgentUsecase) CreateSession(ctx context.Context, req *v1.CreateAgentSe
 	if !rt.Ready {
 		return nil, ErrAgentRuntimeNotReady
 	}
-	if _, err := uc.checkProvider(ctx, rt, req.GetProviderId()); err != nil {
+	if _, err := uc.checkProvider(ctx, rt, userID, req.GetProviderId()); err != nil {
 		return nil, err
 	}
 	text := strings.TrimSpace(req.GetText())
@@ -671,7 +669,7 @@ func (uc *AgentUsecase) SetSessionOption(ctx context.Context, req *v1.SetAgentSe
 		}
 		mode = value
 	case "model":
-		p, err := uc.checkProvider(ctx, rt, req.GetProviderId())
+		p, err := uc.checkProvider(ctx, rt, s.UserID, req.GetProviderId())
 		if err != nil {
 			return nil, err
 		}
@@ -895,7 +893,7 @@ func (uc *AgentUsecase) DetachSession(ctx context.Context, id string) error {
 	return nil
 }
 
-// ownSessions 这些 id 里当前用户能清理的会话（筛选在 SQL 里）：自己的；有 agent:admin 时谁的都行（全员 Agent 页）。
+// ownSessions 这些 id 里当前用户能清理的会话（筛选在 SQL 里）：自己的；有 agent:admin 时谁的都行（Agent 管理页）。
 func (uc *AgentUsecase) ownSessions(ctx context.Context, ids []string) ([]*gen.AgentSession, error) {
 	userID, err := uc.cleanScope(ctx)
 	if err != nil {
@@ -1372,7 +1370,7 @@ func (uc *AgentUsecase) CloseStream(c *agenthub.Conn) {
 	uc.hub.Subscribe(c, "")
 }
 
-// WatchAll 全员 Agent 页关注（或不再关注）所有人的会话状态变化；只对有 agent:admin 的连接生效。
+// WatchAll Agent 管理页关注（或不再关注）所有人的会话状态变化；只对有 agent:admin 的连接生效。
 func (uc *AgentUsecase) WatchAll(c *agenthub.Conn, on bool) {
 	uc.hub.Watch(c, on)
 }

@@ -50,7 +50,11 @@ type AgentMcpServer struct {
 	// 测试时读到的工具数
 	ToolCount int `json:"tool_count,omitempty"`
 	// 最近一次测试时间
-	TestedAt     *time.Time `json:"tested_at,omitempty"`
+	TestedAt *time.Time `json:"tested_at,omitempty"`
+	// 共享范围：空 = 只有主人自己用；all = 所有人；users = share_users 里的人。共享的主人是 @shared，在全员 Agent 页里管
+	Share string `json:"share,omitempty"`
+	// share 为 users 时能用的用户 id
+	ShareUsers   []string `json:"share_users,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -59,13 +63,13 @@ func (*AgentMcpServer) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case agentmcpserver.FieldArgs:
+		case agentmcpserver.FieldArgs, agentmcpserver.FieldShareUsers:
 			values[i] = new([]byte)
 		case agentmcpserver.FieldDefaultOn:
 			values[i] = new(sql.NullBool)
 		case agentmcpserver.FieldToolCount:
 			values[i] = new(sql.NullInt64)
-		case agentmcpserver.FieldID, agentmcpserver.FieldUserID, agentmcpserver.FieldName, agentmcpserver.FieldDescription, agentmcpserver.FieldTransport, agentmcpserver.FieldCommand, agentmcpserver.FieldEnv, agentmcpserver.FieldURL, agentmcpserver.FieldHeaders, agentmcpserver.FieldStatus, agentmcpserver.FieldStatusText:
+		case agentmcpserver.FieldID, agentmcpserver.FieldUserID, agentmcpserver.FieldName, agentmcpserver.FieldDescription, agentmcpserver.FieldTransport, agentmcpserver.FieldCommand, agentmcpserver.FieldEnv, agentmcpserver.FieldURL, agentmcpserver.FieldHeaders, agentmcpserver.FieldStatus, agentmcpserver.FieldStatusText, agentmcpserver.FieldShare:
 			values[i] = new(sql.NullString)
 		case agentmcpserver.FieldCreateTime, agentmcpserver.FieldUpdateTime, agentmcpserver.FieldTestedAt:
 			values[i] = new(sql.NullTime)
@@ -189,6 +193,20 @@ func (_m *AgentMcpServer) assignValues(columns []string, values []any) error {
 				_m.TestedAt = new(time.Time)
 				*_m.TestedAt = value.Time
 			}
+		case agentmcpserver.FieldShare:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field share", values[i])
+			} else if value.Valid {
+				_m.Share = value.String
+			}
+		case agentmcpserver.FieldShareUsers:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field share_users", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.ShareUsers); err != nil {
+					return fmt.Errorf("unmarshal field share_users: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -272,6 +290,12 @@ func (_m *AgentMcpServer) String() string {
 		builder.WriteString("tested_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("share=")
+	builder.WriteString(_m.Share)
+	builder.WriteString(", ")
+	builder.WriteString("share_users=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ShareUsers))
 	builder.WriteByte(')')
 	return builder.String()
 }

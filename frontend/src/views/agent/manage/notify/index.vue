@@ -1,5 +1,6 @@
-<!-- Agent 管理 · 通知：Agent 在服务器上跑，关了网页还在继续，所以要能通知到人。
-     三个时机开关 + 四种方式（Discord、Telegram、飞书、QQBot）；必填项填完才能保存，保存后自动启用。 -->
+<!-- Agent 设置 · 通知：Agent 在服务器上跑，关了网页还在继续，所以要能通知到人。每个人设置自己的，自己的会话按它发。
+     三个时机开关 + 四种方式（Discord、Telegram、飞书、QQBot）；必填项填完才能保存，保存后自动启用，不要了可以移除。
+     管理员在 Agent 管理页里能看到所有人设置的通知方式（AllUsers.vue）。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>{{ subtitle }}</AgManageHeader>
@@ -48,6 +49,16 @@
             <button type="button" class="ag-btn ag-btn--sm" :disabled="!loaded" @click="openConfig(c)">
               {{ c.configured ? t('agent.notify.edit') : t('agent.notify.setup') }}
             </button>
+            <button
+              v-if="c.configured"
+              type="button"
+              class="ag-ib ag-ib--sm ag-nt-del"
+              :aria-label="t('agent.notify.removeOf', { name: c.name })"
+              :title="t('agent.notify.remove')"
+              @click="askRemove(c)"
+            >
+              <UIcon name="i-lucide-trash-2" />
+            </button>
           </div>
         </div>
       </div>
@@ -78,12 +89,22 @@
         </button>
       </div>
     </AgDialog>
+
+    <AgConfirm
+      v-model="removeOpen"
+      danger
+      :title="t('agent.notify.removeTitle', { name: removeTarget?.name || '' })"
+      :message="t('agent.notify.removeMsg')"
+      :confirm-text="t('agent.notify.remove')"
+      :on-confirm="doRemove"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import {
+  deleteAgentNotifyChannel,
   getAgentNotify,
   saveAgentNotifyChannel,
   setAgentNotifyChannelEnabled,
@@ -91,15 +112,16 @@ import {
   updateAgentNotifyEvents,
 } from '@/api/agent'
 import type { AgentNotifyChannel, AgentNotifyEvents } from '@/types/v1/agent'
+import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
+import { type ChannelKind, channelSub } from './channels'
 
 defineOptions({ name: 'AgentManageNotifyView' })
 
 type EventKey = keyof AgentNotifyEvents
-type ChannelKind = 'discord' | 'telegram' | 'feishu' | 'qq'
 interface FieldDef {
   key: string
   type: 'url' | 'password' | 'text'
@@ -169,11 +191,6 @@ const setEvent = async (key: EventKey, on: boolean) => {
 }
 
 // —— 通知发到哪 ——
-const subOf = (kind: ChannelKind, fields: Record<string, string>) => {
-  if (kind === 'telegram') return t('agent.notify.sub.chat', { chat: fields.chat || '' })
-  if (kind === 'qq') return t('agent.notify.sub.qq', { appid: fields.appid || '', to: fields.to || '' })
-  return t('agent.notify.sub.webhook', { tail: (fields.url || '').slice(-4) })
-}
 const rows = computed(() =>
   CHANNELS.map((def) => {
     const ch = channels.value.find((c) => c.kind === def.kind)
@@ -188,7 +205,7 @@ const rows = computed(() =>
       on,
       fields,
       statusText: t(!configured ? 'agent.notify.status.none' : on ? 'agent.notify.status.on' : 'agent.notify.status.off'),
-      sub: configured ? subOf(def.kind, fields) : t(`agent.notify.channels.${def.kind}.desc`),
+      sub: configured ? channelSub(t, def.kind, fields) : t(`agent.notify.channels.${def.kind}.desc`),
     }
   }),
 )
@@ -298,6 +315,22 @@ const saveDraft = async () => {
   }
 }
 
+// —— 移除 ——
+const removeOpen = ref(false)
+const removeTarget = ref<Row | null>(null)
+const askRemove = (c: Row) => {
+  removeTarget.value = c
+  removeOpen.value = true
+}
+const doRemove = async () => {
+  const c = removeTarget.value
+  if (!c) return
+  await deleteAgentNotifyChannel(c.kind)
+  feedback.success(t('agent.notify.removed', { name: c.name }))
+  void refresh()
+  await load()
+}
+
 onMounted(load)
 // 标签页在 KeepAlive 里：切回来时静默刷新一次
 onActivated(() => {
@@ -311,6 +344,9 @@ onActivated(() => {
 }
 .ag-btn.ag-nt-test {
   margin-right: 4px;
+}
+.ag-ib.ag-nt-del {
+  margin-left: 4px;
 }
 .ag-nt-acts {
   display: flex;

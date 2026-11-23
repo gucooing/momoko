@@ -1,5 +1,5 @@
 <!-- MCP 服务器的添加 / 编辑弹窗：名称、说明、传输方式（stdio：命令、参数、环境变量；HTTP：地址、请求头）、
-     新会话默认开启、测试连接。密钥只回脱敏后的后几位：已保存的值留空表示不修改。 -->
+     新会话默认开启、测试连接。共享的（Agent 管理页里）多一项「共享给」。密钥只回脱敏后的后几位：已保存的值留空表示不修改。 -->
 <template>
   <AgDialog :model-value="modelValue" :title="form.id ? t('agent.mcp.editTitle') : t('agent.mcp.add')" @update:model-value="emit('update:modelValue', $event)">
     <div class="ag-mcp-cols ag-mcp-cols--name ag-grid-2">
@@ -100,6 +100,8 @@
       </div>
     </template>
 
+    <AgShareField v-if="shared" v-model="share" />
+
     <label class="ag-mcp-on">
       <span class="ag-mcp-on__text">
         <span class="ag-mcp-on__title">{{ t('agent.mcp.defaultOn') }}</span>
@@ -127,9 +129,10 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { createAgentMcpServer, testAgentMcpServer, updateAgentMcpServer } from '@/api/agent'
+import { type AgentShare, createAgentMcpServer, testAgentMcpServer, updateAgentMcpServer } from '@/api/agent'
 import type { AgentMcpServer, AgentSecretKV } from '@/types/v1/agent'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
+import AgShareField from '@/views/agent/components/AgShareField.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
 import { joinArgs, splitArgs } from './args'
 
@@ -139,6 +142,8 @@ const props = defineProps<{
   modelValue: boolean
   /** 要编辑的服务器；null 表示添加 */
   server: AgentMcpServer | null
+  /** 共享的（Agent 管理页里加、改）：多一项「共享给」 */
+  shared?: boolean
 }>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
@@ -182,6 +187,8 @@ const form = reactive({
   defaultOn: true,
 })
 const saving = ref(false)
+// 共享范围，只有 shared 时用
+const share = ref<AgentShare>({ share: 'all', shareUserIds: [] })
 
 // —— 测试连接 ——
 const test = reactive({ status: '' as '' | 'ok' | 'fail', message: '', tools: [] as string[], busy: false })
@@ -203,6 +210,7 @@ const draft = (): Partial<AgentMcpServer> => {
     url: http ? form.url.trim() : '',
     headers: http ? kvOut(form.headers) : [],
     defaultOn: form.defaultOn,
+    ...(props.shared ? share.value : {}),
   }
 }
 
@@ -229,6 +237,10 @@ watch(
       headers: rowsOf(s?.headers),
       defaultOn: s ? s.defaultOn : true,
     })
+    share.value = {
+      share: s?.share === 'users' ? 'users' : 'all',
+      shareUserIds: [...(s?.shareUserIds ?? [])],
+    }
     saving.value = false
     resetTest()
   },
@@ -279,6 +291,10 @@ const save = async () => {
     return
   }
   if (!checkTarget()) return
+  if (props.shared && share.value.share === 'users' && !share.value.shareUserIds.length) {
+    feedback.warning(t('agent.share.needUsers'))
+    return
+  }
   saving.value = true
   try {
     const name = form.name.trim()

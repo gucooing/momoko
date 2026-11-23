@@ -1,4 +1,4 @@
-<!-- 服务器上的登录 · 编辑模型：检查时读到的每个模型设最长上下文（Claude 系还有最长输出），留空用 Agent 自己的。 -->
+<!-- Agent 管理 · 官方账户 · 编辑模型：检查时读到的每个模型设最长上下文（Claude 系还有最长输出），留空用 Agent 自己的。 -->
 <template>
   <AgDialog
     :model-value="modelValue"
@@ -56,6 +56,7 @@ import { useI18n } from 'vue-i18n'
 import { setAgentRuntimeModels } from '@/api/agent'
 import type { AgentRuntime } from '@/types/v1/agent'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
+import { modelLabel } from '@/views/agent/composables/useAgentModels'
 import { agentKindOf, fmtTokens } from '@/views/agent/utils/format'
 
 interface Row {
@@ -85,7 +86,7 @@ watch(
     if (!open) return
     rows.value = (props.runtime?.models || []).map((m) => ({
       id: m.id,
-      name: m.name || m.id,
+      name: modelLabel(m),
       contextWindow: limit(m.contextWindow),
       maxOutput: limit(m.maxOutput),
     }))

@@ -248,6 +248,38 @@ func (_u *AgentMcpServerUpdate) ClearTestedAt() *AgentMcpServerUpdate {
 	return _u
 }
 
+// SetShare sets the "share" field.
+func (_u *AgentMcpServerUpdate) SetShare(v string) *AgentMcpServerUpdate {
+	_u.mutation.SetShare(v)
+	return _u
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_u *AgentMcpServerUpdate) SetNillableShare(v *string) *AgentMcpServerUpdate {
+	if v != nil {
+		_u.SetShare(*v)
+	}
+	return _u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_u *AgentMcpServerUpdate) SetShareUsers(v []string) *AgentMcpServerUpdate {
+	_u.mutation.SetShareUsers(v)
+	return _u
+}
+
+// AppendShareUsers appends value to the "share_users" field.
+func (_u *AgentMcpServerUpdate) AppendShareUsers(v []string) *AgentMcpServerUpdate {
+	_u.mutation.AppendShareUsers(v)
+	return _u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (_u *AgentMcpServerUpdate) ClearShareUsers() *AgentMcpServerUpdate {
+	_u.mutation.ClearShareUsers()
+	return _u
+}
+
 // Mutation returns the AgentMcpServerMutation object of the builder.
 func (_u *AgentMcpServerUpdate) Mutation() *AgentMcpServerMutation {
 	return _u.mutation
@@ -374,6 +406,20 @@ func (_u *AgentMcpServerUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if _u.mutation.TestedAtCleared() {
 		_spec.ClearField(agentmcpserver.FieldTestedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Share(); ok {
+		_spec.SetField(agentmcpserver.FieldShare, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ShareUsers(); ok {
+		_spec.SetField(agentmcpserver.FieldShareUsers, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedShareUsers(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, agentmcpserver.FieldShareUsers, value)
+		})
+	}
+	if _u.mutation.ShareUsersCleared() {
+		_spec.ClearField(agentmcpserver.FieldShareUsers, field.TypeJSON)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -614,6 +660,38 @@ func (_u *AgentMcpServerUpdateOne) ClearTestedAt() *AgentMcpServerUpdateOne {
 	return _u
 }
 
+// SetShare sets the "share" field.
+func (_u *AgentMcpServerUpdateOne) SetShare(v string) *AgentMcpServerUpdateOne {
+	_u.mutation.SetShare(v)
+	return _u
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_u *AgentMcpServerUpdateOne) SetNillableShare(v *string) *AgentMcpServerUpdateOne {
+	if v != nil {
+		_u.SetShare(*v)
+	}
+	return _u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_u *AgentMcpServerUpdateOne) SetShareUsers(v []string) *AgentMcpServerUpdateOne {
+	_u.mutation.SetShareUsers(v)
+	return _u
+}
+
+// AppendShareUsers appends value to the "share_users" field.
+func (_u *AgentMcpServerUpdateOne) AppendShareUsers(v []string) *AgentMcpServerUpdateOne {
+	_u.mutation.AppendShareUsers(v)
+	return _u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (_u *AgentMcpServerUpdateOne) ClearShareUsers() *AgentMcpServerUpdateOne {
+	_u.mutation.ClearShareUsers()
+	return _u
+}
+
 // Mutation returns the AgentMcpServerMutation object of the builder.
 func (_u *AgentMcpServerUpdateOne) Mutation() *AgentMcpServerMutation {
 	return _u.mutation
@@ -770,6 +848,20 @@ func (_u *AgentMcpServerUpdateOne) sqlSave(ctx context.Context) (_node *AgentMcp
 	}
 	if _u.mutation.TestedAtCleared() {
 		_spec.ClearField(agentmcpserver.FieldTestedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Share(); ok {
+		_spec.SetField(agentmcpserver.FieldShare, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ShareUsers(); ok {
+		_spec.SetField(agentmcpserver.FieldShareUsers, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedShareUsers(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, agentmcpserver.FieldShareUsers, value)
+		})
+	}
+	if _u.mutation.ShareUsersCleared() {
+		_spec.ClearField(agentmcpserver.FieldShareUsers, field.TypeJSON)
 	}
 	_node = &AgentMcpServer{config: _u.config}
 	_spec.Assign = _node.assignValues

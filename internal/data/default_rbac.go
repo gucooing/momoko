@@ -73,14 +73,15 @@ var (
 		newDefaultMenu("menu_2_1", entmenu.TypeMenu, "/instance/list", "应用列表", "HOutline:Squares2X2Icon", new("menu_2"), 0, constant.Instance, entmenu.StatusActive),
 		newDefaultMenu("menu_2_2", entmenu.TypeMenu, "/instance/type", "应用类型", "HOutline:RectangleStackIcon", new("menu_2"), 1, "", entmenu.StatusActive),
 
-		// Agent：Code（在服务器上用 Claude Code、Codex 写代码）、Agent 管理（会话 / 工作区 / 模型供应商 / MCP / 技能 / 运行时 / 通知）、
-		// 全员 Agent（所有人的会话 / 工作区 / MCP / 技能）。会话、工作区、MCP、技能每个人只看得到自己的；
-		// 模型供应商、运行时、通知是大家共用的，标签和修改要「管理供应商、运行时和通知」按钮。
+		// Agent：Code（在服务器上用 Claude Code、Codex 写代码）、Agent 设置（会话 / 工作区 / 模型供应商 / MCP / 技能 / 通知）、
+		// Agent 管理（所有人的会话 / 工作区 / 模型供应商 / MCP / 技能 / 通知，加上运行时和官方账户）。
+		// 会话、工作区、第三方接口、MCP、技能、通知每个人只看得到自己的（加上管理员共享给他的）；运行时和官方账户是大家共用的，
+		// 谁都看得到，管理要「管理运行时和官方账户」按钮（这两个标签在 Agent 管理页里，按钮留在这里是为了不动已有角色的授权）。
 		newDefaultMenu("menu_14", entmenu.TypeDirectory, "", "Agent", "HOutline:CpuChipIcon", nil, 2, "", entmenu.StatusActive),
 		newDefaultMenu("menu_14_1", entmenu.TypeMenu, "/agent/code", "Code", "HOutline:CodeBracketIcon", new("menu_14"), 0, constant.AgentUse, entmenu.StatusActive),
-		newDefaultMenu("menu_14_2", entmenu.TypeMenu, "/agent/manage", "Agent 管理", "HOutline:AdjustmentsHorizontalIcon", new("menu_14"), 1, constant.AgentUse, entmenu.StatusActive),
-		newDefaultMenu("menu_14_2_button_0", entmenu.TypeButton, "", "管理供应商、运行时和通知", "", new("menu_14_2"), 0, constant.AgentManage, entmenu.StatusActive),
-		newDefaultMenu("menu_14_3", entmenu.TypeMenu, "/agent/admin", "全员 Agent", "HOutline:UsersIcon", new("menu_14"), 2, constant.AgentAdmin, entmenu.StatusActive),
+		newDefaultMenu("menu_14_2", entmenu.TypeMenu, "/agent/manage", "Agent 设置", "HOutline:AdjustmentsHorizontalIcon", new("menu_14"), 1, constant.AgentUse, entmenu.StatusActive),
+		newDefaultMenu("menu_14_2_button_0", entmenu.TypeButton, "", "管理运行时和官方账户", "", new("menu_14_2"), 0, constant.AgentManage, entmenu.StatusActive),
+		newDefaultMenu("menu_14_3", entmenu.TypeMenu, "/agent/admin", "Agent 管理", "HOutline:UsersIcon", new("menu_14"), 2, constant.AgentAdmin, entmenu.StatusActive),
 
 		// 游戏：游戏服务器（托管 / 仅 GM）、GM 运营（服务器切换 + 页内标签；游戏客户端错误日志按服务器放在 GM 操作里）、
 		// 用户通行证（玩家账号独立于 Momoko 用户）
@@ -172,7 +173,7 @@ var (
 		{Target: "menu_12_6_button_0", Source: "menu_12_6", LegacyPath: "/system/task"},
 		{Target: "menu_12_6", Source: "menu_12_4", LegacyPath: "/system/operation"},
 		{Target: "menu_12_5_button_0", Source: "menu_12_5", LegacyPath: "/system/settings", LegacyPermission: string(constant.SystemConfigView)},
-		// Agent 管理以前整页要 agent:manage：原来有这一页的角色补上「管理供应商、运行时和通知」（页面本身改成 agent:use）
+		// Agent 设置（以前叫 Agent 管理）以前整页要 agent:manage：原来有这一页的角色补上「管理运行时和官方账户」（页面本身改成 agent:use）
 		{Target: "menu_14_2_button_0", Source: "menu_14_2", LegacyPath: "/agent/manage", LegacyPermission: string(constant.AgentManage)},
 	}
 	builtinDefaultRoles = []defaultRole{

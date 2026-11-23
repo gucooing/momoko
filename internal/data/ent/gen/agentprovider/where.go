@@ -74,6 +74,11 @@ func UpdateTime(v time.Time) predicate.AgentProvider {
 	return predicate.AgentProvider(sql.FieldEQ(FieldUpdateTime, v))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEQ(FieldUserID, v))
+}
+
 // Vendor applies equality check predicate on the "vendor" field. It's identical to VendorEQ.
 func Vendor(v string) predicate.AgentProvider {
 	return predicate.AgentProvider(sql.FieldEQ(FieldVendor, v))
@@ -122,6 +127,11 @@ func TestLatencyMs(v int64) predicate.AgentProvider {
 // TestedAt applies equality check predicate on the "tested_at" field. It's identical to TestedAtEQ.
 func TestedAt(v time.Time) predicate.AgentProvider {
 	return predicate.AgentProvider(sql.FieldEQ(FieldTestedAt, v))
+}
+
+// Share applies equality check predicate on the "share" field. It's identical to ShareEQ.
+func Share(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEQ(FieldShare, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -202,6 +212,71 @@ func UpdateTimeLT(v time.Time) predicate.AgentProvider {
 // UpdateTimeLTE applies the LTE predicate on the "update_time" field.
 func UpdateTimeLTE(v time.Time) predicate.AgentProvider {
 	return predicate.AgentProvider(sql.FieldLTE(FieldUpdateTime, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldLTE(FieldUserID, v))
+}
+
+// UserIDContains applies the Contains predicate on the "user_id" field.
+func UserIDContains(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldContains(FieldUserID, v))
+}
+
+// UserIDHasPrefix applies the HasPrefix predicate on the "user_id" field.
+func UserIDHasPrefix(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldHasPrefix(FieldUserID, v))
+}
+
+// UserIDHasSuffix applies the HasSuffix predicate on the "user_id" field.
+func UserIDHasSuffix(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldHasSuffix(FieldUserID, v))
+}
+
+// UserIDEqualFold applies the EqualFold predicate on the "user_id" field.
+func UserIDEqualFold(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEqualFold(FieldUserID, v))
+}
+
+// UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
+func UserIDContainsFold(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldContainsFold(FieldUserID, v))
 }
 
 // VendorEQ applies the EQ predicate on the "vendor" field.
@@ -832,6 +907,81 @@ func TestedAtIsNil() predicate.AgentProvider {
 // TestedAtNotNil applies the NotNil predicate on the "tested_at" field.
 func TestedAtNotNil() predicate.AgentProvider {
 	return predicate.AgentProvider(sql.FieldNotNull(FieldTestedAt))
+}
+
+// ShareEQ applies the EQ predicate on the "share" field.
+func ShareEQ(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEQ(FieldShare, v))
+}
+
+// ShareNEQ applies the NEQ predicate on the "share" field.
+func ShareNEQ(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldNEQ(FieldShare, v))
+}
+
+// ShareIn applies the In predicate on the "share" field.
+func ShareIn(vs ...string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldIn(FieldShare, vs...))
+}
+
+// ShareNotIn applies the NotIn predicate on the "share" field.
+func ShareNotIn(vs ...string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldNotIn(FieldShare, vs...))
+}
+
+// ShareGT applies the GT predicate on the "share" field.
+func ShareGT(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldGT(FieldShare, v))
+}
+
+// ShareGTE applies the GTE predicate on the "share" field.
+func ShareGTE(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldGTE(FieldShare, v))
+}
+
+// ShareLT applies the LT predicate on the "share" field.
+func ShareLT(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldLT(FieldShare, v))
+}
+
+// ShareLTE applies the LTE predicate on the "share" field.
+func ShareLTE(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldLTE(FieldShare, v))
+}
+
+// ShareContains applies the Contains predicate on the "share" field.
+func ShareContains(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldContains(FieldShare, v))
+}
+
+// ShareHasPrefix applies the HasPrefix predicate on the "share" field.
+func ShareHasPrefix(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldHasPrefix(FieldShare, v))
+}
+
+// ShareHasSuffix applies the HasSuffix predicate on the "share" field.
+func ShareHasSuffix(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldHasSuffix(FieldShare, v))
+}
+
+// ShareEqualFold applies the EqualFold predicate on the "share" field.
+func ShareEqualFold(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEqualFold(FieldShare, v))
+}
+
+// ShareContainsFold applies the ContainsFold predicate on the "share" field.
+func ShareContainsFold(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldContainsFold(FieldShare, v))
+}
+
+// ShareUsersIsNil applies the IsNil predicate on the "share_users" field.
+func ShareUsersIsNil() predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldIsNull(FieldShareUsers))
+}
+
+// ShareUsersNotNil applies the NotNil predicate on the "share_users" field.
+func ShareUsersNotNil() predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldNotNull(FieldShareUsers))
 }
 
 // And groups predicates with the AND operator between them.

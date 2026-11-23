@@ -1,6 +1,6 @@
-<!-- Agent 管理 · 工作区：一行一个，行内「新会话」「查看文件」（本页弹窗只读浏览目录）「编辑」「⋯」。
+<!-- Agent 设置 · 工作区：一行一个，行内「新会话」「查看文件」（本页弹窗只读浏览目录）「编辑」「⋯」。
      新建 / 编辑用 AgWorkspaceDialog；移除只移除记录，不删目录里的文件。有工作区还在克隆时每 3 秒刷新一次。
-     只有自己的工作区；在全员 Agent 页里（useAgentAll）是所有人的，行上带主人，只能移除。 -->
+     只有自己的工作区；在 Agent 管理页里（useAgentAll）是所有人的，行上带主人，只能移除。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>
@@ -175,7 +175,7 @@ defineOptions({ name: 'AgentManageWorkspacesView' })
 const POLL_MS = 3000
 
 const { t } = useI18n()
-/** 在全员 Agent 页里：所有人的工作区 */
+/** 在 Agent 管理页里：所有人的工作区 */
 const all = useAgentAll()
 const { overview, refresh: refreshOverview } = useAgentOverview()
 

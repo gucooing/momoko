@@ -24,6 +24,8 @@ type AgentProvider struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// 更新时间
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// 所属用户 id：每个人只看得到、只用得上自己的（以前没有主人的升级时改成共享给所有人）
+	UserID string `json:"user_id,omitempty"`
 	// 供应商类型：anthropic / openai / deepseek …（见 pkg/agentapi）
 	Vendor string `json:"vendor,omitempty"`
 	// 名称
@@ -47,7 +49,11 @@ type AgentProvider struct {
 	// 最近一次测试的耗时
 	TestLatencyMs int64 `json:"test_latency_ms,omitempty"`
 	// 最近一次测试时间
-	TestedAt     *time.Time `json:"tested_at,omitempty"`
+	TestedAt *time.Time `json:"tested_at,omitempty"`
+	// 共享范围：空 = 只有主人自己用；all = 所有人；users = share_users 里的人。共享的主人是 @shared，在 Agent 管理页里管
+	Share string `json:"share,omitempty"`
+	// share 为 users 时能用的用户 id
+	ShareUsers   []string `json:"share_users,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -56,11 +62,11 @@ func (*AgentProvider) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case agentprovider.FieldModels, agentprovider.FieldEnv:
+		case agentprovider.FieldModels, agentprovider.FieldEnv, agentprovider.FieldShareUsers:
 			values[i] = new([]byte)
 		case agentprovider.FieldTestLatencyMs:
 			values[i] = new(sql.NullInt64)
-		case agentprovider.FieldID, agentprovider.FieldVendor, agentprovider.FieldName, agentprovider.FieldStatus, agentprovider.FieldStatusText, agentprovider.FieldBaseURL, agentprovider.FieldAPIKey, agentprovider.FieldMainModel, agentprovider.FieldFastModel:
+		case agentprovider.FieldID, agentprovider.FieldUserID, agentprovider.FieldVendor, agentprovider.FieldName, agentprovider.FieldStatus, agentprovider.FieldStatusText, agentprovider.FieldBaseURL, agentprovider.FieldAPIKey, agentprovider.FieldMainModel, agentprovider.FieldFastModel, agentprovider.FieldShare:
 			values[i] = new(sql.NullString)
 		case agentprovider.FieldCreateTime, agentprovider.FieldUpdateTime, agentprovider.FieldTestedAt:
 			values[i] = new(sql.NullTime)
@@ -96,6 +102,12 @@ func (_m *AgentProvider) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
 				_m.UpdateTime = value.Time
+			}
+		case agentprovider.FieldUserID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				_m.UserID = value.String
 			}
 		case agentprovider.FieldVendor:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -174,6 +186,20 @@ func (_m *AgentProvider) assignValues(columns []string, values []any) error {
 				_m.TestedAt = new(time.Time)
 				*_m.TestedAt = value.Time
 			}
+		case agentprovider.FieldShare:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field share", values[i])
+			} else if value.Valid {
+				_m.Share = value.String
+			}
+		case agentprovider.FieldShareUsers:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field share_users", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.ShareUsers); err != nil {
+					return fmt.Errorf("unmarshal field share_users: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -216,6 +242,9 @@ func (_m *AgentProvider) String() string {
 	builder.WriteString("update_time=")
 	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(_m.UserID)
+	builder.WriteString(", ")
 	builder.WriteString("vendor=")
 	builder.WriteString(_m.Vendor)
 	builder.WriteString(", ")
@@ -252,6 +281,12 @@ func (_m *AgentProvider) String() string {
 		builder.WriteString("tested_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("share=")
+	builder.WriteString(_m.Share)
+	builder.WriteString(", ")
+	builder.WriteString("share_users=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ShareUsers))
 	builder.WriteByte(')')
 	return builder.String()
 }

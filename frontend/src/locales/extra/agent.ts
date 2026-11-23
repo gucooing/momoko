@@ -1,33 +1,34 @@
-// Agent（Code 与 Agent 管理）共用文案：页内标签、节点权限、各页都会用到的词。
+// Agent（Code、Agent 设置与 Agent 管理）共用文案：页内标签、节点权限、各页都会用到的词。
 // 各标签页自己的文案在 agent-<标签>.ts，Code 页在 agent-code.ts。
 export default {
   'zh-CN': {
     pageGroup: {
       agent: {
-        label: 'Agent 管理',
+        label: 'Agent 设置',
         sessions: '会话',
         workspaces: '工作区',
         providers: '模型供应商',
         mcp: 'MCP',
         skills: '技能',
         runtimes: '运行时',
+        accounts: '官方账户',
         notify: '通知',
       },
-      agentAdmin: { label: '全员 Agent' },
+      agentAdmin: { label: 'Agent 管理' },
     },
     node: {
       permission: {
         groups: { agent: 'Agent' },
         items: {
-          agentUse: '使用 Code（在节点上运行 Agent，管理自己的会话、工作区、MCP、技能）',
-          agentManage: '管理共用的 Agent 配置（模型供应商、运行时、通知）',
+          agentUse: '使用 Code（在节点上运行 Agent，管理自己的会话、工作区、模型供应商、MCP、技能、通知）',
+          agentManage: '管理 Agent 运行时和官方账户',
         },
       },
     },
     agent: {
-      manage: { title: 'Agent 管理' },
+      manage: { title: 'Agent 设置' },
       admin: {
-        title: '全员 Agent',
+        title: 'Agent 管理',
         goneUser: '已删除的用户',
         enabled: '已启用',
         disabled: '已停用',
@@ -116,30 +117,31 @@ export default {
   'zh-HK': {
     pageGroup: {
       agent: {
-        label: 'Agent 管理',
+        label: 'Agent 設定',
         sessions: '會話',
         workspaces: '工作區',
         providers: '模型供應商',
         mcp: 'MCP',
         skills: '技能',
         runtimes: '運行時',
+        accounts: '官方帳戶',
         notify: '通知',
       },
-      agentAdmin: { label: '全員 Agent' },
+      agentAdmin: { label: 'Agent 管理' },
     },
     node: {
       permission: {
         groups: { agent: 'Agent' },
         items: {
-          agentUse: '使用 Code（在節點上運行 Agent，管理自己的會話、工作區、MCP、技能）',
-          agentManage: '管理共用的 Agent 配置（模型供應商、運行時、通知）',
+          agentUse: '使用 Code（在節點上運行 Agent，管理自己的會話、工作區、模型供應商、MCP、技能、通知）',
+          agentManage: '管理 Agent 運行時和官方帳戶',
         },
       },
     },
     agent: {
-      manage: { title: 'Agent 管理' },
+      manage: { title: 'Agent 設定' },
       admin: {
-        title: '全員 Agent',
+        title: 'Agent 管理',
         goneUser: '已刪除的用戶',
         enabled: '已啟用',
         disabled: '已停用',
@@ -224,30 +226,31 @@ export default {
   'en-US': {
     pageGroup: {
       agent: {
-        label: 'Agent management',
+        label: 'Agent settings',
         sessions: 'Sessions',
         workspaces: 'Workspaces',
         providers: 'Model providers',
         mcp: 'MCP',
         skills: 'Skills',
         runtimes: 'Runtimes',
+        accounts: 'Official accounts',
         notify: 'Notifications',
       },
-      agentAdmin: { label: 'All users\' agents' },
+      agentAdmin: { label: 'Agent management' },
     },
     node: {
       permission: {
         groups: { agent: 'Agent' },
         items: {
-          agentUse: 'Use Code (run agents on the node; manage your own sessions, workspaces, MCP and skills)',
-          agentManage: 'Manage shared agent settings (model providers, runtimes, notifications)',
+          agentUse: 'Use Code (run agents on the node; manage your own sessions, workspaces, model providers, MCP, skills and notifications)',
+          agentManage: 'Manage agent runtimes and official accounts',
         },
       },
     },
     agent: {
-      manage: { title: 'Agent management' },
+      manage: { title: 'Agent settings' },
       admin: {
-        title: 'All users\' agents',
+        title: 'Agent management',
         goneUser: 'Deleted user',
         enabled: 'Enabled',
         disabled: 'Disabled',

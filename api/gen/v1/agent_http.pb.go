@@ -31,6 +31,7 @@ const OperationAgentServiceCreateAgentSkill = "/v1.AgentService/CreateAgentSkill
 const OperationAgentServiceCreateAgentWorkspace = "/v1.AgentService/CreateAgentWorkspace"
 const OperationAgentServiceDeleteAgentFiles = "/v1.AgentService/DeleteAgentFiles"
 const OperationAgentServiceDeleteAgentMcpServer = "/v1.AgentService/DeleteAgentMcpServer"
+const OperationAgentServiceDeleteAgentNotifyChannel = "/v1.AgentService/DeleteAgentNotifyChannel"
 const OperationAgentServiceDeleteAgentProvider = "/v1.AgentService/DeleteAgentProvider"
 const OperationAgentServiceDeleteAgentQueuedPrompt = "/v1.AgentService/DeleteAgentQueuedPrompt"
 const OperationAgentServiceDeleteAgentRuntime = "/v1.AgentService/DeleteAgentRuntime"
@@ -59,11 +60,13 @@ const OperationAgentServiceImportAgentMcpServers = "/v1.AgentService/ImportAgent
 const OperationAgentServiceImportAgentSkill = "/v1.AgentService/ImportAgentSkill"
 const OperationAgentServiceListAgentDirs = "/v1.AgentService/ListAgentDirs"
 const OperationAgentServiceListAgentMcpServers = "/v1.AgentService/ListAgentMcpServers"
+const OperationAgentServiceListAgentNotify = "/v1.AgentService/ListAgentNotify"
 const OperationAgentServiceListAgentProviders = "/v1.AgentService/ListAgentProviders"
 const OperationAgentServiceListAgentRuntimes = "/v1.AgentService/ListAgentRuntimes"
 const OperationAgentServiceListAgentSessionFiles = "/v1.AgentService/ListAgentSessionFiles"
 const OperationAgentServiceListAgentSessions = "/v1.AgentService/ListAgentSessions"
 const OperationAgentServiceListAgentSkills = "/v1.AgentService/ListAgentSkills"
+const OperationAgentServiceListAgentUsers = "/v1.AgentService/ListAgentUsers"
 const OperationAgentServiceListAgentWorkspaces = "/v1.AgentService/ListAgentWorkspaces"
 const OperationAgentServiceMoveAgentFile = "/v1.AgentService/MoveAgentFile"
 const OperationAgentServicePromptAgentSession = "/v1.AgentService/PromptAgentSession"
@@ -116,6 +119,8 @@ type AgentServiceHTTPServer interface {
 	// DeleteAgentFiles 删除文件或文件夹（整个删掉，不进回收站）
 	DeleteAgentFiles(context.Context, *DeleteAgentFilesRequest) (*DeleteAgentFilesResponse, error)
 	DeleteAgentMcpServer(context.Context, *DeleteAgentMcpServerRequest) (*DeleteAgentMcpServerResponse, error)
+	// DeleteAgentNotifyChannel 移除某种通知方式的配置
+	DeleteAgentNotifyChannel(context.Context, *DeleteAgentNotifyChannelRequest) (*DeleteAgentNotifyChannelResponse, error)
 	DeleteAgentProvider(context.Context, *DeleteAgentProviderRequest) (*DeleteAgentProviderResponse, error)
 	// DeleteAgentQueuedPrompt 撤回一条排着队的消息（还没发出去的）
 	DeleteAgentQueuedPrompt(context.Context, *DeleteAgentQueuedPromptRequest) (*DeleteAgentQueuedPromptResponse, error)
@@ -138,7 +143,7 @@ type AgentServiceHTTPServer interface {
 	GetAgentDocs(context.Context, *GetAgentDocsRequest) (*GetAgentDocsResponse, error)
 	// GetAgentFileRaw 原样读一个文件（预览图片，Markdown 里用到的图片）
 	GetAgentFileRaw(context.Context, *GetAgentFileRawRequest) (*GetAgentSessionUploadResponse, error)
-	// GetAgentNotify —— 通知 ——
+	// GetAgentNotify —— 通知：每个人自己的 ——
 	GetAgentNotify(context.Context, *GetAgentNotifyRequest) (*GetAgentNotifyResponse, error)
 	// GetAgentOptions —— 选择器 ——
 	// 新会话 / 会话里 / 工作区默认值用的选项：每个 Agent 的供应商、模型、推理强度和权限模式
@@ -168,16 +173,20 @@ type AgentServiceHTTPServer interface {
 	ListAgentDirs(context.Context, *ListAgentDirsRequest) (*ListAgentDirsResponse, error)
 	// ListAgentMcpServers —— MCP ——
 	ListAgentMcpServers(context.Context, *ListAgentMcpServersRequest) (*ListAgentMcpServersResponse, error)
-	// ListAgentProviders —— 模型供应商 ——
+	// ListAgentNotify 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
+	ListAgentNotify(context.Context, *ListAgentNotifyRequest) (*ListAgentNotifyResponse, error)
+	// ListAgentProviders —— 模型供应商（第三方接口）：每个人自己的，加上管理员共享给他的 ——
 	ListAgentProviders(context.Context, *ListAgentProvidersRequest) (*ListAgentProvidersResponse, error)
 	// ListAgentRuntimes —— 运行时 ——
 	ListAgentRuntimes(context.Context, *ListAgentRuntimesRequest) (*ListAgentRuntimesResponse, error)
 	// ListAgentSessionFiles 右侧「文件」：按目录懒加载
 	ListAgentSessionFiles(context.Context, *ListAgentSessionFilesRequest) (*ListAgentSessionFilesResponse, error)
-	// ListAgentSessions 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（全员 Agent 页）
+	// ListAgentSessions 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（Agent 管理页）
 	ListAgentSessions(context.Context, *ListAgentSessionsRequest) (*ListAgentSessionsResponse, error)
 	// ListAgentSkills —— 技能 ——
 	ListAgentSkills(context.Context, *ListAgentSkillsRequest) (*ListAgentSkillsResponse, error)
+	// ListAgentUsers Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
+	ListAgentUsers(context.Context, *ListAgentUsersRequest) (*ListAgentUsersResponse, error)
 	// ListAgentWorkspaces —— 工作区 ——
 	ListAgentWorkspaces(context.Context, *ListAgentWorkspacesRequest) (*ListAgentWorkspacesResponse, error)
 	// MoveAgentFile 改名或挪到另一个文件夹
@@ -298,6 +307,7 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.DELETE("/api/v1/agent/skills/{id}", _AgentService_DeleteAgentSkill0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/skills/{id}/enabled", _AgentService_SetAgentSkillEnabled0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/skills/import", _AgentService_ImportAgentSkill0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/users", _AgentService_ListAgentUsers0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/runtimes", _AgentService_ListAgentRuntimes0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/mode", _AgentService_SetAgentRuntimeMode0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/detect", _AgentService_DetectAgentRuntime0_HTTP_Handler(srv))
@@ -310,6 +320,8 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.POST("/api/v1/agent/notify/events", _AgentService_UpdateAgentNotifyEvents0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/notify/channel", _AgentService_SaveAgentNotifyChannel0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/notify/channel/enabled", _AgentService_SetAgentNotifyChannelEnabled0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/notify/channel/delete", _AgentService_DeleteAgentNotifyChannel0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/notify/all", _AgentService_ListAgentNotify0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/notify/channel/test", _AgentService_TestAgentNotifyChannel0_HTTP_Handler(srv))
 }
 
@@ -1686,6 +1698,25 @@ func _AgentService_ImportAgentSkill0_HTTP_Handler(srv AgentServiceHTTPServer) fu
 	}
 }
 
+func _AgentService_ListAgentUsers0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListAgentUsersRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceListAgentUsers)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAgentUsers(ctx, req.(*ListAgentUsersRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListAgentUsersResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_ListAgentRuntimes0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListAgentRuntimesRequest
@@ -1956,6 +1987,47 @@ func _AgentService_SetAgentNotifyChannelEnabled0_HTTP_Handler(srv AgentServiceHT
 	}
 }
 
+func _AgentService_DeleteAgentNotifyChannel0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteAgentNotifyChannelRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceDeleteAgentNotifyChannel)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteAgentNotifyChannel(ctx, req.(*DeleteAgentNotifyChannelRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteAgentNotifyChannelResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_ListAgentNotify0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListAgentNotifyRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceListAgentNotify)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAgentNotify(ctx, req.(*ListAgentNotifyRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListAgentNotifyResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_TestAgentNotifyChannel0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in TestAgentNotifyChannelRequest
@@ -1999,6 +2071,8 @@ type AgentServiceHTTPClient interface {
 	// DeleteAgentFiles 删除文件或文件夹（整个删掉，不进回收站）
 	DeleteAgentFiles(ctx context.Context, req *DeleteAgentFilesRequest, opts ...http.CallOption) (rsp *DeleteAgentFilesResponse, err error)
 	DeleteAgentMcpServer(ctx context.Context, req *DeleteAgentMcpServerRequest, opts ...http.CallOption) (rsp *DeleteAgentMcpServerResponse, err error)
+	// DeleteAgentNotifyChannel 移除某种通知方式的配置
+	DeleteAgentNotifyChannel(ctx context.Context, req *DeleteAgentNotifyChannelRequest, opts ...http.CallOption) (rsp *DeleteAgentNotifyChannelResponse, err error)
 	DeleteAgentProvider(ctx context.Context, req *DeleteAgentProviderRequest, opts ...http.CallOption) (rsp *DeleteAgentProviderResponse, err error)
 	// DeleteAgentQueuedPrompt 撤回一条排着队的消息（还没发出去的）
 	DeleteAgentQueuedPrompt(ctx context.Context, req *DeleteAgentQueuedPromptRequest, opts ...http.CallOption) (rsp *DeleteAgentQueuedPromptResponse, err error)
@@ -2021,7 +2095,7 @@ type AgentServiceHTTPClient interface {
 	GetAgentDocs(ctx context.Context, req *GetAgentDocsRequest, opts ...http.CallOption) (rsp *GetAgentDocsResponse, err error)
 	// GetAgentFileRaw 原样读一个文件（预览图片，Markdown 里用到的图片）
 	GetAgentFileRaw(ctx context.Context, req *GetAgentFileRawRequest, opts ...http.CallOption) (rsp *GetAgentSessionUploadResponse, err error)
-	// GetAgentNotify —— 通知 ——
+	// GetAgentNotify —— 通知：每个人自己的 ——
 	GetAgentNotify(ctx context.Context, req *GetAgentNotifyRequest, opts ...http.CallOption) (rsp *GetAgentNotifyResponse, err error)
 	// GetAgentOptions —— 选择器 ——
 	// 新会话 / 会话里 / 工作区默认值用的选项：每个 Agent 的供应商、模型、推理强度和权限模式
@@ -2051,16 +2125,20 @@ type AgentServiceHTTPClient interface {
 	ListAgentDirs(ctx context.Context, req *ListAgentDirsRequest, opts ...http.CallOption) (rsp *ListAgentDirsResponse, err error)
 	// ListAgentMcpServers —— MCP ——
 	ListAgentMcpServers(ctx context.Context, req *ListAgentMcpServersRequest, opts ...http.CallOption) (rsp *ListAgentMcpServersResponse, err error)
-	// ListAgentProviders —— 模型供应商 ——
+	// ListAgentNotify 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
+	ListAgentNotify(ctx context.Context, req *ListAgentNotifyRequest, opts ...http.CallOption) (rsp *ListAgentNotifyResponse, err error)
+	// ListAgentProviders —— 模型供应商（第三方接口）：每个人自己的，加上管理员共享给他的 ——
 	ListAgentProviders(ctx context.Context, req *ListAgentProvidersRequest, opts ...http.CallOption) (rsp *ListAgentProvidersResponse, err error)
 	// ListAgentRuntimes —— 运行时 ——
 	ListAgentRuntimes(ctx context.Context, req *ListAgentRuntimesRequest, opts ...http.CallOption) (rsp *ListAgentRuntimesResponse, err error)
 	// ListAgentSessionFiles 右侧「文件」：按目录懒加载
 	ListAgentSessionFiles(ctx context.Context, req *ListAgentSessionFilesRequest, opts ...http.CallOption) (rsp *ListAgentSessionFilesResponse, err error)
-	// ListAgentSessions 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（全员 Agent 页）
+	// ListAgentSessions 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（Agent 管理页）
 	ListAgentSessions(ctx context.Context, req *ListAgentSessionsRequest, opts ...http.CallOption) (rsp *ListAgentSessionsResponse, err error)
 	// ListAgentSkills —— 技能 ——
 	ListAgentSkills(ctx context.Context, req *ListAgentSkillsRequest, opts ...http.CallOption) (rsp *ListAgentSkillsResponse, err error)
+	// ListAgentUsers Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
+	ListAgentUsers(ctx context.Context, req *ListAgentUsersRequest, opts ...http.CallOption) (rsp *ListAgentUsersResponse, err error)
 	// ListAgentWorkspaces —— 工作区 ——
 	ListAgentWorkspaces(ctx context.Context, req *ListAgentWorkspacesRequest, opts ...http.CallOption) (rsp *ListAgentWorkspacesResponse, err error)
 	// MoveAgentFile 改名或挪到另一个文件夹
@@ -2289,6 +2367,20 @@ func (c *AgentServiceHTTPClientImpl) DeleteAgentMcpServer(ctx context.Context, i
 	return &out, nil
 }
 
+// DeleteAgentNotifyChannel 移除某种通知方式的配置
+func (c *AgentServiceHTTPClientImpl) DeleteAgentNotifyChannel(ctx context.Context, in *DeleteAgentNotifyChannelRequest, opts ...http.CallOption) (*DeleteAgentNotifyChannelResponse, error) {
+	var out DeleteAgentNotifyChannelResponse
+	pattern := "/api/v1/agent/notify/channel/delete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceDeleteAgentNotifyChannel))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *AgentServiceHTTPClientImpl) DeleteAgentProvider(ctx context.Context, in *DeleteAgentProviderRequest, opts ...http.CallOption) (*DeleteAgentProviderResponse, error) {
 	var out DeleteAgentProviderResponse
 	pattern := "/api/v1/agent/providers/{id}"
@@ -2467,7 +2559,7 @@ func (c *AgentServiceHTTPClientImpl) GetAgentFileRaw(ctx context.Context, in *Ge
 	return &out, nil
 }
 
-// GetAgentNotify —— 通知 ——
+// GetAgentNotify —— 通知：每个人自己的 ——
 func (c *AgentServiceHTTPClientImpl) GetAgentNotify(ctx context.Context, in *GetAgentNotifyRequest, opts ...http.CallOption) (*GetAgentNotifyResponse, error) {
 	var out GetAgentNotifyResponse
 	pattern := "/api/v1/agent/notify"
@@ -2677,7 +2769,21 @@ func (c *AgentServiceHTTPClientImpl) ListAgentMcpServers(ctx context.Context, in
 	return &out, nil
 }
 
-// ListAgentProviders —— 模型供应商 ——
+// ListAgentNotify 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
+func (c *AgentServiceHTTPClientImpl) ListAgentNotify(ctx context.Context, in *ListAgentNotifyRequest, opts ...http.CallOption) (*ListAgentNotifyResponse, error) {
+	var out ListAgentNotifyResponse
+	pattern := "/api/v1/agent/notify/all"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceListAgentNotify))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListAgentProviders —— 模型供应商（第三方接口）：每个人自己的，加上管理员共享给他的 ——
 func (c *AgentServiceHTTPClientImpl) ListAgentProviders(ctx context.Context, in *ListAgentProvidersRequest, opts ...http.CallOption) (*ListAgentProvidersResponse, error) {
 	var out ListAgentProvidersResponse
 	pattern := "/api/v1/agent/providers"
@@ -2719,7 +2825,7 @@ func (c *AgentServiceHTTPClientImpl) ListAgentSessionFiles(ctx context.Context, 
 	return &out, nil
 }
 
-// ListAgentSessions 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（全员 Agent 页）
+// ListAgentSessions 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（Agent 管理页）
 func (c *AgentServiceHTTPClientImpl) ListAgentSessions(ctx context.Context, in *ListAgentSessionsRequest, opts ...http.CallOption) (*ListAgentSessionsResponse, error) {
 	var out ListAgentSessionsResponse
 	pattern := "/api/v1/agent/sessions"
@@ -2739,6 +2845,20 @@ func (c *AgentServiceHTTPClientImpl) ListAgentSkills(ctx context.Context, in *Li
 	pattern := "/api/v1/agent/skills"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAgentServiceListAgentSkills))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListAgentUsers Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
+func (c *AgentServiceHTTPClientImpl) ListAgentUsers(ctx context.Context, in *ListAgentUsersRequest, opts ...http.CallOption) (*ListAgentUsersResponse, error) {
+	var out ListAgentUsersResponse
+	pattern := "/api/v1/agent/users"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceListAgentUsers))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {

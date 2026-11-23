@@ -73,12 +73,11 @@ const pick = (value: T, close: () => void) => {
 .ag-select__v.ag-mono {
   font-size: 12.5px;
 }
-.ag-select__panel {
-  max-height: 280px;
+// 选项多时在浮层里滚动。AppDropdown 的浮层自带 overflow: hidden（带 scoped 属性，优先级更高），
+// 这里要用更高的优先级盖过去，不然超出高度的选项被裁掉、选不到；滚动条要看得见，才知道下面还有
+.ag.ag-menu.ag-select__panel {
+  max-height: min(360px, 60vh);
   overflow-y: auto;
-  scrollbar-width: none;
-}
-.ag-select__panel::-webkit-scrollbar {
-  display: none;
+  scrollbar-width: thin;
 }
 </style>

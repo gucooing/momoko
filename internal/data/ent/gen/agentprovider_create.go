@@ -52,6 +52,20 @@ func (_c *AgentProviderCreate) SetNillableUpdateTime(v *time.Time) *AgentProvide
 	return _c
 }
 
+// SetUserID sets the "user_id" field.
+func (_c *AgentProviderCreate) SetUserID(v string) *AgentProviderCreate {
+	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_c *AgentProviderCreate) SetNillableUserID(v *string) *AgentProviderCreate {
+	if v != nil {
+		_c.SetUserID(*v)
+	}
+	return _c
+}
+
 // SetVendor sets the "vendor" field.
 func (_c *AgentProviderCreate) SetVendor(v string) *AgentProviderCreate {
 	_c.mutation.SetVendor(v)
@@ -188,6 +202,26 @@ func (_c *AgentProviderCreate) SetNillableTestedAt(v *time.Time) *AgentProviderC
 	return _c
 }
 
+// SetShare sets the "share" field.
+func (_c *AgentProviderCreate) SetShare(v string) *AgentProviderCreate {
+	_c.mutation.SetShare(v)
+	return _c
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_c *AgentProviderCreate) SetNillableShare(v *string) *AgentProviderCreate {
+	if v != nil {
+		_c.SetShare(*v)
+	}
+	return _c
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_c *AgentProviderCreate) SetShareUsers(v []string) *AgentProviderCreate {
+	_c.mutation.SetShareUsers(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AgentProviderCreate) SetID(v string) *AgentProviderCreate {
 	_c.mutation.SetID(v)
@@ -237,6 +271,10 @@ func (_c *AgentProviderCreate) defaults() {
 		v := agentprovider.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
 	}
+	if _, ok := _c.mutation.UserID(); !ok {
+		v := agentprovider.DefaultUserID
+		_c.mutation.SetUserID(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := agentprovider.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -265,6 +303,10 @@ func (_c *AgentProviderCreate) defaults() {
 		v := agentprovider.DefaultTestLatencyMs
 		_c.mutation.SetTestLatencyMs(v)
 	}
+	if _, ok := _c.mutation.Share(); !ok {
+		v := agentprovider.DefaultShare
+		_c.mutation.SetShare(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -274,6 +316,9 @@ func (_c *AgentProviderCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`gen: missing required field "AgentProvider.update_time"`)}
+	}
+	if _, ok := _c.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`gen: missing required field "AgentProvider.user_id"`)}
 	}
 	if _, ok := _c.mutation.Vendor(); !ok {
 		return &ValidationError{Name: "vendor", err: errors.New(`gen: missing required field "AgentProvider.vendor"`)}
@@ -311,6 +356,9 @@ func (_c *AgentProviderCreate) check() error {
 	}
 	if _, ok := _c.mutation.TestLatencyMs(); !ok {
 		return &ValidationError{Name: "test_latency_ms", err: errors.New(`gen: missing required field "AgentProvider.test_latency_ms"`)}
+	}
+	if _, ok := _c.mutation.Share(); !ok {
+		return &ValidationError{Name: "share", err: errors.New(`gen: missing required field "AgentProvider.share"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := agentprovider.IDValidator(v); err != nil {
@@ -361,6 +409,10 @@ func (_c *AgentProviderCreate) createSpec() (*AgentProvider, *sqlgraph.CreateSpe
 		_spec.SetField(agentprovider.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
 	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(agentprovider.FieldUserID, field.TypeString, value)
+		_node.UserID = value
+	}
 	if value, ok := _c.mutation.Vendor(); ok {
 		_spec.SetField(agentprovider.FieldVendor, field.TypeString, value)
 		_node.Vendor = value
@@ -408,6 +460,14 @@ func (_c *AgentProviderCreate) createSpec() (*AgentProvider, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.TestedAt(); ok {
 		_spec.SetField(agentprovider.FieldTestedAt, field.TypeTime, value)
 		_node.TestedAt = &value
+	}
+	if value, ok := _c.mutation.Share(); ok {
+		_spec.SetField(agentprovider.FieldShare, field.TypeString, value)
+		_node.Share = value
+	}
+	if value, ok := _c.mutation.ShareUsers(); ok {
+		_spec.SetField(agentprovider.FieldShareUsers, field.TypeJSON, value)
+		_node.ShareUsers = value
 	}
 	return _node, _spec
 }
@@ -470,6 +530,18 @@ func (u *AgentProviderUpsert) SetUpdateTime(v time.Time) *AgentProviderUpsert {
 // UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
 func (u *AgentProviderUpsert) UpdateUpdateTime() *AgentProviderUpsert {
 	u.SetExcluded(agentprovider.FieldUpdateTime)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AgentProviderUpsert) SetUserID(v string) *AgentProviderUpsert {
+	u.Set(agentprovider.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentProviderUpsert) UpdateUserID() *AgentProviderUpsert {
+	u.SetExcluded(agentprovider.FieldUserID)
 	return u
 }
 
@@ -641,6 +713,36 @@ func (u *AgentProviderUpsert) ClearTestedAt() *AgentProviderUpsert {
 	return u
 }
 
+// SetShare sets the "share" field.
+func (u *AgentProviderUpsert) SetShare(v string) *AgentProviderUpsert {
+	u.Set(agentprovider.FieldShare, v)
+	return u
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentProviderUpsert) UpdateShare() *AgentProviderUpsert {
+	u.SetExcluded(agentprovider.FieldShare)
+	return u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentProviderUpsert) SetShareUsers(v []string) *AgentProviderUpsert {
+	u.Set(agentprovider.FieldShareUsers, v)
+	return u
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentProviderUpsert) UpdateShareUsers() *AgentProviderUpsert {
+	u.SetExcluded(agentprovider.FieldShareUsers)
+	return u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentProviderUpsert) ClearShareUsers() *AgentProviderUpsert {
+	u.SetNull(agentprovider.FieldShareUsers)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -703,6 +805,20 @@ func (u *AgentProviderUpsertOne) SetUpdateTime(v time.Time) *AgentProviderUpsert
 func (u *AgentProviderUpsertOne) UpdateUpdateTime() *AgentProviderUpsertOne {
 	return u.Update(func(s *AgentProviderUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AgentProviderUpsertOne) SetUserID(v string) *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentProviderUpsertOne) UpdateUserID() *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.UpdateUserID()
 	})
 }
 
@@ -899,6 +1015,41 @@ func (u *AgentProviderUpsertOne) UpdateTestedAt() *AgentProviderUpsertOne {
 func (u *AgentProviderUpsertOne) ClearTestedAt() *AgentProviderUpsertOne {
 	return u.Update(func(s *AgentProviderUpsert) {
 		s.ClearTestedAt()
+	})
+}
+
+// SetShare sets the "share" field.
+func (u *AgentProviderUpsertOne) SetShare(v string) *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.SetShare(v)
+	})
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentProviderUpsertOne) UpdateShare() *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.UpdateShare()
+	})
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentProviderUpsertOne) SetShareUsers(v []string) *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.SetShareUsers(v)
+	})
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentProviderUpsertOne) UpdateShareUsers() *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.UpdateShareUsers()
+	})
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentProviderUpsertOne) ClearShareUsers() *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.ClearShareUsers()
 	})
 }
 
@@ -1134,6 +1285,20 @@ func (u *AgentProviderUpsertBulk) UpdateUpdateTime() *AgentProviderUpsertBulk {
 	})
 }
 
+// SetUserID sets the "user_id" field.
+func (u *AgentProviderUpsertBulk) SetUserID(v string) *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentProviderUpsertBulk) UpdateUserID() *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.UpdateUserID()
+	})
+}
+
 // SetVendor sets the "vendor" field.
 func (u *AgentProviderUpsertBulk) SetVendor(v string) *AgentProviderUpsertBulk {
 	return u.Update(func(s *AgentProviderUpsert) {
@@ -1327,6 +1492,41 @@ func (u *AgentProviderUpsertBulk) UpdateTestedAt() *AgentProviderUpsertBulk {
 func (u *AgentProviderUpsertBulk) ClearTestedAt() *AgentProviderUpsertBulk {
 	return u.Update(func(s *AgentProviderUpsert) {
 		s.ClearTestedAt()
+	})
+}
+
+// SetShare sets the "share" field.
+func (u *AgentProviderUpsertBulk) SetShare(v string) *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.SetShare(v)
+	})
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentProviderUpsertBulk) UpdateShare() *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.UpdateShare()
+	})
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentProviderUpsertBulk) SetShareUsers(v []string) *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.SetShareUsers(v)
+	})
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentProviderUpsertBulk) UpdateShareUsers() *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.UpdateShareUsers()
+	})
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentProviderUpsertBulk) ClearShareUsers() *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.ClearShareUsers()
 	})
 }
 

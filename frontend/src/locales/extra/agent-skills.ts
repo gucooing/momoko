@@ -1,4 +1,4 @@
-// Agent 管理 · 技能标签页的文案。通用的词（保存、取消、编辑……）在 agent.ts 的 agent.common 里。
+// Agent 设置 · 技能标签页的文案。通用的词（保存、取消、编辑……）在 agent.ts 的 agent.common 里。
 export default {
   'zh-CN': {
     agent: {
@@ -15,6 +15,8 @@ export default {
         enableOf: '启用 {name}',
         editOf: '编辑 {name}',
         deleteOf: '删除 {name}',
+        viewOf: '查看 {name}',
+        chooseZip: '选择压缩包',
         source: {
           local: '在这里写的',
           git: '从 Git 导入',
@@ -86,6 +88,8 @@ export default {
         enableOf: '啟用 {name}',
         editOf: '編輯 {name}',
         deleteOf: '刪除 {name}',
+        viewOf: '查看 {name}',
+        chooseZip: '選擇壓縮檔',
         source: {
           local: '在這裡寫的',
           git: '從 Git 匯入',
@@ -157,6 +161,8 @@ export default {
         enableOf: 'Enable {name}',
         editOf: 'Edit {name}',
         deleteOf: 'Delete {name}',
+        viewOf: 'View {name}',
+        chooseZip: 'Choose a zip file',
         source: {
           local: 'Written here',
           git: 'Imported from Git',

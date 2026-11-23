@@ -30,7 +30,7 @@ func (s *AgentService) RegisterRawRoutes(srv *http.Server) {
 	srv.HandlePrefix(biz.AgentPreviewPrefix, stdhttp.HandlerFunc(s.uc.ServePreview))
 }
 
-// RunWsConn 页面的长连接：收 open（打开会话）/ more（往上翻）/ close（离开会话）/ watch（全员 Agent 页关注所有人的会话）/
+// RunWsConn 页面的长连接：收 open（打开会话）/ more（往上翻）/ close（离开会话）/ watch（Agent 管理页关注所有人的会话）/
 // answer（回答 Agent 的提问），把订阅的会话事件和会话的状态变化推回去。
 func (s *AgentService) RunWsConn(conn *websocket.Conn) {
 	defer conn.Close()
@@ -383,8 +383,8 @@ func (s *AgentService) GetAgentDocs(ctx context.Context, req *v1.GetAgentDocsReq
 
 // —— 模型供应商 ——
 
-func (s *AgentService) ListAgentProviders(ctx context.Context, _ *v1.ListAgentProvidersRequest) (*v1.ListAgentProvidersResponse, error) {
-	return s.uc.ListProviders(ctx)
+func (s *AgentService) ListAgentProviders(ctx context.Context, req *v1.ListAgentProvidersRequest) (*v1.ListAgentProvidersResponse, error) {
+	return s.uc.ListProviders(ctx, req.GetAll())
 }
 
 func providerOf(p *v1.AgentProvider) *v1.AgentProvider {
@@ -485,7 +485,7 @@ func (s *AgentService) TestAgentMcpServer(ctx context.Context, req *v1.TestAgent
 }
 
 func (s *AgentService) ImportAgentMcpServers(ctx context.Context, req *v1.ImportAgentMcpServersRequest) (*v1.ImportAgentMcpServersResponse, error) {
-	servers, err := s.uc.ImportMcpServers(ctx, req.GetJson())
+	servers, err := s.uc.ImportMcpServers(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -542,6 +542,14 @@ func (s *AgentService) ImportAgentSkill(ctx context.Context, req *v1.ImportAgent
 		return nil, err
 	}
 	return &v1.ImportAgentSkillResponse{Skills: skills}, nil
+}
+
+func (s *AgentService) ListAgentUsers(ctx context.Context, _ *v1.ListAgentUsersRequest) (*v1.ListAgentUsersResponse, error) {
+	users, err := s.uc.ListUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListAgentUsersResponse{Users: users}, nil
 }
 
 // —— 运行时 ——
@@ -627,10 +635,21 @@ func (s *AgentService) SaveAgentNotifyChannel(ctx context.Context, req *v1.SaveA
 }
 
 func (s *AgentService) SetAgentNotifyChannelEnabled(ctx context.Context, req *v1.SetAgentNotifyChannelEnabledRequest) (*v1.SetAgentNotifyChannelEnabledResponse, error) {
-	if err := s.uc.SetNotifyChannelEnabled(ctx, req.GetKind(), req.GetEnabled()); err != nil {
+	if err := s.uc.SetNotifyChannelEnabled(ctx, req.GetUserId(), req.GetKind(), req.GetEnabled()); err != nil {
 		return nil, err
 	}
 	return &v1.SetAgentNotifyChannelEnabledResponse{}, nil
+}
+
+func (s *AgentService) DeleteAgentNotifyChannel(ctx context.Context, req *v1.DeleteAgentNotifyChannelRequest) (*v1.DeleteAgentNotifyChannelResponse, error) {
+	if err := s.uc.DeleteNotifyChannel(ctx, req.GetUserId(), req.GetKind()); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteAgentNotifyChannelResponse{}, nil
+}
+
+func (s *AgentService) ListAgentNotify(ctx context.Context, _ *v1.ListAgentNotifyRequest) (*v1.ListAgentNotifyResponse, error) {
+	return s.uc.ListNotify(ctx)
 }
 
 func (s *AgentService) TestAgentNotifyChannel(ctx context.Context, req *v1.TestAgentNotifyChannelRequest) (*v1.TestAgentNotifyChannelResponse, error) {

@@ -8,7 +8,8 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// AgentSkill 技能，属于创建它的用户。文件放在这个用户的技能目录里（以 name 为目录名），Claude Code 和 Codex 共用一份。
+// AgentSkill 技能，属于创建它的用户；管理员在全员 Agent 页加的是共享的（主人 @shared），共享给所有人或指定的人。
+// 文件放在主人的技能目录里（以 name 为目录名），Claude Code 和 Codex 共用一份。
 type AgentSkill struct {
 	ent.Schema
 }
@@ -23,6 +24,8 @@ func (AgentSkill) Fields() []ent.Field {
 		field.String("location").Default("").Comment("导入来源：Git 地址或服务器目录"),
 		field.Bool("enabled").Default(true).Comment("是否启用"),
 		field.Int("file_count").Default(0).Comment("文件数"),
+		field.String("share").Default("").Comment("共享范围：空 = 只有主人自己用；all = 所有人；users = share_users 里的人。共享的主人是 @shared，在全员 Agent 页里管"),
+		field.Strings("share_users").Optional().Comment("share 为 users 时能用的用户 id"),
 	}
 }
 

@@ -46,6 +46,10 @@ const (
 	FieldToolCount = "tool_count"
 	// FieldTestedAt holds the string denoting the tested_at field in the database.
 	FieldTestedAt = "tested_at"
+	// FieldShare holds the string denoting the share field in the database.
+	FieldShare = "share"
+	// FieldShareUsers holds the string denoting the share_users field in the database.
+	FieldShareUsers = "share_users"
 	// Table holds the table name of the agentmcpserver in the database.
 	Table = "agent_mcp_servers"
 )
@@ -69,6 +73,8 @@ var Columns = []string{
 	FieldStatusText,
 	FieldToolCount,
 	FieldTestedAt,
+	FieldShare,
+	FieldShareUsers,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -110,6 +116,8 @@ var (
 	DefaultStatusText string
 	// DefaultToolCount holds the default value on creation for the "tool_count" field.
 	DefaultToolCount int
+	// DefaultShare holds the default value on creation for the "share" field.
+	DefaultShare string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -221,4 +229,9 @@ func ByToolCount(opts ...sql.OrderTermOption) OrderOption {
 // ByTestedAt orders the results by the tested_at field.
 func ByTestedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTestedAt, opts...).ToFunc()
+}
+
+// ByShare orders the results by the share field.
+func ByShare(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldShare, opts...).ToFunc()
 }

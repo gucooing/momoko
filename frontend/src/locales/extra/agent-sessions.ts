@@ -1,4 +1,4 @@
-// Agent 管理 · 会话标签页的文案。共用的词（状态、时间、保存 / 取消…）在 agent.ts。
+// Agent 设置 · 会话标签页的文案。共用的词（状态、时间、保存 / 取消…）在 agent.ts。
 export default {
   'zh-CN': {
     agent: {

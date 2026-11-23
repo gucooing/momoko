@@ -196,7 +196,7 @@ const onKeyCreated = (type: 'create' | 'update', info?: APIKeyInfo) => {
   if (type === 'create' && info?.apiKey) showConfig(info.name, info.apiKey)
 }
 
-// —— MCP 配置：mcpServers JSON，可粘贴到「Agent 管理 → MCP」或其它 MCP 客户端 ——
+// —— MCP 配置：mcpServers JSON，可粘贴到「Agent 设置 → MCP」或其它 MCP 客户端 ——
 const configOpen = ref(false)
 const configName = ref('')
 const configKey = ref('')

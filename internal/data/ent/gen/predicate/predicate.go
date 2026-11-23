@@ -12,6 +12,9 @@ type AgentEvent func(*sql.Selector)
 // AgentMcpServer is the predicate function for agentmcpserver builders.
 type AgentMcpServer func(*sql.Selector)
 
+// AgentNotify is the predicate function for agentnotify builders.
+type AgentNotify func(*sql.Selector)
+
 // AgentProvider is the predicate function for agentprovider builders.
 type AgentProvider func(*sql.Selector)
 

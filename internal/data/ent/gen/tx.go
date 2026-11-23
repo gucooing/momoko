@@ -18,6 +18,8 @@ type Tx struct {
 	AgentEvent *AgentEventClient
 	// AgentMcpServer is the client for interacting with the AgentMcpServer builders.
 	AgentMcpServer *AgentMcpServerClient
+	// AgentNotify is the client for interacting with the AgentNotify builders.
+	AgentNotify *AgentNotifyClient
 	// AgentProvider is the client for interacting with the AgentProvider builders.
 	AgentProvider *AgentProviderClient
 	// AgentRuntime is the client for interacting with the AgentRuntime builders.
@@ -259,6 +261,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.AgentEvent = NewAgentEventClient(tx.config)
 	tx.AgentMcpServer = NewAgentMcpServerClient(tx.config)
+	tx.AgentNotify = NewAgentNotifyClient(tx.config)
 	tx.AgentProvider = NewAgentProviderClient(tx.config)
 	tx.AgentRuntime = NewAgentRuntimeClient(tx.config)
 	tx.AgentRuntimeModel = NewAgentRuntimeModelClient(tx.config)

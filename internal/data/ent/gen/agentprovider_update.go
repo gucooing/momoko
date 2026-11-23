@@ -36,6 +36,20 @@ func (_u *AgentProviderUpdate) SetUpdateTime(v time.Time) *AgentProviderUpdate {
 	return _u
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *AgentProviderUpdate) SetUserID(v string) *AgentProviderUpdate {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *AgentProviderUpdate) SetNillableUserID(v *string) *AgentProviderUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
 // SetVendor sets the "vendor" field.
 func (_u *AgentProviderUpdate) SetVendor(v string) *AgentProviderUpdate {
 	_u.mutation.SetVendor(v)
@@ -225,6 +239,38 @@ func (_u *AgentProviderUpdate) ClearTestedAt() *AgentProviderUpdate {
 	return _u
 }
 
+// SetShare sets the "share" field.
+func (_u *AgentProviderUpdate) SetShare(v string) *AgentProviderUpdate {
+	_u.mutation.SetShare(v)
+	return _u
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_u *AgentProviderUpdate) SetNillableShare(v *string) *AgentProviderUpdate {
+	if v != nil {
+		_u.SetShare(*v)
+	}
+	return _u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_u *AgentProviderUpdate) SetShareUsers(v []string) *AgentProviderUpdate {
+	_u.mutation.SetShareUsers(v)
+	return _u
+}
+
+// AppendShareUsers appends value to the "share_users" field.
+func (_u *AgentProviderUpdate) AppendShareUsers(v []string) *AgentProviderUpdate {
+	_u.mutation.AppendShareUsers(v)
+	return _u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (_u *AgentProviderUpdate) ClearShareUsers() *AgentProviderUpdate {
+	_u.mutation.ClearShareUsers()
+	return _u
+}
+
 // Mutation returns the AgentProviderMutation object of the builder.
 func (_u *AgentProviderUpdate) Mutation() *AgentProviderMutation {
 	return _u.mutation
@@ -296,6 +342,9 @@ func (_u *AgentProviderUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(agentprovider.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(agentprovider.FieldUserID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Vendor(); ok {
 		_spec.SetField(agentprovider.FieldVendor, field.TypeString, value)
 	}
@@ -354,6 +403,20 @@ func (_u *AgentProviderUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if _u.mutation.TestedAtCleared() {
 		_spec.ClearField(agentprovider.FieldTestedAt, field.TypeTime)
 	}
+	if value, ok := _u.mutation.Share(); ok {
+		_spec.SetField(agentprovider.FieldShare, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ShareUsers(); ok {
+		_spec.SetField(agentprovider.FieldShareUsers, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedShareUsers(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, agentprovider.FieldShareUsers, value)
+		})
+	}
+	if _u.mutation.ShareUsersCleared() {
+		_spec.ClearField(agentprovider.FieldShareUsers, field.TypeJSON)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{agentprovider.Label}
@@ -377,6 +440,20 @@ type AgentProviderUpdateOne struct {
 // SetUpdateTime sets the "update_time" field.
 func (_u *AgentProviderUpdateOne) SetUpdateTime(v time.Time) *AgentProviderUpdateOne {
 	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
+// SetUserID sets the "user_id" field.
+func (_u *AgentProviderUpdateOne) SetUserID(v string) *AgentProviderUpdateOne {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *AgentProviderUpdateOne) SetNillableUserID(v *string) *AgentProviderUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
 	return _u
 }
 
@@ -569,6 +646,38 @@ func (_u *AgentProviderUpdateOne) ClearTestedAt() *AgentProviderUpdateOne {
 	return _u
 }
 
+// SetShare sets the "share" field.
+func (_u *AgentProviderUpdateOne) SetShare(v string) *AgentProviderUpdateOne {
+	_u.mutation.SetShare(v)
+	return _u
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_u *AgentProviderUpdateOne) SetNillableShare(v *string) *AgentProviderUpdateOne {
+	if v != nil {
+		_u.SetShare(*v)
+	}
+	return _u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_u *AgentProviderUpdateOne) SetShareUsers(v []string) *AgentProviderUpdateOne {
+	_u.mutation.SetShareUsers(v)
+	return _u
+}
+
+// AppendShareUsers appends value to the "share_users" field.
+func (_u *AgentProviderUpdateOne) AppendShareUsers(v []string) *AgentProviderUpdateOne {
+	_u.mutation.AppendShareUsers(v)
+	return _u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (_u *AgentProviderUpdateOne) ClearShareUsers() *AgentProviderUpdateOne {
+	_u.mutation.ClearShareUsers()
+	return _u
+}
+
 // Mutation returns the AgentProviderMutation object of the builder.
 func (_u *AgentProviderUpdateOne) Mutation() *AgentProviderMutation {
 	return _u.mutation
@@ -670,6 +779,9 @@ func (_u *AgentProviderUpdateOne) sqlSave(ctx context.Context) (_node *AgentProv
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(agentprovider.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(agentprovider.FieldUserID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Vendor(); ok {
 		_spec.SetField(agentprovider.FieldVendor, field.TypeString, value)
 	}
@@ -727,6 +839,20 @@ func (_u *AgentProviderUpdateOne) sqlSave(ctx context.Context) (_node *AgentProv
 	}
 	if _u.mutation.TestedAtCleared() {
 		_spec.ClearField(agentprovider.FieldTestedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.Share(); ok {
+		_spec.SetField(agentprovider.FieldShare, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ShareUsers(); ok {
+		_spec.SetField(agentprovider.FieldShareUsers, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedShareUsers(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, agentprovider.FieldShareUsers, value)
+		})
+	}
+	if _u.mutation.ShareUsersCleared() {
+		_spec.ClearField(agentprovider.FieldShareUsers, field.TypeJSON)
 	}
 	_node = &AgentProvider{config: _u.config}
 	_spec.Assign = _node.assignValues

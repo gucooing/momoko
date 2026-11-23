@@ -141,6 +141,26 @@ func (_c *AgentSkillCreate) SetNillableFileCount(v *int) *AgentSkillCreate {
 	return _c
 }
 
+// SetShare sets the "share" field.
+func (_c *AgentSkillCreate) SetShare(v string) *AgentSkillCreate {
+	_c.mutation.SetShare(v)
+	return _c
+}
+
+// SetNillableShare sets the "share" field if the given value is not nil.
+func (_c *AgentSkillCreate) SetNillableShare(v *string) *AgentSkillCreate {
+	if v != nil {
+		_c.SetShare(*v)
+	}
+	return _c
+}
+
+// SetShareUsers sets the "share_users" field.
+func (_c *AgentSkillCreate) SetShareUsers(v []string) *AgentSkillCreate {
+	_c.mutation.SetShareUsers(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AgentSkillCreate) SetID(v string) *AgentSkillCreate {
 	_c.mutation.SetID(v)
@@ -214,6 +234,10 @@ func (_c *AgentSkillCreate) defaults() {
 		v := agentskill.DefaultFileCount
 		_c.mutation.SetFileCount(v)
 	}
+	if _, ok := _c.mutation.Share(); !ok {
+		v := agentskill.DefaultShare
+		_c.mutation.SetShare(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -254,6 +278,9 @@ func (_c *AgentSkillCreate) check() error {
 	}
 	if _, ok := _c.mutation.FileCount(); !ok {
 		return &ValidationError{Name: "file_count", err: errors.New(`gen: missing required field "AgentSkill.file_count"`)}
+	}
+	if _, ok := _c.mutation.Share(); !ok {
+		return &ValidationError{Name: "share", err: errors.New(`gen: missing required field "AgentSkill.share"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := agentskill.IDValidator(v); err != nil {
@@ -331,6 +358,14 @@ func (_c *AgentSkillCreate) createSpec() (*AgentSkill, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.FileCount(); ok {
 		_spec.SetField(agentskill.FieldFileCount, field.TypeInt, value)
 		_node.FileCount = value
+	}
+	if value, ok := _c.mutation.Share(); ok {
+		_spec.SetField(agentskill.FieldShare, field.TypeString, value)
+		_node.Share = value
+	}
+	if value, ok := _c.mutation.ShareUsers(); ok {
+		_spec.SetField(agentskill.FieldShareUsers, field.TypeJSON, value)
+		_node.ShareUsers = value
 	}
 	return _node, _spec
 }
@@ -483,6 +518,36 @@ func (u *AgentSkillUpsert) UpdateFileCount() *AgentSkillUpsert {
 // AddFileCount adds v to the "file_count" field.
 func (u *AgentSkillUpsert) AddFileCount(v int) *AgentSkillUpsert {
 	u.Add(agentskill.FieldFileCount, v)
+	return u
+}
+
+// SetShare sets the "share" field.
+func (u *AgentSkillUpsert) SetShare(v string) *AgentSkillUpsert {
+	u.Set(agentskill.FieldShare, v)
+	return u
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentSkillUpsert) UpdateShare() *AgentSkillUpsert {
+	u.SetExcluded(agentskill.FieldShare)
+	return u
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentSkillUpsert) SetShareUsers(v []string) *AgentSkillUpsert {
+	u.Set(agentskill.FieldShareUsers, v)
+	return u
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentSkillUpsert) UpdateShareUsers() *AgentSkillUpsert {
+	u.SetExcluded(agentskill.FieldShareUsers)
+	return u
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentSkillUpsert) ClearShareUsers() *AgentSkillUpsert {
+	u.SetNull(agentskill.FieldShareUsers)
 	return u
 }
 
@@ -653,6 +718,41 @@ func (u *AgentSkillUpsertOne) AddFileCount(v int) *AgentSkillUpsertOne {
 func (u *AgentSkillUpsertOne) UpdateFileCount() *AgentSkillUpsertOne {
 	return u.Update(func(s *AgentSkillUpsert) {
 		s.UpdateFileCount()
+	})
+}
+
+// SetShare sets the "share" field.
+func (u *AgentSkillUpsertOne) SetShare(v string) *AgentSkillUpsertOne {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.SetShare(v)
+	})
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentSkillUpsertOne) UpdateShare() *AgentSkillUpsertOne {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.UpdateShare()
+	})
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentSkillUpsertOne) SetShareUsers(v []string) *AgentSkillUpsertOne {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.SetShareUsers(v)
+	})
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentSkillUpsertOne) UpdateShareUsers() *AgentSkillUpsertOne {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.UpdateShareUsers()
+	})
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentSkillUpsertOne) ClearShareUsers() *AgentSkillUpsertOne {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.ClearShareUsers()
 	})
 }
 
@@ -990,6 +1090,41 @@ func (u *AgentSkillUpsertBulk) AddFileCount(v int) *AgentSkillUpsertBulk {
 func (u *AgentSkillUpsertBulk) UpdateFileCount() *AgentSkillUpsertBulk {
 	return u.Update(func(s *AgentSkillUpsert) {
 		s.UpdateFileCount()
+	})
+}
+
+// SetShare sets the "share" field.
+func (u *AgentSkillUpsertBulk) SetShare(v string) *AgentSkillUpsertBulk {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.SetShare(v)
+	})
+}
+
+// UpdateShare sets the "share" field to the value that was provided on create.
+func (u *AgentSkillUpsertBulk) UpdateShare() *AgentSkillUpsertBulk {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.UpdateShare()
+	})
+}
+
+// SetShareUsers sets the "share_users" field.
+func (u *AgentSkillUpsertBulk) SetShareUsers(v []string) *AgentSkillUpsertBulk {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.SetShareUsers(v)
+	})
+}
+
+// UpdateShareUsers sets the "share_users" field to the value that was provided on create.
+func (u *AgentSkillUpsertBulk) UpdateShareUsers() *AgentSkillUpsertBulk {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.UpdateShareUsers()
+	})
+}
+
+// ClearShareUsers clears the value of the "share_users" field.
+func (u *AgentSkillUpsertBulk) ClearShareUsers() *AgentSkillUpsertBulk {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.ClearShareUsers()
 	})
 }
 

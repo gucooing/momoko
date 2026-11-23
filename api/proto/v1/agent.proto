@@ -25,7 +25,7 @@ service AgentService {
   rpc GetAgentSidebar(GetAgentSidebarRequest) returns (GetAgentSidebarResponse) {
     option (google.api.http) = { get: "/api/v1/agent/sidebar" };
   }
-  // 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（全员 Agent 页）
+  // 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（Agent 管理页）
   rpc ListAgentSessions(ListAgentSessionsRequest) returns (ListAgentSessionsResponse) {
     option (google.api.http) = { get: "/api/v1/agent/sessions" };
   }
@@ -175,7 +175,7 @@ service AgentService {
     option (google.api.http) = { get: "/api/v1/agent/docs" };
   }
 
-  // —— 模型供应商 ——
+  // —— 模型供应商（第三方接口）：每个人自己的，加上管理员共享给他的 ——
   rpc ListAgentProviders(ListAgentProvidersRequest) returns (ListAgentProvidersResponse) {
     option (google.api.http) = { get: "/api/v1/agent/providers" };
   }
@@ -252,6 +252,11 @@ service AgentService {
     option (google.api.http) = { post: "/api/v1/agent/skills/import" body: "*" };
   }
 
+  // Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
+  rpc ListAgentUsers(ListAgentUsersRequest) returns (ListAgentUsersResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/users" };
+  }
+
   // —— 运行时 ——
   rpc ListAgentRuntimes(ListAgentRuntimesRequest) returns (ListAgentRuntimesResponse) {
     option (google.api.http) = { get: "/api/v1/agent/runtimes" };
@@ -284,7 +289,7 @@ service AgentService {
     option (google.api.http) = { post: "/api/v1/agent/runtimes/settings" body: "*" };
   }
 
-  // —— 通知 ——
+  // —— 通知：每个人自己的 ——
   rpc GetAgentNotify(GetAgentNotifyRequest) returns (GetAgentNotifyResponse) {
     option (google.api.http) = { get: "/api/v1/agent/notify" };
   }
@@ -298,6 +303,14 @@ service AgentService {
   }
   rpc SetAgentNotifyChannelEnabled(SetAgentNotifyChannelEnabledRequest) returns (SetAgentNotifyChannelEnabledResponse) {
     option (google.api.http) = { post: "/api/v1/agent/notify/channel/enabled" body: "*" };
+  }
+  // 移除某种通知方式的配置
+  rpc DeleteAgentNotifyChannel(DeleteAgentNotifyChannelRequest) returns (DeleteAgentNotifyChannelResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/notify/channel/delete" body: "*" };
+  }
+  // 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
+  rpc ListAgentNotify(ListAgentNotifyRequest) returns (ListAgentNotifyResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/notify/all" };
   }
   // 发一条测试；fields 为空时用已保存的配置
   rpc TestAgentNotifyChannel(TestAgentNotifyChannelRequest) returns (TestAgentNotifyChannelResponse) {
@@ -401,7 +414,7 @@ message AgentCapabilities {
 }
 
 message GetAgentOverviewRequest {
-  // 全员 Agent 页：会话、工作区、MCP、技能数所有人的（要有 agent:admin，且是直接登录的）
+  // Agent 管理页：会话、工作区、MCP、技能数所有人的（要有 agent:admin，且是直接登录的）
   bool all = 1;
 }
 message GetAgentOverviewResponse {
@@ -539,7 +552,7 @@ message ListAgentSessionsRequest {
   string keyword = 2;
   int32 page = 3;
   int32 page_size = 4;
-  // 所有人的会话（全员 Agent 页，要有 agent:admin）；默认只有自己的
+  // 所有人的会话（Agent 管理页，要有 agent:admin）；默认只有自己的
   bool all = 5;
 }
 message ListAgentSessionsResponse {
@@ -904,7 +917,7 @@ message AgentDoc {
 }
 
 message ListAgentWorkspacesRequest {
-  // 所有人的工作区（全员 Agent 页，要有 agent:admin）；默认只有自己的
+  // 所有人的工作区（Agent 管理页，要有 agent:admin）；默认只有自己的
   bool all = 1;
 }
 message ListAgentWorkspacesResponse {
@@ -1022,7 +1035,8 @@ message AgentVendor {
   bool balance = 4;
 }
 
-// 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）
+// 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）。属于添加它的人，只有他自己用得上；
+// 管理员在 Agent 管理页加的是共享的，共享给所有人或指定的人，被共享到的人只能用、看不到密钥和环境变量
 message AgentProvider {
   string id = 1;
   // 供应商类型（AgentVendor.id），创建后不能改
@@ -1043,13 +1057,24 @@ message AgentProvider {
   repeated AgentKV env = 19;
   int64 test_latency_ms = 20;
   google.protobuf.Timestamp tested_at = 21;
+  // 所属用户；共享的是 @shared
+  string user_id = 22;
+  // 共享范围：空 = 只有主人自己用；all = 所有人；users = share_user_ids 里的人。
+  // 共享的只能在 Agent 管理页里（要有 agent:admin）新建和修改，别人那里只能用
+  string share = 23;
+  repeated string share_user_ids = 24;
 }
 
-message ListAgentProvidersRequest {}
+message ListAgentProvidersRequest {
+  // 所有人的第三方接口（Agent 管理页，要有 agent:admin）；默认是自己的，加上共享给自己的
+  bool all = 1;
+}
 message ListAgentProvidersResponse {
   repeated AgentProvider providers = 1;
   // 能添加的供应商类型
   repeated AgentVendor vendors = 2;
+  // all 时这些接口的主人和共享给的人
+  repeated AgentUser users = 3;
 }
 
 message CreateAgentProviderRequest {
@@ -1150,17 +1175,21 @@ message AgentMcpServer {
   string status_text = 12;
   int32 tool_count = 13;
   google.protobuf.Timestamp tested_at = 14;
-  // 所属用户
+  // 所属用户；共享的是 @shared
   string user_id = 15;
+  // 共享范围：空 = 只有主人自己用；all = 所有人；users = share_user_ids 里的人。
+  // 共享的只能在Agent 管理页里（要有 agent:admin）新建和修改，别人那里只能用
+  string share = 16;
+  repeated string share_user_ids = 17;
 }
 
 message ListAgentMcpServersRequest {
-  // 所有人的 MCP 服务器（全员 Agent 页，要有 agent:admin）；默认只有自己的
+  // 所有人的 MCP 服务器（Agent 管理页，要有 agent:admin）；默认是自己的，加上共享给自己的
   bool all = 1;
 }
 message ListAgentMcpServersResponse {
   repeated AgentMcpServer servers = 1;
-  // all 时这些服务器的主人
+  // all 时这些服务器的主人和共享给的人
   repeated AgentUser users = 2;
 }
 
@@ -1202,6 +1231,9 @@ message TestAgentMcpServerResponse {
 
 message ImportAgentMcpServersRequest {
   string json = 1;
+  // 导入成共享的（Agent 管理页，要有 agent:admin）：all | users；空是导入成自己的
+  string share = 2;
+  repeated string share_user_ids = 3;
 }
 message ImportAgentMcpServersResponse {
   repeated AgentMcpServer servers = 1;
@@ -1217,8 +1249,12 @@ message AgentSkill {
   string source = 4;
   bool enabled = 5;
   int32 file_count = 6;
-  // 所属用户
+  // 所属用户；共享的是 @shared
   string user_id = 7;
+  // 共享范围：空 = 只有主人自己用；all = 所有人；users = share_user_ids 里的人。
+  // 共享的只能在Agent 管理页里（要有 agent:admin）新建和修改，别人那里只能用
+  string share = 8;
+  repeated string share_user_ids = 9;
 }
 
 message AgentSkillFile {
@@ -1231,12 +1267,12 @@ message AgentSkillFile {
 message ListAgentSkillsRequest {
   // 只要启用着的
   bool enabled = 1;
-  // 所有人的技能（全员 Agent 页，要有 agent:admin）；默认只有自己的
+  // 所有人的技能（Agent 管理页，要有 agent:admin）；默认是自己的，加上共享给自己的
   bool all = 2;
 }
 message ListAgentSkillsResponse {
   repeated AgentSkill skills = 1;
-  // all 时这些技能的主人
+  // all 时这些技能的主人和共享给的人
   repeated AgentUser users = 2;
 }
 
@@ -1253,6 +1289,9 @@ message CreateAgentSkillRequest {
   string description = 2;
   bool enabled = 3;
   repeated AgentSkillFile files = 4;
+  // 新建成共享的（Agent 管理页，要有 agent:admin）：all | users；空是自己的
+  string share = 5;
+  repeated string share_user_ids = 6;
 }
 message CreateAgentSkillResponse {
   AgentSkill skill = 1;
@@ -1264,6 +1303,9 @@ message UpdateAgentSkillRequest {
   string description = 3;
   bool enabled = 4;
   repeated AgentSkillFile files = 5;
+  // 共享的技能才看：改共享范围（all | users）
+  string share = 6;
+  repeated string share_user_ids = 7;
 }
 message UpdateAgentSkillResponse {
   AgentSkill skill = 1;
@@ -1287,9 +1329,17 @@ message ImportAgentSkillRequest {
   bytes data = 2;
   // 下载链接、git 地址或服务器上的目录
   string location = 3;
+  // 导入成共享的（Agent 管理页，要有 agent:admin）：all | users；空是导入成自己的
+  string share = 4;
+  repeated string share_user_ids = 5;
 }
 message ImportAgentSkillResponse {
   repeated AgentSkill skills = 1;
+}
+
+message ListAgentUsersRequest {}
+message ListAgentUsersResponse {
+  repeated AgentUser users = 1;
 }
 
 // ———————————————————————————— 运行时 ————————————————————————————
@@ -1442,8 +1492,31 @@ message SaveAgentNotifyChannelResponse {
 message SetAgentNotifyChannelEnabledRequest {
   string kind = 1;
   bool enabled = 2;
+  // 别人的（Agent 管理页，要有 agent:admin）；空是自己的
+  string user_id = 3;
 }
 message SetAgentNotifyChannelEnabledResponse {}
+
+message DeleteAgentNotifyChannelRequest {
+  string kind = 1;
+  // 别人的（Agent 管理页，要有 agent:admin）；空是自己的
+  string user_id = 2;
+}
+message DeleteAgentNotifyChannelResponse {}
+
+// 一个人的通知设置（Agent 管理页）
+message AgentNotifyOwner {
+  string user_id = 1;
+  AgentNotifyEvents events = 2;
+  // 只有设置过的通知方式
+  repeated AgentNotifyChannel channels = 3;
+}
+
+message ListAgentNotifyRequest {}
+message ListAgentNotifyResponse {
+  repeated AgentNotifyOwner items = 1;
+  repeated AgentUser users = 2;
+}
 
 message TestAgentNotifyChannelRequest {
   string kind = 1;

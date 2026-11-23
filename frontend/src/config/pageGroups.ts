@@ -94,30 +94,36 @@ export const PAGE_GROUPS = {
       { key: 'prompt', labelKey: 'pageGroup.iqcheck.prompt', component: lazy(() => import('@/views/iqcheck/prompt/index.vue')) },
     ],
   },
-  // Agent 管理：会话 / 工作区 / 模型供应商 / MCP / 技能 / 运行时 / 通知。会话、工作区、MCP、技能是自己的；
-  // 模型供应商、运行时、通知是大家共用的，要「管理供应商、运行时和通知」（agent:manage）才看得到
+  // Agent 设置：每个人自己的会话 / 工作区 / 模型供应商（第三方接口）/ MCP / 技能 / 通知，加上管理员共享给自己的。
+  // 模型供应商里也能看到大家共用的官方账户（只读，管理在 Agent 管理页）
   agent: {
     path: '/agent/manage',
     labelKey: 'pageGroup.agent.label',
     tabs: [
       { key: 'sessions', labelKey: 'pageGroup.agent.sessions', icon: 'HOutline:ChatBubbleLeftRightIcon', component: lazy(() => import('@/views/agent/manage/sessions/index.vue')) },
       { key: 'workspaces', labelKey: 'pageGroup.agent.workspaces', icon: 'HOutline:FolderIcon', component: lazy(() => import('@/views/agent/manage/workspaces/index.vue')) },
-      { key: 'providers', labelKey: 'pageGroup.agent.providers', perm: 'agent:manage', icon: 'HOutline:KeyIcon', component: lazy(() => import('@/views/agent/manage/providers/index.vue')) },
+      { key: 'providers', labelKey: 'pageGroup.agent.providers', icon: 'HOutline:KeyIcon', component: lazy(() => import('@/views/agent/manage/providers/index.vue')) },
       { key: 'mcp', labelKey: 'pageGroup.agent.mcp', icon: 'HOutline:PuzzlePieceIcon', component: lazy(() => import('@/views/agent/manage/mcp/index.vue')) },
       { key: 'skills', labelKey: 'pageGroup.agent.skills', icon: 'HOutline:BookOpenIcon', component: lazy(() => import('@/views/agent/manage/skills/index.vue')) },
-      { key: 'runtimes', labelKey: 'pageGroup.agent.runtimes', perm: 'agent:manage', icon: 'HOutline:CpuChipIcon', component: lazy(() => import('@/views/agent/manage/runtimes/index.vue')) },
-      { key: 'notify', labelKey: 'pageGroup.agent.notify', perm: 'agent:manage', icon: 'HOutline:BellIcon', component: lazy(() => import('@/views/agent/manage/notify/index.vue')) },
+      { key: 'notify', labelKey: 'pageGroup.agent.notify', icon: 'HOutline:BellIcon', component: lazy(() => import('@/views/agent/manage/notify/index.vue')) },
     ],
   },
-  // 全员 Agent：所有人的会话 / 工作区 / MCP / 技能，和 Agent 管理用同一套列表（外层 provideAgentAll），只能清理
+  // Agent 管理（要 agent:admin）：所有人的会话 / 工作区 / 模型供应商 / MCP / 技能 / 通知，和 Agent 设置用同一套列表
+  // （外层 provideAgentAll；通知是单独的所有人列表），别人的只能清理，共享的第三方接口、MCP、技能在这里加和改；
+  // 再加上整个模块共用的运行时和官方账户（Claude Code、Codex 在服务器上登录的账户），这两个还要 agent:manage。
+  // 从远程节点过去时只有运行时和官方账户（那台节点上的），所有人的那几个只看主控本机（见 config/nodePermission.ts）
   agentAdmin: {
     path: '/agent/admin',
     labelKey: 'pageGroup.agentAdmin.label',
     tabs: [
       { key: 'sessions', labelKey: 'pageGroup.agent.sessions', icon: 'HOutline:ChatBubbleLeftRightIcon', component: lazy(() => import('@/views/agent/manage/sessions/index.vue')) },
       { key: 'workspaces', labelKey: 'pageGroup.agent.workspaces', icon: 'HOutline:FolderIcon', component: lazy(() => import('@/views/agent/manage/workspaces/index.vue')) },
+      { key: 'providers', labelKey: 'pageGroup.agent.providers', icon: 'HOutline:KeyIcon', component: lazy(() => import('@/views/agent/manage/providers/index.vue')) },
       { key: 'mcp', labelKey: 'pageGroup.agent.mcp', icon: 'HOutline:PuzzlePieceIcon', component: lazy(() => import('@/views/agent/manage/mcp/index.vue')) },
       { key: 'skills', labelKey: 'pageGroup.agent.skills', icon: 'HOutline:BookOpenIcon', component: lazy(() => import('@/views/agent/manage/skills/index.vue')) },
+      { key: 'notify', labelKey: 'pageGroup.agent.notify', icon: 'HOutline:BellIcon', component: lazy(() => import('@/views/agent/manage/notify/AllUsers.vue')) },
+      { key: 'runtimes', labelKey: 'pageGroup.agent.runtimes', perm: 'agent:manage', icon: 'HOutline:CpuChipIcon', component: lazy(() => import('@/views/agent/manage/runtimes/index.vue')) },
+      { key: 'accounts', labelKey: 'pageGroup.agent.accounts', perm: 'agent:manage', icon: 'HOutline:UserCircleIcon', component: lazy(() => import('@/views/agent/manage/accounts/index.vue')) },
     ],
   },
   // 个人中心：个人资料 / 外观（任何登录用户都可见）

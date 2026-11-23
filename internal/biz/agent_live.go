@@ -426,7 +426,8 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 	}
 	var provider *gen.AgentProvider
 	if s.ProviderID != "" {
-		if provider, err = uc.getProvider(bg, s.ProviderID); err != nil {
+		// 第三方接口要还是会话主人用得上的：删掉了、或者管理员不再共享给他了，就起不来
+		if provider, err = uc.usableProvider(bg, s.UserID, s.ProviderID); err != nil {
 			return nil, err
 		}
 	}

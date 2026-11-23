@@ -65,6 +65,7 @@
         <span class="ag-fl">{{ t('agent.common.name') }}</span>
         <span class="ag-fld"><input v-model="form.name" type="text" :aria-label="t('agent.common.name')" /></span>
       </label>
+      <AgShareField v-if="shared" v-model="share" />
 
       <div v-if="!fixedUrl" class="ag-field">
         <span class="ag-fl">{{ t('agent.providers.form.baseUrl') }}</span>
@@ -329,12 +330,19 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { createAgentProvider, fetchAgentProviderModels, testAgentProvider, updateAgentProvider } from '@/api/agent'
+import {
+  type AgentShare,
+  createAgentProvider,
+  fetchAgentProviderModels,
+  testAgentProvider,
+  updateAgentProvider,
+} from '@/api/agent'
 import type { AgentModel, AgentProvider, AgentProviderTestResult, AgentVendor } from '@/types/v1/agent'
 import { getRequestErrorMessage } from '@/utils/request'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
 import AgSelect from '@/views/agent/components/AgSelect.vue'
+import AgShareField from '@/views/agent/components/AgShareField.vue'
 import { fmtTokens, protocolAgent } from '@/views/agent/utils/format'
 import { vendorDesc, vendorName } from '@/views/agent/utils/labels'
 
@@ -357,7 +365,13 @@ interface EnvRow {
   value: string
 }
 
-const props = defineProps<{ modelValue: boolean; provider?: AgentProvider | null; vendors: AgentVendor[] }>()
+const props = defineProps<{
+  modelValue: boolean
+  provider?: AgentProvider | null
+  vendors: AgentVendor[]
+  /** 共享的（Agent 管理页里加、改）：配置这一步多一项「共享给」 */
+  shared?: boolean
+}>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   saved: []
@@ -442,9 +456,13 @@ const urlHint = computed(() => {
   return text === key ? '' : text
 })
 
+// 共享范围，只有 shared 时用
+const share = ref<AgentShare>({ share: 'all', shareUserIds: [] })
+
 const init = () => {
   const p = props.provider
   step.value = p ? 'config' : 'vendor'
+  share.value = { share: p?.share === 'users' ? 'users' : 'all', shareUserIds: [...(p?.shareUserIds ?? [])] }
   form.vendor = p?.vendor || ''
   form.name = p?.name || ''
   form.baseUrl = p?.baseUrl || ''
@@ -620,6 +638,10 @@ const draft = (): Partial<AgentProvider> => ({
 // 配置这一步填完了才能往下走：名称、地址（地址固定的不用）、新建时的 API Key、至少一个模型（测试要用）
 const configReady = () => {
   addModel()
+  if (props.shared && share.value.share === 'users' && !share.value.shareUserIds.length) {
+    feedback.warning(t('agent.share.needUsers'))
+    return false
+  }
   let missing = ''
   if (!form.name.trim()) missing = 'needName'
   else if (!fixedUrl.value && !form.baseUrl.trim()) missing = 'needUrl'
@@ -682,7 +704,7 @@ watch(() => [form.vendor, form.baseUrl, form.apiKey, mainModel.value], resetTest
 // —— 保存 ——
 const save = async () => {
   if (saving.value || !configReady()) return
-  const body = draft()
+  const body = { ...draft(), ...(props.shared ? share.value : {}) }
   const name = body.name || ''
   saving.value = true
   try {

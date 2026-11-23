@@ -1,4 +1,4 @@
-// Agent 管理 · MCP 标签页的文案。通用的词（保存、取消、测试连接……）在 agent.ts 的 agent.common 里。
+// Agent 设置 · MCP 标签页的文案。通用的词（保存、取消、测试连接……）在 agent.ts 的 agent.common 里。
 export default {
   'zh-CN': {
     agent: {

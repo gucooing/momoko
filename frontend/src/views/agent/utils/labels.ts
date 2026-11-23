@@ -2,6 +2,7 @@
 import { translate } from '@/locales'
 import type { AgentSessionExport } from '@/types/v1/agent'
 import type { AgentItem } from '@/views/agent/code/types'
+import { modelName } from '@/views/agent/composables/useAgentModels'
 import { fmtDuration, fmtTokens } from '@/views/agent/utils/format'
 
 type ProviderLike = { kind?: string; vendor?: string; name?: string }
@@ -138,7 +139,7 @@ export const exportMarkdown = (list: AgentSessionExport[]): string => {
     const meta = [
       s.runtimeName,
       providerLabel({ kind: s.providerKind, vendor: s.providerVendor, name: s.providerName }),
-      s.model,
+      modelName(s.runtimeId, s.providerId, s.model),
       s.workspaceName || translate('agent.common.noWorkspace'),
       s.createTime ? new Date(s.createTime).toLocaleString() : '',
     ].filter(Boolean)

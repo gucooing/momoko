@@ -32,6 +32,18 @@ func (f AgentMcpServerFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentMcpServerMutation", m)
 }
 
+// The AgentNotifyFunc type is an adapter to allow the use of ordinary
+// function as AgentNotify mutator.
+type AgentNotifyFunc func(context.Context, *gen.AgentNotifyMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentNotifyFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentNotifyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentNotifyMutation", m)
+}
+
 // The AgentProviderFunc type is an adapter to allow the use of ordinary
 // function as AgentProvider mutator.
 type AgentProviderFunc func(context.Context, *gen.AgentProviderMutation) (gen.Value, error)

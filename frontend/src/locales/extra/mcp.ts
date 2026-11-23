@@ -26,7 +26,7 @@ export default {
         permission: '需要的权限',
         items: {
           install_skill: '从 Git 仓库或 .zip 下载链接安装技能；一个来源里的多个技能都会装上并启用',
-          add_mcp_server: '在 Agent 管理里添加一个 MCP 服务器（stdio 或 HTTP）',
+          add_mcp_server: '在 Agent 设置里添加一个 MCP 服务器（stdio 或 HTTP）',
         },
       },
       config: {
@@ -62,7 +62,7 @@ export default {
         permission: '需要的權限',
         items: {
           install_skill: '從 Git 倉庫或 .zip 下載連結安裝技能；一個來源裏的多個技能都會裝上並啟用',
-          add_mcp_server: '在 Agent 管理裏添加一個 MCP 伺服器（stdio 或 HTTP）',
+          add_mcp_server: '在 Agent 設定裏添加一個 MCP 伺服器（stdio 或 HTTP）',
         },
       },
       config: {
@@ -98,7 +98,7 @@ export default {
         permission: 'Required permission',
         items: {
           install_skill: 'Install skills from a Git repository or a .zip download link; every skill in the source is installed and enabled',
-          add_mcp_server: 'Add an MCP server (stdio or HTTP) to Agent management',
+          add_mcp_server: 'Add an MCP server (stdio or HTTP) to Agent settings',
         },
       },
       config: {

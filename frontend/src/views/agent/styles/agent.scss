@@ -329,6 +329,11 @@
   background: var(--m-warnSoft);
   color: var(--m-warn);
 }
+// 共享的 MCP 服务器、技能上的标记
+.ag-tag--p {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
 // Agent 标记：Claude Code 用黄色系，Codex 用紫色系，其它用中性色
 .ag-agent {
   display: inline-flex;

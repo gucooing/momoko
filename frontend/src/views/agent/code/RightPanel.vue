@@ -295,6 +295,7 @@ import type {
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import { agentKindOf, clockTime, fmtDuration, fmtTokens, sinceTime } from '@/views/agent/utils/format'
+import { effortName, modelName } from '@/views/agent/composables/useAgentModels'
 import { modeName, providerLabel, sessionTitle } from '@/views/agent/utils/labels'
 import DiffCard from './DiffCard.vue'
 import FileTree from './FileTree.vue'
@@ -582,8 +583,14 @@ const infoRows = computed(() => {
   ]
   const d = props.detail
   if (s.parentId) rows.push({ k: t('agent.code.info.forkOf'), v: sessionTitle(d?.parentTitle) })
-  rows.push({ k: t('agent.code.info.model'), v: [provider, s.model].filter(Boolean).join(' · ') || '—' })
-  rows.push({ k: t('agent.code.info.effort'), v: s.effort || t('agent.common.notAdjustable') })
+  rows.push({
+    k: t('agent.code.info.model'),
+    v: [provider, modelName(s.runtimeId, s.providerId, s.model)].filter(Boolean).join(' · ') || '—',
+  })
+  rows.push({
+    k: t('agent.code.info.effort'),
+    v: effortName(s.runtimeId, s.providerId, s.model, s.effort) || t('agent.common.notAdjustable'),
+  })
   if (s.mode) rows.push({ k: t('agent.code.info.mode'), v: modeName(s.mode, s.modeName) })
   rows.push({ k: t('agent.code.info.cwd'), v: s.cwd, mono: true })
   if (d?.branch) rows.push({ k: t('agent.code.info.branch'), v: d.branch, mono: true })

@@ -1,5 +1,5 @@
 // Package agenthub 把会话事件分发给打开着页面的各个连接。
-// 每个连接属于一个用户，可以打开（订阅）他自己的一个会话，有 agent:admin 的连接还可以关注所有人的会话状态（全员 Agent 页用）；
+// 每个连接属于一个用户，可以打开（订阅）他自己的一个会话，有 agent:admin 的连接还可以关注所有人的会话状态（Agent 管理页用）；
 // 收得太慢的连接会被断开，由页面重连后按修订号补齐。连接按会话和用户建了索引，发一条消息不用扫所有连接。
 package agenthub
 
@@ -7,7 +7,7 @@ import "sync"
 
 // Conn 一个页面连接。
 type Conn struct {
-	// UserID 连接属于谁；Manage 表示他能关注所有人的会话状态（全员 Agent 页），打开会话仍只能打开自己的。
+	// UserID 连接属于谁；Manage 表示他能关注所有人的会话状态（Agent 管理页），打开会话仍只能打开自己的。
 	UserID string
 	Manage bool
 

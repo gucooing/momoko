@@ -36,7 +36,7 @@ import (
 	"momoko/pkg/secretbox"
 )
 
-// Agent（Code 与 Agent 管理）的业务层：谁能用哪个会话和供应商、配置和密钥怎么存、会话的状态规则、
+// Agent（Code 与 Agent 设置）的业务层：谁能用哪个会话和供应商、配置和密钥怎么存、会话的状态规则、
 // 什么时候发通知。启动进程、ACP 协议、各家 Agent 的专门处理（pkg/agentdriver 下的驱动）、Git、文件、
 // 登录命令这些底层都在 pkg 里，这里只做编排。
 //
@@ -84,14 +84,16 @@ type AgentWorkspaceStat struct {
 	ActiveAt time.Time
 }
 
-// AgentCounts 管理页各标签上的数量。
+// AgentCounts 管理页各标签上的数量。Providers 是第三方接口加上就绪且登录着的服务器上的登录。
 type AgentCounts struct {
 	Sessions, SessionsRunning, SessionsWaiting int
 	Workspaces                                 int
 	Providers                                  int
-	McpServers, McpOK                          int
-	Skills, SkillsEnabled                      int
-	Runtimes, RuntimesReady                    int
+	// Logins 就绪且登录着的服务器上的登录（大家共用的官方账户）
+	Logins                  int
+	McpServers, McpOK       int
+	Skills, SkillsEnabled   int
+	Runtimes, RuntimesReady int
 }
 
 // AgentUser 会话主人的名称和用户名。
@@ -125,10 +127,18 @@ type AgentRepo interface {
 	GetAgentRuntimeModel(ctx context.Context, runtimeID, model string) (*gen.AgentRuntimeModel, error)
 	SetAgentRuntimeModelLimits(ctx context.Context, runtimeID string, limits []AgentModelLimit) error
 
-	ListAgentProviders(ctx context.Context) ([]*gen.AgentProvider, error)
+	// ListAgentProviders userID 为空时是所有人的。
+	ListAgentProviders(ctx context.Context, userID string) ([]*gen.AgentProvider, error)
 	GetAgentProvider(ctx context.Context, id string) (*gen.AgentProvider, error)
 	SaveAgentProvider(ctx context.Context, p *gen.AgentProvider) error
 	DeleteAgentProvider(ctx context.Context, id string) error
+	// ShareLegacyAgentProviders 没记主人的第三方接口（以前是大家共用的）改成 owner 的、共享给所有人。
+	ShareLegacyAgentProviders(ctx context.Context, owner string) error
+
+	// GetAgentNotify 一个人的通知设置；没设置过时返回 NotFound。
+	GetAgentNotify(ctx context.Context, userID string) (*gen.AgentNotify, error)
+	ListAgentNotify(ctx context.Context) ([]*gen.AgentNotify, error)
+	SaveAgentNotify(ctx context.Context, n *gen.AgentNotify) error
 
 	// ListAgentWorkspaces userID 为空时是所有人的。
 	ListAgentWorkspaces(ctx context.Context, userID string) ([]*gen.AgentWorkspace, error)
@@ -140,8 +150,8 @@ type AgentRepo interface {
 
 	// ListAgentMcpServers userID 为空时是所有人的。
 	ListAgentMcpServers(ctx context.Context, userID string) ([]*gen.AgentMcpServer, error)
-	// ListAgentMcpServersByIDs 这些 id 里属于 userID 的。
-	ListAgentMcpServersByIDs(ctx context.Context, userID string, ids []string) ([]*gen.AgentMcpServer, error)
+	// ListAgentMcpServersByIDs 这些 id 的，谁的都有。
+	ListAgentMcpServersByIDs(ctx context.Context, ids []string) ([]*gen.AgentMcpServer, error)
 	AgentMcpServerNames(ctx context.Context, userID string) ([]string, error)
 	GetAgentMcpServer(ctx context.Context, id string) (*gen.AgentMcpServer, error)
 	FindAgentMcpServerByName(ctx context.Context, userID, name string) (*gen.AgentMcpServer, error)
@@ -185,6 +195,7 @@ type AgentRepo interface {
 	// AgentCounts userID 为空时会话、工作区、MCP、技能数所有人的。
 	AgentCounts(ctx context.Context, userID string) (*AgentCounts, error)
 	AgentUsers(ctx context.Context, ids []string) ([]AgentUser, error)
+	AllAgentUsers(ctx context.Context) ([]AgentUser, error)
 }
 
 type AgentUsecase struct {
@@ -269,10 +280,93 @@ func agentUserID(ctx context.Context) (string, error) {
 	return a.UserID, nil
 }
 
-// 会话、工作区、MCP 服务器、技能都属于创建它们的人：Code 页和 Agent 管理页里每个人（超级管理员也一样）
-// 只看得到、只用得上自己的。模型供应商、运行时、通知是大家共用的。
-// 「全员 Agent」页（要有 agent:admin）能看所有人的，并能清理（归档、删除、导出会话，删工作区、MCP、技能），
-// 但不能打开别人的会话、也不能改别人的配置。
+// 会话、工作区、第三方接口、MCP 服务器、技能、通知设置都属于创建它们的人：Code 页和 Agent 设置页里每个人（超级管理员也一样）
+// 只看得到、只用得上自己的。运行时和服务器上的登录（官方账户）是大家共用的，谁都看得到、用得上，改要 agent:manage。
+// 「Agent 管理」页（要有 agent:admin）能看所有人的，并能清理（归档、删除、导出会话，删工作区、第三方接口、MCP、技能，
+// 停用或移除通知方式），但不能打开别人的会话、也不能改别人的配置。
+// 例外是共享的第三方接口、MCP 服务器和技能：管理员在 Agent 管理页里加，主人是 agentSharedOwner，共享给所有人或指定的人；
+// 被共享到的人在自己那里看得到、用得上，但改不了，只有管理员在 Agent 管理页里改。
+
+// agentSharedOwner 共享的 MCP 服务器、技能的主人：不属于哪个人（真正的用户 id 里不会有 @）。
+const agentSharedOwner = "@shared"
+
+// 共享范围：all 所有人；users 指定的人（share_users）。
+const (
+	agentShareAll   = "all"
+	agentShareUsers = "users"
+)
+
+// sharedTo 共享的东西给不给 userID 用；不是共享的一律不给。
+func sharedTo(owner, share string, users []string, userID string) bool {
+	if owner != agentSharedOwner {
+		return false
+	}
+	switch share {
+	case agentShareAll:
+		return true
+	case agentShareUsers:
+		return slices.Contains(users, userID)
+	}
+	return false
+}
+
+// usableBy userID 用不用得上：自己的，或者共享给他的。
+func usableBy(owner, share string, users []string, userID string) bool {
+	return owner == userID || sharedTo(owner, share, users, userID)
+}
+
+// requireAdmin 共享的第三方接口、MCP 服务器、技能只有管理员（agent:admin，直接登录的）能加和改。
+func (uc *AgentUsecase) requireAdmin(ctx context.Context) error {
+	if !uc.isAdmin(ctx) {
+		return ErrNoPermission
+	}
+	return nil
+}
+
+// shareOf 检查共享范围：all，或者 users 加上至少一个存在的用户（不存在的去掉，重复的去掉，顺序不变）。
+func (uc *AgentUsecase) shareOf(ctx context.Context, share string, ids []string) (string, []string, error) {
+	switch share {
+	case agentShareAll:
+		return share, nil, nil
+	case agentShareUsers:
+		users, err := uc.repo.AgentUsers(ctx, ids)
+		if err != nil {
+			return "", nil, ErrSystem(err)
+		}
+		exists := make(map[string]bool, len(users))
+		for _, u := range users {
+			exists[u.ID] = true
+		}
+		out := make([]string, 0, len(ids))
+		for _, id := range ids {
+			if exists[id] {
+				out = append(out, id)
+				delete(exists, id)
+			}
+		}
+		if len(out) == 0 {
+			return "", nil, response.BadRequest("至少选一个用户")
+		}
+		return share, out, nil
+	}
+	return "", nil, response.BadRequest("共享范围只能是所有人或指定的人")
+}
+
+// ListUsers Agent 管理页给共享的第三方接口、MCP、技能选人用：所有用户。
+func (uc *AgentUsecase) ListUsers(ctx context.Context) ([]*v1.AgentUser, error) {
+	if err := uc.requireAdmin(ctx); err != nil {
+		return nil, err
+	}
+	users, err := uc.repo.AllAgentUsers(ctx)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	out := make([]*v1.AgentUser, 0, len(users))
+	for _, u := range users {
+		out = append(out, &v1.AgentUser{Id: u.ID, Name: u.Name, Username: u.Username})
+	}
+	return out, nil
+}
 
 // isAdmin 当前用户能不能看和清理所有人的：要有 agent:admin，而且是直接登录的（从远程节点用 API Key 过来的不算）。
 func (uc *AgentUsecase) isAdmin(ctx context.Context) bool {
@@ -342,9 +436,15 @@ func (uc *AgentUsecase) userDir(userID string, sub ...string) string {
 	return filepath.Join(append([]string{uc.root, "users", hex.EncodeToString(sum[:8])}, sub...)...)
 }
 
-// claimLegacy 以前 MCP 服务器和技能是大家共用的：升级后没记主人的都归给内置超级管理员，
-// 技能文件从原来的公共技能目录（skills/<名称>）挪进他自己的技能目录。挪不动的下次启动再挪。
+// claimLegacy 以前 MCP 服务器、技能、第三方接口、通知是大家共用的：升级后没记主人的 MCP 服务器和技能都归给内置超级管理员，
+// 技能文件从原来的公共技能目录（skills/<名称>）挪进他自己的技能目录，挪不动的下次启动再挪；
+// 第三方接口改成共享给所有人的（原来用着的人照样能用，管理员在 Agent 管理页里改共享范围）；
+// 原来那份通知设置归给内置超级管理员。
 func (uc *AgentUsecase) claimLegacy(ctx context.Context) {
+	if err := uc.repo.ShareLegacyAgentProviders(ctx, agentSharedOwner); err != nil {
+		uc.log.Errorf("把以前共用的第三方接口改成共享的失败：%v", err)
+	}
+	uc.claimLegacyNotify(ctx)
 	if err := uc.repo.ClaimLegacyAgentConfigs(ctx, BuiltinAdminUserID); err != nil {
 		uc.log.Errorf("把以前共用的 MCP 服务器和技能归给内置超级管理员失败：%v", err)
 		return
@@ -528,7 +628,7 @@ func (uc *AgentUsecase) loadNames(ctx context.Context) *agentNames {
 		modes:      map[string]map[string]string{},
 	}
 	rts, err1 := uc.repo.ListAgentRuntimes(ctx)
-	ps, err2 := uc.repo.ListAgentProviders(ctx)
+	ps, err2 := uc.repo.ListAgentProviders(ctx, "")
 	ws, err3 := uc.repo.ListAgentWorkspaces(ctx, "")
 	for _, rt := range rts {
 		names.runtimes[rt.ID] = rt
@@ -634,18 +734,19 @@ func agentCapsPB(c agentrun.Caps) *v1.AgentCapabilities {
 
 // GetOptions 每个 Agent 下能选的供应商、模型、推理强度和权限模式：
 //   - 服务器上的登录：用户自己在服务器上登录命令行，最近一次检查时登录着才有；模型和推理强度是检查时 Agent 给的；
-//   - 第三方接口：供应商类型给这一系协议的，模型和推理等级是模型目录里声明的。
+//   - 第三方接口：自己的和共享给自己的里面，供应商类型给这一系协议的；模型和推理等级是模型目录里声明的。
 func (uc *AgentUsecase) GetOptions(ctx context.Context) (*v1.GetAgentOptionsResponse, error) {
-	if _, err := agentUserID(ctx); err != nil {
+	userID, err := agentUserID(ctx)
+	if err != nil {
 		return nil, err
 	}
 	runtimes, err := uc.repo.ListAgentRuntimes(ctx)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	providers, err := uc.repo.ListAgentProviders(ctx)
+	providers, err := uc.usableProviders(ctx, userID)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
 	ids := make([]string, 0, len(runtimes))
 	for _, rt := range runtimes {
@@ -700,7 +801,8 @@ func agentProviderOptions(p *gen.AgentProvider) *v1.AgentProviderOptions {
 	return out
 }
 
-// GetOverview 管理页各标签上的数量：会话、工作区、MCP、技能是自己的（all 时是所有人的），供应商、运行时、通知是共用的。
+// GetOverview 管理页各标签上的数量：会话、工作区、第三方接口、MCP、技能、通知是自己的（all 时是所有人的），运行时是共用的。
+// 供应商数在 Agent 设置里是官方账户加上自己能用的第三方接口，在 Agent 管理里是所有人的第三方接口。
 func (uc *AgentUsecase) GetOverview(ctx context.Context, all bool) (*v1.GetAgentOverviewResponse, error) {
 	userID, err := uc.listScope(ctx, all)
 	if err != nil {
@@ -710,12 +812,37 @@ func (uc *AgentUsecase) GetOverview(ctx context.Context, all bool) (*v1.GetAgent
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	notify := uc.loadNotify(ctx)
-	enabled := 0
-	for _, kind := range agentNotifyKinds {
-		if ch := notify.Channels[kind]; ch != nil && ch.Enabled {
-			enabled++
+	// 自己的第三方接口、MCP、技能列表里还有共享给自己的，数量也算上（all 时已经数过所有的了）
+	if !all {
+		providers, err := uc.sharedProvidersFor(ctx, userID)
+		if err != nil {
+			return nil, ErrSystem(err)
 		}
+		c.Providers += len(providers) + c.Logins
+		mcps, err := uc.sharedMcpFor(ctx, userID)
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
+		for _, m := range mcps {
+			c.McpServers++
+			if m.Status == "ok" {
+				c.McpOK++
+			}
+		}
+		skills, err := uc.sharedSkillsFor(ctx, userID, false)
+		if err != nil {
+			return nil, ErrSystem(err)
+		}
+		for _, s := range skills {
+			c.Skills++
+			if s.Enabled {
+				c.SkillsEnabled++
+			}
+		}
+	}
+	notifyTotal, enabled, err := uc.notifyCounts(ctx, userID, all)
+	if err != nil {
+		return nil, err
 	}
 	return &v1.GetAgentOverviewResponse{
 		Sessions:        int32(c.Sessions),
@@ -729,7 +856,7 @@ func (uc *AgentUsecase) GetOverview(ctx context.Context, all bool) (*v1.GetAgent
 		SkillsEnabled:   int32(c.SkillsEnabled),
 		Runtimes:        int32(c.Runtimes),
 		RuntimesReady:   int32(c.RuntimesReady),
-		NotifyChannels:  int32(len(agentNotifyKinds)),
+		NotifyChannels:  int32(notifyTotal),
 		NotifyEnabled:   int32(enabled),
 	}, nil
 }

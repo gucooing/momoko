@@ -266,7 +266,6 @@ import { useI18n } from 'vue-i18n'
 import {
   archiveAgentSessions,
   cancelAgentSession,
-  getAgentOptions,
   getAgentSidebar,
   promptAgentSession,
   resolveAgentPermission,
@@ -276,9 +275,11 @@ import {
   setAgentSessionOption,
 } from '@/api/agent'
 import { useFullBleed } from '@/composables/useAppLayout'
-import type { AgentChangedFile, AgentRuntimeOptions, AgentSession, AgentSidebarWorkspace } from '@/types/v1/agent'
+import { useDockSessionDir } from '@/layouts/app/termDock/state'
+import type { AgentChangedFile, AgentSession, AgentSidebarWorkspace } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
+import { useAgentModels } from '@/views/agent/composables/useAgentModels'
 import { useLastCodeSession } from '@/views/agent/composables/useLastCodeSession'
 import { agentKindOf, fmtDuration } from '@/views/agent/utils/format'
 import { sessionTitle } from '@/views/agent/utils/labels'
@@ -328,19 +329,8 @@ watch(
   { immediate: true },
 )
 
-// —— 选项 ——
-const options = ref<AgentRuntimeOptions[]>([])
-const optionsLoaded = ref(false)
-const loadOptions = async () => {
-  try {
-    const { data } = await getAgentOptions()
-    options.value = data.runtimes ?? []
-  } catch {
-    /* shown */
-  } finally {
-    optionsLoaded.value = true
-  }
-}
+// —— 选项：和别的页面共用一份模型清单（模型供应商页同步、配置的） ——
+const { runtimes: options, loaded: optionsLoaded, refresh: loadOptions } = useAgentModels()
 
 // —— 会话栏 ——
 const keyword = ref('')
@@ -440,6 +430,8 @@ watch(socket.session, (s) => {
 })
 const initialWorkspace = computed(() => String(route.query.workspace || ''))
 const session = computed<AgentSession | null>(() => socket.session.value ?? sideSessions.value.find((s) => s.id === sessionId.value) ?? null)
+// 顶栏终端的「在当前会话的目录打开」
+useDockSessionDir(() => session.value)
 const busy = computed(() => session.value?.status === 'running' || session.value?.status === 'waiting')
 const DOT: Record<string, string> = { running: 'agc-sd--run agc-pulse', waiting: 'agc-sd--wait', error: 'agc-sd--bad' }
 const dotCls = computed(() => DOT[session.value?.status ?? ''] ?? '')

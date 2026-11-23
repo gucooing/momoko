@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"momoko/internal/data/ent/gen/agentevent"
 	"momoko/internal/data/ent/gen/agentmcpserver"
+	"momoko/internal/data/ent/gen/agentnotify"
 	"momoko/internal/data/ent/gen/agentprovider"
 	"momoko/internal/data/ent/gen/agentruntime"
 	"momoko/internal/data/ent/gen/agentruntimemodel"
@@ -130,6 +131,7 @@ func checkColumn(t, c string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			agentevent.Table:         agentevent.ValidColumn,
 			agentmcpserver.Table:     agentmcpserver.ValidColumn,
+			agentnotify.Table:        agentnotify.ValidColumn,
 			agentprovider.Table:      agentprovider.ValidColumn,
 			agentruntime.Table:       agentruntime.ValidColumn,
 			agentruntimemodel.Table:  agentruntimemodel.ValidColumn,

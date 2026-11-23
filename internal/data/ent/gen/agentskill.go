@@ -3,6 +3,7 @@
 package gen
 
 import (
+	"encoding/json"
 	"fmt"
 	"momoko/internal/data/ent/gen/agentskill"
 	"strings"
@@ -35,7 +36,11 @@ type AgentSkill struct {
 	// 是否启用
 	Enabled bool `json:"enabled,omitempty"`
 	// 文件数
-	FileCount    int `json:"file_count,omitempty"`
+	FileCount int `json:"file_count,omitempty"`
+	// 共享范围：空 = 只有主人自己用；all = 所有人；users = share_users 里的人。共享的主人是 @shared，在全员 Agent 页里管
+	Share string `json:"share,omitempty"`
+	// share 为 users 时能用的用户 id
+	ShareUsers   []string `json:"share_users,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -44,11 +49,13 @@ func (*AgentSkill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case agentskill.FieldShareUsers:
+			values[i] = new([]byte)
 		case agentskill.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case agentskill.FieldFileCount:
 			values[i] = new(sql.NullInt64)
-		case agentskill.FieldID, agentskill.FieldUserID, agentskill.FieldName, agentskill.FieldDescription, agentskill.FieldSource, agentskill.FieldLocation:
+		case agentskill.FieldID, agentskill.FieldUserID, agentskill.FieldName, agentskill.FieldDescription, agentskill.FieldSource, agentskill.FieldLocation, agentskill.FieldShare:
 			values[i] = new(sql.NullString)
 		case agentskill.FieldCreateTime, agentskill.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -127,6 +134,20 @@ func (_m *AgentSkill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.FileCount = int(value.Int64)
 			}
+		case agentskill.FieldShare:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field share", values[i])
+			} else if value.Valid {
+				_m.Share = value.String
+			}
+		case agentskill.FieldShareUsers:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field share_users", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.ShareUsers); err != nil {
+					return fmt.Errorf("unmarshal field share_users: %w", err)
+				}
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -189,6 +210,12 @@ func (_m *AgentSkill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("file_count=")
 	builder.WriteString(fmt.Sprintf("%v", _m.FileCount))
+	builder.WriteString(", ")
+	builder.WriteString("share=")
+	builder.WriteString(_m.Share)
+	builder.WriteString(", ")
+	builder.WriteString("share_users=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ShareUsers))
 	builder.WriteByte(')')
 	return builder.String()
 }
