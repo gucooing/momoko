@@ -110,10 +110,13 @@ const (
 )
 
 const (
-	// AgentUse 允许使用 Code：在服务器上启动 Agent、开会话写代码（等同于能在服务器上执行命令）。
+	// AgentUse 允许使用 Code：在服务器上启动 Agent、开会话写代码（等同于能在服务器上执行命令），
+	// 并管理自己的会话、工作区、MCP 和技能（每个人只看得到自己的）。
 	AgentUse Permissions = "agent:use"
-	// AgentManage 允许管理 Agent：模型供应商、MCP、技能、运行时、通知，以及查看和清理所有人的会话。
+	// AgentManage 允许管理大家共用的 Agent 配置：模型供应商、运行时、通知。
 	AgentManage Permissions = "agent:manage"
+	// AgentAdmin 允许在「全员 Agent」页查看和清理所有人的会话、工作区、MCP 和技能（默认只有超级管理员有）。
+	AgentAdmin Permissions = "agent:admin"
 )
 
 const (

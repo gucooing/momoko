@@ -2,12 +2,13 @@
   <div class="update-release-content">
     <p class="version-summary">
       {{
-        t('layout.updateAvailableContent', {
+        t(note ? 'system.settings.updater.dialogSummary' : 'layout.updateAvailableContent', {
           current: update.currentVersion,
           latest: update.latestVersion,
         })
       }}
     </p>
+    <p v-if="note" class="update-note">{{ note }}</p>
 
     <section class="release-section">
       <div class="release-heading">{{ t('layout.updateReleaseContent') }}</div>
@@ -28,6 +29,8 @@ import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   update: CheckUpdateResponse
+  /** 可以一键更新时，说明点「立即更新」会发生什么 */
+  note?: string
 }>()
 
 const { t } = useI18n()
@@ -62,6 +65,12 @@ const renderedReleaseBody = computed(() => markdown.render(releaseBody.value))
 .version-summary {
   margin: 0;
   color: var(--el-text-color-regular);
+}
+
+.update-note {
+  margin: 8px 0 0;
+  color: var(--el-text-color-secondary);
+  font-size: 0.8125rem;
 }
 
 .release-section {

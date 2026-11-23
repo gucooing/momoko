@@ -22,7 +22,9 @@ type AgentSkill struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// 更新时间
 	UpdateTime time.Time `json:"update_time,omitempty"`
-	// 名称，同时是技能目录名
+	// 所属用户 id：每个人只看得到、只用得上自己的
+	UserID string `json:"user_id,omitempty"`
+	// 名称，同时是技能目录名；同一个人的不重名
 	Name string `json:"name,omitempty"`
 	// 说明
 	Description string `json:"description,omitempty"`
@@ -46,7 +48,7 @@ func (*AgentSkill) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case agentskill.FieldFileCount:
 			values[i] = new(sql.NullInt64)
-		case agentskill.FieldID, agentskill.FieldName, agentskill.FieldDescription, agentskill.FieldSource, agentskill.FieldLocation:
+		case agentskill.FieldID, agentskill.FieldUserID, agentskill.FieldName, agentskill.FieldDescription, agentskill.FieldSource, agentskill.FieldLocation:
 			values[i] = new(sql.NullString)
 		case agentskill.FieldCreateTime, agentskill.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -82,6 +84,12 @@ func (_m *AgentSkill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
 				_m.UpdateTime = value.Time
+			}
+		case agentskill.FieldUserID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				_m.UserID = value.String
 			}
 		case agentskill.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -160,6 +168,9 @@ func (_m *AgentSkill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
 	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(_m.UserID)
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)

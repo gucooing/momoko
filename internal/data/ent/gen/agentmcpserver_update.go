@@ -35,6 +35,20 @@ func (_u *AgentMcpServerUpdate) SetUpdateTime(v time.Time) *AgentMcpServerUpdate
 	return _u
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *AgentMcpServerUpdate) SetUserID(v string) *AgentMcpServerUpdate {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *AgentMcpServerUpdate) SetNillableUserID(v *string) *AgentMcpServerUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *AgentMcpServerUpdate) SetName(v string) *AgentMcpServerUpdate {
 	_u.mutation.SetName(v)
@@ -305,6 +319,9 @@ func (_u *AgentMcpServerUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(agentmcpserver.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(agentmcpserver.FieldUserID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(agentmcpserver.FieldName, field.TypeString, value)
 	}
@@ -381,6 +398,20 @@ type AgentMcpServerUpdateOne struct {
 // SetUpdateTime sets the "update_time" field.
 func (_u *AgentMcpServerUpdateOne) SetUpdateTime(v time.Time) *AgentMcpServerUpdateOne {
 	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
+// SetUserID sets the "user_id" field.
+func (_u *AgentMcpServerUpdateOne) SetUserID(v string) *AgentMcpServerUpdateOne {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *AgentMcpServerUpdateOne) SetNillableUserID(v *string) *AgentMcpServerUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
 	return _u
 }
 
@@ -683,6 +714,9 @@ func (_u *AgentMcpServerUpdateOne) sqlSave(ctx context.Context) (_node *AgentMcp
 	}
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(agentmcpserver.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(agentmcpserver.FieldUserID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(agentmcpserver.FieldName, field.TypeString, value)

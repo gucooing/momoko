@@ -1,24 +1,57 @@
 <!-- 新会话：中间是引导语和输入区（Agent、模型、推理强度、权限模式在输入区里选），右侧是本次会话的设置：
-     工作区（默认值来自工作区）、附加文件夹、在独立工作树里运行、MCP 服务器。发出第一条消息就新建会话。 -->
+     工作区（默认值来自工作区）、附加文件夹、在独立工作树里运行、MCP 服务器，选了工作区下面还有它的文件。
+     点文件在标签页里打开（只读，选中一段可以加到附件），拖到输入框里是引用。发出第一条消息就新建会话。 -->
 <template>
   <section class="agc-card agc-main" :aria-label="t('agent.common.newSession')">
     <header class="agc-head">
       <button type="button" class="ag-ib ag-ib--sm" :aria-label="leftOn ? t('agent.code.hideSide') : t('agent.code.showSide')" :title="leftOn ? t('agent.code.hideSide') : t('agent.code.showSide')" :aria-pressed="leftOn" @click="emit('toggleLeft')">
         <UIcon name="i-lucide-panel-left" />
       </button>
-      <div class="agc-tt is-on"><UIcon name="i-lucide-message-square" />{{ t('agent.common.newSession') }}</div>
-      <span class="agc-flex" />
+      <div class="agc-tabs ag-noscroll" role="tablist" :aria-label="t('agent.code.tabs')">
+        <div class="agc-tt" :class="{ 'is-on': !ctab }">
+          <button type="button" class="agc-tt__btn" role="tab" :aria-selected="!ctab" @click="ctab = ''">
+            <UIcon name="i-lucide-message-square" /><span class="ag-ellipsis agc-tt__title">{{ t('agent.common.newSession') }}</span>
+          </button>
+        </div>
+        <div v-for="p in openFiles" :key="p" class="agc-tt" :class="{ 'is-on': ctab === p }">
+          <button type="button" class="agc-tt__btn" role="tab" :aria-selected="ctab === p" :title="p" @click="ctab = p">
+            <UIcon name="i-lucide-file" /><span class="ag-mono agc-tt__file">{{ shortName(p) }}</span>
+          </button>
+          <button
+            type="button"
+            class="agc-tt__x"
+            :class="{ 'is-dirty': tabDirty(p) }"
+            :aria-label="t('agent.code.closeTab', { path: p })"
+            :title="tabDirty(p) ? t('agent.code.file.unsaved') : undefined"
+            @click="closeFile(p)"
+          >
+            <span class="agc-tt__dot" /><UIcon name="i-lucide-x" />
+          </button>
+        </div>
+      </div>
       <button type="button" class="ag-ib ag-ib--sm" :aria-label="rightOn ? t('agent.code.hideRight') : t('agent.code.showRight')" :title="rightOn ? t('agent.code.hideRight') : t('agent.code.showRight')" :aria-pressed="rightOn" @click="emit('toggleRight')">
         <UIcon name="i-lucide-panel-right" />
       </button>
     </header>
 
-    <div class="agc-hero">
+    <FileTab
+      v-if="ctab && workspace"
+      :key="`${workspace.id}|${tabKeys.key(ctab)}`"
+      :workspace-id="workspace.id"
+      :path="ctab"
+      :cwd="workspace.path"
+      @attach="attachSnippet"
+      @open="openFile"
+      @navigate="onTabNavigate"
+    />
+
+    <!-- 打开文件标签时输入区只是藏起来，写了一半的话还在 -->
+    <div v-show="!ctab" class="agc-hero">
       <span class="agc-hero__mark"><UIcon name="i-lucide-code-xml" /></span>
       <h1 class="agc-hero__t">{{ t('agent.code.new.title') }}</h1>
       <div v-if="!readyRuntimes.length && optionsLoaded" class="agc-hero__sub">
         {{ t('agent.code.new.noAgent') }}
-        <RouterLink to="/agent/manage?tab=runtimes">{{ t('agent.code.new.goRuntimes') }}</RouterLink>
+        <RouterLink v-if="canShared" to="/agent/manage?tab=runtimes">{{ t('agent.code.new.goRuntimes') }}</RouterLink>
       </div>
       <div v-else-if="summary" class="agc-hero__sub">
         <i18n-t scope="global" keypath="agent.code.new.defaults" tag="span">
@@ -28,7 +61,7 @@
       </div>
     </div>
 
-    <div class="agc-foot">
+    <div v-show="!ctab" class="agc-foot">
       <Composer
         ref="composer"
         :runtimes="options"
@@ -49,7 +82,20 @@
     </div>
   </section>
 
-  <section v-if="rightOn" class="agc-card agc-right agc-right--new ag-noscroll" :aria-label="t('agent.code.new.settings')">
+  <div
+    v-if="rightOn"
+    class="agc-grip"
+    role="separator"
+    aria-orientation="vertical"
+    tabindex="0"
+    :aria-valuenow="rightWidth"
+    :aria-label="t('agent.code.resizeRight')"
+    :title="t('agent.code.resizeRightTip')"
+    @pointerdown="startRightResize"
+    @dblclick="resetRightWidth"
+    @keydown="onRightGripKey"
+  />
+  <section v-if="rightOn" class="agc-card agc-right agc-right--new ag-noscroll" :style="rightStyle(false)" :aria-label="t('agent.code.new.settings')">
     <div class="agc-new__head">
       <h2 class="agc-new__t">{{ t('agent.code.new.settings') }}</h2>
       <span class="ag-muted agc-small">{{ t('agent.code.new.fromWorkspace') }}</span>
@@ -130,23 +176,52 @@
         <RouterLink v-if="canManage" to="/agent/manage?tab=mcp">{{ t('agent.code.new.goMcp') }}</RouterLink>
       </div>
     </div>
+
+    <!-- 选了工作区：下面是它的文件夹，点文件或拖到输入框里就是引用 -->
+    <div v-if="workspace" class="agc-new__sec agc-new__files">
+      <div class="ag-lbl">{{ t('agent.code.new.files') }}</div>
+      <FileTree
+        :scope="{ workspaceId: workspace.id }"
+        :cwd="workspace.path"
+        :empty="t('agent.code.files.empty')"
+        :tip="(path) => t('agent.code.new.filesTip', { path })"
+        :active="ctab"
+        can-ref
+        @open="openFile"
+        @moved="onFileMoved"
+        @deleted="onFilesDeleted"
+        @reference="referenceFile"
+      />
+    </div>
   </section>
 
   <AgWorkspaceDialog v-model="addWsOpen" @saved="onWorkspaceAdded" />
+  <AgConfirm
+    v-model="closeAskOpen"
+    :title="t('agent.code.file.closeDirtyTitle')"
+    :message="t('agent.code.file.closeDirtyMsg', { names: shortName(closeAsk) })"
+    :confirm-text="t('agent.code.file.closeDirty')"
+    danger
+    :on-confirm="() => closeNow(closeAsk)"
+  />
 </template>
 
 <script setup lang="ts">
 import { onClickOutside } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { createAgentSession, listAgentMcpServers, listAgentSkills, listAgentWorkspaces } from '@/api/agent'
-import { PERM } from '@/config/permission'
 import { useMenuStore } from '@/stores/menu'
 import type { AgentMcpServer, AgentRuntimeOptions, AgentSession, AgentWorkspace } from '@/types/v1/agent'
+import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDirList from '@/views/agent/components/AgDirList.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
 import AgWorkspaceDialog from '@/views/agent/components/AgWorkspaceDialog.vue'
 import { providerLabel } from '@/views/agent/utils/labels'
-import Composer, { type DraftAttachment, type Selection } from './Composer.vue'
+import Composer, { type DraftAttachment, type DraftSnippet, type Selection } from './Composer.vue'
+import FileTab from './FileTab.vue'
+import FileTree from './FileTree.vue'
+import { onRightGripKey, resetRightWidth, rightStyle, rightWidth, startRightResize } from './rightWidth'
+import { dropFileState, fileScope, isDirty, isUnder, movedPath, moveFileState, useTabKeys } from './fileState'
 
 const props = defineProps<{
   options: AgentRuntimeOptions[]
@@ -161,7 +236,10 @@ const props = defineProps<{
 const emit = defineEmits<{ created: [session: AgentSession]; toggleLeft: []; toggleRight: []; workspacesChanged: [] }>()
 const { t } = useI18n()
 const menuStore = useMenuStore()
-const canManage = computed(() => menuStore.hasButtonPermission(PERM.AGENT_MANAGE))
+// 能进 Agent 管理页（自己的 MCP 在那里添加）
+const canManage = computed(() => menuStore.hasMenuPath('/agent/manage'))
+// 能管大家共用的运行时、供应商（Agent 管理页里的这几个标签要 agent:manage）
+const canShared = computed(() => canManage.value && menuStore.hasButtonPermission('agent:manage'))
 
 const LAST_KEY = 'agent.code.last'
 interface Last extends Selection {
@@ -269,6 +347,83 @@ const addDir = () => {
 }
 
 const toggleMcp = (id: string, on: boolean) => (on ? mcpIds.add(id) : mcpIds.delete(id))
+
+// —— 工作区的文件：点开在标签页里看 ——
+/** 打开的文件（相对工作区）；ctab 为空是新会话本身 */
+const openFiles = ref<string[]>([])
+const ctab = ref('')
+const tabKeys = useTabKeys()
+const openFile = (path: string) => {
+  if (!openFiles.value.includes(path)) {
+    openFiles.value.push(path)
+    tabKeys.fresh(path)
+  }
+  ctab.value = path
+}
+// 文件标签的 HTML 预览里跳到了别的页面：标签就地换成那个文件（已经开着那个文件的标签合并掉）
+const onTabNavigate = (from: string, to: string) => {
+  openFiles.value = openFiles.value.filter((p) => p !== to).map((p) => (p === from ? to : p))
+  tabKeys.carry(from, to)
+  if (ctab.value === from) ctab.value = to
+}
+const shortName = (p: string) => p.split('/').slice(-2).join('/')
+const scopeKey = computed(() => fileScope('', workspaceId.value))
+const tabDirty = (p: string) => isDirty(scopeKey.value, p)
+/** 关掉一个标签（没保存的改动丢掉），旁边的顶上来 */
+const closeNow = (path: string) => {
+  dropFileState(scopeKey.value, [path])
+  tabKeys.drop(path)
+  const i = openFiles.value.indexOf(path)
+  if (i < 0) return
+  openFiles.value.splice(i, 1)
+  if (ctab.value === path) ctab.value = openFiles.value[i] ?? openFiles.value[i - 1] ?? ''
+}
+const closeAsk = ref('')
+const closeAskOpen = ref(false)
+const closeFile = (path: string) => {
+  if (!tabDirty(path)) {
+    closeNow(path)
+    return
+  }
+  closeAsk.value = path
+  closeAskOpen.value = true
+}
+// 文件树里改名、挪位置、删除：打开的标签跟着变
+const onFileMoved = (from: string, to: string) => {
+  moveFileState(scopeKey.value, from, to)
+  openFiles.value = openFiles.value.map((p) => {
+    const next = movedPath(p, from, to)
+    if (next !== p) {
+      tabKeys.drop(p)
+      tabKeys.fresh(next)
+    }
+    return next
+  })
+  if (ctab.value) ctab.value = movedPath(ctab.value, from, to)
+}
+const onFilesDeleted = (paths: string[]) => {
+  for (const p of openFiles.value.filter((p) => paths.some((d) => isUnder(p, d)))) closeNow(p)
+  dropFileState(scopeKey.value, paths)
+}
+// 右键「添加到对话」：回到新会话，加一个引用
+const referenceFile = async (path: string) => {
+  ctab.value = ''
+  await nextTick()
+  composer.value?.addRef(path)
+  composer.value?.focus()
+}
+// 换了工作区：之前打开的文件是那个工作区的，都关掉（没保存的改动也丢掉）
+watch(workspaceId, (_, old) => {
+  dropFileState(fileScope('', old), openFiles.value)
+  openFiles.value = []
+  ctab.value = ''
+})
+// 文件里选中一段「添加到对话」：回到新会话，加进输入框的附件
+const attachSnippet = async (sn: DraftSnippet) => {
+  ctab.value = ''
+  await nextTick()
+  composer.value?.addSnippet(sn)
+}
 
 // —— 新建 ——
 const create = async (text: string, attachments: DraftAttachment[]): Promise<boolean> => {

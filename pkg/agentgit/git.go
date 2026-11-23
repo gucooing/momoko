@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -335,6 +336,42 @@ func Revert(ctx context.Context, dir, rel string) error {
 		return errors.New("撤销失败：" + err.Error())
 	}
 	return nil
+}
+
+// Repos 找 root 下面 maxDepth 层以内的 Git 仓库（root 自己不算），返回相对路径（正斜杠），按路径排序，最多 limit 个。
+// 找到一个仓库就不再往它里面翻；隐藏目录和依赖、产物目录不翻。给本身不是仓库、但下面放着几个仓库的会话目录用。
+func Repos(root string, maxDepth, limit int) []string {
+	var repos []string
+	_ = filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil || !d.IsDir() || path == root {
+			return nil
+		}
+		if len(repos) >= limit {
+			return filepath.SkipAll
+		}
+		name := d.Name()
+		if strings.HasPrefix(name, ".") {
+			return filepath.SkipDir
+		}
+		switch name {
+		case "node_modules", "vendor", "dist", "build", "target", "__pycache__":
+			return filepath.SkipDir
+		}
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return filepath.SkipDir
+		}
+		if isGit, _ := Info(path); isGit {
+			repos = append(repos, filepath.ToSlash(rel))
+			return filepath.SkipDir
+		}
+		if strings.Count(rel, string(filepath.Separator))+1 >= maxDepth {
+			return filepath.SkipDir
+		}
+		return nil
+	})
+	sort.Strings(repos)
+	return repos
 }
 
 // Files 仓库里的文件（已跟踪的加上没被忽略的新文件），相对路径。不是仓库时 ok 为 false。

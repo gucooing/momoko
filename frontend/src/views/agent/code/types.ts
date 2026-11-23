@@ -3,7 +3,8 @@
 export type ItemType = 'user' | 'assistant' | 'thought' | 'tool' | 'permission' | 'turn' | 'notice' | 'subagent' | 'relay'
 
 export interface AgentAttachmentRef {
-  kind: 'image' | 'file' | 'ref'
+  /** snippet：打开的文件里选中的一段，name 是「路径:起止行」 */
+  kind: 'image' | 'file' | 'ref' | 'snippet'
   name: string
   /** 上传的附件才有：凭它取回内容（图片显示缩略图） */
   file?: string

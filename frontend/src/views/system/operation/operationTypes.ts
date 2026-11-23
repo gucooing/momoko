@@ -106,6 +106,9 @@ export const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeDockerRegistryAuthTest]: 'systemV2.audit.types.dockerRegistryAuthTest',
   [OperationType.OperationTypeSystemOperationLogRetentionUpdate]: 'systemV2.audit.types.systemOperationLogRetentionUpdate',
   [OperationType.OperationTypeSystemStorageConfigUpdate]: 'systemV2.audit.types.systemStorageConfigUpdate',
+  [OperationType.OperationTypeSystemUpdateStart]: 'systemV2.audit.types.systemUpdateStart',
+  [OperationType.OperationTypeSystemUpdateApply]: 'systemV2.audit.types.systemUpdateApply',
+  [OperationType.OperationTypeSystemUpdateCancel]: 'systemV2.audit.types.systemUpdateCancel',
   [OperationType.UNRECOGNIZED]: 'system.operation.types.unrecognized',
 }
 

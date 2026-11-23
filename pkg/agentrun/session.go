@@ -1095,6 +1095,49 @@ func (s *Session) Unqueue(id string) error {
 	return errors.New("这条消息已经发出去了")
 }
 
+// SendNow 排着队的一条马上发。v2 插进正在跑的一轮；v1 插不进去，就停下这一轮，排到最前面，这一轮收尾后作为下一轮发出
+// （排在它后面的接着排）。这一轮刚好已经结束时，它排到最前面直接发。
+func (s *Session) SendNow(id string) error {
+	s.mu.Lock()
+	idx := -1
+	for i, q := range s.queue {
+		if q.id == id {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		s.mu.Unlock()
+		return errors.New("这条消息已经发出去了")
+	}
+	q := s.queue[idx]
+	rest := append(s.queue[:idx:idx], s.queue[idx+1:]...)
+	if s.turn != nil && s.v2 {
+		s.queue = rest
+		s.syncQueueLocked()
+		s.userItemLocked(q.text, q.uploads, true)
+		s.mu.Unlock()
+		go s.sendV2(blocksOf(q.text, q.uploads), nil)
+		return nil
+	}
+	s.queue = append([]*queued{q}, rest...)
+	s.syncQueueLocked()
+	if s.turn == nil {
+		s.mu.Unlock()
+		go s.sendQueued()
+		return nil
+	}
+	// v1：停下这一轮，但不清掉排着的消息
+	s.turn.cancelled = true
+	cancelled := s.cancelPending()
+	s.mu.Unlock()
+	for _, id := range cancelled {
+		s.sink.Answered(id, "", false)
+	}
+	_ = s.client.Cancel(s.acpID)
+	return nil
+}
+
 // syncQueueLocked 排队的消息报给页面（在 s.mu 里调用）。
 func (s *Session) syncQueueLocked() {
 	s.state.Queue = make([]Queued, 0, len(s.queue))

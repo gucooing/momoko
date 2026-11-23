@@ -51,6 +51,20 @@ func (_c *AgentMcpServerCreate) SetNillableUpdateTime(v *time.Time) *AgentMcpSer
 	return _c
 }
 
+// SetUserID sets the "user_id" field.
+func (_c *AgentMcpServerCreate) SetUserID(v string) *AgentMcpServerCreate {
+	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_c *AgentMcpServerCreate) SetNillableUserID(v *string) *AgentMcpServerCreate {
+	if v != nil {
+		_c.SetUserID(*v)
+	}
+	return _c
+}
+
 // SetName sets the "name" field.
 func (_c *AgentMcpServerCreate) SetName(v string) *AgentMcpServerCreate {
 	_c.mutation.SetName(v)
@@ -266,6 +280,10 @@ func (_c *AgentMcpServerCreate) defaults() {
 		v := agentmcpserver.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
 	}
+	if _, ok := _c.mutation.UserID(); !ok {
+		v := agentmcpserver.DefaultUserID
+		_c.mutation.SetUserID(v)
+	}
 	if _, ok := _c.mutation.Description(); !ok {
 		v := agentmcpserver.DefaultDescription
 		_c.mutation.SetDescription(v)
@@ -315,6 +333,9 @@ func (_c *AgentMcpServerCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`gen: missing required field "AgentMcpServer.update_time"`)}
+	}
+	if _, ok := _c.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`gen: missing required field "AgentMcpServer.user_id"`)}
 	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`gen: missing required field "AgentMcpServer.name"`)}
@@ -407,6 +428,10 @@ func (_c *AgentMcpServerCreate) createSpec() (*AgentMcpServer, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UpdateTime(); ok {
 		_spec.SetField(agentmcpserver.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
+	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(agentmcpserver.FieldUserID, field.TypeString, value)
+		_node.UserID = value
 	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(agentmcpserver.FieldName, field.TypeString, value)
@@ -521,6 +546,18 @@ func (u *AgentMcpServerUpsert) SetUpdateTime(v time.Time) *AgentMcpServerUpsert 
 // UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
 func (u *AgentMcpServerUpsert) UpdateUpdateTime() *AgentMcpServerUpsert {
 	u.SetExcluded(agentmcpserver.FieldUpdateTime)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AgentMcpServerUpsert) SetUserID(v string) *AgentMcpServerUpsert {
+	u.Set(agentmcpserver.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentMcpServerUpsert) UpdateUserID() *AgentMcpServerUpsert {
+	u.SetExcluded(agentmcpserver.FieldUserID)
 	return u
 }
 
@@ -760,6 +797,20 @@ func (u *AgentMcpServerUpsertOne) SetUpdateTime(v time.Time) *AgentMcpServerUpse
 func (u *AgentMcpServerUpsertOne) UpdateUpdateTime() *AgentMcpServerUpsertOne {
 	return u.Update(func(s *AgentMcpServerUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AgentMcpServerUpsertOne) SetUserID(v string) *AgentMcpServerUpsertOne {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentMcpServerUpsertOne) UpdateUserID() *AgentMcpServerUpsertOne {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.UpdateUserID()
 	})
 }
 
@@ -1195,6 +1246,20 @@ func (u *AgentMcpServerUpsertBulk) SetUpdateTime(v time.Time) *AgentMcpServerUps
 func (u *AgentMcpServerUpsertBulk) UpdateUpdateTime() *AgentMcpServerUpsertBulk {
 	return u.Update(func(s *AgentMcpServerUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AgentMcpServerUpsertBulk) SetUserID(v string) *AgentMcpServerUpsertBulk {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentMcpServerUpsertBulk) UpdateUserID() *AgentMcpServerUpsertBulk {
+	return u.Update(func(s *AgentMcpServerUpsert) {
+		s.UpdateUserID()
 	})
 }
 

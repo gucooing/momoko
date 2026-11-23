@@ -131,7 +131,6 @@ import {
   forkAgentSession,
   renameAgentSession,
 } from '@/api/agent'
-import { PERM } from '@/config/permission'
 import { useMenuStore } from '@/stores/menu'
 import type { AgentRuntimeOptions, AgentSession, AgentSidebarWorkspace } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
@@ -158,7 +157,8 @@ const emit = defineEmits<{
 const keyword = defineModel<string>('keyword', { default: '' })
 const { t } = useI18n()
 const menuStore = useMenuStore()
-const canManage = computed(() => menuStore.hasButtonPermission(PERM.AGENT_MANAGE))
+// 能进 Agent 管理页（自己的工作区、全部会话在那里管）
+const canManage = computed(() => menuStore.hasMenuPath('/agent/manage'))
 
 const FIRST = 4
 const collapsed = reactive(new Set<string>())

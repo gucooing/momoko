@@ -5,9 +5,7 @@ package agentskill
 import (
 	"context"
 	"errors"
-	"io"
 	"io/fs"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -18,7 +16,8 @@ import (
 
 	"momoko/pkg/agentfs"
 	"momoko/pkg/archive"
-	"momoko/pkg/utils"
+	"momoko/pkg/constant"
+	"momoko/pkg/download"
 )
 
 const (
@@ -381,28 +380,34 @@ func ExtractZip(ctx context.Context, data []byte, dest string) error {
 	return archive.Extract(ctx, tmp.Name(), "skill.zip", dest, maxArchive)
 }
 
-// FetchZip 下载一个技能压缩包（https 链接）解到 dest。
+// FetchZip 经统一下载管理下载一个技能压缩包（https 链接）解到 dest。
 func FetchZip(ctx context.Context, link, dest string) error {
 	u, err := url.Parse(strings.TrimSpace(link))
 	if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" {
 		return errors.New("压缩包链接要以 https:// 开头")
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	tmp, err := os.CreateTemp("", "momoko-skill-*.zip")
 	if err != nil {
-		return errors.New("压缩包链接不对")
+		return err
 	}
-	req.Header.Set("User-Agent", "momoko")
-	resp, err := http.DefaultClient.Do(req)
+	_ = tmp.Close()
+	defer os.Remove(tmp.Name())
+	d, err := download.Default.Start(ctx, download.Request{
+		URL:     u.String(),
+		Dest:    tmp.Name(),
+		Title:   "下载技能压缩包",
+		Source:  "agent.skill",
+		Perm:    string(constant.AgentManage),
+		MaxSize: maxArchive,
+	})
 	if err != nil {
-		return utils.NetError(ctx, u.Host, err)
+		return err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return errors.New("下载压缩包失败：服务器返回 " + resp.Status)
+	if err := d.Wait(ctx); err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return errors.New("下载压缩包超时了")
+		}
+		return err
 	}
-	data, err := io.ReadAll(io.LimitReader(resp.Body, maxArchive+1))
-	if err != nil {
-		return utils.NetError(ctx, u.Host, err)
-	}
-	return ExtractZip(ctx, data, dest)
+	return archive.Extract(ctx, tmp.Name(), "skill.zip", dest, maxArchive)
 }

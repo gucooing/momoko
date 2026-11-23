@@ -94,6 +94,16 @@ export const useMenuStore = defineStore('menu', () => {
     })
   const sidebarMenuList = computed(() => filterHiddenMenus(navMenuList.value))
 
+  /** 当前用户能不能进这个页面：菜单分给了他的角色（远程节点上还要节点给了权限）。 */
+  const hasMenuPath = (path: string): boolean => {
+    const walk = (menus: MenuInfo[]): boolean =>
+      menus.some(
+        (menu) =>
+          (menu.type === MenuType.MenuType_Menu && menu.path === path) || (!!menu.children?.length && walk(menu.children)),
+      )
+    return walk(navMenuList.value)
+  }
+
   const getUserPermissions = async () => {
     const { data: res } = await mePermissionsRequest({})
     if (!res) return
@@ -128,6 +138,7 @@ export const useMenuStore = defineStore('menu', () => {
     buttonPermissions,
     allButtonPermissions,
     hasButtonPermission,
+    hasMenuPath,
     isCollapse,
     isMobileMenuOpen,
     hasLoadedPermissions,

@@ -2,7 +2,10 @@ package biz
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"os"
 	"path/filepath"
 	"slices"
 	"sort"
@@ -46,7 +49,7 @@ import (
 // AgentWsPath 会话事件的 WebSocket 路径。
 const AgentWsPath = "/api/v1/agent/ws"
 
-// agentDataDir Agent 相关文件的根目录：下载的适配器、第三方接口共用的配置目录、技能、上传的附件。
+// agentDataDir Agent 相关文件的根目录：下载的适配器、每个用户自己的技能（users/）、会话目录。
 const agentDataDir = "data/agents"
 
 var (
@@ -127,27 +130,33 @@ type AgentRepo interface {
 	SaveAgentProvider(ctx context.Context, p *gen.AgentProvider) error
 	DeleteAgentProvider(ctx context.Context, id string) error
 
-	ListAgentWorkspaces(ctx context.Context) ([]*gen.AgentWorkspace, error)
+	// ListAgentWorkspaces userID 为空时是所有人的。
+	ListAgentWorkspaces(ctx context.Context, userID string) ([]*gen.AgentWorkspace, error)
 	GetAgentWorkspace(ctx context.Context, id string) (*gen.AgentWorkspace, error)
-	FindAgentWorkspaceByPath(ctx context.Context, path string) (*gen.AgentWorkspace, error)
+	FindAgentWorkspaceByPath(ctx context.Context, userID, path string) (*gen.AgentWorkspace, error)
 	SaveAgentWorkspace(ctx context.Context, w *gen.AgentWorkspace) error
 	DeleteAgentWorkspace(ctx context.Context, id string) error
 	AgentWorkspaceStats(ctx context.Context, ids []string) (map[string]AgentWorkspaceStat, error)
 
-	ListAgentMcpServers(ctx context.Context) ([]*gen.AgentMcpServer, error)
-	ListAgentMcpServersByIDs(ctx context.Context, ids []string) ([]*gen.AgentMcpServer, error)
-	AgentMcpServerNames(ctx context.Context) ([]string, error)
+	// ListAgentMcpServers userID 为空时是所有人的。
+	ListAgentMcpServers(ctx context.Context, userID string) ([]*gen.AgentMcpServer, error)
+	// ListAgentMcpServersByIDs 这些 id 里属于 userID 的。
+	ListAgentMcpServersByIDs(ctx context.Context, userID string, ids []string) ([]*gen.AgentMcpServer, error)
+	AgentMcpServerNames(ctx context.Context, userID string) ([]string, error)
 	GetAgentMcpServer(ctx context.Context, id string) (*gen.AgentMcpServer, error)
-	FindAgentMcpServerByName(ctx context.Context, name string) (*gen.AgentMcpServer, error)
+	FindAgentMcpServerByName(ctx context.Context, userID, name string) (*gen.AgentMcpServer, error)
 	SaveAgentMcpServer(ctx context.Context, m *gen.AgentMcpServer) error
 	DeleteAgentMcpServer(ctx context.Context, id string) error
 
-	ListAgentSkills(ctx context.Context) ([]*gen.AgentSkill, error)
-	ListEnabledAgentSkills(ctx context.Context) ([]*gen.AgentSkill, error)
+	// ListAgentSkills userID 为空时是所有人的。
+	ListAgentSkills(ctx context.Context, userID string) ([]*gen.AgentSkill, error)
+	ListEnabledAgentSkills(ctx context.Context, userID string) ([]*gen.AgentSkill, error)
 	GetAgentSkill(ctx context.Context, id string) (*gen.AgentSkill, error)
-	FindAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error)
+	FindAgentSkillByName(ctx context.Context, userID, name string) (*gen.AgentSkill, error)
 	SaveAgentSkill(ctx context.Context, s *gen.AgentSkill) error
 	DeleteAgentSkill(ctx context.Context, id string) error
+	// ClaimLegacyAgentConfigs 没记主人的 MCP 服务器和技能（以前是大家共用的）都归给 ownerID。
+	ClaimLegacyAgentConfigs(ctx context.Context, ownerID string) error
 
 	CreateAgentSession(ctx context.Context, s *gen.AgentSession) (*gen.AgentSession, error)
 	ForkAgentSession(ctx context.Context, fork *gen.AgentSession, from string) (*gen.AgentSession, error)
@@ -173,7 +182,8 @@ type AgentRepo interface {
 	ListAgentEventsBefore(ctx context.Context, sessionID string, beforeSeq int64, limit int) ([]*gen.AgentEvent, bool, error)
 	MaxAgentEvent(ctx context.Context, sessionID string) (seq, rev int64, err error)
 
-	AgentCounts(ctx context.Context) (*AgentCounts, error)
+	// AgentCounts userID 为空时会话、工作区、MCP、技能数所有人的。
+	AgentCounts(ctx context.Context, userID string) (*AgentCounts, error)
 	AgentUsers(ctx context.Context, ids []string) ([]AgentUser, error)
 }
 
@@ -239,6 +249,7 @@ func NewAgentUsecase(repo AgentRepo, config ConfigRepo, authRepo AuthRepo, syste
 		uc.log.Warnf("reset live agent sessions: %v", err)
 	}
 	uc.seedRuntimes(ctx)
+	uc.claimLegacy(ctx)
 	return uc, uc.close
 }
 
@@ -258,21 +269,117 @@ func agentUserID(ctx context.Context) (string, error) {
 	return a.UserID, nil
 }
 
-// canManage 当前用户是否有管理 Agent 的权限（能看到和清理所有人的会话）。
-func (uc *AgentUsecase) canManage(ctx context.Context) bool {
-	return uc.system.Check(ctx, constant.AgentManage) == nil
+// 会话、工作区、MCP 服务器、技能都属于创建它们的人：Code 页和 Agent 管理页里每个人（超级管理员也一样）
+// 只看得到、只用得上自己的。模型供应商、运行时、通知是大家共用的。
+// 「全员 Agent」页（要有 agent:admin）能看所有人的，并能清理（归档、删除、导出会话，删工作区、MCP、技能），
+// 但不能打开别人的会话、也不能改别人的配置。
+
+// isAdmin 当前用户能不能看和清理所有人的：要有 agent:admin，而且是直接登录的（从远程节点用 API Key 过来的不算）。
+func (uc *AgentUsecase) isAdmin(ctx context.Context) bool {
+	a, ok := auth.FromContext(ctx)
+	if !ok || a.Type != auth.AuthTypeJWT {
+		return false
+	}
+	return uc.system.Check(ctx, constant.AgentAdmin) == nil
 }
 
-// scope 当前用户能动哪些人的会话：有管理权限为空（所有人），否则是他自己。
-func (uc *AgentUsecase) scope(ctx context.Context) (string, error) {
+// listScope 列表要谁的：all 为 true 时是所有人的（返回空；没有 agent:admin 时报没有权限），否则是自己的。
+func (uc *AgentUsecase) listScope(ctx context.Context, all bool) (string, error) {
 	userID, err := agentUserID(ctx)
 	if err != nil {
 		return "", err
 	}
-	if uc.canManage(ctx) {
+	if !all {
+		return userID, nil
+	}
+	if !uc.isAdmin(ctx) {
+		return "", ErrNoPermission
+	}
+	return "", nil
+}
+
+// cleanScope 清理（归档、删除、导出、看进程）能动谁的：有 agent:admin 时为空（所有人），否则是自己。
+func (uc *AgentUsecase) cleanScope(ctx context.Context) (string, error) {
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return "", err
+	}
+	if uc.isAdmin(ctx) {
 		return "", nil
 	}
 	return userID, nil
+}
+
+// ownedBy scope 能不能动 owner 的东西：scope 为空是谁的都行。
+func ownedBy(scope, owner string) bool {
+	return scope == "" || scope == owner
+}
+
+// agentUsersPB 这些用户的名称和用户名（列表上显示主人用）。
+func (uc *AgentUsecase) agentUsersPB(ctx context.Context, ids []string) ([]*v1.AgentUser, error) {
+	seen := map[string]bool{}
+	uniq := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if id != "" && !seen[id] {
+			seen[id] = true
+			uniq = append(uniq, id)
+		}
+	}
+	users, err := uc.repo.AgentUsers(ctx, uniq)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	out := make([]*v1.AgentUser, 0, len(users))
+	for _, u := range users {
+		out = append(out, &v1.AgentUser{Id: u.ID, Name: u.Name, Username: u.Username})
+	}
+	return out, nil
+}
+
+// userDir 一个用户自己的文件（技能）放在 Agent 根目录的 users/<键>/ 下。用户 id 里可能有冒号（Windows 上不能做目录名），键用它的摘要。
+func (uc *AgentUsecase) userDir(userID string, sub ...string) string {
+	sum := sha256.Sum256([]byte(userID))
+	return filepath.Join(append([]string{uc.root, "users", hex.EncodeToString(sum[:8])}, sub...)...)
+}
+
+// claimLegacy 以前 MCP 服务器和技能是大家共用的：升级后没记主人的都归给内置超级管理员，
+// 技能文件从原来的公共技能目录（skills/<名称>）挪进他自己的技能目录。挪不动的下次启动再挪。
+func (uc *AgentUsecase) claimLegacy(ctx context.Context) {
+	if err := uc.repo.ClaimLegacyAgentConfigs(ctx, BuiltinAdminUserID); err != nil {
+		uc.log.Errorf("把以前共用的 MCP 服务器和技能归给内置超级管理员失败：%v", err)
+		return
+	}
+	legacy := filepath.Join(uc.root, "skills")
+	entries, err := os.ReadDir(legacy)
+	if err != nil {
+		return
+	}
+	skills, err := uc.repo.ListAgentSkills(ctx, BuiltinAdminUserID)
+	if err != nil {
+		return
+	}
+	owned := map[string]bool{}
+	for _, s := range skills {
+		owned[s.Name] = true
+	}
+	store := uc.skillStore(BuiltinAdminUserID)
+	for _, e := range entries {
+		if !e.IsDir() || !owned[e.Name()] {
+			continue
+		}
+		to := store.Dir(e.Name())
+		if _, err := os.Stat(to); err == nil {
+			continue
+		}
+		if err := os.MkdirAll(store.Root, 0o755); err != nil {
+			return
+		}
+		if err := os.Rename(filepath.Join(legacy, e.Name()), to); err != nil {
+			uc.log.Warnf("挪技能 %s 失败：%v", e.Name(), err)
+		}
+	}
+	// 挪空了就把旧目录删掉（还有别的东西时删不掉，留着）
+	_ = os.Remove(legacy)
 }
 
 // dir 返回 Agent 根目录下的一个子目录，不存在就建出来。只在要往里写东西时调用。
@@ -422,7 +529,7 @@ func (uc *AgentUsecase) loadNames(ctx context.Context) *agentNames {
 	}
 	rts, err1 := uc.repo.ListAgentRuntimes(ctx)
 	ps, err2 := uc.repo.ListAgentProviders(ctx)
-	ws, err3 := uc.repo.ListAgentWorkspaces(ctx)
+	ws, err3 := uc.repo.ListAgentWorkspaces(ctx, "")
 	for _, rt := range rts {
 		names.runtimes[rt.ID] = rt
 		modes := map[string]string{}
@@ -593,8 +700,13 @@ func agentProviderOptions(p *gen.AgentProvider) *v1.AgentProviderOptions {
 	return out
 }
 
-func (uc *AgentUsecase) GetOverview(ctx context.Context) (*v1.GetAgentOverviewResponse, error) {
-	c, err := uc.repo.AgentCounts(ctx)
+// GetOverview 管理页各标签上的数量：会话、工作区、MCP、技能是自己的（all 时是所有人的），供应商、运行时、通知是共用的。
+func (uc *AgentUsecase) GetOverview(ctx context.Context, all bool) (*v1.GetAgentOverviewResponse, error) {
+	userID, err := uc.listScope(ctx, all)
+	if err != nil {
+		return nil, err
+	}
+	c, err := uc.repo.AgentCounts(ctx, userID)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}

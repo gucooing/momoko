@@ -13,15 +13,25 @@ export default {
         runtimes: '运行时',
         notify: '通知',
       },
+      agentAdmin: { label: '全员 Agent' },
     },
     node: {
       permission: {
         groups: { agent: 'Agent' },
-        items: { agentUse: '使用 Code（在节点上运行 Agent）', agentManage: '管理 Agent（供应商、MCP、技能、运行时、通知）' },
+        items: {
+          agentUse: '使用 Code（在节点上运行 Agent，管理自己的会话、工作区、MCP、技能）',
+          agentManage: '管理共用的 Agent 配置（模型供应商、运行时、通知）',
+        },
       },
     },
     agent: {
       manage: { title: 'Agent 管理' },
+      admin: {
+        title: '全员 Agent',
+        goneUser: '已删除的用户',
+        enabled: '已启用',
+        disabled: '已停用',
+      },
       common: {
         save: '保存',
         cancel: '取消',
@@ -115,15 +125,25 @@ export default {
         runtimes: '運行時',
         notify: '通知',
       },
+      agentAdmin: { label: '全員 Agent' },
     },
     node: {
       permission: {
         groups: { agent: 'Agent' },
-        items: { agentUse: '使用 Code（在節點上運行 Agent）', agentManage: '管理 Agent（供應商、MCP、技能、運行時、通知）' },
+        items: {
+          agentUse: '使用 Code（在節點上運行 Agent，管理自己的會話、工作區、MCP、技能）',
+          agentManage: '管理共用的 Agent 配置（模型供應商、運行時、通知）',
+        },
       },
     },
     agent: {
       manage: { title: 'Agent 管理' },
+      admin: {
+        title: '全員 Agent',
+        goneUser: '已刪除的用戶',
+        enabled: '已啟用',
+        disabled: '已停用',
+      },
       common: {
         save: '儲存',
         cancel: '取消',
@@ -213,15 +233,25 @@ export default {
         runtimes: 'Runtimes',
         notify: 'Notifications',
       },
+      agentAdmin: { label: 'All users\' agents' },
     },
     node: {
       permission: {
         groups: { agent: 'Agent' },
-        items: { agentUse: 'Use Code (run agents on the node)', agentManage: 'Manage agents (providers, MCP, skills, runtimes, notifications)' },
+        items: {
+          agentUse: 'Use Code (run agents on the node; manage your own sessions, workspaces, MCP and skills)',
+          agentManage: 'Manage shared agent settings (model providers, runtimes, notifications)',
+        },
       },
     },
     agent: {
       manage: { title: 'Agent management' },
+      admin: {
+        title: 'All users\' agents',
+        goneUser: 'Deleted user',
+        enabled: 'Enabled',
+        disabled: 'Disabled',
+      },
       common: {
         save: 'Save',
         cancel: 'Cancel',

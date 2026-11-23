@@ -42,6 +42,24 @@ type Release struct {
 	Body        string    `json:"body"`
 	Prerelease  bool      `json:"prerelease"`
 	PublishedAt time.Time `json:"published_at"`
+	Assets      []Asset   `json:"assets"`
+}
+
+// Asset 是发行版里的一个附件（各平台的程序包、校验和文件）。
+type Asset struct {
+	Name               string `json:"name"`
+	Size               int64  `json:"size"`
+	BrowserDownloadURL string `json:"browser_download_url"`
+	Digest             string `json:"digest"` // GitHub 给的校验值，如 sha256:…（较早的发行版没有）
+}
+
+// Compare 按 semver 比较两个版本号：a 新于 b 返回 1，相同 0，旧于 -1；任一无法比较时 ok=false。
+func Compare(a, b string) (result int, ok bool) {
+	a, b = normalize(a), normalize(b)
+	if !semver.IsValid(a) || !semver.IsValid(b) {
+		return 0, false
+	}
+	return semver.Compare(a, b), true
 }
 
 // CheckLatest 查询 GitHub 最新（非预发布、非草稿）发行版。

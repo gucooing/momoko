@@ -1,12 +1,13 @@
 <!-- Agent 管理 · 工作区：一行一个，行内「新会话」「查看文件」（本页弹窗只读浏览目录）「编辑」「⋯」。
-     新建 / 编辑用 AgWorkspaceDialog；移除只移除记录，不删目录里的文件。有工作区还在克隆时每 3 秒刷新一次。 -->
+     新建 / 编辑用 AgWorkspaceDialog；移除只移除记录，不删目录里的文件。有工作区还在克隆时每 3 秒刷新一次。
+     只有自己的工作区；在全员 Agent 页里（useAgentAll）是所有人的，行上带主人，只能移除。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>
       <template #default>
         <template v-if="count != null">{{ t('agent.workspaces.total', { n: count }) }}</template>
       </template>
-      <template #actions>
+      <template v-if="!all" #actions>
         <button type="button" class="ag-btn ag-btn--p" @click="openCreate">
           <UIcon name="i-lucide-plus" />{{ t('agent.workspaces.create') }}
         </button>
@@ -34,7 +35,18 @@
               <span class="ag-mono">{{ w.path }}</span> · {{ metaOf(w) }}
             </div>
           </div>
-          <div class="ag-rc">
+          <div v-if="all" class="ag-rc">
+            <button
+              type="button"
+              class="ag-ib ag-ib--sm"
+              :aria-label="t('agent.workspaces.removeOf', { name: w.name })"
+              :title="t('agent.workspaces.remove')"
+              @click="askRemove(w)"
+            >
+              <UIcon name="i-lucide-trash-2" />
+            </button>
+          </div>
+          <div v-else class="ag-rc">
             <RouterLink class="ag-btn ag-btn--sm ag-ws-row__new" :to="{ path: '/agent/code', query: { workspace: w.id } }">
               <UIcon name="i-lucide-plus" />{{ t('agent.common.newSession') }}
             </RouterLink>
@@ -148,11 +160,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { browseAgentWorkspace, deleteAgentWorkspace, listAgentWorkspaces } from '@/api/agent'
-import type { AgentFileEntry, AgentWorkspace } from '@/types/v1/agent'
+import type { AgentFileEntry, AgentUser, AgentWorkspace } from '@/types/v1/agent'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
 import AgWorkspaceDialog from '@/views/agent/components/AgWorkspaceDialog.vue'
+import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { fmtBytes, relTime } from '@/views/agent/utils/format'
 
@@ -162,10 +175,13 @@ defineOptions({ name: 'AgentManageWorkspacesView' })
 const POLL_MS = 3000
 
 const { t } = useI18n()
+/** 在全员 Agent 页里：所有人的工作区 */
+const all = useAgentAll()
 const { overview, refresh: refreshOverview } = useAgentOverview()
 
 // —— 列表 ——
 const workspaces = ref<AgentWorkspace[]>([])
+const users = ref<AgentUser[]>([])
 const loaded = ref(false)
 let seq = 0
 let active = false
@@ -180,9 +196,10 @@ const load = async () => {
   const id = ++seq
   stopPoll()
   try {
-    const { data } = await listAgentWorkspaces()
+    const { data } = await listAgentWorkspaces(all)
     if (id !== seq) return
     workspaces.value = data.workspaces ?? []
+    users.value = data.users ?? []
     // 请求出错时不再排下一次，免得每隔几秒弹一次错误
     if (active && workspaces.value.some((w) => w.cloneStatus === 'cloning')) {
       timer = setTimeout(() => void load(), POLL_MS)
@@ -234,6 +251,12 @@ const tagsOf = (w: AgentWorkspace) => {
   return tags
 }
 const metaOf = (w: AgentWorkspace) => {
+  const sessions = sessionsOf(w)
+  if (!all) return sessions
+  const u = users.value.find((x) => x.id === w.userId)
+  return `${sessions} · ${u ? u.name || u.username : t('agent.admin.goneUser')}`
+}
+const sessionsOf = (w: AgentWorkspace) => {
   const n = Number(w.sessionCount || 0)
   if (!n) return t('agent.workspaces.noSessions')
   const time = relTime(w.activeAt)

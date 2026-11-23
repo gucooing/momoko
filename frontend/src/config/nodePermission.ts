@@ -121,7 +121,9 @@ const NODE_ROUTE_PERMISSIONS: Array<[string, string | null]> = [
   ['/instance/type', 'instance:manage'],
   ['/instance/app', 'instance:manage'],
   ['/agent/code', 'agent:use'],
-  ['/agent/manage', 'agent:manage'],
+  ['/agent/manage', 'agent:use'],
+  // 全员 Agent：只看主控本机上的（从远程节点用 API Key 过去时，节点那边也不给看所有人的）
+  ['/agent/admin', null],
   ['/game/servers', 'game:server'],
   ['/game/gm', 'game:gm'],
   ['/game/passport', 'game:passport'],

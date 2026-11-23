@@ -536,13 +536,19 @@ func patchSections(p *acp.DiffPatch) []string {
 	return out
 }
 
-// sectionOf 头一行里写着这个绝对路径的那一段。
+// sectionOf 头一行里写着这个路径的那一段。Agent 写的路径分隔符、大小写不一定和改动里的一致（Windows 上常见），
+// 都按正斜杠、不分大小写比；只有一段时就是它。
 func sectionOf(sections []string, path string) string {
+	norm := func(s string) string { return strings.ToLower(strings.ReplaceAll(s, `\`, "/")) }
+	want := norm(path)
 	for _, sec := range sections {
 		header, _, _ := strings.Cut(sec, "\n")
-		if strings.Contains(header, path) {
+		if strings.Contains(norm(header), want) {
 			return sec
 		}
+	}
+	if len(sections) == 1 {
+		return sections[0]
 	}
 	return ""
 }

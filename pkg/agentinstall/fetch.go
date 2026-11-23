@@ -2,8 +2,6 @@ package agentinstall
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"momoko/pkg/constant"
+	"momoko/pkg/download"
 	"momoko/pkg/utils"
 )
 
@@ -22,12 +22,10 @@ const (
 	githubAPI = "https://api.github.com"
 	// 接口的应答最多读这么多（openai/codex 一个版本挂了近两百个文件，应答有几百 KB）。
 	maxJSON = 8 << 20
-	// 下载途中这么久收不到一个字节就算断了，不等到总的期限。
-	stallTimeout = time.Minute
 )
 
-// httpClient 用默认传输（代理环境变量照常生效），只是连接和等响应头要快点失败：
-// 下载本身可以很久，但连都连不上不该等半小时。
+// httpClient 查发布页用：默认传输（代理环境变量照常生效），只是连接和等响应头要快点失败。
+// 安装包本身走统一下载管理（pkg/download）。
 var httpClient = newClient()
 
 func newClient() *http.Client {
@@ -109,77 +107,44 @@ func latestRelease(ctx context.Context, repo string) (release, error) {
 	return r, nil
 }
 
-var errStalled = errors.New("agentinstall: download stalled")
-
-// download 把 a 下载到 dest，边下边算校验和。progress 收到已下载的字节数。
-func download(ctx context.Context, a asset, dest string, progress func(done int64)) error {
-	ctx, cancel := context.WithCancelCause(ctx)
-	defer cancel(nil)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.URL, nil)
-	if err != nil {
-		return errors.New("下载地址不对")
-	}
-	req.Header.Set("User-Agent", userAgent)
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return utils.NetError(ctx, "GitHub", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("下载失败：GitHub 返回 %d", resp.StatusCode)
-	}
-
-	file, err := os.Create(dest)
-	if err != nil {
-		return fmt.Errorf("下载失败：%s", reason(err))
-	}
-	defer file.Close()
-
-	// 一段时间没有数据进来就掐断：连接半死不活的时候，Read 自己不会返回。
-	watchdog := time.AfterFunc(stallTimeout, func() { cancel(errStalled) })
-	defer watchdog.Stop()
-
-	hash := sha256.New()
-	buf := make([]byte, 256<<10)
-	var done int64
-	for {
-		n, rerr := resp.Body.Read(buf)
-		if n > 0 {
-			watchdog.Reset(stallTimeout)
-			hash.Write(buf[:n])
-			if _, err := file.Write(buf[:n]); err != nil {
-				return fmt.Errorf("下载失败：%s", reason(err))
-			}
-			done += int64(n)
-			progress(done)
-		}
-		if rerr == io.EOF {
-			break
-		}
-		if rerr != nil {
-			if errors.Is(context.Cause(ctx), errStalled) {
-				return fmt.Errorf("下载中断了：%d 秒没有收到数据", int(stallTimeout/time.Second))
-			}
-			if ctx.Err() != nil {
-				return ctx.Err()
-			}
-			return errors.New("下载中断了，再试一次")
-		}
-	}
-	if err := file.Close(); err != nil {
-		return fmt.Errorf("下载失败：%s", reason(err))
-	}
-	if a.Size > 0 && done != a.Size {
-		return errors.New("下载的安装包不完整，再试一次")
-	}
-	// 核对 GitHub 给的校验和：几百兆的文件经过代理、镜像，坏掉并不稀奇。
+// fetchAsset 经统一下载管理把 a 下载到 dest（页面上能看到进度，也能暂停、继续、取消），下完核对 GitHub 给的校验和。
+// progress 收到已下载的字节数。
+func fetchAsset(ctx context.Context, title string, a asset, dest string, progress func(done int64)) error {
+	// 几百兆的文件经过代理、镜像，坏掉并不稀奇：没有校验值就不装。
 	want, ok := strings.CutPrefix(a.Digest, "sha256:")
 	if !ok {
 		return errors.New("发布页没有给出安装包的校验值，不能确认下载的文件是对的")
 	}
-	if !strings.EqualFold(want, hex.EncodeToString(hash.Sum(nil))) {
-		return errors.New("下载的安装包校验没通过，再试一次")
+	d, err := download.Default.Start(ctx, download.Request{
+		URL:       a.URL,
+		Dest:      dest,
+		Name:      a.Name,
+		Title:     title,
+		Source:    "agent.runtime",
+		Perm:      string(constant.AgentManage),
+		Size:      a.Size,
+		SHA256:    want,
+		UserAgent: userAgent,
+		Site:      "GitHub",
+	})
+	if err != nil {
+		return err
 	}
-	return nil
+	if progress != nil {
+		stop := make(chan struct{})
+		defer close(stop)
+		go func() {
+			t := time.NewTicker(500 * time.Millisecond)
+			defer t.Stop()
+			for {
+				select {
+				case <-stop:
+					return
+				case <-t.C:
+					progress(d.Info().Downloaded)
+				}
+			}
+		}()
+	}
+	return d.Wait(ctx)
 }

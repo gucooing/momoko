@@ -1,6 +1,7 @@
 <!-- Agent 管理 · MCP：一行一个服务器（名称、传输方式、连接状态、说明和命令 / 地址），
      行尾是「新会话默认开启」、测试连接、编辑、删除；右上可以粘贴 mcpServers JSON 导入。
-     哪些工作区能用、某个会话里连没连上都不在这里显示。 -->
+     哪些工作区能用、某个会话里连没连上都不在这里显示。
+     只有自己的服务器；在全员 Agent 页里（useAgentAll）是所有人的，行上带主人，只能删除。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>
@@ -11,7 +12,7 @@
         </template>
         <template v-else>{{ t('agent.common.loading') }}</template>
       </template>
-      <template #actions>
+      <template v-if="!all" #actions>
         <button type="button" class="ag-btn" @click="pasteOpen = true">
           <UIcon name="i-lucide-code-xml" />{{ t('agent.mcp.pasteImport') }}
         </button>
@@ -32,10 +33,22 @@
               <span v-if="r.note" class="ag-mcp-note" :title="r.note">{{ r.note }}</span>
             </div>
             <div class="ag-rs">
+              <template v-if="all">{{ r.owner }} · </template>
               {{ r.s.description || t('agent.mcp.noDesc') }} · <span class="ag-mono ag-mcp-cmd" :title="r.cmd">{{ r.cmd }}</span>
             </div>
           </div>
-          <div class="ag-rc">
+          <div v-if="all" class="ag-rc">
+            <button
+              type="button"
+              class="ag-ib ag-ib--sm"
+              :aria-label="t('agent.mcp.deleteOf', { name: r.s.name })"
+              :title="t('agent.common.delete')"
+              @click="askDelete(r.s)"
+            >
+              <UIcon name="i-lucide-trash-2" />
+            </button>
+          </div>
+          <div v-else class="ag-rc">
             <label class="ag-mcp-def">
               {{ t('agent.mcp.defaultOn') }}
               <AgSwitch
@@ -119,11 +132,12 @@ import {
   setAgentMcpDefault,
   testAgentMcpServer,
 } from '@/api/agent'
-import type { AgentMcpServer } from '@/types/v1/agent'
+import type { AgentMcpServer, AgentUser } from '@/types/v1/agent'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
+import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { relTime } from '@/views/agent/utils/format'
 import McpFormDialog from './McpFormDialog.vue'
@@ -131,15 +145,19 @@ import McpFormDialog from './McpFormDialog.vue'
 defineOptions({ name: 'AgentManageMcpView' })
 
 const { t } = useI18n()
+/** 在全员 Agent 页里：所有人的服务器 */
+const all = useAgentAll()
 const { overview, refresh } = useAgentOverview()
 
 // —— 列表 ——
 const servers = ref<AgentMcpServer[]>([])
+const users = ref<AgentUser[]>([])
 const loaded = ref(false)
 const load = async () => {
   try {
-    const { data } = await listAgentMcpServers()
+    const { data } = await listAgentMcpServers(all)
     servers.value = data.servers || []
+    users.value = data.users || []
   } catch {
     // 请求层已经提示过
   } finally {
@@ -174,7 +192,9 @@ const rows = computed(() =>
       pill = { cls: 'ag-pill--bad', text: inPill ? reason : t('agent.mcp.status.fail') }
       note = inPill ? '' : reason
     }
-    return { s, tag: http ? 'HTTP' : 'stdio', pill, note, cmd }
+    const u = all ? users.value.find((x) => x.id === s.userId) : undefined
+    const owner = u ? u.name || u.username : t('agent.admin.goneUser')
+    return { s, tag: http ? 'HTTP' : 'stdio', pill, note, cmd, owner }
   }),
 )
 

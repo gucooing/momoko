@@ -29,15 +29,24 @@ const OperationSystemAdminPermissions = "/v1.System/AdminPermissions"
 const OperationSystemAdminPermissionsInfo = "/v1.System/AdminPermissionsInfo"
 const OperationSystemAdminRole = "/v1.System/AdminRole"
 const OperationSystemAdminRoles = "/v1.System/AdminRoles"
+const OperationSystemApplyUpdate = "/v1.System/ApplyUpdate"
+const OperationSystemCancelDownload = "/v1.System/CancelDownload"
+const OperationSystemCancelUpdate = "/v1.System/CancelUpdate"
 const OperationSystemCheckUpdate = "/v1.System/CheckUpdate"
+const OperationSystemClearDownloads = "/v1.System/ClearDownloads"
 const OperationSystemEmailConfig = "/v1.System/EmailConfig"
 const OperationSystemEmailTemplate = "/v1.System/EmailTemplate"
+const OperationSystemListDownloads = "/v1.System/ListDownloads"
 const OperationSystemListEmailTemplates = "/v1.System/ListEmailTemplates"
 const OperationSystemListOperationLogs = "/v1.System/ListOperationLogs"
 const OperationSystemLoginConfig = "/v1.System/LoginConfig"
 const OperationSystemMePermissions = "/v1.System/MePermissions"
 const OperationSystemOperationLogStats = "/v1.System/OperationLogStats"
+const OperationSystemPauseDownload = "/v1.System/PauseDownload"
+const OperationSystemRemoveDownload = "/v1.System/RemoveDownload"
+const OperationSystemResumeDownload = "/v1.System/ResumeDownload"
 const OperationSystemSiteConfig = "/v1.System/SiteConfig"
+const OperationSystemStartUpdate = "/v1.System/StartUpdate"
 const OperationSystemStorageConfig = "/v1.System/StorageConfig"
 const OperationSystemSystemOverview = "/v1.System/SystemOverview"
 const OperationSystemSystemStatus = "/v1.System/SystemStatus"
@@ -47,6 +56,7 @@ const OperationSystemUpdateEmailTemplate = "/v1.System/UpdateEmailTemplate"
 const OperationSystemUpdateLoginConfig = "/v1.System/UpdateLoginConfig"
 const OperationSystemUpdateOperationLogRetention = "/v1.System/UpdateOperationLogRetention"
 const OperationSystemUpdateSiteConfig = "/v1.System/UpdateSiteConfig"
+const OperationSystemUpdateStatus = "/v1.System/UpdateStatus"
 const OperationSystemUpdateStorageConfig = "/v1.System/UpdateStorageConfig"
 
 type SystemHTTPServer interface {
@@ -70,12 +80,22 @@ type SystemHTTPServer interface {
 	AdminRole(context.Context, *AdminRoleRequest) (*AdminRoleResponse, error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(context.Context, *AdminRolesRequest) (*AdminRolesResponse, error)
+	// ApplyUpdate 安装已上传、校验通过的程序文件并重启（上传走 /api/v1/system/update/upload，需 system:update 权限）
+	ApplyUpdate(context.Context, *ApplyUpdateRequest) (*ApplyUpdateResponse, error)
+	// CancelDownload 取消下载（发起下载的那件事也会跟着失败，比如更新、安装）
+	CancelDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error)
+	// CancelUpdate 取消更新：停止正在进行的下载，或丢掉已上传还没安装的文件（需 system:update 权限）
+	CancelUpdate(context.Context, *CancelUpdateRequest) (*CancelUpdateResponse, error)
 	// CheckUpdate 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
 	CheckUpdate(context.Context, *CheckUpdateRequest) (*CheckUpdateResponse, error)
+	// ClearDownloads 清掉所有已结束的下载记录
+	ClearDownloads(context.Context, *ClearDownloadsRequest) (*ClearDownloadsResponse, error)
 	// EmailConfig 获取邮件配置
 	EmailConfig(context.Context, *EmailConfigRequest) (*EmailConfigResponse, error)
 	// EmailTemplate 获取指定邮件模板
 	EmailTemplate(context.Context, *EmailTemplateRequest) (*EmailTemplateResponse, error)
+	// ListDownloads 下载管理：服务器从外网下载的文件（系统更新、Agent 安装包、技能压缩包……），只列出有对应权限的
+	ListDownloads(context.Context, *ListDownloadsRequest) (*ListDownloadsResponse, error)
 	// ListEmailTemplates 列出全部邮件模板（含是否自定义、最后修改时间）
 	ListEmailTemplates(context.Context, *ListEmailTemplatesRequest) (*ListEmailTemplatesResponse, error)
 	// ListOperationLogs 获取操作日志
@@ -86,8 +106,16 @@ type SystemHTTPServer interface {
 	MePermissions(context.Context, *MePermissionsRequest) (*MePermissionsResponse, error)
 	// OperationLogStats 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
 	OperationLogStats(context.Context, *OperationLogStatsRequest) (*OperationLogStatsResponse, error)
+	// PauseDownload 暂停下载（已下的部分留着，继续时能续传就续传）
+	PauseDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error)
+	// RemoveDownload 从列表里删掉一条已结束的下载记录
+	RemoveDownload(context.Context, *DownloadActionRequest) (*RemoveDownloadResponse, error)
+	// ResumeDownload 继续已暂停的下载
+	ResumeDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error)
 	// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
 	SiteConfig(context.Context, *SiteConfigRequest) (*SiteConfigResponse, error)
+	// StartUpdate 从 GitHub 更新：按更新通道取最新发行版，下载本机系统对应的包，校验后替换程序并重启（需 system:update 权限）
+	StartUpdate(context.Context, *StartUpdateRequest) (*StartUpdateResponse, error)
 	// StorageConfig 获取储存设置（头像与应用图片存放的文件来源）
 	StorageConfig(context.Context, *StorageConfigRequest) (*StorageConfigResponse, error)
 	// SystemOverview 获取系统信息概览
@@ -106,6 +134,8 @@ type SystemHTTPServer interface {
 	UpdateOperationLogRetention(context.Context, *UpdateOperationLogRetentionRequest) (*UpdateOperationLogRetentionResponse, error)
 	// UpdateSiteConfig 更新站点常规配置
 	UpdateSiteConfig(context.Context, *UpdateSiteConfigRequest) (*UpdateSiteConfigResponse, error)
+	// UpdateStatus 更新进度：当前有没有在下载、等待安装或重启（需 system:update 权限）
+	UpdateStatus(context.Context, *UpdateStatusRequest) (*UpdateStatusResponse, error)
 	// UpdateStorageConfig 更新储存设置
 	UpdateStorageConfig(context.Context, *UpdateStorageConfigRequest) (*UpdateStorageConfigResponse, error)
 }
@@ -114,6 +144,16 @@ func RegisterSystemHTTPServer(s *http.Server, srv SystemHTTPServer) {
 	r := s.Route("/")
 	r.GET("/api/v1/permissions/me", _System_MePermissions0_HTTP_Handler(srv))
 	r.GET("/api/v1/system/update/check", _System_CheckUpdate0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/update/status", _System_UpdateStatus0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/update/start", _System_StartUpdate0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/update/apply", _System_ApplyUpdate0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/update/cancel", _System_CancelUpdate0_HTTP_Handler(srv))
+	r.GET("/api/v1/system/downloads", _System_ListDownloads0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/downloads/{id}/pause", _System_PauseDownload0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/downloads/{id}/resume", _System_ResumeDownload0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/downloads/{id}/cancel", _System_CancelDownload0_HTTP_Handler(srv))
+	r.DELETE("/api/v1/system/downloads/{id}", _System_RemoveDownload0_HTTP_Handler(srv))
+	r.POST("/api/v1/system/downloads/clear", _System_ClearDownloads0_HTTP_Handler(srv))
 	r.GET("/api/v1/permissions/admin", _System_AdminPermissions0_HTTP_Handler(srv))
 	r.GET("/api/v1/permissions/admin/{menu_id}", _System_AdminPermissionsInfo0_HTTP_Handler(srv))
 	r.POST("/api/v1/permissions/admin/add", _System_AdminAddPermissions0_HTTP_Handler(srv))
@@ -177,6 +217,229 @@ func _System_CheckUpdate0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Conte
 			return err
 		}
 		reply := out.(*CheckUpdateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_UpdateStatus0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateStatusRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemUpdateStatus)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateStatus(ctx, req.(*UpdateStatusRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateStatusResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_StartUpdate0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in StartUpdateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemStartUpdate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.StartUpdate(ctx, req.(*StartUpdateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StartUpdateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_ApplyUpdate0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ApplyUpdateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemApplyUpdate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ApplyUpdate(ctx, req.(*ApplyUpdateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ApplyUpdateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_CancelUpdate0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CancelUpdateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemCancelUpdate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CancelUpdate(ctx, req.(*CancelUpdateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CancelUpdateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_ListDownloads0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListDownloadsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemListDownloads)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListDownloads(ctx, req.(*ListDownloadsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListDownloadsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_PauseDownload0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DownloadActionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemPauseDownload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PauseDownload(ctx, req.(*DownloadActionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DownloadActionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_ResumeDownload0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DownloadActionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemResumeDownload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResumeDownload(ctx, req.(*DownloadActionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DownloadActionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_CancelDownload0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DownloadActionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemCancelDownload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CancelDownload(ctx, req.(*DownloadActionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DownloadActionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_RemoveDownload0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DownloadActionRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemRemoveDownload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RemoveDownload(ctx, req.(*DownloadActionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RemoveDownloadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _System_ClearDownloads0_HTTP_Handler(srv SystemHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ClearDownloadsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSystemClearDownloads)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ClearDownloads(ctx, req.(*ClearDownloadsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ClearDownloadsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -763,12 +1026,22 @@ type SystemHTTPClient interface {
 	AdminRole(ctx context.Context, req *AdminRoleRequest, opts ...http.CallOption) (rsp *AdminRoleResponse, err error)
 	// AdminRoles 管理员获取角色列表
 	AdminRoles(ctx context.Context, req *AdminRolesRequest, opts ...http.CallOption) (rsp *AdminRolesResponse, err error)
+	// ApplyUpdate 安装已上传、校验通过的程序文件并重启（上传走 /api/v1/system/update/upload，需 system:update 权限）
+	ApplyUpdate(ctx context.Context, req *ApplyUpdateRequest, opts ...http.CallOption) (rsp *ApplyUpdateResponse, err error)
+	// CancelDownload 取消下载（发起下载的那件事也会跟着失败，比如更新、安装）
+	CancelDownload(ctx context.Context, req *DownloadActionRequest, opts ...http.CallOption) (rsp *DownloadActionResponse, err error)
+	// CancelUpdate 取消更新：停止正在进行的下载，或丢掉已上传还没安装的文件（需 system:update 权限）
+	CancelUpdate(ctx context.Context, req *CancelUpdateRequest, opts ...http.CallOption) (rsp *CancelUpdateResponse, err error)
 	// CheckUpdate 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
 	CheckUpdate(ctx context.Context, req *CheckUpdateRequest, opts ...http.CallOption) (rsp *CheckUpdateResponse, err error)
+	// ClearDownloads 清掉所有已结束的下载记录
+	ClearDownloads(ctx context.Context, req *ClearDownloadsRequest, opts ...http.CallOption) (rsp *ClearDownloadsResponse, err error)
 	// EmailConfig 获取邮件配置
 	EmailConfig(ctx context.Context, req *EmailConfigRequest, opts ...http.CallOption) (rsp *EmailConfigResponse, err error)
 	// EmailTemplate 获取指定邮件模板
 	EmailTemplate(ctx context.Context, req *EmailTemplateRequest, opts ...http.CallOption) (rsp *EmailTemplateResponse, err error)
+	// ListDownloads 下载管理：服务器从外网下载的文件（系统更新、Agent 安装包、技能压缩包……），只列出有对应权限的
+	ListDownloads(ctx context.Context, req *ListDownloadsRequest, opts ...http.CallOption) (rsp *ListDownloadsResponse, err error)
 	// ListEmailTemplates 列出全部邮件模板（含是否自定义、最后修改时间）
 	ListEmailTemplates(ctx context.Context, req *ListEmailTemplatesRequest, opts ...http.CallOption) (rsp *ListEmailTemplatesResponse, err error)
 	// ListOperationLogs 获取操作日志
@@ -779,8 +1052,16 @@ type SystemHTTPClient interface {
 	MePermissions(ctx context.Context, req *MePermissionsRequest, opts ...http.CallOption) (rsp *MePermissionsResponse, err error)
 	// OperationLogStats 操作日志统计（今日操作、今日失败、今日活跃用户、今日经主控转发）
 	OperationLogStats(ctx context.Context, req *OperationLogStatsRequest, opts ...http.CallOption) (rsp *OperationLogStatsResponse, err error)
+	// PauseDownload 暂停下载（已下的部分留着，继续时能续传就续传）
+	PauseDownload(ctx context.Context, req *DownloadActionRequest, opts ...http.CallOption) (rsp *DownloadActionResponse, err error)
+	// RemoveDownload 从列表里删掉一条已结束的下载记录
+	RemoveDownload(ctx context.Context, req *DownloadActionRequest, opts ...http.CallOption) (rsp *RemoveDownloadResponse, err error)
+	// ResumeDownload 继续已暂停的下载
+	ResumeDownload(ctx context.Context, req *DownloadActionRequest, opts ...http.CallOption) (rsp *DownloadActionResponse, err error)
 	// SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
 	SiteConfig(ctx context.Context, req *SiteConfigRequest, opts ...http.CallOption) (rsp *SiteConfigResponse, err error)
+	// StartUpdate 从 GitHub 更新：按更新通道取最新发行版，下载本机系统对应的包，校验后替换程序并重启（需 system:update 权限）
+	StartUpdate(ctx context.Context, req *StartUpdateRequest, opts ...http.CallOption) (rsp *StartUpdateResponse, err error)
 	// StorageConfig 获取储存设置（头像与应用图片存放的文件来源）
 	StorageConfig(ctx context.Context, req *StorageConfigRequest, opts ...http.CallOption) (rsp *StorageConfigResponse, err error)
 	// SystemOverview 获取系统信息概览
@@ -799,6 +1080,8 @@ type SystemHTTPClient interface {
 	UpdateOperationLogRetention(ctx context.Context, req *UpdateOperationLogRetentionRequest, opts ...http.CallOption) (rsp *UpdateOperationLogRetentionResponse, err error)
 	// UpdateSiteConfig 更新站点常规配置
 	UpdateSiteConfig(ctx context.Context, req *UpdateSiteConfigRequest, opts ...http.CallOption) (rsp *UpdateSiteConfigResponse, err error)
+	// UpdateStatus 更新进度：当前有没有在下载、等待安装或重启（需 system:update 权限）
+	UpdateStatus(ctx context.Context, req *UpdateStatusRequest, opts ...http.CallOption) (rsp *UpdateStatusResponse, err error)
 	// UpdateStorageConfig 更新储存设置
 	UpdateStorageConfig(ctx context.Context, req *UpdateStorageConfigRequest, opts ...http.CallOption) (rsp *UpdateStorageConfigResponse, err error)
 }
@@ -951,6 +1234,48 @@ func (c *SystemHTTPClientImpl) AdminRoles(ctx context.Context, in *AdminRolesReq
 	return &out, nil
 }
 
+// ApplyUpdate 安装已上传、校验通过的程序文件并重启（上传走 /api/v1/system/update/upload，需 system:update 权限）
+func (c *SystemHTTPClientImpl) ApplyUpdate(ctx context.Context, in *ApplyUpdateRequest, opts ...http.CallOption) (*ApplyUpdateResponse, error) {
+	var out ApplyUpdateResponse
+	pattern := "/api/v1/system/update/apply"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemApplyUpdate))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CancelDownload 取消下载（发起下载的那件事也会跟着失败，比如更新、安装）
+func (c *SystemHTTPClientImpl) CancelDownload(ctx context.Context, in *DownloadActionRequest, opts ...http.CallOption) (*DownloadActionResponse, error) {
+	var out DownloadActionResponse
+	pattern := "/api/v1/system/downloads/{id}/cancel"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemCancelDownload))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CancelUpdate 取消更新：停止正在进行的下载，或丢掉已上传还没安装的文件（需 system:update 权限）
+func (c *SystemHTTPClientImpl) CancelUpdate(ctx context.Context, in *CancelUpdateRequest, opts ...http.CallOption) (*CancelUpdateResponse, error) {
+	var out CancelUpdateResponse
+	pattern := "/api/v1/system/update/cancel"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemCancelUpdate))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // CheckUpdate 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
 func (c *SystemHTTPClientImpl) CheckUpdate(ctx context.Context, in *CheckUpdateRequest, opts ...http.CallOption) (*CheckUpdateResponse, error) {
 	var out CheckUpdateResponse
@@ -959,6 +1284,20 @@ func (c *SystemHTTPClientImpl) CheckUpdate(ctx context.Context, in *CheckUpdateR
 	opts = append(opts, http.Operation(OperationSystemCheckUpdate))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ClearDownloads 清掉所有已结束的下载记录
+func (c *SystemHTTPClientImpl) ClearDownloads(ctx context.Context, in *ClearDownloadsRequest, opts ...http.CallOption) (*ClearDownloadsResponse, error) {
+	var out ClearDownloadsResponse
+	pattern := "/api/v1/system/downloads/clear"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemClearDownloads))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -985,6 +1324,20 @@ func (c *SystemHTTPClientImpl) EmailTemplate(ctx context.Context, in *EmailTempl
 	pattern := "/api/v1/system/email-template"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationSystemEmailTemplate))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListDownloads 下载管理：服务器从外网下载的文件（系统更新、Agent 安装包、技能压缩包……），只列出有对应权限的
+func (c *SystemHTTPClientImpl) ListDownloads(ctx context.Context, in *ListDownloadsRequest, opts ...http.CallOption) (*ListDownloadsResponse, error) {
+	var out ListDownloadsResponse
+	pattern := "/api/v1/system/downloads"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemListDownloads))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -1063,6 +1416,48 @@ func (c *SystemHTTPClientImpl) OperationLogStats(ctx context.Context, in *Operat
 	return &out, nil
 }
 
+// PauseDownload 暂停下载（已下的部分留着，继续时能续传就续传）
+func (c *SystemHTTPClientImpl) PauseDownload(ctx context.Context, in *DownloadActionRequest, opts ...http.CallOption) (*DownloadActionResponse, error) {
+	var out DownloadActionResponse
+	pattern := "/api/v1/system/downloads/{id}/pause"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemPauseDownload))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RemoveDownload 从列表里删掉一条已结束的下载记录
+func (c *SystemHTTPClientImpl) RemoveDownload(ctx context.Context, in *DownloadActionRequest, opts ...http.CallOption) (*RemoveDownloadResponse, error) {
+	var out RemoveDownloadResponse
+	pattern := "/api/v1/system/downloads/{id}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemRemoveDownload))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ResumeDownload 继续已暂停的下载
+func (c *SystemHTTPClientImpl) ResumeDownload(ctx context.Context, in *DownloadActionRequest, opts ...http.CallOption) (*DownloadActionResponse, error) {
+	var out DownloadActionResponse
+	pattern := "/api/v1/system/downloads/{id}/resume"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemResumeDownload))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // SiteConfig 获取站点常规配置（站点名称、对外地址、默认语言、版本更新偏好）
 func (c *SystemHTTPClientImpl) SiteConfig(ctx context.Context, in *SiteConfigRequest, opts ...http.CallOption) (*SiteConfigResponse, error) {
 	var out SiteConfigResponse
@@ -1071,6 +1466,20 @@ func (c *SystemHTTPClientImpl) SiteConfig(ctx context.Context, in *SiteConfigReq
 	opts = append(opts, http.Operation(OperationSystemSiteConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// StartUpdate 从 GitHub 更新：按更新通道取最新发行版，下载本机系统对应的包，校验后替换程序并重启（需 system:update 权限）
+func (c *SystemHTTPClientImpl) StartUpdate(ctx context.Context, in *StartUpdateRequest, opts ...http.CallOption) (*StartUpdateResponse, error) {
+	var out StartUpdateResponse
+	pattern := "/api/v1/system/update/start"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSystemStartUpdate))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1197,6 +1606,20 @@ func (c *SystemHTTPClientImpl) UpdateSiteConfig(ctx context.Context, in *UpdateS
 	opts = append(opts, http.Operation(OperationSystemUpdateSiteConfig))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateStatus 更新进度：当前有没有在下载、等待安装或重启（需 system:update 权限）
+func (c *SystemHTTPClientImpl) UpdateStatus(ctx context.Context, in *UpdateStatusRequest, opts ...http.CallOption) (*UpdateStatusResponse, error) {
+	var out UpdateStatusResponse
+	pattern := "/api/v1/system/update/status"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationSystemUpdateStatus))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,6 @@
 <!-- Agent 管理 · 技能：一行一个技能（名称、来源和文件数、说明），行尾是启用开关、编辑、删除；
-     右上可以新建，或者从压缩包、Git 地址、服务器上已有的目录导入。 -->
+     右上可以新建，或者从压缩包、Git 地址、服务器上已有的目录导入。
+     只有自己的技能；在全员 Agent 页里（useAgentAll）是所有人的，行上带主人和启用状态，只能删除。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>
@@ -10,7 +11,7 @@
         </template>
         <template v-else>{{ t('agent.common.loading') }}</template>
       </template>
-      <template #actions>
+      <template v-if="!all" #actions>
         <AppDropdown panel-class="ag ag-menu">
           <template #trigger="{ open }">
             <button type="button" class="ag-btn" aria-haspopup="menu" :aria-expanded="open" :disabled="importing">
@@ -39,10 +40,26 @@
             <div class="ag-rt">
               <span class="ag-mono">{{ s.name }}</span>
               <span class="ag-sk-meta">{{ t('agent.skills.meta', { source: sourceText(s.source), n: s.fileCount }) }}</span>
+              <span v-if="all" class="ag-pill" :class="{ 'ag-pill--ok': s.enabled }">
+                {{ t(s.enabled ? 'agent.admin.enabled' : 'agent.admin.disabled') }}
+              </span>
             </div>
-            <div class="ag-rs">{{ s.description || t('agent.skills.noDesc') }}</div>
+            <div class="ag-rs">
+              <template v-if="all">{{ ownerOf(s) }} · </template>{{ s.description || t('agent.skills.noDesc') }}
+            </div>
           </div>
-          <div class="ag-rc">
+          <div v-if="all" class="ag-rc">
+            <button
+              type="button"
+              class="ag-ib ag-ib--sm"
+              :aria-label="t('agent.skills.deleteOf', { name: s.name })"
+              :title="t('agent.common.delete')"
+              @click="askDelete(s)"
+            >
+              <UIcon name="i-lucide-trash-2" />
+            </button>
+          </div>
+          <div v-else class="ag-rc">
             <AgSwitch
               class="ag-sk-tg"
               :model-value="s.enabled"
@@ -143,12 +160,13 @@ import {
   listAgentSkills,
   setAgentSkillEnabled,
 } from '@/api/agent'
-import type { AgentSkill, AgentSkillFile } from '@/types/v1/agent'
+import type { AgentSkill, AgentSkillFile, AgentUser } from '@/types/v1/agent'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
 import AgDirList from '@/views/agent/components/AgDirList.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
+import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { fileToBase64 } from '@/views/agent/utils/format'
 import SkillEditorDialog from './SkillEditorDialog.vue'
@@ -156,15 +174,19 @@ import SkillEditorDialog from './SkillEditorDialog.vue'
 defineOptions({ name: 'AgentManageSkillsView' })
 
 const { t, te } = useI18n()
+/** 在全员 Agent 页里：所有人的技能 */
+const all = useAgentAll()
 const { overview, refresh } = useAgentOverview()
 
 // —— 列表 ——
 const skills = ref<AgentSkill[]>([])
+const users = ref<AgentUser[]>([])
 const loaded = ref(false)
 const load = async () => {
   try {
-    const { data } = await listAgentSkills()
+    const { data } = await listAgentSkills({ all })
     skills.value = data.skills || []
+    users.value = data.users || []
   } catch {
     // 请求层已经提示过
   } finally {
@@ -180,6 +202,10 @@ onActivated(() => {
 })
 
 const enabledCount = computed(() => Number(overview.value?.skillsEnabled ?? 0))
+const ownerOf = (s: AgentSkill) => {
+  const u = users.value.find((x) => x.id === s.userId)
+  return u ? u.name || u.username : t('agent.admin.goneUser')
+}
 const sourceText = (source: string) => {
   const key = `agent.skills.source.${source}`
   return te(key) ? t(key) : source

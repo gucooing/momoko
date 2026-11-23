@@ -6513,6 +6513,8 @@ export const knownTextMessages: Record<AppLocale, Record<string, string>> = {
     添加菜单: '添加選單',
     编辑菜单: '編輯選單',
     删除菜单: '刪除選單',
+    '全员 Agent': '全員 Agent',
+    '管理供应商、运行时和通知': '管理供應商、運行時和通知',
   },
   'en-US': {
     游戏: 'Games',
@@ -6524,6 +6526,8 @@ export const knownTextMessages: Record<AppLocale, Record<string, string>> = {
     修改监控设置: 'Edit monitoring settings',
     智商检测: 'IQ check',
     'Agent 管理': 'Agent management',
+    '全员 Agent': "All users' agents",
+    '管理供应商、运行时和通知': 'Manage providers, runtimes and notifications',
     提示词配置: 'Prompts',
     检测配置: 'Check Config',
     编辑提示词: 'Edit prompts',

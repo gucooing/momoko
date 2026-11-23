@@ -51,6 +51,20 @@ func (_c *AgentSkillCreate) SetNillableUpdateTime(v *time.Time) *AgentSkillCreat
 	return _c
 }
 
+// SetUserID sets the "user_id" field.
+func (_c *AgentSkillCreate) SetUserID(v string) *AgentSkillCreate {
+	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_c *AgentSkillCreate) SetNillableUserID(v *string) *AgentSkillCreate {
+	if v != nil {
+		_c.SetUserID(*v)
+	}
+	return _c
+}
+
 // SetName sets the "name" field.
 func (_c *AgentSkillCreate) SetName(v string) *AgentSkillCreate {
 	_c.mutation.SetName(v)
@@ -176,6 +190,10 @@ func (_c *AgentSkillCreate) defaults() {
 		v := agentskill.DefaultUpdateTime()
 		_c.mutation.SetUpdateTime(v)
 	}
+	if _, ok := _c.mutation.UserID(); !ok {
+		v := agentskill.DefaultUserID
+		_c.mutation.SetUserID(v)
+	}
 	if _, ok := _c.mutation.Description(); !ok {
 		v := agentskill.DefaultDescription
 		_c.mutation.SetDescription(v)
@@ -205,6 +223,9 @@ func (_c *AgentSkillCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`gen: missing required field "AgentSkill.update_time"`)}
+	}
+	if _, ok := _c.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`gen: missing required field "AgentSkill.user_id"`)}
 	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`gen: missing required field "AgentSkill.name"`)}
@@ -282,6 +303,10 @@ func (_c *AgentSkillCreate) createSpec() (*AgentSkill, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UpdateTime(); ok {
 		_spec.SetField(agentskill.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
+	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(agentskill.FieldUserID, field.TypeString, value)
+		_node.UserID = value
 	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(agentskill.FieldName, field.TypeString, value)
@@ -368,6 +393,18 @@ func (u *AgentSkillUpsert) SetUpdateTime(v time.Time) *AgentSkillUpsert {
 // UpdateUpdateTime sets the "update_time" field to the value that was provided on create.
 func (u *AgentSkillUpsert) UpdateUpdateTime() *AgentSkillUpsert {
 	u.SetExcluded(agentskill.FieldUpdateTime)
+	return u
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AgentSkillUpsert) SetUserID(v string) *AgentSkillUpsert {
+	u.Set(agentskill.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentSkillUpsert) UpdateUserID() *AgentSkillUpsert {
+	u.SetExcluded(agentskill.FieldUserID)
 	return u
 }
 
@@ -511,6 +548,20 @@ func (u *AgentSkillUpsertOne) SetUpdateTime(v time.Time) *AgentSkillUpsertOne {
 func (u *AgentSkillUpsertOne) UpdateUpdateTime() *AgentSkillUpsertOne {
 	return u.Update(func(s *AgentSkillUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AgentSkillUpsertOne) SetUserID(v string) *AgentSkillUpsertOne {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentSkillUpsertOne) UpdateUserID() *AgentSkillUpsertOne {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.UpdateUserID()
 	})
 }
 
@@ -834,6 +885,20 @@ func (u *AgentSkillUpsertBulk) SetUpdateTime(v time.Time) *AgentSkillUpsertBulk 
 func (u *AgentSkillUpsertBulk) UpdateUpdateTime() *AgentSkillUpsertBulk {
 	return u.Update(func(s *AgentSkillUpsert) {
 		s.UpdateUpdateTime()
+	})
+}
+
+// SetUserID sets the "user_id" field.
+func (u *AgentSkillUpsertBulk) SetUserID(v string) *AgentSkillUpsertBulk {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "user_id" field to the value that was provided on create.
+func (u *AgentSkillUpsertBulk) UpdateUserID() *AgentSkillUpsertBulk {
+	return u.Update(func(s *AgentSkillUpsert) {
+		s.UpdateUserID()
 	})
 }
 

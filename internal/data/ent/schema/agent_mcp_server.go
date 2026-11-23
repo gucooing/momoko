@@ -5,9 +5,10 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	entschema "entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
-// AgentMcpServer MCP 服务器配置。新建会话时把选中的放进 mcpServers 交给 Agent。
+// AgentMcpServer MCP 服务器配置，属于创建它的用户。新建会话时把选中的放进 mcpServers 交给 Agent。
 type AgentMcpServer struct {
 	ent.Schema
 }
@@ -15,7 +16,8 @@ type AgentMcpServer struct {
 func (AgentMcpServer) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").NotEmpty().Unique().Comment("MCP 服务器 id"),
-		field.String("name").NotEmpty().Unique().Comment("名称"),
+		field.String("user_id").Default("").Comment("所属用户 id：每个人只看得到、只用得上自己的"),
+		field.String("name").NotEmpty().Comment("名称，同一个人的不重名"),
 		field.String("description").Default("").Comment("说明"),
 		field.Enum("transport").Values("stdio", "http").Default("stdio").Comment("传输方式"),
 		field.String("command").Default("").Comment("stdio：命令"),
@@ -28,6 +30,12 @@ func (AgentMcpServer) Fields() []ent.Field {
 		field.String("status_text").Default("").Comment("测试结果说明"),
 		field.Int("tool_count").Default(0).Comment("测试时读到的工具数"),
 		field.Time("tested_at").Optional().Nillable().Comment("最近一次测试时间"),
+	}
+}
+
+func (AgentMcpServer) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("user_id", "name").Unique(),
 	}
 }
 

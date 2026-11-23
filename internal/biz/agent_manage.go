@@ -933,6 +933,7 @@ func (uc *AgentUsecase) workspacePB(w *gen.AgentWorkspace, names *agentNames, st
 		Mode:        w.Mode,
 		ModeName:    names.mode(w.RuntimeID, w.Mode),
 		McpIds:      w.McpIds,
+		UserId:      w.UserID,
 	}
 	out.RuntimeName, _ = names.runtime(w.RuntimeID)
 	if w.RuntimeID != "" {
@@ -952,34 +953,61 @@ func (uc *AgentUsecase) workspacePB(w *gen.AgentWorkspace, names *agentNames, st
 	return out
 }
 
-func (uc *AgentUsecase) ListWorkspaces(ctx context.Context) ([]*v1.AgentWorkspace, error) {
-	rows, err := uc.repo.ListAgentWorkspaces(ctx)
+// ListWorkspaces 自己的工作区；all 时（全员 Agent 页）是所有人的，连同它们的主人。
+func (uc *AgentUsecase) ListWorkspaces(ctx context.Context, all bool) ([]*v1.AgentWorkspace, []*v1.AgentUser, error) {
+	userID, err := uc.listScope(ctx, all)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, nil, err
+	}
+	rows, err := uc.repo.ListAgentWorkspaces(ctx, userID)
+	if err != nil {
+		return nil, nil, ErrSystem(err)
 	}
 	ids := make([]string, 0, len(rows))
+	owners := make([]string, 0, len(rows))
 	for _, w := range rows {
 		ids = append(ids, w.ID)
+		owners = append(owners, w.UserID)
 	}
 	stats, err := uc.repo.AgentWorkspaceStats(ctx, ids)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, nil, ErrSystem(err)
 	}
 	names := uc.loadNames(ctx)
 	out := make([]*v1.AgentWorkspace, 0, len(rows))
 	for _, w := range rows {
 		out = append(out, uc.workspacePB(w, names, stats))
 	}
-	return out, nil
+	if !all {
+		return out, nil, nil
+	}
+	users, err := uc.agentUsersPB(ctx, owners)
+	if err != nil {
+		return nil, nil, err
+	}
+	return out, users, nil
 }
 
+// getWorkspace 取当前用户自己的一个工作区。
 func (uc *AgentUsecase) getWorkspace(ctx context.Context, id string) (*gen.AgentWorkspace, error) {
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return uc.workspaceIn(ctx, userID, id)
+}
+
+// workspaceIn 取一个属于 scope 的工作区（scope 为空是谁的都行）；不属于时当作不存在。
+func (uc *AgentUsecase) workspaceIn(ctx context.Context, scope, id string) (*gen.AgentWorkspace, error) {
 	w, err := uc.repo.GetAgentWorkspace(ctx, id)
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return nil, ErrAgentWorkspaceNotFound
 		}
 		return nil, ErrSystem(err)
+	}
+	if !ownedBy(scope, w.UserID) {
+		return nil, ErrAgentWorkspaceNotFound
 	}
 	return w, nil
 }
@@ -1014,9 +1042,9 @@ func (uc *AgentUsecase) checkDefaults(ctx context.Context, runtimeID, providerID
 	return nil
 }
 
-// pathFree 一个目录只能属于一个工作区。
-func (uc *AgentUsecase) pathFree(ctx context.Context, path, exceptID string) error {
-	existing, err := uc.repo.FindAgentWorkspaceByPath(ctx, path)
+// pathFree 同一个人的工作区不能是同一个目录（不同的人可以各建一个）。
+func (uc *AgentUsecase) pathFree(ctx context.Context, userID, path, exceptID string) error {
+	existing, err := uc.repo.FindAgentWorkspaceByPath(ctx, userID, path)
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return nil
@@ -1063,9 +1091,13 @@ func (uc *AgentUsecase) CreateWorkspace(ctx context.Context, req *v1.CreateAgent
 	if err := checkAgentDocs(req.Docs); err != nil {
 		return nil, err
 	}
+	mcpIDs, err := uc.ownMcpIDs(ctx, userID, req.McpIds)
+	if err != nil {
+		return nil, err
+	}
 	w := &gen.AgentWorkspace{
 		ID: "ws_" + uuid.NewString(), UserID: userID, Name: strings.TrimSpace(req.Name),
-		RuntimeID: req.RuntimeId, ProviderID: req.ProviderId, Model: req.Model, Effort: req.Effort, Mode: req.Mode, McpIds: req.McpIds,
+		RuntimeID: req.RuntimeId, ProviderID: req.ProviderId, Model: req.Model, Effort: req.Effort, Mode: req.Mode, McpIds: mcpIDs,
 		CreateTime: time.Now(),
 	}
 	if req.Source == "git" {
@@ -1089,7 +1121,7 @@ func (uc *AgentUsecase) CreateWorkspace(ctx context.Context, req *v1.CreateAgent
 		if !agentfs.Empty(w.Path) {
 			return nil, response.BadRequest("克隆的目标目录已经有东西了，换一个目录")
 		}
-		if err := uc.pathFree(ctx, w.Path, ""); err != nil {
+		if err := uc.pathFree(ctx, userID, w.Path, ""); err != nil {
 			return nil, err
 		}
 		w.GitURL, w.CloneStatus = gitURL, "cloning"
@@ -1105,7 +1137,7 @@ func (uc *AgentUsecase) CreateWorkspace(ctx context.Context, req *v1.CreateAgent
 		if !agentfs.IsDir(w.Path) {
 			return nil, response.BadRequest("服务器上没有这个目录")
 		}
-		if err := uc.pathFree(ctx, w.Path, ""); err != nil {
+		if err := uc.pathFree(ctx, userID, w.Path, ""); err != nil {
 			return nil, err
 		}
 		if w.Name == "" {
@@ -1167,13 +1199,17 @@ func (uc *AgentUsecase) UpdateWorkspace(ctx context.Context, req *v1.UpdateAgent
 			if !agentfs.IsDir(clean) {
 				return nil, response.BadRequest("服务器上没有这个目录")
 			}
-			if err := uc.pathFree(ctx, clean, w.ID); err != nil {
+			if err := uc.pathFree(ctx, w.UserID, clean, w.ID); err != nil {
 				return nil, err
 			}
 			w.Path = clean
 		}
 	}
-	w.RuntimeID, w.ProviderID, w.Model, w.Effort, w.Mode, w.McpIds = req.RuntimeId, req.ProviderId, req.Model, req.Effort, req.Mode, req.McpIds
+	mcpIDs, err := uc.ownMcpIDs(ctx, w.UserID, req.McpIds)
+	if err != nil {
+		return nil, err
+	}
+	w.RuntimeID, w.ProviderID, w.Model, w.Effort, w.Mode, w.McpIds = req.RuntimeId, req.ProviderId, req.Model, req.Effort, req.Mode, mcpIDs
 	if err := writeAgentDocs(w.Path, req.Docs); err != nil {
 		return nil, err
 	}
@@ -1188,8 +1224,13 @@ func (uc *AgentUsecase) UpdateWorkspace(ctx context.Context, req *v1.UpdateAgent
 }
 
 // DeleteWorkspace 移除工作区：只删记录，目录里的文件不动；它的会话归到「无工作区」。
+// 有 agent:admin 时也能移除别人的（全员 Agent 页）。
 func (uc *AgentUsecase) DeleteWorkspace(ctx context.Context, id string) error {
-	if _, err := uc.getWorkspace(ctx, id); err != nil {
+	scope, err := uc.cleanScope(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := uc.workspaceIn(ctx, scope, id); err != nil {
 		return err
 	}
 	if err := uc.repo.DeleteAgentWorkspace(ctx, id); err != nil {
@@ -1217,7 +1258,29 @@ func (uc *AgentUsecase) BrowseWorkspace(ctx context.Context, id, dir string) ([]
 		return nil, err
 	}
 	entries, err := agentfs.List(w.Path, dir)
-	return agentEntriesPB(entries), agentErr(err)
+	if err != nil {
+		return nil, agentErr(err)
+	}
+	// 和会话里的「文件」一样带上未提交改动的标记（工作区下面放着几个仓库时按各自的仓库看）
+	out := agentEntriesPB(entries)
+	marks := gitMarks(ctx, w.Path, dir)
+	for _, e := range out {
+		e.Change = marks[e.Path]
+	}
+	return out, nil
+}
+
+// ReadWorkspaceFile 只读地打开工作区里的一个文件（新会话页还没有会话目录，按工作区读）。
+func (uc *AgentUsecase) ReadWorkspaceFile(ctx context.Context, id, path string) (*v1.ReadAgentSessionFileResponse, error) {
+	w, err := uc.getWorkspace(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	text, err := agentfs.ReadText(w.Path, path, agentFileMax)
+	if err != nil {
+		return nil, agentErr(err)
+	}
+	return &v1.ReadAgentSessionFileResponse{Path: path, Content: text.Content, Binary: text.Binary, TooLarge: text.TooLarge, Size: text.Size, ModTime: text.ModTime}, nil
 }
 
 // GetDocs 读目录里的项目指令文件。目录不存在或还没填完时，两个文件都算没有。
@@ -1290,6 +1353,7 @@ func (uc *AgentUsecase) mcpPB(m *gen.AgentMcpServer) *v1.AgentMcpServer {
 		Command: m.Command, Args: m.Args, Url: m.URL, DefaultOn: m.DefaultOn,
 		Status: m.Status, StatusText: m.StatusText, ToolCount: int32(m.ToolCount),
 		Env: uc.secretKVsPB(m.Env), Headers: uc.secretKVsPB(m.Headers),
+		UserId: m.UserID,
 	}
 	if m.TestedAt != nil {
 		out.TestedAt = timestamppb.New(*m.TestedAt)
@@ -1297,19 +1361,43 @@ func (uc *AgentUsecase) mcpPB(m *gen.AgentMcpServer) *v1.AgentMcpServer {
 	return out
 }
 
-func (uc *AgentUsecase) ListMcpServers(ctx context.Context) ([]*v1.AgentMcpServer, error) {
-	rows, err := uc.repo.ListAgentMcpServers(ctx)
+// ListMcpServers 自己的 MCP 服务器；all 时（全员 Agent 页）是所有人的，连同它们的主人。
+func (uc *AgentUsecase) ListMcpServers(ctx context.Context, all bool) ([]*v1.AgentMcpServer, []*v1.AgentUser, error) {
+	userID, err := uc.listScope(ctx, all)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, nil, err
+	}
+	rows, err := uc.repo.ListAgentMcpServers(ctx, userID)
+	if err != nil {
+		return nil, nil, ErrSystem(err)
 	}
 	out := make([]*v1.AgentMcpServer, 0, len(rows))
+	owners := make([]string, 0, len(rows))
 	for _, m := range rows {
 		out = append(out, uc.mcpPB(m))
+		owners = append(owners, m.UserID)
 	}
-	return out, nil
+	if !all {
+		return out, nil, nil
+	}
+	users, err := uc.agentUsersPB(ctx, owners)
+	if err != nil {
+		return nil, nil, err
+	}
+	return out, users, nil
 }
 
+// getMcp 取当前用户自己的一个 MCP 服务器。
 func (uc *AgentUsecase) getMcp(ctx context.Context, id string) (*gen.AgentMcpServer, error) {
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return uc.mcpIn(ctx, userID, id)
+}
+
+// mcpIn 取一个属于 scope 的 MCP 服务器（scope 为空是谁的都行）；不属于时当作不存在。
+func (uc *AgentUsecase) mcpIn(ctx context.Context, scope, id string) (*gen.AgentMcpServer, error) {
 	m, err := uc.repo.GetAgentMcpServer(ctx, id)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -1317,7 +1405,32 @@ func (uc *AgentUsecase) getMcp(ctx context.Context, id string) (*gen.AgentMcpSer
 		}
 		return nil, ErrSystem(err)
 	}
+	if !ownedBy(scope, m.UserID) {
+		return nil, ErrAgentMcpNotFound
+	}
 	return m, nil
+}
+
+// ownMcpIDs 只留下属于 userID 的 MCP 服务器 id（会话、工作区只能开自己的），顺序不变。
+func (uc *AgentUsecase) ownMcpIDs(ctx context.Context, userID string, ids []string) ([]string, error) {
+	if len(ids) == 0 {
+		return ids, nil
+	}
+	rows, err := uc.repo.ListAgentMcpServersByIDs(ctx, userID, ids)
+	if err != nil {
+		return nil, ErrSystem(err)
+	}
+	owned := make(map[string]bool, len(rows))
+	for _, m := range rows {
+		owned[m.ID] = true
+	}
+	out := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if owned[id] {
+			out = append(out, id)
+		}
+	}
+	return out, nil
 }
 
 // applyMcp 把表单内容写到记录上。连接方式变了的话，之前的测试结果作废。
@@ -1329,7 +1442,7 @@ func (uc *AgentUsecase) applyMcp(ctx context.Context, m *gen.AgentMcpServer, in 
 	if strings.ContainsAny(name, " \t/\\") {
 		return response.BadRequest("名称里不能有空格和斜杠")
 	}
-	if other, err := uc.repo.FindAgentMcpServerByName(ctx, name); err == nil && other.ID != m.ID {
+	if other, err := uc.repo.FindAgentMcpServerByName(ctx, m.UserID, name); err == nil && other.ID != m.ID {
 		return response.BadRequest("已经有一个叫 " + name + " 的 MCP 服务器了")
 	}
 	before := agentJSON([]any{m.Transport, m.Command, m.Args, m.Env, m.URL, m.Headers})
@@ -1356,7 +1469,11 @@ func (uc *AgentUsecase) applyMcp(ctx context.Context, m *gen.AgentMcpServer, in 
 }
 
 func (uc *AgentUsecase) CreateMcpServer(ctx context.Context, in *v1.AgentMcpServer) (*v1.AgentMcpServer, error) {
-	m := &gen.AgentMcpServer{ID: "mcp_" + uuid.NewString(), Status: "untested"}
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	m := &gen.AgentMcpServer{ID: "mcp_" + uuid.NewString(), UserID: userID, Status: "untested"}
 	if err := uc.applyMcp(ctx, m, in); err != nil {
 		return nil, err
 	}
@@ -1382,8 +1499,13 @@ func (uc *AgentUsecase) UpdateMcpServer(ctx context.Context, id string, in *v1.A
 	return uc.mcpPB(m), nil
 }
 
+// DeleteMcpServer 删除 MCP 服务器；有 agent:admin 时也能删别人的（全员 Agent 页）。
 func (uc *AgentUsecase) DeleteMcpServer(ctx context.Context, id string) error {
-	if _, err := uc.getMcp(ctx, id); err != nil {
+	scope, err := uc.cleanScope(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := uc.mcpIn(ctx, scope, id); err != nil {
 		return err
 	}
 	if err := uc.repo.DeleteAgentMcpServer(ctx, id); err != nil {
@@ -1469,11 +1591,15 @@ func (uc *AgentUsecase) TestMcpServer(ctx context.Context, req *v1.TestAgentMcpS
 
 // ImportMcpServers 粘贴 {"mcpServers": {...}} 导入。重名的自动加序号。
 func (uc *AgentUsecase) ImportMcpServers(ctx context.Context, raw string) ([]*v1.AgentMcpServer, error) {
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	names, servers, err := mcpprobe.ParseConfig(raw)
 	if err != nil {
 		return nil, agentErr(err)
 	}
-	existing, err := uc.repo.AgentMcpServerNames(ctx)
+	existing, err := uc.repo.AgentMcpServerNames(ctx, userID)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -1513,9 +1639,9 @@ func (uc *AgentUsecase) ImportMcpServers(ctx context.Context, raw string) ([]*v1
 	return out, nil
 }
 
-// sessionMcpServers 会话开启的 MCP 服务器，交给引擎（Agent 不支持的传输方式由引擎去掉）。
-func (uc *AgentUsecase) sessionMcpServers(ctx context.Context, ids []string) ([]agentrun.McpServer, error) {
-	rows, err := uc.repo.ListAgentMcpServersByIDs(ctx, ids)
+// sessionMcpServers 会话开启的 MCP 服务器，交给引擎（Agent 不支持的传输方式由引擎去掉）。只用得上会话主人自己的。
+func (uc *AgentUsecase) sessionMcpServers(ctx context.Context, userID string, ids []string) ([]agentrun.McpServer, error) {
+	rows, err := uc.repo.ListAgentMcpServersByIDs(ctx, userID, ids)
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
@@ -1532,38 +1658,69 @@ func (uc *AgentUsecase) sessionMcpServers(ctx context.Context, ids []string) ([]
 
 // ———————————————————————————— 技能 ————————————————————————————
 
-func (uc *AgentUsecase) skillStore() agentskillpkg.Store {
-	return agentskillpkg.Store{Root: filepath.Join(uc.root, "skills")}
+// skillStore 一个用户的技能库：每个人的技能各放各的，不同的人可以有同名的技能。
+func (uc *AgentUsecase) skillStore(userID string) agentskillpkg.Store {
+	return agentskillpkg.Store{Root: uc.userDir(userID, "skills")}
 }
 
 func skillPB(s *gen.AgentSkill) *v1.AgentSkill {
-	return &v1.AgentSkill{Id: s.ID, Name: s.Name, Description: s.Description, Source: string(s.Source), Enabled: s.Enabled, FileCount: int32(s.FileCount)}
+	return &v1.AgentSkill{Id: s.ID, Name: s.Name, Description: s.Description, Source: string(s.Source), Enabled: s.Enabled, FileCount: int32(s.FileCount), UserId: s.UserID}
 }
 
-// ListSkills enabledOnly 为 true 时只要启用着的（筛选在 SQL 里）。
-func (uc *AgentUsecase) ListSkills(ctx context.Context, enabledOnly bool) ([]*v1.AgentSkill, error) {
-	list := uc.repo.ListAgentSkills
-	if enabledOnly {
-		list = uc.repo.ListEnabledAgentSkills
-	}
-	rows, err := list(ctx)
+// ListSkills 自己的技能，enabledOnly 为 true 时只要启用着的（筛选在 SQL 里）；all 时（全员 Agent 页）是所有人的，连同它们的主人。
+func (uc *AgentUsecase) ListSkills(ctx context.Context, enabledOnly, all bool) ([]*v1.AgentSkill, []*v1.AgentUser, error) {
+	userID, err := uc.listScope(ctx, all)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, nil, err
+	}
+	var rows []*gen.AgentSkill
+	if enabledOnly && userID != "" {
+		rows, err = uc.repo.ListEnabledAgentSkills(ctx, userID)
+	} else {
+		rows, err = uc.repo.ListAgentSkills(ctx, userID)
+	}
+	if err != nil {
+		return nil, nil, ErrSystem(err)
 	}
 	out := make([]*v1.AgentSkill, 0, len(rows))
+	owners := make([]string, 0, len(rows))
 	for _, s := range rows {
+		if enabledOnly && !s.Enabled {
+			continue
+		}
 		out = append(out, skillPB(s))
+		owners = append(owners, s.UserID)
 	}
-	return out, nil
+	if !all {
+		return out, nil, nil
+	}
+	users, err := uc.agentUsersPB(ctx, owners)
+	if err != nil {
+		return nil, nil, err
+	}
+	return out, users, nil
 }
 
+// getSkill 取当前用户自己的一个技能。
 func (uc *AgentUsecase) getSkill(ctx context.Context, id string) (*gen.AgentSkill, error) {
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return uc.skillIn(ctx, userID, id)
+}
+
+// skillIn 取一个属于 scope 的技能（scope 为空是谁的都行）；不属于时当作不存在。
+func (uc *AgentUsecase) skillIn(ctx context.Context, scope, id string) (*gen.AgentSkill, error) {
 	s, err := uc.repo.GetAgentSkill(ctx, id)
 	if err != nil {
 		if gen.IsNotFound(err) {
 			return nil, ErrAgentSkillNotFound
 		}
 		return nil, ErrSystem(err)
+	}
+	if !ownedBy(scope, s.UserID) {
+		return nil, ErrAgentSkillNotFound
 	}
 	return s, nil
 }
@@ -1574,7 +1731,7 @@ func (uc *AgentUsecase) GetSkill(ctx context.Context, id string) (*v1.GetAgentSk
 		return nil, err
 	}
 	resp := &v1.GetAgentSkillResponse{Skill: skillPB(s)}
-	for _, f := range uc.skillStore().Read(s.Name) {
+	for _, f := range uc.skillStore(s.UserID).Read(s.Name) {
 		resp.Files = append(resp.Files, &v1.AgentSkillFile{Path: f.Path, Content: f.Content, Binary: f.Binary})
 	}
 	return resp, nil
@@ -1588,16 +1745,16 @@ func agentSkillFiles(in []*v1.AgentSkillFile) []agentskillpkg.File {
 	return out
 }
 
-// saveSkill 新建或更新一个技能：名称不能和别的技能重复。
+// saveSkill 新建或更新一个技能：名称不能和同一个人的别的技能重复。
 func (uc *AgentUsecase) saveSkill(ctx context.Context, s *gen.AgentSkill, name, description string, enabled bool, files []*v1.AgentSkillFile) (*v1.AgentSkill, error) {
 	name, description = strings.TrimSpace(name), strings.TrimSpace(description)
 	if name == "" {
 		return nil, response.BadRequest("先填一个名称")
 	}
-	if other, err := uc.repo.FindAgentSkillByName(ctx, name); err == nil && other.ID != s.ID {
+	if other, err := uc.repo.FindAgentSkillByName(ctx, s.UserID, name); err == nil && other.ID != s.ID {
 		return nil, response.BadRequest("已经有一个叫 " + name + " 的技能了")
 	}
-	count, err := uc.skillStore().Write(name, description, s.Name, agentSkillFiles(files))
+	count, err := uc.skillStore(s.UserID).Write(name, description, s.Name, agentSkillFiles(files))
 	if err != nil {
 		return nil, agentErr(err)
 	}
@@ -1610,7 +1767,11 @@ func (uc *AgentUsecase) saveSkill(ctx context.Context, s *gen.AgentSkill, name, 
 }
 
 func (uc *AgentUsecase) CreateSkill(ctx context.Context, req *v1.CreateAgentSkillRequest) (*v1.AgentSkill, error) {
-	s := &gen.AgentSkill{ID: "skill_" + uuid.NewString(), Source: agentskill.SourceLocal}
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	s := &gen.AgentSkill{ID: "skill_" + uuid.NewString(), UserID: userID, Source: agentskill.SourceLocal}
 	return uc.saveSkill(ctx, s, req.Name, req.Description, req.Enabled, req.Files)
 }
 
@@ -1622,8 +1783,13 @@ func (uc *AgentUsecase) UpdateSkill(ctx context.Context, req *v1.UpdateAgentSkil
 	return uc.saveSkill(ctx, s, req.Name, req.Description, req.Enabled, req.Files)
 }
 
+// DeleteSkill 删除技能和它的文件；有 agent:admin 时也能删别人的（全员 Agent 页）。
 func (uc *AgentUsecase) DeleteSkill(ctx context.Context, id string) error {
-	s, err := uc.getSkill(ctx, id)
+	scope, err := uc.cleanScope(ctx)
+	if err != nil {
+		return err
+	}
+	s, err := uc.skillIn(ctx, scope, id)
 	if err != nil {
 		return err
 	}
@@ -1631,7 +1797,7 @@ func (uc *AgentUsecase) DeleteSkill(ctx context.Context, id string) error {
 		return ErrSystem(err)
 	}
 	uc.configChanged()
-	uc.skillStore().Remove(s.Name)
+	uc.skillStore(s.UserID).Remove(s.Name)
 	return nil
 }
 
@@ -1650,6 +1816,10 @@ func (uc *AgentUsecase) SetSkillEnabled(ctx context.Context, id string, enabled 
 
 // ImportSkill 从上传的压缩包、压缩包链接、Git 地址或服务器目录导入技能。一个来源里可以有多个技能，同名的覆盖。
 func (uc *AgentUsecase) ImportSkill(ctx context.Context, req *v1.ImportAgentSkillRequest) ([]*v1.AgentSkill, error) {
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	bg := context.WithoutCancel(ctx)
 	var source agentskill.Source
 	var root, location, rootName string
@@ -1700,16 +1870,16 @@ func (uc *AgentUsecase) ImportSkill(ctx context.Context, req *v1.ImportAgentSkil
 	default:
 		return nil, response.BadRequest("不认识的导入方式")
 	}
-	store := uc.skillStore()
+	store := uc.skillStore(userID)
 	var out []*v1.AgentSkill
 	for _, found := range agentskillpkg.Find(root, rootName) {
 		count, err := store.Import(found)
 		if err != nil {
 			return nil, response.BadRequest("复制技能 " + found.Name + " 失败：" + err.Error())
 		}
-		s, err := uc.repo.FindAgentSkillByName(bg, found.Name)
+		s, err := uc.repo.FindAgentSkillByName(bg, userID, found.Name)
 		if err != nil {
-			s = &gen.AgentSkill{ID: "skill_" + uuid.NewString(), Name: found.Name, Enabled: true}
+			s = &gen.AgentSkill{ID: "skill_" + uuid.NewString(), UserID: userID, Name: found.Name, Enabled: true}
 		}
 		s.Description, s.Source, s.Location, s.FileCount = found.Description, source, location, count
 		if err := uc.repo.SaveAgentSkill(bg, s); err != nil {
@@ -1724,14 +1894,14 @@ func (uc *AgentUsecase) ImportSkill(ctx context.Context, req *v1.ImportAgentSkil
 	return out, nil
 }
 
-// enabledSkills 现在启用着的技能：名称 → 它在技能库里的目录和版本（保存时间，内容变了它就变）。
-func (uc *AgentUsecase) enabledSkills(ctx context.Context) map[string]agentskillpkg.Enabled {
+// enabledSkills 这个人现在启用着的技能：名称 → 它在他的技能库里的目录和版本（保存时间，内容变了它就变）。
+func (uc *AgentUsecase) enabledSkills(ctx context.Context, userID string) map[string]agentskillpkg.Enabled {
 	out := map[string]agentskillpkg.Enabled{}
-	rows, err := uc.repo.ListEnabledAgentSkills(ctx)
+	rows, err := uc.repo.ListEnabledAgentSkills(ctx, userID)
 	if err != nil {
 		return out
 	}
-	store := uc.skillStore()
+	store := uc.skillStore(userID)
 	for _, s := range rows {
 		out[s.Name] = agentskillpkg.Enabled{Dir: store.Dir(s.Name), Version: strconv.FormatInt(s.UpdateTime.UnixNano(), 10)}
 	}

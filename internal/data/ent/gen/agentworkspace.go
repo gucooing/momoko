@@ -27,7 +27,7 @@ type AgentWorkspace struct {
 	UserID string `json:"user_id,omitempty"`
 	// 名称
 	Name string `json:"name,omitempty"`
-	// 目录
+	// 目录；同一个人的工作区不重复
 	Path string `json:"path,omitempty"`
 	// 从 Git 克隆时的仓库地址
 	GitURL string `json:"git_url,omitempty"`

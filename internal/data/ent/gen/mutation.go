@@ -866,6 +866,7 @@ type AgentMcpServerMutation struct {
 	id            *string
 	create_time   *time.Time
 	update_time   *time.Time
+	user_id       *string
 	name          *string
 	description   *string
 	transport     *agentmcpserver.Transport
@@ -1061,6 +1062,42 @@ func (m *AgentMcpServerMutation) OldUpdateTime(ctx context.Context) (v time.Time
 // ResetUpdateTime resets all changes to the "update_time" field.
 func (m *AgentMcpServerMutation) ResetUpdateTime() {
 	m.update_time = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *AgentMcpServerMutation) SetUserID(s string) {
+	m.user_id = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *AgentMcpServerMutation) UserID() (r string, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the AgentMcpServer entity.
+// If the AgentMcpServer object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentMcpServerMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *AgentMcpServerMutation) ResetUserID() {
+	m.user_id = nil
 }
 
 // SetName sets the "name" field.
@@ -1627,12 +1664,15 @@ func (m *AgentMcpServerMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentMcpServerMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.create_time != nil {
 		fields = append(fields, agentmcpserver.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, agentmcpserver.FieldUpdateTime)
+	}
+	if m.user_id != nil {
+		fields = append(fields, agentmcpserver.FieldUserID)
 	}
 	if m.name != nil {
 		fields = append(fields, agentmcpserver.FieldName)
@@ -1685,6 +1725,8 @@ func (m *AgentMcpServerMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case agentmcpserver.FieldUpdateTime:
 		return m.UpdateTime()
+	case agentmcpserver.FieldUserID:
+		return m.UserID()
 	case agentmcpserver.FieldName:
 		return m.Name()
 	case agentmcpserver.FieldDescription:
@@ -1724,6 +1766,8 @@ func (m *AgentMcpServerMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldCreateTime(ctx)
 	case agentmcpserver.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case agentmcpserver.FieldUserID:
+		return m.OldUserID(ctx)
 	case agentmcpserver.FieldName:
 		return m.OldName(ctx)
 	case agentmcpserver.FieldDescription:
@@ -1772,6 +1816,13 @@ func (m *AgentMcpServerMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case agentmcpserver.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
 		return nil
 	case agentmcpserver.FieldName:
 		v, ok := value.(string)
@@ -1948,6 +1999,9 @@ func (m *AgentMcpServerMutation) ResetField(name string) error {
 		return nil
 	case agentmcpserver.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case agentmcpserver.FieldUserID:
+		m.ResetUserID()
 		return nil
 	case agentmcpserver.FieldName:
 		m.ResetName()
@@ -7908,6 +7962,7 @@ type AgentSkillMutation struct {
 	id            *string
 	create_time   *time.Time
 	update_time   *time.Time
+	user_id       *string
 	name          *string
 	description   *string
 	source        *agentskill.Source
@@ -8095,6 +8150,42 @@ func (m *AgentSkillMutation) OldUpdateTime(ctx context.Context) (v time.Time, er
 // ResetUpdateTime resets all changes to the "update_time" field.
 func (m *AgentSkillMutation) ResetUpdateTime() {
 	m.update_time = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *AgentSkillMutation) SetUserID(s string) {
+	m.user_id = &s
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *AgentSkillMutation) UserID() (r string, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldUserID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *AgentSkillMutation) ResetUserID() {
+	m.user_id = nil
 }
 
 // SetName sets the "name" field.
@@ -8367,12 +8458,15 @@ func (m *AgentSkillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentSkillMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.create_time != nil {
 		fields = append(fields, agentskill.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, agentskill.FieldUpdateTime)
+	}
+	if m.user_id != nil {
+		fields = append(fields, agentskill.FieldUserID)
 	}
 	if m.name != nil {
 		fields = append(fields, agentskill.FieldName)
@@ -8404,6 +8498,8 @@ func (m *AgentSkillMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case agentskill.FieldUpdateTime:
 		return m.UpdateTime()
+	case agentskill.FieldUserID:
+		return m.UserID()
 	case agentskill.FieldName:
 		return m.Name()
 	case agentskill.FieldDescription:
@@ -8429,6 +8525,8 @@ func (m *AgentSkillMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldCreateTime(ctx)
 	case agentskill.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
+	case agentskill.FieldUserID:
+		return m.OldUserID(ctx)
 	case agentskill.FieldName:
 		return m.OldName(ctx)
 	case agentskill.FieldDescription:
@@ -8463,6 +8561,13 @@ func (m *AgentSkillMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
+		return nil
+	case agentskill.FieldUserID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
 		return nil
 	case agentskill.FieldName:
 		v, ok := value.(string)
@@ -8575,6 +8680,9 @@ func (m *AgentSkillMutation) ResetField(name string) error {
 		return nil
 	case agentskill.FieldUpdateTime:
 		m.ResetUpdateTime()
+		return nil
+	case agentskill.FieldUserID:
+		m.ResetUserID()
 		return nil
 	case agentskill.FieldName:
 		m.ResetName()

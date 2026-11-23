@@ -177,6 +177,11 @@ func (p *NodeProxy) operator(ctx context.Context) string {
 func (p *NodeProxy) Filter() khttp.FilterFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Agent 文件页的 HTML 预览：节点在路径里（页面里的相对链接带不上查询参数），签名由节点自己验
+			if rest, ok := strings.CutPrefix(r.URL.Path, biz.AgentPreviewPrefix); ok {
+				p.forwardPreview(w, r, next, rest)
+				return
+			}
 			nodeID := strings.TrimSpace(r.URL.Query().Get(NodeQueryKey))
 			if nodeID == "" {
 				nodeID = strings.TrimSpace(r.Header.Get(NodeHeader))
@@ -217,6 +222,27 @@ func (p *NodeProxy) Filter() khttp.FilterFunc {
 			p.reverseProxy(client).ServeHTTP(w, out)
 		})
 	}
+}
+
+// forwardPreview 预览地址 {节点}/{签名}/{路径}：本机的直接处理；远程节点的把节点换成本机（节点那边就是本机）再转过去。
+func (p *NodeProxy) forwardPreview(w http.ResponseWriter, r *http.Request, next http.Handler, rest string) {
+	nodeID, tail, _ := strings.Cut(rest, "/")
+	if isLocalNode(nodeID) {
+		next.ServeHTTP(w, r)
+		return
+	}
+	client, err := p.nodes.NodeClient(r.Context(), nodeID)
+	if err != nil {
+		response.WriteError(w, r, err)
+		return
+	}
+	out := r.Clone(r.Context())
+	out.URL.Path = biz.AgentPreviewPrefix + LocalNodeID + "/" + tail
+	out.URL.RawPath = ""
+	out.Header.Del("Authorization")
+	out.Header.Del("Cookie")
+	out.Header.Del(NodeHeader)
+	p.reverseProxy(client).ServeHTTP(w, out)
 }
 
 func (p *NodeProxy) reverseProxy(client *biz.NodeClient) *httputil.ReverseProxy {

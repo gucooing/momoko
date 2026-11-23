@@ -1,18 +1,20 @@
 <!-- Agent 管理七个标签页共用的页头：项目现有的 PageHeader + 页内标签（带数量）。
-     副标题只放数量（默认插槽），右上的按钮放 #actions。 -->
+     副标题只放数量（默认插槽），右上的按钮放 #actions。在全员 Agent 页里（useAgentAll）换成那一页的标题和标签。 -->
 <template>
-  <PageHeader :title="t('agent.manage.title')">
+  <PageHeader :title="all ? t('agent.admin.title') : t('agent.manage.title')">
     <template #description><slot /></template>
     <template v-if="$slots.actions" #actions><slot name="actions" /></template>
   </PageHeader>
-  <SubNavTabs group="agent" :counts="counts" />
+  <SubNavTabs :group="all ? 'agentAdmin' : 'agent'" :counts="counts" />
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 
 const { t } = useI18n()
+const all = useAgentAll()
 const { overview } = useAgentOverview()
 const counts = computed((): Record<string, number> => {
   const o = overview.value

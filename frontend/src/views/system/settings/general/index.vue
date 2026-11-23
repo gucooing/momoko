@@ -452,16 +452,157 @@
                   </a>
                 </span>
               </div>
-              <button
-                type="button"
-                class="st-ver__btn"
-                :disabled="!canCheckUpdate || checking"
-                :title="canCheckUpdate ? undefined : t('system.settings.noUpdatePermission')"
-                @click="handleCheckUpdate"
+              <div class="st-ver__btns">
+                <button
+                  v-if="canOneClickUpdate"
+                  type="button"
+                  class="st-ver__btn st-ver__btn--go"
+                  :disabled="updBusy"
+                  @click="confirmStartUpdate"
+                >
+                  <UIcon name="i-lucide-download" />
+                  {{ t('system.settings.updater.updateTo', { version: lastCheck?.latestVersion }) }}
+                </button>
+                <button
+                  type="button"
+                  class="st-ver__btn"
+                  :disabled="!canCheckUpdate || checking"
+                  :title="canCheckUpdate ? undefined : t('system.settings.noUpdatePermission')"
+                  @click="handleCheckUpdate"
+                >
+                  <UIcon name="i-lucide-refresh-cw" :class="{ 'is-spin': checking }" />
+                  {{ t('system.settings.checkUpdate') }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 在线更新：不能更新的原因 / 进度 / 上传的包等确认 / 失败 -->
+          <p v-if="upd && !upd.supported" class="st-upd-note is-warn">
+            <UIcon name="i-lucide-triangle-alert" />
+            {{ t('system.settings.updater.unsupported', { reason: upd.unsupportedReason }) }}
+          </p>
+          <p v-else-if="lastCheck?.hasUpdate && checkedNoAsset" class="st-upd-note">
+            <UIcon name="i-lucide-info" />
+            {{ t('system.settings.updater.noAsset', { platform: upd?.platform || '' }) }}
+          </p>
+
+          <div v-if="updPanel" class="st-upd" :class="`is-${updPanel}`" role="status" aria-live="polite">
+            <div class="st-upd__head">
+              <span class="st-upd__sticker m-sticker" :class="`m-sticker--${updTone}`">
+                <UIcon :name="updIcon" :class="{ 'is-spin': updPanel === 'restarting' || updPanel === 'installing' }" />
+              </span>
+              <span class="st-upd__text">
+                <span class="st-upd__title">{{ updTitle }}</span>
+                <span v-if="updSub" class="st-upd__sub m-num">{{ updSub }}</span>
+              </span>
+              <span class="st-upd__acts">
+                <template v-if="updPanel === 'downloading' && upd?.download">
+                  <AppIconButton
+                    v-if="dlPaused"
+                    icon="HOutline:PlayIcon"
+                    :label="t('downloads.resume')"
+                    :box="34"
+                    :size="17"
+                    :disabled="updBusy"
+                    @click="toggleUpdatePause"
+                  />
+                  <AppIconButton
+                    v-else
+                    icon="HOutline:PauseIcon"
+                    :label="t('downloads.pause')"
+                    :box="34"
+                    :size="17"
+                    :disabled="updBusy"
+                    @click="toggleUpdatePause"
+                  />
+                </template>
+                <AppIconButton
+                  v-if="updPanel === 'downloading' && !uploading"
+                  icon="HOutline:XMarkIcon"
+                  :label="t('system.settings.updater.cancel')"
+                  :box="34"
+                  :size="17"
+                  :disabled="updBusy"
+                  @click="handleCancelUpdate"
+                />
+              </span>
+            </div>
+
+            <div v-if="updPanel === 'downloading' || updPanel === 'uploading'" class="st-upd__bar">
+              <span class="st-upd__fill" :class="{ 'is-paused': dlPaused }" :style="{ width: `${updPercent}%` }" />
+            </div>
+
+            <dl v-if="upd?.package && (updPanel === 'ready' || updPanel === 'installing' || updPanel === 'restarting')" class="st-upd__pkg">
+              <dt>{{ t('system.settings.updater.pkgVersion') }}</dt>
+              <dd class="m-num">{{ upd.package.version || t('system.settings.updater.pkgUnknown') }}</dd>
+              <dt>{{ t('system.settings.updater.pkgPlatform') }}</dt>
+              <dd class="m-num">{{ upd.package.goos }}/{{ upd.package.goarch }}</dd>
+              <template v-if="upd.package.revision">
+                <dt>{{ t('system.settings.updater.pkgCommit') }}</dt>
+                <dd class="m-num">{{ upd.package.revision.slice(0, 10) }}<template v-if="fmtDate(upd.package.commitTime)"> · {{ fmtDate(upd.package.commitTime) }}</template></dd>
+              </template>
+              <dt>{{ t('system.settings.updater.pkgSize') }}</dt>
+              <dd class="m-num">{{ formatFileSize(upd.package.size) }}</dd>
+              <dt>SHA256</dt>
+              <dd class="m-num st-upd__hash" :title="upd.package.sha256">{{ upd.package.sha256 }}</dd>
+              <template v-if="upd.package.fileName">
+                <dt>{{ t('system.settings.updater.pkgFile') }}</dt>
+                <dd class="st-upd__hash">{{ upd.package.fileName }}</dd>
+              </template>
+            </dl>
+            <p v-if="updPanel === 'ready' && upd?.package?.downgrade" class="st-upd-note is-warn">
+              <UIcon name="i-lucide-triangle-alert" />
+              {{ t('system.settings.updater.downgrade', { current: upd.currentVersion }) }}
+            </p>
+            <p v-else-if="updPanel === 'ready' && upd?.package?.sameVersion" class="st-upd-note">
+              <UIcon name="i-lucide-info" />
+              {{ t('system.settings.updater.sameVersion') }}
+            </p>
+            <p v-if="updPanel === 'failed'" class="st-upd__err">{{ upd?.error }}</p>
+
+            <div v-if="updPanel === 'ready' || updPanel === 'failed'" class="st-upd__foot">
+              <template v-if="updPanel === 'ready'">
+                <UButton color="neutral" variant="soft" :disabled="updBusy" @click="handleCancelUpdate">{{ t('system.settings.updater.cancel') }}</UButton>
+                <UButton color="primary" icon="i-lucide-rocket" :loading="updBusy" @click="confirmApplyUpdate">{{ t('system.settings.updater.install') }}</UButton>
+              </template>
+              <template v-else>
+                <UButton color="neutral" variant="soft" :disabled="updBusy" @click="handleCancelUpdate">{{ t('system.settings.updater.dismiss') }}</UButton>
+                <UButton
+                  v-if="upd?.source === UpdateSource.UpdateSource_Github && canCheckUpdate"
+                  color="primary"
+                  icon="i-lucide-rotate-ccw"
+                  :loading="updBusy"
+                  @click="retryUpdate"
+                >
+                  {{ t('system.settings.updater.retry') }}
+                </UButton>
+              </template>
+            </div>
+          </div>
+
+          <p v-if="upd?.backup && !updPanel" class="st-upd-note">
+            <UIcon name="i-lucide-archive" />
+            {{ t('system.settings.updater.backup', { path: upd.backup }) }}
+          </p>
+
+          <div class="st-row">
+            <div class="st-row__l">
+              <span class="st-row__t">{{ t('system.settings.updater.upload') }}</span>
+              <span class="st-row__d">{{ t('system.settings.updater.uploadDesc') }}</span>
+            </div>
+            <div class="st-row__c">
+              <input ref="uploadInput" type="file" class="st-upd__file" tabindex="-1" aria-hidden="true" @change="onPickUpdateFile" />
+              <UButton
+                color="neutral"
+                variant="soft"
+                icon="i-lucide-upload"
+                :loading="uploading"
+                :disabled="!canCheckUpdate || !upd?.supported || updRunning"
+                @click="uploadInput?.click()"
               >
-                <UIcon name="i-lucide-refresh-cw" :class="{ 'is-spin': checking }" />
-                {{ t('system.settings.checkUpdate') }}
-              </button>
+                {{ uploading ? (uploadPercent >= 100 ? t('system.settings.updater.verifying') : t('system.settings.updater.uploading', { percent: uploadPercent })) : t('system.settings.updater.upload') }}
+              </UButton>
             </div>
           </div>
 
@@ -471,6 +612,17 @@
               <span class="st-row__d">{{ t('system.settings.autoCheckDesc') }}</span>
             </div>
             <AppSwitch v-model="siteForm.autoCheckUpdate" :disabled="!canEdit" :aria-label="t('system.settings.autoCheck')" />
+          </div>
+          <div class="st-row st-row--switch">
+            <div class="st-row__l">
+              <span class="st-row__t">{{ t('system.settings.updater.autoInstall') }}</span>
+              <span class="st-row__d">{{ t('system.settings.updater.autoInstallDesc') }}</span>
+            </div>
+            <AppSwitch
+              v-model="siteForm.autoInstallUpdate"
+              :disabled="!canEdit || !siteForm.autoCheckUpdate"
+              :aria-label="t('system.settings.updater.autoInstall')"
+            />
           </div>
           <div class="st-row">
             <div class="st-row__l">
@@ -600,8 +752,15 @@
 import { useI18n } from 'vue-i18n'
 import { getLoginConfig, updateLoginConfig } from '@/api/login'
 import {
+  applyUpdate,
+  cancelUpdate,
   getEmailConfig,
   getSiteConfig,
+  getUpdateStatus,
+  pauseDownload,
+  resumeDownload,
+  startUpdate,
+  uploadUpdate,
   getStorageConfig,
   listEmailTemplates,
   testEmailConfig,
@@ -610,8 +769,11 @@ import {
   updateSiteConfig,
   updateStorageConfig,
 } from '@/api/system'
-import { EmailEncryption, EmailTemplateType, UpdateChannel } from '@/types/v1/system'
-import type { EmailConfig, EmailTemplate, EmailTestResult, SiteConfig, StorageConfig, StorageSource } from '@/types/v1/system'
+import { DownloadState, EmailEncryption, EmailTemplateType, UpdateChannel, UpdateSource, UpdateState } from '@/types/v1/system'
+import type { EmailConfig, EmailTemplate, EmailTestResult, SiteConfig, StorageConfig, StorageSource, UpdateStatus } from '@/types/v1/system'
+import { progressText, percentOf, refreshDownloads } from '@/layouts/app/downloads/useDownloads'
+import { formatFileSize } from '@/utils/file'
+import { Dialog } from '@/utils/dialog'
 import { pageTabTo } from '@/config/pageGroups'
 import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
@@ -621,6 +783,7 @@ import { getRequestErrorMessage, showRequestError } from '@/utils/request'
 defineOptions({ name: 'SystemSettingsView' })
 
 const { t } = useI18n()
+const route = useRoute()
 const menuStore = useMenuStore()
 const userStore = useUserStore()
 
@@ -654,13 +817,14 @@ const fmtDate = (v: unknown) => {
 }
 
 /* ───────── 表单 ───────── */
-type SiteForm = Pick<SiteConfig, 'siteName' | 'externalUrl' | 'defaultLanguage' | 'autoCheckUpdate' | 'updateChannel'>
+type SiteForm = Pick<SiteConfig, 'siteName' | 'externalUrl' | 'defaultLanguage' | 'autoCheckUpdate' | 'updateChannel' | 'autoInstallUpdate'>
 const siteForm = reactive<SiteForm>({
   siteName: '',
   externalUrl: '',
   defaultLanguage: 'auto',
   autoCheckUpdate: true,
   updateChannel: UpdateChannel.UpdateChannel_Stable,
+  autoInstallUpdate: false,
 })
 const siteMeta = ref<SiteConfig | null>(null)
 
@@ -706,7 +870,11 @@ const storageOptions = computed(() => [{ id: '', name: t('system.settings.storag
 /* ───────── 分组修改记录 ───────── */
 type SecKey = 'general' | 'login' | 'mail' | 'storage' | 'update'
 const pickGeneral = () => ({ siteName: siteForm.siteName, externalUrl: siteForm.externalUrl, defaultLanguage: siteForm.defaultLanguage })
-const pickUpdate = () => ({ autoCheckUpdate: siteForm.autoCheckUpdate, updateChannel: siteForm.updateChannel })
+const pickUpdate = () => ({
+  autoCheckUpdate: siteForm.autoCheckUpdate,
+  updateChannel: siteForm.updateChannel,
+  autoInstallUpdate: siteForm.autoInstallUpdate,
+})
 const snapshot = reactive<Record<SecKey, string>>({ general: '', login: '', mail: '', storage: '', update: '' })
 const loaded = reactive<Record<SecKey, boolean>>({ general: false, login: false, mail: false, storage: false, update: false })
 const current = computed<Record<SecKey, string>>(() => ({
@@ -863,6 +1031,7 @@ const applySite = (cfg?: SiteConfig) => {
   siteForm.defaultLanguage = cfg.defaultLanguage || 'auto'
   siteForm.autoCheckUpdate = cfg.autoCheckUpdate
   siteForm.updateChannel = cfg.updateChannel || UpdateChannel.UpdateChannel_Stable
+  siteForm.autoInstallUpdate = cfg.autoInstallUpdate
   markClean('general')
   markClean('update')
 }
@@ -1208,11 +1377,15 @@ const openPreview = (tp: { subject: string; template: string }) => {
 
 /* ───────── 检查更新 ───────── */
 const checking = ref(false)
+// 最近一次手动检查时，最新发行版里有没有本机系统能用的包（没有就不给一键更新）
+const checkedNoAsset = ref(false)
 const handleCheckUpdate = async () => {
   if (!canCheckUpdate.value || checking.value) return
   checking.value = true
   try {
-    await checkForUpdate()
+    // 弹窗里点「立即更新」已经确认过了，直接开始，进度显示在下面
+    const data = await checkForUpdate({ onStartUpdate: () => void doStartUpdate() })
+    checkedNoAsset.value = !!data?.hasUpdate && !data.canAutoUpdate
   } catch (e) {
     showRequestError(e)
   } finally {
@@ -1221,10 +1394,285 @@ const handleCheckUpdate = async () => {
   }
 }
 
+/* ───────── 在线更新 ───────── */
+const upd = ref<UpdateStatus | null>(null)
+const updBusy = ref(false)
+const uploading = ref(false)
+const uploadPercent = ref(0)
+const uploadInput = ref<HTMLInputElement>()
+// 重启：记下当时的进程标识，换了就说明新程序起来了
+const restartFrom = ref('')
+const restartSince = ref(0)
+const restartSlow = ref(false)
+let pollTimer: ReturnType<typeof setTimeout> | undefined
+
+type UpdPanel = 'uploading' | 'downloading' | 'ready' | 'installing' | 'restarting' | 'failed'
+const updPanel = computed<UpdPanel | null>(() => {
+  if (uploading.value) return 'uploading'
+  switch (upd.value?.state) {
+    case UpdateState.UpdateState_Downloading:
+      return 'downloading'
+    case UpdateState.UpdateState_Ready:
+      return 'ready'
+    case UpdateState.UpdateState_Installing:
+      return 'installing'
+    case UpdateState.UpdateState_Restarting:
+      return 'restarting'
+    case UpdateState.UpdateState_Failed:
+      return 'failed'
+    default:
+      return null
+  }
+})
+const updRunning = computed(() => ['uploading', 'downloading', 'installing', 'restarting'].includes(updPanel.value || ''))
+const dlState = computed(() => upd.value?.download?.state)
+const dlPaused = computed(() => dlState.value === DownloadState.DownloadState_Paused)
+const canOneClickUpdate = computed(
+  () => canCheckUpdate.value && !!lastCheck.value?.hasUpdate && !checkedNoAsset.value && !!upd.value?.supported && !updPanel.value,
+)
+
+const updPercent = computed(() => {
+  if (uploading.value) return uploadPercent.value
+  const d = upd.value?.download
+  return percentOf(d?.downloaded ?? upd.value?.downloaded, d?.total ?? upd.value?.total) ?? 0
+})
+const updTone = computed(() => {
+  switch (updPanel.value) {
+    case 'failed':
+      return 'bad'
+    case 'ready':
+      return 'ok'
+    case 'restarting':
+    case 'installing':
+      return 'a'
+    default:
+      return dlPaused.value ? 'a2' : 'p'
+  }
+})
+const updIcon = computed(() => {
+  switch (updPanel.value) {
+    case 'failed':
+      return 'i-lucide-triangle-alert'
+    case 'ready':
+      return 'i-lucide-shield-check'
+    case 'restarting':
+    case 'installing':
+      return 'i-lucide-loader-circle'
+    case 'uploading':
+      return 'i-lucide-upload'
+    default:
+      return dlPaused.value ? 'i-lucide-pause' : 'i-lucide-download'
+  }
+})
+const updTitle = computed(() => {
+  const s = upd.value
+  switch (updPanel.value) {
+    case 'uploading':
+      // 传完后服务器还要解包、读构建信息、算 SHA256，几百兆要几秒
+      return uploadPercent.value >= 100
+        ? t('system.settings.updater.verifying')
+        : t('system.settings.updater.uploading', { percent: uploadPercent.value })
+    case 'downloading':
+      if (s?.source === UpdateSource.UpdateSource_Upload) return t('system.settings.updater.receiving')
+      if (dlPaused.value) return t('system.settings.updater.paused')
+      if (dlState.value === DownloadState.DownloadState_Retrying) return t('system.settings.updater.retrying')
+      return t('system.settings.updater.downloading', { version: s?.targetVersion })
+    case 'ready':
+      return t('system.settings.updater.ready')
+    case 'installing':
+      return t('system.settings.updater.installing')
+    case 'restarting':
+      return restartSlow.value ? t('system.settings.updater.restartSlow') : t('system.settings.updater.restarting')
+    case 'failed':
+      return t('system.settings.updater.failed')
+    default:
+      return ''
+  }
+})
+const updSub = computed(() => {
+  const s = upd.value
+  if (!s) return ''
+  if (updPanel.value === 'downloading' && s.download) {
+    const d = s.download
+    if (dlState.value === DownloadState.DownloadState_Retrying && d.error) return d.error
+    if (dlPaused.value && !d.resumable) return t('downloads.noResume')
+    return progressText(d)
+  }
+  const parts: string[] = []
+  if (s.targetVersion && updPanel.value !== 'ready') parts.push(`${s.currentVersion} → ${s.targetVersion}`)
+  const when = fmtWhen(s.startedAt)
+  if (when) parts.push(when)
+  if (s.operator) parts.push(t('downloads.by', { name: s.operator }))
+  return parts.join(' · ')
+})
+
+const schedulePoll = (ms: number) => {
+  clearTimeout(pollTimer)
+  pollTimer = setTimeout(pollUpdate, ms)
+}
+const pollUpdate = async () => {
+  const restarting = upd.value?.state === UpdateState.UpdateState_Restarting
+  try {
+    const { data } = await getUpdateStatus(restarting)
+    const next = data?.status || null
+    if (restarting && next && next.bootId !== restartFrom.value) {
+      // 新程序起来了：刷新页面，用上新版本的前端
+      feedback.success(t('system.settings.updater.done', { version: next.currentVersion }))
+      setTimeout(() => window.location.reload(), 800)
+      return
+    }
+    if (!restarting) upd.value = next
+  } catch (e) {
+    // 重启期间连不上是正常的，接着等；回答 404 说明服务已经起来了，只是新程序没有这个接口（比如换回了老版本）
+    if (restarting && (e as { status?: number })?.status === 404) {
+      setTimeout(() => window.location.reload(), 800)
+      return
+    }
+  }
+  watchUpdate()
+}
+/** 按当前状态决定要不要继续轮询 */
+const watchUpdate = () => {
+  const state = upd.value?.state
+  if (state === UpdateState.UpdateState_Restarting) {
+    if (!restartFrom.value) {
+      restartFrom.value = upd.value?.bootId || ''
+      restartSince.value = Date.now()
+    }
+    restartSlow.value = Date.now() - restartSince.value > 90_000
+    schedulePoll(1500)
+  } else if (state === UpdateState.UpdateState_Downloading || state === UpdateState.UpdateState_Installing) {
+    schedulePoll(1000)
+  } else {
+    clearTimeout(pollTimer)
+  }
+}
+const loadUpdateStatus = async () => {
+  if (!canCheckUpdate.value) return
+  try {
+    const { data } = await getUpdateStatus(true)
+    upd.value = data?.status || null
+    watchUpdate()
+  } catch {
+    /* 没权限或连不上：不显示在线更新 */
+  }
+}
+const setUpd = (status?: UpdateStatus) => {
+  if (!status) return
+  upd.value = status
+  watchUpdate()
+}
+
+const doStartUpdate = async () => {
+  updBusy.value = true
+  try {
+    const { data } = await startUpdate()
+    setUpd(data?.status)
+    feedback.success(t('system.settings.updater.started'))
+    void refreshDownloads()
+    scrollToSec('update')
+  } catch (e) {
+    showRequestError(e)
+  } finally {
+    updBusy.value = false
+  }
+}
+const confirmStartUpdate = () => {
+  if (!canCheckUpdate.value) return
+  Dialog.confirm({
+    title: t('system.settings.updater.confirmTitle', { version: lastCheck.value?.latestVersion || '' }),
+    content: t('system.settings.updater.confirmContent', { platform: upd.value?.platform || '' }),
+    confirmText: t('system.settings.updater.updateNow'),
+    cancelText: t('system.settings.updater.cancel'),
+    onConfirm: doStartUpdate,
+  })
+}
+const retryUpdate = async () => {
+  updBusy.value = true
+  try {
+    await cancelUpdate()
+    const { data } = await startUpdate()
+    setUpd(data?.status)
+    void refreshDownloads()
+  } catch (e) {
+    showRequestError(e)
+    void loadUpdateStatus()
+  } finally {
+    updBusy.value = false
+  }
+}
+const toggleUpdatePause = async () => {
+  const id = upd.value?.download?.id
+  if (!id) return
+  updBusy.value = true
+  try {
+    if (dlPaused.value) await resumeDownload(id)
+    else await pauseDownload(id)
+    await loadUpdateStatus()
+    void refreshDownloads()
+  } catch (e) {
+    showRequestError(e)
+  } finally {
+    updBusy.value = false
+  }
+}
+const handleCancelUpdate = async () => {
+  updBusy.value = true
+  try {
+    const { data } = await cancelUpdate()
+    setUpd(data?.status)
+    void refreshDownloads()
+  } catch (e) {
+    showRequestError(e)
+  } finally {
+    updBusy.value = false
+  }
+}
+const onPickUpdateFile = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || uploading.value) return
+  uploading.value = true
+  uploadPercent.value = 0
+  try {
+    const { data } = await uploadUpdate(file, (p) => (uploadPercent.value = p))
+    setUpd(data?.status)
+  } catch (err) {
+    showRequestError(err)
+    void loadUpdateStatus()
+  } finally {
+    uploading.value = false
+  }
+}
+const confirmApplyUpdate = () => {
+  Dialog.confirm({
+    title: t('system.settings.updater.confirmInstallTitle'),
+    content: t('system.settings.updater.confirmInstallContent'),
+    confirmText: t('system.settings.updater.install'),
+    cancelText: t('system.settings.updater.cancel'),
+    onConfirm: async () => {
+      updBusy.value = true
+      try {
+        const { data } = await applyUpdate()
+        setUpd(data?.status)
+      } catch (e) {
+        showRequestError(e)
+        void loadUpdateStatus()
+      } finally {
+        updBusy.value = false
+      }
+    },
+  })
+}
+onBeforeUnmount(() => clearTimeout(pollTimer))
+
 onMounted(async () => {
   testRecipient.value = userStore.userInfo?.email || ''
   setupSpy()
-  await Promise.all([loadSiteConfig(), loadLoginConfig(), loadEmailConfig(), loadStorageConfig(), loadTemplates()])
+  await Promise.all([loadSiteConfig(), loadLoginConfig(), loadEmailConfig(), loadStorageConfig(), loadTemplates(), loadUpdateStatus()])
+  // 从「发现新版本」弹窗等处跳过来：?sec=update 直接滚到版本更新
+  if (route.query.sec === 'update') scrollToSec('update')
 })
 onBeforeUnmount(() => {
   observer?.disconnect()
@@ -1863,6 +2311,142 @@ onBeforeUnmount(() => {
   opacity: 0.7;
   cursor: not-allowed;
 }
+.st-ver__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* 一键更新：和版本卡的主色区分开，最显眼 */
+.st-ver__btn--go {
+  background: var(--m-a);
+  color: var(--m-aOn);
+}
+
+/* 在线更新：进度 / 等待安装 / 失败 */
+.st-upd-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--el-text-color-secondary);
+  word-break: break-all;
+}
+.st-upd-note > :first-child {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+.st-upd-note.is-warn {
+  color: var(--m-warn);
+}
+.st-upd {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: var(--app-radius-lg);
+  background: var(--m-s2);
+}
+.st-upd.is-failed {
+  border-color: color-mix(in srgb, var(--m-bad) 35%, transparent);
+}
+.st-upd__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.st-upd__sticker {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+.st-upd__sticker :deep(svg),
+.st-upd__sticker :deep(.iconify) {
+  width: 18px;
+  height: 18px;
+}
+.st-upd__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.st-upd__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--el-text-color-primary);
+}
+.st-upd__sub {
+  font-size: 0.75rem;
+  color: var(--el-text-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-upd__acts {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+.st-upd__bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--m-line);
+}
+.st-upd__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--m-p);
+  transition: width 0.4s ease;
+}
+.st-upd__fill.is-paused {
+  background: var(--el-text-color-placeholder);
+}
+.st-upd__pkg {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+.st-upd__pkg dt {
+  color: var(--el-text-color-secondary);
+}
+.st-upd__pkg dd {
+  margin: 0;
+  min-width: 0;
+  color: var(--el-text-color-primary);
+}
+.st-upd__hash {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-upd__err {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--m-bad);
+  word-break: break-word;
+}
+.st-upd__foot {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.st-upd__file {
+  display: none;
+}
 
 .is-spin {
   animation: st-spin 0.9s linear infinite;
@@ -2155,6 +2739,10 @@ onBeforeUnmount(() => {
   }
   .st-ver__v {
     font-size: 1.625rem;
+  }
+  .st-ver__btns {
+    width: 100%;
+    flex-direction: column;
   }
   .st-ver__btn {
     width: 100%;

@@ -15,7 +15,7 @@ service AgentService {
   rpc GetAgentOptions(GetAgentOptionsRequest) returns (GetAgentOptionsResponse) {
     option (google.api.http) = { get: "/api/v1/agent/options" };
   }
-  // 各管理标签的数量
+  // 各管理标签的数量：自己的会话、工作区、MCP、技能，加上大家共用的供应商、运行时、通知
   rpc GetAgentOverview(GetAgentOverviewRequest) returns (GetAgentOverviewResponse) {
     option (google.api.http) = { get: "/api/v1/agent/overview" };
   }
@@ -25,7 +25,7 @@ service AgentService {
   rpc GetAgentSidebar(GetAgentSidebarRequest) returns (GetAgentSidebarResponse) {
     option (google.api.http) = { get: "/api/v1/agent/sidebar" };
   }
-  // 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成
+  // 会话列表（管理页）：状态筛选、标题搜索、分页，都在 SQL 里完成；只有自己的，all 为 true 时是所有人的（全员 Agent 页）
   rpc ListAgentSessions(ListAgentSessionsRequest) returns (ListAgentSessionsResponse) {
     option (google.api.http) = { get: "/api/v1/agent/sessions" };
   }
@@ -51,6 +51,10 @@ service AgentService {
   // 撤回一条排着队的消息（还没发出去的）
   rpc DeleteAgentQueuedPrompt(DeleteAgentQueuedPromptRequest) returns (DeleteAgentQueuedPromptResponse) {
     option (google.api.http) = { delete: "/api/v1/agent/sessions/{id}/queue/{queue_id}" };
+  }
+  // 排着队的一条马上发：能插进正在跑的一轮就插进去（ACP v2）；插不进去的停下这一轮，让它作为下一轮发出
+  rpc SendAgentQueuedPrompt(SendAgentQueuedPromptRequest) returns (SendAgentQueuedPromptResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/queue/{queue_id}/send" body: "*" };
   }
   // 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
   rpc StopAgentSessionItem(StopAgentSessionItemRequest) returns (StopAgentSessionItemResponse) {
@@ -114,6 +118,31 @@ service AgentService {
   rpc SearchAgentFiles(SearchAgentFilesRequest) returns (SearchAgentFilesResponse) {
     option (google.api.http) = { get: "/api/v1/agent/files/search" };
   }
+  // —— 文件树里的编辑：有会话按会话目录，新会话页还没有会话时按工作区（和 @ 搜索一样给 session_id 或 workspace_id）——
+  // 保存文本文件：编辑后保存，或者新建一个文件
+  rpc SaveAgentFile(SaveAgentFileRequest) returns (SaveAgentFileResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/files/save" body: "*" };
+  }
+  // 新建文件夹
+  rpc CreateAgentDir(CreateAgentDirRequest) returns (CreateAgentDirResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/files/mkdir" body: "*" };
+  }
+  // 改名或挪到另一个文件夹
+  rpc MoveAgentFile(MoveAgentFileRequest) returns (MoveAgentFileResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/files/move" body: "*" };
+  }
+  // 删除文件或文件夹（整个删掉，不进回收站）
+  rpc DeleteAgentFiles(DeleteAgentFilesRequest) returns (DeleteAgentFilesResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/files/delete" body: "*" };
+  }
+  // 原样读一个文件（预览图片，Markdown 里用到的图片）
+  rpc GetAgentFileRaw(GetAgentFileRawRequest) returns (GetAgentSessionUploadResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/files/raw" };
+  }
+  // HTML 预览的签名：iframe 按 /api/v1/public/agent/preview/{节点}/{签名}/{相对路径} 把目录当静态站点加载
+  rpc GetAgentPreviewToken(GetAgentPreviewTokenRequest) returns (GetAgentPreviewTokenResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/files/preview-token" };
+  }
 
   // —— 工作区 ——
   rpc ListAgentWorkspaces(ListAgentWorkspacesRequest) returns (ListAgentWorkspacesResponse) {
@@ -136,6 +165,10 @@ service AgentService {
   // 「查看文件」：只读地列出工作区里的目录和文件
   rpc BrowseAgentWorkspace(BrowseAgentWorkspaceRequest) returns (BrowseAgentWorkspaceResponse) {
     option (google.api.http) = { get: "/api/v1/agent/workspaces/{id}/browse" };
+  }
+  // 新会话页里打开工作区的文件（只读，和会话里打开文件一样的返回）
+  rpc ReadAgentWorkspaceFile(ReadAgentWorkspaceFileRequest) returns (ReadAgentSessionFileResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/workspaces/{id}/file" };
   }
   // 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
   rpc GetAgentDocs(GetAgentDocsRequest) returns (GetAgentDocsResponse) {
@@ -367,7 +400,10 @@ message AgentCapabilities {
   bool steer = 11;
 }
 
-message GetAgentOverviewRequest {}
+message GetAgentOverviewRequest {
+  // 全员 Agent 页：会话、工作区、MCP、技能数所有人的（要有 agent:admin，且是直接登录的）
+  bool all = 1;
+}
 message GetAgentOverviewResponse {
   int32 sessions = 1;
   int32 sessions_running = 2;
@@ -503,6 +539,8 @@ message ListAgentSessionsRequest {
   string keyword = 2;
   int32 page = 3;
   int32 page_size = 4;
+  // 所有人的会话（全员 Agent 页，要有 agent:admin）；默认只有自己的
+  bool all = 5;
 }
 message ListAgentSessionsResponse {
   repeated AgentSession sessions = 1;
@@ -522,13 +560,14 @@ message ListAgentSessionsResponse {
 
 // 附件：图片和文件随消息上传，工作区里的文件用路径引用
 message AgentAttachment {
-  // image | file | ref
+  // image | file | ref | snippet（打开的文件里选中的一段）
   string kind = 1;
+  // snippet 是「路径:起止行」
   string name = 2;
   string mime = 3;
-  // image / file 的内容
+  // image / file 的内容；snippet 是选中的文字
   bytes data = 4;
-  // ref：相对会话目录的路径
+  // ref / snippet：相对会话目录的路径
   string path = 5;
 }
 
@@ -595,6 +634,12 @@ message DeleteAgentQueuedPromptRequest {
   string queue_id = 2;
 }
 message DeleteAgentQueuedPromptResponse {}
+
+message SendAgentQueuedPromptRequest {
+  string id = 1;
+  string queue_id = 2;
+}
+message SendAgentQueuedPromptResponse {}
 
 message ResolveAgentPermissionRequest {
   string id = 1;
@@ -680,14 +725,27 @@ message AgentChangedFile {
   int32 deleted = 4;
   // 统一 diff（不含文件头）
   string patch = 5;
+  // 所在的 Git 仓库（相对会话目录）；会话目录本身就是仓库时为空
+  string repo = 6;
+}
+// 会话目录下面找到的一个 Git 仓库
+message AgentGitRepo {
+  // 相对会话目录的路径，正斜杠
+  string path = 1;
+  string branch = 2;
 }
 message GetAgentSessionChangesRequest {
   string id = 1;
 }
 message GetAgentSessionChangesResponse {
+  // 会话目录本身是仓库，或者它下面几层里找到了仓库
   bool is_git = 1;
+  // 会话目录本身是仓库时的分支
   string branch = 2;
+  // 路径都相对会话目录
   repeated AgentChangedFile files = 3;
+  // 会话目录本身不是仓库时，它下面几层里找到的仓库
+  repeated AgentGitRepo repos = 4;
 }
 
 message RevertAgentSessionFileRequest {
@@ -725,6 +783,8 @@ message ReadAgentSessionFileResponse {
   bool binary = 3;
   bool too_large = 4;
   int64 size = 5;
+  // 读到时文件的修改时间（Unix 纳秒）：保存时带回来，期间被别人（Agent）改过就不覆盖
+  int64 mod_time = 6;
 }
 
 message GetAgentSessionUploadRequest {
@@ -744,6 +804,64 @@ message SearchAgentFilesRequest {
 }
 message SearchAgentFilesResponse {
   repeated string paths = 1;
+}
+
+message SaveAgentFileRequest {
+  string session_id = 1;
+  string workspace_id = 2;
+  // 相对会话目录（或工作区目录）
+  string path = 3;
+  string content = 4;
+  // 新建：文件已经存在时不覆盖
+  bool create = 5;
+  // 打开时读到的修改时间：不为 0 且文件之后又被改过时不保存（force 时照样覆盖）
+  int64 base_mod_time = 6;
+  bool force = 7;
+}
+message SaveAgentFileResponse {
+  // 保存后的修改时间，下次保存带回来
+  int64 mod_time = 1;
+  // 文件在打开之后被改过了，这次没有保存（页面问要覆盖还是重新读）
+  bool conflict = 2;
+}
+
+message CreateAgentDirRequest {
+  string session_id = 1;
+  string workspace_id = 2;
+  string path = 3;
+}
+message CreateAgentDirResponse {}
+
+message MoveAgentFileRequest {
+  string session_id = 1;
+  string workspace_id = 2;
+  string from = 3;
+  // 新的路径（同一层是改名，换了上级目录是挪位置）；已经有同名的不覆盖
+  string to = 4;
+}
+message MoveAgentFileResponse {}
+
+message DeleteAgentFilesRequest {
+  string session_id = 1;
+  string workspace_id = 2;
+  repeated string paths = 3;
+}
+message DeleteAgentFilesResponse {}
+
+message GetAgentFileRawRequest {
+  string session_id = 1;
+  string workspace_id = 2;
+  string path = 3;
+}
+
+message GetAgentPreviewTokenRequest {
+  string session_id = 1;
+  string workspace_id = 2;
+}
+message GetAgentPreviewTokenResponse {
+  string token = 1;
+  // 过期时间（Unix 秒）
+  int64 expires_at = 2;
 }
 
 // ———————————————————————————— 工作区 ————————————————————————————
@@ -774,6 +892,8 @@ message AgentWorkspace {
   // api | system
   string provider_kind = 20;
   string provider_vendor = 21;
+  // 所属用户
+  string user_id = 22;
 }
 
 message AgentDoc {
@@ -783,9 +903,14 @@ message AgentDoc {
   string content = 3;
 }
 
-message ListAgentWorkspacesRequest {}
+message ListAgentWorkspacesRequest {
+  // 所有人的工作区（全员 Agent 页，要有 agent:admin）；默认只有自己的
+  bool all = 1;
+}
 message ListAgentWorkspacesResponse {
   repeated AgentWorkspace workspaces = 1;
+  // all 时这些工作区的主人
+  repeated AgentUser users = 2;
 }
 
 message CreateAgentWorkspaceRequest {
@@ -855,6 +980,12 @@ message BrowseAgentWorkspaceRequest {
 }
 message BrowseAgentWorkspaceResponse {
   repeated AgentFileEntry entries = 1;
+}
+
+message ReadAgentWorkspaceFileRequest {
+  string id = 1;
+  // 相对工作区目录
+  string path = 2;
 }
 
 message GetAgentDocsRequest {
@@ -1019,11 +1150,18 @@ message AgentMcpServer {
   string status_text = 12;
   int32 tool_count = 13;
   google.protobuf.Timestamp tested_at = 14;
+  // 所属用户
+  string user_id = 15;
 }
 
-message ListAgentMcpServersRequest {}
+message ListAgentMcpServersRequest {
+  // 所有人的 MCP 服务器（全员 Agent 页，要有 agent:admin）；默认只有自己的
+  bool all = 1;
+}
 message ListAgentMcpServersResponse {
   repeated AgentMcpServer servers = 1;
+  // all 时这些服务器的主人
+  repeated AgentUser users = 2;
 }
 
 message CreateAgentMcpServerRequest {
@@ -1079,6 +1217,8 @@ message AgentSkill {
   string source = 4;
   bool enabled = 5;
   int32 file_count = 6;
+  // 所属用户
+  string user_id = 7;
 }
 
 message AgentSkillFile {
@@ -1091,9 +1231,13 @@ message AgentSkillFile {
 message ListAgentSkillsRequest {
   // 只要启用着的
   bool enabled = 1;
+  // 所有人的技能（全员 Agent 页，要有 agent:admin）；默认只有自己的
+  bool all = 2;
 }
 message ListAgentSkillsResponse {
   repeated AgentSkill skills = 1;
+  // all 时这些技能的主人
+  repeated AgentUser users = 2;
 }
 
 message GetAgentSkillRequest {

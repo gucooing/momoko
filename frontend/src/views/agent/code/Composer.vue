@@ -11,9 +11,9 @@
               <UIcon name="i-lucide-x" />
             </button>
           </span>
-          <span v-else class="agc-att">
-            <UIcon :name="a.kind === 'image' ? 'i-lucide-image' : 'i-lucide-file'" />
-            <span :class="{ 'ag-mono': a.kind === 'ref' }">{{ a.name }}</span>
+          <span v-else class="agc-att" :title="a.kind === 'snippet' ? a.text : undefined">
+            <UIcon :name="attIcon(a.kind)" />
+            <span :class="{ 'ag-mono': a.kind === 'ref' || a.kind === 'snippet' }">{{ a.name }}</span>
             <button type="button" class="agc-att__x" :aria-label="t('agent.code.composer.removeAtt', { name: a.name })" @click="atts.splice(i, 1)">
               <UIcon name="i-lucide-x" />
             </button>
@@ -74,17 +74,6 @@
           <span class="ag-mono agc-cl__model">{{ modelName || t('agent.code.composer.noModel') }}</span>
           <span v-if="efforts.length && effortName">· {{ effortName }}</span>
           <UIcon name="i-lucide-chevron-down" />
-        </button>
-        <button
-          v-if="busy && canSend && canSteer"
-          type="button"
-          class="agc-sm"
-          :aria-label="t('agent.code.composer.queue')"
-          :title="t('agent.code.composer.queue')"
-          :disabled="sending"
-          @click="submit('queue')"
-        >
-          <UIcon name="i-lucide-list-plus" />
         </button>
         <button
           type="button"
@@ -214,7 +203,7 @@
         </span>
         <UIcon v-if="r.runtimeId === runtimeId" name="i-lucide-check" class="agc-on" />
       </button>
-      <RouterLink class="ag-mi ag-muted" to="/agent/manage?tab=runtimes">{{ t('agent.code.model.addAgent') }}</RouterLink>
+      <RouterLink v-if="canShared" class="ag-mi ag-muted" to="/agent/manage?tab=runtimes">{{ t('agent.code.model.addAgent') }}</RouterLink>
     </div>
 
     <div v-if="pop === 'model' && sub === 'more'" class="ag-menu agc-pop agc-pop--sub agc-pop--w236 ag-noscroll" role="menu" :aria-label="t('agent.code.model.more')">
@@ -226,7 +215,7 @@
         </button>
         <div v-if="!p.models.length" class="agc-pop__note">{{ t('agent.code.model.none') }}</div>
       </template>
-      <template v-if="agentSwitch">
+      <template v-if="agentSwitch && canShared">
         <div v-if="otherProviders.length" class="ag-mi-sep" />
         <RouterLink class="ag-mi ag-muted" to="/agent/manage?tab=providers">{{ t('agent.code.model.manageProviders') }}</RouterLink>
       </template>
@@ -264,9 +253,11 @@ import { type AgentAttachmentInput, searchAgentFiles } from '@/api/agent'
 import type { AgentModelOption, AgentProviderOptions, AgentRuntimeOptions } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AttImage from './AttImage.vue'
-import { agentKindOf, fileToBase64, fmtTokens } from '@/views/agent/utils/format'
+import { AGENT_PATH_MIME, agentKindOf, bytesToBase64, fileToBase64, fmtTokens } from '@/views/agent/utils/format'
 import { modeDesc, modeName, providerLabel } from '@/views/agent/utils/labels'
+import { composerDrafts } from './drafts'
 import type { AgentCommand } from './types'
+import { useMenuStore } from '@/stores/menu'
 
 export interface Selection {
   runtimeId: string
@@ -276,8 +267,15 @@ export interface Selection {
   mode: string
 }
 
-/** 待发送的附件：图片和文件带内容（base64），引用的只带路径 */
-export type DraftAttachment = AgentAttachmentInput & { kind: 'image' | 'file' | 'ref'; name: string }
+/** 待发送的附件：图片和文件带内容（base64），引用的只带路径；snippet 是打开的文件里选中的一段，内容是那段文字 */
+export type DraftAttachment = AgentAttachmentInput & { kind: 'image' | 'file' | 'ref' | 'snippet'; name: string; text?: string }
+/** 一段选中的文字：path 相对会话目录，startLine / endLine 从 1 数 */
+export interface DraftSnippet {
+  path: string
+  startLine: number
+  endLine: number
+  text: string
+}
 /** 一轮还没结束时怎么发：steer 插进正在做的事里（ACP v2），queue 排队、等这一轮结束再发 */
 export type SendMode = 'steer' | 'queue'
 
@@ -305,7 +303,7 @@ const props = withDefaults(
     label: string
     placeholder: string
     infoButton?: boolean
-    /** 发出去；返回 false 表示没发成功，输入框保留。一轮还没结束时 mode 是 steer（插进去）或 queue（排队） */
+    /** 发出去；返回 false 表示没发成功，输入框保留。一轮还没结束时 mode 是 queue（排着，等这一轮结束，或者在消息上点「立即发送」） */
     onSend: (text: string, attachments: DraftAttachment[], mode?: SendMode) => Promise<boolean>
   }>(),
   {
@@ -323,6 +321,9 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ select: [patch: Partial<Selection>]; stop: []; showInfo: [] }>()
 const { t } = useI18n()
+const menuStore = useMenuStore()
+// 能管大家共用的运行时、供应商（Agent 管理页里的这几个标签要 agent:manage）
+const canShared = computed(() => menuStore.hasMenuPath('/agent/manage') && menuStore.hasButtonPermission('agent:manage'))
 
 const UPLOAD_MAX = 20 * 1024 * 1024
 
@@ -339,6 +340,23 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const atInput = ref<HTMLInputElement | null>(null)
 const draft = ref('')
 const atts = ref<DraftAttachment[]>([])
+// 没发出去的草稿按会话存着：切到文件标签（输入框卸下）、切到别的会话再回来，接着写
+const draftKey = computed(() => props.sessionId || 'new')
+const saveDraft = (key: string) => {
+  if (draft.value.trim() || atts.value.length) composerDrafts.set(key, { text: draft.value, atts: [...atts.value] })
+  else composerDrafts.delete(key)
+}
+const restoreDraft = (key: string) => {
+  const saved = composerDrafts.get(key)
+  draft.value = saved?.text ?? ''
+  atts.value = saved ? [...saved.atts] : []
+}
+watch(draftKey, (key, old) => {
+  saveDraft(old)
+  restoreDraft(key)
+})
+onMounted(() => restoreDraft(draftKey.value))
+onBeforeUnmount(() => saveDraft(draftKey.value))
 /** 图片附件的缩略图地址：只在附件变了时拼一次（内容可能有几 MB，别每次敲字都拼） */
 const previews = computed(() => atts.value.map((a) => (a.kind === 'image' && a.data ? `data:${a.mime || 'image/png'};base64,${a.data}` : '')))
 const sending = ref(false)
@@ -552,11 +570,11 @@ const onFiles = (e: Event, kind: 'image' | 'file') => {
   void addFiles(files, kind)
 }
 
-// 文件、图片拖到整个 Code 页上就加进附件；拖着的时候输入框高亮
+// 文件、图片拖到整个 Code 页上就加进附件；右侧「文件」里的文件、文件夹拖过来加成引用。拖着的时候输入框高亮
 const page = ref<HTMLElement | null>(null)
 const dropping = ref(false)
 let dragDepth = 0
-const hasFiles = (e: DragEvent) => !!e.dataTransfer?.types.includes('Files')
+const hasFiles = (e: DragEvent) => !!e.dataTransfer?.types.some((t) => t === 'Files' || t === AGENT_PATH_MIME)
 onMounted(() => {
   page.value = root.value?.closest<HTMLElement>('.agc') ?? null
 })
@@ -570,16 +588,24 @@ useEventListener(page, 'dragleave', (e: DragEvent) => {
   dragDepth = Math.max(0, dragDepth - 1)
   if (!dragDepth) dropping.value = false
 })
+/** 落在文件树里的拖放归文件树（挪位置），这里不接 */
+const inTree = (e: DragEvent) => e.target instanceof Element && !!e.target.closest('.agc-ex')
 useEventListener(page, 'dragover', (e: DragEvent) => {
-  if (!hasFiles(e)) return
+  if (!hasFiles(e) || inTree(e)) return
   e.preventDefault()
   if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
 })
 useEventListener(page, 'drop', (e: DragEvent) => {
   if (!hasFiles(e)) return
-  e.preventDefault()
   dragDepth = 0
   dropping.value = false
+  if (inTree(e)) return
+  e.preventDefault()
+  const path = e.dataTransfer?.getData(AGENT_PATH_MIME)
+  if (path) {
+    if (canRef.value) addRef(path)
+    return
+  }
   void addFiles(Array.from(e.dataTransfer?.files ?? []))
 })
 
@@ -613,16 +639,32 @@ const addRef = (path: string) => {
   pop.value = ''
   void nextTick(() => input.value?.focus())
 }
+const SNIPPET_MAX = 256 * 1024
+/** 打开的文件里选中的一段：加成附件，名字是「路径:起止行」 */
+const addSnippet = (sn: DraftSnippet) => {
+  const name = sn.startLine === sn.endLine ? `${sn.path}:${sn.startLine}` : `${sn.path}:${sn.startLine}-${sn.endLine}`
+  const bytes = new TextEncoder().encode(sn.text)
+  if (!bytes.length) return
+  if (bytes.length > SNIPPET_MAX) {
+    feedback.warning(t('agent.code.composer.snippetTooLarge'))
+    return
+  }
+  if (!atts.value.some((a) => a.kind === 'snippet' && a.name === name)) {
+    atts.value.push({ kind: 'snippet', name, path: sn.path, text: sn.text, data: bytesToBase64(bytes) })
+  }
+  void nextTick(() => input.value?.focus())
+}
+const attIcon = (kind: string) =>
+  kind === 'image' ? 'i-lucide-image' : kind === 'snippet' ? 'i-lucide-text-select' : kind === 'ref' ? 'i-lucide-at-sign' : 'i-lucide-file'
+
 
 // —— 发送 ——
 const canSend = computed(() => !!draft.value.trim() || atts.value.length > 0)
 const showStop = computed(() => props.busy && !draft.value.trim() && !atts.value.length)
-/** 一轮还没结束时能插进去（ACP v2）；不能的只能排队，等这一轮结束再发 */
-const canSteer = computed(() => !!runtime.value?.caps?.steer)
 const sendLabel = computed(() => {
   if (showStop.value) return t('agent.code.composer.stop')
   if (!props.busy) return t('agent.code.composer.send')
-  return canSteer.value ? t('agent.code.composer.steer') : t('agent.code.composer.queue')
+  return t('agent.code.composer.queue')
 })
 
 const submit = async (mode?: SendMode) => {
@@ -639,8 +681,10 @@ const submit = async (mode?: SendMode) => {
   try {
     const ok = await props.onSend(
       text,
-      atts.value,
-      props.busy ? (mode ?? (canSteer.value ? 'steer' : 'queue')) : undefined,
+      // text 只是页面上提示用的（选中的那段），发出去的是 data
+      atts.value.map((a) => ({ kind: a.kind, name: a.name, mime: a.mime, data: a.data, path: a.path })),
+      // 一轮还没结束：先排着，等这一轮结束再发，或者在排着的消息上点「立即发送」
+      props.busy ? (mode ?? 'queue') : undefined,
     )
     if (ok) {
       draft.value = ''
@@ -675,6 +719,11 @@ const onKey = (e: KeyboardEvent) => {
 
 defineExpose({
   focus: () => input.value?.focus(),
+  /** 右侧「文件」里点了「添加到对话」之类：加一个引用 */
+  addRef: (path: string) => {
+    if (canRef.value) addRef(path)
+  },
+  addSnippet,
   /** 把文字放回输入框最前面（停下时还没发出去的排队消息） */
   restore: (text: string) => {
     draft.value = draft.value ? `${text}\n\n${draft.value}` : text

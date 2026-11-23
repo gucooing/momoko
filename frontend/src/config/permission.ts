@@ -41,6 +41,7 @@ export const PERM = {
 	// ---- Agent ----
 	AGENT_USE: 'agent:use',
 	AGENT_MANAGE: 'agent:manage',
+	AGENT_ADMIN: 'agent:admin',
 } as const
 
 export type PermissionKey = (typeof PERM)[keyof typeof PERM]

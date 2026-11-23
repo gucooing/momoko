@@ -1,5 +1,8 @@
-<!-- 对话记录：用户消息、Agent 的回答（Markdown）、思考、工具调用（带内联 diff 和命令输出）、批准卡片的四种状态、
-     每轮结束的摘要、子 Agent。滚动在这里：停在底部时有新内容就跟着往下走，往上翻了就不打扰。 -->
+<!-- 对话记录：用户消息、Agent 的回答（Markdown）、思考、工具调用（带命令输出）、改动、批准卡片的四种状态、
+     每轮结束的摘要（改了哪些文件、用时、用量）、子 Agent、排着队还没发的消息。
+     连着的工具调用、思考折成一行摘要（「已运行 3 个命令，已读取 2 个文件」），点开看每一项；
+     改动是一行「已编辑 文件名 +增 −删」，点开看 diff。
+     滚动在这里：停在底部时有新内容就跟着往下走，往上翻了就不打扰。 -->
 <template>
   <div
     ref="scroller"
@@ -23,8 +26,8 @@
             <template v-for="(a, i) in block.user.attachments" :key="i">
               <AttImage v-if="a.kind === 'image' && a.file && sessionId" :name="a.name" :session-id="sessionId" :file="a.file" />
               <span v-else class="agc-att">
-                <UIcon :name="a.kind === 'image' ? 'i-lucide-image' : 'i-lucide-file'" />
-                <span :class="{ 'ag-mono': a.kind === 'ref' }">{{ a.name }}</span>
+                <UIcon :name="attIcon(a.kind)" />
+                <span :class="{ 'ag-mono': a.kind === 'ref' || a.kind === 'snippet' }">{{ a.name }}</span>
               </span>
             </template>
           </div>
@@ -50,7 +53,24 @@
             <AgAgentTag :kind="agentKind" :name="agentName" />
           </div>
 
-          <template v-for="item in block.items" :key="item.seq">
+          <template v-for="row in rowsByBlock.get(block.key) ?? []" :key="row.key">
+            <!-- 折起来的一组工具调用、思考 -->
+            <button
+              v-if="row.group"
+              type="button"
+              class="agc-fold"
+              :aria-expanded="groupOpen(row.group)"
+              @click="toggleGroup(row.group)"
+            >
+              <span v-if="row.group.active" class="agc-sd agc-sd--run agc-pulse" />
+              <span class="agc-fold__t">{{ groupText(row.group) }}</span>
+              <span v-if="row.group.active && !groupOpen(row.group)" class="ag-ellipsis agc-fold__now">{{
+                groupNow(row.group)
+              }}</span>
+              <UIcon :name="groupOpen(row.group) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" />
+            </button>
+            <div v-else class="agc-ri" :class="{ 'agc-ri--grp': row.inGroup }">
+            <template v-for="item in [row.item]" :key="item.seq">
             <!-- 思考 -->
             <div v-if="item.type === 'thought'" class="agc-think">
               <button
@@ -280,11 +300,43 @@
               >
             </div>
 
-            <!-- 一轮结束 -->
+            <!-- 一轮结束：这一轮改了哪些文件，再是结果、用时、用量 -->
             <template v-else-if="item.type === 'turn' && item.turn">
+              <div v-if="block.changed.length" class="agc-tfiles">
+                <button
+                  type="button"
+                  class="agc-tfiles__head"
+                  :aria-expanded="!filesShut.has(item.seq)"
+                  @click="toggle(filesShut, item.seq)"
+                >
+                  <UIcon name="i-lucide-file-diff" class="ag-muted" />
+                  <span class="agc-flex">{{ t('agent.code.turn.changed', { n: block.changed.length }) }}</span>
+                  <span class="agc-plus ag-num">+{{ block.added }}</span>
+                  <span class="agc-minus ag-num">−{{ block.deleted }}</span>
+                  <UIcon
+                    :name="filesShut.has(item.seq) ? 'i-lucide-chevron-right' : 'i-lucide-chevron-down'"
+                    class="ag-muted"
+                  />
+                </button>
+                <div v-if="!filesShut.has(item.seq)" class="agc-tfiles__list">
+                  <button
+                    v-for="f in block.changed"
+                    :key="f.path"
+                    type="button"
+                    class="agc-fr"
+                    :title="f.path"
+                    @click="emit('showDiff', f.path)"
+                  >
+                    <span class="ag-mono agc-fr__k" :class="opCls(f.op)">{{ opLetter(f.op) }}</span>
+                    <span class="ag-mono ag-ellipsis agc-flex">{{ f.path }}</span>
+                    <span class="agc-plus ag-num">+{{ f.added }}</span>
+                    <span class="agc-minus ag-num">−{{ f.deleted }}</span>
+                  </button>
+                </div>
+              </div>
               <div class="agc-turn">
                 <UIcon :name="turnIcon(item.turn.stop)" :class="turnCls(item.turn.stop)" />
-                <span>{{ turnText(item.turn, block.files) }}</span>
+                <span>{{ turnText(item.turn) }}</span>
                 <button
                   v-if="item.turn.usage?.total"
                   type="button"
@@ -323,6 +375,8 @@
                 }}</span>
               </div>
             </template>
+            </template>
+            </div>
           </template>
           <div v-if="!(busy && block === blocks[blocks.length - 1])" class="agc-meta agc-meta--agent">
             <button
@@ -342,6 +396,54 @@
 
       <div v-if="busy && !streaming" class="agc-working">
         <span class="agc-sd agc-sd--run agc-pulse" />{{ t('agent.code.working') }}
+      </div>
+
+      <!-- 排着队还没发的消息：这一轮结束后发，或者点「立即发送」 -->
+      <div v-for="q in queued" :key="`q${q.id}`" class="agc-umsg agc-umsg--queued">
+        <div class="agc-user">
+          <div v-if="q.text" class="agc-user__text">{{ q.text }}</div>
+          <div v-if="q.attachments?.length" class="agc-user__atts">
+            <span v-for="(a, i) in q.attachments" :key="i" class="agc-att">
+              <UIcon :name="attIcon(a.kind)" />
+              <span :class="{ 'ag-mono': a.kind === 'ref' || a.kind === 'snippet' }">{{ a.name }}</span>
+            </span>
+          </div>
+        </div>
+        <div class="agc-meta">
+          <span class="agc-queued-tag" :title="t('agent.code.queue.waitingTip')">
+            <UIcon name="i-lucide-clock" />{{ t('agent.code.queue.waiting') }}
+          </span>
+          <button
+            v-if="q.text"
+            type="button"
+            class="agc-sm"
+            :aria-label="copied === `q${q.id}` ? t('agent.common.copied') : t('agent.common.copy')"
+            :title="copied === `q${q.id}` ? t('agent.common.copied') : t('agent.common.copy')"
+            @click="copy(`q${q.id}`, q.text)"
+          >
+            <UIcon :name="copied === `q${q.id}` ? 'i-lucide-check' : 'i-lucide-copy'" />
+          </button>
+          <button
+            type="button"
+            class="agc-sm"
+            :aria-label="t('agent.code.queue.remove')"
+            :title="t('agent.code.queue.remove')"
+            :disabled="queueBusy.has(q.id)"
+            @click="onQueue('unqueue', q.id)"
+          >
+            <UIcon name="i-lucide-x" />
+          </button>
+          <button
+            type="button"
+            class="agc-sendnow"
+            :aria-label="t('agent.code.queue.sendNow')"
+            :title="t('agent.code.queue.sendNowTip')"
+            :disabled="queueBusy.has(q.id)"
+            @click="onQueue('sendNow', q.id)"
+          >
+            {{ t('agent.code.queue.sendNow') }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -366,6 +468,7 @@ import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import { copyTextToClipboard } from '@/utils/file'
 import { clockTime, fmtDuration, fmtTokens } from '@/views/agent/utils/format'
 import { isRejectOption, permOptionLabel } from '@/views/agent/utils/labels'
+import { diffDelta, diffOp } from '@/views/agent/utils/diff'
 import AttImage from './AttImage.vue'
 import DiffCard from './DiffCard.vue'
 import MdBlock from './MdBlock.vue'
@@ -374,6 +477,7 @@ import type {
   AgentItem,
   AgentPermission,
   AgentPermOption,
+  AgentQueued,
   AgentTool,
   AgentTurn,
   AgentTurnUsage,
@@ -396,6 +500,8 @@ const props = withDefaults(
     /** 更早的事件还有没拿；loadingMore 正在拿 */
     more?: boolean
     loadingMore?: boolean
+    /** 排着队还没发的消息 */
+    queued?: AgentQueued[]
   }>(),
   {
     sessionId: '',
@@ -407,6 +513,7 @@ const props = withDefaults(
     empty: '',
     more: false,
     loadingMore: false,
+    queued: () => [],
   },
 )
 const emit = defineEmits<{
@@ -416,16 +523,30 @@ const emit = defineEmits<{
   showDiff: [path: string]
   openSub: [id: string]
   more: []
+  /** 撤回一条排着队的消息 */
+  unqueue: [queueId: string]
+  /** 排着队的一条马上发 */
+  sendNow: [queueId: string]
 }>()
 const { t } = useI18n()
 
 // —— 分块：一条用户消息，接着是 Agent 的一段 ——
+/** 一轮里改过的一个文件：同一个文件的几次改动合在一起 */
+interface ChangedFile {
+  path: string
+  /** 第一次是新建就算新建，最后一次是删除就算删除，其它算修改 */
+  op: string
+  added: number
+  deleted: number
+}
 interface Block {
   key: string
   user?: AgentItem
   items: AgentItem[]
-  /** 这一段里工具调用改过的文件数（不重复） */
-  files: number
+  /** 这一段里工具调用改过的文件 */
+  changed: ChangedFile[]
+  added: number
+  deleted: number
   /** Agent 这一段的回答文字（复制用） */
   text: string
   /** 这一段最后一条的时间 */
@@ -434,16 +555,16 @@ interface Block {
 const blocks = computed<Block[]>(() => {
   const out: Block[] = []
   let cur: Block | null = null
-  let paths = new Set<string>()
+  let files = new Map<string, ChangedFile>()
   for (const item of props.items) {
     if (item.type === 'user') {
-      out.push({ key: `u${item.seq}`, user: item, items: [], files: 0, text: '', at: item.at })
+      out.push({ key: `u${item.seq}`, user: item, items: [], changed: [], added: 0, deleted: 0, text: '', at: item.at })
       cur = null
       continue
     }
     if (!cur) {
-      cur = { key: `a${item.seq}`, items: [], files: 0, text: '', at: item.at }
-      paths = new Set()
+      cur = { key: `a${item.seq}`, items: [], changed: [], added: 0, deleted: 0, text: '', at: item.at }
+      files = new Map()
       out.push(cur)
     }
     cur.items.push(item)
@@ -451,11 +572,139 @@ const blocks = computed<Block[]>(() => {
     if (item.type === 'assistant' && !item.sub && item.text) cur.text = cur.text ? `${cur.text}
 
 ${item.text}` : item.text
-    for (const d of item.tool?.diffs ?? []) paths.add(d.path)
-    cur.files = paths.size
+    const diffs = item.tool?.diffs ?? []
+    if (!diffs.length) continue
+    for (const d of diffs) {
+      const path = rel(d.path)
+      const op = diffOp(d)
+      const { added, deleted } = diffDelta(d)
+      const f = files.get(path)
+      if (!f) {
+        files.set(path, { path, op, added, deleted })
+        continue
+      }
+      f.added += added
+      f.deleted += deleted
+      if (op === 'delete') f.op = 'delete'
+      else if (f.op === 'delete') f.op = 'modify'
+    }
+    cur.changed = [...files.values()]
+    cur.added = cur.changed.reduce((n, f) => n + f.added, 0)
+    cur.deleted = cur.changed.reduce((n, f) => n + f.deleted, 0)
   }
   return out
 })
+
+// —— 折叠：连着的工具调用、思考、处理过的批准折成一行摘要 ——
+interface Group {
+  key: string
+  items: AgentItem[]
+  /** 还在进行：有正在跑的工具调用、正在写的思考，或者是正在进行的这一轮最后一段 */
+  active: boolean
+}
+interface Row {
+  key: string
+  item: AgentItem
+  /** 这一行是一组的摘要 */
+  group?: Group
+  /** 展开着的一组里的一项 */
+  inGroup?: boolean
+}
+/** 能折进一组的：没有改动的工具调用（改动单独一行）、思考、已经处理过的批准 */
+const foldable = (item: AgentItem) =>
+  (item.type === 'tool' && !!item.tool && !item.tool.diffs?.length) ||
+  item.type === 'thought' ||
+  (item.type === 'permission' && !!item.permission?.outcome)
+/** 手动展开、收起过的组；没动过的都收着 */
+const groupState = reactive(new Map<string, boolean>())
+const groupOpen = (g: Group) => groupState.get(g.key) ?? false
+const toggleGroup = (g: Group) => groupState.set(g.key, !groupOpen(g))
+const rowsOf = (items: AgentItem[], live: boolean): Row[] => {
+  const out: Row[] = []
+  let run: AgentItem[] = []
+  const flush = (atEnd: boolean) => {
+    if (run.length === 1) out.push({ key: `i${run[0]!.seq}`, item: run[0]! })
+    else if (run.length > 1) {
+      const active = run.some((i) => i.open || (i.type === 'tool' && running(i.tool))) || (atEnd && live)
+      const g: Group = { key: `g${run[0]!.seq}`, items: run, active }
+      out.push({ key: g.key, item: run[0]!, group: g })
+      if (groupOpen(g)) for (const i of run) out.push({ key: `i${i.seq}`, item: i, inGroup: true })
+    }
+    run = []
+  }
+  for (const item of items) {
+    if (foldable(item)) {
+      run.push(item)
+      continue
+    }
+    flush(false)
+    out.push({ key: `i${item.seq}`, item })
+  }
+  flush(true)
+  return out
+}
+const rowsByBlock = computed(() => {
+  const last = blocks.value[blocks.value.length - 1]
+  return new Map(blocks.value.map((b) => [b.key, rowsOf(b.items, props.busy && b === last)]))
+})
+const GROUP_KINDS = ['execute', 'read', 'edit', 'search', 'fetch']
+/** 一组的摘要：「已运行 3 个命令，已读取 2 个文件」 */
+const groupText = (g: Group) => {
+  const counts = new Map<string, number>()
+  let failed = 0
+  let thoughts = 0
+  let thoughtMs = 0
+  for (const i of g.items) {
+    if (i.type === 'tool' && i.tool) {
+      const k = GROUP_KINDS.includes(i.tool.kind || '') ? i.tool.kind! : 'other'
+      counts.set(k, (counts.get(k) ?? 0) + 1)
+      if (i.tool.status === 'failed') failed++
+    } else if (i.type === 'thought') {
+      thoughts++
+      thoughtMs += i.ms || 0
+    }
+  }
+  const parts = [...GROUP_KINDS, 'other']
+    .filter((k) => counts.get(k))
+    .map((k) => t(`agent.code.group.${k}`, { n: counts.get(k) }))
+  if (!parts.length && thoughts) parts.push(t('agent.code.thought', { time: fmtDuration(thoughtMs) }))
+  if (!parts.length) parts.push(t('agent.code.group.steps', { n: g.items.length }))
+  if (failed) parts.push(t('agent.code.group.failed', { n: failed }))
+  return parts.join(t('agent.code.group.sep'))
+}
+/** 进行中的一组收着时，摘要后面带上正在做的那一项 */
+const groupNow = (g: Group) => {
+  for (let i = g.items.length - 1; i >= 0; i--) {
+    const item = g.items[i]!
+    if (item.type === 'tool' && item.tool) return [verb(item.tool.kind), toolArg(item.tool).text].filter(Boolean).join(' ')
+    if (item.type === 'thought' && item.open) return t('agent.code.thinking')
+  }
+  return ''
+}
+
+// —— 改动的文件 ——
+/** 收起的「这一轮改了哪些文件」（默认展开） */
+const filesShut = reactive(new Set<number>())
+const OP_LETTER: Record<string, string> = { add: 'A', delete: 'D', modify: 'M', move: 'R', copy: 'C' }
+const opLetter = (op: string) => OP_LETTER[op] || 'M'
+const opCls = (op: string) => (op === 'add' ? 'agc-ok' : op === 'delete' ? 'agc-bad' : 'agc-warn')
+const attIcon = (kind?: string) =>
+  kind === 'image'
+    ? 'i-lucide-image'
+    : kind === 'snippet'
+      ? 'i-lucide-text-select'
+      : kind === 'ref'
+        ? 'i-lucide-at-sign'
+        : 'i-lucide-file'
+
+// —— 排着队的消息 ——
+const queueBusy = reactive(new Set<string>())
+const onQueue = (kind: 'unqueue' | 'sendNow', id: string) => {
+  queueBusy.add(id)
+  if (kind === 'unqueue') emit('unqueue', id)
+  else emit('sendNow', id)
+  setTimeout(() => queueBusy.delete(id), 3000)
+}
 
 // —— 复制、时间 ——
 /** 刚复制过的那一块：按钮短暂显示成对勾 */
@@ -629,14 +878,11 @@ const turnIcon = (stop: string) =>
 const turnCls = (stop: string) => (stop === 'end_turn' ? 'agc-ok' : 'agc-bad')
 const inputOf = (u: AgentTurnUsage) =>
   Number(u.input || 0) + Number(u.cacheRead || 0) + Number(u.cacheWrite || 0)
-const turnText = (turn: AgentTurn, files: number) => {
-  const parts = [
+const turnText = (turn: AgentTurn) =>
+  [
     STOPS.includes(turn.stop) ? t(`agent.code.stop.${turn.stop}`) : turn.stop,
     t('agent.code.turn.took', { time: fmtDuration(turn.ms || 0) }),
-  ]
-  if (files) parts.push(t('agent.code.turn.files', { n: files }))
-  return parts.join(' · ')
-}
+  ].join(' · ')
 
 // —— 跟随滚动 ——
 // 停在底部（atBottom）时内容变高就跟着到底：新消息、Markdown 渲染完、看不见的块排版后变高都算；
@@ -681,7 +927,7 @@ const toLatest = () => {
 }
 const tail = computed(() => {
   const last = props.items[props.items.length - 1]
-  return `${props.items.length}:${last?.rev ?? 0}:${last?.text?.length ?? 0}:${props.busy}`
+  return `${props.items.length}:${last?.rev ?? 0}:${last?.text?.length ?? 0}:${props.busy}:${props.queued.length}`
 })
 watch(tail, () => nextTick(toBottom), { flush: 'post' })
 // 换了会话（记录先清空再来新的）：从最新的开始看

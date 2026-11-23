@@ -3,9 +3,11 @@ package biz
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,18 +32,25 @@ const (
 	// agentFileMax 能在页面里打开的文件大小；agentUploadMax 单个附件的大小。
 	agentFileMax   = 1 << 20
 	agentUploadMax = 20 << 20
+	// agentSnippetMax 打开的文件里选中一段附加上去时，最多多少字节。
+	agentSnippetMax = 256 << 10
 	// agentPageItems 打开会话时先给最近这么多条事件，往上翻再要更早的。
 	agentPageItems = 300
 )
 
 // ———————————————————————————— 读 ————————————————————————————
 
-// getSession 取一个当前用户能动的会话：他自己的，或者他有管理 Agent 的权限。
+// getSession 取当前用户自己的一个会话：别人的会话打不开、也不能发消息改设置（超级管理员也一样）。
 func (uc *AgentUsecase) getSession(ctx context.Context, id string) (*gen.AgentSession, error) {
-	userID, err := uc.scope(ctx)
+	userID, err := agentUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
+	return uc.sessionIn(ctx, userID, id)
+}
+
+// sessionIn 取一个属于 scope 的会话（scope 为空是谁的都行）；不属于时当作不存在。
+func (uc *AgentUsecase) sessionIn(ctx context.Context, scope, id string) (*gen.AgentSession, error) {
 	s, err := uc.repo.GetAgentSession(ctx, id)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -49,7 +58,7 @@ func (uc *AgentUsecase) getSession(ctx context.Context, id string) (*gen.AgentSe
 		}
 		return nil, ErrSystem(err)
 	}
-	if userID != "" && s.UserID != userID {
+	if !ownedBy(scope, s.UserID) {
 		return nil, ErrAgentSessionNotFound
 	}
 	return s, nil
@@ -116,12 +125,12 @@ func (uc *AgentUsecase) sessionsPB(ctx context.Context, rows []*gen.AgentSession
 func (uc *AgentUsecase) sessionDetail(ctx context.Context, s *gen.AgentSession) *v1.AgentSessionDetail {
 	out := &v1.AgentSessionDetail{}
 	_, out.Branch = agentgit.Info(s.Cwd)
-	if servers, err := uc.repo.ListAgentMcpServersByIDs(ctx, s.McpIds); err == nil {
+	if servers, err := uc.repo.ListAgentMcpServersByIDs(ctx, s.UserID, s.McpIds); err == nil {
 		for _, m := range servers {
 			out.McpNames = append(out.McpNames, m.Name)
 		}
 	}
-	if skills, err := uc.repo.ListEnabledAgentSkills(ctx); err == nil {
+	if skills, err := uc.repo.ListEnabledAgentSkills(ctx, s.UserID); err == nil {
 		for _, sk := range skills {
 			out.SkillNames = append(out.SkillNames, sk.Name)
 		}
@@ -146,8 +155,13 @@ func (uc *AgentUsecase) GetSession(ctx context.Context, id string) (*v1.GetAgent
 }
 
 // GetSessionProcess 会话的 Agent 进程：命令、进程号、内存、启动时间，和它派出过的子 Agent。内存要遍历进程树，只在有人要看时读。
+// 全员 Agent 页也用它，有 agent:admin 时能看别人的。
 func (uc *AgentUsecase) GetSessionProcess(ctx context.Context, id string) (*v1.AgentProcess, error) {
-	if _, err := uc.getSession(ctx, id); err != nil {
+	scope, err := uc.cleanScope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := uc.sessionIn(ctx, scope, id); err != nil {
 		return nil, err
 	}
 	l := uc.live(id)
@@ -168,7 +182,7 @@ func (uc *AgentUsecase) GetSessionProcess(ctx context.Context, id string) (*v1.A
 	return out, nil
 }
 
-// GetSidebar 会话栏：我的未归档会话，和所有工作区。
+// GetSidebar 会话栏：我的未归档会话，和我的工作区。
 func (uc *AgentUsecase) GetSidebar(ctx context.Context, keyword string) (*v1.GetAgentSidebarResponse, error) {
 	userID, err := agentUserID(ctx)
 	if err != nil {
@@ -182,7 +196,9 @@ func (uc *AgentUsecase) GetSidebar(ctx context.Context, keyword string) (*v1.Get
 	names := uc.loadNames(ctx)
 	workspaces := make([]*gen.AgentWorkspace, 0, len(names.workspaces))
 	for _, w := range names.workspaces {
-		workspaces = append(workspaces, w)
+		if w.UserID == userID {
+			workspaces = append(workspaces, w)
+		}
 	}
 	sortWorkspaces(workspaces)
 	for _, w := range workspaces {
@@ -193,9 +209,9 @@ func (uc *AgentUsecase) GetSidebar(ctx context.Context, keyword string) (*v1.Get
 	return resp, nil
 }
 
-// ListSessions 管理页的会话列表。有管理权限的人看所有人的，其他人只看自己的。
+// ListSessions 管理页的会话列表：自己的；all 时（全员 Agent 页）是所有人的。
 func (uc *AgentUsecase) ListSessions(ctx context.Context, req *v1.ListAgentSessionsRequest) (*v1.ListAgentSessionsResponse, error) {
-	userID, err := uc.scope(ctx)
+	userID, err := uc.listScope(ctx, req.GetAll())
 	if err != nil {
 		return nil, err
 	}
@@ -218,9 +234,9 @@ func (uc *AgentUsecase) ListSessions(ctx context.Context, req *v1.ListAgentSessi
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	users, err := uc.repo.AgentUsers(ctx, owners)
+	users, err := uc.agentUsersPB(ctx, owners)
 	if err != nil {
-		return nil, ErrSystem(err)
+		return nil, err
 	}
 	resp := &v1.ListAgentSessionsResponse{
 		Sessions:      uc.sessionsPB(ctx, rows),
@@ -232,12 +248,10 @@ func (uc *AgentUsecase) ListSessions(ctx context.Context, req *v1.ListAgentSessi
 		CountError:    counts.Error,
 		CountArchived: counts.Archived,
 		ForkCounts:    map[string]int32{},
+		Users:         users,
 	}
 	for id, n := range forks {
 		resp.ForkCounts[id] = int32(n)
-	}
-	for _, u := range users {
-		resp.Users = append(resp.Users, &v1.AgentUser{Id: u.ID, Name: u.Name, Username: u.Username})
 	}
 	return resp, nil
 }
@@ -280,6 +294,16 @@ func checkAttachments(root, text string, in []*v1.AgentAttachment) error {
 			if _, err := agentfs.SafeJoin(root, a.GetPath()); err != nil {
 				return agentErr(err)
 			}
+		case "snippet":
+			if _, err := agentfs.SafeJoin(root, a.GetPath()); err != nil {
+				return agentErr(err)
+			}
+			if len(a.GetData()) == 0 {
+				return response.BadRequest("选中的内容是空的")
+			}
+			if len(a.GetData()) > agentSnippetMax {
+				return response.BadRequest("选中的内容太多了，最多 256 KB")
+			}
 		case "image", "file":
 			name := filepath.Base(filepath.ToSlash(strings.TrimSpace(a.GetName())))
 			if len(a.GetData()) == 0 {
@@ -307,6 +331,15 @@ func (uc *AgentUsecase) saveUploads(sessionID, cwd string, caps agentrun.Caps, i
 		if a.GetKind() == "ref" {
 			path, _ := agentfs.SafeJoin(cwd, a.GetPath())
 			out = append(out, agentrun.Upload{Kind: "ref", Name: a.GetPath(), Path: path})
+			continue
+		}
+		if a.GetKind() == "snippet" {
+			path, _ := agentfs.SafeJoin(cwd, a.GetPath())
+			name := strings.TrimSpace(a.GetName())
+			if name == "" {
+				name = a.GetPath()
+			}
+			out = append(out, agentrun.Upload{Kind: "snippet", Name: name, Path: path, Text: string(a.GetData())})
 			continue
 		}
 		name := filepath.Base(filepath.ToSlash(strings.TrimSpace(a.GetName())))
@@ -370,8 +403,10 @@ func (uc *AgentUsecase) CreateSession(ctx context.Context, req *v1.CreateAgentSe
 		Effort:     req.GetEffort(),
 		Mode:       req.GetMode(),
 		Status:     agentsession.StatusRunning,
-		McpIds:     req.GetMcpIds(),
 		Origin:     origin,
+	}
+	if s.McpIds, err = uc.ownMcpIDs(ctx, userID, req.GetMcpIds()); err != nil {
+		return nil, err
 	}
 	for _, dir := range req.GetExtraDirs() {
 		clean, err := agentfs.CleanDir(dir)
@@ -507,6 +542,18 @@ func (uc *AgentUsecase) CancelSession(ctx context.Context, id string) error {
 		l.session.Cancel()
 	}
 	return nil
+}
+
+// SendQueuedNow 排着队的一条马上发：能插进正在跑的一轮就插进去，插不进去的停下这一轮，让它作为下一轮发出。
+func (uc *AgentUsecase) SendQueuedNow(ctx context.Context, id, queueID string) error {
+	if _, err := uc.getSession(ctx, id); err != nil {
+		return err
+	}
+	l := uc.live(id)
+	if l == nil {
+		return response.BadRequest("这条消息已经发出去了")
+	}
+	return agentErr(l.session.SendNow(queueID))
 }
 
 // UnqueuePrompt 撤回一条排着队、还没发出去的消息。
@@ -835,9 +882,9 @@ func (uc *AgentUsecase) DetachSession(ctx context.Context, id string) error {
 	return nil
 }
 
-// ownSessions 这些 id 里当前用户能动的会话（筛选在 SQL 里）。
+// ownSessions 这些 id 里当前用户能清理的会话（筛选在 SQL 里）：自己的；有 agent:admin 时谁的都行（全员 Agent 页）。
 func (uc *AgentUsecase) ownSessions(ctx context.Context, ids []string) ([]*gen.AgentSession, error) {
-	userID, err := uc.scope(ctx)
+	userID, err := uc.cleanScope(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -879,9 +926,9 @@ func (uc *AgentUsecase) DeleteSessions(ctx context.Context, ids []string, withFo
 	return uc.deleteSessions(ctx, rows, withForks)
 }
 
-// PurgeSessions 删除全部归档会话：有管理权限的人删所有人的，其他人只删自己的。
+// PurgeSessions 删除自己的全部归档会话。
 func (uc *AgentUsecase) PurgeSessions(ctx context.Context) (int, error) {
-	userID, err := uc.scope(ctx)
+	userID, err := agentUserID(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -1001,28 +1048,94 @@ func (uc *AgentUsecase) ExportSessions(ctx context.Context, ids []string) ([]*v1
 
 // ———————————————————————————— 改动和文件 ————————————————————————————
 
-// GetChanges 会话目录相对当前分支的未提交改动。
+// 会话目录本身不是仓库时，往下找几层里的仓库（一个文件夹里放着几个项目的仓库很常见）。
+const (
+	nestedRepoDepth = 3
+	nestedRepoMax   = 50
+	// 同时跑 git 的仓库数
+	nestedRepoJobs = 6
+)
+
+// eachParallel 对 0..n-1 各调一次 fn，最多 nestedRepoJobs 个同时跑，全部跑完才返回。
+func eachParallel(n int, fn func(i int)) {
+	sem := make(chan struct{}, nestedRepoJobs)
+	var wg sync.WaitGroup
+	for i := range n {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(i int) {
+			defer func() { <-sem; wg.Done() }()
+			fn(i)
+		}(i)
+	}
+	wg.Wait()
+}
+
+// repoOf 找相对会话目录的路径 rel 所在的仓库：会话目录本身是仓库时就是它；否则从 rel 往上找，到会话目录为止（不含）。
+// 返回仓库相对会话目录的路径（会话目录本身为空）和 rel 在仓库里的路径；不在任何仓库里时 ok 为 false。
+func repoOf(cwd, rel string) (repo, inner string, ok bool) {
+	rel = strings.Trim(filepath.ToSlash(rel), "/")
+	if isGit, _ := agentgit.Info(cwd); isGit {
+		return "", rel, true
+	}
+	for d := rel; d != "" && d != "."; d = filepath.ToSlash(filepath.Dir(d)) {
+		if isGit, _ := agentgit.Info(filepath.Join(cwd, filepath.FromSlash(d))); isGit {
+			return d, strings.TrimPrefix(strings.TrimPrefix(rel, d), "/"), true
+		}
+	}
+	return "", "", false
+}
+
+// GetChanges 会话目录相对当前分支的未提交改动。会话目录本身不是仓库时，看它下面几层里的每个仓库，路径都写成相对会话目录。
 func (uc *AgentUsecase) GetChanges(ctx context.Context, id string) (*v1.GetAgentSessionChangesResponse, error) {
 	s, err := uc.getSession(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	changedPB := func(c agentgit.Change, repo string) *v1.AgentChangedFile {
+		path := c.Path
+		if repo != "" {
+			path = repo + "/" + path
+		}
+		return &v1.AgentChangedFile{Path: path, Kind: c.Kind, Added: int32(c.Added), Deleted: int32(c.Deleted), Patch: c.Patch, Repo: repo}
+	}
 	resp := &v1.GetAgentSessionChangesResponse{}
-	if resp.IsGit, resp.Branch = agentgit.Info(s.Cwd); !resp.IsGit {
+	if resp.IsGit, resp.Branch = agentgit.Info(s.Cwd); resp.IsGit {
+		for _, c := range agentgit.Changes(ctx, s.Cwd) {
+			resp.Files = append(resp.Files, changedPB(c, ""))
+		}
 		return resp, nil
 	}
-	for _, c := range agentgit.Changes(ctx, s.Cwd) {
-		resp.Files = append(resp.Files, &v1.AgentChangedFile{Path: c.Path, Kind: c.Kind, Added: int32(c.Added), Deleted: int32(c.Deleted), Patch: c.Patch})
+	repos := agentgit.Repos(s.Cwd, nestedRepoDepth, nestedRepoMax)
+	changes := make([][]agentgit.Change, len(repos))
+	eachParallel(len(repos), func(i int) {
+		changes[i] = agentgit.Changes(ctx, filepath.Join(s.Cwd, filepath.FromSlash(repos[i])))
+	})
+	for i, repo := range repos {
+		_, branch := agentgit.Info(filepath.Join(s.Cwd, filepath.FromSlash(repo)))
+		resp.Repos = append(resp.Repos, &v1.AgentGitRepo{Path: repo, Branch: branch})
+		for _, c := range changes[i] {
+			resp.Files = append(resp.Files, changedPB(c, repo))
+		}
 	}
+	resp.IsGit = len(repos) > 0
 	return resp, nil
 }
 
+// RevertFile 撤销一个文件的改动；path 相对会话目录，会话目录本身不是仓库时交给文件所在的那个仓库。
 func (uc *AgentUsecase) RevertFile(ctx context.Context, id, path string) error {
 	s, err := uc.getSession(ctx, id)
 	if err != nil {
 		return err
 	}
-	return agentErr(agentgit.Revert(ctx, s.Cwd, path))
+	if _, err := agentfs.SafeJoin(s.Cwd, path); err != nil {
+		return agentErr(err)
+	}
+	repo, inner, ok := repoOf(s.Cwd, path)
+	if !ok {
+		return response.BadRequest("这个文件不在 Git 仓库里，撤销不了")
+	}
+	return agentErr(agentgit.Revert(ctx, filepath.Join(s.Cwd, filepath.FromSlash(repo)), inner))
 }
 
 // ListFiles 会话目录里某一层的文件，带上未提交改动的标记（目录里有改动的也标上）。只让 git 看这一层。
@@ -1036,11 +1149,56 @@ func (uc *AgentUsecase) ListFiles(ctx context.Context, id, dir string) ([]*v1.Ag
 		return nil, agentErr(err)
 	}
 	out := agentEntriesPB(entries)
-	marks := agentgit.Marks(ctx, s.Cwd, dir)
+	marks := gitMarks(ctx, s.Cwd, dir)
 	for _, e := range out {
 		e.Change = marks[e.Path]
 	}
 	return out, nil
+}
+
+// gitMarks 会话目录里子目录 dir 下有未提交改动的文件和目录：路径（相对会话目录）→ M / A。
+// 会话目录本身不是仓库时：dir 在某个仓库里就只看那个仓库的这个子目录；dir 在仓库外面就看它下面几层里的仓库，
+// 有改动的仓库目录和它上面的目录都标上 M。
+func gitMarks(ctx context.Context, cwd, dir string) map[string]string {
+	if isGit, _ := agentgit.Info(cwd); isGit {
+		return agentgit.Marks(ctx, cwd, dir)
+	}
+	dir = strings.Trim(filepath.ToSlash(dir), "/")
+	if dir == "." {
+		dir = ""
+	}
+	marks := map[string]string{}
+	prefixed := func(repo string, m map[string]string) {
+		for p, mark := range m {
+			marks[repo+"/"+p] = mark
+		}
+	}
+	if repo, inner, ok := repoOf(cwd, dir); ok {
+		prefixed(repo, agentgit.Marks(ctx, filepath.Join(cwd, filepath.FromSlash(repo)), inner))
+		return marks
+	}
+	base := filepath.Join(cwd, filepath.FromSlash(dir))
+	repos := agentgit.Repos(base, nestedRepoDepth, nestedRepoMax)
+	found := make([]map[string]string, len(repos))
+	eachParallel(len(repos), func(i int) {
+		found[i] = agentgit.Marks(ctx, filepath.Join(base, filepath.FromSlash(repos[i])), "")
+	})
+	for i, r := range repos {
+		if len(found[i]) == 0 {
+			continue
+		}
+		repo := r
+		if dir != "" {
+			repo = dir + "/" + r
+		}
+		prefixed(repo, found[i])
+		for d := repo; d != dir && d != "." && d != ""; d = filepath.ToSlash(filepath.Dir(d)) {
+			if marks[d] == "" {
+				marks[d] = "M"
+			}
+		}
+	}
+	return marks
 }
 
 func (uc *AgentUsecase) ReadFile(ctx context.Context, id, path string) (*v1.ReadAgentSessionFileResponse, error) {
@@ -1052,7 +1210,98 @@ func (uc *AgentUsecase) ReadFile(ctx context.Context, id, path string) (*v1.Read
 	if err != nil {
 		return nil, agentErr(err)
 	}
-	return &v1.ReadAgentSessionFileResponse{Path: path, Content: text.Content, Binary: text.Binary, TooLarge: text.TooLarge, Size: text.Size}, nil
+	return &v1.ReadAgentSessionFileResponse{Path: path, Content: text.Content, Binary: text.Binary, TooLarge: text.TooLarge, Size: text.Size, ModTime: text.ModTime}, nil
+}
+
+// fileRoot 文件树操作的根目录：有会话是会话目录，新会话页还没有会话时是选中的工作区。
+func (uc *AgentUsecase) fileRoot(ctx context.Context, sessionID, workspaceID string) (string, error) {
+	switch {
+	case sessionID != "":
+		s, err := uc.getSession(ctx, sessionID)
+		if err != nil {
+			return "", err
+		}
+		return s.Cwd, nil
+	case workspaceID != "":
+		w, err := uc.getWorkspace(ctx, workspaceID)
+		if err != nil {
+			return "", err
+		}
+		return w.Path, nil
+	}
+	return "", response.BadRequest("缺少会话或工作区")
+}
+
+// SaveFile 文件树里保存（或新建）一个文本文件。打开之后文件又被改过（多半是 Agent 改的）时不保存，回 conflict。
+func (uc *AgentUsecase) SaveFile(ctx context.Context, req *v1.SaveAgentFileRequest) (*v1.SaveAgentFileResponse, error) {
+	root, err := uc.fileRoot(ctx, req.GetSessionId(), req.GetWorkspaceId())
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(req.GetContent())) > agentFileMax*4 {
+		return nil, response.BadRequest("文件太大了")
+	}
+	base := req.GetBaseModTime()
+	if req.GetForce() {
+		base = 0
+	}
+	mod, err := agentfs.SaveText(root, req.GetPath(), req.GetContent(), req.GetCreate(), base)
+	if errors.Is(err, agentfs.ErrChanged) {
+		return &v1.SaveAgentFileResponse{Conflict: true}, nil
+	}
+	if err != nil {
+		return nil, agentErr(err)
+	}
+	return &v1.SaveAgentFileResponse{ModTime: mod}, nil
+}
+
+// MakeDir 文件树里新建文件夹。
+func (uc *AgentUsecase) MakeDir(ctx context.Context, sessionID, workspaceID, path string) error {
+	root, err := uc.fileRoot(ctx, sessionID, workspaceID)
+	if err != nil {
+		return err
+	}
+	return agentErr(agentfs.MakeDir(root, path))
+}
+
+// MoveFile 文件树里改名或拖到另一个文件夹。
+func (uc *AgentUsecase) MoveFile(ctx context.Context, sessionID, workspaceID, from, to string) error {
+	root, err := uc.fileRoot(ctx, sessionID, workspaceID)
+	if err != nil {
+		return err
+	}
+	return agentErr(agentfs.Rename(root, from, to))
+}
+
+// DeleteFiles 文件树里删除文件或文件夹。
+func (uc *AgentUsecase) DeleteFiles(ctx context.Context, sessionID, workspaceID string, paths []string) error {
+	root, err := uc.fileRoot(ctx, sessionID, workspaceID)
+	if err != nil {
+		return err
+	}
+	for _, p := range paths {
+		if err := agentfs.Remove(root, p); err != nil {
+			return agentErr(err)
+		}
+	}
+	return nil
+}
+
+// ReadRaw 原样读一个文件：预览图片，以及 Markdown / HTML 预览里用到的图片和样式。
+func (uc *AgentUsecase) ReadRaw(ctx context.Context, sessionID, workspaceID, path string) (*v1.GetAgentSessionUploadResponse, error) {
+	root, err := uc.fileRoot(ctx, sessionID, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	// 预览里引用了不存在的图片很常见：不当错误（不然页面会一直弹提示），回空的
+	if full, err := agentfs.SafeJoin(root, path); err != nil || !agentfs.IsFile(full) {
+		return &v1.GetAgentSessionUploadResponse{}, nil
+	}
+	data, kind, err := agentfs.ReadBlob(root, path, agentUploadMax)
+	if err != nil {
+		return nil, agentErr(err)
+	}
+	return &v1.GetAgentSessionUploadResponse{Mime: kind, Data: data}, nil
 }
 
 // ReadUpload 取回会话附件目录里的一个文件（file 是事件里记的那个：消息的附件，或工具调用产出的图片），页面拿来显示图片。
@@ -1098,7 +1347,7 @@ func (uc *AgentUsecase) Connect(ctx context.Context) (*agenthub.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	return uc.hub.Add(userID, uc.canManage(ctx)), nil
+	return uc.hub.Add(userID, uc.isAdmin(ctx)), nil
 }
 
 func (uc *AgentUsecase) Disconnect(c *agenthub.Conn) {
@@ -1110,7 +1359,7 @@ func (uc *AgentUsecase) CloseStream(c *agenthub.Conn) {
 	uc.hub.Subscribe(c, "")
 }
 
-// WatchAll 管理页关注（或不再关注）所有人的会话状态变化；只对有管理权限的连接生效。
+// WatchAll 全员 Agent 页关注（或不再关注）所有人的会话状态变化；只对有 agent:admin 的连接生效。
 func (uc *AgentUsecase) WatchAll(c *agenthub.Conn, on bool) {
 	uc.hub.Watch(c, on)
 }
@@ -1121,10 +1370,10 @@ func streamReply(c *agenthub.Conn, msg map[string]any) {
 	}
 }
 
-// streamSession 连接能看的会话；看不了时回一条带错误的消息。
+// streamSession 连接能看的会话（只有自己的）；看不了时回一条带错误的消息。
 func (uc *AgentUsecase) streamSession(ctx context.Context, c *agenthub.Conn, t, id string) *gen.AgentSession {
 	s, err := uc.repo.GetAgentSession(ctx, id)
-	if err != nil || (s.UserID != c.UserID && !c.Manage) {
+	if err != nil || s.UserID != c.UserID {
 		streamReply(c, map[string]any{"t": t, "id": id, "error": ErrAgentSessionNotFound.Error()})
 		return nil
 	}

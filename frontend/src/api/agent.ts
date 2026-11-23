@@ -28,6 +28,7 @@ import type {
   GetAgentNotifyResponse,
   GetAgentOptionsResponse,
   GetAgentOverviewResponse,
+  GetAgentPreviewTokenResponse,
   GetAgentProviderBalanceResponse,
   GetAgentSessionChangesResponse,
   GetAgentSessionProcessResponse,
@@ -50,6 +51,7 @@ import type {
   PurgeAgentSessionsResponse,
   ReadAgentSessionFileResponse,
   GetAgentSessionUploadResponse,
+  SaveAgentFileResponse,
   SaveAgentNotifyChannelResponse,
   SearchAgentFilesResponse,
   SetAgentRuntimeModeResponse,
@@ -78,12 +80,21 @@ export type AgentAttachmentInput = Omit<Partial<AgentAttachment>, 'data'> & { da
 
 // —— 选择器 / 概览 ——
 export const getAgentOptions = () => request.get<GetAgentOptionsResponse>('/agent/options')
-export const getAgentOverview = () => request.get<GetAgentOverviewResponse>('/agent/overview')
+/** all：全员 Agent 页，会话、工作区、MCP、技能数所有人的 */
+export const getAgentOverview = (all = false) =>
+  request.get<GetAgentOverviewResponse>('/agent/overview', { params: all ? { all } : undefined })
 
 // —— 会话 ——
 export const getAgentSidebar = (keyword?: string) =>
   request.get<GetAgentSidebarResponse>('/agent/sidebar', { params: { keyword } })
-export const listAgentSessions = (params: { status?: string; keyword?: string; page?: number; pageSize?: number }) =>
+export const listAgentSessions = (params: {
+  status?: string
+  keyword?: string
+  page?: number
+  pageSize?: number
+  /** 所有人的（全员 Agent 页） */
+  all?: boolean
+}) =>
   request.get<ListAgentSessionsResponse>('/agent/sessions', { params })
 export const createAgentSession = (
   data: Omit<Partial<CreateAgentSessionRequest>, 'attachments'> & { attachments?: AgentAttachmentInput[] },
@@ -104,6 +115,9 @@ export const stopAgentSessionItem = (id: string, sub: string, toolId: string) =>
 /** 撤回一条排着队、还没发出去的消息 */
 export const deleteAgentQueuedPrompt = (id: string, queueId: string) =>
   request.delete(`/agent/sessions/${id}/queue/${queueId}`)
+/** 排着队的一条马上发：能插进正在跑的一轮就插进去，插不进去的停下这一轮，让它作为下一轮发出 */
+export const sendAgentQueuedPrompt = (id: string, queueId: string) =>
+  request.post(`/agent/sessions/${id}/queue/${queueId}/send`, {})
 export const resolveAgentPermission = (id: string, requestId: string, optionId: string) =>
   request.post(`/agent/sessions/${id}/permission`, { requestId, optionId })
 export const setAgentSessionOption = (
@@ -136,8 +150,37 @@ export const getAgentSessionUpload = (id: string, file: string) =>
 export const searchAgentFiles = (params: { sessionId?: string; workspaceId?: string; keyword?: string }) =>
   request.get<SearchAgentFilesResponse>('/agent/files/search', { params })
 
+// —— 文件树里的编辑：有会话给 sessionId（会话目录），新会话页还没有会话时给 workspaceId（工作区目录） ——
+export interface AgentFileScope {
+  sessionId?: string
+  workspaceId?: string
+}
+/** 修改时间是 int64（纳秒），JSON 里是字符串：原样带回去，不要转成数字 */
+export type AgentModTime = string | number
+export const saveAgentFile = (
+  scope: AgentFileScope,
+  data: { path: string; content: string; create?: boolean; baseModTime?: AgentModTime; force?: boolean },
+) => request.post<SaveAgentFileResponse>('/agent/files/save', { ...scope, ...data })
+export const createAgentDir = (scope: AgentFileScope, path: string) => request.post('/agent/files/mkdir', { ...scope, path })
+export const moveAgentFile = (scope: AgentFileScope, from: string, to: string) =>
+  request.post('/agent/files/move', { ...scope, from, to })
+export const deleteAgentFiles = (scope: AgentFileScope, paths: string[]) =>
+  request.post('/agent/files/delete', { ...scope, paths })
+/** 原样读一个文件；data 在 JSON 里是 base64 字符串。 */
+export const getAgentFileRaw = (scope: AgentFileScope, path: string) =>
+  request.get<Omit<GetAgentSessionUploadResponse, 'data'> & { data: string }>('/agent/files/raw', { params: { ...scope, path } })
+/** HTML 预览的签名：iframe 按 /api/v1/public/agent/preview/{节点}/{签名}/{相对路径} 把目录当静态站点加载 */
+export const getAgentPreviewToken = (scope: AgentFileScope) =>
+  request.get<GetAgentPreviewTokenResponse>('/agent/files/preview-token', { params: scope })
+export const listAgentFiles = (scope: AgentFileScope, dir: string) =>
+  scope.sessionId ? listAgentSessionFiles(scope.sessionId, dir) : browseAgentWorkspace(scope.workspaceId || '', dir)
+export const readAgentFile = (scope: AgentFileScope, path: string) =>
+  scope.sessionId ? readAgentSessionFile(scope.sessionId, path) : readAgentWorkspaceFile(scope.workspaceId || '', path)
+
 // —— 工作区 ——
-export const listAgentWorkspaces = () => request.get<ListAgentWorkspacesResponse>('/agent/workspaces')
+/** all：所有人的（全员 Agent 页） */
+export const listAgentWorkspaces = (all = false) =>
+  request.get<ListAgentWorkspacesResponse>('/agent/workspaces', { params: all ? { all } : undefined })
 export const createAgentWorkspace = (data: Partial<CreateAgentWorkspaceRequest>) =>
   request.post<CreateAgentWorkspaceResponse>('/agent/workspaces', data)
 export const updateAgentWorkspace = (id: string, data: Partial<UpdateAgentWorkspaceRequest>) =>
@@ -146,6 +189,9 @@ export const deleteAgentWorkspace = (id: string) => request.delete(`/agent/works
 export const listAgentDirs = (path: string) => request.get<ListAgentDirsResponse>('/agent/dirs', { params: { path } })
 export const browseAgentWorkspace = (id: string, dir: string) =>
   request.get<BrowseAgentWorkspaceResponse>(`/agent/workspaces/${id}/browse`, { params: { dir } })
+/** 新会话页里只读地打开工作区的文件 */
+export const readAgentWorkspaceFile = (id: string, path: string) =>
+  request.get<ReadAgentSessionFileResponse>(`/agent/workspaces/${id}/file`, { params: { path } })
 export const getAgentDocs = (path: string) => request.get<GetAgentDocsResponse>('/agent/docs', { params: { path } })
 
 // —— 模型供应商 ——
@@ -163,7 +209,9 @@ export const getAgentProviderBalance = (id: string) =>
   request.get<GetAgentProviderBalanceResponse>(`/agent/providers/${id}/balance`)
 
 // —— MCP ——
-export const listAgentMcpServers = () => request.get<ListAgentMcpServersResponse>('/agent/mcp')
+/** all：所有人的（全员 Agent 页） */
+export const listAgentMcpServers = (all = false) =>
+  request.get<ListAgentMcpServersResponse>('/agent/mcp', { params: all ? { all } : undefined })
 export const createAgentMcpServer = (server: Partial<AgentMcpServer>) =>
   request.post<CreateAgentMcpServerResponse>('/agent/mcp', { server })
 export const updateAgentMcpServer = (id: string, server: Partial<AgentMcpServer>) =>
@@ -177,7 +225,8 @@ export const importAgentMcpServers = (json: string) =>
   request.post<ImportAgentMcpServersResponse>('/agent/mcp/import', { json })
 
 // —— 技能 ——
-export const listAgentSkills = (params?: { enabled?: boolean }) => request.get<ListAgentSkillsResponse>('/agent/skills', { params })
+export const listAgentSkills = (params?: { enabled?: boolean; all?: boolean }) =>
+  request.get<ListAgentSkillsResponse>('/agent/skills', { params })
 export const getAgentSkill = (id: string) => request.get<GetAgentSkillResponse>(`/agent/skills/${id}`)
 export const createAgentSkill = (data: Partial<CreateAgentSkillRequest>) =>
   request.post<CreateAgentSkillResponse>('/agent/skills', data)

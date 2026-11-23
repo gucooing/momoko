@@ -432,10 +432,11 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 		}
 		env = driver.LoginLimits(loginLimits(m))
 	}
+	// 技能放进 Agent 的配置目录：这个目录是服务器上所有会话共用的，起进程前换成这个会话主人自己启用的技能
 	if home := driver.Home(); home != "" {
-		agentskill.Sync(home, uc.enabledSkills(bg))
+		agentskill.Sync(home, uc.enabledSkills(bg, s.UserID))
 	}
-	servers, err := uc.sessionMcpServers(bg, s.McpIds)
+	servers, err := uc.sessionMcpServers(bg, s.UserID, s.McpIds)
 	if err != nil {
 		return nil, err
 	}

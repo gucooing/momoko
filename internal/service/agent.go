@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	stdhttp "net/http"
 
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/http"
@@ -25,9 +26,11 @@ func NewAgentService(uc *biz.AgentUsecase) *AgentService {
 // RegisterRawRoutes 会话事件的 WebSocket。
 func (s *AgentService) RegisterRawRoutes(srv *http.Server) {
 	srv.Handle(biz.AgentWsPath, websocket.Handler(s.RunWsConn))
+	// 文件页 HTML 预览：把目录当静态站点给 iframe 加载（签名鉴权，见 biz.AgentPreviewPrefix）
+	srv.HandlePrefix(biz.AgentPreviewPrefix, stdhttp.HandlerFunc(s.uc.ServePreview))
 }
 
-// RunWsConn 页面的长连接：收 open（打开会话）/ more（往上翻）/ close（离开会话）/ watch（管理页关注所有人的会话），
+// RunWsConn 页面的长连接：收 open（打开会话）/ more（往上翻）/ close（离开会话）/ watch（全员 Agent 页关注所有人的会话），
 // 把订阅的会话事件和会话的状态变化推回去。
 func (s *AgentService) RunWsConn(conn *websocket.Conn) {
 	defer conn.Close()
@@ -105,8 +108,8 @@ func (s *AgentService) GetAgentOptions(ctx context.Context, _ *v1.GetAgentOption
 	return s.uc.GetOptions(ctx)
 }
 
-func (s *AgentService) GetAgentOverview(ctx context.Context, _ *v1.GetAgentOverviewRequest) (*v1.GetAgentOverviewResponse, error) {
-	return s.uc.GetOverview(ctx)
+func (s *AgentService) GetAgentOverview(ctx context.Context, req *v1.GetAgentOverviewRequest) (*v1.GetAgentOverviewResponse, error) {
+	return s.uc.GetOverview(ctx, req.GetAll())
 }
 
 // —— 会话 ——
@@ -158,6 +161,13 @@ func (s *AgentService) DeleteAgentQueuedPrompt(ctx context.Context, req *v1.Dele
 		return nil, err
 	}
 	return &v1.DeleteAgentQueuedPromptResponse{}, nil
+}
+
+func (s *AgentService) SendAgentQueuedPrompt(ctx context.Context, req *v1.SendAgentQueuedPromptRequest) (*v1.SendAgentQueuedPromptResponse, error) {
+	if err := s.uc.SendQueuedNow(ctx, req.GetId(), req.GetQueueId()); err != nil {
+		return nil, err
+	}
+	return &v1.SendAgentQueuedPromptResponse{}, nil
 }
 
 func (s *AgentService) StopAgentSessionItem(ctx context.Context, req *v1.StopAgentSessionItemRequest) (*v1.StopAgentSessionItemResponse, error) {
@@ -271,14 +281,51 @@ func (s *AgentService) SearchAgentFiles(ctx context.Context, req *v1.SearchAgent
 	return &v1.SearchAgentFilesResponse{Paths: paths}, nil
 }
 
-// —— 工作区 ——
+func (s *AgentService) SaveAgentFile(ctx context.Context, req *v1.SaveAgentFileRequest) (*v1.SaveAgentFileResponse, error) {
+	return s.uc.SaveFile(ctx, req)
+}
 
-func (s *AgentService) ListAgentWorkspaces(ctx context.Context, _ *v1.ListAgentWorkspacesRequest) (*v1.ListAgentWorkspacesResponse, error) {
-	workspaces, err := s.uc.ListWorkspaces(ctx)
+func (s *AgentService) CreateAgentDir(ctx context.Context, req *v1.CreateAgentDirRequest) (*v1.CreateAgentDirResponse, error) {
+	if err := s.uc.MakeDir(ctx, req.GetSessionId(), req.GetWorkspaceId(), req.GetPath()); err != nil {
+		return nil, err
+	}
+	return &v1.CreateAgentDirResponse{}, nil
+}
+
+func (s *AgentService) MoveAgentFile(ctx context.Context, req *v1.MoveAgentFileRequest) (*v1.MoveAgentFileResponse, error) {
+	if err := s.uc.MoveFile(ctx, req.GetSessionId(), req.GetWorkspaceId(), req.GetFrom(), req.GetTo()); err != nil {
+		return nil, err
+	}
+	return &v1.MoveAgentFileResponse{}, nil
+}
+
+func (s *AgentService) DeleteAgentFiles(ctx context.Context, req *v1.DeleteAgentFilesRequest) (*v1.DeleteAgentFilesResponse, error) {
+	if err := s.uc.DeleteFiles(ctx, req.GetSessionId(), req.GetWorkspaceId(), req.GetPaths()); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteAgentFilesResponse{}, nil
+}
+
+func (s *AgentService) GetAgentFileRaw(ctx context.Context, req *v1.GetAgentFileRawRequest) (*v1.GetAgentSessionUploadResponse, error) {
+	return s.uc.ReadRaw(ctx, req.GetSessionId(), req.GetWorkspaceId(), req.GetPath())
+}
+
+func (s *AgentService) GetAgentPreviewToken(ctx context.Context, req *v1.GetAgentPreviewTokenRequest) (*v1.GetAgentPreviewTokenResponse, error) {
+	token, exp, err := s.uc.PreviewToken(ctx, req.GetSessionId(), req.GetWorkspaceId())
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListAgentWorkspacesResponse{Workspaces: workspaces}, nil
+	return &v1.GetAgentPreviewTokenResponse{Token: token, ExpiresAt: exp}, nil
+}
+
+// —— 工作区 ——
+
+func (s *AgentService) ListAgentWorkspaces(ctx context.Context, req *v1.ListAgentWorkspacesRequest) (*v1.ListAgentWorkspacesResponse, error) {
+	workspaces, users, err := s.uc.ListWorkspaces(ctx, req.GetAll())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListAgentWorkspacesResponse{Workspaces: workspaces, Users: users}, nil
 }
 
 func (s *AgentService) CreateAgentWorkspace(ctx context.Context, req *v1.CreateAgentWorkspaceRequest) (*v1.CreateAgentWorkspaceResponse, error) {
@@ -314,6 +361,10 @@ func (s *AgentService) BrowseAgentWorkspace(ctx context.Context, req *v1.BrowseA
 		return nil, err
 	}
 	return &v1.BrowseAgentWorkspaceResponse{Entries: entries}, nil
+}
+
+func (s *AgentService) ReadAgentWorkspaceFile(ctx context.Context, req *v1.ReadAgentWorkspaceFileRequest) (*v1.ReadAgentSessionFileResponse, error) {
+	return s.uc.ReadWorkspaceFile(ctx, req.GetId(), req.GetPath())
 }
 
 func (s *AgentService) GetAgentDocs(ctx context.Context, req *v1.GetAgentDocsRequest) (*v1.GetAgentDocsResponse, error) {
@@ -378,12 +429,12 @@ func (s *AgentService) GetAgentProviderBalance(ctx context.Context, req *v1.GetA
 
 // —— MCP ——
 
-func (s *AgentService) ListAgentMcpServers(ctx context.Context, _ *v1.ListAgentMcpServersRequest) (*v1.ListAgentMcpServersResponse, error) {
-	servers, err := s.uc.ListMcpServers(ctx)
+func (s *AgentService) ListAgentMcpServers(ctx context.Context, req *v1.ListAgentMcpServersRequest) (*v1.ListAgentMcpServersResponse, error) {
+	servers, users, err := s.uc.ListMcpServers(ctx, req.GetAll())
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListAgentMcpServersResponse{Servers: servers}, nil
+	return &v1.ListAgentMcpServersResponse{Servers: servers, Users: users}, nil
 }
 
 func mcpOf(m *v1.AgentMcpServer) *v1.AgentMcpServer {
@@ -438,11 +489,11 @@ func (s *AgentService) ImportAgentMcpServers(ctx context.Context, req *v1.Import
 // —— 技能 ——
 
 func (s *AgentService) ListAgentSkills(ctx context.Context, req *v1.ListAgentSkillsRequest) (*v1.ListAgentSkillsResponse, error) {
-	skills, err := s.uc.ListSkills(ctx, req.GetEnabled())
+	skills, users, err := s.uc.ListSkills(ctx, req.GetEnabled(), req.GetAll())
 	if err != nil {
 		return nil, err
 	}
-	return &v1.ListAgentSkillsResponse{Skills: skills}, nil
+	return &v1.ListAgentSkillsResponse{Skills: skills, Users: users}, nil
 }
 
 func (s *AgentService) GetAgentSkill(ctx context.Context, req *v1.GetAgentSkillRequest) (*v1.GetAgentSkillResponse, error) {

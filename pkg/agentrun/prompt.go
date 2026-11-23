@@ -13,10 +13,12 @@ import (
 
 // Upload 用户这条消息带的一个附件。
 type Upload struct {
-	// Kind：image / file / ref（引用的会话目录里的文件）。
+	// Kind：image / file / ref（引用的会话目录里的文件）/ snippet（打开的文件里选中的一段）。
 	Kind string
-	// Name 页面上显示的名字（ref 是相对路径）。
+	// Name 页面上显示的名字（ref 是相对路径，snippet 是「相对路径:起止行」）。
 	Name string
+	// Text snippet 选中的文字。
+	Text string
 	// Data 不为空时直接作为图片内容交给 Agent；否则把 Path 指向的本机文件交给它自己去读。
 	Data []byte
 	Path string
@@ -32,6 +34,15 @@ func blocksOf(text string, uploads []Upload) []acp.ContentBlock {
 		blocks = append(blocks, acp.ContentBlock{Type: "text", Text: text})
 	}
 	for _, u := range uploads {
+		if u.Kind == "snippet" {
+			fence := "```"
+			for strings.Contains(u.Text, fence) {
+				fence += "`"
+			}
+			body := strings.TrimRight(u.Text, "\r\n")
+			blocks = append(blocks, acp.ContentBlock{Type: "text", Text: u.Name + "\n" + fence + "\n" + body + "\n" + fence})
+			continue
+		}
 		if len(u.Data) > 0 {
 			blocks = append(blocks, acp.ContentBlock{Type: "image", Data: base64.StdEncoding.EncodeToString(u.Data), MimeType: u.Mime})
 			continue

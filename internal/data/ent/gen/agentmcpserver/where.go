@@ -74,6 +74,11 @@ func UpdateTime(v time.Time) predicate.AgentMcpServer {
 	return predicate.AgentMcpServer(sql.FieldEQ(FieldUpdateTime, v))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldEQ(FieldUserID, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.AgentMcpServer {
 	return predicate.AgentMcpServer(sql.FieldEQ(FieldName, v))
@@ -207,6 +212,71 @@ func UpdateTimeLT(v time.Time) predicate.AgentMcpServer {
 // UpdateTimeLTE applies the LTE predicate on the "update_time" field.
 func UpdateTimeLTE(v time.Time) predicate.AgentMcpServer {
 	return predicate.AgentMcpServer(sql.FieldLTE(FieldUpdateTime, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldLTE(FieldUserID, v))
+}
+
+// UserIDContains applies the Contains predicate on the "user_id" field.
+func UserIDContains(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldContains(FieldUserID, v))
+}
+
+// UserIDHasPrefix applies the HasPrefix predicate on the "user_id" field.
+func UserIDHasPrefix(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldHasPrefix(FieldUserID, v))
+}
+
+// UserIDHasSuffix applies the HasSuffix predicate on the "user_id" field.
+func UserIDHasSuffix(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldHasSuffix(FieldUserID, v))
+}
+
+// UserIDEqualFold applies the EqualFold predicate on the "user_id" field.
+func UserIDEqualFold(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldEqualFold(FieldUserID, v))
+}
+
+// UserIDContainsFold applies the ContainsFold predicate on the "user_id" field.
+func UserIDContainsFold(v string) predicate.AgentMcpServer {
+	return predicate.AgentMcpServer(sql.FieldContainsFold(FieldUserID, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.

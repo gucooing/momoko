@@ -21,6 +21,16 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	System_MePermissions_FullMethodName               = "/v1.System/MePermissions"
 	System_CheckUpdate_FullMethodName                 = "/v1.System/CheckUpdate"
+	System_UpdateStatus_FullMethodName                = "/v1.System/UpdateStatus"
+	System_StartUpdate_FullMethodName                 = "/v1.System/StartUpdate"
+	System_ApplyUpdate_FullMethodName                 = "/v1.System/ApplyUpdate"
+	System_CancelUpdate_FullMethodName                = "/v1.System/CancelUpdate"
+	System_ListDownloads_FullMethodName               = "/v1.System/ListDownloads"
+	System_PauseDownload_FullMethodName               = "/v1.System/PauseDownload"
+	System_ResumeDownload_FullMethodName              = "/v1.System/ResumeDownload"
+	System_CancelDownload_FullMethodName              = "/v1.System/CancelDownload"
+	System_RemoveDownload_FullMethodName              = "/v1.System/RemoveDownload"
+	System_ClearDownloads_FullMethodName              = "/v1.System/ClearDownloads"
 	System_AdminPermissions_FullMethodName            = "/v1.System/AdminPermissions"
 	System_AdminPermissionsInfo_FullMethodName        = "/v1.System/AdminPermissionsInfo"
 	System_AdminAddPermissions_FullMethodName         = "/v1.System/AdminAddPermissions"
@@ -60,6 +70,26 @@ type SystemClient interface {
 	MePermissions(ctx context.Context, in *MePermissionsRequest, opts ...grpc.CallOption) (*MePermissionsResponse, error)
 	// 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
 	CheckUpdate(ctx context.Context, in *CheckUpdateRequest, opts ...grpc.CallOption) (*CheckUpdateResponse, error)
+	// 更新进度：当前有没有在下载、等待安装或重启（需 system:update 权限）
+	UpdateStatus(ctx context.Context, in *UpdateStatusRequest, opts ...grpc.CallOption) (*UpdateStatusResponse, error)
+	// 从 GitHub 更新：按更新通道取最新发行版，下载本机系统对应的包，校验后替换程序并重启（需 system:update 权限）
+	StartUpdate(ctx context.Context, in *StartUpdateRequest, opts ...grpc.CallOption) (*StartUpdateResponse, error)
+	// 安装已上传、校验通过的程序文件并重启（上传走 /api/v1/system/update/upload，需 system:update 权限）
+	ApplyUpdate(ctx context.Context, in *ApplyUpdateRequest, opts ...grpc.CallOption) (*ApplyUpdateResponse, error)
+	// 取消更新：停止正在进行的下载，或丢掉已上传还没安装的文件（需 system:update 权限）
+	CancelUpdate(ctx context.Context, in *CancelUpdateRequest, opts ...grpc.CallOption) (*CancelUpdateResponse, error)
+	// 下载管理：服务器从外网下载的文件（系统更新、Agent 安装包、技能压缩包……），只列出有对应权限的
+	ListDownloads(ctx context.Context, in *ListDownloadsRequest, opts ...grpc.CallOption) (*ListDownloadsResponse, error)
+	// 暂停下载（已下的部分留着，继续时能续传就续传）
+	PauseDownload(ctx context.Context, in *DownloadActionRequest, opts ...grpc.CallOption) (*DownloadActionResponse, error)
+	// 继续已暂停的下载
+	ResumeDownload(ctx context.Context, in *DownloadActionRequest, opts ...grpc.CallOption) (*DownloadActionResponse, error)
+	// 取消下载（发起下载的那件事也会跟着失败，比如更新、安装）
+	CancelDownload(ctx context.Context, in *DownloadActionRequest, opts ...grpc.CallOption) (*DownloadActionResponse, error)
+	// 从列表里删掉一条已结束的下载记录
+	RemoveDownload(ctx context.Context, in *DownloadActionRequest, opts ...grpc.CallOption) (*RemoveDownloadResponse, error)
+	// 清掉所有已结束的下载记录
+	ClearDownloads(ctx context.Context, in *ClearDownloadsRequest, opts ...grpc.CallOption) (*ClearDownloadsResponse, error)
 	// 管理员获取全部权限菜单
 	AdminPermissions(ctx context.Context, in *AdminPermissionsRequest, opts ...grpc.CallOption) (*AdminPermissionsResponse, error)
 	// 管理员获取单个权限菜单
@@ -138,6 +168,106 @@ func (c *systemClient) CheckUpdate(ctx context.Context, in *CheckUpdateRequest, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CheckUpdateResponse)
 	err := c.cc.Invoke(ctx, System_CheckUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) UpdateStatus(ctx context.Context, in *UpdateStatusRequest, opts ...grpc.CallOption) (*UpdateStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateStatusResponse)
+	err := c.cc.Invoke(ctx, System_UpdateStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) StartUpdate(ctx context.Context, in *StartUpdateRequest, opts ...grpc.CallOption) (*StartUpdateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartUpdateResponse)
+	err := c.cc.Invoke(ctx, System_StartUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) ApplyUpdate(ctx context.Context, in *ApplyUpdateRequest, opts ...grpc.CallOption) (*ApplyUpdateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApplyUpdateResponse)
+	err := c.cc.Invoke(ctx, System_ApplyUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) CancelUpdate(ctx context.Context, in *CancelUpdateRequest, opts ...grpc.CallOption) (*CancelUpdateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelUpdateResponse)
+	err := c.cc.Invoke(ctx, System_CancelUpdate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) ListDownloads(ctx context.Context, in *ListDownloadsRequest, opts ...grpc.CallOption) (*ListDownloadsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDownloadsResponse)
+	err := c.cc.Invoke(ctx, System_ListDownloads_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) PauseDownload(ctx context.Context, in *DownloadActionRequest, opts ...grpc.CallOption) (*DownloadActionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DownloadActionResponse)
+	err := c.cc.Invoke(ctx, System_PauseDownload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) ResumeDownload(ctx context.Context, in *DownloadActionRequest, opts ...grpc.CallOption) (*DownloadActionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DownloadActionResponse)
+	err := c.cc.Invoke(ctx, System_ResumeDownload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) CancelDownload(ctx context.Context, in *DownloadActionRequest, opts ...grpc.CallOption) (*DownloadActionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DownloadActionResponse)
+	err := c.cc.Invoke(ctx, System_CancelDownload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) RemoveDownload(ctx context.Context, in *DownloadActionRequest, opts ...grpc.CallOption) (*RemoveDownloadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveDownloadResponse)
+	err := c.cc.Invoke(ctx, System_RemoveDownload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *systemClient) ClearDownloads(ctx context.Context, in *ClearDownloadsRequest, opts ...grpc.CallOption) (*ClearDownloadsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClearDownloadsResponse)
+	err := c.cc.Invoke(ctx, System_ClearDownloads_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -424,6 +554,26 @@ type SystemServer interface {
 	MePermissions(context.Context, *MePermissionsRequest) (*MePermissionsResponse, error)
 	// 检查更新：查询远程最新发行版并与当前版本比较（需 system:update 权限）
 	CheckUpdate(context.Context, *CheckUpdateRequest) (*CheckUpdateResponse, error)
+	// 更新进度：当前有没有在下载、等待安装或重启（需 system:update 权限）
+	UpdateStatus(context.Context, *UpdateStatusRequest) (*UpdateStatusResponse, error)
+	// 从 GitHub 更新：按更新通道取最新发行版，下载本机系统对应的包，校验后替换程序并重启（需 system:update 权限）
+	StartUpdate(context.Context, *StartUpdateRequest) (*StartUpdateResponse, error)
+	// 安装已上传、校验通过的程序文件并重启（上传走 /api/v1/system/update/upload，需 system:update 权限）
+	ApplyUpdate(context.Context, *ApplyUpdateRequest) (*ApplyUpdateResponse, error)
+	// 取消更新：停止正在进行的下载，或丢掉已上传还没安装的文件（需 system:update 权限）
+	CancelUpdate(context.Context, *CancelUpdateRequest) (*CancelUpdateResponse, error)
+	// 下载管理：服务器从外网下载的文件（系统更新、Agent 安装包、技能压缩包……），只列出有对应权限的
+	ListDownloads(context.Context, *ListDownloadsRequest) (*ListDownloadsResponse, error)
+	// 暂停下载（已下的部分留着，继续时能续传就续传）
+	PauseDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error)
+	// 继续已暂停的下载
+	ResumeDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error)
+	// 取消下载（发起下载的那件事也会跟着失败，比如更新、安装）
+	CancelDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error)
+	// 从列表里删掉一条已结束的下载记录
+	RemoveDownload(context.Context, *DownloadActionRequest) (*RemoveDownloadResponse, error)
+	// 清掉所有已结束的下载记录
+	ClearDownloads(context.Context, *ClearDownloadsRequest) (*ClearDownloadsResponse, error)
 	// 管理员获取全部权限菜单
 	AdminPermissions(context.Context, *AdminPermissionsRequest) (*AdminPermissionsResponse, error)
 	// 管理员获取单个权限菜单
@@ -493,6 +643,36 @@ func (UnimplementedSystemServer) MePermissions(context.Context, *MePermissionsRe
 }
 func (UnimplementedSystemServer) CheckUpdate(context.Context, *CheckUpdateRequest) (*CheckUpdateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckUpdate not implemented")
+}
+func (UnimplementedSystemServer) UpdateStatus(context.Context, *UpdateStatusRequest) (*UpdateStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateStatus not implemented")
+}
+func (UnimplementedSystemServer) StartUpdate(context.Context, *StartUpdateRequest) (*StartUpdateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartUpdate not implemented")
+}
+func (UnimplementedSystemServer) ApplyUpdate(context.Context, *ApplyUpdateRequest) (*ApplyUpdateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApplyUpdate not implemented")
+}
+func (UnimplementedSystemServer) CancelUpdate(context.Context, *CancelUpdateRequest) (*CancelUpdateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelUpdate not implemented")
+}
+func (UnimplementedSystemServer) ListDownloads(context.Context, *ListDownloadsRequest) (*ListDownloadsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDownloads not implemented")
+}
+func (UnimplementedSystemServer) PauseDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PauseDownload not implemented")
+}
+func (UnimplementedSystemServer) ResumeDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResumeDownload not implemented")
+}
+func (UnimplementedSystemServer) CancelDownload(context.Context, *DownloadActionRequest) (*DownloadActionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelDownload not implemented")
+}
+func (UnimplementedSystemServer) RemoveDownload(context.Context, *DownloadActionRequest) (*RemoveDownloadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveDownload not implemented")
+}
+func (UnimplementedSystemServer) ClearDownloads(context.Context, *ClearDownloadsRequest) (*ClearDownloadsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ClearDownloads not implemented")
 }
 func (UnimplementedSystemServer) AdminPermissions(context.Context, *AdminPermissionsRequest) (*AdminPermissionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AdminPermissions not implemented")
@@ -628,6 +808,186 @@ func _System_CheckUpdate_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SystemServer).CheckUpdate(ctx, req.(*CheckUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_UpdateStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).UpdateStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_UpdateStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).UpdateStatus(ctx, req.(*UpdateStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_StartUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).StartUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_StartUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).StartUpdate(ctx, req.(*StartUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_ApplyUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).ApplyUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_ApplyUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).ApplyUpdate(ctx, req.(*ApplyUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_CancelUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelUpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).CancelUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_CancelUpdate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).CancelUpdate(ctx, req.(*CancelUpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_ListDownloads_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDownloadsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).ListDownloads(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_ListDownloads_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).ListDownloads(ctx, req.(*ListDownloadsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_PauseDownload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).PauseDownload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_PauseDownload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).PauseDownload(ctx, req.(*DownloadActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_ResumeDownload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).ResumeDownload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_ResumeDownload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).ResumeDownload(ctx, req.(*DownloadActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_CancelDownload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).CancelDownload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_CancelDownload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).CancelDownload(ctx, req.(*DownloadActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_RemoveDownload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).RemoveDownload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_RemoveDownload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).RemoveDownload(ctx, req.(*DownloadActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _System_ClearDownloads_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearDownloadsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServer).ClearDownloads(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: System_ClearDownloads_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServer).ClearDownloads(ctx, req.(*ClearDownloadsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1132,6 +1492,46 @@ var System_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckUpdate",
 			Handler:    _System_CheckUpdate_Handler,
+		},
+		{
+			MethodName: "UpdateStatus",
+			Handler:    _System_UpdateStatus_Handler,
+		},
+		{
+			MethodName: "StartUpdate",
+			Handler:    _System_StartUpdate_Handler,
+		},
+		{
+			MethodName: "ApplyUpdate",
+			Handler:    _System_ApplyUpdate_Handler,
+		},
+		{
+			MethodName: "CancelUpdate",
+			Handler:    _System_CancelUpdate_Handler,
+		},
+		{
+			MethodName: "ListDownloads",
+			Handler:    _System_ListDownloads_Handler,
+		},
+		{
+			MethodName: "PauseDownload",
+			Handler:    _System_PauseDownload_Handler,
+		},
+		{
+			MethodName: "ResumeDownload",
+			Handler:    _System_ResumeDownload_Handler,
+		},
+		{
+			MethodName: "CancelDownload",
+			Handler:    _System_CancelDownload_Handler,
+		},
+		{
+			MethodName: "RemoveDownload",
+			Handler:    _System_RemoveDownload_Handler,
+		},
+		{
+			MethodName: "ClearDownloads",
+			Handler:    _System_ClearDownloads_Handler,
 		},
 		{
 			MethodName: "AdminPermissions",

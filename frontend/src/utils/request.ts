@@ -12,6 +12,13 @@ import { translate as t } from '@/locales'
 import type { RefreshResponse } from '@/types/v1/auth'
 import { currentNodeId, NODE_HEADER } from '@/utils/nodeContext'
 
+// silent：出错时不弹提示，由调用方自己处理（如在线更新重启期间的轮询，连不上是正常的）。
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    silent?: boolean
+  }
+}
+
 interface IAuthAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
   skipAuthRefresh?: boolean
@@ -203,7 +210,7 @@ service.interceptors.response.use(
 
     if (code === 500) {
       const errorMessage = message || t('utils.request.serverError')
-      feedback.error(errorMessage)
+      if (!response.config.silent) feedback.error(errorMessage)
       return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
     }
 
@@ -236,7 +243,7 @@ service.interceptors.response.use(
 
     if (code !== undefined && code !== 200) {
       const errorMessage = message || t('utils.request.failed')
-      feedback.error(errorMessage)
+      if (!response.config.silent) feedback.error(errorMessage)
       return Promise.reject(createRequestError(errorMessage, { handled: true, code }))
     }
 
@@ -298,7 +305,7 @@ service.interceptors.response.use(
       errorMessage = error.message || t('utils.request.failed')
     }
 
-    feedback.error(errorMessage)
+    if (!error.config?.silent) feedback.error(errorMessage)
     return Promise.reject(
       createRequestError(errorMessage, {
         handled: true,

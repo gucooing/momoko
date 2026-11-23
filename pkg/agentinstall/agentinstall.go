@@ -184,7 +184,7 @@ func Install(ctx context.Context, rel Release, dir string, progress func(text st
 	report.say("正在下载 0%")
 	archive := tmp + ".download"
 	defer os.Remove(archive)
-	if err := download(ctx, a, archive, func(n int64) { report.percent("正在下载", n, a.Size) }); err != nil {
+	if err := fetchAsset(ctx, fmt.Sprintf("下载 %s %s", rel.Name, m.Version), a, archive, func(n int64) { report.percent("正在下载", n, a.Size) }); err != nil {
 		return nil, ctxError(ctx, err)
 	}
 	report.say("正在解压")

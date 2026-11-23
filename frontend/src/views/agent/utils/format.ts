@@ -93,6 +93,16 @@ export const fileToBase64 = (file: Blob): Promise<string> =>
     reader.readAsDataURL(file)
   })
 
+/** 字节转 base64（分段拼，大一点的内容也不会撑爆参数个数） */
+export const bytesToBase64 = (bytes: Uint8Array): string => {
+  let bin = ''
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+  return btoa(bin)
+}
+
+/** 右侧「文件」里的文件拖到输入框时带的数据类型：内容是相对会话目录的路径 */
+export const AGENT_PATH_MIME = 'application/x-momoko-agent-path'
+
 /** Agent 标记用的种类：claude / codex / custom */
 export const agentKindOf = (kind?: string) => (kind === 'claude' || kind === 'codex' ? kind : 'custom')
 

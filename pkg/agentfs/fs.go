@@ -36,6 +36,12 @@ func IsDir(path string) bool {
 	return err == nil && info.IsDir()
 }
 
+// IsFile 路径存在并且是文件。
+func IsFile(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
+}
+
 // SafeJoin 把相对路径接到 root 下面，不允许跳出 root。
 func SafeJoin(root, rel string) (string, error) {
 	rel = filepath.FromSlash(strings.TrimSpace(rel))
@@ -185,6 +191,8 @@ type Text struct {
 	Size     int64
 	Binary   bool
 	TooLarge bool
+	// ModTime 读到时的修改时间（Unix 纳秒）
+	ModTime int64
 }
 
 // ReadText 读 root 里的一个文本文件；超过 max 字节或不是文本时不给内容。
@@ -197,7 +205,7 @@ func ReadText(root, rel string, max int64) (*Text, error) {
 	if err != nil || info.IsDir() {
 		return nil, errors.New("文件不存在")
 	}
-	out := &Text{Size: info.Size()}
+	out := &Text{Size: info.Size(), ModTime: info.ModTime().UnixNano()}
 	if info.Size() > max {
 		out.TooLarge = true
 		return out, nil
@@ -224,6 +232,137 @@ func WriteText(root, rel, content string) error {
 		return errors.New("写入 " + rel + " 失败：" + err.Error())
 	}
 	return nil
+}
+
+// ErrChanged 保存时文件在打开之后又被改过了。
+var ErrChanged = errors.New("文件在你打开之后被改过了")
+
+// SaveText 文件树里保存或新建一个文本文件，返回保存后的修改时间（Unix 纳秒）。
+// create 时文件已经存在就不写（上级目录没有会建出来）；baseMod 不为 0 且文件现在的修改时间不是它时返回 ErrChanged。
+func SaveText(root, rel, content string, create bool, baseMod int64) (int64, error) {
+	full, err := editPath(root, rel)
+	if err != nil {
+		return 0, err
+	}
+	if create {
+		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+			return 0, errors.New("建不了上级目录：" + err.Error())
+		}
+		f, err := os.OpenFile(full, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+		if err != nil {
+			if os.IsExist(err) {
+				return 0, errors.New("已经有同名的文件或文件夹了")
+			}
+			return 0, errors.New("新建失败：" + err.Error())
+		}
+		_, werr := f.WriteString(content)
+		if cerr := f.Close(); werr == nil {
+			werr = cerr
+		}
+		if werr != nil {
+			return 0, errors.New("写入失败：" + werr.Error())
+		}
+	} else {
+		info, err := os.Stat(full)
+		if err != nil || info.IsDir() {
+			return 0, errors.New("文件不存在，可能已经被删掉或改名了")
+		}
+		if baseMod != 0 && info.ModTime().UnixNano() != baseMod {
+			return 0, ErrChanged
+		}
+		if err := os.WriteFile(full, []byte(content), info.Mode().Perm()); err != nil {
+			return 0, errors.New("保存失败：" + err.Error())
+		}
+	}
+	info, err := os.Stat(full)
+	if err != nil {
+		return 0, nil
+	}
+	return info.ModTime().UnixNano(), nil
+}
+
+// MakeDir 文件树里新建文件夹（中间缺的上级目录一起建）；已经存在时报错。
+func MakeDir(root, rel string) error {
+	full, err := editPath(root, rel)
+	if err != nil {
+		return err
+	}
+	if _, err := os.Lstat(full); err == nil {
+		return errors.New("已经有同名的文件或文件夹了")
+	}
+	if err := os.MkdirAll(full, 0o755); err != nil {
+		return errors.New("新建文件夹失败：" + err.Error())
+	}
+	return nil
+}
+
+// Rename 文件树里改名或挪位置；目标已经存在时不覆盖，也不能挪进它自己里面。
+func Rename(root, from, to string) error {
+	src, err := editPath(root, from)
+	if err != nil {
+		return err
+	}
+	dst, err := editPath(root, to)
+	if err != nil {
+		return err
+	}
+	if src == dst {
+		return nil
+	}
+	srcInfo, err := os.Lstat(src)
+	if err != nil {
+		return errors.New("要挪的文件不存在，可能已经被删掉或改名了")
+	}
+	if rel, err := filepath.Rel(src, dst); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return errors.New("不能把文件夹挪到它自己里面")
+	}
+	// Windows 上只改大小写时目标「已经存在」（就是它自己），照样改
+	if dstInfo, err := os.Lstat(dst); err == nil && !os.SameFile(srcInfo, dstInfo) {
+		return errors.New("目标位置已经有同名的文件或文件夹了")
+	}
+	if !IsDir(filepath.Dir(dst)) {
+		return errors.New("目标文件夹不存在")
+	}
+	if err := os.Rename(src, dst); err != nil {
+		return errors.New("挪不过去：" + err.Error())
+	}
+	return nil
+}
+
+// Remove 文件树里删除一个文件或文件夹（连同里面的全部内容）；不能删根目录本身。
+func Remove(root, rel string) error {
+	full, err := editPath(root, rel)
+	if err != nil {
+		return err
+	}
+	if _, err := os.Lstat(full); err != nil {
+		return nil
+	}
+	if err := os.RemoveAll(full); err != nil {
+		return errors.New("删除 " + rel + " 失败：" + err.Error())
+	}
+	return nil
+}
+
+// editPath 文件树里要改动的路径：在 root 里面，不能是 root 本身，最后一段不能是空、. 或 ..。
+func editPath(root, rel string) (string, error) {
+	rel = strings.Trim(filepath.ToSlash(strings.TrimSpace(rel)), "/")
+	if rel == "" || rel == "." {
+		return "", errors.New("路径不能为空")
+	}
+	for part := range strings.SplitSeq(rel, "/") {
+		if part == "" || part == "." || part == ".." || strings.TrimSpace(part) != part {
+			return "", errors.New("名称不合法：" + rel)
+		}
+	}
+	full, err := SafeJoin(root, rel)
+	if err != nil {
+		return "", err
+	}
+	if filepath.Clean(full) == filepath.Clean(root) {
+		return "", errors.New("不能改动根目录本身")
+	}
+	return full, nil
 }
 
 // EnsureDir 保证目录存在，返回它的路径。

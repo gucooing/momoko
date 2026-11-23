@@ -42,6 +42,8 @@ const isOpen = ref(false)
 const triggerRef = ref<HTMLElement>()
 const panelRef = ref<HTMLElement>()
 const panelStyle = ref<Record<string, string>>({})
+/** 没给 width 时按内容定宽，最宽到这里（长选项省略号截断） */
+const AUTO_MAX_W = 420
 
 const position = () => {
   const el = triggerRef.value
@@ -57,10 +59,11 @@ const position = () => {
   const vLeft = Math.round(vv?.offsetLeft ?? 0)
   const vTop = Math.round(vv?.offsetTop ?? 0)
 
-  const panelW = Math.min(
-    props.width || panel?.offsetWidth || 180,
-    vw - pad * 2,
-  )
+  // 没给 width 时按内容的宽度（打开时先以不可见的 fixed 浮层渲染，量到的是内容本身的宽度，
+  // 不会被 body 撑满）；block 的下拉至少和触发器一样宽
+  let want = props.width || Math.min(panel?.offsetWidth || 180, AUTO_MAX_W)
+  if (props.block && !props.width) want = Math.max(want, Math.round(r.width))
+  const panelW = Math.min(want, vw - pad * 2)
   // 对齐触发器：end=右缘对齐，start=左缘对齐；再钳进视口
   let left =
     props.align === 'end' ? Math.round(r.right - panelW) : Math.round(r.left)
@@ -95,6 +98,8 @@ const position = () => {
 }
 
 const open = async () => {
+  // 先放在视口左上角、不可见：fixed 的浮层按内容收缩，量出来的才是它本来的宽高
+  panelStyle.value = { position: 'fixed', left: '0px', top: '0px', zIndex: '2300', visibility: 'hidden' }
   isOpen.value = true
   await nextTick()
   position()

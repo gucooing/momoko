@@ -23,7 +23,9 @@ type AgentMcpServer struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// 更新时间
 	UpdateTime time.Time `json:"update_time,omitempty"`
-	// 名称
+	// 所属用户 id：每个人只看得到、只用得上自己的
+	UserID string `json:"user_id,omitempty"`
+	// 名称，同一个人的不重名
 	Name string `json:"name,omitempty"`
 	// 说明
 	Description string `json:"description,omitempty"`
@@ -63,7 +65,7 @@ func (*AgentMcpServer) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case agentmcpserver.FieldToolCount:
 			values[i] = new(sql.NullInt64)
-		case agentmcpserver.FieldID, agentmcpserver.FieldName, agentmcpserver.FieldDescription, agentmcpserver.FieldTransport, agentmcpserver.FieldCommand, agentmcpserver.FieldEnv, agentmcpserver.FieldURL, agentmcpserver.FieldHeaders, agentmcpserver.FieldStatus, agentmcpserver.FieldStatusText:
+		case agentmcpserver.FieldID, agentmcpserver.FieldUserID, agentmcpserver.FieldName, agentmcpserver.FieldDescription, agentmcpserver.FieldTransport, agentmcpserver.FieldCommand, agentmcpserver.FieldEnv, agentmcpserver.FieldURL, agentmcpserver.FieldHeaders, agentmcpserver.FieldStatus, agentmcpserver.FieldStatusText:
 			values[i] = new(sql.NullString)
 		case agentmcpserver.FieldCreateTime, agentmcpserver.FieldUpdateTime, agentmcpserver.FieldTestedAt:
 			values[i] = new(sql.NullTime)
@@ -99,6 +101,12 @@ func (_m *AgentMcpServer) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
 				_m.UpdateTime = value.Time
+			}
+		case agentmcpserver.FieldUserID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				_m.UserID = value.String
 			}
 		case agentmcpserver.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -222,6 +230,9 @@ func (_m *AgentMcpServer) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
 	builder.WriteString(_m.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(_m.UserID)
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)

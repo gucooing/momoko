@@ -111,6 +111,7 @@ func NewHTTPServer(c *conf.Server,
 	dockerApi.RegisterWsServer(srv)
 	agentApi.RegisterRawRoutes(srv)
 	mcpApi.RegisterRawRoutes(srv)
+	systemApi.RegisterUpdateRoutes(srv)
 
 	return srv
 }

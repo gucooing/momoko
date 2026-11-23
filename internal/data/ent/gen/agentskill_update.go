@@ -34,6 +34,20 @@ func (_u *AgentSkillUpdate) SetUpdateTime(v time.Time) *AgentSkillUpdate {
 	return _u
 }
 
+// SetUserID sets the "user_id" field.
+func (_u *AgentSkillUpdate) SetUserID(v string) *AgentSkillUpdate {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *AgentSkillUpdate) SetNillableUserID(v *string) *AgentSkillUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *AgentSkillUpdate) SetName(v string) *AgentSkillUpdate {
 	_u.mutation.SetName(v)
@@ -196,6 +210,9 @@ func (_u *AgentSkillUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(agentskill.FieldUpdateTime, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(agentskill.FieldUserID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(agentskill.FieldName, field.TypeString, value)
 	}
@@ -240,6 +257,20 @@ type AgentSkillUpdateOne struct {
 // SetUpdateTime sets the "update_time" field.
 func (_u *AgentSkillUpdateOne) SetUpdateTime(v time.Time) *AgentSkillUpdateOne {
 	_u.mutation.SetUpdateTime(v)
+	return _u
+}
+
+// SetUserID sets the "user_id" field.
+func (_u *AgentSkillUpdateOne) SetUserID(v string) *AgentSkillUpdateOne {
+	_u.mutation.SetUserID(v)
+	return _u
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (_u *AgentSkillUpdateOne) SetNillableUserID(v *string) *AgentSkillUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
+	}
 	return _u
 }
 
@@ -434,6 +465,9 @@ func (_u *AgentSkillUpdateOne) sqlSave(ctx context.Context) (_node *AgentSkill, 
 	}
 	if value, ok := _u.mutation.UpdateTime(); ok {
 		_spec.SetField(agentskill.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(agentskill.FieldUserID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(agentskill.FieldName, field.TypeString, value)

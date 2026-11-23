@@ -116,8 +116,13 @@ var operationWritePermissions = map[string]constant.Permissions{
 	// 全站默认外观主题（ThemeService 其余操作是只对自己生效的自助操作，仅需登录）
 	v1.OperationThemeServiceSetSiteTheme: constant.SystemConfigEdit,
 
-	// —— 系统：更新检查 ——
-	v1.OperationSystemCheckUpdate: constant.SystemUpdate,
+	// —— 系统：更新检查与在线更新 ——
+	v1.OperationSystemCheckUpdate:  constant.SystemUpdate,
+	v1.OperationSystemUpdateStatus: constant.SystemUpdate,
+	v1.OperationSystemStartUpdate:  constant.SystemUpdate,
+	v1.OperationSystemApplyUpdate:  constant.SystemUpdate,
+	v1.OperationSystemCancelUpdate: constant.SystemUpdate,
+	// 下载管理（ListDownloads 等）只要登录：每个下载要的权限不同，在接口里按条过滤
 
 	// —— 站内消息：发布通知（推送给全部用户）——
 	v1.OperationAuthServicePublishMessage: constant.SystemConfigEdit,
@@ -134,26 +139,14 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationNodeServiceDeleteNode:     constant.NodeManage,
 	v1.OperationNodeServiceTestNode:       constant.NodeManage,
 
-	// —— Agent：改配置（工作区、供应商、MCP、技能、运行时、通知）要管理权限，用 Code 只需要 agent:use ——
-	v1.OperationAgentServiceUpdateAgentWorkspace:         constant.AgentManage,
-	v1.OperationAgentServiceDeleteAgentWorkspace:         constant.AgentManage,
+	// —— Agent：改大家共用的配置（供应商、运行时、通知）要 agent:manage；会话、工作区、MCP、技能每个人管自己的，
+	// 只要 agent:use（AgentService 的默认权限），能不能动别人的在接口里按 agent:admin 判断 ——
 	v1.OperationAgentServiceCreateAgentProvider:          constant.AgentManage,
 	v1.OperationAgentServiceUpdateAgentProvider:          constant.AgentManage,
 	v1.OperationAgentServiceDeleteAgentProvider:          constant.AgentManage,
 	v1.OperationAgentServiceTestAgentProvider:            constant.AgentManage,
 	v1.OperationAgentServiceFetchAgentProviderModels:     constant.AgentManage,
 	v1.OperationAgentServiceGetAgentProviderBalance:      constant.AgentManage,
-	v1.OperationAgentServiceCreateAgentMcpServer:         constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentMcpServer:         constant.AgentManage,
-	v1.OperationAgentServiceDeleteAgentMcpServer:         constant.AgentManage,
-	v1.OperationAgentServiceSetAgentMcpDefault:           constant.AgentManage,
-	v1.OperationAgentServiceTestAgentMcpServer:           constant.AgentManage,
-	v1.OperationAgentServiceImportAgentMcpServers:        constant.AgentManage,
-	v1.OperationAgentServiceCreateAgentSkill:             constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentSkill:             constant.AgentManage,
-	v1.OperationAgentServiceDeleteAgentSkill:             constant.AgentManage,
-	v1.OperationAgentServiceSetAgentSkillEnabled:         constant.AgentManage,
-	v1.OperationAgentServiceImportAgentSkill:             constant.AgentManage,
 	v1.OperationAgentServiceSetAgentRuntimeMode:          constant.AgentManage,
 	v1.OperationAgentServiceDetectAgentRuntime:           constant.AgentManage,
 	v1.OperationAgentServiceSetAgentRuntimeModels:        constant.AgentManage,
@@ -218,6 +211,8 @@ var wsRoutePermissions = map[string]constant.Permissions{
 	biz.AgentWsPath: constant.AgentUse,
 	// 本机终端
 	biz.ShellWSPath: constant.Shell,
+	// 上传程序文件更新（原始 HTTP 流）
+	biz.SystemUpdateUploadPath: constant.SystemUpdate,
 }
 
 // PermissionMiddleware 对已认证请求按操作所需权限做集中式鉴权（功能级越权防护）。

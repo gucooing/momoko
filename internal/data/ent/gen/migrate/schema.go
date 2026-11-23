@@ -43,7 +43,8 @@ var (
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "user_id", Type: field.TypeString, Default: ""},
+		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "transport", Type: field.TypeEnum, Enums: []string{"stdio", "http"}, Default: "stdio"},
 		{Name: "command", Type: field.TypeString, Default: ""},
@@ -62,6 +63,13 @@ var (
 		Name:       "agent_mcp_servers",
 		Columns:    AgentMcpServersColumns,
 		PrimaryKey: []*schema.Column{AgentMcpServersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentmcpserver_user_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{AgentMcpServersColumns[3], AgentMcpServersColumns[4]},
+			},
+		},
 	}
 	// AgentProvidersColumns holds the columns for the "agent_providers" table.
 	AgentProvidersColumns = []*schema.Column{
@@ -212,7 +220,8 @@ var (
 		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "user_id", Type: field.TypeString, Default: ""},
+		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Default: ""},
 		{Name: "source", Type: field.TypeEnum, Enums: []string{"local", "git", "zip", "dir"}, Default: "local"},
 		{Name: "location", Type: field.TypeString, Default: ""},
@@ -224,6 +233,13 @@ var (
 		Name:       "agent_skills",
 		Columns:    AgentSkillsColumns,
 		PrimaryKey: []*schema.Column{AgentSkillsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentskill_user_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{AgentSkillsColumns[3], AgentSkillsColumns[4]},
+			},
+		},
 	}
 	// AgentWorkspacesColumns holds the columns for the "agent_workspaces" table.
 	AgentWorkspacesColumns = []*schema.Column{
@@ -232,7 +248,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
-		{Name: "path", Type: field.TypeString, Unique: true},
+		{Name: "path", Type: field.TypeString},
 		{Name: "git_url", Type: field.TypeString, Default: ""},
 		{Name: "clone_status", Type: field.TypeString, Default: ""},
 		{Name: "clone_error", Type: field.TypeString, Size: 2147483647, Default: ""},
@@ -248,6 +264,13 @@ var (
 		Name:       "agent_workspaces",
 		Columns:    AgentWorkspacesColumns,
 		PrimaryKey: []*schema.Column{AgentWorkspacesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentworkspace_user_id_path",
+				Unique:  true,
+				Columns: []*schema.Column{AgentWorkspacesColumns[3], AgentWorkspacesColumns[5]},
+			},
+		},
 	}
 	// EmailTemplatesColumns holds the columns for the "email_templates" table.
 	EmailTemplatesColumns = []*schema.Column{

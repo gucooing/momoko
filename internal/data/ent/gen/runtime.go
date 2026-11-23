@@ -104,44 +104,48 @@ func init() {
 	agentmcpserver.DefaultUpdateTime = agentmcpserverDescUpdateTime.Default.(func() time.Time)
 	// agentmcpserver.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	agentmcpserver.UpdateDefaultUpdateTime = agentmcpserverDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentmcpserverDescUserID is the schema descriptor for user_id field.
+	agentmcpserverDescUserID := agentmcpserverFields[1].Descriptor()
+	// agentmcpserver.DefaultUserID holds the default value on creation for the user_id field.
+	agentmcpserver.DefaultUserID = agentmcpserverDescUserID.Default.(string)
 	// agentmcpserverDescName is the schema descriptor for name field.
-	agentmcpserverDescName := agentmcpserverFields[1].Descriptor()
+	agentmcpserverDescName := agentmcpserverFields[2].Descriptor()
 	// agentmcpserver.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	agentmcpserver.NameValidator = agentmcpserverDescName.Validators[0].(func(string) error)
 	// agentmcpserverDescDescription is the schema descriptor for description field.
-	agentmcpserverDescDescription := agentmcpserverFields[2].Descriptor()
+	agentmcpserverDescDescription := agentmcpserverFields[3].Descriptor()
 	// agentmcpserver.DefaultDescription holds the default value on creation for the description field.
 	agentmcpserver.DefaultDescription = agentmcpserverDescDescription.Default.(string)
 	// agentmcpserverDescCommand is the schema descriptor for command field.
-	agentmcpserverDescCommand := agentmcpserverFields[4].Descriptor()
+	agentmcpserverDescCommand := agentmcpserverFields[5].Descriptor()
 	// agentmcpserver.DefaultCommand holds the default value on creation for the command field.
 	agentmcpserver.DefaultCommand = agentmcpserverDescCommand.Default.(string)
 	// agentmcpserverDescEnv is the schema descriptor for env field.
-	agentmcpserverDescEnv := agentmcpserverFields[6].Descriptor()
+	agentmcpserverDescEnv := agentmcpserverFields[7].Descriptor()
 	// agentmcpserver.DefaultEnv holds the default value on creation for the env field.
 	agentmcpserver.DefaultEnv = agentmcpserverDescEnv.Default.(string)
 	// agentmcpserverDescURL is the schema descriptor for url field.
-	agentmcpserverDescURL := agentmcpserverFields[7].Descriptor()
+	agentmcpserverDescURL := agentmcpserverFields[8].Descriptor()
 	// agentmcpserver.DefaultURL holds the default value on creation for the url field.
 	agentmcpserver.DefaultURL = agentmcpserverDescURL.Default.(string)
 	// agentmcpserverDescHeaders is the schema descriptor for headers field.
-	agentmcpserverDescHeaders := agentmcpserverFields[8].Descriptor()
+	agentmcpserverDescHeaders := agentmcpserverFields[9].Descriptor()
 	// agentmcpserver.DefaultHeaders holds the default value on creation for the headers field.
 	agentmcpserver.DefaultHeaders = agentmcpserverDescHeaders.Default.(string)
 	// agentmcpserverDescDefaultOn is the schema descriptor for default_on field.
-	agentmcpserverDescDefaultOn := agentmcpserverFields[9].Descriptor()
+	agentmcpserverDescDefaultOn := agentmcpserverFields[10].Descriptor()
 	// agentmcpserver.DefaultDefaultOn holds the default value on creation for the default_on field.
 	agentmcpserver.DefaultDefaultOn = agentmcpserverDescDefaultOn.Default.(bool)
 	// agentmcpserverDescStatus is the schema descriptor for status field.
-	agentmcpserverDescStatus := agentmcpserverFields[10].Descriptor()
+	agentmcpserverDescStatus := agentmcpserverFields[11].Descriptor()
 	// agentmcpserver.DefaultStatus holds the default value on creation for the status field.
 	agentmcpserver.DefaultStatus = agentmcpserverDescStatus.Default.(string)
 	// agentmcpserverDescStatusText is the schema descriptor for status_text field.
-	agentmcpserverDescStatusText := agentmcpserverFields[11].Descriptor()
+	agentmcpserverDescStatusText := agentmcpserverFields[12].Descriptor()
 	// agentmcpserver.DefaultStatusText holds the default value on creation for the status_text field.
 	agentmcpserver.DefaultStatusText = agentmcpserverDescStatusText.Default.(string)
 	// agentmcpserverDescToolCount is the schema descriptor for tool_count field.
-	agentmcpserverDescToolCount := agentmcpserverFields[12].Descriptor()
+	agentmcpserverDescToolCount := agentmcpserverFields[13].Descriptor()
 	// agentmcpserver.DefaultToolCount holds the default value on creation for the tool_count field.
 	agentmcpserver.DefaultToolCount = agentmcpserverDescToolCount.Default.(int)
 	// agentmcpserverDescID is the schema descriptor for id field.
@@ -467,24 +471,28 @@ func init() {
 	agentskill.DefaultUpdateTime = agentskillDescUpdateTime.Default.(func() time.Time)
 	// agentskill.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	agentskill.UpdateDefaultUpdateTime = agentskillDescUpdateTime.UpdateDefault.(func() time.Time)
+	// agentskillDescUserID is the schema descriptor for user_id field.
+	agentskillDescUserID := agentskillFields[1].Descriptor()
+	// agentskill.DefaultUserID holds the default value on creation for the user_id field.
+	agentskill.DefaultUserID = agentskillDescUserID.Default.(string)
 	// agentskillDescName is the schema descriptor for name field.
-	agentskillDescName := agentskillFields[1].Descriptor()
+	agentskillDescName := agentskillFields[2].Descriptor()
 	// agentskill.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	agentskill.NameValidator = agentskillDescName.Validators[0].(func(string) error)
 	// agentskillDescDescription is the schema descriptor for description field.
-	agentskillDescDescription := agentskillFields[2].Descriptor()
+	agentskillDescDescription := agentskillFields[3].Descriptor()
 	// agentskill.DefaultDescription holds the default value on creation for the description field.
 	agentskill.DefaultDescription = agentskillDescDescription.Default.(string)
 	// agentskillDescLocation is the schema descriptor for location field.
-	agentskillDescLocation := agentskillFields[4].Descriptor()
+	agentskillDescLocation := agentskillFields[5].Descriptor()
 	// agentskill.DefaultLocation holds the default value on creation for the location field.
 	agentskill.DefaultLocation = agentskillDescLocation.Default.(string)
 	// agentskillDescEnabled is the schema descriptor for enabled field.
-	agentskillDescEnabled := agentskillFields[5].Descriptor()
+	agentskillDescEnabled := agentskillFields[6].Descriptor()
 	// agentskill.DefaultEnabled holds the default value on creation for the enabled field.
 	agentskill.DefaultEnabled = agentskillDescEnabled.Default.(bool)
 	// agentskillDescFileCount is the schema descriptor for file_count field.
-	agentskillDescFileCount := agentskillFields[6].Descriptor()
+	agentskillDescFileCount := agentskillFields[7].Descriptor()
 	// agentskill.DefaultFileCount holds the default value on creation for the file_count field.
 	agentskill.DefaultFileCount = agentskillDescFileCount.Default.(int)
 	// agentskillDescID is the schema descriptor for id field.

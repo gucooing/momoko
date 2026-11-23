@@ -1,10 +1,12 @@
-<!-- 顶栏（AppsPC / DashboardPC）：宽搜索框 + 终端 / 深浅色 / 主题 / 通知（工作台额外有「新建」）。
+<!-- 顶栏（AppsPC / DashboardPC）：宽搜索框 + 下载 / 终端 / 深浅色 / 主题 / 通知（工作台额外有「新建」）。
+     「下载」只在服务器有下载记录（系统更新、Agent 安装包等）时出现，可暂停、继续、取消。
      「终端」打开悬浮终端窗口（本机终端 / SSH），角标是开着的终端数；开着时再点是最小化 / 还原。
      手机端没有全局顶栏：页面标题行（PageHeader）自带返回与深浅色，工作台自带问候页头，「更多」页带通知与搜索。 -->
 <template>
   <header v-if="!menuStore.isMobile" class="app-topbar">
     <CommandSearch class="app-topbar__search" />
     <span class="app-topbar__spacer" />
+    <DownloadMenu />
     <AppIconButton
       v-if="canTerm"
       icon="HOutline:CommandLineIcon"
@@ -30,6 +32,7 @@
 import CommandSearch from './CommandSearch.vue'
 import NotificationMenu from './NotificationMenu.vue'
 import ThemeQuickMenu from './ThemeQuickMenu.vue'
+import DownloadMenu from './downloads/DownloadMenu.vue'
 import DashboardCreateMenu from '@/views/dashboard/home/createMenu.vue'
 import { dock, toggleDock } from './termDock/state'
 import { SHELL_PERMISSION } from '@/api/shell'

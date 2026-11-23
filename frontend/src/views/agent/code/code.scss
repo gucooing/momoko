@@ -540,6 +540,41 @@ div.agc-tt.is-on:not(:has(button)) {
   align-items: flex-end;
   gap: 2px;
 }
+// 排着队还没发的消息：气泡淡一些，下面是「排队中」、复制、撤回、立即发送
+.agc-umsg--queued .agc-user {
+  background: transparent;
+  border: 1px dashed var(--m-line);
+  color: var(--m-ink2);
+}
+.agc-queued-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+}
+.agc-queued-tag svg,
+.agc-queued-tag .iconify {
+  width: 13px;
+  height: 13px;
+}
+.agc-sendnow {
+  min-height: 24px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--m-ink);
+  cursor: pointer;
+}
+.agc-sendnow:hover {
+  background: var(--m-s2);
+}
+.agc-sendnow:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 // 消息下面的时间和复制（用户消息靠右，Agent 一段结束后靠左）
 .agc-meta {
   display: flex;
@@ -815,6 +850,138 @@ div.agc-tt.is-on:not(:has(button)) {
 }
 .agc-md img:hover {
   filter: brightness(1.06);
+}
+
+// 连着的工具调用、思考折成的一行摘要；点开后组里的每一项缩进、左边一条线
+.agc-fold {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 26px;
+  padding: 0 8px;
+  margin-left: -8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--m-ink2);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-fold:hover {
+  background: var(--m-s2);
+  color: var(--m-ink);
+}
+.agc-fold svg,
+.agc-fold .iconify {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.agc-fold__t {
+  flex: none;
+}
+.agc-fold__now {
+  min-width: 0;
+  font-family: var(--ag-mono);
+  font-size: 12px;
+  opacity: 0.8;
+}
+.agc-fold__now::before {
+  content: '· ';
+}
+.agc-ri {
+  display: contents;
+}
+.agc-ri--grp {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin: -4px 0 0 6px;
+  padding: 2px 0 2px 12px;
+  border-left: 2px solid var(--m-line);
+}
+
+// 一次改动：平时一行「已编辑 文件名 +增 −删」，点开是 diff
+.agc-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.agc-edit__row {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 26px;
+  padding: 0 8px;
+  margin-left: -8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--m-ink2);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-edit__row:hover {
+  background: var(--m-s2);
+}
+.agc-edit__verb {
+  flex: none;
+}
+.agc-edit__name {
+  min-width: 0;
+  color: var(--m-ink);
+  font-size: 12.5px;
+}
+.agc-edit__chev {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+// 这一轮改了哪些文件
+.agc-tfiles {
+  border: 1px solid var(--m-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.agc-tfiles__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  background: var(--m-s2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--m-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-tfiles__head svg,
+.agc-tfiles__head .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-tfiles__list {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  max-height: 260px;
+  overflow-y: auto;
 }
 
 // 工具调用
@@ -1416,29 +1583,6 @@ div.agc-tt.is-on:not(:has(button)) {
 }
 
 // 计划
-// 排着队的消息
-.agc-queue {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 6px;
-}
-.agc-queue__item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 30px;
-  padding: 0 4px 0 10px;
-  border-radius: 9px;
-  background: var(--m-s2);
-  font-size: 13px;
-}
-.agc-queue__item > svg,
-.agc-queue__item > .iconify {
-  width: 14px;
-  height: 14px;
-  flex: none;
-}
 .agc-plan {
   display: flex;
   flex-direction: column;
@@ -1543,6 +1687,299 @@ div.agc-tt.is-on:not(:has(button)) {
   color: var(--m-ink2);
 }
 
+// —— 打开的文件：编辑、源码 / 并排 / 预览 ——
+// 中间变窄（右栏拉宽了）时头部的按钮只留图标，给路径留地方
+.agc-file {
+  container-type: inline-size;
+}
+@container (max-width: 640px) {
+  .agc-file__lbl {
+    display: none;
+  }
+}
+.agc-file__save.is-dirty {
+  color: var(--m-p);
+}
+.agc-file__modes {
+  flex: none;
+  padding: 2px;
+}
+.agc-file__modes button {
+  flex: none;
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 12px;
+  gap: 4px;
+}
+.agc-file__modes button svg,
+.agc-file__modes button .iconify {
+  width: 13px;
+  height: 13px;
+}
+.agc-file__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 16px;
+  border-bottom: 1px solid var(--m-line);
+  background: var(--m-warnSoft);
+  color: var(--m-warn);
+  font-size: 12.5px;
+}
+.agc-file__bar svg,
+.agc-file__bar .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agc-file__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.agc-file__body > * {
+  flex: 1;
+  min-width: 0;
+}
+.agc-file__body.is-split > .agc-file__preview {
+  border-left: 1px solid var(--m-line);
+}
+.agc-file__preview {
+  min-height: 0;
+  display: flex;
+  background: var(--m-s);
+}
+.agc-file__preview iframe {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+.agc-file__img {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+}
+.agc-file__img img {
+  max-width: 100%;
+  max-height: calc(100% - 28px);
+  object-fit: contain;
+  border-radius: 6px;
+  // 透明的部分显示成棋盘格
+  background: repeating-conic-gradient(color-mix(in srgb, var(--m-ink) 8%, transparent) 0% 25%, transparent 0% 50%) 50% / 16px 16px;
+}
+.agc-file__preview .agc-file__img img {
+  max-height: 100%;
+}
+// 标签上没保存的圆点：鼠标移上去换成关闭
+.agc-tt__x .agc-tt__dot {
+  display: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.agc-tt__x.is-dirty .agc-tt__dot {
+  display: block;
+}
+.agc-tt__x.is-dirty svg,
+.agc-tt__x.is-dirty .iconify {
+  display: none;
+}
+.agc-tt__x.is-dirty:hover .agc-tt__dot,
+.agc-tt__x.is-dirty:focus-visible .agc-tt__dot {
+  display: none;
+}
+.agc-tt__x.is-dirty:hover svg,
+.agc-tt__x.is-dirty:hover .iconify,
+.agc-tt__x.is-dirty:focus-visible svg,
+.agc-tt__x.is-dirty:focus-visible .iconify {
+  display: block;
+}
+
+// —— 中间和右栏之间的缝：拖动调右栏宽度 ——
+// 压在两张卡片之间 10px 的缝上（左右负外边距抵掉它自己占的宽度和多出来的一道 gap）
+.agc-grip {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  align-self: stretch;
+  width: 10px;
+  margin: 0 -10px;
+  cursor: col-resize;
+  outline: none;
+  touch-action: none;
+}
+.agc-grip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 4px;
+  height: 44px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: var(--m-line);
+  transition: background 0.15s, height 0.15s;
+}
+.agc-grip:hover::after,
+.agc-grip:focus-visible::after,
+body.agc-resizing .agc-grip::after {
+  height: 88px;
+  background: var(--m-p);
+}
+body.agc-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+// 拖的时候别让预览的 iframe 把鼠标吃掉
+body.agc-resizing iframe {
+  pointer-events: none;
+}
+
+// —— 文件树（资源管理器） ——
+.agc-ex {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.agc-ex__bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 28px;
+  padding: 0 2px 0 8px;
+}
+.agc-ex__bar .ag-lbl {
+  text-transform: uppercase;
+}
+.agc-ex__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  // 末尾留一段空白：在空白处右键是根目录，拖到这里是挪到根目录
+  padding-bottom: 32px;
+  border-radius: 8px;
+  outline: none;
+}
+.agc-ex__list.is-drop {
+  background: color-mix(in srgb, var(--m-p) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--m-p) 35%, transparent);
+}
+.agc-ex__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px 0 4px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: var(--m-ink);
+  cursor: pointer;
+  user-select: none;
+}
+.agc-ex__row:hover {
+  background: var(--m-s2);
+}
+.agc-ex__row.is-active {
+  background: var(--m-s2);
+}
+.agc-ex__row.is-sel {
+  background: var(--m-pSoft);
+}
+.agc-ex__list:focus-visible .agc-ex__row.is-sel {
+  box-shadow: inset 0 0 0 1px var(--m-p);
+}
+.agc-ex__row.is-drop {
+  background: color-mix(in srgb, var(--m-p) 9%, transparent);
+}
+.agc-ex__row.is-dragging {
+  opacity: 0.5;
+}
+.agc-ex__row.is-editing {
+  cursor: default;
+}
+.agc-ex__row.is-editing:hover {
+  background: transparent;
+}
+.agc-ex__row svg,
+.agc-ex__row .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+// 缩进参考线：每一层一根竖线
+.agc-ex__guide {
+  position: relative;
+  flex: none;
+  align-self: stretch;
+  width: 14px;
+  margin-right: -6px;
+}
+.agc-ex__guide::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 7px;
+  border-left: 1px solid var(--m-line);
+}
+.agc-ex__chev {
+  flex: none;
+  width: 14px;
+  display: inline-flex;
+  justify-content: center;
+  color: var(--m-ink2);
+}
+.agc-ex__chev svg,
+.agc-ex__chev .iconify {
+  width: 13px !important;
+  height: 13px !important;
+}
+.agc-ex__name.agc-ok,
+.agc-ex__name.agc-warn {
+  font-weight: 500;
+}
+.agc-ex__input {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--m-p);
+  border-radius: 5px;
+  background: var(--m-s);
+  color: var(--m-ink);
+  font-size: 12.5px;
+  outline: none;
+}
+.agc-ex__input::placeholder {
+  color: var(--m-ink2);
+  opacity: 0.7;
+}
+// 右键菜单（挂在 body 上）
+.agc-ctx {
+  position: fixed;
+  z-index: 3000;
+  min-width: 220px;
+}
+.agc-ctx .ag-mi:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.agc-ctx__k {
+  font-size: 11px;
+  color: var(--m-ink2);
+}
+
 // —— 右侧 ——
 .agc-right {
   flex: none;
@@ -1556,6 +1993,14 @@ div.agc-tt.is-on:not(:has(button)) {
   overflow-y: auto;
   padding: 12px;
   gap: 12px;
+}
+// 新会话页右侧的「工作区的文件」：占满设置下面剩下的高度，自己滚动；放不下时至少留几行
+.agc-new__files {
+  flex: 1 0 220px;
+  min-height: 220px;
+}
+.agc-new__files .agc-ex {
+  margin: 0 -4px;
 }
 .agc-right__body {
   flex: 1;
@@ -1579,6 +2024,17 @@ div.agc-tt.is-on:not(:has(button)) {
   gap: 2px;
   max-height: 40%;
   overflow-y: auto;
+}
+// 没选中文件（下面没有补丁）时文件列表可以占满
+.agc-right__files.is-full {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+.agc-fr__chev {
+  width: 13px !important;
+  height: 13px !important;
+  margin-right: -4px;
 }
 .agc-right__note {
   padding: 4px 10px;
@@ -1641,6 +2097,40 @@ div.agc-tt.is-on:not(:has(button)) {
   font-size: 12px;
   font-weight: 600;
   flex: none;
+}
+// 改动按仓库分组时的组头，组里的文件往里缩一点
+.agc-fgrp {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 30px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--m-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.agc-fgrp:hover {
+  background: var(--m-s2);
+}
+.agc-fgrp svg,
+.agc-fgrp .iconify {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.agc-fgrp__br {
+  font-weight: 400;
+}
+.agc-fr--in {
+  padding-left: 18px;
 }
 .agc-taskgrp {
   display: flex;

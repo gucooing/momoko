@@ -34,12 +34,18 @@ func (c *ConfigRepo) SiteConfig(ctx context.Context) (*v1.SiteConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+	autoInstall, err := c.getBoolConfig(ctx, common.ConfigUpdateAutoInstall)
+	if err != nil {
+		return nil, err
+	}
 	cfg := &v1.SiteConfig{
 		SiteName:        name,
 		ExternalUrl:     externalURL,
 		DefaultLanguage: lang,
 		AutoCheckUpdate: autoCheck,
 		UpdateChannel:   v1.UpdateChannel(v1.UpdateChannel_value[channelRaw]),
+
+		AutoInstallUpdate: autoInstall,
 	}
 	lastCheck := new(v1.UpdateCheckResult)
 	if ok, err := c.getProtoConfig(ctx, common.ConfigUpdateLastCheck, lastCheck); err != nil {
@@ -63,6 +69,7 @@ func (c *ConfigRepo) UpdateSiteConfig(ctx context.Context, req *v1.UpdateSiteCon
 		common.ConfigSiteDefaultLanguage: req.DefaultLanguage,
 		common.ConfigUpdateAutoCheck:     strconv.FormatBool(req.AutoCheckUpdate),
 		common.ConfigUpdateChannel:       req.UpdateChannel.String(),
+		common.ConfigUpdateAutoInstall:   strconv.FormatBool(req.AutoInstallUpdate),
 	}
 	if err := c.BatchUpdate(ctx, configs); err != nil {
 		return nil, err

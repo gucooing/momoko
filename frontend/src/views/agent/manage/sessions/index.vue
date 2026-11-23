@@ -1,7 +1,8 @@
 <!-- Agent 管理 · 会话：状态筛选（带数量）、按标题搜索、每行归档 / 取消归档和删除、勾选后批量归档 / 导出 / 删除，
      「已归档」筛选下可以删除全部归档会话。有 Agent 进程在跑的会话（一轮结束后进程还留着，空闲的也可能有）
      行上有「进程」标记，点开看进程和它派出的子 Agent（只读）。
-     这一页不能停止会话、不能结束进程；还在运行的会话不能归档。筛选、搜索、分页都在服务端做。 -->
+     这一页不能停止会话、不能结束进程；还在运行的会话不能归档。筛选、搜索、分页都在服务端做。
+     只有自己的会话；在全员 Agent 页里（useAgentAll）是所有人的，行上带主人，标题不能点开（别人的会话打不开），没有新会话和删除全部归档。 -->
 <template>
   <div class="ag ag-page">
     <AgManageHeader>
@@ -16,7 +17,7 @@
           </span>
         </span>
       </template>
-      <template #actions>
+      <template v-if="!all" #actions>
         <button type="button" class="ag-btn ag-btn--p" @click="newSession">
           <UIcon name="i-lucide-plus" />{{ t('agent.common.newSession') }}
         </button>
@@ -68,7 +69,8 @@
             </label>
             <div class="ag-rm">
               <div class="ag-rt">
-                <RouterLink class="ag-ses-title" :to="{ path: '/agent/code', query: { session: s.id } }">
+                <span v-if="all" class="ag-ses-title">{{ titleOf(s) }}</span>
+                <RouterLink v-else class="ag-ses-title" :to="{ path: '/agent/code', query: { session: s.id } }">
                   {{ titleOf(s) }}
                 </RouterLink>
                 <AgAgentTag v-if="s.runtimeName" :kind="agentKindOf(s.runtimeKind)" :name="s.runtimeName" />
@@ -212,6 +214,7 @@ import { agentSend, useAgentConn, type AgentServerMessage } from '@/views/agent/
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
+import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { useLastCodeSession } from '@/views/agent/composables/useLastCodeSession'
 import { agentKindOf, fmtBytes, relTime, sinceTime } from '@/views/agent/utils/format'
@@ -236,6 +239,8 @@ const SUB_PILL: Record<string, string> = {
 
 const { t } = useI18n()
 const router = useRouter()
+/** 在全员 Agent 页里：所有人的会话 */
+const all = useAgentAll()
 const { overview, refresh: refreshOverview } = useAgentOverview()
 const { remember: rememberCodeSession } = useLastCodeSession()
 const newSession = () => {
@@ -270,9 +275,11 @@ const subState = (state: string) =>
       : t('agent.code.sub.done')
 const titleOf = (s: AgentSession) => s.title || t('agent.sessions.untitled')
 const statusText = (value: string) => (STATUSES.includes(value) ? t(`agent.status.${value}`) : value)
+// 主人只在全员 Agent 页里显示（自己的列表里都是自己）
 const userOf = (s: AgentSession) => {
+  if (!all) return ''
   const u = data.value?.users?.find((x) => x.id === s.userId)
-  return u ? u.name || u.username : ''
+  return u ? u.name || u.username : t('agent.admin.goneUser')
 }
 const forksOf = (s: AgentSession) => Number(data.value?.forkCounts?.[s.id] ?? 0)
 const subOf = (s: AgentSession) => {
@@ -294,6 +301,7 @@ const load = async (): Promise<void> => {
       keyword: kw,
       page: page.value,
       pageSize: PAGE_SIZE,
+      all,
     })
     if (id !== seq) return
     // 这一页被删空了：退回最后一页
@@ -389,7 +397,7 @@ const head = computed(() => {
   }
 })
 
-// 会话状态的变化由长连接推来（有管理权限的人关注所有人的，其他人收到的是自己的）：
+// 会话状态的变化由长连接推来（自己的会话总会推来；全员 Agent 页另外关注所有人的）：
 // 这一页上的行直接换成新的；状态变了、或者有会话没了，过一会儿把列表和数量重新读一次。
 const reloadSoon = useDebounceFn(() => void reload(), 800)
 const onPush = (msg: AgentServerMessage) => {
@@ -408,7 +416,9 @@ const onPush = (msg: AgentServerMessage) => {
   }
   void reloadSoon()
 }
-const conn = useAgentConn(onPush, () => agentSend({ op: 'watch', on: true }))
+const conn = useAgentConn(onPush, () => {
+  if (all) agentSend({ op: 'watch', on: true })
+})
 
 onMounted(() => {
   conn.start()
@@ -420,7 +430,7 @@ onActivated(() => {
   if (loaded.value) void reload()
 })
 onDeactivated(() => {
-  agentSend({ op: 'watch', on: false })
+  if (all) agentSend({ op: 'watch', on: false })
   conn.stop()
 })
 
@@ -550,7 +560,7 @@ const askBulkDelete = () => {
 }
 
 // —— 删除全部归档会话 ——
-const showPurge = computed(() => status.value === 'archived' && Number(data.value?.countArchived ?? 0) > 0)
+const showPurge = computed(() => !all && status.value === 'archived' && Number(data.value?.countArchived ?? 0) > 0)
 
 const askPurge = async () => {
   let n = Number(data.value?.countArchived ?? 0)

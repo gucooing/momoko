@@ -179,18 +179,21 @@ func (r *agentRepo) DeleteAgentProvider(ctx context.Context, id string) error {
 
 // —— 工作区 ——
 
-func (r *agentRepo) ListAgentWorkspaces(ctx context.Context) ([]*gen.AgentWorkspace, error) {
-	return r.data.db.AgentWorkspace.Query().
-		Order(gen.Asc(agentworkspace.FieldCreateTime)).
-		All(ctx)
+// ListAgentWorkspaces userID 不为空时只要这个人的。
+func (r *agentRepo) ListAgentWorkspaces(ctx context.Context, userID string) ([]*gen.AgentWorkspace, error) {
+	query := r.data.db.AgentWorkspace.Query()
+	if userID != "" {
+		query = query.Where(agentworkspace.UserIDEQ(userID))
+	}
+	return query.Order(gen.Asc(agentworkspace.FieldCreateTime)).All(ctx)
 }
 
 func (r *agentRepo) GetAgentWorkspace(ctx context.Context, id string) (*gen.AgentWorkspace, error) {
 	return r.data.db.AgentWorkspace.Get(ctx, id)
 }
 
-func (r *agentRepo) FindAgentWorkspaceByPath(ctx context.Context, path string) (*gen.AgentWorkspace, error) {
-	return r.data.db.AgentWorkspace.Query().Where(agentworkspace.PathEQ(path)).Only(ctx)
+func (r *agentRepo) FindAgentWorkspaceByPath(ctx context.Context, userID, path string) (*gen.AgentWorkspace, error) {
+	return r.data.db.AgentWorkspace.Query().Where(agentworkspace.UserIDEQ(userID), agentworkspace.PathEQ(path)).Only(ctx)
 }
 
 func (r *agentRepo) SaveAgentWorkspace(ctx context.Context, w *gen.AgentWorkspace) error {
@@ -256,37 +259,42 @@ func scanTime(v any) time.Time {
 
 // —— MCP ——
 
-func (r *agentRepo) ListAgentMcpServers(ctx context.Context) ([]*gen.AgentMcpServer, error) {
-	return r.data.db.AgentMcpServer.Query().
-		Order(gen.Asc(agentmcpserver.FieldCreateTime)).
-		All(ctx)
+// ListAgentMcpServers userID 不为空时只要这个人的。
+func (r *agentRepo) ListAgentMcpServers(ctx context.Context, userID string) ([]*gen.AgentMcpServer, error) {
+	query := r.data.db.AgentMcpServer.Query()
+	if userID != "" {
+		query = query.Where(agentmcpserver.UserIDEQ(userID))
+	}
+	return query.Order(gen.Asc(agentmcpserver.FieldCreateTime)).All(ctx)
 }
 
-func (r *agentRepo) ListAgentMcpServersByIDs(ctx context.Context, ids []string) ([]*gen.AgentMcpServer, error) {
+// ListAgentMcpServersByIDs 这些 id 里属于 userID 的：会话只用得上它主人自己的。
+func (r *agentRepo) ListAgentMcpServersByIDs(ctx context.Context, userID string, ids []string) ([]*gen.AgentMcpServer, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
 	return r.data.db.AgentMcpServer.Query().
-		Where(agentmcpserver.IDIn(ids...)).
+		Where(agentmcpserver.UserIDEQ(userID), agentmcpserver.IDIn(ids...)).
 		Order(gen.Asc(agentmcpserver.FieldCreateTime)).
 		All(ctx)
 }
 
-func (r *agentRepo) AgentMcpServerNames(ctx context.Context) ([]string, error) {
-	return r.data.db.AgentMcpServer.Query().Select(agentmcpserver.FieldName).Strings(ctx)
+func (r *agentRepo) AgentMcpServerNames(ctx context.Context, userID string) ([]string, error) {
+	return r.data.db.AgentMcpServer.Query().Where(agentmcpserver.UserIDEQ(userID)).Select(agentmcpserver.FieldName).Strings(ctx)
 }
 
 func (r *agentRepo) GetAgentMcpServer(ctx context.Context, id string) (*gen.AgentMcpServer, error) {
 	return r.data.db.AgentMcpServer.Get(ctx, id)
 }
 
-func (r *agentRepo) FindAgentMcpServerByName(ctx context.Context, name string) (*gen.AgentMcpServer, error) {
-	return r.data.db.AgentMcpServer.Query().Where(agentmcpserver.NameEQ(name)).Only(ctx)
+func (r *agentRepo) FindAgentMcpServerByName(ctx context.Context, userID, name string) (*gen.AgentMcpServer, error) {
+	return r.data.db.AgentMcpServer.Query().Where(agentmcpserver.UserIDEQ(userID), agentmcpserver.NameEQ(name)).Only(ctx)
 }
 
 func (r *agentRepo) SaveAgentMcpServer(ctx context.Context, m *gen.AgentMcpServer) error {
 	return r.data.db.AgentMcpServer.Create().
 		SetID(m.ID).
+		SetUserID(m.UserID).
 		SetName(m.Name).
 		SetDescription(m.Description).
 		SetTransport(m.Transport).
@@ -311,15 +319,19 @@ func (r *agentRepo) DeleteAgentMcpServer(ctx context.Context, id string) error {
 
 // —— 技能 ——
 
-func (r *agentRepo) ListAgentSkills(ctx context.Context) ([]*gen.AgentSkill, error) {
-	return r.data.db.AgentSkill.Query().
-		Order(gen.Asc(agentskill.FieldCreateTime)).
-		All(ctx)
+// ListAgentSkills userID 不为空时只要这个人的。
+func (r *agentRepo) ListAgentSkills(ctx context.Context, userID string) ([]*gen.AgentSkill, error) {
+	query := r.data.db.AgentSkill.Query()
+	if userID != "" {
+		query = query.Where(agentskill.UserIDEQ(userID))
+	}
+	return query.Order(gen.Asc(agentskill.FieldCreateTime)).All(ctx)
 }
 
-func (r *agentRepo) ListEnabledAgentSkills(ctx context.Context) ([]*gen.AgentSkill, error) {
+// ListEnabledAgentSkills 这个人启用着的技能。
+func (r *agentRepo) ListEnabledAgentSkills(ctx context.Context, userID string) ([]*gen.AgentSkill, error) {
 	return r.data.db.AgentSkill.Query().
-		Where(agentskill.EnabledEQ(true)).
+		Where(agentskill.UserIDEQ(userID), agentskill.EnabledEQ(true)).
 		Order(gen.Asc(agentskill.FieldName)).
 		All(ctx)
 }
@@ -328,13 +340,14 @@ func (r *agentRepo) GetAgentSkill(ctx context.Context, id string) (*gen.AgentSki
 	return r.data.db.AgentSkill.Get(ctx, id)
 }
 
-func (r *agentRepo) FindAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error) {
-	return r.data.db.AgentSkill.Query().Where(agentskill.NameEQ(name)).Only(ctx)
+func (r *agentRepo) FindAgentSkillByName(ctx context.Context, userID, name string) (*gen.AgentSkill, error) {
+	return r.data.db.AgentSkill.Query().Where(agentskill.UserIDEQ(userID), agentskill.NameEQ(name)).Only(ctx)
 }
 
 func (r *agentRepo) SaveAgentSkill(ctx context.Context, s *gen.AgentSkill) error {
 	return r.data.db.AgentSkill.Create().
 		SetID(s.ID).
+		SetUserID(s.UserID).
 		SetName(s.Name).
 		SetDescription(s.Description).
 		SetSource(s.Source).
@@ -348,6 +361,15 @@ func (r *agentRepo) SaveAgentSkill(ctx context.Context, s *gen.AgentSkill) error
 
 func (r *agentRepo) DeleteAgentSkill(ctx context.Context, id string) error {
 	return r.data.db.AgentSkill.DeleteOneID(id).Exec(ctx)
+}
+
+// ClaimLegacyAgentConfigs 以前 MCP 服务器和技能是大家共用的、没记主人：都归给 ownerID。
+func (r *agentRepo) ClaimLegacyAgentConfigs(ctx context.Context, ownerID string) error {
+	if _, err := r.data.db.AgentMcpServer.Update().Where(agentmcpserver.UserIDEQ("")).SetUserID(ownerID).Save(ctx); err != nil {
+		return err
+	}
+	_, err := r.data.db.AgentSkill.Update().Where(agentskill.UserIDEQ("")).SetUserID(ownerID).Save(ctx)
+	return err
 }
 
 // —— 会话 ——
@@ -694,15 +716,24 @@ func (r *agentRepo) MaxAgentEvent(ctx context.Context, sessionID string) (int64,
 
 // —— 统计与用户 ——
 
-// AgentCounts 管理页各标签上的数量：每张表一条分组查询。
-func (r *agentRepo) AgentCounts(ctx context.Context) (*biz.AgentCounts, error) {
+// AgentCounts 管理页各标签上的数量：每张表一条分组查询。会话、工作区、MCP、技能 userID 不为空时只数这个人的，
+// 供应商和运行时是大家共用的。
+func (r *agentRepo) AgentCounts(ctx context.Context, userID string) (*biz.AgentCounts, error) {
 	db := r.data.db
 	out := &biz.AgentCounts{}
 	var sessions []struct {
 		Status agentsession.Status `json:"status"`
 		Count  int                 `json:"count"`
 	}
-	if err := db.AgentSession.Query().GroupBy(agentsession.FieldStatus).Aggregate(gen.Count()).Scan(ctx, &sessions); err != nil {
+	sessionQuery, workspaceQuery := db.AgentSession.Query(), db.AgentWorkspace.Query()
+	mcpQuery, skillQuery := db.AgentMcpServer.Query(), db.AgentSkill.Query()
+	if userID != "" {
+		sessionQuery = sessionQuery.Where(agentsession.UserIDEQ(userID))
+		workspaceQuery = workspaceQuery.Where(agentworkspace.UserIDEQ(userID))
+		mcpQuery = mcpQuery.Where(agentmcpserver.UserIDEQ(userID))
+		skillQuery = skillQuery.Where(agentskill.UserIDEQ(userID))
+	}
+	if err := sessionQuery.GroupBy(agentsession.FieldStatus).Aggregate(gen.Count()).Scan(ctx, &sessions); err != nil {
 		return nil, err
 	}
 	for _, g := range sessions {
@@ -715,7 +746,7 @@ func (r *agentRepo) AgentCounts(ctx context.Context) (*biz.AgentCounts, error) {
 		}
 	}
 	var err error
-	if out.Workspaces, err = db.AgentWorkspace.Query().Count(ctx); err != nil {
+	if out.Workspaces, err = workspaceQuery.Count(ctx); err != nil {
 		return nil, err
 	}
 	if out.Providers, err = db.AgentProvider.Query().Count(ctx); err != nil {
@@ -725,7 +756,7 @@ func (r *agentRepo) AgentCounts(ctx context.Context) (*biz.AgentCounts, error) {
 		Status string `json:"status"`
 		Count  int    `json:"count"`
 	}
-	if err := db.AgentMcpServer.Query().GroupBy(agentmcpserver.FieldStatus).Aggregate(gen.Count()).Scan(ctx, &mcps); err != nil {
+	if err := mcpQuery.GroupBy(agentmcpserver.FieldStatus).Aggregate(gen.Count()).Scan(ctx, &mcps); err != nil {
 		return nil, err
 	}
 	for _, g := range mcps {
@@ -738,7 +769,7 @@ func (r *agentRepo) AgentCounts(ctx context.Context) (*biz.AgentCounts, error) {
 		Enabled bool `json:"enabled"`
 		Count   int  `json:"count"`
 	}
-	if err := db.AgentSkill.Query().GroupBy(agentskill.FieldEnabled).Aggregate(gen.Count()).Scan(ctx, &skills); err != nil {
+	if err := skillQuery.GroupBy(agentskill.FieldEnabled).Aggregate(gen.Count()).Scan(ctx, &skills); err != nil {
 		return nil, err
 	}
 	for _, g := range skills {

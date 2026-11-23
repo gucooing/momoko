@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -18,7 +19,9 @@ import (
 	"momoko/pkg/auth"
 	"momoko/pkg/cache"
 	"momoko/pkg/constant"
+	"momoko/pkg/download"
 	"momoko/pkg/email"
+	"momoko/pkg/selfupdate"
 	"momoko/pkg/sysinfo"
 	"momoko/pkg/version"
 )
@@ -31,6 +34,7 @@ type SystemUsecase struct {
 	emailClient *email.Client
 	sysInfo     *sysinfo.Collector
 	cache       cache.Cache[string, *RoleOjb]
+	updater     *selfupdate.Updater
 }
 
 // 权限缓存
@@ -72,6 +76,7 @@ func (s *SystemUsecase) checkUpdate(ctx context.Context, auto bool) (*v1.CheckUp
 		ReleaseBody:    rel.Body,
 		CheckedAt:      timestamppb.New(now),
 		Channel:        channel,
+		CanAutoUpdate:  selfupdate.HasAsset(rel),
 	}
 	if resp.ReleaseUrl == "" {
 		resp.ReleaseUrl = version.ReleasesURL
@@ -98,7 +103,14 @@ func (s *SystemUsecase) autoCheckUpdateLoop() {
 		if last := site.GetLastUpdateCheck(); last != nil && last.GetTime() != nil && time.Since(last.GetTime().AsTime()) < interval {
 			return
 		}
-		_, _ = s.checkUpdate(ctx, true)
+		resp, err := s.checkUpdate(ctx, true)
+		if err != nil || !resp.HasUpdate || !site.AutoInstallUpdate || !resp.CanAutoUpdate {
+			return
+		}
+		// 开了「发现新版本时自动更新」：下载、校验、替换并重启，进度在版本更新和下载管理里能看到
+		if _, err := s.startUpdate(ctx, "自动更新"); err != nil {
+			log.Errorf("自动更新到 %s 失败：%v", resp.LatestVersion, err)
+		}
 	}
 	time.Sleep(2 * time.Minute)
 	tick()
@@ -111,16 +123,26 @@ func (s *SystemUsecase) autoCheckUpdateLoop() {
 
 // TouchSettings 记录系统设置最近一次修改人（取当前登录用户名）。
 func (s *SystemUsecase) TouchSettings(ctx context.Context) {
-	name := ""
+	_ = s.config.SaveSettingsAudit(context.WithoutCancel(ctx), &v1.SettingsAudit{Time: timestamppb.Now(), UserName: s.operatorName(ctx)})
+}
+
+// operatorName 当前操作者的名字：远程主控转发来的取主控侧操作者，否则取登录用户的昵称或用户名。
+func (s *SystemUsecase) operatorName(ctx context.Context) string {
+	if p, ok := NodePrincipalFromContext(ctx); ok && p != nil {
+		if p.Operator != "" {
+			return p.Operator
+		}
+		return p.Username
+	}
 	if a, ok := auth.FromContext(ctx); ok && a.UserID != "" {
 		if u, err := s.userRepo.FindByID(ctx, a.UserID); err == nil && u != nil {
-			name = u.Name
-			if name == "" {
-				name = u.Username
+			if u.Name != "" {
+				return u.Name
 			}
+			return u.Username
 		}
 	}
-	_ = s.config.SaveSettingsAudit(context.WithoutCancel(ctx), &v1.SettingsAudit{Time: timestamppb.Now(), UserName: name})
+	return ""
 }
 
 func (s *SystemUsecase) Check(ctx context.Context, permissions constant.Permissions) error {
@@ -171,7 +193,9 @@ func NewSystemUsecase(sys SystemRepo, userRepo UserRepo, config ConfigRepo) *Sys
 		userRepo: userRepo,
 		config:   config,
 		sysInfo:  sysinfo.NewCollector(),
+		updater:  selfupdate.New(),
 	}
+	download.Default.SetOperatorResolver(systemUc.operatorName)
 	systemUc.init()
 
 	return systemUc

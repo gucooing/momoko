@@ -7,11 +7,11 @@
       </button>
     </div>
 
-    <!-- 改动 -->
+    <!-- 改动：点文件在下面看它的改动；会话目录下面有几个仓库时按仓库分组，点仓库那一行展开 / 收起它的文件列表 -->
     <div v-if="tab === 'diff'" class="agc-right__body">
       <!-- 子 Agent：它自己的工具调用改过的文件 -->
       <template v-if="sub">
-        <div class="agc-right__files">
+        <div class="agc-right__files ag-noscroll">
           <button v-for="d in subDiffs" :key="d.path" type="button" class="agc-fr" :class="{ 'is-on': d.path === subDiff?.path }" @click="subPicked = d.path">
             <span class="ag-mono agc-fr__k" :class="opCls(d)">{{ opLetter(d) }}</span>
             <span class="ag-mono ag-ellipsis agc-flex">{{ d.path }}</span>
@@ -20,7 +20,7 @@
         </div>
         <div v-if="subDiff" class="agc-right__patch ag-noscroll">
           <PatchView v-if="subDiff.op" :patch="patchBody(subDiff.patch)" :empty="t('agent.code.diff.noPatch')" />
-          <DiffCard v-else :diff="subDiff" :path="subDiff.path" @show-diff="emit('openFile', $event)" />
+          <DiffCard v-else :diff="subDiff" :path="subDiff.path" bare @show-diff="emit('openFile', $event)" />
         </div>
       </template>
       <template v-else-if="changes && !changes.isGit">
@@ -29,11 +29,23 @@
       <template v-else>
         <div class="agc-right__bar">
           <span class="agc-flex ag-muted agc-small">
-            <i18n-t scope="global" keypath="agent.code.diff.head" tag="span">
+            <span v-if="nested">{{ t('agent.code.diff.headRepos', { n: changes?.repos?.length ?? 0 }) }}</span>
+            <i18n-t v-else scope="global" keypath="agent.code.diff.head" tag="span">
               <template #branch><span class="ag-mono">{{ changes?.branch || 'HEAD' }}</span></template>
             </i18n-t>
             · <span class="agc-plus ag-num">+{{ totalAdd }}</span> <span class="agc-minus ag-num">−{{ totalDel }}</span>
           </span>
+          <button
+            v-if="nested"
+            type="button"
+            class="ag-ib ag-ib--sm"
+            :aria-label="allGroupsOpen ? t('agent.code.diff.collapseAll') : t('agent.code.diff.expandAll')"
+            :title="allGroupsOpen ? t('agent.code.diff.collapseAll') : t('agent.code.diff.expandAll')"
+            :disabled="!files.length"
+            @click="setAllGroups(!allGroupsOpen)"
+          >
+            <UIcon :name="allGroupsOpen ? 'i-lucide-chevrons-down-up' : 'i-lucide-chevrons-up-down'" />
+          </button>
           <button type="button" class="ag-ib ag-ib--sm" :aria-label="t('agent.code.diff.copy')" :title="t('agent.code.diff.copy')" :disabled="!files.length" @click="copyPatch">
             <UIcon name="i-lucide-copy" />
           </button>
@@ -41,13 +53,43 @@
             <UIcon name="i-lucide-refresh-cw" :class="{ 'ag-spin': changesLoading }" />
           </button>
         </div>
-        <div class="agc-right__files">
-          <button v-for="f in files" :key="f.path" type="button" class="agc-fr" :class="{ 'is-on': f.path === current?.path }" @click="picked = f.path">
-            <span class="ag-mono agc-fr__k" :class="f.kind === 'A' ? 'agc-ok' : f.kind === 'D' ? 'agc-bad' : 'agc-warn'">{{ f.kind }}</span>
-            <span class="ag-mono ag-ellipsis agc-flex">{{ f.path }}</span>
-            <span class="agc-plus ag-num">+{{ f.added }}</span>
-            <span class="agc-minus ag-num">−{{ f.deleted }}</span>
-          </button>
+        <div ref="diffList" class="agc-right__files ag-noscroll" :class="{ 'is-full': !current }">
+          <template v-for="g in fileGroups" :key="g.repo">
+            <!-- 会话目录下面放着几个仓库：按仓库分组，组里的路径相对仓库；点组头展开 / 收起这个仓库的文件 -->
+            <button
+              v-if="nested"
+              type="button"
+              class="agc-fgrp"
+              :aria-expanded="openGroups.has(g.repo)"
+              :title="openGroups.has(g.repo) ? t('agent.code.diff.collapseRepo', { repo: g.repo }) : t('agent.code.diff.expandRepo', { repo: g.repo })"
+              @click="toggleGroup(g.repo)"
+            >
+              <UIcon :name="openGroups.has(g.repo) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="ag-muted agc-fr__chev" />
+              <UIcon name="i-lucide-git-branch" class="ag-muted" />
+              <span class="ag-mono ag-ellipsis agc-flex">{{ g.repo }}</span>
+              <span v-if="g.branch" class="ag-tag ag-mono agc-fgrp__br">{{ g.branch }}</span>
+              <span class="ag-num ag-muted agc-small">{{ g.files.length }}</span>
+              <span class="agc-plus ag-num">+{{ g.added }}</span>
+              <span class="agc-minus ag-num">−{{ g.deleted }}</span>
+            </button>
+            <template v-if="!nested || openGroups.has(g.repo)">
+              <button
+                v-for="f in g.files"
+                :key="f.path"
+                type="button"
+                class="agc-fr"
+                :class="{ 'is-on': f.path === current?.path, 'agc-fr--in': nested }"
+                :data-path="f.path"
+                :title="f.path"
+                @click="picked = f.path"
+              >
+                <span class="ag-mono agc-fr__k" :class="f.kind === 'A' ? 'agc-ok' : f.kind === 'D' ? 'agc-bad' : 'agc-warn'">{{ f.kind }}</span>
+                <span class="ag-mono ag-ellipsis agc-flex">{{ nested ? inRepo(f) : f.path }}</span>
+                <span class="agc-plus ag-num">+{{ f.added }}</span>
+                <span class="agc-minus ag-num">−{{ f.deleted }}</span>
+              </button>
+            </template>
+          </template>
           <div v-if="changes && !files.length" class="agc-right__note">{{ t('agent.code.diff.none') }}</div>
         </div>
         <div v-if="current" class="agc-right__patch ag-noscroll">
@@ -62,27 +104,6 @@
           </button>
         </div>
       </template>
-    </div>
-
-    <!-- 文件 -->
-    <div v-else-if="tab === 'files'" class="agc-right__body">
-      <div class="agc-right__tree ag-noscroll">
-        <button
-          v-for="n in treeRows"
-          :key="n.path"
-          type="button"
-          class="agc-fr"
-          :style="{ paddingLeft: `${10 + n.depth * 16}px` }"
-          :aria-expanded="n.isDir ? expanded.has(n.path) : undefined"
-          @click="onNode(n)"
-        >
-          <UIcon :name="n.isDir ? (expanded.has(n.path) ? 'i-lucide-folder-open' : 'i-lucide-folder') : 'i-lucide-file'" :class="n.isDir ? 'agc-dir' : 'ag-muted'" />
-          <span class="ag-mono ag-ellipsis agc-flex">{{ n.name }}</span>
-          <span v-if="n.change" class="ag-mono agc-fr__k" :class="n.change === 'A' ? 'agc-ok' : 'agc-warn'">{{ n.change }}</span>
-        </button>
-        <div v-if="treeLoaded && !treeRows.length" class="agc-right__note">{{ t('agent.code.files.empty') }}</div>
-      </div>
-      <button type="button" class="ag-btn ag-btn--sm" @click="openInFiles"><UIcon name="i-lucide-folder" />{{ t('agent.code.files.openManager') }}</button>
     </div>
 
     <!-- 任务 -->
@@ -121,7 +142,7 @@
     </div>
 
     <!-- 会话 -->
-    <div v-else class="agc-right__body agc-right__scroll ag-noscroll">
+    <div v-else-if="tab === 'info'" class="agc-right__body agc-right__scroll ag-noscroll">
       <template v-if="sub">
         <div class="agc-info__tags">
           <span class="ag-pill" :class="subPillCls">{{ subStateText }}</span>
@@ -211,6 +232,24 @@
       </template>
     </div>
 
+    <!-- 文件：第一次打开后一直留着（切走再回来展开的文件夹还在） -->
+    <div v-if="filesSeen" v-show="tab === 'files'" class="agc-right__body">
+      <FileTree
+        ref="treeRef"
+        :scope="{ sessionId: session.id }"
+        :cwd="session.cwd"
+        :empty="t('agent.code.files.empty')"
+        :tip="(path) => t('agent.code.files.dragTip', { path })"
+        :active="activeFile"
+        can-ref
+        @open="emit('openFile', $event)"
+        @moved="(from, to) => emit('moved', from, to)"
+        @deleted="emit('deleted', $event)"
+        @reference="emit('reference', $event)"
+      />
+      <button type="button" class="ag-btn ag-btn--sm" @click="openInFiles"><UIcon name="i-lucide-folder" />{{ t('agent.code.files.openManager') }}</button>
+    </div>
+
     <AgConfirm
       v-model="revertOpen"
       :title="t('agent.code.diff.revertTitle')"
@@ -224,10 +263,9 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { getAgentSessionChanges, getAgentSessionProcess, listAgentSessionFiles, revertAgentSessionFile } from '@/api/agent'
+import { getAgentSessionChanges, getAgentSessionProcess, revertAgentSessionFile } from '@/api/agent'
 import type {
   AgentChangedFile,
-  AgentFileEntry,
   AgentProcess,
   AgentSession,
   AgentSessionDetail,
@@ -239,6 +277,7 @@ import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import { agentKindOf, clockTime, fmtDuration, fmtTokens, sinceTime } from '@/views/agent/utils/format'
 import { modeName, providerLabel, sessionTitle } from '@/views/agent/utils/labels'
 import DiffCard from './DiffCard.vue'
+import FileTree from './FileTree.vue'
 import PatchView from './PatchView.vue'
 import type { AgentDiff, AgentItem, AgentState } from './types'
 
@@ -257,8 +296,19 @@ const props = defineProps<{
   tick: number
   /** 正在看的子 Agent 的会话 id：改动、任务、会话三个标签换成它自己的 */
   sub?: string
+  /** 中间正在看的文件标签：文件树里高亮出来 */
+  activeFile?: string
 }>()
-const emit = defineEmits<{ openFile: [path: string]; openSub: [id: string]; command: [text: string]; changes: [files: AgentChangedFile[]] }>()
+const emit = defineEmits<{
+  openFile: [path: string]
+  openSub: [id: string]
+  command: [text: string]
+  changes: [files: AgentChangedFile[]]
+  /** 文件树里改名、挪位置、删除、「添加到对话」 */
+  moved: [from: string, to: string]
+  deleted: [paths: string[]]
+  reference: [path: string]
+}>()
 const tab = defineModel<RightTab>('tab', { default: 'diff' })
 /** 要在改动里选中的文件（对话里点「完整改动」） */
 const focus = defineModel<string>('focus', { default: '' })
@@ -270,8 +320,39 @@ const changes = ref<GetAgentSessionChangesResponse | null>(null)
 const changesLoading = ref(false)
 const picked = ref('')
 const revertOpen = ref(false)
+const diffList = ref<HTMLElement | null>(null)
+/** 展开着文件列表的仓库（按仓库分组时）；默认都收着 */
+const openGroups = reactive(new Set<string>())
+const toggleGroup = (repo: string) => (openGroups.has(repo) ? openGroups.delete(repo) : openGroups.add(repo))
 const files = computed(() => changes.value?.files ?? [])
-const current = computed(() => files.value.find((f) => f.path === picked.value) ?? files.value[0])
+/** 会话目录本身不是仓库，改动来自下面的几个仓库 */
+const nested = computed(() => !!changes.value?.repos?.length)
+/** 按仓库分组（会话目录本身是仓库时只有一组）；没有改动的仓库不列 */
+const fileGroups = computed(() => {
+  const branches = new Map((changes.value?.repos ?? []).map((r) => [r.path, r.branch]))
+  const groups = new Map<string, { repo: string; branch: string; files: AgentChangedFile[]; added: number; deleted: number }>()
+  for (const f of files.value) {
+    const repo = f.repo || ''
+    let g = groups.get(repo)
+    if (!g) {
+      g = { repo, branch: branches.get(repo) || '', files: [], added: 0, deleted: 0 }
+      groups.set(repo, g)
+    }
+    g.files.push(f)
+    g.added += Number(f.added || 0)
+    g.deleted += Number(f.deleted || 0)
+  }
+  return [...groups.values()]
+})
+/** 文件在它的仓库里的路径 */
+const inRepo = (f: AgentChangedFile) => (f.repo && f.path.startsWith(`${f.repo}/`) ? f.path.slice(f.repo.length + 1) : f.path)
+/** 选中的文件；按仓库分组时不默认选第一个（它可能在收着的组里） */
+const current = computed(() => files.value.find((f) => f.path === picked.value) ?? (nested.value ? undefined : files.value[0]))
+const allGroupsOpen = computed(() => fileGroups.value.length > 0 && fileGroups.value.every((g) => openGroups.has(g.repo)))
+const setAllGroups = (open: boolean) => {
+  openGroups.clear()
+  if (open) for (const g of fileGroups.value) openGroups.add(g.repo)
+}
 const totalAdd = computed(() => files.value.reduce((n, f) => n + Number(f.added || 0), 0))
 const totalDel = computed(() => files.value.reduce((n, f) => n + Number(f.deleted || 0), 0))
 
@@ -284,6 +365,7 @@ const loadChanges = async (manual = false) => {
     if (id !== changesSeq) return
     changes.value = data
     emit('changes', data.files ?? [])
+    if (pendingFocus) revealDiff(pendingFocus)
     if (manual) feedback.success(t('agent.code.diff.refreshed'))
   } catch {
     /* shown */
@@ -312,61 +394,30 @@ const doRevert = async () => {
   void reloadTree()
 }
 
+// 对话里点「完整改动」：选中那个文件（展开它所在的仓库）并滚过去；改动还没读到就等读到了再选
+let pendingFocus = ''
+const revealDiff = (path: string) => {
+  pendingFocus = ''
+  const f = files.value.find((x) => x.path === path)
+  if (!f) {
+    if (!changes.value || changesLoading.value) pendingFocus = path
+    return
+  }
+  picked.value = path
+  openGroups.add(f.repo || '')
+  void nextTick(() => diffList.value?.querySelector(`[data-path="${CSS.escape(path)}"]`)?.scrollIntoView({ block: 'nearest' }))
+}
 watch(focus, (path) => {
   if (!path) return
-  picked.value = path
+  revealDiff(path)
   focus.value = ''
 })
 
 // —— 文件 ——
-const dirs = reactive(new Map<string, AgentFileEntry[]>())
-const expanded = reactive(new Set<string>())
-const treeLoaded = ref(false)
-
-interface TreeRow {
-  path: string
-  name: string
-  isDir: boolean
-  change: string
-  depth: number
-}
-const treeRows = computed(() => {
-  const out: TreeRow[] = []
-  const walk = (dir: string, depth: number) => {
-    for (const e of dirs.get(dir) ?? []) {
-      out.push({ path: e.path, name: e.name, isDir: e.isDir, change: e.change, depth })
-      if (e.isDir && expanded.has(e.path)) walk(e.path, depth + 1)
-    }
-  }
-  walk('', 0)
-  return out
-})
-
-const loadDir = async (dir: string) => {
-  try {
-    const { data } = await listAgentSessionFiles(props.session.id, dir)
-    dirs.set(dir, data.entries ?? [])
-  } catch {
-    /* shown */
-  } finally {
-    if (!dir) treeLoaded.value = true
-  }
-}
+const filesSeen = ref(false)
+const treeRef = ref<InstanceType<typeof FileTree> | null>(null)
 const reloadTree = async () => {
-  if (!dirs.size) return
-  await Promise.all(['', ...expanded].map((d) => loadDir(d)))
-}
-const onNode = (n: TreeRow) => {
-  if (!n.isDir) {
-    emit('openFile', n.path)
-    return
-  }
-  if (expanded.has(n.path)) {
-    expanded.delete(n.path)
-    return
-  }
-  expanded.add(n.path)
-  if (!dirs.has(n.path)) void loadDir(n.path)
+  await treeRef.value?.reload()
 }
 const openInFiles = () => router.push({ path: '/file', query: { workdir: props.session.cwd } })
 
@@ -511,6 +562,8 @@ const subItem = computed(() =>
   props.sub ? props.items.find((i) => i.type === 'subagent' && i.subagent?.id === props.sub) : undefined,
 )
 /** 它自己的工具调用改过的文件，同一个文件留最后一次 */
+const subPicked = ref('')
+const subDiff = computed(() => subDiffs.value.find((d) => d.path === subPicked.value) ?? subDiffs.value[0])
 const subDiffs = computed<AgentDiff[]>(() => {
   if (!props.sub) return []
   const byPath = new Map<string, AgentDiff>()
@@ -520,8 +573,6 @@ const subDiffs = computed<AgentDiff[]>(() => {
   }
   return [...byPath.values()]
 })
-const subPicked = ref('')
-const subDiff = computed(() => subDiffs.value.find((d) => d.path === subPicked.value) ?? subDiffs.value[0])
 const OP_LETTER: Record<string, string> = { add: 'A', delete: 'D', modify: 'M', move: 'R', copy: 'C' }
 const opLetter = (d: AgentDiff) => (d.op ? OP_LETTER[d.op] || 'M' : d.oldText == null ? 'A' : 'M')
 const opCls = (d: AgentDiff) => {
@@ -590,9 +641,11 @@ const refresh = () => {
     changesStale = false
     void loadChanges()
   }
-  if (tab.value === 'files' && treeStale) {
+  if (tab.value === 'files') {
+    // 第一次打开时文件树自己会读；之后一轮结束过才重读
+    if (!filesSeen.value) filesSeen.value = true
+    else if (treeStale) void reloadTree()
     treeStale = false
-    void (dirs.size ? reloadTree() : loadDir(''))
   }
   if (tab.value === 'info') void loadProcess()
 }
@@ -601,12 +654,13 @@ watch(
   () => {
     changes.value = null
     picked.value = ''
-    dirs.clear()
-    expanded.clear()
-    treeLoaded.value = false
+    openGroups.clear()
+    pendingFocus = ''
     taskOpen.clear()
     proc.value = null
-    changesStale = treeStale = true
+    // 换了会话文件树自己会重读
+    changesStale = true
+    treeStale = false
     refresh()
   },
   { immediate: true },

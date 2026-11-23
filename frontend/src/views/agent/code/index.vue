@@ -56,7 +56,16 @@
               <button type="button" class="agc-tt__btn" role="tab" :aria-selected="ctab === p" :title="p" @click="ctab = p">
                 <UIcon name="i-lucide-file" /><span class="ag-mono agc-tt__file">{{ shortName(p) }}</span>
               </button>
-              <button type="button" class="agc-tt__x" :aria-label="t('agent.code.closeTab', { path: p })" @click="closeFile(p)"><UIcon name="i-lucide-x" /></button>
+              <button
+                type="button"
+                class="agc-tt__x"
+                :class="{ 'is-dirty': tabDirty(p) }"
+                :aria-label="t('agent.code.closeTab', { path: p })"
+                :title="tabDirty(p) ? t('agent.code.file.unsaved') : undefined"
+                @click="closeFile(p)"
+              >
+                <span class="agc-tt__dot" /><UIcon name="i-lucide-x" />
+              </button>
             </div>
           </div>
           <div v-if="openFiles.length >= 2" ref="allTabsEl" class="agc-rel">
@@ -102,23 +111,16 @@
             :cwd="session?.cwd || ''"
             :busy="busy"
             :empty="socket.loaded.value ? '' : t('agent.common.loading')"
+            :queued="queue"
             @resolve="resolve"
             @stop="stopItem"
             @show-diff="showDiff"
             @open-sub="openSub"
             @more="socket.loadMore"
+            @unqueue="unqueue"
+            @send-now="sendNow"
           />
           <div class="agc-foot">
-            <div v-if="queue.length" class="agc-queue" :aria-label="t('agent.code.queue.label')">
-              <div v-for="q in queue" :key="q.id" class="agc-queue__item">
-                <UIcon name="i-lucide-clock" class="ag-muted" />
-                <span class="ag-ellipsis agc-flex">{{ q.text || q.attachments?.map((a) => a.name).join('、') }}</span>
-                <span class="ag-muted agc-small">{{ t('agent.code.queue.waiting') }}</span>
-                <button type="button" class="agc-sm" :aria-label="t('agent.code.queue.remove')" :title="t('agent.code.queue.remove')" @click="unqueue(q.id)">
-                  <UIcon name="i-lucide-x" />
-                </button>
-              </div>
-            </div>
             <div v-if="plan.length" class="agc-plan">
               <ol v-if="planOpen" class="agc-plan__list" :aria-label="t('agent.code.plan.steps')">
                 <li v-for="(p, i) in plan" :key="i" class="agc-plan__item" :class="{ 'ag-muted': p.status === 'pending' }">
@@ -158,7 +160,7 @@
               :context-size="socket.contextSize.value"
               info-button
               :label="t('agent.code.inputLabel')"
-              :placeholder="t('agent.code.placeholder')"
+              :placeholder="busy ? t('agent.code.placeholderBusy') : t('agent.code.placeholder')"
               :on-send="send"
               @select="selectOption"
               @stop="stop"
@@ -192,18 +194,36 @@
 
         <FileTab
           v-else-if="session"
-          :key="ctab"
+          :key="`${session.id}|${tabKeys.key(ctab)}`"
           :session-id="session.id"
           :path="ctab"
           :cwd="session.cwd"
           :change="changes.find((c) => c.path === ctab) ?? null"
+          :tick="turnTick"
           @show-diff="showDiff"
+          @attach="attachSnippet"
+          @open="openFile"
+          @navigate="onTabNavigate"
         />
       </section>
 
       <div v-if="isMobile && rightOn" class="agc-scrim" @click="rightOn = false" />
+      <div
+        v-if="rightOn && session && !isMobile"
+        class="agc-grip"
+        role="separator"
+        aria-orientation="vertical"
+        tabindex="0"
+        :aria-valuenow="rightWidth"
+        :aria-label="t('agent.code.resizeRight')"
+        :title="t('agent.code.resizeRightTip')"
+        @pointerdown="startRightResize"
+        @dblclick="resetRightWidth"
+        @keydown="onRightGripKey"
+      />
       <RightPanel
         v-if="rightOn && session"
+        :style="rightStyle(isMobile)"
         v-model:tab="rightTab"
         v-model:focus="diffFocus"
         :session="session"
@@ -215,17 +235,30 @@
         :busy="busy"
         :tick="turnTick"
         :sub="ctab === 'sub' ? subId : ''"
+        :active-file="openFiles.includes(ctab) ? ctab : ''"
         @open-file="openFile"
+        @moved="onFileMoved"
+        @deleted="onFilesDeleted"
+        @reference="referenceFile"
         @open-sub="openSub"
         @command="runCommand"
         @changes="changes = $event"
       />
     </template>
+
+    <AgConfirm
+      v-model="closeAskOpen"
+      :title="t('agent.code.file.closeDirtyTitle')"
+      :message="t('agent.code.file.closeDirtyMsg', { names: closeAsk.filter(tabDirty).map(shortName).join('、') })"
+      :confirm-text="t('agent.code.file.closeDirty')"
+      danger
+      :on-confirm="() => closeFiles(closeAsk)"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onClickOutside, useDebounceFn, useWindowSize } from '@vueuse/core'
+import { onClickOutside, useDebounceFn, useEventListener, useWindowSize } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import {
   archiveAgentSessions,
@@ -236,17 +269,21 @@ import {
   resolveAgentPermission,
   stopAgentSessionItem,
   deleteAgentQueuedPrompt,
+  sendAgentQueuedPrompt,
   setAgentSessionOption,
 } from '@/api/agent'
 import { useFullBleed } from '@/composables/useAppLayout'
 import type { AgentChangedFile, AgentRuntimeOptions, AgentSession, AgentSidebarWorkspace } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
+import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import { useLastCodeSession } from '@/views/agent/composables/useLastCodeSession'
 import { agentKindOf, fmtDuration } from '@/views/agent/utils/format'
 import { sessionTitle } from '@/views/agent/utils/labels'
 import ChatLog from './ChatLog.vue'
-import Composer, { type DraftAttachment, type Selection, type SendMode } from './Composer.vue'
+import Composer, { type DraftAttachment, type DraftSnippet, type Selection, type SendMode } from './Composer.vue'
 import FileTab from './FileTab.vue'
+import { onRightGripKey, resetRightWidth, rightStyle, rightWidth, startRightResize } from './rightWidth'
+import { dirtyFiles, dropFileState, isDirty, isUnder, movedPath, moveFileState, useTabKeys } from './fileState'
 import NewSession from './NewSession.vue'
 import RightPanel, { type RightTab } from './RightPanel.vue'
 import SessionSidebar from './SessionSidebar.vue'
@@ -467,19 +504,78 @@ const pickTab = (k: string) => {
   ctab.value = k
   tabsOpen.value = false
 }
+const tabKeys = useTabKeys()
 const openFile = (path: string) => {
-  if (!openFiles.value.includes(path)) openFiles.value.push(path)
+  if (!openFiles.value.includes(path)) {
+    openFiles.value.push(path)
+    tabKeys.fresh(path)
+  }
   ctab.value = path
   if (isMobile.value) rightOn.value = false
 }
-const closeFile = (path: string) => {
-  openFiles.value = openFiles.value.filter((p) => p !== path)
-  if (ctab.value === path) ctab.value = 'chat'
+// —— 打开的文件：没保存的改动、树里改名 / 挪动 / 删除 ——
+const tabDirty = (p: string) => isDirty(sessionId.value, p)
+/** 关掉这些标签（没保存的改动丢掉） */
+const closeFiles = (paths: string[]) => {
+  dropFileState(sessionId.value, paths)
+  for (const p of paths) tabKeys.drop(p)
+  openFiles.value = openFiles.value.filter((p) => !paths.includes(p))
+  if (paths.includes(ctab.value)) ctab.value = 'chat'
 }
+/** 要关的标签里有没保存的：先问一下 */
+const closeAsk = ref<string[]>([])
+const closeAskOpen = ref(false)
+const askClose = (paths: string[]) => {
+  if (!paths.some(tabDirty)) {
+    closeFiles(paths)
+    return
+  }
+  closeAsk.value = paths
+  closeAskOpen.value = true
+}
+const closeFile = (path: string) => askClose([path])
 const closeOthers = () => {
-  openFiles.value = openFiles.value.filter((p) => p === ctab.value)
   tabsOpen.value = false
+  askClose(openFiles.value.filter((p) => p !== ctab.value))
 }
+const onFileMoved = (from: string, to: string) => {
+  moveFileState(sessionId.value, from, to)
+  const wasOpen = openFiles.value.includes(ctab.value)
+  openFiles.value = openFiles.value.map((p) => {
+    const next = movedPath(p, from, to)
+    if (next !== p) {
+      tabKeys.drop(p)
+      tabKeys.fresh(next)
+    }
+    return next
+  })
+  if (wasOpen) ctab.value = movedPath(ctab.value, from, to)
+}
+// 文件标签的 HTML 预览里跳到了别的页面：标签就地换成那个文件（已经开着那个文件的标签合并掉）
+const onTabNavigate = (from: string, to: string) => {
+  openFiles.value = openFiles.value.filter((p) => p !== to).map((p) => (p === from ? to : p))
+  tabKeys.carry(from, to)
+  if (ctab.value === from) ctab.value = to
+}
+const onFilesDeleted = (paths: string[]) => {
+  dropFileState(sessionId.value, paths)
+  const gone = openFiles.value.filter((p) => paths.some((d) => isUnder(p, d)))
+  if (gone.length) closeFiles(gone)
+}
+// 文件树右键「添加到对话」：回到对话，加一个引用
+const referenceFile = async (path: string) => {
+  ctab.value = 'chat'
+  if (isMobile.value) rightOn.value = false
+  await nextTick()
+  composer.value?.addRef(path)
+  composer.value?.focus()
+}
+// 有没保存的文件时关掉或刷新页面，浏览器先问一下
+useEventListener(window, 'beforeunload', (e: BeforeUnloadEvent) => {
+  if (!dirtyFiles.size) return
+  e.preventDefault()
+  e.returnValue = ''
+})
 watch(ctab, () =>
   nextTick(() => tabsEl.value?.querySelector('[aria-selected="true"]')?.scrollIntoView({ inline: 'nearest', block: 'nearest' })),
 )
@@ -554,6 +650,21 @@ const unqueue = async (queueId: string) => {
   } catch {
     /* shown */
   }
+}
+// 排着的一条马上发：插进正在跑的一轮（ACP v2），插不进去的停下这一轮再发
+const sendNow = async (queueId: string) => {
+  if (!session.value) return
+  try {
+    await sendAgentQueuedPrompt(session.value.id, queueId)
+  } catch {
+    /* shown */
+  }
+}
+// 打开的文件里选中一段「添加到对话」：回到对话标签，加进输入框的附件
+const attachSnippet = async (sn: DraftSnippet) => {
+  ctab.value = 'chat'
+  await nextTick()
+  composer.value?.addSnippet(sn)
 }
 const stop = async () => {
   if (!session.value) return

@@ -21,6 +21,8 @@ const (
 	ConfigUpdateAutoCheck ConfigKey = "update.auto_check"
 	ConfigUpdateChannel   ConfigKey = "update.channel"
 	ConfigUpdateLastCheck ConfigKey = "update.last_check"
+	// ConfigUpdateAutoInstall 每日自动检查发现新版本时自动下载安装并重启。
+	ConfigUpdateAutoInstall ConfigKey = "update.auto_install"
 	// ConfigAuditRetentionDays 操作记录保留天数（0=永久保留）。
 	ConfigAuditRetentionDays ConfigKey = "audit.retention_days"
 
@@ -103,6 +105,7 @@ var configDefaults = map[ConfigKey]string{
 	ConfigUpdateAutoCheck:     "true",
 	ConfigUpdateChannel:       "UpdateChannel_Stable",
 	ConfigUpdateLastCheck:     "",
+	ConfigUpdateAutoInstall:   "false",
 	ConfigAuditRetentionDays:  "180",
 
 	ConfigMonitorRecordEnabled:  "true",
