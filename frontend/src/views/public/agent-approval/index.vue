@@ -66,6 +66,8 @@ import { APP_CONFIG } from '@/config/app.config'
 import type { AgentChoice, PublicAgentApprovalResponse } from '@/types/v1/agent'
 import { isRejectOption, permOptionLabel } from '@/views/agent/utils/labels'
 
+defineOptions({ name: 'PublicAgentApprovalView' })
+
 const { t } = useI18n()
 const route = useRoute()
 const token = computed(() => String(route.params.token || ''))

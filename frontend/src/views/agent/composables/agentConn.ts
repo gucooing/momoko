@@ -4,7 +4,7 @@ import { AGENT_WS_PATH } from '@/api/agent'
 import { buildBackendWebSocketUrl } from '@/utils/websocket'
 
 export interface AgentServerMessage {
-  t: 'open' | 'more' | 'item' | 'delta' | 'state' | 'usage' | 'session' | 'gone' | 'config'
+  t: 'open' | 'more' | 'item' | 'delta' | 'state' | 'usage' | 'answer' | 'session' | 'gone' | 'config'
   id: string
   [key: string]: unknown
 }

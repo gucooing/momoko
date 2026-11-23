@@ -125,16 +125,35 @@
         <div v-if="g.items.length" class="agc-taskgrp">
           <div class="ag-lbl agc-taskgrp__t">{{ g.title }} <span class="ag-num">{{ g.items.length }}</span></div>
           <div v-for="k in g.items" :key="k.key" class="agc-task">
-            <button type="button" class="agc-task__head" :aria-expanded="k.sub ? undefined : taskOpen.has(k.key)" @click="onTask(k)">
-              <span v-if="k.running" class="agc-sd agc-sd--run agc-pulse" />
-              <UIcon v-else :name="k.icon" :class="k.iconCls" />
-              <span class="agc-task__t">
-                <span class="ag-ellipsis agc-task__n" :class="{ 'ag-mono': !k.sub }">{{ k.title }}</span>
-                <span class="ag-muted agc-small">{{ k.meta }}</span>
-              </span>
-              <UIcon :name="!k.sub && taskOpen.has(k.key) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="ag-muted" />
-            </button>
-            <pre v-if="!k.sub && taskOpen.has(k.key) && k.output" class="agc-term agc-term--flat ag-noscroll">{{ k.output }}</pre>
+            <div class="agc-task__row">
+              <button type="button" class="agc-task__head" :aria-expanded="k.sub ? undefined : taskOpen.has(k.key)" @click="onTask(k)">
+                <span v-if="k.running" class="agc-sd agc-sd--run agc-pulse" />
+                <UIcon v-else :name="k.icon" :class="k.iconCls" />
+                <span class="agc-task__t">
+                  <span class="ag-ellipsis agc-task__n" :class="{ 'ag-mono': !k.sub }">{{ k.title }}</span>
+                  <span class="ag-muted agc-small">{{ k.meta }}</span>
+                </span>
+                <UIcon :name="!k.sub && taskOpen.has(k.key) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="ag-muted" />
+              </button>
+              <button
+                v-if="k.toolId && k.cancel"
+                type="button"
+                class="agc-sm agc-task__stop"
+                :aria-label="t('agent.code.tool.stop')"
+                :title="t('agent.code.tool.stop')"
+                :disabled="taskStopping.has(k.toolId)"
+                @click="stopTask(k.toolId)"
+              >
+                <UIcon name="i-lucide-square" />
+              </button>
+            </div>
+            <!-- 还在跑的跟着最新的输出走（往上翻看时不打扰） -->
+            <pre
+              v-if="!k.sub && taskOpen.has(k.key) && k.output"
+              v-follow="k.running"
+              class="agc-term agc-term--flat ag-noscroll"
+              >{{ k.output }}</pre
+            >
           </div>
         </div>
       </template>
@@ -262,6 +281,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Directive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getAgentSessionChanges, getAgentSessionProcess, revertAgentSessionFile } from '@/api/agent'
 import type {
@@ -289,6 +309,8 @@ const props = defineProps<{
   detail: AgentSessionDetail | null
   items: AgentItem[]
   state: AgentState
+  /** 转到后台还在跑的工具调用 id（工具调用本身报了完成，命令其实还在跑）：算进行中，能看输出、能停 */
+  background: string[]
   contextUsed: number
   contextSize: number
   busy: boolean
@@ -302,6 +324,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   openFile: [path: string]
   openSub: [id: string]
+  /** 只停一个命令（ACP v2）：sub 是它所在的子 Agent */
+  stop: [sub: string, toolId: string]
   command: [text: string]
   changes: [files: AgentChangedFile[]]
   /** 文件树里改名、挪位置、删除、「添加到对话」 */
@@ -431,19 +455,27 @@ interface Task {
   iconCls: string
   output: string
   sub: string
+  /** 命令的工具调用 id，cancel 是现在能不能单独停 */
+  toolId?: string
+  cancel?: boolean
 }
 const taskOpen = reactive(new Set<string>())
+/** 转到后台还在跑的命令：后台列表只有主会话的，看子 Agent 时不用 */
+const bgTools = computed(() => new Set(props.sub ? [] : props.background))
 const tasks = computed<Task[]>(() => {
   const out: Task[] = []
   for (const item of props.items) {
     if ((item.sub || '') !== (props.sub || '')) continue
     if (item.type === 'tool' && item.tool?.kind === 'execute') {
       const tool = item.tool
-      const running = tool.status === 'pending' || tool.status === 'in_progress'
+      const inBg = bgTools.value.has(tool.id)
+      const running = inBg || tool.status === 'pending' || tool.status === 'in_progress'
       const failed = tool.status === 'failed' || tool.status === 'cancelled'
-      const meta = running
-        ? t('agent.code.task.running')
-        : [t(`agent.code.task.${failed ? (tool.status === 'cancelled' ? 'cancelled' : 'failed') : 'done'}`), item.ms ? fmtDuration(item.ms) : ''].filter(Boolean).join(' · ')
+      const meta = inBg
+        ? t('agent.code.task.background')
+        : running
+          ? t('agent.code.task.running')
+          : [t(`agent.code.task.${failed ? (tool.status === 'cancelled' ? 'cancelled' : 'failed') : 'done'}`), item.ms ? fmtDuration(item.ms) : ''].filter(Boolean).join(' · ')
       out.push({
         key: `t${item.seq}`,
         title: tool.command || tool.title,
@@ -453,6 +485,8 @@ const tasks = computed<Task[]>(() => {
         iconCls: failed ? 'ag-muted' : 'agc-ok',
         output: tool.output || '',
         sub: '',
+        toolId: tool.id,
+        cancel: running && !!tool.cancel,
       })
     } else if (item.type === 'subagent' && item.subagent) {
       const sa = item.subagent
@@ -485,6 +519,25 @@ const onTask = (k: Task) => {
   }
   if (taskOpen.has(k.key)) taskOpen.delete(k.key)
   else taskOpen.add(k.key)
+}
+/** 单独停一个命令（ACP v2）：和对话里工具卡片上的「停止」一样 */
+const taskStopping = reactive(new Set<string>())
+const stopTask = (toolId: string) => {
+  taskStopping.add(toolId)
+  emit('stop', props.sub || '', toolId)
+  setTimeout(() => taskStopping.delete(toolId), 3000)
+}
+/** 输出更新时，原来就停在最底下的话接着滚到底；往上翻着看就不动。value 为 false 时不跟 */
+const vFollow: Directive<HTMLElement, boolean> = {
+  mounted(el, { value }) {
+    if (value) el.scrollTop = el.scrollHeight
+  },
+  beforeUpdate(el) {
+    el.dataset.atEnd = el.scrollHeight - el.scrollTop - el.clientHeight < 24 ? '1' : ''
+  },
+  updated(el, { value }) {
+    if (value && el.dataset.atEnd) el.scrollTop = el.scrollHeight
+  },
 }
 
 // —— 会话 ——

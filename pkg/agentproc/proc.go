@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -18,6 +17,8 @@ import (
 	"time"
 
 	"github.com/shirou/gopsutil/v4/process"
+
+	"momoko/pkg/sysenv"
 )
 
 // stderrKeep 保留的 stderr 末尾字节数。
@@ -60,7 +61,8 @@ func Start(cfg Config) (*Process, error) {
 	}
 	cmd := newCommand(resolved, cfg.Args)
 	cmd.Dir = cfg.Dir
-	cmd.Env = mergeEnv(os.Environ(), cfg.Env)
+	// 用注册表现在的环境变量（Momoko 启动后装的工具也找得到），不是 Momoko 启动那一刻的
+	cmd.Env = mergeEnv(sysenv.Environ(), cfg.Env)
 	// 进程退出后它的子孙可能还攥着输出不放，不能让 Wait 一直等下去。
 	cmd.WaitDelay = time.Second
 	stdin, err := cmd.StdinPipe()

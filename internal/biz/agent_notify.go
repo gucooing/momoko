@@ -39,11 +39,12 @@ var (
 	}
 )
 
-// 站内消息的种类：等待批准、一轮结束、出错。文案由页面按种类和参数显示。
+// 站内消息的种类：等待批准、等你回答问题、一轮结束、出错。文案由页面按种类和参数显示。
 const (
-	MessageKindAgentAsk   = "agent_ask"
-	MessageKindAgentDone  = "agent_done"
-	MessageKindAgentError = "agent_error"
+	MessageKindAgentAsk      = "agent_ask"
+	MessageKindAgentQuestion = "agent_question"
+	MessageKindAgentDone     = "agent_done"
+	MessageKindAgentError    = "agent_error"
 )
 
 type agentNotifyChannel struct {
@@ -196,8 +197,9 @@ func (uc *AgentUsecase) TestNotifyChannel(ctx context.Context, kind string, fiel
 
 // ———————————————————————————— 发通知 ————————————————————————————
 
-// notify 一个会话到了该通知人的时机（event：ask / done / error）：站内消息照常发，
-// 外部渠道按时机开关和各自的启用状态发。detail 是要批准的命令、结束说明或出错原因。
+// notify 一个会话到了该通知人的时机（event：ask / question / done / error）：站内消息照常发，
+// 外部渠道按时机开关和各自的启用状态发（提问和批准共用「等待批准」那个开关）。
+// detail 是要批准的命令、问的问题、结束说明或出错原因。
 func (uc *AgentUsecase) notify(sessionID, event, detail string, approval *agentApproval) {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
@@ -205,7 +207,9 @@ func (uc *AgentUsecase) notify(sessionID, event, detail string, approval *agentA
 	if err != nil {
 		return
 	}
-	kind := map[string]string{"ask": MessageKindAgentAsk, "done": MessageKindAgentDone, "error": MessageKindAgentError}[event]
+	kind := map[string]string{
+		"ask": MessageKindAgentAsk, "question": MessageKindAgentQuestion, "done": MessageKindAgentDone, "error": MessageKindAgentError,
+	}[event]
 	_ = uc.messages.CreateMessages(ctx, []*UserMessage{{
 		UserID:   s.UserID,
 		Category: MessageCategoryNotice,
@@ -214,7 +218,7 @@ func (uc *AgentUsecase) notify(sessionID, event, detail string, approval *agentA
 	}})
 
 	cfg := uc.loadNotify(ctx)
-	if on := map[string]bool{"ask": cfg.Ask, "done": cfg.Done, "error": cfg.Error}[event]; !on {
+	if on := map[string]bool{"ask": cfg.Ask, "question": cfg.Ask, "done": cfg.Done, "error": cfg.Error}[event]; !on {
 		return
 	}
 	var msg *agentnotify.Message
@@ -253,6 +257,8 @@ func (uc *AgentUsecase) notifyMessage(ctx context.Context, s *gen.AgentSession, 
 	switch event {
 	case "ask":
 		msg.Title = "「" + title + "」在等你批准"
+	case "question":
+		msg.Title = "「" + title + "」有问题要问你"
 	case "done":
 		msg.Title = "「" + title + "」这一轮结束了"
 	default:

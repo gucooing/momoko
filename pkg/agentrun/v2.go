@@ -100,9 +100,9 @@ func (s *Session) showTerminal(t *terminal) {
 	refreshCancel(tool)
 }
 
-// refreshCancel 工具调用有了结果就不能再停了。
+// refreshCancel 工具调用有了结果就不能再停了；转到后台的例外（报了完成，命令其实还在跑）。
 func refreshCancel(tool *Tool) {
-	tool.Cancel = (tool.toolCancel || tool.termCancel) && unfinished(tool.Status)
+	tool.Cancel = (tool.toolCancel || tool.termCancel) && (unfinished(tool.Status) || tool.background)
 }
 
 // plainTerminal 终端的原始输出变成能直接显示的文字：去掉 ANSI 控制序列（颜色、光标移动、窗口标题），
@@ -207,6 +207,7 @@ func (s *Session) onState(sub string, u *acp.SessionUpdate) {
 
 // setBackground 后台还在跑的工作：记下来（这一轮结束时不把它们当成没结果，进程也不当空闲回收），并报给页面。
 func (s *Session) setBackground(list []acp.BackgroundWork) {
+	defer s.markBackground()
 	s.background = map[string]bool{}
 	s.state.Background = make([]Background, 0, len(list))
 	for _, w := range list {
@@ -244,6 +245,32 @@ func (s *Session) setBackground(list []acp.BackgroundWork) {
 			s.state.Background = append(s.state.Background, Background{Type: w.Type, ID: w.SessionID, Title: title})
 		}
 	}
+	s.sink.State(s.state)
+}
+
+// markBackground 进出后台的工具调用：更新它能不能停，变了就报一次（页面上的「停止」跟着出现或消失）。
+func (s *Session) markBackground() {
+	for key, item := range s.tools {
+		if item.Tool == nil || item.Tool.background == s.background[key] {
+			continue
+		}
+		cancel := item.Tool.Cancel
+		item.Tool.background = s.background[key]
+		refreshCancel(item.Tool)
+		if item.Tool.Cancel != cancel {
+			s.emit(item, true)
+		}
+	}
+}
+
+// clearBackground 进程没了：后台的工作跟着没了，列表清空报给页面，免得一直显示还在跑。
+func (s *Session) clearBackground() {
+	if len(s.background) == 0 && len(s.state.Background) == 0 {
+		return
+	}
+	s.background = map[string]bool{}
+	s.markBackground()
+	s.state.Background = nil
 	s.sink.State(s.state)
 }
 
@@ -405,7 +432,7 @@ func (s *Session) setSubagentState(sub string, sa *Subagent, state string) {
 	}
 }
 
-// RequestCancelled v2：Agent 撤回了一张批准（这一轮停了，不再需要），卡片收成「已取消」。
+// RequestCancelled Agent 撤回了一张批准或一个提问（这一轮停了，不再需要），卡片收成「已取消」。
 func (s *Session) RequestCancelled(reqID string) {
 	s.mu.Lock()
 	permID := s.permReqs[reqID]
@@ -416,11 +443,11 @@ func (s *Session) RequestCancelled(reqID string) {
 	}
 	delete(s.perms, permID)
 	delete(s.permReqs, reqID)
-	p.item.Permission.Outcome = "cancelled"
+	p.markCancelled()
 	s.emit(p.item, true)
 	waiting := len(s.perms) > 0
 	s.mu.Unlock()
-	p.reply(acp.PermissionCancelled())
+	p.replyCancelled()
 	s.sink.Answered(permID, "", waiting)
 }
 
@@ -449,12 +476,15 @@ func (s *Session) StopItem(ctx context.Context, sub, toolID string) error {
 		s.mu.Unlock()
 		return errors.New("这个工具调用已经结束了，或者不能单独停")
 	}
-	toolCancel, terminalID := item.Tool.toolCancel, item.Tool.terminal
+	tool := item.Tool
+	terminalID := tool.terminal
+	// 工具调用自己还没结束、也声明了能停，就停它；转到后台、工具调用已经报了完成的，停它还在跑的终端
+	byTool := tool.toolCancel && (unfinished(tool.Status) || !tool.termCancel || terminalID == "")
 	s.mu.Unlock()
 	stopCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	var err error
-	if toolCancel {
+	if byTool {
 		err = s.client.CancelToolCall(stopCtx, sessionID, toolID)
 	} else {
 		err = s.client.CancelTerminal(stopCtx, sessionID, terminalID)

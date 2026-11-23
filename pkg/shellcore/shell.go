@@ -12,6 +12,7 @@ import (
 	pty "github.com/aymanbagabas/go-pty"
 	"golang.org/x/net/websocket"
 
+	"momoko/pkg/sysenv"
 	"momoko/pkg/termws"
 )
 
@@ -34,7 +35,8 @@ func ServeWebSocket(conn *websocket.Conn) error {
 	name, args, env := shellCommand()
 	cmd := ptmx.Command(name, args...)
 	cmd.Dir = workDir()
-	cmd.Env = append(os.Environ(), env...)
+	// 用注册表现在的环境变量（Momoko 启动后装的工具也找得到），不是 Momoko 启动那一刻的
+	cmd.Env = append(sysenv.Environ(), env...)
 	configureCmd(cmd)
 	if err := cmd.Start(); err != nil {
 		_ = ptmx.Close()

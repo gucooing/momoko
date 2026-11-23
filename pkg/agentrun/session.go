@@ -37,7 +37,7 @@ const (
 )
 
 // Sink 引擎往外报的事情，由调用方实现（落库、推给页面、发通知）。
-// Item / Delta / State / Usage / Title / Config / Asked 在引擎的锁里按事件顺序调用，
+// Item / Delta / State / Usage / Title / Config / Asked / Questioned 在引擎的锁里按事件顺序调用，
 // 实现里不能做慢事（读写库、网络），也不能回头调用 Session 的方法；Answered / TurnEnded / Exited 在锁外调用。
 type Sink interface {
 	// Item 一条事件出现或变化，Seq / Rev 已经分好。push 为 false 时只需要落库（正在写的文字定时落一次）。
@@ -54,10 +54,13 @@ type Sink interface {
 	Config(mode, model, effort string)
 	// Asked 出现一张等人回答的批准卡片。
 	Asked(p *Permission)
+	// Questioned 出现一张等人回答的提问卡片（Agent 的表单询问）。
+	Questioned(q *Question)
 	// TurnStarted 一轮不是经调用方开始的：Agent 自己开始的（v2，后台任务做完了接着处理之类），
 	// 或者排着队的消息在上一轮结束后接着发出。
 	TurnStarted()
-	// Answered 一张批准卡片有了结果（kind 是选中选项的种类，这一轮被停止时为空）；waiting 表示还有别的卡片在等。
+	// Answered 一张批准或提问卡片有了结果（批准是选中选项的种类，提问是 accept / decline，这一轮被停止时为空）；
+	// waiting 表示还有别的卡片在等。
 	Answered(id, kind string, waiting bool)
 	// TurnEnded 一轮结束。
 	TurnEnded(end TurnEnd)
@@ -113,10 +116,12 @@ type Started struct {
 	AgentVersion        string
 }
 
+// pending 一张等人回答的卡片：批准（reply）或提问（answer），只有其中一个。
 type pending struct {
-	item  *Item
-	reply func(*acp.RequestPermissionResponse)
-	// req Agent 那边这个请求的 id（v2 撤回时凭它找）。
+	item   *Item
+	reply  func(*acp.RequestPermissionResponse)
+	answer func(*acp.CreateElicitationResponse)
+	// req Agent 那边这个请求的 id（撤回时凭它找）。
 	req string
 }
 
@@ -230,7 +235,8 @@ func Start(ctx context.Context, cfg Config) (*Session, *Started, error) {
 		lastActive:  time.Now(),
 		done:        make(chan struct{}),
 	}
-	s.state.Queue = nil
+	// 排队的消息、后台的工作都属于上一个进程，不接着用（后台的由新进程自己报）
+	s.state.Queue, s.state.Background = nil, nil
 	s.client = acp.NewClient(proc.Stdout(), proc.Stdin(), s)
 	fail := func(err error) (*Session, *Started, error) {
 		reason := exitReason(proc, err)
@@ -442,6 +448,7 @@ func (s *Session) remove() {
 		s.queue = nil
 		s.syncQueueLocked()
 	}
+	s.clearBackground()
 	// v1 的一轮由 Prompt 的回复收尾；v2 的没有回复可等，进程没了就在这里收尾
 	report := func() {}
 	if s.v2 && s.turn != nil {
@@ -963,7 +970,7 @@ func (s *Session) RequestPermission(reqID string, req *acp.RequestPermissionRequ
 func (s *Session) Resolve(requestID, optionID string) error {
 	s.mu.Lock()
 	p := s.perms[requestID]
-	if p == nil {
+	if p == nil || p.item.Permission == nil {
 		s.mu.Unlock()
 		return errors.New("这个批准已经处理过了，或者这一轮已经结束")
 	}
@@ -990,15 +997,15 @@ func (s *Session) Resolve(requestID, optionID string) error {
 	return nil
 }
 
-// cancelPending 这一轮被停止：还在等的批准都按「取消」回给 Agent。在 s.mu 里调用，返回被取消的卡片 id。
+// cancelPending 这一轮被停止：还在等的批准、提问都按「取消」回给 Agent。在 s.mu 里调用，返回被取消的卡片 id。
 func (s *Session) cancelPending() []string {
 	var ids []string
 	for id, p := range s.perms {
 		delete(s.perms, id)
 		delete(s.permReqs, p.req)
-		p.item.Permission.Outcome = "cancelled"
+		p.markCancelled()
 		s.emit(p.item, true)
-		p.reply(acp.PermissionCancelled())
+		p.replyCancelled()
 		ids = append(ids, id)
 	}
 	return ids

@@ -259,12 +259,12 @@ export interface ListAgentSessionsResponse_ForkCountsEntry {
 
 /** 附件：图片和文件随消息上传，工作区里的文件用路径引用 */
 export interface AgentAttachment {
-  /** image | file | ref | snippet（打开的文件里选中的一段） */
+  /** image | file | paste（粘贴的一大段文字，存成会话临时目录里的文本文件）| ref | snippet（打开的文件里选中的一段） */
   kind: string;
   /** snippet 是「路径:起止行」 */
   name: string;
   mime: string;
-  /** image / file 的内容；snippet 是选中的文字 */
+  /** image / file / paste 的内容；snippet 是选中的文字 */
   data: Uint8Array;
   /** ref / snippet：相对会话目录的路径 */
   path: string;

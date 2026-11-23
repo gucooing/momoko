@@ -138,9 +138,12 @@
                     <span v-if="item.tool.status === 'paused'" class="agc-tool__meta ag-muted">{{
                       t('agent.code.tool.paused')
                     }}</span>
+                    <span v-if="inBg(item.tool)" class="agc-tool__meta ag-muted">{{
+                      t('agent.code.tool.background')
+                    }}</span>
                     <UIcon
-                      :name="statusIcon(item.tool.status)"
-                      :class="statusCls(item.tool.status)"
+                      :name="inBg(item.tool) ? 'i-lucide-loader-circle' : statusIcon(item.tool.status)"
+                      :class="inBg(item.tool) ? 'ag-spin ag-muted' : statusCls(item.tool.status)"
                     />
                   </button>
                   <button
@@ -241,6 +244,15 @@
                 </span>
               </div>
             </template>
+
+            <!-- 提问卡片 -->
+            <QuestionCard
+              v-else-if="item.type === 'question' && item.question"
+              :question="item.question"
+              :agent-name="agentName"
+              :busy="resolving.has(item.question.id)"
+              @answer="(action, answers) => answer(item.question!.id, action, answers)"
+            />
 
             <!-- 子 Agent -->
             <div v-else-if="item.type === 'subagent' && item.subagent" class="agc-toolrow">
@@ -473,6 +485,7 @@ import AttImage from './AttImage.vue'
 import DiffCard from './DiffCard.vue'
 import MdBlock from './MdBlock.vue'
 import PatchCard from './PatchCard.vue'
+import QuestionCard from './QuestionCard.vue'
 import type {
   AgentItem,
   AgentPermission,
@@ -494,6 +507,8 @@ const props = withDefaults(
     cwd?: string
     /** 一轮正在进行 */
     busy?: boolean
+    /** 转到后台还在跑的工具调用 id（工具调用本身报了完成，命令其实还在跑） */
+    background?: string[]
     /** 子 Agent 的对话 */
     sub?: boolean
     empty?: string
@@ -509,6 +524,7 @@ const props = withDefaults(
     agentName: '',
     cwd: '',
     busy: false,
+    background: () => [],
     sub: false,
     empty: '',
     more: false,
@@ -518,6 +534,8 @@ const props = withDefaults(
 )
 const emit = defineEmits<{
   resolve: [requestId: string, optionId: string]
+  /** 回答一张提问卡片：accept 带各字段的值，decline 是跳过 */
+  answer: [questionId: string, action: 'accept' | 'decline', answers: Record<string, string[]>]
   /** 只停一项（ACP v2）：toolId 不为空停这个工具调用（sub 是它所在的子 Agent），否则停 sub 这个子 Agent */
   stop: [sub: string, toolId: string]
   showDiff: [path: string]
@@ -552,11 +570,14 @@ interface Block {
   /** 这一段最后一条的时间 */
   at: number
 }
+/** 提问卡片对应的那次工具调用（AskUserQuestion）：它的输出就是卡片上的问题、答案，卡片在了就不再单独显示 */
+const askTools = computed(() => new Set(props.items.flatMap((i) => (i.question?.toolId ? [i.question.toolId] : []))))
 const blocks = computed<Block[]>(() => {
   const out: Block[] = []
   let cur: Block | null = null
   let files = new Map<string, ChangedFile>()
   for (const item of props.items) {
+    if (item.type === 'tool' && item.tool && askTools.value.has(item.tool.id)) continue
     if (item.type === 'user') {
       out.push({ key: `u${item.seq}`, user: item, items: [], changed: [], added: 0, deleted: 0, text: '', at: item.at })
       cur = null
@@ -610,11 +631,12 @@ interface Row {
   /** 展开着的一组里的一项 */
   inGroup?: boolean
 }
-/** 能折进一组的：没有改动的工具调用（改动单独一行）、思考、已经处理过的批准 */
+/** 能折进一组的：没有改动的工具调用（改动单独一行）、思考、已经处理过的批准和提问 */
 const foldable = (item: AgentItem) =>
   (item.type === 'tool' && !!item.tool && !item.tool.diffs?.length) ||
   item.type === 'thought' ||
-  (item.type === 'permission' && !!item.permission?.outcome)
+  (item.type === 'permission' && !!item.permission?.outcome) ||
+  (item.type === 'question' && !!item.question?.outcome)
 /** 手动展开、收起过的组；没动过的都收着 */
 const groupState = reactive(new Map<string, boolean>())
 const groupOpen = (g: Group) => groupState.get(g.key) ?? false
@@ -688,14 +710,8 @@ const filesShut = reactive(new Set<number>())
 const OP_LETTER: Record<string, string> = { add: 'A', delete: 'D', modify: 'M', move: 'R', copy: 'C' }
 const opLetter = (op: string) => OP_LETTER[op] || 'M'
 const opCls = (op: string) => (op === 'add' ? 'agc-ok' : op === 'delete' ? 'agc-bad' : 'agc-warn')
-const attIcon = (kind?: string) =>
-  kind === 'image'
-    ? 'i-lucide-image'
-    : kind === 'snippet'
-      ? 'i-lucide-text-select'
-      : kind === 'ref'
-        ? 'i-lucide-at-sign'
-        : 'i-lucide-file'
+const ATT_ICON: Record<string, string> = { image: 'i-lucide-image', paste: 'i-lucide-file-text', snippet: 'i-lucide-text-select', ref: 'i-lucide-at-sign' }
+const attIcon = (kind?: string) => ATT_ICON[kind ?? ''] ?? 'i-lucide-file'
 
 // —— 排着队的消息 ——
 const queueBusy = reactive(new Set<string>())
@@ -730,7 +746,8 @@ const streaming = computed(() => {
     !!last &&
     (last.open ||
       (last.type === 'tool' && running(last.tool)) ||
-      (last.type === 'permission' && !last.permission?.outcome))
+      (last.type === 'permission' && !last.permission?.outcome) ||
+      (last.type === 'question' && !last.question?.outcome))
   )
 })
 
@@ -744,6 +761,11 @@ const resolve = (requestId: string, optionId: string) => {
   resolving.add(requestId)
   emit('resolve', requestId, optionId)
   setTimeout(() => resolving.delete(requestId), 3000)
+}
+const answer = (questionId: string, action: 'accept' | 'decline', answers: Record<string, string[]>) => {
+  resolving.add(questionId)
+  emit('answer', questionId, action, answers)
+  setTimeout(() => resolving.delete(questionId), 3000)
 }
 
 // —— 只停一项（ACP v2）——
@@ -793,6 +815,9 @@ const verb = (kind?: string) =>
   kind && KNOWN_KINDS.includes(kind) ? t(`agent.code.tool.${kind}`) : ''
 const running = (tool?: AgentTool) =>
   !!tool && (tool.status === 'pending' || tool.status === 'in_progress')
+/** 转到后台还在跑：卡片上标出来，不显示成已完成。输出不自动展开（起的服务会一直出日志），右侧「任务」里看 */
+const bgSet = computed(() => new Set(props.background))
+const inBg = (tool?: AgentTool) => !!tool && bgSet.value.has(tool.id)
 
 /** 工作目录下的绝对路径缩成相对路径 */
 const rel = (path: string) => {

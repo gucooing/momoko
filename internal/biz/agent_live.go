@@ -127,6 +127,16 @@ func (l *agentLive) Asked(p *agentrun.Permission) {
 	go l.uc.notify(l.id, "ask", detail, approval)
 }
 
+// Questioned Agent 向人提问：和等批准一样，会话改成「等待」并通知人。问题只能在页面上答，
+// 外部渠道的通知只带问题和打开会话的链接，没有回答用的按钮。
+func (l *agentLive) Questioned(q *agentrun.Question) {
+	if l.dead.Load() {
+		return
+	}
+	l.w.update(func(u *gen.AgentSessionUpdateOne) { u.SetStatus(agentsession.StatusWaiting) })
+	go l.uc.notify(l.id, "question", q.Message, nil)
+}
+
 func (l *agentLive) Answered(id, kind string, waiting bool) {
 	if kind == "" {
 		l.uc.settleApproval(l.id, id, "")

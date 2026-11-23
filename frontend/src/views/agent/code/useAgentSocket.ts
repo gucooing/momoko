@@ -132,8 +132,37 @@ export const useAgentSocket = (handlers: AgentSocketHandlers = {}) => {
         contextUsed.value = Number(msg.contextUsed || 0)
         contextSize.value = Number(msg.contextSize || 0)
         break
+      case 'answer': {
+        const key = String(msg.questionId || '')
+        answering.get(key)?.(String(msg.error || ''))
+        answering.delete(key)
+        break
+      }
     }
   }
+
+  /** 等着服务器回话的回答：提问卡片 id → 收到结果时调用（出错时带原因，成功为空） */
+  const answering = new Map<string, (error: string) => void>()
+  /**
+   * 回答一张提问卡片：action 是 accept（answers 是各字段的值）或 decline（跳过）。
+   * 结果：ok；没连上（offline）、等不到服务器回话（timeout）；服务器说答不了时 error 是原因。
+   */
+  const answer = (questionId: string, action: 'accept' | 'decline', answers: Record<string, string[]> = {}) =>
+    new Promise<{ ok: true } | { ok: false; reason: 'offline' | 'timeout' | 'error'; error?: string }>((resolve) => {
+      if (!conn.connected.value || !sessionId.value) {
+        resolve({ ok: false, reason: 'offline' })
+        return
+      }
+      const timer = setTimeout(() => {
+        answering.delete(questionId)
+        resolve({ ok: false, reason: 'timeout' })
+      }, 15_000)
+      answering.set(questionId, (error) => {
+        clearTimeout(timer)
+        resolve(error ? { ok: false, reason: 'error', error } : { ok: true })
+      })
+      agentSend({ op: 'answer', id: sessionId.value, questionId, action, answers })
+    })
 
   // 重新连上：服务端的订阅随旧连接没了，按已经拿到的修订号重新打开。
   const conn = useAgentConn(onMessage, () => {
@@ -183,6 +212,7 @@ export const useAgentSocket = (handlers: AgentSocketHandlers = {}) => {
     openError,
     open,
     loadMore,
+    answer,
     start: conn.start,
     stop: conn.stop,
   }

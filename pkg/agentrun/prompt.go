@@ -13,7 +13,8 @@ import (
 
 // Upload 用户这条消息带的一个附件。
 type Upload struct {
-	// Kind：image / file / ref（引用的会话目录里的文件）/ snippet（打开的文件里选中的一段）。
+	// Kind：image / file / paste（粘贴的一大段文字存成的文本文件，在会话的临时目录里）/
+	// ref（引用的会话目录里的文件）/ snippet（打开的文件里选中的一段）。
 	Kind string
 	// Name 页面上显示的名字（ref 是相对路径，snippet 是「相对路径:起止行」）。
 	Name string
@@ -23,7 +24,7 @@ type Upload struct {
 	Data []byte
 	Path string
 	Mime string
-	// File 页面之后取回这个附件用的名字（记进事件）；ref 为空。
+	// File 页面之后取回这个附件用的名字（记进事件）；ref、snippet、paste 为空。
 	File string
 }
 

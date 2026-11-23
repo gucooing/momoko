@@ -149,6 +149,10 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: 3007,
       open: true,
+      // 设了 VITE_DEV_PROXY（后端地址，如 http://localhost:22633）时，/api 经这个 dev server 转给后端（含 WebSocket）：
+      // 配合 VITE_API_BASE_URL="/api/v1"，别的机器只要能访问这个端口就能用，不用另外开放后端端口，也没有跨域。
+      // 不改 Host（和页面同源），后端的同源校验照常通过。
+      proxy: env.VITE_DEV_PROXY ? { '/api': { target: env.VITE_DEV_PROXY, ws: true } } : undefined,
     },
   }
 })

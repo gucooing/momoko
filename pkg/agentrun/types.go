@@ -17,9 +17,11 @@ const (
 	ItemThought    = "thought"
 	ItemTool       = "tool"
 	ItemPermission = "permission"
-	ItemTurn       = "turn"
-	ItemNotice     = "notice"
-	ItemSubagent   = "subagent"
+	// ItemQuestion Agent 向人提的问题（ACP 表单询问），等人回答。
+	ItemQuestion = "question"
+	ItemTurn     = "turn"
+	ItemNotice   = "notice"
+	ItemSubagent = "subagent"
 	// ItemRelay 会话之间的消息（v2：主会话交给子 Agent 的话、子 Agent 交回的结果），不是用户说的，也不是回答用户的。
 	ItemRelay = "relay"
 )
@@ -59,6 +61,7 @@ type Item struct {
 
 	Tool       *Tool       `json:"tool,omitempty"`
 	Permission *Permission `json:"permission,omitempty"`
+	Question   *Question   `json:"question,omitempty"`
 	Turn       *Turn       `json:"turn,omitempty"`
 	Subagent   *Subagent   `json:"subagent,omitempty"`
 }
@@ -93,6 +96,9 @@ func (i *Item) Settle() {
 	if i.Permission != nil && i.Permission.Outcome == "" {
 		i.Permission.Outcome = "cancelled"
 	}
+	if i.Question != nil && i.Question.Outcome == "" {
+		i.Question.Outcome = "cancelled"
+	}
 	if i.Subagent != nil {
 		if i.Subagent.State != "idle" {
 			i.Subagent.State = "idle"
@@ -108,7 +114,7 @@ func unfinished(status string) bool {
 
 // Attachment 用户消息里带的附件。上传的附件有 File，页面凭它取回内容（图片显示缩略图）。
 type Attachment struct {
-	// Kind：image / file / ref（引用的工作区文件）。
+	// Kind：image / file / paste（粘贴的一大段文字）/ ref（引用的工作区文件）/ snippet（选中的一段）。
 	Kind string `json:"kind"`
 	Name string `json:"name"`
 	File string `json:"file,omitempty"`
@@ -154,6 +160,9 @@ type Tool struct {
 	terminal   string
 	toolCancel bool
 	termCancel bool
+	// background v2：转到后台还在跑（Agent 的 state_update 里列着它）。这时工具调用本身可能已经报了完成，
+	// 但它的终端还在跑，照样能停。
+	background bool
 }
 
 type PermissionOption struct {
@@ -176,6 +185,50 @@ type Permission struct {
 	Outcome    string `json:"outcome,omitempty"`
 	OptionID   string `json:"optionId,omitempty"`
 	OptionKind string `json:"optionKind,omitempty"`
+}
+
+// Question Agent 向人提的问题：ACP 的表单询问（elicitation/create，form），Claude 的 AskUserQuestion 就走它。
+// 一张表里可以有几个问题，每个是一个字段。
+type Question struct {
+	ID     string `json:"id"`
+	ToolID string `json:"toolId,omitempty"`
+	// Message 只有一个问题时就是问题本身；几个问题时是总的说明。
+	Message string          `json:"message"`
+	Fields  []QuestionField `json:"fields"`
+	// Outcome 空 = 还在等；accept = 答了；decline = 跳过；cancelled = 这一轮停了，或者 Agent 撤回了。
+	Outcome string `json:"outcome,omitempty"`
+	// Answers 答了的内容：字段 key → 值（单选、文字是一个，多选是几个）。
+	Answers map[string][]string `json:"answers,omitempty"`
+}
+
+// 问题字段的种类。
+const (
+	FieldSingle  = "single"
+	FieldMulti   = "multi"
+	FieldText    = "text"
+	FieldNumber  = "number"
+	FieldInteger = "integer"
+	FieldBoolean = "boolean"
+)
+
+// QuestionField 表里的一个字段。
+type QuestionField struct {
+	Key         string `json:"key"`
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
+	// Kind 见 Field* 常量。
+	Kind     string           `json:"kind"`
+	Options  []QuestionOption `json:"options,omitempty"`
+	Required bool             `json:"required,omitempty"`
+	// For 这一格是给哪个问题补充的「其他」（Claude 的 AskUserQuestion 每个问题都配一格），页面把它放在那个问题下面。
+	For string `json:"for,omitempty"`
+}
+
+// QuestionOption 一个候选项：Value 是回答时交回去的值，Label 给人看。
+type QuestionOption struct {
+	Value       string `json:"value"`
+	Label       string `json:"label"`
+	Description string `json:"description,omitempty"`
 }
 
 // Usage 一轮的 token 用量。Input 不含缓存命中和缓存写入。

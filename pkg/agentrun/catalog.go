@@ -50,9 +50,10 @@ func clientInfo() acp.Implementation {
 	return acp.Implementation{Name: "momoko", Title: "Momoko", Version: "1"}
 }
 
-// clientCaps 声明支持子 Agent 的子会话：Agent 才会把子 Agent 作为独立的会话流上报。
+// clientCaps 声明支持子 Agent 的子会话（Agent 才会把子 Agent 作为独立的会话流上报），
+// 和表单询问（Agent 才会向人提问，比如 Claude 的 AskUserQuestion；不声明它就不开这个工具）。
 func clientCaps() acp.ClientCapabilities {
-	return acp.ClientCapabilities{Subagents: &struct{}{}}
+	return acp.ClientCapabilities{Subagents: &struct{}{}, Elicitation: &acp.ElicitationCapabilities{Form: &struct{}{}}}
 }
 
 // Choice 一个可选值。
@@ -148,6 +149,9 @@ type probeEvents struct {
 func (e *probeEvents) SessionUpdate(*acp.SessionNotification) {}
 func (e *probeEvents) RequestPermission(_ string, _ *acp.RequestPermissionRequest, reply func(*acp.RequestPermissionResponse)) {
 	reply(acp.PermissionCancelled())
+}
+func (e *probeEvents) Elicit(_ string, _ *acp.CreateElicitationRequest, reply func(*acp.CreateElicitationResponse)) {
+	reply(&acp.CreateElicitationResponse{Action: acp.ElicitationCancel})
 }
 func (e *probeEvents) RequestCancelled(string) {}
 func (e *probeEvents) AuthStatus(status acp.AuthStatus) {

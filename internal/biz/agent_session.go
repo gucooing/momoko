@@ -304,7 +304,7 @@ func checkAttachments(root, text string, in []*v1.AgentAttachment) error {
 			if len(a.GetData()) > agentSnippetMax {
 				return response.BadRequest("选中的内容太多了，最多 256 KB")
 			}
-		case "image", "file":
+		case "image", "file", "paste":
 			name := filepath.Base(filepath.ToSlash(strings.TrimSpace(a.GetName())))
 			if len(a.GetData()) == 0 {
 				return response.BadRequest("附件 " + name + " 是空的")
@@ -324,10 +324,23 @@ func checkAttachments(root, text string, in []*v1.AgentAttachment) error {
 
 // saveUploads 把附件整理成交给引擎的样子。上传的附件都存进会话目录的 uploads/，事件里记下 File，
 // 页面凭它取回来显示；Agent 收图片时图片另外直接带内容，其它附件让 Agent 按路径自己去读。
+// paste（粘贴的一大段文字）只是给 Agent 读的，存进会话的临时目录 tmp/，不进 uploads/，页面也不取回。
 func (uc *AgentUsecase) saveUploads(sessionID, cwd string, caps agentrun.Caps, in []*v1.AgentAttachment) ([]agentrun.Upload, error) {
 	dir := uc.sessionDir(sessionID, "uploads")
 	out := make([]agentrun.Upload, 0, len(in))
 	for _, a := range in {
+		if a.GetKind() == "paste" {
+			name := filepath.Base(filepath.ToSlash(strings.TrimSpace(a.GetName())))
+			if name == "." || name == "/" || name == "" {
+				name = "pasted-text.txt"
+			}
+			path, err := agentfs.Save(uc.sessionDir(sessionID, "tmp"), name, a.GetData())
+			if err != nil {
+				return nil, response.BadRequest("保存粘贴的文字失败：" + err.Error())
+			}
+			out = append(out, agentrun.Upload{Kind: "paste", Name: name, Mime: "text/plain", Path: path})
+			continue
+		}
 		if a.GetKind() == "ref" {
 			path, _ := agentfs.SafeJoin(cwd, a.GetPath())
 			out = append(out, agentrun.Upload{Kind: "ref", Name: a.GetPath(), Path: path})
@@ -1434,6 +1447,27 @@ func (uc *AgentUsecase) OpenStream(c *agenthub.Conn, id string, rev int64) {
 		return
 	}
 	send(agentParse[agentrun.State](s.State), s.ContextUsed, s.ContextSize, true)
+}
+
+// AnswerStream 页面回答一张提问卡片（action：accept 带 answers，decline 是跳过）。只有会话的主人能答；
+// 答完回一条 answer（失败带 error），卡片的变化照常从事件流推回去。
+func (uc *AgentUsecase) AnswerStream(c *agenthub.Conn, id, questionID, action string, answers map[string][]string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	if uc.streamSession(ctx, c, "answer", id) == nil {
+		return
+	}
+	reply := map[string]any{"t": "answer", "id": id, "questionId": questionID}
+	l := uc.live(id)
+	switch {
+	case l == nil || l.session == nil:
+		reply["error"] = "这个问题已经回答过了，或者这一轮已经结束"
+	default:
+		if err := l.session.Answer(questionID, action, answers); err != nil {
+			reply["error"] = err.Error()
+		}
+	}
+	streamReply(c, reply)
 }
 
 // MoreStream 页面往上翻：给序号小于 before 的上一页事件。

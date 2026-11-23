@@ -7,7 +7,7 @@ export default {
         when: '什么时候通知',
         where: '通知发到哪',
         events: {
-          ask: { title: '等待批准时', desc: 'Agent 停下来等你确认的时候' },
+          ask: { title: '等待批准时', desc: 'Agent 停下来等你批准，或者有问题要问你的时候' },
           done: { title: '一轮结束时', desc: 'Agent 做完这一轮、等你下一句话的时候' },
           error: { title: '出错时', desc: 'Agent 进程异常退出，或者供应商登录过期的时候' },
         },
@@ -72,7 +72,7 @@ export default {
         when: '甚麼時候通知',
         where: '通知發到哪裏',
         events: {
-          ask: { title: '等待批准時', desc: 'Agent 停下來等你確認的時候' },
+          ask: { title: '等待批准時', desc: 'Agent 停下來等你批准，或者有問題要問你的時候' },
           done: { title: '一輪結束時', desc: 'Agent 做完這一輪、等你下一句話的時候' },
           error: { title: '出錯時', desc: 'Agent 進程異常退出，或者供應商登入過期的時候' },
         },
@@ -137,7 +137,7 @@ export default {
         when: 'When to notify',
         where: 'Where notifications go',
         events: {
-          ask: { title: 'Waiting for approval', desc: 'When the agent stops and waits for you to confirm' },
+          ask: { title: 'Waiting for approval', desc: 'When the agent stops for your approval or has a question for you' },
           done: { title: 'A turn has finished', desc: 'When the agent finishes a turn and waits for your next message' },
           error: { title: 'Something went wrong', desc: 'When the agent process exits unexpectedly or a provider sign-in expires' },
         },

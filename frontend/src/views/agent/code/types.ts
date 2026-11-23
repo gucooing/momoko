@@ -1,10 +1,10 @@
 // 会话事件：和后端 pkg/agentrun 里 Item 的 JSON 一一对应（WebSocket 推来的、导出的都是这个格式）。
 
-export type ItemType = 'user' | 'assistant' | 'thought' | 'tool' | 'permission' | 'turn' | 'notice' | 'subagent' | 'relay'
+export type ItemType = 'user' | 'assistant' | 'thought' | 'tool' | 'permission' | 'question' | 'turn' | 'notice' | 'subagent' | 'relay'
 
 export interface AgentAttachmentRef {
-  /** snippet：打开的文件里选中的一段，name 是「路径:起止行」 */
-  kind: 'image' | 'file' | 'ref' | 'snippet'
+  /** snippet：打开的文件里选中的一段，name 是「路径:起止行」；paste：粘贴的一大段文字转成的文本文件 */
+  kind: 'image' | 'file' | 'paste' | 'ref' | 'snippet'
   name: string
   /** 上传的附件才有：凭它取回内容（图片显示缩略图） */
   file?: string
@@ -119,8 +119,42 @@ export interface AgentItem {
   code?: string
   tool?: AgentTool
   permission?: AgentPermission
+  question?: AgentQuestion
   turn?: AgentTurn
   subagent?: AgentSubagent
+}
+
+/** 问题字段的种类：单选、多选、文字、数字、整数、是否 */
+export type AgentFieldKind = 'single' | 'multi' | 'text' | 'number' | 'integer' | 'boolean'
+
+export interface AgentQuestionOption {
+  value: string
+  label: string
+  description?: string
+}
+
+export interface AgentQuestionField {
+  key: string
+  title?: string
+  description?: string
+  kind: AgentFieldKind
+  options?: AgentQuestionOption[]
+  required?: boolean
+  /** 这一格是给哪个问题补充的「其他」：放在那个问题下面 */
+  for?: string
+}
+
+/** Agent 向人提的问题（ACP 表单询问，Claude 的 AskUserQuestion）：一张表，每个字段一个问题 */
+export interface AgentQuestion {
+  id: string
+  toolId?: string
+  /** 只有一个问题时就是问题本身；几个问题时是总的说明 */
+  message: string
+  fields: AgentQuestionField[]
+  /** 空 = 还在等；accept 答了；decline 跳过；cancelled 这一轮停了 */
+  outcome?: string
+  /** 答了的内容：字段 key → 值 */
+  answers?: Record<string, string[]>
 }
 
 export interface AgentCommand {

@@ -1,6 +1,7 @@
 package acp
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 
@@ -47,6 +48,8 @@ const (
 	MethodSessionSetConfig  = "session/set_config_option"
 	MethodSessionUpdate     = "session/update"
 	MethodRequestPermission = "session/request_permission"
+	// MethodElicitationCreate Agent 要人填一张表（Claude 的 AskUserQuestion 就是这个）；Momoko 只声明了 form 一种。
+	MethodElicitationCreate = "elicitation/create"
 	// v2：只停一个工具调用 / 一个终端（它声明了 capabilities.cancel 时）
 	MethodToolCallCancel = "tool_call/cancel"
 	MethodTerminalCancel = "terminal/cancel"
@@ -134,12 +137,20 @@ type Implementation struct {
 // ClientCapabilities v1 的客户端能力。Momoko 不代 Agent 读写文件，也不提供终端，所以这两项都不声明。
 type ClientCapabilities struct {
 	// Subagents 不为空时，Agent 把子 Agent 作为独立的子会话上报（v1 草案；v2 不用声明）。
-	Subagents *struct{} `json:"subagents,omitempty"`
-	Meta      Meta      `json:"_meta,omitempty"`
+	Subagents   *struct{}                `json:"subagents,omitempty"`
+	Elicitation *ElicitationCapabilities `json:"elicitation,omitempty"`
+	Meta        Meta                     `json:"_meta,omitempty"`
 }
 
-// ClientCapabilitiesV2 v2 的客户端能力：登录和表单询问 Momoko 都不做，什么都不声明。
-type ClientCapabilitiesV2 struct{}
+// ClientCapabilitiesV2 v2 的客户端能力：登录 Momoko 不做；表单询问只做 form。
+type ClientCapabilitiesV2 struct {
+	Elicitation *ElicitationCapabilities `json:"elicitation,omitempty"`
+}
+
+// ElicitationCapabilities 表单询问：Form 出现（{}）就是能在页面上让人填表。url 一种（打开网页登录 MCP 之类）不做。
+type ElicitationCapabilities struct {
+	Form *struct{} `json:"form,omitempty"`
+}
 
 // InitializeRequest 两种形状一起发：v2 Agent 读 info / capabilities，只会 v1 的 Agent 读 clientInfo / clientCapabilities，
 // 各自忽略认不得的字段，这样不用为了 v1 再握一次手。
@@ -789,6 +800,105 @@ func PermissionSelected(optionID string) *RequestPermissionResponse {
 func PermissionCancelled() *RequestPermissionResponse {
 	return &RequestPermissionResponse{Outcome: PermissionOutcome{Outcome: "cancelled"}}
 }
+
+// CreateElicitationRequest elicitation/create：Agent 要人填一张表。SessionID 为空时是不属于某个会话的请求（RequestID 那种），
+// 归主会话。Mode 不是 form 的 Momoko 不接。
+type CreateElicitationRequest struct {
+	Mode            string             `json:"mode"`
+	SessionID       string             `json:"sessionId,omitempty"`
+	ToolCallID      string             `json:"toolCallId,omitempty"`
+	Message         string             `json:"message"`
+	RequestedSchema *ElicitationSchema `json:"requestedSchema,omitempty"`
+}
+
+// ElicitationSchema 要填的表：一层对象，每个属性一个字段。Properties 保留 Agent 给的先后（页面按这个顺序显示）。
+type ElicitationSchema struct {
+	Title       string
+	Description string
+	Properties  []ElicitationField
+	Required    []string
+}
+
+// ElicitationField 表里的一个字段。
+type ElicitationField struct {
+	Key string
+	ElicitationProperty
+}
+
+// ElicitationProperty 字段的定义（JSON Schema 的一个小子集）：
+// type 是 string / number / integer / boolean / array；string 带 oneOf（或旧式的 enum）是单选，array 的 items 带 anyOf / enum 是多选。
+type ElicitationProperty struct {
+	Type        string              `json:"type"`
+	Title       string              `json:"title,omitempty"`
+	Description string              `json:"description,omitempty"`
+	OneOf       []ElicitationOption `json:"oneOf,omitempty"`
+	Enum        []string            `json:"enum,omitempty"`
+	EnumNames   []string            `json:"enumNames,omitempty"`
+	Items       *ElicitationItems   `json:"items,omitempty"`
+	Meta        Meta                `json:"_meta,omitempty"`
+}
+
+// ElicitationItems 多选的候选项。
+type ElicitationItems struct {
+	AnyOf []ElicitationOption `json:"anyOf,omitempty"`
+	Enum  []string            `json:"enum,omitempty"`
+}
+
+// ElicitationOption 一个候选项：Const 是回答时填的值，Title 给人看。
+type ElicitationOption struct {
+	Const       string `json:"const"`
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
+	Meta        Meta   `json:"_meta,omitempty"`
+}
+
+func (s *ElicitationSchema) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Title       string          `json:"title"`
+		Description string          `json:"description"`
+		Properties  json.RawMessage `json:"properties"`
+		Required    []string        `json:"required"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	s.Title, s.Description, s.Required, s.Properties = raw.Title, raw.Description, raw.Required, nil
+	if len(raw.Properties) == 0 || string(raw.Properties) == "null" {
+		return nil
+	}
+	// 按出现的先后读属性：map 会把顺序打乱
+	dec := json.NewDecoder(bytes.NewReader(raw.Properties))
+	if tok, err := dec.Token(); err != nil || tok != json.Delim('{') {
+		return errors.New("requestedSchema.properties 不是对象")
+	}
+	for dec.More() {
+		tok, err := dec.Token()
+		if err != nil {
+			return err
+		}
+		key, _ := tok.(string)
+		var p ElicitationProperty
+		if err := dec.Decode(&p); err != nil {
+			return err
+		}
+		s.Properties = append(s.Properties, ElicitationField{Key: key, ElicitationProperty: p})
+	}
+	return nil
+}
+
+// CreateElicitationResponse 表单的结果：accept 带填好的内容（值是字符串、数字、布尔或字符串数组），
+// decline 是不填，cancel 是这件事不做了（这一轮停了之类）。
+type CreateElicitationResponse struct {
+	Action  string         `json:"action"`
+	Content map[string]any `json:"content,omitempty"`
+}
+
+// 表单结果的三种 Action。
+const (
+	ElicitationAccept  = "accept"
+	ElicitationDecline = "decline"
+	ElicitationCancel  = "cancel"
+)
 
 // CancelRequestParams $/cancel_request 的参数：要撤回的请求 id（数字或字符串）。
 type CancelRequestParams struct {

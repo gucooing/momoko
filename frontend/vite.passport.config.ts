@@ -59,6 +59,8 @@ export default defineConfig(({ command, mode }) => {
     server: {
       host: '0.0.0.0',
       port: 3008,
+      // 同管理后台的 VITE_DEV_PROXY：设了 VITE_PASSPORT_DEV_PROXY（如 http://localhost:22634）时 /api 经这里转给通行证 server
+      proxy: env.VITE_PASSPORT_DEV_PROXY ? { '/api': { target: env.VITE_PASSPORT_DEV_PROXY, ws: true } } : undefined,
     },
   }
 })

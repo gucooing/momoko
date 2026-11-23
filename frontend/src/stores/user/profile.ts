@@ -55,8 +55,9 @@ const MESSAGE_KINDS = [
   'login_failed',
   'password_changed',
   'password_reset',
-  // Agent 会话：等待批准、一轮结束、出错（参数 sessionId / title / detail）
+  // Agent 会话：等待批准、有问题要问、一轮结束、出错（参数 sessionId / title / detail）
   'agent_ask',
+  'agent_question',
   'agent_done',
   'agent_error',
 ]

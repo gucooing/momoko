@@ -1,5 +1,5 @@
-<!-- 输入区：附件、@ 引用工作区文件、/ 命令（Momoko 内置、Agent 自己的、技能）、上下文用量、权限模式、
-     模型和推理强度（新会话还能换 Agent）。一轮进行中且输入为空时，发送按钮变成停止。 -->
+<!-- 输入区：附件（含引用工作区文件）、/ 命令（Momoko 内置、Agent 自己的、技能）、上下文用量（小圆环，点开是上方的小气泡）、
+     权限模式、模型和推理强度（新会话还能换 Agent）。一轮进行中且输入为空时，发送按钮变成停止。 -->
 <template>
   <div ref="root" class="agc-composer" :style="{ '--agc-btn-x': `${popAt.x}px`, '--agc-btn-y': `${popAt.y}px` }">
     <div ref="box" class="agc-box" :class="{ 'is-drop': dropping, 'is-narrow': narrow }">
@@ -11,9 +11,20 @@
               <UIcon name="i-lucide-x" />
             </button>
           </span>
-          <span v-else class="agc-att" :title="a.kind === 'snippet' ? a.text : undefined">
+          <span v-else class="agc-att" :title="a.text ? tipOf(a.text) : undefined">
             <UIcon :name="attIcon(a.kind)" />
-            <span :class="{ 'ag-mono': a.kind === 'ref' || a.kind === 'snippet' }">{{ a.name }}</span>
+            <span :class="{ 'ag-mono': a.kind !== 'image' && a.kind !== 'file' }">{{ a.name }}</span>
+            <span v-if="a.kind === 'paste' && a.lines" class="ag-muted ag-num">{{ t('agent.code.composer.pastedLines', { n: a.lines }, a.lines) }}</span>
+            <button
+              v-if="a.kind === 'paste' && a.text"
+              type="button"
+              class="agc-att__x"
+              :aria-label="t('agent.code.composer.unpaste', { name: a.name })"
+              :title="t('agent.code.composer.unpaste', { name: a.name })"
+              @click="unpaste(i)"
+            >
+              <UIcon name="i-lucide-text-cursor-input" />
+            </button>
             <button type="button" class="agc-att__x" :aria-label="t('agent.code.composer.removeAtt', { name: a.name })" @click="atts.splice(i, 1)">
               <UIcon name="i-lucide-x" />
             </button>
@@ -30,37 +41,33 @@
         @input="slashHidden = false"
         @pointerdown="closePops"
         @keydown="onKey"
+        @paste="onPaste"
         @compositionstart="composing = true"
         @compositionend="composing = false"
       />
       <div class="agc-box__bar">
-        <button type="button" class="ag-ib ag-ib--sm" :class="{ 'is-on': pop === 'clip' }" :aria-label="t('agent.code.composer.attach')" aria-haspopup="menu" :aria-expanded="pop === 'clip'" @click="toggle('clip')">
+        <button ref="clipBtn" type="button" class="ag-ib ag-ib--sm" :class="{ 'is-on': pop === 'clip' || pop === 'at' }" :aria-label="t('agent.code.composer.attach')" aria-haspopup="menu" :aria-expanded="pop === 'clip'" @click="toggle('clip')">
           <UIcon name="i-lucide-paperclip" />
         </button>
-        <button v-if="!narrow" type="button" class="ag-ib ag-ib--sm" :class="{ 'is-on': pop === 'at' }" :aria-label="t('agent.code.composer.ref')" aria-haspopup="dialog" :aria-expanded="pop === 'at'" @click="toggle('at')">
-          <UIcon name="i-lucide-at-sign" />
-        </button>
-        <button v-if="!narrow" type="button" class="ag-ib ag-ib--sm" :class="{ 'is-on': slashOpen }" :aria-label="t('agent.code.composer.slash')" aria-haspopup="menu" :aria-expanded="slashOpen" @click="toggle('slash')">
+        <button v-if="!narrow" ref="slashBtn" type="button" class="ag-ib ag-ib--sm" :class="{ 'is-on': slashOpen }" :aria-label="t('agent.code.composer.slash')" aria-haspopup="menu" :aria-expanded="slashOpen" @click="toggle('slash')">
           <UIcon name="i-lucide-slash" />
         </button>
         <span class="agc-flex" />
         <span v-if="ctxSize > 0" class="agc-ctxwrap">
           <button
-            ref="ctxBtn"
             type="button"
             class="agc-cl ag-num"
             aria-haspopup="dialog"
-            :aria-expanded="pop === 'ctx' || pop === 'ctxTip'"
+            :aria-expanded="pop === 'ctx'"
             :aria-label="t('agent.code.composer.context', { pct: ctxPct })"
-            @click="toggle(narrow ? 'ctxTip' : 'ctx')"
+            @click="toggle('ctx')"
           >
-            <svg v-if="narrow" class="agc-ring" viewBox="0 0 16 16" aria-hidden="true">
+            <svg class="agc-ring" viewBox="0 0 16 16" aria-hidden="true">
               <circle cx="8" cy="8" r="6" pathLength="100" />
               <circle v-if="ctxRatio > 0" cx="8" cy="8" r="6" pathLength="100" class="agc-ring__on" :stroke-dasharray="`${ctxRatio} 100`" />
             </svg>
-            <template v-else>{{ t('agent.code.composer.context', { pct: ctxPct }) }}</template>
           </button>
-          <span v-if="pop === 'ctxTip'" class="agc-ctxtip ag-num" role="status">
+          <span v-if="pop === 'ctx'" class="agc-ctxtip ag-num" role="status">
             <span class="agc-ctxtip__t">{{ t('agent.code.ctx.title') }}</span>
             <span>{{ t('agent.code.ctx.tipPct', { pct: ctxPct, left: `${100 - ctxRatio}%` }) }}</span>
             <span>{{ t('agent.code.ctx.tipTokens', { used: fmtTokens(ctxUsed), size: fmtTokens(ctxSize) }) }}</span>
@@ -93,14 +100,14 @@
     <input ref="fileInput" type="file" multiple hidden @change="onFiles($event, 'file')" />
 
     <!-- 附件 -->
-    <div v-if="pop === 'clip'" class="ag-menu agc-pop agc-pop--l1" role="menu" :aria-label="t('agent.code.composer.attach')">
+    <div v-if="pop === 'clip'" class="ag-menu agc-pop agc-pop--btn agc-pop--w216" role="menu" :aria-label="t('agent.code.composer.attach')">
       <button type="button" class="ag-mi" role="menuitem" @click="pickFile('image')"><UIcon name="i-lucide-image" />{{ t('agent.code.composer.uploadImage') }}</button>
       <button type="button" class="ag-mi" role="menuitem" @click="pickFile('file')"><UIcon name="i-lucide-file" />{{ t('agent.code.composer.uploadFile') }}</button>
       <button type="button" class="ag-mi" role="menuitem" @click="toggle('at')"><UIcon name="i-lucide-folder" />{{ t('agent.code.composer.fromWorkspace') }}</button>
     </div>
 
-    <!-- @ 引用文件 -->
-    <div v-if="pop === 'at'" class="ag-menu agc-pop agc-pop--l2 agc-pop--w330" role="dialog" :aria-label="t('agent.code.composer.ref')">
+    <!-- 引用工作区里的文件（附件菜单里点「从工作区选」，接着挂在回形针上） -->
+    <div v-if="pop === 'at'" class="ag-menu agc-pop agc-pop--btn agc-pop--w330" role="dialog" :aria-label="t('agent.code.composer.ref')">
       <template v-if="canRef">
         <label class="ag-inp agc-pop__search">
           <UIcon name="i-lucide-search" />
@@ -117,7 +124,7 @@
     </div>
 
     <!-- / 命令 -->
-    <div v-if="slashOpen" class="ag-menu agc-pop agc-pop--l3 agc-pop--w380 ag-noscroll" role="menu" :aria-label="t('agent.code.composer.slash')">
+    <div v-if="slashOpen" class="ag-menu agc-pop agc-pop--btn agc-pop--w380 ag-noscroll" role="menu" :aria-label="t('agent.code.composer.slash')">
       <template v-for="g in cmdGroups" :key="g.key">
         <div class="ag-mi-label">{{ g.title }}</div>
         <button
@@ -134,15 +141,6 @@
         </button>
       </template>
       <div v-if="!cmdGroups.length" class="agc-pop__note">{{ t('agent.code.composer.noCommand') }}</div>
-    </div>
-
-    <!-- 上下文 -->
-    <div v-if="pop === 'ctx'" class="ag-menu agc-pop agc-pop--btn agc-ctx" role="dialog" :aria-label="t('agent.code.ctx.title')">
-      <div class="agc-ctx__row"><span class="ag-lbl agc-flex">{{ t('agent.code.ctx.title') }}</span><span class="ag-num ag-muted">{{ t('agent.code.ctx.usedPct', { pct: ctxPct }) }}</span></div>
-      <div class="agc-ctx__big ag-num">{{ fmtTokens(ctxUsed) }} <span class="ag-muted">/ {{ fmtTokens(ctxSize) }}</span></div>
-      <div class="ag-meter"><span :style="{ width: ctxPct }" /></div>
-      <div class="ag-num ag-muted agc-ctx__sub">{{ t('agent.code.ctx.detail', { used: fmtTokens(ctxUsed), size: fmtTokens(ctxSize), left: fmtTokens(Math.max(0, ctxSize - ctxUsed)) }) }}</div>
-      <button v-if="infoButton" type="button" class="ag-btn ag-btn--sm agc-ctx__btn" @click="emit('showInfo'), (pop = '')">{{ t('agent.code.ctx.showInfo') }}</button>
     </div>
 
     <!-- 权限模式 -->
@@ -267,8 +265,14 @@ export interface Selection {
   mode: string
 }
 
-/** 待发送的附件：图片和文件带内容（base64），引用的只带路径；snippet 是打开的文件里选中的一段，内容是那段文字 */
-export type DraftAttachment = AgentAttachmentInput & { kind: 'image' | 'file' | 'ref' | 'snippet'; name: string; text?: string }
+/** 待发送的附件：图片和文件带内容（base64），引用的只带路径；snippet 是打开的文件里选中的一段，内容是那段文字；
+ *  paste 是粘贴进来的一大段文字转成的文本文件（服务器存进会话的临时目录），text 是原文、lines 是行数，可以再放回输入框 */
+export type DraftAttachment = AgentAttachmentInput & {
+  kind: 'image' | 'file' | 'paste' | 'ref' | 'snippet'
+  name: string
+  text?: string
+  lines?: number
+}
 /** 一段选中的文字：path 相对会话目录，startLine / endLine 从 1 数 */
 export interface DraftSnippet {
   path: string
@@ -302,7 +306,6 @@ const props = withDefaults(
     rows?: number
     label: string
     placeholder: string
-    infoButton?: boolean
     /** 发出去；返回 false 表示没发成功，输入框保留。一轮还没结束时 mode 是 queue（排着，等这一轮结束，或者在消息上点「立即发送」） */
     onSend: (text: string, attachments: DraftAttachment[], mode?: SendMode) => Promise<boolean>
   }>(),
@@ -316,10 +319,9 @@ const props = withDefaults(
     contextUsed: 0,
     contextSize: 0,
     rows: 2,
-    infoButton: false,
   },
 )
-const emit = defineEmits<{ select: [patch: Partial<Selection>]; stop: []; showInfo: [] }>()
+const emit = defineEmits<{ select: [patch: Partial<Selection>]; stop: [] }>()
 const { t } = useI18n()
 const menuStore = useMenuStore()
 // 能管大家共用的运行时、供应商（Agent 管理页里的这几个标签要 agent:manage）
@@ -329,7 +331,7 @@ const UPLOAD_MAX = 20 * 1024 * 1024
 
 const root = ref<HTMLElement | null>(null)
 const box = ref<HTMLElement | null>(null)
-/** 输入框窄（手机，或者两边面板都开着）：底栏收起 @ 和 /（直接打字就能用），上下文只画个圆环，点开是小气泡 */
+/** 输入框窄（手机，或者两边面板都开着）：底栏收起 /（直接打字就能用） */
 const narrow = ref(false)
 useResizeObserver(box, ([entry]) => {
   if (entry) narrow.value = entry.contentRect.width < 520
@@ -362,7 +364,7 @@ const previews = computed(() => atts.value.map((a) => (a.kind === 'image' && a.d
 const sending = ref(false)
 const composing = ref(false)
 
-type Pop = '' | 'clip' | 'at' | 'slash' | 'ctx' | 'ctxTip' | 'mode' | 'model'
+type Pop = '' | 'clip' | 'at' | 'slash' | 'ctx' | 'mode' | 'model'
 const pop = ref<Pop>('')
 const sub = ref<'' | 'agent' | 'more' | 'effort'>('')
 const toggle = (k: Pop) => {
@@ -372,21 +374,45 @@ const toggle = (k: Pop) => {
   void placePop()
 }
 
-// 上下文、权限模式、模型的弹层挂在自己的按钮上：从按钮正上方弹出（压在输入框上），左边和按钮对齐，
-// 右边到浏览器边上放不下就往左挪
-const ctxBtn = ref<HTMLElement | null>(null)
+// 底栏按钮点开的弹层挂在自己的按钮上：从按钮正上方弹出（压在输入框上），左边和按钮对齐；
+// 打字打出来的 / 命令挂在输入框里那个「/」上：贴着这一行字的上方弹出，跟着字走，不挡住正在打的字。
+// 右边到浏览器边上放不下就往左挪。上下文的小气泡套在圆环外面，用样式放在它正上方
+const clipBtn = ref<HTMLElement | null>(null)
+const slashBtn = ref<HTMLElement | null>(null)
 const modeBtn = ref<HTMLElement | null>(null)
 const modelBtn = ref<HTMLElement | null>(null)
+/** 现在开着的弹层挂在哪（视口里的左上角）：按钮，或者打出来的「/」 */
+const anchorOf = (): { left: number; top: number } | null => {
+  const btn =
+    pop.value === 'mode'
+      ? modeBtn.value
+      : pop.value === 'model'
+        ? modelBtn.value
+        : pop.value === 'clip' || pop.value === 'at'
+          ? clipBtn.value
+          : pop.value === 'slash'
+            ? slashBtn.value
+            : null
+  if (btn) return btn.getBoundingClientRect()
+  // 打字打出来的：输入框里只有「/命令名」一行，「/」就在第一行开头
+  const ta = input.value
+  if (!typing.value || !ta) return null
+  const rect = ta.getBoundingClientRect()
+  const cs = getComputedStyle(ta)
+  return {
+    left: rect.left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft),
+    top: rect.top + parseFloat(cs.borderTopWidth) + parseFloat(cs.paddingTop) - ta.scrollTop,
+  }
+}
 const popAt = ref({ x: 0, y: 0 })
 const placePop = async () => {
   await nextTick()
-  const btn = pop.value === 'ctx' ? ctxBtn.value : pop.value === 'mode' ? modeBtn.value : pop.value === 'model' ? modelBtn.value : null
+  const at = anchorOf()
   const menu = root.value?.querySelector<HTMLElement>('.agc-pop--btn')
-  if (!root.value || !btn || !menu) return
+  if (!root.value || !at || !menu) return
   const r = root.value.getBoundingClientRect()
-  const b = btn.getBoundingClientRect()
-  const x = Math.min(b.left, document.documentElement.clientWidth - 8 - menu.offsetWidth)
-  popAt.value = { x: x - r.left, y: r.bottom - b.top + 6 }
+  const x = Math.min(at.left, document.documentElement.clientWidth - 8 - menu.offsetWidth)
+  popAt.value = { x: x - r.left, y: r.bottom - at.top + 6 }
   if (pop.value === 'model') void placeEffort()
 }
 const toggleSub = (k: 'agent' | 'more') => {
@@ -476,7 +502,7 @@ const pickRuntime = (r: AgentRuntimeOptions) => {
 // —— 上下文 ——
 const ctxUsed = computed(() => Number(props.contextUsed || 0))
 const ctxSize = computed(() => Number(props.contextSize || 0))
-/** 已用占比 0–100（窄的输入框里画成圆环） */
+/** 已用占比 0–100（画成圆环） */
 const ctxRatio = computed(() => (ctxSize.value > 0 ? Math.min(100, Math.round((ctxUsed.value / ctxSize.value) * 100)) : 0))
 const ctxPct = computed(() => `${ctxRatio.value}%`)
 
@@ -485,6 +511,10 @@ const BUILTIN = ['install-skill', 'install-mcp']
 const slashHidden = ref(false)
 const typing = computed(() => /^\/\S*$/.test(draft.value) && !slashHidden.value)
 const slashOpen = computed(() => pop.value === 'slash' || typing.value)
+// 打字打出 / 时命令列表也要量一下挂在哪
+watch(slashOpen, (open) => {
+  if (open) void placePop()
+})
 const cmdGroups = computed(() => {
   const q = typing.value ? draft.value.slice(1).toLowerCase() : ''
   // 只按命令名筛：开头（或插件前缀 xx: 之后）对上的排前面，名字里含有的排后面
@@ -654,8 +684,83 @@ const addSnippet = (sn: DraftSnippet) => {
   }
   void nextTick(() => input.value?.focus())
 }
-const attIcon = (kind: string) =>
-  kind === 'image' ? 'i-lucide-image' : kind === 'snippet' ? 'i-lucide-text-select' : kind === 'ref' ? 'i-lucide-at-sign' : 'i-lucide-file'
+const ATT_ICON: Record<string, string> = { image: 'i-lucide-image', paste: 'i-lucide-file-text', snippet: 'i-lucide-text-select', ref: 'i-lucide-at-sign' }
+const attIcon = (kind: string) => ATT_ICON[kind] ?? 'i-lucide-file'
+/** 附件上悬停显示的文字：只取开头一段，几 MB 的原文不往 title 里塞 */
+const TIP_MAX = 800
+const tipOf = (text: string) => (text.length > TIP_MAX ? `${text.slice(0, TIP_MAX)}…` : text)
+
+// —— 粘贴 ——
+// 粘贴进来的是图片、文件：直接加成附件。是文字但太长（日志、整份文件之类）：不放进输入框，转成一个文本文件附件，
+// 服务器存进会话的临时目录，Agent 收到的只是它的路径、需要时自己去读，不会把整段原文塞进上下文。
+const PASTE_MAX_CHARS = 5000
+const PASTE_MAX_LINES = 100
+const lineCount = (text: string) => {
+  let n = 1
+  for (let i = text.indexOf('\n'); i !== -1 && i < text.length - 1; i = text.indexOf('\n', i + 1)) n++
+  return n
+}
+/** 这份草稿里同一类粘贴的下一个编号：pasted-text-1.txt、pasted-text-2.txt…… */
+const nextPasteNo = (prefix: string) => {
+  let max = 0
+  for (const a of atts.value) {
+    const m = a.name.startsWith(prefix) ? /^-(\d+)\./.exec(a.name.slice(prefix.length)) : null
+    if (m) max = Math.max(max, Number(m[1]))
+  }
+  return max + 1
+}
+const addPastedText = (text: string, lines: number) => {
+  const name = `pasted-text-${nextPasteNo('pasted-text')}.txt`
+  const bytes = new TextEncoder().encode(text)
+  if (bytes.length > UPLOAD_MAX) {
+    feedback.warning(t('agent.code.composer.tooLarge', { name }))
+    return
+  }
+  atts.value.push({ kind: 'paste', name, mime: 'text/plain', data: bytesToBase64(bytes), text, lines })
+}
+/** 截图之类粘贴出来的图片浏览器都叫 image.png：换成带编号的名字，几张图分得清 */
+const namePasted = (f: File) => {
+  if (f.name && !/^image\.\w+$/i.test(f.name)) return f
+  const sub = f.type.split('/')[1]?.split('+')[0] || 'png'
+  const ext = sub === 'jpeg' ? 'jpg' : sub
+  return new File([f], `pasted-image-${nextPasteNo('pasted-image')}.${ext}`, { type: f.type })
+}
+const onPaste = (e: ClipboardEvent) => {
+  const cd = e.clipboardData
+  if (!cd) return
+  // 有文字就按文字处理：从 Excel、Word 复制时剪贴板里还会顺带一张渲染出来的图片，那张不要
+  const text = cd.getData('text/plain')
+  if (text) {
+    const lines = lineCount(text)
+    if (text.length <= PASTE_MAX_CHARS && lines <= PASTE_MAX_LINES) return
+    e.preventDefault()
+    addPastedText(text, lines)
+    return
+  }
+  let files = Array.from(cd.files ?? [])
+  if (!files.length) files = Array.from(cd.items ?? []).flatMap((it) => (it.kind === 'file' ? (it.getAsFile() ?? []) : []))
+  if (!files.length) return
+  e.preventDefault()
+  // 一张一张改名：编号要看前一张有没有已经加进去
+  void (async () => {
+    for (const f of files) await addFiles([namePasted(f)])
+  })()
+}
+/** 粘贴转成的文件放回输入框：插在光标处，变回普通文字 */
+const unpaste = (i: number) => {
+  const a = atts.value[i]
+  if (a?.kind !== 'paste' || a.text === undefined) return
+  const text = a.text
+  atts.value.splice(i, 1)
+  const el = input.value
+  const start = el?.selectionStart ?? draft.value.length
+  const end = el?.selectionEnd ?? start
+  draft.value = draft.value.slice(0, start) + text + draft.value.slice(end)
+  void nextTick(() => {
+    el?.focus()
+    el?.setSelectionRange(start + text.length, start + text.length)
+  })
+}
 
 
 // —— 发送 ——

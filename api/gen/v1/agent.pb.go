@@ -1939,12 +1939,12 @@ func (x *ListAgentSessionsResponse) GetForkCounts() map[string]int32 {
 // 附件：图片和文件随消息上传，工作区里的文件用路径引用
 type AgentAttachment struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// image | file | ref | snippet（打开的文件里选中的一段）
+	// image | file | paste（粘贴的一大段文字，存成会话临时目录里的文本文件）| ref | snippet（打开的文件里选中的一段）
 	Kind string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
 	// snippet 是「路径:起止行」
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Mime string `protobuf:"bytes,3,opt,name=mime,proto3" json:"mime,omitempty"`
-	// image / file 的内容；snippet 是选中的文字
+	// image / file / paste 的内容；snippet 是选中的文字
 	Data []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 	// ref / snippet：相对会话目录的路径
 	Path          string `protobuf:"bytes,5,opt,name=path,proto3" json:"path,omitempty"`

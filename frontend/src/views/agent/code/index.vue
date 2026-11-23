@@ -110,9 +110,11 @@
             :agent-name="session?.runtimeName || ''"
             :cwd="session?.cwd || ''"
             :busy="busy"
+            :background="bgTools"
             :empty="socket.loaded.value ? '' : t('agent.common.loading')"
             :queued="queue"
             @resolve="resolve"
+            @answer="answerQuestion"
             @stop="stopItem"
             @show-diff="showDiff"
             @open-sub="openSub"
@@ -158,13 +160,11 @@
               :session-id="session.id"
               :context-used="socket.contextUsed.value"
               :context-size="socket.contextSize.value"
-              info-button
               :label="t('agent.code.inputLabel')"
               :placeholder="busy ? t('agent.code.placeholderBusy') : t('agent.code.placeholder')"
               :on-send="send"
               @select="selectOption"
               @stop="stop"
-              @show-info="openInfo"
             />
           </div>
         </template>
@@ -186,6 +186,7 @@
             sub
             :empty="t('agent.code.sub.empty')"
             @resolve="resolve"
+            @answer="answerQuestion"
             @stop="stopItem"
             @show-diff="showDiff"
             @open-sub="openSub"
@@ -230,6 +231,7 @@
         :detail="socket.detail.value"
         :items="socket.items.value"
         :state="socket.state.value"
+        :background="bgTools"
         :context-used="socket.contextUsed.value"
         :context-size="socket.contextSize.value"
         :busy="busy"
@@ -241,6 +243,7 @@
         @deleted="onFilesDeleted"
         @reference="referenceFile"
         @open-sub="openSub"
+        @stop="stopItem"
         @command="runCommand"
         @changes="changes = $event"
       />
@@ -619,6 +622,14 @@ const turnTick = computed(() => {
   return 0
 })
 
+// —— 后台 ——
+/** 转到后台还在跑的工具调用 id（ACP v2，Agent 报的后台列表）：工具调用本身报了完成，命令其实还在跑（起的服务之类）。
+ *  进程没了后台的也就没了，所以只在有进程时算 */
+const bgTools = computed(() => {
+  if (!session.value?.live) return []
+  return (socket.state.value.background ?? []).flatMap((b) => (b.type !== 'subagent' && b.id ? [b.id] : []))
+})
+
 // —— 计划 ——
 const plan = computed(() => socket.state.value.plan ?? [])
 const planDone = computed(() => plan.value.filter((p) => p.status === 'completed').length)
@@ -676,6 +687,11 @@ const stop = async () => {
   } catch {
     /* shown */
   }
+}
+/** 回答 Agent 的提问（走会话的长连接）：答上了卡片自己会变，答不了在这里提示原因 */
+const answerQuestion = async (questionId: string, action: 'accept' | 'decline', answers: Record<string, string[]>) => {
+  const r = await socket.answer(questionId, action, answers)
+  if (!r.ok) feedback.error(r.reason === 'error' ? r.error || '' : t(`agent.code.ask.${r.reason}`))
 }
 const resolve = async (requestId: string, optionId: string) => {
   if (!session.value) return
@@ -739,10 +755,6 @@ const showDiff = (path: string) => {
   rightOn.value = true
   rightTab.value = 'diff'
   diffFocus.value = path
-}
-const openInfo = () => {
-  rightOn.value = true
-  rightTab.value = 'info'
 }
 
 onMounted(() => {

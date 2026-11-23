@@ -80,7 +80,7 @@ export default {
       // 会话状态
       status: {
         running: '运行中',
-        waiting: '等待批准',
+        waiting: '等你回应',
         idle: '空闲',
         error: '出错',
         archived: '已归档',
@@ -191,7 +191,7 @@ export default {
       },
       status: {
         running: '運行中',
-        waiting: '等待批准',
+        waiting: '等你回應',
         idle: '空閒',
         error: '出錯',
         archived: '已封存',
@@ -299,7 +299,7 @@ export default {
       },
       status: {
         running: 'Running',
-        waiting: 'Waiting for approval',
+        waiting: 'Waiting for you',
         idle: 'Idle',
         error: 'Error',
         archived: 'Archived',

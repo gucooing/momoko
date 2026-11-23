@@ -3,7 +3,7 @@
 // v1 和 v2 都说：握手时请求 v2，Agent 选了哪个版本，之后的请求和回复就按哪个版本的形状收发；
 // 两个版本的会话更新都交给同一个 Events，由调用方按 Version 分辨语义（v2 里一轮的结束看 state_update）。
 // 只实现 Momoko 用到的部分：初始化、会话的新建 / 恢复 / 复刻 / 关闭、发消息、停止、设置配置项、单独停一个工具调用或终端，
-// 以及 Agent 发回来的会话更新、批准请求（和它的撤回）和登录身份。某个 Agent 自己的扩展字段由 agentrun 里对应的驱动处理。
+// 以及 Agent 发回来的会话更新、批准请求和表单询问（和它们的撤回）、登录身份。某个 Agent 自己的扩展字段由 agentrun 里对应的驱动处理。
 package acp
 
 import (
@@ -22,7 +22,9 @@ type Events interface {
 	// RequestPermission Agent 要做一件需要批准的事。id 是这个请求的 id，Agent 撤回它时凭它认。
 	// reply 可以在返回之后、有人回答时再调用，只能调用一次。
 	RequestPermission(id string, req *RequestPermissionRequest, reply func(*RequestPermissionResponse))
-	// RequestCancelled Agent 撤回了它发来的某个请求（v2：这一轮停了，那张批准不再需要）。
+	// Elicit Agent 要人填一张表（只会是 form）。reply 和 RequestPermission 的一样：可以晚些调用，只能调用一次。
+	Elicit(id string, req *CreateElicitationRequest, reply func(*CreateElicitationResponse))
+	// RequestCancelled Agent 撤回了它发来的某个请求（这一轮停了，那张批准或表单不再需要）。
 	RequestCancelled(id string)
 	// AuthStatus Agent 上报的登录身份。
 	AuthStatus(status AuthStatus)
@@ -54,12 +56,14 @@ func (c *Client) Version() int { return c.version }
 // V2 协商好的是 v2。
 func (c *Client) V2() bool { return c.version >= ProtocolV2 }
 
-// Initialize 协商协议版本和能力，必须是第一个调用。v1 的客户端能力只给只会 v1 的 Agent 看。
+// Initialize 协商协议版本和能力，必须是第一个调用。v1 的客户端能力只给只会 v1 的 Agent 看；
+// v2 的能力里只有两边都有的表单询问，从同一份里取。
 func (c *Client) Initialize(ctx context.Context, info Implementation, caps ClientCapabilities) (*InitializeResponse, error) {
 	resp := &InitializeResponse{}
 	err := c.conn.Call(ctx, MethodInitialize, &InitializeRequest{
 		ProtocolVersion:    ProtocolVersion,
 		Info:               info,
+		Capabilities:       ClientCapabilitiesV2{Elicitation: caps.Elicitation},
 		ClientInfo:         &info,
 		ClientCapabilities: caps,
 	}, resp)
@@ -193,8 +197,25 @@ func (h *clientHandler) Request(id, method string, params json.RawMessage, reply
 			}
 			reply(resp, nil)
 		})
+	case MethodElicitationCreate:
+		req := &CreateElicitationRequest{}
+		if err := json.Unmarshal(params, req); err != nil {
+			reply(nil, jsonrpc.NewError(jsonrpc.CodeInvalidParams, err.Error()))
+			return
+		}
+		// 只声明了 form：别的（url）不接，按「不填」回
+		if h.events == nil || req.Mode != "form" || req.RequestedSchema == nil {
+			reply(&CreateElicitationResponse{Action: ElicitationDecline}, nil)
+			return
+		}
+		h.events.Elicit(id, req, func(resp *CreateElicitationResponse) {
+			if resp == nil {
+				resp = &CreateElicitationResponse{Action: ElicitationCancel}
+			}
+			reply(resp, nil)
+		})
 	default:
-		// 没声明过的能力（读写文件、终端、表单询问）Agent 不该来调用。
+		// 没声明过的能力（读写文件、终端）Agent 不该来调用。
 		reply(nil, jsonrpc.NewError(jsonrpc.CodeMethodNotFound, "method not found: "+method))
 	}
 }

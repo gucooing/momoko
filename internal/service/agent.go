@@ -30,8 +30,8 @@ func (s *AgentService) RegisterRawRoutes(srv *http.Server) {
 	srv.HandlePrefix(biz.AgentPreviewPrefix, stdhttp.HandlerFunc(s.uc.ServePreview))
 }
 
-// RunWsConn 页面的长连接：收 open（打开会话）/ more（往上翻）/ close（离开会话）/ watch（全员 Agent 页关注所有人的会话），
-// 把订阅的会话事件和会话的状态变化推回去。
+// RunWsConn 页面的长连接：收 open（打开会话）/ more（往上翻）/ close（离开会话）/ watch（全员 Agent 页关注所有人的会话）/
+// answer（回答 Agent 的提问），把订阅的会话事件和会话的状态变化推回去。
 func (s *AgentService) RunWsConn(conn *websocket.Conn) {
 	defer conn.Close()
 	ctx := context.WithoutCancel(conn.Request().Context())
@@ -50,6 +50,10 @@ func (s *AgentService) RunWsConn(conn *websocket.Conn) {
 				Rev    int64  `json:"rev"`
 				Before int64  `json:"before"`
 				On     bool   `json:"on"`
+				// answer：哪张提问卡片、accept / decline、各字段填的值
+				QuestionID string              `json:"questionId"`
+				Action     string              `json:"action"`
+				Answers    map[string][]string `json:"answers"`
 			}
 			if err := websocket.JSON.Receive(conn, &msg); err != nil {
 				return
@@ -63,6 +67,8 @@ func (s *AgentService) RunWsConn(conn *websocket.Conn) {
 				s.uc.CloseStream(c)
 			case "watch":
 				s.uc.WatchAll(c, msg.On)
+			case "answer":
+				s.uc.AnswerStream(c, msg.ID, msg.QuestionID, msg.Action, msg.Answers)
 			}
 		}
 	}()
