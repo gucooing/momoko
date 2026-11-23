@@ -217,4 +217,3 @@ func (x *extractor) copy(dst io.Writer, src io.Reader) error {
 		}
 	}
 }
-
