@@ -56,9 +56,12 @@ type Sink interface {
 	Asked(p *Permission)
 	// Questioned 出现一张等人回答的提问卡片（Agent 的表单询问）。
 	Questioned(q *Question)
-	// TurnStarted 一轮不是经调用方开始的：Agent 自己开始的（v2，后台任务做完了接着处理之类），
-	// 或者排着队的消息在上一轮结束后接着发出。
+	// TurnStarted 一轮开始了：调用方发的消息、排着队的消息接着发出、Agent 自己开始的（v2，后台任务做完了接着处理之类）。
+	// 在引擎的锁里调用，和 SubagentsWorking 按发生的先后排。
 	TurnStarted()
+	// SubagentsWorking 主会话没有一轮在跑时，有子 Agent 开始干活（on），或者干活的都停下了：会话跟着算运行中或空闲。
+	// 子 Agent 干不干活只看它们自己经 ACP 报的状态。在引擎的锁里调用。
+	SubagentsWorking(on bool)
 	// Answered 一张批准或提问卡片有了结果（批准是选中选项的种类，提问是 accept / decline，这一轮被停止时为空）；
 	// waiting 表示还有别的卡片在等。
 	Answered(id, kind string, waiting bool)
@@ -71,6 +74,8 @@ type Sink interface {
 // TurnEnd 一轮结束时交给调用方的东西。
 type TurnEnd struct {
 	Turn *Turn
+	// Working 这一轮结束时还有子 Agent 在干活：会话接着算运行中。
+	Working bool
 	// LastText Agent 这一轮最后一段回答，通知里当摘要用。
 	LastText    string
 	State       State
@@ -172,6 +177,7 @@ type Session struct {
 	toolDirty  map[string]bool      // 终端输出攒着，每秒报一次
 	plans      map[string]*planList // 流 → 计划
 	background map[string]bool      // v2：后台还在跑的工具调用（toolKey）和子 Agent（"sub:" + 会话 id）
+	subsOn     bool                 // 有子 Agent 在干活（它们自己报的状态是 running / requires_action）
 	after      []func()             // 处理一条会话更新时攒下、要在锁外做的事
 	queue      []*queued            // 排着队的消息
 	sides      map[string]*sideRun  // 同一个进程里另开的一次性会话（Ask）
@@ -236,8 +242,8 @@ func Start(ctx context.Context, cfg Config) (*Session, *Started, error) {
 		lastActive:  time.Now(),
 		done:        make(chan struct{}),
 	}
-	// 排队的消息、后台的工作都属于上一个进程，不接着用（后台的由新进程自己报）
-	s.state.Queue, s.state.Background = nil, nil
+	// 排队的消息、后台的工作、一轮、子 Agent 都属于上一个进程，不接着用（新进程的由它自己报）
+	s.state.Queue, s.state.Background, s.state.Turn, s.state.Subagents = nil, nil, false, nil
 	s.client = acp.NewClient(proc.Stdout(), proc.Stdin(), s)
 	fail := func(err error) (*Session, *Started, error) {
 		reason := exitReason(proc, err)
@@ -355,7 +361,14 @@ func (s *Session) Caps() Caps { return s.caps }
 func (s *Session) Busy() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.turn != nil || len(s.background) > 0
+	return s.turn != nil || len(s.background) > 0 || s.subsOn
+}
+
+// Working 主会话有一轮在进行，或者有子 Agent 在干活：会话算运行中。
+func (s *Session) Working() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.turn != nil || s.subsOn
 }
 
 // Running 有一轮正在进行（不算后台的工作）。
@@ -382,20 +395,11 @@ func (s *Session) Alive() bool { return !s.proc.Exited() }
 // Process 底层的进程（看进程号、内存）。
 func (s *Session) Process() *agentproc.Process { return s.proc }
 
-// Subagents 这个进程里派出过的子 Agent，按派出的先后。
+// Subagents 这个进程里派出过的子 Agent，按派出的先后：和推给页面的 State.Subagents 是同一份。
 func (s *Session) Subagents() []Subagent {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	items := make([]*Item, 0, len(s.subs))
-	for _, item := range s.subs {
-		items = append(items, item)
-	}
-	slices.SortFunc(items, func(a, b *Item) int { return cmp.Compare(a.Seq, b.Seq) })
-	out := make([]Subagent, 0, len(items))
-	for _, item := range items {
-		out = append(out, *item.Subagent)
-	}
-	return out
+	return slices.Clone(s.state.Subagents)
 }
 
 // SetTitleCustom 用户自己起了标题之后，Agent 给的标题不再报上来。
@@ -450,6 +454,7 @@ func (s *Session) remove() {
 		s.syncQueueLocked()
 	}
 	s.clearBackground()
+	s.stopSubagents()
 	// v1 的一轮由 Prompt 的回复收尾；v2 的没有回复可等，进程没了就在这里收尾
 	report := func() {}
 	if s.v2 && s.turn != nil {
@@ -669,6 +674,7 @@ func (s *Session) SessionUpdate(n *acp.SessionNotification) {
 			if item := s.subs[sub]; item != nil && item.Subagent.Title != *u.Title {
 				item.Subagent.Title = *u.Title
 				s.emit(item, true)
+				s.syncSubagents()
 			}
 			return
 		}
@@ -905,7 +911,8 @@ func (s *Session) onSubagent(u *acp.SessionUpdate) {
 	item := s.subs[u.SessionID]
 	if item == nil {
 		item = s.newItem(ItemSubagent, "")
-		item.Subagent = &Subagent{ID: u.SessionID, State: "running"}
+		// 状态只记它报的：有的通知只带标题、目录（恢复出来的上级），没报状态就不当它在跑
+		item.Subagent = &Subagent{ID: u.SessionID, StartAt: item.At}
 		s.subs[u.SessionID] = item
 	}
 	sa := item.Subagent
@@ -921,10 +928,68 @@ func (s *Session) onSubagent(u *acp.SessionUpdate) {
 	if cancel, ok := u.CanCancel(); ok {
 		sa.Cancel = cancel
 	}
-	if state := u.StateName(); state != "" && state != "unknown" {
+	if state := u.StateName(); state != "" {
 		s.setSubagentState(u.SessionID, sa, state)
 	}
 	s.emit(item, true)
+	s.syncSubagents()
+}
+
+// subagentWorking 子 Agent 报的状态是在干活：跑着，或者等人回应。
+func subagentWorking(state string) bool {
+	return state == acp.StateRunning || state == acp.StateRequiresAction
+}
+
+// syncSubagents 子 Agent 的样子变了：整份报给页面（State.Subagents，和进程信息里的是同一份）。
+// 有没有子 Agent 在干活变了、主会话又没有一轮在跑时，告诉调用方（会话状态跟着变）；有一轮在跑时由这一轮结束时一起报。
+func (s *Session) syncSubagents() {
+	items := make([]*Item, 0, len(s.subs))
+	on := false
+	for _, item := range s.subs {
+		items = append(items, item)
+		on = on || subagentWorking(item.Subagent.State)
+	}
+	slices.SortFunc(items, func(a, b *Item) int { return cmp.Compare(a.Seq, b.Seq) })
+	list := make([]Subagent, 0, len(items))
+	for _, item := range items {
+		list = append(list, *item.Subagent)
+	}
+	s.state.Subagents = list
+	s.sink.State(s.state)
+	if on == s.subsOn {
+		return
+	}
+	s.subsOn = on
+	if s.turn == nil && !s.gone {
+		s.sink.SubagentsWorking(on)
+	}
+}
+
+// stopSubagents 进程没了：子 Agent 也跟着没了，还在干活的记成停下（不能再停），免得一直显示在跑。
+func (s *Session) stopSubagents() {
+	changed := false
+	for sub, item := range s.subs {
+		sa := item.Subagent
+		if !subagentWorking(sa.State) && !sa.Cancel {
+			continue
+		}
+		if subagentWorking(sa.State) {
+			s.setSubagentState(sub, sa, acp.StateIdle)
+		}
+		sa.Cancel = false
+		s.emit(item, true)
+		changed = true
+	}
+	if changed {
+		s.syncSubagents()
+	}
+}
+
+// turnStartedLocked 主会话的一轮开始了：页面上的「一轮在进行」跟着变，会话改成运行中。
+func (s *Session) turnStartedLocked() {
+	s.state.Turn = true
+	s.sink.State(s.state)
+	s.sink.TurnStarted()
 }
 
 func (s *Session) RequestPermission(reqID string, req *acp.RequestPermissionRequest, reply func(*acp.RequestPermissionResponse)) {
@@ -1063,6 +1128,7 @@ func (s *Session) beginLocked(text string, uploads []Upload) func() {
 	// 工具调用、消息只在这一轮里更新：上一轮的不会再变，留着只会越积越多（v2 后台还在跑的除外）。
 	s.resetTurnState()
 	s.lastActive = time.Now()
+	s.turnStartedLocked()
 	s.userItemLocked(text, uploads, false)
 	blocks := blocksOf(text, uploads)
 	if s.v2 {
@@ -1092,7 +1158,6 @@ func (s *Session) sendQueued() {
 	s.queue = s.queue[1:]
 	s.syncQueueLocked()
 	send := s.beginLocked(q.text, q.uploads)
-	s.sink.TurnStarted()
 	s.mu.Unlock()
 	send()
 }
@@ -1255,7 +1320,9 @@ func (s *Session) endTurnLocked(result *Turn) func() {
 	s.emit(item, true)
 	s.turn = nil
 	s.lastActive = time.Now()
-	end := TurnEnd{Turn: result, LastText: turn.lastText, State: s.state, ContextUsed: s.contextUsed, ContextSize: s.contextSize}
+	s.state.Turn = false
+	s.sink.State(s.state)
+	end := TurnEnd{Turn: result, Working: s.subsOn, LastText: turn.lastText, State: s.state, ContextUsed: s.contextUsed, ContextSize: s.contextSize}
 	return func() {
 		for _, id := range cancelled {
 			s.sink.Answered(id, "", false)

@@ -142,10 +142,10 @@ func (l *agentLive) Answered(id, kind string, waiting bool) {
 		l.uc.settleApproval(l.id, id, "")
 	}
 	if !waiting {
-		// 只改「等待批准」：还有一轮在跑就回到「运行中」，没有（v2 后台的工作要的批准）就是「空闲」；
+		// 只改「等待批准」：还有一轮在跑、或者有子 Agent 在干活就回到「运行中」，都没有（v2 后台的工作要的批准）就是「空闲」；
 		// 这一轮要是刚好结束了，状态以结束时写的为准。
 		next := agentsession.StatusIdle
-		if l.session.Running() {
+		if l.session.Working() {
 			next = agentsession.StatusRunning
 		}
 		l.w.update(func(u *gen.AgentSessionUpdateOne) {
@@ -154,7 +154,8 @@ func (l *agentLive) Answered(id, kind string, waiting bool) {
 	}
 }
 
-// TurnStarted v2：Agent 自己开始了一轮（后台的工作做完了接着处理之类）。空闲或出错的会话改成运行中。
+// TurnStarted 一轮开始了（发消息开始的、排队的接着发的、v2 里 Agent 自己开始的）。空闲或出错的会话改成运行中；
+// 发消息时已经改过的，这里不再动。
 func (l *agentLive) TurnStarted() {
 	if l.dead.Load() {
 		return
@@ -165,13 +166,30 @@ func (l *agentLive) TurnStarted() {
 	})
 }
 
+// SubagentsWorking 主会话没有一轮在跑时子 Agent 开始干活、或者都停下了：空闲的改成运行中，运行中的改回空闲。
+// 等人回应的不动（回应完按那时的样子改）；出错的不动，留着给人看。
+func (l *agentLive) SubagentsWorking(on bool) {
+	if l.dead.Load() {
+		return
+	}
+	from, to := agentsession.StatusRunning, agentsession.StatusIdle
+	if on {
+		from, to = to, from
+	}
+	l.w.update(func(u *gen.AgentSessionUpdateOne) { u.Where(agentsession.StatusEQ(from)).SetStatus(to) })
+}
+
 func (l *agentLive) TurnEnded(end agentrun.TurnEnd) {
 	if l.dead.Load() {
 		return
 	}
 	failed := end.Turn.Stop == "error"
 	l.w.update(func(u *gen.AgentSessionUpdateOne) {
+		// 主会话这一轮完了，子 Agent 还在干活的会话还算运行中
 		u.SetStatus(agentsession.StatusIdle).SetError("")
+		if end.Working {
+			u.SetStatus(agentsession.StatusRunning)
+		}
 		if failed {
 			u.SetStatus(agentsession.StatusError).SetError(end.Turn.Error)
 		}

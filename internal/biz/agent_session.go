@@ -1392,7 +1392,9 @@ func (uc *AgentUsecase) OpenStream(c *agenthub.Conn, id string, rev int64) {
 		})
 		return
 	}
-	send(agentParse[agentrun.State](s.State), s.ContextUsed, s.ContextSize, true)
+	state := agentParse[agentrun.State](s.State)
+	state.Settle()
+	send(state, s.ContextUsed, s.ContextSize, true)
 }
 
 // AnswerStream 页面回答一张提问卡片（action：accept 带 answers，decline 是跳过）。只有会话的主人能答；

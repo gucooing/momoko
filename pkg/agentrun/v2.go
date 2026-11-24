@@ -181,7 +181,7 @@ func (s *Session) onState(sub string, u *acp.SessionUpdate) {
 			s.turn = &turnRun{started: time.Now()}
 			s.resetTurnState()
 			s.lastActive = time.Now()
-			s.sink.TurnStarted()
+			s.turnStartedLocked()
 		}
 		s.turn.active = true
 	case acp.StateIdle:
@@ -412,22 +412,25 @@ func (s *Session) onRelay(sub string, u *acp.SessionUpdate) {
 // subagentState 子 Agent 自己报的状态（v2 的子会话会发自己的 state_update）。
 func (s *Session) subagentState(sub, state string) {
 	item := s.subs[sub]
-	if item == nil || state == "" || state == acp.StateUnknown || item.Subagent.State == state {
+	if item == nil || state == "" || item.Subagent.State == state {
 		return
 	}
 	s.setSubagentState(sub, item.Subagent, state)
 	s.emit(item, true)
+	s.syncSubagents()
 }
 
 // setSubagentState 子 Agent 的状态变了：空闲就算这次做完，记下结束时间；又动起来了清掉。
+// unknown 是 Agent 说它看不到这个子 Agent 了（比如对话被清空），之后也不会再报，不算在干活。
 func (s *Session) setSubagentState(sub string, sa *Subagent, state string) {
 	sa.State = state
-	if state == acp.StateIdle {
+	switch state {
+	case acp.StateIdle:
 		s.closeOpen(sub)
 		if sa.EndAt == 0 {
 			sa.EndAt = time.Now().UnixMilli()
 		}
-	} else {
+	case acp.StateRunning, acp.StateRequiresAction:
 		sa.EndAt = 0
 	}
 }

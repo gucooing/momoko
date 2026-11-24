@@ -88,8 +88,10 @@ export interface AgentSubagent {
   id: string
   title?: string
   description?: string
-  /** running / idle / requires_action */
+  /** 它自己经 ACP 报的状态：running / requires_action / idle，unknown 是 Agent 看不到它了；没报过为空 */
   state?: string
+  /** 第一次报上来、最近一次停下的时间（毫秒） */
+  startAt?: number
   endAt?: number
   /** 它的工作目录（ACP v2 报了才有） */
   cwd?: string
@@ -189,6 +191,10 @@ export interface AgentState {
   subs?: Record<string, AgentSubState>
   /** 排着队的消息：这一轮结束后按顺序作为下一轮发出 */
   queue?: AgentQueued[]
+  /** 主会话有一轮正在进行（只有子 Agent 在干活不算） */
+  turn?: boolean
+  /** 这个进程里的子 Agent 现在的样子（按派出的先后），状态只看它们经 ACP 报的；进程信息里的是同一份 */
+  subagents?: AgentSubagent[]
 }
 export interface AgentQueued {
   id: string

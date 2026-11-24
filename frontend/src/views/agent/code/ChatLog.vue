@@ -257,17 +257,17 @@
             <!-- 子 Agent -->
             <div v-else-if="item.type === 'subagent' && item.subagent" class="agc-toolrow">
               <button type="button" class="agc-tool is-click" @click="emit('openSub', item.subagent.id)">
-                <span v-if="item.subagent.state === 'running'" class="agc-sd agc-sd--run agc-pulse" />
+                <span v-if="liveSub(item.subagent).state === 'running'" class="agc-sd agc-sd--run agc-pulse" />
                 <UIcon v-else name="i-lucide-bot" class="ag-muted" />
                 <span class="agc-tool__verb">{{ t('agent.code.sub.name') }}</span>
                 <span class="ag-ellipsis agc-tool__arg">{{
                   item.subagent.title || item.subagent.description || item.subagent.id
                 }}</span>
-                <span class="ag-muted agc-tool__meta">{{ subState(item.subagent.state) }}</span>
+                <span class="ag-muted agc-tool__meta">{{ subagentStateName(liveSub(item.subagent).state) }}</span>
                 <UIcon name="i-lucide-chevron-right" class="ag-muted" />
               </button>
               <button
-                v-if="item.subagent.cancel && item.subagent.state !== 'idle'"
+                v-if="liveSub(item.subagent).cancel && subagentWorking(liveSub(item.subagent))"
                 type="button"
                 class="agc-sm"
                 :aria-label="t('agent.code.sub.stop')"
@@ -479,7 +479,7 @@ import { useI18n } from 'vue-i18n'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import { copyTextToClipboard } from '@/utils/file'
 import { clockTime, fmtDuration, fmtTokens } from '@/views/agent/utils/format'
-import { isRejectOption, permOptionLabel } from '@/views/agent/utils/labels'
+import { isRejectOption, permOptionLabel, subagentStateName, subagentWorking } from '@/views/agent/utils/labels'
 import { diffDelta, diffOp } from '@/views/agent/utils/diff'
 import AttImage from './AttImage.vue'
 import DiffCard from './DiffCard.vue'
@@ -491,6 +491,7 @@ import type {
   AgentPermission,
   AgentPermOption,
   AgentQueued,
+  AgentSubagent,
   AgentTool,
   AgentTurn,
   AgentTurnUsage,
@@ -511,6 +512,8 @@ const props = withDefaults(
     background?: string[]
     /** 子 Agent 的对话 */
     sub?: boolean
+    /** Agent 经 ACP 报的子 Agent 现在的样子（State.subagents）：子 Agent 卡片上的状态只看它 */
+    subagents?: AgentSubagent[]
     empty?: string
     /** 更早的事件还有没拿；loadingMore 正在拿 */
     more?: boolean
@@ -526,6 +529,7 @@ const props = withDefaults(
     busy: false,
     background: () => [],
     sub: false,
+    subagents: () => [],
     empty: '',
     more: false,
     loadingMore: false,
@@ -778,12 +782,13 @@ const stop = (sub: string, toolId: string) => {
 }
 
 // —— 会话之间的消息（ACP v2）——
-/** 子 Agent 的会话 id → 标题 */
+/** 子 Agent 的会话 id → 标题：先看 Agent 报的那份，上一个进程派出的从对话里的卡片取 */
 const subTitles = computed(() => {
   const out = new Map<string, string>()
   for (const item of props.items) {
     if (item.subagent) out.set(item.subagent.id, item.subagent.title || item.subagent.description || '')
   }
+  for (const sa of props.subagents) out.set(sa.id, sa.title || sa.description || out.get(sa.id) || '')
   return out
 })
 const peerName = (id?: string) =>
@@ -885,12 +890,9 @@ const permCls = (p: AgentPermission) =>
   p.outcome === 'cancelled' || isRejectOption({ kind: p.optionKind }) ? 'agc-bad' : 'agc-ok'
 
 // —— 子 Agent ——
-const subState = (state?: string) =>
-  state === 'running'
-    ? t('agent.code.sub.running')
-    : state === 'requires_action'
-      ? t('agent.code.sub.waiting')
-      : t('agent.code.sub.done')
+const liveSubs = computed(() => new Map(props.subagents.map((sa) => [sa.id, sa])))
+/** 卡片上显示的状态：Agent 经 ACP 报的那份；不在里面的（上一个进程派出的）不会再干活 */
+const liveSub = (sa: AgentSubagent): AgentSubagent => liveSubs.value.get(sa.id) ?? { ...sa, state: 'idle', cancel: false }
 
 // —— 一轮结束 ——
 const STOPS = ['end_turn', 'cancelled', 'max_tokens', 'max_turn_requests', 'refusal', 'error']

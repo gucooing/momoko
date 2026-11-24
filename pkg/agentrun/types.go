@@ -107,6 +107,18 @@ func (i *Item) Settle() {
 	}
 }
 
+// Settle 没有进程在跑时的状态快照：一轮、子 Agent 都不可能还在跑，库里留着的是上次中断（Momoko 自己退出）留下的。
+func (st *State) Settle() {
+	st.Turn = false
+	for i := range st.Subagents {
+		sa := &st.Subagents[i]
+		if subagentWorking(sa.State) {
+			sa.State = "idle"
+		}
+		sa.Cancel = false
+	}
+}
+
 // unfinished 工具调用还没有结果：等着、在跑、暂停（v2）。
 func unfinished(status string) bool {
 	return status == "pending" || status == "in_progress" || status == "paused"
@@ -273,9 +285,12 @@ type Subagent struct {
 	ID          string `json:"id"`
 	Title       string `json:"title,omitempty"`
 	Description string `json:"description,omitempty"`
-	// State：running / idle / requires_action。
+	// State 它自己经 ACP 报的状态（subagent_update、它的子会话的 state_update）：running / requires_action / idle，
+	// unknown 是 Agent 看不到它了；没报过为空。
 	State string `json:"state,omitempty"`
-	EndAt int64  `json:"endAt,omitempty"`
+	// StartAt 第一次报上来的时间，EndAt 最近一次停下的时间（毫秒）。
+	StartAt int64 `json:"startAt,omitempty"`
+	EndAt   int64 `json:"endAt,omitempty"`
 	// Cwd 它的工作目录（v2 报了才有）。
 	Cwd string `json:"cwd,omitempty"`
 	// Cancel 现在能单独停它（v2：它声明了 capabilities.cancel）。
@@ -304,6 +319,11 @@ type State struct {
 	Subs map[string]*SubState `json:"subs,omitempty"`
 	// Queue 排着队的消息：这一轮结束后按顺序作为下一轮发出。只在进程活着时有意义。
 	Queue []Queued `json:"queue,omitempty"`
+	// Turn 主会话有一轮正在进行（只有子 Agent 在干活不算）。
+	Turn bool `json:"turn,omitempty"`
+	// Subagents 这个进程里的子 Agent 现在的样子，按派出的先后。状态只看它们自己经 ACP 报的，
+	// 和是怎么派出、怎么接着干活的（新派出、发消息让它接着做）无关。
+	Subagents []Subagent `json:"subagents,omitempty"`
 }
 
 // Queued 一条排着队的消息。

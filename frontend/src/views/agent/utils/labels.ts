@@ -1,7 +1,7 @@
 // Agent 页面里给人看的文字都在这里拼：后端只给原始字段（种类、厂商、名称、事件），不拼显示用的字符串。
 import { translate } from '@/locales'
 import type { AgentSessionExport } from '@/types/v1/agent'
-import type { AgentItem } from '@/views/agent/code/types'
+import type { AgentItem, AgentSubagent } from '@/views/agent/code/types'
 import { modelName } from '@/views/agent/composables/useAgentModels'
 import { fmtDuration, fmtTokens } from '@/views/agent/utils/format'
 
@@ -53,6 +53,21 @@ export const permOptionLabel = (opt: OptionLike, all: OptionLike[] = []): string
 
 /** 拒绝类的选项（按钮放右边、用描边样式）。 */
 export const isRejectOption = (opt: OptionLike) => (opt.kind || '').startsWith('reject')
+
+/** 子 Agent 在干活：它经 ACP 报的状态是跑着，或者等人回应。 */
+export const subagentWorking = (sa?: Pick<AgentSubagent, 'state'> | null) => sa?.state === 'running' || sa?.state === 'requires_action'
+
+/** 子 Agent 状态的文字：unknown 是 Agent 看不到它了；没报过、做完了都算完成。 */
+export const subagentStateName = (state?: string) =>
+  translate(
+    state === 'running'
+      ? 'agent.code.sub.running'
+      : state === 'requires_action'
+        ? 'agent.code.sub.waiting'
+        : state === 'unknown'
+          ? 'agent.code.sub.unknown'
+          : 'agent.code.sub.done',
+  )
 
 const fence = (text: string, lang = '') => {
   const ticks = text.includes('```') ? '````' : '```'

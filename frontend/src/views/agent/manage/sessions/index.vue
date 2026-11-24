@@ -133,7 +133,7 @@
                 <span class="ag-ses-subs__label">{{ t('agent.sessions.subagents') }}</span>
                 <span v-for="sa in procs.get(s.id)!.subagents" :key="sa.id" class="ag-ses-sub">
                   <span class="ag-ses-sub__title">{{ sa.title || sa.id }}</span>
-                  <span class="ag-pill" :class="SUB_PILL[sa.state]">{{ subState(sa.state) }}</span>
+                  <span class="ag-pill" :class="SUB_PILL[sa.state]">{{ subagentStateName(sa.state) }}</span>
                 </span>
               </div>
             </template>
@@ -219,7 +219,7 @@ import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { useLastCodeSession } from '@/views/agent/composables/useLastCodeSession'
 import { agentKindOf, fmtBytes, relTime, sinceTime } from '@/views/agent/utils/format'
 import { modelName, useAgentModels } from '@/views/agent/composables/useAgentModels'
-import { downloadText, exportMarkdown, providerLabel, safeFileName, sessionTitle } from '@/views/agent/utils/labels'
+import { downloadText, exportMarkdown, providerLabel, safeFileName, sessionTitle, subagentStateName } from '@/views/agent/utils/labels'
 
 defineOptions({ name: 'AgentManageSessionsView' })
 
@@ -270,12 +270,6 @@ const allArchived = computed(
 
 // 有 Agent 进程在跑：一轮结束后进程还留在池子里，空闲超时才结束，所以看服务端给的，不看状态
 const isLive = (s: AgentSession) => s.live
-const subState = (state: string) =>
-  state === 'running'
-    ? t('agent.code.sub.running')
-    : state === 'requires_action'
-      ? t('agent.code.sub.waiting')
-      : t('agent.code.sub.done')
 const titleOf = (s: AgentSession) => s.title || t('agent.sessions.untitled')
 const statusText = (value: string) => (STATUSES.includes(value) ? t(`agent.status.${value}`) : value)
 // 主人只在 Agent 管理页里显示（自己的列表里都是自己）

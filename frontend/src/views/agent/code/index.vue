@@ -1,4 +1,4 @@
-<!-- Code：左边会话栏，中间对话（标签页：对话 / 子 Agent / 打开的文件），右边改动、文件、任务、会话信息。
+<!-- Code：左边会话栏，中间对话（标签页：对话 / 子 Agent（可以开好几个）/ 打开的文件），右边改动、文件、任务、会话信息。
      没有选中会话时是新会话页。地址里的 ?session= 是当前会话，?workspace= 是新会话预选的工作区。
      Momoko 自己的侧边栏收起还是展开由用户决定，这一页不动它。 -->
 <template>
@@ -46,11 +46,19 @@
                 <span class="agc-sd" :class="dotCls" :title="statusText" />
               </button>
             </div>
-            <div v-if="subId" class="agc-tt" :class="{ 'is-on': ctab === 'sub' }">
-              <button type="button" class="agc-tt__btn" role="tab" :aria-selected="ctab === 'sub'" @click="ctab = 'sub'">
-                <UIcon name="i-lucide-bot" /><span class="ag-ellipsis agc-tt__title">{{ t('agent.code.sub.tab', { title: subInfo.title }) }}</span>
+            <div v-for="id in openSubs" :key="subTab(id)" class="agc-tt" :class="{ 'is-on': ctab === subTab(id) }">
+              <button
+                type="button"
+                class="agc-tt__btn"
+                role="tab"
+                :aria-selected="ctab === subTab(id)"
+                :title="t('agent.code.sub.tab', { title: subTitle(id) })"
+                @click="ctab = subTab(id)"
+              >
+                <UIcon name="i-lucide-bot" /><span class="ag-ellipsis agc-tt__title">{{ subTitle(id) }}</span>
+                <span v-if="subDot(id)" class="agc-sd" :class="subDot(id)" />
               </button>
-              <button type="button" class="agc-tt__x" :aria-label="t('agent.code.sub.close')" @click="closeSub"><UIcon name="i-lucide-x" /></button>
+              <button type="button" class="agc-tt__x" :aria-label="t('agent.code.sub.close')" @click="closeSub(id)"><UIcon name="i-lucide-x" /></button>
             </div>
             <div v-if="commitTab" class="agc-tt" :class="{ 'is-on': ctab === COMMIT_TAB }">
               <button type="button" class="agc-tt__btn" role="tab" :aria-selected="ctab === COMMIT_TAB" :title="commitTab.subject" @click="ctab = COMMIT_TAB">
@@ -75,7 +83,7 @@
               </button>
             </div>
           </div>
-          <div v-if="openFiles.length >= 2" ref="allTabsEl" class="agc-rel">
+          <div v-if="openFiles.length + openSubs.length >= 2" ref="allTabsEl" class="agc-rel">
             <button type="button" class="agc-cl agc-cl--count" :aria-label="t('agent.code.allTabs', { n: tabCount })" :title="t('agent.code.allTabsTip')" aria-haspopup="menu" :aria-expanded="tabsOpen" @click="tabsOpen = !tabsOpen">
               <span class="ag-num">{{ tabCount }}</span><UIcon name="i-lucide-chevron-down" />
             </button>
@@ -83,9 +91,12 @@
               <button type="button" class="ag-mi" :class="{ 'is-on': ctab === 'chat' }" role="menuitemradio" :aria-checked="ctab === 'chat'" @click="pickTab('chat')">
                 <UIcon name="i-lucide-message-square" class="ag-muted" /><span class="ag-ellipsis agc-flex">{{ sessionTitle(session?.title) }}</span>
               </button>
-              <button v-if="subId" type="button" class="ag-mi" :class="{ 'is-on': ctab === 'sub' }" role="menuitemradio" :aria-checked="ctab === 'sub'" @click="pickTab('sub')">
-                <UIcon name="i-lucide-bot" class="ag-muted" /><span class="ag-ellipsis agc-flex">{{ t('agent.code.sub.tab', { title: subInfo.title }) }}</span>
-              </button>
+              <div v-for="id in openSubs" :key="subTab(id)" class="agc-tabsmenu__row">
+                <button type="button" class="ag-mi agc-flex" :class="{ 'is-on': ctab === subTab(id) }" role="menuitemradio" :aria-checked="ctab === subTab(id)" @click="pickTab(subTab(id))">
+                  <UIcon name="i-lucide-bot" class="ag-muted" /><span class="ag-ellipsis agc-flex">{{ t('agent.code.sub.tab', { title: subTitle(id) }) }}</span>
+                </button>
+                <button type="button" class="agc-sm" :aria-label="t('agent.code.sub.close')" @click="closeSub(id)"><UIcon name="i-lucide-x" /></button>
+              </div>
               <button v-if="commitTab" type="button" class="ag-mi" :class="{ 'is-on': ctab === COMMIT_TAB }" role="menuitemradio" :aria-checked="ctab === COMMIT_TAB" @click="pickTab(COMMIT_TAB)">
                 <UIcon name="i-lucide-git-commit-horizontal" class="ag-muted" /><span class="ag-ellipsis agc-flex">{{ commitTab.short }} {{ commitTab.subject }}</span>
               </button>
@@ -113,6 +124,7 @@
         <template v-else-if="ctab === 'chat'">
           <ChatLog
             :items="mainItems"
+            :subagents="socket.state.value.subagents"
             :session-id="session?.id || ''"
             :more="socket.more.value"
             :loading-more="socket.loadingMore.value"
@@ -179,7 +191,7 @@
           </div>
         </template>
 
-        <div v-else-if="ctab === 'sub'" class="agc-subview">
+        <div v-else-if="curSub" class="agc-subview">
           <div class="agc-subview__head">
             <UIcon name="i-lucide-bot" />
             <span class="ag-ellipsis agc-flex">{{ t('agent.code.sub.head', { meta: subInfo.meta }) }}</span>
@@ -187,7 +199,9 @@
             <button type="button" class="ag-btn ag-btn--sm" @click="ctab = 'chat'">{{ t('agent.code.sub.back') }}</button>
           </div>
           <ChatLog
+            :key="curSub"
             :items="subItems"
+            :subagents="socket.state.value.subagents"
             :session-id="session?.id || ''"
             :agent-kind="agentKindOf(session?.runtimeKind)"
             :agent-name="session?.runtimeName || ''"
@@ -254,7 +268,7 @@
         :context-size="socket.contextSize.value"
         :busy="busy"
         :tick="turnTick"
-        :sub="ctab === 'sub' ? subId : ''"
+        :sub="curSub"
         :active-file="openFiles.includes(ctab) ? ctab : ''"
         :opened-commit="ctab === COMMIT_TAB ? commitTab?.hash : ''"
         @open-file="openFile"
@@ -303,7 +317,7 @@ import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import { useAgentModels } from '@/views/agent/composables/useAgentModels'
 import { useLastCodeSession } from '@/views/agent/composables/useLastCodeSession'
 import { agentKindOf, fmtDuration } from '@/views/agent/utils/format'
-import { sessionTitle } from '@/views/agent/utils/labels'
+import { sessionTitle, subagentStateName, subagentWorking } from '@/views/agent/utils/labels'
 import ChatLog from './ChatLog.vue'
 import Composer, { type DraftAttachment, type DraftSnippet, type Selection, type SendMode } from './Composer.vue'
 import FileTab from './FileTab.vue'
@@ -455,7 +469,16 @@ const initialWorkspace = computed(() => String(route.query.workspace || ''))
 const session = computed<AgentSession | null>(() => socket.session.value ?? sideSessions.value.find((s) => s.id === sessionId.value) ?? null)
 // 顶栏终端的「在当前会话的目录打开」
 useDockSessionDir(() => session.value)
-const busy = computed(() => session.value?.status === 'running' || session.value?.status === 'waiting')
+/**
+ * 主会话这一轮在跑（输入框的停止和排队、对话末尾的「正在处理」看它）。会话状态在子 Agent 干活时也算运行中，
+ * 所以 Agent 报了没有一轮在跑、只是子 Agent 在干活时不算；进程刚起来还没报的时候照会话状态算。
+ */
+const busy = computed(() => {
+  const status = session.value?.status
+  if (status !== 'running' && status !== 'waiting') return false
+  const st = socket.state.value
+  return !!st.turn || !(st.subagents ?? []).some(subagentWorking)
+})
 const DOT: Record<string, string> = { running: 'agc-sd--run agc-pulse', waiting: 'agc-sd--wait', error: 'agc-sd--bad' }
 const dotCls = computed(() => DOT[session.value?.status ?? ''] ?? '')
 const statusText = computed(() => (session.value ? t(`agent.status.${session.value.status}`) : ''))
@@ -480,24 +503,30 @@ const onRemoved = (ids: string[]) => {
 // 每个会话自己的标签页（打开的文件、子 Agent），切回来还在
 interface Tabs {
   files: string[]
-  sub: string
+  subs: string[]
   commit: GitCommitTarget | null
   ctab: string
 }
 const tabsBySession = new Map<string, Tabs>()
 const openFiles = ref<string[]>([])
-const subId = ref('')
+/** 开着的子 Agent 标签（它们的会话 id），和文件一样可以开好几个 */
+const openSubs = ref<string[]>([])
+/** 子 Agent 标签的 key：冒号开头，和文件路径分开 */
+const SUB_TAB = ':sub:'
+const subTab = (id: string) => SUB_TAB + id
 /** 中间开着的提交（或储藏）：在右侧 Git 的历史、储藏里点的，一次只开一个 */
 const COMMIT_TAB = ':commit'
 const commitTab = ref<GitCommitTarget | null>(null)
 const ctab = ref('chat')
+/** 当前标签是子 Agent 时是它的会话 id */
+const curSub = computed(() => (ctab.value.startsWith(SUB_TAB) ? ctab.value.slice(SUB_TAB.length) : ''))
 const planOpen = ref(false)
 /** 右侧「改动」最近一次读到的未提交改动：文件标签页拿它显示 +/− */
 const changes = ref<GitChange[]>([])
 /** Git 里做了会改文件的操作（撤销、切换分支、拉取……）就加一：打开的文件跟着重读 */
 const gitTick = ref(0)
 const saveTabs = (id: string) => {
-  if (id) tabsBySession.set(id, { files: [...openFiles.value], sub: subId.value, commit: commitTab.value, ctab: ctab.value })
+  if (id) tabsBySession.set(id, { files: [...openFiles.value], subs: [...openSubs.value], commit: commitTab.value, ctab: ctab.value })
 }
 
 watch(
@@ -508,7 +537,7 @@ watch(
     if (old) saveTabs(old)
     const saved = tabsBySession.get(id)
     openFiles.value = saved?.files ?? []
-    subId.value = saved?.sub ?? ''
+    openSubs.value = saved?.subs ?? []
     commitTab.value = saved?.commit ?? null
     ctab.value = saved?.ctab ?? 'chat'
     planOpen.value = false
@@ -523,7 +552,7 @@ const tabsEl = ref<HTMLElement | null>(null)
 const allTabsEl = ref<HTMLElement | null>(null)
 const tabsOpen = ref(false)
 onClickOutside(allTabsEl, () => (tabsOpen.value = false))
-const tabCount = computed(() => openFiles.value.length + 1 + (subId.value ? 1 : 0) + (commitTab.value ? 1 : 0))
+const tabCount = computed(() => openFiles.value.length + 1 + openSubs.value.length + (commitTab.value ? 1 : 0))
 const shortName = (p: string) => p.split('/').slice(-2).join('/')
 const pickTab = (k: string) => {
   ctab.value = k
@@ -607,25 +636,38 @@ watch(ctab, () =>
 
 // —— 对话 ——
 const mainItems = computed(() => socket.items.value.filter((i) => !i.sub))
-const subItems = computed(() => socket.items.value.filter((i) => i.sub === subId.value))
+const subItems = computed(() => socket.items.value.filter((i) => i.sub === curSub.value))
+/** 一个子 Agent：状态只看 Agent 经 ACP 报的那份；不在里面的（上一个进程派出的）只从对话里的卡片取标题 */
+const subOf = (id: string) => {
+  const live = socket.state.value.subagents?.find((sa) => sa.id === id)
+  const item = live ? undefined : socket.items.value.find((i) => i.type === 'subagent' && i.subagent?.id === id)
+  return { live, sa: live ?? item?.subagent, at: item?.at ?? 0 }
+}
+const subTitle = (id: string) => {
+  const { sa } = subOf(id)
+  return sa?.title || sa?.description || t('agent.code.sub.name')
+}
+const SUB_DOT: Record<string, string> = { running: 'agc-sd--run agc-pulse', requires_action: 'agc-sd--wait' }
+/** 标签上的小圆点：在跑、等人回应时才有 */
+const subDot = (id: string) => SUB_DOT[subOf(id).live?.state ?? ''] ?? ''
 const subInfo = computed(() => {
-  const item = socket.items.value.find((i) => i.type === 'subagent' && i.subagent?.id === subId.value)
-  const sa = item?.subagent
-  const running = sa?.state === 'running' || sa?.state === 'requires_action'
-  const took = sa?.endAt && item?.at ? fmtDuration(sa.endAt - item.at) : ''
+  const { live, sa, at } = subOf(curSub.value)
+  const running = subagentWorking(live)
+  const startAt = sa?.startAt || at
+  const took = !running && sa?.endAt && startAt ? fmtDuration(sa.endAt - startAt) : ''
   return {
-    title: sa?.title || sa?.description || t('agent.code.sub.name'),
     running,
-    meta: [running ? t('agent.code.sub.running') : t('agent.code.sub.done'), took ? t('agent.code.turn.took', { time: took }) : ''].filter(Boolean).join(' · '),
+    meta: [subagentStateName(live?.state), took ? t('agent.code.turn.took', { time: took }) : ''].filter(Boolean).join(' · '),
   }
 })
+/** 打开一个子 Agent 的标签：已经开着就切过去 */
 const openSub = (id: string) => {
-  subId.value = id
-  ctab.value = 'sub'
+  if (!openSubs.value.includes(id)) openSubs.value.push(id)
+  ctab.value = subTab(id)
 }
-const closeSub = () => {
-  subId.value = ''
-  if (ctab.value === 'sub') ctab.value = 'chat'
+const closeSub = (id: string) => {
+  openSubs.value = openSubs.value.filter((s) => s !== id)
+  if (ctab.value === subTab(id)) ctab.value = 'chat'
 }
 const openCommit = (c: GitCommitTarget) => {
   commitTab.value = c

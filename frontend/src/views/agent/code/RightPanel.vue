@@ -199,7 +199,7 @@ import type { AgentProcess, AgentSession, AgentSessionDetail, AgentUsage } from 
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import { agentKindOf, clockTime, fmtDuration, fmtTokens, sinceTime } from '@/views/agent/utils/format'
 import { effortName, modelName } from '@/views/agent/composables/useAgentModels'
-import { modeName, providerLabel, sessionTitle } from '@/views/agent/utils/labels'
+import { modeName, providerLabel, sessionTitle, subagentStateName, subagentWorking } from '@/views/agent/utils/labels'
 import DiffCard from './DiffCard.vue'
 import FileTree from './FileTree.vue'
 import GitPanel from './git/GitPanel.vue'
@@ -322,7 +322,7 @@ const taskOpen = reactive(new Set<string>())
 /** 转到后台还在跑的命令：后台列表只有主会话的，看子 Agent 时不用 */
 const bgTools = computed(() => new Set(props.sub ? [] : props.background))
 const tasks = computed<Task[]>(() => {
-  const out: Task[] = []
+  const out: (Task & { at: number })[] = []
   for (const item of props.items) {
     if ((item.sub || '') !== (props.sub || '')) continue
     if (item.type === 'tool' && item.tool?.kind === 'execute') {
@@ -336,6 +336,7 @@ const tasks = computed<Task[]>(() => {
           ? t('agent.code.task.running')
           : [t(`agent.code.task.${failed ? (tool.status === 'cancelled' ? 'cancelled' : 'failed') : 'done'}`), item.ms ? fmtDuration(item.ms) : ''].filter(Boolean).join(' · ')
       out.push({
+        at: item.at,
         key: `t${item.seq}`,
         title: tool.command || tool.title,
         meta,
@@ -347,14 +348,18 @@ const tasks = computed<Task[]>(() => {
         toolId: tool.id,
         cancel: running && !!tool.cancel,
       })
-    } else if (item.type === 'subagent' && item.subagent) {
-      const sa = item.subagent
-      const running = sa.state === 'running' || sa.state === 'requires_action'
-      const took = sa.endAt && item.at ? fmtDuration(sa.endAt - item.at) : ''
+    }
+  }
+  // 子 Agent 不从对话记录里找：用 Agent 经 ACP 报的那份（和进程信息里的同一份），派出得再早、怎么接着干活的都一样
+  if (!props.sub) {
+    for (const sa of props.state.subagents ?? []) {
+      const running = subagentWorking(sa)
+      const took = !running && sa.endAt && sa.startAt ? fmtDuration(sa.endAt - sa.startAt) : ''
       out.push({
-        key: `s${item.seq}`,
+        at: sa.startAt ?? 0,
+        key: `s:${sa.id}`,
         title: sa.title || sa.description || sa.id,
-        meta: [t('agent.code.sub.name'), running ? t('agent.code.sub.running') : t('agent.code.sub.done'), took ? t('agent.code.turn.took', { time: took }) : '']
+        meta: [t('agent.code.sub.name'), subagentStateName(sa.state), took ? t('agent.code.turn.took', { time: took }) : '']
           .filter(Boolean)
           .join(' · '),
         running,
@@ -365,7 +370,8 @@ const tasks = computed<Task[]>(() => {
       })
     }
   }
-  return out.reverse()
+  // 新的在上面；同一时刻的保持原来的先后
+  return out.map((k, i) => ({ k, i })).sort((a, b) => b.k.at - a.k.at || b.i - a.i).map(({ k }) => k)
 })
 const taskGroups = computed(() => [
   { key: 'run', title: t('agent.code.task.active'), items: tasks.value.filter((k) => k.running) },
@@ -476,6 +482,8 @@ const tabs = computed(() => [
 ])
 
 // —— 子 Agent ——
+/** 正在看的子 Agent：状态只看 Agent 经 ACP 报的那份；不在里面的（上一个进程派出的）只从对话里的卡片取标题这些，不算在干活 */
+const subLive = computed(() => (props.sub ? props.state.subagents?.find((sa) => sa.id === props.sub) : undefined))
 const subItem = computed(() =>
   props.sub ? props.items.find((i) => i.type === 'subagent' && i.subagent?.id === props.sub) : undefined,
 )
@@ -512,26 +520,22 @@ const subCtxSize = computed(() => Number(props.sub ? props.state.subs?.[props.su
 const subCtxPct = computed(() =>
   subCtxSize.value > 0 ? `${Math.min(100, Math.round((subCtxUsed.value / subCtxSize.value) * 100))}%` : '',
 )
-const subStateText = computed(() => {
-  const state = subItem.value?.subagent?.state
-  if (state === 'running') return t('agent.code.sub.running')
-  if (state === 'requires_action') return t('agent.code.sub.waiting')
-  return t('agent.code.sub.done')
-})
+const subStateText = computed(() => subagentStateName(subLive.value?.state))
 const subPillCls = computed(
-  () => ({ running: 'ag-pill--ok', requires_action: 'ag-pill--warn' })[subItem.value?.subagent?.state || ''] ?? '',
+  () => ({ running: 'ag-pill--ok', requires_action: 'ag-pill--warn' })[subLive.value?.state || ''] ?? '',
 )
 const subRows = computed(() => {
   const item = subItem.value
-  const sa = item?.subagent
-  if (!item || !sa) return []
+  const sa = subLive.value ?? item?.subagent
+  if (!sa) return []
+  const startAt = sa.startAt || item?.at || 0
   const rows: { k: string; v: string; mono?: boolean }[] = [
     { k: t('agent.code.info.title'), v: sa.title || sa.description || sa.id },
   ]
   if (sa.title && sa.description) rows.push({ k: t('agent.code.sub.description'), v: sa.description })
   rows.push({ k: t('agent.code.info.cwd'), v: sa.cwd || props.session.cwd, mono: true })
-  rows.push({ k: t('agent.code.sub.started'), v: clockTime(item.at) })
-  if (sa.endAt) rows.push({ k: t('agent.code.sub.took'), v: fmtDuration(sa.endAt - item.at) })
+  if (startAt) rows.push({ k: t('agent.code.sub.started'), v: clockTime(startAt) })
+  if (startAt && sa.endAt && !subagentWorking(subLive.value)) rows.push({ k: t('agent.code.sub.took'), v: fmtDuration(sa.endAt - startAt) })
   const tools = props.items.filter((i) => i.sub === props.sub && i.type === 'tool').length
   rows.push({ k: t('agent.code.sub.tools'), v: String(tools) })
   rows.push({ k: t('agent.code.info.sessionId'), v: sa.id, mono: true })
