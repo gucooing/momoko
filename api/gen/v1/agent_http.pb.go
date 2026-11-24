@@ -19,9 +19,11 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationAgentServiceApplyAgentGitLines = "/v1.AgentService/ApplyAgentGitLines"
 const OperationAgentServiceArchiveAgentSessions = "/v1.AgentService/ArchiveAgentSessions"
 const OperationAgentServiceBrowseAgentWorkspace = "/v1.AgentService/BrowseAgentWorkspace"
 const OperationAgentServiceCancelAgentSession = "/v1.AgentService/CancelAgentSession"
+const OperationAgentServiceCommitAgentGit = "/v1.AgentService/CommitAgentGit"
 const OperationAgentServiceCreateAgentDir = "/v1.AgentService/CreateAgentDir"
 const OperationAgentServiceCreateAgentMcpServer = "/v1.AgentService/CreateAgentMcpServer"
 const OperationAgentServiceCreateAgentProvider = "/v1.AgentService/CreateAgentProvider"
@@ -43,22 +45,29 @@ const OperationAgentServiceDetectAgentRuntime = "/v1.AgentService/DetectAgentRun
 const OperationAgentServiceExportAgentSessions = "/v1.AgentService/ExportAgentSessions"
 const OperationAgentServiceFetchAgentProviderModels = "/v1.AgentService/FetchAgentProviderModels"
 const OperationAgentServiceForkAgentSession = "/v1.AgentService/ForkAgentSession"
+const OperationAgentServiceGenerateAgentGitMessage = "/v1.AgentService/GenerateAgentGitMessage"
 const OperationAgentServiceGetAgentDocs = "/v1.AgentService/GetAgentDocs"
 const OperationAgentServiceGetAgentFileRaw = "/v1.AgentService/GetAgentFileRaw"
+const OperationAgentServiceGetAgentGitCommit = "/v1.AgentService/GetAgentGitCommit"
+const OperationAgentServiceGetAgentGitDiff = "/v1.AgentService/GetAgentGitDiff"
+const OperationAgentServiceGetAgentGitStatus = "/v1.AgentService/GetAgentGitStatus"
 const OperationAgentServiceGetAgentNotify = "/v1.AgentService/GetAgentNotify"
 const OperationAgentServiceGetAgentOptions = "/v1.AgentService/GetAgentOptions"
 const OperationAgentServiceGetAgentOverview = "/v1.AgentService/GetAgentOverview"
 const OperationAgentServiceGetAgentPreviewToken = "/v1.AgentService/GetAgentPreviewToken"
 const OperationAgentServiceGetAgentProviderBalance = "/v1.AgentService/GetAgentProviderBalance"
 const OperationAgentServiceGetAgentSession = "/v1.AgentService/GetAgentSession"
-const OperationAgentServiceGetAgentSessionChanges = "/v1.AgentService/GetAgentSessionChanges"
 const OperationAgentServiceGetAgentSessionProcess = "/v1.AgentService/GetAgentSessionProcess"
 const OperationAgentServiceGetAgentSessionUpload = "/v1.AgentService/GetAgentSessionUpload"
 const OperationAgentServiceGetAgentSidebar = "/v1.AgentService/GetAgentSidebar"
 const OperationAgentServiceGetAgentSkill = "/v1.AgentService/GetAgentSkill"
 const OperationAgentServiceImportAgentMcpServers = "/v1.AgentService/ImportAgentMcpServers"
 const OperationAgentServiceImportAgentSkill = "/v1.AgentService/ImportAgentSkill"
+const OperationAgentServiceInitAgentGitRepo = "/v1.AgentService/InitAgentGitRepo"
 const OperationAgentServiceListAgentDirs = "/v1.AgentService/ListAgentDirs"
+const OperationAgentServiceListAgentGitLog = "/v1.AgentService/ListAgentGitLog"
+const OperationAgentServiceListAgentGitRefs = "/v1.AgentService/ListAgentGitRefs"
+const OperationAgentServiceListAgentGitStashes = "/v1.AgentService/ListAgentGitStashes"
 const OperationAgentServiceListAgentMcpServers = "/v1.AgentService/ListAgentMcpServers"
 const OperationAgentServiceListAgentNotify = "/v1.AgentService/ListAgentNotify"
 const OperationAgentServiceListAgentProviders = "/v1.AgentService/ListAgentProviders"
@@ -74,8 +83,9 @@ const OperationAgentServicePurgeAgentSessions = "/v1.AgentService/PurgeAgentSess
 const OperationAgentServiceReadAgentSessionFile = "/v1.AgentService/ReadAgentSessionFile"
 const OperationAgentServiceReadAgentWorkspaceFile = "/v1.AgentService/ReadAgentWorkspaceFile"
 const OperationAgentServiceRenameAgentSession = "/v1.AgentService/RenameAgentSession"
+const OperationAgentServiceResetAgentGit = "/v1.AgentService/ResetAgentGit"
 const OperationAgentServiceResolveAgentPermission = "/v1.AgentService/ResolveAgentPermission"
-const OperationAgentServiceRevertAgentSessionFile = "/v1.AgentService/RevertAgentSessionFile"
+const OperationAgentServiceRunAgentGitOperation = "/v1.AgentService/RunAgentGitOperation"
 const OperationAgentServiceSaveAgentFile = "/v1.AgentService/SaveAgentFile"
 const OperationAgentServiceSaveAgentNotifyChannel = "/v1.AgentService/SaveAgentNotifyChannel"
 const OperationAgentServiceSearchAgentFiles = "/v1.AgentService/SearchAgentFiles"
@@ -87,9 +97,14 @@ const OperationAgentServiceSetAgentRuntimeModels = "/v1.AgentService/SetAgentRun
 const OperationAgentServiceSetAgentSessionOption = "/v1.AgentService/SetAgentSessionOption"
 const OperationAgentServiceSetAgentSkillEnabled = "/v1.AgentService/SetAgentSkillEnabled"
 const OperationAgentServiceStopAgentSessionItem = "/v1.AgentService/StopAgentSessionItem"
+const OperationAgentServiceSyncAgentGit = "/v1.AgentService/SyncAgentGit"
 const OperationAgentServiceTestAgentMcpServer = "/v1.AgentService/TestAgentMcpServer"
 const OperationAgentServiceTestAgentNotifyChannel = "/v1.AgentService/TestAgentNotifyChannel"
 const OperationAgentServiceTestAgentProvider = "/v1.AgentService/TestAgentProvider"
+const OperationAgentServiceUpdateAgentGitFiles = "/v1.AgentService/UpdateAgentGitFiles"
+const OperationAgentServiceUpdateAgentGitRef = "/v1.AgentService/UpdateAgentGitRef"
+const OperationAgentServiceUpdateAgentGitRemote = "/v1.AgentService/UpdateAgentGitRemote"
+const OperationAgentServiceUpdateAgentGitStash = "/v1.AgentService/UpdateAgentGitStash"
 const OperationAgentServiceUpdateAgentMcpServer = "/v1.AgentService/UpdateAgentMcpServer"
 const OperationAgentServiceUpdateAgentNotifyEvents = "/v1.AgentService/UpdateAgentNotifyEvents"
 const OperationAgentServiceUpdateAgentProvider = "/v1.AgentService/UpdateAgentProvider"
@@ -99,12 +114,16 @@ const OperationAgentServiceUpdateAgentSkill = "/v1.AgentService/UpdateAgentSkill
 const OperationAgentServiceUpdateAgentWorkspace = "/v1.AgentService/UpdateAgentWorkspace"
 
 type AgentServiceHTTPServer interface {
+	// ApplyAgentGitLines 按行（或整段）暂存、取消暂存、撤销
+	ApplyAgentGitLines(context.Context, *ApplyAgentGitLinesRequest) (*ApplyAgentGitLinesResponse, error)
 	// ArchiveAgentSessions 归档 / 取消归档（还在运行或等待批准的不能归档）
 	ArchiveAgentSessions(context.Context, *ArchiveAgentSessionsRequest) (*ArchiveAgentSessionsResponse, error)
 	// BrowseAgentWorkspace 「查看文件」：只读地列出工作区里的目录和文件
 	BrowseAgentWorkspace(context.Context, *BrowseAgentWorkspaceRequest) (*BrowseAgentWorkspaceResponse, error)
 	// CancelAgentSession 停止当前这一轮
 	CancelAgentSession(context.Context, *CancelAgentSessionRequest) (*CancelAgentSessionResponse, error)
+	// CommitAgentGit 提交
+	CommitAgentGit(context.Context, *CommitAgentGitRequest) (*CommitAgentGitResponse, error)
 	// CreateAgentDir 新建文件夹
 	CreateAgentDir(context.Context, *CreateAgentDirRequest) (*CreateAgentDirResponse, error)
 	CreateAgentMcpServer(context.Context, *CreateAgentMcpServerRequest) (*CreateAgentMcpServerResponse, error)
@@ -139,10 +158,20 @@ type AgentServiceHTTPServer interface {
 	FetchAgentProviderModels(context.Context, *FetchAgentProviderModelsRequest) (*FetchAgentProviderModelsResponse, error)
 	// ForkAgentSession 复刻对话；worktree 为 true 时放到自动命名的新工作树里
 	ForkAgentSession(context.Context, *ForkAgentSessionRequest) (*ForkAgentSessionResponse, error)
+	// GenerateAgentGitMessage 让会话的 Agent 写提交说明：在同一个 Agent 进程里另开一个一次性会话，不进对话
+	GenerateAgentGitMessage(context.Context, *GenerateAgentGitMessageRequest) (*GenerateAgentGitMessageResponse, error)
 	// GetAgentDocs 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
 	GetAgentDocs(context.Context, *GetAgentDocsRequest) (*GetAgentDocsResponse, error)
 	// GetAgentFileRaw 原样读一个文件（预览图片，Markdown 里用到的图片）
 	GetAgentFileRaw(context.Context, *GetAgentFileRawRequest) (*GetAgentSessionUploadResponse, error)
+	// GetAgentGitCommit 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
+	GetAgentGitCommit(context.Context, *GetAgentGitCommitRequest) (*GetAgentGitCommitResponse, error)
+	// GetAgentGitDiff 一个文件的 diff：工作区的、暂存区的、冲突的、某次提交里的、某个储藏里的；head 是整个仓库相对 HEAD 的补丁（复制用）
+	GetAgentGitDiff(context.Context, *GetAgentGitDiffRequest) (*GetAgentGitDiffResponse, error)
+	// GetAgentGitStatus —— 右侧「Git」：会话目录本身是仓库，或者它下面几层里的几个仓库 ——
+	// repo 是仓库相对会话目录的路径（会话目录本身为空），文件路径都相对仓库。
+	// 每个仓库的状态：分支、上游和领先落后、进行中的合并 / 变基、暂存的 / 没暂存的 / 冲突的文件
+	GetAgentGitStatus(context.Context, *GetAgentGitStatusRequest) (*GetAgentGitStatusResponse, error)
 	// GetAgentNotify —— 通知：每个人自己的 ——
 	GetAgentNotify(context.Context, *GetAgentNotifyRequest) (*GetAgentNotifyResponse, error)
 	// GetAgentOptions —— 选择器 ——
@@ -155,8 +184,6 @@ type AgentServiceHTTPServer interface {
 	// GetAgentProviderBalance 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
 	GetAgentProviderBalance(context.Context, *GetAgentProviderBalanceRequest) (*GetAgentProviderBalanceResponse, error)
 	GetAgentSession(context.Context, *GetAgentSessionRequest) (*GetAgentSessionResponse, error)
-	// GetAgentSessionChanges 右侧「改动」：会话目录相对当前分支的未提交改动
-	GetAgentSessionChanges(context.Context, *GetAgentSessionChangesRequest) (*GetAgentSessionChangesResponse, error)
 	// GetAgentSessionProcess 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
 	GetAgentSessionProcess(context.Context, *GetAgentSessionProcessRequest) (*GetAgentSessionProcessResponse, error)
 	// GetAgentSessionUpload 取回消息里上传过的附件（显示图片）
@@ -169,8 +196,15 @@ type AgentServiceHTTPServer interface {
 	ImportAgentMcpServers(context.Context, *ImportAgentMcpServersRequest) (*ImportAgentMcpServersResponse, error)
 	// ImportAgentSkill 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
 	ImportAgentSkill(context.Context, *ImportAgentSkillRequest) (*ImportAgentSkillResponse, error)
+	// InitAgentGitRepo 在会话目录（或它下面的某个目录）初始化仓库
+	InitAgentGitRepo(context.Context, *InitAgentGitRepoRequest) (*InitAgentGitRepoResponse, error)
 	// ListAgentDirs 「浏览」：列出服务器上某个目录下的子目录
 	ListAgentDirs(context.Context, *ListAgentDirsRequest) (*ListAgentDirsResponse, error)
+	// ListAgentGitLog 提交历史（分页、搜说明、只看某个文件）
+	ListAgentGitLog(context.Context, *ListAgentGitLogRequest) (*ListAgentGitLogResponse, error)
+	// ListAgentGitRefs 分支、远程分支、标签、远程仓库
+	ListAgentGitRefs(context.Context, *ListAgentGitRefsRequest) (*ListAgentGitRefsResponse, error)
+	ListAgentGitStashes(context.Context, *ListAgentGitStashesRequest) (*ListAgentGitStashesResponse, error)
 	// ListAgentMcpServers —— MCP ——
 	ListAgentMcpServers(context.Context, *ListAgentMcpServersRequest) (*ListAgentMcpServersResponse, error)
 	// ListAgentNotify 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
@@ -200,10 +234,12 @@ type AgentServiceHTTPServer interface {
 	// ReadAgentWorkspaceFile 新会话页里打开工作区的文件（只读，和会话里打开文件一样的返回）
 	ReadAgentWorkspaceFile(context.Context, *ReadAgentWorkspaceFileRequest) (*ReadAgentSessionFileResponse, error)
 	RenameAgentSession(context.Context, *RenameAgentSessionRequest) (*RenameAgentSessionResponse, error)
+	// ResetAgentGit 当前分支重置到某个提交（撤销上一次提交是软重置到 HEAD~1）
+	ResetAgentGit(context.Context, *ResetAgentGitRequest) (*ResetAgentGitResponse, error)
 	// ResolveAgentPermission 回答批准卡片
 	ResolveAgentPermission(context.Context, *ResolveAgentPermissionRequest) (*ResolveAgentPermissionResponse, error)
-	// RevertAgentSessionFile 撤销某个文件的改动
-	RevertAgentSessionFile(context.Context, *RevertAgentSessionFileRequest) (*RevertAgentSessionFileResponse, error)
+	// RunAgentGitOperation 拣选、还原一个提交；进行中的合并 / 变基 / 拣选 / 还原：继续、跳过、中止
+	RunAgentGitOperation(context.Context, *RunAgentGitOperationRequest) (*RunAgentGitOperationResponse, error)
 	// SaveAgentFile —— 文件树里的编辑：有会话按会话目录，新会话页还没有会话时按工作区（和 @ 搜索一样给 session_id 或 workspace_id）——
 	// 保存文本文件：编辑后保存，或者新建一个文件
 	SaveAgentFile(context.Context, *SaveAgentFileRequest) (*SaveAgentFileResponse, error)
@@ -225,12 +261,22 @@ type AgentServiceHTTPServer interface {
 	SetAgentSkillEnabled(context.Context, *SetAgentSkillEnabledRequest) (*SetAgentSkillEnabledResponse, error)
 	// StopAgentSessionItem 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
 	StopAgentSessionItem(context.Context, *StopAgentSessionItemRequest) (*StopAgentSessionItemResponse, error)
+	// SyncAgentGit 获取、拉取、推送
+	SyncAgentGit(context.Context, *SyncAgentGitRequest) (*SyncAgentGitResponse, error)
 	// TestAgentMcpServer 测试连接：由 Momoko 自己连一次，读它的工具列表
 	TestAgentMcpServer(context.Context, *TestAgentMcpServerRequest) (*TestAgentMcpServerResponse, error)
 	// TestAgentNotifyChannel 发一条测试；fields 为空时用已保存的配置
 	TestAgentNotifyChannel(context.Context, *TestAgentNotifyChannelRequest) (*TestAgentNotifyChannelResponse, error)
 	// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(context.Context, *TestAgentProviderRequest) (*TestAgentProviderResponse, error)
+	// UpdateAgentGitFiles 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
+	UpdateAgentGitFiles(context.Context, *UpdateAgentGitFilesRequest) (*UpdateAgentGitFilesResponse, error)
+	// UpdateAgentGitRef 分支和标签：切换、新建、改名、删除（本地 / 远程）、合并到当前、把当前变基到；新建、删除、推送标签
+	UpdateAgentGitRef(context.Context, *UpdateAgentGitRefRequest) (*UpdateAgentGitRefResponse, error)
+	// UpdateAgentGitRemote 远程仓库：添加、改地址、改名、删除
+	UpdateAgentGitRemote(context.Context, *UpdateAgentGitRemoteRequest) (*UpdateAgentGitRemoteResponse, error)
+	// UpdateAgentGitStash 储藏：存、应用、弹出、删除
+	UpdateAgentGitStash(context.Context, *UpdateAgentGitStashRequest) (*UpdateAgentGitStashResponse, error)
 	UpdateAgentMcpServer(context.Context, *UpdateAgentMcpServerRequest) (*UpdateAgentMcpServerResponse, error)
 	// UpdateAgentNotifyEvents 三个时机开关
 	UpdateAgentNotifyEvents(context.Context, *UpdateAgentNotifyEventsRequest) (*UpdateAgentNotifyEventsResponse, error)
@@ -266,8 +312,23 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.POST("/api/v1/agent/sessions/delete", _AgentService_DeleteAgentSessions0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/sessions/purge", _AgentService_PurgeAgentSessions0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/sessions/export", _AgentService_ExportAgentSessions0_HTTP_Handler(srv))
-	r.GET("/api/v1/agent/sessions/{id}/changes", _AgentService_GetAgentSessionChanges0_HTTP_Handler(srv))
-	r.POST("/api/v1/agent/sessions/{id}/revert", _AgentService_RevertAgentSessionFile0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/sessions/{id}/git/status", _AgentService_GetAgentGitStatus0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/sessions/{id}/git/diff", _AgentService_GetAgentGitDiff0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/files", _AgentService_UpdateAgentGitFiles0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/lines", _AgentService_ApplyAgentGitLines0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/commit", _AgentService_CommitAgentGit0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/message", _AgentService_GenerateAgentGitMessage0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/reset", _AgentService_ResetAgentGit0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/sessions/{id}/git/refs", _AgentService_ListAgentGitRefs0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/ref", _AgentService_UpdateAgentGitRef0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/sync", _AgentService_SyncAgentGit0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/remote", _AgentService_UpdateAgentGitRemote0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/sessions/{id}/git/stashes", _AgentService_ListAgentGitStashes0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/stash", _AgentService_UpdateAgentGitStash0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/operation", _AgentService_RunAgentGitOperation0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/sessions/{id}/git/log", _AgentService_ListAgentGitLog0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/sessions/{id}/git/commits/{hash}", _AgentService_GetAgentGitCommit0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sessions/{id}/git/init", _AgentService_InitAgentGitRepo0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/sessions/{id}/files", _AgentService_ListAgentSessionFiles0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/sessions/{id}/file", _AgentService_ReadAgentSessionFile0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/sessions/{id}/upload", _AgentService_GetAgentSessionUpload0_HTTP_Handler(srv))
@@ -802,31 +863,53 @@ func _AgentService_ExportAgentSessions0_HTTP_Handler(srv AgentServiceHTTPServer)
 	}
 }
 
-func _AgentService_GetAgentSessionChanges0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+func _AgentService_GetAgentGitStatus0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetAgentSessionChangesRequest
+		var in GetAgentGitStatusRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAgentServiceGetAgentSessionChanges)
+		http.SetOperation(ctx, OperationAgentServiceGetAgentGitStatus)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetAgentSessionChanges(ctx, req.(*GetAgentSessionChangesRequest))
+			return srv.GetAgentGitStatus(ctx, req.(*GetAgentGitStatusRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*GetAgentSessionChangesResponse)
+		reply := out.(*GetAgentGitStatusResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _AgentService_RevertAgentSessionFile0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+func _AgentService_GetAgentGitDiff0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in RevertAgentSessionFileRequest
+		var in GetAgentGitDiffRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceGetAgentGitDiff)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAgentGitDiff(ctx, req.(*GetAgentGitDiffRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAgentGitDiffResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_UpdateAgentGitFiles0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAgentGitFilesRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
@@ -836,15 +919,353 @@ func _AgentService_RevertAgentSessionFile0_HTTP_Handler(srv AgentServiceHTTPServ
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAgentServiceRevertAgentSessionFile)
+		http.SetOperation(ctx, OperationAgentServiceUpdateAgentGitFiles)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RevertAgentSessionFile(ctx, req.(*RevertAgentSessionFileRequest))
+			return srv.UpdateAgentGitFiles(ctx, req.(*UpdateAgentGitFilesRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*RevertAgentSessionFileResponse)
+		reply := out.(*UpdateAgentGitFilesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_ApplyAgentGitLines0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ApplyAgentGitLinesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceApplyAgentGitLines)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ApplyAgentGitLines(ctx, req.(*ApplyAgentGitLinesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ApplyAgentGitLinesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_CommitAgentGit0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CommitAgentGitRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceCommitAgentGit)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CommitAgentGit(ctx, req.(*CommitAgentGitRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CommitAgentGitResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_GenerateAgentGitMessage0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GenerateAgentGitMessageRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceGenerateAgentGitMessage)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GenerateAgentGitMessage(ctx, req.(*GenerateAgentGitMessageRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GenerateAgentGitMessageResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_ResetAgentGit0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResetAgentGitRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceResetAgentGit)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResetAgentGit(ctx, req.(*ResetAgentGitRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResetAgentGitResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_ListAgentGitRefs0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListAgentGitRefsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceListAgentGitRefs)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAgentGitRefs(ctx, req.(*ListAgentGitRefsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListAgentGitRefsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_UpdateAgentGitRef0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAgentGitRefRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceUpdateAgentGitRef)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAgentGitRef(ctx, req.(*UpdateAgentGitRefRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateAgentGitRefResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_SyncAgentGit0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SyncAgentGitRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceSyncAgentGit)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SyncAgentGit(ctx, req.(*SyncAgentGitRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SyncAgentGitResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_UpdateAgentGitRemote0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAgentGitRemoteRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceUpdateAgentGitRemote)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAgentGitRemote(ctx, req.(*UpdateAgentGitRemoteRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateAgentGitRemoteResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_ListAgentGitStashes0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListAgentGitStashesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceListAgentGitStashes)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAgentGitStashes(ctx, req.(*ListAgentGitStashesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListAgentGitStashesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_UpdateAgentGitStash0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAgentGitStashRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceUpdateAgentGitStash)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAgentGitStash(ctx, req.(*UpdateAgentGitStashRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateAgentGitStashResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_RunAgentGitOperation0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RunAgentGitOperationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceRunAgentGitOperation)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RunAgentGitOperation(ctx, req.(*RunAgentGitOperationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RunAgentGitOperationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_ListAgentGitLog0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListAgentGitLogRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceListAgentGitLog)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAgentGitLog(ctx, req.(*ListAgentGitLogRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListAgentGitLogResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_GetAgentGitCommit0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAgentGitCommitRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceGetAgentGitCommit)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAgentGitCommit(ctx, req.(*GetAgentGitCommitRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAgentGitCommitResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_InitAgentGitRepo0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in InitAgentGitRepoRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceInitAgentGitRepo)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.InitAgentGitRepo(ctx, req.(*InitAgentGitRepoRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*InitAgentGitRepoResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -2051,12 +2472,16 @@ func _AgentService_TestAgentNotifyChannel0_HTTP_Handler(srv AgentServiceHTTPServ
 }
 
 type AgentServiceHTTPClient interface {
+	// ApplyAgentGitLines 按行（或整段）暂存、取消暂存、撤销
+	ApplyAgentGitLines(ctx context.Context, req *ApplyAgentGitLinesRequest, opts ...http.CallOption) (rsp *ApplyAgentGitLinesResponse, err error)
 	// ArchiveAgentSessions 归档 / 取消归档（还在运行或等待批准的不能归档）
 	ArchiveAgentSessions(ctx context.Context, req *ArchiveAgentSessionsRequest, opts ...http.CallOption) (rsp *ArchiveAgentSessionsResponse, err error)
 	// BrowseAgentWorkspace 「查看文件」：只读地列出工作区里的目录和文件
 	BrowseAgentWorkspace(ctx context.Context, req *BrowseAgentWorkspaceRequest, opts ...http.CallOption) (rsp *BrowseAgentWorkspaceResponse, err error)
 	// CancelAgentSession 停止当前这一轮
 	CancelAgentSession(ctx context.Context, req *CancelAgentSessionRequest, opts ...http.CallOption) (rsp *CancelAgentSessionResponse, err error)
+	// CommitAgentGit 提交
+	CommitAgentGit(ctx context.Context, req *CommitAgentGitRequest, opts ...http.CallOption) (rsp *CommitAgentGitResponse, err error)
 	// CreateAgentDir 新建文件夹
 	CreateAgentDir(ctx context.Context, req *CreateAgentDirRequest, opts ...http.CallOption) (rsp *CreateAgentDirResponse, err error)
 	CreateAgentMcpServer(ctx context.Context, req *CreateAgentMcpServerRequest, opts ...http.CallOption) (rsp *CreateAgentMcpServerResponse, err error)
@@ -2091,10 +2516,20 @@ type AgentServiceHTTPClient interface {
 	FetchAgentProviderModels(ctx context.Context, req *FetchAgentProviderModelsRequest, opts ...http.CallOption) (rsp *FetchAgentProviderModelsResponse, err error)
 	// ForkAgentSession 复刻对话；worktree 为 true 时放到自动命名的新工作树里
 	ForkAgentSession(ctx context.Context, req *ForkAgentSessionRequest, opts ...http.CallOption) (rsp *ForkAgentSessionResponse, err error)
+	// GenerateAgentGitMessage 让会话的 Agent 写提交说明：在同一个 Agent 进程里另开一个一次性会话，不进对话
+	GenerateAgentGitMessage(ctx context.Context, req *GenerateAgentGitMessageRequest, opts ...http.CallOption) (rsp *GenerateAgentGitMessageResponse, err error)
 	// GetAgentDocs 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
 	GetAgentDocs(ctx context.Context, req *GetAgentDocsRequest, opts ...http.CallOption) (rsp *GetAgentDocsResponse, err error)
 	// GetAgentFileRaw 原样读一个文件（预览图片，Markdown 里用到的图片）
 	GetAgentFileRaw(ctx context.Context, req *GetAgentFileRawRequest, opts ...http.CallOption) (rsp *GetAgentSessionUploadResponse, err error)
+	// GetAgentGitCommit 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
+	GetAgentGitCommit(ctx context.Context, req *GetAgentGitCommitRequest, opts ...http.CallOption) (rsp *GetAgentGitCommitResponse, err error)
+	// GetAgentGitDiff 一个文件的 diff：工作区的、暂存区的、冲突的、某次提交里的、某个储藏里的；head 是整个仓库相对 HEAD 的补丁（复制用）
+	GetAgentGitDiff(ctx context.Context, req *GetAgentGitDiffRequest, opts ...http.CallOption) (rsp *GetAgentGitDiffResponse, err error)
+	// GetAgentGitStatus —— 右侧「Git」：会话目录本身是仓库，或者它下面几层里的几个仓库 ——
+	// repo 是仓库相对会话目录的路径（会话目录本身为空），文件路径都相对仓库。
+	// 每个仓库的状态：分支、上游和领先落后、进行中的合并 / 变基、暂存的 / 没暂存的 / 冲突的文件
+	GetAgentGitStatus(ctx context.Context, req *GetAgentGitStatusRequest, opts ...http.CallOption) (rsp *GetAgentGitStatusResponse, err error)
 	// GetAgentNotify —— 通知：每个人自己的 ——
 	GetAgentNotify(ctx context.Context, req *GetAgentNotifyRequest, opts ...http.CallOption) (rsp *GetAgentNotifyResponse, err error)
 	// GetAgentOptions —— 选择器 ——
@@ -2107,8 +2542,6 @@ type AgentServiceHTTPClient interface {
 	// GetAgentProviderBalance 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
 	GetAgentProviderBalance(ctx context.Context, req *GetAgentProviderBalanceRequest, opts ...http.CallOption) (rsp *GetAgentProviderBalanceResponse, err error)
 	GetAgentSession(ctx context.Context, req *GetAgentSessionRequest, opts ...http.CallOption) (rsp *GetAgentSessionResponse, err error)
-	// GetAgentSessionChanges 右侧「改动」：会话目录相对当前分支的未提交改动
-	GetAgentSessionChanges(ctx context.Context, req *GetAgentSessionChangesRequest, opts ...http.CallOption) (rsp *GetAgentSessionChangesResponse, err error)
 	// GetAgentSessionProcess 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
 	GetAgentSessionProcess(ctx context.Context, req *GetAgentSessionProcessRequest, opts ...http.CallOption) (rsp *GetAgentSessionProcessResponse, err error)
 	// GetAgentSessionUpload 取回消息里上传过的附件（显示图片）
@@ -2121,8 +2554,15 @@ type AgentServiceHTTPClient interface {
 	ImportAgentMcpServers(ctx context.Context, req *ImportAgentMcpServersRequest, opts ...http.CallOption) (rsp *ImportAgentMcpServersResponse, err error)
 	// ImportAgentSkill 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
 	ImportAgentSkill(ctx context.Context, req *ImportAgentSkillRequest, opts ...http.CallOption) (rsp *ImportAgentSkillResponse, err error)
+	// InitAgentGitRepo 在会话目录（或它下面的某个目录）初始化仓库
+	InitAgentGitRepo(ctx context.Context, req *InitAgentGitRepoRequest, opts ...http.CallOption) (rsp *InitAgentGitRepoResponse, err error)
 	// ListAgentDirs 「浏览」：列出服务器上某个目录下的子目录
 	ListAgentDirs(ctx context.Context, req *ListAgentDirsRequest, opts ...http.CallOption) (rsp *ListAgentDirsResponse, err error)
+	// ListAgentGitLog 提交历史（分页、搜说明、只看某个文件）
+	ListAgentGitLog(ctx context.Context, req *ListAgentGitLogRequest, opts ...http.CallOption) (rsp *ListAgentGitLogResponse, err error)
+	// ListAgentGitRefs 分支、远程分支、标签、远程仓库
+	ListAgentGitRefs(ctx context.Context, req *ListAgentGitRefsRequest, opts ...http.CallOption) (rsp *ListAgentGitRefsResponse, err error)
+	ListAgentGitStashes(ctx context.Context, req *ListAgentGitStashesRequest, opts ...http.CallOption) (rsp *ListAgentGitStashesResponse, err error)
 	// ListAgentMcpServers —— MCP ——
 	ListAgentMcpServers(ctx context.Context, req *ListAgentMcpServersRequest, opts ...http.CallOption) (rsp *ListAgentMcpServersResponse, err error)
 	// ListAgentNotify 所有人的通知设置（Agent 管理页，要有 agent:admin）：只列设置过通知方式的人，密钥只给脱敏值
@@ -2152,10 +2592,12 @@ type AgentServiceHTTPClient interface {
 	// ReadAgentWorkspaceFile 新会话页里打开工作区的文件（只读，和会话里打开文件一样的返回）
 	ReadAgentWorkspaceFile(ctx context.Context, req *ReadAgentWorkspaceFileRequest, opts ...http.CallOption) (rsp *ReadAgentSessionFileResponse, err error)
 	RenameAgentSession(ctx context.Context, req *RenameAgentSessionRequest, opts ...http.CallOption) (rsp *RenameAgentSessionResponse, err error)
+	// ResetAgentGit 当前分支重置到某个提交（撤销上一次提交是软重置到 HEAD~1）
+	ResetAgentGit(ctx context.Context, req *ResetAgentGitRequest, opts ...http.CallOption) (rsp *ResetAgentGitResponse, err error)
 	// ResolveAgentPermission 回答批准卡片
 	ResolveAgentPermission(ctx context.Context, req *ResolveAgentPermissionRequest, opts ...http.CallOption) (rsp *ResolveAgentPermissionResponse, err error)
-	// RevertAgentSessionFile 撤销某个文件的改动
-	RevertAgentSessionFile(ctx context.Context, req *RevertAgentSessionFileRequest, opts ...http.CallOption) (rsp *RevertAgentSessionFileResponse, err error)
+	// RunAgentGitOperation 拣选、还原一个提交；进行中的合并 / 变基 / 拣选 / 还原：继续、跳过、中止
+	RunAgentGitOperation(ctx context.Context, req *RunAgentGitOperationRequest, opts ...http.CallOption) (rsp *RunAgentGitOperationResponse, err error)
 	// SaveAgentFile —— 文件树里的编辑：有会话按会话目录，新会话页还没有会话时按工作区（和 @ 搜索一样给 session_id 或 workspace_id）——
 	// 保存文本文件：编辑后保存，或者新建一个文件
 	SaveAgentFile(ctx context.Context, req *SaveAgentFileRequest, opts ...http.CallOption) (rsp *SaveAgentFileResponse, err error)
@@ -2177,12 +2619,22 @@ type AgentServiceHTTPClient interface {
 	SetAgentSkillEnabled(ctx context.Context, req *SetAgentSkillEnabledRequest, opts ...http.CallOption) (rsp *SetAgentSkillEnabledResponse, err error)
 	// StopAgentSessionItem 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
 	StopAgentSessionItem(ctx context.Context, req *StopAgentSessionItemRequest, opts ...http.CallOption) (rsp *StopAgentSessionItemResponse, err error)
+	// SyncAgentGit 获取、拉取、推送
+	SyncAgentGit(ctx context.Context, req *SyncAgentGitRequest, opts ...http.CallOption) (rsp *SyncAgentGitResponse, err error)
 	// TestAgentMcpServer 测试连接：由 Momoko 自己连一次，读它的工具列表
 	TestAgentMcpServer(ctx context.Context, req *TestAgentMcpServerRequest, opts ...http.CallOption) (rsp *TestAgentMcpServerResponse, err error)
 	// TestAgentNotifyChannel 发一条测试；fields 为空时用已保存的配置
 	TestAgentNotifyChannel(ctx context.Context, req *TestAgentNotifyChannelRequest, opts ...http.CallOption) (rsp *TestAgentNotifyChannelResponse, err error)
 	// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(ctx context.Context, req *TestAgentProviderRequest, opts ...http.CallOption) (rsp *TestAgentProviderResponse, err error)
+	// UpdateAgentGitFiles 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
+	UpdateAgentGitFiles(ctx context.Context, req *UpdateAgentGitFilesRequest, opts ...http.CallOption) (rsp *UpdateAgentGitFilesResponse, err error)
+	// UpdateAgentGitRef 分支和标签：切换、新建、改名、删除（本地 / 远程）、合并到当前、把当前变基到；新建、删除、推送标签
+	UpdateAgentGitRef(ctx context.Context, req *UpdateAgentGitRefRequest, opts ...http.CallOption) (rsp *UpdateAgentGitRefResponse, err error)
+	// UpdateAgentGitRemote 远程仓库：添加、改地址、改名、删除
+	UpdateAgentGitRemote(ctx context.Context, req *UpdateAgentGitRemoteRequest, opts ...http.CallOption) (rsp *UpdateAgentGitRemoteResponse, err error)
+	// UpdateAgentGitStash 储藏：存、应用、弹出、删除
+	UpdateAgentGitStash(ctx context.Context, req *UpdateAgentGitStashRequest, opts ...http.CallOption) (rsp *UpdateAgentGitStashResponse, err error)
 	UpdateAgentMcpServer(ctx context.Context, req *UpdateAgentMcpServerRequest, opts ...http.CallOption) (rsp *UpdateAgentMcpServerResponse, err error)
 	// UpdateAgentNotifyEvents 三个时机开关
 	UpdateAgentNotifyEvents(ctx context.Context, req *UpdateAgentNotifyEventsRequest, opts ...http.CallOption) (rsp *UpdateAgentNotifyEventsResponse, err error)
@@ -2201,6 +2653,20 @@ type AgentServiceHTTPClientImpl struct {
 
 func NewAgentServiceHTTPClient(client *http.Client) AgentServiceHTTPClient {
 	return &AgentServiceHTTPClientImpl{client}
+}
+
+// ApplyAgentGitLines 按行（或整段）暂存、取消暂存、撤销
+func (c *AgentServiceHTTPClientImpl) ApplyAgentGitLines(ctx context.Context, in *ApplyAgentGitLinesRequest, opts ...http.CallOption) (*ApplyAgentGitLinesResponse, error) {
+	var out ApplyAgentGitLinesResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/lines"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceApplyAgentGitLines))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // ArchiveAgentSessions 归档 / 取消归档（还在运行或等待批准的不能归档）
@@ -2237,6 +2703,20 @@ func (c *AgentServiceHTTPClientImpl) CancelAgentSession(ctx context.Context, in 
 	pattern := "/api/v1/agent/sessions/{id}/cancel"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAgentServiceCancelAgentSession))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CommitAgentGit 提交
+func (c *AgentServiceHTTPClientImpl) CommitAgentGit(ctx context.Context, in *CommitAgentGitRequest, opts ...http.CallOption) (*CommitAgentGitResponse, error) {
+	var out CommitAgentGitResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/commit"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceCommitAgentGit))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -2531,6 +3011,20 @@ func (c *AgentServiceHTTPClientImpl) ForkAgentSession(ctx context.Context, in *F
 	return &out, nil
 }
 
+// GenerateAgentGitMessage 让会话的 Agent 写提交说明：在同一个 Agent 进程里另开一个一次性会话，不进对话
+func (c *AgentServiceHTTPClientImpl) GenerateAgentGitMessage(ctx context.Context, in *GenerateAgentGitMessageRequest, opts ...http.CallOption) (*GenerateAgentGitMessageResponse, error) {
+	var out GenerateAgentGitMessageResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/message"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceGenerateAgentGitMessage))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetAgentDocs 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
 func (c *AgentServiceHTTPClientImpl) GetAgentDocs(ctx context.Context, in *GetAgentDocsRequest, opts ...http.CallOption) (*GetAgentDocsResponse, error) {
 	var out GetAgentDocsResponse
@@ -2551,6 +3045,50 @@ func (c *AgentServiceHTTPClientImpl) GetAgentFileRaw(ctx context.Context, in *Ge
 	pattern := "/api/v1/agent/files/raw"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAgentServiceGetAgentFileRaw))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAgentGitCommit 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
+func (c *AgentServiceHTTPClientImpl) GetAgentGitCommit(ctx context.Context, in *GetAgentGitCommitRequest, opts ...http.CallOption) (*GetAgentGitCommitResponse, error) {
+	var out GetAgentGitCommitResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/commits/{hash}"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceGetAgentGitCommit))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAgentGitDiff 一个文件的 diff：工作区的、暂存区的、冲突的、某次提交里的、某个储藏里的；head 是整个仓库相对 HEAD 的补丁（复制用）
+func (c *AgentServiceHTTPClientImpl) GetAgentGitDiff(ctx context.Context, in *GetAgentGitDiffRequest, opts ...http.CallOption) (*GetAgentGitDiffResponse, error) {
+	var out GetAgentGitDiffResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/diff"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceGetAgentGitDiff))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAgentGitStatus —— 右侧「Git」：会话目录本身是仓库，或者它下面几层里的几个仓库 ——
+// repo 是仓库相对会话目录的路径（会话目录本身为空），文件路径都相对仓库。
+// 每个仓库的状态：分支、上游和领先落后、进行中的合并 / 变基、暂存的 / 没暂存的 / 冲突的文件
+func (c *AgentServiceHTTPClientImpl) GetAgentGitStatus(ctx context.Context, in *GetAgentGitStatusRequest, opts ...http.CallOption) (*GetAgentGitStatusResponse, error) {
+	var out GetAgentGitStatusResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/status"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceGetAgentGitStatus))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -2643,20 +3181,6 @@ func (c *AgentServiceHTTPClientImpl) GetAgentSession(ctx context.Context, in *Ge
 	return &out, nil
 }
 
-// GetAgentSessionChanges 右侧「改动」：会话目录相对当前分支的未提交改动
-func (c *AgentServiceHTTPClientImpl) GetAgentSessionChanges(ctx context.Context, in *GetAgentSessionChangesRequest, opts ...http.CallOption) (*GetAgentSessionChangesResponse, error) {
-	var out GetAgentSessionChangesResponse
-	pattern := "/api/v1/agent/sessions/{id}/changes"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAgentServiceGetAgentSessionChanges))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // GetAgentSessionProcess 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
 func (c *AgentServiceHTTPClientImpl) GetAgentSessionProcess(ctx context.Context, in *GetAgentSessionProcessRequest, opts ...http.CallOption) (*GetAgentSessionProcessResponse, error) {
 	var out GetAgentSessionProcessResponse
@@ -2741,12 +3265,67 @@ func (c *AgentServiceHTTPClientImpl) ImportAgentSkill(ctx context.Context, in *I
 	return &out, nil
 }
 
+// InitAgentGitRepo 在会话目录（或它下面的某个目录）初始化仓库
+func (c *AgentServiceHTTPClientImpl) InitAgentGitRepo(ctx context.Context, in *InitAgentGitRepoRequest, opts ...http.CallOption) (*InitAgentGitRepoResponse, error) {
+	var out InitAgentGitRepoResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/init"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceInitAgentGitRepo))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListAgentDirs 「浏览」：列出服务器上某个目录下的子目录
 func (c *AgentServiceHTTPClientImpl) ListAgentDirs(ctx context.Context, in *ListAgentDirsRequest, opts ...http.CallOption) (*ListAgentDirsResponse, error) {
 	var out ListAgentDirsResponse
 	pattern := "/api/v1/agent/dirs"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAgentServiceListAgentDirs))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListAgentGitLog 提交历史（分页、搜说明、只看某个文件）
+func (c *AgentServiceHTTPClientImpl) ListAgentGitLog(ctx context.Context, in *ListAgentGitLogRequest, opts ...http.CallOption) (*ListAgentGitLogResponse, error) {
+	var out ListAgentGitLogResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/log"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceListAgentGitLog))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListAgentGitRefs 分支、远程分支、标签、远程仓库
+func (c *AgentServiceHTTPClientImpl) ListAgentGitRefs(ctx context.Context, in *ListAgentGitRefsRequest, opts ...http.CallOption) (*ListAgentGitRefsResponse, error) {
+	var out ListAgentGitRefsResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/refs"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceListAgentGitRefs))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AgentServiceHTTPClientImpl) ListAgentGitStashes(ctx context.Context, in *ListAgentGitStashesRequest, opts ...http.CallOption) (*ListAgentGitStashesResponse, error) {
+	var out ListAgentGitStashesResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/stashes"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceListAgentGitStashes))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -2964,6 +3543,20 @@ func (c *AgentServiceHTTPClientImpl) RenameAgentSession(ctx context.Context, in 
 	return &out, nil
 }
 
+// ResetAgentGit 当前分支重置到某个提交（撤销上一次提交是软重置到 HEAD~1）
+func (c *AgentServiceHTTPClientImpl) ResetAgentGit(ctx context.Context, in *ResetAgentGitRequest, opts ...http.CallOption) (*ResetAgentGitResponse, error) {
+	var out ResetAgentGitResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/reset"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceResetAgentGit))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ResolveAgentPermission 回答批准卡片
 func (c *AgentServiceHTTPClientImpl) ResolveAgentPermission(ctx context.Context, in *ResolveAgentPermissionRequest, opts ...http.CallOption) (*ResolveAgentPermissionResponse, error) {
 	var out ResolveAgentPermissionResponse
@@ -2978,12 +3571,12 @@ func (c *AgentServiceHTTPClientImpl) ResolveAgentPermission(ctx context.Context,
 	return &out, nil
 }
 
-// RevertAgentSessionFile 撤销某个文件的改动
-func (c *AgentServiceHTTPClientImpl) RevertAgentSessionFile(ctx context.Context, in *RevertAgentSessionFileRequest, opts ...http.CallOption) (*RevertAgentSessionFileResponse, error) {
-	var out RevertAgentSessionFileResponse
-	pattern := "/api/v1/agent/sessions/{id}/revert"
+// RunAgentGitOperation 拣选、还原一个提交；进行中的合并 / 变基 / 拣选 / 还原：继续、跳过、中止
+func (c *AgentServiceHTTPClientImpl) RunAgentGitOperation(ctx context.Context, in *RunAgentGitOperationRequest, opts ...http.CallOption) (*RunAgentGitOperationResponse, error) {
+	var out RunAgentGitOperationResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/operation"
 	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationAgentServiceRevertAgentSessionFile))
+	opts = append(opts, http.Operation(OperationAgentServiceRunAgentGitOperation))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -3145,6 +3738,20 @@ func (c *AgentServiceHTTPClientImpl) StopAgentSessionItem(ctx context.Context, i
 	return &out, nil
 }
 
+// SyncAgentGit 获取、拉取、推送
+func (c *AgentServiceHTTPClientImpl) SyncAgentGit(ctx context.Context, in *SyncAgentGitRequest, opts ...http.CallOption) (*SyncAgentGitResponse, error) {
+	var out SyncAgentGitResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/sync"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceSyncAgentGit))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // TestAgentMcpServer 测试连接：由 Momoko 自己连一次，读它的工具列表
 func (c *AgentServiceHTTPClientImpl) TestAgentMcpServer(ctx context.Context, in *TestAgentMcpServerRequest, opts ...http.CallOption) (*TestAgentMcpServerResponse, error) {
 	var out TestAgentMcpServerResponse
@@ -3179,6 +3786,62 @@ func (c *AgentServiceHTTPClientImpl) TestAgentProvider(ctx context.Context, in *
 	pattern := "/api/v1/agent/providers/test"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAgentServiceTestAgentProvider))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateAgentGitFiles 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
+func (c *AgentServiceHTTPClientImpl) UpdateAgentGitFiles(ctx context.Context, in *UpdateAgentGitFilesRequest, opts ...http.CallOption) (*UpdateAgentGitFilesResponse, error) {
+	var out UpdateAgentGitFilesResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/files"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceUpdateAgentGitFiles))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateAgentGitRef 分支和标签：切换、新建、改名、删除（本地 / 远程）、合并到当前、把当前变基到；新建、删除、推送标签
+func (c *AgentServiceHTTPClientImpl) UpdateAgentGitRef(ctx context.Context, in *UpdateAgentGitRefRequest, opts ...http.CallOption) (*UpdateAgentGitRefResponse, error) {
+	var out UpdateAgentGitRefResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/ref"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceUpdateAgentGitRef))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateAgentGitRemote 远程仓库：添加、改地址、改名、删除
+func (c *AgentServiceHTTPClientImpl) UpdateAgentGitRemote(ctx context.Context, in *UpdateAgentGitRemoteRequest, opts ...http.CallOption) (*UpdateAgentGitRemoteResponse, error) {
+	var out UpdateAgentGitRemoteResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/remote"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceUpdateAgentGitRemote))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateAgentGitStash 储藏：存、应用、弹出、删除
+func (c *AgentServiceHTTPClientImpl) UpdateAgentGitStash(ctx context.Context, in *UpdateAgentGitStashRequest, opts ...http.CallOption) (*UpdateAgentGitStashResponse, error) {
+	var out UpdateAgentGitStashResponse
+	pattern := "/api/v1/agent/sessions/{id}/git/stash"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceUpdateAgentGitStash))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

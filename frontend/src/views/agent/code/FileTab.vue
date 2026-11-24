@@ -114,7 +114,7 @@ import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { getAgentFileRaw, readAgentFile, saveAgentFile, type AgentFileScope, type AgentModTime } from '@/api/agent'
 import { monaco } from '@/components/file/monaco'
-import type { AgentChangedFile } from '@/types/v1/agent'
+import type { GitChange } from './git/useGit'
 import { useThemeStore } from '@/stores/theme'
 import { detectMonacoLanguage } from '@/utils/file'
 import { fmtBytes } from '@/views/agent/utils/format'
@@ -128,7 +128,7 @@ const props = defineProps<{
   workspaceId?: string
   path: string
   cwd: string
-  change?: AgentChangedFile | null
+  change?: GitChange | null
   /** 每一轮结束加一：没改过的文件跟着重读（Agent 可能改了它） */
   tick?: number
 }>()
@@ -223,6 +223,8 @@ const createEditor = (value: string) => {
     language,
     automaticLayout: true,
     minimap: { enabled: false },
+    // 竖向滚动条一直显示（默认不滚时会淡出）：能拖，也看得出现在在文件的哪个位置
+    scrollbar: { vertical: 'visible', verticalScrollbarSize: 12, useShadows: false },
     fontSize: 12.5,
     scrollBeyondLastLine: false,
     wordWrap: kind === 'md' ? 'on' : 'off',

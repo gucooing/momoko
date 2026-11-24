@@ -52,6 +52,13 @@
               </button>
               <button type="button" class="agc-tt__x" :aria-label="t('agent.code.sub.close')" @click="closeSub"><UIcon name="i-lucide-x" /></button>
             </div>
+            <div v-if="commitTab" class="agc-tt" :class="{ 'is-on': ctab === COMMIT_TAB }">
+              <button type="button" class="agc-tt__btn" role="tab" :aria-selected="ctab === COMMIT_TAB" :title="commitTab.subject" @click="ctab = COMMIT_TAB">
+                <UIcon :name="commitTab.stash ? 'i-lucide-archive' : 'i-lucide-git-commit-horizontal'" />
+                <span class="ag-ellipsis agc-tt__title"><span class="ag-mono">{{ commitTab.short }}</span> {{ commitTab.subject }}</span>
+              </button>
+              <button type="button" class="agc-tt__x" :aria-label="t('agent.git.view.close')" @click="closeCommit"><UIcon name="i-lucide-x" /></button>
+            </div>
             <div v-for="p in openFiles" :key="p" class="agc-tt" :class="{ 'is-on': ctab === p }">
               <button type="button" class="agc-tt__btn" role="tab" :aria-selected="ctab === p" :title="p" @click="ctab = p">
                 <UIcon name="i-lucide-file" /><span class="ag-mono agc-tt__file">{{ shortName(p) }}</span>
@@ -78,6 +85,9 @@
               </button>
               <button v-if="subId" type="button" class="ag-mi" :class="{ 'is-on': ctab === 'sub' }" role="menuitemradio" :aria-checked="ctab === 'sub'" @click="pickTab('sub')">
                 <UIcon name="i-lucide-bot" class="ag-muted" /><span class="ag-ellipsis agc-flex">{{ t('agent.code.sub.tab', { title: subInfo.title }) }}</span>
+              </button>
+              <button v-if="commitTab" type="button" class="ag-mi" :class="{ 'is-on': ctab === COMMIT_TAB }" role="menuitemradio" :aria-checked="ctab === COMMIT_TAB" @click="pickTab(COMMIT_TAB)">
+                <UIcon name="i-lucide-git-commit-horizontal" class="ag-muted" /><span class="ag-ellipsis agc-flex">{{ commitTab.short }} {{ commitTab.subject }}</span>
               </button>
               <div class="ag-mi-sep" />
               <div v-for="p in openFiles" :key="p" class="agc-tabsmenu__row">
@@ -193,6 +203,14 @@
           />
         </div>
 
+        <GitCommitView
+          v-else-if="ctab === COMMIT_TAB && commitTab && session"
+          :key="`${session.id}|${commitTab.repo}|${commitTab.hash}`"
+          :session-id="session.id"
+          :target="commitTab"
+          @open-file="openFile"
+        />
+
         <FileTab
           v-else-if="session"
           :key="`${session.id}|${tabKeys.key(ctab)}`"
@@ -200,7 +218,7 @@
           :path="ctab"
           :cwd="session.cwd"
           :change="changes.find((c) => c.path === ctab) ?? null"
-          :tick="turnTick"
+          :tick="turnTick + gitTick"
           @show-diff="showDiff"
           @attach="attachSnippet"
           @open="openFile"
@@ -238,6 +256,7 @@
         :tick="turnTick"
         :sub="ctab === 'sub' ? subId : ''"
         :active-file="openFiles.includes(ctab) ? ctab : ''"
+        :opened-commit="ctab === COMMIT_TAB ? commitTab?.hash : ''"
         @open-file="openFile"
         @moved="onFileMoved"
         @deleted="onFilesDeleted"
@@ -246,6 +265,8 @@
         @stop="stopItem"
         @command="runCommand"
         @changes="changes = $event"
+        @git-changed="gitTick++"
+        @open-commit="openCommit"
       />
     </template>
 
@@ -276,7 +297,7 @@ import {
 } from '@/api/agent'
 import { useFullBleed } from '@/composables/useAppLayout'
 import { useDockSessionDir } from '@/layouts/app/termDock/state'
-import type { AgentChangedFile, AgentSession, AgentSidebarWorkspace } from '@/types/v1/agent'
+import type { AgentSession, AgentSidebarWorkspace } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import { useAgentModels } from '@/views/agent/composables/useAgentModels'
@@ -290,6 +311,8 @@ import { onRightGripKey, resetRightWidth, rightStyle, rightWidth, startRightResi
 import { dirtyFiles, dropFileState, isDirty, isUnder, movedPath, moveFileState, useTabKeys } from './fileState'
 import NewSession from './NewSession.vue'
 import RightPanel, { type RightTab } from './RightPanel.vue'
+import GitCommitView from './git/GitCommitView.vue'
+import type { GitChange, GitCommitTarget } from './git/useGit'
 import SessionSidebar from './SessionSidebar.vue'
 import { useAgentSocket } from './useAgentSocket'
 
@@ -458,17 +481,23 @@ const onRemoved = (ids: string[]) => {
 interface Tabs {
   files: string[]
   sub: string
+  commit: GitCommitTarget | null
   ctab: string
 }
 const tabsBySession = new Map<string, Tabs>()
 const openFiles = ref<string[]>([])
 const subId = ref('')
+/** 中间开着的提交（或储藏）：在右侧 Git 的历史、储藏里点的，一次只开一个 */
+const COMMIT_TAB = ':commit'
+const commitTab = ref<GitCommitTarget | null>(null)
 const ctab = ref('chat')
 const planOpen = ref(false)
 /** 右侧「改动」最近一次读到的未提交改动：文件标签页拿它显示 +/− */
-const changes = ref<AgentChangedFile[]>([])
+const changes = ref<GitChange[]>([])
+/** Git 里做了会改文件的操作（撤销、切换分支、拉取……）就加一：打开的文件跟着重读 */
+const gitTick = ref(0)
 const saveTabs = (id: string) => {
-  if (id) tabsBySession.set(id, { files: [...openFiles.value], sub: subId.value, ctab: ctab.value })
+  if (id) tabsBySession.set(id, { files: [...openFiles.value], sub: subId.value, commit: commitTab.value, ctab: ctab.value })
 }
 
 watch(
@@ -480,6 +509,7 @@ watch(
     const saved = tabsBySession.get(id)
     openFiles.value = saved?.files ?? []
     subId.value = saved?.sub ?? ''
+    commitTab.value = saved?.commit ?? null
     ctab.value = saved?.ctab ?? 'chat'
     planOpen.value = false
     changes.value = []
@@ -493,7 +523,7 @@ const tabsEl = ref<HTMLElement | null>(null)
 const allTabsEl = ref<HTMLElement | null>(null)
 const tabsOpen = ref(false)
 onClickOutside(allTabsEl, () => (tabsOpen.value = false))
-const tabCount = computed(() => openFiles.value.length + 1 + (subId.value ? 1 : 0))
+const tabCount = computed(() => openFiles.value.length + 1 + (subId.value ? 1 : 0) + (commitTab.value ? 1 : 0))
 const shortName = (p: string) => p.split('/').slice(-2).join('/')
 const pickTab = (k: string) => {
   ctab.value = k
@@ -596,6 +626,15 @@ const openSub = (id: string) => {
 const closeSub = () => {
   subId.value = ''
   if (ctab.value === 'sub') ctab.value = 'chat'
+}
+const openCommit = (c: GitCommitTarget) => {
+  commitTab.value = c
+  ctab.value = COMMIT_TAB
+  if (isMobile.value) rightOn.value = false
+}
+const closeCommit = () => {
+  commitTab.value = null
+  if (ctab.value === COMMIT_TAB) ctab.value = 'chat'
 }
 const lastTurnError = computed(() => {
   for (let i = mainItems.value.length - 1; i >= 0; i -= 1) {
@@ -741,11 +780,11 @@ const unarchive = async () => {
 }
 
 // —— 右侧 ——
-const rightTab = ref<RightTab>('diff')
+const rightTab = ref<RightTab>('git')
 const diffFocus = ref('')
 const showDiff = (path: string) => {
   rightOn.value = true
-  rightTab.value = 'diff'
+  rightTab.value = 'git'
   diffFocus.value = path
 }
 
@@ -758,4 +797,5 @@ onMounted(() => {
 <style lang="scss">
 @use '@/views/agent/styles/agent.scss';
 @use './code.scss';
+@use './git/git.scss';
 </style>

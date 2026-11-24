@@ -6,7 +6,7 @@
 <template>
   <div
     ref="scroller"
-    class="agc-log ag-noscroll"
+    class="agc-log agc-vbar"
     role="log"
     :aria-label="sub ? t('agent.code.sub.log') : t('agent.code.log')"
     @scroll="onScroll"

@@ -1097,58 +1097,6 @@ func repoOf(cwd, rel string) (repo, inner string, ok bool) {
 	return "", "", false
 }
 
-// GetChanges 会话目录相对当前分支的未提交改动。会话目录本身不是仓库时，看它下面几层里的每个仓库，路径都写成相对会话目录。
-func (uc *AgentUsecase) GetChanges(ctx context.Context, id string) (*v1.GetAgentSessionChangesResponse, error) {
-	s, err := uc.getSession(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	changedPB := func(c agentgit.Change, repo string) *v1.AgentChangedFile {
-		path := c.Path
-		if repo != "" {
-			path = repo + "/" + path
-		}
-		return &v1.AgentChangedFile{Path: path, Kind: c.Kind, Added: int32(c.Added), Deleted: int32(c.Deleted), Patch: c.Patch, Repo: repo}
-	}
-	resp := &v1.GetAgentSessionChangesResponse{}
-	if resp.IsGit, resp.Branch = agentgit.Info(s.Cwd); resp.IsGit {
-		for _, c := range agentgit.Changes(ctx, s.Cwd) {
-			resp.Files = append(resp.Files, changedPB(c, ""))
-		}
-		return resp, nil
-	}
-	repos := agentgit.Repos(s.Cwd, nestedRepoDepth, nestedRepoMax)
-	changes := make([][]agentgit.Change, len(repos))
-	eachParallel(len(repos), func(i int) {
-		changes[i] = agentgit.Changes(ctx, filepath.Join(s.Cwd, filepath.FromSlash(repos[i])))
-	})
-	for i, repo := range repos {
-		_, branch := agentgit.Info(filepath.Join(s.Cwd, filepath.FromSlash(repo)))
-		resp.Repos = append(resp.Repos, &v1.AgentGitRepo{Path: repo, Branch: branch})
-		for _, c := range changes[i] {
-			resp.Files = append(resp.Files, changedPB(c, repo))
-		}
-	}
-	resp.IsGit = len(repos) > 0
-	return resp, nil
-}
-
-// RevertFile 撤销一个文件的改动；path 相对会话目录，会话目录本身不是仓库时交给文件所在的那个仓库。
-func (uc *AgentUsecase) RevertFile(ctx context.Context, id, path string) error {
-	s, err := uc.getSession(ctx, id)
-	if err != nil {
-		return err
-	}
-	if _, err := agentfs.SafeJoin(s.Cwd, path); err != nil {
-		return agentErr(err)
-	}
-	repo, inner, ok := repoOf(s.Cwd, path)
-	if !ok {
-		return response.BadRequest("这个文件不在 Git 仓库里，撤销不了")
-	}
-	return agentErr(agentgit.Revert(ctx, filepath.Join(s.Cwd, filepath.FromSlash(repo)), inner))
-}
-
 // ListFiles 会话目录里某一层的文件，带上未提交改动的标记（目录里有改动的也标上）。只让 git 看这一层。
 func (uc *AgentUsecase) ListFiles(ctx context.Context, id, dir string) ([]*v1.AgentFileEntry, error) {
 	s, err := uc.getSession(ctx, id)

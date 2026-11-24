@@ -1,5 +1,5 @@
 <!-- ACP v2 的一个文件级改动：Agent 给的是操作（新建、删除、修改、移动、复制）和这个文件的 git patch。
-     平时是一行「已编辑 文件名 +增 −删」，点开才按行显示 patch（只显示前面一段）。二进制文件之类没有 patch，只有一行说明。 -->
+     平时是一行「已编辑 文件名 +增 −删」，点开按行显示整份 patch（卡片里上下滚着看）。二进制文件之类没有 patch，只有一行说明。 -->
 <template>
   <div class="agc-edit">
     <button type="button" class="agc-edit__row" :aria-expanded="open" :title="fullName" @click="open = !open">
@@ -18,7 +18,9 @@
           {{ t('agent.code.fullDiff') }}
         </button>
       </div>
-      <PatchView :patch="body" :max-lines="14" flat :empty="t('agent.code.diff.noPatch')" />
+      <!-- 整个文件的改动都在这里，超过十几行就在卡片里上下滚着看；特别长的只放前面一段 -->
+      <PatchView class="agc-diffcard__patch" :patch="body" :max-lines="MAX_LINES" flat :empty="t('agent.code.diff.noPatch')" />
+      <div v-if="trimmed" class="agc-patch__empty">{{ t('agent.code.diffTrimmed', { n: MAX_LINES }) }}</div>
     </div>
   </div>
 </template>
@@ -41,4 +43,12 @@ const baseName = (p: string) => p.slice(Math.max(p.lastIndexOf('/'), p.lastIndex
 const fullName = computed(() => (props.oldPath ? `${props.oldPath} → ${props.path}` : props.path))
 const body = computed(() => patchBody(props.diff.patch))
 const counts = computed(() => patchDelta(props.diff.patch))
+/** 卡片里最多放多少行（再多页面会卡），其余的去「完整改动」里看 */
+const MAX_LINES = 3000
+const trimmed = computed(() => {
+  // 和 PatchView 一样数：每个段头变成一行「⋯」（第一个不算），每行内容一行，「\ No newline」不算
+  let n = -1
+  for (const l of body.value.split('\n')) if (l && !l.startsWith('\\')) n += 1
+  return n > MAX_LINES
+})
 </script>

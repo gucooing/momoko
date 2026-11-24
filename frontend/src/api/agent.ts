@@ -31,7 +31,18 @@ import type {
   GetAgentPreviewTokenResponse,
   GetAgentProviderBalanceResponse,
   ListAgentNotifyResponse,
-  GetAgentSessionChangesResponse,
+  CommitAgentGitResponse,
+  GenerateAgentGitMessageResponse,
+  GetAgentGitCommitResponse,
+  GetAgentGitDiffResponse,
+  GetAgentGitStatusResponse,
+  ListAgentGitLogResponse,
+  ListAgentGitRefsResponse,
+  ListAgentGitStashesResponse,
+  RunAgentGitOperationResponse,
+  SyncAgentGitResponse,
+  UpdateAgentGitRefResponse,
+  UpdateAgentGitStashResponse,
   GetAgentSessionProcessResponse,
   GetAgentSessionResponse,
   GetAgentSidebarResponse,
@@ -138,10 +149,93 @@ export const deleteAgentSessions = (ids: string[], withForks: boolean) =>
 export const purgeAgentSessions = () => request.post<PurgeAgentSessionsResponse>('/agent/sessions/purge', {})
 export const exportAgentSessions = (ids: string[]) =>
   request.post<ExportAgentSessionsResponse>('/agent/sessions/export', { ids })
-export const getAgentSessionChanges = (id: string) =>
-  request.get<GetAgentSessionChangesResponse>(`/agent/sessions/${id}/changes`)
-export const revertAgentSessionFile = (id: string, path: string) =>
-  request.post(`/agent/sessions/${id}/revert`, { path })
+// —— Git（右侧「Git」标签）：repo 是仓库相对会话目录的路径（会话目录本身为空），文件路径都相对仓库。
+//    会改东西、要联网的操作（拉取推送、提交钩子、让 Agent 写说明）可能很久，都放宽超时 ——
+const gitUrl = (id: string, path: string) => `/agent/sessions/${id}/git/${path}`
+export const getAgentGitStatus = (id: string) => request.get<GetAgentGitStatusResponse>(gitUrl(id, 'status'), SLOW)
+export type AgentGitDiffSource = 'unstaged' | 'staged' | 'conflict' | 'commit' | 'stash' | 'head'
+export const getAgentGitDiff = (
+  id: string,
+  params: { repo: string; source: AgentGitDiffSource; path?: string; origPath?: string; ref?: string },
+) => request.get<GetAgentGitDiffResponse>(gitUrl(id, 'diff'), { params, ...SLOW })
+export type AgentGitFileAction = 'stage' | 'unstage' | 'discard' | 'ours' | 'theirs' | 'resolve' | 'ignore'
+export const updateAgentGitFiles = (id: string, data: { repo: string; action: AgentGitFileAction; paths?: string[]; all?: boolean }) =>
+  request.post(gitUrl(id, 'files'), data, SLOW)
+export type AgentGitLineAction = 'stage' | 'unstage' | 'discard'
+export const applyAgentGitLines = (
+  id: string,
+  data: { repo: string; path: string; action: AgentGitLineAction; patch: string; lines: number[] },
+) => request.post(gitUrl(id, 'lines'), data, SLOW)
+export const commitAgentGit = (
+  id: string,
+  data: { repo: string; message: string; amend?: boolean; all?: boolean; noVerify?: boolean; signoff?: boolean },
+) => request.post<CommitAgentGitResponse>(gitUrl(id, 'commit'), data, SLOW)
+export const generateAgentGitMessage = (id: string, repo: string) =>
+  request.post<GenerateAgentGitMessageResponse>(gitUrl(id, 'message'), { repo }, SLOW)
+export const resetAgentGit = (id: string, data: { repo: string; target: string; mode: 'soft' | 'mixed' | 'hard' }) =>
+  request.post(gitUrl(id, 'reset'), data, SLOW)
+export const listAgentGitRefs = (id: string, repo: string) =>
+  request.get<ListAgentGitRefsResponse>(gitUrl(id, 'refs'), { params: { repo }, ...SLOW })
+export type AgentGitRefAction =
+  | 'checkout'
+  | 'create-branch'
+  | 'rename-branch'
+  | 'delete-branch'
+  | 'delete-remote-branch'
+  | 'merge'
+  | 'rebase'
+  | 'create-tag'
+  | 'delete-tag'
+  | 'push-tag'
+  | 'delete-remote-tag'
+export const updateAgentGitRef = (
+  id: string,
+  data: {
+    repo: string
+    action: AgentGitRefAction
+    name: string
+    newName?: string
+    from?: string
+    checkout?: boolean
+    force?: boolean
+    message?: string
+    remote?: string
+  },
+) => request.post<UpdateAgentGitRefResponse>(gitUrl(id, 'ref'), data, SLOW)
+export const syncAgentGit = (
+  id: string,
+  data: { repo: string; action: 'fetch' | 'pull' | 'push'; remote?: string; mode?: '' | 'merge' | 'rebase' | 'ff-only'; force?: boolean; tags?: boolean },
+) => request.post<SyncAgentGitResponse>(gitUrl(id, 'sync'), data, SLOW)
+export const updateAgentGitRemote = (
+  id: string,
+  data: { repo: string; action: 'add' | 'set-url' | 'rename' | 'remove'; name: string; url?: string; newName?: string },
+) => request.post(gitUrl(id, 'remote'), data, SLOW)
+export const listAgentGitStashes = (id: string, repo: string) =>
+  request.get<ListAgentGitStashesResponse>(gitUrl(id, 'stashes'), { params: { repo }, ...SLOW })
+export const updateAgentGitStash = (
+  id: string,
+  data: {
+    repo: string
+    action: 'push' | 'apply' | 'pop' | 'drop'
+    hash?: string
+    message?: string
+    untracked?: boolean
+    staged?: boolean
+    index?: boolean
+    paths?: string[]
+  },
+) => request.post<UpdateAgentGitStashResponse>(gitUrl(id, 'stash'), data, SLOW)
+export const runAgentGitOperation = (
+  id: string,
+  data: { repo: string; action: 'cherry-pick' | 'revert' | 'continue' | 'skip' | 'abort'; commit?: string },
+) => request.post<RunAgentGitOperationResponse>(gitUrl(id, 'operation'), data, SLOW)
+export const listAgentGitLog = (
+  id: string,
+  params: { repo: string; skip?: number; limit?: number; ref?: string; all?: boolean; path?: string; keyword?: string },
+) => request.get<ListAgentGitLogResponse>(gitUrl(id, 'log'), { params, ...SLOW })
+export const getAgentGitCommit = (id: string, repo: string, hash: string, stash = false) =>
+  request.get<GetAgentGitCommitResponse>(gitUrl(id, `commits/${hash}`), { params: { repo, stash }, ...SLOW })
+export const initAgentGitRepo = (id: string, path = '') => request.post(gitUrl(id, 'init'), { path }, SLOW)
 export const listAgentSessionFiles = (id: string, dir: string) =>
   request.get<ListAgentSessionFilesResponse>(`/agent/sessions/${id}/files`, { params: { dir } })
 export const readAgentSessionFile = (id: string, path: string) =>

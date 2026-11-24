@@ -463,6 +463,27 @@ div.agc-tt.is-on:not(:has(button)) {
   display: flex;
   flex-direction: column;
 }
+// 中间区域（对话、提交）的竖向滚动条：一直显示、颜色比全局的深一点，能拖着上下走，也看得出现在在哪；
+// 预留出滚动条的位置，内容长短变了不跳。触屏设备照全局的规矩不显示
+@media (pointer: fine) {
+  .agc-vbar {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--m-ink2) 45%, transparent) transparent;
+    scrollbar-gutter: stable;
+  }
+  .agc-vbar::-webkit-scrollbar {
+    width: 10px;
+  }
+  .agc-vbar::-webkit-scrollbar-thumb {
+    min-height: 36px;
+    background: color-mix(in srgb, var(--m-ink2) 45%, transparent);
+    background-clip: content-box;
+  }
+  .agc-vbar::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--m-ink2) 70%, transparent);
+    background-clip: content-box;
+  }
+}
 // 内容包一层：量它的高度变化来跟着到底
 .agc-log__in {
   flex: 1 0 auto;
@@ -1103,6 +1124,11 @@ div.agc-tt.is-on:not(:has(button)) {
   border-radius: 12px;
   overflow: hidden;
   min-width: 0;
+}
+// 对话里的改动：高度到十几行为止，多的在卡片里上下滚（滚到头再滚就是整个对话）
+.agc-diffcard__patch {
+  max-height: 320px;
+  overflow: auto;
 }
 .agc-diffcard__head {
   display: flex;
@@ -1746,6 +1772,10 @@ div.agc-tt.is-on:not(:has(button)) {
 }
 .agc-cmd .ag-muted {
   font-size: 12px;
+}
+// 命令列表只认一个高亮：鼠标移过去会把高亮挪过来，键盘挪走后鼠标底下那条不再另亮一条
+.agc-cmd:hover:not(.is-hl) {
+  background: transparent;
 }
 .agc-mode {
   align-items: flex-start;

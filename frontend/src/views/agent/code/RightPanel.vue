@@ -1,4 +1,4 @@
-<!-- 右侧面板：改动（相对当前分支的未提交改动）、文件（按目录懒加载）、任务（Agent 执行的命令和子 Agent）、会话（上下文、用量、会话信息）。 -->
+<!-- 右侧面板：Git（改动、暂存提交、分支、同步、储藏、历史）、文件（按目录懒加载）、任务（Agent 执行的命令和子 Agent）、会话（上下文、用量、会话信息）。 -->
 <template>
   <section class="agc-card agc-right" :aria-label="t('agent.code.right.label')">
     <div class="ag-seg" role="tablist" :aria-label="t('agent.code.right.label')">
@@ -7,8 +7,8 @@
       </button>
     </div>
 
-    <!-- 改动：点文件在下面看它的改动；会话目录下面有几个仓库时按仓库分组，点仓库那一行展开 / 收起它的文件列表 -->
-    <div v-if="tab === 'diff'" class="agc-right__body">
+    <!-- Git：会话目录（或它下面几个仓库）的改动、暂存提交、分支、同步、储藏、历史；看子 Agent 时换成它自己改过的文件 -->
+    <div v-if="tab === 'git'" class="agc-right__body">
       <!-- 子 Agent：它自己的工具调用改过的文件 -->
       <template v-if="sub">
         <div class="agc-right__files ag-noscroll">
@@ -23,87 +23,7 @@
           <DiffCard v-else :diff="subDiff" :path="subDiff.path" bare @show-diff="emit('openFile', $event)" />
         </div>
       </template>
-      <template v-else-if="changes && !changes.isGit">
-        <div class="agc-right__note">{{ t('agent.code.diff.noGit') }}</div>
-      </template>
-      <template v-else>
-        <div class="agc-right__bar">
-          <span class="agc-flex ag-muted agc-small">
-            <span v-if="nested">{{ t('agent.code.diff.headRepos', { n: changes?.repos?.length ?? 0 }) }}</span>
-            <i18n-t v-else scope="global" keypath="agent.code.diff.head" tag="span">
-              <template #branch><span class="ag-mono">{{ changes?.branch || 'HEAD' }}</span></template>
-            </i18n-t>
-            · <span class="agc-plus ag-num">+{{ totalAdd }}</span> <span class="agc-minus ag-num">−{{ totalDel }}</span>
-          </span>
-          <button
-            v-if="nested"
-            type="button"
-            class="ag-ib ag-ib--sm"
-            :aria-label="allGroupsOpen ? t('agent.code.diff.collapseAll') : t('agent.code.diff.expandAll')"
-            :title="allGroupsOpen ? t('agent.code.diff.collapseAll') : t('agent.code.diff.expandAll')"
-            :disabled="!files.length"
-            @click="setAllGroups(!allGroupsOpen)"
-          >
-            <UIcon :name="allGroupsOpen ? 'i-lucide-chevrons-down-up' : 'i-lucide-chevrons-up-down'" />
-          </button>
-          <button type="button" class="ag-ib ag-ib--sm" :aria-label="t('agent.code.diff.copy')" :title="t('agent.code.diff.copy')" :disabled="!files.length" @click="copyPatch">
-            <UIcon name="i-lucide-copy" />
-          </button>
-          <button type="button" class="ag-ib ag-ib--sm" :aria-label="t('agent.code.diff.refresh')" :title="t('agent.code.diff.refresh')" @click="loadChanges(true)">
-            <UIcon name="i-lucide-refresh-cw" :class="{ 'ag-spin': changesLoading }" />
-          </button>
-        </div>
-        <div ref="diffList" class="agc-right__files ag-noscroll" :class="{ 'is-full': !current }">
-          <template v-for="g in fileGroups" :key="g.repo">
-            <!-- 会话目录下面放着几个仓库：按仓库分组，组里的路径相对仓库；点组头展开 / 收起这个仓库的文件 -->
-            <button
-              v-if="nested"
-              type="button"
-              class="agc-fgrp"
-              :aria-expanded="openGroups.has(g.repo)"
-              :title="openGroups.has(g.repo) ? t('agent.code.diff.collapseRepo', { repo: g.repo }) : t('agent.code.diff.expandRepo', { repo: g.repo })"
-              @click="toggleGroup(g.repo)"
-            >
-              <UIcon :name="openGroups.has(g.repo) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="ag-muted agc-fr__chev" />
-              <UIcon name="i-lucide-git-branch" class="ag-muted" />
-              <span class="ag-mono ag-ellipsis agc-flex">{{ g.repo }}</span>
-              <span v-if="g.branch" class="ag-tag ag-mono agc-fgrp__br">{{ g.branch }}</span>
-              <span class="ag-num ag-muted agc-small">{{ g.files.length }}</span>
-              <span class="agc-plus ag-num">+{{ g.added }}</span>
-              <span class="agc-minus ag-num">−{{ g.deleted }}</span>
-            </button>
-            <template v-if="!nested || openGroups.has(g.repo)">
-              <button
-                v-for="f in g.files"
-                :key="f.path"
-                type="button"
-                class="agc-fr"
-                :class="{ 'is-on': f.path === current?.path, 'agc-fr--in': nested }"
-                :data-path="f.path"
-                :title="f.path"
-                @click="picked = f.path"
-              >
-                <span class="ag-mono agc-fr__k" :class="f.kind === 'A' ? 'agc-ok' : f.kind === 'D' ? 'agc-bad' : 'agc-warn'">{{ f.kind }}</span>
-                <span class="ag-mono ag-ellipsis agc-flex">{{ nested ? inRepo(f) : f.path }}</span>
-                <span class="agc-plus ag-num">+{{ f.added }}</span>
-                <span class="agc-minus ag-num">−{{ f.deleted }}</span>
-              </button>
-            </template>
-          </template>
-          <div v-if="changes && !files.length" class="agc-right__note">{{ t('agent.code.diff.none') }}</div>
-        </div>
-        <div v-if="current" class="agc-right__patch ag-noscroll">
-          <PatchView :patch="current.patch" :empty="t('agent.code.diff.noPatch')" />
-        </div>
-        <div v-if="current" class="agc-right__acts">
-          <button type="button" class="ag-btn ag-btn--sm agc-flex" :disabled="current.kind === 'D'" @click="emit('openFile', current.path)">
-            <UIcon name="i-lucide-file" />{{ t('agent.code.diff.openTab') }}
-          </button>
-          <button type="button" class="ag-btn ag-btn--o ag-btn--sm" @click="revertOpen = true">
-            <UIcon name="i-lucide-undo-2" />{{ t('agent.code.diff.revert') }}
-          </button>
-        </div>
-      </template>
+      <GitPanel v-else />
     </div>
 
     <!-- 任务 -->
@@ -268,41 +188,26 @@
       />
       <button type="button" class="ag-btn ag-btn--sm" @click="openInFiles"><UIcon name="i-lucide-folder" />{{ t('agent.code.files.openManager') }}</button>
     </div>
-
-    <AgConfirm
-      v-model="revertOpen"
-      :title="t('agent.code.diff.revertTitle')"
-      :message="t('agent.code.diff.revertMsg', { path: current?.path || '' })"
-      :confirm-text="t('agent.code.diff.revert')"
-      danger
-      :on-confirm="doRevert"
-    />
   </section>
 </template>
 
 <script setup lang="ts">
 import type { Directive } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getAgentSessionChanges, getAgentSessionProcess, revertAgentSessionFile } from '@/api/agent'
-import type {
-  AgentChangedFile,
-  AgentProcess,
-  AgentSession,
-  AgentSessionDetail,
-  AgentUsage,
-  GetAgentSessionChangesResponse,
-} from '@/types/v1/agent'
+import { getAgentSessionProcess } from '@/api/agent'
+import type { AgentProcess, AgentSession, AgentSessionDetail, AgentUsage } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
-import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import { agentKindOf, clockTime, fmtDuration, fmtTokens, sinceTime } from '@/views/agent/utils/format'
 import { effortName, modelName } from '@/views/agent/composables/useAgentModels'
 import { modeName, providerLabel, sessionTitle } from '@/views/agent/utils/labels'
 import DiffCard from './DiffCard.vue'
 import FileTree from './FileTree.vue'
+import GitPanel from './git/GitPanel.vue'
+import { createGitStore, GIT_KEY, type GitChange, type GitCommitTarget } from './git/useGit'
 import PatchView from './PatchView.vue'
 import type { AgentDiff, AgentItem, AgentState } from './types'
 
-export type RightTab = 'diff' | 'files' | 'task' | 'info'
+export type RightTab = 'git' | 'files' | 'task' | 'info'
 
 const props = defineProps<{
   session: AgentSession
@@ -321,6 +226,8 @@ const props = defineProps<{
   sub?: string
   /** 中间正在看的文件标签：文件树里高亮出来 */
   activeFile?: string
+  /** 中间正开着的提交（或储藏）的哈希：Git 的历史、储藏里标出来 */
+  openedCommit?: string
 }>()
 const emit = defineEmits<{
   openFile: [path: string]
@@ -328,114 +235,65 @@ const emit = defineEmits<{
   /** 只停一个命令（ACP v2）：sub 是它所在的子 Agent */
   stop: [sub: string, toolId: string]
   command: [text: string]
-  changes: [files: AgentChangedFile[]]
+  changes: [files: GitChange[]]
+  /** Git 里做了会改文件的操作：打开的文件跟着重读 */
+  gitChanged: []
+  /** 在中间打开一个提交（或储藏） */
+  openCommit: [target: GitCommitTarget]
   /** 文件树里改名、挪位置、删除、「添加到对话」 */
   moved: [from: string, to: string]
   deleted: [paths: string[]]
   reference: [path: string]
 }>()
-const tab = defineModel<RightTab>('tab', { default: 'diff' })
-/** 要在改动里选中的文件（对话里点「完整改动」） */
+const tab = defineModel<RightTab>('tab', { default: 'git' })
+/** 要在 Git 里选中的文件（对话里点「完整改动」），相对会话目录 */
 const focus = defineModel<string>('focus', { default: '' })
 const { t } = useI18n()
 const router = useRouter()
 
-// —— 改动 ——
-const changes = ref<GetAgentSessionChangesResponse | null>(null)
-const changesLoading = ref(false)
-const picked = ref('')
-const revertOpen = ref(false)
-const diffList = ref<HTMLElement | null>(null)
-/** 展开着文件列表的仓库（按仓库分组时）；默认都收着 */
-const openGroups = reactive(new Set<string>())
-const toggleGroup = (repo: string) => (openGroups.has(repo) ? openGroups.delete(repo) : openGroups.add(repo))
-const files = computed(() => changes.value?.files ?? [])
-/** 会话目录本身不是仓库，改动来自下面的几个仓库 */
-const nested = computed(() => !!changes.value?.repos?.length)
-/** 按仓库分组（会话目录本身是仓库时只有一组）；没有改动的仓库不列 */
-const fileGroups = computed(() => {
-  const branches = new Map((changes.value?.repos ?? []).map((r) => [r.path, r.branch]))
-  const groups = new Map<string, { repo: string; branch: string; files: AgentChangedFile[]; added: number; deleted: number }>()
-  for (const f of files.value) {
-    const repo = f.repo || ''
-    let g = groups.get(repo)
-    if (!g) {
-      g = { repo, branch: branches.get(repo) || '', files: [], added: 0, deleted: 0 }
-      groups.set(repo, g)
+// —— Git ——
+// 状态放在这里（不放在 Git 标签里）：切到别的标签再回来，提交说明、选中的仓库和视图都还在；标签上的数字也一直有。
+const git = createGitStore({
+  sessionId: () => props.session.id,
+  onChanged: () => {
+    // 文件树、打开的文件跟着变（撤销、切换分支、拉取……）
+    treeStale = true
+    if (tab.value === 'files') {
+      treeStale = false
+      void reloadTree()
     }
-    g.files.push(f)
-    g.added += Number(f.added || 0)
-    g.deleted += Number(f.deleted || 0)
-  }
-  return [...groups.values()]
+    emit('gitChanged')
+  },
+  openFile: (path) => emit('openFile', path),
+  openCommit: (c) => emit('openCommit', c),
+  reference: (path) => emit('reference', path),
 })
-/** 文件在它的仓库里的路径 */
-const inRepo = (f: AgentChangedFile) => (f.repo && f.path.startsWith(`${f.repo}/`) ? f.path.slice(f.repo.length + 1) : f.path)
-/** 选中的文件；按仓库分组时不默认选第一个（它可能在收着的组里） */
-const current = computed(() => files.value.find((f) => f.path === picked.value) ?? (nested.value ? undefined : files.value[0]))
-const allGroupsOpen = computed(() => fileGroups.value.length > 0 && fileGroups.value.every((g) => openGroups.has(g.repo)))
-const setAllGroups = (open: boolean) => {
-  openGroups.clear()
-  if (open) for (const g of fileGroups.value) openGroups.add(g.repo)
-}
-const totalAdd = computed(() => files.value.reduce((n, f) => n + Number(f.added || 0), 0))
-const totalDel = computed(() => files.value.reduce((n, f) => n + Number(f.deleted || 0), 0))
+provide(GIT_KEY, git)
+watch(
+  () => props.openedCommit,
+  (hash) => (git.opened.value = hash || ''),
+  { immediate: true },
+)
+watch(git.changes, (list) => emit('changes', list))
 
-let changesSeq = 0
-const loadChanges = async (manual = false) => {
-  const id = ++changesSeq
-  changesLoading.value = true
-  try {
-    const { data } = await getAgentSessionChanges(props.session.id)
-    if (id !== changesSeq) return
-    changes.value = data
-    emit('changes', data.files ?? [])
-    if (pendingFocus) revealDiff(pendingFocus)
-    if (manual) feedback.success(t('agent.code.diff.refreshed'))
-  } catch {
-    /* shown */
-  } finally {
-    if (id === changesSeq) changesLoading.value = false
-  }
-}
-
-const copyPatch = async () => {
-  const text = files.value.map((f) => `--- a/${f.path}\n+++ b/${f.path}\n${f.patch}`).join('\n')
-  try {
-    await navigator.clipboard.writeText(text)
-    feedback.success(t('agent.code.diff.copied'))
-  } catch {
-    feedback.error(t('agent.code.diff.copyFailed'))
-  }
-}
-
-const doRevert = async () => {
-  const path = current.value?.path
-  if (!path) return
-  await revertAgentSessionFile(props.session.id, path)
-  feedback.success(t('agent.code.diff.reverted', { path }))
-  picked.value = ''
-  await loadChanges()
-  void reloadTree()
-}
-
-// 对话里点「完整改动」：选中那个文件（展开它所在的仓库）并滚过去；改动还没读到就等读到了再选
+// 对话里点「完整改动」：切到 Git 标签选中那个文件。手上的状态里还没有它（还没读、读的是旧的）就重读一次，读到了再选
 let pendingFocus = ''
 const revealDiff = (path: string) => {
   pendingFocus = ''
-  const f = files.value.find((x) => x.path === path)
-  if (!f) {
-    if (!changes.value || changesLoading.value) pendingFocus = path
-    return
-  }
-  picked.value = path
-  openGroups.add(f.repo || '')
-  void nextTick(() => diffList.value?.querySelector(`[data-path="${CSS.escape(path)}"]`)?.scrollIntoView({ block: 'nearest' }))
+  if (git.reveal(path)) return
+  pendingFocus = path
+  if (!git.loading.value) void git.load()
 }
 watch(focus, (path) => {
   if (!path) return
   revealDiff(path)
   focus.value = ''
+})
+watch(git.repos, () => {
+  // 只再试这一次：重读之后还没有，就是它已经没有改动了
+  const path = pendingFocus
+  pendingFocus = ''
+  if (path) git.reveal(path)
 })
 
 // —— 文件 ——
@@ -605,12 +463,12 @@ const infoRows = computed(() => {
 
 const tabs = computed(() => [
   {
-    key: 'diff' as const,
+    key: 'git' as const,
     label: props.sub
       ? t('agent.code.right.diffN', { n: subDiffs.value.length })
-      : changes.value
-        ? t('agent.code.right.diffN', { n: files.value.length })
-        : t('agent.code.right.diff'),
+      : git.loaded.value && git.repos.value.length
+        ? t('agent.code.right.gitN', { n: git.total.value })
+        : t('agent.code.right.git'),
   },
   { key: 'files' as const, label: t('agent.code.right.files') },
   { key: 'task' as const, label: t('agent.code.right.taskN', { n: taskGroups.value[0]?.items.length ?? 0 }) },
@@ -693,13 +551,13 @@ const loadProcess = async () => {
 }
 
 // —— 刷新时机 ——
-// 改动和文件都要跑 git，只在对应的标签开着时读：别的标签开着时一轮结束只记下「过期了」，切过去再读。
-let changesStale = true
+// Git 和文件都要跑 git，只在对应的标签开着时读：别的标签开着时一轮结束只记下「过期了」，切过去再读。
+let gitStale = true
 let treeStale = true
 const refresh = () => {
-  if (tab.value === 'diff' && changesStale) {
-    changesStale = false
-    void loadChanges()
+  if (tab.value === 'git' && gitStale) {
+    gitStale = false
+    void git.load()
   }
   if (tab.value === 'files') {
     // 第一次打开时文件树自己会读；之后一轮结束过才重读
@@ -712,14 +570,12 @@ const refresh = () => {
 watch(
   () => props.session.id,
   () => {
-    changes.value = null
-    picked.value = ''
-    openGroups.clear()
+    git.reset()
     pendingFocus = ''
     taskOpen.clear()
     proc.value = null
     // 换了会话文件树自己会重读
-    changesStale = true
+    gitStale = true
     treeStale = false
     refresh()
   },
@@ -729,7 +585,7 @@ watch(tab, refresh)
 watch(
   () => props.tick,
   () => {
-    changesStale = treeStale = true
+    gitStale = treeStale = true
     refresh()
   },
 )

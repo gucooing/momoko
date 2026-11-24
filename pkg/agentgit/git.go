@@ -1,9 +1,8 @@
-// Package agentgit 是 Agent 功能用到的 Git 操作：读仓库信息、克隆、建工作树、看未提交的改动、撤销文件。
+// Package agentgit 是 Agent 功能用到的 Git 操作：读仓库信息、克隆、建工作树，以及右侧「Git」标签里的状态、diff、暂存、提交、分支、同步、储藏、历史。
 // 读分支直接看 .git（列表里每行都要用，不起进程），其它操作调用服务器上的 git 命令，diff 也用 git 自己的输出。
 package agentgit
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"unicode/utf8"
 
 	"momoko/pkg/agentfs"
 )
@@ -23,26 +21,9 @@ const maxPatch = 256 * 1024
 
 // Info 读目录的 Git 信息：是不是仓库、当前分支（游离状态给短哈希）。
 func Info(dir string) (isGit bool, branch string) {
-	gitPath := filepath.Join(dir, ".git")
-	info, err := os.Stat(gitPath)
-	if err != nil {
+	headDir := gitDirOf(dir)
+	if headDir == "" {
 		return false, ""
-	}
-	headDir := gitPath
-	if !info.IsDir() {
-		// 工作树里的 .git 是一个文件：gitdir: <真正的目录>
-		raw, err := os.ReadFile(gitPath)
-		if err != nil {
-			return false, ""
-		}
-		line := strings.TrimSpace(string(raw))
-		if !strings.HasPrefix(line, "gitdir:") {
-			return false, ""
-		}
-		headDir = strings.TrimSpace(strings.TrimPrefix(line, "gitdir:"))
-		if !filepath.IsAbs(headDir) {
-			headDir = filepath.Join(dir, headDir)
-		}
 	}
 	raw, err := os.ReadFile(filepath.Join(headDir, "HEAD"))
 	if err != nil {
@@ -58,12 +39,20 @@ func Info(dir string) (isGit bool, branch string) {
 	return true, ""
 }
 
+// gitEnv 跑 git 用的环境：不停下来问任何东西。用户名密码用服务器上已经配好的凭证（凭证管理器也不弹窗）；
+// 要写说明的地方（合并、继续变基、还原）直接用默认的说明，不打开编辑器。
+func gitEnv() []string {
+	return append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0", "GCM_INTERACTIVE=never", "LC_ALL=C",
+		"GIT_EDITOR=:", "GIT_SEQUENCE_EDITOR=:", "GIT_MERGE_AUTOEDIT=no",
+	)
+}
+
 // Run 在 dir 里跑一条 git 命令，返回标准输出；失败时错误是 git 自己说的最后一句原因。
 func Run(ctx context.Context, dir string, args ...string) (string, error) {
 	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = dir
-	// 不让 git 停下来问用户名密码：私有仓库用服务器上已经配好的凭证。
-	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0", "LC_ALL=C")
+	cmd.Env = gitEnv()
 	var stdout, stderr strings.Builder
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -194,96 +183,6 @@ func RemoveWorktree(ctx context.Context, repo string, wt *Worktree, force bool) 
 	_, _ = Run(ctx, repo, "branch", flag, "momoko/"+wt.Name)
 }
 
-// Change 一个文件的未提交改动。
-type Change struct {
-	Path string
-	// Kind：M 修改，A 新增，D 删除。
-	Kind    string
-	Added   int
-	Deleted int
-	// Patch git 给的各段 diff（从 @@ 开始，不含文件头）；太大或不是文本时为空。
-	Patch string
-}
-
-// Changes 目录相对 HEAD 的未提交改动：已跟踪文件的改动用 git diff，没跟踪的新文件整个算新增。
-func Changes(ctx context.Context, dir string) []Change {
-	diff, err := Run(ctx, dir, "-c", "core.quotepath=off", "diff", "HEAD", "--no-color", "--no-ext-diff", "--no-renames", "-U3")
-	if err != nil {
-		// 还没有任何提交的仓库没有 HEAD：只看暂存区。
-		diff, _ = Run(ctx, dir, "-c", "core.quotepath=off", "diff", "--cached", "--no-color", "--no-ext-diff", "--no-renames", "-U3")
-	}
-	files := splitDiff(diff)
-
-	untracked, _ := Run(ctx, dir, "-c", "core.quotepath=off", "ls-files", "--others", "--exclude-standard")
-	for _, path := range lines(untracked) {
-		if len(files) >= 500 {
-			break
-		}
-		file := Change{Path: path, Kind: "A"}
-		full := filepath.Join(dir, filepath.FromSlash(path))
-		if info, err := os.Stat(full); err == nil && info.Size() > 0 && info.Size() <= maxPatch {
-			if raw, err := os.ReadFile(full); err == nil && utf8.Valid(raw) && !bytes.ContainsRune(raw, 0) {
-				text := strings.TrimSuffix(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n")
-				added := strings.Split(text, "\n")
-				file.Added = len(added)
-				file.Patch = fmt.Sprintf("@@ -0,0 +1,%d @@\n+%s\n", len(added), strings.Join(added, "\n+"))
-			}
-		}
-		files = append(files, file)
-	}
-	sort.SliceStable(files, func(i, j int) bool { return files[i].Path < files[j].Path })
-	return files
-}
-
-// splitDiff 把 git diff 的输出按文件拆开，数出每个文件的增删行数。
-func splitDiff(diff string) []Change {
-	var files []Change
-	var cur *Change
-	var patch strings.Builder
-	inHunk := false
-	flush := func() {
-		if cur == nil {
-			return
-		}
-		if patch.Len() <= maxPatch {
-			cur.Patch = patch.String()
-		}
-		files = append(files, *cur)
-		patch.Reset()
-	}
-	for _, line := range strings.Split(diff, "\n") {
-		switch {
-		case strings.HasPrefix(line, "diff --git "):
-			flush()
-			cur = &Change{Kind: "M"}
-			inHunk = false
-			if i := strings.Index(line, " b/"); i >= 0 {
-				cur.Path = line[i+3:]
-			}
-		case cur == nil:
-		case !inHunk && strings.HasPrefix(line, "new file mode"):
-			cur.Kind = "A"
-		case !inHunk && strings.HasPrefix(line, "deleted file mode"):
-			cur.Kind = "D"
-		case !inHunk && strings.HasPrefix(line, "+++ b/"):
-			cur.Path = strings.TrimPrefix(line, "+++ b/")
-		case strings.HasPrefix(line, "@@"):
-			inHunk = true
-			patch.WriteString(line + "\n")
-		case inHunk && line != "":
-			// 空字符串是输出末尾换行之后的那一段，不是一行（空的上下文行是一个空格）。
-			if strings.HasPrefix(line, "+") {
-				cur.Added++
-			} else if strings.HasPrefix(line, "-") {
-				cur.Deleted++
-			}
-			patch.WriteString(line + "\n")
-		}
-	}
-	flush()
-	return files
-}
-
 // Marks 仓库 dir 里子目录 sub（相对路径，空 = 整个仓库）下有未提交改动的文件：路径 → M（改过）/ A（新增）；
 // 含有改动的目录也标上 M。只让 git 看这个子目录，不扫整个仓库。不是仓库时返回空表。
 func Marks(ctx context.Context, dir, sub string) map[string]string {
@@ -318,24 +217,6 @@ func Marks(ctx context.Context, dir, sub string) map[string]string {
 		}
 	}
 	return marks
-}
-
-// Revert 撤销一个文件的改动：已跟踪的恢复到 HEAD，没跟踪的新文件删掉。rel 是相对仓库目录的路径。
-func Revert(ctx context.Context, dir, rel string) error {
-	if isGit, _ := Info(dir); !isGit {
-		return errors.New("这个目录不是 Git 仓库，撤销不了")
-	}
-	rel = filepath.ToSlash(rel)
-	if _, err := Run(ctx, dir, "ls-files", "--error-unmatch", "--", rel); err != nil {
-		if err := os.Remove(filepath.Join(dir, filepath.FromSlash(rel))); err != nil && !os.IsNotExist(err) {
-			return errors.New("删除失败：" + err.Error())
-		}
-		return nil
-	}
-	if _, err := Run(ctx, dir, "checkout", "HEAD", "--", rel); err != nil {
-		return errors.New("撤销失败：" + err.Error())
-	}
-	return nil
 }
 
 // Repos 找 root 下面 maxDepth 层以内的 Git 仓库（root 自己不算），返回相对路径（正斜杠），按路径排序，最多 limit 个。

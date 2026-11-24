@@ -19,6 +19,10 @@ import (
 func (s *Session) Elicit(reqID string, req *acp.CreateElicitationRequest, reply func(*acp.CreateElicitationResponse)) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.sideOf(req.SessionID) != nil {
+		reply(&acp.CreateElicitationResponse{Action: acp.ElicitationDecline})
+		return
+	}
 	// 和批准一样：v1 的只属于正在进行的一轮；v2 后台的工作也可能问，停下时由 Agent 自己撤回
 	if !s.v2 && (s.turn == nil || s.turn.cancelled) {
 		reply(&acp.CreateElicitationResponse{Action: acp.ElicitationCancel})

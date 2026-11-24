@@ -1,0 +1,992 @@
+// 右侧「Git」标签。和 code.scss 一起在 Code 页里引入，类名都以 agg- 开头。
+
+.agg {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.agg-nowrap {
+  white-space: nowrap;
+}
+
+// —— 没有仓库 ——
+.agg-none {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 16px;
+  font-size: 12.5px;
+  color: var(--m-ink2);
+  text-align: center;
+}
+.agg-none__icon {
+  width: 28px;
+  height: 28px;
+  opacity: 0.6;
+}
+
+// —— 顶上一行：仓库、分支、同步 ——
+.agg-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 2px;
+}
+.agg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+  height: 26px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--m-s2);
+  color: var(--m-ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  flex: 0 1 auto;
+}
+.agg-chip:hover,
+.agg-chip.is-on {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
+.agg-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.agg-chip svg,
+.agg-chip .iconify {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.agg-chip .agg-chip__chev {
+  width: 12px;
+  height: 12px;
+  opacity: 0.6;
+}
+.agg-sync {
+  flex: none;
+}
+.agg-views button {
+  min-height: 24px;
+}
+.agg-views__n {
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--m-s2);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+// —— 视图和下面的 diff：没选文件时视图占满，选了时视图最多占一半 ——
+.agg-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.agg-body > :first-child {
+  flex: 1 1 0;
+  min-height: 0;
+}
+.agg-body.has-diff > :first-child {
+  flex: 0 1 auto;
+  max-height: 50%;
+}
+.agg-changes,
+.agg-hist,
+.agg-stashes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// —— 进行中的合并 / 变基 ——
+.agg-op {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--m-warnSoft);
+  color: var(--m-ink);
+  font-size: 12.5px;
+}
+.agg-op.is-ready {
+  background: var(--m-okSoft);
+}
+.agg-op__t {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.agg-op__t svg,
+.agg-op__t .iconify {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.agg-op__d {
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agg-op__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+// —— 提交 ——
+.agg-commit {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agg-commit__box {
+  position: relative;
+}
+.agg-commit__ta {
+  display: block;
+  width: 100%;
+  padding: 7px 34px 7px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--m-line);
+  background: var(--m-s);
+  color: var(--m-ink);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.55;
+  resize: none;
+  outline: none;
+}
+.agg-commit__ta:focus {
+  border-color: var(--m-p);
+}
+.agg-commit__ta::placeholder {
+  color: var(--m-ink2);
+}
+.agg-commit__ai {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: var(--m-p);
+}
+.agg-commit__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.agg-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--m-ink2);
+  cursor: pointer;
+  user-select: none;
+}
+.agg-check--dlg {
+  padding: 2px 0 4px;
+  font-size: 12.5px;
+  color: var(--m-ink);
+}
+.agg-split {
+  display: inline-flex;
+  min-width: 0;
+}
+.agg-split__main {
+  min-width: 0;
+  border-radius: 999px 0 0 999px;
+}
+.agg-split__more {
+  padding: 0 7px;
+  border-radius: 0 999px 999px 0;
+  margin-left: 1px;
+}
+
+// —— 文件 ——
+.agg-files {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.agg-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.agg-sec__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding-right: 4px;
+  border-radius: 8px;
+}
+.agg-sec__head:hover {
+  background: var(--m-s2);
+}
+.agg-sec__toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 0 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--m-ink);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.agg-sec__chev {
+  width: 13px;
+  height: 13px;
+  color: var(--m-ink2);
+  flex: none;
+}
+.agg-sec__t {
+  font-weight: 600;
+}
+.agg-sec__head .ag-tag {
+  height: 17px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+.agg-sec__acts {
+  display: inline-flex;
+  gap: 2px;
+}
+.agg-sec__acts .ag-ib {
+  width: 22px;
+  height: 22px;
+}
+.agg-fr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 4px 0 18px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--m-ink);
+  cursor: pointer;
+  outline: none;
+}
+.agg-fr--in {
+  padding-left: 8px;
+}
+.agg-fr:hover,
+.agg-fr:focus-visible {
+  background: var(--m-s2);
+}
+.agg-fr.is-on {
+  background: var(--m-s2);
+  box-shadow: inset 0 0 0 1.5px var(--m-line);
+}
+.agg-fr__k {
+  width: 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+  flex: none;
+}
+.agg-k--r {
+  color: var(--m-p);
+}
+.agg-fr__n {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.agg-fr__d {
+  flex: 0 10 auto;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--m-ink2);
+}
+.agg-fr .agc-plus,
+.agg-fr .agc-minus {
+  font-size: 11.5px;
+}
+// 行尾的按钮：鼠标移上去、选中、键盘聚焦时才出现，占的位置不变
+.agg-fr__acts {
+  display: none;
+  gap: 1px;
+  flex: none;
+}
+.agg-fr:hover .agg-fr__acts,
+.agg-fr.is-on .agg-fr__acts,
+.agg-fr:focus-within .agg-fr__acts {
+  display: inline-flex;
+}
+.agg-fr__acts .ag-ib {
+  width: 22px;
+  height: 22px;
+}
+.agg-fr__acts .ag-ib svg,
+.agg-fr__acts .ag-ib .iconify {
+  width: 14px;
+  height: 14px;
+}
+.agg-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 8px;
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agg-empty svg,
+.agg-empty .iconify {
+  width: 15px;
+  height: 15px;
+}
+
+// —— diff ——
+.agg-diff {
+  flex: 1 1 0;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--m-line);
+  border-radius: 10px;
+  background: var(--m-bg);
+  overflow: hidden;
+}
+.agg-diff__head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px 3px 8px;
+  border-bottom: 1px solid var(--m-line);
+  background: var(--m-s);
+  font-size: 12px;
+}
+.agg-diff__src {
+  height: 18px;
+  font-size: 11px;
+}
+.agg-diff__note {
+  flex: none;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--m-ink2);
+  border-bottom: 1px solid var(--m-line);
+}
+.agg-diff__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.agg-patch {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.agg-patch__body {
+  flex: 1;
+  padding-bottom: 4px;
+}
+.agg-patch__tip {
+  flex: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--m-ink2);
+}
+.agg-hunk {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 24px;
+  padding: 0 4px 0 10px;
+  background: var(--m-s2);
+  color: var(--m-ink2);
+  font-size: 11px;
+}
+.agg-hunk__h {
+  flex: 1;
+  min-width: 0;
+}
+.agg-hunk__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 20px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--m-ink2);
+  cursor: pointer;
+}
+.agg-hunk__btn:hover {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
+.agg-hunk__btn.is-bad:hover {
+  background: var(--m-badSoft);
+  color: var(--m-bad);
+}
+.agg-hunk__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.agg-hunk__btn svg,
+.agg-hunk__btn .iconify {
+  width: 13px;
+  height: 13px;
+}
+.agg-dl .agg-dl__n {
+  width: 34px;
+  padding-right: 6px;
+}
+.agg-dl.is-pick {
+  cursor: pointer;
+}
+.agg-dl.is-pick:hover {
+  filter: brightness(0.96);
+}
+.agg-dl.is-sel {
+  box-shadow: inset 3px 0 0 var(--m-p);
+  filter: saturate(1.6) brightness(0.94);
+}
+.agg-dl.is-mk {
+  background: var(--m-s2);
+  color: var(--m-ink2);
+  font-weight: 600;
+}
+.agg-dl.is-ours {
+  background: var(--m-okSoft);
+}
+.agg-dl.is-theirs {
+  background: var(--m-pSoft);
+}
+.agg-dl.is-base {
+  background: var(--m-warnSoft);
+}
+.agg-pick {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 10px;
+  border-top: 1px solid var(--m-line);
+  background: var(--m-s);
+  font-size: 12px;
+}
+
+// —— 历史、储藏 ——
+.agg-hist__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.agg-hist__search {
+  flex: 1;
+  min-width: 0;
+  min-height: 28px;
+}
+.agg-hist__scope {
+  flex: none;
+}
+.agg-hist__scope button {
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 11.5px;
+}
+.agg-hist__file {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 10px;
+  border-radius: 10px;
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+  font-size: 12px;
+}
+.agg-hist__file svg,
+.agg-hist__file .iconify {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.agg-hist__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.agg-hist__more {
+  align-self: center;
+  margin: 6px 0;
+}
+.agg-cm {
+  border-radius: 10px;
+}
+.agg-cm.is-open {
+  background: var(--m-s2);
+}
+.agg-cm__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 4px 5px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  outline: none;
+}
+.agg-cm__row:hover,
+.agg-cm__row:focus-visible {
+  background: var(--m-s2);
+}
+.agg-cm__icon {
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  color: var(--m-ink2);
+  flex: none;
+}
+.agg-cm__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agg-cm__subj {
+  display: flex;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--m-ink);
+}
+.agg-cm__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--m-ink2);
+}
+.agg-cm__more,
+.agg-cm__acts {
+  flex: none;
+  opacity: 0;
+}
+.agg-cm__acts {
+  display: inline-flex;
+  gap: 1px;
+}
+.agg-cm__row:hover .agg-cm__more,
+.agg-cm__row:hover .agg-cm__acts,
+.agg-cm__row:focus-within .agg-cm__more,
+.agg-cm__row:focus-within .agg-cm__acts,
+.agg-cm.is-open .agg-cm__more,
+.agg-cm.is-open .agg-cm__acts {
+  opacity: 1;
+}
+.agg-cm__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 8px 31px;
+}
+.agg-cm__body {
+  margin: 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--m-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.agg-ref {
+  height: 17px;
+  max-width: 160px;
+  padding: 0 5px;
+  font-size: 10.5px;
+  gap: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agg-ref svg,
+.agg-ref .iconify {
+  width: 11px;
+  height: 11px;
+}
+.agg-ref--head {
+  background: var(--m-p);
+  color: var(--m-pOn);
+}
+.agg-ref--branch {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
+.agg-ref--tag {
+  background: var(--m-warnSoft);
+  color: var(--m-warn);
+}
+
+// —— 分支浮层 ——
+.agg-bm {
+  position: fixed;
+  z-index: 2900;
+  max-height: min(460px, calc(100vh - 80px));
+  padding: 6px;
+}
+.agg-bm__search {
+  flex: none;
+  min-height: 30px;
+  margin-bottom: 4px;
+}
+.agg-bm__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.agg-bm__row {
+  gap: 6px;
+  min-height: 28px;
+  padding-right: 3px;
+}
+.agg-bm__name {
+  min-width: 0;
+  font-size: 12.5px;
+}
+.agg-bm__ab {
+  flex: none;
+  font-size: 11px;
+  color: var(--m-ink2);
+}
+.agg-bm__more {
+  width: 22px;
+  height: 22px;
+  opacity: 0;
+}
+.agg-bm__row:hover .agg-bm__more,
+.agg-bm__row.is-hl .agg-bm__more {
+  opacity: 1;
+}
+// 菜单在分支浮层、弹窗之上
+.agg-menu {
+  z-index: 3100;
+}
+
+// —— 输入框弹窗 ——
+.agg-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.agg-prompt__choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agg-prompt__opt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+// —— 远程仓库 ——
+.agg-remotes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.agg-remote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 8px 8px 10px;
+  border: 1px solid var(--m-line);
+  border-radius: 10px;
+}
+.agg-remote__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.agg-remote__head > svg,
+.agg-remote__head > .iconify {
+  width: 15px;
+  height: 15px;
+  color: var(--m-ink2);
+}
+.agg-remote__n {
+  font-size: 13px;
+  font-weight: 600;
+}
+.agg-remote__url {
+  padding-left: 21px;
+  font-size: 11.5px;
+  word-break: break-all;
+}
+.agg-remote__add {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+}
+.agg-remote__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.agg-remote__name {
+  width: 110px;
+  flex: none;
+}
+
+// —— 中间的「提交」标签 ——
+.agg-cv {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px 24px;
+}
+.agg-cv__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agg-cv__kind {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.agg-cv__kind svg,
+.agg-cv__kind .iconify {
+  width: 14px;
+  height: 14px;
+}
+.agg-cv__subj {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--m-ink);
+  word-break: break-word;
+}
+.agg-cv__body {
+  margin: 0;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--m-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.agg-cv__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--m-ink2);
+}
+.agg-cv__hash {
+  border: 0;
+  cursor: pointer;
+}
+.agg-cv__hash:hover {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
+.agg-cv__bar {
+  position: sticky;
+  top: -14px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 -18px;
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--m-line);
+  background: var(--m-s);
+  font-size: 12.5px;
+}
+.agg-cv__bar .agc-plus {
+  margin-left: 6px;
+}
+.agg-cv__file {
+  flex: none;
+  border: 1px solid var(--m-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.agg-cv__fh {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 6px;
+  background: var(--m-s);
+}
+.agg-cv__ft {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 8px 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--m-ink);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.agg-cv__ft svg,
+.agg-cv__ft .iconify {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.agg-cv__fb {
+  border-top: 1px solid var(--m-line);
+  background: var(--m-bg);
+  overflow-x: auto;
+}
+// 这里不在滚动的小框里：段头不吸顶
+.agg-cv__fb .agg-hunk {
+  position: static;
+}
+
+// —— 会话目录下的几个仓库 ——
+.agg-repos {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agg-repos__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--m-ink);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.agg-repos__head:hover {
+  background: var(--m-s2);
+}
+.agg-repos__head svg,
+.agg-repos__head .iconify {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+.agg-repos__t {
+  font-weight: 600;
+}
+.agg-repos__head .ag-tag,
+.agg-repo .ag-tag {
+  height: 17px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+.agg-repos__list {
+  max-height: 168px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.agg-repo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 6px 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--m-ink);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.agg-repo:hover {
+  background: var(--m-s2);
+}
+.agg-repo.is-on {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+}
+.agg-repo__icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.agg-repo__n {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-weight: 600;
+}
+.agg-repo__br {
+  flex: 0 10 auto;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--m-ink2);
+}
+.agg-repo.is-on .agg-repo__br {
+  color: inherit;
+  opacity: 0.75;
+}
+.agg-repo__ab {
+  flex: none;
+  font-size: 11px;
+  color: var(--m-ink2);
+}

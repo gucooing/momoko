@@ -40,8 +40,23 @@ const (
 	AgentService_DeleteAgentSessions_FullMethodName          = "/v1.AgentService/DeleteAgentSessions"
 	AgentService_PurgeAgentSessions_FullMethodName           = "/v1.AgentService/PurgeAgentSessions"
 	AgentService_ExportAgentSessions_FullMethodName          = "/v1.AgentService/ExportAgentSessions"
-	AgentService_GetAgentSessionChanges_FullMethodName       = "/v1.AgentService/GetAgentSessionChanges"
-	AgentService_RevertAgentSessionFile_FullMethodName       = "/v1.AgentService/RevertAgentSessionFile"
+	AgentService_GetAgentGitStatus_FullMethodName            = "/v1.AgentService/GetAgentGitStatus"
+	AgentService_GetAgentGitDiff_FullMethodName              = "/v1.AgentService/GetAgentGitDiff"
+	AgentService_UpdateAgentGitFiles_FullMethodName          = "/v1.AgentService/UpdateAgentGitFiles"
+	AgentService_ApplyAgentGitLines_FullMethodName           = "/v1.AgentService/ApplyAgentGitLines"
+	AgentService_CommitAgentGit_FullMethodName               = "/v1.AgentService/CommitAgentGit"
+	AgentService_GenerateAgentGitMessage_FullMethodName      = "/v1.AgentService/GenerateAgentGitMessage"
+	AgentService_ResetAgentGit_FullMethodName                = "/v1.AgentService/ResetAgentGit"
+	AgentService_ListAgentGitRefs_FullMethodName             = "/v1.AgentService/ListAgentGitRefs"
+	AgentService_UpdateAgentGitRef_FullMethodName            = "/v1.AgentService/UpdateAgentGitRef"
+	AgentService_SyncAgentGit_FullMethodName                 = "/v1.AgentService/SyncAgentGit"
+	AgentService_UpdateAgentGitRemote_FullMethodName         = "/v1.AgentService/UpdateAgentGitRemote"
+	AgentService_ListAgentGitStashes_FullMethodName          = "/v1.AgentService/ListAgentGitStashes"
+	AgentService_UpdateAgentGitStash_FullMethodName          = "/v1.AgentService/UpdateAgentGitStash"
+	AgentService_RunAgentGitOperation_FullMethodName         = "/v1.AgentService/RunAgentGitOperation"
+	AgentService_ListAgentGitLog_FullMethodName              = "/v1.AgentService/ListAgentGitLog"
+	AgentService_GetAgentGitCommit_FullMethodName            = "/v1.AgentService/GetAgentGitCommit"
+	AgentService_InitAgentGitRepo_FullMethodName             = "/v1.AgentService/InitAgentGitRepo"
 	AgentService_ListAgentSessionFiles_FullMethodName        = "/v1.AgentService/ListAgentSessionFiles"
 	AgentService_ReadAgentSessionFile_FullMethodName         = "/v1.AgentService/ReadAgentSessionFile"
 	AgentService_GetAgentSessionUpload_FullMethodName        = "/v1.AgentService/GetAgentSessionUpload"
@@ -147,10 +162,41 @@ type AgentServiceClient interface {
 	PurgeAgentSessions(ctx context.Context, in *PurgeAgentSessionsRequest, opts ...grpc.CallOption) (*PurgeAgentSessionsResponse, error)
 	// 导出记录：返回会话的全部事件，由页面排版成 Markdown 下载
 	ExportAgentSessions(ctx context.Context, in *ExportAgentSessionsRequest, opts ...grpc.CallOption) (*ExportAgentSessionsResponse, error)
-	// 右侧「改动」：会话目录相对当前分支的未提交改动
-	GetAgentSessionChanges(ctx context.Context, in *GetAgentSessionChangesRequest, opts ...grpc.CallOption) (*GetAgentSessionChangesResponse, error)
-	// 撤销某个文件的改动
-	RevertAgentSessionFile(ctx context.Context, in *RevertAgentSessionFileRequest, opts ...grpc.CallOption) (*RevertAgentSessionFileResponse, error)
+	// —— 右侧「Git」：会话目录本身是仓库，或者它下面几层里的几个仓库 ——
+	// repo 是仓库相对会话目录的路径（会话目录本身为空），文件路径都相对仓库。
+	// 每个仓库的状态：分支、上游和领先落后、进行中的合并 / 变基、暂存的 / 没暂存的 / 冲突的文件
+	GetAgentGitStatus(ctx context.Context, in *GetAgentGitStatusRequest, opts ...grpc.CallOption) (*GetAgentGitStatusResponse, error)
+	// 一个文件的 diff：工作区的、暂存区的、冲突的、某次提交里的、某个储藏里的；head 是整个仓库相对 HEAD 的补丁（复制用）
+	GetAgentGitDiff(ctx context.Context, in *GetAgentGitDiffRequest, opts ...grpc.CallOption) (*GetAgentGitDiffResponse, error)
+	// 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
+	UpdateAgentGitFiles(ctx context.Context, in *UpdateAgentGitFilesRequest, opts ...grpc.CallOption) (*UpdateAgentGitFilesResponse, error)
+	// 按行（或整段）暂存、取消暂存、撤销
+	ApplyAgentGitLines(ctx context.Context, in *ApplyAgentGitLinesRequest, opts ...grpc.CallOption) (*ApplyAgentGitLinesResponse, error)
+	// 提交
+	CommitAgentGit(ctx context.Context, in *CommitAgentGitRequest, opts ...grpc.CallOption) (*CommitAgentGitResponse, error)
+	// 让会话的 Agent 写提交说明：在同一个 Agent 进程里另开一个一次性会话，不进对话
+	GenerateAgentGitMessage(ctx context.Context, in *GenerateAgentGitMessageRequest, opts ...grpc.CallOption) (*GenerateAgentGitMessageResponse, error)
+	// 当前分支重置到某个提交（撤销上一次提交是软重置到 HEAD~1）
+	ResetAgentGit(ctx context.Context, in *ResetAgentGitRequest, opts ...grpc.CallOption) (*ResetAgentGitResponse, error)
+	// 分支、远程分支、标签、远程仓库
+	ListAgentGitRefs(ctx context.Context, in *ListAgentGitRefsRequest, opts ...grpc.CallOption) (*ListAgentGitRefsResponse, error)
+	// 分支和标签：切换、新建、改名、删除（本地 / 远程）、合并到当前、把当前变基到；新建、删除、推送标签
+	UpdateAgentGitRef(ctx context.Context, in *UpdateAgentGitRefRequest, opts ...grpc.CallOption) (*UpdateAgentGitRefResponse, error)
+	// 获取、拉取、推送
+	SyncAgentGit(ctx context.Context, in *SyncAgentGitRequest, opts ...grpc.CallOption) (*SyncAgentGitResponse, error)
+	// 远程仓库：添加、改地址、改名、删除
+	UpdateAgentGitRemote(ctx context.Context, in *UpdateAgentGitRemoteRequest, opts ...grpc.CallOption) (*UpdateAgentGitRemoteResponse, error)
+	ListAgentGitStashes(ctx context.Context, in *ListAgentGitStashesRequest, opts ...grpc.CallOption) (*ListAgentGitStashesResponse, error)
+	// 储藏：存、应用、弹出、删除
+	UpdateAgentGitStash(ctx context.Context, in *UpdateAgentGitStashRequest, opts ...grpc.CallOption) (*UpdateAgentGitStashResponse, error)
+	// 拣选、还原一个提交；进行中的合并 / 变基 / 拣选 / 还原：继续、跳过、中止
+	RunAgentGitOperation(ctx context.Context, in *RunAgentGitOperationRequest, opts ...grpc.CallOption) (*RunAgentGitOperationResponse, error)
+	// 提交历史（分页、搜说明、只看某个文件）
+	ListAgentGitLog(ctx context.Context, in *ListAgentGitLogRequest, opts ...grpc.CallOption) (*ListAgentGitLogResponse, error)
+	// 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
+	GetAgentGitCommit(ctx context.Context, in *GetAgentGitCommitRequest, opts ...grpc.CallOption) (*GetAgentGitCommitResponse, error)
+	// 在会话目录（或它下面的某个目录）初始化仓库
+	InitAgentGitRepo(ctx context.Context, in *InitAgentGitRepoRequest, opts ...grpc.CallOption) (*InitAgentGitRepoResponse, error)
 	// 右侧「文件」：按目录懒加载
 	ListAgentSessionFiles(ctx context.Context, in *ListAgentSessionFilesRequest, opts ...grpc.CallOption) (*ListAgentSessionFilesResponse, error)
 	// 打开文件（只读）
@@ -468,20 +514,170 @@ func (c *agentServiceClient) ExportAgentSessions(ctx context.Context, in *Export
 	return out, nil
 }
 
-func (c *agentServiceClient) GetAgentSessionChanges(ctx context.Context, in *GetAgentSessionChangesRequest, opts ...grpc.CallOption) (*GetAgentSessionChangesResponse, error) {
+func (c *agentServiceClient) GetAgentGitStatus(ctx context.Context, in *GetAgentGitStatusRequest, opts ...grpc.CallOption) (*GetAgentGitStatusResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAgentSessionChangesResponse)
-	err := c.cc.Invoke(ctx, AgentService_GetAgentSessionChanges_FullMethodName, in, out, cOpts...)
+	out := new(GetAgentGitStatusResponse)
+	err := c.cc.Invoke(ctx, AgentService_GetAgentGitStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentServiceClient) RevertAgentSessionFile(ctx context.Context, in *RevertAgentSessionFileRequest, opts ...grpc.CallOption) (*RevertAgentSessionFileResponse, error) {
+func (c *agentServiceClient) GetAgentGitDiff(ctx context.Context, in *GetAgentGitDiffRequest, opts ...grpc.CallOption) (*GetAgentGitDiffResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RevertAgentSessionFileResponse)
-	err := c.cc.Invoke(ctx, AgentService_RevertAgentSessionFile_FullMethodName, in, out, cOpts...)
+	out := new(GetAgentGitDiffResponse)
+	err := c.cc.Invoke(ctx, AgentService_GetAgentGitDiff_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) UpdateAgentGitFiles(ctx context.Context, in *UpdateAgentGitFilesRequest, opts ...grpc.CallOption) (*UpdateAgentGitFilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAgentGitFilesResponse)
+	err := c.cc.Invoke(ctx, AgentService_UpdateAgentGitFiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) ApplyAgentGitLines(ctx context.Context, in *ApplyAgentGitLinesRequest, opts ...grpc.CallOption) (*ApplyAgentGitLinesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApplyAgentGitLinesResponse)
+	err := c.cc.Invoke(ctx, AgentService_ApplyAgentGitLines_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) CommitAgentGit(ctx context.Context, in *CommitAgentGitRequest, opts ...grpc.CallOption) (*CommitAgentGitResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommitAgentGitResponse)
+	err := c.cc.Invoke(ctx, AgentService_CommitAgentGit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) GenerateAgentGitMessage(ctx context.Context, in *GenerateAgentGitMessageRequest, opts ...grpc.CallOption) (*GenerateAgentGitMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenerateAgentGitMessageResponse)
+	err := c.cc.Invoke(ctx, AgentService_GenerateAgentGitMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) ResetAgentGit(ctx context.Context, in *ResetAgentGitRequest, opts ...grpc.CallOption) (*ResetAgentGitResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResetAgentGitResponse)
+	err := c.cc.Invoke(ctx, AgentService_ResetAgentGit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) ListAgentGitRefs(ctx context.Context, in *ListAgentGitRefsRequest, opts ...grpc.CallOption) (*ListAgentGitRefsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentGitRefsResponse)
+	err := c.cc.Invoke(ctx, AgentService_ListAgentGitRefs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) UpdateAgentGitRef(ctx context.Context, in *UpdateAgentGitRefRequest, opts ...grpc.CallOption) (*UpdateAgentGitRefResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAgentGitRefResponse)
+	err := c.cc.Invoke(ctx, AgentService_UpdateAgentGitRef_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) SyncAgentGit(ctx context.Context, in *SyncAgentGitRequest, opts ...grpc.CallOption) (*SyncAgentGitResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SyncAgentGitResponse)
+	err := c.cc.Invoke(ctx, AgentService_SyncAgentGit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) UpdateAgentGitRemote(ctx context.Context, in *UpdateAgentGitRemoteRequest, opts ...grpc.CallOption) (*UpdateAgentGitRemoteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAgentGitRemoteResponse)
+	err := c.cc.Invoke(ctx, AgentService_UpdateAgentGitRemote_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) ListAgentGitStashes(ctx context.Context, in *ListAgentGitStashesRequest, opts ...grpc.CallOption) (*ListAgentGitStashesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentGitStashesResponse)
+	err := c.cc.Invoke(ctx, AgentService_ListAgentGitStashes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) UpdateAgentGitStash(ctx context.Context, in *UpdateAgentGitStashRequest, opts ...grpc.CallOption) (*UpdateAgentGitStashResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAgentGitStashResponse)
+	err := c.cc.Invoke(ctx, AgentService_UpdateAgentGitStash_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) RunAgentGitOperation(ctx context.Context, in *RunAgentGitOperationRequest, opts ...grpc.CallOption) (*RunAgentGitOperationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RunAgentGitOperationResponse)
+	err := c.cc.Invoke(ctx, AgentService_RunAgentGitOperation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) ListAgentGitLog(ctx context.Context, in *ListAgentGitLogRequest, opts ...grpc.CallOption) (*ListAgentGitLogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentGitLogResponse)
+	err := c.cc.Invoke(ctx, AgentService_ListAgentGitLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) GetAgentGitCommit(ctx context.Context, in *GetAgentGitCommitRequest, opts ...grpc.CallOption) (*GetAgentGitCommitResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentGitCommitResponse)
+	err := c.cc.Invoke(ctx, AgentService_GetAgentGitCommit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) InitAgentGitRepo(ctx context.Context, in *InitAgentGitRepoRequest, opts ...grpc.CallOption) (*InitAgentGitRepoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InitAgentGitRepoResponse)
+	err := c.cc.Invoke(ctx, AgentService_InitAgentGitRepo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1086,10 +1282,41 @@ type AgentServiceServer interface {
 	PurgeAgentSessions(context.Context, *PurgeAgentSessionsRequest) (*PurgeAgentSessionsResponse, error)
 	// 导出记录：返回会话的全部事件，由页面排版成 Markdown 下载
 	ExportAgentSessions(context.Context, *ExportAgentSessionsRequest) (*ExportAgentSessionsResponse, error)
-	// 右侧「改动」：会话目录相对当前分支的未提交改动
-	GetAgentSessionChanges(context.Context, *GetAgentSessionChangesRequest) (*GetAgentSessionChangesResponse, error)
-	// 撤销某个文件的改动
-	RevertAgentSessionFile(context.Context, *RevertAgentSessionFileRequest) (*RevertAgentSessionFileResponse, error)
+	// —— 右侧「Git」：会话目录本身是仓库，或者它下面几层里的几个仓库 ——
+	// repo 是仓库相对会话目录的路径（会话目录本身为空），文件路径都相对仓库。
+	// 每个仓库的状态：分支、上游和领先落后、进行中的合并 / 变基、暂存的 / 没暂存的 / 冲突的文件
+	GetAgentGitStatus(context.Context, *GetAgentGitStatusRequest) (*GetAgentGitStatusResponse, error)
+	// 一个文件的 diff：工作区的、暂存区的、冲突的、某次提交里的、某个储藏里的；head 是整个仓库相对 HEAD 的补丁（复制用）
+	GetAgentGitDiff(context.Context, *GetAgentGitDiffRequest) (*GetAgentGitDiffResponse, error)
+	// 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
+	UpdateAgentGitFiles(context.Context, *UpdateAgentGitFilesRequest) (*UpdateAgentGitFilesResponse, error)
+	// 按行（或整段）暂存、取消暂存、撤销
+	ApplyAgentGitLines(context.Context, *ApplyAgentGitLinesRequest) (*ApplyAgentGitLinesResponse, error)
+	// 提交
+	CommitAgentGit(context.Context, *CommitAgentGitRequest) (*CommitAgentGitResponse, error)
+	// 让会话的 Agent 写提交说明：在同一个 Agent 进程里另开一个一次性会话，不进对话
+	GenerateAgentGitMessage(context.Context, *GenerateAgentGitMessageRequest) (*GenerateAgentGitMessageResponse, error)
+	// 当前分支重置到某个提交（撤销上一次提交是软重置到 HEAD~1）
+	ResetAgentGit(context.Context, *ResetAgentGitRequest) (*ResetAgentGitResponse, error)
+	// 分支、远程分支、标签、远程仓库
+	ListAgentGitRefs(context.Context, *ListAgentGitRefsRequest) (*ListAgentGitRefsResponse, error)
+	// 分支和标签：切换、新建、改名、删除（本地 / 远程）、合并到当前、把当前变基到；新建、删除、推送标签
+	UpdateAgentGitRef(context.Context, *UpdateAgentGitRefRequest) (*UpdateAgentGitRefResponse, error)
+	// 获取、拉取、推送
+	SyncAgentGit(context.Context, *SyncAgentGitRequest) (*SyncAgentGitResponse, error)
+	// 远程仓库：添加、改地址、改名、删除
+	UpdateAgentGitRemote(context.Context, *UpdateAgentGitRemoteRequest) (*UpdateAgentGitRemoteResponse, error)
+	ListAgentGitStashes(context.Context, *ListAgentGitStashesRequest) (*ListAgentGitStashesResponse, error)
+	// 储藏：存、应用、弹出、删除
+	UpdateAgentGitStash(context.Context, *UpdateAgentGitStashRequest) (*UpdateAgentGitStashResponse, error)
+	// 拣选、还原一个提交；进行中的合并 / 变基 / 拣选 / 还原：继续、跳过、中止
+	RunAgentGitOperation(context.Context, *RunAgentGitOperationRequest) (*RunAgentGitOperationResponse, error)
+	// 提交历史（分页、搜说明、只看某个文件）
+	ListAgentGitLog(context.Context, *ListAgentGitLogRequest) (*ListAgentGitLogResponse, error)
+	// 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
+	GetAgentGitCommit(context.Context, *GetAgentGitCommitRequest) (*GetAgentGitCommitResponse, error)
+	// 在会话目录（或它下面的某个目录）初始化仓库
+	InitAgentGitRepo(context.Context, *InitAgentGitRepoRequest) (*InitAgentGitRepoResponse, error)
 	// 右侧「文件」：按目录懒加载
 	ListAgentSessionFiles(context.Context, *ListAgentSessionFilesRequest) (*ListAgentSessionFilesResponse, error)
 	// 打开文件（只读）
@@ -1260,11 +1487,56 @@ func (UnimplementedAgentServiceServer) PurgeAgentSessions(context.Context, *Purg
 func (UnimplementedAgentServiceServer) ExportAgentSessions(context.Context, *ExportAgentSessionsRequest) (*ExportAgentSessionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExportAgentSessions not implemented")
 }
-func (UnimplementedAgentServiceServer) GetAgentSessionChanges(context.Context, *GetAgentSessionChangesRequest) (*GetAgentSessionChangesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAgentSessionChanges not implemented")
+func (UnimplementedAgentServiceServer) GetAgentGitStatus(context.Context, *GetAgentGitStatusRequest) (*GetAgentGitStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentGitStatus not implemented")
 }
-func (UnimplementedAgentServiceServer) RevertAgentSessionFile(context.Context, *RevertAgentSessionFileRequest) (*RevertAgentSessionFileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RevertAgentSessionFile not implemented")
+func (UnimplementedAgentServiceServer) GetAgentGitDiff(context.Context, *GetAgentGitDiffRequest) (*GetAgentGitDiffResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentGitDiff not implemented")
+}
+func (UnimplementedAgentServiceServer) UpdateAgentGitFiles(context.Context, *UpdateAgentGitFilesRequest) (*UpdateAgentGitFilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAgentGitFiles not implemented")
+}
+func (UnimplementedAgentServiceServer) ApplyAgentGitLines(context.Context, *ApplyAgentGitLinesRequest) (*ApplyAgentGitLinesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApplyAgentGitLines not implemented")
+}
+func (UnimplementedAgentServiceServer) CommitAgentGit(context.Context, *CommitAgentGitRequest) (*CommitAgentGitResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CommitAgentGit not implemented")
+}
+func (UnimplementedAgentServiceServer) GenerateAgentGitMessage(context.Context, *GenerateAgentGitMessageRequest) (*GenerateAgentGitMessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GenerateAgentGitMessage not implemented")
+}
+func (UnimplementedAgentServiceServer) ResetAgentGit(context.Context, *ResetAgentGitRequest) (*ResetAgentGitResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetAgentGit not implemented")
+}
+func (UnimplementedAgentServiceServer) ListAgentGitRefs(context.Context, *ListAgentGitRefsRequest) (*ListAgentGitRefsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgentGitRefs not implemented")
+}
+func (UnimplementedAgentServiceServer) UpdateAgentGitRef(context.Context, *UpdateAgentGitRefRequest) (*UpdateAgentGitRefResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAgentGitRef not implemented")
+}
+func (UnimplementedAgentServiceServer) SyncAgentGit(context.Context, *SyncAgentGitRequest) (*SyncAgentGitResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SyncAgentGit not implemented")
+}
+func (UnimplementedAgentServiceServer) UpdateAgentGitRemote(context.Context, *UpdateAgentGitRemoteRequest) (*UpdateAgentGitRemoteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAgentGitRemote not implemented")
+}
+func (UnimplementedAgentServiceServer) ListAgentGitStashes(context.Context, *ListAgentGitStashesRequest) (*ListAgentGitStashesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgentGitStashes not implemented")
+}
+func (UnimplementedAgentServiceServer) UpdateAgentGitStash(context.Context, *UpdateAgentGitStashRequest) (*UpdateAgentGitStashResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAgentGitStash not implemented")
+}
+func (UnimplementedAgentServiceServer) RunAgentGitOperation(context.Context, *RunAgentGitOperationRequest) (*RunAgentGitOperationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RunAgentGitOperation not implemented")
+}
+func (UnimplementedAgentServiceServer) ListAgentGitLog(context.Context, *ListAgentGitLogRequest) (*ListAgentGitLogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgentGitLog not implemented")
+}
+func (UnimplementedAgentServiceServer) GetAgentGitCommit(context.Context, *GetAgentGitCommitRequest) (*GetAgentGitCommitResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentGitCommit not implemented")
+}
+func (UnimplementedAgentServiceServer) InitAgentGitRepo(context.Context, *InitAgentGitRepoRequest) (*InitAgentGitRepoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InitAgentGitRepo not implemented")
 }
 func (UnimplementedAgentServiceServer) ListAgentSessionFiles(context.Context, *ListAgentSessionFilesRequest) (*ListAgentSessionFilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAgentSessionFiles not implemented")
@@ -1830,38 +2102,308 @@ func _AgentService_ExportAgentSessions_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentService_GetAgentSessionChanges_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAgentSessionChangesRequest)
+func _AgentService_GetAgentGitStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentGitStatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentServiceServer).GetAgentSessionChanges(ctx, in)
+		return srv.(AgentServiceServer).GetAgentGitStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AgentService_GetAgentSessionChanges_FullMethodName,
+		FullMethod: AgentService_GetAgentGitStatus_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).GetAgentSessionChanges(ctx, req.(*GetAgentSessionChangesRequest))
+		return srv.(AgentServiceServer).GetAgentGitStatus(ctx, req.(*GetAgentGitStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentService_RevertAgentSessionFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RevertAgentSessionFileRequest)
+func _AgentService_GetAgentGitDiff_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentGitDiffRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentServiceServer).RevertAgentSessionFile(ctx, in)
+		return srv.(AgentServiceServer).GetAgentGitDiff(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AgentService_RevertAgentSessionFile_FullMethodName,
+		FullMethod: AgentService_GetAgentGitDiff_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).RevertAgentSessionFile(ctx, req.(*RevertAgentSessionFileRequest))
+		return srv.(AgentServiceServer).GetAgentGitDiff(ctx, req.(*GetAgentGitDiffRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_UpdateAgentGitFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAgentGitFilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).UpdateAgentGitFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_UpdateAgentGitFiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).UpdateAgentGitFiles(ctx, req.(*UpdateAgentGitFilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_ApplyAgentGitLines_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyAgentGitLinesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ApplyAgentGitLines(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ApplyAgentGitLines_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ApplyAgentGitLines(ctx, req.(*ApplyAgentGitLinesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_CommitAgentGit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommitAgentGitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).CommitAgentGit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_CommitAgentGit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).CommitAgentGit(ctx, req.(*CommitAgentGitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_GenerateAgentGitMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateAgentGitMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).GenerateAgentGitMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_GenerateAgentGitMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).GenerateAgentGitMessage(ctx, req.(*GenerateAgentGitMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_ResetAgentGit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetAgentGitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ResetAgentGit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ResetAgentGit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ResetAgentGit(ctx, req.(*ResetAgentGitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_ListAgentGitRefs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentGitRefsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ListAgentGitRefs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ListAgentGitRefs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ListAgentGitRefs(ctx, req.(*ListAgentGitRefsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_UpdateAgentGitRef_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAgentGitRefRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).UpdateAgentGitRef(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_UpdateAgentGitRef_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).UpdateAgentGitRef(ctx, req.(*UpdateAgentGitRefRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_SyncAgentGit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncAgentGitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).SyncAgentGit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_SyncAgentGit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).SyncAgentGit(ctx, req.(*SyncAgentGitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_UpdateAgentGitRemote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAgentGitRemoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).UpdateAgentGitRemote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_UpdateAgentGitRemote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).UpdateAgentGitRemote(ctx, req.(*UpdateAgentGitRemoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_ListAgentGitStashes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentGitStashesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ListAgentGitStashes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ListAgentGitStashes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ListAgentGitStashes(ctx, req.(*ListAgentGitStashesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_UpdateAgentGitStash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAgentGitStashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).UpdateAgentGitStash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_UpdateAgentGitStash_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).UpdateAgentGitStash(ctx, req.(*UpdateAgentGitStashRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_RunAgentGitOperation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunAgentGitOperationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).RunAgentGitOperation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_RunAgentGitOperation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).RunAgentGitOperation(ctx, req.(*RunAgentGitOperationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_ListAgentGitLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentGitLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ListAgentGitLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ListAgentGitLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ListAgentGitLog(ctx, req.(*ListAgentGitLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_GetAgentGitCommit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentGitCommitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).GetAgentGitCommit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_GetAgentGitCommit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).GetAgentGitCommit(ctx, req.(*GetAgentGitCommitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_InitAgentGitRepo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitAgentGitRepoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).InitAgentGitRepo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_InitAgentGitRepo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).InitAgentGitRepo(ctx, req.(*InitAgentGitRepoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2948,12 +3490,72 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AgentService_ExportAgentSessions_Handler,
 		},
 		{
-			MethodName: "GetAgentSessionChanges",
-			Handler:    _AgentService_GetAgentSessionChanges_Handler,
+			MethodName: "GetAgentGitStatus",
+			Handler:    _AgentService_GetAgentGitStatus_Handler,
 		},
 		{
-			MethodName: "RevertAgentSessionFile",
-			Handler:    _AgentService_RevertAgentSessionFile_Handler,
+			MethodName: "GetAgentGitDiff",
+			Handler:    _AgentService_GetAgentGitDiff_Handler,
+		},
+		{
+			MethodName: "UpdateAgentGitFiles",
+			Handler:    _AgentService_UpdateAgentGitFiles_Handler,
+		},
+		{
+			MethodName: "ApplyAgentGitLines",
+			Handler:    _AgentService_ApplyAgentGitLines_Handler,
+		},
+		{
+			MethodName: "CommitAgentGit",
+			Handler:    _AgentService_CommitAgentGit_Handler,
+		},
+		{
+			MethodName: "GenerateAgentGitMessage",
+			Handler:    _AgentService_GenerateAgentGitMessage_Handler,
+		},
+		{
+			MethodName: "ResetAgentGit",
+			Handler:    _AgentService_ResetAgentGit_Handler,
+		},
+		{
+			MethodName: "ListAgentGitRefs",
+			Handler:    _AgentService_ListAgentGitRefs_Handler,
+		},
+		{
+			MethodName: "UpdateAgentGitRef",
+			Handler:    _AgentService_UpdateAgentGitRef_Handler,
+		},
+		{
+			MethodName: "SyncAgentGit",
+			Handler:    _AgentService_SyncAgentGit_Handler,
+		},
+		{
+			MethodName: "UpdateAgentGitRemote",
+			Handler:    _AgentService_UpdateAgentGitRemote_Handler,
+		},
+		{
+			MethodName: "ListAgentGitStashes",
+			Handler:    _AgentService_ListAgentGitStashes_Handler,
+		},
+		{
+			MethodName: "UpdateAgentGitStash",
+			Handler:    _AgentService_UpdateAgentGitStash_Handler,
+		},
+		{
+			MethodName: "RunAgentGitOperation",
+			Handler:    _AgentService_RunAgentGitOperation_Handler,
+		},
+		{
+			MethodName: "ListAgentGitLog",
+			Handler:    _AgentService_ListAgentGitLog_Handler,
+		},
+		{
+			MethodName: "GetAgentGitCommit",
+			Handler:    _AgentService_GetAgentGitCommit_Handler,
+		},
+		{
+			MethodName: "InitAgentGitRepo",
+			Handler:    _AgentService_InitAgentGitRepo_Handler,
 		},
 		{
 			MethodName: "ListAgentSessionFiles",

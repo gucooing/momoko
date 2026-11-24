@@ -94,13 +94,74 @@ service AgentService {
   rpc ExportAgentSessions(ExportAgentSessionsRequest) returns (ExportAgentSessionsResponse) {
     option (google.api.http) = { post: "/api/v1/agent/sessions/export" body: "*" };
   }
-  // 右侧「改动」：会话目录相对当前分支的未提交改动
-  rpc GetAgentSessionChanges(GetAgentSessionChangesRequest) returns (GetAgentSessionChangesResponse) {
-    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/changes" };
+  // —— 右侧「Git」：会话目录本身是仓库，或者它下面几层里的几个仓库 ——
+  // repo 是仓库相对会话目录的路径（会话目录本身为空），文件路径都相对仓库。
+  // 每个仓库的状态：分支、上游和领先落后、进行中的合并 / 变基、暂存的 / 没暂存的 / 冲突的文件
+  rpc GetAgentGitStatus(GetAgentGitStatusRequest) returns (GetAgentGitStatusResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/git/status" };
   }
-  // 撤销某个文件的改动
-  rpc RevertAgentSessionFile(RevertAgentSessionFileRequest) returns (RevertAgentSessionFileResponse) {
-    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/revert" body: "*" };
+  // 一个文件的 diff：工作区的、暂存区的、冲突的、某次提交里的、某个储藏里的；head 是整个仓库相对 HEAD 的补丁（复制用）
+  rpc GetAgentGitDiff(GetAgentGitDiffRequest) returns (GetAgentGitDiffResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/git/diff" };
+  }
+  // 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
+  rpc UpdateAgentGitFiles(UpdateAgentGitFilesRequest) returns (UpdateAgentGitFilesResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/files" body: "*" };
+  }
+  // 按行（或整段）暂存、取消暂存、撤销
+  rpc ApplyAgentGitLines(ApplyAgentGitLinesRequest) returns (ApplyAgentGitLinesResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/lines" body: "*" };
+  }
+  // 提交
+  rpc CommitAgentGit(CommitAgentGitRequest) returns (CommitAgentGitResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/commit" body: "*" };
+  }
+  // 让会话的 Agent 写提交说明：在同一个 Agent 进程里另开一个一次性会话，不进对话
+  rpc GenerateAgentGitMessage(GenerateAgentGitMessageRequest) returns (GenerateAgentGitMessageResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/message" body: "*" };
+  }
+  // 当前分支重置到某个提交（撤销上一次提交是软重置到 HEAD~1）
+  rpc ResetAgentGit(ResetAgentGitRequest) returns (ResetAgentGitResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/reset" body: "*" };
+  }
+  // 分支、远程分支、标签、远程仓库
+  rpc ListAgentGitRefs(ListAgentGitRefsRequest) returns (ListAgentGitRefsResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/git/refs" };
+  }
+  // 分支和标签：切换、新建、改名、删除（本地 / 远程）、合并到当前、把当前变基到；新建、删除、推送标签
+  rpc UpdateAgentGitRef(UpdateAgentGitRefRequest) returns (UpdateAgentGitRefResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/ref" body: "*" };
+  }
+  // 获取、拉取、推送
+  rpc SyncAgentGit(SyncAgentGitRequest) returns (SyncAgentGitResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/sync" body: "*" };
+  }
+  // 远程仓库：添加、改地址、改名、删除
+  rpc UpdateAgentGitRemote(UpdateAgentGitRemoteRequest) returns (UpdateAgentGitRemoteResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/remote" body: "*" };
+  }
+  rpc ListAgentGitStashes(ListAgentGitStashesRequest) returns (ListAgentGitStashesResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/git/stashes" };
+  }
+  // 储藏：存、应用、弹出、删除
+  rpc UpdateAgentGitStash(UpdateAgentGitStashRequest) returns (UpdateAgentGitStashResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/stash" body: "*" };
+  }
+  // 拣选、还原一个提交；进行中的合并 / 变基 / 拣选 / 还原：继续、跳过、中止
+  rpc RunAgentGitOperation(RunAgentGitOperationRequest) returns (RunAgentGitOperationResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/operation" body: "*" };
+  }
+  // 提交历史（分页、搜说明、只看某个文件）
+  rpc ListAgentGitLog(ListAgentGitLogRequest) returns (ListAgentGitLogResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/git/log" };
+  }
+  // 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
+  rpc GetAgentGitCommit(GetAgentGitCommitRequest) returns (GetAgentGitCommitResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/git/commits/{hash}" };
+  }
+  // 在会话目录（或它下面的某个目录）初始化仓库
+  rpc InitAgentGitRepo(InitAgentGitRepoRequest) returns (InitAgentGitRepoResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sessions/{id}/git/init" body: "*" };
   }
   // 右侧「文件」：按目录懒加载
   rpc ListAgentSessionFiles(ListAgentSessionFilesRequest) returns (ListAgentSessionFilesResponse) {
@@ -730,42 +791,334 @@ message AgentSessionExport {
   string events = 2;
 }
 
-message AgentChangedFile {
+// —— Git ——
+
+// 改动列表里的一个文件（路径都相对仓库，正斜杠）
+message AgentGitFile {
   string path = 1;
-  // M | A | D | R
-  string kind = 2;
-  int32 added = 3;
-  int32 deleted = 4;
-  // 统一 diff（不含文件头）
-  string patch = 5;
-  // 所在的 Git 仓库（相对会话目录）；会话目录本身就是仓库时为空
-  string repo = 6;
-}
-// 会话目录下面找到的一个 Git 仓库
-message AgentGitRepo {
-  // 相对会话目录的路径，正斜杠
-  string path = 1;
-  string branch = 2;
-}
-message GetAgentSessionChangesRequest {
-  string id = 1;
-}
-message GetAgentSessionChangesResponse {
-  // 会话目录本身是仓库，或者它下面几层里找到了仓库
-  bool is_git = 1;
-  // 会话目录本身是仓库时的分支
-  string branch = 2;
-  // 路径都相对会话目录
-  repeated AgentChangedFile files = 3;
-  // 会话目录本身不是仓库时，它下面几层里找到的仓库
-  repeated AgentGitRepo repos = 4;
+  // 改名、复制前的路径
+  string orig_path = 2;
+  // M 修改 | A 新增 | D 删除 | R 改名 | C 复制 | T 类型变了 | U 没跟踪；冲突的是两边的状态（UU、AA、DU……）
+  string kind = 3;
+  int32 added = 4;
+  int32 deleted = 5;
+  // 不是文本，没有增删行数
+  bool binary = 6;
 }
 
-message RevertAgentSessionFileRequest {
+// 一个仓库的状态
+message AgentGitStatus {
+  // 仓库相对会话目录的路径；会话目录本身是仓库时为空
+  string repo = 1;
+  // 当前分支；游离 HEAD 时为空
+  string branch = 2;
+  // HEAD 的短哈希；还没有提交时为空
+  string head = 3;
+  string upstream = 4;
+  // 上游分支已经在远程上删掉了
+  bool upstream_gone = 5;
+  int32 ahead = 6;
+  int32 behind = 7;
+  // 进行中的操作：merge | rebase | am | cherry-pick | revert | bisect，没有为空
+  string operation = 8;
+  // 合并进来的分支、拣选 / 还原的提交，或者正在变基的分支
+  string operation_ref = 9;
+  // 变基到的提交
+  string operation_onto = 10;
+  // 变基进行到第几个、一共几个
+  int32 operation_step = 11;
+  int32 operation_total = 12;
+  repeated AgentGitFile staged = 13;
+  // 工作区的改动，包括没跟踪的新文件
+  repeated AgentGitFile unstaged = 14;
+  repeated AgentGitFile conflicted = 15;
+  int32 stashes = 16;
+  repeated string remotes = 17;
+  // 改动的文件太多，只列了前面一部分
+  bool truncated = 18;
+  // 上一次提交的完整说明（修改上一次提交时放进输入框）
+  string last_message = 19;
+}
+message GetAgentGitStatusRequest {
   string id = 1;
+}
+message GetAgentGitStatusResponse {
+  // 会话目录本身是仓库时只有它一个；否则是它下面几层里找到的仓库；都没有时为空
+  repeated AgentGitStatus repos = 1;
+}
+
+message GetAgentGitDiffRequest {
+  string id = 1;
+  string repo = 2;
+  string path = 3;
+  // 改名前的路径（暂存区里的改名、提交里的改名）
+  string orig_path = 4;
+  // unstaged（工作区相对暂存区）| staged（暂存区相对 HEAD）| conflict（冲突的文件现在的内容）|
+  // commit（某次提交相对它的第一个父提交）| stash（某个储藏）| head（整个仓库相对 HEAD 的补丁，path 为空）
+  string source = 5;
+  // commit、stash 时的哈希
+  string ref = 6;
+}
+message GetAgentGitDiffResponse {
+  // 从 @@ 开始的各段；head 时是带文件头的完整补丁
+  string patch = 1;
+  bool binary = 2;
+  // 太大，没给
+  bool too_large = 3;
+}
+
+message UpdateAgentGitFilesRequest {
+  string id = 1;
+  string repo = 2;
+  // stage | unstage | discard | ours（采用当前）| theirs（采用传入）| resolve（标记已解决）| ignore（加进 .gitignore）
+  string action = 3;
+  repeated string paths = 4;
+  // stage、unstage、discard 时对全部文件
+  bool all = 5;
+}
+message UpdateAgentGitFilesResponse {}
+
+message ApplyAgentGitLinesRequest {
+  string id = 1;
+  string repo = 2;
+  string path = 3;
+  // stage（从工作区的 diff 暂存）| unstage（从暂存区的 diff 取消暂存）| discard（撤销工作区里的这几行）
+  string action = 4;
+  // 页面上显示的那份 diff（从 @@ 开始）；文件在这期间又改过的话 git 会拒绝
+  string patch = 5;
+  // 选中的行：patch 按换行拆开后的序号（只算 + 和 - 行）
+  repeated int32 lines = 6;
+}
+message ApplyAgentGitLinesResponse {}
+
+message CommitAgentGitRequest {
+  string id = 1;
+  string repo = 2;
+  string message = 3;
+  // 修改上一次提交；说明为空时沿用原来的
+  bool amend = 4;
+  // 先暂存全部改动
+  bool all = 5;
+  // 不跑提交钩子
+  bool no_verify = 6;
+  // 加上 Signed-off-by
+  bool signoff = 7;
+}
+message CommitAgentGitResponse {
+  // 新提交的短哈希
+  string head = 1;
+}
+
+message GenerateAgentGitMessageRequest {
+  string id = 1;
+  string repo = 2;
+}
+message GenerateAgentGitMessageResponse {
+  string message = 1;
+}
+
+message ResetAgentGitRequest {
+  string id = 1;
+  string repo = 2;
+  // 提交：哈希、HEAD~1……
+  string target = 3;
+  // soft（改动留在暂存区）| mixed（留在工作区）| hard（全部丢掉）
+  string mode = 4;
+}
+message ResetAgentGitResponse {}
+
+message AgentGitBranch {
+  // 本地分支名，或者远程分支的「远程/分支」
+  string name = 1;
+  // 指向的提交（短哈希）和它的说明、时间
+  string commit = 2;
+  string subject = 3;
+  google.protobuf.Timestamp date = 4;
+  bool current = 5;
+  string upstream = 6;
+  bool upstream_gone = 7;
+  int32 ahead = 8;
+  int32 behind = 9;
+}
+message AgentGitTag {
+  string name = 1;
+  string commit = 2;
+  // 附注标签的说明，轻量标签是它指向的提交的说明
+  string subject = 3;
+  google.protobuf.Timestamp date = 4;
+}
+message AgentGitRemote {
+  string name = 1;
+  string fetch_url = 2;
+  string push_url = 3;
+}
+message ListAgentGitRefsRequest {
+  string id = 1;
+  string repo = 2;
+}
+message ListAgentGitRefsResponse {
+  // 当前分支在前，其余按最近提交
+  repeated AgentGitBranch branches = 1;
+  repeated AgentGitBranch remote_branches = 2;
+  repeated AgentGitTag tags = 3;
+  repeated AgentGitRemote remotes = 4;
+}
+
+message UpdateAgentGitRefRequest {
+  string id = 1;
+  string repo = 2;
+  // checkout | create-branch | rename-branch | delete-branch | delete-remote-branch | merge | rebase |
+  // create-tag | delete-tag | push-tag | delete-remote-tag
+  string action = 3;
+  // 分支、标签名；checkout 时也可以是远程分支、提交哈希
+  string name = 4;
+  // 改名后的名字
+  string new_name = 5;
+  // 新建分支、标签时从哪开始（空 = HEAD）
+  string from = 6;
+  // 新建分支后切过去
+  bool checkout = 7;
+  // 删除没合并过的分支
+  bool force = 8;
+  // 附注标签的说明（空 = 轻量标签）
+  string message = 9;
+  // 推送 / 删除远程标签时用哪个远程（空 = 默认的）
+  string remote = 10;
+}
+message UpdateAgentGitRefResponse {
+  // git 说的话（合并、变基的结果）
+  string output = 1;
+}
+
+message SyncAgentGitRequest {
+  string id = 1;
+  string repo = 2;
+  // fetch | pull | push
+  string action = 3;
+  // 远程；fetch 时为空是全部，push 时为空是上游的（没有上游时是默认的）
+  string remote = 4;
+  // pull：merge | rebase | ff-only，空 = 按仓库的设置（没设过用 merge）
+  string mode = 5;
+  // push：强制推送（--force-with-lease，远程上有别人新推的提交时会拒绝）
+  bool force = 6;
+  // push：连同标签
+  bool tags = 7;
+}
+message SyncAgentGitResponse {
+  string output = 1;
+}
+
+message UpdateAgentGitRemoteRequest {
+  string id = 1;
+  string repo = 2;
+  // add | set-url | rename | remove
+  string action = 3;
+  string name = 4;
+  string url = 5;
+  string new_name = 6;
+}
+message UpdateAgentGitRemoteResponse {}
+
+message AgentGitStash {
+  int32 index = 1;
+  string hash = 2;
+  string message = 3;
+  // 储藏时所在的分支
+  string branch = 4;
+  google.protobuf.Timestamp date = 5;
+}
+message ListAgentGitStashesRequest {
+  string id = 1;
+  string repo = 2;
+}
+message ListAgentGitStashesResponse {
+  repeated AgentGitStash stashes = 1;
+}
+message UpdateAgentGitStashRequest {
+  string id = 1;
+  string repo = 2;
+  // push | apply | pop | drop
+  string action = 3;
+  // apply、pop、drop：储藏的哈希（按哈希找，列表在这期间变了也不会弄错）
+  string hash = 4;
+  // push：说明
+  string message = 5;
+  // push：连同没跟踪的文件
+  bool untracked = 6;
+  // push：只储藏暂存了的
+  bool staged = 7;
+  // apply、pop：连暂存状态一起恢复
+  bool index = 8;
+  // push：只储藏这些文件（空 = 全部）
+  repeated string paths = 9;
+}
+message UpdateAgentGitStashResponse {
+  string output = 1;
+}
+
+message RunAgentGitOperationRequest {
+  string id = 1;
+  string repo = 2;
+  // cherry-pick | revert（commit 是哪个提交）| continue | skip | abort（进行中的合并、变基、拣选、还原）
+  string action = 3;
+  string commit = 4;
+}
+message RunAgentGitOperationResponse {
+  string output = 1;
+}
+
+message AgentGitCommit {
+  string hash = 1;
+  string short_hash = 2;
+  repeated string parents = 3;
+  string author = 4;
+  string email = 5;
+  google.protobuf.Timestamp date = 6;
+  string subject = 7;
+  // 指向它的分支、标签：HEAD -> main、origin/main、tag: v1.0
+  repeated string refs = 8;
+}
+message ListAgentGitLogRequest {
+  string id = 1;
+  string repo = 2;
+  int32 skip = 3;
+  int32 limit = 4;
+  // 从哪个分支 / 提交往前看（空 = 当前）
+  string ref = 5;
+  // 看所有分支
+  bool all = 6;
+  // 只看动过这个文件的（相对仓库）
+  string path = 7;
+  // 在提交说明里搜
+  string keyword = 8;
+}
+message ListAgentGitLogResponse {
+  repeated AgentGitCommit commits = 1;
+  // 后面还有
+  bool more = 2;
+}
+message GetAgentGitCommitRequest {
+  string id = 1;
+  string repo = 2;
+  string hash = 3;
+  // 是一个储藏：文件列表连同没跟踪的
+  bool stash = 4;
+}
+message GetAgentGitCommitResponse {
+  AgentGitCommit commit = 1;
+  // 说明标题后面的部分
+  string body = 2;
+  string committer = 3;
+  google.protobuf.Timestamp commit_date = 4;
+  repeated AgentGitFile files = 5;
+}
+
+message InitAgentGitRepoRequest {
+  string id = 1;
+  // 相对会话目录（空 = 会话目录本身）
   string path = 2;
 }
-message RevertAgentSessionFileResponse {}
+message InitAgentGitRepoResponse {}
 
 message AgentFileEntry {
   string name = 1;

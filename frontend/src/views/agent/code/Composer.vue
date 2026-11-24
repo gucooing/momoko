@@ -49,7 +49,7 @@
         <button ref="clipBtn" type="button" class="ag-ib ag-ib--sm" :class="{ 'is-on': pop === 'clip' || pop === 'at' }" :aria-label="t('agent.code.composer.attach')" aria-haspopup="menu" :aria-expanded="pop === 'clip'" @click="toggle('clip')">
           <UIcon name="i-lucide-paperclip" />
         </button>
-        <button v-if="!narrow" ref="slashBtn" type="button" class="ag-ib ag-ib--sm" :class="{ 'is-on': slashOpen }" :aria-label="t('agent.code.composer.slash')" aria-haspopup="menu" :aria-expanded="slashOpen" @click="toggle('slash')">
+        <button v-if="!narrow" ref="slashBtn" type="button" class="ag-ib ag-ib--sm" :class="{ 'is-on': slashOpen }" :aria-label="t('agent.code.composer.slash')" aria-haspopup="menu" :aria-expanded="slashOpen" @click="toggle('slash')" @keydown="cmdKey">
           <UIcon name="i-lucide-slash" />
         </button>
         <span class="agc-flex" />
@@ -124,7 +124,7 @@
     </div>
 
     <!-- / 命令 -->
-    <div v-if="slashOpen" class="ag-menu agc-pop agc-pop--btn agc-pop--w380 ag-noscroll" role="menu" :aria-label="t('agent.code.composer.slash')">
+    <div v-if="slashOpen" ref="slashMenu" class="ag-menu agc-pop agc-pop--btn agc-pop--w380 ag-noscroll" role="menu" :aria-label="t('agent.code.composer.slash')">
       <template v-for="g in cmdGroups" :key="g.key">
         <div class="ag-mi-label">{{ g.title }}</div>
         <button
@@ -132,8 +132,9 @@
           :key="c.name"
           type="button"
           class="ag-mi agc-cmd"
-          :class="{ 'is-hl': typing && g === cmdGroups[0] && i === 0 }"
+          :class="{ 'is-hl': g.offset + i === cmdHl }"
           role="menuitem"
+          @pointermove="cmdHl = g.offset + i"
           @click="pickCmd(c.name)"
         >
           <span class="ag-mono agc-cmd__n">/{{ c.name }}</span>
@@ -543,7 +544,7 @@ const cmdGroups = computed(() => {
     items: [...skills].map((name) => ({ name, description: props.commands.find((c) => c.name === name)?.description || '' })),
   })
   // 有开头对上的组排到前面，回车选的、高亮的就是最贴近的那条
-  return groups
+  const sorted = groups
     .map((g) => {
       const hits = g.items
         .map((c) => ({ c, r: rank(c.name) }))
@@ -553,12 +554,69 @@ const cmdGroups = computed(() => {
     })
     .filter((g) => g.items.length > 0)
     .sort((a, b) => a.best - b.best)
+  // offset：这组第一条在摊平后的整张列表里排第几（上下键按整张列表走）
+  let n = 0
+  return sorted.map((g) => {
+    const offset = n
+    n += g.items.length
+    return { ...g, offset }
+  })
+})
+const cmdList = computed(() => cmdGroups.value.flatMap((g) => g.items))
+/** 高亮的那条（整张列表里的序号）：打字打出来的默认第一条，回车就选它；按按钮打开的先不高亮，按上下键才有 */
+const cmdHl = ref(-1)
+const slashMenu = ref<HTMLElement | null>(null)
+/** 键盘挪到的那条滚进看得见的地方；是组里第一条就连组名一起 */
+const revealCmd = async () => {
+  await nextTick()
+  const menu = slashMenu.value
+  const el = menu?.querySelector<HTMLElement>('.agc-cmd.is-hl')
+  if (!menu || !el) return
+  if (cmdHl.value === 0) {
+    menu.scrollTop = 0
+    return
+  }
+  const head = el.previousElementSibling
+  if (head?.classList.contains('ag-mi-label')) head.scrollIntoView({ block: 'nearest' })
+  el.scrollIntoView({ block: 'nearest' })
+}
+// 列表一变（打开、多打了几个字筛过）高亮回到开头
+watch([cmdGroups, slashOpen], () => {
+  cmdHl.value = typing.value ? 0 : -1
+  void revealCmd()
 })
 const pickCmd = (name: string) => {
   draft.value = `/${name} `
   pop.value = ''
   slashHidden.value = true
   void nextTick(() => input.value?.focus())
+}
+/** / 命令列表开着时的按键（输入框里，或者焦点还在 / 按钮上）：上下键挪高亮、到头绕回；回车选高亮的那条，
+ *  打字打出来的还能按 Tab 选；Esc 收起。这个键用掉了就返回 true */
+const cmdKey = (e: KeyboardEvent): boolean => {
+  if (!slashOpen.value || composing.value || e.isComposing || e.altKey || e.ctrlKey || e.metaKey) return false
+  const n = cmdList.value.length
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (!n) return false
+    e.preventDefault()
+    const d = e.key === 'ArrowDown' ? 1 : -1
+    cmdHl.value = cmdHl.value < 0 ? (d > 0 ? 0 : n - 1) : (cmdHl.value + d + n) % n
+    void revealCmd()
+    return true
+  }
+  if ((e.key === 'Enter' || (e.key === 'Tab' && typing.value)) && !e.shiftKey) {
+    const c = cmdList.value[cmdHl.value]
+    if (!c) return false
+    e.preventDefault()
+    pickCmd(c.name)
+    return true
+  }
+  if (e.key === 'Escape') {
+    pop.value = ''
+    slashHidden.value = true
+    return true
+  }
+  return false
 }
 
 // 内置命令展开成给 Agent 的一条消息：让它读说明，再调用 Momoko 的 MCP 工具（会照常走批准）。
@@ -805,20 +863,7 @@ const submit = async (mode?: SendMode) => {
 }
 
 const onKey = (e: KeyboardEvent) => {
-  if (typing.value) {
-    if (e.key === 'Escape') {
-      slashHidden.value = true
-      return
-    }
-    if (e.key === 'Enter' && !e.shiftKey && !composing.value) {
-      const first = cmdGroups.value[0]?.items[0]
-      if (first) {
-        e.preventDefault()
-        pickCmd(first.name)
-        return
-      }
-    }
-  }
+  if (cmdKey(e)) return
   if (e.key === 'Enter' && !e.shiftKey && !composing.value && !e.isComposing) {
     e.preventDefault()
     if (!showStop.value) void submit()

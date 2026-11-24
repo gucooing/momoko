@@ -252,15 +252,117 @@ func (s *AgentService) ExportAgentSessions(ctx context.Context, req *v1.ExportAg
 	return &v1.ExportAgentSessionsResponse{Sessions: sessions}, nil
 }
 
-func (s *AgentService) GetAgentSessionChanges(ctx context.Context, req *v1.GetAgentSessionChangesRequest) (*v1.GetAgentSessionChangesResponse, error) {
-	return s.uc.GetChanges(ctx, req.GetId())
+// —— Git ——
+
+func (s *AgentService) GetAgentGitStatus(ctx context.Context, req *v1.GetAgentGitStatusRequest) (*v1.GetAgentGitStatusResponse, error) {
+	return s.uc.GitStatus(ctx, req.GetId())
 }
 
-func (s *AgentService) RevertAgentSessionFile(ctx context.Context, req *v1.RevertAgentSessionFileRequest) (*v1.RevertAgentSessionFileResponse, error) {
-	if err := s.uc.RevertFile(ctx, req.GetId(), req.GetPath()); err != nil {
+func (s *AgentService) GetAgentGitDiff(ctx context.Context, req *v1.GetAgentGitDiffRequest) (*v1.GetAgentGitDiffResponse, error) {
+	return s.uc.GitDiff(ctx, req)
+}
+
+func (s *AgentService) UpdateAgentGitFiles(ctx context.Context, req *v1.UpdateAgentGitFilesRequest) (*v1.UpdateAgentGitFilesResponse, error) {
+	if err := s.uc.GitFiles(ctx, req); err != nil {
 		return nil, err
 	}
-	return &v1.RevertAgentSessionFileResponse{}, nil
+	return &v1.UpdateAgentGitFilesResponse{}, nil
+}
+
+func (s *AgentService) ApplyAgentGitLines(ctx context.Context, req *v1.ApplyAgentGitLinesRequest) (*v1.ApplyAgentGitLinesResponse, error) {
+	if err := s.uc.GitLines(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.ApplyAgentGitLinesResponse{}, nil
+}
+
+func (s *AgentService) CommitAgentGit(ctx context.Context, req *v1.CommitAgentGitRequest) (*v1.CommitAgentGitResponse, error) {
+	head, err := s.uc.GitCommit(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.CommitAgentGitResponse{Head: head}, nil
+}
+
+func (s *AgentService) GenerateAgentGitMessage(ctx context.Context, req *v1.GenerateAgentGitMessageRequest) (*v1.GenerateAgentGitMessageResponse, error) {
+	msg, err := s.uc.GitMessage(ctx, req.GetId(), req.GetRepo())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GenerateAgentGitMessageResponse{Message: msg}, nil
+}
+
+func (s *AgentService) ResetAgentGit(ctx context.Context, req *v1.ResetAgentGitRequest) (*v1.ResetAgentGitResponse, error) {
+	if err := s.uc.GitReset(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.ResetAgentGitResponse{}, nil
+}
+
+func (s *AgentService) ListAgentGitRefs(ctx context.Context, req *v1.ListAgentGitRefsRequest) (*v1.ListAgentGitRefsResponse, error) {
+	return s.uc.GitRefs(ctx, req.GetId(), req.GetRepo())
+}
+
+func (s *AgentService) UpdateAgentGitRef(ctx context.Context, req *v1.UpdateAgentGitRefRequest) (*v1.UpdateAgentGitRefResponse, error) {
+	out, err := s.uc.GitRef(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateAgentGitRefResponse{Output: out}, nil
+}
+
+func (s *AgentService) SyncAgentGit(ctx context.Context, req *v1.SyncAgentGitRequest) (*v1.SyncAgentGitResponse, error) {
+	out, err := s.uc.GitSync(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SyncAgentGitResponse{Output: out}, nil
+}
+
+func (s *AgentService) UpdateAgentGitRemote(ctx context.Context, req *v1.UpdateAgentGitRemoteRequest) (*v1.UpdateAgentGitRemoteResponse, error) {
+	if err := s.uc.GitRemote(ctx, req); err != nil {
+		return nil, err
+	}
+	return &v1.UpdateAgentGitRemoteResponse{}, nil
+}
+
+func (s *AgentService) ListAgentGitStashes(ctx context.Context, req *v1.ListAgentGitStashesRequest) (*v1.ListAgentGitStashesResponse, error) {
+	list, err := s.uc.GitStashes(ctx, req.GetId(), req.GetRepo())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.ListAgentGitStashesResponse{Stashes: list}, nil
+}
+
+func (s *AgentService) UpdateAgentGitStash(ctx context.Context, req *v1.UpdateAgentGitStashRequest) (*v1.UpdateAgentGitStashResponse, error) {
+	out, err := s.uc.GitStash(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.UpdateAgentGitStashResponse{Output: out}, nil
+}
+
+func (s *AgentService) RunAgentGitOperation(ctx context.Context, req *v1.RunAgentGitOperationRequest) (*v1.RunAgentGitOperationResponse, error) {
+	out, err := s.uc.GitOperation(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.RunAgentGitOperationResponse{Output: out}, nil
+}
+
+func (s *AgentService) ListAgentGitLog(ctx context.Context, req *v1.ListAgentGitLogRequest) (*v1.ListAgentGitLogResponse, error) {
+	return s.uc.GitLog(ctx, req)
+}
+
+func (s *AgentService) GetAgentGitCommit(ctx context.Context, req *v1.GetAgentGitCommitRequest) (*v1.GetAgentGitCommitResponse, error) {
+	return s.uc.GitCommitDetail(ctx, req)
+}
+
+func (s *AgentService) InitAgentGitRepo(ctx context.Context, req *v1.InitAgentGitRepoRequest) (*v1.InitAgentGitRepoResponse, error) {
+	if err := s.uc.GitInit(ctx, req.GetId(), req.GetPath()); err != nil {
+		return nil, err
+	}
+	return &v1.InitAgentGitRepoResponse{}, nil
 }
 
 func (s *AgentService) ListAgentSessionFiles(ctx context.Context, req *v1.ListAgentSessionFilesRequest) (*v1.ListAgentSessionFilesResponse, error) {

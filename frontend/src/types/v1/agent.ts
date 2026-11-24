@@ -444,46 +444,367 @@ export interface AgentSessionExport {
   events: string;
 }
 
-export interface AgentChangedFile {
+/** 改动列表里的一个文件（路径都相对仓库，正斜杠） */
+export interface AgentGitFile {
   path: string;
-  /** M | A | D | R */
+  /** 改名、复制前的路径 */
+  origPath: string;
+  /** M 修改 | A 新增 | D 删除 | R 改名 | C 复制 | T 类型变了 | U 没跟踪；冲突的是两边的状态（UU、AA、DU……） */
   kind: string;
   added: number;
   deleted: number;
-  /** 统一 diff（不含文件头） */
+  /** 不是文本，没有增删行数 */
+  binary: boolean;
+}
+
+/** 一个仓库的状态 */
+export interface AgentGitStatus {
+  /** 仓库相对会话目录的路径；会话目录本身是仓库时为空 */
+  repo: string;
+  /** 当前分支；游离 HEAD 时为空 */
+  branch: string;
+  /** HEAD 的短哈希；还没有提交时为空 */
+  head: string;
+  upstream: string;
+  /** 上游分支已经在远程上删掉了 */
+  upstreamGone: boolean;
+  ahead: number;
+  behind: number;
+  /** 进行中的操作：merge | rebase | am | cherry-pick | revert | bisect，没有为空 */
+  operation: string;
+  /** 合并进来的分支、拣选 / 还原的提交，或者正在变基的分支 */
+  operationRef: string;
+  /** 变基到的提交 */
+  operationOnto: string;
+  /** 变基进行到第几个、一共几个 */
+  operationStep: number;
+  operationTotal: number;
+  staged: AgentGitFile[];
+  /** 工作区的改动，包括没跟踪的新文件 */
+  unstaged: AgentGitFile[];
+  conflicted: AgentGitFile[];
+  stashes: number;
+  remotes: string[];
+  /** 改动的文件太多，只列了前面一部分 */
+  truncated: boolean;
+  /** 上一次提交的完整说明（修改上一次提交时放进输入框） */
+  lastMessage: string;
+}
+
+export interface GetAgentGitStatusRequest {
+  id: string;
+}
+
+export interface GetAgentGitStatusResponse {
+  /** 会话目录本身是仓库时只有它一个；否则是它下面几层里找到的仓库；都没有时为空 */
+  repos: AgentGitStatus[];
+}
+
+export interface GetAgentGitDiffRequest {
+  id: string;
+  repo: string;
+  path: string;
+  /** 改名前的路径（暂存区里的改名、提交里的改名） */
+  origPath: string;
+  /**
+   * unstaged（工作区相对暂存区）| staged（暂存区相对 HEAD）| conflict（冲突的文件现在的内容）|
+   * commit（某次提交相对它的第一个父提交）| stash（某个储藏）| head（整个仓库相对 HEAD 的补丁，path 为空）
+   */
+  source: string;
+  /** commit、stash 时的哈希 */
+  ref: string;
+}
+
+export interface GetAgentGitDiffResponse {
+  /** 从 @@ 开始的各段；head 时是带文件头的完整补丁 */
   patch: string;
-  /** 所在的 Git 仓库（相对会话目录）；会话目录本身就是仓库时为空 */
+  binary: boolean;
+  /** 太大，没给 */
+  tooLarge: boolean;
+}
+
+export interface UpdateAgentGitFilesRequest {
+  id: string;
+  repo: string;
+  /** stage | unstage | discard | ours（采用当前）| theirs（采用传入）| resolve（标记已解决）| ignore（加进 .gitignore） */
+  action: string;
+  paths: string[];
+  /** stage、unstage、discard 时对全部文件 */
+  all: boolean;
+}
+
+export interface UpdateAgentGitFilesResponse {
+}
+
+export interface ApplyAgentGitLinesRequest {
+  id: string;
+  repo: string;
+  path: string;
+  /** stage（从工作区的 diff 暂存）| unstage（从暂存区的 diff 取消暂存）| discard（撤销工作区里的这几行） */
+  action: string;
+  /** 页面上显示的那份 diff（从 @@ 开始）；文件在这期间又改过的话 git 会拒绝 */
+  patch: string;
+  /** 选中的行：patch 按换行拆开后的序号（只算 + 和 - 行） */
+  lines: number[];
+}
+
+export interface ApplyAgentGitLinesResponse {
+}
+
+export interface CommitAgentGitRequest {
+  id: string;
+  repo: string;
+  message: string;
+  /** 修改上一次提交；说明为空时沿用原来的 */
+  amend: boolean;
+  /** 先暂存全部改动 */
+  all: boolean;
+  /** 不跑提交钩子 */
+  noVerify: boolean;
+  /** 加上 Signed-off-by */
+  signoff: boolean;
+}
+
+export interface CommitAgentGitResponse {
+  /** 新提交的短哈希 */
+  head: string;
+}
+
+export interface GenerateAgentGitMessageRequest {
+  id: string;
   repo: string;
 }
 
-/** 会话目录下面找到的一个 Git 仓库 */
-export interface AgentGitRepo {
-  /** 相对会话目录的路径，正斜杠 */
-  path: string;
-  branch: string;
+export interface GenerateAgentGitMessageResponse {
+  message: string;
 }
 
-export interface GetAgentSessionChangesRequest {
+export interface ResetAgentGitRequest {
   id: string;
+  repo: string;
+  /** 提交：哈希、HEAD~1…… */
+  target: string;
+  /** soft（改动留在暂存区）| mixed（留在工作区）| hard（全部丢掉） */
+  mode: string;
 }
 
-export interface GetAgentSessionChangesResponse {
-  /** 会话目录本身是仓库，或者它下面几层里找到了仓库 */
-  isGit: boolean;
-  /** 会话目录本身是仓库时的分支 */
-  branch: string;
-  /** 路径都相对会话目录 */
-  files: AgentChangedFile[];
-  /** 会话目录本身不是仓库时，它下面几层里找到的仓库 */
-  repos: AgentGitRepo[];
+export interface ResetAgentGitResponse {
 }
 
-export interface RevertAgentSessionFileRequest {
+export interface AgentGitBranch {
+  /** 本地分支名，或者远程分支的「远程/分支」 */
+  name: string;
+  /** 指向的提交（短哈希）和它的说明、时间 */
+  commit: string;
+  subject: string;
+  date: Date | undefined;
+  current: boolean;
+  upstream: string;
+  upstreamGone: boolean;
+  ahead: number;
+  behind: number;
+}
+
+export interface AgentGitTag {
+  name: string;
+  commit: string;
+  /** 附注标签的说明，轻量标签是它指向的提交的说明 */
+  subject: string;
+  date: Date | undefined;
+}
+
+export interface AgentGitRemote {
+  name: string;
+  fetchUrl: string;
+  pushUrl: string;
+}
+
+export interface ListAgentGitRefsRequest {
   id: string;
+  repo: string;
+}
+
+export interface ListAgentGitRefsResponse {
+  /** 当前分支在前，其余按最近提交 */
+  branches: AgentGitBranch[];
+  remoteBranches: AgentGitBranch[];
+  tags: AgentGitTag[];
+  remotes: AgentGitRemote[];
+}
+
+export interface UpdateAgentGitRefRequest {
+  id: string;
+  repo: string;
+  /**
+   * checkout | create-branch | rename-branch | delete-branch | delete-remote-branch | merge | rebase |
+   * create-tag | delete-tag | push-tag | delete-remote-tag
+   */
+  action: string;
+  /** 分支、标签名；checkout 时也可以是远程分支、提交哈希 */
+  name: string;
+  /** 改名后的名字 */
+  newName: string;
+  /** 新建分支、标签时从哪开始（空 = HEAD） */
+  from: string;
+  /** 新建分支后切过去 */
+  checkout: boolean;
+  /** 删除没合并过的分支 */
+  force: boolean;
+  /** 附注标签的说明（空 = 轻量标签） */
+  message: string;
+  /** 推送 / 删除远程标签时用哪个远程（空 = 默认的） */
+  remote: string;
+}
+
+export interface UpdateAgentGitRefResponse {
+  /** git 说的话（合并、变基的结果） */
+  output: string;
+}
+
+export interface SyncAgentGitRequest {
+  id: string;
+  repo: string;
+  /** fetch | pull | push */
+  action: string;
+  /** 远程；fetch 时为空是全部，push 时为空是上游的（没有上游时是默认的） */
+  remote: string;
+  /** pull：merge | rebase | ff-only，空 = 按仓库的设置（没设过用 merge） */
+  mode: string;
+  /** push：强制推送（--force-with-lease，远程上有别人新推的提交时会拒绝） */
+  force: boolean;
+  /** push：连同标签 */
+  tags: boolean;
+}
+
+export interface SyncAgentGitResponse {
+  output: string;
+}
+
+export interface UpdateAgentGitRemoteRequest {
+  id: string;
+  repo: string;
+  /** add | set-url | rename | remove */
+  action: string;
+  name: string;
+  url: string;
+  newName: string;
+}
+
+export interface UpdateAgentGitRemoteResponse {
+}
+
+export interface AgentGitStash {
+  index: number;
+  hash: string;
+  message: string;
+  /** 储藏时所在的分支 */
+  branch: string;
+  date: Date | undefined;
+}
+
+export interface ListAgentGitStashesRequest {
+  id: string;
+  repo: string;
+}
+
+export interface ListAgentGitStashesResponse {
+  stashes: AgentGitStash[];
+}
+
+export interface UpdateAgentGitStashRequest {
+  id: string;
+  repo: string;
+  /** push | apply | pop | drop */
+  action: string;
+  /** apply、pop、drop：储藏的哈希（按哈希找，列表在这期间变了也不会弄错） */
+  hash: string;
+  /** push：说明 */
+  message: string;
+  /** push：连同没跟踪的文件 */
+  untracked: boolean;
+  /** push：只储藏暂存了的 */
+  staged: boolean;
+  /** apply、pop：连暂存状态一起恢复 */
+  index: boolean;
+  /** push：只储藏这些文件（空 = 全部） */
+  paths: string[];
+}
+
+export interface UpdateAgentGitStashResponse {
+  output: string;
+}
+
+export interface RunAgentGitOperationRequest {
+  id: string;
+  repo: string;
+  /** cherry-pick | revert（commit 是哪个提交）| continue | skip | abort（进行中的合并、变基、拣选、还原） */
+  action: string;
+  commit: string;
+}
+
+export interface RunAgentGitOperationResponse {
+  output: string;
+}
+
+export interface AgentGitCommit {
+  hash: string;
+  shortHash: string;
+  parents: string[];
+  author: string;
+  email: string;
+  date: Date | undefined;
+  subject: string;
+  /** 指向它的分支、标签：HEAD -> main、origin/main、tag: v1.0 */
+  refs: string[];
+}
+
+export interface ListAgentGitLogRequest {
+  id: string;
+  repo: string;
+  skip: number;
+  limit: number;
+  /** 从哪个分支 / 提交往前看（空 = 当前） */
+  ref: string;
+  /** 看所有分支 */
+  all: boolean;
+  /** 只看动过这个文件的（相对仓库） */
+  path: string;
+  /** 在提交说明里搜 */
+  keyword: string;
+}
+
+export interface ListAgentGitLogResponse {
+  commits: AgentGitCommit[];
+  /** 后面还有 */
+  more: boolean;
+}
+
+export interface GetAgentGitCommitRequest {
+  id: string;
+  repo: string;
+  hash: string;
+  /** 是一个储藏：文件列表连同没跟踪的 */
+  stash: boolean;
+}
+
+export interface GetAgentGitCommitResponse {
+  commit:
+    | AgentGitCommit
+    | undefined;
+  /** 说明标题后面的部分 */
+  body: string;
+  committer: string;
+  commitDate: Date | undefined;
+  files: AgentGitFile[];
+}
+
+export interface InitAgentGitRepoRequest {
+  id: string;
+  /** 相对会话目录（空 = 会话目录本身） */
   path: string;
 }
 
-export interface RevertAgentSessionFileResponse {
+export interface InitAgentGitRepoResponse {
 }
 
 export interface AgentFileEntry {

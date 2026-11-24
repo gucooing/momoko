@@ -174,6 +174,7 @@ type Session struct {
 	background map[string]bool      // v2：后台还在跑的工具调用（toolKey）和子 Agent（"sub:" + 会话 id）
 	after      []func()             // 处理一条会话更新时攒下、要在锁外做的事
 	queue      []*queued            // 排着队的消息
+	sides      map[string]*sideRun  // 同一个进程里另开的一次性会话（Ask）
 
 	titleCustom bool
 	contextUsed int64
@@ -587,6 +588,10 @@ func (s *Session) SessionUpdate(n *acp.SessionNotification) {
 			fn()
 		}
 	}()
+	if side := s.sideOf(n.SessionID); side != nil {
+		side.update(&n.Update)
+		return
+	}
 	u := &n.Update
 	sub := ""
 	if n.SessionID != "" && s.acpID != "" && n.SessionID != s.acpID {
@@ -925,6 +930,10 @@ func (s *Session) onSubagent(u *acp.SessionUpdate) {
 func (s *Session) RequestPermission(reqID string, req *acp.RequestPermissionRequest, reply func(*acp.RequestPermissionResponse)) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.sideOf(req.SessionID) != nil {
+		reply(acp.PermissionCancelled())
+		return
+	}
 	// v1 的批准只属于正在进行的一轮；v2 里后台的工作也会要批准，而且停下时由 Agent 自己撤回
 	if !s.v2 && (s.turn == nil || s.turn.cancelled) {
 		reply(acp.PermissionCancelled())
