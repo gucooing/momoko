@@ -26575,7 +26575,7 @@ components:
             properties:
                 base:
                     type: string
-                    description: 基于哪套内置配色（没改过的 token 取它的值）：sakura / mint / volt / grape / sunset / classic
+                    description: 基于哪套内置配色（没改过的 token 取它的值）：sakura / mint / volt / grape / sunset / classic / mono
                 tokensLight:
                     type: object
                     additionalProperties:
@@ -28439,7 +28439,7 @@ components:
             properties:
                 theme:
                     type: string
-                    description: 当前主题：内置主题为配色键（sakura / mint / volt / grape / sunset / classic），「我的主题」为主题 id
+                    description: 当前主题：内置主题为配色键（sakura / mint / volt / grape / sunset / classic / mono），「我的主题」为主题 id
                 mode:
                     type: string
                     description: 深浅色：light / dark / auto（跟随系统）

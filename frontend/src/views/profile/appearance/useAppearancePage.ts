@@ -3,7 +3,7 @@ import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import type { Theme, ThemeBackground, ThemeContent } from '@/types/v1/theme'
-import { PALETTE_OPTIONS, isPaletteKey, type PaletteKey } from '@/theme/palettes'
+import { DEFAULT_PALETTE, PALETTE_OPTIONS, isPaletteKey, type PaletteKey } from '@/theme/palettes'
 import {
   GLASS_TYPES,
   assetUrl,
@@ -65,7 +65,7 @@ export const useAppearancePage = () => {
     }
   }
 
-  const paletteName = (key: string) => t(`theme.palettes.${isPaletteKey(key) ? key : 'sakura'}`)
+  const paletteName = (key: string) => t(`theme.palettes.${isPaletteKey(key) ? key : DEFAULT_PALETTE}`)
 
   const builtins = computed(() =>
     PALETTE_OPTIONS.map((p) => ({

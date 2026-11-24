@@ -55,7 +55,7 @@ export interface MeInfoResponse {
 
 /** 个人外观偏好：只对自己生效，跟随账号同步到所有设备 */
 export interface UserAppearance {
-  /** 当前主题：内置主题为配色键（sakura / mint / volt / grape / sunset / classic），「我的主题」为主题 id */
+  /** 当前主题：内置主题为配色键（sakura / mint / volt / grape / sunset / classic / mono），「我的主题」为主题 id */
   theme: string;
   /** 深浅色：light / dark / auto（跟随系统） */
   mode: string;

@@ -29,7 +29,7 @@ import {
   resolveTokens,
   type BgType,
 } from '@/theme/content'
-import { EDITOR_TOKENS, PALETTE_TOKENS, TERM_DEFAULTS, isPaletteKey, type SchemeKey, type TokenKey } from '@/theme/palettes'
+import { DEFAULT_PALETTE, EDITOR_TOKENS, PALETTE_TOKENS, TERM_DEFAULTS, isPaletteKey, type SchemeKey, type TokenKey } from '@/theme/palettes'
 import { contrastRatio, ensureContrast, hexToHsv, hsvToHex, luminance, mixHex } from '@/theme/color'
 import { imageStats } from '@/theme/imageStats'
 import { useThemePages } from '@/theme/pages'
@@ -220,7 +220,7 @@ const createThemeEditor = (routeId: Ref<string>) => {
     const p = page.value
     return !!p && [...Object.keys(p.tokensLight), ...Object.keys(p.tokensDark)].some((k) => k.startsWith('term') || k.startsWith('ansi'))
   })
-  const baseTokens = computed(() => ({ ...PALETTE_TOKENS[isPaletteKey(content.value.base) ? content.value.base : 'sakura'][scheme.value], ...TERM_DEFAULTS }))
+  const baseTokens = computed(() => ({ ...PALETTE_TOKENS[isPaletteKey(content.value.base) ? content.value.base : DEFAULT_PALETTE][scheme.value], ...TERM_DEFAULTS }))
   const globalTokens = computed(() => resolveTokens(content.value, scheme.value, null))
   const tokens = computed(() => resolveTokens(content.value, scheme.value, pageKey.value))
   const tokenValue = (key: string) => tokens.value[key as TokenKey] || '#000000'
@@ -538,7 +538,7 @@ const createThemeEditor = (routeId: Ref<string>) => {
   }
 
   // ---- 读取 / 保存 ----
-  const paletteName = (key: string) => t(`theme.palettes.${isPaletteKey(key) ? key : 'sakura'}`)
+  const paletteName = (key: string) => t(`theme.palettes.${isPaletteKey(key) ? key : DEFAULT_PALETTE}`)
 
   const load = async () => {
     loading.value = true

@@ -40,7 +40,7 @@ func pickOr(v string, allowed []string, fallback string) string {
 	return fallback
 }
 
-// normalizeAppearanceTheme 不查库的主题键校验：空 / 内置配色 / 形如主题 id 的值保留，其余落回 sakura。
+// normalizeAppearanceTheme 不查库的主题键校验：空 / 内置配色 / 形如主题 id 的值保留，其余落回默认配色。
 func normalizeAppearanceTheme(v string) string {
 	v = strings.TrimSpace(v)
 	if v == "" || IsBuiltinTheme(v) {
@@ -51,7 +51,7 @@ func normalizeAppearanceTheme(v string) string {
 			return v
 		}
 	}
-	return "sakura"
+	return ThemeDefaultKey
 }
 
 // syntacticAssetResolver 只按格式校验资源引用（用于解析已存的偏好，存入时已按归属校验过）。

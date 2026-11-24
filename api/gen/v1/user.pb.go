@@ -243,7 +243,7 @@ func (x *MeInfoResponse) GetAvatarUploadEnabled() bool {
 // 个人外观偏好：只对自己生效，跟随账号同步到所有设备
 type UserAppearance struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 当前主题：内置主题为配色键（sakura / mint / volt / grape / sunset / classic），「我的主题」为主题 id
+	// 当前主题：内置主题为配色键（sakura / mint / volt / grape / sunset / classic / mono），「我的主题」为主题 id
 	Theme string `protobuf:"bytes,1,opt,name=theme,proto3" json:"theme,omitempty"`
 	// 深浅色：light / dark / auto（跟随系统）
 	Mode string `protobuf:"bytes,2,opt,name=mode,proto3" json:"mode,omitempty"`

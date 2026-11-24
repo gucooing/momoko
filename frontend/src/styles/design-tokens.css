@@ -1,7 +1,8 @@
 /* ============================================================
    Momoko Console · 设计令牌 (Design Tokens)
    ------------------------------------------------------------
-   六套配色（data-palette）× 浅/深（html.dark），由 themeStore 写到 <html> 上。
+   七套配色（data-palette）× 浅/深（html.dark），由 themeStore 写到 <html> 上；
+   不带 data-palette 时（首屏脚本执行前）用默认的黑白（mono），与 palettes.ts 的 DEFAULT_PALETTE 一致。
    每套只定义一组品牌原色 --m-*；下方统一映射为：
      · 自建语义色 --el-*（历史命名保留，全站组件读取）
      · Nuxt UI v4 的 --ui-*（U* 组件读取，覆盖其 @layer theme 默认值）
@@ -17,7 +18,6 @@
    ============================================================ */
 
 /* ---------- 浅色 ---------- */
-:root,
 :root[data-palette='sakura'],
 [data-palette='sakura'],
 html.dark [data-palette='sakura'][data-scheme='light'] {
@@ -84,9 +84,20 @@ html.dark [data-palette='classic'][data-scheme='light'] {
   --m-ok: #0b7f57; --m-okSoft: #ddf5ea; --m-warn: #a35b00; --m-warnSoft: #fff2d6;
   --m-bad: #d2263b; --m-badSoft: #ffe3e6;
 }
+:root,
+:root[data-palette='mono'],
+[data-palette='mono'],
+html.dark [data-palette='mono'][data-scheme='light'] {
+  --m-p: #171717; --m-pOn: #ffffff; --m-pInk: #171717; --m-pSoft: #ececec;
+  --m-a: #a3a3a3; --m-aOn: #171717; --m-aSoft: #f0f0f0;
+  --m-a2: #525252; --m-a2Soft: #ebebeb;
+  --m-bg: #f4f4f4; --m-s: #ffffff; --m-s2: #efefef; --m-line: #e3e3e3;
+  --m-ink: #171717; --m-ink2: #5f5f5f;
+  --m-ok: #0b7f57; --m-okSoft: #ddf5ea; --m-warn: #a35b00; --m-warnSoft: #fff2d6;
+  --m-bad: #d2263b; --m-badSoft: #ffe3e6;
+}
 
 /* ---------- 深色 ---------- */
-html.dark,
 html.dark[data-palette='sakura'],
 html.dark [data-palette='sakura'],
 [data-palette='sakura'][data-scheme='dark'] {
@@ -150,6 +161,18 @@ html.dark [data-palette='classic'],
   --m-a2: #8c98ff; --m-a2Soft: #1e2348;
   --m-bg: #0e1116; --m-s: #171b22; --m-s2: #1c212b; --m-line: #2b323d;
   --m-ink: #e8ebf1; --m-ink2: #9aa2b1;
+  --m-ok: #3ddc97; --m-okSoft: #123326; --m-warn: #ffc14d; --m-warnSoft: #3a2e12;
+  --m-bad: #ff6b7d; --m-badSoft: #3a1820;
+}
+html.dark,
+html.dark[data-palette='mono'],
+html.dark [data-palette='mono'],
+[data-palette='mono'][data-scheme='dark'] {
+  --m-p: #f5f5f5; --m-pOn: #0a0a0a; --m-pInk: #fafafa; --m-pSoft: #2b2b2b;
+  --m-a: #8a8a8a; --m-aOn: #0a0a0a; --m-aSoft: #2e2e2e;
+  --m-a2: #bdbdbd; --m-a2Soft: #2a2a2a;
+  --m-bg: #0a0a0a; --m-s: #161616; --m-s2: #1e1e1e; --m-line: #2c2c2c;
+  --m-ink: #f2f2f2; --m-ink2: #a3a3a3;
   --m-ok: #3ddc97; --m-okSoft: #123326; --m-warn: #ffc14d; --m-warnSoft: #3a2e12;
   --m-bad: #ff6b7d; --m-badSoft: #3a1820;
 }

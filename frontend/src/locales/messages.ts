@@ -3845,6 +3845,7 @@ export const messages = {
         grape: '葡萄气泡',
         sunset: '橘子海',
         classic: '经典青',
+        mono: '黑白',
       },
     },
     dialog: {
@@ -4733,6 +4734,7 @@ export const messages = {
         grape: '葡萄氣泡',
         sunset: '橘子海',
         classic: '經典青',
+        mono: '黑白',
       },
     },
     dialog: {
@@ -5621,6 +5623,7 @@ export const messages = {
         grape: 'Grape Fizz',
         sunset: 'Sunset',
         classic: 'Classic Teal',
+        mono: 'Mono',
       },
     },
     dialog: {

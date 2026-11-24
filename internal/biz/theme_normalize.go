@@ -17,8 +17,11 @@ import (
 // 主题内容规范化：新建 / 保存 / 导入 / 全站默认 / 个人外观里的背景都走同一套规则，
 // 只保留颜色、数值、枚举和资源引用，其余一律丢弃（并计数，主题包导入时提示）。
 
+// ThemeDefaultKey 没选过主题、所选主题失效或主题内容里没有有效配色时用的内置配色（与前端 DEFAULT_PALETTE 一致）。
+const ThemeDefaultKey = "mono"
+
 var (
-	ThemeBuiltinKeys    = []string{"sakura", "mint", "volt", "grape", "sunset", "classic"}
+	ThemeBuiltinKeys    = []string{"sakura", "mint", "volt", "grape", "sunset", "classic", "mono"}
 	themeBackgroundType = []string{"theme", "solid", "pattern", "gradient", "image"}
 	themePatterns       = []string{"dots", "grid", "stripe", "polka", "wave"}
 	themePatternColors  = []string{"ink", "p", "a2"}
@@ -169,7 +172,7 @@ func (n *themeNormalizer) sizes(in map[string]float64) map[string]float64 {
 // content 规范化整份主题内容；nil 视为空内容。没给的背景 / 细节 / 横幅保持为空（前端按默认值处理）。
 func (n *themeNormalizer) content(c *v1.ThemeContent) *v1.ThemeContent {
 	out := &v1.ThemeContent{
-		Base:        n.enum(c.GetBase(), ThemeBuiltinKeys, "sakura"),
+		Base:        n.enum(c.GetBase(), ThemeBuiltinKeys, ThemeDefaultKey),
 		TokensLight: n.tokens(c.GetTokensLight()),
 		TokensDark:  n.tokens(c.GetTokensDark()),
 		Sizes:       n.sizes(c.GetSizes()),

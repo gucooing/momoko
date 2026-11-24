@@ -616,7 +616,7 @@ func (t *ThemeUsecase) SetSiteTheme(ctx context.Context, userID string, req *v1.
 // ---------------------------------------------------------------------------
 
 // NormalizeAppearance 规范化个人外观：theme 为空表示跟随全站默认；
-// 非空时必须是内置配色或该用户自己的主题 id，否则落回 sakura。背景按用户可用的资源校验（nil 保持 nil）。
+// 非空时必须是内置配色或该用户自己的主题 id，否则落回默认配色（ThemeDefaultKey）。背景按用户可用的资源校验（nil 保持 nil）。
 func (t *ThemeUsecase) NormalizeAppearance(ctx context.Context, userID string, a *v1.UserAppearance) (*v1.UserAppearance, error) {
 	n := normalizeAppearance(a)
 	if n.Theme != "" && !IsBuiltinTheme(n.Theme) {
@@ -624,7 +624,7 @@ func (t *ThemeUsecase) NormalizeAppearance(ctx context.Context, userID string, a
 			if !gen.IsNotFound(err) {
 				return nil, ErrSystem(err)
 			}
-			n.Theme = "sakura"
+			n.Theme = ThemeDefaultKey
 		}
 	}
 	if bg := a.GetBackground(); bg != nil {
@@ -638,7 +638,7 @@ func (t *ThemeUsecase) NormalizeAppearance(ctx context.Context, userID string, a
 }
 
 // AppearanceThemes 个人信息附带的主题：当前用的「我的主题」（appearance.theme 为主题 id 时）与全站默认主题。
-// 当前主题已被删除时把 appearance.theme 落回 sakura。查询失败只是不附带，不影响个人信息。
+// 当前主题已被删除时把 appearance.theme 落回默认配色。查询失败只是不附带，不影响个人信息。
 func (t *ThemeUsecase) AppearanceThemes(ctx context.Context, userID string, a *v1.UserAppearance) (current *v1.Theme, site *v1.SiteTheme) {
 	site, _ = t.config.SiteTheme(ctx)
 	if a == nil || a.Theme == "" || IsBuiltinTheme(a.Theme) {
@@ -647,7 +647,7 @@ func (t *ThemeUsecase) AppearanceThemes(ctx context.Context, userID string, a *v
 	row, err := t.repo.GetTheme(ctx, userID, a.Theme)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			a.Theme = "sakura"
+			a.Theme = ThemeDefaultKey
 		}
 		return nil, site
 	}

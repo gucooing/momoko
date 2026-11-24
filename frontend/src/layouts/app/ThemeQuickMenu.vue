@@ -1,4 +1,4 @@
-<!-- 顶栏主题快捷菜单（DashboardPC）：调色板按钮 → 六套内置主题 + 我的主题 + 浅色/深色/跟随系统 + 更多外观设置（个人中心 · 外观）。 -->
+<!-- 顶栏主题快捷菜单（DashboardPC）：调色板按钮 → 七套内置主题 + 我的主题 + 浅色/深色/跟随系统 + 更多外观设置（个人中心 · 外观）。 -->
 <template>
   <AppDropdown align="end" :width="340">
     <template #trigger="{ open }">

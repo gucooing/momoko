@@ -1,8 +1,11 @@
-// 六套内置配色的完整色值（与 styles/design-tokens.css 中的 data-palette 定义保持一致），
+// 七套内置配色的完整色值（与 styles/design-tokens.css 中的 data-palette 定义保持一致），
 // 以及主题编辑器里展示的 token 清单。自定义主题只存「改过的 token」，其余取所基于的内置配色。
 
-export type PaletteKey = 'sakura' | 'mint' | 'volt' | 'grape' | 'sunset' | 'classic'
+export type PaletteKey = 'sakura' | 'mint' | 'volt' | 'grape' | 'sunset' | 'classic' | 'mono'
 export type SchemeKey = 'light' | 'dark'
+
+/** 没选过主题（也没有全站默认）时用的内置配色；与 design-tokens.css 里不带 data-palette 的 :root / html.dark 默认值一致 */
+export const DEFAULT_PALETTE: PaletteKey = 'mono'
 
 /** 界面 token（对应 CSS 变量 --m-*） */
 export const UI_TOKEN_KEYS = [
@@ -69,6 +72,13 @@ export const PALETTE_TOKENS: Record<PaletteKey, Record<SchemeKey, TokenMap>> = {
     dark: P(`p:#2cc4ae;pOn:#0e1116;pInk:#5ed8c5;pSoft:#12302c;a:#ffb020;aOn:#0e1116;aSoft:#3a2e12;a2:#8c98ff;a2Soft:#1e2348;
       bg:#0e1116;s:#171b22;s2:#1c212b;line:#2b323d;ink:#e8ebf1;ink2:#9aa2b1;ok:#3ddc97;okSoft:#123326;warn:#ffc14d;warnSoft:#3a2e12;bad:#ff6b7d;badSoft:#3a1820`),
   },
+  // 黑白：界面只用黑、白、灰；成功 / 警告 / 出错仍保留颜色，免得状态分不出来
+  mono: {
+    light: P(`p:#171717;pOn:#ffffff;pInk:#171717;pSoft:#ececec;a:#a3a3a3;aOn:#171717;aSoft:#f0f0f0;a2:#525252;a2Soft:#ebebeb;
+      bg:#f4f4f4;s:#ffffff;s2:#efefef;line:#e3e3e3;ink:#171717;ink2:#5f5f5f;ok:#0b7f57;okSoft:#ddf5ea;warn:#a35b00;warnSoft:#fff2d6;bad:#d2263b;badSoft:#ffe3e6`),
+    dark: P(`p:#f5f5f5;pOn:#0a0a0a;pInk:#fafafa;pSoft:#2b2b2b;a:#8a8a8a;aOn:#0a0a0a;aSoft:#2e2e2e;a2:#bdbdbd;a2Soft:#2a2a2a;
+      bg:#0a0a0a;s:#161616;s2:#1e1e1e;line:#2c2c2c;ink:#f2f2f2;ink2:#a3a3a3;ok:#3ddc97;okSoft:#123326;warn:#ffc14d;warnSoft:#3a2e12;bad:#ff6b7d;badSoft:#3a1820`),
+  },
 }
 
 /** 终端默认色（深色终端，与 components/terminal/useTerminalX.ts 的 DARK_THEME 一致） */
@@ -131,6 +141,7 @@ export const PALETTE_OPTIONS: PaletteOption[] = (
     ['grape', 'GRAPE FIZZ'],
     ['sunset', 'SUNSET'],
     ['classic', 'CLASSIC'],
+    ['mono', 'MONO'],
   ] as [PaletteKey, string][]
 ).map(([key, en]) => {
   const t = PALETTE_TOKENS[key].light

@@ -9,6 +9,7 @@ import type {
 } from '@/types/v1/theme'
 import {
   DERIVED_TOKENS,
+  DEFAULT_PALETTE,
   PALETTE_TOKENS,
   TERM_DEFAULTS,
   TERM_TOKEN_KEYS,
@@ -261,7 +262,7 @@ export const isPageEmpty = (p?: ThemePageOverride | null) =>
     !p.banner &&
     !Object.keys(p.sizes || {}).length)
 
-export const emptyContent = (base: PaletteKey = 'sakura'): ThemeContent => ({
+export const emptyContent = (base: PaletteKey = DEFAULT_PALETTE): ThemeContent => ({
   base,
   tokensLight: {},
   tokensDark: {},
@@ -281,7 +282,7 @@ export const normalizeContent = (raw?: Partial<ThemeContent> | null): ThemeConte
     if (!isPageEmpty(page)) pages[k] = page
   }
   return {
-    base: isPaletteKey(c.base) ? c.base : 'sakura',
+    base: isPaletteKey(c.base) ? c.base : DEFAULT_PALETTE,
     tokensLight: cleanTokens(c.tokensLight),
     tokensDark: cleanTokens(c.tokensDark),
     background: normalizeBackground(c.background),
@@ -326,7 +327,7 @@ const derive = (key: UiTokenKey, from: string, t: Record<string, string>, scheme
 
 /** 全局 token 覆盖 + 页面覆盖 → 完整色表（含派生色和终端色） */
 export const resolveTokens = (content: ThemeContent, scheme: SchemeKey, pageKey?: string | null): ResolvedTokens => {
-  const base = PALETTE_TOKENS[isPaletteKey(content.base) ? content.base : 'sakura'][scheme]
+  const base = PALETTE_TOKENS[isPaletteKey(content.base) ? content.base : DEFAULT_PALETTE][scheme]
   const page = pageKey ? content.pages[pageKey] : undefined
   const over: Record<string, string> = {
     ...(scheme === 'dark' ? content.tokensDark : content.tokensLight),

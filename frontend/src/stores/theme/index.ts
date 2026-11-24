@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { useDark, usePreferredDark, useToggle } from '@vueuse/core'
 import type { SiteTheme, Theme, ThemeBackground, ThemeContent } from '@/types/v1/theme'
-import { PALETTE_OPTIONS, isPaletteKey, type PaletteKey, type SchemeKey } from '@/theme/palettes'
+import { DEFAULT_PALETTE, PALETTE_OPTIONS, isPaletteKey, type PaletteKey, type SchemeKey } from '@/theme/palettes'
 import {
   emptyContent,
   normalizeBackground,
@@ -51,7 +51,7 @@ export { PALETTE_OPTIONS, isPaletteKey }
 export const isThemeMode = (v: unknown): v is ThemeMode => v === 'light' || v === 'dark' || v === 'auto'
 export const isRadiusMode = (v: unknown): v is RadiusMode => v === 'round' || v === 'standard'
 
-const DEFAULT_THEME: PaletteKey = 'sakura'
+const DEFAULT_THEME: PaletteKey = DEFAULT_PALETTE
 const LS = {
   mode: 'themeMode',
   theme: 'theme-current',

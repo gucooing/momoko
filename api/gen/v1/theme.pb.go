@@ -26,7 +26,7 @@ const (
 // 主题内容 = 配色（浅色 + 深色两套 token 覆盖）+ 背景 + 细节 + 欢迎横幅 + 页面单独设置
 type ThemeContent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 基于哪套内置配色（没改过的 token 取它的值）：sakura / mint / volt / grape / sunset / classic
+	// 基于哪套内置配色（没改过的 token 取它的值）：sakura / mint / volt / grape / sunset / classic / mono
 	Base string `protobuf:"bytes,1,opt,name=base,proto3" json:"base,omitempty"`
 	// 浅色 token 覆盖：键见 ThemeTokenKeys（p / pOn / pInk / pSoft / a / aOn / aSoft / a2 / a2Soft / bg / s / s2 / line /
 	// ink / ink2 / ok / okSoft / warn / warnSoft / bad / badSoft / termBg / termFg / termCursor / ansi0 … ansi15），值为 #RRGGBB
