@@ -40,16 +40,16 @@
               :icon="treeOpen ? 'HOutline:ChevronDoubleLeftIcon' : 'HOutline:FolderIcon'"
               :label="treeOpen ? t('fileManager.hideFileTree') : t('fileManager.fileTree')"
               :active="treeOpen"
-              :box="isMobile ? 44 : 36"
-              :size="18"
+              :box="isMobile ? 36 : 30"
+              :size="16"
               @click="treeOpen = !treeOpen"
             />
             <ActionMenu :items="menuItems" :label="t('fileManager.moreActions')" @select="onMenu" />
             <AppIconButton
               icon="HOutline:XMarkIcon"
               :label="t('fileManager.closeEditor')"
-              :box="isMobile ? 44 : 36"
-              :size="18"
+              :box="isMobile ? 36 : 30"
+              :size="16"
               @click="close"
             />
           </header>
@@ -566,7 +566,7 @@ onBeforeUnmount(disposeEditor)
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 64px 48px;
+  padding: 48px 36px;
   background: color-mix(in srgb, #0b1220 45%, transparent);
 }
 .fe-overlay.is-full {
@@ -597,13 +597,13 @@ onBeforeUnmount(disposeEditor)
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 14px 14px 22px;
+  padding: 14px 14px 14px 16px;
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .fe-sticker {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   margin-right: 4px;
   border-radius: 13px;
   transform: rotate(-5deg);
@@ -632,8 +632,8 @@ onBeforeUnmount(disposeEditor)
 }
 .fe-title__name {
   min-width: 0;
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -647,7 +647,7 @@ onBeforeUnmount(disposeEditor)
 }
 .fe-head__find {
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* 主体 */
@@ -697,7 +697,7 @@ onBeforeUnmount(disposeEditor)
   gap: 10px;
   background: var(--m-s2);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .fe-mask__ico {
   width: 32px;
@@ -709,13 +709,13 @@ onBeforeUnmount(disposeEditor)
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px 12px 22px;
+  padding: 12px 16px 12px 16px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
 .fe-foot :deep(button) {
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .fe-status {
   flex: 1;
@@ -736,7 +736,7 @@ onBeforeUnmount(disposeEditor)
   background: transparent;
   color: inherit;
   font: inherit;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   cursor: pointer;
 }
 .fe-status__eol:hover {
@@ -750,7 +750,7 @@ onBeforeUnmount(disposeEditor)
 }
 .fe-confirm {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--el-text-color-regular);
 }
@@ -765,8 +765,8 @@ onBeforeUnmount(disposeEditor)
   padding: 10px 6px 10px 12px;
 }
 .fe.is-mobile .fe-sticker {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
 }
 .fe.is-mobile .fe-tree {
@@ -787,7 +787,7 @@ onBeforeUnmount(disposeEditor)
 .fe.is-mobile .fe-foot :deep(button) {
   flex: 1;
   justify-content: center;
-  min-height: 44px;
+  min-height: 40px;
 }
 @media (width <= 768px) {
   .fe-overlay {

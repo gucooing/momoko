@@ -44,6 +44,6 @@ const letter = computed(() => Array.from(props.name.trim())[0]?.toUpperCase() ||
   color: var(--m-pOn);
   font-family: var(--app-font-display);
   font-size: calc(var(--pa-size) * 0.42);
-  font-weight: 800;
+  font-weight: 600;
 }
 </style>

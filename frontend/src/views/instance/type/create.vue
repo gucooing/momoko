@@ -254,7 +254,7 @@ defineExpose({ showDialog })
   color: var(--el-text-color-regular);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
@@ -315,8 +315,8 @@ defineExpose({ showDialog })
   gap: 2px;
 }
 .type-form__switch-title {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 </style>

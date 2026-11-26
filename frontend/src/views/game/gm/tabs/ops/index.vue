@@ -3,10 +3,10 @@
      ?item=<种类>:<ID> 打开某一项的编辑窗口，?new=notice 新建公告（工作台跳过来）。 -->
 <template>
   <div class="gcal game-skin">
-    <PageHeader :title="t('gm.tabs.ops')" :back="false" :theme-toggle="false">
+    <PageHeader :title="t('gm.tabs.ops')">
       <template #description>{{ t('gmConfig.ops.desc', { zone: zoneLabel }) }}</template>
       <template #actions>
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gmConfig.calendar.reload')" :box="40" @click="reload" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gmConfig.calendar.reload')" :box="32" @click="reload" />
         <ActionMenu :items="moreItems" :label="t('gmConfig.ops.more')" @select="onMore" />
         <AppDropdown align="end" :width="200">
           <template #trigger>
@@ -34,11 +34,11 @@
     <template v-else>
       <div class="gcal__toolbar">
         <div class="gcal__month" role="group" :aria-label="t('gmConfig.calendar.month')">
-          <AppIconButton icon="HOutline:ChevronLeftIcon" :label="t('gmConfig.calendar.prev')" :box="40" @click="shift(-1)" />
+          <AppIconButton icon="HOutline:ChevronLeftIcon" :label="t('gmConfig.calendar.prev')" :box="32" @click="shift(-1)" />
           <button type="button" class="gcal__month-label m-num" :title="t('gmConfig.calendar.thisMonth')" @click="resetMonth">
             {{ t('gmConfig.calendar.monthLabel', { y: year, m: month }) }}
           </button>
-          <AppIconButton icon="HOutline:ChevronRightIcon" :label="t('gmConfig.calendar.next')" :box="40" @click="shift(1)" />
+          <AppIconButton icon="HOutline:ChevronRightIcon" :label="t('gmConfig.calendar.next')" :box="32" @click="shift(1)" />
         </div>
         <span class="gmc-hint">{{ t('gmConfig.ops.boardHint') }}</span>
       </div>
@@ -437,7 +437,7 @@ const onMore = (key: string) => {
   min-width: 0;
 }
 .gcal__loading {
-  padding: 40px 0;
+  padding: 30px 0;
   text-align: center;
   color: var(--el-text-color-secondary);
 }
@@ -457,8 +457,8 @@ const onMore = (key: string) => {
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
@@ -489,7 +489,7 @@ const onMore = (key: string) => {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .gcal__toolbar {
@@ -559,15 +559,15 @@ const onMore = (key: string) => {
   min-width: 0;
 }
 .gcal__label--month {
-  padding-left: 20px;
+  padding-left: 14px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gcal__toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 10px 0 6px;
   border: 0;
   border-radius: 999px;
@@ -575,7 +575,7 @@ const onMore = (key: string) => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .gcal__toggle:hover:not(:disabled) {
@@ -614,7 +614,7 @@ const onMore = (key: string) => {
 }
 .gcal__day-n {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gcal__day-w {
   font-size: 10px;
@@ -658,7 +658,7 @@ const onMore = (key: string) => {
   color: var(--el-text-color-primary);
   font: inherit;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
@@ -719,7 +719,7 @@ const onMore = (key: string) => {
   background: var(--m-warnSoft);
   color: var(--m-warn);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gcal__none {
   font-size: 12px;
@@ -746,7 +746,7 @@ const onMore = (key: string) => {
   background: var(--m-p);
   color: var(--m-pOn);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -774,8 +774,8 @@ const onMore = (key: string) => {
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
@@ -818,7 +818,7 @@ const onMore = (key: string) => {
 }
 .gcal__agenda-name {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .gcal__agenda-period {

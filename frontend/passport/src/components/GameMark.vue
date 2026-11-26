@@ -38,7 +38,7 @@ const letter = computed(() => (props.name || props.game || '?').trim().slice(0, 
   color: var(--m-gInk, var(--m-pInk));
   border: 1.5px solid var(--m-gLine, var(--m-line));
   font-family: var(--app-font-display);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1;
 }
 .gm--img {

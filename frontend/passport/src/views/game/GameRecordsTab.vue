@@ -339,7 +339,7 @@ watch(
 .gr {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .gr__ico {
   width: 18px;
@@ -351,23 +351,23 @@ watch(
   gap: 14px;
 }
 .gr__stat {
-  padding: 16px 18px;
+  padding: 16px 14px;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 .gr__stat-k {
-  font-weight: 700;
+  font-weight: 600;
 }
 .gr__stat-v {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 600;
 }
 .gr__stat-v--g {
   color: var(--m-gInk);
 }
 .gr__list {
-  padding: 4px 18px 8px;
+  padding: 4px 14px 8px;
   min-width: 0;
 }
 .gr__draw {
@@ -434,7 +434,7 @@ watch(
   border-radius: 999px;
   background: var(--m-s);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gr__tile--3 .gr__tile-r {
   background: var(--m-a);
@@ -445,7 +445,7 @@ watch(
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gr__cost-img,
 .gr__cost-img :deep(img) {
@@ -463,13 +463,13 @@ watch(
 .gr__pvp {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 14px;
   align-items: flex-start;
 }
 .gr__pvp-head {
   flex: 1 1 300px;
   min-width: 0;
-  padding: 20px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -477,13 +477,13 @@ watch(
   border-color: var(--m-gLine);
 }
 .gr__pvp-big {
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 600;
   color: var(--m-gInk);
 }
 .gr__pvp-line {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gr__battles {
   flex: 2 1 520px;
@@ -497,14 +497,14 @@ watch(
   min-height: 60px;
 }
 .gr__rival {
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .gr__delta {
   text-align: right;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gr__delta.is-up {
   color: var(--m-ok);
@@ -542,14 +542,14 @@ watch(
   flex-direction: column;
 }
 .gr__mem-name {
-  font-weight: 800;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .gr__grade {
   height: 26px;
-  font-size: 14px;
+  font-size: 13px;
 }
 .gr__seminars {
   display: grid;
@@ -557,18 +557,18 @@ watch(
   gap: 14px;
 }
 .gr__seminar {
-  padding: 18px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 .gr__sem-name {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .gr__sem-v {
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--m-gInk);
 }
 @media (max-width: 768px) {

@@ -93,8 +93,8 @@
             />
             <span>Pt</span>
           </span>
-          <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('gmConfig.gasha.exchangeEdit')" :box="40" @click="openExchange(row.index)" />
-          <AppIconButton icon="HOutline:XMarkIcon" :label="t('gmConfig.gasha.exchangeRemove')" :box="40" @click="removeExchange(row.index)" />
+          <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('gmConfig.gasha.exchangeEdit')" :box="32" @click="openExchange(row.index)" />
+          <AppIconButton icon="HOutline:XMarkIcon" :label="t('gmConfig.gasha.exchangeRemove')" :box="32" @click="removeExchange(row.index)" />
         </div>
       </div>
       <UButton class="gmc-btn" v-if="exchangeLimit < point.exchanges.length" color="neutral" variant="outline" block @click="exchangeLimit += 10">
@@ -367,7 +367,7 @@ const saveExchange = () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 12px;
   border-radius: var(--app-radius);
   border: 1.5px solid var(--el-border-color-light);
@@ -430,7 +430,7 @@ const saveExchange = () => {
 .gp__ex-n {
   flex: none;
   width: 28px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .gp__ex-rewards {
@@ -449,7 +449,7 @@ const saveExchange = () => {
 }
 .gp__ex-name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .gp__ex-qty {
@@ -462,7 +462,7 @@ const saveExchange = () => {
   border-radius: 12px;
   border: 1.5px solid var(--el-border-color-light);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gp__ex-qty input {
   width: 64px;

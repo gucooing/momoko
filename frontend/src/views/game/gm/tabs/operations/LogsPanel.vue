@@ -479,7 +479,7 @@ onActivated(() => {
   flex: 1 1 320px;
   min-width: 0;
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 .gml__hint {
@@ -491,14 +491,14 @@ onActivated(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 14px 18px;
+  padding: 14px 14px;
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--m-gLine, var(--el-border-color-light));
   background: var(--m-gSoft, var(--m-pSoft));
 }
 .gml__pending-count {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gml__pending-count .m-num {
   color: var(--m-gInk, var(--m-pInk));
@@ -521,21 +521,21 @@ onActivated(() => {
   gap: 2px;
 }
 .gml__pending-title {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .gml__avatar {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--m-g, var(--m-p));
   color: var(--m-gOn, var(--m-pOn));
-  font-weight: 800;
+  font-weight: 600;
 }
 .gml__avatar--sm {
   width: 30px;
@@ -572,15 +572,15 @@ onActivated(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -604,7 +604,7 @@ onActivated(() => {
   padding: 8px;
 }
 .gml__range-opt {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border: 0;
   border-radius: var(--app-radius-sm);
@@ -643,7 +643,7 @@ onActivated(() => {
   gap: 8px;
   flex: 0 1 260px;
   min-width: 180px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -685,7 +685,7 @@ onActivated(() => {
 }
 .gml__actor-name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -697,7 +697,7 @@ onActivated(() => {
   gap: 2px;
 }
 .gml__cmd-title {
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -753,7 +753,7 @@ onActivated(() => {
 }
 .gml__dialog-text {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
 }
 .gml__field {
@@ -763,14 +763,14 @@ onActivated(() => {
 }
 .gml__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gml__req {
   color: var(--m-bad);
 }
 .gml__input {
   width: 100%;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   border: 1.5px solid var(--el-border-color-light);
@@ -797,7 +797,7 @@ onActivated(() => {
     width: 100%;
   }
   .gml__chip {
-    min-height: 44px;
+    min-height: 40px;
   }
   .gml__risk {
     flex: 1 1 140px;
@@ -805,10 +805,10 @@ onActivated(() => {
   }
   .gml__search {
     flex: 1 1 100%;
-    min-height: 44px;
+    min-height: 40px;
   }
   .gml__pending :deep(button) {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

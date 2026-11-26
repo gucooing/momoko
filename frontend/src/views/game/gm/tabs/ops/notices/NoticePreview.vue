@@ -75,20 +75,19 @@ const period = (n: NoticeEntry) =>
 .np__label {
   align-self: flex-start;
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .np__phone {
   width: 300px;
   max-width: 100%;
-  border-radius: 36px;
+  border-radius: 24px;
   padding: 10px;
   background: var(--m-ink);
   box-shadow: var(--app-shadow-lg);
 }
 .np__screen {
-  border-radius: 28px;
+  border-radius: 18px;
   overflow: hidden;
   background: var(--m-bg);
   height: 540px;
@@ -104,8 +103,8 @@ const period = (n: NoticeEntry) =>
 }
 .np__top-title {
   flex: 1;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .np__tabs {
   display: flex;
@@ -121,7 +120,7 @@ const period = (n: NoticeEntry) =>
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .np__tab.is-on {
@@ -161,13 +160,13 @@ const period = (n: NoticeEntry) =>
 }
 .np__title {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
 .np__period {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-gInk, var(--m-pInk));
 }
 .np__hidden {
@@ -177,10 +176,10 @@ const period = (n: NoticeEntry) =>
   background: var(--m-warnSoft);
   color: var(--m-warn);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .np__empty {
-  margin: 24px 0;
+  margin: 16px 0;
   text-align: center;
   font-size: 12px;
   color: var(--el-text-color-secondary);

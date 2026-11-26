@@ -55,27 +55,27 @@
       </template>
       <template #cell-op="{ row }">
         <div class="clt__acts">
-          <AppIconButton icon="HOutline:EyeIcon" :label="t('clientLogs.actions.view')" :box="36" :size="18" @click.stop="open(x(row))" />
+          <AppIconButton icon="HOutline:EyeIcon" :label="t('clientLogs.actions.view')" :box="30" :size="16" @click.stop="open(x(row))" />
           <AppIconButton
             v-if="showPlayer"
             icon="HOutline:UserIcon"
             :label="t('clientLogs.actions.player')"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             @click.stop="openPlayer(x(row))"
           />
           <AppIconButton
             icon="HOutline:ArrowDownTrayIcon"
             :label="t('clientLogs.actions.download')"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             @click.stop="download(x(row))"
           />
           <AppIconButton
             icon="HOutline:TrashIcon"
             :label="t('clientLogs.actions.delete')"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             class="clt__del"
             @click.stop="remove(x(row))"
           />
@@ -97,10 +97,10 @@
             <span class="clt__dim">{{ [l.device, l.clientVersion, formatFileSize(l.size)].filter(Boolean).join(' · ') }}</span>
           </button>
           <div class="clt__card-acts">
-            <AppIconButton v-if="l.summary" icon="HOutline:ClipboardDocumentIcon" :label="t('clientLogs.actions.copySummary')" :box="44" @click="copySummary(l)" />
-            <AppIconButton v-if="showPlayer" icon="HOutline:UserIcon" :label="t('clientLogs.actions.player')" :box="44" @click="openPlayer(l)" />
-            <AppIconButton icon="HOutline:ArrowDownTrayIcon" :label="t('clientLogs.actions.download')" :box="44" @click="download(l)" />
-            <AppIconButton icon="HOutline:TrashIcon" :label="t('clientLogs.actions.delete')" :box="44" class="clt__del" @click="remove(l)" />
+            <AppIconButton v-if="l.summary" icon="HOutline:ClipboardDocumentIcon" :label="t('clientLogs.actions.copySummary')" :box="36" @click="copySummary(l)" />
+            <AppIconButton v-if="showPlayer" icon="HOutline:UserIcon" :label="t('clientLogs.actions.player')" :box="36" @click="openPlayer(l)" />
+            <AppIconButton icon="HOutline:ArrowDownTrayIcon" :label="t('clientLogs.actions.download')" :box="36" @click="download(l)" />
+            <AppIconButton icon="HOutline:TrashIcon" :label="t('clientLogs.actions.delete')" :box="36" class="clt__del" @click="remove(l)" />
           </div>
         </article>
       </div>
@@ -215,7 +215,7 @@ const remove = (log: GmClientLog) => {
   gap: 2px;
 }
 .clt__strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 .clt__dim {
   font-size: 12px;

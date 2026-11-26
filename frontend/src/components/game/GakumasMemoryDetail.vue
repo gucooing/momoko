@@ -577,15 +577,15 @@ const openMemory = (id: string) => {
   position: absolute;
   left: 8px;
   top: 6px;
-  font-size: 26px;
-  font-weight: 900;
+  font-size: 20px;
+  font-weight: 600;
   font-style: italic;
   color: #fff;
   -webkit-text-stroke: 1px #e8447a;
   text-shadow: 0 2px 6px rgb(0 0 0 / 35%);
 }
 .gmd__photo-grade.is-small {
-  font-size: 18px;
+  font-size: 15px;
 }
 .gmd__info {
   display: flex;
@@ -604,18 +604,18 @@ const openMemory = (id: string) => {
   border-radius: 999px;
   background: var(--m-p);
   color: var(--m-pOn);
-  font-weight: 800;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 13px;
 }
 .gmd__score {
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 18px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .gmd__score small {
   margin-left: 2px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gmd__idol {
   display: flex;
@@ -637,12 +637,12 @@ const openMemory = (id: string) => {
   background: var(--m-s2);
 }
 .gmd__name {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   word-break: break-word;
 }
 .gmd__strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 .gmd__dim {
   color: var(--m-ink2);
@@ -668,7 +668,7 @@ const openMemory = (id: string) => {
 .gmd__tag.is-on {
   background: var(--m-pSoft);
   color: var(--m-pInk);
-  font-weight: 700;
+  font-weight: 500;
 }
 .gmd__tabs {
   display: flex;
@@ -685,7 +685,7 @@ const openMemory = (id: string) => {
   background: transparent;
   color: var(--m-ink2);
   font: inherit;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .gmd__tab.is-on {
@@ -703,8 +703,8 @@ const openMemory = (id: string) => {
   align-items: center;
   gap: 10px;
   margin-top: 6px;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--m-ink2);
 }
 .gmd__phase {
@@ -725,8 +725,8 @@ const openMemory = (id: string) => {
   gap: 14px;
 }
 .gmd__pcard-name {
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .gmd__card-icon {
   position: relative;
@@ -752,8 +752,8 @@ const openMemory = (id: string) => {
   right: 3px;
   top: 1px;
   color: #ff5a5a;
-  font-size: 18px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 600;
   text-shadow: 0 0 3px #fff;
 }
 .gmd__rows {
@@ -774,7 +774,7 @@ const openMemory = (id: string) => {
 }
 .gmd__lv {
   flex: none;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--m-pInk);
   font-variant-numeric: tabular-nums;
 }
@@ -801,23 +801,23 @@ const openMemory = (id: string) => {
   flex-direction: column;
 }
 .gmd__stat-grade {
-  font-size: 26px;
-  font-weight: 900;
+  font-size: 20px;
+  font-weight: 600;
   font-style: italic;
   line-height: 1;
   color: var(--gmd-c, var(--m-ink));
 }
 .gmd__stat-grade.is-small {
-  font-size: 20px;
+  font-size: 16px;
 }
 .gmd__statk {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gmd-c, var(--m-ink2));
 }
 .gmd__statv {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .is-vo {
@@ -847,8 +847,8 @@ const openMemory = (id: string) => {
 }
 .gmd__item-icon {
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   object-fit: contain;
 }
@@ -901,7 +901,7 @@ const openMemory = (id: string) => {
   background: linear-gradient(90deg, #7aa2ff, #c48cff);
   color: #fff;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gmd__rec-result {
   display: flex;
@@ -916,8 +916,8 @@ const openMemory = (id: string) => {
   min-width: 0;
 }
 .gmd__big-grade {
-  font-size: 34px;
-  font-weight: 900;
+  font-size: 24px;
+  font-weight: 600;
   font-style: italic;
   line-height: 1;
   color: #e8447a;
@@ -963,8 +963,8 @@ const openMemory = (id: string) => {
   padding: 0 8px;
   border-radius: 6px;
   background: var(--m-s);
-  font-size: 15px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 600;
   font-style: italic;
 }
 .gmd__rarity.is-3 {
@@ -992,7 +992,7 @@ const openMemory = (id: string) => {
 }
 .gmd__growth {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gmd-c, var(--m-ink2));
 }
 .gmd__deck {
@@ -1042,8 +1042,8 @@ const openMemory = (id: string) => {
   left: 6px;
   bottom: 2px;
   color: #fff;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 600;
   text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
 }
 .gmd__slot-grade {
@@ -1051,8 +1051,8 @@ const openMemory = (id: string) => {
   left: 6px;
   top: 2px;
   color: #fff;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 600;
   font-style: italic;
   text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
 }
@@ -1065,7 +1065,7 @@ const openMemory = (id: string) => {
   background: #ec4f8c;
   color: #fff;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gmd-peek {
   position: fixed;
@@ -1074,7 +1074,7 @@ const openMemory = (id: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   background: rgb(11 18 32 / 45%);
 }
 .gmd-peek__panel {
@@ -1098,7 +1098,7 @@ const openMemory = (id: string) => {
   border-radius: 50%;
   background: rgb(0 0 0 / 45%);
   color: #fff;
-  font-size: 18px;
+  font-size: 15px;
   cursor: pointer;
 }
 .gmd-peek__art {
@@ -1121,7 +1121,7 @@ const openMemory = (id: string) => {
   background: var(--m-p);
   color: var(--m-pOn);
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 @media (max-width: 600px) {

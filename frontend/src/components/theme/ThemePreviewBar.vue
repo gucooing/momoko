@@ -81,8 +81,8 @@ const accept = async () => {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
   background: var(--m-p);
   color: var(--m-pOn);
@@ -96,7 +96,7 @@ const accept = async () => {
   flex-direction: column;
   min-width: 0;
   b {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -122,7 +122,7 @@ const accept = async () => {
     color: rgba(255, 255, 255, 0.75);
     font: inherit;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
   }
@@ -133,7 +133,7 @@ const accept = async () => {
 }
 .pvbar__btn {
   flex: none;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -155,12 +155,12 @@ const accept = async () => {
 }
 .pvbar.is-mobile {
   top: auto;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   left: 12px;
   right: 12px;
   flex-wrap: wrap;
   gap: 8px;
-  border-radius: 24px;
+  border-radius: 16px;
   transform: none;
   .pvbar__text {
     flex: 1 1 0;

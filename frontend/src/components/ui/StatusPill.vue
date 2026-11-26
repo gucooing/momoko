@@ -33,19 +33,20 @@ const pillStyle = computed(() => ({
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 3px var(--cmp-pill-padding-x);
+  height: 20px;
+  padding: 0 var(--cmp-pill-padding-x);
   border-radius: 999px;
   font-size: var(--cmp-pill-font-size);
-  font-weight: 700;
-  line-height: 1.5;
+  font-weight: 500;
+  line-height: 1;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   color: var(--pill-fg);
   background: var(--pill-bg);
 }
 .status-pill__dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
   flex-shrink: 0;
   background: var(--pill-fg);

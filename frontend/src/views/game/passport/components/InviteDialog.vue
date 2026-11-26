@@ -40,7 +40,7 @@
 
       <div class="pinv__created" v-if="justCreated">
         <span class="m-mono pinv__code">{{ justCreated }}</span>
-        <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('passportAdmin.common.copy')" :box="40" :size="18" @click="copy(justCreated)" />
+        <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('passportAdmin.common.copy')" :box="32" :size="16" @click="copy(justCreated)" />
       </div>
 
       <div class="pinv__list-head">
@@ -59,13 +59,13 @@
             <span class="pinv__item-sub">{{ inviteLine(inv) }}</span>
             <span v-if="inv.note" class="pinv__item-sub">{{ inv.note }}</span>
           </span>
-          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('passportAdmin.common.copy')" :box="40" :size="18" @click="copy(inv.code)" />
+          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('passportAdmin.common.copy')" :box="32" :size="16" @click="copy(inv.code)" />
           <AppIconButton
             v-if="inv.state === 'active'"
             icon="HOutline:NoSymbolIcon"
             :label="t('passportAdmin.invite.revoke')"
-            :box="40"
-            :size="18"
+            :box="32"
+            :size="16"
             @click="revoke(inv)"
           />
         </div>
@@ -230,7 +230,7 @@ const inviteLine = (inv: PassportInvite) =>
 }
 .pinv__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .pinv__hint {
   font-size: 12px;
@@ -256,8 +256,7 @@ const inviteLine = (inv: PassportInvite) =>
   flex: 1;
 }
 .pinv__code {
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   word-break: break-all;
 }
 .pinv__list-head {
@@ -268,7 +267,7 @@ const inviteLine = (inv: PassportInvite) =>
   border-top: 1px solid var(--el-border-color-lighter);
 }
 .pinv__list-title {
-  font-weight: 800;
+  font-weight: 600;
 }
 .pinv__list {
   display: flex;

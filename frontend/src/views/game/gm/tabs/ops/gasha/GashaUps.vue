@@ -40,7 +40,7 @@
             </label>
           </span>
         </span>
-        <AppIconButton icon="HOutline:XMarkIcon" :label="t('gmConfig.gasha.removeUp', { name: u.name })" :box="40" @click="remove(u.resourceType, u.id)" />
+        <AppIconButton icon="HOutline:XMarkIcon" :label="t('gmConfig.gasha.removeUp', { name: u.name })" :box="32" @click="remove(u.resourceType, u.id)" />
       </div>
       <button type="button" class="gmc-chip" :class="{ 'is-on': pickerOpen }" :aria-expanded="pickerOpen" @click="pickerOpen = !pickerOpen">
         <UIcon :name="pickerOpen ? 'i-lucide-x' : 'i-lucide-plus'" />
@@ -232,8 +232,8 @@ const toggle = (resourceType: number, entry: CatalogEntry) => {
   min-width: 0;
 }
 .gu__name {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -253,7 +253,7 @@ const toggle = (resourceType: number, entry: CatalogEntry) => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gu__rate-label {
   color: var(--el-text-color-secondary);
@@ -262,7 +262,7 @@ const toggle = (resourceType: number, entry: CatalogEntry) => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 10px;
   border-radius: 12px;
   border: 1.5px solid var(--m-gLine, var(--el-border-color-light));
@@ -275,7 +275,7 @@ const toggle = (resourceType: number, entry: CatalogEntry) => {
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gu__rate-input input:disabled {
   opacity: 0.6;

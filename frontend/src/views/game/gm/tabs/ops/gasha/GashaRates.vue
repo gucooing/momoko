@@ -50,7 +50,7 @@
             <AppIconButton
               icon="HOutline:TrashIcon"
               :label="t('gmConfig.gasha.removeSlot')"
-              :box="40"
+              :box="32"
               :disabled="panel.rows.length <= 1"
               @click="removeSlot(panel.id, row.index)"
             />
@@ -247,7 +247,7 @@ const clone = (lotteryId: string) => {
   flex-direction: column;
   gap: 10px;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-s2);
   min-width: 0;
 }
@@ -258,8 +258,8 @@ const clone = (lotteryId: string) => {
   gap: 8px;
 }
 .gr__title {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gr__slot {
   display: flex;
@@ -277,7 +277,7 @@ const clone = (lotteryId: string) => {
 }
 .gr__kind {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gr__cards {
   flex: 1;
@@ -293,7 +293,7 @@ const clone = (lotteryId: string) => {
   border-radius: 12px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
-  font-weight: 700;
+  font-weight: 600;
 }
 .gr__prob:focus-within {
   border-color: var(--m-p);
@@ -315,7 +315,7 @@ const clone = (lotteryId: string) => {
 }
 .gr__pools-label {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .gr__pool {
@@ -335,7 +335,7 @@ const clone = (lotteryId: string) => {
 }
 .gr__diff {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-bad);
 }
 .gr__spacer {

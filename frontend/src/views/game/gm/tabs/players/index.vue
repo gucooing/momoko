@@ -3,7 +3,7 @@
      手机卡片 → 分页 → 深色批量条（manifest 里目标为 players 的指令）。导出 CSV 按当前筛选逐页读取（每页 200）。 -->
 <template>
   <div ref="rootEl" class="gpl game-skin">
-    <PageHeader :back="false" :theme-toggle="false">
+    <PageHeader>
       <template #title>{{ t('gmData.players.title') }}</template>
       <template #description>
         <span class="m-num">{{ t('gmData.players.countAll', { n: num(summary.all ?? 0) }) }}</span>
@@ -92,21 +92,21 @@
             v-if="ctx.operation('gift.send')"
             icon="HOutline:GiftIcon"
             :label="t('gmData.players.giftTo', { name: p(row).name })"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             @click="openGift([p(row)])"
           />
           <AppIconButton
             v-if="ctx.operation('player.kick')"
             icon="HOutline:ArrowLeftStartOnRectangleIcon"
             :label="t('gmData.players.kick', { name: p(row).name })"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             :class="{ 'gpl__kick': p(row).online }"
             :disabled="!p(row).online"
             @click="run('player.kick', [p(row)])"
           />
-          <AppIconButton icon="HOutline:EyeIcon" :label="t('gmData.players.view', { name: p(row).name })" :box="36" :size="18" @click="view(p(row))" />
+          <AppIconButton icon="HOutline:EyeIcon" :label="t('gmData.players.view', { name: p(row).name })" :box="30" :size="16" @click="view(p(row))" />
           <ActionMenu :items="rowMenu" :label="t('gmData.players.more', { name: p(row).name })" @select="() => openOperations(p(row).pid)" />
         </div>
       </template>
@@ -151,12 +151,12 @@
           </dl>
           <footer class="gpl__card-foot">
             <span class="gpl__dim gpl__card-dev">{{ deviceOf(pl) }}</span>
-            <AppIconButton v-if="ctx.operation('gift.send')" icon="HOutline:GiftIcon" :label="t('gmData.players.giftTo', { name: pl.name })" :box="44" @click="openGift([pl])" />
+            <AppIconButton v-if="ctx.operation('gift.send')" icon="HOutline:GiftIcon" :label="t('gmData.players.giftTo', { name: pl.name })" :box="36" @click="openGift([pl])" />
             <AppIconButton
               v-if="ctx.operation('player.kick') && pl.online"
               icon="HOutline:ArrowLeftStartOnRectangleIcon"
               :label="t('gmData.players.kick', { name: pl.name })"
-              :box="44"
+              :box="36"
               class="gpl__kick"
               @click="run('player.kick', [pl])"
             />
@@ -482,7 +482,7 @@ const exportCsv = async () => {
 }
 .gpl__online {
   color: var(--m-ok);
-  font-weight: 700;
+  font-weight: 600;
 }
 .gpl__error {
   font-size: 13px;
@@ -503,7 +503,7 @@ const exportCsv = async () => {
   text-align: left;
 }
 .gpl__name {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -514,7 +514,7 @@ const exportCsv = async () => {
   color: var(--el-text-color-secondary);
 }
 .gpl__strong {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .gpl__stack {
@@ -522,8 +522,8 @@ const exportCsv = async () => {
   flex-direction: column;
 }
 .gpl__level {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .gpl__jewel {
@@ -542,7 +542,7 @@ const exportCsv = async () => {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-pInk);
   text-decoration: none;
 }
@@ -617,7 +617,7 @@ const exportCsv = async () => {
 }
 .gpl__card-info dd {
   margin: 0;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -644,7 +644,7 @@ const exportCsv = async () => {
   flex-wrap: wrap;
   gap: 4px;
   max-width: 100%;
-  padding: 6px 6px 6px 20px;
+  padding: 6px 6px 6px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -652,21 +652,21 @@ const exportCsv = async () => {
 }
 .gpl__batch-count {
   margin-right: 10px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
 }
 .gpl__batch-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--m-bg);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }

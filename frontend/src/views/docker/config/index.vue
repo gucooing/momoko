@@ -189,7 +189,7 @@
                     v-if="f.has"
                     class="is-bad"
                     :label="t('docker.config.removeFile', { name: f.label })"
-                    :box="40"
+                    :box="32"
                     :disabled="!canEdit"
                     @click="removeFile(f.key)"
                   >
@@ -290,17 +290,17 @@
               <span class="dc-reg__acts">
                 <AppIconButton
                   :label="t('docker.config.regVerify', { host: hostOf(r.serverAddress) })"
-                  :box="40"
+                  :box="32"
                   :disabled="!canEdit || !engineReady || verifyingIdx === idx"
                   :title="engineReady ? undefined : t('docker.config.regNeedEngine')"
                   @click="verifyRegistry(idx)"
                 >
                   <UIcon :name="verifyingIdx === idx ? 'i-lucide-loader-circle' : 'i-lucide-badge-check'" class="dc-ico" :class="{ 'is-spin': verifyingIdx === idx }" />
                 </AppIconButton>
-                <AppIconButton class="dc-hide-m" :label="t('docker.config.regEdit', { host: hostOf(r.serverAddress) })" :box="40" :disabled="!canEdit" @click="openEdit(idx)">
+                <AppIconButton class="dc-hide-m" :label="t('docker.config.regEdit', { host: hostOf(r.serverAddress) })" :box="32" :disabled="!canEdit" @click="openEdit(idx)">
                   <UIcon name="i-lucide-pencil" class="dc-ico" />
                 </AppIconButton>
-                <AppIconButton class="is-bad" :label="t('docker.config.regRemove', { host: hostOf(r.serverAddress) })" :box="40" :disabled="!canEdit" @click="removeRegistry(idx)">
+                <AppIconButton class="is-bad" :label="t('docker.config.regRemove', { host: hostOf(r.serverAddress) })" :box="32" :disabled="!canEdit" @click="removeRegistry(idx)">
                   <UIcon name="i-lucide-trash-2" class="dc-ico" />
                 </AppIconButton>
               </span>
@@ -883,8 +883,8 @@ onMounted(() => {
   gap: 16px;
 }
 .dc-engine__sticker {
-  width: 52px;
-  height: 52px;
+  width: 42px;
+  height: 42px;
   border-radius: 16px;
   transform: rotate(-5deg);
 }
@@ -907,8 +907,8 @@ onMounted(() => {
 }
 .dc-engine__name h2 {
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-engine__addr {
@@ -931,8 +931,8 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .dc-engine__probe.is-ok .dc-engine__probe-t {
@@ -953,14 +953,14 @@ onMounted(() => {
   min-height: 42px;
   padding-inline: 16px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 600;
   flex: none;
 }
 .dc-engine__grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 .dc-engine__cell {
   min-width: 0;
@@ -979,8 +979,8 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-engine__sub {
@@ -1028,8 +1028,8 @@ onMounted(() => {
   padding-bottom: 16px;
 }
 .dc-card__sticker {
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
   transform: rotate(var(--rot, 0deg));
 }
@@ -1049,8 +1049,8 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-family: var(--app-font-display);
-  font-size: 1.1875rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-card__title p {
@@ -1058,9 +1058,9 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
 }
 .dc-card__btn {
-  min-height: 36px;
+  min-height: 30px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
   flex: none;
 }
 .dc-count {
@@ -1080,7 +1080,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 24px;
+  gap: 10px 16px;
   padding: 16px 0;
   border-top: 1px solid var(--el-border-color-light);
 }
@@ -1100,8 +1100,8 @@ onMounted(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-row__d {
@@ -1134,7 +1134,7 @@ onMounted(() => {
   padding: 0 8px;
   border-radius: 8px;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .dc-flag--a {
   background: var(--m-aSoft);
@@ -1153,7 +1153,7 @@ onMounted(() => {
   background: var(--el-fill-color-light);
 }
 .dc-seg button {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 16px;
   border: none;
   border-radius: 999px;
@@ -1161,7 +1161,7 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1179,7 +1179,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 12px;
   border-radius: 14px;
   border: 1.5px solid var(--el-border-color-light);
@@ -1210,7 +1210,7 @@ onMounted(() => {
   width: 100%;
 }
 .dc-combo :deep(.app-input) {
-  height: 44px;
+  height: 34px;
   border-radius: 14px;
 }
 
@@ -1244,7 +1244,7 @@ onMounted(() => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* TLS 文件 */
@@ -1267,8 +1267,8 @@ onMounted(() => {
   border-color: color-mix(in srgb, var(--m-bad) 45%, transparent);
 }
 .dc-file__ico {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 11px;
 }
 .dc-file__ico > * {
@@ -1287,7 +1287,7 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-file__meta {
@@ -1298,9 +1298,9 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
 }
 .dc-file__btn {
-  min-height: 36px;
+  min-height: 30px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
   flex: none;
 }
 .is-bad {
@@ -1345,11 +1345,11 @@ onMounted(() => {
   border-top: 1px solid var(--el-border-color-light);
 }
 .dc-reg__av {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 12px;
   font-family: var(--app-font-display);
-  font-size: 1rem;
+  font-size: 0.875rem;
   transform: rotate(var(--rot, 0deg));
 }
 .dc-reg__main {
@@ -1364,7 +1364,7 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-reg__sub {
@@ -1387,7 +1387,7 @@ onMounted(() => {
   cursor: not-allowed;
 }
 .dc-empty {
-  padding: 18px 0 20px;
+  padding: 14px 0 14px;
   border-top: 1px solid var(--el-border-color-light);
   text-align: center;
   font-size: 0.8125rem;
@@ -1399,12 +1399,12 @@ onMounted(() => {
   gap: 12px;
   margin: 4px 0 16px;
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
 }
 .dc-add__title {
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-add__f {
@@ -1417,7 +1417,7 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
 }
 .dc-add__f .app-input {
-  height: 42px;
+  height: 32px;
   border-radius: 12px;
   background: var(--el-bg-color);
 }
@@ -1438,9 +1438,9 @@ onMounted(() => {
   gap: 8px;
 }
 .dc-add__acts :deep(button) {
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 /* 事件 */
@@ -1450,8 +1450,8 @@ onMounted(() => {
 .dc-events__title {
   padding-bottom: 8px;
   font-family: var(--app-font-display);
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-ev {
@@ -1487,7 +1487,7 @@ onMounted(() => {
 }
 .dc-ev__t {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dc-ev__d {
@@ -1518,7 +1518,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 10px 10px 18px;
+  padding: 10px 10px 10px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -1540,8 +1540,8 @@ onMounted(() => {
   flex-direction: column;
 }
 .dc-bar__t {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .dc-bar__s {
   overflow: hidden;
@@ -1554,13 +1554,13 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 42px;
-  padding: 0 18px;
+  min-height: 32px;
+  padding: 0 14px;
   border: none;
   border-radius: 999px;
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1626,12 +1626,12 @@ onMounted(() => {
     gap: 12px;
   }
   .dc-engine__sticker {
-    width: 44px;
-    height: 44px;
+    width: 34px;
+    height: 34px;
     border-radius: 14px;
   }
   .dc-engine__name h2 {
-    font-size: 1.125rem;
+    font-size: 0.9375rem;
   }
   .dc-engine__test {
     order: 4;
@@ -1647,7 +1647,7 @@ onMounted(() => {
     padding: 10px 12px;
   }
   .dc-engine__v {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
   .dc-card {
     padding: 16px 16px 4px;
@@ -1657,8 +1657,8 @@ onMounted(() => {
     display: none;
   }
   .dc-card__sticker {
-    width: 38px;
-    height: 38px;
+    width: 30px;
+    height: 30px;
     border-radius: 12px;
   }
   .dc-row {
@@ -1715,16 +1715,16 @@ onMounted(() => {
     grid-template-columns: minmax(0, 1fr);
   }
   .dc-bar {
-    bottom: calc(78px + env(safe-area-inset-bottom));
+    bottom: calc(12px + env(safe-area-inset-bottom));
     padding: 8px 8px 8px 14px;
     gap: 6px;
-    border-radius: 22px;
+    border-radius: 16px;
   }
   .dc-bar__s {
     display: none;
   }
   .dc-bar__btn {
-    min-height: 44px;
+    min-height: 40px;
     padding: 0 14px;
   }
   .dc-bar__full {

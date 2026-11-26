@@ -9,7 +9,7 @@
           <span class="mset__title">{{ t('monitor.panel.title') }}</span>
           <span class="mset__sub">{{ compact ? t('monitor.panel.subShort') : t('monitor.panel.sub', { node: nodeName }) }}</span>
         </span>
-        <AppIconButton icon="HOutline:XMarkIcon" :label="t('common.close')" :box="44" @click="close" />
+        <AppIconButton icon="HOutline:XMarkIcon" :label="t('common.close')" :box="36" @click="close" />
       </header>
 
       <div class="mset__body">
@@ -316,7 +316,7 @@ const onClear = () => {
   flex: none;
   align-items: center;
   gap: 12px;
-  padding: 22px 20px 16px 26px;
+  padding: 16px 14px 16px 18px;
   border-bottom: 1px solid var(--el-border-color-light);
 }
 .mset__ttl {
@@ -328,8 +328,8 @@ const onClear = () => {
 }
 .mset__title {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mset__sub {
@@ -340,9 +340,9 @@ const onClear = () => {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
   min-height: 0;
-  padding: 20px 26px;
+  padding: 14px 18px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -373,8 +373,8 @@ const onClear = () => {
   min-width: 0;
 }
 .mset__row-title {
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mset__row-desc {
@@ -388,8 +388,7 @@ const onClear = () => {
 }
 .mset__lbl {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .mset__hint {
@@ -405,7 +404,7 @@ const onClear = () => {
 }
 .mset__seg button {
   flex: 1;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 10px;
   border: 0;
   border-radius: 999px;
@@ -435,7 +434,7 @@ const onClear = () => {
   gap: 8px;
 }
 .mset__chip {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -467,7 +466,7 @@ const onClear = () => {
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mset__days:focus-within {
@@ -500,7 +499,7 @@ const onClear = () => {
 }
 .mset__tiers-t {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .mset__tier {
@@ -519,7 +518,7 @@ const onClear = () => {
   flex: 1;
 }
 .mset__tier-v {
-  font-weight: 700;
+  font-weight: 600;
 }
 .mset__store {
   display: flex;
@@ -532,7 +531,7 @@ const onClear = () => {
   color: var(--el-text-color-primary);
 }
 .mset__store-ic {
-  font-size: 16px;
+  font-size: 14px;
   color: var(--el-text-color-secondary);
 }
 .mset__store-l {
@@ -558,10 +557,10 @@ const onClear = () => {
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 13px;
 }
 .mset__metric .mset__row-title {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .mset__metric .mset__row-desc {
   font-size: 0.75rem;
@@ -572,26 +571,26 @@ const onClear = () => {
   gap: 8px;
 }
 .mset__btn {
-  min-height: 36px;
+  min-height: 30px;
   gap: 6px;
   border-radius: 999px;
   font-weight: 600;
 }
 .mset__btn-ic {
-  font-size: 16px;
+  font-size: 14px;
 }
 .mset__foot {
   display: flex;
   flex: none;
   justify-content: flex-end;
   gap: 10px;
-  padding: 14px 20px;
+  padding: 14px 14px;
   border-top: 1px solid var(--el-border-color-light);
 }
 .mset__foot-btn {
-  min-height: 44px;
+  min-height: 34px;
   justify-content: center;
-  padding-inline: 18px;
+  padding-inline: 14px;
   border-radius: 999px;
   font-weight: 600;
 }
@@ -599,18 +598,18 @@ const onClear = () => {
 @media (width <= 768px) {
   .mset__head {
     gap: 8px;
-    padding: 6px 8px 10px 20px;
+    padding: 6px 8px 10px 14px;
     border-bottom: 0;
   }
   .mset__title {
-    font-size: 1.125rem;
+    font-size: 0.9375rem;
   }
   .mset__sub {
     font-size: 0.75rem;
   }
   .mset__body {
-    gap: 18px;
-    padding: 4px 20px 16px;
+    gap: 14px;
+    padding: 4px 14px 16px;
   }
   .mset__tiers {
     gap: 7px;
@@ -633,7 +632,7 @@ const onClear = () => {
   }
   .mset__btn {
     flex: 1;
-    min-height: 44px;
+    min-height: 40px;
     justify-content: center;
   }
   .mset__foot {

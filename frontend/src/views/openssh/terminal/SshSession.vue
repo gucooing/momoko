@@ -31,7 +31,7 @@
             {{ socketStatus === 'error' ? t('ssh.common.connectionFailed') : t('ssh.term.closedTitle') }}
           </span>
           <span class="ssh-session__overlay-desc">{{ t('ssh.term.closedDesc') }}</span>
-          <UButton color="primary" size="lg" icon="i-lucide-rotate-cw" @click="reconnect">
+          <UButton color="primary" icon="i-lucide-rotate-cw" @click="reconnect">
             {{ t('ssh.term.reconnectNow') }}
           </UButton>
         </div>
@@ -298,7 +298,7 @@ defineExpose({ reconnect, disconnect, focus, fit, sendCommand, reloadInfo: loadI
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 24px;
+  padding: 0 16px;
   background: rgba(15, 11, 20, 0.78);
 }
 .ssh-session__overlay-box {
@@ -310,12 +310,12 @@ defineExpose({ reconnect, disconnect, focus, fit, sendCommand, reloadInfo: loadI
 }
 .ssh-session__overlay-title {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: #e8e3ee;
 }
 .ssh-session__overlay-desc {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #b8b0c2;
 }
 .ssh-session__meta {
@@ -334,7 +334,7 @@ defineExpose({ reconnect, disconnect, focus, fit, sendCommand, reloadInfo: loadI
 .ssh-session__foot {
   display: inline-flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 /* 手机（按原型）：终端满屏 —— 顶栏实底 + 下边线，屏幕无圆角，按键条实底 + 上边线 */
@@ -369,7 +369,7 @@ defineExpose({ reconnect, disconnect, focus, fit, sendCommand, reloadInfo: loadI
   }
   .ssh-session :deep(.term-shell__kbd) {
     width: 52px;
-    height: 60px;
+    height: 44px;
     margin: -8px 0;
   }
 }

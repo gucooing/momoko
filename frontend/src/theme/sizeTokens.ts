@@ -52,12 +52,12 @@ export const SIZE_GROUPS: SizeGroup[] = [
     key: 'card',
     selector: '.app-panel, .entity-card',
     surface: true,
-    tokens: [px('card-padding', 22, 8, 44), font('card-title-size', 17, 13, 26), px('card-border-width', 1, 0, 4)],
+    tokens: [px('card-padding', 16, 8, 44), font('card-title-size', 14, 12, 26), px('card-border-width', 1, 0, 4)],
   },
   {
     key: 'table',
     selector: '.data-table',
-    tokens: [px('table-row-padding', 12, 4, 24), font('table-font-size', 14, 11, 18), font('table-head-size', 12, 10, 16)],
+    tokens: [px('table-row-padding', 8, 4, 24), font('table-font-size', 13, 11, 18), font('table-head-size', 12, 10, 16)],
   },
   {
     key: 'button',
@@ -72,12 +72,12 @@ export const SIZE_GROUPS: SizeGroup[] = [
   {
     key: 'input',
     selector: '.app-input, .app-select',
-    tokens: [px('input-height', 38, 30, 56), font('input-font-size', 14, 12, 18)],
+    tokens: [px('input-height', 32, 28, 56), font('input-font-size', 13, 12, 18)],
   },
   {
     key: 'pill',
     selector: '.status-pill',
-    tokens: [font('pill-font-size', 12, 10, 16), px('pill-padding-x', 10, 4, 20)],
+    tokens: [font('pill-font-size', 11.5, 10, 16), px('pill-padding-x', 8, 4, 20)],
   },
   {
     key: 'subnav',
@@ -93,11 +93,6 @@ export const SIZE_GROUPS: SizeGroup[] = [
     key: 'hero',
     selector: '.dash-hero',
     tokens: [px('hero-min-height', 248, 120, 420, 4), px('hero-padding', 36, 16, 64), font('hero-title-size', 38, 24, 60)],
-  },
-  {
-    key: 'tabbar',
-    selector: '.tabbar',
-    tokens: [px('tabbar-height', 56, 46, 76), px('tabbar-icon-size', 20, 16, 28)],
   },
 ]
 

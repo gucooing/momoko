@@ -291,16 +291,16 @@ onMounted(() => {
 .gsv {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .gsv__banner {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 18px;
-  border-radius: 20px;
+  padding: 14px 14px;
+  border-radius: 14px;
   background: var(--m-gSoft);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
 }
 .gsv__banner svg {
@@ -312,7 +312,7 @@ onMounted(() => {
 .gsv__main {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 14px;
   align-items: flex-start;
 }
 .gsv__fns {
@@ -329,7 +329,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 18px;
+  padding: 14px;
   min-width: 0;
 }
 .gsv__fn-head {
@@ -356,8 +356,8 @@ onMounted(() => {
   gap: 2px;
 }
 .gsv__fn-title {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .gsv__rules {
   display: flex;
@@ -376,7 +376,7 @@ onMounted(() => {
   flex: 1;
   min-width: 0;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-ink2);
 }
 .gsv__state.is-ok {
@@ -393,7 +393,7 @@ onMounted(() => {
   gap: 16px;
 }
 .gsv__box {
-  padding: 18px 20px;
+  padding: 14px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -402,8 +402,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .gsv__box-head svg {
   width: 24px;
@@ -417,7 +417,7 @@ onMounted(() => {
 .gsv__redeem input {
   flex: 1;
   min-width: 0;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--m-line);
@@ -437,7 +437,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gsv__rr.is-ok {
   color: var(--m-ok);
@@ -455,7 +455,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gsv__reward-img,
 .gsv__reward-img :deep(img) {
@@ -478,8 +478,8 @@ onMounted(() => {
   flex-direction: column;
 }
 .gsv__row-t {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gsv__log {
   display: flex;

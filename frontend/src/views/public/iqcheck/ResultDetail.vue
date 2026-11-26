@@ -15,7 +15,7 @@
           <span v-if="result.promptTitle" class="iqd__ptitle">{{ result.promptTitle }}</span>
           <AppIconButton
             icon="HOutline:ClipboardDocumentIcon"
-            :box="36"
+            :box="30"
             :size="17"
             :label="t('publicPage.iq.copyPrompt')"
             @click="copy(result.promptContent)"
@@ -29,7 +29,7 @@
           <h4>{{ t('iqcheck.public.error') }}</h4>
           <AppIconButton
             icon="HOutline:ClipboardDocumentIcon"
-            :box="36"
+            :box="30"
             :size="17"
             :label="t('publicPage.iq.copyRaw')"
             @click="copy(result.error)"
@@ -56,7 +56,7 @@
             <h4>{{ t('iqcheck.public.raw') }}</h4>
             <AppIconButton
               icon="HOutline:ClipboardDocumentIcon"
-              :box="36"
+              :box="30"
               :size="17"
               :label="t('publicPage.iq.copyRaw')"
               @click="copy(result.responseText)"
@@ -125,7 +125,7 @@ const copy = async (text: string) => {
 .iqd {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .iqd__meta {
   display: grid;
@@ -143,13 +143,13 @@ const copy = async (text: string) => {
   min-width: 0;
   dt {
     font-size: 0.6875rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--el-text-color-secondary);
   }
   dd {
     margin: 2px 0 0;
-    font-size: 0.875rem;
-    font-weight: 700;
+    font-size: 0.8125rem;
+    font-weight: 600;
     overflow-wrap: anywhere;
   }
   dd.is-ok {
@@ -171,8 +171,8 @@ const copy = async (text: string) => {
   min-height: 36px;
   h4 {
     margin: 0;
-    font-size: 0.9375rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
 }
 .iqd__ptitle {

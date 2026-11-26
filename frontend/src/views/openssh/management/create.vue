@@ -435,14 +435,14 @@ defineExpose({ showDialog })
 }
 .seg__btn {
   flex: 1;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 12px;
   border: none;
   background: transparent;
   border-radius: var(--app-radius-pill);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }

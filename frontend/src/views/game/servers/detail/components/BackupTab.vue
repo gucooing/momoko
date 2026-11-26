@@ -248,15 +248,15 @@ onActivated(load)
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 18px 20px;
+  padding: 14px 14px;
   border-radius: var(--app-radius-lg);
   border: var(--cmp-card-border-width, 1px) solid var(--el-border-color-light);
   background: var(--el-bg-color);
 }
 .bk__card h2 {
   margin: 0;
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 .bk__row {
   display: flex;
@@ -280,11 +280,11 @@ onActivated(load)
 }
 .bk__scope .is-warn {
   color: var(--m-warn);
-  font-weight: 700;
+  font-weight: 600;
 }
 .bk__label {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-primary);
 }
 .bk__chips {
@@ -310,9 +310,9 @@ onActivated(load)
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 44px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  min-height: 34px;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .bk__grid {
@@ -327,7 +327,7 @@ onActivated(load)
 }
 .bk__field > span {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .bk__hint {
   font-size: 0.75rem;
@@ -343,7 +343,7 @@ onActivated(load)
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 60px;
+  min-height: 44px;
   padding: 8px 0;
   border-top: 1px solid var(--el-border-color-light);
 }
@@ -352,8 +352,8 @@ onActivated(load)
 }
 .bk__item-ico {
   flex: none;
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -365,7 +365,7 @@ onActivated(load)
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .bk__item-text b {
   overflow: hidden;
@@ -385,15 +385,15 @@ onActivated(load)
   gap: 2px;
 }
 .bk__item-acts :deep(.app-icon-btn) {
-  width: 40px !important;
-  height: 40px !important;
+  width: 32px !important;
+  height: 32px !important;
 }
 .bk__item-acts .is-danger {
   color: var(--m-bad);
 }
 .bk__dialog {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 @media (width <= 768px) {
@@ -405,8 +405,8 @@ onActivated(load)
     justify-content: flex-end;
   }
   .bk__item-acts :deep(.app-icon-btn) {
-    width: 44px !important;
-    height: 44px !important;
+    width: 40px !important;
+    height: 40px !important;
   }
   .bk__grid {
     grid-template-columns: 1fr;

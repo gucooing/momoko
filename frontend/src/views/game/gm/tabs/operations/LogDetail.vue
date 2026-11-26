@@ -186,8 +186,8 @@ const num = (v: unknown) => (typeof v === 'number' ? v.toLocaleString() : String
   gap: 4px;
 }
 .ld__title {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .ld__hint {
   font-size: 12px;
@@ -199,7 +199,7 @@ const num = (v: unknown) => (typeof v === 'number' ? v.toLocaleString() : String
   border-radius: var(--app-radius-sm);
   background: var(--m-a2Soft);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .ld__kv {
   display: grid;
@@ -227,8 +227,7 @@ const num = (v: unknown) => (typeof v === 'number' ? v.toLocaleString() : String
 }
 .ld__label {
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .ld__row {
@@ -245,7 +244,7 @@ const num = (v: unknown) => (typeof v === 'number' ? v.toLocaleString() : String
 .ld__row-name {
   flex: 1 1 120px;
   min-width: 0;
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .ld__row-detail {

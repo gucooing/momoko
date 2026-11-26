@@ -180,7 +180,7 @@ const open = async (e: GmExecution) => {
 }
 .gl__link {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--m-pInk);
   text-decoration: none;
 }

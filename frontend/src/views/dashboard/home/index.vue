@@ -1,33 +1,9 @@
 <!-- 工作台（DashboardPC / DashboardMobile）
      PC：主色问候卡（日期 / 问候 / 状态 / 主机 chips / 快捷操作）+「需要你看一眼」→ 指标卡 → 实时监控 + 运行中 → 快捷入口 + Docker + 后台任务。
-     手机：问候页头（头像 / 搜索 / 主题 / 通知）+ 节点胶囊 → 主色状态卡 → 待办 → 2×2 指标 → 实时监控 → 运行中 → 快捷入口。
+     手机：主色状态卡 → 待办 → 2×2 指标 → 实时监控 → 运行中 → 快捷入口（搜索、通知、节点与账号在外壳的顶栏和菜单抽屉里）。
      监控数据与轮询沿用 useDashboardHomeStore；Docker / 任务 / 更新见 useDashboardExtras（各自按权限加载）。 -->
 <template>
   <div class="dash">
-    <!-- 手机页头 -->
-    <template v-if="isMobile">
-      <header class="dash-mh">
-        <span class="dash-mh__av">
-          <AppAvatar :src="userStore.resolvedUserAvatar" :size="44" :name="displayName" />
-        </span>
-        <span class="dash-mh__text">
-          <span class="dash-mh__greet">{{ greeting }}</span>
-          <span class="dash-mh__name">{{ displayName }}</span>
-        </span>
-        <AppIconButton icon="HOutline:MagnifyingGlassIcon" :label="t('shell.search')" :box="44" @click="more.open(true)" />
-        <AppIconButton
-          icon="HOutline:SwatchIcon"
-          :label="t('shell.themeAndAppearance')"
-          :box="44"
-          @click="router.push({ path: '/profile', query: { tab: 'appearance' } })"
-        />
-        <NotificationMenu />
-      </header>
-      <div class="dash-mnode">
-        <NodeSwitcher variant="pill" />
-      </div>
-    </template>
-
     <div class="dash-row">
       <!-- 问候卡：默认主色实底 + 黄色圆与第二强调色圆环装饰；主题可换成渐变或自己的图片（横幅，见 theme/useThemeBanner） -->
       <section class="dash-hero" :class="{ 'is-custom': !bannerLook.deco }" :style="bannerStyle" data-theme-pick="hero">
@@ -188,9 +164,6 @@ import SystemRealtimeCharts from '@/views/dashboard/home/systemRealtimeCharts.vu
 import AttentionCard from '@/views/dashboard/home/attentionCard.vue'
 import DockerCard from '@/views/dashboard/home/dockerCard.vue'
 import TasksCard from '@/views/dashboard/home/tasksCard.vue'
-import NodeSwitcher from '@/layouts/app/NodeSwitcher.vue'
-import NotificationMenu from '@/layouts/app/NotificationMenu.vue'
-import { useMorePanel } from '@/layouts/app/tabbar'
 import { pageTabTo } from '@/config/pageGroups'
 import { useDashboardExtras, type AttentionItem } from '@/views/dashboard/home/useDashboardExtras'
 import { useDashboardHomeStore } from '@/stores/dashboard/home'
@@ -211,7 +184,6 @@ const userStore = useUserStore()
 const nodeStore = useNodeStore()
 const router = useRouter()
 const accessible = useAccessibleRoutes()
-const more = useMorePanel()
 const extras = useDashboardExtras()
 const { t, locale } = useI18n()
 // 欢迎横幅的背景（主色 / 渐变 / 自定义图片），由当前主题决定
@@ -544,12 +516,12 @@ onBeforeUnmount(() => {
 .dash {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 .dash-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 16px;
   align-items: stretch;
 }
 .dash-row > * {
@@ -570,47 +542,6 @@ onBeforeUnmount(() => {
 }
 .dash-row__card {
   flex: 1 1 280px;
-}
-
-/* ---- 手机页头 ---- */
-.dash-mh {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 2px -8px -8px 4px;
-}
-.dash-mh__av {
-  display: inline-flex;
-  margin-right: 6px;
-  border-radius: 50%;
-  :deep(.app-avatar) {
-    background: var(--m-aSoft);
-    color: var(--m-aOn);
-  }
-}
-.dash-mh__text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.dash-mh__greet {
-  font-size: 0.8125rem;
-  color: var(--el-text-color-secondary);
-}
-.dash-mh__name {
-  font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--el-text-color-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.dash-mnode {
-  display: flex;
-  min-width: 0;
-  margin-bottom: -10px;
 }
 
 /* ---- 问候卡 ---- */
@@ -658,12 +589,12 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   max-width: 560px;
 }
 .dash-hero__date {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 500;
   opacity: 0.9;
 }
 .dash-hero__title {
@@ -671,50 +602,49 @@ onBeforeUnmount(() => {
   font-family: var(--app-font-display);
   font-size: var(--cmp-hero-title-size);
   line-height: 1.15;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .dash-hero__sub {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   opacity: 0.92;
 }
 .dash-hero__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   margin-top: 2px;
 }
 .dash-chip {
   display: inline-flex;
   align-items: center;
-  height: 30px;
-  padding: 0 12px;
+  height: 26px;
+  padding: 0 10px;
   border-radius: 999px;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.78125rem;
+  font-weight: 500;
   background: color-mix(in srgb, var(--banner-soft, var(--m-pOn)) 16%, transparent);
 }
 .dash-hero__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 8px;
 }
 .dash-hero__btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 18px;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px;
   border: none;
   border-radius: 999px;
   background: color-mix(in srgb, var(--banner-soft, var(--m-pOn)) 18%, transparent);
   color: var(--banner-fg, var(--m-pOn));
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
   transition: transform 0.15s, filter 0.15s;
 }
@@ -729,21 +659,21 @@ onBeforeUnmount(() => {
   color: var(--banner-btn-fg, var(--m-p));
 }
 .dash-hero__btn :deep(svg) {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 /* ---- 指标卡 ---- */
 .dash-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 .dash-stat {
   container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   min-width: 0;
   padding: calc(var(--cmp-card-unit) * 22);
   border-radius: var(--app-radius-lg);
@@ -761,22 +691,22 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   min-width: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .dash-stat__icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
 }
 .dash-stat__icon :deep(svg) {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 .dash-ring {
-  width: 58px;
-  height: 58px;
+  width: 44px;
+  height: 44px;
   flex: none;
 }
 .dash-ring__track {
@@ -791,8 +721,8 @@ onBeforeUnmount(() => {
   transition: stroke-dasharray 0.5s ease;
 }
 .dash-spark {
-  width: 96px;
-  height: 40px;
+  width: 84px;
+  height: 28px;
   flex: none;
 }
 .dash-spark path {
@@ -803,10 +733,9 @@ onBeforeUnmount(() => {
   stroke-linejoin: round;
 }
 .dash-stat__value {
-  font-size: 2.375rem;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-size: 1.375rem;
+  line-height: 1.1;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -814,11 +743,11 @@ onBeforeUnmount(() => {
 }
 @container (width < 200px) {
   .dash-stat__value {
-    font-size: 1.875rem;
+    font-size: 1.25rem;
   }
 }
 .dash-stat__sub {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -828,17 +757,17 @@ onBeforeUnmount(() => {
 /* ---- 手机 ---- */
 @media (width < 992px) {
   .dash {
-    gap: 14px;
+    gap: 12px;
   }
   .dash-row {
-    gap: 14px;
+    gap: 12px;
   }
   .dash-row > * {
     flex: 1 1 100%;
   }
   .dash-hero {
     min-height: 0;
-    padding: 22px;
+    padding: 16px;
     border-radius: var(--app-radius-xl);
   }
   .dash-hero__blob {
@@ -862,54 +791,47 @@ onBeforeUnmount(() => {
     gap: 6px;
   }
   .dash-hero__date {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
   }
   .dash-hero__title {
-    font-size: calc(var(--cmp-hero-title-size) * 0.74);
-  }
-  .dash-hero__sub {
-    font-size: 0.875rem;
+    font-size: calc(var(--cmp-hero-title-size) * 0.6);
   }
   .dash-hero__actions {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    margin-top: 14px;
+    margin-top: 10px;
   }
   .dash-hero__btn {
     flex-direction: column;
     justify-content: center;
-    gap: 6px;
-    padding: 12px 4px;
-    border-radius: 18px;
-    font-size: 0.8125rem;
-    font-weight: 700;
+    gap: 4px;
+    padding: 9px 4px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
   }
   .dash-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
   }
   .dash-stat {
-    gap: 10px;
-    padding: 16px;
-    border-radius: var(--app-radius-lg);
-  }
-  .dash-stat__label {
-    font-size: 0.8125rem;
+    gap: 8px;
+    padding: 12px;
   }
   .dash-stat__icon {
     display: none;
   }
   .dash-ring {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
   .dash-ring__track,
   .dash-ring__bar {
     stroke-width: 10;
   }
   .dash-stat__value {
-    font-size: 1.625rem;
+    font-size: 1.25rem;
   }
   .dash-stat__sub {
     font-size: 0.75rem;

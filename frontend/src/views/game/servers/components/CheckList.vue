@@ -78,7 +78,7 @@ const icon = (state: string) => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .ckl__text small {
   font-size: 0.75rem;

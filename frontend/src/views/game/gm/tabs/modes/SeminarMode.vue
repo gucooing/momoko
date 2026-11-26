@@ -103,7 +103,7 @@ void load()
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 18px 20px;
+  padding: 14px 14px;
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -119,7 +119,7 @@ void load()
 .sm__order {
   width: 38px;
   height: 38px;
-  font-size: 14px;
+  font-size: 13px;
   transform: rotate(-4deg);
 }
 .sm__title {
@@ -128,8 +128,8 @@ void load()
   min-width: 0;
 }
 .sm__name {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .sm__tags {
   padding: 0;

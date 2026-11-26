@@ -184,12 +184,12 @@ const onPaste = async (e: ClipboardEvent) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 4px 0 4px;
   border-radius: 999px;
   background: var(--el-fill-color-light);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   max-width: 100%;
 }
 .pp__avatar {
@@ -203,7 +203,7 @@ const onPaste = async (e: ClipboardEvent) => {
   background: var(--m-gSoft, var(--m-pSoft));
   color: var(--m-gInk, var(--m-pInk));
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .pp__name {
   overflow: hidden;
@@ -243,7 +243,7 @@ const onPaste = async (e: ClipboardEvent) => {
 }
 .pp__input {
   width: 100%;
-  min-height: 34px;
+  min-height: 30px;
   border: 0;
   background: transparent;
   font: inherit;
@@ -271,7 +271,7 @@ const onPaste = async (e: ClipboardEvent) => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 4px 8px;
   border: 0;
   border-radius: var(--app-radius-sm);
@@ -295,7 +295,7 @@ const onPaste = async (e: ClipboardEvent) => {
   flex-direction: column;
 }
 .pp__option-name {
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

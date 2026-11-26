@@ -238,7 +238,7 @@ defineExpose({ showDialog })
 }
 .node-form__guide summary {
   min-height: 24px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .node-form__guide ol {
@@ -266,7 +266,7 @@ defineExpose({ showDialog })
 }
 .node-form__textarea {
   height: auto;
-  min-height: 56px;
+  min-height: 44px;
   padding-top: 8px;
   padding-bottom: 8px;
   resize: vertical;
@@ -290,7 +290,7 @@ defineExpose({ showDialog })
   .node-form__footer > :deep(button) {
     flex: 1 1 0;
     justify-content: center;
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 .node-mono {

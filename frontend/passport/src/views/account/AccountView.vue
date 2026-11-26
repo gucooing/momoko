@@ -77,10 +77,10 @@ const go = (key: string) => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 28px 32px 56px;
+  padding: 18px 20px 42px;
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 16px;
   align-items: flex-start;
 }
 .acc__nav.pp-card {
@@ -104,7 +104,7 @@ const go = (key: string) => {
   background: transparent;
   color: var(--m-ink2);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -116,7 +116,7 @@ const go = (key: string) => {
 .acc__sn.is-on {
   background: var(--m-pSoft);
   color: var(--m-pInk);
-  font-weight: 800;
+  font-weight: 600;
 }
 .acc__sn.is-danger {
   color: var(--m-bad);
@@ -134,12 +134,12 @@ const go = (key: string) => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 @media (max-width: 768px) {
   /* 单列时不能换行：多行 flex 的行宽按最宽的子项（横向滚动的 chips）计算，会把整页撑出屏幕 */
   .acc {
-    padding: 12px 16px 24px;
+    padding: 12px 16px 16px;
     gap: 14px;
     flex-direction: column;
     flex-wrap: nowrap;

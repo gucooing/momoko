@@ -18,7 +18,7 @@
           :disabled="disabled"
           @input="setQuantity(i, ($event.target as HTMLInputElement).valueAsNumber)"
         />
-        <AppIconButton icon="HOutline:XMarkIcon" :label="t('gm.reward.remove')" :box="36" :disabled="disabled" @click="remove(i)" />
+        <AppIconButton icon="HOutline:XMarkIcon" :label="t('gm.reward.remove')" :box="30" :disabled="disabled" @click="remove(i)" />
       </div>
     </div>
     <div v-else-if="disabled" class="grp__empty">{{ t('gm.reward.none') }}</div>
@@ -179,7 +179,7 @@ const remove = (i: number) => {
   min-width: 0;
 }
 .grp__name {
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -203,7 +203,7 @@ const remove = (i: number) => {
   align-items: center;
   align-self: flex-start;
   gap: 6px;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px dashed var(--el-border-color);
@@ -211,7 +211,7 @@ const remove = (i: number) => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .grp__add:hover {
@@ -248,7 +248,7 @@ const remove = (i: number) => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .grp__kind.is-on {

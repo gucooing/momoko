@@ -30,7 +30,7 @@
           v-else-if="items.length"
           icon="HOutline:BoltIcon"
           :label="t('fileSource.testAllAria')"
-          :box="44"
+          :box="36"
           @click="testAll"
         />
       </template>
@@ -109,7 +109,7 @@
             <UButton v-if="!isMobile" color="neutral" variant="soft" size="sm" icon="i-lucide-folder-open" :to="pageTabTo('file', 'index')">
               {{ t('fileSource.browse') }}
             </UButton>
-            <AppIconButton v-else icon="HOutline:FolderOpenIcon" :label="t('fileSource.browseOf', { name: t('fileSource.localDisk') })" :box="44" @click="browse()" />
+            <AppIconButton v-else icon="HOutline:FolderOpenIcon" :label="t('fileSource.browseOf', { name: t('fileSource.localDisk') })" :box="36" @click="browse()" />
           </template>
         </footer>
       </article>
@@ -199,22 +199,22 @@
               class="src-test-btn"
               icon="HOutline:BoltIcon"
               :label="t('fileSource.testOf', { name: row.name })"
-              :box="44"
+              :box="36"
               @click="testOne(row)"
             />
             <AppIconButton
               v-if="canBrowse && row.enabled"
               icon="HOutline:FolderOpenIcon"
               :label="t('fileSource.browseOf', { name: row.name })"
-              :box="44"
+              :box="36"
               @click="browse(row)"
             />
           </template>
           <AppIconButton
             icon="HOutline:PencilSquareIcon"
             :label="t('fileSource.editOf', { name: row.name })"
-            :box="isMobile ? 44 : 36"
-            :size="isMobile ? 20 : 18"
+            :box="isMobile ? 36 : 30"
+            :size="isMobile ? 17 : 16"
             @click="openEdit(row)"
           />
           <ActionMenu :items="rowMenu(row)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
@@ -505,13 +505,13 @@ onMounted(getList)
 }
 .src-ok {
   color: var(--m-ok);
-  font-weight: 700;
+  font-weight: 600;
 }
 /* 手机页头动作区的图标按钮保持 44px 方形（PageHeader 动作区统一把按钮画成药丸） */
 .src :deep(.page-header__actions .app-icon-btn) {
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
   padding: 0;
 }
 .src-grid {
@@ -545,8 +545,8 @@ onMounted(getList)
 }
 .src-card__sticker {
   flex: none;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 17px;
 }
 .src-card__sticker :deep(svg),
@@ -562,8 +562,8 @@ onMounted(getList)
   gap: 2px;
 }
 .src-card__name {
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -624,13 +624,13 @@ onMounted(getList)
 }
 .src-dl dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .src-dl dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -654,7 +654,7 @@ onMounted(getList)
   background: var(--m-s2);
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .src-cap :deep(svg),
 .src-cap :deep(.iconify) {
@@ -735,7 +735,7 @@ onMounted(getList)
 }
 .src-res__title {
   font-size: 0.8125rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -759,7 +759,7 @@ onMounted(getList)
 }
 /* 底部「浏览文件 / 测试连接」：与原型 btn-sm 一样 36px 药丸 */
 .src-card__foot :deep(:where(a, button)[data-slot='base']) {
-  min-height: 36px;
+  min-height: 30px;
   padding-inline: 12px;
   border-radius: 999px;
 }
@@ -800,19 +800,19 @@ onMounted(getList)
 .src-fab {
   position: fixed;
   right: 16px;
-  bottom: calc(82px + env(safe-area-inset-bottom));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   z-index: 6;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border: none;
   border-radius: 999px;
   background: var(--m-p);
   color: var(--m-pOn);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   box-shadow: var(--app-shadow-brand);
   cursor: pointer;
 }
@@ -824,7 +824,7 @@ onMounted(getList)
 @media (width <= 768px) {
   .src {
     gap: 12px;
-    padding-bottom: 72px;
+    padding-bottom: 54px;
   }
   .src-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -835,8 +835,8 @@ onMounted(getList)
     padding: 16px 12px 6px 16px;
   }
   .src-card__sticker {
-    width: 46px;
-    height: 46px;
+    width: 36px;
+    height: 36px;
     border-radius: 15px;
   }
   .src-card__foot {
@@ -844,8 +844,8 @@ onMounted(getList)
     padding-top: 6px;
   }
   .src-card__foot :deep(.action-menu__trigger) {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
 }
 </style>

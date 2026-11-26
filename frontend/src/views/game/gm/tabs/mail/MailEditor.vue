@@ -58,7 +58,7 @@
           <AppSelect v-model="row.field" :options="fieldOptions" :disabled="!editable" />
           <AppSelect v-model="row.op" :options="opOptions" :disabled="!editable" />
           <input v-model="row.value" type="datetime-local" class="me__input" :aria-label="condLabel(row)" :disabled="!editable" />
-          <AppIconButton v-if="editable" icon="HOutline:XMarkIcon" :label="t('gmOps.mail.removeCond')" :box="40" @click="form.conds.splice(i, 1)" />
+          <AppIconButton v-if="editable" icon="HOutline:XMarkIcon" :label="t('gmOps.mail.removeCond')" :box="32" @click="form.conds.splice(i, 1)" />
         </div>
         <div v-if="!form.conds.length" class="me__hint">{{ t('gmOps.mail.noCond') }}</div>
         <div class="me__cond-foot">
@@ -708,8 +708,8 @@ onBeforeUnmount(() => {
 }
 .me__title {
   font-family: var(--app-font-display);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .me__meta,
@@ -761,12 +761,12 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 .me__claim-label {
-  font-weight: 800;
+  font-weight: 600;
 }
 .me__claim-num {
   font-family: var(--app-font-display);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
 }
 .me__claim-facts {
   display: flex;
@@ -777,7 +777,7 @@ onBeforeUnmount(() => {
 }
 .me__warn {
   color: var(--m-warn);
-  font-weight: 700;
+  font-weight: 600;
 }
 .me__bar {
   height: 8px;
@@ -795,7 +795,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 18px 0;
+  padding: 14px 0;
   border-top: 1px solid var(--el-border-color-light);
 }
 .me__step:first-of-type {
@@ -805,14 +805,14 @@ onBeforeUnmount(() => {
 .me__step--split {
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 14px;
 }
 .me__step-head {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   flex-wrap: wrap;
 }
 .me__sn {
@@ -826,7 +826,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   font-family: var(--app-font-display);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .me__spacer {
   flex: 1;
@@ -842,7 +842,7 @@ onBeforeUnmount(() => {
   max-width: 100%;
 }
 .me__seg-btn {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -850,7 +850,7 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .me__seg-btn.is-on {
@@ -884,8 +884,8 @@ onBeforeUnmount(() => {
 }
 .me__matched {
   font-family: var(--app-font-display);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
 }
 .me__check {
   display: inline-flex;
@@ -893,7 +893,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   min-height: 40px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .me__check input {
@@ -934,8 +934,7 @@ onBeforeUnmount(() => {
 }
 .me__label-sm {
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .me__preview-box {
@@ -965,7 +964,7 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
-  font-size: 22px;
+  font-size: 18px;
 }
 .me__gift-text {
   flex: 1;
@@ -975,13 +974,13 @@ onBeforeUnmount(() => {
   gap: 2px;
 }
 .me__gift-title {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .me__gift-sum {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-gInk, var(--m-pInk));
   overflow-wrap: anywhere;
 }
@@ -992,7 +991,7 @@ onBeforeUnmount(() => {
   background: var(--m-g, var(--m-p));
   color: var(--m-gOn, var(--m-pOn));
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .me__field {
   display: flex;
@@ -1002,14 +1001,14 @@ onBeforeUnmount(() => {
 }
 .me__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .me__req {
   color: var(--m-bad);
 }
 .me__input {
   width: 100%;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   border: 1.5px solid var(--el-border-color-light);
@@ -1060,8 +1059,8 @@ onBeforeUnmount(() => {
   position: sticky;
   bottom: -20px;
   z-index: 2;
-  margin: 0 -20px -20px;
-  padding: 14px 20px 16px;
+  margin: 0 -14px -14px;
+  padding: 14px 14px 16px;
   background: var(--el-bg-color);
 }
 .me__dialog {
@@ -1071,7 +1070,7 @@ onBeforeUnmount(() => {
 }
 .me__dialog-text {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
 }
 @media (width < 768px) {
@@ -1086,10 +1085,10 @@ onBeforeUnmount(() => {
     flex: 1 1 100%;
   }
   .me__seg-btn {
-    min-height: 44px;
+    min-height: 40px;
   }
   .me__foot :deep(button) {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

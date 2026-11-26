@@ -160,8 +160,8 @@
                     <span class="iqp-card__usage m-num">{{ tokensShort(r) }}</span>
                     <AppIconButton
                       icon="HOutline:LinkIcon"
-                      :box="44"
-                      :size="20"
+                      :box="36"
+                      :size="17"
                       :label="t('publicPage.iq.copyLink')"
                       @click="copyLink(r)"
                     />
@@ -219,8 +219,8 @@
                     <span class="iqp-card__spacer" />
                     <AppIconButton
                       icon="HOutline:LinkIcon"
-                      :box="40"
-                      :size="18"
+                      :box="32"
+                      :size="16"
                       :label="t('publicPage.iq.copyLink')"
                       @click="copyLink(r)"
                     />
@@ -290,7 +290,7 @@
                 <h2>{{ t('iqcheck.public.prompt') }}</h2>
                 <AppIconButton
                   icon="HOutline:ClipboardDocumentIcon"
-                  :box="36"
+                  :box="30"
                   :size="17"
                   :label="t('publicPage.iq.copyPrompt')"
                   @click="copy(current.promptContent)"
@@ -304,7 +304,7 @@
                 <h2>{{ isSuccess(current) ? t('iqcheck.public.raw') : t('iqcheck.public.error') }}</h2>
                 <AppIconButton
                   icon="HOutline:ClipboardDocumentIcon"
-                  :box="36"
+                  :box="30"
                   :size="17"
                   :label="t('publicPage.iq.copyRaw')"
                   @click="copy(isSuccess(current) ? current.responseText : current.error)"
@@ -574,7 +574,7 @@ onMounted(async () => {
 .iqp-hero {
   position: relative;
   overflow: hidden;
-  padding: 22px 48px 30px;
+  padding: 16px 36px 20px;
   background: var(--m-p);
   color: var(--m-pOn);
 }
@@ -602,7 +602,7 @@ onMounted(async () => {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .iqp-hero__bar {
   display: flex;
@@ -610,8 +610,8 @@ onMounted(async () => {
   gap: 12px;
 }
 .iqp-hero__logo {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
   object-fit: cover;
   transform: rotate(-6deg);
@@ -619,8 +619,8 @@ onMounted(async () => {
 }
 .iqp-hero__name {
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 .iqp-hero__chip {
   display: inline-flex;
@@ -630,7 +630,7 @@ onMounted(async () => {
   border-radius: 999px;
   background: color-mix(in srgb, var(--m-pOn) 18%, transparent);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 .iqp-hero__spacer {
@@ -657,12 +657,12 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 18px;
+  padding: 0 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   text-decoration: none;
 }
 .iqp-hero__login:hover {
@@ -673,7 +673,7 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 20px;
+  gap: 14px;
 }
 .iqp-hero__copy {
   flex: 1 1 520px;
@@ -685,15 +685,15 @@ onMounted(async () => {
 .iqp-hero__copy h1 {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 2.5rem;
+  font-size: 1.625rem;
   line-height: 1.1;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 .iqp-hero__copy p {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .iqp-hero__path {
@@ -707,7 +707,7 @@ onMounted(async () => {
   background: var(--m-pOn);
   color: var(--m-p);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -724,15 +724,15 @@ onMounted(async () => {
   width: 100%;
   max-width: 1336px;
   margin: 0 auto;
-  padding: 28px 48px 40px;
+  padding: 18px 36px 30px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
 }
 .iqp-state {
-  padding: 48px 16px;
+  padding: 36px 16px;
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .iqp-stats {
@@ -750,8 +750,8 @@ onMounted(async () => {
   background: var(--el-bg-color);
 }
 .iqp-stat__ico {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
 }
 .iqp-stat__ico svg {
@@ -766,7 +766,7 @@ onMounted(async () => {
 }
 .iqp-stat__label {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .iqp-stat__value {
@@ -775,13 +775,13 @@ onMounted(async () => {
   gap: 4px;
 }
 .iqp-stat__value b {
-  font-size: 1.625rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 600;
   line-height: 1;
 }
 .iqp-stat__value small {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 
@@ -793,8 +793,8 @@ onMounted(async () => {
 }
 .iqp-toolbar__title {
   margin-right: 4px;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .iqp-chips {
   display: flex;
@@ -812,7 +812,7 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   flex: none;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: 999px;
@@ -820,7 +820,7 @@ onMounted(async () => {
   color: var(--el-text-color-primary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -857,7 +857,7 @@ onMounted(async () => {
   padding: 10px 10px 10px 16px;
   border-radius: var(--app-radius);
   background: var(--m-a2Soft);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .iqp-shared svg {
@@ -869,21 +869,21 @@ onMounted(async () => {
   flex: 1;
 }
 .iqp-shared__btn {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
   background: var(--el-bg-color);
   color: var(--m-pInk);
   font: inherit;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .iqp-body {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
+  gap: 16px;
 }
 .iqp-list-wrap {
   flex: 1;
@@ -917,7 +917,7 @@ onMounted(async () => {
 .iqp-item__dot {
   width: 16px;
   height: 16px;
-  margin-top: 22px;
+  margin-top: 16px;
   border-radius: 50%;
   border: 4px solid var(--el-bg-color-page);
 }
@@ -964,8 +964,8 @@ onMounted(async () => {
   gap: 8px;
 }
 .iqp-card__model {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .iqp-card__spacer {
@@ -991,7 +991,7 @@ onMounted(async () => {
   padding: 0 9px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 .iqp-eff.is-p {
@@ -1031,7 +1031,7 @@ html.dark .iqp-eff.is-a {
   padding: 6px 12px;
   background: var(--el-fill-color-light);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .iqp-sbx__head svg {
@@ -1051,7 +1051,7 @@ html.dark .iqp-eff.is-a {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 22px 20px;
+  padding: 16px 14px;
   color: var(--m-bad);
 }
 .iqp-sbx__err > svg {
@@ -1066,8 +1066,8 @@ html.dark .iqp-eff.is-a {
   min-width: 0;
 }
 .iqp-sbx__err b {
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .iqp-sbx__err span span {
   display: -webkit-box;
@@ -1090,9 +1090,9 @@ html.dark .iqp-eff.is-a {
   color: var(--el-text-color-secondary);
 }
 .iqp-btn {
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 999px !important;
-  font-weight: 700 !important;
+  font-weight: 500 !important;
 }
 .iqp-pagination {
   display: flex;
@@ -1134,7 +1134,7 @@ html.dark .iqp-eff.is-a {
 }
 .iqp-card.is-compact .iqp-card__model {
   min-width: 0;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1164,15 +1164,15 @@ html.dark .iqp-eff.is-a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 10px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--m-pInk);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
 }
 .iqp-textbtn:hover {
@@ -1216,7 +1216,7 @@ html.dark .iqp-eff.is-a {
 }
 .iqp-panel__time {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .iqp-panel__model {
@@ -1226,8 +1226,8 @@ html.dark .iqp-eff.is-a {
   gap: 8px;
 }
 .iqp-panel__model b {
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .iqp-panel__dl {
@@ -1241,13 +1241,13 @@ html.dark .iqp-eff.is-a {
 }
 .iqp-panel__dl dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .iqp-panel__dl dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .iqp-panel__dl dd.is-ok {
   color: var(--m-ok);
@@ -1268,8 +1268,8 @@ html.dark .iqp-eff.is-a {
 .iqp-panel__sec-head h2 {
   flex: 1;
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .iqp-panel__ptitle {
   font-size: 0.8125rem;
@@ -1300,7 +1300,7 @@ html.dark .iqp-eff.is-a {
   color: var(--m-bad);
 }
 .iqp-foot {
-  padding: 18px 48px 28px;
+  padding: 14px 36px 18px;
   text-align: center;
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
@@ -1315,7 +1315,7 @@ html.dark .iqp-eff.is-a {
 /* ---- 手机 ---- */
 @media (width < 768px) {
   .iqp-hero {
-    padding: 16px 16px 24px;
+    padding: 16px 16px 16px;
   }
   .iqp-hero__blob {
     right: -70px;
@@ -1331,7 +1331,7 @@ html.dark .iqp-eff.is-a {
     border-width: 12px;
   }
   .iqp-hero__inner {
-    gap: 18px;
+    gap: 14px;
   }
   .iqp-hero__bar {
     gap: 10px;
@@ -1340,8 +1340,8 @@ html.dark .iqp-eff.is-a {
     display: none;
   }
   .iqp-hero__logo {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border-radius: 12px;
   }
   .iqp-hero__name {
@@ -1360,18 +1360,18 @@ html.dark .iqp-eff.is-a {
     flex-basis: 100%;
   }
   .iqp-hero__copy h1 {
-    font-size: 1.75rem;
+    font-size: 1.375rem;
     line-height: 1.15;
   }
   .iqp-hero__copy p {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   .iqp-hero__path {
     font-size: 0.75rem;
     height: 32px;
   }
   .iqp-main {
-    padding: 16px 16px 28px;
+    padding: 16px 16px 18px;
     gap: 16px;
   }
   .iqp-stats {
@@ -1379,10 +1379,10 @@ html.dark .iqp-eff.is-a {
   }
   .iqp-stat {
     padding: 12px 14px;
-    border-radius: 20px;
+    border-radius: 14px;
   }
   .iqp-stat__value b {
-    font-size: 1.5rem;
+    font-size: 1.1875rem;
     line-height: 1.1;
   }
   .iqp-toolbar {
@@ -1416,7 +1416,7 @@ html.dark .iqp-eff.is-a {
     height: 180px;
   }
   .iqp-foot {
-    padding: 8px 16px 24px;
+    padding: 8px 16px 16px;
   }
 }
 </style>

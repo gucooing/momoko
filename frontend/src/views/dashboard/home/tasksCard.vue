@@ -89,16 +89,16 @@ const rows = computed(() =>
 .tk__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .tk__spacer {
   flex: 1;
 }
 .tk__link {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--m-pInk);
   text-decoration: none;
 }
@@ -124,7 +124,7 @@ const rows = computed(() =>
 .tk__name {
   flex: 1;
   min-width: 0;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -132,7 +132,7 @@ const rows = computed(() =>
 }
 .tk__state {
   flex: none;
-  font-weight: 700;
+  font-weight: 600;
 }
 .tk__track {
   height: 8px;

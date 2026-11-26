@@ -71,13 +71,13 @@ const close = () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 18px 20px 8px;
+  padding: 14px 14px 8px;
 }
 .pd__title {
   flex: 1;
   margin: 0;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .pd__x {
   display: inline-flex;
@@ -99,14 +99,14 @@ const close = () => {
   height: 20px;
 }
 .pd__body {
-  padding: 8px 20px 18px;
+  padding: 8px 14px 14px;
   overflow-y: auto;
 }
 .pd__foot {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 12px 20px 18px;
+  padding: 12px 14px 14px;
   border-top: 1px solid var(--m-line);
 }
 .pd-enter-active,

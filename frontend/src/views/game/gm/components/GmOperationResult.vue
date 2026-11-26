@@ -71,7 +71,7 @@ const download = (name: string | undefined, detail: { export: unknown }) => {
   border-radius: var(--app-radius-sm);
   background: var(--m-a2Soft);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gcr__row {
   display: flex;
@@ -88,7 +88,7 @@ const download = (name: string | undefined, detail: { export: unknown }) => {
   gap: 8px;
 }
 .gcr__who {
-  font-weight: 800;
+  font-weight: 600;
 }
 .gcr__error {
   font-size: 13px;
@@ -109,7 +109,7 @@ const download = (name: string | undefined, detail: { export: unknown }) => {
   gap: 8px;
 }
 .gcr__kind {
-  font-weight: 700;
+  font-weight: 600;
 }
 .gcr__backup {
   font-size: 13px;
@@ -121,7 +121,7 @@ const download = (name: string | undefined, detail: { export: unknown }) => {
   background: transparent;
   color: var(--m-pInk);
   font: inherit;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   padding: 0;
 }

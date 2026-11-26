@@ -175,7 +175,7 @@ onBeforeUnmount(closeSocket)
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .dk-logopts__btn.is-on { background: var(--el-bg-color); color: var(--el-text-color-primary); box-shadow: var(--app-shadow-sm); }
@@ -189,7 +189,7 @@ onBeforeUnmount(closeSocket)
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   input {
     width: 64px;
@@ -197,7 +197,7 @@ onBeforeUnmount(closeSocket)
     background: transparent;
     color: var(--el-text-color-primary);
     font-size: 0.8125rem;
-    font-weight: 700;
+    font-weight: 600;
     outline: none;
   }
 }
@@ -208,7 +208,7 @@ onBeforeUnmount(closeSocket)
   align-items: center;
   gap: 8px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-regular);
   white-space: nowrap;
   cursor: pointer;

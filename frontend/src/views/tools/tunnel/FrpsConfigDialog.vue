@@ -188,12 +188,12 @@ watch(visible, (open) => {
 
 <style scoped lang="scss">
 .frps-loading {
-  padding: 24px;
+  padding: 16px;
   text-align: center;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
 }
-.frps { display: flex; flex-direction: column; gap: 18px; }
+.frps { display: flex; flex-direction: column; gap: 14px; }
 .frps-status {
   display: flex;
   align-items: center;
@@ -203,7 +203,7 @@ watch(visible, (open) => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .frps-status.is-on { background: var(--m-okSoft); color: var(--m-ok); }
 .frps-status__dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: currentColor; }
@@ -215,8 +215,8 @@ watch(visible, (open) => {
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .frps-sec__ico {
@@ -234,7 +234,7 @@ watch(visible, (open) => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 56px;
+  min-height: 44px;
   padding: 10px 14px;
   border-radius: var(--app-radius);
   border: 1px solid var(--el-border-color-lighter);
@@ -245,7 +245,7 @@ watch(visible, (open) => {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  b { font-size: 0.875rem; font-weight: 700; color: var(--el-text-color-primary); }
+  b { font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); }
   small { font-size: 0.75rem; color: var(--el-text-color-secondary); }
 }
 .frps-hint { font-size: 0.75rem; color: var(--el-text-color-secondary); }

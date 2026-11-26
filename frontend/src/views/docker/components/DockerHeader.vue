@@ -18,8 +18,8 @@
           class="dk-hdr__ib"
           icon="HOutline:ClockIcon"
           :label="active.length ? t('docker.page.tasksActive', { n: active.length }) : t('docker.common.tasks')"
-          :box="44"
-          :size="22"
+          :box="36"
+          :size="18"
           @click="emit('tasks')"
         >
           <span v-if="active.length" class="dk-hdr__dot" />
@@ -53,13 +53,13 @@ const { active } = useDockerTasks()
   background: var(--m-a);
   color: var(--m-aOn, var(--m-ink));
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .dk-hdr :deep(.page-header__actions .dk-hdr__ib) {
   position: relative;
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
   padding: 0;
   border-radius: 14px;
 }

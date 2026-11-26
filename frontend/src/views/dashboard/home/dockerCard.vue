@@ -81,16 +81,16 @@ const ic = (name: string) => menuStore.iconComponents[name]
 .dk__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dk__spacer {
   flex: 1;
 }
 .dk__link {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--m-pInk);
   text-decoration: none;
 }
@@ -99,11 +99,11 @@ const ic = (name: string) => menuStore.iconComponents[name]
 }
 .dk__nums {
   display: flex;
-  gap: 20px;
+  gap: 14px;
 }
 .dk__n {
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
   line-height: 1.1;
   color: var(--el-text-color-primary);
 }
@@ -132,8 +132,8 @@ const ic = (name: string) => menuStore.iconComponents[name]
   gap: 12px;
 }
 .dk__sk {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
 }
 .dk__sk :deep(svg) {
@@ -146,8 +146,8 @@ const ic = (name: string) => menuStore.iconComponents[name]
   flex-direction: column;
   gap: 2px;
   b {
-    font-size: 0.875rem;
-    font-weight: 700;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
   small {
     font-size: 0.75rem;

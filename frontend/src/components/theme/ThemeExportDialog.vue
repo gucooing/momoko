@@ -171,7 +171,7 @@ const doExport = async () => {
   display: flex;
   align-items: center;
   gap: 16px;
-  min-height: 56px;
+  min-height: 48px;
   padding: 8px 0;
   border-top: 1px solid var(--m-line);
   cursor: pointer;
@@ -189,7 +189,7 @@ const doExport = async () => {
   flex-direction: column;
   gap: 2px;
   b {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   small {
     font-size: 0.75rem;
@@ -207,8 +207,7 @@ const doExport = async () => {
 }
 .tex-lbl {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
   color: var(--m-ink2);
 }
 .tex-inp {
@@ -246,14 +245,14 @@ const doExport = async () => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 34px;
+  padding: 0 14px;
   border: 0;
   border-radius: var(--app-radius-btn);
   background: var(--m-s2);
   color: var(--m-ink);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;

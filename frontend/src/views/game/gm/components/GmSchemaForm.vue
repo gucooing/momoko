@@ -44,7 +44,7 @@
           <div v-for="(item, n) in listOf(field.key)" :key="n" class="gsf__item">
             <div class="gsf__item-head">
               <span class="gsf__item-title">{{ itemTitle(field.schema, n) }}</span>
-              <AppIconButton v-if="!disabled" icon="HOutline:TrashIcon" :label="t('gm.form.removeItem')" :box="36" @click="removeItem(field.key, n)" />
+              <AppIconButton v-if="!disabled" icon="HOutline:TrashIcon" :label="t('gm.form.removeItem')" :box="30" @click="removeItem(field.key, n)" />
             </div>
             <GmSchemaForm
               :schema="itemFormSchema(field.schema.items)"
@@ -451,8 +451,8 @@ watch(
   margin: 6px 0 0;
   padding-top: 10px;
   border-top: 1px solid var(--el-border-color-light);
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gsf__field {
   display: flex;
@@ -462,7 +462,7 @@ watch(
 }
 .gsf__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-primary);
 }
 .gsf__req {
@@ -481,11 +481,11 @@ watch(
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   background: var(--el-fill-color-light);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 .gsf__input {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   border: 1px solid var(--el-border-color-light);
@@ -525,7 +525,7 @@ watch(
 }
 .gsf__item-title {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gsf__empty {
   margin: 0;
@@ -540,7 +540,7 @@ watch(
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 40px;
+  min-height: 32px;
   padding: 3px 12px 3px 4px;
   border-radius: var(--app-radius-sm);
   border: 1px solid var(--el-border-color-light);
@@ -569,7 +569,7 @@ watch(
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gsf__select-img + .gsf__select-text {
   padding-left: 0;
@@ -598,7 +598,7 @@ watch(
   background: transparent;
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
@@ -617,8 +617,8 @@ watch(
 .gsf__chosen-name {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gsf__chosen-sub {
   font-size: 12px;
@@ -638,7 +638,7 @@ watch(
   border-radius: 999px;
   background: var(--el-fill-color-light);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gsf__chip-img {
   flex: none;
@@ -654,14 +654,14 @@ watch(
   white-space: nowrap;
 }
 .gsf__chip-add {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 12px;
   border: 1px dashed var(--el-border-color);
   background: transparent;
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .gsf__chip-add:hover {
@@ -675,11 +675,11 @@ watch(
   border-radius: 50%;
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
 }
 .gsf__toggle {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -687,7 +687,7 @@ watch(
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .gsf__toggle.is-on {
@@ -705,7 +705,7 @@ watch(
 }
 .gsf__unit-u {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .gsf__color {
@@ -715,7 +715,7 @@ watch(
 }
 .gsf__color input[type='color'] {
   width: 48px;
-  height: 36px;
+  height: 30px;
   padding: 0;
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-sm);

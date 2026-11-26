@@ -80,7 +80,7 @@ onMounted(() => load(true))
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 18px 20px;
+  padding: 14px 14px;
   border-radius: var(--app-radius-lg);
   border: var(--cmp-card-border-width, 1px) solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -94,8 +94,8 @@ onMounted(() => load(true))
 .hl__head h2 {
   flex: 1 1 auto;
   margin: 0;
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 .hl__chips {
   display: flex;
@@ -109,14 +109,14 @@ onMounted(() => load(true))
 }
 .hl__chip {
   flex: none;
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .hl__chip.is-on {
@@ -127,7 +127,7 @@ onMounted(() => load(true))
 .hl__empty {
   margin: 0;
   padding: 12px 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .hl__list {
@@ -143,7 +143,7 @@ onMounted(() => load(true))
   min-height: 52px;
   padding: 6px 0;
   border-top: 1px solid var(--el-border-color-light);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .hl__at,
 .hl__by {
@@ -159,7 +159,7 @@ onMounted(() => load(true))
   border-radius: 8px;
   background: var(--el-fill-color-light);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .hl__text {
   min-width: 0;

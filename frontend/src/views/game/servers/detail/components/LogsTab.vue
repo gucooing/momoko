@@ -30,7 +30,7 @@
         <AppSwitch v-model="follow" :aria-label="t('gameServers.logs.follow')" />
         <span>{{ t('gameServers.logs.follow') }}</span>
       </label>
-      <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gameServers.common.refresh')" :box="40" @click="reload" />
+      <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gameServers.common.refresh')" :box="32" @click="reload" />
     </div>
 
     <section class="lg__card">
@@ -152,7 +152,7 @@ onBeforeUnmount(() => clearInterval(timer))
   background: var(--m-warnSoft);
   color: var(--m-warn);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .lg__tools {
   display: flex;
@@ -178,14 +178,14 @@ onBeforeUnmount(() => clearInterval(timer))
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
 }
 .lg__chip.is-on {
@@ -201,7 +201,7 @@ onBeforeUnmount(() => clearInterval(timer))
   width: 130px;
 }
 .lg__level :deep(.app-sel__trigger) {
-  height: 40px;
+  height: 32px;
   border-radius: 999px;
 }
 .lg__search {
@@ -210,7 +210,7 @@ onBeforeUnmount(() => clearInterval(timer))
   gap: 8px;
   flex: 0 1 240px;
   min-width: 160px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -233,7 +233,7 @@ onBeforeUnmount(() => clearInterval(timer))
   gap: 8px;
   min-height: 40px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .lg__card {
@@ -245,9 +245,9 @@ onBeforeUnmount(() => clearInterval(timer))
 }
 .lg__empty {
   margin: 0;
-  padding: 24px 0;
+  padding: 16px 0;
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .lg__list {
@@ -271,7 +271,7 @@ onBeforeUnmount(() => clearInterval(timer))
   color: var(--el-text-color-secondary);
 }
 .lg__lvl {
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   color: var(--el-text-color-secondary);
 }

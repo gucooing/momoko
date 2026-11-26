@@ -110,23 +110,23 @@
               class="is-primary"
               :class="{ 'is-spin': asSite(row).checking }"
               :label="t('iqcheck.siteList.checkNowOf', { name: asSite(row).name })"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               :disabled="asSite(row).checking || !asSite(row).models.length"
               @click="checkNow(asSite(row))"
             />
             <AppIconButton
               icon="HOutline:ArrowDownTrayIcon"
               :label="t('iqcheck.ui.site.fetchModelsOf', { name: asSite(row).name })"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               @click="openForm(asSite(row), true)"
             />
             <AppIconButton
               icon="HOutline:PencilSquareIcon"
               :label="t('iqcheck.siteList.editOf', { name: asSite(row).name })"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               @click="openForm(asSite(row))"
             />
           </template>
@@ -174,8 +174,8 @@
             class="is-primary"
             :class="{ 'is-spin': s.checking }"
             :label="t('iqcheck.siteList.checkNowOf', { name: s.name })"
-            :box="44"
-            :size="20"
+            :box="36"
+            :size="17"
             :disabled="s.checking || !s.models.length"
             @click="checkNow(s)"
           />
@@ -298,8 +298,8 @@
               class="is-primary"
               :class="{ 'is-spin': s.checking }"
               :label="t('iqcheck.siteList.checkNowOf', { name: s.name })"
-              :box="44"
-              :size="20"
+              :box="36"
+              :size="17"
               :disabled="s.checking || !s.models.length"
               @click="checkNow(s)"
             />
@@ -307,8 +307,8 @@
               v-if="canEdit"
               icon="HOutline:ArrowDownTrayIcon"
               :label="t('iqcheck.ui.site.fetchModelsOf', { name: s.name })"
-              :box="44"
-              :size="20"
+              :box="36"
+              :size="17"
               @click="openForm(s, true)"
             />
             <a
@@ -325,8 +325,8 @@
               v-if="canEdit"
               icon="HOutline:PencilSquareIcon"
               :label="t('iqcheck.siteList.editOf', { name: s.name })"
-              :box="44"
-              :size="20"
+              :box="36"
+              :size="17"
               @click="openForm(s)"
             />
             <ActionMenu :items="moreActions" :label="t('iqcheck.siteList.moreOf', { name: s.name })" @select="(key) => onRowAction(key, s)" />
@@ -355,8 +355,8 @@
               v-if="canEdit"
               icon="HOutline:PencilSquareIcon"
               :label="t('iqcheck.siteList.editOf', { name: s.name })"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               @click="openForm(s)"
             />
             <ActionMenu :items="moreActions" :label="t('iqcheck.siteList.moreOf', { name: s.name })" @select="(key) => onRowAction(key, s)" />
@@ -375,7 +375,7 @@
 
     <!-- 手机：悬浮新建 -->
     <div v-if="menuStore.isMobile && canEdit" class="iq-fab">
-      <UButton color="primary" size="xl" icon="i-lucide-plus" class="iq-fab__btn" @click="openForm()">
+      <UButton color="primary" size="lg" icon="i-lucide-plus" class="iq-fab__btn" @click="openForm()">
         {{ t('iqcheck.site.create') }}
       </UButton>
     </div>
@@ -715,14 +715,14 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
 .iq-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .iq-page__ok {
   color: var(--m-ok);
-  font-weight: 700;
+  font-weight: 600;
 }
 .iq-strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 .iq-ellipsis {
   overflow: hidden;
@@ -757,7 +757,7 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   align-items: center;
   justify-content: center;
   min-width: 40px;
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 10px;
   border: 0;
   border-radius: var(--app-radius-pill);
@@ -787,7 +787,7 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   color: var(--m-ink);
   font-family: var(--app-font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .iq-proto.is-sm {
@@ -805,7 +805,7 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 .iq-models {
@@ -828,7 +828,7 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .iq-mdl .m-mono {
@@ -846,7 +846,7 @@ onBeforeUnmount(() => window.clearTimeout(pollTimer))
   padding: 0 7px;
   border-radius: 7px;
   font-size: 0.6875rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.02em;
   flex: none;
 }
@@ -871,7 +871,7 @@ html.dark .iq-eff.is-medium {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .iq-cell-ep {
@@ -889,8 +889,8 @@ html.dark .iq-eff.is-medium {
 }
 .iq-cell-score {
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 .iq-link {
   color: var(--m-pInk);
@@ -941,7 +941,7 @@ html.dark .iq-eff.is-medium {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 68px;
+  min-height: 54px;
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .iq-row:last-child {
@@ -951,8 +951,8 @@ html.dark .iq-eff.is-medium {
   flex: none;
   width: 48px;
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
 }
 .iq-row__main {
   flex: 1;
@@ -983,8 +983,8 @@ html.dark .iq-eff.is-medium {
 }
 .iq-row__name b {
   min-width: 0;
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1028,10 +1028,10 @@ html.dark .iq-eff.is-medium {
   min-width: 0;
 }
 .iq-card__av {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 16px;
-  font-size: 1.25rem;
+  font-size: 1rem;
   flex: none;
 }
 .iq-card__title {
@@ -1050,8 +1050,8 @@ html.dark .iq-eff.is-medium {
 .iq-card__name {
   min-width: 0;
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1066,7 +1066,7 @@ html.dark .iq-eff.is-medium {
 }
 .iq-card__label {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .iq-card__score {
@@ -1090,13 +1090,13 @@ html.dark .iq-eff.is-medium {
 }
 .iq-card__score-val .m-num {
   font-family: var(--app-font-display);
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
   line-height: 1;
 }
 .iq-card__unit {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .iq-card__score-note {
@@ -1144,13 +1144,13 @@ html.dark .iq-eff.is-medium {
 }
 .iq-card__info dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .iq-card__info dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1181,7 +1181,7 @@ html.dark .iq-eff.is-medium {
   flex: none;
 }
 .iq-card__public-l {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
 }
@@ -1201,10 +1201,10 @@ html.dark .iq-eff.is-medium {
   border-top: 1px solid var(--el-border-color-lighter);
 }
 .iq-card__btn {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   border-radius: var(--app-radius-pill);
-  font-weight: 700;
+  font-weight: 500;
 }
 .iq-card__spacer {
   flex: 1;
@@ -1221,8 +1221,8 @@ html.dark .iq-eff.is-medium {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
   color: var(--el-text-color-secondary);
   text-decoration: none;
@@ -1259,10 +1259,10 @@ html.dark .iq-eff.is-medium {
 }
 .iq-fab__btn {
   pointer-events: auto;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border-radius: var(--app-radius-pill);
-  font-weight: 700;
+  font-weight: 500;
   box-shadow: var(--app-shadow-brand);
 }
 
@@ -1282,8 +1282,8 @@ html.dark .iq-eff.is-medium {
     padding-right: 4px;
   }
   .iq-card__av {
-    width: 46px;
-    height: 46px;
+    width: 36px;
+    height: 36px;
     border-radius: 15px;
   }
   .iq-card__ep {
@@ -1299,7 +1299,7 @@ html.dark .iq-eff.is-medium {
     min-width: 0;
   }
   .iq-card__score-val .m-num {
-    font-size: 1.875rem;
+    font-size: 1.375rem;
   }
   .iq-card__score-note {
     font-size: 0.75rem;
@@ -1323,8 +1323,8 @@ html.dark .iq-eff.is-medium {
     padding-top: 6px;
   }
   .iq-card__foot :deep(.action-menu__trigger) {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 14px;
   }
   .iq-seg__btn {

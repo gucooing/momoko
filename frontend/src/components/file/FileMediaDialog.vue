@@ -318,7 +318,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 36px;
+  height: 30px;
   padding: 0 13px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
@@ -395,7 +395,7 @@ onBeforeUnmount(() => {
   inset: 60px 0 0;
   display: flex;
   overflow: auto;
-  padding: 12px 24px 24px;
+  padding: 12px 16px 16px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }

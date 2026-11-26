@@ -13,7 +13,7 @@
               <h2 class="crd__title">{{ t('gmConfig.revisions.title') }}</h2>
               <span class="crd__sub">{{ t('gmConfig.revisions.sub', { name: state.info.value?.title || state.domain, n: total }) }}</span>
             </span>
-            <AppIconButton icon="HOutline:XMarkIcon" :label="t('gmConfig.common.close')" :box="40" @click="close" />
+            <AppIconButton icon="HOutline:XMarkIcon" :label="t('gmConfig.common.close')" :box="32" @click="close" />
           </header>
 
           <div v-if="loading && !items.length" class="crd__hint">{{ t('gmConfig.common.loading') }}</div>
@@ -36,7 +36,7 @@
                 <AppIconButton
                   icon="HOutline:EyeIcon"
                   :label="t('gmConfig.revisions.compare')"
-                  :box="40"
+                  :box="32"
                   :active="openId === r.id"
                   @click="toggle(r)"
                 />
@@ -214,7 +214,7 @@ const restore = (r: GmConfigRevision) => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 24px;
+  padding: 16px;
   background: var(--el-bg-color);
   border-left: 1px solid var(--el-border-color-light);
   box-shadow: var(--app-shadow-lg);
@@ -232,7 +232,7 @@ const restore = (r: GmConfigRevision) => {
   max-height: 86%;
   padding: 10px 16px calc(28px + env(safe-area-inset-bottom, 0px));
   border-left: none;
-  border-radius: 30px 30px 0 0;
+  border-radius: 20px 20px 0 0;
 }
 .crd__handle {
   align-self: center;
@@ -249,13 +249,13 @@ const restore = (r: GmConfigRevision) => {
 }
 .crd__icon {
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  font-size: 20px;
+  font-size: 16px;
 }
 .crd__titles {
   flex: 1;
@@ -266,8 +266,8 @@ const restore = (r: GmConfigRevision) => {
 .crd__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
 }
 .crd__sub {
   font-size: 13px;
@@ -303,7 +303,7 @@ const restore = (r: GmConfigRevision) => {
   border-radius: 10px;
   background: var(--m-pSoft);
   color: var(--m-pInk);
-  font-weight: 800;
+  font-weight: 600;
   text-align: center;
   font-size: 13px;
 }
@@ -318,8 +318,8 @@ const restore = (r: GmConfigRevision) => {
   flex-direction: column;
 }
 .crd__comment {
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

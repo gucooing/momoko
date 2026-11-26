@@ -8,7 +8,7 @@
       </div>
       <div class="mg__body">
         <div class="mg__head">
-          <span class="mg__mark"><GameMark :game="g.game" :name="g.name" :size="compact ? 40 : 46" /></span>
+          <span class="mg__mark"><GameMark :game="g.game" :name="g.name" :size="compact ? 32 : 36" /></span>
           <span class="mg__title">
             <span class="mg__name">{{ g.name }}</span>
             <span class="pp-hint">{{ t('home.games.accounts', { n: g.links.length }) }}</span>
@@ -16,7 +16,7 @@
         </div>
         <div class="mg__rows">
           <RouterLink v-for="l in g.links" :key="l.id" :to="`/games/${l.server?.id}`" class="mg__row">
-            <LinkAvatar :game="l.game" :asset="l.avatarAsset" :name="l.nickname" :size="40" />
+            <LinkAvatar :game="l.game" :asset="l.avatarAsset" :name="l.nickname" :size="32" />
             <span class="mg__who">
               <span class="mg__server">
                 {{ l.server?.name }}
@@ -144,7 +144,7 @@ watch(
 .mg {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
-  gap: 18px;
+  gap: 14px;
 }
 .mg__card {
   overflow: hidden;
@@ -177,7 +177,7 @@ watch(
   border: 10px solid var(--m-g2Soft, var(--m-a2Soft));
 }
 .mg__body {
-  padding: 0 18px 16px;
+  padding: 0 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -186,13 +186,13 @@ watch(
   display: flex;
   align-items: flex-end;
   gap: 12px;
-  margin-top: -24px;
+  margin-top: -16px;
   position: relative;
 }
 .mg__mark {
   display: inline-flex;
   padding: 6px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-s);
   border: 1px solid var(--m-line);
   transform: rotate(-4deg);
@@ -204,8 +204,8 @@ watch(
   min-width: 0;
 }
 .mg__name {
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .mg__rows > * + * {
   border-top: 1px solid var(--m-line);
@@ -217,7 +217,7 @@ watch(
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 60px;
+  min-height: 50px;
   padding: 0 4px;
   color: var(--m-ink);
   text-decoration: none;
@@ -236,8 +236,8 @@ watch(
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .mg__line {
   overflow: hidden;
@@ -262,7 +262,7 @@ watch(
   justify-content: center;
   gap: 12px;
   min-height: 220px;
-  padding: 24px;
+  padding: 16px;
   border-radius: var(--app-radius-xl, 24px);
   border: 2px dashed var(--m-line);
   color: var(--m-ink);
@@ -273,9 +273,9 @@ watch(
   border-color: var(--m-p);
 }
 .mg__add-ico {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background: var(--m-a2Soft);
   transform: rotate(-4deg);
 }
@@ -284,8 +284,8 @@ watch(
   height: 26px;
 }
 .mg__add-title {
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .mg__add-hint {
   max-width: 260px;
@@ -304,9 +304,17 @@ watch(
   padding: 14px 16px;
 }
 .mg--compact .mg__add-ico {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+.mg--compact .mg__add-title {
+  flex: none;
+  white-space: nowrap;
+}
+.mg--compact .mg__add-hint {
+  min-width: 0;
+  text-align: left;
 }
 @media (max-width: 768px) {
   .mg {

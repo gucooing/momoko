@@ -194,8 +194,8 @@ const onMore = (key: string) => {
   padding-right: 4px;
 }
 .inst-card__av {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   border-radius: 15px;
   font-size: 1.2rem;
   flex: none;
@@ -208,8 +208,8 @@ const onMore = (key: string) => {
   gap: 2px;
 }
 .inst-card__name {
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   text-decoration: none;
   overflow: hidden;
@@ -243,7 +243,7 @@ const onMore = (key: string) => {
   background: var(--m-a2Soft);
   color: var(--m-ink);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 /* 勾选框本身 20px，外面一圈透明点击区（PC 40 / 手机 44），负边距不占布局 */
 .inst-card__hit {
@@ -273,7 +273,7 @@ const onMore = (key: string) => {
 }
 .inst-card__remark {
   padding-right: 4px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--el-text-color-primary);
   overflow: hidden;
@@ -300,13 +300,13 @@ const onMore = (key: string) => {
 }
 .inst-card__info dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .inst-card__info dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -360,15 +360,15 @@ const onMore = (key: string) => {
   color: var(--m-ok);
 }
 .inst-card__foot :deep(.action-menu__trigger) {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 14px;
 }
 @media (width < 768px) {
   .inst-card__foot :deep(.app-icon-btn),
   .inst-card__foot :deep(.action-menu__trigger) {
-    width: 44px !important;
-    height: 44px !important;
+    width: 40px !important;
+    height: 40px !important;
   }
 }
 </style>

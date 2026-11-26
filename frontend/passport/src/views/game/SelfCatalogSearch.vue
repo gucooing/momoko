@@ -98,7 +98,7 @@ watch(
 .scs__name {
   width: 100%;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;

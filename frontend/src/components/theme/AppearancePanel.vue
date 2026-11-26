@@ -197,25 +197,25 @@ const radii: { key: RadiusMode; label: string }[] = [
 .ap {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   min-width: 0;
 }
 .ap--mobile,
 .ap--drawer {
-  gap: 22px;
+  gap: 16px;
 }
 .ap-card {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 24px;
+  gap: 14px;
+  padding: 16px;
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
 }
 .ap-card--list {
   gap: 0;
-  padding: 12px 24px 16px;
+  padding: 12px 16px 16px;
 }
 .ap-sec {
   display: flex;
@@ -228,15 +228,15 @@ const radii: { key: RadiusMode; label: string }[] = [
   gap: 4px;
   p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: var(--el-text-color-secondary);
   }
 }
 .ap-head__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .ap-head__title--list {
@@ -245,8 +245,7 @@ const radii: { key: RadiusMode; label: string }[] = [
 .ap-h {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 
@@ -289,7 +288,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   gap: 12px;
   min-width: 0;
   padding: 10px;
-  border-radius: 22px;
+  border-radius: 16px;
   border: 2px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
@@ -310,7 +309,7 @@ const radii: { key: RadiusMode; label: string }[] = [
 .ap--drawer .pal-card {
   gap: 8px;
   padding: 8px;
-  border-radius: 20px;
+  border-radius: 14px;
 }
 .pal-card__preview {
   display: flex;
@@ -402,22 +401,21 @@ const radii: { key: RadiusMode; label: string }[] = [
   display: flex;
   flex-direction: column;
   b {
-    font-size: 0.9375rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   small {
     font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-weight: 600;
     color: var(--el-text-color-secondary);
   }
 }
 .ap--mobile .pal-card__name b,
 .ap--drawer .pal-card__name b {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 /* ---- 深浅色卡 ---- */
@@ -435,7 +433,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   gap: 12px;
   min-width: 0;
   padding: 10px;
-  border-radius: 22px;
+  border-radius: 16px;
   border: 2px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
@@ -498,8 +496,8 @@ const radii: { key: RadiusMode; label: string }[] = [
   b {
     flex: 1;
     min-width: 0;
-    font-size: 0.9375rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
 }
 
@@ -513,7 +511,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   flex: none;
 }
 .ap-seg button {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 16px;
   border: none;
   border-radius: 999px;
@@ -521,7 +519,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -538,8 +536,8 @@ const radii: { key: RadiusMode; label: string }[] = [
 }
 .ap-seg--full button {
   flex: 1;
-  min-height: 44px;
-  font-size: 0.875rem;
+  min-height: 34px;
+  font-size: 0.8125rem;
 }
 
 /* ---- 细节 ---- */
@@ -557,13 +555,13 @@ const radii: { key: RadiusMode; label: string }[] = [
   display: flex;
   align-items: center;
   gap: 16px;
-  min-height: 64px;
+  min-height: 52px;
   padding: 8px 0;
   border-top: 1px solid var(--el-border-color-light);
   cursor: pointer;
 }
 .detail-list--boxed .detail-row {
-  min-height: 60px;
+  min-height: 50px;
   padding: 6px 0;
   gap: 14px;
 }
@@ -580,8 +578,8 @@ div.detail-row {
   flex-direction: column;
   gap: 2px;
   b {
-    font-size: 0.9375rem;
-    font-weight: 700;
+    font-size: 0.8125rem;
+    font-weight: 600;
     color: var(--el-text-color-primary);
   }
   small {
@@ -607,7 +605,7 @@ div.detail-row {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .ap--mobile .ap-foot__saved {
@@ -623,7 +621,7 @@ div.detail-row {
 }
 .ap-foot__reset {
   min-height: 44px;
-  padding-inline: 18px;
+  padding-inline: 14px;
   border-radius: 999px;
   font-weight: 600;
 }
@@ -633,10 +631,10 @@ div.detail-row {
     gap: 8px;
   }
   .ap-card {
-    padding: 18px;
+    padding: 14px;
   }
   .ap-card--list {
-    padding: 8px 18px 12px;
+    padding: 8px 14px 12px;
   }
 }
 </style>

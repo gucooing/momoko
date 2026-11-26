@@ -61,7 +61,7 @@ const letter = computed(() => (props.name.trim()[0] || '?').toUpperCase())
 }
 .pa__letter {
   font-family: var(--app-font-display);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1;
 }
 </style>

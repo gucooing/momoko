@@ -55,10 +55,10 @@ onMounted(async () => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 28px 32px 56px;
+  padding: 18px 20px 42px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .page__head {
   display: flex;
@@ -72,14 +72,14 @@ onMounted(async () => {
   gap: 4px;
 }
 .page__title {
-  font-size: 28px;
+  font-size: 22px;
 }
 @media (max-width: 768px) {
   .page {
-    padding: 16px 16px 24px;
+    padding: 16px 16px 16px;
   }
   .page__title {
-    font-size: 22px;
+    font-size: 18px;
   }
 }
 </style>

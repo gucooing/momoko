@@ -47,8 +47,8 @@
         <AppIconButton
           icon="HOutline:CommandLineIcon"
           :label="t('dashboard.home.openConsoleOf', { name: instance.name })"
-          :box="compact ? 44 : 36"
-          :size="compact ? 20 : 16"
+          :box="compact ? 36 : 30"
+          :size="compact ? 17 : 16"
           @click="openConsole(instance)"
         />
         <AdaptiveConfirm
@@ -61,8 +61,8 @@
               class="ri__stop"
               :icon="stopping.has(instance.id) ? 'HOutline:ArrowPathIcon' : 'HOutline:StopIcon'"
               :label="t('dashboard.home.stopOf', { name: instance.name })"
-              :box="compact ? 44 : 36"
-              :size="compact ? 20 : 16"
+              :box="compact ? 36 : 30"
+              :size="compact ? 17 : 16"
               :class="{ 'is-busy': stopping.has(instance.id) }"
             />
           </template>
@@ -164,16 +164,16 @@ onMounted(() => {
 .ri__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .ri__spacer {
   flex: 1;
 }
 .ri__all {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--m-pInk);
   text-decoration: none;
   white-space: nowrap;
@@ -199,10 +199,10 @@ onMounted(() => {
   background: var(--el-fill-color-light);
 }
 .ri__av {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
-  font-size: 1.0625rem;
+  font-size: 0.875rem;
 }
 .ri__text {
   flex: 1;
@@ -211,8 +211,8 @@ onMounted(() => {
   flex-direction: column;
 }
 .ri__name {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -254,7 +254,7 @@ onMounted(() => {
     gap: 4px;
   }
   .ri__title {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
   .ri__row {
     padding: 6px 0;

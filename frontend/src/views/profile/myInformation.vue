@@ -107,7 +107,7 @@ const ipScopeOf = (ip: string) => {
 
 <style scoped lang="scss">
 .pf-btn-sm {
-  min-height: 36px;
+  min-height: 30px;
 }
 .sec :deep(.app-panel__body) {
   padding-top: 8px;
@@ -115,8 +115,8 @@ const ipScopeOf = (ip: string) => {
 }
 .pf-card-title {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 </style>

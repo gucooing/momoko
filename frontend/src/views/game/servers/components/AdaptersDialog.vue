@@ -59,7 +59,7 @@ const modesOf = (a: GameAdapter) => a.modes.map((m) => t(`gameServers.mode.${m}`
 }
 .gad__desc {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .gad__grid {
@@ -71,7 +71,7 @@ const modesOf = (a: GameAdapter) => a.modes.map((m) => t(`gameServers.mode.${m}`
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 18px;
+  padding: 16px 14px;
   border-radius: var(--app-radius-lg);
   border: var(--cmp-card-border-width, 1px) solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -83,8 +83,8 @@ const modesOf = (a: GameAdapter) => a.modes.map((m) => t(`gameServers.mode.${m}`
 }
 .gad-card__logo {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -92,7 +92,7 @@ const modesOf = (a: GameAdapter) => a.modes.map((m) => t(`gameServers.mode.${m}`
   background: var(--m-gSoft, var(--m-pSoft));
   color: var(--m-gInk, var(--m-pInk));
   font-family: var(--app-font-display);
-  font-weight: 800;
+  font-weight: 600;
   transform: rotate(-4deg);
 }
 .gad-card__title {

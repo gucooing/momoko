@@ -153,24 +153,24 @@
             <AppIconButton
               icon="HOutline:ChartBarIcon"
               :label="t('tools.portForward.stats.details')"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               :active="statsVisible && statsRow?.id === row.id"
               @click="openStatsDialog(findRow(String(row.id))!)"
             />
             <AppIconButton
               :icon="toggleIcon(row)"
               :label="toggleLabel(row)"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               :class="row.isEnable ? 'pf-act--stop' : 'pf-act--start'"
               @click="toggleEnable(row, !row.isEnable || isError(row))"
             />
             <AppIconButton
               icon="HOutline:PencilSquareIcon"
               :label="t('tools.portForward.edit')"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               @click="openEditDialog(findRow(String(row.id))!)"
             />
             <ActionMenu :items="rowActions" @select="(key) => onRowAction(key, row)" />
@@ -246,16 +246,16 @@
                 <span class="pf-proto" :class="isUdp(row) ? 'is-udp' : 'is-tcp'">{{ protoLabel(row) }}</span>
                 <span v-if="row.autoStart" class="pf-tag">{{ t('tools.portForward.autoStart') }}</span>
               </span>
-              <AppIconButton icon="HOutline:ChartBarIcon" :label="t('tools.portForward.stats.details')" :box="44" :size="20" @click="openStatsDialog(row)" />
+              <AppIconButton icon="HOutline:ChartBarIcon" :label="t('tools.portForward.stats.details')" :box="36" :size="17" @click="openStatsDialog(row)" />
               <AppIconButton
                 :icon="toggleIcon(row)"
                 :label="toggleLabel(row)"
-                :box="44"
-                :size="20"
+                :box="36"
+                :size="17"
                 :class="row.isEnable ? 'pf-act--stop' : 'pf-act--start'"
                 @click="toggleEnable(row, !row.isEnable || isError(row))"
               />
-              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('tools.portForward.edit')" :box="44" :size="20" @click="openEditDialog(row)" />
+              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('tools.portForward.edit')" :box="36" :size="17" @click="openEditDialog(row)" />
               <ActionMenu :items="rowActions" @select="(key) => onRowAction(key, row)" />
             </footer>
           </article>
@@ -696,15 +696,15 @@ onBeforeUnmount(stopPoll)
 .pf-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .pf-page__body {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.pf-tone-ok { color: var(--m-ok); font-weight: 700; }
-.pf-tone-bad { color: var(--m-bad); font-weight: 700; }
+.pf-tone-ok { color: var(--m-ok); font-weight: 600; }
+.pf-tone-bad { color: var(--m-bad); font-weight: 600; }
 
 /* 导入/导出 菜单 */
 .pf-menu { padding: 6px; }
@@ -713,13 +713,13 @@ onBeforeUnmount(stopPoll)
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 40px;
+  min-height: 32px;
   padding: 8px 12px;
   border: none;
   border-radius: 12px;
   background: transparent;
   color: var(--el-text-color-regular);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -739,7 +739,7 @@ onBeforeUnmount(stopPoll)
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 20px 22px;
+  padding: 14px 16px;
   border-radius: var(--app-radius-xl);
   background: var(--m-p);
   color: var(--m-pOn);
@@ -765,13 +765,13 @@ onBeforeUnmount(stopPoll)
 .pf-hero__label,
 .pf-hero__value,
 .pf-hero__sub { position: relative; }
-.pf-hero__label { font-size: 0.8125rem; font-weight: 700; }
+.pf-hero__label { font-size: 0.8125rem; font-weight: 500; }
 .pf-hero__value {
   font-family: var(--app-font-display);
-  font-size: 2.375rem;
-  font-weight: 800;
+  font-size: 1.625rem;
+  font-weight: 600;
   line-height: 1.05;
-  small { margin-left: 4px; font-size: 1.125rem; }
+  small { margin-left: 4px; font-size: 0.9375rem; }
 }
 .pf-hero__sub { font-size: 0.8125rem; font-weight: 600; }
 .pf-tile {
@@ -789,7 +789,7 @@ onBeforeUnmount(stopPoll)
   align-items: center;
   gap: 8px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .pf-tile__ico {
@@ -801,8 +801,8 @@ onBeforeUnmount(stopPoll)
 }
 .pf-tile__value {
   font-family: var(--app-font-display);
-  font-size: 1.875rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
   line-height: 1.1;
   color: var(--el-text-color-primary);
   white-space: nowrap;
@@ -827,14 +827,14 @@ onBeforeUnmount(stopPoll)
   background: var(--el-fill-color-light);
 }
 .pf-seg__btn {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -846,7 +846,7 @@ onBeforeUnmount(stopPoll)
 
 /* 表格单元 */
 .pf-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.pf-name__main { font-weight: 800; color: var(--el-text-color-primary); }
+.pf-name__main { font-weight: 600; color: var(--el-text-color-primary); }
 .pf-name__sub {
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
@@ -862,7 +862,7 @@ onBeforeUnmount(stopPoll)
   border-radius: 8px;
   font-family: var(--app-font-mono);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .pf-proto.is-tcp { background: var(--m-a2Soft); color: var(--m-ink); }
 .pf-proto.is-udp { background: var(--m-aSoft); color: var(--m-ink); }
@@ -875,7 +875,7 @@ onBeforeUnmount(stopPoll)
   color: var(--el-text-color-regular);
 }
 .pf-route__arrow { width: 14px; height: 14px; flex: none; color: var(--m-p); }
-.pf-route__target { font-weight: 700; color: var(--el-text-color-primary); }
+.pf-route__target { font-weight: 600; color: var(--el-text-color-primary); }
 .pf-status { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
 .pf-status__err {
   max-width: 220px;
@@ -885,7 +885,7 @@ onBeforeUnmount(stopPoll)
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.pf-strong { font-weight: 700; color: var(--el-text-color-primary); }
+.pf-strong { font-weight: 600; color: var(--el-text-color-primary); }
 .pf-rate { display: flex; align-items: center; gap: 10px; }
 .pf-rate__nums {
   display: flex;
@@ -895,7 +895,7 @@ onBeforeUnmount(stopPoll)
   color: var(--el-text-color-regular);
   white-space: nowrap;
 }
-.pf-up, .pf-down { font-style: normal; font-weight: 800; }
+.pf-up, .pf-down { font-style: normal; font-weight: 600; }
 .pf-up { color: var(--m-a2); }
 .pf-down { color: var(--m-pInk); }
 .pf-spark { width: 80px; height: 28px; flex: none; overflow: visible; }
@@ -932,17 +932,17 @@ onBeforeUnmount(stopPoll)
 .pf-card.is-selected { border-color: var(--m-p); box-shadow: 0 0 0 2px var(--m-pSoft); }
 .pf-card__head { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .pf-card__sticker {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   flex: none;
   border-radius: 14px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .pf-card__title { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .pf-card__name {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -974,7 +974,7 @@ onBeforeUnmount(stopPoll)
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  > span:first-child { flex: none; font-weight: 700; color: var(--el-text-color-primary); }
+  > span:first-child { flex: none; font-weight: 600; color: var(--el-text-color-primary); }
   .pf-route__target { font-weight: 500; color: var(--el-text-color-secondary); }
 }
 .pf-card__grid {
@@ -986,8 +986,8 @@ onBeforeUnmount(stopPoll)
   border-radius: 14px;
   background: var(--el-fill-color-light);
   > div { min-width: 0; }
-  dt { font-size: 0.6875rem; font-weight: 700; color: var(--el-text-color-secondary); }
-  dd { margin: 2px 0 0; font-size: 0.8125rem; font-weight: 700; color: var(--el-text-color-primary); line-height: 1.35; }
+  dt { font-size: 0.6875rem; font-weight: 500; color: var(--el-text-color-secondary); }
+  dd { margin: 2px 0 0; font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); line-height: 1.35; }
 }
 .pf-card__spark { display: flex; align-items: flex-end; .pf-spark { width: 100%; height: 36px; } }
 .pf-card__err {
@@ -1045,10 +1045,10 @@ onBeforeUnmount(stopPoll)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
   border: none;
-  border-radius: 20px;
+  border-radius: 14px;
   background: var(--m-p);
   color: var(--m-pOn);
   box-shadow: var(--app-shadow-brand);
@@ -1057,8 +1057,8 @@ onBeforeUnmount(stopPoll)
 }
 .pf-fab__btn:active { transform: scale(0.97); }
 .pf-card__foot :deep(.action-menu__trigger) {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
 }
 .pf-skeleton {
@@ -1079,7 +1079,7 @@ onBeforeUnmount(stopPoll)
   align-items: center;
   gap: 2px;
   max-width: 100%;
-  padding: 6px 6px 6px 18px;
+  padding: 6px 6px 6px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -1088,19 +1088,19 @@ onBeforeUnmount(stopPoll)
   scrollbar-width: none;
 }
 .pf-batch::-webkit-scrollbar { display: none; }
-.pf-batch__count { margin-right: 10px; font-size: 0.875rem; font-weight: 800; white-space: nowrap; }
+.pf-batch__count { margin-right: 10px; font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
 .pf-batch__btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1117,15 +1117,15 @@ onBeforeUnmount(stopPoll)
 @media (width <= 768px) {
   .pf-page { gap: 14px; }
   .pf-overview { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .pf-hero { grid-column: 1 / -1; padding: 18px 20px; }
-  .pf-hero__value { font-size: 2.125rem; }
+  .pf-hero { grid-column: 1 / -1; padding: 14px 14px; }
+  .pf-hero__value { font-size: 1.5rem; }
   .pf-tile { padding: 14px 16px; border-radius: var(--app-radius-lg); }
-  .pf-tile__value { font-size: 1.5rem; }
+  .pf-tile__value { font-size: 1.1875rem; }
   .pf-tile__ico { display: none; }
   .pf-tile--rate { display: none; }
   .pf-seg { width: 100%; }
   .pf-seg__btn { flex: 1; min-height: 38px; }
-  .pf-batch { bottom: calc(78px + env(safe-area-inset-bottom)); padding-left: 14px; }
+  .pf-batch { bottom: calc(12px + env(safe-area-inset-bottom)); padding-left: 14px; }
   .pf-batch__btn { padding: 0 10px; }
   .pf-batch__btn.is-icon { width: 40px; padding: 0; }
 }

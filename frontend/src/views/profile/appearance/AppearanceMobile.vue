@@ -182,7 +182,7 @@ const onMobileMenu = (m: MineRow, key: string) => {
 .amb {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
   min-width: 0;
 }
 .amb-card {
@@ -215,8 +215,8 @@ const onMobileMenu = (m: MineRow, key: string) => {
   gap: 3px;
   b {
     font-family: var(--app-font-display);
-    font-size: 1.125rem;
-    font-weight: 800;
+    font-size: 0.9375rem;
+    font-weight: 600;
   }
   b,
   small {
@@ -238,8 +238,7 @@ const onMobileMenu = (m: MineRow, key: string) => {
 }
 .amb-lbl {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .amb-btn {
@@ -247,14 +246,14 @@ const onMobileMenu = (m: MineRow, key: string) => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 14px;
   border: 0;
   border-radius: var(--app-radius-btn);
   background: var(--m-s2);
   color: var(--m-ink);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -283,8 +282,8 @@ const onMobileMenu = (m: MineRow, key: string) => {
 .amb-h {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 .amb-link {
   display: inline-flex;
@@ -296,8 +295,8 @@ const onMobileMenu = (m: MineRow, key: string) => {
   background: transparent;
   color: var(--m-pInk);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
   svg {
     width: 16px;
@@ -324,7 +323,7 @@ const onMobileMenu = (m: MineRow, key: string) => {
   gap: 8px;
   width: 136px;
   padding: 8px;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 2px solid var(--m-line);
   background: var(--m-s);
   color: var(--m-ink);
@@ -361,7 +360,7 @@ const onMobileMenu = (m: MineRow, key: string) => {
     flex: 1;
     min-width: 0;
     font-size: 0.8125rem;
-    font-weight: 800;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -390,7 +389,7 @@ const onMobileMenu = (m: MineRow, key: string) => {
   background: var(--m-ink);
   color: var(--m-bg);
   font-size: 0.625rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .amb-chk {
   display: flex;
@@ -420,14 +419,14 @@ const onMobileMenu = (m: MineRow, key: string) => {
   background: var(--m-s2);
   button {
     flex: 1;
-    min-height: 40px;
+    min-height: 32px;
     padding: 0 12px;
     border: 0;
     border-radius: 999px;
     background: transparent;
     font: inherit;
     font-size: 0.8125rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--m-ink2);
     cursor: pointer;
     white-space: nowrap;
@@ -441,7 +440,7 @@ const onMobileMenu = (m: MineRow, key: string) => {
 .amb-seg--sm {
   flex: none;
   button {
-    min-height: 34px;
+    min-height: 30px;
   }
 }
 .amb-list {
@@ -451,7 +450,7 @@ const onMobileMenu = (m: MineRow, key: string) => {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 64px;
+  min-height: 52px;
   padding: 8px 0;
   border-top: 1px solid var(--m-line);
   cursor: pointer;
@@ -466,8 +465,8 @@ const onMobileMenu = (m: MineRow, key: string) => {
   flex-direction: column;
   gap: 2px;
   b {
-    font-size: 0.9375rem;
-    font-weight: 700;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
   small {
     font-size: 0.75rem;

@@ -340,7 +340,7 @@ defineExpose({ showDialog })
 .menu-form__radios {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 14px;
   min-height: 32px;
   align-items: center;
 }
@@ -369,7 +369,7 @@ defineExpose({ showDialog })
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 40px;
+  min-height: 32px;
 }
 .menu-form__help {
   font-size: 0.75rem;
@@ -388,8 +388,8 @@ defineExpose({ showDialog })
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   border: 1px solid var(--el-border-color);
   border-radius: var(--app-radius-sm);

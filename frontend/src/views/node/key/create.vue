@@ -222,7 +222,7 @@ defineExpose({ showDialog })
   background: var(--el-bg-color);
   color: var(--el-text-color-regular);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }

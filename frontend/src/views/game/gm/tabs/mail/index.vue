@@ -340,13 +340,13 @@ onBeforeUnmount(stopPoll)
 .gmm__h {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 .gmm__sub {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 .gmm__body {
@@ -372,7 +372,7 @@ onBeforeUnmount(stopPoll)
   flex: 1 1 100%;
 }
 .gmm__loading {
-  padding: 24px;
+  padding: 16px;
   text-align: center;
   font-size: 13px;
   color: var(--el-text-color-secondary);
@@ -400,13 +400,13 @@ onBeforeUnmount(stopPoll)
 }
 .gmm__icon {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 15px;
 }
 .gmm__item-text {
   flex: 1;
@@ -423,8 +423,8 @@ onBeforeUnmount(stopPoll)
 .gmm__item-title {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -475,10 +475,10 @@ onBeforeUnmount(stopPoll)
 }
 @media (width < 768px) {
   .gmm__h {
-    font-size: 24px;
+    font-size: 19px;
   }
   .gmm__item {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

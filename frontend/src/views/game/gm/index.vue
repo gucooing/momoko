@@ -20,7 +20,7 @@
           </template>
         </GameServerPicker>
         <span class="gm__spacer" />
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gm.shell.refresh')" :box="40" @click="ctx.refresh()" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gm.shell.refresh')" :box="32" @click="ctx.refresh()" />
       </div>
 
       <!-- 子导航一行，放不下时横向滑动：不显示滚动条，滚轮在上面就是横滑；切换标签时当前标签滚到看得见的地方 -->
@@ -167,7 +167,7 @@ const subline = computed(() => {
 .gm {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   min-width: 0;
 }
 .gm__head {
@@ -183,7 +183,7 @@ const subline = computed(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 52px;
+  min-height: 40px;
   padding: 6px 14px 6px 6px;
   border-radius: 999px;
   border: 1.5px solid var(--m-gLine, var(--el-border-color-light));
@@ -195,8 +195,8 @@ const subline = computed(() => {
 }
 .gm__switch-avatar {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -204,8 +204,8 @@ const subline = computed(() => {
   background: var(--m-g, var(--m-p));
   color: var(--m-gOn, var(--m-pOn));
   font-family: var(--app-font-display);
-  font-weight: 800;
-  font-size: 18px;
+  font-weight: 600;
+  font-size: 15px;
 }
 .gm__switch-avatar.has-img {
   overflow: hidden;
@@ -223,8 +223,8 @@ const subline = computed(() => {
   min-width: 0;
 }
 .gm__switch-name {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -232,7 +232,7 @@ const subline = computed(() => {
 }
 .gm__switch-sub {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-gInk, var(--el-text-color-secondary));
 }
 .gm__switch-icon {
@@ -260,12 +260,12 @@ const subline = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   color: var(--el-text-color-secondary);
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 13px;
   text-decoration: none;
   white-space: nowrap;
 }

@@ -38,7 +38,7 @@
             @change="setLimit(i, ($event.target as HTMLInputElement).valueAsNumber)"
           />
         </label>
-        <AppIconButton icon="HOutline:XMarkIcon" :label="t('gmConfig.gasha.removeButton', { name: b.id ? labels.button(b.id) : '—' })" :box="40" class="gbt__del" @click="g.buttons.splice(i, 1)" />
+        <AppIconButton icon="HOutline:XMarkIcon" :label="t('gmConfig.gasha.removeButton', { name: b.id ? labels.button(b.id) : '—' })" :box="32" class="gbt__del" @click="g.buttons.splice(i, 1)" />
       </div>
       <UButton class="gmc-btn gbt__add" size="sm" color="neutral" variant="soft" icon="i-lucide-plus" @click="addButton">{{ t('gmConfig.gasha.addButton') }}</UButton>
       <p class="gmc-hint">{{ t('gmConfig.gasha.buttonsHint') }}</p>
@@ -158,7 +158,7 @@ const addButton = () => {
 }
 .gbt__head {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .gbt__row {
@@ -174,12 +174,12 @@ const addButton = () => {
 .gbt__label {
   display: none;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .gbt__add {
   align-self: flex-start;
-  min-height: 40px;
+  min-height: 32px;
 }
 .gbt__step {
   display: flex;
@@ -192,7 +192,7 @@ const addButton = () => {
   font-size: 13px;
 }
 .gbt__step-n {
-  font-weight: 800;
+  font-weight: 600;
 }
 @media (max-width: 720px) {
   .gbt__head {

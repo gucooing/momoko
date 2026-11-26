@@ -4,7 +4,7 @@
     <section v-if="me" class="pp-card profile">
       <div class="profile__main">
         <div class="profile__id">
-          <PAvatar :src="me.avatar" :asset="me.avatarAsset" :name="name" :size="ui.isMobile ? 68 : 96" shape="rounded" tilt />
+          <PAvatar :src="me.avatar" :asset="me.avatarAsset" :name="name" :size="ui.isMobile ? 54 : 76" shape="rounded" tilt />
           <div class="profile__text">
             <h1 class="pp-title profile__name">{{ name }}</h1>
             <span class="profile__sub">{{ subline }}</span>
@@ -273,29 +273,29 @@ onMounted(() => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 28px 32px 56px;
+  padding: 18px 20px 42px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 18px;
 }
 .profile {
-  padding: 26px 28px;
+  padding: 18px 18px;
   display: flex;
   flex-wrap: wrap;
-  gap: 28px;
+  gap: 18px;
 }
 .profile__main {
   flex: 3 1 520px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .profile__id {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 .profile__text {
   flex: 1 1 240px;
@@ -305,11 +305,11 @@ onMounted(() => {
   gap: 6px;
 }
 .profile__name {
-  font-size: 32px;
+  font-size: 24px;
   overflow-wrap: anywhere;
 }
 .profile__sub {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--m-ink2);
 }
 .profile__actions {
@@ -322,7 +322,7 @@ onMounted(() => {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-s2);
 }
 .facts__item {
@@ -333,8 +333,8 @@ onMounted(() => {
 }
 .facts dd {
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -342,8 +342,8 @@ onMounted(() => {
 .security {
   flex: 1 1 280px;
   min-width: 0;
-  padding: 18px;
-  border-radius: 22px;
+  padding: 14px;
+  border-radius: 16px;
   background: var(--m-bg);
   display: flex;
   flex-direction: column;
@@ -356,8 +356,8 @@ onMounted(() => {
 }
 .security__title {
   flex: 1;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .security__row {
   display: flex;
@@ -392,8 +392,8 @@ onMounted(() => {
 .security__act {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
-  font-weight: 700;
+  min-height: 32px;
+  font-weight: 600;
   text-decoration: none;
 }
 .mwarn {
@@ -433,18 +433,18 @@ onMounted(() => {
 }
 .block__title {
   flex: 1;
-  font-size: 24px;
+  font-size: 19px;
 }
 .cols {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 14px;
   align-items: flex-start;
 }
 .panel {
   flex: 1 1 460px;
   min-width: 0;
-  padding: 18px 20px;
+  padding: 14px 14px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -457,7 +457,7 @@ onMounted(() => {
 }
 .panel__title {
   flex: 1;
-  font-size: 18px;
+  font-size: 15px;
 }
 .act {
   display: flex;
@@ -480,11 +480,11 @@ onMounted(() => {
 }
 @media (max-width: 768px) {
   .home {
-    padding: 16px 16px 24px;
-    gap: 22px;
+    padding: 16px 16px 16px;
+    gap: 16px;
   }
   .profile {
-    padding: 18px;
+    padding: 14px;
     gap: 14px;
   }
   .profile__main {
@@ -495,7 +495,7 @@ onMounted(() => {
     flex-wrap: nowrap;
   }
   .profile__name {
-    font-size: 22px;
+    font-size: 18px;
   }
   .profile__sub {
     font-size: 12px;
@@ -504,7 +504,7 @@ onMounted(() => {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .block__title {
-    font-size: 19px;
+    font-size: 16px;
   }
   .panel {
     flex-basis: 100%;

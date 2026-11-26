@@ -73,16 +73,16 @@ const go = (p: number) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  height: 34px;
+  min-width: 30px;
+  height: 30px;
   padding: 0 8px;
   border: 1px solid var(--m-line);
   border-radius: 999px;
   background: var(--m-s);
   color: var(--m-ink);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 .ppg__btn svg {

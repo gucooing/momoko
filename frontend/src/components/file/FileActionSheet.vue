@@ -87,7 +87,7 @@ const pick = (item: ActionMenuItem) => {
 .fas {
   position: fixed;
   inset: 0;
-  /* 高于手机底部导航（2050） */
+  /* 高于手机菜单抽屉（2000） */
   z-index: 2100;
   display: flex;
   flex-direction: column;
@@ -126,8 +126,8 @@ const pick = (item: ActionMenuItem) => {
   min-width: 0;
 }
 .fas__sticker {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   transform: rotate(-4deg);
 }
 .fas__sticker.m-sticker--neutral {
@@ -147,8 +147,8 @@ const pick = (item: ActionMenuItem) => {
 }
 .fas__title {
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -184,7 +184,7 @@ const pick = (item: ActionMenuItem) => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .fas__qa :deep(svg),
@@ -213,7 +213,7 @@ const pick = (item: ActionMenuItem) => {
   border-bottom: 1px solid var(--el-border-color-lighter);
   background: transparent;
   color: var(--el-text-color-primary);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -239,13 +239,13 @@ const pick = (item: ActionMenuItem) => {
   opacity: 0.4;
 }
 .fas__cancel {
-  min-height: 48px;
+  min-height: 36px;
   border: none;
   border-radius: 999px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .fas-enter-active,

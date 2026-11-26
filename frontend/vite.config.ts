@@ -113,8 +113,8 @@ export default defineConfig(({ mode }) => {
         ui: {
           colors: { primary: 'pink', neutral: 'slate' },
           // 按钮圆角跟随主题「按钮形状」（--app-radius-btn，默认全圆角）；app-ui-btn 供主题的组件尺寸（按钮缩放）识别
-          button: { slots: { base: 'app-ui-btn rounded-(--app-radius-btn) font-semibold' } },
-          badge: { slots: { base: 'rounded-full font-semibold' } },
+          button: { slots: { base: 'app-ui-btn rounded-(--app-radius-btn) font-medium' } },
+          badge: { slots: { base: 'rounded-full font-medium' } },
         },
         autoImport: {
           imports: ['vue', 'vue-router', 'pinia', { '@/utils/feedback': ['feedback', 'useFeedback'] }],

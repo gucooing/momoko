@@ -142,7 +142,7 @@
           class="msg-item"
           :class="{ 'is-unread': !m.read, 'is-focus': focusId === m.id }"
         >
-          <AppAvatar v-if="m.kind === 'notice'" :src="m.avatar" :name="m.senderName || m.title" :size="40" />
+          <AppAvatar v-if="m.kind === 'notice'" :src="m.avatar" :name="m.senderName || m.title" :size="32" />
           <span v-else class="m-sticker msg-item__sk" :class="`m-sticker--${kindTone(m)}`" aria-hidden="true">
             <UIcon :name="kindIcon(m)" />
           </span>
@@ -162,12 +162,12 @@
               icon="HOutline:CheckIcon"
               :label="t('user.setRead')"
               :size="17"
-              :box="36"
+              :box="30"
               @click="userProfileStore.markAsRead(m.id)"
             />
             <AdaptiveConfirm :title="t('user.deleteMessageConfirm')" @confirm="doDeleteMessage(m.id)">
               <template #reference>
-                <AppIconButton icon="HOutline:TrashIcon" :label="t('common.delete')" :size="17" :box="36" class="msg-del" />
+                <AppIconButton icon="HOutline:TrashIcon" :label="t('common.delete')" :size="17" :box="30" class="msg-del" />
               </template>
             </AdaptiveConfirm>
           </div>
@@ -290,8 +290,8 @@ defineExpose({ openCenter })
 }
 .pf-side-title {
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .msg-card__head {
@@ -311,7 +311,7 @@ defineExpose({ openCenter })
   background: var(--m-p);
   color: var(--m-pOn);
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -324,7 +324,7 @@ defineExpose({ openCenter })
   color: var(--m-pInk);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .pf-link:hover {
@@ -353,10 +353,10 @@ defineExpose({ openCenter })
   background: var(--el-fill-color-light);
 }
 .msg-mini__sk {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 13px;
-  font-size: 18px;
+  font-size: 15px;
 }
 .msg-mini__text {
   flex: 1;
@@ -366,8 +366,8 @@ defineExpose({ openCenter })
   gap: 2px;
 }
 .msg-mini__title {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -448,15 +448,15 @@ defineExpose({ openCenter })
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: 1px solid var(--el-border-color-light);
   border-radius: 999px;
   background: var(--el-bg-color);
   color: var(--el-text-color-regular);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
 }
 .msg-chip.is-on {
@@ -489,10 +489,10 @@ defineExpose({ openCenter })
   border-color: var(--m-p);
 }
 .msg-item__sk {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
-  font-size: 19px;
+  font-size: 16px;
 }
 .msg-item__body {
   flex: 1;
@@ -508,8 +508,8 @@ defineExpose({ openCenter })
 }
 .msg-item__title {
   min-width: 0;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow-wrap: anywhere;
 }

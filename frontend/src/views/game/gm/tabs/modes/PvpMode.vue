@@ -71,7 +71,7 @@
               <span class="pv__dim">{{ t('gmData.pvp.powerLabel') }}</span>
               <span class="m-num">{{ num(unit?.unitPower ?? selected.power) }}</span>
             </span>
-            <AppIconButton icon="HOutline:ChevronRightIcon" :label="t('gmData.modes.viewPlayer', { name: selected.name })" :box="40" @click="openPlayer(selected.pid)" />
+            <AppIconButton icon="HOutline:ChevronRightIcon" :label="t('gmData.modes.viewPlayer', { name: selected.name })" :box="32" @click="openPlayer(selected.pid)" />
           </div>
         </template>
         <EmptyState v-if="!selected" icon="HOutline:UserGroupIcon" :title="t('gmData.pvp.pickPlayer')" />
@@ -180,7 +180,7 @@ const openPlayer = (pid: string) => {
   gap: 8px;
   flex: 0 1 280px;
   min-width: 180px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -225,7 +225,7 @@ const openPlayer = (pid: string) => {
   gap: 12px;
   align-items: center;
   width: 100%;
-  min-height: 60px;
+  min-height: 50px;
   padding: 0 14px;
   border: 0;
   border-top: 1px solid var(--el-border-color-lighter);
@@ -246,7 +246,7 @@ const openPlayer = (pid: string) => {
   min-height: 40px;
   border-top: 0;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: default;
 }
@@ -258,8 +258,8 @@ const openPlayer = (pid: string) => {
 }
 .pm__no {
   text-align: center;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .pm__no.is-top {
@@ -271,8 +271,8 @@ const openPlayer = (pid: string) => {
   min-width: 0;
 }
 .pm__rate {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .pm__pager {
   display: flex;
@@ -302,8 +302,8 @@ const openPlayer = (pid: string) => {
   gap: 2px;
 }
 .pm__unit-name {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -314,8 +314,8 @@ const openPlayer = (pid: string) => {
   align-items: flex-end;
 }
 .pm__power .m-num {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
 }
 .pm__note {
   margin: 14px 0 0;
@@ -332,7 +332,7 @@ const openPlayer = (pid: string) => {
     flex-wrap: wrap;
   }
   .pm__unit-name {
-    font-size: 17px;
+    font-size: 14px;
   }
 }
 </style>

@@ -6,7 +6,7 @@
 <template>
   <div class="ssh-term">
     <header v-if="!menuStore.isMobile" class="ssh-term__head">
-      <AppIconButton icon="HOutline:ChevronLeftIcon" :label="t('ssh.term.back')" :box="44" @click="goBack" />
+      <AppIconButton icon="HOutline:ChevronLeftIcon" :label="t('ssh.term.back')" :box="36" @click="goBack" />
       <div class="ssh-term__titles">
         <div class="ssh-term__crumb">
           <RouterLink to="/openssh/management">{{ t('ssh.list.title') }}</RouterLink>
@@ -71,7 +71,7 @@
       <template #lead="{ latency, cols, rows }">
         <!-- 手机：返回 + 主机 + 状态（延迟 · 列×行）+ 快捷命令 / 会话切换 -->
         <template v-if="menuStore.isMobile">
-          <AppIconButton icon="HOutline:ChevronLeftIcon" :label="t('ssh.term.back')" :box="44" @click="goBack" />
+          <AppIconButton icon="HOutline:ChevronLeftIcon" :label="t('ssh.term.back')" :box="36" @click="goBack" />
           <span class="ssh-term__mhost">
             <span class="ssh-term__mname m-mono">{{ s.label }}</span>
             <span class="ssh-term__mstatus m-num" :class="`is-${toneOf(s.status)}`">● {{ mobileStatus(s.status, latency, cols, rows) }}</span>
@@ -170,7 +170,7 @@
           </div>
           <AppDropdown align="start" :width="260">
             <template #trigger>
-              <AppIconButton icon="HOutline:PlusIcon" :label="t('ssh.term.newSession')" :box="36" :size="18" />
+              <AppIconButton icon="HOutline:PlusIcon" :label="t('ssh.term.newSession')" :box="30" :size="16" />
             </template>
             <template #default="{ close }">
               <div class="ssh-term__menu">
@@ -357,10 +357,10 @@ onMounted(() => {
 .ssh-term {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   height: 100%;
   min-height: 0;
-  padding: 24px 32px 28px;
+  padding: 16px 20px 18px;
 }
 .ssh-term__head {
   display: flex;
@@ -397,8 +397,8 @@ onMounted(() => {
 .ssh-term__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
 }
@@ -421,7 +421,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  height: 40px;
+  height: 32px;
   padding: 0 4px 0 14px;
   border-radius: 14px;
   color: var(--el-text-color-secondary);
@@ -437,14 +437,14 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
+  height: 32px;
   padding: 0 4px 0 0;
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .ssh-term__tab-x {
@@ -495,8 +495,7 @@ onMounted(() => {
 .ssh-term__menu-label {
   padding: 6px 10px 4px;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .ssh-term__menu-item {
@@ -511,7 +510,7 @@ onMounted(() => {
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -569,8 +568,8 @@ onMounted(() => {
   gap: 1px;
 }
 .ssh-term__mname {
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -578,7 +577,7 @@ onMounted(() => {
 }
 .ssh-term__mstatus {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -597,8 +596,8 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border: 0;
   border-radius: 14px;
   background: transparent;

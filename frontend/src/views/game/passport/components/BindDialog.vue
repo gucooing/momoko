@@ -165,7 +165,7 @@ const submit = async () => {
 }
 .pbind__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .pbind__hint,
 .pbind__note {
@@ -188,7 +188,7 @@ const submit = async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 42px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -246,7 +246,7 @@ const submit = async () => {
   opacity: 0.6;
 }
 .pbind__name {
-  font-weight: 800;
+  font-weight: 600;
 }
 .pbind__sub,
 .pbind__taken {
@@ -255,6 +255,6 @@ const submit = async () => {
 }
 .pbind__taken {
   color: var(--m-warn);
-  font-weight: 700;
+  font-weight: 600;
 }
 </style>

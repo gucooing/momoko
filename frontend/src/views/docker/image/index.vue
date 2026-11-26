@@ -111,14 +111,14 @@
           <template #cell-operation="{ row }">
             <div class="dk-acts">
               <template v-if="canManage">
-                <AppIconButton icon="HOutline:TagIcon" :label="t('docker.image.tagImage')" :box="36" :size="18" @click="onRowAction('tag', row)" />
-                <AppIconButton icon="HOutline:ClockIcon" :label="t('docker.image.history')" :box="36" :size="18" @click="onRowAction('history', row)" />
+                <AppIconButton icon="HOutline:TagIcon" :label="t('docker.image.tagImage')" :box="30" :size="16" @click="onRowAction('tag', row)" />
+                <AppIconButton icon="HOutline:ClockIcon" :label="t('docker.image.history')" :box="30" :size="16" @click="onRowAction('history', row)" />
                 <AppIconButton
                   class="is-bad"
                   icon="HOutline:TrashIcon"
                   :label="Number(row.containers) ? t('docker.image.inUseNoDelete') : t('docker.common.delete')"
-                  :box="36"
-                  :size="18"
+                  :box="30"
+                  :size="16"
                   :disabled="!!Number(row.containers)"
                   @click="onRowAction('delete', row)"
                 />
@@ -156,18 +156,18 @@
                   <span v-for="tag in tagNamesOf(row)" :key="tag" class="dk-tag" :class="{ 'dk-tag--none': row.dangling }">{{ tag }}</span>
                 </div>
                 <template v-if="canManage">
-                  <AppIconButton icon="HOutline:TagIcon" :label="`${t('docker.image.tagImage')} ${labelOf(row)}`" :box="44" @click="onRowAction('tag', row)" />
-                  <AppIconButton icon="HOutline:ClockIcon" :label="`${t('docker.image.history')} ${labelOf(row)}`" :box="44" @click="onRowAction('history', row)" />
+                  <AppIconButton icon="HOutline:TagIcon" :label="`${t('docker.image.tagImage')} ${labelOf(row)}`" :box="36" @click="onRowAction('tag', row)" />
+                  <AppIconButton icon="HOutline:ClockIcon" :label="`${t('docker.image.history')} ${labelOf(row)}`" :box="36" @click="onRowAction('history', row)" />
                   <AppIconButton
                     class="is-bad"
                     icon="HOutline:TrashIcon"
                     :label="Number(row.containers) ? t('docker.image.inUseNoDelete') : `${t('docker.common.delete')} ${labelOf(row)}`"
-                    :box="44"
+                    :box="36"
                     :disabled="!!Number(row.containers)"
                     @click="onRowAction('delete', row)"
                   />
                 </template>
-                <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('docker.imgx.moreOf', { name: labelOf(row) })" :box="44" @click="openSheet(row)" />
+                <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('docker.imgx.moreOf', { name: labelOf(row) })" :box="36" @click="openSheet(row)" />
               </footer>
             </article>
           </div>
@@ -849,7 +849,7 @@ onMounted(() => { void init() })
 
 .dk-em {
   color: var(--el-text-color-primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 .dk-em--warn {
   color: var(--m-warn);
@@ -869,8 +869,8 @@ onMounted(() => { void init() })
   min-width: 0;
 }
 .dk-repo__name {
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -934,14 +934,14 @@ onMounted(() => { void init() })
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 10px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--m-pInk);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .dk-linkbtn:disabled {
@@ -966,7 +966,7 @@ onMounted(() => { void init() })
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .dk-tagbtn :deep(svg) {
@@ -1053,8 +1053,8 @@ onMounted(() => { void init() })
 }
 .im-drop__sticker {
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
 }
 .im-drop__sticker :deep(.iconify),
@@ -1070,7 +1070,7 @@ onMounted(() => { void init() })
   gap: 2px;
 }
 .im-drop__text strong {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;

@@ -119,7 +119,7 @@ const pick = (item: ActionMenuItem) => {
   overflow-y: auto;
   scrollbar-width: none;
   padding: 10px 16px calc(20px + env(safe-area-inset-bottom));
-  border-radius: 30px 30px 0 0;
+  border-radius: 20px 20px 0 0;
   background: var(--el-bg-color);
   box-shadow: var(--app-shadow-lg);
 }
@@ -141,8 +141,8 @@ const pick = (item: ActionMenuItem) => {
 }
 .das__sticker {
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 16px;
   transform: rotate(-4deg);
 }
@@ -160,8 +160,8 @@ const pick = (item: ActionMenuItem) => {
 }
 .das__title {
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -187,11 +187,11 @@ const pick = (item: ActionMenuItem) => {
   min-height: 76px;
   padding: 8px 4px;
   border: none;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
   cursor: pointer;
 }
@@ -220,8 +220,8 @@ const pick = (item: ActionMenuItem) => {
   border-top: 1px solid var(--el-border-color-lighter);
   background: transparent;
   color: var(--el-text-color-primary);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
@@ -241,13 +241,13 @@ const pick = (item: ActionMenuItem) => {
   color: var(--m-bad);
 }
 .das__cancel {
-  min-height: 52px;
+  min-height: 40px;
   border: none;
   border-radius: 999px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .das-enter-active,

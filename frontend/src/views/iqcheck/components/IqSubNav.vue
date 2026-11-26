@@ -73,12 +73,12 @@ onMounted(async () => {
   justify-content: center;
   gap: 6px;
   min-width: 0;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 12px;
   border-radius: var(--app-radius-pill);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
   transition:

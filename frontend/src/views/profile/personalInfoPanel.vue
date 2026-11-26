@@ -174,19 +174,19 @@ void props
 }
 .pi-head__title {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pi-head__desc {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .pi-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 18px;
+  gap: 16px 14px;
 }
 .pi-grid__wide {
   grid-column: 1 / -1;
@@ -223,10 +223,10 @@ void props
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 14px;
 }
 .pi-foot > :deep(button) {
-  min-height: 40px;
+  min-height: 32px;
 }
 .pi-foot__state {
   flex: 1;
@@ -251,7 +251,7 @@ void props
   .pi-foot :deep(button) {
     flex: 1;
     justify-content: center;
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

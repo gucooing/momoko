@@ -312,13 +312,13 @@ const afterRun = () => void load()
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  padding: 14px 18px;
+  padding: 14px 14px;
   border-radius: var(--app-radius-xl);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
 }
 .gro__step.is-active {
-  padding-block: 16px 18px;
+  padding-block: 16px 14px;
   border-color: var(--m-p);
   box-shadow: 0 0 0 3px var(--m-pSoft);
 }
@@ -343,7 +343,7 @@ const afterRun = () => void load()
   background: var(--el-fill-color);
   color: var(--el-text-color-secondary);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gro__step.is-active .gro__no {
   background: var(--m-ink);
@@ -355,16 +355,16 @@ const afterRun = () => void load()
 }
 .gro__h {
   margin: 0;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gro__sum {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gro__dim {
   font-size: 12px;
@@ -374,7 +374,7 @@ const afterRun = () => void load()
   padding: 14px 4px;
 }
 .gro__strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 .gro__error {
   font-size: 13px;
@@ -387,7 +387,7 @@ const afterRun = () => void load()
   color: var(--m-pInk);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -405,7 +405,7 @@ const afterRun = () => void load()
 }
 .gro__group-name {
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .gro__ops {
@@ -425,7 +425,7 @@ const afterRun = () => void load()
   color: var(--el-text-color-primary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .gro__op:hover {
@@ -456,7 +456,7 @@ const afterRun = () => void load()
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 2px 0 0 66px;
+  margin: 2px 0 0 50px;
 }
 .gro__legend-item {
   display: inline-flex;
@@ -483,7 +483,7 @@ const afterRun = () => void load()
 .gro__row--head {
   min-height: 36px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: default;
 }

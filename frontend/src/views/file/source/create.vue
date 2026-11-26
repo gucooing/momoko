@@ -393,8 +393,7 @@ defineExpose({ showDialog })
 }
 .sf-lbl {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .sf-hint {
@@ -415,7 +414,7 @@ defineExpose({ showDialog })
   min-height: 64px;
   padding: 10px;
   border: 2px solid var(--el-border-color-lighter);
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   text-align: left;
@@ -436,8 +435,8 @@ defineExpose({ showDialog })
 }
 .sf-type__sticker {
   flex: none;
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 13px;
 }
 .sf-type__sticker :deep(svg),
@@ -451,8 +450,8 @@ defineExpose({ showDialog })
   min-width: 0;
 }
 .sf-type__name {
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .sf-type__desc {
   font-size: 0.6875rem;
@@ -470,7 +469,7 @@ defineExpose({ showDialog })
 }
 .sf-field__label {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .sf-field__label.is-required::after {
   content: ' *';
@@ -503,7 +502,7 @@ defineExpose({ showDialog })
 .sf-fld input {
   flex: 1;
   min-width: 0;
-  height: 44px;
+  height: 34px;
   border: 0;
   outline: none;
   background: transparent;
@@ -533,13 +532,13 @@ defineExpose({ showDialog })
 .sf-opts {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 18px;
+  gap: 8px 14px;
 }
 .sf-opt {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   font-size: 0.8125rem;
   color: var(--el-text-color-regular);
   cursor: pointer;
@@ -553,7 +552,7 @@ defineExpose({ showDialog })
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 56px;
+  min-height: 48px;
   padding: 6px 0;
   border-top: 1px solid var(--el-border-color-lighter);
 }
@@ -565,8 +564,8 @@ defineExpose({ showDialog })
   gap: 2px;
 }
 .sf-row__title {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .sf-row.is-off .sf-row__title {
   color: var(--el-text-color-secondary);
@@ -613,9 +612,9 @@ defineExpose({ showDialog })
 .sf-actions__btn {
   flex: 1;
   justify-content: center;
-  min-height: 44px;
+  min-height: 34px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 @media (width <= 768px) {

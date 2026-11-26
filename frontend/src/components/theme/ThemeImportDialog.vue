@@ -309,8 +309,8 @@ const previewAll = () => {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 12px;
   background: var(--m-p);
   color: var(--m-pOn);
@@ -326,14 +326,14 @@ const previewAll = () => {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 32px 16px;
-  border-radius: 20px;
+  padding: 20px 16px;
+  border-radius: 14px;
   border: 1.5px dashed var(--m-p);
   background: var(--m-pSoft);
   text-align: center;
   cursor: pointer;
   b {
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
   }
   small {
     font-size: 0.8125rem;
@@ -373,7 +373,7 @@ const previewAll = () => {
 }
 .tim-pv {
   height: 230px;
-  border-radius: 18px;
+  border-radius: 14px;
   &.is-short {
     height: 200px;
   }
@@ -408,7 +408,7 @@ const previewAll = () => {
     color: rgba(255, 255, 255, 0.78);
     font: inherit;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
   }
@@ -464,8 +464,8 @@ const previewAll = () => {
   gap: 4px 10px;
   b {
     font-family: var(--app-font-display);
-    font-size: 1.125rem;
-    font-weight: 800;
+    font-size: 0.9375rem;
+    font-weight: 600;
   }
   small {
     font-size: 0.75rem;
@@ -544,7 +544,7 @@ const previewAll = () => {
     background: transparent;
     font: inherit;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--m-ink2);
     cursor: pointer;
   }
@@ -563,14 +563,14 @@ const previewAll = () => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 34px;
+  padding: 0 14px;
   border: 0;
   border-radius: var(--app-radius-btn);
   background: var(--m-s2);
   color: var(--m-ink);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -588,7 +588,7 @@ const previewAll = () => {
   }
 }
 .tim-btn--sm {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   font-size: 0.8125rem;
 }

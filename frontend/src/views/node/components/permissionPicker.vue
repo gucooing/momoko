@@ -103,14 +103,14 @@ const clear = () => emitOrdered(new Set())
   color: var(--el-text-color-secondary);
 }
 .perm-picker__link {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 10px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--m-pInk);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .perm-picker__link:hover {
@@ -147,14 +147,14 @@ const clear = () => emitOrdered(new Set())
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 6px;
   border: none;
   border-radius: 10px;
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .perm-group__box {
@@ -219,7 +219,7 @@ const clear = () => emitOrdered(new Set())
 @media (width <= 640px) {
   .perm-picker__link,
   .perm-group__toggle {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

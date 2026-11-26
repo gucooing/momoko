@@ -26,7 +26,7 @@
               {{ p.toUpperCase() }}
             </button>
           </div>
-          <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removePort')" :box="36" :size="17" @click="remove(i)" />
+          <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removePort')" :box="30" :size="17" @click="remove(i)" />
         </div>
         <span v-if="conflictOf(row)" class="spec-err">
           <UIcon name="i-lucide-triangle-alert" />{{ t('docker.wizard.portTaken', { port: row.hostPort, owner: conflictOf(row) }) }}
@@ -58,7 +58,7 @@
               {{ p.toUpperCase() }}
             </button>
           </div>
-          <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removePort')" :box="44" @click="remove(i)" />
+          <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removePort')" :box="36" @click="remove(i)" />
         </div>
       </div>
       <button type="button" class="spec-add" @click="add"><UIcon name="i-lucide-plus" />{{ t('docker.wizard.addPortLong') }}</button>

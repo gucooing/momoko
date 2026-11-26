@@ -371,7 +371,7 @@ defineExpose({ showDialog })
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
   strong {
     font-size: 0.8125rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--el-text-color-primary);
     font-variant-numeric: tabular-nums;
   }
@@ -401,7 +401,7 @@ defineExpose({ showDialog })
 .block--adv { background: var(--el-bg-color); }
 .block__title {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   letter-spacing: 0.02em;
 }
@@ -414,8 +414,8 @@ defineExpose({ showDialog })
 }
 .port-row__prefix {
   font-family: 'Cascadia Code', Consolas, monospace;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-placeholder);
 }
 .port-row__input {
@@ -432,7 +432,7 @@ defineExpose({ showDialog })
 .route-local__port { flex: 0 0 110px; }
 .route-local__colon {
   padding-bottom: 8px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-placeholder);
 }
 .mono {

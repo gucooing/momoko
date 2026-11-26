@@ -79,16 +79,16 @@
             v-if="canEdit"
             icon="HOutline:PencilSquareIcon"
             :label="t('iqcheck.promptList.editOf', { name: p.title })"
-            :box="menuStore.isMobile ? 44 : 36"
-            :size="18"
+            :box="menuStore.isMobile ? 36 : 30"
+            :size="16"
             @click="openForm(p)"
           />
           <AppIconButton
             v-if="!menuStore.isMobile"
             icon="HOutline:DocumentDuplicateIcon"
             :label="t('iqcheck.promptList.copyOf', { name: p.title })"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             @click="copyContent(p)"
           />
           <ActionMenu
@@ -111,7 +111,7 @@
 
     <!-- 手机：悬浮新建 -->
     <div v-if="menuStore.isMobile && canEdit" class="iq-fab">
-      <UButton color="primary" size="xl" icon="i-lucide-plus" class="iq-fab__btn" @click="openForm()">
+      <UButton color="primary" size="lg" icon="i-lucide-plus" class="iq-fab__btn" @click="openForm()">
         {{ t('iqcheck.prompt.create') }}
       </UButton>
     </div>
@@ -266,13 +266,13 @@ onMounted(loadPrompts)
 .iq-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .iq-prompt__hint {
   order: -1;
   flex: 1 1 320px;
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--el-text-color-secondary);
 }
@@ -305,8 +305,8 @@ onMounted(loadPrompts)
   min-width: 0;
 }
 .iq-prompt__av {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
   flex: none;
 }
@@ -323,8 +323,8 @@ onMounted(loadPrompts)
 }
 .iq-prompt__name {
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -339,9 +339,9 @@ onMounted(loadPrompts)
   align-items: center;
   gap: 10px;
   flex: none;
-  min-height: 44px;
+  min-height: 34px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: pointer;
 }
@@ -404,10 +404,10 @@ onMounted(loadPrompts)
 }
 .iq-fab__btn {
   pointer-events: auto;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border-radius: var(--app-radius-pill);
-  font-weight: 700;
+  font-weight: 500;
   box-shadow: var(--app-shadow-brand);
 }
 
@@ -428,11 +428,11 @@ onMounted(loadPrompts)
     padding-right: 4px;
   }
   .iq-prompt__av {
-    width: 42px;
-    height: 42px;
+    width: 34px;
+    height: 34px;
   }
   .iq-prompt__name {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
   .iq-prompt__meta {
     font-size: 0.75rem;
@@ -451,8 +451,8 @@ onMounted(loadPrompts)
     border-top: 1px solid var(--el-border-color-lighter);
   }
   .iq-prompt__foot :deep(.action-menu__trigger) {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 14px;
   }
 }

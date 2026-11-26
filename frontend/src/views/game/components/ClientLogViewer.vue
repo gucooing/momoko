@@ -432,7 +432,7 @@ watch(
   color: var(--el-text-color-secondary);
 }
 .clv__state {
-  padding: 24px 0;
+  padding: 16px 0;
   text-align: center;
   font-size: 13px;
   color: var(--el-text-color-secondary);

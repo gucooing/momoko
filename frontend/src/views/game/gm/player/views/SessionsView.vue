@@ -51,7 +51,7 @@
             v-if="x.live && canKick"
             icon="HOutline:ArrowLeftStartOnRectangleIcon"
             :label="kickTitle"
-            :box="44"
+            :box="36"
             class="sess__kick"
             @click="page.run('player.kick')"
           />

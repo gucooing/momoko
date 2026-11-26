@@ -13,7 +13,7 @@
     <div class="bind__body">
       <h1 v-if="!ui.isMobile" class="pp-title bind__title">{{ t('home.games.bind') }}</h1>
       <div v-if="session.me" class="who pp-card">
-        <PAvatar :src="session.me.avatar" :asset="session.me.avatarAsset" :name="session.me.name || session.me.username" :size="44" />
+        <PAvatar :src="session.me.avatar" :asset="session.me.avatarAsset" :name="session.me.name || session.me.username" :size="34" />
         <span class="who__text">
           <span class="who__name">{{ session.me.name || session.me.username }}</span>
           <span class="pp-hint">{{ t('bind.signedIn') }}</span>
@@ -34,7 +34,7 @@
             :data-game="target.server?.game"
             @click="select(target)"
           >
-            <GameMark :game="target.server?.game || ''" :name="target.server?.gameName || target.server?.game" :src="target.server?.appIcon" :size="40" />
+            <GameMark :game="target.server?.game || ''" :name="target.server?.gameName || target.server?.game" :src="target.server?.appIcon" :size="32" />
             <span class="srv__text">
               <span class="srv__name">
                 {{ target.server?.gameName ? `${target.server.gameName} · ` : '' }}{{ target.server?.name }}
@@ -81,7 +81,7 @@
           :data-game="s.server?.game"
           @click="select(s)"
         >
-          <GameMark :game="s.server?.game || ''" :name="s.server?.gameName || s.server?.game" :src="s.server?.appIcon" :size="40" />
+          <GameMark :game="s.server?.game || ''" :name="s.server?.gameName || s.server?.game" :src="s.server?.appIcon" :size="32" />
           <span class="srv__text">
             <span class="srv__name">
               {{ s.server?.gameName ? `${s.server.gameName} · ` : '' }}{{ s.server?.name }}
@@ -289,15 +289,15 @@ const submit = async () => {
 }
 .mhead__title {
   flex: 1;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .mhead__ib {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -312,13 +312,13 @@ const submit = async () => {
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  padding: 28px 24px 24px;
+  padding: 18px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .bind__title {
-  font-size: 28px;
+  font-size: 22px;
 }
 .who {
   display: flex;
@@ -333,8 +333,8 @@ const submit = async () => {
   flex-direction: column;
 }
 .who__name {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .step {
   display: flex;
@@ -342,14 +342,14 @@ const submit = async () => {
   gap: 10px;
 }
 .step__title {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .search {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 46px;
+  min-height: 36px;
   padding: 0 14px;
   border-radius: 14px;
   border: 1.5px solid var(--m-line);
@@ -381,7 +381,7 @@ const submit = async () => {
   width: 100%;
   min-height: 64px;
   padding: 12px;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 2px solid var(--m-line);
   background: var(--m-s);
   color: var(--m-ink);
@@ -409,8 +409,8 @@ const submit = async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .srv__check {
   width: 24px;
@@ -427,7 +427,7 @@ const submit = async () => {
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  padding: 12px 24px 18px;
+  padding: 12px 16px 14px;
   background: var(--m-bg);
 }
 @media (max-width: 768px) {

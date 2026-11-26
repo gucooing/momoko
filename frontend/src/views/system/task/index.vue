@@ -36,14 +36,14 @@
             icon="HOutline:ArrowPathIcon"
             :label="autoRefresh ? t('systemV2.tasks.autoOn', { s: REFRESH_SECONDS }) : t('systemV2.tasks.autoOff')"
             :active="autoRefresh"
-            :box="44"
+            :box="40"
             :aria-pressed="autoRefresh"
             @click="toggleAuto"
           />
           <AppIconButton
             icon="HOutline:TrashIcon"
             :label="t('systemV2.tasks.clearFinished')"
-            :box="44"
+            :box="40"
             :disabled="!finishedCount"
             @click="confirmClear"
           />
@@ -179,7 +179,7 @@
               icon="HOutline:XMarkIcon"
               class="is-stop"
               :label="t('systemV2.tasks.cancelOf', { name: r.title })"
-              :box="36"
+              :box="30"
               :size="16"
               @click="cancelOne(r.id)"
             />
@@ -188,7 +188,7 @@
               icon="HOutline:ArrowPathIcon"
               class="is-retry"
               :label="t('systemV2.tasks.retryOf', { name: r.title })"
-              :box="36"
+              :box="30"
               :size="16"
               @click="retryOne(r.id)"
             />
@@ -196,7 +196,7 @@
               v-if="r.canDelete"
               icon="HOutline:TrashIcon"
               :label="t('systemV2.tasks.deleteOf', { name: r.title })"
-              :box="36"
+              :box="30"
               :size="16"
               @click="confirmDelete(r.id)"
             />
@@ -358,7 +358,7 @@
               icon="HOutline:DocumentTextIcon"
               :label="t('systemV2.tasks.detailsOf', { name: r.title })"
               :active="openId === r.id"
-              :box="44"
+              :box="40"
               :aria-expanded="openId === r.id"
               @click="toggleOpen(r.id)"
             />
@@ -367,7 +367,7 @@
               icon="HOutline:XMarkIcon"
               class="is-stop"
               :label="t('systemV2.tasks.cancelOf', { name: r.title })"
-              :box="44"
+              :box="40"
               @click="cancelOne(r.id)"
             />
             <AppIconButton
@@ -375,14 +375,14 @@
               icon="HOutline:ArrowPathIcon"
               class="is-retry"
               :label="t('systemV2.tasks.retryOf', { name: r.title })"
-              :box="44"
+              :box="40"
               @click="retryOne(r.id)"
             />
             <AppIconButton
               v-if="r.canDelete"
               icon="HOutline:TrashIcon"
               :label="t('systemV2.tasks.deleteOf', { name: r.title })"
-              :box="44"
+              :box="40"
               @click="confirmDelete(r.id)"
             />
           </footer>
@@ -1150,11 +1150,11 @@ onBeforeUnmount(stopTimer)
 }
 .tk-tone-p {
   color: var(--m-pInk);
-  font-weight: 700;
+  font-weight: 600;
 }
 .tk-tone-bad {
   color: var(--m-bad);
-  font-weight: 700;
+  font-weight: 600;
 }
 .tk-toolbar :deep(.ltb__search) {
   order: 2;
@@ -1165,7 +1165,7 @@ onBeforeUnmount(stopTimer)
   min-width: 150px;
 }
 .tk-type :deep(button) {
-  min-height: 40px;
+  min-height: 32px;
   border-radius: var(--app-radius-pill);
 }
 
@@ -1173,7 +1173,7 @@ onBeforeUnmount(stopTimer)
 .tk-hero {
   position: relative;
   overflow: hidden;
-  padding: 18px;
+  padding: 14px;
   border-radius: var(--app-radius-lg);
   background: var(--m-p);
   color: var(--m-pOn);
@@ -1204,7 +1204,7 @@ onBeforeUnmount(stopTimer)
 }
 .tk-hero__label {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   opacity: 0.9;
 }
 .tk-hero__line {
@@ -1212,13 +1212,13 @@ onBeforeUnmount(stopTimer)
   align-items: baseline;
   gap: 8px;
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .tk-hero__num {
   font-family: var(--app-font-display);
-  font-size: 2.5rem;
+  font-size: 1.625rem;
   line-height: 1;
-  font-weight: 800;
+  font-weight: 600;
 }
 .tk-hero__hint {
   font-size: 0.8125rem;
@@ -1249,8 +1249,7 @@ onBeforeUnmount(stopTimer)
   padding-top: 14px;
   padding-bottom: 14px;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
@@ -1296,8 +1295,8 @@ onBeforeUnmount(stopTimer)
 }
 .tk-sticker {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
 }
 .tk-sticker :deep(svg) {
@@ -1305,8 +1304,8 @@ onBeforeUnmount(stopTimer)
   height: 20px;
 }
 .tk-sticker--lg {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 15px;
 }
 .tk-name__text {
@@ -1318,7 +1317,7 @@ onBeforeUnmount(stopTimer)
 }
 .tk-name__title {
   font-size: 0.9375rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1344,7 +1343,7 @@ onBeforeUnmount(stopTimer)
 }
 .tk-state__pct {
   font-size: 0.875rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .tk-pill--run :deep(.status-pill__dot) {
@@ -1403,7 +1402,7 @@ onBeforeUnmount(stopTimer)
   height: 28px;
   border-radius: 50%;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .tk-avatar--sm {
   width: 20px;
@@ -1425,7 +1424,7 @@ onBeforeUnmount(stopTimer)
 }
 .tk-dur {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .tk-acts {
@@ -1435,10 +1434,10 @@ onBeforeUnmount(stopTimer)
   gap: 2px;
 }
 .tk-detail-btn {
-  min-height: 36px;
+  min-height: 30px;
   padding-inline: 12px;
   border-radius: var(--app-radius-pill);
-  font-weight: 700;
+  font-weight: 500;
 }
 .tk-acts :deep(.is-stop),
 .tk-card__foot :deep(.is-stop) {
@@ -1459,7 +1458,7 @@ onBeforeUnmount(stopTimer)
   flex-wrap: wrap;
   gap: 16px;
   min-width: 1040px;
-  padding: 2px 12px 16px 58px;
+  padding: 2px 12px 16px 44px;
 }
 .tk-detail__card {
   flex: 1 1 300px;
@@ -1481,12 +1480,12 @@ onBeforeUnmount(stopTimer)
   flex: 1;
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .tk-detail__head span {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .tk-steps {
@@ -1571,7 +1570,7 @@ onBeforeUnmount(stopTimer)
 }
 .tk-step__title {
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   word-break: break-all;
 }
@@ -1593,7 +1592,7 @@ onBeforeUnmount(stopTimer)
   flex: none;
   padding-top: 6px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .tk-step__more {
@@ -1621,13 +1620,13 @@ onBeforeUnmount(stopTimer)
 }
 .tk-dl dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .tk-dl dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1678,7 +1677,7 @@ onBeforeUnmount(stopTimer)
 .tk-log__title {
   flex: 1;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .tk-log__count {
   font-size: 0.75rem;
@@ -1688,8 +1687,8 @@ onBeforeUnmount(stopTimer)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border: none;
   border-radius: 10px;
   background: transparent;
@@ -1798,7 +1797,7 @@ onBeforeUnmount(stopTimer)
 }
 .tk-card__title {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.3;
   color: var(--el-text-color-primary);
   word-break: break-all;
@@ -1825,7 +1824,7 @@ onBeforeUnmount(stopTimer)
 }
 .tk-card__bar b {
   font-size: 0.9375rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .tk-card__progtext {
   font-size: 0.75rem;
@@ -1845,7 +1844,7 @@ onBeforeUnmount(stopTimer)
 }
 .tk-log--card {
   flex: none;
-  border-radius: 18px;
+  border-radius: 14px;
 }
 .tk-log--card .tk-log__head {
   padding: 4px 4px 4px 14px;
@@ -1857,8 +1856,8 @@ onBeforeUnmount(stopTimer)
   line-height: 1.7;
 }
 .tk-log--card .tk-log__btn {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
 }
 .tk-card__foot {
   display: flex;
@@ -1913,7 +1912,7 @@ onBeforeUnmount(stopTimer)
   align-items: center;
   gap: 4px;
   max-width: 100%;
-  padding: 6px 6px 6px 20px;
+  padding: 6px 6px 6px 14px;
   border-radius: var(--app-radius-pill);
   background: var(--m-ink);
   color: var(--m-bg);
@@ -1922,14 +1921,14 @@ onBeforeUnmount(stopTimer)
 .tk-bulk__count {
   margin-right: 10px;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 .tk-bulk__btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: var(--app-radius-pill);
@@ -1976,7 +1975,7 @@ onBeforeUnmount(stopTimer)
     order: 4;
   }
   .tk-type :deep(button) {
-    min-height: 44px;
+    min-height: 40px;
   }
   .tk-foot {
     flex-direction: column;
@@ -1986,11 +1985,11 @@ onBeforeUnmount(stopTimer)
     text-align: center;
   }
   .tk-bulk {
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom));
     padding-left: 14px;
   }
   .tk-bulk__btn {
-    min-height: 44px;
+    min-height: 40px;
     padding: 0 10px;
   }
   .tk-bulk__btn span {

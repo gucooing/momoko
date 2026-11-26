@@ -30,12 +30,12 @@ const ui = useUiStore()
   pointer-events: none;
 }
 .pt__item {
-  padding: 12px 18px;
+  padding: 12px 14px;
   border-radius: 16px;
   background: var(--m-ink);
   color: var(--m-s);
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   box-shadow: var(--app-shadow-lg);
 }
 .pt__item--ok {

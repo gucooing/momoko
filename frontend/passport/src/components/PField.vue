@@ -21,7 +21,7 @@ withDefaults(defineProps<{ label?: string; hint?: string; error?: string }>(), {
 }
 .pf__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .pf__hint {
   font-size: 12px;
@@ -36,7 +36,7 @@ withDefaults(defineProps<{ label?: string; hint?: string; error?: string }>(), {
 .pf :deep(select),
 .pf :deep(textarea) {
   width: 100%;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 14px;
   border-radius: var(--app-radius-sm, 12px);
   border: 1.5px solid var(--m-line);

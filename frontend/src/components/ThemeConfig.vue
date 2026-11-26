@@ -14,8 +14,8 @@
             <AppIconButton
               icon="HOutline:XMarkIcon"
               :label="t('common.close')"
-              :size="20"
-              :box="40"
+              :size="17"
+              :box="32"
               @click="close"
             />
           </header>
@@ -82,20 +82,20 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 14px 16px 14px 22px;
+  padding: 14px 16px 14px 16px;
   background: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .theme-drawer__title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .theme-drawer__body {
   flex: 1;
   overflow: auto;
-  padding: 20px 22px 28px;
+  padding: 14px 16px 18px;
 }
 
 .theme-drawer-enter-active,

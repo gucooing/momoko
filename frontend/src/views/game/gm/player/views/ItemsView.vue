@@ -55,7 +55,7 @@
               v-if="canAdjust"
               icon="HOutline:AdjustmentsHorizontalIcon"
               :label="t('gmData.items.adjust')"
-              :box="44"
+              :box="36"
               @click="adjust(item.itemId)"
             />
           </div>

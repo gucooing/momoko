@@ -22,7 +22,7 @@
       <AppIconButton
         icon="HOutline:ClipboardDocumentIcon"
         :label="t('gameServers.key.copyKeyId')"
-        :box="36"
+        :box="30"
         :disabled="!parsed.keyId"
         @click="copy(parsed.keyId)"
       />
@@ -43,7 +43,7 @@
       <AppIconButton
         icon="HOutline:ClipboardDocumentIcon"
         :label="t('gameServers.key.copySecret')"
-        :box="36"
+        :box="30"
         :disabled="!parsed.secret"
         @click="copy(parsed.secret)"
       />
@@ -178,7 +178,7 @@ const copyBoth = () => {
   flex: none;
   width: 64px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .mkg__row :deep(.mkg__input) {

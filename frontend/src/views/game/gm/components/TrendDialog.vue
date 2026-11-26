@@ -93,7 +93,7 @@ const aria = computed(() => {
   color: var(--el-text-color-secondary);
 }
 .td__empty {
-  padding: 40px 0;
+  padding: 30px 0;
   text-align: center;
 }
 </style>

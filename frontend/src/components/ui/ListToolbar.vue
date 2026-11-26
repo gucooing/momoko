@@ -72,14 +72,14 @@ const pick = (value: T) => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 .ltb__spacer {
   flex: 1;
 }
 .ltb__chips {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
@@ -92,14 +92,14 @@ const pick = (value: T) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 28px;
+  padding: 0 11px;
   border-radius: 999px;
-  border: 1.5px solid var(--el-border-color-light);
+  border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.78125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
@@ -114,17 +114,17 @@ const pick = (value: T) => {
   color: var(--m-bg);
 }
 .ltb__count {
-  font-size: 0.75rem;
+  font-size: 0.71875rem;
   opacity: 0.75;
 }
 .ltb__search {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 0 1 280px;
+  flex: 0 1 260px;
   min-width: 180px;
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -135,8 +135,8 @@ const pick = (value: T) => {
   border-color: var(--m-p);
 }
 .ltb__search :deep(svg) {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   flex: none;
 }
 .ltb__search input {
@@ -147,7 +147,7 @@ const pick = (value: T) => {
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 @media (width < 768px) {
   .ltb__spacer {

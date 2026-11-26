@@ -74,7 +74,7 @@
               <span class="gmc-hint">{{ t('gmConfig.gasha.backgroundHint', { n: bgPickups }) }}</span>
             </span>
             <UButton class="gmc-btn" size="sm" color="neutral" variant="outline" icon="i-lucide-image" @click="bgOpen = true">{{ t('gmConfig.gasha.chooseAsset') }}</UButton>
-            <AppIconButton v-if="g.screenAssetId" icon="HOutline:XMarkIcon" :label="t('gmConfig.gasha.clearBackground')" :box="40" @click="g.screenAssetId = ''" />
+            <AppIconButton v-if="g.screenAssetId" icon="HOutline:XMarkIcon" :label="t('gmConfig.gasha.clearBackground')" :box="32" @click="g.screenAssetId = ''" />
           </div>
         </div>
       </div>
@@ -159,7 +159,7 @@ const setPermanent = (on: boolean) => {
 .gb__hero {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
   padding-bottom: 16px;
 }
@@ -173,7 +173,7 @@ const setPermanent = (on: boolean) => {
   max-width: 100%;
   height: 130px;
   object-fit: contain;
-  border-radius: 20px;
+  border-radius: 14px;
   background: var(--m-gSoft, var(--el-fill-color-light));
 }
 .gb__banner--empty {
@@ -203,8 +203,8 @@ const setPermanent = (on: boolean) => {
 }
 .gb__name {
   margin: 0;
-  font-size: 21px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 600;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }

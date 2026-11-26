@@ -152,7 +152,7 @@ const keyHint = computed(() => {
 }
 .hf__field > span {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .hf__field small,
 .hf__sub small,
@@ -177,8 +177,8 @@ const keyHint = computed(() => {
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   background: var(--el-fill-color-light);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .hf__toggles {
   display: flex;
@@ -203,7 +203,7 @@ const keyHint = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .hf__toggle small {
   font-size: 0.75rem;
@@ -219,7 +219,7 @@ const keyHint = computed(() => {
     grid-column: auto;
   }
   .hf__toggle {
-    min-height: 64px;
+    min-height: 44px;
   }
 }
 </style>

@@ -54,7 +54,7 @@
         <component :is="menuStore.iconComponents['HOutline:CommandLineIcon']" class="frpc-cmd__ico" />
         <span class="frpc-cmd__text m-mono">{{ START_CMD }}</span>
         <span class="frpc-cmd__hint">{{ t('tools.tunnel.frpc.windowsHint') }}</span>
-        <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('tools.tunnel.frpc.copyCmd')" :box="menuStore.isMobile ? 44 : 40" :size="18" @click="copyCmd" />
+        <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('tools.tunnel.frpc.copyCmd')" :box="menuStore.isMobile ? 36 : 32" :size="16" @click="copyCmd" />
       </div>
 
       <div class="frpc-foot">
@@ -62,10 +62,10 @@
           <component :is="menuStore.iconComponents['HOutline:ArrowPathIcon']" />{{ t('tools.tunnel.frpcDialog.resetToken') }}
         </button>
         <span class="frpc-spacer" />
-        <UButton color="neutral" variant="outline" size="lg" icon="i-lucide-download" @click="download">
+        <UButton color="neutral" variant="outline" icon="i-lucide-download" @click="download">
           {{ menuStore.isMobile ? t('tools.tunnel.frpcDialog.download') : t('tools.tunnel.frpc.downloadFile') }}
         </UButton>
-        <UButton color="primary" size="lg" :icon="copied ? 'i-lucide-check' : 'i-lucide-copy'" @click="copy">
+        <UButton color="primary" :icon="copied ? 'i-lucide-check' : 'i-lucide-copy'" @click="copy">
           {{ copied ? t('tools.tunnel.frpcDialog.copied') : t('tools.tunnel.frpc.copyConfig') }}
         </UButton>
       </div>
@@ -291,8 +291,8 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
 .frpc { display: flex; flex-direction: column; gap: 14px; }
 .frpc-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .frpc-head__sticker {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   flex: none;
   border-radius: 16px;
   transform: rotate(-5deg);
@@ -301,7 +301,7 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
 .frpc-head__text {
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
-  b { color: var(--el-text-color-primary); font-weight: 700; }
+  b { color: var(--el-text-color-primary); font-weight: 600; }
 }
 .frpc-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .frpc-spacer { flex: 1; }
@@ -314,14 +314,14 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
   background: var(--el-fill-color-light);
 }
 .frpc-seg__btn {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -332,7 +332,7 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
   gap: 8px;
   min-height: 44px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: pointer;
   user-select: none;
@@ -359,7 +359,7 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
 .frpc-line__no { width: 44px; flex: none; padding-right: 14px; text-align: right; color: #8a8197; user-select: none; }
 .frpc-line__text { min-width: 0; }
 .c-com { color: #9c93a8; }
-.c-sec { color: #e8e3ee; font-weight: 800; }
+.c-sec { color: #e8e3ee; font-weight: 600; }
 .c-key { color: #e8e3ee; }
 .c-eq { color: #9c93a8; }
 .c-str { color: #ffd25a; }
@@ -376,7 +376,7 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
   background: #2a2233;
   color: #e8e3ee;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .frpc-cmd {
   display: flex;
@@ -400,8 +400,8 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
   border-radius: 999px;
   background: transparent;
   color: var(--m-warn);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
   :deep(svg) { width: 16px; height: 16px; }
 }
@@ -410,14 +410,14 @@ watch(() => props.row, (r) => { if (visible.value && r && r.id === current.value
 
 @media (width <= 768px) {
   .frpc-seg { width: 100%; }
-  .frpc-seg__btn { flex: 1; min-height: 44px; padding: 0 8px; }
+  .frpc-seg__btn { flex: 1; min-height: 40px; padding: 0 8px; }
   .frpc-spacer { display: none; }
   .frpc-reveal { width: 100%; }
   .frpc-reveal__warn { margin-left: auto; }
   .frpc-code { max-height: 290px; font-size: 0.72rem; }
   .frpc-line__no { width: 34px; padding-right: 10px; }
   .frpc-cmd__hint { display: none; }
-  .frpc-foot > :deep(button:not(.frpc-reset)) { flex: 1; justify-content: center; min-height: 48px; }
+  .frpc-foot > :deep(button:not(.frpc-reset)) { flex: 1; justify-content: center; min-height: 40px; }
   .frpc-reset { width: 100%; justify-content: center; }
 }
 </style>

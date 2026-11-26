@@ -187,8 +187,8 @@ const onToggle = (open: boolean) => {
   gap: 10px;
 }
 .cdd__name {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
   min-width: 0;
 }
 .cdd__facts {
@@ -206,8 +206,8 @@ const onToggle = (open: boolean) => {
   font-size: 12px;
 }
 .cdd__v {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .cdd__v--sm {
   font-size: 13px;
@@ -215,7 +215,7 @@ const onToggle = (open: boolean) => {
 .cdd__h {
   margin: 8px 0 0;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .cdd__skins {

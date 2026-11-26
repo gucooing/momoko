@@ -352,7 +352,7 @@ watch(id, () => {
 .gsd {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   min-width: 0;
 }
 .gsd__back {
@@ -361,8 +361,8 @@ watch(id, () => {
   gap: 6px;
   align-self: flex-start;
   min-height: 40px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   text-decoration: none;
 }
@@ -380,7 +380,7 @@ watch(id, () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 22px 24px;
+  padding: 16px 16px;
 }
 .gsd__id {
   display: flex;
@@ -390,18 +390,18 @@ watch(id, () => {
 }
 .gsd__logo {
   flex: none;
-  width: 68px;
-  height: 68px;
+  width: 54px;
+  height: 54px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--m-gInk, var(--m-pInk));
   font-family: var(--app-font-display);
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
   transform: rotate(-5deg);
   box-shadow: 4px 4px 0 var(--m-g, var(--m-p));
 }
@@ -429,8 +429,8 @@ watch(id, () => {
 .gsd__title-row h1 {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .gsd__tag,
@@ -441,7 +441,7 @@ watch(id, () => {
   padding: 0 10px;
   border-radius: 8px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gsd__tag.is-hosted {
   background: var(--m-pSoft);
@@ -506,7 +506,7 @@ watch(id, () => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .gsd__proc-text small {
   font-size: 0.75rem;
@@ -526,7 +526,7 @@ watch(id, () => {
   background: var(--m-warnSoft);
   color: var(--m-warn);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gsd__cover {
   position: relative;
@@ -570,8 +570,8 @@ watch(id, () => {
   border-radius: var(--app-radius);
   background: var(--m-pSoft);
   color: var(--m-pInk);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .gsd__task-step {
   font-weight: 500;
@@ -586,7 +586,7 @@ watch(id, () => {
 }
 .gsd__tabs {
   display: flex;
-  gap: 24px;
+  gap: 16px;
   border-bottom: 1px solid var(--el-border-color-light);
   overflow-x: auto;
   scrollbar-width: none;
@@ -599,12 +599,12 @@ watch(id, () => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 2px;
   border-bottom: 2.5px solid transparent;
   color: var(--el-text-color-secondary);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -617,13 +617,13 @@ watch(id, () => {
 }
 @media (width <= 768px) {
   .gsd__hero-main {
-    padding: 18px 16px;
+    padding: 14px 16px;
   }
   .gsd__cover {
     min-height: 140px;
   }
   .gsd__title-row h1 {
-    font-size: 1.375rem;
+    font-size: 1.125rem;
   }
   .gsd__actions > * {
     min-height: 44px;

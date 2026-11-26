@@ -23,11 +23,11 @@
           </UButton>
         </template>
         <template v-else>
-          <AppIconButton v-if="canEdit" icon="HOutline:Cog6ToothIcon" :label="t('systemV2.audit.retention')" :box="44" @click="openRetention" />
+          <AppIconButton v-if="canEdit" icon="HOutline:Cog6ToothIcon" :label="t('systemV2.audit.retention')" :box="36" @click="openRetention" />
           <AppIconButton
             icon="HOutline:ArrowDownTrayIcon"
             :label="t('systemV2.audit.exportCsv')"
-            :box="44"
+            :box="36"
             :disabled="!pagination.total || exporting"
             @click="exportCsv"
           />
@@ -181,7 +181,7 @@
             </td>
             <td class="m-mono au-ip">{{ r.ip || '—' }}</td>
             <td class="au-col-go">
-              <AppIconButton icon="HOutline:ChevronRightIcon" :label="t('system.audit.viewDetail', { name: r.action })" :box="36" @click.stop="openDetail(r)" />
+              <AppIconButton icon="HOutline:ChevronRightIcon" :label="t('system.audit.viewDetail', { name: r.action })" :box="30" @click.stop="openDetail(r)" />
             </td>
           </tr>
         </tbody>
@@ -331,7 +331,7 @@
                   v-if="!menuStore.isMobile"
                   icon="HOutline:ClipboardDocumentIcon"
                   :label="t('system.audit.copyRequest')"
-                  :box="36"
+                  :box="30"
                   @click="copyText(current.requestJson)"
                 />
               </div>
@@ -971,7 +971,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-tone-bad {
   color: var(--m-bad);
-  font-weight: 700;
+  font-weight: 600;
 }
 .au-sr {
   position: absolute;
@@ -999,8 +999,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-stat__icon {
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 15px;
 }
 .au-stat__icon :deep(svg) {
@@ -1015,7 +1015,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-stat__label {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -1023,9 +1023,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-stat__value {
   font-family: var(--app-font-display);
-  font-size: 1.625rem;
+  font-size: 1.25rem;
   line-height: 1.05;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 
@@ -1060,7 +1060,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   min-width: 0;
 }
 .au-filter :deep(.app-sel__trigger) {
-  min-height: 40px;
+  min-height: 32px;
   padding-inline: 16px;
   border-radius: var(--app-radius-pill);
   border-width: 1.5px;
@@ -1127,8 +1127,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   padding: 14px 12px;
   text-align: left;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   border-bottom: 1px solid var(--el-border-color-lighter);
   white-space: nowrap;
@@ -1136,7 +1135,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .au-table td {
   padding: 11px 12px;
   vertical-align: middle;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-primary);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
@@ -1150,7 +1149,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .au-group td {
   padding: 16px 12px 8px;
   font-size: 0.8125rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .au-group td span {
@@ -1175,7 +1174,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   outline-offset: -3px;
 }
 .au-time {
-  font-weight: 700;
+  font-weight: 600;
 }
 .au-user {
   display: flex;
@@ -1191,7 +1190,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   height: 30px;
   border-radius: 50%;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .au-avatar--sm {
   width: 20px;
@@ -1199,7 +1198,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   font-size: 0.625rem;
 }
 .au-user__name {
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   max-width: 160px;
   overflow: hidden;
@@ -1213,7 +1212,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   padding: 0 10px;
   border-radius: 9px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .au-mod :deep(svg) {
@@ -1234,7 +1233,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   max-width: 280px;
 }
 .au-act__title {
-  font-weight: 800;
+  font-weight: 600;
 }
 .au-act__target {
   font-size: 0.75rem;
@@ -1253,7 +1252,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .au-node :deep(svg) {
@@ -1308,8 +1307,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .au-cards__day {
   margin: 6px 0 10px;
   font-size: 0.8125rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .au-tl {
@@ -1343,7 +1341,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   flex: none;
   width: 16px;
   height: 16px;
-  margin-top: 20px;
+  margin-top: 14px;
   border-radius: 50%;
   border: 3px solid var(--el-bg-color-page, var(--m-bg));
 }
@@ -1360,7 +1358,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   flex-direction: column;
   gap: 8px;
   padding: 14px 14px 12px;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   font: inherit;
@@ -1380,8 +1378,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .au-ent__title {
   flex: 1;
   min-width: 0;
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .au-ent__target {
   width: 100%;
@@ -1401,11 +1399,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-ent__meta b {
   color: var(--el-text-color-primary);
-  font-weight: 700;
+  font-weight: 500;
 }
 .au-ent__tm {
   margin-left: auto;
-  font-weight: 700;
+  font-weight: 600;
 }
 .au-ent__fwd {
   display: flex;
@@ -1416,7 +1414,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   background: var(--m-a2Soft);
   color: var(--m-ink);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .au-ent__fwd :deep(svg) {
   width: 14px;
@@ -1455,8 +1453,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   scrollbar-width: none;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 24px;
+  gap: 14px;
+  padding: 16px;
   background: var(--el-bg-color);
   border-left: 1px solid var(--el-border-color-light);
   box-shadow: var(--app-shadow-lg);
@@ -1475,7 +1473,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   gap: 14px;
   padding: 10px 16px calc(28px + env(safe-area-inset-bottom, 0px));
   border-left: none;
-  border-radius: 30px 30px 0 0;
+  border-radius: 20px 20px 0 0;
 }
 .au-sheet__handle {
   align-self: center;
@@ -1492,8 +1490,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-drawer__icon {
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 16px;
   transform: rotate(-4deg);
 }
@@ -1510,18 +1508,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-drawer__kicker {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .au-drawer__title h2 {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .is-sheet .au-drawer__title h2 {
-  font-size: 1.1875rem;
+  font-size: 1rem;
 }
 .au-drawer__target {
   font-size: 0.8125rem;
@@ -1561,14 +1559,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-result__dur {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .au-label {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .au-chain {
@@ -1591,12 +1588,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   border-radius: var(--app-radius);
   border: 1.5px solid var(--el-border-color-light);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .au-chain__box b {
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1640,7 +1637,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .au-dl {
   margin: 0;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1654,13 +1651,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 .au-dl dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .au-dl dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   word-break: break-all;
 }
@@ -1695,7 +1692,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .au-tag.is-ok {
   background: var(--m-okSoft);
@@ -1787,15 +1784,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   gap: 8px;
 }
 .au-ret__opt {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: var(--app-radius-pill);
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .au-ret__opt:hover {
@@ -1834,7 +1831,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     display: none;
   }
   .au-filter :deep(.app-sel__trigger) {
-    min-height: 44px;
+    min-height: 40px;
   }
   .au-filters__sep {
     display: none;
@@ -1847,7 +1844,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     flex-basis: 100%;
   }
   .au-ret__opt {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

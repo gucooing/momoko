@@ -128,8 +128,8 @@
             v-if="canAdd"
             icon="HOutline:PlusIcon"
             :label="t('accessAdmin.menu.addChildOf', { name: row.label })"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             :disabled="row.type === MenuType.MenuType_Button"
             :class="{ 'is-locked': row.type === MenuType.MenuType_Button }"
             @click="addChild(asRow(row))"
@@ -138,16 +138,16 @@
             v-if="canEdit"
             icon="HOutline:PencilSquareIcon"
             :label="`${t('system.common.edit')} ${row.label}`"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             @click="openCreate(String(row.id))"
           />
           <AppIconButton
             v-if="canEdit"
             :icon="row.active ? 'HOutline:NoSymbolIcon' : 'HOutline:CheckCircleIcon'"
             :label="t('accessAdmin.menu.toggleStatus', { name: row.label })"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             :class="row.active ? 'is-stop' : 'is-start'"
             :disabled="busyId === row.id"
             @click="setStatus(asRow(row), !row.active)"
@@ -156,8 +156,8 @@
             v-if="canDelete"
             icon="HOutline:TrashIcon"
             :label="row.isSystem ? t('accessAdmin.menu.systemLocked') : t('system.common.delete')"
-            :box="36"
-            :size="18"
+            :box="30"
+            :size="16"
             :disabled="!!row.isSystem"
             :class="row.isSystem ? 'is-locked' : 'is-danger'"
             @click="confirmDelete(asRow(row))"
@@ -222,7 +222,7 @@
           />
           <AppIconButton
             icon="HOutline:EllipsisHorizontalIcon"
-            :box="44"
+            :box="36"
             :label="t('accessAdmin.menu.actions', { name: row.label })"
             @click="openSheet(row)"
           />
@@ -326,9 +326,9 @@
       <div class="mn-order-form">
         <label class="app-label" for="mn-order-input">{{ t('system.common.sort') }}</label>
         <div class="mn-order-form__row">
-          <AppIconButton icon="HOutline:MinusIcon" :box="44" :label="t('accessV2.menu.orderUp')" @click="orderValue = Math.max(0, orderValue - 1)" />
+          <AppIconButton icon="HOutline:MinusIcon" :box="36" :label="t('accessV2.menu.orderUp')" @click="orderValue = Math.max(0, orderValue - 1)" />
           <input id="mn-order-input" v-model.number="orderValue" type="number" min="0" max="999" class="app-input m-num" />
-          <AppIconButton icon="HOutline:PlusIcon" :box="44" :label="t('accessV2.menu.orderDown')" @click="orderValue = Math.min(999, orderValue + 1)" />
+          <AppIconButton icon="HOutline:PlusIcon" :box="36" :label="t('accessV2.menu.orderDown')" @click="orderValue = Math.min(999, orderValue + 1)" />
         </div>
         <p class="mn-order-form__hint">{{ t('accessV2.menu.orderHint') }}</p>
       </div>
@@ -658,7 +658,7 @@ onMounted(() => getMenuList(true))
   background: var(--m-s2);
 }
 .mn-seg__btn {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -666,7 +666,7 @@ onMounted(() => getMenuList(true))
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -685,9 +685,9 @@ onMounted(() => getMenuList(true))
   margin-top: -4px;
 }
 .mn-tools :deep(button) {
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .mn-legend {
   display: inline-flex;
@@ -710,7 +710,7 @@ onMounted(() => getMenuList(true))
   padding: 0 8px;
   border-radius: 7px;
   font-size: 0.6875rem;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .mn-ty.is-dir { background: var(--m-a2Soft); color: var(--m-ink); }
@@ -795,14 +795,14 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   height: 22px;
 }
 .mn-name__text {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .mn-name__text.is-d0 {
-  font-weight: 800;
+  font-weight: 600;
 }
 .mn-name__text.is-btn {
   font-weight: 500;
@@ -823,7 +823,7 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   background: var(--m-s2);
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mn-mono {
   font-size: 0.8125rem;
@@ -837,7 +837,7 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   color: var(--el-text-color-secondary);
 }
 .mn-order {
-  font-weight: 700;
+  font-weight: 600;
 }
 .mn-acts {
   display: inline-flex;
@@ -931,8 +931,8 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -961,7 +961,7 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
 }
 .mn-tr__flag {
   flex: none;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-warn);
 }
 .mn-legend.is-compact {
@@ -981,10 +981,10 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
   border: 0;
-  border-radius: 20px;
+  border-radius: 14px;
   background: var(--m-p);
   color: var(--m-pOn);
   box-shadow: var(--app-shadow-brand);
@@ -1013,7 +1013,7 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   flex: 1;
   min-width: 0;
   text-align: center;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mn-order-form__hint {
   margin: 0;
@@ -1049,8 +1049,8 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   align-items: center;
   gap: 8px;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mn-sheet__sub {
@@ -1077,7 +1077,7 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
 }
 .mn-dl dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .mn-dl dd {
@@ -1094,14 +1094,14 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 52px;
+  min-height: 40px;
   padding: 0 8px;
   border: 0;
   border-bottom: 1px solid var(--el-border-color-lighter);
   background: transparent;
   font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   text-align: left;
   cursor: pointer;
@@ -1121,15 +1121,15 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   cursor: not-allowed;
 }
 .mn-sheet__cancel {
-  min-height: 52px;
+  min-height: 40px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 @media (width < 768px) {
   .mn-page {
     /* 悬浮新增按钮贴在底部导航上方 100px 处；留出同样高度，滚到底时按钮不压住最后一行的操作 */
-    padding-bottom: 100px;
+    padding-bottom: 75px;
   }
   .mn-seg {
     order: 4;
@@ -1137,7 +1137,7 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   }
   .mn-seg__btn {
     flex: 1;
-    min-height: 44px;
+    min-height: 40px;
   }
   .mn-tools {
     flex-wrap: nowrap;
@@ -1149,7 +1149,7 @@ html.dark .mn-ty.is-btn { color: var(--m-a); }
   }
   .mn-tools :deep(button) {
     flex: none;
-    min-height: 44px;
+    min-height: 40px;
   }
   .mn-legend.is-compact {
     flex: none;

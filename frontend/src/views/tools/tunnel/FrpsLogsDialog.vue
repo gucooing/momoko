@@ -26,8 +26,8 @@
           <span class="fl-live__dot" :class="{ 'is-on': autoRefresh }" />
           {{ t('tools.tunnel.logs.live') }}
         </label>
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.tunnel.logs.refresh')" :box="36" :size="18" @click="load(true)" />
-        <AppIconButton icon="HOutline:ArrowDownTrayIcon" :label="t('tools.tunnel.logs.download')" :box="36" :size="18" @click="download" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.tunnel.logs.refresh')" :box="30" :size="16" @click="load(true)" />
+        <AppIconButton icon="HOutline:ArrowDownTrayIcon" :label="t('tools.tunnel.logs.download')" :box="30" :size="16" @click="download" />
       </div>
 
       <div ref="boxEl" class="fl-box m-mono" role="log" :aria-label="t('tools.tunnel.logs.title')" tabindex="0">
@@ -134,8 +134,8 @@ onBeforeUnmount(stop)
 .fl { display: flex; flex-direction: column; gap: 12px; }
 .fl-head { display: flex; align-items: center; gap: 12px; }
 .fl-head__sticker {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   flex: none;
   border-radius: 14px;
   transform: rotate(-5deg);
@@ -149,14 +149,14 @@ onBeforeUnmount(stop)
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -170,7 +170,7 @@ onBeforeUnmount(stop)
   min-height: 36px;
   padding: 0 4px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: pointer;
   user-select: none;
@@ -196,7 +196,7 @@ onBeforeUnmount(stop)
 .fl-line { display: flex; gap: 10px; padding: 0 14px; }
 .fl-line:hover { background: rgba(255, 255, 255, 0.04); }
 .fl-line__time { flex: none; color: #8a8197; }
-.fl-line__lv { flex: none; width: 3.2em; font-weight: 800; color: #79c0ff; }
+.fl-line__lv { flex: none; width: 3.2em; font-weight: 600; color: #79c0ff; }
 .fl-line__msg { min-width: 0; white-space: pre-wrap; word-break: break-all; }
 .fl-line.is-warn .fl-line__lv { color: #ffc14d; }
 .fl-line.is-error .fl-line__lv,
@@ -210,10 +210,10 @@ onBeforeUnmount(stop)
   justify-content: center;
   gap: 6px;
   height: 100%;
-  padding: 0 24px;
+  padding: 0 16px;
   font-family: var(--app-font-display, inherit);
   text-align: center;
-  b { font-size: 1rem; color: #e8e3ee; }
+  b { font-size: 0.875rem; color: #e8e3ee; }
   span { font-size: 0.8125rem; color: #b8b0c2; }
 }
 .fl-foot { font-size: 0.75rem; color: var(--el-text-color-secondary); text-align: right; }

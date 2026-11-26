@@ -126,7 +126,7 @@ const logoutAll = async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 </style>

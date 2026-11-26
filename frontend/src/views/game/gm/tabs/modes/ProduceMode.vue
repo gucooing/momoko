@@ -180,15 +180,15 @@ const rangeOptions = computed<{ label: string; value: Range }[]>(() => [
 }
 .pr__chip {
   flex: none;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -240,7 +240,7 @@ const rangeOptions = computed<{ label: string; value: Range }[]>(() => [
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .pr__date {
@@ -259,7 +259,7 @@ const rangeOptions = computed<{ label: string; value: Range }[]>(() => [
   gap: 8px;
   flex: 0 1 260px;
   min-width: 180px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);

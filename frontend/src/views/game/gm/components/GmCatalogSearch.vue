@@ -119,7 +119,7 @@ watch(() => [props.kind, props.characterId, props.rarity], () => void load(), { 
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: 999px;
   background: var(--el-fill-color-light);
@@ -175,7 +175,7 @@ watch(() => [props.kind, props.characterId, props.rarity], () => void load(), { 
   min-width: 0;
 }
 .gcs__name {
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -190,12 +190,12 @@ watch(() => [props.kind, props.characterId, props.rarity], () => void load(), { 
   color: var(--el-text-color-secondary);
 }
 .gcs__more {
-  min-height: 36px;
+  min-height: 30px;
   border: 0;
   background: transparent;
   color: var(--m-pInk);
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 </style>

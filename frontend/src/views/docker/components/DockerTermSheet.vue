@@ -15,7 +15,7 @@
               <span v-if="subtitle" class="dk-sheet__sub">{{ subtitle }}</span>
             </span>
             <slot name="head-extra" />
-            <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :box="44" :size="20" @click="close" />
+            <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :box="36" :size="17" @click="close" />
           </header>
           <div class="dk-sheet__body"><slot /></div>
         </section>
@@ -67,7 +67,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   background: rgba(12, 6, 18, 0.45);
   backdrop-filter: blur(2px);
 }
@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
   gap: 12px;
   width: min(1100px, 96vw);
   height: min(84vh, 780px);
-  padding: 18px 18px 14px;
+  padding: 14px 14px 14px;
   border-radius: var(--app-radius-xl);
   background: var(--el-bg-color);
   box-shadow: var(--app-shadow-lg);
@@ -94,8 +94,8 @@ onBeforeUnmount(() => {
 }
 .dk-sheet__head { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .dk-sheet__sticker {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   flex: none;
   border-radius: 15px;
   transform: rotate(-5deg);
@@ -104,8 +104,8 @@ onBeforeUnmount(() => {
 .dk-sheet__text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .dk-sheet__title {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -145,11 +145,11 @@ onBeforeUnmount(() => {
     height: calc(100dvh - 28px);
     padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
     gap: 10px;
-    border-radius: 28px 28px 0 0;
+    border-radius: 18px 18px 0 0;
   }
   .dk-sheet__grab { display: block; }
-  .dk-sheet__sticker { width: 42px; height: 42px; border-radius: 14px; }
-  .dk-sheet__title { font-size: 1.0625rem; }
+  .dk-sheet__sticker { width: 34px; height: 34px; border-radius: 14px; }
+  .dk-sheet__title { font-size: 0.875rem; }
   .dk-sheet__sub { font-size: 0.75rem; }
   .dk-sheet-enter-from .dk-sheet__panel,
   .dk-sheet-leave-to .dk-sheet__panel { transform: translateY(100%); }

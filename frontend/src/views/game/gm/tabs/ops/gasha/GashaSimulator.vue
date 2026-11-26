@@ -201,8 +201,8 @@ const nameOf = (resourceType: number, id: string) => labels.card(resourceType, i
 }
 .gs__value {
   font-family: var(--app-font-display);
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .gs__sub {
   font-size: 12px;

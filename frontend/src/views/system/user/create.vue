@@ -304,8 +304,8 @@ defineExpose({ showDialog })
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .user-form__role-check {
@@ -346,7 +346,7 @@ defineExpose({ showDialog })
   align-items: center;
   gap: 10px;
   min-height: 40px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--el-text-color-regular);
 }

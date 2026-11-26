@@ -1,15 +1,33 @@
 <!-- 侧边栏（AppsPC / DashboardPC）：品牌 → 节点卡片（本机/远程 · 在线 · 主机名）→ 分组导航 → 底部账号卡。
-     展开 252 / 折叠 76，右侧 hairline，不投影。 -->
+     展开 252 / 折叠 76，右侧 hairline，不投影。
+     drawer：手机端的抽屉（AppShell 里从左边滑出），内容不变；品牌行右侧换成深浅色切换和关闭。 -->
 <template>
   <aside
     class="app-sidebar"
-    :class="{ 'app-sidebar--collapsed': collapsed }"
+    :class="{ 'app-sidebar--collapsed': collapsed, 'app-sidebar--drawer': drawer }"
+    :aria-label="drawer ? t('shell.nav.main') : undefined"
   >
     <div class="app-sidebar__brand">
       <img :src="logoSrc" alt="" class="app-sidebar__logo" />
       <span v-show="!collapsed" class="app-sidebar__name">{{ appName }}</span>
+      <template v-if="drawer">
+        <AppIconButton
+          :icon="themeStore.isDarkTheme ? 'HOutline:SunIcon' : 'HOutline:MoonIcon'"
+          :label="t('theme.toggleDark')"
+          :box="40"
+          :size="18"
+          @click="themeStore.toggleDarkQuick()"
+        />
+        <AppIconButton
+          icon="HOutline:XMarkIcon"
+          :label="t('common.close')"
+          :box="40"
+          :size="18"
+          @click="menuStore.isMobileMenuOpen = false"
+        />
+      </template>
       <AppIconButton
-        v-show="!collapsed"
+        v-else-if="!collapsed"
         class="app-sidebar__fold"
         :icon="'HOutline:ChevronDoubleLeftIcon'"
         :label="t('layout.collapseSidebar')"
@@ -29,7 +47,7 @@
     />
 
     <div class="app-sidebar__node">
-      <NodeSwitcher variant="sidebar" :collapsed="collapsed" />
+      <NodeSwitcher :collapsed="collapsed" />
     </div>
 
     <div class="app-sidebar__nav">
@@ -49,8 +67,9 @@ import UserMenu from './UserMenu.vue'
 import { APP_CONFIG } from '@/config/app.config'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ collapsed?: boolean }>()
+defineProps<{ collapsed?: boolean; drawer?: boolean }>()
 const menuStore = useMenuStore()
+const themeStore = useThemeStore()
 const { t } = useI18n()
 const appName = APP_CONFIG.name
 const logoSrc = APP_CONFIG.logoSrc
@@ -71,6 +90,30 @@ const logoSrc = APP_CONFIG.logoSrc
 .app-sidebar--collapsed {
   width: 76px;
   padding: 20px 10px 14px;
+}
+.app-sidebar--drawer {
+  width: min(300px, 86vw);
+  gap: 12px;
+  padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+  background: var(--el-bg-color);
+  border-right: 0;
+  box-shadow: var(--app-shadow-lg);
+}
+.app-sidebar--drawer .app-sidebar__brand {
+  gap: 4px;
+  min-height: 40px;
+}
+.app-sidebar--drawer .app-sidebar__logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  margin-right: 6px;
+}
+.app-sidebar--drawer .app-sidebar__name {
+  font-size: 1.125rem;
+}
+.app-sidebar--drawer .app-sidebar__nav {
+  margin: 0 -12px;
 }
 .app-sidebar__brand {
   display: flex;

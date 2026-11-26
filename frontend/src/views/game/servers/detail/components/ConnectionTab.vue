@@ -54,7 +54,7 @@
           <span v-else>{{ t('gameServers.connection.clientAppNone') }}</span>
         </span>
         <template v-if="server.clientAppId">
-          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopyId')" :box="36" @click="copy(server.clientAppId)" />
+          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopyId')" :box="30" @click="copy(server.clientAppId)" />
           <UButton size="sm" color="neutral" variant="soft" :loading="appBusy" @click="askAppAction('secret')">{{ t('gameServers.connection.clientAppResetSecret') }}</UButton>
           <UButton size="sm" color="neutral" variant="soft" :loading="appBusy" @click="askAppAction('id')">{{ t('gameServers.connection.clientAppRegenerate') }}</UButton>
         </template>
@@ -229,12 +229,12 @@
         <div class="cn__cred">
           <span>{{ t('gameServers.connection.clientAppId') }}</span>
           <UInput :model-value="creds.appId" class="m-mono" readonly :ui="{ root: 'cn__cred-input' }" :aria-label="t('gameServers.connection.clientAppId')" />
-          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopyId')" :box="36" @click="copy(creds.appId)" />
+          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopyId')" :box="30" @click="copy(creds.appId)" />
         </div>
         <div class="cn__cred">
           <span>{{ t('gameServers.connection.clientAppSecret') }}</span>
           <UInput :model-value="creds.appSecret" class="m-mono" readonly :ui="{ root: 'cn__cred-input' }" :aria-label="t('gameServers.connection.clientAppSecret')" />
-          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopySecret')" :box="36" @click="copy(creds.appSecret)" />
+          <AppIconButton icon="HOutline:ClipboardDocumentIcon" :label="t('gameServers.connection.clientAppCopySecret')" :box="30" @click="copy(creds.appSecret)" />
         </div>
         <small>{{ t('gameServers.connection.clientAppCredsHint') }}</small>
       </div>
@@ -803,8 +803,8 @@ const switchToHosted = async () => {
 .cn__list {
   display: flex;
   flex-direction: column;
-  padding: 4px 24px;
-  border-radius: 24px;
+  padding: 4px 16px;
+  border-radius: 16px;
   background: var(--el-bg-color);
   box-shadow: var(--app-shadow-sm);
 }
@@ -812,17 +812,17 @@ const switchToHosted = async () => {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 76px;
+  min-height: 58px;
   padding: 12px 0;
 }
 .cn__row + .cn__row {
   border-top: 1px solid var(--el-border-color-lighter, var(--el-border-color-light));
 }
 .cn__ico {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
-  font-size: 1.25rem;
+  font-size: 1rem;
   transform: rotate(-5deg);
 }
 .cn__main {
@@ -833,8 +833,8 @@ const switchToHosted = async () => {
   gap: 2px;
 }
 .cn__main b {
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .cn__media {
   flex: none;
@@ -870,7 +870,7 @@ const switchToHosted = async () => {
 .cn__cred > span {
   flex: 0 0 96px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 :deep(.cn__cred-input) {
   flex: 1;
@@ -888,7 +888,7 @@ const switchToHosted = async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .cn__dialog p {
@@ -909,7 +909,7 @@ const switchToHosted = async () => {
 }
 .cn__field > span {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .cn__test {
   display: flex;
@@ -924,7 +924,7 @@ const switchToHosted = async () => {
   background: var(--el-fill-color-light);
 }
 .cn__seg button {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 16px;
   border: none;
   border-radius: 999px;
@@ -932,7 +932,7 @@ const switchToHosted = async () => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .cn__seg button.is-on {
@@ -952,7 +952,7 @@ const switchToHosted = async () => {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 52px;
+  min-height: 40px;
   cursor: pointer;
 }
 .cn__toggle + .cn__toggle {
@@ -968,7 +968,7 @@ const switchToHosted = async () => {
 @media (width <= 768px) {
   .cn__list {
     padding: 4px 16px;
-    border-radius: 20px;
+    border-radius: 14px;
   }
   .cn__row {
     flex-wrap: wrap;

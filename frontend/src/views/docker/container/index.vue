@@ -90,8 +90,8 @@
                 :key="qa.key"
                 :icon="qa.icon"
                 :label="`${qa.label} ${nameOf(row)}`"
-                :box="36"
-                :size="18"
+                :box="30"
+                :size="16"
                 :class="qa.tone"
                 @click="onRowAction(qa.key, row)"
               />
@@ -130,11 +130,11 @@
                   :key="qa.key"
                   :icon="qa.icon"
                   :label="`${qa.label} ${nameOf(row)}`"
-                  :box="44"
+                  :box="36"
                   :class="qa.tone"
                   @click="onRowAction(qa.key, row)"
                 />
-                <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('docker.ctr.moreOf', { name: nameOf(row) })" :box="44" @click="openSheet(row)" />
+                <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('docker.ctr.moreOf', { name: nameOf(row) })" :box="36" @click="openSheet(row)" />
               </footer>
             </article>
           </div>
@@ -898,7 +898,7 @@ onBeforeUnmount(stopUsageTimer)
   min-width: 0;
 }
 .ct-name strong {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -933,7 +933,7 @@ onBeforeUnmount(stopUsageTimer)
   background: var(--m-a2Soft);
   color: var(--m-ink);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .ct-cpu {
@@ -984,7 +984,7 @@ onBeforeUnmount(stopUsageTimer)
   gap: 10px;
 }
 .ct-card__name {
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 .ct-card__line {
   display: flex;
@@ -1006,7 +1006,7 @@ onBeforeUnmount(stopUsageTimer)
 .ct-card__use {
   flex: none;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
@@ -1028,14 +1028,14 @@ onBeforeUnmount(stopUsageTimer)
 .ct-seg button {
   flex: 1;
   min-width: 0;
-  min-height: 38px;
+  min-height: 32px;
   padding: 0 10px;
   border: none;
   border-radius: 9px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1069,7 +1069,7 @@ onBeforeUnmount(stopUsageTimer)
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .ct-presets button.is-on {
@@ -1111,7 +1111,7 @@ onBeforeUnmount(stopUsageTimer)
 .ct-list__head {
   background: var(--el-fill-color-light);
   font-size: 0.71875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .ct-list--net {

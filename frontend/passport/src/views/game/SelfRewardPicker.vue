@@ -130,7 +130,7 @@ const remove = (i: number) => {
 }
 .srp__name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

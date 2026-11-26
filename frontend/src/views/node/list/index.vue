@@ -168,7 +168,7 @@
 
     <!-- 手机：悬浮添加 -->
     <div v-if="menuStore.isMobile && canManage" class="nodes-fab">
-      <UButton color="primary" size="xl" icon="i-lucide-plus" class="nodes-fab__btn" @click="nodeCreateRef?.showDialog()">
+      <UButton color="primary" size="lg" icon="i-lucide-plus" class="nodes-fab__btn" @click="nodeCreateRef?.showDialog()">
         {{ t('node.list.add') }}
       </UButton>
     </div>
@@ -384,7 +384,7 @@ onMounted(() => {
 .nodes-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .nodes-dot {
   margin: 0 6px;
@@ -392,11 +392,11 @@ onMounted(() => {
 }
 .nodes-online {
   color: var(--m-ok);
-  font-weight: 700;
+  font-weight: 600;
 }
 .nodes-offline {
   color: var(--m-bad);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* hero */
@@ -406,8 +406,8 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 18px 22px;
-  padding: 22px 26px;
+  gap: 14px 16px;
+  padding: 16px 18px;
   border-radius: var(--app-radius-lg);
   background: var(--m-p);
   color: var(--m-pOn);
@@ -440,9 +440,9 @@ onMounted(() => {
 }
 .nodes-hero__title {
   font-family: var(--app-font-display);
-  font-size: 2rem;
+  font-size: 1.5rem;
   line-height: 1.15;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 .nodes-hero__sub {
@@ -450,7 +450,7 @@ onMounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
   word-break: break-word;
 }
@@ -458,7 +458,7 @@ onMounted(() => {
   position: relative;
   display: flex;
   gap: 10px;
-  margin-right: 150px;
+  margin-right: 112px;
   min-width: 0;
 }
 .nodes-hero__stat {
@@ -466,7 +466,7 @@ onMounted(() => {
   flex-direction: column;
   min-width: 0;
   padding: 10px 16px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-pOn);
   color: var(--m-ink);
 }
@@ -475,18 +475,18 @@ onMounted(() => {
 }
 .nodes-hero__stat-label {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--m-ink2);
 }
 .nodes-hero__stat-value {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 .nodes-hero__stat-value.is-text {
   padding-top: 3px;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -516,14 +516,14 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
@@ -547,7 +547,7 @@ onMounted(() => {
   gap: 8px;
   flex: 0 1 300px;
   min-width: 180px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -613,8 +613,8 @@ onMounted(() => {
   gap: 14px;
 }
 .nodes-guide__icon {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
   flex: none;
   transform: rotate(-4deg);
@@ -625,8 +625,8 @@ onMounted(() => {
 }
 .nodes-guide__title {
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .nodes-guide__desc {
@@ -664,7 +664,7 @@ onMounted(() => {
   background: var(--m-p);
   color: var(--m-pOn);
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .nodes-guide__actions {
   display: flex;
@@ -683,8 +683,8 @@ onMounted(() => {
 }
 .nodes-fab__btn {
   pointer-events: auto;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border-radius: var(--app-radius-pill);
   box-shadow: var(--app-shadow-brand);
 }
@@ -694,13 +694,13 @@ onMounted(() => {
   }
   .nodes-chip,
   .nodes-search {
-    min-height: 44px;
+    min-height: 40px;
   }
   .nodes-hero {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    padding: 16px 18px;
+    padding: 16px 14px;
   }
   .nodes-hero__blob {
     right: -40px;
@@ -719,7 +719,7 @@ onMounted(() => {
     flex: none;
   }
   .nodes-hero__title {
-    font-size: 1.625rem;
+    font-size: 1.25rem;
   }
   .nodes-hero__sub {
     font-size: 0.8125rem;
@@ -738,10 +738,10 @@ onMounted(() => {
     max-width: 60%;
   }
   .nodes-hero__stat-value {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
   .nodes-hero__stat-value.is-text {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   .nodes-tools__spacer {
     display: none;
@@ -749,7 +749,7 @@ onMounted(() => {
   .nodes-search {
     order: -1;
     flex: 1 1 100%;
-    min-height: 44px;
+    min-height: 40px;
   }
   .nodes-chips {
     width: 100%;
@@ -765,7 +765,7 @@ onMounted(() => {
   gap: 10px;
   padding: 16px 4px;
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .nodes-spinner {
   width: 16px;

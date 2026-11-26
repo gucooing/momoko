@@ -288,7 +288,7 @@ const submit = async () => {
 .bd {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .bd__field {
   display: flex;
@@ -307,7 +307,7 @@ const submit = async () => {
 }
 .bd__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .bd__req {
   color: var(--m-bad);
@@ -319,7 +319,7 @@ const submit = async () => {
 }
 .bd__input {
   width: 100%;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   border: 1.5px solid var(--el-border-color-light);
@@ -356,7 +356,7 @@ const submit = async () => {
   max-width: 100%;
 }
 .bd__seg-btn {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -364,7 +364,7 @@ const submit = async () => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .bd__seg-btn.is-on {
@@ -379,14 +379,14 @@ const submit = async () => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13px;
 }
 .bd__check {
   display: flex;
   align-items: center;
   gap: 10px;
   min-height: 40px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
 .bd__check input {
@@ -420,9 +420,8 @@ const submit = async () => {
   border-radius: var(--app-radius-sm);
   background: var(--m-gSoft, var(--el-fill-color-light));
   color: var(--m-gInk, var(--el-text-color-primary));
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-size: 14px;
+  font-weight: 600;
 }
 .bd__spacer {
   flex: 1;
@@ -430,7 +429,7 @@ const submit = async () => {
 @media (width < 768px) {
   .bd__seg-btn,
   .bd__check {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

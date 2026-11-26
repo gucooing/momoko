@@ -27,27 +27,27 @@ withDefaults(defineProps<{ title: string; description?: string; icon?: Component
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 36px 20px;
+  padding: 27px 14px;
   text-align: center;
 }
 .pe--compact {
-  padding: 20px 12px;
+  padding: 14px 12px;
 }
 .pe__icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   margin-bottom: 4px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-a2Soft);
   color: var(--m-ink);
   transform: rotate(-4deg);
 }
 .pe--compact .pe__icon {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
 }
 .pe__icon svg {
@@ -55,8 +55,8 @@ withDefaults(defineProps<{ title: string; description?: string; icon?: Component
   height: 26px;
 }
 .pe__title {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .pe__desc {
   max-width: 360px;

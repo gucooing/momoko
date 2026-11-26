@@ -21,7 +21,7 @@ const label = computed(() => rarityLabel(props.rarity))
   background: var(--m-s2);
   color: var(--m-ink);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.02em;
   box-shadow: 0 0 0 1.5px var(--m-s);
 }

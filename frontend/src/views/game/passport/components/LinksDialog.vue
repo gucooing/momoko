@@ -48,7 +48,7 @@ const filtered = computed(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 42px;
+  min-height: 32px;
   padding: 0 14px;
   margin-bottom: 12px;
   border-radius: 999px;

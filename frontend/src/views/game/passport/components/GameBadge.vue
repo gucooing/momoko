@@ -31,7 +31,7 @@ const letter = computed(() => Array.from(label.value.trim())[0]?.toUpperCase() |
   border: 2px solid var(--m-s);
   font-family: var(--app-font-display);
   font-size: calc(var(--gb-size) * 0.46);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1;
 }
 </style>

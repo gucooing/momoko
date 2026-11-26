@@ -175,16 +175,16 @@
             <AppIconButton
               icon="HOutline:CommandLineIcon"
               :label="t('instance.console')"
-              :size="18"
-              :box="36"
+              :size="16"
+              :box="30"
               @click="openById(String(row.id))"
             />
             <AppIconButton
               :icon="isRunningRow(row) ? 'HOutline:StopIcon' : 'HOutline:PlayIcon'"
               :label="isRunningRow(row) ? t('instance.stop') : t('instance.start')"
               :class="isRunningRow(row) ? 'is-stop' : 'is-start'"
-              :size="18"
-              :box="36"
+              :size="16"
+              :box="30"
               @click="togglePowerById(String(row.id))"
             />
             <ActionMenu :items="rowActionsFor(row)" :label="t('instance.moreActions')" @select="(key) => onRowAction(key, row)" />
@@ -203,7 +203,7 @@
 
     <!-- 手机：悬浮新建（有勾选时让位给批量条） -->
     <div v-if="menuStore.isMobile && !selectedIds.length" class="inst-fab">
-      <UButton color="primary" size="xl" icon="i-lucide-plus" class="inst-fab__btn" @click="handleOpenCreateEditor">
+      <UButton color="primary" size="lg" icon="i-lucide-plus" class="inst-fab__btn" @click="handleOpenCreateEditor">
         {{ t('instance.ui.newApp') }}
       </UButton>
     </div>
@@ -705,7 +705,7 @@ onBeforeUnmount(() => {
   gap: 16px;
 }
 .inst-page__running {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-ok);
 }
 .inst-page .inst-ico-btn {
@@ -744,14 +744,14 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
@@ -775,7 +775,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   flex: 0 1 280px;
   min-width: 180px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -806,7 +806,7 @@ onBeforeUnmount(() => {
 }
 /* 与搜索胶囊同高 */
 .inst-type :deep(.app-sel__trigger) {
-  height: 40px;
+  height: 32px;
   border-radius: 999px;
   padding-inline: 14px 10px;
 }
@@ -834,8 +834,8 @@ onBeforeUnmount(() => {
   border: none;
   background: transparent;
   color: var(--m-pInk);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -913,7 +913,7 @@ onBeforeUnmount(() => {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   flex: none;
 }
 .inst-cell-name__text {
@@ -922,7 +922,7 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 .inst-cell-name__n {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   text-decoration: none;
   overflow: hidden;
@@ -964,10 +964,10 @@ onBeforeUnmount(() => {
 }
 .inst-fab__btn {
   pointer-events: auto;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border-radius: var(--app-radius-pill);
-  font-weight: 700;
+  font-weight: 500;
   box-shadow: var(--app-shadow-brand);
 }
 
@@ -981,7 +981,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 2px;
   max-width: 100%;
-  padding: 6px 6px 6px 18px;
+  padding: 6px 6px 6px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -994,8 +994,8 @@ onBeforeUnmount(() => {
 }
 .inst-batch__count {
   margin-right: 10px;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 .inst-batch__btn {
@@ -1003,14 +1003,14 @@ onBeforeUnmount(() => {
   flex: none;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1045,7 +1045,7 @@ onBeforeUnmount(() => {
 
 @media (width < 992px) {
   .inst-batch {
-    bottom: calc(78px + env(safe-area-inset-bottom));
+    bottom: calc(12px + env(safe-area-inset-bottom));
   }
 }
 @media (width < 768px) {
@@ -1059,16 +1059,16 @@ onBeforeUnmount(() => {
   .inst-search {
     flex: 1 1 0;
     min-width: 0;
-    min-height: 44px;
+    min-height: 40px;
   }
   .inst-type {
     width: 128px;
   }
   .inst-type :deep(.app-sel__trigger) {
-    height: 44px;
+    height: 40px;
   }
   .inst-chip {
-    min-height: 44px;
+    min-height: 40px;
   }
   .inst-page__selall {
     min-height: 44px;
@@ -1086,8 +1086,8 @@ onBeforeUnmount(() => {
     flex-direction: column;
     justify-content: center;
     gap: 2px;
-    min-width: 48px;
-    min-height: 48px;
+    min-width: 40px;
+    min-height: 40px;
     padding: 0 6px;
     font-size: 0.6875rem;
   }
@@ -1096,7 +1096,7 @@ onBeforeUnmount(() => {
     min-width: 44px;
   }
   .inst-page {
-    padding-bottom: 72px;
+    padding-bottom: 54px;
   }
 }
 </style>

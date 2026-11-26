@@ -99,7 +99,7 @@ const pick = (item: AppSheetItem) => {
   max-height: 86vh;
   overflow-y: auto;
   padding: 10px 16px calc(18px + env(safe-area-inset-bottom));
-  border-radius: 30px 30px 0 0;
+  border-radius: 20px 20px 0 0;
   background: var(--el-bg-color);
   box-shadow: var(--app-shadow-lg);
   scrollbar-width: none;
@@ -128,12 +128,12 @@ const pick = (item: AppSheetItem) => {
   min-height: 76px;
   padding: 8px 4px;
   border: none;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .aas__qa :deep(.iconify) {
@@ -160,7 +160,7 @@ const pick = (item: AppSheetItem) => {
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -193,14 +193,14 @@ const pick = (item: AppSheetItem) => {
   color: var(--el-text-color-secondary);
 }
 .aas__cancel {
-  min-height: 52px;
+  min-height: 40px;
   border: none;
   border-radius: 999px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .aas-enter-active,

@@ -48,7 +48,7 @@ const menuStore = useMenuStore()
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
+  border-radius: 30%;
   color: var(--el-text-color-secondary);
   background: transparent;
   border: none;

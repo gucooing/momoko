@@ -55,7 +55,7 @@ const run = async () => {
 }
 .gsd__desc {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--el-text-color-regular);
 }

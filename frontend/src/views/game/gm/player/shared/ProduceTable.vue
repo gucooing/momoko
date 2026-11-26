@@ -148,7 +148,7 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   min-width: 0;
 }
 .ptab__strong {
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-primary);
 }
 .ptab__dim {
@@ -226,7 +226,7 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   justify-content: space-between;
   gap: 8px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .ptab__mfoot .ptab__player {
   flex-direction: row;

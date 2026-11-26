@@ -20,7 +20,7 @@
             <span class="tns-head__target">{{ remoteText }}</span>
           </div>
         </div>
-        <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :box="44" @click="close" />
+        <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :box="36" @click="close" />
       </header>
 
       <div class="tns-client">
@@ -56,7 +56,7 @@
           <span class="tns-live__dot" />
           {{ t('tools.tunnel.statsDialog.live') }}
         </label>
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.tunnel.stats.refresh')" :box="isMobile ? 44 : 40" :size="18" @click="refresh" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.tunnel.stats.refresh')" :box="isMobile ? 36 : 32" :size="16" @click="refresh" />
       </div>
 
       <div v-if="rangeKey === 'custom'" class="tns-custom">
@@ -144,10 +144,10 @@
           <component :is="menuStore.iconComponents['HOutline:InformationCircleIcon']" />
           {{ t('tools.tunnel.statsDialog.sample', { sec: sampleSeconds }) }}
         </span>
-        <UButton color="neutral" variant="outline" size="lg" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
+        <UButton color="neutral" variant="outline" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
           {{ t('tools.tunnel.statsDialog.exportCsv') }}
         </UButton>
-        <UButton v-if="isMobile" class="tns-foot__close" color="neutral" variant="soft" size="xl" @click="close">
+        <UButton v-if="isMobile" class="tns-foot__close" color="neutral" variant="soft" size="lg" @click="close">
           {{ t('system.common.close') }}
         </UButton>
       </footer>
@@ -535,17 +535,17 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .tns-muted { font-size: 0.75rem; color: var(--el-text-color-secondary); }
-.tns-muted.is-strong { font-weight: 700; }
+.tns-muted.is-strong { font-weight: 600; }
 
 /* 头部 */
 .tns-head { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
 .tns-head__sticker {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   flex: none;
   border-radius: 16px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   transform: rotate(-4deg);
 }
 .tns-head__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
@@ -554,8 +554,8 @@ onBeforeUnmount(() => {
   margin: 0;
   min-width: 0;
   font-family: var(--app-font-display);
-  font-size: 1.3125rem;
-  font-weight: 800;
+  font-size: 1.0625rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -572,7 +572,7 @@ onBeforeUnmount(() => {
   > span:first-child { flex: none; }
   :deep(svg) { width: 14px; height: 14px; flex: none; color: var(--m-pInk); }
 }
-.tns-head__target { color: var(--el-text-color-primary); font-weight: 700; }
+.tns-head__target { color: var(--el-text-color-primary); font-weight: 600; }
 
 /* 客户端 */
 .tns-client {
@@ -594,7 +594,7 @@ onBeforeUnmount(() => {
 .tns-client__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .tns-client__name {
   font-size: 0.8125rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -618,14 +618,14 @@ onBeforeUnmount(() => {
 .tns-seg::-webkit-scrollbar { display: none; }
 .tns-seg__btn {
   flex: none;
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 11px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -638,7 +638,7 @@ onBeforeUnmount(() => {
   min-height: 40px;
   padding: 0 4px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: pointer;
   user-select: none;
@@ -681,8 +681,8 @@ onBeforeUnmount(() => {
   gap: 6px;
   align-items: center;
   width: 100%;
-  span { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); }
-  .app-input { min-width: 0; height: 44px; }
+  span { font-size: 0.75rem; font-weight: 600; color: var(--el-text-color-secondary); }
+  .app-input { min-width: 0; height: 34px; }
 }
 
 /* 指标格 */
@@ -692,7 +692,7 @@ onBeforeUnmount(() => {
   gap: 10px;
   margin: 0;
   > div { min-width: 0; padding: 12px 14px; border-radius: var(--app-radius); background: var(--el-fill-color-light); }
-  dt { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); white-space: nowrap; }
+  dt { font-size: 0.75rem; font-weight: 500; color: var(--el-text-color-secondary); white-space: nowrap; }
   dd {
     display: flex;
     align-items: baseline;
@@ -701,8 +701,8 @@ onBeforeUnmount(() => {
     margin: 4px 0 0;
     min-width: 0;
     font-family: var(--app-font-display);
-    font-size: 1.375rem;
-    font-weight: 800;
+    font-size: 1.125rem;
+    font-weight: 600;
     color: var(--el-text-color-primary);
     small { font-family: inherit; font-size: 0.75rem; font-weight: 600; color: var(--el-text-color-secondary); }
   }
@@ -712,13 +712,13 @@ onBeforeUnmount(() => {
 /* 图表 */
 .tns-block { display: flex; flex-direction: column; gap: 8px; }
 .tns-block__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 32px; }
-.tns-block__title { flex: 1; font-size: 0.9375rem; font-weight: 800; color: var(--el-text-color-primary); }
+.tns-block__title { flex: 1; font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); }
 .tns-legend {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   i { width: 10px; height: 10px; border-radius: 3px; }
   i.is-in { background: var(--m-p); }
@@ -749,19 +749,19 @@ onBeforeUnmount(() => {
 
 @media (width <= 768px) {
   .tns-head { align-items: center; }
-  .tns-head__sticker { width: 46px; height: 46px; border-radius: 15px; }
-  .tns-head__name { font-size: 1.125rem; }
+  .tns-head__sticker { width: 36px; height: 36px; border-radius: 15px; }
+  .tns-head__name { font-size: 0.9375rem; }
   .tns-head__route { font-size: 0.72rem; }
   .tns-spacer { display: none; }
   .tns-toolbar { justify-content: space-between; }
   .tns-seg { width: 100%; }
-  .tns-seg__btn { flex: 1; min-height: 44px; padding: 0 6px; }
+  .tns-seg__btn { flex: 1; min-height: 40px; padding: 0 6px; }
   .tns-stats { gap: 8px; }
   .tns-stats > div { padding: 10px 12px; }
-  .tns-stats dd { font-size: 1.1875rem; }
+  .tns-stats dd { font-size: 1rem; }
   .tns-chart-wrap { height: 150px; }
   .tns-foot__sample { flex-basis: 100%; }
   .tns-foot > :deep(button) { flex: 1; justify-content: center; }
-  .tns-foot__close { min-height: 52px; }
+  .tns-foot__close { min-height: 44px; }
 }
 </style>

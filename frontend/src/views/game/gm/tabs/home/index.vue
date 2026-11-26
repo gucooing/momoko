@@ -6,7 +6,7 @@
      趋势图和卡池表现不在这里：抽卡在「运营管理」的「抽卡趋势」、活跃在「玩家」页的趋势弹窗里。每 5 分钟自动刷新（标签可见时）。 -->
 <template>
   <div class="gh game-skin">
-    <PageHeader :back="false" :theme-toggle="false">
+    <PageHeader>
       <template #title>{{ t('gmData.home.title') }}</template>
       <template #description>
         <span v-if="report" class="gh__status">
@@ -456,11 +456,11 @@ const logSub = (e: GmExecution) =>
 .gh {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   min-width: 0;
 }
 .gh__strong {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .gh__dim {
@@ -474,8 +474,8 @@ const logSub = (e: GmExecution) =>
   min-width: 0;
 }
 .gh__more {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--m-pInk);
   text-decoration: none;
   white-space: nowrap;
@@ -495,7 +495,7 @@ const logSub = (e: GmExecution) =>
   gap: 4px 12px;
 }
 .gh__status-srv {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   text-decoration: none;
 }
@@ -508,15 +508,15 @@ const logSub = (e: GmExecution) =>
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 28px;
-  padding: 14px 22px;
+  gap: 8px 18px;
+  padding: 14px 16px;
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
 }
 .gh__today-label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .gh__today-item {
@@ -527,8 +527,8 @@ const logSub = (e: GmExecution) =>
   text-decoration: none;
 }
 .gh__today-item b {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
 }
 a.gh__today-item:hover b {
   color: var(--m-pInk);
@@ -569,7 +569,7 @@ a.gh__today-item:hover b {
   gap: 8px;
   margin: 0;
   padding: 4px 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 .gh__calm :deep(svg),
@@ -624,11 +624,11 @@ a.gh__next:hover .gh__next-t {
 }
 .gh__next-at {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .gh__next-t {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 .gh__tag {
@@ -637,7 +637,7 @@ a.gh__next:hover .gh__next-t {
   border-radius: 999px;
   background: var(--m-s2);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 
@@ -662,8 +662,8 @@ a.gh__next:hover .gh__next-t {
   border-radius: 16px;
   background: var(--m-s2);
   color: var(--el-text-color-primary);
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
 }
 .gh__qa:hover {
@@ -700,7 +700,7 @@ a.gh__next:hover .gh__next-t {
   background: var(--m-a2Soft);
   color: var(--m-ink);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gh__log-av.is-player {
   background: var(--m-gSoft);
@@ -718,8 +718,8 @@ a.gh__next:hover .gh__next-t {
   margin: 0;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px 20px;
-  font-size: 0.875rem;
+  gap: 12px 14px;
+  font-size: 0.8125rem;
 }
 .gh__facts > div {
   display: contents;
@@ -730,7 +730,7 @@ a.gh__next:hover .gh__next-t {
 .gh__facts dd {
   margin: 0;
   min-width: 0;
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -746,7 +746,7 @@ a.gh__next:hover .gh__next-t {
 }
 @media (max-width: 760px) {
   .gh__today {
-    gap: 8px 18px;
+    gap: 8px 14px;
     padding: 12px 16px;
   }
   .gh__next {

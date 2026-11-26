@@ -122,13 +122,13 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   min-width: 0;
 }
 .pvp__power {
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pvp__link {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--m-pInk);
   text-decoration: none;
 }
@@ -147,8 +147,8 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   background: var(--el-fill-color-light);
 }
 .pvp__stat-v {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .pvp__battles {
   margin: 0;
@@ -166,7 +166,7 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   flex: 1;
   min-width: 0;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   text-decoration: none;
   overflow: hidden;
@@ -177,7 +177,7 @@ a.pvp__rival:hover {
   color: var(--m-pInk);
 }
 .pvp__delta {
-  font-weight: 800;
+  font-weight: 600;
 }
 .pvp__delta.is-up {
   color: var(--m-ok);

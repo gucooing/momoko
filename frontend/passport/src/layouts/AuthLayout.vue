@@ -52,7 +52,7 @@ const onLang = (e: Event) => setLocale((e.target as HTMLSelectElement).value)
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 24px;
+  padding: 14px 16px;
 }
 .auth__brand {
   display: flex;
@@ -62,17 +62,17 @@ const onLang = (e: Event) => setLocale((e.target as HTMLSelectElement).value)
   text-decoration: none;
 }
 .auth__logo {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 12px;
   background: var(--m-p);
   color: var(--m-pOn);
-  font-size: 19px;
+  font-size: 16px;
   transform: rotate(-6deg);
 }
 .auth__name {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .auth__spacer {
   flex: 1;
@@ -91,8 +91,8 @@ const onLang = (e: Event) => setLocale((e.target as HTMLSelectElement).value)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -108,13 +108,13 @@ const onLang = (e: Event) => setLocale((e.target as HTMLSelectElement).value)
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 32px 16px 56px;
+  padding: 20px 16px 42px;
 }
 .auth__card {
   position: relative;
   width: 100%;
   max-width: 440px;
-  padding: 32px 28px 28px;
+  padding: 20px 18px 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -132,12 +132,12 @@ const onLang = (e: Event) => setLocale((e.target as HTMLSelectElement).value)
 }
 .auth__title {
   position: relative;
-  font-size: 28px;
+  font-size: 22px;
 }
 .auth__sub {
   position: relative;
   margin: -6px 0 4px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
   color: var(--m-ink2);
 }
@@ -146,10 +146,10 @@ const onLang = (e: Event) => setLocale((e.target as HTMLSelectElement).value)
     padding: 10px 12px 10px 16px;
   }
   .auth__main {
-    padding: 12px 12px 40px;
+    padding: 12px 12px 30px;
   }
   .auth__card {
-    padding: 24px 18px 22px;
+    padding: 16px 14px 16px;
   }
 }
 </style>

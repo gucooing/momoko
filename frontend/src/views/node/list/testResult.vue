@@ -83,8 +83,8 @@ const stateLabel = computed(() => {
   gap: 10px;
 }
 .node-test__av {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
   transform: rotate(-4deg);
 }
@@ -94,7 +94,7 @@ const stateLabel = computed(() => {
 }
 .node-test__latency {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .node-test__message {
@@ -128,7 +128,7 @@ const stateLabel = computed(() => {
 }
 .node-test__grid dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .node-test__grid dd {
@@ -145,7 +145,7 @@ const stateLabel = computed(() => {
 }
 .node-test__perms-title {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 </style>

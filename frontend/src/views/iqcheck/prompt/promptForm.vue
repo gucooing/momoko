@@ -177,7 +177,7 @@ defineExpose({ showDialog })
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 36px;
+  min-height: 30px;
   font-size: 0.8125rem;
   color: var(--el-text-color-regular);
 }

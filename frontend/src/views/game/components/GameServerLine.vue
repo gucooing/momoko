@@ -74,7 +74,7 @@ const { t, te } = useI18n()
   min-width: 0;
 }
 .gsl__name {
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

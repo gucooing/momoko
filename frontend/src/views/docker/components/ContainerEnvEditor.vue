@@ -9,7 +9,7 @@
         <span class="spec-fld"><input v-model.trim="row.key" placeholder="KEY" :aria-label="t('docker.wizard.envKey')" /></span>
         <span class="spec-eq">=</span>
         <span class="spec-fld"><input v-model="row.value" placeholder="value" :aria-label="t('docker.wizard.envValueOf', { key: row.key || 'KEY' })" /></span>
-        <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removeEnv', { key: row.key })" :box="36" :size="17" @click="remove(i)" />
+        <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removeEnv', { key: row.key })" :box="30" :size="17" @click="remove(i)" />
       </div>
       <div v-if="!model.length && emptyText" class="spec-empty">{{ emptyText }}</div>
     </template>
@@ -20,7 +20,7 @@
           <span class="spec-fld"><input v-model.trim="row.key" class="ee-key" placeholder="KEY" :aria-label="t('docker.wizard.envKey')" /></span>
           <span class="spec-fld"><span class="spec-eq">=</span><input v-model="row.value" placeholder="value" :aria-label="t('docker.wizard.envValueOf', { key: row.key || 'KEY' })" /></span>
         </div>
-        <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removeEnv', { key: row.key })" :box="44" @click="remove(i)" />
+        <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removeEnv', { key: row.key })" :box="36" @click="remove(i)" />
       </div>
       <div class="ee-macts">
         <button type="button" class="ee-mbtn is-add" @click="add"><UIcon name="i-lucide-plus" />{{ t('docker.wizard.addEnv') }}</button>
@@ -76,7 +76,7 @@ defineExpose({ add })
   gap: 6px;
 }
 .ee-key {
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 .ee-macts {
   display: flex;
@@ -87,13 +87,13 @@ defineExpose({ add })
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 8px;
   border: none;
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
 }
 .ee-mbtn.is-add {

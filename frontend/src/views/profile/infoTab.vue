@@ -201,7 +201,7 @@ onMounted(() => {
 .profile {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
   width: 100%;
   min-width: 0;
 }
@@ -209,13 +209,13 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 24px;
+  gap: 16px;
 }
 .profile-col {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .profile-col--main {
   flex: 3 1 560px;
@@ -244,10 +244,10 @@ onMounted(() => {
   border-color: var(--m-p);
 }
 .appearance-card__sk {
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
-  font-size: 21px;
+  font-size: 17px;
   transform: rotate(-4deg);
 }
 .appearance-card__text {
@@ -257,8 +257,8 @@ onMounted(() => {
   flex-direction: column;
   gap: 2px;
   strong {
-    font-size: 0.9375rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
   span {
     font-size: 0.8125rem;
@@ -272,41 +272,41 @@ onMounted(() => {
 }
 .logout-btn {
   align-self: flex-start;
-  min-height: 40px;
+  min-height: 32px;
 }
 
 /* ---- 手机 ---- */
 .profile-m {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
 }
 .m-group__h {
   margin: 0 6px 8px;
   font-family: var(--app-font-display);
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .m-group__card :deep(.app-panel__body) {
   padding: 2px 14px;
 }
 .m-group__card :deep(.pf-row) {
-  min-height: 60px;
+  min-height: 50px;
   padding: 8px 0;
 }
 .m-group__card :deep(.pf-row__sk) {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
-  font-size: 18px;
+  font-size: 15px;
 }
 .m-val {
   max-width: 40vw;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .m-lang {
@@ -324,8 +324,8 @@ onMounted(() => {
   background: var(--el-bg-color);
   color: var(--m-bad);
   font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .m-foot {

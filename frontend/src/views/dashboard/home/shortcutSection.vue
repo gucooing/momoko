@@ -188,8 +188,8 @@ const resetCustomize = () => {
 .sc__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .sc__spacer {
@@ -199,7 +199,7 @@ const resetCustomize = () => {
   min-height: 36px;
   padding-inline: 14px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .sc__grid {
   display: grid;
@@ -213,7 +213,7 @@ const resetCustomize = () => {
   min-width: 0;
   padding: 12px 10px;
   border: 1px solid var(--el-border-color-light);
-  border-radius: 18px;
+  border-radius: 14px;
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
@@ -225,8 +225,8 @@ const resetCustomize = () => {
   background: var(--el-fill-color-light);
 }
 .sc__icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
 }
 .sc__icon :deep(svg) {
@@ -237,8 +237,8 @@ const resetCustomize = () => {
   display: -webkit-box;
   min-width: 0;
   overflow: hidden;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   line-height: 1.25;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -259,7 +259,7 @@ const resetCustomize = () => {
     gap: 14px;
   }
   .sc__title {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
   .sc__grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -274,9 +274,9 @@ const resetCustomize = () => {
     text-align: center;
   }
   .sc__icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 18px;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
   }
   .sc__label {
     display: block;
@@ -321,8 +321,8 @@ const resetCustomize = () => {
 .sc-dlg__name {
   flex: 1;
   min-width: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .sc-dlg__spacer {
   flex: 1;

@@ -129,14 +129,14 @@ const pickFirst = (close: () => void) => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .gsp-trigger__icon {
@@ -156,7 +156,7 @@ const pickFirst = (close: () => void) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   margin-bottom: 6px;
   border-radius: 999px;
@@ -179,7 +179,7 @@ const pickFirst = (close: () => void) => {
 .gsp__label {
   padding: 8px 8px 4px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .gsp__row {
@@ -201,7 +201,7 @@ const pickFirst = (close: () => void) => {
   background: var(--m-pSoft);
 }
 .gsp__name {
-  font-weight: 700;
+  font-weight: 600;
 }
 .gsp__hint,
 .gsp__foot {

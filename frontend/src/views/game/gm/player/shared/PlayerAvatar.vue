@@ -42,7 +42,7 @@ const initial = computed(() => (props.name || '?').trim().slice(0, 1).toUpperCas
 }
 .pav__initial {
   font-family: var(--app-font-display);
-  font-weight: 800;
+  font-weight: 600;
 }
 .pav__dot {
   position: absolute;

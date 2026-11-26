@@ -397,14 +397,14 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
     display: none;
   }
   button {
-    min-height: 36px;
+    min-height: 30px;
     padding: 0 16px;
     border: 0;
     border-radius: 999px;
     background: transparent;
     font: inherit;
     font-size: 0.8125rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--m-ink2);
     cursor: pointer;
     white-space: nowrap;
@@ -439,14 +439,14 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
   display: inline-flex;
   align-items: center;
   flex: none;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--m-line);
   background: var(--m-s);
   color: var(--m-ink2);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   &:hover {
@@ -460,7 +460,7 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
   }
 }
 .bge--editor .bge-chip {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 12px;
   font-size: 0.8125rem;
 }
@@ -482,7 +482,7 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 14px;
   border: 1px solid var(--m-line);
   &.is-drop {
     outline: 2px dashed var(--m-p);
@@ -635,7 +635,7 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
 .bge-sliders {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 14px 20px;
+  gap: 14px 14px;
 }
 .bge--mobile .bge-sliders,
 .bge--editor .bge-sliders {
@@ -656,7 +656,7 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
   align-items: center;
   gap: 8px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   span {
     flex: 1;
   }
@@ -682,7 +682,7 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
 }
 .bge-row__label {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .bge-row__spacer {
   flex: 1;
@@ -693,7 +693,7 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
   flex-wrap: wrap;
   gap: 10px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   small {
     font-weight: 500;
@@ -740,7 +740,7 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-s2);
 }
 .bge--mobile .bge-gbox,
@@ -794,8 +794,8 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
   input {
     position: absolute;
     inset: -8px;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     opacity: 0;
     cursor: pointer;
   }
@@ -848,7 +848,7 @@ const onDrop = (e: DragEvent) => void useFile(e.dataTransfer?.files?.[0])
   align-items: center;
   gap: 12px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   span {
     width: 40px;
   }

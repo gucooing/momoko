@@ -42,7 +42,7 @@ const { t } = useI18n()
 .ggc {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .ggc__field {
   display: flex;
@@ -52,7 +52,7 @@ const { t } = useI18n()
 }
 .ggc__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .ggc__hint {
   font-size: 12px;
@@ -60,7 +60,7 @@ const { t } = useI18n()
   color: var(--el-text-color-secondary);
 }
 .ggc__input {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   border: 1.5px solid var(--el-border-color-light);

@@ -212,7 +212,7 @@ onBeforeUnmount(disconnect)
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .ct__role.is-on {
@@ -243,7 +243,7 @@ onBeforeUnmount(disconnect)
 .ct__cmd input {
   flex: 1;
   min-width: 0;
-  min-height: 40px;
+  min-height: 32px;
   border: none;
   outline: none;
   background: transparent;

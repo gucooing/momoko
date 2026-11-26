@@ -1,7 +1,6 @@
 // 性能监控（MonitorPC / MonitorMobile / MonitorSettings*）文案
 export default {
   'zh-CN': {
-    shell: { more: { appsAndMonitor: '应用与监控' } },
     node: { permission: { items: { monitorEdit: '修改性能监控设置' } } },
     systemV2: { tasks: { types: { monitorCleanup: '性能监控数据清理' } } },
     monitor: {
@@ -183,7 +182,6 @@ export default {
     },
   },
   'zh-HK': {
-    shell: { more: { appsAndMonitor: '應用與監控' } },
     node: { permission: { items: { monitorEdit: '修改效能監控設定' } } },
     systemV2: { tasks: { types: { monitorCleanup: '效能監控資料清理' } } },
     monitor: {
@@ -365,7 +363,6 @@ export default {
     },
   },
   'en-US': {
-    shell: { more: { appsAndMonitor: 'Apps and monitoring' } },
     node: { permission: { items: { monitorEdit: 'Edit monitoring settings' } } },
     systemV2: { tasks: { types: { monitorCleanup: 'Monitoring data cleanup' } } },
     monitor: {

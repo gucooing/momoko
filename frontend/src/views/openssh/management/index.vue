@@ -27,7 +27,7 @@
           v-else
           icon="HOutline:SignalIcon"
           :label="t('ssh.list.batchTest')"
-          :box="44"
+          :box="36"
           :class="{ 'is-spinning': batchTesting }"
           @click="runBatchTest()"
         />
@@ -183,15 +183,15 @@
               icon="HOutline:CommandLineIcon"
               class="is-primary"
               :label="t('ssh.list.openTerminalOf', { name: row.name })"
-              :box="44"
+              :box="36"
               @click="connectSsh(row)"
             />
           </template>
           <AppIconButton
             icon="HOutline:SignalIcon"
             :label="t('ssh.list.testOf', { name: row.name })"
-            :box="menuStore.isMobile ? 44 : 36"
-            :size="18"
+            :box="menuStore.isMobile ? 36 : 30"
+            :size="16"
             :disabled="testingIds.has(row.id)"
             @click="testOne(row)"
           />
@@ -199,16 +199,16 @@
             v-if="isOwner(row) && !nodeStore.isRemote"
             icon="HOutline:ShareIcon"
             :label="t('ssh.list.shareOf', { name: row.name })"
-            :box="menuStore.isMobile ? 44 : 36"
-            :size="18"
+            :box="menuStore.isMobile ? 36 : 30"
+            :size="16"
             @click="openShareDialog(row)"
           />
           <AppIconButton
             v-if="isOwner(row)"
             icon="HOutline:PencilSquareIcon"
             :label="t('ssh.list.editOf', { name: row.name })"
-            :box="menuStore.isMobile ? 44 : 36"
-            :size="18"
+            :box="menuStore.isMobile ? 36 : 30"
+            :size="16"
             @click="createRef?.showDialog(row)"
           />
           <ActionMenu :items="rowActionsFor(row)" :label="t('ssh.list.moreOf', { name: row.name })" @select="(key) => onRowAction(key, row)" />
@@ -226,7 +226,7 @@
 
     <!-- 手机：悬浮添加按钮 -->
     <div v-if="menuStore.isMobile && !selectedIds.length" class="ssh-fab">
-      <UButton color="primary" size="xl" icon="i-lucide-plus" class="ssh-fab__btn" @click="openCreateDialog()">
+      <UButton color="primary" size="lg" icon="i-lucide-plus" class="ssh-fab__btn" @click="openCreateDialog()">
         {{ t('ssh.list.add') }}
       </UButton>
     </div>
@@ -578,19 +578,19 @@ onMounted(() => {
 .ssh-page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-bottom: 72px;
+  gap: 14px;
+  padding-bottom: 54px;
 }
 .ssh-page__em {
   color: var(--m-pInk);
-  font-weight: 700;
+  font-weight: 600;
 }
 .ssh-page__group {
   width: 180px;
 }
 /* 与搜索胶囊同高 */
 .ssh-page__group :deep(.app-sel__trigger) {
-  height: 40px;
+  height: 32px;
   border-radius: 999px;
   padding-inline: 14px 10px;
 }
@@ -603,15 +603,15 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 14px 18px;
+  gap: 14px 14px;
   padding: calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 16) calc(var(--cmp-card-unit) * 20);
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl);
   background: var(--el-bg-color);
 }
 .ssh-batch__av {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 16px;
   transform: rotate(-4deg);
 }
@@ -632,8 +632,8 @@ onMounted(() => {
 }
 .ssh-batch__nums {
   font-family: var(--app-font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.1875rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
 }
@@ -692,7 +692,7 @@ onMounted(() => {
   white-space: nowrap;
 }
 .ssh-batch__fail-cta {
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .ssh-batch__lat {
@@ -738,8 +738,8 @@ onMounted(() => {
   min-width: 0;
 }
 .ssh-card__av {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   border-radius: 15px;
   font-size: 1.2rem;
   flex: none;
@@ -753,8 +753,8 @@ onMounted(() => {
 }
 .ssh-card__name {
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -848,13 +848,13 @@ onMounted(() => {
 }
 .ssh-card__info dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .ssh-card__info dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -907,8 +907,8 @@ onMounted(() => {
 }
 .ssh-fab__btn {
   pointer-events: auto;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border-radius: var(--app-radius-pill);
   box-shadow: var(--app-shadow-brand);
 }
@@ -923,14 +923,14 @@ onMounted(() => {
   gap: 6px;
   width: min(720px, calc(100vw - 32px));
   min-height: 60px;
-  padding: 8px 8px 8px 20px;
+  padding: 8px 8px 8px 14px;
   border-radius: var(--app-radius-pill);
   background: var(--m-ink);
   color: var(--m-bg);
   box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.45);
 }
 .ssh-bulk__count {
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .ssh-bulk__spacer {
@@ -940,15 +940,15 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 14px;
   border: 0;
   border-radius: var(--app-radius-pill);
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1009,7 +1009,7 @@ onMounted(() => {
     width: 100%;
   }
   .ssh-page__group :deep(.app-sel__trigger) {
-    height: 44px;
+    height: 40px;
   }
   .ssh-batch {
     flex-direction: column;
@@ -1051,16 +1051,16 @@ onMounted(() => {
     border-top: 1px solid var(--el-border-color-lighter);
   }
   .ssh-card__foot :deep(.action-menu__trigger) {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 14px;
   }
   .ssh-bulk {
-    bottom: calc(80px + env(safe-area-inset-bottom));
+    bottom: calc(12px + env(safe-area-inset-bottom));
     padding-left: 16px;
   }
   .ssh-bulk__count {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
 }
 </style>

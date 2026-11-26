@@ -83,50 +83,56 @@ const setView = (key: View) => void router.replace({ query: { ...route.query, vi
 .gop__h {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 .gop__seg {
   display: inline-flex;
-  gap: 4px;
-  padding: 4px;
+  gap: 2px;
+  padding: 3px;
   border-radius: 999px;
   background: var(--el-fill-color-light);
 }
 .gop__seg-btn {
-  min-height: 34px;
-  padding: 0 16px;
+  min-height: 26px;
+  padding: 0 12px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 500;
   cursor: pointer;
 }
 .gop__seg-btn.is-on {
   background: var(--m-ink);
   color: var(--m-bg);
+  font-weight: 600;
 }
 .gop__seg-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  margin-left: 6px;
-  padding: 0 5px;
+  min-width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  padding: 0 4px;
   border-radius: 999px;
   background: var(--m-bad);
   color: var(--m-s);
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+@media (width < 992px) {
+  .gop__seg-btn {
+    min-height: 34px;
+  }
 }
 @media (width < 768px) {
   .gop__h {
-    font-size: 24px;
+    font-size: 21px;
   }
 }
 </style>

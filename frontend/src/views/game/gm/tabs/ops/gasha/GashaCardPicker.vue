@@ -185,7 +185,7 @@ watch(
   flex-direction: column;
   gap: 12px;
   padding: 14px;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--m-bg);
   min-width: 0;
@@ -201,7 +201,7 @@ watch(
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   background: var(--el-bg-color);
@@ -244,7 +244,7 @@ watch(
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .gcp__char:hover {
@@ -323,7 +323,7 @@ watch(
 }
 .gcp__card-name {
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   padding: 0 2px;
   display: -webkit-box;
   -webkit-line-clamp: 2;

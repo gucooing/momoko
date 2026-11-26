@@ -364,7 +364,7 @@ onActivated(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 20px 22px;
+  padding: 14px 16px;
   border-radius: var(--app-radius-lg);
   border: var(--cmp-card-border-width, 1px) solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -376,13 +376,13 @@ onActivated(() => {
 }
 .up__ico {
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 .up__card-title {
   flex: 1;
@@ -391,7 +391,7 @@ onActivated(() => {
   flex-direction: column;
 }
 .up__card-title b {
-  font-size: 1.0625rem;
+  font-size: 0.875rem;
 }
 .up__card-title small,
 .up__hint,
@@ -425,8 +425,8 @@ onActivated(() => {
 }
 .up__dl dd {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -452,7 +452,7 @@ onActivated(() => {
 }
 .up__label {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .up__builds {
   display: flex;
@@ -500,7 +500,7 @@ onActivated(() => {
   justify-content: space-between;
   gap: 10px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .up__bar {
   height: 6px;
@@ -517,7 +517,7 @@ onActivated(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .up__dialog p {
@@ -530,7 +530,7 @@ onActivated(() => {
 }
 .up__field > span {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 @media (width <= 768px) {
   .up__cards {

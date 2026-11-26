@@ -184,8 +184,7 @@ const resetMfa = () => {
   flex: 1;
 }
 .code {
-  letter-spacing: 0.4em;
-  font-size: 20px !important;
+  font-size: 16px !important;
   text-align: center;
 }
 .remember {
@@ -193,7 +192,7 @@ const resetMfa = () => {
   align-items: center;
   gap: 8px;
   min-height: 40px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
 .remember input {
@@ -208,14 +207,14 @@ const resetMfa = () => {
   background: var(--m-badSoft);
   color: var(--m-bad);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .links {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
 }
 .links a,
 .link {
@@ -230,7 +229,7 @@ const resetMfa = () => {
   background: transparent;
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 </style>

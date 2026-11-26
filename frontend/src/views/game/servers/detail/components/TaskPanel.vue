@@ -131,7 +131,7 @@ const cancel = async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 10px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .tp__meta {
   flex: 1;
@@ -171,7 +171,7 @@ const cancel = async () => {
 }
 .tp__steps li.is-running {
   color: var(--m-pInk);
-  font-weight: 700;
+  font-weight: 600;
 }
 .tp__spin {
   animation: tp-spin 1s linear infinite;
@@ -193,7 +193,7 @@ const cancel = async () => {
   display: flex;
   align-items: center;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .tp__logs pre {
   margin: 6px 0 0;

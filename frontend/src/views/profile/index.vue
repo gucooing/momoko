@@ -11,11 +11,10 @@
     <PageHeader
       v-else
       :title="onAppearance ? t('theme.title') : t('layout.profile')"
-      :back="onAppearance ? true : 'auto'"
-      :theme-toggle="!onAppearance"
+      :back="onAppearance"
     >
       <template v-if="onAppearance" #actions>
-        <AppIconButton icon="HOutline:ArrowUpTrayIcon" :label="t('theme.importPkg')" :box="44" @click="openThemeImport()" />
+        <AppIconButton icon="HOutline:ArrowUpTrayIcon" :label="t('theme.importPkg')" :box="36" @click="openThemeImport()" />
         <button type="button" class="profile-reset" @click="themeStore.resetAppearance()">
           {{ t('theme.reset') }}
         </button>
@@ -46,7 +45,7 @@ const onAppearance = computed(() => current.value?.key === 'appearance')
 .profile-page {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
   width: 100%;
   min-width: 0;
 }
@@ -56,15 +55,15 @@ const onAppearance = computed(() => current.value?.key === 'appearance')
   gap: 6px;
 }
 .profile-head__eyebrow {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .profile-head__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 2.125rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
 }
@@ -79,8 +78,8 @@ const onAppearance = computed(() => current.value?.key === 'appearance')
   background: transparent;
   color: var(--m-pInk);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .profile-reset:hover {
@@ -88,7 +87,7 @@ const onAppearance = computed(() => current.value?.key === 'appearance')
 }
 @media (width < 992px) {
   .profile-page {
-    gap: 18px;
+    gap: 14px;
   }
 }
 </style>

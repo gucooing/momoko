@@ -306,14 +306,14 @@ const select = (key: string) => {
 .gc__search {
   flex: 0 1 240px;
   min-width: 0;
-  height: 36px;
+  height: 30px;
   padding: 0 14px;
   border: 1px solid var(--m-line);
   border-radius: 999px;
   background: var(--m-s);
   color: var(--m-ink);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
 }
 .gc__search:focus {
   outline: none;
@@ -344,7 +344,7 @@ const select = (key: string) => {
 .gc__main {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 14px;
   align-items: flex-start;
 }
 .gc__grid-wrap {
@@ -364,7 +364,7 @@ const select = (key: string) => {
   flex-direction: column;
   gap: 8px;
   padding: 8px;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 2px solid transparent;
   background: var(--m-s);
   color: var(--m-ink);
@@ -398,7 +398,7 @@ const select = (key: string) => {
   border-radius: 999px;
   background: var(--m-s);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gc__rar--3 {
   background: var(--m-a);
@@ -409,8 +409,8 @@ const select = (key: string) => {
 }
 .gc__name {
   padding: 0 4px;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -425,7 +425,7 @@ const select = (key: string) => {
   color: var(--m-bad);
 }
 .gc__sheet {
-  margin: -8px -20px -18px;
+  margin: -8px -14px -14px;
 }
 @media (max-width: 768px) {
   .gc__grid {

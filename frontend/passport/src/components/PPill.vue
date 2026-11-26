@@ -19,7 +19,7 @@ withDefaults(defineProps<{ tone?: 'ok' | 'warn' | 'bad' | 'off' | 'p' | 'g'; dot
   padding: 0 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
   color: var(--pp-fg);
   background: var(--pp-bg);

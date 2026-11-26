@@ -10,7 +10,7 @@
         <span class="fpv__name" :title="row.name">{{ row.name }}</span>
         <span class="fpv__meta m-num">{{ formatFileSize(row.size) }} · {{ kindLabel }}</span>
       </span>
-      <AppIconButton icon="HOutline:XMarkIcon" :label="t('fileManager.closePreview')" :box="36" :size="16" @click="emit('close')" />
+      <AppIconButton icon="HOutline:XMarkIcon" :label="t('fileManager.closePreview')" :box="30" :size="16" @click="emit('close')" />
     </header>
 
     <!-- 加载中 -->
@@ -35,7 +35,7 @@
         <UButton color="neutral" variant="outline" size="sm" icon="i-lucide-download" @click="emit('download', row)">
           {{ t('fileManager.download') }}
         </UButton>
-        <AppIconButton v-if="canShare" icon="HOutline:ShareIcon" :label="t('fileManager.share')" :box="36" :size="16" @click="emit('share', row)" />
+        <AppIconButton v-if="canShare" icon="HOutline:ShareIcon" :label="t('fileManager.share')" :box="30" :size="16" @click="emit('share', row)" />
       </div>
     </template>
 
@@ -52,7 +52,7 @@
         <UButton color="neutral" variant="outline" size="sm" icon="i-lucide-download" @click="emit('download', row)">
           {{ t('fileManager.download') }}
         </UButton>
-        <AppIconButton v-if="canShare" icon="HOutline:ShareIcon" :label="t('fileManager.share')" :box="36" :size="16" @click="emit('share', row)" />
+        <AppIconButton v-if="canShare" icon="HOutline:ShareIcon" :label="t('fileManager.share')" :box="30" :size="16" @click="emit('share', row)" />
       </div>
     </template>
 
@@ -83,7 +83,7 @@
         <UButton class="fpv__grow" color="primary" size="sm" icon="i-lucide-download" @click="emit('download', row)">
           {{ t('fileManager.download') }}
         </UButton>
-        <AppIconButton v-if="canShare" icon="HOutline:ShareIcon" :label="t('fileManager.share')" :box="36" :size="16" @click="emit('share', row)" />
+        <AppIconButton v-if="canShare" icon="HOutline:ShareIcon" :label="t('fileManager.share')" :box="30" :size="16" @click="emit('share', row)" />
       </div>
     </template>
 
@@ -258,8 +258,8 @@ watch(() => props.row.path, load, { immediate: true })
 }
 .fpv__sticker {
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 15px;
 }
 .fpv__sticker :deep(svg),
@@ -275,8 +275,8 @@ watch(() => props.row.path, load, { immediate: true })
   gap: 2px;
 }
 .fpv__name {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -287,8 +287,7 @@ watch(() => props.row.path, load, { immediate: true })
 }
 .fpv__lbl {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .fpv__code {
@@ -327,7 +326,7 @@ watch(() => props.row.path, load, { immediate: true })
 }
 .fpv__txt.is-head {
   color: var(--m-pInk);
-  font-weight: 700;
+  font-weight: 600;
 }
 .fpv__more {
   margin-top: 6px;
@@ -340,9 +339,9 @@ watch(() => props.row.path, load, { immediate: true })
   gap: 8px;
 }
 .fpv__acts :deep(button) {
-  min-height: 36px;
+  min-height: 30px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .fpv__grow {
   flex: 1;
@@ -355,7 +354,7 @@ watch(() => props.row.path, load, { immediate: true })
   justify-content: center;
   height: 200px;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-a2Soft);
 }
 .fpv__img img {
@@ -371,15 +370,15 @@ watch(() => props.row.path, load, { immediate: true })
   border-radius: 999px;
   background: var(--el-bg-color);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .fpv__none {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 28px 16px;
-  border-radius: 18px;
+  padding: 18px 16px;
+  border-radius: 14px;
   background: var(--m-s2);
   text-align: center;
 }
@@ -389,8 +388,8 @@ watch(() => props.row.path, load, { immediate: true })
   color: var(--el-text-color-secondary);
 }
 .fpv__none-title {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .fpv__none-desc {
   font-size: 0.8125rem;
@@ -427,13 +426,13 @@ watch(() => props.row.path, load, { immediate: true })
 }
 .fpv__info dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .fpv__info dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -167,8 +167,8 @@ const format = (e: DiffEntry, v: unknown): string => {
 .cdv__title {
   flex: 1;
   min-width: 0;
-  font-weight: 800;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 .cdv__count {
@@ -176,7 +176,7 @@ const format = (e: DiffEntry, v: unknown): string => {
   border-radius: 999px;
   background: var(--m-s2);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .cdv__row {
   display: grid;
@@ -192,7 +192,7 @@ const format = (e: DiffEntry, v: unknown): string => {
   padding: 1px 8px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .cdv__kind.is-added {
@@ -209,7 +209,7 @@ const format = (e: DiffEntry, v: unknown): string => {
 }
 .cdv__path {
   color: var(--el-text-color-secondary);
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .cdv__values {
@@ -227,7 +227,7 @@ const format = (e: DiffEntry, v: unknown): string => {
   text-decoration: line-through;
 }
 .cdv__after {
-  font-weight: 700;
+  font-weight: 600;
 }
 .cdv__arrow {
   width: 14px;

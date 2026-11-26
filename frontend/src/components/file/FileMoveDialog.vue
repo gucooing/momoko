@@ -83,7 +83,7 @@ const description = computed(() =>
 }
 .fmv__desc {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .fmv__tree {
@@ -110,7 +110,7 @@ const description = computed(() =>
   background: transparent;
   color: var(--el-text-color-primary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
@@ -141,7 +141,7 @@ const description = computed(() =>
 .fmv__label {
   flex: none;
   color: var(--el-text-color-secondary);
-  font-weight: 700;
+  font-weight: 500;
 }
 .fmv__path {
   min-width: 0;

@@ -1,8 +1,7 @@
-<!-- 节点切换器：显示当前操作的节点（本机 / 远程）、在线状态与主机名，下拉切换。切换会整页重载（见 stores/node）。
-     variant='sidebar'：侧栏卡片（虚线框 + 贴纸）；'pill'：手机工作台的虚线胶囊；'hero'：主色卡片上的半透明胶囊。
+<!-- 节点切换器（侧栏卡片）：显示当前操作的节点（本机 / 远程）、在线状态与主机名，下拉切换。切换会整页重载（见 stores/node）。
      没有可切换的节点时只展示当前机器，不弹出菜单。 -->
 <template>
-  <AppDropdown v-if="canSwitch" align="start" :width="320" :block="variant === 'sidebar'">
+  <AppDropdown v-if="canSwitch" align="start" :width="320" block>
     <template #trigger="{ open }">
       <button
         type="button"
@@ -12,21 +11,14 @@
         :aria-expanded="open"
         @click="!open && onOpen()"
       >
-        <template v-if="variant === 'sidebar'">
-          <span class="ns-card__sk m-sticker m-sticker--a2" aria-hidden="true">
-            <component :is="ic('HOutline:ServerIcon')" />
-          </span>
-          <span v-if="!collapsed" class="ns-card__text">
-            <span class="ns-card__state" :style="{ color: tone }">● {{ stateLine }}</span>
-            <span class="ns-card__name">{{ nameLine }}</span>
-          </span>
-          <component :is="ic('HOutline:ChevronUpDownIcon')" v-if="!collapsed" class="ns-card__caret" />
-        </template>
-        <template v-else>
-          <span class="ns-pill__dot" :style="{ background: variant === 'hero' ? 'var(--m-a)' : tone }" />
-          <span class="ns-pill__label">{{ pillLabel }}</span>
-          <component :is="ic('HOutline:ChevronUpDownIcon')" class="ns-pill__caret" />
-        </template>
+        <span class="ns-card__sk m-sticker m-sticker--a2" aria-hidden="true">
+          <component :is="ic('HOutline:ServerIcon')" />
+        </span>
+        <span v-if="!collapsed" class="ns-card__text">
+          <span class="ns-card__state" :style="{ color: tone }">● {{ stateLine }}</span>
+          <span class="ns-card__name">{{ nameLine }}</span>
+        </span>
+        <component :is="ic('HOutline:ChevronUpDownIcon')" v-if="!collapsed" class="ns-card__caret" />
       </button>
     </template>
     <template #default="{ close }">
@@ -96,19 +88,13 @@
 
   <!-- 不可切换：只展示当前机器 -->
   <div v-else :class="triggerClass" class="is-static">
-    <template v-if="variant === 'sidebar'">
-      <span class="ns-card__sk m-sticker m-sticker--a2" aria-hidden="true">
-        <component :is="ic('HOutline:ServerIcon')" />
-      </span>
-      <span v-if="!collapsed" class="ns-card__text">
-        <span class="ns-card__state" :style="{ color: tone }">● {{ stateLine }}</span>
-        <span class="ns-card__name">{{ nameLine }}</span>
-      </span>
-    </template>
-    <template v-else>
-      <span class="ns-pill__dot" :style="{ background: variant === 'hero' ? 'var(--m-a)' : tone }" />
-      <span class="ns-pill__label">{{ pillLabel }}</span>
-    </template>
+    <span class="ns-card__sk m-sticker m-sticker--a2" aria-hidden="true">
+      <component :is="ic('HOutline:ServerIcon')" />
+    </span>
+    <span v-if="!collapsed" class="ns-card__text">
+      <span class="ns-card__state" :style="{ color: tone }">● {{ stateLine }}</span>
+      <span class="ns-card__name">{{ nameLine }}</span>
+    </span>
   </div>
 </template>
 
@@ -117,10 +103,7 @@ import { useI18n } from 'vue-i18n'
 import { NodeState, type NodeInfo } from '@/types/v1/node'
 import { useCurrentHostname } from './useLocalHost'
 
-const props = withDefaults(
-  defineProps<{ variant?: 'sidebar' | 'pill' | 'hero'; collapsed?: boolean }>(),
-  { variant: 'sidebar', collapsed: false },
-)
+const props = withDefaults(defineProps<{ collapsed?: boolean }>(), { collapsed: false })
 
 const nodeStore = useNodeStore()
 const menuStore = useMenuStore()
@@ -167,19 +150,7 @@ const nameLine = computed(() =>
     ? nodeStore.contextInfo?.name || hostname.value || t('node.switcher.remote')
     : hostname.value || t('node.switcher.localDesc'),
 )
-const pillLabel = computed(() =>
-  nodeStore.isRemote
-    ? `${t('node.switcher.remote')} · ${nameLine.value}`
-    : hostname.value
-      ? `${t('node.switcher.local')} · ${hostname.value}`
-      : t('node.switcher.local'),
-)
-
-const triggerClass = computed(() =>
-  props.variant === 'sidebar'
-    ? ['ns-card', { 'is-collapsed': props.collapsed, 'is-remote': nodeStore.isRemote }]
-    : ['ns-pill', `ns-pill--${props.variant}`],
-)
+const triggerClass = computed(() => ['ns-card', { 'is-collapsed': props.collapsed, 'is-remote': nodeStore.isRemote }])
 
 const onOpen = () => {
   if (canViewNodes.value) void nodeStore.loadNodes()
@@ -208,10 +179,10 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 56px;
-  padding: 8px 12px;
+  min-height: 48px;
+  padding: 6px 10px;
   border: 1.5px dashed var(--el-border-color-light);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--el-bg-color-page);
   color: var(--el-text-color-primary);
   font: inherit;
@@ -238,13 +209,13 @@ button.ns-card:hover {
   margin: 0 auto;
 }
 .ns-card__sk {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
 }
 .ns-card__sk :deep(svg) {
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
 }
 .ns-card__text {
   flex: 1;
@@ -254,14 +225,14 @@ button.ns-card:hover {
 }
 .ns-card__state {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .ns-card__name {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -271,52 +242,6 @@ button.ns-card:hover {
   height: 16px;
   flex: none;
   color: var(--el-text-color-secondary);
-}
-
-/* ---- 胶囊 ---- */
-.ns-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  max-width: 100%;
-  padding: 0 14px;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.ns-pill.is-static {
-  cursor: default;
-}
-.ns-pill--pill {
-  border: 1.5px dashed var(--el-border-color-light);
-  background: var(--el-bg-color);
-  color: var(--el-text-color-primary);
-}
-.ns-pill--hero {
-  border: 0;
-  background: color-mix(in srgb, var(--m-pOn) 20%, transparent);
-  color: var(--m-pOn);
-}
-.ns-pill__dot {
-  width: 8px;
-  height: 8px;
-  flex: none;
-  border-radius: 50%;
-}
-.ns-pill__label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ns-pill__caret {
-  width: 16px;
-  height: 16px;
-  flex: none;
-  opacity: 0.75;
 }
 
 /* ---- 下拉 ---- */

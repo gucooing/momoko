@@ -1,9 +1,14 @@
 <!-- 顶栏（AppsPC / DashboardPC）：宽搜索框 + 下载 / 终端 / 深浅色 / 主题 / 通知（工作台额外有「新建」）。
      「下载」只在服务器有下载记录（系统更新、Agent 安装包等）时出现，可暂停、继续、取消。
      「终端」打开悬浮终端窗口（本机终端 / SSH），角标是开着的终端数；开着时再点是最小化 / 还原。
-     手机端没有全局顶栏：页面标题行（PageHeader）自带返回与深浅色，工作台自带问候页头，「更多」页带通知与搜索。 -->
+     手机端：菜单按钮（打开侧栏抽屉，见 AppShell）+ 搜索 + 通知，深浅色与账号在抽屉里。 -->
 <template>
-  <header v-if="!menuStore.isMobile" class="app-topbar">
+  <header v-if="menuStore.isMobile" class="app-mbar">
+    <AppIconButton icon="HOutline:Bars3Icon" :label="t('layout.openMenu')" :box="40" @click="menuStore.toggleMobileMenu()" />
+    <CommandSearch class="app-mbar__search" />
+    <NotificationMenu />
+  </header>
+  <header v-else class="app-topbar">
     <CommandSearch class="app-topbar__search" />
     <span class="app-topbar__spacer" />
     <DownloadMenu />
@@ -69,5 +74,19 @@ const canTerm = computed(
 }
 .app-topbar :deep(.create-menu) {
   margin-left: 8px;
+}
+.app-mbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: calc(6px + env(safe-area-inset-top)) 8px 6px;
+  background: var(--app-surface-page);
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+.app-mbar__search {
+  flex: 1;
+  min-width: 0;
+  margin: 0 2px;
 }
 </style>

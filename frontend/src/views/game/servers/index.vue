@@ -326,14 +326,14 @@ onBeforeUnmount(() => clearInterval(timer))
 .gsl-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 .gsl-page__running {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-ok);
 }
 .gsl-page .gsl-ico {
-  width: 40px;
+  width: 32px;
   padding-inline: 0;
   justify-content: center;
 }
@@ -348,12 +348,12 @@ onBeforeUnmount(() => clearInterval(timer))
 }
 .gsl-sep {
   width: 1px;
-  height: 28px;
+  height: 20px;
   background: var(--el-border-color-light);
 }
 .gsl-chips {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
@@ -366,14 +366,14 @@ onBeforeUnmount(() => clearInterval(timer))
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 28px;
+  padding: 0 12px;
   border-radius: 999px;
-  border: 1.5px solid var(--el-border-color-light);
+  border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
@@ -388,16 +388,16 @@ onBeforeUnmount(() => clearInterval(timer))
   color: var(--m-bg);
 }
 .gsl-chip__n {
-  font-size: 0.75rem;
+  font-size: 11px;
   opacity: 0.7;
 }
 .gsl-tag {
   width: 180px;
 }
 .gsl-tag :deep(.app-sel__trigger) {
-  height: 40px;
+  height: 32px;
   border-radius: 999px;
-  padding-inline: 14px 10px;
+  padding-inline: 12px 8px;
 }
 .gsl-search {
   display: flex;
@@ -405,10 +405,10 @@ onBeforeUnmount(() => clearInterval(timer))
   gap: 8px;
   flex: 0 1 280px;
   min-width: 180px;
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
-  border: 1.5px solid var(--el-border-color-light);
+  border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
 }
@@ -428,26 +428,26 @@ onBeforeUnmount(() => clearInterval(timer))
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 13px;
 }
 .gsl-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 12px;
 }
 @media (width >= 560px) {
   .gsl-grid {
-    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
 }
 .gsl-skeleton {
-  height: 330px;
+  height: 260px;
   border-radius: var(--app-radius-lg);
   background: var(--el-fill-color-light);
 }
 @media (width <= 768px) {
   .gsl-page .gsl-ico {
-    width: 44px;
+    width: 40px;
   }
   .gsl-sep {
     display: none;
@@ -458,7 +458,7 @@ onBeforeUnmount(() => clearInterval(timer))
     width: auto;
   }
   .gsl-chip {
-    min-height: 44px;
+    min-height: 36px;
   }
 }
 </style>

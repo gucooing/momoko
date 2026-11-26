@@ -164,11 +164,11 @@ const run = async (dryRun: boolean) => {
   border-radius: 999px;
   background: var(--el-fill-color-light);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gcd__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gcd__hint {
   margin: 0;

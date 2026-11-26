@@ -114,7 +114,7 @@ const toggle = (g: Gift) => {
 }
 .sgp__name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .sgp__src {
   overflow: hidden;

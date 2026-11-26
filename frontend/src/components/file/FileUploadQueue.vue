@@ -18,8 +18,8 @@
             v-if="canToggle(cur)"
             :icon="cur.status === 'paused' ? 'HOutline:PlayIcon' : 'HOutline:PauseIcon'"
             :label="cur.status === 'paused' ? t('fileManager.resumeUpload') : t('fileManager.pauseUpload')"
-            :box="44"
-            :size="20"
+            :box="36"
+            :size="17"
             @click="togglePause(cur)"
           />
         </div>
@@ -319,8 +319,8 @@ const onMenu = (key: string) => {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 .fuq-head__chev {
@@ -353,7 +353,7 @@ const onMenu = (key: string) => {
   flex: 1;
   min-width: 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -429,7 +429,7 @@ const onMenu = (key: string) => {
 .fuq-item__status {
   flex: none;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .fuq-item__status.is-done {
@@ -484,8 +484,8 @@ const onMenu = (key: string) => {
   flex-direction: column;
 }
 .fuq-m__name {
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -499,8 +499,8 @@ const onMenu = (key: string) => {
 }
 .fuq-m__pct {
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 .fuq-m__more {
   font-size: 0.75rem;

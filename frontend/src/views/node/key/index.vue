@@ -54,7 +54,7 @@
             <component :is="menuStore.iconComponents['HOutline:KeyIcon']" />
             <span>{{ created.info.apiKey }}</span>
           </div>
-          <UButton color="primary" size="xl" :icon="createdCopied ? 'i-lucide-check' : 'i-lucide-copy'" class="key-created__copy" @click="copyCreated">
+          <UButton color="primary" size="lg" :icon="createdCopied ? 'i-lucide-check' : 'i-lucide-copy'" class="key-created__copy" @click="copyCreated">
             {{ createdCopied ? t('node.keyx.copied') : t('node.key.copy') }}
           </UButton>
         </div>
@@ -155,11 +155,11 @@
       <template #cell-operation="{ row }">
         <div class="key-ops">
           <template v-if="asKey(row).mine">
-            <AppIconButton icon="HOutline:ClipboardDocumentIcon" :box="34" :size="17" :label="`${t('node.key.copy')} ${asKey(row).name}`" @click="openCopy(asKey(row))" />
-            <AppIconButton icon="HOutline:ArrowPathIcon" :box="34" :size="17" :label="`${t('node.key.refresh')} ${asKey(row).name}`" @click="openRefresh(asKey(row))" />
+            <AppIconButton icon="HOutline:ClipboardDocumentIcon" :box="30" :size="17" :label="`${t('node.key.copy')} ${asKey(row).name}`" @click="openCopy(asKey(row))" />
+            <AppIconButton icon="HOutline:ArrowPathIcon" :box="30" :size="17" :label="`${t('node.key.refresh')} ${asKey(row).name}`" @click="openRefresh(asKey(row))" />
           </template>
-          <AppIconButton icon="HOutline:PencilSquareIcon" :box="34" :size="17" :label="`${t('node.key.edit')} ${asKey(row).name}`" @click="apiKeyCreateRef?.showDialog(asKey(row))" />
-          <AppIconButton class="is-danger" icon="HOutline:TrashIcon" :box="34" :size="17" :label="`${t('node.key.delete')} ${asKey(row).name}`" @click="openDelete(asKey(row))" />
+          <AppIconButton icon="HOutline:PencilSquareIcon" :box="30" :size="17" :label="`${t('node.key.edit')} ${asKey(row).name}`" @click="apiKeyCreateRef?.showDialog(asKey(row))" />
+          <AppIconButton class="is-danger" icon="HOutline:TrashIcon" :box="30" :size="17" :label="`${t('node.key.delete')} ${asKey(row).name}`" @click="openDelete(asKey(row))" />
         </div>
       </template>
     </DataTable>
@@ -216,11 +216,11 @@
           <footer class="key-card__foot">
             <NodePermissionChips variant="groups" only-granted :permissions="row.permissions" class="key-card__perms" />
             <template v-if="row.mine">
-              <AppIconButton icon="HOutline:ClipboardDocumentIcon" :box="44" :label="`${t('node.key.copy')} ${row.name}`" @click="openCopy(row)" />
-              <AppIconButton icon="HOutline:ArrowPathIcon" :box="44" :label="`${t('node.key.refresh')} ${row.name}`" @click="openRefresh(row)" />
+              <AppIconButton icon="HOutline:ClipboardDocumentIcon" :box="36" :label="`${t('node.key.copy')} ${row.name}`" @click="openCopy(row)" />
+              <AppIconButton icon="HOutline:ArrowPathIcon" :box="36" :label="`${t('node.key.refresh')} ${row.name}`" @click="openRefresh(row)" />
             </template>
-            <AppIconButton icon="HOutline:PencilSquareIcon" :box="44" :label="`${t('node.key.edit')} ${row.name}`" @click="apiKeyCreateRef?.showDialog(row)" />
-            <AppIconButton class="is-danger" icon="HOutline:TrashIcon" :box="44" :label="`${t('node.key.delete')} ${row.name}`" @click="openDelete(row)" />
+            <AppIconButton icon="HOutline:PencilSquareIcon" :box="36" :label="`${t('node.key.edit')} ${row.name}`" @click="apiKeyCreateRef?.showDialog(row)" />
+            <AppIconButton class="is-danger" icon="HOutline:TrashIcon" :box="36" :label="`${t('node.key.delete')} ${row.name}`" @click="openDelete(row)" />
           </footer>
         </article>
       </div>
@@ -297,14 +297,14 @@
           <span class="key-sheet__owner">{{ t('accessV2.key.ownedBy', { name: ownerOf(created.info) }) }}</span>
         </div>
         <div class="key-copy__key m-mono">{{ created.info.apiKey }}</div>
-        <UButton color="primary" size="xl" block :icon="createdCopied ? 'i-lucide-check' : 'i-lucide-copy'" class="key-sheet__btn" @click="copyCreated">
+        <UButton color="primary" size="lg" block :icon="createdCopied ? 'i-lucide-check' : 'i-lucide-copy'" class="key-sheet__btn" @click="copyCreated">
           {{ createdCopied ? t('node.keyx.copied') : t('node.key.copy') }}
         </UButton>
         <div class="key-created__warn">
           <component :is="menuStore.iconComponents['HOutline:ExclamationTriangleIcon']" />
           <span>{{ t('node.keyx.saveTip') }}</span>
         </div>
-        <UButton color="neutral" variant="soft" size="xl" block class="key-sheet__btn" @click="closeCreated">
+        <UButton color="neutral" variant="soft" size="lg" block class="key-sheet__btn" @click="closeCreated">
           {{ t('node.keyx.saved') }}
         </UButton>
       </div>
@@ -676,10 +676,10 @@ onMounted(() => {
 .key-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .key-summary b {
-  font-weight: 700;
+  font-weight: 600;
 }
 .key-summary .is-ok {
   color: var(--m-ok);
@@ -695,16 +695,16 @@ onMounted(() => {
 .key-created {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
+  gap: 14px;
   padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 24);
   border-radius: var(--app-radius-lg);
   border: 2px solid var(--m-ok);
   background: var(--el-bg-color);
 }
 .key-created__av {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   flex: none;
   transform: rotate(-6deg);
 }
@@ -727,12 +727,12 @@ onMounted(() => {
 }
 .key-created__title {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .key-created__desc {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .key-created__row {
@@ -747,13 +747,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 52px;
+  min-height: 40px;
   padding: 10px 16px;
   border-radius: var(--app-radius);
   border: 1.5px dashed var(--el-border-color-light);
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   word-break: break-all;
@@ -765,8 +765,8 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
 }
 .key-created__copy {
-  min-height: 52px;
-  padding: 0 22px;
+  min-height: 40px;
+  padding: 0 16px;
   border-radius: 999px;
 }
 .key-created__warn {
@@ -777,7 +777,7 @@ onMounted(() => {
   border-radius: var(--app-radius-sm);
   background: var(--m-warnSoft);
   color: var(--m-warn);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.5;
 }
@@ -798,10 +798,10 @@ onMounted(() => {
   flex: 1;
 }
 .key-created__side :deep(button:last-child) {
-  min-height: 44px;
+  min-height: 34px;
   border-radius: 999px;
-  padding: 0 18px;
-  font-weight: 700;
+  padding: 0 14px;
+  font-weight: 500;
 }
 
 /* 表格 */
@@ -825,11 +825,11 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .key-cell__strong {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .key-cell__strong.is-muted {
@@ -856,7 +856,7 @@ onMounted(() => {
   background: var(--m-a);
   color: var(--m-aOn);
   font-size: 0.6875rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .key-perms :deep(.perm-chip) {
   margin: 0;
@@ -870,7 +870,7 @@ onMounted(() => {
   flex: none;
 }
 .key-owner :deep(button) {
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 999px;
 }
 .key-owner-cell {
@@ -897,7 +897,7 @@ onMounted(() => {
 .key-me {
   flex: none;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-pInk);
 }
 .key-shown {
@@ -917,7 +917,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  min-height: 52px;
+  min-height: 40px;
   padding: 8px 14px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: var(--app-radius);
@@ -934,7 +934,7 @@ onMounted(() => {
   background: var(--m-pSoft);
 }
 .key-extend__label {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .key-extend__desc,
@@ -956,8 +956,8 @@ onMounted(() => {
   gap: 14px;
 }
 .key-sheet__head .key-created__av {
-  width: 52px;
-  height: 52px;
+  width: 42px;
+  height: 42px;
   border-radius: 17px;
 }
 .key-sheet__title {
@@ -969,8 +969,8 @@ onMounted(() => {
 }
 .key-sheet__name {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -995,16 +995,16 @@ onMounted(() => {
   background: var(--m-aSoft);
   color: var(--m-aOn, var(--m-ink));
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 html.dark .key-sheet__owner {
   color: var(--m-a);
 }
 .key-sheet__btn {
-  min-height: 52px;
+  min-height: 40px;
   border-radius: 999px;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 500;
 }
 .key-ops :deep(.is-danger),
 .key-card__foot :deep(.is-danger) {
@@ -1028,7 +1028,7 @@ html.dark .key-sheet__owner {
   align-items: flex-start;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
   font-size: 0.8125rem;
   line-height: 1.55;
@@ -1065,8 +1065,8 @@ html.dark .key-sheet__owner {
   padding-right: 4px;
 }
 .key-card__av {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 15px;
   flex: none;
 }
@@ -1087,8 +1087,8 @@ html.dark .key-sheet__owner {
   gap: 6px;
   min-width: 0;
   font-family: var(--app-font-display);
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   white-space: nowrap;
@@ -1123,13 +1123,13 @@ html.dark .key-sheet__owner {
 }
 .key-card__info dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .key-card__info dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1195,7 +1195,7 @@ html.dark .key-sheet__owner {
   border: 1.5px dashed var(--el-border-color-light);
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.5;
   word-break: break-all;
@@ -1234,7 +1234,7 @@ html.dark .key-sheet__owner {
   align-items: center;
   gap: 2px;
   max-width: 100%;
-  padding: 6px 6px 6px 18px;
+  padding: 6px 6px 6px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -1247,22 +1247,22 @@ html.dark .key-sheet__owner {
 }
 .key-batch__count {
   margin-right: 10px;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 .key-batch__btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1300,10 +1300,10 @@ html.dark .key-sheet__owner {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
   border: 0;
-  border-radius: 20px;
+  border-radius: 14px;
   background: var(--m-p);
   color: var(--m-pOn);
   box-shadow: var(--app-shadow-brand);
@@ -1320,12 +1320,12 @@ html.dark .key-sheet__owner {
   .key-page {
     gap: 14px;
     /* 悬浮新建按钮贴在底部导航上方 100px 处；留出同样高度，滚到底时按钮不压住分页和最后一张卡片 */
-    padding-bottom: 100px;
+    padding-bottom: 75px;
   }
   .key-created {
     flex-wrap: wrap;
     gap: 14px;
-    padding: 18px 16px;
+    padding: 14px 16px;
   }
   .key-created__av {
     display: none;
@@ -1345,7 +1345,7 @@ html.dark .key-sheet__owner {
   .key-created__side :deep(button:last-child) {
     flex: 1;
     justify-content: center;
-    min-height: 52px;
+    min-height: 44px;
   }
   .key-created__key {
     flex-basis: 100%;

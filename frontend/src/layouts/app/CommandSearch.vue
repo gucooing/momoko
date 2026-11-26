@@ -197,11 +197,13 @@ const place = () => {
   const el = rootRef.value
   if (!el) return
   const r = el.getBoundingClientRect()
+  // 手机上搜索框窄：浮层至少 320 宽，但不超出屏幕
+  const width = Math.min(Math.max(r.width, 320), window.innerWidth - 16)
   panelStyle.value = {
     position: 'fixed',
     top: `${r.bottom + 4}px`,
-    left: `${r.left}px`,
-    width: `${Math.max(r.width, 320)}px`,
+    left: `${Math.max(8, Math.min(r.left, window.innerWidth - width - 8))}px`,
+    width: `${width}px`,
     zIndex: '2300',
   }
 }
@@ -443,5 +445,17 @@ onBeforeUnmount(() => {
   text-align: center;
   font-size: 0.8125rem;
   color: var(--el-text-color-placeholder);
+}
+/* 手机顶栏：矮一点，不显示快捷键提示 */
+@media (width < 992px) {
+  .search-box {
+    min-width: 0;
+    height: 38px;
+    gap: 8px;
+    padding: 0 12px;
+  }
+  .search-box__kbd {
+    display: none;
+  }
 }
 </style>

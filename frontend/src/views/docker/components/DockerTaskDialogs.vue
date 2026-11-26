@@ -17,7 +17,7 @@
             @click="statusFilter = chip.value"
           >{{ chip.label }} <span class="tk-chip__n m-num">{{ chip.count }}</span></button>
         </div>
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('docker.common.refresh')" :box="40" :size="18" @click="loadTasks" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('docker.common.refresh')" :box="32" :size="16" @click="loadTasks" />
       </div>
 
       <div class="tk-list" :class="{ 'is-loading': listLoading }">
@@ -407,13 +407,13 @@ onBeforeUnmount(() => {
   flex: none;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -455,8 +455,8 @@ onBeforeUnmount(() => {
 }
 .tk-item:hover { border-color: var(--m-p); background: color-mix(in srgb, var(--m-pSoft) 35%, var(--el-bg-color)); }
 .tk-item__ico {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   flex: none;
   border-radius: 13px;
   transform: rotate(-4deg);
@@ -467,8 +467,8 @@ onBeforeUnmount(() => {
 .tk-item__title {
   flex: 1;
   min-width: 0;
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -510,7 +510,7 @@ onBeforeUnmount(() => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-regular);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   :deep(svg) { width: 16px; height: 16px; }
 }

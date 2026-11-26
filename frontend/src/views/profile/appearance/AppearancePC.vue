@@ -252,14 +252,14 @@ const radii: { key: RadiusMode; label: string }[] = [
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 24px;
+  gap: 16px;
 }
 .apc__main {
   flex: 3 1 560px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .apc-card {
   display: flex;
@@ -272,7 +272,7 @@ const radii: { key: RadiusMode; label: string }[] = [
 }
 .apc-card--list {
   gap: 0;
-  padding: 12px 24px 16px;
+  padding: 12px 16px 16px;
 }
 .apc-head {
   display: flex;
@@ -288,25 +288,24 @@ const radii: { key: RadiusMode; label: string }[] = [
   h2 {
     margin: 0;
     font-family: var(--app-font-display);
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 600;
   }
   p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: var(--el-text-color-secondary);
   }
 }
 .apc-list-title {
   margin: 12px 0 8px;
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
 }
 .apc-lbl {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .apc-grid {
@@ -325,7 +324,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   flex-direction: column;
   gap: 12px;
   padding: 10px;
-  border-radius: 22px;
+  border-radius: 16px;
   border: 2px solid var(--m-line);
   background: var(--m-s);
   color: var(--m-ink);
@@ -367,8 +366,8 @@ const radii: { key: RadiusMode; label: string }[] = [
   > b {
     flex: 1;
     min-width: 0;
-    font-size: 0.875rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -386,8 +385,8 @@ const radii: { key: RadiusMode; label: string }[] = [
     text-overflow: ellipsis;
   }
   b {
-    font-size: 0.875rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
   small {
     font-size: 0.6875rem;
@@ -405,7 +404,7 @@ const radii: { key: RadiusMode; label: string }[] = [
     min-width: 0;
     padding-left: 4px;
     font-size: 0.6875rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--m-ink2);
     white-space: nowrap;
     overflow: hidden;
@@ -449,7 +448,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   background: var(--m-ink);
   color: var(--m-bg);
   font-size: 0.6875rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .apc-new {
   display: flex;
@@ -459,15 +458,15 @@ const radii: { key: RadiusMode; label: string }[] = [
   gap: 6px;
   min-height: 170px;
   padding: 12px;
-  border-radius: 22px;
+  border-radius: 16px;
   border: 2px dashed var(--m-line);
   background: transparent;
   color: var(--m-ink);
   font: inherit;
   cursor: pointer;
   b {
-    font-size: 0.875rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
   small {
     max-width: 160px;
@@ -483,8 +482,8 @@ const radii: { key: RadiusMode; label: string }[] = [
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
   background: var(--m-pSoft);
   color: var(--m-pInk);
@@ -502,14 +501,14 @@ const radii: { key: RadiusMode; label: string }[] = [
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 34px;
+  padding: 0 14px;
   border: 0;
   border-radius: var(--app-radius-btn);
   background: var(--m-s2);
   color: var(--m-ink);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -541,7 +540,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   display: flex;
   align-items: center;
   gap: 16px;
-  min-height: 64px;
+  min-height: 52px;
   padding: 8px 0;
   border-top: 1px solid var(--m-line);
   &.is-click {
@@ -555,8 +554,8 @@ const radii: { key: RadiusMode; label: string }[] = [
   flex-direction: column;
   gap: 2px;
   b {
-    font-size: 0.9375rem;
-    font-weight: 700;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
   small {
     font-size: 0.8125rem;
@@ -571,14 +570,14 @@ const radii: { key: RadiusMode; label: string }[] = [
   border-radius: 999px;
   background: var(--m-s2);
   button {
-    min-height: 36px;
+    min-height: 30px;
     padding: 0 16px;
     border: 0;
     border-radius: 999px;
     background: transparent;
     font: inherit;
     font-size: 0.8125rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--m-ink2);
     cursor: pointer;
     white-space: nowrap;
@@ -599,7 +598,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
   svg {
     width: 16px;
@@ -617,7 +616,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   min-width: 0;
   position: sticky;
   top: 0;
-  padding: 20px;
+  padding: 14px;
 }
 .apc-cur__name {
   display: flex;
@@ -625,8 +624,8 @@ const radii: { key: RadiusMode; label: string }[] = [
   gap: 4px;
   b {
     font-family: var(--app-font-display);
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 600;
   }
   small {
     font-size: 0.8125rem;
@@ -661,7 +660,7 @@ const radii: { key: RadiusMode; label: string }[] = [
     align-items: center;
     gap: 4px;
     font-size: 0.625rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--m-ink2);
     white-space: nowrap;
   }
@@ -683,7 +682,7 @@ const radii: { key: RadiusMode; label: string }[] = [
 .apc-contrast__title {
   padding-bottom: 4px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--m-ink2);
 }
 .apc-contrast__row {
@@ -696,7 +695,7 @@ const radii: { key: RadiusMode; label: string }[] = [
     flex: 1;
   }
   b {
-    font-weight: 800;
+    font-weight: 600;
   }
 }
 .apc-contrast__ic {
@@ -738,7 +737,7 @@ const radii: { key: RadiusMode; label: string }[] = [
   border-top: 1px solid var(--m-line);
   cursor: pointer;
   .apc-row__text b {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   .apc-row__text small {
     font-size: 0.75rem;

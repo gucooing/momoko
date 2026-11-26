@@ -27,7 +27,7 @@
           >{{ t('docker.statsDialog.secShort', { n }) }}</button>
         </div>
         <span class="dks-spacer" />
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('docker.common.refresh')" :box="36" :size="18" @click="refresh" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('docker.common.refresh')" :box="30" :size="16" @click="refresh" />
       </div>
 
       <div class="dks-tiles">
@@ -475,8 +475,8 @@ onBeforeUnmount(() => {
 .dks { display: flex; flex-direction: column; gap: 14px; }
 .dks-head { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .dks-head__sticker {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   flex: none;
   border-radius: 15px;
   transform: rotate(-5deg);
@@ -484,8 +484,8 @@ onBeforeUnmount(() => {
 }
 .dks-head__text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .dks-head__name {
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -493,18 +493,18 @@ onBeforeUnmount(() => {
 }
 .dks-head__sub { font-size: 0.75rem; color: var(--el-text-color-secondary); }
 .dks-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.dks-toolbar__label { font-size: 0.8125rem; font-weight: 700; color: var(--el-text-color-secondary); }
+.dks-toolbar__label { font-size: 0.8125rem; font-weight: 500; color: var(--el-text-color-secondary); }
 .dks-spacer { flex: 1; }
 .dks-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--el-fill-color-light); }
 .dks-seg__btn {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 12px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -519,11 +519,11 @@ onBeforeUnmount(() => {
   border-radius: var(--app-radius);
   background: var(--el-fill-color-light);
 }
-.dks-tile__label { font-size: 0.72rem; font-weight: 700; color: var(--el-text-color-secondary); white-space: nowrap; }
+.dks-tile__label { font-size: 0.72rem; font-weight: 500; color: var(--el-text-color-secondary); white-space: nowrap; }
 .dks-tile__value {
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
   line-height: 1.1;
   color: var(--el-text-color-primary);
   white-space: nowrap;
@@ -534,14 +534,14 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   font-family: var(--app-font-display);
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   line-height: 1.35;
   color: var(--el-text-color-primary);
   white-space: nowrap;
 }
 .dks-tile__sub { font-size: 0.6875rem; font-weight: 600; color: var(--el-text-color-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dks-up, .dks-down { font-style: normal; font-weight: 800; }
+.dks-up, .dks-down { font-style: normal; font-weight: 600; }
 .dks-up { color: var(--m-a2); }
 .dks-down { color: var(--m-pInk); }
 .dks-bar {
@@ -561,7 +561,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--el-border-color-lighter);
 }
 .dks-card__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.dks-card__title { flex: 1; font-size: 0.875rem; font-weight: 800; color: var(--el-text-color-primary); }
+.dks-card__title { flex: 1; font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); }
 .dks-legend {
   display: inline-flex;
   align-items: center;
@@ -584,7 +584,7 @@ onBeforeUnmount(() => {
 }
 
 :global(.dk-stats-tooltip) { min-width: 12rem; }
-:global(.dk-stats-tooltip__title) { margin-bottom: 0.35rem; font-weight: 700; }
+:global(.dk-stats-tooltip__title) { margin-bottom: 0.35rem; font-weight: 500; }
 :global(.dk-stats-tooltip__row) { display: flex; align-items: center; justify-content: space-between; gap: 1rem; line-height: 1.6; }
 
 @media (width <= 768px) {

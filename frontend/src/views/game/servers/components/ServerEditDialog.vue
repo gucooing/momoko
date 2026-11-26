@@ -141,7 +141,7 @@ const save = async () => {
 }
 .gse__field > span {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gse__field small {
   font-weight: 500;
@@ -174,7 +174,7 @@ const save = async () => {
 }
 .gse__cover--none {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .gse__hint {

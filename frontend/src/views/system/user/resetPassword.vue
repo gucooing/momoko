@@ -152,9 +152,9 @@ defineExpose({ showDialog })
   background: var(--el-fill-color-light);
 }
 .rp-who__av {
-  width: 40px;
-  height: 40px;
-  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  font-size: 0.875rem;
   transform: rotate(-4deg);
 }
 .rp-who__text {
@@ -163,7 +163,7 @@ defineExpose({ showDialog })
   min-width: 0;
 }
 .rp-who__text strong {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .rp-who__text span {

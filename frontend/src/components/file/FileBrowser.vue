@@ -11,8 +11,6 @@
         class="fb-head"
         :class="{ 'fb-head--embedded': !isSystemScope }"
         :title="t('instance.fileManagerTitle')"
-        :back="isSystemScope ? 'auto' : false"
-        :theme-toggle="isSystemScope"
       >
         <template #description>
           <span class="m-num fb-head__desc">
@@ -219,8 +217,8 @@
             <AppIconButton
               icon="HOutline:ChevronDoubleRightIcon"
               :label="t('fileManager.expandTree')"
-              :box="44"
-              :size="18"
+              :box="36"
+              :size="16"
               @click="treeOpen = true"
             />
             <template v-if="upload.items.value.length">
@@ -244,7 +242,7 @@
                 <AppIconButton
                   icon="HOutline:ChevronDoubleLeftIcon"
                   :label="t('fileManager.collapseTree')"
-                  :box="36"
+                  :box="30"
                   :size="16"
                   @click="treeOpen = false"
                 />
@@ -410,15 +408,15 @@
                   v-if="!row.isDir"
                   icon="HOutline:ArrowDownTrayIcon"
                   :label="t('fileManager.download')"
-                  :box="36"
-                  :size="18"
+                  :box="30"
+                  :size="16"
                   @click="downloadOne(row)"
                 />
                 <AppIconButton
                   icon="HOutline:PencilSquareIcon"
                   :label="t('fileManager.rename')"
-                  :box="36"
-                  :size="18"
+                  :box="30"
+                  :size="16"
                   @click="openRename(row)"
                 />
                 <ActionMenu
@@ -1655,7 +1653,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 28px 32px 32px;
+  padding: 18px 20px 20px;
   background: var(--el-bg-color-page, var(--m-bg));
   color: var(--el-text-color-primary);
 }
@@ -1777,13 +1775,13 @@ defineExpose({ refresh, navigateTo, switchSource })
   align-items: center;
   gap: 8px;
   flex: none;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 16px 0 6px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: 999px;
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   text-decoration: none;
@@ -1833,7 +1831,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 }
 .fb-disk__text {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   text-align: right;
 }
@@ -1893,7 +1891,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 .fb-crumb__input {
   flex: 1;
   min-width: 0;
-  height: 34px;
+  height: 30px;
   padding: 0 10px;
   border: 1.5px solid var(--m-p);
   border-radius: 10px;
@@ -1907,13 +1905,13 @@ defineExpose({ refresh, navigateTo, switchSource })
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 10px;
   border: none;
   border-radius: 10px;
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -1923,7 +1921,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 }
 .fb-crumb__seg.is-current {
   color: var(--el-text-color-primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 .fb-crumb__root {
   width: 16px;
@@ -1949,7 +1947,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   gap: 8px;
   flex: 0 1 300px;
   min-width: 0;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 4px 0 14px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: 999px;
@@ -1979,14 +1977,14 @@ defineExpose({ refresh, navigateTo, switchSource })
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 34px;
+  height: 30px;
   padding: 0 10px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .fb-search__sub :deep(svg),
@@ -2005,13 +2003,13 @@ defineExpose({ refresh, navigateTo, switchSource })
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 16px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: 999px;
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -2027,7 +2025,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 }
 .fb-pill--round {
   width: 48px;
-  min-height: 48px;
+  min-height: 36px;
   padding: 0;
   justify-content: center;
 }
@@ -2043,7 +2041,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   align-items: center;
   justify-content: center;
   min-width: 40px;
-  height: 36px;
+  height: 30px;
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -2071,13 +2069,13 @@ defineExpose({ refresh, navigateTo, switchSource })
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 10px;
   border: none;
   border-radius: 10px;
   background: transparent;
   color: var(--el-text-color-primary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   text-align: left;
   cursor: pointer;
 }
@@ -2086,7 +2084,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 }
 .fb-menu__item.is-on {
   color: var(--m-pInk);
-  font-weight: 700;
+  font-weight: 600;
 }
 .fb-menu__ico {
   flex: none;
@@ -2116,8 +2114,8 @@ defineExpose({ refresh, navigateTo, switchSource })
   height: 18px;
 }
 .fb-clip__text {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .fb-clip__spacer {
   flex: 1;
@@ -2173,7 +2171,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   background: transparent;
   color: var(--m-pInk);
   font-size: 0.6875rem;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .fb-rail__up:hover {
@@ -2207,8 +2205,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 .fb-aside__label {
   flex: 1;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .fb-aside :deep(.ftn-row) {
@@ -2217,7 +2214,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   font-weight: 600;
 }
 .fb-aside :deep(.ftn-row.is-active) {
-  font-weight: 800;
+  font-weight: 600;
 }
 .fb-aside :deep(.ftn-icon.is-folder) {
   color: var(--m-a);
@@ -2255,7 +2252,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   border-radius: var(--app-radius-lg);
   background: color-mix(in srgb, var(--m-pSoft) 80%, transparent);
   color: var(--m-pInk);
-  font-weight: 800;
+  font-weight: 600;
   pointer-events: none;
 }
 .fb-drop :deep(svg),
@@ -2293,13 +2290,13 @@ defineExpose({ refresh, navigateTo, switchSource })
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 48px 24px;
+  padding: 36px 16px;
   text-align: center;
 }
 .fb-error__sticker {
-  width: 64px;
-  height: 64px;
-  border-radius: 22px;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
   transform: rotate(-6deg);
 }
 .fb-error__sticker :deep(svg),
@@ -2310,8 +2307,8 @@ defineExpose({ refresh, navigateTo, switchSource })
 .fb-error__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
 }
 .fb-error__msg {
   margin: 0;
@@ -2323,7 +2320,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 .fb-error__hint {
   margin: 0;
   max-width: 420px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .fb-error__actions {
@@ -2334,8 +2331,8 @@ defineExpose({ refresh, navigateTo, switchSource })
 
 /* 贴纸 */
 .fb-sticker {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
 }
 .fb-sticker :deep(svg),
@@ -2392,8 +2389,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 }
 .fb-thead .fb-col {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .fb-col {
@@ -2432,7 +2428,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   height: 14px;
 }
 .fb-row {
-  min-height: 60px;
+  min-height: 50px;
   border-bottom: 1px solid var(--el-border-color-lighter);
   border-radius: 12px;
   cursor: pointer;
@@ -2462,8 +2458,8 @@ defineExpose({ refresh, navigateTo, switchSource })
   min-width: 0;
 }
 .fb-row__name {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2477,7 +2473,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 }
 .fb-col--size {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .fb-col--size.is-dim {
   color: var(--el-text-color-secondary);
@@ -2526,7 +2522,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 .fb-tile__cover {
   width: 100%;
   height: 88px;
-  border-radius: 18px;
+  border-radius: 14px;
 }
 .fb-tile__cover :deep(svg),
 .fb-tile__cover :deep(.iconify) {
@@ -2558,8 +2554,8 @@ defineExpose({ refresh, navigateTo, switchSource })
   gap: 2px;
 }
 .fb-tile__name {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2606,7 +2602,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   align-items: center;
   gap: 4px;
   max-width: 100%;
-  padding: 6px 6px 6px 20px;
+  padding: 6px 6px 6px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -2614,8 +2610,8 @@ defineExpose({ refresh, navigateTo, switchSource })
 }
 .fb-bulk__count {
   margin-right: 10px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
 }
 .fb-bulk__btn {
@@ -2623,14 +2619,14 @@ defineExpose({ refresh, navigateTo, switchSource })
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 32px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--m-bg);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -2652,7 +2648,7 @@ defineExpose({ refresh, navigateTo, switchSource })
 
 .fb-confirm {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--el-text-color-regular);
 }
@@ -2667,10 +2663,10 @@ defineExpose({ refresh, navigateTo, switchSource })
 
 /* ===== 手机 ===== */
 .fb.is-mobile {
-  padding: 16px 16px calc(96px + env(safe-area-inset-bottom));
+  padding: 16px 16px calc(80px + env(safe-area-inset-bottom));
 }
 .fb.fb--inset.is-mobile {
-  padding: 0 0 calc(96px + env(safe-area-inset-bottom));
+  padding: 0 0 calc(80px + env(safe-area-inset-bottom));
 }
 .fb.is-mobile .fb__inner {
   gap: 12px;
@@ -2707,14 +2703,14 @@ defineExpose({ refresh, navigateTo, switchSource })
 }
 .fb.is-mobile .fb-search {
   flex: 1;
-  min-height: 48px;
+  min-height: 40px;
 }
 .fb.is-mobile .fb-ico {
   width: 44px;
   height: 44px;
 }
 .fb.is-mobile .fb-crumb__seg {
-  min-height: 44px;
+  min-height: 40px;
 }
 .fb.is-mobile .fb-ico--lg {
   width: 44px;
@@ -2730,7 +2726,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   gap: 8px;
   padding: 0 6px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .fb-mlist {
@@ -2740,7 +2736,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 64px;
+  min-height: 52px;
   padding: 6px 6px 6px 14px;
   border-bottom: 1px solid var(--el-border-color-lighter);
   cursor: pointer;
@@ -2755,8 +2751,8 @@ defineExpose({ refresh, navigateTo, switchSource })
   background: color-mix(in srgb, var(--m-pSoft) 70%, var(--el-bg-color));
 }
 .fb-mrow .fb-sticker {
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
 }
 .fb-mrow__check {
@@ -2787,8 +2783,8 @@ defineExpose({ refresh, navigateTo, switchSource })
   gap: 2px;
 }
 .fb-mrow__name {
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2801,7 +2797,7 @@ defineExpose({ refresh, navigateTo, switchSource })
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(78px + env(safe-area-inset-bottom));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   justify-content: space-between;
   padding-left: 16px;
 }
@@ -2815,19 +2811,19 @@ defineExpose({ refresh, navigateTo, switchSource })
 .fb-fab {
   position: fixed;
   right: 16px;
-  bottom: calc(82px + env(safe-area-inset-bottom));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   z-index: 6;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border: none;
   border-radius: 999px;
   background: var(--m-p);
   color: var(--m-pOn);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   box-shadow: var(--app-shadow-brand);
   cursor: pointer;
 }

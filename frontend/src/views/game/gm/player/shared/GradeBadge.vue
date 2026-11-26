@@ -22,7 +22,7 @@ defineProps<{ grade?: number; small?: boolean }>()
   background: var(--m-ink);
   color: var(--m-bg);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1;
 }
 .gbadge.is-sm {

@@ -148,7 +148,7 @@ const cardTitle = (c: GashaDrawCard) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   max-width: 320px;
   padding: 0 14px;
   border-radius: 999px;
@@ -156,8 +156,8 @@ const cardTitle = (c: GashaDrawCard) => {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -182,7 +182,7 @@ const cardTitle = (c: GashaDrawCard) => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .gh__list {
@@ -198,7 +198,7 @@ const cardTitle = (c: GashaDrawCard) => {
   grid-template-columns: 110px 176px 80px 100px minmax(0, 1fr);
   gap: 12px;
   align-items: center;
-  min-height: 84px;
+  min-height: 63px;
   padding: 10px 16px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
@@ -258,7 +258,7 @@ const cardTitle = (c: GashaDrawCard) => {
   right: 0;
   bottom: 0;
   font-size: 8px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 12px;
   text-align: center;
   background: color-mix(in srgb, var(--m-ink) 70%, transparent);

@@ -211,7 +211,7 @@ const publish = async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  padding: 10px 10px 10px 18px;
+  padding: 10px 10px 10px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -237,8 +237,8 @@ const publish = async () => {
   gap: 1px;
 }
 .opb__title {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .opb__sub {
   font-size: 12px;
@@ -254,15 +254,15 @@ const publish = async () => {
   flex-wrap: wrap;
 }
 .opb__btn {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--m-bg);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 .opb__btn:hover:not(:disabled) {
@@ -274,17 +274,17 @@ const publish = async () => {
 }
 .opb__publish {
   border-radius: 999px;
-  padding-inline: 18px;
+  padding-inline: 14px;
 }
 .opb__diffs {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .opb__diff-title {
   margin: 0 0 8px;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .opd {
   display: flex;
@@ -293,7 +293,7 @@ const publish = async () => {
 }
 .opd__lead {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 .opd__item {
   display: flex;
@@ -310,7 +310,7 @@ const publish = async () => {
   gap: 8px;
 }
 .opd__name {
-  font-weight: 800;
+  font-weight: 600;
 }
 .opd__spacer {
   flex: 1;
@@ -320,7 +320,7 @@ const publish = async () => {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .opd__state.is-ok {
   color: var(--m-ok);
@@ -356,7 +356,7 @@ const publish = async () => {
 }
 .opd__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .opd__actions {
   display: flex;
@@ -365,7 +365,7 @@ const publish = async () => {
   flex-wrap: wrap;
 }
 .opb.is-mobile {
-  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom));
 }
 .is-mobile .opb__bar {
   border-radius: var(--app-radius-xl);

@@ -28,8 +28,8 @@ export default defineConfig(({ command, mode }) => {
         colorMode: false,
         ui: {
           colors: { primary: 'pink', neutral: 'slate' },
-          button: { slots: { base: 'app-ui-btn rounded-(--app-radius-btn) font-semibold' } },
-          badge: { slots: { base: 'rounded-full font-semibold' } },
+          button: { slots: { base: 'app-ui-btn rounded-(--app-radius-btn) font-medium' } },
+          badge: { slots: { base: 'rounded-full font-medium' } },
         },
         autoImport: {
           imports: ['vue', 'vue-router', 'pinia'],

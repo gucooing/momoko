@@ -342,12 +342,12 @@ const feed = computed<FeedItem[]>(() => {
 }
 .ov__pg-t {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .ov__pg-v {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
 }
 .ov__pg-s {
   font-size: 12px;
@@ -399,7 +399,7 @@ const feed = computed<FeedItem[]>(() => {
 .ov__feed-text {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -410,7 +410,7 @@ const feed = computed<FeedItem[]>(() => {
   border-radius: 999px;
   background: var(--m-s2);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .ov__feed-at {
@@ -450,7 +450,7 @@ const feed = computed<FeedItem[]>(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 18px;
+  padding: 16px 14px;
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -485,8 +485,8 @@ const feed = computed<FeedItem[]>(() => {
   flex-direction: column;
 }
 .ov__gift-title {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .ov__gift-chev {
   width: 16px;

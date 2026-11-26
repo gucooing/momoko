@@ -10,7 +10,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 .pv__line b {
@@ -29,7 +29,7 @@
   color: var(--m-bad);
 }
 .pv__strong {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pv__dim {
@@ -53,15 +53,15 @@
 }
 .pv__more {
   align-self: center;
-  min-height: 40px;
-  padding: 0 18px;
+  min-height: 32px;
+  padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
 .pv__more:hover {
@@ -134,7 +134,7 @@
   border-radius: 999px;
   background: var(--m-s2);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
@@ -144,8 +144,8 @@
 }
 .pv__thumb {
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   object-fit: contain;
 }
@@ -202,7 +202,7 @@
   background: var(--el-fill-color-light);
 }
 .pv__seg button {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -210,7 +210,7 @@
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -225,6 +225,6 @@
   }
   .pv__more,
   .pv__seg button {
-    min-height: 44px;
+    min-height: 40px;
   }
 }

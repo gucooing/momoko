@@ -166,10 +166,10 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
   gap: 10px;
 }
 .mcard__stk {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 14px;
 }
 .mcard__ttl {
   display: flex;
@@ -179,8 +179,8 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
 }
 .mcard__title {
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mcard__sub {
@@ -207,7 +207,7 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
 }
 .mcard__chip {
   flex: none;
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 12px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -234,7 +234,7 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
 .mcard__legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
+  gap: 6px 14px;
 }
 .mcard__lg {
   display: inline-flex;
@@ -261,7 +261,7 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
 }
 .mcard__lg b {
   color: var(--el-text-color-primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 .mcard__lg-st {
   font-weight: 600;
@@ -285,14 +285,14 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
 }
 .mcard__fact dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .mcard__fact dd {
   overflow: hidden;
   margin: 2px 0 0;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -314,7 +314,7 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
   justify-content: center;
   gap: 8px;
   min-height: 230px;
-  padding: 24px;
+  padding: 16px;
   border-radius: var(--app-radius-lg);
   background: var(--el-fill-color-light);
   text-align: center;
@@ -323,12 +323,12 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  font-size: 22px;
+  font-size: 18px;
   transform: rotate(-5deg);
 }
 .mcard__empty-t {
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mcard__empty-d {
@@ -349,7 +349,7 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
   border-radius: 11px;
 }
 .mcard--compact .mcard__title {
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 .mcard--compact .mcard__sub {
   font-size: 0.6875rem;
@@ -376,7 +376,7 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
 }
 .mcard--compact .mcard__empty {
   min-height: 200px;
-  padding: 20px;
+  padding: 14px;
 }
 .mcard--compact .mcard__empty-stk {
   width: 44px;
@@ -384,7 +384,7 @@ const visibleLines = computed(() => props.lines.filter((l) => !props.hidden.incl
   border-radius: 14px;
 }
 .mcard--compact .mcard__empty-t {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .mcard--compact .mcard__empty-d {
   font-size: 0.75rem;

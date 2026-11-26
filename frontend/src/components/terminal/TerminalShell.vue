@@ -480,7 +480,7 @@ defineExpose({ applyModifiers })
 .term-shell.is-max {
   position: fixed;
   inset: 0;
-  /* 高于手机底部导航（2050） */
+  /* 高于手机菜单抽屉（2000） */
   z-index: 2100;
   height: 100vh;
   border: 0;
@@ -492,7 +492,7 @@ defineExpose({ applyModifiers })
 }
 @media (width >= 1024px) {
   :global(.app-content--bleed .app-page > .term-shell:not(.is-max)) {
-    margin: 24px 32px;
+    margin: 16px 20px;
   }
 }
 
@@ -501,7 +501,7 @@ defineExpose({ applyModifiers })
   gap: 0;
   padding: 0;
   border: 1px solid var(--m-line);
-  border-radius: 24px;
+  border-radius: 16px;
   background: var(--term-bg);
   color: var(--term-fg);
 }
@@ -514,7 +514,7 @@ defineExpose({ applyModifiers })
   align-items: center;
   gap: 8px;
   min-height: 60px;
-  padding: 12px 12px 12px 18px;
+  padding: 12px 12px 12px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
   user-select: none;
@@ -524,7 +524,7 @@ defineExpose({ applyModifiers })
   align-items: center;
   gap: 8px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #9c93a8;
   white-space: nowrap;
 }
@@ -556,7 +556,7 @@ defineExpose({ applyModifiers })
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 13px;
   border: 0;
   border-radius: 999px;
@@ -680,8 +680,8 @@ defineExpose({ applyModifiers })
   min-width: 0;
 }
 .term-shell__icon {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
   flex: none;
   transform: rotate(-4deg);
@@ -705,8 +705,8 @@ defineExpose({ applyModifiers })
 }
 .term-shell__title {
   font-family: var(--app-font-display);
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -720,7 +720,7 @@ defineExpose({ applyModifiers })
   padding: 0 8px;
   border-radius: var(--app-radius-pill);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .term-shell__tag.is-success {
   color: var(--m-ok);
@@ -762,8 +762,8 @@ defineExpose({ applyModifiers })
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 12px;
   background: transparent;
@@ -799,13 +799,13 @@ defineExpose({ applyModifiers })
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 12px;
   border: none;
   border-radius: var(--app-radius-pill);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: filter 0.15s, background 0.15s, color 0.15s;
@@ -857,8 +857,8 @@ defineExpose({ applyModifiers })
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .term-shell__fsz button:hover {
@@ -868,7 +868,7 @@ defineExpose({ applyModifiers })
   min-width: 44px;
   text-align: center;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 
@@ -877,7 +877,7 @@ defineExpose({ applyModifiers })
   flex: 1;
   min-height: 0;
   position: relative;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--term-bg);
   overflow: hidden;
 }
@@ -915,16 +915,16 @@ defineExpose({ applyModifiers })
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  height: 44px;
+  min-width: 40px;
+  height: 40px;
   padding: 0 10px;
   border: 1px solid var(--el-border-color-light);
   border-radius: 12px;
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font-family: var(--app-font-mono);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -943,7 +943,7 @@ defineExpose({ applyModifiers })
   align-items: center;
   justify-content: center;
   width: 48px;
-  height: 44px;
+  height: 40px;
   border: none;
   border-left: 1px solid var(--el-border-color-light);
   background: transparent;
@@ -960,7 +960,7 @@ defineExpose({ applyModifiers })
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 18px;
+  gap: 6px 14px;
   min-height: 34px;
   padding: 0 10px 2px;
   flex-shrink: 0;
@@ -1000,12 +1000,12 @@ defineExpose({ applyModifiers })
   padding: 0 6px;
 }
 .term-shell.is-compact :deep(.action-menu__trigger) {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
 }
 .term-shell.is-compact .term-shell__pill {
-  min-height: 44px;
+  min-height: 36px;
   padding: 0 14px;
 }
 </style>

@@ -475,7 +475,7 @@ const onClose = (open: boolean) => {
 }
 .sd__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .sd__error {
   font-size: 12px;
@@ -502,7 +502,7 @@ const onClose = (open: boolean) => {
 .sd__picked-name {
   flex: 1;
   min-width: 0;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -511,9 +511,9 @@ const onClose = (open: boolean) => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 44px;
-  font-size: 14px;
-  font-weight: 700;
+  min-height: 34px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
 .sd__switch input {
@@ -537,7 +537,7 @@ const onClose = (open: boolean) => {
   justify-content: center;
   width: 56px;
   height: 56px;
-  border-radius: 18px;
+  border-radius: 14px;
 }
 .sd__badge svg {
   width: 30px;
@@ -556,11 +556,11 @@ const onClose = (open: boolean) => {
   color: var(--m-gInk);
 }
 .sd__result-t {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .sd__summary {
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
 }
 .sd__changes {
@@ -588,7 +588,7 @@ const onClose = (open: boolean) => {
   font-size: 13px;
 }
 .sd__ck {
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

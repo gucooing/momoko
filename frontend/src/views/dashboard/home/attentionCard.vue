@@ -87,8 +87,8 @@ const shown = computed(() =>
 .att__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .att__count {
@@ -102,7 +102,7 @@ const shown = computed(() =>
   background: var(--m-p);
   color: var(--m-pOn);
   font-size: 0.8125rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .att__row,
 .att__empty {
@@ -118,8 +118,8 @@ const shown = computed(() =>
   background: var(--el-fill-color-light);
 }
 .att__sk {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
 }
 .att__sk :deep(svg) {
@@ -134,8 +134,8 @@ const shown = computed(() =>
   gap: 2px;
 }
 .att__t {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -150,21 +150,21 @@ const shown = computed(() =>
 }
 .att__btn {
   flex: none;
-  min-height: 36px;
+  min-height: 30px;
   padding-inline: 14px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .att__more {
   align-self: flex-start;
-  min-height: 36px;
+  min-height: 30px;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--m-pInk);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 @media (width < 640px) {
@@ -173,7 +173,7 @@ const shown = computed(() =>
     gap: 10px;
   }
   .att__title {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
   .att__count {
     min-width: 22px;

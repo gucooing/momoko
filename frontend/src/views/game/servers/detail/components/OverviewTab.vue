@@ -285,11 +285,11 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px 18px;
+  padding: 16px 14px;
 }
 .ov__label {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .ov__value {
@@ -300,8 +300,8 @@ onBeforeUnmount(() => {
 }
 .ov__value b {
   font-family: var(--app-font-display);
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
 }
 .ov__value small {
   font-size: 0.8125rem;
@@ -324,8 +324,8 @@ onBeforeUnmount(() => {
   border-radius: var(--app-radius);
   background: var(--m-warnSoft);
   color: var(--m-warn);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .ov__row {
   display: flex;
@@ -337,17 +337,17 @@ onBeforeUnmount(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 18px 20px;
+  padding: 14px 14px;
 }
 .ov__card h2 {
   margin: 0 0 8px;
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 .ov__card h3 {
   margin: 14px 0 4px;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .ov__probes {
   flex: 3 1 480px;
@@ -373,7 +373,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .ov__probe-text small {
   font-size: 0.75rem;
@@ -398,7 +398,7 @@ onBeforeUnmount(() => {
 .ov__muted {
   margin: 0;
   padding: 12px 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .ov__events {

@@ -105,7 +105,7 @@ const onSizePick = (size: number) => {
 .pagination {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 .pagination__spacer {
@@ -114,28 +114,28 @@ const onSizePick = (size: number) => {
 .pagination__pages {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 .pagination__btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 38px;
-  height: 38px;
-  padding: 0 8px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
   border: 1px solid transparent;
   background: transparent;
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .pagination__btn :deep(svg) {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 .pagination__btn:hover:not(:disabled):not(.is-ellipsis) {
   background: var(--el-fill-color-light);
@@ -157,8 +157,8 @@ const onSizePick = (size: number) => {
   opacity: 1;
 }
 .pagination__current {
-  padding: 0 8px;
-  font-size: 0.8125rem;
+  padding: 0 6px;
+  font-size: 0.75rem;
   color: var(--el-text-color-regular);
   font-variant-numeric: tabular-nums;
 }

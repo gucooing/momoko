@@ -200,8 +200,8 @@ defineExpose({ refresh })
 }
 .pull__sticker {
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 16px;
   transform: rotate(-5deg);
 }
@@ -226,8 +226,8 @@ defineExpose({ refresh })
 }
 .pull__label {
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pull__ref {
@@ -235,8 +235,8 @@ defineExpose({ refresh })
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pull__sub {
@@ -249,13 +249,13 @@ defineExpose({ refresh })
 .pull__pct {
   flex: none;
   font-family: var(--app-font-display);
-  font-size: 2.125rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--el-text-color-primary);
 }
 .pull__pct small {
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
 }
 .pull__cancel {
   color: var(--m-bad);
@@ -293,7 +293,7 @@ defineExpose({ refresh })
 .pull__stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
+  gap: 6px 14px;
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
   min-width: 0;
@@ -308,7 +308,7 @@ defineExpose({ refresh })
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   margin-right: 6px;
   padding: 0 12px;
   border: none;
@@ -316,7 +316,7 @@ defineExpose({ refresh })
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .pull__mtoggle span {
@@ -369,7 +369,7 @@ defineExpose({ refresh })
 }
 .pull__lyst {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   color: var(--el-text-color-primary);
 }
@@ -394,13 +394,13 @@ defineExpose({ refresh })
     gap: 10px;
   }
   .pull__sticker {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 13px;
   }
   .pull__label {
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     font-family: inherit;
     color: var(--el-text-color-secondary);
   }
@@ -411,16 +411,16 @@ defineExpose({ refresh })
   }
   .pull__ref {
     max-width: 100%;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   .pull__sub {
     display: none;
   }
   .pull__pct {
-    font-size: 1.625rem;
+    font-size: 1.25rem;
   }
   .pull__pct small {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   .pull__bar {
     height: 8px;

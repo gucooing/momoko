@@ -40,13 +40,13 @@ withDefaults(
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 32px;
+  padding: 0 14px;
   border-radius: var(--app-radius-pill, 999px);
   border: 1.5px solid transparent;
   font: inherit;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -56,13 +56,25 @@ withDefaults(
     opacity 0.15s;
 }
 .pb--sm {
-  min-height: 40px;
-  padding: 0 14px;
-  font-size: 13px;
+  min-height: 28px;
+  padding: 0 12px;
+  font-size: 12.5px;
 }
 .pb--lg {
-  min-height: 52px;
-  font-size: 16px;
+  min-height: 40px;
+  font-size: 14px;
+}
+/* 手机：点击区不小于 36 / 40 */
+@media (max-width: 768px) {
+  .pb {
+    min-height: 40px;
+  }
+  .pb--sm {
+    min-height: 36px;
+  }
+  .pb--lg {
+    min-height: 44px;
+  }
 }
 .pb--block {
   width: 100%;

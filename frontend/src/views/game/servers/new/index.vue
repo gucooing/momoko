@@ -416,7 +416,7 @@ const reset = () => {
 .gsn {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .gsn__back {
   display: inline-flex;
@@ -424,8 +424,8 @@ const reset = () => {
   gap: 6px;
   align-self: flex-start;
   min-height: 40px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   text-decoration: none;
 }
@@ -436,14 +436,14 @@ const reset = () => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 18px;
+  gap: 12px 14px;
 }
 .gsn__head h1 {
   flex: 1 1 260px;
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.875rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
 }
 .gsn__steps {
   display: flex;
@@ -465,7 +465,7 @@ const reset = () => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition:
     background 0.15s,
@@ -525,12 +525,12 @@ const reset = () => {
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
 }
 .gsn__pane-head p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--el-text-color-secondary);
 }
@@ -543,12 +543,12 @@ const reset = () => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gsn__card h2 {
   margin: 0;
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 .gsn__opt {
   display: flex;
@@ -604,8 +604,8 @@ const reset = () => {
   background: var(--el-bg-color);
   color: var(--m-gInk, var(--m-pInk));
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   box-shadow: 3px 3px 0 var(--m-g, var(--m-p));
   transform: rotate(-4deg);
 }
@@ -645,7 +645,7 @@ const reset = () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 30px 16px 16px;
+  padding: 20px 16px 16px;
 }
 .gsn__game-art + .gsn__game-body {
   padding-top: 14px;
@@ -671,7 +671,7 @@ const reset = () => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gsn__modes {
   display: grid;
@@ -681,7 +681,7 @@ const reset = () => {
 .gsn__mode {
   align-items: flex-start;
   gap: 16px;
-  padding: 20px;
+  padding: 14px;
 }
 .gsn__mode-ico {
   flex: none;
@@ -691,7 +691,7 @@ const reset = () => {
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  font-size: 1.5rem;
+  font-size: 1.1875rem;
   transform: rotate(-4deg);
 }
 .gsn__mode-body {
@@ -706,7 +706,7 @@ const reset = () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  font-size: 1.0625rem;
+  font-size: 0.875rem;
 }
 .gsn__feats {
   display: grid;
@@ -733,7 +733,7 @@ const reset = () => {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 20px;
+  gap: 14px;
 }
 .gsn__card {
   border-radius: var(--app-radius-lg);
@@ -745,8 +745,8 @@ const reset = () => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 22px 24px;
+  gap: 14px;
+  padding: 16px 16px;
 }
 .gsn__check {
   flex: 2 1 320px;
@@ -754,7 +754,7 @@ const reset = () => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 20px 22px;
+  padding: 14px 16px;
 }
 .gsn__check-head {
   display: flex;
@@ -777,7 +777,7 @@ const reset = () => {
 }
 .gsn__field > span {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gsn__field small {
   font-size: 0.75rem;
@@ -801,7 +801,7 @@ const reset = () => {
 }
 .gsn__muted {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .gsn__actions {
@@ -822,7 +822,7 @@ const reset = () => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 40px 24px;
+  padding: 30px 16px;
   text-align: center;
 }
 .gsn__done-ico {
@@ -831,8 +831,8 @@ const reset = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 18px;
-  font-size: 1.5rem;
+  border-radius: 14px;
+  font-size: 1.1875rem;
 }
 .gsn-step-enter-active,
 .gsn-step-leave-active {
@@ -861,7 +861,7 @@ const reset = () => {
     grid-template-columns: 1fr;
   }
   .gsn__form {
-    padding: 18px 16px;
+    padding: 14px 16px;
   }
   // 手机上只有当前步显示文字，其余只留序号
   .gsn__step:not(.is-on) {
@@ -873,7 +873,7 @@ const reset = () => {
   .gsn__actions :deep(.u-button),
   .gsn__actions > *,
   .gsn__nav > * {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

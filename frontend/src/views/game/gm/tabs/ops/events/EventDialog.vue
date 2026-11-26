@@ -183,7 +183,7 @@ const restore = () => {
   margin: 8px 0 0;
   padding-top: 14px;
   border-top: 2px solid var(--el-border-color);
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 </style>

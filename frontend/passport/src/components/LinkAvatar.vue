@@ -38,6 +38,6 @@ const url = computed(() => (props.game === 'gakumas' && props.asset ? gakumas.id
 }
 .la__letter {
   font-family: var(--app-font-display);
-  font-weight: 800;
+  font-weight: 600;
 }
 </style>

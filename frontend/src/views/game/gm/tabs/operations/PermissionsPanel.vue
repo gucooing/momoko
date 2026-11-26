@@ -291,18 +291,18 @@ onActivated(() => {
 .gss__h {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 .gss__sub {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 .gss__open {
   color: var(--m-ok);
-  font-weight: 700;
+  font-weight: 600;
 }
 .gss__card {
   border-radius: var(--app-radius-xl);
@@ -311,7 +311,7 @@ onActivated(() => {
   overflow: hidden;
 }
 .gss__loading {
-  padding: 24px;
+  padding: 16px;
   text-align: center;
   font-size: 13px;
   color: var(--el-text-color-secondary);
@@ -321,13 +321,13 @@ onActivated(() => {
   grid-template-columns: 44px minmax(0, 1.7fr) 96px minmax(0, 1.2fr) 110px 120px;
   gap: 14px;
   align-items: center;
-  min-height: 72px;
-  padding: 0 18px;
+  min-height: 56px;
+  padding: 0 14px;
 }
 .gss__row--head {
   min-height: 40px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .gss__item {
@@ -338,15 +338,15 @@ onActivated(() => {
   background: var(--m-gSoft, var(--m-pSoft));
 }
 .gss__avatar {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: var(--app-font-display);
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
   background: var(--el-fill-color-light);
 }
 .gss__cmd {
@@ -356,8 +356,8 @@ onActivated(() => {
   gap: 2px;
 }
 .gss__title {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .gss__hint {
@@ -374,7 +374,7 @@ onActivated(() => {
 }
 .gss__cell-label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gss__limits {
   display: inline-flex;
@@ -390,7 +390,7 @@ onActivated(() => {
   border-radius: 999px;
   background: var(--el-fill-color-light);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .gss__end {
@@ -407,7 +407,7 @@ onActivated(() => {
 }
 .gss__state {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .gss__state.is-saved {
@@ -419,8 +419,8 @@ onActivated(() => {
 .gss__ex {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 4px 18px 20px 76px;
+  gap: 14px;
+  padding: 4px 14px 14px 57px;
 }
 .gss__field {
   display: flex;
@@ -433,7 +433,7 @@ onActivated(() => {
 }
 .gss__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gss__stepper-wrap {
   display: flex;
@@ -443,7 +443,7 @@ onActivated(() => {
 }
 .gss__unit {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gss__stepper {
   display: inline-flex;
@@ -454,13 +454,13 @@ onActivated(() => {
   overflow: hidden;
 }
 .gss__stepper button {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border: 0;
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 18px;
+  font-size: 15px;
   cursor: pointer;
 }
 .gss__stepper button:disabled {
@@ -470,7 +470,7 @@ onActivated(() => {
 .gss__stepper span {
   min-width: 34px;
   text-align: center;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gss__seg {
   display: inline-flex;
@@ -482,7 +482,7 @@ onActivated(() => {
   border: 1px solid var(--el-border-color-light);
 }
 .gss__seg-btn {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 12px;
   border: 0;
   border-radius: 999px;
@@ -490,7 +490,7 @@ onActivated(() => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .gss__seg-btn.is-on {
@@ -499,7 +499,7 @@ onActivated(() => {
 }
 .gss__input {
   width: 100%;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   border: 1.5px solid var(--el-border-color-light);
@@ -529,11 +529,11 @@ onActivated(() => {
 }
 .gss__info a {
   color: var(--m-pInk);
-  font-weight: 700;
+  font-weight: 600;
 }
 @media (width < 768px) {
   .gss__h {
-    font-size: 24px;
+    font-size: 19px;
   }
   .gss__row {
     grid-template-columns: 44px minmax(0, 1fr) auto;
@@ -573,8 +573,8 @@ onActivated(() => {
   }
   .gss__seg-btn,
   .gss__stepper button {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 40px;
+    min-width: 40px;
   }
 }
 </style>

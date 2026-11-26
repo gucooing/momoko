@@ -9,7 +9,7 @@
     <p v-if="error" class="pp-error">{{ error }}</p>
     <PEmpty v-else-if="loaded && !items.length" compact :icon="LinkIcon" :title="t('home.games.emptyTitle')" />
     <div v-for="l in items" :key="l.id" class="pp-frow pp-frow--icon">
-      <GameMark :game="l.game" :name="l.server?.gameName || l.game" :src="l.server?.appIcon" :size="44" />
+      <GameMark :game="l.game" :name="l.server?.gameName || l.game" :src="l.server?.appIcon" :size="34" />
       <span class="body">
         <span class="name">
           {{ serverLabel(l.server) }}
@@ -134,7 +134,7 @@ const unbind = async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 </style>

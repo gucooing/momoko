@@ -18,7 +18,7 @@
           <button type="button" role="radio" :aria-checked="!row.readOnly" :class="{ 'is-on': !row.readOnly }" @click="row.readOnly = false">{{ t('docker.wizard.rw') }}</button>
           <button type="button" role="radio" :aria-checked="row.readOnly" :class="{ 'is-on': row.readOnly }" @click="row.readOnly = true">{{ t('docker.wizard.ro') }}</button>
         </div>
-        <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removeMount')" :box="36" :size="17" @click="remove(i)" />
+        <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removeMount')" :box="30" :size="17" @click="remove(i)" />
       </div>
       <div v-if="!model.length && emptyText" class="spec-empty">{{ emptyText }}</div>
     </template>
@@ -31,7 +31,7 @@
             <span class="spec-fld">
               <UIcon name="i-lucide-folder" />
               <input :value="row.source" :placeholder="t('docker.wizard.hostPathPlaceholder')" @input="setSource(row, ($event.target as HTMLInputElement).value)" />
-              <AppIconButton v-if="browsable" icon="HOutline:EllipsisHorizontalIcon" :label="t('docker.wizard.browseHost')" :box="40" :size="18" @click="browse(i)" />
+              <AppIconButton v-if="browsable" icon="HOutline:EllipsisHorizontalIcon" :label="t('docker.wizard.browseHost')" :box="32" :size="16" @click="browse(i)" />
             </span>
           </label>
           <label class="spec-card__label">
@@ -44,7 +44,7 @@
             <button type="button" role="radio" :aria-checked="!row.readOnly" :class="{ 'is-on': !row.readOnly }" @click="row.readOnly = false">{{ t('docker.wizard.rw') }}</button>
             <button type="button" role="radio" :aria-checked="row.readOnly" :class="{ 'is-on': row.readOnly }" @click="row.readOnly = true">{{ t('docker.wizard.ro') }}</button>
           </div>
-          <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removeMount')" :box="44" @click="remove(i)" />
+          <AppIconButton class="spec-del" icon="HOutline:TrashIcon" :label="t('docker.wizard.removeMount')" :box="36" @click="remove(i)" />
         </div>
       </div>
       <button type="button" class="spec-add" @click="add"><UIcon name="i-lucide-plus" />{{ t('docker.wizard.addMount') }}</button>

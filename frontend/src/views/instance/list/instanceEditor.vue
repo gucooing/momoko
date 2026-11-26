@@ -12,7 +12,7 @@
             <AppIconButton
               v-if="isMobile"
               icon="HOutline:ChevronLeftIcon"
-              :box="44"
+              :box="36"
               :label="t('instance.ui.backToList')"
               @click="handleClose"
             />
@@ -226,8 +226,8 @@
                   <AppIconButton
                     :icon="envMode === 'rows' ? 'HOutline:DocumentTextIcon' : 'HOutline:Bars3BottomLeftIcon'"
                     :label="envMode === 'rows' ? t('instance.ui.envTextMode') : t('instance.ui.envTableMode')"
-                    :size="18"
-                    :box="isMobile ? 44 : 40"
+                    :size="16"
+                    :box="isMobile ? 36 : 32"
                     @click="toggleEnvMode"
                   />
                 </span>
@@ -285,7 +285,7 @@
                     <AppIconButton
                       :icon="isMobile ? 'HOutline:TrashIcon' : 'HOutline:MinusCircleIcon'"
                       class="inst-env__del"
-                      :box="isMobile ? 44 : 40"
+                      :box="isMobile ? 36 : 32"
                       :label="t('instance.ui.removeEnv', { name: row.k || idx + 1 })"
                       @click="removeEnv(row.id)"
                     />
@@ -771,22 +771,22 @@ onBeforeUnmount(() => {
   flex-direction: column;
   overflow: hidden;
   background: var(--m-bg);
-  border-radius: 32px 0 0 32px;
+  border-radius: 20px 0 0 20px;
   box-shadow: -24px 0 60px -20px color-mix(in srgb, var(--m-ink) 45%, transparent);
 }
 .inst-drawer__head {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 20px 18px 18px 28px;
+  padding: 14px 14px 14px 18px;
   background: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color-light);
 }
 .inst-drawer__av {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 16px;
-  font-size: 1.25rem;
+  font-size: 1rem;
   transform: rotate(-5deg);
   flex: none;
 }
@@ -804,8 +804,8 @@ onBeforeUnmount(() => {
 .inst-drawer__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .inst-drawer__sub {
@@ -821,13 +821,13 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .inst-drawer__body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px 24px 24px;
+  padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -841,7 +841,7 @@ onBeforeUnmount(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 16px 24px calc(20px + env(safe-area-inset-bottom));
+  padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
   background: var(--el-bg-color);
   border-top: 1px solid var(--el-border-color-light);
 }
@@ -864,13 +864,13 @@ onBeforeUnmount(() => {
   background: var(--m-warn);
 }
 .inst-drawer__btn {
-  min-height: 44px;
+  min-height: 34px;
   border-radius: 999px;
-  padding: 0 18px;
+  padding: 0 14px;
   justify-content: center;
 }
 .inst-drawer__btn--main {
-  padding: 0 26px;
+  padding: 0 18px;
 }
 
 /* 分区 */
@@ -897,8 +897,8 @@ onBeforeUnmount(() => {
   height: 32px;
   border-radius: 11px;
   font-family: var(--app-font-display);
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   flex: none;
 }
 .inst-sec__n.is-1 {
@@ -920,14 +920,14 @@ onBeforeUnmount(() => {
   flex: 1;
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .inst-sec__count {
   margin-left: 4px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .inst-sec__badge {
@@ -940,7 +940,7 @@ onBeforeUnmount(() => {
   background: var(--m-aSoft);
   color: var(--m-ink);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .inst-sec__acts {
   display: inline-flex;
@@ -956,16 +956,16 @@ onBeforeUnmount(() => {
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 }
 .inst-input {
-  min-height: 46px;
+  min-height: 36px;
   border-radius: 14px;
   background: var(--el-bg-color);
 }
 /* 类型下拉与同表单的输入框同高同圆角 */
 .inst-drawer :deep(.app-sel__trigger) {
-  height: 46px;
+  height: 36px;
   padding: 0 12px 0 14px;
   border-radius: 14px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 textarea.inst-input {
   min-height: 0;
@@ -980,7 +980,7 @@ textarea.inst-input {
   color: var(--el-text-color-secondary);
 }
 .inst-link {
-  font-weight: 700;
+  font-weight: 500;
   color: var(--m-pInk);
 }
 .inst-opt {
@@ -1045,7 +1045,7 @@ textarea.inst-input {
   background: var(--m-pSoft);
   color: var(--m-pInk);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .inst-tchip button {
   display: inline-flex;
@@ -1092,7 +1092,7 @@ textarea.inst-input {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -1119,7 +1119,7 @@ textarea.inst-input {
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   pointer-events: none;
 }
@@ -1147,8 +1147,8 @@ textarea.inst-input {
   gap: 2px;
 }
 .inst-swr__t {
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .inst-swr__d {
@@ -1171,7 +1171,7 @@ textarea.inst-input {
 .inst-env__row--head {
   padding: 0 4px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .inst-env__val {
@@ -1193,7 +1193,7 @@ textarea.inst-input {
 .inst-env__input {
   flex: 1;
   min-width: 0;
-  min-height: 40px;
+  min-height: 32px;
   border: none;
   outline: none;
   background: transparent;
@@ -1241,14 +1241,14 @@ textarea.inst-input {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 46px;
+  min-height: 36px;
   border-radius: 14px;
   border: 1.5px dashed var(--el-border-color-light);
   background: transparent;
   color: var(--m-pInk);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
@@ -1287,17 +1287,17 @@ textarea.inst-input {
   background: var(--m-bg);
 }
 .inst-drawer.is-mobile .inst-drawer__title {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 .inst-drawer.is-mobile .inst-drawer__sub {
   font-size: 0.75rem;
 }
 .inst-drawer.is-mobile .inst-drawer__body {
-  padding: 16px 16px 24px;
+  padding: 16px 16px 16px;
   gap: 14px;
 }
 .inst-drawer.is-mobile .inst-sec {
-  padding: 18px 16px;
+  padding: 14px 16px;
 }
 .inst-drawer.is-mobile .inst-grid,
 .inst-drawer.is-mobile .inst-grid--stop {
@@ -1305,15 +1305,15 @@ textarea.inst-input {
 }
 .inst-drawer.is-mobile .inst-input,
 .inst-drawer.is-mobile .inst-pick {
-  min-height: 50px;
+  min-height: 40px;
   font-size: 1rem;
 }
 .inst-drawer.is-mobile :deep(.app-sel__trigger) {
-  height: 50px;
-  font-size: 1rem;
+  height: 40px;
+  font-size: 0.875rem;
 }
 .inst-drawer.is-mobile .inst-mono {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .inst-drawer.is-mobile .inst-sec__badge {
   order: 5;
@@ -1348,7 +1348,7 @@ textarea.inst-input {
     'val val';
   gap: 8px 6px;
   padding: 12px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
 }
 .inst-drawer.is-mobile .inst-env__key {
@@ -1370,7 +1370,7 @@ textarea.inst-input {
   height: 44px;
 }
 .inst-drawer.is-mobile .inst-env__add {
-  min-height: 50px;
+  min-height: 40px;
 }
 .inst-drawer.is-mobile .inst-drawer__foot {
   flex-wrap: nowrap;
@@ -1379,8 +1379,8 @@ textarea.inst-input {
 }
 .inst-drawer.is-mobile .inst-drawer__btn {
   flex: 1 1 0;
-  min-height: 52px;
-  font-size: 0.9375rem;
+  min-height: 44px;
+  font-size: 0.8125rem;
 }
 .inst-drawer.is-mobile .inst-drawer__btn--main {
   flex: 1.5 1 0;

@@ -200,20 +200,20 @@ const expiry = (g: Gift): { tone: 'ok' | 'warn' | 'bad' | 'off'; text: string } 
 .gg__main {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 14px;
   align-items: flex-start;
 }
 .gg__list {
   flex: 3 1 600px;
   min-width: 0;
-  padding: 6px 18px 10px;
+  padding: 6px 14px 10px;
 }
 .gg__row {
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) 130px 120px;
   gap: 14px;
   align-items: center;
-  min-height: 72px;
+  min-height: 56px;
   padding: 6px 0;
 }
 .gg__img {
@@ -238,8 +238,8 @@ const expiry = (g: Gift): { tone: 'ok' | 'warn' | 'bad' | 'off'; text: string } 
   gap: 2px;
 }
 .gg__name {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -267,7 +267,7 @@ const expiry = (g: Gift): { tone: 'ok' | 'warn' | 'bad' | 'off'; text: string } 
   gap: 16px;
 }
 .gg__info {
-  padding: 18px 20px;
+  padding: 14px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -276,8 +276,8 @@ const expiry = (g: Gift): { tone: 'ok' | 'warn' | 'bad' | 'off'; text: string } 
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gg__info-head svg {
   width: 22px;

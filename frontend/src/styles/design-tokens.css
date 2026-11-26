@@ -214,12 +214,12 @@ html.dark [data-palette='mono'],
   --el-color-error: var(--m-bad);
   --el-color-info: var(--m-ink2);
 
-  /* 圆角：更圆润、更年轻 */
-  --app-radius-xs: 8px;
-  --app-radius-sm: 12px;
-  --app-radius: 16px;
-  --app-radius-lg: 22px;
-  --app-radius-xl: 28px;
+  /* 圆角（首屏脚本执行前的默认值，与 theme/content.ts 的 DEFAULT_RADIUS = 16 一致） */
+  --app-radius-xs: 6px;
+  --app-radius-sm: 9px;
+  --app-radius: 12px;
+  --app-radius-lg: 16px;
+  --app-radius-xl: 20px;
   --app-radius-pill: 999px;
 
   /* 阴影 · 浅色：静态卡几乎不投影，浮层带一点主色气息 */
@@ -299,7 +299,7 @@ body {
 .app-textarea {
   width: 100%;
   height: var(--cmp-input-height);
-  padding: 0 12px;
+  padding: 0 10px;
   font-size: var(--cmp-input-font-size);
   font-family: inherit;
   color: var(--el-text-color-primary);
@@ -312,8 +312,8 @@ body {
 }
 .app-textarea {
   height: auto;
-  min-height: 72px;
-  padding: 8px 12px;
+  min-height: 64px;
+  padding: 6px 10px;
   line-height: 1.5;
   resize: vertical;
 }
@@ -331,7 +331,7 @@ body {
 .app-textarea:focus {
   border-color: var(--el-color-primary);
   background: var(--el-bg-color);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--el-color-primary) 16%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--el-color-primary) 14%, transparent);
 }
 .app-input:disabled,
 .app-select:disabled,
@@ -359,11 +359,11 @@ html.dark .app-select {
 .app-field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 .app-label {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.78125rem;
+  font-weight: 500;
   color: var(--el-text-color-primary);
 }
 .app-label--required::after {

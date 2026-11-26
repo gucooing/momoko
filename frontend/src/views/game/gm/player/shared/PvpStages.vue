@@ -75,12 +75,12 @@ const charaName = (m: Memory) => (m.characterId ? lookup.name('character', m.cha
 }
 .pvs__title {
   flex: 1;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .pvs__power {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .pvs__slots {
@@ -126,7 +126,7 @@ const charaName = (m: Memory) => (m.characterId ? lookup.name('character', m.cha
 }
 .pvs__name {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

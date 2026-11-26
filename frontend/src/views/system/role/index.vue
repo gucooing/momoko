@@ -19,7 +19,7 @@
         <AppIconButton
           v-else-if="canAdd"
           icon="HOutline:PlusIcon"
-          :box="44"
+          :box="36"
           :label="t('system.role.addRole')"
           @click="openCreate"
         />
@@ -655,7 +655,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 24px;
+  gap: 16px;
 }
 
 /* 左侧角色列表 */
@@ -682,8 +682,8 @@ onMounted(() => {
   flex: 1;
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .role-list__n {
@@ -697,15 +697,15 @@ onMounted(() => {
 }
 .role-list__add {
   margin-top: 6px;
-  min-height: 44px;
+  min-height: 34px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .role-search {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -739,13 +739,13 @@ onMounted(() => {
 }
 .role-filter__btn {
   flex: 1;
-  min-height: 34px;
+  min-height: 30px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   cursor: pointer;
 }
@@ -762,7 +762,7 @@ onMounted(() => {
   min-height: 64px;
   padding: 10px 12px;
   border: 1.5px solid transparent;
-  border-radius: 18px;
+  border-radius: 14px;
   background: transparent;
   text-align: left;
   font: inherit;
@@ -777,10 +777,10 @@ onMounted(() => {
   background: var(--m-pSoft);
 }
 .role-item__av {
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 .role-item__text {
   flex: 1;
@@ -796,8 +796,8 @@ onMounted(() => {
   min-width: 0;
 }
 .role-item__name {
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -824,7 +824,7 @@ onMounted(() => {
   gap: 8px;
   margin-top: 4px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .role-item__bar .role-bar {
@@ -833,7 +833,7 @@ onMounted(() => {
 .role-item__unsaved {
   flex: none;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-warn);
 }
 .role-item__chev {
@@ -851,12 +851,12 @@ onMounted(() => {
 }
 .role-item__count {
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 .role-item__label {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .role-tag {
@@ -870,7 +870,7 @@ onMounted(() => {
   background: var(--m-ink);
   color: var(--m-bg);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .role-tag :deep(svg) {
   width: 11px;
@@ -911,7 +911,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 22px 24px;
+  padding: 16px 16px;
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl, var(--app-radius-lg));
   background: var(--el-bg-color);
@@ -923,10 +923,10 @@ onMounted(() => {
   gap: 14px;
 }
 .role-hero__av {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  font-size: 1.375rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  font-size: 1.125rem;
   transform: rotate(-5deg);
 }
 .role-hero__text {
@@ -941,13 +941,13 @@ onMounted(() => {
 .role-hero__line h2 {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.1875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .role-hero__text p {
   margin: 4px 0 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .role-hero__acts {
@@ -956,15 +956,15 @@ onMounted(() => {
   gap: 8px;
 }
 .role-hero__acts :deep(button:not(.action-menu__trigger)) {
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .role-hero__stats {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 .role-hero__progress {
   flex: 1 1 280px;
@@ -979,17 +979,17 @@ onMounted(() => {
 }
 .role-hero__granted span {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .role-hero__granted strong {
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .role-hero__granted em {
   font-style: normal;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .role-members {
@@ -1020,7 +1020,7 @@ onMounted(() => {
 }
 .role-members__link {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--m-pInk);
   white-space: nowrap;
 }
@@ -1031,7 +1031,7 @@ onMounted(() => {
   padding: 12px 14px;
   border-radius: 14px;
   background: var(--m-s2);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .role-lock :deep(svg) {
@@ -1049,7 +1049,7 @@ onMounted(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 10px 10px 10px 22px;
+  padding: 10px 10px 10px 16px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -1067,13 +1067,13 @@ onMounted(() => {
 .role-save__text {
   flex: 1;
   min-width: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .role-save :deep(button) {
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .role-save__ghost {
   color: var(--m-bg) !important;
@@ -1097,7 +1097,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 48px;
+  min-height: 36px;
   padding: 0 14px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: var(--app-radius);
@@ -1108,7 +1108,7 @@ onMounted(() => {
 }
 .role-copy__opt strong {
   flex: 1;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .role-copy__opt span {
@@ -1132,11 +1132,11 @@ onMounted(() => {
   gap: 12px;
 }
 .role-sheet__av {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   flex: none;
   border-radius: 15px;
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   transform: rotate(-5deg);
 }
 .role-sheet__title {
@@ -1151,8 +1151,8 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-family: var(--app-font-display);
-  font-size: 1.1875rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .role-sheet__save {
@@ -1162,7 +1162,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .role-sheet {
@@ -1172,7 +1172,7 @@ onMounted(() => {
 }
 .role-sheet__desc {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .role-sheet__stats {
@@ -1211,7 +1211,7 @@ onMounted(() => {
     display: block;
   }
   .role-filter__btn {
-    min-height: 44px;
+    min-height: 40px;
   }
   .role-list {
     position: static;
@@ -1229,8 +1229,8 @@ onMounted(() => {
     background: var(--el-bg-color);
   }
   .role-item__av {
-    width: 46px;
-    height: 46px;
+    width: 36px;
+    height: 36px;
   }
   .role-skeleton--list {
     max-width: none;

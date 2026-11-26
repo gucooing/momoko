@@ -81,7 +81,7 @@ export const useMenuStore = defineStore('menu', () => {
     useNodeStore().isRemote ? filterNodeMenus(menuList.value) : menuList.value,
   )
 
-  // 侧边栏 / 手机「更多」用：再去掉「在侧边栏隐藏」的菜单（页面与权限仍然有效，路由与可访问判断仍用 navMenuList）；
+  // 侧边栏（含手机菜单抽屉）用：再去掉「在侧边栏隐藏」的菜单（页面与权限仍然有效，路由与可访问判断仍用 navMenuList）；
   // 目录下的菜单全部隐藏时目录一并隐藏。
   const filterHiddenMenus = (menus: MenuInfo[]): MenuInfo[] =>
     menus.flatMap((menu) => {

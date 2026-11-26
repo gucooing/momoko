@@ -58,7 +58,7 @@ const onKey = (e: KeyboardEvent) => {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 5px 10px;
   border-radius: var(--app-radius-sm);
   border: 1.5px solid var(--el-border-color-light);
@@ -77,7 +77,7 @@ const onKey = (e: KeyboardEvent) => {
   border-radius: 999px;
   background: var(--el-fill-color-light);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .tag-input__x {
   display: inline-flex;

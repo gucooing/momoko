@@ -24,8 +24,8 @@ const toggle = () => {
 <style scoped lang="scss">
 .app-switch {
   position: relative;
-  width: 46px;
-  height: 28px;
+  width: 36px;
+  height: 22px;
   flex-shrink: 0;
   padding: 0;
   border: none;
@@ -45,14 +45,14 @@ const toggle = () => {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   border-radius: 999px;
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   transition: transform 0.18s;
 }
 .app-switch.is-on .app-switch__thumb {
-  transform: translateX(18px);
+  transform: translateX(14px);
 }
 </style>

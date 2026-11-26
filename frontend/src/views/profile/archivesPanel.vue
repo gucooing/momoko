@@ -113,7 +113,7 @@ const onPickAvatar = async (file: File) => {
 .pf-hero {
   position: relative;
   overflow: hidden;
-  padding: 26px 28px;
+  padding: 18px 18px;
   border-radius: var(--app-radius-xl);
   background: var(--m-p);
   color: var(--m-pOn);
@@ -141,7 +141,7 @@ const onPickAvatar = async (file: File) => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
 }
 .pf-hero__avatar-col {
   position: relative;
@@ -155,12 +155,12 @@ const onPickAvatar = async (file: File) => {
   display: inline-flex;
   padding: 0;
   border: 5px solid var(--m-pOn);
-  border-radius: 34px;
+  border-radius: 24px;
   overflow: hidden;
   background: var(--m-a);
   transform: rotate(-5deg);
   :deep(.app-avatar) {
-    border-radius: 28px;
+    border-radius: 18px;
   }
   :deep(img) {
     border-radius: 0;
@@ -179,7 +179,7 @@ const onPickAvatar = async (file: File) => {
   color: var(--m-p);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s;
 }
@@ -217,8 +217,8 @@ const onPickAvatar = async (file: File) => {
 .pf-hero__name {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.875rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
   line-height: 1.15;
   overflow-wrap: anywhere;
 }
@@ -227,7 +227,7 @@ const onPickAvatar = async (file: File) => {
   align-items: center;
   gap: 8px;
   min-width: 0;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   opacity: 0.95;
   span {
     overflow: hidden;
@@ -254,17 +254,17 @@ const onPickAvatar = async (file: File) => {
 .pf-hero__role {
   background: var(--m-pOn);
   color: var(--m-p);
-  font-weight: 800;
+  font-weight: 600;
 }
 .pf-hero__chip {
   background: color-mix(in srgb, var(--m-pOn) 18%, transparent);
   color: var(--m-pOn);
-  font-weight: 700;
+  font-weight: 500;
 }
 .pf-hero__bio {
   margin: 2px 0 0;
   max-width: 560px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
   opacity: 0.92;
   display: -webkit-box;
@@ -287,8 +287,8 @@ const onPickAvatar = async (file: File) => {
 
 @media (width < 640px) {
   .pf-hero {
-    padding: 22px 20px 20px;
-    border-radius: 26px;
+    padding: 16px 14px 14px;
+    border-radius: 18px;
   }
   .pf-hero__blob {
     right: -62px;
@@ -306,17 +306,17 @@ const onPickAvatar = async (file: File) => {
   .pf-hero__body {
     flex-wrap: nowrap;
     align-items: flex-start;
-    gap: 18px;
+    gap: 14px;
   }
   .pf-hero__avatar {
     border-width: 4px;
-    border-radius: 28px;
+    border-radius: 18px;
   }
   .pf-hero__text {
     flex-basis: auto;
   }
   .pf-hero__name {
-    font-size: 1.5rem;
+    font-size: 1.1875rem;
   }
   .pf-hero__mail {
     font-size: 0.8125rem;

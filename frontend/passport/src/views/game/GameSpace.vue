@@ -28,7 +28,7 @@
         <GameImage v-else-if="heroArt" :src="heroArt" eager class="gs__hero-img" />
         <div class="gs__hero-row">
           <div class="gs__hero-card">
-            <GameMark :game="server.game" :name="server.gameName" :src="server.appIcon" :size="56" />
+            <GameMark :game="server.game" :name="server.gameName" :src="server.appIcon" :size="44" />
             <span class="gs__hero-text">
               <span class="pp-hint">
                 <RouterLink to="/games" class="gs__crumb">{{ t('game.hero.myGames') }}</RouterLink>
@@ -52,8 +52,8 @@
         </div>
       </section>
 
-      <!-- 电脑：标签 -->
-      <nav v-if="!ui.isMobile && ready" class="gs__tabs pp-scroll-x" :aria-label="t('nav.games')">
+      <!-- 页内标签（手机上横向滚动、用短名） -->
+      <nav v-if="ready" class="gs__tabs pp-scroll-x" :aria-label="t('nav.games')">
         <button
           v-for="x in tabs"
           :key="x.key"
@@ -64,7 +64,7 @@
           @click="setTab(x.key)"
         >
           <component :is="x.icon" aria-hidden="true" />
-          {{ x.label }}
+          {{ ui.isMobile ? x.short : x.label }}
           <span v-if="x.count" class="pp-num gs__tab-n">{{ fmtNum(x.count) }}</span>
         </button>
       </nav>
@@ -94,22 +94,6 @@
       </div>
     </div>
 
-    <!-- 手机：底部导航 -->
-    <nav v-if="ui.isMobile && ready" class="gs__bottom" :aria-label="t('nav.games')">
-      <button
-        v-for="x in tabs"
-        :key="x.key"
-        type="button"
-        class="gs__bn"
-        :class="{ 'is-on': tab === x.key }"
-        :aria-current="tab === x.key ? 'page' : undefined"
-        @click="setTab(x.key)"
-      >
-        <component :is="x.icon" aria-hidden="true" />
-        {{ x.short }}
-      </button>
-    </nav>
-
     <PDialog v-model="switchOpen" :title="t('game.hero.switchTitle')" :width="440">
       <div v-if="others.length" class="gs__others">
         <RouterLink
@@ -119,7 +103,7 @@
           class="gs__other"
           @click="switchOpen = false"
         >
-          <GameMark :game="o.game" :name="o.server?.gameName" :src="o.server?.appIcon" :size="40" />
+          <GameMark :game="o.game" :name="o.server?.gameName" :src="o.server?.appIcon" :size="32" />
           <span class="gs__other-text">
             <span class="gs__other-name">{{ o.server?.name || t('game.unnamed') }}</span>
             <span class="pp-hint">{{ o.nickname || t('game.noName') }} · {{ t('game.hero.level', { n: o.level }) }}</span>
@@ -340,16 +324,16 @@ provideGameContext({
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 22px 32px 56px;
+  padding: 16px 20px 42px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   box-sizing: border-box;
 }
 .gs__hero {
   position: relative;
   min-height: 200px;
-  border-radius: 30px;
+  border-radius: 20px;
   overflow: hidden;
   background: var(--m-gSoft);
 }
@@ -366,20 +350,20 @@ provideGameContext({
 }
 .gs__hero-row {
   position: relative;
-  min-height: 200px;
+  min-height: 150px;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 14px;
-  padding: 22px 24px;
+  padding: 16px 16px;
   box-sizing: border-box;
 }
 .gs__hero-card {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 18px 12px 12px;
-  border-radius: 24px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 16px;
   background: var(--m-s);
 }
 .gs__hero-text {
@@ -395,14 +379,14 @@ provideGameContext({
   color: var(--m-ink);
 }
 .gs__hero-name {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
 }
 .gs__switch {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   margin-left: 8px;
   padding: 0 12px;
   border-radius: 999px;
@@ -411,7 +395,7 @@ provideGameContext({
   color: var(--m-gInk);
   font: inherit;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .gs__switch svg {
@@ -430,7 +414,7 @@ provideGameContext({
   border-radius: 999px;
   background: var(--m-s);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gs__me-av {
   display: inline-flex;
@@ -442,7 +426,7 @@ provideGameContext({
   overflow: hidden;
   background: var(--m-gSoft);
   color: var(--m-gInk);
-  font-weight: 800;
+  font-weight: 600;
 }
 .gs__me-av :deep(img) {
   width: 100%;
@@ -452,7 +436,7 @@ provideGameContext({
   align-self: flex-start;
   max-width: 100%;
   margin-top: -8px;
-  padding: 6px;
+  padding: 4px;
   border-radius: 999px;
   background: var(--m-s);
   border: 1px solid var(--m-line);
@@ -461,22 +445,22 @@ provideGameContext({
 .gs__tab {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex: none;
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 30px;
+  padding: 0 12px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--m-ink2);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 .gs__tab svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 .gs__tab:hover {
   background: var(--m-s2);
@@ -491,7 +475,7 @@ provideGameContext({
   opacity: 0.8;
 }
 .gs__state {
-  padding: 48px 0;
+  padding: 36px 0;
   text-align: center;
 }
 .gs__body {
@@ -515,8 +499,8 @@ provideGameContext({
   flex-direction: column;
 }
 .gs__mname {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -532,8 +516,8 @@ provideGameContext({
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -543,40 +527,6 @@ provideGameContext({
 .gs__ib svg {
   width: 22px;
   height: 22px;
-}
-.gs__bottom {
-  position: sticky;
-  bottom: 0;
-  z-index: 50;
-  display: flex;
-  gap: 2px;
-  padding: 6px 6px calc(10px + env(safe-area-inset-bottom));
-  background: var(--m-s);
-  border-top: 1px solid var(--m-line);
-}
-.gs__bn {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  min-height: 56px;
-  border: 0;
-  border-radius: 16px;
-  background: transparent;
-  color: var(--m-ink2);
-  font: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.gs__bn svg {
-  width: 22px;
-  height: 22px;
-}
-.gs__bn.is-on {
-  color: var(--m-gInk);
 }
 .gs__others {
   display: flex;
@@ -602,7 +552,7 @@ provideGameContext({
   flex-direction: column;
 }
 .gs__other-name {
-  font-weight: 800;
+  font-weight: 600;
 }
 .gs__chev {
   width: 18px;
@@ -611,8 +561,12 @@ provideGameContext({
 }
 @media (max-width: 768px) {
   .gs__wrap {
-    padding: 16px 16px 24px;
-    gap: 20px;
+    padding: 12px 12px calc(24px + env(safe-area-inset-bottom));
+    gap: 14px;
+  }
+  .gs__tabs {
+    align-self: stretch;
+    margin-top: 0;
   }
 }
 </style>

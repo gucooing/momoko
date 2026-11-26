@@ -7,7 +7,7 @@
   <div class="ce" :class="{ 'is-mobile': isMobile }">
     <!-- 头部 -->
     <header class="ce-head">
-      <AppIconButton class="ce-back" icon="HOutline:ChevronLeftIcon" :label="t('docker.wizard.backToList')" :box="44" :size="22" @click="emit('back')" />
+      <AppIconButton class="ce-back" icon="HOutline:ChevronLeftIcon" :label="t('docker.wizard.backToList')" :box="36" :size="18" @click="emit('back')" />
       <div class="ce-head__text">
         <nav v-if="!isMobile" class="ce-crumb" :aria-label="t('docker.wizard.breadcrumb')">
           <button type="button" @click="emit('back')">{{ t('pageGroup.docker.label') }}</button> /
@@ -20,7 +20,7 @@
       <UButton v-if="!isRecreate && !isMobile" color="neutral" variant="outline" icon="i-lucide-file-code-2" class="ce-pill-btn" @click="composeOpen = true">
         {{ t('docker.wizard.importCompose') }}
       </UButton>
-      <AppIconButton v-else-if="!isRecreate" icon="HOutline:DocumentArrowUpIcon" :label="t('docker.wizard.importCompose')" :box="44" @click="composeOpen = true" />
+      <AppIconButton v-else-if="!isRecreate" icon="HOutline:DocumentArrowUpIcon" :label="t('docker.wizard.importCompose')" :box="36" @click="composeOpen = true" />
     </header>
 
     <template v-if="isMobile">
@@ -353,7 +353,7 @@
 
     <!-- 手机底部：上一步 / 下一步 -->
     <div v-if="isMobile && !loadingSource" class="ce-mbar">
-      <AppIconButton class="ce-mbar__prev" icon="HOutline:ChevronLeftIcon" :label="t('docker.wizard.prev')" :box="52" :size="22" :disabled="stepIndex === 0" @click="stepIndex = Math.max(0, stepIndex - 1)" />
+      <AppIconButton class="ce-mbar__prev" icon="HOutline:ChevronLeftIcon" :label="t('docker.wizard.prev')" :box="40" :size="18" :disabled="stepIndex === 0" @click="stepIndex = Math.max(0, stepIndex - 1)" />
       <UButton
         color="primary"
         class="ce-mbar__next"
@@ -1027,7 +1027,7 @@ onBeforeUnmount(() => {
 .ce {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   min-width: 0;
 }
 .ce-head {
@@ -1066,8 +1066,8 @@ onBeforeUnmount(() => {
 }
 .ce-title {
   font-family: var(--app-font-display);
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--el-text-color-primary);
   line-height: 1.15;
@@ -1082,17 +1082,17 @@ onBeforeUnmount(() => {
 }
 .ce-pill-btn {
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .ce-pill-btn:not(.ce-pill-btn--lg) {
-  min-height: 36px;
+  min-height: 30px;
 }
 .ce-pill-btn--lg {
-  min-height: 44px;
-  padding-inline: 20px;
+  min-height: 34px;
+  padding-inline: 14px;
 }
 .ce-loading {
-  padding: 80px 0;
+  padding: 60px 0;
   text-align: center;
   color: var(--el-text-color-secondary);
 }
@@ -1102,7 +1102,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 24px;
+  gap: 16px;
   min-width: 0;
 }
 .ce-main {
@@ -1140,8 +1140,8 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1163,7 +1163,7 @@ onBeforeUnmount(() => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .ce-sn :deep(svg),
 .ce-sn :deep(.iconify) {
@@ -1206,8 +1206,8 @@ onBeforeUnmount(() => {
   width: 40px;
   height: 40px;
   border-radius: 13px;
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   transform: rotate(var(--rot, 0deg));
 }
 .ce-sec__title {
@@ -1216,8 +1216,8 @@ onBeforeUnmount(() => {
 }
 .ce-sec__title h2 {
   font-family: var(--app-font-display);
-  font-size: 1.1875rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .ce-sec__title p {
@@ -1237,7 +1237,7 @@ onBeforeUnmount(() => {
   background: var(--m-a2Soft);
   color: var(--m-ink);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .ce-chipbtn:hover {
@@ -1252,7 +1252,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   min-width: 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .ce-fh {
@@ -1262,11 +1262,11 @@ onBeforeUnmount(() => {
 }
 .ce-fh.is-bad {
   color: var(--m-bad);
-  font-weight: 700;
+  font-weight: 600;
 }
 .ce-sm {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .ce-grid2 {
@@ -1305,7 +1305,7 @@ onBeforeUnmount(() => {
 .ce-fld input {
   flex: 1;
   min-width: 0;
-  height: 40px;
+  height: 32px;
   border: 0;
   outline: none;
   background: transparent;
@@ -1319,7 +1319,7 @@ onBeforeUnmount(() => {
 }
 .ce-sfx {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .ce-kbd {
@@ -1328,7 +1328,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   background: var(--el-fill-color-light);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
@@ -1341,7 +1341,7 @@ onBeforeUnmount(() => {
   background: var(--m-warnSoft);
   color: var(--m-warn);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5;
 }
 
@@ -1351,7 +1351,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 2px;
   padding: 6px;
-  border-radius: 18px;
+  border-radius: 14px;
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   box-shadow: var(--app-shadow-lg);
@@ -1361,7 +1361,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   width: 100%;
-  min-height: 56px;
+  min-height: 44px;
   padding: 8px 12px;
   border: none;
   border-radius: 14px;
@@ -1378,11 +1378,11 @@ onBeforeUnmount(() => {
 }
 .ce-sug__av {
   flex: none;
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 12px;
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .ce-sug__text {
   flex: 1;
@@ -1393,7 +1393,7 @@ onBeforeUnmount(() => {
 }
 .ce-sug__ref {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1426,7 +1426,7 @@ onBeforeUnmount(() => {
   padding: 0 8px;
   border-radius: 7px;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .ce-bdg.is-ok {
@@ -1454,7 +1454,7 @@ onBeforeUnmount(() => {
 }
 .ce-picked__ref {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1480,7 +1480,7 @@ onBeforeUnmount(() => {
   gap: 12px;
   min-width: 0;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 14px;
   border: 2px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
@@ -1529,8 +1529,8 @@ onBeforeUnmount(() => {
   gap: 3px;
 }
 .ce-opt__t {
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1562,14 +1562,14 @@ onBeforeUnmount(() => {
   background: var(--el-fill-color-light);
 }
 .ce-seg button {
-  min-height: 38px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: 11px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.78125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .ce-seg button.is-on {
@@ -1610,7 +1610,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 10px 10px 20px;
+  padding: 10px 10px 10px 14px;
   border-radius: 999px;
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -1648,8 +1648,8 @@ onBeforeUnmount(() => {
 .ce-side__head h2 {
   flex: 1;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .ce-side__id {
@@ -1657,14 +1657,14 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
   min-width: 0;
 }
 .ce-side__sticker {
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 16px;
   transform: rotate(-4deg);
 }
@@ -1681,8 +1681,8 @@ onBeforeUnmount(() => {
   gap: 2px;
 }
 .ce-side__name {
-  font-size: 0.9375rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1711,7 +1711,7 @@ onBeforeUnmount(() => {
   flex: none;
   width: 72px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .ce-sum dd {
@@ -1732,8 +1732,8 @@ onBeforeUnmount(() => {
 }
 .ce-cmdhead__t {
   flex: 1;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .ce-cmdhead .ce-sm {
@@ -1742,8 +1742,8 @@ onBeforeUnmount(() => {
 /* 终端固定色（不随主题） */
 .ce-term {
   margin: 0;
-  padding: 16px 18px;
-  border-radius: 18px;
+  padding: 16px 14px;
+  border-radius: 14px;
   background: #0f0b14;
   color: #e8e3ee;
   font-size: 0.78125rem;
@@ -1762,7 +1762,7 @@ onBeforeUnmount(() => {
   color: var(--m-a);
 }
 .ce-term .is-strong {
-  font-weight: 800;
+  font-weight: 600;
 }
 
 /* 弹窗 */
@@ -1796,7 +1796,7 @@ onBeforeUnmount(() => {
   background: transparent;
 }
 .is-mobile .ce-title {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 .ce-progress {
   height: 4px;
@@ -1828,14 +1828,14 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 14px 0 6px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1851,16 +1851,16 @@ onBeforeUnmount(() => {
   gap: 16px;
 }
 .is-mobile .ce-sec__title h2 {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 .is-mobile .ce-fl {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .is-mobile .ce-fld {
   min-height: 48px;
 }
 .is-mobile .ce-fld input {
-  height: 44px;
+  height: 40px;
   font-size: 0.9375rem;
 }
 .is-mobile .ce-grid2:not(:has(#ce-cpu)) {
@@ -1879,10 +1879,10 @@ onBeforeUnmount(() => {
 }
 .is-mobile .ce-sug {
   box-shadow: none;
-  border-radius: 20px;
+  border-radius: 14px;
 }
 .is-mobile .ce-sug__item {
-  min-height: 60px;
+  min-height: 44px;
   padding: 8px 10px;
 }
 .is-mobile .ce-picked__ref {
@@ -1897,21 +1897,21 @@ onBeforeUnmount(() => {
 }
 .ce-mbar {
   position: sticky;
-  bottom: calc(78px + env(safe-area-inset-bottom));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   z-index: 5;
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 4px -4px 0;
   padding: 10px;
-  border-radius: 24px;
+  border-radius: 16px;
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   box-shadow: var(--app-shadow-lg);
 }
 .ce-mbar__prev {
   flex: none;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
 }
 .ce-mbar__next {
@@ -1920,8 +1920,8 @@ onBeforeUnmount(() => {
   min-height: 52px;
   justify-content: center;
   border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 @media (width < 1100px) {
   .ce-side {

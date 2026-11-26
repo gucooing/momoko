@@ -53,7 +53,7 @@
           :aria-label="`${name} ${t('gameServers.actions.gm')}`"
           :title="t('gameServers.actions.gm')"
         >
-          <AppIconButton icon="HOutline:SparklesIcon" tabindex="-1" :label="t('gameServers.actions.gm')" />
+          <AppIconButton icon="HOutline:SparklesIcon" tabindex="-1" :box="30" :size="16" :label="t('gameServers.actions.gm')" />
         </RouterLink>
         <RouterLink
           v-if="hosted"
@@ -62,7 +62,7 @@
           :aria-label="`${name} ${t('gameServers.actions.console')}`"
           :title="t('gameServers.actions.console')"
         >
-          <AppIconButton icon="HOutline:CommandLineIcon" tabindex="-1" :label="t('gameServers.actions.console')" />
+          <AppIconButton icon="HOutline:CommandLineIcon" tabindex="-1" :box="30" :size="16" :label="t('gameServers.actions.console')" />
         </RouterLink>
         <RouterLink
           :to="detailTo(hosted ? 'settings' : 'connection')"
@@ -70,11 +70,13 @@
           :aria-label="`${name} ${t('gameServers.actions.settings')}`"
           :title="t('gameServers.actions.settings')"
         >
-          <AppIconButton icon="HOutline:AdjustmentsHorizontalIcon" tabindex="-1" :label="t('gameServers.actions.settings')" />
+          <AppIconButton icon="HOutline:AdjustmentsHorizontalIcon" tabindex="-1" :box="30" :size="16" :label="t('gameServers.actions.settings')" />
         </RouterLink>
         <AppIconButton
           v-if="hosted"
           :icon="running ? 'HOutline:StopIcon' : 'HOutline:PlayIcon'"
+          :box="30"
+          :size="16"
           :label="`${running ? t('gameServers.actions.stop') : t('gameServers.actions.start')} ${name}`"
           :class="running ? 'is-stop' : 'is-start'"
           :disabled="busy"
@@ -174,7 +176,7 @@ const menu = computed<ActionMenuItem[]>(() => [
 .gs-card__cover {
   position: relative;
   display: block;
-  height: 120px;
+  height: 100px;
   background: var(--m-gSoft, var(--m-s2));
   overflow: hidden;
 }
@@ -186,10 +188,10 @@ const menu = computed<ActionMenuItem[]>(() => [
 }
 .gs-card__band {
   position: absolute;
-  inset: auto 0 18px 20px;
+  inset: auto 0 14px 16px;
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--m-gInk, var(--m-ink2));
   opacity: 0.35;
   white-space: nowrap;
@@ -198,21 +200,21 @@ const menu = computed<ActionMenuItem[]>(() => [
 }
 .gs-card__pill {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
   background: var(--el-bg-color);
 }
 .gs-card__body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 0 18px 16px;
+  gap: 10px;
+  padding: 0 14px 12px;
 }
 .gs-card__head {
   display: flex;
   align-items: flex-end;
-  gap: 14px;
-  margin-top: -26px;
+  gap: 10px;
+  margin-top: -16px;
   position: relative;
 }
 .gs-card__logo.has-img {
@@ -225,20 +227,20 @@ const menu = computed<ActionMenuItem[]>(() => [
 }
 .gs-card__logo {
   flex: none;
-  width: 56px;
-  height: 56px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 18px;
+  border-radius: 11px;
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--m-gInk, var(--m-pInk));
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   transform: rotate(-4deg);
-  box-shadow: 3px 3px 0 var(--m-g, var(--m-p));
+  box-shadow: 2px 2px 0 var(--m-g, var(--m-p));
 }
 .gs-card__title {
   flex: 1;
@@ -249,8 +251,8 @@ const menu = computed<ActionMenuItem[]>(() => [
   padding-bottom: 2px;
 }
 .gs-card__name {
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   text-decoration: none;
   overflow: hidden;
@@ -261,7 +263,7 @@ const menu = computed<ActionMenuItem[]>(() => [
   color: var(--m-pInk);
 }
 .gs-card__game {
-  font-size: 0.8125rem;
+  font-size: 12px;
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -276,13 +278,13 @@ const menu = computed<ActionMenuItem[]>(() => [
   display: inline-flex;
   align-items: center;
   max-width: 100%;
-  height: 24px;
-  padding: 0 9px;
-  border-radius: 8px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -299,8 +301,8 @@ const menu = computed<ActionMenuItem[]>(() => [
   margin: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 14px;
-  padding: 12px 14px;
+  gap: 8px 12px;
+  padding: 10px 12px;
   border-radius: var(--app-radius);
   background: var(--el-fill-color-light);
 }
@@ -316,8 +318,8 @@ const menu = computed<ActionMenuItem[]>(() => [
 }
 .gs-card__kv dd {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -335,7 +337,7 @@ const menu = computed<ActionMenuItem[]>(() => [
   display: flex;
   align-items: center;
   gap: 2px;
-  padding-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--el-border-color-light);
 }
 .gs-card__caps {
@@ -348,13 +350,13 @@ const menu = computed<ActionMenuItem[]>(() => [
 .gs-card__cap {
   display: inline-flex;
   align-items: center;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 999px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
   background: var(--m-gSoft, var(--m-pSoft));
   color: var(--m-gInk, var(--m-pInk));
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 500;
 }
 .gs-card__link {
   display: inline-flex;
@@ -362,10 +364,6 @@ const menu = computed<ActionMenuItem[]>(() => [
 }
 .gs-card__link :deep(.app-icon-btn) {
   pointer-events: none;
-}
-.gs-card__foot :deep(.app-icon-btn) {
-  width: 40px !important;
-  height: 40px !important;
 }
 .gs-card__foot .is-stop {
   color: var(--m-bad);
@@ -375,8 +373,8 @@ const menu = computed<ActionMenuItem[]>(() => [
 }
 @media (width <= 768px) {
   .gs-card__foot :deep(.app-icon-btn) {
-    width: 44px !important;
-    height: 44px !important;
+    width: 40px !important;
+    height: 40px !important;
   }
 }
 </style>

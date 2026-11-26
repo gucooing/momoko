@@ -28,7 +28,7 @@
         <AppIconButton
           v-else-if="canAdd"
           icon="HOutline:LinkIcon"
-          :box="44"
+          :box="40"
           :label="t('accessV2.invite.button')"
           @click="openInvite"
         />
@@ -81,7 +81,7 @@
     >
       <template #cell-username="{ row }">
         <div class="acc-user">
-          <AppAvatar v-if="avatarOf(row)" :src="avatarOf(row)" :size="40" :name="String(row.name || row.username)" />
+          <AppAvatar v-if="avatarOf(row)" :src="avatarOf(row)" :size="30" :name="String(row.name || row.username)" />
           <span
             v-else
             class="m-sticker acc-user__av"
@@ -134,22 +134,22 @@
             <AppIconButton
               icon="HOutline:PencilSquareIcon"
               :label="`${t('system.common.edit')} ${nameOf(asUser(row))}`"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               @click="openEdit(asUser(row))"
             />
             <AppIconButton
               icon="HOutline:KeyIcon"
               :label="t('accessAdmin.user.resetPassword')"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               @click="openReset(asUser(row))"
             />
             <AppIconButton
               :icon="isActive(row) ? 'HOutline:NoSymbolIcon' : 'HOutline:CheckCircleIcon'"
               :label="toggleLabel(asUser(row))"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               :class="row.isBuiltin ? 'is-locked' : isActive(row) ? 'is-stop' : 'is-start'"
               :disabled="!!row.isBuiltin"
               @click="toggleStatus(asUser(row))"
@@ -195,7 +195,7 @@
                 @change="toggleSelect(row.userId)"
               />
             </label>
-            <AppAvatar v-if="avatarOf(row)" :src="avatarOf(row)" :size="46" :name="row.name || row.username" />
+            <AppAvatar v-if="avatarOf(row)" :src="avatarOf(row)" :size="36" :name="row.name || row.username" />
             <span
               v-else
               class="m-sticker acc-card__av"
@@ -238,11 +238,11 @@
               <span v-if="!row.roles?.length" class="acc-role is-none">{{ t('access.user.noRole') }}</span>
             </div>
             <template v-if="canEdit">
-              <AppIconButton icon="HOutline:PencilSquareIcon" :box="44" :label="`${t('system.common.edit')} ${nameOf(row)}`" @click="openEdit(row)" />
-              <AppIconButton icon="HOutline:KeyIcon" :box="44" :label="t('accessAdmin.user.resetPassword')" @click="openReset(row)" />
+              <AppIconButton icon="HOutline:PencilSquareIcon" :box="40" :label="`${t('system.common.edit')} ${nameOf(row)}`" @click="openEdit(row)" />
+              <AppIconButton icon="HOutline:KeyIcon" :box="40" :label="t('accessAdmin.user.resetPassword')" @click="openReset(row)" />
               <AppIconButton
                 :icon="isActive(row) ? 'HOutline:NoSymbolIcon' : 'HOutline:CheckCircleIcon'"
-                :box="44"
+                :box="40"
                 :label="toggleLabel(row)"
                 :class="row.isBuiltin ? 'is-locked' : isActive(row) ? 'is-stop' : 'is-start'"
                 :disabled="row.isBuiltin"
@@ -755,11 +755,11 @@ onMounted(() => {
 }
 .acc-ok {
   color: var(--m-ok);
-  font-weight: 700;
+  font-weight: 600;
 }
 .acc-dim {
   color: var(--el-text-color-secondary);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
 }
 
 /* 角色分段（横向滚动、不显示滚动条） */
@@ -767,7 +767,7 @@ onMounted(() => {
   display: inline-flex;
   gap: 2px;
   max-width: 100%;
-  padding: 4px;
+  padding: 3px;
   border-radius: 999px;
   background: var(--m-s2);
   overflow-x: auto;
@@ -778,15 +778,15 @@ onMounted(() => {
 }
 .acc-seg__btn {
   flex: none;
-  min-height: 34px;
-  padding: 0 14px;
+  min-height: 26px;
+  padding: 0 12px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 700;
+  font-size: 0.78125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -796,6 +796,7 @@ onMounted(() => {
 .acc-seg__btn.is-on {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
+  font-weight: 600;
   box-shadow: var(--app-shadow-sm);
 }
 
@@ -807,11 +808,11 @@ onMounted(() => {
   background: transparent;
 }
 .acc-seg.is-chips .acc-seg__btn {
-  min-height: 44px;
-  padding: 0 16px;
+  min-height: 30px;
+  padding: 0 14px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
-  font-size: 0.875rem;
+  font-size: 0.78125rem;
 }
 .acc-seg.is-chips .acc-seg__btn.is-on {
   background: var(--m-ink);
@@ -824,14 +825,14 @@ onMounted(() => {
 .acc-user {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 .acc-user__av {
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
-  font-size: 1rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font-size: 0.8125rem;
 }
 .acc-user__text {
   display: flex;
@@ -846,21 +847,21 @@ onMounted(() => {
   min-width: 0;
 }
 .acc-user__name {
-  font-weight: 800;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .acc-user__sub {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .acc-user__sub .m-mono {
-  font-size: 0.75rem;
+  font-size: 0.71875rem;
 }
 .acc-tag {
   display: inline-flex;
@@ -872,8 +873,8 @@ onMounted(() => {
   border-radius: 6px;
   background: var(--m-ink);
   color: var(--m-bg);
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-size: 0.71875rem;
+  font-weight: 500;
 }
 .acc-tag :deep(svg) {
   width: 11px;
@@ -882,7 +883,7 @@ onMounted(() => {
 .acc-me {
   flex: none;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--m-pInk);
 }
 
@@ -896,12 +897,12 @@ onMounted(() => {
 .acc-role {
   display: inline-flex;
   align-items: center;
-  height: 24px;
+  height: 20px;
   max-width: 100%;
-  padding: 0 9px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  padding: 0 7px;
+  border-radius: 6px;
+  font-size: 0.71875rem;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -932,7 +933,7 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   background: var(--m-s2);
   color: var(--m-ink2);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .acc-login__ip {
   font-size: 0.75rem;
@@ -971,20 +972,20 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 .acc-foot__tip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.8125rem;
+  gap: 6px;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
 }
 .acc-foot__tip :deep(svg) {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   flex: none;
 }
 .acc-foot__spacer {
   flex: 1;
 }
 .acc-foot__shown {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
@@ -1000,8 +1001,8 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 }
 .acc-fab__btn {
   pointer-events: auto;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 34px;
+  padding: 0 14px;
   border-radius: var(--app-radius-pill);
   box-shadow: var(--app-shadow-brand);
 }
@@ -1010,13 +1011,13 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 .acc-cards {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 .acc-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px 12px 6px 16px;
+  gap: 10px;
+  padding: 12px 10px 4px 12px;
   border-radius: var(--app-radius-xl, var(--app-radius-lg));
   border: 1px solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -1028,7 +1029,7 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 .acc-card__head {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding-right: 4px;
 }
 .acc-card__check {
@@ -1046,10 +1047,10 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   accent-color: var(--m-p);
 }
 .acc-card__av {
-  width: 46px;
-  height: 46px;
-  border-radius: 15px;
-  font-size: 1.125rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 11px;
+  font-size: 0.875rem;
 }
 .acc-card__title {
   flex: 1;
@@ -1059,8 +1060,8 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   gap: 2px;
 }
 .acc-card__name {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1087,13 +1088,13 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 }
 .acc-dl dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .acc-dl dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1110,10 +1111,6 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   padding-top: 6px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
-.acc-card__foot :deep(.app-icon-btn) {
-  width: 44px !important;
-  height: 44px !important;
-}
 .acc-card__roles {
   flex: 1;
   min-width: 0;
@@ -1123,7 +1120,7 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   gap: 6px;
 }
 .acc-skeleton {
-  height: 210px;
+  height: 180px;
   border-radius: var(--app-radius-lg);
   background: var(--el-fill-color-light);
   animation: acc-pulse 1.4s ease-in-out infinite;
@@ -1144,7 +1141,7 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   align-items: center;
   gap: 2px;
   max-width: 100%;
-  padding: 6px 6px 6px 18px;
+  padding: 4px 4px 4px 16px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -1156,9 +1153,9 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   display: none;
 }
 .acc-batch__count {
-  margin-right: 10px;
-  font-size: 0.875rem;
-  font-weight: 800;
+  margin-right: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 .acc-batch__btn {
@@ -1166,14 +1163,14 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   align-items: center;
   gap: 6px;
   flex: none;
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 30px;
+  padding: 0 12px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1184,7 +1181,7 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   color: var(--m-a);
 }
 .acc-batch__btn.is-icon {
-  width: 40px;
+  width: 30px;
   padding: 0;
   justify-content: center;
 }
@@ -1194,8 +1191,14 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 }
 @media (width < 992px) {
   .acc-batch {
-    bottom: calc(78px + env(safe-area-inset-bottom));
+    bottom: calc(12px + env(safe-area-inset-bottom));
     padding-left: 14px;
+  }
+  .acc-batch__btn {
+    min-height: 38px;
+  }
+  .acc-batch__btn.is-icon {
+    width: 38px;
   }
 }
 .acc-pop-enter-active,
@@ -1219,8 +1222,8 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   grid-template-columns: auto auto 1fr auto;
   align-items: center;
   gap: 10px;
-  min-height: 52px;
-  padding: 8px 14px;
+  min-height: 34px;
+  padding: 7px 12px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: var(--app-radius);
   background: var(--el-bg-color);
@@ -1257,7 +1260,7 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 }
 .acc-assign__desc {
   min-width: 0;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1265,12 +1268,12 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 }
 .acc-assign__n {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .acc-assign__hint {
   margin: 4px 0 0;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
 }
 
@@ -1278,14 +1281,14 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 .acc-invite {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 .acc-invite__loading {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .acc-spinner {
@@ -1305,14 +1308,14 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 9px 12px;
   border-radius: var(--app-radius);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .acc-invite__state :deep(svg) {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   flex: none;
 }
 .acc-invite__state.is-on {
@@ -1332,15 +1335,15 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 .acc-invite__url {
   flex: 1 1 260px;
   min-width: 0;
-  min-height: 48px;
+  min-height: 32px;
   display: flex;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 12px;
   border-radius: var(--app-radius);
   border: 1.5px dashed var(--el-border-color-light);
   background: var(--el-fill-color-light);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.78125rem;
+  font-weight: 500;
   color: var(--el-text-color-primary);
   overflow-x: auto;
   white-space: nowrap;
@@ -1350,18 +1353,15 @@ html.dark .acc-role.is-a { color: var(--m-a); }
   display: none;
 }
 .acc-invite__link :deep(button) {
-  min-height: 48px;
   border-radius: 999px;
-  padding: 0 20px;
-  font-weight: 700;
 }
 .acc-invite__notes {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   color: var(--el-text-color-secondary);
 }
@@ -1373,9 +1373,7 @@ html.dark .acc-role.is-a { color: var(--m-a); }
 }
 .acc-invite__acts :deep(button),
 .acc-invite__acts :deep(a) {
-  min-height: 44px;
   border-radius: 999px;
-  font-weight: 700;
 }
 
 @media (width < 768px) {

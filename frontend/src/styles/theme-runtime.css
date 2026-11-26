@@ -8,7 +8,7 @@
 :root {
   /* 外壳的页面底色（有自定义背景时变透明） */
   --app-surface-page: var(--el-bg-color-page);
-  /* 侧栏 / 底部导航底色 */
+  /* 侧栏底色 */
   --app-sidebar-bg: var(--el-bg-color);
   /* 按钮圆角（主题「按钮形状」）；engine 会按主题写入 */
   --app-radius-btn: 999px;
@@ -56,7 +56,7 @@ html.is-glass .app-shell,
 html.is-glass .auth {
   --el-bg-color: color-mix(in srgb, var(--m-s) var(--theme-card-a), transparent);
 }
-html.is-glass :is(.app-panel, .entity-card, .tabbar, .app-input, .theme-glass) {
+html.is-glass :is(.app-panel, .entity-card, .app-input, .theme-glass) {
   -webkit-backdrop-filter: var(--theme-glass-blur);
   backdrop-filter: var(--theme-glass-blur);
 }

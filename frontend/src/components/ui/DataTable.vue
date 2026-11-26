@@ -288,7 +288,7 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-lg);
   background: var(--el-bg-color);
-  padding: 2px 6px;
+  padding: 0 4px;
 }
 /* 重载遮罩：轻蒙层 + 居中 spinner，保留旧数据可见、不改布局，替代整表骨架替换的闪烁。
    延迟 220ms 淡入：快请求（翻页秒回）根本不显示遮罩，只有慢请求才淡入，杜绝闪一下。 */
@@ -298,7 +298,7 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   display: grid;
   place-items: center;
   background: color-mix(in srgb, var(--el-bg-color) 55%, transparent);
-  border-radius: var(--app-radius);
+  border-radius: var(--app-radius-lg);
   opacity: 0;
   animation: dt-veil-in 0.2s ease 0.22s forwards;
 }
@@ -327,7 +327,7 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
 }
 .data-table th,
 .data-table td {
-  padding: var(--cmp-table-row-padding) 12px;
+  padding: var(--cmp-table-row-padding) 10px;
   text-align: left;
   white-space: nowrap;
 }
@@ -355,8 +355,7 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font-size: var(--cmp-table-head-size);
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 500;
   border-bottom: 1px solid var(--el-border-color-light);
 }
 .data-table tbody td {
@@ -440,16 +439,16 @@ const formatValue = (v: unknown) => (v == null || v === '' ? '—' : String(v))
   white-space: nowrap;
 }
 .data-table__check {
-  width: 44px;
+  width: 36px;
   text-align: center;
 }
 .data-table__seq {
-  width: 60px;
+  width: 48px;
   color: var(--el-text-color-placeholder);
 }
 .data-table__checkbox {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   accent-color: var(--el-color-primary);
   cursor: pointer;
   vertical-align: middle;

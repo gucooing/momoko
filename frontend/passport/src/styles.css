@@ -28,8 +28,7 @@ a {
 .pp-title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 600;
 }
 
 .pp-num {
@@ -57,15 +56,15 @@ a {
   align-items: center;
   gap: 6px;
   flex: none;
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 28px;
+  padding: 0 11px;
   border-radius: var(--app-radius-pill, 999px);
   border: 1px solid var(--m-line);
   background: var(--m-s);
   color: var(--m-ink);
   font: inherit;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -86,13 +85,13 @@ a {
 .pp-tag {
   display: inline-flex;
   align-items: center;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: var(--app-radius-pill, 999px);
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
   background: var(--m-s2);
   color: var(--m-ink2);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 500;
   white-space: nowrap;
 }
 .pp-tag--p {
@@ -107,8 +106,8 @@ a {
 /* 分段选择 */
 .pp-seg {
   display: inline-flex;
-  gap: 4px;
-  padding: 4px;
+  gap: 2px;
+  padding: 3px;
   border-radius: var(--app-radius-pill, 999px);
   background: var(--m-s2);
   max-width: 100%;
@@ -120,21 +119,22 @@ a {
 }
 .pp-seg > button {
   flex: 1 0 auto;
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 26px;
+  padding: 0 12px;
   border: 0;
   border-radius: var(--app-radius-pill, 999px);
   background: transparent;
   color: var(--m-ink2);
   font: inherit;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
 }
 .pp-seg > button.is-on {
   background: var(--m-s);
   color: var(--m-ink);
+  font-weight: 600;
   box-shadow: 0 1px 3px color-mix(in srgb, var(--m-ink) 12%, transparent);
 }
 
@@ -146,7 +146,7 @@ a {
 /* 下划线标签 */
 .pp-utabs {
   display: flex;
-  gap: 22px;
+  gap: 14px;
   border-bottom: 1px solid var(--m-line);
   overflow-x: auto;
   scrollbar-width: none;
@@ -159,19 +159,20 @@ a {
   align-items: center;
   gap: 6px;
   flex: none;
-  min-height: 44px;
+  min-height: 30px;
   padding: 0 2px;
   border: 0;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--m-ink2);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 .pp-utabs > button.is-on {
   color: var(--m-pInk);
+  font-weight: 600;
   border-bottom-color: var(--m-p);
 }
 
@@ -193,13 +194,15 @@ a {
   align-items: center;
   justify-content: center;
   flex: none;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {
-  .pp-chip,
+  .pp-chip {
+    min-height: 34px;
+  }
   .pp-seg > button {
-    min-height: 44px;
+    min-height: 32px;
   }
 }
 
@@ -208,21 +211,21 @@ a {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 .pp-error {
   margin: 0;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
   background: var(--m-badSoft);
   color: var(--m-bad);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .pp-note {
   margin: 0;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
   background: var(--m-s2);
   color: var(--m-ink2);
   font-size: 13px;
@@ -231,14 +234,14 @@ a {
 .pp-link {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 30px;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--m-pInk);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
 }
@@ -253,40 +256,40 @@ a {
 
 /* 账号设置的分区卡片与表单行 */
 .pp-section {
-  padding: 22px 26px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
 }
 .pp-section__head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 4px;
+  gap: 10px;
+  margin-bottom: 2px;
 }
 .pp-section__title {
   flex: 1;
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .pp-section__desc {
-  margin: 0 0 12px;
-  font-size: 13px;
+  margin: 0 0 10px;
+  font-size: 12px;
   line-height: 1.6;
   color: var(--m-ink2);
 }
 .pp-frow {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) auto;
-  gap: 16px;
+  grid-template-columns: 180px minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
-  min-height: 70px;
-  padding: 10px 0;
+  min-height: 50px;
+  padding: 8px 0;
   border-top: 1px solid var(--m-line);
 }
 .pp-frow--icon {
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
 }
 .pp-frow > * {
   min-width: 0;
@@ -295,8 +298,8 @@ a {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
 }
 .pp-frow__label small {
   font-size: 12px;
@@ -312,23 +315,20 @@ a {
 .pp-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  padding-top: 14px;
+  gap: 8px;
+  padding-top: 12px;
   border-top: 1px solid var(--m-line);
 }
 @media (max-width: 768px) {
   .pp-section {
-    padding: 18px 16px;
-  }
-  .pp-section__title {
-    font-size: 22px;
+    padding: 12px;
   }
   .pp-frow {
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
   .pp-frow--icon {
-    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-columns: 32px minmax(0, 1fr);
   }
   .pp-frow--icon > .pp-frow__actions {
     grid-column: 1 / -1;

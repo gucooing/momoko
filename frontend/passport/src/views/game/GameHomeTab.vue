@@ -256,12 +256,12 @@ onMounted(() => {
 .gh {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 .gh__top {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 14px;
   align-items: stretch;
 }
 .gh__card {
@@ -269,7 +269,7 @@ onMounted(() => {
   flex: 3 1 520px;
   min-width: 0;
   min-height: 250px;
-  border-radius: 28px;
+  border-radius: 18px;
   overflow: hidden;
   background: var(--m-gSoft);
 }
@@ -301,7 +301,7 @@ onMounted(() => {
   align-items: center;
   gap: 14px;
   padding: 14px;
-  border-radius: 22px;
+  border-radius: 16px;
   background: var(--m-s);
   box-sizing: border-box;
 }
@@ -317,7 +317,7 @@ onMounted(() => {
 .gh__bust :deep(img) {
   width: 112px;
   height: 112px;
-  margin: -4px 0 0 -20px;
+  margin: -4px 0 0 -14px;
   object-fit: cover;
 }
 .gh__plate-text {
@@ -328,8 +328,8 @@ onMounted(() => {
   gap: 4px;
 }
 .gh__name {
-  font-size: 21px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -345,7 +345,7 @@ onMounted(() => {
 .gh__wallet {
   flex: 2 1 320px;
   min-width: 0;
-  padding: 18px;
+  padding: 14px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -356,7 +356,7 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-s2);
   min-width: 0;
 }
@@ -377,8 +377,8 @@ onMounted(() => {
   flex-direction: column;
 }
 .gh__coin-v {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -402,18 +402,18 @@ onMounted(() => {
 }
 .gh__h2 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
 }
 .gh__link {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 4px;
   border: 0;
   background: transparent;
   color: var(--m-gInk);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 .gh__none {
@@ -431,7 +431,7 @@ onMounted(() => {
   gap: 12px;
   min-height: 72px;
   padding: 14px 16px;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 1.5px solid var(--m-line);
   background: var(--m-s);
   color: var(--m-ink);
@@ -471,8 +471,8 @@ onMounted(() => {
   gap: 2px;
 }
 .gh__todo-t {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gh__chev {
   width: 18px;
@@ -498,7 +498,7 @@ onMounted(() => {
 }
 .gh__banner-name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gh__pvp {
   flex: 0 0 240px;
@@ -506,7 +506,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 6px;
   padding: 16px;
-  border-radius: 24px;
+  border-radius: 16px;
   border: 1px solid var(--m-gLine);
   background: var(--m-gSoft);
   color: var(--m-ink);
@@ -529,12 +529,12 @@ onMounted(() => {
   height: 22px;
 }
 .gh__pvp-t {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gh__pvp-v {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--m-gInk);
 }
 .gh__recent {
@@ -547,7 +547,7 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 10px;
-  border-radius: 20px;
+  border-radius: 14px;
   background: var(--m-s);
   border: 1px solid var(--m-line);
   color: var(--m-ink);
@@ -575,8 +575,8 @@ onMounted(() => {
   gap: 2px;
 }
 .gh__rc-name {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -590,7 +590,7 @@ onMounted(() => {
   background: var(--m-s);
   color: var(--m-ink);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gh__rar--3 {
   background: var(--m-a);

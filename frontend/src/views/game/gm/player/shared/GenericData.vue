@@ -130,7 +130,7 @@ const cellTitle = (v: unknown) => (v && typeof v === 'object' ? JSON.stringify(v
 .gdata__table th {
   color: var(--el-text-color-secondary);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   border-bottom: 1px solid var(--el-border-color-light);
 }
 .gdata__table td {
@@ -157,7 +157,7 @@ const cellTitle = (v: unknown) => (v && typeof v === 'object' ? JSON.stringify(v
 }
 .gdata__kv-row dd {
   margin: 0;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -67,10 +67,10 @@ const onSelect = (item: ActionMenuItem, close: () => void) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border: none;
-  border-radius: 12px;
+  border-radius: 9px;
   background: transparent;
   color: var(--el-text-color-secondary);
   cursor: pointer;
@@ -91,25 +91,25 @@ const onSelect = (item: ActionMenuItem, close: () => void) => {
   }
 }
 .action-menu__trigger-ico {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 .action-menu {
-  padding: 6px;
+  padding: 4px;
 }
 .action-menu__item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 30px;
+  padding: 4px 9px;
   border: none;
   background: transparent;
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--el-text-color-regular);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
@@ -120,8 +120,8 @@ const onSelect = (item: ActionMenuItem, close: () => void) => {
 }
 .action-menu__ico,
 .action-menu__item :deep(svg) {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
 }
 .action-menu__item:hover:not(:disabled) {

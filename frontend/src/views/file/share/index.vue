@@ -107,7 +107,7 @@
                   :icon="copiedId === row.id ? 'HOutline:CheckIcon' : 'HOutline:DocumentDuplicateIcon'"
                   :class="{ 'is-copied': copiedId === row.id }"
                   :label="t('file.share.copyLink')"
-                  :box="36"
+                  :box="30"
                   :size="16"
                   @click="copyLink(row)"
                 />
@@ -133,9 +133,9 @@
             <td><StatusPill :variant="statusVariant(row)" :label="statusLabel(row)" /></td>
             <td>
               <div class="shr-ops">
-                <AppIconButton icon="HOutline:QrCodeIcon" :label="t('file.share.qrOf', { name: row.name })" :box="36" :size="18" @click="openQr(row)" />
-                <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('file.share.editOf', { name: row.name })" :box="36" :size="18" @click="openEdit(row)" />
-                <AppIconButton class="tone-bad" icon="HOutline:TrashIcon" :label="t('file.share.deleteOf', { name: row.name })" :box="36" :size="18" @click="remove(row)" />
+                <AppIconButton icon="HOutline:QrCodeIcon" :label="t('file.share.qrOf', { name: row.name })" :box="30" :size="16" @click="openQr(row)" />
+                <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('file.share.editOf', { name: row.name })" :box="30" :size="16" @click="openEdit(row)" />
+                <AppIconButton class="tone-bad" icon="HOutline:TrashIcon" :label="t('file.share.deleteOf', { name: row.name })" :box="30" :size="16" @click="remove(row)" />
                 <ActionMenu :items="rowMenu(row)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
               </div>
             </td>
@@ -190,8 +190,8 @@
               :icon="copiedId === row.id ? 'HOutline:CheckIcon' : 'HOutline:DocumentDuplicateIcon'"
               :class="{ 'is-copied': copiedId === row.id }"
               :label="t('file.share.copyLink')"
-              :box="44"
-              :size="18"
+              :box="36"
+              :size="16"
               @click="copyLink(row)"
             />
           </div>
@@ -221,9 +221,9 @@
             <span class="shr-mcard__tags">
               <span class="shr-mcard__tag m-num">{{ kindTag(row) }}</span>
             </span>
-            <AppIconButton icon="HOutline:QrCodeIcon" :label="t('file.share.qrOf', { name: row.name })" :box="44" @click="openQr(row)" />
-            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('file.share.editOf', { name: row.name })" :box="44" @click="openEdit(row)" />
-            <AppIconButton class="tone-bad" icon="HOutline:TrashIcon" :label="t('file.share.deleteOf', { name: row.name })" :box="44" @click="remove(row)" />
+            <AppIconButton icon="HOutline:QrCodeIcon" :label="t('file.share.qrOf', { name: row.name })" :box="36" @click="openQr(row)" />
+            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('file.share.editOf', { name: row.name })" :box="36" @click="openEdit(row)" />
+            <AppIconButton class="tone-bad" icon="HOutline:TrashIcon" :label="t('file.share.deleteOf', { name: row.name })" :box="36" @click="remove(row)" />
             <ActionMenu :items="rowMenu(row, true)" :label="t('fileManager.moreFor', { name: row.name })" @select="(key) => onRowAction(key, row)" />
           </footer>
         </article>
@@ -723,7 +723,7 @@ onMounted(() => {
 }
 .shr-ok {
   color: var(--m-ok);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* 统计卡 */
@@ -742,8 +742,8 @@ onMounted(() => {
   background: var(--el-bg-color);
 }
 .shr-stat__sticker {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   border-radius: 15px;
 }
 .shr-stat__sticker :deep(svg),
@@ -757,8 +757,8 @@ onMounted(() => {
   color: var(--el-text-color-secondary);
 }
 .shr-stat__value {
-  font-size: 1.625rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 600;
   line-height: 1.2;
 }
 .shr-stat__hint {
@@ -767,7 +767,7 @@ onMounted(() => {
 }
 .shr-stat__unit {
   margin-left: 4px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--el-text-color-secondary);
 }
@@ -798,8 +798,7 @@ onMounted(() => {
   padding: 12px 10px;
   border-bottom: 1px solid var(--el-border-color-lighter);
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   text-align: left;
   white-space: nowrap;
@@ -807,7 +806,7 @@ onMounted(() => {
 .shr-table td {
   padding: 10px;
   border-bottom: 1px solid var(--el-border-color-lighter);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   vertical-align: middle;
 }
 .shr-table tbody tr:last-child td {
@@ -845,8 +844,8 @@ onMounted(() => {
   min-width: 0;
 }
 .shr-sticker {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 13px;
 }
 .shr-sticker :deep(svg),
@@ -855,8 +854,8 @@ onMounted(() => {
   height: 18px;
 }
 .shr-sticker--lg {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 15px;
 }
 .shr-content__text {
@@ -867,7 +866,7 @@ onMounted(() => {
   gap: 2px;
 }
 .shr-content__name {
-  font-weight: 800;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -906,8 +905,7 @@ onMounted(() => {
   background: var(--m-aSoft);
   color: var(--m-aOn);
   font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
 }
 :global(html.dark) .shr-code {
   color: var(--m-a);
@@ -918,7 +916,7 @@ onMounted(() => {
 }
 .shr-exp {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .shr-left {
@@ -929,18 +927,18 @@ onMounted(() => {
 }
 .shr-left.is-warn {
   color: var(--m-warn);
-  font-weight: 700;
+  font-weight: 600;
 }
 .shr-left.is-bad {
   color: var(--m-bad);
-  font-weight: 700;
+  font-weight: 600;
 }
 .shr-td--dl {
   min-width: 110px;
 }
 .shr-dl {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .shr-dl__limit {
@@ -1016,7 +1014,7 @@ onMounted(() => {
   padding-right: 4px;
 }
 .shr-mcard__head .shr-content__name {
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 .shr-mcard__link {
   display: flex;
@@ -1052,13 +1050,13 @@ onMounted(() => {
 }
 .shr-mcard__info dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .shr-mcard__info dd {
   margin: 3px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .shr-mcard__info .shr-code {
@@ -1097,7 +1095,7 @@ onMounted(() => {
   white-space: nowrap;
 }
 .shr-dim--b {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* 底部：显示条数 + 分页 */
@@ -1131,7 +1129,7 @@ onMounted(() => {
   height: 240px;
   overflow: hidden;
   border: 1px solid var(--el-border-color-lighter);
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--m-s2);
 }
 .shr-qr__img img {
@@ -1153,8 +1151,8 @@ onMounted(() => {
   }
 }
 .shr-qr__name {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   word-break: break-all;
 }
 .shr-qr__link {
@@ -1175,19 +1173,19 @@ onMounted(() => {
 .shr-fab {
   position: fixed;
   right: 16px;
-  bottom: calc(82px + env(safe-area-inset-bottom));
+  bottom: calc(12px + env(safe-area-inset-bottom));
   z-index: 6;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border: none;
   border-radius: 999px;
   background: var(--m-p);
   color: var(--m-pOn);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   box-shadow: var(--app-shadow-brand);
   cursor: pointer;
 }
@@ -1197,8 +1195,8 @@ onMounted(() => {
   height: 20px;
 }
 .shr-mcard__foot :deep(.action-menu__trigger) {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
 }
 
 /* 批量条 */
@@ -1211,7 +1209,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   max-width: 100%;
-  padding: 6px 6px 6px 20px;
+  padding: 6px 6px 6px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -1219,8 +1217,8 @@ onMounted(() => {
 }
 .shr-bulk__count {
   margin-right: 10px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
 }
 .shr-bulk__btn {
@@ -1228,14 +1226,14 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 32px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--m-bg);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -1261,7 +1259,7 @@ onMounted(() => {
 @media (width <= 768px) {
   .shr {
     gap: 12px;
-    padding-bottom: 72px;
+    padding-bottom: 54px;
   }
   .shr-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1272,18 +1270,18 @@ onMounted(() => {
     padding: 12px;
   }
   .shr-stat__sticker {
-    width: 38px;
-    height: 38px;
+    width: 30px;
+    height: 30px;
     border-radius: 12px;
   }
   .shr-stat__value {
-    font-size: 1.375rem;
+    font-size: 1.125rem;
   }
   .shr-bulk {
     position: fixed;
     left: 12px;
     right: 12px;
-    bottom: calc(78px + env(safe-area-inset-bottom));
+    bottom: calc(12px + env(safe-area-inset-bottom));
     justify-content: space-between;
     padding-left: 16px;
   }

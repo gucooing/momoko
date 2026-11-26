@@ -246,8 +246,8 @@ onMounted(() => {
 }
 .pf-card-title {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dev-head {
@@ -265,7 +265,7 @@ onMounted(() => {
 }
 .dev-using {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
@@ -282,7 +282,7 @@ onMounted(() => {
   color: var(--m-pInk);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .dev-kick {
@@ -310,10 +310,10 @@ onMounted(() => {
   gap: 12px;
 }
 .dev-detail__sk {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   border-radius: 15px;
-  font-size: 22px;
+  font-size: 18px;
   transform: rotate(-3deg);
 }
 .dev-detail__name {
@@ -323,8 +323,8 @@ onMounted(() => {
   flex-direction: column;
   gap: 2px;
   strong {
-    font-size: 1rem;
-    font-weight: 800;
+    font-size: 0.875rem;
+    font-weight: 600;
     color: var(--el-text-color-primary);
     overflow-wrap: anywhere;
   }

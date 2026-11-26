@@ -234,7 +234,7 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
   gap: 16px;
 }
 .pe-mod {
-  padding: 18px 24px 8px;
+  padding: 14px 16px 8px;
   border: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl, var(--app-radius-lg));
   background: var(--el-bg-color);
@@ -246,8 +246,8 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
   padding-bottom: 12px;
 }
 .pe-mod__ico {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
 }
 .pe-mod__ico :deep(svg) {
@@ -257,8 +257,8 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
 .pe-mod__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pe-mod__count {
@@ -267,7 +267,7 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
   background: var(--m-s2);
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .pe-mod__spacer {
   flex: 1;
@@ -277,8 +277,8 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
   align-items: center;
   gap: 10px;
   min-height: 44px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: pointer;
 }
@@ -286,7 +286,7 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
   display: grid;
   grid-template-columns: minmax(180px, 240px) 1fr;
   align-items: center;
-  gap: 10px 20px;
+  gap: 10px 14px;
   padding: 12px 0;
   border-top: 1px solid var(--el-border-color-lighter);
 }
@@ -304,8 +304,8 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
   min-width: 0;
 }
 .pe-page__title {
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pe-page__n {
@@ -341,14 +341,14 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px 0 10px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: 999px;
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   user-select: none;
 }
@@ -383,7 +383,7 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
     padding-bottom: 6px;
   }
   .pe-mod__title {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
   .pe-mod__all {
     gap: 8px;
@@ -395,7 +395,7 @@ const toggle = (id: string) => setMany([id], !selected.value.has(id))
     padding: 10px 0;
   }
   .pe-chip {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

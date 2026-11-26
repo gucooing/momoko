@@ -1,7 +1,7 @@
 <!-- 一条消息：游戏相关的用游戏标记，通行证自己的用盾牌图标。 -->
 <template>
   <div class="mr" :class="{ 'is-unread': !message.read }">
-    <GameMark v-if="message.server" :game="message.server.game" :name="message.server.gameName || message.server.name" :src="message.server.appIcon" :size="36" />
+    <GameMark v-if="message.server" :game="message.server.game" :name="message.server.gameName || message.server.name" :src="message.server.appIcon" :size="28" />
     <span v-else class="mr__ico pp-sticker"><ShieldCheckIcon aria-hidden="true" /></span>
     <span class="mr__body">
       <span class="mr__text">{{ messageText(message) }}</span>
@@ -36,8 +36,8 @@ const note = computed(() => (props.message.kind === 'request_rejected' ? '' : pr
   padding: 12px 0;
 }
 .mr__ico {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
   background: var(--m-pSoft);
   color: var(--m-pInk);
@@ -54,13 +54,13 @@ const note = computed(() => (props.message.kind === 'request_rejected' ? '' : pr
   gap: 2px;
 }
 .mr__text {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
 .is-unread .mr__text {
-  font-weight: 800;
+  font-weight: 600;
 }
 .mr__note {
   font-size: 13px;

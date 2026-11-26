@@ -72,8 +72,7 @@ export const staticRoutes = [
         path: '/openssh/terminal',
         name: 'OpensshTerminalView',
         component: () => import('@/views/openssh/terminal/index.vue'),
-        // hideTabbar：手机端整屏页面（原型无底部导航），见 AppShell / AppContent
-        meta: { title: 'SSH 终端', titleKey: 'theme.routes.sshTerminal', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true, hideTabbar: true },
+        meta: { title: 'SSH 终端', titleKey: 'theme.routes.sshTerminal', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true },
       },
       {
         // 接入游戏服务器（选择游戏与接入方式）
@@ -108,7 +107,7 @@ export const staticRoutes = [
         path: '/instance/app/:instanceId',
         name: 'InstanceAppView',
         component: () => import('@/views/instance/console/index.vue'),
-        meta: { title: '应用详情', titleKey: 'theme.routes.appDetail', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true, hideTabbar: true },
+        meta: { title: '应用详情', titleKey: 'theme.routes.appDetail', icon: 'HOutline:CommandLineIcon', keepAlive: true, fullBleed: true },
       },
     ],
   },

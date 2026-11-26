@@ -45,9 +45,9 @@ const canConfig = computed(() => menuStore.hasButtonPermission('docker_config:ed
   text-align: center;
 }
 .dk-off__sticker {
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
   transform: rotate(-6deg);
   margin-bottom: 6px;
 }
@@ -57,13 +57,13 @@ const canConfig = computed(() => menuStore.hasButtonPermission('docker_config:ed
 }
 .dk-off__title {
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .dk-off__desc {
   max-width: 460px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--el-text-color-secondary);
 }
@@ -84,9 +84,9 @@ const canConfig = computed(() => menuStore.hasButtonPermission('docker_config:ed
   margin-top: 8px;
 }
 .dk-off__acts :deep(button) {
-  min-height: 40px;
+  min-height: 32px;
   padding-inline: 16px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 </style>

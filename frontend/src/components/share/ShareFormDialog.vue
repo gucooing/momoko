@@ -372,7 +372,7 @@ const save = async () => {
   margin-bottom: 4px;
 }
 .share-form__chip {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: 1.5px solid var(--el-border-color-light);
   border-radius: 999px;
@@ -544,8 +544,8 @@ const save = async () => {
   gap: 12px;
 }
 .share-result__ico {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   color: var(--el-color-success, #16a34a);
 }

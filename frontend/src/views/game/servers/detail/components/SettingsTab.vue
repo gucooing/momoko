@@ -101,7 +101,7 @@
                     v-if="f.present"
                     icon="HOutline:TrashIcon"
                     :label="t('gameServers.settings.remove')"
-                    :box="36"
+                    :box="30"
                     @click="remove(f.key)"
                   />
                 </template>
@@ -461,11 +461,11 @@ onActivated(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 12px;
   border-radius: var(--app-radius-sm);
   color: var(--el-text-color-regular);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-decoration: none;
 }
@@ -513,7 +513,7 @@ onActivated(() => {
   background: var(--el-fill-color-light);
 }
 .st__seg button {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
@@ -521,7 +521,7 @@ onActivated(() => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .st__seg button.is-on {
@@ -530,7 +530,7 @@ onActivated(() => {
   box-shadow: var(--app-shadow-sm);
 }
 .st__card {
-  padding: 6px 22px 10px;
+  padding: 6px 16px 10px;
   border-radius: var(--app-radius-lg);
   border: var(--cmp-card-border-width, 1px) solid var(--el-border-color-light);
   background: var(--el-bg-color);
@@ -538,13 +538,13 @@ onActivated(() => {
 }
 .st__card h2 {
   margin: 14px 0 6px;
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 .st__row {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
-  gap: 18px;
+  gap: 14px;
   align-items: center;
   padding: 14px 0;
   border-top: 1px solid var(--el-border-color-light);
@@ -553,8 +553,8 @@ onActivated(() => {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   min-width: 0;
 }
 .st__label small {
@@ -597,10 +597,10 @@ onActivated(() => {
   background: var(--m-aSoft);
   color: var(--m-ink);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .st__muted {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .st__row.is-removed .st__label {
@@ -650,7 +650,7 @@ onActivated(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  padding: 10px 10px 10px 20px;
+  padding: 10px 10px 10px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -658,8 +658,8 @@ onActivated(() => {
 }
 .st__bar-text {
   flex: 1;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .st__bar .st__bar-ghost {
   color: var(--m-bg);
@@ -677,7 +677,7 @@ onActivated(() => {
     bottom: 12px;
   }
   .st__bar :deep(button) {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

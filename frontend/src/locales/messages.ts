@@ -3776,13 +3776,6 @@ export const messages = {
       tooltip: '语言',
     },
     layout: {
-      tabbar: {
-        home: '首页',
-        apps: '应用',
-        containers: '容器',
-        files: '文件',
-        more: '更多',
-      },
       expandSidebar: '展开侧栏',
       collapseSidebar: '收起侧栏',
       openMenu: '菜单',
@@ -4665,13 +4658,6 @@ export const messages = {
       tooltip: '語言',
     },
     layout: {
-      tabbar: {
-        home: '首頁',
-        apps: '應用',
-        containers: '容器',
-        files: '檔案',
-        more: '更多',
-      },
       expandSidebar: '展開側欄',
       collapseSidebar: '收起側欄',
       openMenu: '選單',
@@ -5554,13 +5540,6 @@ export const messages = {
       tooltip: 'Language',
     },
     layout: {
-      tabbar: {
-        home: 'Home',
-        apps: 'Apps',
-        containers: 'Containers',
-        files: 'Files',
-        more: 'More',
-      },
       expandSidebar: 'Expand sidebar',
       collapseSidebar: 'Collapse sidebar',
       openMenu: 'Menu',

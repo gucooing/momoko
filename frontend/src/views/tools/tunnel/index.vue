@@ -177,28 +177,28 @@
             <AppIconButton
               icon="HOutline:KeyIcon"
               :label="t('tools.tunnel.frpcConfig')"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               :active="frpcVisible && frpcRow?.id === info(row).id"
               @click="openFrpcDialog(info(row))"
             />
             <AppIconButton
               icon="HOutline:ChartBarIcon"
               :label="t('tools.tunnel.actionStats')"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               :active="statsVisible && statsRow?.id === info(row).id"
               @click="openStatsDialog(info(row))"
             />
             <AppIconButton
               :icon="info(row).isEnable ? 'HOutline:StopIcon' : 'HOutline:PlayIcon'"
               :label="info(row).isEnable ? t('tools.tunnel.actionDisable') : t('tools.tunnel.actionEnable')"
-              :box="36"
-              :size="18"
+              :box="30"
+              :size="16"
               :class="info(row).isEnable ? 'tn-act--stop' : 'tn-act--start'"
               @click="toggleEnable(info(row), !info(row).isEnable)"
             />
-            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('tools.tunnel.edit')" :box="36" :size="18" @click="openEditDialog(info(row))" />
+            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('tools.tunnel.edit')" :box="30" :size="16" @click="openEditDialog(info(row))" />
             <ActionMenu :items="rowActions(info(row))" @select="(key) => onRowAction(key, info(row))" />
           </div>
         </template>
@@ -267,17 +267,17 @@
               <span class="tn-card__meta">
                 <span class="tn-ty" :class="`is-${typeKey(row.type)}`">{{ typeKey(row.type) }}</span>
               </span>
-              <AppIconButton icon="HOutline:KeyIcon" :label="t('tools.tunnel.frpcConfig')" :box="44" :size="20" @click="openFrpcDialog(row)" />
-              <AppIconButton icon="HOutline:ChartBarIcon" :label="t('tools.tunnel.actionStats')" :box="44" :size="20" @click="openStatsDialog(row)" />
+              <AppIconButton icon="HOutline:KeyIcon" :label="t('tools.tunnel.frpcConfig')" :box="36" :size="17" @click="openFrpcDialog(row)" />
+              <AppIconButton icon="HOutline:ChartBarIcon" :label="t('tools.tunnel.actionStats')" :box="36" :size="17" @click="openStatsDialog(row)" />
               <AppIconButton
                 :icon="row.isEnable ? 'HOutline:StopIcon' : 'HOutline:PlayIcon'"
                 :label="row.isEnable ? t('tools.tunnel.actionDisable') : t('tools.tunnel.actionEnable')"
-                :box="44"
-                :size="20"
+                :box="36"
+                :size="17"
                 :class="row.isEnable ? 'tn-act--stop' : 'tn-act--start'"
                 @click="toggleEnable(row, !row.isEnable)"
               />
-              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('tools.tunnel.edit')" :box="44" :size="20" @click="openEditDialog(row)" />
+              <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('tools.tunnel.edit')" :box="36" :size="17" @click="openEditDialog(row)" />
               <ActionMenu :items="rowActions(row)" @select="(key) => onRowAction(key, row)" />
             </footer>
           </article>
@@ -771,16 +771,16 @@ onBeforeUnmount(stopPoll)
 .tn-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .tn-page__body {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.tn-tone-ok { color: var(--m-ok); font-weight: 700; }
-.tn-tone-warn { color: var(--m-warn); font-weight: 700; }
-.tn-btn-count { margin-left: 2px; color: var(--el-text-color-secondary); font-weight: 700; }
+.tn-tone-ok { color: var(--m-ok); font-weight: 600; }
+.tn-tone-warn { color: var(--m-warn); font-weight: 600; }
+.tn-btn-count { margin-left: 2px; color: var(--el-text-color-secondary); font-weight: 500; }
 
 /* 客户端下拉 */
 .tn-clients { display: flex; flex-direction: column; padding: 8px; max-height: 420px; overflow-y: auto; }
@@ -789,7 +789,7 @@ onBeforeUnmount(stopPoll)
   flex-direction: column;
   gap: 2px;
   padding: 6px 8px 10px;
-  b { font-size: 0.9375rem; font-weight: 800; color: var(--el-text-color-primary); }
+  b { font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); }
   span { font-size: 0.75rem; color: var(--el-text-color-secondary); }
 }
 .tn-clients__empty { padding: 16px 8px; font-size: 0.8125rem; color: var(--el-text-color-secondary); text-align: center; }
@@ -801,14 +801,14 @@ onBeforeUnmount(stopPoll)
   border-top: 1px solid var(--el-border-color-lighter);
 }
 .tn-client__ico {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   flex: none;
   border-radius: 12px;
   :deep(svg) { width: 18px; height: 18px; }
 }
 .tn-client__main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.tn-client__name { font-size: 0.8125rem; font-weight: 800; color: var(--el-text-color-primary); }
+.tn-client__name { font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); }
 .tn-client__meta {
   font-size: 0.72rem;
   color: var(--el-text-color-secondary);
@@ -824,8 +824,8 @@ onBeforeUnmount(stopPoll)
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 22px;
-  padding: 24px 26px;
+  gap: 16px;
+  padding: 16px 18px;
   border-radius: var(--app-radius-xl);
   background: var(--m-p);
   color: var(--m-pOn);
@@ -861,8 +861,8 @@ onBeforeUnmount(stopPoll)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 42px;
+  height: 42px;
   flex: none;
   border-radius: 17px;
   background: var(--m-pOn);
@@ -874,13 +874,13 @@ onBeforeUnmount(stopPoll)
 .tn-hero__title {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.375rem;
-  font-weight: 800;
+  font-size: 1.125rem;
+  font-weight: 600;
 }
-.tn-hero__state { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; font-weight: 700; }
+.tn-hero__state { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; font-weight: 600; }
 .tn-hero__dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--m-pOn); }
 .tn-hero__dot.is-off { background: transparent; border: 2px solid var(--m-pOn); }
-.tn-hero__addr { font-size: 0.875rem; font-weight: 700; word-break: break-all; }
+.tn-hero__addr { font-size: 0.8125rem; font-weight: 600; word-break: break-all; }
 .tn-hero__err {
   align-self: flex-start;
   padding: 6px 10px;
@@ -888,21 +888,21 @@ onBeforeUnmount(stopPoll)
   background: var(--m-s);
   color: var(--m-bad);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .tn-hero__btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .tn-hero__btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 34px;
+  padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: color-mix(in srgb, var(--m-pOn) 18%, transparent);
   color: var(--m-pOn);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: filter 0.15s, transform 0.15s;
@@ -931,10 +931,10 @@ onBeforeUnmount(stopPoll)
   color: var(--m-ink);
 }
 .tn-hero__tile.is-mobile { display: none; }
-.tn-hero__tk { font-size: 0.75rem; font-weight: 700; color: var(--m-ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tn-hero__tk { font-size: 0.75rem; font-weight: 600; color: var(--m-ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tn-hero__tv {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -951,7 +951,7 @@ onBeforeUnmount(stopPoll)
   background: var(--m-s);
   color: var(--m-ink);
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .tn-hero__chip.is-accent { background: var(--m-a); color: var(--m-ink); }
@@ -965,14 +965,14 @@ onBeforeUnmount(stopPoll)
   background: var(--el-fill-color-light);
 }
 .tn-seg__btn {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -984,7 +984,7 @@ onBeforeUnmount(stopPoll)
 
 /* 表格单元 */
 .tn-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.tn-name__main { font-weight: 800; color: var(--el-text-color-primary); }
+.tn-name__main { font-weight: 600; color: var(--el-text-color-primary); }
 .tn-name__sub {
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
@@ -1002,7 +1002,7 @@ onBeforeUnmount(stopPoll)
   border-radius: 8px;
   font-family: var(--app-font-mono);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   background: var(--m-a2Soft);
   color: var(--m-ink);
 }
@@ -1023,7 +1023,7 @@ onBeforeUnmount(stopPoll)
 .tn-route__arrow { width: 14px; height: 14px; flex: none; color: var(--m-pInk); }
 .tn-route__remote {
   min-width: 0;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -1056,16 +1056,16 @@ onBeforeUnmount(stopPoll)
   flex-direction: column;
   align-items: flex-end;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   color: var(--el-text-color-primary);
   white-space: nowrap;
 }
-.tn-up, .tn-down { font-style: normal; font-weight: 800; }
+.tn-up, .tn-down { font-style: normal; font-weight: 600; }
 .tn-up { color: var(--m-a2); }
 .tn-down { color: var(--m-pInk); }
-.tn-dim { color: var(--el-text-color-secondary); font-weight: 700; }
-.tn-strong { font-size: 1rem; font-weight: 800; color: var(--el-text-color-primary); }
+.tn-dim { color: var(--el-text-color-secondary); font-weight: 600; }
+.tn-strong { font-size: 0.875rem; font-weight: 600; color: var(--el-text-color-primary); }
 .tn-acts { display: inline-flex; align-items: center; justify-content: flex-end; gap: 2px; }
 .tn-acts :deep(.tn-act--stop), .tn-card__foot :deep(.tn-act--stop) { color: var(--m-bad); }
 .tn-acts :deep(.tn-act--start), .tn-card__foot :deep(.tn-act--start) { color: var(--m-ok); }
@@ -1096,18 +1096,18 @@ onBeforeUnmount(stopPoll)
 .tn-card.is-selected { border-color: var(--m-p); box-shadow: 0 0 0 2px var(--m-pSoft); }
 .tn-card__head { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .tn-card__sticker {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   flex: none;
   border-radius: 15px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   transform: rotate(var(--rot, 0deg));
 }
 .tn-card__title { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .tn-card__name {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -1143,7 +1143,7 @@ onBeforeUnmount(stopPoll)
   align-items: center;
   gap: 6px;
   min-width: 0;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
@@ -1156,11 +1156,11 @@ onBeforeUnmount(stopPoll)
   border-radius: var(--app-radius);
   background: var(--el-fill-color-light);
   > div { min-width: 0; }
-  dt { font-size: 0.6875rem; font-weight: 700; color: var(--el-text-color-secondary); }
+  dt { font-size: 0.6875rem; font-weight: 500; color: var(--el-text-color-secondary); }
   dd {
     margin: 2px 0 0;
     font-size: 0.8125rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--el-text-color-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -1197,10 +1197,10 @@ onBeforeUnmount(stopPoll)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
   border: none;
-  border-radius: 20px;
+  border-radius: 14px;
   background: var(--m-p);
   color: var(--m-pOn);
   box-shadow: var(--app-shadow-brand);
@@ -1209,8 +1209,8 @@ onBeforeUnmount(stopPoll)
 }
 .tn-fab__btn:active { transform: scale(0.97); }
 .tn-card__foot :deep(.action-menu__trigger) {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
 }
 
@@ -1224,7 +1224,7 @@ onBeforeUnmount(stopPoll)
   align-items: center;
   gap: 2px;
   max-width: 100%;
-  padding: 6px 6px 6px 18px;
+  padding: 6px 6px 6px 14px;
   border-radius: 999px;
   background: var(--m-ink);
   color: var(--m-bg);
@@ -1233,19 +1233,19 @@ onBeforeUnmount(stopPoll)
   scrollbar-width: none;
 }
 .tn-batch::-webkit-scrollbar { display: none; }
-.tn-batch__count { margin-right: 10px; font-size: 0.875rem; font-weight: 800; white-space: nowrap; }
+.tn-batch__count { margin-right: 10px; font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
 .tn-batch__btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: transparent;
   color: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1261,11 +1261,11 @@ onBeforeUnmount(stopPoll)
 }
 @media (width <= 768px) {
   .tn-page { gap: 14px; }
-  .tn-hero { flex-direction: column; align-items: stretch; gap: 12px; padding: 18px; border-radius: var(--app-radius-xl); }
+  .tn-hero { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px; border-radius: var(--app-radius-xl); }
   .tn-hero__blob { right: -44px; top: 40px; bottom: auto; width: 150px; height: 150px; }
   .tn-hero__ring { right: 70px; top: -22px; width: 54px; height: 54px; border-width: 9px; }
-  .tn-hero__sticker { width: 46px; height: 46px; border-radius: 15px; }
-  .tn-hero__title { font-size: 1.1875rem; }
+  .tn-hero__sticker { width: 36px; height: 36px; border-radius: 15px; }
+  .tn-hero__title { font-size: 1rem; }
   .tn-hero__state { font-size: 0.75rem; }
   .tn-hero__addr { font-size: 0.8125rem; }
   .tn-hero__main { display: contents; }
@@ -1277,12 +1277,12 @@ onBeforeUnmount(stopPoll)
   .tn-hero__tile { padding: 10px 12px; border-radius: var(--app-radius); }
   .tn-hero__tile.is-pc { display: none; }
   .tn-hero__tile.is-mobile { display: flex; }
-  .tn-hero__tv { font-size: 1rem; }
+  .tn-hero__tv { font-size: 0.875rem; }
   .tn-hero__ts { display: none; }
   .tn-hero__chip { height: 24px; padding: 0 9px; font-size: 0.6875rem; }
   .tn-seg { width: 100%; }
-  .tn-seg__btn { flex: 1; min-height: 44px; }
-  .tn-batch { bottom: calc(78px + env(safe-area-inset-bottom)); padding-left: 14px; }
+  .tn-seg__btn { flex: 1; min-height: 40px; }
+  .tn-batch { bottom: calc(12px + env(safe-area-inset-bottom)); padding-left: 14px; }
   .tn-batch__btn { padding: 0 10px; }
   .tn-batch__btn.is-icon { width: 40px; padding: 0; }
 }

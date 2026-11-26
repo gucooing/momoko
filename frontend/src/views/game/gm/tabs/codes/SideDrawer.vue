@@ -69,15 +69,15 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 20px;
+  padding: 16px 14px;
   border-bottom: 1px solid var(--el-border-color-light);
 }
 .sdw__title {
   flex: 1;
   min-width: 0;
   font-family: var(--app-font-display);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -86,7 +86,7 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px 22px;
+  padding: 14px 16px;
   scrollbar-width: thin;
 }
 .sdw__foot {
@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  padding: 14px 22px;
+  padding: 14px 16px;
   border-top: 1px solid var(--el-border-color-light);
 }
 .sdw-enter-active,
@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
     padding: 12px 16px;
   }
   .sdw__foot :deep(button) {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

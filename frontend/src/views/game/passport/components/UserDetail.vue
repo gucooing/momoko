@@ -213,7 +213,7 @@ defineExpose({ reload: load })
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px;
+  padding: 14px;
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);
@@ -223,7 +223,7 @@ defineExpose({ reload: load })
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 24px 0;
+  padding: 16px 0;
   color: var(--el-text-color-secondary);
 }
 .pud__head {
@@ -240,8 +240,8 @@ defineExpose({ reload: load })
 }
 .pud__name {
   font-family: var(--app-font-display);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -267,11 +267,11 @@ defineExpose({ reload: load })
 }
 .pud__warn {
   color: var(--m-warn);
-  font-weight: 700;
+  font-weight: 600;
 }
 .pud__bad {
   color: var(--m-bad);
-  font-weight: 700;
+  font-weight: 600;
 }
 .pud__actions {
   display: flex;
@@ -291,7 +291,7 @@ defineExpose({ reload: load })
 .pud__label {
   flex: 1;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--el-text-color-secondary);
 }
@@ -308,7 +308,7 @@ defineExpose({ reload: load })
 }
 .pud__abilities {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 14px;
   display: flex;
   flex-direction: column;
   gap: 4px;

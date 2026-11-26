@@ -25,36 +25,35 @@ const menuStore = useMenuStore()
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 0.5rem;
-  padding: 2.5rem 1.5rem;
+  gap: 0.375rem;
+  padding: 1.75rem 1rem;
 }
 .empty-state__icon {
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20px;
-  margin-bottom: 0.4rem;
-  color: var(--m-pInk);
-  background: var(--m-pSoft);
-  transform: rotate(-6deg);
+  border-radius: 12px;
+  margin-bottom: 0.25rem;
+  color: var(--m-ink2);
+  background: var(--m-s2);
 }
 .empty-state__icon :deep(svg) {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
 }
 .empty-state__title {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .empty-state__desc {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   max-width: 24rem;
 }
 .empty-state__action {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 </style>

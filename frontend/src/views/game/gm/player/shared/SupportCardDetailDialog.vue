@@ -96,8 +96,8 @@ const setRental = () => {
 .cdd__name {
   flex: 1;
   min-width: 0;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .cdd__facts {
   display: grid;
@@ -114,8 +114,8 @@ const setRental = () => {
   font-size: 12px;
 }
 .cdd__v {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .cdd__v--sm {
   font-size: 13px;

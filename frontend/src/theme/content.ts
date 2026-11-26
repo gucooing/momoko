@@ -66,7 +66,7 @@ export const FONT_STACKS: Record<(typeof FONTS)[number], string> = {
   mono: "'JetBrains Mono', 'Cascadia Code', ui-monospace, 'Sarasa Mono SC', Consolas, monospace",
 }
 
-export const DEFAULT_RADIUS = 22
+export const DEFAULT_RADIUS = 16
 export const GLASS_TYPES: BgType[] = ['image', 'gradient']
 
 const pick = <T extends string>(v: unknown, list: readonly T[], fallback: T): T =>

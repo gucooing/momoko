@@ -257,8 +257,8 @@
                         <AppIconButton
                           v-if="!entry.isDir"
                           icon="HOutline:EyeIcon"
-                          :box="36"
-                          :size="18"
+                          :box="30"
+                          :size="16"
                           :label="`${t('file.share.preview')} ${entry.name}`"
                           @click="previewFile(entry.relPath, entry.name, Number(entry.size) || 0)"
                         />
@@ -682,7 +682,7 @@ onBeforeUnmount(() => {
   position: relative;
   flex: none;
   overflow: hidden;
-  padding: 28px 56px 128px;
+  padding: 18px 42px 96px;
   background: var(--m-p);
   color: var(--m-pOn);
 }
@@ -719,8 +719,8 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 .sp-hero__logo {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
   object-fit: cover;
   transform: rotate(-6deg);
@@ -728,8 +728,8 @@ onBeforeUnmount(() => {
 }
 .sp-hero__name {
   font-family: var(--app-font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.1875rem;
+  font-weight: 600;
 }
 .sp-hero__chip {
   display: inline-flex;
@@ -739,7 +739,7 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: color-mix(in srgb, var(--m-pOn) 18%, transparent);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 .sp-hero__spacer {
@@ -769,12 +769,12 @@ html.dark .sp-hero__mode {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 18px;
+  padding: 0 14px;
   border-radius: 999px;
   background: var(--m-pOn);
   color: var(--m-p);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -786,20 +786,20 @@ html.dark .sp-hero__mode {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   max-width: 760px;
-  margin-top: 48px;
+  margin-top: 36px;
 }
 .sp-owner {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .sp-owner__avatar {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
   background: var(--m-a);
@@ -813,7 +813,7 @@ html.dark .sp-hero__mode {
   font-family: var(--app-font-display);
   font-size: clamp(2.25rem, 4vw, 3.25rem);
   line-height: 1.1;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.02em;
   min-width: 0;
 }
@@ -822,9 +822,9 @@ html.dark .sp-hero__mode {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
   background: var(--m-pOn);
   color: var(--m-p);
   transform: rotate(-6deg);
@@ -847,11 +847,11 @@ html.dark .sp-hero__mode {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 44px;
-  padding: 0 18px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   white-space: nowrap;
   box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.35);
 }
@@ -883,9 +883,9 @@ html.dark .sp-hero__mode {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
-  margin-top: -84px;
-  padding: 0 56px;
+  gap: 14px;
+  margin-top: -63px;
+  padding: 0 42px;
 }
 .sp-card {
   width: 100%;
@@ -903,24 +903,24 @@ html.dark .sp-hero__mode {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 40px 32px;
+  padding: 30px 20px;
   text-align: center;
 }
 .sp-state h2 {
   margin: 6px 0 0;
   font-family: var(--app-font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.1875rem;
+  font-weight: 600;
 }
 .sp-state p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .sp-state__ico {
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
   transform: rotate(-6deg);
 }
 .sp-state__ico svg {
@@ -947,8 +947,8 @@ html.dark .sp-hero__mode {
 .sp-code {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding: 36px;
+  gap: 16px;
+  padding: 27px;
 }
 .sp-code__head {
   display: flex;
@@ -958,18 +958,18 @@ html.dark .sp-hero__mode {
 .sp-code__head h2 {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 1.625rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 .sp-code__head p {
   margin: 4px 0 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .sp-code__ico {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   transform: rotate(-6deg);
 }
 .sp-code__ico svg {
@@ -988,7 +988,7 @@ html.dark .sp-hero__mode {
 }
 .sp-field__label {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .sp-fld {
   display: flex;
@@ -1019,12 +1019,11 @@ html.dark .sp-hero__mode {
 .sp-fld__input {
   flex: 1;
   min-width: 0;
-  height: 48px;
+  height: 36px;
   border: 0;
   background: transparent;
   font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
   color: var(--el-text-color-primary);
   outline: none;
 }
@@ -1037,7 +1036,7 @@ html.dark .sp-hero__mode {
 .sp-code__err {
   margin: -6px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-bad);
 }
 .sp-code__tip {
@@ -1065,11 +1064,11 @@ html.dark .sp-hero__mode {
 .sp-btn {
   justify-content: center;
   border-radius: 999px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 .sp-btn--lg {
-  min-height: 56px;
-  font-size: 1rem !important;
+  min-height: 44px;
+  font-size: 0.875rem !important;
   box-shadow: var(--app-shadow-brand);
 }
 
@@ -1124,8 +1123,8 @@ html.dark .sp-hero__mode {
   background: transparent;
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
 }
 .sp-crumb span {
@@ -1175,11 +1174,11 @@ html.dark .sp-hero__mode {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
   transition:
@@ -1209,9 +1208,9 @@ html.dark .sp-hero__mode {
   color: var(--m-pInk);
 }
 .sp-empty {
-  padding: 40px 0;
+  padding: 30px 0;
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .sp-table-wrap {
@@ -1228,14 +1227,14 @@ html.dark .sp-hero__mode {
 .sp-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .sp-table th {
   height: 40px;
   padding: 0 12px;
   text-align: left;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
@@ -1261,7 +1260,7 @@ html.dark .sp-hero__mode {
 }
 .sp-table__size {
   width: 130px;
-  font-weight: 700;
+  font-weight: 500;
   font-size: 0.8125rem;
 }
 .sp-table__size.is-dim {
@@ -1302,8 +1301,8 @@ html.dark .sp-hero__mode {
 }
 .sp-fname__ico,
 .sp-row__ico {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 13px;
 }
 .sp-fname__ico svg,
@@ -1316,7 +1315,7 @@ html.dark .sp-hero__mode {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 700;
+  font-weight: 600;
 }
 .sp-fname__chev {
   flex: none;
@@ -1366,7 +1365,7 @@ html.dark .sp-hero__mode {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 20px;
+  gap: 10px 14px;
   padding: 0 8px;
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
@@ -1399,7 +1398,7 @@ html.dark .sp-hero__mode {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .sp-relock:hover {
@@ -1412,7 +1411,7 @@ html.dark .sp-hero__mode {
 }
 .sp-foot {
   margin-top: auto;
-  padding: 24px 0 28px;
+  padding: 16px 0 18px;
   font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   text-align: center;
@@ -1421,7 +1420,7 @@ html.dark .sp-hero__mode {
 /* ---- 手机 ---- */
 @media (width < 768px) {
   .sp-hero {
-    padding: 18px 20px 58px;
+    padding: 14px 14px 44px;
   }
   .sp-hero__blob {
     right: -70px;
@@ -1445,12 +1444,12 @@ html.dark .sp-hero__mode {
     gap: 10px;
   }
   .sp-hero__logo {
-    width: 38px;
-    height: 38px;
+    width: 30px;
+    height: 30px;
     border-radius: 12px;
   }
   .sp-hero__name {
-    font-size: 1.25rem;
+    font-size: 1rem;
   }
   .sp-hero__login {
     min-height: 44px;
@@ -1465,19 +1464,19 @@ html.dark .sp-hero__mode {
     min-height: 44px;
   }
   .sp-hero__body {
-    margin-top: 22px;
+    margin-top: 16px;
     gap: 10px;
   }
   .sp-owner {
     gap: 8px;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   .sp-owner__avatar {
     width: 30px;
     height: 30px;
   }
   .sp-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1.15;
   }
   .sp-tags {
@@ -1496,7 +1495,7 @@ html.dark .sp-hero__mode {
   }
 
   .sp-main {
-    margin-top: -32px;
+    margin-top: -20px;
     padding: 0;
     gap: 12px;
   }
@@ -1504,19 +1503,19 @@ html.dark .sp-hero__mode {
   .sp-card--narrow {
     max-width: none;
     border: 0;
-    border-radius: 30px 30px 0 0;
+    border-radius: 20px 20px 0 0;
     box-shadow: none;
   }
   .sp-code {
-    padding: 26px 20px 20px;
+    padding: 18px 14px 14px;
     gap: 16px;
   }
   .sp-code__head h2 {
-    font-size: 1.5rem;
+    font-size: 1.1875rem;
   }
   .sp-code__ico {
-    width: 48px;
-    height: 48px;
+    width: 38px;
+    height: 38px;
     border-radius: 16px;
   }
   .sp-files {
@@ -1571,7 +1570,7 @@ html.dark .sp-hero__mode {
     display: flex;
     align-items: center;
     gap: 12px;
-    min-height: 60px;
+    min-height: 50px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -1588,8 +1587,8 @@ html.dark .sp-hero__mode {
     gap: 2px;
   }
   .sp-row__name {
-    font-size: 0.9375rem;
-    font-weight: 700;
+    font-size: 0.8125rem;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1623,8 +1622,8 @@ html.dark .sp-hero__mode {
   }
   .sp-mbar__btn {
     flex: 1;
-    min-height: 56px;
-    font-size: 1rem;
+    min-height: 44px;
+    font-size: 0.875rem;
   }
   .sp-mbar__note {
     display: flex;
@@ -1640,7 +1639,7 @@ html.dark .sp-hero__mode {
     color: var(--m-ok);
   }
   .sp-foot {
-    padding: 8px 16px 20px;
+    padding: 8px 16px 14px;
   }
 }
 </style>

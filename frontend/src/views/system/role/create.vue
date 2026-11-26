@@ -157,7 +157,7 @@ defineExpose({ showDialog })
 }
 .role-form__radios {
   display: flex;
-  gap: 20px;
+  gap: 14px;
   min-height: 32px;
   align-items: center;
 }

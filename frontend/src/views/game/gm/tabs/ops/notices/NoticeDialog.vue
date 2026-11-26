@@ -167,7 +167,7 @@ const restore = () => {
 .ned {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 20px;
+  gap: 14px;
   align-items: start;
 }
 .ned__form {
@@ -188,7 +188,7 @@ const restore = () => {
   color: var(--m-pInk);
   font: inherit;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 @media (max-width: 991px) {

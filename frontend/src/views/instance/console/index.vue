@@ -100,7 +100,7 @@
             <AppIconButton
               :icon="isRunning ? 'HOutline:StopIcon' : 'HOutline:PlayIcon'"
               :label="isRunning ? t('instance.stop') : t('instance.start')"
-              :box="44"
+              :box="36"
               :class="isRunning ? 'is-stop' : 'is-start'"
               :disabled="isBusy || !info"
               @click="handleTogglePower"
@@ -108,11 +108,11 @@
             <AppIconButton
               icon="HOutline:ArrowPathIcon"
               :label="t('instance.restart')"
-              :box="44"
+              :box="36"
               :disabled="isBusy || isMaintenance || !info"
               @click="handleRestart"
             />
-            <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('instance.moreActions')" :box="44" @click="sheetOpen = true" />
+            <AppIconButton icon="HOutline:EllipsisHorizontalIcon" :label="t('instance.moreActions')" :box="36" @click="sheetOpen = true" />
           </template>
         </div>
       </div>
@@ -311,7 +311,7 @@
                   v-if="info?.instancePath"
                   icon="HOutline:ClipboardDocumentIcon"
                   :size="16"
-                  :box="isMobile ? 44 : 36"
+                  :box="isMobile ? 36 : 30"
                   :label="t('instance.ui.copyPath')"
                   @click="copy(info.absolutePath || info.instancePath)"
                 />
@@ -396,7 +396,7 @@
             <AppIconButton
               icon="HOutline:ArrowPathIcon"
               :size="16"
-              :box="isMobile ? 44 : 36"
+              :box="isMobile ? 36 : 30"
               :label="t('common.refresh')"
               @click="loadEvents"
             />
@@ -1333,7 +1333,7 @@ onBeforeUnmount(() => {
   height: 100%;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px 32px 32px;
+  padding: 14px 20px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1348,8 +1348,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   min-height: 32px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   text-decoration: none;
 }
@@ -1365,7 +1365,7 @@ onBeforeUnmount(() => {
 .app-head {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   margin-top: -6px;
   padding: calc(var(--cmp-card-unit) * 22) calc(var(--cmp-card-unit) * 24);
   border-radius: var(--app-radius-lg);
@@ -1376,13 +1376,13 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 14px;
 }
 .app-head__av {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
-  font-size: 2rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  font-size: 1.5rem;
   transform: rotate(-5deg);
   box-shadow: 4px 4px 0 var(--m-a);
   flex: none;
@@ -1405,8 +1405,8 @@ onBeforeUnmount(() => {
   margin: 0;
   min-width: 0;
   font-family: var(--app-font-display);
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.15;
   color: var(--el-text-color-primary);
@@ -1420,7 +1420,7 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 6px 16px;
   min-width: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
 }
 .app-head__type,
@@ -1431,7 +1431,7 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 .app-head__type {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-pInk);
   text-decoration: none;
 }
@@ -1457,17 +1457,17 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 .app-head__btn {
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .app-head__more {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: transparent;
@@ -1505,14 +1505,14 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   width: 100%;
-  min-height: 44px;
+  min-height: 34px;
   padding: 6px 12px;
   border: none;
   border-radius: 12px;
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -1557,7 +1557,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   min-width: 0;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--el-fill-color-light);
 }
 .app-stat__top {
@@ -1570,14 +1570,14 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 0;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
 .app-stat__v {
   font-family: var(--app-font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
 }
@@ -1611,7 +1611,7 @@ onBeforeUnmount(() => {
   border-radius: 16px;
   background: var(--m-warnSoft);
   color: var(--m-warn);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .app-maint__ico {
@@ -1625,14 +1625,14 @@ onBeforeUnmount(() => {
 }
 .app-maint__btn {
   flex: none;
-  min-height: 36px;
+  min-height: 30px;
   border-radius: 999px;
 }
 
 /* 标签 */
 .app-tabs {
   display: flex;
-  gap: 28px;
+  gap: 18px;
   margin-top: -4px;
   border-bottom: 1px solid var(--el-border-color-light);
   overflow-x: auto;
@@ -1653,8 +1653,8 @@ onBeforeUnmount(() => {
   background: transparent;
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1683,7 +1683,7 @@ onBeforeUnmount(() => {
 .app-body {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 14px;
   align-items: flex-start;
 }
 .app-main {
@@ -1727,7 +1727,7 @@ onBeforeUnmount(() => {
   flex: none;
   margin-right: 4px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: #9c93a8;
 }
 .app-quick__chip {
@@ -1770,7 +1770,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 46px;
+  min-height: 36px;
   padding: 0 16px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
@@ -1782,7 +1782,7 @@ onBeforeUnmount(() => {
 }
 .app-cmd__prompt {
   color: var(--m-a);
-  font-weight: 800;
+  font-weight: 600;
 }
 .app-cmd__field input {
   flex: 1;
@@ -1801,7 +1801,7 @@ onBeforeUnmount(() => {
 }
 .app-cmd__send {
   min-height: 46px;
-  padding-inline: 18px;
+  padding-inline: 14px;
   border-radius: 999px;
 }
 .app-cmd__send.is-icon {
@@ -1915,8 +1915,8 @@ onBeforeUnmount(() => {
 .app-card__title {
   margin: 14px 0 6px;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 
@@ -1937,13 +1937,13 @@ onBeforeUnmount(() => {
 }
 .app-kv__item dt {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .app-kv__item dd {
   margin: 0;
   min-width: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--el-text-color-primary);
 }
@@ -2042,7 +2042,7 @@ onBeforeUnmount(() => {
   width: 160px;
   flex: none;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2057,7 +2057,7 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 0;
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-primary);
   word-break: break-all;
 }
@@ -2066,7 +2066,6 @@ onBeforeUnmount(() => {
 }
 .app-kvrow dd.is-dim {
   color: var(--el-text-color-secondary);
-  letter-spacing: 0.1em;
 }
 .app-note {
   margin: 8px 0 4px;
@@ -2078,7 +2077,7 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 .app-side__btn {
-  min-height: 48px;
+  min-height: 36px;
   margin-top: 8px;
   justify-content: center;
   border-radius: 999px;
@@ -2111,8 +2110,8 @@ onBeforeUnmount(() => {
   gap: 2px;
 }
 .app-event__t {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   word-break: break-word;
 }
@@ -2132,7 +2131,7 @@ onBeforeUnmount(() => {
   gap: 4px;
   min-height: 40px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--m-pInk);
   text-decoration: none;
 }
@@ -2179,10 +2178,10 @@ onBeforeUnmount(() => {
   height: 20px;
 }
 .app-detail.is-mobile .app-head__av {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
   box-shadow: 3px 3px 0 var(--m-a);
 }
 .app-detail.is-mobile .app-head__main {
@@ -2191,7 +2190,7 @@ onBeforeUnmount(() => {
   padding-left: 8px;
 }
 .app-detail.is-mobile .app-head__name {
-  font-size: 1.0625rem;
+  font-size: 0.875rem;
 }
 .app-detail.is-mobile .app-head__meta {
   flex-wrap: nowrap;
@@ -2213,8 +2212,8 @@ onBeforeUnmount(() => {
 }
 .app-detail.is-mobile .app-tabs {
   margin: 0;
-  padding: 0 20px;
-  gap: 24px;
+  padding: 0 14px;
+  gap: 16px;
   background: var(--el-bg-color);
 }
 .app-detail.is-mobile .app-body {
@@ -2230,7 +2229,7 @@ onBeforeUnmount(() => {
   display: none;
 }
 .app-detail.is-mobile .app-body:not(.is-fill) {
-  padding: 12px 16px 24px;
+  padding: 12px 16px 16px;
 }
 .app-detail.is-mobile .app-main {
   flex: none;
@@ -2281,7 +2280,7 @@ onBeforeUnmount(() => {
   padding: 6px 8px calc(8px + env(safe-area-inset-bottom)) 12px;
 }
 .app-detail.is-mobile .app-cmd__field {
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 14px;
 }
 .app-detail.is-mobile .app-cmd__field input {
@@ -2295,6 +2294,6 @@ onBeforeUnmount(() => {
   padding: 12px 14px;
 }
 .app-stats.is-mobile .app-stat__v {
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
 }
 </style>

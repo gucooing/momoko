@@ -55,7 +55,7 @@ const emit = defineEmits<{ click: [] }>()
   align-items: center;
   gap: 14px;
   width: 100%;
-  min-height: 68px;
+  min-height: 54px;
   padding: 12px 0;
   border: 0;
   border-top: 1px solid var(--el-border-color-light);
@@ -68,7 +68,7 @@ const emit = defineEmits<{ click: [] }>()
   border-top: 0;
 }
 .pf-row.is-compact {
-  min-height: 58px;
+  min-height: 48px;
   padding: 8px 0;
 }
 .pf-row.is-clickable {
@@ -84,10 +84,10 @@ const emit = defineEmits<{ click: [] }>()
   outline-offset: -2px;
 }
 .pf-row__sk {
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: 14px;
-  font-size: 20px;
+  font-size: 16px;
 }
 .pf-row__text {
   flex: 1;
@@ -102,8 +102,8 @@ const emit = defineEmits<{ click: [] }>()
   flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .pf-row__sub {

@@ -21,7 +21,7 @@
           <dd class="m-mono">{{ endpoint || '—' }}</dd>
           <AppIconButton
             icon="HOutline:ClipboardDocumentIcon"
-            :box="34"
+            :box="30"
             :size="17"
             :label="t('mcp.connection.copyEndpoint')"
             @click="copyEndpoint"
@@ -73,7 +73,7 @@
           <AppIconButton
             class="mcp-cred__op"
             icon="HOutline:DocumentDuplicateIcon"
-            :box="menuStore.isMobile ? 44 : 34"
+            :box="menuStore.isMobile ? 36 : 30"
             :size="17"
             :label="t('mcp.credential.configOf', { name: c.name })"
             @click="openConfig(c)"
@@ -288,8 +288,8 @@ const copyConfig = async () => {
   padding: 12px 0;
 }
 .mcp-cred__av {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
 }
 .mcp-cred__av :deep(svg) {
   width: 19px;
@@ -309,7 +309,7 @@ const copyConfig = async () => {
 }
 .mcp-cred__name {
   min-width: 0;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -360,7 +360,7 @@ const copyConfig = async () => {
   min-width: 0;
 }
 .mcp-tool__name {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mcp-tool__desc {

@@ -73,7 +73,7 @@ const onChange = (e: Event) => {
 .dtf__zone {
   flex: none;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 </style>

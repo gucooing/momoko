@@ -160,7 +160,7 @@ onActivated(() => {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 .gcl__filters {

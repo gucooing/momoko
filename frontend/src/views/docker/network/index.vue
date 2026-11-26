@@ -18,7 +18,7 @@
         </UButton>
       </template>
       <template #mobile-actions>
-        <AppIconButton v-if="canManage && ready" class="dk-hdr__ib" icon="HOutline:SparklesIcon" :label="t('docker.network.prune')" :box="44" :size="22" @click="handlePrune" />
+        <AppIconButton v-if="canManage && ready" class="dk-hdr__ib" icon="HOutline:SparklesIcon" :label="t('docker.network.prune')" :box="36" :size="18" @click="handlePrune" />
       </template>
     </DockerHeader>
 
@@ -67,8 +67,8 @@
                   :icon="isOpen(row.id) ? 'HOutline:ChevronDownIcon' : 'HOutline:ChevronRightIcon'"
                   :label="isOpen(row.id) ? t('docker.network.collapse') : t('docker.network.expand')"
                   :aria-expanded="isOpen(row.id)"
-                  :box="36"
-                  :size="18"
+                  :box="30"
+                  :size="16"
                   @click="toggle(row.id)"
                 />
               </span>
@@ -112,24 +112,24 @@
                   <AppIconButton
                     icon="HOutline:LinkIcon"
                     :label="t('docker.network.connectTo', { name: row.name })"
-                    :box="36"
-                    :size="18"
+                    :box="30"
+                    :size="16"
                     :disabled="!canConnect(row)"
                     @click="openConnect(row)"
                   />
                   <AppIconButton
                     icon="HOutline:LinkSlashIcon"
                     :label="t('docker.netx.disconnectFrom', { name: row.name })"
-                    :box="36"
-                    :size="18"
+                    :box="30"
+                    :size="16"
                     :disabled="!containersOf(row).length"
                     @click="openDisconnect(row)"
                   />
                   <AppIconButton
                     icon="HOutline:ArrowPathIcon"
                     :label="t('docker.network.recreate')"
-                    :box="36"
-                    :size="18"
+                    :box="30"
+                    :size="16"
                     :disabled="row.builtin"
                     @click="openEdit(row, true)"
                   />
@@ -137,8 +137,8 @@
                     class="is-bad"
                     icon="HOutline:TrashIcon"
                     :label="deleteLabel(row)"
-                    :box="36"
-                    :size="18"
+                    :box="30"
+                    :size="16"
                     :disabled="!canDelete(row)"
                     @click="handleDelete(row)"
                   />
@@ -247,7 +247,7 @@
                     class="is-bad"
                     icon="HOutline:LinkSlashIcon"
                     :label="t('docker.network.disconnect')"
-                    :box="44"
+                    :box="36"
                     @click="handleDisconnect(row, c.id, c.name)"
                   />
                 </div>
@@ -267,14 +267,14 @@
                   <AppIconButton
                     icon="HOutline:LinkIcon"
                     :label="t('docker.network.connectTo', { name: row.name })"
-                    :box="44"
+                    :box="36"
                     :disabled="!canConnect(row)"
                     @click="openConnect(row)"
                   />
                   <AppIconButton
                     icon="HOutline:ArrowPathIcon"
                     :label="`${t('docker.network.recreate')} ${row.name}`"
-                    :box="44"
+                    :box="36"
                     :disabled="row.builtin"
                     @click="openEdit(row, true)"
                   />
@@ -282,7 +282,7 @@
                     class="is-bad"
                     icon="HOutline:TrashIcon"
                     :label="deleteLabel(row)"
-                    :box="44"
+                    :box="36"
                     :disabled="!canDelete(row)"
                     @click="handleDelete(row)"
                   />
@@ -291,7 +291,7 @@
                   :icon="isOpen(row.id) ? 'HOutline:ChevronUpIcon' : 'HOutline:ChevronDownIcon'"
                   :label="isOpen(row.id) ? t('docker.network.collapse') : t('docker.network.expand')"
                   :aria-expanded="isOpen(row.id)"
-                  :box="44"
+                  :box="36"
                   @click="toggle(row.id)"
                 />
                 <ActionMenu :items="menuActionsFor(row, true)" :label="t('docker.netx.moreOf', { name: row.name })" @select="(key) => onRowAction(key, row)" />
@@ -900,7 +900,7 @@ onMounted(() => { void init() })
 }
 .dk-em {
   color: var(--el-text-color-primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 .dk-sub {
   font-size: 0.75rem;
@@ -925,13 +925,13 @@ onMounted(() => { void init() })
   align-items: center;
   gap: 12px;
   min-width: 1040px;
-  min-height: 68px;
+  min-height: 54px;
   padding: 6px 8px;
 }
 .nt-row--head {
   min-height: 44px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
@@ -955,8 +955,8 @@ onMounted(() => { void init() })
   min-width: 0;
 }
 .nt-sticker {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 13px;
 }
 .nt-sticker :deep(svg) {
@@ -964,8 +964,8 @@ onMounted(() => { void init() })
   height: 19px;
 }
 .nt-sticker--lg {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   border-radius: 15px;
 }
 .nt-name__text {
@@ -976,8 +976,8 @@ onMounted(() => { void init() })
   gap: 1px;
 }
 .nt-name__main {
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -997,7 +997,7 @@ onMounted(() => { void init() })
   color: var(--el-text-color-primary);
   font-family: var(--app-font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .nt-subnet {
   display: flex;
@@ -1048,7 +1048,7 @@ onMounted(() => { void init() })
   padding: 0 8px;
   border-radius: 999px;
   font-size: 0.71875rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .nt-bdg :deep(svg) {
@@ -1074,7 +1074,7 @@ onMounted(() => { void init() })
   align-items: flex-start;
   gap: 16px;
   min-width: 1040px;
-  padding: 4px 12px 16px 60px;
+  padding: 4px 12px 16px 45px;
   background: var(--el-fill-color-light);
   border-radius: 0 0 var(--app-radius) var(--app-radius);
 }
@@ -1091,7 +1091,7 @@ onMounted(() => { void init() })
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) 96px;
   align-items: center;
   gap: 12px;
-  min-height: 56px;
+  min-height: 48px;
   padding: 6px 10px;
 }
 .nt-crow + .nt-crow {
@@ -1100,8 +1100,7 @@ onMounted(() => { void init() })
 .nt-crow--head {
   min-height: 38px;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .nt-cname {
@@ -1198,7 +1197,7 @@ onMounted(() => { void init() })
   background: transparent;
   color: var(--m-pInk);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .nt-connect:hover {
@@ -1223,7 +1222,7 @@ onMounted(() => { void init() })
 }
 .nt-meta dt {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .nt-meta dd {
@@ -1250,7 +1249,7 @@ onMounted(() => { void init() })
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 56px;
+  min-height: 48px;
   padding: 4px 0 4px 12px;
 }
 .nt-mrow + .nt-mrow {
@@ -1272,7 +1271,7 @@ onMounted(() => { void init() })
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   min-width: 0;
 }
 .nt-mrow__name strong {
@@ -1298,7 +1297,7 @@ onMounted(() => { void init() })
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 18px;
+  padding: 14px 14px;
   border-radius: var(--app-radius-lg);
   background: var(--m-aSoft);
   color: var(--m-ink);
@@ -1324,13 +1323,13 @@ onMounted(() => { void init() })
 .nt-seg__btn {
   flex: 1;
   min-width: 72px;
-  min-height: 36px;
+  min-height: 30px;
   border: none;
   border-radius: 9px;
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .nt-seg__btn.is-on {
@@ -1349,7 +1348,7 @@ onMounted(() => { void init() })
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 56px;
+  min-height: 44px;
   padding: 8px 14px;
   cursor: pointer;
 }

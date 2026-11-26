@@ -391,8 +391,8 @@ defineExpose({ showDialog })
   gap: 12px;
 }
 .iqf-sec__ico {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
   svg {
     width: 20px;
@@ -407,8 +407,8 @@ defineExpose({ showDialog })
     align-items: center;
     gap: 8px;
     margin: 0;
-    font-size: 0.9375rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
     color: var(--el-text-color-primary);
   }
   p {
@@ -424,7 +424,7 @@ defineExpose({ showDialog })
   background: var(--m-pSoft);
   color: var(--m-pInk);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .iqf-grid {
   display: grid;
@@ -437,7 +437,7 @@ defineExpose({ showDialog })
 }
 .iqf-input,
 .iqf :deep(.app-sel__trigger) {
-  height: 42px;
+  height: 32px;
 }
 .iqf-hint {
   font-size: 0.75rem;
@@ -445,9 +445,9 @@ defineExpose({ showDialog })
 }
 .iqf-btn {
   flex: none;
-  min-height: 40px;
+  min-height: 32px;
   border-radius: 999px !important;
-  font-weight: 700 !important;
+  font-weight: 500 !important;
 }
 .iqf-picked {
   display: flex;
@@ -465,7 +465,7 @@ defineExpose({ showDialog })
   background: var(--m-pSoft);
   color: var(--m-pInk);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   .m-mono {
     min-width: 0;
     overflow: hidden;
@@ -516,7 +516,7 @@ defineExpose({ showDialog })
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 42px;
+  height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -556,7 +556,7 @@ defineExpose({ showDialog })
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 22px 0;
+  padding: 16px 0;
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
   svg {

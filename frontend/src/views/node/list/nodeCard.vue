@@ -86,14 +86,14 @@
           v-if="canSwitch && !isCurrent"
           class="is-switch"
           icon="HOutline:ArrowsRightLeftIcon"
-          :box="44"
+          :box="36"
           :label="t('node.list.switchTo')"
           @click="emit('switch')"
         />
         <AppIconButton
           v-if="!local && canManage"
           icon="HOutline:SignalIcon"
-          :box="44"
+          :box="36"
           :label="t('node.list.test')"
           @click="emit('test')"
         />
@@ -101,8 +101,8 @@
       <AppIconButton
         v-if="!local && canManage"
         icon="HOutline:PencilSquareIcon"
-        :box="menuStore.isMobile ? 44 : 40"
-        :size="18"
+        :box="menuStore.isMobile ? 36 : 32"
+        :size="16"
         :label="t('node.list.edit')"
         @click="emit('edit')"
       />
@@ -326,8 +326,8 @@ const onMore = (key: string) => {
   padding-right: 4px;
 }
 .node-card__av {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 16px;
   flex: none;
 }
@@ -354,8 +354,8 @@ const onMore = (key: string) => {
   min-width: 0;
   max-width: 100%;
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -380,7 +380,7 @@ const onMore = (key: string) => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 .node-tag :deep(svg) {
@@ -413,7 +413,7 @@ const onMore = (key: string) => {
 }
 .node-card__remark {
   margin: -4px 4px 0 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--el-text-color-regular);
   overflow: hidden;
@@ -437,13 +437,13 @@ const onMore = (key: string) => {
 }
 .node-card__info dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .node-card__info dd {
   margin: 2px 0 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -480,7 +480,7 @@ const onMore = (key: string) => {
 }
 .node-card__scope-title {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .node-card__scope-empty {
@@ -515,7 +515,7 @@ const onMore = (key: string) => {
   background: var(--m-okSoft);
   color: var(--m-ok);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .node-card__current :deep(svg) {
@@ -526,14 +526,14 @@ const onMore = (key: string) => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, filter 0.15s;
@@ -563,8 +563,8 @@ const onMore = (key: string) => {
   color: var(--m-pInk);
 }
 .node-card__foot :deep(.action-menu__trigger) {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 14px;
 }
 
@@ -574,8 +574,8 @@ const onMore = (key: string) => {
     padding: 16px 12px 6px 16px;
   }
   .node-card__av {
-    width: 46px;
-    height: 46px;
+    width: 36px;
+    height: 36px;
     border-radius: 15px;
   }
   .node-card__info {
@@ -587,8 +587,8 @@ const onMore = (key: string) => {
     padding-top: 6px;
   }
   .node-card__foot :deep(.action-menu__trigger) {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
 }
 </style>

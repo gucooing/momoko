@@ -107,7 +107,7 @@
         <section class="ppa__summary">
           <div class="ppa__summary-head">
             <h2 class="ppa__summary-title">{{ t('passportAdmin.summary.title') }}</h2>
-            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('passportAdmin.actions.settings')" :box="40" :size="18" @click="settingsOpen = true" />
+            <AppIconButton icon="HOutline:PencilSquareIcon" :label="t('passportAdmin.actions.settings')" :box="32" :size="16" @click="settingsOpen = true" />
           </div>
           <div v-for="row in summaryRows" :key="row.key" class="ppa__summary-row">
             <span class="ppa__summary-key">{{ row.label }}</span>
@@ -322,7 +322,7 @@ onMounted(() => {
 .ppa {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .ppa__stats {
   display: grid;
@@ -334,7 +334,7 @@ onMounted(() => {
   align-items: center;
   gap: 14px;
   min-width: 0;
-  padding: 16px 18px;
+  padding: 16px 14px;
   border-radius: var(--app-radius-lg);
   border: 1px solid var(--el-border-color-lighter);
   background: var(--el-bg-color);
@@ -356,13 +356,13 @@ onMounted(() => {
 }
 .ppa__stat-label {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .ppa__stat-value {
   font-family: var(--app-font-display);
-  font-size: 24px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 600;
   line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -378,7 +378,7 @@ onMounted(() => {
 .ppa__main {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 14px;
   align-items: flex-start;
 }
 .ppa__list {
@@ -406,8 +406,8 @@ onMounted(() => {
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   cursor: pointer;
 }
 .ppa__server.is-on {
@@ -439,7 +439,7 @@ onMounted(() => {
   gap: 14px;
   align-items: center;
   width: 100%;
-  min-height: 66px;
+  min-height: 50px;
   padding: 8px 16px;
   border: 0;
   border-top: 1px solid var(--el-border-color-lighter);
@@ -459,7 +459,7 @@ onMounted(() => {
 .ppa__row--head {
   min-height: 36px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: default;
 }
@@ -484,7 +484,7 @@ onMounted(() => {
   flex-direction: column;
 }
 .ppa__name {
-  font-weight: 800;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -510,7 +510,7 @@ onMounted(() => {
   border-radius: 999px;
   background: var(--el-fill-color-light);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .ppa__one-text {
   overflow: hidden;
@@ -532,7 +532,7 @@ onMounted(() => {
 }
 .ppa__many-text {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .ppa__row.is-card .ppa__last {
@@ -545,7 +545,7 @@ onMounted(() => {
   justify-self: start;
 }
 .ppa__loading {
-  padding: 40px 16px;
+  padding: 30px 16px;
   text-align: center;
   color: var(--el-text-color-secondary);
 }
@@ -569,7 +569,7 @@ onMounted(() => {
 .ppa__summary {
   display: flex;
   flex-direction: column;
-  padding: 14px 20px 10px;
+  padding: 14px 14px 10px;
 }
 .ppa__summary-head {
   display: flex;
@@ -579,8 +579,8 @@ onMounted(() => {
 }
 .ppa__summary-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .ppa__summary-row {
   display: flex;
@@ -592,7 +592,7 @@ onMounted(() => {
 .ppa__summary-key {
   flex: none;
   width: 110px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .ppa__summary-value {
   flex: 1;

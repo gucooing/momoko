@@ -305,7 +305,7 @@ const convertsOf = (detail: GiftSendResult) =>
 .ggs {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .ggs__field {
   display: flex;
@@ -315,7 +315,7 @@ const convertsOf = (detail: GiftSendResult) =>
 }
 .ggs__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .ggs__hint {
   font-size: 12px;
@@ -333,12 +333,12 @@ const convertsOf = (detail: GiftSendResult) =>
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 4px 0 4px;
   border-radius: 999px;
   background: var(--m-s2);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   max-width: 100%;
 }
 .ggs__chip-name {
@@ -354,7 +354,7 @@ const convertsOf = (detail: GiftSendResult) =>
   border-radius: 50%;
   background: transparent;
   color: var(--el-text-color-secondary);
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
 }
 .ggs__add {
@@ -366,7 +366,7 @@ const convertsOf = (detail: GiftSendResult) =>
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   background: var(--el-fill-color-light);
@@ -419,7 +419,7 @@ const convertsOf = (detail: GiftSendResult) =>
   flex-direction: column;
 }
 .ggs__found-name {
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -437,7 +437,7 @@ const convertsOf = (detail: GiftSendResult) =>
   align-self: flex-start;
 }
 .ggs__seg button {
-  min-height: 36px;
+  min-height: 30px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -445,7 +445,7 @@ const convertsOf = (detail: GiftSendResult) =>
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .ggs__seg button.is-on {
@@ -464,8 +464,8 @@ const convertsOf = (detail: GiftSendResult) =>
   font-size: 13px;
 }
 .ggs__preview-title {
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .ggs__preview-row {
   display: flex;
@@ -474,7 +474,7 @@ const convertsOf = (detail: GiftSendResult) =>
   line-height: 1.6;
 }
 .ggs__preview-who {
-  font-weight: 800;
+  font-weight: 600;
 }
 .ggs__preview-note {
   flex-basis: 100%;

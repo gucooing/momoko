@@ -104,16 +104,16 @@ const renderedReleaseBody = computed(() => markdown.render(releaseBody.value))
 }
 
 .release-markdown :deep(h1) {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 .release-markdown :deep(h2) {
-  font-size: 1.125rem;
+  font-size: 0.9375rem;
 }
 
 .release-markdown :deep(h3),
 .release-markdown :deep(h4) {
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 
 .release-markdown :deep(p),
@@ -126,7 +126,7 @@ const renderedReleaseBody = computed(() => markdown.render(releaseBody.value))
 
 .release-markdown :deep(ul),
 .release-markdown :deep(ol) {
-  padding-left: 20px;
+  padding-left: 14px;
 }
 
 .release-markdown :deep(a) {

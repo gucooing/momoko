@@ -2,7 +2,7 @@
      竞赛排名 + 阵容、全服培育列表、研修通关、塔排名。 -->
 <template>
   <div class="gmo game-skin">
-    <PageHeader :title="t('gm.tabs.modes')" :back="false" :theme-toggle="false" />
+    <PageHeader :title="t('gm.tabs.modes')" />
 
     <EmptyState v-if="!modes.length" icon="HOutline:TrophyIcon" :title="t('gmData.modes.empty')" />
     <template v-else>
@@ -54,12 +54,12 @@ const current = computed(() => modes.value.find((m) => m.id === active.value) ||
 .gmo {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   min-width: 0;
 }
 .gmo__tabs {
   display: flex;
-  gap: 28px;
+  gap: 18px;
   overflow-x: auto;
   border-bottom: 1px solid var(--el-border-color-light);
   scrollbar-width: none;
@@ -69,15 +69,15 @@ const current = computed(() => modes.value.find((m) => m.id === active.value) ||
 }
 .gmo__tab {
   flex: none;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 2px;
   border: 0;
   border-bottom: 3px solid transparent;
   background: transparent;
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -90,7 +90,7 @@ const current = computed(() => modes.value.find((m) => m.id === active.value) ||
 }
 @media (max-width: 760px) {
   .gmo__tabs {
-    gap: 20px;
+    gap: 14px;
   }
 }
 </style>

@@ -1,4 +1,4 @@
-// 外壳（侧栏 / 顶栏 / 底部导航 / 「更多」页）、工作台、外观设置的补充文案。
+// 外壳（侧栏 / 顶栏 / 手机菜单抽屉）、工作台、外观设置的补充文案。
 export default {
   'zh-CN': {
     shell: {
@@ -6,20 +6,9 @@ export default {
       search: '搜索',
       themeAndAppearance: '主题与外观',
       notifUnread: '通知，{n} 条未读',
-      nav: { main: '主导航', bottom: '底部导航' },
+      nav: { main: '主导航' },
       node: { manage: '管理节点 →' },
       user: { cardHint: '设置 · 语言 · 退出', menu: '账号菜单' },
-      more: {
-        account: '账号与节点',
-        search: '搜索功能',
-        searchPlaceholder: '搜索功能，例如 端口转发',
-        noMatch: '没有找到相关功能',
-        runningBadge: '{n} 个进行中',
-        mine: '我的',
-        profileHint: '资料 · 安全 · 设备',
-        settings: '系统设置',
-        nodesConnected: '已连接 {n} 个节点',
-      },
       cmd: {
         pages: '页面',
         apps: '应用',
@@ -143,20 +132,9 @@ export default {
       search: '搜尋',
       themeAndAppearance: '主題與外觀',
       notifUnread: '通知，{n} 條未讀',
-      nav: { main: '主導航', bottom: '底部導航' },
+      nav: { main: '主導航' },
       node: { manage: '管理節點 →' },
       user: { cardHint: '設定 · 語言 · 登出', menu: '帳號選單' },
-      more: {
-        account: '帳號與節點',
-        search: '搜尋功能',
-        searchPlaceholder: '搜尋功能，例如 端口轉發',
-        noMatch: '找不到相關功能',
-        runningBadge: '{n} 個進行中',
-        mine: '我的',
-        profileHint: '資料 · 安全 · 裝置',
-        settings: '系統設定',
-        nodesConnected: '已連接 {n} 個節點',
-      },
       cmd: {
         pages: '頁面',
         apps: '應用',
@@ -280,20 +258,9 @@ export default {
       search: 'Search',
       themeAndAppearance: 'Theme and appearance',
       notifUnread: 'Notifications, {n} unread',
-      nav: { main: 'Main navigation', bottom: 'Bottom navigation' },
+      nav: { main: 'Main navigation' },
       node: { manage: 'Manage nodes →' },
       user: { cardHint: 'Settings · Language · Sign out', menu: 'Account menu' },
-      more: {
-        account: 'Account and node',
-        search: 'Search features',
-        searchPlaceholder: 'Search features, e.g. port forwarding',
-        noMatch: 'No matching feature',
-        runningBadge: '{n} in progress',
-        mine: 'Me',
-        profileHint: 'Profile · Security · Devices',
-        settings: 'Settings',
-        nodesConnected: '{n} nodes connected',
-      },
       cmd: {
         pages: 'Pages',
         apps: 'Apps',

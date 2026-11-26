@@ -349,7 +349,7 @@ const copyCodes = async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .qr {
@@ -363,8 +363,7 @@ const copyCodes = async () => {
   padding: 10px 12px;
   border-radius: 12px;
   background: var(--m-s2);
-  font-size: 14px;
-  letter-spacing: 0.08em;
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 .codes {
@@ -374,8 +373,8 @@ const copyCodes = async () => {
   padding: 14px;
   border-radius: 14px;
   background: var(--m-s2);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   text-align: center;
 }
 </style>

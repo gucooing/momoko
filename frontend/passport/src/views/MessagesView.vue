@@ -101,7 +101,7 @@ onMounted(() => void load(true))
   width: 100%;
   max-width: 820px;
   margin: 0 auto;
-  padding: 28px 32px 56px;
+  padding: 18px 20px 42px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -113,17 +113,17 @@ onMounted(() => void load(true))
 }
 .page__title {
   flex: 1;
-  font-size: 28px;
+  font-size: 22px;
 }
 .list {
-  padding: 6px 20px 12px;
+  padding: 6px 14px 12px;
 }
 @media (max-width: 768px) {
   .page {
-    padding: 16px 16px 24px;
+    padding: 16px 16px 16px;
   }
   .page__title {
-    font-size: 22px;
+    font-size: 18px;
   }
   .list {
     padding: 4px 16px 10px;

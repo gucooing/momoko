@@ -22,7 +22,7 @@
             <span class="pfs-head__target">{{ row?.targetAddress }}:{{ row?.targetPort }}</span>
           </div>
         </div>
-        <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :box="44" @click="close" />
+        <AppIconButton icon="HOutline:XMarkIcon" :label="t('system.common.close')" :box="36" @click="close" />
       </header>
 
       <div class="pfs-toolbar">
@@ -44,7 +44,7 @@
           <span class="pfs-live__dot" />
           {{ t('tools.portForward.stats.live') }}
         </label>
-        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.portForward.stats.refresh')" :box="isMobile ? 44 : 40" :size="18" @click="refresh" />
+        <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('tools.portForward.stats.refresh')" :box="isMobile ? 36 : 32" :size="16" @click="refresh" />
       </div>
 
       <div v-if="rangeKey === 'custom'" class="pfs-custom">
@@ -155,7 +155,7 @@
           <AppIconButton
             class="pfs-conn__kill"
             :label="t('tools.portForward.stats.disconnect', { addr: c.remoteAddr })"
-            :box="isMobile ? 44 : 36"
+            :box="isMobile ? 36 : 30"
             @click="closeConns([c.id])"
           >
             <UIcon name="i-lucide-unplug" />
@@ -165,13 +165,13 @@
       </section>
 
       <footer class="pfs-foot">
-        <UButton color="neutral" variant="outline" size="lg" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
+        <UButton color="neutral" variant="outline" icon="i-lucide-download" :disabled="!points.length" @click="exportCsv">
           {{ t('tools.portForward.stats.exportCsv') }}
         </UButton>
-        <UButton color="error" variant="soft" size="lg" icon="i-lucide-unplug" :disabled="!connections.length" @click="closeConns()">
+        <UButton color="error" variant="soft" icon="i-lucide-unplug" :disabled="!connections.length" @click="closeConns()">
           {{ t('tools.portForward.stats.disconnectAll') }}
         </UButton>
-        <UButton v-if="isMobile" class="pfs-foot__close" color="neutral" variant="soft" size="xl" @click="close">
+        <UButton v-if="isMobile" class="pfs-foot__close" color="neutral" variant="soft" size="lg" @click="close">
           {{ t('system.common.close') }}
         </UButton>
       </footer>
@@ -581,27 +581,27 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .pfs-muted { font-size: 0.75rem; color: var(--el-text-color-secondary); }
-.pfs-muted.is-strong { font-weight: 700; }
+.pfs-muted.is-strong { font-weight: 600; }
 
 /* 头部 */
 .pfs-head { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
 .pfs-head__sticker {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   flex: none;
   border-radius: 16px;
   transform: rotate(-4deg);
 }
 .pfs-head__ico { width: 24px; height: 24px; }
-.pfs-head__proto { display: none; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.04em; }
+.pfs-head__proto { display: none; font-size: 0.75rem; font-weight: 600; }
 .pfs-head__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
 .pfs-head__titlerow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
 .pfs-head__name {
   margin: 0;
   min-width: 0;
   font-family: var(--app-font-display);
-  font-size: 1.3125rem;
-  font-weight: 800;
+  font-size: 1.0625rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -614,8 +614,7 @@ onBeforeUnmount(() => {
   padding: 0 8px;
   border-radius: 8px;
   font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-weight: 600;
 }
 .pfs-proto.is-tcp { background: var(--m-a2Soft); color: var(--m-ink); }
 .pfs-proto.is-udp { background: var(--m-aSoft); color: var(--m-ink); }
@@ -629,7 +628,7 @@ onBeforeUnmount(() => {
   span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   :deep(svg) { width: 14px; height: 14px; flex: none; color: var(--m-pInk); }
 }
-.pfs-head__target { color: var(--el-text-color-primary); font-weight: 700; }
+.pfs-head__target { color: var(--el-text-color-primary); font-weight: 600; }
 
 /* 时间范围 */
 .pfs-toolbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -647,7 +646,7 @@ onBeforeUnmount(() => {
 .pfs-seg::-webkit-scrollbar { display: none; }
 .pfs-seg__btn {
   flex: none;
-  min-height: 34px;
+  min-height: 30px;
   /* 480px 抽屉里 6 个时段 + 实时 + 刷新要排在一行 */
   padding: 0 9px;
   border: none;
@@ -655,7 +654,7 @@ onBeforeUnmount(() => {
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -672,7 +671,7 @@ onBeforeUnmount(() => {
   min-height: 40px;
   padding: 0 4px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   cursor: pointer;
   user-select: none;
@@ -715,8 +714,8 @@ onBeforeUnmount(() => {
   gap: 6px;
   align-items: center;
   width: 100%;
-  span { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); }
-  .app-input { min-width: 0; height: 44px; }
+  span { font-size: 0.75rem; font-weight: 600; color: var(--el-text-color-secondary); }
+  .app-input { min-width: 0; height: 34px; }
 }
 
 /* 指标格 */
@@ -731,7 +730,7 @@ onBeforeUnmount(() => {
     border-radius: var(--app-radius);
     background: var(--el-fill-color-light);
   }
-  dt { font-size: 0.75rem; font-weight: 700; color: var(--el-text-color-secondary); white-space: nowrap; }
+  dt { font-size: 0.75rem; font-weight: 500; color: var(--el-text-color-secondary); white-space: nowrap; }
   dd {
     display: flex;
     align-items: baseline;
@@ -739,8 +738,8 @@ onBeforeUnmount(() => {
     gap: 2px 8px;
     margin: 4px 0 0;
     font-family: var(--app-font-display);
-    font-size: 1.375rem;
-    font-weight: 800;
+    font-size: 1.125rem;
+    font-weight: 600;
     color: var(--el-text-color-primary);
     min-width: 0;
     small { font-family: inherit; font-size: 0.75rem; font-weight: 600; color: var(--el-text-color-secondary); }
@@ -751,13 +750,13 @@ onBeforeUnmount(() => {
 /* 图表 */
 .pfs-block { display: flex; flex-direction: column; gap: 8px; }
 .pfs-block__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 32px; }
-.pfs-block__title { flex: 1; font-size: 0.9375rem; font-weight: 800; color: var(--el-text-color-primary); }
+.pfs-block__title { flex: 1; font-size: 0.8125rem; font-weight: 600; color: var(--el-text-color-primary); }
 .pfs-legend {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   i { width: 10px; height: 10px; border-radius: 3px; }
   i.is-in { background: var(--m-p); }
@@ -791,7 +790,7 @@ onBeforeUnmount(() => {
 .pfs-conn__main { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
 .pfs-conn__addr {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -802,17 +801,17 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: flex-end;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   line-height: 1.35;
   white-space: nowrap;
-  small { font-size: inherit; font-weight: 700; color: var(--el-text-color-secondary); }
+  small { font-size: inherit; font-weight: 600; color: var(--el-text-color-secondary); }
 }
 .pfs-conns :deep(.pfs-conn__kill) { color: var(--m-bad); }
 .pfs-conns :deep(.pfs-conn__kill:hover) { color: var(--m-bad); background: var(--m-badSoft); }
 .pfs-conns :deep(.pfs-conn__kill .iconify) { width: 16px; height: 16px; }
 .pfs-conns__empty {
-  padding: 18px 0;
+  padding: 14px 0;
   border-top: 1px solid var(--el-border-color-lighter);
   font-size: 0.8125rem;
   color: var(--el-text-color-secondary);
@@ -824,21 +823,21 @@ onBeforeUnmount(() => {
 
 @media (width <= 768px) {
   .pfs-head { align-items: center; }
-  .pfs-head__sticker { width: 46px; height: 46px; border-radius: 15px; }
+  .pfs-head__sticker { width: 36px; height: 36px; border-radius: 15px; }
   .pfs-head__ico { display: none; }
   .pfs-head__proto { display: inline; }
   .pfs-head__titlerow .pfs-proto { display: none; }
-  .pfs-head__name { font-size: 1.125rem; }
+  .pfs-head__name { font-size: 0.9375rem; }
   .pfs-head__route { font-size: 0.72rem; }
   .pfs-spacer { display: none; }
   .pfs-seg { width: 100%; }
-  .pfs-seg__btn { flex: 1; min-height: 44px; padding: 0 6px; }
+  .pfs-seg__btn { flex: 1; min-height: 40px; padding: 0 6px; }
   .pfs-toolbar { justify-content: space-between; }
   .pfs-stats { gap: 8px; }
   .pfs-stats > div { padding: 10px 12px; }
-  .pfs-stats dd { font-size: 1.1875rem; }
+  .pfs-stats dd { font-size: 1rem; }
   .pfs-chart-wrap { height: 150px; }
   .pfs-foot { flex-wrap: wrap; }
-  .pfs-foot__close { flex-basis: 100%; min-height: 52px; }
+  .pfs-foot__close { flex-basis: 100%; min-height: 44px; }
 }
 </style>

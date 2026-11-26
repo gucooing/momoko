@@ -484,13 +484,13 @@ onActivated(() => {
 .gmc__h {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 .gmc__sub {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 .gmc__body {
@@ -511,7 +511,7 @@ onActivated(() => {
 }
 .gmc__detail {
   flex: 2 1 380px;
-  padding: 20px 22px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -540,8 +540,7 @@ onActivated(() => {
   background: var(--m-gSoft, var(--el-fill-color-light));
   color: var(--m-gInk, var(--el-text-color-primary));
   font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -549,7 +548,7 @@ onActivated(() => {
 .gmc__codebox--lg {
   align-self: flex-start;
   padding: 6px 12px;
-  font-size: 16px;
+  font-size: 14px;
 }
 .gmc__rewards {
   display: flex;
@@ -577,7 +576,7 @@ onActivated(() => {
 }
 .gmc__used-n {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gmc__bar {
   display: block;
@@ -623,7 +622,7 @@ onActivated(() => {
 }
 .gmc__mcard-name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .gmc__mkv,
 .gmc__kv {
@@ -662,8 +661,8 @@ onActivated(() => {
   gap: 6px;
 }
 .gmc__dname {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .gmc__recent {
   display: flex;
@@ -677,8 +676,8 @@ onActivated(() => {
 }
 .gmc__recent-title {
   flex: 1;
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .gmc__recent-empty {
   padding: 12px 0;
@@ -701,7 +700,7 @@ onActivated(() => {
   background: var(--m-gSoft, var(--m-pSoft));
   color: var(--m-gInk, var(--m-pInk));
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gmc__rtext {
   flex: 1;
@@ -711,7 +710,7 @@ onActivated(() => {
 }
 .gmc__rname {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -727,13 +726,13 @@ onActivated(() => {
 }
 @media (width < 768px) {
   .gmc__h {
-    font-size: 24px;
+    font-size: 19px;
   }
   .gmc__detail {
     padding: 16px;
   }
   .gmc__dfoot :deep(button) {
-    min-height: 44px;
+    min-height: 40px;
   }
 }
 </style>

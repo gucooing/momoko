@@ -189,12 +189,12 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 16px 16px 16px 20px;
+  gap: 0.75rem;
+  padding: 10px 10px 10px 18px;
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .base-dialog-title {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
@@ -203,7 +203,8 @@ onBeforeUnmount(() => {
 }
 
 .base-dialog-body {
-  padding: 20px;
+  padding: 16px 18px;
+  font-size: 0.8125rem;
   overflow-y: auto;
 }
 
@@ -211,8 +212,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 14px 20px;
+  gap: 6px;
+  padding: 10px 18px;
   border-top: 1px solid var(--el-border-color-lighter);
 }
 

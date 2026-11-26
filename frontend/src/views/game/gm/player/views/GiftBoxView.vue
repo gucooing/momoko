@@ -80,7 +80,7 @@
             v-if="revocable(gift)"
             icon="HOutline:ArrowUturnLeftIcon"
             :label="t('gmData.giftBox.revoke')"
-            :box="44"
+            :box="36"
             @click="revoke(gift)"
           />
         </article>

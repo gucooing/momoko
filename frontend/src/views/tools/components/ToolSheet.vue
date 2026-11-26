@@ -65,9 +65,9 @@ onBeforeUnmount(() => {
   bottom: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   width: min(var(--tool-sheet-w), 100vw);
-  padding: 24px;
+  padding: 16px;
   border-left: 1px solid var(--el-border-color-light);
   border-radius: var(--app-radius-xl) 0 0 var(--app-radius-xl);
   background: var(--el-bg-color);
@@ -101,7 +101,7 @@ onBeforeUnmount(() => {
     padding: 10px 16px calc(24px + env(safe-area-inset-bottom));
     border-left: 0;
     border-top: 1px solid var(--el-border-color-light);
-    border-radius: 30px 30px 0 0;
+    border-radius: 20px 20px 0 0;
   }
   .tool-sheet__panel--flush {
     gap: 0;

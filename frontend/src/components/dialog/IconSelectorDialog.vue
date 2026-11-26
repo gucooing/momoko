@@ -241,7 +241,7 @@ defineExpose({ showDialog, closeDialog, clearData })
   background: transparent;
   color: var(--el-text-color-secondary);
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
 }
 .icon-list-scroll {

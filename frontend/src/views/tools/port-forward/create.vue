@@ -373,7 +373,7 @@ defineExpose({ showDialog })
   background: color-mix(in srgb, var(--el-color-primary) 14%, transparent);
   color: var(--el-color-primary);
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.02em;
 }
 .route__badge--target {
@@ -414,21 +414,20 @@ defineExpose({ showDialog })
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding-top: 22px;
+  padding-top: 16px;
   color: var(--el-text-color-secondary);
   user-select: none;
 }
 .route__arrow-label {
   font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-weight: 500;
   color: var(--el-text-color-placeholder);
 }
 .route__arrow-chev {
   font-size: 1.1rem;
   line-height: 1;
   color: var(--el-color-primary);
-  font-weight: 700;
+  font-weight: 600;
 }
 .route__arrow-line { display: none; }
 

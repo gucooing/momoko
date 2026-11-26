@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   background: rgba(20, 10, 30, 0.45);
 }
 .tmodal__panel {
@@ -83,7 +83,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 20px 16px 14px 24px;
+  padding: 14px 16px 14px 16px;
 }
 .tmodal__title {
   flex: 1;
@@ -92,8 +92,8 @@ onBeforeUnmount(() => {
   flex-direction: column;
   b {
     font-family: var(--app-font-display);
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 600;
   }
   small {
     font-size: 0.8125rem;
@@ -128,7 +128,7 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 24px 20px;
+  padding: 0 16px 14px;
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
@@ -138,7 +138,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 24px 20px;
+  padding: 14px 16px 14px;
   border-top: 1px solid var(--m-line);
 }
 
@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
   .tmodal__panel {
     width: 100%;
     max-height: 92vh;
-    border-radius: 28px 28px 0 0;
+    border-radius: 18px 18px 0 0;
   }
   .tmodal__grip {
     align-self: center;
@@ -160,13 +160,13 @@ onBeforeUnmount(() => {
     background: var(--m-line);
   }
   .tmodal__head {
-    padding: 4px 8px 8px 20px;
+    padding: 4px 8px 8px 14px;
   }
   .tmodal__title b {
-    font-size: 1.125rem;
+    font-size: 0.9375rem;
   }
   .tmodal__body {
-    padding: 0 20px 16px;
+    padding: 0 14px 16px;
   }
   .tmodal__foot {
     padding: 12px 16px calc(18px + env(safe-area-inset-bottom));

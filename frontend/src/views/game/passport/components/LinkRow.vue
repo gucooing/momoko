@@ -14,8 +14,8 @@
       v-if="unbindable"
       icon="HOutline:LinkSlashIcon"
       :label="t('passportAdmin.detail.unbind', { server: link.server?.name || '' })"
-      :box="40"
-      :size="18"
+      :box="32"
+      :size="16"
       @click="emit('unbind', link)"
     />
   </div>
@@ -76,7 +76,7 @@ const when = computed(() => {
   min-width: 0;
 }
 .plink__server {
-  font-weight: 800;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -88,7 +88,7 @@ const when = computed(() => {
   background: var(--m-pSoft);
   color: var(--m-pInk);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .plink__sub {
   font-size: 12px;

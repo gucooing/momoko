@@ -66,10 +66,10 @@ const go = (to: RouteLocationRaw, close: () => void) => {
 
 <style scoped lang="scss">
 .create-menu__btn {
-  min-height: 44px;
-  padding: 0 18px;
+  min-height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 500;
   gap: 8px;
 }
 .create-menu__ic {
@@ -89,15 +89,15 @@ const go = (to: RouteLocationRaw, close: () => void) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 48px;
+  min-height: 36px;
   padding: 0 10px;
   border: none;
   border-radius: 14px;
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }

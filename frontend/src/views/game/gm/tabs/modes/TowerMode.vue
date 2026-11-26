@@ -135,15 +135,15 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -162,7 +162,7 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   gap: 8px;
   flex: 0 1 260px;
   min-width: 180px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -198,7 +198,7 @@ const playerLink = (pid: string) => `/game/gm/${encodeURIComponent(ctx.serverId.
   grid-template-columns: 36px 40px minmax(0, 1fr) 120px 150px;
   gap: 12px;
   align-items: center;
-  min-height: 60px;
+  min-height: 50px;
   padding: 0 14px;
   border-top: 1px solid var(--el-border-color-lighter);
   color: var(--el-text-color-primary);
@@ -211,7 +211,7 @@ a.tw__row:hover {
   min-height: 40px;
   border-top: 0;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .tw__note {
@@ -222,15 +222,15 @@ a.tw__row:hover {
 }
 .tw__no {
   text-align: center;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .tw__no.is-top {
   color: var(--m-gInk);
 }
 .tw__layer {
-  font-weight: 800;
+  font-weight: 600;
 }
 .tw__pager {
   display: flex;

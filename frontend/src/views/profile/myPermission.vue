@@ -195,8 +195,8 @@ const summaryText = computed(() => {
 }
 .pf-side-title {
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pf-link {
@@ -205,7 +205,7 @@ const summaryText = computed(() => {
   min-height: 40px;
   color: var(--m-pInk);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   text-decoration: none;
 }
 .pf-link:hover {
@@ -229,10 +229,10 @@ const summaryText = computed(() => {
   background: var(--el-fill-color-light);
 }
 .perm-sum__sk {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 13px;
-  font-size: 20px;
+  font-size: 16px;
   transform: rotate(4deg);
 }
 .perm-sum__text {
@@ -242,8 +242,8 @@ const summaryText = computed(() => {
   flex-direction: column;
   gap: 2px;
   strong {
-    font-size: 0.875rem;
-    font-weight: 800;
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
   span {
     font-size: 0.75rem;
@@ -277,7 +277,7 @@ const summaryText = computed(() => {
 .perm-tag--more {
   cursor: pointer;
   color: var(--m-pInk);
-  font-weight: 800;
+  font-weight: 600;
 }
 .perm-tag__ico {
   width: 14px;
@@ -300,7 +300,7 @@ const summaryText = computed(() => {
   color: var(--el-text-color-secondary);
 }
 .perm-desc__stats {
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-primary);
 }
 .perm-icon {
@@ -331,7 +331,7 @@ const summaryText = computed(() => {
 .perm-line__title {
   flex: 1;
   min-width: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--el-text-color-primary);
 }

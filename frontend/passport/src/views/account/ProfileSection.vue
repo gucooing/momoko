@@ -7,7 +7,7 @@
     <div class="pp-frow">
       <span class="pp-frow__label">{{ t('account.profile.avatar') }}</span>
       <div class="avatar">
-        <PAvatar :src="form.avatarAsset ? '' : me.avatar" :asset="form.avatarAsset" :name="form.name || me.username" :size="64" shape="rounded" tilt />
+        <PAvatar :src="form.avatarAsset ? '' : me.avatar" :asset="form.avatarAsset" :name="form.name || me.username" :size="50" shape="rounded" tilt />
         <span class="pp-hint">
           {{ me.avatarUploadEnabled ? t('account.profile.avatarHint', { mb: maxMb }) : t('account.profile.avatarUploadOff') }}
           <template v-if="assetChoices.length"><br />{{ t('account.profile.avatarAssetHint') }}</template>
@@ -70,7 +70,7 @@
           :aria-pressed="form.avatarAsset === c.asset"
           @click="pickAsset(c.asset)"
         >
-          <PAvatar :asset="c.asset" :name="c.label" :size="72" shape="rounded" />
+          <PAvatar :asset="c.asset" :name="c.label" :size="56" shape="rounded" />
           <span class="asset__label">{{ c.label }}</span>
         </button>
       </div>
@@ -211,7 +211,7 @@ const onFile = async (e: Event) => {
   gap: 14px;
 }
 .username {
-  font-weight: 700;
+  font-weight: 600;
 }
 .two {
   display: flex;
@@ -232,7 +232,7 @@ const onFile = async (e: Event) => {
   align-items: center;
   gap: 8px;
   padding: 12px 8px;
-  border-radius: 18px;
+  border-radius: 14px;
   border: 2px solid var(--m-line);
   background: var(--m-s);
   color: var(--m-ink);
@@ -245,7 +245,7 @@ const onFile = async (e: Event) => {
 }
 .asset__label {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   text-align: center;
   overflow-wrap: anywhere;
 }

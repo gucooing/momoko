@@ -174,10 +174,10 @@ const decide = async (approve: boolean) => {
   gap: 16px;
 }
 .az__state {
-  padding: 24px 0;
+  padding: 16px 0;
   text-align: center;
   color: var(--m-ink2);
-  font-size: 14px;
+  font-size: 13px;
 }
 .az__facts {
   margin: 0;
@@ -201,8 +201,8 @@ const decide = async (approve: boolean) => {
   margin: 0;
   min-width: 0;
   text-align: right;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   word-break: break-all;
 }
 .az__code {
@@ -210,20 +210,19 @@ const decide = async (approve: boolean) => {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 18px 12px;
-  border-radius: 18px;
+  padding: 14px 12px;
+  border-radius: 14px;
   border: 2px dashed var(--m-line);
 }
 .az__code-label {
   color: var(--m-ink2);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .az__code-value {
   font-family: var(--app-font-mono, ui-monospace, monospace);
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 26px;
+  font-weight: 600;
   color: var(--m-ink);
 }
 .az__acts {
@@ -234,8 +233,6 @@ const decide = async (approve: boolean) => {
 .az__input {
   font-family: var(--app-font-mono, ui-monospace, monospace);
   font-size: 20px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 .az__result {
   display: flex;
@@ -246,17 +243,17 @@ const decide = async (approve: boolean) => {
   text-align: center;
 }
 .az__result b {
-  font-size: 18px;
+  font-size: 15px;
 }
 .az__result p {
   margin: 0;
   color: var(--m-ink2);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
 }
 .az__mark {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
 }
 .az__mark svg {
   width: 100%;
@@ -270,7 +267,7 @@ const decide = async (approve: boolean) => {
 }
 @media (max-width: 480px) {
   .az__code-value {
-    font-size: 32px;
+    font-size: 24px;
   }
   .az__acts {
     grid-template-columns: 1fr;

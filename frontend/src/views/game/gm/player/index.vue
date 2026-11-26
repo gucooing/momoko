@@ -10,7 +10,7 @@
       </RouterLink>
       <span v-if="ctx.server.value" class="gp__server">{{ ctx.server.value.name }}</span>
       <span class="gp__spacer" />
-      <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gmData.common.refresh')" :box="40" @click="reloadAll" />
+      <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gmData.common.refresh')" :box="32" @click="reloadAll" />
     </div>
 
     <nav v-if="gmTabs.length" class="gp__gmtabs" :aria-label="t('gm.shell.tabsLabel')">
@@ -416,7 +416,7 @@ providePlayerPage({
 .gp {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   min-width: 0;
 }
 .gp__top {
@@ -431,8 +431,8 @@ providePlayerPage({
   gap: 6px;
   min-height: 40px;
   padding-right: 8px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   text-decoration: none;
 }
@@ -449,7 +449,7 @@ providePlayerPage({
   background: var(--m-gSoft);
   color: var(--m-gInk);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   max-width: 60vw;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -482,8 +482,8 @@ providePlayerPage({
   padding: 0 14px;
   border-radius: 999px;
   color: var(--el-text-color-secondary);
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 13px;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -547,21 +547,21 @@ providePlayerPage({
 .gp-hero__main {
   flex: 1 1 560px;
   min-width: 0;
-  padding: 22px 24px;
+  padding: 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .gp-hero__id {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 .gp-hero__avatar {
   flex: none;
-  width: 96px;
-  height: 96px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   overflow: hidden;
   display: inline-flex;
@@ -594,8 +594,8 @@ providePlayerPage({
 .gp-hero__name {
   margin: 0;
   font-family: var(--app-font-display);
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 600;
   line-height: 1.15;
   word-break: break-all;
 }
@@ -610,7 +610,7 @@ providePlayerPage({
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--m-pInk);
   text-decoration: none;
 }
@@ -634,7 +634,7 @@ providePlayerPage({
   background: var(--m-gSoft);
   color: var(--m-gInk);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .gp-hero__bar {
   flex: 1;
@@ -700,8 +700,8 @@ providePlayerPage({
   color: var(--el-text-color-secondary);
 }
 .gp-hero__cur-value {
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -713,7 +713,7 @@ providePlayerPage({
   gap: 8px;
 }
 .gp-hero__actions :deep(button[data-slot='base']) {
-  min-height: 40px;
+  min-height: 32px;
 }
 /* 出借记忆的卡面：玩家信息右侧的一栏，高度跟随左侧；卡片窄时不显示（头像已经是这张卡） */
 .gp-hero__art {
@@ -743,7 +743,7 @@ providePlayerPage({
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .gp-menu {
   padding: 6px;
@@ -755,14 +755,14 @@ providePlayerPage({
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 6px 10px;
   border: 0;
   border-radius: 12px;
   background: transparent;
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -778,7 +778,7 @@ providePlayerPage({
 /* ---------- 分页 ---------- */
 .gp-tabs {
   display: flex;
-  gap: 24px;
+  gap: 16px;
   overflow-x: auto;
   border-bottom: 1px solid var(--el-border-color-light);
   scrollbar-width: none;
@@ -791,15 +791,15 @@ providePlayerPage({
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 2px;
   border: 0;
   border-bottom: 3px solid transparent;
   background: transparent;
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -820,27 +820,27 @@ providePlayerPage({
 
 @media (max-width: 760px) {
   .gp-hero__main {
-    padding: 18px 16px;
+    padding: 14px 16px;
   }
   .gp-hero__wallet {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .gp-hero__name {
-    font-size: 24px;
+    font-size: 19px;
   }
   .gp-hero__avatar {
-    width: 72px;
-    height: 72px;
+    width: 56px;
+    height: 56px;
   }
   .gp-hero__bust {
     width: 128px;
     height: 128px;
   }
   .gp-hero__actions :deep(button[data-slot='base']) {
-    min-height: 44px;
+    min-height: 40px;
   }
   .gp-tabs {
-    gap: 18px;
+    gap: 14px;
   }
 }
 </style>

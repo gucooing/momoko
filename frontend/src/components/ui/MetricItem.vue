@@ -42,7 +42,7 @@ const clamped = computed(() => Math.min(100, Math.max(0, Number(props.percent) |
   padding: calc(var(--cmp-card-unit) * 18) calc(var(--cmp-card-unit) * 20);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
   min-width: 0;
 }
 .metric__head {
@@ -53,15 +53,13 @@ const clamped = computed(() => Math.min(100, Math.max(0, Number(props.percent) |
 }
 .metric__icon {
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   color: var(--m-pInk);
 }
 .metric__label {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -69,15 +67,14 @@ const clamped = computed(() => Math.min(100, Math.max(0, Number(props.percent) |
 }
 .metric__value {
   font-family: var(--app-font-display);
-  font-size: 1.875rem;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.15;
   color: var(--el-text-color-primary);
   font-variant-numeric: tabular-nums;
 }
 .metric__bar {
-  height: 8px;
+  height: 6px;
   border-radius: 999px;
   background: var(--el-fill-color-light);
   overflow: hidden;

@@ -46,7 +46,7 @@ const menuStore = useMenuStore()
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: calc(var(--cmp-card-padding) * 0.82) var(--cmp-card-padding) 0;
   min-width: 0;
 }
@@ -69,13 +69,12 @@ const menuStore = useMenuStore()
 }
 .app-panel__title h2 {
   font-size: var(--cmp-card-title-size);
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .app-panel__title-icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   align-self: center;
   color: var(--m-pInk);
 }
@@ -100,7 +99,7 @@ const menuStore = useMenuStore()
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px var(--cmp-card-padding);
+  padding: 10px var(--cmp-card-padding);
   border-top: 1px solid var(--el-border-color-lighter);
 }
 </style>

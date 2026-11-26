@@ -416,8 +416,8 @@ const summary = computed(() => {
 .rt__title {
   margin: 0 8px 0 0;
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .rt__spacer {
@@ -431,7 +431,7 @@ const summary = computed(() => {
   background: var(--el-fill-color-light);
 }
 .rt-seg button {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: none;
   border-radius: 999px;
@@ -458,7 +458,7 @@ const summary = computed(() => {
 }
 .rt-seg--full button {
   flex: 1;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 6px;
 }
 .rt__every {
@@ -468,7 +468,7 @@ const summary = computed(() => {
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .rt__bar {
@@ -483,7 +483,7 @@ const summary = computed(() => {
 .rt-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 16px;
 }
 .rt-stat {
   display: flex;
@@ -504,8 +504,8 @@ const summary = computed(() => {
   border-radius: 50%;
 }
 .rt-stat b {
-  font-size: 1.625rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .rt__now {
@@ -514,8 +514,8 @@ const summary = computed(() => {
   gap: 8px;
 }
 .rt__now-v {
-  font-size: 1.875rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .rt__now-p {
@@ -532,7 +532,7 @@ const summary = computed(() => {
     gap: 12px;
   }
   .rt__title {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
   .rt-chart {
     height: 150px;

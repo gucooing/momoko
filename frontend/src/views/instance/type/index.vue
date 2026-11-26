@@ -9,8 +9,7 @@
       {{ t('instance.ui.appList') }}
     </RouterLink>
 
-    <!-- 手机端已有上方「应用列表」返回链接，不再叠一个页头返回按钮 -->
-    <PageHeader :title="t('instance.ui.appTypes')" :back="canSeeApps ? false : 'auto'">
+    <PageHeader :title="t('instance.ui.appTypes')">
       <template #description>
         {{ t('instance.ui.typesDesc', { types: instanceTypeList.length, apps: totalApps })
         }}<span class="itype-hide-sm">{{ t('instance.ui.typesDescTail') }}</span>
@@ -126,7 +125,7 @@
                 v-if="row.startCommand && !menuStore.isMobile"
                 icon="HOutline:ClipboardDocumentIcon"
                 :size="16"
-                :box="36"
+                :box="30"
                 :label="t('instance.ui.copyStartCmd', { name: row.name })"
                 @click="copy(row.startCommand)"
               />
@@ -251,7 +250,7 @@
 
     <!-- 手机：悬浮新建 -->
     <div v-if="menuStore.isMobile" class="itype-fab">
-      <UButton color="primary" size="xl" icon="i-lucide-plus" class="itype-fab__btn" @click="openEditor()">
+      <UButton color="primary" size="lg" icon="i-lucide-plus" class="itype-fab__btn" @click="openEditor()">
         {{ t('instance.ui.newType') }}
       </UButton>
     </div>
@@ -504,8 +503,8 @@ onBeforeUnmount(() => {
   min-height: 44px;
   margin: -8px 0 -10px -6px;
   padding: 0 6px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   text-decoration: none;
 }
@@ -539,14 +538,14 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
@@ -570,7 +569,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   flex: 0 1 300px;
   min-width: 180px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -633,9 +632,9 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 .itype-card__av {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   flex: none;
 }
 .itype-card__av-ico {
@@ -658,8 +657,8 @@ onBeforeUnmount(() => {
 }
 .itype-card__name {
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -673,7 +672,7 @@ onBeforeUnmount(() => {
   padding: 0 9px;
   border-radius: 8px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 .itype-tag.is-builtin {
@@ -696,7 +695,7 @@ onBeforeUnmount(() => {
 .itype-card__desc.is-block {
   margin: 0;
   padding-right: 6px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--el-text-color-primary);
 }
 .itype-card__count {
@@ -707,15 +706,15 @@ onBeforeUnmount(() => {
 }
 .itype-card__count-n {
   font-family: var(--app-font-display);
-  font-size: 1.625rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 600;
   line-height: 1;
   color: var(--el-text-color-primary);
 }
 .itype-card__count-u {
   margin-top: 2px;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
@@ -738,7 +737,7 @@ onBeforeUnmount(() => {
 }
 .itype-card__info dt {
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--el-text-color-secondary);
 }
 .itype-card__info dd {
@@ -811,7 +810,7 @@ onBeforeUnmount(() => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -872,7 +871,7 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 .itype-confirm__btn {
-  min-height: 36px;
+  min-height: 30px;
   border-radius: 999px;
   padding: 0 14px;
   justify-content: center;
@@ -916,8 +915,8 @@ onBeforeUnmount(() => {
   margin-left: 0;
 }
 .itype-card__foot :deep(.action-menu__trigger) {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 14px;
 }
 .itype-card__foot :deep(.app-icon-btn:disabled) {
@@ -939,7 +938,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 24px;
+  padding: 16px;
   border-radius: var(--app-radius-lg);
   border: 2px dashed var(--el-border-color-light);
   background: transparent;
@@ -953,9 +952,9 @@ onBeforeUnmount(() => {
   background: var(--m-pSoft);
 }
 .itype-add__ico {
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   transform: rotate(-6deg);
 }
 .itype-add__ico :deep(svg),
@@ -965,8 +964,8 @@ onBeforeUnmount(() => {
 }
 .itype-add__t {
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .itype-add__d {
@@ -987,10 +986,10 @@ onBeforeUnmount(() => {
 }
 .itype-fab__btn {
   pointer-events: auto;
-  min-height: 56px;
-  padding: 0 22px;
+  min-height: 44px;
+  padding: 0 16px;
   border-radius: var(--app-radius-pill);
-  font-weight: 700;
+  font-weight: 500;
   box-shadow: var(--app-shadow-brand);
 }
 
@@ -1017,7 +1016,7 @@ onBeforeUnmount(() => {
 
 @media (width < 768px) {
   .itype-page {
-    padding-bottom: 72px;
+    padding-bottom: 54px;
   }
   .itype-tools__spacer {
     display: none;
@@ -1026,13 +1025,13 @@ onBeforeUnmount(() => {
     order: -1;
     flex: 1 1 100%;
     min-width: 0;
-    min-height: 44px;
+    min-height: 40px;
   }
   .itype-chips {
     width: 100%;
   }
   .itype-chip {
-    min-height: 44px;
+    min-height: 40px;
   }
   .itype-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1047,8 +1046,8 @@ onBeforeUnmount(() => {
     gap: 12px;
   }
   .itype-card__av {
-    width: 48px;
-    height: 48px;
+    width: 38px;
+    height: 38px;
     border-radius: 16px;
   }
   .itype-card__av-ico {
@@ -1061,7 +1060,7 @@ onBeforeUnmount(() => {
     gap: 4px;
   }
   .itype-card__count-n {
-    font-size: 1.5rem;
+    font-size: 1.1875rem;
   }
   .itype-add {
     min-height: 160px;
@@ -1074,12 +1073,12 @@ onBeforeUnmount(() => {
   }
   .itype-confirm__btn {
     flex: 1;
-    min-height: 44px;
+    min-height: 40px;
   }
   .itype-card__foot :deep(.app-icon-btn),
   .itype-card__foot :deep(.action-menu__trigger) {
-    width: 44px !important;
-    height: 44px !important;
+    width: 40px !important;
+    height: 40px !important;
   }
 }
 </style>

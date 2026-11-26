@@ -43,7 +43,7 @@
           v-else
           icon="HOutline:Cog6ToothIcon"
           :label="t('monitor.settings')"
-          :box="44"
+          :box="36"
           @click="settingsOpen = true"
         />
       </template>
@@ -1006,19 +1006,19 @@ const onSaved = (s: MonitorSettingsInfo) => {
 .mon {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   min-width: 0;
 }
 .mon :deep(.mon-strong) {
   color: var(--el-text-color-primary);
-  font-weight: 700;
+  font-weight: 600;
 }
 .mon-warn {
   color: var(--m-warn);
-  font-weight: 700;
+  font-weight: 600;
 }
 .mon-btn-ic {
-  font-size: 18px;
+  font-size: 15px;
 }
 .mon-pill {
   display: inline-flex;
@@ -1029,7 +1029,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   padding: 0 9px;
   border-radius: 999px;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   vertical-align: middle;
 }
 .mon-pill::before {
@@ -1105,7 +1105,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   background: var(--el-fill-color-light);
 }
 .mon-seg button {
-  min-height: 34px;
+  min-height: 30px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -1130,13 +1130,13 @@ const onSaved = (s: MonitorSettingsInfo) => {
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  padding: 0 18px;
+  padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -1159,18 +1159,18 @@ const onSaved = (s: MonitorSettingsInfo) => {
   color: var(--m-pInk);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .mon-pop {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 18px;
+  padding: 14px;
 }
 .mon-pop__t {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mon-pop__f {
@@ -1178,7 +1178,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   flex-direction: column;
   gap: 6px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .mon-pop__in {
@@ -1189,7 +1189,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   background: var(--el-bg-color);
   color: var(--el-text-color-primary);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   outline: none;
   color-scheme: light dark;
 }
@@ -1207,7 +1207,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   gap: 8px;
 }
 .mon-pop__acts :deep(button) {
-  min-height: 36px;
+  min-height: 30px;
   border-radius: 999px;
   padding-inline: 14px;
 }
@@ -1247,13 +1247,13 @@ const onSaved = (s: MonitorSettingsInfo) => {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  font-size: 16px;
+  font-size: 14px;
 }
 .mon-tile__t {
   flex: 1;
   min-width: 0;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .mon-tile__v {
@@ -1262,13 +1262,13 @@ const onSaved = (s: MonitorSettingsInfo) => {
   gap: 6px;
 }
 .mon-tile__n {
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 600;
   line-height: 1;
 }
 .mon-tile__u {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
 }
 .mon-tile__sub {
@@ -1288,7 +1288,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   justify-content: space-between;
   gap: 6px;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-secondary);
   white-space: nowrap;
 }
@@ -1324,7 +1324,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
 }
 .mon-panel--apps {
   gap: 8px;
-  padding: 18px 12px 12px 20px;
+  padding: 14px 12px 12px 14px;
 }
 .mon-panel__h {
   display: flex;
@@ -1338,8 +1338,8 @@ const onSaved = (s: MonitorSettingsInfo) => {
 .mon-panel__t {
   flex: 1;
   font-family: var(--app-font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .mon-panel__hint {
@@ -1367,8 +1367,8 @@ const onSaved = (s: MonitorSettingsInfo) => {
 }
 .mon-disk__m {
   overflow: hidden;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1383,7 +1383,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
 }
 .mon-disk__u {
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   white-space: nowrap;
 }
@@ -1403,7 +1403,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   font-size: 0.75rem;
 }
 .mon-disk__pct {
-  font-weight: 800;
+  font-weight: 600;
 }
 .mon-disk__grow {
   color: var(--el-text-color-secondary);
@@ -1411,7 +1411,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
 }
 .mon-disk__eta {
   overflow: hidden;
-  font-weight: 700;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1432,7 +1432,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
 }
 .mon-app__main {
   display: flex;
@@ -1445,8 +1445,8 @@ const onSaved = (s: MonitorSettingsInfo) => {
   align-items: center;
   gap: 6px;
   overflow: hidden;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1457,7 +1457,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mon-app__bar {
   height: 6px;
@@ -1475,8 +1475,8 @@ const onSaved = (s: MonitorSettingsInfo) => {
 .mon-app__cpu {
   width: 64px;
   text-align: right;
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .mon-app__mem {
   width: 76px;
@@ -1524,14 +1524,14 @@ const onSaved = (s: MonitorSettingsInfo) => {
   flex: none;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -1570,13 +1570,13 @@ const onSaved = (s: MonitorSettingsInfo) => {
   width: 28px;
   height: 28px;
   border-radius: 9px;
-  font-size: 14px;
+  font-size: 13px;
 }
 .mon--m .mon-tile__t {
   font-size: 0.75rem;
 }
 .mon--m .mon-tile__n {
-  font-size: 1.5rem;
+  font-size: 1.1875rem;
 }
 .mon--m .mon-tile__u {
   font-size: 0.75rem;
@@ -1600,7 +1600,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   padding: 14px 8px 8px 14px;
 }
 .mon--m .mon-panel__t {
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 .mon--m .mon-disk {
   gap: 6px;
@@ -1635,7 +1635,7 @@ const onSaved = (s: MonitorSettingsInfo) => {
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .mon--m .mon-app__bar {
   height: 5px;
@@ -1648,8 +1648,8 @@ const onSaved = (s: MonitorSettingsInfo) => {
   min-width: 64px;
 }
 .mon-app__v {
-  font-size: 0.875rem;
-  font-weight: 800;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .mon-app__v2 {
   font-size: 0.6875rem;

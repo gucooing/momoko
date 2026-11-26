@@ -222,8 +222,8 @@ onMounted(() => {
 }
 .pf-side-title {
   font-family: var(--app-font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
 }
 .pf-link {
@@ -234,7 +234,7 @@ onMounted(() => {
   color: var(--m-pInk);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .pf-link:hover {
@@ -273,7 +273,7 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 58px;
+  min-height: 48px;
   padding: 8px 0;
   border: 0;
   border-top: 1px solid var(--el-border-color-light);
@@ -294,8 +294,8 @@ onMounted(() => {
   gap: 2px;
 }
 .logs-row__time {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 .logs-row__meta {
   font-size: 0.75rem;
@@ -311,7 +311,7 @@ onMounted(() => {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .logs-chips {
   display: flex;
@@ -328,15 +328,15 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border: 1px solid var(--el-border-color-light);
   border-radius: 999px;
   background: var(--el-bg-color);
   color: var(--el-text-color-regular);
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
 }
 .logs-chip.is-on {
@@ -362,7 +362,7 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   width: 100%;
-  min-height: 64px;
+  min-height: 52px;
   padding: 10px 4px;
   border: 0;
   border-top: 1px solid var(--el-border-color-light);
@@ -379,10 +379,10 @@ onMounted(() => {
   background: color-mix(in srgb, var(--el-fill-color-light) 60%, transparent);
 }
 .logs-full__sk {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 13px;
-  font-size: 18px;
+  font-size: 15px;
 }
 .logs-full__main {
   flex: 1;
@@ -396,8 +396,8 @@ onMounted(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .logs-full__meta {
   font-size: 0.75rem;
@@ -456,7 +456,7 @@ onMounted(() => {
     display: flex;
     align-items: center;
     font-size: 0.8125rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--m-pInk);
     cursor: pointer;
   }

@@ -112,7 +112,7 @@ const operations = computed(() => ['seminar.clear', 'seminar.reset'].map((id) =>
   border-radius: 12px;
   background: var(--m-gSoft);
   color: var(--m-gInk);
-  font-weight: 800;
+  font-weight: 600;
 }
 .sem__text {
   display: flex;
@@ -132,7 +132,7 @@ const operations = computed(() => ['seminar.clear', 'seminar.reset'].map((id) =>
   background: var(--m-g);
 }
 .sem__count {
-  font-weight: 700;
+  font-weight: 500;
   text-align: right;
 }
 @media (max-width: 760px) {

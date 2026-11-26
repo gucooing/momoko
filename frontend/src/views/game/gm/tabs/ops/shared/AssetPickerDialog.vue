@@ -161,7 +161,7 @@ const pick = (assetId: string) => {
 }
 .apd__tab {
   flex: none;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
@@ -169,7 +169,7 @@ const pick = (assetId: string) => {
   color: var(--el-text-color-secondary);
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .apd__tab.is-on {
@@ -182,7 +182,7 @@ const pick = (assetId: string) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 14px;
   border-radius: 999px;
   background: var(--el-fill-color-light);
@@ -207,7 +207,7 @@ const pick = (assetId: string) => {
   color: var(--el-text-color-secondary);
 }
 .apd__empty {
-  padding: 24px 0;
+  padding: 16px 0;
   text-align: center;
   color: var(--el-text-color-secondary);
 }
@@ -252,7 +252,7 @@ const pick = (assetId: string) => {
   justify-content: center;
   padding: 6px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
   color: var(--el-text-color-secondary);
 }

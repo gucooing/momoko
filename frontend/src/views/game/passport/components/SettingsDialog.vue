@@ -141,7 +141,7 @@ const save = async () => {
 .pset {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .pset__section {
   display: flex;
@@ -154,8 +154,8 @@ const save = async () => {
 }
 .pset__title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
 }
 .pset__field {
   display: flex;
@@ -171,7 +171,7 @@ const save = async () => {
 }
 .pset__label {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .pset__hint {
   font-size: 12px;
@@ -195,15 +195,15 @@ const save = async () => {
   gap: 6px;
 }
 .pset__seg-btn {
-  min-height: 40px;
+  min-height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--el-border-color-light);
   background: var(--el-bg-color);
   color: var(--el-text-color-secondary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 .pset__seg-btn.is-on {
@@ -231,11 +231,11 @@ const save = async () => {
 .pset__dl dd {
   margin: 0;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   word-break: break-all;
 }
 .pset__hint:only-child {
-  padding: 24px 0;
+  padding: 16px 0;
   text-align: center;
 }
 @media (width < 640px) {

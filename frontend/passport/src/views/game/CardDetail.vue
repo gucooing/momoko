@@ -233,7 +233,7 @@ const setRental = async () => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 18px 20px;
+  padding: 14px 14px;
 }
 .cd__head {
   display: flex;
@@ -243,8 +243,8 @@ const setRental = async () => {
 .cd__name {
   flex: 1;
   min-width: 0;
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
 }
 .cd__rar {
   flex: none;
@@ -252,7 +252,7 @@ const setRental = async () => {
   border-radius: 999px;
   background: var(--m-s2);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .cd__rar--3 {
   background: var(--m-a);
@@ -282,8 +282,8 @@ const setRental = async () => {
 }
 .cd__fact dd {
   margin: 0;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 .cd__acq {
   font-size: 13px;
@@ -291,8 +291,8 @@ const setRental = async () => {
 }
 .cd__h {
   margin: 6px 0 0;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
 }
 .cd__skins {
   display: grid;
@@ -357,7 +357,7 @@ const setRental = async () => {
   box-shadow: inset 0 0 0 2px var(--m-gLine);
 }
 .cd__score {
-  font-weight: 800;
+  font-weight: 600;
 }
 .cd__stats {
   flex: 1;

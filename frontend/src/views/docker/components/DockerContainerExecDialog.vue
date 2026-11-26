@@ -194,7 +194,7 @@ onBeforeUnmount(closeSocket)
   }
 }
 .dk-execopts__cmd:focus-within { border-color: var(--m-p); }
-.dk-execopts__prompt { color: var(--m-ok); font-weight: 800; }
+.dk-execopts__prompt { color: var(--m-ok); font-weight: 600; }
 .dk-execopts__go {
   flex: none;
   height: 32px;
@@ -204,7 +204,7 @@ onBeforeUnmount(closeSocket)
   background: var(--m-p);
   color: var(--m-pOn);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .dk-execopts__go:disabled { opacity: 0.6; cursor: default; }
@@ -217,7 +217,7 @@ onBeforeUnmount(closeSocket)
   background: transparent;
   color: var(--el-text-color-secondary);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 .dk-execopts__shell.is-on { background: var(--el-bg-color); color: var(--el-text-color-primary); box-shadow: var(--app-shadow-sm); }
