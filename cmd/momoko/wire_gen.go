@@ -17,10 +17,6 @@ import (
 	"momoko/pkg/themeasset"
 )
 
-import (
-	_ "go.uber.org/automaxprocs"
-)
-
 // Injectors from wire.go:
 
 // wireApp init kratos application.

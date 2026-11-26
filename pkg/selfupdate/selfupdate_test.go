@@ -126,11 +126,27 @@ func TestReplaceExecutableKeepsBackup(t *testing.T) {
 	if got, _ := os.ReadFile(backupPath(exe)); string(got) != "old" {
 		t.Fatalf("备份不对：%q", got)
 	}
-	if err := restoreBackup(exe); err != nil {
-		t.Fatal(err)
+}
+
+// asService 测试期间当作是由服务管理器启动的。
+func asService(t *testing.T, on bool) {
+	t.Helper()
+	prev := managed
+	managed = func() bool { return on }
+	t.Cleanup(func() { managed = prev })
+}
+
+// 不是作为系统服务运行时（直接双击、命令行运行）不能在线更新：更新后没人把新程序拉起来。
+func TestNotInstalledCannotUpdate(t *testing.T) {
+	asService(t, false)
+	u := New()
+	st := u.Status()
+	if st.Supported || st.UnsupportedReason != notInstalledReason {
+		t.Fatalf("没装成服务时应不能更新：%+v", st)
 	}
-	if got, _ := os.ReadFile(exe); string(got) != "old" {
-		t.Fatalf("没换回旧程序：%q", got)
+	data := selfBinary(t)
+	if _, err := u.Upload(bytes.NewReader(data), int64(len(data)), "momoko", "tester"); err == nil {
+		t.Fatal("没装成服务时上传应被拒绝")
 	}
 }
 
@@ -161,6 +177,7 @@ func TestParseChecksums(t *testing.T) {
 }
 
 func TestUploadValidatesAndCanBeCanceled(t *testing.T) {
+	asService(t, true)
 	u := New()
 	if !u.Status().Supported {
 		t.Skip("测试程序所在目录不可写：" + u.Status().UnsupportedReason)

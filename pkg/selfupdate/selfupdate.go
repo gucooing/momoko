@@ -1,6 +1,8 @@
 // Package selfupdate 在线更新 Momoko 自己：从 GitHub 发行版下载本机系统对应的包（走统一下载管理，能暂停、继续、取消），
 // 或者接收上传的程序文件；校验（是不是 Momoko 主程序、系统和架构对不对、发行版的 SHA256）后替换程序文件，
-// 再由 main 正常停服并重启成新程序。被替换下来的旧程序留在程序旁边（momoko.old），新版本有问题时可以手动换回去。
+// 再由 main 正常停服后退出，由系统服务（Windows 服务 / systemd / launchd）把新程序拉起来。
+// 只有用 momoko install 装成系统服务、并由服务管理器启动时才能在线更新：直接运行的没人负责重启，只能手动替换程序。
+// 被替换下来的旧程序留在程序旁边（momoko.old），新版本有问题时可以手动换回去。
 package selfupdate
 
 import (
@@ -21,8 +23,16 @@ import (
 
 	"momoko/pkg/constant"
 	"momoko/pkg/download"
+	"momoko/pkg/sysservice"
 	"momoko/pkg/version"
 )
+
+// notInstalledReason 不是作为系统服务运行时不能在线更新的原因。
+const notInstalledReason = "Momoko 没有安装成系统服务，更新后没人把新程序拉起来。在服务器上运行 momoko install（会申请管理员 / root 权限）装好后就能在线更新；" +
+	"现在这样直接运行的，请下载新版本，停掉 Momoko 后手动替换程序文件"
+
+// managed 当前进程是不是由服务管理器启动的（测试里可以换掉）。
+var managed = sysservice.Managed
 
 // State 更新进行到哪一步。
 type State int
@@ -121,12 +131,14 @@ func New() *Updater {
 	return u
 }
 
-// refreshSupported 重新检查程序目录能不能写（调用方持锁或在初始化时调用）。
+// refreshSupported 重新检查能不能在线更新：要作为系统服务运行，且程序目录能写（调用方持锁或在初始化时调用）。
 func (u *Updater) refreshSupported() {
 	if u.exe == "" {
 		return
 	}
-	if err := checkWritable(filepath.Dir(u.exe)); err != nil {
+	if !managed() {
+		u.unsupport = notInstalledReason
+	} else if err := checkWritable(filepath.Dir(u.exe)); err != nil {
 		u.unsupport = err.Error()
 	} else {
 		u.unsupport = ""
@@ -490,7 +502,7 @@ func (u *Updater) Apply(operator string) (Status, error) {
 	return st, nil
 }
 
-// install 用暂存的新程序替换当前程序，成功后稍等一下（让这次请求的响应发出去）再通知 main 重启。
+// install 用暂存的新程序替换当前程序，成功后稍等一下（让这次请求的响应发出去）再通知 main 停服退出、由系统服务重启。
 // 状态为 Installing 时 Cancel 不会动 job 和暂存文件，这里读它们不会和别的更新冲突。
 func (u *Updater) install(job int) {
 	u.mu.Lock()
@@ -506,7 +518,7 @@ func (u *Updater) install(job int) {
 	u.mu.Unlock()
 	go func() {
 		time.Sleep(time.Second)
-		requestRestart(u.exe)
+		requestRestart()
 	}()
 }
 

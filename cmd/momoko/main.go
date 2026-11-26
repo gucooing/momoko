@@ -11,6 +11,7 @@ import (
 	"momoko/internal/server"
 	"momoko/pkg/auth"
 	"momoko/pkg/selfupdate"
+	"momoko/pkg/sysservice"
 	"momoko/pkg/version"
 
 	"github.com/go-kratos/kratos/v2"
@@ -22,7 +23,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	_ "go.uber.org/automaxprocs"
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"
@@ -75,18 +76,41 @@ func newInitializeApp(logger log.Logger, hs *http.Server) *kratos.App {
 }
 
 func main() {
-	flag.Parse()
 	version.Set(Version)
+	// momoko install / status / … 这些子命令（见 cli.go）
+	if len(os.Args) > 1 && isCommand(os.Args[1]) {
+		os.Exit(runCommand(os.Args[1], os.Args[2:]))
+	}
+	flag.Usage = func() { usage(os.Stderr) }
+	flag.Parse()
 	// 读配置之前就退出：不碰数据、不开端口
 	if showVersion {
 		fmt.Println(selfupdate.VersionLine(Name, version.Current()))
 		return
 	}
-	// Windows：用户启动的这个进程当守护进程，真正的服务在子进程里跑，在线更新时由它重启（见 pkg/selfupdate/supervise.go）
-	if !devBuild && selfupdate.ShouldSupervise() {
-		os.Exit(selfupdate.Supervise())
+	// 作为系统服务运行（momoko install 装好的）：在安装目录里跑；在线更新换好程序后退出，由服务管理器拉起新程序
+	if sysservice.Managed() {
+		dir, err := sysservice.EnterInstallDir()
+		if err != nil {
+			panic(fmt.Sprintf("进入安装目录失败：%v", err))
+		}
+		// 初始化标记在包初始化时按启动时的工作目录读过一次（Windows 服务是 System32），换了目录要重读
+		initialize.Re()
+		sysservice.PrepareServiceProcess(dir)
+		// 全局日志也写到（可能换过的）标准输出：Windows 服务的输出改到了日志文件
+		log.SetLogger(log.NewStdLogger(os.Stdout))
+		os.Exit(sysservice.Run(serve))
 	}
-	logger := log.With(log.NewStdLogger(os.Stdout),
+	// 直接运行了已安装的那份（双击、终端里敲 momoko）：服务已经在后台跑着，不再起第二份
+	if _, ok := sysservice.Installed(); ok {
+		os.Exit(installedHint())
+	}
+	// 没安装：和普通程序一样在当前目录前台运行（有控制台窗口，Ctrl+C 停止）
+	os.Exit(serve(nil))
+}
+
+func newLogger() log.Logger {
+	return log.With(log.NewStdLogger(os.Stdout),
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
 		"service.id", id,
@@ -95,37 +119,68 @@ func main() {
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
 	)
+}
+
+// loadConfig 读配置（初始化会改写配置文件，每次启动服务前重新读）。
+func loadConfig() (*conf.Bootstrap, func()) {
 	c := config.New(
 		config.WithSource(
 			file.NewSource(flagconf),
 		),
 	)
-	defer c.Close()
-
 	if err := c.Load(); err != nil {
 		panic(err)
 	}
-
 	var bc conf.Bootstrap
 	if err := c.Scan(&bc); err != nil {
 		panic(err)
 	}
-	auth.AuthSecretKey = bc.GetAuth().Secret
+	return &bc, func() { _ = c.Close() }
+}
+
+// stopOn 收到 stop（系统服务要求停止）或 also 时停掉 app。stop / also 为 nil 时只等另一个。
+func stopOn(app *kratos.App, stop <-chan struct{}, also <-chan struct{}, onAlso func()) {
+	go func() {
+		select {
+		case <-stop:
+		case <-also:
+			if onAlso != nil {
+				onAlso()
+			}
+		}
+		if err := app.Stop(); err != nil {
+			log.Errorf("stop server failed: %v", err)
+		}
+	}()
+}
+
+// serve 运行面板直到停止，返回进程退出码。stop 关闭时（系统服务要求停止）正常停服；
+// 没初始化时先跑初始化向导，初始化完再启动完整服务。
+// 在线更新换好程序后返回 selfupdate.RestartExitCode，由服务管理器（systemd / launchd / Windows 服务）重新拉起新程序。
+func serve(stop <-chan struct{}) int {
+	// 按容器的 CPU 配额设 GOMAXPROCS（只在真正运行服务时设，命令行子命令不用打印这行日志）
+	_, _ = maxprocs.Set()
+	logger := newLogger()
 
 	if !initialize.IsInitialized() {
+		bc, closeConf := loadConfig()
+		auth.AuthSecretKey = bc.GetAuth().Secret
 		app := wireInitializeApp(bc.Server, flagconf, logger)
-		go func() {
-			<-initialize.RestartRequested()
-			if err := app.Stop(); err != nil {
-				log.Errorf("stop initialize server failed: %v", err)
-			}
-		}()
-		if err := app.Run(); err != nil {
+		stopOn(app, stop, initialize.RestartRequested(), nil)
+		err := app.Run()
+		closeConf()
+		if err != nil {
 			panic(err)
 		}
-		main()
+		// 不是因为初始化完成而停下的（Ctrl+C、服务停止）：直接退出
+		if !initialize.IsInitialized() {
+			return 0
+		}
 	}
 
+	bc, closeConf := loadConfig()
+	defer closeConf()
+	auth.AuthSecretKey = bc.GetAuth().Secret
 	// 启动完整服务前强校验主密钥强度：弱/默认/公开密钥直接拒绝启动（fail-closed）。
 	// 全新部署经初始化向导会自动写入高强度随机密钥，不会触发此处。
 	if err := auth.ValidateSecret(auth.AuthSecretKey); err != nil {
@@ -136,26 +191,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// 在线更新替换好程序后：像收到停止信号一样正常停服，再换成新程序
-	go func() {
-		<-selfupdate.RestartRequested()
-		log.Info("程序已更新，正在重启")
-		if err := app.Stop(); err != nil {
-			log.Errorf("stop server for update failed: %v", err)
-		}
-	}()
+	// 在线更新替换好程序后：像收到停止信号一样正常停服，再退出让服务管理器拉起新程序
+	stopOn(app, stop, selfupdate.RestartRequested(), func() { log.Info("程序已更新，正在重启") })
 
 	// start and wait for stop signal
 	runErr := app.Run()
 	cleanup()
 	if selfupdate.RestartPending() {
-		// 成功时不会返回（Linux / macOS 原地 exec，Windows 启动新进程后退出）
-		if err := selfupdate.Relaunch(); err != nil {
-			log.Errorf("重启失败：%v", err)
-			os.Exit(1)
-		}
+		return selfupdate.RestartExitCode
 	}
 	if runErr != nil {
 		panic(runErr)
 	}
+	return 0
 }

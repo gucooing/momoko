@@ -1135,7 +1135,7 @@ type CheckUpdateResponse struct {
 	CheckedAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=checked_at,json=checkedAt,proto3" json:"checked_at,omitempty"`
 	// 检查所用的更新通道
 	Channel UpdateChannel `protobuf:"varint,9,opt,name=channel,proto3,enum=v1.UpdateChannel" json:"channel,omitempty"`
-	// 最新发行版里有没有本机系统能用的包（没有时只能手动下载）
+	// 能不能一键在线更新：最新发行版里有本机系统的包，且 Momoko 装成了系统服务（否则只能手动下载）
 	CanAutoUpdate bool `protobuf:"varint,10,opt,name=can_auto_update,json=canAutoUpdate,proto3" json:"can_auto_update,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1395,7 +1395,7 @@ type UpdateStatus struct {
 	Platform string `protobuf:"bytes,11,opt,name=platform,proto3" json:"platform,omitempty"`
 	// 程序文件路径
 	Executable string `protobuf:"bytes,12,opt,name=executable,proto3" json:"executable,omitempty"`
-	// 能不能在线更新（程序所在目录可写等）
+	// 能不能在线更新（要用 momoko install 装成系统服务、程序所在目录可写）
 	Supported bool `protobuf:"varint,13,opt,name=supported,proto3" json:"supported,omitempty"`
 	// 不能在线更新的原因
 	UnsupportedReason string `protobuf:"bytes,14,opt,name=unsupported_reason,json=unsupportedReason,proto3" json:"unsupported_reason,omitempty"`

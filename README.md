@@ -153,6 +153,25 @@ go run ./cmd/momoko -conf ./configs
 
 首次访问会进入初始化流程。初始化时选择数据库并创建超级管理员；项目不再提供固定默认管理员账号。
 
+## 安装成系统服务
+
+直接运行 `momoko`（双击或在终端里运行）时，它和普通程序一样在当前目录前台运行，有控制台窗口，关掉就停了，这时不能在网页里在线更新。要长期运行，把它装成系统服务：
+
+```bash
+momoko install            # 会问安装目录和后台端口，直接回车用默认值
+momoko install -y         # 不提问，全用默认值
+momoko install -dir /data/momoko -port 8080 -y
+```
+
+- 只问安装目录和端口，数据库和管理员照旧在第一次打开网页时初始化。默认目录：Linux 是 `/opt/momoko`，macOS 是 `/usr/local/momoko`，Windows 是 `C:\Program Files\Momoko`。程序、`configs`、`data` 都放在安装目录里。如果目录里已经有 Momoko 的配置和数据，就直接沿用。
+- 需要管理员 / root 权限时会自己申请：Windows 弹一次 UAC，安装输出仍显示在当前终端；Linux / macOS 用 `sudo` 在同一个终端里重新运行。
+- 服务以最高权限运行（Windows 是 LocalSystem，Linux 用 systemd、macOS 用 launchd，都是 root），开机自动启动，在后台运行，没有窗口，也不用登录。Windows 下开机、在线更新后的重启都不会弹 UAC。本机登录的用户在普通终端里执行 `momoko start` / `stop` / `restart` 也不用提权。
+- 安装目录会加进系统 PATH（Linux / macOS 在 `/usr/local/bin` 建 `momoko` 链接），新开的终端里可以直接用 `momoko` 命令。Windows 会在防火墙里放行 momoko.exe；Linux 上如果 ufw / firewalld 正在运行，会放行后台端口和通行证端口。
+- 管理命令：`momoko status | start | stop | restart | uninstall`。卸载只删服务，程序、配置和数据留在安装目录。排查服务起不来的问题时，先 `momoko stop`，再用 `momoko run` 在前台运行，看它的输出。
+- 日志：Linux 用 `journalctl -u momoko -f` 查看，Windows / macOS 在安装目录的 `logs/momoko.log`。
+
+更新：在系统设置的「版本更新」里在线更新（从 GitHub 下载或上传程序文件）。程序替换好后服务退出，由服务管理器（Windows 服务的故障恢复、systemd `Restart=always`、launchd `KeepAlive`）拉起新程序；旧程序留在安装目录里的 `momoko.old`（Windows 是 `momoko.exe.old`）。也可以下载新版本，用新程序运行 `momoko install`：它会替换已安装的程序并重启服务，新程序起不来时自动换回旧的。
+
 ## 前后端开发
 
 先启动后端，再启动前端：

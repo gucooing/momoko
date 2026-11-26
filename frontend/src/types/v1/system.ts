@@ -371,7 +371,7 @@ export interface CheckUpdateResponse {
     | undefined;
   /** 检查所用的更新通道 */
   channel: UpdateChannel;
-  /** 最新发行版里有没有本机系统能用的包（没有时只能手动下载） */
+  /** 能不能一键在线更新：最新发行版里有本机系统的包，且 Momoko 装成了系统服务（否则只能手动下载） */
   canAutoUpdate: boolean;
 }
 
@@ -431,7 +431,7 @@ export interface UpdateStatus {
   platform: string;
   /** 程序文件路径 */
   executable: string;
-  /** 能不能在线更新（程序所在目录可写等） */
+  /** 能不能在线更新（要用 momoko install 装成系统服务、程序所在目录可写） */
   supported: boolean;
   /** 不能在线更新的原因 */
   unsupportedReason: string;

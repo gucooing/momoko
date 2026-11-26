@@ -76,7 +76,8 @@ func (s *SystemUsecase) checkUpdate(ctx context.Context, auto bool) (*v1.CheckUp
 		ReleaseBody:    rel.Body,
 		CheckedAt:      timestamppb.New(now),
 		Channel:        channel,
-		CanAutoUpdate:  selfupdate.HasAsset(rel),
+		// 没装成系统服务时不能在线更新，弹窗里只给发行版下载链接
+		CanAutoUpdate: selfupdate.HasAsset(rel) && s.updater.Status().Supported,
 	}
 	if resp.ReleaseUrl == "" {
 		resp.ReleaseUrl = version.ReleasesURL

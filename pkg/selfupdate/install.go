@@ -47,7 +47,7 @@ func replaceExecutable(exe, staged string) error {
 	}
 	old := backupPath(exe)
 	if err := os.Remove(old); err != nil && !errors.Is(err, os.ErrNotExist) {
-		// Windows 上守护进程就是从这个文件跑起来的（第一次更新后它被改名成了 .old），删不掉但能改名，挪开等以后再删
+		// Windows 上旧备份还被占着（比如有人在运行它）时删不掉但能改名，挪开等以后再删
 		aside := fmt.Sprintf("%s.del-%d", old, time.Now().UnixNano())
 		if rerr := os.Rename(old, aside); rerr != nil {
 			return fmt.Errorf("删不掉上次留下的备份 %s：%w", old, err)
@@ -77,7 +77,7 @@ func renameRetry(from, to string) error {
 	}
 }
 
-// removeStaleBackups 删掉以前挪开的旧备份（还被守护进程占着的删不掉，下次再说）。
+// removeStaleBackups 删掉以前挪开的旧备份（还被占着的删不掉，下次再说）。
 func removeStaleBackups(exe string) {
 	files, _ := filepath.Glob(staleBackupPattern(exe))
 	for _, f := range files {
@@ -85,34 +85,24 @@ func removeStaleBackups(exe string) {
 	}
 }
 
-// restoreBackup 新程序启动不了时，把备份的旧程序换回来。
-func restoreBackup(exe string) error {
-	old := backupPath(exe)
-	if _, err := os.Stat(old); err != nil {
-		return err
-	}
-	_ = os.Remove(exe)
-	return os.Rename(old, exe)
-}
+// RestartExitCode 换好程序、正常停服后进程的退出码（EX_TEMPFAIL）。系统服务以非 0 退出时，
+// 服务管理器（systemd Restart=always、launchd KeepAlive、Windows 服务的故障恢复）会马上把新程序拉起来。
+const RestartExitCode = 75
 
-// restart 是「程序已替换，请重启」的信号：main 收到后正常停掉服务，再调用 Relaunch。
+// restart 是「程序已替换，请重启」的信号：main 收到后正常停掉服务，以 RestartExitCode 退出。
 var restart = struct {
 	once sync.Once
 	ch   chan struct{}
-	exe  string
 }{ch: make(chan struct{})}
 
-func requestRestart(exe string) {
-	restart.once.Do(func() {
-		restart.exe = exe
-		close(restart.ch)
-	})
+func requestRestart() {
+	restart.once.Do(func() { close(restart.ch) })
 }
 
 // RestartRequested 程序已替换、等待重启时关闭。
 func RestartRequested() <-chan struct{} { return restart.ch }
 
-// RestartPending 是否在等重启（服务停下后由 main 判断要不要 Relaunch）。
+// RestartPending 是否在等重启（服务停下后由 main 判断要不要以 RestartExitCode 退出）。
 func RestartPending() bool {
 	select {
 	case <-restart.ch:
@@ -120,21 +110,4 @@ func RestartPending() bool {
 	default:
 		return false
 	}
-}
-
-// Relaunch 服务停下后启动新程序：Linux / macOS 用 exec 原地换成新程序（进程号不变，systemd、Docker 照常管理），
-// Windows 启动新进程后退出当前进程。启动失败时换回旧程序再试一次；成功时不返回。
-func Relaunch() error {
-	exe := restart.exe
-	if exe == "" {
-		return errors.New("没有待重启的更新")
-	}
-	err := relaunch(exe)
-	if rerr := restoreBackup(exe); rerr != nil {
-		return fmt.Errorf("启动新程序失败：%w；还原旧程序也失败：%v", err, rerr)
-	}
-	if err2 := relaunch(exe); err2 != nil {
-		return fmt.Errorf("启动新程序失败：%w；换回旧程序后也启动失败：%v", err, err2)
-	}
-	return nil
 }
