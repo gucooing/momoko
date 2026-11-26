@@ -1,7 +1,7 @@
 <!-- 蓝色星原 游戏空间的列表分页：道具、货币、角色、奇波、邮箱、登录记录（取自游戏服务端已保存的数据，逐页前后翻）。 -->
 <template>
   <div class="azl">
-    <p v-if="!hasCharacter" class="pp-hint">{{ t('azur.noData') }}</p>
+    <p v-if="!hasCharacter" class="pp-hint">{{ t('game.azur.noData') }}</p>
     <template v-else>
       <p v-if="error" class="pp-hint azl__error">{{ t('game.loadFailed', { msg: error }) }}</p>
       <div class="pp-card azl__table">
@@ -16,15 +16,15 @@
               <td v-for="c in columns" :key="c.key" :class="{ 'is-num': c.num, 'pp-num': c.num }">{{ r[c.key] }}</td>
             </tr>
             <tr v-if="!rows.length && !loading">
-              <td :colspan="columns.length" class="pp-hint azl__empty">{{ t('azur.empty') }}</td>
+              <td :colspan="columns.length" class="pp-hint azl__empty">{{ t('game.azur.empty') }}</td>
             </tr>
           </tbody>
         </table>
       </div>
       <div v-if="total > 0 || page > 1" class="azl__pager">
-        <span class="pp-hint pp-num">{{ t('azur.page', { n: page, total }) }}</span>
-        <PButton size="sm" variant="soft" :disabled="page <= 1 || loading" @click="load(page - 1)">{{ t('azur.prev') }}</PButton>
-        <PButton size="sm" variant="soft" :disabled="!next || loading" @click="load(page + 1)">{{ t('azur.next') }}</PButton>
+        <span class="pp-hint pp-num">{{ t('game.azur.page', { n: page, total }) }}</span>
+        <PButton size="sm" variant="soft" :disabled="page <= 1 || loading" @click="load(page - 1)">{{ t('game.azur.prev') }}</PButton>
+        <PButton size="sm" variant="soft" :disabled="!next || loading" @click="load(page + 1)">{{ t('game.azur.next') }}</PButton>
       </div>
     </template>
   </div>
@@ -52,15 +52,15 @@ const columns = computed(() => {
   switch (props.kind) {
     case 'items':
     case 'currencies':
-      return [c('name', 'azur.cols.item'), c('num', 'azur.cols.num', true), c('deadTime', 'azur.cols.deadTime')]
+      return [c('name', 'game.azur.cols.item'), c('num', 'game.azur.cols.num', true), c('deadTime', 'game.azur.cols.deadTime')]
     case 'heroes':
-      return [c('name', 'azur.cols.hero'), c('level', 'azur.cols.level', true), c('rank', 'azur.cols.rank', true), c('grade', 'azur.cols.grade', true), c('favor', 'azur.cols.favor', true), c('obtained', 'azur.cols.obtained')]
+      return [c('name', 'game.azur.cols.hero'), c('level', 'game.azur.cols.level', true), c('rank', 'game.azur.cols.rank', true), c('grade', 'game.azur.cols.grade', true), c('favor', 'game.azur.cols.favor', true), c('obtained', 'game.azur.cols.obtained')]
     case 'pets':
-      return [c('name', 'azur.cols.pet'), c('petName', 'azur.cols.petName'), c('level', 'azur.cols.level', true), c('rank', 'azur.cols.rank', true), c('star', 'azur.cols.star', true)]
+      return [c('name', 'game.azur.cols.pet'), c('petName', 'game.azur.cols.petName'), c('level', 'game.azur.cols.level', true), c('rank', 'game.azur.cols.rank', true), c('star', 'game.azur.cols.star', true)]
     case 'mails':
-      return [c('title', 'azur.cols.title'), c('sender', 'azur.cols.sender'), c('rewards', 'azur.cols.rewards'), c('created', 'azur.cols.created'), c('expire', 'azur.cols.expire'), c('state', 'azur.cols.state')]
+      return [c('title', 'game.azur.cols.title'), c('sender', 'game.azur.cols.sender'), c('rewards', 'game.azur.cols.rewards'), c('created', 'game.azur.cols.created'), c('expire', 'game.azur.cols.expire'), c('state', 'game.azur.cols.state')]
     case 'logins':
-      return [c('loginAt', 'azur.cols.loginAt'), c('logoutAt', 'azur.cols.logoutAt'), c('device', 'azur.cols.device'), c('platform', 'azur.cols.platform'), c('ip', 'azur.cols.ip')]
+      return [c('loginAt', 'game.azur.cols.loginAt'), c('logoutAt', 'game.azur.cols.logoutAt'), c('device', 'game.azur.cols.device'), c('platform', 'game.azur.cols.platform'), c('ip', 'game.azur.cols.ip')]
   }
   return []
 })
@@ -110,8 +110,8 @@ const fetchPage = async (cursor: string): Promise<{ items: Row[]; nextCursor: st
           created: time(m.createdAt),
           expire: time(m.expireAt),
           state: [
-            m.claimed ? t('azur.mailState.claimed') : m.read ? t('azur.mailState.read') : t('azur.mailState.unread'),
-            m.globalId ? t('azur.mailState.global') : '',
+            m.claimed ? t('game.azur.mailState.claimed') : m.read ? t('game.azur.mailState.read') : t('game.azur.mailState.unread'),
+            m.globalId ? t('game.azur.mailState.global') : '',
           ]
             .filter(Boolean)
             .join(' · '),
@@ -125,7 +125,7 @@ const fetchPage = async (cursor: string): Promise<{ items: Row[]; nextCursor: st
         items: r.items.map((l, i) => ({
           key: `${l.loginAt}:${i}`,
           loginAt: time(l.loginAt),
-          logoutAt: l.logoutAt ? time(l.logoutAt) : t('azur.noLogout'),
+          logoutAt: l.logoutAt ? time(l.logoutAt) : t('game.azur.noLogout'),
           device: l.deviceModel || '—',
           platform: [l.platform, l.osVersion, l.appVersion].filter(Boolean).join(' · ') || '—',
           ip: l.remoteAddr,

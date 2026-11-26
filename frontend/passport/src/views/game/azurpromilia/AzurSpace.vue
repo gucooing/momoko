@@ -2,7 +2,7 @@
      概览是资料与各项数量；道具、货币、角色、奇波、邮箱、登录记录取自游戏服务端已保存的数据；自助服务是管理员开放的操作。 -->
 <template>
   <div class="az">
-    <nav class="az__tabs pp-scroll-x" :aria-label="t('azur.tabs.overview')">
+    <nav class="az__tabs pp-scroll-x" :aria-label="t('game.azur.tabs.overview')">
       <button
         v-for="k in TABS"
         :key="k"
@@ -12,7 +12,7 @@
         :aria-current="tab === k ? 'page' : undefined"
         @click="setTab(k)"
       >
-        {{ t(`azur.tabs.${k}`) }}
+        {{ t(`game.azur.tabs.${k}`) }}
       </button>
     </nav>
 
@@ -23,11 +23,11 @@
           <span class="az__head-text">
             <span class="az__name">{{ player.name || t('game.noName') }}</span>
             <span class="pp-hint pp-num">
-              {{ player.displayId ? t('azur.displayId', { id: player.displayId }) : t('azur.noCharacter') }}
+              {{ player.displayId ? t('game.azur.displayId', { id: player.displayId }) : t('game.azur.noCharacter') }}
             </span>
           </span>
           <span class="pp-tag" :class="{ 'pp-tag--g': player.online }">
-            {{ player.online ? t('azur.online') : t('azur.offline') }}
+            {{ player.online ? t('game.azur.online') : t('game.azur.offline') }}
           </span>
         </div>
         <dl class="az__facts">
@@ -44,7 +44,7 @@
           <span class="pp-num az__stat-v">{{ fmtNum(s.value) }}</span>
         </div>
       </section>
-      <p v-if="overview" class="pp-hint">{{ t('azur.savedHint') }}</p>
+      <p v-if="overview" class="pp-hint">{{ t('game.azur.savedHint') }}</p>
     </template>
     <AzurSelf v-else-if="tab === 'self'" :server-id="serverId" :server-name="serverName" :nickname="player.name" />
     <AzurList v-else :key="`${serverId}:${tab}`" :server-id="serverId" :kind="tab" :has-character="!!player.displayId" />
@@ -78,16 +78,16 @@ const facts = computed(() => {
   const p = player.value
   const o = overview.value
   const out = [
-    { key: 'level', label: t('azur.level'), value: o ? String(p.level) : '—' },
-    { key: 'exp', label: t('azur.exp'), value: o ? fmtNum(o.exp) : '—' },
-    { key: 'account', label: t('azur.account'), value: p.account || '—' },
-    { key: 'created', label: t('azur.accountCreated'), value: fmtTime(p.createdAt) },
-    { key: 'register', label: t('azur.characterCreated'), value: o ? fmtTime(o.registerAt) : '—' },
-    { key: 'login', label: t('azur.lastLogin'), value: fmtTime(p.lastLoginAt) },
-    { key: 'logout', label: t('azur.lastLogout'), value: o ? fmtTime(o.logoutAt) : '—' },
+    { key: 'level', label: t('game.azur.level'), value: o ? String(p.level) : '—' },
+    { key: 'exp', label: t('game.azur.exp'), value: o ? fmtNum(o.exp) : '—' },
+    { key: 'account', label: t('game.azur.account'), value: p.account || '—' },
+    { key: 'created', label: t('game.azur.accountCreated'), value: fmtTime(p.createdAt) },
+    { key: 'register', label: t('game.azur.characterCreated'), value: o ? fmtTime(o.registerAt) : '—' },
+    { key: 'login', label: t('game.azur.lastLogin'), value: fmtTime(p.lastLoginAt) },
+    { key: 'logout', label: t('game.azur.lastLogout'), value: o ? fmtTime(o.logoutAt) : '—' },
   ]
   if (o && o.birthdayMonth && o.birthdayDay) {
-    out.push({ key: 'birthday', label: t('azur.birthday'), value: t('azur.birthdayValue', { m: o.birthdayMonth, d: o.birthdayDay }) })
+    out.push({ key: 'birthday', label: t('game.azur.birthday'), value: t('game.azur.birthdayValue', { m: o.birthdayMonth, d: o.birthdayDay }) })
   }
   return out
 })
@@ -96,10 +96,10 @@ const stats = computed(() => {
   const o = overview.value
   if (!o) return []
   return [
-    { key: 'heroes', label: t('azur.heroes'), value: o.heroes },
-    { key: 'pets', label: t('azur.pets'), value: o.pets },
-    { key: 'achievements', label: t('azur.achievements'), value: o.achievements },
-    { key: 'logins', label: t('azur.loginCount'), value: o.logins },
+    { key: 'heroes', label: t('game.azur.heroes'), value: o.heroes },
+    { key: 'pets', label: t('game.azur.pets'), value: o.pets },
+    { key: 'achievements', label: t('game.azur.achievements'), value: o.achievements },
+    { key: 'logins', label: t('game.azur.loginCount'), value: o.logins },
   ]
 })
 </script>

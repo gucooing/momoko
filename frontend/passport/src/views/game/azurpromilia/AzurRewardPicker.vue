@@ -5,17 +5,17 @@
       <li v-for="(r, i) in modelValue" :key="`${r.type}:${r.id}:${i}`" class="azrp__item">
         <span class="pp-hint">{{ rewardTypeName(r.type) }}</span>
         <span class="azrp__name">{{ itemName(r.type, r.id) }}</span>
-        <input class="azrp__num pp-num" type="number" min="1" :value="r.num" :aria-label="t('azur.form.num')" @input="setNum(i, ($event.target as HTMLInputElement).value)" />
-        <PButton size="sm" variant="ghost" @click="remove(i)">{{ t('azur.form.remove') }}</PButton>
+        <input class="azrp__num pp-num" type="number" min="1" :value="r.num" :aria-label="t('game.azur.form.num')" @input="setNum(i, ($event.target as HTMLInputElement).value)" />
+        <PButton size="sm" variant="ghost" @click="remove(i)">{{ t('game.azur.form.remove') }}</PButton>
       </li>
     </ul>
-    <p v-else class="pp-hint">{{ t('azur.form.noRewards') }}</p>
+    <p v-else class="pp-hint">{{ t('game.azur.form.noRewards') }}</p>
     <div class="azrp__add">
-      <select v-model.number="type" :aria-label="t('azur.form.kind')">
+      <select v-model.number="type" :aria-label="t('game.azur.form.kind')">
         <option v-for="k in kinds" :key="k.type" :value="k.type">{{ rewardTypeName(k.type) }}</option>
       </select>
       <div class="azrp__search">
-        <input v-model="q" type="search" :placeholder="t('azur.form.searchItem')" @input="search" @focus="search" @blur="open = false" />
+        <input v-model="q" type="search" :placeholder="t('game.azur.form.searchItem')" @input="search" @focus="search" @blur="open = false" />
         <ul v-if="open && hits.length" class="azrp__hits">
           <li v-for="h in hits" :key="h.id">
             <button type="button" @mousedown.prevent="add(h.id)">

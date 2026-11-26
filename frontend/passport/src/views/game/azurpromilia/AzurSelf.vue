@@ -46,17 +46,17 @@
     <PDialog :model-value="!!active" :title="active ? opTitle(active.command, active.title) : ''" :width="560" @update:model-value="(v) => !v && (active = null)">
       <form v-if="active" class="azs__form" @submit.prevent="submit">
         <template v-if="active.command === 'player.mail'">
-          <PField :label="t('azur.form.title')"><input v-model="form.title" maxlength="64" /></PField>
-          <PField :label="t('azur.form.content')"><textarea v-model="form.content" rows="3" /></PField>
-          <PField :label="t('azur.form.rewards')"><AzurRewardPicker v-model="form.rewards" /></PField>
+          <PField :label="t('game.azur.form.title')"><input v-model="form.title" maxlength="64" /></PField>
+          <PField :label="t('game.azur.form.content')"><textarea v-model="form.content" rows="3" /></PField>
+          <PField :label="t('game.azur.form.rewards')"><AzurRewardPicker v-model="form.rewards" /></PField>
         </template>
         <template v-else-if="active.command === 'item.adjust'">
-          <PField :label="t('azur.form.grant')"><AzurRewardPicker v-model="form.grant" /></PField>
-          <PField :label="t('azur.form.take')"><AzurRewardPicker v-model="form.take" :types="takeTypes" /></PField>
+          <PField :label="t('game.azur.form.grant')"><AzurRewardPicker v-model="form.grant" /></PField>
+          <PField :label="t('game.azur.form.take')"><AzurRewardPicker v-model="form.take" :types="takeTypes" /></PField>
         </template>
         <template v-else-if="active.command === 'player.ban'">
-          <label class="azs__check"><input v-model="form.permanent" type="checkbox" /> {{ t('azur.form.permanent') }}</label>
-          <PField v-if="!form.permanent" :label="t('azur.form.until')"><input v-model="form.until" type="datetime-local" /></PField>
+          <label class="azs__check"><input v-model="form.permanent" type="checkbox" /> {{ t('game.azur.form.permanent') }}</label>
+          <PField v-if="!form.permanent" :label="t('game.azur.form.until')"><input v-model="form.until" type="datetime-local" /></PField>
         </template>
         <PField v-else-if="active.command === 'player.password'" :label="t('game.self.password')">
           <input v-model="form.password" type="password" autocomplete="new-password" maxlength="64" />
@@ -103,7 +103,7 @@ const PAGE = 10
 // 扣除只能是货币与普通道具（游戏服务端规则）
 const takeTypes = REWARD_KINDS.filter((k) => k.kind === 'currency' || k.kind === 'common_item').map((k) => k.type)
 
-const opTitle = (command: string, title: string) => (command && te(`azur.ops.${command}`) ? t(`azur.ops.${command}`) : title || command)
+const opTitle = (command: string, title: string) => (command && te(`game.azur.ops.${command}`) ? t(`game.azur.ops.${command}`) : title || command)
 const statusText = (s: string) => (te(`game.self.status.${s}`) ? t(`game.self.status.${s}`) : s)
 
 // ---------- 已开放的操作 ----------
@@ -201,16 +201,16 @@ const call = (f: PassportSelfService): Promise<MySelfServiceResponse> | string =
   const base = { serverId: props.serverId, reason: form.reason.trim(), totpCode: form.totp.trim() }
   switch (f.command) {
     case 'player.mail':
-      if (!form.title.trim()) return required(t('azur.form.title'))
+      if (!form.title.trim()) return required(t('game.azur.form.title'))
       return azur.mailMe({ ...base, title: form.title.trim(), content: form.content, rewards: form.rewards })
     case 'item.adjust':
-      if (!form.grant.length && !form.take.length) return required(t('azur.form.rewards'))
+      if (!form.grant.length && !form.take.length) return required(t('game.azur.form.rewards'))
       return azur.adjustMyItems({ ...base, grant: form.grant, take: form.take })
     case 'player.kick':
       return azur.kickMe(base)
     case 'player.ban': {
       const until = form.permanent ? 0 : new Date(form.until).getTime() || 0
-      if (!form.permanent && until <= Date.now()) return required(t('azur.form.until'))
+      if (!form.permanent && until <= Date.now()) return required(t('game.azur.form.until'))
       return azur.banMe({ ...base, until })
     }
     case 'player.unban':
