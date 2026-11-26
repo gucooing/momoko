@@ -13,13 +13,11 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
-	gk "momoko/api/gen/v1/gakumas"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/gameaccountlink"
 	"momoko/internal/data/ent/gen/passportuser"
 	"momoko/pkg/common"
 	"momoko/pkg/mgp"
-	"momoko/pkg/mgp/gakumas"
 )
 
 // PassportAdminUsecase 用户通行证的后台管理（主 server 上的 PassportAdminService，权限 game:passport）：
@@ -61,7 +59,7 @@ func (uc *PassportAdminUsecase) userLink(ctx context.Context, userID, linkID str
 }
 
 // bind 替玩家写一条绑定（同一台服务器上的后台绑定串行执行）。
-func (uc *PassportAdminUsecase) bind(ctx context.Context, u *gen.PassportUser, s *gen.GameServer, p *gk.Player) (*gen.GameAccountLink, error) {
+func (uc *PassportAdminUsecase) bind(ctx context.Context, u *gen.PassportUser, s *gen.GameServer, p *GamePlayer) (*gen.GameAccountLink, error) {
 	l, _ := uc.bindLocks.LoadOrStore(s.ID, &sync.Mutex{})
 	mu := l.(*sync.Mutex)
 	mu.Lock()
@@ -280,20 +278,21 @@ func (uc *PassportAdminUsecase) AdminBind(ctx context.Context, adminName string,
 	if err != nil {
 		return nil, err
 	}
-	if s.Game != gakumas.ID {
+	driver, ok := passportDriverOf(s.Game)
+	if !ok {
 		return nil, ErrGmGameUnsupported
 	}
-	detail, err := gakumas.New(client).Player(ctx, strings.TrimSpace(req.Pid))
+	p, err := driver.Player(ctx, client, strings.TrimSpace(req.Pid))
 	if err != nil {
-		if mgp.CodeOf(err) == gakumas.PlayerNotFound {
+		if mgp.CodeOf(err) == mgp.CodePlayerNotFound {
 			return nil, ErrPassportPlayerNotFound
 		}
 		return nil, GameMGPError(err)
 	}
-	if detail.GetPlayer().GetPid() == "" {
+	if p.Pid == "" {
 		return nil, ErrPassportPlayerNotFound
 	}
-	l, err := uc.bind(ctx, u, s, detail.GetPlayer())
+	l, err := uc.bind(ctx, u, s, p)
 	if err != nil {
 		return nil, err
 	}
@@ -312,17 +311,17 @@ func (uc *PassportAdminUsecase) AdminSearchPlayers(ctx context.Context, serverID
 	if err != nil {
 		return nil, err
 	}
-	if s.Game != gakumas.ID {
+	driver, ok := passportDriverOf(s.Game)
+	if !ok {
 		return nil, ErrGmGameUnsupported
 	}
-	page, err := gakumas.New(client).Players(ctx, gakumas.PlayerFilter{Q: strings.TrimSpace(q)}, "", 20)
+	players, err := driver.SearchPlayers(ctx, client, strings.TrimSpace(q), 20)
 	if err != nil {
 		return nil, GameMGPError(err)
 	}
-	players := page.GetItems()
 	pids := make([]string, 0, len(players))
 	for _, p := range players {
-		pids = append(pids, p.GetPid())
+		pids = append(pids, p.Pid)
 	}
 	links, err := uc.repo.LinksByPlayers(ctx, s.ID, pids)
 	if err != nil {
@@ -335,14 +334,14 @@ func (uc *PassportAdminUsecase) AdminSearchPlayers(ctx context.Context, serverID
 	out := &v1.SearchPassportGamePlayersResponse{}
 	for _, p := range players {
 		item := &v1.PassportGamePlayer{
-			Pid:              p.GetPid(),
-			DisplayId:        p.GetDisplayId(),
-			Account:          p.GetAccount(),
-			Name:             p.GetName(),
-			Level:            p.GetLevel(),
-			AvatarIdolCardId: p.GetAvatarIdolCardId(),
+			Pid:              p.Pid,
+			DisplayId:        p.DisplayID,
+			Account:          p.Account,
+			Name:             p.Name,
+			Level:            int32(p.Level),
+			AvatarIdolCardId: p.Avatar,
 		}
-		if l, ok := byPID[p.GetPid()]; ok {
+		if l, ok := byPID[p.Pid]; ok {
 			item.LinkedUserId = l.PassportUserID
 			if lu, err := uc.repo.GetUser(ctx, l.PassportUserID); err == nil {
 				item.LinkedUsername = lu.Username

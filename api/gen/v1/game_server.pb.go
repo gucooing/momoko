@@ -87,7 +87,9 @@ type GameAdapterRole struct {
 	// 可执行文件名（不含扩展名）
 	Executable string `protobuf:"bytes,2,opt,name=executable,proto3" json:"executable,omitempty"`
 	// 是否可选（可不托管）
-	Optional      bool `protobuf:"varint,3,opt,name=optional,proto3" json:"optional,omitempty"`
+	Optional bool `protobuf:"varint,3,opt,name=optional,proto3" json:"optional,omitempty"`
+	// 这个进程在服务端配置里的监听（键，接入时可填写；如学マス grpc / http / mgp）
+	Listens       []string `protobuf:"bytes,4,rep,name=listens,proto3" json:"listens,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -141,6 +143,13 @@ func (x *GameAdapterRole) GetOptional() bool {
 		return x.Optional
 	}
 	return false
+}
+
+func (x *GameAdapterRole) GetListens() []string {
+	if x != nil {
+		return x.Listens
+	}
+	return nil
 }
 
 // 游戏适配器（随 Momoko 版本内置）。
@@ -1233,7 +1242,7 @@ type GameServerHostedSpec struct {
 	// 配置文件（相对服务端目录；不存在时从 config_template 复制）
 	ConfigFile     string `protobuf:"bytes,2,opt,name=config_file,json=configFile,proto3" json:"config_file,omitempty"`
 	ConfigTemplate string `protobuf:"bytes,3,opt,name=config_template,json=configTemplate,proto3" json:"config_template,omitempty"`
-	// 写入配置的监听地址：grpc / http / mgp
+	// 写入配置的监听地址（键见适配器进程角色的 listens）
 	Listens map[string]string `protobuf:"bytes,4,rep,name=listens,proto3" json:"listens,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// 同时托管资源服务器，及其监听、origin 与数据目录
 	ResourceServer bool   `protobuf:"varint,5,opt,name=resource_server,json=resourceServer,proto3" json:"resource_server,omitempty"`
@@ -2066,7 +2075,7 @@ type DetectGameServerDirResponse struct {
 	ConfigTemplate string `protobuf:"bytes,5,opt,name=config_template,json=configTemplate,proto3" json:"config_template,omitempty"`
 	// 检查项：executable / config / database / resources / data / resourceServer / mirror / mgpKey / tokenSecret / port:<role>
 	Checks []*GameServerCheck `protobuf:"bytes,6,rep,name=checks,proto3" json:"checks,omitempty"`
-	// 配置里的监听地址（grpc / http / mgp）与资源服务器默认监听
+	// 配置里的监听地址（键见适配器进程角色的 listens）与资源服务器默认监听
 	Listens map[string]string `protobuf:"bytes,7,rep,name=listens,proto3" json:"listens,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// 资源服务器：是否找到可执行文件、默认 origin 与数据目录
 	HasResourceServer bool   `protobuf:"varint,8,opt,name=has_resource_server,json=hasResourceServer,proto3" json:"has_resource_server,omitempty"`
@@ -6324,13 +6333,14 @@ const file_v1_game_server_proto_rawDesc = "" +
 	"\x14v1/game_server.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14v1/game_common.proto\x1a\x11v1/instance.proto\"C\n" +
 	"\x15GameAdapterCapability\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x18\n" +
-	"\aenabled\x18\x02 \x01(\bR\aenabled\"_\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\"y\n" +
 	"\x0fGameAdapterRole\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1e\n" +
 	"\n" +
 	"executable\x18\x02 \x01(\tR\n" +
 	"executable\x12\x1a\n" +
-	"\boptional\x18\x03 \x01(\bR\boptional\"\xe2\x02\n" +
+	"\boptional\x18\x03 \x01(\bR\boptional\x12\x18\n" +
+	"\alistens\x18\x04 \x03(\tR\alistens\"\xe2\x02\n" +
 	"\vGameAdapter\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1c\n" +
 	"\tavailable\x18\x02 \x01(\bR\tavailable\x12\x14\n" +

@@ -3,12 +3,14 @@
 import { computed, inject, provide, reactive, ref, shallowRef, type ComputedRef, type InjectionKey, type Ref } from 'vue'
 import { getGmContext } from '@/api/gameGm'
 import * as gakumasApi from '@/api/gakumas'
+import * as azurApi from '@/api/azurpromilia'
 import { getCurrentLocale, i18n } from '@/locales'
 import { lookupGameName } from '@/games/names'
 import { createCatalogStore, type ServerCatalogs } from '@/games/gakumas/catalog'
 import { gakumasOperation, gakumasOperations } from './operations'
 import type { GameServerBrief } from '@/types/v1/game_common'
 import type { Manifest, Modes, Status } from '@/types/v1/gakumas/types'
+import type { Status as AzurStatus } from '@/types/v1/azurpromilia/types'
 import type { GashaConfig } from '@/games/gakumas/types'
 import type { CatalogEntry, CatalogQuery, ListPage, OperationDef } from '@/games/mgp'
 
@@ -21,6 +23,8 @@ export interface GmContext {
   status: Ref<Status | undefined>
   /** status 拉取失败的原因（服务端连不上等） */
   statusError: Ref<string>
+  /** 蓝色星原服务器的实时状态（蓝色星原的 GM 页面见 ./azurpromilia） */
+  azurStatus: Ref<AzurStatus | undefined>
   /** 服务器时区（IANA） */
   timezone: Ref<string>
   pendingApprovals: Ref<number>
@@ -52,6 +56,8 @@ export interface GmContext {
   label: (kind: string, id: string | null | undefined) => string
   /** 操作结果里一项变化（kind + resourceId）的名称：道具等显示条目名称，货币与等级等显示对应文案。 */
   changeLabel: (kind: string, resourceId?: string) => string
+  /** 操作的名称：当前语言有译名（gm.commands.<游戏>.<操作 id>）时用译名，否则用服务端给的标题。 */
+  commandTitle: (command: string, fallback: string) => string
 }
 
 const GM_CONTEXT: InjectionKey<GmContext> = Symbol('gm-context')
@@ -82,6 +88,7 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
   const manifest = shallowRef<Manifest>()
   const status = shallowRef<Status>()
   const statusError = ref('')
+  const azurStatus = shallowRef<AzurStatus>()
   const timezone = ref('')
   const pendingApprovals = ref(0)
   const selfServiceEnabled = ref(0)
@@ -104,6 +111,7 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
       serverNames.clear()
       manifest.value = undefined
       status.value = undefined
+      azurStatus.value = undefined
     }
     try {
       const { data } = await getGmContext(id)
@@ -115,6 +123,13 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
       selfServiceEnabled.value = data.selfServiceEnabled || 0
       linkedAccounts.value = data.linkedAccounts || 0
       error.value = ''
+      if (data.server?.game === 'azurpromilia') {
+        const [st] = await Promise.allSettled([azurApi.getStatus(id)])
+        if (serverId.value !== id) return
+        azurStatus.value = st.status === 'fulfilled' ? st.value : undefined
+        statusError.value = st.status === 'rejected' ? (st.reason instanceof Error ? st.reason.message : String(st.reason)) : ''
+        return
+      }
       const [m, st] = await Promise.allSettled([gakumasApi.getGakumasManifest(id), gakumasApi.getGakumasStatus(id)])
       if (serverId.value !== id) return
       manifest.value = m.status === 'fulfilled' ? m.value : undefined
@@ -186,12 +201,18 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
 
   const catalog = (kind: string, query: GmCatalogQuery = {}) => catalogs.query(serverId.value, kind, query)
 
+  const commandTitle = (command: string, fallback: string) => {
+    const key = `gm.commands.${game.value}.${command}`
+    return command && i18n.global.te(key) ? i18n.global.t(key) : fallback
+  }
+
   const ctx: GmContext = {
     serverId,
     server,
     manifest,
     status,
     statusError,
+    azurStatus,
     timezone,
     pendingApprovals,
     selfServiceEnabled,
@@ -209,6 +230,7 @@ export function provideGmContext(serverId: Ref<string>): GmContext {
     name,
     label,
     changeLabel,
+    commandTitle,
   }
   provide(GM_CONTEXT, ctx)
   return ctx

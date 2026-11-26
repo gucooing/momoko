@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package v1.azurpromilia;
+
+option go_package = "momoko/api/gen/v1/azurpromilia;azurpromiliav1";
+
+import "google/api/annotations.proto";
+import "v1/azurpromilia/types.proto";
+
+// 蓝色星原 用户通行证的游戏空间：玩家只能查看与操作自己绑定的游戏账号（pid 由 Momoko 按绑定决定）。只注册在用户通行证 server 上。
+// 自助操作按管理端「玩家权限」设置的规则执行（开放、次数、审批）；高风险操作在开启两步验证时需要 totp_code。
+service AzurPromiliaPassportService {
+  // 我的玩家条目与概览
+  rpc GetMyPlayer(MyRequest) returns (PlayerDetail) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/player"};
+  }
+  // 我的登录记录（按登录时间倒序）
+  rpc ListMyLogins(MyLoginsRequest) returns (LoginPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/logins"};
+  }
+  rpc ListMyItems(MyLoginsRequest) returns (ItemPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/items"};
+  }
+  rpc ListMyCurrencies(MyRequest) returns (ItemPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/currencies"};
+  }
+  rpc ListMyHeroes(MyLoginsRequest) returns (HeroPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/heroes"};
+  }
+  rpc ListMyPets(MyLoginsRequest) returns (PetPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/pets"};
+  }
+  rpc ListMyMails(MyLoginsRequest) returns (MailPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/mails"};
+  }
+
+  // ---------------- 自助操作（目标都是我绑定的游戏账号） ----------------
+  rpc MailMe(SelfServiceMailRequest) returns (MySelfServiceResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/games/{server_id}/self/mail", body: "*"};
+  }
+  rpc AdjustMyItems(SelfServiceItemsRequest) returns (MySelfServiceResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/games/{server_id}/self/items", body: "*"};
+  }
+  rpc KickMe(SelfServiceRequest) returns (MySelfServiceResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/games/{server_id}/self/kick", body: "*"};
+  }
+  rpc BanMe(SelfServiceBanRequest) returns (MySelfServiceResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/games/{server_id}/self/ban", body: "*"};
+  }
+  rpc UnbanMe(SelfServiceRequest) returns (MySelfServiceResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/games/{server_id}/self/unban", body: "*"};
+  }
+  rpc SetMyPassword(SelfServicePasswordRequest) returns (MySelfServiceResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/games/{server_id}/self/password", body: "*"};
+  }
+  rpc RenameMe(SelfServiceRenameRequest) returns (MySelfServiceResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/games/{server_id}/self/rename", body: "*"};
+  }
+}
+
+message MyRequest {
+  string server_id = 1;
+}
+
+message MyLoginsRequest {
+  string server_id = 1;
+  string cursor = 2;
+  int32 limit = 3;
+}
+
+// 自助操作的共同字段：reason 为申请理由（需要审批时给管理员看），totp_code 为两步验证码。
+message SelfServiceRequest {
+  string server_id = 1;
+  string reason = 2;
+  string totp_code = 3;
+}
+
+message SelfServiceMailRequest {
+  string server_id = 1;
+  string reason = 2;
+  string totp_code = 3;
+  string title = 4;
+  string content = 5;
+  repeated Reward rewards = 6;
+}
+
+message SelfServiceItemsRequest {
+  string server_id = 1;
+  string reason = 2;
+  string totp_code = 3;
+  repeated Reward grant = 4;
+  repeated Reward take = 5;
+}
+
+message SelfServiceBanRequest {
+  string server_id = 1;
+  string reason = 2;
+  string totp_code = 3;
+  // 封禁到（Unix 毫秒），0 为永久
+  double until = 4;
+}
+
+message SelfServicePasswordRequest {
+  string server_id = 1;
+  string reason = 2;
+  string totp_code = 3;
+  string password = 4;
+}
+
+message SelfServiceRenameRequest {
+  string server_id = 1;
+  string reason = 2;
+  string totp_code = 3;
+  string name = 4;
+}
+
+// 自助操作的处理情况：record_id 为 GM 记录，status 为 success / failed / pending（待审批）。
+message SelfServiceResult {
+  string record_id = 1;
+  string status = 2;
+  string error_code = 3;
+  string error_message = 4;
+}
+
+// 自助操作的响应（失败与待审批时没有 data）。
+message MySelfServiceResponse {
+  SelfServiceResult result = 1;
+  OperationData data = 2;
+}

@@ -114,6 +114,7 @@
 </template>
 
 <script setup lang="ts">
+import { getCurrentInstance } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 export interface DataTableColumn {
@@ -153,10 +154,10 @@ const emit = defineEmits<{
   'update:modelValue': [value: string[]]
   'row-click': [row: Record<string, unknown>, event: MouseEvent]
 }>()
-const attrs = useAttrs()
-/** 显式 prop 或已监听 row-click 时视为可点（父级 @row-click 会落入 attrs）。 */
+const instance = getCurrentInstance()
+/** 显式 prop 或父级监听了 row-click 时视为可点：已声明的事件的监听不进 attrs，从组件 vnode 的 props 读取。 */
 const rowClickable = computed(
-  () => props.rowClickable === true || typeof attrs.onRowClick === 'function',
+  () => props.rowClickable === true || typeof instance?.vnode.props?.onRowClick === 'function',
 )
 const onRowClick = (event: MouseEvent, row: Record<string, unknown>) => {
   if (!rowClickable.value) return

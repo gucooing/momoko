@@ -1,5 +1,6 @@
 <!-- 更新：服务端程序（当前构建的版本从可执行文件的构建信息读取；上传新构建或指定路径 → 后台任务：停止、备份、替换、
-     启动、健康检查，失败自动回滚）与游戏资源（资源服务器数据目录的清单、发布、下载进度、/health；校验与更新任务）。 -->
+     启动、健康检查，失败自动回滚）与游戏资源（驱动有资源镜像能力时：资源服务器数据目录的清单、发布、下载进度、/health；
+     校验与更新任务）。 -->
 <template>
   <div class="up">
     <div class="up__cards">
@@ -79,7 +80,7 @@
         <TaskPanel v-if="build?.task" :server-id="id" :task="build.task" @finished="onFinished" />
       </section>
 
-      <section class="up__card">
+      <section v-if="hasResource" class="up__card">
         <div class="up__card-head">
           <span class="up__ico m-sticker m-sticker--a2"><UIcon name="i-lucide-cloud" /></span>
           <span class="up__card-title">
@@ -196,6 +197,7 @@ const { t } = useI18n()
 const fb = useFeedback()
 
 const id = computed(() => props.server.brief?.id || '')
+const hasResource = computed(() => (props.server.capabilities || []).includes('resource'))
 const build = ref<GameServerBuild | null>(null)
 const res = ref<GameServerResource | null>(null)
 const pathInput = ref('')
@@ -255,6 +257,7 @@ const loadBuild = async () => {
   }
 }
 const loadResource = async () => {
+  if (!hasResource.value) return
   try {
     res.value = (await getGameServerResource(id.value)).data
   } catch (e) {

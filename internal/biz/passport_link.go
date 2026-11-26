@@ -11,12 +11,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1 "momoko/api/gen/v1"
-	gk "momoko/api/gen/v1/gakumas"
 	"momoko/internal/data/ent/gen"
 	"momoko/internal/data/ent/gen/gameaccountlink"
 	"momoko/internal/data/ent/gen/gameserver"
 	"momoko/pkg/mgp"
-	"momoko/pkg/mgp/gakumas"
 )
 
 // MGP 能力：校验游戏账号密码。
@@ -197,9 +195,9 @@ func passportVisible(s *gen.GameServer, inviteCode, inviteServer string) (visibl
 	return false, false
 }
 
-// bindMethods 服务器支持的绑定方式：接入了 MGP 的学マス 服务器可以用游戏账号密码绑定。
+// bindMethods 服务器支持的绑定方式：接入了 MGP、游戏有通行证驱动的服务器可以用游戏账号密码绑定。
 func bindMethods(s *gen.GameServer) []string {
-	if !MGPConfigured(s) || s.Game != gakumas.ID {
+	if _, ok := passportDriverOf(s.Game); !ok || !MGPConfigured(s) {
 		return nil
 	}
 	return []string{PassportBindPassword}
@@ -372,8 +370,9 @@ func (uc *PassportUsecase) bindAccount(ctx context.Context, u *gen.PassportUser,
 	if account == "" || password == "" {
 		return nil, ErrPassportInvalidArgument
 	}
+	driver, ok := passportDriverOf(s.Game)
 	client, err := uc.Servers().Client(s)
-	if err != nil || s.Game != gakumas.ID {
+	if err != nil || !ok {
 		return nil, ErrPassportBindUnsupported
 	}
 	key := u.ID + "\x00" + s.ID
@@ -388,13 +387,13 @@ func (uc *PassportUsecase) bindAccount(ctx context.Context, u *gen.PassportUser,
 	if f, ok := uc.bindFails.Get(key); ok && f.N >= passportBindAttempts && time.Since(f.First) < passportLockWindow {
 		return nil, ErrPassportBindTooMany
 	}
-	p, err := gakumas.New(client).VerifyAccount(ctx, account, password)
+	p, err := driver.VerifyAccount(ctx, client, account, password)
 	if err != nil {
 		switch {
-		case mgp.CodeOf(err) == gakumas.CredentialsInvalid:
+		case mgp.CodeOf(err) == mgp.CodeCredentialsInvalid:
 			bumpFail(uc.bindFails, key)
 			return nil, ErrPassportGameCredentials
-		case mgp.CodeOf(err) == gakumas.PlayerNotFound:
+		case mgp.CodeOf(err) == mgp.CodePlayerNotFound:
 			return nil, ErrPassportPlayerNotFound
 		case mgp.IsUnreachable(err):
 			return nil, ErrPassportGameUnavailable
@@ -403,10 +402,10 @@ func (uc *PassportUsecase) bindAccount(ctx context.Context, u *gen.PassportUser,
 		}
 	}
 	uc.bindFails.Del(key)
-	if p.GetPid() == "" {
+	if p.Pid == "" {
 		return nil, ErrPassportGameUnavailable
 	}
-	if until, lastPID := uc.cooldownUntil(ctx, u.ID, s.ID); until != nil && lastPID != p.GetPid() {
+	if until, lastPID := uc.cooldownUntil(ctx, u.ID, s.ID); until != nil && lastPID != p.Pid {
 		return nil, ErrPassportBindCooldown
 	}
 	l, err := uc.createLink(ctx, u, s, p, PassportBindPassword)
@@ -417,7 +416,7 @@ func (uc *PassportUsecase) bindAccount(ctx context.Context, u *gen.PassportUser,
 }
 
 // createLink 写入绑定（同一服务器上一个游戏账号只能绑一个通行证，一个通行证只能绑一个游戏账号）。
-func (uc *PassportUsecase) createLink(ctx context.Context, u *gen.PassportUser, s *gen.GameServer, p *gk.Player, method string) (*gen.GameAccountLink, error) {
+func (uc *PassportUsecase) createLink(ctx context.Context, u *gen.PassportUser, s *gen.GameServer, p *GamePlayer, method string) (*gen.GameAccountLink, error) {
 	lock := uc.bindLock(s.ID)
 	lock.Lock()
 	defer lock.Unlock()
@@ -426,8 +425,8 @@ func (uc *PassportUsecase) createLink(ctx context.Context, u *gen.PassportUser, 
 
 // passportCreateLink 写一条绑定：一个游戏账号只能绑一个通行证，一个通行证在一台服务器只绑一个账号
 // （玩家绑定与后台替他绑定的规则相同；并发由数据库唯一约束兜底）。这款游戏第一个绑定的账号是常用账号。
-func passportCreateLink(ctx context.Context, repo PassportRepo, u *gen.PassportUser, s *gen.GameServer, p *gk.Player, method string) (*gen.GameAccountLink, error) {
-	if other, err := repo.LinkByPlayer(ctx, s.ID, p.GetPid()); err == nil && other != nil {
+func passportCreateLink(ctx context.Context, repo PassportRepo, u *gen.PassportUser, s *gen.GameServer, p *GamePlayer, method string) (*gen.GameAccountLink, error) {
+	if other, err := repo.LinkByPlayer(ctx, s.ID, p.Pid); err == nil && other != nil {
 		if other.PassportUserID == u.ID {
 			return nil, ErrPassportAlreadyLinked
 		}
@@ -452,12 +451,12 @@ func passportCreateLink(ctx context.Context, repo PassportRepo, u *gen.PassportU
 		PassportUserID: u.ID,
 		ServerID:       s.ID,
 		Game:           s.Game,
-		PlayerID:       p.GetPid(),
-		DisplayID:      p.GetDisplayId(),
-		Account:        p.GetAccount(),
-		Nickname:       p.GetName(),
-		AvatarAsset:    p.GetAvatarIdolCardId(),
-		Level:          int(p.GetLevel()),
+		PlayerID:       p.Pid,
+		DisplayID:      p.DisplayID,
+		Account:        p.Account,
+		Nickname:       p.Name,
+		AvatarAsset:    p.Avatar,
+		Level:          p.Level,
 		Method:         gameaccountlink.Method(method),
 		State:          gameaccountlink.StateActive,
 		IsPrimary:      primary,
@@ -474,19 +473,18 @@ func passportCreateLink(ctx context.Context, repo PassportRepo, u *gen.PassportU
 
 // refreshSnapshot 读取绑定的玩家条目，刷新绑定上的昵称、等级、头像快照（变化时才写库）。
 func (uc *PassportUsecase) refreshSnapshot(ctx context.Context, s *gen.GameServer, client *mgp.Client, l *gen.GameAccountLink) error {
-	if s.Game != gakumas.ID {
+	driver, ok := passportDriverOf(s.Game)
+	if !ok {
 		return ErrGmGameUnsupported
 	}
-	detail, err := gakumas.New(client).Player(ctx, l.PlayerID)
+	p, err := driver.Player(ctx, client, l.PlayerID)
 	if err != nil {
 		return err
 	}
-	p := detail.GetPlayer()
-	level := int(p.GetLevel())
-	if p.GetName() == l.Nickname && level == l.Level && p.GetDisplayId() == l.DisplayID && p.GetAvatarIdolCardId() == l.AvatarAsset && p.GetAccount() == l.Account {
+	if p.Name == l.Nickname && p.Level == l.Level && p.DisplayID == l.DisplayID && p.Avatar == l.AvatarAsset && p.Account == l.Account {
 		return nil
 	}
-	l.Nickname, l.Level, l.DisplayID, l.AvatarAsset, l.Account = p.GetName(), level, p.GetDisplayId(), p.GetAvatarIdolCardId(), p.GetAccount()
+	l.Nickname, l.Level, l.DisplayID, l.AvatarAsset, l.Account = p.Name, p.Level, p.DisplayID, p.Avatar, p.Account
 	if err := uc.repo.UpdateLinkSnapshot(ctx, l); err != nil {
 		uc.log.Warnf("update link snapshot: %v", err)
 	}

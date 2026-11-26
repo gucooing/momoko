@@ -1,11 +1,13 @@
 // GM 记录的展示文本：状态、执行者类型、来源、对象。只用记录里可展示的字段（targets、summary、source），从不涉及请求参数。
 import { useI18n } from 'vue-i18n'
 import type { GmExecution } from '@/types/v1/game_gm'
+import { useGmContext } from '../../context'
 
 export type Pill = 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'primary'
 
 export function useExecText() {
   const { t } = useI18n()
+  const ctx = useGmContext()
 
   const statusPill = (s: string): Pill => {
     switch (s) {
@@ -67,7 +69,7 @@ export function useExecText() {
   /** 执行者名称（没有时为「未命名」，不显示账号 ID）。 */
   const actorName = (e: { actorName?: string }) => e.actorName || t('game.unnamed')
   /** 指令标题（记录里存的是执行时 manifest 里的标题）。 */
-  const commandTitle = (e: { commandTitle?: string }) => e.commandTitle || t('game.unnamed')
+  const commandTitle = (e: { command?: string; commandTitle?: string }) => ctx.commandTitle(e.command || '', e.commandTitle || '') || t('game.unnamed')
 
   return { statusPill, statusText, kindText, channelText, sourceText, objectText, actorName, commandTitle }
 }

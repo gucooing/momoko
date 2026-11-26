@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -22,6 +23,7 @@ import (
 	entgameserver "momoko/internal/data/ent/gen/gameserver"
 	entschema "momoko/internal/data/ent/schema"
 	"momoko/pkg/auth"
+	"momoko/pkg/gobuild"
 	"momoko/pkg/jsondoc"
 	"momoko/pkg/netprobe"
 	"momoko/pkg/response"
@@ -85,7 +87,7 @@ func (o *gameHostingOptions) encode() string {
 	return string(raw)
 }
 
-// gameHostAdapter 托管用例需要的适配器能力（学マス：gakumasHosting）。
+// gameHostAdapter 托管用例需要的适配器能力（学マス：gakumasHosting；蓝色星原：azurpromiliaHosting）。
 type gameHostAdapter interface {
 	GameHostingDriver
 	detect(ctx context.Context, dir, configFile string, listens map[string]string, selfID string) (*v1.DetectGameServerDirResponse, error)
@@ -96,6 +98,207 @@ type gameHostAdapter interface {
 	settingsSchema() []*v1.GameSettingsSection
 	checkBuild(path string) *v1.GameServerBuildInfo
 	resolveBuildPath(dir, path string) string
+	configKeys() gameHostConfigKeys
+}
+
+// gameHostConfigKeys 托管用例改写服务端配置时用到的配置项（点分路径）。
+type gameHostConfigKeys struct {
+	MGPKeyID  string
+	MGPSecret string
+	// MomokoURL 通行证对外地址；服务端配置没有这一项时为空（不写、也不要求配置 passport.public_url）
+	MomokoURL       string
+	MomokoAppID     string
+	MomokoAppSecret string
+}
+
+// gameHostLayout 托管服务器在磁盘上的布局（驱动从服务端配置读出）。
+type gameHostLayout struct {
+	Dir        string
+	ConfigFile string
+	ConfigPath string
+	Doc        *jsondoc.Object
+	// Listens 配置里的监听，键由驱动定义（mgp 为 MGP 监听）
+	Listens map[string]string
+	// Probes 概览里直接探测的监听
+	Probes    []gameHostProbe
+	MGPKeyID  string
+	MGPSecret string
+	DataDir   string
+	ResDir    string
+	LogDir    string
+	LogFile   bool
+	DBDriver  string
+	DBPath    string // sqlite 绝对路径
+	// BackupDirs 备份时与配置、数据库一起打包的目录（绝对路径，只取服务端目录内的）
+	BackupDirs []string
+	// StopTimeout 写入停止命令后等服务端自行退出的秒数
+	StopTimeout int
+	Executable  string
+	ResExe      string
+	ResOrigin   string // 配置里的 resource_server_url
+}
+
+// gameHostProbe 一个直接探测的监听：tcp 连接一次；udp 看端口是否已被绑定。
+type gameHostProbe struct {
+	Key     string
+	Network string
+	Listen  string
+}
+
+// relPath 相对配置所在目录解析（与服务端的 config.Load 一致）。
+func (l *gameHostLayout) relPath(p string) string {
+	if p == "" || filepath.IsAbs(p) {
+		return p
+	}
+	return filepath.Join(filepath.Dir(l.ConfigPath), p)
+}
+
+// mgpEndpoint 托管服务器的 MGP 地址（监听 0.0.0.0 时经本机回环访问）。
+func (l *gameHostLayout) mgpEndpoint() string {
+	if l.MGPKeyID == "" {
+		return ""
+	}
+	return "http://" + netprobe.DialAddr(l.Listens["mgp"])
+}
+
+// healthListen 没有接入 MGP 时用来判断服务端已就绪的 TCP 监听（第一个 TCP 探测）。
+func (l *gameHostLayout) healthListen() string {
+	for _, p := range l.Probes {
+		if p.Network == "tcp" && p.Listen != "" {
+			return p.Listen
+		}
+	}
+	return ""
+}
+
+// gameHostProcess 一个托管进程的启动定义。
+type gameHostProcess struct {
+	Role        string
+	Command     string
+	StopCommand string
+	StopTimeout int
+	Listens     map[string]string
+}
+
+// checkGoBuild 读取一个服务端可执行文件的构建信息，并按模块与入口包确认它是这款游戏的服务端；版本取 -X 注入的变量。
+func checkGoBuild(path, module, mainPath, versionVar string) *v1.GameServerBuildInfo {
+	out := &v1.GameServerBuildInfo{Path: path}
+	st, err := os.Stat(path)
+	if err != nil {
+		out.Error = "not_found"
+		return out
+	}
+	if st.IsDir() {
+		out.Error = "is_directory"
+		return out
+	}
+	out.Exists = true
+	out.Size = st.Size()
+	out.ModifiedAt = timestamppb.New(st.ModTime())
+	info, err := gobuild.Read(path)
+	if err != nil {
+		out.Error = "not_go_binary"
+		return out
+	}
+	out.GoVersion = info.GoVersion
+	out.Module = info.Module
+	out.VcsRevision = info.VCSRevision
+	if !info.VCSTime.IsZero() {
+		out.VcsTime = timestamppb.New(info.VCSTime)
+	}
+	out.Version = info.Var(versionVar)
+	if info.Module != module || info.MainPath != mainPath {
+		out.Error = "wrong_module"
+		return out
+	}
+	out.Valid = true
+	return out
+}
+
+// resolveExecutablePath 候选构建：目录时取其中的服务端可执行文件；相对路径相对服务端目录。
+func resolveExecutablePath(dir, path, executable string) string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ""
+	}
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(dir, filepath.FromSlash(path))
+	}
+	if st, err := os.Stat(path); err == nil && st.IsDir() {
+		return filepath.Join(path, exeName(executable))
+	}
+	return filepath.Clean(path)
+}
+
+// executableCheck 预检里的「服务端程序」一项。
+func executableCheck(build *v1.GameServerBuildInfo) *v1.GameServerCheck {
+	if build.Valid {
+		return hostCheck("executable", "ok", map[string]string{"file": filepath.Base(build.Path), "version": build.Version, "size": strconv.FormatInt(build.Size, 10)}, nil)
+	}
+	return &v1.GameServerCheck{Key: "executable", State: "fail", Params: map[string]string{"file": filepath.Base(build.Path)}, ErrorCode: build.Error}
+}
+
+// detectConfig 预检读取配置：优先指定的文件，其次驱动的默认文件，都不存在时读模板（接入时由它复制生成）。
+func detectConfig(out *v1.DetectGameServerDirResponse, dir, configFile, defaultFile, template string) (*gameHostLayout, *jsondoc.Object, bool) {
+	if configFile == "" {
+		configFile = defaultFile
+	}
+	out.ConfigFile = configFile
+	l := &gameHostLayout{Dir: dir, ConfigFile: configFile, ConfigPath: filepath.Join(dir, configFile)}
+	raw, err := os.ReadFile(l.ConfigPath)
+	if err == nil {
+		out.ConfigExists = true
+	} else if errors.Is(err, os.ErrNotExist) {
+		if tpl, terr := os.ReadFile(filepath.Join(dir, template)); terr == nil {
+			raw, err = tpl, nil
+			out.ConfigTemplate = template
+		}
+	}
+	if err != nil {
+		out.Checks = append(out.Checks, hostCheck("config", "fail", map[string]string{"file": configFile}, err))
+		return nil, nil, false
+	}
+	doc, err := jsondoc.Parse(raw)
+	if err != nil {
+		out.Checks = append(out.Checks, hostCheck("config", "fail", map[string]string{"file": configFile}, err))
+		return nil, nil, false
+	}
+	out.Checks = append(out.Checks, hostCheck("config", "ok", map[string]string{"file": configFile, "template": out.ConfigTemplate}, nil))
+	return l, doc, true
+}
+
+// readConfigOrTemplate 读取配置；不存在时读模板。
+func readConfigOrTemplate(dir, path, template string) (*jsondoc.Object, error) {
+	raw, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		raw, err = os.ReadFile(filepath.Join(dir, filepath.Base(template)))
+	}
+	if err != nil {
+		return nil, err
+	}
+	return jsondoc.Parse(raw)
+}
+
+func checksOK(checks []*v1.GameServerCheck) bool {
+	for _, c := range checks {
+		if c.State == "fail" {
+			return false
+		}
+	}
+	return true
+}
+
+// ErrGameNoResourceServer 驱动没有资源服务器（资源镜像）能力。
+var ErrGameNoResourceServer = response.BadRequest("这款游戏的服务端没有资源服务器")
+
+// hostCapable 托管驱动是否实现了某项能力。
+func hostCapable(ha gameHostAdapter, capability string) bool {
+	for _, c := range ha.Capabilities() {
+		if c == capability {
+			return true
+		}
+	}
+	return false
 }
 
 type cachedLayout struct {
@@ -144,11 +347,19 @@ func NewGameHostingUsecase(servers *GameServerUsecase, instances *InstanceUsecas
 		pending:     map[string]string{},
 		layouts:     map[string]*cachedLayout{},
 	}
-	// 学マス 的托管驱动注册到适配器上，适配器的接入方式与能力随之变为可托管。
-	if a, ok := GameAdapterByID("gakumas"); ok {
-		next := *a
-		next.Hosting = &gakumasHosting{h: h}
-		RegisterGameAdapter(&next)
+	// 托管驱动注册到适配器上，适配器的接入方式与能力随之变为可托管。
+	for _, d := range []struct {
+		game    string
+		hosting GameHostingDriver
+	}{
+		{"gakumas", &gakumasHosting{h: h}},
+		{"azurpromilia", &azurpromiliaHosting{h: h}},
+	} {
+		if a, ok := GameAdapterByID(d.game); ok {
+			next := *a
+			next.Hosting = d.hosting
+			RegisterGameAdapter(&next)
+		}
 	}
 	ctx := context.Background()
 	_ = tasks.Resume(ctx, gameTaskBuild, gameTaskResource, gameTaskBackup, gameTaskRestore)
@@ -776,10 +987,11 @@ func (h *GameHostingUsecase) RotateKey(ctx context.Context, req *v1.RotateGameSe
 	if err != nil {
 		return nil, nil, response.BadRequest("读取服务端配置失败：" + err.Error())
 	}
-	if err := l.Doc.Assign("mgp.key_id", keyID); err != nil {
+	keys := ha.configKeys()
+	if err := l.Doc.Assign(keys.MGPKeyID, keyID); err != nil {
 		return nil, nil, ErrSystem(err)
 	}
-	if err := l.Doc.Assign("mgp.secret", secret); err != nil {
+	if err := l.Doc.Assign(keys.MGPSecret, secret); err != nil {
 		return nil, nil, ErrSystem(err)
 	}
 	if err := writeConfigDoc(s.InstallDir, l.ConfigPath, l.Doc); err != nil {
@@ -809,10 +1021,10 @@ func (h *GameHostingUsecase) RotateKey(ctx context.Context, req *v1.RotateGameSe
 }
 
 // IssueClientApp 生成客户端应用凭据：secretOnly 只换应用密钥，否则应用 ID 与应用密钥一起换（第一次生成也是这样）；
-// 旧凭据立即失效，应用密钥明文只在这次返回。与轮换 MGP 密钥相同：托管服务器先把凭据和通行证对外地址写进服务端配置
-// （momoko.url、momoko.app_id、momoko.app_secret；通行证对外地址未配置或不是 http(s) origin、配置写不了都失败，
-// Momoko 不保存），Momoko 再同步保存，运行中按需重启使其生效，并写一条变更记录；仅 GM 的服务器只保存到 Momoko，
-// 由管理员写进服务端配置。
+// 旧凭据立即失效，应用密钥明文只在这次返回。与轮换 MGP 密钥相同：托管服务器先把凭据写进服务端配置（驱动给出的
+// 配置项，学マス 为 momoko.app_id、momoko.app_secret；服务端配置有通行证对外地址这一项时（学マス momoko.url）一并写入，
+// 这时通行证对外地址未配置或不是 http(s) origin 即失败；配置写不了也失败，Momoko 不保存），Momoko 再同步保存，
+// 运行中按需重启使其生效，并写一条变更记录；仅 GM 的服务器只保存到 Momoko，由管理员写进服务端配置。
 func (h *GameHostingUsecase) IssueClientApp(ctx context.Context, id string, secretOnly, restart bool) (*v1.GameServerClientAppResponse, *gen.GameServer, error) {
 	s, err := h.servers.clientAppServer(ctx, id)
 	if err != nil {
@@ -836,12 +1048,15 @@ func (h *GameHostingUsecase) IssueClientApp(ctx context.Context, id string, secr
 	if h.isBusy(s.ID) {
 		return nil, nil, ErrGameHostingBusy
 	}
-	momokoURL, err := clientOrigin("通行证（passport.public_url）", h.passportURL)
-	if err != nil {
-		return nil, nil, err
-	}
-	if momokoURL == "" {
-		return nil, nil, response.BadRequest("通行证对外地址（passport.public_url）未配置，无法写入游戏服务端配置")
+	keys := ha.configKeys()
+	momokoURL := ""
+	if keys.MomokoURL != "" {
+		if momokoURL, err = clientOrigin("通行证（passport.public_url）", h.passportURL); err != nil {
+			return nil, nil, err
+		}
+		if momokoURL == "" {
+			return nil, nil, response.BadRequest("通行证对外地址（passport.public_url）未配置，无法写入游戏服务端配置")
+		}
 	}
 	appID, secret, err := h.servers.prepareClientApp(ctx, s, secretOnly)
 	if err != nil {
@@ -851,13 +1066,15 @@ func (h *GameHostingUsecase) IssueClientApp(ctx context.Context, id string, secr
 	if err != nil {
 		return nil, nil, response.BadRequest("读取服务端配置失败：" + err.Error())
 	}
-	if err := l.Doc.Assign("momoko.url", momokoURL); err != nil {
+	if keys.MomokoURL != "" {
+		if err := l.Doc.Assign(keys.MomokoURL, momokoURL); err != nil {
+			return nil, nil, ErrSystem(err)
+		}
+	}
+	if err := l.Doc.Assign(keys.MomokoAppID, appID); err != nil {
 		return nil, nil, ErrSystem(err)
 	}
-	if err := l.Doc.Assign("momoko.app_id", appID); err != nil {
-		return nil, nil, ErrSystem(err)
-	}
-	if err := l.Doc.Assign("momoko.app_secret", secret); err != nil {
+	if err := l.Doc.Assign(keys.MomokoAppSecret, secret); err != nil {
 		return nil, nil, ErrSystem(err)
 	}
 	if err := writeConfigDoc(s.InstallDir, l.ConfigPath, l.Doc); err != nil {
@@ -1059,6 +1276,9 @@ func (h *GameHostingUsecase) UpdateHosting(ctx context.Context, req *v1.UpdateGa
 	opts.AutoStart, opts.AutoRestart = req.AutoStart, req.AutoRestart
 	opts.ResourceServer = req.ResourceServer
 	if opts.ResourceServer {
+		if !hostCapable(ha, "resource") {
+			return nil, ErrGameNoResourceServer
+		}
 		if _, err := os.Stat(l.ResExe); err != nil {
 			return nil, response.BadRequest("服务端目录里没有资源服务器可执行文件")
 		}
@@ -1142,7 +1362,7 @@ func (h *GameHostingUsecase) describe(ctx context.Context, s *gen.GameServer, in
 		l, _ = h.layoutOf(s, ha, opts)
 	}
 	if l != nil {
-		info.Hosting.StopTimeout = int32(l.stopTimeout())
+		info.Hosting.StopTimeout = int32(l.StopTimeout)
 		info.Hosting.ResourceOrigin = l.ResOrigin
 	}
 	info.Processes = nil
@@ -1238,7 +1458,8 @@ type gameStatusDetail struct {
 		Detail    string  `json:"detail"`
 		LatencyMs float64 `json:"latencyMs"`
 	} `json:"health"`
-	Saves struct {
+	// Saves 存档队列（服务端有存档队列时才有）
+	Saves *struct {
 		Waiting  int `json:"waiting"`
 		Capacity int `json:"capacity"`
 	} `json:"saves"`
@@ -1262,6 +1483,7 @@ func (h *GameHostingUsecase) Overview(ctx context.Context, id string) (*v1.GameS
 	}
 	var l *gameHostLayout
 	var opts *gameHostingOptions
+	var hostedPIDs []int32
 	if s.Mode == entgameserver.ModeHosted {
 		if ha, ok := hostAdapterOf(s.Game); ok {
 			opts = hostingOptionsOf(s)
@@ -1279,6 +1501,7 @@ func (h *GameHostingUsecase) Overview(ctx context.Context, id string) (*v1.GameS
 				procs := instanceStats.processTree(ctx, p.InstanceID, int32(core.PID()))
 				ps.ProcessCount = int32(len(procs))
 				for _, pr := range procs {
+					hostedPIDs = append(hostedPIDs, pr.Pid)
 					if pct, err := pr.PercentWithContext(ctx, 0); err == nil {
 						ps.CpuPercent += pct
 					}
@@ -1297,11 +1520,19 @@ func (h *GameHostingUsecase) Overview(ctx context.Context, id string) (*v1.GameS
 			out.Processes = append(out.Processes, ps)
 		}
 	}
-	// 托管：直接探测监听端口
+	// 托管：直接探测监听端口（UDP 没有连接，看托管进程是否绑定了这个端口）
 	if l != nil {
-		for _, k := range []string{"grpc", "http"} {
-			probe := &v1.GameServerProbe{Key: k, Params: map[string]string{"listen": l.Listens[k]}}
-			if d, err := netprobe.TCP(ctx, l.Listens[k], 2*time.Second); err == nil {
+		for _, p := range l.Probes {
+			probe := &v1.GameServerProbe{Key: p.Key, Params: map[string]string{"listen": p.Listen, "network": p.Network}}
+			if p.Network == "udp" {
+				if bound, err := netprobe.UDPBound(ctx, p.Listen, hostedPIDs); err != nil {
+					probe.State, probe.Error = "fail", err.Error()
+				} else if bound {
+					probe.State = "ok"
+				} else {
+					probe.State = "fail"
+				}
+			} else if d, err := netprobe.TCP(ctx, p.Listen, 2*time.Second); err == nil {
 				probe.State, probe.LatencyMs = "ok", float64(d.Microseconds())/1000
 			} else {
 				probe.State, probe.Error = "fail", err.Error()
@@ -1340,11 +1571,13 @@ func (h *GameHostingUsecase) Overview(ctx context.Context, id string) (*v1.GameS
 				}
 				out.Probes = append(out.Probes, p)
 			}
-			saves := &v1.GameServerProbe{Key: "saves", State: "ok", Params: map[string]string{"waiting": itoa(detail.Saves.Waiting), "capacity": itoa(detail.Saves.Capacity)}}
-			if detail.Saves.Capacity > 0 && detail.Saves.Waiting*2 >= detail.Saves.Capacity {
-				saves.State = "warn"
+			if sv := detail.Saves; sv != nil {
+				saves := &v1.GameServerProbe{Key: "saves", State: "ok", Params: map[string]string{"waiting": itoa(sv.Waiting), "capacity": itoa(sv.Capacity)}}
+				if sv.Capacity > 0 && sv.Waiting*2 >= sv.Capacity {
+					saves.State = "warn"
+				}
+				out.Probes = append(out.Probes, saves)
 			}
-			out.Probes = append(out.Probes, saves)
 		}
 	} else {
 		out.Probes = append(out.Probes, &v1.GameServerProbe{Key: "mgp", State: "pending"})

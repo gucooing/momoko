@@ -323,7 +323,7 @@ func copyFile(src, dst string) error {
 	return os.Rename(tmp, dst)
 }
 
-// waitHealthy 等待服务端启动后 MGP status 可用（没有接入 MGP 时等游戏端口可连）；进程退出即失败。
+// waitHealthy 等待服务端启动后 MGP status 可用（没有接入 MGP 时等驱动给出的第一个 TCP 监听可连）；进程退出即失败。
 func (h *GameHostingUsecase) waitHealthy(ctx context.Context, s *gen.GameServer, l *gameHostLayout, timeout time.Duration) (string, error) {
 	deadline := time.Now().Add(timeout)
 	var last error
@@ -341,7 +341,9 @@ func (h *GameHostingUsecase) waitHealthy(ctx context.Context, s *gen.GameServer,
 				return st.Version, nil
 			}
 			last = err
-		} else if _, err := netprobe.TCP(ctx, l.Listens["grpc"], 2*time.Second); err == nil {
+		} else if addr := l.healthListen(); addr == "" {
+			last = errors.New("no tcp listen to probe")
+		} else if _, err := netprobe.TCP(ctx, addr, 2*time.Second); err == nil {
 			return "", nil
 		} else {
 			last = err
@@ -358,7 +360,7 @@ func (h *GameHostingUsecase) waitHealthy(ctx context.Context, s *gen.GameServer,
 	return "", fmt.Errorf("health_timeout: %v", last)
 }
 
-// UpdateBuild 更新服务端程序：检查 → 停止 → 备份（数据库、data/ 与配置）→ 替换 → 启动 → 健康检查；
+// UpdateBuild 更新服务端程序：检查 → 停止 → 备份（数据库、配置与驱动给出的目录）→ 替换 → 启动 → 健康检查；
 // 启动或健康检查失败时停止新版本、换回旧程序并从刚才的备份恢复数据，再按原状态启动。
 func (h *GameHostingUsecase) UpdateBuild(ctx context.Context, req *v1.UpdateGameServerBuildRequest) (string, error) {
 	s, ha, l, opts, err := h.hosted(ctx, req.Id)
@@ -556,9 +558,12 @@ func readResourceManifest(root string) (*resourceManifestInfo, error) {
 
 // GetResource 资源镜像：清单、发布状态、下载进度、/health 与服务端加载的资源版本。
 func (h *GameHostingUsecase) GetResource(ctx context.Context, id string) (*v1.GameServerResource, error) {
-	s, _, l, opts, err := h.hosted(ctx, id)
+	s, ha, l, opts, err := h.hosted(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if !hostCapable(ha, "resource") {
+		return nil, ErrGameNoResourceServer
 	}
 	out := &v1.GameServerResource{
 		Hosted: opts.ResourceServer,
@@ -600,9 +605,12 @@ func (h *GameHostingUsecase) GetResource(ctx context.Context, id string) (*v1.Ga
 // RunResourceTask 运行资源服务器的显式任务：verify 完整重校验本地对象；update 访问官方目录、下载全部对象并发布新版本
 // （成功后重启托管的资源服务器，让它分发新版本）。
 func (h *GameHostingUsecase) RunResourceTask(ctx context.Context, req *v1.RunGameServerResourceTaskRequest) (string, error) {
-	s, _, l, opts, err := h.hosted(ctx, req.Id)
+	s, ha, l, opts, err := h.hosted(ctx, req.Id)
 	if err != nil {
 		return "", err
+	}
+	if !hostCapable(ha, "resource") {
+		return "", ErrGameNoResourceServer
 	}
 	if _, err := os.Stat(l.ResExe); err != nil {
 		return "", response.BadRequest("服务端目录里没有资源服务器可执行文件")

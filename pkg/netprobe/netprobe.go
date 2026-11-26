@@ -1,4 +1,4 @@
-// Package netprobe 做简单的网络探测：TCP 连通与延迟、监听地址是否空闲、HTTP GET 读取 JSON。
+// Package netprobe 做简单的网络探测：TCP 连通与延迟、TCP / UDP 监听地址是否空闲、进程是否绑定了 UDP 端口、HTTP GET 读取 JSON。
 package netprobe
 
 import (
@@ -9,8 +9,11 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
+
+	gnet "github.com/shirou/gopsutil/v4/net"
 )
 
 // DialAddr 把监听地址转成可连接的地址：0.0.0.0 / :: / 空主机改为本机回环。
@@ -56,6 +59,47 @@ func Free(listen string) error {
 		return fmt.Errorf("%w: %v", ErrInUse, err)
 	}
 	return l.Close()
+}
+
+// FreeUDP 判断 UDP 监听地址当前是否可以绑定（绑定不了即占用）。
+func FreeUDP(listen string) error {
+	if _, _, err := net.SplitHostPort(listen); err != nil {
+		return err
+	}
+	c, err := net.ListenPacket("udp", listen)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInUse, err)
+	}
+	return c.Close()
+}
+
+// UDPBound 判断这些进程里是否有一个绑定了这个 UDP 监听地址（读系统的套接字表，不占用端口）。
+func UDPBound(ctx context.Context, listen string, pids []int32) (bool, error) {
+	host, port, err := net.SplitHostPort(strings.TrimSpace(listen))
+	if err != nil {
+		return false, err
+	}
+	p, err := strconv.ParseUint(port, 10, 16)
+	if err != nil {
+		return false, err
+	}
+	want := net.ParseIP(host)
+	for _, pid := range pids {
+		conns, err := gnet.ConnectionsPidWithContext(ctx, "udp", pid)
+		if err != nil {
+			continue
+		}
+		for _, c := range conns {
+			if c.Laddr.Port != uint32(p) {
+				continue
+			}
+			got := net.ParseIP(c.Laddr.IP)
+			if want == nil || want.IsUnspecified() || got == nil || got.IsUnspecified() || got.Equal(want) {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 // Port 返回监听地址里的端口。

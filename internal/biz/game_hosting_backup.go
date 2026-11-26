@@ -28,7 +28,7 @@ const gameBackupDir = gameHostingDir + "/backups"
 // 备份文件里放在服务端目录之外的数据库的位置。
 const gameBackupExternalDB = "_external/database/"
 
-// backupPlan 备份范围（适配器的布局决定）：配置文件、数据目录、SQLite 数据库（一致性快照）。
+// backupPlan 备份范围（适配器的布局决定）：配置文件、驱动给出的目录、SQLite 数据库（一致性快照）。
 type backupPlan struct {
 	// Paths 相对服务端目录打包的文件或目录（目录以 / 结尾）
 	Paths []string
@@ -53,8 +53,10 @@ func planBackup(l *gameHostLayout) backupPlan {
 	if rel, ok := relInside(l.Dir, l.ConfigPath); ok {
 		p.Paths = append(p.Paths, rel)
 	}
-	if rel, ok := relInside(l.Dir, l.DataDir); ok {
-		p.Paths = append(p.Paths, rel+"/")
+	for _, d := range l.BackupDirs {
+		if rel, ok := relInside(l.Dir, d); ok {
+			p.Paths = append(p.Paths, rel+"/")
+		}
 	}
 	switch {
 	case l.DBDriver == "sqlite" && l.DBPath != "":
@@ -104,7 +106,7 @@ func toBackupInfo(b *gen.GameServerBackup) *v1.GameServerBackupInfo {
 	return out
 }
 
-// runBackup 做一次备份：SQLite 用 VACUUM INTO 做一致性快照（运行中也不阻塞写者），再与配置、数据目录一起打包。
+// runBackup 做一次备份：SQLite 用 VACUUM INTO 做一致性快照（运行中也不阻塞写者），再与配置和驱动给出的目录一起打包。
 // 自动备份的保留份数由调用方在流程结束后清理（回档时不能在解压前删掉要恢复的那份）。
 func (h *GameHostingUsecase) runBackup(ctx context.Context, s *gen.GameServer, l *gameHostLayout, opts *gameHostingOptions, trigger, note string, r task.Reporter) (*gen.GameServerBackup, error) {
 	plan := planBackup(l)

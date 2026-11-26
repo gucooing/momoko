@@ -44,6 +44,8 @@ type GameAdapter struct {
 	// ClientLaunch 游戏客户端可以用通行证启动：服务器可填写客户端地址，通行证新建游戏账号并签发启动票据，
 	// 游戏服务端的 SDK 凭票据开会话。
 	ClientLaunch bool
+	// Passport 通行证驱动：经 MGP 绑定、新建与读取游戏账号（未实现时为 nil）。
+	Passport GamePassportDriver
 }
 
 // Modes 支持的接入方式：有 MGP 驱动即可仅 GM 接入，有托管驱动即可托管。
@@ -118,7 +120,8 @@ func (a *GameAdapter) ToProto() *v1.GameAdapter {
 
 // gameAdapters 随 Momoko 版本内置的适配器（顺序即展示顺序）。
 var gameAdapters = []*GameAdapter{
-	{ID: "gakumas", GMDriver: "mgp", ClientLaunch: true},
+	{ID: "gakumas", GMDriver: "mgp", ClientLaunch: true, Passport: gakumasPassport{}},
+	{ID: "azurpromilia", GMDriver: "mgp", ClientLaunch: true, Passport: azurpromiliaPassport{}},
 }
 
 // GameAdapters 返回全部内置适配器。

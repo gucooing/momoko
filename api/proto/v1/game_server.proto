@@ -367,6 +367,8 @@ message GameAdapterRole {
   string executable = 2;
   // 是否可选（可不托管）
   bool optional = 3;
+  // 这个进程在服务端配置里的监听（键，接入时可填写；如学マス grpc / http / mgp）
+  repeated string listens = 4;
 }
 
 // 游戏适配器（随 Momoko 版本内置）。
@@ -534,7 +536,7 @@ message GameServerHostedSpec {
   // 配置文件（相对服务端目录；不存在时从 config_template 复制）
   string config_file = 2;
   string config_template = 3;
-  // 写入配置的监听地址：grpc / http / mgp
+  // 写入配置的监听地址（键见适配器进程角色的 listens）
   map<string, string> listens = 4;
   // 同时托管资源服务器，及其监听、origin 与数据目录
   bool resource_server = 5;
@@ -644,7 +646,7 @@ message DetectGameServerDirResponse {
   string config_template = 5;
   // 检查项：executable / config / database / resources / data / resourceServer / mirror / mgpKey / tokenSecret / port:<role>
   repeated GameServerCheck checks = 6;
-  // 配置里的监听地址（grpc / http / mgp）与资源服务器默认监听
+  // 配置里的监听地址（键见适配器进程角色的 listens）与资源服务器默认监听
   map<string, string> listens = 7;
   // 资源服务器：是否找到可执行文件、默认 origin 与数据目录
   bool has_resource_server = 8;

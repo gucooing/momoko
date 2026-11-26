@@ -103,10 +103,12 @@ const pct = (v: number, max: number) => `${Math.min(100, Math.max(0, max > 0 ? (
 
 const probeDesc = (p: GameServerProbe) => {
   const params = p.params || {}
+  // 托管时直接探测的监听：TCP 连一次，UDP 看端口是否已被绑定
+  if (params.listen) {
+    if (params.network === 'udp') return p.error || t(p.state === 'ok' ? 'gameServers.overview.probeDesc.udp' : 'gameServers.overview.probeDesc.udpFree', params)
+    return t('gameServers.overview.probeDesc.tcp', params)
+  }
   switch (p.key) {
-    case 'grpc':
-    case 'http':
-      return t(`gameServers.overview.probeDesc.${p.key}`, params)
     case 'mgp':
       if (p.state === 'pending') return t('gameServers.overview.probeDesc.mgpNone')
       return p.error || t('gameServers.overview.probeDesc.mgp', { endpoint: params.endpoint })

@@ -23,8 +23,9 @@ export const nameLangOf = (locale: string): string => {
 
 const keyOf = (game: string, lang: string, kind: string) => `${game}:${lang}:${kind}`
 
-/** 原文名所在的表（游戏主数据里的名称）。 */
-const ORIGINAL = 'ja'
+/** 原文名所在的表（游戏主数据里的名称）：学マス 为日文，蓝色星原为繁体中文（zh 表）。 */
+const ORIGINALS: Record<string, string> = { azurpromilia: 'zh' }
+const originalOf = (game: string) => ORIGINALS[game] || 'ja'
 
 const loadTable = (game: string, lang: string, kind: string): Promise<NameTable | undefined> => {
   const key = keyOf(game, lang, kind)
@@ -74,12 +75,12 @@ export function lookupGameName(game: string, locale: string, kind: string, id: s
   if (!game || !kind || !id) return ''
   const lang = nameLangOf(locale)
   let waiting = false
-  if (lang && lang !== ORIGINAL) {
+  if (lang && lang !== originalOf(game)) {
     const name = lookupSync(game, lang, kind, id)
     if (name) return name
     waiting = name === undefined
   }
-  const original = lookupSync(game, ORIGINAL, kind, id)
+  const original = lookupSync(game, originalOf(game), kind, id)
   if (original) return original
   return waiting || original === undefined ? undefined : ''
 }
@@ -103,20 +104,20 @@ export function gameNameVariants(game: string, locale: string, kind: string, id:
   const add = (n: string | undefined) => {
     if (n && !out.includes(n)) out.push(n)
   }
-  if (lang && lang !== ORIGINAL) add(lookupSync(game, lang, kind, id))
-  add(lookupSync(game, ORIGINAL, kind, id))
+  if (lang && lang !== originalOf(game)) add(lookupSync(game, lang, kind, id))
+  add(lookupSync(game, originalOf(game), kind, id))
   return out
 }
 
 /** 等某一类名称表（当前语言与原文）加载完，用于需要一次性拿到名称的场景（导出、排序）。 */
 export async function ensureGameNames(game: string, locale: string, kind: string): Promise<void> {
   const lang = nameLangOf(locale)
-  await Promise.all([lang && lang !== ORIGINAL ? loadTable(game, lang, kind) : undefined, loadTable(game, ORIGINAL, kind)])
+  await Promise.all([lang && lang !== originalOf(game) ? loadTable(game, lang, kind) : undefined, loadTable(game, originalOf(game), kind)])
 }
 
 /** 一类条目的全部 ID（游戏原文名表就是主数据的完整列表）：没有 MGP 目录的类型（例如抽卡按钮）用它列出可选项。 */
 export async function gameNameIds(game: string, kind: string): Promise<string[]> {
-  return Object.keys((await loadTable(game, ORIGINAL, kind)) || {})
+  return Object.keys((await loadTable(game, originalOf(game), kind)) || {})
 }
 
 /** 把一批目录条目的 name 换成当前语言的译名（等译名表加载完；没有译名的保留原文）。 */
@@ -152,8 +153,8 @@ export async function searchGameNames(game: string, locale: string, kind: string
   const table = search?.table ?? kind
   const lang = nameLangOf(locale)
   const tables = await Promise.all([
-    lang && lang !== ORIGINAL ? loadTable(game, lang, table) : undefined,
-    loadTable(game, ORIGINAL, table),
+    lang && lang !== originalOf(game) ? loadTable(game, lang, table) : undefined,
+    loadTable(game, originalOf(game), table),
   ])
   const out = new Set<string>()
   if (!q.trim()) return out

@@ -1,0 +1,348 @@
+syntax = "proto3";
+
+package v1.azurpromilia;
+
+option go_package = "momoko/api/gen/v1/azurpromilia;azurpromiliav1";
+
+// 蓝色星原 MGP 的数据结构。字段与 MGP 返回的 JSON 一一对应（字段名的 lowerCamel 即 JSON 名），
+// 由游戏服务端的数据直接解码；只带资源 ID，名称由前端目录解析。
+// 时间均为 Unix 毫秒；可能超出 32 位的数值（时间、经验、数量、合计）用 double。
+// 这里只有游戏数据本身：管理端（gm.proto）与用户通行证（passport.proto）各自定义请求与响应。
+
+// ---------------- 服务器 ----------------
+
+message ManifestGame {
+  string id = 1;
+  string name = 2;
+  string theme = 3;
+  string icon = 4;
+}
+
+message ResourceVersion {
+  // 客户端热更新版本
+  string release_hot = 1;
+}
+
+message ManifestServer {
+  // 服务端构建版本
+  string version = 1;
+  ResourceVersion resource = 2;
+}
+
+message Manifest {
+  int32 protocol = 1;
+  ManifestGame game = 2;
+  ManifestServer server = 3;
+}
+
+message Health {
+  string name = 1;
+  bool ok = 2;
+  string detail = 3;
+  double latency_ms = 4;
+}
+
+message DatabaseStatus {
+  int32 migration = 1;
+}
+
+// 实时状态：在线为已读档的玩家数；峰值、注册、今日新增与活跃取服务端的统计表。
+message Status {
+  int32 online = 1;
+  int32 online_peak = 2;
+  double online_peak_at = 3;
+  double registered = 4;
+  double new_today = 5;
+  double active_today = 6;
+  double uptime_seconds = 7;
+  double now = 8;
+  string version = 9;
+  ResourceVersion resource = 10;
+  DatabaseStatus database = 11;
+  repeated Health health = 12;
+}
+
+// 服务器一天的统计：day 为服务器时区的日期 yyyy-mm-dd，active 为当天登录过的账号数。
+message DailyStat {
+  string day = 1;
+  double new_accounts = 2;
+  double active = 3;
+  int32 online_peak = 4;
+  double online_peak_at = 5;
+}
+
+message DailyStats {
+  repeated DailyStat items = 1;
+}
+
+// ---------------- 玩家 ----------------
+
+// 玩家条目：pid 为账号 ID，display_id 为游戏内显示的玩家 ID（创角前为空）；
+// 封禁中时 banned 为 true，banned_until 为解封时间（0 为永久）。
+message Player {
+  string pid = 1;
+  string display_id = 2;
+  string account = 3;
+  string name = 4;
+  int32 level = 5;
+  double created_at = 6;
+  double last_login_at = 7;
+  bool online = 8;
+  bool banned = 9;
+  double banned_until = 10;
+  string ban_reason = 11;
+}
+
+// 各筛选的人数（带上其余筛选）。
+message PlayerCounts {
+  double all = 1;
+  double online = 2;
+  double banned = 3;
+}
+
+message PlayerPage {
+  repeated Player items = 1;
+  string next_cursor = 2;
+  double total = 3;
+  PlayerCounts summary = 4;
+}
+
+// 角色概览：取自游戏服务端已保存的数据。
+message Overview {
+  double exp = 1;
+  string sign = 2;
+  int32 birthday_month = 3;
+  int32 birthday_day = 4;
+  // 创建角色的时间
+  double register_at = 5;
+  double logout_at = 6;
+  double heroes = 7;
+  double pets = 8;
+  double achievements = 9;
+  double logins = 10;
+}
+
+// 玩家条目与概览；还没有角色时没有 overview。
+message PlayerDetail {
+  Player player = 1;
+  Overview overview = 2;
+}
+
+// 一次登录；还没登出时 logout_at 为 0。
+message Login {
+  double login_at = 1;
+  double logout_at = 2;
+  string remote_addr = 3;
+  string device_model = 4;
+  string os_version = 5;
+  string platform = 6;
+  string app_version = 7;
+}
+
+message LoginPage {
+  repeated Login items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}
+
+// 奖励：type 为奖励种类（游戏的 reward_type：英雄、普通道具、奇波、货币、蛋……），id 为该种类里的 ID。
+message Reward {
+  int32 type = 1;
+  int32 id = 2;
+  int32 num = 3;
+}
+
+// 道具或货币的持有数；dead_time 为最早的到期时间（0 为不到期）。
+message Item {
+  int32 type = 1;
+  int32 id = 2;
+  double num = 3;
+  double dead_time = 4;
+}
+
+message ItemPage {
+  repeated Item items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}
+
+// 英雄：id 为 hero 表 ID。
+message Hero {
+  int32 seq = 1;
+  int32 id = 2;
+  int32 level = 3;
+  int32 rank = 4;
+  int32 grade = 5;
+  int32 favor_level = 6;
+  int32 skin = 7;
+  double obtained_at = 8;
+}
+
+message HeroPage {
+  repeated Hero items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}
+
+// 奇波：id 为 pet 表 ID，name 为玩家起的名字（没有时为空）。
+message Pet {
+  int32 guid = 1;
+  int32 id = 2;
+  string name = 3;
+  int32 level = 4;
+  int32 rank = 5;
+  int32 star_stage = 6;
+  bool locked = 7;
+}
+
+message PetPage {
+  repeated Pet items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}
+
+// 邮箱里的邮件：expire_at 为到期时间（0 为不到期），global_id 为全服邮件 ID（0 为单独投递）。
+message Mail {
+  double guid = 1;
+  string sender = 2;
+  string title = 3;
+  string content = 4;
+  repeated Reward rewards = 5;
+  double created_at = 6;
+  double expire_at = 7;
+  bool read = 8;
+  bool claimed = 9;
+  bool favorite = 10;
+  double global_id = 11;
+}
+
+message MailPage {
+  repeated Mail items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}
+
+// ---------------- 操作结果 ----------------
+
+// 一项数值的变化：kind 为奖励种类的表名、resource_id 为该表里的 ID；counted 为 false 的种类（英雄、蛋等）没有持有数，只有发放数 delta。
+message ItemChange {
+  int32 type = 1;
+  int32 id = 2;
+  double delta = 3;
+  bool counted = 4;
+  double before = 5;
+  double after = 6;
+  string kind = 7;
+  string resource_id = 8;
+}
+
+// 对一名玩家的操作结果（按操作只有对应的字段）：changes 为道具变化；kicked 为是否踢下线；
+// until、reason 为封禁；removed 为是否解除了封禁；name 为改后的昵称。
+message OperationData {
+  repeated ItemChange changes = 1;
+  bool kicked = 2;
+  double until = 3;
+  string reason = 4;
+  bool removed = 5;
+  string name = 6;
+}
+
+// ---------------- 邮件补偿 ----------------
+
+// GM 邮件补偿的记录：target 为 all（全服，start_at 之前不投递，end_at 之后登录的玩家不再收到，0 为不限）或 players；
+// state 为 scheduled / sent / revoked；effect 为收到后的有效秒数（0 为不到期）。
+message GmMail {
+  string id = 1;
+  string target = 2;
+  repeated string pids = 3;
+  string sender = 4;
+  string title = 5;
+  string content = 6;
+  repeated Reward rewards = 7;
+  double effect = 8;
+  double start_at = 9;
+  double end_at = 10;
+  string state = 11;
+  double delivered = 12;
+  double failed = 13;
+  string operator = 14;
+  double created_at = 15;
+}
+
+message GmMailPage {
+  repeated GmMail items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}
+
+message MailFailure {
+  string pid = 1;
+  string code = 2;
+  string message = 3;
+}
+
+// 发送结果：targets 为指定玩家数（全服为注册账号数），failures 为投递失败的玩家。
+message SendMailResult {
+  GmMail mail = 1;
+  double targets = 2;
+  repeated MailFailure failures = 3;
+}
+
+// ---------------- 兑换码 ----------------
+
+// 兑换码批次：每个码最多 code_uses 次（0 不限），每名玩家每批只能兑换一次；兑换后发一封邮件。
+message CodeBatch {
+  string id = 1;
+  string name = 2;
+  string sender = 3;
+  string title = 4;
+  string content = 5;
+  repeated Reward rewards = 6;
+  double effect = 7;
+  double start_at = 8;
+  double end_at = 9;
+  int32 code_uses = 10;
+  int32 min_level = 11;
+  bool disabled = 12;
+  double codes = 13;
+  double used = 14;
+  double redeemed = 15;
+  string operator = 16;
+  double created_at = 17;
+}
+
+message CodeBatchPage {
+  repeated CodeBatch items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}
+
+message CreateCodesResult {
+  CodeBatch batch = 1;
+  repeated string codes = 2;
+}
+
+message Code {
+  string code = 1;
+  int32 used = 2;
+}
+
+message CodePage {
+  repeated Code items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}
+
+message Redemption {
+  string pid = 1;
+  string display_id = 2;
+  string name = 3;
+  string code = 4;
+  double redeemed_at = 5;
+}
+
+message RedemptionPage {
+  repeated Redemption items = 1;
+  string next_cursor = 2;
+  double total = 3;
+}

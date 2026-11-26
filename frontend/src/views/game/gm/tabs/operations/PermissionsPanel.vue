@@ -31,14 +31,14 @@
 
       <div v-for="row in rows" :key="row.command" class="gss__item" :class="{ 'is-open': expanded === row.command }">
         <div class="gss__row">
-          <span class="gss__avatar m-sticker" :class="row.enabled ? 'm-sticker--p' : ''" aria-hidden="true">{{ row.title.slice(0, 1) }}</span>
+          <span class="gss__avatar m-sticker" :class="row.enabled ? 'm-sticker--p' : ''" aria-hidden="true">{{ ctx.commandTitle(row.command, row.title).slice(0, 1) }}</span>
           <span class="gss__cmd">
-            <span class="gss__title">{{ row.title }}</span>
+            <span class="gss__title">{{ ctx.commandTitle(row.command, row.title) }}</span>
             <span v-if="row.group" class="gss__hint">{{ row.group }}</span>
           </span>
           <span class="gss__cell">
             <span v-if="isMobile" class="gss__cell-label">{{ t('gmOps.self.col.open') }}</span>
-            <AppSwitch :model-value="row.enabled" :aria-label="t('gmOps.self.openAria', { title: row.title })" @update:model-value="(v) => set(row, { enabled: v })" />
+            <AppSwitch :model-value="row.enabled" :aria-label="t('gmOps.self.openAria', { title: ctx.commandTitle(row.command, row.title) })" @update:model-value="(v) => set(row, { enabled: v })" />
           </span>
           <span class="gss__limits">
             <template v-if="row.enabled">
@@ -51,7 +51,7 @@
             <AppSwitch
               :model-value="row.needApproval"
               :disabled="!row.enabled"
-              :aria-label="t('gmOps.self.approvalAria', { title: row.title })"
+              :aria-label="t('gmOps.self.approvalAria', { title: ctx.commandTitle(row.command, row.title) })"
               @update:model-value="(v) => set(row, { needApproval: v })"
             />
           </span>
@@ -61,7 +61,7 @@
               icon="HOutline:ChevronRightIcon"
               class="gss__chev"
               :class="{ 'is-rot': expanded === row.command }"
-              :label="t('gmOps.self.editAria', { title: row.title })"
+              :label="t('gmOps.self.editAria', { title: ctx.commandTitle(row.command, row.title) })"
               :aria-expanded="expanded === row.command"
               @click="expanded = expanded === row.command ? '' : row.command"
             />

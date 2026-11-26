@@ -1,4 +1,4 @@
-<!-- 托管接入表单：运行节点（本机）、服务端目录（识别结果）、监听地址、资源服务器、开关。
+<!-- 托管接入表单：运行节点（本机）、服务端目录（识别结果）、监听地址（适配器给出的键）、资源服务器（驱动支持时）、开关。
      识别（预检）由父组件触发 detect()；识别出的监听地址、资源服务器与密钥状态回填表单。 -->
 <template>
   <div class="hf">
@@ -22,14 +22,14 @@
     </label>
     <div class="hf__field">
       <span>{{ t('gameServers.new.listens') }}</span>
-      <div class="hf__grid hf__grid--3">
-        <label v-for="k in ['grpc', 'http', 'mgp']" :key="k" class="hf__sub">
-          <small>{{ t(`gameServers.role.${k}`) }}</small>
+      <div class="hf__grid" :class="{ 'hf__grid--3': listenKeys.length % 3 === 0 }">
+        <label v-for="k in listenKeys" :key="k" class="hf__sub">
+          <small>{{ t(`gameServers.role.${k}`, k) }}</small>
           <UInput v-model="model.listens[k]" class="m-mono" :placeholder="detected?.listens?.[k] || 'host:port'" />
         </label>
       </div>
     </div>
-    <template v-if="model.resourceServer">
+    <template v-if="resource && model.resourceServer">
       <div class="hf__grid hf__grid--3">
         <label class="hf__sub">
           <small>{{ t('gameServers.role.resource') }}</small>
@@ -58,7 +58,7 @@
       <small>{{ keyHint }}</small>
     </div>
     <div class="hf__toggles">
-      <label class="hf__toggle" :class="{ 'is-disabled': !canResource }">
+      <label v-if="resource" class="hf__toggle" :class="{ 'is-disabled': !canResource }">
         <span>
           <b>{{ t('gameServers.new.tgResource') }}</b>
           <small>{{ canResource ? t('gameServers.new.tgResourceDesc') : t('gameServers.new.tgResourceMissing') }}</small>
@@ -98,7 +98,8 @@ import type { HostedDraft } from '../hosted'
 import MgpKeyGenerator from './MgpKeyGenerator.vue'
 
 const model = defineModel<HostedDraft>({ required: true })
-const props = defineProps<{ detected: DetectGameServerDirResponse | null; detecting?: boolean }>()
+// listenKeys：游戏服务端可填写的监听；resource：驱动能托管资源服务器
+const props = defineProps<{ detected: DetectGameServerDirResponse | null; detecting?: boolean; listenKeys: string[]; resource: boolean }>()
 const emit = defineEmits<{ detect: [] }>()
 const { t } = useI18n()
 

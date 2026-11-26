@@ -1,0 +1,325 @@
+syntax = "proto3";
+
+package v1.azurpromilia;
+
+option go_package = "momoko/api/gen/v1/azurpromilia;azurpromiliav1";
+
+import "google/api/annotations.proto";
+import "v1/game_gm.proto";
+import "v1/azurpromilia/types.proto";
+
+// 蓝色星原 GM（权限 game:gm）。每个查询与操作对应游戏服务端 MGP 的一个接口，筛选与分页由服务端完成。
+// 操作写 GM 记录（执行者为当前管理员）：dry_run 为试运行；对玩家的操作都可以同时作用于多名玩家（pids）。
+service AzurPromiliaGMService {
+  rpc GetManifest(ServerRequest) returns (Manifest) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/manifest"};
+  }
+  rpc GetStatus(ServerRequest) returns (Status) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/status"};
+  }
+  // 最近 days 天（含今天）的新增、活跃与在线峰值
+  rpc GetDailyStats(DailyStatsRequest) returns (DailyStats) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/stats/daily"};
+  }
+
+  // ---------------- 玩家 ----------------
+  rpc ListPlayers(ListPlayersRequest) returns (ListPlayersResponse) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players"};
+  }
+  rpc GetPlayer(PlayerRequest) returns (GetPlayerResponse) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}"};
+  }
+  rpc ListPlayerLogins(PageRequest) returns (LoginPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/logins"};
+  }
+  rpc ListPlayerItems(ListItemsRequest) returns (ItemPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/items"};
+  }
+  rpc ListPlayerCurrencies(PlayerRequest) returns (ItemPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/currencies"};
+  }
+  rpc ListPlayerHeroes(PageRequest) returns (HeroPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes"};
+  }
+  rpc ListPlayerPets(PageRequest) returns (PetPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets"};
+  }
+  rpc ListPlayerMails(PageRequest) returns (MailPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/mails"};
+  }
+
+  // ---------------- 对玩家的操作 ----------------
+  // 发放与扣除道具、货币（扣除只能是货币与普通道具，不足时这名玩家失败）
+  rpc AdjustItems(AdjustItemsRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/items/adjust", body: "*"};
+  }
+  rpc MailPlayers(MailPlayersRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/mail", body: "*"};
+  }
+  rpc KickPlayers(PlayersOperationRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/kick", body: "*"};
+  }
+  rpc BanPlayers(BanPlayersRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/ban", body: "*"};
+  }
+  rpc UnbanPlayers(PlayersOperationRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/unban", body: "*"};
+  }
+  rpc ResetPassword(ResetPasswordRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/password", body: "*"};
+  }
+  rpc RenamePlayer(RenamePlayerRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/rename", body: "*"};
+  }
+
+  // ---------------- 邮件补偿 ----------------
+  rpc ListMails(ListPageRequest) returns (GmMailPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/mails"};
+  }
+  rpc GetMail(IDRequest) returns (GmMail) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/mails/{id}"};
+  }
+  rpc SendMail(SendMailRequest) returns (SendMailResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/mails", body: "*"};
+  }
+  rpc RevokeMail(IDOperationRequest) returns (MailResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/mails/{id}/revoke", body: "*"};
+  }
+
+  // ---------------- 兑换码 ----------------
+  rpc ListCodeBatches(ListPageRequest) returns (CodeBatchPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/codes"};
+  }
+  rpc GetCodeBatch(IDRequest) returns (CodeBatch) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/codes/{id}"};
+  }
+  rpc CreateCodes(CreateCodesRequest) returns (CreateCodesResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/codes", body: "*"};
+  }
+  rpc SetCodeBatchDisabled(SetCodeBatchDisabledRequest) returns (CodeBatchResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/codes/{id}/disabled", body: "*"};
+  }
+  rpc ListBatchCodes(IDPageRequest) returns (CodePage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/codes/{id}/codes"};
+  }
+  rpc ListBatchRedemptions(IDPageRequest) returns (RedemptionPage) {
+    option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/codes/{id}/redemptions"};
+  }
+}
+
+message ServerRequest {
+  string server_id = 1;
+}
+
+message DailyStatsRequest {
+  string server_id = 1;
+  // 1–90，默认 14
+  int32 days = 2;
+}
+
+message PlayerRequest {
+  string server_id = 1;
+  string pid = 2;
+}
+
+message PageRequest {
+  string server_id = 1;
+  string pid = 2;
+  string cursor = 3;
+  int32 limit = 4;
+}
+
+message ListPlayersRequest {
+  string server_id = 1;
+  // 账号名或昵称的一部分、pid 或玩家 ID
+  string q = 2;
+  // all / online / banned
+  string filter = 3;
+  repeated string pids = 4;
+  repeated string exclude_pids = 5;
+  string cursor = 6;
+  // 默认 20，最大 100
+  int32 limit = 7;
+}
+
+message ListPlayersResponse {
+  repeated Player items = 1;
+  string next_cursor = 2;
+  double total = 3;
+  PlayerCounts summary = 4;
+  // 本页玩家绑定的通行证
+  repeated v1.GmPlayerLink links = 5;
+}
+
+message GetPlayerResponse {
+  Player player = 1;
+  Overview overview = 2;
+  // 绑定的通行证（没有为空）
+  v1.GmPlayerLink link = 3;
+  // 涉及该玩家的 GM 记录数
+  int32 gm_executions = 4;
+}
+
+message ListItemsRequest {
+  string server_id = 1;
+  string pid = 2;
+  // 只取这些道具 ID
+  repeated int32 ids = 3;
+  string cursor = 4;
+  int32 limit = 5;
+}
+
+message ListPageRequest {
+  string server_id = 1;
+  string q = 2;
+  string cursor = 3;
+  int32 limit = 4;
+}
+
+message IDRequest {
+  string server_id = 1;
+  string id = 2;
+}
+
+message IDPageRequest {
+  string server_id = 1;
+  string id = 2;
+  string cursor = 3;
+  int32 limit = 4;
+}
+
+message IDOperationRequest {
+  string server_id = 1;
+  string id = 2;
+  bool dry_run = 3;
+}
+
+message PlayersOperationRequest {
+  string server_id = 1;
+  // 1–200 名玩家
+  repeated string pids = 2;
+  bool dry_run = 3;
+}
+
+message AdjustItemsRequest {
+  string server_id = 1;
+  repeated string pids = 2;
+  repeated Reward grant = 3;
+  repeated Reward take = 4;
+  bool dry_run = 5;
+}
+
+// 邮件内容：effect 为收到后的有效秒数（0 为不到期）。
+message MailContent {
+  string sender = 1;
+  string title = 2;
+  string content = 3;
+  repeated Reward rewards = 4;
+  double effect = 5;
+}
+
+message MailPlayersRequest {
+  string server_id = 1;
+  repeated string pids = 2;
+  MailContent mail = 3;
+  bool dry_run = 4;
+}
+
+message BanPlayersRequest {
+  string server_id = 1;
+  repeated string pids = 2;
+  // 封禁到（Unix 毫秒），0 为永久
+  double until = 3;
+  // 游戏内显示的封禁原因
+  string reason = 4;
+  bool dry_run = 5;
+}
+
+message ResetPasswordRequest {
+  string server_id = 1;
+  repeated string pids = 2;
+  string password = 3;
+  bool dry_run = 4;
+}
+
+message RenamePlayerRequest {
+  string server_id = 1;
+  // 一名玩家
+  repeated string pids = 2;
+  string name = 3;
+  bool dry_run = 4;
+}
+
+message OperationTarget {
+  string pid = 1;
+  string name = 2;
+  // success / failed
+  string status = 3;
+  string code = 4;
+  string message = 5;
+}
+
+message OperationResult {
+  OperationTarget target = 1;
+  OperationData data = 2;
+}
+
+// 操作的响应：GM 记录与逐个玩家的结果（失败时没有 data）。
+message OperationResponse {
+  v1.GmExecution execution = 1;
+  repeated OperationResult results = 2;
+}
+
+message SendMailRequest {
+  string server_id = 1;
+  // all / players
+  string target = 2;
+  repeated string pids = 3;
+  MailContent mail = 4;
+  // 全服邮件：开始投递的时间与领取截止（Unix 毫秒，0 为立即 / 不限）
+  double start_at = 5;
+  double end_at = 6;
+  bool dry_run = 7;
+}
+
+message SendMailResponse {
+  v1.GmExecution execution = 1;
+  SendMailResult result = 2;
+}
+
+message MailResponse {
+  v1.GmExecution execution = 1;
+  GmMail mail = 2;
+}
+
+message CreateCodesRequest {
+  string server_id = 1;
+  string name = 2;
+  // 指定的码（通用码）；为空时生成 count 个码
+  repeated string codes = 3;
+  int32 count = 4;
+  // 每个码最多兑换次数（0 不限）
+  int32 code_uses = 5;
+  int32 min_level = 6;
+  double start_at = 7;
+  double end_at = 8;
+  MailContent mail = 9;
+  bool dry_run = 10;
+}
+
+message CreateCodesResponse {
+  v1.GmExecution execution = 1;
+  CreateCodesResult result = 2;
+}
+
+message SetCodeBatchDisabledRequest {
+  string server_id = 1;
+  string id = 2;
+  bool disabled = 3;
+  bool dry_run = 4;
+}
+
+message CodeBatchResponse {
+  v1.GmExecution execution = 1;
+  CodeBatch batch = 2;
+}

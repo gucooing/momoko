@@ -16,6 +16,8 @@ import (
 	"momoko/pkg/auth"
 	"momoko/pkg/constant"
 	"momoko/pkg/mgp"
+	"momoko/pkg/mgp/azurpromilia"
+	"momoko/pkg/mgp/gakumas"
 	"momoko/pkg/response"
 	"momoko/pkg/utils"
 )
@@ -39,15 +41,38 @@ type GameGMService struct {
 
 	gm      *biz.GmUsecase
 	gakumas *biz.GakumasUsecase
+	azur    *biz.AzurPromiliaUsecase
 	system  *biz.SystemUsecase
 }
 
-func NewGameGMService(gm *biz.GmUsecase, gakumas *biz.GakumasUsecase, system *biz.SystemUsecase) *GameGMService {
+func NewGameGMService(gm *biz.GmUsecase, gakumas *biz.GakumasUsecase, azur *biz.AzurPromiliaUsecase, system *biz.SystemUsecase) *GameGMService {
 	return &GameGMService{
 		gm:      gm,
 		gakumas: gakumas,
+		azur:    azur,
 		system:  system,
 	}
+}
+
+// gmGame 是服务器所属游戏的 GM 用例（审批重放与玩家自助设置按游戏分派）。
+type gmGame interface {
+	Approve(ctx context.Context, reviewer biz.GmActor, serverID, id, note string) (*v1.GmExecution, error)
+	SelfServicePolicies(ctx context.Context, serverID string) ([]*v1.GmSelfServicePolicy, error)
+	UpdateSelfService(ctx context.Context, actor biz.GmActor, req *v1.UpdateGmSelfServiceRequest) (*v1.GmSelfServicePolicy, error)
+}
+
+func (s *GameGMService) game(ctx context.Context, serverID string) (gmGame, error) {
+	srv, err := s.gm.Servers().Get(ctx, serverID)
+	if err != nil {
+		return nil, err
+	}
+	switch srv.Game {
+	case azurpromilia.ID:
+		return s.azur, nil
+	case gakumas.ID:
+		return s.gakumas, nil
+	}
+	return nil, biz.ErrGmGameUnsupported
 }
 
 func (s *GameGMService) SearchGmServers(ctx context.Context, req *v1.SearchGameServersRequest) (*v1.SearchGameServersResponse, error) {
@@ -79,7 +104,11 @@ func (s *GameGMService) ApproveGmExecution(ctx context.Context, req *v1.ApproveG
 	if err != nil {
 		return nil, err
 	}
-	return s.gakumas.Approve(ctx, actor, req.ServerId, req.Id, req.Note)
+	g, err := s.game(ctx, req.ServerId)
+	if err != nil {
+		return nil, err
+	}
+	return g.Approve(ctx, actor, req.ServerId, req.Id, req.Note)
 }
 
 func (s *GameGMService) RejectGmExecution(ctx context.Context, req *v1.RejectGmExecutionRequest) (*v1.GmExecution, error) {
@@ -91,7 +120,11 @@ func (s *GameGMService) RejectGmExecution(ctx context.Context, req *v1.RejectGmE
 }
 
 func (s *GameGMService) ListGmSelfService(ctx context.Context, req *v1.ListGmSelfServiceRequest) (*v1.ListGmSelfServiceResponse, error) {
-	items, err := s.gakumas.SelfServicePolicies(ctx, req.ServerId)
+	g, err := s.game(ctx, req.ServerId)
+	if err != nil {
+		return nil, err
+	}
+	items, err := g.SelfServicePolicies(ctx, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +144,11 @@ func (s *GameGMService) UpdateGmSelfService(ctx context.Context, req *v1.UpdateG
 	if err != nil {
 		return nil, err
 	}
-	return s.gakumas.UpdateSelfService(ctx, actor, req)
+	g, err := s.game(ctx, req.ServerId)
+	if err != nil {
+		return nil, err
+	}
+	return g.UpdateSelfService(ctx, actor, req)
 }
 
 func (s *GameGMService) ListGmClientLogs(ctx context.Context, req *v1.ListGmClientLogsRequest) (*v1.ListGmClientLogsResponse, error) {

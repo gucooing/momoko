@@ -2463,6 +2463,1123 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SendPassportEmailCodeResponse'
+    /api/v1/azurpromilia/games/{serverId}/currencies:
+        get:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_ListMyCurrencies
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.ItemPage'
+    /api/v1/azurpromilia/games/{serverId}/heroes:
+        get:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_ListMyHeroes
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.HeroPage'
+    /api/v1/azurpromilia/games/{serverId}/items:
+        get:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_ListMyItems
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.ItemPage'
+    /api/v1/azurpromilia/games/{serverId}/logins:
+        get:
+            tags:
+                - AzurPromiliaPassportService
+            description: 我的登录记录（按登录时间倒序）
+            operationId: AzurPromiliaPassportService_ListMyLogins
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.LoginPage'
+    /api/v1/azurpromilia/games/{serverId}/mails:
+        get:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_ListMyMails
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MailPage'
+    /api/v1/azurpromilia/games/{serverId}/pets:
+        get:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_ListMyPets
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.PetPage'
+    /api/v1/azurpromilia/games/{serverId}/player:
+        get:
+            tags:
+                - AzurPromiliaPassportService
+            description: 我的玩家条目与概览
+            operationId: AzurPromiliaPassportService_GetMyPlayer
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.PlayerDetail'
+    /api/v1/azurpromilia/games/{serverId}/self/ban:
+        post:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_BanMe
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SelfServiceBanRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MySelfServiceResponse'
+    /api/v1/azurpromilia/games/{serverId}/self/items:
+        post:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_AdjustMyItems
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SelfServiceItemsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MySelfServiceResponse'
+    /api/v1/azurpromilia/games/{serverId}/self/kick:
+        post:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_KickMe
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SelfServiceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MySelfServiceResponse'
+    /api/v1/azurpromilia/games/{serverId}/self/mail:
+        post:
+            tags:
+                - AzurPromiliaPassportService
+            description: '---------------- 自助操作（目标都是我绑定的游戏账号） ----------------'
+            operationId: AzurPromiliaPassportService_MailMe
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SelfServiceMailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MySelfServiceResponse'
+    /api/v1/azurpromilia/games/{serverId}/self/password:
+        post:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_SetMyPassword
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SelfServicePasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MySelfServiceResponse'
+    /api/v1/azurpromilia/games/{serverId}/self/rename:
+        post:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_RenameMe
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SelfServiceRenameRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MySelfServiceResponse'
+    /api/v1/azurpromilia/games/{serverId}/self/unban:
+        post:
+            tags:
+                - AzurPromiliaPassportService
+            operationId: AzurPromiliaPassportService_UnbanMe
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SelfServiceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MySelfServiceResponse'
+    /api/v1/azurpromilia/gm/{serverId}/codes:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            description: '---------------- 兑换码 ----------------'
+            operationId: AzurPromiliaGMService_ListCodeBatches
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: q
+                  in: query
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.CodeBatchPage'
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_CreateCodes
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.CreateCodesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.CreateCodesResponse'
+    /api/v1/azurpromilia/gm/{serverId}/codes/{id}:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_GetCodeBatch
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.CodeBatch'
+    /api/v1/azurpromilia/gm/{serverId}/codes/{id}/codes:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ListBatchCodes
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.CodePage'
+    /api/v1/azurpromilia/gm/{serverId}/codes/{id}/disabled:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_SetCodeBatchDisabled
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SetCodeBatchDisabledRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.CodeBatchResponse'
+    /api/v1/azurpromilia/gm/{serverId}/codes/{id}/redemptions:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ListBatchRedemptions
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.RedemptionPage'
+    /api/v1/azurpromilia/gm/{serverId}/mails:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            description: '---------------- 邮件补偿 ----------------'
+            operationId: AzurPromiliaGMService_ListMails
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: q
+                  in: query
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.GmMailPage'
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_SendMail
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SendMailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.SendMailResponse'
+    /api/v1/azurpromilia/gm/{serverId}/mails/{id}:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_GetMail
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.GmMail'
+    /api/v1/azurpromilia/gm/{serverId}/mails/{id}/revoke:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_RevokeMail
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.IDOperationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MailResponse'
+    /api/v1/azurpromilia/gm/{serverId}/manifest:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_GetManifest
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.Manifest'
+    /api/v1/azurpromilia/gm/{serverId}/players:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            description: '---------------- 玩家 ----------------'
+            operationId: AzurPromiliaGMService_ListPlayers
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: q
+                  in: query
+                  description: 账号名或昵称的一部分、pid 或玩家 ID
+                  schema:
+                    type: string
+                - name: filter
+                  in: query
+                  description: all / online / banned
+                  schema:
+                    type: string
+                - name: pids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: excludePids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  description: 默认 20，最大 100
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.ListPlayersResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/ban:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_BanPlayers
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.BanPlayersRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/items/adjust:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            description: |-
+                ---------------- 对玩家的操作 ----------------
+                 发放与扣除道具、货币（扣除只能是货币与普通道具，不足时这名玩家失败）
+            operationId: AzurPromiliaGMService_AdjustItems
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.AdjustItemsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/kick:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_KickPlayers
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.PlayersOperationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/mail:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_MailPlayers
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.MailPlayersRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/password:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ResetPassword
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.ResetPasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/rename:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_RenamePlayer
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.RenamePlayerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/unban:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_UnbanPlayers
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.PlayersOperationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_GetPlayer
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.GetPlayerResponse'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}/currencies:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ListPlayerCurrencies
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.ItemPage'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}/heroes:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ListPlayerHeroes
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.HeroPage'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}/items:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ListPlayerItems
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: ids
+                  in: query
+                  description: 只取这些道具 ID
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.ItemPage'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}/logins:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ListPlayerLogins
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.LoginPage'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}/mails:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ListPlayerMails
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.MailPage'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}/pets:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_ListPlayerPets
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: cursor
+                  in: query
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.PetPage'
+    /api/v1/azurpromilia/gm/{serverId}/stats/daily:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            description: 最近 days 天（含今天）的新增、活跃与在线峰值
+            operationId: AzurPromiliaGMService_GetDailyStats
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: days
+                  in: query
+                  description: 1–90，默认 14
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.DailyStats'
+    /api/v1/azurpromilia/gm/{serverId}/status:
+        get:
+            tags:
+                - AzurPromiliaGMService
+            operationId: AzurPromiliaGMService_GetStatus
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.Status'
     /api/v1/bind:
         post:
             tags:
@@ -16200,7 +17317,7 @@ components:
                     type: object
                     additionalProperties:
                         type: string
-                    description: 配置里的监听地址（grpc / http / mgp）与资源服务器默认监听
+                    description: 配置里的监听地址（键见适配器进程角色的 listens）与资源服务器默认监听
                 hasResourceServer:
                     type: boolean
                     description: 资源服务器：是否找到可执行文件、默认 origin 与数据目录
@@ -18565,6 +19682,11 @@ components:
                 optional:
                     type: boolean
                     description: 是否可选（可不托管）
+                listens:
+                    type: array
+                    items:
+                        type: string
+                    description: 这个进程在服务端配置里的监听（键，接入时可填写；如学マス grpc / http / mgp）
             description: 托管进程角色的定义（适配器给出）。
         v1.GameMail:
             type: object
@@ -18940,7 +20062,7 @@ components:
                     type: object
                     additionalProperties:
                         type: string
-                    description: 写入配置的监听地址：grpc / http / mgp
+                    description: 写入配置的监听地址（键见适配器进程角色的 listens）
                 resourceServer:
                     type: boolean
                     description: 同时托管资源服务器，及其监听、origin 与数据目录
@@ -28650,6 +29772,1016 @@ components:
                     type: string
                     description: 累计主缺页次数
             description: 虚拟内存实时状态
+        v1.azurpromilia.AdjustItemsRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                pids:
+                    type: array
+                    items:
+                        type: string
+                grant:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+                take:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.BanPlayersRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                pids:
+                    type: array
+                    items:
+                        type: string
+                until:
+                    type: number
+                    description: 封禁到（Unix 毫秒），0 为永久
+                    format: double
+                reason:
+                    type: string
+                    description: 游戏内显示的封禁原因
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.Code:
+            type: object
+            properties:
+                code:
+                    type: string
+                used:
+                    type: integer
+                    format: int32
+        v1.azurpromilia.CodeBatch:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                sender:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+                effect:
+                    type: number
+                    format: double
+                startAt:
+                    type: number
+                    format: double
+                endAt:
+                    type: number
+                    format: double
+                codeUses:
+                    type: integer
+                    format: int32
+                minLevel:
+                    type: integer
+                    format: int32
+                disabled:
+                    type: boolean
+                codes:
+                    type: number
+                    format: double
+                used:
+                    type: number
+                    format: double
+                redeemed:
+                    type: number
+                    format: double
+                operator:
+                    type: string
+                createdAt:
+                    type: number
+                    format: double
+            description: 兑换码批次：每个码最多 code_uses 次（0 不限），每名玩家每批只能兑换一次；兑换后发一封邮件。
+        v1.azurpromilia.CodeBatchPage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.CodeBatch'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.CodeBatchResponse:
+            type: object
+            properties:
+                execution:
+                    $ref: '#/components/schemas/v1.GmExecution'
+                batch:
+                    $ref: '#/components/schemas/v1.azurpromilia.CodeBatch'
+        v1.azurpromilia.CodePage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Code'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.CreateCodesRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                name:
+                    type: string
+                codes:
+                    type: array
+                    items:
+                        type: string
+                    description: 指定的码（通用码）；为空时生成 count 个码
+                count:
+                    type: integer
+                    format: int32
+                codeUses:
+                    type: integer
+                    description: 每个码最多兑换次数（0 不限）
+                    format: int32
+                minLevel:
+                    type: integer
+                    format: int32
+                startAt:
+                    type: number
+                    format: double
+                endAt:
+                    type: number
+                    format: double
+                mail:
+                    $ref: '#/components/schemas/v1.azurpromilia.MailContent'
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.CreateCodesResponse:
+            type: object
+            properties:
+                execution:
+                    $ref: '#/components/schemas/v1.GmExecution'
+                result:
+                    $ref: '#/components/schemas/v1.azurpromilia.CreateCodesResult'
+        v1.azurpromilia.CreateCodesResult:
+            type: object
+            properties:
+                batch:
+                    $ref: '#/components/schemas/v1.azurpromilia.CodeBatch'
+                codes:
+                    type: array
+                    items:
+                        type: string
+        v1.azurpromilia.DailyStat:
+            type: object
+            properties:
+                day:
+                    type: string
+                newAccounts:
+                    type: number
+                    format: double
+                active:
+                    type: number
+                    format: double
+                onlinePeak:
+                    type: integer
+                    format: int32
+                onlinePeakAt:
+                    type: number
+                    format: double
+            description: 服务器一天的统计：day 为服务器时区的日期 yyyy-mm-dd，active 为当天登录过的账号数。
+        v1.azurpromilia.DailyStats:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.DailyStat'
+        v1.azurpromilia.DatabaseStatus:
+            type: object
+            properties:
+                migration:
+                    type: integer
+                    format: int32
+        v1.azurpromilia.GetPlayerResponse:
+            type: object
+            properties:
+                player:
+                    $ref: '#/components/schemas/v1.azurpromilia.Player'
+                overview:
+                    $ref: '#/components/schemas/v1.azurpromilia.Overview'
+                link:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.GmPlayerLink'
+                    description: 绑定的通行证（没有为空）
+                gmExecutions:
+                    type: integer
+                    description: 涉及该玩家的 GM 记录数
+                    format: int32
+        v1.azurpromilia.GmMail:
+            type: object
+            properties:
+                id:
+                    type: string
+                target:
+                    type: string
+                pids:
+                    type: array
+                    items:
+                        type: string
+                sender:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+                effect:
+                    type: number
+                    format: double
+                startAt:
+                    type: number
+                    format: double
+                endAt:
+                    type: number
+                    format: double
+                state:
+                    type: string
+                delivered:
+                    type: number
+                    format: double
+                failed:
+                    type: number
+                    format: double
+                operator:
+                    type: string
+                createdAt:
+                    type: number
+                    format: double
+            description: |-
+                GM 邮件补偿的记录：target 为 all（全服，start_at 之前不投递，end_at 之后登录的玩家不再收到，0 为不限）或 players；
+                 state 为 scheduled / sent / revoked；effect 为收到后的有效秒数（0 为不到期）。
+        v1.azurpromilia.GmMailPage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.GmMail'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.Health:
+            type: object
+            properties:
+                name:
+                    type: string
+                ok:
+                    type: boolean
+                detail:
+                    type: string
+                latencyMs:
+                    type: number
+                    format: double
+        v1.azurpromilia.Hero:
+            type: object
+            properties:
+                seq:
+                    type: integer
+                    format: int32
+                id:
+                    type: integer
+                    format: int32
+                level:
+                    type: integer
+                    format: int32
+                rank:
+                    type: integer
+                    format: int32
+                grade:
+                    type: integer
+                    format: int32
+                favorLevel:
+                    type: integer
+                    format: int32
+                skin:
+                    type: integer
+                    format: int32
+                obtainedAt:
+                    type: number
+                    format: double
+            description: 英雄：id 为 hero 表 ID。
+        v1.azurpromilia.HeroPage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Hero'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.IDOperationRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                id:
+                    type: string
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.Item:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    format: int32
+                id:
+                    type: integer
+                    format: int32
+                num:
+                    type: number
+                    format: double
+                deadTime:
+                    type: number
+                    format: double
+            description: 道具或货币的持有数；dead_time 为最早的到期时间（0 为不到期）。
+        v1.azurpromilia.ItemChange:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    format: int32
+                id:
+                    type: integer
+                    format: int32
+                delta:
+                    type: number
+                    format: double
+                counted:
+                    type: boolean
+                before:
+                    type: number
+                    format: double
+                after:
+                    type: number
+                    format: double
+                kind:
+                    type: string
+                resourceId:
+                    type: string
+            description: 一项数值的变化：kind 为奖励种类的表名、resource_id 为该表里的 ID；counted 为 false 的种类（英雄、蛋等）没有持有数，只有发放数 delta。
+        v1.azurpromilia.ItemPage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Item'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.ListPlayersResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Player'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+                summary:
+                    $ref: '#/components/schemas/v1.azurpromilia.PlayerCounts'
+                links:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.GmPlayerLink'
+                    description: 本页玩家绑定的通行证
+        v1.azurpromilia.Login:
+            type: object
+            properties:
+                loginAt:
+                    type: number
+                    format: double
+                logoutAt:
+                    type: number
+                    format: double
+                remoteAddr:
+                    type: string
+                deviceModel:
+                    type: string
+                osVersion:
+                    type: string
+                platform:
+                    type: string
+                appVersion:
+                    type: string
+            description: 一次登录；还没登出时 logout_at 为 0。
+        v1.azurpromilia.LoginPage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Login'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.Mail:
+            type: object
+            properties:
+                guid:
+                    type: number
+                    format: double
+                sender:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+                createdAt:
+                    type: number
+                    format: double
+                expireAt:
+                    type: number
+                    format: double
+                read:
+                    type: boolean
+                claimed:
+                    type: boolean
+                favorite:
+                    type: boolean
+                globalId:
+                    type: number
+                    format: double
+            description: 邮箱里的邮件：expire_at 为到期时间（0 为不到期），global_id 为全服邮件 ID（0 为单独投递）。
+        v1.azurpromilia.MailContent:
+            type: object
+            properties:
+                sender:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+                effect:
+                    type: number
+                    format: double
+            description: 邮件内容：effect 为收到后的有效秒数（0 为不到期）。
+        v1.azurpromilia.MailFailure:
+            type: object
+            properties:
+                pid:
+                    type: string
+                code:
+                    type: string
+                message:
+                    type: string
+        v1.azurpromilia.MailPage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Mail'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.MailPlayersRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                pids:
+                    type: array
+                    items:
+                        type: string
+                mail:
+                    $ref: '#/components/schemas/v1.azurpromilia.MailContent'
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.MailResponse:
+            type: object
+            properties:
+                execution:
+                    $ref: '#/components/schemas/v1.GmExecution'
+                mail:
+                    $ref: '#/components/schemas/v1.azurpromilia.GmMail'
+        v1.azurpromilia.Manifest:
+            type: object
+            properties:
+                protocol:
+                    type: integer
+                    format: int32
+                game:
+                    $ref: '#/components/schemas/v1.azurpromilia.ManifestGame'
+                server:
+                    $ref: '#/components/schemas/v1.azurpromilia.ManifestServer'
+        v1.azurpromilia.ManifestGame:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                theme:
+                    type: string
+                icon:
+                    type: string
+        v1.azurpromilia.ManifestServer:
+            type: object
+            properties:
+                version:
+                    type: string
+                    description: 服务端构建版本
+                resource:
+                    $ref: '#/components/schemas/v1.azurpromilia.ResourceVersion'
+        v1.azurpromilia.MySelfServiceResponse:
+            type: object
+            properties:
+                result:
+                    $ref: '#/components/schemas/v1.azurpromilia.SelfServiceResult'
+                data:
+                    $ref: '#/components/schemas/v1.azurpromilia.OperationData'
+            description: 自助操作的响应（失败与待审批时没有 data）。
+        v1.azurpromilia.OperationData:
+            type: object
+            properties:
+                changes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.ItemChange'
+                kicked:
+                    type: boolean
+                until:
+                    type: number
+                    format: double
+                reason:
+                    type: string
+                removed:
+                    type: boolean
+                name:
+                    type: string
+            description: |-
+                对一名玩家的操作结果（按操作只有对应的字段）：changes 为道具变化；kicked 为是否踢下线；
+                 until、reason 为封禁；removed 为是否解除了封禁；name 为改后的昵称。
+        v1.azurpromilia.OperationResponse:
+            type: object
+            properties:
+                execution:
+                    $ref: '#/components/schemas/v1.GmExecution'
+                results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.OperationResult'
+            description: 操作的响应：GM 记录与逐个玩家的结果（失败时没有 data）。
+        v1.azurpromilia.OperationResult:
+            type: object
+            properties:
+                target:
+                    $ref: '#/components/schemas/v1.azurpromilia.OperationTarget'
+                data:
+                    $ref: '#/components/schemas/v1.azurpromilia.OperationData'
+        v1.azurpromilia.OperationTarget:
+            type: object
+            properties:
+                pid:
+                    type: string
+                name:
+                    type: string
+                status:
+                    type: string
+                    description: success / failed
+                code:
+                    type: string
+                message:
+                    type: string
+        v1.azurpromilia.Overview:
+            type: object
+            properties:
+                exp:
+                    type: number
+                    format: double
+                sign:
+                    type: string
+                birthdayMonth:
+                    type: integer
+                    format: int32
+                birthdayDay:
+                    type: integer
+                    format: int32
+                registerAt:
+                    type: number
+                    description: 创建角色的时间
+                    format: double
+                logoutAt:
+                    type: number
+                    format: double
+                heroes:
+                    type: number
+                    format: double
+                pets:
+                    type: number
+                    format: double
+                achievements:
+                    type: number
+                    format: double
+                logins:
+                    type: number
+                    format: double
+            description: 角色概览：取自游戏服务端已保存的数据。
+        v1.azurpromilia.Pet:
+            type: object
+            properties:
+                guid:
+                    type: integer
+                    format: int32
+                id:
+                    type: integer
+                    format: int32
+                name:
+                    type: string
+                level:
+                    type: integer
+                    format: int32
+                rank:
+                    type: integer
+                    format: int32
+                starStage:
+                    type: integer
+                    format: int32
+                locked:
+                    type: boolean
+            description: 奇波：id 为 pet 表 ID，name 为玩家起的名字（没有时为空）。
+        v1.azurpromilia.PetPage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Pet'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.Player:
+            type: object
+            properties:
+                pid:
+                    type: string
+                displayId:
+                    type: string
+                account:
+                    type: string
+                name:
+                    type: string
+                level:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: number
+                    format: double
+                lastLoginAt:
+                    type: number
+                    format: double
+                online:
+                    type: boolean
+                banned:
+                    type: boolean
+                bannedUntil:
+                    type: number
+                    format: double
+                banReason:
+                    type: string
+            description: |-
+                玩家条目：pid 为账号 ID，display_id 为游戏内显示的玩家 ID（创角前为空）；
+                 封禁中时 banned 为 true，banned_until 为解封时间（0 为永久）。
+        v1.azurpromilia.PlayerCounts:
+            type: object
+            properties:
+                all:
+                    type: number
+                    format: double
+                online:
+                    type: number
+                    format: double
+                banned:
+                    type: number
+                    format: double
+            description: 各筛选的人数（带上其余筛选）。
+        v1.azurpromilia.PlayerDetail:
+            type: object
+            properties:
+                player:
+                    $ref: '#/components/schemas/v1.azurpromilia.Player'
+                overview:
+                    $ref: '#/components/schemas/v1.azurpromilia.Overview'
+            description: 玩家条目与概览；还没有角色时没有 overview。
+        v1.azurpromilia.PlayersOperationRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                pids:
+                    type: array
+                    items:
+                        type: string
+                    description: 1–200 名玩家
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.Redemption:
+            type: object
+            properties:
+                pid:
+                    type: string
+                displayId:
+                    type: string
+                name:
+                    type: string
+                code:
+                    type: string
+                redeemedAt:
+                    type: number
+                    format: double
+        v1.azurpromilia.RedemptionPage:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Redemption'
+                nextCursor:
+                    type: string
+                total:
+                    type: number
+                    format: double
+        v1.azurpromilia.RenamePlayerRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                pids:
+                    type: array
+                    items:
+                        type: string
+                    description: 一名玩家
+                name:
+                    type: string
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.ResetPasswordRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                pids:
+                    type: array
+                    items:
+                        type: string
+                password:
+                    type: string
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.ResourceVersion:
+            type: object
+            properties:
+                releaseHot:
+                    type: string
+                    description: 客户端热更新版本
+        v1.azurpromilia.Reward:
+            type: object
+            properties:
+                type:
+                    type: integer
+                    format: int32
+                id:
+                    type: integer
+                    format: int32
+                num:
+                    type: integer
+                    format: int32
+            description: 奖励：type 为奖励种类（游戏的 reward_type：英雄、普通道具、奇波、货币、蛋……），id 为该种类里的 ID。
+        v1.azurpromilia.SelfServiceBanRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                reason:
+                    type: string
+                totpCode:
+                    type: string
+                until:
+                    type: number
+                    description: 封禁到（Unix 毫秒），0 为永久
+                    format: double
+        v1.azurpromilia.SelfServiceItemsRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                reason:
+                    type: string
+                totpCode:
+                    type: string
+                grant:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+                take:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+        v1.azurpromilia.SelfServiceMailRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                reason:
+                    type: string
+                totpCode:
+                    type: string
+                title:
+                    type: string
+                content:
+                    type: string
+                rewards:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Reward'
+        v1.azurpromilia.SelfServicePasswordRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                reason:
+                    type: string
+                totpCode:
+                    type: string
+                password:
+                    type: string
+        v1.azurpromilia.SelfServiceRenameRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                reason:
+                    type: string
+                totpCode:
+                    type: string
+                name:
+                    type: string
+        v1.azurpromilia.SelfServiceRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                reason:
+                    type: string
+                totpCode:
+                    type: string
+            description: 自助操作的共同字段：reason 为申请理由（需要审批时给管理员看），totp_code 为两步验证码。
+        v1.azurpromilia.SelfServiceResult:
+            type: object
+            properties:
+                recordId:
+                    type: string
+                status:
+                    type: string
+                errorCode:
+                    type: string
+                errorMessage:
+                    type: string
+            description: 自助操作的处理情况：record_id 为 GM 记录，status 为 success / failed / pending（待审批）。
+        v1.azurpromilia.SendMailRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                target:
+                    type: string
+                    description: all / players
+                pids:
+                    type: array
+                    items:
+                        type: string
+                mail:
+                    $ref: '#/components/schemas/v1.azurpromilia.MailContent'
+                startAt:
+                    type: number
+                    description: 全服邮件：开始投递的时间与领取截止（Unix 毫秒，0 为立即 / 不限）
+                    format: double
+                endAt:
+                    type: number
+                    format: double
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.SendMailResponse:
+            type: object
+            properties:
+                execution:
+                    $ref: '#/components/schemas/v1.GmExecution'
+                result:
+                    $ref: '#/components/schemas/v1.azurpromilia.SendMailResult'
+        v1.azurpromilia.SendMailResult:
+            type: object
+            properties:
+                mail:
+                    $ref: '#/components/schemas/v1.azurpromilia.GmMail'
+                targets:
+                    type: number
+                    format: double
+                failures:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.MailFailure'
+            description: 发送结果：targets 为指定玩家数（全服为注册账号数），failures 为投递失败的玩家。
+        v1.azurpromilia.SetCodeBatchDisabledRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                id:
+                    type: string
+                disabled:
+                    type: boolean
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.Status:
+            type: object
+            properties:
+                online:
+                    type: integer
+                    format: int32
+                onlinePeak:
+                    type: integer
+                    format: int32
+                onlinePeakAt:
+                    type: number
+                    format: double
+                registered:
+                    type: number
+                    format: double
+                newToday:
+                    type: number
+                    format: double
+                activeToday:
+                    type: number
+                    format: double
+                uptimeSeconds:
+                    type: number
+                    format: double
+                now:
+                    type: number
+                    format: double
+                version:
+                    type: string
+                resource:
+                    $ref: '#/components/schemas/v1.azurpromilia.ResourceVersion'
+                database:
+                    $ref: '#/components/schemas/v1.azurpromilia.DatabaseStatus'
+                health:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.azurpromilia.Health'
+            description: 实时状态：在线为已读档的玩家数；峰值、注册、今日新增与活跃取服务端的统计表。
         v1.gakumas.AddExpRequest:
             type: object
             properties:
@@ -31197,6 +33329,14 @@ tags:
          会话里的对话事件走 WebSocket（/api/v1/agent/ws），这里只有一元接口；发起一轮的接口立刻返回。
     - name: AuthService
       description: 认证服务
+    - name: AzurPromiliaGMService
+      description: |-
+        蓝色星原 GM（权限 game:gm）。每个查询与操作对应游戏服务端 MGP 的一个接口，筛选与分页由服务端完成。
+         操作写 GM 记录（执行者为当前管理员）：dry_run 为试运行；对玩家的操作都可以同时作用于多名玩家（pids）。
+    - name: AzurPromiliaPassportService
+      description: |-
+        蓝色星原 用户通行证的游戏空间：玩家只能查看与操作自己绑定的游戏账号（pid 由 Momoko 按绑定决定）。只注册在用户通行证 server 上。
+         自助操作按管理端「玩家权限」设置的规则执行（开放、次数、审批）；高风险操作在开启两步验证时需要 totp_code。
     - name: DockerManager
       description: Docker管理
     - name: FileManager

@@ -133,7 +133,15 @@
               </div>
             </div>
 
-            <HostedForm v-if="mode === 'hosted'" v-model="hosted" :detected="detected" :detecting="checking" @detect="runCheck" />
+            <HostedForm
+              v-if="mode === 'hosted'"
+              v-model="hosted"
+              :detected="detected"
+              :detecting="checking"
+              :listen-keys="listenKeys"
+              :resource="hostedResource"
+              @detect="runCheck"
+            />
 
             <div v-else class="gsn__remote">
               <label class="gsn__field">
@@ -200,7 +208,7 @@ import CheckList from '../components/CheckList.vue'
 import HostedForm from '../components/HostedForm.vue'
 import MgpKeyGenerator from '../components/MgpKeyGenerator.vue'
 import TagInput from '../components/TagInput.vue'
-import { applyDetection, detectListens, emptyHostedDraft, toHostedSpec } from '../hosted'
+import { applyDetection, detectListens, emptyHostedDraft, mainListenKeys, toHostedSpec } from '../hosted'
 import type { PillVariant } from '../shared'
 import type { MgpKey } from '../mgpKey'
 
@@ -217,6 +225,8 @@ const step = ref(0)
 const game = ref('')
 const mode = ref<'' | 'hosted' | 'remote'>('')
 const adapter = computed(() => available.value.find((a) => a.id === game.value))
+const listenKeys = computed(() => mainListenKeys(adapter.value))
+const hostedResource = computed(() => !!adapter.value?.capabilities.some((c) => c.key === 'resource' && c.enabled))
 const modeOk = computed(() => !!mode.value && !!adapter.value?.modes.includes(mode.value))
 const name = ref('')
 const tags = ref<string[]>([])
@@ -268,6 +278,10 @@ const chooseMode = (m: 'hosted' | 'remote') => {
 watch([game, mode], () => {
   checks.value = []
   detected.value = null
+})
+// 监听的键随游戏不同：换游戏时清空已填的监听
+watch(game, () => {
+  hosted.value.listens = {}
 })
 // 换步骤时回到页面顶部
 watch(step, () => document.querySelector('.app-content')?.scrollTo({ top: 0, behavior: 'smooth' }))
@@ -347,7 +361,7 @@ const runCheck = async () => {
       const first = !detected.value || detected.value.installDir !== data.installDir
       detected.value = data
       checks.value = data.checks ?? []
-      applyDetection(hosted.value, data, first)
+      applyDetection(hosted.value, data, first, listenKeys.value)
     } else {
       if (!remoteKey.value) {
         fb.warning(t('gameServers.key.needGenerate'))

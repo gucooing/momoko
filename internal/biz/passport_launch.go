@@ -15,10 +15,8 @@ import (
 	"github.com/google/uuid"
 
 	v1 "momoko/api/gen/v1"
-	gk "momoko/api/gen/v1/gakumas"
 	"momoko/internal/data/ent/gen"
 	"momoko/pkg/mgp"
-	"momoko/pkg/mgp/gakumas"
 )
 
 // 启动器：游戏客户端（PC 启动器、Android APK）用通行证进入游戏，用客户端应用 ID 指明目标服务器。
@@ -252,18 +250,19 @@ func (uc *PassportUsecase) CreateLaunchAccount(ctx context.Context, userID, appI
 	}
 	l, err := uc.createLink(ctx, u, s, p, PassportBindCreate)
 	if err != nil {
-		uc.log.Errorf("launch: game account %s created on server %s but not linked to passport user %s: %v", p.GetPid(), s.ID, u.ID, err)
+		uc.log.Errorf("launch: game account %s created on server %s but not linked to passport user %s: %v", p.Pid, s.ID, u.ID, err)
 		return nil, err
 	}
 	return uc.linkProto(ctx, l, map[string]*gen.GameServer{s.ID: s}, uc.selfServiceCounts(ctx)), nil
 }
 
-// createGameAccount 调用游戏的 MGP 接口新建一个游戏账号，返回它的玩家条目。
-func createGameAccount(ctx context.Context, s *gen.GameServer, client *mgp.Client, operator string) (*gk.Player, error) {
-	if s.Game != gakumas.ID {
+// createGameAccount 经游戏的通行证驱动新建一个游戏账号，返回它的玩家条目。
+func createGameAccount(ctx context.Context, s *gen.GameServer, client *mgp.Client, operator string) (*GamePlayer, error) {
+	driver, ok := passportDriverOf(s.Game)
+	if !ok {
 		return nil, ErrPassportBindUnsupported
 	}
-	p, err := gakumas.New(client).CreateAccount(ctx, mgp.OperationOptions{
+	p, err := driver.CreateAccount(ctx, client, mgp.OperationOptions{
 		Operator:       operator,
 		IdempotencyKey: "passport-" + uuid.NewString(),
 	})
@@ -273,7 +272,7 @@ func createGameAccount(ctx context.Context, s *gen.GameServer, client *mgp.Clien
 		}
 		return nil, GameMGPError(err)
 	}
-	if p.GetPid() == "" {
+	if p.Pid == "" {
 		return nil, ErrPassportGameUnavailable
 	}
 	return p, nil

@@ -4,6 +4,7 @@ import (
 	nethttp "net/http"
 
 	"momoko/api/gen/v1"
+	azurpromiliav1 "momoko/api/gen/v1/azurpromilia"
 	gakumasv1 "momoko/api/gen/v1/gakumas"
 
 	"momoko/internal/conf"
@@ -40,6 +41,7 @@ func NewHTTPServer(c *conf.Server,
 	gameServerApi *service.GameServerService,
 	gameGMApi *service.GameGMService,
 	gakumasGMApi *service.GakumasGMService,
+	azurGMApi *service.AzurPromiliaGMService,
 	gameOpsApi *service.GameOpsService,
 	passportAdminApi *service.PassportAdminService,
 	agentApi *service.AgentService,
@@ -98,6 +100,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterGameServerServiceHTTPServer(srv, gameServerApi)
 	v1.RegisterGameGMServiceHTTPServer(srv, gameGMApi)
 	gakumasv1.RegisterGakumasGMServiceHTTPServer(srv, gakumasGMApi)
+	azurpromiliav1.RegisterAzurPromiliaGMServiceHTTPServer(srv, azurGMApi)
 	v1.RegisterGameOpsServiceHTTPServer(srv, gameOpsApi)
 	v1.RegisterPassportAdminServiceHTTPServer(srv, passportAdminApi)
 	v1.RegisterAgentServiceHTTPServer(srv, agentApi)

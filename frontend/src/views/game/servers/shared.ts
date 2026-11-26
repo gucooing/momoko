@@ -146,6 +146,9 @@ export const checkText = (t: Translate, te: Te, c: GameServerCheck): { title: st
     case 'tokenSecret':
       desc = t('gameServers.check.tokenSecret', params)
       break
+    case 'momokoApp':
+      desc = t(c.state === 'ok' ? 'gameServers.check.momokoAppOk' : 'gameServers.check.momokoAppPending', params)
+      break
     case 'resourceServer':
       desc = t('gameServers.check.resourceServerOk', params)
       break

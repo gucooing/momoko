@@ -31,6 +31,8 @@ var ProviderSet = wire.NewSet(
 	NewPassportUsecase,
 	NewPassportAdminUsecase,
 	NewGakumasPassportUsecase,
+	NewAzurPromiliaPassportUsecase,
+	NewAzurPromiliaUsecase,
 	NewAgentUsecase,
 	NewMcpUsecase,
 )

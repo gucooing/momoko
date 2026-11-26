@@ -3,7 +3,7 @@
 export default {
   'zh-CN': {
     game: {
-      adapters: { gakumas: '学園アイドルマスター' },
+      adapters: { gakumas: '学園アイドルマスター', azurpromilia: '蓝色星原：旅谣' },
       unnamed: '未命名',
       picker: {
         placeholder: '选择服务器',
@@ -102,7 +102,7 @@ export default {
   },
   'zh-HK': {
     game: {
-      adapters: { gakumas: '学園アイドルマスター' },
+      adapters: { gakumas: '学園アイドルマスター', azurpromilia: '藍色星原：旅謠' },
       unnamed: '未命名',
       picker: {
         placeholder: '選擇伺服器',
@@ -201,7 +201,7 @@ export default {
   },
   'en-US': {
     game: {
-      adapters: { gakumas: "Gakuen iDOLM{'@'}STER" },
+      adapters: { gakumas: "Gakuen iDOLM{'@'}STER", azurpromilia: 'Azur Promilia' },
       unnamed: 'Unnamed',
       picker: {
         placeholder: 'Choose a server',

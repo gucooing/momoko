@@ -268,14 +268,14 @@
           </span>
           <AppSwitch v-model="host.autoRestart" :aria-label="t('gameServers.new.tgAutoRestart')" />
         </label>
-        <label class="cn__toggle">
+        <label v-if="canResource" class="cn__toggle">
           <span>
             <b>{{ t('gameServers.new.tgResource') }}</b>
             <small>{{ t('gameServers.new.tgResourceDesc') }}</small>
           </span>
           <AppSwitch v-model="host.resourceServer" :aria-label="t('gameServers.new.tgResource')" />
         </label>
-        <div v-if="host.resourceServer" class="cn__grid">
+        <div v-if="canResource && host.resourceServer" class="cn__grid">
           <label class="cn__field">
             <span>{{ t('gameServers.role.resource') }}</span>
             <UInput v-model="host.resourceListen" class="m-mono" placeholder="host:port" />
@@ -323,7 +323,7 @@
     <!-- 弹窗：改为托管 -->
     <FormDialog v-model="hostedOpen" :title="t('gameServers.connection.switchHostedTitle')" :width="760" :loading="switching" @confirm="switchToHosted">
       <div class="cn__dialog">
-        <HostedForm v-model="draft" :detected="detected" :detecting="detecting" @detect="detect" />
+        <HostedForm v-model="draft" :detected="detected" :detecting="detecting" :listen-keys="listenKeys" :resource="canResource" @detect="detect" />
         <CheckList v-if="detected?.checks.length" :checks="detected.checks" />
       </div>
     </FormDialog>
@@ -358,7 +358,7 @@ import type {
 } from '@/types/v1/game_server'
 import CheckList from '../../components/CheckList.vue'
 import HostedForm from '../../components/HostedForm.vue'
-import { applyDetection, detectListens, emptyHostedDraft, toHostedSpec } from '../../hosted'
+import { applyDetection, detectListens, emptyHostedDraft, mainListenKeys, toHostedSpec } from '../../hosted'
 import { fmtAgo, type PillVariant } from '../../shared'
 import type { MgpKey } from '../../mgpKey'
 import MgpKeyGenerator from '../../components/MgpKeyGenerator.vue'
@@ -377,6 +377,8 @@ const hosted = computed(() => mode.value === 'hosted')
 const canHosted = computed(() => !!props.adapter?.modes.includes('hosted'))
 const canRemote = computed(() => !!props.adapter?.modes.includes('remote'))
 const clientLaunch = computed(() => !!props.adapter?.clientLaunch)
+const listenKeys = computed(() => mainListenKeys(props.adapter))
+const canResource = computed(() => !!props.adapter?.capabilities.some((c) => c.key === 'resource' && c.enabled))
 const serverVisibility = computed<Visibility>(() =>
   (VISIBILITY as readonly string[]).includes(props.server.passportVisibility) ? (props.server.passportVisibility as Visibility) : 'public',
 )
@@ -772,7 +774,7 @@ const detect = async () => {
     })
     const first = !detected.value || detected.value.installDir !== data.installDir
     detected.value = data
-    applyDetection(draft.value, data, first)
+    applyDetection(draft.value, data, first, listenKeys.value)
   } catch (e) {
     fb.error(getRequestErrorMessage(e, t('gameServers.common.failed')))
   } finally {

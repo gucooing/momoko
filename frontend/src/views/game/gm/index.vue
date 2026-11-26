@@ -23,6 +23,22 @@
         <AppIconButton icon="HOutline:ArrowPathIcon" :label="t('gm.shell.refresh')" :box="32" @click="ctx.refresh()" />
       </div>
 
+      <template v-if="isAzur">
+        <EmptyState
+          v-if="ctx.error.value"
+          icon="HOutline:ExclamationTriangleIcon"
+          :title="t('gm.shell.loadFailed')"
+          :description="ctx.error.value"
+        />
+        <EmptyState
+          v-else-if="!ctx.server.value?.mgpConfigured"
+          icon="HOutline:SignalIcon"
+          :title="t('gm.shell.noMgpTitle')"
+          :description="t('gm.shell.noMgpDesc')"
+        />
+        <AzurGm v-else :key="serverId" />
+      </template>
+      <template v-else>
       <!-- 子导航一行，放不下时横向滑动：不显示滚动条，滚轮在上面就是横滑；切换标签时当前标签滚到看得见的地方 -->
       <nav v-if="tabs.length" ref="tabsEl" class="gm__tabs" :aria-label="t('gm.shell.tabsLabel')" @wheel="onTabsWheel">
         <RouterLink
@@ -61,6 +77,7 @@
       <KeepAlive v-else-if="current">
         <component :is="currentView" :key="`${serverId}:${current.key}`" />
       </KeepAlive>
+      </template>
     </template>
 
     <EmptyState
@@ -82,6 +99,7 @@ import type { GameServerBrief } from '@/types/v1/game_common'
 import GameServerPicker from '../components/GameServerPicker.vue'
 import { provideGmContext } from './context'
 import { GM_TABS, gmTabView } from './tabs'
+import AzurGm from './azurpromilia/AzurGm.vue'
 
 defineOptions({ name: 'GameGmView' })
 
@@ -128,7 +146,9 @@ const switchServer = (s: GameServerBrief | undefined) => {
   void router.push({ path: `/game/gm/${encodeURIComponent(s.id)}`, query: { tab: current.value?.key } })
 }
 
-const tabs = computed(() => GM_TABS.filter((tab) => gmTabView(tab.key) && tab.visible(ctx)))
+// 蓝色星原的 GM 页面自成一套（./azurpromilia），学マス 用下面的标签。
+const isAzur = computed(() => ctx.server.value?.game === 'azurpromilia')
+const tabs = computed(() => (isAzur.value ? [] : GM_TABS.filter((tab) => gmTabView(tab.key) && tab.visible(ctx))))
 const current = computed(() => {
   const wanted = typeof route.query.tab === 'string' ? route.query.tab : ''
   return tabs.value.find((tab) => tab.key === wanted) || tabs.value[0]
@@ -157,8 +177,9 @@ const subline = computed(() => {
   const s = ctx.server.value
   if (!s) return ''
   const parts = [t(`game.server.mode.${s.mode}`)]
-  if (ctx.status.value) parts.push(t('game.server.online', { n: ctx.status.value.online }))
-  parts.push(ctx.status.value ? t('gm.shell.mgpOk') : ctx.statusError.value ? t('gm.shell.mgpDown') : t('gm.shell.mgpUnknown'))
+  const live = ctx.status.value || ctx.azurStatus.value
+  if (live) parts.push(t('game.server.online', { n: live.online }))
+  parts.push(live ? t('gm.shell.mgpOk') : ctx.statusError.value ? t('gm.shell.mgpDown') : t('gm.shell.mgpUnknown'))
   return parts.join(' · ')
 })
 </script>

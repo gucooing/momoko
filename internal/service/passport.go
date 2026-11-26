@@ -16,6 +16,8 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/biz"
 	"momoko/internal/conf"
+	"momoko/pkg/mgp/azurpromilia"
+	"momoko/pkg/mgp/gakumas"
 	"momoko/pkg/passporttoken"
 	"momoko/pkg/response"
 )
@@ -26,13 +28,15 @@ type PassportService struct {
 
 	uc      *biz.PassportUsecase
 	gakumas *biz.GakumasPassportUsecase
+	azur    *biz.AzurPromiliaPassportUsecase
 	conf    *conf.Passport
 }
 
-func NewPassportService(uc *biz.PassportUsecase, gakumas *biz.GakumasPassportUsecase, c *conf.Passport) *PassportService {
+func NewPassportService(uc *biz.PassportUsecase, gakumas *biz.GakumasPassportUsecase, azur *biz.AzurPromiliaPassportUsecase, c *conf.Passport) *PassportService {
 	return &PassportService{
 		uc:      uc,
 		gakumas: gakumas,
+		azur:    azur,
 		conf:    c,
 	}
 }
@@ -391,7 +395,17 @@ func (s *PassportService) ListPassportSelfService(ctx context.Context, req *v1.P
 	if err != nil {
 		return nil, err
 	}
-	return s.gakumas.SelfService(ctx, c.UserID, req.ServerId)
+	srv, err := s.uc.Servers().Get(ctx, req.ServerId)
+	if err != nil {
+		return nil, err
+	}
+	switch srv.Game {
+	case azurpromilia.ID:
+		return s.azur.SelfService(ctx, c.UserID, req.ServerId)
+	case gakumas.ID:
+		return s.gakumas.SelfService(ctx, c.UserID, req.ServerId)
+	}
+	return nil, biz.ErrGmGameUnsupported
 }
 
 func (s *PassportService) ListPassportGameRequests(ctx context.Context, req *v1.ListPassportGameRecordsRequest) (*v1.ListPassportGameRecordsResponse, error) {

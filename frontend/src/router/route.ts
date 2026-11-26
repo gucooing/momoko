@@ -96,6 +96,13 @@ export const staticRoutes = [
         meta: { title: 'GM 运营', titleKey: 'theme.routes.gameGm', icon: 'HOutline:SparklesIcon', keepAlive: true },
       },
       {
+        // 蓝色星原玩家详情：/game/gm/:serverId/azurpromilia/players/:pid?tab=…
+        path: '/game/gm/:serverId/azurpromilia/players/:pid',
+        name: 'GameGmAzurPlayerView',
+        component: gameView('gm/azurpromilia/player'),
+        meta: { title: '玩家详情', titleKey: 'theme.routes.gameGmPlayer', icon: 'HOutline:UserIcon', keepAlive: true },
+      },
+      {
         // 玩家详情：/game/gm/:serverId/players/:pid?tab=…
         path: '/game/gm/:serverId/players/:pid',
         name: 'GameGmPlayerView',

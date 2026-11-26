@@ -25,6 +25,8 @@ var ProviderSet = wire.NewSet(
 	NewGameGMService,
 	NewGakumasGMService,
 	NewGakumasPassportService,
+	NewAzurPromiliaPassportService,
+	NewAzurPromiliaGMService,
 	NewGameOpsService,
 	NewPassportService,
 	NewPassportAdminService,

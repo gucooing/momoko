@@ -15,11 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"google.golang.org/protobuf/types/known/timestamppb"
-
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
-	"momoko/pkg/gobuild"
 	"momoko/pkg/jsondoc"
 	"momoko/pkg/netprobe"
 )
@@ -70,8 +67,8 @@ func (g *gakumasHosting) Capabilities() []string {
 func (g *gakumasHosting) Spec() GameHostingSpec {
 	return GameHostingSpec{
 		Roles: []*v1.GameAdapterRole{
-			{Key: "main", Executable: "gakumas-server"},
-			{Key: "resource", Executable: "resource-server", Optional: true},
+			{Key: "main", Executable: "gakumas-server", Listens: []string{"grpc", "http", "mgp"}},
+			{Key: "resource", Executable: "resource-server", Optional: true, Listens: []string{"resource"}},
 		},
 		ConfigFile:  gakumasConfigFile,
 		LogModules:  gakumasLogModules,
@@ -87,33 +84,14 @@ func (g *gakumasHosting) Describe(ctx context.Context, s *gen.GameServer, info *
 	g.h.describe(ctx, s, info)
 }
 
-// gameHostLayout 托管服务器在磁盘上的布局（从服务端配置读出）。
-type gameHostLayout struct {
-	Dir        string
-	ConfigFile string
-	ConfigPath string
-	Doc        *jsondoc.Object
-	Listens    map[string]string // grpc / http / mgp
-	MGPKeyID   string
-	MGPSecret  string
-	DataDir    string
-	ResDir     string
-	LogDir     string
-	LogFile    bool
-	DBDriver   string
-	DBPath     string // sqlite 绝对路径
-	SaveTimout int
-	Executable string
-	ResExe     string
-	ResOrigin  string // 配置里的 resource_server_url
-}
-
-// relPath 相对配置所在目录解析（与 config.Load 一致）。
-func (l *gameHostLayout) relPath(p string) string {
-	if p == "" || filepath.IsAbs(p) {
-		return p
+func (g *gakumasHosting) configKeys() gameHostConfigKeys {
+	return gameHostConfigKeys{
+		MGPKeyID:        "mgp.key_id",
+		MGPSecret:       "mgp.secret",
+		MomokoURL:       "momoko.url",
+		MomokoAppID:     "momoko.app_id",
+		MomokoAppSecret: "momoko.app_secret",
 	}
-	return filepath.Join(filepath.Dir(l.ConfigPath), p)
 }
 
 func docString(doc *jsondoc.Object, path, def string) string {
@@ -186,23 +164,16 @@ func (g *gakumasHosting) fillLayout(l *gameHostLayout, doc *jsondoc.Object) {
 	if l.DBDriver == "sqlite" {
 		l.DBPath = l.relPath(docString(doc, "database.path", "./gakumas.sqlite"))
 	}
-	l.SaveTimout = docInt(doc, "game.save_timeout_seconds", 15)
+	l.Probes = []gameHostProbe{
+		{Key: "grpc", Network: "tcp", Listen: l.Listens["grpc"]},
+		{Key: "http", Network: "tcp", Listen: l.Listens["http"]},
+	}
+	l.BackupDirs = []string{l.DataDir}
+	// 停服时保存全部玩家，单次落库期限是 game.save_timeout_seconds
+	l.StopTimeout = docInt(doc, "game.save_timeout_seconds", 15) + 15
 	l.Executable = filepath.Join(l.Dir, exeName("gakumas-server"))
 	l.ResExe = filepath.Join(l.Dir, exeName("resource-server"))
 	l.ResOrigin = docString(doc, "resource_server_url", "")
-}
-
-// mgpEndpoint 托管服务器的 MGP 地址（监听 0.0.0.0 时经本机回环访问）。
-func (l *gameHostLayout) mgpEndpoint() string {
-	if l.MGPKeyID == "" {
-		return ""
-	}
-	return "http://" + netprobe.DialAddr(l.Listens["mgp"])
-}
-
-// stopTimeout 停止超时：服务端停服时保存全部玩家，单次落库期限是 game.save_timeout_seconds。
-func (l *gameHostLayout) stopTimeout() int {
-	return l.SaveTimout + 15
 }
 
 // resourceRoot 资源服务器的默认数据目录：从服务端目录向上找到含 server/go.mod 的项目根，取其中的 resource。
@@ -219,52 +190,12 @@ func gakumasResourceRoot(dir string) string {
 
 // checkBuild 读取一个服务端可执行文件的构建信息并确认它是学マス 服务端。
 func (g *gakumasHosting) checkBuild(path string) *v1.GameServerBuildInfo {
-	out := &v1.GameServerBuildInfo{Path: path}
-	st, err := os.Stat(path)
-	if err != nil {
-		out.Error = "not_found"
-		return out
-	}
-	if st.IsDir() {
-		out.Error = "is_directory"
-		return out
-	}
-	out.Exists = true
-	out.Size = st.Size()
-	out.ModifiedAt = timestamppb.New(st.ModTime())
-	info, err := gobuild.Read(path)
-	if err != nil {
-		out.Error = "not_go_binary"
-		return out
-	}
-	out.GoVersion = info.GoVersion
-	out.Module = info.Module
-	out.VcsRevision = info.VCSRevision
-	if !info.VCSTime.IsZero() {
-		out.VcsTime = timestamppb.New(info.VCSTime)
-	}
-	out.Version = info.Var(gakumasVersionVar)
-	if info.Module != gakumasModule || info.MainPath != gakumasMainPath {
-		out.Error = "wrong_module"
-		return out
-	}
-	out.Valid = true
-	return out
+	return checkGoBuild(path, gakumasModule, gakumasMainPath, gakumasVersionVar)
 }
 
 // resolveBuildPath 候选构建：目录时取其中的服务端可执行文件；相对路径相对服务端目录。
 func (g *gakumasHosting) resolveBuildPath(dir, path string) string {
-	path = strings.TrimSpace(path)
-	if path == "" {
-		return ""
-	}
-	if !filepath.IsAbs(path) {
-		path = filepath.Join(dir, filepath.FromSlash(path))
-	}
-	if st, err := os.Stat(path); err == nil && st.IsDir() {
-		return filepath.Join(path, exeName("gakumas-server"))
-	}
-	return filepath.Clean(path)
+	return resolveExecutablePath(dir, path, "gakumas-server")
 }
 
 func countFiles(dir, ext string) (int, error) {
@@ -319,39 +250,14 @@ func (g *gakumasHosting) detect(ctx context.Context, dir, configFile string, lis
 		return out, nil
 	}
 	// 可执行文件与版本
-	build := g.checkBuild(filepath.Join(dir, exeName("gakumas-server")))
-	out.Build = build
-	if build.Valid {
-		out.Checks = append(out.Checks, hostCheck("executable", "ok", map[string]string{"file": filepath.Base(build.Path), "version": build.Version, "size": strconv.FormatInt(build.Size, 10)}, nil))
-	} else {
-		out.Checks = append(out.Checks, &v1.GameServerCheck{Key: "executable", State: "fail", Params: map[string]string{"file": filepath.Base(build.Path)}, ErrorCode: build.Error})
-	}
+	out.Build = g.checkBuild(filepath.Join(dir, exeName("gakumas-server")))
+	out.Checks = append(out.Checks, executableCheck(out.Build))
 	// 配置：优先指定的，其次 config.json，没有时从 config.example.json 复制
-	if configFile == "" {
-		configFile = gakumasConfigFile
-	}
-	out.ConfigFile = configFile
-	l := &gameHostLayout{Dir: dir, ConfigFile: configFile, ConfigPath: filepath.Join(dir, configFile)}
-	raw, err := os.ReadFile(l.ConfigPath)
-	if err == nil {
-		out.ConfigExists = true
-	} else if errors.Is(err, os.ErrNotExist) {
-		if tpl, terr := os.ReadFile(filepath.Join(dir, gakumasTemplate)); terr == nil {
-			raw, err = tpl, nil
-			out.ConfigTemplate = gakumasTemplate
-		}
-	}
-	if err != nil {
-		out.Checks = append(out.Checks, hostCheck("config", "fail", map[string]string{"file": configFile}, err))
-		return out, nil
-	}
-	doc, err := jsondoc.Parse(raw)
-	if err != nil {
-		out.Checks = append(out.Checks, hostCheck("config", "fail", map[string]string{"file": configFile}, err))
+	l, doc, ok := detectConfig(out, dir, configFile, gakumasConfigFile, gakumasTemplate)
+	if !ok {
 		return out, nil
 	}
 	g.fillLayout(l, doc)
-	out.Checks = append(out.Checks, hostCheck("config", "ok", map[string]string{"file": configFile, "template": out.ConfigTemplate}, nil))
 	// 数据库
 	switch l.DBDriver {
 	case "sqlite":
@@ -457,12 +363,7 @@ func (g *gakumasHosting) detect(ctx context.Context, dir, configFile string, lis
 			}
 		}
 	}
-	out.Ok = true
-	for _, c := range out.Checks {
-		if c.State == "fail" {
-			out.Ok = false
-		}
-	}
+	out.Ok = checksOK(out.Checks)
 	return out, nil
 }
 
@@ -473,18 +374,7 @@ func (g *gakumasHosting) configure(dir string, spec *v1.GameServerHostedSpec, ke
 		configFile = gakumasConfigFile
 	}
 	path := filepath.Join(dir, configFile)
-	raw, err := os.ReadFile(path)
-	if errors.Is(err, os.ErrNotExist) {
-		tpl := spec.ConfigTemplate
-		if tpl == "" {
-			tpl = gakumasTemplate
-		}
-		raw, err = os.ReadFile(filepath.Join(dir, filepath.Base(tpl)))
-	}
-	if err != nil {
-		return nil, err
-	}
-	doc, err := jsondoc.Parse(raw)
+	doc, err := readConfigOrTemplate(dir, path, firstNonEmpty(spec.ConfigTemplate, gakumasTemplate))
 	if err != nil {
 		return nil, err
 	}
@@ -585,15 +475,6 @@ func sortHostNames(s []string) {
 	}
 }
 
-// gakumasProcess 一个进程的启动定义。
-type gameHostProcess struct {
-	Role        string
-	Command     string
-	StopCommand string
-	StopTimeout int
-	Listens     map[string]string
-}
-
 func quoteArg(s string) string {
 	if strings.ContainsAny(s, " \t\"") {
 		return `"` + strings.ReplaceAll(s, `"`, `\"`) + `"`
@@ -611,7 +492,7 @@ func (g *gakumasHosting) processes(l *gameHostLayout, opts *gameHostingOptions) 
 		Role:        "main",
 		Command:     exeName("gakumas-server") + " -config " + quoteArg(l.ConfigFile),
 		StopCommand: ctrlC,
-		StopTimeout: l.stopTimeout(),
+		StopTimeout: l.StopTimeout,
 		Listens:     map[string]string{"grpc": l.Listens["grpc"], "http": l.Listens["http"], "mgp": l.Listens["mgp"]},
 	}}
 	if opts.ResourceServer {

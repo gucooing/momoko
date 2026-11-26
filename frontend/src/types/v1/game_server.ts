@@ -27,6 +27,8 @@ export interface GameAdapterRole {
   executable: string;
   /** 是否可选（可不托管） */
   optional: boolean;
+  /** 这个进程在服务端配置里的监听（键，接入时可填写；如学マス grpc / http / mgp） */
+  listens: string[];
 }
 
 /** 游戏适配器（随 Momoko 版本内置）。 */
@@ -223,7 +225,7 @@ export interface GameServerHostedSpec {
   /** 配置文件（相对服务端目录；不存在时从 config_template 复制） */
   configFile: string;
   configTemplate: string;
-  /** 写入配置的监听地址：grpc / http / mgp */
+  /** 写入配置的监听地址（键见适配器进程角色的 listens） */
   listens: { [key: string]: string };
   /** 同时托管资源服务器，及其监听、origin 与数据目录 */
   resourceServer: boolean;
@@ -349,7 +351,7 @@ export interface DetectGameServerDirResponse {
   configTemplate: string;
   /** 检查项：executable / config / database / resources / data / resourceServer / mirror / mgpKey / tokenSecret / port:<role> */
   checks: GameServerCheck[];
-  /** 配置里的监听地址（grpc / http / mgp）与资源服务器默认监听 */
+  /** 配置里的监听地址（键见适配器进程角色的 listens）与资源服务器默认监听 */
   listens: { [key: string]: string };
   /** 资源服务器：是否找到可执行文件、默认 origin 与数据目录 */
   hasResourceServer: boolean;

@@ -75,6 +75,14 @@ func ResponseError(err error) error {
 	return response.BadRequest(e.Code + ": " + e.Message)
 }
 
+// 各游戏 MGP 共用的错误码。
+const (
+	// CodeCredentialsInvalid 账号或密码错误。
+	CodeCredentialsInvalid = "CREDENTIALS_INVALID"
+	// CodePlayerNotFound 玩家不存在。
+	CodePlayerNotFound = "PLAYER_NOT_FOUND"
+)
+
 // IsUnreachable 判断错误是否为连接不上游戏服务端（网络错误、超时）。
 func IsUnreachable(err error) bool {
 	var e *Error

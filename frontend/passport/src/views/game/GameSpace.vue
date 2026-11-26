@@ -80,7 +80,7 @@
         <PButton v-else :icon="ArrowPathIcon" @click="load">{{ t('game.retry') }}</PButton>
       </PEmpty>
       <PEmpty
-        v-else-if="data && !player"
+        v-else-if="data && !player && !azPlayer"
         :icon="SignalSlashIcon"
         :title="t('game.playerError.title')"
         :description="t('game.playerError.desc', { code: playerError || data.playerError || '—' })"
@@ -92,6 +92,7 @@
           <component :is="tabComponent" :key="tab" />
         </KeepAlive>
       </div>
+      <AzurSpace v-else-if="data && azPlayer" :key="serverId" :server-id="serverId" :server-name="server?.name || ''" :detail="azPlayer" />
     </div>
 
     <PDialog v-model="switchOpen" :title="t('game.hero.switchTitle')" :width="440">
@@ -147,6 +148,7 @@ import PDialog from '@passport/components/PDialog.vue'
 import PEmpty from '@passport/components/PEmpty.vue'
 import { getGame } from '@passport/api/passport'
 import * as gk from '@passport/api/gakumas'
+import * as azur from '@passport/api/azurpromilia'
 import { PassportError } from '@passport/api/request'
 import { useUiStore } from '@passport/stores/ui'
 import { errorText, fmtNum } from '@passport/utils/format'
@@ -156,6 +158,8 @@ import type { GakumasMode } from '@/games/gakumas/modes'
 import { imageDataUrl } from '@/games/gakumas/display'
 import type { PlayerGame } from '@/types/v1/gakumas/passport'
 import type { PlayerDetail as MyPlayer } from '@/types/v1/gakumas/types'
+import type { PlayerDetail as AzurPlayer } from '@/types/v1/azurpromilia/types'
+import AzurSpace from './azurpromilia/AzurSpace.vue'
 import { createCatalogs, idolCardArt, modeTitleOf, provideGameContext, type GameTab } from './context'
 import GameHomeTab from './GameHomeTab.vue'
 import GameCardsTab from './GameCardsTab.vue'
@@ -173,6 +177,8 @@ const data = ref<PassportGameResponse | null>(null)
 // 游戏模块的数据：玩法与我的玩家条目
 const playerGame = ref<PlayerGame | null>(null)
 const me = ref<MyPlayer | null>(null)
+// 蓝色星原：我的玩家条目与概览
+const azPlayer = ref<AzurPlayer | null>(null)
 const playerError = ref('')
 const loading = ref(false)
 const loadError = ref<unknown>(null)
@@ -188,7 +194,9 @@ const player = computed<PlayerDetail | null>(() =>
 )
 const overview = computed(() => player.value?.overview ?? null)
 const timezone = computed(() => data.value?.timezone || '')
-const level = computed(() => overview.value?.level ?? player.value?.level ?? link.value?.level ?? 0)
+const level = computed(
+  () => overview.value?.level ?? player.value?.level ?? azPlayer.value?.player?.level ?? link.value?.level ?? 0,
+)
 const notLinked = computed(() => loadError.value instanceof PassportError && loadError.value.code === 'PASSPORT_LINK_NOT_FOUND')
 const ready = computed(() => !!data.value && !!player.value && !loadError.value)
 
@@ -270,23 +278,32 @@ async function load() {
     const space = await getGame(id)
     let game: PlayerGame | null = null
     let mine: MyPlayer | null = null
+    let azMine: AzurPlayer | null = null
     let mineError = ''
     if (space.server?.game === 'gakumas') {
       const [g, p] = await Promise.allSettled([gk.getGame(id), gk.getMyPlayer(id)])
       if (g.status === 'fulfilled') game = g.value
       if (p.status === 'fulfilled') mine = p.value
       else mineError = p.reason instanceof PassportError ? p.reason.code : String(p.reason)
+    } else if (space.server?.game === 'azurpromilia') {
+      try {
+        azMine = await azur.getMyPlayer(id)
+      } catch (e) {
+        mineError = e instanceof PassportError ? e.code : String(e)
+      }
     }
     if (serverId.value !== id) return
     data.value = space
     playerGame.value = game
     me.value = mine
+    azPlayer.value = azMine?.player ? azMine : null
     playerError.value = mineError
   } catch (e) {
     loadError.value = e
     data.value = null
     playerGame.value = null
     me.value = null
+    azPlayer.value = null
   } finally {
     loading.value = false
   }
