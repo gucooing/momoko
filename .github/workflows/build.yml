@@ -127,6 +127,22 @@ jobs:
           path: frontend/dist-passport
           if-no-files-found: error
 
+      - name: Package game assets
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          (cd frontend/dist-games && zip -q -r -0 "../../release/${APP_NAME}_${VERSION}_games.zip" .)
+
+      - name: Upload game assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ needs.prepare.outputs.version }}-games
+          path: release/*.zip
+          if-no-files-found: error
+
   binaries:
     name: Build ${{ matrix.target }}
     runs-on: ubuntu-latest

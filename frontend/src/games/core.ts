@@ -1,4 +1,5 @@
-// 游戏素材：图片是前端自带的静态文件（scripts/games/<game>/ 导出到 public/games/<game>/），从不向游戏服务端取图。
+// 游戏素材：图片由 scripts/games/<game>/ 导出到 public/games/<game>/，从不向游戏服务端取图。
+// 图片不随 Momoko 打包，浏览器从系统设置 · 储存 · 游戏素材地址直接取（<地址>/<game>/<group>/<name>.<hash>.webp）。
 //
 // 按需加载，不一次性全部加载：
 // - 图片不进 Vite 的模块图，文件名带内容哈希（<name>.<hash>.webp），可以长期缓存；
@@ -11,24 +12,40 @@ import placeholder from './placeholder.svg?url'
 type GroupIndex = Record<string, string>
 
 interface AssetPack {
-  /** 图片目录（带部署前缀），例如 /games/gakumas/ */
-  base: string
   /** 分组索引的加载函数，键为 ./<game>/assets/<group 中的 / 换成 ->.json */
   loaders: Record<string, () => Promise<GroupIndex>>
 }
 
 const indexLoaders = import.meta.glob<GroupIndex>('./*/assets/*.json', { import: 'default' })
 
-const base = `${import.meta.env.BASE_URL || '/'}games/`.replace(/\/{2,}/g, '/')
-
 const packs: Record<string, AssetPack> = {}
 for (const [path, loader] of Object.entries(indexLoaders)) {
   const m = /^\.\/([^/]+)\/assets\/([^/]+)\.json$/.exec(path)
   if (!m) continue
   const [, game, file] = m as unknown as [string, string, string]
-  packs[game] ??= { base: `${base}${game}/`, loaders: {} }
+  packs[game] ??= { loaders: {} }
   packs[game].loaders[file] = loader
 }
+
+const devBase = import.meta.env.DEV ? `${import.meta.env.BASE_URL || '/'}games/`.replace(/\/{2,}/g, '/') : ''
+
+const toBase = (url?: string | null): string => {
+  const u = (url || '').trim().replace(/\/+$/, '')
+  return u ? `${u}/` : devBase
+}
+
+// undefined = 还没拿到配置，'' = 没有素材
+const asset = reactive<{ base: string | undefined }>({ base: undefined })
+let resolveBase: () => void
+const baseReady = new Promise<void>((r) => (resolveBase = r))
+
+/** 空串：开发环境用 dev server 的 public/games/，正式环境不显示游戏图片。 */
+export function setGameAssetBase(url?: string | null) {
+  asset.base = toBase(url)
+  resolveBase()
+}
+
+const fileUrl = (base: string, game: string, group: string, name: string, hash: string) => `${base}${game}/${group}/${name}.${hash}.webp`
 
 // 已加载的分组索引（响应式：加载完成后，渲染时读过它的组件会重新渲染）。
 const loaded = reactive(new Map<string, GroupIndex>())
@@ -69,15 +86,17 @@ export function loadGameAssetGroup(game: string, group: string): Promise<GroupIn
 function lookup(game: string, key: string): string | undefined | null {
   const parts = splitKey(key)
   const pack = packs[game]
-  if (!parts || !pack) return undefined
+  const base = asset.base
+  if (!parts || !pack || base === '') return undefined
   const [group, name] = parts
   const index = loaded.get(`${game}:${group}`)
   if (!index) {
     void loadGameAssetGroup(game, group)
     return null // 索引加载中
   }
+  if (base === undefined) return null
   const hash = index[name]
-  return hash ? `${pack.base}${group}/${name}.${hash}.webp` : undefined
+  return hash ? fileUrl(base, game, group, name, hash) : undefined
 }
 
 /** 占位图 URL（素材包里没有的 key，或分组索引还在加载）。 */
@@ -103,11 +122,43 @@ export interface GameAssetEntry {
  * 只加载这个分组的索引；prefix 可进一步按名称前缀过滤。图片本身由选择器按需显示。
  */
 export async function listGameAssets(game: string, group: string, prefix = ''): Promise<GameAssetEntry[]> {
-  const pack = packs[game]
-  const index = await loadGameAssetGroup(game, group)
-  if (!pack || !index) return []
+  const [index] = await Promise.all([loadGameAssetGroup(game, group), baseReady])
+  const base = asset.base
+  if (!packs[game] || !index) return []
   return Object.keys(index)
     .filter((name) => name.startsWith(prefix))
     .sort()
-    .map((name) => ({ key: `${group}/${name}`, url: `${pack.base}${group}/${name}.${index[name]}.webp` }))
+    .map((name) => ({ key: `${group}/${name}`, url: base ? fileUrl(base, game, group, name, index[name]!) : placeholder }))
+}
+
+export interface GameAssetProbe {
+  game: string
+  url: string
+  ok: boolean
+}
+
+/** 每个游戏试取一张图（用 <img>，不需要对象存储开跨域）。 */
+export async function probeGameAssets(url: string, timeoutMs = 10000): Promise<GameAssetProbe[]> {
+  const base = toBase(url)
+  if (!base) return []
+  const games = Object.keys(packs).sort()
+  const probes = await Promise.all(
+    games.map(async (game) => {
+      const files = Object.keys(packs[game]!.loaders).sort()
+      const group = (files.find((f) => !f.includes('-')) ?? files[0])?.replace(/-/g, '/')
+      const index = group ? await loadGameAssetGroup(game, group) : undefined
+      const name = index ? Object.keys(index).sort()[0] : undefined
+      if (!group || !index || !name) return null
+      const src = fileUrl(base, game, group, name, index[name]!)
+      const ok = await new Promise<boolean>((done) => {
+        const img = new Image()
+        const timer = setTimeout(() => done(false), timeoutMs)
+        img.onload = () => (clearTimeout(timer), done(true))
+        img.onerror = () => (clearTimeout(timer), done(false))
+        img.src = src
+      })
+      return { game, url: src, ok }
+    }),
+  )
+  return probes.filter((p): p is GameAssetProbe => !!p)
 }

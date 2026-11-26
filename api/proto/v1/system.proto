@@ -784,6 +784,8 @@ message LoginConfigResponse {
   string default_language = 3;
   // 邮件服务是否已启用：关闭时邮箱验证码登录、注册邮箱验证与找回密码都无法发信
   bool mail_enabled = 4;
+  // 游戏素材地址；空表示没设置
+  string game_asset_url = 5;
 }
 
 // 更新登录配置请求
@@ -1059,6 +1061,8 @@ message StorageConfig {
   string source_id = 1;
   // 可选的来源：启用中的对象存储来源（只读）
   repeated StorageSource sources = 2;
+  // 游戏素材地址（<地址>/<游戏>/…）；空表示没设置
+  string game_asset_url = 3;
 }
 
 // 可选的对象存储来源
@@ -1080,6 +1084,8 @@ message StorageConfigResponse {
 message UpdateStorageConfigRequest {
   // 存放用的文件来源 id（须为启用中的对象存储来源）；空表示不存放
   string source_id = 1;
+  // 游戏素材地址；空表示不设置
+  string game_asset_url = 2;
 }
 
 // 更新储存设置响应

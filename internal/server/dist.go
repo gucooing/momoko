@@ -74,34 +74,15 @@ func newDistHandler() (*distHandler, bool) {
 	return newDistHandlerWithFS(distFS), true
 }
 
-// passportDistMiddleware 用户通行证 server 的前端：frontend/dist-passport（SPA 回退到它的 index.html），
-// 以及游戏素材 /games/（静态文件在管理端产物 frontend/dist/games/ 里，两端共用一份）。
-// 通行证自己的页面也在 /games/ 下（/games/<服务器>?tab=…）：带扩展名的路径是素材，找不到就 404；
-// 不带扩展名的是页面，交给 SPA 回退（否则在游戏页里刷新会 404）。
+// passportDistMiddleware 用户通行证 server 的前端：frontend/dist-passport（SPA 回退到它的 index.html）。
 func passportDistMiddleware() httpm.FilterFunc {
 	app := passportDistHandler()
-	var shared *distHandler
-	if distFS, ok := embeddedDistFS(); ok {
-		shared = newDistHandlerWithFS(distFS)
-	}
-	if app == nil && shared == nil {
+	if app == nil {
 		return passthroughFilter()
 	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if (r.Method == http.MethodGet || r.Method == http.MethodHead) && strings.HasPrefix(r.URL.Path, "/games/") {
-				filePath := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
-				if shared != nil {
-					if _, ok := shared.distFiles[filePath]; ok && shared.serveDistFile(w, r, filePath) {
-						return
-					}
-				}
-				if path.Ext(filePath) != "" || app == nil {
-					http.NotFound(w, r)
-					return
-				}
-			}
-			if app != nil && app.tryServe(w, r) {
+			if app.tryServe(w, r) {
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -309,8 +290,8 @@ func setDistCacheHeaders(h http.Header, filePath string) {
 }
 
 func isImmutableDistAsset(filePath string) bool {
-	// assets/ 是 Vite 带哈希的产物；games/ 是游戏素材（文件名 <name>.<hash>.webp，内容变了文件名就变）。
-	return strings.HasPrefix(filePath, "assets/") || strings.HasPrefix(filePath, "games/")
+	// assets/ 是 Vite 带哈希的产物。
+	return strings.HasPrefix(filePath, "assets/")
 }
 
 func fileExists(fsys fs.FS, name string) bool {

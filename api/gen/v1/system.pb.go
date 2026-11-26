@@ -3999,7 +3999,9 @@ type LoginConfigResponse struct {
 	// 默认语言（zh-CN / zh-HK / en-US；auto 表示跟随浏览器）
 	DefaultLanguage string `protobuf:"bytes,3,opt,name=default_language,json=defaultLanguage,proto3" json:"default_language,omitempty"`
 	// 邮件服务是否已启用：关闭时邮箱验证码登录、注册邮箱验证与找回密码都无法发信
-	MailEnabled   bool `protobuf:"varint,4,opt,name=mail_enabled,json=mailEnabled,proto3" json:"mail_enabled,omitempty"`
+	MailEnabled bool `protobuf:"varint,4,opt,name=mail_enabled,json=mailEnabled,proto3" json:"mail_enabled,omitempty"`
+	// 游戏素材地址；空表示没设置
+	GameAssetUrl  string `protobuf:"bytes,5,opt,name=game_asset_url,json=gameAssetUrl,proto3" json:"game_asset_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4060,6 +4062,13 @@ func (x *LoginConfigResponse) GetMailEnabled() bool {
 		return x.MailEnabled
 	}
 	return false
+}
+
+func (x *LoginConfigResponse) GetGameAssetUrl() string {
+	if x != nil {
+		return x.GameAssetUrl
+	}
+	return ""
 }
 
 // 更新登录配置请求
@@ -5642,7 +5651,9 @@ type StorageConfig struct {
 	// 存放用的文件来源 id；空表示未设置（不能上传头像、应用图标与背景）
 	SourceId string `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	// 可选的来源：启用中的对象存储来源（只读）
-	Sources       []*StorageSource `protobuf:"bytes,2,rep,name=sources,proto3" json:"sources,omitempty"`
+	Sources []*StorageSource `protobuf:"bytes,2,rep,name=sources,proto3" json:"sources,omitempty"`
+	// 游戏素材地址（<地址>/<游戏>/…）；空表示没设置
+	GameAssetUrl  string `protobuf:"bytes,3,opt,name=game_asset_url,json=gameAssetUrl,proto3" json:"game_asset_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5689,6 +5700,13 @@ func (x *StorageConfig) GetSources() []*StorageSource {
 		return x.Sources
 	}
 	return nil
+}
+
+func (x *StorageConfig) GetGameAssetUrl() string {
+	if x != nil {
+		return x.GameAssetUrl
+	}
+	return ""
 }
 
 // 可选的对象存储来源
@@ -5831,7 +5849,9 @@ func (x *StorageConfigResponse) GetConfig() *StorageConfig {
 type UpdateStorageConfigRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 存放用的文件来源 id（须为启用中的对象存储来源）；空表示不存放
-	SourceId      string `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	SourceId string `protobuf:"bytes,1,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	// 游戏素材地址；空表示不设置
+	GameAssetUrl  string `protobuf:"bytes,2,opt,name=game_asset_url,json=gameAssetUrl,proto3" json:"game_asset_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5869,6 +5889,13 @@ func (*UpdateStorageConfigRequest) Descriptor() ([]byte, []int) {
 func (x *UpdateStorageConfigRequest) GetSourceId() string {
 	if x != nil {
 		return x.SourceId
+	}
+	return ""
+}
+
+func (x *UpdateStorageConfigRequest) GetGameAssetUrl() string {
+	if x != nil {
+		return x.GameAssetUrl
 	}
 	return ""
 }
@@ -8732,12 +8759,13 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x16refresh_token_ttl_days\x18\x06 \x01(\x05R\x13refreshTokenTtlDays\x12+\n" +
 	"\x11lockout_threshold\x18\a \x01(\x05R\x10lockoutThreshold\x12'\n" +
 	"\x0flockout_minutes\x18\b \x01(\x05R\x0elockoutMinutes\"\x14\n" +
-	"\x12LoginConfigRequest\"\xa9\x01\n" +
+	"\x12LoginConfigRequest\"\xcf\x01\n" +
 	"\x13LoginConfigResponse\x12'\n" +
 	"\x06config\x18\x01 \x01(\v2\x0f.v1.LoginConfigR\x06config\x12\x1b\n" +
 	"\tsite_name\x18\x02 \x01(\tR\bsiteName\x12)\n" +
 	"\x10default_language\x18\x03 \x01(\tR\x0fdefaultLanguage\x12!\n" +
-	"\fmail_enabled\x18\x04 \x01(\bR\vmailEnabled\"\xc0\x03\n" +
+	"\fmail_enabled\x18\x04 \x01(\bR\vmailEnabled\x12$\n" +
+	"\x0egame_asset_url\x18\x05 \x01(\tR\fgameAssetUrl\"\xc0\x03\n" +
 	"\x18UpdateLoginConfigRequest\x12)\n" +
 	"\x10register_enabled\x18\x01 \x01(\bR\x0fregisterEnabled\x124\n" +
 	"\x16username_login_enabled\x18\x02 \x01(\bR\x14usernameLoginEnabled\x12.\n" +
@@ -8855,18 +8883,20 @@ const file_v1_system_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\v\n" +
 	"\t_messages\"\x19\n" +
-	"\x17TestEmailConfigResponse\"Y\n" +
+	"\x17TestEmailConfigResponse\"\x7f\n" +
 	"\rStorageConfig\x12\x1b\n" +
 	"\tsource_id\x18\x01 \x01(\tR\bsourceId\x12+\n" +
-	"\asources\x18\x02 \x03(\v2\x11.v1.StorageSourceR\asources\"3\n" +
+	"\asources\x18\x02 \x03(\v2\x11.v1.StorageSourceR\asources\x12$\n" +
+	"\x0egame_asset_url\x18\x03 \x01(\tR\fgameAssetUrl\"3\n" +
 	"\rStorageSource\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"\x16\n" +
 	"\x14StorageConfigRequest\"B\n" +
 	"\x15StorageConfigResponse\x12)\n" +
-	"\x06config\x18\x01 \x01(\v2\x11.v1.StorageConfigR\x06config\"9\n" +
+	"\x06config\x18\x01 \x01(\v2\x11.v1.StorageConfigR\x06config\"_\n" +
 	"\x1aUpdateStorageConfigRequest\x12\x1b\n" +
-	"\tsource_id\x18\x01 \x01(\tR\bsourceId\"H\n" +
+	"\tsource_id\x18\x01 \x01(\tR\bsourceId\x12$\n" +
+	"\x0egame_asset_url\x18\x02 \x01(\tR\fgameAssetUrl\"H\n" +
 	"\x1bUpdateStorageConfigResponse\x12)\n" +
 	"\x06config\x18\x01 \x01(\v2\x11.v1.StorageConfigR\x06config\"\x17\n" +
 	"\x15SystemOverviewRequest\"\xf5\x03\n" +

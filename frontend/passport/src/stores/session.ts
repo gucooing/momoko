@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import * as api from '@passport/api/passport'
 import { tokenStore } from '@passport/api/request'
 import { setLocale } from '@passport/locales'
+import { setGameAssetBase } from '@/games/core'
 import type { GetPassportConfigResponse, PassportLoginResponse, PassportMe } from '@/types/v1/passport'
 
 export const useSessionStore = defineStore('passport-session', () => {
@@ -15,7 +16,13 @@ export const useSessionStore = defineStore('passport-session', () => {
 
   async function loadConfig(force = false) {
     if (config.value && !force) return config.value
-    config.value = await api.getConfig()
+    try {
+      config.value = await api.getConfig()
+    } catch (e) {
+      if (!config.value) setGameAssetBase('')
+      throw e
+    }
+    setGameAssetBase(config.value.gameAssetUrl)
     if (config.value.siteName) document.title = config.value.siteName
     return config.value
   }

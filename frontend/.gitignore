@@ -11,6 +11,7 @@ node_modules
 .DS_Store
 dist
 dist-passport
+dist-games
 dist-ssr
 coverage
 *.local

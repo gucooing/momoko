@@ -197,6 +197,10 @@ Windows PowerShell：
 
 构建后访问 HTTP 地址即可使用前端页面和 `/api/v1` 接口。
 
+### 游戏素材
+
+游戏图片（`frontend/public/games/<游戏>/`）不打进二进制，Momoko 也不转发：`pnpm build` 会把所有游戏单独打包到 `frontend/dist-games/`（发布版本附带 `momoko_<版本>_games.zip`）。把里面的内容（每个游戏一个目录）上传到对象存储或 CDN 并允许公开读取，然后在 **系统设置 · 储存 · 游戏素材地址** 填上传到的那个目录（例如 `https://cdn.example.com/momoko-games`，图片地址为 `<地址>/gakumas/…`），浏览器直接从那里取图。没填时界面显示占位图。文件名带内容哈希，新版本覆盖上传即可。
+
 ## 常用命令
 
 ```bash

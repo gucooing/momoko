@@ -393,6 +393,8 @@ message GetPassportConfigResponse {
   int32 unbind_cooldown_days = 7;
   // 申请注销后可以撤销的天数
   int32 deletion_grace_days = 8;
+  // 游戏素材地址；空表示没设置
+  string game_asset_url = 9;
 }
 
 message SendPassportEmailCodeRequest {

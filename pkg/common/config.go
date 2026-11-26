@@ -75,6 +75,8 @@ const (
 
 	// ConfigStorageSource 储存：存放头像与应用图片的文件来源 id（对象存储来源），空表示没设置。
 	ConfigStorageSource ConfigKey = "storage.source"
+	// ConfigGameAssetURL 储存：游戏素材地址（<地址>/<游戏>/…），空表示没设置。
+	ConfigGameAssetURL ConfigKey = "storage.game_asset_url"
 
 	// ConfigPassportSettings 用户通行证设置：v1.PassportSettings 的 protojson，空表示用默认值。
 	ConfigPassportSettings ConfigKey = "passport.settings"
@@ -154,6 +156,7 @@ var configDefaults = map[ConfigKey]string{
 	ConfigFrpsTLSForce:           "false",
 
 	ConfigStorageSource: "",
+	ConfigGameAssetURL:  "",
 
 	ConfigPassportSettings: "",
 

@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"encoding/json"
+	"net/url"
 	"strings"
 	"time"
 
@@ -47,6 +48,7 @@ var (
 	ErrAvatarTooLarge       = response.BadRequest("头像大小不能超过 20MB")
 	ErrAvatarTicketInvalid  = response.BadRequest("头像上传凭证无效或已过期，请重新上传")
 	ErrAvatarNotUploaded    = response.BadRequest("头像还没有上传到储存，请重新上传")
+	ErrGameAssetURLInvalid  = response.BadRequest("游戏素材地址需是 http:// 或 https:// 开头的完整地址（不带 ? 和 #）")
 )
 
 // ---- 储存设置 ----
@@ -61,7 +63,7 @@ func (c *ConfigUsecase) StorageConfig(ctx context.Context) (*v1.StorageConfig, e
 	if err != nil {
 		return nil, ErrSystem(err)
 	}
-	out := &v1.StorageConfig{Sources: make([]*v1.StorageSource, 0, len(rows))}
+	out := &v1.StorageConfig{Sources: make([]*v1.StorageSource, 0, len(rows)), GameAssetUrl: c.GameAssetURL(ctx)}
 	for _, r := range rows {
 		out.Sources = append(out.Sources, &v1.StorageSource{Id: r.ID, Name: r.Name})
 		if r.ID == id {
@@ -79,10 +81,48 @@ func (c *ConfigUsecase) UpdateStorageConfig(ctx context.Context, req *v1.UpdateS
 			return nil, err
 		}
 	}
-	if err := c.config.BatchUpdate(ctx, map[common.ConfigKey]string{common.ConfigStorageSource: id}); err != nil {
+	assetURL, err := normalizeGameAssetURL(req.GetGameAssetUrl())
+	if err != nil {
+		return nil, err
+	}
+	if err := c.config.BatchUpdate(ctx, map[common.ConfigKey]string{
+		common.ConfigStorageSource: id,
+		common.ConfigGameAssetURL:  assetURL,
+	}); err != nil {
 		return nil, ErrSystem(err)
 	}
 	return c.StorageConfig(ctx)
+}
+
+// GameAssetURL 游戏素材地址；没设置或读不到时为空串。
+func (c *ConfigUsecase) GameAssetURL(ctx context.Context) string {
+	return gameAssetURL(ctx, c.config)
+}
+
+func gameAssetURL(ctx context.Context, config ConfigRepo) string {
+	v, err := config.Get(ctx, common.ConfigGameAssetURL)
+	if err != nil {
+		return ""
+	}
+	return v
+}
+
+func normalizeGameAssetURL(raw string) (string, error) {
+	s := strings.TrimRight(strings.TrimSpace(raw), "/")
+	if s == "" {
+		return "", nil
+	}
+	if len(s) > 1024 {
+		return "", ErrGameAssetURLInvalid
+	}
+	u, err := url.Parse(s)
+	if err != nil || u.RawQuery != "" || u.Fragment != "" || strings.ContainsAny(s, "?#") {
+		return "", ErrGameAssetURLInvalid
+	}
+	if (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return "", ErrGameAssetURLInvalid
+	}
+	return s, nil
 }
 
 // mediaStore 返回存放头像与应用图片的来源；没设置时返回 nil。

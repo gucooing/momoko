@@ -53,6 +53,10 @@ export const getLoginConfig = (params: LoginConfigRequest = {}) => {
   return request.get<LoginConfigResponse>('/system/login-config', { params })
 }
 
+export const getLocalLoginConfig = () => {
+  return request.get<LoginConfigResponse>('/system/login-config', { localNode: true, silent: true })
+}
+
 export const updateLoginConfig = (params: UpdateLoginConfigRequest) => {
   return request.put<UpdateLoginConfigResponse>('/system/login-config', params)
 }

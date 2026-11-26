@@ -1,5 +1,5 @@
 <!-- 系统设置（第二期）：标题(作用范围 · 上次修改) → 左侧本页目录（手机为横向 chips）+
-     右侧分组卡片：常规 / 登录 / 邮件（含测试与模板列表）/ 储存（头像与应用图片放到哪个对象存储来源）/ 版本更新 → 底部吸附保存条（按分组记录修改，一次保存）。
+     右侧分组卡片：常规 / 登录 / 邮件（含测试与模板列表）/ 储存（头像与应用图片放到哪个对象存储来源、游戏素材地址）/ 版本更新 → 底部吸附保存条（按分组记录修改，一次保存）。
      模板编辑、模板测试发送、预览用 FormDialog。权限：PERM.SYSTEM_CONFIG_EDIT 控制编辑，system:update 控制检查更新。 -->
 <template>
   <div class="st-page">
@@ -426,6 +426,41 @@
               </span>
             </div>
           </div>
+          <div class="st-row">
+            <div class="st-row__l">
+              <label class="st-row__t" for="st-game-assets">{{ t('system.settings.storage.gameAssets') }}</label>
+              <span class="st-row__d">{{ t('system.settings.storage.gameAssetsDesc') }}</span>
+            </div>
+            <div class="st-row__c st-row__c--col">
+              <div class="st-test">
+                <input
+                  id="st-game-assets"
+                  v-model.trim="storageForm.gameAssetUrl"
+                  type="url"
+                  class="app-input m-mono"
+                  placeholder="https://cdn.example.com/momoko-games"
+                  :disabled="!canEdit"
+                />
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  icon="i-lucide-image"
+                  :loading="assetProbing"
+                  :disabled="!storageForm.gameAssetUrl"
+                  @click="handleAssetProbe"
+                >
+                  {{ t('system.settings.storage.gameAssetsTest') }}
+                </UButton>
+              </div>
+              <span v-if="assetProbe" class="st-test__res" :class="`is-${assetProbe.ok ? 'ok' : 'bad'}`">
+                <span class="st-test__pill">{{ assetProbe.ok ? t('system.settings.storage.gameAssetsOk') : t('system.settings.storage.gameAssetsBad') }}</span>
+                <span class="st-test__txt">{{ assetProbe.text }}</span>
+              </span>
+              <span class="st-hint">
+                {{ storageForm.gameAssetUrl ? t('system.settings.storage.gameAssetsHint', { example: assetExample }) : t('system.settings.storage.gameAssetsEmpty') }}
+              </span>
+            </div>
+          </div>
         </section>
 
         <!-- 版本更新 -->
@@ -779,6 +814,8 @@ import { PERM } from '@/config/permission'
 import { useButtonPermission } from '@/composables/useButtonPermission'
 import { checkForUpdate } from '@/utils/updateCheck'
 import { getRequestErrorMessage, showRequestError } from '@/utils/request'
+import { isRemoteNode } from '@/utils/nodeContext'
+import { probeGameAssets, setGameAssetBase } from '@/games/core'
 
 defineOptions({ name: 'SystemSettingsView' })
 
@@ -863,7 +900,7 @@ const lastTest = ref<EmailTestResult | null>(null)
 const showPwd = ref(false)
 
 // 储存：头像、应用图标与背景存放到哪个对象存储来源（来源在文件管理 · 文件源里配置）
-const storageForm = reactive({ sourceId: '' })
+const storageForm = reactive({ sourceId: '', gameAssetUrl: '' })
 const storageSources = ref<StorageSource[]>([])
 const storageOptions = computed(() => [{ id: '', name: t('system.settings.storage.none') }, ...storageSources.value])
 
@@ -1103,7 +1140,35 @@ const applyStorage = (c?: StorageConfig) => {
   if (!c) return
   storageSources.value = c.sources || []
   storageForm.sourceId = c.sourceId || ''
+  storageForm.gameAssetUrl = c.gameAssetUrl || ''
   markClean('storage')
+}
+
+const assetExample = computed(() => `${(storageForm.gameAssetUrl || 'https://cdn.example.com/momoko-games').replace(/\/+$/, '')}/gakumas/…`)
+const assetProbing = ref(false)
+const assetProbe = ref<{ ok: boolean; text: string } | null>(null)
+watch(
+  () => storageForm.gameAssetUrl,
+  () => (assetProbe.value = null),
+)
+const handleAssetProbe = async () => {
+  const url = storageForm.gameAssetUrl
+  if (!url || assetProbing.value) return
+  if (!/^https?:\/\/[^/?#]+[^?#]*$/i.test(url)) {
+    assetProbe.value = { ok: false, text: t('system.settings.storage.gameAssetsInvalid') }
+    return
+  }
+  assetProbing.value = true
+  try {
+    const list = await probeGameAssets(url)
+    if (url !== storageForm.gameAssetUrl) return
+    const bad = list.find((p) => !p.ok)
+    if (!list.length) assetProbe.value = { ok: false, text: t('system.settings.storage.gameAssetsNoGames') }
+    else if (bad) assetProbe.value = { ok: false, text: t('system.settings.storage.gameAssetsBadText', { url: bad.url }) }
+    else assetProbe.value = { ok: true, text: t('system.settings.storage.gameAssetsOkText', { games: list.map((p) => p.game).join(', ') }) }
+  } finally {
+    assetProbing.value = false
+  }
 }
 const loadStorageConfig = async () => {
   try {
@@ -1151,9 +1216,11 @@ const saveAll = async () => {
     }
     if (dirty.value.storage) {
       try {
-        const { data } = await updateStorageConfig({ sourceId: storageForm.sourceId })
-        if (data?.config) applyStorage(data.config)
-        else markClean('storage')
+        const { data } = await updateStorageConfig({ sourceId: storageForm.sourceId, gameAssetUrl: storageForm.gameAssetUrl })
+        if (data?.config) {
+          applyStorage(data.config)
+          if (!isRemoteNode()) setGameAssetBase(data.config.gameAssetUrl)
+        } else markClean('storage')
       } catch (e) {
         ok = false
         showRequestError(e)

@@ -15,6 +15,8 @@ import router from '@/router/index'
 import { i18n } from '@/locales'
 import { setAppContext } from '@/utils/appContext'
 import uiPlugin from '@nuxt/ui/vue-plugin' // Nuxt UI 运行时插件（虚拟模块，由 @nuxt/ui/vite 提供）
+import { getLocalLoginConfig } from '@/api/login'
+import { setGameAssetBase } from '@/games/core'
 
 //  动态设置favicon和项目名称
 const initAppConfig = () => {
@@ -34,8 +36,16 @@ const initAppConfig = () => {
   faviconLink.href = APP_CONFIG.faviconSrc
 }
 
+const initGameAssets = () => {
+  getLocalLoginConfig()
+    .then(({ data }) => setGameAssetBase(data?.gameAssetUrl))
+    .catch(() => setGameAssetBase(''))
+}
+
 // 启动应用
 const startApp = async () => {
+  initGameAssets()
+
   // 创建并挂载 Vue 应用
   const app = createApp(App)
 

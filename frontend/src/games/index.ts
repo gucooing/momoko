@@ -11,7 +11,10 @@ export {
   hasGameAsset,
   listGameAssets,
   loadGameAssetGroup,
+  probeGameAssets,
+  setGameAssetBase,
   type GameAssetEntry,
+  type GameAssetProbe,
 } from './core'
 export * as gakumas from './gakumas/assets'
 export {

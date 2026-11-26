@@ -14,7 +14,8 @@
     "dev:passport": "vite --config vite.passport.config.ts",
     "build": "run-s \"build-only {@}\" type-check --",
     "preview": "vite preview",
-    "build-only": "vite build && node -e \"require('node:fs').copyFileSync('dist/index.html','dist/404.html')\" && node scripts/compress-dist.mjs && vite build --config vite.passport.config.ts && node scripts/compress-dist.mjs dist-passport",
+    "build-only": "vite build && node -e \"require('node:fs').copyFileSync('dist/index.html','dist/404.html')\" && node scripts/compress-dist.mjs && vite build --config vite.passport.config.ts && node scripts/compress-dist.mjs dist-passport && node scripts/pack-games.mjs",
+    "build:games": "node scripts/pack-games.mjs",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
     "format": "prettier --write src/"

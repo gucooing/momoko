@@ -13,9 +13,11 @@ import type { RefreshResponse } from '@/types/v1/auth'
 import { currentNodeId, NODE_HEADER } from '@/utils/nodeContext'
 
 // silent：出错时不弹提示，由调用方自己处理（如在线更新重启期间的轮询，连不上是正常的）。
+// localNode：只发给主控本机，不带远程节点上下文。
 declare module 'axios' {
   interface AxiosRequestConfig {
     silent?: boolean
+    localNode?: boolean
   }
 }
 
@@ -187,7 +189,7 @@ service.interceptors.request.use(
       config.headers.Authorization = toBearerAuthHeader(token)
     }
     // 远程节点上下文：由主控按操作决定转发到节点（机器状态/应用/文件/容器/工具）还是本机处理（系统、用户等）。
-    if (currentNodeId.value && !isPublicPath(config.url)) {
+    if (currentNodeId.value && !isPublicPath(config.url) && !config.localNode) {
       config.headers[NODE_HEADER] = currentNodeId.value
     }
     return config

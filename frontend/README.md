@@ -103,7 +103,9 @@ pnpm lint
 pnpm format
 ```
 
-`pnpm build` 会执行类型检查、Vite 构建、复制 `dist/index.html` 为 `dist/404.html`，并通过 `scripts/compress-dist.mjs` 生成压缩资源，供后端静态资源服务优先返回 gzip/brotli 版本；随后构建用户通行证到 `dist-passport/`（同样预压缩），由通行证 server（默认 `:22634`）单独提供。
+`pnpm build` 会执行类型检查、Vite 构建、复制 `dist/index.html` 为 `dist/404.html`，并通过 `scripts/compress-dist.mjs` 生成压缩资源，供后端静态资源服务优先返回 gzip/brotli 版本；随后构建用户通行证到 `dist-passport/`（同样预压缩），由通行证 server（默认 `:22634`）单独提供；最后把 `public/games/` 下所有游戏的图片单独打包到 `dist-games/`（`scripts/pack-games.mjs`，也可以单独跑 `pnpm build:games`）。
+
+游戏图片不进 `dist/`、不随后端二进制打包：`dist-games/` 上传到对象存储 / CDN 后，在系统设置 · 储存 · 游戏素材地址里填地址，浏览器直接从那里取图；开发时（`pnpm dev`）没填地址就用 dev server 提供的 `public/games/`。
 
 ## 与后端集成
 

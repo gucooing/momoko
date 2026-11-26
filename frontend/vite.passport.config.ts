@@ -10,8 +10,7 @@ import { NUXT_UI_PREBUNDLE } from './vite.shared'
  * 由通行证 server（默认 :22634）单独提供。与管理后台共用设计令牌、src/games（游戏素材与类型）与
  * src/components/game；不引用管理后台的路由、store、文案与页面（src/components/ui 里依赖这些的组件不能用）。
  *
- * 游戏图片是 public/games/ 下的静态文件：开发时由这个 dev server 直接提供，打包时不复制
- * （publicDir: false），通行证 server 从管理端产物里提供 /games/，两端只有一份。
+ * 游戏图片 public/games/ 只在开发时由这个 dev server 提供，打包时不复制（publicDir: false）。
  */
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 

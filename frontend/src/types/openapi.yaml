@@ -20054,6 +20054,9 @@ components:
                     type: integer
                     description: 申请注销后可以撤销的天数
                     format: int32
+                gameAssetUrl:
+                    type: string
+                    description: 游戏素材地址；空表示没设置
         v1.GetPassportSettingsResponse:
             type: object
             properties:
@@ -22313,6 +22316,9 @@ components:
                 mailEnabled:
                     type: boolean
                     description: 邮件服务是否已启用：关闭时邮箱验证码登录、注册邮箱验证与找回密码都无法发信
+                gameAssetUrl:
+                    type: string
+                    description: 游戏素材地址；空表示没设置
             description: 获取登录配置响应（公开接口，登录页使用）
         v1.LoginDevice:
             type: object
@@ -25782,6 +25788,9 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.StorageSource'
                     description: 可选的来源：启用中的对象存储来源（只读）
+                gameAssetUrl:
+                    type: string
+                    description: 游戏素材地址（<地址>/<游戏>/…）；空表示没设置
             description: |-
                 储存设置：头像、应用图标与应用背景存放到哪个文件来源（文件管理 · 文件源里的对象存储来源）。
                  各自放在来源下的固定目录：头像 avatars/，应用图标与背景 app/；以公开链接对外，这些目录需允许公开读取。
@@ -28303,6 +28312,9 @@ components:
                 sourceId:
                     type: string
                     description: 存放用的文件来源 id（须为启用中的对象存储来源）；空表示不存放
+                gameAssetUrl:
+                    type: string
+                    description: 游戏素材地址；空表示不设置
             description: 更新储存设置请求
         v1.UpdateStorageConfigResponse:
             type: object

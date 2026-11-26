@@ -90,7 +90,7 @@ func NewPassportServer(c *conf.Passport, passportApi *service.PassportService, g
 		http.Address(addr),
 		http.Filter(
 			corsMiddleware(),
-			passportDistMiddleware(), // 通行证前端与游戏素材
+			passportDistMiddleware(), // 通行证前端
 			passportAuthFilter(passportApi.Usecase()),
 		),
 		http.Middleware(

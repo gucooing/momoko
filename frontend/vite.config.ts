@@ -139,6 +139,8 @@ export default defineConfig(({ mode }) => {
       include: NUXT_UI_PREBUNDLE,
     },
     build: {
+      // public/ 只有游戏素材，由 scripts/pack-games.mjs 单独打包到 dist-games/
+      copyPublicDir: false,
       rollupOptions: {
         output: {
           manualChunks: resolveManualChunks,

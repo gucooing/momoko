@@ -144,6 +144,7 @@ func (s *SystemService) LoginConfig(ctx context.Context, req *v1.LoginConfigRequ
 	if mail, err := s.config.EmailConfig(ctx); err == nil {
 		resp.MailEnabled = mail.GetEnabled()
 	}
+	resp.GameAssetUrl = s.config.GameAssetURL(ctx)
 	return resp, nil
 }
 

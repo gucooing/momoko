@@ -440,6 +440,7 @@ func (uc *PassportUsecase) PublicConfig(ctx context.Context) *v1.GetPassportConf
 		EmailEnabled:              email,
 		UnbindCooldownDays:        int32(PassportUnbindCooldown / (24 * time.Hour)),
 		DeletionGraceDays:         int32(PassportDeletionGrace / (24 * time.Hour)),
+		GameAssetUrl:              gameAssetURL(ctx, uc.config),
 	}
 }
 
