@@ -1,3 +1,4 @@
+// 注意 vue-i18n 里 @ 和 | 是特殊字符，要写成 {'@'}、{'|'}。
 // Agent 的代理（只有 Linux 能配：官方账户的「代理」弹窗、第三方接口的「代理」这一步），
 // 官方账户的「登录」（在悬浮终端里跑登录命令），悬浮终端里登录标签的名字。
 export default {
@@ -6,7 +7,7 @@ export default {
       proxy: {
         address: '代理地址',
         placeholder: '留空不走代理，比如 socks5://127.0.0.1:1080',
-        format: '支持 http:// 和 socks5://；有账号密码就写成 socks5://用户名:密码@主机:端口，已保存的密码显示为 ******。',
+        format: "支持 http:// 和 socks5://；有账号密码就写成 socks5://用户名:密码{'@'}主机:端口，已保存的密码显示为 ******。",
         invalid: '地址不对：要写成 http://主机:端口 或 socks5://主机:端口',
         test: '测试代理',
         testOk: '通了 · {target} · {ms} ms',
@@ -40,7 +41,7 @@ export default {
       proxy: {
         address: '代理位址',
         placeholder: '留空不走代理，例如 socks5://127.0.0.1:1080',
-        format: '支援 http:// 和 socks5://；有帳號密碼就寫成 socks5://使用者名稱:密碼@主機:連接埠，已儲存的密碼顯示為 ******。',
+        format: "支援 http:// 和 socks5://；有帳號密碼就寫成 socks5://使用者名稱:密碼{'@'}主機:連接埠，已儲存的密碼顯示為 ******。",
         invalid: '位址不對：要寫成 http://主機:連接埠 或 socks5://主機:連接埠',
         test: '測試代理',
         testOk: '通了 · {target} · {ms} ms',
@@ -74,7 +75,7 @@ export default {
       proxy: {
         address: 'Proxy address',
         placeholder: 'Leave blank for no proxy, e.g. socks5://127.0.0.1:1080',
-        format: 'http:// and socks5:// are supported; add credentials as socks5://user:password@host:port. A saved password shows as ******.',
+        format: "http:// and socks5:// are supported; add credentials as socks5://user:password{'@'}host:port. A saved password shows as ******.",
         invalid: 'Invalid address: use http://host:port or socks5://host:port',
         test: 'Test proxy',
         testOk: 'Works · {target} · {ms} ms',

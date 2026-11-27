@@ -15,8 +15,8 @@ import (
 	"momoko/internal/conf"
 	"momoko/internal/service"
 	"momoko/pkg/passporttoken"
-	"momoko/pkg/themeasset"
 	"momoko/pkg/response"
+	"momoko/pkg/themeasset"
 )
 
 // PassportAPIPrefix 用户通行证接口的路径前缀。通行证是独立端口上的独立服务，这个端口上只有通行证自己的接口，
