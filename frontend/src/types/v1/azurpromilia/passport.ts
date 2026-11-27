@@ -19,6 +19,14 @@ export interface MyLoginsRequest {
   limit: number;
 }
 
+/** 我的道具、英雄、奇波列表：ids 不为空时只取这些道具 / 英雄 / 奇波 ID。 */
+export interface MyListRequest {
+  serverId: string;
+  ids: number[];
+  cursor: string;
+  limit: number;
+}
+
 /** 自助操作的共同字段：reason 为申请理由（需要审批时给管理员看），totp_code 为两步验证码。 */
 export interface SelfServiceRequest {
   serverId: string;

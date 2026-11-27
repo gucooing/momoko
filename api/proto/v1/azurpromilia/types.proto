@@ -91,6 +91,10 @@ message Player {
   bool banned = 9;
   double banned_until = 10;
   string ban_reason = 11;
+  // 性别：1 男、2 女（创角前为 0）
+  int32 sex = 12;
+  // 名片的头像部件（playercard_dress ID，没有名片时为 0）
+  int32 head = 13;
 }
 
 // 各筛选的人数（带上其余筛选）。
@@ -193,6 +197,7 @@ message Pet {
   int32 rank = 5;
   int32 star_stage = 6;
   bool locked = 7;
+  int32 star_node = 8;
 }
 
 message PetPage {
@@ -245,6 +250,38 @@ message OperationData {
   string reason = 4;
   bool removed = 5;
   string name = 6;
+  // hero.set / pet.set：修改前后的数值
+  HeroChange hero = 7;
+  PetChange pet = 8;
+}
+
+// 英雄可由 GM 设定的养成数值：等级、突破、星级、好感。
+message HeroValues {
+  int32 level = 1;
+  int32 rank = 2;
+  int32 grade = 3;
+  int32 favor_level = 4;
+}
+
+message HeroChange {
+  int32 seq = 1;
+  HeroValues before = 2;
+  HeroValues after = 3;
+}
+
+// 奇波可由 GM 设定的数值：等级、星魂阶段与节点、锁定、名字。
+message PetValues {
+  int32 level = 1;
+  int32 star_stage = 2;
+  int32 star_node = 3;
+  bool locked = 4;
+  string name = 5;
+}
+
+message PetChange {
+  int32 guid = 1;
+  PetValues before = 2;
+  PetValues after = 3;
 }
 
 // ---------------- 邮件补偿 ----------------

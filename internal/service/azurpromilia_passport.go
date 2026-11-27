@@ -37,7 +37,7 @@ func (s *AzurPromiliaPassportService) ListMyLogins(ctx context.Context, req *az.
 	return s.azur.MyLogins(ctx, c.UserID, req)
 }
 
-func (s *AzurPromiliaPassportService) ListMyItems(ctx context.Context, req *az.MyLoginsRequest) (*az.ItemPage, error) {
+func (s *AzurPromiliaPassportService) ListMyItems(ctx context.Context, req *az.MyListRequest) (*az.ItemPage, error) {
 	c, err := me(ctx)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (s *AzurPromiliaPassportService) ListMyCurrencies(ctx context.Context, req 
 	return s.azur.MyCurrencies(ctx, c.UserID, req.ServerId)
 }
 
-func (s *AzurPromiliaPassportService) ListMyHeroes(ctx context.Context, req *az.MyLoginsRequest) (*az.HeroPage, error) {
+func (s *AzurPromiliaPassportService) ListMyHeroes(ctx context.Context, req *az.MyListRequest) (*az.HeroPage, error) {
 	c, err := me(ctx)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (s *AzurPromiliaPassportService) ListMyHeroes(ctx context.Context, req *az.
 	return s.azur.MyHeroes(ctx, c.UserID, req)
 }
 
-func (s *AzurPromiliaPassportService) ListMyPets(ctx context.Context, req *az.MyLoginsRequest) (*az.PetPage, error) {
+func (s *AzurPromiliaPassportService) ListMyPets(ctx context.Context, req *az.MyListRequest) (*az.PetPage, error) {
 	c, err := me(ctx)
 	if err != nil {
 		return nil, err

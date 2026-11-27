@@ -31,6 +31,8 @@ const (
 	AzurPromiliaGMService_ListPlayerPets_FullMethodName       = "/v1.azurpromilia.AzurPromiliaGMService/ListPlayerPets"
 	AzurPromiliaGMService_ListPlayerMails_FullMethodName      = "/v1.azurpromilia.AzurPromiliaGMService/ListPlayerMails"
 	AzurPromiliaGMService_AdjustItems_FullMethodName          = "/v1.azurpromilia.AzurPromiliaGMService/AdjustItems"
+	AzurPromiliaGMService_SetPlayerHero_FullMethodName        = "/v1.azurpromilia.AzurPromiliaGMService/SetPlayerHero"
+	AzurPromiliaGMService_SetPlayerPet_FullMethodName         = "/v1.azurpromilia.AzurPromiliaGMService/SetPlayerPet"
 	AzurPromiliaGMService_MailPlayers_FullMethodName          = "/v1.azurpromilia.AzurPromiliaGMService/MailPlayers"
 	AzurPromiliaGMService_KickPlayers_FullMethodName          = "/v1.azurpromilia.AzurPromiliaGMService/KickPlayers"
 	AzurPromiliaGMService_BanPlayers_FullMethodName           = "/v1.azurpromilia.AzurPromiliaGMService/BanPlayers"
@@ -64,14 +66,18 @@ type AzurPromiliaGMServiceClient interface {
 	ListPlayers(ctx context.Context, in *ListPlayersRequest, opts ...grpc.CallOption) (*ListPlayersResponse, error)
 	GetPlayer(ctx context.Context, in *PlayerRequest, opts ...grpc.CallOption) (*GetPlayerResponse, error)
 	ListPlayerLogins(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*LoginPage, error)
-	ListPlayerItems(ctx context.Context, in *ListItemsRequest, opts ...grpc.CallOption) (*ItemPage, error)
+	ListPlayerItems(ctx context.Context, in *ListByIDsRequest, opts ...grpc.CallOption) (*ItemPage, error)
 	ListPlayerCurrencies(ctx context.Context, in *PlayerRequest, opts ...grpc.CallOption) (*ItemPage, error)
-	ListPlayerHeroes(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*HeroPage, error)
-	ListPlayerPets(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*PetPage, error)
+	ListPlayerHeroes(ctx context.Context, in *ListByIDsRequest, opts ...grpc.CallOption) (*HeroPage, error)
+	ListPlayerPets(ctx context.Context, in *ListByIDsRequest, opts ...grpc.CallOption) (*PetPage, error)
 	ListPlayerMails(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*MailPage, error)
 	// ---------------- 对玩家的操作 ----------------
 	// 发放与扣除道具、货币（扣除只能是货币与普通道具，不足时这名玩家失败）
 	AdjustItems(ctx context.Context, in *AdjustItemsRequest, opts ...grpc.CallOption) (*OperationResponse, error)
+	// 设定一个英雄（seq 为序号）的等级、突破、星级、好感，只改给出的字段（操作 hero.set，写 GM 记录）
+	SetPlayerHero(ctx context.Context, in *SetHeroRequest, opts ...grpc.CallOption) (*OperationResponse, error)
+	// 设定一只奇波（guid）的等级、星魂、锁定、名字，只改给出的字段（操作 pet.set，写 GM 记录）
+	SetPlayerPet(ctx context.Context, in *SetPetRequest, opts ...grpc.CallOption) (*OperationResponse, error)
 	MailPlayers(ctx context.Context, in *MailPlayersRequest, opts ...grpc.CallOption) (*OperationResponse, error)
 	KickPlayers(ctx context.Context, in *PlayersOperationRequest, opts ...grpc.CallOption) (*OperationResponse, error)
 	BanPlayers(ctx context.Context, in *BanPlayersRequest, opts ...grpc.CallOption) (*OperationResponse, error)
@@ -160,7 +166,7 @@ func (c *azurPromiliaGMServiceClient) ListPlayerLogins(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *azurPromiliaGMServiceClient) ListPlayerItems(ctx context.Context, in *ListItemsRequest, opts ...grpc.CallOption) (*ItemPage, error) {
+func (c *azurPromiliaGMServiceClient) ListPlayerItems(ctx context.Context, in *ListByIDsRequest, opts ...grpc.CallOption) (*ItemPage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ItemPage)
 	err := c.cc.Invoke(ctx, AzurPromiliaGMService_ListPlayerItems_FullMethodName, in, out, cOpts...)
@@ -180,7 +186,7 @@ func (c *azurPromiliaGMServiceClient) ListPlayerCurrencies(ctx context.Context, 
 	return out, nil
 }
 
-func (c *azurPromiliaGMServiceClient) ListPlayerHeroes(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*HeroPage, error) {
+func (c *azurPromiliaGMServiceClient) ListPlayerHeroes(ctx context.Context, in *ListByIDsRequest, opts ...grpc.CallOption) (*HeroPage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HeroPage)
 	err := c.cc.Invoke(ctx, AzurPromiliaGMService_ListPlayerHeroes_FullMethodName, in, out, cOpts...)
@@ -190,7 +196,7 @@ func (c *azurPromiliaGMServiceClient) ListPlayerHeroes(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *azurPromiliaGMServiceClient) ListPlayerPets(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*PetPage, error) {
+func (c *azurPromiliaGMServiceClient) ListPlayerPets(ctx context.Context, in *ListByIDsRequest, opts ...grpc.CallOption) (*PetPage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PetPage)
 	err := c.cc.Invoke(ctx, AzurPromiliaGMService_ListPlayerPets_FullMethodName, in, out, cOpts...)
@@ -214,6 +220,26 @@ func (c *azurPromiliaGMServiceClient) AdjustItems(ctx context.Context, in *Adjus
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OperationResponse)
 	err := c.cc.Invoke(ctx, AzurPromiliaGMService_AdjustItems_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *azurPromiliaGMServiceClient) SetPlayerHero(ctx context.Context, in *SetHeroRequest, opts ...grpc.CallOption) (*OperationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OperationResponse)
+	err := c.cc.Invoke(ctx, AzurPromiliaGMService_SetPlayerHero_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *azurPromiliaGMServiceClient) SetPlayerPet(ctx context.Context, in *SetPetRequest, opts ...grpc.CallOption) (*OperationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OperationResponse)
+	err := c.cc.Invoke(ctx, AzurPromiliaGMService_SetPlayerPet_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -395,14 +421,18 @@ type AzurPromiliaGMServiceServer interface {
 	ListPlayers(context.Context, *ListPlayersRequest) (*ListPlayersResponse, error)
 	GetPlayer(context.Context, *PlayerRequest) (*GetPlayerResponse, error)
 	ListPlayerLogins(context.Context, *PageRequest) (*LoginPage, error)
-	ListPlayerItems(context.Context, *ListItemsRequest) (*ItemPage, error)
+	ListPlayerItems(context.Context, *ListByIDsRequest) (*ItemPage, error)
 	ListPlayerCurrencies(context.Context, *PlayerRequest) (*ItemPage, error)
-	ListPlayerHeroes(context.Context, *PageRequest) (*HeroPage, error)
-	ListPlayerPets(context.Context, *PageRequest) (*PetPage, error)
+	ListPlayerHeroes(context.Context, *ListByIDsRequest) (*HeroPage, error)
+	ListPlayerPets(context.Context, *ListByIDsRequest) (*PetPage, error)
 	ListPlayerMails(context.Context, *PageRequest) (*MailPage, error)
 	// ---------------- 对玩家的操作 ----------------
 	// 发放与扣除道具、货币（扣除只能是货币与普通道具，不足时这名玩家失败）
 	AdjustItems(context.Context, *AdjustItemsRequest) (*OperationResponse, error)
+	// 设定一个英雄（seq 为序号）的等级、突破、星级、好感，只改给出的字段（操作 hero.set，写 GM 记录）
+	SetPlayerHero(context.Context, *SetHeroRequest) (*OperationResponse, error)
+	// 设定一只奇波（guid）的等级、星魂、锁定、名字，只改给出的字段（操作 pet.set，写 GM 记录）
+	SetPlayerPet(context.Context, *SetPetRequest) (*OperationResponse, error)
 	MailPlayers(context.Context, *MailPlayersRequest) (*OperationResponse, error)
 	KickPlayers(context.Context, *PlayersOperationRequest) (*OperationResponse, error)
 	BanPlayers(context.Context, *BanPlayersRequest) (*OperationResponse, error)
@@ -449,16 +479,16 @@ func (UnimplementedAzurPromiliaGMServiceServer) GetPlayer(context.Context, *Play
 func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerLogins(context.Context, *PageRequest) (*LoginPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPlayerLogins not implemented")
 }
-func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerItems(context.Context, *ListItemsRequest) (*ItemPage, error) {
+func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerItems(context.Context, *ListByIDsRequest) (*ItemPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPlayerItems not implemented")
 }
 func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerCurrencies(context.Context, *PlayerRequest) (*ItemPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPlayerCurrencies not implemented")
 }
-func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerHeroes(context.Context, *PageRequest) (*HeroPage, error) {
+func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerHeroes(context.Context, *ListByIDsRequest) (*HeroPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPlayerHeroes not implemented")
 }
-func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerPets(context.Context, *PageRequest) (*PetPage, error) {
+func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerPets(context.Context, *ListByIDsRequest) (*PetPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPlayerPets not implemented")
 }
 func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerMails(context.Context, *PageRequest) (*MailPage, error) {
@@ -466,6 +496,12 @@ func (UnimplementedAzurPromiliaGMServiceServer) ListPlayerMails(context.Context,
 }
 func (UnimplementedAzurPromiliaGMServiceServer) AdjustItems(context.Context, *AdjustItemsRequest) (*OperationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AdjustItems not implemented")
+}
+func (UnimplementedAzurPromiliaGMServiceServer) SetPlayerHero(context.Context, *SetHeroRequest) (*OperationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetPlayerHero not implemented")
+}
+func (UnimplementedAzurPromiliaGMServiceServer) SetPlayerPet(context.Context, *SetPetRequest) (*OperationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetPlayerPet not implemented")
 }
 func (UnimplementedAzurPromiliaGMServiceServer) MailPlayers(context.Context, *MailPlayersRequest) (*OperationResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MailPlayers not implemented")
@@ -645,7 +681,7 @@ func _AzurPromiliaGMService_ListPlayerLogins_Handler(srv interface{}, ctx contex
 }
 
 func _AzurPromiliaGMService_ListPlayerItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListItemsRequest)
+	in := new(ListByIDsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -657,7 +693,7 @@ func _AzurPromiliaGMService_ListPlayerItems_Handler(srv interface{}, ctx context
 		FullMethod: AzurPromiliaGMService_ListPlayerItems_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AzurPromiliaGMServiceServer).ListPlayerItems(ctx, req.(*ListItemsRequest))
+		return srv.(AzurPromiliaGMServiceServer).ListPlayerItems(ctx, req.(*ListByIDsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -681,7 +717,7 @@ func _AzurPromiliaGMService_ListPlayerCurrencies_Handler(srv interface{}, ctx co
 }
 
 func _AzurPromiliaGMService_ListPlayerHeroes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PageRequest)
+	in := new(ListByIDsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -693,13 +729,13 @@ func _AzurPromiliaGMService_ListPlayerHeroes_Handler(srv interface{}, ctx contex
 		FullMethod: AzurPromiliaGMService_ListPlayerHeroes_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AzurPromiliaGMServiceServer).ListPlayerHeroes(ctx, req.(*PageRequest))
+		return srv.(AzurPromiliaGMServiceServer).ListPlayerHeroes(ctx, req.(*ListByIDsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AzurPromiliaGMService_ListPlayerPets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PageRequest)
+	in := new(ListByIDsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -711,7 +747,7 @@ func _AzurPromiliaGMService_ListPlayerPets_Handler(srv interface{}, ctx context.
 		FullMethod: AzurPromiliaGMService_ListPlayerPets_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AzurPromiliaGMServiceServer).ListPlayerPets(ctx, req.(*PageRequest))
+		return srv.(AzurPromiliaGMServiceServer).ListPlayerPets(ctx, req.(*ListByIDsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -748,6 +784,42 @@ func _AzurPromiliaGMService_AdjustItems_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AzurPromiliaGMServiceServer).AdjustItems(ctx, req.(*AdjustItemsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AzurPromiliaGMService_SetPlayerHero_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetHeroRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AzurPromiliaGMServiceServer).SetPlayerHero(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AzurPromiliaGMService_SetPlayerHero_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AzurPromiliaGMServiceServer).SetPlayerHero(ctx, req.(*SetHeroRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AzurPromiliaGMService_SetPlayerPet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetPetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AzurPromiliaGMServiceServer).SetPlayerPet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AzurPromiliaGMService_SetPlayerPet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AzurPromiliaGMServiceServer).SetPlayerPet(ctx, req.(*SetPetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1094,6 +1166,14 @@ var AzurPromiliaGMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AdjustItems",
 			Handler:    _AzurPromiliaGMService_AdjustItems_Handler,
+		},
+		{
+			MethodName: "SetPlayerHero",
+			Handler:    _AzurPromiliaGMService_SetPlayerHero_Handler,
+		},
+		{
+			MethodName: "SetPlayerPet",
+			Handler:    _AzurPromiliaGMService_SetPlayerPet_Handler,
 		},
 		{
 			MethodName: "MailPlayers",

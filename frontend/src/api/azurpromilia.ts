@@ -10,7 +10,7 @@ import type {
   GetPlayerResponse,
   IDOperationRequest,
   IDPageRequest,
-  ListItemsRequest,
+  ListByIDsRequest,
   ListPageRequest,
   ListPlayersRequest,
   ListPlayersResponse,
@@ -24,6 +24,8 @@ import type {
   SendMailRequest,
   SendMailResponse,
   SetCodeBatchDisabledRequest,
+  SetHeroRequest,
+  SetPetRequest,
 } from '@/types/v1/azurpromilia/gm'
 import type {
   CodeBatch,
@@ -72,10 +74,10 @@ export const listPlayers = (req: Partial<ListPlayersRequest> & { serverId: strin
   get<ListPlayersResponse>(`${base(req.serverId)}/players`, query(req, 'serverId'))
 export const getPlayer = (serverId: string, pid: string) => get<GetPlayerResponse>(player(serverId, pid))
 export const listPlayerLogins = (req: PageRequest) => get<LoginPage>(`${player(req.serverId, req.pid)}/logins`, query(req, 'serverId', 'pid'))
-export const listPlayerItems = (req: ListItemsRequest) => get<ItemPage>(`${player(req.serverId, req.pid)}/items`, query(req, 'serverId', 'pid'))
+export const listPlayerItems = (req: ListByIDsRequest) => get<ItemPage>(`${player(req.serverId, req.pid)}/items`, query(req, 'serverId', 'pid'))
 export const listPlayerCurrencies = (serverId: string, pid: string) => get<ItemPage>(`${player(serverId, pid)}/currencies`)
-export const listPlayerHeroes = (req: PageRequest) => get<HeroPage>(`${player(req.serverId, req.pid)}/heroes`, query(req, 'serverId', 'pid'))
-export const listPlayerPets = (req: PageRequest) => get<PetPage>(`${player(req.serverId, req.pid)}/pets`, query(req, 'serverId', 'pid'))
+export const listPlayerHeroes = (req: ListByIDsRequest) => get<HeroPage>(`${player(req.serverId, req.pid)}/heroes`, query(req, 'serverId', 'pid'))
+export const listPlayerPets = (req: ListByIDsRequest) => get<PetPage>(`${player(req.serverId, req.pid)}/pets`, query(req, 'serverId', 'pid'))
 export const listPlayerMails = (req: PageRequest) => get<MailPage>(`${player(req.serverId, req.pid)}/mails`, query(req, 'serverId', 'pid'))
 
 // ---------------- 对玩家的操作 ----------------
@@ -87,6 +89,8 @@ export const banPlayers = (req: BanPlayersRequest) => post<OperationResponse>(`$
 export const unbanPlayers = (req: PlayersOperationRequest) => post<OperationResponse>(`${base(req.serverId)}/players/unban`, req)
 export const resetPassword = (req: ResetPasswordRequest) => post<OperationResponse>(`${base(req.serverId)}/players/password`, req)
 export const renamePlayer = (req: RenamePlayerRequest) => post<OperationResponse>(`${base(req.serverId)}/players/rename`, req)
+export const setPlayerHero = (req: SetHeroRequest) => post<OperationResponse>(`${player(req.serverId, req.pid)}/heroes/${req.seq}`, req)
+export const setPlayerPet = (req: SetPetRequest) => post<OperationResponse>(`${player(req.serverId, req.pid)}/pets/${req.guid}`, req)
 
 // ---------------- 邮件补偿 ----------------
 

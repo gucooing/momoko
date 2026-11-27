@@ -31,6 +31,16 @@ export interface GameAdapterRole {
   listens: string[];
 }
 
+/** 游戏客户端用通行证启动时连接的一个地址（适配器按这款游戏的客户端给出）。 */
+export interface GameAdapterClientEndpoint {
+  /** sdk SDK / game 游戏服务端 / resource 资源服务器 */
+  key: string;
+  /** 必须填写才能用通行证启动；不必填的留空时客户端使用官方的（学マス 的资源服务器） */
+  required: boolean;
+  /** 托管时在服务端配置里提供这个地址的监听（进程角色 listens 的键，如蓝色星原 sdk）；空为没有对应的监听 */
+  listen: string;
+}
+
 /** 游戏适配器（随 Momoko 版本内置）。 */
 export interface GameAdapter {
   /** 适配器 id（gakumas） */
@@ -51,8 +61,11 @@ export interface GameAdapter {
   logModules: string[];
   /** 托管：备份范围（相对服务端目录） */
   backupScope: string[];
-  /** 游戏客户端可以用通行证启动（服务器可填写客户端地址，通行证签发启动票据） */
-  clientLaunch: boolean;
+  /**
+   * 游戏客户端用通行证启动时连接的地址，只有这款游戏的客户端用到的（学マス：SDK、游戏服务端、资源服务器；
+   * 蓝色星原：SDK，网关与资源 CDN 由 SDK 下发）；为空表示不支持用通行证启动客户端
+   */
+  clientEndpoints: GameAdapterClientEndpoint[];
 }
 
 export interface ListGameAdaptersRequest {
@@ -127,7 +140,10 @@ export interface GameServerInfo {
   capabilities: string[];
   /** 进行中的托管任务（更新 / 资源 / 备份 / 回档） */
   runningTasks: GameServerTask[];
-  /** 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器（空为使用官方资源） */
+  /**
+   * 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器，
+   * 只保存这款游戏的客户端用到的（见适配器的 client_endpoints）
+   */
   clientSdkUrl: string;
   clientGameUrl: string;
   clientResourceUrl: string;
@@ -277,7 +293,10 @@ export interface UpdateGameServerRequest {
   passportVisibility: string;
   passportInviteCode: string;
   timezone: string;
-  /** 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；SDK 与游戏服务端地址填写且生成了客户端应用凭据后，服务器才能用通行证启动；资源服务器地址不填时客户端使用官方资源 */
+  /**
+   * 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；只保存这款游戏的客户端用到的（适配器的 client_endpoints），
+   * 其余清空。必填的地址都填写且生成了客户端应用凭据后，服务器才能用通行证启动
+   */
   clientSdkUrl: string;
   clientGameUrl: string;
   clientResourceUrl: string;

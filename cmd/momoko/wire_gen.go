@@ -160,7 +160,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	passportService := service.NewPassportService(passportUsecase, gakumasPassportUsecase, azurPromiliaPassportUsecase, passport)
 	gakumasPassportService := service.NewGakumasPassportService(gakumasPassportUsecase)
 	azurPromiliaPassportService := service.NewAzurPromiliaPassportService(azurPromiliaPassportUsecase)
-	passportServer := server.NewPassportServer(passport, passportService, gakumasPassportService, azurPromiliaPassportService)
+	passportServer := server.NewPassportServer(passport, passportService, gakumasPassportService, azurPromiliaPassportService, themeassetManager)
 	app := newApp(logger, grpcServer, httpServer, passportServer)
 	return app, func() {
 		cleanup8()

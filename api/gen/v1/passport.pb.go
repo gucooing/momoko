@@ -112,7 +112,10 @@ type GetPassportConfigResponse struct {
 	// 申请注销后可以撤销的天数
 	DeletionGraceDays int32 `protobuf:"varint,8,opt,name=deletion_grace_days,json=deletionGraceDays,proto3" json:"deletion_grace_days,omitempty"`
 	// 游戏素材地址；空表示没设置
-	GameAssetUrl  string `protobuf:"bytes,9,opt,name=game_asset_url,json=gameAssetUrl,proto3" json:"game_asset_url,omitempty"`
+	GameAssetUrl string `protobuf:"bytes,9,opt,name=game_asset_url,json=gameAssetUrl,proto3" json:"game_asset_url,omitempty"`
+	// 全站默认外观主题（管理后台「设为全站默认」，与管理后台登录页同一份）；没设置过为空。
+	// 主题引用的背景图 / 字体由通行证 server 的 /api/v1/theme-asset/<id> 提供
+	SiteTheme     *SiteTheme `protobuf:"bytes,10,opt,name=site_theme,json=siteTheme,proto3" json:"site_theme,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -201,6 +204,13 @@ func (x *GetPassportConfigResponse) GetGameAssetUrl() string {
 		return x.GameAssetUrl
 	}
 	return ""
+}
+
+func (x *GetPassportConfigResponse) GetSiteTheme() *SiteTheme {
+	if x != nil {
+		return x.SiteTheme
+	}
+	return nil
 }
 
 type SendPassportEmailCodeRequest struct {
@@ -746,7 +756,7 @@ func (x *PassportResetPasswordRequest) GetPassword() string {
 
 type StartPassportClientAuthRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 客户端：launcher（Momoko 启动器）/ android（学马仕 Android）
+	// 客户端：launcher（Momoko 启动器）/ android（学马仕 Android）/ azurpromilia（蓝色星原游戏内登录，浏览器单点授权，授权页不核对 user_code）
 	Client string `protobuf:"bytes,1,opt,name=client,proto3" json:"client,omitempty"`
 	// 客户端首次运行生成并持久保存的随机 ID（同一设备只保留一个会话）
 	DeviceId string `protobuf:"bytes,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
@@ -1043,7 +1053,7 @@ type PassportClientAuth struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// launcher / android
 	Client string `protobuf:"bytes,1,opt,name=client,proto3" json:"client,omitempty"`
-	// 客户端显示名（Momoko 启动器 / 学马仕 Android）
+	// 客户端显示名（Momoko 启动器 / 学马仕 Android / 蓝色星原）
 	ClientName string `protobuf:"bytes,2,opt,name=client_name,json=clientName,proto3" json:"client_name,omitempty"`
 	// 设备名
 	Device string `protobuf:"bytes,3,opt,name=device,proto3" json:"device,omitempty"`
@@ -4107,6 +4117,7 @@ func (x *RedeemPassportGiftCodeResponse) GetExecutionId() string {
 }
 
 // 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。
+// 只带这款游戏的客户端用到的地址，其余为空（学マス：三项，资源服务器可为空；蓝色星原：只有 SDK）。
 type PassportLaunchEndpoints struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 游戏服务端 SDK
@@ -4502,9 +4513,9 @@ var File_v1_passport_proto protoreflect.FileDescriptor
 
 const file_v1_passport_proto_rawDesc = "" +
 	"\n" +
-	"\x11v1/passport.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14v1/game_common.proto\"\x0f\n" +
+	"\x11v1/passport.proto\x12\x02v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x14v1/game_common.proto\x1a\x0ev1/theme.proto\"\x0f\n" +
 	"\rPassportEmpty\"\x1a\n" +
-	"\x18GetPassportConfigRequest\"\xfa\x02\n" +
+	"\x18GetPassportConfigRequest\"\xa8\x03\n" +
 	"\x19GetPassportConfigResponse\x12\x1b\n" +
 	"\tsite_name\x18\x01 \x01(\tR\bsiteName\x12#\n" +
 	"\rregister_mode\x18\x02 \x01(\tR\fregisterMode\x12.\n" +
@@ -4513,7 +4524,10 @@ const file_v1_passport_proto_rawDesc = "" +
 	"\remail_enabled\x18\x05 \x01(\bR\femailEnabled\x120\n" +
 	"\x14unbind_cooldown_days\x18\a \x01(\x05R\x12unbindCooldownDays\x12.\n" +
 	"\x13deletion_grace_days\x18\b \x01(\x05R\x11deletionGraceDays\x12$\n" +
-	"\x0egame_asset_url\x18\t \x01(\tR\fgameAssetUrl\"4\n" +
+	"\x0egame_asset_url\x18\t \x01(\tR\fgameAssetUrl\x12,\n" +
+	"\n" +
+	"site_theme\x18\n" +
+	" \x01(\v2\r.v1.SiteThemeR\tsiteTheme\"4\n" +
 	"\x1cSendPassportEmailCodeRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\"\x7f\n" +
 	"\x1dSendPassportEmailCodeResponse\x12,\n" +
@@ -5007,163 +5021,165 @@ var file_v1_passport_proto_goTypes = []any{
 	(*PassportLaunchTicket)(nil),              // 64: v1.PassportLaunchTicket
 	nil,                                       // 65: v1.PassportMessage.ParamsEntry
 	nil,                                       // 66: v1.PassportActivity.ParamsEntry
-	(*timestamppb.Timestamp)(nil),             // 67: google.protobuf.Timestamp
-	(*GameServerBrief)(nil),                   // 68: v1.GameServerBrief
-	(*GameReward)(nil),                        // 69: v1.GameReward
+	(*SiteTheme)(nil),                         // 67: v1.SiteTheme
+	(*timestamppb.Timestamp)(nil),             // 68: google.protobuf.Timestamp
+	(*GameServerBrief)(nil),                   // 69: v1.GameServerBrief
+	(*GameReward)(nil),                        // 70: v1.GameReward
 }
 var file_v1_passport_proto_depIdxs = []int32{
-	67, // 0: v1.PassportClientAuth.create_time:type_name -> google.protobuf.Timestamp
-	67, // 1: v1.PassportClientAuth.expire_time:type_name -> google.protobuf.Timestamp
-	67, // 2: v1.PassportMe.totp_enabled_at:type_name -> google.protobuf.Timestamp
-	67, // 3: v1.PassportMe.password_updated_at:type_name -> google.protobuf.Timestamp
-	67, // 4: v1.PassportMe.create_time:type_name -> google.protobuf.Timestamp
-	67, // 5: v1.PassportMe.last_login_at:type_name -> google.protobuf.Timestamp
-	67, // 6: v1.PassportMe.deletion_scheduled_at:type_name -> google.protobuf.Timestamp
-	67, // 7: v1.PassportDevice.create_time:type_name -> google.protobuf.Timestamp
-	67, // 8: v1.PassportDevice.last_active_time:type_name -> google.protobuf.Timestamp
-	67, // 9: v1.PassportDevice.expire_time:type_name -> google.protobuf.Timestamp
-	30, // 10: v1.ListPassportDevicesResponse.items:type_name -> v1.PassportDevice
-	65, // 11: v1.PassportMessage.params:type_name -> v1.PassportMessage.ParamsEntry
-	68, // 12: v1.PassportMessage.server:type_name -> v1.GameServerBrief
-	67, // 13: v1.PassportMessage.create_time:type_name -> google.protobuf.Timestamp
-	34, // 14: v1.ListPassportMessagesResponse.items:type_name -> v1.PassportMessage
-	67, // 15: v1.PassportActivity.time:type_name -> google.protobuf.Timestamp
-	68, // 16: v1.PassportActivity.server:type_name -> v1.GameServerBrief
-	66, // 17: v1.PassportActivity.params:type_name -> v1.PassportActivity.ParamsEntry
-	39, // 18: v1.ListPassportActivityResponse.items:type_name -> v1.PassportActivity
-	68, // 19: v1.PassportLink.server:type_name -> v1.GameServerBrief
-	67, // 20: v1.PassportLink.linked_at:type_name -> google.protobuf.Timestamp
-	67, // 21: v1.PassportLink.last_seen_at:type_name -> google.protobuf.Timestamp
-	42, // 22: v1.ListPassportLinksResponse.items:type_name -> v1.PassportLink
-	68, // 23: v1.PassportBindServer.server:type_name -> v1.GameServerBrief
-	67, // 24: v1.PassportBindServer.cooldown_until:type_name -> google.protobuf.Timestamp
-	46, // 25: v1.SearchPassportBindServersResponse.items:type_name -> v1.PassportBindServer
-	46, // 26: v1.SearchPassportBindServersResponse.recommended:type_name -> v1.PassportBindServer
-	47, // 27: v1.SearchPassportBindServersResponse.games:type_name -> v1.PassportBindGame
-	46, // 28: v1.SearchPassportBindServersResponse.target:type_name -> v1.PassportBindServer
-	68, // 29: v1.PassportGameResponse.server:type_name -> v1.GameServerBrief
-	42, // 30: v1.PassportGameResponse.link:type_name -> v1.PassportLink
-	42, // 31: v1.PassportGameResponse.others:type_name -> v1.PassportLink
-	67, // 32: v1.PassportSelfService.resets_at:type_name -> google.protobuf.Timestamp
-	67, // 33: v1.PassportSelfService.last_used_at:type_name -> google.protobuf.Timestamp
-	52, // 34: v1.ListPassportSelfServiceResponse.items:type_name -> v1.PassportSelfService
-	67, // 35: v1.PassportGameRecord.reviewed_at:type_name -> google.protobuf.Timestamp
-	67, // 36: v1.PassportGameRecord.create_time:type_name -> google.protobuf.Timestamp
-	67, // 37: v1.PassportGameRecord.finished_at:type_name -> google.protobuf.Timestamp
-	69, // 38: v1.PassportGameRecord.rewards:type_name -> v1.GameReward
-	55, // 39: v1.ListPassportGameRecordsResponse.items:type_name -> v1.PassportGameRecord
-	69, // 40: v1.RedeemPassportGiftCodeResponse.rewards:type_name -> v1.GameReward
-	68, // 41: v1.PassportLaunchApp.server:type_name -> v1.GameServerBrief
-	59, // 42: v1.PassportLaunchApp.endpoints:type_name -> v1.PassportLaunchEndpoints
-	42, // 43: v1.PassportLaunchApp.link:type_name -> v1.PassportLink
-	60, // 44: v1.ListPassportLaunchAppsResponse.apps:type_name -> v1.PassportLaunchApp
-	1,  // 45: v1.PassportService.GetPassportConfig:input_type -> v1.GetPassportConfigRequest
-	3,  // 46: v1.PassportService.SendPassportRegisterCode:input_type -> v1.SendPassportEmailCodeRequest
-	5,  // 47: v1.PassportService.PassportRegister:input_type -> v1.PassportRegisterRequest
-	3,  // 48: v1.PassportService.SendPassportLoginCode:input_type -> v1.SendPassportEmailCodeRequest
-	6,  // 49: v1.PassportService.PassportLogin:input_type -> v1.PassportLoginRequest
-	7,  // 50: v1.PassportService.PassportLoginMfa:input_type -> v1.PassportLoginMfaRequest
-	8,  // 51: v1.PassportService.PassportRefresh:input_type -> v1.PassportRefreshRequest
-	3,  // 52: v1.PassportService.SendPassportResetCode:input_type -> v1.SendPassportEmailCodeRequest
-	10, // 53: v1.PassportService.PassportResetPassword:input_type -> v1.PassportResetPasswordRequest
-	11, // 54: v1.PassportService.StartPassportClientAuth:input_type -> v1.StartPassportClientAuthRequest
-	13, // 55: v1.PassportService.ClaimPassportClientAuth:input_type -> v1.ClaimPassportClientAuthRequest
-	15, // 56: v1.PassportService.GetPassportClientAuth:input_type -> v1.PassportClientAuthCodeRequest
-	15, // 57: v1.PassportService.ApprovePassportClientAuth:input_type -> v1.PassportClientAuthCodeRequest
-	15, // 58: v1.PassportService.DenyPassportClientAuth:input_type -> v1.PassportClientAuthCodeRequest
-	0,  // 59: v1.PassportService.PassportLogout:input_type -> v1.PassportEmpty
-	0,  // 60: v1.PassportService.GetPassportMe:input_type -> v1.PassportEmpty
-	18, // 61: v1.PassportService.UpdatePassportProfile:input_type -> v1.UpdatePassportProfileRequest
-	19, // 62: v1.PassportService.PresignPassportAvatar:input_type -> v1.PresignPassportAvatarRequest
-	21, // 63: v1.PassportService.CompletePassportAvatar:input_type -> v1.CompletePassportAvatarRequest
-	22, // 64: v1.PassportService.ChangePassportPassword:input_type -> v1.ChangePassportPasswordRequest
-	3,  // 65: v1.PassportService.SendPassportEmailChangeCode:input_type -> v1.SendPassportEmailCodeRequest
-	23, // 66: v1.PassportService.ChangePassportEmail:input_type -> v1.ChangePassportEmailRequest
-	24, // 67: v1.PassportService.SetPassportEmailLogin:input_type -> v1.SetPassportEmailLoginRequest
-	0,  // 68: v1.PassportService.SetupPassportTotp:input_type -> v1.PassportEmpty
-	26, // 69: v1.PassportService.EnablePassportTotp:input_type -> v1.EnablePassportTotpRequest
-	27, // 70: v1.PassportService.DisablePassportTotp:input_type -> v1.DisablePassportTotpRequest
-	28, // 71: v1.PassportService.RegeneratePassportRecoveryCodes:input_type -> v1.PassportTotpCodeRequest
-	0,  // 72: v1.PassportService.ListPassportDevices:input_type -> v1.PassportEmpty
-	32, // 73: v1.PassportService.RevokePassportDevice:input_type -> v1.RevokePassportDeviceRequest
-	0,  // 74: v1.PassportService.LogoutPassportOthers:input_type -> v1.PassportEmpty
-	33, // 75: v1.PassportService.RequestPassportDeletion:input_type -> v1.RequestPassportDeletionRequest
-	0,  // 76: v1.PassportService.CancelPassportDeletion:input_type -> v1.PassportEmpty
-	35, // 77: v1.PassportService.ListPassportMessages:input_type -> v1.ListPassportMessagesRequest
-	37, // 78: v1.PassportService.ReadPassportMessages:input_type -> v1.ReadPassportMessagesRequest
-	40, // 79: v1.PassportService.ListPassportActivity:input_type -> v1.ListPassportActivityRequest
-	0,  // 80: v1.PassportService.ListPassportLinks:input_type -> v1.PassportEmpty
-	44, // 81: v1.PassportService.SetPassportPrimaryLink:input_type -> v1.PassportLinkRequest
-	44, // 82: v1.PassportService.UnbindPassportLink:input_type -> v1.PassportLinkRequest
-	45, // 83: v1.PassportService.SearchPassportBindServers:input_type -> v1.SearchPassportBindServersRequest
-	49, // 84: v1.PassportService.BindPassportAccount:input_type -> v1.BindPassportAccountRequest
-	50, // 85: v1.PassportService.GetPassportGame:input_type -> v1.PassportGameRequest
-	50, // 86: v1.PassportService.GetPassportGameBrief:input_type -> v1.PassportGameRequest
-	50, // 87: v1.PassportService.ListPassportSelfService:input_type -> v1.PassportGameRequest
-	54, // 88: v1.PassportService.ListPassportGameRequests:input_type -> v1.ListPassportGameRecordsRequest
-	54, // 89: v1.PassportService.ListPassportGameRecords:input_type -> v1.ListPassportGameRecordsRequest
-	57, // 90: v1.PassportService.RedeemPassportGiftCode:input_type -> v1.RedeemPassportGiftCodeRequest
-	0,  // 91: v1.PassportService.ListPassportLaunchApps:input_type -> v1.PassportEmpty
-	62, // 92: v1.PassportService.GetPassportLaunchApp:input_type -> v1.PassportLaunchAppRequest
-	63, // 93: v1.PassportService.BindPassportLaunchApp:input_type -> v1.BindPassportLaunchAppRequest
-	62, // 94: v1.PassportService.CreatePassportLaunchAccount:input_type -> v1.PassportLaunchAppRequest
-	62, // 95: v1.PassportService.IssuePassportLaunchTicket:input_type -> v1.PassportLaunchAppRequest
-	2,  // 96: v1.PassportService.GetPassportConfig:output_type -> v1.GetPassportConfigResponse
-	4,  // 97: v1.PassportService.SendPassportRegisterCode:output_type -> v1.SendPassportEmailCodeResponse
-	9,  // 98: v1.PassportService.PassportRegister:output_type -> v1.PassportLoginResponse
-	4,  // 99: v1.PassportService.SendPassportLoginCode:output_type -> v1.SendPassportEmailCodeResponse
-	9,  // 100: v1.PassportService.PassportLogin:output_type -> v1.PassportLoginResponse
-	9,  // 101: v1.PassportService.PassportLoginMfa:output_type -> v1.PassportLoginResponse
-	9,  // 102: v1.PassportService.PassportRefresh:output_type -> v1.PassportLoginResponse
-	4,  // 103: v1.PassportService.SendPassportResetCode:output_type -> v1.SendPassportEmailCodeResponse
-	0,  // 104: v1.PassportService.PassportResetPassword:output_type -> v1.PassportEmpty
-	12, // 105: v1.PassportService.StartPassportClientAuth:output_type -> v1.StartPassportClientAuthResponse
-	14, // 106: v1.PassportService.ClaimPassportClientAuth:output_type -> v1.PassportClientToken
-	16, // 107: v1.PassportService.GetPassportClientAuth:output_type -> v1.PassportClientAuth
-	0,  // 108: v1.PassportService.ApprovePassportClientAuth:output_type -> v1.PassportEmpty
-	0,  // 109: v1.PassportService.DenyPassportClientAuth:output_type -> v1.PassportEmpty
-	0,  // 110: v1.PassportService.PassportLogout:output_type -> v1.PassportEmpty
-	17, // 111: v1.PassportService.GetPassportMe:output_type -> v1.PassportMe
-	17, // 112: v1.PassportService.UpdatePassportProfile:output_type -> v1.PassportMe
-	20, // 113: v1.PassportService.PresignPassportAvatar:output_type -> v1.PresignPassportAvatarResponse
-	17, // 114: v1.PassportService.CompletePassportAvatar:output_type -> v1.PassportMe
-	0,  // 115: v1.PassportService.ChangePassportPassword:output_type -> v1.PassportEmpty
-	4,  // 116: v1.PassportService.SendPassportEmailChangeCode:output_type -> v1.SendPassportEmailCodeResponse
-	17, // 117: v1.PassportService.ChangePassportEmail:output_type -> v1.PassportMe
-	17, // 118: v1.PassportService.SetPassportEmailLogin:output_type -> v1.PassportMe
-	25, // 119: v1.PassportService.SetupPassportTotp:output_type -> v1.SetupPassportTotpResponse
-	29, // 120: v1.PassportService.EnablePassportTotp:output_type -> v1.PassportRecoveryCodes
-	17, // 121: v1.PassportService.DisablePassportTotp:output_type -> v1.PassportMe
-	29, // 122: v1.PassportService.RegeneratePassportRecoveryCodes:output_type -> v1.PassportRecoveryCodes
-	31, // 123: v1.PassportService.ListPassportDevices:output_type -> v1.ListPassportDevicesResponse
-	0,  // 124: v1.PassportService.RevokePassportDevice:output_type -> v1.PassportEmpty
-	0,  // 125: v1.PassportService.LogoutPassportOthers:output_type -> v1.PassportEmpty
-	17, // 126: v1.PassportService.RequestPassportDeletion:output_type -> v1.PassportMe
-	17, // 127: v1.PassportService.CancelPassportDeletion:output_type -> v1.PassportMe
-	36, // 128: v1.PassportService.ListPassportMessages:output_type -> v1.ListPassportMessagesResponse
-	38, // 129: v1.PassportService.ReadPassportMessages:output_type -> v1.ReadPassportMessagesResponse
-	41, // 130: v1.PassportService.ListPassportActivity:output_type -> v1.ListPassportActivityResponse
-	43, // 131: v1.PassportService.ListPassportLinks:output_type -> v1.ListPassportLinksResponse
-	0,  // 132: v1.PassportService.SetPassportPrimaryLink:output_type -> v1.PassportEmpty
-	0,  // 133: v1.PassportService.UnbindPassportLink:output_type -> v1.PassportEmpty
-	48, // 134: v1.PassportService.SearchPassportBindServers:output_type -> v1.SearchPassportBindServersResponse
-	42, // 135: v1.PassportService.BindPassportAccount:output_type -> v1.PassportLink
-	51, // 136: v1.PassportService.GetPassportGame:output_type -> v1.PassportGameResponse
-	51, // 137: v1.PassportService.GetPassportGameBrief:output_type -> v1.PassportGameResponse
-	53, // 138: v1.PassportService.ListPassportSelfService:output_type -> v1.ListPassportSelfServiceResponse
-	56, // 139: v1.PassportService.ListPassportGameRequests:output_type -> v1.ListPassportGameRecordsResponse
-	56, // 140: v1.PassportService.ListPassportGameRecords:output_type -> v1.ListPassportGameRecordsResponse
-	58, // 141: v1.PassportService.RedeemPassportGiftCode:output_type -> v1.RedeemPassportGiftCodeResponse
-	61, // 142: v1.PassportService.ListPassportLaunchApps:output_type -> v1.ListPassportLaunchAppsResponse
-	60, // 143: v1.PassportService.GetPassportLaunchApp:output_type -> v1.PassportLaunchApp
-	42, // 144: v1.PassportService.BindPassportLaunchApp:output_type -> v1.PassportLink
-	42, // 145: v1.PassportService.CreatePassportLaunchAccount:output_type -> v1.PassportLink
-	64, // 146: v1.PassportService.IssuePassportLaunchTicket:output_type -> v1.PassportLaunchTicket
-	96, // [96:147] is the sub-list for method output_type
-	45, // [45:96] is the sub-list for method input_type
-	45, // [45:45] is the sub-list for extension type_name
-	45, // [45:45] is the sub-list for extension extendee
-	0,  // [0:45] is the sub-list for field type_name
+	67, // 0: v1.GetPassportConfigResponse.site_theme:type_name -> v1.SiteTheme
+	68, // 1: v1.PassportClientAuth.create_time:type_name -> google.protobuf.Timestamp
+	68, // 2: v1.PassportClientAuth.expire_time:type_name -> google.protobuf.Timestamp
+	68, // 3: v1.PassportMe.totp_enabled_at:type_name -> google.protobuf.Timestamp
+	68, // 4: v1.PassportMe.password_updated_at:type_name -> google.protobuf.Timestamp
+	68, // 5: v1.PassportMe.create_time:type_name -> google.protobuf.Timestamp
+	68, // 6: v1.PassportMe.last_login_at:type_name -> google.protobuf.Timestamp
+	68, // 7: v1.PassportMe.deletion_scheduled_at:type_name -> google.protobuf.Timestamp
+	68, // 8: v1.PassportDevice.create_time:type_name -> google.protobuf.Timestamp
+	68, // 9: v1.PassportDevice.last_active_time:type_name -> google.protobuf.Timestamp
+	68, // 10: v1.PassportDevice.expire_time:type_name -> google.protobuf.Timestamp
+	30, // 11: v1.ListPassportDevicesResponse.items:type_name -> v1.PassportDevice
+	65, // 12: v1.PassportMessage.params:type_name -> v1.PassportMessage.ParamsEntry
+	69, // 13: v1.PassportMessage.server:type_name -> v1.GameServerBrief
+	68, // 14: v1.PassportMessage.create_time:type_name -> google.protobuf.Timestamp
+	34, // 15: v1.ListPassportMessagesResponse.items:type_name -> v1.PassportMessage
+	68, // 16: v1.PassportActivity.time:type_name -> google.protobuf.Timestamp
+	69, // 17: v1.PassportActivity.server:type_name -> v1.GameServerBrief
+	66, // 18: v1.PassportActivity.params:type_name -> v1.PassportActivity.ParamsEntry
+	39, // 19: v1.ListPassportActivityResponse.items:type_name -> v1.PassportActivity
+	69, // 20: v1.PassportLink.server:type_name -> v1.GameServerBrief
+	68, // 21: v1.PassportLink.linked_at:type_name -> google.protobuf.Timestamp
+	68, // 22: v1.PassportLink.last_seen_at:type_name -> google.protobuf.Timestamp
+	42, // 23: v1.ListPassportLinksResponse.items:type_name -> v1.PassportLink
+	69, // 24: v1.PassportBindServer.server:type_name -> v1.GameServerBrief
+	68, // 25: v1.PassportBindServer.cooldown_until:type_name -> google.protobuf.Timestamp
+	46, // 26: v1.SearchPassportBindServersResponse.items:type_name -> v1.PassportBindServer
+	46, // 27: v1.SearchPassportBindServersResponse.recommended:type_name -> v1.PassportBindServer
+	47, // 28: v1.SearchPassportBindServersResponse.games:type_name -> v1.PassportBindGame
+	46, // 29: v1.SearchPassportBindServersResponse.target:type_name -> v1.PassportBindServer
+	69, // 30: v1.PassportGameResponse.server:type_name -> v1.GameServerBrief
+	42, // 31: v1.PassportGameResponse.link:type_name -> v1.PassportLink
+	42, // 32: v1.PassportGameResponse.others:type_name -> v1.PassportLink
+	68, // 33: v1.PassportSelfService.resets_at:type_name -> google.protobuf.Timestamp
+	68, // 34: v1.PassportSelfService.last_used_at:type_name -> google.protobuf.Timestamp
+	52, // 35: v1.ListPassportSelfServiceResponse.items:type_name -> v1.PassportSelfService
+	68, // 36: v1.PassportGameRecord.reviewed_at:type_name -> google.protobuf.Timestamp
+	68, // 37: v1.PassportGameRecord.create_time:type_name -> google.protobuf.Timestamp
+	68, // 38: v1.PassportGameRecord.finished_at:type_name -> google.protobuf.Timestamp
+	70, // 39: v1.PassportGameRecord.rewards:type_name -> v1.GameReward
+	55, // 40: v1.ListPassportGameRecordsResponse.items:type_name -> v1.PassportGameRecord
+	70, // 41: v1.RedeemPassportGiftCodeResponse.rewards:type_name -> v1.GameReward
+	69, // 42: v1.PassportLaunchApp.server:type_name -> v1.GameServerBrief
+	59, // 43: v1.PassportLaunchApp.endpoints:type_name -> v1.PassportLaunchEndpoints
+	42, // 44: v1.PassportLaunchApp.link:type_name -> v1.PassportLink
+	60, // 45: v1.ListPassportLaunchAppsResponse.apps:type_name -> v1.PassportLaunchApp
+	1,  // 46: v1.PassportService.GetPassportConfig:input_type -> v1.GetPassportConfigRequest
+	3,  // 47: v1.PassportService.SendPassportRegisterCode:input_type -> v1.SendPassportEmailCodeRequest
+	5,  // 48: v1.PassportService.PassportRegister:input_type -> v1.PassportRegisterRequest
+	3,  // 49: v1.PassportService.SendPassportLoginCode:input_type -> v1.SendPassportEmailCodeRequest
+	6,  // 50: v1.PassportService.PassportLogin:input_type -> v1.PassportLoginRequest
+	7,  // 51: v1.PassportService.PassportLoginMfa:input_type -> v1.PassportLoginMfaRequest
+	8,  // 52: v1.PassportService.PassportRefresh:input_type -> v1.PassportRefreshRequest
+	3,  // 53: v1.PassportService.SendPassportResetCode:input_type -> v1.SendPassportEmailCodeRequest
+	10, // 54: v1.PassportService.PassportResetPassword:input_type -> v1.PassportResetPasswordRequest
+	11, // 55: v1.PassportService.StartPassportClientAuth:input_type -> v1.StartPassportClientAuthRequest
+	13, // 56: v1.PassportService.ClaimPassportClientAuth:input_type -> v1.ClaimPassportClientAuthRequest
+	15, // 57: v1.PassportService.GetPassportClientAuth:input_type -> v1.PassportClientAuthCodeRequest
+	15, // 58: v1.PassportService.ApprovePassportClientAuth:input_type -> v1.PassportClientAuthCodeRequest
+	15, // 59: v1.PassportService.DenyPassportClientAuth:input_type -> v1.PassportClientAuthCodeRequest
+	0,  // 60: v1.PassportService.PassportLogout:input_type -> v1.PassportEmpty
+	0,  // 61: v1.PassportService.GetPassportMe:input_type -> v1.PassportEmpty
+	18, // 62: v1.PassportService.UpdatePassportProfile:input_type -> v1.UpdatePassportProfileRequest
+	19, // 63: v1.PassportService.PresignPassportAvatar:input_type -> v1.PresignPassportAvatarRequest
+	21, // 64: v1.PassportService.CompletePassportAvatar:input_type -> v1.CompletePassportAvatarRequest
+	22, // 65: v1.PassportService.ChangePassportPassword:input_type -> v1.ChangePassportPasswordRequest
+	3,  // 66: v1.PassportService.SendPassportEmailChangeCode:input_type -> v1.SendPassportEmailCodeRequest
+	23, // 67: v1.PassportService.ChangePassportEmail:input_type -> v1.ChangePassportEmailRequest
+	24, // 68: v1.PassportService.SetPassportEmailLogin:input_type -> v1.SetPassportEmailLoginRequest
+	0,  // 69: v1.PassportService.SetupPassportTotp:input_type -> v1.PassportEmpty
+	26, // 70: v1.PassportService.EnablePassportTotp:input_type -> v1.EnablePassportTotpRequest
+	27, // 71: v1.PassportService.DisablePassportTotp:input_type -> v1.DisablePassportTotpRequest
+	28, // 72: v1.PassportService.RegeneratePassportRecoveryCodes:input_type -> v1.PassportTotpCodeRequest
+	0,  // 73: v1.PassportService.ListPassportDevices:input_type -> v1.PassportEmpty
+	32, // 74: v1.PassportService.RevokePassportDevice:input_type -> v1.RevokePassportDeviceRequest
+	0,  // 75: v1.PassportService.LogoutPassportOthers:input_type -> v1.PassportEmpty
+	33, // 76: v1.PassportService.RequestPassportDeletion:input_type -> v1.RequestPassportDeletionRequest
+	0,  // 77: v1.PassportService.CancelPassportDeletion:input_type -> v1.PassportEmpty
+	35, // 78: v1.PassportService.ListPassportMessages:input_type -> v1.ListPassportMessagesRequest
+	37, // 79: v1.PassportService.ReadPassportMessages:input_type -> v1.ReadPassportMessagesRequest
+	40, // 80: v1.PassportService.ListPassportActivity:input_type -> v1.ListPassportActivityRequest
+	0,  // 81: v1.PassportService.ListPassportLinks:input_type -> v1.PassportEmpty
+	44, // 82: v1.PassportService.SetPassportPrimaryLink:input_type -> v1.PassportLinkRequest
+	44, // 83: v1.PassportService.UnbindPassportLink:input_type -> v1.PassportLinkRequest
+	45, // 84: v1.PassportService.SearchPassportBindServers:input_type -> v1.SearchPassportBindServersRequest
+	49, // 85: v1.PassportService.BindPassportAccount:input_type -> v1.BindPassportAccountRequest
+	50, // 86: v1.PassportService.GetPassportGame:input_type -> v1.PassportGameRequest
+	50, // 87: v1.PassportService.GetPassportGameBrief:input_type -> v1.PassportGameRequest
+	50, // 88: v1.PassportService.ListPassportSelfService:input_type -> v1.PassportGameRequest
+	54, // 89: v1.PassportService.ListPassportGameRequests:input_type -> v1.ListPassportGameRecordsRequest
+	54, // 90: v1.PassportService.ListPassportGameRecords:input_type -> v1.ListPassportGameRecordsRequest
+	57, // 91: v1.PassportService.RedeemPassportGiftCode:input_type -> v1.RedeemPassportGiftCodeRequest
+	0,  // 92: v1.PassportService.ListPassportLaunchApps:input_type -> v1.PassportEmpty
+	62, // 93: v1.PassportService.GetPassportLaunchApp:input_type -> v1.PassportLaunchAppRequest
+	63, // 94: v1.PassportService.BindPassportLaunchApp:input_type -> v1.BindPassportLaunchAppRequest
+	62, // 95: v1.PassportService.CreatePassportLaunchAccount:input_type -> v1.PassportLaunchAppRequest
+	62, // 96: v1.PassportService.IssuePassportLaunchTicket:input_type -> v1.PassportLaunchAppRequest
+	2,  // 97: v1.PassportService.GetPassportConfig:output_type -> v1.GetPassportConfigResponse
+	4,  // 98: v1.PassportService.SendPassportRegisterCode:output_type -> v1.SendPassportEmailCodeResponse
+	9,  // 99: v1.PassportService.PassportRegister:output_type -> v1.PassportLoginResponse
+	4,  // 100: v1.PassportService.SendPassportLoginCode:output_type -> v1.SendPassportEmailCodeResponse
+	9,  // 101: v1.PassportService.PassportLogin:output_type -> v1.PassportLoginResponse
+	9,  // 102: v1.PassportService.PassportLoginMfa:output_type -> v1.PassportLoginResponse
+	9,  // 103: v1.PassportService.PassportRefresh:output_type -> v1.PassportLoginResponse
+	4,  // 104: v1.PassportService.SendPassportResetCode:output_type -> v1.SendPassportEmailCodeResponse
+	0,  // 105: v1.PassportService.PassportResetPassword:output_type -> v1.PassportEmpty
+	12, // 106: v1.PassportService.StartPassportClientAuth:output_type -> v1.StartPassportClientAuthResponse
+	14, // 107: v1.PassportService.ClaimPassportClientAuth:output_type -> v1.PassportClientToken
+	16, // 108: v1.PassportService.GetPassportClientAuth:output_type -> v1.PassportClientAuth
+	0,  // 109: v1.PassportService.ApprovePassportClientAuth:output_type -> v1.PassportEmpty
+	0,  // 110: v1.PassportService.DenyPassportClientAuth:output_type -> v1.PassportEmpty
+	0,  // 111: v1.PassportService.PassportLogout:output_type -> v1.PassportEmpty
+	17, // 112: v1.PassportService.GetPassportMe:output_type -> v1.PassportMe
+	17, // 113: v1.PassportService.UpdatePassportProfile:output_type -> v1.PassportMe
+	20, // 114: v1.PassportService.PresignPassportAvatar:output_type -> v1.PresignPassportAvatarResponse
+	17, // 115: v1.PassportService.CompletePassportAvatar:output_type -> v1.PassportMe
+	0,  // 116: v1.PassportService.ChangePassportPassword:output_type -> v1.PassportEmpty
+	4,  // 117: v1.PassportService.SendPassportEmailChangeCode:output_type -> v1.SendPassportEmailCodeResponse
+	17, // 118: v1.PassportService.ChangePassportEmail:output_type -> v1.PassportMe
+	17, // 119: v1.PassportService.SetPassportEmailLogin:output_type -> v1.PassportMe
+	25, // 120: v1.PassportService.SetupPassportTotp:output_type -> v1.SetupPassportTotpResponse
+	29, // 121: v1.PassportService.EnablePassportTotp:output_type -> v1.PassportRecoveryCodes
+	17, // 122: v1.PassportService.DisablePassportTotp:output_type -> v1.PassportMe
+	29, // 123: v1.PassportService.RegeneratePassportRecoveryCodes:output_type -> v1.PassportRecoveryCodes
+	31, // 124: v1.PassportService.ListPassportDevices:output_type -> v1.ListPassportDevicesResponse
+	0,  // 125: v1.PassportService.RevokePassportDevice:output_type -> v1.PassportEmpty
+	0,  // 126: v1.PassportService.LogoutPassportOthers:output_type -> v1.PassportEmpty
+	17, // 127: v1.PassportService.RequestPassportDeletion:output_type -> v1.PassportMe
+	17, // 128: v1.PassportService.CancelPassportDeletion:output_type -> v1.PassportMe
+	36, // 129: v1.PassportService.ListPassportMessages:output_type -> v1.ListPassportMessagesResponse
+	38, // 130: v1.PassportService.ReadPassportMessages:output_type -> v1.ReadPassportMessagesResponse
+	41, // 131: v1.PassportService.ListPassportActivity:output_type -> v1.ListPassportActivityResponse
+	43, // 132: v1.PassportService.ListPassportLinks:output_type -> v1.ListPassportLinksResponse
+	0,  // 133: v1.PassportService.SetPassportPrimaryLink:output_type -> v1.PassportEmpty
+	0,  // 134: v1.PassportService.UnbindPassportLink:output_type -> v1.PassportEmpty
+	48, // 135: v1.PassportService.SearchPassportBindServers:output_type -> v1.SearchPassportBindServersResponse
+	42, // 136: v1.PassportService.BindPassportAccount:output_type -> v1.PassportLink
+	51, // 137: v1.PassportService.GetPassportGame:output_type -> v1.PassportGameResponse
+	51, // 138: v1.PassportService.GetPassportGameBrief:output_type -> v1.PassportGameResponse
+	53, // 139: v1.PassportService.ListPassportSelfService:output_type -> v1.ListPassportSelfServiceResponse
+	56, // 140: v1.PassportService.ListPassportGameRequests:output_type -> v1.ListPassportGameRecordsResponse
+	56, // 141: v1.PassportService.ListPassportGameRecords:output_type -> v1.ListPassportGameRecordsResponse
+	58, // 142: v1.PassportService.RedeemPassportGiftCode:output_type -> v1.RedeemPassportGiftCodeResponse
+	61, // 143: v1.PassportService.ListPassportLaunchApps:output_type -> v1.ListPassportLaunchAppsResponse
+	60, // 144: v1.PassportService.GetPassportLaunchApp:output_type -> v1.PassportLaunchApp
+	42, // 145: v1.PassportService.BindPassportLaunchApp:output_type -> v1.PassportLink
+	42, // 146: v1.PassportService.CreatePassportLaunchAccount:output_type -> v1.PassportLink
+	64, // 147: v1.PassportService.IssuePassportLaunchTicket:output_type -> v1.PassportLaunchTicket
+	97, // [97:148] is the sub-list for method output_type
+	46, // [46:97] is the sub-list for method input_type
+	46, // [46:46] is the sub-list for extension type_name
+	46, // [46:46] is the sub-list for extension extendee
+	0,  // [0:46] is the sub-list for field type_name
 }
 
 func init() { file_v1_passport_proto_init() }
@@ -5172,6 +5188,7 @@ func file_v1_passport_proto_init() {
 		return
 	}
 	file_v1_game_common_proto_init()
+	file_v1_theme_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

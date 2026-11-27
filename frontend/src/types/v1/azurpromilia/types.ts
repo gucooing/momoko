@@ -88,6 +88,10 @@ export interface Player {
   banned: boolean;
   bannedUntil: number;
   banReason: string;
+  /** 性别：1 男、2 女（创角前为 0） */
+  sex: number;
+  /** 名片的头像部件（playercard_dress ID，没有名片时为 0） */
+  head: number;
 }
 
 /** 各筛选的人数（带上其余筛选）。 */
@@ -190,6 +194,7 @@ export interface Pet {
   rank: number;
   starStage: number;
   locked: boolean;
+  starNode: number;
 }
 
 export interface PetPage {
@@ -242,6 +247,38 @@ export interface OperationData {
   reason: string;
   removed: boolean;
   name: string;
+  /** hero.set / pet.set：修改前后的数值 */
+  hero: HeroChange | undefined;
+  pet: PetChange | undefined;
+}
+
+/** 英雄可由 GM 设定的养成数值：等级、突破、星级、好感。 */
+export interface HeroValues {
+  level: number;
+  rank: number;
+  grade: number;
+  favorLevel: number;
+}
+
+export interface HeroChange {
+  seq: number;
+  before: HeroValues | undefined;
+  after: HeroValues | undefined;
+}
+
+/** 奇波可由 GM 设定的数值：等级、星魂阶段与节点、锁定、名字。 */
+export interface PetValues {
+  level: number;
+  starStage: number;
+  starNode: number;
+  locked: boolean;
+  name: string;
+}
+
+export interface PetChange {
+  guid: number;
+  before: PetValues | undefined;
+  after: PetValues | undefined;
 }
 
 /**

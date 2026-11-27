@@ -19,7 +19,10 @@
     <template v-if="tab === 'overview'">
       <section class="pp-card az__card">
         <div class="az__head">
-          <span class="az__av">{{ (player.name || player.account || '?').slice(0, 1) }}</span>
+          <span class="az__av">
+            <GameImage v-if="player.sex" :src="azurpromilia.headImage(player.head, player.sex)" :alt="player.name" eager />
+            <template v-else>{{ (player.name || player.account || '?').slice(0, 1) }}</template>
+          </span>
           <span class="az__head-text">
             <span class="az__name">{{ player.name || t('game.noName') }}</span>
             <span class="pp-hint pp-num">
@@ -57,6 +60,8 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { fmtNum, fmtTime } from '@passport/utils/format'
 import type { PlayerDetail } from '@/types/v1/azurpromilia/types'
+import GameImage from '@/components/game/GameImage.vue'
+import { azurpromilia } from '@/games'
 import AzurList from './AzurList.vue'
 import AzurSelf from './AzurSelf.vue'
 
@@ -145,6 +150,7 @@ const stats = computed(() => {
   width: 48px;
   height: 48px;
   border-radius: 50%;
+  overflow: hidden;
   display: grid;
   place-items: center;
   background: var(--m-pSoft);
@@ -209,5 +215,10 @@ const stats = computed(() => {
 .az__stat-v {
   font-size: 22px;
   font-weight: 600;
+}
+.az__av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

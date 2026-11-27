@@ -79,10 +79,10 @@ export interface GetPlayerResponse {
   gmExecutions: number;
 }
 
-export interface ListItemsRequest {
+/** 按 ID 筛选的玩家数据列表（道具、英雄、奇波）：ids 不为空时只取这些道具 / 英雄 / 奇波 ID。 */
+export interface ListByIDsRequest {
   serverId: string;
   pid: string;
-  /** 只取这些道具 ID */
   ids: number[];
   cursor: string;
   limit: number;
@@ -117,6 +117,38 @@ export interface PlayersOperationRequest {
   serverId: string;
   /** 1–200 名玩家 */
   pids: string[];
+  dryRun: boolean;
+}
+
+export interface SetHeroRequest {
+  serverId: string;
+  pid: string;
+  seq: number;
+  level?:
+    | number
+    | undefined;
+  /** 突破 */
+  rank?:
+    | number
+    | undefined;
+  /** 星级 */
+  grade?: number | undefined;
+  favorLevel?: number | undefined;
+  dryRun: boolean;
+}
+
+export interface SetPetRequest {
+  serverId: string;
+  pid: string;
+  guid: number;
+  level?:
+    | number
+    | undefined;
+  /** 星魂阶段与节点：一起给出 */
+  starStage?: number | undefined;
+  starNode?: number | undefined;
+  locked?: boolean | undefined;
+  name?: string | undefined;
   dryRun: boolean;
 }
 

@@ -141,6 +141,7 @@ import {
   SunIcon,
 } from '@heroicons/vue/24/outline'
 import GameImage from '@/components/game/GameImage.vue'
+import { gameAsset, gameCover, gameLinkAvatar } from '@/games'
 import ServerBackground from '@/components/game/ServerBackground.vue'
 import GameMark from '@passport/components/GameMark.vue'
 import PButton from '@passport/components/PButton.vue'
@@ -201,7 +202,16 @@ const notLinked = computed(() => loadError.value instanceof PassportError && loa
 const ready = computed(() => !!data.value && !!player.value && !loadError.value)
 
 const avatarCard = computed(() => player.value?.avatarIdolCardId || link.value?.avatarAsset || '')
-const heroArt = computed(() => idolCardArt(game.value, avatarCard.value, 'land'))
+// 蓝色星原：头图用服务器封面（没设时用游戏主视觉），头像用名片头像（玩家数据里的头像部件与性别）
+const azurAvatar = computed(() => {
+  const p = azPlayer.value?.player
+  return p?.sex ? `${p.head}:${p.sex}` : link.value?.avatarAsset || ''
+})
+const heroArt = computed(() => {
+  if (game.value !== 'azurpromilia') return idolCardArt(game.value, avatarCard.value, 'land')
+  const s = server.value
+  return s?.cover ? gameAsset(game.value, s.cover) : gameCover(game.value, s?.id || '')
+})
 
 // 头图优先用服务器的应用背景（接入设置里上传，与管理端、启动器同步）；没有时和概览名片一样用资料名片
 // （游戏里保存名片时上传的图片）；默认名片没有图片，这时用头像偶像卡的卡面
@@ -221,7 +231,9 @@ watch(
   },
   { immediate: true },
 )
-const avatarArt = computed(() => idolCardArt(game.value, avatarCard.value, 'sq'))
+const avatarArt = computed(() =>
+  game.value === 'azurpromilia' ? gameLinkAvatar(game.value, azurAvatar.value) : idolCardArt(game.value, avatarCard.value, 'sq'),
+)
 
 const hasMode = (id: GakumasMode) => !!modes.value?.[id]
 

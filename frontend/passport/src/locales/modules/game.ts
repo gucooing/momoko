@@ -41,6 +41,7 @@ export default {
         prev: '上一页',
         next: '下一页',
         empty: '没有记录',
+        search: { items: '搜索道具名称或 ID', currencies: '搜索货币名称或 ID', heroes: '搜索角色名称或 ID', pets: '搜索奇波名称或 ID' },
         noData: '还没有创建角色，没有游戏数据。',
         tabs: {
           overview: '概览',
@@ -442,6 +443,7 @@ export default {
         prev: '上一頁',
         next: '下一頁',
         empty: '沒有記錄',
+        search: { items: '搜尋道具名稱或 ID', currencies: '搜尋貨幣名稱或 ID', heroes: '搜尋角色名稱或 ID', pets: '搜尋奇波名稱或 ID' },
         noData: '還沒有建立角色，沒有遊戲資料。',
         tabs: {
           overview: '概覽',
@@ -843,6 +845,7 @@ export default {
         prev: 'Previous',
         next: 'Next',
         empty: 'No records',
+        search: { items: 'Search item name or ID', currencies: 'Search currency name or ID', heroes: 'Search character name or ID', pets: 'Search Kibo name or ID' },
         noData: 'No character yet, so there is no game data.',
         tabs: {
           overview: 'Overview',

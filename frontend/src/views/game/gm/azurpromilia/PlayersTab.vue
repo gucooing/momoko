@@ -25,7 +25,13 @@
       @row-click="open"
     >
       <template #cell-name="{ row }">
-        <span class="azl__name">{{ row.name || t('azurGm.common.noCharacter') }}</span>
+        <span class="azl__who">
+          <span class="azl__av">
+            <GameImage v-if="avatarOf(row)" :src="avatarOf(row)" alt="" />
+            <template v-else>{{ initialOf(row) }}</template>
+          </span>
+          <span class="azl__name">{{ row.name || t('azurGm.common.noCharacter') }}</span>
+        </span>
       </template>
       <template #cell-state="{ row }">
         <StatusPill v-if="row.banned" variant="error" :label="t('azurGm.players.banned')" />
@@ -69,7 +75,19 @@ import type { GmPlayerLink } from '@/types/v1/game_gm'
 import { useGmContext } from '../context'
 import CursorPager from './CursorPager.vue'
 import OperationForm from './OperationForm.vue'
+import { azurpromilia } from '@/games'
+import GameImage from '@/components/game/GameImage.vue'
 import { fmtTime, useCursorPages } from './shared'
+
+// 玩家头像：名片头像部件（创角前没有，用昵称或账号首字）
+const avatarOf = (row: Record<string, unknown>) => {
+  const p = row as unknown as Player
+  return p.sex ? azurpromilia.headImage(p.head, p.sex) : ''
+}
+const initialOf = (row: Record<string, unknown>) => {
+  const p = row as unknown as Player
+  return (p.name || p.account || '?').slice(0, 1)
+}
 
 type Filter = 'all' | 'online' | 'banned'
 type Op = 'player.mail' | 'player.kick' | 'player.ban' | 'player.unban'
@@ -152,6 +170,30 @@ onActivated(() => void pages.load())
   margin: 0;
   color: var(--m-bad);
   font-size: 13px;
+}
+.azl__who {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.azl__av {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
+  font-size: 13px;
+  font-weight: 600;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 .azl__name {
   font-weight: 500;

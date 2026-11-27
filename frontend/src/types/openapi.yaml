@@ -2492,6 +2492,13 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: ids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
                 - name: cursor
                   in: query
                   schema:
@@ -2519,6 +2526,13 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: ids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
                 - name: cursor
                   in: query
                   schema:
@@ -2601,6 +2615,13 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: ids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
                 - name: cursor
                   in: query
                   schema:
@@ -3385,6 +3406,13 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: ids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
                 - name: cursor
                   in: query
                   schema:
@@ -3401,6 +3429,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.azurpromilia.HeroPage'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}/heroes/{seq}:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            description: 设定一个英雄（seq 为序号）的等级、突破、星级、好感，只改给出的字段（操作 hero.set，写 GM 记录）
+            operationId: AzurPromiliaGMService_SetPlayerHero
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: seq
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SetHeroRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
     /api/v1/azurpromilia/gm/{serverId}/players/{pid}/items:
         get:
             tags:
@@ -3419,7 +3483,6 @@ paths:
                     type: string
                 - name: ids
                   in: query
-                  description: 只取这些道具 ID
                   schema:
                     type: array
                     items:
@@ -3521,6 +3584,13 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: ids
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: integer
+                        format: int32
                 - name: cursor
                   in: query
                   schema:
@@ -3537,6 +3607,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.azurpromilia.PetPage'
+    /api/v1/azurpromilia/gm/{serverId}/players/{pid}/pets/{guid}:
+        post:
+            tags:
+                - AzurPromiliaGMService
+            description: 设定一只奇波（guid）的等级、星魂、锁定、名字，只改给出的字段（操作 pet.set，写 GM 记录）
+            operationId: AzurPromiliaGMService_SetPlayerPet
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pid
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: guid
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.azurpromilia.SetPetRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.azurpromilia.OperationResponse'
     /api/v1/azurpromilia/gm/{serverId}/stats/daily:
         get:
             tags:
@@ -11181,7 +11287,7 @@ paths:
             tags:
                 - PassportService
             description: |-
-                可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+                可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、这款游戏客户端必需的地址都已填写，
                  并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
             operationId: PassportService_ListPassportLaunchApps
             responses:
@@ -19655,9 +19761,13 @@ components:
                     items:
                         type: string
                     description: 托管：备份范围（相对服务端目录）
-                clientLaunch:
-                    type: boolean
-                    description: 游戏客户端可以用通行证启动（服务器可填写客户端地址，通行证签发启动票据）
+                clientEndpoints:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.GameAdapterClientEndpoint'
+                    description: |-
+                        游戏客户端用通行证启动时连接的地址，只有这款游戏的客户端用到的（学マス：SDK、游戏服务端、资源服务器；
+                         蓝色星原：SDK，网关与资源 CDN 由 SDK 下发）；为空表示不支持用通行证启动客户端
             description: 游戏适配器（随 Momoko 版本内置）。
         v1.GameAdapterCapability:
             type: object
@@ -19670,6 +19780,19 @@ components:
                 enabled:
                     type: boolean
             description: 适配器的一项能力。
+        v1.GameAdapterClientEndpoint:
+            type: object
+            properties:
+                key:
+                    type: string
+                    description: sdk SDK / game 游戏服务端 / resource 资源服务器
+                required:
+                    type: boolean
+                    description: 必须填写才能用通行证启动；不必填的留空时客户端使用官方的（学マス 的资源服务器）
+                listen:
+                    type: string
+                    description: 托管时在服务端配置里提供这个地址的监听（进程角色 listens 的键，如蓝色星原 sdk）；空为没有对应的监听
+            description: 游戏客户端用通行证启动时连接的一个地址（适配器按这款游戏的客户端给出）。
         v1.GameAdapterRole:
             type: object
             properties:
@@ -20192,7 +20315,9 @@ components:
                     description: 进行中的托管任务（更新 / 资源 / 备份 / 回档）
                 clientSdkUrl:
                     type: string
-                    description: 游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器（空为使用官方资源）
+                    description: |-
+                        游戏客户端连接用的地址（HTTP(S) origin，不带路径；空为未填写）：SDK、游戏服务端、资源服务器，
+                         只保存这款游戏的客户端用到的（见适配器的 client_endpoints）
                 clientGameUrl:
                     type: string
                 clientResourceUrl:
@@ -21179,6 +21304,12 @@ components:
                 gameAssetUrl:
                     type: string
                     description: 游戏素材地址；空表示没设置
+                siteTheme:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.SiteTheme'
+                    description: |-
+                        全站默认外观主题（管理后台「设为全站默认」，与管理后台登录页同一份）；没设置过为空。
+                         主题引用的背景图 / 字体由通行证 server 的 /api/v1/theme-asset/<id> 提供
         v1.GetPassportSettingsResponse:
             type: object
             properties:
@@ -24442,7 +24573,7 @@ components:
                     description: launcher / android
                 clientName:
                     type: string
-                    description: 客户端显示名（Momoko 启动器 / 学马仕 Android）
+                    description: 客户端显示名（Momoko 启动器 / 学马仕 Android / 蓝色星原）
                 device:
                     type: string
                     description: 设备名
@@ -24671,7 +24802,9 @@ components:
                 resource:
                     type: string
                     description: 资源服务器
-            description: 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。
+            description: |-
+                游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。
+                 只带这款游戏的客户端用到的地址，其余为空（学マス：三项，资源服务器可为空；蓝色星原：只有 SDK）。
         v1.PassportLaunchTicket:
             type: object
             properties:
@@ -26819,7 +26952,7 @@ components:
             properties:
                 client:
                     type: string
-                    description: 客户端：launcher（Momoko 启动器）/ android（学马仕 Android）
+                    description: 客户端：launcher（Momoko 启动器）/ android（学马仕 Android）/ azurpromilia（蓝色星原游戏内登录，浏览器单点授权，授权页不核对 user_code）
                 deviceId:
                     type: string
                     description: 客户端首次运行生成并持久保存的随机 ID（同一设备只保留一个会话）
@@ -28766,7 +28899,9 @@ components:
                     type: string
                 clientSdkUrl:
                     type: string
-                    description: 游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；SDK 与游戏服务端地址填写且生成了客户端应用凭据后，服务器才能用通行证启动；资源服务器地址不填时客户端使用官方资源
+                    description: |-
+                        游戏客户端连接用的地址：HTTP(S) origin（不带路径、查询与片段），空为不填写；只保存这款游戏的客户端用到的（适配器的 client_endpoints），
+                         其余清空。必填的地址都填写且生成了客户端应用凭据后，服务器才能用通行证启动
                 clientGameUrl:
                     type: string
                 clientResourceUrl:
@@ -30089,6 +30224,16 @@ components:
                     type: number
                     format: double
             description: 英雄：id 为 hero 表 ID。
+        v1.azurpromilia.HeroChange:
+            type: object
+            properties:
+                seq:
+                    type: integer
+                    format: int32
+                before:
+                    $ref: '#/components/schemas/v1.azurpromilia.HeroValues'
+                after:
+                    $ref: '#/components/schemas/v1.azurpromilia.HeroValues'
         v1.azurpromilia.HeroPage:
             type: object
             properties:
@@ -30101,6 +30246,22 @@ components:
                 total:
                     type: number
                     format: double
+        v1.azurpromilia.HeroValues:
+            type: object
+            properties:
+                level:
+                    type: integer
+                    format: int32
+                rank:
+                    type: integer
+                    format: int32
+                grade:
+                    type: integer
+                    format: int32
+                favorLevel:
+                    type: integer
+                    format: int32
+            description: 英雄可由 GM 设定的养成数值：等级、突破、星级、好感。
         v1.azurpromilia.IDOperationRequest:
             type: object
             properties:
@@ -30359,6 +30520,12 @@ components:
                     type: boolean
                 name:
                     type: string
+                hero:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.azurpromilia.HeroChange'
+                    description: hero.set / pet.set：修改前后的数值
+                pet:
+                    $ref: '#/components/schemas/v1.azurpromilia.PetChange'
             description: |-
                 对一名玩家的操作结果（按操作只有对应的字段）：changes 为道具变化；kicked 为是否踢下线；
                  until、reason 为封禁；removed 为是否解除了封禁；name 为改后的昵称。
@@ -30449,7 +30616,20 @@ components:
                     format: int32
                 locked:
                     type: boolean
+                starNode:
+                    type: integer
+                    format: int32
             description: 奇波：id 为 pet 表 ID，name 为玩家起的名字（没有时为空）。
+        v1.azurpromilia.PetChange:
+            type: object
+            properties:
+                guid:
+                    type: integer
+                    format: int32
+                before:
+                    $ref: '#/components/schemas/v1.azurpromilia.PetValues'
+                after:
+                    $ref: '#/components/schemas/v1.azurpromilia.PetValues'
         v1.azurpromilia.PetPage:
             type: object
             properties:
@@ -30462,6 +30642,23 @@ components:
                 total:
                     type: number
                     format: double
+        v1.azurpromilia.PetValues:
+            type: object
+            properties:
+                level:
+                    type: integer
+                    format: int32
+                starStage:
+                    type: integer
+                    format: int32
+                starNode:
+                    type: integer
+                    format: int32
+                locked:
+                    type: boolean
+                name:
+                    type: string
+            description: 奇波可由 GM 设定的数值：等级、星魂阶段与节点、锁定、名字。
         v1.azurpromilia.Player:
             type: object
             properties:
@@ -30491,6 +30688,14 @@ components:
                     format: double
                 banReason:
                     type: string
+                sex:
+                    type: integer
+                    description: 性别：1 男、2 女（创角前为 0）
+                    format: int32
+                head:
+                    type: integer
+                    description: 名片的头像部件（playercard_dress ID，没有名片时为 0）
+                    format: int32
             description: |-
                 玩家条目：pid 为账号 ID，display_id 为游戏内显示的玩家 ID（创角前为空）；
                  封禁中时 banned 为 true，banned_until 为解封时间（0 为永久）。
@@ -30742,6 +30947,58 @@ components:
                     type: string
                 disabled:
                     type: boolean
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.SetHeroRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                pid:
+                    type: string
+                seq:
+                    type: integer
+                    format: int32
+                level:
+                    type: integer
+                    format: int32
+                rank:
+                    type: integer
+                    description: 突破
+                    format: int32
+                grade:
+                    type: integer
+                    description: 星级
+                    format: int32
+                favorLevel:
+                    type: integer
+                    format: int32
+                dryRun:
+                    type: boolean
+        v1.azurpromilia.SetPetRequest:
+            type: object
+            properties:
+                serverId:
+                    type: string
+                pid:
+                    type: string
+                guid:
+                    type: integer
+                    format: int32
+                level:
+                    type: integer
+                    format: int32
+                starStage:
+                    type: integer
+                    description: 星魂阶段与节点：一起给出
+                    format: int32
+                starNode:
+                    type: integer
+                    format: int32
+                locked:
+                    type: boolean
+                name:
+                    type: string
                 dryRun:
                     type: boolean
         v1.azurpromilia.Status:

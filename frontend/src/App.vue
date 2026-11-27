@@ -3,7 +3,12 @@
   <UApp :toaster="{ position: 'top-right', ui: { viewport: 'z-[10000]' } }">
     <FeedbackBridge>
       <!-- 自定义背景层（主题背景铺在整个界面下面） -->
-      <ThemeBackdrop />
+      <ThemeBackdrop
+        :bg="themeStore.background.bg"
+        :scheme="themeStore.scheme"
+        :resolver="themeStore.activeResolver"
+        :reduce-motion="themeStore.reduceMotion"
+      />
       <RouterView />
       <!-- 主题预览模式的悬浮条 -->
       <ThemePreviewBar />

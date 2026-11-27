@@ -173,7 +173,7 @@ type PassportServiceClient interface {
 	ListPassportGameRecords(ctx context.Context, in *ListPassportGameRecordsRequest, opts ...grpc.CallOption) (*ListPassportGameRecordsResponse, error)
 	// 兑换码（奖励进礼物箱）
 	RedeemPassportGiftCode(ctx context.Context, in *RedeemPassportGiftCodeRequest, opts ...grpc.CallOption) (*RedeemPassportGiftCodeResponse, error)
-	// 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+	// 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、这款游戏客户端必需的地址都已填写，
 	// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
 	ListPassportLaunchApps(ctx context.Context, in *PassportEmpty, opts ...grpc.CallOption) (*ListPassportLaunchAppsResponse, error)
 	// 一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；
@@ -806,7 +806,7 @@ type PassportServiceServer interface {
 	ListPassportGameRecords(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
 	// 兑换码（奖励进礼物箱）
 	RedeemPassportGiftCode(context.Context, *RedeemPassportGiftCodeRequest) (*RedeemPassportGiftCodeResponse, error)
-	// 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+	// 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、这款游戏客户端必需的地址都已填写，
 	// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
 	ListPassportLaunchApps(context.Context, *PassportEmpty) (*ListPassportLaunchAppsResponse, error)
 	// 一个应用（单服务器客户端，如 Android APK）：服务器对我不可见且没有绑定时照常返回，bindable=false、block_reason=not_visible；

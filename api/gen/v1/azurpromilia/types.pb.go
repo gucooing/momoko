@@ -616,18 +616,22 @@ func (x *DailyStats) GetItems() []*DailyStat {
 // 玩家条目：pid 为账号 ID，display_id 为游戏内显示的玩家 ID（创角前为空）；
 // 封禁中时 banned 为 true，banned_until 为解封时间（0 为永久）。
 type Player struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pid           string                 `protobuf:"bytes,1,opt,name=pid,proto3" json:"pid,omitempty"`
-	DisplayId     string                 `protobuf:"bytes,2,opt,name=display_id,json=displayId,proto3" json:"display_id,omitempty"`
-	Account       string                 `protobuf:"bytes,3,opt,name=account,proto3" json:"account,omitempty"`
-	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	Level         int32                  `protobuf:"varint,5,opt,name=level,proto3" json:"level,omitempty"`
-	CreatedAt     float64                `protobuf:"fixed64,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	LastLoginAt   float64                `protobuf:"fixed64,7,opt,name=last_login_at,json=lastLoginAt,proto3" json:"last_login_at,omitempty"`
-	Online        bool                   `protobuf:"varint,8,opt,name=online,proto3" json:"online,omitempty"`
-	Banned        bool                   `protobuf:"varint,9,opt,name=banned,proto3" json:"banned,omitempty"`
-	BannedUntil   float64                `protobuf:"fixed64,10,opt,name=banned_until,json=bannedUntil,proto3" json:"banned_until,omitempty"`
-	BanReason     string                 `protobuf:"bytes,11,opt,name=ban_reason,json=banReason,proto3" json:"ban_reason,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Pid         string                 `protobuf:"bytes,1,opt,name=pid,proto3" json:"pid,omitempty"`
+	DisplayId   string                 `protobuf:"bytes,2,opt,name=display_id,json=displayId,proto3" json:"display_id,omitempty"`
+	Account     string                 `protobuf:"bytes,3,opt,name=account,proto3" json:"account,omitempty"`
+	Name        string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Level       int32                  `protobuf:"varint,5,opt,name=level,proto3" json:"level,omitempty"`
+	CreatedAt   float64                `protobuf:"fixed64,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	LastLoginAt float64                `protobuf:"fixed64,7,opt,name=last_login_at,json=lastLoginAt,proto3" json:"last_login_at,omitempty"`
+	Online      bool                   `protobuf:"varint,8,opt,name=online,proto3" json:"online,omitempty"`
+	Banned      bool                   `protobuf:"varint,9,opt,name=banned,proto3" json:"banned,omitempty"`
+	BannedUntil float64                `protobuf:"fixed64,10,opt,name=banned_until,json=bannedUntil,proto3" json:"banned_until,omitempty"`
+	BanReason   string                 `protobuf:"bytes,11,opt,name=ban_reason,json=banReason,proto3" json:"ban_reason,omitempty"`
+	// 性别：1 男、2 女（创角前为 0）
+	Sex int32 `protobuf:"varint,12,opt,name=sex,proto3" json:"sex,omitempty"`
+	// 名片的头像部件（playercard_dress ID，没有名片时为 0）
+	Head          int32 `protobuf:"varint,13,opt,name=head,proto3" json:"head,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -737,6 +741,20 @@ func (x *Player) GetBanReason() string {
 		return x.BanReason
 	}
 	return ""
+}
+
+func (x *Player) GetSex() int32 {
+	if x != nil {
+		return x.Sex
+	}
+	return 0
+}
+
+func (x *Player) GetHead() int32 {
+	if x != nil {
+		return x.Head
+	}
+	return 0
 }
 
 // 各筛选的人数（带上其余筛选）。
@@ -1553,6 +1571,7 @@ type Pet struct {
 	Rank          int32                  `protobuf:"varint,5,opt,name=rank,proto3" json:"rank,omitempty"`
 	StarStage     int32                  `protobuf:"varint,6,opt,name=star_stage,json=starStage,proto3" json:"star_stage,omitempty"`
 	Locked        bool                   `protobuf:"varint,7,opt,name=locked,proto3" json:"locked,omitempty"`
+	StarNode      int32                  `protobuf:"varint,8,opt,name=star_node,json=starNode,proto3" json:"star_node,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1634,6 +1653,13 @@ func (x *Pet) GetLocked() bool {
 		return x.Locked
 	}
 	return false
+}
+
+func (x *Pet) GetStarNode() int32 {
+	if x != nil {
+		return x.StarNode
+	}
+	return 0
 }
 
 type PetPage struct {
@@ -1985,13 +2011,16 @@ func (x *ItemChange) GetResourceId() string {
 // 对一名玩家的操作结果（按操作只有对应的字段）：changes 为道具变化；kicked 为是否踢下线；
 // until、reason 为封禁；removed 为是否解除了封禁；name 为改后的昵称。
 type OperationData struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Changes       []*ItemChange          `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
-	Kicked        bool                   `protobuf:"varint,2,opt,name=kicked,proto3" json:"kicked,omitempty"`
-	Until         float64                `protobuf:"fixed64,3,opt,name=until,proto3" json:"until,omitempty"`
-	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
-	Removed       bool                   `protobuf:"varint,5,opt,name=removed,proto3" json:"removed,omitempty"`
-	Name          string                 `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Changes []*ItemChange          `protobuf:"bytes,1,rep,name=changes,proto3" json:"changes,omitempty"`
+	Kicked  bool                   `protobuf:"varint,2,opt,name=kicked,proto3" json:"kicked,omitempty"`
+	Until   float64                `protobuf:"fixed64,3,opt,name=until,proto3" json:"until,omitempty"`
+	Reason  string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	Removed bool                   `protobuf:"varint,5,opt,name=removed,proto3" json:"removed,omitempty"`
+	Name    string                 `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	// hero.set / pet.set：修改前后的数值
+	Hero          *HeroChange `protobuf:"bytes,7,opt,name=hero,proto3" json:"hero,omitempty"`
+	Pet           *PetChange  `protobuf:"bytes,8,opt,name=pet,proto3" json:"pet,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2068,6 +2097,286 @@ func (x *OperationData) GetName() string {
 	return ""
 }
 
+func (x *OperationData) GetHero() *HeroChange {
+	if x != nil {
+		return x.Hero
+	}
+	return nil
+}
+
+func (x *OperationData) GetPet() *PetChange {
+	if x != nil {
+		return x.Pet
+	}
+	return nil
+}
+
+// 英雄可由 GM 设定的养成数值：等级、突破、星级、好感。
+type HeroValues struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Level         int32                  `protobuf:"varint,1,opt,name=level,proto3" json:"level,omitempty"`
+	Rank          int32                  `protobuf:"varint,2,opt,name=rank,proto3" json:"rank,omitempty"`
+	Grade         int32                  `protobuf:"varint,3,opt,name=grade,proto3" json:"grade,omitempty"`
+	FavorLevel    int32                  `protobuf:"varint,4,opt,name=favor_level,json=favorLevel,proto3" json:"favor_level,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HeroValues) Reset() {
+	*x = HeroValues{}
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HeroValues) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HeroValues) ProtoMessage() {}
+
+func (x *HeroValues) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HeroValues.ProtoReflect.Descriptor instead.
+func (*HeroValues) Descriptor() ([]byte, []int) {
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *HeroValues) GetLevel() int32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+func (x *HeroValues) GetRank() int32 {
+	if x != nil {
+		return x.Rank
+	}
+	return 0
+}
+
+func (x *HeroValues) GetGrade() int32 {
+	if x != nil {
+		return x.Grade
+	}
+	return 0
+}
+
+func (x *HeroValues) GetFavorLevel() int32 {
+	if x != nil {
+		return x.FavorLevel
+	}
+	return 0
+}
+
+type HeroChange struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Seq           int32                  `protobuf:"varint,1,opt,name=seq,proto3" json:"seq,omitempty"`
+	Before        *HeroValues            `protobuf:"bytes,2,opt,name=before,proto3" json:"before,omitempty"`
+	After         *HeroValues            `protobuf:"bytes,3,opt,name=after,proto3" json:"after,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HeroChange) Reset() {
+	*x = HeroChange{}
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HeroChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HeroChange) ProtoMessage() {}
+
+func (x *HeroChange) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HeroChange.ProtoReflect.Descriptor instead.
+func (*HeroChange) Descriptor() ([]byte, []int) {
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *HeroChange) GetSeq() int32 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *HeroChange) GetBefore() *HeroValues {
+	if x != nil {
+		return x.Before
+	}
+	return nil
+}
+
+func (x *HeroChange) GetAfter() *HeroValues {
+	if x != nil {
+		return x.After
+	}
+	return nil
+}
+
+// 奇波可由 GM 设定的数值：等级、星魂阶段与节点、锁定、名字。
+type PetValues struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Level         int32                  `protobuf:"varint,1,opt,name=level,proto3" json:"level,omitempty"`
+	StarStage     int32                  `protobuf:"varint,2,opt,name=star_stage,json=starStage,proto3" json:"star_stage,omitempty"`
+	StarNode      int32                  `protobuf:"varint,3,opt,name=star_node,json=starNode,proto3" json:"star_node,omitempty"`
+	Locked        bool                   `protobuf:"varint,4,opt,name=locked,proto3" json:"locked,omitempty"`
+	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PetValues) Reset() {
+	*x = PetValues{}
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PetValues) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PetValues) ProtoMessage() {}
+
+func (x *PetValues) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PetValues.ProtoReflect.Descriptor instead.
+func (*PetValues) Descriptor() ([]byte, []int) {
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *PetValues) GetLevel() int32 {
+	if x != nil {
+		return x.Level
+	}
+	return 0
+}
+
+func (x *PetValues) GetStarStage() int32 {
+	if x != nil {
+		return x.StarStage
+	}
+	return 0
+}
+
+func (x *PetValues) GetStarNode() int32 {
+	if x != nil {
+		return x.StarNode
+	}
+	return 0
+}
+
+func (x *PetValues) GetLocked() bool {
+	if x != nil {
+		return x.Locked
+	}
+	return false
+}
+
+func (x *PetValues) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type PetChange struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Guid          int32                  `protobuf:"varint,1,opt,name=guid,proto3" json:"guid,omitempty"`
+	Before        *PetValues             `protobuf:"bytes,2,opt,name=before,proto3" json:"before,omitempty"`
+	After         *PetValues             `protobuf:"bytes,3,opt,name=after,proto3" json:"after,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PetChange) Reset() {
+	*x = PetChange{}
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PetChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PetChange) ProtoMessage() {}
+
+func (x *PetChange) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PetChange.ProtoReflect.Descriptor instead.
+func (*PetChange) Descriptor() ([]byte, []int) {
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *PetChange) GetGuid() int32 {
+	if x != nil {
+		return x.Guid
+	}
+	return 0
+}
+
+func (x *PetChange) GetBefore() *PetValues {
+	if x != nil {
+		return x.Before
+	}
+	return nil
+}
+
+func (x *PetChange) GetAfter() *PetValues {
+	if x != nil {
+		return x.After
+	}
+	return nil
+}
+
 // GM 邮件补偿的记录：target 为 all（全服，start_at 之前不投递，end_at 之后登录的玩家不再收到，0 为不限）或 players；
 // state 为 scheduled / sent / revoked；effect 为收到后的有效秒数（0 为不到期）。
 type GmMail struct {
@@ -2093,7 +2402,7 @@ type GmMail struct {
 
 func (x *GmMail) Reset() {
 	*x = GmMail{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[27]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2105,7 +2414,7 @@ func (x *GmMail) String() string {
 func (*GmMail) ProtoMessage() {}
 
 func (x *GmMail) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[27]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2118,7 +2427,7 @@ func (x *GmMail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GmMail.ProtoReflect.Descriptor instead.
 func (*GmMail) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{27}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GmMail) GetId() string {
@@ -2237,7 +2546,7 @@ type GmMailPage struct {
 
 func (x *GmMailPage) Reset() {
 	*x = GmMailPage{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[28]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2249,7 +2558,7 @@ func (x *GmMailPage) String() string {
 func (*GmMailPage) ProtoMessage() {}
 
 func (x *GmMailPage) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[28]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2262,7 +2571,7 @@ func (x *GmMailPage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GmMailPage.ProtoReflect.Descriptor instead.
 func (*GmMailPage) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{28}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GmMailPage) GetItems() []*GmMail {
@@ -2297,7 +2606,7 @@ type MailFailure struct {
 
 func (x *MailFailure) Reset() {
 	*x = MailFailure{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[29]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2309,7 +2618,7 @@ func (x *MailFailure) String() string {
 func (*MailFailure) ProtoMessage() {}
 
 func (x *MailFailure) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[29]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2322,7 +2631,7 @@ func (x *MailFailure) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MailFailure.ProtoReflect.Descriptor instead.
 func (*MailFailure) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{29}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *MailFailure) GetPid() string {
@@ -2358,7 +2667,7 @@ type SendMailResult struct {
 
 func (x *SendMailResult) Reset() {
 	*x = SendMailResult{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[30]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2370,7 +2679,7 @@ func (x *SendMailResult) String() string {
 func (*SendMailResult) ProtoMessage() {}
 
 func (x *SendMailResult) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[30]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2383,7 +2692,7 @@ func (x *SendMailResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMailResult.ProtoReflect.Descriptor instead.
 func (*SendMailResult) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{30}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *SendMailResult) GetMail() *GmMail {
@@ -2433,7 +2742,7 @@ type CodeBatch struct {
 
 func (x *CodeBatch) Reset() {
 	*x = CodeBatch{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[31]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2445,7 +2754,7 @@ func (x *CodeBatch) String() string {
 func (*CodeBatch) ProtoMessage() {}
 
 func (x *CodeBatch) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[31]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2458,7 +2767,7 @@ func (x *CodeBatch) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CodeBatch.ProtoReflect.Descriptor instead.
 func (*CodeBatch) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{31}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *CodeBatch) GetId() string {
@@ -2591,7 +2900,7 @@ type CodeBatchPage struct {
 
 func (x *CodeBatchPage) Reset() {
 	*x = CodeBatchPage{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[32]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2603,7 +2912,7 @@ func (x *CodeBatchPage) String() string {
 func (*CodeBatchPage) ProtoMessage() {}
 
 func (x *CodeBatchPage) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[32]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2616,7 +2925,7 @@ func (x *CodeBatchPage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CodeBatchPage.ProtoReflect.Descriptor instead.
 func (*CodeBatchPage) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{32}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *CodeBatchPage) GetItems() []*CodeBatch {
@@ -2650,7 +2959,7 @@ type CreateCodesResult struct {
 
 func (x *CreateCodesResult) Reset() {
 	*x = CreateCodesResult{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[33]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2662,7 +2971,7 @@ func (x *CreateCodesResult) String() string {
 func (*CreateCodesResult) ProtoMessage() {}
 
 func (x *CreateCodesResult) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[33]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2675,7 +2984,7 @@ func (x *CreateCodesResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCodesResult.ProtoReflect.Descriptor instead.
 func (*CreateCodesResult) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{33}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *CreateCodesResult) GetBatch() *CodeBatch {
@@ -2702,7 +3011,7 @@ type Code struct {
 
 func (x *Code) Reset() {
 	*x = Code{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[34]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2714,7 +3023,7 @@ func (x *Code) String() string {
 func (*Code) ProtoMessage() {}
 
 func (x *Code) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[34]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2727,7 +3036,7 @@ func (x *Code) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Code.ProtoReflect.Descriptor instead.
 func (*Code) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{34}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *Code) GetCode() string {
@@ -2755,7 +3064,7 @@ type CodePage struct {
 
 func (x *CodePage) Reset() {
 	*x = CodePage{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[35]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2767,7 +3076,7 @@ func (x *CodePage) String() string {
 func (*CodePage) ProtoMessage() {}
 
 func (x *CodePage) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[35]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2780,7 +3089,7 @@ func (x *CodePage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CodePage.ProtoReflect.Descriptor instead.
 func (*CodePage) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{35}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *CodePage) GetItems() []*Code {
@@ -2817,7 +3126,7 @@ type Redemption struct {
 
 func (x *Redemption) Reset() {
 	*x = Redemption{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[36]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2829,7 +3138,7 @@ func (x *Redemption) String() string {
 func (*Redemption) ProtoMessage() {}
 
 func (x *Redemption) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[36]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2842,7 +3151,7 @@ func (x *Redemption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Redemption.ProtoReflect.Descriptor instead.
 func (*Redemption) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{36}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *Redemption) GetPid() string {
@@ -2891,7 +3200,7 @@ type RedemptionPage struct {
 
 func (x *RedemptionPage) Reset() {
 	*x = RedemptionPage{}
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[37]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2903,7 +3212,7 @@ func (x *RedemptionPage) String() string {
 func (*RedemptionPage) ProtoMessage() {}
 
 func (x *RedemptionPage) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_types_proto_msgTypes[37]
+	mi := &file_v1_azurpromilia_types_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2916,7 +3225,7 @@ func (x *RedemptionPage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RedemptionPage.ProtoReflect.Descriptor instead.
 func (*RedemptionPage) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{37}
+	return file_v1_azurpromilia_types_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *RedemptionPage) GetItems() []*Redemption {
@@ -2994,7 +3303,7 @@ const file_v1_azurpromilia_types_proto_rawDesc = "" +
 	"\x0eonline_peak_at\x18\x05 \x01(\x01R\fonlinePeakAt\">\n" +
 	"\n" +
 	"DailyStats\x120\n" +
-	"\x05items\x18\x01 \x03(\v2\x1a.v1.azurpromilia.DailyStatR\x05items\"\xb2\x02\n" +
+	"\x05items\x18\x01 \x03(\v2\x1a.v1.azurpromilia.DailyStatR\x05items\"\xd8\x02\n" +
 	"\x06Player\x12\x10\n" +
 	"\x03pid\x18\x01 \x01(\tR\x03pid\x12\x1d\n" +
 	"\n" +
@@ -3010,7 +3319,9 @@ const file_v1_azurpromilia_types_proto_rawDesc = "" +
 	"\fbanned_until\x18\n" +
 	" \x01(\x01R\vbannedUntil\x12\x1d\n" +
 	"\n" +
-	"ban_reason\x18\v \x01(\tR\tbanReason\"P\n" +
+	"ban_reason\x18\v \x01(\tR\tbanReason\x12\x10\n" +
+	"\x03sex\x18\f \x01(\x05R\x03sex\x12\x12\n" +
+	"\x04head\x18\r \x01(\x05R\x04head\"P\n" +
 	"\fPlayerCounts\x12\x10\n" +
 	"\x03all\x18\x01 \x01(\x01R\x03all\x12\x16\n" +
 	"\x06online\x18\x02 \x01(\x01R\x06online\x12\x16\n" +
@@ -3083,7 +3394,7 @@ const file_v1_azurpromilia_types_proto_rawDesc = "" +
 	"\x05items\x18\x01 \x03(\v2\x15.v1.azurpromilia.HeroR\x05items\x12\x1f\n" +
 	"\vnext_cursor\x18\x02 \x01(\tR\n" +
 	"nextCursor\x12\x14\n" +
-	"\x05total\x18\x03 \x01(\x01R\x05total\"\x9e\x01\n" +
+	"\x05total\x18\x03 \x01(\x01R\x05total\"\xbb\x01\n" +
 	"\x03Pet\x12\x12\n" +
 	"\x04guid\x18\x01 \x01(\x05R\x04guid\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\x05R\x02id\x12\x12\n" +
@@ -3092,7 +3403,8 @@ const file_v1_azurpromilia_types_proto_rawDesc = "" +
 	"\x04rank\x18\x05 \x01(\x05R\x04rank\x12\x1d\n" +
 	"\n" +
 	"star_stage\x18\x06 \x01(\x05R\tstarStage\x12\x16\n" +
-	"\x06locked\x18\a \x01(\bR\x06locked\"l\n" +
+	"\x06locked\x18\a \x01(\bR\x06locked\x12\x1b\n" +
+	"\tstar_node\x18\b \x01(\x05R\bstarNode\"l\n" +
 	"\aPetPage\x12*\n" +
 	"\x05items\x18\x01 \x03(\v2\x14.v1.azurpromilia.PetR\x05items\x12\x1f\n" +
 	"\vnext_cursor\x18\x02 \x01(\tR\n" +
@@ -3127,14 +3439,39 @@ const file_v1_azurpromilia_types_proto_rawDesc = "" +
 	"\x05after\x18\x06 \x01(\x01R\x05after\x12\x12\n" +
 	"\x04kind\x18\a \x01(\tR\x04kind\x12\x1f\n" +
 	"\vresource_id\x18\b \x01(\tR\n" +
-	"resourceId\"\xba\x01\n" +
+	"resourceId\"\x99\x02\n" +
 	"\rOperationData\x125\n" +
 	"\achanges\x18\x01 \x03(\v2\x1b.v1.azurpromilia.ItemChangeR\achanges\x12\x16\n" +
 	"\x06kicked\x18\x02 \x01(\bR\x06kicked\x12\x14\n" +
 	"\x05until\x18\x03 \x01(\x01R\x05until\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x18\n" +
 	"\aremoved\x18\x05 \x01(\bR\aremoved\x12\x12\n" +
-	"\x04name\x18\x06 \x01(\tR\x04name\"\x90\x03\n" +
+	"\x04name\x18\x06 \x01(\tR\x04name\x12/\n" +
+	"\x04hero\x18\a \x01(\v2\x1b.v1.azurpromilia.HeroChangeR\x04hero\x12,\n" +
+	"\x03pet\x18\b \x01(\v2\x1a.v1.azurpromilia.PetChangeR\x03pet\"m\n" +
+	"\n" +
+	"HeroValues\x12\x14\n" +
+	"\x05level\x18\x01 \x01(\x05R\x05level\x12\x12\n" +
+	"\x04rank\x18\x02 \x01(\x05R\x04rank\x12\x14\n" +
+	"\x05grade\x18\x03 \x01(\x05R\x05grade\x12\x1f\n" +
+	"\vfavor_level\x18\x04 \x01(\x05R\n" +
+	"favorLevel\"\x86\x01\n" +
+	"\n" +
+	"HeroChange\x12\x10\n" +
+	"\x03seq\x18\x01 \x01(\x05R\x03seq\x123\n" +
+	"\x06before\x18\x02 \x01(\v2\x1b.v1.azurpromilia.HeroValuesR\x06before\x121\n" +
+	"\x05after\x18\x03 \x01(\v2\x1b.v1.azurpromilia.HeroValuesR\x05after\"\x89\x01\n" +
+	"\tPetValues\x12\x14\n" +
+	"\x05level\x18\x01 \x01(\x05R\x05level\x12\x1d\n" +
+	"\n" +
+	"star_stage\x18\x02 \x01(\x05R\tstarStage\x12\x1b\n" +
+	"\tstar_node\x18\x03 \x01(\x05R\bstarNode\x12\x16\n" +
+	"\x06locked\x18\x04 \x01(\bR\x06locked\x12\x12\n" +
+	"\x04name\x18\x05 \x01(\tR\x04name\"\x85\x01\n" +
+	"\tPetChange\x12\x12\n" +
+	"\x04guid\x18\x01 \x01(\x05R\x04guid\x122\n" +
+	"\x06before\x18\x02 \x01(\v2\x1a.v1.azurpromilia.PetValuesR\x06before\x120\n" +
+	"\x05after\x18\x03 \x01(\v2\x1a.v1.azurpromilia.PetValuesR\x05after\"\x90\x03\n" +
 	"\x06GmMail\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06target\x18\x02 \x01(\tR\x06target\x12\x12\n" +
@@ -3230,7 +3567,7 @@ func file_v1_azurpromilia_types_proto_rawDescGZIP() []byte {
 	return file_v1_azurpromilia_types_proto_rawDescData
 }
 
-var file_v1_azurpromilia_types_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_v1_azurpromilia_types_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
 var file_v1_azurpromilia_types_proto_goTypes = []any{
 	(*ManifestGame)(nil),      // 0: v1.azurpromilia.ManifestGame
 	(*ResourceVersion)(nil),   // 1: v1.azurpromilia.ResourceVersion
@@ -3259,17 +3596,21 @@ var file_v1_azurpromilia_types_proto_goTypes = []any{
 	(*MailPage)(nil),          // 24: v1.azurpromilia.MailPage
 	(*ItemChange)(nil),        // 25: v1.azurpromilia.ItemChange
 	(*OperationData)(nil),     // 26: v1.azurpromilia.OperationData
-	(*GmMail)(nil),            // 27: v1.azurpromilia.GmMail
-	(*GmMailPage)(nil),        // 28: v1.azurpromilia.GmMailPage
-	(*MailFailure)(nil),       // 29: v1.azurpromilia.MailFailure
-	(*SendMailResult)(nil),    // 30: v1.azurpromilia.SendMailResult
-	(*CodeBatch)(nil),         // 31: v1.azurpromilia.CodeBatch
-	(*CodeBatchPage)(nil),     // 32: v1.azurpromilia.CodeBatchPage
-	(*CreateCodesResult)(nil), // 33: v1.azurpromilia.CreateCodesResult
-	(*Code)(nil),              // 34: v1.azurpromilia.Code
-	(*CodePage)(nil),          // 35: v1.azurpromilia.CodePage
-	(*Redemption)(nil),        // 36: v1.azurpromilia.Redemption
-	(*RedemptionPage)(nil),    // 37: v1.azurpromilia.RedemptionPage
+	(*HeroValues)(nil),        // 27: v1.azurpromilia.HeroValues
+	(*HeroChange)(nil),        // 28: v1.azurpromilia.HeroChange
+	(*PetValues)(nil),         // 29: v1.azurpromilia.PetValues
+	(*PetChange)(nil),         // 30: v1.azurpromilia.PetChange
+	(*GmMail)(nil),            // 31: v1.azurpromilia.GmMail
+	(*GmMailPage)(nil),        // 32: v1.azurpromilia.GmMailPage
+	(*MailFailure)(nil),       // 33: v1.azurpromilia.MailFailure
+	(*SendMailResult)(nil),    // 34: v1.azurpromilia.SendMailResult
+	(*CodeBatch)(nil),         // 35: v1.azurpromilia.CodeBatch
+	(*CodeBatchPage)(nil),     // 36: v1.azurpromilia.CodeBatchPage
+	(*CreateCodesResult)(nil), // 37: v1.azurpromilia.CreateCodesResult
+	(*Code)(nil),              // 38: v1.azurpromilia.Code
+	(*CodePage)(nil),          // 39: v1.azurpromilia.CodePage
+	(*Redemption)(nil),        // 40: v1.azurpromilia.Redemption
+	(*RedemptionPage)(nil),    // 41: v1.azurpromilia.RedemptionPage
 }
 var file_v1_azurpromilia_types_proto_depIdxs = []int32{
 	1,  // 0: v1.azurpromilia.ManifestServer.resource:type_name -> v1.azurpromilia.ResourceVersion
@@ -3290,20 +3631,26 @@ var file_v1_azurpromilia_types_proto_depIdxs = []int32{
 	16, // 15: v1.azurpromilia.Mail.rewards:type_name -> v1.azurpromilia.Reward
 	23, // 16: v1.azurpromilia.MailPage.items:type_name -> v1.azurpromilia.Mail
 	25, // 17: v1.azurpromilia.OperationData.changes:type_name -> v1.azurpromilia.ItemChange
-	16, // 18: v1.azurpromilia.GmMail.rewards:type_name -> v1.azurpromilia.Reward
-	27, // 19: v1.azurpromilia.GmMailPage.items:type_name -> v1.azurpromilia.GmMail
-	27, // 20: v1.azurpromilia.SendMailResult.mail:type_name -> v1.azurpromilia.GmMail
-	29, // 21: v1.azurpromilia.SendMailResult.failures:type_name -> v1.azurpromilia.MailFailure
-	16, // 22: v1.azurpromilia.CodeBatch.rewards:type_name -> v1.azurpromilia.Reward
-	31, // 23: v1.azurpromilia.CodeBatchPage.items:type_name -> v1.azurpromilia.CodeBatch
-	31, // 24: v1.azurpromilia.CreateCodesResult.batch:type_name -> v1.azurpromilia.CodeBatch
-	34, // 25: v1.azurpromilia.CodePage.items:type_name -> v1.azurpromilia.Code
-	36, // 26: v1.azurpromilia.RedemptionPage.items:type_name -> v1.azurpromilia.Redemption
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	28, // 18: v1.azurpromilia.OperationData.hero:type_name -> v1.azurpromilia.HeroChange
+	30, // 19: v1.azurpromilia.OperationData.pet:type_name -> v1.azurpromilia.PetChange
+	27, // 20: v1.azurpromilia.HeroChange.before:type_name -> v1.azurpromilia.HeroValues
+	27, // 21: v1.azurpromilia.HeroChange.after:type_name -> v1.azurpromilia.HeroValues
+	29, // 22: v1.azurpromilia.PetChange.before:type_name -> v1.azurpromilia.PetValues
+	29, // 23: v1.azurpromilia.PetChange.after:type_name -> v1.azurpromilia.PetValues
+	16, // 24: v1.azurpromilia.GmMail.rewards:type_name -> v1.azurpromilia.Reward
+	31, // 25: v1.azurpromilia.GmMailPage.items:type_name -> v1.azurpromilia.GmMail
+	31, // 26: v1.azurpromilia.SendMailResult.mail:type_name -> v1.azurpromilia.GmMail
+	33, // 27: v1.azurpromilia.SendMailResult.failures:type_name -> v1.azurpromilia.MailFailure
+	16, // 28: v1.azurpromilia.CodeBatch.rewards:type_name -> v1.azurpromilia.Reward
+	35, // 29: v1.azurpromilia.CodeBatchPage.items:type_name -> v1.azurpromilia.CodeBatch
+	35, // 30: v1.azurpromilia.CreateCodesResult.batch:type_name -> v1.azurpromilia.CodeBatch
+	38, // 31: v1.azurpromilia.CodePage.items:type_name -> v1.azurpromilia.Code
+	40, // 32: v1.azurpromilia.RedemptionPage.items:type_name -> v1.azurpromilia.Redemption
+	33, // [33:33] is the sub-list for method output_type
+	33, // [33:33] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_v1_azurpromilia_types_proto_init() }
@@ -3317,7 +3664,7 @@ func file_v1_azurpromilia_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_azurpromilia_types_proto_rawDesc), len(file_v1_azurpromilia_types_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

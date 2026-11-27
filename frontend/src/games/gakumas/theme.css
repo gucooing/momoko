@@ -7,7 +7,7 @@
    深色跟随 html.dark；和 design-tokens.css 一样，元素上加 data-scheme='light' / 'dark' 可局部强制。
    游戏空间区域再加 .game-skin（或 data-game-skin 属性），把 --m-p* 指向游戏色；
    --el-color-primary* / --ui-primary 在 :root 上已求值，这里一并重新映射，组件才会跟着变。
-   通行证外壳（账号、首页）不加 .game-skin，仍用 Momoko 自己的配色。
+   通行证外壳（账号、首页）不加 .game-skin，用全站默认主题的配色。
    图表线条、柱子用 --m-gInk，保证与背景 3:1 对比。
    ============================================================ */
 

@@ -58,6 +58,8 @@ export default defineConfig(({ command, mode }) => {
     server: {
       host: '0.0.0.0',
       port: 3008,
+      // 不监听构建产物与游戏素材（几千个文件）。public 下的文件只在启动时登记，所以重新导出游戏素材后要重启 dev server 才能取到新图片
+      watch: { ignored: ['**/dist/**', '**/dist-passport/**', '**/dist-games/**', '**/public/games/**'] },
       // 同管理后台的 VITE_DEV_PROXY：设了 VITE_PASSPORT_DEV_PROXY（如 http://localhost:22634）时 /api 经这里转给通行证 server
       proxy: env.VITE_PASSPORT_DEV_PROXY ? { '/api': { target: env.VITE_PASSPORT_DEV_PROXY, ws: true } } : undefined,
     },

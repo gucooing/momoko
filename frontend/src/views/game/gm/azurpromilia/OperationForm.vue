@@ -100,7 +100,7 @@ import GmOperationResult from '../components/GmOperationResult.vue'
 import GmRiskPill from '../components/GmRiskPill.vue'
 import RewardEditor from './RewardEditor.vue'
 import { REWARD_KINDS } from '@/games/azurpromilia/names'
-import { errorMessage, fromInput, outcomeOf } from './shared'
+import { canTake, errorMessage, fromInput, outcomeOf } from './shared'
 
 type OpID = 'player.mail' | 'item.adjust' | 'player.kick' | 'player.ban' | 'player.unban' | 'player.password' | 'player.rename'
 
@@ -127,8 +127,7 @@ watch(
   },
 )
 
-// 扣除只能是货币与普通道具（服务端规则）
-const takeTypes = REWARD_KINDS.filter((k) => k.kind === 'currency' || k.kind === 'common_item').map((k) => k.type)
+const takeTypes = REWARD_KINDS.filter((k) => canTake(k.type)).map((k) => k.type)
 
 const mail = reactive({ title: '', sender: '', content: '', rewards: [] as Reward[], days: 30 })
 const grant = ref<Reward[]>([])

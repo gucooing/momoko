@@ -275,7 +275,7 @@ func (uc *GameServerUsecase) clientAppServer(ctx context.Context, id string) (*g
 	if err != nil {
 		return nil, err
 	}
-	if a, ok := GameAdapterByID(s.Game); !ok || !a.ClientLaunch {
+	if a, ok := GameAdapterByID(s.Game); !ok || !a.ClientLaunch() {
 		return nil, ErrGameClientLaunchOff
 	}
 	return s, nil
@@ -732,9 +732,9 @@ func (uc *GameServerUsecase) Info(ctx context.Context, s *gen.GameServer) *v1.Ga
 		InstallDir:         s.InstallDir,
 		PassportVisibility: string(s.PassportVisibility),
 		PassportInviteCode: s.PassportInviteCode,
-		ClientSdkUrl:       s.ClientSdkURL,
-		ClientGameUrl:      s.ClientGameURL,
-		ClientResourceUrl:  s.ClientResourceURL,
+		ClientSdkUrl:       clientURL(s, ClientEndpointSDK),
+		ClientGameUrl:      clientURL(s, ClientEndpointGame),
+		ClientResourceUrl:  clientURL(s, ClientEndpointResource),
 		AppIcon:            s.AppIcon,
 		AppBackground:      s.AppBackground,
 		ClientAppId:        derefString(s.ClientAppID),
@@ -1009,13 +1009,7 @@ func (uc *GameServerUsecase) UpdateServer(ctx context.Context, req *v1.UpdateGam
 		}
 	}
 	s.Timezone = req.Timezone
-	if s.ClientSdkURL, err = clientOrigin("SDK", req.ClientSdkUrl); err != nil {
-		return nil, err
-	}
-	if s.ClientGameURL, err = clientOrigin("游戏服务端", req.ClientGameUrl); err != nil {
-		return nil, err
-	}
-	if s.ClientResourceURL, err = clientOrigin("资源服务器", req.ClientResourceUrl); err != nil {
+	if err := applyClientURLs(s, req); err != nil {
 		return nil, err
 	}
 	updated, err := uc.repo.Update(ctx, s)
@@ -1028,6 +1022,47 @@ func (uc *GameServerUsecase) UpdateServer(ctx context.Context, req *v1.UpdateGam
 		_, _ = uc.probe(ctx, updated)
 	}
 	return updated, nil
+}
+
+// applyClientURLs 保存游戏客户端连接用的地址：只保存这款游戏的客户端用到的（校验并归一化），用不到的清空。
+func applyClientURLs(s *gen.GameServer, req *v1.UpdateGameServerRequest) error {
+	a, _ := GameAdapterByID(s.Game)
+	for _, f := range []struct {
+		key, label, raw string
+		dst             *string
+	}{
+		{ClientEndpointSDK, "SDK", req.ClientSdkUrl, &s.ClientSdkURL},
+		{ClientEndpointGame, "游戏服务端", req.ClientGameUrl, &s.ClientGameURL},
+		{ClientEndpointResource, "资源服务器", req.ClientResourceUrl, &s.ClientResourceURL},
+	} {
+		if a == nil {
+			*f.dst = ""
+			continue
+		}
+		if _, used := a.ClientEndpoint(f.key); !used {
+			*f.dst = ""
+			continue
+		}
+		v, err := clientOrigin(f.label, f.raw)
+		if err != nil {
+			return err
+		}
+		*f.dst = v
+	}
+	return nil
+}
+
+// clientURL 服务器保存的某种客户端地址。
+func clientURL(s *gen.GameServer, key string) string {
+	switch key {
+	case ClientEndpointSDK:
+		return s.ClientSdkURL
+	case ClientEndpointGame:
+		return s.ClientGameURL
+	case ClientEndpointResource:
+		return s.ClientResourceURL
+	}
+	return ""
 }
 
 // clientOrigin 校验并归一化游戏客户端连接用的地址：空串表示不填写；否则必须是 http(s) origin

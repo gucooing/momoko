@@ -1,4 +1,4 @@
-<!-- 游戏账号头像：学マス 用出借记忆的偶像卡方图；其他游戏或没有时用昵称首字。 -->
+<!-- 游戏账号头像：学マス 用出借记忆的偶像卡方图，蓝色星原用名片头像；没有时用昵称首字。 -->
 <template>
   <span class="la" :style="{ width: `${size}px`, height: `${size}px` }" :data-game="game">
     <GameImage v-if="url" :src="url" :alt="name" class="la__img" />
@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import GameImage from '@/components/game/GameImage.vue'
-import { gakumas } from '@/games'
+import { gameLinkAvatar } from '@/games'
 
 const props = withDefaults(defineProps<{ game: string; asset?: string; name?: string; size?: number }>(), {
   asset: '',
@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<{ game: string; asset?: string; name?: st
   size: 40,
 })
 
-const url = computed(() => (props.game === 'gakumas' && props.asset ? gakumas.idolCardImage(props.asset, 'sq') : ''))
+const url = computed(() => gameLinkAvatar(props.game, props.asset))
 </script>
 
 <style scoped>

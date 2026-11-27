@@ -150,6 +150,8 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 3007,
+      // 不监听构建产物与游戏素材（几千个文件）。public 下的文件只在启动时登记，所以重新导出游戏素材后要重启 dev server 才能取到新图片
+      watch: { ignored: ['**/dist/**', '**/dist-passport/**', '**/dist-games/**', '**/public/games/**'] },
       open: true,
       // 设了 VITE_DEV_PROXY（后端地址，如 http://localhost:22633）时，/api 经这个 dev server 转给后端（含 WebSocket）：
       // 配合 VITE_API_BASE_URL="/api/v1"，别的机器只要能访问这个端口就能用，不用另外开放后端端口，也没有跨域。

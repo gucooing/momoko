@@ -1,14 +1,19 @@
-<!-- 我的游戏：按游戏分组，每台服务器一行；礼物箱提醒按需（逐个绑定）向游戏服务端取摘要。 -->
+<!-- 我的游戏：按游戏分组，每台服务器一行；卡片头图用第一台服务器的应用背景，没有时用它的封面（没设封面时是游戏的默认封面）。
+     礼物箱提醒按需（逐个绑定）向游戏服务端取摘要。 -->
 <template>
   <div class="mg" :class="{ 'mg--compact': compact }">
     <article v-for="g in groups" :key="g.game" class="mg__card pp-card" :data-game="g.game">
       <div class="mg__band" aria-hidden="true">
-        <span class="mg__band-dot" />
-        <span class="mg__band-ring" />
+        <ServerBackground v-if="g.server?.appBackground" :src="g.server.appBackground" class="mg__band-img" />
+        <GameImage v-else-if="coverOf(g)" :src="coverOf(g)" class="mg__band-img" />
+        <template v-else>
+          <span class="mg__band-dot" />
+          <span class="mg__band-ring" />
+        </template>
       </div>
       <div class="mg__body">
         <div class="mg__head">
-          <span class="mg__mark"><GameMark :game="g.game" :name="g.name" :size="compact ? 32 : 36" /></span>
+          <span class="mg__mark"><GameMark :game="g.game" :name="g.name" :src="g.server?.appIcon" :size="compact ? 32 : 36" /></span>
           <span class="mg__title">
             <span class="mg__name">{{ g.name }}</span>
             <span class="pp-hint">{{ t('home.games.accounts', { n: g.links.length }) }}</span>
@@ -46,11 +51,15 @@
 import { computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ChevronRightIcon, PlusIcon } from '@heroicons/vue/24/outline'
+import GameImage from '@/components/game/GameImage.vue'
+import ServerBackground from '@/components/game/ServerBackground.vue'
+import { gameAsset, gameCover } from '@/games'
 import GameMark from '@passport/components/GameMark.vue'
 import LinkAvatar from '@passport/components/LinkAvatar.vue'
 import PPill from '@passport/components/PPill.vue'
 import * as api from '@passport/api/passport'
 import * as gk from '@passport/api/gakumas'
+import type { GameServerBrief } from '@/types/v1/game_common'
 import type { PassportLink } from '@/types/v1/passport'
 
 const props = withDefaults(defineProps<{ links: PassportLink[]; compact?: boolean; showAdd?: boolean; bindable?: string }>(), {
@@ -66,19 +75,32 @@ interface Brief {
 }
 const briefs = reactive<Record<string, Brief>>({})
 
+interface Group {
+  game: string
+  name: string
+  server?: GameServerBrief
+  links: PassportLink[]
+}
+
 const groups = computed(() => {
-  const map = new Map<string, { game: string; name: string; links: PassportLink[] }>()
+  const map = new Map<string, Group>()
   for (const l of props.links) {
     const key = l.game || l.server?.game || ''
     let g = map.get(key)
     if (!g) {
-      g = { game: key, name: l.server?.gameName || key, links: [] }
+      g = { game: key, name: l.server?.gameName || key, server: l.server, links: [] }
       map.set(key, g)
     }
     g.links.push(l)
   }
   return [...map.values()]
 })
+
+const coverOf = (g: Group) => {
+  const s = g.server
+  if (!s) return ''
+  return s.cover ? gameAsset(g.game, s.cover) : gameCover(g.game, s.id)
+}
 
 const spaced = (id: string) => id.replace(/(\d{3})(?=\d)/g, '$1 ')
 
@@ -156,6 +178,14 @@ watch(
   height: 96px;
   background: var(--m-gSoft, var(--m-pSoft));
   overflow: hidden;
+}
+.mg__band-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
 }
 .mg__band-dot {
   position: absolute;

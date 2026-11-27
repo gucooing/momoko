@@ -1,6 +1,7 @@
 <!-- 接入设置：页面上只放简要信息（一行一项：接入方式、MGP 接口、用户通行证、客户端应用凭据、客户端地址、托管选项），
      要改的点「修改」在弹窗里改：MGP 地址与密钥（可测试连接）、通行证可见性 / 邀请码 / 时区、
-     客户端地址（SDK / 游戏服务端 / 资源服务器）、托管选项；切换接入方式也是弹窗。
+     客户端地址（只有这款游戏的客户端用到的，由适配器给出：学マス SDK / 游戏服务端 / 资源服务器，蓝色星原只有 SDK）、
+     托管选项；切换接入方式也是弹窗。
      客户端（游戏支持通行证启动客户端时才有）：应用凭据由 Momoko 生成，重置密钥与重新生成应用 ID 都要先确认；
      应用密钥与 MGP 密钥一样只在生成时显示一次（可复制），之后只显示应用 ID。托管服务器同轮换 MGP 密钥：
      Momoko 把凭据写进服务端配置（momoko.app_id / momoko.app_secret），运行中可选立即重启，所以第一次生成也先开确认弹窗。 -->
@@ -70,7 +71,7 @@
           <b>{{ t('gameServers.connection.client') }}</b>
           <span :class="{ 'm-mono': clientSet }">{{ clientSummary }}</span>
         </span>
-        <StatusPill v-if="clientPartial" variant="warning" :label="t('gameServers.connection.clientPartial')" :title="t('gameServers.connection.clientHint')" />
+        <StatusPill v-if="clientPartial" variant="warning" :label="t('gameServers.connection.clientPartial')" :title="clientHint" />
         <UButton size="sm" color="neutral" variant="soft" @click="openClient">{{ t('gameServers.connection.modify') }}</UButton>
       </div>
 
@@ -183,18 +184,11 @@
       @confirm="saveClient"
     >
       <div class="cn__dialog">
-        <p>{{ t('gameServers.connection.clientHint') }}</p>
-        <label class="cn__field">
-          <span>{{ t('gameServers.connection.clientSdk') }}</span>
-          <UInput v-model="client.sdk" class="m-mono" placeholder="https://host:port" />
-        </label>
-        <label class="cn__field">
-          <span>{{ t('gameServers.connection.clientGame') }}</span>
-          <UInput v-model="client.game" class="m-mono" placeholder="https://host:port" />
-        </label>
-        <label class="cn__field">
-          <span>{{ t('gameServers.connection.clientResource') }}</span>
-          <UInput v-model="client.resource" class="m-mono" placeholder="https://host:port" />
+        <p>{{ clientHint }}</p>
+        <label v-for="e in clientEndpoints" :key="e.key" class="cn__field">
+          <span>{{ t(`gameServers.connection.clientField.${e.key}`) }}</span>
+          <UInput v-model="client[e.key]" class="m-mono" placeholder="https://host:port" />
+          <small v-if="hostedListen(e)">{{ t('gameServers.connection.clientListen', { key: e.listen, listen: hostedListen(e) }) }}</small>
         </label>
         <small>{{ t('gameServers.connection.clientFormat') }}</small>
       </div>
@@ -225,7 +219,7 @@
     <!-- 弹窗：新的应用凭据（应用密钥只显示这一次） -->
     <FormDialog v-model="credsOpen" :title="t('gameServers.connection.clientAppCredsTitle')" :width="600" :close-on-overlay="false">
       <div v-if="creds" class="cn__dialog">
-        <p>{{ hosted ? t('gameServers.connection.clientAppCredsHostedDesc') : t('gameServers.connection.clientAppCredsDesc') }}</p>
+        <p>{{ hosted ? t('gameServers.connection.clientAppCredsHostedDesc') : t('gameServers.connection.clientAppCredsDesc') }}{{ appNote('creds') }}</p>
         <div class="cn__cred">
           <span>{{ t('gameServers.connection.clientAppId') }}</span>
           <UInput :model-value="creds.appId" class="m-mono" readonly :ui="{ root: 'cn__cred-input' }" :aria-label="t('gameServers.connection.clientAppId')" />
@@ -351,6 +345,7 @@ import { getRequestErrorMessage } from '@/utils/request'
 import type {
   DetectGameServerDirResponse,
   GameAdapter,
+  GameAdapterClientEndpoint,
   GameServerCheck,
   GameServerClientAppResponse,
   GameServerInfo,
@@ -365,7 +360,7 @@ import MgpKeyGenerator from '../../components/MgpKeyGenerator.vue'
 
 const props = defineProps<{ server: GameServerInfo; adapter?: GameAdapter | null }>()
 const emit = defineEmits<{ changed: [] }>()
-const { t } = useI18n()
+const { t, te } = useI18n()
 const fb = useFeedback()
 
 const VISIBILITY = ['public', 'invite', 'hidden'] as const
@@ -376,7 +371,7 @@ const mode = computed(() => props.server.brief?.mode || 'remote')
 const hosted = computed(() => mode.value === 'hosted')
 const canHosted = computed(() => !!props.adapter?.modes.includes('hosted'))
 const canRemote = computed(() => !!props.adapter?.modes.includes('remote'))
-const clientLaunch = computed(() => !!props.adapter?.clientLaunch)
+const clientLaunch = computed(() => !!props.adapter?.clientEndpoints.length)
 const listenKeys = computed(() => mainListenKeys(props.adapter))
 const canResource = computed(() => !!props.adapter?.capabilities.some((c) => c.key === 'resource' && c.enabled))
 const serverVisibility = computed<Visibility>(() =>
@@ -397,20 +392,31 @@ const passportSummary = computed(() => {
   const tz = props.server.timezone ? t('gameServers.connection.tzValue', { tz: props.server.timezone }) : t('gameServers.connection.tzFollow')
   return `${t(`gameServers.connection.visibilityOpts.${serverVisibility.value}`)} · ${tz}`
 })
-const clientUrls = computed(() => [props.server.clientSdkUrl, props.server.clientGameUrl, props.server.clientResourceUrl])
-const clientSet = computed(() => clientUrls.value.some(Boolean))
-// SDK 与游戏服务端地址必填；资源服务器地址不填时客户端使用官方资源
-const clientPartial = computed(() => clientSet.value && !(props.server.clientSdkUrl && props.server.clientGameUrl))
+// 客户端地址：只有这款游戏的客户端用到的那几项（适配器给出；学マス 三项，蓝色星原只有 SDK）
+type ClientKey = 'sdk' | 'game' | 'resource'
+const clientEndpoints = computed(() => (props.adapter?.clientEndpoints ?? []) as (GameAdapterClientEndpoint & { key: ClientKey })[])
+const clientUrl = (key: ClientKey) =>
+  ({ sdk: props.server.clientSdkUrl, game: props.server.clientGameUrl, resource: props.server.clientResourceUrl })[key] || ''
+const clientSet = computed(() => clientEndpoints.value.some((e) => clientUrl(e.key)))
+const clientPartial = computed(() => clientSet.value && clientEndpoints.value.some((e) => e.required && !clientUrl(e.key)))
 const clientSummary = computed(() => {
   if (!clientSet.value) return t('gameServers.connection.clientNone')
-  const [sdk, game, resource] = clientUrls.value
-  const none = t('gameServers.connection.clientUnset')
-  return [
-    `${t('gameServers.connection.clientSdkShort')} ${sdk || none}`,
-    `${t('gameServers.connection.clientGameShort')} ${game || none}`,
-    `${t('gameServers.connection.clientResourceShort')} ${resource || t('gameServers.connection.clientOfficial')}`,
-  ].join(' · ')
+  const [only, ...rest] = clientEndpoints.value
+  if (only && !rest.length) return clientUrl(only.key)
+  return clientEndpoints.value
+    .map((e) => {
+      const url = clientUrl(e.key) || t(e.required ? 'gameServers.connection.clientUnset' : 'gameServers.connection.clientOfficial')
+      return `${t(`gameServers.connection.clientShort.${e.key}`)} ${url}`
+    })
+    .join(' · ')
 })
+const clientHint = computed(() => {
+  const key = `gameServers.connection.clientHint.${props.server.brief?.game || ''}`
+  return te(key) ? t(key) : t('gameServers.connection.clientHint.default')
+})
+// 托管服务器上提供这个地址的监听（如蓝色星原 sdk.listen），提示管理员填它的对外地址
+const hostedListen = (e: GameAdapterClientEndpoint) =>
+  hosted.value && e.listen ? props.server.processes.find((p) => p.listens?.[e.listen])?.listens[e.listen] || '' : ''
 const hostingSummary = computed(() => {
   const h = props.server.hosting
   if (!h) return ''
@@ -535,22 +541,23 @@ const savePassport = async () => {
 
 // ---- 弹窗：客户端地址 ----
 const clientOpen = ref(false)
-const client = reactive({ sdk: '', game: '', resource: '' })
+const client = reactive<Record<ClientKey, string>>({ sdk: '', game: '', resource: '' })
 const savingClient = ref(false)
 
 const openClient = () => {
-  const s = props.server
-  Object.assign(client, { sdk: s.clientSdkUrl, game: s.clientGameUrl, resource: s.clientResourceUrl })
+  Object.assign(client, { sdk: clientUrl('sdk'), game: clientUrl('game'), resource: clientUrl('resource') })
   clientOpen.value = true
 }
 
+// 只提交这款游戏用到的地址，其余为空（服务端同样只保存用到的）
 const saveClient = async () => {
+  const used = (key: ClientKey) => (clientEndpoints.value.some((e) => e.key === key) ? client[key].trim() : '')
   const ok = await update(
     {
       ...currentFields(),
-      clientSdkUrl: client.sdk.trim(),
-      clientGameUrl: client.game.trim(),
-      clientResourceUrl: client.resource.trim(),
+      clientSdkUrl: used('sdk'),
+      clientGameUrl: used('game'),
+      clientResourceUrl: used('resource'),
     },
     savingClient,
   )
@@ -631,6 +638,12 @@ const copyCreds = () => {
   void copy(`app_id: ${creds.value.appId}\napp_secret: ${creds.value.appSecret}`)
 }
 
+// 只属于某款游戏客户端的补充说明（学マス 的安卓客户端要打包应用 ID），没有时为空
+const appNote = (kind: 'creds' | 'secret' | 'id') => {
+  const key = `gameServers.connection.clientAppNote.${props.server.brief?.game || ''}.${kind}`
+  return te(key) ? t(key) : ''
+}
+
 const appActionText = computed(() => {
   const c = 'gameServers.connection.'
   switch (appAction.value) {
@@ -638,13 +651,13 @@ const appActionText = computed(() => {
       return {
         title: t(`${c}clientAppResetSecretTitle`),
         confirm: t(`${c}clientAppResetSecret`),
-        desc: t(hosted.value ? `${c}clientAppResetSecretHostedDesc` : `${c}clientAppResetSecretDesc`),
+        desc: t(hosted.value ? `${c}clientAppResetSecretHostedDesc` : `${c}clientAppResetSecretDesc`) + appNote('secret'),
       }
     case 'id':
       return {
         title: t(`${c}clientAppRegenerateTitle`),
         confirm: t(`${c}clientAppRegenerate`),
-        desc: t(hosted.value ? `${c}clientAppRegenerateHostedDesc` : `${c}clientAppRegenerateDesc`),
+        desc: t(hosted.value ? `${c}clientAppRegenerateHostedDesc` : `${c}clientAppRegenerateDesc`) + appNote('id'),
       }
     default:
       return { title: t(`${c}clientAppGenerateTitle`), confirm: t(`${c}clientAppGenerate`), desc: t(`${c}clientAppGenerateHostedDesc`) }

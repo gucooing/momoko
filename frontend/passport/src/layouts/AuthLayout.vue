@@ -46,7 +46,7 @@ const onLang = (e: Event) => setLocale((e.target as HTMLSelectElement).value)
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--m-bg);
+  background: var(--app-surface-page);
 }
 .auth__top {
   display: flex;

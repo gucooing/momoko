@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strconv"
 
 	az "momoko/api/gen/v1/azurpromilia"
 	gk "momoko/api/gen/v1/gakumas"
@@ -89,14 +90,19 @@ func (gakumasPassport) SearchPlayers(ctx context.Context, c *mgp.Client, q strin
 
 type azurpromiliaPassport struct{}
 
+// azurpromiliaPlayer 蓝色星原的玩家条目；Avatar 为「名片头像部件:性别」（如 10102:2，前端按它取头像），创角前为空。
 func azurpromiliaPlayer(p *az.Player) *GamePlayer {
+	avatar := ""
+	if p.GetSex() != 0 {
+		avatar = strconv.Itoa(int(p.GetHead())) + ":" + strconv.Itoa(int(p.GetSex()))
+	}
 	return &GamePlayer{
 		Pid:       p.GetPid(),
 		DisplayID: p.GetDisplayId(),
 		Account:   p.GetAccount(),
 		Name:      p.GetName(),
 		Level:     int(p.GetLevel()),
-		Avatar:    "",
+		Avatar:    avatar,
 	}
 }
 

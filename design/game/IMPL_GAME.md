@@ -52,7 +52,7 @@
 所有游戏客户端（PC 启动器、Android APK）用同一套流程进入游戏，完整协议见启动器仓库的 `docs/login-protocol.md`。Momoko 不提供面向玩家的 OIDC 授权页，游戏服务端也不是 OIDC 客户端。
 
 - 客户端登录（浏览器授权，`internal/biz/passport_client_auth.go`）：客户端不接触通行证的账号、密码或任何登录方式；通行证网页自己的登录接口只供网页使用。
-  - `POST /api/v1/auth/client`（不用登录）：`{client, deviceId, device}`，client 为 `launcher`（Momoko 启动器）或 `android`（学马仕 Android），其他值 400 `PASSPORT_INVALID_ARGUMENT`；返回 `{deviceCode（32 字节随机数的 base64url）, userCode（字母表 BCDFGHJKLMNPQRSTVWXZ 的 8 个字符，显示为 XXXX-XXXX）, verificationUrl（{passport.public_url}/authorize?code=…）, interval: 2, expiresIn: 600}`。同一 IP 10 分钟内最多发起 30 次，超过 400 `PASSPORT_TOO_MANY_REQUESTS`；没配置 `passport.public_url` 时 400 `PASSPORT_PUBLIC_URL_UNSET`。
+  - `POST /api/v1/auth/client`（不用登录）：`{client, deviceId, device}`，client 为 `launcher`（Momoko 启动器）、`android`（学马仕 Android）或 `azurpromilia`（蓝色星原游戏内登录），其他值 400 `PASSPORT_INVALID_ARGUMENT`；`launcher`、`android` 是学マス 的客户端，授权页核对 user_code；`azurpromilia` 照游戏官方 SDK 跳到浏览器单点授权，授权页由客户端直接打开，不显示、不核对 user_code；返回 `{deviceCode（32 字节随机数的 base64url）, userCode（字母表 BCDFGHJKLMNPQRSTVWXZ 的 8 个字符，显示为 XXXX-XXXX）, verificationUrl（{passport.public_url}/authorize?code=…）, interval: 2, expiresIn: 600}`。同一 IP 10 分钟内最多发起 30 次，超过 400 `PASSPORT_TOO_MANY_REQUESTS`；没配置 `passport.public_url` 时 400 `PASSPORT_PUBLIC_URL_UNSET`。
   - 授权页 `/authorize`（通行证网页，要登录，没登录时先登录再回来）：`GET /api/v1/auth/client/pending?userCode=` 读出客户端名称、设备名、代码与发起时间，`POST /api/v1/auth/client/approve` / `deny {userCode}` 授权或拒绝（网页会话的 Bearer）。代码不区分大小写、可不带横线；不存在、过期或已处理 400 `PASSPORT_AUTH_NOT_FOUND`；同一用户 15 分钟内输错 10 次后 400 `PASSPORT_TOO_MANY_REQUESTS`；停用的账号（`PASSPORT_ACCOUNT_DISABLED`）与登录失败锁定中的账号（`PASSPORT_LOCKED`）不能授权。
   - `POST /api/v1/auth/client/token {deviceCode}`（不用登录）：授权后为授权的用户建立这台设备的会话，与登录相同（同一设备只保留一个会话、令牌有效期、新设备提醒、登录记录的方式记为 `client`），返回 `{accessToken, refreshToken, expiresIn}`，`deviceCode` 随即作废；还没授权 400 `PASSPORT_AUTH_PENDING`，距上次领取不到当前间隔 400 `PASSPORT_AUTH_SLOW_DOWN`（间隔加 2 秒），被拒绝 400 `PASSPORT_AUTH_DENIED`，过期、已领取或不存在 400 `PASSPORT_AUTH_EXPIRED`。
   - 授权请求与登录挑战、邮箱验证码一样只放在进程内存里，600 秒后失效（重启后失效），`deviceCode` 只存 SHA-256。
@@ -61,13 +61,15 @@
   - 应用 ID：`game_server.client_app_id`，格式为 `app_` 加 10 字节随机数的小写 base32（16 个字符），全局唯一；公开标识，客户端用它指明服务器，也打包进单服务器客户端（APK 的 `Bootstrap.APP_ID`）。
   - 应用密钥：32 字节随机数的无填充 base64url（43 个字符），与 MGP 密钥一样 secretbox 加密保存在 `game_server.client_app_secret`，明文只在生成与重置时返回一次；只配置在游戏服务端，不进入任何客户端。
   - 管理端在服务器详情「接入设置」里操作（`GameServerService`）：生成（`POST /api/v1/game/servers/{id}/client-app`，第一次生成或重新生成应用 ID，应用 ID 与应用密钥一起换）、重置密钥（`POST /api/v1/game/servers/{id}/client-app/secret`，应用 ID 不变）。两种重置在页面上都要先确认；旧凭据立即失效。凭据要在游戏服务端配置里（学マス：`momoko.app_id`、`momoko.app_secret`）：托管服务器与轮换 MGP 密钥相同，Momoko 先把凭据和通行证对外地址 `momoko.url`（取 `passport.public_url`，规范成不带路径的 http(s) origin；未配置或不合规则失败）写进服务端配置（写不了就失败，不保存）再同步保存，运行中可选立即重启，并写一条变更记录（密钥 · 生成客户端应用凭据 / 重置客户端应用密钥）；仅 GM 的服务器由管理员把返回的凭据写进服务端配置。
-- 可启动：游戏适配器支持客户端启动（`GameAdapter.ClientLaunch`，当前为学マス）、接入了 MGP、生成了客户端应用凭据、填写了 `client_sdk_url` 与 `client_game_url`。`client_resource_url` 可以不填，客户端这时使用官方资源。不可启动的服务器对客户端来说不存在。
-- 启动目标 `PassportLaunchApp`：`{appId, server, endpoints {sdk, game, resource}, link（没有游戏账号时为 null）, bindable, blockReason, icon, background}`；没有绑定时 `blockReason` 为 `unsupported`、`not_visible`（服务器未向玩家开放）或 `cooldown`（解绑冷却中，只能绑回原账号），可以绑定时为空。
+- 客户端地址按游戏：适配器的 `ClientEndpoints`（`GameAdapter.client_endpoints`）只列这款游戏的客户端实际连接的地址，为空表示不支持客户端启动。学マス：SDK、游戏服务端（必填）与资源服务器（不填时用官方资源）；蓝色星原：只有 SDK（服务端 `sdk.listen`），网关地址与资源 CDN 由 SDK 的 patch / getcdn 按服务端配置（`sdk.server`、`sdk.cdn`）下发。管理端只显示与保存用到的地址，保存时清空用不到的。
+- 可启动：游戏适配器支持客户端启动、接入了 MGP、生成了客户端应用凭据、这款游戏的必填地址都已填写。不可启动的服务器对客户端来说不存在。
+- 启动目标 `PassportLaunchApp`：`{appId, server, endpoints {sdk, game, resource}（只带这款游戏用到的）, link（没有游戏账号时为 null）, bindable, blockReason, icon, background}`；没有绑定时 `blockReason` 为 `unsupported`、`not_visible`（服务器未向玩家开放）或 `cooldown`（解绑冷却中，只能绑回原账号），可以绑定时为空。
+- 蓝色星原在游戏内登录：启动器启动时不取票据；游戏在登录界面照常点「开始游戏」走 SDK 登录，启动器用自己当前的通行证会话申请启动票据并调用 SDK 的 `POST /passport/ticket-login`，把会话交给游戏，不另开浏览器授权。
   - `GET /api/v1/launch/apps`（PC 启动器）：可启动、并且用户在上面有生效的绑定、或服务器对他可见（公开，或是注册邀请码所属的服务器）的启动目标；有绑定的在前，按最近使用倒序，其余按服务器名称。
   - `GET /api/v1/launch/apps/{appId}`（单服务器客户端）：服务器对用户不可见、也没有绑定时照常返回，`bindable=false`、`blockReason=not_visible`；应用 ID 不存在或服务器不可启动时 400 `PASSPORT_APP_NOT_FOUND`。
 - 游戏账号：`POST /api/v1/launch/apps/{appId}/bind`（`{account, password}`，规则与通行证网页的 `POST /api/v1/bind` 相同，经 MGP 校验游戏账号密码）与 `POST /api/v1/launch/apps/{appId}/account`（经 MGP `CreateAccount` 新建并以 `create` 方式绑定），都返回 `PassportLink`。前提是服务器可见、游戏支持、还没有绑定；新建还要求不在解绑冷却中，绑定在冷却中只能绑回原账号。同一用户与服务器的绑定与新建串行处理。
 - `POST /api/v1/launch/apps/{appId}/ticket`：签发启动票据并记录绑定的最近使用时间，返回 `{ticket, expiresIn: 120, playerId, displayId}`；应用 ID 不存在或服务器不可启动 400 `PASSPORT_APP_NOT_FOUND`，没有生效绑定 400 `PASSPORT_GAME_ACCOUNT_REQUIRED`，应用密钥不可用 400 `PASSPORT_GAME_UNAVAILABLE`。票据为 `"lt1." + b64url(payload) + "." + b64url(HMAC-SHA256(应用密钥, "momoko-launch-ticket.v1." + b64url(payload)))`，密钥为应用密钥字符串的 UTF-8 字节；payload 为紧凑 JSON，字段依次为 `aid, sid, pid, uid, jti, iat, exp`（前五项是字符串，jti 为 16 字节随机数的 b64url，exp = iat + 120）。MGP 密钥只用于 MGP 与客户端日志上传票据。游戏服务端的 SDK 校验 aid、签名、时间并保证 jti 只用一次后开会话。
-- 客户端地址在管理端服务器详情的「接入设置 → 客户端地址」里填写（`UpdateGameServer` 校验并归一化为 `scheme://host[:port]`）。
+- 客户端地址在管理端服务器详情的「接入设置 → 客户端地址」里填写（`UpdateGameServer` 校验并归一化为 `scheme://host[:port]`）；弹窗只列这款游戏用到的地址，说明按游戏给出，托管时提示对应监听（蓝色星原 `sdk.listen`）的当前值。
 - 应用图标与应用背景（`internal/biz/game_server_media.go`）：管理端服务器详情「接入设置」里上传（不限接入方式；图标为图片，背景为图片或视频，不限格式与大小；对象沿用原文件扩展名）。文件由浏览器直传到对象存储（系统设置 · 储存，与头像共用）：`POST /api/v1/game/servers/{id}/app-media/presign` 签发直传地址与加密的上传凭证（对象名 `app/<uuid>.<扩展名>`），上传后 `POST …/app-media/complete` 校验凭证与对象大小，保存公开链接与对象 key（`game_server.app_icon(_key)`、`app_background(_key)`）并删除被替换的旧对象；`DELETE …/app-media/{kind}` 清除并删除对象；删除服务器时一并删除。对象存储没开启时 400。`PassportLaunchApp.icon` / `background` 原样下发链接，启动器按链接缓存（链接不变用缓存，变了重新下载并删除旧文件）。`GameServerBrief.appIcon` / `appBackground` 也带上这两个链接，管理端（服务器卡片、详情页头、GM 运营的服务器切换与服务器选择器）和通行证（游戏标记、游戏空间头图）都优先用它们，没有时退回游戏名首字与封面；背景是视频时大图静音循环播放，列表卡片鼠标移上去才播放（`ServerBackground.vue`）。
 
 ### 2.2 玩家执行 GM 的规则（passport server 内强制）
@@ -124,7 +126,7 @@
 见 `SpecPC.dc.html` 第 3 节，按原样建表：
 
 - `game_server`：id、game（适配器 id）、name（只是名字）、tags、mode（hosted | remote）、node_id、instance_id（托管时关联应用实例）、mgp_endpoint、key_id、secret（加密存储）、manifest 缓存、status 缓存。
-- `game_server` 另有游戏客户端启动用的字段：client_app_id（客户端应用 ID，唯一，未生成时为空）、client_app_secret（应用密钥，加密）、client_sdk_url、client_game_url、client_resource_url（HTTP(S) origin，空为未填写；资源服务器地址为空时客户端使用官方资源）。
+- `game_server` 另有游戏客户端启动用的字段：client_app_id（客户端应用 ID，唯一，未生成时为空）、client_app_secret（应用密钥，加密）、client_sdk_url、client_game_url、client_resource_url（HTTP(S) origin，空为未填写；只保存这款游戏的客户端用到的，见 2.1.1）。
 - `game_account_link`：user_id、server_id、player_id、display_id、nickname、avatar_asset、method（password 密码 / code 绑定码 / create 经通行证新建 / admin 管理员 / request 申请）、is_primary、linked_at、last_seen_at（进入游戏空间或签发启动票据时更新）。每个用户在每台服务器只能绑一个游戏账号；解绑后 7 天内不能绑别的账号。
 - `gm_self_service`：server_id、command、enabled、use_limit、period_days（0 永久不刷新）、need_approval、player_note。
 - `gm_execution`：server_id、command、actor user_id、actor_kind（admin | player）、targets、params、reason、dry_run、status（success | failed | pending | rejected）、changes、reviewed_by、request_id。params 只存不展示。
@@ -170,7 +172,7 @@
 
 ## 6. 游戏皮肤
 
-学マス 的游戏空间、GM 运营页的强调色来自游戏皮肤，见 `momoko-game.css` 的 `.gk-light / .gk-dark`。实现为 `frontend/src/games/gakumas/theme.css`：在 `[data-game='gakumas']` 上定义 `--m-g --m-gOn --m-gInk --m-gSoft --m-gLine --m-g2 --m-g2Ink --m-g2Soft --m-g3 --m-g3Soft`（明暗两套），游戏空间区域再把 `--m-p --m-pOn --m-pInk --m-pSoft` 指向这组颜色。通行证外壳（账号、首页）仍用 Momoko 自己的配色。图表线条和柱子用 `--m-gInk` 或比 `--m-g` 深一档的颜色，保证与背景 3:1 对比。
+学マス 的游戏空间、GM 运营页的强调色来自游戏皮肤，见 `momoko-game.css` 的 `.gk-light / .gk-dark`。实现为 `frontend/src/games/gakumas/theme.css`：在 `[data-game='gakumas']` 上定义 `--m-g --m-gOn --m-gInk --m-gSoft --m-gLine --m-g2 --m-g2Ink --m-g2Soft --m-g3 --m-g3Soft`（明暗两套），游戏空间区域再把 `--m-p --m-pOn --m-pInk --m-pSoft` 指向这组颜色。通行证外壳（账号、首页）用全站默认主题的配色（`frontend/passport/src/theme.ts`，与管理后台同一个主题引擎）。蓝色星原的游戏皮肤在 `frontend/src/games/azurpromilia/theme.css`，颜色取自游戏的应用图标。图表线条和柱子用 `--m-gInk` 或比 `--m-g` 深一档的颜色，保证与背景 3:1 对比。
 
 ## 7. 游戏素材（前端资源）
 

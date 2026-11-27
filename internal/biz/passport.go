@@ -441,7 +441,17 @@ func (uc *PassportUsecase) PublicConfig(ctx context.Context) *v1.GetPassportConf
 		UnbindCooldownDays:        int32(PassportUnbindCooldown / (24 * time.Hour)),
 		DeletionGraceDays:         int32(PassportDeletionGrace / (24 * time.Hour)),
 		GameAssetUrl:              gameAssetURL(ctx, uc.config),
+		SiteTheme:                 uc.siteTheme(ctx),
 	}
+}
+
+// siteTheme 全站默认外观主题；没设置过或读不到时为 nil（通行证用默认配色）。
+func (uc *PassportUsecase) siteTheme(ctx context.Context) *v1.SiteTheme {
+	t, err := uc.config.SiteTheme(ctx)
+	if err != nil {
+		return nil
+	}
+	return t
 }
 
 // ---------------- 小工具 ----------------

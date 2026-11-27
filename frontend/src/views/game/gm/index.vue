@@ -7,8 +7,8 @@
         <GameServerPicker :model-value="serverId" :selected="ctx.server.value" :search="searchServers" @select="switchServer">
           <template #trigger="{ open }">
             <button type="button" class="gm__switch" :aria-expanded="open" :aria-label="t('gm.shell.switchServer')">
-              <span class="gm__switch-avatar" :class="{ 'has-img': ctx.server.value?.appIcon }" aria-hidden="true">
-                <img v-if="ctx.server.value?.appIcon" :src="ctx.server.value.appIcon" alt="" class="gm__switch-img" />
+              <span class="gm__switch-avatar" :class="{ 'has-img': icon }" aria-hidden="true">
+                <img v-if="icon" :src="icon" alt="" class="gm__switch-img" />
                 <template v-else>{{ initial }}</template>
               </span>
               <span class="gm__switch-text">
@@ -93,7 +93,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import '@/games'
+import { gameIcon } from '@/games'
 import { searchGmServers } from '@/api/gameGm'
 import type { GameServerBrief } from '@/types/v1/game_common'
 import GameServerPicker from '../components/GameServerPicker.vue'
@@ -173,6 +173,7 @@ watch(
 )
 
 const initial = computed(() => (ctx.server.value?.name || '?').slice(0, 1).toUpperCase())
+const icon = computed(() => ctx.server.value?.appIcon || gameIcon(ctx.server.value?.game || ''))
 const subline = computed(() => {
   const s = ctx.server.value
   if (!s) return ''

@@ -1,8 +1,12 @@
-/* 用户通行证的公共样式：只用设计令牌 --m-* / --app-*（以及游戏皮肤 --m-g*）。 */
-html,
+/* 用户通行证的公共样式：只用设计令牌 --m-* / --app-*（以及游戏皮肤 --m-g*）。
+   配色、细节与背景跟随全站默认主题（theme.ts）：页面底色用 --app-surface-page（有自定义背景时透明，露出 ThemeBackdrop），
+   图片 / 渐变背景（is-glass）时卡片按主题的卡片不透明度半透明。 */
+html {
+  background: var(--m-bg);
+}
 body {
   margin: 0;
-  background: var(--m-bg);
+  background: var(--app-surface-page);
   color: var(--m-ink);
   font-family: var(--app-font-sans);
   /* 放不下的长串（邮箱、英文昵称、设备名）折行，不把版面撑宽 */
@@ -17,6 +21,11 @@ a {
   background: var(--m-s);
   border: 1px solid var(--m-line);
   border-radius: var(--app-radius-xl, 24px);
+}
+html.is-glass .pp-card {
+  background: color-mix(in srgb, var(--m-s) var(--theme-card-a), transparent);
+  -webkit-backdrop-filter: var(--theme-glass-blur);
+  backdrop-filter: var(--theme-glass-blur);
 }
 
 .pp-hint {

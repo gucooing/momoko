@@ -10,8 +10,8 @@
     </RouterLink>
     <div class="gs-card__body">
       <div class="gs-card__head">
-        <span class="gs-card__logo" :class="{ 'has-img': brief?.appIcon }" aria-hidden="true">
-          <img v-if="brief?.appIcon" :src="brief.appIcon" alt="" loading="lazy" class="gs-card__logo-img" />
+        <span class="gs-card__logo" :class="{ 'has-img': icon }" aria-hidden="true">
+          <img v-if="icon" :src="icon" alt="" loading="lazy" class="gs-card__logo-img" />
           <template v-else>{{ initial }}</template>
         </span>
         <span class="gs-card__title">
@@ -91,7 +91,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { gameAsset, gameCover } from '@/games'
+import { gameAsset, gameCover, gameIcon } from '@/games'
 import ServerBackground from '@/components/game/ServerBackground.vue'
 import type { ActionMenuItem } from '@/components/ui/ActionMenu.vue'
 import type { GameServerInfo } from '@/types/v1/game_server'
@@ -112,6 +112,8 @@ const gameName = computed(() => {
   return brief.value?.gameName || (te(key) ? t(key) : t('game.unnamed'))
 })
 const initial = computed(() => (gameName.value || name.value || '?').trim().charAt(0).toUpperCase())
+// 上传的应用图标优先，没有时用游戏图标
+const icon = computed(() => brief.value?.appIcon || gameIcon(brief.value?.game || ''))
 // 没设封面时用游戏的默认封面（按服务器 ID 稳定地挑一张）
 const coverUrl = computed(() => {
   const b = brief.value

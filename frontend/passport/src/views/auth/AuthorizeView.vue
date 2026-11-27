@@ -1,8 +1,9 @@
-<!-- 客户端浏览器授权页（/authorize?code=XXXX-XXXX）：PC 启动器、Android APK 不接触通行证的账号与密码，
-     玩家在这里核对客户端上显示的代码后授权或拒绝。要登录（没登录时先走正常登录再回来，code 保留）；
-     显示客户端名称、设备名、代码（大字，与客户端核对）与发起时间；没有代码时可以手动输入。 -->
+<!-- 客户端浏览器授权页（/authorize?code=XXXX-XXXX）：客户端不接触通行证的账号与密码，玩家在这里授权或拒绝。
+     要登录（没登录时先走正常登录再回来，code 保留）；显示客户端名称、设备名与发起时间。
+     学マス 的 PC 启动器与 Android APK 要核对客户端上显示的代码（大字）；没有代码时可以手动输入。
+     蓝色星原的游戏内登录是浏览器单点授权：授权页由客户端直接打开，不显示、不核对代码。 -->
 <template>
-  <AuthLayout :title="t('authorize.title')" :subtitle="t('authorize.desc')">
+  <AuthLayout :title="sso ? t('authorize.sso.title', { client: clientName }) : t('authorize.title')" :subtitle="sso ? t('authorize.sso.desc', { client: clientName }) : t('authorize.desc')">
     <div v-if="state === 'loading'" class="az__state">{{ t('authorize.loading') }}</div>
 
     <div v-else-if="state === 'approved'" class="az__result">
@@ -32,7 +33,7 @@
           <dd class="pp-num">{{ fmtTime(request.createTime) }} · {{ t('authorize.expiresIn', { left: fmtLeft(request.expireTime) }) }}</dd>
         </div>
       </dl>
-      <div class="az__code">
+      <div v-if="!sso" class="az__code">
         <span class="az__code-label">{{ t('authorize.codeLabel') }}</span>
         <span class="az__code-value pp-num">{{ request.userCode }}</span>
         <span class="pp-hint">{{ t('authorize.codeHint') }}</span>
@@ -102,6 +103,9 @@ const clientName = computed(() => {
   const key = `authorize.clients.${r.client}`
   return te(key) ? t(key) : r.clientName || r.client
 })
+// 浏览器单点授权的客户端（蓝色星原游戏内登录）：授权页由客户端直接打开，不核对代码
+const SSO_CLIENTS = ['azurpromilia']
+const sso = computed(() => !!request.value && SSO_CLIENTS.includes(request.value.client))
 const accountName = computed(() => {
   const me = session.me
   if (!me) return ''

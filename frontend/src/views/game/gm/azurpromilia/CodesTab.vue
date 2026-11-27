@@ -97,6 +97,10 @@
     <FormDialog v-model="viewing" :title="batch?.name || ''" :width="720" :show-footer="false">
       <div v-if="batch" class="azc__form">
         <DescriptionList :items="batchDetail" :columns="2" />
+        <div v-if="batch.rewards.length" class="az-rewards">
+          <span class="az-rewards__label">{{ t('azurGm.form.rewards') }}</span>
+          <AzurRewardList :rewards="batch.rewards" :name="itemName" />
+        </div>
         <div class="azc__actions">
           <UButton color="neutral" variant="soft" :loading="toggling" @click="toggle">
             {{ batch.disabled ? t('azurGm.codes.enable') : t('azurGm.codes.disable') }}
@@ -147,7 +151,8 @@ import { feedback } from '@/utils/feedback'
 import { useGmContext } from '../context'
 import CursorPager from './CursorPager.vue'
 import RewardEditor from './RewardEditor.vue'
-import { errorMessage, fmtTime, fromInput, rewardsText, useCursorPages } from './shared'
+import AzurRewardList from '@/components/game/AzurRewardList.vue'
+import { errorMessage, fmtTime, fromInput, itemName, useCursorPages } from './shared'
 
 type Kind = 'unique' | 'universal'
 
@@ -294,7 +299,6 @@ const batchDetail = computed(() => {
     { label: t('azurGm.codes.cols.codes'), value: b.codes },
     { label: t('azurGm.codes.cols.redeemed'), value: b.redeemed },
     { label: t('azurGm.form.title'), value: b.title },
-    { label: t('azurGm.form.rewards'), value: rewardsText(b.rewards) },
   ]
 })
 
@@ -433,5 +437,14 @@ onActivated(() => void pages.load())
   margin: 0;
   color: var(--m-bad);
   font-size: 13px;
+}
+.az-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.az-rewards__label {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 </style>

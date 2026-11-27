@@ -5,6 +5,7 @@ import * as api from '@passport/api/passport'
 import { tokenStore } from '@passport/api/request'
 import { setLocale } from '@passport/locales'
 import { setGameAssetBase } from '@/games/core'
+import { applySiteTheme } from '@passport/theme'
 import type { GetPassportConfigResponse, PassportLoginResponse, PassportMe } from '@/types/v1/passport'
 
 export const useSessionStore = defineStore('passport-session', () => {
@@ -23,6 +24,7 @@ export const useSessionStore = defineStore('passport-session', () => {
       throw e
     }
     setGameAssetBase(config.value.gameAssetUrl)
+    applySiteTheme(config.value.siteTheme)
     if (config.value.siteName) document.title = config.value.siteName
     return config.value
   }

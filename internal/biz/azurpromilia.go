@@ -38,6 +38,8 @@ const (
 	azPlayerUnban    = "player.unban"
 	azPlayerPassword = "player.password"
 	azPlayerRename   = "player.rename"
+	azHeroSet        = "hero.set"
+	azPetSet         = "pet.set"
 	azMailSend       = "mail.send"
 	azMailRevoke     = "mail.revoke"
 	azCodeCreate     = "code.create"
@@ -54,6 +56,8 @@ var AzurPromiliaOperations = []GmOperation{
 	{ID: azPlayerUnban, Title: "解封", Group: "账号", Risk: RiskHigh, Target: TargetPlayers, SelfService: true},
 	{ID: azPlayerPassword, Title: "重置登录密码", Group: "账号", Risk: RiskHigh, Target: TargetPlayers, SelfService: true},
 	{ID: azPlayerRename, Title: "改昵称", Group: "账号", Risk: RiskLow, Target: TargetPlayer, SelfService: true},
+	{ID: azHeroSet, Title: "修改角色", Group: "养成", Risk: RiskHigh, Target: TargetPlayer},
+	{ID: azPetSet, Title: "修改奇波", Group: "养成", Risk: RiskHigh, Target: TargetPlayer},
 	{ID: azMailSend, Title: "邮件补偿", Group: "运营", Risk: RiskHigh, Target: TargetServer},
 	{ID: azMailRevoke, Title: "撤回邮件", Group: "运营", Risk: RiskHigh, Target: TargetServer},
 	{ID: azCodeCreate, Title: "新建兑换码", Group: "运营", Risk: RiskMedium, Target: TargetServer},
@@ -87,6 +91,16 @@ type azPasswordParams struct {
 
 type azNameParams struct {
 	Name string `json:"name"`
+}
+
+type azHeroParams struct {
+	Seq  int32                 `json:"seq"`
+	Edit azurpromilia.HeroEdit `json:"edit"`
+}
+
+type azPetParams struct {
+	GUID int32                `json:"guid"`
+	Edit azurpromilia.PetEdit `json:"edit"`
 }
 
 type azMailParams struct {
@@ -140,6 +154,16 @@ func azurpromiliaCall(g *azurpromilia.Client, op string, params json.RawMessage)
 		p, err := decodeParams[azNameParams](params)
 		return func(ctx context.Context, pid string, opt mgp.OperationOptions) (proto.Message, error) {
 			return g.Rename(ctx, pid, p.Name, opt)
+		}, err
+	case azHeroSet:
+		p, err := decodeParams[azHeroParams](params)
+		return func(ctx context.Context, pid string, opt mgp.OperationOptions) (proto.Message, error) {
+			return g.SetHero(ctx, pid, p.Seq, p.Edit, opt)
+		}, err
+	case azPetSet:
+		p, err := decodeParams[azPetParams](params)
+		return func(ctx context.Context, pid string, opt mgp.OperationOptions) (proto.Message, error) {
+			return g.SetPet(ctx, pid, p.GUID, p.Edit, opt)
 		}, err
 	case azMailSend:
 		p, err := decodeParams[azSendMailParams](params)
@@ -409,7 +433,7 @@ func (uc *AzurPromiliaUsecase) ListPlayerLogins(ctx context.Context, req *az.Pag
 	return result(g.Logins(ctx, req.Pid, req.Cursor, req.Limit))
 }
 
-func (uc *AzurPromiliaUsecase) ListPlayerItems(ctx context.Context, req *az.ListItemsRequest) (*az.ItemPage, error) {
+func (uc *AzurPromiliaUsecase) ListPlayerItems(ctx context.Context, req *az.ListByIDsRequest) (*az.ItemPage, error) {
 	g, err := uc.client(ctx, req.ServerId)
 	if err != nil {
 		return nil, err
@@ -425,20 +449,20 @@ func (uc *AzurPromiliaUsecase) ListPlayerCurrencies(ctx context.Context, req *az
 	return result(g.Currencies(ctx, req.Pid))
 }
 
-func (uc *AzurPromiliaUsecase) ListPlayerHeroes(ctx context.Context, req *az.PageRequest) (*az.HeroPage, error) {
+func (uc *AzurPromiliaUsecase) ListPlayerHeroes(ctx context.Context, req *az.ListByIDsRequest) (*az.HeroPage, error) {
 	g, err := uc.client(ctx, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	return result(g.Heroes(ctx, req.Pid, req.Cursor, req.Limit))
+	return result(g.Heroes(ctx, req.Pid, req.Ids, req.Cursor, req.Limit))
 }
 
-func (uc *AzurPromiliaUsecase) ListPlayerPets(ctx context.Context, req *az.PageRequest) (*az.PetPage, error) {
+func (uc *AzurPromiliaUsecase) ListPlayerPets(ctx context.Context, req *az.ListByIDsRequest) (*az.PetPage, error) {
 	g, err := uc.client(ctx, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	return result(g.Pets(ctx, req.Pid, req.Cursor, req.Limit))
+	return result(g.Pets(ctx, req.Pid, req.Ids, req.Cursor, req.Limit))
 }
 
 func (uc *AzurPromiliaUsecase) ListPlayerMails(ctx context.Context, req *az.PageRequest) (*az.MailPage, error) {
@@ -459,6 +483,55 @@ func (uc *AzurPromiliaUsecase) AdjustItems(ctx context.Context, actor GmActor, r
 		Grant: req.Grant,
 		Take:  req.Take,
 	}, req.DryRun, nil)
+	if err != nil {
+		return nil, err
+	}
+	return operationResponse(e, outcomes), nil
+}
+
+// SetPlayerHero 设定一个英雄的养成数值（只改给出的字段）。
+func (uc *AzurPromiliaUsecase) SetPlayerHero(ctx context.Context, actor GmActor, req *az.SetHeroRequest) (*az.OperationResponse, error) {
+	if req.Seq <= 0 || req.Level == nil && req.Rank == nil && req.Grade == nil && req.FavorLevel == nil {
+		return nil, ErrGmParams
+	}
+	p := azHeroParams{
+		Seq: req.Seq,
+		Edit: azurpromilia.HeroEdit{
+			Level:      req.Level,
+			Rank:       req.Rank,
+			Grade:      req.Grade,
+			FavorLevel: req.FavorLevel,
+		},
+	}
+	e, outcomes, err := uc.execute(ctx, actor, req.ServerId, azHeroSet, []string{req.Pid}, p, req.DryRun, nil)
+	if err != nil {
+		return nil, err
+	}
+	return operationResponse(e, outcomes), nil
+}
+
+// SetPlayerPet 设定一只奇波的数值（只改给出的字段，星魂阶段与节点一起给出）。
+func (uc *AzurPromiliaUsecase) SetPlayerPet(ctx context.Context, actor GmActor, req *az.SetPetRequest) (*az.OperationResponse, error) {
+	if req.Guid <= 0 || req.Level == nil && req.StarStage == nil && req.StarNode == nil && req.Locked == nil && req.Name == nil ||
+		(req.StarStage == nil) != (req.StarNode == nil) {
+		return nil, ErrGmParams
+	}
+	var name *string
+	if req.Name != nil {
+		n := strings.TrimSpace(*req.Name)
+		name = &n
+	}
+	p := azPetParams{
+		GUID: req.Guid,
+		Edit: azurpromilia.PetEdit{
+			Level:     req.Level,
+			StarStage: req.StarStage,
+			StarNode:  req.StarNode,
+			Locked:    req.Locked,
+			Name:      name,
+		},
+	}
+	e, outcomes, err := uc.execute(ctx, actor, req.ServerId, azPetSet, []string{req.Pid}, p, req.DryRun, nil)
 	if err != nil {
 		return nil, err
 	}

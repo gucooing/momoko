@@ -12,6 +12,9 @@
       <template #cell-state="{ row }">
         <StatusPill :variant="stateVariant(String(row.state))" :label="t(`azurGm.mail.state.${row.state}`)" />
       </template>
+      <template #cell-rewards="{ row }">
+        <AzurRewardList :rewards="(row as unknown as GmMail).rewards" :name="itemName" compact />
+      </template>
     </DataTable>
     <CursorPager
       :page="pages.page.value"
@@ -76,8 +79,12 @@
     <FormDialog v-model="viewing" :title="t('azurGm.mail.detail')" :width="600" :show-footer="false">
       <div v-if="current" class="azm__form">
         <DescriptionList :items="detail" :columns="1" />
+        <div v-if="current.rewards.length" class="az-rewards">
+          <span class="az-rewards__label">{{ t('azurGm.form.rewards') }}</span>
+          <AzurRewardList :rewards="current.rewards" :name="itemName" />
+        </div>
         <p class="azm__body">{{ current.content }}</p>
-        <template v-if="current.target === 'all' && current.state !== 'revoked'">
+        <template v-if="current.state !== 'revoked'">
           <p class="azm__hint">{{ t('azurGm.mail.revokeHint') }}</p>
           <div class="azm__actions">
             <UButton color="error" variant="soft" :loading="revoking" @click="revoke">{{ t('azurGm.mail.revoke') }}</UButton>
@@ -99,7 +106,8 @@ import { feedback } from '@/utils/feedback'
 import { useGmContext } from '../context'
 import CursorPager from './CursorPager.vue'
 import RewardEditor from './RewardEditor.vue'
-import { errorMessage, fmtTime, fromInput, parsePids, rewardsText, useCursorPages } from './shared'
+import AzurRewardList from '@/components/game/AzurRewardList.vue'
+import { errorMessage, fmtTime, fromInput, itemName, parsePids, useCursorPages } from './shared'
 
 type Target = 'all' | 'players'
 
@@ -112,7 +120,7 @@ const pages = useCursorPages<GmMail>((cursor) => api.listMails({ serverId: ctx.s
 const columns = computed<DataTableColumn[]>(() => [
   { key: 'title', title: t('azurGm.mail.cols.title'), minWidth: 160, ellipsis: true },
   { key: 'targetText', title: t('azurGm.mail.cols.target'), width: 120 },
-  { key: 'rewardsText', title: t('azurGm.mail.cols.rewards'), minWidth: 180, ellipsis: true },
+  { key: 'rewards', title: t('azurGm.mail.cols.rewards'), minWidth: 180 },
   { key: 'state', title: t('azurGm.mail.cols.state'), width: 90 },
   { key: 'time', title: t('azurGm.mail.cols.time'), width: 150 },
   { key: 'result', title: t('azurGm.mail.cols.result'), width: 150 },
@@ -125,7 +133,6 @@ const rows = computed(() =>
   pages.items.value.map((m) => ({
     ...m,
     targetText: targetText(m),
-    rewardsText: rewardsText(m.rewards),
     time: fmtTime(m.target === 'all' ? m.startAt : m.createdAt),
     result: m.target === 'players' ? t('azurGm.mail.delivered', { ok: m.delivered, failed: m.failed }) : '—',
   })),
@@ -209,7 +216,6 @@ const detail = computed(() => {
     { label: t('azurGm.form.title'), value: m.title },
     { label: t('azurGm.form.sender'), value: m.sender || '—' },
     { label: t('azurGm.mail.cols.target'), value: m.target === 'all' ? t('azurGm.mail.target.all') : m.pids.join(', ') },
-    { label: t('azurGm.form.rewards'), value: rewardsText(m.rewards) },
     { label: t('azurGm.mail.cols.state'), value: t(`azurGm.mail.state.${m.state}`) },
     { label: t('azurGm.mail.cols.operator'), value: m.operator || '—' },
   ]
@@ -323,5 +329,14 @@ onActivated(() => void pages.load())
   padding: 10px 12px;
   border-radius: var(--app-radius-sm);
   background: var(--el-fill-color-light);
+}
+.az-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.az-rewards__label {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 </style>

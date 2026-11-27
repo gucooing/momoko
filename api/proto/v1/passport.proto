@@ -7,6 +7,7 @@ option go_package = "momoko/api/gen/v1;v1";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "v1/game_common.proto";
+import "v1/theme.proto";
 
 // 用户通行证（玩家端，只注册在独立的 passport server 上，独立端口，路由就是 /api/v1/...）。
 // 账号是独立的 passport_users，与 Momoko 管理后台的用户无关；错误的 message 是错误代码（如 PASSPORT_PASSWORD_INVALID），前端本地化。
@@ -335,7 +336,7 @@ service PassportService {
 
   // ---------------- 启动器（客户端用通行证进入游戏，按客户端应用 ID 指明服务器） ----------------
 
-  // 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+  // 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、这款游戏客户端必需的地址都已填写，
   // 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
   rpc ListPassportLaunchApps(PassportEmpty) returns (ListPassportLaunchAppsResponse) {
     option (google.api.http) = {
@@ -395,6 +396,9 @@ message GetPassportConfigResponse {
   int32 deletion_grace_days = 8;
   // 游戏素材地址；空表示没设置
   string game_asset_url = 9;
+  // 全站默认外观主题（管理后台「设为全站默认」，与管理后台登录页同一份）；没设置过为空。
+  // 主题引用的背景图 / 字体由通行证 server 的 /api/v1/theme-asset/<id> 提供
+  SiteTheme site_theme = 10;
 }
 
 message SendPassportEmailCodeRequest {
@@ -467,7 +471,7 @@ message PassportResetPasswordRequest {
 // ---------------- 客户端浏览器授权 ----------------
 
 message StartPassportClientAuthRequest {
-  // 客户端：launcher（Momoko 启动器）/ android（学马仕 Android）
+  // 客户端：launcher（Momoko 启动器）/ android（学马仕 Android）/ azurpromilia（蓝色星原游戏内登录，浏览器单点授权，授权页不核对 user_code）
   string client = 1;
   // 客户端首次运行生成并持久保存的随机 ID（同一设备只保留一个会话）
   string device_id = 2;
@@ -508,7 +512,7 @@ message PassportClientAuthCodeRequest {
 message PassportClientAuth {
   // launcher / android
   string client = 1;
-  // 客户端显示名（Momoko 启动器 / 学马仕 Android）
+  // 客户端显示名（Momoko 启动器 / 学马仕 Android / 蓝色星原）
   string client_name = 2;
   // 设备名
   string device = 3;
@@ -895,6 +899,7 @@ message RedeemPassportGiftCodeResponse {
 // ---------------- 启动器 ----------------
 
 // 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。
+// 只带这款游戏的客户端用到的地址，其余为空（学マス：三项，资源服务器可为空；蓝色星原：只有 SDK）。
 message PassportLaunchEndpoints {
   // 游戏服务端 SDK
   string sdk = 1;

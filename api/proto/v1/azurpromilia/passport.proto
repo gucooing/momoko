@@ -18,16 +18,16 @@ service AzurPromiliaPassportService {
   rpc ListMyLogins(MyLoginsRequest) returns (LoginPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/logins"};
   }
-  rpc ListMyItems(MyLoginsRequest) returns (ItemPage) {
+  rpc ListMyItems(MyListRequest) returns (ItemPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/items"};
   }
   rpc ListMyCurrencies(MyRequest) returns (ItemPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/currencies"};
   }
-  rpc ListMyHeroes(MyLoginsRequest) returns (HeroPage) {
+  rpc ListMyHeroes(MyListRequest) returns (HeroPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/heroes"};
   }
-  rpc ListMyPets(MyLoginsRequest) returns (PetPage) {
+  rpc ListMyPets(MyListRequest) returns (PetPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/games/{server_id}/pets"};
   }
   rpc ListMyMails(MyLoginsRequest) returns (MailPage) {
@@ -66,6 +66,14 @@ message MyLoginsRequest {
   string server_id = 1;
   string cursor = 2;
   int32 limit = 3;
+}
+
+// 我的道具、英雄、奇波列表：ids 不为空时只取这些道具 / 英雄 / 奇波 ID。
+message MyListRequest {
+  string server_id = 1;
+  repeated int32 ids = 2;
+  string cursor = 3;
+  int32 limit = 4;
 }
 
 // 自助操作的共同字段：reason 为申请理由（需要审批时给管理员看），totp_code 为两步验证码。

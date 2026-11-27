@@ -41,12 +41,12 @@ type AzurPromiliaPassportServiceHTTPServer interface {
 	GetMyPlayer(context.Context, *MyRequest) (*PlayerDetail, error)
 	KickMe(context.Context, *SelfServiceRequest) (*MySelfServiceResponse, error)
 	ListMyCurrencies(context.Context, *MyRequest) (*ItemPage, error)
-	ListMyHeroes(context.Context, *MyLoginsRequest) (*HeroPage, error)
-	ListMyItems(context.Context, *MyLoginsRequest) (*ItemPage, error)
+	ListMyHeroes(context.Context, *MyListRequest) (*HeroPage, error)
+	ListMyItems(context.Context, *MyListRequest) (*ItemPage, error)
 	// ListMyLogins 我的登录记录（按登录时间倒序）
 	ListMyLogins(context.Context, *MyLoginsRequest) (*LoginPage, error)
 	ListMyMails(context.Context, *MyLoginsRequest) (*MailPage, error)
-	ListMyPets(context.Context, *MyLoginsRequest) (*PetPage, error)
+	ListMyPets(context.Context, *MyListRequest) (*PetPage, error)
 	// MailMe ---------------- 自助操作（目标都是我绑定的游戏账号） ----------------
 	MailMe(context.Context, *SelfServiceMailRequest) (*MySelfServiceResponse, error)
 	RenameMe(context.Context, *SelfServiceRenameRequest) (*MySelfServiceResponse, error)
@@ -118,7 +118,7 @@ func _AzurPromiliaPassportService_ListMyLogins0_HTTP_Handler(srv AzurPromiliaPas
 
 func _AzurPromiliaPassportService_ListMyItems0_HTTP_Handler(srv AzurPromiliaPassportServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in MyLoginsRequest
+		var in MyListRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -127,7 +127,7 @@ func _AzurPromiliaPassportService_ListMyItems0_HTTP_Handler(srv AzurPromiliaPass
 		}
 		http.SetOperation(ctx, OperationAzurPromiliaPassportServiceListMyItems)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListMyItems(ctx, req.(*MyLoginsRequest))
+			return srv.ListMyItems(ctx, req.(*MyListRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -162,7 +162,7 @@ func _AzurPromiliaPassportService_ListMyCurrencies0_HTTP_Handler(srv AzurPromili
 
 func _AzurPromiliaPassportService_ListMyHeroes0_HTTP_Handler(srv AzurPromiliaPassportServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in MyLoginsRequest
+		var in MyListRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -171,7 +171,7 @@ func _AzurPromiliaPassportService_ListMyHeroes0_HTTP_Handler(srv AzurPromiliaPas
 		}
 		http.SetOperation(ctx, OperationAzurPromiliaPassportServiceListMyHeroes)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListMyHeroes(ctx, req.(*MyLoginsRequest))
+			return srv.ListMyHeroes(ctx, req.(*MyListRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -184,7 +184,7 @@ func _AzurPromiliaPassportService_ListMyHeroes0_HTTP_Handler(srv AzurPromiliaPas
 
 func _AzurPromiliaPassportService_ListMyPets0_HTTP_Handler(srv AzurPromiliaPassportServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in MyLoginsRequest
+		var in MyListRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -193,7 +193,7 @@ func _AzurPromiliaPassportService_ListMyPets0_HTTP_Handler(srv AzurPromiliaPassp
 		}
 		http.SetOperation(ctx, OperationAzurPromiliaPassportServiceListMyPets)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListMyPets(ctx, req.(*MyLoginsRequest))
+			return srv.ListMyPets(ctx, req.(*MyListRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -408,12 +408,12 @@ type AzurPromiliaPassportServiceHTTPClient interface {
 	GetMyPlayer(ctx context.Context, req *MyRequest, opts ...http.CallOption) (rsp *PlayerDetail, err error)
 	KickMe(ctx context.Context, req *SelfServiceRequest, opts ...http.CallOption) (rsp *MySelfServiceResponse, err error)
 	ListMyCurrencies(ctx context.Context, req *MyRequest, opts ...http.CallOption) (rsp *ItemPage, err error)
-	ListMyHeroes(ctx context.Context, req *MyLoginsRequest, opts ...http.CallOption) (rsp *HeroPage, err error)
-	ListMyItems(ctx context.Context, req *MyLoginsRequest, opts ...http.CallOption) (rsp *ItemPage, err error)
+	ListMyHeroes(ctx context.Context, req *MyListRequest, opts ...http.CallOption) (rsp *HeroPage, err error)
+	ListMyItems(ctx context.Context, req *MyListRequest, opts ...http.CallOption) (rsp *ItemPage, err error)
 	// ListMyLogins 我的登录记录（按登录时间倒序）
 	ListMyLogins(ctx context.Context, req *MyLoginsRequest, opts ...http.CallOption) (rsp *LoginPage, err error)
 	ListMyMails(ctx context.Context, req *MyLoginsRequest, opts ...http.CallOption) (rsp *MailPage, err error)
-	ListMyPets(ctx context.Context, req *MyLoginsRequest, opts ...http.CallOption) (rsp *PetPage, err error)
+	ListMyPets(ctx context.Context, req *MyListRequest, opts ...http.CallOption) (rsp *PetPage, err error)
 	// MailMe ---------------- 自助操作（目标都是我绑定的游戏账号） ----------------
 	MailMe(ctx context.Context, req *SelfServiceMailRequest, opts ...http.CallOption) (rsp *MySelfServiceResponse, err error)
 	RenameMe(ctx context.Context, req *SelfServiceRenameRequest, opts ...http.CallOption) (rsp *MySelfServiceResponse, err error)
@@ -495,7 +495,7 @@ func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyCurrencies(ctx context
 	return &out, nil
 }
 
-func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyHeroes(ctx context.Context, in *MyLoginsRequest, opts ...http.CallOption) (*HeroPage, error) {
+func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyHeroes(ctx context.Context, in *MyListRequest, opts ...http.CallOption) (*HeroPage, error) {
 	var out HeroPage
 	pattern := "/api/v1/azurpromilia/games/{server_id}/heroes"
 	path := binding.EncodeURL(pattern, in, true)
@@ -508,7 +508,7 @@ func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyHeroes(ctx context.Con
 	return &out, nil
 }
 
-func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyItems(ctx context.Context, in *MyLoginsRequest, opts ...http.CallOption) (*ItemPage, error) {
+func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyItems(ctx context.Context, in *MyListRequest, opts ...http.CallOption) (*ItemPage, error) {
 	var out ItemPage
 	pattern := "/api/v1/azurpromilia/games/{server_id}/items"
 	path := binding.EncodeURL(pattern, in, true)
@@ -548,7 +548,7 @@ func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyMails(ctx context.Cont
 	return &out, nil
 }
 
-func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyPets(ctx context.Context, in *MyLoginsRequest, opts ...http.CallOption) (*PetPage, error) {
+func (c *AzurPromiliaPassportServiceHTTPClientImpl) ListMyPets(ctx context.Context, in *MyListRequest, opts ...http.CallOption) (*PetPage, error) {
 	var out PetPage
 	pattern := "/api/v1/azurpromilia/games/{server_id}/pets"
 	path := binding.EncodeURL(pattern, in, true)

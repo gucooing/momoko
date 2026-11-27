@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { listGameAssets, type GameAssetEntry } from '@/games'
+import { gameCoverAssets, type GameAssetEntry } from '@/games'
 import { updateGameServer } from '@/api/gameServer'
 import { getRequestErrorMessage } from '@/utils/request'
 import type { GameServerInfo } from '@/types/v1/game_server'
@@ -77,8 +77,7 @@ watch(
     form.cover = s.brief?.cover || ''
     coverQuery.value = ''
     // 只加载这一组的索引（很小）；图片按需懒加载
-    const list = await listGameAssets(game.value, 'cards/idol')
-    covers.value = list.filter((a) => a.key.endsWith('-land'))
+    covers.value = await gameCoverAssets(game.value)
   },
   { immediate: true },
 )

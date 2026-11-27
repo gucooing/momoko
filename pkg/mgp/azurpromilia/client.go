@@ -166,27 +166,34 @@ func (g *Client) Logins(ctx context.Context, pid, cursor string, limit int32) (*
 	return get[az.LoginPage](ctx, g.c, playerPath(pid)+"/logins", page(nil, cursor, limit))
 }
 
-// Items 背包道具（按道具 ID，同一道具合计）；ids 不为空时只取这些道具。
-func (g *Client) Items(ctx context.Context, pid string, ids []int32, cursor string, limit int32) (*az.ItemPage, error) {
+// idsQuery 是只取这些 ID 的筛选（ids 为空时不筛选）。
+func idsQuery(ids []int32) url.Values {
 	q := url.Values{}
 	keep := make([]string, 0, len(ids))
 	for _, id := range ids {
 		keep = append(keep, strconv.Itoa(int(id)))
 	}
 	list(q, "ids", keep)
-	return get[az.ItemPage](ctx, g.c, playerPath(pid)+"/items", page(q, cursor, limit))
+	return q
+}
+
+// Items 背包道具（按道具 ID，同一道具合计）；ids 不为空时只取这些道具。
+func (g *Client) Items(ctx context.Context, pid string, ids []int32, cursor string, limit int32) (*az.ItemPage, error) {
+	return get[az.ItemPage](ctx, g.c, playerPath(pid)+"/items", page(idsQuery(ids), cursor, limit))
 }
 
 func (g *Client) Currencies(ctx context.Context, pid string) (*az.ItemPage, error) {
 	return get[az.ItemPage](ctx, g.c, playerPath(pid)+"/currencies", nil)
 }
 
-func (g *Client) Heroes(ctx context.Context, pid, cursor string, limit int32) (*az.HeroPage, error) {
-	return get[az.HeroPage](ctx, g.c, playerPath(pid)+"/heroes", page(nil, cursor, limit))
+// Heroes 英雄按获得顺序；ids 不为空时只取这些英雄 ID。
+func (g *Client) Heroes(ctx context.Context, pid string, ids []int32, cursor string, limit int32) (*az.HeroPage, error) {
+	return get[az.HeroPage](ctx, g.c, playerPath(pid)+"/heroes", page(idsQuery(ids), cursor, limit))
 }
 
-func (g *Client) Pets(ctx context.Context, pid, cursor string, limit int32) (*az.PetPage, error) {
-	return get[az.PetPage](ctx, g.c, playerPath(pid)+"/pets", page(nil, cursor, limit))
+// Pets 奇波按获得顺序；ids 不为空时只取这些奇波 ID。
+func (g *Client) Pets(ctx context.Context, pid string, ids []int32, cursor string, limit int32) (*az.PetPage, error) {
+	return get[az.PetPage](ctx, g.c, playerPath(pid)+"/pets", page(idsQuery(ids), cursor, limit))
 }
 
 func (g *Client) Mails(ctx context.Context, pid, cursor string, limit int32) (*az.MailPage, error) {
@@ -238,6 +245,41 @@ func (g *Client) AdjustItems(ctx context.Context, pid string, grant, take []*az.
 		"grant": rewards(grant),
 		"take":  rewards(take),
 	}, opt)
+}
+
+// HeroEdit 是英雄要设定的数值；nil 的字段不改。
+type HeroEdit struct {
+	Level      *int32 `json:"level,omitempty"`
+	Rank       *int32 `json:"rank,omitempty"`
+	Grade      *int32 `json:"grade,omitempty"`
+	FavorLevel *int32 `json:"favorLevel,omitempty"`
+}
+
+// SetHero 设定一个英雄（seq 为序号）的等级、突破、星级、好感；取值须在游戏配置范围内。
+func (g *Client) SetHero(ctx context.Context, pid string, seq int32, e HeroEdit, opt mgp.OperationOptions) (*az.OperationData, error) {
+	c, err := operate[az.HeroChange](ctx, g.c, playerPath(pid)+"/heroes/"+strconv.Itoa(int(seq)), e, opt)
+	if err != nil {
+		return nil, err
+	}
+	return &az.OperationData{Hero: c}, nil
+}
+
+// PetEdit 是奇波要设定的数值；nil 的字段不改，星魂的阶段与节点一起给出。
+type PetEdit struct {
+	Level     *int32  `json:"level,omitempty"`
+	StarStage *int32  `json:"starStage,omitempty"`
+	StarNode  *int32  `json:"starNode,omitempty"`
+	Locked    *bool   `json:"locked,omitempty"`
+	Name      *string `json:"name,omitempty"`
+}
+
+// SetPet 设定一只奇波（guid）的等级、星魂、锁定、名字。
+func (g *Client) SetPet(ctx context.Context, pid string, guid int32, e PetEdit, opt mgp.OperationOptions) (*az.OperationData, error) {
+	c, err := operate[az.PetChange](ctx, g.c, playerPath(pid)+"/pets/"+strconv.Itoa(int(guid)), e, opt)
+	if err != nil {
+		return nil, err
+	}
+	return &az.OperationData{Pet: c}, nil
 }
 
 func mailBody(m *az.MailContent) map[string]any {
@@ -311,7 +353,7 @@ func (g *Client) SendMail(ctx context.Context, target string, pids []string, m *
 	return operate[az.SendMailResult](ctx, g.c, "/mails", body, opt)
 }
 
-// RevokeMail 撤回全服邮件。
+// RevokeMail 撤回邮件补偿（全服或指定玩家）。
 func (g *Client) RevokeMail(ctx context.Context, id string, opt mgp.OperationOptions) (*az.GmMail, error) {
 	return operate[az.GmMail](ctx, g.c, "/mails/"+url.PathEscape(id)+"/revoke", map[string]any{}, opt)
 }

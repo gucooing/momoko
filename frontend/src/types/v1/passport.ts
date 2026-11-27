@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import type { GameReward, GameServerBrief } from "./game_common";
+import type { SiteTheme } from "./theme";
 
 export const protobufPackage = "v1";
 
@@ -32,6 +33,11 @@ export interface GetPassportConfigResponse {
   deletionGraceDays: number;
   /** 游戏素材地址；空表示没设置 */
   gameAssetUrl: string;
+  /**
+   * 全站默认外观主题（管理后台「设为全站默认」，与管理后台登录页同一份）；没设置过为空。
+   * 主题引用的背景图 / 字体由通行证 server 的 /api/v1/theme-asset/<id> 提供
+   */
+  siteTheme: SiteTheme | undefined;
 }
 
 export interface SendPassportEmailCodeRequest {
@@ -102,7 +108,7 @@ export interface PassportResetPasswordRequest {
 }
 
 export interface StartPassportClientAuthRequest {
-  /** 客户端：launcher（Momoko 启动器）/ android（学马仕 Android） */
+  /** 客户端：launcher（Momoko 启动器）/ android（学马仕 Android）/ azurpromilia（蓝色星原游戏内登录，浏览器单点授权，授权页不核对 user_code） */
   client: string;
   /** 客户端首次运行生成并持久保存的随机 ID（同一设备只保留一个会话） */
   deviceId: string;
@@ -143,7 +149,7 @@ export interface PassportClientAuthCodeRequest {
 export interface PassportClientAuth {
   /** launcher / android */
   client: string;
-  /** 客户端显示名（Momoko 启动器 / 学马仕 Android） */
+  /** 客户端显示名（Momoko 启动器 / 学马仕 Android / 蓝色星原） */
   clientName: string;
   /** 设备名 */
   device: string;
@@ -553,7 +559,10 @@ export interface RedeemPassportGiftCodeResponse {
   executionId: string;
 }
 
-/** 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。 */
+/**
+ * 游戏客户端连接这台服务器用的地址：都是不带路径的 HTTP(S) origin，由管理员在服务器连接设置里填写。
+ * 只带这款游戏的客户端用到的地址，其余为空（学マス：三项，资源服务器可为空；蓝色星原：只有 SDK）。
+ */
 export interface PassportLaunchEndpoints {
   /** 游戏服务端 SDK */
   sdk: string;

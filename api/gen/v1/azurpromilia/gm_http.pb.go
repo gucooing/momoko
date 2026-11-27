@@ -46,6 +46,8 @@ const OperationAzurPromiliaGMServiceResetPassword = "/v1.azurpromilia.AzurPromil
 const OperationAzurPromiliaGMServiceRevokeMail = "/v1.azurpromilia.AzurPromiliaGMService/RevokeMail"
 const OperationAzurPromiliaGMServiceSendMail = "/v1.azurpromilia.AzurPromiliaGMService/SendMail"
 const OperationAzurPromiliaGMServiceSetCodeBatchDisabled = "/v1.azurpromilia.AzurPromiliaGMService/SetCodeBatchDisabled"
+const OperationAzurPromiliaGMServiceSetPlayerHero = "/v1.azurpromilia.AzurPromiliaGMService/SetPlayerHero"
+const OperationAzurPromiliaGMServiceSetPlayerPet = "/v1.azurpromilia.AzurPromiliaGMService/SetPlayerPet"
 const OperationAzurPromiliaGMServiceUnbanPlayers = "/v1.azurpromilia.AzurPromiliaGMService/UnbanPlayers"
 
 type AzurPromiliaGMServiceHTTPServer interface {
@@ -69,11 +71,11 @@ type AzurPromiliaGMServiceHTTPServer interface {
 	// ListMails ---------------- 邮件补偿 ----------------
 	ListMails(context.Context, *ListPageRequest) (*GmMailPage, error)
 	ListPlayerCurrencies(context.Context, *PlayerRequest) (*ItemPage, error)
-	ListPlayerHeroes(context.Context, *PageRequest) (*HeroPage, error)
-	ListPlayerItems(context.Context, *ListItemsRequest) (*ItemPage, error)
+	ListPlayerHeroes(context.Context, *ListByIDsRequest) (*HeroPage, error)
+	ListPlayerItems(context.Context, *ListByIDsRequest) (*ItemPage, error)
 	ListPlayerLogins(context.Context, *PageRequest) (*LoginPage, error)
 	ListPlayerMails(context.Context, *PageRequest) (*MailPage, error)
-	ListPlayerPets(context.Context, *PageRequest) (*PetPage, error)
+	ListPlayerPets(context.Context, *ListByIDsRequest) (*PetPage, error)
 	// ListPlayers ---------------- 玩家 ----------------
 	ListPlayers(context.Context, *ListPlayersRequest) (*ListPlayersResponse, error)
 	MailPlayers(context.Context, *MailPlayersRequest) (*OperationResponse, error)
@@ -82,6 +84,10 @@ type AzurPromiliaGMServiceHTTPServer interface {
 	RevokeMail(context.Context, *IDOperationRequest) (*MailResponse, error)
 	SendMail(context.Context, *SendMailRequest) (*SendMailResponse, error)
 	SetCodeBatchDisabled(context.Context, *SetCodeBatchDisabledRequest) (*CodeBatchResponse, error)
+	// SetPlayerHero 设定一个英雄（seq 为序号）的等级、突破、星级、好感，只改给出的字段（操作 hero.set，写 GM 记录）
+	SetPlayerHero(context.Context, *SetHeroRequest) (*OperationResponse, error)
+	// SetPlayerPet 设定一只奇波（guid）的等级、星魂、锁定、名字，只改给出的字段（操作 pet.set，写 GM 记录）
+	SetPlayerPet(context.Context, *SetPetRequest) (*OperationResponse, error)
 	UnbanPlayers(context.Context, *PlayersOperationRequest) (*OperationResponse, error)
 }
 
@@ -99,11 +105,13 @@ func RegisterAzurPromiliaGMServiceHTTPServer(s *http.Server, srv AzurPromiliaGMS
 	r.GET("/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets", _AzurPromiliaGMService_ListPlayerPets0_HTTP_Handler(srv))
 	r.GET("/api/v1/azurpromilia/gm/{server_id}/players/{pid}/mails", _AzurPromiliaGMService_ListPlayerMails0_HTTP_Handler(srv))
 	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/items/adjust", _AzurPromiliaGMService_AdjustItems0_HTTP_Handler(srv))
+	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes/{seq}", _AzurPromiliaGMService_SetPlayerHero0_HTTP_Handler(srv))
+	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets/{guid}", _AzurPromiliaGMService_SetPlayerPet0_HTTP_Handler(srv))
 	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/mail", _AzurPromiliaGMService_MailPlayers0_HTTP_Handler(srv))
 	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/kick", _AzurPromiliaGMService_KickPlayers0_HTTP_Handler(srv))
 	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/ban", _AzurPromiliaGMService_BanPlayers0_HTTP_Handler(srv))
 	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/unban", _AzurPromiliaGMService_UnbanPlayers0_HTTP_Handler(srv))
-	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/password", _AzurPromiliaGMService_ResetPassword0_HTTP_Handler(srv))
+	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/password", _AzurPromiliaGMService_ResetPassword1_HTTP_Handler(srv))
 	r.POST("/api/v1/azurpromilia/gm/{server_id}/players/rename", _AzurPromiliaGMService_RenamePlayer0_HTTP_Handler(srv))
 	r.GET("/api/v1/azurpromilia/gm/{server_id}/mails", _AzurPromiliaGMService_ListMails0_HTTP_Handler(srv))
 	r.GET("/api/v1/azurpromilia/gm/{server_id}/mails/{id}", _AzurPromiliaGMService_GetMail0_HTTP_Handler(srv))
@@ -251,7 +259,7 @@ func _AzurPromiliaGMService_ListPlayerLogins0_HTTP_Handler(srv AzurPromiliaGMSer
 
 func _AzurPromiliaGMService_ListPlayerItems0_HTTP_Handler(srv AzurPromiliaGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListItemsRequest
+		var in ListByIDsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -260,7 +268,7 @@ func _AzurPromiliaGMService_ListPlayerItems0_HTTP_Handler(srv AzurPromiliaGMServ
 		}
 		http.SetOperation(ctx, OperationAzurPromiliaGMServiceListPlayerItems)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListPlayerItems(ctx, req.(*ListItemsRequest))
+			return srv.ListPlayerItems(ctx, req.(*ListByIDsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -295,7 +303,7 @@ func _AzurPromiliaGMService_ListPlayerCurrencies0_HTTP_Handler(srv AzurPromiliaG
 
 func _AzurPromiliaGMService_ListPlayerHeroes0_HTTP_Handler(srv AzurPromiliaGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in PageRequest
+		var in ListByIDsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -304,7 +312,7 @@ func _AzurPromiliaGMService_ListPlayerHeroes0_HTTP_Handler(srv AzurPromiliaGMSer
 		}
 		http.SetOperation(ctx, OperationAzurPromiliaGMServiceListPlayerHeroes)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListPlayerHeroes(ctx, req.(*PageRequest))
+			return srv.ListPlayerHeroes(ctx, req.(*ListByIDsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -317,7 +325,7 @@ func _AzurPromiliaGMService_ListPlayerHeroes0_HTTP_Handler(srv AzurPromiliaGMSer
 
 func _AzurPromiliaGMService_ListPlayerPets0_HTTP_Handler(srv AzurPromiliaGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in PageRequest
+		var in ListByIDsRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -326,7 +334,7 @@ func _AzurPromiliaGMService_ListPlayerPets0_HTTP_Handler(srv AzurPromiliaGMServi
 		}
 		http.SetOperation(ctx, OperationAzurPromiliaGMServiceListPlayerPets)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListPlayerPets(ctx, req.(*PageRequest))
+			return srv.ListPlayerPets(ctx, req.(*ListByIDsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -374,6 +382,56 @@ func _AzurPromiliaGMService_AdjustItems0_HTTP_Handler(srv AzurPromiliaGMServiceH
 		http.SetOperation(ctx, OperationAzurPromiliaGMServiceAdjustItems)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
 			return srv.AdjustItems(ctx, req.(*AdjustItemsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*OperationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AzurPromiliaGMService_SetPlayerHero0_HTTP_Handler(srv AzurPromiliaGMServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetHeroRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAzurPromiliaGMServiceSetPlayerHero)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetPlayerHero(ctx, req.(*SetHeroRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*OperationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AzurPromiliaGMService_SetPlayerPet0_HTTP_Handler(srv AzurPromiliaGMServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetPetRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAzurPromiliaGMServiceSetPlayerPet)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetPlayerPet(ctx, req.(*SetPetRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
@@ -484,7 +542,7 @@ func _AzurPromiliaGMService_UnbanPlayers0_HTTP_Handler(srv AzurPromiliaGMService
 	}
 }
 
-func _AzurPromiliaGMService_ResetPassword0_HTTP_Handler(srv AzurPromiliaGMServiceHTTPServer) func(ctx http.Context) error {
+func _AzurPromiliaGMService_ResetPassword1_HTTP_Handler(srv AzurPromiliaGMServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ResetPasswordRequest
 		if err := ctx.Bind(&in); err != nil {
@@ -787,11 +845,11 @@ type AzurPromiliaGMServiceHTTPClient interface {
 	// ListMails ---------------- 邮件补偿 ----------------
 	ListMails(ctx context.Context, req *ListPageRequest, opts ...http.CallOption) (rsp *GmMailPage, err error)
 	ListPlayerCurrencies(ctx context.Context, req *PlayerRequest, opts ...http.CallOption) (rsp *ItemPage, err error)
-	ListPlayerHeroes(ctx context.Context, req *PageRequest, opts ...http.CallOption) (rsp *HeroPage, err error)
-	ListPlayerItems(ctx context.Context, req *ListItemsRequest, opts ...http.CallOption) (rsp *ItemPage, err error)
+	ListPlayerHeroes(ctx context.Context, req *ListByIDsRequest, opts ...http.CallOption) (rsp *HeroPage, err error)
+	ListPlayerItems(ctx context.Context, req *ListByIDsRequest, opts ...http.CallOption) (rsp *ItemPage, err error)
 	ListPlayerLogins(ctx context.Context, req *PageRequest, opts ...http.CallOption) (rsp *LoginPage, err error)
 	ListPlayerMails(ctx context.Context, req *PageRequest, opts ...http.CallOption) (rsp *MailPage, err error)
-	ListPlayerPets(ctx context.Context, req *PageRequest, opts ...http.CallOption) (rsp *PetPage, err error)
+	ListPlayerPets(ctx context.Context, req *ListByIDsRequest, opts ...http.CallOption) (rsp *PetPage, err error)
 	// ListPlayers ---------------- 玩家 ----------------
 	ListPlayers(ctx context.Context, req *ListPlayersRequest, opts ...http.CallOption) (rsp *ListPlayersResponse, err error)
 	MailPlayers(ctx context.Context, req *MailPlayersRequest, opts ...http.CallOption) (rsp *OperationResponse, err error)
@@ -800,6 +858,10 @@ type AzurPromiliaGMServiceHTTPClient interface {
 	RevokeMail(ctx context.Context, req *IDOperationRequest, opts ...http.CallOption) (rsp *MailResponse, err error)
 	SendMail(ctx context.Context, req *SendMailRequest, opts ...http.CallOption) (rsp *SendMailResponse, err error)
 	SetCodeBatchDisabled(ctx context.Context, req *SetCodeBatchDisabledRequest, opts ...http.CallOption) (rsp *CodeBatchResponse, err error)
+	// SetPlayerHero 设定一个英雄（seq 为序号）的等级、突破、星级、好感，只改给出的字段（操作 hero.set，写 GM 记录）
+	SetPlayerHero(ctx context.Context, req *SetHeroRequest, opts ...http.CallOption) (rsp *OperationResponse, err error)
+	// SetPlayerPet 设定一只奇波（guid）的等级、星魂、锁定、名字，只改给出的字段（操作 pet.set，写 GM 记录）
+	SetPlayerPet(ctx context.Context, req *SetPetRequest, opts ...http.CallOption) (rsp *OperationResponse, err error)
 	UnbanPlayers(ctx context.Context, req *PlayersOperationRequest, opts ...http.CallOption) (rsp *OperationResponse, err error)
 }
 
@@ -1011,7 +1073,7 @@ func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerCurrencies(ctx context.C
 	return &out, nil
 }
 
-func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerHeroes(ctx context.Context, in *PageRequest, opts ...http.CallOption) (*HeroPage, error) {
+func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerHeroes(ctx context.Context, in *ListByIDsRequest, opts ...http.CallOption) (*HeroPage, error) {
 	var out HeroPage
 	pattern := "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes"
 	path := binding.EncodeURL(pattern, in, true)
@@ -1024,7 +1086,7 @@ func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerHeroes(ctx context.Conte
 	return &out, nil
 }
 
-func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerItems(ctx context.Context, in *ListItemsRequest, opts ...http.CallOption) (*ItemPage, error) {
+func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerItems(ctx context.Context, in *ListByIDsRequest, opts ...http.CallOption) (*ItemPage, error) {
 	var out ItemPage
 	pattern := "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/items"
 	path := binding.EncodeURL(pattern, in, true)
@@ -1063,7 +1125,7 @@ func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerMails(ctx context.Contex
 	return &out, nil
 }
 
-func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerPets(ctx context.Context, in *PageRequest, opts ...http.CallOption) (*PetPage, error) {
+func (c *AzurPromiliaGMServiceHTTPClientImpl) ListPlayerPets(ctx context.Context, in *ListByIDsRequest, opts ...http.CallOption) (*PetPage, error) {
 	var out PetPage
 	pattern := "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets"
 	path := binding.EncodeURL(pattern, in, true)
@@ -1160,6 +1222,34 @@ func (c *AzurPromiliaGMServiceHTTPClientImpl) SetCodeBatchDisabled(ctx context.C
 	pattern := "/api/v1/azurpromilia/gm/{server_id}/codes/{id}/disabled"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAzurPromiliaGMServiceSetCodeBatchDisabled))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SetPlayerHero 设定一个英雄（seq 为序号）的等级、突破、星级、好感，只改给出的字段（操作 hero.set，写 GM 记录）
+func (c *AzurPromiliaGMServiceHTTPClientImpl) SetPlayerHero(ctx context.Context, in *SetHeroRequest, opts ...http.CallOption) (*OperationResponse, error) {
+	var out OperationResponse
+	pattern := "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes/{seq}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAzurPromiliaGMServiceSetPlayerHero))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SetPlayerPet 设定一只奇波（guid）的等级、星魂、锁定、名字，只改给出的字段（操作 pet.set，写 GM 记录）
+func (c *AzurPromiliaGMServiceHTTPClientImpl) SetPlayerPet(ctx context.Context, in *SetPetRequest, opts ...http.CallOption) (*OperationResponse, error) {
+	var out OperationResponse
+	pattern := "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets/{guid}"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAzurPromiliaGMServiceSetPlayerPet))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

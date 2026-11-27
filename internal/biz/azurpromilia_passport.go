@@ -62,12 +62,12 @@ func (uc *AzurPromiliaPassportUsecase) MyLogins(ctx context.Context, userID stri
 	return result(g.Logins(ctx, pid, req.Cursor, req.Limit))
 }
 
-func (uc *AzurPromiliaPassportUsecase) MyItems(ctx context.Context, userID string, req *az.MyLoginsRequest) (*az.ItemPage, error) {
+func (uc *AzurPromiliaPassportUsecase) MyItems(ctx context.Context, userID string, req *az.MyListRequest) (*az.ItemPage, error) {
 	g, pid, err := uc.mine(ctx, userID, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	return result(g.Items(ctx, pid, nil, req.Cursor, req.Limit))
+	return result(g.Items(ctx, pid, req.Ids, req.Cursor, req.Limit))
 }
 
 func (uc *AzurPromiliaPassportUsecase) MyCurrencies(ctx context.Context, userID, serverID string) (*az.ItemPage, error) {
@@ -78,20 +78,20 @@ func (uc *AzurPromiliaPassportUsecase) MyCurrencies(ctx context.Context, userID,
 	return result(g.Currencies(ctx, pid))
 }
 
-func (uc *AzurPromiliaPassportUsecase) MyHeroes(ctx context.Context, userID string, req *az.MyLoginsRequest) (*az.HeroPage, error) {
+func (uc *AzurPromiliaPassportUsecase) MyHeroes(ctx context.Context, userID string, req *az.MyListRequest) (*az.HeroPage, error) {
 	g, pid, err := uc.mine(ctx, userID, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	return result(g.Heroes(ctx, pid, req.Cursor, req.Limit))
+	return result(g.Heroes(ctx, pid, req.Ids, req.Cursor, req.Limit))
 }
 
-func (uc *AzurPromiliaPassportUsecase) MyPets(ctx context.Context, userID string, req *az.MyLoginsRequest) (*az.PetPage, error) {
+func (uc *AzurPromiliaPassportUsecase) MyPets(ctx context.Context, userID string, req *az.MyListRequest) (*az.PetPage, error) {
 	g, pid, err := uc.mine(ctx, userID, req.ServerId)
 	if err != nil {
 		return nil, err
 	}
-	return result(g.Pets(ctx, pid, req.Cursor, req.Limit))
+	return result(g.Pets(ctx, pid, req.Ids, req.Cursor, req.Limit))
 }
 
 func (uc *AzurPromiliaPassportUsecase) MyMails(ctx context.Context, userID string, req *az.MyLoginsRequest) (*az.MailPage, error) {

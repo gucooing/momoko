@@ -62,14 +62,23 @@ type launchTicketPayload struct {
 // clientLaunchSupported 服务器的游戏支持客户端启动且接入了 MGP。
 func clientLaunchSupported(s *gen.GameServer) bool {
 	a, ok := GameAdapterByID(s.Game)
-	return ok && a.ClientLaunch && MGPConfigured(s)
+	return ok && a.ClientLaunch() && MGPConfigured(s)
 }
 
-// launchable 服务器可以用通行证启动：游戏支持客户端启动、接入了 MGP、生成了客户端应用凭据、填写了 SDK 与游戏服务端地址。
-// 资源服务器地址可以不填，客户端这时使用官方资源。不满足的服务器对客户端来说不存在。
+// launchable 服务器可以用通行证启动：游戏支持客户端启动、接入了 MGP、生成了客户端应用凭据、
+// 填写了这款游戏的客户端必需的地址（学マス：SDK 与游戏服务端，资源服务器可以不填；蓝色星原：SDK）。
+// 不满足的服务器对客户端来说不存在。
 func launchable(s *gen.GameServer) bool {
-	return clientLaunchSupported(s) && derefString(s.ClientAppID) != "" && s.ClientAppSecret != "" &&
-		s.ClientSdkURL != "" && s.ClientGameURL != ""
+	if !clientLaunchSupported(s) || derefString(s.ClientAppID) == "" || s.ClientAppSecret == "" {
+		return false
+	}
+	a, _ := GameAdapterByID(s.Game)
+	for _, e := range a.ClientEndpoints {
+		if e.Required && clientURL(s, e.Key) == "" {
+			return false
+		}
+	}
+	return true
 }
 
 // launchServer 客户端应用 ID 对应的可启动服务器；ID 不存在或服务器不可启动时为 ErrPassportAppNotFound。
@@ -108,9 +117,9 @@ func (uc *PassportUsecase) launchApp(ctx context.Context, userID string, s *gen.
 		AppId:  derefString(s.ClientAppID),
 		Server: uc.Servers().Brief(ctx, s),
 		Endpoints: &v1.PassportLaunchEndpoints{
-			Sdk:      s.ClientSdkURL,
-			Game:     s.ClientGameURL,
-			Resource: s.ClientResourceURL,
+			Sdk:      clientURL(s, ClientEndpointSDK),
+			Game:     clientURL(s, ClientEndpointGame),
+			Resource: clientURL(s, ClientEndpointResource),
 		},
 		Icon:       s.AppIcon,
 		Background: s.AppBackground,

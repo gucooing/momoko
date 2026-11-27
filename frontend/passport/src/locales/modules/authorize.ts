@@ -1,4 +1,4 @@
-// 客户端（启动器、APK）的浏览器授权页。
+// 客户端的浏览器授权页：学マス 的启动器与 APK 核对代码；蓝色星原游戏内登录是单点授权（sso），不显示代码。
 export default {
   'zh-CN': {
     authorize: {
@@ -26,6 +26,11 @@ export default {
       clients: {
         launcher: 'Momoko 启动器',
         android: '学马仕 Android',
+        azurpromilia: '蓝色星原',
+      },
+      sso: {
+        title: '登录{client}',
+        desc: '{client}正在请求用你的通行证登录游戏。',
       },
     },
   },
@@ -55,6 +60,11 @@ export default {
       clients: {
         launcher: 'Momoko 啟動器',
         android: '學馬仕 Android',
+        azurpromilia: '藍色星原',
+      },
+      sso: {
+        title: '登入{client}',
+        desc: '{client}正在要求以你的通行證登入遊戲。',
       },
     },
   },
@@ -84,6 +94,11 @@ export default {
       clients: {
         launcher: 'Momoko Launcher',
         android: 'Gakumas Android',
+        azurpromilia: 'Azur Promilia',
+      },
+      sso: {
+        title: 'Sign in to {client}',
+        desc: '{client} is asking to sign in to the game with your passport.',
       },
     },
   },

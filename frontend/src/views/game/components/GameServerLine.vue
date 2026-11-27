@@ -1,8 +1,9 @@
-<!-- 一台游戏服务器的单行摘要：应用图标（上传了才有，状态点叠在角上）、名称、游戏、在线人数与 MGP 状态（选择器与列表共用）。 -->
+<!-- 一台游戏服务器的单行摘要：应用图标（上传的，没有时用游戏图标；都没有时只有状态点，有图标时状态点叠在角上）、名称、游戏、
+     在线人数与 MGP 状态（选择器与列表共用）。 -->
 <template>
   <span class="gsl">
-    <span v-if="server.appIcon" class="gsl__icon" aria-hidden="true">
-      <img :src="server.appIcon" alt="" loading="lazy" />
+    <span v-if="icon" class="gsl__icon" aria-hidden="true">
+      <img :src="icon" alt="" loading="lazy" />
       <span class="gsl__dot" :class="`is-${server.state}`" />
     </span>
     <span v-else class="gsl__dot" :class="`is-${server.state}`" aria-hidden="true" />
@@ -19,10 +20,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { gameIcon } from '@/games'
 import type { GameServerBrief } from '@/types/v1/game_common'
 
-defineProps<{ server: GameServerBrief }>()
+const props = defineProps<{ server: GameServerBrief }>()
+const icon = computed(() => props.server.appIcon || gameIcon(props.server.game))
 const { t, te } = useI18n()
 </script>
 

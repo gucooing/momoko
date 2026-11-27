@@ -124,7 +124,7 @@ import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch 
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import '@/games'
-import { gameAsset, gameCover } from '@/games'
+import { gameAsset, gameCover, gameIcon } from '@/games'
 import { controlGameServer, getGameServer, listGameAdapters, refreshGameServer, updateGameServerHosting } from '@/api/gameServer'
 import type { GameServerAction } from '@/api/gameServer'
 import { getRequestErrorMessage } from '@/utils/request'
@@ -186,9 +186,9 @@ const gameName = computed(() => {
   return info.value?.brief?.gameName || (te(key) ? t(key) : t('game.unnamed'))
 })
 const initial = computed(() => (gameName.value || '?').charAt(0).toUpperCase())
-// 应用图标与应用背景（接入设置里上传，与启动器同步使用）优先；没有背景时用封面，没设封面时用游戏的默认封面
-// （和列表卡片一样按服务器 ID 挑）
-const appIcon = computed(() => info.value?.appIcon || '')
+// 应用图标与应用背景（接入设置里上传，与启动器同步使用）优先；没有图标时用游戏图标，没有背景时用封面，
+// 没设封面时用游戏的默认封面（和列表卡片一样按服务器 ID 挑）
+const appIcon = computed(() => info.value?.appIcon || gameIcon(info.value?.brief?.game || ''))
 const appBackground = computed(() => info.value?.appBackground || '')
 const coverUrl = computed(() => {
   const b = info.value?.brief

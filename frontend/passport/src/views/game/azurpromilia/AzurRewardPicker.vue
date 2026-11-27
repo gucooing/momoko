@@ -4,6 +4,7 @@
     <ul v-if="modelValue.length" class="azrp__list">
       <li v-for="(r, i) in modelValue" :key="`${r.type}:${r.id}:${i}`" class="azrp__item">
         <span class="pp-hint">{{ rewardTypeName(r.type) }}</span>
+        <GameImage :src="azurpromilia.rewardImage(r.type, r.id)" alt="" class="azrp__icon" />
         <span class="azrp__name">{{ itemName(r.type, r.id) }}</span>
         <input class="azrp__num pp-num" type="number" min="1" :value="r.num" :aria-label="t('game.azur.form.num')" @input="setNum(i, ($event.target as HTMLInputElement).value)" />
         <PButton size="sm" variant="ghost" @click="remove(i)">{{ t('game.azur.form.remove') }}</PButton>
@@ -19,6 +20,7 @@
         <ul v-if="open && hits.length" class="azrp__hits">
           <li v-for="h in hits" :key="h.id">
             <button type="button" @mousedown.prevent="add(h.id)">
+              <GameImage :src="azurpromilia.rewardImage(type, h.id)" alt="" class="azrp__icon" />
               <span>{{ h.name }}</span>
               <span class="pp-hint pp-num">{{ h.id }}</span>
             </button>
@@ -33,6 +35,8 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PButton from '@passport/components/PButton.vue'
+import GameImage from '@/components/game/GameImage.vue'
+import { azurpromilia } from '@/games'
 import { REWARD_KINDS, typeOfKind, type AzurReward } from '@/games/azurpromilia/names'
 import { itemName, rewardTypeName, searchItems } from './names'
 
@@ -160,7 +164,7 @@ const remove = (i: number) => {
 .azrp__hits button {
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 8px;
   padding: 6px 8px;
   border: 0;
@@ -171,7 +175,16 @@ const remove = (i: number) => {
   text-align: left;
   cursor: pointer;
 }
+.azrp__hits button > .pp-num {
+  margin-left: auto;
+}
 .azrp__hits button:hover {
   background: var(--m-s2);
+}
+.azrp__icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 </style>

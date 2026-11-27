@@ -482,32 +482,32 @@ func (x *GetPlayerResponse) GetGmExecutions() int32 {
 	return 0
 }
 
-type ListItemsRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
-	Pid      string                 `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
-	// 只取这些道具 ID
-	Ids           []int32 `protobuf:"varint,3,rep,packed,name=ids,proto3" json:"ids,omitempty"`
-	Cursor        string  `protobuf:"bytes,4,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	Limit         int32   `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
+// 按 ID 筛选的玩家数据列表（道具、英雄、奇波）：ids 不为空时只取这些道具 / 英雄 / 奇波 ID。
+type ListByIDsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
+	Pid           string                 `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
+	Ids           []int32                `protobuf:"varint,3,rep,packed,name=ids,proto3" json:"ids,omitempty"`
+	Cursor        string                 `protobuf:"bytes,4,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	Limit         int32                  `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListItemsRequest) Reset() {
-	*x = ListItemsRequest{}
+func (x *ListByIDsRequest) Reset() {
+	*x = ListByIDsRequest{}
 	mi := &file_v1_azurpromilia_gm_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListItemsRequest) String() string {
+func (x *ListByIDsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListItemsRequest) ProtoMessage() {}
+func (*ListByIDsRequest) ProtoMessage() {}
 
-func (x *ListItemsRequest) ProtoReflect() protoreflect.Message {
+func (x *ListByIDsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_azurpromilia_gm_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -519,40 +519,40 @@ func (x *ListItemsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListItemsRequest.ProtoReflect.Descriptor instead.
-func (*ListItemsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListByIDsRequest.ProtoReflect.Descriptor instead.
+func (*ListByIDsRequest) Descriptor() ([]byte, []int) {
 	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *ListItemsRequest) GetServerId() string {
+func (x *ListByIDsRequest) GetServerId() string {
 	if x != nil {
 		return x.ServerId
 	}
 	return ""
 }
 
-func (x *ListItemsRequest) GetPid() string {
+func (x *ListByIDsRequest) GetPid() string {
 	if x != nil {
 		return x.Pid
 	}
 	return ""
 }
 
-func (x *ListItemsRequest) GetIds() []int32 {
+func (x *ListByIDsRequest) GetIds() []int32 {
 	if x != nil {
 		return x.Ids
 	}
 	return nil
 }
 
-func (x *ListItemsRequest) GetCursor() string {
+func (x *ListByIDsRequest) GetCursor() string {
 	if x != nil {
 		return x.Cursor
 	}
 	return ""
 }
 
-func (x *ListItemsRequest) GetLimit() int32 {
+func (x *ListByIDsRequest) GetLimit() int32 {
 	if x != nil {
 		return x.Limit
 	}
@@ -868,6 +868,217 @@ func (x *PlayersOperationRequest) GetDryRun() bool {
 	return false
 }
 
+type SetHeroRequest struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
+	Pid      string                 `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
+	Seq      int32                  `protobuf:"varint,3,opt,name=seq,proto3" json:"seq,omitempty"`
+	Level    *int32                 `protobuf:"varint,4,opt,name=level,proto3,oneof" json:"level,omitempty"`
+	// 突破
+	Rank *int32 `protobuf:"varint,5,opt,name=rank,proto3,oneof" json:"rank,omitempty"`
+	// 星级
+	Grade         *int32 `protobuf:"varint,6,opt,name=grade,proto3,oneof" json:"grade,omitempty"`
+	FavorLevel    *int32 `protobuf:"varint,7,opt,name=favor_level,json=favorLevel,proto3,oneof" json:"favor_level,omitempty"`
+	DryRun        bool   `protobuf:"varint,8,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetHeroRequest) Reset() {
+	*x = SetHeroRequest{}
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetHeroRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetHeroRequest) ProtoMessage() {}
+
+func (x *SetHeroRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetHeroRequest.ProtoReflect.Descriptor instead.
+func (*SetHeroRequest) Descriptor() ([]byte, []int) {
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *SetHeroRequest) GetServerId() string {
+	if x != nil {
+		return x.ServerId
+	}
+	return ""
+}
+
+func (x *SetHeroRequest) GetPid() string {
+	if x != nil {
+		return x.Pid
+	}
+	return ""
+}
+
+func (x *SetHeroRequest) GetSeq() int32 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *SetHeroRequest) GetLevel() int32 {
+	if x != nil && x.Level != nil {
+		return *x.Level
+	}
+	return 0
+}
+
+func (x *SetHeroRequest) GetRank() int32 {
+	if x != nil && x.Rank != nil {
+		return *x.Rank
+	}
+	return 0
+}
+
+func (x *SetHeroRequest) GetGrade() int32 {
+	if x != nil && x.Grade != nil {
+		return *x.Grade
+	}
+	return 0
+}
+
+func (x *SetHeroRequest) GetFavorLevel() int32 {
+	if x != nil && x.FavorLevel != nil {
+		return *x.FavorLevel
+	}
+	return 0
+}
+
+func (x *SetHeroRequest) GetDryRun() bool {
+	if x != nil {
+		return x.DryRun
+	}
+	return false
+}
+
+type SetPetRequest struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	ServerId string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
+	Pid      string                 `protobuf:"bytes,2,opt,name=pid,proto3" json:"pid,omitempty"`
+	Guid     int32                  `protobuf:"varint,3,opt,name=guid,proto3" json:"guid,omitempty"`
+	Level    *int32                 `protobuf:"varint,4,opt,name=level,proto3,oneof" json:"level,omitempty"`
+	// 星魂阶段与节点：一起给出
+	StarStage     *int32  `protobuf:"varint,5,opt,name=star_stage,json=starStage,proto3,oneof" json:"star_stage,omitempty"`
+	StarNode      *int32  `protobuf:"varint,6,opt,name=star_node,json=starNode,proto3,oneof" json:"star_node,omitempty"`
+	Locked        *bool   `protobuf:"varint,7,opt,name=locked,proto3,oneof" json:"locked,omitempty"`
+	Name          *string `protobuf:"bytes,8,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	DryRun        bool    `protobuf:"varint,9,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetPetRequest) Reset() {
+	*x = SetPetRequest{}
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetPetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetPetRequest) ProtoMessage() {}
+
+func (x *SetPetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetPetRequest.ProtoReflect.Descriptor instead.
+func (*SetPetRequest) Descriptor() ([]byte, []int) {
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SetPetRequest) GetServerId() string {
+	if x != nil {
+		return x.ServerId
+	}
+	return ""
+}
+
+func (x *SetPetRequest) GetPid() string {
+	if x != nil {
+		return x.Pid
+	}
+	return ""
+}
+
+func (x *SetPetRequest) GetGuid() int32 {
+	if x != nil {
+		return x.Guid
+	}
+	return 0
+}
+
+func (x *SetPetRequest) GetLevel() int32 {
+	if x != nil && x.Level != nil {
+		return *x.Level
+	}
+	return 0
+}
+
+func (x *SetPetRequest) GetStarStage() int32 {
+	if x != nil && x.StarStage != nil {
+		return *x.StarStage
+	}
+	return 0
+}
+
+func (x *SetPetRequest) GetStarNode() int32 {
+	if x != nil && x.StarNode != nil {
+		return *x.StarNode
+	}
+	return 0
+}
+
+func (x *SetPetRequest) GetLocked() bool {
+	if x != nil && x.Locked != nil {
+		return *x.Locked
+	}
+	return false
+}
+
+func (x *SetPetRequest) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *SetPetRequest) GetDryRun() bool {
+	if x != nil {
+		return x.DryRun
+	}
+	return false
+}
+
 type AdjustItemsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
@@ -881,7 +1092,7 @@ type AdjustItemsRequest struct {
 
 func (x *AdjustItemsRequest) Reset() {
 	*x = AdjustItemsRequest{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[13]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -893,7 +1104,7 @@ func (x *AdjustItemsRequest) String() string {
 func (*AdjustItemsRequest) ProtoMessage() {}
 
 func (x *AdjustItemsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[13]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -906,7 +1117,7 @@ func (x *AdjustItemsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdjustItemsRequest.ProtoReflect.Descriptor instead.
 func (*AdjustItemsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{13}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *AdjustItemsRequest) GetServerId() string {
@@ -958,7 +1169,7 @@ type MailContent struct {
 
 func (x *MailContent) Reset() {
 	*x = MailContent{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[14]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -970,7 +1181,7 @@ func (x *MailContent) String() string {
 func (*MailContent) ProtoMessage() {}
 
 func (x *MailContent) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[14]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -983,7 +1194,7 @@ func (x *MailContent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MailContent.ProtoReflect.Descriptor instead.
 func (*MailContent) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{14}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *MailContent) GetSender() string {
@@ -1033,7 +1244,7 @@ type MailPlayersRequest struct {
 
 func (x *MailPlayersRequest) Reset() {
 	*x = MailPlayersRequest{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[15]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1045,7 +1256,7 @@ func (x *MailPlayersRequest) String() string {
 func (*MailPlayersRequest) ProtoMessage() {}
 
 func (x *MailPlayersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[15]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1058,7 +1269,7 @@ func (x *MailPlayersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MailPlayersRequest.ProtoReflect.Descriptor instead.
 func (*MailPlayersRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{15}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *MailPlayersRequest) GetServerId() string {
@@ -1104,7 +1315,7 @@ type BanPlayersRequest struct {
 
 func (x *BanPlayersRequest) Reset() {
 	*x = BanPlayersRequest{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[16]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1116,7 +1327,7 @@ func (x *BanPlayersRequest) String() string {
 func (*BanPlayersRequest) ProtoMessage() {}
 
 func (x *BanPlayersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[16]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1129,7 +1340,7 @@ func (x *BanPlayersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanPlayersRequest.ProtoReflect.Descriptor instead.
 func (*BanPlayersRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{16}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *BanPlayersRequest) GetServerId() string {
@@ -1179,7 +1390,7 @@ type ResetPasswordRequest struct {
 
 func (x *ResetPasswordRequest) Reset() {
 	*x = ResetPasswordRequest{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[17]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1191,7 +1402,7 @@ func (x *ResetPasswordRequest) String() string {
 func (*ResetPasswordRequest) ProtoMessage() {}
 
 func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[17]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1204,7 +1415,7 @@ func (x *ResetPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetPasswordRequest.ProtoReflect.Descriptor instead.
 func (*ResetPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{17}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ResetPasswordRequest) GetServerId() string {
@@ -1248,7 +1459,7 @@ type RenamePlayerRequest struct {
 
 func (x *RenamePlayerRequest) Reset() {
 	*x = RenamePlayerRequest{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[18]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1260,7 +1471,7 @@ func (x *RenamePlayerRequest) String() string {
 func (*RenamePlayerRequest) ProtoMessage() {}
 
 func (x *RenamePlayerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[18]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1273,7 +1484,7 @@ func (x *RenamePlayerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenamePlayerRequest.ProtoReflect.Descriptor instead.
 func (*RenamePlayerRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{18}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *RenamePlayerRequest) GetServerId() string {
@@ -1318,7 +1529,7 @@ type OperationTarget struct {
 
 func (x *OperationTarget) Reset() {
 	*x = OperationTarget{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[19]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1330,7 +1541,7 @@ func (x *OperationTarget) String() string {
 func (*OperationTarget) ProtoMessage() {}
 
 func (x *OperationTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[19]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1343,7 +1554,7 @@ func (x *OperationTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OperationTarget.ProtoReflect.Descriptor instead.
 func (*OperationTarget) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{19}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *OperationTarget) GetPid() string {
@@ -1391,7 +1602,7 @@ type OperationResult struct {
 
 func (x *OperationResult) Reset() {
 	*x = OperationResult{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[20]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1403,7 +1614,7 @@ func (x *OperationResult) String() string {
 func (*OperationResult) ProtoMessage() {}
 
 func (x *OperationResult) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[20]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1416,7 +1627,7 @@ func (x *OperationResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OperationResult.ProtoReflect.Descriptor instead.
 func (*OperationResult) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{20}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *OperationResult) GetTarget() *OperationTarget {
@@ -1444,7 +1655,7 @@ type OperationResponse struct {
 
 func (x *OperationResponse) Reset() {
 	*x = OperationResponse{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[21]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1456,7 +1667,7 @@ func (x *OperationResponse) String() string {
 func (*OperationResponse) ProtoMessage() {}
 
 func (x *OperationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[21]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1469,7 +1680,7 @@ func (x *OperationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OperationResponse.ProtoReflect.Descriptor instead.
 func (*OperationResponse) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{21}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *OperationResponse) GetExecution() *v1.GmExecution {
@@ -1503,7 +1714,7 @@ type SendMailRequest struct {
 
 func (x *SendMailRequest) Reset() {
 	*x = SendMailRequest{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[22]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1515,7 +1726,7 @@ func (x *SendMailRequest) String() string {
 func (*SendMailRequest) ProtoMessage() {}
 
 func (x *SendMailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[22]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1528,7 +1739,7 @@ func (x *SendMailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMailRequest.ProtoReflect.Descriptor instead.
 func (*SendMailRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{22}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SendMailRequest) GetServerId() string {
@@ -1590,7 +1801,7 @@ type SendMailResponse struct {
 
 func (x *SendMailResponse) Reset() {
 	*x = SendMailResponse{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[23]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1602,7 +1813,7 @@ func (x *SendMailResponse) String() string {
 func (*SendMailResponse) ProtoMessage() {}
 
 func (x *SendMailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[23]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1615,7 +1826,7 @@ func (x *SendMailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMailResponse.ProtoReflect.Descriptor instead.
 func (*SendMailResponse) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{23}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SendMailResponse) GetExecution() *v1.GmExecution {
@@ -1642,7 +1853,7 @@ type MailResponse struct {
 
 func (x *MailResponse) Reset() {
 	*x = MailResponse{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[24]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1654,7 +1865,7 @@ func (x *MailResponse) String() string {
 func (*MailResponse) ProtoMessage() {}
 
 func (x *MailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[24]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1667,7 +1878,7 @@ func (x *MailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MailResponse.ProtoReflect.Descriptor instead.
 func (*MailResponse) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{24}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *MailResponse) GetExecution() *v1.GmExecution {
@@ -1704,7 +1915,7 @@ type CreateCodesRequest struct {
 
 func (x *CreateCodesRequest) Reset() {
 	*x = CreateCodesRequest{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[25]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1716,7 +1927,7 @@ func (x *CreateCodesRequest) String() string {
 func (*CreateCodesRequest) ProtoMessage() {}
 
 func (x *CreateCodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[25]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1729,7 +1940,7 @@ func (x *CreateCodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCodesRequest.ProtoReflect.Descriptor instead.
 func (*CreateCodesRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{25}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *CreateCodesRequest) GetServerId() string {
@@ -1812,7 +2023,7 @@ type CreateCodesResponse struct {
 
 func (x *CreateCodesResponse) Reset() {
 	*x = CreateCodesResponse{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[26]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1824,7 +2035,7 @@ func (x *CreateCodesResponse) String() string {
 func (*CreateCodesResponse) ProtoMessage() {}
 
 func (x *CreateCodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[26]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1837,7 +2048,7 @@ func (x *CreateCodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCodesResponse.ProtoReflect.Descriptor instead.
 func (*CreateCodesResponse) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{26}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *CreateCodesResponse) GetExecution() *v1.GmExecution {
@@ -1866,7 +2077,7 @@ type SetCodeBatchDisabledRequest struct {
 
 func (x *SetCodeBatchDisabledRequest) Reset() {
 	*x = SetCodeBatchDisabledRequest{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[27]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1878,7 +2089,7 @@ func (x *SetCodeBatchDisabledRequest) String() string {
 func (*SetCodeBatchDisabledRequest) ProtoMessage() {}
 
 func (x *SetCodeBatchDisabledRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[27]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1891,7 +2102,7 @@ func (x *SetCodeBatchDisabledRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetCodeBatchDisabledRequest.ProtoReflect.Descriptor instead.
 func (*SetCodeBatchDisabledRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{27}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *SetCodeBatchDisabledRequest) GetServerId() string {
@@ -1932,7 +2143,7 @@ type CodeBatchResponse struct {
 
 func (x *CodeBatchResponse) Reset() {
 	*x = CodeBatchResponse{}
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[28]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1944,7 +2155,7 @@ func (x *CodeBatchResponse) String() string {
 func (*CodeBatchResponse) ProtoMessage() {}
 
 func (x *CodeBatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_gm_proto_msgTypes[28]
+	mi := &file_v1_azurpromilia_gm_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1957,7 +2168,7 @@ func (x *CodeBatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CodeBatchResponse.ProtoReflect.Descriptor instead.
 func (*CodeBatchResponse) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{28}
+	return file_v1_azurpromilia_gm_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CodeBatchResponse) GetExecution() *v1.GmExecution {
@@ -2012,7 +2223,7 @@ const file_v1_azurpromilia_gm_proto_rawDesc = "" +
 	"\boverview\x18\x02 \x01(\v2\x19.v1.azurpromilia.OverviewR\boverview\x12$\n" +
 	"\x04link\x18\x03 \x01(\v2\x10.v1.GmPlayerLinkR\x04link\x12#\n" +
 	"\rgm_executions\x18\x04 \x01(\x05R\fgmExecutions\"\x81\x01\n" +
-	"\x10ListItemsRequest\x12\x1b\n" +
+	"\x10ListByIDsRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x10\n" +
 	"\x03pid\x18\x02 \x01(\tR\x03pid\x12\x10\n" +
 	"\x03ids\x18\x03 \x03(\x05R\x03ids\x12\x16\n" +
@@ -2038,7 +2249,38 @@ const file_v1_azurpromilia_gm_proto_rawDesc = "" +
 	"\x17PlayersOperationRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x12\n" +
 	"\x04pids\x18\x02 \x03(\tR\x04pids\x12\x17\n" +
-	"\adry_run\x18\x03 \x01(\bR\x06dryRun\"\xba\x01\n" +
+	"\adry_run\x18\x03 \x01(\bR\x06dryRun\"\x8c\x02\n" +
+	"\x0eSetHeroRequest\x12\x1b\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x10\n" +
+	"\x03pid\x18\x02 \x01(\tR\x03pid\x12\x10\n" +
+	"\x03seq\x18\x03 \x01(\x05R\x03seq\x12\x19\n" +
+	"\x05level\x18\x04 \x01(\x05H\x00R\x05level\x88\x01\x01\x12\x17\n" +
+	"\x04rank\x18\x05 \x01(\x05H\x01R\x04rank\x88\x01\x01\x12\x19\n" +
+	"\x05grade\x18\x06 \x01(\x05H\x02R\x05grade\x88\x01\x01\x12$\n" +
+	"\vfavor_level\x18\a \x01(\x05H\x03R\n" +
+	"favorLevel\x88\x01\x01\x12\x17\n" +
+	"\adry_run\x18\b \x01(\bR\x06dryRunB\b\n" +
+	"\x06_levelB\a\n" +
+	"\x05_rankB\b\n" +
+	"\x06_gradeB\x0e\n" +
+	"\f_favor_level\"\xbd\x02\n" +
+	"\rSetPetRequest\x12\x1b\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x10\n" +
+	"\x03pid\x18\x02 \x01(\tR\x03pid\x12\x12\n" +
+	"\x04guid\x18\x03 \x01(\x05R\x04guid\x12\x19\n" +
+	"\x05level\x18\x04 \x01(\x05H\x00R\x05level\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"star_stage\x18\x05 \x01(\x05H\x01R\tstarStage\x88\x01\x01\x12 \n" +
+	"\tstar_node\x18\x06 \x01(\x05H\x02R\bstarNode\x88\x01\x01\x12\x1b\n" +
+	"\x06locked\x18\a \x01(\bH\x03R\x06locked\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\b \x01(\tH\x04R\x04name\x88\x01\x01\x12\x17\n" +
+	"\adry_run\x18\t \x01(\bR\x06dryRunB\b\n" +
+	"\x06_levelB\r\n" +
+	"\v_star_stageB\f\n" +
+	"\n" +
+	"_star_nodeB\t\n" +
+	"\a_lockedB\a\n" +
+	"\x05_name\"\xba\x01\n" +
 	"\x12AdjustItemsRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x12\n" +
 	"\x04pids\x18\x02 \x03(\tR\x04pids\x12-\n" +
@@ -2120,7 +2362,7 @@ const file_v1_azurpromilia_gm_proto_rawDesc = "" +
 	"\adry_run\x18\x04 \x01(\bR\x06dryRun\"t\n" +
 	"\x11CodeBatchResponse\x12-\n" +
 	"\texecution\x18\x01 \x01(\v2\x0f.v1.GmExecutionR\texecution\x120\n" +
-	"\x05batch\x18\x02 \x01(\v2\x1a.v1.azurpromilia.CodeBatchR\x05batch2\xdf\x1f\n" +
+	"\x05batch\x18\x02 \x01(\v2\x1a.v1.azurpromilia.CodeBatchR\x05batch2\xaa\"\n" +
 	"\x15AzurPromiliaGMService\x12~\n" +
 	"\vGetManifest\x12\x1e.v1.azurpromilia.ServerRequest\x1a\x19.v1.azurpromilia.Manifest\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/azurpromilia/gm/{server_id}/manifest\x12x\n" +
 	"\tGetStatus\x12\x1e.v1.azurpromilia.ServerRequest\x1a\x17.v1.azurpromilia.Status\"2\x82\xd3\xe4\x93\x02,\x12*/api/v1/azurpromilia/gm/{server_id}/status\x12\x89\x01\n" +
@@ -2128,12 +2370,14 @@ const file_v1_azurpromilia_gm_proto_rawDesc = "" +
 	"\vListPlayers\x12#.v1.azurpromilia.ListPlayersRequest\x1a$.v1.azurpromilia.ListPlayersResponse\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/azurpromilia/gm/{server_id}/players\x12\x8a\x01\n" +
 	"\tGetPlayer\x12\x1e.v1.azurpromilia.PlayerRequest\x1a\".v1.azurpromilia.GetPlayerResponse\"9\x82\xd3\xe4\x93\x023\x121/api/v1/azurpromilia/gm/{server_id}/players/{pid}\x12\x8e\x01\n" +
 	"\x10ListPlayerLogins\x12\x1c.v1.azurpromilia.PageRequest\x1a\x1a.v1.azurpromilia.LoginPage\"@\x82\xd3\xe4\x93\x02:\x128/api/v1/azurpromilia/gm/{server_id}/players/{pid}/logins\x12\x90\x01\n" +
-	"\x0fListPlayerItems\x12!.v1.azurpromilia.ListItemsRequest\x1a\x19.v1.azurpromilia.ItemPage\"?\x82\xd3\xe4\x93\x029\x127/api/v1/azurpromilia/gm/{server_id}/players/{pid}/items\x12\x97\x01\n" +
-	"\x14ListPlayerCurrencies\x12\x1e.v1.azurpromilia.PlayerRequest\x1a\x19.v1.azurpromilia.ItemPage\"D\x82\xd3\xe4\x93\x02>\x12</api/v1/azurpromilia/gm/{server_id}/players/{pid}/currencies\x12\x8d\x01\n" +
-	"\x10ListPlayerHeroes\x12\x1c.v1.azurpromilia.PageRequest\x1a\x19.v1.azurpromilia.HeroPage\"@\x82\xd3\xe4\x93\x02:\x128/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes\x12\x88\x01\n" +
-	"\x0eListPlayerPets\x12\x1c.v1.azurpromilia.PageRequest\x1a\x18.v1.azurpromilia.PetPage\">\x82\xd3\xe4\x93\x028\x126/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets\x12\x8b\x01\n" +
+	"\x0fListPlayerItems\x12!.v1.azurpromilia.ListByIDsRequest\x1a\x19.v1.azurpromilia.ItemPage\"?\x82\xd3\xe4\x93\x029\x127/api/v1/azurpromilia/gm/{server_id}/players/{pid}/items\x12\x97\x01\n" +
+	"\x14ListPlayerCurrencies\x12\x1e.v1.azurpromilia.PlayerRequest\x1a\x19.v1.azurpromilia.ItemPage\"D\x82\xd3\xe4\x93\x02>\x12</api/v1/azurpromilia/gm/{server_id}/players/{pid}/currencies\x12\x92\x01\n" +
+	"\x10ListPlayerHeroes\x12!.v1.azurpromilia.ListByIDsRequest\x1a\x19.v1.azurpromilia.HeroPage\"@\x82\xd3\xe4\x93\x02:\x128/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes\x12\x8d\x01\n" +
+	"\x0eListPlayerPets\x12!.v1.azurpromilia.ListByIDsRequest\x1a\x18.v1.azurpromilia.PetPage\">\x82\xd3\xe4\x93\x028\x126/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets\x12\x8b\x01\n" +
 	"\x0fListPlayerMails\x12\x1c.v1.azurpromilia.PageRequest\x1a\x19.v1.azurpromilia.MailPage\"?\x82\xd3\xe4\x93\x029\x127/api/v1/azurpromilia/gm/{server_id}/players/{pid}/mails\x12\x9b\x01\n" +
-	"\vAdjustItems\x12#.v1.azurpromilia.AdjustItemsRequest\x1a\".v1.azurpromilia.OperationResponse\"C\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/azurpromilia/gm/{server_id}/players/items/adjust\x12\x93\x01\n" +
+	"\vAdjustItems\x12#.v1.azurpromilia.AdjustItemsRequest\x1a\".v1.azurpromilia.OperationResponse\"C\x82\xd3\xe4\x93\x02=:\x01*\"8/api/v1/azurpromilia/gm/{server_id}/players/items/adjust\x12\x9f\x01\n" +
+	"\rSetPlayerHero\x12\x1f.v1.azurpromilia.SetHeroRequest\x1a\".v1.azurpromilia.OperationResponse\"I\x82\xd3\xe4\x93\x02C:\x01*\">/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes/{seq}\x12\x9c\x01\n" +
+	"\fSetPlayerPet\x12\x1e.v1.azurpromilia.SetPetRequest\x1a\".v1.azurpromilia.OperationResponse\"H\x82\xd3\xe4\x93\x02B:\x01*\"=/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets/{guid}\x12\x93\x01\n" +
 	"\vMailPlayers\x12#.v1.azurpromilia.MailPlayersRequest\x1a\".v1.azurpromilia.OperationResponse\";\x82\xd3\xe4\x93\x025:\x01*\"0/api/v1/azurpromilia/gm/{server_id}/players/mail\x12\x98\x01\n" +
 	"\vKickPlayers\x12(.v1.azurpromilia.PlayersOperationRequest\x1a\".v1.azurpromilia.OperationResponse\";\x82\xd3\xe4\x93\x025:\x01*\"0/api/v1/azurpromilia/gm/{server_id}/players/kick\x12\x90\x01\n" +
 	"\n" +
@@ -2165,7 +2409,7 @@ func file_v1_azurpromilia_gm_proto_rawDescGZIP() []byte {
 	return file_v1_azurpromilia_gm_proto_rawDescData
 }
 
-var file_v1_azurpromilia_gm_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_v1_azurpromilia_gm_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_v1_azurpromilia_gm_proto_goTypes = []any{
 	(*ServerRequest)(nil),               // 0: v1.azurpromilia.ServerRequest
 	(*DailyStatsRequest)(nil),           // 1: v1.azurpromilia.DailyStatsRequest
@@ -2174,135 +2418,141 @@ var file_v1_azurpromilia_gm_proto_goTypes = []any{
 	(*ListPlayersRequest)(nil),          // 4: v1.azurpromilia.ListPlayersRequest
 	(*ListPlayersResponse)(nil),         // 5: v1.azurpromilia.ListPlayersResponse
 	(*GetPlayerResponse)(nil),           // 6: v1.azurpromilia.GetPlayerResponse
-	(*ListItemsRequest)(nil),            // 7: v1.azurpromilia.ListItemsRequest
+	(*ListByIDsRequest)(nil),            // 7: v1.azurpromilia.ListByIDsRequest
 	(*ListPageRequest)(nil),             // 8: v1.azurpromilia.ListPageRequest
 	(*IDRequest)(nil),                   // 9: v1.azurpromilia.IDRequest
 	(*IDPageRequest)(nil),               // 10: v1.azurpromilia.IDPageRequest
 	(*IDOperationRequest)(nil),          // 11: v1.azurpromilia.IDOperationRequest
 	(*PlayersOperationRequest)(nil),     // 12: v1.azurpromilia.PlayersOperationRequest
-	(*AdjustItemsRequest)(nil),          // 13: v1.azurpromilia.AdjustItemsRequest
-	(*MailContent)(nil),                 // 14: v1.azurpromilia.MailContent
-	(*MailPlayersRequest)(nil),          // 15: v1.azurpromilia.MailPlayersRequest
-	(*BanPlayersRequest)(nil),           // 16: v1.azurpromilia.BanPlayersRequest
-	(*ResetPasswordRequest)(nil),        // 17: v1.azurpromilia.ResetPasswordRequest
-	(*RenamePlayerRequest)(nil),         // 18: v1.azurpromilia.RenamePlayerRequest
-	(*OperationTarget)(nil),             // 19: v1.azurpromilia.OperationTarget
-	(*OperationResult)(nil),             // 20: v1.azurpromilia.OperationResult
-	(*OperationResponse)(nil),           // 21: v1.azurpromilia.OperationResponse
-	(*SendMailRequest)(nil),             // 22: v1.azurpromilia.SendMailRequest
-	(*SendMailResponse)(nil),            // 23: v1.azurpromilia.SendMailResponse
-	(*MailResponse)(nil),                // 24: v1.azurpromilia.MailResponse
-	(*CreateCodesRequest)(nil),          // 25: v1.azurpromilia.CreateCodesRequest
-	(*CreateCodesResponse)(nil),         // 26: v1.azurpromilia.CreateCodesResponse
-	(*SetCodeBatchDisabledRequest)(nil), // 27: v1.azurpromilia.SetCodeBatchDisabledRequest
-	(*CodeBatchResponse)(nil),           // 28: v1.azurpromilia.CodeBatchResponse
-	(*Player)(nil),                      // 29: v1.azurpromilia.Player
-	(*PlayerCounts)(nil),                // 30: v1.azurpromilia.PlayerCounts
-	(*v1.GmPlayerLink)(nil),             // 31: v1.GmPlayerLink
-	(*Overview)(nil),                    // 32: v1.azurpromilia.Overview
-	(*Reward)(nil),                      // 33: v1.azurpromilia.Reward
-	(*OperationData)(nil),               // 34: v1.azurpromilia.OperationData
-	(*v1.GmExecution)(nil),              // 35: v1.GmExecution
-	(*SendMailResult)(nil),              // 36: v1.azurpromilia.SendMailResult
-	(*GmMail)(nil),                      // 37: v1.azurpromilia.GmMail
-	(*CreateCodesResult)(nil),           // 38: v1.azurpromilia.CreateCodesResult
-	(*CodeBatch)(nil),                   // 39: v1.azurpromilia.CodeBatch
-	(*Manifest)(nil),                    // 40: v1.azurpromilia.Manifest
-	(*Status)(nil),                      // 41: v1.azurpromilia.Status
-	(*DailyStats)(nil),                  // 42: v1.azurpromilia.DailyStats
-	(*LoginPage)(nil),                   // 43: v1.azurpromilia.LoginPage
-	(*ItemPage)(nil),                    // 44: v1.azurpromilia.ItemPage
-	(*HeroPage)(nil),                    // 45: v1.azurpromilia.HeroPage
-	(*PetPage)(nil),                     // 46: v1.azurpromilia.PetPage
-	(*MailPage)(nil),                    // 47: v1.azurpromilia.MailPage
-	(*GmMailPage)(nil),                  // 48: v1.azurpromilia.GmMailPage
-	(*CodeBatchPage)(nil),               // 49: v1.azurpromilia.CodeBatchPage
-	(*CodePage)(nil),                    // 50: v1.azurpromilia.CodePage
-	(*RedemptionPage)(nil),              // 51: v1.azurpromilia.RedemptionPage
+	(*SetHeroRequest)(nil),              // 13: v1.azurpromilia.SetHeroRequest
+	(*SetPetRequest)(nil),               // 14: v1.azurpromilia.SetPetRequest
+	(*AdjustItemsRequest)(nil),          // 15: v1.azurpromilia.AdjustItemsRequest
+	(*MailContent)(nil),                 // 16: v1.azurpromilia.MailContent
+	(*MailPlayersRequest)(nil),          // 17: v1.azurpromilia.MailPlayersRequest
+	(*BanPlayersRequest)(nil),           // 18: v1.azurpromilia.BanPlayersRequest
+	(*ResetPasswordRequest)(nil),        // 19: v1.azurpromilia.ResetPasswordRequest
+	(*RenamePlayerRequest)(nil),         // 20: v1.azurpromilia.RenamePlayerRequest
+	(*OperationTarget)(nil),             // 21: v1.azurpromilia.OperationTarget
+	(*OperationResult)(nil),             // 22: v1.azurpromilia.OperationResult
+	(*OperationResponse)(nil),           // 23: v1.azurpromilia.OperationResponse
+	(*SendMailRequest)(nil),             // 24: v1.azurpromilia.SendMailRequest
+	(*SendMailResponse)(nil),            // 25: v1.azurpromilia.SendMailResponse
+	(*MailResponse)(nil),                // 26: v1.azurpromilia.MailResponse
+	(*CreateCodesRequest)(nil),          // 27: v1.azurpromilia.CreateCodesRequest
+	(*CreateCodesResponse)(nil),         // 28: v1.azurpromilia.CreateCodesResponse
+	(*SetCodeBatchDisabledRequest)(nil), // 29: v1.azurpromilia.SetCodeBatchDisabledRequest
+	(*CodeBatchResponse)(nil),           // 30: v1.azurpromilia.CodeBatchResponse
+	(*Player)(nil),                      // 31: v1.azurpromilia.Player
+	(*PlayerCounts)(nil),                // 32: v1.azurpromilia.PlayerCounts
+	(*v1.GmPlayerLink)(nil),             // 33: v1.GmPlayerLink
+	(*Overview)(nil),                    // 34: v1.azurpromilia.Overview
+	(*Reward)(nil),                      // 35: v1.azurpromilia.Reward
+	(*OperationData)(nil),               // 36: v1.azurpromilia.OperationData
+	(*v1.GmExecution)(nil),              // 37: v1.GmExecution
+	(*SendMailResult)(nil),              // 38: v1.azurpromilia.SendMailResult
+	(*GmMail)(nil),                      // 39: v1.azurpromilia.GmMail
+	(*CreateCodesResult)(nil),           // 40: v1.azurpromilia.CreateCodesResult
+	(*CodeBatch)(nil),                   // 41: v1.azurpromilia.CodeBatch
+	(*Manifest)(nil),                    // 42: v1.azurpromilia.Manifest
+	(*Status)(nil),                      // 43: v1.azurpromilia.Status
+	(*DailyStats)(nil),                  // 44: v1.azurpromilia.DailyStats
+	(*LoginPage)(nil),                   // 45: v1.azurpromilia.LoginPage
+	(*ItemPage)(nil),                    // 46: v1.azurpromilia.ItemPage
+	(*HeroPage)(nil),                    // 47: v1.azurpromilia.HeroPage
+	(*PetPage)(nil),                     // 48: v1.azurpromilia.PetPage
+	(*MailPage)(nil),                    // 49: v1.azurpromilia.MailPage
+	(*GmMailPage)(nil),                  // 50: v1.azurpromilia.GmMailPage
+	(*CodeBatchPage)(nil),               // 51: v1.azurpromilia.CodeBatchPage
+	(*CodePage)(nil),                    // 52: v1.azurpromilia.CodePage
+	(*RedemptionPage)(nil),              // 53: v1.azurpromilia.RedemptionPage
 }
 var file_v1_azurpromilia_gm_proto_depIdxs = []int32{
-	29, // 0: v1.azurpromilia.ListPlayersResponse.items:type_name -> v1.azurpromilia.Player
-	30, // 1: v1.azurpromilia.ListPlayersResponse.summary:type_name -> v1.azurpromilia.PlayerCounts
-	31, // 2: v1.azurpromilia.ListPlayersResponse.links:type_name -> v1.GmPlayerLink
-	29, // 3: v1.azurpromilia.GetPlayerResponse.player:type_name -> v1.azurpromilia.Player
-	32, // 4: v1.azurpromilia.GetPlayerResponse.overview:type_name -> v1.azurpromilia.Overview
-	31, // 5: v1.azurpromilia.GetPlayerResponse.link:type_name -> v1.GmPlayerLink
-	33, // 6: v1.azurpromilia.AdjustItemsRequest.grant:type_name -> v1.azurpromilia.Reward
-	33, // 7: v1.azurpromilia.AdjustItemsRequest.take:type_name -> v1.azurpromilia.Reward
-	33, // 8: v1.azurpromilia.MailContent.rewards:type_name -> v1.azurpromilia.Reward
-	14, // 9: v1.azurpromilia.MailPlayersRequest.mail:type_name -> v1.azurpromilia.MailContent
-	19, // 10: v1.azurpromilia.OperationResult.target:type_name -> v1.azurpromilia.OperationTarget
-	34, // 11: v1.azurpromilia.OperationResult.data:type_name -> v1.azurpromilia.OperationData
-	35, // 12: v1.azurpromilia.OperationResponse.execution:type_name -> v1.GmExecution
-	20, // 13: v1.azurpromilia.OperationResponse.results:type_name -> v1.azurpromilia.OperationResult
-	14, // 14: v1.azurpromilia.SendMailRequest.mail:type_name -> v1.azurpromilia.MailContent
-	35, // 15: v1.azurpromilia.SendMailResponse.execution:type_name -> v1.GmExecution
-	36, // 16: v1.azurpromilia.SendMailResponse.result:type_name -> v1.azurpromilia.SendMailResult
-	35, // 17: v1.azurpromilia.MailResponse.execution:type_name -> v1.GmExecution
-	37, // 18: v1.azurpromilia.MailResponse.mail:type_name -> v1.azurpromilia.GmMail
-	14, // 19: v1.azurpromilia.CreateCodesRequest.mail:type_name -> v1.azurpromilia.MailContent
-	35, // 20: v1.azurpromilia.CreateCodesResponse.execution:type_name -> v1.GmExecution
-	38, // 21: v1.azurpromilia.CreateCodesResponse.result:type_name -> v1.azurpromilia.CreateCodesResult
-	35, // 22: v1.azurpromilia.CodeBatchResponse.execution:type_name -> v1.GmExecution
-	39, // 23: v1.azurpromilia.CodeBatchResponse.batch:type_name -> v1.azurpromilia.CodeBatch
+	31, // 0: v1.azurpromilia.ListPlayersResponse.items:type_name -> v1.azurpromilia.Player
+	32, // 1: v1.azurpromilia.ListPlayersResponse.summary:type_name -> v1.azurpromilia.PlayerCounts
+	33, // 2: v1.azurpromilia.ListPlayersResponse.links:type_name -> v1.GmPlayerLink
+	31, // 3: v1.azurpromilia.GetPlayerResponse.player:type_name -> v1.azurpromilia.Player
+	34, // 4: v1.azurpromilia.GetPlayerResponse.overview:type_name -> v1.azurpromilia.Overview
+	33, // 5: v1.azurpromilia.GetPlayerResponse.link:type_name -> v1.GmPlayerLink
+	35, // 6: v1.azurpromilia.AdjustItemsRequest.grant:type_name -> v1.azurpromilia.Reward
+	35, // 7: v1.azurpromilia.AdjustItemsRequest.take:type_name -> v1.azurpromilia.Reward
+	35, // 8: v1.azurpromilia.MailContent.rewards:type_name -> v1.azurpromilia.Reward
+	16, // 9: v1.azurpromilia.MailPlayersRequest.mail:type_name -> v1.azurpromilia.MailContent
+	21, // 10: v1.azurpromilia.OperationResult.target:type_name -> v1.azurpromilia.OperationTarget
+	36, // 11: v1.azurpromilia.OperationResult.data:type_name -> v1.azurpromilia.OperationData
+	37, // 12: v1.azurpromilia.OperationResponse.execution:type_name -> v1.GmExecution
+	22, // 13: v1.azurpromilia.OperationResponse.results:type_name -> v1.azurpromilia.OperationResult
+	16, // 14: v1.azurpromilia.SendMailRequest.mail:type_name -> v1.azurpromilia.MailContent
+	37, // 15: v1.azurpromilia.SendMailResponse.execution:type_name -> v1.GmExecution
+	38, // 16: v1.azurpromilia.SendMailResponse.result:type_name -> v1.azurpromilia.SendMailResult
+	37, // 17: v1.azurpromilia.MailResponse.execution:type_name -> v1.GmExecution
+	39, // 18: v1.azurpromilia.MailResponse.mail:type_name -> v1.azurpromilia.GmMail
+	16, // 19: v1.azurpromilia.CreateCodesRequest.mail:type_name -> v1.azurpromilia.MailContent
+	37, // 20: v1.azurpromilia.CreateCodesResponse.execution:type_name -> v1.GmExecution
+	40, // 21: v1.azurpromilia.CreateCodesResponse.result:type_name -> v1.azurpromilia.CreateCodesResult
+	37, // 22: v1.azurpromilia.CodeBatchResponse.execution:type_name -> v1.GmExecution
+	41, // 23: v1.azurpromilia.CodeBatchResponse.batch:type_name -> v1.azurpromilia.CodeBatch
 	0,  // 24: v1.azurpromilia.AzurPromiliaGMService.GetManifest:input_type -> v1.azurpromilia.ServerRequest
 	0,  // 25: v1.azurpromilia.AzurPromiliaGMService.GetStatus:input_type -> v1.azurpromilia.ServerRequest
 	1,  // 26: v1.azurpromilia.AzurPromiliaGMService.GetDailyStats:input_type -> v1.azurpromilia.DailyStatsRequest
 	4,  // 27: v1.azurpromilia.AzurPromiliaGMService.ListPlayers:input_type -> v1.azurpromilia.ListPlayersRequest
 	2,  // 28: v1.azurpromilia.AzurPromiliaGMService.GetPlayer:input_type -> v1.azurpromilia.PlayerRequest
 	3,  // 29: v1.azurpromilia.AzurPromiliaGMService.ListPlayerLogins:input_type -> v1.azurpromilia.PageRequest
-	7,  // 30: v1.azurpromilia.AzurPromiliaGMService.ListPlayerItems:input_type -> v1.azurpromilia.ListItemsRequest
+	7,  // 30: v1.azurpromilia.AzurPromiliaGMService.ListPlayerItems:input_type -> v1.azurpromilia.ListByIDsRequest
 	2,  // 31: v1.azurpromilia.AzurPromiliaGMService.ListPlayerCurrencies:input_type -> v1.azurpromilia.PlayerRequest
-	3,  // 32: v1.azurpromilia.AzurPromiliaGMService.ListPlayerHeroes:input_type -> v1.azurpromilia.PageRequest
-	3,  // 33: v1.azurpromilia.AzurPromiliaGMService.ListPlayerPets:input_type -> v1.azurpromilia.PageRequest
+	7,  // 32: v1.azurpromilia.AzurPromiliaGMService.ListPlayerHeroes:input_type -> v1.azurpromilia.ListByIDsRequest
+	7,  // 33: v1.azurpromilia.AzurPromiliaGMService.ListPlayerPets:input_type -> v1.azurpromilia.ListByIDsRequest
 	3,  // 34: v1.azurpromilia.AzurPromiliaGMService.ListPlayerMails:input_type -> v1.azurpromilia.PageRequest
-	13, // 35: v1.azurpromilia.AzurPromiliaGMService.AdjustItems:input_type -> v1.azurpromilia.AdjustItemsRequest
-	15, // 36: v1.azurpromilia.AzurPromiliaGMService.MailPlayers:input_type -> v1.azurpromilia.MailPlayersRequest
-	12, // 37: v1.azurpromilia.AzurPromiliaGMService.KickPlayers:input_type -> v1.azurpromilia.PlayersOperationRequest
-	16, // 38: v1.azurpromilia.AzurPromiliaGMService.BanPlayers:input_type -> v1.azurpromilia.BanPlayersRequest
-	12, // 39: v1.azurpromilia.AzurPromiliaGMService.UnbanPlayers:input_type -> v1.azurpromilia.PlayersOperationRequest
-	17, // 40: v1.azurpromilia.AzurPromiliaGMService.ResetPassword:input_type -> v1.azurpromilia.ResetPasswordRequest
-	18, // 41: v1.azurpromilia.AzurPromiliaGMService.RenamePlayer:input_type -> v1.azurpromilia.RenamePlayerRequest
-	8,  // 42: v1.azurpromilia.AzurPromiliaGMService.ListMails:input_type -> v1.azurpromilia.ListPageRequest
-	9,  // 43: v1.azurpromilia.AzurPromiliaGMService.GetMail:input_type -> v1.azurpromilia.IDRequest
-	22, // 44: v1.azurpromilia.AzurPromiliaGMService.SendMail:input_type -> v1.azurpromilia.SendMailRequest
-	11, // 45: v1.azurpromilia.AzurPromiliaGMService.RevokeMail:input_type -> v1.azurpromilia.IDOperationRequest
-	8,  // 46: v1.azurpromilia.AzurPromiliaGMService.ListCodeBatches:input_type -> v1.azurpromilia.ListPageRequest
-	9,  // 47: v1.azurpromilia.AzurPromiliaGMService.GetCodeBatch:input_type -> v1.azurpromilia.IDRequest
-	25, // 48: v1.azurpromilia.AzurPromiliaGMService.CreateCodes:input_type -> v1.azurpromilia.CreateCodesRequest
-	27, // 49: v1.azurpromilia.AzurPromiliaGMService.SetCodeBatchDisabled:input_type -> v1.azurpromilia.SetCodeBatchDisabledRequest
-	10, // 50: v1.azurpromilia.AzurPromiliaGMService.ListBatchCodes:input_type -> v1.azurpromilia.IDPageRequest
-	10, // 51: v1.azurpromilia.AzurPromiliaGMService.ListBatchRedemptions:input_type -> v1.azurpromilia.IDPageRequest
-	40, // 52: v1.azurpromilia.AzurPromiliaGMService.GetManifest:output_type -> v1.azurpromilia.Manifest
-	41, // 53: v1.azurpromilia.AzurPromiliaGMService.GetStatus:output_type -> v1.azurpromilia.Status
-	42, // 54: v1.azurpromilia.AzurPromiliaGMService.GetDailyStats:output_type -> v1.azurpromilia.DailyStats
-	5,  // 55: v1.azurpromilia.AzurPromiliaGMService.ListPlayers:output_type -> v1.azurpromilia.ListPlayersResponse
-	6,  // 56: v1.azurpromilia.AzurPromiliaGMService.GetPlayer:output_type -> v1.azurpromilia.GetPlayerResponse
-	43, // 57: v1.azurpromilia.AzurPromiliaGMService.ListPlayerLogins:output_type -> v1.azurpromilia.LoginPage
-	44, // 58: v1.azurpromilia.AzurPromiliaGMService.ListPlayerItems:output_type -> v1.azurpromilia.ItemPage
-	44, // 59: v1.azurpromilia.AzurPromiliaGMService.ListPlayerCurrencies:output_type -> v1.azurpromilia.ItemPage
-	45, // 60: v1.azurpromilia.AzurPromiliaGMService.ListPlayerHeroes:output_type -> v1.azurpromilia.HeroPage
-	46, // 61: v1.azurpromilia.AzurPromiliaGMService.ListPlayerPets:output_type -> v1.azurpromilia.PetPage
-	47, // 62: v1.azurpromilia.AzurPromiliaGMService.ListPlayerMails:output_type -> v1.azurpromilia.MailPage
-	21, // 63: v1.azurpromilia.AzurPromiliaGMService.AdjustItems:output_type -> v1.azurpromilia.OperationResponse
-	21, // 64: v1.azurpromilia.AzurPromiliaGMService.MailPlayers:output_type -> v1.azurpromilia.OperationResponse
-	21, // 65: v1.azurpromilia.AzurPromiliaGMService.KickPlayers:output_type -> v1.azurpromilia.OperationResponse
-	21, // 66: v1.azurpromilia.AzurPromiliaGMService.BanPlayers:output_type -> v1.azurpromilia.OperationResponse
-	21, // 67: v1.azurpromilia.AzurPromiliaGMService.UnbanPlayers:output_type -> v1.azurpromilia.OperationResponse
-	21, // 68: v1.azurpromilia.AzurPromiliaGMService.ResetPassword:output_type -> v1.azurpromilia.OperationResponse
-	21, // 69: v1.azurpromilia.AzurPromiliaGMService.RenamePlayer:output_type -> v1.azurpromilia.OperationResponse
-	48, // 70: v1.azurpromilia.AzurPromiliaGMService.ListMails:output_type -> v1.azurpromilia.GmMailPage
-	37, // 71: v1.azurpromilia.AzurPromiliaGMService.GetMail:output_type -> v1.azurpromilia.GmMail
-	23, // 72: v1.azurpromilia.AzurPromiliaGMService.SendMail:output_type -> v1.azurpromilia.SendMailResponse
-	24, // 73: v1.azurpromilia.AzurPromiliaGMService.RevokeMail:output_type -> v1.azurpromilia.MailResponse
-	49, // 74: v1.azurpromilia.AzurPromiliaGMService.ListCodeBatches:output_type -> v1.azurpromilia.CodeBatchPage
-	39, // 75: v1.azurpromilia.AzurPromiliaGMService.GetCodeBatch:output_type -> v1.azurpromilia.CodeBatch
-	26, // 76: v1.azurpromilia.AzurPromiliaGMService.CreateCodes:output_type -> v1.azurpromilia.CreateCodesResponse
-	28, // 77: v1.azurpromilia.AzurPromiliaGMService.SetCodeBatchDisabled:output_type -> v1.azurpromilia.CodeBatchResponse
-	50, // 78: v1.azurpromilia.AzurPromiliaGMService.ListBatchCodes:output_type -> v1.azurpromilia.CodePage
-	51, // 79: v1.azurpromilia.AzurPromiliaGMService.ListBatchRedemptions:output_type -> v1.azurpromilia.RedemptionPage
-	52, // [52:80] is the sub-list for method output_type
-	24, // [24:52] is the sub-list for method input_type
+	15, // 35: v1.azurpromilia.AzurPromiliaGMService.AdjustItems:input_type -> v1.azurpromilia.AdjustItemsRequest
+	13, // 36: v1.azurpromilia.AzurPromiliaGMService.SetPlayerHero:input_type -> v1.azurpromilia.SetHeroRequest
+	14, // 37: v1.azurpromilia.AzurPromiliaGMService.SetPlayerPet:input_type -> v1.azurpromilia.SetPetRequest
+	17, // 38: v1.azurpromilia.AzurPromiliaGMService.MailPlayers:input_type -> v1.azurpromilia.MailPlayersRequest
+	12, // 39: v1.azurpromilia.AzurPromiliaGMService.KickPlayers:input_type -> v1.azurpromilia.PlayersOperationRequest
+	18, // 40: v1.azurpromilia.AzurPromiliaGMService.BanPlayers:input_type -> v1.azurpromilia.BanPlayersRequest
+	12, // 41: v1.azurpromilia.AzurPromiliaGMService.UnbanPlayers:input_type -> v1.azurpromilia.PlayersOperationRequest
+	19, // 42: v1.azurpromilia.AzurPromiliaGMService.ResetPassword:input_type -> v1.azurpromilia.ResetPasswordRequest
+	20, // 43: v1.azurpromilia.AzurPromiliaGMService.RenamePlayer:input_type -> v1.azurpromilia.RenamePlayerRequest
+	8,  // 44: v1.azurpromilia.AzurPromiliaGMService.ListMails:input_type -> v1.azurpromilia.ListPageRequest
+	9,  // 45: v1.azurpromilia.AzurPromiliaGMService.GetMail:input_type -> v1.azurpromilia.IDRequest
+	24, // 46: v1.azurpromilia.AzurPromiliaGMService.SendMail:input_type -> v1.azurpromilia.SendMailRequest
+	11, // 47: v1.azurpromilia.AzurPromiliaGMService.RevokeMail:input_type -> v1.azurpromilia.IDOperationRequest
+	8,  // 48: v1.azurpromilia.AzurPromiliaGMService.ListCodeBatches:input_type -> v1.azurpromilia.ListPageRequest
+	9,  // 49: v1.azurpromilia.AzurPromiliaGMService.GetCodeBatch:input_type -> v1.azurpromilia.IDRequest
+	27, // 50: v1.azurpromilia.AzurPromiliaGMService.CreateCodes:input_type -> v1.azurpromilia.CreateCodesRequest
+	29, // 51: v1.azurpromilia.AzurPromiliaGMService.SetCodeBatchDisabled:input_type -> v1.azurpromilia.SetCodeBatchDisabledRequest
+	10, // 52: v1.azurpromilia.AzurPromiliaGMService.ListBatchCodes:input_type -> v1.azurpromilia.IDPageRequest
+	10, // 53: v1.azurpromilia.AzurPromiliaGMService.ListBatchRedemptions:input_type -> v1.azurpromilia.IDPageRequest
+	42, // 54: v1.azurpromilia.AzurPromiliaGMService.GetManifest:output_type -> v1.azurpromilia.Manifest
+	43, // 55: v1.azurpromilia.AzurPromiliaGMService.GetStatus:output_type -> v1.azurpromilia.Status
+	44, // 56: v1.azurpromilia.AzurPromiliaGMService.GetDailyStats:output_type -> v1.azurpromilia.DailyStats
+	5,  // 57: v1.azurpromilia.AzurPromiliaGMService.ListPlayers:output_type -> v1.azurpromilia.ListPlayersResponse
+	6,  // 58: v1.azurpromilia.AzurPromiliaGMService.GetPlayer:output_type -> v1.azurpromilia.GetPlayerResponse
+	45, // 59: v1.azurpromilia.AzurPromiliaGMService.ListPlayerLogins:output_type -> v1.azurpromilia.LoginPage
+	46, // 60: v1.azurpromilia.AzurPromiliaGMService.ListPlayerItems:output_type -> v1.azurpromilia.ItemPage
+	46, // 61: v1.azurpromilia.AzurPromiliaGMService.ListPlayerCurrencies:output_type -> v1.azurpromilia.ItemPage
+	47, // 62: v1.azurpromilia.AzurPromiliaGMService.ListPlayerHeroes:output_type -> v1.azurpromilia.HeroPage
+	48, // 63: v1.azurpromilia.AzurPromiliaGMService.ListPlayerPets:output_type -> v1.azurpromilia.PetPage
+	49, // 64: v1.azurpromilia.AzurPromiliaGMService.ListPlayerMails:output_type -> v1.azurpromilia.MailPage
+	23, // 65: v1.azurpromilia.AzurPromiliaGMService.AdjustItems:output_type -> v1.azurpromilia.OperationResponse
+	23, // 66: v1.azurpromilia.AzurPromiliaGMService.SetPlayerHero:output_type -> v1.azurpromilia.OperationResponse
+	23, // 67: v1.azurpromilia.AzurPromiliaGMService.SetPlayerPet:output_type -> v1.azurpromilia.OperationResponse
+	23, // 68: v1.azurpromilia.AzurPromiliaGMService.MailPlayers:output_type -> v1.azurpromilia.OperationResponse
+	23, // 69: v1.azurpromilia.AzurPromiliaGMService.KickPlayers:output_type -> v1.azurpromilia.OperationResponse
+	23, // 70: v1.azurpromilia.AzurPromiliaGMService.BanPlayers:output_type -> v1.azurpromilia.OperationResponse
+	23, // 71: v1.azurpromilia.AzurPromiliaGMService.UnbanPlayers:output_type -> v1.azurpromilia.OperationResponse
+	23, // 72: v1.azurpromilia.AzurPromiliaGMService.ResetPassword:output_type -> v1.azurpromilia.OperationResponse
+	23, // 73: v1.azurpromilia.AzurPromiliaGMService.RenamePlayer:output_type -> v1.azurpromilia.OperationResponse
+	50, // 74: v1.azurpromilia.AzurPromiliaGMService.ListMails:output_type -> v1.azurpromilia.GmMailPage
+	39, // 75: v1.azurpromilia.AzurPromiliaGMService.GetMail:output_type -> v1.azurpromilia.GmMail
+	25, // 76: v1.azurpromilia.AzurPromiliaGMService.SendMail:output_type -> v1.azurpromilia.SendMailResponse
+	26, // 77: v1.azurpromilia.AzurPromiliaGMService.RevokeMail:output_type -> v1.azurpromilia.MailResponse
+	51, // 78: v1.azurpromilia.AzurPromiliaGMService.ListCodeBatches:output_type -> v1.azurpromilia.CodeBatchPage
+	41, // 79: v1.azurpromilia.AzurPromiliaGMService.GetCodeBatch:output_type -> v1.azurpromilia.CodeBatch
+	28, // 80: v1.azurpromilia.AzurPromiliaGMService.CreateCodes:output_type -> v1.azurpromilia.CreateCodesResponse
+	30, // 81: v1.azurpromilia.AzurPromiliaGMService.SetCodeBatchDisabled:output_type -> v1.azurpromilia.CodeBatchResponse
+	52, // 82: v1.azurpromilia.AzurPromiliaGMService.ListBatchCodes:output_type -> v1.azurpromilia.CodePage
+	53, // 83: v1.azurpromilia.AzurPromiliaGMService.ListBatchRedemptions:output_type -> v1.azurpromilia.RedemptionPage
+	54, // [54:84] is the sub-list for method output_type
+	24, // [24:54] is the sub-list for method input_type
 	24, // [24:24] is the sub-list for extension type_name
 	24, // [24:24] is the sub-list for extension extendee
 	0,  // [0:24] is the sub-list for field type_name
@@ -2314,13 +2564,15 @@ func file_v1_azurpromilia_gm_proto_init() {
 		return
 	}
 	file_v1_azurpromilia_types_proto_init()
+	file_v1_azurpromilia_gm_proto_msgTypes[13].OneofWrappers = []any{}
+	file_v1_azurpromilia_gm_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_azurpromilia_gm_proto_rawDesc), len(file_v1_azurpromilia_gm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   29,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

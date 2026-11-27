@@ -90,7 +90,7 @@ import { LOCALES, setLocale } from '@passport/locales'
 import { useSessionStore } from '@passport/stores/session'
 import { useUiStore } from '@passport/stores/ui'
 import { errorText } from '@passport/utils/format'
-import { gakumas } from '@/games'
+import { gameLinkAvatarAsset } from '@/games'
 import type { PassportLink } from '@/types/v1/passport'
 
 const { t } = useI18n()
@@ -125,14 +125,13 @@ const dirty = computed(() => {
   return !!m && (form.name !== m.name || form.bio !== m.bio || form.language !== m.language || form.timezone !== m.timezone || form.avatarAsset !== m.avatarAsset)
 })
 
-// 可选的游戏素材头像：已绑定的学マス 账号所出借的偶像卡。
+// 可选的游戏素材头像：已绑定的游戏账号的头像（学マス 为出借的偶像卡，蓝色星原为名片头像）。
 const assetChoices = computed(() => {
   const out: { asset: string; label: string }[] = []
   const seen = new Set<string>()
   for (const l of links.value) {
-    if (l.game !== 'gakumas' || !l.avatarAsset) continue
-    const asset = `gakumas/${gakumas.idolCardKey(l.avatarAsset, 'sq')}`
-    if (seen.has(asset)) continue
+    const asset = gameLinkAvatarAsset(l.game, l.avatarAsset)
+    if (!asset || seen.has(asset)) continue
     seen.add(asset)
     out.push({ asset, label: `${l.server?.name || ''} · ${l.nickname}` })
   }

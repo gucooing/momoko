@@ -4,6 +4,7 @@
     <ul v-if="modelValue.length" class="azr__list">
       <li v-for="(r, i) in modelValue" :key="`${r.type}:${r.id}:${i}`" class="azr__item">
         <span class="azr__kind">{{ rewardTypeName(r.type) }}</span>
+        <GameImage :src="azurpromilia.rewardImage(r.type, r.id)" alt="" class="azr__icon" />
         <span class="azr__name">{{ itemName(r.type, r.id) }}</span>
         <input
           class="azr__num m-num"
@@ -25,6 +26,7 @@
         <ul v-if="hits.length && open" class="azr__hits">
           <li v-for="h in hits" :key="h.id">
             <button type="button" @mousedown.prevent="add(h.id)">
+              <GameImage :src="azurpromilia.rewardImage(type, h.id)" alt="" class="azr__icon" />
               <span>{{ h.name }}</span>
               <span class="azr__hid m-num">{{ h.id }}</span>
             </button>
@@ -41,6 +43,8 @@ import { useI18n } from 'vue-i18n'
 import { useDebounceFn } from '@vueuse/core'
 import type { Reward } from '@/types/v1/azurpromilia/types'
 import { REWARD_KINDS } from '@/games/azurpromilia/names'
+import { azurpromilia } from '@/games'
+import GameImage from '@/components/game/GameImage.vue'
 import { itemName, rewardTypeName, searchItems } from './shared'
 
 const props = withDefaults(defineProps<{ modelValue: Reward[]; types?: number[]; max?: number }>(), { types: undefined, max: 2147483647 })
@@ -179,7 +183,7 @@ const remove = (i: number) => {
   button {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    align-items: center;
     gap: 8px;
     padding: 6px 8px;
     border: 0;
@@ -195,7 +199,14 @@ const remove = (i: number) => {
   }
 }
 .azr__hid {
+  margin-left: auto;
   color: var(--el-text-color-secondary);
   font-size: 12px;
+}
+.azr__icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 </style>

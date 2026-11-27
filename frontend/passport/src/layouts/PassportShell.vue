@@ -77,7 +77,7 @@ const topNav = computed(() => [
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--m-bg);
+  background: var(--app-surface-page);
   color: var(--m-ink);
 }
 .shell__top {

@@ -46,7 +46,7 @@ func (s *AzurPromiliaGMService) ListPlayerLogins(ctx context.Context, req *az.Pa
 	return s.azur.ListPlayerLogins(ctx, req)
 }
 
-func (s *AzurPromiliaGMService) ListPlayerItems(ctx context.Context, req *az.ListItemsRequest) (*az.ItemPage, error) {
+func (s *AzurPromiliaGMService) ListPlayerItems(ctx context.Context, req *az.ListByIDsRequest) (*az.ItemPage, error) {
 	return s.azur.ListPlayerItems(ctx, req)
 }
 
@@ -54,11 +54,11 @@ func (s *AzurPromiliaGMService) ListPlayerCurrencies(ctx context.Context, req *a
 	return s.azur.ListPlayerCurrencies(ctx, req)
 }
 
-func (s *AzurPromiliaGMService) ListPlayerHeroes(ctx context.Context, req *az.PageRequest) (*az.HeroPage, error) {
+func (s *AzurPromiliaGMService) ListPlayerHeroes(ctx context.Context, req *az.ListByIDsRequest) (*az.HeroPage, error) {
 	return s.azur.ListPlayerHeroes(ctx, req)
 }
 
-func (s *AzurPromiliaGMService) ListPlayerPets(ctx context.Context, req *az.PageRequest) (*az.PetPage, error) {
+func (s *AzurPromiliaGMService) ListPlayerPets(ctx context.Context, req *az.ListByIDsRequest) (*az.PetPage, error) {
 	return s.azur.ListPlayerPets(ctx, req)
 }
 
@@ -112,6 +112,22 @@ func (s *AzurPromiliaGMService) ResetPassword(ctx context.Context, req *az.Reset
 		return nil, err
 	}
 	return s.azur.ResetPassword(ctx, actor, req)
+}
+
+func (s *AzurPromiliaGMService) SetPlayerHero(ctx context.Context, req *az.SetHeroRequest) (*az.OperationResponse, error) {
+	actor, err := gmAdmin(ctx, s.gm)
+	if err != nil {
+		return nil, err
+	}
+	return s.azur.SetPlayerHero(ctx, actor, req)
+}
+
+func (s *AzurPromiliaGMService) SetPlayerPet(ctx context.Context, req *az.SetPetRequest) (*az.OperationResponse, error) {
+	actor, err := gmAdmin(ctx, s.gm)
+	if err != nil {
+		return nil, err
+	}
+	return s.azur.SetPlayerPet(ctx, actor, req)
 }
 
 func (s *AzurPromiliaGMService) RenamePlayer(ctx context.Context, req *az.RenamePlayerRequest) (*az.OperationResponse, error) {

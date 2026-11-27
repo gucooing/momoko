@@ -1,22 +1,23 @@
-<!-- 游戏标记：服务器上传了应用图标（src，GameServerBrief.appIcon）就显示图标；没有时用游戏名首字在游戏皮肤色上
-     做一个贴纸（data-game 让 --m-g* 生效）。 -->
+<!-- 游戏标记：服务器上传了应用图标（src，GameServerBrief.appIcon）就显示图标，没有时用游戏图标（gameIcon）；
+     游戏也没有图标（或图片取不到）时用游戏名首字在游戏皮肤色上做一个贴纸（data-game 让 --m-g* 生效）。 -->
 <template>
   <span
     class="gm"
-    :class="{ 'gm--img': src }"
+    :class="{ 'gm--img': shown }"
     :data-game="game"
     :style="{ width: `${size}px`, height: `${size}px`, fontSize: `${Math.round(size * 0.4)}px` }"
     :title="name || game"
     role="img"
     :aria-label="name || game"
   >
-    <img v-if="src" :src="src" alt="" loading="lazy" class="gm__img" />
+    <img v-if="shown" :src="url" alt="" loading="lazy" class="gm__img" @error="failed = url" />
     <template v-else>{{ letter }}</template>
   </span>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { gameIcon } from '@/games'
 
 const props = withDefaults(defineProps<{ game: string; name?: string; size?: number; tilt?: boolean; src?: string }>(), {
   name: '',
@@ -24,6 +25,10 @@ const props = withDefaults(defineProps<{ game: string; name?: string; size?: num
   size: 40,
 })
 
+const url = computed(() => props.src || gameIcon(props.game))
+// 图片取不到时退回首字（记下失败的地址，换了地址再试）
+const failed = ref('')
+const shown = computed(() => !!url.value && url.value !== failed.value)
 const letter = computed(() => (props.name || props.game || '?').trim().slice(0, 1).toUpperCase())
 </script>
 

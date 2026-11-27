@@ -120,7 +120,7 @@ type PassportServiceHTTPServer interface {
 	ListPassportGameRecords(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
 	// ListPassportGameRequests 我的申请（需要审批的自助操作）
 	ListPassportGameRequests(context.Context, *ListPassportGameRecordsRequest) (*ListPassportGameRecordsResponse, error)
-	// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+	// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、这款游戏客户端必需的地址都已填写，
 	// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
 	ListPassportLaunchApps(context.Context, *PassportEmpty) (*ListPassportLaunchAppsResponse, error)
 	// ListPassportLinks 我绑定的游戏账号（按游戏分组展示）
@@ -1394,7 +1394,7 @@ type PassportServiceHTTPClient interface {
 	ListPassportGameRecords(ctx context.Context, req *ListPassportGameRecordsRequest, opts ...http.CallOption) (rsp *ListPassportGameRecordsResponse, err error)
 	// ListPassportGameRequests 我的申请（需要审批的自助操作）
 	ListPassportGameRequests(ctx context.Context, req *ListPassportGameRecordsRequest, opts ...http.CallOption) (rsp *ListPassportGameRecordsResponse, err error)
-	// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+	// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、这款游戏客户端必需的地址都已填写，
 	// 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
 	ListPassportLaunchApps(ctx context.Context, req *PassportEmpty, opts ...http.CallOption) (rsp *ListPassportLaunchAppsResponse, err error)
 	// ListPassportLinks 我绑定的游戏账号（按游戏分组展示）
@@ -1786,7 +1786,7 @@ func (c *PassportServiceHTTPClientImpl) ListPassportGameRequests(ctx context.Con
 	return &out, nil
 }
 
-// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、三个客户端地址都已填写，
+// ListPassportLaunchApps 可启动的应用（PC 启动器）：游戏支持客户端启动、接入了 MGP、生成了应用 ID、这款游戏客户端必需的地址都已填写，
 // 并且我在上面有绑定或服务器对我可见；有绑定的在前（按最近使用倒序），其余按服务器名称
 func (c *PassportServiceHTTPClientImpl) ListPassportLaunchApps(ctx context.Context, in *PassportEmpty, opts ...http.CallOption) (*ListPassportLaunchAppsResponse, error) {
 	var out ListPassportLaunchAppsResponse

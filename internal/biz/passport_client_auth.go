@@ -15,7 +15,7 @@ import (
 	"momoko/internal/data/ent/gen/passportuser"
 )
 
-// 客户端浏览器授权：PC 启动器与 Android APK 不接触通行证的账号、密码或任何登录方式，只经浏览器取得通行证会话。
+// 客户端浏览器授权：PC 启动器、Android APK 与蓝色星原的游戏内登录不接触通行证的账号、密码或任何登录方式，只经浏览器取得通行证会话。
 //
 //  1. 客户端 POST /api/v1/auth/client 发起（不用登录），拿到 device_code（只给客户端）、user_code（XXXX-XXXX）与授权页地址；
 //  2. 玩家在系统浏览器里登录通行证网页，在授权页（{public_url}/authorize?code=）核对 user_code 后授权或拒绝；
@@ -48,10 +48,12 @@ const (
 	clientAuthDenied   = "denied"
 )
 
-// clientAuthClients 内置的客户端与显示名。
+// clientAuthClients 内置的客户端与显示名。launcher、android 是学マス 的客户端（授权页核对 user_code）；
+// azurpromilia 是蓝色星原的游戏内登录：游戏照官方 SDK 的做法跳到浏览器单点授权，授权页由客户端直接打开，不核对 user_code。
 var clientAuthClients = map[string]string{
-	"launcher": "Momoko 启动器",
-	"android":  "学马仕 Android",
+	"launcher":     "Momoko 启动器",
+	"android":      "学马仕 Android",
+	"azurpromilia": "蓝色星原",
 }
 
 // clientAuth 一个待领取的客户端授权请求。

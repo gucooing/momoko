@@ -46,10 +46,10 @@ type AzurPromiliaPassportServiceClient interface {
 	GetMyPlayer(ctx context.Context, in *MyRequest, opts ...grpc.CallOption) (*PlayerDetail, error)
 	// 我的登录记录（按登录时间倒序）
 	ListMyLogins(ctx context.Context, in *MyLoginsRequest, opts ...grpc.CallOption) (*LoginPage, error)
-	ListMyItems(ctx context.Context, in *MyLoginsRequest, opts ...grpc.CallOption) (*ItemPage, error)
+	ListMyItems(ctx context.Context, in *MyListRequest, opts ...grpc.CallOption) (*ItemPage, error)
 	ListMyCurrencies(ctx context.Context, in *MyRequest, opts ...grpc.CallOption) (*ItemPage, error)
-	ListMyHeroes(ctx context.Context, in *MyLoginsRequest, opts ...grpc.CallOption) (*HeroPage, error)
-	ListMyPets(ctx context.Context, in *MyLoginsRequest, opts ...grpc.CallOption) (*PetPage, error)
+	ListMyHeroes(ctx context.Context, in *MyListRequest, opts ...grpc.CallOption) (*HeroPage, error)
+	ListMyPets(ctx context.Context, in *MyListRequest, opts ...grpc.CallOption) (*PetPage, error)
 	ListMyMails(ctx context.Context, in *MyLoginsRequest, opts ...grpc.CallOption) (*MailPage, error)
 	// ---------------- 自助操作（目标都是我绑定的游戏账号） ----------------
 	MailMe(ctx context.Context, in *SelfServiceMailRequest, opts ...grpc.CallOption) (*MySelfServiceResponse, error)
@@ -89,7 +89,7 @@ func (c *azurPromiliaPassportServiceClient) ListMyLogins(ctx context.Context, in
 	return out, nil
 }
 
-func (c *azurPromiliaPassportServiceClient) ListMyItems(ctx context.Context, in *MyLoginsRequest, opts ...grpc.CallOption) (*ItemPage, error) {
+func (c *azurPromiliaPassportServiceClient) ListMyItems(ctx context.Context, in *MyListRequest, opts ...grpc.CallOption) (*ItemPage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ItemPage)
 	err := c.cc.Invoke(ctx, AzurPromiliaPassportService_ListMyItems_FullMethodName, in, out, cOpts...)
@@ -109,7 +109,7 @@ func (c *azurPromiliaPassportServiceClient) ListMyCurrencies(ctx context.Context
 	return out, nil
 }
 
-func (c *azurPromiliaPassportServiceClient) ListMyHeroes(ctx context.Context, in *MyLoginsRequest, opts ...grpc.CallOption) (*HeroPage, error) {
+func (c *azurPromiliaPassportServiceClient) ListMyHeroes(ctx context.Context, in *MyListRequest, opts ...grpc.CallOption) (*HeroPage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(HeroPage)
 	err := c.cc.Invoke(ctx, AzurPromiliaPassportService_ListMyHeroes_FullMethodName, in, out, cOpts...)
@@ -119,7 +119,7 @@ func (c *azurPromiliaPassportServiceClient) ListMyHeroes(ctx context.Context, in
 	return out, nil
 }
 
-func (c *azurPromiliaPassportServiceClient) ListMyPets(ctx context.Context, in *MyLoginsRequest, opts ...grpc.CallOption) (*PetPage, error) {
+func (c *azurPromiliaPassportServiceClient) ListMyPets(ctx context.Context, in *MyListRequest, opts ...grpc.CallOption) (*PetPage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PetPage)
 	err := c.cc.Invoke(ctx, AzurPromiliaPassportService_ListMyPets_FullMethodName, in, out, cOpts...)
@@ -220,10 +220,10 @@ type AzurPromiliaPassportServiceServer interface {
 	GetMyPlayer(context.Context, *MyRequest) (*PlayerDetail, error)
 	// 我的登录记录（按登录时间倒序）
 	ListMyLogins(context.Context, *MyLoginsRequest) (*LoginPage, error)
-	ListMyItems(context.Context, *MyLoginsRequest) (*ItemPage, error)
+	ListMyItems(context.Context, *MyListRequest) (*ItemPage, error)
 	ListMyCurrencies(context.Context, *MyRequest) (*ItemPage, error)
-	ListMyHeroes(context.Context, *MyLoginsRequest) (*HeroPage, error)
-	ListMyPets(context.Context, *MyLoginsRequest) (*PetPage, error)
+	ListMyHeroes(context.Context, *MyListRequest) (*HeroPage, error)
+	ListMyPets(context.Context, *MyListRequest) (*PetPage, error)
 	ListMyMails(context.Context, *MyLoginsRequest) (*MailPage, error)
 	// ---------------- 自助操作（目标都是我绑定的游戏账号） ----------------
 	MailMe(context.Context, *SelfServiceMailRequest) (*MySelfServiceResponse, error)
@@ -249,16 +249,16 @@ func (UnimplementedAzurPromiliaPassportServiceServer) GetMyPlayer(context.Contex
 func (UnimplementedAzurPromiliaPassportServiceServer) ListMyLogins(context.Context, *MyLoginsRequest) (*LoginPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyLogins not implemented")
 }
-func (UnimplementedAzurPromiliaPassportServiceServer) ListMyItems(context.Context, *MyLoginsRequest) (*ItemPage, error) {
+func (UnimplementedAzurPromiliaPassportServiceServer) ListMyItems(context.Context, *MyListRequest) (*ItemPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyItems not implemented")
 }
 func (UnimplementedAzurPromiliaPassportServiceServer) ListMyCurrencies(context.Context, *MyRequest) (*ItemPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyCurrencies not implemented")
 }
-func (UnimplementedAzurPromiliaPassportServiceServer) ListMyHeroes(context.Context, *MyLoginsRequest) (*HeroPage, error) {
+func (UnimplementedAzurPromiliaPassportServiceServer) ListMyHeroes(context.Context, *MyListRequest) (*HeroPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyHeroes not implemented")
 }
-func (UnimplementedAzurPromiliaPassportServiceServer) ListMyPets(context.Context, *MyLoginsRequest) (*PetPage, error) {
+func (UnimplementedAzurPromiliaPassportServiceServer) ListMyPets(context.Context, *MyListRequest) (*PetPage, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyPets not implemented")
 }
 func (UnimplementedAzurPromiliaPassportServiceServer) ListMyMails(context.Context, *MyLoginsRequest) (*MailPage, error) {
@@ -344,7 +344,7 @@ func _AzurPromiliaPassportService_ListMyLogins_Handler(srv interface{}, ctx cont
 }
 
 func _AzurPromiliaPassportService_ListMyItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MyLoginsRequest)
+	in := new(MyListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -356,7 +356,7 @@ func _AzurPromiliaPassportService_ListMyItems_Handler(srv interface{}, ctx conte
 		FullMethod: AzurPromiliaPassportService_ListMyItems_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AzurPromiliaPassportServiceServer).ListMyItems(ctx, req.(*MyLoginsRequest))
+		return srv.(AzurPromiliaPassportServiceServer).ListMyItems(ctx, req.(*MyListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -380,7 +380,7 @@ func _AzurPromiliaPassportService_ListMyCurrencies_Handler(srv interface{}, ctx 
 }
 
 func _AzurPromiliaPassportService_ListMyHeroes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MyLoginsRequest)
+	in := new(MyListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -392,13 +392,13 @@ func _AzurPromiliaPassportService_ListMyHeroes_Handler(srv interface{}, ctx cont
 		FullMethod: AzurPromiliaPassportService_ListMyHeroes_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AzurPromiliaPassportServiceServer).ListMyHeroes(ctx, req.(*MyLoginsRequest))
+		return srv.(AzurPromiliaPassportServiceServer).ListMyHeroes(ctx, req.(*MyListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AzurPromiliaPassportService_ListMyPets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MyLoginsRequest)
+	in := new(MyListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -410,7 +410,7 @@ func _AzurPromiliaPassportService_ListMyPets_Handler(srv interface{}, ctx contex
 		FullMethod: AzurPromiliaPassportService_ListMyPets_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AzurPromiliaPassportServiceServer).ListMyPets(ctx, req.(*MyLoginsRequest))
+		return srv.(AzurPromiliaPassportServiceServer).ListMyPets(ctx, req.(*MyListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

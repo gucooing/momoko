@@ -41,11 +41,41 @@ type GameAdapter struct {
 	GMDriver string
 	// Hosting 托管驱动（未实现时为 nil）。
 	Hosting GameHostingDriver
-	// ClientLaunch 游戏客户端可以用通行证启动：服务器可填写客户端地址，通行证新建游戏账号并签发启动票据，
-	// 游戏服务端的 SDK 凭票据开会话。
-	ClientLaunch bool
+	// ClientEndpoints 游戏客户端用通行证启动时连接的地址，只列这款游戏的客户端实际用到的；为空表示不支持用通行证启动客户端。
+	// 支持时服务器填写这些地址，通行证新建游戏账号并签发启动票据，游戏服务端的 SDK 凭票据开会话。
+	ClientEndpoints []GameClientEndpoint
 	// Passport 通行证驱动：经 MGP 绑定、新建与读取游戏账号（未实现时为 nil）。
 	Passport GamePassportDriver
+}
+
+// 游戏客户端连接的地址种类（game_server.client_<key>_url）。
+const (
+	ClientEndpointSDK      = "sdk"
+	ClientEndpointGame     = "game"
+	ClientEndpointResource = "resource"
+)
+
+// GameClientEndpoint 游戏客户端用通行证启动时连接的一个地址。
+type GameClientEndpoint struct {
+	// Key sdk / game / resource
+	Key string
+	// Required 必须填写才能启动；不必填的留空时客户端使用官方的
+	Required bool
+	// Listen 托管时服务端配置里提供这个地址的监听（进程角色 listens 的键）；空为没有对应的监听
+	Listen string
+}
+
+// ClientLaunch 游戏客户端可以用通行证启动。
+func (a *GameAdapter) ClientLaunch() bool { return len(a.ClientEndpoints) > 0 }
+
+// ClientEndpoint 这款游戏的客户端是否用到某种地址。
+func (a *GameAdapter) ClientEndpoint(key string) (GameClientEndpoint, bool) {
+	for _, e := range a.ClientEndpoints {
+		if e.Key == key {
+			return e, true
+		}
+	}
+	return GameClientEndpoint{}, false
 }
 
 // Modes 支持的接入方式：有 MGP 驱动即可仅 GM 接入，有托管驱动即可托管。
@@ -99,14 +129,16 @@ func (a *GameAdapter) ServerCapabilities(s *gen.GameServer) []string {
 // ToProto 转为接口结构。
 func (a *GameAdapter) ToProto() *v1.GameAdapter {
 	out := &v1.GameAdapter{
-		Id:           a.ID,
-		Available:    len(a.Modes()) > 0,
-		Modes:        a.Modes(),
-		GmDriver:     a.GMDriver,
-		ClientLaunch: a.ClientLaunch,
+		Id:        a.ID,
+		Available: len(a.Modes()) > 0,
+		Modes:     a.Modes(),
+		GmDriver:  a.GMDriver,
 	}
 	for _, c := range a.Capabilities() {
 		out.Capabilities = append(out.Capabilities, &v1.GameAdapterCapability{Key: c, Enabled: true})
+	}
+	for _, e := range a.ClientEndpoints {
+		out.ClientEndpoints = append(out.ClientEndpoints, &v1.GameAdapterClientEndpoint{Key: e.Key, Required: e.Required, Listen: e.Listen})
 	}
 	if a.Hosting != nil {
 		spec := a.Hosting.Spec()
@@ -120,8 +152,27 @@ func (a *GameAdapter) ToProto() *v1.GameAdapter {
 
 // gameAdapters 随 Momoko 版本内置的适配器（顺序即展示顺序）。
 var gameAdapters = []*GameAdapter{
-	{ID: "gakumas", GMDriver: "mgp", ClientLaunch: true, Passport: gakumasPassport{}},
-	{ID: "azurpromilia", GMDriver: "mgp", ClientLaunch: true, Passport: azurpromiliaPassport{}},
+	{
+		ID:       "gakumas",
+		GMDriver: "mgp",
+		// 客户端分别连接 SDK、游戏服务端与资源服务器；资源服务器不填时用官方资源。
+		ClientEndpoints: []GameClientEndpoint{
+			{Key: ClientEndpointSDK, Required: true},
+			{Key: ClientEndpointGame, Required: true},
+			{Key: ClientEndpointResource},
+		},
+		Passport: gakumasPassport{},
+	},
+	{
+		ID:       "azurpromilia",
+		GMDriver: "mgp",
+		// 客户端只连接 SDK（sdk.listen）：网关地址与资源 CDN 由 SDK 的 patch / getcdn 按服务端配置
+		// （sdk.server、sdk.cdn）下发，启动器不需要另外的地址。
+		ClientEndpoints: []GameClientEndpoint{
+			{Key: ClientEndpointSDK, Required: true, Listen: "sdk"},
+		},
+		Passport: azurpromiliaPassport{},
+	},
 }
 
 // GameAdapters 返回全部内置适配器。

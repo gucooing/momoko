@@ -126,6 +126,75 @@ func (x *MyLoginsRequest) GetLimit() int32 {
 	return 0
 }
 
+// 我的道具、英雄、奇波列表：ids 不为空时只取这些道具 / 英雄 / 奇波 ID。
+type MyListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ServerId      string                 `protobuf:"bytes,1,opt,name=server_id,json=serverId,proto3" json:"server_id,omitempty"`
+	Ids           []int32                `protobuf:"varint,2,rep,packed,name=ids,proto3" json:"ids,omitempty"`
+	Cursor        string                 `protobuf:"bytes,3,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	Limit         int32                  `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MyListRequest) Reset() {
+	*x = MyListRequest{}
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MyListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MyListRequest) ProtoMessage() {}
+
+func (x *MyListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MyListRequest.ProtoReflect.Descriptor instead.
+func (*MyListRequest) Descriptor() ([]byte, []int) {
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *MyListRequest) GetServerId() string {
+	if x != nil {
+		return x.ServerId
+	}
+	return ""
+}
+
+func (x *MyListRequest) GetIds() []int32 {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+func (x *MyListRequest) GetCursor() string {
+	if x != nil {
+		return x.Cursor
+	}
+	return ""
+}
+
+func (x *MyListRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
 // 自助操作的共同字段：reason 为申请理由（需要审批时给管理员看），totp_code 为两步验证码。
 type SelfServiceRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -138,7 +207,7 @@ type SelfServiceRequest struct {
 
 func (x *SelfServiceRequest) Reset() {
 	*x = SelfServiceRequest{}
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[2]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -150,7 +219,7 @@ func (x *SelfServiceRequest) String() string {
 func (*SelfServiceRequest) ProtoMessage() {}
 
 func (x *SelfServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[2]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -163,7 +232,7 @@ func (x *SelfServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelfServiceRequest.ProtoReflect.Descriptor instead.
 func (*SelfServiceRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{2}
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SelfServiceRequest) GetServerId() string {
@@ -201,7 +270,7 @@ type SelfServiceMailRequest struct {
 
 func (x *SelfServiceMailRequest) Reset() {
 	*x = SelfServiceMailRequest{}
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[3]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -213,7 +282,7 @@ func (x *SelfServiceMailRequest) String() string {
 func (*SelfServiceMailRequest) ProtoMessage() {}
 
 func (x *SelfServiceMailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[3]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -226,7 +295,7 @@ func (x *SelfServiceMailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelfServiceMailRequest.ProtoReflect.Descriptor instead.
 func (*SelfServiceMailRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{3}
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SelfServiceMailRequest) GetServerId() string {
@@ -284,7 +353,7 @@ type SelfServiceItemsRequest struct {
 
 func (x *SelfServiceItemsRequest) Reset() {
 	*x = SelfServiceItemsRequest{}
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[4]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -296,7 +365,7 @@ func (x *SelfServiceItemsRequest) String() string {
 func (*SelfServiceItemsRequest) ProtoMessage() {}
 
 func (x *SelfServiceItemsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[4]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -309,7 +378,7 @@ func (x *SelfServiceItemsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelfServiceItemsRequest.ProtoReflect.Descriptor instead.
 func (*SelfServiceItemsRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{4}
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SelfServiceItemsRequest) GetServerId() string {
@@ -360,7 +429,7 @@ type SelfServiceBanRequest struct {
 
 func (x *SelfServiceBanRequest) Reset() {
 	*x = SelfServiceBanRequest{}
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[5]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -372,7 +441,7 @@ func (x *SelfServiceBanRequest) String() string {
 func (*SelfServiceBanRequest) ProtoMessage() {}
 
 func (x *SelfServiceBanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[5]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -385,7 +454,7 @@ func (x *SelfServiceBanRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelfServiceBanRequest.ProtoReflect.Descriptor instead.
 func (*SelfServiceBanRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{5}
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SelfServiceBanRequest) GetServerId() string {
@@ -428,7 +497,7 @@ type SelfServicePasswordRequest struct {
 
 func (x *SelfServicePasswordRequest) Reset() {
 	*x = SelfServicePasswordRequest{}
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[6]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +509,7 @@ func (x *SelfServicePasswordRequest) String() string {
 func (*SelfServicePasswordRequest) ProtoMessage() {}
 
 func (x *SelfServicePasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[6]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +522,7 @@ func (x *SelfServicePasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelfServicePasswordRequest.ProtoReflect.Descriptor instead.
 func (*SelfServicePasswordRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{6}
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SelfServicePasswordRequest) GetServerId() string {
@@ -496,7 +565,7 @@ type SelfServiceRenameRequest struct {
 
 func (x *SelfServiceRenameRequest) Reset() {
 	*x = SelfServiceRenameRequest{}
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[7]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -508,7 +577,7 @@ func (x *SelfServiceRenameRequest) String() string {
 func (*SelfServiceRenameRequest) ProtoMessage() {}
 
 func (x *SelfServiceRenameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[7]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -521,7 +590,7 @@ func (x *SelfServiceRenameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelfServiceRenameRequest.ProtoReflect.Descriptor instead.
 func (*SelfServiceRenameRequest) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{7}
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SelfServiceRenameRequest) GetServerId() string {
@@ -565,7 +634,7 @@ type SelfServiceResult struct {
 
 func (x *SelfServiceResult) Reset() {
 	*x = SelfServiceResult{}
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[8]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -577,7 +646,7 @@ func (x *SelfServiceResult) String() string {
 func (*SelfServiceResult) ProtoMessage() {}
 
 func (x *SelfServiceResult) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[8]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -590,7 +659,7 @@ func (x *SelfServiceResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelfServiceResult.ProtoReflect.Descriptor instead.
 func (*SelfServiceResult) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{8}
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SelfServiceResult) GetRecordId() string {
@@ -632,7 +701,7 @@ type MySelfServiceResponse struct {
 
 func (x *MySelfServiceResponse) Reset() {
 	*x = MySelfServiceResponse{}
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[9]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -644,7 +713,7 @@ func (x *MySelfServiceResponse) String() string {
 func (*MySelfServiceResponse) ProtoMessage() {}
 
 func (x *MySelfServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_azurpromilia_passport_proto_msgTypes[9]
+	mi := &file_v1_azurpromilia_passport_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -657,7 +726,7 @@ func (x *MySelfServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MySelfServiceResponse.ProtoReflect.Descriptor instead.
 func (*MySelfServiceResponse) Descriptor() ([]byte, []int) {
-	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{9}
+	return file_v1_azurpromilia_passport_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *MySelfServiceResponse) GetResult() *SelfServiceResult {
@@ -684,7 +753,12 @@ const file_v1_azurpromilia_passport_proto_rawDesc = "" +
 	"\x0fMyLoginsRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
 	"\x06cursor\x18\x02 \x01(\tR\x06cursor\x12\x14\n" +
-	"\x05limit\x18\x03 \x01(\x05R\x05limit\"f\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\"l\n" +
+	"\rMyListRequest\x12\x1b\n" +
+	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x10\n" +
+	"\x03ids\x18\x02 \x03(\x05R\x03ids\x12\x16\n" +
+	"\x06cursor\x18\x03 \x01(\tR\x06cursor\x12\x14\n" +
+	"\x05limit\x18\x04 \x01(\x05R\x05limit\"f\n" +
 	"\x12SelfServiceRequest\x12\x1b\n" +
 	"\tserver_id\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1b\n" +
@@ -725,15 +799,15 @@ const file_v1_azurpromilia_passport_proto_rawDesc = "" +
 	"\rerror_message\x18\x04 \x01(\tR\ferrorMessage\"\x87\x01\n" +
 	"\x15MySelfServiceResponse\x12:\n" +
 	"\x06result\x18\x01 \x01(\v2\".v1.azurpromilia.SelfServiceResultR\x06result\x122\n" +
-	"\x04data\x18\x02 \x01(\v2\x1e.v1.azurpromilia.OperationDataR\x04data2\xf9\x0f\n" +
+	"\x04data\x18\x02 \x01(\v2\x1e.v1.azurpromilia.OperationDataR\x04data2\xf2\x0f\n" +
 	"\x1bAzurPromiliaPassportService\x12\x7f\n" +
 	"\vGetMyPlayer\x12\x1a.v1.azurpromilia.MyRequest\x1a\x1d.v1.azurpromilia.PlayerDetail\"5\x82\xd3\xe4\x93\x02/\x12-/api/v1/azurpromilia/games/{server_id}/player\x12\x83\x01\n" +
-	"\fListMyLogins\x12 .v1.azurpromilia.MyLoginsRequest\x1a\x1a.v1.azurpromilia.LoginPage\"5\x82\xd3\xe4\x93\x02/\x12-/api/v1/azurpromilia/games/{server_id}/logins\x12\x80\x01\n" +
-	"\vListMyItems\x12 .v1.azurpromilia.MyLoginsRequest\x1a\x19.v1.azurpromilia.ItemPage\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/azurpromilia/games/{server_id}/items\x12\x84\x01\n" +
-	"\x10ListMyCurrencies\x12\x1a.v1.azurpromilia.MyRequest\x1a\x19.v1.azurpromilia.ItemPage\"9\x82\xd3\xe4\x93\x023\x121/api/v1/azurpromilia/games/{server_id}/currencies\x12\x82\x01\n" +
-	"\fListMyHeroes\x12 .v1.azurpromilia.MyLoginsRequest\x1a\x19.v1.azurpromilia.HeroPage\"5\x82\xd3\xe4\x93\x02/\x12-/api/v1/azurpromilia/games/{server_id}/heroes\x12}\n" +
+	"\fListMyLogins\x12 .v1.azurpromilia.MyLoginsRequest\x1a\x1a.v1.azurpromilia.LoginPage\"5\x82\xd3\xe4\x93\x02/\x12-/api/v1/azurpromilia/games/{server_id}/logins\x12~\n" +
+	"\vListMyItems\x12\x1e.v1.azurpromilia.MyListRequest\x1a\x19.v1.azurpromilia.ItemPage\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/azurpromilia/games/{server_id}/items\x12\x84\x01\n" +
+	"\x10ListMyCurrencies\x12\x1a.v1.azurpromilia.MyRequest\x1a\x19.v1.azurpromilia.ItemPage\"9\x82\xd3\xe4\x93\x023\x121/api/v1/azurpromilia/games/{server_id}/currencies\x12\x80\x01\n" +
+	"\fListMyHeroes\x12\x1e.v1.azurpromilia.MyListRequest\x1a\x19.v1.azurpromilia.HeroPage\"5\x82\xd3\xe4\x93\x02/\x12-/api/v1/azurpromilia/games/{server_id}/heroes\x12{\n" +
 	"\n" +
-	"ListMyPets\x12 .v1.azurpromilia.MyLoginsRequest\x1a\x18.v1.azurpromilia.PetPage\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/azurpromilia/games/{server_id}/pets\x12\x80\x01\n" +
+	"ListMyPets\x12\x1e.v1.azurpromilia.MyListRequest\x1a\x18.v1.azurpromilia.PetPage\"3\x82\xd3\xe4\x93\x02-\x12+/api/v1/azurpromilia/games/{server_id}/pets\x12\x80\x01\n" +
 	"\vListMyMails\x12 .v1.azurpromilia.MyLoginsRequest\x1a\x19.v1.azurpromilia.MailPage\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/azurpromilia/games/{server_id}/mails\x12\x96\x01\n" +
 	"\x06MailMe\x12'.v1.azurpromilia.SelfServiceMailRequest\x1a&.v1.azurpromilia.MySelfServiceResponse\";\x82\xd3\xe4\x93\x025:\x01*\"0/api/v1/azurpromilia/games/{server_id}/self/mail\x12\x9f\x01\n" +
 	"\rAdjustMyItems\x12(.v1.azurpromilia.SelfServiceItemsRequest\x1a&.v1.azurpromilia.MySelfServiceResponse\"<\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/azurpromilia/games/{server_id}/self/items\x12\x92\x01\n" +
@@ -755,61 +829,62 @@ func file_v1_azurpromilia_passport_proto_rawDescGZIP() []byte {
 	return file_v1_azurpromilia_passport_proto_rawDescData
 }
 
-var file_v1_azurpromilia_passport_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_v1_azurpromilia_passport_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_v1_azurpromilia_passport_proto_goTypes = []any{
 	(*MyRequest)(nil),                  // 0: v1.azurpromilia.MyRequest
 	(*MyLoginsRequest)(nil),            // 1: v1.azurpromilia.MyLoginsRequest
-	(*SelfServiceRequest)(nil),         // 2: v1.azurpromilia.SelfServiceRequest
-	(*SelfServiceMailRequest)(nil),     // 3: v1.azurpromilia.SelfServiceMailRequest
-	(*SelfServiceItemsRequest)(nil),    // 4: v1.azurpromilia.SelfServiceItemsRequest
-	(*SelfServiceBanRequest)(nil),      // 5: v1.azurpromilia.SelfServiceBanRequest
-	(*SelfServicePasswordRequest)(nil), // 6: v1.azurpromilia.SelfServicePasswordRequest
-	(*SelfServiceRenameRequest)(nil),   // 7: v1.azurpromilia.SelfServiceRenameRequest
-	(*SelfServiceResult)(nil),          // 8: v1.azurpromilia.SelfServiceResult
-	(*MySelfServiceResponse)(nil),      // 9: v1.azurpromilia.MySelfServiceResponse
-	(*Reward)(nil),                     // 10: v1.azurpromilia.Reward
-	(*OperationData)(nil),              // 11: v1.azurpromilia.OperationData
-	(*PlayerDetail)(nil),               // 12: v1.azurpromilia.PlayerDetail
-	(*LoginPage)(nil),                  // 13: v1.azurpromilia.LoginPage
-	(*ItemPage)(nil),                   // 14: v1.azurpromilia.ItemPage
-	(*HeroPage)(nil),                   // 15: v1.azurpromilia.HeroPage
-	(*PetPage)(nil),                    // 16: v1.azurpromilia.PetPage
-	(*MailPage)(nil),                   // 17: v1.azurpromilia.MailPage
+	(*MyListRequest)(nil),              // 2: v1.azurpromilia.MyListRequest
+	(*SelfServiceRequest)(nil),         // 3: v1.azurpromilia.SelfServiceRequest
+	(*SelfServiceMailRequest)(nil),     // 4: v1.azurpromilia.SelfServiceMailRequest
+	(*SelfServiceItemsRequest)(nil),    // 5: v1.azurpromilia.SelfServiceItemsRequest
+	(*SelfServiceBanRequest)(nil),      // 6: v1.azurpromilia.SelfServiceBanRequest
+	(*SelfServicePasswordRequest)(nil), // 7: v1.azurpromilia.SelfServicePasswordRequest
+	(*SelfServiceRenameRequest)(nil),   // 8: v1.azurpromilia.SelfServiceRenameRequest
+	(*SelfServiceResult)(nil),          // 9: v1.azurpromilia.SelfServiceResult
+	(*MySelfServiceResponse)(nil),      // 10: v1.azurpromilia.MySelfServiceResponse
+	(*Reward)(nil),                     // 11: v1.azurpromilia.Reward
+	(*OperationData)(nil),              // 12: v1.azurpromilia.OperationData
+	(*PlayerDetail)(nil),               // 13: v1.azurpromilia.PlayerDetail
+	(*LoginPage)(nil),                  // 14: v1.azurpromilia.LoginPage
+	(*ItemPage)(nil),                   // 15: v1.azurpromilia.ItemPage
+	(*HeroPage)(nil),                   // 16: v1.azurpromilia.HeroPage
+	(*PetPage)(nil),                    // 17: v1.azurpromilia.PetPage
+	(*MailPage)(nil),                   // 18: v1.azurpromilia.MailPage
 }
 var file_v1_azurpromilia_passport_proto_depIdxs = []int32{
-	10, // 0: v1.azurpromilia.SelfServiceMailRequest.rewards:type_name -> v1.azurpromilia.Reward
-	10, // 1: v1.azurpromilia.SelfServiceItemsRequest.grant:type_name -> v1.azurpromilia.Reward
-	10, // 2: v1.azurpromilia.SelfServiceItemsRequest.take:type_name -> v1.azurpromilia.Reward
-	8,  // 3: v1.azurpromilia.MySelfServiceResponse.result:type_name -> v1.azurpromilia.SelfServiceResult
-	11, // 4: v1.azurpromilia.MySelfServiceResponse.data:type_name -> v1.azurpromilia.OperationData
+	11, // 0: v1.azurpromilia.SelfServiceMailRequest.rewards:type_name -> v1.azurpromilia.Reward
+	11, // 1: v1.azurpromilia.SelfServiceItemsRequest.grant:type_name -> v1.azurpromilia.Reward
+	11, // 2: v1.azurpromilia.SelfServiceItemsRequest.take:type_name -> v1.azurpromilia.Reward
+	9,  // 3: v1.azurpromilia.MySelfServiceResponse.result:type_name -> v1.azurpromilia.SelfServiceResult
+	12, // 4: v1.azurpromilia.MySelfServiceResponse.data:type_name -> v1.azurpromilia.OperationData
 	0,  // 5: v1.azurpromilia.AzurPromiliaPassportService.GetMyPlayer:input_type -> v1.azurpromilia.MyRequest
 	1,  // 6: v1.azurpromilia.AzurPromiliaPassportService.ListMyLogins:input_type -> v1.azurpromilia.MyLoginsRequest
-	1,  // 7: v1.azurpromilia.AzurPromiliaPassportService.ListMyItems:input_type -> v1.azurpromilia.MyLoginsRequest
+	2,  // 7: v1.azurpromilia.AzurPromiliaPassportService.ListMyItems:input_type -> v1.azurpromilia.MyListRequest
 	0,  // 8: v1.azurpromilia.AzurPromiliaPassportService.ListMyCurrencies:input_type -> v1.azurpromilia.MyRequest
-	1,  // 9: v1.azurpromilia.AzurPromiliaPassportService.ListMyHeroes:input_type -> v1.azurpromilia.MyLoginsRequest
-	1,  // 10: v1.azurpromilia.AzurPromiliaPassportService.ListMyPets:input_type -> v1.azurpromilia.MyLoginsRequest
+	2,  // 9: v1.azurpromilia.AzurPromiliaPassportService.ListMyHeroes:input_type -> v1.azurpromilia.MyListRequest
+	2,  // 10: v1.azurpromilia.AzurPromiliaPassportService.ListMyPets:input_type -> v1.azurpromilia.MyListRequest
 	1,  // 11: v1.azurpromilia.AzurPromiliaPassportService.ListMyMails:input_type -> v1.azurpromilia.MyLoginsRequest
-	3,  // 12: v1.azurpromilia.AzurPromiliaPassportService.MailMe:input_type -> v1.azurpromilia.SelfServiceMailRequest
-	4,  // 13: v1.azurpromilia.AzurPromiliaPassportService.AdjustMyItems:input_type -> v1.azurpromilia.SelfServiceItemsRequest
-	2,  // 14: v1.azurpromilia.AzurPromiliaPassportService.KickMe:input_type -> v1.azurpromilia.SelfServiceRequest
-	5,  // 15: v1.azurpromilia.AzurPromiliaPassportService.BanMe:input_type -> v1.azurpromilia.SelfServiceBanRequest
-	2,  // 16: v1.azurpromilia.AzurPromiliaPassportService.UnbanMe:input_type -> v1.azurpromilia.SelfServiceRequest
-	6,  // 17: v1.azurpromilia.AzurPromiliaPassportService.SetMyPassword:input_type -> v1.azurpromilia.SelfServicePasswordRequest
-	7,  // 18: v1.azurpromilia.AzurPromiliaPassportService.RenameMe:input_type -> v1.azurpromilia.SelfServiceRenameRequest
-	12, // 19: v1.azurpromilia.AzurPromiliaPassportService.GetMyPlayer:output_type -> v1.azurpromilia.PlayerDetail
-	13, // 20: v1.azurpromilia.AzurPromiliaPassportService.ListMyLogins:output_type -> v1.azurpromilia.LoginPage
-	14, // 21: v1.azurpromilia.AzurPromiliaPassportService.ListMyItems:output_type -> v1.azurpromilia.ItemPage
-	14, // 22: v1.azurpromilia.AzurPromiliaPassportService.ListMyCurrencies:output_type -> v1.azurpromilia.ItemPage
-	15, // 23: v1.azurpromilia.AzurPromiliaPassportService.ListMyHeroes:output_type -> v1.azurpromilia.HeroPage
-	16, // 24: v1.azurpromilia.AzurPromiliaPassportService.ListMyPets:output_type -> v1.azurpromilia.PetPage
-	17, // 25: v1.azurpromilia.AzurPromiliaPassportService.ListMyMails:output_type -> v1.azurpromilia.MailPage
-	9,  // 26: v1.azurpromilia.AzurPromiliaPassportService.MailMe:output_type -> v1.azurpromilia.MySelfServiceResponse
-	9,  // 27: v1.azurpromilia.AzurPromiliaPassportService.AdjustMyItems:output_type -> v1.azurpromilia.MySelfServiceResponse
-	9,  // 28: v1.azurpromilia.AzurPromiliaPassportService.KickMe:output_type -> v1.azurpromilia.MySelfServiceResponse
-	9,  // 29: v1.azurpromilia.AzurPromiliaPassportService.BanMe:output_type -> v1.azurpromilia.MySelfServiceResponse
-	9,  // 30: v1.azurpromilia.AzurPromiliaPassportService.UnbanMe:output_type -> v1.azurpromilia.MySelfServiceResponse
-	9,  // 31: v1.azurpromilia.AzurPromiliaPassportService.SetMyPassword:output_type -> v1.azurpromilia.MySelfServiceResponse
-	9,  // 32: v1.azurpromilia.AzurPromiliaPassportService.RenameMe:output_type -> v1.azurpromilia.MySelfServiceResponse
+	4,  // 12: v1.azurpromilia.AzurPromiliaPassportService.MailMe:input_type -> v1.azurpromilia.SelfServiceMailRequest
+	5,  // 13: v1.azurpromilia.AzurPromiliaPassportService.AdjustMyItems:input_type -> v1.azurpromilia.SelfServiceItemsRequest
+	3,  // 14: v1.azurpromilia.AzurPromiliaPassportService.KickMe:input_type -> v1.azurpromilia.SelfServiceRequest
+	6,  // 15: v1.azurpromilia.AzurPromiliaPassportService.BanMe:input_type -> v1.azurpromilia.SelfServiceBanRequest
+	3,  // 16: v1.azurpromilia.AzurPromiliaPassportService.UnbanMe:input_type -> v1.azurpromilia.SelfServiceRequest
+	7,  // 17: v1.azurpromilia.AzurPromiliaPassportService.SetMyPassword:input_type -> v1.azurpromilia.SelfServicePasswordRequest
+	8,  // 18: v1.azurpromilia.AzurPromiliaPassportService.RenameMe:input_type -> v1.azurpromilia.SelfServiceRenameRequest
+	13, // 19: v1.azurpromilia.AzurPromiliaPassportService.GetMyPlayer:output_type -> v1.azurpromilia.PlayerDetail
+	14, // 20: v1.azurpromilia.AzurPromiliaPassportService.ListMyLogins:output_type -> v1.azurpromilia.LoginPage
+	15, // 21: v1.azurpromilia.AzurPromiliaPassportService.ListMyItems:output_type -> v1.azurpromilia.ItemPage
+	15, // 22: v1.azurpromilia.AzurPromiliaPassportService.ListMyCurrencies:output_type -> v1.azurpromilia.ItemPage
+	16, // 23: v1.azurpromilia.AzurPromiliaPassportService.ListMyHeroes:output_type -> v1.azurpromilia.HeroPage
+	17, // 24: v1.azurpromilia.AzurPromiliaPassportService.ListMyPets:output_type -> v1.azurpromilia.PetPage
+	18, // 25: v1.azurpromilia.AzurPromiliaPassportService.ListMyMails:output_type -> v1.azurpromilia.MailPage
+	10, // 26: v1.azurpromilia.AzurPromiliaPassportService.MailMe:output_type -> v1.azurpromilia.MySelfServiceResponse
+	10, // 27: v1.azurpromilia.AzurPromiliaPassportService.AdjustMyItems:output_type -> v1.azurpromilia.MySelfServiceResponse
+	10, // 28: v1.azurpromilia.AzurPromiliaPassportService.KickMe:output_type -> v1.azurpromilia.MySelfServiceResponse
+	10, // 29: v1.azurpromilia.AzurPromiliaPassportService.BanMe:output_type -> v1.azurpromilia.MySelfServiceResponse
+	10, // 30: v1.azurpromilia.AzurPromiliaPassportService.UnbanMe:output_type -> v1.azurpromilia.MySelfServiceResponse
+	10, // 31: v1.azurpromilia.AzurPromiliaPassportService.SetMyPassword:output_type -> v1.azurpromilia.MySelfServiceResponse
+	10, // 32: v1.azurpromilia.AzurPromiliaPassportService.RenameMe:output_type -> v1.azurpromilia.MySelfServiceResponse
 	19, // [19:33] is the sub-list for method output_type
 	5,  // [5:19] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
@@ -829,7 +904,7 @@ func file_v1_azurpromilia_passport_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_azurpromilia_passport_proto_rawDesc), len(file_v1_azurpromilia_passport_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

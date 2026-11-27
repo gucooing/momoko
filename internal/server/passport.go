@@ -15,6 +15,7 @@ import (
 	"momoko/internal/conf"
 	"momoko/internal/service"
 	"momoko/pkg/passporttoken"
+	"momoko/pkg/themeasset"
 	"momoko/pkg/response"
 )
 
@@ -79,8 +80,9 @@ func PassportEnabled(c *conf.Passport) bool {
 }
 
 // NewPassportServer 创建用户通行证 server（默认 0.0.0.0:22634）；没启用时为 nil，不加进应用。
+// 主题资源（背景图 / 字体）和管理后台同一份：通行证套用全站默认主题时从这里取。
 func NewPassportServer(c *conf.Passport, passportApi *service.PassportService, gakumasApi *service.GakumasPassportService,
-	azurApi *service.AzurPromiliaPassportService) *PassportServer {
+	azurApi *service.AzurPromiliaPassportService, themeAssets *themeasset.Manager) *PassportServer {
 	if !PassportEnabled(c) {
 		return nil
 	}
@@ -92,6 +94,7 @@ func NewPassportServer(c *conf.Passport, passportApi *service.PassportService, g
 		http.Address(addr),
 		http.Filter(
 			corsMiddleware(),
+			themeAssets.Filter(),     // 主题资源（公开）
 			passportDistMiddleware(), // 通行证前端
 			passportAuthFilter(passportApi.Usecase()),
 		),

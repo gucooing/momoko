@@ -2,13 +2,16 @@
 import { computed, ref, shallowRef, type Ref } from 'vue'
 import dayjs from 'dayjs'
 import { getCurrentLocale, i18n } from '@/locales'
-import { azurNames } from '@/games/azurpromilia/names'
+import { azurNames, kindOf } from '@/games/azurpromilia/names'
 import type { OperationOutcome, OperationRow } from '@/games/mgp'
 import type { GmExecution } from '@/types/v1/game_gm'
 import type { OperationResponse } from '@/types/v1/azurpromilia/gm'
 
 /** 按管理端当前语言显示的奖励与条目名称。 */
 export const { kindName, rewardTypeName, itemName, rewardText, rewardsText, searchItems } = azurNames(getCurrentLocale)
+
+/** 调整道具与货币时能扣除的种类：只有货币与普通道具（服务端规则）。 */
+export const canTake = (type: number) => ['currency', 'common_item'].includes(kindOf(type))
 
 /** Unix 毫秒 → 本地时间；0 为「—」。 */
 export const fmtTime = (ms: number | undefined) => (ms ? dayjs(ms).format('YYYY-MM-DD HH:mm') : '—')

@@ -32,16 +32,16 @@ service AzurPromiliaGMService {
   rpc ListPlayerLogins(PageRequest) returns (LoginPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/logins"};
   }
-  rpc ListPlayerItems(ListItemsRequest) returns (ItemPage) {
+  rpc ListPlayerItems(ListByIDsRequest) returns (ItemPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/items"};
   }
   rpc ListPlayerCurrencies(PlayerRequest) returns (ItemPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/currencies"};
   }
-  rpc ListPlayerHeroes(PageRequest) returns (HeroPage) {
+  rpc ListPlayerHeroes(ListByIDsRequest) returns (HeroPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes"};
   }
-  rpc ListPlayerPets(PageRequest) returns (PetPage) {
+  rpc ListPlayerPets(ListByIDsRequest) returns (PetPage) {
     option (google.api.http) = {get: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets"};
   }
   rpc ListPlayerMails(PageRequest) returns (MailPage) {
@@ -52,6 +52,14 @@ service AzurPromiliaGMService {
   // 发放与扣除道具、货币（扣除只能是货币与普通道具，不足时这名玩家失败）
   rpc AdjustItems(AdjustItemsRequest) returns (OperationResponse) {
     option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/items/adjust", body: "*"};
+  }
+  // 设定一个英雄（seq 为序号）的等级、突破、星级、好感，只改给出的字段（操作 hero.set，写 GM 记录）
+  rpc SetPlayerHero(SetHeroRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/heroes/{seq}", body: "*"};
+  }
+  // 设定一只奇波（guid）的等级、星魂、锁定、名字，只改给出的字段（操作 pet.set，写 GM 记录）
+  rpc SetPlayerPet(SetPetRequest) returns (OperationResponse) {
+    option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/{pid}/pets/{guid}", body: "*"};
   }
   rpc MailPlayers(MailPlayersRequest) returns (OperationResponse) {
     option (google.api.http) = {post: "/api/v1/azurpromilia/gm/{server_id}/players/mail", body: "*"};
@@ -160,10 +168,10 @@ message GetPlayerResponse {
   int32 gm_executions = 4;
 }
 
-message ListItemsRequest {
+// 按 ID 筛选的玩家数据列表（道具、英雄、奇波）：ids 不为空时只取这些道具 / 英雄 / 奇波 ID。
+message ListByIDsRequest {
   string server_id = 1;
   string pid = 2;
-  // 只取这些道具 ID
   repeated int32 ids = 3;
   string cursor = 4;
   int32 limit = 5;
@@ -199,6 +207,32 @@ message PlayersOperationRequest {
   // 1–200 名玩家
   repeated string pids = 2;
   bool dry_run = 3;
+}
+
+message SetHeroRequest {
+  string server_id = 1;
+  string pid = 2;
+  int32 seq = 3;
+  optional int32 level = 4;
+  // 突破
+  optional int32 rank = 5;
+  // 星级
+  optional int32 grade = 6;
+  optional int32 favor_level = 7;
+  bool dry_run = 8;
+}
+
+message SetPetRequest {
+  string server_id = 1;
+  string pid = 2;
+  int32 guid = 3;
+  optional int32 level = 4;
+  // 星魂阶段与节点：一起给出
+  optional int32 star_stage = 5;
+  optional int32 star_node = 6;
+  optional bool locked = 7;
+  optional string name = 8;
+  bool dry_run = 9;
 }
 
 message AdjustItemsRequest {
