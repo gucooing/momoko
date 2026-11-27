@@ -130,6 +130,7 @@ var nodeTunnelPaths = map[string]constant.Permissions{
 	biz.PreFileDownload:           "",
 	biz.PreFileUpload:             "",
 	biz.AgentWsPath:               constant.AgentUse,
+	biz.AgentLoginWsPath:          constant.AgentManage,
 	biz.SystemUpdateUploadPath:    constant.SystemUpdate,
 }
 

@@ -624,6 +624,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetAgentProviderBalanceResponse'
+    /api/v1/agent/proxy/test:
+        post:
+            tags:
+                - AgentService
+            description: 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+            operationId: AgentService_TestAgentProxy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.TestAgentProxyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.TestAgentProxyResponse'
     /api/v1/agent/runtimes:
         get:
             tags:
@@ -767,6 +786,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SetAgentRuntimeModelsResponse'
+    /api/v1/agent/runtimes/{id}/proxy:
+        post:
+            tags:
+                - AgentService
+            description: 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
+            operationId: AgentService_SetAgentRuntimeProxy
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.SetAgentRuntimeProxyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SetAgentRuntimeProxyResponse'
     /api/v1/agent/runtimes/{id}/update:
         post:
             tags:
@@ -15323,6 +15367,10 @@ components:
                     type: array
                     items:
                         type: string
+                proxy:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentProxy'
+                    description: 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传表示不改，type 为空表示不走代理
             description: |-
                 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）。属于添加它的人，只有他自己用得上；
                  管理员在 Agent 管理页加的是共享的，共享给所有人或指定的人，被共享到的人只能用、看不到密钥和环境变量
@@ -15371,6 +15419,26 @@ components:
                 outputTokens:
                     type: string
             description: 一种协议的测试结果
+        v1.AgentProxy:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: 空 = 不走代理；http | socks5
+                host:
+                    type: string
+                port:
+                    type: integer
+                    format: int32
+                username:
+                    type: string
+                password:
+                    type: string
+                    description: 只写；留空表示保留原来的密码（用户名也没变时）
+                hasPassword:
+                    type: boolean
+                    description: 存着密码
+            description: 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只有这个出口的网络里，别的路都断掉（只有 Linux 做得到）
         v1.AgentRunSettings:
             type: object
             properties:
@@ -15441,6 +15509,13 @@ components:
                     items:
                         type: string
                     description: 启动参数（command 是可执行文件）
+                proxy:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentProxy'
+                    description: 服务器上的登录走的代理（只有 Linux 能配）
+                canLogin:
+                    type: boolean
+                    description: 能在页面上的终端里登录（有登录命令）
         v1.AgentRuntimeOptions:
             type: object
             properties:
@@ -19293,6 +19368,10 @@ components:
                     type: string
                 apiKey:
                     type: string
+                proxy:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentProxy'
+                    description: 表单里的代理；不传时用已保存的
         v1.FetchAgentProviderModelsResponse:
             type: object
             properties:
@@ -22808,6 +22887,11 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.AgentUser'
                     description: all 时这些接口的主人和共享给的人
+                proxySupported:
+                    type: boolean
+                    description: 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行）
+                proxyUnavailable:
+                    type: string
         v1.ListAgentRuntimesResponse:
             type: object
             properties:
@@ -22817,6 +22901,11 @@ components:
                         $ref: '#/components/schemas/v1.AgentRuntime'
                 settings:
                     $ref: '#/components/schemas/v1.AgentRunSettings'
+                proxySupported:
+                    type: boolean
+                    description: 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行）
+                proxyUnavailable:
+                    type: string
         v1.ListAgentSessionFilesResponse:
             type: object
             properties:
@@ -26651,6 +26740,20 @@ components:
             properties:
                 runtime:
                     $ref: '#/components/schemas/v1.AgentRuntime'
+        v1.SetAgentRuntimeProxyRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                proxy:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentProxy'
+                    description: type 为空表示不走代理
+        v1.SetAgentRuntimeProxyResponse:
+            type: object
+            properties:
+                runtime:
+                    $ref: '#/components/schemas/v1.AgentRuntime'
         v1.SetAgentSessionOptionRequest:
             type: object
             properties:
@@ -27473,6 +27576,33 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.AgentProviderTestResult'
                     description: 供应商给的每种协议一条
+        v1.TestAgentProxyRequest:
+            type: object
+            properties:
+                proxy:
+                    $ref: '#/components/schemas/v1.AgentProxy'
+                runtimeId:
+                    type: string
+                    description: 给哪个官方账户（运行时 id）或第三方接口（供应商 id）配的：决定连去哪里，密码留空时用它已保存的
+                providerId:
+                    type: string
+                vendor:
+                    type: string
+                    description: 第三方接口还没保存时：类型和接口地址
+                baseUrl:
+                    type: string
+        v1.TestAgentProxyResponse:
+            type: object
+            properties:
+                ok:
+                    type: boolean
+                error:
+                    type: string
+                latencyMs:
+                    type: string
+                target:
+                    type: string
+                    description: 连的是哪里（主机:端口）
         v1.TestDockerConfigRequest:
             type: object
             properties:

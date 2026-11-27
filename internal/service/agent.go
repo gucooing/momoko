@@ -26,6 +26,8 @@ func NewAgentService(uc *biz.AgentUsecase) *AgentService {
 // RegisterRawRoutes 会话事件的 WebSocket。
 func (s *AgentService) RegisterRawRoutes(srv *http.Server) {
 	srv.Handle(biz.AgentWsPath, websocket.Handler(s.RunWsConn))
+	// 官方账户的登录终端（?runtime=运行时 id）
+	srv.Handle(biz.AgentLoginWsPath, websocket.Handler(s.RunLoginWsConn))
 	// 文件页 HTML 预览：把目录当静态站点给 iframe 加载（签名鉴权，见 biz.AgentPreviewPrefix）
 	srv.HandlePrefix(biz.AgentPreviewPrefix, stdhttp.HandlerFunc(s.uc.ServePreview))
 }
@@ -713,6 +715,24 @@ func (s *AgentService) UpdateAgentRunSettings(ctx context.Context, req *v1.Updat
 		return nil, err
 	}
 	return &v1.UpdateAgentRunSettingsResponse{Settings: saved}, nil
+}
+
+func (s *AgentService) SetAgentRuntimeProxy(ctx context.Context, req *v1.SetAgentRuntimeProxyRequest) (*v1.SetAgentRuntimeProxyResponse, error) {
+	runtime, err := s.uc.SetRuntimeProxy(ctx, req.GetId(), req.GetProxy())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SetAgentRuntimeProxyResponse{Runtime: runtime}, nil
+}
+
+func (s *AgentService) TestAgentProxy(ctx context.Context, req *v1.TestAgentProxyRequest) (*v1.TestAgentProxyResponse, error) {
+	return s.uc.TestProxy(ctx, req)
+}
+
+// RunLoginWsConn 官方账户的登录终端：在服务器上跑登录命令，连接断开或命令结束为止。
+func (s *AgentService) RunLoginWsConn(conn *websocket.Conn) {
+	defer conn.Close()
+	_ = s.uc.ServeLogin(conn, conn.Request().URL.Query().Get("runtime"))
 }
 
 // —— 通知 ——

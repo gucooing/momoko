@@ -134,6 +134,11 @@ func Share(v string) predicate.AgentProvider {
 	return predicate.AgentProvider(sql.FieldEQ(FieldShare, v))
 }
 
+// Proxy applies equality check predicate on the "proxy" field. It's identical to ProxyEQ.
+func Proxy(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEQ(FieldProxy, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.AgentProvider {
 	return predicate.AgentProvider(sql.FieldEQ(FieldCreateTime, v))
@@ -982,6 +987,71 @@ func ShareUsersIsNil() predicate.AgentProvider {
 // ShareUsersNotNil applies the NotNil predicate on the "share_users" field.
 func ShareUsersNotNil() predicate.AgentProvider {
 	return predicate.AgentProvider(sql.FieldNotNull(FieldShareUsers))
+}
+
+// ProxyEQ applies the EQ predicate on the "proxy" field.
+func ProxyEQ(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEQ(FieldProxy, v))
+}
+
+// ProxyNEQ applies the NEQ predicate on the "proxy" field.
+func ProxyNEQ(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldNEQ(FieldProxy, v))
+}
+
+// ProxyIn applies the In predicate on the "proxy" field.
+func ProxyIn(vs ...string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldIn(FieldProxy, vs...))
+}
+
+// ProxyNotIn applies the NotIn predicate on the "proxy" field.
+func ProxyNotIn(vs ...string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldNotIn(FieldProxy, vs...))
+}
+
+// ProxyGT applies the GT predicate on the "proxy" field.
+func ProxyGT(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldGT(FieldProxy, v))
+}
+
+// ProxyGTE applies the GTE predicate on the "proxy" field.
+func ProxyGTE(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldGTE(FieldProxy, v))
+}
+
+// ProxyLT applies the LT predicate on the "proxy" field.
+func ProxyLT(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldLT(FieldProxy, v))
+}
+
+// ProxyLTE applies the LTE predicate on the "proxy" field.
+func ProxyLTE(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldLTE(FieldProxy, v))
+}
+
+// ProxyContains applies the Contains predicate on the "proxy" field.
+func ProxyContains(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldContains(FieldProxy, v))
+}
+
+// ProxyHasPrefix applies the HasPrefix predicate on the "proxy" field.
+func ProxyHasPrefix(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldHasPrefix(FieldProxy, v))
+}
+
+// ProxyHasSuffix applies the HasSuffix predicate on the "proxy" field.
+func ProxyHasSuffix(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldHasSuffix(FieldProxy, v))
+}
+
+// ProxyEqualFold applies the EqualFold predicate on the "proxy" field.
+func ProxyEqualFold(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldEqualFold(FieldProxy, v))
+}
+
+// ProxyContainsFold applies the ContainsFold predicate on the "proxy" field.
+func ProxyContainsFold(v string) predicate.AgentProvider {
+	return predicate.AgentProvider(sql.FieldContainsFold(FieldProxy, v))
 }
 
 // And groups predicates with the AND operator between them.

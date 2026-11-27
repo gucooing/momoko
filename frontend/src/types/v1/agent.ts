@@ -1132,6 +1132,21 @@ export interface AgentProvider {
    */
   share: string;
   shareUserIds: string[];
+  /** 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传表示不改，type 为空表示不走代理 */
+  proxy: AgentProxy | undefined;
+}
+
+/** 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只有这个出口的网络里，别的路都断掉（只有 Linux 做得到） */
+export interface AgentProxy {
+  /** 空 = 不走代理；http | socks5 */
+  type: string;
+  host: string;
+  port: number;
+  username: string;
+  /** 只写；留空表示保留原来的密码（用户名也没变时） */
+  password: string;
+  /** 存着密码 */
+  hasPassword: boolean;
 }
 
 export interface ListAgentProvidersRequest {
@@ -1145,6 +1160,9 @@ export interface ListAgentProvidersResponse {
   vendors: AgentVendor[];
   /** all 时这些接口的主人和共享给的人 */
   users: AgentUser[];
+  /** 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行） */
+  proxySupported: boolean;
+  proxyUnavailable: string;
 }
 
 export interface CreateAgentProviderRequest {
@@ -1208,6 +1226,8 @@ export interface FetchAgentProviderModelsRequest {
   vendor: string;
   baseUrl: string;
   apiKey: string;
+  /** 表单里的代理；不传时用已保存的 */
+  proxy: AgentProxy | undefined;
 }
 
 export interface FetchAgentProviderModelsResponse {
@@ -1481,6 +1501,12 @@ export interface AgentRuntime {
   models: AgentModelOption[];
   /** 启动参数（command 是可执行文件） */
   args: string[];
+  /** 服务器上的登录走的代理（只有 Linux 能配） */
+  proxy:
+    | AgentProxy
+    | undefined;
+  /** 能在页面上的终端里登录（有登录命令） */
+  canLogin: boolean;
 }
 
 export interface AgentRunSettings {
@@ -1494,7 +1520,12 @@ export interface ListAgentRuntimesRequest {
 
 export interface ListAgentRuntimesResponse {
   runtimes: AgentRuntime[];
-  settings: AgentRunSettings | undefined;
+  settings:
+    | AgentRunSettings
+    | undefined;
+  /** 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行） */
+  proxySupported: boolean;
+  proxyUnavailable: string;
 }
 
 export interface SetAgentRuntimeModeRequest {
@@ -1566,6 +1597,36 @@ export interface UpdateAgentRunSettingsRequest {
 
 export interface UpdateAgentRunSettingsResponse {
   settings: AgentRunSettings | undefined;
+}
+
+export interface SetAgentRuntimeProxyRequest {
+  id: string;
+  /** type 为空表示不走代理 */
+  proxy: AgentProxy | undefined;
+}
+
+export interface SetAgentRuntimeProxyResponse {
+  runtime: AgentRuntime | undefined;
+}
+
+export interface TestAgentProxyRequest {
+  proxy:
+    | AgentProxy
+    | undefined;
+  /** 给哪个官方账户（运行时 id）或第三方接口（供应商 id）配的：决定连去哪里，密码留空时用它已保存的 */
+  runtimeId: string;
+  providerId: string;
+  /** 第三方接口还没保存时：类型和接口地址 */
+  vendor: string;
+  baseUrl: string;
+}
+
+export interface TestAgentProxyResponse {
+  ok: boolean;
+  error: string;
+  latencyMs: number;
+  /** 连的是哪里（主机:端口） */
+  target: string;
 }
 
 export interface AgentNotifyChannel {

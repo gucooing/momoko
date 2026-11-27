@@ -16,13 +16,24 @@ const createNoWindow = 0x08000000
 
 // newCommand 建启动命令。npx、pnpm 这类在 Windows 上是 .cmd 脚本，CreateProcess 不能直接跑，要交给 cmd.exe。
 func newCommand(path string, args []string) *exec.Cmd {
-	ext := strings.ToLower(filepath.Ext(path))
-	if ext != ".cmd" && ext != ".bat" {
+	shell, cmdline, ok := ScriptCommandLine(path, args)
+	if !ok {
 		cmd := exec.Command(path, args...)
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: createNoWindow}
 		return cmd
 	}
-	shell := os.Getenv("ComSpec")
+	cmd := exec.Command(shell)
+	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: cmdline, HideWindow: true, CreationFlags: createNoWindow}
+	return cmd
+}
+
+// ScriptCommandLine .cmd / .bat 脚本不能直接交给 CreateProcess：返回替它跑的 cmd.exe 和整条命令行；不是脚本时 ok 为 false。
+func ScriptCommandLine(path string, args []string) (shell, cmdline string, ok bool) {
+	ext := strings.ToLower(filepath.Ext(path))
+	if ext != ".cmd" && ext != ".bat" {
+		return "", "", false
+	}
+	shell = os.Getenv("ComSpec")
 	if shell == "" {
 		shell = "cmd.exe"
 	}
@@ -32,13 +43,7 @@ func newCommand(path string, args []string) *exec.Cmd {
 	for _, arg := range args {
 		parts = append(parts, caret(quoteArg(arg)))
 	}
-	cmd := exec.Command(shell)
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		CmdLine:       syscall.EscapeArg(shell) + ` /d /s /c "` + strings.Join(parts, " ") + `"`,
-		HideWindow:    true,
-		CreationFlags: createNoWindow,
-	}
-	return cmd
+	return shell, syscall.EscapeArg(shell) + ` /d /s /c "` + strings.Join(parts, " ") + `"`, true
 }
 
 // quoteArg 按 C 运行时的规则把一个参数包进引号：脚本最后启动的程序（node 等）是按这套规则拆参数的。

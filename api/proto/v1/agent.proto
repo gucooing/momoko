@@ -349,6 +349,14 @@ service AgentService {
   rpc UpdateAgentRunSettings(UpdateAgentRunSettingsRequest) returns (UpdateAgentRunSettingsResponse) {
     option (google.api.http) = { post: "/api/v1/agent/runtimes/settings" body: "*" };
   }
+  // 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
+  rpc SetAgentRuntimeProxy(SetAgentRuntimeProxyRequest) returns (SetAgentRuntimeProxyResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/proxy" body: "*" };
+  }
+  // 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+  rpc TestAgentProxy(TestAgentProxyRequest) returns (TestAgentProxyResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/proxy/test" body: "*" };
+  }
 
   // —— 通知：每个人自己的 ——
   rpc GetAgentNotify(GetAgentNotifyRequest) returns (GetAgentNotifyResponse) {
@@ -1416,6 +1424,21 @@ message AgentProvider {
   // 共享的只能在 Agent 管理页里（要有 agent:admin）新建和修改，别人那里只能用
   string share = 23;
   repeated string share_user_ids = 24;
+  // 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传表示不改，type 为空表示不走代理
+  AgentProxy proxy = 25;
+}
+
+// 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只有这个出口的网络里，别的路都断掉（只有 Linux 做得到）
+message AgentProxy {
+  // 空 = 不走代理；http | socks5
+  string type = 1;
+  string host = 2;
+  int32 port = 3;
+  string username = 4;
+  // 只写；留空表示保留原来的密码（用户名也没变时）
+  string password = 5;
+  // 存着密码
+  bool has_password = 6;
 }
 
 message ListAgentProvidersRequest {
@@ -1428,6 +1451,9 @@ message ListAgentProvidersResponse {
   repeated AgentVendor vendors = 2;
   // all 时这些接口的主人和共享给的人
   repeated AgentUser users = 3;
+  // 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行）
+  bool proxy_supported = 4;
+  string proxy_unavailable = 5;
 }
 
 message CreateAgentProviderRequest {
@@ -1483,6 +1509,8 @@ message FetchAgentProviderModelsRequest {
   string vendor = 2;
   string base_url = 3;
   string api_key = 4;
+  // 表单里的代理；不传时用已保存的
+  AgentProxy proxy = 5;
 }
 message FetchAgentProviderModelsResponse {
   // 接口给了才有推理等级、最长上下文和最长输出（没给的为空或 0）
@@ -1729,6 +1757,10 @@ message AgentRuntime {
   repeated AgentModelOption models = 20;
   // 启动参数（command 是可执行文件）
   repeated string args = 18;
+  // 服务器上的登录走的代理（只有 Linux 能配）
+  AgentProxy proxy = 21;
+  // 能在页面上的终端里登录（有登录命令）
+  bool can_login = 22;
 }
 
 message AgentRunSettings {
@@ -1741,6 +1773,9 @@ message ListAgentRuntimesRequest {}
 message ListAgentRuntimesResponse {
   repeated AgentRuntime runtimes = 1;
   AgentRunSettings settings = 2;
+  // 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行）
+  bool proxy_supported = 3;
+  string proxy_unavailable = 4;
 }
 
 message SetAgentRuntimeModeRequest {
@@ -1801,6 +1836,32 @@ message UpdateAgentRunSettingsRequest {
 }
 message UpdateAgentRunSettingsResponse {
   AgentRunSettings settings = 1;
+}
+
+message SetAgentRuntimeProxyRequest {
+  string id = 1;
+  // type 为空表示不走代理
+  AgentProxy proxy = 2;
+}
+message SetAgentRuntimeProxyResponse {
+  AgentRuntime runtime = 1;
+}
+
+message TestAgentProxyRequest {
+  AgentProxy proxy = 1;
+  // 给哪个官方账户（运行时 id）或第三方接口（供应商 id）配的：决定连去哪里，密码留空时用它已保存的
+  string runtime_id = 2;
+  string provider_id = 3;
+  // 第三方接口还没保存时：类型和接口地址
+  string vendor = 4;
+  string base_url = 5;
+}
+message TestAgentProxyResponse {
+  bool ok = 1;
+  string error = 2;
+  int64 latency_ms = 3;
+  // 连的是哪里（主机:端口）
+  string target = 4;
 }
 
 // ———————————————————————————— 通知 ————————————————————————————

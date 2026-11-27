@@ -15,6 +15,7 @@ import (
 	pty "github.com/aymanbagabas/go-pty"
 	"golang.org/x/net/websocket"
 
+	"momoko/pkg/agentproxy"
 	"momoko/pkg/sysenv"
 	"momoko/pkg/termws"
 )
@@ -35,29 +36,53 @@ func ServeWebSocket(conn *websocket.Conn, dir string) error {
 		_ = websocket.Message.Send(conn, fmt.Sprintf("[system] %v\r\n", err))
 		return err
 	}
+	name, args, env := shellCommand()
+	// 用注册表现在的环境变量（Momoko 启动后装的工具也找得到），不是 Momoko 启动那一刻的
+	return serve(conn, Spec{Path: name, Args: args, Dir: cwd, Env: append(sysenv.Environ(), env...)}, "")
+}
 
+// Spec 在伪终端里跑的一条命令。
+type Spec struct {
+	// Path 可执行文件的绝对路径（Windows 上的 .cmd / .bat 交给 cmd.exe）。
+	Path string
+	// Args 参数，不含命令本身。
+	Args []string
+	Dir  string
+	// Env 完整的环境（KEY=VALUE）。
+	Env []string
+	// Proxy 不为空时这条命令（连同它的子进程）只能经这个代理联网：只有 Linux 做得到，见 pkg/agentsandbox。
+	Proxy *agentproxy.Proxy
+}
+
+// TermEnv 终端里跑的程序都该有的环境（KEY=VALUE）：Unix 上是真彩色的 xterm、长输出不分页。
+func TermEnv() []string {
+	_, _, env := shellCommand()
+	return env
+}
+
+// ServeCommand 在本机的伪终端里跑一条命令，接到 conn 上，直到命令退出或连接断开；命令退出时先把 farewell（可为空）写到终端里。
+func ServeCommand(conn *websocket.Conn, spec Spec, farewell string) error {
+	return serve(conn, spec, farewell)
+}
+
+// serve 起 spec 这条命令并把伪终端接到 conn 上。
+func serve(conn *websocket.Conn, spec Spec, farewell string) error {
 	ptmx, err := pty.New()
 	if err != nil {
 		_ = websocket.Message.Send(conn, fmt.Sprintf("[system] 创建伪终端失败: %v\r\n", err))
 		return err
 	}
-
-	name, args, env := shellCommand()
-	cmd := ptmx.Command(name, args...)
-	cmd.Dir = cwd
-	// 用注册表现在的环境变量（Momoko 启动后装的工具也找得到），不是 Momoko 启动那一刻的
-	cmd.Env = append(sysenv.Environ(), env...)
-	configureCmd(cmd)
-	if err := cmd.Start(); err != nil {
+	proc, wait, err := start(ptmx, spec)
+	if err != nil {
 		_ = ptmx.Close()
-		_ = websocket.Message.Send(conn, fmt.Sprintf("[system] 启动 %s 失败: %v\r\n", name, err))
+		_ = websocket.Message.Send(conn, fmt.Sprintf("[system] 启动 %s 失败: %v\r\n", filepath.Base(spec.Path), err))
 		return err
 	}
 	_ = ptmx.Resize(defaultCols, defaultRows)
 
 	exited := make(chan struct{})
 	go func() {
-		_ = cmd.Wait()
+		_ = wait()
 		close(exited)
 	}()
 
@@ -83,7 +108,7 @@ func ServeWebSocket(conn *websocket.Conn, dir string) error {
 		doneOnce.Do(func() {
 			close(done)
 			_ = conn.Close()
-			go terminate(cmd.Process, exited)
+			go terminate(proc, exited)
 			_ = ptmx.Close()
 		})
 	}
@@ -119,6 +144,11 @@ func ServeWebSocket(conn *websocket.Conn, dir string) error {
 	go func() {
 		select {
 		case <-exited:
+			if farewell != "" {
+				// 让最后几行输出先到
+				time.Sleep(200 * time.Millisecond)
+				_ = sendText(farewell)
+			}
 			closeDone()
 		case <-done:
 		}
@@ -153,6 +183,21 @@ func ServeWebSocket(conn *websocket.Conn, dir string) error {
 			return nil
 		}
 	}
+}
+
+// start 起命令：要走代理的交给 startSandboxed（只有 Linux），别的用 go-pty 起。
+func start(ptmx pty.Pty, spec Spec) (*os.Process, func() error, error) {
+	if spec.Proxy != nil {
+		return startSandboxed(ptmx, spec)
+	}
+	cmd := command(ptmx, spec.Path, spec.Args)
+	cmd.Dir = spec.Dir
+	cmd.Env = spec.Env
+	configureCmd(cmd)
+	if err := cmd.Start(); err != nil {
+		return nil, nil, err
+	}
+	return cmd.Process, cmd.Wait, nil
 }
 
 // resolveDir 指定的起始目录：要绝对路径、要存在、要是目录；不满足就报错，不悄悄换成主目录。没指定就用 workDir。

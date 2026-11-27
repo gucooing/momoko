@@ -15,6 +15,9 @@ func newCommand(path string, args []string) *exec.Cmd {
 	return cmd
 }
 
+// ScriptCommandLine 只有 Windows 的 .cmd / .bat 要交给 cmd.exe。
+func ScriptCommandLine(string, []string) (shell, cmdline string, ok bool) { return "", "", false }
+
 // killTree 先给整个进程组发 SIGTERM，两秒后还没退就 SIGKILL。
 func killTree(cmd *exec.Cmd) {
 	if cmd.Process == nil {

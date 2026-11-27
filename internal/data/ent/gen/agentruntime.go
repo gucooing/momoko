@@ -53,7 +53,9 @@ type AgentRuntime struct {
 	// Agent 给出的权限模式和默认模型（JSON）；模型清单在 agent_runtime_models
 	Catalog string `json:"catalog,omitempty"`
 	// 排序
-	Sort         int `json:"sort,omitempty"`
+	Sort int `json:"sort,omitempty"`
+	// 服务器上的登录走的代理 http:// 或 socks5://（secretbox 加密，可能带账号密码）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox
+	Proxy        string `json:"-"`
 	selectValues sql.SelectValues
 }
 
@@ -66,7 +68,7 @@ func (*AgentRuntime) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case agentruntime.FieldSort:
 			values[i] = new(sql.NullInt64)
-		case agentruntime.FieldID, agentruntime.FieldName, agentruntime.FieldKind, agentruntime.FieldCommand, agentruntime.FieldVersion, agentruntime.FieldAgentName, agentruntime.FieldAgentVersion, agentruntime.FieldError, agentruntime.FieldCaps, agentruntime.FieldAuthLabel, agentruntime.FieldAuthDetail, agentruntime.FieldCatalog:
+		case agentruntime.FieldID, agentruntime.FieldName, agentruntime.FieldKind, agentruntime.FieldCommand, agentruntime.FieldVersion, agentruntime.FieldAgentName, agentruntime.FieldAgentVersion, agentruntime.FieldError, agentruntime.FieldCaps, agentruntime.FieldAuthLabel, agentruntime.FieldAuthDetail, agentruntime.FieldCatalog, agentruntime.FieldProxy:
 			values[i] = new(sql.NullString)
 		case agentruntime.FieldCreateTime, agentruntime.FieldUpdateTime, agentruntime.FieldDetectedAt:
 			values[i] = new(sql.NullTime)
@@ -200,6 +202,12 @@ func (_m *AgentRuntime) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Sort = int(value.Int64)
 			}
+		case agentruntime.FieldProxy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field proxy", values[i])
+			} else if value.Valid {
+				_m.Proxy = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -291,6 +299,8 @@ func (_m *AgentRuntime) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("sort=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Sort))
+	builder.WriteString(", ")
+	builder.WriteString("proxy=<sensitive>")
 	builder.WriteByte(')')
 	return builder.String()
 }

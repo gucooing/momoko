@@ -7,7 +7,11 @@ type Translate = (key: string, named?: Record<string, unknown>) => string
 export const loginSub = (t: Translate, r: AgentRuntime, manage: boolean) => {
   if (!r.ready) return t(manage ? 'agent.providers.notReadySub' : 'agent.providers.view.notReady')
   if (!r.detectedAt) return t(manage ? 'agent.providers.uncheckedSub' : 'agent.providers.view.unchecked')
-  if (!r.loggedIn) return manage ? t('agent.providers.notLoggedInSub', { agent: r.name }) : t('agent.providers.view.notLoggedIn')
+  if (!r.loggedIn) {
+    if (!manage) return t('agent.providers.view.notLoggedIn')
+    // 有登录命令的：点「登录」在服务器上打开登录终端
+    return t(r.canLogin ? 'agent.accounts.loginSub' : 'agent.providers.notLoggedInSub', { agent: r.name })
+  }
   const n = (r.models || []).length
   const account = [r.authLabel, r.authDetail].filter(Boolean).join(' · ')
   return account ? t('agent.providers.serverLoginSub', { account, n }) : t('agent.providers.serverLoginSubAnon', { n })

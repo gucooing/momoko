@@ -271,6 +271,20 @@ func (_u *AgentProviderUpdate) ClearShareUsers() *AgentProviderUpdate {
 	return _u
 }
 
+// SetProxy sets the "proxy" field.
+func (_u *AgentProviderUpdate) SetProxy(v string) *AgentProviderUpdate {
+	_u.mutation.SetProxy(v)
+	return _u
+}
+
+// SetNillableProxy sets the "proxy" field if the given value is not nil.
+func (_u *AgentProviderUpdate) SetNillableProxy(v *string) *AgentProviderUpdate {
+	if v != nil {
+		_u.SetProxy(*v)
+	}
+	return _u
+}
+
 // Mutation returns the AgentProviderMutation object of the builder.
 func (_u *AgentProviderUpdate) Mutation() *AgentProviderMutation {
 	return _u.mutation
@@ -416,6 +430,9 @@ func (_u *AgentProviderUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	}
 	if _u.mutation.ShareUsersCleared() {
 		_spec.ClearField(agentprovider.FieldShareUsers, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Proxy(); ok {
+		_spec.SetField(agentprovider.FieldProxy, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -678,6 +695,20 @@ func (_u *AgentProviderUpdateOne) ClearShareUsers() *AgentProviderUpdateOne {
 	return _u
 }
 
+// SetProxy sets the "proxy" field.
+func (_u *AgentProviderUpdateOne) SetProxy(v string) *AgentProviderUpdateOne {
+	_u.mutation.SetProxy(v)
+	return _u
+}
+
+// SetNillableProxy sets the "proxy" field if the given value is not nil.
+func (_u *AgentProviderUpdateOne) SetNillableProxy(v *string) *AgentProviderUpdateOne {
+	if v != nil {
+		_u.SetProxy(*v)
+	}
+	return _u
+}
+
 // Mutation returns the AgentProviderMutation object of the builder.
 func (_u *AgentProviderUpdateOne) Mutation() *AgentProviderMutation {
 	return _u.mutation
@@ -853,6 +884,9 @@ func (_u *AgentProviderUpdateOne) sqlSave(ctx context.Context) (_node *AgentProv
 	}
 	if _u.mutation.ShareUsersCleared() {
 		_spec.ClearField(agentprovider.FieldShareUsers, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Proxy(); ok {
+		_spec.SetField(agentprovider.FieldProxy, field.TypeString, value)
 	}
 	_node = &AgentProvider{config: _u.config}
 	_spec.Assign = _node.assignValues

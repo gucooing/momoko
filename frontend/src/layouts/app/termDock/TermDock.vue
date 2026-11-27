@@ -25,7 +25,7 @@
             @click="activate(tab.key)"
           >
             <span class="td-dot" :class="`is-${toneOf(tab.status)}`" />
-            <UIcon :name="tab.kind === 'local' ? 'i-lucide-square-terminal' : 'i-lucide-server'" class="td-tab__ic" />
+            <UIcon :name="tabIcon(tab)" class="td-tab__ic" />
             <span class="td-tab__t ag-ellipsis">{{ labelOf(tab) }}</span>
           </button>
           <button
@@ -203,6 +203,12 @@ watch(
     } else void refreshActive()
   },
 )
+
+const tabIcon = (tab: DockTab) => {
+  if (tab.kind === 'local') return 'i-lucide-square-terminal'
+  if (tab.kind === 'login') return 'i-lucide-log-in'
+  return 'i-lucide-server'
+}
 
 const labelOf = (tab: DockTab) => {
   if (tab.kind !== 'local') return tab.label || '…'

@@ -47,6 +47,8 @@ const (
 	FieldShare = "share"
 	// FieldShareUsers holds the string denoting the share_users field in the database.
 	FieldShareUsers = "share_users"
+	// FieldProxy holds the string denoting the proxy field in the database.
+	FieldProxy = "proxy"
 	// Table holds the table name of the agentprovider in the database.
 	Table = "agent_providers"
 )
@@ -71,6 +73,7 @@ var Columns = []string{
 	FieldTestedAt,
 	FieldShare,
 	FieldShareUsers,
+	FieldProxy,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -112,6 +115,8 @@ var (
 	DefaultTestLatencyMs int64
 	// DefaultShare holds the default value on creation for the "share" field.
 	DefaultShare string
+	// DefaultProxy holds the default value on creation for the "proxy" field.
+	DefaultProxy string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -192,4 +197,9 @@ func ByTestedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByShare orders the results by the share field.
 func ByShare(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldShare, opts...).ToFunc()
+}
+
+// ByProxy orders the results by the proxy field.
+func ByProxy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProxy, opts...).ToFunc()
 }

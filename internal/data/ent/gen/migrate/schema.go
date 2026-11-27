@@ -109,6 +109,7 @@ var (
 		{Name: "tested_at", Type: field.TypeTime, Nullable: true},
 		{Name: "share", Type: field.TypeString, Default: ""},
 		{Name: "share_users", Type: field.TypeJSON, Nullable: true},
+		{Name: "proxy", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
 	// AgentProvidersTable holds the schema information for the "agent_providers" table.
 	AgentProvidersTable = &schema.Table{
@@ -144,6 +145,7 @@ var (
 		{Name: "logged_in", Type: field.TypeBool, Default: false},
 		{Name: "catalog", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "sort", Type: field.TypeInt, Default: 0},
+		{Name: "proxy", Type: field.TypeString, Size: 2147483647, Default: ""},
 	}
 	// AgentRuntimesTable holds the schema information for the "agent_runtimes" table.
 	AgentRuntimesTable = &schema.Table{

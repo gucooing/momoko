@@ -222,6 +222,20 @@ func (_c *AgentProviderCreate) SetShareUsers(v []string) *AgentProviderCreate {
 	return _c
 }
 
+// SetProxy sets the "proxy" field.
+func (_c *AgentProviderCreate) SetProxy(v string) *AgentProviderCreate {
+	_c.mutation.SetProxy(v)
+	return _c
+}
+
+// SetNillableProxy sets the "proxy" field if the given value is not nil.
+func (_c *AgentProviderCreate) SetNillableProxy(v *string) *AgentProviderCreate {
+	if v != nil {
+		_c.SetProxy(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AgentProviderCreate) SetID(v string) *AgentProviderCreate {
 	_c.mutation.SetID(v)
@@ -307,6 +321,10 @@ func (_c *AgentProviderCreate) defaults() {
 		v := agentprovider.DefaultShare
 		_c.mutation.SetShare(v)
 	}
+	if _, ok := _c.mutation.Proxy(); !ok {
+		v := agentprovider.DefaultProxy
+		_c.mutation.SetProxy(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -359,6 +377,9 @@ func (_c *AgentProviderCreate) check() error {
 	}
 	if _, ok := _c.mutation.Share(); !ok {
 		return &ValidationError{Name: "share", err: errors.New(`gen: missing required field "AgentProvider.share"`)}
+	}
+	if _, ok := _c.mutation.Proxy(); !ok {
+		return &ValidationError{Name: "proxy", err: errors.New(`gen: missing required field "AgentProvider.proxy"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := agentprovider.IDValidator(v); err != nil {
@@ -468,6 +489,10 @@ func (_c *AgentProviderCreate) createSpec() (*AgentProvider, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.ShareUsers(); ok {
 		_spec.SetField(agentprovider.FieldShareUsers, field.TypeJSON, value)
 		_node.ShareUsers = value
+	}
+	if value, ok := _c.mutation.Proxy(); ok {
+		_spec.SetField(agentprovider.FieldProxy, field.TypeString, value)
+		_node.Proxy = value
 	}
 	return _node, _spec
 }
@@ -740,6 +765,18 @@ func (u *AgentProviderUpsert) UpdateShareUsers() *AgentProviderUpsert {
 // ClearShareUsers clears the value of the "share_users" field.
 func (u *AgentProviderUpsert) ClearShareUsers() *AgentProviderUpsert {
 	u.SetNull(agentprovider.FieldShareUsers)
+	return u
+}
+
+// SetProxy sets the "proxy" field.
+func (u *AgentProviderUpsert) SetProxy(v string) *AgentProviderUpsert {
+	u.Set(agentprovider.FieldProxy, v)
+	return u
+}
+
+// UpdateProxy sets the "proxy" field to the value that was provided on create.
+func (u *AgentProviderUpsert) UpdateProxy() *AgentProviderUpsert {
+	u.SetExcluded(agentprovider.FieldProxy)
 	return u
 }
 
@@ -1050,6 +1087,20 @@ func (u *AgentProviderUpsertOne) UpdateShareUsers() *AgentProviderUpsertOne {
 func (u *AgentProviderUpsertOne) ClearShareUsers() *AgentProviderUpsertOne {
 	return u.Update(func(s *AgentProviderUpsert) {
 		s.ClearShareUsers()
+	})
+}
+
+// SetProxy sets the "proxy" field.
+func (u *AgentProviderUpsertOne) SetProxy(v string) *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.SetProxy(v)
+	})
+}
+
+// UpdateProxy sets the "proxy" field to the value that was provided on create.
+func (u *AgentProviderUpsertOne) UpdateProxy() *AgentProviderUpsertOne {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.UpdateProxy()
 	})
 }
 
@@ -1527,6 +1578,20 @@ func (u *AgentProviderUpsertBulk) UpdateShareUsers() *AgentProviderUpsertBulk {
 func (u *AgentProviderUpsertBulk) ClearShareUsers() *AgentProviderUpsertBulk {
 	return u.Update(func(s *AgentProviderUpsert) {
 		s.ClearShareUsers()
+	})
+}
+
+// SetProxy sets the "proxy" field.
+func (u *AgentProviderUpsertBulk) SetProxy(v string) *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.SetProxy(v)
+	})
+}
+
+// UpdateProxy sets the "proxy" field to the value that was provided on create.
+func (u *AgentProviderUpsertBulk) UpdateProxy() *AgentProviderUpsertBulk {
+	return u.Update(func(s *AgentProviderUpsert) {
+		s.UpdateProxy()
 	})
 }
 

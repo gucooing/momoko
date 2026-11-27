@@ -1,4 +1,5 @@
-<!-- 悬浮终端里的一个标签：xterm + 传输层。本机终端连 /api/v1/shell/ws（指定了目录带 ?cwd=）；SSH 先取主机详情拿 wsPath 再连（?hostID=）。
+<!-- 悬浮终端里的一个标签：xterm + 传输层。本机终端连 /api/v1/shell/ws（指定了目录带 ?cwd=）；SSH 先取主机详情拿 wsPath 再连（?hostID=）；
+     Agent 官方账户的登录终端连 /api/v1/agent/login/ws（?runtime=）。
      协议同 SSH 终端：输入原样发文本帧，尺寸发 {"type":"resize"}，服务端文本帧写进终端。
      卸载即断开（关标签、关窗口）；连接断了在屏幕上盖一层「重新连接」。
      外观跟着窗口设置：字号用悬浮终端自己的；背景半透明时 xterm 不画底色，由这一层按不透明度画。 -->
@@ -17,6 +18,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { AGENT_LOGIN_WS_PATH } from '@/api/agent'
 import { getSshHostInfo } from '@/api/openssh'
 import { SHELL_WS_PATH } from '@/api/shell'
 import { buildBackendWebSocketUrl } from '@/utils/websocket'
@@ -60,6 +62,10 @@ const showOverlay = computed(
 )
 
 const resolveUrl = async () => {
+  if (props.tab.kind === 'login') {
+    const runtime = props.tab.runtimeId
+    return buildBackendWebSocketUrl(AGENT_LOGIN_WS_PATH, (url) => url.searchParams.set('runtime', runtime))
+  }
   if (props.tab.kind === 'local') {
     const cwd = props.tab.cwd
     return buildBackendWebSocketUrl(SHELL_WS_PATH, (url) => {

@@ -5,7 +5,22 @@ package shellcore
 import (
 	"os"
 	"os/exec"
+	"syscall"
+
+	pty "github.com/aymanbagabas/go-pty"
+
+	"momoko/pkg/agentproc"
 )
+
+// command 建伪终端里的命令；.cmd / .bat 脚本（npm 装的命令多是这样）交给 cmd.exe。
+func command(ptmx pty.Pty, path string, args []string) *pty.Cmd {
+	if shell, line, ok := agentproc.ScriptCommandLine(path, args); ok {
+		cmd := ptmx.Command(shell)
+		cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: line}
+		return cmd
+	}
+	return ptmx.Command(path, args...)
+}
 
 // noPagerScript 长输出不分页，整段打出来由用户往上翻：Windows PowerShell 的 help 走 more 函数 → more.com，
 // PowerShell 7 的 help 直接调 more.com，都按窗口高度一屏一屏停。会话开头把两者换成直通。

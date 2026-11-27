@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 
 	"momoko/pkg/agentinstall"
+	"momoko/pkg/agentproxy"
 )
 
 // Launch 怎么启动一个 Agent 进程。
@@ -17,6 +18,8 @@ type Launch struct {
 	Args    []string
 	// Env 启动命令自带的环境（在当前进程环境之上）。
 	Env map[string]string
+	// Proxy 不为空时这个进程（连同它启动的所有子进程）只能经这个代理联网，见 agentproc.Config.Proxy。
+	Proxy *agentproxy.Proxy
 }
 
 // API 第三方接口的配置。
@@ -60,6 +63,12 @@ type Driver interface {
 	// RemoveTranscript 删掉 Agent 侧这个会话的记录（在默认配置目录里按会话 id 找）。cwd 是会话的工作目录。
 	RemoveTranscript(cwd, sessionID string)
 
+	// Login 在终端里登录服务器上的账号用的命令：adapter 是这一系 ACP 适配器的可执行文件。
+	// 这一系登录不了（或者服务器上没有登录要用的命令）时 ok 为 false。
+	Login(adapter string) (launch Launch, ok bool)
+	// ProxyEnv 走代理时另外带上的环境：关掉用不着的联网（遥测、错误上报、自动更新）。
+	ProxyEnv() map[string]string
+
 	// Command 从工具调用的原始输入里取要执行的命令；不是命令类工具为空。
 	Command(rawInput json.RawMessage) string
 	// ToolOutput 这一系放在 content 以外的工具结果：从工具调用的 rawOutput 里取给人看的文字，替换已有输出；没有为空。
@@ -78,5 +87,7 @@ func (Generic) Home() string                               { return "" }
 func (Generic) APIEnv(API) map[string]string               { return nil }
 func (Generic) LoginLimits(int64, int64) map[string]string { return nil }
 func (Generic) RemoveTranscript(_, _ string)               {}
+func (Generic) Login(string) (Launch, bool)                { return Launch{}, false }
+func (Generic) ProxyEnv() map[string]string                { return nil }
 func (Generic) Command(json.RawMessage) string             { return "" }
 func (Generic) ToolOutput(json.RawMessage) string          { return "" }

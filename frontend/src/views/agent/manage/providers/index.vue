@@ -27,6 +27,9 @@
               <div class="ag-rs">{{ loginSub(t, r, false) }}</div>
             </div>
             <div class="ag-rc">
+              <span v-if="r.proxy?.type" class="ag-tag ag-px-tag" :title="t('agent.proxy.via', { addr: proxyLabel(r.proxy) })">
+                <UIcon name="i-lucide-shield" />{{ t('agent.proxy.tag') }}
+              </span>
               <span class="ag-pill ag-pv-pill" :class="loginPill(t, r).cls">{{ loginPill(t, r).text }}</span>
             </div>
           </div>
@@ -62,6 +65,9 @@
               </div>
             </div>
             <div class="ag-rc">
+              <span v-if="r.p.proxy?.type" class="ag-tag ag-px-tag" :title="t('agent.proxy.via', { addr: proxyLabel(r.p.proxy) })">
+                <UIcon name="i-lucide-shield" />{{ t('agent.proxy.tag') }}
+              </span>
               <span
                 v-if="r.editable && balanceOf(r.p)"
                 class="ag-tag ag-pv-bal"
@@ -116,7 +122,15 @@
       </template>
     </div>
 
-    <ProviderDialog v-model="formOpen" :provider="formTarget" :vendors="vendors" :shared="formShared" @saved="reload" />
+    <ProviderDialog
+      v-model="formOpen"
+      :provider="formTarget"
+      :vendors="vendors"
+      :shared="formShared"
+      :proxy-supported="proxySupported"
+      :proxy-unavailable="proxyUnavailable"
+      @saved="reload"
+    />
     <AgConfirm
       v-model="deleteOpen"
       danger
@@ -147,6 +161,7 @@ import { useAgentModels } from '@/views/agent/composables/useAgentModels'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { agentKindOf, protocolAgent } from '@/views/agent/utils/format'
 import { vendorName } from '@/views/agent/utils/labels'
+import { proxyLabel } from '@/views/agent/utils/proxy'
 import { loginPill, loginSub } from '../accounts/login'
 import ProviderDialog from './ProviderDialog.vue'
 
@@ -165,6 +180,9 @@ const users = ref<AgentUser[]>([])
 /** 官方账户（只在 Agent 设置里显示，只读） */
 const runtimes = ref<AgentRuntime[]>([])
 const loaded = ref(false)
+/** 这台服务器能配代理（只有 Linux）；proxyUnavailable 是现在用不了的原因 */
+const proxySupported = ref(false)
+const proxyUnavailable = ref('')
 
 // 能管官方账户的人给个去 Agent 管理的链接
 const canManageLogins = computed(() => menuStore.hasMenuPath('/agent/admin') && menuStore.hasButtonPermission('agent:manage'))
@@ -185,6 +203,8 @@ const load = async () => {
     vendors.value = ps.data.vendors || []
     users.value = ps.data.users || []
     runtimes.value = rts?.data.runtimes || []
+    proxySupported.value = !!ps.data.proxySupported
+    proxyUnavailable.value = ps.data.proxyUnavailable || ""
     loadBalances()
   } catch {
     /* shown */
@@ -346,6 +366,14 @@ onActivated(() => {
 }
 .ag-pv-bal {
   font-variant-numeric: tabular-nums;
+}
+// 走代理的标记
+.ag-px-tag {
+  gap: 4px;
+}
+.ag-px-tag .iconify {
+  width: 12px;
+  height: 12px;
 }
 .ag-pv-hint {
   margin: 6px 2px 0;

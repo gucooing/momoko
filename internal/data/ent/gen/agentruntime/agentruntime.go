@@ -50,6 +50,8 @@ const (
 	FieldCatalog = "catalog"
 	// FieldSort holds the string denoting the sort field in the database.
 	FieldSort = "sort"
+	// FieldProxy holds the string denoting the proxy field in the database.
+	FieldProxy = "proxy"
 	// Table holds the table name of the agentruntime in the database.
 	Table = "agent_runtimes"
 )
@@ -75,6 +77,7 @@ var Columns = []string{
 	FieldLoggedIn,
 	FieldCatalog,
 	FieldSort,
+	FieldProxy,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -122,6 +125,8 @@ var (
 	DefaultCatalog string
 	// DefaultSort holds the default value on creation for the "sort" field.
 	DefaultSort int
+	// DefaultProxy holds the default value on creation for the "proxy" field.
+	DefaultProxy string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -249,4 +254,9 @@ func ByCatalog(opts ...sql.OrderTermOption) OrderOption {
 // BySort orders the results by the sort field.
 func BySort(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSort, opts...).ToFunc()
+}
+
+// ByProxy orders the results by the proxy field.
+func ByProxy(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProxy, opts...).ToFunc()
 }

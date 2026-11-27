@@ -148,6 +148,7 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationAgentServiceCreateAgentRuntime:     constant.AgentManage,
 	v1.OperationAgentServiceDeleteAgentRuntime:     constant.AgentManage,
 	v1.OperationAgentServiceUpdateAgentRunSettings: constant.AgentManage,
+	v1.OperationAgentServiceSetAgentRuntimeProxy:   constant.AgentManage,
 }
 
 // servicePrefixPermissions 为高危服务设定默认（最低）权限，按操作名前缀匹配。
@@ -200,6 +201,8 @@ var wsRoutePermissions = map[string]constant.Permissions{
 	biz.DockerImageImportPath: constant.DockerImageManage,
 	// Agent 会话事件
 	biz.AgentWsPath: constant.AgentUse,
+	// 官方账户的登录终端（在服务器上跑登录命令）
+	biz.AgentLoginWsPath: constant.AgentManage,
 	// 本机终端
 	biz.ShellWSPath: constant.Shell,
 	// 上传程序文件更新（原始 HTTP 流）

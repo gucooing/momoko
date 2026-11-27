@@ -4,6 +4,7 @@ import type {
   AgentAttachment,
   AgentMcpServer,
   AgentModelLimit,
+  AgentProxy,
   AgentNotifyEvents,
   AgentProvider,
   AgentRunSettings,
@@ -69,6 +70,9 @@ import type {
   SearchAgentFilesResponse,
   SetAgentRuntimeModeResponse,
   SetAgentRuntimeModelsResponse,
+  SetAgentRuntimeProxyResponse,
+  TestAgentProxyRequest,
+  TestAgentProxyResponse,
   SetAgentSessionOptionResponse,
   TestAgentMcpServerResponse,
   TestAgentProviderResponse,
@@ -84,6 +88,8 @@ import type {
 
 /** 会话事件的 WebSocket 地址（相对路径，交给 buildBackendWebSocketUrl）。 */
 export const AGENT_WS_PATH = '/api/v1/agent/ws'
+/** 官方账户的登录终端：在服务器上跑登录命令（?runtime=运行时 id），权限 agent:manage */
+export const AGENT_LOGIN_WS_PATH = '/api/v1/agent/login/ws'
 
 // 一轮可能要先启动 Agent 进程、恢复上下文，放宽超时。
 const SLOW = { timeout: 120000 }
@@ -363,6 +369,12 @@ export const createAgentRuntime = (name: string, command: string) =>
 export const deleteAgentRuntime = (id: string) => request.delete(`/agent/runtimes/${id}`)
 export const updateAgentRunSettings = (settings: AgentRunSettings) =>
   request.post<UpdateAgentRunSettingsResponse>('/agent/runtimes/settings', { settings })
+/** 官方账户走的代理（只有 Linux 能配）；type 为空是不走代理 */
+export const setAgentRuntimeProxy = (id: string, proxy: AgentProxy) =>
+  request.post<SetAgentRuntimeProxyResponse>(`/agent/runtimes/${id}/proxy`, { proxy })
+/** 试一下代理：经它连到要用的那一家（官方账户给 runtimeId，第三方接口给 providerId 或类型和接口地址） */
+export const testAgentProxy = (data: Partial<TestAgentProxyRequest>) =>
+  request.post<TestAgentProxyResponse>('/agent/proxy/test', data, SLOW)
 
 // —— 通知：每个人自己的 ——
 export const getAgentNotify = () => request.get<GetAgentNotifyResponse>('/agent/notify')

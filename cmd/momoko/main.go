@@ -9,6 +9,7 @@ import (
 	"momoko/internal/conf"
 	"momoko/internal/initialize"
 	"momoko/internal/server"
+	"momoko/pkg/agentsandbox"
 	"momoko/pkg/auth"
 	"momoko/pkg/selfupdate"
 	"momoko/pkg/sysservice"
@@ -76,6 +77,8 @@ func newInitializeApp(logger log.Logger, hs *http.Server) *kratos.App {
 }
 
 func main() {
+	// 配了代理的 Agent 先以看门进程的身份起来（见 pkg/agentsandbox），这时不是 Momoko 本身，不读配置、不开端口
+	agentsandbox.RunGate()
 	version.Set(Version)
 	// momoko install / status / … 这些子命令（见 cli.go）
 	if len(os.Args) > 1 && isCommand(os.Args[1]) {

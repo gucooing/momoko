@@ -5,13 +5,16 @@ import { onActivated, onBeforeUnmount, onDeactivated, reactive, watch } from 'vu
 import type { ConsoleSocketStatus } from '@/stores/instance/types'
 import { FONT_SIZE_MAX, FONT_SIZE_MIN, sharedTerminalFontSize } from '@/components/terminal/useTerminalX'
 
-export type DockTabKind = 'local' | 'ssh'
+/** 本机终端、SSH，或者 Agent 官方账户的登录终端（在服务器上跑那一系的登录命令） */
+export type DockTabKind = 'local' | 'ssh' | 'login'
 
 export interface DockTab {
   key: string
   kind: DockTabKind
   /** SSH 主机 id（本机终端为空） */
   hostId: string
+  /** 登录终端：Agent 运行时 id */
+  runtimeId: string
   /** 本机终端的序号（同时开多个时区分；指定了目录的不编号） */
   seq: number
   /** SSH：user@主机名，连上后按主机详情更新 */
@@ -171,13 +174,17 @@ export const closeDock = () => {
   localSeq = 0
 }
 
-/** 新开一个标签：SSH 给 hostId、label；本机终端可给 cwd（在那个目录打开） */
-export const addTab = (kind: DockTabKind, opts: { hostId?: string; label?: string; cwd?: string } = {}) => {
+/** 新开一个标签：SSH 给 hostId、label；本机终端可给 cwd（在那个目录打开）；登录终端给 runtimeId、label */
+export const addTab = (
+  kind: DockTabKind,
+  opts: { hostId?: string; label?: string; cwd?: string; runtimeId?: string } = {},
+) => {
   const cwd = kind === 'local' ? opts.cwd || '' : ''
   const tab: DockTab = {
     key: `t${keySeq++}`,
     kind,
     hostId: opts.hostId || '',
+    runtimeId: opts.runtimeId || '',
     seq: kind === 'local' && !cwd ? ++localSeq : 0,
     label: opts.label || '',
     cwd,

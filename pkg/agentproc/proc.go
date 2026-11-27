@@ -18,6 +18,8 @@ import (
 
 	"github.com/shirou/gopsutil/v4/process"
 
+	"momoko/pkg/agentproxy"
+	"momoko/pkg/agentsandbox"
 	"momoko/pkg/sysenv"
 )
 
@@ -32,6 +34,9 @@ type Config struct {
 	Dir string
 	// Env 在当前进程环境之上追加或覆盖的变量；值为空字符串表示清掉这个变量。
 	Env map[string]string
+	// Proxy 不为空时整个进程（连同它启动的所有子进程）只能经这个代理联网：关在隔离的网络里，见 pkg/agentsandbox。
+	// 做不到（不是 Linux、没有权限）就不启动。
+	Proxy *agentproxy.Proxy
 }
 
 // Process 一个正在运行（或已经退出）的进程。
@@ -61,8 +66,18 @@ func Start(cfg Config) (*Process, error) {
 	}
 	cmd := newCommand(resolved, cfg.Args)
 	cmd.Dir = cfg.Dir
+	env := cfg.Env
+	if cfg.Proxy != nil {
+		env = WithProxyEnv(cfg.Env)
+	}
 	// 用注册表现在的环境变量（Momoko 启动后装的工具也找得到），不是 Momoko 启动那一刻的
-	cmd.Env = mergeEnv(sysenv.Environ(), cfg.Env)
+	cmd.Env = mergeEnv(sysenv.Environ(), env)
+	var sandbox *agentsandbox.Sandbox
+	if cfg.Proxy != nil {
+		if sandbox, err = agentsandbox.Wrap(cmd); err != nil {
+			return nil, err
+		}
+	}
 	// 进程退出后它的子孙可能还攥着输出不放，不能让 Wait 一直等下去。
 	cmd.WaitDelay = time.Second
 	stdin, err := cmd.StdinPipe()
@@ -78,7 +93,18 @@ func Start(cfg Config) (*Process, error) {
 		return nil, err
 	}
 	if err := cmd.Start(); err != nil {
+		if sandbox != nil {
+			sandbox.Close()
+		}
 		return nil, fmt.Errorf("启动 %s 失败：%v", name, err)
+	}
+	if sandbox != nil {
+		if err := sandbox.Attach(*cfg.Proxy); err != nil {
+			killTree(cmd)
+			_ = cmd.Wait()
+			sandbox.Close()
+			return nil, err
+		}
 	}
 	p := &Process{cmd: cmd, stdin: stdin, stdout: stdout, startedAt: time.Now(), done: make(chan struct{})}
 	stderrDone := make(chan struct{})
@@ -99,6 +125,9 @@ func Start(cfg Config) (*Process, error) {
 		// 先把 stderr 读完再 Wait，否则最后几行（往往就是退出原因）会丢。
 		<-stderrDone
 		p.exitErr = cmd.Wait()
+		if sandbox != nil {
+			sandbox.Close()
+		}
 		close(p.done)
 	}()
 	return p, nil
@@ -223,6 +252,21 @@ func treeMemory(proc *process.Process, depth int) int64 {
 	}
 	return total
 }
+
+// WithProxyEnv 在 env 上加上经代理入口上网的环境变量（隔离网络里的入口，见 pkg/agentsandbox），返回新的一份。
+func WithProxyEnv(env map[string]string) map[string]string {
+	out := make(map[string]string, len(env)+16)
+	for k, v := range env {
+		out[k] = v
+	}
+	for k, v := range agentproxy.Env(agentsandbox.ProxyAddr) {
+		out[k] = v
+	}
+	return out
+}
+
+// MergeEnv 在 base（KEY=VALUE 列表）上追加或覆盖 extra；值为空字符串表示清掉这个变量。
+func MergeEnv(base []string, extra map[string]string) []string { return mergeEnv(base, extra) }
 
 func mergeEnv(base []string, extra map[string]string) []string {
 	if len(extra) == 0 {

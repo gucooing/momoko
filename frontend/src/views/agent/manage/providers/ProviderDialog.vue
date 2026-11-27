@@ -1,6 +1,7 @@
 <!-- 添加 / 编辑供应商，分三步，每步一页，可以回上一步：
      ① 类型：通用的兼容接口，或对某一家的专门适配（类型由后端列出；编辑时类型不能改，没有这一步）；
      ② 配置：名称、接口地址（地址固定的类型没有）、API Key、模型目录、主模型 / 快速模型、额外环境变量；
+     （Linux 上）代理：用这个接口的会话、测试、拉模型、查余额都只经它联网；
      ③ 测试：输入一条消息（默认 hello）用主模型发出去，类型给的每种协议各发一次，看回复；在这一步保存。 -->
 <template>
   <AgDialog
@@ -107,114 +108,14 @@
             <UIcon name="i-lucide-refresh-cw" :class="{ 'ag-spin': fetching }" />{{ t('agent.providers.form.fetchModels') }}
           </button>
         </div>
-        <div class="ag-pv-models">
-          <div v-for="m in form.models" :key="m.id" class="ag-pv-model">
-            <div class="ag-pv-model__head">
-              <!-- 点这一行展开或收起它的配置 -->
-              <button
-                type="button"
-                class="ag-pv-model__toggle"
-                :aria-expanded="openModel === m.id"
-                @click="openModel = openModel === m.id ? '' : m.id"
-              >
-                <UIcon :name="openModel === m.id ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="ag-pv-model__chev" />
-                <span class="ag-pv-model__n ag-mono" :title="m.id">{{ m.id }}</span>
-                <span class="ag-pv-model__sum">{{ levelSummary(m) }}</span>
-              </button>
-              <button
-                type="button"
-                class="ag-ib ag-ib--sm"
-                :aria-label="t('agent.providers.form.removeModel', { name: m.id })"
-                @click="removeModel(m.id)"
-              >
-                <UIcon name="i-lucide-x" />
-              </button>
-            </div>
-            <div v-if="openModel === m.id" class="ag-pv-model__body">
-              <span class="ag-pv-model__lt">{{ t('agent.providers.form.limits') }}</span>
-              <div class="ag-pv-levels ag-pv-levels--head" aria-hidden="true">
-                <span>{{ t('agent.providers.form.contextWindow') }}</span>
-                <span>{{ forClaude ? t('agent.providers.form.maxOutput') : '' }}</span>
-                <span />
-              </div>
-              <div class="ag-pv-levels" role="group" :aria-label="t('agent.providers.form.limitsOf', { name: m.id })">
-                <span class="ag-fld ag-fld--plain ag-pv-lv">
-                  <input
-                    v-model.number="m.contextWindow"
-                    class="ag-mono"
-                    type="number"
-                    min="1"
-                    step="1000"
-                    :aria-label="t('agent.providers.form.contextWindow')"
-                  />
-                  <span class="ag-pv-unit ag-num">{{ fmtLimit(m.contextWindow) }}</span>
-                </span>
-                <span v-if="forClaude" class="ag-fld ag-fld--plain ag-pv-lv">
-                  <input
-                    v-model.number="m.maxOutput"
-                    class="ag-mono"
-                    type="number"
-                    min="1"
-                    step="1000"
-                    :aria-label="t('agent.providers.form.maxOutput')"
-                  />
-                  <span class="ag-pv-unit ag-num">{{ fmtLimit(m.maxOutput) }}</span>
-                </span>
-              </div>
-              <span class="ag-fh">{{ t(forClaude ? 'agent.providers.form.limitsHint' : 'agent.providers.form.limitsHintCodex') }}</span>
-              <div class="ag-pv-row">
-                <span class="ag-pv-model__lt">{{ t('agent.providers.form.levels') }}</span>
-                <button type="button" class="ag-btn ag-btn--sm ag-btn--plain" @click="addLevel(m)">
-                  <UIcon name="i-lucide-plus" />{{ t('agent.providers.form.addLevel') }}
-                </button>
-              </div>
-              <div class="ag-pv-levels ag-pv-levels--head" aria-hidden="true">
-                <span>{{ t('agent.providers.form.level') }}</span>
-                <span>{{ t('agent.providers.form.levelValue') }}</span>
-                <span />
-              </div>
-              <div v-for="(r, j) in m.levels" :key="r.uid" class="ag-pv-levels">
-                <span class="ag-fld ag-fld--plain ag-pv-lv">
-                  <input
-                    v-model="r.name"
-                    class="ag-mono"
-                    type="text"
-                    :placeholder="t('agent.providers.form.levelName')"
-                    :aria-label="t('agent.providers.form.level')"
-                  />
-                </span>
-                <span class="ag-fld ag-fld--plain ag-pv-lv">
-                  <input
-                    v-model="r.value"
-                    class="ag-mono"
-                    type="text"
-                    :placeholder="valuePlaceholder(r)"
-                    :aria-label="t('agent.providers.form.levelValueOf', { name: r.name })"
-                  />
-                </span>
-                <button
-                  type="button"
-                  class="ag-ib ag-ib--sm"
-                  :aria-label="t('agent.providers.form.removeLevel', { name: r.name })"
-                  @click="m.levels.splice(j, 1)"
-                >
-                  <UIcon name="i-lucide-x" />
-                </button>
-              </div>
-              <span class="ag-fh">{{ t('agent.providers.form.levelsHint') }}</span>
-            </div>
-          </div>
-          <span class="ag-fld ag-pv-add">
-            <input
-              v-model="modelDraft"
-              class="ag-mono"
-              type="text"
-              :placeholder="t('agent.providers.form.addModelPlaceholder')"
-              :aria-label="t('agent.providers.form.addModel')"
-              @keydown.enter.prevent="addModel"
-            />
-          </span>
-        </div>
+        <AgModelCatalog
+          ref="catalogRef"
+          v-model="form.models"
+          editable
+          :with-output="forClaude"
+          :limits-hint="t(forClaude ? 'agent.providers.form.limitsHint' : 'agent.providers.form.limitsHintCodex')"
+          :create="newModel"
+        />
       </div>
 
       <div class="ag-pv-grid">
@@ -264,6 +165,18 @@
           </button>
         </div>
       </div>
+    </template>
+
+    <!-- 代理（只有 Linux） -->
+    <template v-else-if="step === 'proxy'">
+      <AgProxyField
+        v-model="proxy"
+        :unavailable="proxyUnavailable"
+        :note="t('agent.proxy.noteProvider')"
+        :provider-id="provider?.id"
+        :vendor="form.vendor"
+        :base-url="fixedUrl ? '' : form.baseUrl.trim()"
+      />
     </template>
 
     <!-- ③ 测试 -->
@@ -341,24 +254,18 @@ import type { AgentModel, AgentProvider, AgentProviderTestResult, AgentVendor } 
 import { getRequestErrorMessage } from '@/utils/request'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
+import AgModelCatalog from '@/views/agent/components/AgModelCatalog.vue'
+import AgProxyField from '@/views/agent/components/AgProxyField.vue'
 import AgSelect from '@/views/agent/components/AgSelect.vue'
 import AgShareField from '@/views/agent/components/AgShareField.vue'
 import { fmtTokens, protocolAgent } from '@/views/agent/utils/format'
+import { type CatalogRow, defaultLevels, levelRow } from '@/views/agent/utils/catalog'
 import { vendorDesc, vendorName } from '@/views/agent/utils/labels'
+import { proxyForm, proxyPayload, proxyReady, type ProxyForm } from '@/views/agent/utils/proxy'
 
-type Step = 'vendor' | 'config' | 'test'
-interface LevelRow {
-  uid: number
-  name: string
-  value: string
-}
-interface ModelRow {
-  id: string
-  levels: LevelRow[]
-  /** 最长上下文和最长输出（token），新模型默认 1M / 128K */
-  contextWindow: number
-  maxOutput: number
-}
+type Step = 'vendor' | 'config' | 'proxy' | 'test'
+/** 模型目录的一行：最长上下文和最长输出（token），新模型默认 1M / 128K */
+type ModelRow = CatalogRow
 interface EnvRow {
   uid: number
   key: string
@@ -371,6 +278,9 @@ const props = defineProps<{
   vendors: AgentVendor[]
   /** 共享的（Agent 管理页里加、改）：配置这一步多一项「共享给」 */
   shared?: boolean
+  /** 这台服务器能配代理（只有 Linux）；proxyUnavailable 是现在用不了的原因 */
+  proxySupported?: boolean
+  proxyUnavailable?: string
 }>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
@@ -378,25 +288,10 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 
-// 推理等级从低到高；「添加一级」按这个顺序带出下一档
-const LADDER = ['off', 'low', 'medium', 'high', 'xhigh', 'max']
-const DEFAULT_LEVELS = ['off', 'low', 'medium', 'high']
 const DEFAULT_CONTEXT = 1_000_000
 const DEFAULT_OUTPUT = 128_000
 const DEFAULT_MESSAGE = 'hello'
-// 上下文、输出的读数：1000000 → 1M，128000 → 128K（多余的 0 不显示）
-const fmtLimit = (value: number) => {
-  const n = Number(value) || 0
-  if (n >= 1_000_000) return `${+(n / 1_000_000).toFixed(2)}M`
-  if (n >= 1000) return `${+(n / 1000).toFixed(1)}K`
-  return String(n)
-}
-
 let uidSeed = 0
-const levelRow = (name: string, value: string): LevelRow => ({ uid: ++uidSeed, name, value })
-// off 的参数值留空 = 不带这个参数，其它默认和等级名相同
-const presetLevel = (name: string) => levelRow(name, name === 'off' ? '' : name)
-const defaultLevels = () => DEFAULT_LEVELS.map(presetLevel)
 // 新加进目录的模型：接口给了推理等级、上下文和输出的用接口的，没给的用默认值
 const newModel = (id: string, from?: AgentModel): ModelRow => ({
   id,
@@ -416,9 +311,9 @@ const form = reactive({
   env: [] as EnvRow[],
 })
 const step = ref<Step>('vendor')
+const proxy = ref<ProxyForm>(proxyForm())
 const showKey = ref(false)
-const modelDraft = ref('')
-const openModel = ref('')
+const catalogRef = ref<InstanceType<typeof AgModelCatalog> | null>(null)
 const fetching = ref(false)
 const saving = ref(false)
 const test = reactive({
@@ -434,7 +329,12 @@ const isEdit = computed(() => !!props.provider)
 const keyPlaceholder = computed(() => (props.provider?.apiKeyTail ? `sk-••••${props.provider.apiKeyTail}` : ''))
 
 // —— 步骤 ——
-const steps = computed<Step[]>(() => (isEdit.value ? ['config', 'test'] : ['vendor', 'config', 'test']))
+// 能配代理（Linux）时配置之后多一步「代理」
+const steps = computed<Step[]>(() => {
+  const list: Step[] = isEdit.value ? ['config', 'test'] : ['vendor', 'config', 'test']
+  if (props.proxySupported) list.splice(list.indexOf('test'), 0, 'proxy')
+  return list
+})
 const stepIndex = computed(() => steps.value.indexOf(step.value))
 
 // —— 供应商类型 ——
@@ -476,9 +376,9 @@ const init = () => {
   form.mainModel = p?.mainModel || ''
   form.fastModel = p?.fastModel || ''
   form.env = (p?.env || []).map((e) => ({ uid: ++uidSeed, key: e.key, value: e.value }))
+  proxy.value = proxyForm(p?.proxy)
   showKey.value = false
-  modelDraft.value = ''
-  openModel.value = form.models[0]?.id || ''
+  catalogRef.value?.reset()
   fetching.value = false
   saving.value = false
   test.message = DEFAULT_MESSAGE
@@ -501,49 +401,11 @@ const pickVendor = (id: string) => {
   form.models = []
   form.mainModel = ''
   form.fastModel = ''
-  openModel.value = ''
+  catalogRef.value?.reset()
   if (!form.name.trim() || form.name === before) form.name = fixedUrl.value ? vendorName(id) : ''
 }
 
-// —— 模型目录 ——
-// 收起时一行看完：推理等级，加上最长上下文（和给 Claude 系时的最长输出）
-const levelSummary = (m: ModelRow) => {
-  const names = m.levels.map((r) => r.name.trim()).filter(Boolean)
-  const levels = names.length ? t('agent.providers.form.levelsSummary', { list: names.join(' · ') }) : t('agent.providers.form.noLevels')
-  const limits = forClaude.value
-    ? t('agent.providers.form.limitsSummary', { ctx: fmtLimit(m.contextWindow), out: fmtLimit(m.maxOutput) })
-    : t('agent.providers.form.limitsSummaryCtx', { ctx: fmtLimit(m.contextWindow) })
-  return `${levels} · ${limits}`
-}
-const valuePlaceholder = (r: LevelRow) =>
-  r.name === 'off' ? t('agent.providers.form.offPlaceholder') : r.name || t('agent.providers.form.valuePlaceholder')
-
-// 带出比当前最高一档更高的那一档；中间有缺的按顺序补进对应位置；六档全有之后才是空白行
-const addLevel = (m: ModelRow) => {
-  const rank = (r: LevelRow) => LADDER.indexOf(r.name.trim().toLowerCase())
-  const have = m.levels.map((r) => r.name.trim().toLowerCase())
-  const top = Math.max(-1, ...m.levels.map(rank))
-  const next = LADDER.find((x, q) => q > top && !have.includes(x)) || LADDER.find((x) => !have.includes(x))
-  if (!next) {
-    m.levels.push(levelRow('', ''))
-    return
-  }
-  const at = m.levels.findIndex((r) => rank(r) > LADDER.indexOf(next))
-  if (at < 0) m.levels.push(presetLevel(next))
-  else m.levels.splice(at, 0, presetLevel(next))
-}
-
-const addModel = () => {
-  const id = modelDraft.value.trim()
-  if (!id) return
-  if (!form.models.some((m) => m.id === id)) form.models.push(newModel(id))
-  modelDraft.value = ''
-  openModel.value = id
-}
-const removeModel = (id: string) => {
-  form.models = form.models.filter((m) => m.id !== id)
-}
-
+// —— 模型目录（列表本身在 AgModelCatalog 里）——
 const fetchModels = async () => {
   if (fetching.value) return
   if (!fixedUrl.value && !form.baseUrl.trim()) {
@@ -557,6 +419,7 @@ const fetchModels = async () => {
       vendor: form.vendor,
       baseUrl: form.baseUrl.trim(),
       apiKey: form.apiKey.trim(),
+      ...(props.proxySupported ? { proxy: proxyPayload(proxy.value) } : {}),
     })
     const got = data.models || []
     const add = got.filter((m, i) => m.id && got.findIndex((x) => x.id === m.id) === i && !form.models.some((x) => x.id === m.id))
@@ -634,10 +497,13 @@ const draft = (): Partial<AgentProvider> => ({
   mainModel: mainModel.value,
   fastModel: forClaude.value ? fastModel.value : '',
   env: form.env.filter((r) => r.key.trim()).map((r) => ({ key: r.key.trim(), value: r.value })),
+  // 不能配代理的系统不带这一项（后端当作不改）
+  ...(props.proxySupported ? { proxy: proxyPayload(proxy.value) } : {}),
 })
 // 配置这一步填完了才能往下走：名称、地址（地址固定的不用）、新建时的 API Key、至少一个模型（测试要用）
 const configReady = () => {
-  addModel()
+  // 手动添加框里还没回车的也算进目录
+  catalogRef.value?.flush()
   if (props.shared && share.value.share === 'users' && !share.value.shareUserIds.length) {
     feedback.warning(t('agent.share.needUsers'))
     return false
@@ -650,13 +516,20 @@ const configReady = () => {
   if (missing) feedback.warning(t(`agent.providers.form.${missing}`))
   return !missing
 }
+// 代理这一步：走代理就要填地址和端口
+const proxyStepReady = () => {
+  if (!props.proxySupported || proxyReady(proxy.value)) return true
+  feedback.warning(t('agent.proxy.invalid'))
+  return false
+}
 
 const next = () => {
   if (step.value === 'vendor') {
     if (vendor.value) step.value = 'config'
     return
   }
-  if (step.value === 'config' && configReady()) step.value = 'test'
+  if (step.value === 'config' && configReady()) step.value = props.proxySupported ? 'proxy' : 'test'
+  else if (step.value === 'proxy' && proxyStepReady()) step.value = 'test'
 }
 const back = () => {
   const i = stepIndex.value
@@ -699,11 +572,11 @@ const runTest = async () => {
   }
 }
 // 类型、地址、密钥或主模型改了，之前的测试结果就不算数了
-watch(() => [form.vendor, form.baseUrl, form.apiKey, mainModel.value], resetTest)
+watch(() => [form.vendor, form.baseUrl, form.apiKey, mainModel.value, JSON.stringify(proxy.value)], resetTest)
 
 // —— 保存 ——
 const save = async () => {
-  if (saving.value || !configReady()) return
+  if (saving.value || !configReady() || !proxyStepReady()) return
   const body = { ...draft(), ...(props.shared ? share.value : {}) }
   const name = body.name || ''
   saving.value = true
@@ -771,115 +644,8 @@ const save = async () => {
   background: var(--m-pSoft);
   color: var(--m-p);
 }
-// 标题在左、小按钮在右的一行
-.ag-pv-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.ag-pv-row > :first-child {
-  flex: 1;
-  min-width: 0;
-}
 .ag-fld.ag-pv-key {
   padding-right: 4px;
-}
-// 模型目录
-.ag-pv-models {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.ag-pv-model {
-  border-radius: 10px;
-  background: var(--m-s2);
-  overflow: hidden;
-}
-.ag-pv-model__head {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 2px 2px 2px 6px;
-}
-.ag-pv-model__toggle {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 0 4px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.ag-pv-model__toggle:hover {
-  background: var(--m-s);
-}
-.ag-pv-model__chev {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  color: var(--m-ink2);
-}
-.ag-pv-model__n {
-  flex: 0 0 170px;
-  min-width: 0;
-  font-size: 13px;
-  color: var(--m-ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ag-pv-model__sum {
-  flex: 1;
-  min-width: 0;
-  font-size: 12px;
-  color: var(--m-ink2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ag-pv-model__body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 2px 10px 10px;
-}
-.ag-pv-model__lt {
-  font-size: 13px;
-  font-weight: 600;
-}
-// 推理等级表：等级 + API 参数值 + 删除
-.ag-pv-levels {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 30px;
-  gap: 6px;
-  align-items: center;
-}
-.ag-pv-levels--head {
-  padding: 0 2px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--m-ink2);
-}
-.ag-fld.ag-pv-lv {
-  min-height: 30px;
-  border-radius: 8px;
-}
-.ag-fld.ag-pv-lv input {
-  height: 26px;
-}
-// 上下文、输出框里跟着显示换算后的读数（1M、128K），填错位数一眼看得出来
-.ag-pv-unit {
-  flex: none;
-  font-size: 11.5px;
-  color: var(--m-ink2);
 }
 .ag-fld.ag-pv-add {
   border-radius: 8px;

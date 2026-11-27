@@ -183,13 +183,13 @@ func exitReason(proc *agentproc.Process, err error) error {
 	return err
 }
 
-// Probe 启动一次进程：握手，在 cwd（一个临时目录）里开一个会话，读它给的权限模式、模型和每个模型的推理强度。
-// 用的是服务器上已有的登录。只改配置，不发消息，不产生用量。
+// Probe 启动一次进程：握手，在 cwd（一个临时目录）里开一个会话，读它开会话时给的权限模式、模型和当前模型的推理强度。
+// 用的是服务器上已有的登录。不发消息，不产生用量。
 func Probe(ctx context.Context, launch agentdriver.Launch, cwd string) (*ProbeResult, error) {
 	if err := os.MkdirAll(cwd, 0o755); err != nil {
 		return nil, err
 	}
-	proc, err := agentproc.Start(agentproc.Config{Command: launch.Command, Args: launch.Args, Dir: cwd, Env: launch.Env})
+	proc, err := agentproc.Start(agentproc.Config{Command: launch.Command, Args: launch.Args, Dir: cwd, Env: launch.Env, Proxy: launch.Proxy})
 	if err != nil {
 		return nil, err
 	}
@@ -220,23 +220,6 @@ func Probe(ctx context.Context, launch agentdriver.Launch, cwd string) (*ProbeRe
 		return nil, exitReason(proc, err)
 	}
 	result.Catalog = catalogOf(state.ConfigOptions)
-
-	// 推理强度跟着模型变（Agent 只给当前模型的）：逐个切过去读一遍。切换只改配置，不发消息。
-	if model := configOf(state.ConfigOptions, acp.CategoryModel); model != nil {
-		for i := range result.Catalog.Models {
-			m := &result.Catalog.Models[i]
-			if m.ID == model.Current() {
-				continue
-			}
-			stepCtx, stepCancel := context.WithTimeout(ctx, 15*time.Second)
-			options, err := client.SetConfigOption(stepCtx, state.SessionID, model.ID, m.ID)
-			stepCancel()
-			if err != nil {
-				continue
-			}
-			m.Efforts, m.DefaultEffort = effortsOf(options)
-		}
-	}
 	if result.Caps.Close {
 		closeCtx, closeCancel := context.WithTimeout(ctx, 5*time.Second)
 		_ = client.CloseSession(closeCtx, state.SessionID)

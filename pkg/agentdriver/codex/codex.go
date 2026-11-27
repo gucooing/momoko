@@ -13,6 +13,7 @@ import (
 
 	"momoko/pkg/agentdriver"
 	"momoko/pkg/agentinstall"
+	"momoko/pkg/agentproc"
 )
 
 // Kind 这一系的标识。
@@ -98,6 +99,19 @@ func (Driver) LoginLimits(contextWindow, _ int64) map[string]string {
 	raw, _ := json.Marshal(cfg)
 	return map[string]string{"CODEX_CONFIG": string(raw)}
 }
+
+// Login codex-acp 自己没有登录命令（它的浏览器登录要在服务器本机开网页），用服务器上的 Codex CLI：
+// codex login --device-auth 给一个网址和一次性的码，在哪台电脑的浏览器上打开都行。登录信息写进默认的配置目录，和 codex-acp 共用。
+func (Driver) Login(string) (agentdriver.Launch, bool) {
+	path, ok := agentproc.Lookup("codex")
+	if !ok {
+		return agentdriver.Launch{}, false
+	}
+	return agentdriver.Launch{Command: path, Args: []string{"login", "--device-auth"}}, true
+}
+
+// ProxyEnv Codex 默认不发遥测，不用另外关。
+func (Driver) ProxyEnv() map[string]string { return nil }
 
 // RemoveTranscript 会话记录按日期分目录放在 sessions 下（归档的在 archived_sessions 下），文件名以会话 id 结尾；
 // 生成的图片在 generated_images/<会话 id>/ 下（id 里字母数字和 - _ 以外的字符换成 _），一起删掉。

@@ -105,6 +105,8 @@ const (
 	AgentService_CreateAgentRuntime_FullMethodName           = "/v1.AgentService/CreateAgentRuntime"
 	AgentService_DeleteAgentRuntime_FullMethodName           = "/v1.AgentService/DeleteAgentRuntime"
 	AgentService_UpdateAgentRunSettings_FullMethodName       = "/v1.AgentService/UpdateAgentRunSettings"
+	AgentService_SetAgentRuntimeProxy_FullMethodName         = "/v1.AgentService/SetAgentRuntimeProxy"
+	AgentService_TestAgentProxy_FullMethodName               = "/v1.AgentService/TestAgentProxy"
 	AgentService_GetAgentNotify_FullMethodName               = "/v1.AgentService/GetAgentNotify"
 	AgentService_UpdateAgentNotifyEvents_FullMethodName      = "/v1.AgentService/UpdateAgentNotifyEvents"
 	AgentService_SaveAgentNotifyChannel_FullMethodName       = "/v1.AgentService/SaveAgentNotifyChannel"
@@ -281,6 +283,10 @@ type AgentServiceClient interface {
 	DeleteAgentRuntime(ctx context.Context, in *DeleteAgentRuntimeRequest, opts ...grpc.CallOption) (*DeleteAgentRuntimeResponse, error)
 	// 同时运行的进程上限、空闲后结束进程
 	UpdateAgentRunSettings(ctx context.Context, in *UpdateAgentRunSettingsRequest, opts ...grpc.CallOption) (*UpdateAgentRunSettingsResponse, error)
+	// 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
+	SetAgentRuntimeProxy(ctx context.Context, in *SetAgentRuntimeProxyRequest, opts ...grpc.CallOption) (*SetAgentRuntimeProxyResponse, error)
+	// 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+	TestAgentProxy(ctx context.Context, in *TestAgentProxyRequest, opts ...grpc.CallOption) (*TestAgentProxyResponse, error)
 	// —— 通知：每个人自己的 ——
 	GetAgentNotify(ctx context.Context, in *GetAgentNotifyRequest, opts ...grpc.CallOption) (*GetAgentNotifyResponse, error)
 	// 三个时机开关
@@ -1164,6 +1170,26 @@ func (c *agentServiceClient) UpdateAgentRunSettings(ctx context.Context, in *Upd
 	return out, nil
 }
 
+func (c *agentServiceClient) SetAgentRuntimeProxy(ctx context.Context, in *SetAgentRuntimeProxyRequest, opts ...grpc.CallOption) (*SetAgentRuntimeProxyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetAgentRuntimeProxyResponse)
+	err := c.cc.Invoke(ctx, AgentService_SetAgentRuntimeProxy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) TestAgentProxy(ctx context.Context, in *TestAgentProxyRequest, opts ...grpc.CallOption) (*TestAgentProxyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TestAgentProxyResponse)
+	err := c.cc.Invoke(ctx, AgentService_TestAgentProxy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) GetAgentNotify(ctx context.Context, in *GetAgentNotifyRequest, opts ...grpc.CallOption) (*GetAgentNotifyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAgentNotifyResponse)
@@ -1401,6 +1427,10 @@ type AgentServiceServer interface {
 	DeleteAgentRuntime(context.Context, *DeleteAgentRuntimeRequest) (*DeleteAgentRuntimeResponse, error)
 	// 同时运行的进程上限、空闲后结束进程
 	UpdateAgentRunSettings(context.Context, *UpdateAgentRunSettingsRequest) (*UpdateAgentRunSettingsResponse, error)
+	// 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
+	SetAgentRuntimeProxy(context.Context, *SetAgentRuntimeProxyRequest) (*SetAgentRuntimeProxyResponse, error)
+	// 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+	TestAgentProxy(context.Context, *TestAgentProxyRequest) (*TestAgentProxyResponse, error)
 	// —— 通知：每个人自己的 ——
 	GetAgentNotify(context.Context, *GetAgentNotifyRequest) (*GetAgentNotifyResponse, error)
 	// 三个时机开关
@@ -1681,6 +1711,12 @@ func (UnimplementedAgentServiceServer) DeleteAgentRuntime(context.Context, *Dele
 }
 func (UnimplementedAgentServiceServer) UpdateAgentRunSettings(context.Context, *UpdateAgentRunSettingsRequest) (*UpdateAgentRunSettingsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateAgentRunSettings not implemented")
+}
+func (UnimplementedAgentServiceServer) SetAgentRuntimeProxy(context.Context, *SetAgentRuntimeProxyRequest) (*SetAgentRuntimeProxyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetAgentRuntimeProxy not implemented")
+}
+func (UnimplementedAgentServiceServer) TestAgentProxy(context.Context, *TestAgentProxyRequest) (*TestAgentProxyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TestAgentProxy not implemented")
 }
 func (UnimplementedAgentServiceServer) GetAgentNotify(context.Context, *GetAgentNotifyRequest) (*GetAgentNotifyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAgentNotify not implemented")
@@ -3272,6 +3308,42 @@ func _AgentService_UpdateAgentRunSettings_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_SetAgentRuntimeProxy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAgentRuntimeProxyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).SetAgentRuntimeProxy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_SetAgentRuntimeProxy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).SetAgentRuntimeProxy(ctx, req.(*SetAgentRuntimeProxyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_TestAgentProxy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestAgentProxyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).TestAgentProxy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_TestAgentProxy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).TestAgentProxy(ctx, req.(*TestAgentProxyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_GetAgentNotify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAgentNotifyRequest)
 	if err := dec(in); err != nil {
@@ -3748,6 +3820,14 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateAgentRunSettings",
 			Handler:    _AgentService_UpdateAgentRunSettings_Handler,
+		},
+		{
+			MethodName: "SetAgentRuntimeProxy",
+			Handler:    _AgentService_SetAgentRuntimeProxy_Handler,
+		},
+		{
+			MethodName: "TestAgentProxy",
+			Handler:    _AgentService_TestAgentProxy_Handler,
 		},
 		{
 			MethodName: "GetAgentNotify",

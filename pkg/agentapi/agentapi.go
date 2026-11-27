@@ -103,6 +103,20 @@ const TestMaxTokens = 4096
 
 var client = &http.Client{Timeout: 3 * time.Minute}
 
+type clientKey struct{}
+
+// WithClient 之后用这个 ctx 发的请求都经 c（比如走供应商配的代理）。
+func WithClient(ctx context.Context, c *http.Client) context.Context {
+	return context.WithValue(ctx, clientKey{}, c)
+}
+
+func clientFrom(ctx context.Context) *http.Client {
+	if c, ok := ctx.Value(clientKey{}).(*http.Client); ok && c != nil {
+		return c
+	}
+	return client
+}
+
 // Do 发一个请求（body 不为空时是 JSON），返回状态码和（截断的）响应体；连不上、超时时 err 是给人看的原因。
 func Do(ctx context.Context, method, endpoint string, header map[string]string, body any) (int, []byte, error) {
 	var reader io.Reader
@@ -123,7 +137,7 @@ func Do(ctx context.Context, method, endpoint string, header map[string]string, 
 	for k, v := range header {
 		req.Header.Set(k, v)
 	}
-	resp, err := client.Do(req)
+	resp, err := clientFrom(ctx).Do(req)
 	if err != nil {
 		var urlErr *url.Error
 		if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &urlErr) && urlErr.Timeout()) {

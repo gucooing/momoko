@@ -26,6 +26,7 @@ import (
 	"momoko/pkg/agentgit"
 	"momoko/pkg/agentinstall"
 	"momoko/pkg/agentproc"
+	"momoko/pkg/agentproxy"
 	"momoko/pkg/agentrun"
 	agentskillpkg "momoko/pkg/agentskill"
 	"momoko/pkg/common"
@@ -114,6 +115,9 @@ func (uc *AgentUsecase) detectRuntime(ctx context.Context, rt *gen.AgentRuntime)
 	now := time.Now()
 	rt.DetectedAt = &now
 	launch, err := uc.runtimeLaunch(rt)
+	if err == nil {
+		launch, err = uc.proxied(rt, launch)
+	}
 	var models []*gen.AgentRuntimeModel
 	synced := false
 	if err == nil {
@@ -213,7 +217,9 @@ func (uc *AgentUsecase) runtimePB(rt *gen.AgentRuntime, models []*gen.AgentRunti
 		AuthDetail:     rt.AuthDetail,
 		LoggedIn:       rt.LoggedIn,
 		Models:         agentModelsPB(models),
+		Proxy:          uc.proxyPB(rt.Proxy),
 	}
+	_, _, out.CanLogin = uc.loginLaunch(rt)
 	if launch, err := uc.runtimeLaunch(rt); err == nil {
 		out.Command, out.Args = launch.Command, launch.Args
 	}
@@ -246,6 +252,7 @@ func (uc *AgentUsecase) ListRuntimes(ctx context.Context) (*v1.ListAgentRuntimes
 	}
 	active := uc.activeByRuntime()
 	resp := &v1.ListAgentRuntimesResponse{Settings: uc.runSettings(ctx)}
+	resp.ProxySupported, resp.ProxyUnavailable = proxySupport()
 	for _, rt := range rts {
 		resp.Runtimes = append(resp.Runtimes, uc.runtimePB(rt, models[rt.ID], active))
 	}
@@ -288,7 +295,11 @@ func (uc *AgentUsecase) install(ctx context.Context, rt *gen.AgentRuntime, rel a
 		delete(uc.installing, rt.ID)
 		uc.installMu.Unlock()
 	}()
-	launch, err := agentinstall.Install(context.WithoutCancel(ctx), rel, uc.managedDir(rt.ID), nil)
+	ictx, err := uc.installCtx(ctx, rt)
+	if err != nil {
+		return err
+	}
+	launch, err := agentinstall.Install(ictx, rel, uc.managedDir(rt.ID), nil)
 	if err != nil {
 		return agentErr(err)
 	}
@@ -331,7 +342,11 @@ func (uc *AgentUsecase) UpdateRuntime(ctx context.Context, id string) (*v1.Updat
 	if !ok {
 		return nil, response.BadRequest(rt.Name + " 由你在服务器上更新")
 	}
-	latest, err := agentinstall.Latest(context.WithoutCancel(ctx), rel)
+	ictx, err := uc.installCtx(ctx, rt)
+	if err != nil {
+		return nil, err
+	}
+	latest, err := agentinstall.Latest(ictx, rel)
 	if err != nil {
 		return nil, agentErr(err)
 	}
@@ -477,6 +492,7 @@ func (uc *AgentUsecase) providerPB(p *gen.AgentProvider) *v1.AgentProvider {
 		UserId:        p.UserID,
 		Share:         p.Share,
 		ShareUserIds:  p.ShareUsers,
+		Proxy:         uc.proxyPB(p.Proxy),
 	}
 	for _, m := range p.Models {
 		pm := &v1.AgentModel{Id: m.ID, ContextWindow: m.ContextWindow, MaxOutput: m.MaxOutput}
@@ -505,6 +521,7 @@ func vendorPB(v agentapi.Vendor) *v1.AgentVendor {
 func (uc *AgentUsecase) providerViewPB(p *gen.AgentProvider) *v1.AgentProvider {
 	out := uc.providerPB(p)
 	out.ApiKeyTail, out.Env, out.ShareUserIds = "", nil, nil
+	out.Proxy = uc.proxyViewPB(p.Proxy)
 	return out
 }
 
@@ -555,6 +572,7 @@ func (uc *AgentUsecase) ListProviders(ctx context.Context, all bool) (*v1.ListAg
 		Providers: make([]*v1.AgentProvider, 0, len(rows)),
 		Vendors:   make([]*v1.AgentVendor, 0, len(uc.vendors)),
 	}
+	resp.ProxySupported, resp.ProxyUnavailable = proxySupport()
 	people := make([]string, 0, len(rows))
 	for _, p := range rows {
 		// 能改的才给全：自己的；Agent 管理页里共享的
@@ -728,6 +746,11 @@ func (uc *AgentUsecase) applyAPIProvider(p *gen.AgentProvider, in *v1.AgentProvi
 			p.Env = append(p.Env, schema.AgentEnv{Key: key, Value: kv.GetValue()})
 		}
 	}
+	proxy, err := uc.mergeProxy(p.Proxy, in.GetProxy())
+	if err != nil {
+		return err
+	}
+	p.Proxy = proxy
 	return nil
 }
 
@@ -768,15 +791,21 @@ func (uc *AgentUsecase) UpdateProvider(ctx context.Context, id string, in *v1.Ag
 		}
 	}
 	before := p.BaseURL + "\x00" + p.APIKey
+	beforeProxy := uc.proxyKey(p.Proxy)
 	if err := uc.applyAPIProvider(p, in, false); err != nil {
 		return nil, err
 	}
-	// 地址或密钥变了，之前的测试结果就不作数了。
-	if before != p.BaseURL+"\x00"+p.APIKey {
+	proxyChanged := beforeProxy != uc.proxyKey(p.Proxy)
+	// 地址、密钥或代理变了，之前的测试结果就不作数了。
+	if before != p.BaseURL+"\x00"+p.APIKey || proxyChanged {
 		p.Status, p.StatusText, p.TestLatencyMs, p.TestedAt = "untested", "", 0, nil
 	}
 	if err := uc.saveProvider(ctx, p); err != nil {
 		return nil, err
+	}
+	// 用它的会话进程是按旧的网络起的
+	if proxyChanged {
+		uc.restartUsing("", p.ID)
 	}
 	return uc.providerPB(p), nil
 }
@@ -803,14 +832,20 @@ func (uc *AgentUsecase) DeleteProvider(ctx context.Context, id string) error {
 }
 
 // draftProvider 测试、获取可用模型用的配置：表单里的草稿，留空的地址和密钥用已保存的（要是自己能改的）；已保存的类型不能改。
-func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, apiKey string) (agentapi.Vendor, agentapi.Conn, *gen.AgentProvider, error) {
+// 代理也一样：表单里带了用表单里的（密码留空用已保存的），没带用已保存的。
+func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, apiKey string, proxy *v1.AgentProxy) (agentapi.Vendor, agentapi.Conn, *gen.AgentProvider, *agentproxy.Proxy, error) {
 	var stored *gen.AgentProvider
+	storedProxy := ""
 	if id != "" {
 		p, err := uc.editableProvider(ctx, id)
 		if err != nil {
-			return nil, agentapi.Conn{}, nil, err
+			return nil, agentapi.Conn{}, nil, nil, err
 		}
-		stored = p
+		stored, storedProxy = p, p.Proxy
+	}
+	px, err := uc.draftProxy(storedProxy, proxy)
+	if err != nil {
+		return nil, agentapi.Conn{}, nil, nil, err
 	}
 	baseURL, apiKey = strings.TrimRight(strings.TrimSpace(baseURL), "/"), strings.TrimSpace(apiKey)
 	if stored != nil {
@@ -824,24 +859,24 @@ func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, 
 	}
 	v, ok := uc.vendorOf(vendor)
 	if !ok {
-		return nil, agentapi.Conn{}, nil, errUnknownVendor
+		return nil, agentapi.Conn{}, nil, nil, errUnknownVendor
 	}
 	if v.BaseURL() != "" {
 		baseURL = ""
 	} else if baseURL == "" {
-		return nil, agentapi.Conn{}, nil, response.BadRequest("先填接口地址")
+		return nil, agentapi.Conn{}, nil, nil, response.BadRequest("先填接口地址")
 	}
 	if apiKey == "" {
-		return nil, agentapi.Conn{}, nil, response.BadRequest("先填 API Key")
+		return nil, agentapi.Conn{}, nil, nil, response.BadRequest("先填 API Key")
 	}
-	return v, agentapi.Conn{BaseURL: baseURL, APIKey: apiKey}, stored, nil
+	return v, agentapi.Conn{BaseURL: baseURL, APIKey: apiKey}, stored, px, nil
 }
 
 // TestProvider 用主模型发一条消息（空 = hello），供应商给的每种协议同时各发一次。
 // 测的是已保存的那一份时，把结果记到记录上：都通才算正常，耗时记最慢的一种。
 func (uc *AgentUsecase) TestProvider(ctx context.Context, req *v1.TestAgentProviderRequest) (*v1.TestAgentProviderResponse, error) {
 	draft := req.GetDraft()
-	v, conn, stored, err := uc.draftProvider(ctx, req.GetId(), draft.GetVendor(), draft.GetBaseUrl(), draft.GetApiKey())
+	v, conn, stored, px, err := uc.draftProvider(ctx, req.GetId(), draft.GetVendor(), draft.GetBaseUrl(), draft.GetApiKey(), draft.GetProxy())
 	if err != nil {
 		return nil, err
 	}
@@ -862,6 +897,7 @@ func (uc *AgentUsecase) TestProvider(ctx context.Context, req *v1.TestAgentProvi
 	// 页面上的请求两分钟超时，这里要先结束
 	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 110*time.Second)
 	defer cancel()
+	bg = withProxyClient(bg, px)
 	protocols := v.Protocols()
 	results := make([]*v1.AgentProviderTestResult, len(protocols))
 	var wg sync.WaitGroup
@@ -882,7 +918,7 @@ func (uc *AgentUsecase) TestProvider(ctx context.Context, req *v1.TestAgentProvi
 		}()
 	}
 	wg.Wait()
-	if stored != nil && conn.BaseURL == stored.BaseURL && conn.APIKey == uc.decrypt(stored.APIKey) {
+	if stored != nil && conn.BaseURL == stored.BaseURL && conn.APIKey == uc.decrypt(stored.APIKey) && uc.sameProxy(stored.Proxy, px) {
 		now := time.Now()
 		stored.TestedAt, stored.TestLatencyMs = &now, 0
 		stored.Status, stored.StatusText = "ok", ""
@@ -899,12 +935,13 @@ func (uc *AgentUsecase) TestProvider(ctx context.Context, req *v1.TestAgentProvi
 
 // FetchProviderModels 从接口拉可用模型；接口给了推理强度、最长上下文和最长输出的一并带上（推理等级的参数值就是等级名）。
 func (uc *AgentUsecase) FetchProviderModels(ctx context.Context, req *v1.FetchAgentProviderModelsRequest) ([]*v1.AgentModel, error) {
-	v, conn, _, err := uc.draftProvider(ctx, req.GetId(), req.GetVendor(), req.GetBaseUrl(), req.GetApiKey())
+	v, conn, _, px, err := uc.draftProvider(ctx, req.GetId(), req.GetVendor(), req.GetBaseUrl(), req.GetApiKey(), req.GetProxy())
 	if err != nil {
 		return nil, err
 	}
 	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
 	defer cancel()
+	bg = withProxyClient(bg, px)
 	models, err := v.Models(bg, conn)
 	if err != nil {
 		return nil, agentErr(err)
@@ -931,9 +968,13 @@ func (uc *AgentUsecase) ProviderBalance(ctx context.Context, id string) (*v1.Get
 	if !ok {
 		return nil, response.BadRequest("这种供应商查不了余额")
 	}
+	px, err := uc.proxyOf(p.Proxy)
+	if err != nil {
+		return nil, err
+	}
 	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 20*time.Second)
 	defer cancel()
-	bal, err := b.Balance(bg, agentapi.Conn{BaseURL: p.BaseURL, APIKey: uc.decrypt(p.APIKey)})
+	bal, err := b.Balance(withProxyClient(bg, px), agentapi.Conn{BaseURL: p.BaseURL, APIKey: uc.decrypt(p.APIKey)})
 	if err != nil {
 		return &v1.GetAgentProviderBalanceResponse{Error: err.Error()}, nil
 	}

@@ -56,7 +56,7 @@ func Run(ctx context.Context, dir string, args ...string) (string, error) {
 	var stdout, stderr strings.Builder
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
+	if err := execute(ctx, cmd); err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
 			return "", errors.New("服务器上没有安装 git")
 		}

@@ -8,7 +8,12 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+
+	pty "github.com/aymanbagabas/go-pty"
 )
+
+// command 建伪终端里的命令。
+func command(ptmx pty.Pty, path string, args []string) *pty.Cmd { return ptmx.Command(path, args...) }
 
 // shellCommand 用户的登录 shell（$SHELL），没有就依次找 bash、sh。
 // 分页器一律换成 cat：长输出（git log、systemctl、man …）整段打出来，由用户往上翻。

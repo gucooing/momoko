@@ -94,6 +94,7 @@ const OperationAgentServiceSetAgentMcpDefault = "/v1.AgentService/SetAgentMcpDef
 const OperationAgentServiceSetAgentNotifyChannelEnabled = "/v1.AgentService/SetAgentNotifyChannelEnabled"
 const OperationAgentServiceSetAgentRuntimeMode = "/v1.AgentService/SetAgentRuntimeMode"
 const OperationAgentServiceSetAgentRuntimeModels = "/v1.AgentService/SetAgentRuntimeModels"
+const OperationAgentServiceSetAgentRuntimeProxy = "/v1.AgentService/SetAgentRuntimeProxy"
 const OperationAgentServiceSetAgentSessionOption = "/v1.AgentService/SetAgentSessionOption"
 const OperationAgentServiceSetAgentSkillEnabled = "/v1.AgentService/SetAgentSkillEnabled"
 const OperationAgentServiceStopAgentSessionItem = "/v1.AgentService/StopAgentSessionItem"
@@ -101,6 +102,7 @@ const OperationAgentServiceSyncAgentGit = "/v1.AgentService/SyncAgentGit"
 const OperationAgentServiceTestAgentMcpServer = "/v1.AgentService/TestAgentMcpServer"
 const OperationAgentServiceTestAgentNotifyChannel = "/v1.AgentService/TestAgentNotifyChannel"
 const OperationAgentServiceTestAgentProvider = "/v1.AgentService/TestAgentProvider"
+const OperationAgentServiceTestAgentProxy = "/v1.AgentService/TestAgentProxy"
 const OperationAgentServiceUpdateAgentGitFiles = "/v1.AgentService/UpdateAgentGitFiles"
 const OperationAgentServiceUpdateAgentGitRef = "/v1.AgentService/UpdateAgentGitRef"
 const OperationAgentServiceUpdateAgentGitRemote = "/v1.AgentService/UpdateAgentGitRemote"
@@ -256,6 +258,8 @@ type AgentServiceHTTPServer interface {
 	SetAgentRuntimeMode(context.Context, *SetAgentRuntimeModeRequest) (*SetAgentRuntimeModeResponse, error)
 	// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
 	SetAgentRuntimeModels(context.Context, *SetAgentRuntimeModelsRequest) (*SetAgentRuntimeModelsResponse, error)
+	// SetAgentRuntimeProxy 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
+	SetAgentRuntimeProxy(context.Context, *SetAgentRuntimeProxyRequest) (*SetAgentRuntimeProxyResponse, error)
 	// SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 	SetAgentSessionOption(context.Context, *SetAgentSessionOptionRequest) (*SetAgentSessionOptionResponse, error)
 	SetAgentSkillEnabled(context.Context, *SetAgentSkillEnabledRequest) (*SetAgentSkillEnabledResponse, error)
@@ -269,6 +273,8 @@ type AgentServiceHTTPServer interface {
 	TestAgentNotifyChannel(context.Context, *TestAgentNotifyChannelRequest) (*TestAgentNotifyChannelResponse, error)
 	// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(context.Context, *TestAgentProviderRequest) (*TestAgentProviderResponse, error)
+	// TestAgentProxy 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+	TestAgentProxy(context.Context, *TestAgentProxyRequest) (*TestAgentProxyResponse, error)
 	// UpdateAgentGitFiles 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
 	UpdateAgentGitFiles(context.Context, *UpdateAgentGitFilesRequest) (*UpdateAgentGitFilesResponse, error)
 	// UpdateAgentGitRef 分支和标签：切换、新建、改名、删除（本地 / 远程）、合并到当前、把当前变基到；新建、删除、推送标签
@@ -377,6 +383,8 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.POST("/api/v1/agent/runtimes", _AgentService_CreateAgentRuntime0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/agent/runtimes/{id}", _AgentService_DeleteAgentRuntime0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/settings", _AgentService_UpdateAgentRunSettings0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/runtimes/{id}/proxy", _AgentService_SetAgentRuntimeProxy0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/proxy/test", _AgentService_TestAgentProxy0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/notify", _AgentService_GetAgentNotify0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/notify/events", _AgentService_UpdateAgentNotifyEvents0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/notify/channel", _AgentService_SaveAgentNotifyChannel0_HTTP_Handler(srv))
@@ -2323,6 +2331,53 @@ func _AgentService_UpdateAgentRunSettings0_HTTP_Handler(srv AgentServiceHTTPServ
 	}
 }
 
+func _AgentService_SetAgentRuntimeProxy0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetAgentRuntimeProxyRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceSetAgentRuntimeProxy)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetAgentRuntimeProxy(ctx, req.(*SetAgentRuntimeProxyRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SetAgentRuntimeProxyResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AgentService_TestAgentProxy0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in TestAgentProxyRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceTestAgentProxy)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.TestAgentProxy(ctx, req.(*TestAgentProxyRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*TestAgentProxyResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_GetAgentNotify0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetAgentNotifyRequest
@@ -2614,6 +2669,8 @@ type AgentServiceHTTPClient interface {
 	SetAgentRuntimeMode(ctx context.Context, req *SetAgentRuntimeModeRequest, opts ...http.CallOption) (rsp *SetAgentRuntimeModeResponse, err error)
 	// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
 	SetAgentRuntimeModels(ctx context.Context, req *SetAgentRuntimeModelsRequest, opts ...http.CallOption) (rsp *SetAgentRuntimeModelsResponse, err error)
+	// SetAgentRuntimeProxy 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
+	SetAgentRuntimeProxy(ctx context.Context, req *SetAgentRuntimeProxyRequest, opts ...http.CallOption) (rsp *SetAgentRuntimeProxyResponse, err error)
 	// SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 	SetAgentSessionOption(ctx context.Context, req *SetAgentSessionOptionRequest, opts ...http.CallOption) (rsp *SetAgentSessionOptionResponse, err error)
 	SetAgentSkillEnabled(ctx context.Context, req *SetAgentSkillEnabledRequest, opts ...http.CallOption) (rsp *SetAgentSkillEnabledResponse, err error)
@@ -2627,6 +2684,8 @@ type AgentServiceHTTPClient interface {
 	TestAgentNotifyChannel(ctx context.Context, req *TestAgentNotifyChannelRequest, opts ...http.CallOption) (rsp *TestAgentNotifyChannelResponse, err error)
 	// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(ctx context.Context, req *TestAgentProviderRequest, opts ...http.CallOption) (rsp *TestAgentProviderResponse, err error)
+	// TestAgentProxy 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+	TestAgentProxy(ctx context.Context, req *TestAgentProxyRequest, opts ...http.CallOption) (rsp *TestAgentProxyResponse, err error)
 	// UpdateAgentGitFiles 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
 	UpdateAgentGitFiles(ctx context.Context, req *UpdateAgentGitFilesRequest, opts ...http.CallOption) (rsp *UpdateAgentGitFilesResponse, err error)
 	// UpdateAgentGitRef 分支和标签：切换、新建、改名、删除（本地 / 远程）、合并到当前、把当前变基到；新建、删除、推送标签
@@ -3697,6 +3756,20 @@ func (c *AgentServiceHTTPClientImpl) SetAgentRuntimeModels(ctx context.Context, 
 	return &out, nil
 }
 
+// SetAgentRuntimeProxy 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
+func (c *AgentServiceHTTPClientImpl) SetAgentRuntimeProxy(ctx context.Context, in *SetAgentRuntimeProxyRequest, opts ...http.CallOption) (*SetAgentRuntimeProxyResponse, error) {
+	var out SetAgentRuntimeProxyResponse
+	pattern := "/api/v1/agent/runtimes/{id}/proxy"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceSetAgentRuntimeProxy))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 func (c *AgentServiceHTTPClientImpl) SetAgentSessionOption(ctx context.Context, in *SetAgentSessionOptionRequest, opts ...http.CallOption) (*SetAgentSessionOptionResponse, error) {
 	var out SetAgentSessionOptionResponse
@@ -3786,6 +3859,20 @@ func (c *AgentServiceHTTPClientImpl) TestAgentProvider(ctx context.Context, in *
 	pattern := "/api/v1/agent/providers/test"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAgentServiceTestAgentProvider))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// TestAgentProxy 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+func (c *AgentServiceHTTPClientImpl) TestAgentProxy(ctx context.Context, in *TestAgentProxyRequest, opts ...http.CallOption) (*TestAgentProxyResponse, error) {
+	var out TestAgentProxyResponse
+	pattern := "/api/v1/agent/proxy/test"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceTestAgentProxy))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

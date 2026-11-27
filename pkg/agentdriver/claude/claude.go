@@ -115,6 +115,20 @@ func (Driver) LoginLimits(contextWindow, maxOutput int64) map[string]string {
 	return env
 }
 
+// Login claude-agent-acp 带 --cli 时就是它包着的 Claude CLI（单文件发行包也一样），后面的参数原样交给 CLI：
+// claude /login 打开登录流程，登录信息写进默认的配置目录，和 ACP 用的是同一份。
+func (Driver) Login(adapter string) (agentdriver.Launch, bool) {
+	if adapter == "" {
+		return agentdriver.Launch{}, false
+	}
+	return agentdriver.Launch{Command: adapter, Args: []string{"--cli", "/login"}}, true
+}
+
+// ProxyEnv 关掉遥测、错误上报、自动更新这些用不着的联网。
+func (Driver) ProxyEnv() map[string]string {
+	return map[string]string{"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"}
+}
+
 // projectDirMax Claude CLI 给项目目录名的长度上限：超过的截断后再接一段它自己算的散列。
 const projectDirMax = 200
 

@@ -247,6 +247,10 @@ func init() {
 	agentproviderDescShare := agentproviderFields[14].Descriptor()
 	// agentprovider.DefaultShare holds the default value on creation for the share field.
 	agentprovider.DefaultShare = agentproviderDescShare.Default.(string)
+	// agentproviderDescProxy is the schema descriptor for proxy field.
+	agentproviderDescProxy := agentproviderFields[16].Descriptor()
+	// agentprovider.DefaultProxy holds the default value on creation for the proxy field.
+	agentprovider.DefaultProxy = agentproviderDescProxy.Default.(string)
 	// agentproviderDescID is the schema descriptor for id field.
 	agentproviderDescID := agentproviderFields[0].Descriptor()
 	// agentprovider.IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -322,6 +326,10 @@ func init() {
 	agentruntimeDescSort := agentruntimeFields[16].Descriptor()
 	// agentruntime.DefaultSort holds the default value on creation for the sort field.
 	agentruntime.DefaultSort = agentruntimeDescSort.Default.(int)
+	// agentruntimeDescProxy is the schema descriptor for proxy field.
+	agentruntimeDescProxy := agentruntimeFields[17].Descriptor()
+	// agentruntime.DefaultProxy holds the default value on creation for the proxy field.
+	agentruntime.DefaultProxy = agentruntimeDescProxy.Default.(string)
 	// agentruntimeDescID is the schema descriptor for id field.
 	agentruntimeDescID := agentruntimeFields[0].Descriptor()
 	// agentruntime.IDValidator is a validator for the "id" field. It is called by the builders before save.

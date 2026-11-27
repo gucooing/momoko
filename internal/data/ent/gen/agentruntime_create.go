@@ -267,6 +267,20 @@ func (_c *AgentRuntimeCreate) SetNillableSort(v *int) *AgentRuntimeCreate {
 	return _c
 }
 
+// SetProxy sets the "proxy" field.
+func (_c *AgentRuntimeCreate) SetProxy(v string) *AgentRuntimeCreate {
+	_c.mutation.SetProxy(v)
+	return _c
+}
+
+// SetNillableProxy sets the "proxy" field if the given value is not nil.
+func (_c *AgentRuntimeCreate) SetNillableProxy(v *string) *AgentRuntimeCreate {
+	if v != nil {
+		_c.SetProxy(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AgentRuntimeCreate) SetID(v string) *AgentRuntimeCreate {
 	_c.mutation.SetID(v)
@@ -372,6 +386,10 @@ func (_c *AgentRuntimeCreate) defaults() {
 		v := agentruntime.DefaultSort
 		_c.mutation.SetSort(v)
 	}
+	if _, ok := _c.mutation.Proxy(); !ok {
+		v := agentruntime.DefaultProxy
+		_c.mutation.SetProxy(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -436,6 +454,9 @@ func (_c *AgentRuntimeCreate) check() error {
 	}
 	if _, ok := _c.mutation.Sort(); !ok {
 		return &ValidationError{Name: "sort", err: errors.New(`gen: missing required field "AgentRuntime.sort"`)}
+	}
+	if _, ok := _c.mutation.Proxy(); !ok {
+		return &ValidationError{Name: "proxy", err: errors.New(`gen: missing required field "AgentRuntime.proxy"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := agentruntime.IDValidator(v); err != nil {
@@ -549,6 +570,10 @@ func (_c *AgentRuntimeCreate) createSpec() (*AgentRuntime, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.Sort(); ok {
 		_spec.SetField(agentruntime.FieldSort, field.TypeInt, value)
 		_node.Sort = value
+	}
+	if value, ok := _c.mutation.Proxy(); ok {
+		_spec.SetField(agentruntime.FieldProxy, field.TypeString, value)
+		_node.Proxy = value
 	}
 	return _node, _spec
 }
@@ -815,6 +840,18 @@ func (u *AgentRuntimeUpsert) UpdateSort() *AgentRuntimeUpsert {
 // AddSort adds v to the "sort" field.
 func (u *AgentRuntimeUpsert) AddSort(v int) *AgentRuntimeUpsert {
 	u.Add(agentruntime.FieldSort, v)
+	return u
+}
+
+// SetProxy sets the "proxy" field.
+func (u *AgentRuntimeUpsert) SetProxy(v string) *AgentRuntimeUpsert {
+	u.Set(agentruntime.FieldProxy, v)
+	return u
+}
+
+// UpdateProxy sets the "proxy" field to the value that was provided on create.
+func (u *AgentRuntimeUpsert) UpdateProxy() *AgentRuntimeUpsert {
+	u.SetExcluded(agentruntime.FieldProxy)
 	return u
 }
 
@@ -1118,6 +1155,20 @@ func (u *AgentRuntimeUpsertOne) AddSort(v int) *AgentRuntimeUpsertOne {
 func (u *AgentRuntimeUpsertOne) UpdateSort() *AgentRuntimeUpsertOne {
 	return u.Update(func(s *AgentRuntimeUpsert) {
 		s.UpdateSort()
+	})
+}
+
+// SetProxy sets the "proxy" field.
+func (u *AgentRuntimeUpsertOne) SetProxy(v string) *AgentRuntimeUpsertOne {
+	return u.Update(func(s *AgentRuntimeUpsert) {
+		s.SetProxy(v)
+	})
+}
+
+// UpdateProxy sets the "proxy" field to the value that was provided on create.
+func (u *AgentRuntimeUpsertOne) UpdateProxy() *AgentRuntimeUpsertOne {
+	return u.Update(func(s *AgentRuntimeUpsert) {
+		s.UpdateProxy()
 	})
 }
 
@@ -1588,6 +1639,20 @@ func (u *AgentRuntimeUpsertBulk) AddSort(v int) *AgentRuntimeUpsertBulk {
 func (u *AgentRuntimeUpsertBulk) UpdateSort() *AgentRuntimeUpsertBulk {
 	return u.Update(func(s *AgentRuntimeUpsert) {
 		s.UpdateSort()
+	})
+}
+
+// SetProxy sets the "proxy" field.
+func (u *AgentRuntimeUpsertBulk) SetProxy(v string) *AgentRuntimeUpsertBulk {
+	return u.Update(func(s *AgentRuntimeUpsert) {
+		s.SetProxy(v)
+	})
+}
+
+// UpdateProxy sets the "proxy" field to the value that was provided on create.
+func (u *AgentRuntimeUpsertBulk) UpdateProxy() *AgentRuntimeUpsertBulk {
+	return u.Update(func(s *AgentRuntimeUpsert) {
+		s.UpdateProxy()
 	})
 }
 

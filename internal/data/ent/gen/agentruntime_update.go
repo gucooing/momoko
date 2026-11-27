@@ -271,6 +271,20 @@ func (_u *AgentRuntimeUpdate) AddSort(v int) *AgentRuntimeUpdate {
 	return _u
 }
 
+// SetProxy sets the "proxy" field.
+func (_u *AgentRuntimeUpdate) SetProxy(v string) *AgentRuntimeUpdate {
+	_u.mutation.SetProxy(v)
+	return _u
+}
+
+// SetNillableProxy sets the "proxy" field if the given value is not nil.
+func (_u *AgentRuntimeUpdate) SetNillableProxy(v *string) *AgentRuntimeUpdate {
+	if v != nil {
+		_u.SetProxy(*v)
+	}
+	return _u
+}
+
 // Mutation returns the AgentRuntimeMutation object of the builder.
 func (_u *AgentRuntimeUpdate) Mutation() *AgentRuntimeMutation {
 	return _u.mutation
@@ -395,6 +409,9 @@ func (_u *AgentRuntimeUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.AddedSort(); ok {
 		_spec.AddField(agentruntime.FieldSort, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Proxy(); ok {
+		_spec.SetField(agentruntime.FieldProxy, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -659,6 +676,20 @@ func (_u *AgentRuntimeUpdateOne) AddSort(v int) *AgentRuntimeUpdateOne {
 	return _u
 }
 
+// SetProxy sets the "proxy" field.
+func (_u *AgentRuntimeUpdateOne) SetProxy(v string) *AgentRuntimeUpdateOne {
+	_u.mutation.SetProxy(v)
+	return _u
+}
+
+// SetNillableProxy sets the "proxy" field if the given value is not nil.
+func (_u *AgentRuntimeUpdateOne) SetNillableProxy(v *string) *AgentRuntimeUpdateOne {
+	if v != nil {
+		_u.SetProxy(*v)
+	}
+	return _u
+}
+
 // Mutation returns the AgentRuntimeMutation object of the builder.
 func (_u *AgentRuntimeUpdateOne) Mutation() *AgentRuntimeMutation {
 	return _u.mutation
@@ -813,6 +844,9 @@ func (_u *AgentRuntimeUpdateOne) sqlSave(ctx context.Context) (_node *AgentRunti
 	}
 	if value, ok := _u.mutation.AddedSort(); ok {
 		_spec.AddField(agentruntime.FieldSort, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Proxy(); ok {
+		_spec.SetField(agentruntime.FieldProxy, field.TypeString, value)
 	}
 	_node = &AgentRuntime{config: _u.config}
 	_spec.Assign = _node.assignValues

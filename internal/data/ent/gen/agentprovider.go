@@ -53,7 +53,9 @@ type AgentProvider struct {
 	// 共享范围：空 = 只有主人自己用；all = 所有人；users = share_users 里的人。共享的主人是 @shared，在 Agent 管理页里管
 	Share string `json:"share,omitempty"`
 	// share 为 users 时能用的用户 id
-	ShareUsers   []string `json:"share_users,omitempty"`
+	ShareUsers []string `json:"share_users,omitempty"`
+	// 代理地址 http:// 或 socks5://（secretbox 加密，可能带账号密码）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox
+	Proxy        string `json:"-"`
 	selectValues sql.SelectValues
 }
 
@@ -66,7 +68,7 @@ func (*AgentProvider) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case agentprovider.FieldTestLatencyMs:
 			values[i] = new(sql.NullInt64)
-		case agentprovider.FieldID, agentprovider.FieldUserID, agentprovider.FieldVendor, agentprovider.FieldName, agentprovider.FieldStatus, agentprovider.FieldStatusText, agentprovider.FieldBaseURL, agentprovider.FieldAPIKey, agentprovider.FieldMainModel, agentprovider.FieldFastModel, agentprovider.FieldShare:
+		case agentprovider.FieldID, agentprovider.FieldUserID, agentprovider.FieldVendor, agentprovider.FieldName, agentprovider.FieldStatus, agentprovider.FieldStatusText, agentprovider.FieldBaseURL, agentprovider.FieldAPIKey, agentprovider.FieldMainModel, agentprovider.FieldFastModel, agentprovider.FieldShare, agentprovider.FieldProxy:
 			values[i] = new(sql.NullString)
 		case agentprovider.FieldCreateTime, agentprovider.FieldUpdateTime, agentprovider.FieldTestedAt:
 			values[i] = new(sql.NullTime)
@@ -200,6 +202,12 @@ func (_m *AgentProvider) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field share_users: %w", err)
 				}
 			}
+		case agentprovider.FieldProxy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field proxy", values[i])
+			} else if value.Valid {
+				_m.Proxy = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -287,6 +295,8 @@ func (_m *AgentProvider) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("share_users=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ShareUsers))
+	builder.WriteString(", ")
+	builder.WriteString("proxy=<sensitive>")
 	builder.WriteByte(')')
 	return builder.String()
 }

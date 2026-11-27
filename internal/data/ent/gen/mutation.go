@@ -2891,6 +2891,7 @@ type AgentProviderMutation struct {
 	share              *string
 	share_users        *[]string
 	appendshare_users  []string
+	proxy              *string
 	clearedFields      map[string]struct{}
 	done               bool
 	oldValue           func(context.Context) (*AgentProvider, error)
@@ -3733,6 +3734,42 @@ func (m *AgentProviderMutation) ResetShareUsers() {
 	delete(m.clearedFields, agentprovider.FieldShareUsers)
 }
 
+// SetProxy sets the "proxy" field.
+func (m *AgentProviderMutation) SetProxy(s string) {
+	m.proxy = &s
+}
+
+// Proxy returns the value of the "proxy" field in the mutation.
+func (m *AgentProviderMutation) Proxy() (r string, exists bool) {
+	v := m.proxy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProxy returns the old "proxy" field's value of the AgentProvider entity.
+// If the AgentProvider object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentProviderMutation) OldProxy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProxy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProxy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProxy: %w", err)
+	}
+	return oldValue.Proxy, nil
+}
+
+// ResetProxy resets all changes to the "proxy" field.
+func (m *AgentProviderMutation) ResetProxy() {
+	m.proxy = nil
+}
+
 // Where appends a list predicates to the AgentProviderMutation builder.
 func (m *AgentProviderMutation) Where(ps ...predicate.AgentProvider) {
 	m.predicates = append(m.predicates, ps...)
@@ -3767,7 +3804,7 @@ func (m *AgentProviderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentProviderMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.create_time != nil {
 		fields = append(fields, agentprovider.FieldCreateTime)
 	}
@@ -3819,6 +3856,9 @@ func (m *AgentProviderMutation) Fields() []string {
 	if m.share_users != nil {
 		fields = append(fields, agentprovider.FieldShareUsers)
 	}
+	if m.proxy != nil {
+		fields = append(fields, agentprovider.FieldProxy)
+	}
 	return fields
 }
 
@@ -3861,6 +3901,8 @@ func (m *AgentProviderMutation) Field(name string) (ent.Value, bool) {
 		return m.Share()
 	case agentprovider.FieldShareUsers:
 		return m.ShareUsers()
+	case agentprovider.FieldProxy:
+		return m.Proxy()
 	}
 	return nil, false
 }
@@ -3904,6 +3946,8 @@ func (m *AgentProviderMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldShare(ctx)
 	case agentprovider.FieldShareUsers:
 		return m.OldShareUsers(ctx)
+	case agentprovider.FieldProxy:
+		return m.OldProxy(ctx)
 	}
 	return nil, fmt.Errorf("unknown AgentProvider field %s", name)
 }
@@ -4031,6 +4075,13 @@ func (m *AgentProviderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetShareUsers(v)
+		return nil
+	case agentprovider.FieldProxy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProxy(v)
 		return nil
 	}
 	return fmt.Errorf("unknown AgentProvider field %s", name)
@@ -4174,6 +4225,9 @@ func (m *AgentProviderMutation) ResetField(name string) error {
 	case agentprovider.FieldShareUsers:
 		m.ResetShareUsers()
 		return nil
+	case agentprovider.FieldProxy:
+		m.ResetProxy()
+		return nil
 	}
 	return fmt.Errorf("unknown AgentProvider field %s", name)
 }
@@ -4251,6 +4305,7 @@ type AgentRuntimeMutation struct {
 	catalog       *string
 	sort          *int
 	addsort       *int
+	proxy         *string
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*AgentRuntime, error)
@@ -5042,6 +5097,42 @@ func (m *AgentRuntimeMutation) ResetSort() {
 	m.addsort = nil
 }
 
+// SetProxy sets the "proxy" field.
+func (m *AgentRuntimeMutation) SetProxy(s string) {
+	m.proxy = &s
+}
+
+// Proxy returns the value of the "proxy" field in the mutation.
+func (m *AgentRuntimeMutation) Proxy() (r string, exists bool) {
+	v := m.proxy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProxy returns the old "proxy" field's value of the AgentRuntime entity.
+// If the AgentRuntime object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentRuntimeMutation) OldProxy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProxy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProxy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProxy: %w", err)
+	}
+	return oldValue.Proxy, nil
+}
+
+// ResetProxy resets all changes to the "proxy" field.
+func (m *AgentRuntimeMutation) ResetProxy() {
+	m.proxy = nil
+}
+
 // Where appends a list predicates to the AgentRuntimeMutation builder.
 func (m *AgentRuntimeMutation) Where(ps ...predicate.AgentRuntime) {
 	m.predicates = append(m.predicates, ps...)
@@ -5076,7 +5167,7 @@ func (m *AgentRuntimeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentRuntimeMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.create_time != nil {
 		fields = append(fields, agentruntime.FieldCreateTime)
 	}
@@ -5131,6 +5222,9 @@ func (m *AgentRuntimeMutation) Fields() []string {
 	if m.sort != nil {
 		fields = append(fields, agentruntime.FieldSort)
 	}
+	if m.proxy != nil {
+		fields = append(fields, agentruntime.FieldProxy)
+	}
 	return fields
 }
 
@@ -5175,6 +5269,8 @@ func (m *AgentRuntimeMutation) Field(name string) (ent.Value, bool) {
 		return m.Catalog()
 	case agentruntime.FieldSort:
 		return m.Sort()
+	case agentruntime.FieldProxy:
+		return m.Proxy()
 	}
 	return nil, false
 }
@@ -5220,6 +5316,8 @@ func (m *AgentRuntimeMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldCatalog(ctx)
 	case agentruntime.FieldSort:
 		return m.OldSort(ctx)
+	case agentruntime.FieldProxy:
+		return m.OldProxy(ctx)
 	}
 	return nil, fmt.Errorf("unknown AgentRuntime field %s", name)
 }
@@ -5355,6 +5453,13 @@ func (m *AgentRuntimeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSort(v)
 		return nil
+	case agentruntime.FieldProxy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProxy(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AgentRuntime field %s", name)
 }
@@ -5481,6 +5586,9 @@ func (m *AgentRuntimeMutation) ResetField(name string) error {
 		return nil
 	case agentruntime.FieldSort:
 		m.ResetSort()
+		return nil
+	case agentruntime.FieldProxy:
+		m.ResetProxy()
 		return nil
 	}
 	return fmt.Errorf("unknown AgentRuntime field %s", name)

@@ -853,8 +853,47 @@ div.agc-tt.is-on:not(:has(button)) {
   padding: 4px 8px;
   border: 1px solid var(--m-line);
 }
+// 链接要一眼看得出来：单色主题里主色和正文同色，所以用专门的链接色；下划线、外链箭头，悬停时加底色
 .agc-md a {
-  color: var(--m-pInk);
+  --agc-link: var(--m-link, var(--m-pInk));
+  color: var(--agc-link);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--agc-link) 50%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+  transition:
+    background-color 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+.agc-md a:hover {
+  text-decoration-color: currentColor;
+  background: color-mix(in srgb, var(--agc-link) 14%, transparent);
+}
+.agc-md a:focus-visible {
+  outline: 2px solid var(--agc-link);
+  outline-offset: 1px;
+}
+// 新窗口打开的（所有外部链接）后面带一个小箭头；包着图片的不加
+.agc-md a[target='_blank']:not(:has(img))::after {
+  content: '';
+  display: inline-block;
+  width: 0.78em;
+  height: 0.78em;
+  margin-left: 2px;
+  vertical-align: -0.02em;
+  background-color: currentColor;
+  -webkit-mask: var(--agc-ext) center / contain no-repeat;
+  mask: var(--agc-ext) center / contain no-repeat;
+  opacity: 0.8;
+}
+.agc-md {
+  --agc-ext: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7'/%3E%3Cpath d='M8 7h9v9'/%3E%3C/svg%3E");
+}
+.agc-md a code {
+  color: inherit;
 }
 // 回答里的图片只放缩略图，点开看大图
 .agc-md img {
