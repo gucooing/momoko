@@ -1,40 +1,86 @@
-<!-- 代理（只有 Linux 能配，别的系统整块不显示）：就一个地址，留空不走代理；http:// 或 socks5:// 开头决定类型，
-     账号密码写在地址里（已保存的密码显示成 ******）。填了地址才有「测试代理」：经它连到要用的那一家。 -->
+<!-- 代理（只有 Linux 能配，别的系统整块不显示）：一个地址，留空不走代理；http:// 或 socks5:// 开头决定类型，
+     账号密码写在地址里（已保存的密码显示成 ******）。填了地址后：沙箱里的时区和语言，「测试代理」经它连到要用的那一家。 -->
 <template>
   <div class="ag-px">
     <label class="ag-field">
       <span class="ag-fl">{{ t('agent.proxy.address') }}</span>
-      <span class="ag-fld" :class="{ 'ag-px-bad': invalid }">
+      <span class="ag-fld" :class="{ 'ag-px-bad': !addressOk }">
         <UIcon name="i-lucide-shield" />
         <input
-          :value="modelValue"
+          :value="modelValue.url"
           class="ag-mono"
           type="text"
           :placeholder="t('agent.proxy.placeholder')"
           autocomplete="off"
           spellcheck="false"
-          @input="onInput(($event.target as HTMLInputElement).value)"
+          @input="patch({ url: ($event.target as HTMLInputElement).value })"
         />
       </span>
-      <span class="ag-fh" :class="{ 'ag-px-err': invalid }">{{ invalid ? t('agent.proxy.invalid') : t('agent.proxy.format') }}</span>
+      <span class="ag-fh" :class="{ 'ag-px-err': !addressOk }">{{ addressOk ? t('agent.proxy.format') : t('agent.proxy.invalid') }}</span>
     </label>
 
-    <div v-if="modelValue.trim()" class="ag-px-test">
-      <button type="button" class="ag-btn ag-btn--sm" :disabled="testing || invalid" @click="runTest">
-        <UIcon :name="testing ? 'i-lucide-loader-circle' : 'i-lucide-radar'" :class="{ 'ag-spin': testing }" />{{
-          t('agent.proxy.test')
-        }}
-      </button>
-      <span v-if="result?.ok" class="ag-pill ag-pill--ok">
-        {{ t('agent.proxy.testOk', { target: result.target, ms: Number(result.latencyMs) || 0 }) }}
+    <template v-if="active">
+      <div class="ag-px-grid">
+        <label class="ag-field">
+          <span class="ag-fl">{{ t('agent.proxy.timezone') }}</span>
+          <span class="ag-fld" :class="{ 'ag-px-bad': !tzOk }">
+            <UIcon name="i-lucide-clock" />
+            <input
+              :value="modelValue.timezone"
+              class="ag-mono"
+              type="text"
+              list="ag-px-timezones"
+              :placeholder="t('agent.proxy.sameAsServer')"
+              autocomplete="off"
+              spellcheck="false"
+              @input="patch({ timezone: ($event.target as HTMLInputElement).value })"
+            />
+          </span>
+        </label>
+        <label class="ag-field">
+          <span class="ag-fl">{{ t('agent.proxy.locale') }}</span>
+          <span class="ag-fld" :class="{ 'ag-px-bad': !localeValid }">
+            <UIcon name="i-lucide-languages" />
+            <input
+              :value="modelValue.locale"
+              class="ag-mono"
+              type="text"
+              list="ag-px-locales"
+              :placeholder="t('agent.proxy.sameAsServer')"
+              autocomplete="off"
+              spellcheck="false"
+              @input="patch({ locale: ($event.target as HTMLInputElement).value })"
+            />
+          </span>
+        </label>
+      </div>
+      <span class="ag-fh ag-px-envhint" :class="{ 'ag-px-err': !tzOk || !localeValid }">
+        {{ !tzOk ? t('agent.proxy.timezoneInvalid') : !localeValid ? t('agent.proxy.localeInvalid') : t('agent.proxy.envHint') }}
       </span>
-      <span v-else-if="result" class="ag-pill ag-pill--bad" :title="result.error">{{ t('agent.proxy.testFail') }}</span>
-    </div>
-    <span v-if="result && !result.ok && result.error" class="ag-px-err">{{ result.error }}</span>
+      <datalist id="ag-px-timezones">
+        <option v-for="z in COMMON_TIMEZONES" :key="z" :value="z" />
+      </datalist>
+      <datalist id="ag-px-locales">
+        <option v-for="l in COMMON_LOCALES" :key="l" :value="l" />
+      </datalist>
+
+      <div class="ag-px-test">
+        <button type="button" class="ag-btn ag-btn--sm" :disabled="testing || !addressOk" @click="runTest">
+          <UIcon :name="testing ? 'i-lucide-loader-circle' : 'i-lucide-radar'" :class="{ 'ag-spin': testing }" />{{
+            t('agent.proxy.test')
+          }}
+        </button>
+        <span v-if="result?.ok" class="ag-pill ag-pill--ok">
+          {{ t('agent.proxy.testOk', { target: result.target, ms: Number(result.latencyMs) || 0 }) }}
+        </span>
+        <span v-else-if="result" class="ag-pill ag-pill--bad" :title="result.error">{{ t('agent.proxy.testFail') }}</span>
+      </div>
+      <span v-if="result && !result.ok && result.error" class="ag-px-err">{{ result.error }}</span>
+    </template>
 
     <p class="ag-px-note">
-      <UIcon :name="modelValue.trim() ? 'i-lucide-shield-check' : 'i-lucide-globe'" />
-      <span>{{ modelValue.trim() ? note : t('agent.proxy.noteOff') }}</span>
+      <UIcon :name="active ? 'i-lucide-shield-check' : 'i-lucide-globe'" />
+      <span>{{ active ? note : t('agent.proxy.noteOff') }}</span>
     </p>
     <p v-if="unavailable" class="ag-px-warn">
       <UIcon name="i-lucide-triangle-alert" />
@@ -47,11 +93,19 @@
 import { useI18n } from 'vue-i18n'
 import { testAgentProxy } from '@/api/agent'
 import type { TestAgentProxyResponse } from '@/types/v1/agent'
-import { proxyPayload, proxyReady, type ProxyForm } from '@/views/agent/utils/proxy'
+import {
+  COMMON_LOCALES,
+  COMMON_TIMEZONES,
+  localeOk,
+  proxyAddressOk,
+  proxyPayload,
+  type ProxyForm,
+  timezoneOk,
+} from '@/views/agent/utils/proxy'
 
 const props = defineProps<{
   modelValue: ProxyForm
-  /** Linux 上现在用不了的原因（比如 Momoko 没有以 root 运行） */
+  /** Linux 上现在建不了沙箱的原因（比如 Momoko 没有以 root 运行） */
   unavailable?: string
   /** 走代理时底下那一行说明 */
   note: string
@@ -66,15 +120,18 @@ const { t } = useI18n()
 
 const testing = ref(false)
 const result = ref<TestAgentProxyResponse | null>(null)
-const invalid = computed(() => !proxyReady(props.modelValue))
+const active = computed(() => !!props.modelValue.url.trim())
+const addressOk = computed(() => proxyAddressOk(props.modelValue))
+const tzOk = computed(() => timezoneOk(props.modelValue))
+const localeValid = computed(() => localeOk(props.modelValue))
 
-const onInput = (value: string) => {
+const patch = (p: Partial<ProxyForm>) => {
   result.value = null
-  emit('update:modelValue', value)
+  emit('update:modelValue', { ...props.modelValue, ...p })
 }
 
 const runTest = async () => {
-  if (testing.value || invalid.value) return
+  if (testing.value || !addressOk.value) return
   testing.value = true
   result.value = null
   try {
@@ -102,6 +159,14 @@ const runTest = async () => {
 }
 .ag-px-bad {
   border-color: var(--m-bad);
+}
+.ag-px-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.ag-px-envhint {
+  margin-top: -6px;
 }
 .ag-px-test {
   display: flex;
@@ -139,5 +204,10 @@ const runTest = async () => {
   width: 14px;
   height: 14px;
   margin-top: 2px;
+}
+@media (width < 560px) {
+  .ag-px-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>

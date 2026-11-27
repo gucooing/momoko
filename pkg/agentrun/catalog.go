@@ -189,7 +189,7 @@ func Probe(ctx context.Context, launch agentdriver.Launch, cwd string) (*ProbeRe
 	if err := os.MkdirAll(cwd, 0o755); err != nil {
 		return nil, err
 	}
-	proc, err := agentproc.Start(agentproc.Config{Command: launch.Command, Args: launch.Args, Dir: cwd, Env: launch.Env, Proxy: launch.Proxy})
+	proc, err := agentproc.Start(agentproc.Config{Command: launch.Command, Args: launch.Args, Dir: cwd, Env: launch.Env, Sandbox: launch.Sandbox})
 	if err != nil {
 		return nil, err
 	}

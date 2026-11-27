@@ -729,6 +729,10 @@ func (s *AgentService) TestAgentProxy(ctx context.Context, req *v1.TestAgentProx
 	return s.uc.TestProxy(ctx, req)
 }
 
+func (s *AgentService) UpdateAgentSandbox(ctx context.Context, _ *v1.UpdateAgentSandboxRequest) (*v1.UpdateAgentSandboxResponse, error) {
+	return s.uc.UpdateSandbox(ctx)
+}
+
 // RunLoginWsConn 官方账户的登录终端：在服务器上跑登录命令，连接断开或命令结束为止。
 func (s *AgentService) RunLoginWsConn(conn *websocket.Conn) {
 	defer conn.Close()

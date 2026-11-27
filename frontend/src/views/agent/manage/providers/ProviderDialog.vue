@@ -519,7 +519,7 @@ const configReady = () => {
 // 代理这一步：走代理就要填地址和端口
 const proxyStepReady = () => {
   if (!props.proxySupported || proxyReady(proxy.value)) return true
-  feedback.warning(t('agent.proxy.invalid'))
+  feedback.warning(t('agent.proxy.notReady'))
   return false
 }
 

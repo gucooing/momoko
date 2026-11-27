@@ -18,7 +18,7 @@ func configureCmd(cmd *pty.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGHUP}
 }
 
-// startSandboxed 在只走代理的隔离网络里起命令（见 pkg/agentsandbox）：go-pty 的命令带不了额外的文件，这里自己接上伪终端的从端。
+// startSandboxed 在沙箱里起命令（见 pkg/agentsandbox）：go-pty 的命令带不了额外的文件，这里自己接上伪终端的从端。
 func startSandboxed(ptmx pty.Pty, spec Spec) (*os.Process, func() error, error) {
 	up, ok := ptmx.(pty.UnixPty)
 	if !ok {
@@ -29,24 +29,9 @@ func startSandboxed(ptmx pty.Pty, spec Spec) (*os.Process, func() error, error) 
 	cmd.Env = spec.Env
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = up.Slave(), up.Slave(), up.Slave()
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true, Setctty: true, Pdeathsig: syscall.SIGHUP}
-	sb, err := agentsandbox.Wrap(cmd)
+	wait, err := agentsandbox.Start(cmd, *spec.Sandbox)
 	if err != nil {
 		return nil, nil, err
-	}
-	if err := cmd.Start(); err != nil {
-		sb.Close()
-		return nil, nil, err
-	}
-	if err := sb.Attach(*spec.Proxy); err != nil {
-		_ = cmd.Process.Kill()
-		_ = cmd.Wait()
-		sb.Close()
-		return nil, nil, err
-	}
-	wait := func() error {
-		err := cmd.Wait()
-		sb.Close()
-		return err
 	}
 	return cmd.Process, wait, nil
 }

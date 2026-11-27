@@ -73,6 +73,7 @@ import type {
   SetAgentRuntimeProxyResponse,
   TestAgentProxyRequest,
   TestAgentProxyResponse,
+  UpdateAgentSandboxResponse,
   SetAgentSessionOptionResponse,
   TestAgentMcpServerResponse,
   TestAgentProviderResponse,
@@ -375,6 +376,9 @@ export const setAgentRuntimeProxy = (id: string, proxy: AgentProxy) =>
 /** 试一下代理：经它连到要用的那一家（官方账户给 runtimeId，第三方接口给 providerId 或类型和接口地址） */
 export const testAgentProxy = (data: Partial<TestAgentProxyRequest>) =>
   request.post<TestAgentProxyResponse>('/agent/proxy/test', data, SLOW)
+/** 沙箱用的 sing-box：没下载时下载，下载过时更新到最新版本（只有 Linux） */
+export const updateAgentSandbox = () =>
+  request.post<UpdateAgentSandboxResponse>('/agent/sandbox/update', {}, { timeout: 600000 })
 
 // —— 通知：每个人自己的 ——
 export const getAgentNotify = () => request.get<GetAgentNotifyResponse>('/agent/notify')

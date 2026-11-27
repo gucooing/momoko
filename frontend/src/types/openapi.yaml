@@ -628,7 +628,7 @@ paths:
         post:
             tags:
                 - AgentService
-            description: 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+            description: 试一下代理：在沙箱里经它请求要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）
             operationId: AgentService_TestAgentProxy
             requestBody:
                 content:
@@ -836,6 +836,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.UpdateAgentRuntimeResponse'
+    /api/v1/agent/sandbox/update:
+        post:
+            tags:
+                - AgentService
+            description: 沙箱用的 sing-box：没下载时下载最新版本，下载过时更新到最新版本（只有 Linux）
+            operationId: AgentService_UpdateAgentSandbox
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.UpdateAgentSandboxRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.UpdateAgentSandboxResponse'
     /api/v1/agent/sessions:
         get:
             tags:
@@ -15370,7 +15389,7 @@ components:
                 proxy:
                     allOf:
                         - $ref: '#/components/schemas/v1.AgentProxy'
-                    description: 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传表示不改，type 为空表示不走代理
+                    description: 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传或 type 为空是不走代理
             description: |-
                 第三方接口（官方账号由用户自己在服务器上登录，见运行时的检查）。属于添加它的人，只有他自己用得上；
                  管理员在 Agent 管理页加的是共享的，共享给所有人或指定的人，被共享到的人只能用、看不到密钥和环境变量
@@ -15438,7 +15457,13 @@ components:
                 hasPassword:
                     type: boolean
                     description: 存着密码
-            description: 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只有这个出口的网络里，别的路都断掉（只有 Linux 做得到）
+                timezone:
+                    type: string
+                    description: 沙箱里的时区（IANA 名称，如 America/Los_Angeles）；空 = 跟服务器一样
+                locale:
+                    type: string
+                    description: 沙箱里的语言区域（如 en_US.UTF-8）；空 = 跟服务器一样
+            description: 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个代理联网的沙箱里，看到的时区和语言是这里配的（只有 Linux）
         v1.AgentRunSettings:
             type: object
             properties:
@@ -15541,6 +15566,22 @@ components:
                     type: string
                 caps:
                     $ref: '#/components/schemas/v1.AgentCapabilities'
+        v1.AgentSandbox:
+            type: object
+            properties:
+                supported:
+                    type: boolean
+                    description: 这个系统能不能用沙箱（只有 Linux）；不能时页面上不显示代理
+                unavailable:
+                    type: string
+                    description: Linux 上现在建不了沙箱的原因（比如没有以 root 运行）
+                singBoxVersion:
+                    type: string
+                    description: 已下载的 sing-box 版本；空 = 还没下载
+                installing:
+                    type: boolean
+                    description: 正在下载或更新 sing-box
+            description: 沙箱：配了代理的 Agent 在里面跑，只经代理联网（只有 Linux）
         v1.AgentSecretKV:
             type: object
             properties:
@@ -19371,7 +19412,7 @@ components:
                 proxy:
                     allOf:
                         - $ref: '#/components/schemas/v1.AgentProxy'
-                    description: 表单里的代理；不传时用已保存的
+                    description: 表单里的代理（密码留空用已保存的）；不传或 type 为空是不走代理
         v1.FetchAgentProviderModelsResponse:
             type: object
             properties:
@@ -22887,11 +22928,10 @@ components:
                     items:
                         $ref: '#/components/schemas/v1.AgentUser'
                     description: all 时这些接口的主人和共享给的人
-                proxySupported:
-                    type: boolean
-                    description: 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行）
-                proxyUnavailable:
-                    type: string
+                sandbox:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentSandbox'
+                    description: 这台服务器的沙箱（配代理要用）
         v1.ListAgentRuntimesResponse:
             type: object
             properties:
@@ -22901,11 +22941,10 @@ components:
                         $ref: '#/components/schemas/v1.AgentRuntime'
                 settings:
                     $ref: '#/components/schemas/v1.AgentRunSettings'
-                proxySupported:
-                    type: boolean
-                    description: 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行）
-                proxyUnavailable:
-                    type: string
+                sandbox:
+                    allOf:
+                        - $ref: '#/components/schemas/v1.AgentSandbox'
+                    description: 这台服务器的沙箱（配代理要用）
         v1.ListAgentSessionFilesResponse:
             type: object
             properties:
@@ -26748,7 +26787,7 @@ components:
                 proxy:
                     allOf:
                         - $ref: '#/components/schemas/v1.AgentProxy'
-                    description: type 为空表示不走代理
+                    description: 不传或 type 为空是不走代理
         v1.SetAgentRuntimeProxyResponse:
             type: object
             properties:
@@ -27602,7 +27641,7 @@ components:
                     type: string
                 target:
                     type: string
-                    description: 连的是哪里（主机:端口）
+                    description: 请求的是哪里
         v1.TestDockerConfigRequest:
             type: object
             properties:
@@ -28631,6 +28670,21 @@ components:
                 current:
                     type: string
                     description: 已安装的版本和最新版本；读不到为空
+                latest:
+                    type: string
+                updated:
+                    type: boolean
+        v1.UpdateAgentSandboxRequest:
+            type: object
+            properties: {}
+        v1.UpdateAgentSandboxResponse:
+            type: object
+            properties:
+                sandbox:
+                    $ref: '#/components/schemas/v1.AgentSandbox'
+                current:
+                    type: string
+                    description: 原来的版本（没下载过为空）和最新版本
                 latest:
                     type: string
                 updated:

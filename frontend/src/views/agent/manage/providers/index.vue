@@ -161,7 +161,7 @@ import { useAgentModels } from '@/views/agent/composables/useAgentModels'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { agentKindOf, protocolAgent } from '@/views/agent/utils/format'
 import { vendorName } from '@/views/agent/utils/labels'
-import { proxyLabel } from '@/views/agent/utils/proxy'
+import { proxyLabel, sandboxProblem } from '@/views/agent/utils/proxy'
 import { loginPill, loginSub } from '../accounts/login'
 import ProviderDialog from './ProviderDialog.vue'
 
@@ -180,7 +180,7 @@ const users = ref<AgentUser[]>([])
 /** 官方账户（只在 Agent 设置里显示，只读） */
 const runtimes = ref<AgentRuntime[]>([])
 const loaded = ref(false)
-/** 这台服务器能配代理（只有 Linux）；proxyUnavailable 是现在用不了的原因 */
+/** 这台服务器能配代理（只有 Linux）；proxyUnavailable 是沙箱现在用不了的原因（建不了、sing-box 没下载） */
 const proxySupported = ref(false)
 const proxyUnavailable = ref('')
 
@@ -203,8 +203,8 @@ const load = async () => {
     vendors.value = ps.data.vendors || []
     users.value = ps.data.users || []
     runtimes.value = rts?.data.runtimes || []
-    proxySupported.value = !!ps.data.proxySupported
-    proxyUnavailable.value = ps.data.proxyUnavailable || ""
+    proxySupported.value = !!ps.data.sandbox?.supported
+    proxyUnavailable.value = sandboxProblem(t, ps.data.sandbox)
     loadBalances()
   } catch {
     /* shown */

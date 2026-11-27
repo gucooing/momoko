@@ -10,7 +10,7 @@ import (
 	"momoko/pkg/agentsandbox"
 )
 
-// startSandboxed 只有 Linux 能把命令关进只走代理的网络。
+// startSandboxed 只有 Linux 有沙箱。
 func startSandboxed(pty.Pty, Spec) (*os.Process, func() error, error) {
 	return nil, nil, agentsandbox.ErrUnsupported
 }

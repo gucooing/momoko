@@ -461,22 +461,16 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 		}
 		env = driver.LoginLimits(loginLimits(m))
 	}
-	// 代理：用第三方接口的按接口配的，用服务器上的登录的按运行时配的；配了就整个进程树只能经它联网
-	proxyOwner := rt.Proxy
-	if provider != nil {
-		proxyOwner = provider.Proxy
-	}
-	if launch.Proxy, err = uc.proxyOf(proxyOwner); err != nil {
+	// 代理：有就整个进程树在沙箱里，只经它联网（见 effectiveProxy）
+	proxy, err := uc.effectiveProxy(rt, provider)
+	if err != nil {
 		return nil, err
 	}
-	if launch.Proxy != nil {
-		if env == nil {
-			env = map[string]string{}
-		}
-		for k, v := range driver.ProxyEnv() {
-			env[k] = v
-		}
+	sb, err := uc.sandboxOf(proxy)
+	if err != nil {
+		return nil, err
 	}
+	launch, env = sandboxed(driver, launch, env, sb)
 	// 技能放进 Agent 的配置目录：这个目录是服务器上所有会话共用的，起进程前换成这个会话主人自己启用的技能
 	if home := driver.Home(); home != "" {
 		agentskill.Sync(home, uc.enabledSkills(bg, s.UserID))

@@ -28,21 +28,6 @@ const (
 // 安装包本身走统一下载管理（pkg/download）。
 var httpClient = newClient()
 
-type clientKey struct{}
-
-// WithClient 之后用这个 ctx 查版本、下载都经 c（比如走运行时配的代理）。
-func WithClient(ctx context.Context, c *http.Client) context.Context {
-	return context.WithValue(ctx, clientKey{}, c)
-}
-
-// clientFrom ctx 指定的客户端；没指定时 override 为 false，用默认的。
-func clientFrom(ctx context.Context) (c *http.Client, override bool) {
-	if c, ok := ctx.Value(clientKey{}).(*http.Client); ok && c != nil {
-		return c, true
-	}
-	return httpClient, false
-}
-
 func newClient() *http.Client {
 	var t *http.Transport
 	if dt, ok := http.DefaultTransport.(*http.Transport); ok {
@@ -96,8 +81,7 @@ func latestRelease(ctx context.Context, repo string) (release, error) {
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
-	c, _ := clientFrom(ctx)
-	resp, err := c.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return r, utils.NetError(ctx, "GitHub", err)
 	}
@@ -131,12 +115,7 @@ func fetchAsset(ctx context.Context, title string, a asset, dest string, progres
 	if !ok {
 		return errors.New("发布页没有给出安装包的校验值，不能确认下载的文件是对的")
 	}
-	var client *http.Client
-	if c, ok := clientFrom(ctx); ok {
-		client = c
-	}
 	d, err := download.Default.Start(ctx, download.Request{
-		Client:    client,
 		URL:       a.URL,
 		Dest:      dest,
 		Name:      a.Name,

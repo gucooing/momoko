@@ -211,7 +211,7 @@ func Start(ctx context.Context, cfg Config) (*Session, *Started, error) {
 		}
 		env["TMPDIR"], env["TEMP"], env["TMP"] = cfg.TempDir, cfg.TempDir, cfg.TempDir
 	}
-	proc, err := agentproc.Start(agentproc.Config{Command: cfg.Launch.Command, Args: cfg.Launch.Args, Dir: cfg.Cwd, Env: env, Proxy: cfg.Launch.Proxy})
+	proc, err := agentproc.Start(agentproc.Config{Command: cfg.Launch.Command, Args: cfg.Launch.Args, Dir: cfg.Cwd, Env: env, Sandbox: cfg.Launch.Sandbox})
 	if err != nil {
 		return nil, nil, err
 	}

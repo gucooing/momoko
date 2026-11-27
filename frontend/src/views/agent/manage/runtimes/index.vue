@@ -1,5 +1,6 @@
 <!-- Agent 管理 · 运行时：每个 Agent 一行（重新检测；Claude Code 还有安装方式和检查更新），可以添加其它 ACP Agent；
      Codex 没有单文件发行包，没就绪时给出安装命令，由用户在服务器上自己执行。
+     Linux 上还有沙箱用的 sing-box（配了代理的 Agent 在沙箱里跑，网络由它接管）：下载、检查更新。
      下面是全局的并发上限和空闲时长，自己输入数字。 -->
 <template>
   <div class="ag ag-page">
@@ -114,6 +115,29 @@
         </div>
       </div>
 
+      <template v-if="sandbox?.supported">
+        <h2 class="ag-sh ag-gap">{{ t('agent.sandbox.title') }}</h2>
+        <div class="ag-grp">
+          <div class="ag-rw">
+            <div class="ag-rm">
+              <div class="ag-rt">
+                <span class="ag-rt-name">sing-box</span>
+                <span class="ag-pill" :class="sandboxPill.cls">{{ sandboxPill.text }}</span>
+              </div>
+              <div class="ag-rs">{{ sandbox.unavailable || t('agent.sandbox.desc') }}</div>
+            </div>
+            <div class="ag-rc">
+              <button type="button" class="ag-btn ag-btn--sm" :disabled="sandboxBusy" @click="updateSandbox">
+                <UIcon
+                  :name="sandboxBusy ? 'i-lucide-loader-circle' : 'i-lucide-download'"
+                  :class="{ 'ag-spin': sandboxBusy }"
+                />{{ sandbox.singBoxVersion ? t('agent.sandbox.update') : t('agent.sandbox.download') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <h2 class="ag-sh ag-gap">{{ t('agent.runtimes.settings') }}</h2>
       <div class="ag-grp">
         <div class="ag-rw ag-rt-set">
@@ -222,8 +246,9 @@ import {
   setAgentRuntimeMode,
   updateAgentRunSettings,
   updateAgentRuntime,
+  updateAgentSandbox,
 } from '@/api/agent'
-import type { AgentRunSettings, AgentRuntime } from '@/types/v1/agent'
+import type { AgentRunSettings, AgentRuntime, AgentSandbox } from '@/types/v1/agent'
 import AgConfirm from '@/views/agent/components/AgConfirm.vue'
 import AgDialog from '@/views/agent/components/AgDialog.vue'
 import AgManageHeader from '@/views/agent/components/AgManageHeader.vue'
@@ -240,6 +265,8 @@ const { overview, refresh } = useAgentOverview()
 
 const runtimes = ref<AgentRuntime[]>([])
 const loaded = ref(false)
+/** 沙箱：只有 Linux 有（supported） */
+const sandbox = ref<AgentSandbox | null>(null)
 
 const subtitle = computed(() => {
   const o = overview.value
@@ -264,8 +291,9 @@ const load = async () => {
   try {
     const { data } = await listAgentRuntimes()
     runtimes.value = data.runtimes || []
+    sandbox.value = data.sandbox ?? null
     applySettings(data.settings)
-    if (runtimes.value.some((r) => r.installing)) pollIn(3000)
+    if (runtimes.value.some((r) => r.installing) || sandbox.value?.installing) pollIn(3000)
   } catch {
     /* shown */
   } finally {
@@ -365,6 +393,31 @@ const checkUpdate = (r: AgentRuntime) => {
     }
   })
   pollIn(1500)
+}
+
+// —— 沙箱用的 sing-box：下载、检查更新（有新版本就直接更新）——
+const sandboxUpdating = ref(false)
+const sandboxBusy = computed(() => sandboxUpdating.value || !!sandbox.value?.installing)
+const sandboxPill = computed(() => {
+  const s = sandbox.value
+  if (s?.installing || sandboxUpdating.value) return { cls: 'ag-pill--warn', text: t('agent.runtimes.status.installing') }
+  if (s?.unavailable) return { cls: 'ag-pill--bad', text: t('agent.sandbox.unavailable') }
+  if (s?.singBoxVersion) return { cls: 'ag-pill--ok', text: s.singBoxVersion }
+  return { cls: 'ag-pill--warn', text: t('agent.sandbox.notDownloaded') }
+})
+const updateSandbox = async () => {
+  if (sandboxBusy.value) return
+  sandboxUpdating.value = true
+  try {
+    const { data } = await updateAgentSandbox()
+    sandbox.value = data.sandbox ?? sandbox.value
+    if (data.updated) feedback.success(t('agent.sandbox.updated', { version: data.latest }))
+    else feedback.success(t('agent.sandbox.upToDate', { version: data.current }))
+  } catch {
+    /* shown */
+  } finally {
+    sandboxUpdating.value = false
+  }
 }
 
 // —— 移除自己添加的 Agent ——

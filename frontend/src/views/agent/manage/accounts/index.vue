@@ -79,7 +79,7 @@ import { useAgentConn } from '@/views/agent/composables/agentConn'
 import { useAgentModels } from '@/views/agent/composables/useAgentModels'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
 import { agentKindOf } from '@/views/agent/utils/format'
-import { proxyLabel } from '@/views/agent/utils/proxy'
+import { proxyLabel, sandboxProblem } from '@/views/agent/utils/proxy'
 import AccountDialog from './AccountDialog.vue'
 import { loginPill, loginSub } from './login'
 
@@ -91,7 +91,7 @@ const { refresh: refreshModels } = useAgentModels()
 
 const runtimes = ref<AgentRuntime[]>([])
 const loaded = ref(false)
-/** 这台服务器能配代理（只有 Linux）；proxyUnavailable 是现在用不了的原因 */
+/** 这台服务器能配代理（只有 Linux）；proxyUnavailable 是沙箱现在用不了的原因（建不了、sing-box 没下载） */
 const proxySupported = ref(false)
 const proxyUnavailable = ref('')
 
@@ -106,8 +106,8 @@ const load = async () => {
   try {
     const { data } = await listAgentRuntimes()
     runtimes.value = data.runtimes || []
-    proxySupported.value = !!data.proxySupported
-    proxyUnavailable.value = data.proxyUnavailable || ''
+    proxySupported.value = !!data.sandbox?.supported
+    proxyUnavailable.value = sandboxProblem(t, data.sandbox)
   } catch {
     /* shown */
   } finally {

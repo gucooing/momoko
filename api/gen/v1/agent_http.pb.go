@@ -112,6 +112,7 @@ const OperationAgentServiceUpdateAgentNotifyEvents = "/v1.AgentService/UpdateAge
 const OperationAgentServiceUpdateAgentProvider = "/v1.AgentService/UpdateAgentProvider"
 const OperationAgentServiceUpdateAgentRunSettings = "/v1.AgentService/UpdateAgentRunSettings"
 const OperationAgentServiceUpdateAgentRuntime = "/v1.AgentService/UpdateAgentRuntime"
+const OperationAgentServiceUpdateAgentSandbox = "/v1.AgentService/UpdateAgentSandbox"
 const OperationAgentServiceUpdateAgentSkill = "/v1.AgentService/UpdateAgentSkill"
 const OperationAgentServiceUpdateAgentWorkspace = "/v1.AgentService/UpdateAgentWorkspace"
 
@@ -273,7 +274,7 @@ type AgentServiceHTTPServer interface {
 	TestAgentNotifyChannel(context.Context, *TestAgentNotifyChannelRequest) (*TestAgentNotifyChannelResponse, error)
 	// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(context.Context, *TestAgentProviderRequest) (*TestAgentProviderResponse, error)
-	// TestAgentProxy 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+	// TestAgentProxy 试一下代理：在沙箱里经它请求要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）
 	TestAgentProxy(context.Context, *TestAgentProxyRequest) (*TestAgentProxyResponse, error)
 	// UpdateAgentGitFiles 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
 	UpdateAgentGitFiles(context.Context, *UpdateAgentGitFilesRequest) (*UpdateAgentGitFilesResponse, error)
@@ -291,6 +292,8 @@ type AgentServiceHTTPServer interface {
 	UpdateAgentRunSettings(context.Context, *UpdateAgentRunSettingsRequest) (*UpdateAgentRunSettingsResponse, error)
 	// UpdateAgentRuntime 检查更新；由 Momoko 下载的会直接更新到最新版本
 	UpdateAgentRuntime(context.Context, *UpdateAgentRuntimeRequest) (*UpdateAgentRuntimeResponse, error)
+	// UpdateAgentSandbox 沙箱用的 sing-box：没下载时下载最新版本，下载过时更新到最新版本（只有 Linux）
+	UpdateAgentSandbox(context.Context, *UpdateAgentSandboxRequest) (*UpdateAgentSandboxResponse, error)
 	UpdateAgentSkill(context.Context, *UpdateAgentSkillRequest) (*UpdateAgentSkillResponse, error)
 	UpdateAgentWorkspace(context.Context, *UpdateAgentWorkspaceRequest) (*UpdateAgentWorkspaceResponse, error)
 }
@@ -385,6 +388,7 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.POST("/api/v1/agent/runtimes/settings", _AgentService_UpdateAgentRunSettings0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/proxy", _AgentService_SetAgentRuntimeProxy0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/proxy/test", _AgentService_TestAgentProxy0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/sandbox/update", _AgentService_UpdateAgentSandbox0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/notify", _AgentService_GetAgentNotify0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/notify/events", _AgentService_UpdateAgentNotifyEvents0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/notify/channel", _AgentService_SaveAgentNotifyChannel0_HTTP_Handler(srv))
@@ -2378,6 +2382,28 @@ func _AgentService_TestAgentProxy0_HTTP_Handler(srv AgentServiceHTTPServer) func
 	}
 }
 
+func _AgentService_UpdateAgentSandbox0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateAgentSandboxRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceUpdateAgentSandbox)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateAgentSandbox(ctx, req.(*UpdateAgentSandboxRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateAgentSandboxResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_GetAgentNotify0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetAgentNotifyRequest
@@ -2684,7 +2710,7 @@ type AgentServiceHTTPClient interface {
 	TestAgentNotifyChannel(ctx context.Context, req *TestAgentNotifyChannelRequest, opts ...http.CallOption) (rsp *TestAgentNotifyChannelResponse, err error)
 	// TestAgentProvider 测试：用主模型发一条消息，供应商给的每种协议各发一次。有草稿测草稿（地址、密钥留空且有 id 时用已保存的），否则测已保存的
 	TestAgentProvider(ctx context.Context, req *TestAgentProviderRequest, opts ...http.CallOption) (rsp *TestAgentProviderResponse, err error)
-	// TestAgentProxy 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+	// TestAgentProxy 试一下代理：在沙箱里经它请求要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）
 	TestAgentProxy(ctx context.Context, req *TestAgentProxyRequest, opts ...http.CallOption) (rsp *TestAgentProxyResponse, err error)
 	// UpdateAgentGitFiles 文件：暂存、取消暂存、撤销工作区的改动、冲突里采用当前 / 传入、标记已解决、加进 .gitignore
 	UpdateAgentGitFiles(ctx context.Context, req *UpdateAgentGitFilesRequest, opts ...http.CallOption) (rsp *UpdateAgentGitFilesResponse, err error)
@@ -2702,6 +2728,8 @@ type AgentServiceHTTPClient interface {
 	UpdateAgentRunSettings(ctx context.Context, req *UpdateAgentRunSettingsRequest, opts ...http.CallOption) (rsp *UpdateAgentRunSettingsResponse, err error)
 	// UpdateAgentRuntime 检查更新；由 Momoko 下载的会直接更新到最新版本
 	UpdateAgentRuntime(ctx context.Context, req *UpdateAgentRuntimeRequest, opts ...http.CallOption) (rsp *UpdateAgentRuntimeResponse, err error)
+	// UpdateAgentSandbox 沙箱用的 sing-box：没下载时下载最新版本，下载过时更新到最新版本（只有 Linux）
+	UpdateAgentSandbox(ctx context.Context, req *UpdateAgentSandboxRequest, opts ...http.CallOption) (rsp *UpdateAgentSandboxResponse, err error)
 	UpdateAgentSkill(ctx context.Context, req *UpdateAgentSkillRequest, opts ...http.CallOption) (rsp *UpdateAgentSkillResponse, err error)
 	UpdateAgentWorkspace(ctx context.Context, req *UpdateAgentWorkspaceRequest, opts ...http.CallOption) (rsp *UpdateAgentWorkspaceResponse, err error)
 }
@@ -3867,7 +3895,7 @@ func (c *AgentServiceHTTPClientImpl) TestAgentProvider(ctx context.Context, in *
 	return &out, nil
 }
 
-// TestAgentProxy 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+// TestAgentProxy 试一下代理：在沙箱里经它请求要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）
 func (c *AgentServiceHTTPClientImpl) TestAgentProxy(ctx context.Context, in *TestAgentProxyRequest, opts ...http.CallOption) (*TestAgentProxyResponse, error) {
 	var out TestAgentProxyResponse
 	pattern := "/api/v1/agent/proxy/test"
@@ -3997,6 +4025,20 @@ func (c *AgentServiceHTTPClientImpl) UpdateAgentRuntime(ctx context.Context, in 
 	pattern := "/api/v1/agent/runtimes/{id}/update"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAgentServiceUpdateAgentRuntime))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateAgentSandbox 沙箱用的 sing-box：没下载时下载最新版本，下载过时更新到最新版本（只有 Linux）
+func (c *AgentServiceHTTPClientImpl) UpdateAgentSandbox(ctx context.Context, in *UpdateAgentSandboxRequest, opts ...http.CallOption) (*UpdateAgentSandboxResponse, error) {
+	var out UpdateAgentSandboxResponse
+	pattern := "/api/v1/agent/sandbox/update"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServiceUpdateAgentSandbox))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

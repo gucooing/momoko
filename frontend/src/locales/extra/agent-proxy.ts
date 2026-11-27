@@ -1,6 +1,6 @@
 // 注意 vue-i18n 里 @ 和 | 是特殊字符，要写成 {'@'}、{'|'}。
-// Agent 的代理（只有 Linux 能配：官方账户的「代理」弹窗、第三方接口的「代理」这一步），
-// 官方账户的「登录」（在悬浮终端里跑登录命令），悬浮终端里登录标签的名字。
+// Agent 的代理（只有 Linux 能配：官方账户「配置」里的「代理」页、第三方接口的「代理」这一步），连同沙箱里的时区和语言；
+// 官方账户的「登录」（在悬浮终端里跑登录命令）和「配置」弹窗，悬浮终端里登录标签的名字。
 export default {
   'zh-CN': {
     agent: {
@@ -9,13 +9,23 @@ export default {
         placeholder: '留空不走代理，比如 socks5://127.0.0.1:1080',
         format: "支持 http:// 和 socks5://；有账号密码就写成 socks5://用户名:密码{'@'}主机:端口，已保存的密码显示为 ******。",
         invalid: '地址不对：要写成 http://主机:端口 或 socks5://主机:端口',
+        timezone: '时区',
+        locale: '语言',
+        sameAsServer: '跟服务器一样',
+        envHint: '沙箱里的 Agent 看到的时区（TZ、/etc/localtime）和语言（LANG），比如 America/Los_Angeles、en_US.UTF-8。',
+        timezoneInvalid: '时区要写成 America/Los_Angeles 这样的名称',
+        localeInvalid: '语言要写成 en_US.UTF-8 这样的名称',
+        notReady: '代理设置有误，改好再保存',
+        noSingBox: '沙箱要用的 sing-box 还没下载，到「运行时」里下载后才能用代理',
         test: '测试代理',
         testOk: '通了 · {target} · {ms} ms',
         testFail: '不通',
         unavailable: '现在用不了：{reason}',
         noteOff: '不走代理，直接联网。',
-        noteAccount: '{name} 的检查、登录、会话、下载和更新都只经这个代理联网，其他连接一律断开。保存后，正在运行的会话会重启。',
-        noteProvider: '用这个接口的会话、测试、拉模型、查余额都只经这个代理联网，其他连接一律断开。保存后，正在运行的会话会重启。',
+        noteAccount:
+          '{name} 的检查、登录、会话（连同它执行的命令和 MCP 服务器）、会话里的 Git 推拉都在沙箱里跑，只经这个代理联网；下载和更新也经它。保存后，正在运行的会话会重启。',
+        noteProvider:
+          '用这个接口的会话都在沙箱里跑，只经这个代理联网；测试、拉模型、查余额也经它。保存后，正在运行的会话会重启。',
         via: '经代理 {addr} 联网',
         tag: '代理',
       },
@@ -31,6 +41,16 @@ export default {
         saved: '已保存 {name} 的配置',
       },
       providers: { form: { step: { proxy: '代理' } } },
+      sandbox: {
+        title: '沙箱',
+        desc: '配了代理的 Agent 在沙箱里跑，网络由 sing-box 接管，只经代理联网',
+        download: '下载',
+        update: '检查更新',
+        notDownloaded: '未下载',
+        unavailable: '不可用',
+        updated: 'sing-box 已更新到 {version}',
+        upToDate: 'sing-box 已是最新版本 {version}',
+      },
     },
     termDock: {
       login: '登录 · {name}',
@@ -43,13 +63,23 @@ export default {
         placeholder: '留空不走代理，例如 socks5://127.0.0.1:1080',
         format: "支援 http:// 和 socks5://；有帳號密碼就寫成 socks5://使用者名稱:密碼{'@'}主機:連接埠，已儲存的密碼顯示為 ******。",
         invalid: '位址不對：要寫成 http://主機:連接埠 或 socks5://主機:連接埠',
+        timezone: '時區',
+        locale: '語言',
+        sameAsServer: '跟伺服器一樣',
+        envHint: '沙箱裡的 Agent 看到的時區（TZ、/etc/localtime）和語言（LANG），例如 America/Los_Angeles、en_US.UTF-8。',
+        timezoneInvalid: '時區要寫成 America/Los_Angeles 這樣的名稱',
+        localeInvalid: '語言要寫成 en_US.UTF-8 這樣的名稱',
+        notReady: '代理設定有誤，改好再儲存',
+        noSingBox: '沙箱要用的 sing-box 還沒下載，到「運行時」裡下載後才能用代理',
         test: '測試代理',
         testOk: '通了 · {target} · {ms} ms',
         testFail: '不通',
         unavailable: '現在用不了：{reason}',
         noteOff: '不走代理，直接連網。',
-        noteAccount: '{name} 的檢查、登入、工作階段、下載和更新都只經這個代理連網，其他連線一律斷開。儲存後，正在執行的工作階段會重新啟動。',
-        noteProvider: '用這個介面的工作階段、測試、拉模型、查餘額都只經這個代理連網，其他連線一律斷開。儲存後，正在執行的工作階段會重新啟動。',
+        noteAccount:
+          '{name} 的檢查、登入、工作階段（連同它執行的命令和 MCP 伺服器）、工作階段裡的 Git 推拉都在沙箱裡跑，只經這個代理連網；下載和更新也經它。儲存後，正在執行的工作階段會重新啟動。',
+        noteProvider:
+          '用這個介面的工作階段都在沙箱裡跑，只經這個代理連網；測試、拉模型、查餘額也經它。儲存後，正在執行的工作階段會重新啟動。',
         via: '經代理 {addr} 連網',
         tag: '代理',
       },
@@ -65,6 +95,16 @@ export default {
         saved: '已儲存 {name} 的設定',
       },
       providers: { form: { step: { proxy: '代理' } } },
+      sandbox: {
+        title: '沙箱',
+        desc: '設了代理的 Agent 在沙箱裡跑，網路由 sing-box 接管，只經代理連網',
+        download: '下載',
+        update: '檢查更新',
+        notDownloaded: '未下載',
+        unavailable: '不可用',
+        updated: 'sing-box 已更新到 {version}',
+        upToDate: 'sing-box 已是最新版本 {version}',
+      },
     },
     termDock: {
       login: '登入 · {name}',
@@ -77,15 +117,23 @@ export default {
         placeholder: 'Leave blank for no proxy, e.g. socks5://127.0.0.1:1080',
         format: "http:// and socks5:// are supported; add credentials as socks5://user:password{'@'}host:port. A saved password shows as ******.",
         invalid: 'Invalid address: use http://host:port or socks5://host:port',
+        timezone: 'Time zone',
+        locale: 'Language',
+        sameAsServer: 'Same as the server',
+        envHint: 'The time zone (TZ, /etc/localtime) and language (LANG) the agent sees in the sandbox, e.g. America/Los_Angeles, en_US.UTF-8.',
+        timezoneInvalid: 'Use a time zone name such as America/Los_Angeles',
+        localeInvalid: 'Use a language name such as en_US.UTF-8',
+        notReady: 'Fix the proxy settings before saving',
+        noSingBox: 'sing-box for the sandbox is not downloaded yet; download it under Runtimes before using a proxy',
         test: 'Test proxy',
         testOk: 'Works · {target} · {ms} ms',
         testFail: 'Failed',
         unavailable: 'Not available right now: {reason}',
         noteOff: 'No proxy — connects directly.',
         noteAccount:
-          "{name}'s checks, sign-in, sessions, downloads and updates reach the network only through this proxy; every other connection is cut off. Running sessions restart after saving.",
+          "{name}'s checks, sign-in, sessions (with their commands and MCP servers) and session Git push/pull run in a sandbox that reaches the network only through this proxy; downloads and updates use it too. Running sessions restart after saving.",
         noteProvider:
-          'Sessions, tests, model lists and balance checks for this API reach the network only through this proxy; every other connection is cut off. Running sessions restart after saving.',
+          'Sessions using this API run in a sandbox that reaches the network only through this proxy; tests, model lists and balance checks use it too. Running sessions restart after saving.',
         via: 'Connects through {addr}',
         tag: 'Proxy',
       },
@@ -101,6 +149,16 @@ export default {
         saved: 'Saved {name}',
       },
       providers: { form: { step: { proxy: 'Proxy' } } },
+      sandbox: {
+        title: 'Sandbox',
+        desc: 'Agents with a proxy run in a sandbox whose network is taken over by sing-box and goes only through the proxy',
+        download: 'Download',
+        update: 'Check for updates',
+        notDownloaded: 'Not downloaded',
+        unavailable: 'Unavailable',
+        updated: 'sing-box updated to {version}',
+        upToDate: 'sing-box is up to date ({version})',
+      },
     },
     termDock: {
       login: 'Sign in · {name}',

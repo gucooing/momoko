@@ -79,8 +79,6 @@ type Request struct {
 	MaxSize   int64  // 大小上限（字节），0 为不限
 	UserAgent string // 空时用 momoko
 	Site      string // 报错时对站点的称呼（如 GitHub），空时用主机名
-	// Client 用它下载（比如要走某个代理）；空时用默认的
-	Client *http.Client
 }
 
 // Info 是一个下载的只读快照。
@@ -571,11 +569,7 @@ func (d *Download) attempt(ctx context.Context) error {
 			req.Header.Set("If-Range", validator)
 		}
 	}
-	client := d.m.client
-	if d.req.Client != nil {
-		client = d.req.Client
-	}
-	resp, err := client.Do(req)
+	resp, err := d.m.client.Do(req)
 	if err != nil {
 		return d.netError(ctx, err)
 	}

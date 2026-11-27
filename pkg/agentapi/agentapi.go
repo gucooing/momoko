@@ -24,11 +24,13 @@ const (
 	ProtocolOpenAI = "openai"
 )
 
-// Conn 连到供应商用的地址和密钥。
+// Conn 连到供应商用的地址、密钥和 HTTP 客户端。
 type Conn struct {
 	// BaseURL 用户填的地址；官方地址固定的供应商用不到它。
 	BaseURL string
 	APIKey  string
+	// HTTP 发请求用的客户端（供应商配了代理时是经代理的那个）；空 = 直接联网。
+	HTTP *http.Client
 }
 
 // Model 接口给的一个模型；接口没给的项为零值。
@@ -101,24 +103,11 @@ func Serves(v Vendor, protocol string) bool {
 // TestMaxTokens 测试消息最多回多少 token：够推理模型想一想再回一段话。
 const TestMaxTokens = 4096
 
-var client = &http.Client{Timeout: 3 * time.Minute}
+// direct 不走代理时发请求用的客户端。
+var direct = &http.Client{Timeout: 3 * time.Minute}
 
-type clientKey struct{}
-
-// WithClient 之后用这个 ctx 发的请求都经 c（比如走供应商配的代理）。
-func WithClient(ctx context.Context, c *http.Client) context.Context {
-	return context.WithValue(ctx, clientKey{}, c)
-}
-
-func clientFrom(ctx context.Context) *http.Client {
-	if c, ok := ctx.Value(clientKey{}).(*http.Client); ok && c != nil {
-		return c
-	}
-	return client
-}
-
-// Do 发一个请求（body 不为空时是 JSON），返回状态码和（截断的）响应体；连不上、超时时 err 是给人看的原因。
-func Do(ctx context.Context, method, endpoint string, header map[string]string, body any) (int, []byte, error) {
+// Do 经 c.HTTP 发一个请求（body 不为空时是 JSON），返回状态码和（截断的）响应体；连不上、超时时 err 是给人看的原因。
+func (c Conn) Do(ctx context.Context, method, endpoint string, header map[string]string, body any) (int, []byte, error) {
 	var reader io.Reader
 	if body != nil {
 		raw, err := json.Marshal(body)
@@ -137,7 +126,11 @@ func Do(ctx context.Context, method, endpoint string, header map[string]string, 
 	for k, v := range header {
 		req.Header.Set(k, v)
 	}
-	resp, err := clientFrom(ctx).Do(req)
+	client := c.HTTP
+	if client == nil {
+		client = direct
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		var urlErr *url.Error
 		if errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &urlErr) && urlErr.Timeout()) {

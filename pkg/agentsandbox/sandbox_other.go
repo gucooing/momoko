@@ -5,23 +5,20 @@ package agentsandbox
 import (
 	"os/exec"
 
-	"momoko/pkg/agentproxy"
+	"momoko/pkg/agentinstall"
 )
 
-// Supported 这个系统能不能把 Agent 关进只走代理的网络（只有 Linux）。
+// Supported 这个系统能不能建沙箱（只有 Linux）。
 func Supported() bool { return false }
 
-// Check 现在能不能建隔离网络。
+// Check 现在能不能建沙箱。
 func Check() error { return ErrUnsupported }
 
-// RunGate 只有 Linux 有看门进程。
+// RunGate 只有 Linux 有沙箱。
 func RunGate() {}
 
-// Sandbox 只有 Linux 有。
-type Sandbox struct{}
+// Start 只有 Linux 能做。
+func Start(*exec.Cmd, Config) (func() error, error) { return nil, ErrUnsupported }
 
-// Wrap 只有 Linux 能做。
-func Wrap(*exec.Cmd) (*Sandbox, error) { return nil, ErrUnsupported }
-
-func (*Sandbox) Attach(agentproxy.Proxy) error { return ErrUnsupported }
-func (*Sandbox) Close()                        {}
+// SingBoxRelease 只有 Linux 用 sing-box。
+func SingBoxRelease() (agentinstall.Release, bool) { return agentinstall.Release{}, false }

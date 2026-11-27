@@ -3,8 +3,7 @@ package biz
 import (
 	"context"
 	"errors"
-	"net"
-	"net/url"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -13,7 +12,6 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
-	"momoko/pkg/agentapi"
 	"momoko/pkg/agentdriver"
 	"momoko/pkg/agentinstall"
 	"momoko/pkg/agentproc"
@@ -27,10 +25,12 @@ import (
 
 // ———————————————————————————— 代理 ————————————————————————————
 //
-// 官方账户（运行时）和第三方接口（供应商）各自能配一个代理（只有 Linux）。配了之后，用它的一切都只经这个代理联网：
-// Agent 进程连同它启动的 CLI、命令、MCP 服务器关在只有这一个出口的网络里（pkg/agentsandbox），检查、登录终端、
-// 会话里的 Git 推拉也一样；Momoko 替它发的请求（测试、拉模型、查余额、下载和更新）经这个代理发出去。
-// 代理读不出来（密钥换了之类）时一律当作出错，不会悄悄改成直连。
+// 官方账户（运行时）和第三方接口（供应商）各自能配一个代理（只有 Linux），连同沙箱里的时区和语言。
+// 配了代理，跟 AI 打交道的事都在沙箱里做（pkg/agentsandbox：sing-box 接管沙箱的网络，只经这个代理联网，环境里看不到代理）：
+//   - Agent 的进程：会话（连同它执行的命令、MCP 服务器）、检查登录、登录终端，代理按 effectiveProxy 定；
+//   - Momoko 自己的 AI 请求：测试接口、拉模型、查余额、测试代理，经 agentsandbox.Transport 在沙箱里发。
+// 跟 AI 无关的（Git、下载和更新、工作区、技能、MCP 测试、通知）不进沙箱。
+// 存着的代理读不出来、sing-box 没下载，一律算出错，不会改成直连。
 
 // AgentLoginWsPath 官方账户的登录终端：在服务器上跑这一系 Agent 的登录命令，接到页面的终端里（?runtime=运行时 id）。
 const AgentLoginWsPath = "/api/v1/agent/login/ws"
@@ -48,42 +48,65 @@ func (uc *AgentUsecase) proxyOf(stored string) (*agentproxy.Proxy, error) {
 		return nil, errProxyUnreadable
 	}
 	p, err := agentproxy.Parse(plain)
-	if err != nil || p == nil {
+	if err != nil {
 		return nil, errProxyUnreadable
 	}
-	return p, nil
+	return &p, nil
 }
 
-// proxyPB 给能改的人看的代理：不带密码，只说有没有。
-func (uc *AgentUsecase) proxyPB(stored string) *v1.AgentProxy {
+// storeProxy 要存的密文：nil 是不走代理；只有 Linux 能配。
+func (uc *AgentUsecase) storeProxy(p *agentproxy.Proxy) (string, error) {
+	if p == nil {
+		return "", nil
+	}
+	if !agentsandbox.Supported() {
+		return "", response.BadRequest(agentsandbox.ErrUnsupported.Error())
+	}
+	return uc.encrypt(p.Encode()), nil
+}
+
+// proxyKey 比较两份存着的代理是不是同一个（同一个代理每次加密出来的密文不一样）。
+func (uc *AgentUsecase) proxyKey(stored string) string {
+	if stored == "" {
+		return ""
+	}
+	return uc.decrypt(stored)
+}
+
+// encodedProxy 和 proxyKey 比较用：p 的地址；nil 为空。
+func encodedProxy(p *agentproxy.Proxy) string {
+	if p == nil {
+		return ""
+	}
+	return p.Encode()
+}
+
+// proxyPB 页面上的代理：能改的人看到用户名和有没有密码；只能用的人（view）只看到地址、时区、语言。不带密码。
+func (uc *AgentUsecase) proxyPB(stored string, view bool) *v1.AgentProxy {
 	p, err := uc.proxyOf(stored)
 	if err != nil || p == nil {
 		return nil
 	}
-	return &v1.AgentProxy{Type: p.Type, Host: p.Host, Port: int32(p.Port), Username: p.Username, HasPassword: p.Password != ""}
-}
-
-// proxyViewPB 只能用的人看的代理：类型和地址。
-func (uc *AgentUsecase) proxyViewPB(stored string) *v1.AgentProxy {
-	out := uc.proxyPB(stored)
-	if out != nil {
-		out.Username, out.HasPassword = "", false
+	out := &v1.AgentProxy{Type: p.Type, Host: p.Host, Port: int32(p.Port), Timezone: p.Timezone, Locale: p.Locale}
+	if !view {
+		out.Username, out.HasPassword = p.Username, p.Password != ""
 	}
 	return out
 }
 
-// formProxy 表单里的代理：密码留空、用户名没变时用 stored 里的密码。type 为空返回 nil。
-func (uc *AgentUsecase) formProxy(stored string, in *v1.AgentProxy) (*agentproxy.Proxy, error) {
-	kind := strings.ToLower(strings.TrimSpace(in.GetType()))
-	if kind == "" {
+// proxyFromPB 页面上填的代理：不传或 type 为空是不走代理；密码留空、用户名没变时用 stored 里的密码。
+func (uc *AgentUsecase) proxyFromPB(stored string, in *v1.AgentProxy) (*agentproxy.Proxy, error) {
+	if in.GetType() == "" {
 		return nil, nil
 	}
-	p := &agentproxy.Proxy{
-		Type:     kind,
+	p := agentproxy.Proxy{
+		Type:     strings.ToLower(strings.TrimSpace(in.GetType())),
 		Host:     strings.TrimSpace(in.GetHost()),
 		Port:     int(in.GetPort()),
 		Username: strings.TrimSpace(in.GetUsername()),
 		Password: in.GetPassword(),
+		Timezone: strings.TrimSpace(in.GetTimezone()),
+		Locale:   strings.TrimSpace(in.GetLocale()),
 	}
 	if p.Password == "" && p.Username != "" {
 		if old, _ := uc.proxyOf(stored); old != nil && old.Username == p.Username {
@@ -93,119 +116,80 @@ func (uc *AgentUsecase) formProxy(stored string, in *v1.AgentProxy) (*agentproxy
 	if err := p.Validate(); err != nil {
 		return nil, response.BadRequest(err.Error())
 	}
-	return p, nil
-}
-
-// mergeProxy 表单里的代理换成要存的密文：in 为 nil 时不改；type 为空是不走代理。只有 Linux 能配。
-func (uc *AgentUsecase) mergeProxy(stored string, in *v1.AgentProxy) (string, error) {
-	if in == nil {
-		return stored, nil
-	}
-	p, err := uc.formProxy(stored, in)
-	if err != nil {
-		return "", err
-	}
-	if p == nil {
-		return "", nil
-	}
-	if !agentsandbox.Supported() {
-		return "", response.BadRequest(agentsandbox.ErrUnsupported.Error())
-	}
-	return uc.encrypt(p.URL()), nil
-}
-
-// draftProxy 测试、拉模型用的代理：表单里带了就用表单里的（密码留空用存着的），没带用存着的。
-func (uc *AgentUsecase) draftProxy(stored string, in *v1.AgentProxy) (*agentproxy.Proxy, error) {
-	if in == nil {
-		return uc.proxyOf(stored)
-	}
-	return uc.formProxy(stored, in)
-}
-
-// proxySupport 列表里带的：能不能配代理，Linux 上现在用不了的原因。
-func proxySupport() (supported bool, unavailable string) {
-	if !agentsandbox.Supported() {
-		return false, ""
-	}
-	if err := agentsandbox.Check(); err != nil {
-		return true, err.Error()
-	}
-	return true, ""
-}
-
-// withProxyClient Momoko 替它发的请求（测试、拉模型、查余额）经 p 发出去；p 为 nil 时原样返回。
-func withProxyClient(ctx context.Context, p *agentproxy.Proxy) context.Context {
-	if p == nil {
-		return ctx
-	}
-	return agentapi.WithClient(ctx, p.Client(3*time.Minute))
-}
-
-// proxied 用服务器上的登录起这个运行时（检查）：配了代理就带上，并关掉用不着的联网。
-func (uc *AgentUsecase) proxied(rt *gen.AgentRuntime, launch agentdriver.Launch) (agentdriver.Launch, error) {
-	p, err := uc.proxyOf(rt.Proxy)
-	if err != nil || p == nil {
-		return launch, err
-	}
-	env := map[string]string{}
-	for k, v := range launch.Env {
-		env[k] = v
-	}
-	for k, v := range uc.driverOf(string(rt.Kind)).ProxyEnv() {
-		env[k] = v
-	}
-	launch.Env, launch.Proxy = env, p
-	return launch, nil
-}
-
-// installCtx 下载、更新这个运行时用的 ctx（不受请求超时影响）：配了代理就经代理下载。
-func (uc *AgentUsecase) installCtx(ctx context.Context, rt *gen.AgentRuntime) (context.Context, error) {
-	bg := context.WithoutCancel(ctx)
-	p, err := uc.proxyOf(rt.Proxy)
-	if err != nil || p == nil {
-		return bg, err
-	}
-	return agentinstall.WithClient(bg, p.Client(0)), nil
-}
-
-// sameProxy 存着的代理和 p 是不是同一个（都没有也算）。
-func (uc *AgentUsecase) sameProxy(stored string, p *agentproxy.Proxy) bool {
-	cur, err := uc.proxyOf(stored)
-	if err != nil {
-		return false
-	}
-	if cur == nil || p == nil {
-		return cur == nil && p == nil
-	}
-	return cur.URL() == p.URL()
-}
-
-// sessionProxy 会话用的代理：用第三方接口的是接口配的，用服务器上的登录的是运行时配的。
-func (uc *AgentUsecase) sessionProxy(ctx context.Context, s *gen.AgentSession) (*agentproxy.Proxy, error) {
-	if s.ProviderID != "" {
-		p, err := uc.getProvider(ctx, s.ProviderID)
-		if err != nil {
-			return nil, err
+	if p.Timezone != "" {
+		if _, err := time.LoadLocation(p.Timezone); err != nil {
+			return nil, response.BadRequest("服务器上没有时区 " + p.Timezone + " 的数据")
 		}
-		return uc.proxyOf(p.Proxy)
 	}
-	rt, err := uc.getRuntime(ctx, s.RuntimeID)
-	if err != nil {
-		return nil, err
+	return &p, nil
+}
+
+// effectiveProxy 一个 Agent 进程该走的代理：用第三方接口、接口配了代理时用接口的；否则用这个 Agent（运行时）配的。
+// 两边都没配才直接联网——只要有一边配了，进程就进沙箱。
+func (uc *AgentUsecase) effectiveProxy(rt *gen.AgentRuntime, provider *gen.AgentProvider) (*agentproxy.Proxy, error) {
+	if provider != nil && provider.Proxy != "" {
+		return uc.proxyOf(provider.Proxy)
 	}
 	return uc.proxyOf(rt.Proxy)
 }
 
-// restartUsing 代理改了：正在跑的、用它的会话进程按旧的网络起的，结束掉，下次发消息时按新的代理重起（接着原来的上下文）。
+// sandboxOf 有代理时的沙箱：sing-box 要先下载好。没有代理为 nil。
+func (uc *AgentUsecase) sandboxOf(p *agentproxy.Proxy) (*agentsandbox.Config, error) {
+	if p == nil {
+		return nil, nil
+	}
+	launch, ok := agentinstall.Installed(uc.singBoxDir())
+	if !ok {
+		return nil, response.BadRequest("沙箱要用的 sing-box 还没下载：到「运行时」里下载")
+	}
+	return &agentsandbox.Config{Proxy: *p, SingBox: launch.Command}, nil
+}
+
+// runtimeSandbox 用服务器上的登录起这个 Agent（检查登录、登录终端）时的沙箱：按运行时的代理。
+func (uc *AgentUsecase) runtimeSandbox(rt *gen.AgentRuntime) (*agentsandbox.Config, error) {
+	p, err := uc.proxyOf(rt.Proxy)
+	if err != nil {
+		return nil, err
+	}
+	return uc.sandboxOf(p)
+}
+
+// sandboxed 起 Agent 进程的 launch 放进沙箱 sb（为 nil 时原样返回），并带上这一系在沙箱里时的环境（关掉用不着的联网）。
+func sandboxed(d agentdriver.Driver, launch agentdriver.Launch, env map[string]string, sb *agentsandbox.Config) (agentdriver.Launch, map[string]string) {
+	if sb == nil {
+		return launch, env
+	}
+	out := make(map[string]string, len(env)+4)
+	for k, v := range env {
+		out[k] = v
+	}
+	for k, v := range d.SandboxEnv() {
+		out[k] = v
+	}
+	launch.Sandbox = sb
+	return launch, out
+}
+
+// clientVia Momoko 自己的 AI 请求用的客户端：有代理时每个请求都在沙箱里发；没有代理为 nil（直接联网）。
+func (uc *AgentUsecase) clientVia(p *agentproxy.Proxy, timeout time.Duration) (*http.Client, error) {
+	sb, err := uc.sandboxOf(p)
+	if err != nil || sb == nil {
+		return nil, err
+	}
+	return &http.Client{Transport: agentsandbox.Transport{Config: *sb}, Timeout: timeout}, nil
+}
+
+// restartUsing 代理改了：用它的会话进程是按旧的网络起的，结束掉，下次发消息时按新的代理重起（接着原来的上下文）。
+// 运行时的代理也管着这个 Agent 用没配代理的第三方接口的会话（见 effectiveProxy），所以这个 Agent 的进程都重起。
 func (uc *AgentUsecase) restartUsing(runtimeID, providerID string) {
 	for _, l := range uc.pool.Snapshot() {
-		if (providerID != "" && l.providerID == providerID) || (runtimeID != "" && l.runtimeID == runtimeID && l.providerID == "") {
+		if (providerID != "" && l.providerID == providerID) || (runtimeID != "" && l.runtimeID == runtimeID) {
 			go l.Shutdown()
 		}
 	}
 }
 
-// requireManage 官方账户（运行时）的事要 agent:manage。
+// requireManage 官方账户（运行时）和沙箱的事要 agent:manage。
 func (uc *AgentUsecase) requireManage(ctx context.Context) error {
 	if uc.system.Check(ctx, constant.AgentManage) != nil {
 		return ErrNoPermission
@@ -213,52 +197,42 @@ func (uc *AgentUsecase) requireManage(ctx context.Context) error {
 	return nil
 }
 
-// SetRuntimeProxy 服务器上的登录走的代理。改了就结束用它的会话进程，下次按新的起。
+// SetRuntimeProxy 官方账户的代理。改了就结束这个 Agent 的会话进程，下次按新的起。
 func (uc *AgentUsecase) SetRuntimeProxy(ctx context.Context, id string, in *v1.AgentProxy) (*v1.AgentRuntime, error) {
 	rt, err := uc.getRuntime(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if in == nil {
-		in = &v1.AgentProxy{}
-	}
-	stored, err := uc.mergeProxy(rt.Proxy, in)
+	p, err := uc.proxyFromPB(rt.Proxy, in)
 	if err != nil {
 		return nil, err
 	}
-	if stored != rt.Proxy {
-		before := uc.proxyKey(rt.Proxy)
-		rt.Proxy = stored
-		if err := uc.repo.SaveAgentRuntime(ctx, rt); err != nil {
-			return nil, ErrSystem(err)
-		}
-		if before != uc.proxyKey(stored) {
-			uc.restartUsing(rt.ID, "")
-		}
-		uc.configChanged()
+	stored, err := uc.storeProxy(p)
+	if err != nil {
+		return nil, err
 	}
+	changed := uc.proxyKey(rt.Proxy) != uc.proxyKey(stored)
+	rt.Proxy = stored
+	if err := uc.repo.SaveAgentRuntime(ctx, rt); err != nil {
+		return nil, ErrSystem(err)
+	}
+	if changed {
+		uc.restartUsing(rt.ID, "")
+	}
+	uc.configChanged()
 	return uc.runtimeOut(ctx, rt, uc.activeByRuntime())
 }
 
-// proxyKey 比较两份密文是不是同一个代理（同一个代理每次加密出来的密文不一样）。
-func (uc *AgentUsecase) proxyKey(stored string) string {
-	if stored == "" {
-		return ""
-	}
-	return uc.decrypt(stored)
-}
-
-// 检查代理时连去哪里：这一系 Agent 的官方地址。
+// 测试代理时请求哪里：这一系 Agent 的官方地址。
 var proxyProbeTargets = map[string]string{
-	"claude": "api.anthropic.com:443",
-	"codex":  "chatgpt.com:443",
+	"claude": "https://api.anthropic.com/",
+	"codex":  "https://chatgpt.com/",
 }
 
-// TestProxy 经代理连到要用的那一家，做一次 TLS 握手。连不上是代理那边的状况，放在 error 里返回，不算请求出错。
+// TestProxy 在沙箱里经代理请求一次要用的那一家：有应答（不管状态码）就算通。不通是代理那边的状况，放在 error 里返回。
 func (uc *AgentUsecase) TestProxy(ctx context.Context, req *v1.TestAgentProxyRequest) (*v1.TestAgentProxyResponse, error) {
 	var stored, target string
-	switch {
-	case req.GetRuntimeId() != "":
+	if req.GetRuntimeId() != "" {
 		if err := uc.requireManage(ctx); err != nil {
 			return nil, err
 		}
@@ -268,9 +242,9 @@ func (uc *AgentUsecase) TestProxy(ctx context.Context, req *v1.TestAgentProxyReq
 		}
 		stored = rt.Proxy
 		if target = proxyProbeTargets[string(rt.Kind)]; target == "" {
-			target = "www.google.com:443"
+			target = "https://www.google.com/"
 		}
-	default:
+	} else {
 		vendor, baseURL := req.GetVendor(), strings.TrimSpace(req.GetBaseUrl())
 		if req.GetProviderId() != "" {
 			p, err := uc.editableProvider(ctx, req.GetProviderId())
@@ -289,50 +263,47 @@ func (uc *AgentUsecase) TestProxy(ctx context.Context, req *v1.TestAgentProxyReq
 		if v.BaseURL() != "" {
 			baseURL = v.BaseURL()
 		}
-		var err error
-		if target, err = hostPort(baseURL); err != nil {
-			return nil, err
+		if baseURL == "" {
+			return nil, response.BadRequest("先填接口地址")
 		}
+		target = baseURL
 	}
-	p, err := uc.draftProxy(stored, req.GetProxy())
+	p, err := uc.proxyFromPB(stored, req.GetProxy())
 	if err != nil {
 		return nil, err
 	}
 	if p == nil {
-		return nil, response.BadRequest("先填代理")
+		return nil, response.BadRequest("先填代理地址")
 	}
-	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 40*time.Second)
+	client, err := uc.clientVia(p, 60*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	bg, cancel := context.WithTimeout(context.WithoutCancel(ctx), 60*time.Second)
 	defer cancel()
 	resp := &v1.TestAgentProxyResponse{Target: target}
-	took, err := p.Check(bg, target)
+	hr, err := http.NewRequestWithContext(bg, http.MethodGet, target, nil)
+	if err != nil {
+		return nil, response.BadRequest("接口地址不对")
+	}
+	started := time.Now()
+	r, err := client.Do(hr)
 	if err != nil {
 		resp.Error = err.Error()
 		return resp, nil
 	}
-	resp.Ok, resp.LatencyMs = true, took.Milliseconds()
+	_ = r.Body.Close()
+	resp.Ok, resp.LatencyMs = true, time.Since(started).Milliseconds()
 	return resp, nil
-}
-
-// hostPort 接口地址的「主机:端口」（没写端口按 https 的 443）。
-func hostPort(raw string) (string, error) {
-	u, err := url.Parse(strings.TrimSpace(raw))
-	if err != nil || u.Hostname() == "" {
-		return "", response.BadRequest("先填接口地址")
-	}
-	port := u.Port()
-	if port == "" {
-		port = "443"
-	}
-	return net.JoinHostPort(u.Hostname(), port), nil
 }
 
 // ———————————————————————————— 登录终端 ————————————————————————————
 
-// loginLaunch 这个运行时在终端里登录用的命令；登录不了时 ok 为 false。
+// loginLaunch 这个运行时在终端里登录用的命令和它这一系的驱动；登录不了时 ok 为 false。
 func (uc *AgentUsecase) loginLaunch(rt *gen.AgentRuntime) (agentdriver.Launch, agentdriver.Driver, bool) {
-	d := uc.driverOf(string(rt.Kind))
-	if builtin, ok := uc.builtinDriver(rt.ID); ok {
-		d = builtin
+	d, builtin := uc.builtinDriver(rt.ID)
+	if !builtin {
+		d = uc.driverOf(string(rt.Kind))
 	}
 	launch, err := uc.runtimeLaunch(rt)
 	if err != nil {
@@ -342,8 +313,7 @@ func (uc *AgentUsecase) loginLaunch(rt *gen.AgentRuntime) (agentdriver.Launch, a
 	return login, d, ok
 }
 
-// ServeLogin 在服务器上跑这个运行时的登录命令，接到页面的终端里；配了代理就在只走代理的网络里跑。
-// 命令结束后自动检查一次登录。
+// ServeLogin 在服务器上跑这个运行时的登录命令，接到页面的终端里；配了代理就在沙箱里跑。命令结束后检查一次登录。
 func (uc *AgentUsecase) ServeLogin(conn *websocket.Conn, runtimeID string) error {
 	ctx := context.WithoutCancel(conn.Request().Context())
 	say := func(text string) { _ = websocket.Message.Send(conn, "\x1b[31m[system] "+text+"\x1b[0m\r\n") }
@@ -361,30 +331,24 @@ func (uc *AgentUsecase) ServeLogin(conn *websocket.Conn, runtimeID string) error
 		say(err.Error())
 		return err
 	}
-	proxy, err := uc.proxyOf(rt.Proxy)
+	sb, err := uc.runtimeSandbox(rt)
 	if err != nil {
 		say(err.Error())
 		return err
 	}
-	env := map[string]string{}
-	for k, v := range login.Env {
-		env[k] = v
-	}
-	if proxy != nil {
-		for k, v := range d.ProxyEnv() {
-			env[k] = v
-		}
-		env = agentproc.WithProxyEnv(env)
-	}
-	// 用注册表现在的环境变量（Momoko 启动后装的工具也找得到）
-	base := append(sysenv.Environ(), shellcore.TermEnv()...)
+	login, env := sandboxed(d, login, login.Env, sb)
 	dir, _ := os.UserHomeDir()
-	spec := shellcore.Spec{Path: login.Command, Args: login.Args, Dir: dir, Env: agentproc.MergeEnv(base, env), Proxy: proxy}
-	if proxy != nil {
-		_ = websocket.Message.Send(conn, "\x1b[2m[system] 经代理 "+proxy.String()+" 联网，别的路都断开了\x1b[0m\r\n")
+	spec := shellcore.Spec{
+		Path:    login.Command,
+		Args:    login.Args,
+		Dir:     dir,
+		Env:     agentproc.MergeEnv(append(sysenv.Environ(), shellcore.TermEnv()...), env),
+		Sandbox: login.Sandbox,
 	}
-	farewell := "\r\n\x1b[2m[system] 登录命令结束了，正在检查 " + rt.Name + " 的登录…\x1b[0m\r\n"
-	serveErr := shellcore.ServeCommand(conn, spec, farewell)
+	if sb != nil {
+		_ = websocket.Message.Send(conn, "\x1b[2m[system] 在沙箱里运行：只经代理 "+sb.Proxy.String()+" 联网\x1b[0m\r\n")
+	}
+	serveErr := shellcore.ServeCommand(conn, spec, "\r\n\x1b[2m[system] 登录命令结束了，正在检查 "+rt.Name+" 的登录…\x1b[0m\r\n")
 	// 不管登录成没成，都按现在的状态检查一次（页面收到配置变了会刷新）
 	if latest, err := uc.getRuntime(ctx, runtimeID); err == nil {
 		go func() { _, _ = uc.detectRuntime(ctx, latest) }()

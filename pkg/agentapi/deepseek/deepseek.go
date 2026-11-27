@@ -43,14 +43,14 @@ func (Vendor) Endpoint(protocol string, _ agentapi.Conn) string {
 func (v Vendor) Test(ctx context.Context, protocol string, c agentapi.Conn, model, message string) (agentapi.Reply, error) {
 	endpoint := v.Endpoint(protocol, c)
 	if protocol == agentapi.ProtocolAnthropic {
-		return anthropic.Send(ctx, endpoint, c.APIKey, model, message)
+		return anthropic.Send(ctx, c, endpoint, model, message)
 	}
-	return openai.Send(ctx, endpoint, c.APIKey, model, message)
+	return openai.Send(ctx, c, endpoint, model, message)
 }
 
 // Models /models 除了 id 还给最长上下文、最长输出和能选的推理强度。
 func (Vendor) Models(ctx context.Context, c agentapi.Conn) ([]agentapi.Model, error) {
-	status, body, err := agentapi.Do(ctx, http.MethodGet, baseURL+"/models", agentapi.Bearer(c.APIKey), nil)
+	status, body, err := c.Do(ctx, http.MethodGet, baseURL+"/models", agentapi.Bearer(c.APIKey), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (Vendor) Models(ctx context.Context, c agentapi.Conn) ([]agentapi.Model, er
 
 // Balance GET /user/balance：每种币种的总余额、赠送余额和充值余额。
 func (Vendor) Balance(ctx context.Context, c agentapi.Conn) (agentapi.Balance, error) {
-	status, body, err := agentapi.Do(ctx, http.MethodGet, baseURL+"/user/balance", agentapi.Bearer(c.APIKey), nil)
+	status, body, err := c.Do(ctx, http.MethodGet, baseURL+"/user/balance", agentapi.Bearer(c.APIKey), nil)
 	if err != nil {
 		return agentapi.Balance{}, err
 	}

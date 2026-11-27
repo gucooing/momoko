@@ -64,6 +64,7 @@ func (r *agentRepo) SaveAgentRuntime(ctx context.Context, rt *gen.AgentRuntime) 
 		SetLoggedIn(rt.LoggedIn).
 		SetCatalog(rt.Catalog).
 		SetSort(rt.Sort).
+		SetProxy(rt.Proxy).
 		OnConflictColumns(agentruntime.FieldID).
 		UpdateNewValues().
 		Exec(ctx)
@@ -177,6 +178,7 @@ func (r *agentRepo) SaveAgentProvider(ctx context.Context, p *gen.AgentProvider)
 		SetNillableTestedAt(p.TestedAt).
 		SetShare(p.Share).
 		SetShareUsers(nonNilStrings(p.ShareUsers)).
+		SetProxy(p.Proxy).
 		OnConflictColumns(agentprovider.FieldID).
 		UpdateNewValues().
 		Exec(ctx)

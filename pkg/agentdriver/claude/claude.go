@@ -124,8 +124,8 @@ func (Driver) Login(adapter string) (agentdriver.Launch, bool) {
 	return agentdriver.Launch{Command: adapter, Args: []string{"--cli", "/login"}}, true
 }
 
-// ProxyEnv 关掉遥测、错误上报、自动更新这些用不着的联网。
-func (Driver) ProxyEnv() map[string]string {
+// SandboxEnv 关掉遥测、错误上报、自动更新这些用不着的联网。
+func (Driver) SandboxEnv() map[string]string {
 	return map[string]string{"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"}
 }
 

@@ -353,9 +353,13 @@ service AgentService {
   rpc SetAgentRuntimeProxy(SetAgentRuntimeProxyRequest) returns (SetAgentRuntimeProxyResponse) {
     option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/proxy" body: "*" };
   }
-  // 试一下代理：经它连到要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）并做一次 TLS 握手
+  // 试一下代理：在沙箱里经它请求要用的那一家（官方账户是 Agent 的官方地址，第三方接口是接口地址）
   rpc TestAgentProxy(TestAgentProxyRequest) returns (TestAgentProxyResponse) {
     option (google.api.http) = { post: "/api/v1/agent/proxy/test" body: "*" };
+  }
+  // 沙箱用的 sing-box：没下载时下载最新版本，下载过时更新到最新版本（只有 Linux）
+  rpc UpdateAgentSandbox(UpdateAgentSandboxRequest) returns (UpdateAgentSandboxResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/sandbox/update" body: "*" };
   }
 
   // —— 通知：每个人自己的 ——
@@ -1424,11 +1428,11 @@ message AgentProvider {
   // 共享的只能在 Agent 管理页里（要有 agent:admin）新建和修改，别人那里只能用
   string share = 23;
   repeated string share_user_ids = 24;
-  // 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传表示不改，type 为空表示不走代理
+  // 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传或 type 为空是不走代理
   AgentProxy proxy = 25;
 }
 
-// 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只有这个出口的网络里，别的路都断掉（只有 Linux 做得到）
+// 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个代理联网的沙箱里，看到的时区和语言是这里配的（只有 Linux）
 message AgentProxy {
   // 空 = 不走代理；http | socks5
   string type = 1;
@@ -1439,6 +1443,10 @@ message AgentProxy {
   string password = 5;
   // 存着密码
   bool has_password = 6;
+  // 沙箱里的时区（IANA 名称，如 America/Los_Angeles）；空 = 跟服务器一样
+  string timezone = 7;
+  // 沙箱里的语言区域（如 en_US.UTF-8）；空 = 跟服务器一样
+  string locale = 8;
 }
 
 message ListAgentProvidersRequest {
@@ -1451,9 +1459,20 @@ message ListAgentProvidersResponse {
   repeated AgentVendor vendors = 2;
   // all 时这些接口的主人和共享给的人
   repeated AgentUser users = 3;
-  // 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行）
-  bool proxy_supported = 4;
-  string proxy_unavailable = 5;
+  // 这台服务器的沙箱（配代理要用）
+  AgentSandbox sandbox = 4;
+}
+
+// 沙箱：配了代理的 Agent 在里面跑，只经代理联网（只有 Linux）
+message AgentSandbox {
+  // 这个系统能不能用沙箱（只有 Linux）；不能时页面上不显示代理
+  bool supported = 1;
+  // Linux 上现在建不了沙箱的原因（比如没有以 root 运行）
+  string unavailable = 2;
+  // 已下载的 sing-box 版本；空 = 还没下载
+  string sing_box_version = 3;
+  // 正在下载或更新 sing-box
+  bool installing = 4;
 }
 
 message CreateAgentProviderRequest {
@@ -1509,7 +1528,7 @@ message FetchAgentProviderModelsRequest {
   string vendor = 2;
   string base_url = 3;
   string api_key = 4;
-  // 表单里的代理；不传时用已保存的
+  // 表单里的代理（密码留空用已保存的）；不传或 type 为空是不走代理
   AgentProxy proxy = 5;
 }
 message FetchAgentProviderModelsResponse {
@@ -1773,9 +1792,8 @@ message ListAgentRuntimesRequest {}
 message ListAgentRuntimesResponse {
   repeated AgentRuntime runtimes = 1;
   AgentRunSettings settings = 2;
-  // 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行）
-  bool proxy_supported = 3;
-  string proxy_unavailable = 4;
+  // 这台服务器的沙箱（配代理要用）
+  AgentSandbox sandbox = 3;
 }
 
 message SetAgentRuntimeModeRequest {
@@ -1840,7 +1858,7 @@ message UpdateAgentRunSettingsResponse {
 
 message SetAgentRuntimeProxyRequest {
   string id = 1;
-  // type 为空表示不走代理
+  // 不传或 type 为空是不走代理
   AgentProxy proxy = 2;
 }
 message SetAgentRuntimeProxyResponse {
@@ -1860,8 +1878,17 @@ message TestAgentProxyResponse {
   bool ok = 1;
   string error = 2;
   int64 latency_ms = 3;
-  // 连的是哪里（主机:端口）
+  // 请求的是哪里
   string target = 4;
+}
+
+message UpdateAgentSandboxRequest {}
+message UpdateAgentSandboxResponse {
+  AgentSandbox sandbox = 1;
+  // 原来的版本（没下载过为空）和最新版本
+  string current = 2;
+  string latest = 3;
+  bool updated = 4;
 }
 
 // ———————————————————————————— 通知 ————————————————————————————

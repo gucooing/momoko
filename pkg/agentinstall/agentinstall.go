@@ -22,8 +22,8 @@ import (
 type Release struct {
 	Name  string   // 给人看的名称
 	Repo  string   // GitHub 仓库，版本号看它的发布
-	Asset string   // 发布页上这个系统对应的文件名（.zip 或 .tar.gz）
-	Files []string // 包根目录里的可执行文件（不带 .exe），第一个是入口
+	Asset string   // 发布页上这个系统对应的文件名（.zip 或 .tar.gz）；里面的 {version} 换成版本号（不带 v）
+	Files []string // 包里的可执行文件（不带 .exe），第一个是入口；包里只有一个顶层目录时相对那个目录
 }
 
 // Launch 怎么启动一份已安装的适配器。
@@ -159,7 +159,7 @@ func Install(ctx context.Context, rel Release, dir string, progress func(text st
 	if cur, ok := Installed(dir); ok && !Newer(m.Version, cur.Version) {
 		return cur, nil
 	}
-	a, ok := r.find(rel.Asset)
+	a, ok := r.find(strings.ReplaceAll(rel.Asset, "{version}", m.Version))
 	if !ok {
 		return nil, fmt.Errorf("%s 没有适用于这个系统的安装包", rel.Name)
 	}
@@ -196,7 +196,13 @@ func Install(ctx context.Context, rel Release, dir string, progress func(text st
 	if runtime.GOOS == "windows" {
 		exe = ".exe"
 	}
+	// 包里只有一个顶层目录（sing-box-1.14.5-linux-amd64/ 这样）时，文件在那个目录里
+	base := ""
+	if entries, err := os.ReadDir(tmp); err == nil && len(entries) == 1 && entries[0].IsDir() {
+		base = entries[0].Name()
+	}
 	for _, f := range rel.Files {
+		f = filepath.Join(base, f)
 		full := filepath.Join(tmp, f+exe)
 		if info, err := os.Stat(full); err != nil || !info.Mode().IsRegular() {
 			return nil, fmt.Errorf("安装包 %s 里没有 %s", a.Name, f+exe)

@@ -123,7 +123,7 @@ const save = async () => {
   if (!rt || saving.value) return
   if (props.proxySupported && !proxyReady(proxy.value)) {
     page.value = 'proxy'
-    feedback.warning(t('agent.proxy.invalid'))
+    feedback.warning(t('agent.proxy.notReady'))
     return
   }
   saving.value = true

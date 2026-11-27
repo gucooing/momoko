@@ -324,22 +324,14 @@ func (uc *AgentUsecase) GitRefs(ctx context.Context, id, repo string) (*v1.ListA
 	return resp, nil
 }
 
-// GitRef 分支和标签的操作。要连远程仓库的（删远程分支、推送和删除远程标签）和 GitSync 一样走会话的代理。
+// GitRef 分支和标签的操作。
 func (uc *AgentUsecase) GitRef(ctx context.Context, req *v1.UpdateAgentGitRefRequest) (string, error) {
-	s, dir, err := uc.gitRepo(ctx, req.GetId(), req.GetRepo())
+	_, dir, err := uc.gitRepo(ctx, req.GetId(), req.GetRepo())
 	if err != nil {
 		return "", err
 	}
 	ctx, cancel := gitCtx(ctx)
 	defer cancel()
-	switch req.GetAction() {
-	case "delete-remote-branch", "push-tag", "delete-remote-tag":
-		proxy, err := uc.sessionProxy(ctx, s)
-		if err != nil {
-			return "", err
-		}
-		ctx = agentgit.WithProxy(ctx, proxy)
-	}
 	name := strings.TrimSpace(req.GetName())
 	var out string
 	switch req.GetAction() {
@@ -371,19 +363,14 @@ func (uc *AgentUsecase) GitRef(ctx context.Context, req *v1.UpdateAgentGitRefReq
 	return out, agentErr(err)
 }
 
-// GitSync 获取、拉取、推送。会话配了代理（它用的官方账户或第三方接口配的）就只经代理连远程仓库。
+// GitSync 获取、拉取、推送。
 func (uc *AgentUsecase) GitSync(ctx context.Context, req *v1.SyncAgentGitRequest) (string, error) {
-	s, dir, err := uc.gitRepo(ctx, req.GetId(), req.GetRepo())
-	if err != nil {
-		return "", err
-	}
-	proxy, err := uc.sessionProxy(ctx, s)
+	_, dir, err := uc.gitRepo(ctx, req.GetId(), req.GetRepo())
 	if err != nil {
 		return "", err
 	}
 	ctx, cancel := gitCtx(ctx)
 	defer cancel()
-	ctx = agentgit.WithProxy(ctx, proxy)
 	var out string
 	switch req.GetAction() {
 	case "fetch":

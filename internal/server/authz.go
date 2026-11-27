@@ -149,6 +149,7 @@ var operationWritePermissions = map[string]constant.Permissions{
 	v1.OperationAgentServiceDeleteAgentRuntime:     constant.AgentManage,
 	v1.OperationAgentServiceUpdateAgentRunSettings: constant.AgentManage,
 	v1.OperationAgentServiceSetAgentRuntimeProxy:   constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentSandbox:     constant.AgentManage,
 }
 
 // servicePrefixPermissions 为高危服务设定默认（最低）权限，按操作名前缀匹配。

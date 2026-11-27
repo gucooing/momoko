@@ -27,16 +27,16 @@ func (Vendor) BaseURL() string     { return "" }
 func (Vendor) Endpoint(_ string, c agentapi.Conn) string { return c.BaseURL }
 
 func (Vendor) Models(ctx context.Context, c agentapi.Conn) ([]agentapi.Model, error) {
-	return ListModels(ctx, c.BaseURL, c.APIKey)
+	return ListModels(ctx, c, c.BaseURL)
 }
 
 func (Vendor) Test(ctx context.Context, _ string, c agentapi.Conn, model, message string) (agentapi.Reply, error) {
-	return Send(ctx, c.BaseURL, c.APIKey, model, message)
+	return Send(ctx, c, c.BaseURL, model, message)
 }
 
-// Send 往 Responses 接口发一条用户消息，取回模型回的文字和用量。endpoint 是 /responses 之前的那一段。
-func Send(ctx context.Context, endpoint, apiKey, model, message string) (agentapi.Reply, error) {
-	status, body, err := agentapi.Do(ctx, http.MethodPost, agentapi.Join(endpoint, "/responses"), agentapi.Bearer(apiKey), map[string]any{
+// Send 经 c 往 Responses 接口发一条用户消息，取回模型回的文字和用量。endpoint 是 /responses 之前的那一段。
+func Send(ctx context.Context, c agentapi.Conn, endpoint, model, message string) (agentapi.Reply, error) {
+	status, body, err := c.Do(ctx, http.MethodPost, agentapi.Join(endpoint, "/responses"), agentapi.Bearer(c.APIKey), map[string]any{
 		"model":             model,
 		"input":             message,
 		"max_output_tokens": agentapi.TestMaxTokens,
@@ -81,8 +81,8 @@ func Send(ctx context.Context, endpoint, apiKey, model, message string) (agentap
 }
 
 // ListModels 从 /models 拉模型 id。
-func ListModels(ctx context.Context, endpoint, apiKey string) ([]agentapi.Model, error) {
-	status, body, err := agentapi.Do(ctx, http.MethodGet, agentapi.Join(endpoint, "/models"), agentapi.Bearer(apiKey), nil)
+func ListModels(ctx context.Context, c agentapi.Conn, endpoint string) ([]agentapi.Model, error) {
+	status, body, err := c.Do(ctx, http.MethodGet, agentapi.Join(endpoint, "/models"), agentapi.Bearer(c.APIKey), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -110,8 +110,8 @@ func (Driver) Login(string) (agentdriver.Launch, bool) {
 	return agentdriver.Launch{Command: path, Args: []string{"login", "--device-auth"}}, true
 }
 
-// ProxyEnv Codex 默认不发遥测，不用另外关。
-func (Driver) ProxyEnv() map[string]string { return nil }
+// SandboxEnv Codex 默认不发遥测，不用另外关。
+func (Driver) SandboxEnv() map[string]string { return nil }
 
 // RemoveTranscript 会话记录按日期分目录放在 sessions 下（归档的在 archived_sessions 下），文件名以会话 id 结尾；
 // 生成的图片在 generated_images/<会话 id>/ 下（id 里字母数字和 - _ 以外的字符换成 _），一起删掉。

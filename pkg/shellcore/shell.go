@@ -15,7 +15,7 @@ import (
 	pty "github.com/aymanbagabas/go-pty"
 	"golang.org/x/net/websocket"
 
-	"momoko/pkg/agentproxy"
+	"momoko/pkg/agentsandbox"
 	"momoko/pkg/sysenv"
 	"momoko/pkg/termws"
 )
@@ -50,8 +50,8 @@ type Spec struct {
 	Dir  string
 	// Env 完整的环境（KEY=VALUE）。
 	Env []string
-	// Proxy 不为空时这条命令（连同它的子进程）只能经这个代理联网：只有 Linux 做得到，见 pkg/agentsandbox。
-	Proxy *agentproxy.Proxy
+	// Sandbox 不为空时这条命令（连同它的子进程）在沙箱里跑：只有 Linux 做得到，见 pkg/agentsandbox。
+	Sandbox *agentsandbox.Config
 }
 
 // TermEnv 终端里跑的程序都该有的环境（KEY=VALUE）：Unix 上是真彩色的 xterm、长输出不分页。
@@ -185,9 +185,9 @@ func serve(conn *websocket.Conn, spec Spec, farewell string) error {
 	}
 }
 
-// start 起命令：要走代理的交给 startSandboxed（只有 Linux），别的用 go-pty 起。
+// start 起命令：要进沙箱的交给 startSandboxed（只有 Linux），别的用 go-pty 起。
 func start(ptmx pty.Pty, spec Spec) (*os.Process, func() error, error) {
-	if spec.Proxy != nil {
+	if spec.Sandbox != nil {
 		return startSandboxed(ptmx, spec)
 	}
 	cmd := command(ptmx, spec.Path, spec.Args)

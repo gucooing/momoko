@@ -1132,11 +1132,11 @@ export interface AgentProvider {
    */
   share: string;
   shareUserIds: string[];
-  /** 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传表示不改，type 为空表示不走代理 */
+  /** 用这个接口的会话、测试、拉模型、查余额都走的代理（只有 Linux 能配）；不传或 type 为空是不走代理 */
   proxy: AgentProxy | undefined;
 }
 
-/** 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只有这个出口的网络里，别的路都断掉（只有 Linux 做得到） */
+/** 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个代理联网的沙箱里，看到的时区和语言是这里配的（只有 Linux） */
 export interface AgentProxy {
   /** 空 = 不走代理；http | socks5 */
   type: string;
@@ -1147,6 +1147,10 @@ export interface AgentProxy {
   password: string;
   /** 存着密码 */
   hasPassword: boolean;
+  /** 沙箱里的时区（IANA 名称，如 America/Los_Angeles）；空 = 跟服务器一样 */
+  timezone: string;
+  /** 沙箱里的语言区域（如 en_US.UTF-8）；空 = 跟服务器一样 */
+  locale: string;
 }
 
 export interface ListAgentProvidersRequest {
@@ -1160,9 +1164,20 @@ export interface ListAgentProvidersResponse {
   vendors: AgentVendor[];
   /** all 时这些接口的主人和共享给的人 */
   users: AgentUser[];
-  /** 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行） */
-  proxySupported: boolean;
-  proxyUnavailable: string;
+  /** 这台服务器的沙箱（配代理要用） */
+  sandbox: AgentSandbox | undefined;
+}
+
+/** 沙箱：配了代理的 Agent 在里面跑，只经代理联网（只有 Linux） */
+export interface AgentSandbox {
+  /** 这个系统能不能用沙箱（只有 Linux）；不能时页面上不显示代理 */
+  supported: boolean;
+  /** Linux 上现在建不了沙箱的原因（比如没有以 root 运行） */
+  unavailable: string;
+  /** 已下载的 sing-box 版本；空 = 还没下载 */
+  singBoxVersion: string;
+  /** 正在下载或更新 sing-box */
+  installing: boolean;
 }
 
 export interface CreateAgentProviderRequest {
@@ -1226,7 +1241,7 @@ export interface FetchAgentProviderModelsRequest {
   vendor: string;
   baseUrl: string;
   apiKey: string;
-  /** 表单里的代理；不传时用已保存的 */
+  /** 表单里的代理（密码留空用已保存的）；不传或 type 为空是不走代理 */
   proxy: AgentProxy | undefined;
 }
 
@@ -1523,9 +1538,8 @@ export interface ListAgentRuntimesResponse {
   settings:
     | AgentRunSettings
     | undefined;
-  /** 这台服务器能不能配代理（只有 Linux）；proxy_unavailable 是 Linux 上现在用不了的原因（比如没有以 root 运行） */
-  proxySupported: boolean;
-  proxyUnavailable: string;
+  /** 这台服务器的沙箱（配代理要用） */
+  sandbox: AgentSandbox | undefined;
 }
 
 export interface SetAgentRuntimeModeRequest {
@@ -1601,7 +1615,7 @@ export interface UpdateAgentRunSettingsResponse {
 
 export interface SetAgentRuntimeProxyRequest {
   id: string;
-  /** type 为空表示不走代理 */
+  /** 不传或 type 为空是不走代理 */
   proxy: AgentProxy | undefined;
 }
 
@@ -1625,8 +1639,21 @@ export interface TestAgentProxyResponse {
   ok: boolean;
   error: string;
   latencyMs: number;
-  /** 连的是哪里（主机:端口） */
+  /** 请求的是哪里 */
   target: string;
+}
+
+export interface UpdateAgentSandboxRequest {
+}
+
+export interface UpdateAgentSandboxResponse {
+  sandbox:
+    | AgentSandbox
+    | undefined;
+  /** 原来的版本（没下载过为空）和最新版本 */
+  current: string;
+  latest: string;
+  updated: boolean;
 }
 
 export interface AgentNotifyChannel {
