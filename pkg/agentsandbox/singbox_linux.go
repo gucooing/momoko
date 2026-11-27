@@ -74,7 +74,7 @@ func nodeOf(p agentproxy.Proxy) (string, map[string]any) {
 func singBoxConfig(p agentproxy.Proxy, netns string) map[string]any {
 	key, node := nodeOf(p)
 	return map[string]any{
-		"log": map[string]any{"level": "info", "timestamp": false, "disable_color": true},
+		"log": map[string]any{"level": "info", "timestamp": false},
 		"dns": map[string]any{
 			"servers": []any{
 				map[string]any{"type": "local", "tag": "local"},
@@ -112,7 +112,7 @@ func singBoxConfig(p agentproxy.Proxy, netns string) map[string]any {
 func CheckProxy(singBox string, p agentproxy.Proxy) error {
 	key, node := nodeOf(p)
 	conf, err := json.Marshal(map[string]any{
-		"log":   map[string]any{"level": "error", "disable_color": true},
+		"log":   map[string]any{"level": "error"},
 		"dns":   map[string]any{"servers": []any{map[string]any{"type": "local", "tag": "local"}}},
 		key:     []any{node},
 		"route": map[string]any{"final": proxyTag, "default_domain_resolver": "local"},
