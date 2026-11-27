@@ -1136,17 +1136,16 @@ export interface AgentProvider {
   proxy: AgentProxy | undefined;
 }
 
-/** 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个代理联网的沙箱里，看到的时区和语言是这里配的（只有 Linux） */
+/** 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个节点联网的沙箱里，看到的时区和语言是这里配的（只有 Linux） */
 export interface AgentProxy {
-  /** 空 = 不走代理；http | socks5 */
-  type: string;
-  host: string;
-  port: number;
-  username: string;
-  /** 只写；留空表示保留原来的密码（用户名也没变时） */
-  password: string;
-  /** 存着密码 */
-  hasPassword: boolean;
+  /**
+   * 节点：分享链接（vless://、vmess://、trojan://、ss://、hysteria2://、hy2://、hysteria://、tuic://、anytls://、wireguard://、socks5://）
+   * 或 sing-box 的出站 JSON；空 = 不走代理。里面有密钥，只给能改的人
+   */
+  node: string;
+  /** 只读：协议（sing-box 的 type）和节点的「主机:端口」 */
+  protocol: string;
+  server: string;
   /** 沙箱里的时区（IANA 名称，如 America/Los_Angeles）；空 = 跟服务器一样 */
   timezone: string;
   /** 沙箱里的语言区域（如 en_US.UTF-8）；空 = 跟服务器一样 */

@@ -1,14 +1,15 @@
-// 注意 vue-i18n 里 @ 和 | 是特殊字符，要写成 {'@'}、{'|'}。
+// 注意 vue-i18n 里 @、|、{ } 是特殊字符，要写成 {'@'}、{'|'}……
 // Agent 的代理（只有 Linux 能配：官方账户「配置」里的「代理」页、第三方接口的「代理」这一步），连同沙箱里的时区和语言；
 // 官方账户的「登录」（在悬浮终端里跑登录命令）和「配置」弹窗，悬浮终端里登录标签的名字。
 export default {
   'zh-CN': {
     agent: {
       proxy: {
-        address: '代理地址',
-        placeholder: '留空不走代理，比如 socks5://127.0.0.1:1080',
-        format: "支持 http:// 和 socks5://；有账号密码就写成 socks5://用户名:密码{'@'}主机:端口，已保存的密码显示为 ******。",
-        invalid: '地址不对：要写成 http://主机:端口 或 socks5://主机:端口',
+        node: '节点',
+        placeholder: '留空不走代理。粘贴分享链接，或者 sing-box 的出站 JSON',
+        format:
+          '支持 vless://、vmess://、trojan://、ss://、hysteria2://、hy2://、hysteria://、tuic://、anytls://、wireguard://、socks5:// 分享链接，也可以直接贴 sing-box 的出站 JSON。保存时会用 sing-box 检查一遍。',
+        invalid: '认不出这个节点：要填分享链接或 sing-box 的出站 JSON',
         timezone: '时区',
         locale: '语言',
         sameAsServer: '跟服务器一样',
@@ -23,10 +24,10 @@ export default {
         unavailable: '现在用不了：{reason}',
         noteOff: '不走代理，直接联网。',
         noteAccount:
-          '{name} 的检查、登录、会话（连同它执行的命令和 MCP 服务器）、会话里的 Git 推拉都在沙箱里跑，只经这个代理联网；下载和更新也经它。保存后，正在运行的会话会重启。',
+          '{name} 的检查、登录、会话（连同它执行的命令和 MCP 服务器）都在沙箱里跑，只经这个节点联网。保存后，正在运行的会话会重启。',
         noteProvider:
-          '用这个接口的会话都在沙箱里跑，只经这个代理联网；测试、拉模型、查余额也经它。保存后，正在运行的会话会重启。',
-        via: '经代理 {addr} 联网',
+          '用这个接口的会话都在沙箱里跑，只经这个节点联网；测试、拉模型、查余额也经它。保存后，正在运行的会话会重启。',
+        via: '经节点 {addr} 联网',
         tag: '代理',
       },
       accounts: {
@@ -43,7 +44,7 @@ export default {
       providers: { form: { step: { proxy: '代理' } } },
       sandbox: {
         title: '沙箱',
-        desc: '配了代理的 Agent 在沙箱里跑，网络由 sing-box 接管，只经代理联网',
+        desc: '配了代理的 Agent 在沙箱里跑，网络由 sing-box 接管，只经节点联网',
         download: '下载',
         update: '检查更新',
         notDownloaded: '未下载',
@@ -59,10 +60,11 @@ export default {
   'zh-HK': {
     agent: {
       proxy: {
-        address: '代理位址',
-        placeholder: '留空不走代理，例如 socks5://127.0.0.1:1080',
-        format: "支援 http:// 和 socks5://；有帳號密碼就寫成 socks5://使用者名稱:密碼{'@'}主機:連接埠，已儲存的密碼顯示為 ******。",
-        invalid: '位址不對：要寫成 http://主機:連接埠 或 socks5://主機:連接埠',
+        node: '節點',
+        placeholder: '留空不走代理。貼上分享連結，或者 sing-box 的出站 JSON',
+        format:
+          '支援 vless://、vmess://、trojan://、ss://、hysteria2://、hy2://、hysteria://、tuic://、anytls://、wireguard://、socks5:// 分享連結，也可以直接貼 sing-box 的出站 JSON。儲存時會用 sing-box 檢查一遍。',
+        invalid: '認不出這個節點：要填分享連結或 sing-box 的出站 JSON',
         timezone: '時區',
         locale: '語言',
         sameAsServer: '跟伺服器一樣',
@@ -77,10 +79,10 @@ export default {
         unavailable: '現在用不了：{reason}',
         noteOff: '不走代理，直接連網。',
         noteAccount:
-          '{name} 的檢查、登入、工作階段（連同它執行的命令和 MCP 伺服器）、工作階段裡的 Git 推拉都在沙箱裡跑，只經這個代理連網；下載和更新也經它。儲存後，正在執行的工作階段會重新啟動。',
+          '{name} 的檢查、登入、工作階段（連同它執行的命令和 MCP 伺服器）都在沙箱裡跑，只經這個節點連網。儲存後，正在執行的工作階段會重新啟動。',
         noteProvider:
-          '用這個介面的工作階段都在沙箱裡跑，只經這個代理連網；測試、拉模型、查餘額也經它。儲存後，正在執行的工作階段會重新啟動。',
-        via: '經代理 {addr} 連網',
+          '用這個介面的工作階段都在沙箱裡跑，只經這個節點連網；測試、拉模型、查餘額也經它。儲存後，正在執行的工作階段會重新啟動。',
+        via: '經節點 {addr} 連網',
         tag: '代理',
       },
       accounts: {
@@ -97,7 +99,7 @@ export default {
       providers: { form: { step: { proxy: '代理' } } },
       sandbox: {
         title: '沙箱',
-        desc: '設了代理的 Agent 在沙箱裡跑，網路由 sing-box 接管，只經代理連網',
+        desc: '設了代理的 Agent 在沙箱裡跑，網路由 sing-box 接管，只經節點連網',
         download: '下載',
         update: '檢查更新',
         notDownloaded: '未下載',
@@ -113,10 +115,11 @@ export default {
   'en-US': {
     agent: {
       proxy: {
-        address: 'Proxy address',
-        placeholder: 'Leave blank for no proxy, e.g. socks5://127.0.0.1:1080',
-        format: "http:// and socks5:// are supported; add credentials as socks5://user:password{'@'}host:port. A saved password shows as ******.",
-        invalid: 'Invalid address: use http://host:port or socks5://host:port',
+        node: 'Node',
+        placeholder: 'Leave blank for no proxy. Paste a share link or a sing-box outbound JSON',
+        format:
+          'Share links: vless://, vmess://, trojan://, ss://, hysteria2://, hy2://, hysteria://, tuic://, anytls://, wireguard://, socks5://. A sing-box outbound JSON also works. sing-box checks it when you save.',
+        invalid: 'Unrecognized node: paste a share link or a sing-box outbound JSON',
         timezone: 'Time zone',
         locale: 'Language',
         sameAsServer: 'Same as the server',
@@ -131,9 +134,9 @@ export default {
         unavailable: 'Not available right now: {reason}',
         noteOff: 'No proxy — connects directly.',
         noteAccount:
-          "{name}'s checks, sign-in, sessions (with their commands and MCP servers) and session Git push/pull run in a sandbox that reaches the network only through this proxy; downloads and updates use it too. Running sessions restart after saving.",
+          "{name}'s checks, sign-in and sessions (with their commands and MCP servers) run in a sandbox that reaches the network only through this node. Running sessions restart after saving.",
         noteProvider:
-          'Sessions using this API run in a sandbox that reaches the network only through this proxy; tests, model lists and balance checks use it too. Running sessions restart after saving.',
+          'Sessions using this API run in a sandbox that reaches the network only through this node; tests, model lists and balance checks use it too. Running sessions restart after saving.',
         via: 'Connects through {addr}',
         tag: 'Proxy',
       },
@@ -151,7 +154,7 @@ export default {
       providers: { form: { step: { proxy: 'Proxy' } } },
       sandbox: {
         title: 'Sandbox',
-        desc: 'Agents with a proxy run in a sandbox whose network is taken over by sing-box and goes only through the proxy',
+        desc: 'Agents with a proxy run in a sandbox whose network is taken over by sing-box and goes only through the node',
         download: 'Download',
         update: 'Check for updates',
         notDownloaded: 'Not downloaded',

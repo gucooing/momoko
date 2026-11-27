@@ -54,7 +54,7 @@ type AgentRuntime struct {
 	Catalog string `json:"catalog,omitempty"`
 	// 排序
 	Sort int `json:"sort,omitempty"`
-	// 服务器上的登录走的代理 http:// 或 socks5://（secretbox 加密，可能带账号密码）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox
+	// 这个 Agent 走的代理节点（secretbox 加密的 JSON：分享链接或 sing-box 出站，连同沙箱的时区和语言）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox
 	Proxy        string `json:"-"`
 	selectValues sql.SelectValues
 }

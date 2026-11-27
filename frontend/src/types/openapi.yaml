@@ -15441,29 +15441,23 @@ components:
         v1.AgentProxy:
             type: object
             properties:
-                type:
+                node:
                     type: string
-                    description: 空 = 不走代理；http | socks5
-                host:
+                    description: |-
+                        节点：分享链接（vless://、vmess://、trojan://、ss://、hysteria2://、hy2://、hysteria://、tuic://、anytls://、wireguard://、socks5://）
+                         或 sing-box 的出站 JSON；空 = 不走代理。里面有密钥，只给能改的人
+                protocol:
                     type: string
-                port:
-                    type: integer
-                    format: int32
-                username:
+                    description: 只读：协议（sing-box 的 type）和节点的「主机:端口」
+                server:
                     type: string
-                password:
-                    type: string
-                    description: 只写；留空表示保留原来的密码（用户名也没变时）
-                hasPassword:
-                    type: boolean
-                    description: 存着密码
                 timezone:
                     type: string
                     description: 沙箱里的时区（IANA 名称，如 America/Los_Angeles）；空 = 跟服务器一样
                 locale:
                     type: string
                     description: 沙箱里的语言区域（如 en_US.UTF-8）；空 = 跟服务器一样
-            description: 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个代理联网的沙箱里，看到的时区和语言是这里配的（只有 Linux）
+            description: 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个节点联网的沙箱里，看到的时区和语言是这里配的（只有 Linux）
         v1.AgentRunSettings:
             type: object
             properties:

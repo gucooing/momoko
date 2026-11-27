@@ -9307,22 +9307,19 @@ func (x *AgentProvider) GetProxy() *AgentProxy {
 	return nil
 }
 
-// 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个代理联网的沙箱里，看到的时区和语言是这里配的（只有 Linux）
+// 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个节点联网的沙箱里，看到的时区和语言是这里配的（只有 Linux）
 type AgentProxy struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 空 = 不走代理；http | socks5
-	Type     string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Host     string `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
-	Port     int32  `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
-	Username string `protobuf:"bytes,4,opt,name=username,proto3" json:"username,omitempty"`
-	// 只写；留空表示保留原来的密码（用户名也没变时）
-	Password string `protobuf:"bytes,5,opt,name=password,proto3" json:"password,omitempty"`
-	// 存着密码
-	HasPassword bool `protobuf:"varint,6,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
+	// 节点：分享链接（vless://、vmess://、trojan://、ss://、hysteria2://、hy2://、hysteria://、tuic://、anytls://、wireguard://、socks5://）
+	// 或 sing-box 的出站 JSON；空 = 不走代理。里面有密钥，只给能改的人
+	Node string `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	// 只读：协议（sing-box 的 type）和节点的「主机:端口」
+	Protocol string `protobuf:"bytes,2,opt,name=protocol,proto3" json:"protocol,omitempty"`
+	Server   string `protobuf:"bytes,3,opt,name=server,proto3" json:"server,omitempty"`
 	// 沙箱里的时区（IANA 名称，如 America/Los_Angeles）；空 = 跟服务器一样
-	Timezone string `protobuf:"bytes,7,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	Timezone string `protobuf:"bytes,4,opt,name=timezone,proto3" json:"timezone,omitempty"`
 	// 沙箱里的语言区域（如 en_US.UTF-8）；空 = 跟服务器一样
-	Locale        string `protobuf:"bytes,8,opt,name=locale,proto3" json:"locale,omitempty"`
+	Locale        string `protobuf:"bytes,5,opt,name=locale,proto3" json:"locale,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -9357,46 +9354,25 @@ func (*AgentProxy) Descriptor() ([]byte, []int) {
 	return file_v1_agent_proto_rawDescGZIP(), []int{141}
 }
 
-func (x *AgentProxy) GetType() string {
+func (x *AgentProxy) GetNode() string {
 	if x != nil {
-		return x.Type
+		return x.Node
 	}
 	return ""
 }
 
-func (x *AgentProxy) GetHost() string {
+func (x *AgentProxy) GetProtocol() string {
 	if x != nil {
-		return x.Host
+		return x.Protocol
 	}
 	return ""
 }
 
-func (x *AgentProxy) GetPort() int32 {
+func (x *AgentProxy) GetServer() string {
 	if x != nil {
-		return x.Port
-	}
-	return 0
-}
-
-func (x *AgentProxy) GetUsername() string {
-	if x != nil {
-		return x.Username
+		return x.Server
 	}
 	return ""
-}
-
-func (x *AgentProxy) GetPassword() string {
-	if x != nil {
-		return x.Password
-	}
-	return ""
-}
-
-func (x *AgentProxy) GetHasPassword() bool {
-	if x != nil {
-		return x.HasPassword
-	}
-	return false
 }
 
 func (x *AgentProxy) GetTimezone() string {
@@ -15454,17 +15430,14 @@ const file_v1_agent_proto_rawDesc = "" +
 	"\auser_id\x18\x16 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05share\x18\x17 \x01(\tR\x05share\x12$\n" +
 	"\x0eshare_user_ids\x18\x18 \x03(\tR\fshareUserIds\x12$\n" +
-	"\x05proxy\x18\x19 \x01(\v2\x0e.v1.AgentProxyR\x05proxy\"\xd7\x01\n" +
+	"\x05proxy\x18\x19 \x01(\v2\x0e.v1.AgentProxyR\x05proxy\"\x88\x01\n" +
 	"\n" +
 	"AgentProxy\x12\x12\n" +
-	"\x04type\x18\x01 \x01(\tR\x04type\x12\x12\n" +
-	"\x04host\x18\x02 \x01(\tR\x04host\x12\x12\n" +
-	"\x04port\x18\x03 \x01(\x05R\x04port\x12\x1a\n" +
-	"\busername\x18\x04 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x05 \x01(\tR\bpassword\x12!\n" +
-	"\fhas_password\x18\x06 \x01(\bR\vhasPassword\x12\x1a\n" +
-	"\btimezone\x18\a \x01(\tR\btimezone\x12\x16\n" +
-	"\x06locale\x18\b \x01(\tR\x06locale\"-\n" +
+	"\x04node\x18\x01 \x01(\tR\x04node\x12\x1a\n" +
+	"\bprotocol\x18\x02 \x01(\tR\bprotocol\x12\x16\n" +
+	"\x06server\x18\x03 \x01(\tR\x06server\x12\x1a\n" +
+	"\btimezone\x18\x04 \x01(\tR\btimezone\x12\x16\n" +
+	"\x06locale\x18\x05 \x01(\tR\x06locale\"-\n" +
 	"\x19ListAgentProvidersRequest\x12\x10\n" +
 	"\x03all\x18\x01 \x01(\bR\x03all\"\xc9\x01\n" +
 	"\x1aListAgentProvidersResponse\x12/\n" +

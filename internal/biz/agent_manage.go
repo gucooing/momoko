@@ -741,7 +741,7 @@ func (uc *AgentUsecase) applyAPIProvider(p *gen.AgentProvider, in *v1.AgentProvi
 			p.Env = append(p.Env, schema.AgentEnv{Key: key, Value: kv.GetValue()})
 		}
 	}
-	proxy, err := uc.proxyFromPB(p.Proxy, in.GetProxy())
+	proxy, err := uc.proxyFromPB(in.GetProxy())
 	if err != nil {
 		return err
 	}
@@ -829,7 +829,7 @@ func (uc *AgentUsecase) DeleteProvider(ctx context.Context, id string) error {
 }
 
 // draftProvider 测试、获取可用模型用的配置：表单里的草稿，留空的地址和密钥用已保存的（要是自己能改的）；已保存的类型不能改。
-// 代理：useForm 时用表单里的 form（不传是不走代理，密码留空用已保存的），否则用已保存的；连接都经它（conn.HTTP）。
+// 代理：useForm 时用表单里的 form（不传是不走代理），否则用已保存的；连接都经它（conn.HTTP）。
 func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, apiKey string, form *v1.AgentProxy, useForm bool, timeout time.Duration) (agentapi.Vendor, agentapi.Conn, *gen.AgentProvider, *agentproxy.Proxy, error) {
 	var stored *gen.AgentProvider
 	storedProxy := ""
@@ -843,7 +843,7 @@ func (uc *AgentUsecase) draftProvider(ctx context.Context, id, vendor, baseURL, 
 	var px *agentproxy.Proxy
 	var err error
 	if useForm {
-		px, err = uc.proxyFromPB(storedProxy, form)
+		px, err = uc.proxyFromPB(form)
 	} else {
 		px, err = uc.proxyOf(storedProxy)
 	}

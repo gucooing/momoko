@@ -15,7 +15,7 @@
             <div class="ag-rt">
               <span>{{ r.name }}</span>
               <AgAgentTag :kind="agentKindOf(r.kind)" :name="r.name" />
-              <span v-if="r.proxy?.type" class="ag-tag ag-px-tag" :title="t('agent.proxy.via', { addr: proxyLabel(r.proxy) })">
+              <span v-if="r.proxy?.protocol" class="ag-tag ag-px-tag" :title="t('agent.proxy.via', { addr: proxyLabel(r.proxy) })">
                 <UIcon name="i-lucide-shield" />{{ proxyLabel(r.proxy) }}
               </span>
             </div>

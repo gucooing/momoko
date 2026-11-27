@@ -6,6 +6,7 @@ import (
 	"os/exec"
 
 	"momoko/pkg/agentinstall"
+	"momoko/pkg/agentproxy"
 )
 
 // Supported 这个系统能不能建沙箱（只有 Linux）。
@@ -22,3 +23,6 @@ func Start(*exec.Cmd, Config) (func() error, error) { return nil, ErrUnsupported
 
 // SingBoxRelease 只有 Linux 用 sing-box。
 func SingBoxRelease() (agentinstall.Release, bool) { return agentinstall.Release{}, false }
+
+// CheckProxy 只有 Linux 用 sing-box。
+func CheckProxy(string, agentproxy.Proxy) error { return ErrUnsupported }

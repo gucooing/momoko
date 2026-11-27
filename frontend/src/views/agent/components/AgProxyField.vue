@@ -1,22 +1,20 @@
-<!-- 代理（只有 Linux 能配，别的系统整块不显示）：一个地址，留空不走代理；http:// 或 socks5:// 开头决定类型，
-     账号密码写在地址里（已保存的密码显示成 ******）。填了地址后：沙箱里的时区和语言，「测试代理」经它连到要用的那一家。 -->
+<!-- 代理（只有 Linux 能配，别的系统整块不显示）：一个节点，留空不走代理；填分享链接或 sing-box 的出站 JSON。
+     填了节点后：沙箱里的时区和语言，「测试代理」经它连到要用的那一家。 -->
 <template>
   <div class="ag-px">
     <label class="ag-field">
-      <span class="ag-fl">{{ t('agent.proxy.address') }}</span>
-      <span class="ag-fld" :class="{ 'ag-px-bad': !addressOk }">
-        <UIcon name="i-lucide-shield" />
-        <input
-          :value="modelValue.url"
-          class="ag-mono"
-          type="text"
-          :placeholder="t('agent.proxy.placeholder')"
-          autocomplete="off"
-          spellcheck="false"
-          @input="patch({ url: ($event.target as HTMLInputElement).value })"
-        />
-      </span>
-      <span class="ag-fh" :class="{ 'ag-px-err': !addressOk }">{{ addressOk ? t('agent.proxy.format') : t('agent.proxy.invalid') }}</span>
+      <span class="ag-fl">{{ t('agent.proxy.node') }}</span>
+      <textarea
+        :value="modelValue.node"
+        class="ag-ta ag-mono ag-px-node"
+        :class="{ 'ag-px-bad': !nodeValid }"
+        rows="4"
+        :placeholder="t('agent.proxy.placeholder')"
+        autocomplete="off"
+        spellcheck="false"
+        @input="patch({ node: ($event.target as HTMLTextAreaElement).value })"
+      />
+      <span class="ag-fh" :class="{ 'ag-px-err': !nodeValid }">{{ nodeValid ? t('agent.proxy.format') : t('agent.proxy.invalid') }}</span>
     </label>
 
     <template v-if="active">
@@ -65,7 +63,7 @@
       </datalist>
 
       <div class="ag-px-test">
-        <button type="button" class="ag-btn ag-btn--sm" :disabled="testing || !addressOk" @click="runTest">
+        <button type="button" class="ag-btn ag-btn--sm" :disabled="testing || !nodeValid" @click="runTest">
           <UIcon :name="testing ? 'i-lucide-loader-circle' : 'i-lucide-radar'" :class="{ 'ag-spin': testing }" />{{
             t('agent.proxy.test')
           }}
@@ -97,7 +95,7 @@ import {
   COMMON_LOCALES,
   COMMON_TIMEZONES,
   localeOk,
-  proxyAddressOk,
+  nodeOk,
   proxyPayload,
   type ProxyForm,
   timezoneOk,
@@ -120,8 +118,8 @@ const { t } = useI18n()
 
 const testing = ref(false)
 const result = ref<TestAgentProxyResponse | null>(null)
-const active = computed(() => !!props.modelValue.url.trim())
-const addressOk = computed(() => proxyAddressOk(props.modelValue))
+const active = computed(() => !!props.modelValue.node.trim())
+const nodeValid = computed(() => nodeOk(props.modelValue))
 const tzOk = computed(() => timezoneOk(props.modelValue))
 const localeValid = computed(() => localeOk(props.modelValue))
 
@@ -131,7 +129,7 @@ const patch = (p: Partial<ProxyForm>) => {
 }
 
 const runTest = async () => {
-  if (testing.value || !addressOk.value) return
+  if (testing.value || !nodeValid.value) return
   testing.value = true
   result.value = null
   try {
@@ -159,6 +157,12 @@ const runTest = async () => {
 }
 .ag-px-bad {
   border-color: var(--m-bad);
+}
+.ag-px-node {
+  min-height: 84px;
+  font-size: 12px;
+  word-break: break-all;
+  resize: vertical;
 }
 .ag-px-grid {
   display: grid;

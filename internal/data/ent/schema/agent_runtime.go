@@ -31,7 +31,7 @@ func (AgentRuntime) Fields() []ent.Field {
 		field.Bool("logged_in").Default(false).Comment("最近一次检查时服务器上已经登录（能开会话）"),
 		field.Text("catalog").Default("").Comment("Agent 给出的权限模式和默认模型（JSON）；模型清单在 agent_runtime_models"),
 		field.Int("sort").Default(0).Comment("排序"),
-		field.Text("proxy").Default("").Sensitive().Comment("服务器上的登录走的代理 http:// 或 socks5://（secretbox 加密，可能带账号密码）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox"),
+		field.Text("proxy").Default("").Sensitive().Comment("这个 Agent 走的代理节点（secretbox 加密的 JSON：分享链接或 sing-box 出站，连同沙箱的时区和语言）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox"),
 	}
 }
 

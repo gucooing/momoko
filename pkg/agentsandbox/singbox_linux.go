@@ -5,12 +5,14 @@ package agentsandbox
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -50,31 +52,39 @@ type singBox struct {
 	log []string
 }
 
-// singBoxConfig 沙箱的 sing-box 配置：网卡 eth0 在 netns 里接管默认路由和 DNS；DNS 一律给假 IP，
-// 连接按假 IP 还原成域名后经代理出去，域名由代理那边解析；代理服务器自己的地址用主机的解析（local）。
+// proxyTag 节点在 sing-box 配置里的 tag。
+const proxyTag = "proxy"
+
+// nodeOf 节点放进 sing-box 配置的样子：带上 tag；wireguard 放在 endpoints，其他放在 outbounds。
+func nodeOf(p agentproxy.Proxy) (string, map[string]any) {
+	node := make(map[string]any, len(p.Outbound)+1)
+	for k, v := range p.Outbound {
+		node[k] = v
+	}
+	node["tag"] = proxyTag
+	if p.Endpoint() {
+		return "endpoints", node
+	}
+	return "outbounds", node
+}
+
+// singBoxConfig 沙箱的 sing-box 配置：网卡 eth0 在 netns 里接管默认路由和 DNS。
+// DNS：A、AAAA 一律给假 IP，连接按假 IP 还原成域名后经节点出去，域名由节点那边解析；
+// 其他查询（HTTPS、TXT……）经节点走 DoH。节点自己的地址用主机的解析（local）。
 func singBoxConfig(p agentproxy.Proxy, netns string) map[string]any {
-	outbound := map[string]any{
-		"tag":             "proxy",
-		"server":          p.Host,
-		"server_port":     p.Port,
-		"domain_resolver": "local",
-	}
-	if p.Type == agentproxy.TypeSOCKS5 {
-		outbound["type"], outbound["version"] = "socks", "5"
-	} else {
-		outbound["type"] = "http"
-	}
-	if p.Username != "" {
-		outbound["username"], outbound["password"] = p.Username, p.Password
-	}
+	key, node := nodeOf(p)
 	return map[string]any{
-		"log": map[string]any{"level": "info", "timestamp": false},
+		"log": map[string]any{"level": "info", "timestamp": false, "disable_color": true},
 		"dns": map[string]any{
 			"servers": []any{
 				map[string]any{"type": "local", "tag": "local"},
+				map[string]any{"type": "https", "tag": "remote", "server": "1.1.1.1", "detour": proxyTag},
 				map[string]any{"type": "fakeip", "tag": "fakeip", "inet4_range": "198.18.0.0/15", "inet6_range": "fc00::/18"},
 			},
-			"final": "fakeip",
+			"rules": []any{
+				map[string]any{"query_type": []string{"A", "AAAA"}, "action": "route", "server": "fakeip"},
+			},
+			"final": "remote",
 		},
 		"inbounds": []any{map[string]any{
 			"type":           "tun",
@@ -86,16 +96,46 @@ func singBoxConfig(p agentproxy.Proxy, netns string) map[string]any {
 			"strict_route":   true,
 			"netns":          netns,
 		}},
-		"outbounds": []any{outbound},
+		key: []any{node},
 		"route": map[string]any{
 			"rules": []any{
 				map[string]any{"action": "sniff"},
 				map[string]any{"protocol": "dns", "action": "hijack-dns"},
 			},
-			"final": "proxy",
+			"final":                   proxyTag,
+			"default_domain_resolver": "local",
 		},
 	}
 }
+
+// CheckProxy 用 sing-box 看一下节点能不能用（sing-box check：只看配置，不联网）。
+func CheckProxy(singBox string, p agentproxy.Proxy) error {
+	key, node := nodeOf(p)
+	conf, err := json.Marshal(map[string]any{
+		"log":   map[string]any{"level": "error", "disable_color": true},
+		"dns":   map[string]any{"servers": []any{map[string]any{"type": "local", "tag": "local"}}},
+		key:     []any{node},
+		"route": map[string]any{"final": proxyTag, "default_domain_resolver": "local"},
+	})
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, singBox, "check", "-c", "stdin", "--disable-color")
+	cmd.Stdin = bytes.NewReader(conf)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		msg := strings.TrimSpace(ansi.ReplaceAllString(string(out), ""))
+		if msg == "" {
+			msg = err.Error()
+		}
+		return fmt.Errorf("sing-box 用不了这个节点：%s", msg)
+	}
+	return nil
+}
+
+// ansi 终端颜色。
+var ansi = regexp.MustCompile(`\x1b\[[0-9;]*m`)
 
 // startSingBox 起 sing-box（配置从标准输入给，不落盘），等它说起好了。它跟着 Momoko 走：Momoko 没了它也结束。
 func startSingBox(cfg Config, netns string) (*singBox, error) {
@@ -103,7 +143,7 @@ func startSingBox(cfg Config, netns string) (*singBox, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.Command(cfg.SingBox, "run", "-c", "stdin", "-D", os.TempDir())
+	cmd := exec.Command(cfg.SingBox, "run", "-c", "stdin", "-D", os.TempDir(), "--disable-color")
 	cmd.Stdin = bytes.NewReader(conf)
 	out, err := cmd.StdoutPipe()
 	if err != nil {
@@ -147,7 +187,7 @@ func startSingBox(cfg Config, netns string) (*singBox, error) {
 func (sb *singBox) keep(line string) {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
-	sb.log = append(sb.log, line)
+	sb.log = append(sb.log, ansi.ReplaceAllString(line, ""))
 	if len(sb.log) > singBoxLogKeep {
 		sb.log = sb.log[len(sb.log)-singBoxLogKeep:]
 	}

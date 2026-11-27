@@ -1432,21 +1432,18 @@ message AgentProvider {
   AgentProxy proxy = 25;
 }
 
-// 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个代理联网的沙箱里，看到的时区和语言是这里配的（只有 Linux）
+// 代理：配了之后 Agent 的进程（连同它启动的所有子进程）关在只经这个节点联网的沙箱里，看到的时区和语言是这里配的（只有 Linux）
 message AgentProxy {
-  // 空 = 不走代理；http | socks5
-  string type = 1;
-  string host = 2;
-  int32 port = 3;
-  string username = 4;
-  // 只写；留空表示保留原来的密码（用户名也没变时）
-  string password = 5;
-  // 存着密码
-  bool has_password = 6;
+  // 节点：分享链接（vless://、vmess://、trojan://、ss://、hysteria2://、hy2://、hysteria://、tuic://、anytls://、wireguard://、socks5://）
+  // 或 sing-box 的出站 JSON；空 = 不走代理。里面有密钥，只给能改的人
+  string node = 1;
+  // 只读：协议（sing-box 的 type）和节点的「主机:端口」
+  string protocol = 2;
+  string server = 3;
   // 沙箱里的时区（IANA 名称，如 America/Los_Angeles）；空 = 跟服务器一样
-  string timezone = 7;
+  string timezone = 4;
   // 沙箱里的语言区域（如 en_US.UTF-8）；空 = 跟服务器一样
-  string locale = 8;
+  string locale = 5;
 }
 
 message ListAgentProvidersRequest {

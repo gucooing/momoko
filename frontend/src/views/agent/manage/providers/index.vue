@@ -27,7 +27,7 @@
               <div class="ag-rs">{{ loginSub(t, r, false) }}</div>
             </div>
             <div class="ag-rc">
-              <span v-if="r.proxy?.type" class="ag-tag ag-px-tag" :title="t('agent.proxy.via', { addr: proxyLabel(r.proxy) })">
+              <span v-if="r.proxy?.protocol" class="ag-tag ag-px-tag" :title="t('agent.proxy.via', { addr: proxyLabel(r.proxy) })">
                 <UIcon name="i-lucide-shield" />{{ t('agent.proxy.tag') }}
               </span>
               <span class="ag-pill ag-pv-pill" :class="loginPill(t, r).cls">{{ loginPill(t, r).text }}</span>
@@ -65,7 +65,7 @@
               </div>
             </div>
             <div class="ag-rc">
-              <span v-if="r.p.proxy?.type" class="ag-tag ag-px-tag" :title="t('agent.proxy.via', { addr: proxyLabel(r.p.proxy) })">
+              <span v-if="r.p.proxy?.protocol" class="ag-tag ag-px-tag" :title="t('agent.proxy.via', { addr: proxyLabel(r.p.proxy) })">
                 <UIcon name="i-lucide-shield" />{{ t('agent.proxy.tag') }}
               </span>
               <span

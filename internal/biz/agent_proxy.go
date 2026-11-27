@@ -73,7 +73,7 @@ func (uc *AgentUsecase) proxyKey(stored string) string {
 	return uc.decrypt(stored)
 }
 
-// encodedProxy 和 proxyKey 比较用：p 的地址；nil 为空。
+// encodedProxy 和 proxyKey 比较用：p 存起来的样子；nil 为空。
 func encodedProxy(p *agentproxy.Proxy) string {
 	if p == nil {
 		return ""
@@ -81,44 +81,36 @@ func encodedProxy(p *agentproxy.Proxy) string {
 	return p.Encode()
 }
 
-// proxyPB 页面上的代理：能改的人看到用户名和有没有密码；只能用的人（view）只看到地址、时区、语言。不带密码。
+// proxyPB 页面上的代理：能改的人看到整个节点；只能用的人（view）只看到协议、地址、时区、语言。
 func (uc *AgentUsecase) proxyPB(stored string, view bool) *v1.AgentProxy {
 	p, err := uc.proxyOf(stored)
 	if err != nil || p == nil {
 		return nil
 	}
-	out := &v1.AgentProxy{Type: p.Type, Host: p.Host, Port: int32(p.Port), Timezone: p.Timezone, Locale: p.Locale}
+	out := &v1.AgentProxy{Protocol: p.Protocol(), Server: p.Server(), Timezone: p.Timezone, Locale: p.Locale}
 	if !view {
-		out.Username, out.HasPassword = p.Username, p.Password != ""
+		out.Node = p.Node
 	}
 	return out
 }
 
-// proxyFromPB 页面上填的代理：不传或 type 为空是不走代理；密码留空、用户名没变时用 stored 里的密码。
-func (uc *AgentUsecase) proxyFromPB(stored string, in *v1.AgentProxy) (*agentproxy.Proxy, error) {
-	if in.GetType() == "" {
+// proxyFromPB 页面上填的代理：不传或节点为空是不走代理。节点认不出、时区服务器上没有、sing-box 用不了这个节点（下载了的话）都报错。
+func (uc *AgentUsecase) proxyFromPB(in *v1.AgentProxy) (*agentproxy.Proxy, error) {
+	if strings.TrimSpace(in.GetNode()) == "" {
 		return nil, nil
 	}
-	p := agentproxy.Proxy{
-		Type:     strings.ToLower(strings.TrimSpace(in.GetType())),
-		Host:     strings.TrimSpace(in.GetHost()),
-		Port:     int(in.GetPort()),
-		Username: strings.TrimSpace(in.GetUsername()),
-		Password: in.GetPassword(),
-		Timezone: strings.TrimSpace(in.GetTimezone()),
-		Locale:   strings.TrimSpace(in.GetLocale()),
-	}
-	if p.Password == "" && p.Username != "" {
-		if old, _ := uc.proxyOf(stored); old != nil && old.Username == p.Username {
-			p.Password = old.Password
-		}
-	}
-	if err := p.Validate(); err != nil {
+	p, err := agentproxy.New(in.GetNode(), in.GetTimezone(), in.GetLocale())
+	if err != nil {
 		return nil, response.BadRequest(err.Error())
 	}
 	if p.Timezone != "" {
 		if _, err := time.LoadLocation(p.Timezone); err != nil {
 			return nil, response.BadRequest("服务器上没有时区 " + p.Timezone + " 的数据")
+		}
+	}
+	if launch, ok := agentinstall.Installed(uc.singBoxDir()); ok {
+		if err := agentsandbox.CheckProxy(launch.Command, p); err != nil {
+			return nil, response.BadRequest(err.Error())
 		}
 	}
 	return &p, nil
@@ -203,7 +195,7 @@ func (uc *AgentUsecase) SetRuntimeProxy(ctx context.Context, id string, in *v1.A
 	if err != nil {
 		return nil, err
 	}
-	p, err := uc.proxyFromPB(rt.Proxy, in)
+	p, err := uc.proxyFromPB(in)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +223,7 @@ var proxyProbeTargets = map[string]string{
 
 // TestProxy 在沙箱里经代理请求一次要用的那一家：有应答（不管状态码）就算通。不通是代理那边的状况，放在 error 里返回。
 func (uc *AgentUsecase) TestProxy(ctx context.Context, req *v1.TestAgentProxyRequest) (*v1.TestAgentProxyResponse, error) {
-	var stored, target string
+	var target string
 	if req.GetRuntimeId() != "" {
 		if err := uc.requireManage(ctx); err != nil {
 			return nil, err
@@ -240,7 +232,6 @@ func (uc *AgentUsecase) TestProxy(ctx context.Context, req *v1.TestAgentProxyReq
 		if err != nil {
 			return nil, err
 		}
-		stored = rt.Proxy
 		if target = proxyProbeTargets[string(rt.Kind)]; target == "" {
 			target = "https://www.google.com/"
 		}
@@ -251,7 +242,7 @@ func (uc *AgentUsecase) TestProxy(ctx context.Context, req *v1.TestAgentProxyReq
 			if err != nil {
 				return nil, err
 			}
-			stored, vendor = p.Proxy, p.Vendor
+			vendor = p.Vendor
 			if baseURL == "" {
 				baseURL = p.BaseURL
 			}
@@ -268,12 +259,12 @@ func (uc *AgentUsecase) TestProxy(ctx context.Context, req *v1.TestAgentProxyReq
 		}
 		target = baseURL
 	}
-	p, err := uc.proxyFromPB(stored, req.GetProxy())
+	p, err := uc.proxyFromPB(req.GetProxy())
 	if err != nil {
 		return nil, err
 	}
 	if p == nil {
-		return nil, response.BadRequest("先填代理地址")
+		return nil, response.BadRequest("先填节点")
 	}
 	client, err := uc.clientVia(p, 60*time.Second)
 	if err != nil {

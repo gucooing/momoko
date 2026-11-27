@@ -54,7 +54,7 @@ type AgentProvider struct {
 	Share string `json:"share,omitempty"`
 	// share 为 users 时能用的用户 id
 	ShareUsers []string `json:"share_users,omitempty"`
-	// 代理地址 http:// 或 socks5://（secretbox 加密，可能带账号密码）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox
+	// 代理节点（secretbox 加密的 JSON：分享链接或 sing-box 出站，连同沙箱的时区和语言）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox
 	Proxy        string `json:"-"`
 	selectValues sql.SelectValues
 }

@@ -1,30 +1,25 @@
-// Package agentproxy 是 Agent 的代理配置：上游代理（HTTP 或 SOCKS5，可带账号密码），以及在沙箱里看到的时区和语言。
-// 存起来是一个地址：socks5://用户名:密码@主机:端口?tz=America/Los_Angeles&lang=en_US.UTF-8。
-// 怎么经它联网见 pkg/agentsandbox。
+// Package agentproxy 是 Agent 的代理配置：一个节点（分享链接或 sing-box 的出站 JSON），以及沙箱里的时区和语言。
+// 节点在沙箱里由 sing-box 用（见 pkg/agentsandbox），所以 sing-box 支持的协议都能用：
+// vless、vmess、trojan、shadowsocks、hysteria2、hysteria、tuic、anytls、wireguard、ssh、socks（见 Protocols）。
+// 存起来是一段 JSON：{"node": 原样的节点, "tz": 时区, "lang": 语言}。
 package agentproxy
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net"
-	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-// 代理类型。
-const (
-	TypeHTTP   = "http"
-	TypeSOCKS5 = "socks5"
-)
-
 // Proxy 一份代理配置。
 type Proxy struct {
-	Type     string
-	Host     string
-	Port     int
-	Username string
-	Password string
+	// Node 用户给的节点，原样：分享链接，或 sing-box 的出站 JSON。
+	Node string
+	// Outbound 由 Node 得出的 sing-box 出站（不带 tag）。
+	Outbound map[string]any
 	// Timezone 沙箱里的时区（IANA 名称，如 America/Los_Angeles）；空 = 跟服务器一样。
 	Timezone string
 	// Locale 沙箱里的语言区域（如 en_US.UTF-8）；空 = 跟服务器一样。
@@ -36,72 +31,84 @@ var (
 	localePattern   = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_.\-]{0,39}$`)
 )
 
-// Parse 读 Encode 存下的地址。
-func Parse(raw string) (Proxy, error) {
-	u, err := url.Parse(strings.TrimSpace(raw))
+// New 从节点、时区、语言得出一份配置：节点认不出、时区或语言写得不对时报错。
+func New(node, timezone, locale string) (Proxy, error) {
+	node = strings.TrimSpace(node)
+	if node == "" {
+		return Proxy{}, errors.New("先填节点")
+	}
+	outbound, err := parseNode(node)
 	if err != nil {
-		return Proxy{}, errors.New("代理地址不对")
-	}
-	p := Proxy{Type: strings.ToLower(u.Scheme), Host: u.Hostname()}
-	if p.Port, err = strconv.Atoi(u.Port()); err != nil {
-		return Proxy{}, errors.New("代理地址里没有端口")
-	}
-	if u.User != nil {
-		p.Username = u.User.Username()
-		p.Password, _ = u.User.Password()
-	}
-	q := u.Query()
-	p.Timezone, p.Locale = q.Get("tz"), q.Get("lang")
-	if err := p.Validate(); err != nil {
 		return Proxy{}, err
+	}
+	p := Proxy{Node: node, Outbound: outbound, Timezone: strings.TrimSpace(timezone), Locale: strings.TrimSpace(locale)}
+	if p.Timezone != "" && (!timezonePattern.MatchString(p.Timezone) || strings.Contains(p.Timezone, "..")) {
+		return Proxy{}, errors.New("时区要写成 America/Los_Angeles 这样的名称")
+	}
+	if p.Locale != "" && !localePattern.MatchString(p.Locale) {
+		return Proxy{}, errors.New("语言要写成 en_US.UTF-8 这样的名称")
 	}
 	return p, nil
 }
 
-// Encode 存起来的地址：带账号密码，时区和语言在查询参数 tz、lang 里。
+type stored struct {
+	Node     string `json:"node"`
+	Timezone string `json:"tz,omitempty"`
+	Locale   string `json:"lang,omitempty"`
+}
+
+// Parse 读 Encode 存下的配置。
+func Parse(raw string) (Proxy, error) {
+	var s stored
+	if err := json.Unmarshal([]byte(raw), &s); err != nil {
+		return Proxy{}, errors.New("代理配置读不出来")
+	}
+	return New(s.Node, s.Timezone, s.Locale)
+}
+
+// Encode 存起来的配置。
 func (p Proxy) Encode() string {
-	u := url.URL{Scheme: p.Type, Host: net.JoinHostPort(p.Host, strconv.Itoa(p.Port))}
-	switch {
-	case p.Username != "" && p.Password != "":
-		u.User = url.UserPassword(p.Username, p.Password)
-	case p.Username != "":
-		u.User = url.User(p.Username)
-	}
-	q := url.Values{}
-	if p.Timezone != "" {
-		q.Set("tz", p.Timezone)
-	}
-	if p.Locale != "" {
-		q.Set("lang", p.Locale)
-	}
-	u.RawQuery = q.Encode()
-	return u.String()
+	raw, _ := json.Marshal(stored{Node: p.Node, Timezone: p.Timezone, Locale: p.Locale})
+	return string(raw)
 }
 
-// Validate 类型、主机、端口、时区、语言都要对。
-func (p Proxy) Validate() error {
-	if p.Type != TypeHTTP && p.Type != TypeSOCKS5 {
-		return errors.New("代理只能是 http:// 或 socks5://")
-	}
-	if p.Host == "" || strings.ContainsAny(p.Host, "/ @?#") {
-		return errors.New("代理地址里没有主机")
-	}
-	if p.Port < 1 || p.Port > 65535 {
-		return errors.New("代理端口要在 1 到 65535 之间")
-	}
-	if p.Password != "" && p.Username == "" {
-		return errors.New("代理有密码就要有用户名")
-	}
-	if p.Timezone != "" && (!timezonePattern.MatchString(p.Timezone) || strings.Contains(p.Timezone, "..")) {
-		return errors.New("时区要写成 America/Los_Angeles 这样的名称")
-	}
-	if p.Locale != "" && !localePattern.MatchString(p.Locale) {
-		return errors.New("语言要写成 en_US.UTF-8 这样的名称")
-	}
-	return nil
+// Protocol 出站的协议（sing-box 的 type）。
+func (p Proxy) Protocol() string {
+	s, _ := p.Outbound["type"].(string)
+	return s
 }
 
-// String 给人看的地址，不带账号密码。
+// Endpoint 节点在 sing-box 里是端点（wireguard），不是出站。
+func (p Proxy) Endpoint() bool { return p.Protocol() == "wireguard" }
+
+// Server 节点的「主机:端口」（wireguard 是第一个对端的）；出站里没有为空。
+func (p Proxy) Server() string {
+	if peers, ok := p.Outbound["peers"].([]any); ok && len(peers) > 0 {
+		if peer, ok := peers[0].(map[string]any); ok {
+			return hostPort(peer["address"], peer["port"])
+		}
+	}
+	return hostPort(p.Outbound["server"], p.Outbound["server_port"])
+}
+
+func hostPort(h, port any) string {
+	host, _ := h.(string)
+	if host == "" {
+		return ""
+	}
+	switch n := port.(type) {
+	case int:
+		return net.JoinHostPort(host, strconv.Itoa(n))
+	case float64:
+		return net.JoinHostPort(host, strconv.Itoa(int(n)))
+	}
+	return host
+}
+
+// String 给人看的节点：协议和地址，不带密钥。
 func (p Proxy) String() string {
-	return p.Type + "://" + net.JoinHostPort(p.Host, strconv.Itoa(p.Port))
+	if s := p.Server(); s != "" {
+		return fmt.Sprintf("%s://%s", p.Protocol(), s)
+	}
+	return p.Protocol()
 }

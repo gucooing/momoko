@@ -53,7 +53,7 @@ func (AgentProvider) Fields() []ent.Field {
 		field.Time("tested_at").Optional().Nillable().Comment("最近一次测试时间"),
 		field.String("share").Default("").Comment("共享范围：空 = 只有主人自己用；all = 所有人；users = share_users 里的人。共享的主人是 @shared，在 Agent 管理页里管"),
 		field.Strings("share_users").Optional().Comment("share 为 users 时能用的用户 id"),
-		field.Text("proxy").Default("").Sensitive().Comment("代理地址 http:// 或 socks5://（secretbox 加密，可能带账号密码）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox"),
+		field.Text("proxy").Default("").Sensitive().Comment("代理节点（secretbox 加密的 JSON：分享链接或 sing-box 出站，连同沙箱的时区和语言）；空 = 不走代理。只有 Linux 能配，见 pkg/agentsandbox"),
 	}
 }
 
