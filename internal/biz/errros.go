@@ -71,6 +71,9 @@ var (
 	ErrStorageSourceType         = response.BadRequest("储存只能选择对象存储（S3）来源")
 	ErrShareSignInvalid          = response.BadRequest("分享会话已失效，请重新验证")
 	ErrTaskNotFound              = response.BadRequest("任务不存在")
+	ErrOIDCClientName            = response.BadRequest("OIDC 客户端名称不能为空")
+	ErrOIDCRedirectURI           = response.BadRequest("OIDC 回调地址不正确")
+	ErrOIDCClientNotFound        = response.BadRequest("OIDC 客户端不存在")
 )
 
 // 智商检测

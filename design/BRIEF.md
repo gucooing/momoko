@@ -58,6 +58,7 @@ Momoko 是一个服务器 / 应用实例 / Docker / 网络工具的管理面板�
   - 节点：节点 `NodesPC` / API Key `ApiKeysPC`
   - 用户与权限：用户 `UsersPC` / 角色 `RolesPC` / 菜单 `MenusPC`
   - 任务与日志：后台任务 `TasksPC` / 操作记录 `AuditPC`
+  - 系统设置：常规 · 登录 · 邮件 `SettingsPC` / OIDC 身份提供方 `OIDCPC`
   - 个人中心：个人资料 `ProfilePC` / 外观 `ThemePC`（手机同理加 Mobile 后缀）
 - 列表页规则：标题 + 一句计数说明 + 右上主按钮；状态 chips 带数量（可点击筛选，用 state）；搜索框；**不要「序号」列**；行内常用操作用小图标按钮（日志/终端/启停…）+「⋯」；勾选后底部出现深色批量操作条（参考 AppsPC）。表格放在 `overflow-x:auto` 的 card 里。
 - 链接：页面之间能跳的都用 `<a href="XxxPC.dc.html">`（文件名见上表和下面的分配表）。

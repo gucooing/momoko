@@ -112,6 +112,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	iqCheckRepo := data.NewIQCheckRepo(dataData)
 	iqCheckUsecase := biz.NewIQCheckUsecase(iqCheckRepo, manager)
 	iqCheckService := service.NewIQCheckService(iqCheckUsecase)
+	oidcRepo := data.NewOIDCRepo(dataData)
+	oidcUsecase := biz.NewOIDCUsecase(oidcRepo, configRepo, userRepo)
+	oidcService := service.NewOIDCService(oidcUsecase)
 	taskUsecase := biz.NewTaskUsecase(manager, userRepo)
 	taskService := service.NewTaskService(taskUsecase)
 	monitorRepo := data.NewMonitorRepo(dataData)
@@ -140,7 +143,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	agentUsecase, cleanup8 := biz.NewAgentUsecase(agentRepo, configRepo, authRepo, fileRepo, systemUsecase, logger)
 	agentService := service.NewAgentService(agentUsecase)
 	mcpService := service.NewMcpService(mcpUsecase, agentUsecase)
-	httpServer := server.NewHTTPServer(confServer, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, taskService, monitorService, themeassetManager, themeService, gameServerService, gameGMService, gakumasGMService, azurPromiliaGMService, gameOpsService, passportAdminService, agentService, mcpService)
+	httpServer := server.NewHTTPServer(confServer, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, oidcService, taskService, monitorService, themeassetManager, themeService, gameServerService, gameGMService, gakumasGMService, azurPromiliaGMService, gameOpsService, passportAdminService, agentService, mcpService)
 	nodeAgentService := service.NewNodeAgentService(nodeAgentUsecase)
 	grpcServer, err := server.NewGRPCServer(confServer, authorization, operationLogMiddleware, httpServer, nodeAgentUsecase, nodeAgentService, systemService, fileService, instanceService, dockerService, networkService, tunnelService, taskService, openSSHService, monitorService, iqCheckService, gameServerService, gameGMService, gakumasGMService, gameOpsService, passportAdminService, agentService)
 	if err != nil {

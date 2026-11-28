@@ -35,6 +35,14 @@ const (
 	ConfigMonitorCollectNetwork ConfigKey = "monitor.collect_network"
 	ConfigMonitorCollectApps    ConfigKey = "monitor.collect_apps"
 
+	ConfigOIDCEnabled                     ConfigKey = "oidc.enabled"
+	ConfigOIDCIssuerURL                   ConfigKey = "oidc.issuer_url"
+	ConfigOIDCAccessTokenTTLSeconds       ConfigKey = "oidc.access_token_ttl_seconds"
+	ConfigOIDCIDTokenTTLSeconds           ConfigKey = "oidc.id_token_ttl_seconds"
+	ConfigOIDCAuthorizationCodeTTLSeconds ConfigKey = "oidc.authorization_code_ttl_seconds"
+	ConfigOIDCPrivateKey                  ConfigKey = "oidc.private_key"
+	ConfigOIDCPrivateKeyRotatedAt         ConfigKey = "oidc.private_key_rotated_at"
+
 	ConfigEmailEnabled        ConfigKey = "email.enabled"
 	ConfigEmailHost           ConfigKey = "email.host"
 	ConfigEmailPort           ConfigKey = "email.port"
@@ -117,6 +125,14 @@ var configDefaults = map[ConfigKey]string{
 	ConfigMonitorCollectDisk:    "true",
 	ConfigMonitorCollectNetwork: "true",
 	ConfigMonitorCollectApps:    "true",
+
+	ConfigOIDCEnabled:                     "false",
+	ConfigOIDCIssuerURL:                   "",
+	ConfigOIDCAccessTokenTTLSeconds:       "3600",
+	ConfigOIDCIDTokenTTLSeconds:           "3600",
+	ConfigOIDCAuthorizationCodeTTLSeconds: "300",
+	ConfigOIDCPrivateKey:                  "",
+	ConfigOIDCPrivateKeyRotatedAt:         "",
 
 	ConfigEmailEnabled:        "false",
 	ConfigEmailHost:           "",

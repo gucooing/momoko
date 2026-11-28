@@ -44,6 +44,7 @@ import (
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/monitorsample"
 	"momoko/internal/data/ent/gen/node"
+	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/passportinvite"
 	"momoko/internal/data/ent/gen/passportloginlog"
@@ -167,6 +168,7 @@ func checkColumn(t, c string) error {
 			menu.Table:               menu.ValidColumn,
 			monitorsample.Table:      monitorsample.ValidColumn,
 			node.Table:               node.ValidColumn,
+			oidcclient.Table:         oidcclient.ValidColumn,
 			operationlog.Table:       operationlog.ValidColumn,
 			passportinvite.Table:     passportinvite.ValidColumn,
 			passportloginlog.Table:   passportloginlog.ValidColumn,

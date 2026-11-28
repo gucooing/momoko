@@ -120,6 +120,9 @@ type MonitorSample func(*sql.Selector)
 // Node is the predicate function for node builders.
 type Node func(*sql.Selector)
 
+// OIDCClient is the predicate function for oidcclient builders.
+type OIDCClient func(*sql.Selector)
+
 // OperationLog is the predicate function for operationlog builders.
 type OperationLog func(*sql.Selector)
 

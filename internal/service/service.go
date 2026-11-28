@@ -19,6 +19,7 @@ var ProviderSet = wire.NewSet(
 	NewInitializeService,
 	NewDockerService,
 	NewIQCheckService,
+	NewOIDCService,
 	NewMonitorService,
 	NewThemeService,
 	NewGameServerService,

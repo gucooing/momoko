@@ -82,6 +82,11 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
     </div>
     <button class="ib" aria-label="切换深浅色" onClick="{{toggleDark}}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{modeIcon}}"></path></svg></button>
   </header>
+  <nav class="hs" aria-label="系统设置分类" style="display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto">
+    <a class="utab utab-on" href="SettingsMobile.dc.html" aria-current="page">常规 · 登录 · 邮件</a>
+    <a class="utab" href="OIDCMobile.dc.html">OIDC 身份提供方</a>
+  </nav>
+
   <nav class="hs" aria-label="本页目录" style="position: sticky; top: 0; z-index: 2; display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: var(--bg)">
     <sc-for list="{{secs}}" as="s" hint-placeholder-count="4">
       <a class="chip {{s.cls}}" href="#{{s.id}}" onClick="{{s.pick}}" aria-current="{{s.cur}}">{{s.t}}<sc-if value="{{s.dirty}}" hint-placeholder-val="{{false}}"><span style="width: 7px; height: 7px; border-radius: 50%; background: var(--warn)" aria-label="有修改"></span></sc-if></a>
@@ -102,7 +107,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
       <div class="mr">
         <label class="mt" for="m-url">对外地址</label>
         <input id="m-url" class="fld mono" type="url" value="https://[你的域名]" style="font-size: 14px" onChange="{{markGeneral}}">
-        <span class="md">分享链接和邮件跳转都用这个地址</span>
+        <span class="md">分享链接、邮件跳转和 OIDC 回调都用这个地址</span>
       </div>
       <div class="mr">
         <span class="mt">默认语言</span>

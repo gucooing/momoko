@@ -23,6 +23,14 @@ Momoko 是一个面向服务器、应用实例和开发工具的管理面板。�
 - 通用任务管理：任务列表、详情、取消、重试、删除和进度状态。
 - 前端静态资源内嵌服务，支持 SPA 路由回退、gzip/brotli 压缩资源和头像静态服务。
 
+### OIDC 身份提供方
+
+- 内置 OIDC Provider，提供 Discovery、JWKS、Authorize、Token 和 UserInfo 标准端点。
+- OIDC Provider 配置：启用状态、Issuer、Access Token 有效期、ID Token 有效期和授权码有效期。
+- OIDC 客户端管理：创建、列表、编辑、删除、刷新 Client Secret、回调地址、授权范围和启用状态。
+- 授权码登录流程：公开授权页、当前登录账号确认授权、授权码交换 Token、ID Token 和 Access Token 签发。
+- OIDC 管理入口接入系统菜单、按钮权限和操作记录审计。
+
 ### 游戏服务器、GM 运营与用户通行证
 
 - 游戏服务器：托管 / 仅 GM 两种接入，经 MGP v1（HMAC 签名）调用游戏服务端；适配的游戏是学マス与蓝色星原（`azurpromilia`）。蓝色星原的 GM 有工作台、玩家与玩家详情、邮件补偿、兑换码、操作与日志（`/game/gm/:serverId`，玩家详情 `/game/gm/:serverId/azurpromilia/players/:pid`；详情里道具、货币、角色、奇波都能按名称或 ID 搜索，点一行直接修改：道具与货币改数量，角色改等级、星级、好感（突破跟着等级走，取这个等级能达到的最高一档），奇波改等级、星魂、锁定、名字，超出范围的值自动改成最大或最小值（范围由 `frontend/scripts/games/azurpromilia/export-growth.py` 从游戏服务端 `res` 导出，不受玩家等级限制），都写 GM 记录），道具等名称来自 `frontend/scripts/games/azurpromilia/export-names.py` 从游戏服务端 `res` 导出的名称表，道具、货币、角色、奇波等图标由 `frontend/scripts/games/azurpromilia/extract-assets.py` 从游戏客户端导出到 `frontend/public/games/azurpromilia/`（与学マス 素材一样随游戏素材包发布）；通行证游戏空间有概览、道具、货币、角色、奇波（这四项可按名称或 ID 搜索）、邮箱、登录记录与自助服务（管理端「玩家权限」开放的操作）。支持客户端启动的游戏（学マス、蓝色星原）在服务器的连接设置里有「客户端」：生成客户端应用凭据（应用 ID 与应用密钥，可重置密钥或重新生成应用 ID，都要先确认；应用密钥加密保存，只在生成时显示一次；托管服务器由 Momoko 把凭据写进服务端配置的 `momoko.app_id` / `momoko.app_secret`，学マス 另写通行证对外地址 `momoko.url`（`passport.public_url`，必须已配置），运行中可选立即重启），并填写游戏客户端连接用的地址（不带路径的 HTTP(S) origin，只列这款游戏的客户端用到的：学マス 为 SDK、游戏服务端与资源服务器，资源服务器可不填，不填时客户端使用官方资源；蓝色星原只有 SDK，网关与资源 CDN 由 SDK 下发）。

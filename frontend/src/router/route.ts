@@ -38,6 +38,12 @@ export const staticRoutes = [
     meta: { keepAlive: false, public: true, titleKey: 'theme.routes.publicIqcheck' },
   },
   {
+    path: '/oidc/authorize',
+    name: 'OIDCAuthorize',
+    component: () => import('@/views/public/oidc/authorize/index.vue'),
+    meta: { keepAlive: false, authOnly: true, titleKey: 'theme.routes.oidcAuthorize' },
+  },
+  {
     // Agent 通知消息里的批准链接：凭一次性令牌回答，不需要登录
     path: '/public/agent/approval/:token',
     name: 'PublicAgentApproval',

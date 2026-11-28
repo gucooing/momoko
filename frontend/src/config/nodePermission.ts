@@ -144,6 +144,8 @@ const NODE_ROUTE_PERMISSIONS: Array<[string, string | null]> = [
   ['/iqcheck', 'iqcheck:view'],
   ['/system/logs/task', 'task:manage'],
   ['/system/logs/operation', 'system_config:view'],
+  // OIDC 身份提供方只在主控本机上（授权页、签名密钥、客户端都在主控），远程节点上不显示
+  ['/system/settings/oidc', null],
   ['/system/settings', 'system_config:view'],
 ]
 

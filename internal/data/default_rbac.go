@@ -143,11 +143,13 @@ var (
 		newDefaultMenu("menu_12_6", entmenu.TypeMenu, "/system/logs", "任务与日志", "HOutline:ClockIcon", new("menu_12"), 2, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_6_button_0", entmenu.TypeButton, "", "后台任务", "", new("menu_12_6"), 0, constant.TaskManage, entmenu.StatusActive),
 		newDefaultMenu("menu_12_4", entmenu.TypeButton, "", "查看操作记录", "", new("menu_12_6"), 1, constant.SystemConfigView, entmenu.StatusActive),
-		// 系统设置：常规 · 登录 · 邮件 · 储存 · 版本更新
+		// 系统设置：标签 常规 · 登录 · 邮件 / OIDC 身份提供方
 		newDefaultMenu("menu_12_5", entmenu.TypeMenu, "/system/settings", "系统设置", "HOutline:AdjustmentsHorizontalIcon", new("menu_12"), 3, "", entmenu.StatusActive),
 		newDefaultMenu("menu_12_5_button_0", entmenu.TypeButton, "", "查看系统配置", "", new("menu_12_5"), 0, constant.SystemConfigView, entmenu.StatusActive),
 		newDefaultMenu("menu_12_5_button_1", entmenu.TypeButton, "", "编辑系统配置", "", new("menu_12_5"), 1, constant.SystemConfigEdit, entmenu.StatusActive),
 		newDefaultMenu("menu_12_5_button_2", entmenu.TypeButton, "", "更新检查", "", new("menu_12_5"), 2, constant.SystemUpdate, entmenu.StatusActive),
+		newDefaultMenu("menu_12_5_button_3", entmenu.TypeButton, "", "查看 OIDC", "", new("menu_12_5"), 3, constant.OIDCView, entmenu.StatusActive),
+		newDefaultMenu("menu_12_5_button_4", entmenu.TypeButton, "", "编辑 OIDC", "", new("menu_12_5"), 4, constant.OIDCEdit, entmenu.StatusActive),
 		// Momoko MCP：对外的 MCP 服务器（让 Agent 等 MCP 客户端操作 Momoko），凭证用 API Key，工具要的权限由 API Key 决定
 		newDefaultMenu("menu_12_7", entmenu.TypeMenu, "/system/mcp", "Momoko MCP", "HOutline:LinkIcon", new("menu_12"), 4, "", entmenu.StatusActive),
 	}

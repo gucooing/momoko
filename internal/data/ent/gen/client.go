@@ -49,6 +49,7 @@ import (
 	"momoko/internal/data/ent/gen/menu"
 	"momoko/internal/data/ent/gen/monitorsample"
 	"momoko/internal/data/ent/gen/node"
+	"momoko/internal/data/ent/gen/oidcclient"
 	"momoko/internal/data/ent/gen/operationlog"
 	"momoko/internal/data/ent/gen/passportinvite"
 	"momoko/internal/data/ent/gen/passportloginlog"
@@ -158,6 +159,8 @@ type Client struct {
 	MonitorSample *MonitorSampleClient
 	// Node is the client for interacting with the Node builders.
 	Node *NodeClient
+	// OIDCClient is the client for interacting with the OIDCClient builders.
+	OIDCClient *OIDCClientClient
 	// OperationLog is the client for interacting with the OperationLog builders.
 	OperationLog *OperationLogClient
 	// PassportInvite is the client for interacting with the PassportInvite builders.
@@ -245,6 +248,7 @@ func (c *Client) init() {
 	c.Menu = NewMenuClient(c.config)
 	c.MonitorSample = NewMonitorSampleClient(c.config)
 	c.Node = NewNodeClient(c.config)
+	c.OIDCClient = NewOIDCClientClient(c.config)
 	c.OperationLog = NewOperationLogClient(c.config)
 	c.PassportInvite = NewPassportInviteClient(c.config)
 	c.PassportLoginLog = NewPassportLoginLogClient(c.config)
@@ -394,6 +398,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Menu:               NewMenuClient(cfg),
 		MonitorSample:      NewMonitorSampleClient(cfg),
 		Node:               NewNodeClient(cfg),
+		OIDCClient:         NewOIDCClientClient(cfg),
 		OperationLog:       NewOperationLogClient(cfg),
 		PassportInvite:     NewPassportInviteClient(cfg),
 		PassportLoginLog:   NewPassportLoginLogClient(cfg),
@@ -470,6 +475,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Menu:               NewMenuClient(cfg),
 		MonitorSample:      NewMonitorSampleClient(cfg),
 		Node:               NewNodeClient(cfg),
+		OIDCClient:         NewOIDCClientClient(cfg),
 		OperationLog:       NewOperationLogClient(cfg),
 		PassportInvite:     NewPassportInviteClient(cfg),
 		PassportLoginLog:   NewPassportLoginLogClient(cfg),
@@ -526,11 +532,11 @@ func (c *Client) Use(hooks ...Hook) {
 		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
 		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
 		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
-		c.Menu, c.MonitorSample, c.Node, c.OperationLog, c.PassportInvite,
-		c.PassportLoginLog, c.PassportMessage, c.PassportSession, c.PassportUser,
-		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.ThemeAsset, c.User, c.UserAPIKey, c.UserMessage,
-		c.UserTheme,
+		c.Menu, c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog,
+		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportSession,
+		c.PassportUser, c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration,
+		c.SSHHost, c.Session, c.SystemConfig, c.Task, c.ThemeAsset, c.User,
+		c.UserAPIKey, c.UserMessage, c.UserTheme,
 	} {
 		n.Use(hooks...)
 	}
@@ -548,11 +554,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.GameServer, c.GameServerBackup, c.GameServerHistory, c.GiftCode,
 		c.GiftCodeBatch, c.GiftCodeRedeem, c.GmExecution, c.GmSelfService,
 		c.IQCheckPrompt, c.IQCheckResult, c.IQCheckSite, c.Instance, c.InstanceType,
-		c.Menu, c.MonitorSample, c.Node, c.OperationLog, c.PassportInvite,
-		c.PassportLoginLog, c.PassportMessage, c.PassportSession, c.PassportUser,
-		c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration, c.SSHHost, c.Session,
-		c.SystemConfig, c.Task, c.ThemeAsset, c.User, c.UserAPIKey, c.UserMessage,
-		c.UserTheme,
+		c.Menu, c.MonitorSample, c.Node, c.OIDCClient, c.OperationLog,
+		c.PassportInvite, c.PassportLoginLog, c.PassportMessage, c.PassportSession,
+		c.PassportUser, c.PortForward, c.PortForwardStat, c.Role, c.SQLMigration,
+		c.SSHHost, c.Session, c.SystemConfig, c.Task, c.ThemeAsset, c.User,
+		c.UserAPIKey, c.UserMessage, c.UserTheme,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -637,6 +643,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.MonitorSample.mutate(ctx, m)
 	case *NodeMutation:
 		return c.Node.mutate(ctx, m)
+	case *OIDCClientMutation:
+		return c.OIDCClient.mutate(ctx, m)
 	case *OperationLogMutation:
 		return c.OperationLog.mutate(ctx, m)
 	case *PassportInviteMutation:
@@ -5926,6 +5934,139 @@ func (c *NodeClient) mutate(ctx context.Context, m *NodeMutation) (Value, error)
 	}
 }
 
+// OIDCClientClient is a client for the OIDCClient schema.
+type OIDCClientClient struct {
+	config
+}
+
+// NewOIDCClientClient returns a client for the OIDCClient from the given config.
+func NewOIDCClientClient(c config) *OIDCClientClient {
+	return &OIDCClientClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `oidcclient.Hooks(f(g(h())))`.
+func (c *OIDCClientClient) Use(hooks ...Hook) {
+	c.hooks.OIDCClient = append(c.hooks.OIDCClient, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `oidcclient.Intercept(f(g(h())))`.
+func (c *OIDCClientClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OIDCClient = append(c.inters.OIDCClient, interceptors...)
+}
+
+// Create returns a builder for creating a OIDCClient entity.
+func (c *OIDCClientClient) Create() *OIDCClientCreate {
+	mutation := newOIDCClientMutation(c.config, OpCreate)
+	return &OIDCClientCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OIDCClient entities.
+func (c *OIDCClientClient) CreateBulk(builders ...*OIDCClientCreate) *OIDCClientCreateBulk {
+	return &OIDCClientCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OIDCClientClient) MapCreateBulk(slice any, setFunc func(*OIDCClientCreate, int)) *OIDCClientCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OIDCClientCreateBulk{err: fmt.Errorf("calling to OIDCClientClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OIDCClientCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OIDCClientCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OIDCClient.
+func (c *OIDCClientClient) Update() *OIDCClientUpdate {
+	mutation := newOIDCClientMutation(c.config, OpUpdate)
+	return &OIDCClientUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OIDCClientClient) UpdateOne(_m *OIDCClient) *OIDCClientUpdateOne {
+	mutation := newOIDCClientMutation(c.config, OpUpdateOne, withOIDCClient(_m))
+	return &OIDCClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OIDCClientClient) UpdateOneID(id string) *OIDCClientUpdateOne {
+	mutation := newOIDCClientMutation(c.config, OpUpdateOne, withOIDCClientID(id))
+	return &OIDCClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OIDCClient.
+func (c *OIDCClientClient) Delete() *OIDCClientDelete {
+	mutation := newOIDCClientMutation(c.config, OpDelete)
+	return &OIDCClientDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OIDCClientClient) DeleteOne(_m *OIDCClient) *OIDCClientDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OIDCClientClient) DeleteOneID(id string) *OIDCClientDeleteOne {
+	builder := c.Delete().Where(oidcclient.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OIDCClientDeleteOne{builder}
+}
+
+// Query returns a query builder for OIDCClient.
+func (c *OIDCClientClient) Query() *OIDCClientQuery {
+	return &OIDCClientQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOIDCClient},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OIDCClient entity by its id.
+func (c *OIDCClientClient) Get(ctx context.Context, id string) (*OIDCClient, error) {
+	return c.Query().Where(oidcclient.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OIDCClientClient) GetX(ctx context.Context, id string) *OIDCClient {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OIDCClientClient) Hooks() []Hook {
+	return c.hooks.OIDCClient
+}
+
+// Interceptors returns the client interceptors.
+func (c *OIDCClientClient) Interceptors() []Interceptor {
+	return c.inters.OIDCClient
+}
+
+func (c *OIDCClientClient) mutate(ctx context.Context, m *OIDCClientMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OIDCClientCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OIDCClientUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OIDCClientUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OIDCClientDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown OIDCClient mutation op: %q", m.Op())
+	}
+}
+
 // OperationLogClient is a client for the OperationLog schema.
 type OperationLogClient struct {
 	config
@@ -8639,10 +8780,11 @@ type (
 		GameConfigRevision, GameRecentServer, GameServer, GameServerBackup,
 		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
 		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
-		InstanceType, Menu, MonitorSample, Node, OperationLog, PassportInvite,
-		PassportLoginLog, PassportMessage, PassportSession, PassportUser, PortForward,
-		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
-		ThemeAsset, User, UserAPIKey, UserMessage, UserTheme []ent.Hook
+		InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
+		PassportInvite, PassportLoginLog, PassportMessage, PassportSession,
+		PassportUser, PortForward, PortForwardStat, Role, SQLMigration, SSHHost,
+		Session, SystemConfig, Task, ThemeAsset, User, UserAPIKey, UserMessage,
+		UserTheme []ent.Hook
 	}
 	inters struct {
 		AgentEvent, AgentMcpServer, AgentNotify, AgentProvider, AgentRuntime,
@@ -8652,10 +8794,11 @@ type (
 		GameConfigRevision, GameRecentServer, GameServer, GameServerBackup,
 		GameServerHistory, GiftCode, GiftCodeBatch, GiftCodeRedeem, GmExecution,
 		GmSelfService, IQCheckPrompt, IQCheckResult, IQCheckSite, Instance,
-		InstanceType, Menu, MonitorSample, Node, OperationLog, PassportInvite,
-		PassportLoginLog, PassportMessage, PassportSession, PassportUser, PortForward,
-		PortForwardStat, Role, SQLMigration, SSHHost, Session, SystemConfig, Task,
-		ThemeAsset, User, UserAPIKey, UserMessage, UserTheme []ent.Interceptor
+		InstanceType, Menu, MonitorSample, Node, OIDCClient, OperationLog,
+		PassportInvite, PassportLoginLog, PassportMessage, PassportSession,
+		PassportUser, PortForward, PortForwardStat, Role, SQLMigration, SSHHost,
+		Session, SystemConfig, Task, ThemeAsset, User, UserAPIKey, UserMessage,
+		UserTheme []ent.Interceptor
 	}
 )
 

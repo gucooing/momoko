@@ -408,6 +408,40 @@
       "x": 0,
       "y": 20240
     },
+    "OIDCAuthorizeMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "OIDC 授权确认 · 手机",
+      "w": 390,
+      "x": 9960,
+      "y": 23700
+    },
+    "OIDCAuthorizePC.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "title": "OIDC 授权确认 · PC",
+      "w": 1440,
+      "x": 8440,
+      "y": 23700
+    },
+    "OIDCMobile.dc.html": {
+      "h": 2860,
+      "is_interactive": true,
+      "title": "OIDC 身份提供方 · 手机",
+      "w": 390,
+      "x": 18400,
+      "y": 20240
+    },
+    "OIDCPC.dc.html": {
+      "expand": "fill",
+      "h": 1420,
+      "is_interactive": true,
+      "title": "OIDC 身份提供方 · PC",
+      "w": 1440,
+      "x": 16880,
+      "y": 20240
+    },
     "PortForwardMobile.dc.html": {
       "h": 844,
       "is_interactive": true,
@@ -846,6 +880,8 @@
     "AuditMobile.dc.html",
     "SettingsPC.dc.html",
     "SettingsMobile.dc.html",
+    "OIDCPC.dc.html",
+    "OIDCMobile.dc.html",
     "LoginPC.dc.html",
     "LoginMobile.dc.html",
     "RegisterPC.dc.html",
@@ -854,6 +890,8 @@
     "InitMobile.dc.html",
     "ProfilePC.dc.html",
     "ProfileMobile.dc.html",
+    "OIDCAuthorizePC.dc.html",
+    "OIDCAuthorizeMobile.dc.html",
     "ErrorPC.dc.html",
     "ErrorMobile.dc.html",
     "MoreMobile.dc.html"

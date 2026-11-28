@@ -84,6 +84,7 @@ export const PAGE_GROUPS = {
     labelKey: 'pageGroup.settings.label',
     tabs: [
       { key: 'general', labelKey: 'pageGroup.settings.general', perm: 'system_config:view', component: lazy(() => import('@/views/system/settings/general/index.vue')) },
+      { key: 'oidc', labelKey: 'pageGroup.settings.oidc', perm: 'oidc:view', component: lazy(() => import('@/views/system/oidc/index.vue')) },
     ],
   },
   iqcheck: {

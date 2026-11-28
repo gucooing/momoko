@@ -98,6 +98,13 @@ export const operationTypeLabelKeys: Record<string, string> = {
   [OperationType.OperationTypeDockerVolumeExport]: 'system.operation.types.dockerVolumeExport',
   [OperationType.OperationTypeDockerVolumeRestore]: 'system.operation.types.dockerVolumeRestore',
   [OperationType.OperationTypeDockerConfigTest]: 'system.operation.types.dockerConfigTest',
+  [OperationType.OperationTypeOIDCConfigUpdate]: 'system.operation.types.oidcConfigUpdate',
+  [OperationType.OperationTypeOIDCClientCreate]: 'system.operation.types.oidcClientCreate',
+  [OperationType.OperationTypeOIDCClientUpdate]: 'system.operation.types.oidcClientUpdate',
+  [OperationType.OperationTypeOIDCClientDelete]: 'system.operation.types.oidcClientDelete',
+  [OperationType.OperationTypeOIDCClientSecretRefresh]: 'system.operation.types.oidcClientSecretRefresh',
+  [OperationType.OperationTypeOIDCAuthorizationCodeCreate]: 'system.operation.types.oidcAuthorizationCodeCreate',
+  [OperationType.OperationTypeOIDCSigningKeyRotate]: 'system.operation.types.oidcSigningKeyRotate',
   [OperationType.OperationTypeTaskCancel]: 'system.operation.types.taskCancel',
   [OperationType.OperationTypeTaskRetry]: 'system.operation.types.taskRetry',
   [OperationType.OperationTypeTaskDelete]: 'system.operation.types.taskDelete',
@@ -130,6 +137,7 @@ export const OPERATION_MODULES: OperationModule[] = [
   { key: 'System', labelKey: 'system.audit.modules.system', icon: 'HOutline:Cog6ToothIcon', tone: 'ink' },
   { key: 'Node', labelKey: 'system.audit.modules.node', icon: 'HOutline:ServerStackIcon', tone: 'a2' },
   { key: 'SSHHost', labelKey: 'system.audit.modules.ssh', icon: 'HOutline:CommandLineIcon', tone: 'ok' },
+  { key: 'OIDC', labelKey: 'system.audit.modules.oidc', icon: 'HOutline:IdentificationIcon', tone: 'p' },
   { key: 'Task', labelKey: 'system.audit.modules.task', icon: 'HOutline:QueueListIcon', tone: 'warn' },
 ]
 

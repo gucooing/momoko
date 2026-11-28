@@ -1,7 +1,25 @@
-// 系统组（任务与日志 / 系统设置）第三期新文案：键统一放在 systemV2.* 下，避免与其它模块冲突。
+// 系统组（任务与日志 / 系统设置 / OIDC）第三期新文案：键统一放在 systemV2.* 下，避免与其它模块冲突。
 export default {
   'zh-CN': {
     systemV2: {
+      authorize: {
+        allowed: '已允许，正在跳转到 {client}…',
+        allowedSub: '几秒内没有跳转的话，回到 {client} 重新点一次登录',
+        denied: '已拒绝授权',
+        deniedSub: '{client} 不会获得你的任何信息，正在返回…',
+        reset: '重新选择',
+        resetShort: '重选',
+      },
+      oidc: {
+        docs: '接入文档',
+        docsTitle: '接入 Momoko 单点登录',
+        step1: '在上方开启身份提供方，确认 Issuer 是应用能访问到的 Momoko 地址后保存配置。',
+        step2: '新建客户端，填写应用提供的回调地址（必须完全一致），保存后复制 Client ID 与 Client Secret。',
+        step3: '在应用的 OIDC / OAuth2 设置里填写 Issuer（或下面的各端点）、Client ID、Client Secret，scope 选 openid profile email。',
+        step4: '用 Momoko 账号登录应用；首次登录会看到授权确认页，同意后即可进入。',
+        docsParams: '关键参数',
+        docsExample: '配置示例（Grafana generic_oauth）',
+      },
       audit: {
         summaryRange: '{range}共 {total} 条操作记录',
         summaryAll: '共 {total} 条操作记录',
@@ -193,6 +211,24 @@ export default {
   },
   'zh-HK': {
     systemV2: {
+      authorize: {
+        allowed: '已允許，正在跳轉到 {client}…',
+        allowedSub: '幾秒內沒有跳轉的話，回到 {client} 重新點一次登入',
+        denied: '已拒絕授權',
+        deniedSub: '{client} 不會取得你的任何資料，正在返回…',
+        reset: '重新選擇',
+        resetShort: '重選',
+      },
+      oidc: {
+        docs: '接入文件',
+        docsTitle: '接入 Momoko 單一登入',
+        step1: '在上方開啟身份提供方，確認 Issuer 是應用能存取的 Momoko 地址後儲存設定。',
+        step2: '新增用戶端，填寫應用提供的回調地址（必須完全一致），儲存後複製 Client ID 與 Client Secret。',
+        step3: '在應用的 OIDC / OAuth2 設定中填寫 Issuer（或下面的各端點）、Client ID、Client Secret，scope 選 openid profile email。',
+        step4: '用 Momoko 帳號登入應用；首次登入會看到授權確認頁，同意後即可進入。',
+        docsParams: '關鍵參數',
+        docsExample: '設定範例（Grafana generic_oauth）',
+      },
       audit: {
         summaryRange: '{range}共 {total} 條操作記錄',
         summaryAll: '共 {total} 條操作記錄',
@@ -384,6 +420,24 @@ export default {
   },
   'en-US': {
     systemV2: {
+      authorize: {
+        allowed: 'Allowed. Taking you to {client}…',
+        allowedSub: 'If nothing happens in a few seconds, go back to {client} and sign in again',
+        denied: 'Access denied',
+        deniedSub: '{client} gets none of your information. Going back…',
+        reset: 'Choose again',
+        resetShort: 'Undo',
+      },
+      oidc: {
+        docs: 'Integration guide',
+        docsTitle: 'Sign in to apps with Momoko',
+        step1: 'Turn on the identity provider above, make sure the Issuer is a Momoko address the app can reach, then save.',
+        step2: 'Create a client with the callback URL from the app (it must match exactly), then copy the Client ID and Client Secret.',
+        step3: 'In the OIDC / OAuth2 settings of the app, fill in the Issuer (or the endpoints below), Client ID and Client Secret, with scopes openid profile email.',
+        step4: 'Sign in to the app with a Momoko account. The first sign-in shows a consent page; approve it to continue.',
+        docsParams: 'Key parameters',
+        docsExample: 'Example (Grafana generic_oauth)',
+      },
       audit: {
         summaryRange: '{range}: {total} operation records',
         summaryAll: '{total} operation records',
