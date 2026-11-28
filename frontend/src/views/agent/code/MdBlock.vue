@@ -1,6 +1,7 @@
 <!-- 一段 Agent 的回答（Markdown）。单独成组件：只有文字变了的这一段重新渲染，正在写的回答每来一段字，
      前面已经写完的回答不会跟着重新解析。图片显示成缩略图，点开用媒体查看层看大图。
-     引用本机文件的图片和链接（file:// 地址或绝对路径）换成签名下载链接；会话能访问的目录以外的取不到。 -->
+     引用本机文件的图片（file:// 地址或绝对路径，包括指向本机图片文件的链接）换成签名下载链接直接显示；
+     会话能访问的目录以外的取不到。 -->
 <template>
   <div ref="root" class="agc-md" @click="onClick" v-html="html" />
   <FileMediaDialog v-if="view" :model-value="true" :name="view.name" kind="image" :url="view.url" @update:model-value="view = null" />
@@ -9,7 +10,7 @@
 <script setup lang="ts">
 import MarkdownIt from 'markdown-it'
 import FileMediaDialog from '@/components/file/FileMediaDialog.vue'
-import { fileLink, isImagePath } from './fileLinks'
+import { fileLink } from './fileLinks'
 
 const props = defineProps<{ text: string; sessionId?: string }>()
 
@@ -44,44 +45,56 @@ const nameOf = (src: string) => {
   }
 }
 
-// 点到图片（包括包在链接里的）就打开大图，不跟着链接跳走；点到指向本机图片的链接也打开大图。
+// 点到图片（包括包在链接里的）就打开大图，不跟着链接跳走。
 const onClick = (e: MouseEvent) => {
   const target = e.target
-  if (target instanceof HTMLImageElement) {
-    e.preventDefault()
-    const url = target.currentSrc || target.src
-    if (url) view.value = { url, name: target.alt || nameOf(url) }
-    return
-  }
-  const link = target instanceof Element ? target.closest<HTMLElement>('a[data-local]') : null
-  const path = link?.dataset.local || ''
-  if (!path || !props.sessionId) return
+  if (!(target instanceof HTMLImageElement)) return
   e.preventDefault()
-  if (!isImagePath(path)) return
-  fileLink({ sessionId: props.sessionId }, path).then(
-    (url) => {
-      if (url) view.value = { url, name: path.split(/[\\/]/).pop() || 'image' }
-    },
-    () => {},
-  )
+  const url = target.currentSrc || target.src
+  if (url) view.value = { url, name: target.alt || nameOf(url) }
 }
 </script>
 
 <script lang="ts">
-import { localPathOf } from './fileLinks'
+import { isImagePath, localPathOf } from './fileLinks'
 
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
-// file:// 默认不让过：放它过去，渲染时换成从接口取（见下面的 link_open、image）
+// file:// 默认不让过：放它过去，渲染时换成签名链接（见下面的 link_open、image）
 const validateLink = md.validateLink.bind(md)
 md.validateLink = (url) => /^file:/i.test(url) || validateLink(url)
+// 指向本机图片文件的链接（[说明](/路径/图.png)）就是这张图：换成图片，链接的文字作说明，
+// 再由下面的 image 换成签名链接显示出来。链接里本来就包着图片的不动
+md.core.ruler.push('local_image_links', (state) => {
+  for (const block of state.tokens) {
+    const list = block.type === 'inline' ? block.children : null
+    if (!list) continue
+    for (let i = 0; i < list.length; i++) {
+      const open = list[i]
+      if (open?.type !== 'link_open') continue
+      const href = open.attrGet('href') || ''
+      if (!isImagePath(localPathOf(href))) continue
+      let end = i + 1
+      while (end < list.length && list[end]?.type !== 'link_close') end++
+      const inner = list.slice(i + 1, end)
+      if (end >= list.length || inner.some((t) => t.type === 'image')) continue
+      const img = new state.Token('image', 'img', 0)
+      img.attrs = [
+        ['src', href],
+        ['alt', ''],
+      ]
+      img.children = inner
+      img.content = inner.map((t) => t.content).join('')
+      list.splice(i, end - i + 1, img)
+    }
+  }
+})
 const defaultLink = md.renderer.rules.link_open ?? ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options))
 md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   const token = tokens[idx]
   const path = localPathOf(token?.attrGet('href') || '')
   if (token && path) {
-    // 本机文件在浏览器里打不开：不跳转，点了按会话取回来（是图片就看大图）
+    // 本机的其他文件在浏览器里打不开：不跳转，悬停显示路径
     token.attrs = (token.attrs ?? []).filter(([k]) => k !== 'href')
-    token.attrSet('data-local', path)
     token.attrSet('title', path)
     return defaultLink(tokens, idx, options, env, self)
   }
