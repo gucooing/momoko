@@ -12,6 +12,7 @@ import (
 	"momoko/pkg/agentsandbox"
 	"momoko/pkg/auth"
 	"momoko/pkg/selfupdate"
+	"momoko/pkg/servercore"
 	"momoko/pkg/sysservice"
 	"momoko/pkg/version"
 
@@ -77,6 +78,8 @@ func newInitializeApp(logger log.Logger, hs *http.Server) *kratos.App {
 }
 
 func main() {
+	// 应用的托管进程（见 pkg/servercore/host.go）：持有应用的伪终端，面板重启时应用不停；同样不读配置、不开端口
+	servercore.RunHost()
 	// 配了代理的 Agent 先以看门进程的身份起来（见 pkg/agentsandbox），这时不是 Momoko 本身，不读配置、不开端口
 	agentsandbox.RunGate()
 	version.Set(Version)

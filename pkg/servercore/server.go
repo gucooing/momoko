@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -77,15 +78,24 @@ type ExitInfo struct {
 	Err       string // 自动重启失败的原因
 }
 
+// terminal 子进程的控制台：直接运行时是 PTY 本身，经托管进程运行时是到托管进程的连接（见 host.go）。
+type terminal interface {
+	io.Reader
+	io.Writer
+	Resize(cols, rows int) error
+}
+
 // Server 表示一个只管理单个子进程的服务端实例。
 // 子进程运行在真实伪终端(PTY)中：输入原样写入 PTY（回显/行编辑由 PTY 负责），
 // 输出为原始字节流（含 ANSI），窗口尺寸可随前端终端调整。
+// 由带托管的 ServerManager 创建时，子进程经托管进程运行，面板重启时可以 Detach / Attach 而不停止它。
 type Server struct {
 	cfg        ServerConfig
 	createTime time.Time
+	host       *hostOptions
 
 	mu          sync.RWMutex
-	ptmx        pty.Pty
+	term        terminal
 	pid         int
 	cols        int
 	rows        int
@@ -95,6 +105,8 @@ type Server struct {
 	waitFn      func() error
 	stopFn      func(force bool) error
 	closeFn     func()
+	detachFn    func()
+	clearFn     func()
 	runID       uint64
 	manualStop  bool
 	logs        []LogEntry
@@ -109,11 +121,14 @@ type logSubscriber struct {
 }
 
 type startResult struct {
-	pid     int
-	ptmx    pty.Pty
-	waitFn  func() error
-	stopFn  func(force bool) error
-	closeFn func()
+	pid       int
+	term      terminal
+	startTime time.Time // 子进程的启动时间；为零表示刚启动（接回托管进程时是它当初的启动时间）
+	waitFn    func() error
+	stopFn    func(force bool) error
+	closeFn   func()
+	detach    func() // 只断开托管进程、不结束子进程；直接运行时为 nil
+	clear     func() // 清掉托管进程存着的输出；直接运行时为 nil
 }
 
 // normalizeServerConfig 清洗配置内容并补齐默认值。
@@ -269,12 +284,17 @@ func (s *Server) Start() error {
 		s.mu.Unlock()
 		return err
 	}
+	s.beginRunLocked(result)
+	return nil
+}
 
+// beginRunLocked 进入运行状态并开始读输出、等退出；调用时持有 s.mu，返回前释放。
+func (s *Server) beginRunLocked(result *startResult) {
 	waitDone := make(chan struct{})
 	s.runID++
 	runID := s.runID
 	s.running = true
-	s.startTime = time.Now()
+	s.startTime = result.startedAt()
 	s.waitDone = waitDone
 	s.manualStop = false
 	s.applyStartResultLocked(result)
@@ -282,8 +302,57 @@ func (s *Server) Start() error {
 
 	s.startReaders(result)
 	go s.waitProcess(runID, waitDone)
+}
 
-	return nil
+func (r *startResult) startedAt() time.Time {
+	if r.startTime.IsZero() {
+		return time.Now()
+	}
+	return r.startTime
+}
+
+// Attach 接回面板上次留下的、还在运行的托管进程（在线更新重启前 Detach 的），返回是否接上了。
+// 子进程在面板重启期间已经退出的，收下它的输出、记一次退出（OnExit），不算接上。
+// 只对带托管的 ServerManager 创建的实例有效。
+func (s *Server) Attach() bool {
+	if s.host == nil {
+		return false
+	}
+	s.mu.Lock()
+	if s.running {
+		s.mu.Unlock()
+		return false
+	}
+	conn, welcome, err := s.host.dial(s.cfg.ID)
+	if err != nil {
+		s.mu.Unlock()
+		return false
+	}
+	if welcome.Exited {
+		s.collectExitedLocked(conn)
+		s.mu.Unlock()
+		return false
+	}
+	s.beginRunLocked(hostedResult(newHostClient(conn, welcome)))
+	return true
+}
+
+// Detach 断开托管进程、不结束子进程（面板要重启时用），返回是否断开了一个运行中的托管进程。
+// 直接运行的（不经托管进程）返回 false，由调用方照常停止。
+func (s *Server) Detach() bool {
+	s.mu.Lock()
+	detach := s.detachFn
+	waitDone := s.waitDone
+	s.mu.Unlock()
+	if detach == nil || waitDone == nil {
+		return false
+	}
+	detach()
+	select {
+	case <-waitDone:
+	case <-time.After(defaultStopTimeout):
+	}
+	return true
 }
 
 // Stop 优雅停止当前子进程。
@@ -301,7 +370,7 @@ func (s *Server) stop(force bool) error {
 	s.mu.Lock()
 	waitDone := s.waitDone
 	stopFn := s.stopFn
-	ptmx := s.ptmx
+	term := s.term
 	stopCommand := s.cfg.StopCommand
 	stopTimeout := s.cfg.StopTimeout
 	s.manualStop = true
@@ -311,8 +380,8 @@ func (s *Server) stop(force bool) error {
 		return nil
 	}
 
-	if !force && stopCommand != "" && ptmx != nil {
-		if _, err := writeLine(ptmx, stopCommand, ptyStdinLineEnd); err == nil {
+	if !force && stopCommand != "" && term != nil {
+		if _, err := writeLine(term, stopCommand, ptyStdinLineEnd); err == nil {
 			select {
 			case <-waitDone:
 				return nil
@@ -363,15 +432,15 @@ func (s *Server) ForceRestart() error {
 // PTY 会自行回显，因此不再单独发布 stdin 日志事件。
 func (s *Server) Send(input string) error {
 	s.mu.RLock()
-	ptmx := s.ptmx
+	term := s.term
 	running := s.running
 	s.mu.RUnlock()
 
-	if !running || ptmx == nil {
+	if !running || term == nil {
 		return errors.New("服务端未运行")
 	}
 
-	if _, err := writeLine(ptmx, input, ptyStdinLineEnd); err != nil {
+	if _, err := writeLine(term, input, ptyStdinLineEnd); err != nil {
 		return fmt.Errorf("写入终端失败: %w", err)
 	}
 	return nil
@@ -380,15 +449,15 @@ func (s *Server) Send(input string) error {
 // Write 把原始输入字节写入 PTY（键盘流，不做任何加工）。
 func (s *Server) Write(p []byte) error {
 	s.mu.RLock()
-	ptmx := s.ptmx
+	term := s.term
 	running := s.running
 	s.mu.RUnlock()
 
-	if !running || ptmx == nil {
+	if !running || term == nil {
 		return errors.New("服务端未运行")
 	}
 
-	if _, err := ptmx.Write(p); err != nil {
+	if _, err := term.Write(p); err != nil {
 		return fmt.Errorf("写入终端失败: %w", err)
 	}
 	return nil
@@ -403,13 +472,13 @@ func (s *Server) Resize(cols, rows int) error {
 	s.mu.Lock()
 	s.cols = cols
 	s.rows = rows
-	ptmx := s.ptmx
+	term := s.term
 	s.mu.Unlock()
 
-	if ptmx == nil {
+	if term == nil {
 		return nil
 	}
-	return ptmx.Resize(cols, rows)
+	return term.Resize(cols, rows)
 }
 
 // Subscribe 订阅实时日志。
@@ -457,11 +526,15 @@ func (s *Server) RecentLogs() []LogEntry {
 	return out
 }
 
-// ClearLogs 清空当前实例保存的历史日志。
+// ClearLogs 清空当前实例保存的历史日志（经托管进程运行时连同托管进程存着的输出）。
 func (s *Server) ClearLogs() {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.logs = nil
+	clearFn := s.clearFn
+	s.mu.Unlock()
+	if clearFn != nil {
+		clearFn()
+	}
 }
 
 // readPipe 原样读取 PTY 输出字节流，不分行、不删改，直接作为日志事件转发，
@@ -493,6 +566,17 @@ func (s *Server) waitProcess(runID uint64, waitDone chan struct{}) {
 		var waitErr error
 		if waitFn != nil {
 			waitErr = waitFn()
+		}
+		if errors.Is(waitErr, errHostDetached) {
+			// 面板要重启：子进程还在托管进程里运行，这里只当它停了，不记退出、不自动重启
+			s.mu.Lock()
+			if s.runID == runID {
+				s.resetProcessStateLocked()
+				s.markStoppedLocked()
+			}
+			s.mu.Unlock()
+			close(waitDone)
+			return
 		}
 
 		s.mu.RLock()
@@ -578,7 +662,7 @@ func (s *Server) handleProcessExit(runID uint64) (*startResult, bool, func(), er
 		result, err := s.startProcessLocked()
 		if err == nil {
 			s.running = true
-			s.startTime = time.Now()
+			s.startTime = result.startedAt()
 			s.applyStartResultLocked(result)
 			s.mu.Unlock()
 			return result, true, nil, nil
@@ -614,29 +698,90 @@ func (s *Server) markStoppedLocked() {
 
 // applyStartResultLocked 写入本次启动生成的运行时句柄和输出配置。
 func (s *Server) applyStartResultLocked(result *startResult) {
-	s.ptmx = result.ptmx
+	s.term = result.term
 	s.pid = result.pid
 	s.waitFn = result.waitFn
 	s.stopFn = result.stopFn
 	s.closeFn = result.closeFn
+	s.detachFn = result.detach
+	s.clearFn = result.clear
 }
 
 // resetProcessStateLocked 清空当前进程相关的运行时状态。
 func (s *Server) resetProcessStateLocked() {
-	s.ptmx = nil
+	s.term = nil
 	s.pid = 0
 	s.waitFn = nil
 	s.stopFn = nil
 	s.closeFn = nil
+	s.detachFn = nil
+	s.clearFn = nil
 }
 
 // startReaders 启动 PTY 输出读取协程（stdout/stderr 已由 PTY 合并）。
 func (s *Server) startReaders(result *startResult) {
-	go s.readPipe(result.ptmx, LogSourceStdout)
+	go s.readPipe(result.term, LogSourceStdout)
 }
 
-// startProcessLocked 按当前配置在新 PTY 中启动子进程，并返回本次启动需要的运行时句柄。
+// startProcessLocked 按当前配置启动子进程（带托管时经托管进程），并返回本次启动需要的运行时句柄。
 func (s *Server) startProcessLocked() (*startResult, error) {
+	if s.host != nil {
+		result, err := s.startHostedLocked()
+		var setupErr hostSetupError
+		if !errors.As(err, &setupErr) {
+			return result, err
+		}
+		// 托管进程起不来（不是应用的问题）：这次直接运行，只是面板重启时应用会跟着停
+		s.publishLocked(LogEntry{
+			Time:   time.Now(),
+			Source: LogSourceStderr,
+			Text:   fmt.Sprintf("%v；这次直接运行，面板重启时应用会跟着停止\r\n", err),
+		})
+	}
+	return s.startDirectLocked()
+}
+
+// startHostedLocked 经托管进程启动子进程。同一实例的托管进程还在时（还没接回就点了启动）接回它，不再起第二份。
+func (s *Server) startHostedLocked() (*startResult, error) {
+	if conn, welcome, err := s.host.dial(s.cfg.ID); err == nil {
+		if !welcome.Exited {
+			return hostedResult(newHostClient(conn, welcome)), nil
+		}
+		s.collectExitedLocked(conn)
+	}
+	name, args := buildCommandParts(s.cfg.CommandLine, s.cfg.Command, s.cfg.Args, s.cfg.Dir)
+	conn, welcome, err := s.host.spawn(hostSpec{
+		ID:   s.cfg.ID,
+		Path: name,
+		Args: args,
+		Dir:  s.cfg.Dir,
+		Env:  s.cfg.Env,
+		Cols: s.cols,
+		Rows: s.rows,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return hostedResult(newHostClient(conn, welcome)), nil
+}
+
+// collectExitedLocked 收下面板不在时已经退出的子进程留下的输出，记一次退出（OnExit）。调用时持有 s.mu。
+func (s *Server) collectExitedLocked(conn net.Conn) {
+	output, exit := collectExit(conn)
+	if len(output) > 0 {
+		s.publishLocked(LogEntry{Time: time.Now(), Source: LogSourceStdout, Text: string(output)})
+	}
+	if onExit := s.cfg.OnExit; onExit != nil {
+		at := time.Now()
+		if exit.At > 0 {
+			at = time.UnixMilli(exit.At)
+		}
+		go onExit(ExitInfo{Time: at, Code: exit.Code})
+	}
+}
+
+// startDirectLocked 在新 PTY 中直接启动子进程（面板退出时它也跟着结束）。
+func (s *Server) startDirectLocked() (*startResult, error) {
 	ptmx, err := pty.New()
 	if err != nil {
 		return nil, fmt.Errorf("创建伪终端失败: %w", err)
@@ -662,7 +807,7 @@ func (s *Server) startProcessLocked() (*startResult, error) {
 	}
 	return &startResult{
 		pid:    pid,
-		ptmx:   ptmx,
+		term:   ptmx,
 		waitFn: cmd.Wait,
 		stopFn: func(force bool) error { return stopPtyProcess(cmd.Process, force) },
 		closeFn: func() {
@@ -868,7 +1013,23 @@ func (s *Server) publish(entry LogEntry) {
 func (s *Server) appendLogAndSnapshotSubscribers(entry LogEntry) []*logSubscriber {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.appendLogLocked(entry)
+}
 
+// publishLocked 同 publish，调用时持有 s.mu：先记进日志，再在另一个协程里发给订阅者（不能拿着锁等订阅者）。
+func (s *Server) publishLocked(entry LogEntry) {
+	subs := s.appendLogLocked(entry)
+	go func() {
+		for _, sub := range subs {
+			select {
+			case <-sub.ctx.Done():
+			case sub.ch <- entry:
+			}
+		}
+	}()
+}
+
+func (s *Server) appendLogLocked(entry LogEntry) []*logSubscriber {
 	s.logs = append(s.logs, entry)
 	s.trimLogsLocked()
 

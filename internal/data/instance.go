@@ -262,11 +262,9 @@ func (i *instanceRepo) DeleteInstance(ctx context.Context, id, userId string) er
 		)).Exec(ctx)
 }
 
-// GetAllAutoStartInstances 获取全部自动启动的实例(维护中的除外)
-func (i *instanceRepo) GetAllAutoStartInstances(ctx context.Context) ([]*gen.Instance, error) {
-	return i.data.db.Instance.Query().
-		Where(instance.AutoStartEQ(true), instance.MaintenanceEQ(false)).
-		All(ctx)
+// GetAllInstances 获取全部实例（面板启动时接回运行中的应用、启动自动启动的应用）
+func (i *instanceRepo) GetAllInstances(ctx context.Context) ([]*gen.Instance, error) {
+	return i.data.db.Instance.Query().All(ctx)
 }
 
 // GetInstanceNames 按 id 批量查实例名称

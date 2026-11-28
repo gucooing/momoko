@@ -23,6 +23,7 @@ import (
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
 	"momoko/pkg/response"
+	"momoko/pkg/selfupdate"
 	"momoko/pkg/servercore"
 	"momoko/pkg/task"
 )
@@ -32,6 +33,8 @@ const (
 	defaultInstanceRestartTimes = 3
 	defaultShutdownTimeout      = 3 * time.Second
 	defaultWsPingInterval       = 20 * time.Second
+	// instanceHostDir 应用托管进程的套接字和口令文件（见 servercore.WithHost）。
+	instanceHostDir = "data/run/apps"
 )
 
 var (
@@ -72,7 +75,7 @@ type InstanceRepo interface {
 	CreateInstance(ctx context.Context, req *v1.CreateInstanceRequest, userId string, env InstanceEnv) (*gen.Instance, error)
 	UpdateInstance(ctx context.Context, current *gen.Instance, req *v1.UpdateInstanceRequest, userId string, env *InstanceEnv) (*gen.Instance, error)
 	DeleteInstance(ctx context.Context, id, userId string) error
-	GetAllAutoStartInstances(ctx context.Context) ([]*gen.Instance, error)
+	GetAllInstances(ctx context.Context) ([]*gen.Instance, error)
 	GetInstanceNames(ctx context.Context, ids []string) (map[string]string, error)
 	SetLastStopTime(ctx context.Context, id string, t time.Time) error
 	ListInstanceOperationLogs(ctx context.Context, instanceID string, limit int) ([]*gen.OperationLog, error)
@@ -81,7 +84,8 @@ type InstanceRepo interface {
 func NewInstanceUsecase(repo InstanceRepo, fileRepo FileRepo, tasks *task.Manager) (*InstanceUsecase, func(), error) {
 	usecase := &InstanceUsecase{
 		repo:     repo,
-		instance: servercore.NewServerManager(),
+		// 应用经托管进程运行：在线更新时面板重启，运行中的应用不停，新面板起来后接回
+		instance: servercore.NewServerManager(servercore.WithHost(instanceHostDir)),
 		fileRepo: fileRepo,
 		tasks:    tasks,
 		secrets:  make(map[string][]string),
@@ -91,8 +95,9 @@ func NewInstanceUsecase(repo InstanceRepo, fileRepo FileRepo, tasks *task.Manage
 	return usecase, usecase.Close, nil
 }
 
+// start 面板启动时：先接回上次（在线更新重启前）还在运行的应用，再启动其余设了自动启动的应用。
 func (i *InstanceUsecase) start() {
-	items, err := i.repo.GetAllAutoStartInstances(context.Background())
+	items, err := i.repo.GetAllInstances(context.Background())
 	if err != nil {
 		return
 	}
@@ -101,7 +106,12 @@ func (i *InstanceUsecase) start() {
 		if err != nil {
 			continue
 		}
-		core.Start()
+		if core.Attach() {
+			continue
+		}
+		if item.AutoStart && !item.Maintenance {
+			_ = core.Start()
+		}
 	}
 }
 
@@ -129,11 +139,16 @@ func (i *InstanceUsecase) InstanceNames(ctx context.Context, ids []string) map[s
 }
 
 // Close 关闭实例管理器，超时后自动强制停止剩余进程。
+// 在线更新换好程序、面板要重启时不停应用：只断开托管进程，由重启后的面板接回。
 func (i *InstanceUsecase) Close() {
 	if i == nil {
 		return
 	}
 
+	if selfupdate.RestartPending() {
+		_ = i.instance.Detach(defaultShutdownTimeout)
+		return
+	}
 	_ = i.instance.Shutdown(defaultShutdownTimeout)
 }
 

@@ -668,6 +668,14 @@ func runConsoleHelper() {
 	// 否则会被各测试的 ready 匹配误命中。
 	fmt.Fprintln(os.Stderr, "stderr-mark")
 
+	if exitAfter, _ := time.ParseDuration(os.Getenv("SERVERCORE_EXIT_AFTER")); exitAfter > 0 {
+		go func() {
+			time.Sleep(exitAfter)
+			fmt.Fprintln(os.Stdout, "bye")
+			os.Exit(3)
+		}()
+	}
+
 	stopDelay, _ := time.ParseDuration(os.Getenv("SERVERCORE_STOP_DELAY"))
 	ignoreStop := os.Getenv("SERVERCORE_IGNORE_STOP") == "1"
 	expectedStop := os.Getenv("SERVERCORE_EXPECT_STOP")

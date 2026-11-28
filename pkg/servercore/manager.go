@@ -11,20 +11,48 @@ import (
 type ServerManager struct {
 	mu      sync.RWMutex
 	servers map[string]*Server
+	host    *hostOptions
+}
+
+// Option 管理器选项。
+type Option func(*ServerManager)
+
+// WithHost 实例经托管进程运行（见 host.go）：面板重启前 Detach，子进程不停；重启后 Server.Attach 接回。
+// dir 放托管进程的套接字和口令文件，面板每次启动都要是同一个目录。
+// 托管进程就是当前程序带上特定参数，所以程序的 main 一开始要调用 RunHost。
+func WithHost(dir string) Option {
+	return func(m *ServerManager) { m.host = newHostOptions(dir) }
 }
 
 // NewServerManager 创建一个最小可用的管理器。
-func NewServerManager() *ServerManager {
-	return &ServerManager{servers: make(map[string]*Server)}
+func NewServerManager(opts ...Option) *ServerManager {
+	m := &ServerManager{servers: make(map[string]*Server)}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
 }
 
 // Shutdown 并发停止当前所有实例，超时后仅对未退出的实例强制停止。
 func (m *ServerManager) Shutdown(timeout time.Duration) error {
+	return shutdownServers(m.snapshotServers(), timeout)
+}
+
+// Detach 面板要重启（在线更新）时调用：经托管进程运行的实例只断开、继续运行，其余的照常停止（同 Shutdown）。
+func (m *ServerManager) Detach(timeout time.Duration) error {
+	var rest []*Server
+	for _, server := range m.snapshotServers() {
+		if !server.Detach() {
+			rest = append(rest, server)
+		}
+	}
+	return shutdownServers(rest, timeout)
+}
+
+func shutdownServers(servers []*Server, timeout time.Duration) error {
 	if timeout <= 0 {
 		timeout = defaultStopTimeout
 	}
-
-	servers := m.snapshotServers()
 	if len(servers) == 0 {
 		return nil
 	}
@@ -81,6 +109,7 @@ func (m *ServerManager) Create(cfg ServerConfig) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	server.host = m.host
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
