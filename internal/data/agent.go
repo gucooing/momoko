@@ -105,8 +105,8 @@ func (r *agentRepo) SyncAgentRuntimeModels(ctx context.Context, runtimeID string
 		return tx.AgentRuntimeModel.CreateBulk(builders...).
 			OnConflictColumns(agentruntimemodel.FieldRuntimeID, agentruntimemodel.FieldModel).
 			Update(func(u *gen.AgentRuntimeModelUpsert) {
+				// 推理强度只在模型第一次出现时带上 Agent 给的，之后归管理页
 				u.UpdateName()
-				u.UpdateEfforts()
 				u.UpdateDefaultEffort()
 				u.UpdateSort()
 				u.UpdateUpdateTime()
@@ -129,12 +129,13 @@ func (r *agentRepo) GetAgentRuntimeModel(ctx context.Context, runtimeID, model s
 		Only(ctx)
 }
 
-// SetAgentRuntimeModelLimits 写用户给模型设的最长上下文和最长输出。
-func (r *agentRepo) SetAgentRuntimeModelLimits(ctx context.Context, runtimeID string, limits []biz.AgentModelLimit) error {
+// SetAgentRuntimeModelSettings 写用户给模型设的推理强度、最长上下文和最长输出。
+func (r *agentRepo) SetAgentRuntimeModelSettings(ctx context.Context, runtimeID string, settings []biz.AgentRuntimeModelSetting) error {
 	return utils.WithTx(ctx, r.data.db, func(tx *gen.Tx) error {
-		for _, l := range limits {
+		for _, l := range settings {
 			if err := tx.AgentRuntimeModel.Update().
 				Where(agentruntimemodel.RuntimeID(runtimeID), agentruntimemodel.Model(l.Model)).
+				SetEfforts(l.Efforts).
 				SetContextWindow(l.ContextWindow).
 				SetMaxOutput(l.MaxOutput).
 				Exec(ctx); err != nil {
@@ -432,6 +433,7 @@ func agentSessionCreate(c *gen.AgentSessionClient, s *gen.AgentSession) *gen.Age
 		SetModel(s.Model).
 		SetEffort(s.Effort).
 		SetMode(s.Mode).
+		SetUnrestricted(s.Unrestricted).
 		SetStatus(s.Status).
 		SetAcpSessionID(s.AcpSessionID).
 		SetParentID(s.ParentID).

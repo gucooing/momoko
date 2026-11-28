@@ -139,9 +139,10 @@ const DefaultKind = KindCustom
 
 // Kind values.
 const (
-	KindClaude Kind = "claude"
-	KindCodex  Kind = "codex"
-	KindCustom Kind = "custom"
+	KindClaude      Kind = "claude"
+	KindCodex       Kind = "codex"
+	KindAntigravity Kind = "antigravity"
+	KindCustom      Kind = "custom"
 )
 
 func (k Kind) String() string {
@@ -151,7 +152,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindClaude, KindCodex, KindCustom:
+	case KindClaude, KindCodex, KindAntigravity, KindCustom:
 		return nil
 	default:
 		return fmt.Errorf("agentruntime: invalid enum value for kind field: %q", k)

@@ -103,8 +103,9 @@ export const bytesToBase64 = (bytes: Uint8Array): string => {
 /** 右侧「文件」里的文件拖到输入框时带的数据类型：内容是相对会话目录的路径 */
 export const AGENT_PATH_MIME = 'application/x-momoko-agent-path'
 
-/** Agent 标记用的种类：claude / codex / custom */
-export const agentKindOf = (kind?: string) => (kind === 'claude' || kind === 'codex' ? kind : 'custom')
+/** Agent 标记用的种类：claude / codex / antigravity / custom */
+export const agentKindOf = (kind?: string) =>
+  kind === 'claude' || kind === 'codex' || kind === 'antigravity' ? kind : 'custom'
 
 /** 第三方接口的协议给哪一系 Agent 用：anthropic → claude，openai → codex */
 export const protocolAgent = (protocol?: string) =>

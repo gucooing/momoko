@@ -195,6 +195,20 @@ func (_c *AgentSessionCreate) SetNillableMode(v *string) *AgentSessionCreate {
 	return _c
 }
 
+// SetUnrestricted sets the "unrestricted" field.
+func (_c *AgentSessionCreate) SetUnrestricted(v bool) *AgentSessionCreate {
+	_c.mutation.SetUnrestricted(v)
+	return _c
+}
+
+// SetNillableUnrestricted sets the "unrestricted" field if the given value is not nil.
+func (_c *AgentSessionCreate) SetNillableUnrestricted(v *bool) *AgentSessionCreate {
+	if v != nil {
+		_c.SetUnrestricted(*v)
+	}
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *AgentSessionCreate) SetStatus(v agentsession.Status) *AgentSessionCreate {
 	_c.mutation.SetStatus(v)
@@ -538,6 +552,10 @@ func (_c *AgentSessionCreate) defaults() {
 		v := agentsession.DefaultMode
 		_c.mutation.SetMode(v)
 	}
+	if _, ok := _c.mutation.Unrestricted(); !ok {
+		v := agentsession.DefaultUnrestricted
+		_c.mutation.SetUnrestricted(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := agentsession.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -662,6 +680,9 @@ func (_c *AgentSessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.Mode(); !ok {
 		return &ValidationError{Name: "mode", err: errors.New(`gen: missing required field "AgentSession.mode"`)}
+	}
+	if _, ok := _c.mutation.Unrestricted(); !ok {
+		return &ValidationError{Name: "unrestricted", err: errors.New(`gen: missing required field "AgentSession.unrestricted"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`gen: missing required field "AgentSession.status"`)}
@@ -818,6 +839,10 @@ func (_c *AgentSessionCreate) createSpec() (*AgentSession, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.Mode(); ok {
 		_spec.SetField(agentsession.FieldMode, field.TypeString, value)
 		_node.Mode = value
+	}
+	if value, ok := _c.mutation.Unrestricted(); ok {
+		_spec.SetField(agentsession.FieldUnrestricted, field.TypeBool, value)
+		_node.Unrestricted = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(agentsession.FieldStatus, field.TypeEnum, value)
@@ -1106,6 +1131,18 @@ func (u *AgentSessionUpsert) SetMode(v string) *AgentSessionUpsert {
 // UpdateMode sets the "mode" field to the value that was provided on create.
 func (u *AgentSessionUpsert) UpdateMode() *AgentSessionUpsert {
 	u.SetExcluded(agentsession.FieldMode)
+	return u
+}
+
+// SetUnrestricted sets the "unrestricted" field.
+func (u *AgentSessionUpsert) SetUnrestricted(v bool) *AgentSessionUpsert {
+	u.Set(agentsession.FieldUnrestricted, v)
+	return u
+}
+
+// UpdateUnrestricted sets the "unrestricted" field to the value that was provided on create.
+func (u *AgentSessionUpsert) UpdateUnrestricted() *AgentSessionUpsert {
+	u.SetExcluded(agentsession.FieldUnrestricted)
 	return u
 }
 
@@ -1634,6 +1671,20 @@ func (u *AgentSessionUpsertOne) SetMode(v string) *AgentSessionUpsertOne {
 func (u *AgentSessionUpsertOne) UpdateMode() *AgentSessionUpsertOne {
 	return u.Update(func(s *AgentSessionUpsert) {
 		s.UpdateMode()
+	})
+}
+
+// SetUnrestricted sets the "unrestricted" field.
+func (u *AgentSessionUpsertOne) SetUnrestricted(v bool) *AgentSessionUpsertOne {
+	return u.Update(func(s *AgentSessionUpsert) {
+		s.SetUnrestricted(v)
+	})
+}
+
+// UpdateUnrestricted sets the "unrestricted" field to the value that was provided on create.
+func (u *AgentSessionUpsertOne) UpdateUnrestricted() *AgentSessionUpsertOne {
+	return u.Update(func(s *AgentSessionUpsert) {
+		s.UpdateUnrestricted()
 	})
 }
 
@@ -2377,6 +2428,20 @@ func (u *AgentSessionUpsertBulk) SetMode(v string) *AgentSessionUpsertBulk {
 func (u *AgentSessionUpsertBulk) UpdateMode() *AgentSessionUpsertBulk {
 	return u.Update(func(s *AgentSessionUpsert) {
 		s.UpdateMode()
+	})
+}
+
+// SetUnrestricted sets the "unrestricted" field.
+func (u *AgentSessionUpsertBulk) SetUnrestricted(v bool) *AgentSessionUpsertBulk {
+	return u.Update(func(s *AgentSessionUpsert) {
+		s.SetUnrestricted(v)
+	})
+}
+
+// UpdateUnrestricted sets the "unrestricted" field to the value that was provided on create.
+func (u *AgentSessionUpsertBulk) UpdateUnrestricted() *AgentSessionUpsertBulk {
+	return u.Update(func(s *AgentSessionUpsert) {
+		s.UpdateUnrestricted()
 	})
 }
 

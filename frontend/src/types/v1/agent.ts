@@ -32,14 +32,18 @@ export interface GetAgentOptionsResponse {
 export interface AgentRuntimeOptions {
   runtimeId: string;
   runtimeName: string;
-  /** claude | codex | custom */
+  /** claude | codex | antigravity | custom */
   kind: string;
   ready: boolean;
   providers: AgentProviderOptions[];
   /** 权限模式由 Agent 提供 */
   modes: AgentChoice[];
   defaultMode: string;
-  caps: AgentCapabilities | undefined;
+  caps:
+    | AgentCapabilities
+    | undefined;
+  /** 开始会话前能选 Turbo：启动时就不再询问任何操作，开始后不能改 */
+  unrestricted: boolean;
 }
 
 export interface AgentProviderOptions {
@@ -146,7 +150,7 @@ export interface AgentSession {
   title: string;
   runtimeId: string;
   runtimeName: string;
-  /** claude | codex | custom */
+  /** claude | codex | antigravity | custom */
   runtimeKind: string;
   workspaceId: string;
   workspaceName: string;
@@ -187,6 +191,8 @@ export interface AgentSession {
   providerVendor: string;
   /** 有 Agent 进程在跑；一轮结束后进程还留着，空闲超时才结束，所以空闲的会话也可能有 */
   live: boolean;
+  /** 以 Turbo 开始的：不再询问任何操作，权限模式不起作用 */
+  unrestricted: boolean;
 }
 
 /** 打开一个会话时才给的信息：每次状态变化都推整份会话，这些不跟着推 */
@@ -284,6 +290,8 @@ export interface CreateAgentSessionRequest {
   mcpIds: string[];
   text: string;
   attachments: AgentAttachment[];
+  /** Turbo（见 AgentRuntimeOptions.unrestricted） */
+  unrestricted: boolean;
 }
 
 export interface CreateAgentSessionResponse {
@@ -854,6 +862,12 @@ export interface GetAgentSessionUploadRequest {
 export interface GetAgentSessionUploadResponse {
   mime: string;
   data: Uint8Array;
+}
+
+export interface GetAgentSessionLocalFileRequest {
+  id: string;
+  /** 绝对路径；file:// 地址的路径部分也行 */
+  path: string;
 }
 
 export interface SearchAgentFilesRequest {
@@ -1482,7 +1496,7 @@ export interface ListAgentUsersResponse {
 export interface AgentRuntime {
   id: string;
   name: string;
-  /** 检测出的系别：claude | codex | custom（按 Agent 自报的名字，不看是哪一条） */
+  /** 检测出的系别：claude | codex | antigravity | custom（按 Agent 自报的名字，不看是哪一条） */
   kind: string;
   /** Momoko 下载并更新 */
   managed: boolean;
@@ -1558,20 +1572,33 @@ export interface DetectAgentRuntimeResponse {
   runtime: AgentRuntime | undefined;
 }
 
-export interface AgentModelLimit {
+/** 服务器上的登录里一个模型在管理页的设置 */
+export interface AgentRuntimeModelSetting {
   model: string;
   /** token 数，0 = 用 Agent 自己的 */
   contextWindow: number;
   maxOutput: number;
+  /** 会话里能选的推理等级：name 是显示的名字，value 是交给 Agent 的取值（空则同 name） */
+  levels: AgentModelLevel[];
 }
 
 export interface SetAgentRuntimeModelsRequest {
   id: string;
-  models: AgentModelLimit[];
+  models: AgentRuntimeModelSetting[];
 }
 
 export interface SetAgentRuntimeModelsResponse {
   runtime: AgentRuntime | undefined;
+}
+
+export interface GetAgentRuntimeModelLevelsRequest {
+  id: string;
+  model: string;
+}
+
+export interface GetAgentRuntimeModelLevelsResponse {
+  /** name 是 Agent 给的名字，value 是它的取值 */
+  levels: AgentModelLevel[];
 }
 
 export interface UpdateAgentRuntimeRequest {

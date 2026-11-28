@@ -97,7 +97,7 @@
             </div>
 
             <!-- 回答 -->
-            <MdBlock v-else-if="item.type === 'assistant'" :text="item.text || ''" />
+            <MdBlock v-else-if="item.type === 'assistant'" :text="item.text || ''" :session-id="sessionId" />
 
             <!-- 工具调用 -->
             <template v-else-if="item.type === 'tool' && item.tool">
@@ -285,7 +285,7 @@
                 <UIcon name="i-lucide-arrow-left-right" />
                 <span>{{ relayLabel(item) }}</span>
               </div>
-              <MdBlock :text="item.text || ''" />
+              <MdBlock :text="item.text || ''" :session-id="sessionId" />
             </div>
 
             <!-- 提示 -->
@@ -348,35 +348,7 @@
               </div>
               <div class="agc-turn">
                 <UIcon :name="turnIcon(item.turn.stop)" :class="turnCls(item.turn.stop)" />
-                <span>{{ turnText(item.turn) }}</span>
-                <button
-                  v-if="item.turn.usage?.total"
-                  type="button"
-                  class="agc-turn__tok"
-                  :aria-expanded="tokenOpen.has(item.seq)"
-                  @click="toggle(tokenOpen, item.seq)"
-                >
-                  · <span class="ag-num">{{ fmtTokens(item.turn.usage.total) }}</span> token
-                  <UIcon
-                    :name="
-                      tokenOpen.has(item.seq) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'
-                    "
-                  />
-                </button>
-              </div>
-              <div v-if="item.turn.usage && tokenOpen.has(item.seq)" class="agc-turn__usage ag-num">
-                <span>{{
-                  t('agent.code.usage.input', { n: fmtTokens(inputOf(item.turn.usage)) })
-                }}</span>
-                <span>{{
-                  t('agent.code.usage.cacheHit', { n: fmtTokens(item.turn.usage.cacheRead) })
-                }}</span>
-                <span>{{
-                  t('agent.code.usage.output', { n: fmtTokens(item.turn.usage.output) })
-                }}</span>
-                <span v-if="item.turn.usage.thought">{{
-                  t('agent.code.usage.thought', { n: fmtTokens(item.turn.usage.thought) })
-                }}</span>
+                <span class="ag-num">{{ turnText(item.turn) }}</span>
               </div>
               <div v-if="item.turn.code || item.turn.error" class="agc-notice agc-notice--error">
                 <UIcon name="i-lucide-circle-x" />
@@ -756,7 +728,6 @@ const streaming = computed(() => {
 })
 
 const thoughtOpen = reactive(new Set<number>())
-const tokenOpen = reactive(new Set<number>())
 const outputOpen = reactive(new Set<number>())
 const resolving = reactive(new Set<string>())
 const toggle = (set: Set<number>, seq: number) => (set.has(seq) ? set.delete(seq) : set.add(seq))
@@ -905,11 +876,23 @@ const turnIcon = (stop: string) =>
 const turnCls = (stop: string) => (stop === 'end_turn' ? 'agc-ok' : 'agc-bad')
 const inputOf = (u: AgentTurnUsage) =>
   Number(u.input || 0) + Number(u.cacheRead || 0) + Number(u.cacheWrite || 0)
-const turnText = (turn: AgentTurn) =>
-  [
+// 一行看完：怎么结束的、用时，本轮 token、缓存率（缓存命中占输入的比例）、速度（输出 token / 用时）
+const turnText = (turn: AgentTurn) => {
+  const parts = [
     STOPS.includes(turn.stop) ? t(`agent.code.stop.${turn.stop}`) : turn.stop,
     t('agent.code.turn.took', { time: fmtDuration(turn.ms || 0) }),
-  ].join(' · ')
+  ]
+  const u = turn.usage
+  if (!u) return parts.join(' · ')
+  if (u.total) parts.push(t('agent.code.turn.tokens', { n: fmtTokens(u.total) }))
+  const input = inputOf(u)
+  if (input > 0) {
+    parts.push(t('agent.code.turn.cache', { rate: `${((Number(u.cacheRead || 0) / input) * 100).toFixed(2)}%` }))
+  }
+  const seconds = (turn.ms || 0) / 1000
+  if (u.output && seconds > 0) parts.push(t('agent.code.turn.speed', { n: Math.round(Number(u.output) / seconds) }))
+  return parts.join(' · ')
+}
 
 // —— 跟随滚动 ——
 // 停在底部（atBottom）时内容变高就跟着到底：新消息、Markdown 渲染完、看不见的块排版后变高都算；

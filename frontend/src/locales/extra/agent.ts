@@ -99,6 +99,7 @@ export default {
       modes: {
         default: { name: '每次询问', desc: '改文件、执行命令之前都先问你' },
         acceptEdits: { name: '自动接受编辑', desc: '改文件不再询问，执行命令仍然会问' },
+        accept_edits: { name: '自动接受编辑', desc: '改工作区里的文件不再询问，执行命令仍然会问' },
         plan: { name: '只做计划', desc: '先给出方案，不改动任何东西' },
         auto: { name: '自动', desc: '由 Agent 自己判断：稳妥的直接做，有风险的才停下来问你' },
         bypassPermissions: { name: '跳过全部确认', desc: '不再询问，建议只在容器或沙箱里使用' },
@@ -209,6 +210,7 @@ export default {
       modes: {
         default: { name: '每次詢問', desc: '改檔案、執行命令之前都先問你' },
         acceptEdits: { name: '自動接受編輯', desc: '改檔案不再詢問，執行命令仍然會問' },
+        accept_edits: { name: '自動接受編輯', desc: '改工作區裡的檔案不再詢問，執行命令仍然會問' },
         plan: { name: '只做計劃', desc: '先給出方案，不改動任何東西' },
         auto: { name: '自動', desc: '由 Agent 自己判斷：穩妥的直接做，有風險的才停下來問你' },
         bypassPermissions: { name: '跳過全部確認', desc: '不再詢問，建議只在容器或沙箱裡使用' },
@@ -318,6 +320,7 @@ export default {
       modes: {
         default: { name: 'Ask every time', desc: 'Ask before editing files or running commands' },
         acceptEdits: { name: 'Accept edits', desc: 'Edit files without asking; still ask before running commands' },
+        accept_edits: { name: 'Accept edits', desc: 'Edit workspace files without asking; still ask before running commands' },
         plan: { name: 'Plan only', desc: 'Propose a plan without changing anything' },
         auto: { name: 'Auto', desc: 'The agent decides: safe actions go ahead, risky ones ask you' },
         bypassPermissions: { name: 'Skip all confirmations', desc: 'Never ask; best used only in a container or sandbox' },

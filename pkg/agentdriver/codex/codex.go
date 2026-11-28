@@ -28,6 +28,17 @@ func (Driver) Kind() string     { return Kind }
 func (Driver) Protocol() string { return "openai" }
 func (Driver) Adapter() string  { return "codex-acp" }
 
+// Launch 适配器本身就是 ACP 服务，不带参数。
+func (Driver) Launch(path string, _ bool) agentdriver.Launch {
+	return agentdriver.Launch{Command: path}
+}
+
+// SessionData 服务器上的登录和会话记录在同一个配置目录里，换了目录就没有登录：数据留在原处。
+func (Driver) SessionData(string) []string { return nil }
+
+// Unrestricted 不再询问的权限模式是 Agent 经 ACP 给的，会话里随时能切，不用在启动时定。
+func (Driver) Unrestricted() []string { return nil }
+
 func (Driver) Detect(agentName string) bool {
 	return strings.Contains(strings.ToLower(agentName), "codex")
 }

@@ -436,72 +436,76 @@ func init() {
 	agentsessionDescMode := agentsessionFields[12].Descriptor()
 	// agentsession.DefaultMode holds the default value on creation for the mode field.
 	agentsession.DefaultMode = agentsessionDescMode.Default.(string)
+	// agentsessionDescUnrestricted is the schema descriptor for unrestricted field.
+	agentsessionDescUnrestricted := agentsessionFields[13].Descriptor()
+	// agentsession.DefaultUnrestricted holds the default value on creation for the unrestricted field.
+	agentsession.DefaultUnrestricted = agentsessionDescUnrestricted.Default.(bool)
 	// agentsessionDescError is the schema descriptor for error field.
-	agentsessionDescError := agentsessionFields[14].Descriptor()
+	agentsessionDescError := agentsessionFields[15].Descriptor()
 	// agentsession.DefaultError holds the default value on creation for the error field.
 	agentsession.DefaultError = agentsessionDescError.Default.(string)
 	// agentsessionDescAcpSessionID is the schema descriptor for acp_session_id field.
-	agentsessionDescAcpSessionID := agentsessionFields[15].Descriptor()
+	agentsessionDescAcpSessionID := agentsessionFields[16].Descriptor()
 	// agentsession.DefaultAcpSessionID holds the default value on creation for the acp_session_id field.
 	agentsession.DefaultAcpSessionID = agentsessionDescAcpSessionID.Default.(string)
 	// agentsessionDescParentID is the schema descriptor for parent_id field.
-	agentsessionDescParentID := agentsessionFields[16].Descriptor()
+	agentsessionDescParentID := agentsessionFields[17].Descriptor()
 	// agentsession.DefaultParentID holds the default value on creation for the parent_id field.
 	agentsession.DefaultParentID = agentsessionDescParentID.Default.(string)
 	// agentsessionDescDetached is the schema descriptor for detached field.
-	agentsessionDescDetached := agentsessionFields[17].Descriptor()
+	agentsessionDescDetached := agentsessionFields[18].Descriptor()
 	// agentsession.DefaultDetached holds the default value on creation for the detached field.
 	agentsession.DefaultDetached = agentsessionDescDetached.Default.(bool)
 	// agentsessionDescActiveAt is the schema descriptor for active_at field.
-	agentsessionDescActiveAt := agentsessionFields[18].Descriptor()
+	agentsessionDescActiveAt := agentsessionFields[19].Descriptor()
 	// agentsession.DefaultActiveAt holds the default value on creation for the active_at field.
 	agentsession.DefaultActiveAt = agentsessionDescActiveAt.Default.(func() time.Time)
 	// agentsessionDescTurns is the schema descriptor for turns field.
-	agentsessionDescTurns := agentsessionFields[19].Descriptor()
+	agentsessionDescTurns := agentsessionFields[20].Descriptor()
 	// agentsession.DefaultTurns holds the default value on creation for the turns field.
 	agentsession.DefaultTurns = agentsessionDescTurns.Default.(int)
 	// agentsessionDescUsageTotal is the schema descriptor for usage_total field.
-	agentsessionDescUsageTotal := agentsessionFields[20].Descriptor()
+	agentsessionDescUsageTotal := agentsessionFields[21].Descriptor()
 	// agentsession.DefaultUsageTotal holds the default value on creation for the usage_total field.
 	agentsession.DefaultUsageTotal = agentsessionDescUsageTotal.Default.(int64)
 	// agentsessionDescUsageInput is the schema descriptor for usage_input field.
-	agentsessionDescUsageInput := agentsessionFields[21].Descriptor()
+	agentsessionDescUsageInput := agentsessionFields[22].Descriptor()
 	// agentsession.DefaultUsageInput holds the default value on creation for the usage_input field.
 	agentsession.DefaultUsageInput = agentsessionDescUsageInput.Default.(int64)
 	// agentsessionDescUsageOutput is the schema descriptor for usage_output field.
-	agentsessionDescUsageOutput := agentsessionFields[22].Descriptor()
+	agentsessionDescUsageOutput := agentsessionFields[23].Descriptor()
 	// agentsession.DefaultUsageOutput holds the default value on creation for the usage_output field.
 	agentsession.DefaultUsageOutput = agentsessionDescUsageOutput.Default.(int64)
 	// agentsessionDescUsageCacheRead is the schema descriptor for usage_cache_read field.
-	agentsessionDescUsageCacheRead := agentsessionFields[23].Descriptor()
+	agentsessionDescUsageCacheRead := agentsessionFields[24].Descriptor()
 	// agentsession.DefaultUsageCacheRead holds the default value on creation for the usage_cache_read field.
 	agentsession.DefaultUsageCacheRead = agentsessionDescUsageCacheRead.Default.(int64)
 	// agentsessionDescUsageCacheWrite is the schema descriptor for usage_cache_write field.
-	agentsessionDescUsageCacheWrite := agentsessionFields[24].Descriptor()
+	agentsessionDescUsageCacheWrite := agentsessionFields[25].Descriptor()
 	// agentsession.DefaultUsageCacheWrite holds the default value on creation for the usage_cache_write field.
 	agentsession.DefaultUsageCacheWrite = agentsessionDescUsageCacheWrite.Default.(int64)
 	// agentsessionDescUsageThought is the schema descriptor for usage_thought field.
-	agentsessionDescUsageThought := agentsessionFields[25].Descriptor()
+	agentsessionDescUsageThought := agentsessionFields[26].Descriptor()
 	// agentsession.DefaultUsageThought holds the default value on creation for the usage_thought field.
 	agentsession.DefaultUsageThought = agentsessionDescUsageThought.Default.(int64)
 	// agentsessionDescLastUsage is the schema descriptor for last_usage field.
-	agentsessionDescLastUsage := agentsessionFields[26].Descriptor()
+	agentsessionDescLastUsage := agentsessionFields[27].Descriptor()
 	// agentsession.DefaultLastUsage holds the default value on creation for the last_usage field.
 	agentsession.DefaultLastUsage = agentsessionDescLastUsage.Default.(string)
 	// agentsessionDescContextUsed is the schema descriptor for context_used field.
-	agentsessionDescContextUsed := agentsessionFields[27].Descriptor()
+	agentsessionDescContextUsed := agentsessionFields[28].Descriptor()
 	// agentsession.DefaultContextUsed holds the default value on creation for the context_used field.
 	agentsession.DefaultContextUsed = agentsessionDescContextUsed.Default.(int64)
 	// agentsessionDescContextSize is the schema descriptor for context_size field.
-	agentsessionDescContextSize := agentsessionFields[28].Descriptor()
+	agentsessionDescContextSize := agentsessionFields[29].Descriptor()
 	// agentsession.DefaultContextSize holds the default value on creation for the context_size field.
 	agentsession.DefaultContextSize = agentsessionDescContextSize.Default.(int64)
 	// agentsessionDescState is the schema descriptor for state field.
-	agentsessionDescState := agentsessionFields[30].Descriptor()
+	agentsessionDescState := agentsessionFields[31].Descriptor()
 	// agentsession.DefaultState holds the default value on creation for the state field.
 	agentsession.DefaultState = agentsessionDescState.Default.(string)
 	// agentsessionDescOrigin is the schema descriptor for origin field.
-	agentsessionDescOrigin := agentsessionFields[31].Descriptor()
+	agentsessionDescOrigin := agentsessionFields[32].Descriptor()
 	// agentsession.DefaultOrigin holds the default value on creation for the origin field.
 	agentsession.DefaultOrigin = agentsessionDescOrigin.Default.(string)
 	// agentsessionDescID is the schema descriptor for id field.

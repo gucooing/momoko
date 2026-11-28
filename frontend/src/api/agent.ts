@@ -3,7 +3,7 @@ import request from '@/utils/request'
 import type {
   AgentAttachment,
   AgentMcpServer,
-  AgentModelLimit,
+  AgentRuntimeModelSetting,
   AgentProxy,
   AgentNotifyEvents,
   AgentProvider,
@@ -64,6 +64,7 @@ import type {
   PublicAgentApprovalResponse,
   PurgeAgentSessionsResponse,
   ReadAgentSessionFileResponse,
+  GetAgentRuntimeModelLevelsResponse,
   GetAgentSessionUploadResponse,
   SaveAgentFileResponse,
   SaveAgentNotifyChannelResponse,
@@ -250,6 +251,9 @@ export const readAgentSessionFile = (id: string, path: string) =>
 /** 消息里上传过的附件；data 在 JSON 里是 base64 字符串。 */
 export const getAgentSessionUpload = (id: string, file: string) =>
   request.get<Omit<GetAgentSessionUploadResponse, 'data'> & { data: string }>(`/agent/sessions/${id}/upload`, { params: { file } })
+/** 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，不在或读不到时回空的。 */
+export const getAgentSessionLocalFile = (id: string, path: string) =>
+  request.get<Omit<GetAgentSessionUploadResponse, 'data'> & { data: string }>(`/agent/sessions/${id}/local`, { params: { path } })
 export const searchAgentFiles = (params: { sessionId?: string; workspaceId?: string; keyword?: string }) =>
   request.get<SearchAgentFilesResponse>('/agent/files/search', { params })
 
@@ -359,7 +363,10 @@ export const listAgentUsers = () => request.get<ListAgentUsersResponse>('/agent/
 export const listAgentRuntimes = () => request.get<ListAgentRuntimesResponse>('/agent/runtimes')
 export const setAgentRuntimeMode = (id: string, managed: boolean) =>
   request.post<SetAgentRuntimeModeResponse>(`/agent/runtimes/${id}/mode`, { managed }, { timeout: 600000 })
-export const setAgentRuntimeModels = (id: string, models: AgentModelLimit[]) =>
+/** 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存）。要启动一次 Agent，几秒到十几秒。 */
+export const getAgentRuntimeModelLevels = (id: string, model: string) =>
+  request.get<GetAgentRuntimeModelLevelsResponse>(`/agent/runtimes/${id}/levels`, { params: { model }, timeout: 180_000 })
+export const setAgentRuntimeModels = (id: string, models: AgentRuntimeModelSetting[]) =>
   request.post<SetAgentRuntimeModelsResponse>(`/agent/runtimes/${id}/models`, { models })
 export const detectAgentRuntime = (id: string) =>
   request.post<DetectAgentRuntimeResponse>(`/agent/runtimes/${id}/detect`, {}, SLOW)

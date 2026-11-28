@@ -176,6 +176,7 @@
               :model="session.model"
               :effort="session.effort"
               :mode="session.mode"
+              :unrestricted="session.unrestricted"
               :busy="busy"
               :commands="socket.state.value.commands ?? []"
               :skills="socket.detail.value?.skillNames ?? []"

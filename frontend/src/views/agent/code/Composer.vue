@@ -73,7 +73,16 @@
             <span>{{ t('agent.code.ctx.tipTokens', { used: fmtTokens(ctxUsed), size: fmtTokens(ctxSize) }) }}</span>
           </span>
         </span>
-        <button v-if="modes.length" ref="modeBtn" type="button" class="agc-cl" aria-haspopup="menu" :aria-expanded="pop === 'mode'" @click="toggle('mode')">
+        <span v-if="unrestricted && !agentSwitch" class="agc-cl is-locked" :title="t('agent.code.mode.turboLocked')">{{ currentMode }}</span>
+        <button
+          v-else-if="modes.length || canTurbo"
+          ref="modeBtn"
+          type="button"
+          class="agc-cl"
+          aria-haspopup="menu"
+          :aria-expanded="pop === 'mode'"
+          @click="toggle('mode')"
+        >
           {{ currentMode }}<UIcon name="i-lucide-chevron-down" />
         </button>
         <button ref="modelBtn" type="button" class="agc-cl agc-cl--model" aria-haspopup="menu" :aria-expanded="pop === 'model'" :aria-label="t('agent.code.composer.pickModel')" @click="toggle('model')">
@@ -147,13 +156,31 @@
     <!-- 权限模式 -->
     <div v-if="pop === 'mode'" class="ag-menu agc-pop agc-pop--btn agc-pop--w330" role="menu" :aria-label="t('agent.code.mode.title')">
       <div class="ag-mi-label">{{ t('agent.code.mode.by', { agent: runtime?.runtimeName || '' }) }}</div>
-      <button v-for="m in modes" :key="m.id" type="button" class="ag-mi agc-mode" role="menuitemradio" :aria-checked="m.id === mode" @click="choose({ mode: m.id })">
+      <button
+        v-for="m in modes"
+        :key="m.id"
+        type="button"
+        class="ag-mi agc-mode"
+        role="menuitemradio"
+        :aria-checked="!unrestricted && m.id === mode"
+        @click="choose({ mode: m.id, unrestricted: false })"
+      >
         <span class="agc-mode__t">
           <span class="agc-mode__n">{{ modeName(m.id, m.name) }}</span>
           <span v-if="modeDesc(m.id, m.description)" class="ag-muted agc-mode__d">{{ modeDesc(m.id, m.description) }}</span>
         </span>
-        <UIcon v-if="m.id === mode" name="i-lucide-check" class="agc-on" />
+        <UIcon v-if="!unrestricted && m.id === mode" name="i-lucide-check" class="agc-on" />
       </button>
+      <template v-if="canTurbo">
+        <div class="ag-mi-label">{{ t('agent.code.mode.startOnly') }}</div>
+        <button type="button" class="ag-mi agc-mode" role="menuitemradio" :aria-checked="unrestricted" @click="choose({ unrestricted: true })">
+          <span class="agc-mode__t">
+            <span class="agc-mode__n">{{ t('agent.code.mode.turbo.name') }}</span>
+            <span class="ag-muted agc-mode__d">{{ t('agent.code.mode.turbo.desc') }}</span>
+          </span>
+          <UIcon v-if="unrestricted" name="i-lucide-check" class="agc-on" />
+        </button>
+      </template>
     </div>
 
     <!-- 模型和推理强度：点模型在旁边弹出它的推理强度；选了也不关，点外面才关 -->
@@ -265,6 +292,8 @@ export interface Selection {
   model: string
   effort: string
   mode: string
+  /** Turbo：启动时就不再询问任何操作，只能在开始会话前选（见 AgentRuntimeOptions.unrestricted） */
+  unrestricted: boolean
 }
 
 /** 待发送的附件：图片和文件带内容（base64），引用的只带路径；snippet 是打开的文件里选中的一段，内容是那段文字；
@@ -295,6 +324,8 @@ const props = withDefaults(
     model: string
     effort: string
     mode: string
+    /** 选了 Turbo（新会话），或者会话是以 Turbo 开始的（这时权限模式不起作用，按钮只显示不能点） */
+    unrestricted?: boolean
     /** 新会话：可以换 Agent */
     agentSwitch?: boolean
     /** 一轮正在进行 */
@@ -439,7 +470,10 @@ const modelName = computed(() => modelLabel(modelOption.value, props.model))
 const efforts = computed(() => modelOption.value?.efforts ?? [])
 const effortName = computed(() => efforts.value.find((e) => e.id === props.effort)?.name || props.effort)
 const modes = computed(() => runtime.value?.modes ?? [])
+// Turbo 只在开始会话前能选
+const canTurbo = computed(() => !!props.agentSwitch && !!runtime.value?.unrestricted)
 const currentMode = computed(() => {
+  if (props.unrestricted) return t('agent.code.mode.turbo.name')
   const m = modes.value.find((x) => x.id === props.mode) ?? (props.mode ? undefined : modes.value[0])
   return m ? modeName(m.id, m.name) : modeName(props.mode)
 })
@@ -500,7 +534,14 @@ const pickRuntime = (r: AgentRuntimeOptions) => {
   const p = r.providers[0]
   const m = p?.models.find((x) => x.id === p.defaultModel) ?? p?.models[0]
   sub.value = ''
-  emit('select', { runtimeId: r.runtimeId, providerId: p?.providerId ?? '', model: m?.id ?? '', effort: m?.defaultEffort ?? '', mode: r.defaultMode })
+  emit('select', {
+    runtimeId: r.runtimeId,
+    providerId: p?.providerId ?? '',
+    model: m?.id ?? '',
+    effort: m?.defaultEffort ?? '',
+    mode: r.defaultMode,
+    unrestricted: false,
+  })
 }
 
 // —— 上下文 ——

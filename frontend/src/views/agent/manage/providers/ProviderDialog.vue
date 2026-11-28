@@ -111,9 +111,13 @@
         <AgModelCatalog
           ref="catalogRef"
           v-model="form.models"
-          editable
-          :with-output="forClaude"
+          addable
+          levels
+          context
+          :output="forClaude"
           :limits-hint="t(forClaude ? 'agent.providers.form.limitsHint' : 'agent.providers.form.limitsHintCodex')"
+          :value-label="t('agent.providers.form.levelValue')"
+          :levels-hint="t('agent.providers.form.levelsHint')"
           :create="newModel"
         />
       </div>

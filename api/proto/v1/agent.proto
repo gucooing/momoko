@@ -175,6 +175,10 @@ service AgentService {
   rpc GetAgentSessionUpload(GetAgentSessionUploadRequest) returns (GetAgentSessionUploadResponse) {
     option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/upload" };
   }
+  // 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
+  rpc GetAgentSessionLocalFile(GetAgentSessionLocalFileRequest) returns (GetAgentSessionUploadResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/local" };
+  }
   // @ 引用文件：按文件名搜索会话目录（新会话还没有会话时按工作区搜）
   rpc SearchAgentFiles(SearchAgentFilesRequest) returns (SearchAgentFilesResponse) {
     option (google.api.http) = { get: "/api/v1/agent/files/search" };
@@ -330,9 +334,13 @@ service AgentService {
   rpc DetectAgentRuntime(DetectAgentRuntimeRequest) returns (DetectAgentRuntimeResponse) {
     option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/detect" body: "*" };
   }
-  // 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+  // 服务器上的登录：给检查时读到的模型设推理等级、最长上下文和最长输出
   rpc SetAgentRuntimeModels(SetAgentRuntimeModelsRequest) returns (SetAgentRuntimeModelsResponse) {
     option (google.api.http) = { post: "/api/v1/agent/runtimes/{id}/models" body: "*" };
+  }
+  // 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
+  rpc GetAgentRuntimeModelLevels(GetAgentRuntimeModelLevelsRequest) returns (GetAgentRuntimeModelLevelsResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/runtimes/{id}/levels" };
   }
   // 检查更新；由 Momoko 下载的会直接更新到最新版本
   rpc UpdateAgentRuntime(UpdateAgentRuntimeRequest) returns (UpdateAgentRuntimeResponse) {
@@ -427,7 +435,7 @@ message GetAgentOptionsResponse {
 message AgentRuntimeOptions {
   string runtime_id = 1;
   string runtime_name = 2;
-  // claude | codex | custom
+  // claude | codex | antigravity | custom
   string kind = 3;
   bool ready = 4;
   repeated AgentProviderOptions providers = 5;
@@ -435,6 +443,8 @@ message AgentRuntimeOptions {
   repeated AgentChoice modes = 6;
   string default_mode = 7;
   AgentCapabilities caps = 8;
+  // 开始会话前能选 Turbo：启动时就不再询问任何操作，开始后不能改
+  bool unrestricted = 9;
 }
 
 message AgentProviderOptions {
@@ -542,7 +552,7 @@ message AgentSession {
   string title = 2;
   string runtime_id = 3;
   string runtime_name = 4;
-  // claude | codex | custom
+  // claude | codex | antigravity | custom
   string runtime_kind = 5;
   string workspace_id = 6;
   string workspace_name = 7;
@@ -581,6 +591,8 @@ message AgentSession {
   string provider_vendor = 40;
   // 有 Agent 进程在跑；一轮结束后进程还留着，空闲超时才结束，所以空闲的会话也可能有
   bool live = 41;
+  // 以 Turbo 开始的：不再询问任何操作，权限模式不起作用
+  bool unrestricted = 42;
 }
 
 // 打开一个会话时才给的信息：每次状态变化都推整份会话，这些不跟着推
@@ -671,6 +683,8 @@ message CreateAgentSessionRequest {
   repeated string mcp_ids = 9;
   string text = 10;
   repeated AgentAttachment attachments = 11;
+  // Turbo（见 AgentRuntimeOptions.unrestricted）
+  bool unrestricted = 12;
 }
 message CreateAgentSessionResponse {
   AgentSession session = 1;
@@ -1173,6 +1187,12 @@ message GetAgentSessionUploadRequest {
 message GetAgentSessionUploadResponse {
   string mime = 1;
   bytes data = 2;
+}
+
+message GetAgentSessionLocalFileRequest {
+  string id = 1;
+  // 绝对路径；file:// 地址的路径部分也行
+  string path = 2;
 }
 
 message SearchAgentFilesRequest {
@@ -1744,7 +1764,7 @@ message ListAgentUsersResponse {
 message AgentRuntime {
   string id = 1;
   string name = 2;
-  // 检测出的系别：claude | codex | custom（按 Agent 自报的名字，不看是哪一条）
+  // 检测出的系别：claude | codex | antigravity | custom（按 Agent 自报的名字，不看是哪一条）
   string kind = 3;
   // Momoko 下载并更新
   bool managed = 4;
@@ -1808,18 +1828,29 @@ message DetectAgentRuntimeResponse {
   AgentRuntime runtime = 1;
 }
 
-message AgentModelLimit {
+// 服务器上的登录里一个模型在管理页的设置
+message AgentRuntimeModelSetting {
   string model = 1;
   // token 数，0 = 用 Agent 自己的
   int64 context_window = 2;
   int64 max_output = 3;
+  // 会话里能选的推理等级：name 是显示的名字，value 是交给 Agent 的取值（空则同 name）
+  repeated AgentModelLevel levels = 4;
 }
 message SetAgentRuntimeModelsRequest {
   string id = 1;
-  repeated AgentModelLimit models = 2;
+  repeated AgentRuntimeModelSetting models = 2;
 }
 message SetAgentRuntimeModelsResponse {
   AgentRuntime runtime = 1;
+}
+message GetAgentRuntimeModelLevelsRequest {
+  string id = 1;
+  string model = 2;
+}
+message GetAgentRuntimeModelLevelsResponse {
+  // name 是 Agent 给的名字，value 是它的取值
+  repeated AgentModelLevel levels = 1;
 }
 
 message UpdateAgentRuntimeRequest {

@@ -42,6 +42,8 @@ const (
 	FieldEffort = "effort"
 	// FieldMode holds the string denoting the mode field in the database.
 	FieldMode = "mode"
+	// FieldUnrestricted holds the string denoting the unrestricted field in the database.
+	FieldUnrestricted = "unrestricted"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldError holds the string denoting the error field in the database.
@@ -101,6 +103,7 @@ var Columns = []string{
 	FieldModel,
 	FieldEffort,
 	FieldMode,
+	FieldUnrestricted,
 	FieldStatus,
 	FieldError,
 	FieldAcpSessionID,
@@ -161,6 +164,8 @@ var (
 	DefaultEffort string
 	// DefaultMode holds the default value on creation for the "mode" field.
 	DefaultMode string
+	// DefaultUnrestricted holds the default value on creation for the "unrestricted" field.
+	DefaultUnrestricted bool
 	// DefaultError holds the default value on creation for the "error" field.
 	DefaultError string
 	// DefaultAcpSessionID holds the default value on creation for the "acp_session_id" field.
@@ -299,6 +304,11 @@ func ByEffort(opts ...sql.OrderTermOption) OrderOption {
 // ByMode orders the results by the mode field.
 func ByMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMode, opts...).ToFunc()
+}
+
+// ByUnrestricted orders the results by the unrestricted field.
+func ByUnrestricted(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnrestricted, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

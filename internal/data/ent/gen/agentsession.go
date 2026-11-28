@@ -47,6 +47,8 @@ type AgentSession struct {
 	Effort string `json:"effort,omitempty"`
 	// 权限模式
 	Mode string `json:"mode,omitempty"`
+	// Turbo：起进程时就让 Agent 不再询问任何操作，只在建会话时定
+	Unrestricted bool `json:"unrestricted,omitempty"`
 	// 状态：运行中 / 等待批准 / 空闲 / 出错 / 已归档
 	Status agentsession.Status `json:"status,omitempty"`
 	// 出错原因
@@ -95,7 +97,7 @@ func (*AgentSession) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case agentsession.FieldExtraDirs, agentsession.FieldMcpIds:
 			values[i] = new([]byte)
-		case agentsession.FieldTitleCustom, agentsession.FieldDetached:
+		case agentsession.FieldTitleCustom, agentsession.FieldUnrestricted, agentsession.FieldDetached:
 			values[i] = new(sql.NullBool)
 		case agentsession.FieldTurns, agentsession.FieldUsageTotal, agentsession.FieldUsageInput, agentsession.FieldUsageOutput, agentsession.FieldUsageCacheRead, agentsession.FieldUsageCacheWrite, agentsession.FieldUsageThought, agentsession.FieldContextUsed, agentsession.FieldContextSize:
 			values[i] = new(sql.NullInt64)
@@ -209,6 +211,12 @@ func (_m *AgentSession) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field mode", values[i])
 			} else if value.Valid {
 				_m.Mode = value.String
+			}
+		case agentsession.FieldUnrestricted:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field unrestricted", values[i])
+			} else if value.Valid {
+				_m.Unrestricted = value.Bool
 			}
 		case agentsession.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -403,6 +411,9 @@ func (_m *AgentSession) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("mode=")
 	builder.WriteString(_m.Mode)
+	builder.WriteString(", ")
+	builder.WriteString("unrestricted=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Unrestricted))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

@@ -1,5 +1,5 @@
 // Package agentskill 管理技能在磁盘上的那一份：一个技能是一个目录，里面有 SKILL.md 和它引用的文件。
-// 技能在 Momoko 这边只存一份；启动 Agent 进程前，再把启用的技能同步进它的配置目录（Claude Code 和 Codex 各一份副本）。
+// 技能在 Momoko 这边只存一份；起会话时把启用的技能目录经 ACP 的 additionalDirectories 交给 Agent，不复制。
 package agentskill
 
 import (
@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 
 	"momoko/pkg/agentfs"
 	"momoko/pkg/archive"
@@ -27,8 +26,6 @@ const (
 	MaxFiles = 300
 	// maxText 能在编辑器里打开的单个文件大小。
 	maxText = 1 << 20
-	// marker 同步到 Agent 配置目录里的技能带这个标记文件：清理时只动 Momoko 自己放进去的。
-	marker = ".momoko-skill"
 )
 
 var namePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]*$`)
@@ -67,7 +64,7 @@ func paths(dir string) []string {
 			}
 			return nil
 		}
-		if d.Name() == marker || len(files) >= MaxFiles {
+		if len(files) >= MaxFiles {
 			return nil
 		}
 		if rel, err := filepath.Rel(dir, path); err == nil {
@@ -114,7 +111,7 @@ func cleanPath(path string) (string, bool) {
 		return "", false
 	}
 	for _, seg := range strings.Split(path, "/") {
-		if seg == "" || seg == "." || seg == ".." || seg == ".git" || seg == marker {
+		if seg == "" || seg == "." || seg == ".." || seg == ".git" {
 			return "", false
 		}
 	}
@@ -302,59 +299,6 @@ func (s Store) Import(found Found) (int, error) {
 	target := s.Dir(found.Name)
 	_ = os.RemoveAll(target)
 	return agentfs.CopyTree(found.Dir, target, MaxFiles)
-}
-
-// Enabled 一个启用着的技能：Dir 是它在技能库里的目录，Version 在它的内容变了时跟着变（用保存时间）。
-type Enabled struct {
-	Dir     string
-	Version string
-}
-
-// homeLocks 同一个配置目录同时只同步一次：第三方接口的会话共用一个配置目录，可能同时起好几个进程。
-var homeLocks sync.Map
-
-// Sync 把启用的技能放进 Agent 的配置目录（<home>/skills/<名称>）。标记文件里记着版本：
-// 版本没变的不重新复制；停用了的删掉。只动带标记的目录——同名但不是 Momoko 放的是用户自己的技能，不覆盖。
-func Sync(home string, skills map[string]Enabled) {
-	if home == "" {
-		return
-	}
-	lock, _ := homeLocks.LoadOrStore(home, &sync.Mutex{})
-	lock.(*sync.Mutex).Lock()
-	defer lock.(*sync.Mutex).Unlock()
-
-	target := filepath.Join(home, "skills")
-	if err := os.MkdirAll(target, 0o755); err != nil {
-		return
-	}
-	version := func(dir string) (string, bool) {
-		raw, err := os.ReadFile(filepath.Join(dir, marker))
-		return strings.TrimSpace(string(raw)), err == nil
-	}
-	if items, err := os.ReadDir(target); err == nil {
-		for _, item := range items {
-			dir := filepath.Join(target, item.Name())
-			if _, wanted := skills[item.Name()]; !wanted {
-				if _, managed := version(dir); managed {
-					_ = os.RemoveAll(dir)
-				}
-			}
-		}
-	}
-	for name, skill := range skills {
-		dst := filepath.Join(target, name)
-		if _, err := os.Stat(dst); err == nil {
-			have, managed := version(dst)
-			if !managed || have == skill.Version {
-				continue
-			}
-			_ = os.RemoveAll(dst)
-		}
-		if _, err := agentfs.CopyTree(skill.Dir, dst, MaxFiles); err != nil {
-			continue
-		}
-		_ = os.WriteFile(filepath.Join(dst, marker), []byte(skill.Version+"\n"), 0o644)
-	}
 }
 
 // maxArchive 技能压缩包的大小上限，下载的和解出来的都算。

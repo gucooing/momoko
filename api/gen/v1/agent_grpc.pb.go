@@ -60,6 +60,7 @@ const (
 	AgentService_ListAgentSessionFiles_FullMethodName        = "/v1.AgentService/ListAgentSessionFiles"
 	AgentService_ReadAgentSessionFile_FullMethodName         = "/v1.AgentService/ReadAgentSessionFile"
 	AgentService_GetAgentSessionUpload_FullMethodName        = "/v1.AgentService/GetAgentSessionUpload"
+	AgentService_GetAgentSessionLocalFile_FullMethodName     = "/v1.AgentService/GetAgentSessionLocalFile"
 	AgentService_SearchAgentFiles_FullMethodName             = "/v1.AgentService/SearchAgentFiles"
 	AgentService_SaveAgentFile_FullMethodName                = "/v1.AgentService/SaveAgentFile"
 	AgentService_CreateAgentDir_FullMethodName               = "/v1.AgentService/CreateAgentDir"
@@ -101,6 +102,7 @@ const (
 	AgentService_SetAgentRuntimeMode_FullMethodName          = "/v1.AgentService/SetAgentRuntimeMode"
 	AgentService_DetectAgentRuntime_FullMethodName           = "/v1.AgentService/DetectAgentRuntime"
 	AgentService_SetAgentRuntimeModels_FullMethodName        = "/v1.AgentService/SetAgentRuntimeModels"
+	AgentService_GetAgentRuntimeModelLevels_FullMethodName   = "/v1.AgentService/GetAgentRuntimeModelLevels"
 	AgentService_UpdateAgentRuntime_FullMethodName           = "/v1.AgentService/UpdateAgentRuntime"
 	AgentService_CreateAgentRuntime_FullMethodName           = "/v1.AgentService/CreateAgentRuntime"
 	AgentService_DeleteAgentRuntime_FullMethodName           = "/v1.AgentService/DeleteAgentRuntime"
@@ -206,6 +208,8 @@ type AgentServiceClient interface {
 	ReadAgentSessionFile(ctx context.Context, in *ReadAgentSessionFileRequest, opts ...grpc.CallOption) (*ReadAgentSessionFileResponse, error)
 	// 取回消息里上传过的附件（显示图片）
 	GetAgentSessionUpload(ctx context.Context, in *GetAgentSessionUploadRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error)
+	// 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
+	GetAgentSessionLocalFile(ctx context.Context, in *GetAgentSessionLocalFileRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error)
 	// @ 引用文件：按文件名搜索会话目录（新会话还没有会话时按工作区搜）
 	SearchAgentFiles(ctx context.Context, in *SearchAgentFilesRequest, opts ...grpc.CallOption) (*SearchAgentFilesResponse, error)
 	// —— 文件树里的编辑：有会话按会话目录，新会话页还没有会话时按工作区（和 @ 搜索一样给 session_id 或 workspace_id）——
@@ -275,8 +279,10 @@ type AgentServiceClient interface {
 	SetAgentRuntimeMode(ctx context.Context, in *SetAgentRuntimeModeRequest, opts ...grpc.CallOption) (*SetAgentRuntimeModeResponse, error)
 	// 重新检测
 	DetectAgentRuntime(ctx context.Context, in *DetectAgentRuntimeRequest, opts ...grpc.CallOption) (*DetectAgentRuntimeResponse, error)
-	// 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+	// 服务器上的登录：给检查时读到的模型设推理等级、最长上下文和最长输出
 	SetAgentRuntimeModels(ctx context.Context, in *SetAgentRuntimeModelsRequest, opts ...grpc.CallOption) (*SetAgentRuntimeModelsResponse, error)
+	// 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
+	GetAgentRuntimeModelLevels(ctx context.Context, in *GetAgentRuntimeModelLevelsRequest, opts ...grpc.CallOption) (*GetAgentRuntimeModelLevelsResponse, error)
 	// 检查更新；由 Momoko 下载的会直接更新到最新版本
 	UpdateAgentRuntime(ctx context.Context, in *UpdateAgentRuntimeRequest, opts ...grpc.CallOption) (*UpdateAgentRuntimeResponse, error)
 	// 添加其它 ACP Agent
@@ -723,6 +729,16 @@ func (c *agentServiceClient) GetAgentSessionUpload(ctx context.Context, in *GetA
 	return out, nil
 }
 
+func (c *agentServiceClient) GetAgentSessionLocalFile(ctx context.Context, in *GetAgentSessionLocalFileRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentSessionUploadResponse)
+	err := c.cc.Invoke(ctx, AgentService_GetAgentSessionLocalFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) SearchAgentFiles(ctx context.Context, in *SearchAgentFilesRequest, opts ...grpc.CallOption) (*SearchAgentFilesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SearchAgentFilesResponse)
@@ -1133,6 +1149,16 @@ func (c *agentServiceClient) SetAgentRuntimeModels(ctx context.Context, in *SetA
 	return out, nil
 }
 
+func (c *agentServiceClient) GetAgentRuntimeModelLevels(ctx context.Context, in *GetAgentRuntimeModelLevelsRequest, opts ...grpc.CallOption) (*GetAgentRuntimeModelLevelsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentRuntimeModelLevelsResponse)
+	err := c.cc.Invoke(ctx, AgentService_GetAgentRuntimeModelLevels_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *agentServiceClient) UpdateAgentRuntime(ctx context.Context, in *UpdateAgentRuntimeRequest, opts ...grpc.CallOption) (*UpdateAgentRuntimeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateAgentRuntimeResponse)
@@ -1362,6 +1388,8 @@ type AgentServiceServer interface {
 	ReadAgentSessionFile(context.Context, *ReadAgentSessionFileRequest) (*ReadAgentSessionFileResponse, error)
 	// 取回消息里上传过的附件（显示图片）
 	GetAgentSessionUpload(context.Context, *GetAgentSessionUploadRequest) (*GetAgentSessionUploadResponse, error)
+	// 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
+	GetAgentSessionLocalFile(context.Context, *GetAgentSessionLocalFileRequest) (*GetAgentSessionUploadResponse, error)
 	// @ 引用文件：按文件名搜索会话目录（新会话还没有会话时按工作区搜）
 	SearchAgentFiles(context.Context, *SearchAgentFilesRequest) (*SearchAgentFilesResponse, error)
 	// —— 文件树里的编辑：有会话按会话目录，新会话页还没有会话时按工作区（和 @ 搜索一样给 session_id 或 workspace_id）——
@@ -1431,8 +1459,10 @@ type AgentServiceServer interface {
 	SetAgentRuntimeMode(context.Context, *SetAgentRuntimeModeRequest) (*SetAgentRuntimeModeResponse, error)
 	// 重新检测
 	DetectAgentRuntime(context.Context, *DetectAgentRuntimeRequest) (*DetectAgentRuntimeResponse, error)
-	// 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+	// 服务器上的登录：给检查时读到的模型设推理等级、最长上下文和最长输出
 	SetAgentRuntimeModels(context.Context, *SetAgentRuntimeModelsRequest) (*SetAgentRuntimeModelsResponse, error)
+	// 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
+	GetAgentRuntimeModelLevels(context.Context, *GetAgentRuntimeModelLevelsRequest) (*GetAgentRuntimeModelLevelsResponse, error)
 	// 检查更新；由 Momoko 下载的会直接更新到最新版本
 	UpdateAgentRuntime(context.Context, *UpdateAgentRuntimeRequest) (*UpdateAgentRuntimeResponse, error)
 	// 添加其它 ACP Agent
@@ -1592,6 +1622,9 @@ func (UnimplementedAgentServiceServer) ReadAgentSessionFile(context.Context, *Re
 func (UnimplementedAgentServiceServer) GetAgentSessionUpload(context.Context, *GetAgentSessionUploadRequest) (*GetAgentSessionUploadResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAgentSessionUpload not implemented")
 }
+func (UnimplementedAgentServiceServer) GetAgentSessionLocalFile(context.Context, *GetAgentSessionLocalFileRequest) (*GetAgentSessionUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentSessionLocalFile not implemented")
+}
 func (UnimplementedAgentServiceServer) SearchAgentFiles(context.Context, *SearchAgentFilesRequest) (*SearchAgentFilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchAgentFiles not implemented")
 }
@@ -1714,6 +1747,9 @@ func (UnimplementedAgentServiceServer) DetectAgentRuntime(context.Context, *Dete
 }
 func (UnimplementedAgentServiceServer) SetAgentRuntimeModels(context.Context, *SetAgentRuntimeModelsRequest) (*SetAgentRuntimeModelsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetAgentRuntimeModels not implemented")
+}
+func (UnimplementedAgentServiceServer) GetAgentRuntimeModelLevels(context.Context, *GetAgentRuntimeModelLevelsRequest) (*GetAgentRuntimeModelLevelsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentRuntimeModelLevels not implemented")
 }
 func (UnimplementedAgentServiceServer) UpdateAgentRuntime(context.Context, *UpdateAgentRuntimeRequest) (*UpdateAgentRuntimeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateAgentRuntime not implemented")
@@ -2516,6 +2552,24 @@ func _AgentService_GetAgentSessionUpload_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_GetAgentSessionLocalFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentSessionLocalFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).GetAgentSessionLocalFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_GetAgentSessionLocalFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).GetAgentSessionLocalFile(ctx, req.(*GetAgentSessionLocalFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_SearchAgentFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchAgentFilesRequest)
 	if err := dec(in); err != nil {
@@ -3254,6 +3308,24 @@ func _AgentService_SetAgentRuntimeModels_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_GetAgentRuntimeModelLevels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentRuntimeModelLevelsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).GetAgentRuntimeModelLevels(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_GetAgentRuntimeModelLevels_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).GetAgentRuntimeModelLevels(ctx, req.(*GetAgentRuntimeModelLevelsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AgentService_UpdateAgentRuntime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateAgentRuntimeRequest)
 	if err := dec(in); err != nil {
@@ -3678,6 +3750,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AgentService_GetAgentSessionUpload_Handler,
 		},
 		{
+			MethodName: "GetAgentSessionLocalFile",
+			Handler:    _AgentService_GetAgentSessionLocalFile_Handler,
+		},
+		{
 			MethodName: "SearchAgentFiles",
 			Handler:    _AgentService_SearchAgentFiles_Handler,
 		},
@@ -3840,6 +3916,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetAgentRuntimeModels",
 			Handler:    _AgentService_SetAgentRuntimeModels_Handler,
+		},
+		{
+			MethodName: "GetAgentRuntimeModelLevels",
+			Handler:    _AgentService_GetAgentRuntimeModelLevels_Handler,
 		},
 		{
 			MethodName: "UpdateAgentRuntime",

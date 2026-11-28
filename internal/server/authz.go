@@ -141,15 +141,16 @@ var operationWritePermissions = map[string]constant.Permissions{
 
 	// —— Agent：改大家共用的运行时和官方账户（服务器上的登录）要 agent:manage；会话、工作区、第三方接口、MCP、技能、
 	// 通知每个人管自己的，只要 agent:use（AgentService 的默认权限），能不能动别人的、共享的在接口里按 agent:admin 判断 ——
-	v1.OperationAgentServiceSetAgentRuntimeMode:    constant.AgentManage,
-	v1.OperationAgentServiceDetectAgentRuntime:     constant.AgentManage,
-	v1.OperationAgentServiceSetAgentRuntimeModels:  constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentRuntime:     constant.AgentManage,
-	v1.OperationAgentServiceCreateAgentRuntime:     constant.AgentManage,
-	v1.OperationAgentServiceDeleteAgentRuntime:     constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentRunSettings: constant.AgentManage,
-	v1.OperationAgentServiceSetAgentRuntimeProxy:   constant.AgentManage,
-	v1.OperationAgentServiceUpdateAgentSandbox:     constant.AgentManage,
+	v1.OperationAgentServiceSetAgentRuntimeMode:        constant.AgentManage,
+	v1.OperationAgentServiceDetectAgentRuntime:         constant.AgentManage,
+	v1.OperationAgentServiceSetAgentRuntimeModels:      constant.AgentManage,
+	v1.OperationAgentServiceGetAgentRuntimeModelLevels: constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentRuntime:         constant.AgentManage,
+	v1.OperationAgentServiceCreateAgentRuntime:         constant.AgentManage,
+	v1.OperationAgentServiceDeleteAgentRuntime:         constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentRunSettings:     constant.AgentManage,
+	v1.OperationAgentServiceSetAgentRuntimeProxy:       constant.AgentManage,
+	v1.OperationAgentServiceUpdateAgentSandbox:         constant.AgentManage,
 }
 
 // servicePrefixPermissions 为高危服务设定默认（最低）权限，按操作名前缀匹配。

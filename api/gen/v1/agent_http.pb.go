@@ -56,7 +56,9 @@ const OperationAgentServiceGetAgentOptions = "/v1.AgentService/GetAgentOptions"
 const OperationAgentServiceGetAgentOverview = "/v1.AgentService/GetAgentOverview"
 const OperationAgentServiceGetAgentPreviewToken = "/v1.AgentService/GetAgentPreviewToken"
 const OperationAgentServiceGetAgentProviderBalance = "/v1.AgentService/GetAgentProviderBalance"
+const OperationAgentServiceGetAgentRuntimeModelLevels = "/v1.AgentService/GetAgentRuntimeModelLevels"
 const OperationAgentServiceGetAgentSession = "/v1.AgentService/GetAgentSession"
+const OperationAgentServiceGetAgentSessionLocalFile = "/v1.AgentService/GetAgentSessionLocalFile"
 const OperationAgentServiceGetAgentSessionProcess = "/v1.AgentService/GetAgentSessionProcess"
 const OperationAgentServiceGetAgentSessionUpload = "/v1.AgentService/GetAgentSessionUpload"
 const OperationAgentServiceGetAgentSidebar = "/v1.AgentService/GetAgentSidebar"
@@ -186,7 +188,11 @@ type AgentServiceHTTPServer interface {
 	GetAgentPreviewToken(context.Context, *GetAgentPreviewTokenRequest) (*GetAgentPreviewTokenResponse, error)
 	// GetAgentProviderBalance 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
 	GetAgentProviderBalance(context.Context, *GetAgentProviderBalanceRequest) (*GetAgentProviderBalanceResponse, error)
+	// GetAgentRuntimeModelLevels 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
+	GetAgentRuntimeModelLevels(context.Context, *GetAgentRuntimeModelLevelsRequest) (*GetAgentRuntimeModelLevelsResponse, error)
 	GetAgentSession(context.Context, *GetAgentSessionRequest) (*GetAgentSessionResponse, error)
+	// GetAgentSessionLocalFile 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
+	GetAgentSessionLocalFile(context.Context, *GetAgentSessionLocalFileRequest) (*GetAgentSessionUploadResponse, error)
 	// GetAgentSessionProcess 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
 	GetAgentSessionProcess(context.Context, *GetAgentSessionProcessRequest) (*GetAgentSessionProcessResponse, error)
 	// GetAgentSessionUpload 取回消息里上传过的附件（显示图片）
@@ -257,7 +263,7 @@ type AgentServiceHTTPServer interface {
 	SetAgentNotifyChannelEnabled(context.Context, *SetAgentNotifyChannelEnabledRequest) (*SetAgentNotifyChannelEnabledResponse, error)
 	// SetAgentRuntimeMode 安装方式：Momoko 下载并更新 / 用服务器上已有的命令
 	SetAgentRuntimeMode(context.Context, *SetAgentRuntimeModeRequest) (*SetAgentRuntimeModeResponse, error)
-	// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+	// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设推理等级、最长上下文和最长输出
 	SetAgentRuntimeModels(context.Context, *SetAgentRuntimeModelsRequest) (*SetAgentRuntimeModelsResponse, error)
 	// SetAgentRuntimeProxy 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
 	SetAgentRuntimeProxy(context.Context, *SetAgentRuntimeProxyRequest) (*SetAgentRuntimeProxyResponse, error)
@@ -341,6 +347,7 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.GET("/api/v1/agent/sessions/{id}/files", _AgentService_ListAgentSessionFiles0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/sessions/{id}/file", _AgentService_ReadAgentSessionFile0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/sessions/{id}/upload", _AgentService_GetAgentSessionUpload0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/sessions/{id}/local", _AgentService_GetAgentSessionLocalFile0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/files/search", _AgentService_SearchAgentFiles0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/files/save", _AgentService_SaveAgentFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/files/mkdir", _AgentService_CreateAgentDir0_HTTP_Handler(srv))
@@ -382,6 +389,7 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.POST("/api/v1/agent/runtimes/{id}/mode", _AgentService_SetAgentRuntimeMode0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/detect", _AgentService_DetectAgentRuntime0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/models", _AgentService_SetAgentRuntimeModels0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/runtimes/{id}/levels", _AgentService_GetAgentRuntimeModelLevels0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes/{id}/update", _AgentService_UpdateAgentRuntime0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/runtimes", _AgentService_CreateAgentRuntime0_HTTP_Handler(srv))
 	r.DELETE("/api/v1/agent/runtimes/{id}", _AgentService_DeleteAgentRuntime0_HTTP_Handler(srv))
@@ -1348,6 +1356,28 @@ func _AgentService_GetAgentSessionUpload0_HTTP_Handler(srv AgentServiceHTTPServe
 	}
 }
 
+func _AgentService_GetAgentSessionLocalFile0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAgentSessionLocalFileRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceGetAgentSessionLocalFile)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAgentSessionLocalFile(ctx, req.(*GetAgentSessionLocalFileRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAgentSessionUploadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_SearchAgentFiles0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in SearchAgentFilesRequest
@@ -2244,6 +2274,28 @@ func _AgentService_SetAgentRuntimeModels0_HTTP_Handler(srv AgentServiceHTTPServe
 	}
 }
 
+func _AgentService_GetAgentRuntimeModelLevels0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAgentRuntimeModelLevelsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAgentServiceGetAgentRuntimeModelLevels)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAgentRuntimeModelLevels(ctx, req.(*GetAgentRuntimeModelLevelsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAgentRuntimeModelLevelsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AgentService_UpdateAgentRuntime0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in UpdateAgentRuntimeRequest
@@ -2622,7 +2674,11 @@ type AgentServiceHTTPClient interface {
 	GetAgentPreviewToken(ctx context.Context, req *GetAgentPreviewTokenRequest, opts ...http.CallOption) (rsp *GetAgentPreviewTokenResponse, err error)
 	// GetAgentProviderBalance 账户余额：只有能查余额的供应商类型（AgentVendor.balance）才有
 	GetAgentProviderBalance(ctx context.Context, req *GetAgentProviderBalanceRequest, opts ...http.CallOption) (rsp *GetAgentProviderBalanceResponse, err error)
+	// GetAgentRuntimeModelLevels 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
+	GetAgentRuntimeModelLevels(ctx context.Context, req *GetAgentRuntimeModelLevelsRequest, opts ...http.CallOption) (rsp *GetAgentRuntimeModelLevelsResponse, err error)
 	GetAgentSession(ctx context.Context, req *GetAgentSessionRequest, opts ...http.CallOption) (rsp *GetAgentSessionResponse, err error)
+	// GetAgentSessionLocalFile 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
+	GetAgentSessionLocalFile(ctx context.Context, req *GetAgentSessionLocalFileRequest, opts ...http.CallOption) (rsp *GetAgentSessionUploadResponse, err error)
 	// GetAgentSessionProcess 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
 	GetAgentSessionProcess(ctx context.Context, req *GetAgentSessionProcessRequest, opts ...http.CallOption) (rsp *GetAgentSessionProcessResponse, err error)
 	// GetAgentSessionUpload 取回消息里上传过的附件（显示图片）
@@ -2693,7 +2749,7 @@ type AgentServiceHTTPClient interface {
 	SetAgentNotifyChannelEnabled(ctx context.Context, req *SetAgentNotifyChannelEnabledRequest, opts ...http.CallOption) (rsp *SetAgentNotifyChannelEnabledResponse, err error)
 	// SetAgentRuntimeMode 安装方式：Momoko 下载并更新 / 用服务器上已有的命令
 	SetAgentRuntimeMode(ctx context.Context, req *SetAgentRuntimeModeRequest, opts ...http.CallOption) (rsp *SetAgentRuntimeModeResponse, err error)
-	// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+	// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设推理等级、最长上下文和最长输出
 	SetAgentRuntimeModels(ctx context.Context, req *SetAgentRuntimeModelsRequest, opts ...http.CallOption) (rsp *SetAgentRuntimeModelsResponse, err error)
 	// SetAgentRuntimeProxy 服务器上的登录走的代理（只有 Linux 能配）：检查、会话、登录终端、下载和更新都经它，别的路都断掉
 	SetAgentRuntimeProxy(ctx context.Context, req *SetAgentRuntimeProxyRequest, opts ...http.CallOption) (rsp *SetAgentRuntimeProxyResponse, err error)
@@ -3255,11 +3311,39 @@ func (c *AgentServiceHTTPClientImpl) GetAgentProviderBalance(ctx context.Context
 	return &out, nil
 }
 
+// GetAgentRuntimeModelLevels 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
+func (c *AgentServiceHTTPClientImpl) GetAgentRuntimeModelLevels(ctx context.Context, in *GetAgentRuntimeModelLevelsRequest, opts ...http.CallOption) (*GetAgentRuntimeModelLevelsResponse, error) {
+	var out GetAgentRuntimeModelLevelsResponse
+	pattern := "/api/v1/agent/runtimes/{id}/levels"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceGetAgentRuntimeModelLevels))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *AgentServiceHTTPClientImpl) GetAgentSession(ctx context.Context, in *GetAgentSessionRequest, opts ...http.CallOption) (*GetAgentSessionResponse, error) {
 	var out GetAgentSessionResponse
 	pattern := "/api/v1/agent/sessions/{id}"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAgentServiceGetAgentSession))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetAgentSessionLocalFile 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
+func (c *AgentServiceHTTPClientImpl) GetAgentSessionLocalFile(ctx context.Context, in *GetAgentSessionLocalFileRequest, opts ...http.CallOption) (*GetAgentSessionUploadResponse, error) {
+	var out GetAgentSessionUploadResponse
+	pattern := "/api/v1/agent/sessions/{id}/local"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceGetAgentSessionLocalFile))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -3770,7 +3854,7 @@ func (c *AgentServiceHTTPClientImpl) SetAgentRuntimeMode(ctx context.Context, in
 	return &out, nil
 }
 
-// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+// SetAgentRuntimeModels 服务器上的登录：给检查时读到的模型设推理等级、最长上下文和最长输出
 func (c *AgentServiceHTTPClientImpl) SetAgentRuntimeModels(ctx context.Context, in *SetAgentRuntimeModelsRequest, opts ...http.CallOption) (*SetAgentRuntimeModelsResponse, error) {
 	var out SetAgentRuntimeModelsResponse
 	pattern := "/api/v1/agent/runtimes/{id}/models"

@@ -6616,6 +6616,7 @@ type AgentSessionMutation struct {
 	model                *string
 	effort               *string
 	mode                 *string
+	unrestricted         *bool
 	status               *agentsession.Status
 	error                *string
 	acp_session_id       *string
@@ -7286,6 +7287,42 @@ func (m *AgentSessionMutation) OldMode(ctx context.Context) (v string, err error
 // ResetMode resets all changes to the "mode" field.
 func (m *AgentSessionMutation) ResetMode() {
 	m.mode = nil
+}
+
+// SetUnrestricted sets the "unrestricted" field.
+func (m *AgentSessionMutation) SetUnrestricted(b bool) {
+	m.unrestricted = &b
+}
+
+// Unrestricted returns the value of the "unrestricted" field in the mutation.
+func (m *AgentSessionMutation) Unrestricted() (r bool, exists bool) {
+	v := m.unrestricted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnrestricted returns the old "unrestricted" field's value of the AgentSession entity.
+// If the AgentSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSessionMutation) OldUnrestricted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnrestricted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnrestricted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnrestricted: %w", err)
+	}
+	return oldValue.Unrestricted, nil
+}
+
+// ResetUnrestricted resets all changes to the "unrestricted" field.
+func (m *AgentSessionMutation) ResetUnrestricted() {
+	m.unrestricted = nil
 }
 
 // SetStatus sets the "status" field.
@@ -8215,7 +8252,7 @@ func (m *AgentSessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentSessionMutation) Fields() []string {
-	fields := make([]string, 0, 33)
+	fields := make([]string, 0, 34)
 	if m.create_time != nil {
 		fields = append(fields, agentsession.FieldCreateTime)
 	}
@@ -8257,6 +8294,9 @@ func (m *AgentSessionMutation) Fields() []string {
 	}
 	if m.mode != nil {
 		fields = append(fields, agentsession.FieldMode)
+	}
+	if m.unrestricted != nil {
+		fields = append(fields, agentsession.FieldUnrestricted)
 	}
 	if m.status != nil {
 		fields = append(fields, agentsession.FieldStatus)
@@ -8351,6 +8391,8 @@ func (m *AgentSessionMutation) Field(name string) (ent.Value, bool) {
 		return m.Effort()
 	case agentsession.FieldMode:
 		return m.Mode()
+	case agentsession.FieldUnrestricted:
+		return m.Unrestricted()
 	case agentsession.FieldStatus:
 		return m.Status()
 	case agentsession.FieldError:
@@ -8426,6 +8468,8 @@ func (m *AgentSessionMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldEffort(ctx)
 	case agentsession.FieldMode:
 		return m.OldMode(ctx)
+	case agentsession.FieldUnrestricted:
+		return m.OldUnrestricted(ctx)
 	case agentsession.FieldStatus:
 		return m.OldStatus(ctx)
 	case agentsession.FieldError:
@@ -8570,6 +8614,13 @@ func (m *AgentSessionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMode(v)
+		return nil
+	case agentsession.FieldUnrestricted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnrestricted(v)
 		return nil
 	case agentsession.FieldStatus:
 		v, ok := value.(agentsession.Status)
@@ -8920,6 +8971,9 @@ func (m *AgentSessionMutation) ResetField(name string) error {
 		return nil
 	case agentsession.FieldMode:
 		m.ResetMode()
+		return nil
+	case agentsession.FieldUnrestricted:
+		m.ResetUnrestricted()
 		return nil
 	case agentsession.FieldStatus:
 		m.ResetStatus()

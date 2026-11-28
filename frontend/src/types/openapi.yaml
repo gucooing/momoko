@@ -736,6 +736,29 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.DetectAgentRuntimeResponse'
+    /api/v1/agent/runtimes/{id}/levels:
+        get:
+            tags:
+                - AgentService
+            description: 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
+            operationId: AgentService_GetAgentRuntimeModelLevels
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: model
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentRuntimeModelLevelsResponse'
     /api/v1/agent/runtimes/{id}/mode:
         post:
             tags:
@@ -765,7 +788,7 @@ paths:
         post:
             tags:
                 - AgentService
-            description: 服务器上的登录：给检查时读到的模型设最长上下文和最长输出
+            description: 服务器上的登录：给检查时读到的模型设推理等级、最长上下文和最长输出
             operationId: AgentService_SetAgentRuntimeModels
             parameters:
                 - name: id
@@ -1598,6 +1621,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SyncAgentGitResponse'
+    /api/v1/agent/sessions/{id}/local:
+        get:
+            tags:
+                - AgentService
+            description: 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
+            operationId: AgentService_GetAgentSessionLocalFile
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: path
+                  in: query
+                  description: 绝对路径；file:// 地址的路径部分也行
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.GetAgentSessionUploadResponse'
     /api/v1/agent/sessions/{id}/option:
         post:
             tags:
@@ -15230,16 +15277,6 @@ components:
                 value:
                     type: string
             description: 推理等级：name 是会话里能选的等级，value 是选中它时实际发给接口的值（空 = 不带这个参数）
-        v1.AgentModelLimit:
-            type: object
-            properties:
-                model:
-                    type: string
-                contextWindow:
-                    type: string
-                    description: token 数，0 = 用 Agent 自己的
-                maxOutput:
-                    type: string
         v1.AgentModelOption:
             type: object
             properties:
@@ -15477,7 +15514,7 @@ components:
                     type: string
                 kind:
                     type: string
-                    description: 检测出的系别：claude | codex | custom（按 Agent 自报的名字，不看是哪一条）
+                    description: 检测出的系别：claude | codex | antigravity | custom（按 Agent 自报的名字，不看是哪一条）
                 managed:
                     type: boolean
                     description: Momoko 下载并更新
@@ -15535,6 +15572,22 @@ components:
                 canLogin:
                     type: boolean
                     description: 能在页面上的终端里登录（有登录命令）
+        v1.AgentRuntimeModelSetting:
+            type: object
+            properties:
+                model:
+                    type: string
+                contextWindow:
+                    type: string
+                    description: token 数，0 = 用 Agent 自己的
+                maxOutput:
+                    type: string
+                levels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentModelLevel'
+                    description: 会话里能选的推理等级：name 是显示的名字，value 是交给 Agent 的取值（空则同 name）
+            description: 服务器上的登录里一个模型在管理页的设置
         v1.AgentRuntimeOptions:
             type: object
             properties:
@@ -15544,7 +15597,7 @@ components:
                     type: string
                 kind:
                     type: string
-                    description: claude | codex | custom
+                    description: claude | codex | antigravity | custom
                 ready:
                     type: boolean
                 providers:
@@ -15560,6 +15613,9 @@ components:
                     type: string
                 caps:
                     $ref: '#/components/schemas/v1.AgentCapabilities'
+                unrestricted:
+                    type: boolean
+                    description: 开始会话前能选 Turbo：启动时就不再询问任何操作，开始后不能改
         v1.AgentSandbox:
             type: object
             properties:
@@ -15601,7 +15657,7 @@ components:
                     type: string
                 runtimeKind:
                     type: string
-                    description: claude | codex | custom
+                    description: claude | codex | antigravity | custom
                 workspaceId:
                     type: string
                 workspaceName:
@@ -15673,6 +15729,9 @@ components:
                 live:
                     type: boolean
                     description: 有 Agent 进程在跑；一轮结束后进程还留着，空闲超时才结束，所以空闲的会话也可能有
+                unrestricted:
+                    type: boolean
+                    description: 以 Turbo 开始的：不再询问任何操作，权限模式不起作用
         v1.AgentSessionDetail:
             type: object
             properties:
@@ -16582,6 +16641,9 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.AgentAttachment'
+                unrestricted:
+                    type: boolean
+                    description: Turbo（见 AgentRuntimeOptions.unrestricted）
         v1.CreateAgentSessionResponse:
             type: object
             properties:
@@ -20952,6 +21014,14 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/v1.AgentBalance'
+        v1.GetAgentRuntimeModelLevelsResponse:
+            type: object
+            properties:
+                levels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.AgentModelLevel'
+                    description: name 是 Agent 给的名字，value 是它的取值
         v1.GetAgentSessionProcessResponse:
             type: object
             properties:
@@ -26767,7 +26837,7 @@ components:
                 models:
                     type: array
                     items:
-                        $ref: '#/components/schemas/v1.AgentModelLimit'
+                        $ref: '#/components/schemas/v1.AgentRuntimeModelSetting'
         v1.SetAgentRuntimeModelsResponse:
             type: object
             properties:

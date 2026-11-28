@@ -30,6 +30,7 @@ func (AgentSession) Fields() []ent.Field {
 		field.String("model").Default("").Comment("模型"),
 		field.String("effort").Default("").Comment("推理强度"),
 		field.String("mode").Default("").Comment("权限模式"),
+		field.Bool("unrestricted").Default(false).Comment("Turbo：起进程时就让 Agent 不再询问任何操作，只在建会话时定"),
 		field.Enum("status").
 			Values("running", "waiting", "idle", "error", "archived").
 			Default("idle").

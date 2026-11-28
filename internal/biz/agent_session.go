@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -83,6 +85,7 @@ func (uc *AgentUsecase) sessionPB(s *gen.AgentSession, names *agentNames) *v1.Ag
 		Effort:       s.Effort,
 		Mode:         s.Mode,
 		ModeName:     names.mode(s.RuntimeID, s.Mode),
+		Unrestricted: s.Unrestricted,
 		Status:       string(s.Status),
 		Error:        s.Error,
 		ParentId:     s.ParentID,
@@ -401,20 +404,24 @@ func (uc *AgentUsecase) CreateSession(ctx context.Context, req *v1.CreateAgentSe
 	if _, err := uc.checkProvider(ctx, rt, userID, req.GetProviderId()); err != nil {
 		return nil, err
 	}
+	if req.GetUnrestricted() && len(uc.driverOf(string(rt.Kind)).Unrestricted()) == 0 {
+		return nil, response.BadRequest(rt.Name + " 没有 Turbo")
+	}
 	text := strings.TrimSpace(req.GetText())
 	now := time.Now()
 	s := &gen.AgentSession{
-		ID:         "ses_" + uuid.NewString(),
-		ActiveAt:   now,
-		UserID:     userID,
-		Title:      agentTitle(text),
-		RuntimeID:  rt.ID,
-		ProviderID: req.GetProviderId(),
-		Model:      req.GetModel(),
-		Effort:     req.GetEffort(),
-		Mode:       req.GetMode(),
-		Status:     agentsession.StatusRunning,
-		Origin:     origin,
+		ID:           "ses_" + uuid.NewString(),
+		ActiveAt:     now,
+		UserID:       userID,
+		Title:        agentTitle(text),
+		RuntimeID:    rt.ID,
+		ProviderID:   req.GetProviderId(),
+		Model:        req.GetModel(),
+		Effort:       req.GetEffort(),
+		Mode:         req.GetMode(),
+		Unrestricted: req.GetUnrestricted(),
+		Status:       agentsession.StatusRunning,
+		Origin:       origin,
 	}
 	if s.McpIds, err = uc.ownMcpIDs(ctx, userID, req.GetMcpIds()); err != nil {
 		return nil, err
@@ -622,7 +629,7 @@ func effortFor(p *gen.AgentProvider, loginTo *gen.AgentRuntimeModel, model, curr
 	if slices.ContainsFunc(loginTo.Efforts, func(e schema.AgentChoice) bool { return e.ID == current }) {
 		return current
 	}
-	return loginTo.DefaultEffort
+	return runtimeDefaultEffort(loginTo)
 }
 
 // restartFor 这次改动要换一个进程才生效：正在跑的一轮不能打断，空闲的进程直接结束，下次发消息时按新的配置起。
@@ -842,9 +849,15 @@ func (uc *AgentUsecase) ForkSession(ctx context.Context, id string, worktree boo
 	if err != nil {
 		return fail(err)
 	}
-	acpID, err := l.session.Fork(bg, cwd, uc.agentDirs(forkID, s.ExtraDirs))
+	acpID, err := l.session.Fork(bg, cwd, uc.agentDirs(bg, s.UserID, forkID, s.ExtraDirs))
 	if err != nil {
 		return fail(agentErr(err))
+	}
+	// Agent 的数据放在会话目录里的（见 withSessionData），复刻出来的会话记录也在原会话那里：带过去，新会话的进程才找得到
+	if from := uc.sessionDir(s.ID, "agent"); agentfs.IsDir(from) {
+		if err := agentfs.CopyDir(from, uc.sessionDir(forkID, "agent")); err != nil {
+			return fail(response.BadRequest("复制 Agent 的会话记录失败：" + err.Error()))
+		}
 	}
 	// 起进程时可能刚换过模型，以库里现在的为准。
 	if s, err = uc.repo.GetAgentSession(bg, s.ID); err != nil {
@@ -865,6 +878,7 @@ func (uc *AgentUsecase) ForkSession(ctx context.Context, id string, worktree boo
 		Model:        s.Model,
 		Effort:       s.Effort,
 		Mode:         s.Mode,
+		Unrestricted: s.Unrestricted,
 		Status:       agentsession.StatusIdle,
 		AcpSessionID: acpID,
 		ParentID:     s.ID,
@@ -1261,6 +1275,34 @@ func (uc *AgentUsecase) ReadRaw(ctx context.Context, sessionID, workspaceID, pat
 		return nil, agentErr(err)
 	}
 	return &v1.GetAgentSessionUploadResponse{Mime: kind, Data: data}, nil
+}
+
+// ReadLocalFile 回复里引用的一个本机文件（Agent 写的绝对路径；file:// 地址在 Windows 上的路径部分是 /C:/…，开头多一个 /）：
+// 在会话目录、工作目录或附加目录里才读，页面拿来显示图片。读不到、不在这些目录里都回空的，不当错误（不然页面会一直弹提示）。
+func (uc *AgentUsecase) ReadLocalFile(ctx context.Context, id, path string) (*v1.GetAgentSessionUploadResponse, error) {
+	s, err := uc.getSession(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	path = filepath.FromSlash(path)
+	if runtime.GOOS == "windows" && len(path) >= 3 && os.IsPathSeparator(path[0]) && path[2] == ':' {
+		path = path[1:]
+	}
+	if !filepath.IsAbs(path) {
+		return &v1.GetAgentSessionUploadResponse{}, nil
+	}
+	for _, root := range append([]string{uc.sessionDir(id), s.Cwd}, s.ExtraDirs...) {
+		rel, err := filepath.Rel(root, path)
+		if err != nil || filepath.IsAbs(rel) || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			continue
+		}
+		data, kind, err := agentfs.ReadBlob(root, filepath.ToSlash(rel), agentUploadMax)
+		if err != nil {
+			return &v1.GetAgentSessionUploadResponse{}, nil
+		}
+		return &v1.GetAgentSessionUploadResponse{Mime: kind, Data: data}, nil
+	}
+	return &v1.GetAgentSessionUploadResponse{}, nil
 }
 
 // ReadUpload 取回会话附件目录里的一个文件（file 是事件里记的那个：消息的附件，或工具调用产出的图片），页面拿来显示图片。

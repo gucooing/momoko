@@ -215,10 +215,11 @@ func (uc *AgentUsecase) SetRuntimeProxy(ctx context.Context, id string, in *v1.A
 	return uc.runtimeOut(ctx, rt, uc.activeByRuntime())
 }
 
-// 测试代理时请求哪里：这一系 Agent 的官方地址。
+// 测试代理时请求哪里：这一系 Agent 的官方地址（Antigravity 的是 agy acp --help 里给的默认接口地址）。
 var proxyProbeTargets = map[string]string{
-	"claude": "https://api.anthropic.com/",
-	"codex":  "https://chatgpt.com/",
+	"claude":      "https://api.anthropic.com/",
+	"codex":       "https://chatgpt.com/",
+	"antigravity": "https://daily-cloudcode-pa.googleapis.com/",
 }
 
 // TestProxy 在沙箱里经代理请求一次要用的那一家：有应答（不管状态码）就算通。不通是代理那边的状况，放在 error 里返回。

@@ -129,6 +129,11 @@ func Mode(v string) predicate.AgentSession {
 	return predicate.AgentSession(sql.FieldEQ(FieldMode, v))
 }
 
+// Unrestricted applies equality check predicate on the "unrestricted" field. It's identical to UnrestrictedEQ.
+func Unrestricted(v bool) predicate.AgentSession {
+	return predicate.AgentSession(sql.FieldEQ(FieldUnrestricted, v))
+}
+
 // Error applies equality check predicate on the "error" field. It's identical to ErrorEQ.
 func Error(v string) predicate.AgentSession {
 	return predicate.AgentSession(sql.FieldEQ(FieldError, v))
@@ -962,6 +967,16 @@ func ModeEqualFold(v string) predicate.AgentSession {
 // ModeContainsFold applies the ContainsFold predicate on the "mode" field.
 func ModeContainsFold(v string) predicate.AgentSession {
 	return predicate.AgentSession(sql.FieldContainsFold(FieldMode, v))
+}
+
+// UnrestrictedEQ applies the EQ predicate on the "unrestricted" field.
+func UnrestrictedEQ(v bool) predicate.AgentSession {
+	return predicate.AgentSession(sql.FieldEQ(FieldUnrestricted, v))
+}
+
+// UnrestrictedNEQ applies the NEQ predicate on the "unrestricted" field.
+func UnrestrictedNEQ(v bool) predicate.AgentSession {
+	return predicate.AgentSession(sql.FieldNEQ(FieldUnrestricted, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

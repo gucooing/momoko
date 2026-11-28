@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"path/filepath"
@@ -28,7 +29,6 @@ import (
 	"momoko/pkg/agentproc"
 	"momoko/pkg/agentproxy"
 	"momoko/pkg/agentrun"
-	"momoko/pkg/agentsandbox"
 	agentskillpkg "momoko/pkg/agentskill"
 	"momoko/pkg/common"
 	"momoko/pkg/mcpprobe"
@@ -37,7 +37,7 @@ import (
 
 // ———————————————————————————— 运行时 ————————————————————————————
 
-// builtinDriver 内置的两条运行时（id 就是驱动的 kind）：不能移除，命令由驱动决定。
+// builtinDriver 内置的运行时（id 就是驱动的 kind）：不能移除，命令由驱动决定。
 func (uc *AgentUsecase) builtinDriver(id string) (agentdriver.Driver, bool) {
 	for _, d := range uc.drivers {
 		if d.Kind() == id {
@@ -66,7 +66,7 @@ func (uc *AgentUsecase) seedRuntimes(ctx context.Context) {
 	for _, rt := range existing {
 		have[rt.ID] = true
 	}
-	titles := map[string]string{"claude": "Claude Code", "codex": "Codex"}
+	titles := map[string]string{"claude": "Claude Code", "codex": "Codex", "antigravity": "Antigravity"}
 	for i, d := range uc.drivers {
 		if have[d.Kind()] {
 			continue
@@ -83,7 +83,7 @@ func (uc *AgentUsecase) managedDir(id string) string {
 }
 
 // runtimeLaunch 这个运行时现在该怎么启动：自己添加的用填的命令；内置的要么是 Momoko 下载的那一份，
-// 要么是服务器 PATH 里已有的适配器。
+// 要么是服务器 PATH 里已有的适配器，带什么参数和环境由驱动定。
 func (uc *AgentUsecase) runtimeLaunch(rt *gen.AgentRuntime) (agentdriver.Launch, error) {
 	d, builtin := uc.builtinDriver(rt.ID)
 	if !builtin {
@@ -98,7 +98,7 @@ func (uc *AgentUsecase) runtimeLaunch(rt *gen.AgentRuntime) (agentdriver.Launch,
 		if !ok {
 			return agentdriver.Launch{}, response.BadRequest(rt.Name + " 还没下载好")
 		}
-		return agentdriver.Launch{Command: launch.Command}, nil
+		return d.Launch(launch.Command, true), nil
 	}
 	path, ok := agentproc.Lookup(d.Adapter())
 	if !ok {
@@ -107,7 +107,27 @@ func (uc *AgentUsecase) runtimeLaunch(rt *gen.AgentRuntime) (agentdriver.Launch,
 		}
 		return agentdriver.Launch{}, response.BadRequest("服务器上没有找到 " + d.Adapter())
 	}
-	return agentdriver.Launch{Command: path}, nil
+	return d.Launch(path, false), nil
+}
+
+// probeDir 检查用的一个临时目录：开的会话以它为工作目录，用完整个删掉。
+func (uc *AgentUsecase) probeDir() string {
+	return filepath.Join(uc.root, "tmp", "probe-"+uuid.NewString()[:8])
+}
+
+// probeLaunch 检查用的启动方式：用服务器上的登录，配了代理就在沙箱里；开的会话的数据也放进检查用的临时目录 tmp。
+func (uc *AgentUsecase) probeLaunch(rt *gen.AgentRuntime, tmp string) (agentdriver.Launch, error) {
+	launch, err := uc.runtimeLaunch(rt)
+	if err != nil {
+		return launch, err
+	}
+	sb, err := uc.runtimeSandbox(rt)
+	if err != nil {
+		return launch, err
+	}
+	d := uc.driverOf(string(rt.Kind))
+	launch, launch.Env = sandboxed(d, launch, launch.Env, sb)
+	return withSessionData(d, launch, filepath.Join(tmp, "agent")), nil
 }
 
 // detectRuntime 检测一个运行时并把结果存下来。检测不通过不算错误：原因写在 runtime.Error 里。
@@ -115,17 +135,11 @@ func (uc *AgentUsecase) detectRuntime(ctx context.Context, rt *gen.AgentRuntime)
 	bg := context.WithoutCancel(ctx)
 	now := time.Now()
 	rt.DetectedAt = &now
-	launch, err := uc.runtimeLaunch(rt)
-	if err == nil {
-		var sb *agentsandbox.Config
-		if sb, err = uc.runtimeSandbox(rt); err == nil {
-			launch, launch.Env = sandboxed(uc.driverOf(string(rt.Kind)), launch, launch.Env, sb)
-		}
-	}
+	tmp := uc.probeDir()
+	launch, err := uc.probeLaunch(rt, tmp)
 	var models []*gen.AgentRuntimeModel
 	synced := false
 	if err == nil {
-		tmp := filepath.Join(uc.root, "tmp", "probe-"+uuid.NewString()[:8])
 		var result *agentrun.ProbeResult
 		result, err = agentrun.Probe(bg, launch, tmp)
 		agentfs.RemoveAll(tmp)
@@ -438,17 +452,34 @@ func agentLevels(p *gen.AgentProvider, model string) (levels []string, def strin
 			levels = append(levels, lv.Name)
 		}
 	}
+	return levels, preferredLevel(levels)
+}
+
+// preferredLevel 没有指定默认的推理等级时用哪个：medium，没有就 high，再没有就第一个。
+func preferredLevel(levels []string) string {
 	for _, want := range []string{"medium", "high"} {
 		for _, lv := range levels {
 			if strings.EqualFold(lv, want) {
-				return levels, lv
+				return lv
 			}
 		}
 	}
 	if len(levels) > 0 {
-		def = levels[0]
+		return levels[0]
 	}
-	return levels, def
+	return ""
+}
+
+// runtimeDefaultEffort 服务器上的登录里一个模型默认的推理强度：Agent 给的默认还在能选的里面就用它，否则按 preferredLevel 挑。
+func runtimeDefaultEffort(m *gen.AgentRuntimeModel) string {
+	ids := make([]string, 0, len(m.Efforts))
+	for _, e := range m.Efforts {
+		if e.ID == m.DefaultEffort {
+			return e.ID
+		}
+		ids = append(ids, e.ID)
+	}
+	return preferredLevel(ids)
 }
 
 // agentLevelValue 某个推理等级对应的 API 参数值；ok 为 false 表示这个模型没声明这个等级。
@@ -1050,24 +1081,71 @@ func loginLimits(m *gen.AgentRuntimeModel) (contextWindow, maxOutput int64) {
 	return m.ContextWindow, m.MaxOutput
 }
 
-// SetRuntimeModels 服务器上的登录：给检查时同步进来的模型设最长上下文和最长输出（0 = 用 Agent 自己的），直接写模型表，下次起进程时交给 Agent。
-func (uc *AgentUsecase) SetRuntimeModels(ctx context.Context, id string, in []*v1.AgentModelLimit) (*v1.AgentRuntime, error) {
+// SetRuntimeModels 服务器上的登录：给检查时同步进来的模型设推理强度、最长上下文和最长输出（0 = 用 Agent 自己的），
+// 直接写模型表。推理强度在会话里选，上下文和输出下次起进程时交给 Agent。
+func (uc *AgentUsecase) SetRuntimeModels(ctx context.Context, id string, in []*v1.AgentRuntimeModelSetting) (*v1.AgentRuntime, error) {
 	rt, err := uc.getRuntime(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	limits := make([]AgentModelLimit, 0, len(in))
+	settings := make([]AgentRuntimeModelSetting, 0, len(in))
 	for _, m := range in {
 		if m.GetContextWindow() < 0 || m.GetMaxOutput() < 0 {
 			return nil, response.BadRequest("最长上下文和最长输出不能是负数")
 		}
-		limits = append(limits, AgentModelLimit{Model: m.GetModel(), ContextWindow: m.GetContextWindow(), MaxOutput: m.GetMaxOutput()})
+		// 交给 Agent 的取值没填就和名字一样；同一个取值只留第一个
+		efforts := []schema.AgentChoice{}
+		seen := map[string]bool{}
+		for _, lv := range m.GetLevels() {
+			name := strings.TrimSpace(lv.GetName())
+			value := strings.TrimSpace(lv.GetValue())
+			if value == "" {
+				value = name
+			}
+			if value != "" && !seen[value] {
+				seen[value] = true
+				efforts = append(efforts, schema.AgentChoice{ID: value, Name: name})
+			}
+		}
+		settings = append(settings, AgentRuntimeModelSetting{
+			Model: m.GetModel(), Efforts: efforts, ContextWindow: m.GetContextWindow(), MaxOutput: m.GetMaxOutput(),
+		})
 	}
-	if err := uc.repo.SetAgentRuntimeModelLimits(ctx, rt.ID, limits); err != nil {
+	if err := uc.repo.SetAgentRuntimeModelSettings(ctx, rt.ID, settings); err != nil {
 		return nil, ErrSystem(err)
 	}
 	uc.configChanged()
 	return uc.runtimeOut(ctx, rt, uc.activeByRuntime())
+}
+
+// RuntimeModelLevels 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理强度。不保存：页面填进表单，保存时一起存。
+func (uc *AgentUsecase) RuntimeModelLevels(ctx context.Context, id, model string) ([]*v1.AgentModelLevel, error) {
+	rt, err := uc.getRuntime(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	tmp := uc.probeDir()
+	defer agentfs.RemoveAll(tmp)
+	launch, err := uc.probeLaunch(rt, tmp)
+	if err != nil {
+		return nil, agentErr(err)
+	}
+	efforts, err := agentrun.ProbeEfforts(context.WithoutCancel(ctx), launch, tmp, model)
+	if errors.Is(err, agentrun.ErrAuthRequired) {
+		return nil, response.BadRequest(rt.Name + " 还没有登录")
+	}
+	if err != nil {
+		return nil, agentErr(err)
+	}
+	out := make([]*v1.AgentModelLevel, 0, len(efforts))
+	for _, e := range efforts {
+		name := e.Name
+		if name == "" {
+			name = e.ID
+		}
+		out = append(out, &v1.AgentModelLevel{Name: name, Value: e.ID})
+	}
+	return out, nil
 }
 
 // markLoggedOut 会话里发现服务器上的登录失效了：记下来，选择器里就不再给「服务器上的登录」，等用户登录后再检查。
@@ -2236,23 +2314,30 @@ func (uc *AgentUsecase) ImportSkill(ctx context.Context, req *v1.ImportAgentSkil
 	return out, nil
 }
 
-// enabledSkills 这个人现在启用着的技能，包括共享给他的：名称 → 它在技能库里的目录和版本（保存时间，内容变了它就变）。
-// 名字撞了用他自己的。
-func (uc *AgentUsecase) enabledSkills(ctx context.Context, userID string) map[string]agentskillpkg.Enabled {
-	out := map[string]agentskillpkg.Enabled{}
+// enabledSkills 这个人现在启用着的技能，包括共享给他的：名称 → 它在技能库里的目录。名字撞了用他自己的。
+func (uc *AgentUsecase) enabledSkills(ctx context.Context, userID string) map[string]string {
+	out := map[string]string{}
 	if shared, err := uc.sharedSkillsFor(ctx, userID, true); err == nil {
 		store := uc.skillStore(agentSharedOwner)
 		for _, s := range shared {
-			out[s.Name] = agentskillpkg.Enabled{Dir: store.Dir(s.Name), Version: strconv.FormatInt(s.UpdateTime.UnixNano(), 10)}
+			out[s.Name] = store.Dir(s.Name)
 		}
 	}
-	rows, err := uc.repo.ListEnabledAgentSkills(ctx, userID)
-	if err != nil {
-		return out
-	}
-	store := uc.skillStore(userID)
-	for _, s := range rows {
-		out[s.Name] = agentskillpkg.Enabled{Dir: store.Dir(s.Name), Version: strconv.FormatInt(s.UpdateTime.UnixNano(), 10)}
+	if rows, err := uc.repo.ListEnabledAgentSkills(ctx, userID); err == nil {
+		store := uc.skillStore(userID)
+		for _, s := range rows {
+			out[s.Name] = store.Dir(s.Name)
+		}
 	}
 	return out
+}
+
+// enabledSkillDirs 启用着的技能的目录，按名称排。
+func (uc *AgentUsecase) enabledSkillDirs(ctx context.Context, userID string) []string {
+	skills := uc.enabledSkills(ctx, userID)
+	dirs := make([]string, 0, len(skills))
+	for _, name := range sortedKeys(skills) {
+		dirs = append(dirs, skills[name])
+	}
+	return dirs
 }

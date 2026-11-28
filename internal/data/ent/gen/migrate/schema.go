@@ -130,7 +130,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"claude", "codex", "custom"}, Default: "custom"},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"claude", "codex", "antigravity", "custom"}, Default: "custom"},
 		{Name: "managed", Type: field.TypeBool, Default: false},
 		{Name: "command", Type: field.TypeString, Default: ""},
 		{Name: "version", Type: field.TypeString, Default: ""},
@@ -197,6 +197,7 @@ var (
 		{Name: "model", Type: field.TypeString, Default: ""},
 		{Name: "effort", Type: field.TypeString, Default: ""},
 		{Name: "mode", Type: field.TypeString, Default: ""},
+		{Name: "unrestricted", Type: field.TypeBool, Default: false},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"running", "waiting", "idle", "error", "archived"}, Default: "idle"},
 		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "acp_session_id", Type: field.TypeString, Default: ""},
@@ -226,7 +227,7 @@ var (
 			{
 				Name:    "agentsession_user_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{AgentSessionsColumns[3], AgentSessionsColumns[15]},
+				Columns: []*schema.Column{AgentSessionsColumns[3], AgentSessionsColumns[16]},
 			},
 			{
 				Name:    "agentsession_workspace_id",
@@ -236,12 +237,12 @@ var (
 			{
 				Name:    "agentsession_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{AgentSessionsColumns[18]},
+				Columns: []*schema.Column{AgentSessionsColumns[19]},
 			},
 			{
 				Name:    "agentsession_active_at",
 				Unique:  false,
-				Columns: []*schema.Column{AgentSessionsColumns[20]},
+				Columns: []*schema.Column{AgentSessionsColumns[21]},
 			},
 		},
 	}

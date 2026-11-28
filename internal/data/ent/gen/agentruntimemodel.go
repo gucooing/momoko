@@ -29,9 +29,9 @@ type AgentRuntimeModel struct {
 	Model string `json:"model,omitempty"`
 	// Agent 给的名称
 	Name string `json:"name,omitempty"`
-	// 能选的推理强度
+	// 能选的推理强度：id 是交给 Agent 的取值，name 是显示的名字
 	Efforts []schema.AgentChoice `json:"efforts,omitempty"`
-	// 默认的推理强度
+	// Agent 给的默认推理强度
 	DefaultEffort string `json:"default_effort,omitempty"`
 	// 用户设的最长上下文（token），0 = 用 Agent 自己的
 	ContextWindow int64 `json:"context_window,omitempty"`

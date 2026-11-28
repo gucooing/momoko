@@ -207,6 +207,20 @@ func (_u *AgentSessionUpdate) SetNillableMode(v *string) *AgentSessionUpdate {
 	return _u
 }
 
+// SetUnrestricted sets the "unrestricted" field.
+func (_u *AgentSessionUpdate) SetUnrestricted(v bool) *AgentSessionUpdate {
+	_u.mutation.SetUnrestricted(v)
+	return _u
+}
+
+// SetNillableUnrestricted sets the "unrestricted" field if the given value is not nil.
+func (_u *AgentSessionUpdate) SetNillableUnrestricted(v *bool) *AgentSessionUpdate {
+	if v != nil {
+		_u.SetUnrestricted(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *AgentSessionUpdate) SetStatus(v agentsession.Status) *AgentSessionUpdate {
 	_u.mutation.SetStatus(v)
@@ -660,6 +674,9 @@ func (_u *AgentSessionUpdate) sqlSave(ctx context.Context) (_node int, err error
 	if value, ok := _u.mutation.Mode(); ok {
 		_spec.SetField(agentsession.FieldMode, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Unrestricted(); ok {
+		_spec.SetField(agentsession.FieldUnrestricted, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(agentsession.FieldStatus, field.TypeEnum, value)
 	}
@@ -946,6 +963,20 @@ func (_u *AgentSessionUpdateOne) SetMode(v string) *AgentSessionUpdateOne {
 func (_u *AgentSessionUpdateOne) SetNillableMode(v *string) *AgentSessionUpdateOne {
 	if v != nil {
 		_u.SetMode(*v)
+	}
+	return _u
+}
+
+// SetUnrestricted sets the "unrestricted" field.
+func (_u *AgentSessionUpdateOne) SetUnrestricted(v bool) *AgentSessionUpdateOne {
+	_u.mutation.SetUnrestricted(v)
+	return _u
+}
+
+// SetNillableUnrestricted sets the "unrestricted" field if the given value is not nil.
+func (_u *AgentSessionUpdateOne) SetNillableUnrestricted(v *bool) *AgentSessionUpdateOne {
+	if v != nil {
+		_u.SetUnrestricted(*v)
 	}
 	return _u
 }
@@ -1432,6 +1463,9 @@ func (_u *AgentSessionUpdateOne) sqlSave(ctx context.Context) (_node *AgentSessi
 	}
 	if value, ok := _u.mutation.Mode(); ok {
 		_spec.SetField(agentsession.FieldMode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Unrestricted(); ok {
+		_spec.SetField(agentsession.FieldUnrestricted, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(agentsession.FieldStatus, field.TypeEnum, value)

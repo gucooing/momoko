@@ -129,6 +129,14 @@
   background: var(--m-s);
   color: var(--m-ink);
 }
+// 以 Turbo 开始的会话：权限模式只显示，不能点
+.agc-cl.is-locked {
+  cursor: default;
+}
+.agc-cl.is-locked:hover {
+  background: transparent;
+  color: var(--m-ink2);
+}
 .agc-cl svg,
 .agc-cl .iconify {
   width: 14px;
@@ -1572,33 +1580,6 @@ div.agc-tt.is-on:not(:has(button)) {
   width: 14px;
   height: 14px;
   flex: none;
-}
-.agc-turn__tok {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  min-height: 22px;
-  padding: 0 6px;
-  margin-left: -6px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-.agc-turn__tok:hover {
-  background: var(--m-s2);
-}
-.agc-turn__usage {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: var(--m-s2);
-  font-size: 12px;
-  color: var(--m-ink2);
 }
 .agc-working {
   display: flex;

@@ -16,7 +16,7 @@ func (AgentRuntime) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("id").NotEmpty().Unique().Comment("运行时 id：claude / codex / 自定义的随机 id"),
 		field.String("name").NotEmpty().Comment("名称"),
-		field.Enum("kind").Values("claude", "codex", "custom").Default("custom").Comment("类型"),
+		field.Enum("kind").Values("claude", "codex", "antigravity", "custom").Default("custom").Comment("类型"),
 		field.Bool("managed").Default(false).Comment("由 Momoko 下载并更新"),
 		field.String("command").Default("").Comment("启动命令"),
 		field.String("version").Default("").Comment("Momoko 下载的版本"),

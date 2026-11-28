@@ -334,7 +334,7 @@
   background: var(--m-pSoft);
   color: var(--m-pInk);
 }
-// Agent 标记：Claude Code 用黄色系，Codex 用紫色系，其它用中性色
+// Agent 标记：Claude Code 用黄色系，Codex 用紫色系，Antigravity 用主色系，其它用中性色
 .ag-agent {
   display: inline-flex;
   align-items: center;
@@ -355,6 +355,10 @@
 .ag-agent--codex {
   background: var(--m-a2Soft);
   color: var(--m-ink);
+}
+.ag-agent--antigravity {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
 }
 html.dark .ag-agent--claude {
   color: var(--m-a);
@@ -380,6 +384,10 @@ html.dark .ag-agent--claude {
 .ag-agent-dot.ag-agent--codex {
   background: var(--m-a2Soft);
   color: var(--m-ink);
+}
+.ag-agent-dot.ag-agent--antigravity {
+  background: var(--m-pSoft);
+  color: var(--m-pInk);
 }
 html.dark .ag-agent-dot.ag-agent--claude {
   color: var(--m-a);

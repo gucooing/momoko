@@ -183,9 +183,17 @@ func exitReason(proc *agentproc.Process, err error) error {
 	return err
 }
 
-// Probe 启动一次进程：握手，在 cwd（一个临时目录）里开一个会话，读它开会话时给的权限模式、模型和当前模型的推理强度。
-// 用的是服务器上已有的登录。不发消息，不产生用量。
-func Probe(ctx context.Context, launch agentdriver.Launch, cwd string) (*ProbeResult, error) {
+// probeConn 检查用的一次进程：已经握过手。用的是服务器上已有的登录，不发消息，不产生用量。
+type probeConn struct {
+	proc   *agentproc.Process
+	client *acp.Client
+	events *probeEvents
+	init   *acp.InitializeResponse
+	cwd    string
+}
+
+// openProbe 在 cwd（一个临时目录）里启动一次进程并握手；用完 close。
+func openProbe(ctx context.Context, launch agentdriver.Launch, cwd string) (*probeConn, error) {
 	if err := os.MkdirAll(cwd, 0o755); err != nil {
 		return nil, err
 	}
@@ -193,38 +201,95 @@ func Probe(ctx context.Context, launch agentdriver.Launch, cwd string) (*ProbeRe
 	if err != nil {
 		return nil, err
 	}
-	defer proc.Kill()
-	events := &probeEvents{}
-	client := acp.NewClient(proc.Stdout(), proc.Stdin(), events)
-	defer client.Close()
-
+	p := &probeConn{proc: proc, events: &probeEvents{}, cwd: cwd}
+	p.client = acp.NewClient(proc.Stdout(), proc.Stdin(), p.events)
 	initCtx, cancel := context.WithTimeout(ctx, 90*time.Second)
 	defer cancel()
-	init, err := client.Initialize(initCtx, clientInfo(), clientCaps())
-	if err != nil {
+	if p.init, err = p.client.Initialize(initCtx, clientInfo(), clientCaps()); err != nil {
+		p.close()
 		return nil, exitReason(proc, err)
 	}
-	result := &ProbeResult{Caps: capsOf(init)}
+	return p, nil
+}
+
+func (p *probeConn) close() {
+	p.client.Close()
+	p.proc.Kill()
+}
+
+// newSession 在 cwd 里开一个会话；错误原样返回（调用方要看是不是要求先登录）。
+func (p *probeConn) newSession(ctx context.Context) (*acp.SessionState, error) {
+	stepCtx, cancel := context.WithTimeout(ctx, 90*time.Second)
+	defer cancel()
+	return p.client.NewSession(stepCtx, acp.SessionSetup{Cwd: p.cwd})
+}
+
+// closeSession Agent 支持时把开的会话关掉，让它收拾干净。
+func (p *probeConn) closeSession(ctx context.Context, id string) {
+	if !capsOf(p.init).Close {
+		return
+	}
+	closeCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	_ = p.client.CloseSession(closeCtx, id)
+}
+
+// Probe 启动一次进程：握手，在 cwd（一个临时目录）里开一个会话，读它开会话时给的权限模式、模型和当前模型的推理强度。
+func Probe(ctx context.Context, launch agentdriver.Launch, cwd string) (*ProbeResult, error) {
+	p, err := openProbe(ctx, launch, cwd)
+	if err != nil {
+		return nil, err
+	}
+	defer p.close()
+	result := &ProbeResult{Caps: capsOf(p.init)}
 	// v1 在 agentInfo、v2 在 info：按协商好的版本取
-	if agent := init.Agent(); agent != nil {
+	if agent := p.init.Agent(); agent != nil {
 		result.AgentName, result.AgentVersion = agent.Name, agent.Version
 	}
 
-	state, err := client.NewSession(initCtx, acp.SessionSetup{Cwd: cwd})
+	state, err := p.newSession(ctx)
 	if err != nil {
 		if acp.IsAuthRequired(err) {
 			result.NeedAuth = true
-			result.Auth, result.AuthOK = events.account()
+			result.Auth, result.AuthOK = p.events.account()
 			return result, nil
 		}
-		return nil, exitReason(proc, err)
+		return nil, exitReason(p.proc, err)
 	}
 	result.Catalog = catalogOf(state.ConfigOptions)
-	if result.Caps.Close {
-		closeCtx, closeCancel := context.WithTimeout(ctx, 5*time.Second)
-		_ = client.CloseSession(closeCtx, state.SessionID)
-		closeCancel()
-	}
-	result.Auth, result.AuthOK = events.account()
+	p.closeSession(ctx, state.SessionID)
+	result.Auth, result.AuthOK = p.events.account()
 	return result, nil
+}
+
+// ProbeEfforts 启动一次进程，在 cwd（一个临时目录）里开一个会话，切到 model，读 Agent 给这个模型的推理强度。
+// 要先登录时返回 ErrAuthRequired；Agent 没有列出这个模型时返回错误。
+func ProbeEfforts(ctx context.Context, launch agentdriver.Launch, cwd, model string) ([]Choice, error) {
+	p, err := openProbe(ctx, launch, cwd)
+	if err != nil {
+		return nil, err
+	}
+	defer p.close()
+	state, err := p.newSession(ctx)
+	if err != nil {
+		if acp.IsAuthRequired(err) {
+			return nil, ErrAuthRequired
+		}
+		return nil, exitReason(p.proc, err)
+	}
+	defer p.closeSession(ctx, state.SessionID)
+	options := state.ConfigOptions
+	opt := configOf(options, acp.CategoryModel)
+	if opt == nil || !hasValue(opt, model) {
+		return nil, errors.New("Agent 没有列出这个模型")
+	}
+	if opt.Current() != model {
+		stepCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+		defer cancel()
+		if options, err = p.client.SetConfigOption(stepCtx, state.SessionID, opt.ID, model); err != nil {
+			return nil, exitReason(p.proc, err)
+		}
+	}
+	efforts, _ := effortsOf(options)
+	return efforts, nil
 }

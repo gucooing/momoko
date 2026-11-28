@@ -161,7 +161,7 @@ export default {
           refusal: 'Agent 拒绝了这次请求',
           error: '出错',
         },
-        turn: { took: '用时 {time}', changed: '改动了 {n} 个文件' },
+        turn: { took: '用时 {time}', changed: '改动了 {n} 个文件', tokens: '{n} token', cache: '缓存率 {rate}', speed: '{n} t/s' },
         group: {
           execute: '已运行 {n} 个命令',
           read: '已读取 {n} 个文件',
@@ -175,10 +175,6 @@ export default {
         },
         edit: { add: '已新建', modify: '已编辑', delete: '已删除', move: '已移动', copy: '已复制' },
         usage: {
-          input: '输入 {n}',
-          cacheHit: '其中缓存命中 {n}',
-          output: '输出 {n}',
-          thought: '其中思考 {n}',
           title: 'Token 用量',
           turns: '{n} 轮',
           inputHit: '输入 · 缓存命中',
@@ -232,7 +228,13 @@ export default {
           tipTokens: '已用 {used}，共 {size}',
           compact: '压缩上下文',
         },
-        mode: { title: '权限模式', by: '权限模式 · 由 {agent} 提供' },
+        mode: {
+          title: '权限模式',
+          by: '权限模式 · 由 {agent} 提供',
+          startOnly: '只能在开始会话前选',
+          turbo: { name: 'Turbo', desc: '改文件、执行命令都不再询问，也不限制能读写哪些文件。开始后不能改' },
+          turboLocked: '这个会话以 Turbo 开始：不再询问任何操作，权限模式不起作用',
+        },
         model: {
           title: '模型和推理强度',
           switchAgent: '换一个 Agent',
@@ -603,7 +605,7 @@ export default {
           refusal: 'Agent 拒絕了這次請求',
           error: '出錯',
         },
-        turn: { took: '用時 {time}', changed: '改動了 {n} 個檔案' },
+        turn: { took: '用時 {time}', changed: '改動了 {n} 個檔案', tokens: '{n} token', cache: '快取率 {rate}', speed: '{n} t/s' },
         group: {
           execute: '已執行 {n} 個命令',
           read: '已讀取 {n} 個檔案',
@@ -617,10 +619,6 @@ export default {
         },
         edit: { add: '已新建', modify: '已編輯', delete: '已刪除', move: '已移動', copy: '已複製' },
         usage: {
-          input: '輸入 {n}',
-          cacheHit: '其中快取命中 {n}',
-          output: '輸出 {n}',
-          thought: '其中思考 {n}',
           title: 'Token 用量',
           turns: '{n} 輪',
           inputHit: '輸入 · 快取命中',
@@ -674,7 +672,13 @@ export default {
           tipTokens: '已用 {used}，共 {size}',
           compact: '壓縮上下文',
         },
-        mode: { title: '權限模式', by: '權限模式 · 由 {agent} 提供' },
+        mode: {
+          title: '權限模式',
+          by: '權限模式 · 由 {agent} 提供',
+          startOnly: '只能在開始會話前選',
+          turbo: { name: 'Turbo', desc: '改檔案、執行命令都不再詢問，也不限制能讀寫哪些檔案。開始後不能改' },
+          turboLocked: '這個會話以 Turbo 開始：不再詢問任何操作，權限模式不起作用',
+        },
         model: {
           title: '模型和推理強度',
           switchAgent: '換一個 Agent',
@@ -1045,7 +1049,7 @@ export default {
           refusal: 'The agent refused this request',
           error: 'Error',
         },
-        turn: { took: 'took {time}', changed: '{n} files changed' },
+        turn: { took: 'took {time}', changed: '{n} files changed', tokens: '{n} tokens', cache: 'cache {rate}', speed: '{n} t/s' },
         group: {
           execute: 'Ran {n} commands',
           read: 'Read {n} files',
@@ -1059,10 +1063,6 @@ export default {
         },
         edit: { add: 'Created', modify: 'Edited', delete: 'Deleted', move: 'Moved', copy: 'Copied' },
         usage: {
-          input: 'Input {n}',
-          cacheHit: 'of which cached {n}',
-          output: 'Output {n}',
-          thought: 'of which thinking {n}',
           title: 'Token usage',
           turns: '{n} turns',
           inputHit: 'Input · cache hit',
@@ -1116,7 +1116,13 @@ export default {
           tipTokens: '{used} of {size} used',
           compact: 'Compact context',
         },
-        mode: { title: 'Permission mode', by: 'Permission modes · from {agent}' },
+        mode: {
+          title: 'Permission mode',
+          by: 'Permission modes · from {agent}',
+          startOnly: 'Only before the session starts',
+          turbo: { name: 'Turbo', desc: 'Never asks before editing files or running commands, with no limit on which files it can read or write. Cannot be changed after the session starts' },
+          turboLocked: 'This session started in Turbo: nothing asks for approval and permission modes have no effect',
+        },
         model: {
           title: 'Model and reasoning effort',
           switchAgent: 'Use another agent',

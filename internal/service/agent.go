@@ -383,6 +383,18 @@ func (s *AgentService) GetAgentSessionUpload(ctx context.Context, req *v1.GetAge
 	return s.uc.ReadUpload(ctx, req.GetId(), req.GetFile())
 }
 
+func (s *AgentService) GetAgentRuntimeModelLevels(ctx context.Context, req *v1.GetAgentRuntimeModelLevelsRequest) (*v1.GetAgentRuntimeModelLevelsResponse, error) {
+	levels, err := s.uc.RuntimeModelLevels(ctx, req.GetId(), req.GetModel())
+	if err != nil {
+		return nil, err
+	}
+	return &v1.GetAgentRuntimeModelLevelsResponse{Levels: levels}, nil
+}
+
+func (s *AgentService) GetAgentSessionLocalFile(ctx context.Context, req *v1.GetAgentSessionLocalFileRequest) (*v1.GetAgentSessionUploadResponse, error) {
+	return s.uc.ReadLocalFile(ctx, req.GetId(), req.GetPath())
+}
+
 func (s *AgentService) SearchAgentFiles(ctx context.Context, req *v1.SearchAgentFilesRequest) (*v1.SearchAgentFilesResponse, error) {
 	paths, err := s.uc.SearchFiles(ctx, req.GetSessionId(), req.GetWorkspaceId(), req.GetKeyword())
 	if err != nil {

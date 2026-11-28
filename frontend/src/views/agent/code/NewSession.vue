@@ -70,6 +70,7 @@
         :model="sel.model"
         :effort="sel.effort"
         :mode="sel.mode"
+        :unrestricted="sel.unrestricted"
         agent-switch
         :workspace-id="workspaceId"
         :skills="skills"
@@ -258,7 +259,7 @@ const composer = ref<InstanceType<typeof Composer> | null>(null)
 const workspaces = ref<AgentWorkspace[]>([])
 const workspaceId = ref('')
 const workspace = computed(() => workspaces.value.find((w) => w.id === workspaceId.value) ?? null)
-const sel = reactive<Selection>({ runtimeId: '', providerId: '', model: '', effort: '', mode: '' })
+const sel = reactive<Selection>({ runtimeId: '', providerId: '', model: '', effort: '', mode: '', unrestricted: false })
 const extraDirs = ref<string[]>([])
 const worktree = ref(false)
 const mcpServers = ref<AgentMcpServer[]>([])
@@ -274,10 +275,10 @@ const canExtraDirs = computed(() => !!caps.value?.additionalDirs)
 const wsSub = (w: AgentWorkspace) => [w.path, w.isGit ? w.branch : ''].filter(Boolean).join(' · ')
 
 // —— 默认值 ——
-/** 在某个 Agent 下挑一个能用的选择：想要的有就用想要的，没有就用默认的 */
+/** 在某个 Agent 下挑一个能用的选择：想要的有就用想要的，没有就用默认的。Turbo 每次都要自己选，不沿用 */
 const resolve = (want: Partial<Selection>): Selection => {
   const rt = props.options.find((r) => r.runtimeId === want.runtimeId && r.ready) ?? readyRuntimes.value[0]
-  if (!rt) return { runtimeId: '', providerId: '', model: '', effort: '', mode: '' }
+  if (!rt) return { runtimeId: '', providerId: '', model: '', effort: '', mode: '', unrestricted: false }
   const p =
     rt.providers.find((x) => x.providerId === (want.providerId ?? '') && x.models.some((m) => m.id === want.model)) ??
     rt.providers.find((x) => x.providerId === (want.providerId ?? '')) ??
@@ -285,7 +286,7 @@ const resolve = (want: Partial<Selection>): Selection => {
   const m = p?.models.find((x) => x.id === want.model) ?? p?.models.find((x) => x.id === p.defaultModel) ?? p?.models[0]
   const effort = m?.efforts.some((e) => e.id === want.effort) ? (want.effort as string) : (m?.defaultEffort ?? '')
   const mode = rt.modes.some((x) => x.id === want.mode) ? (want.mode as string) : rt.defaultMode
-  return { runtimeId: rt.runtimeId, providerId: p?.providerId ?? '', model: m?.id ?? want.model ?? '', effort, mode }
+  return { runtimeId: rt.runtimeId, providerId: p?.providerId ?? '', model: m?.id ?? want.model ?? '', effort, mode, unrestricted: false }
 }
 
 const applyDefaults = () => {
@@ -442,6 +443,7 @@ const create = async (text: string, attachments: DraftAttachment[]): Promise<boo
       model: sel.model,
       effort: sel.effort,
       mode: sel.mode,
+      unrestricted: sel.unrestricted,
       mcpIds: [...mcpIds],
       text,
       attachments,

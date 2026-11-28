@@ -18,11 +18,13 @@ import (
 
 	v1 "momoko/api/gen/v1"
 	"momoko/internal/data/ent/gen"
+	"momoko/internal/data/ent/schema"
 	"momoko/pkg/agentapi"
 	"momoko/pkg/agentapi/anthropic"
 	"momoko/pkg/agentapi/deepseek"
 	"momoko/pkg/agentapi/openai"
 	"momoko/pkg/agentdriver"
+	"momoko/pkg/agentdriver/antigravity"
 	"momoko/pkg/agentdriver/claude"
 	"momoko/pkg/agentdriver/codex"
 	"momoko/pkg/agentfs"
@@ -101,9 +103,11 @@ type AgentUser struct {
 	ID, Name, Username string
 }
 
-// AgentModelLimit 用户给服务器上的登录里一个模型设的最长上下文和最长输出（token 数，0 = 用 Agent 自己的）。
-type AgentModelLimit struct {
+// AgentRuntimeModelSetting 用户在管理页给服务器上的登录里一个模型设的：会话里能选的推理强度，
+// 最长上下文和最长输出（token 数，0 = 用 Agent 自己的）。
+type AgentRuntimeModelSetting struct {
 	Model         string
+	Efforts       []schema.AgentChoice
 	ContextWindow int64
 	MaxOutput     int64
 }
@@ -125,7 +129,7 @@ type AgentRepo interface {
 	SyncAgentRuntimeModels(ctx context.Context, runtimeID string, models []*gen.AgentRuntimeModel) error
 	ListAgentRuntimeModels(ctx context.Context, runtimeIDs ...string) ([]*gen.AgentRuntimeModel, error)
 	GetAgentRuntimeModel(ctx context.Context, runtimeID, model string) (*gen.AgentRuntimeModel, error)
-	SetAgentRuntimeModelLimits(ctx context.Context, runtimeID string, limits []AgentModelLimit) error
+	SetAgentRuntimeModelSettings(ctx context.Context, runtimeID string, settings []AgentRuntimeModelSetting) error
 
 	// ListAgentProviders userID 为空时是所有人的。
 	ListAgentProviders(ctx context.Context, userID string) ([]*gen.AgentProvider, error)
@@ -240,7 +244,7 @@ func NewAgentUsecase(repo AgentRepo, config ConfigRepo, authRepo AuthRepo, syste
 		box:        secretbox.New(auth.AuthSecretKey),
 		log:        log.NewHelper(log.With(logger, "module", "agent")),
 		root:       root,
-		drivers:    []agentdriver.Driver{claude.Driver{}, codex.Driver{}},
+		drivers:    []agentdriver.Driver{claude.Driver{}, codex.Driver{}, antigravity.Driver{}},
 		vendors:    []agentapi.Vendor{anthropic.Vendor{}, openai.Vendor{}, deepseek.Vendor{}},
 		hub:        agenthub.New(),
 		installing: make(map[string]bool),
@@ -493,13 +497,28 @@ func (uc *AgentUsecase) dir(parts ...string) string {
 //	worktree/  在独立工作树里运行时的工作树
 //	uploads/   对话里的附件和图片：上传的附件，以及 Agent 工具调用产出的图片
 //	tmp/       Agent 进程的临时目录
+//	agent/     Agent 自己的数据（会话记录、生成的文件），这一系能放进来的才有（见 withSessionData）
 func (uc *AgentUsecase) sessionDir(id string, sub ...string) string {
 	return filepath.Join(append([]string{uc.root, "sessions", id}, sub...)...)
 }
 
-// agentDirs 交给 Agent 的附加目录：会话自己选的附加文件夹，加上会话目录里的附件和临时目录（让它读写这两处不用批准）。
-func (uc *AgentUsecase) agentDirs(id string, extra []string) []string {
-	return append(slices.Clone(extra), agentfs.EnsureDir(uc.sessionDir(id, "uploads")), agentfs.EnsureDir(uc.sessionDir(id, "tmp")))
+// withSessionData 让 Agent 把这个会话自己的数据放进 dir（见 agentdriver.Driver.SessionData）：这一系放得了就建好目录、带上参数。
+// 登录不在里面，照旧在 Agent 自己的配置目录里。
+func withSessionData(d agentdriver.Driver, launch agentdriver.Launch, dir string) agentdriver.Launch {
+	args := d.SessionData(dir)
+	if len(args) == 0 {
+		return launch
+	}
+	agentfs.EnsureDir(dir)
+	launch.Args = append(slices.Clone(launch.Args), args...)
+	return launch
+}
+
+// agentDirs 经 ACP 的 additionalDirectories 交给 Agent 的附加目录：会话自己选的附加文件夹，会话目录里的附件和临时目录
+// （让它读写这两处不用批准），以及会话主人启用着的技能，每个技能就是它在技能库里的那个目录。
+func (uc *AgentUsecase) agentDirs(ctx context.Context, userID, id string, extra []string) []string {
+	dirs := append(slices.Clone(extra), agentfs.EnsureDir(uc.sessionDir(id, "uploads")), agentfs.EnsureDir(uc.sessionDir(id, "tmp")))
+	return append(dirs, uc.enabledSkillDirs(ctx, userID)...)
 }
 
 // driverOf 某一系的驱动；认不出的（custom）用 Generic。
@@ -700,7 +719,7 @@ func agentModelsPB(in []*gen.AgentRuntimeModel) []*v1.AgentModelOption {
 	out := make([]*v1.AgentModelOption, 0, len(in))
 	for _, m := range in {
 		opt := &v1.AgentModelOption{
-			Id: m.Model, Name: m.Name, DefaultEffort: m.DefaultEffort,
+			Id: m.Model, Name: m.Name, DefaultEffort: runtimeDefaultEffort(m),
 			ContextWindow: m.ContextWindow, MaxOutput: m.MaxOutput,
 		}
 		for _, e := range m.Efforts {
@@ -768,6 +787,8 @@ func (uc *AgentUsecase) GetOptions(ctx context.Context) (*v1.GetAgentOptionsResp
 			DefaultMode: catalog.DefaultMode,
 			Caps:        agentCapsPB(agentParse[agentrun.Caps](rt.Caps)),
 		}
+		d := uc.driverOf(string(rt.Kind))
+		item.Unrestricted = len(d.Unrestricted()) > 0
 		if rt.LoggedIn {
 			item.Providers = append(item.Providers, &v1.AgentProviderOptions{
 				Name:         rt.AuthLabel,
@@ -776,7 +797,6 @@ func (uc *AgentUsecase) GetOptions(ctx context.Context) (*v1.GetAgentOptionsResp
 				DefaultModel: catalog.DefaultModel,
 			})
 		}
-		d := uc.driverOf(string(rt.Kind))
 		for _, p := range providers {
 			if uc.serves(p, d) {
 				item.Providers = append(item.Providers, agentProviderOptions(p))

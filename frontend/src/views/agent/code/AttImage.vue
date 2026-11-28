@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import FileMediaDialog from '@/components/file/FileMediaDialog.vue'
+import { uploadImage } from './images'
 
 const props = defineProps<{
   name: string
@@ -39,9 +40,11 @@ watch(
     loaded.value = ''
     failed.value = false
     if (src || !sessionId || !file) return
-    loadUpload(sessionId, file).then(
+    uploadImage(sessionId, file).then(
       (u) => {
-        if (props.sessionId === sessionId && props.file === file) loaded.value = u
+        if (props.sessionId !== sessionId || props.file !== file) return
+        loaded.value = u
+        failed.value = !u
       },
       () => {
         failed.value = true
@@ -52,25 +55,3 @@ watch(
 )
 </script>
 
-<script lang="ts">
-import { getAgentSessionUpload } from '@/api/agent'
-
-// 取回来的图片按「会话 + file」记着，最多记这么多张（最久没用的先丢）。
-const CACHE_MAX = 60
-const cache = new Map<string, Promise<string>>()
-
-const loadUpload = (sessionId: string, file: string) => {
-  const key = `${sessionId}\n${file}`
-  const hit = cache.get(key)
-  if (hit) {
-    cache.delete(key)
-    cache.set(key, hit)
-    return hit
-  }
-  const p = getAgentSessionUpload(sessionId, file).then(({ data }) => `data:${data.mime};base64,${data.data}`)
-  p.catch(() => cache.delete(key))
-  cache.set(key, p)
-  if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value as string)
-  return p
-}
-</script>

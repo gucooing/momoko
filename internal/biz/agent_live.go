@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"momoko/internal/data/ent/gen/agentsession"
 	"momoko/pkg/agentdriver"
 	"momoko/pkg/agentrun"
-	"momoko/pkg/agentskill"
 	"momoko/pkg/response"
 )
 
@@ -442,6 +442,10 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 	if err != nil {
 		return nil, err
 	}
+	launch = withSessionData(driver, launch, uc.sessionDir(s.ID, "agent"))
+	if s.Unrestricted {
+		launch.Args = append(slices.Clone(launch.Args), driver.Unrestricted()...)
+	}
 	var provider *gen.AgentProvider
 	if s.ProviderID != "" {
 		// 第三方接口要还是会话主人用得上的：删掉了、或者管理员不再共享给他了，就起不来
@@ -471,10 +475,6 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 		return nil, err
 	}
 	launch, env = sandboxed(driver, launch, env, sb)
-	// 技能放进 Agent 的配置目录：这个目录是服务器上所有会话共用的，起进程前换成这个会话主人自己启用的技能
-	if home := driver.Home(); home != "" {
-		agentskill.Sync(home, uc.enabledSkills(bg, s.UserID))
-	}
 	servers, err := uc.sessionMcpServers(bg, s.UserID, s.McpIds)
 	if err != nil {
 		return nil, err
@@ -490,7 +490,7 @@ func (uc *AgentUsecase) startLive(ctx context.Context, s *gen.AgentSession) (*ag
 		Driver:      driver,
 		Env:         env,
 		Cwd:         s.Cwd,
-		ExtraDirs:   uc.agentDirs(s.ID, s.ExtraDirs),
+		ExtraDirs:   uc.agentDirs(bg, s.UserID, s.ID, s.ExtraDirs),
 		TempDir:     uc.sessionDir(s.ID, "tmp"),
 		MediaDir:    uc.sessionDir(s.ID, "uploads"),
 		McpServers:  servers,

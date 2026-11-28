@@ -1,4 +1,4 @@
-<!-- Agent 管理 · 运行时：每个 Agent 一行（重新检测；Claude Code 还有安装方式和检查更新），可以添加其它 ACP Agent；
+<!-- Agent 管理 · 运行时：每个 Agent 一行（重新检测；Claude Code、Antigravity 还有安装方式和检查更新），可以添加其它 ACP Agent；
      Codex 没有单文件发行包，没就绪时给出安装命令，由用户在服务器上自己执行。
      Linux 上还有沙箱用的 sing-box（配了代理的 Agent 在沙箱里跑，网络由它接管）：下载、检查更新。
      下面是全局的并发上限和空闲时长，自己输入数字。 -->
