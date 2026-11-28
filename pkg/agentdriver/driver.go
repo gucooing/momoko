@@ -51,8 +51,9 @@ type Driver interface {
 	// Launch 用找到的适配器启动 ACP 服务：path 是 Momoko 下载的那一份（managed 为 true）或服务器 PATH 里的 Adapter()。
 	// 有的适配器要带子命令和参数才是 ACP 服务（agy acp），下载的那一份可能还要关掉它自己的自动更新。
 	Launch(path string, managed bool) Launch
-	// SessionData 把这个会话 Agent 自己的数据（会话记录、生成的文件）放进 dir 时，启动要多带的参数。
-	// dir 是 Momoko 给这个会话的目录，删会话时整个删掉。放不了的为 nil：数据照旧在 Agent 自己的配置目录里。
+	// SessionData 把这个会话 Agent 自己的数据（会话记录、生成的文件）放进 dir 时，启动要多带的参数；
+	// 要先在 dir 里放好的（比如链到默认目录的登录凭据）也由驱动放好。dir 是 Momoko 给这个会话的目录，删会话时整个删掉。
+	// 放不了的为 nil：数据照旧在 Agent 自己的配置目录里。
 	SessionData(dir string) []string
 	// Unrestricted 启动时就让 Agent 不再询问任何操作（Antigravity 的 Turbo）要多带的参数；只能在开始会话前选，
 	// 会盖过会话里的权限模式。没有这种启动方式的为 nil。

@@ -1,11 +1,13 @@
 // Package antigravity 是 Google Antigravity（反重力）一系的驱动：Antigravity CLI 自带 ACP 服务（agy acp），
 // 发行包在 GitHub google-antigravity/antigravity-cli 上，里面只有一个可执行文件 antigravity。
-// 登录用 agy acp --login（打出网址，在浏览器里拿到码贴回终端）。每个会话的数据（会话记录、生成的图片和计划）
-// 用 --gemini-dir 放进 Momoko 给这个会话的目录。
+// 登录用 agy acp --login（打出网址，在浏览器里拿到码贴回终端），写在默认的 ~/.gemini 里。每个会话的数据（会话记录、
+// 生成的图片和计划）用 --gemini-dir 放进 Momoko 给这个会话的目录，登录凭据是文件时链过去共用。
 package antigravity
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -81,8 +83,37 @@ func (Driver) APIEnv(agentdriver.API) map[string]string { return nil }
 func (Driver) LoginLimits(int64, int64) map[string]string { return nil }
 
 // SessionData --gemini-dir 换掉 ~/.gemini：会话记录（conversations/<会话 id>.db）和生成的文件（brain/<会话 id>/）
-// 都在 dir/antigravity-cli 下，不再写到用户目录里。
-func (Driver) SessionData(dir string) []string { return []string{"--gemini-dir", dir} }
+// 都在 dir/antigravity-cli 下，不再写到用户目录里。登录不搬，见 shareLogin。
+func (Driver) SessionData(dir string) []string {
+	shareLogin(dir)
+	return []string{"--gemini-dir", dir}
+}
+
+// loginToken 存成文件的登录凭据，在数据目录（<gemini 目录>/antigravity-cli）下。
+// 系统钥匙串用不了时（Linux 上没有 D-Bus 会话总线：服务器、容器、沙箱里）agy 才存成这个文件，否则凭据在钥匙串里。
+const loginToken = "antigravity-oauth-token"
+
+// shareLogin 登录终端照旧写在默认的 ~/.gemini 里：凭据是文件的，在 dir 里放一个链到它的链接，会话和检查用的是同一份登录。
+// 每次起进程前都链一次：agy 刷新凭据时可能把链接换成了自己的文件，重新登录后要用新的。
+func shareLogin(dir string) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
+	src := filepath.Join(home, ".gemini", "antigravity-cli", loginToken)
+	if _, err := os.Stat(src); err != nil {
+		return
+	}
+	dst := filepath.Join(dir, "antigravity-cli", loginToken)
+	if target, err := os.Readlink(dst); err == nil && target == src {
+		return
+	}
+	if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
+		return
+	}
+	_ = os.Remove(dst)
+	_ = os.Symlink(src, dst)
+}
 
 // Unrestricted Turbo：--dangerously-skip-permissions 让所有工具调用都不再询问（settings.json 里的 toolPermission always-proceed），
 // 经 ACP 给的权限模式里没有它，只能在启动时带上。
