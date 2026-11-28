@@ -831,8 +831,8 @@ const showDiff = (path: string) => {
   diffFocus.value = path
 }
 
+// 选项（模型清单）由 useAgentModels 在第一次用到时读，配置改了经推送重读，这里不再另读一次
 onMounted(() => {
-  void loadOptions()
   void loadSidebar()
 })
 </script>

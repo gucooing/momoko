@@ -122,32 +122,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.GetAgentPreviewTokenResponse'
-    /api/v1/agent/files/raw:
-        get:
-            tags:
-                - AgentService
-            description: 原样读一个文件（预览图片，Markdown 里用到的图片）
-            operationId: AgentService_GetAgentFileRaw
-            parameters:
-                - name: sessionId
-                  in: query
-                  schema:
-                    type: string
-                - name: workspaceId
-                  in: query
-                  schema:
-                    type: string
-                - name: path
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetAgentSessionUploadResponse'
     /api/v1/agent/files/save:
         post:
             tags:
@@ -195,6 +169,43 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SearchAgentFilesResponse'
+    /api/v1/agent/files/sign:
+        get:
+            tags:
+                - AgentService
+            description: |-
+                会话或工作区里文件的签名下载链接（标准的 /api/v1/download/pre，原样字节）：消息附件、工具调用产出的图片、
+                 回复里引用的本机图片、文件页预览的文件都从这里取
+            operationId: AgentService_SignAgentFiles
+            parameters:
+                - name: sessionId
+                  in: query
+                  description: 会话的文件；新会话页还没有会话时给工作区
+                  schema:
+                    type: string
+                - name: workspaceId
+                  in: query
+                  schema:
+                    type: string
+                - name: paths
+                  in: query
+                  description: 相对工作目录（新会话页是工作区目录）的路径，或者绝对路径（要在会话目录、工作目录、附加目录里）
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: uploads
+                  in: query
+                  description: paths 相对会话的附件目录：消息附件、工具调用产出的图片（事件里记的 file）
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.SignAgentFilesResponse'
     /api/v1/agent/mcp:
         get:
             tags:
@@ -1621,30 +1632,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SyncAgentGitResponse'
-    /api/v1/agent/sessions/{id}/local:
-        get:
-            tags:
-                - AgentService
-            description: 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
-            operationId: AgentService_GetAgentSessionLocalFile
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: path
-                  in: query
-                  description: 绝对路径；file:// 地址的路径部分也行
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetAgentSessionUploadResponse'
     /api/v1/agent/sessions/{id}/option:
         post:
             tags:
@@ -1842,30 +1829,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.StopAgentSessionItemResponse'
-    /api/v1/agent/sessions/{id}/upload:
-        get:
-            tags:
-                - AgentService
-            description: 取回消息里上传过的附件（显示图片）
-            operationId: AgentService_GetAgentSessionUpload
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: file
-                  in: query
-                  description: 消息附件里记的 file
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1.GetAgentSessionUploadResponse'
     /api/v1/agent/sidebar:
         get:
             tags:
@@ -1931,7 +1894,7 @@ paths:
         post:
             tags:
                 - AgentService
-            description: 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+            description: 导入：上传的压缩包、压缩包链接、Git 地址、服务器上已有的目录
             operationId: AgentService_ImportAgentSkill
             requestBody:
                 content:
@@ -2028,6 +1991,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1.SetAgentSkillEnabledResponse'
+    /api/v1/agent/uploads/pre-sign:
+        post:
+            tags:
+                - AgentService
+            description: 上传文件（消息附件、技能压缩包）：标准的分片上传，先传到自己的暂存目录，用的时候按 upload_id 取走
+            operationId: AgentService_PreSignAgentUpload
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.PreSignAgentUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.PreSignAgentUploadResponse'
     /api/v1/agent/users:
         get:
             tags:
@@ -14922,13 +14904,15 @@ components:
                     description: snippet 是「路径:起止行」
                 mime:
                     type: string
-                data:
-                    type: string
-                    description: image / file / paste 的内容；snippet 是选中的文字
-                    format: bytes
                 path:
                     type: string
                     description: ref / snippet：相对会话目录的路径
+                text:
+                    type: string
+                    description: paste 的原文；snippet 选中的文字
+                uploadId:
+                    type: string
+                    description: image / file：上传（PreSignAgentUpload）的 id
             description: 附件：图片和文件随消息上传，工作区里的文件用路径引用
         v1.AgentBalance:
             type: object
@@ -21035,14 +21019,6 @@ components:
                     $ref: '#/components/schemas/v1.AgentSession'
                 detail:
                     $ref: '#/components/schemas/v1.AgentSessionDetail'
-        v1.GetAgentSessionUploadResponse:
-            type: object
-            properties:
-                mime:
-                    type: string
-                data:
-                    type: string
-                    format: bytes
         v1.GetAgentSidebarResponse:
             type: object
             properties:
@@ -22488,10 +22464,6 @@ components:
                 source:
                     type: string
                     description: zip（上传的压缩包）| url（压缩包下载链接）| git | dir
-                data:
-                    type: string
-                    description: zip 内容
-                    format: bytes
                 location:
                     type: string
                     description: 下载链接、git 地址或服务器上的目录
@@ -22502,6 +22474,9 @@ components:
                     type: array
                     items:
                         type: string
+                uploadId:
+                    type: string
+                    description: zip：上传（PreSignAgentUpload）的 id
         v1.ImportAgentSkillResponse:
             type: object
             properties:
@@ -25567,6 +25542,21 @@ components:
                     type: string
                     description: 累计出站流量(字节)
             description: 端口转发时间序列采样点
+        v1.PreSignAgentUploadRequest:
+            type: object
+            properties:
+                fileName:
+                    type: string
+                fileSize:
+                    type: string
+                hash:
+                    type: string
+                    description: 文件指纹（和文件管理的上传一样算）：同一个文件续传、已经传完的直接用
+        v1.PreSignAgentUploadResponse:
+            type: object
+            properties:
+                info:
+                    $ref: '#/components/schemas/v1.UploadInfo'
         v1.PresignGameServerAppMediaRequest:
             type: object
             properties:
@@ -27075,6 +27065,14 @@ components:
                     type: string
                     description: 本月下载中经 302 直链由存储端直接下发的次数
             description: 分享统计（当前用户全部分享，不受筛选/分页影响）
+        v1.SignAgentFilesResponse:
+            type: object
+            properties:
+                urls:
+                    type: array
+                    items:
+                        type: string
+                    description: 和 paths 一一对应；文件不在或不在能访问的目录里为空
         v1.SiteConfig:
             type: object
             properties:

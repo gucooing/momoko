@@ -5,6 +5,7 @@
 // source: v1/agent.proto
 
 /* eslint-disable */
+import type { UploadInfo } from "./file";
 
 export const protobufPackage = "v1";
 
@@ -270,10 +271,12 @@ export interface AgentAttachment {
   /** snippet 是「路径:起止行」 */
   name: string;
   mime: string;
-  /** image / file / paste 的内容；snippet 是选中的文字 */
-  data: Uint8Array;
   /** ref / snippet：相对会话目录的路径 */
   path: string;
+  /** paste 的原文；snippet 选中的文字 */
+  text: string;
+  /** image / file：上传（PreSignAgentUpload）的 id */
+  uploadId: string;
 }
 
 export interface CreateAgentSessionRequest {
@@ -853,21 +856,30 @@ export interface ReadAgentSessionFileResponse {
   modTime: number;
 }
 
-export interface GetAgentSessionUploadRequest {
-  id: string;
-  /** 消息附件里记的 file */
-  file: string;
+export interface SignAgentFilesRequest {
+  /** 会话的文件；新会话页还没有会话时给工作区 */
+  sessionId: string;
+  workspaceId: string;
+  /** 相对工作目录（新会话页是工作区目录）的路径，或者绝对路径（要在会话目录、工作目录、附加目录里） */
+  paths: string[];
+  /** paths 相对会话的附件目录：消息附件、工具调用产出的图片（事件里记的 file） */
+  uploads: boolean;
 }
 
-export interface GetAgentSessionUploadResponse {
-  mime: string;
-  data: Uint8Array;
+export interface SignAgentFilesResponse {
+  /** 和 paths 一一对应；文件不在或不在能访问的目录里为空 */
+  urls: string[];
 }
 
-export interface GetAgentSessionLocalFileRequest {
-  id: string;
-  /** 绝对路径；file:// 地址的路径部分也行 */
-  path: string;
+export interface PreSignAgentUploadRequest {
+  fileName: string;
+  fileSize: number;
+  /** 文件指纹（和文件管理的上传一样算）：同一个文件续传、已经传完的直接用 */
+  hash: string;
+}
+
+export interface PreSignAgentUploadResponse {
+  info: UploadInfo | undefined;
 }
 
 export interface SearchAgentFilesRequest {
@@ -927,12 +939,6 @@ export interface DeleteAgentFilesRequest {
 }
 
 export interface DeleteAgentFilesResponse {
-}
-
-export interface GetAgentFileRawRequest {
-  sessionId: string;
-  workspaceId: string;
-  path: string;
 }
 
 export interface GetAgentPreviewTokenRequest {
@@ -1473,13 +1479,13 @@ export interface SetAgentSkillEnabledResponse {
 export interface ImportAgentSkillRequest {
   /** zip（上传的压缩包）| url（压缩包下载链接）| git | dir */
   source: string;
-  /** zip 内容 */
-  data: Uint8Array;
   /** 下载链接、git 地址或服务器上的目录 */
   location: string;
   /** 导入成共享的（Agent 管理页，要有 agent:admin）：all | users；空是导入成自己的 */
   share: string;
   shareUserIds: string[];
+  /** zip：上传（PreSignAgentUpload）的 id */
+  uploadId: string;
 }
 
 export interface ImportAgentSkillResponse {

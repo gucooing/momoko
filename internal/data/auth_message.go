@@ -51,6 +51,7 @@ func (ar *authRepo) CreateMessages(ctx context.Context, msgs []*biz.UserMessage)
 				SetTitle(m.Title).
 				SetContent(m.Content).
 				SetSenderID(m.SenderID).
+				SetRef(m.Ref).
 				SetCreateTime(now).
 				SetUpdateTime(now)
 			if len(m.Params) > 0 {
@@ -113,6 +114,14 @@ func (ar *authRepo) DeleteMessages(ctx context.Context, userID string, ids []str
 		del = del.Where(usermessage.IDIn(ids...))
 	}
 	_, err := del.Exec(ctx)
+	return err
+}
+
+func (ar *authRepo) DeleteMessagesByRef(ctx context.Context, refs []string) error {
+	if len(refs) == 0 {
+		return nil
+	}
+	_, err := ar.data.db.UserMessage.Delete().Where(usermessage.RefIn(refs...)).Exec(ctx)
 	return err
 }
 

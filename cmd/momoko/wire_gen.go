@@ -137,7 +137,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, passport *conf.Passpo
 	passportAdminUsecase := biz.NewPassportAdminUsecase(gameServerUsecase, passportRepo, userRepo, configRepo, configUsecase, logger)
 	passportAdminService := service.NewPassportAdminService(passportAdminUsecase, passport)
 	agentRepo := data.NewAgentRepo(dataData)
-	agentUsecase, cleanup8 := biz.NewAgentUsecase(agentRepo, configRepo, authRepo, systemUsecase, logger)
+	agentUsecase, cleanup8 := biz.NewAgentUsecase(agentRepo, configRepo, authRepo, fileRepo, systemUsecase, logger)
 	agentService := service.NewAgentService(agentUsecase)
 	mcpService := service.NewMcpService(mcpUsecase, agentUsecase)
 	httpServer := server.NewHTTPServer(confServer, authorization, nodeProxy, operationLogMiddleware, authService, fileService, userService, systemService, initializeService, instanceService, openSSHService, nodeService, networkService, tunnelService, dockerService, iqCheckService, taskService, monitorService, themeassetManager, themeService, gameServerService, gameGMService, gakumasGMService, azurPromiliaGMService, gameOpsService, passportAdminService, agentService, mcpService)

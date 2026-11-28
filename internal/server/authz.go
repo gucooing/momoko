@@ -176,8 +176,19 @@ var servicePrefixPermissions = []struct {
 	{"/v1.AgentService/", constant.AgentUse},
 }
 
+// operationLoginOnly 落在 servicePrefixPermissions 前缀下、但只要登录的操作：分片上传的查状态、完成、取消
+// 只按上传 id 和当前用户找自己的上传记录（谁预签名的谁能动），实例文件、Agent 附件这些不同权限的上传都要用。
+var operationLoginOnly = map[string]bool{
+	v1.OperationFileManagerGetFileUploadStatus: true,
+	v1.OperationFileManagerCompleteFileUpload:  true,
+	v1.OperationFileManagerCancelFileUpload:    true,
+}
+
 // requiredPermission 返回某操作所需的权限；ok=false 表示该操作无需特定权限（仅需登录的自助类操作）。
 func requiredPermission(operation string) (constant.Permissions, bool) {
+	if operationLoginOnly[operation] {
+		return "", false
+	}
 	if perm, ok := operationWritePermissions[operation]; ok {
 		return perm, true
 	}

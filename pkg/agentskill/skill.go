@@ -301,27 +301,12 @@ func (s Store) Import(found Found) (int, error) {
 	return agentfs.CopyTree(found.Dir, target, MaxFiles)
 }
 
-// maxArchive 技能压缩包的大小上限，下载的和解出来的都算。
-const maxArchive = 64 << 20
+// MaxArchive 技能压缩包的大小上限，上传的、下载的和解出来的都算。
+const MaxArchive = 64 << 20
 
-// ExtractZip 把上传的技能压缩包解到 dest（dest 要已经存在）。
-func ExtractZip(ctx context.Context, data []byte, dest string) error {
-	if len(data) > maxArchive {
-		return errors.New("压缩包太大了")
-	}
-	tmp, err := os.CreateTemp("", "momoko-skill-*.zip")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tmp.Name())
-	_, err = tmp.Write(data)
-	if cerr := tmp.Close(); err == nil {
-		err = cerr
-	}
-	if err != nil {
-		return err
-	}
-	return archive.Extract(ctx, tmp.Name(), "skill.zip", dest, maxArchive)
+// ExtractZip 把上传的技能压缩包（zip 文件）解到 dest（dest 要已经存在）。
+func ExtractZip(ctx context.Context, zip, dest string) error {
+	return archive.Extract(ctx, zip, "skill.zip", dest, MaxArchive)
 }
 
 // FetchZip 经统一下载管理下载一个技能压缩包（https 链接）解到 dest。
@@ -342,7 +327,7 @@ func FetchZip(ctx context.Context, link, dest string) error {
 		Title:   "下载技能压缩包",
 		Source:  "agent.skill",
 		Perm:    string(constant.AgentManage),
-		MaxSize: maxArchive,
+		MaxSize: MaxArchive,
 	})
 	if err != nil {
 		return err
@@ -353,5 +338,5 @@ func FetchZip(ctx context.Context, link, dest string) error {
 		}
 		return err
 	}
-	return archive.Extract(ctx, tmp.Name(), "skill.zip", dest, maxArchive)
+	return archive.Extract(ctx, tmp.Name(), "skill.zip", dest, MaxArchive)
 }

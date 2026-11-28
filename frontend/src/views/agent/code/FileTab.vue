@@ -112,7 +112,8 @@
 <script setup lang="ts">
 import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
-import { getAgentFileRaw, readAgentFile, saveAgentFile, type AgentFileScope, type AgentModTime } from '@/api/agent'
+import { readAgentFile, saveAgentFile, type AgentFileScope, type AgentModTime } from '@/api/agent'
+import { fileLink } from './fileLinks'
 import { monaco } from '@/components/file/monaco'
 import type { GitChange } from './git/useGit'
 import { useThemeStore } from '@/stores/theme'
@@ -333,7 +334,6 @@ const switchTo = async (path: string) => {
   dirty.value = false
   conflict.value = false
   selLines.value = ''
-  raw.clear()
   emit('navigate', from, path)
   await loadText(path, true)
 }
@@ -380,7 +380,6 @@ const reloadFromDisk = async (quiet = false) => {
       if (view) editor.restoreViewState(view)
     }
     savedVer = model.getAlternativeVersionId()
-    raw.clear()
     if (kind === 'html') setFrame(cur.value)
     updateDirty()
     void refreshPreview()
@@ -423,14 +422,12 @@ const onKey = (e: KeyboardEvent) => {
 // —— 图片 ——
 const imgUrl = ref('')
 const imgInfo = ref('')
-let imgSize = 0
 const loadImage = async () => {
   note.value = t('agent.common.loading')
   try {
-    const { data } = await getAgentFileRaw(scope, cur.value)
-    if (!data.data) throw new Error('missing')
-    imgSize = Math.floor((data.data.length * 3) / 4)
-    imgUrl.value = `data:${data.mime || 'image/png'};base64,${data.data}`
+    const url = await fileLink(scope, cur.value)
+    if (!url) throw new Error('missing')
+    imgUrl.value = url
     note.value = ''
   } catch {
     note.value = t('agent.code.file.failed')
@@ -438,23 +435,13 @@ const loadImage = async () => {
 }
 const onImgLoad = (e: Event) => {
   const img = e.target as HTMLImageElement
-  imgInfo.value = `${img.naturalWidth} × ${img.naturalHeight} · ${fmtBytes(imgSize)}`
+  // 大小看浏览器下载这张图时记下的
+  const entry = performance.getEntriesByName(img.currentSrc).pop() as PerformanceResourceTiming | undefined
+  const size = entry?.decodedBodySize || entry?.encodedBodySize || 0
+  imgInfo.value = [`${img.naturalWidth} × ${img.naturalHeight}`, size ? fmtBytes(size) : ''].filter(Boolean).join(' · ')
 }
 
 // —— 预览 ——
-/** 目录里取过的文件（图片、样式表、脚本）：路径 → base64 和类型，取不到为 null */
-const raw = new Map<string, Promise<{ mime: string; data: string } | null>>()
-const fetchRaw = (path: string) => {
-  let hit = raw.get(path)
-  if (!hit) {
-    hit = getAgentFileRaw(scope, path).then(
-      ({ data }) => (data.data ? { mime: data.mime, data: data.data } : null),
-      () => null,
-    )
-    raw.set(path, hit)
-  }
-  return hit
-}
 /** 预览里的相对地址换成目录里的路径；外部地址、页内锚点、跳出目录的返回 null */
 const resolveRel = (src: string): string | null => {
   if (!src || src.startsWith('#') || src.startsWith('//') || /^[a-z][a-z0-9+.-]*:/i.test(src)) return null
@@ -474,7 +461,6 @@ const resolveRel = (src: string): string | null => {
   }
   return parts.join('/') || null
 }
-const dataUrl = (r: { mime: string; data: string }) => `data:${r.mime || 'application/octet-stream'};base64,${r.data}`
 
 const svgUrl = ref('')
 const htmlDoc = ref('')
@@ -537,16 +523,19 @@ const schedulePreview = () => {
   if (kind === 'md' || kind === 'html' || kind === 'svg') void debounced[kind]()
 }
 
-/** 相对路径的图片换成取回来的内容（预览里没法按路径去取） */
+/** 相对路径的图片换成签名下载链接（预览里没法按路径去取） */
 const inlineImages = async (doc: Document) => {
   const jobs: Promise<void>[] = []
   for (const img of [...doc.querySelectorAll('img[src]')].slice(0, 80)) {
     const path = resolveRel(img.getAttribute('src') || '')
     if (!path) continue
     jobs.push(
-      fetchRaw(path).then((r) => {
-        if (r) img.setAttribute('src', dataUrl(r))
-      }),
+      fileLink(scope, path).then(
+        (url) => {
+          if (url) img.setAttribute('src', url)
+        },
+        () => {},
+      ),
     )
   }
   await Promise.all(jobs)

@@ -130,6 +130,20 @@ func (_u *UserMessageUpdate) SetNillableSenderID(v *string) *UserMessageUpdate {
 	return _u
 }
 
+// SetRef sets the "ref" field.
+func (_u *UserMessageUpdate) SetRef(v string) *UserMessageUpdate {
+	_u.mutation.SetRef(v)
+	return _u
+}
+
+// SetNillableRef sets the "ref" field if the given value is not nil.
+func (_u *UserMessageUpdate) SetNillableRef(v *string) *UserMessageUpdate {
+	if v != nil {
+		_u.SetRef(*v)
+	}
+	return _u
+}
+
 // SetReadAt sets the "read_at" field.
 func (_u *UserMessageUpdate) SetReadAt(v time.Time) *UserMessageUpdate {
 	_u.mutation.SetReadAt(v)
@@ -244,6 +258,9 @@ func (_u *UserMessageUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.SenderID(); ok {
 		_spec.SetField(usermessage.FieldSenderID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Ref(); ok {
+		_spec.SetField(usermessage.FieldRef, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ReadAt(); ok {
 		_spec.SetField(usermessage.FieldReadAt, field.TypeTime, value)
@@ -369,6 +386,20 @@ func (_u *UserMessageUpdateOne) SetSenderID(v string) *UserMessageUpdateOne {
 func (_u *UserMessageUpdateOne) SetNillableSenderID(v *string) *UserMessageUpdateOne {
 	if v != nil {
 		_u.SetSenderID(*v)
+	}
+	return _u
+}
+
+// SetRef sets the "ref" field.
+func (_u *UserMessageUpdateOne) SetRef(v string) *UserMessageUpdateOne {
+	_u.mutation.SetRef(v)
+	return _u
+}
+
+// SetNillableRef sets the "ref" field if the given value is not nil.
+func (_u *UserMessageUpdateOne) SetNillableRef(v *string) *UserMessageUpdateOne {
+	if v != nil {
+		_u.SetRef(*v)
 	}
 	return _u
 }
@@ -517,6 +548,9 @@ func (_u *UserMessageUpdateOne) sqlSave(ctx context.Context) (_node *UserMessage
 	}
 	if value, ok := _u.mutation.SenderID(); ok {
 		_spec.SetField(usermessage.FieldSenderID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Ref(); ok {
+		_spec.SetField(usermessage.FieldRef, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ReadAt(); ok {
 		_spec.SetField(usermessage.FieldReadAt, field.TypeTime, value)

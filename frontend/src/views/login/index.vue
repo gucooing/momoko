@@ -145,7 +145,7 @@
 
 <script setup lang="ts">
 import { APP_CONFIG } from '@/config/app.config'
-import { getLoginConfig } from '@/api/login'
+import { getPublicLoginConfig } from '@/api/login'
 import AccountLogin from '@/views/login/accountLogin.vue'
 import ForgotPassword from '@/views/login/forgotPassword.vue'
 import Register from '@/views/login/register.vue'
@@ -258,7 +258,7 @@ const applyDefaultLanguage = (lang: string) => {
 
 onMounted(async () => {
   try {
-    const { data } = await getLoginConfig()
+    const { data } = await getPublicLoginConfig()
     if (data?.config) Object.assign(loginConfig, data.config)
     siteName.value = data?.siteName?.trim() || ''
     mailEnabled.value = data?.mailEnabled ?? true

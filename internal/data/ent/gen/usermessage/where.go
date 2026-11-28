@@ -104,6 +104,11 @@ func SenderID(v string) predicate.UserMessage {
 	return predicate.UserMessage(sql.FieldEQ(FieldSenderID, v))
 }
 
+// Ref applies equality check predicate on the "ref" field. It's identical to RefEQ.
+func Ref(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldEQ(FieldRef, v))
+}
+
 // ReadAt applies equality check predicate on the "read_at" field. It's identical to ReadAtEQ.
 func ReadAt(v time.Time) predicate.UserMessage {
 	return predicate.UserMessage(sql.FieldEQ(FieldReadAt, v))
@@ -587,6 +592,71 @@ func SenderIDEqualFold(v string) predicate.UserMessage {
 // SenderIDContainsFold applies the ContainsFold predicate on the "sender_id" field.
 func SenderIDContainsFold(v string) predicate.UserMessage {
 	return predicate.UserMessage(sql.FieldContainsFold(FieldSenderID, v))
+}
+
+// RefEQ applies the EQ predicate on the "ref" field.
+func RefEQ(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldEQ(FieldRef, v))
+}
+
+// RefNEQ applies the NEQ predicate on the "ref" field.
+func RefNEQ(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldNEQ(FieldRef, v))
+}
+
+// RefIn applies the In predicate on the "ref" field.
+func RefIn(vs ...string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldIn(FieldRef, vs...))
+}
+
+// RefNotIn applies the NotIn predicate on the "ref" field.
+func RefNotIn(vs ...string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldNotIn(FieldRef, vs...))
+}
+
+// RefGT applies the GT predicate on the "ref" field.
+func RefGT(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldGT(FieldRef, v))
+}
+
+// RefGTE applies the GTE predicate on the "ref" field.
+func RefGTE(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldGTE(FieldRef, v))
+}
+
+// RefLT applies the LT predicate on the "ref" field.
+func RefLT(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldLT(FieldRef, v))
+}
+
+// RefLTE applies the LTE predicate on the "ref" field.
+func RefLTE(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldLTE(FieldRef, v))
+}
+
+// RefContains applies the Contains predicate on the "ref" field.
+func RefContains(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldContains(FieldRef, v))
+}
+
+// RefHasPrefix applies the HasPrefix predicate on the "ref" field.
+func RefHasPrefix(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldHasPrefix(FieldRef, v))
+}
+
+// RefHasSuffix applies the HasSuffix predicate on the "ref" field.
+func RefHasSuffix(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldHasSuffix(FieldRef, v))
+}
+
+// RefEqualFold applies the EqualFold predicate on the "ref" field.
+func RefEqualFold(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldEqualFold(FieldRef, v))
+}
+
+// RefContainsFold applies the ContainsFold predicate on the "ref" field.
+func RefContainsFold(v string) predicate.UserMessage {
+	return predicate.UserMessage(sql.FieldContainsFold(FieldRef, v))
 }
 
 // ReadAtEQ applies the EQ predicate on the "read_at" field.

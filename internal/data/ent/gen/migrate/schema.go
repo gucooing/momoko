@@ -1907,6 +1907,7 @@ var (
 		{Name: "content", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "params", Type: field.TypeJSON, Nullable: true},
 		{Name: "sender_id", Type: field.TypeString, Default: ""},
+		{Name: "ref", Type: field.TypeString, Default: ""},
 		{Name: "read_at", Type: field.TypeTime, Nullable: true},
 	}
 	// UserMessagesTable holds the schema information for the "user_messages" table.
@@ -1923,7 +1924,12 @@ var (
 			{
 				Name:    "usermessage_user_id_read_at",
 				Unique:  false,
-				Columns: []*schema.Column{UserMessagesColumns[3], UserMessagesColumns[10]},
+				Columns: []*schema.Column{UserMessagesColumns[3], UserMessagesColumns[11]},
+			},
+			{
+				Name:    "usermessage_ref",
+				Unique:  false,
+				Columns: []*schema.Column{UserMessagesColumns[10]},
 			},
 		},
 	}

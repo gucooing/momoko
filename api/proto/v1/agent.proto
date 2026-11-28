@@ -6,6 +6,7 @@ option go_package = "momoko/api/gen/v1;v1";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "v1/file.proto";
 
 // Agent：Momoko 作为 ACP（Agent Client Protocol）客户端，在服务器上启动并控制 Claude Code、Codex 等 Agent。
 // 会话里的对话事件走 WebSocket（/api/v1/agent/ws），这里只有一元接口；发起一轮的接口立刻返回。
@@ -171,13 +172,14 @@ service AgentService {
   rpc ReadAgentSessionFile(ReadAgentSessionFileRequest) returns (ReadAgentSessionFileResponse) {
     option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/file" };
   }
-  // 取回消息里上传过的附件（显示图片）
-  rpc GetAgentSessionUpload(GetAgentSessionUploadRequest) returns (GetAgentSessionUploadResponse) {
-    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/upload" };
+  // 会话或工作区里文件的签名下载链接（标准的 /api/v1/download/pre，原样字节）：消息附件、工具调用产出的图片、
+  // 回复里引用的本机图片、文件页预览的文件都从这里取
+  rpc SignAgentFiles(SignAgentFilesRequest) returns (SignAgentFilesResponse) {
+    option (google.api.http) = { get: "/api/v1/agent/files/sign" };
   }
-  // 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
-  rpc GetAgentSessionLocalFile(GetAgentSessionLocalFileRequest) returns (GetAgentSessionUploadResponse) {
-    option (google.api.http) = { get: "/api/v1/agent/sessions/{id}/local" };
+  // 上传文件（消息附件、技能压缩包）：标准的分片上传，先传到自己的暂存目录，用的时候按 upload_id 取走
+  rpc PreSignAgentUpload(PreSignAgentUploadRequest) returns (PreSignAgentUploadResponse) {
+    option (google.api.http) = { post: "/api/v1/agent/uploads/pre-sign" body: "*" };
   }
   // @ 引用文件：按文件名搜索会话目录（新会话还没有会话时按工作区搜）
   rpc SearchAgentFiles(SearchAgentFilesRequest) returns (SearchAgentFilesResponse) {
@@ -199,10 +201,6 @@ service AgentService {
   // 删除文件或文件夹（整个删掉，不进回收站）
   rpc DeleteAgentFiles(DeleteAgentFilesRequest) returns (DeleteAgentFilesResponse) {
     option (google.api.http) = { post: "/api/v1/agent/files/delete" body: "*" };
-  }
-  // 原样读一个文件（预览图片，Markdown 里用到的图片）
-  rpc GetAgentFileRaw(GetAgentFileRawRequest) returns (GetAgentSessionUploadResponse) {
-    option (google.api.http) = { get: "/api/v1/agent/files/raw" };
   }
   // HTML 预览的签名：iframe 按 /api/v1/public/agent/preview/{节点}/{签名}/{相对路径} 把目录当静态站点加载
   rpc GetAgentPreviewToken(GetAgentPreviewTokenRequest) returns (GetAgentPreviewTokenResponse) {
@@ -312,7 +310,7 @@ service AgentService {
   rpc SetAgentSkillEnabled(SetAgentSkillEnabledRequest) returns (SetAgentSkillEnabledResponse) {
     option (google.api.http) = { post: "/api/v1/agent/skills/{id}/enabled" body: "*" };
   }
-  // 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+  // 导入：上传的压缩包、压缩包链接、Git 地址、服务器上已有的目录
   rpc ImportAgentSkill(ImportAgentSkillRequest) returns (ImportAgentSkillResponse) {
     option (google.api.http) = { post: "/api/v1/agent/skills/import" body: "*" };
   }
@@ -663,10 +661,12 @@ message AgentAttachment {
   // snippet 是「路径:起止行」
   string name = 2;
   string mime = 3;
-  // image / file / paste 的内容；snippet 是选中的文字
-  bytes data = 4;
   // ref / snippet：相对会话目录的路径
   string path = 5;
+  // paste 的原文；snippet 选中的文字
+  string text = 6;
+  // image / file：上传（PreSignAgentUpload）的 id
+  string upload_id = 7;
 }
 
 message CreateAgentSessionRequest {
@@ -1179,20 +1179,28 @@ message ReadAgentSessionFileResponse {
   int64 mod_time = 6;
 }
 
-message GetAgentSessionUploadRequest {
-  string id = 1;
-  // 消息附件里记的 file
-  string file = 2;
+message SignAgentFilesRequest {
+  // 会话的文件；新会话页还没有会话时给工作区
+  string session_id = 1;
+  string workspace_id = 2;
+  // 相对工作目录（新会话页是工作区目录）的路径，或者绝对路径（要在会话目录、工作目录、附加目录里）
+  repeated string paths = 3;
+  // paths 相对会话的附件目录：消息附件、工具调用产出的图片（事件里记的 file）
+  bool uploads = 4;
 }
-message GetAgentSessionUploadResponse {
-  string mime = 1;
-  bytes data = 2;
+message SignAgentFilesResponse {
+  // 和 paths 一一对应；文件不在或不在能访问的目录里为空
+  repeated string urls = 1;
 }
 
-message GetAgentSessionLocalFileRequest {
-  string id = 1;
-  // 绝对路径；file:// 地址的路径部分也行
-  string path = 2;
+message PreSignAgentUploadRequest {
+  string file_name = 1;
+  int64 file_size = 2;
+  // 文件指纹（和文件管理的上传一样算）：同一个文件续传、已经传完的直接用
+  string hash = 3;
+}
+message PreSignAgentUploadResponse {
+  UploadInfo info = 1;
 }
 
 message SearchAgentFilesRequest {
@@ -1245,12 +1253,6 @@ message DeleteAgentFilesRequest {
   repeated string paths = 3;
 }
 message DeleteAgentFilesResponse {}
-
-message GetAgentFileRawRequest {
-  string session_id = 1;
-  string workspace_id = 2;
-  string path = 3;
-}
 
 message GetAgentPreviewTokenRequest {
   string session_id = 1;
@@ -1742,13 +1744,13 @@ message SetAgentSkillEnabledResponse {}
 message ImportAgentSkillRequest {
   // zip（上传的压缩包）| url（压缩包下载链接）| git | dir
   string source = 1;
-  // zip 内容
-  bytes data = 2;
   // 下载链接、git 地址或服务器上的目录
   string location = 3;
   // 导入成共享的（Agent 管理页，要有 agent:admin）：all | users；空是导入成自己的
   string share = 4;
   repeated string share_user_ids = 5;
+  // zip：上传（PreSignAgentUpload）的 id
+  string upload_id = 6;
 }
 message ImportAgentSkillResponse {
   repeated AgentSkill skills = 1;

@@ -117,7 +117,8 @@ const nextId = () => {
 }
 
 export const useFileUpload = (
-  getClient: () => FileClient,
+  // 只用到预签名：系统、实例的文件客户端，Agent 的附件上传都能用
+  getClient: () => Pick<FileClient, 'preSignUpload'>,
   getTargetPath: () => string,
   options: UploadOptions = {},
 ) => {

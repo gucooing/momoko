@@ -67,6 +67,8 @@ type UserMessage struct {
 	Content  string
 	Params   map[string]string
 	SenderID string
+	// Ref 关联的对象（Agent 的通知是会话 id）：对象删掉时用 DeleteMessagesByRef 把消息一起删掉
+	Ref string
 }
 
 // MessageRepo 站内消息存储（由 AuthRepo 一并实现）。
@@ -79,6 +81,8 @@ type MessageRepo interface {
 	ReadMessages(ctx context.Context, userID string, ids []string, all bool) error
 	// DeleteMessages 删除消息；all 为 true 时忽略 ids。
 	DeleteMessages(ctx context.Context, userID string, ids []string, all bool) error
+	// DeleteMessagesByRef 删掉关联这些对象的消息（不分用户）。
+	DeleteMessagesByRef(ctx context.Context, refs []string) error
 	// ActiveUserIDs 返回全部启用用户的 id（用于发布通知）。
 	ActiveUserIDs(ctx context.Context) ([]string, error)
 }

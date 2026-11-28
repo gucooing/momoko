@@ -211,7 +211,7 @@ import AgShareField from '@/views/agent/components/AgShareField.vue'
 import AgSwitch from '@/views/agent/components/AgSwitch.vue'
 import { useAgentAll } from '@/views/agent/composables/useAgentAll'
 import { useAgentOverview } from '@/views/agent/composables/useAgentOverview'
-import { fileToBase64 } from '@/views/agent/utils/format'
+import { uploadAgentFile, useAgentUploads } from '@/views/agent/utils/upload'
 import SkillEditorDialog from './SkillEditorDialog.vue'
 
 defineOptions({ name: 'AgentManageSkillsView' })
@@ -319,7 +319,9 @@ const openEdit = async (s: AgentSkill) => {
 // —— 导入 ——
 type ImportKind = 'zip' | 'git' | 'dir'
 const importKinds: ImportKind[] = ['zip', 'git', 'dir']
-const ZIP_MAX_BYTES = 20 * 1024 * 1024
+const ZIP_MAX_BYTES = 64 * 1024 * 1024
+// 压缩包用标准的分片上传传上去，导入时只带 uploadId
+const zipUploads = useAgentUploads()
 
 const importing = ref(false)
 const zipInput = useTemplateRef<HTMLInputElement>('zipInput')
@@ -383,14 +385,18 @@ const onZipPicked = async (e: Event) => {
     feedback.warning(t('agent.skills.toast.zipTooLarge'))
     return
   }
-  let data = ''
+  if (importing.value) return
+  importing.value = true
+  let uploadId = ''
   try {
-    data = await fileToBase64(file)
-  } catch {
-    feedback.error(t('agent.skills.toast.zipUnreadable'))
+    uploadId = await uploadAgentFile(zipUploads, file)
+  } catch (e) {
+    feedback.error((e as Error).message || t('agent.skills.toast.zipUnreadable'))
     return
+  } finally {
+    importing.value = false
   }
-  if (await runImport({ source: 'zip', data })) zipOpen.value = false
+  if (await runImport({ source: 'zip', uploadId })) zipOpen.value = false
 }
 
 const importGit = async () => {

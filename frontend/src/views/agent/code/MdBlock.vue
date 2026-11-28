@@ -1,6 +1,6 @@
 <!-- 一段 Agent 的回答（Markdown）。单独成组件：只有文字变了的这一段重新渲染，正在写的回答每来一段字，
      前面已经写完的回答不会跟着重新解析。图片显示成缩略图，点开用媒体查看层看大图。
-     引用本机文件的图片和链接（file:// 地址或绝对路径），按会话从接口取回来显示；会话能访问的目录以外的取不到。 -->
+     引用本机文件的图片和链接（file:// 地址或绝对路径）换成签名下载链接；会话能访问的目录以外的取不到。 -->
 <template>
   <div ref="root" class="agc-md" @click="onClick" v-html="html" />
   <FileMediaDialog v-if="view" :model-value="true" :name="view.name" kind="image" :url="view.url" @update:model-value="view = null" />
@@ -9,20 +9,20 @@
 <script setup lang="ts">
 import MarkdownIt from 'markdown-it'
 import FileMediaDialog from '@/components/file/FileMediaDialog.vue'
-import { localImage } from './images'
+import { fileLink, isImagePath } from './fileLinks'
 
 const props = defineProps<{ text: string; sessionId?: string }>()
 
 const html = computed(() => md.render(props.text))
 const root = ref<HTMLElement | null>(null)
 
-// 引用本机文件的图片（渲染时把路径记在 data-local 上）取回来再显示
+// 引用本机文件的图片（渲染时把路径记在 data-local 上）换成签名链接
 const loadLocal = () => {
   const sessionId = props.sessionId
   if (!sessionId || !root.value) return
   for (const img of root.value.querySelectorAll<HTMLImageElement>('img[data-local]')) {
     const path = img.dataset.local || ''
-    localImage(sessionId, path).then(
+    fileLink({ sessionId }, path).then(
       (url) => {
         if (url && img.dataset.local === path) img.src = url
       },
@@ -57,9 +57,10 @@ const onClick = (e: MouseEvent) => {
   const path = link?.dataset.local || ''
   if (!path || !props.sessionId) return
   e.preventDefault()
-  localImage(props.sessionId, path).then(
+  if (!isImagePath(path)) return
+  fileLink({ sessionId: props.sessionId }, path).then(
     (url) => {
-      if (url.startsWith('data:image/')) view.value = { url, name: path.split(/[\\/]/).pop() || 'image' }
+      if (url) view.value = { url, name: path.split(/[\\/]/).pop() || 'image' }
     },
     () => {},
   )
@@ -67,7 +68,7 @@ const onClick = (e: MouseEvent) => {
 </script>
 
 <script lang="ts">
-import { localPathOf } from './images'
+import { localPathOf } from './fileLinks'
 
 const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
 // file:// 默认不让过：放它过去，渲染时换成从接口取（见下面的 link_open、image）

@@ -379,8 +379,20 @@ func (s *AgentService) ReadAgentSessionFile(ctx context.Context, req *v1.ReadAge
 	return s.uc.ReadFile(ctx, req.GetId(), req.GetPath())
 }
 
-func (s *AgentService) GetAgentSessionUpload(ctx context.Context, req *v1.GetAgentSessionUploadRequest) (*v1.GetAgentSessionUploadResponse, error) {
-	return s.uc.ReadUpload(ctx, req.GetId(), req.GetFile())
+func (s *AgentService) SignAgentFiles(ctx context.Context, req *v1.SignAgentFilesRequest) (*v1.SignAgentFilesResponse, error) {
+	urls, err := s.uc.SignFiles(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.SignAgentFilesResponse{Urls: urls}, nil
+}
+
+func (s *AgentService) PreSignAgentUpload(ctx context.Context, req *v1.PreSignAgentUploadRequest) (*v1.PreSignAgentUploadResponse, error) {
+	info, err := s.uc.PreSignUpload(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.PreSignAgentUploadResponse{Info: info}, nil
 }
 
 func (s *AgentService) GetAgentRuntimeModelLevels(ctx context.Context, req *v1.GetAgentRuntimeModelLevelsRequest) (*v1.GetAgentRuntimeModelLevelsResponse, error) {
@@ -389,10 +401,6 @@ func (s *AgentService) GetAgentRuntimeModelLevels(ctx context.Context, req *v1.G
 		return nil, err
 	}
 	return &v1.GetAgentRuntimeModelLevelsResponse{Levels: levels}, nil
-}
-
-func (s *AgentService) GetAgentSessionLocalFile(ctx context.Context, req *v1.GetAgentSessionLocalFileRequest) (*v1.GetAgentSessionUploadResponse, error) {
-	return s.uc.ReadLocalFile(ctx, req.GetId(), req.GetPath())
 }
 
 func (s *AgentService) SearchAgentFiles(ctx context.Context, req *v1.SearchAgentFilesRequest) (*v1.SearchAgentFilesResponse, error) {
@@ -426,10 +434,6 @@ func (s *AgentService) DeleteAgentFiles(ctx context.Context, req *v1.DeleteAgent
 		return nil, err
 	}
 	return &v1.DeleteAgentFilesResponse{}, nil
-}
-
-func (s *AgentService) GetAgentFileRaw(ctx context.Context, req *v1.GetAgentFileRawRequest) (*v1.GetAgentSessionUploadResponse, error) {
-	return s.uc.ReadRaw(ctx, req.GetSessionId(), req.GetWorkspaceId(), req.GetPath())
 }
 
 func (s *AgentService) GetAgentPreviewToken(ctx context.Context, req *v1.GetAgentPreviewTokenRequest) (*v1.GetAgentPreviewTokenResponse, error) {

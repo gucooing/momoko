@@ -21,6 +21,7 @@ func (UserMessage) Fields() []ent.Field {
 		field.Text("content").Default("").Comment("内容"),
 		field.JSON("params", map[string]string{}).Optional().Comment("模板参数"),
 		field.String("sender_id").Default("").Comment("发布者用户id（notice）"),
+		field.String("ref").Default("").Comment("关联的对象：Agent 的通知是会话 id，会话删掉时消息一起删"),
 		field.Time("read_at").Optional().Nillable().Comment("已读时间"),
 	}
 }
@@ -29,6 +30,7 @@ func (UserMessage) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("user_id", "create_time"),
 		index.Fields("user_id", "read_at"),
+		index.Fields("ref"),
 	}
 }
 

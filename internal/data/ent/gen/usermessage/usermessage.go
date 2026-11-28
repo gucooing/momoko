@@ -31,6 +31,8 @@ const (
 	FieldParams = "params"
 	// FieldSenderID holds the string denoting the sender_id field in the database.
 	FieldSenderID = "sender_id"
+	// FieldRef holds the string denoting the ref field in the database.
+	FieldRef = "ref"
 	// FieldReadAt holds the string denoting the read_at field in the database.
 	FieldReadAt = "read_at"
 	// Table holds the table name of the usermessage in the database.
@@ -49,6 +51,7 @@ var Columns = []string{
 	FieldContent,
 	FieldParams,
 	FieldSenderID,
+	FieldRef,
 	FieldReadAt,
 }
 
@@ -81,6 +84,8 @@ var (
 	DefaultContent string
 	// DefaultSenderID holds the default value on creation for the "sender_id" field.
 	DefaultSenderID string
+	// DefaultRef holds the default value on creation for the "ref" field.
+	DefaultRef string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
@@ -131,6 +136,11 @@ func ByContent(opts ...sql.OrderTermOption) OrderOption {
 // BySenderID orders the results by the sender_id field.
 func BySenderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSenderID, opts...).ToFunc()
+}
+
+// ByRef orders the results by the ref field.
+func ByRef(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRef, opts...).ToFunc()
 }
 
 // ByReadAt orders the results by the read_at field.

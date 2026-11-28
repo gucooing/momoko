@@ -15,7 +15,7 @@ import router from '@/router/index'
 import { i18n } from '@/locales'
 import { setAppContext } from '@/utils/appContext'
 import uiPlugin from '@nuxt/ui/vue-plugin' // Nuxt UI 运行时插件（虚拟模块，由 @nuxt/ui/vite 提供）
-import { getLocalLoginConfig } from '@/api/login'
+import { getPublicLoginConfig } from '@/api/login'
 import { setGameAssetBase } from '@/games/core'
 
 //  动态设置favicon和项目名称
@@ -37,7 +37,7 @@ const initAppConfig = () => {
 }
 
 const initGameAssets = () => {
-  getLocalLoginConfig()
+  getPublicLoginConfig()
     .then(({ data }) => setGameAssetBase(data?.gameAssetUrl))
     .catch(() => setGameAssetBase(''))
 }

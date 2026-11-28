@@ -65,10 +65,11 @@ import type {
   PurgeAgentSessionsResponse,
   ReadAgentSessionFileResponse,
   GetAgentRuntimeModelLevelsResponse,
-  GetAgentSessionUploadResponse,
   SaveAgentFileResponse,
   SaveAgentNotifyChannelResponse,
+  PreSignAgentUploadResponse,
   SearchAgentFilesResponse,
+  SignAgentFilesResponse,
   SetAgentRuntimeModeResponse,
   SetAgentRuntimeModelsResponse,
   SetAgentRuntimeProxyResponse,
@@ -96,8 +97,8 @@ export const AGENT_LOGIN_WS_PATH = '/api/v1/agent/login/ws'
 // 一轮可能要先启动 Agent 进程、恢复上下文，放宽超时。
 const SLOW = { timeout: 120000 }
 
-/** 随消息上传的附件：图片和文件的内容是 base64（protobuf bytes 在 JSON 里的写法） */
-export type AgentAttachmentInput = Omit<Partial<AgentAttachment>, 'data'> & { data?: string }
+/** 随消息发的附件：图片和文件是传好的 uploadId（preSignAgentUpload），粘贴和选中的文字在 text 里 */
+export type AgentAttachmentInput = Partial<AgentAttachment>
 
 // —— 选择器 / 概览 ——
 export const getAgentOptions = () => request.get<GetAgentOptionsResponse>('/agent/options')
@@ -248,12 +249,6 @@ export const listAgentSessionFiles = (id: string, dir: string) =>
   request.get<ListAgentSessionFilesResponse>(`/agent/sessions/${id}/files`, { params: { dir } })
 export const readAgentSessionFile = (id: string, path: string) =>
   request.get<ReadAgentSessionFileResponse>(`/agent/sessions/${id}/file`, { params: { path } })
-/** 消息里上传过的附件；data 在 JSON 里是 base64 字符串。 */
-export const getAgentSessionUpload = (id: string, file: string) =>
-  request.get<Omit<GetAgentSessionUploadResponse, 'data'> & { data: string }>(`/agent/sessions/${id}/upload`, { params: { file } })
-/** 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，不在或读不到时回空的。 */
-export const getAgentSessionLocalFile = (id: string, path: string) =>
-  request.get<Omit<GetAgentSessionUploadResponse, 'data'> & { data: string }>(`/agent/sessions/${id}/local`, { params: { path } })
 export const searchAgentFiles = (params: { sessionId?: string; workspaceId?: string; keyword?: string }) =>
   request.get<SearchAgentFilesResponse>('/agent/files/search', { params })
 
@@ -273,9 +268,13 @@ export const moveAgentFile = (scope: AgentFileScope, from: string, to: string) =
   request.post('/agent/files/move', { ...scope, from, to })
 export const deleteAgentFiles = (scope: AgentFileScope, paths: string[]) =>
   request.post('/agent/files/delete', { ...scope, paths })
-/** 原样读一个文件；data 在 JSON 里是 base64 字符串。 */
-export const getAgentFileRaw = (scope: AgentFileScope, path: string) =>
-  request.get<Omit<GetAgentSessionUploadResponse, 'data'> & { data: string }>('/agent/files/raw', { params: { ...scope, path } })
+/** 文件的签名下载链接（标准的 /api/v1/download/pre，原样字节）：paths 相对工作目录或者是绝对路径，
+ *  uploads 时相对会话的附件目录（消息附件、工具调用产出的图片）。和 paths 一一对应，取不到的为空。 */
+export const signAgentFiles = (scope: AgentFileScope, paths: string[], uploads = false) =>
+  request.get<SignAgentFilesResponse>('/agent/files/sign', { params: { ...scope, paths, uploads: uploads || undefined } })
+/** 上传一个文件（消息附件、技能压缩包）：标准的分片上传，传完按 uploadId 用 */
+export const preSignAgentUpload = (data: { fileName: string; fileSize: number; hash: string }) =>
+  request.post<PreSignAgentUploadResponse>('/agent/uploads/pre-sign', data)
 /** HTML 预览的签名：iframe 按 /api/v1/public/agent/preview/{节点}/{签名}/{相对路径} 把目录当静态站点加载 */
 export const getAgentPreviewToken = (scope: AgentFileScope) =>
   request.get<GetAgentPreviewTokenResponse>('/agent/files/preview-token', { params: scope })
@@ -345,8 +344,8 @@ export const updateAgentSkill = (id: string, data: Partial<UpdateAgentSkillReque
 export const deleteAgentSkill = (id: string) => request.delete(`/agent/skills/${id}`)
 export const setAgentSkillEnabled = (id: string, enabled: boolean) =>
   request.post(`/agent/skills/${id}/enabled`, { enabled })
-/** data 是 zip 的 base64（protobuf bytes 在 JSON 里的写法）。 */
-export const importAgentSkill = (data: Omit<Partial<ImportAgentSkillRequest>, 'data'> & { data?: string }) =>
+/** zip 时 uploadId 是传好的压缩包（preSignAgentUpload） */
+export const importAgentSkill = (data: Partial<ImportAgentSkillRequest>) =>
   request.post<ImportAgentSkillResponse>('/agent/skills/import', data, SLOW)
 
 /** 共享的第三方接口、MCP 服务器、技能的主人（不属于哪个人）；和后端 agentSharedOwner 一致 */

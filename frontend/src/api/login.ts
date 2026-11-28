@@ -53,8 +53,16 @@ export const getLoginConfig = (params: LoginConfigRequest = {}) => {
   return request.get<LoginConfigResponse>('/system/login-config', { params })
 }
 
-export const getLocalLoginConfig = () => {
-  return request.get<LoginConfigResponse>('/system/login-config', { localNode: true, silent: true })
+let publicLoginConfig: ReturnType<typeof fetchPublicLoginConfig> | null = null
+const fetchPublicLoginConfig = () =>
+  request.get<LoginConfigResponse>('/system/login-config', { localNode: true, silent: true })
+/** 公开的登录配置（站点名、注册开关、游戏资源地址）：启动时和登录页都要，一次页面加载只取一次。管理页改配置用 getLoginConfig */
+export const getPublicLoginConfig = () => {
+  publicLoginConfig ??= fetchPublicLoginConfig().catch((e) => {
+    publicLoginConfig = null
+    throw e
+  })
+  return publicLoginConfig
 }
 
 export const updateLoginConfig = (params: UpdateLoginConfigRequest) => {

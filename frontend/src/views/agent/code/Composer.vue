@@ -5,16 +5,33 @@
     <div ref="box" class="agc-box" :class="{ 'is-drop': dropping, 'is-narrow': narrow }">
       <div v-if="atts.length" class="agc-box__atts">
         <template v-for="(a, i) in atts" :key="i">
-          <span v-if="a.kind === 'image' && a.data" class="agc-thumbwrap">
-            <AttImage :name="a.name" :src="previews[i]" />
-            <button type="button" class="agc-thumbwrap__x" :aria-label="t('agent.code.composer.removeAtt', { name: a.name })" @click="atts.splice(i, 1)">
+          <span v-if="a.kind === 'image' && a.preview" class="agc-thumbwrap">
+            <AttImage :name="a.name" :src="a.preview" />
+            <span v-if="upState(a) !== 'done'" class="agc-thumbwrap__up ag-num" :class="{ 'is-bad': upState(a) === 'failed' }" :title="upError(a)">
+              <button v-if="upState(a) === 'failed'" type="button" :aria-label="t('agent.code.composer.retryUpload', { name: a.name })" @click="retryUpload(a)">
+                <UIcon name="i-lucide-rotate-cw" />
+              </button>
+              <template v-else>{{ upProgress(a) }}%</template>
+            </span>
+            <button type="button" class="agc-thumbwrap__x" :aria-label="t('agent.code.composer.removeAtt', { name: a.name })" @click="removeAtt(i)">
               <UIcon name="i-lucide-x" />
             </button>
           </span>
-          <span v-else class="agc-att" :title="a.text ? tipOf(a.text) : undefined">
+          <span v-else class="agc-att" :class="{ 'is-bad': upState(a) === 'failed' }" :title="a.text ? tipOf(a.text) : upError(a) || undefined">
             <UIcon :name="attIcon(a.kind)" />
             <span :class="{ 'ag-mono': a.kind !== 'image' && a.kind !== 'file' }">{{ a.name }}</span>
             <span v-if="a.kind === 'paste' && a.lines" class="ag-muted ag-num">{{ t('agent.code.composer.pastedLines', { n: a.lines }, a.lines) }}</span>
+            <span v-if="a.file && upState(a) === 'uploading'" class="ag-muted ag-num">{{ upProgress(a) }}%</span>
+            <button
+              v-if="upState(a) === 'failed'"
+              type="button"
+              class="agc-att__x"
+              :aria-label="t('agent.code.composer.retryUpload', { name: a.name })"
+              :title="t('agent.code.composer.retryUpload', { name: a.name })"
+              @click="retryUpload(a)"
+            >
+              <UIcon name="i-lucide-rotate-cw" />
+            </button>
             <button
               v-if="a.kind === 'paste' && a.text"
               type="button"
@@ -25,7 +42,7 @@
             >
               <UIcon name="i-lucide-text-cursor-input" />
             </button>
-            <button type="button" class="agc-att__x" :aria-label="t('agent.code.composer.removeAtt', { name: a.name })" @click="atts.splice(i, 1)">
+            <button type="button" class="agc-att__x" :aria-label="t('agent.code.composer.removeAtt', { name: a.name })" @click="removeAtt(i)">
               <UIcon name="i-lucide-x" />
             </button>
           </span>
@@ -279,7 +296,8 @@ import { type AgentAttachmentInput, searchAgentFiles } from '@/api/agent'
 import type { AgentModelOption, AgentProviderOptions, AgentRuntimeOptions } from '@/types/v1/agent'
 import AgAgentTag from '@/views/agent/components/AgAgentTag.vue'
 import AttImage from './AttImage.vue'
-import { AGENT_PATH_MIME, agentKindOf, bytesToBase64, fileToBase64, fmtTokens } from '@/views/agent/utils/format'
+import { AGENT_PATH_MIME, agentKindOf, fmtTokens } from '@/views/agent/utils/format'
+import { useAgentUploads } from '@/views/agent/utils/upload'
 import { modelLabel } from '@/views/agent/composables/useAgentModels'
 import { modeDesc, modeName, providerLabel } from '@/views/agent/utils/labels'
 import { composerDrafts } from './drafts'
@@ -303,6 +321,9 @@ export type DraftAttachment = AgentAttachmentInput & {
   name: string
   text?: string
   lines?: number
+  /** 图片、文件：选中的文件（按它找上传队列里的那一项）和图片的本地预览地址 */
+  file?: File
+  preview?: string
 }
 /** 一段选中的文字：path 相对会话目录，startLine / endLine 从 1 数 */
 export interface DraftSnippet {
@@ -394,7 +415,6 @@ watch(draftKey, (key, old) => {
 onMounted(() => restoreDraft(draftKey.value))
 onBeforeUnmount(() => saveDraft(draftKey.value))
 /** 图片附件的缩略图地址：只在附件变了时拼一次（内容可能有几 MB，别每次敲字都拼） */
-const previews = computed(() => atts.value.map((a) => (a.kind === 'image' && a.data ? `data:${a.mime || 'image/png'};base64,${a.data}` : '')))
 const sending = ref(false)
 const composing = ref(false)
 
@@ -682,6 +702,37 @@ const expandBuiltin = (text: string): { text: string; toast: string } | null => 
 }
 
 // —— 附件 ——
+// 图片、文件：选中就用标准的分片上传传进自己的暂存目录，发消息时只带 uploadId
+const uploads = useAgentUploads()
+const uploadOf = (a: DraftAttachment) => (a.file ? uploads.items.value.find((i) => i.file === a.file) : undefined)
+const upState = (a: DraftAttachment): 'none' | 'uploading' | 'done' | 'failed' => {
+  if (!a.file) return 'none'
+  const s = uploadOf(a)?.status
+  if (s === 'done') return 'done'
+  if (!s || s === 'failed' || s === 'canceled') return 'failed'
+  return 'uploading'
+}
+const upProgress = (a: DraftAttachment) => uploadOf(a)?.progress ?? 0
+const upError = (a: DraftAttachment) => (upState(a) === 'failed' ? uploadOf(a)?.error || t('agent.code.composer.uploadFailed') : '')
+const retryUpload = (a: DraftAttachment) => {
+  const item = uploadOf(a)
+  if (item) uploads.retry(item)
+  else if (a.file) uploads.addFiles([a.file])
+}
+/** 附件不要了：没传完的停掉，队列里的记录和本地预览一起去掉 */
+const forgetUpload = (a: DraftAttachment) => {
+  const item = uploadOf(a)
+  if (item) {
+    if (item.status !== 'done') void uploads.cancel(item)
+    uploads.removeItem(item.id)
+  }
+  if (a.preview) URL.revokeObjectURL(a.preview)
+}
+const removeAtt = (i: number) => {
+  const a = atts.value[i]
+  if (a) forgetUpload(a)
+  atts.value.splice(i, 1)
+}
 const pickFile = (kind: 'image' | 'file') => {
   pop.value = ''
   ;(kind === 'image' ? imageInput : fileInput).value?.click()
@@ -692,7 +743,9 @@ const addFiles = async (files: File[], kind?: 'image' | 'file') => {
       feedback.warning(t('agent.code.composer.tooLarge', { name: f.name }))
       continue
     }
-    atts.value.push({ kind: kind ?? (f.type.startsWith('image/') ? 'image' : 'file'), name: f.name, mime: f.type, data: await fileToBase64(f) })
+    const k = kind ?? (f.type.startsWith('image/') ? 'image' : 'file')
+    atts.value.push({ kind: k, name: f.name, mime: f.type, file: f, preview: k === 'image' ? URL.createObjectURL(f) : undefined })
+    uploads.addFiles([f])
   }
 }
 const onFiles = (e: Event, kind: 'image' | 'file') => {
@@ -782,7 +835,7 @@ const addSnippet = (sn: DraftSnippet) => {
     return
   }
   if (!atts.value.some((a) => a.kind === 'snippet' && a.name === name)) {
-    atts.value.push({ kind: 'snippet', name, path: sn.path, text: sn.text, data: bytesToBase64(bytes) })
+    atts.value.push({ kind: 'snippet', name, path: sn.path, text: sn.text })
   }
   void nextTick(() => input.value?.focus())
 }
@@ -818,7 +871,7 @@ const addPastedText = (text: string, lines: number) => {
     feedback.warning(t('agent.code.composer.tooLarge', { name }))
     return
   }
-  atts.value.push({ kind: 'paste', name, mime: 'text/plain', data: bytesToBase64(bytes), text, lines })
+  atts.value.push({ kind: 'paste', name, mime: 'text/plain', text, lines })
 }
 /** 截图之类粘贴出来的图片浏览器都叫 image.png：换成带编号的名字，几张图分得清 */
 const namePasted = (f: File) => {
@@ -866,7 +919,8 @@ const unpaste = (i: number) => {
 
 
 // —— 发送 ——
-const canSend = computed(() => !!draft.value.trim() || atts.value.length > 0)
+// 图片、文件要传完才能发
+const canSend = computed(() => (!!draft.value.trim() || atts.value.length > 0) && atts.value.every((a) => !a.file || upState(a) === 'done'))
 const showStop = computed(() => props.busy && !draft.value.trim() && !atts.value.length)
 const sendLabel = computed(() => {
   if (showStop.value) return t('agent.code.composer.stop')
@@ -888,13 +942,21 @@ const submit = async (mode?: SendMode) => {
   try {
     const ok = await props.onSend(
       text,
-      // text 只是页面上提示用的（选中的那段），发出去的是 data
-      atts.value.map((a) => ({ kind: a.kind, name: a.name, mime: a.mime, data: a.data, path: a.path })),
+      atts.value.map((a) => ({
+        kind: a.kind,
+        name: a.name,
+        mime: a.mime,
+        path: a.path,
+        text: a.kind === 'paste' || a.kind === 'snippet' ? a.text : undefined,
+        uploadId: a.file ? uploadOf(a)?.uploadId : undefined,
+      })),
       // 一轮还没结束：先排着，等这一轮结束再发，或者在排着的消息上点「立即发送」
       props.busy ? (mode ?? 'queue') : undefined,
     )
     if (ok) {
       draft.value = ''
+      // 传上去的文件已经被这条消息取走：队列里的记录、本地预览都不要了
+      for (const a of atts.value) forgetUpload(a)
       atts.value = []
       if (toast) feedback.success(toast)
     }

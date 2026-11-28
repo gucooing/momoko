@@ -81,25 +81,6 @@ export const fmtPercent = (part: number, whole: number): string => {
   return `${((part / whole) * 100).toFixed(1)}%`
 }
 
-/** 读文件成 base64（不带 data: 前缀），用来填 protobuf bytes 字段 */
-export const fileToBase64 = (file: Blob): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const s = String(reader.result || '')
-      resolve(s.slice(s.indexOf(',') + 1))
-    }
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-
-/** 字节转 base64（分段拼，大一点的内容也不会撑爆参数个数） */
-export const bytesToBase64 = (bytes: Uint8Array): string => {
-  let bin = ''
-  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
-  return btoa(bin)
-}
-
 /** 右侧「文件」里的文件拖到输入框时带的数据类型：内容是相对会话目录的路径 */
 export const AGENT_PATH_MIME = 'application/x-momoko-agent-path'
 

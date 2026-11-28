@@ -7,8 +7,6 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"mime"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -414,28 +412,21 @@ func Save(dir, name string, data []byte) (string, error) {
 	return full, nil
 }
 
-// ReadBlob 读 root 里的一个文件，连同按扩展名（认不出时按内容）判断的类型；超过 max 字节不读。
-func ReadBlob(root, rel string, max int64) ([]byte, string, error) {
-	full, err := SafeJoin(root, rel)
+// Adopt 把一个现成的文件挪进 dir：和 Save 一样放进一个新建的子目录，同名的不会冲突。返回挪过去的路径。
+func Adopt(dir, src string) (string, error) {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return "", err
+	}
+	sub, err := os.MkdirTemp(dir, "")
 	if err != nil {
-		return nil, "", err
+		return "", err
 	}
-	info, err := os.Stat(full)
-	if err != nil || info.IsDir() {
-		return nil, "", errors.New("文件不存在")
+	full := filepath.Join(sub, filepath.Base(src))
+	if err := Move(src, full); err != nil {
+		_ = os.RemoveAll(sub)
+		return "", err
 	}
-	if info.Size() > max {
-		return nil, "", errors.New("文件太大了")
-	}
-	raw, err := os.ReadFile(full)
-	if err != nil {
-		return nil, "", errors.New("读不了这个文件：" + err.Error())
-	}
-	kind := mime.TypeByExtension(filepath.Ext(full))
-	if kind == "" {
-		kind = http.DetectContentType(raw)
-	}
-	return raw, kind, nil
+	return full, nil
 }
 
 // Empty 目录不存在或里面没有东西。

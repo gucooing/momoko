@@ -148,6 +148,9 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   const menuTabs = computed<ProfileTabsMenuItem[]>(createMenuTabs)
 
   // ---- 站内消息（后端） ----
+  // 顶栏铃铛只要未读的：后端按 unreadOnly 在库里筛，轮询的也只是这个，全部和未读的数量随它一起回来。
+  // 消息中心按当前的「全部 / 未读」去后端取，不在页面上过滤。
+  const rawUnread = ref<UserMessage[]>([])
   const rawMessages = ref<UserMessage[]>([])
   const messagesTotal = ref(0)
   const serverUnread = ref(0)
@@ -159,6 +162,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   const activeMessageTab = ref<'all' | 'unread'>('all')
 
   /** 已按当前语言解析（computed，切换语言自动更新） */
+  const unreadMessages = computed<UserMessageItem[]>(() => rawUnread.value.map(resolveMessage))
   const userMessages = computed<UserMessageItem[]>(() => rawMessages.value.map(resolveMessage))
   const unreadCount = computed(() => serverUnread.value)
 
@@ -167,74 +171,106 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     { key: 'unread', labelKey: 'user.messages.unread', badge: unreadCount.value },
   ])
 
-  const messageList = computed(() => {
-    if (activeMessageTab.value === 'unread') {
-      return userMessages.value.filter((item) => !item.read)
-    }
-    return userMessages.value
-  })
+  /** 消息中心当前这一栏：已经是后端按「全部 / 未读」筛好的 */
+  const messageList = userMessages
 
+  const applyCounts = (data?: { allCount?: number | string; unreadCount?: number | string }) => {
+    messagesTotal.value = Number(data?.allCount || 0)
+    serverUnread.value = Number(data?.unreadCount || 0)
+  }
+
+  /** 铃铛：未读的 */
+  const refreshUnread = async () => {
+    if (!hasToken()) return
+    try {
+      const { data } = await listMessagesRequest({ page: 1, pageSize: MESSAGE_PAGE_SIZE, unreadOnly: true })
+      rawUnread.value = data?.messages || []
+      applyCounts(data)
+    } catch {
+      // 静默：轮询失败不打扰
+    }
+  }
+
+  /** 消息中心：当前这一栏 */
   const refreshMessages = async () => {
     if (!hasToken()) return
     messagesLoading.value = true
     try {
-      const { data } = await listMessagesRequest({ page: 1, pageSize: MESSAGE_PAGE_SIZE })
+      const { data } = await listMessagesRequest({
+        page: 1,
+        pageSize: MESSAGE_PAGE_SIZE,
+        unreadOnly: activeMessageTab.value === 'unread',
+      })
       rawMessages.value = data?.messages || []
-      messagesTotal.value = Number(data?.allCount || 0)
-      serverUnread.value = Number(data?.unreadCount || 0)
+      applyCounts(data)
       messagesLoaded.value = true
     } catch {
-      // 静默：轮询失败不打扰
+      /* 请求层已经提示过 */
     } finally {
       messagesLoading.value = false
     }
   }
+  watch(activeMessageTab, () => {
+    if (messagesLoaded.value) void refreshMessages()
+  })
+
+  /** 改完已读、删除之后：两份列表照着本地改，出错时重新拉 */
+  const resync = () => {
+    void refreshUnread()
+    if (messagesLoaded.value) void refreshMessages()
+  }
 
   const markAsRead = async (id: string) => {
-    const msg = rawMessages.value.find((m) => m.id === id)
-    if (!msg || msg.read) return
-    msg.read = true
+    if (!rawUnread.value.some((m) => m.id === id) && !rawMessages.value.some((m) => m.id === id && !m.read)) return
+    rawUnread.value = rawUnread.value.filter((m) => m.id !== id)
+    rawMessages.value =
+      activeMessageTab.value === 'unread'
+        ? rawMessages.value.filter((m) => m.id !== id)
+        : rawMessages.value.map((m) => (m.id === id ? { ...m, read: true } : m))
     serverUnread.value = Math.max(0, serverUnread.value - 1)
     try {
       const { data } = await readMessagesRequest({ ids: [id] })
       serverUnread.value = Number(data?.unreadCount || 0)
     } catch {
-      void refreshMessages()
+      resync()
     }
   }
 
   const markAllAsRead = async () => {
-    rawMessages.value.forEach((m) => (m.read = true))
+    rawUnread.value = []
+    rawMessages.value = activeMessageTab.value === 'unread' ? [] : rawMessages.value.map((m) => ({ ...m, read: true }))
     serverUnread.value = 0
     try {
       const { data } = await readMessagesRequest({ all: true })
       serverUnread.value = Number(data?.unreadCount || 0)
     } catch {
-      void refreshMessages()
+      resync()
     }
   }
 
   const deleteMessage = async (id: string) => {
-    const msg = rawMessages.value.find((m) => m.id === id)
+    const wasUnread = rawUnread.value.some((m) => m.id === id) || rawMessages.value.some((m) => m.id === id && !m.read)
+    rawUnread.value = rawUnread.value.filter((m) => m.id !== id)
     rawMessages.value = rawMessages.value.filter((m) => m.id !== id)
-    if (msg) messagesTotal.value = Math.max(0, messagesTotal.value - 1)
-    if (msg && !msg.read) serverUnread.value = Math.max(0, serverUnread.value - 1)
+    messagesTotal.value = Math.max(0, messagesTotal.value - 1)
+    if (wasUnread) serverUnread.value = Math.max(0, serverUnread.value - 1)
     try {
       const { data } = await deleteMessagesRequest({ ids: [id] })
       serverUnread.value = Number(data?.unreadCount || 0)
     } catch {
-      void refreshMessages()
+      resync()
     }
   }
 
   const deleteAllMessages = async () => {
+    rawUnread.value = []
     rawMessages.value = []
     messagesTotal.value = 0
     serverUnread.value = 0
     try {
       await deleteMessagesRequest({ all: true })
     } catch {
-      void refreshMessages()
+      resync()
     }
   }
 
@@ -251,7 +287,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
       messageDraft.value = ''
       messageDraftTitle.value = ''
       activeMessageTab.value = 'all'
-      await refreshMessages()
+      resync()
       return Number(data?.recipients || 0)
     } finally {
       publishing.value = false
@@ -262,7 +298,7 @@ export const useUserProfileStore = defineStore('user-profile', () => {
   const startPolling = () => {
     if (pollTimer || typeof window === 'undefined') return
     pollTimer = setInterval(() => {
-      if (document.visibilityState === 'visible') void refreshMessages()
+      if (document.visibilityState === 'visible') void refreshUnread()
     }, MESSAGE_POLL_MS)
   }
 
@@ -442,14 +478,15 @@ export const useUserProfileStore = defineStore('user-profile', () => {
     loginLogsStats.value = { success: 0, failed: 0 }
   }
 
-  // 顶栏通知会在登录后创建本 store：立即拉一次并开始轮询。
-  void refreshMessages()
+  // 顶栏通知会在登录后创建本 store：立即拉一次未读的并开始轮询。
+  void refreshUnread()
   startPolling()
 
   return {
     currentTab,
     menuTabs,
     userMessages,
+    unreadMessages,
     unreadCount,
     messagesTotal,
     messagesLoading,

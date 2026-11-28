@@ -59,14 +59,13 @@ const (
 	AgentService_InitAgentGitRepo_FullMethodName             = "/v1.AgentService/InitAgentGitRepo"
 	AgentService_ListAgentSessionFiles_FullMethodName        = "/v1.AgentService/ListAgentSessionFiles"
 	AgentService_ReadAgentSessionFile_FullMethodName         = "/v1.AgentService/ReadAgentSessionFile"
-	AgentService_GetAgentSessionUpload_FullMethodName        = "/v1.AgentService/GetAgentSessionUpload"
-	AgentService_GetAgentSessionLocalFile_FullMethodName     = "/v1.AgentService/GetAgentSessionLocalFile"
+	AgentService_SignAgentFiles_FullMethodName               = "/v1.AgentService/SignAgentFiles"
+	AgentService_PreSignAgentUpload_FullMethodName           = "/v1.AgentService/PreSignAgentUpload"
 	AgentService_SearchAgentFiles_FullMethodName             = "/v1.AgentService/SearchAgentFiles"
 	AgentService_SaveAgentFile_FullMethodName                = "/v1.AgentService/SaveAgentFile"
 	AgentService_CreateAgentDir_FullMethodName               = "/v1.AgentService/CreateAgentDir"
 	AgentService_MoveAgentFile_FullMethodName                = "/v1.AgentService/MoveAgentFile"
 	AgentService_DeleteAgentFiles_FullMethodName             = "/v1.AgentService/DeleteAgentFiles"
-	AgentService_GetAgentFileRaw_FullMethodName              = "/v1.AgentService/GetAgentFileRaw"
 	AgentService_GetAgentPreviewToken_FullMethodName         = "/v1.AgentService/GetAgentPreviewToken"
 	AgentService_ListAgentWorkspaces_FullMethodName          = "/v1.AgentService/ListAgentWorkspaces"
 	AgentService_CreateAgentWorkspace_FullMethodName         = "/v1.AgentService/CreateAgentWorkspace"
@@ -206,10 +205,11 @@ type AgentServiceClient interface {
 	ListAgentSessionFiles(ctx context.Context, in *ListAgentSessionFilesRequest, opts ...grpc.CallOption) (*ListAgentSessionFilesResponse, error)
 	// 打开文件（只读）
 	ReadAgentSessionFile(ctx context.Context, in *ReadAgentSessionFileRequest, opts ...grpc.CallOption) (*ReadAgentSessionFileResponse, error)
-	// 取回消息里上传过的附件（显示图片）
-	GetAgentSessionUpload(ctx context.Context, in *GetAgentSessionUploadRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error)
-	// 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
-	GetAgentSessionLocalFile(ctx context.Context, in *GetAgentSessionLocalFileRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error)
+	// 会话或工作区里文件的签名下载链接（标准的 /api/v1/download/pre，原样字节）：消息附件、工具调用产出的图片、
+	// 回复里引用的本机图片、文件页预览的文件都从这里取
+	SignAgentFiles(ctx context.Context, in *SignAgentFilesRequest, opts ...grpc.CallOption) (*SignAgentFilesResponse, error)
+	// 上传文件（消息附件、技能压缩包）：标准的分片上传，先传到自己的暂存目录，用的时候按 upload_id 取走
+	PreSignAgentUpload(ctx context.Context, in *PreSignAgentUploadRequest, opts ...grpc.CallOption) (*PreSignAgentUploadResponse, error)
 	// @ 引用文件：按文件名搜索会话目录（新会话还没有会话时按工作区搜）
 	SearchAgentFiles(ctx context.Context, in *SearchAgentFilesRequest, opts ...grpc.CallOption) (*SearchAgentFilesResponse, error)
 	// —— 文件树里的编辑：有会话按会话目录，新会话页还没有会话时按工作区（和 @ 搜索一样给 session_id 或 workspace_id）——
@@ -221,8 +221,6 @@ type AgentServiceClient interface {
 	MoveAgentFile(ctx context.Context, in *MoveAgentFileRequest, opts ...grpc.CallOption) (*MoveAgentFileResponse, error)
 	// 删除文件或文件夹（整个删掉，不进回收站）
 	DeleteAgentFiles(ctx context.Context, in *DeleteAgentFilesRequest, opts ...grpc.CallOption) (*DeleteAgentFilesResponse, error)
-	// 原样读一个文件（预览图片，Markdown 里用到的图片）
-	GetAgentFileRaw(ctx context.Context, in *GetAgentFileRawRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error)
 	// HTML 预览的签名：iframe 按 /api/v1/public/agent/preview/{节点}/{签名}/{相对路径} 把目录当静态站点加载
 	GetAgentPreviewToken(ctx context.Context, in *GetAgentPreviewTokenRequest, opts ...grpc.CallOption) (*GetAgentPreviewTokenResponse, error)
 	// —— 工作区 ——
@@ -269,7 +267,7 @@ type AgentServiceClient interface {
 	UpdateAgentSkill(ctx context.Context, in *UpdateAgentSkillRequest, opts ...grpc.CallOption) (*UpdateAgentSkillResponse, error)
 	DeleteAgentSkill(ctx context.Context, in *DeleteAgentSkillRequest, opts ...grpc.CallOption) (*DeleteAgentSkillResponse, error)
 	SetAgentSkillEnabled(ctx context.Context, in *SetAgentSkillEnabledRequest, opts ...grpc.CallOption) (*SetAgentSkillEnabledResponse, error)
-	// 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+	// 导入：上传的压缩包、压缩包链接、Git 地址、服务器上已有的目录
 	ImportAgentSkill(ctx context.Context, in *ImportAgentSkillRequest, opts ...grpc.CallOption) (*ImportAgentSkillResponse, error)
 	// Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
 	ListAgentUsers(ctx context.Context, in *ListAgentUsersRequest, opts ...grpc.CallOption) (*ListAgentUsersResponse, error)
@@ -719,20 +717,20 @@ func (c *agentServiceClient) ReadAgentSessionFile(ctx context.Context, in *ReadA
 	return out, nil
 }
 
-func (c *agentServiceClient) GetAgentSessionUpload(ctx context.Context, in *GetAgentSessionUploadRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error) {
+func (c *agentServiceClient) SignAgentFiles(ctx context.Context, in *SignAgentFilesRequest, opts ...grpc.CallOption) (*SignAgentFilesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAgentSessionUploadResponse)
-	err := c.cc.Invoke(ctx, AgentService_GetAgentSessionUpload_FullMethodName, in, out, cOpts...)
+	out := new(SignAgentFilesResponse)
+	err := c.cc.Invoke(ctx, AgentService_SignAgentFiles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentServiceClient) GetAgentSessionLocalFile(ctx context.Context, in *GetAgentSessionLocalFileRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error) {
+func (c *agentServiceClient) PreSignAgentUpload(ctx context.Context, in *PreSignAgentUploadRequest, opts ...grpc.CallOption) (*PreSignAgentUploadResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAgentSessionUploadResponse)
-	err := c.cc.Invoke(ctx, AgentService_GetAgentSessionLocalFile_FullMethodName, in, out, cOpts...)
+	out := new(PreSignAgentUploadResponse)
+	err := c.cc.Invoke(ctx, AgentService_PreSignAgentUpload_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -783,16 +781,6 @@ func (c *agentServiceClient) DeleteAgentFiles(ctx context.Context, in *DeleteAge
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteAgentFilesResponse)
 	err := c.cc.Invoke(ctx, AgentService_DeleteAgentFiles_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *agentServiceClient) GetAgentFileRaw(ctx context.Context, in *GetAgentFileRawRequest, opts ...grpc.CallOption) (*GetAgentSessionUploadResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAgentSessionUploadResponse)
-	err := c.cc.Invoke(ctx, AgentService_GetAgentFileRaw_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1386,10 +1374,11 @@ type AgentServiceServer interface {
 	ListAgentSessionFiles(context.Context, *ListAgentSessionFilesRequest) (*ListAgentSessionFilesResponse, error)
 	// 打开文件（只读）
 	ReadAgentSessionFile(context.Context, *ReadAgentSessionFileRequest) (*ReadAgentSessionFileResponse, error)
-	// 取回消息里上传过的附件（显示图片）
-	GetAgentSessionUpload(context.Context, *GetAgentSessionUploadRequest) (*GetAgentSessionUploadResponse, error)
-	// 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
-	GetAgentSessionLocalFile(context.Context, *GetAgentSessionLocalFileRequest) (*GetAgentSessionUploadResponse, error)
+	// 会话或工作区里文件的签名下载链接（标准的 /api/v1/download/pre，原样字节）：消息附件、工具调用产出的图片、
+	// 回复里引用的本机图片、文件页预览的文件都从这里取
+	SignAgentFiles(context.Context, *SignAgentFilesRequest) (*SignAgentFilesResponse, error)
+	// 上传文件（消息附件、技能压缩包）：标准的分片上传，先传到自己的暂存目录，用的时候按 upload_id 取走
+	PreSignAgentUpload(context.Context, *PreSignAgentUploadRequest) (*PreSignAgentUploadResponse, error)
 	// @ 引用文件：按文件名搜索会话目录（新会话还没有会话时按工作区搜）
 	SearchAgentFiles(context.Context, *SearchAgentFilesRequest) (*SearchAgentFilesResponse, error)
 	// —— 文件树里的编辑：有会话按会话目录，新会话页还没有会话时按工作区（和 @ 搜索一样给 session_id 或 workspace_id）——
@@ -1401,8 +1390,6 @@ type AgentServiceServer interface {
 	MoveAgentFile(context.Context, *MoveAgentFileRequest) (*MoveAgentFileResponse, error)
 	// 删除文件或文件夹（整个删掉，不进回收站）
 	DeleteAgentFiles(context.Context, *DeleteAgentFilesRequest) (*DeleteAgentFilesResponse, error)
-	// 原样读一个文件（预览图片，Markdown 里用到的图片）
-	GetAgentFileRaw(context.Context, *GetAgentFileRawRequest) (*GetAgentSessionUploadResponse, error)
 	// HTML 预览的签名：iframe 按 /api/v1/public/agent/preview/{节点}/{签名}/{相对路径} 把目录当静态站点加载
 	GetAgentPreviewToken(context.Context, *GetAgentPreviewTokenRequest) (*GetAgentPreviewTokenResponse, error)
 	// —— 工作区 ——
@@ -1449,7 +1436,7 @@ type AgentServiceServer interface {
 	UpdateAgentSkill(context.Context, *UpdateAgentSkillRequest) (*UpdateAgentSkillResponse, error)
 	DeleteAgentSkill(context.Context, *DeleteAgentSkillRequest) (*DeleteAgentSkillResponse, error)
 	SetAgentSkillEnabled(context.Context, *SetAgentSkillEnabledRequest) (*SetAgentSkillEnabledResponse, error)
-	// 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+	// 导入：上传的压缩包、压缩包链接、Git 地址、服务器上已有的目录
 	ImportAgentSkill(context.Context, *ImportAgentSkillRequest) (*ImportAgentSkillResponse, error)
 	// Agent 管理页给共享的 MCP、技能选人用：所有用户的名称（要有 agent:admin）
 	ListAgentUsers(context.Context, *ListAgentUsersRequest) (*ListAgentUsersResponse, error)
@@ -1619,11 +1606,11 @@ func (UnimplementedAgentServiceServer) ListAgentSessionFiles(context.Context, *L
 func (UnimplementedAgentServiceServer) ReadAgentSessionFile(context.Context, *ReadAgentSessionFileRequest) (*ReadAgentSessionFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReadAgentSessionFile not implemented")
 }
-func (UnimplementedAgentServiceServer) GetAgentSessionUpload(context.Context, *GetAgentSessionUploadRequest) (*GetAgentSessionUploadResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAgentSessionUpload not implemented")
+func (UnimplementedAgentServiceServer) SignAgentFiles(context.Context, *SignAgentFilesRequest) (*SignAgentFilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SignAgentFiles not implemented")
 }
-func (UnimplementedAgentServiceServer) GetAgentSessionLocalFile(context.Context, *GetAgentSessionLocalFileRequest) (*GetAgentSessionUploadResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAgentSessionLocalFile not implemented")
+func (UnimplementedAgentServiceServer) PreSignAgentUpload(context.Context, *PreSignAgentUploadRequest) (*PreSignAgentUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreSignAgentUpload not implemented")
 }
 func (UnimplementedAgentServiceServer) SearchAgentFiles(context.Context, *SearchAgentFilesRequest) (*SearchAgentFilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchAgentFiles not implemented")
@@ -1639,9 +1626,6 @@ func (UnimplementedAgentServiceServer) MoveAgentFile(context.Context, *MoveAgent
 }
 func (UnimplementedAgentServiceServer) DeleteAgentFiles(context.Context, *DeleteAgentFilesRequest) (*DeleteAgentFilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAgentFiles not implemented")
-}
-func (UnimplementedAgentServiceServer) GetAgentFileRaw(context.Context, *GetAgentFileRawRequest) (*GetAgentSessionUploadResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAgentFileRaw not implemented")
 }
 func (UnimplementedAgentServiceServer) GetAgentPreviewToken(context.Context, *GetAgentPreviewTokenRequest) (*GetAgentPreviewTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAgentPreviewToken not implemented")
@@ -2534,38 +2518,38 @@ func _AgentService_ReadAgentSessionFile_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentService_GetAgentSessionUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAgentSessionUploadRequest)
+func _AgentService_SignAgentFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignAgentFilesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentServiceServer).GetAgentSessionUpload(ctx, in)
+		return srv.(AgentServiceServer).SignAgentFiles(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AgentService_GetAgentSessionUpload_FullMethodName,
+		FullMethod: AgentService_SignAgentFiles_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).GetAgentSessionUpload(ctx, req.(*GetAgentSessionUploadRequest))
+		return srv.(AgentServiceServer).SignAgentFiles(ctx, req.(*SignAgentFilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentService_GetAgentSessionLocalFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAgentSessionLocalFileRequest)
+func _AgentService_PreSignAgentUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreSignAgentUploadRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentServiceServer).GetAgentSessionLocalFile(ctx, in)
+		return srv.(AgentServiceServer).PreSignAgentUpload(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AgentService_GetAgentSessionLocalFile_FullMethodName,
+		FullMethod: AgentService_PreSignAgentUpload_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).GetAgentSessionLocalFile(ctx, req.(*GetAgentSessionLocalFileRequest))
+		return srv.(AgentServiceServer).PreSignAgentUpload(ctx, req.(*PreSignAgentUploadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2656,24 +2640,6 @@ func _AgentService_DeleteAgentFiles_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AgentServiceServer).DeleteAgentFiles(ctx, req.(*DeleteAgentFilesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AgentService_GetAgentFileRaw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAgentFileRawRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AgentServiceServer).GetAgentFileRaw(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AgentService_GetAgentFileRaw_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).GetAgentFileRaw(ctx, req.(*GetAgentFileRawRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3746,12 +3712,12 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AgentService_ReadAgentSessionFile_Handler,
 		},
 		{
-			MethodName: "GetAgentSessionUpload",
-			Handler:    _AgentService_GetAgentSessionUpload_Handler,
+			MethodName: "SignAgentFiles",
+			Handler:    _AgentService_SignAgentFiles_Handler,
 		},
 		{
-			MethodName: "GetAgentSessionLocalFile",
-			Handler:    _AgentService_GetAgentSessionLocalFile_Handler,
+			MethodName: "PreSignAgentUpload",
+			Handler:    _AgentService_PreSignAgentUpload_Handler,
 		},
 		{
 			MethodName: "SearchAgentFiles",
@@ -3772,10 +3738,6 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAgentFiles",
 			Handler:    _AgentService_DeleteAgentFiles_Handler,
-		},
-		{
-			MethodName: "GetAgentFileRaw",
-			Handler:    _AgentService_GetAgentFileRaw_Handler,
 		},
 		{
 			MethodName: "GetAgentPreviewToken",

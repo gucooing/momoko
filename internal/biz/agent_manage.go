@@ -2247,7 +2247,18 @@ func (uc *AgentUsecase) ImportSkill(ctx context.Context, req *v1.ImportAgentSkil
 	}
 	switch req.Source {
 	case "zip":
-		if err := agentskillpkg.ExtractZip(bg, req.Data, root); err != nil {
+		// 是这个人自己传的：导入成共享的时 userID 已经换成了共享的主人
+		caller, err := agentUserID(ctx)
+		if err != nil {
+			return nil, err
+		}
+		zip, err := uc.takeUpload(ctx, caller, req.GetUploadId(), uc.dir("tmp"), agentskillpkg.MaxArchive)
+		if err != nil {
+			return nil, err
+		}
+		err = agentskillpkg.ExtractZip(bg, zip, root)
+		agentfs.RemoveAll(filepath.Dir(zip))
+		if err != nil {
 			return nil, agentErr(err)
 		}
 		source = agentskill.SourceZip

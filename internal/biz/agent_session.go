@@ -6,7 +6,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -299,19 +298,22 @@ func checkAttachments(root, text string, in []*v1.AgentAttachment) error {
 			if _, err := agentfs.SafeJoin(root, a.GetPath()); err != nil {
 				return agentErr(err)
 			}
-			if len(a.GetData()) == 0 {
+			if a.GetText() == "" {
 				return response.BadRequest("选中的内容是空的")
 			}
-			if len(a.GetData()) > agentSnippetMax {
+			if len(a.GetText()) > agentSnippetMax {
 				return response.BadRequest("选中的内容太多了，最多 256 KB")
 			}
-		case "image", "file", "paste":
-			name := filepath.Base(filepath.ToSlash(strings.TrimSpace(a.GetName())))
-			if len(a.GetData()) == 0 {
-				return response.BadRequest("附件 " + name + " 是空的")
+		case "paste":
+			if a.GetText() == "" {
+				return response.BadRequest("粘贴的内容是空的")
 			}
-			if len(a.GetData()) > agentUploadMax {
-				return response.BadRequest("附件 " + name + " 太大了")
+			if len(a.GetText()) > agentUploadMax {
+				return response.BadRequest("粘贴的内容太多了，最多 20 MB")
+			}
+		case "image", "file":
+			if a.GetUploadId() == "" {
+				return response.BadRequest("附件 " + a.GetName() + " 还没传完")
 			}
 		default:
 			return response.BadRequest("不认识的附件类型")
@@ -323,10 +325,14 @@ func checkAttachments(root, text string, in []*v1.AgentAttachment) error {
 	return nil
 }
 
-// saveUploads 把附件整理成交给引擎的样子。上传的附件都存进会话目录的 uploads/，事件里记下 File，
-// 页面凭它取回来显示；Agent 收图片时图片另外直接带内容，其它附件让 Agent 按路径自己去读。
+// saveUploads 把附件整理成交给引擎的样子。图片和文件是传好的（PreSignUpload），从暂存目录挪进会话目录的 uploads/，
+// 事件里记下 File，页面凭它拿签名链接显示；Agent 收图片时图片另外直接带内容，其它附件让 Agent 按路径自己去读。
 // paste（粘贴的一大段文字）只是给 Agent 读的，存进会话的临时目录 tmp/，不进 uploads/，页面也不取回。
-func (uc *AgentUsecase) saveUploads(sessionID, cwd string, caps agentrun.Caps, in []*v1.AgentAttachment) ([]agentrun.Upload, error) {
+func (uc *AgentUsecase) saveUploads(ctx context.Context, sessionID, cwd string, caps agentrun.Caps, in []*v1.AgentAttachment) ([]agentrun.Upload, error) {
+	userID, err := agentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	dir := uc.sessionDir(sessionID, "uploads")
 	out := make([]agentrun.Upload, 0, len(in))
 	for _, a := range in {
@@ -335,7 +341,7 @@ func (uc *AgentUsecase) saveUploads(sessionID, cwd string, caps agentrun.Caps, i
 			if name == "." || name == "/" || name == "" {
 				name = "pasted-text.txt"
 			}
-			path, err := agentfs.Save(uc.sessionDir(sessionID, "tmp"), name, a.GetData())
+			path, err := agentfs.Save(uc.sessionDir(sessionID, "tmp"), name, []byte(a.GetText()))
 			if err != nil {
 				return nil, response.BadRequest("保存粘贴的文字失败：" + err.Error())
 			}
@@ -353,17 +359,18 @@ func (uc *AgentUsecase) saveUploads(sessionID, cwd string, caps agentrun.Caps, i
 			if name == "" {
 				name = a.GetPath()
 			}
-			out = append(out, agentrun.Upload{Kind: "snippet", Name: name, Path: path, Text: string(a.GetData())})
+			out = append(out, agentrun.Upload{Kind: "snippet", Name: name, Path: path, Text: a.GetText()})
 			continue
 		}
-		name := filepath.Base(filepath.ToSlash(strings.TrimSpace(a.GetName())))
-		path, err := agentfs.Save(dir, name, a.GetData())
+		path, err := uc.takeUpload(ctx, userID, a.GetUploadId(), dir, agentUploadMax)
 		if err != nil {
-			return nil, response.BadRequest("保存附件失败：" + err.Error())
+			return nil, err
 		}
-		u := agentrun.Upload{Kind: a.GetKind(), Name: name, Mime: a.GetMime(), Path: path, File: agentfs.Rel(dir, path)}
+		u := agentrun.Upload{Kind: a.GetKind(), Name: filepath.Base(path), Mime: a.GetMime(), Path: path, File: agentfs.Rel(dir, path)}
 		if a.GetKind() == "image" && caps.Image {
-			u.Data = a.GetData()
+			if u.Data, err = os.ReadFile(path); err != nil {
+				return nil, response.BadRequest("读不了附件 " + u.Name + "：" + err.Error())
+			}
 		}
 		out = append(out, u)
 	}
@@ -476,7 +483,7 @@ func (uc *AgentUsecase) CreateSession(ctx context.Context, req *v1.CreateAgentSe
 		}
 		s.Cwd, s.Worktree = worktree.Path, worktree.Name
 	}
-	uploads, err := uc.saveUploads(s.ID, s.Cwd, agentParse[agentrun.Caps](rt.Caps), req.GetAttachments())
+	uploads, err := uc.saveUploads(ctx, s.ID, s.Cwd, agentParse[agentrun.Caps](rt.Caps), req.GetAttachments())
 	if err != nil {
 		cleanup()
 		return nil, err
@@ -515,7 +522,7 @@ func (uc *AgentUsecase) PromptSession(ctx context.Context, req *v1.PromptAgentSe
 		if err != nil {
 			return err
 		}
-		uploads, err := uc.saveUploads(s.ID, s.Cwd, l.session.Caps(), req.GetAttachments())
+		uploads, err := uc.saveUploads(ctx, s.ID, s.Cwd, l.session.Caps(), req.GetAttachments())
 		if err != nil {
 			return err
 		}
@@ -542,7 +549,7 @@ func (uc *AgentUsecase) PromptSession(ctx context.Context, req *v1.PromptAgentSe
 		}
 		return ErrSystem(err)
 	}
-	uploads, err := uc.saveUploads(started.ID, started.Cwd, agentParse[agentrun.Caps](rt.Caps), req.GetAttachments())
+	uploads, err := uc.saveUploads(ctx, started.ID, started.Cwd, agentParse[agentrun.Caps](rt.Caps), req.GetAttachments())
 	if err != nil {
 		_, _ = uc.updateSession(ctx, started.ID, func(u *gen.AgentSessionUpdateOne) { u.SetStatus(agentsession.StatusIdle) })
 		return err
@@ -1005,6 +1012,10 @@ func (uc *AgentUsecase) deleteSessions(ctx context.Context, rows []*gen.AgentSes
 	if err := uc.repo.DeleteAgentSessions(bg, ids); err != nil {
 		return 0, ErrSystem(err)
 	}
+	// 这些会话的通知（站内消息）一起删掉
+	if err := uc.messages.DeleteMessagesByRef(bg, ids); err != nil {
+		return 0, ErrSystem(err)
+	}
 	// 进程还占着目录时删不掉（Windows），等它们退出再删。
 	for _, l := range stopped {
 		l.session.Process().Wait(5 * time.Second)
@@ -1258,63 +1269,6 @@ func (uc *AgentUsecase) DeleteFiles(ctx context.Context, sessionID, workspaceID 
 		}
 	}
 	return nil
-}
-
-// ReadRaw 原样读一个文件：预览图片，以及 Markdown / HTML 预览里用到的图片和样式。
-func (uc *AgentUsecase) ReadRaw(ctx context.Context, sessionID, workspaceID, path string) (*v1.GetAgentSessionUploadResponse, error) {
-	root, err := uc.fileRoot(ctx, sessionID, workspaceID)
-	if err != nil {
-		return nil, err
-	}
-	// 预览里引用了不存在的图片很常见：不当错误（不然页面会一直弹提示），回空的
-	if full, err := agentfs.SafeJoin(root, path); err != nil || !agentfs.IsFile(full) {
-		return &v1.GetAgentSessionUploadResponse{}, nil
-	}
-	data, kind, err := agentfs.ReadBlob(root, path, agentUploadMax)
-	if err != nil {
-		return nil, agentErr(err)
-	}
-	return &v1.GetAgentSessionUploadResponse{Mime: kind, Data: data}, nil
-}
-
-// ReadLocalFile 回复里引用的一个本机文件（Agent 写的绝对路径；file:// 地址在 Windows 上的路径部分是 /C:/…，开头多一个 /）：
-// 在会话目录、工作目录或附加目录里才读，页面拿来显示图片。读不到、不在这些目录里都回空的，不当错误（不然页面会一直弹提示）。
-func (uc *AgentUsecase) ReadLocalFile(ctx context.Context, id, path string) (*v1.GetAgentSessionUploadResponse, error) {
-	s, err := uc.getSession(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	path = filepath.FromSlash(path)
-	if runtime.GOOS == "windows" && len(path) >= 3 && os.IsPathSeparator(path[0]) && path[2] == ':' {
-		path = path[1:]
-	}
-	if !filepath.IsAbs(path) {
-		return &v1.GetAgentSessionUploadResponse{}, nil
-	}
-	for _, root := range append([]string{uc.sessionDir(id), s.Cwd}, s.ExtraDirs...) {
-		rel, err := filepath.Rel(root, path)
-		if err != nil || filepath.IsAbs(rel) || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-			continue
-		}
-		data, kind, err := agentfs.ReadBlob(root, filepath.ToSlash(rel), agentUploadMax)
-		if err != nil {
-			return &v1.GetAgentSessionUploadResponse{}, nil
-		}
-		return &v1.GetAgentSessionUploadResponse{Mime: kind, Data: data}, nil
-	}
-	return &v1.GetAgentSessionUploadResponse{}, nil
-}
-
-// ReadUpload 取回会话附件目录里的一个文件（file 是事件里记的那个：消息的附件，或工具调用产出的图片），页面拿来显示图片。
-func (uc *AgentUsecase) ReadUpload(ctx context.Context, id, file string) (*v1.GetAgentSessionUploadResponse, error) {
-	if _, err := uc.getSession(ctx, id); err != nil {
-		return nil, err
-	}
-	data, kind, err := agentfs.ReadBlob(uc.sessionDir(id, "uploads"), file, agentUploadMax)
-	if err != nil {
-		return nil, agentErr(err)
-	}
-	return &v1.GetAgentSessionUploadResponse{Mime: kind, Data: data}, nil
 }
 
 // SearchFiles @ 引用文件时按文件名搜：有会话搜会话目录，新会话还没有会话时搜选中的工作区。

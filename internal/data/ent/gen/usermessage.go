@@ -37,6 +37,8 @@ type UserMessage struct {
 	Params map[string]string `json:"params,omitempty"`
 	// 发布者用户id（notice）
 	SenderID string `json:"sender_id,omitempty"`
+	// 关联的对象：Agent 的通知是会话 id，会话删掉时消息一起删
+	Ref string `json:"ref,omitempty"`
 	// 已读时间
 	ReadAt       *time.Time `json:"read_at,omitempty"`
 	selectValues sql.SelectValues
@@ -49,7 +51,7 @@ func (*UserMessage) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case usermessage.FieldParams:
 			values[i] = new([]byte)
-		case usermessage.FieldID, usermessage.FieldUserID, usermessage.FieldCategory, usermessage.FieldKind, usermessage.FieldTitle, usermessage.FieldContent, usermessage.FieldSenderID:
+		case usermessage.FieldID, usermessage.FieldUserID, usermessage.FieldCategory, usermessage.FieldKind, usermessage.FieldTitle, usermessage.FieldContent, usermessage.FieldSenderID, usermessage.FieldRef:
 			values[i] = new(sql.NullString)
 		case usermessage.FieldCreateTime, usermessage.FieldUpdateTime, usermessage.FieldReadAt:
 			values[i] = new(sql.NullTime)
@@ -130,6 +132,12 @@ func (_m *UserMessage) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SenderID = value.String
 			}
+		case usermessage.FieldRef:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ref", values[i])
+			} else if value.Valid {
+				_m.Ref = value.String
+			}
 		case usermessage.FieldReadAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field read_at", values[i])
@@ -199,6 +207,9 @@ func (_m *UserMessage) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("sender_id=")
 	builder.WriteString(_m.SenderID)
+	builder.WriteString(", ")
+	builder.WriteString("ref=")
+	builder.WriteString(_m.Ref)
 	builder.WriteString(", ")
 	if v := _m.ReadAt; v != nil {
 		builder.WriteString("read_at=")

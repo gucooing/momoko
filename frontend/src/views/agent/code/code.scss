@@ -714,6 +714,35 @@ div.agc-tt.is-on:not(:has(button)) {
   position: relative;
   display: inline-flex;
 }
+// 图片附件还在传：左下角显示进度，传失败换成重试
+.agc-thumbwrap__up {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 7px;
+  background: rgb(0 0 0 / 55%);
+  color: #fff;
+  font-size: 11px;
+}
+.agc-thumbwrap__up.is-bad {
+  background: var(--m-bad);
+}
+.agc-thumbwrap__up button {
+  display: inline-flex;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.agc-att.is-bad {
+  border-color: var(--m-bad);
+}
 .agc-thumbwrap__x {
   position: absolute;
   top: 5px;

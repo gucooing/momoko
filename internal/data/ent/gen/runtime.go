@@ -2774,6 +2774,10 @@ func init() {
 	usermessageDescSenderID := usermessageFields[7].Descriptor()
 	// usermessage.DefaultSenderID holds the default value on creation for the sender_id field.
 	usermessage.DefaultSenderID = usermessageDescSenderID.Default.(string)
+	// usermessageDescRef is the schema descriptor for ref field.
+	usermessageDescRef := usermessageFields[8].Descriptor()
+	// usermessage.DefaultRef holds the default value on creation for the ref field.
+	usermessage.DefaultRef = usermessageDescRef.Default.(string)
 	// usermessageDescID is the schema descriptor for id field.
 	usermessageDescID := usermessageFields[0].Descriptor()
 	// usermessage.IDValidator is a validator for the "id" field. It is called by the builders before save.

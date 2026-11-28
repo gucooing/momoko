@@ -404,6 +404,7 @@ func (uc *AgentUsecase) notify(sessionID, event, detail string, approval *agentA
 		Category: MessageCategoryNotice,
 		Kind:     kind,
 		Params:   map[string]string{"sessionId": s.ID, "title": s.Title, "detail": detail},
+		Ref:      s.ID,
 	}})
 
 	cfg, err := uc.loadNotify(ctx, s.UserID)

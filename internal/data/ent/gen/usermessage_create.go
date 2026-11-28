@@ -125,6 +125,20 @@ func (_c *UserMessageCreate) SetNillableSenderID(v *string) *UserMessageCreate {
 	return _c
 }
 
+// SetRef sets the "ref" field.
+func (_c *UserMessageCreate) SetRef(v string) *UserMessageCreate {
+	_c.mutation.SetRef(v)
+	return _c
+}
+
+// SetNillableRef sets the "ref" field if the given value is not nil.
+func (_c *UserMessageCreate) SetNillableRef(v *string) *UserMessageCreate {
+	if v != nil {
+		_c.SetRef(*v)
+	}
+	return _c
+}
+
 // SetReadAt sets the "read_at" field.
 func (_c *UserMessageCreate) SetReadAt(v time.Time) *UserMessageCreate {
 	_c.mutation.SetReadAt(v)
@@ -204,6 +218,10 @@ func (_c *UserMessageCreate) defaults() {
 		v := usermessage.DefaultSenderID
 		_c.mutation.SetSenderID(v)
 	}
+	if _, ok := _c.mutation.Ref(); !ok {
+		v := usermessage.DefaultRef
+		_c.mutation.SetRef(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -241,6 +259,9 @@ func (_c *UserMessageCreate) check() error {
 	}
 	if _, ok := _c.mutation.SenderID(); !ok {
 		return &ValidationError{Name: "sender_id", err: errors.New(`gen: missing required field "UserMessage.sender_id"`)}
+	}
+	if _, ok := _c.mutation.Ref(); !ok {
+		return &ValidationError{Name: "ref", err: errors.New(`gen: missing required field "UserMessage.ref"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := usermessage.IDValidator(v); err != nil {
@@ -318,6 +339,10 @@ func (_c *UserMessageCreate) createSpec() (*UserMessage, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SenderID(); ok {
 		_spec.SetField(usermessage.FieldSenderID, field.TypeString, value)
 		_node.SenderID = value
+	}
+	if value, ok := _c.mutation.Ref(); ok {
+		_spec.SetField(usermessage.FieldRef, field.TypeString, value)
+		_node.Ref = value
 	}
 	if value, ok := _c.mutation.ReadAt(); ok {
 		_spec.SetField(usermessage.FieldReadAt, field.TypeTime, value)
@@ -474,6 +499,18 @@ func (u *UserMessageUpsert) SetSenderID(v string) *UserMessageUpsert {
 // UpdateSenderID sets the "sender_id" field to the value that was provided on create.
 func (u *UserMessageUpsert) UpdateSenderID() *UserMessageUpsert {
 	u.SetExcluded(usermessage.FieldSenderID)
+	return u
+}
+
+// SetRef sets the "ref" field.
+func (u *UserMessageUpsert) SetRef(v string) *UserMessageUpsert {
+	u.Set(usermessage.FieldRef, v)
+	return u
+}
+
+// UpdateRef sets the "ref" field to the value that was provided on create.
+func (u *UserMessageUpsert) UpdateRef() *UserMessageUpsert {
+	u.SetExcluded(usermessage.FieldRef)
 	return u
 }
 
@@ -662,6 +699,20 @@ func (u *UserMessageUpsertOne) SetSenderID(v string) *UserMessageUpsertOne {
 func (u *UserMessageUpsertOne) UpdateSenderID() *UserMessageUpsertOne {
 	return u.Update(func(s *UserMessageUpsert) {
 		s.UpdateSenderID()
+	})
+}
+
+// SetRef sets the "ref" field.
+func (u *UserMessageUpsertOne) SetRef(v string) *UserMessageUpsertOne {
+	return u.Update(func(s *UserMessageUpsert) {
+		s.SetRef(v)
+	})
+}
+
+// UpdateRef sets the "ref" field to the value that was provided on create.
+func (u *UserMessageUpsertOne) UpdateRef() *UserMessageUpsertOne {
+	return u.Update(func(s *UserMessageUpsert) {
+		s.UpdateRef()
 	})
 }
 
@@ -1020,6 +1071,20 @@ func (u *UserMessageUpsertBulk) SetSenderID(v string) *UserMessageUpsertBulk {
 func (u *UserMessageUpsertBulk) UpdateSenderID() *UserMessageUpsertBulk {
 	return u.Update(func(s *UserMessageUpsert) {
 		s.UpdateSenderID()
+	})
+}
+
+// SetRef sets the "ref" field.
+func (u *UserMessageUpsertBulk) SetRef(v string) *UserMessageUpsertBulk {
+	return u.Update(func(s *UserMessageUpsert) {
+		s.SetRef(v)
+	})
+}
+
+// UpdateRef sets the "ref" field to the value that was provided on create.
+func (u *UserMessageUpsertBulk) UpdateRef() *UserMessageUpsertBulk {
+	return u.Update(func(s *UserMessageUpsert) {
+		s.UpdateRef()
 	})
 }
 

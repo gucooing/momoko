@@ -19,6 +19,8 @@ NProgress.configure({
 
 // 动态路由的名称列表
 const dynamicRouteNames = ref<string[]>([])
+// 查到过已经初始化好了就不再查：没登录时每次跳转（比如先到要登录的页面、再跳去登录页）都会走到这里
+let initialized = false
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.VITE_STATIC_URL || '/'),
@@ -39,13 +41,16 @@ router.beforeEach(async (to) => {
   // 未登录：先检查初始化状态
   if (!token) {
     if (to.path === '/initialize') return true
-    try {
-      const { data } = await getInitializeStatus()
-      if (data && !data.initialized) {
-        return { path: '/initialize', replace: true }
+    if (!initialized) {
+      try {
+        const { data } = await getInitializeStatus()
+        if (data && !data.initialized) {
+          return { path: '/initialize', replace: true }
+        }
+        initialized = !!data?.initialized
+      } catch {
+        // 接口不可用时忽略，走正常登录流程
       }
-    } catch {
-      // 接口不可用时忽略，走正常登录流程
     }
     if (to.path !== '/login') return buildLoginRoute(to.fullPath)
     return true

@@ -62,10 +62,9 @@ import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const userProfileStore = useUserProfileStore()
-const { unreadCount, userMessages } = storeToRefs(userProfileStore)
+const { unreadCount, unreadMessages: unreadMessageList } = storeToRefs(userProfileStore)
 const { t } = useI18n()
 
-const unreadMessageList = computed(() => userMessages.value.filter((msg) => !msg.read))
 
 // Agent 会话的消息点开直接进到那个会话
 const openMessage = (message: (typeof unreadMessageList.value)[number], close: () => void) => {

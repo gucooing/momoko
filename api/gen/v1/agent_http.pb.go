@@ -47,7 +47,6 @@ const OperationAgentServiceFetchAgentProviderModels = "/v1.AgentService/FetchAge
 const OperationAgentServiceForkAgentSession = "/v1.AgentService/ForkAgentSession"
 const OperationAgentServiceGenerateAgentGitMessage = "/v1.AgentService/GenerateAgentGitMessage"
 const OperationAgentServiceGetAgentDocs = "/v1.AgentService/GetAgentDocs"
-const OperationAgentServiceGetAgentFileRaw = "/v1.AgentService/GetAgentFileRaw"
 const OperationAgentServiceGetAgentGitCommit = "/v1.AgentService/GetAgentGitCommit"
 const OperationAgentServiceGetAgentGitDiff = "/v1.AgentService/GetAgentGitDiff"
 const OperationAgentServiceGetAgentGitStatus = "/v1.AgentService/GetAgentGitStatus"
@@ -58,9 +57,7 @@ const OperationAgentServiceGetAgentPreviewToken = "/v1.AgentService/GetAgentPrev
 const OperationAgentServiceGetAgentProviderBalance = "/v1.AgentService/GetAgentProviderBalance"
 const OperationAgentServiceGetAgentRuntimeModelLevels = "/v1.AgentService/GetAgentRuntimeModelLevels"
 const OperationAgentServiceGetAgentSession = "/v1.AgentService/GetAgentSession"
-const OperationAgentServiceGetAgentSessionLocalFile = "/v1.AgentService/GetAgentSessionLocalFile"
 const OperationAgentServiceGetAgentSessionProcess = "/v1.AgentService/GetAgentSessionProcess"
-const OperationAgentServiceGetAgentSessionUpload = "/v1.AgentService/GetAgentSessionUpload"
 const OperationAgentServiceGetAgentSidebar = "/v1.AgentService/GetAgentSidebar"
 const OperationAgentServiceGetAgentSkill = "/v1.AgentService/GetAgentSkill"
 const OperationAgentServiceImportAgentMcpServers = "/v1.AgentService/ImportAgentMcpServers"
@@ -80,6 +77,7 @@ const OperationAgentServiceListAgentSkills = "/v1.AgentService/ListAgentSkills"
 const OperationAgentServiceListAgentUsers = "/v1.AgentService/ListAgentUsers"
 const OperationAgentServiceListAgentWorkspaces = "/v1.AgentService/ListAgentWorkspaces"
 const OperationAgentServiceMoveAgentFile = "/v1.AgentService/MoveAgentFile"
+const OperationAgentServicePreSignAgentUpload = "/v1.AgentService/PreSignAgentUpload"
 const OperationAgentServicePromptAgentSession = "/v1.AgentService/PromptAgentSession"
 const OperationAgentServicePurgeAgentSessions = "/v1.AgentService/PurgeAgentSessions"
 const OperationAgentServiceReadAgentSessionFile = "/v1.AgentService/ReadAgentSessionFile"
@@ -99,6 +97,7 @@ const OperationAgentServiceSetAgentRuntimeModels = "/v1.AgentService/SetAgentRun
 const OperationAgentServiceSetAgentRuntimeProxy = "/v1.AgentService/SetAgentRuntimeProxy"
 const OperationAgentServiceSetAgentSessionOption = "/v1.AgentService/SetAgentSessionOption"
 const OperationAgentServiceSetAgentSkillEnabled = "/v1.AgentService/SetAgentSkillEnabled"
+const OperationAgentServiceSignAgentFiles = "/v1.AgentService/SignAgentFiles"
 const OperationAgentServiceStopAgentSessionItem = "/v1.AgentService/StopAgentSessionItem"
 const OperationAgentServiceSyncAgentGit = "/v1.AgentService/SyncAgentGit"
 const OperationAgentServiceTestAgentMcpServer = "/v1.AgentService/TestAgentMcpServer"
@@ -167,8 +166,6 @@ type AgentServiceHTTPServer interface {
 	GenerateAgentGitMessage(context.Context, *GenerateAgentGitMessageRequest) (*GenerateAgentGitMessageResponse, error)
 	// GetAgentDocs 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
 	GetAgentDocs(context.Context, *GetAgentDocsRequest) (*GetAgentDocsResponse, error)
-	// GetAgentFileRaw 原样读一个文件（预览图片，Markdown 里用到的图片）
-	GetAgentFileRaw(context.Context, *GetAgentFileRawRequest) (*GetAgentSessionUploadResponse, error)
 	// GetAgentGitCommit 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
 	GetAgentGitCommit(context.Context, *GetAgentGitCommitRequest) (*GetAgentGitCommitResponse, error)
 	// GetAgentGitDiff 一个文件的 diff：工作区的、暂存区的、冲突的、某次提交里的、某个储藏里的；head 是整个仓库相对 HEAD 的补丁（复制用）
@@ -191,19 +188,15 @@ type AgentServiceHTTPServer interface {
 	// GetAgentRuntimeModelLevels 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
 	GetAgentRuntimeModelLevels(context.Context, *GetAgentRuntimeModelLevelsRequest) (*GetAgentRuntimeModelLevelsResponse, error)
 	GetAgentSession(context.Context, *GetAgentSessionRequest) (*GetAgentSessionResponse, error)
-	// GetAgentSessionLocalFile 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
-	GetAgentSessionLocalFile(context.Context, *GetAgentSessionLocalFileRequest) (*GetAgentSessionUploadResponse, error)
 	// GetAgentSessionProcess 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
 	GetAgentSessionProcess(context.Context, *GetAgentSessionProcessRequest) (*GetAgentSessionProcessResponse, error)
-	// GetAgentSessionUpload 取回消息里上传过的附件（显示图片）
-	GetAgentSessionUpload(context.Context, *GetAgentSessionUploadRequest) (*GetAgentSessionUploadResponse, error)
 	// GetAgentSidebar —— 会话 ——
 	// 会话栏：我的未归档会话，按工作区分层
 	GetAgentSidebar(context.Context, *GetAgentSidebarRequest) (*GetAgentSidebarResponse, error)
 	GetAgentSkill(context.Context, *GetAgentSkillRequest) (*GetAgentSkillResponse, error)
 	// ImportAgentMcpServers 粘贴 mcpServers JSON 导入
 	ImportAgentMcpServers(context.Context, *ImportAgentMcpServersRequest) (*ImportAgentMcpServersResponse, error)
-	// ImportAgentSkill 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+	// ImportAgentSkill 导入：上传的压缩包、压缩包链接、Git 地址、服务器上已有的目录
 	ImportAgentSkill(context.Context, *ImportAgentSkillRequest) (*ImportAgentSkillResponse, error)
 	// InitAgentGitRepo 在会话目录（或它下面的某个目录）初始化仓库
 	InitAgentGitRepo(context.Context, *InitAgentGitRepoRequest) (*InitAgentGitRepoResponse, error)
@@ -234,6 +227,8 @@ type AgentServiceHTTPServer interface {
 	ListAgentWorkspaces(context.Context, *ListAgentWorkspacesRequest) (*ListAgentWorkspacesResponse, error)
 	// MoveAgentFile 改名或挪到另一个文件夹
 	MoveAgentFile(context.Context, *MoveAgentFileRequest) (*MoveAgentFileResponse, error)
+	// PreSignAgentUpload 上传文件（消息附件、技能压缩包）：标准的分片上传，先传到自己的暂存目录，用的时候按 upload_id 取走
+	PreSignAgentUpload(context.Context, *PreSignAgentUploadRequest) (*PreSignAgentUploadResponse, error)
 	// PromptAgentSession 发一条消息，开始新的一轮；立刻返回，后续靠 WebSocket
 	PromptAgentSession(context.Context, *PromptAgentSessionRequest) (*PromptAgentSessionResponse, error)
 	// PurgeAgentSessions 删除全部归档会话
@@ -270,6 +265,9 @@ type AgentServiceHTTPServer interface {
 	// SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 	SetAgentSessionOption(context.Context, *SetAgentSessionOptionRequest) (*SetAgentSessionOptionResponse, error)
 	SetAgentSkillEnabled(context.Context, *SetAgentSkillEnabledRequest) (*SetAgentSkillEnabledResponse, error)
+	// SignAgentFiles 会话或工作区里文件的签名下载链接（标准的 /api/v1/download/pre，原样字节）：消息附件、工具调用产出的图片、
+	// 回复里引用的本机图片、文件页预览的文件都从这里取
+	SignAgentFiles(context.Context, *SignAgentFilesRequest) (*SignAgentFilesResponse, error)
 	// StopAgentSessionItem 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
 	StopAgentSessionItem(context.Context, *StopAgentSessionItemRequest) (*StopAgentSessionItemResponse, error)
 	// SyncAgentGit 获取、拉取、推送
@@ -346,14 +344,13 @@ func RegisterAgentServiceHTTPServer(s *http.Server, srv AgentServiceHTTPServer) 
 	r.POST("/api/v1/agent/sessions/{id}/git/init", _AgentService_InitAgentGitRepo0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/sessions/{id}/files", _AgentService_ListAgentSessionFiles0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/sessions/{id}/file", _AgentService_ReadAgentSessionFile0_HTTP_Handler(srv))
-	r.GET("/api/v1/agent/sessions/{id}/upload", _AgentService_GetAgentSessionUpload0_HTTP_Handler(srv))
-	r.GET("/api/v1/agent/sessions/{id}/local", _AgentService_GetAgentSessionLocalFile0_HTTP_Handler(srv))
+	r.GET("/api/v1/agent/files/sign", _AgentService_SignAgentFiles0_HTTP_Handler(srv))
+	r.POST("/api/v1/agent/uploads/pre-sign", _AgentService_PreSignAgentUpload0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/files/search", _AgentService_SearchAgentFiles0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/files/save", _AgentService_SaveAgentFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/files/mkdir", _AgentService_CreateAgentDir0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/files/move", _AgentService_MoveAgentFile0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/files/delete", _AgentService_DeleteAgentFiles0_HTTP_Handler(srv))
-	r.GET("/api/v1/agent/files/raw", _AgentService_GetAgentFileRaw0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/files/preview-token", _AgentService_GetAgentPreviewToken0_HTTP_Handler(srv))
 	r.GET("/api/v1/agent/workspaces", _AgentService_ListAgentWorkspaces0_HTTP_Handler(srv))
 	r.POST("/api/v1/agent/workspaces", _AgentService_CreateAgentWorkspace0_HTTP_Handler(srv))
@@ -1334,46 +1331,43 @@ func _AgentService_ReadAgentSessionFile0_HTTP_Handler(srv AgentServiceHTTPServer
 	}
 }
 
-func _AgentService_GetAgentSessionUpload0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+func _AgentService_SignAgentFiles0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetAgentSessionUploadRequest
+		var in SignAgentFilesRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAgentServiceGetAgentSessionUpload)
+		http.SetOperation(ctx, OperationAgentServiceSignAgentFiles)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetAgentSessionUpload(ctx, req.(*GetAgentSessionUploadRequest))
+			return srv.SignAgentFiles(ctx, req.(*SignAgentFilesRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*GetAgentSessionUploadResponse)
+		reply := out.(*SignAgentFilesResponse)
 		return ctx.Result(200, reply)
 	}
 }
 
-func _AgentService_GetAgentSessionLocalFile0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
+func _AgentService_PreSignAgentUpload0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in GetAgentSessionLocalFileRequest
+		var in PreSignAgentUploadRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAgentServiceGetAgentSessionLocalFile)
+		http.SetOperation(ctx, OperationAgentServicePreSignAgentUpload)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetAgentSessionLocalFile(ctx, req.(*GetAgentSessionLocalFileRequest))
+			return srv.PreSignAgentUpload(ctx, req.(*PreSignAgentUploadRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*GetAgentSessionUploadResponse)
+		reply := out.(*PreSignAgentUploadResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1481,25 +1475,6 @@ func _AgentService_DeleteAgentFiles0_HTTP_Handler(srv AgentServiceHTTPServer) fu
 			return err
 		}
 		reply := out.(*DeleteAgentFilesResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _AgentService_GetAgentFileRaw0_HTTP_Handler(srv AgentServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetAgentFileRawRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAgentServiceGetAgentFileRaw)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetAgentFileRaw(ctx, req.(*GetAgentFileRawRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetAgentSessionUploadResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -2653,8 +2628,6 @@ type AgentServiceHTTPClient interface {
 	GenerateAgentGitMessage(ctx context.Context, req *GenerateAgentGitMessageRequest, opts ...http.CallOption) (rsp *GenerateAgentGitMessageResponse, err error)
 	// GetAgentDocs 项目指令文件（AGENTS.md / CLAUDE.md）；按目录读，新建工作区时目录还没有记录
 	GetAgentDocs(ctx context.Context, req *GetAgentDocsRequest, opts ...http.CallOption) (rsp *GetAgentDocsResponse, err error)
-	// GetAgentFileRaw 原样读一个文件（预览图片，Markdown 里用到的图片）
-	GetAgentFileRaw(ctx context.Context, req *GetAgentFileRawRequest, opts ...http.CallOption) (rsp *GetAgentSessionUploadResponse, err error)
 	// GetAgentGitCommit 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
 	GetAgentGitCommit(ctx context.Context, req *GetAgentGitCommitRequest, opts ...http.CallOption) (rsp *GetAgentGitCommitResponse, err error)
 	// GetAgentGitDiff 一个文件的 diff：工作区的、暂存区的、冲突的、某次提交里的、某个储藏里的；head 是整个仓库相对 HEAD 的补丁（复制用）
@@ -2677,19 +2650,15 @@ type AgentServiceHTTPClient interface {
 	// GetAgentRuntimeModelLevels 服务器上的登录：开一个会话切到这个模型，读 Agent 给它的推理等级（不保存，页面填进表单）
 	GetAgentRuntimeModelLevels(ctx context.Context, req *GetAgentRuntimeModelLevelsRequest, opts ...http.CallOption) (rsp *GetAgentRuntimeModelLevelsResponse, err error)
 	GetAgentSession(ctx context.Context, req *GetAgentSessionRequest, opts ...http.CallOption) (rsp *GetAgentSessionResponse, err error)
-	// GetAgentSessionLocalFile 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
-	GetAgentSessionLocalFile(ctx context.Context, req *GetAgentSessionLocalFileRequest, opts ...http.CallOption) (rsp *GetAgentSessionUploadResponse, err error)
 	// GetAgentSessionProcess 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
 	GetAgentSessionProcess(ctx context.Context, req *GetAgentSessionProcessRequest, opts ...http.CallOption) (rsp *GetAgentSessionProcessResponse, err error)
-	// GetAgentSessionUpload 取回消息里上传过的附件（显示图片）
-	GetAgentSessionUpload(ctx context.Context, req *GetAgentSessionUploadRequest, opts ...http.CallOption) (rsp *GetAgentSessionUploadResponse, err error)
 	// GetAgentSidebar —— 会话 ——
 	// 会话栏：我的未归档会话，按工作区分层
 	GetAgentSidebar(ctx context.Context, req *GetAgentSidebarRequest, opts ...http.CallOption) (rsp *GetAgentSidebarResponse, err error)
 	GetAgentSkill(ctx context.Context, req *GetAgentSkillRequest, opts ...http.CallOption) (rsp *GetAgentSkillResponse, err error)
 	// ImportAgentMcpServers 粘贴 mcpServers JSON 导入
 	ImportAgentMcpServers(ctx context.Context, req *ImportAgentMcpServersRequest, opts ...http.CallOption) (rsp *ImportAgentMcpServersResponse, err error)
-	// ImportAgentSkill 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+	// ImportAgentSkill 导入：上传的压缩包、压缩包链接、Git 地址、服务器上已有的目录
 	ImportAgentSkill(ctx context.Context, req *ImportAgentSkillRequest, opts ...http.CallOption) (rsp *ImportAgentSkillResponse, err error)
 	// InitAgentGitRepo 在会话目录（或它下面的某个目录）初始化仓库
 	InitAgentGitRepo(ctx context.Context, req *InitAgentGitRepoRequest, opts ...http.CallOption) (rsp *InitAgentGitRepoResponse, err error)
@@ -2720,6 +2689,8 @@ type AgentServiceHTTPClient interface {
 	ListAgentWorkspaces(ctx context.Context, req *ListAgentWorkspacesRequest, opts ...http.CallOption) (rsp *ListAgentWorkspacesResponse, err error)
 	// MoveAgentFile 改名或挪到另一个文件夹
 	MoveAgentFile(ctx context.Context, req *MoveAgentFileRequest, opts ...http.CallOption) (rsp *MoveAgentFileResponse, err error)
+	// PreSignAgentUpload 上传文件（消息附件、技能压缩包）：标准的分片上传，先传到自己的暂存目录，用的时候按 upload_id 取走
+	PreSignAgentUpload(ctx context.Context, req *PreSignAgentUploadRequest, opts ...http.CallOption) (rsp *PreSignAgentUploadResponse, err error)
 	// PromptAgentSession 发一条消息，开始新的一轮；立刻返回，后续靠 WebSocket
 	PromptAgentSession(ctx context.Context, req *PromptAgentSessionRequest, opts ...http.CallOption) (rsp *PromptAgentSessionResponse, err error)
 	// PurgeAgentSessions 删除全部归档会话
@@ -2756,6 +2727,9 @@ type AgentServiceHTTPClient interface {
 	// SetAgentSessionOption 切换权限模式 / 模型 / 推理强度
 	SetAgentSessionOption(ctx context.Context, req *SetAgentSessionOptionRequest, opts ...http.CallOption) (rsp *SetAgentSessionOptionResponse, err error)
 	SetAgentSkillEnabled(ctx context.Context, req *SetAgentSkillEnabledRequest, opts ...http.CallOption) (rsp *SetAgentSkillEnabledResponse, err error)
+	// SignAgentFiles 会话或工作区里文件的签名下载链接（标准的 /api/v1/download/pre，原样字节）：消息附件、工具调用产出的图片、
+	// 回复里引用的本机图片、文件页预览的文件都从这里取
+	SignAgentFiles(ctx context.Context, req *SignAgentFilesRequest, opts ...http.CallOption) (rsp *SignAgentFilesResponse, err error)
 	// StopAgentSessionItem 只停一项（ACP v2，它声明了能单独停时）：一个工具调用，或者一个子 Agent
 	StopAgentSessionItem(ctx context.Context, req *StopAgentSessionItemRequest, opts ...http.CallOption) (rsp *StopAgentSessionItemResponse, err error)
 	// SyncAgentGit 获取、拉取、推送
@@ -3182,20 +3156,6 @@ func (c *AgentServiceHTTPClientImpl) GetAgentDocs(ctx context.Context, in *GetAg
 	return &out, nil
 }
 
-// GetAgentFileRaw 原样读一个文件（预览图片，Markdown 里用到的图片）
-func (c *AgentServiceHTTPClientImpl) GetAgentFileRaw(ctx context.Context, in *GetAgentFileRawRequest, opts ...http.CallOption) (*GetAgentSessionUploadResponse, error) {
-	var out GetAgentSessionUploadResponse
-	pattern := "/api/v1/agent/files/raw"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAgentServiceGetAgentFileRaw))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // GetAgentGitCommit 一个提交（或储藏）的详情：完整说明、作者、改了哪些文件
 func (c *AgentServiceHTTPClientImpl) GetAgentGitCommit(ctx context.Context, in *GetAgentGitCommitRequest, opts ...http.CallOption) (*GetAgentGitCommitResponse, error) {
 	var out GetAgentGitCommitResponse
@@ -3338,40 +3298,12 @@ func (c *AgentServiceHTTPClientImpl) GetAgentSession(ctx context.Context, in *Ge
 	return &out, nil
 }
 
-// GetAgentSessionLocalFile 回复里引用的本机文件（Agent 写的绝对路径）：在会话目录、工作目录或附加目录里才给，页面拿来显示图片
-func (c *AgentServiceHTTPClientImpl) GetAgentSessionLocalFile(ctx context.Context, in *GetAgentSessionLocalFileRequest, opts ...http.CallOption) (*GetAgentSessionUploadResponse, error) {
-	var out GetAgentSessionUploadResponse
-	pattern := "/api/v1/agent/sessions/{id}/local"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAgentServiceGetAgentSessionLocalFile))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // GetAgentSessionProcess 会话的 Agent 进程（命令、进程号、内存、已运行），展开看时才读
 func (c *AgentServiceHTTPClientImpl) GetAgentSessionProcess(ctx context.Context, in *GetAgentSessionProcessRequest, opts ...http.CallOption) (*GetAgentSessionProcessResponse, error) {
 	var out GetAgentSessionProcessResponse
 	pattern := "/api/v1/agent/sessions/{id}/process"
 	path := binding.EncodeURL(pattern, in, true)
 	opts = append(opts, http.Operation(OperationAgentServiceGetAgentSessionProcess))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetAgentSessionUpload 取回消息里上传过的附件（显示图片）
-func (c *AgentServiceHTTPClientImpl) GetAgentSessionUpload(ctx context.Context, in *GetAgentSessionUploadRequest, opts ...http.CallOption) (*GetAgentSessionUploadResponse, error) {
-	var out GetAgentSessionUploadResponse
-	pattern := "/api/v1/agent/sessions/{id}/upload"
-	path := binding.EncodeURL(pattern, in, true)
-	opts = append(opts, http.Operation(OperationAgentServiceGetAgentSessionUpload))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
@@ -3422,7 +3354,7 @@ func (c *AgentServiceHTTPClientImpl) ImportAgentMcpServers(ctx context.Context, 
 	return &out, nil
 }
 
-// ImportAgentSkill 导入：压缩包（zip 内容）、Git 地址、服务器上已有的目录
+// ImportAgentSkill 导入：上传的压缩包、压缩包链接、Git 地址、服务器上已有的目录
 func (c *AgentServiceHTTPClientImpl) ImportAgentSkill(ctx context.Context, in *ImportAgentSkillRequest, opts ...http.CallOption) (*ImportAgentSkillResponse, error) {
 	var out ImportAgentSkillResponse
 	pattern := "/api/v1/agent/skills/import"
@@ -3637,6 +3569,20 @@ func (c *AgentServiceHTTPClientImpl) MoveAgentFile(ctx context.Context, in *Move
 	pattern := "/api/v1/agent/files/move"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationAgentServiceMoveAgentFile))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PreSignAgentUpload 上传文件（消息附件、技能压缩包）：标准的分片上传，先传到自己的暂存目录，用的时候按 upload_id 取走
+func (c *AgentServiceHTTPClientImpl) PreSignAgentUpload(ctx context.Context, in *PreSignAgentUploadRequest, opts ...http.CallOption) (*PreSignAgentUploadResponse, error) {
+	var out PreSignAgentUploadResponse
+	pattern := "/api/v1/agent/uploads/pre-sign"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationAgentServicePreSignAgentUpload))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
@@ -3903,6 +3849,21 @@ func (c *AgentServiceHTTPClientImpl) SetAgentSkillEnabled(ctx context.Context, i
 	opts = append(opts, http.Operation(OperationAgentServiceSetAgentSkillEnabled))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SignAgentFiles 会话或工作区里文件的签名下载链接（标准的 /api/v1/download/pre，原样字节）：消息附件、工具调用产出的图片、
+// 回复里引用的本机图片、文件页预览的文件都从这里取
+func (c *AgentServiceHTTPClientImpl) SignAgentFiles(ctx context.Context, in *SignAgentFilesRequest, opts ...http.CallOption) (*SignAgentFilesResponse, error) {
+	var out SignAgentFilesResponse
+	pattern := "/api/v1/agent/files/sign"
+	path := binding.EncodeURL(pattern, in, true)
+	opts = append(opts, http.Operation(OperationAgentServiceSignAgentFiles))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

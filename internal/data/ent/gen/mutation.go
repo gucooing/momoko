@@ -60395,6 +60395,7 @@ type UserMessageMutation struct {
 	content       *string
 	params        *map[string]string
 	sender_id     *string
+	ref           *string
 	read_at       *time.Time
 	clearedFields map[string]struct{}
 	done          bool
@@ -60843,6 +60844,42 @@ func (m *UserMessageMutation) ResetSenderID() {
 	m.sender_id = nil
 }
 
+// SetRef sets the "ref" field.
+func (m *UserMessageMutation) SetRef(s string) {
+	m.ref = &s
+}
+
+// Ref returns the value of the "ref" field in the mutation.
+func (m *UserMessageMutation) Ref() (r string, exists bool) {
+	v := m.ref
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRef returns the old "ref" field's value of the UserMessage entity.
+// If the UserMessage object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMessageMutation) OldRef(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRef is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRef requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRef: %w", err)
+	}
+	return oldValue.Ref, nil
+}
+
+// ResetRef resets all changes to the "ref" field.
+func (m *UserMessageMutation) ResetRef() {
+	m.ref = nil
+}
+
 // SetReadAt sets the "read_at" field.
 func (m *UserMessageMutation) SetReadAt(t time.Time) {
 	m.read_at = &t
@@ -60926,7 +60963,7 @@ func (m *UserMessageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMessageMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.create_time != nil {
 		fields = append(fields, usermessage.FieldCreateTime)
 	}
@@ -60953,6 +60990,9 @@ func (m *UserMessageMutation) Fields() []string {
 	}
 	if m.sender_id != nil {
 		fields = append(fields, usermessage.FieldSenderID)
+	}
+	if m.ref != nil {
+		fields = append(fields, usermessage.FieldRef)
 	}
 	if m.read_at != nil {
 		fields = append(fields, usermessage.FieldReadAt)
@@ -60983,6 +61023,8 @@ func (m *UserMessageMutation) Field(name string) (ent.Value, bool) {
 		return m.Params()
 	case usermessage.FieldSenderID:
 		return m.SenderID()
+	case usermessage.FieldRef:
+		return m.Ref()
 	case usermessage.FieldReadAt:
 		return m.ReadAt()
 	}
@@ -61012,6 +61054,8 @@ func (m *UserMessageMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldParams(ctx)
 	case usermessage.FieldSenderID:
 		return m.OldSenderID(ctx)
+	case usermessage.FieldRef:
+		return m.OldRef(ctx)
 	case usermessage.FieldReadAt:
 		return m.OldReadAt(ctx)
 	}
@@ -61085,6 +61129,13 @@ func (m *UserMessageMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSenderID(v)
+		return nil
+	case usermessage.FieldRef:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRef(v)
 		return nil
 	case usermessage.FieldReadAt:
 		v, ok := value.(time.Time)
@@ -61183,6 +61234,9 @@ func (m *UserMessageMutation) ResetField(name string) error {
 		return nil
 	case usermessage.FieldSenderID:
 		m.ResetSenderID()
+		return nil
+	case usermessage.FieldRef:
+		m.ResetRef()
 		return nil
 	case usermessage.FieldReadAt:
 		m.ResetReadAt()

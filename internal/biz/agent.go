@@ -206,9 +206,11 @@ type AgentUsecase struct {
 	repo     AgentRepo
 	config   ConfigRepo
 	messages MessageRepo
-	system   *SystemUsecase
-	box      *secretbox.Box
-	log      *log.Helper
+	// uploads 上传记录（标准的分片上传）：页面传上来的附件、技能压缩包按 upload_id 从这里取
+	uploads FileRepo
+	system  *SystemUsecase
+	box     *secretbox.Box
+	log     *log.Helper
 
 	// root Agent 文件根目录的绝对路径。
 	root string
@@ -231,7 +233,7 @@ type AgentUsecase struct {
 }
 
 // NewAgentUsecase 建好就能用；进程池的回收、Telegram 的轮询都是有事可做时才起，不在这里开协程。
-func NewAgentUsecase(repo AgentRepo, config ConfigRepo, authRepo AuthRepo, system *SystemUsecase, logger log.Logger) (*AgentUsecase, func()) {
+func NewAgentUsecase(repo AgentRepo, config ConfigRepo, authRepo AuthRepo, files FileRepo, system *SystemUsecase, logger log.Logger) (*AgentUsecase, func()) {
 	root, err := filepath.Abs(agentDataDir)
 	if err != nil {
 		root = agentDataDir
@@ -240,6 +242,7 @@ func NewAgentUsecase(repo AgentRepo, config ConfigRepo, authRepo AuthRepo, syste
 		repo:       repo,
 		config:     config,
 		messages:   authRepo,
+		uploads:    files,
 		system:     system,
 		box:        secretbox.New(auth.AuthSecretKey),
 		log:        log.NewHelper(log.With(logger, "module", "agent")),
